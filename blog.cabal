@@ -15,6 +15,10 @@ build-type:          Simple
 cabal-version:       >=1.8
 
 executable blog
-  -- main-is:             
+  main-is:             Main.hs
+  hs-source-dirs:      src src/blog
   -- other-modules:       
   build-depends:       base ==4.5.*
+                     , scotty
+  -- ghc-options:         
+  extensions:          OverloadedStrings
