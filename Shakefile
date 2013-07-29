@@ -1,18 +1,24 @@
-{-# OPTIONS_GHC -fno-warn-wrong-do-bind #-}
-
 import Development.Shake
-import Control.Applicative ((<$>))
 
 opts = shakeOptions { shakeFiles    = ".shake/"
                     , shakeProgress = progressSimple }
+
+(~>) = phony
 
 main :: IO ()
 main = shakeArgs opts $ do
   want ["dist/build/blog/blog"]
 
+  "clean" ~> removeFilesAfter ".shake" ["//*"]
+
+  "launch" ~> do
+    need ["dist/build/blog/blog"]
+    system' "blog" []
+
   "dist/build/blog/blog" *> \_ -> do
-    need <$> srcFiles
+    fs <- srcFiles
+    need fs
     cmd "cabal" ["install"]
 
 srcFiles :: Action [FilePath]
-srcFiles = getDirectoryFiles "./" ["src/*.hs","src/blog/*.hs"]
+srcFiles = getDirectoryFiles "" ["src/*.hs","src/Web/Blog/*.hs"]
