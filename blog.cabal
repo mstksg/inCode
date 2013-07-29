@@ -18,6 +18,11 @@ executable blog
   main-is:             Main.hs
   hs-source-dirs:      src 
   build-depends:       base ==4.5.*
-                     , scotty
+                     , scotty ==0.4.*
+                     , persistent ==1.2.*
+                     , persistent-template ==1.2.*
+                     , persistent-sqlite ==1.2.*
+                     , time ==1.4.*
+                     , text ==0.11.*
   -- ghc-options:         
   extensions:          OverloadedStrings
