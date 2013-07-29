@@ -16,8 +16,10 @@ import Data.Time
 import Data.Text
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
+
 Entry
     title       String
+    description String
     content     Text
     createdAt   UTCTime
     postTime    UTCTime
@@ -30,4 +32,5 @@ EntryTag
     entryId          EntryId
     tagId            TagId
     UniqueEntryTag   entryId   tagId
+
 |]
