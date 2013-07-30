@@ -7,11 +7,12 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving   #-} 
 {-# LANGUAGE EmptyDataDecls               #-} 
 
-module Web.Blog.Models (migrateAll) where
+-- module Web.Blog.Models (Entry, Tag, migrateAll) where
+module Web.Blog.Models  where
 
-import Database.Persist
+-- import Database.Persist
 -- import Database.Persist.Sqlite
-import Database.Persist.Postgresql
+-- import Database.Persist.Postgresql
 import Database.Persist.TH
 import Data.Time
 import Data.Text
