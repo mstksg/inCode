@@ -24,6 +24,7 @@ executable blog
                      , persistent-postgresql ==1.2.*
                      , time ==1.4.*
                      , text ==0.11.*
+                     , blaze-html
   -- ghc-options:         
   extensions:          OverloadedStrings
 
@@ -49,7 +50,7 @@ executable blog-scripts-seed
                      , persistent-postgresql ==1.2.*
                      , transformers
                      , HTTP ==4000.2.*
-                     , pandoc
-                     , split
-                     , random
+                     , pandoc ==1.11.*
+                     , split ==0.2.*
+                     , random ==1.0.*
   extensions:          OverloadedStrings
