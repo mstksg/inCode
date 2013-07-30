@@ -10,7 +10,8 @@
 module Web.Blog.Models (migrateAll) where
 
 import Database.Persist
-import Database.Persist.Sqlite
+-- import Database.Persist.Sqlite
+import Database.Persist.Postgresql
 import Database.Persist.TH
 import Data.Time
 import Data.Text

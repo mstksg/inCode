@@ -21,7 +21,7 @@ executable blog
                      , scotty ==0.4.*
                      , persistent ==1.2.*
                      , persistent-template ==1.2.*
-                     , persistent-sqlite ==1.2.*
+                     , persistent-postgresql ==1.2.*
                      , time ==1.4.*
                      , text ==0.11.*
   -- ghc-options:         
@@ -35,6 +35,5 @@ executable blog-scripts-migrate
                      , time ==1.4.*
                      , persistent ==1.2.*
                      , persistent-template ==1.2.*
-                     , persistent-sqlite ==1.2.*
+                     , persistent-postgresql ==1.2.*
   extensions:          OverloadedStrings
-
