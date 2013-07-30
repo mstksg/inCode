@@ -7,7 +7,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving   #-} 
 {-# LANGUAGE EmptyDataDecls               #-} 
 
-module Web.Blog.Models () where
+module Web.Blog.Models (migrateAll) where
 
 import Database.Persist
 import Database.Persist.Sqlite
@@ -26,11 +26,13 @@ Entry
     deriving    Show
 
 Tag
-    label String
+    label       String
+    deriving    Show
 
 EntryTag
     entryId          EntryId
     tagId            TagId
     UniqueEntryTag   entryId   tagId
+    deriving         Show
 
 |]

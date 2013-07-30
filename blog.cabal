@@ -26,3 +26,15 @@ executable blog
                      , text ==0.11.*
   -- ghc-options:         
   extensions:          OverloadedStrings
+
+executable blog-scripts-migrate
+  main-is:             scripts/Migrate.hs
+  hs-source-dirs:      src
+  build-depends:       base ==4.5.*
+                     , text ==0.11.*
+                     , time ==1.4.*
+                     , persistent ==1.2.*
+                     , persistent-template ==1.2.*
+                     , persistent-sqlite ==1.2.*
+  extensions:          OverloadedStrings
+

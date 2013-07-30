@@ -7,18 +7,38 @@ opts = shakeOptions { shakeFiles    = ".shake/"
 
 main :: IO ()
 main = shakeArgs opts $ do
-  want ["dist/build/blog/blog"]
+  want ["build"]
 
   "clean" ~> removeFilesAfter ".shake" ["//*"]
 
+  "build" ~> do
+    need [ "dist/build/blog/blog" ]
+
   "launch" ~> do
-    need ["dist/build/blog/blog"]
+    need ["build"]
     system' "blog" []
+
+  "migrate" ~> do
+    need ["dist/build/blog-scripts-migrate/blog-scripts-migrate"]
+    cmd "blog-scripts-migrate"
+
+  "view-src" ~> do
+    fs <- srcFiles
+    liftIO $ print fs
 
   "dist/build/blog/blog" *> \_ -> do
     fs <- srcFiles
     need fs
     cmd "cabal" ["install"]
 
+  "dist/build/blog-scripts-migrate/blog-scripts-migrate" *> \_ -> do
+    need ["build"]
+    return ()
+
 srcFiles :: Action [FilePath]
-srcFiles = getDirectoryFiles "" ["src/*.hs","src/Web/Blog/*.hs"]
+srcFiles = getDirectoryFiles ""
+  [ "blog.cabal"
+  , "src/*.hs"
+  , "src/Web/Blog/*.hs"
+  , "src/Development/Blog/*.hs"
+  , "src/Development/Blog/Util/*.hs" ]
