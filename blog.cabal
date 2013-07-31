@@ -24,7 +24,11 @@ executable blog
                      , persistent-postgresql ==1.2.*
                      , time ==1.4.*
                      , text ==0.11.*
-                     , blaze-html
+                     , blaze-html ==0.6.*
+                     , wai-extra ==1.3.*
+                     , wai-middleware-static ==0.3.*
+                     , mtl
+                     , containers
   -- ghc-options:         
   extensions:          OverloadedStrings
 
