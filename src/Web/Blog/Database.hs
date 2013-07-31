@@ -13,7 +13,7 @@ connStr :: ConnectionString
 connStr =
     "host=localhost dbname=test_blog user=blog-test password=blog-testblog-test port=4432"
 
-runDB :: SqlPersistM () -> IO ()
+runDB :: SqlPersistM a -> IO a
 runDB commands = withPostgresqlPool connStr 10 $ \pool ->
   runSqlPersistMPool commands pool
 

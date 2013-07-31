@@ -31,6 +31,7 @@ Entry
 
 Tag
     label       T.Text
+    UniqueLabel label
     deriving    Show
 
 EntryTag
