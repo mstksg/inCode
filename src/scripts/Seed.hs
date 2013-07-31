@@ -18,6 +18,7 @@ import System.Random
 import Control.Monad
 import Data.Bits
 import System.IO
+import Data.Maybe
 
 main :: IO ()
 main = runDB $ do
@@ -25,8 +26,9 @@ main = runDB $ do
   blogClear
 
   tagId1 <- insert $ Tag "Random"
-  tagId2 <- insert $ Tag "Cool Stuff"
-  tagId3 <- insert $ Tag "Okay Stuff"
+  tagId2 <- insert $ Tag "Cool"
+  tagId3 <- insert $ Tag "Okay"
+  tagId4 <- insert $ Tag "Interesting"
 
   replicateM_ 25 $ do
     (entry,tags) <- liftIO genEntry
@@ -41,10 +43,32 @@ main = runDB $ do
     when (tags .&. (4 :: Int) > 0) $ do
       insert $ EntryTag entryid tagId3
       return ()
+    when (tags .&. (8 :: Int) > 0) $ do
+      insert $ EntryTag entryid tagId4
+      return ()
+    
+    tagAssociations <- selectList [EntryTagEntryId ==. entryid] []
+
+    let
+      tagKeys = map (entryTagTagId . entityVal) tagAssociations
+
+    tags' <- map (tagLabel . fromJust) <$> mapM get tagKeys
+
+    -- tagKeys <- map (entityVal <$>) tagAssociations
+    -- tagKeys <- map (entryTagEntryId <$> entityVal) 
+
+    -- tag <- get tagKey
+    -- let
+    --   tagVals = entityVal <$> (tagIds :: [Entity Tag])
+    
+    -- tagName <- get (head tagVals)
+
+    -- tagNames <- head tagIds
 
     liftIO $ do
       putStrLn "Created new entry:"
       putStrLn (entryTitle entry)
+      print tags'
       hFlush stdout
 
 
@@ -65,7 +89,7 @@ genEntry = do
     (postDiff, gen'') = randomR (100,604800) gen'
     createTime = addUTCTime (fromIntegral createDiff) now
     postTime = addUTCTime (fromIntegral postDiff) createTime
-    (tags, _) = randomR (0,7) gen''
+    (tags, _) = randomR (1,15) gen''
 
   -- let
   --   dayNow = utctDay now
@@ -75,14 +99,15 @@ genEntry = do
     -- (postTime, _)       = genUTCTime gen 2
 
 
-  title <- (last . splitOn ". " . unwords . lines)
+  title <- (init . last . splitOn ". " . unwords . lines)
       <$> genLoripsum "http://loripsum.net/api/1/short"
 
 
   desc <- (unwords . tail . splitOn ". " . unwords . lines)
       <$> genLoripsum "http://loripsum.net/api/1/short"
 
-  body <- genLoripsum "http://loripsum.net/api/7/code/bq/ul/ol/dl/link/long/decorate/headers"
+  body <- (unlines . tail . tail . tail . lines)
+      <$> genLoripsum "http://loripsum.net/api/7/code/bq/ul/ol/dl/link/long/decorate/headers"
 
   return (
     ( Entry
