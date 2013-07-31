@@ -16,6 +16,6 @@ routes siteData = do
     html "Hello World!"
 
   get "/entry/:entryId" $
-    htmlRenderAction (viewLayout viewEntry) $
+    siteRenderAction (viewLayout viewEntry) $
       pageData' { pageDataTitle = Just "Entry" }
 

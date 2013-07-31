@@ -11,7 +11,7 @@ import Text.Blaze.Html5 ((!))
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 
-viewEntry :: HtmlRender
+viewEntry :: SiteRender H.Html
 viewEntry = return $ H.docTypeHtml $
   H.div $ do
     H.div $ do
