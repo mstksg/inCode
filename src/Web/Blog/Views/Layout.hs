@@ -2,32 +2,30 @@
 
 module Web.Blog.Views.Layout (viewLayout) where
 
-import Data.Monoid
-import Data.Maybe
 import Control.Monad.Reader
-import qualified Web.Scotty as S
-
+import Data.Monoid
 import Text.Blaze.Html5 ((!))
+import Web.Blog.Render
+import Web.Blog.SiteData
+
+import qualified Data.Text as T
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
-
-import Data.Text as T
-
-import Web.Blog.Render
 
 viewLayout :: HtmlRender -> HtmlRender
 viewLayout body = do
   pageData' <- ask
   bodyHtml <- body
+  renderedTitle <- renderTitle
 
   -- agent <- lift $ S.reqHeader "User-Agent"
 
   return $ H.docTypeHtml $ do
 
     H.head $ do
-      H.title (H.toHtml (fromMaybe "Blog" (pageTitle pageData')))
+      H.title (renderedTitle)
       H.meta ! A.httpEquiv "Content-Type" ! A.content "text/html;charset=utf-8"
-      sequence_ (pageHeaders pageData')
+      sequence_ (pageDataHeaders pageData')
 
     H.body $ do
 
@@ -43,3 +41,17 @@ viewLayout body = do
         H.div ! A.id "footer_content" $
           "© Justin Le 2013"
 
+renderTitle :: HtmlRender
+renderTitle = do
+  pageData' <- ask
+  let
+    siteTitle = siteDataTitle $ pageSiteData $ pageData'
+    pageTitle = pageDataTitle $ pageData'
+    combined   = case pageTitle of
+      Just title -> T.concat [siteTitle, " - ", title]
+      Nothing    -> siteTitle
+  return $ H.toHtml combined
+    
+
+
+  

@@ -4,19 +4,18 @@ module Web.Blog.Routes (routes) where
 
 import Web.Scotty
 import Web.Blog.Views
--- import Text.Blaze.Html.Renderer.Text
 import Web.Blog.Render
+import Web.Blog.SiteData (SiteData)
 -- import Data.Monoid
 
-routes :: ScottyM ()
-routes = do
+routes :: SiteData -> ScottyM ()
+routes siteData = do
+  let pageData' = pageData siteData
+  
   get "/" $ 
-
     html "Hello World!"
 
   get "/entry/:entryId" $
-    
     htmlRenderAction (viewLayout viewEntry) $
-      pageData { pageTitle = Just "Entry" }
-
+      pageData' { pageDataTitle = Just "Entry" }
 

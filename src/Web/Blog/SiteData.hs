@@ -1,12 +1,16 @@
 module Web.Blog.SiteData (
     SiteData
-  , siteTitle
+  , siteDataTitle
+  , siteData
 
   ) where
 
 import Data.Text
 
 data SiteData = SiteData
-                { siteTitle :: Text
+                { siteDataTitle :: Text
                 }
+
+siteData :: SiteData
+siteData = SiteData "Blog"
 
