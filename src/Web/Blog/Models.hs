@@ -15,20 +15,22 @@ module Web.Blog.Models  where
 -- import Database.Persist.Postgresql
 import Database.Persist.TH
 import Data.Time
-import Data.Text
+import qualified Data.Text as T
+import Data.Char
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 
 Entry
-    title       String
-    description String
-    content     Text
+    title       T.Text
+    description T.Text
+    slug        T.Text
+    content     T.Text
     createdAt   UTCTime
-    postTime    UTCTime
+    postedAt    UTCTime
     deriving    Show
 
 Tag
-    label       String
+    label       T.Text
     deriving    Show
 
 EntryTag
@@ -38,3 +40,21 @@ EntryTag
     deriving         Show
 
 |]
+
+genSlug :: Int -> T.Text -> T.Text
+genSlug w = squash . T.dropAround isDash . T.map replaceSymbols . T.toCaseFold
+  where
+    isDash = (==) '-'
+    replaceSymbols s =
+      if isAlphaNum s
+        then
+          s
+        else
+          '-'
+    squash = T.intercalate "-" . take w . filter (not . T.null) . T.split isDash
+
+buildEntry :: T.Text -> T.Text -> T.Text -> UTCTime -> UTCTime -> Entry
+buildEntry t d = Entry t d s 
+  where
+    s = genSlug 5 t
+

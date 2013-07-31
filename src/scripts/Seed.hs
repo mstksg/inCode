@@ -54,20 +54,9 @@ main = runDB $ do
 
     tags' <- map (tagLabel . fromJust) <$> mapM get tagKeys
 
-    -- tagKeys <- map (entityVal <$>) tagAssociations
-    -- tagKeys <- map (entryTagEntryId <$> entityVal) 
-
-    -- tag <- get tagKey
-    -- let
-    --   tagVals = entityVal <$> (tagIds :: [Entity Tag])
-    
-    -- tagName <- get (head tagVals)
-
-    -- tagNames <- head tagIds
-
     liftIO $ do
       putStrLn "Created new entry:"
-      putStrLn (entryTitle entry)
+      print $ entryTitle entry
       print tags'
       hFlush stdout
 
@@ -91,14 +80,6 @@ genEntry = do
     postTime = addUTCTime (fromIntegral postDiff) createTime
     (tags, _) = randomR (1,15) gen''
 
-  -- let
-  --   dayNow = utctDay now
-  --   dayStart = addDays -100 dayNow
-  --   dayEnd = addDays -2 dayNow
-  --   (creationTime,gen') = genUTCTime gen dayStart dayEnd
-    -- (postTime, _)       = genUTCTime gen 2
-
-
   title <- (init . last . splitOn ". " . unwords . lines)
       <$> genLoripsum "http://loripsum.net/api/1/short"
 
@@ -110,9 +91,9 @@ genEntry = do
       <$> genLoripsum "http://loripsum.net/api/7/code/bq/ul/ol/dl/link/long/decorate/headers"
 
   return (
-    ( Entry
-        title
-        desc
+    ( buildEntry
+        (T.pack title)
+        (T.pack desc)
         (T.pack body)
         createTime
         postTime)
