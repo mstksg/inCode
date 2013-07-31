@@ -29,6 +29,7 @@ executable blog
                      , wai-middleware-static ==0.3.*
                      , mtl
                      , containers
+                     , blaze-markup
   -- ghc-options:         
   extensions:          OverloadedStrings
 

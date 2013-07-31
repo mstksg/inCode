@@ -12,6 +12,7 @@ import Web.Blog.SiteData
 import qualified Data.Text as T
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
+import qualified Text.Blaze.Internal as I
 import qualified Web.Scotty as S
 
 viewLayout :: SiteRender H.Html -> SiteRender H.Html
@@ -20,37 +21,43 @@ viewLayout body = do
   bodyHtml <- body
   title <- createTitle
 
-  testUrl <- renderUrl "/"
+  cssUrl <- renderUrl "/css/gridiculous.css"
 
   return $ H.docTypeHtml $ do
 
     H.head $ do
-      H.title (title)
+      H.title title
       H.meta ! A.httpEquiv "Content-Type" ! A.content "text/html;charset=utf-8"
+
+      H.link ! A.href (I.textValue cssUrl) ! A.rel "stylesheet" ! A.type_ "text/css"
+
       sequence_ (pageDataHeaders pageData')
 
-    H.body $ do
+    H.body $
+      
+      H.div ! A.id "body_grid" ! A.class_ "grid w960" $ do
 
-      H.div ! A.id "header_container" $
-        H.div ! A.id "header_content" $ do
-          H.toHtml testUrl
-          -- H.toHtml testUrl
-          -- mempty
+        H.div ! A.id "header_container" ! A.class_ "row" $
+          H.div ! A.id "header_content" ! A.class_ "c12" $
+            mempty
+        
+        H.div ! A.id "main_container" ! A.class_ "row" $ do
+          H.div ! A.id "main_content" ! A.class_ "c4" $ do
+            H.h2 "Sidebar"
+            H.p "Sidebar content"
+          H.div ! A.id "main_content" ! A.class_ "c8 end" $
+            bodyHtml
 
-      H.div ! A.id "main_container" $
-        H.div ! A.id "main_content" $
-          bodyHtml
-
-      H.div ! A.id "footer_container" $
-        H.div ! A.id "footer_content" $
-          "© Justin Le 2013"
+        H.div ! A.id "footer_container" ! A.class_ "row" $
+          H.div ! A.id "footer_content" ! A.class_ "c12" $
+            H.preEscapedToHtml ("&copy; Justin Le 2013" :: T.Text)
 
 createTitle :: SiteRender H.Html
 createTitle = do
   pageData' <- ask
   let
-    siteTitle = siteDataTitle $ pageSiteData $ pageData'
-    pageTitle = pageDataTitle $ pageData'
+    siteTitle = siteDataTitle $ pageSiteData pageData'
+    pageTitle = pageDataTitle pageData'
     combined   = case pageTitle of
       Just title -> T.concat [siteTitle, " - ", title]
       Nothing    -> siteTitle
