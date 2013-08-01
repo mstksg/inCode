@@ -1,0 +1,54 @@
+import Development.Shake
+
+opts = shakeOptions { shakeFiles    = ".shake/"
+                    , shakeProgress = progressSimple }
+
+(~>) = phony
+
+main :: IO ()
+main = shakeArgs opts $ do
+  want ["build"]
+
+  "clean" ~> removeFilesAfter ".shake" ["//*"]
+
+  "build" ~> do
+    need [ "dist/build/blog/blog" ]
+
+  "launch" ~> do
+    need ["build"]
+    system' "blog" []
+
+  "migrate" ~> do
+    need ["dist/build/blog-scripts-migrate/blog-scripts-migrate"]
+    cmd "blog-scripts-migrate"
+
+  "seed" ~> do
+    need ["dist/build/blog-scripts-seed/blog-scripts-seed"]
+    cmd "blog-scripts-seed"
+
+  "view-src" ~> do
+    fs <- srcFiles
+    liftIO $ print fs
+
+  "dist/build/blog/blog" *> \_ -> do
+    fs <- srcFiles
+    need fs
+    cmd "cabal" ["install"]
+
+  "dist/build/blog-scripts-migrate/blog-scripts-migrate" *> \_ -> do
+    need ["build"]
+    return ()
+
+  "dist/build/blog-scripts-seed/blog-scripts-seed" *> \_ -> do
+    need ["build"]
+    return ()
+
+srcFiles :: Action [FilePath]
+srcFiles = getDirectoryFiles ""
+  [ "blog.cabal"
+  , "src/*.hs"
+  , "src/scripts/*.hs"
+  , "src/Web/Blog/*.hs"
+  , "src/Web/Blog/Views/*.hs"
+  , "src/Development/Blog/*.hs"
+  , "src/Development/Blog/Util/*.hs" ]
