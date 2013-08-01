@@ -2,7 +2,7 @@
 
 module Web.Blog.Routes (routes) where
 
--- import Control.Applicative ((<$>))
+import Control.Applicative ((<$>))
 -- import Control.Monad (when)
 -- import Data.Maybe 
 -- import Data.Monoid
@@ -19,6 +19,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as L
 import qualified Database.Persist.Postgresql as DP
 import qualified Text.Blaze.Html5 as H
+import qualified Data.Map as M
 
 routes :: SiteData -> ScottyM ()
 routes siteData = do
@@ -78,10 +79,23 @@ routes siteData = do
           
     case e of
       Right e' -> do
+
+        tags <- liftIO $ runDB $ do
+          slug <- DP.getBy $ UniqueSlug $ T.pack eIdent
+          case slug of
+            Just (DP.Entity _ slug') -> do
+              tagAssociations <- DP.selectList [EntryTagEntryId DP.==. slugEntryId slug'] []
+              let
+                tagKeys = map (entryTagTagId . DP.entityVal) tagAssociations
+              map tagLabel <$> mapM DP.getJust tagKeys
+            Nothing -> 
+              return []
+
         let
-          view = viewEntry e'
+          view = viewEntry e' tags
+
         siteRenderActionLayout view $ 
-          pageData' { pageDataTitle = Just "Entry" }
+          pageData' { pageDataTitle = Just $ entryTitle e' }
 
       Left r ->
         redirect $ L.fromStrict r

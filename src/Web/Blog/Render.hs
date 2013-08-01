@@ -27,7 +27,7 @@ import qualified Web.Scotty as S
 
 type SiteRender a = ReaderT PageData S.ActionM a
 
-type PageDataMap = M.Map T.Text String
+type PageDataMap = M.Map T.Text T.Text
 
 data PageData = PageData
                 { pageDataTitle   :: Maybe T.Text
