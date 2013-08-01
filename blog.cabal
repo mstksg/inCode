@@ -32,7 +32,6 @@ executable blog
                      , blaze-markup
                      , transformers
                      , monad-loops
-                     , markdown
                      , pandoc
   -- ghc-options:         
   extensions:          OverloadedStrings

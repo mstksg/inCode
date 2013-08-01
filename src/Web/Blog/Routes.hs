@@ -65,8 +65,10 @@ routes siteData = do
                                    , SlugIsCurrent DP.==. True ] []
 
               case s' of
+                -- ID Found
                 Just (DP.Entity _ s'') ->
                   return $ Left $ T.append "/entry/" (slugSlug s'')
+                -- ID not found
                 Nothing ->
                   return $ Left "/404"
 

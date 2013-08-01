@@ -6,7 +6,6 @@ module Web.Blog.Views.Entry (viewEntry) where
 import Control.Monad.Reader
 import Data.Monoid
 import Text.Blaze.Html5 ((!))
-import Text.Markdown
 import Text.Pandoc
 import Web.Blog.Models
 import Web.Blog.Render
@@ -16,7 +15,7 @@ import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 
 viewEntry :: Entry -> SiteRender H.Html
-viewEntry entry = do
+viewEntry entry =
   return $ do
 
     H.article $ do
@@ -27,10 +26,9 @@ viewEntry entry = do
 
         H.h4 $ H.toHtml $ entryDescription entry
 
-      H.div ! A.class_ "main-content" $
+      H.div ! A.class_ "main-content" $ do
 
-        -- markdown def (L.fromStrict $ entryContent entry)
-        H.preEscapedToHtml $ writeHtml (def WriterOptions) $
+        H.preEscapedToHtml $ writeHtmlString (def WriterOptions) $
           readMarkdown (def ReaderOptions) $ T.unpack $ entryContent entry
 
       H.footer $
