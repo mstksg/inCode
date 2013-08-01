@@ -7,6 +7,7 @@ import Control.Monad.Reader
 import Data.Monoid
 import Text.Blaze.Html5 ((!))
 import Text.Markdown
+import Text.Pandoc
 import Web.Blog.Models
 import Web.Blog.Render
 import qualified Data.Text as T
@@ -28,7 +29,9 @@ viewEntry entry = do
 
       H.div ! A.class_ "main-content" $
 
-        markdown def (L.fromStrict $ entryContent entry)
+        -- markdown def (L.fromStrict $ entryContent entry)
+        H.preEscapedToHtml $ writeHtml (def WriterOptions) $
+          readMarkdown (def ReaderOptions) $ T.unpack $ entryContent entry
 
       H.footer $
         mempty
