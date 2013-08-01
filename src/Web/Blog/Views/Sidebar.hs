@@ -7,7 +7,6 @@ module Web.Blog.Views.Sidebar (viewSidebar) where
 import Control.Monad.Reader
 import Web.Blog.Render
 import Web.Blog.Models
-import Text.Pandoc
 import qualified Data.Text as T
 
 import Text.Blaze.Html5 ((!))

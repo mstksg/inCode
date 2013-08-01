@@ -28,6 +28,7 @@ viewLayout body = do
   return $ H.docTypeHtml $ do
 
     H.head $ do
+
       H.title title
       H.meta ! A.httpEquiv "Content-Type" ! A.content "text/html;charset=utf-8"
 
@@ -36,9 +37,9 @@ viewLayout body = do
 
       sequence_ (pageDataHeaders pageData')
 
-    H.body $
+    H.body ! A.class_ "grid w960" $ do
       
-      H.div ! A.id "body_grid" ! A.class_ "grid w960" $ do
+      -- H.div ! A.id "body_grid" ! A.class_ "grid w960" $ do
 
         H.div ! A.id "header_container" ! A.class_ "row" $
           H.div ! A.id "header_content" ! A.class_ "c12" $
@@ -49,7 +50,7 @@ viewLayout body = do
           H.div ! A.id "sidebar" ! A.class_ "c3" $ 
             sidebarHtml
 
-          H.div ! A.id "main_content" ! A.class_ "c9 end" $
+          H.div ! A.id "main_content" ! A.class_ "c9 end" ! I.customAttribute "role" "main" $
             bodyHtml
 
         H.div ! A.id "footer_container" ! A.class_ "row" $

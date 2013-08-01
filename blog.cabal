@@ -31,7 +31,6 @@ executable blog
                      , containers
                      , blaze-markup
                      , transformers
-                     , pandoc
                      , markdown
   -- ghc-options:         
   extensions:          OverloadedStrings
