@@ -27,7 +27,6 @@ Entry
     content     T.Text
     createdAt   UTCTime
     postedAt    UTCTime
-    UniqueTitle title
     deriving    Show
 
 Tag

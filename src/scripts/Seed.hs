@@ -90,13 +90,6 @@ genEntry = do
   body <- (unlines . tail . tail . tail . lines)
       <$> genLoripsum "http://loripsum.net/api/7/code/bq/ul/ol/dl/link/long/decorate/headers"
 
-  -- built <- runDB $
-  --   buildEntry
-  --     (T.pack title)
-  --     (T.pack desc)
-  --     (T.pack body)
-  --     createTime
-  --     postTime
   let
     e = Entry
       (T.pack title)
