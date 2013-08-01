@@ -19,6 +19,9 @@ import Database.Persist.Postgresql
 import Database.Persist.TH
 import qualified Data.Text as T
 
+slugLength :: Int
+slugLength = 10
+
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 
 Entry
@@ -43,6 +46,7 @@ EntryTag
 Slug
     entryId    EntryId Eq
     slug       T.Text
+    isCurrent  Bool
     UniqueSlug slug
     deriving Show
 
@@ -50,9 +54,9 @@ Slug
 
 insertEntry :: Entry -> SqlPersistM (Key Entry)
 insertEntry entry = do
-  slugText <- genSlug 5 (entryTitle entry)
+  slugText <- genSlug slugLength (entryTitle entry)
   entryKey <- insert entry
-  insert_ $ Slug entryKey slugText
+  insert_ $ Slug entryKey slugText True
   return entryKey
 
 genSlug' :: Int -> T.Text -> T.Text
@@ -75,7 +79,7 @@ genSlug w t = do
   case base of
     Just _ -> do
       freshSlug <- firstM isFresh $
-        map (T.append baseSlug . T.pack . show) ([-1,-2..] :: [Integer])
+        map (T.append baseSlug . T.pack . show) ([-2,-3..] :: [Integer])
       return $ fromJust freshSlug
     Nothing ->
       return baseSlug
