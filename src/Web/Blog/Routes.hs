@@ -2,12 +2,13 @@
 
 module Web.Blog.Routes (routes) where
 
-import Control.Applicative ((<$>))
-import Control.Monad (when)
+-- import Control.Applicative ((<$>))
+-- import Control.Monad (when)
+-- import Data.Maybe 
+-- import Data.Monoid
+-- import qualified Database.Persist as D
 import Control.Monad.IO.Class
 import Data.Char (isDigit)
-import Data.Maybe 
-import Data.Monoid
 import Web.Blog.Database
 import Web.Blog.Models
 import Web.Blog.Render
@@ -16,7 +17,6 @@ import Web.Blog.Views
 import Web.Scotty
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as L
-import qualified Database.Persist as D
 import qualified Database.Persist.Postgresql as DP
 import qualified Text.Blaze.Html5 as H
 
@@ -36,7 +36,7 @@ routes siteData = do
       case slug of
         -- Found slug
         Just (DP.Entity _ slug') -> do
-          e' <- fromJust <$> (DP.get $ slugEntryId slug')
+          e' <- DP.getJust $ slugEntryId slug'
           if slugIsCurrent slug'
 
             -- It's the current slug
