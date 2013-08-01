@@ -39,15 +39,13 @@ viewLayout body = do
 
     H.body ! A.class_ "grid w960" $ do
       
-      -- H.div ! A.id "body_grid" ! A.class_ "grid w960" $ do
-
         H.div ! A.id "header_container" ! A.class_ "row" $
           H.div ! A.id "header_content" ! A.class_ "c12" $
             mempty
         
         H.div ! A.id "main_container" ! A.class_ "row" $ do
 
-          H.div ! A.id "sidebar" ! A.class_ "c3" $ 
+          H.nav ! A.id "sidebar" ! A.class_ "c3" $ 
             sidebarHtml
 
           H.div ! A.id "main_content" ! A.class_ "c9 end" ! I.customAttribute "role" "main" $

@@ -32,6 +32,7 @@ executable blog
                      , blaze-markup
                      , transformers
                      , markdown
+                     , monad-loops
   -- ghc-options:         
   extensions:          OverloadedStrings
 
@@ -44,6 +45,7 @@ executable blog-scripts-migrate
                      , persistent ==1.2.*
                      , persistent-template ==1.2.*
                      , persistent-postgresql ==1.2.*
+                     , monad-loops
   extensions:          OverloadedStrings
 
 executable blog-scripts-seed
@@ -60,4 +62,5 @@ executable blog-scripts-seed
                      , pandoc ==1.11.*
                      , split ==0.2.*
                      , random ==1.0.*
+                     , monad-loops
   extensions:          OverloadedStrings

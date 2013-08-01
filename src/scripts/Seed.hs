@@ -32,19 +32,19 @@ main = runDB $ do
 
   replicateM_ 25 $ do
     (entry,tags) <- liftIO genEntry
-    entryid <- insert entry
+    entryid <- insertEntry entry
 
     when (tags .&. (1 :: Int) > 0) $ do
-      insert $ EntryTag entryid tagId1
+      insert_ $ EntryTag entryid tagId1
       return ()
     when (tags .&. (2 :: Int) > 0) $ do
-      insert $ EntryTag entryid tagId2
+      insert_ $ EntryTag entryid tagId2
       return ()
     when (tags .&. (4 :: Int) > 0) $ do
-      insert $ EntryTag entryid tagId3
+      insert_ $ EntryTag entryid tagId3
       return ()
     when (tags .&. (8 :: Int) > 0) $ do
-      insert $ EntryTag entryid tagId4
+      insert_ $ EntryTag entryid tagId4
       return ()
     
     tagAssociations <- selectList [EntryTagEntryId ==. entryid] []
@@ -81,7 +81,7 @@ genEntry = do
     (tags, _) = randomR (1,15) gen''
 
   title <- (init . last . splitOn ". " . unwords . lines)
-      <$> genLoripsum "http://loripsum.net/api/1/short"
+    <$> genLoripsum "http://loripsum.net/api/1/short"
 
 
   desc <- (unwords . tail . splitOn ". " . unwords . lines)
@@ -90,14 +90,22 @@ genEntry = do
   body <- (unlines . tail . tail . tail . lines)
       <$> genLoripsum "http://loripsum.net/api/7/code/bq/ul/ol/dl/link/long/decorate/headers"
 
-  return (
-    ( buildEntry
-        (T.pack title)
-        (T.pack desc)
-        (T.pack body)
-        createTime
-        postTime)
-    , tags)
+  -- built <- runDB $
+  --   buildEntry
+  --     (T.pack title)
+  --     (T.pack desc)
+  --     (T.pack body)
+  --     createTime
+  --     postTime
+  let
+    e = Entry
+      (T.pack title)
+      (T.pack desc)
+      (T.pack body)
+      createTime
+      postTime
+
+  return (e, tags)
 
 
 genLoripsum :: String -> IO String
