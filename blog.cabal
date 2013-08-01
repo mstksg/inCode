@@ -33,6 +33,7 @@ executable blog
                      , transformers
                      , monad-loops
                      , pandoc
+                     , old-locale
   -- ghc-options:         
   extensions:          OverloadedStrings
 

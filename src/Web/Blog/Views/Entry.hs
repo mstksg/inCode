@@ -13,9 +13,15 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as L
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
+import Data.Time
+import System.Locale
+import Web.Blog.SiteData
+import Control.Applicative ((<$>))
 
 viewEntry :: Entry -> [T.Text] -> SiteRender H.Html
-viewEntry entry tags =
+viewEntry entry tags = do
+  siteData' <- pageSiteData <$> ask
+
   return $ 
 
     H.article $ do
@@ -24,14 +30,20 @@ viewEntry entry tags =
 
         H.h1 $ H.toHtml $ entryTitle entry
 
-        H.h4 $ H.toHtml $ entryDescription entry
+        H.section ! A.class_ "entry-details" $ do
 
-        H.div ! A.class_ "article-time" $
-          H.toHtml $ show $ entryPostedAt entry
+          H.h4 $ H.toHtml $ entryDescription entry
 
-        H.ul ! A.class_ "article-tags" $
-          forM_ tags $ \t ->
-            H.li $ H.toHtml t
+          H.html "by "
+
+          H.a ! A.class_ "author" $ H.toHtml $ siteDataAuthor siteData'
+
+          H.div ! A.class_ "article-time" $
+            H.toHtml $ renderTime $ entryPostedAt entry
+
+          H.ul ! A.class_ "article-tags" $
+            forM_ tags $ \t ->
+              H.li $ H.toHtml t
 
       H.div ! A.class_ "main-content" $
 
@@ -43,3 +55,7 @@ viewEntry entry tags =
 
       H.div ! A.class_ "post-entry" $
         mempty
+
+renderTime :: UTCTime -> String
+renderTime = formatTime defaultTimeLocale "%A %B %-e, %Y"
+
