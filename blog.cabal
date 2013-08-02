@@ -46,6 +46,7 @@ executable blog-scripts-migrate
                      , persistent ==1.2.*
                      , persistent-template ==1.2.*
                      , persistent-postgresql ==1.2.*
+                     , transformers
                      , monad-loops
   extensions:          OverloadedStrings
 

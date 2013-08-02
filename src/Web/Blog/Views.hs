@@ -1,5 +1,6 @@
 module Web.Blog.Views (
     viewLayout
+  , viewLayoutEmpty
   , viewEntry
   , viewHome
   ) where

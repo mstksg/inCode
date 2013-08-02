@@ -2,10 +2,11 @@
 
 module Web.Blog.Routes.Entry (routeEntry) where
 
-import Control.Applicative ((<$>))
-import Control.Monad.IO.Class
 -- import Control.Monad.Reader
 -- import Control.Monad.Trans
+-- import qualified Text.Blaze.Html5 as H
+import Control.Applicative ((<$>))
+import Control.Monad.IO.Class
 import Data.Char (isDigit)
 import Web.Blog.Database
 import Web.Blog.Models
@@ -15,7 +16,6 @@ import Web.Blog.Views
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as L
 import qualified Database.Persist.Postgresql as D
-import qualified Text.Blaze.Html5 as H
 import qualified Web.Scotty as S
 
 routeEntry :: RouteEither
@@ -38,12 +38,16 @@ routeEntry = do
           -- It's an out of date slug
           else do
             s' <- D.selectFirst [ SlugEntryId D.==. slugEntryId slug'
-                                  , SlugIsCurrent D.==. True ] []
+                                , SlugIsCurrent D.==. True ] []
             case s' of
+              -- Found the current slug
               Just (D.Entity _ s'') ->
                 return $ Left $ slugSlug s''
+
+              -- No current slug...something is wrong.  Oh well, display
+              -- entry anyway
               Nothing ->
-                return $ Left "/404"
+                return $ Right e'
 
       -- Slug not found
       Nothing ->
@@ -54,7 +58,7 @@ routeEntry = do
             let
               eKey = D.Key $ D.PersistInt64 (fromIntegral (read eIdent :: Int))
             s' <- D.selectFirst [ SlugEntryId D.==. eKey
-                                  , SlugIsCurrent D.==. True ] []
+                                , SlugIsCurrent D.==. True ] []
 
             case s' of
               -- ID Found
@@ -62,11 +66,11 @@ routeEntry = do
                 return $ Left $ T.append "/entry/" (slugSlug s'')
               -- ID not found
               Nothing ->
-                return $ Left "/404"
+                return $ Left "/not-found"
 
-          -- It's a dud
+          -- It's not an ID, it's just nothing
           else
-            return $ Left "/404"
+            return $ Left "/not-found"
         
   case e of
     Right e' -> do

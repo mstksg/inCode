@@ -18,6 +18,8 @@ import Database.Persist
 import Database.Persist.Postgresql
 import Database.Persist.TH
 import qualified Data.Text as T
+import Control.Monad.IO.Class
+import Control.Applicative ((<$>))
 
 slugLength :: Int
 slugLength = 10
@@ -92,8 +94,24 @@ genSlug w t = do
 -- TODO: separate changeSlug function to be able to re-double back on old
 -- names
 
--- buildEntry :: T.Text -> T.Text -> T.Text -> UTCTime -> UTCTime -> SqlPersistM Entry
--- buildEntry t d c cA pA = do
---   s <- genSlug 5 t
---   return $ Entry t d s c cA pA
+
+postedEntries :: [SelectOpt Entry] -> SqlPersistM [Entity Entry]
+postedEntries opts = do
+  now <- liftIO getCurrentTime
+  selectList [ EntryPostedAt <=. now ] opts
+
+getCurrentSlug :: Entity Entry -> SqlPersistM (Maybe (Entity Slug))
+getCurrentSlug entry = selectFirst [ SlugEntryId   ==. eKey
+                                   , SlugIsCurrent ==. True ] []
+  where
+    Entity eKey _ = entry
+
+getTags :: Entity Entry -> SqlPersistM [Tag]
+getTags entry = do
+  let
+    Entity eKey _ = entry
+  ets <- selectList [ EntryTagEntryId   ==. eKey ] []
+  let
+    tagKeys = map (entryTagTagId . entityVal) ets
+  mapM getJust tagKeys
 
