@@ -74,6 +74,7 @@ genSlug' w = squash . T.dropAround isDash . T.map replaceSymbols . T.toCaseFold
           '-'
     squash = T.intercalate "-" . take w . filter (not . T.null) . T.split isDash
 
+-- TODO: Maybe include date in slug?
 genSlug :: Int -> T.Text -> SqlPersistM T.Text
 genSlug w t = do
   let
@@ -118,9 +119,7 @@ getUrlPath entry = do
       return $ T.append "/entry/id/" (T.pack $ show eKey)
 
 getTags :: Entity Entry -> SqlPersistM [Tag]
-getTags entry = getTagsByEntityKey eKey
-  where
-    Entity eKey _ = entry
+getTags entry = getTagsByEntityKey $ entityKey entry
 
 getTagsByEntityKey :: Key Entry -> SqlPersistM [Tag]
 getTagsByEntityKey k = do 
@@ -137,3 +136,8 @@ renderFriendlyTime = formatTime defaultTimeLocale "%A %B %-e, %Y"
 renderDatetimeTime :: UTCTime -> String
 renderDatetimeTime = formatTime defaultTimeLocale "%FT%XZ"
 
+getPrevEntry :: Entry -> SqlPersistM (Maybe (Entity Entry))
+getPrevEntry e = selectFirst [ EntryPostedAt <. entryPostedAt e ] [ Desc EntryPostedAt ]
+
+getNextEntry :: Entry -> SqlPersistM (Maybe (Entity Entry))
+getNextEntry e = selectFirst [ EntryPostedAt >. entryPostedAt e ] [ Asc EntryPostedAt ]

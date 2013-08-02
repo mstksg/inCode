@@ -17,9 +17,10 @@ import qualified Data.Text as T
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import qualified Text.Blaze.Internal as I
+import Data.Maybe
 
-viewEntry :: Entry -> [T.Text] -> SiteRender H.Html
-viewEntry entry tags = do
+viewEntry :: Entry -> [T.Text] -> Maybe T.Text -> Maybe T.Text -> SiteRender H.Html
+viewEntry entry tags prevUrl nextUrl = do
   siteData' <- pageSiteData <$> ask
 
   return $ 
@@ -54,8 +55,16 @@ viewEntry entry tags = do
         H.preEscapedToHtml $ writeHtmlString (def WriterOptions) $
           readMarkdown (def ReaderOptions) $ T.unpack $ entryContent entry
 
-      H.footer
-        mempty
+      H.footer $
+        H.ul $ do
+          when (isJust prevUrl) $
+            H.li ! A.class_ "prev-li" $
+              H.a ! A.href (I.textValue $ fromJust prevUrl) $
+                "Previous"
+          when (isJust nextUrl) $
+            H.li ! A.class_ "next-li" $
+              H.a ! A.href (I.textValue $ fromJust nextUrl) $
+                "Next"
 
       H.div ! A.class_ "post-entry" $
         mempty

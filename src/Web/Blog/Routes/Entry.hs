@@ -2,7 +2,7 @@
 
 module Web.Blog.Routes.Entry (routeEntry, routeEntryId) where
 
--- import Control.Applicative ((<$>))
+import Control.Applicative ((<$>))
 -- import Control.Monad.Reader
 -- import Control.Monad.Trans
 -- import qualified Text.Blaze.Html5 as H
@@ -16,6 +16,10 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as L
 import qualified Database.Persist.Postgresql as D
 import qualified Web.Scotty as S
+import Control.Monad.Trans (lift)
+import Control.Monad (join)
+import Data.Maybe
+import Control.Monad.Trans.Maybe
 
 routeEntry :: RouteEither
 routeEntry = do
@@ -38,18 +42,17 @@ routeEntry = do
   case eKey of
     -- Yes there was a slug and entry found
     Right eKey' -> do
-      -- TODO: be safer
       e <- liftIO $ runDB $ D.get eKey'
 
       case e of
         -- Slug does indeed have a real entry
         Just e' -> do
-          tags <- liftIO $ runDB $ getTagsByEntityKey eKey'
+          (tags,prevUrl,nextUrl) <- liftIO $ runDB $ entryAux eKey' e'
 
           let
-            view = viewEntry e' (map tagLabel tags)
+            view = viewEntry e' (map tagLabel tags) prevUrl nextUrl
             pageData' = pageData {pageDataTitle = Just $ entryTitle e'}
-          
+
           return $ Right (view, pageData')
 
         -- Slug's entry does not exist.  How odd.
@@ -95,13 +98,25 @@ routeEntryId = do
   case e of
     Right e' -> do
 
-      tags <- liftIO $ runDB $ getTagsByEntityKey eKey
+      (tags,prevUrl,nextUrl) <- liftIO $ runDB $ entryAux eKey e'
 
       let
-        view = viewEntry e' (map tagLabel tags)
+        view = viewEntry e' (map tagLabel tags) prevUrl nextUrl
         pageData' = pageData {pageDataTitle = Just $ entryTitle e'}
       
       return $ Right (view, pageData')
 
     Left r ->
       return $ Left r
+
+entryAux :: D.Key Entry -> Entry -> D.SqlPersistM ([Tag],Maybe T.Text,Maybe T.Text)
+entryAux k e = do
+  tags <- getTagsByEntityKey k
+  prevUrl <- runMaybeT $ do
+    prev <- MaybeT $ getPrevEntry e
+    lift $ getUrlPath prev
+  nextUrl <- runMaybeT $ do
+    next <- MaybeT $ getNextEntry e
+    lift $ getUrlPath next
+  return (tags,prevUrl,nextUrl)
+
