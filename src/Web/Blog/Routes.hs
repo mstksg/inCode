@@ -18,9 +18,11 @@ import Web.Blog.Models
 import Web.Blog.Render
 import Web.Blog.Routes.Entry
 import Web.Blog.Routes.Home
+import Web.Blog.Routes.NotFound
 import Web.Blog.SiteData
 import Web.Blog.Types
 import Web.Blog.Views
+import Network.HTTP.Types.Status
 import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as L
@@ -34,31 +36,40 @@ route = do
   S.get "/" $ 
     routeEither routeHome
 
-  S.get "/e/id/:eId" $
-    routeEither routeEntryId
-
   S.get "/e/:entryIdent" $ do
     eIdent <- S.param "entryIdent"
     S.redirect $ L.append "/entry/" eIdent
+
+  S.get "/e/id/:entryIdent" $ do
+    eIdent <- S.param "entryIdent"
+    S.redirect $ L.append "/entry/id/" eIdent
+
+  S.get "/entry/id/:eId" $
+    routeEither routeEntryId
 
   S.get "/entry/:entryIdent" $
     routeEither routeEntry 
 
   S.get "/not-found" $ do
-    err <- find ((== "err") . fst) <$> S.params
+    S.status notFound404
+    routeEither routeNotFound
 
-    case err of
-      Just _  -> S.redirect "/not-found"
-      Nothing -> siteRenderAction viewLayoutEmpty pageData
-
-  S.notFound $ S.redirect "/not-found"
+  S.notFound $
+    S.redirect "/not-found"
 
 
 routeEither :: RouteEither -> S.ActionM ()
 routeEither r = do
   routeResult <- r
   case routeResult of
-    Left re -> S.redirect re
+    Left re -> 
+      -- TODO: get this status stuff working?
+      -- if L.isPrefixOf "/not-found" re
+      --   then
+      --     S.status notFound404
+      --   else
+      --     S.status movedPermanently301
+      S.redirect re
     Right (v,d) -> siteRenderActionLayout v d
 
 siteRenderActionLayout :: SiteRender H.Html -> PageData -> S.ActionM ()

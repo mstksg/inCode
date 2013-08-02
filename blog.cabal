@@ -34,6 +34,7 @@ executable blog
                      , monad-loops
                      , pandoc
                      , old-locale
+                     , http-types
   -- ghc-options:         
   extensions:          OverloadedStrings
 
