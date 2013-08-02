@@ -6,12 +6,13 @@ module Web.Blog.Routes (
 
 -- import Control.Monad (when)
 -- import Data.Maybe 
-import Data.Monoid
 -- import qualified Database.Persist as D
 import Control.Applicative ((<$>))
 import Control.Monad.IO.Class
 import Control.Monad.Reader
 import Data.Char (isDigit)
+import Data.List (find)
+import Data.Monoid
 import Web.Blog.Database
 import Web.Blog.Models
 import Web.Blog.Render
@@ -20,12 +21,12 @@ import Web.Blog.Routes.Home
 import Web.Blog.SiteData
 import Web.Blog.Types
 import Web.Blog.Views
-import qualified Web.Scotty as S
 import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as L
 import qualified Database.Persist.Postgresql as DP
 import qualified Text.Blaze.Html5 as H
+import qualified Web.Scotty as S
 
 route :: S.ScottyM ()
 route = do
@@ -33,13 +34,25 @@ route = do
   S.get "/" $ 
     routeEither routeHome
 
+  S.get "/e/id/:eId" $
+    routeEither routeEntryId
+
+  S.get "/e/:entryIdent" $ do
+    eIdent <- S.param "entryIdent"
+    S.redirect $ L.append "/entry/" eIdent
+
   S.get "/entry/:entryIdent" $
     routeEither routeEntry 
 
-  S.get "/not-found" $
-    siteRenderAction viewLayoutEmpty pageData
+  S.get "/not-found" $ do
+    err <- find ((== "err") . fst) <$> S.params
+
+    case err of
+      Just _  -> S.redirect "/not-found"
+      Nothing -> siteRenderAction viewLayoutEmpty pageData
 
   S.notFound $ S.redirect "/not-found"
+
 
 routeEither :: RouteEither -> S.ActionM ()
 routeEither r = do

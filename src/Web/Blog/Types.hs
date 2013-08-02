@@ -4,6 +4,7 @@ module Web.Blog.Types (
   , PageDataMap
   , PageData(..)
   , RouteEither
+  , error404
   ) where
 
 import qualified Web.Scotty as S
@@ -32,3 +33,6 @@ data PageData = PageData
                 }
 
 type RouteEither = S.ActionM (Either L.Text (SiteRender H.Html, PageData))
+
+error404 :: L.Text -> Either L.Text a
+error404 reason = Left $ L.append "/not-found?err=" reason

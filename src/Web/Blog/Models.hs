@@ -106,10 +106,13 @@ getCurrentSlug entry = selectFirst [ SlugEntryId   ==. eKey
     Entity eKey _ = entry
 
 getTags :: Entity Entry -> SqlPersistM [Tag]
-getTags entry = do
-  let
+getTags entry = getTagsByEntityKey eKey
+  where
     Entity eKey _ = entry
-  ets <- selectList [ EntryTagEntryId   ==. eKey ] []
+
+getTagsByEntityKey :: Key Entry -> SqlPersistM [Tag]
+getTagsByEntityKey k = do 
+  ets <- selectList [ EntryTagEntryId   ==. k ] []
   let
     tagKeys = map (entryTagTagId . entityVal) ets
   mapM getJust tagKeys

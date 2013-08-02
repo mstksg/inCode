@@ -1,13 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Web.Blog.Routes.Entry (routeEntry) where
+module Web.Blog.Routes.Entry (routeEntry, routeEntryId) where
 
+-- import Control.Applicative ((<$>))
 -- import Control.Monad.Reader
 -- import Control.Monad.Trans
 -- import qualified Text.Blaze.Html5 as H
-import Control.Applicative ((<$>))
 import Control.Monad.IO.Class
-import Data.Char (isDigit)
 import Web.Blog.Database
 import Web.Blog.Models
 import Web.Blog.Render
@@ -22,105 +21,87 @@ routeEntry :: RouteEither
 routeEntry = do
   eIdent <- S.param "entryIdent"
 
-  e <- liftIO $ runDB $ do
+  eKey <- liftIO $ runDB $ do
     slug <- D.getBy $ UniqueSlug $ T.pack eIdent
 
     case slug of
       -- Found slug
-      Just (D.Entity _ slug') -> do
-        e' <- D.getJust $ slugEntryId slug'
-        if slugIsCurrent slug'
-
-          -- It's the current slug
-          then
-            return $ Right e'
-
-          -- It's an out of date slug
-          else do
-            s' <- D.selectFirst [ SlugEntryId D.==. slugEntryId slug'
-                                , SlugIsCurrent D.==. True ] []
-            case s' of
-              -- Found the current slug
-              Just (D.Entity _ s'') ->
-                return $ Left $ slugSlug s''
-
-              -- No current slug...something is wrong.  Oh well, display
-              -- entry anyway
-              Nothing ->
-                return $ Right e'
+      Just (D.Entity _ slug') -> 
+        return $ Right $ slugEntryId slug'
 
       -- Slug not found
       Nothing ->
-        if all isDigit eIdent
-
-          -- It's an ID
-          then do
-            let
-              eKey = D.Key $ D.PersistInt64 (fromIntegral (read eIdent :: Int))
-
-            e' <- D.get eKey
-
-            case e' of
-              -- ID Found
-              Just e'' -> do
-                s' <- D.selectFirst [ SlugEntryId D.==. eKey ] []
-
-                case s' of
-                  -- Found "a" slug.  It might not be "the" current slug,
-                  -- but for now we'll let redirection take care of it.
-                  Just (D.Entity _ s'') ->
-                    return $ Left $ T.append "/entry/" (slugSlug s'')
-
-                  -- Did not find a slug...so it's an entry with no slug.
-                  -- Really shouldn't be happening but...just return the
-                  -- entry.  This could go really wrong if a slug actually
-                  -- is a number, in which it will get intercepted.
-                  -- Actually this is a big problem in general...shoot.
-                  -- TODO: maybe auto-generate new slug in this case?
-                  Nothing ->
-                    return $ Right e''
-
-              -- ID not found
-              Nothing ->
-                return $ Left "/not-found"
-                
-            
-
-
-            -- s' <- D.selectFirst [ SlugEntryId D.==. eKey
-            --                     , SlugIsCurrent D.==. True ] []
-
-            -- case s' of
-            --   -- ID Found
-            --   Just (D.Entity _ s'') ->
-            --     return $ Left $ T.append "/entry/" (slugSlug s'')
-            --   -- ID not found
-            --   Nothing ->
-            --     return $ Left "/not-found"
-
-          -- It's not an ID, it's just nothing
-          else
-            return $ Left "/not-found"
+        return $ error404 "SlugNotFound"
         
+  -- TODO: Wrap this all in an EitherT...that's what they were meant for,
+  -- I think!
+  case eKey of
+    -- Yes there was a slug and entry found
+    Right eKey' -> do
+      -- TODO: be safer
+      e <- liftIO $ runDB $ D.get eKey'
+
+      case e of
+        -- Slug does indeed have a real entry
+        Just e' -> do
+          tags <- liftIO $ runDB $ getTagsByEntityKey eKey'
+
+          let
+            view = viewEntry e' (map tagLabel tags)
+            pageData' = pageData {pageDataTitle = Just $ entryTitle e'}
+          
+          return $ Right (view, pageData')
+
+        -- Slug's entry does not exist.  How odd.
+        Nothing -> 
+          return $ error404 "SlugHasNoEntry"
+
+    Left r ->
+      return $ Left r
+
+routeEntryId :: RouteEither
+routeEntryId = do
+  eIdent <- S.param "eId"
+
+  let
+    eKey = D.Key $ D.PersistInt64 (fromIntegral (read eIdent :: Int))
+
+  e <- liftIO $ runDB $ do
+
+    e' <- D.get eKey
+
+    case e' of
+      -- ID Found
+      Just e'' -> do
+        s' <- D.selectFirst [ SlugEntryId D.==. eKey ] []
+
+        case s' of
+          -- Found "a" slug.  It might not be "the" current slug,
+          -- but for now we'll let redirection take care of it.
+          Just (D.Entity _ s'') ->
+            return $ Left $ L.fromStrict $ T.append "/entry/" (slugSlug s'')
+
+          -- Did not find a slug...so it's an entry with no slug.
+          -- Really shouldn't be happening but...just return the
+          -- entry.
+          -- TODO: maybe auto-generate new slug in this case?
+          Nothing ->
+            return $ Right e''
+
+      -- ID not found
+      Nothing ->
+        return $ error404 "entryIdNotFound"
+
   case e of
     Right e' -> do
 
-      tags <- liftIO $ runDB $ do
-        slug <- D.getBy $ UniqueSlug $ T.pack eIdent
-        case slug of
-          Just (D.Entity _ slug') -> do
-            tagAssociations <- D.selectList [EntryTagEntryId D.==. slugEntryId slug'] []
-            let
-              tagKeys = map (entryTagTagId . D.entityVal) tagAssociations
-            map tagLabel <$> mapM D.getJust tagKeys
-          Nothing -> 
-            return []
+      tags <- liftIO $ runDB $ getTagsByEntityKey eKey
 
       let
-        view = viewEntry e' tags
+        view = viewEntry e' (map tagLabel tags)
         pageData' = pageData {pageDataTitle = Just $ entryTitle e'}
       
       return $ Right (view, pageData')
 
     Left r ->
-      return $ Left $ L.fromStrict r
+      return $ Left r
