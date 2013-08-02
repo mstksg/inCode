@@ -94,7 +94,6 @@ genSlug w t = do
 -- TODO: separate changeSlug function to be able to re-double back on old
 -- names
 
-
 postedEntries :: [SelectOpt Entry] -> SqlPersistM [Entity Entry]
 postedEntries opts = do
   now <- liftIO getCurrentTime
@@ -115,3 +114,4 @@ getTags entry = do
     tagKeys = map (entryTagTagId . entityVal) ets
   mapM getJust tagKeys
 
+-- getEntryBySlug :: Text

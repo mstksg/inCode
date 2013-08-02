@@ -57,16 +57,46 @@ routeEntry = do
           then do
             let
               eKey = D.Key $ D.PersistInt64 (fromIntegral (read eIdent :: Int))
-            s' <- D.selectFirst [ SlugEntryId D.==. eKey
-                                , SlugIsCurrent D.==. True ] []
 
-            case s' of
+            e' <- D.get eKey
+
+            case e' of
               -- ID Found
-              Just (D.Entity _ s'') ->
-                return $ Left $ T.append "/entry/" (slugSlug s'')
+              Just e'' -> do
+                s' <- D.selectFirst [ SlugEntryId D.==. eKey ] []
+
+                case s' of
+                  -- Found "a" slug.  It might not be "the" current slug,
+                  -- but for now we'll let redirection take care of it.
+                  Just (D.Entity _ s'') ->
+                    return $ Left $ T.append "/entry/" (slugSlug s'')
+
+                  -- Did not find a slug...so it's an entry with no slug.
+                  -- Really shouldn't be happening but...just return the
+                  -- entry.  This could go really wrong if a slug actually
+                  -- is a number, in which it will get intercepted.
+                  -- Actually this is a big problem in general...shoot.
+                  -- TODO: maybe auto-generate new slug in this case?
+                  Nothing ->
+                    return $ Right e''
+
               -- ID not found
               Nothing ->
                 return $ Left "/not-found"
+                
+            
+
+
+            -- s' <- D.selectFirst [ SlugEntryId D.==. eKey
+            --                     , SlugIsCurrent D.==. True ] []
+
+            -- case s' of
+            --   -- ID Found
+            --   Just (D.Entity _ s'') ->
+            --     return $ Left $ T.append "/entry/" (slugSlug s'')
+            --   -- ID not found
+            --   Nothing ->
+            --     return $ Left "/not-found"
 
           -- It's not an ID, it's just nothing
           else
