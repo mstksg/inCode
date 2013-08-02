@@ -1,19 +1,8 @@
 module Web.Blog.SiteData (
-    SiteData
-  , siteDataTitle
-  , siteDataAuthor
-  , siteDataAuthorRel
-  , siteData
-
+    siteData
   ) where
 
-import Data.Text
-
-data SiteData = SiteData
-                { siteDataTitle :: Text
-                , siteDataAuthor :: Text
-                , siteDataAuthorRel :: Text
-                }
+import Web.Blog.Types
 
 siteData :: SiteData
 siteData =

@@ -16,5 +16,5 @@ main = scotty 4268 $ do
   middleware logStdoutDev
   middleware $ staticPolicy (noDots >-> addBase "static")
 
-  routes siteData
+  route
 

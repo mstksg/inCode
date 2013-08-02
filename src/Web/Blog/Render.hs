@@ -1,18 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Web.Blog.Render (
-
-    SiteRender
-  , siteRenderAction
-  , PageDataMap
-  , PageData
-  , pageDataTitle
-  , pageDataHeaders
-  , pageDataMap
-  , pageSiteData
+    siteRenderAction
   , pageData
   , renderUrl
-
   ) where
 
 import Control.Monad.Reader
@@ -24,21 +15,11 @@ import qualified Data.Text.Lazy as L
 import qualified Text.Blaze.Html.Renderer.Pretty as B
 import qualified Text.Blaze.Html5 as H
 import qualified Web.Scotty as S
-
-type SiteRender a = ReaderT PageData S.ActionM a
-
-type PageDataMap = M.Map T.Text T.Text
-
-data PageData = PageData
-                { pageDataTitle   :: Maybe T.Text
-                , pageDataHeaders :: [H.Html]
-                , pageDataMap :: PageDataMap
-                , pageSiteData :: SiteData
-                }
+import Web.Blog.Types
 
 
-pageData :: SiteData -> PageData
-pageData = PageData Nothing [] M.empty 
+pageData :: PageData
+pageData = PageData Nothing [] M.empty siteData
 
 siteRenderAction :: SiteRender H.Html -> PageData -> S.ActionM ()
 siteRenderAction htmlRender pageData' = do
@@ -48,7 +29,7 @@ siteRenderAction htmlRender pageData' = do
 renderUrl :: T.Text -> SiteRender T.Text
 renderUrl url = do
   let
-    hasP = (length $ T.splitOn "://" url) > 1
+    hasP = length (T.splitOn "://" url) > 1
   if hasP
     then return url
     else do
