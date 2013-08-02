@@ -20,6 +20,7 @@ import Database.Persist.TH
 import qualified Data.Text as T
 import Control.Monad.IO.Class
 import Control.Applicative ((<$>))
+import System.Locale
 
 slugLength :: Int
 slugLength = 10
@@ -105,6 +106,17 @@ getCurrentSlug entry = selectFirst [ SlugEntryId   ==. eKey
   where
     Entity eKey _ = entry
 
+getUrlPath :: Entity Entry -> SqlPersistM T.Text
+getUrlPath entry = do
+  slug <- getCurrentSlug entry
+  case slug of
+    Just (Entity _ slug') ->
+      return $ T.append "/entry/" (slugSlug slug')
+    Nothing               -> do
+      let
+        Entity eKey _ = entry
+      return $ T.append "/entry/id/" (T.pack $ show eKey)
+
 getTags :: Entity Entry -> SqlPersistM [Tag]
 getTags entry = getTagsByEntityKey eKey
   where
@@ -118,3 +130,10 @@ getTagsByEntityKey k = do
   mapM getJust tagKeys
 
 -- getEntryBySlug :: Text
+
+renderFriendlyTime :: UTCTime -> String
+renderFriendlyTime = formatTime defaultTimeLocale "%A %B %-e, %Y"
+
+renderDatetimeTime :: UTCTime -> String
+renderDatetimeTime = formatTime defaultTimeLocale "%FT%XZ"
+

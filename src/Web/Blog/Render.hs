@@ -4,6 +4,7 @@ module Web.Blog.Render (
     siteRenderAction
   , pageData
   , renderUrl
+  , renderUrl'
   ) where
 
 import Control.Monad.Reader
@@ -35,4 +36,12 @@ renderUrl url = do
     else do
       host <- lift $ S.reqHeader "Host"
       return $ T.concat ["http://",L.toStrict host,url]
+      
+renderUrl' :: T.Text -> T.Text
+renderUrl' url =
+  if hasP
+    then url
+    else T.concat ["http://",siteDataSiteHost siteData,url]
+  where
+    hasP = length (T.splitOn "://" url) > 1
       

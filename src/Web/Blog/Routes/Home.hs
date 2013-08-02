@@ -17,16 +17,18 @@ import qualified Data.Text.Lazy as L
 import qualified Database.Persist.Postgresql as D
 import qualified Text.Blaze.Html5 as H
 import qualified Web.Scotty as S
+import Control.Monad.Trans (lift)
 
 routeHome :: RouteEither
 routeHome = do
   es <- liftIO $ runDB $ postedEntries [ D.Desc EntryPostedAt
                                        , D.LimitTo 5            ]
-  slugs <- liftIO $ runDB $ mapM getCurrentSlug es
+  paths <- liftIO $ runDB $ mapM getUrlPath es
+
   tags  <- liftIO $ runDB $ mapM getTags es
 
   let
-    eData = zip slugs tags
+    eData = zip (map renderUrl' paths) tags
     eList = zip es eData
 
   let

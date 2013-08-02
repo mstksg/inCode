@@ -17,6 +17,7 @@ import Control.Monad.Reader
 data SiteData = SiteData
                 { siteDataTitle :: T.Text
                 , siteDataAuthor :: T.Text
+                , siteDataSiteHost :: T.Text
                 , siteDataAuthorRel :: T.Text
                 }
 

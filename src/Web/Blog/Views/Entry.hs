@@ -3,21 +3,20 @@
 module Web.Blog.Views.Entry (viewEntry) where
 
 -- import Data.Maybe
+-- import Web.Blog.Render
+-- import Web.Blog.SiteData
+-- import qualified Data.Text.Lazy as L
 import Control.Applicative ((<$>))
 import Control.Monad.Reader
 import Data.Monoid
-import Data.Time
-import System.Locale
 import Text.Blaze.Html5 ((!))
 import Text.Pandoc
 import Web.Blog.Models
--- import Web.Blog.Render
--- import Web.Blog.SiteData
 import Web.Blog.Types
 import qualified Data.Text as T
--- import qualified Data.Text.Lazy as L
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
+import qualified Text.Blaze.Internal as I
 
 viewEntry :: Entry -> [T.Text] -> SiteRender H.Html
 viewEntry entry tags = do
@@ -36,12 +35,15 @@ viewEntry entry tags = do
           -- TODO: Move description to article maybe, for Pocket?
           H.h4 $ H.toHtml $ entryDescription entry
 
-          H.html "by "
+          H.toHtml ("by " :: T.Text)
 
           H.a ! A.class_ "author" $ H.toHtml $ siteDataAuthor siteData'
 
-          H.div ! A.class_ "article-time" $
-            H.toHtml $ renderTime $ entryPostedAt entry
+          H.time
+            ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt entry)
+            ! A.pubdate "" 
+            ! A.class_ "pubdate"
+            $ H.toHtml $ renderFriendlyTime $ entryPostedAt entry
 
           H.ul ! A.class_ "article-tags" $
             forM_ tags $ \t ->
@@ -57,7 +59,3 @@ viewEntry entry tags = do
 
       H.div ! A.class_ "post-entry" $
         mempty
-
-renderTime :: UTCTime -> String
-renderTime = formatTime defaultTimeLocale "%A %B %-e, %Y"
-
