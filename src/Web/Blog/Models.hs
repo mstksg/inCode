@@ -26,7 +26,7 @@ Entry
 Tag
     label       T.Text
     type_       TagType
-    UniqueLabel label
+    UniqueLabelType label type_
     deriving    Show
 
 EntryTag
