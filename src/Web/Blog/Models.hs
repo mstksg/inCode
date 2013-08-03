@@ -12,6 +12,7 @@ module Web.Blog.Models  where
 import Data.Time
 import Database.Persist.TH
 import qualified Data.Text as T
+import Web.Blog.Models.Types
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 
@@ -24,6 +25,7 @@ Entry
 
 Tag
     label       T.Text
+    type_       TagType
     UniqueLabel label
     deriving    Show
 
@@ -41,5 +43,4 @@ Slug
     deriving Show
 
 |]
-
 
