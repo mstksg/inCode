@@ -39,8 +39,6 @@ viewHome eList =
             H.a ! A.href (I.textValue u) $
               H.h2 $ H.toHtml $ entryTitle e
 
-            H.h5 $ H.toHtml $ entryDescription e
-
             H.time
               ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt e)
               ! A.pubdate "" 

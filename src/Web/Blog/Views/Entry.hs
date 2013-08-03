@@ -36,9 +36,6 @@ viewEntry entry tags prevEntry nextEntry = do
 
         H.section ! A.class_ "entry-details" $ do
 
-          -- TODO: Move description to article maybe, for Pocket?
-          H.h4 $ H.toHtml $ entryDescription entry
-
           H.toHtml ("by " :: T.Text)
 
           H.a ! A.class_ "author" $ H.toHtml $ siteDataAuthor siteData'

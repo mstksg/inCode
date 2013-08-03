@@ -19,7 +19,7 @@ import Database.Persist.Postgresql
 import Database.Persist.TH
 import qualified Data.Text as T
 import Control.Monad.IO.Class
-import Control.Applicative ((<$>))
+-- import Control.Applicative ((<$>))
 import System.Locale
 
 slugLength :: Int
@@ -29,7 +29,6 @@ share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 
 Entry
     title       T.Text
-    description T.Text
     content     T.Text
     createdAt   UTCTime
     postedAt    UTCTime
@@ -52,6 +51,7 @@ Slug
     isCurrent  Bool
     UniqueSlug slug
     deriving Show
+
 
 |]
 

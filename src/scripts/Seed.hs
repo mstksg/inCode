@@ -83,9 +83,8 @@ genEntry = do
   title <- (init . last . splitOn ". " . unwords . lines)
     <$> genLoripsum "http://loripsum.net/api/1/short"
 
-
-  desc <- (unwords . tail . splitOn ". " . unwords . lines)
-      <$> genLoripsum "http://loripsum.net/api/1/short"
+  -- desc <- (unwords . tail . splitOn ". " . unwords . lines)
+  --     <$> genLoripsum "http://loripsum.net/api/1/short"
 
   body <- (unlines . tail . tail . tail . lines)
       <$> genLoripsum "http://loripsum.net/api/7/code/bq/ul/ol/dl/link/long/decorate/headers"
@@ -93,7 +92,6 @@ genEntry = do
   let
     e = Entry
       (T.pack title)
-      (T.pack desc)
       (T.pack body)
       createTime
       postTime
