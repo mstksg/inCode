@@ -20,6 +20,7 @@ import qualified Data.Text as T
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import qualified Text.Blaze.Internal as I
+import Web.Blog.Util (renderFriendlyTime, renderDatetimeTime)
 
 viewEntry :: Entry -> [T.Text] -> Maybe Entry -> Maybe Entry -> SiteRender H.Html
 viewEntry entry tags prevEntry nextEntry = do
@@ -35,9 +36,6 @@ viewEntry entry tags prevEntry nextEntry = do
         H.h1 $ H.toHtml $ entryTitle entry
 
         H.section ! A.class_ "entry-details" $ do
-
-          -- TODO: Move description to article maybe, for Pocket?
-          H.h4 $ H.toHtml $ entryDescription entry
 
           H.toHtml ("by " :: T.Text)
 

@@ -68,4 +68,5 @@ executable blog-scripts-seed
                      , random ==1.0.*
                      , monad-loops
                      , old-locale
+                     , MonadRandom
   extensions:          OverloadedStrings

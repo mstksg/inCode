@@ -14,7 +14,8 @@ import qualified Text.Blaze.Html5.Attributes as A
 import qualified Data.Text as T
 import Web.Blog.SiteData
 import qualified Text.Blaze.Internal as I
-import Web.Blog.Render
+import Web.Blog.Render 
+import Web.Blog.Util (renderFriendlyTime, renderDatetimeTime)
 
 viewHome :: [(D.Entity Entry,(T.Text,[Tag]))] -> SiteRender H.Html
 viewHome eList =
@@ -38,8 +39,6 @@ viewHome eList =
 
             H.a ! A.href (I.textValue u) $
               H.h2 $ H.toHtml $ entryTitle e
-
-            H.h5 $ H.toHtml $ entryDescription e
 
             H.time
               ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt e)

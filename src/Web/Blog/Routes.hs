@@ -32,7 +32,6 @@ import qualified Web.Scotty as S
 
 route :: S.ScottyM ()
 route = do
-  
   S.get "/" $ 
     routeEither routeHome
 

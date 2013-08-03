@@ -16,12 +16,13 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as L
 import qualified Database.Persist.Postgresql as D
 import qualified Web.Scotty as S
-import Control.Monad.Trans (lift)
+-- import Control.Monad.Trans (lift)
 import qualified Data.Map as M
 -- import Control.Monad (join)
 import Data.Maybe (isJust, fromJust)
 import Control.Monad.Trans.Maybe
 import Control.Monad.State
+import Web.Blog.Models.Util
 
 routeEntrySlug :: RouteEither
 routeEntrySlug = do
