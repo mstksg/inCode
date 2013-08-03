@@ -1,12 +1,14 @@
 
 module Web.Blog.Models.Util  where
 
+import Control.Monad (void)
 import Control.Monad.IO.Class                (liftIO)
 import Control.Monad.Loops                   (firstM)
-import Data.Char                             (isAlphaNum)
+import Data.Char                             (isAlphaNum, toLower, toUpper)
 import Data.Maybe                            (isNothing, fromJust)
 import Data.Time                             (getCurrentTime)
 import Web.Blog.Models
+import Web.Blog.Models.Types
 import qualified Data.Text                   as T
 import qualified Database.Persist.Postgresql as D
 
@@ -19,6 +21,22 @@ insertEntry entry = do
   entryKey <- D.insert entry
   D.insert_ $ Slug entryKey slugText True
   return entryKey
+
+insertEntry_ :: Entry -> D.SqlPersistM ()
+insertEntry_ entry = void $ insertEntry entry
+
+insertTag :: Tag -> D.SqlPersistM (D.Key Tag)
+insertTag tag = D.insert tag'
+  where
+    Tag l t = tag
+    tag' = case t of
+      GeneralTag  -> Tag (T.map toLower l) t
+      CategoryTag -> Tag (T.map toUpper l) t
+      SeriesTag   -> tag
+
+
+insertTag_ :: Tag -> D.SqlPersistM ()
+insertTag_ tag = void $ insertTag tag 
 
 genSlug' :: Int -> T.Text -> T.Text
 genSlug' w = squash . T.dropAround isDash . T.map replaceSymbols . T.toCaseFold

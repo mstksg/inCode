@@ -4,25 +4,24 @@
 {-# LANGUAGE TypeSynonymInstances         #-} 
 {-# LANGUAGE GeneralizedNewtypeDeriving   #-} 
 
+import Control.Applicative
+import Control.Monad
+import Control.Monad.IO.Class
+import Control.Monad.Random
+import Data.Bits
+import Data.Char
+import Data.List.Split
+import Data.Maybe
+import Data.Time.Clock
 import Database.Persist
+import Network.HTTP
+import System.IO
+import Text.Pandoc
 import Web.Blog.Database
 import Web.Blog.Models
-import Data.Time.Clock
-import Control.Monad.IO.Class
-import Network.HTTP
-import Text.Pandoc
-import Control.Applicative
-import qualified Data.Text as T
-import Data.List.Split
-import System.Random
-import Control.Monad
-import Data.Bits
-import System.IO
-import Data.Maybe
-import Web.Blog.Models.Util
 import Web.Blog.Models.Types
-import Control.Monad.Random
-import Data.Char
+import Web.Blog.Models.Util
+import qualified Data.Text as T
 
 main :: IO ()
 main = runDB $ do
@@ -32,17 +31,17 @@ main = runDB $ do
   tags <- replicateM 6 $ do
     t <- liftIO $ (map toLower . unwords . reverse . take 2 . reverse . words . filter (not . isPunctuation) . unwords . lines)
       <$> genLoripsum "http://loripsum.net/api/1/short"
-    insert $ Tag (T.pack t) GeneralTag
+    insertTag $ Tag (T.pack t) GeneralTag
 
   categories <- replicateM 4 $ do
     c <- liftIO $ (capitalizeFirst . unwords . reverse . take 2 . reverse . words . filter (not . isPunctuation) . unwords . lines)
       <$> genLoripsum "http://loripsum.net/api/1/short"
-    insert $ Tag (T.pack c) CategoryTag
+    insertTag $ Tag (T.pack c) CategoryTag
 
   serieses <- replicateM 3 $ do
     s <- liftIO $ (capitalizeFirst . unwords . reverse . take 5 . reverse . words . filter (not . isPunctuation) . unwords . lines)
       <$> genLoripsum "http://loripsum.net/api/1/short"
-    insert $ Tag (T.pack s) SeriesTag
+    insertTag $ Tag (T.pack s) SeriesTag
 
 
   replicateM_ 25 $ do
@@ -129,3 +128,4 @@ genLoripsum apiUrl = do
 
 capitalizeFirst :: String -> String
 capitalizeFirst (x:xs) = toUpper x:map toLower xs
+capitalizeFirst x = map toUpper x
