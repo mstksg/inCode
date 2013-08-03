@@ -34,6 +34,7 @@ executable blog
                      , monad-loops
                      , pandoc
                      , old-locale
+                     , http-types
   -- ghc-options:         
   extensions:          OverloadedStrings
 
@@ -46,7 +47,9 @@ executable blog-scripts-migrate
                      , persistent ==1.2.*
                      , persistent-template ==1.2.*
                      , persistent-postgresql ==1.2.*
+                     , transformers
                      , monad-loops
+                     , old-locale
   extensions:          OverloadedStrings
 
 executable blog-scripts-seed
@@ -64,4 +67,6 @@ executable blog-scripts-seed
                      , split ==0.2.*
                      , random ==1.0.*
                      , monad-loops
+                     , old-locale
+                     , MonadRandom
   extensions:          OverloadedStrings

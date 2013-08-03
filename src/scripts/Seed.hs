@@ -4,60 +4,73 @@
 {-# LANGUAGE TypeSynonymInstances         #-} 
 {-# LANGUAGE GeneralizedNewtypeDeriving   #-} 
 
+import Control.Applicative
+import Control.Monad
+import Control.Monad.IO.Class
+import Control.Monad.Random
+import Data.Bits
+import Data.Char
+import Data.List.Split
+import Data.Maybe
+import Data.Time.Clock
 import Database.Persist
+import Network.HTTP
+import System.IO
+import Text.Pandoc
 import Web.Blog.Database
 import Web.Blog.Models
-import Data.Time.Clock
-import Control.Monad.IO.Class
-import Network.HTTP
-import Text.Pandoc
-import Control.Applicative
+import Web.Blog.Models.Types
+import Web.Blog.Models.Util
 import qualified Data.Text as T
-import Data.List.Split
-import System.Random
-import Control.Monad
-import Data.Bits
-import System.IO
-import Data.Maybe
 
 main :: IO ()
 main = runDB $ do
   blogMigrate
   blogClear
 
-  tagId1 <- insert $ Tag "Random"
-  tagId2 <- insert $ Tag "Cool"
-  tagId3 <- insert $ Tag "Okay"
-  tagId4 <- insert $ Tag "Interesting"
+  tags <- replicateM 6 $ do
+    t <- liftIO $ (map toLower . unwords . reverse . take 2 . reverse . words . filter (not . isPunctuation) . unwords . lines)
+      <$> genLoripsum "http://loripsum.net/api/1/short"
+    insertTag $ Tag (T.pack t) GeneralTag
+
+  categories <- replicateM 4 $ do
+    c <- liftIO $ (capitalizeFirst . unwords . reverse . take 2 . reverse . words . filter (not . isPunctuation) . unwords . lines)
+      <$> genLoripsum "http://loripsum.net/api/1/short"
+    insertTag $ Tag (T.pack c) CategoryTag
+
+  serieses <- replicateM 3 $ do
+    s <- liftIO $ (capitalizeFirst . unwords . reverse . take 5 . reverse . words . filter (not . isPunctuation) . unwords . lines)
+      <$> genLoripsum "http://loripsum.net/api/1/short"
+    insertTag $ Tag (T.pack s) SeriesTag
+
 
   replicateM_ 25 $ do
-    (entry,tags) <- liftIO genEntry
+    (entry,tags',category,series) <- liftIO genEntry
     entryid <- insertEntry entry
 
-    when (tags .&. (1 :: Int) > 0) $ do
-      insert_ $ EntryTag entryid tagId1
-      return ()
-    when (tags .&. (2 :: Int) > 0) $ do
-      insert_ $ EntryTag entryid tagId2
-      return ()
-    when (tags .&. (4 :: Int) > 0) $ do
-      insert_ $ EntryTag entryid tagId3
-      return ()
-    when (tags .&. (8 :: Int) > 0) $ do
-      insert_ $ EntryTag entryid tagId4
-      return ()
+    let
+      powers = map (\x -> (x,2^x)) ([0..5] :: [Int])
+
+    forM_ powers $ \(tagNum,b) ->
+      when ((tags' .&. b) > 0) $ 
+        insert_ $ EntryTag entryid $ tags !! tagNum
+
+    insert_ $ EntryTag entryid $ categories !! category
+
+    when (series < 3) $ 
+      insert_ $ EntryTag entryid $ serieses !! series
     
     tagAssociations <- selectList [EntryTagEntryId ==. entryid] []
 
     let
       tagKeys = map (entryTagTagId . entityVal) tagAssociations
 
-    tags' <- map (tagLabel . fromJust) <$> mapM get tagKeys
+    tags'' <- map (tagLabel . fromJust) <$> mapM get tagKeys
 
     liftIO $ do
       putStrLn "Created new entry:"
       print $ entryTitle entry
-      print tags'
+      print tags''
       hFlush stdout
 
 
@@ -65,27 +78,32 @@ main = runDB $ do
 
   return ()
 
-genEntry :: IO (Entry,Int)
+genEntry :: IO (Entry,Int,Int,Int)
 genEntry = do
   now <- getCurrentTime
 
   gen <- newStdGen
 
   let
-    createDiff :: Integer
-    postDiff :: Integer
-    (createDiff, gen') = randomR (-31536000,-604800) gen
-    (postDiff, gen'') = randomR (100,604800) gen'
-    createTime = addUTCTime (fromIntegral createDiff) now
-    postTime = addUTCTime (fromIntegral postDiff) createTime
-    (tags, _) = randomR (1,15) gen''
+    (createTime, postTime, tags, category, series) = (evalRand $ do
+      cD <- getRandomR (-31536000,-604800)
+      pD <- getRandomR (100,604800) 
+      ts <- getRandomR (1,63)
+      c  <- getRandomR (0,3)
+      s  <- getRandomR (0,11)
+      return
+        ( addUTCTime (fromIntegral (cD :: Int)) now
+        , addUTCTime (fromIntegral (pD :: Int)) createTime
+        , ts
+        , c
+        , s
+        )
+      ) gen
+      
+
 
   title <- (init . last . splitOn ". " . unwords . lines)
     <$> genLoripsum "http://loripsum.net/api/1/short"
-
-
-  desc <- (unwords . tail . splitOn ". " . unwords . lines)
-      <$> genLoripsum "http://loripsum.net/api/1/short"
 
   body <- (unlines . tail . tail . tail . lines)
       <$> genLoripsum "http://loripsum.net/api/7/code/bq/ul/ol/dl/link/long/decorate/headers"
@@ -93,12 +111,11 @@ genEntry = do
   let
     e = Entry
       (T.pack title)
-      (T.pack desc)
       (T.pack body)
       createTime
       postTime
 
-  return (e, tags)
+  return (e, tags, category, series)
 
 
 genLoripsum :: String -> IO String
@@ -109,3 +126,6 @@ genLoripsum apiUrl = do
   return $ writeMarkdown (def WriterOptions) $
     readHtml (def ReaderOptions) body
 
+capitalizeFirst :: String -> String
+capitalizeFirst (x:xs) = toUpper x:map toLower xs
+capitalizeFirst x = map toUpper x

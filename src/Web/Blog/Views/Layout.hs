@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Web.Blog.Views.Layout (viewLayout) where
+module Web.Blog.Views.Layout (viewLayout, viewLayoutEmpty) where
 
 import Control.Applicative
 import Control.Monad.Reader
@@ -8,8 +8,8 @@ import Data.Monoid
 import Text.Blaze.Html5 ((!))
 import Web.Blog.Render
 import Web.Blog.SiteData
+import Web.Blog.Types
 import Web.Blog.Views.Sidebar
-
 import qualified Data.Text as T
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
@@ -55,6 +55,9 @@ viewLayout body = do
 
           H.div ! A.id "footer_content" ! A.class_ "c12" $
             H.preEscapedToHtml ("&copy; Justin Le 2013" :: T.Text)
+
+viewLayoutEmpty :: SiteRender H.Html
+viewLayoutEmpty = viewLayout $ return mempty
 
 createTitle :: SiteRender H.Html
 createTitle = do

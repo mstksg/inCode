@@ -1,24 +1,14 @@
 module Web.Blog.SiteData (
-    SiteData
-  , siteDataTitle
-  , siteDataAuthor
-  , siteDataAuthorRel
-  , siteData
-
+    siteData
   ) where
 
-import Data.Text
-
-data SiteData = SiteData
-                { siteDataTitle :: Text
-                , siteDataAuthor :: Text
-                , siteDataAuthorRel :: Text
-                }
+import Web.Blog.Types
 
 siteData :: SiteData
 siteData =
   SiteData
     "Blog"
     "Justin Le"
+    "home.jle0.com:4268"
     "https://plus.google.com/107705320197444500140/posts"
 
