@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Web.Blog.Routes.Entry (routeEntry, routeEntryId) where
+module Web.Blog.Routes.Entry (routeEntrySlug, routeEntryId) where
 
-import Control.Applicative ((<$>))
+-- import Control.Applicative ((<$>))
 -- import Control.Monad.Reader
 -- import Control.Monad.Trans
 -- import qualified Text.Blaze.Html5 as H
@@ -17,12 +17,12 @@ import qualified Data.Text.Lazy as L
 import qualified Database.Persist.Postgresql as D
 import qualified Web.Scotty as S
 import Control.Monad.Trans (lift)
-import Control.Monad (join)
-import Data.Maybe
+-- import Control.Monad (join)
+-- import Data.Maybe
 import Control.Monad.Trans.Maybe
 
-routeEntry :: RouteEither
-routeEntry = do
+routeEntrySlug :: RouteEither
+routeEntrySlug = do
   eIdent <- S.param "entryIdent"
 
   eKey <- liftIO $ runDB $ do
@@ -46,14 +46,8 @@ routeEntry = do
 
       case e of
         -- Slug does indeed have a real entry
-        Just e' -> do
-          (tags,prevUrl,nextUrl) <- liftIO $ runDB $ entryAux eKey' e'
-
-          let
-            view = viewEntry e' (map tagLabel tags) prevUrl nextUrl
-            pageData' = pageData {pageDataTitle = Just $ entryTitle e'}
-
-          return $ Right (view, pageData')
+        Just e' ->
+          routeEntry $ Right $ D.Entity eKey' e'
 
         -- Slug's entry does not exist.  How odd.
         Nothing -> 
@@ -71,7 +65,7 @@ routeEntryId = do
 
   e <- liftIO $ runDB $ do
 
-    e' <- D.get eKey
+    e' <- D.get eKey :: D.SqlPersistM (Maybe Entry)
 
     case e' of
       -- ID Found
@@ -89,25 +83,25 @@ routeEntryId = do
           -- entry.
           -- TODO: maybe auto-generate new slug in this case?
           Nothing ->
-            return $ Right e''
+            return $ Right $ D.Entity eKey e''
 
       -- ID not found
       Nothing ->
         return $ error404 "entryIdNotFound"
 
-  case e of
-    Right e' -> do
+  routeEntry e
 
-      (tags,prevUrl,nextUrl) <- liftIO $ runDB $ entryAux eKey e'
 
-      let
-        view = viewEntry e' (map tagLabel tags) prevUrl nextUrl
-        pageData' = pageData {pageDataTitle = Just $ entryTitle e'}
-      
-      return $ Right (view, pageData')
+routeEntry :: Either L.Text (D.Entity Entry) -> RouteEither
+routeEntry (Right (D.Entity eKey e')) = do
+  (tags,prevUrl,nextUrl) <- liftIO $ runDB $ entryAux eKey e'
 
-    Left r ->
-      return $ Left r
+  let
+    view = viewEntry e' (map tagLabel tags) prevUrl nextUrl
+    pageData' = pageData {pageDataTitle = Just $ entryTitle e'}
+  
+  return $ Right (view, pageData')
+routeEntry (Left r) = return $ Left r
 
 entryAux :: D.Key Entry -> Entry -> D.SqlPersistM ([Tag],Maybe T.Text,Maybe T.Text)
 entryAux k e = do

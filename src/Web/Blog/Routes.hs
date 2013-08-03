@@ -48,7 +48,7 @@ route = do
     routeEither routeEntryId
 
   S.get "/entry/:entryIdent" $
-    routeEither routeEntry 
+    routeEither routeEntrySlug
 
   S.get "/not-found" $ do
     S.status notFound404
