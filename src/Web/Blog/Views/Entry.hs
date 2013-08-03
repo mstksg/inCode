@@ -6,22 +6,25 @@ module Web.Blog.Views.Entry (viewEntry) where
 -- import Web.Blog.Render
 -- import Web.Blog.SiteData
 -- import qualified Data.Text.Lazy as L
+-- import qualified Database.Persist.Postgresql as D
 import Control.Applicative ((<$>))
 import Control.Monad.Reader
+import Data.Maybe
 import Data.Monoid
 import Text.Blaze.Html5 ((!))
 import Text.Pandoc
 import Web.Blog.Models
 import Web.Blog.Types
+import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import qualified Text.Blaze.Internal as I
-import Data.Maybe
 
-viewEntry :: Entry -> [T.Text] -> Maybe T.Text -> Maybe T.Text -> SiteRender H.Html
-viewEntry entry tags prevUrl nextUrl = do
+viewEntry :: Entry -> [T.Text] -> Maybe Entry -> Maybe Entry -> SiteRender H.Html
+viewEntry entry tags prevEntry nextEntry = do
   siteData' <- pageSiteData <$> ask
+  pageDataMap' <- pageDataMap <$> ask
 
   return $ 
 
@@ -56,15 +59,21 @@ viewEntry entry tags prevUrl nextUrl = do
           readMarkdown (def ReaderOptions) $ T.unpack $ entryContent entry
 
       H.footer $
-        H.ul $ do
-          when (isJust prevUrl) $
-            H.li ! A.class_ "prev-li" $
-              H.a ! A.href (I.textValue $ fromJust prevUrl) $
-                "Previous"
-          when (isJust nextUrl) $
-            H.li ! A.class_ "next-li" $
-              H.a ! A.href (I.textValue $ fromJust nextUrl) $
-                "Next"
+
+        H.nav $
+          H.ul $ do
+
+            when (isJust prevEntry) $
+              H.li ! A.class_ "prev-li" $ do
+                H.preEscapedToHtml ("Previous &mdash; " :: T.Text)
+                H.a ! A.href (I.textValue $ pageDataMap' M.! "prevUrl") $
+                  H.toHtml $ entryTitle $ fromJust prevEntry
+
+            when (isJust nextEntry) $
+              H.li ! A.class_ "next-li" $ do
+                H.preEscapedToHtml ("Next &mdash; " :: T.Text)
+                H.a ! A.href (I.textValue $ pageDataMap' M.! "nextUrl") $
+                  H.toHtml $ entryTitle $ fromJust nextEntry
 
       H.div ! A.class_ "post-entry" $
         mempty

@@ -2,7 +2,7 @@
 
 module Web.Blog.Routes.Entry (routeEntrySlug, routeEntryId) where
 
--- import Control.Applicative ((<$>))
+import Control.Applicative ((<$>))
 -- import Control.Monad.Reader
 -- import Control.Monad.Trans
 -- import qualified Text.Blaze.Html5 as H
@@ -17,9 +17,11 @@ import qualified Data.Text.Lazy as L
 import qualified Database.Persist.Postgresql as D
 import qualified Web.Scotty as S
 import Control.Monad.Trans (lift)
+import qualified Data.Map as M
 -- import Control.Monad (join)
--- import Data.Maybe
+import Data.Maybe (isJust, fromJust)
 import Control.Monad.Trans.Maybe
+import Control.Monad.State
 
 routeEntrySlug :: RouteEither
 routeEntrySlug = do
@@ -94,23 +96,42 @@ routeEntryId = do
 
 routeEntry :: Either L.Text (D.Entity Entry) -> RouteEither
 routeEntry (Right (D.Entity eKey e')) = do
-  (tags,prevUrl,nextUrl) <- liftIO $ runDB $ entryAux eKey e'
+  (tags,prevData,nextData) <- liftIO $ runDB $ entryAux eKey e'
 
   let
-    view = viewEntry e' (map tagLabel tags) prevUrl nextUrl
-    pageData' = pageData {pageDataTitle = Just $ entryTitle e'}
+
+    pdMap = execState $ do
+
+      when (isJust prevData) $ do
+        let prevUrl = snd $ fromJust prevData
+        modify (M.insert ("prevUrl" :: T.Text) prevUrl)
+
+      when (isJust nextData) $ do
+        let nextUrl = snd $ fromJust nextData
+        modify (M.insert ("nextUrl" :: T.Text) nextUrl)
+
+      
+    view = viewEntry e' (map tagLabel tags) (fst <$> prevData) (fst <$> nextData)
+    pageData' = pageData { pageDataTitle = Just $ entryTitle e'
+                         , pageDataMap   = pdMap M.empty
+                         }
   
   return $ Right (view, pageData')
 routeEntry (Left r) = return $ Left r
 
-entryAux :: D.Key Entry -> Entry -> D.SqlPersistM ([Tag],Maybe T.Text,Maybe T.Text)
+entryAux :: D.Key Entry -> Entry -> D.SqlPersistM ([Tag],Maybe (Entry, T.Text),Maybe (Entry, T.Text))
 entryAux k e = do
   tags <- getTagsByEntityKey k
-  prevUrl <- runMaybeT $ do
+
+  prevData <- runMaybeT $ do
     prev <- MaybeT $ getPrevEntry e
-    lift $ getUrlPath prev
-  nextUrl <- runMaybeT $ do
+    prevUrl <- lift $ getUrlPath prev
+    lift $ return (D.entityVal prev, prevUrl)
+
+  nextData <- runMaybeT $ do
     next <- MaybeT $ getNextEntry e
-    lift $ getUrlPath next
-  return (tags,prevUrl,nextUrl)
+    nextUrl <- lift $ getUrlPath next
+    lift $ return (D.entityVal next, nextUrl)
+
+  return (tags,prevData,nextData)
 

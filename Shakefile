@@ -11,7 +11,7 @@ main = shakeArgs opts $ do
 
   "clean" ~> removeFilesAfter ".shake" ["//*"]
 
-  "build" ~> do
+  "build" ~> 
     need [ "dist/build/blog/blog" ]
 
   "launch" ~> do
@@ -50,5 +50,6 @@ srcFiles = getDirectoryFiles ""
   , "src/scripts/*.hs"
   , "src/Web/Blog/*.hs"
   , "src/Web/Blog/Views/*.hs"
+  , "src/Web/Blog/Routes/*.hs"
   , "src/Development/Blog/*.hs"
   , "src/Development/Blog/Util/*.hs" ]
