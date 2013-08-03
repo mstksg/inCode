@@ -18,6 +18,7 @@ import qualified Database.Persist.Postgresql as D
 import qualified Text.Blaze.Html5 as H
 import qualified Web.Scotty as S
 import Control.Monad.Trans (lift)
+import Web.Blog.Models.Util
 
 routeHome :: RouteEither
 routeHome = do

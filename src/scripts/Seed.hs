@@ -19,6 +19,7 @@ import Control.Monad
 import Data.Bits
 import System.IO
 import Data.Maybe
+import Web.Blog.Models.Util
 
 main :: IO ()
 main = runDB $ do
