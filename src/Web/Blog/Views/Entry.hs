@@ -36,7 +36,7 @@ viewEntry entry tags prevEntry nextEntry = do
 
         H.h1 $ H.toHtml $ entryTitle entry
 
-        H.section ! A.class_ "entry-details" $ do
+        H.p $ do
 
           H.toHtml ("by " :: T.Text)
 
@@ -50,7 +50,7 @@ viewEntry entry tags prevEntry nextEntry = do
             ! A.class_ "pubdate"
             $ H.toHtml $ renderFriendlyTime $ entryPostedAt entry
 
-          H.ul ! A.class_ "article-tags" $
+          H.ul $
             forM_ tags $ \t ->
               H.li $ H.toHtml t
 
@@ -58,20 +58,17 @@ viewEntry entry tags prevEntry nextEntry = do
 
         entryHtml entry 
 
-
       H.footer $
-
         H.nav $
           H.ul $ do
-
             when (isJust prevEntry) $
-              H.li ! A.class_ "prev-li" $ do
+              H.li $ do
                 H.preEscapedToHtml ("Previous &mdash; " :: T.Text)
                 H.a ! A.href (I.textValue $ pageDataMap' M.! "prevUrl") $
                   H.toHtml $ entryTitle $ fromJust prevEntry
 
             when (isJust nextEntry) $
-              H.li ! A.class_ "next-li" $ do
+              H.li $ do
                 H.preEscapedToHtml ("Next &mdash; " :: T.Text)
                 H.a ! A.href (I.textValue $ pageDataMap' M.! "nextUrl") $
                   H.toHtml $ entryTitle $ fromJust nextEntry

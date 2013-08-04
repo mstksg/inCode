@@ -41,7 +41,6 @@ viewHome eList = do
         H.article $ do
 
           H.header $ do
-
             H.a ! A.href (I.textValue u) $
               H.h2 $ H.toHtml $ entryTitle e
 
@@ -51,13 +50,14 @@ viewHome eList = do
               ! A.class_ "pubdate"
               $ H.toHtml $ renderFriendlyTime $ entryPostedAt e
 
-            H.ul ! A.class_ "article-tags" $
+          H.div $
+            entryLedeHtml e
+
+          H.footer $
+            H.ul $
               forM_ ts $ \t ->
                 H.li $ H.toHtml $ tagLabel t
 
-          H.div $
-            
-            entryLedeHtml e
 
       H.footer $ 
 
@@ -65,14 +65,14 @@ viewHome eList = do
 
           case M.lookup "nextPage" pageDataMap' of
             Just nlink -> 
-              H.li ! A.class_ "next_page-li" $
+              H.li $
                 H.a ! A.href (I.textValue nlink) $
                   "Older"
             _ -> return ()
 
           case M.lookup "prevPage" pageDataMap' of
             Just plink -> 
-              H.li ! A.class_ "prev_page-li" $
+              H.li $
                 H.a ! A.href (I.textValue plink) $
                   "Newer"
             _ -> return ()
