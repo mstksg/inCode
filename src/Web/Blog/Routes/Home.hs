@@ -28,44 +28,53 @@ routeHome page = do
   let
     m = siteDataHomeEntries siteData
 
-  es <- liftIO $ runDB $ postedEntries [ D.Desc EntryPostedAt
-                                       , D.LimitTo m 
-                                       , D.OffsetBy $ (page - 1) * m ]
+  maxPage' <- liftIO $ runDB $ maxPage m
 
-  paths <- liftIO $ runDB $ mapM getUrlPath es
+  if page < 1 || page > maxPage'
+    then
+      return $ Left "/"
+    else do
 
-  tags  <- liftIO $ runDB $ mapM getTags es
+      es <- liftIO $ runDB $ postedEntries [ D.Desc EntryPostedAt
+                                          , D.LimitTo m 
+                                          , D.OffsetBy $ (page - 1) * m ]
 
-  isMax' <- liftIO $ runDB $ isMax page m
+      paths <- liftIO $ runDB $ mapM getUrlPath es
+
+      tags  <- liftIO $ runDB $ mapM getTags es
 
 
-  let
-    eData = zip (map renderUrl' paths) tags
-    eList = zip es eData
-    urlBase = renderUrl' "/home/"
-
-  let
-    pdMap = execState $ do
-      when (page > 1) $ do
-        let
-          prevUrl = if page == 1
-            then renderUrl' "/"
-            else T.append urlBase $ T.pack $ show $ page - 1
-        modify $
-          M.insert "prevPage" prevUrl
-
-      unless isMax' $
-        modify $
-          M.insert "nextPage" (T.append urlBase $ T.pack $ show $ page + 1)
-
-    view = viewHome eList
-    pageData' = pageData { pageDataTitle = Just "Home"
-                         , pageDataMap   = pdMap M.empty
-                         }
       
-  return $ Right (view, pageData')
 
-isMax :: Int -> Int -> D.SqlPersistM Bool
-isMax curr perPage = do
+
+
+      let
+        eData = zip (map renderUrl' paths) tags
+        eList = zip es eData
+        urlBase = renderUrl' "/home/"
+
+      let
+        pdMap = execState $ do
+          when (page > 1) $ do
+            let
+              prevUrl = if page == 1
+                then renderUrl' "/"
+                else T.append urlBase $ T.pack $ show $ page - 1
+            modify $
+              M.insert "prevPage" prevUrl
+
+          when (page < maxPage') $
+            modify $
+              M.insert "nextPage" (T.append urlBase $ T.pack $ show $ page + 1)
+
+        view = viewHome eList
+        pageData' = pageData { pageDataTitle = Just "Home"
+                            , pageDataMap   = pdMap M.empty
+                            }
+          
+      return $ Right (view, pageData')
+
+maxPage :: Int -> D.SqlPersistM Int
+maxPage perPage = do
   c <- postedEntryCount
-  return $ curr >= (c + perPage - 1) `div` perPage
+  return $ (c + perPage - 1) `div` perPage

@@ -43,6 +43,7 @@ route = do
   
   S.get "/home/:page" $ do
     page <- S.param "page"
+    when (page < 1) S.next
     routeEither $ routeHome page
 
   forM_ ["/","/id"] $ \r -> do
