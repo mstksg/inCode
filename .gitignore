@@ -2,3 +2,4 @@
 .virthualenv
 .shake
 dist
+cabal-dev
