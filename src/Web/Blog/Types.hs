@@ -15,12 +15,13 @@ import qualified Data.Text as T
 import Control.Monad.Reader
 
 data SiteData = SiteData
-                { siteDataTitle :: T.Text
-                , siteDataAuthor :: T.Text
-                , siteDataSiteHost :: T.Text
-                , siteDataAuthorRel :: T.Text
-                , siteDataSlugLength :: Int
+                { siteDataTitle       :: T.Text
+                , siteDataAuthor      :: T.Text
+                , siteDataSiteHost    :: T.Text
+                , siteDataAuthorRel   :: T.Text
+                , siteDataSlugLength  :: Int
                 , siteDataHomeEntries :: Int
+                , siteDataLedeMax     :: Int
                 }
 
 
@@ -31,8 +32,8 @@ type PageDataMap = M.Map T.Text T.Text
 data PageData = PageData
                 { pageDataTitle   :: Maybe T.Text
                 , pageDataHeaders :: [H.Html]
-                , pageDataMap :: PageDataMap
-                , pageSiteData :: SiteData
+                , pageDataMap     :: PageDataMap
+                , pageSiteData    :: SiteData
                 }
 
 type RouteEither = S.ActionM (Either L.Text (SiteRender H.Html, PageData))

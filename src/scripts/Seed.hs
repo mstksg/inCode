@@ -101,12 +101,11 @@ genEntry = do
       ) gen
       
 
+  fullEntry <- genLoripsum "http://loripsum.net/api/7/code/bq/ul/ol/dl/link/long/decorate/headers"
 
-  title <- (init . last . splitOn ". " . unwords . lines)
-    <$> genLoripsum "http://loripsum.net/api/1/short"
-
-  body <- (unlines . tail . tail . tail . lines)
-      <$> genLoripsum "http://loripsum.net/api/7/code/bq/ul/ol/dl/link/long/decorate/headers"
+  let
+    title =           head   $ lines fullEntry
+    body  = unlines $ drop 3 $ lines fullEntry
 
   let
     e = Entry

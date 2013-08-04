@@ -17,6 +17,8 @@ import qualified Text.Pandoc                 as P
 -- TODO: Make this read from SiteData
 slugLength :: Int
 slugLength = 10
+ledeMax :: Int
+ledeMax = 3
 
 insertEntry :: Entry -> D.SqlPersistM (D.Key Entry)
 insertEntry entry = do
@@ -57,7 +59,7 @@ entryLedePandoc :: Entry -> P.Pandoc
 entryLedePandoc entry = P.Pandoc m ledeBs
   where
     P.Pandoc m bs = entryPandoc entry
-    ledeBs = takeWhile isNotHeader bs
+    ledeBs = take ledeMax $ takeWhile isNotHeader bs
     isNotHeader b = case b of
                       P.Header {} -> False
                       _ -> True

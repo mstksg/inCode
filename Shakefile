@@ -24,11 +24,11 @@ main = shakeArgs opts $ do
     systemBin "blog" []
 
   "migrate" ~> do
-    need ["cabal-dev/blog-scripts-migrate"]
+    need ["cabal-dev/bin/blog-scripts-migrate"]
     cmdBin "blog-scripts-migrate"
 
   "seed" ~> do
-    need ["cabal-dev/blog-scripts-seed"]
+    need ["cabal-dev/bin/blog-scripts-seed"]
     cmdBin "blog-scripts-seed"
 
   "view-src" ~> do
@@ -40,7 +40,7 @@ main = shakeArgs opts $ do
     need fs
     cmdCabal ["install"]
 
-  "cabal-dev/blog-scripts-migrate" *> \_ -> do
+  "cabal-dev/bin/blog-scripts-migrate" *> \_ -> do
     need ["build"]
     return ()
 
