@@ -3,24 +3,25 @@
 module Web.Blog.Views.Entry (viewEntry) where
 
 -- import Data.Maybe
+-- import Text.Pandoc
 -- import Web.Blog.Render
 -- import Web.Blog.SiteData
--- import qualified Data.Text.Lazy as L
+-- import qualified Data.Text.Lazy              as L
 -- import qualified Database.Persist.Postgresql as D
-import Control.Applicative ((<$>))
+import Control.Applicative                      ((<$>))
 import Control.Monad.Reader
 import Data.Maybe
 import Data.Monoid
-import Text.Blaze.Html5 ((!))
-import Text.Pandoc
+import Text.Blaze.Html5                         ((!))
 import Web.Blog.Models
+import Web.Blog.Models.Util
 import Web.Blog.Types
-import qualified Data.Map as M
-import qualified Data.Text as T
-import qualified Text.Blaze.Html5 as H
-import qualified Text.Blaze.Html5.Attributes as A
-import qualified Text.Blaze.Internal as I
-import Web.Blog.Util (renderFriendlyTime, renderDatetimeTime)
+import Web.Blog.Util                            (renderFriendlyTime, renderDatetimeTime)
+import qualified Data.Map                       as M
+import qualified Data.Text                      as T
+import qualified Text.Blaze.Html5               as H
+import qualified Text.Blaze.Html5.Attributes    as A
+import qualified Text.Blaze.Internal            as I
 
 viewEntry :: Entry -> [T.Text] -> Maybe Entry -> Maybe Entry -> SiteRender H.Html
 viewEntry entry tags prevEntry nextEntry = do
@@ -41,6 +42,8 @@ viewEntry entry tags prevEntry nextEntry = do
 
           H.a ! A.class_ "author" $ H.toHtml $ siteDataAuthor siteData'
 
+          H.toHtml (" " :: T.Text)
+
           H.time
             ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt entry)
             ! A.pubdate "" 
@@ -53,8 +56,8 @@ viewEntry entry tags prevEntry nextEntry = do
 
       H.div ! A.class_ "main-content" $
 
-        H.preEscapedToHtml $ writeHtmlString (def WriterOptions) $
-          readMarkdown (def ReaderOptions) $ T.unpack $ entryContent entry
+        entryHtml entry 
+
 
       H.footer $
 

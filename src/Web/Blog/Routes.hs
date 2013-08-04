@@ -56,7 +56,6 @@ route = do
   S.notFound $
     S.redirect "/not-found"
 
-
 routeEither :: RouteEither -> S.ActionM ()
 routeEither r = do
   routeResult <- r

@@ -69,4 +69,5 @@ executable blog-scripts-seed
                      , monad-loops
                      , old-locale
                      , MonadRandom
+                     , blaze-html 
   extensions:          OverloadedStrings

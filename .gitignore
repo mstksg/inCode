@@ -3,3 +3,4 @@
 .shake
 dist
 cabal-dev
+tmp

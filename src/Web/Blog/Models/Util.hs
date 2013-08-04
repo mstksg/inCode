@@ -1,7 +1,7 @@
 
 module Web.Blog.Models.Util  where
 
-import Control.Monad (void)
+import Control.Monad                         (void)
 import Control.Monad.IO.Class                (liftIO)
 import Control.Monad.Loops                   (firstM)
 import Data.Char                             (isAlphaNum, toLower, toUpper)
@@ -11,6 +11,8 @@ import Web.Blog.Models
 import Web.Blog.Models.Types
 import qualified Data.Text                   as T
 import qualified Database.Persist.Postgresql as D
+import qualified Text.Blaze.Html5            as H
+import qualified Text.Pandoc                 as P
 
 slugLength :: Int
 slugLength = 10
@@ -37,6 +39,27 @@ insertTag tag = D.insert tag'
 
 insertTag_ :: Tag -> D.SqlPersistM ()
 insertTag_ tag = void $ insertTag tag 
+
+entryPandoc :: Entry -> P.Pandoc
+entryPandoc = P.readMarkdown (P.def P.ReaderOptions) . T.unpack . entryContent
+
+entryHtml :: Entry -> H.Html
+entryHtml = P.writeHtml (P.def P.WriterOptions) . entryPandoc
+
+entryLede :: Entry -> T.Text
+entryLede = T.pack . P.writeMarkdown (P.def P.WriterOptions) . entryLedePandoc
+
+entryLedeHtml :: Entry -> H.Html
+entryLedeHtml = P.writeHtml (P.def P.WriterOptions) . entryLedePandoc
+
+entryLedePandoc :: Entry -> P.Pandoc
+entryLedePandoc entry = P.Pandoc m ledeBs
+  where
+    P.Pandoc m bs = entryPandoc entry
+    ledeBs = takeWhile isNotHeader bs
+    isNotHeader b = case b of
+                      P.Header {} -> False
+                      _ -> True
 
 genSlug' :: Int -> T.Text -> T.Text
 genSlug' w = squash . T.dropAround isDash . T.map replaceSymbols . T.toCaseFold
