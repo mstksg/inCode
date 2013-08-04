@@ -5,6 +5,7 @@ module Web.Blog.Views.Home (viewHome) where
 -- import Data.Maybe
 -- import Data.Monoid
 -- import Web.Blog.Render
+import Control.Applicative                   ((<$>))
 import Control.Monad.Reader
 import Text.Blaze.Html5                      ((!))
 import Web.Blog.Models
@@ -12,6 +13,7 @@ import Web.Blog.Models.Util
 import Web.Blog.SiteData
 import Web.Blog.Types
 import Web.Blog.Util                         (renderFriendlyTime, renderDatetimeTime)
+import qualified Data.Map                    as M
 import qualified Data.Text                   as T
 import qualified Database.Persist.Postgresql as D
 import qualified Text.Blaze.Html5            as H
@@ -19,7 +21,9 @@ import qualified Text.Blaze.Html5.Attributes as A
 import qualified Text.Blaze.Internal         as I
 
 viewHome :: [(D.Entity Entry,(T.Text,[Tag]))] -> SiteRender H.Html
-viewHome eList =
+viewHome eList = do
+  pageDataMap' <- pageDataMap <$> ask
+
   return $ 
     H.section $ do
 
@@ -55,5 +59,21 @@ viewHome eList =
             
             entryLedeHtml e
 
+      H.footer $ 
 
+        H.ul $ do
+
+          case M.lookup "nextPage" pageDataMap' of
+            Just nlink -> 
+              H.li ! A.class_ "next_page-li" $
+                H.a ! A.href (I.textValue nlink) $
+                  "Older"
+            _ -> return ()
+
+          case M.lookup "prevPage" pageDataMap' of
+            Just plink -> 
+              H.li ! A.class_ "prev_page-li" $
+                H.a ! A.href (I.textValue plink) $
+                  "Newer"
+            _ -> return ()
 

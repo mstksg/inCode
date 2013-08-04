@@ -19,6 +19,8 @@ data SiteData = SiteData
                 , siteDataAuthor :: T.Text
                 , siteDataSiteHost :: T.Text
                 , siteDataAuthorRel :: T.Text
+                , siteDataSlugLength :: Int
+                , siteDataHomeEntries :: Int
                 }
 
 

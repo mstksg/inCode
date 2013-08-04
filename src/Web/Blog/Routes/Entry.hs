@@ -49,11 +49,7 @@ routeEntrySlug = do
 
       case e of
         -- Slug does indeed have a real entry
-        Just e' -> do
-          -- liftIO $ print $ entryPandoc e'
-          liftIO $ 
-            writeFile "trace.txt" $ T.unpack $ entryContent e'
-
+        Just e' ->
           routeEntry $ Right $ D.Entity eKey' e'
 
         -- Slug's entry does not exist.  How odd.

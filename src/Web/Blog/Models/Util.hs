@@ -14,6 +14,7 @@ import qualified Database.Persist.Postgresql as D
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Pandoc                 as P
 
+-- TODO: Make this read from SiteData
 slugLength :: Int
 slugLength = 10
 
@@ -100,6 +101,11 @@ postedEntries :: [D.SelectOpt Entry] -> D.SqlPersistM [D.Entity Entry]
 postedEntries opts = do
   now <- liftIO getCurrentTime
   D.selectList [ EntryPostedAt D.<=. now ] opts
+
+postedEntryCount :: D.SqlPersistM Int
+postedEntryCount = do
+  now <- liftIO getCurrentTime
+  D.count [ EntryPostedAt D.<=. now ]
 
 getCurrentSlug :: D.Entity Entry -> D.SqlPersistM (Maybe (D.Entity Slug))
 getCurrentSlug entry = D.selectFirst [ SlugEntryId   D.==. eKey
