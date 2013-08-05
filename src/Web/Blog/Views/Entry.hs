@@ -53,14 +53,18 @@ viewEntry entry tags prevEntry nextEntry = do
             $ H.toHtml $ renderFriendlyTime $ entryPostedAt entry
 
           H.ul $
-            forM_ tags $ \t ->
+            forM_ (filter isCategoryTag tags) $ \t ->
               tagLi t
 
       H.div ! A.class_ "main-content" $
 
         entryHtml entry 
 
-      H.footer npUl
+      H.footer $ do
+        H.ul $
+          forM_ tags $ \t ->
+            tagLi t
+        npUl
 
       H.div ! A.class_ "post-entry" $
         mempty

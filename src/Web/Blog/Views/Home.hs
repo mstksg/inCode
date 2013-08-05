@@ -61,19 +61,20 @@ viewHome eList = do
 
       H.footer $ 
 
-        H.ul $ do
+        H.nav $
+          H.ul $ do
 
-          case M.lookup "nextPage" pageDataMap' of
-            Just nlink -> 
-              H.li $
-                H.a ! A.href (I.textValue nlink) $
-                  "Older"
-            _ -> return ()
+            case M.lookup "nextPage" pageDataMap' of
+              Just nlink -> 
+                H.li $
+                  H.a ! A.href (I.textValue nlink) $
+                    "Older"
+              _ -> return ()
 
-          case M.lookup "prevPage" pageDataMap' of
-            Just plink -> 
-              H.li $
-                H.a ! A.href (I.textValue plink) $
-                  "Newer"
-            _ -> return ()
+            case M.lookup "prevPage" pageDataMap' of
+              Just plink -> 
+                H.li $
+                  H.a ! A.href (I.textValue plink) $
+                    "Newer"
+              _ -> return ()
 

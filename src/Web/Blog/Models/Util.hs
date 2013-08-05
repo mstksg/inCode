@@ -190,3 +190,18 @@ tagLi :: Tag -> H.Html
 tagLi t = H.li $
   H.a H.! A.href (I.textValue $ renderUrl' $ tagPath t) $
     H.toHtml $ tagLabel' t
+
+isGeneralTag :: Tag -> Bool
+isGeneralTag t = case tagType_ t of
+  GeneralTag -> True
+  _          -> False
+
+isCategoryTag :: Tag -> Bool
+isCategoryTag t = case tagType_ t of
+  CategoryTag -> True
+  _           -> False
+
+isSeriesTag :: Tag -> Bool
+isSeriesTag t = case tagType_ t of
+  SeriesTag -> True
+  _         -> False
