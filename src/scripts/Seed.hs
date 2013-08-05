@@ -104,7 +104,7 @@ genEntry = do
   fullEntry <- genLoripsum "http://loripsum.net/api/7/code/bq/ul/ol/dl/link/long/decorate/headers"
 
   let
-    title =           head   $ lines fullEntry
+    title = init    $ head   $ lines fullEntry
     body  = unlines $ drop 3 $ lines fullEntry
 
   let

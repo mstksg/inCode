@@ -112,7 +112,7 @@ routeEntry (Right (D.Entity eKey e')) = do
         modify (M.insert ("nextUrl" :: T.Text) nextUrl)
 
       
-    view = viewEntry e' (map tagLabel tags) (fst <$> prevData) (fst <$> nextData)
+    view = viewEntry e' tags (fst <$> prevData) (fst <$> nextData)
     pageData' = pageData { pageDataTitle = Just $ entryTitle e'
                          , pageDataMap   = pdMap M.empty
                          }

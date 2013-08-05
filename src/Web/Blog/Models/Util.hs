@@ -143,3 +143,11 @@ getPrevEntry e = D.selectFirst [ EntryPostedAt D.<. entryPostedAt e ] [ D.Desc E
 
 getNextEntry :: Entry -> D.SqlPersistM (Maybe (D.Entity Entry))
 getNextEntry e = D.selectFirst [ EntryPostedAt D.>. entryPostedAt e ] [ D.Asc EntryPostedAt ]
+
+tagLabel' :: Tag -> T.Text
+tagLabel' t = T.append prefix $ tagLabel t
+  where
+    prefix = case tagType_ t of
+      GeneralTag  -> "#"
+      CategoryTag -> "@"
+      SeriesTag   -> "+"

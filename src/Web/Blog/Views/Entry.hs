@@ -23,16 +23,18 @@ import qualified Text.Blaze.Html5               as H
 import qualified Text.Blaze.Html5.Attributes    as A
 import qualified Text.Blaze.Internal            as I
 
-viewEntry :: Entry -> [T.Text] -> Maybe Entry -> Maybe Entry -> SiteRender H.Html
+viewEntry :: Entry -> [Tag] -> Maybe Entry -> Maybe Entry -> SiteRender H.Html
 viewEntry entry tags prevEntry nextEntry = do
   siteData' <- pageSiteData <$> ask
-  pageDataMap' <- pageDataMap <$> ask
+  npUl <- nextPrevUrl prevEntry nextEntry
 
   return $ 
 
     H.article $ do
       
       H.header $ do
+
+        npUl
 
         H.h1 $ H.toHtml $ entryTitle entry
 
@@ -52,26 +54,32 @@ viewEntry entry tags prevEntry nextEntry = do
 
           H.ul $
             forM_ tags $ \t ->
-              H.li $ H.toHtml t
+              H.li $ H.toHtml $ tagLabel' t
 
       H.div ! A.class_ "main-content" $
 
         entryHtml entry 
 
-      H.footer $
-        H.nav $
-          H.ul $ do
-            when (isJust prevEntry) $
-              H.li $ do
-                H.preEscapedToHtml ("Previous &mdash; " :: T.Text)
-                H.a ! A.href (I.textValue $ pageDataMap' M.! "prevUrl") $
-                  H.toHtml $ entryTitle $ fromJust prevEntry
-
-            when (isJust nextEntry) $
-              H.li $ do
-                H.preEscapedToHtml ("Next &mdash; " :: T.Text)
-                H.a ! A.href (I.textValue $ pageDataMap' M.! "nextUrl") $
-                  H.toHtml $ entryTitle $ fromJust nextEntry
+      H.footer npUl
 
       H.div ! A.class_ "post-entry" $
         mempty
+
+nextPrevUrl :: Maybe Entry -> Maybe Entry -> SiteRender H.Html
+nextPrevUrl prevEntry nextEntry = do
+  pageDataMap' <- pageDataMap <$> ask
+
+  return $
+    H.nav $
+      H.ul $ do
+        when (isJust prevEntry) $
+          H.li $ do
+            H.preEscapedToHtml ("Previous &mdash; " :: T.Text)
+            H.a ! A.href (I.textValue $ pageDataMap' M.! "prevUrl") $
+              H.toHtml $ entryTitle $ fromJust prevEntry
+
+        when (isJust nextEntry) $
+          H.li $ do
+            H.preEscapedToHtml ("Next &mdash; " :: T.Text)
+            H.a ! A.href (I.textValue $ pageDataMap' M.! "nextUrl") $
+              H.toHtml $ entryTitle $ fromJust nextEntry

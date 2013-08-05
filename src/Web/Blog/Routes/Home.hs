@@ -69,8 +69,8 @@ routeHome page = do
 
         view = viewHome eList
         pageData' = pageData { pageDataTitle = Just "Home"
-                            , pageDataMap   = pdMap M.empty
-                            }
+                             , pageDataMap   = pdMap M.empty
+                             }
           
       return $ Right (view, pageData')
 

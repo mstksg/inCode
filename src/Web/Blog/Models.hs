@@ -21,17 +21,20 @@ Entry
     content     T.Text
     createdAt   UTCTime
     postedAt    UTCTime
+
     deriving    Show
 
 Tag
-    label       T.Text
-    type_       TagType
+    label           T.Text
+    type_           TagType
+
     UniqueLabelType label type_
-    deriving    Show
+    deriving        Show
 
 EntryTag
     entryId          EntryId
     tagId            TagId
+
     UniqueEntryTag   entryId   tagId
     deriving         Show
 
@@ -39,6 +42,7 @@ Slug
     entryId    EntryId Eq
     slug       T.Text
     isCurrent  Bool
+
     UniqueSlug slug
     deriving Show
 
