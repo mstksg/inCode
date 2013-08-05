@@ -6,7 +6,7 @@ import Control.Monad.IO.Class                (liftIO)
 import Control.Monad.Loops                   (firstM)
 import Data.Char                             (isAlphaNum, toLower, toUpper)
 import Data.Maybe                            (isNothing, fromJust)
-import Data.Time                             (getCurrentTime)
+import Data.Time                             (getCurrentTime, UTCTime)
 import Web.Blog.Models
 import Web.Blog.Models.Types
 import qualified Data.Text                   as T
@@ -89,20 +89,36 @@ genEntrySlug w t = do
 -- TODO: separate changeSlug function to be able to re-double back on old
 -- names
 
+postedFilter :: UTCTime -> [D.Filter Entry]
+postedFilter now = [ EntryPostedAt D.<=. now ]
 
 postedEntries :: [D.SelectOpt Entry] -> D.SqlPersistM [D.Entity Entry]
-postedEntries opts = do
+postedEntries = postedEntriesFilter []
+
+postedEntriesFilter :: [D.Filter Entry] -> [D.SelectOpt Entry] -> D.SqlPersistM [D.Entity Entry]
+postedEntriesFilter filters opts = do
   now <- liftIO getCurrentTime
-  D.selectList [ EntryPostedAt D.<=. now ] opts
+  D.selectList (filters ++ postedFilter now) opts
 
 postedEntryCount :: D.SqlPersistM Int
 postedEntryCount = do
   now <- liftIO getCurrentTime
-  D.count [ EntryPostedAt D.<=. now ]
+  D.count $ postedFilter now
+
+getEntryData :: D.Entity Entry -> D.SqlPersistM (T.Text,[Tag])
+getEntryData e = do
+  p <- getUrlPath e
+  ts  <- getTags e
+  return (p,ts)
+
+wrapEntryData :: D.Entity Entry -> D.SqlPersistM (D.Entity Entry, (T.Text, [Tag]))
+wrapEntryData e = do
+  d <- getEntryData e
+  return (e,d)
 
 getCurrentSlug :: D.Entity Entry -> D.SqlPersistM (Maybe (D.Entity Slug))
 getCurrentSlug entry = D.selectFirst [ SlugEntryId   D.==. eKey
-                                   , SlugIsCurrent D.==. True ] []
+                                     , SlugIsCurrent D.==. True ] []
   where
     D.Entity eKey _ = entry
 

@@ -11,7 +11,7 @@ import Web.Blog.Database
 import Web.Blog.Models
 import Web.Blog.Render
 import Web.Blog.Types
-import Web.Blog.Views
+import Web.Blog.Views.Entry
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as L
 import qualified Database.Persist.Postgresql as D

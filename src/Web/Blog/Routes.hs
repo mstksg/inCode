@@ -1,8 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Web.Blog.Routes (
-  route
-  ) where
+module Web.Blog.Routes (route) where
 
 -- import Control.Monad                      (when)
 -- import Data.Maybe
@@ -21,6 +19,7 @@ import Web.Blog.Render
 import Web.Blog.Routes.Entry
 import Web.Blog.Routes.Home
 import Web.Blog.Routes.NotFound
+import Web.Blog.Routes.Archive
 import Web.Blog.SiteData
 import Web.Blog.Types
 import Web.Blog.Views
@@ -34,6 +33,14 @@ import qualified Web.Scotty                  as S
 
 route :: S.ScottyM ()
 route = do
+  homeRoutes
+  entryRoutes
+  archiveRoutes
+  miscRoutes
+
+
+homeRoutes :: S.ScottyM ()
+homeRoutes = do
   S.get "/" $ 
     routeEither $ routeHome 1
 
@@ -46,6 +53,8 @@ route = do
     when (page < 1) S.next
     routeEither $ routeHome page
 
+entryRoutes :: S.ScottyM ()
+entryRoutes = do
   forM_ ["/","/id"] $ \r -> do
     let
       cap = "/e" ++ (L.unpack r ++ "/:entryIdent")
@@ -61,6 +70,28 @@ route = do
   S.get "/entry/:entryIdent" $
     routeEither routeEntrySlug
 
+archiveRoutes :: S.ScottyM ()
+archiveRoutes = do
+  S.get "/entries" $
+    routeEither routeArchive
+
+  S.get "/entries/@:category" $
+    S.html "hey"
+
+  S.get "/entries/+:series" $
+    S.html "hey"
+
+  S.get "/entries/:year" $
+    S.html "hey"
+
+  S.get "/entries/:year/:month" $
+    S.html "hey"
+
+  S.get "/entries/:tag" $
+    S.html "hey"
+
+miscRoutes :: S.ScottyM ()
+miscRoutes = do
   S.get "/not-found" $ do
     S.status notFound404
     routeEither routeNotFound
