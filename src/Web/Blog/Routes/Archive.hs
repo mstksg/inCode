@@ -52,22 +52,20 @@ routeArchiveAll = routeArchiveFilters "Entries" []
 
 routeArchiveTag :: TagType -> T.Text -> RouteEither
 routeArchiveTag type_ slug = do
-  entryKeys <- liftIO $ runDB $ do
-    tag <- liftIO $ runDB $ D.getBy $ UniqueSlugType slug type_
-    case tag of
-      Just (D.Entity tagKey _) -> do
-        entrytags <- D.selectList [ EntryTagTagId D.==. tagKey ] []
-        return $ Right $ map (entryTagEntryId . D.entityVal) entrytags
-      Nothing ->
-        return $ error404 "TagNotFound"
+  tag <- liftIO $ runDB $ D.getBy $ UniqueSlugType slug type_
 
-  case entryKeys of
-    Right keys -> 
-      routeArchiveFilters (T.pack $ show type_) [ EntryId D.<-. keys ]
-    Left red ->
-      return $ Left red
+  case tag of
+    Just (D.Entity tagKey tag') -> do
+      entrytags <- liftIO $ runDB $ D.selectList [ EntryTagTagId D.==. tagKey ] []
+      let
+        entryKeys = map (entryTagEntryId . D.entityVal) entrytags
 
-  
+      routeArchiveFilters (tagLabel' tag') [ EntryId D.<-. entryKeys ]
+      
+    Nothing ->
+      return $ error404 "TagNotFound"
+
+
 routeArchiveYear :: Int -> RouteEither
 routeArchiveYear year = routeArchiveFilters (T.pack $ show year) filters
   where
@@ -77,7 +75,7 @@ routeArchiveYear year = routeArchiveFilters (T.pack $ show year) filters
               , EntryPostedAt D.<=. endTime  ]
 
 routeArchiveMonth :: Int -> Int -> RouteEither
-routeArchiveMonth year month = routeArchiveFilters (T.pack $ show year) filters
+routeArchiveMonth year month = routeArchiveFilters (T.pack timeString) filters
   where
     startDay = buildTime defaultTimeLocale
       [('Y',show year),('m',show month)] :: Day
@@ -86,3 +84,4 @@ routeArchiveMonth year month = routeArchiveFilters (T.pack $ show year) filters
     endTime = UTCTime endDay 0
     filters = [ EntryPostedAt D.>=. startTime
               , EntryPostedAt D.<=. endTime  ]
+    timeString = formatTime defaultTimeLocale "%B %Y" startDay
