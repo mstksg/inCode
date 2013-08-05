@@ -2,7 +2,7 @@
 
 module Web.Blog.Views.Archive (viewArchive) where
 
--- import Data.Maybe
+import Data.Maybe (fromMaybe)
 -- import Data.Monoid
 -- import Web.Blog.Render
 import Control.Applicative                   ((<$>))
@@ -22,12 +22,34 @@ import qualified Text.Blaze.Internal         as I
 
 viewArchive :: [(D.Entity Entry,(T.Text,[Tag]))] -> SiteRender H.Html
 viewArchive eList = do
-  pageDataMap' <- pageDataMap <$> ask
+  pageTitle <- pageDataTitle <$> ask
 
   return $ do
 
     H.header $
-      H.h1 "Entries"
+      H.h1 $ H.toHtml $ fromMaybe "Entries" pageTitle
+
+    H.div $ 
+      
+      forM_ eList $ \eData -> do
+        let
+          (D.Entity _ e,(u,ts)) = eData
+
+        H.article $ do
+
+          H.a ! A.href (I.textValue u) $
+            H.h2 $ H.toHtml $ entryTitle e
+
+          H.time
+            ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt e)
+            ! A.pubdate "" 
+            ! A.class_ "pubdate"
+            $ H.toHtml $ renderFriendlyTime $ entryPostedAt e
+
+          H.ul $
+            forM_ ts $ \t ->
+              H.li $ H.toHtml $ tagLabel' t
+
         
 
 

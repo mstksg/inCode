@@ -73,7 +73,7 @@ entryRoutes = do
 archiveRoutes :: S.ScottyM ()
 archiveRoutes = do
   S.get "/entries" $
-    routeEither routeArchive
+    routeEither routeArchiveAll
 
   S.get "/entries/@:category" $
     S.html "hey"
@@ -81,13 +81,13 @@ archiveRoutes = do
   S.get "/entries/+:series" $
     S.html "hey"
 
-  S.get "/entries/:year" $
-    S.html "hey"
-
-  S.get "/entries/:year/:month" $
-    S.html "hey"
-
   S.get "/entries/:tag" $
+    S.html "hey"
+
+  S.get "/entries/in/:year" $
+    routeEither routeArchiveYear
+
+  S.get "/entries/in/:year/:month" $
     S.html "hey"
 
 miscRoutes :: S.ScottyM ()
