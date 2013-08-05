@@ -3,6 +3,7 @@
 module Web.Blog.Routes.Archive (
     routeArchiveAll
   , routeArchiveYear
+  , routeArchiveMonth
   ) where
 
 -- import Control.Monad.Reader
@@ -39,16 +40,26 @@ routeArchive title filters = do
 
   return $ Right (view, pageData')
 
+routeArchiveAll :: RouteEither
 routeArchiveAll = routeArchive "Entries" []
 
-routeArchiveYear = do
-  year <- S.param "year"
-  let
+routeArchiveYear :: Int -> RouteEither
+routeArchiveYear year = routeArchive (T.pack $ show year) filters
+  where
     startYear = year :: Int
     endYear = startYear + 1
     startTime = buildTime defaultTimeLocale [('Y',show startYear)] :: UTCTime
     endTime = buildTime defaultTimeLocale [('Y',show endYear)] :: UTCTime
-  
-  
-  routeArchive (T.pack $ show year) [ EntryPostedAt D.>=. startTime
-                                    , EntryPostedAt D.<=. endTime  ]
+    filters = [ EntryPostedAt D.>=. startTime
+              , EntryPostedAt D.<=. endTime  ]
+
+routeArchiveMonth :: Int -> Int -> RouteEither
+routeArchiveMonth year month = routeArchive (T.pack $ show year) filters
+  where
+    startDay = buildTime defaultTimeLocale
+      [('Y',show (year :: Int)),('m',show (month :: Int))] :: Day
+    endDay = addGregorianMonthsRollOver 1 startDay
+    startTime = UTCTime startDay 0
+    endTime = UTCTime endDay 0
+    filters = [ EntryPostedAt D.>=. startTime
+              , EntryPostedAt D.<=. endTime  ]

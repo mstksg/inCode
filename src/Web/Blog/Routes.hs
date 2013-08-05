@@ -84,11 +84,17 @@ archiveRoutes = do
   S.get "/entries/:tag" $
     S.html "hey"
 
-  S.get "/entries/in/:year" $
-    routeEither routeArchiveYear
-
-  S.get "/entries/in/:year/:month" $
-    S.html "hey"
+  S.get "/entries/in/:year" $ do
+    year <- S.param "year"
+    when (year < 1) S.next
+    routeEither $ routeArchiveYear year
+ 
+  S.get "/entries/in/:year/:month" $ do
+    year <- S.param "year"
+    month <- S.param "month"
+    when (year < 1) S.next
+    when (month < 1 || month > 12) S.next
+    routeEither $ routeArchiveMonth year month
 
 miscRoutes :: S.ScottyM ()
 miscRoutes = do
