@@ -7,11 +7,11 @@ module Web.Blog.Types (
   , error404
   ) where
 
-import qualified Web.Scotty as S
-import qualified Data.Text.Lazy as L
+import qualified Web.Scotty       as S
+import qualified Data.Text.Lazy   as L
 import qualified Text.Blaze.Html5 as H
-import qualified Data.Map as M
-import qualified Data.Text as T
+import qualified Data.Map         as M
+import qualified Data.Text        as T
 import Control.Monad.Reader
 
 data SiteData = SiteData

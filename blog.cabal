@@ -45,11 +45,15 @@ executable blog-scripts-migrate
                      , text
                      , time
                      , persistent 
+                     , mtl
                      , persistent-template 
                      , persistent-postgresql 
                      , transformers
                      , monad-loops
                      , old-locale
+                     , scotty 
+                     , containers
+                     , blaze-markup
   extensions:          OverloadedStrings
 
 executable blog-scripts-seed
@@ -65,9 +69,14 @@ executable blog-scripts-seed
                      , HTTP 
                      , pandoc
                      , split
+                     , mtl
                      , random 
                      , monad-loops
                      , old-locale
                      , MonadRandom
+                     , containers
+                     , blaze-markup
                      , blaze-html 
+                     , blaze-markup
+                     , scotty 
   extensions:          OverloadedStrings

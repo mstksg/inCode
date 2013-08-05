@@ -56,7 +56,7 @@ viewHome eList = do
           H.footer $
             H.ul $
               forM_ ts $ \t ->
-                H.li $ H.toHtml $ tagLabel' t
+                tagLi t
 
 
       H.footer $ 

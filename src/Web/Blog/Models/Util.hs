@@ -9,16 +9,20 @@ import Data.Maybe                            (isNothing, fromJust)
 import Data.Time                             (getCurrentTime, UTCTime)
 import Web.Blog.Models
 import Web.Blog.Models.Types
+import Web.Blog.Render
+import Web.Blog.SiteData
+import Web.Blog.Types
 import qualified Data.Text                   as T
 import qualified Database.Persist.Postgresql as D
 import qualified Text.Blaze.Html5            as H
+import qualified Text.Blaze.Html5.Attributes as A
+import qualified Text.Blaze.Internal         as I
 import qualified Text.Pandoc                 as P
 
--- TODO: Make this read from SiteData
 slugLength :: Int
-slugLength = 10
+slugLength = siteDataSlugLength siteData
 ledeMax :: Int
-ledeMax = 3
+ledeMax = siteDataLedeMax siteData
 
 
 -- | Entries
@@ -181,3 +185,8 @@ tagPath t = T.append prefix $ tagSlug t
         GeneralTag  -> ""
         CategoryTag -> "@"
         SeriesTag   -> "+")
+
+tagLi :: Tag -> H.Html
+tagLi t = H.li $
+  H.a H.! A.href (I.textValue $ renderUrl' $ tagPath t) $
+    H.toHtml $ tagLabel' t

@@ -54,7 +54,7 @@ viewEntry entry tags prevEntry nextEntry = do
 
           H.ul $
             forM_ tags $ \t ->
-              H.li $ H.toHtml $ tagLabel' t
+              tagLi t
 
       H.div ! A.class_ "main-content" $
 

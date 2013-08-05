@@ -10,6 +10,7 @@ import Control.Monad.Reader
 import Text.Blaze.Html5                      ((!))
 import Web.Blog.Models
 import Web.Blog.Models.Util
+import Web.Blog.Render
 import Web.Blog.SiteData
 import Web.Blog.Types
 import Web.Blog.Util                         (renderFriendlyTime, renderDatetimeTime)
@@ -48,7 +49,7 @@ viewArchive eList = do
 
           H.ul $
             forM_ ts $ \t ->
-              H.li $ H.toHtml $ tagLabel' t
+              tagLi t
 
         
 
