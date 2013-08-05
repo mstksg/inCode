@@ -2,6 +2,7 @@
 
 module Web.Blog.Routes.Archive (
     routeArchiveAll
+  , routeArchiveTag
   , routeArchiveYear
   , routeArchiveMonth
   ) where
@@ -28,36 +29,58 @@ import qualified Data.Map as M
 import Control.Monad.State
 import Data.Time
 import System.Locale
+import Web.Blog.Models.Types
 
-routeArchive :: T.Text -> [D.Filter Entry] -> RouteEither
-routeArchive title filters = do
-  eList <- liftIO $ runDB $
-    postedEntriesFilter filters [ D.Desc EntryPostedAt ] >>= mapM wrapEntryData
-
+routeArchive :: T.Text -> [D.Entity Entry] -> RouteEither
+routeArchive title entries = do
+  eList <- liftIO $ runDB $ mapM wrapEntryData entries
   let
     view = viewArchive eList 
     pageData' = pageData { pageDataTitle = Just title }
 
   return $ Right (view, pageData')
 
-routeArchiveAll :: RouteEither
-routeArchiveAll = routeArchive "Entries" []
+routeArchiveFilters :: T.Text -> [D.Filter Entry] -> RouteEither
+routeArchiveFilters title filters = do
+  entries <- liftIO $ runDB $
+    postedEntriesFilter filters [ D.Desc EntryPostedAt ]
+  routeArchive title entries
 
+
+routeArchiveAll :: RouteEither
+routeArchiveAll = routeArchiveFilters "Entries" []
+
+routeArchiveTag :: TagType -> T.Text -> RouteEither
+routeArchiveTag type_ slug = do
+  entryKeys <- liftIO $ runDB $ do
+    tag <- liftIO $ runDB $ D.getBy $ UniqueSlugType slug type_
+    case tag of
+      Just (D.Entity tagKey _) -> do
+        entrytags <- D.selectList [ EntryTagTagId D.==. tagKey ] []
+        return $ Right $ map (entryTagEntryId . D.entityVal) entrytags
+      Nothing ->
+        return $ error404 "TagNotFound"
+
+  case entryKeys of
+    Right keys -> 
+      routeArchiveFilters (T.pack $ show type_) [ EntryId D.<-. keys ]
+    Left red ->
+      return $ Left red
+
+  
 routeArchiveYear :: Int -> RouteEither
-routeArchiveYear year = routeArchive (T.pack $ show year) filters
+routeArchiveYear year = routeArchiveFilters (T.pack $ show year) filters
   where
-    startYear = year :: Int
-    endYear = startYear + 1
-    startTime = buildTime defaultTimeLocale [('Y',show startYear)] :: UTCTime
-    endTime = buildTime defaultTimeLocale [('Y',show endYear)] :: UTCTime
+    startTime = buildTime defaultTimeLocale [('Y',show year)] :: UTCTime
+    endTime = buildTime defaultTimeLocale [('Y',show $ year + 1)] :: UTCTime
     filters = [ EntryPostedAt D.>=. startTime
               , EntryPostedAt D.<=. endTime  ]
 
 routeArchiveMonth :: Int -> Int -> RouteEither
-routeArchiveMonth year month = routeArchive (T.pack $ show year) filters
+routeArchiveMonth year month = routeArchiveFilters (T.pack $ show year) filters
   where
     startDay = buildTime defaultTimeLocale
-      [('Y',show (year :: Int)),('m',show (month :: Int))] :: Day
+      [('Y',show year),('m',show month)] :: Day
     endDay = addGregorianMonthsRollOver 1 startDay
     startTime = UTCTime startDay 0
     endTime = UTCTime endDay 0

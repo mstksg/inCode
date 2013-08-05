@@ -2,33 +2,33 @@
 
 module Web.Blog.Routes (route) where
 
--- import Control.Monad                      (when)
+-- import Control.Applicative                   ((<$>))
+-- import Control.Monad                         (when)
+-- import Control.Monad.IO.Class
+-- import Data.Char                             (isDigit)
+-- import Data.List                             (find)
 -- import Data.Maybe
--- import qualified Database.Persist         as D
-import Control.Applicative                   ((<$>))
-import Control.Monad.IO.Class
+-- import Data.Monoid
+-- import Data.String                           (fromString)
+-- import Web.Blog.Database
+-- import Web.Blog.Models
+-- import Web.Blog.SiteData
+-- import qualified Data.Map                    as M
+-- import qualified Database.Persist.Postgresql as D
 import Control.Monad.Reader
-import Data.Char                             (isDigit)
-import Data.List                             (find)
-import Data.Monoid
-import Data.String                           (fromString)
 import Network.HTTP.Types.Status
-import Web.Blog.Database
-import Web.Blog.Models
+import Web.Blog.Models.Types
 import Web.Blog.Render
+import Web.Blog.Routes.Archive
 import Web.Blog.Routes.Entry
 import Web.Blog.Routes.Home
 import Web.Blog.Routes.NotFound
-import Web.Blog.Routes.Archive
-import Web.Blog.SiteData
 import Web.Blog.Types
 import Web.Blog.Views
-import qualified Data.Map                    as M
-import qualified Data.Text                   as T
-import qualified Data.Text.Lazy              as L
-import qualified Database.Persist.Postgresql as DP
-import qualified Text.Blaze.Html5            as H
-import qualified Web.Scotty                  as S
+import qualified Data.Text                      as T
+import qualified Data.Text.Lazy                 as L
+import qualified Text.Blaze.Html5               as H
+import qualified Web.Scotty                     as S
 
 
 route :: S.ScottyM ()
@@ -75,14 +75,17 @@ archiveRoutes = do
   S.get "/entries" $
     routeEither routeArchiveAll
 
-  S.get "/entries/@:category" $
-    S.html "hey"
+  S.get (S.regex "^/entries/@(.*)$") $ do
+    category <- S.param "1"
+    routeEither $ routeArchiveTag CategoryTag $ T.pack category
 
-  S.get "/entries/+:series" $
-    S.html "hey"
+  S.get (S.regex "^/entries/\\+(.*)$") $ do
+    series <- S.param "1"
+    routeEither $ routeArchiveTag SeriesTag $ T.pack series
 
-  S.get "/entries/:tag" $
-    S.html "hey"
+  S.get "/entries/:tag" $ do
+    tag <- S.param "tag"
+    routeEither $ routeArchiveTag GeneralTag $ T.pack tag
 
   S.get "/entries/in/:year" $ do
     year <- S.param "year"

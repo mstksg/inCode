@@ -171,9 +171,13 @@ insertTag_ :: PreTag -> D.SqlPersistM ()
 insertTag_ ptag = void $ insertTag ptag 
 
 tagLabel' :: Tag -> T.Text
-tagLabel' t = T.append prefix $ tagLabel t
+tagLabel' t = T.append (tagTypePrefix $ tagType_ t) $ tagLabel t
+
+tagPath :: Tag -> T.Text
+tagPath t = T.append prefix $ tagSlug t
   where
-    prefix = case tagType_ t of
-      GeneralTag  -> "#"
-      CategoryTag -> "@"
-      SeriesTag   -> "+"
+    prefix = T.append "/entries/"
+      (case tagType_ t of
+        GeneralTag  -> ""
+        CategoryTag -> "@"
+        SeriesTag   -> "+")
