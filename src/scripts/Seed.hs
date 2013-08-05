@@ -31,17 +31,17 @@ main = runDB $ do
   tags <- replicateM 6 $ do
     t <- liftIO $ (map toLower . unwords . reverse . take 2 . reverse . words . filter (not . isPunctuation) . unwords . lines)
       <$> genLoripsum "http://loripsum.net/api/1/short"
-    insertTag $ Tag (T.pack t) GeneralTag
+    insertTag $ PreTag (T.pack t) GeneralTag
 
   categories <- replicateM 4 $ do
     c <- liftIO $ (capitalizeFirst . unwords . reverse . take 2 . reverse . words . filter (not . isPunctuation) . unwords . lines)
       <$> genLoripsum "http://loripsum.net/api/1/short"
-    insertTag $ Tag (T.pack c) CategoryTag
+    insertTag $ PreTag (T.pack c) CategoryTag
 
   serieses <- replicateM 3 $ do
     s <- liftIO $ (capitalizeFirst . unwords . reverse . take 5 . reverse . words . filter (not . isPunctuation) . unwords . lines)
       <$> genLoripsum "http://loripsum.net/api/1/short"
-    insertTag $ Tag (T.pack s) SeriesTag
+    insertTag $ PreTag (T.pack s) SeriesTag
 
 
   replicateM_ 25 $ do

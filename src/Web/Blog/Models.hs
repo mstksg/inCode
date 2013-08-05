@@ -27,8 +27,10 @@ Entry
 Tag
     label           T.Text
     type_           TagType
+    slug            T.Text
 
     UniqueLabelType label type_
+    UniqueTagSlug   slug
     deriving        Show
 
 EntryTag
