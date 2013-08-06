@@ -3,6 +3,7 @@
 module Web.Blog.Views.Archive (
     viewArchive
   , ViewArchiveType(..)
+  , viewArchiveNav
   ) where
 
 -- import Data.Monoid
@@ -35,31 +36,16 @@ data ViewArchiveType = ViewArchiveAll
 viewArchive :: [[[(D.Entity Entry,(T.Text,[Tag]))]]] -> ViewArchiveType -> SiteRender H.Html
 viewArchive eListYears viewType = do
   pageTitle <- pageDataTitle <$> ask
-  byDateUrl <- renderUrl "/entries"
-  byTagUrl <- renderUrl "/entries/tagged"
-  byCatUrl <- renderUrl "/entries/category"
-  bySerUrl <- renderUrl "/entries/series"
+  nav <- viewArchiveNav (case viewType of
+                          ViewArchiveAll -> Just ViewArchiveIndexDate
+                          _ -> Nothing)
 
   return $ do
 
     H.header $ do
       H.h1 $ H.toHtml $ fromMaybe "Entries" pageTitle
+      nav
 
-      H.nav $
-        H.ul $
-          forM_ [("Date",byDateUrl,ViewArchiveAll)
-                ,("Tag",byTagUrl,ViewArchiveTag)
-                ,("Category",byCatUrl,ViewArchiveCategory)
-                ,("Series",bySerUrl,ViewArchiveSeries)] $ \(t,u,_) -> 
-            H.li $
-              H.a ! A.href (I.textValue u) $
-                t
-              -- if vat /= viewType
-              --   then
-              --     H.a ! A.href (I.textValue u) $
-              --       t
-              --   else
-              --     t
 
     if null eListYears
       then
@@ -78,6 +64,33 @@ viewArchive eListYears viewType = do
           ViewArchiveCategory -> viewArchiveFlat eList
           ViewArchiveSeries -> viewArchiveFlat eList
 
+data ViewArchiveIndex = ViewArchiveIndexDate
+                      | ViewArchiveIndexTag
+                      | ViewArchiveIndexCategory
+                      | ViewArchiveIndexSeries
+                      deriving (Show, Eq, Read)
+
+
+viewArchiveNav :: Maybe ViewArchiveIndex -> SiteRender H.Html
+viewArchiveNav isIndex = do
+  byDateUrl <- renderUrl "/entries"
+  byTagUrl <- renderUrl "/entries/tagged"
+  byCatUrl <- renderUrl "/entries/category"
+  bySerUrl <- renderUrl "/entries/series"
+  return $
+    H.nav $
+      H.ul $
+        forM_ [("Date",byDateUrl,ViewArchiveIndexDate)
+              ,("Tag",byTagUrl,ViewArchiveIndexTag)
+              ,("Category",byCatUrl,ViewArchiveIndexCategory)
+              ,("Series",bySerUrl,ViewArchiveIndexSeries)] $ \(t,u,v) -> 
+          H.li $
+            if maybe True (/= v) isIndex
+              then
+                H.a ! A.href (I.textValue u) $
+                  t
+              else
+                t
 
 
 viewArchiveFlat :: [(D.Entity Entry,(T.Text,[Tag]))] -> H.Html
