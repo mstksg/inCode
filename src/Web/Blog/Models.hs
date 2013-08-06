@@ -22,6 +22,7 @@ Entry
     createdAt   UTCTime
     postedAt    UTCTime
 
+    UniqueEntryTitle title
     deriving    Show
 
 Tag

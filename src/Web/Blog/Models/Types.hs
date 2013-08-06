@@ -6,7 +6,7 @@ import Database.Persist.TH
 import qualified Data.Text as T (Text)
 
 data TagType = GeneralTag | CategoryTag | SeriesTag
-  deriving (Show, Read, Eq)
+  deriving (Show, Read, Eq, Ord, Enum)
 
 derivePersistField "TagType"
 

@@ -1,6 +1,7 @@
 
 module Web.Blog.Models.Util  where
 
+import Control.Applicative                   ((<$>))
 import Control.Monad                         (void)
 import Control.Monad.IO.Class                (liftIO)
 import Control.Monad.Loops                   (firstM)
@@ -144,10 +145,10 @@ getTags entry = getTagsByEntityKey $ D.entityKey entry
 
 getTagsByEntityKey :: D.Key Entry -> D.SqlPersistM [Tag]
 getTagsByEntityKey k = do 
-  ets <- D.selectList [ EntryTagEntryId   D.==. k ] []
+  ets <- D.selectList [ EntryTagEntryId D.==. k ] []
   let
     tagKeys = map (entryTagTagId . D.entityVal) ets
-  mapM D.getJust tagKeys
+  map D.entityVal <$> D.selectList [ TagId D.<-. tagKeys ] [ D.Asc TagType_, D.Asc TagLabel ]
 
 
 getPrevEntry :: Entry -> D.SqlPersistM (Maybe (D.Entity Entry))
@@ -159,47 +160,28 @@ getNextEntry e = D.selectFirst [ EntryPostedAt D.>. entryPostedAt e ] [ D.Asc En
 groupEntries :: [D.Entity Entry] -> [[[D.Entity Entry]]]
 groupEntries entries = groupedMonthsYears
   where
-    mappedYears = map mapYear mappedMonths
-    mappedMonths = map (map mapMonth) groupedMonthsYears
     groupedMonthsYears = map (groupBy sameMonth) groupedYears
     groupedYears = groupBy sameYear entries
     sameYear e1 e2 = yearOf e1 == yearOf e2
     sameMonth e1 e2 = yearMonthOf e1 == yearMonthOf e2
-    mapYear :: [(Int,[D.Entity Entry])] -> (Integer,[(Int,[D.Entity Entry])])
-    mapYear es = (yearOf $ head $ snd $ head es,es)
-    mapMonth es = (snd $ yearMonthOf $ head es,es)
     yearOf = yearOfDay . dayOf
     yearOfDay (y,_,_) = y
     yearMonthOf = yearMonthOfDay . dayOf
     yearMonthOfDay (y,m,_) = (y,m)
     dayOf = toGregorian . utctDay . entryPostedAt . D.entityVal
 
--- groupEntries :: [Entry] -> [(Integer,[(Int,[Entry])])]
--- groupEntries entries = mappedYears
---   where
---     mappedYears = map mapYear mappedMonths
---     mappedMonths = map (map mapMonth) groupedMonthsYears
---     groupedMonthsYears = map (groupBy sameMonth) groupedYears
---     groupedYears = groupBy sameYear entries
---     sameYear e1 e2 = yearOf e1 == yearOf e2
---     sameMonth e1 e2 = yearMonthOf e1 == yearMonthOf e2
---     mapYear :: [(Int,[Entry])] -> (Integer,[(Int,[Entry])])
---     mapYear es = (yearOf $ head $ snd $ head es,es)
---     mapMonth es = (snd $ yearMonthOf $ head es,es)
---     yearOf = yearOfDay . dayOf
---     yearOfDay (y,_,_) = y
---     yearMonthOf = yearMonthOfDay . dayOf
---     yearMonthOfDay (y,m,_) = (y,m)
---     dayOf = toGregorian . utctDay . entryPostedAt
-
-
-
 -- | Tags
 
 data PreTag = PreTag T.Text TagType
 
-insertTag :: PreTag -> D.SqlPersistM (D.Key Tag)
-insertTag ptag = D.insert tag
+insertTag :: PreTag -> D.SqlPersistM (Maybe (D.Key Tag))
+insertTag ptag = D.insertUnique $ fillTag ptag
+
+insertTag_ :: PreTag -> D.SqlPersistM ()
+insertTag_ ptag = D.insert_ $ fillTag ptag
+
+fillTag :: PreTag -> Tag
+fillTag ptag = tag
   where
     PreTag l t = ptag
     slug = genSlug (maxBound :: Int) l
@@ -207,10 +189,6 @@ insertTag ptag = D.insert tag
       GeneralTag  -> Tag (T.map toLower l) t slug
       CategoryTag -> Tag (T.map toUpper l) t slug
       SeriesTag   -> Tag l t slug
-
-
-insertTag_ :: PreTag -> D.SqlPersistM ()
-insertTag_ ptag = void $ insertTag ptag 
 
 tagLabel' :: Tag -> T.Text
 tagLabel' t = T.append (tagTypePrefix $ tagType_ t) $ tagLabel t
