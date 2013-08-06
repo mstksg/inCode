@@ -41,8 +41,9 @@ viewHome eList = do
         H.article $ do
 
           H.header $ do
-            H.a ! A.href (I.textValue u) $
-              H.h2 $ H.toHtml $ entryTitle e
+            H.h2 $ 
+              H.a ! A.href (I.textValue u) $
+                H.toHtml $ entryTitle e
 
             H.time
               ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt e)

@@ -87,6 +87,9 @@ archiveRoutes = do
     tag <- S.param "tag"
     routeEither $ routeArchiveTag GeneralTag $ T.pack tag
 
+  S.get "/entries/in" $ 
+    routeEither $ return $ Left "/entries"
+
   S.get "/entries/in/:year" $ do
     year <- S.param "year"
     when (year < 1) S.next

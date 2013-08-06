@@ -12,7 +12,7 @@ module Web.Blog.Views.Archive (
 -- import qualified Data.Map                 as M
 import Control.Applicative                   ((<$>))
 import Control.Monad.Reader
-import Data.Maybe                            (fromMaybe)
+import Data.Maybe                            (fromMaybe, isJust, fromJust)
 import Text.Blaze.Html5                      ((!))
 import Web.Blog.Models
 import Web.Blog.Models.Util
@@ -20,18 +20,19 @@ import Web.Blog.Render
 import Web.Blog.Types
 import Web.Blog.Util
 import qualified Data.Text                   as T
+import qualified Data.Traversable  as DT     (mapM)
 import qualified Database.Persist.Postgresql as D
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
 import qualified Text.Blaze.Internal         as I
 
 data ViewArchiveType = ViewArchiveAll
-                     | ViewArchiveYear
-                     | ViewArchiveMonth
-                     | ViewArchiveTag
-                     | ViewArchiveCategory
-                     | ViewArchiveSeries
-                     deriving (Show, Eq, Read)
+                     | ViewArchiveYear Int
+                     | ViewArchiveMonth Int Int
+                     | ViewArchiveTag Tag
+                     | ViewArchiveCategory Tag
+                     | ViewArchiveSeries Tag
+                     deriving (Show)
 
 viewArchive :: [[[(D.Entity Entry,(T.Text,[Tag]))]]] -> ViewArchiveType -> SiteRender H.Html
 viewArchive eListYears viewType = do
@@ -40,10 +41,24 @@ viewArchive eListYears viewType = do
                           ViewArchiveAll -> Just ViewArchiveIndexDate
                           _ -> Nothing)
 
+  let
+    upPath = case viewType of
+      ViewArchiveAll      -> Nothing
+      ViewArchiveYear _   -> Just "/entries"
+      ViewArchiveMonth y _ -> Just $ T.append "/entries/in/" $ T.pack $ show y
+      ViewArchiveTag _    -> Just "/entries/tagged"
+      ViewArchiveCategory _ -> Just "/entries/category"
+      ViewArchiveSeries _ -> Just "/entries/series"
+
+  upLink <- DT.mapM renderUrl upPath
+
   return $ do
 
     H.header $ do
+
       H.h1 $ H.toHtml $ fromMaybe "Entries" pageTitle
+      when (isJust upLink) $
+        H.a ! A.href (I.textValue $ fromJust upLink) $ "back"
       nav
 
 
@@ -57,12 +72,12 @@ viewArchive eListYears viewType = do
           eListMonths = concat eListYears
           eList = concat eListMonths
         case viewType of
-          ViewArchiveAll -> viewArchiveByYears eListYears
-          ViewArchiveYear -> viewArchiveByMonths eListMonths
-          ViewArchiveMonth -> viewArchiveFlat eList
-          ViewArchiveTag -> viewArchiveFlat eList
-          ViewArchiveCategory -> viewArchiveFlat eList
-          ViewArchiveSeries -> viewArchiveFlat eList
+          ViewArchiveAll        -> viewArchiveByYears eListYears
+          ViewArchiveYear _     -> viewArchiveByMonths eListMonths
+          ViewArchiveMonth _ _  -> viewArchiveFlat eList
+          ViewArchiveTag _      -> viewArchiveFlat eList
+          ViewArchiveCategory _ -> viewArchiveFlat eList
+          ViewArchiveSeries _   -> viewArchiveFlat eList
 
 data ViewArchiveIndex = ViewArchiveIndexDate
                       | ViewArchiveIndexTag
@@ -74,9 +89,9 @@ data ViewArchiveIndex = ViewArchiveIndexDate
 viewArchiveNav :: Maybe ViewArchiveIndex -> SiteRender H.Html
 viewArchiveNav isIndex = do
   byDateUrl <- renderUrl "/entries"
-  byTagUrl <- renderUrl "/entries/tagged"
-  byCatUrl <- renderUrl "/entries/category"
-  bySerUrl <- renderUrl "/entries/series"
+  byTagUrl  <- renderUrl "/entries/tagged"
+  byCatUrl  <- renderUrl "/entries/category"
+  bySerUrl  <- renderUrl "/entries/series"
   return $
     H.nav $
       H.ul $

@@ -167,10 +167,17 @@ getTagsByEntityKey k = do
 
 
 getPrevEntry :: Entry -> D.SqlPersistM (Maybe (D.Entity Entry))
-getPrevEntry e = D.selectFirst [ EntryPostedAt D.<. entryPostedAt e ] [ D.Desc EntryPostedAt ]
+getPrevEntry e = do
+  now <- liftIO getCurrentTime
+  D.selectFirst (postedFilter now ++ [ EntryPostedAt D.<. entryPostedAt e ])
+    [ D.Desc EntryPostedAt ]
 
 getNextEntry :: Entry -> D.SqlPersistM (Maybe (D.Entity Entry))
-getNextEntry e = D.selectFirst [ EntryPostedAt D.>. entryPostedAt e ] [ D.Asc EntryPostedAt ]
+getNextEntry e = do
+  now <- liftIO getCurrentTime
+  D.selectFirst (postedFilter now ++ [ EntryPostedAt D.>. entryPostedAt e ])
+    [ D.Asc EntryPostedAt ]
+
 
 groupEntries :: [D.Entity Entry] -> [[[D.Entity Entry]]]
 groupEntries entries = groupedMonthsYears

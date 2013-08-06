@@ -66,14 +66,14 @@ routeArchiveTag type_ slug = do
                 CategoryTag -> ViewArchiveCategory
                 SeriesTag   -> ViewArchiveSeries
 
-      routeArchiveFilters (tagLabel' tag') [ EntryId D.<-. entryKeys ] vat
+      routeArchiveFilters (tagLabel' tag') [ EntryId D.<-. entryKeys ] $ vat tag'
       
     Nothing ->
       return $ error404 "TagNotFound"
 
 
 routeArchiveYear :: Int -> RouteEither
-routeArchiveYear year = routeArchiveFilters (T.pack $ show year) filters ViewArchiveYear
+routeArchiveYear year = routeArchiveFilters (T.pack $ show year) filters $ ViewArchiveYear year
   where
     startTime = buildTime defaultTimeLocale [('Y',show year)] :: UTCTime
     endTime = buildTime defaultTimeLocale [('Y',show $ year + 1)] :: UTCTime
@@ -81,7 +81,7 @@ routeArchiveYear year = routeArchiveFilters (T.pack $ show year) filters ViewArc
               , EntryPostedAt D.<=. endTime  ]
 
 routeArchiveMonth :: Int -> Int -> RouteEither
-routeArchiveMonth year month = routeArchiveFilters (T.pack timeString) filters ViewArchiveMonth
+routeArchiveMonth year month = routeArchiveFilters (T.pack timeString) filters $ ViewArchiveMonth year month
   where
     startDay = buildTime defaultTimeLocale
       [('Y',show year),('m',show month)] :: Day

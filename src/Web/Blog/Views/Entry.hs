@@ -12,6 +12,7 @@ import Control.Applicative                      ((<$>))
 import Control.Monad.Reader
 import Data.Maybe
 import Data.Monoid
+import Data.Time                                (getCurrentTime)
 import Text.Blaze.Html5                         ((!))
 import Web.Blog.Models
 import Web.Blog.Models.Util
@@ -27,6 +28,7 @@ viewEntry :: Entry -> [Tag] -> Maybe Entry -> Maybe Entry -> SiteRender H.Html
 viewEntry entry tags prevEntry nextEntry = do
   siteData' <- pageSiteData <$> ask
   npUl <- nextPrevUrl prevEntry nextEntry
+  isUnposted <- (>) (entryPostedAt entry) <$> liftIO getCurrentTime
 
   return $ 
 
@@ -35,6 +37,10 @@ viewEntry entry tags prevEntry nextEntry = do
       H.header $ do
 
         npUl
+
+        when isUnposted $
+          H.div 
+            "(Unposted entry)"
 
         H.h1 $ H.toHtml $ entryTitle entry
 
