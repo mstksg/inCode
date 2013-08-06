@@ -75,15 +75,15 @@ archiveRoutes = do
   S.get "/entries" $
     routeEither routeArchiveAll
 
-  S.get (S.regex "^/entries/@(.*)$") $ do
+  S.get (S.regex "^/entries/category/@(.*)$") $ do
     category <- S.param "1"
     routeEither $ routeArchiveTag CategoryTag $ T.pack category
 
-  S.get (S.regex "^/entries/\\+(.*)$") $ do
+  S.get (S.regex "^/entries/series/\\+(.*)$") $ do
     series <- S.param "1"
     routeEither $ routeArchiveTag SeriesTag $ T.pack series
 
-  S.get "/entries/:tag" $ do
+  S.get "/entries/tagged/:tag" $ do
     tag <- S.param "tag"
     routeEither $ routeArchiveTag GeneralTag $ T.pack tag
 

@@ -5,8 +5,9 @@ import Control.Monad                         (void)
 import Control.Monad.IO.Class                (liftIO)
 import Control.Monad.Loops                   (firstM)
 import Data.Char                             (isAlphaNum, toLower, toUpper)
+import Data.List                             (groupBy)
 import Data.Maybe                            (isNothing, fromJust)
-import Data.Time                             (getCurrentTime, UTCTime)
+import Data.Time
 import Web.Blog.Models
 import Web.Blog.Models.Types
 import Web.Blog.Render
@@ -155,6 +156,43 @@ getPrevEntry e = D.selectFirst [ EntryPostedAt D.<. entryPostedAt e ] [ D.Desc E
 getNextEntry :: Entry -> D.SqlPersistM (Maybe (D.Entity Entry))
 getNextEntry e = D.selectFirst [ EntryPostedAt D.>. entryPostedAt e ] [ D.Asc EntryPostedAt ]
 
+groupEntries :: [D.Entity Entry] -> [[[D.Entity Entry]]]
+groupEntries entries = groupedMonthsYears
+  where
+    mappedYears = map mapYear mappedMonths
+    mappedMonths = map (map mapMonth) groupedMonthsYears
+    groupedMonthsYears = map (groupBy sameMonth) groupedYears
+    groupedYears = groupBy sameYear entries
+    sameYear e1 e2 = yearOf e1 == yearOf e2
+    sameMonth e1 e2 = yearMonthOf e1 == yearMonthOf e2
+    mapYear :: [(Int,[D.Entity Entry])] -> (Integer,[(Int,[D.Entity Entry])])
+    mapYear es = (yearOf $ head $ snd $ head es,es)
+    mapMonth es = (snd $ yearMonthOf $ head es,es)
+    yearOf = yearOfDay . dayOf
+    yearOfDay (y,_,_) = y
+    yearMonthOf = yearMonthOfDay . dayOf
+    yearMonthOfDay (y,m,_) = (y,m)
+    dayOf = toGregorian . utctDay . entryPostedAt . D.entityVal
+
+-- groupEntries :: [Entry] -> [(Integer,[(Int,[Entry])])]
+-- groupEntries entries = mappedYears
+--   where
+--     mappedYears = map mapYear mappedMonths
+--     mappedMonths = map (map mapMonth) groupedMonthsYears
+--     groupedMonthsYears = map (groupBy sameMonth) groupedYears
+--     groupedYears = groupBy sameYear entries
+--     sameYear e1 e2 = yearOf e1 == yearOf e2
+--     sameMonth e1 e2 = yearMonthOf e1 == yearMonthOf e2
+--     mapYear :: [(Int,[Entry])] -> (Integer,[(Int,[Entry])])
+--     mapYear es = (yearOf $ head $ snd $ head es,es)
+--     mapMonth es = (snd $ yearMonthOf $ head es,es)
+--     yearOf = yearOfDay . dayOf
+--     yearOfDay (y,_,_) = y
+--     yearMonthOf = yearMonthOfDay . dayOf
+--     yearMonthOfDay (y,m,_) = (y,m)
+--     dayOf = toGregorian . utctDay . entryPostedAt
+
+
 
 -- | Tags
 
@@ -182,9 +220,9 @@ tagPath t = T.append prefix $ tagSlug t
   where
     prefix = T.append "/entries/"
       (case tagType_ t of
-        GeneralTag  -> ""
-        CategoryTag -> "@"
-        SeriesTag   -> "+")
+        GeneralTag  -> "tagged/"
+        CategoryTag -> "category/@"
+        SeriesTag   -> "series/+")
 
 tagLi :: Tag -> H.Html
 tagLi t = H.li $
