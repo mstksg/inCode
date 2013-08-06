@@ -1,8 +1,8 @@
 
 module Web.Blog.Models.Util  where
 
+-- import Control.Monad                      (void)
 import Control.Applicative                   ((<$>))
-import Control.Monad                         (void)
 import Control.Monad.IO.Class                (liftIO)
 import Control.Monad.Loops                   (firstM)
 import Data.Char                             (isAlphaNum, toLower, toUpper)
@@ -29,15 +29,25 @@ ledeMax = siteDataLedeMax siteData
 
 -- | Entries
 
-insertEntry :: Entry -> D.SqlPersistM (D.Key Entry)
+insertEntry :: Entry -> D.SqlPersistM (Maybe (D.Key Entry))
 insertEntry entry = do
-  slugText <- genEntrySlug slugLength (entryTitle entry)
-  entryKey <- D.insert entry
-  D.insert_ $ Slug entryKey slugText True
-  return entryKey
+  entryKey <- D.insertUnique entry
+  case entryKey of
+    Just eKey -> do
+      insertSlug $ D.Entity eKey entry
+      return entryKey
+    Nothing ->
+      return Nothing
 
 insertEntry_ :: Entry -> D.SqlPersistM ()
-insertEntry_ entry = void $ insertEntry entry
+insertEntry_ entry = do
+  entryKey <- D.insert entry
+  insertSlug $ D.Entity entryKey entry
+
+insertSlug :: D.Entity Entry -> D.SqlPersistM ()
+insertSlug (D.Entity entryKey entry) = do
+  slugText <- genEntrySlug slugLength (entryTitle entry)
+  D.insert_ $ Slug entryKey slugText True
 
 entryPandoc :: Entry -> P.Pandoc
 entryPandoc = P.readMarkdown (P.def P.ReaderOptions) . T.unpack . entryContent
@@ -148,7 +158,12 @@ getTagsByEntityKey k = do
   ets <- D.selectList [ EntryTagEntryId D.==. k ] []
   let
     tagKeys = map (entryTagTagId . D.entityVal) ets
-  map D.entityVal <$> D.selectList [ TagId D.<-. tagKeys ] [ D.Asc TagType_, D.Asc TagLabel ]
+    selectTags tt = D.selectList
+                      [ TagId D.<-. tagKeys, TagType_ D.==. tt ]
+                      [ D.Asc TagLabel ]
+  tags <- concat <$> mapM selectTags [GeneralTag .. SeriesTag]
+  return $ map D.entityVal tags
+
 
 
 getPrevEntry :: Entry -> D.SqlPersistM (Maybe (D.Entity Entry))

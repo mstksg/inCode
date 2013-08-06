@@ -49,8 +49,15 @@ main = runDB $ do
 
 
   replicateM_ 40 $ do
-    (entry,tags',category,series) <- liftIO genEntry
-    entryid <- insertEntry entry
+    ((entry,tags',category,series),entryid) <- 
+      untilJust $ do
+        d@(e,_,_,_) <- liftIO genEntry
+        eid <- insertEntry e
+        case eid of
+          Just eid' ->
+            return $ Just (d,eid')
+          Nothing ->
+            return Nothing
 
     forM_ (zip tags' [0..]) $ \(odds,tnum) ->
       when (odds < 1) $
