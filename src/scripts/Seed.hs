@@ -4,13 +4,14 @@
 {-# LANGUAGE TypeSynonymInstances         #-} 
 {-# LANGUAGE GeneralizedNewtypeDeriving   #-} 
 
+-- import Data.Bits
+-- import Data.List.Split
 import Control.Applicative
 import Control.Monad
 import Control.Monad.IO.Class
+import Control.Monad.Loops
 import Control.Monad.Random
-import Data.Bits
 import Data.Char
-import Data.List.Split
 import Data.Maybe
 import Data.Time.Clock
 import Database.Persist
@@ -21,39 +22,39 @@ import Web.Blog.Database
 import Web.Blog.Models
 import Web.Blog.Models.Types
 import Web.Blog.Models.Util
-import qualified Data.Text as T
+import qualified Data.Text    as T
 
 main :: IO ()
 main = runDB $ do
   blogMigrate
   blogClear
 
-  tags <- replicateM 6 $ do
-    t <- liftIO $ (map toLower . unwords . reverse . take 2 . reverse . words . filter (not . isPunctuation) . unwords . lines)
-      <$> genLoripsum "http://loripsum.net/api/1/short"
-    insertTag $ PreTag (T.pack t) GeneralTag
+  tags <- replicateM 10 $
+    untilJust $ do
+      t <- liftIO $ (map toLower . unwords . reverse . take 2 . reverse . words . filter (not . isPunctuation) . unwords . lines)
+        <$> genLoripsum "http://loripsum.net/api/1/short"
+      insertTag $ PreTag (T.pack t) GeneralTag
 
-  categories <- replicateM 4 $ do
-    c <- liftIO $ (capitalizeFirst . unwords . reverse . take 2 . reverse . words . filter (not . isPunctuation) . unwords . lines)
-      <$> genLoripsum "http://loripsum.net/api/1/short"
-    insertTag $ PreTag (T.pack c) CategoryTag
+  categories <- replicateM 4 $
+    untilJust $ do
+      c <- liftIO $ (capitalizeFirst . unwords . reverse . take 2 . reverse . words . filter (not . isPunctuation) . unwords . lines)
+        <$> genLoripsum "http://loripsum.net/api/1/short"
+      insertTag $ PreTag (T.pack c) CategoryTag
 
-  serieses <- replicateM 3 $ do
-    s <- liftIO $ (capitalizeFirst . unwords . reverse . take 5 . reverse . words . filter (not . isPunctuation) . unwords . lines)
-      <$> genLoripsum "http://loripsum.net/api/1/short"
-    insertTag $ PreTag (T.pack s) SeriesTag
+  serieses <- replicateM 3 $
+    untilJust $ do
+      s <- liftIO $ (capitalizeFirst . unwords . reverse . take 5 . reverse . words . filter (not . isPunctuation) . unwords . lines)
+        <$> genLoripsum "http://loripsum.net/api/1/short"
+      insertTag $ PreTag (T.pack s) SeriesTag
 
 
-  replicateM_ 25 $ do
+  replicateM_ 40 $ do
     (entry,tags',category,series) <- liftIO genEntry
     entryid <- insertEntry entry
 
-    let
-      powers = map (\x -> (x,2^x)) ([0..5] :: [Int])
-
-    forM_ powers $ \(tagNum,b) ->
-      when ((tags' .&. b) > 0) $ 
-        insert_ $ EntryTag entryid $ tags !! tagNum
+    forM_ (zip tags' [0..]) $ \(odds,tnum) ->
+      when (odds < 1) $
+        insert_ $ EntryTag entryid $ tags !! tnum
 
     insert_ $ EntryTag entryid $ categories !! category
 
@@ -78,7 +79,7 @@ main = runDB $ do
 
   return ()
 
-genEntry :: IO (Entry,Int,Int,Int)
+genEntry :: IO (Entry,[Double],Int,Int)
 genEntry = do
   now <- getCurrentTime
 
@@ -86,9 +87,9 @@ genEntry = do
 
   let
     (createTime, postTime, tags, category, series) = (evalRand $ do
-      cD <- getRandomR (-31536000,-604800)
+      cD <- getRandomR (-31536000,8035200)
       pD <- getRandomR (100,604800) 
-      ts <- getRandomR (1,63)
+      ts <- forM [1..10] $ \i -> getRandomR (0,i*i/3+1)
       c  <- getRandomR (0,3)
       s  <- getRandomR (0,11)
       return

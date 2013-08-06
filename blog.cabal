@@ -35,7 +35,7 @@ executable blog
                      , pandoc
                      , old-locale
                      , http-types
-  ghc-options:         -ddump-types
+  -- ghc-options:         -ddump-types
   extensions:          OverloadedStrings
 
 executable blog-scripts-migrate
