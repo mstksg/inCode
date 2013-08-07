@@ -55,5 +55,6 @@ srcFiles = getDirectoryFiles ""
   , "src/scripts/*.hs"
   , "src/Web/Blog/*.hs"
   , "src/Web/Blog/*/*.hs"
+  , "src/Web/Blog/*/*/*.hs"
   , "src/Development/Blog/*.hs"
   , "src/Development/Blog/*/*.hs" ]

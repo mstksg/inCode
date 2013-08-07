@@ -10,6 +10,7 @@ import Web.Blog.Models.Types
 import Web.Blog.Models.Util
 import Web.Blog.Render
 import Web.Blog.Types
+import Web.Blog.Util
 import Web.Blog.Views.Archive
 import qualified Data.Foldable as Fo         (forM_)
 import qualified Data.Text                   as T
@@ -68,3 +69,10 @@ tagIndexLi _ (TagInfo t c r) =
           H.preEscapedToHtml ("Most recent &mdash; " :: T.Text)
           H.a ! A.href (I.textValue $ renderUrl' ru) $
             H.toHtml $ entryTitle re
+          " (" :: H.Html
+          H.time
+            ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt re)
+            ! A.pubdate "" 
+            ! A.class_ "pubdate"
+            $ H.toHtml $ renderShortFriendlyTime $ entryPostedAt re
+          ")" :: H.Html
