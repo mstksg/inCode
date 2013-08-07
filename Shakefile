@@ -5,6 +5,11 @@ opts = shakeOptions { shakeFiles    = ".shake/"
 
 (~>) = phony
 
+binPath = "cabal-dev/bin/"
+cmdBin = cmd . (++) binPath
+cmdCabal = cmd "cabal-dev"
+systemBin = system' . (++) binPath
+
 main :: IO ()
 main = shakeArgs opts $ do
   want ["build"]
@@ -12,34 +17,34 @@ main = shakeArgs opts $ do
   "clean" ~> removeFilesAfter ".shake" ["//*"]
 
   "build" ~> 
-    need [ "dist/build/blog/blog" ]
+    need [ "cabal-dev/bin/blog" ]
 
   "launch" ~> do
     need ["build"]
-    system' "blog" []
+    systemBin "blog" []
 
   "migrate" ~> do
-    need ["dist/build/blog-scripts-migrate/blog-scripts-migrate"]
-    cmd "blog-scripts-migrate"
+    need ["cabal-dev/bin/blog-scripts-migrate"]
+    cmdBin "blog-scripts-migrate"
 
   "seed" ~> do
-    need ["dist/build/blog-scripts-seed/blog-scripts-seed"]
-    cmd "blog-scripts-seed"
+    need ["cabal-dev/bin/blog-scripts-seed"]
+    cmdBin "blog-scripts-seed"
 
   "view-src" ~> do
     fs <- srcFiles
     liftIO $ print fs
 
-  "dist/build/blog/blog" *> \_ -> do
+  "cabal-dev/bin/blog" *> \_ -> do
     fs <- srcFiles
     need fs
-    cmd "cabal" ["install"]
+    cmdCabal ["install"]
 
-  "dist/build/blog-scripts-migrate/blog-scripts-migrate" *> \_ -> do
+  "cabal-dev/bin/blog-scripts-migrate" *> \_ -> do
     need ["build"]
     return ()
 
-  "dist/build/blog-scripts-seed/blog-scripts-seed" *> \_ -> do
+  "cabal-dev/bin/blog-scripts-seed" *> \_ -> do
     need ["build"]
     return ()
 

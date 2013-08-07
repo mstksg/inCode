@@ -23,6 +23,7 @@ blogMigrate = runMigration migrateAll
 
 blogClear :: SqlPersistM ()
 blogClear = do 
+  deleteWhere ([] :: [Filter Slug])
   deleteWhere ([] :: [Filter EntryTag])
   deleteWhere ([] :: [Filter Tag])
   deleteWhere ([] :: [Filter Entry])

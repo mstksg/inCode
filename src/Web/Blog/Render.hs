@@ -7,16 +7,16 @@ module Web.Blog.Render (
   , renderUrl'
   ) where
 
+-- import qualified Text.Blaze.Html.Renderer.Pretty as B
 import Control.Monad.Reader
 import Web.Blog.SiteData
-import qualified Data.Map as M
-import qualified Data.Text as T
-import qualified Data.Text.Lazy as L
--- import qualified Text.Blaze.Html.Renderer.Text as B
-import qualified Text.Blaze.Html.Renderer.Pretty as B
-import qualified Text.Blaze.Html5 as H
-import qualified Web.Scotty as S
 import Web.Blog.Types
+import qualified Data.Map                           as M
+import qualified Data.Text                          as T
+import qualified Data.Text.Lazy                     as L
+import qualified Text.Blaze.Html.Renderer.Text      as B
+import qualified Text.Blaze.Html5                   as H
+import qualified Web.Scotty                         as S
 
 
 pageData :: PageData
@@ -25,7 +25,8 @@ pageData = PageData Nothing [] M.empty siteData
 siteRenderAction :: SiteRender H.Html -> PageData -> S.ActionM ()
 siteRenderAction htmlRender pageData' = do
   ran <- runReaderT htmlRender pageData'
-  S.html $ L.pack $ B.renderHtml ran
+  S.html $ B.renderHtml ran
+  -- S.html $ L.pack $ B.renderHtml ran
 
 renderUrl :: T.Text -> SiteRender T.Text
 renderUrl url = do

@@ -11,7 +11,7 @@ import Web.Blog.Database
 import Web.Blog.Models
 import Web.Blog.Render
 import Web.Blog.Types
-import Web.Blog.Views
+import Web.Blog.Views.Entry
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as L
 import qualified Database.Persist.Postgresql as D
@@ -112,7 +112,7 @@ routeEntry (Right (D.Entity eKey e')) = do
         modify (M.insert ("nextUrl" :: T.Text) nextUrl)
 
       
-    view = viewEntry e' (map tagLabel tags) (fst <$> prevData) (fst <$> nextData)
+    view = viewEntry e' tags (fst <$> prevData) (fst <$> nextData)
     pageData' = pageData { pageDataTitle = Just $ entryTitle e'
                          , pageDataMap   = pdMap M.empty
                          }
