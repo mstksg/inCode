@@ -31,21 +31,38 @@ main = runDB $ do
 
   tags <- replicateM 10 $
     untilJust $ do
-      t <- liftIO $ (map toLower . unwords . reverse . take 2 . reverse . words . filter (not . isPunctuation) . unwords . lines)
+      t <- liftIO $ (T.pack . map toLower . unwords . reverse . take 2 . reverse . words . filter (not . isPunctuation) . unwords . lines)
         <$> genLoripsum "http://loripsum.net/api/1/short"
-      insertTag $ PreTag (T.pack t) GeneralTag
+      desc <- liftIO $ genDesc 4
+      insertTag $ PreTag t GeneralTag desc
 
-  categories <- replicateM 4 $
+  categories' <- replicateM 4 $
     untilJust $ do
-      c <- liftIO $ (capitalizeFirst . unwords . reverse . take 2 . reverse . words . filter (not . isPunctuation) . unwords . lines)
+      c <- liftIO $ (T.pack . capitalizeFirst . unwords . reverse . take 2 . reverse . words . filter (not . isPunctuation) . unwords . lines)
         <$> genLoripsum "http://loripsum.net/api/1/short"
-      insertTag $ PreTag (T.pack c) CategoryTag
+      desc <- liftIO $ (Just . T.pack) <$> genLoripsum "http://loripsum.net/api/1/short"
+      insertTag $ PreTag c CategoryTag desc
 
-  serieses <- replicateM 3 $
+  extracat <- untilJust $ do
+    c <- liftIO $ (T.pack . capitalizeFirst . unwords . reverse . take 2 . reverse . words . filter (not . isPunctuation) . unwords . lines)
+      <$> genLoripsum "http://loripsum.net/api/1/short"
+    insertTag $ PreTag c CategoryTag Nothing
+
+  serieses' <- replicateM 3 $
     untilJust $ do
-      s <- liftIO $ (capitalizeFirst . unwords . reverse . take 5 . reverse . words . filter (not . isPunctuation) . unwords . lines)
+      s <- liftIO $ (T.pack . capitalizeFirst . unwords . reverse . take 5 . reverse . words . filter (not . isPunctuation) . unwords . lines)
         <$> genLoripsum "http://loripsum.net/api/1/short"
-      insertTag $ PreTag (T.pack s) SeriesTag
+      desc <- liftIO $ (Just . T.pack) <$> genLoripsum "http://loripsum.net/api/1/short"
+      insertTag $ PreTag s SeriesTag desc
+
+  extraser <- untilJust $ do
+    s <- liftIO $ (T.pack . capitalizeFirst . unwords . reverse . take 5 . reverse . words . filter (not . isPunctuation) . unwords . lines)
+      <$> genLoripsum "http://loripsum.net/api/1/short"
+    insertTag $ PreTag s SeriesTag Nothing
+
+  let
+    categories = extracat:categories'
+    serieses = extraser:serieses'
 
 
   replicateM_ 40 $ do
@@ -65,7 +82,7 @@ main = runDB $ do
 
     insert_ $ EntryTag entryid $ categories !! category
 
-    when (series < 3) $ 
+    when (series < 4) $ 
       insert_ $ EntryTag entryid $ serieses !! series
     
     tagAssociations <- selectList [EntryTagEntryId ==. entryid] []
@@ -96,7 +113,7 @@ genEntry = do
     (createTime, postTime, tags, category, series) = (evalRand $ do
       cD <- getRandomR (-31536000,8035200)
       pD <- getRandomR (100,604800) 
-      ts <- forM [1..10] $ \i -> getRandomR (0,i*i/3+1)
+      ts <- forM [1..10] $ \i -> getRandomR (0,i*i/2+1)
       c  <- getRandomR (0,3)
       s  <- getRandomR (0,11)
       return
@@ -132,6 +149,16 @@ genLoripsum apiUrl = do
 
   return $ writeMarkdown (def WriterOptions) $
     readHtml (def ReaderOptions) body
+
+genDesc :: Int -> IO (Maybe T.Text)
+genDesc o = do 
+  possible <- T.pack <$> genLoripsum "http://loripsum.net/api/1/short"
+  return $
+    if T.length possible `mod` o == 0
+      then
+        Just possible
+      else
+        Nothing
 
 capitalizeFirst :: String -> String
 capitalizeFirst (x:xs) = toUpper x:map toLower xs

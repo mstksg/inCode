@@ -28,6 +28,7 @@ Entry
 Tag
     label           T.Text
     type_           TagType
+    description     T.Text Maybe
     slug            T.Text
 
     UniqueLabelType label type_

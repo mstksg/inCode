@@ -191,7 +191,7 @@ groupEntries entries = groupedMonthsYears
 
 -- | Tags
 
-data PreTag = PreTag T.Text TagType
+data PreTag = PreTag T.Text TagType (Maybe T.Text)
 
 insertTag :: PreTag -> D.SqlPersistM (Maybe (D.Key Tag))
 insertTag ptag = D.insertUnique $ fillTag ptag
@@ -202,12 +202,12 @@ insertTag_ ptag = D.insert_ $ fillTag ptag
 fillTag :: PreTag -> Tag
 fillTag ptag = tag
   where
-    PreTag l t = ptag
+    PreTag l t d = ptag
     slug = genSlug (maxBound :: Int) l
     tag = case t of
-      GeneralTag  -> Tag (T.map toLower l) t slug
-      CategoryTag -> Tag (T.map toUpper l) t slug
-      SeriesTag   -> Tag l t slug
+      GeneralTag  -> Tag (T.map toLower l) t d slug
+      CategoryTag -> Tag (T.map toUpper l) t d slug
+      SeriesTag   -> Tag l t d slug
 
 tagLabel' :: Tag -> T.Text
 tagLabel' t = T.append (tagTypePrefix $ tagType_ t) $ tagLabel t
