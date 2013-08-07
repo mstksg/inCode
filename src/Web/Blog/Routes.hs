@@ -2,19 +2,6 @@
 
 module Web.Blog.Routes (route) where
 
--- import Control.Applicative                   ((<$>))
--- import Control.Monad                         (when)
--- import Control.Monad.IO.Class
--- import Data.Char                             (isDigit)
--- import Data.List                             (find)
--- import Data.Maybe
--- import Data.Monoid
--- import Data.String                           (fromString)
--- import Web.Blog.Database
--- import Web.Blog.Models
--- import Web.Blog.SiteData
--- import qualified Data.Map                    as M
--- import qualified Database.Persist.Postgresql as D
 import Control.Monad.Reader
 import Network.HTTP.Types.Status
 import Web.Blog.Models.Types
@@ -25,11 +12,11 @@ import Web.Blog.Routes.Home
 import Web.Blog.Routes.NotFound
 import Web.Blog.Routes.TagIndex
 import Web.Blog.Types
-import Web.Blog.Views
-import qualified Data.Text                      as T
-import qualified Data.Text.Lazy                 as L
-import qualified Text.Blaze.Html5               as H
-import qualified Web.Scotty                     as S
+import Web.Blog.Views.Layout
+import qualified Data.Text        as T
+import qualified Data.Text.Lazy   as L
+import qualified Text.Blaze.Html5 as H
+import qualified Web.Scotty       as S
 
 
 route :: S.ScottyM ()

@@ -11,8 +11,8 @@ module Web.Blog.Models  where
 
 import Data.Time
 import Database.Persist.TH
-import qualified Data.Text as T
 import Web.Blog.Models.Types
+import qualified Data.Text   as T
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 

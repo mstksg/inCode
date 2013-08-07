@@ -17,7 +17,6 @@ import Web.Blog.Render
 import Web.Blog.SiteData
 import Web.Blog.Types
 import qualified Data.Text                   as T
--- import qualified Data.Traversable as Tr      (mapM)
 import qualified Database.Persist.Postgresql as D
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
@@ -29,6 +28,7 @@ slugLength = siteDataSlugLength siteData
 ledeMax :: Int
 ledeMax = siteDataLedeMax siteData
 
+-- TODO: Split into two files?
 
 -- | Entries
 

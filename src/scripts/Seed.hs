@@ -4,8 +4,6 @@
 {-# LANGUAGE TypeSynonymInstances         #-} 
 {-# LANGUAGE GeneralizedNewtypeDeriving   #-} 
 
--- import Data.Bits
--- import Data.List.Split
 import Control.Applicative
 import Control.Monad
 import Control.Monad.IO.Class

@@ -1,12 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import Web.Scotty
-import Web.Blog.Routes
+import Control.Monad.IO.Class
 import Network.Wai.Middleware.RequestLogger
 import Network.Wai.Middleware.Static
-import Web.Blog.SiteData
 import Web.Blog.Database
-import Control.Monad.IO.Class
+import Web.Blog.Routes
+import Web.Scotty
 
 main :: IO ()
 main = scotty 4268 $ do

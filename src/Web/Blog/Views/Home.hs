@@ -2,9 +2,6 @@
 
 module Web.Blog.Views.Home (viewHome) where
 
--- import Data.Maybe
--- import Data.Monoid
--- import Web.Blog.Render
 import Control.Applicative                   ((<$>))
 import Control.Monad.Reader
 import Text.Blaze.Html5                      ((!))

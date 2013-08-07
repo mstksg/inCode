@@ -7,17 +7,6 @@ module Web.Blog.Routes.Archive (
   , routeArchiveMonth
   ) where
 
--- import Control.Applicative                ((<$>))
--- import Control.Monad.Reader
--- import Control.Monad.State
--- import Control.Monad.Trans
--- import Control.Monad.Trans                (lift)
--- import Data.Char                          (isDigit)
--- import Web.Blog.SiteData
--- import qualified Data.Map                 as M
--- import qualified Data.Text.Lazy           as L
--- import qualified Text.Blaze.Html5         as H
--- import qualified Web.Scotty               as S
 import Control.Monad.IO.Class
 import Data.Time
 import System.Locale

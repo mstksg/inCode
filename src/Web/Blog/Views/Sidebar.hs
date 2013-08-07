@@ -2,25 +2,19 @@
 
 module Web.Blog.Views.Sidebar (viewSidebar) where
 
--- import Data.Maybe
--- import Data.Monoid
-import Control.Monad.Reader
-import Text.Blaze.Html5 ((!))
-import Web.Blog.Models
+import Text.Blaze.Html5                      ((!))
 import Web.Blog.Render
 import Web.Blog.Types
-import qualified Data.Text as T
-import qualified Text.Blaze.Html5 as H
-import qualified Text.Blaze.Internal as I
+import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
+import qualified Text.Blaze.Internal         as I
 
 viewSidebar :: SiteRender H.Html
 viewSidebar = do
   homeUrl <- renderUrl "/"
   archiveUrl <- renderUrl "/entries"
 
-  return $ do
-    H.h2 "Sidebar"
+  return $
 
     H.ul $ do
       H.li $

@@ -2,12 +2,6 @@
 
 module Web.Blog.Views.Entry (viewEntry) where
 
--- import Data.Maybe
--- import Text.Pandoc
--- import Web.Blog.Render
--- import Web.Blog.SiteData
--- import qualified Data.Text.Lazy              as L
--- import qualified Database.Persist.Postgresql as D
 import Control.Applicative                      ((<$>))
 import Control.Monad.Reader
 import Data.Maybe

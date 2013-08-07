@@ -7,10 +7,6 @@ module Web.Blog.Views.Archive (
   , ViewArchiveIndex(..)
   ) where
 
--- import Data.Monoid
--- import Web.Blog.Render
--- import Web.Blog.SiteData
--- import qualified Data.Map                 as M
 import Control.Applicative                   ((<$>))
 import Control.Monad.Reader
 import Data.Maybe                            (fromMaybe, isJust, fromJust)

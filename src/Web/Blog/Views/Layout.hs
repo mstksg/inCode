@@ -2,19 +2,16 @@
 
 module Web.Blog.Views.Layout (viewLayout, viewLayoutEmpty) where
 
-import Control.Applicative
 import Control.Monad.Reader
 import Data.Monoid
-import Text.Blaze.Html5 ((!))
+import Text.Blaze.Html5                      ((!))
 import Web.Blog.Render
-import Web.Blog.SiteData
 import Web.Blog.Types
 import Web.Blog.Views.Sidebar
-import qualified Data.Text as T
-import qualified Text.Blaze.Html5 as H
+import qualified Data.Text                   as T
+import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
-import qualified Text.Blaze.Internal as I
-import qualified Web.Scotty as S
+import qualified Text.Blaze.Internal         as I
 
 viewLayout :: SiteRender H.Html -> SiteRender H.Html
 viewLayout body = do
