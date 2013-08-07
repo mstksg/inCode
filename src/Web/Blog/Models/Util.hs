@@ -1,13 +1,13 @@
 
 module Web.Blog.Models.Util  where
 
--- import Control.Monad                      (void)
 import Control.Applicative                   ((<$>))
+import Control.Monad
 import Control.Monad.IO.Class                (liftIO)
 import Control.Monad.Loops                   (firstM)
 import Data.Char                             (isAlphaNum, toLower, toUpper)
 import Data.List                             (groupBy)
-import Data.Maybe                            (isNothing, fromJust)
+import Data.Maybe                            (isNothing, fromJust, isJust)
 import Data.Time
 import Web.Blog.Models
 import Web.Blog.Models.Types
@@ -32,12 +32,9 @@ ledeMax = siteDataLedeMax siteData
 insertEntry :: Entry -> D.SqlPersistM (Maybe (D.Key Entry))
 insertEntry entry = do
   entryKey <- D.insertUnique entry
-  case entryKey of
-    Just eKey -> do
-      insertSlug $ D.Entity eKey entry
-      return entryKey
-    Nothing ->
-      return Nothing
+  when (isJust entryKey) $
+    insertSlug $ D.Entity (fromJust entryKey) entry
+  return entryKey
 
 insertEntry_ :: Entry -> D.SqlPersistM ()
 insertEntry_ entry = do
@@ -243,3 +240,16 @@ isSeriesTag :: Tag -> Bool
 isSeriesTag t = case tagType_ t of
   SeriesTag -> True
   _         -> False
+
+getTagInfoList :: TagType -> D.SqlPersistM [(Tag,(T.Text,Int))]
+getTagInfoList tt = do
+  allTags <- D.selectList [ TagType_ D.==. tt ] [ D.Asc TagLabel ]
+  let
+    tagInfo (D.Entity tKey t) = do
+      c <- D.count [ EntryTagTagId D.==. tKey ]
+      return (t,(tagPath t,c))
+
+  tagInfos <- mapM tagInfo allTags
+
+  return $ filter ((> 0) . snd . snd) tagInfos
+

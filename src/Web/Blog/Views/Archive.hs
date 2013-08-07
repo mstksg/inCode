@@ -4,6 +4,7 @@ module Web.Blog.Views.Archive (
     viewArchive
   , ViewArchiveType(..)
   , viewArchiveNav
+  , ViewArchiveIndex(..)
   ) where
 
 -- import Data.Monoid
@@ -20,7 +21,7 @@ import Web.Blog.Render
 import Web.Blog.Types
 import Web.Blog.Util
 import qualified Data.Text                   as T
-import qualified Data.Traversable  as DT     (mapM)
+import qualified Data.Traversable  as Tr     (mapM)
 import qualified Database.Persist.Postgresql as D
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
@@ -50,7 +51,7 @@ viewArchive eListYears viewType = do
       ViewArchiveCategory _ -> Just "/entries/category"
       ViewArchiveSeries _ -> Just "/entries/series"
 
-  upLink <- DT.mapM renderUrl upPath
+  upLink <- Tr.mapM renderUrl upPath
 
   return $ do
 
@@ -85,17 +86,16 @@ data ViewArchiveIndex = ViewArchiveIndexDate
                       | ViewArchiveIndexSeries
                       deriving (Show, Eq, Read)
 
-
 viewArchiveNav :: Maybe ViewArchiveIndex -> SiteRender H.Html
 viewArchiveNav isIndex = do
   byDateUrl <- renderUrl "/entries"
-  byTagUrl  <- renderUrl "/entries/tagged"
-  byCatUrl  <- renderUrl "/entries/category"
-  bySerUrl  <- renderUrl "/entries/series"
+  byTagUrl  <- renderUrl "/tags"
+  byCatUrl  <- renderUrl "/categories"
+  bySerUrl  <- renderUrl "/series"
   return $
     H.nav $
       H.ul $
-        forM_ [("Date",byDateUrl,ViewArchiveIndexDate)
+        forM_ [("History",byDateUrl,ViewArchiveIndexDate)
               ,("Tag",byTagUrl,ViewArchiveIndexTag)
               ,("Category",byCatUrl,ViewArchiveIndexCategory)
               ,("Series",bySerUrl,ViewArchiveIndexSeries)] $ \(t,u,v) -> 

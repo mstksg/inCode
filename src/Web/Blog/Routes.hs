@@ -23,6 +23,7 @@ import Web.Blog.Routes.Archive
 import Web.Blog.Routes.Entry
 import Web.Blog.Routes.Home
 import Web.Blog.Routes.NotFound
+import Web.Blog.Routes.TagIndex
 import Web.Blog.Types
 import Web.Blog.Views
 import qualified Data.Text                      as T
@@ -36,6 +37,7 @@ route = do
   homeRoutes
   entryRoutes
   archiveRoutes
+  indexRoutes
   miscRoutes
 
 
@@ -101,6 +103,17 @@ archiveRoutes = do
     when (year < 1) S.next
     when (month < 1 || month > 12) S.next
     routeEither $ routeArchiveMonth year month
+
+indexRoutes :: S.ScottyM ()
+indexRoutes = do
+  S.get "/tags" $
+    routeEither $ routeTagIndex GeneralTag
+
+  S.get "/categories" $
+    routeEither $ routeTagIndex CategoryTag
+
+  S.get "/series" $ 
+    routeEither $ routeTagIndex SeriesTag
 
 miscRoutes :: S.ScottyM ()
 miscRoutes = do
