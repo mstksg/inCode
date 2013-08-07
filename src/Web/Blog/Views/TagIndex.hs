@@ -60,25 +60,7 @@ tagIndexLi GeneralTag (TagInfo t c _) =
     H.toHtml $
       T.concat ["(",T.pack $ show c,")"]
 
-tagIndexLi CategoryTag (TagInfo t c r) =
-  H.li $ do
-    H.header $
-      H.a ! A.href (I.textValue $ renderUrl' $ tagPath t) $
-        H.toHtml $ tagLabel' t
-    H.div $
-      Fo.forM_ (tagDescription t) $ \td ->
-        H.toHtml td
-    H.footer $ do
-      H.div $
-        H.toHtml $
-          T.append (T.pack $ show c) " entries"
-      Fo.forM_ r $ \(re,ru) ->
-        H.div $ do
-          H.preEscapedToHtml ("Most recent &mdash; " :: T.Text)
-          H.a ! A.href (I.textValue $ renderUrl' ru) $
-            H.toHtml $ entryTitle re
-
-tagIndexLi SeriesTag (TagInfo t c r) =
+tagIndexLi _ (TagInfo t c r) =
   H.li $ do
     H.header $
       H.a ! A.href (I.textValue $ renderUrl' $ tagPath t) $

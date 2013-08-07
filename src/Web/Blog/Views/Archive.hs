@@ -20,6 +20,7 @@ import Web.Blog.Models.Util
 import Web.Blog.Render
 import Web.Blog.Types
 import Web.Blog.Util
+import qualified Data.Foldable as Fo         (forM_)
 import qualified Data.Text                   as T
 import qualified Data.Traversable  as Tr     (mapM)
 import qualified Database.Persist.Postgresql as D
@@ -42,16 +43,7 @@ viewArchive eListYears viewType = do
                           ViewArchiveAll -> Just ViewArchiveIndexDate
                           _ -> Nothing)
 
-  let
-    upPath = case viewType of
-      ViewArchiveAll      -> Nothing
-      ViewArchiveYear _   -> Just "/entries"
-      ViewArchiveMonth y _ -> Just $ T.append "/entries/in/" $ T.pack $ show y
-      ViewArchiveTag _    -> Just "/tags"
-      ViewArchiveCategory _ -> Just "/categories"
-      ViewArchiveSeries _ -> Just "/series"
-
-  upLink <- Tr.mapM renderUrl upPath
+  upLink <- Tr.mapM renderUrl (upPath viewType)
 
   return $ do
 
@@ -62,6 +54,9 @@ viewArchive eListYears viewType = do
         H.a ! A.href (I.textValue $ fromJust upLink) $ "back"
       nav
 
+    Fo.forM_ (desc viewType) $ \d ->
+      H.p $
+        H.toHtml d
 
     if null eListYears
       then
@@ -79,6 +74,20 @@ viewArchive eListYears viewType = do
           ViewArchiveTag _      -> viewArchiveFlat eList
           ViewArchiveCategory _ -> viewArchiveFlat eList
           ViewArchiveSeries _   -> viewArchiveFlat eList
+
+upPath :: ViewArchiveType -> Maybe T.Text
+upPath ViewArchiveAll          = Nothing
+upPath (ViewArchiveYear _)     = Just "/entries"
+upPath (ViewArchiveMonth y _)  = Just $ T.append "/entries/in/" $ T.pack $ show y
+upPath (ViewArchiveTag _)      = Just "/tags"
+upPath (ViewArchiveCategory _) = Just "/categories"
+upPath (ViewArchiveSeries _)   = Just "/series"
+
+desc :: ViewArchiveType -> Maybe T.Text
+desc (ViewArchiveTag t)      = tagDescription t
+desc (ViewArchiveCategory c) = tagDescription c
+desc (ViewArchiveSeries s)   = tagDescription s
+desc _                       = Nothing
 
 data ViewArchiveIndex = ViewArchiveIndexDate
                       | ViewArchiveIndexTag
