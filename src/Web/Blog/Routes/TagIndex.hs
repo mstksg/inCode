@@ -30,7 +30,7 @@ import qualified Database.Persist.Postgresql as D
 
 routeTagIndex :: TagType -> RouteEither
 routeTagIndex tt = do
-  tagInfos <- liftIO $ runDB $ getTagInfoList tt
+  tagInfos <- liftIO $ runDB $ getTagInfoListRecent tt (tt /= GeneralTag)
 
   let
     view = viewTagIndex tagInfos tt

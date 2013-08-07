@@ -4,29 +4,29 @@ module Web.Blog.Views.TagIndex (
     viewTagIndex
   ) where
 
+-- import Control.Applicative                   ((<$>))
 -- import Data.Monoid
--- import Web.Blog.Render
+import Web.Blog.Render
 -- import Web.Blog.SiteData
--- import qualified Data.Map                 as M
-import Control.Applicative                   ((<$>))
+-- import Web.Blog.Util
+-- import qualified Data.Map                    as M
+-- import qualified Database.Persist.Postgresql as D
 import Control.Monad.Reader
-import Data.Maybe                            (fromMaybe, isJust, fromJust)
-import Text.Blaze.Html5                      ((!))
+import Data.Maybe                               (isJust, fromJust)
+import Text.Blaze.Html5                         ((!))
 import Web.Blog.Models
 import Web.Blog.Models.Types
 import Web.Blog.Models.Util
-import Web.Blog.Render
 import Web.Blog.Types
-import Web.Blog.Util
 import Web.Blog.Views.Archive
-import qualified Data.Text                   as T
-import qualified Data.Traversable  as Tr     (mapM)
-import qualified Database.Persist.Postgresql as D
-import qualified Text.Blaze.Html5            as H
-import qualified Text.Blaze.Html5.Attributes as A
-import qualified Text.Blaze.Internal         as I
+import qualified Data.Foldable as Fo            (forM_)
+import qualified Data.Text                      as T
+-- import qualified Data.Traversable  as Tr        (mapM)
+import qualified Text.Blaze.Html5               as H
+import qualified Text.Blaze.Html5.Attributes    as A
+import qualified Text.Blaze.Internal            as I
 
-viewTagIndex :: [(Tag,(T.Text,Int))] -> TagType -> SiteRender H.Html
+viewTagIndex :: [TagInfo] -> TagType -> SiteRender H.Html
 viewTagIndex tagInfos tt = do
 
   nav <- viewArchiveNav $ Just $
@@ -41,22 +41,57 @@ viewTagIndex tagInfos tt = do
 
       H.h1 $
         case tt of
-          GeneralTag -> "Tags"
+          GeneralTag  -> "Tags"
           CategoryTag -> "Categories"
-          SeriesTag -> "Series"
+          SeriesTag   -> "Series"
 
       nav
 
     H.ul $
-      forM_ tagInfos $ \tagInfo -> do
-        let
-          (t,(url,count)) = tagInfo
+      mapM_ (tagIndexLi tt) tagInfos
 
-        H.li $ do
-          H.div $
-            H.a ! A.href (I.textValue url) $
-              H.toHtml $ tagLabel' t
-          H.div $
-            H.toHtml $
-              T.concat ["(",T.pack $ show count," entries)"]
 
+tagIndexLi :: TagType -> TagInfo -> H.Html
+tagIndexLi GeneralTag (TagInfo t c _) =
+  H.li $ do
+    H.a ! A.href (I.textValue $ renderUrl' $ tagPath t) $
+      H.toHtml $ tagLabel' t
+    " " :: H.Html
+    H.toHtml $
+      T.concat ["(",T.pack $ show c,")"]
+
+tagIndexLi CategoryTag (TagInfo t c r) =
+  H.li $ do
+    H.header $
+      H.a ! A.href (I.textValue $ renderUrl' $ tagPath t) $
+        H.toHtml $ tagLabel' t
+    H.div $
+      Fo.forM_ (tagDescription t) $ \td ->
+        H.toHtml td
+    H.footer $ do
+      H.div $
+        H.toHtml $
+          T.append (T.pack $ show c) " entries"
+      Fo.forM_ r $ \(re,ru) ->
+        H.div $ do
+          H.preEscapedToHtml ("Most recent &mdash; " :: T.Text)
+          H.a ! A.href (I.textValue $ renderUrl' ru) $
+            H.toHtml $ entryTitle re
+
+tagIndexLi SeriesTag (TagInfo t c r) =
+  H.li $ do
+    H.header $
+      H.a ! A.href (I.textValue $ renderUrl' $ tagPath t) $
+        H.toHtml $ tagLabel' t
+    H.div $
+      Fo.forM_ (tagDescription t) $ \td ->
+        H.toHtml td
+    H.footer $ do
+      H.div $
+        H.toHtml $
+          T.append (T.pack $ show c) " entries"
+      Fo.forM_ r $ \(re,ru) ->
+        H.div $ do
+          H.preEscapedToHtml ("Most recent &mdash; " :: T.Text)
+          H.a ! A.href (I.textValue $ renderUrl' ru) $
+            H.toHtml $ entryTitle re

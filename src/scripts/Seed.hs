@@ -113,7 +113,7 @@ genEntry = do
     (createTime, postTime, tags, category, series) = (evalRand $ do
       cD <- getRandomR (-31536000,8035200)
       pD <- getRandomR (100,604800) 
-      ts <- forM [1..10] $ \i -> getRandomR (0,i*i/2+1)
+      ts <- forM [1..10] $ \i -> getRandomR (0,i*i/3+1)
       c  <- getRandomR (0,3)
       s  <- getRandomR (0,11)
       return

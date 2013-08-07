@@ -5,6 +5,8 @@ import Control.Applicative                   ((<$>))
 import Control.Monad
 import Control.Monad.IO.Class                (liftIO)
 import Control.Monad.Loops                   (firstM)
+import Control.Monad.Trans                   (lift)
+import Control.Monad.Trans.Maybe
 import Data.Char                             (isAlphaNum, toLower, toUpper)
 import Data.List                             (groupBy)
 import Data.Maybe                            (isNothing, fromJust, isJust)
@@ -15,6 +17,7 @@ import Web.Blog.Render
 import Web.Blog.SiteData
 import Web.Blog.Types
 import qualified Data.Text                   as T
+-- import qualified Data.Traversable as Tr      (mapM)
 import qualified Database.Persist.Postgresql as D
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
@@ -241,15 +244,34 @@ isSeriesTag t = case tagType_ t of
   SeriesTag -> True
   _         -> False
 
-getTagInfoList :: TagType -> D.SqlPersistM [(Tag,(T.Text,Int))]
-getTagInfoList tt = do
+data TagInfo = TagInfo
+               { tagInfoTag       :: Tag
+               , tagInfoCount     :: Int
+               , tagInfoRecent    :: Maybe (Entry, T.Text) }
+
+getTagInfoList :: TagType -> D.SqlPersistM [TagInfo]
+getTagInfoList tt = getTagInfoListRecent tt True
+
+getTagInfoListRecent :: TagType -> Bool -> D.SqlPersistM [TagInfo]
+getTagInfoListRecent tt recent = do
   allTags <- D.selectList [ TagType_ D.==. tt ] [ D.Asc TagLabel ]
+  now <- liftIO getCurrentTime
   let
     tagInfo (D.Entity tKey t) = do
       c <- D.count [ EntryTagTagId D.==. tKey ]
-      return (t,(tagPath t,c))
+      eKeys <- map (entryTagEntryId . D.entityVal) <$> D.selectList [ EntryTagTagId D.==. tKey ] []
+
+      r <- if recent
+        then
+          runMaybeT $ do
+            re <- MaybeT $ D.selectFirst (postedFilter now ++ [ EntryId D.<-. eKeys ]) [ D.Desc EntryPostedAt ]
+            ru <- lift $ getUrlPath re
+            return (D.entityVal re,ru)
+        else 
+          return Nothing
+
+      return $ TagInfo t c r
 
   tagInfos <- mapM tagInfo allTags
 
-  return $ filter ((> 0) . snd . snd) tagInfos
-
+  return $ filter ((> 0) . tagInfoCount) tagInfos

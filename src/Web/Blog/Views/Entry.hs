@@ -46,11 +46,11 @@ viewEntry entry tags prevEntry nextEntry = do
 
         H.p $ do
 
-          H.toHtml ("by " :: T.Text)
+          "by " :: H.Html
 
           H.a ! A.class_ "author" $ H.toHtml $ siteDataAuthor siteData'
 
-          H.toHtml (" " :: T.Text)
+          " " :: H.Html
 
           H.time
             ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt entry)

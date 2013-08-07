@@ -47,9 +47,9 @@ viewArchive eListYears viewType = do
       ViewArchiveAll      -> Nothing
       ViewArchiveYear _   -> Just "/entries"
       ViewArchiveMonth y _ -> Just $ T.append "/entries/in/" $ T.pack $ show y
-      ViewArchiveTag _    -> Just "/entries/tagged"
-      ViewArchiveCategory _ -> Just "/entries/category"
-      ViewArchiveSeries _ -> Just "/entries/series"
+      ViewArchiveTag _    -> Just "/tags"
+      ViewArchiveCategory _ -> Just "/categories"
+      ViewArchiveSeries _ -> Just "/series"
 
   upLink <- Tr.mapM renderUrl upPath
 
@@ -96,8 +96,8 @@ viewArchiveNav isIndex = do
     H.nav $
       H.ul $
         forM_ [("History",byDateUrl,ViewArchiveIndexDate)
-              ,("Tag",byTagUrl,ViewArchiveIndexTag)
-              ,("Category",byCatUrl,ViewArchiveIndexCategory)
+              ,("Tags",byTagUrl,ViewArchiveIndexTag)
+              ,("Categories",byCatUrl,ViewArchiveIndexCategory)
               ,("Series",bySerUrl,ViewArchiveIndexSeries)] $ \(t,u,v) -> 
           H.li $
             if maybe True (/= v) isIndex
