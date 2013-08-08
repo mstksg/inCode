@@ -14,6 +14,7 @@ import Web.Blog.Models.Types
 import Web.Blog.Render
 import Web.Blog.Util
 import qualified Data.Text                   as T
+import qualified Database.Esqueleto          as E
 import qualified Database.Persist.Postgresql as D
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
@@ -79,8 +80,30 @@ getTagInfoList tt = getTagInfoListRecent tt True
 
 getTagInfoListRecent :: TagType -> Bool -> D.SqlPersistM [TagInfo]
 getTagInfoListRecent tt recent = do
-  allTags <- D.selectList [ TagType_ D.==. tt ] [ D.Asc TagLabel ]
   now <- liftIO getCurrentTime
+  -- allTags <- D.selectList [ TagType_ D.==. tt ] [ D.Asc TagLabel ]
+  -- allTags <- 
+  --   E.select $
+  --     E.from $ \t -> do
+  --       E.where_ (t E.^. TagType_ E.==. E.val tt)
+  --       E.orderBy [ E.asc (t E.^. TagLabel) ]
+  --       return t
+
+  allTags <- 
+    E.selectDistinct $
+      E.from $ \(t `E.InnerJoin` et `E.InnerJoin` e) -> do
+        E.on (e E.^. EntryId E.==. et E.^. EntryTagEntryId)
+        E.on (et E.^. EntryTagTagId E.==. t E.^. TagId)
+
+        E.where_ $ t E.^. TagType_ E.==. E.val tt E.&&.
+                    e E.^. EntryPostedAt E.<. E.val now
+        E.orderBy [ E.desc (e E.^. EntryPostedAt), E.asc (t E.^. TagLabel) ]
+        -- E.groupBy  (t E.^. TagId)
+        -- E.orderBy [ E.asc (E.random_ :: E.SqlExpr (E.Value Double)) ]
+        -- E.orderBy [ E.asc (t E.^. TagLabel) ]
+        return t
+
+
   let
     tagInfo (D.Entity tKey t) = do
       c <- D.count [ EntryTagTagId D.==. tKey ]

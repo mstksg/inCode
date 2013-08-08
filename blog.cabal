@@ -35,6 +35,7 @@ executable blog
                      , pandoc
                      , old-locale
                      , http-types
+                     , esqueleto
   -- ghc-options:         -ddump-types
   extensions:          OverloadedStrings
 
@@ -54,6 +55,7 @@ executable blog-scripts-migrate
                      , scotty 
                      , containers
                      , blaze-markup
+                     , esqueleto
   extensions:          OverloadedStrings
 
 executable blog-scripts-seed
@@ -79,4 +81,5 @@ executable blog-scripts-seed
                      , blaze-html 
                      , blaze-markup
                      , scotty 
+                     , esqueleto
   extensions:          OverloadedStrings
