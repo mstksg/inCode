@@ -11,6 +11,7 @@ import Web.Blog.Routes.Entry
 import Web.Blog.Routes.Home
 import Web.Blog.Routes.NotFound
 import Web.Blog.Routes.TagIndex
+import Web.Blog.Routes.About
 import Web.Blog.Types
 import Web.Blog.Views.Layout
 import qualified Data.Text        as T
@@ -41,6 +42,9 @@ homeRoutes = do
     page <- S.param "page"
     when (page < 1) S.next
     routeEither $ routeHome page
+
+  S.get "/about" $
+    routeEither routeAbout
 
 entryRoutes :: S.ScottyM ()
 entryRoutes = do

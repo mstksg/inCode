@@ -13,6 +13,7 @@ viewSidebar :: SiteRender H.Html
 viewSidebar = do
   homeUrl <- renderUrl "/"
   archiveUrl <- renderUrl "/entries"
+  aboutUrl <- renderUrl "/about"
 
   return $
 
@@ -23,5 +24,8 @@ viewSidebar = do
       H.li $
         H.a ! A.href (I.textValue archiveUrl) $
           "entries"
+      H.li $
+        H.a ! A.href (I.textValue aboutUrl) $
+          "about"
 
 
