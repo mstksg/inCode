@@ -8,7 +8,7 @@ import Web.Blog.Routes
 import Web.Scotty
 
 main :: IO ()
-main = scotty 4268 $ do
+main = scotty 4288 $ do
   
   liftIO $ runDB blogMigrate
 
