@@ -5,10 +5,12 @@ module Web.Blog.Render (
   , pageData
   , renderUrl
   , renderUrl'
+  , renderScss
   ) where
 
 -- import qualified Text.Blaze.Html.Renderer.Pretty as B
 import Control.Monad.Reader
+import System.Process
 import Web.Blog.SiteData
 import Web.Blog.Types
 import qualified Data.Map                           as M
@@ -17,6 +19,7 @@ import qualified Data.Text.Lazy                     as L
 import qualified Text.Blaze.Html.Renderer.Text      as B
 import qualified Text.Blaze.Html5                   as H
 import qualified Web.Scotty                         as S
+import Control.Applicative ((<$>))
 
 
 pageData :: PageData
@@ -46,3 +49,7 @@ renderUrl' url =
   where
     hasP = length (T.splitOn "://" url) > 1
       
+renderScss :: FilePath -> IO L.Text
+-- renderScss fp = L.pack <$> readProcess "sass" ["--style","compressed",fp] []
+renderScss fp = L.pack <$> readProcess "sass" [fp] []
+

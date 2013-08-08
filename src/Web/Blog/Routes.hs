@@ -18,6 +18,9 @@ import qualified Data.Text        as T
 import qualified Data.Text.Lazy   as L
 import qualified Text.Blaze.Html5 as H
 import qualified Web.Scotty       as S
+import System.Directory (doesFileExist)
+import System.FilePath
+import System.Process
 
 
 route :: S.ScottyM ()
@@ -26,6 +29,7 @@ route = do
   entryRoutes
   archiveRoutes
   indexRoutes
+  utilRoutes
   miscRoutes
 
 
@@ -105,6 +109,23 @@ indexRoutes = do
 
   S.get "/series" $ 
     routeEither $ routeTagIndex SeriesTag
+
+utilRoutes :: S.ScottyM ()
+utilRoutes = 
+  S.get "/css/:path" $ do
+    path <- S.param "path"
+    let
+      scssPath = "src/scss/" ++ replaceExtension path ".scss"
+    exists <- liftIO $ doesFileExist scssPath
+    if exists
+      then do
+        scss <- liftIO $ renderScss scssPath
+        S.text scss
+        S.header "Content-Type" "text/css"
+      else
+        S.next
+    
+
 
 miscRoutes :: S.ScottyM ()
 miscRoutes = do

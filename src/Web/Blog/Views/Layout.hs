@@ -20,7 +20,11 @@ viewLayout body = do
   sidebarHtml <- viewSidebar
   title <- createTitle
 
-  cssUrl <- renderUrl "/css/gridiculous.css"
+  cssList <- mapM renderUrl
+    ["/css/reset.css"
+    ,"/css/gridiculous.css"
+    ,"/css/main.css"
+    ]
 
   return $ H.docTypeHtml $ do
 
@@ -29,7 +33,9 @@ viewLayout body = do
       H.title title
       H.meta ! A.httpEquiv "Content-Type" ! A.content "text/html;charset=utf-8"
 
-      H.link ! A.href (I.textValue cssUrl) ! A.rel "stylesheet" ! A.type_ "text/css"
+      forM_ cssList $ \u ->
+        H.link ! A.href (I.textValue u) ! A.rel "stylesheet" ! A.type_ "text/css"
+
       H.link ! A.rel "author" ! A.href (I.textValue $ siteDataAuthorRel $ pageSiteData pageData')
 
       sequence_ (pageDataHeaders pageData')
