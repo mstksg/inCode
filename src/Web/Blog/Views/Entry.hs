@@ -75,7 +75,11 @@ viewEntry entry tags prevEntry nextEntry = do
         npUl
 
       H.div ! A.class_ "post-entry" $
-        mempty
+        H.div ! A.id "disqus_thread" $ mempty
+
+      H.script ! A.type_ "text/javascript" $
+        disqusJs
+    
 
 nextPrevUrl :: Maybe Entry -> Maybe Entry -> SiteRender H.Html
 nextPrevUrl prevEntry nextEntry = do
@@ -118,3 +122,11 @@ seriesLi t = H.li $
       "series archives" :: H.Html
     "." :: H.Html
 
+disqusJs :: H.Html
+disqusJs = H.preEscapedToHtml $ T.unlines
+  [ "var disqus_shortname = 'justinleblogdevelopment';"
+  , "(function() {"
+  , "var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;"
+  , "dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';"
+  , "(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);"
+  , "})();" ]
