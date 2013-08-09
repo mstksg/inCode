@@ -41,35 +41,37 @@ viewArchive eListYears viewType = do
 
   upLink <- Tr.mapM renderUrl (upPath viewType)
 
-  return $ do
+  return $ 
+    H.section $ do
 
-    H.header $ do
+      H.header $ do
 
-      H.h1 $ H.toHtml $ fromMaybe "Entries" pageTitle
-      when (isJust upLink) $
-        H.a ! A.href (I.textValue $ fromJust upLink) $ "back"
-      nav
+        H.h1 $ H.toHtml $ fromMaybe "Entries" pageTitle
+        when (isJust upLink) $
+          H.a ! A.href (I.textValue $ fromJust upLink) $ "back"
+        nav
 
-    Fo.forM_ (desc viewType) $ \d ->
-      H.p $
-        H.toHtml d
+      H.div $ do
+        Fo.forM_ (desc viewType) $ \d ->
+          H.p $
+            H.toHtml d
 
-    if null eListYears
-      then
-        H.p $ H.toHtml $ case pageTitle of
-          Just pt -> T.concat ["No entries found for ",pt,"."]
-          Nothing -> "No entries found."
-      else do
-        let
-          eListMonths = concat eListYears
-          eList = concat eListMonths
-        case viewType of
-          ViewArchiveAll        -> viewArchiveByYears eListYears
-          ViewArchiveYear _     -> viewArchiveByMonths eListMonths
-          ViewArchiveMonth _ _  -> viewArchiveFlat eList
-          ViewArchiveTag _      -> viewArchiveFlat eList
-          ViewArchiveCategory _ -> viewArchiveFlat eList
-          ViewArchiveSeries _   -> viewArchiveFlat eList
+        if null eListYears
+          then
+            H.p $ H.toHtml $ case pageTitle of
+              Just pt -> T.concat ["No entries found for ",pt,"."]
+              Nothing -> "No entries found."
+          else do
+            let
+              eListMonths = concat eListYears
+              eList = concat eListMonths
+            case viewType of
+              ViewArchiveAll        -> viewArchiveByYears eListYears
+              ViewArchiveYear _     -> viewArchiveByMonths eListMonths
+              ViewArchiveMonth _ _  -> viewArchiveFlat eList
+              ViewArchiveTag _      -> viewArchiveFlat eList
+              ViewArchiveCategory _ -> viewArchiveFlat eList
+              ViewArchiveSeries _   -> viewArchiveFlat eList
 
 upPath :: ViewArchiveType -> Maybe T.Text
 upPath ViewArchiveAll          = Nothing

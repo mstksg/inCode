@@ -26,6 +26,7 @@ viewLayout body = do
     ,"/css/main.css"
     ]
 
+
   return $ H.docTypeHtml $ do
 
     H.head $ do
@@ -38,25 +39,31 @@ viewLayout body = do
 
       H.link ! A.rel "author" ! A.href (I.textValue $ siteDataAuthorRel $ pageSiteData pageData')
 
+      -- renderFonts [("Sorts+Mill+Goudy",["400","400italic"])
+      --             ,("Lato",["400","700"])]
+      H.link ! A.href 
+        (I.textValue "http://fonts.googleapis.com/css?family=Lato:400,700|Sorts+Mill+Goudy:400,400italic") !
+        A.rel "stylesheet" ! A.type_ "text/css"
+
       sequence_ (pageDataHeaders pageData')
 
     H.body ! A.class_ "grid w960" $ do
       
-        H.div ! A.id "header_container" ! A.class_ "row" $
-          H.div ! A.id "header_content" ! A.class_ "c12" $
+        H.div ! A.id "header-container" ! A.class_ "row" $
+          H.div ! A.id "header-content" ! A.class_ "c12" $
             mempty
         
-        H.div ! A.id "main_container" ! A.class_ "row" $ do
+        H.div ! A.id "body-container" ! A.class_ "row" $ do
 
-          H.nav ! A.id "sidebar" ! A.class_ "c3" $ 
+          H.div ! A.id "sidebar-container" ! A.class_ "c3" $ 
             sidebarHtml
 
-          H.div ! A.id "main_content" ! A.class_ "c9 end" ! I.customAttribute "role" "main" $
+          H.div ! A.id "main-container" ! A.class_ "c9 end" ! I.customAttribute "role" "main" $
             bodyHtml
 
-        H.div ! A.id "footer_container" ! A.class_ "row" $
+        H.div ! A.id "footer-container" ! A.class_ "row" $
 
-          H.div ! A.id "footer_content" ! A.class_ "c12" $
+          H.div ! A.id "footer-content" ! A.class_ "c12" $
             H.preEscapedToHtml ("&copy; Justin Le 2013" :: T.Text)
 
 viewLayoutEmpty :: SiteRender H.Html
@@ -73,3 +80,8 @@ createTitle = do
       Nothing    -> siteTitle
   return $ H.toHtml combined
  
+-- renderFonts :: [(T.Text,[T.Text])] -> H.Html
+-- renderFonts fs = H.link ! A.href l ! A.rel "stylesheet" ! A.type_ "text/css"
+ --  where
+ --    l = I.textValue $ T.concat $ map makeFont fs
+ --    makeFont (n,ts) = T.append n $ T.intersperse ',' ts

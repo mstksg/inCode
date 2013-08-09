@@ -15,17 +15,24 @@ viewSidebar = do
   archiveUrl <- renderUrl "/entries"
   aboutUrl <- renderUrl "/about"
 
-  return $
+  return $ do
 
-    H.ul $ do
-      H.li $
-        H.a ! A.href (I.textValue homeUrl) $
-          "home"
-      H.li $
-        H.a ! A.href (I.textValue archiveUrl) $
-          "entries"
-      H.li $
-        H.a ! A.href (I.textValue aboutUrl) $
-          "about"
+    H.div ! A.class_ "sidebar-content" $ do
+      "Sidebar" :: H.Html
+
+      H.nav $
+        H.ul $ do
+          H.li $
+            H.a ! A.href (I.textValue homeUrl) $
+              "home"
+          H.li $
+            H.a ! A.href (I.textValue archiveUrl) $
+              "entries"
+          H.li $
+            H.a ! A.href (I.textValue aboutUrl) $
+              "about"
+
+    H.div
+      "Post-sidebar"
 
 

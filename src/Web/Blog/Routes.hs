@@ -112,8 +112,8 @@ indexRoutes = do
 
 utilRoutes :: S.ScottyM ()
 utilRoutes = 
-  S.get "/css/:path" $ do
-    path <- S.param "path"
+  S.get (S.regex "^/css/(.*)\\.css$") $ do
+    path <- S.param "1"
     let
       scssPath = "src/scss/" ++ replaceExtension path ".scss"
     exists <- liftIO $ doesFileExist scssPath

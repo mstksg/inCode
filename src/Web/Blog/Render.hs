@@ -6,9 +6,11 @@ module Web.Blog.Render (
   , renderUrl
   , renderUrl'
   , renderScss
+  , renderCssLink
   ) where
 
 -- import qualified Text.Blaze.Html.Renderer.Pretty as B
+import Control.Applicative                          ((<$>))
 import Control.Monad.Reader
 import System.Process
 import Web.Blog.SiteData
@@ -18,8 +20,9 @@ import qualified Data.Text                          as T
 import qualified Data.Text.Lazy                     as L
 import qualified Text.Blaze.Html.Renderer.Text      as B
 import qualified Text.Blaze.Html5                   as H
+import qualified Text.Blaze.Html5.Attributes        as A
+import qualified Text.Blaze.Internal                as I
 import qualified Web.Scotty                         as S
-import Control.Applicative ((<$>))
 
 
 pageData :: PageData
@@ -50,6 +53,11 @@ renderUrl' url =
     hasP = length (T.splitOn "://" url) > 1
       
 renderScss :: FilePath -> IO L.Text
--- renderScss fp = L.pack <$> readProcess "sass" ["--style","compressed",fp] []
-renderScss fp = L.pack <$> readProcess "sass" [fp] []
+renderScss fp = L.pack <$> readProcess "sass" ["--style","compressed",fp] []
 
+-- small optimization possibility here, require css root every time?
+renderCssLink :: T.Text -> H.Html
+renderCssLink css = 
+  H.link H.! A.href (I.textValue u) H.! A.rel "stylesheet" H.! A.type_ "text/css"
+  where
+    u = renderUrl' $ T.append "/css" css

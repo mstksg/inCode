@@ -1,3 +1,59 @@
 body {
-  background: #eee;
+  background: #f3f3f3;
 }
+
+#header-container, #body-container, #sidebar-container, #main-container, #footer-container {
+  // outline: 1px dotted gray;
+}
+
+#header-container {
+  height: 15rem;
+}
+
+#body-container {
+}
+
+#sidebar-container {
+}
+
+#main-container {
+}
+
+#footer-container {
+  margin-top: 2rem;
+  margin-bottom: 0;
+}
+
+#footer-content {
+  text-align: center;
+  padding-top: 1rem;
+  padding-bottom: 5rem;
+}
+
+h1 {
+  // font-family: 'Sorts Mill Goudy', serif;
+}
+
+
+/* Sidebar */
+
+#sidebar-container div {
+  background: #fff;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* Main */
+
+#main-container {
+  > section, > article {
+    > {
+      article, header, footer, section, ul, div {
+        padding: 1.5rem;
+        background: #fff;
+        margin-bottom: 1em;
+      }
+    }
+  }
+}
+

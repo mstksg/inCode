@@ -27,13 +27,13 @@ viewEntry entry tags prevEntry nextEntry = do
   isUnposted <- (>) (entryPostedAt entry) <$> liftIO getCurrentTime
 
 
-  return $ 
+  return $ do
 
     H.article $ do
       
       H.header $ do
 
-        npUl
+        -- npUl
 
         when isUnposted $
           H.div 
@@ -74,23 +74,23 @@ viewEntry entry tags prevEntry nextEntry = do
             tagLi t
         npUl
 
-      H.div ! A.class_ "post-entry" $
-        H.div $ do
-          H.div ! A.id "disqus_thread" $ mempty
+    H.div ! A.class_ "post-entry" $
+      H.div $ do
+        H.div ! A.id "disqus_thread" $ mempty
 
-          H.noscript $ do
-            "Please enable JavaScript to view the " :: H.Html
-            H.a ! A.href "http://disqus.com/?ref_noscript" $
-              "comments powered by Disqus." :: H.Html
+        H.noscript $ do
+          "Please enable JavaScript to view the " :: H.Html
+          H.a ! A.href "http://disqus.com/?ref_noscript" $
+            "comments powered by Disqus." :: H.Html
 
-          H.a ! A.href "http://disqus.com" ! A.class_ "dsq-brlink" $ do
-            "comments powered by " :: H.Html
-            H.span ! A.class_ "logo-disqus" $
-              "Diqus" :: H.Html
+        H.a ! A.href "http://disqus.com" ! A.class_ "dsq-brlink" $ do
+          "comments powered by " :: H.Html
+          H.span ! A.class_ "logo-disqus" $
+            "Diqus" :: H.Html
 
 
-      H.script ! A.type_ "text/javascript" $
-        disqusJs
+    H.script ! A.type_ "text/javascript" $
+      disqusJs
 
     
 

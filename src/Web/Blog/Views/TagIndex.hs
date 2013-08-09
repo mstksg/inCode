@@ -27,20 +27,21 @@ viewTagIndex tagInfos tt = do
       CategoryTag -> ViewArchiveIndexCategory
       SeriesTag   -> ViewArchiveIndexSeries
 
-  return $ do
+  return $ 
+    H.section $ do
 
-    H.header $ do
+      H.header $ do
 
-      H.h1 $
-        case tt of
-          GeneralTag  -> "Tags"
-          CategoryTag -> "Categories"
-          SeriesTag   -> "Series"
+        H.h1 $
+          case tt of
+            GeneralTag  -> "Tags"
+            CategoryTag -> "Categories"
+            SeriesTag   -> "Series"
 
-      nav
+        nav
 
-    H.ul $
-      mapM_ (tagIndexLi tt) tagInfos
+      H.ul $
+        mapM_ (tagIndexLi tt) tagInfos
 
 
 tagIndexLi :: TagType -> TagInfo -> H.Html
