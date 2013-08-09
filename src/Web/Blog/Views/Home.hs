@@ -63,22 +63,24 @@ viewHome eList = do
                     tagLi t
 
 
-      H.footer $ 
+      H.footer ! A.class_ "tile" $ 
 
-        H.nav $
+        H.nav $ do
           H.ul $ do
 
             case M.lookup "nextPage" pageDataMap' of
               Just nlink -> 
-                H.li $
+                H.li ! A.class_ "home-next" $
                   H.a ! A.href (I.textValue nlink) $
-                    "Older"
+                    H.preEscapedToHtml ("&larr; Older" :: T.Text)
               _ -> return ()
 
             case M.lookup "prevPage" pageDataMap' of
               Just plink -> 
-                H.li $
+                H.li ! A.class_ "home-prev" $
                   H.a ! A.href (I.textValue plink) $
-                    "Newer"
+                    H.preEscapedToHtml ("Newer &rarr;" :: T.Text)
               _ -> return ()
+
+          H.div ! A.class_ "clear" $ ""
 

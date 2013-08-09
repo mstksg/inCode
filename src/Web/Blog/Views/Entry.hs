@@ -29,7 +29,7 @@ viewEntry entry tags prevEntry nextEntry = do
 
   return $ do
 
-    H.article $ do
+    H.article ! A.class_ "tile" $ do
       
       H.header $ do
 
@@ -41,13 +41,14 @@ viewEntry entry tags prevEntry nextEntry = do
 
         H.h1 $ H.toHtml $ entryTitle entry
 
-        H.p $ do
+        H.p ! A.class_ "entry-info" $ do
 
           "by " :: H.Html
 
           H.a ! A.class_ "author" $ H.toHtml $ siteDataAuthor siteData'
 
-          " " :: H.Html
+          H.preEscapedToHtml
+            (" &diams; " :: T.Text)
 
           H.time
             ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt entry)
@@ -55,37 +56,44 @@ viewEntry entry tags prevEntry nextEntry = do
             ! A.class_ "pubdate"
             $ H.toHtml $ renderFriendlyTime $ entryPostedAt entry
 
-          H.p $ do
-            "Posted in " :: H.Html
-            categoryList (filter isCategoryTag tags)
-            "." :: H.Html
-            
-          H.ul $
-            forM_ (filter isSeriesTag tags) $ \t ->
-              seriesLi t
+        H.p $ do
+          "Posted in " :: H.Html
+          categoryList (filter isCategoryTag tags)
+          "." :: H.Html
 
+      H.hr
+            
       H.div ! A.class_ "main-content" $
 
         entryHtml entry 
 
       H.footer $ do
+
+        H.ul ! A.class_ "entry-series" $
+          forM_ (filter isSeriesTag tags) $ \t ->
+            seriesLi t
+
         H.ul ! A.class_ "tag-list" $
           forM_ tags $ \t ->
             tagLi t
         npUl
 
+
       H.div ! A.class_ "post-entry" $
-        H.div $ do
-          H.div ! A.id "disqus_thread" $ mempty
+        mempty
 
-          H.noscript $ do
-            "Please enable JavaScript to view the " :: H.Html
-            H.a ! A.href "http://disqus.com/?ref_noscript" $
-              "comments powered by Disqus." :: H.Html
+    H.div ! A.class_ "post-article" $
+      H.div ! A.class_ "tile" $ do
+        H.div ! A.id "disqus_thread" $ mempty
 
-          H.a ! A.href "http://disqus.com" ! A.class_ "dsq-brlink" $ do
-            "comments powered by " :: H.Html
-            H.span ! A.class_ "logo-disqus" $
+        H.noscript $ do
+          "Please enable JavaScript to view the " :: H.Html
+          H.a ! A.href "http://disqus.com/?ref_noscript" $
+            "comments powered by Disqus." :: H.Html
+
+        H.a ! A.href "http://disqus.com" ! A.class_ "dsq-brlink" $ do
+          "comments powered by " :: H.Html
+          H.span ! A.class_ "logo-disqus" $
               "Diqus" :: H.Html
 
 

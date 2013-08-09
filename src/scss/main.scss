@@ -9,6 +9,10 @@ body {
   background: #f3f3f3;
 }
 
+.clear {
+  clear: both;
+}
+
 #header-container, #body-container, #sidebar-container, #main-container, #footer-container {
   // outline: 1px dotted gray;
 }
@@ -61,7 +65,7 @@ h1 {
   }
 
   p {
-    margin-bottom: 0.5rem;
+    margin-bottom: 2rem;
     padding-right: 0.5rem;
     // font-size: 0.8rem;
     // line-height: 125%;
@@ -77,7 +81,7 @@ h1 {
 }
 
 .tile {
-  padding: 1.5rem;
+  padding: 1.0rem 1.5rem;
   background: #fff;
   margin-bottom: 2em;
   border-right: #ddd 1px solid;
@@ -96,6 +100,8 @@ h1 {
     margin: 0.5rem 0.5rem;
     background: #eee;
     font-size: 0.9rem;
+    border-bottom: #dedede 1px solid;
+    border-right: #dedede 1px solid;
   }
 
   list-style-type: none;
@@ -116,4 +122,5 @@ h1 {
 //     }
 //   }
 // }
+
 
