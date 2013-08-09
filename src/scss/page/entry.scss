@@ -53,6 +53,28 @@
 
       list-style-type: none;
     }
+
+    nav {
+      > ul {
+        list-style-type: none;
+        margin-bottom: 0.5rem;
+        > li {
+          display: block;
+          font-style: italic;
+          > a {
+            text-decoration: none;
+          }
+        }
+      }
+
+      .next-entry-link {
+        text-align: right;
+      }
+
+      margin: 2rem 0 0.5rem 0;
+    }
+
+
   }
 
 

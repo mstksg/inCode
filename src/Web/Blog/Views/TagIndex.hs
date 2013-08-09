@@ -23,8 +23,9 @@ viewTagIndex :: [TagInfo] -> TagType -> SiteRender H.Html
 viewTagIndex tagInfos tt = do
   let
     ulClass = case tt of
-      CategoryTag -> ""
-      _           -> "tile"
+      GeneralTag -> "tag-list tile"
+      CategoryTag -> "category-list"
+      SeriesTag -> "series-list tile"
 
 
   nav <- viewArchiveNav $ Just $
@@ -64,16 +65,20 @@ tagIndexLi GeneralTag (TagInfo t c _) =
 
 tagIndexLi tt (TagInfo t c r) =
   H.li ! A.class_ liClass $ do
-    H.header $
-      H.a ! A.href (I.textValue $ renderUrl' $ tagPath t) $
-        H.toHtml $ tagLabel' t
-    H.div $
-      Fo.forM_ (tagDescription t) $ \td ->
-        H.toHtml td
-    H.footer $ do
-      H.div $
+    H.header $ do
+      H.h2 $
+        H.a ! A.href (I.textValue $ renderUrl' $ tagPath t) $
+          H.toHtml $ tagLabel' t
+      H.div ! A.class_ "tag-entry-count" $
         H.toHtml $
-          T.append (T.pack $ show c) " entries"
+          case tt of
+            CategoryTag -> T.concat ["> ",T.pack $ show c," entries"]
+            SeriesTag   -> T.concat ["(",T.pack $ show c," entries)"]
+            _           -> mempty
+
+    H.div ! A.class_ "tag-description" $
+      Fo.forM_ (tagDescHtml t) id
+    H.footer $
       Fo.forM_ r $ \(re,ru) ->
         H.div $ do
           H.preEscapedToHtml ("Most recent &mdash; " :: T.Text)

@@ -76,13 +76,11 @@ viewEntry entry tags prevEntry nextEntry = do
         H.ul ! A.class_ "tag-list" $
           forM_ tags $ \t ->
             tagLi t
+
         npUl
 
 
-      H.div ! A.class_ "post-entry" $
-        mempty
-
-    H.div ! A.class_ "post-article" $
+    H.div ! A.class_ "post-entry" $
       H.div ! A.class_ "tile" $ do
         H.div ! A.id "disqus_thread" $ mempty
 
@@ -110,16 +108,18 @@ nextPrevUrl prevEntry nextEntry = do
     H.nav $
       H.ul $ do
         when (isJust prevEntry) $
-          H.li $ do
-            H.preEscapedToHtml ("Previous &mdash; " :: T.Text)
+          H.li ! A.class_ "prev-entry-link" $ do
+            H.preEscapedToHtml ("&larr; " :: T.Text)
             H.a ! A.href (I.textValue $ pageDataMap' M.! "prevUrl") $
               H.toHtml $ entryTitle $ fromJust prevEntry
+            " (Previous)" :: H.Html
 
         when (isJust nextEntry) $
-          H.li $ do
-            H.preEscapedToHtml ("Next &mdash; " :: T.Text)
+          H.li ! A.class_ "next-entry-link" $ do
+            "(Next) " :: H.Html
             H.a ! A.href (I.textValue $ pageDataMap' M.! "nextUrl") $
               H.toHtml $ entryTitle $ fromJust nextEntry
+            H.preEscapedToHtml (" &rarr;" :: T.Text)
 
 categoryList :: [Tag] -> H.Html
 categoryList ts = sequence_ hinter

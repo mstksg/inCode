@@ -61,24 +61,22 @@ viewArchive eListYears viewType = do
           H.p $
             H.toHtml d
 
-      H.div $
-
-        if null eListYears
-          then
-            H.p ! A.class_ "tile no-entries" $ H.toHtml $ case pageTitle of
-              Just pt -> T.concat ["No entries found for ",pt,"."]
-              Nothing -> "No entries found."
-          else do
-            let
-              eListMonths = concat eListYears
-              eList = concat eListMonths
-            case viewType of
-              ViewArchiveAll        -> viewArchiveByYears eListYears
-              ViewArchiveYear _     -> viewArchiveByMonths eListMonths True
-              ViewArchiveMonth _ _  -> viewArchiveFlat eList True
-              ViewArchiveTag _      -> viewArchiveFlat eList True
-              ViewArchiveCategory _ -> viewArchiveFlat eList True
-              ViewArchiveSeries _   -> viewArchiveFlat eList True
+      if null eListYears
+        then
+          H.p ! A.class_ "tile no-entries" $ H.toHtml $ case pageTitle of
+            Just pt -> T.concat ["No entries found for ",pt,"."]
+            Nothing -> "No entries found."
+        else do
+          let
+            eListMonths = concat eListYears
+            eList = concat eListMonths
+          case viewType of
+            ViewArchiveAll        -> viewArchiveByYears eListYears
+            ViewArchiveYear _     -> viewArchiveByMonths eListMonths True
+            ViewArchiveMonth _ _  -> viewArchiveFlat eList True
+            ViewArchiveTag _      -> viewArchiveFlat eList True
+            ViewArchiveCategory _ -> viewArchiveFlat eList True
+            ViewArchiveSeries _   -> viewArchiveFlat eList True
 
 upPath :: ViewArchiveType -> Maybe T.Text
 upPath ViewArchiveAll          = Nothing
@@ -123,27 +121,27 @@ viewArchiveNav isIndex = do
 
 viewArchiveFlat :: [(D.Entity Entry,(T.Text,[Tag]))] -> Bool -> H.Html
 viewArchiveFlat eList tile = 
-  H.ul ! A.class_ (if tile then "tile" else "") $
+  H.ul ! A.class_ (if tile then "tile entry-list" else "entry-list") $
     forM_ eList $ \eData -> do
       let
         (D.Entity _ e,(u,ts)) = eData
 
       H.li $ do
-        H.h4 $
-          H.a ! A.href (I.textValue u) $
-            H.toHtml $ entryTitle e
         H.time
           ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt e)
           ! A.pubdate "" 
           ! A.class_ "pubdate"
           $ H.toHtml $ renderFriendlyTime $ entryPostedAt e
-        H.ul $
+        " " :: H.Html
+        H.a ! A.href (I.textValue u) ! A.class_ "entry-link" $
+          H.toHtml $ entryTitle e
+        H.ul ! A.class_ "tag-list" $
           forM_ ts $ \t ->
             tagLi t
 
 viewArchiveByMonths :: [[(D.Entity Entry,(T.Text,[Tag]))]] -> Bool -> H.Html
 viewArchiveByMonths eListMonths tile = 
-  H.ul ! A.class_ (if tile then "tile" else "") $
+  H.ul ! A.class_ (if tile then "tile month-list" else "month-list") $
 
     forM_ eListMonths $ \eList -> do
       let
@@ -159,7 +157,7 @@ viewArchiveByMonths eListMonths tile =
 
 viewArchiveByYears :: [[[(D.Entity Entry,(T.Text,[Tag]))]]] -> H.Html
 viewArchiveByYears eListYears =
-  H.ul $ 
+  H.ul ! A.class_ "year-list" $ 
     forM_ eListYears $ \eListMonths -> do
       let
         year = entryPostedAt $
