@@ -34,6 +34,7 @@ viewLayout body = do
 
       H.title title
       H.meta ! A.httpEquiv "Content-Type" ! A.content "text/html;charset=utf-8"
+      H.meta ! A.name "viewport" ! A.content "width=device-width,initial-scale=1.0"
 
       forM_ cssList $ \u ->
         H.link ! A.href (I.textValue u) ! A.rel "stylesheet" ! A.type_ "text/css"

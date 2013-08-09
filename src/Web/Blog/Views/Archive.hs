@@ -126,7 +126,7 @@ viewArchiveFlat eList tile =
       let
         (D.Entity _ e,(u,ts)) = eData
 
-      H.li $ do
+      H.li ! A.class_ "entry-item" $ do
         H.time
           ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt e)
           ! A.pubdate "" 
@@ -141,7 +141,7 @@ viewArchiveFlat eList tile =
 
 viewArchiveByMonths :: [[(D.Entity Entry,(T.Text,[Tag]))]] -> Bool -> H.Html
 viewArchiveByMonths eListMonths tile = 
-  H.ul ! A.class_ (if tile then "tile month-list" else "month-list") $
+  H.ul ! A.class_ (if tile then "tile entry-list" else "entry-list") $
 
     forM_ eListMonths $ \eList -> do
       let
@@ -157,7 +157,7 @@ viewArchiveByMonths eListMonths tile =
 
 viewArchiveByYears :: [[[(D.Entity Entry,(T.Text,[Tag]))]]] -> H.Html
 viewArchiveByYears eListYears =
-  H.ul ! A.class_ "year-list" $ 
+  H.ul ! A.class_ "entry-list" $ 
     forM_ eListYears $ \eListMonths -> do
       let
         year = entryPostedAt $

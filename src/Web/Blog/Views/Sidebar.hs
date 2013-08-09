@@ -28,7 +28,7 @@ viewSidebar = do
         H.ul $ do
           H.li $
             H.a ! A.href (I.textValue archiveUrl) $
-              "entries"
+              "archives"
           H.li $
             H.a ! A.href (I.textValue aboutUrl) $
               "about"
