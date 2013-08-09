@@ -15,11 +15,15 @@ import qualified Text.Blaze.Html5.Attributes as A
 import qualified Text.Blaze.Internal         as I
 
 viewAbout :: SiteRender H.Html
-viewAbout = return $ do
-  H.header $
-    H.h1 "About me"
-  H.div $
-    H.p 
-      "I'm a person."
+viewAbout = return $
+  H.section ! A.class_ "tile" $ do
+    H.header $
+      H.h1 "About me"
+
+    H.hr
+
+    H.div ! A.class_ "main-content" $
+      H.p 
+        "I'm a person."
 
 

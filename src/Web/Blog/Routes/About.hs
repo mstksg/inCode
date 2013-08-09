@@ -16,6 +16,8 @@ routeAbout :: RouteEither
 routeAbout = do
   let
     view = viewAbout
+    pageData' = pageData { pageDataTitle = Just "About Me" 
+                         , pageDataHeaders = [renderCssLink "/page/about.css"] }
 
-  return $ Right (view,pageData)
+  return $ Right (view,pageData')
 
