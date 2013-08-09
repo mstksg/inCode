@@ -2,9 +2,9 @@
 #main-container section {
 
   article {
-    header {
-      h2 {
-        font-size: 1.8rem;
+    > header {
+      > h2 {
+        font-size: 1.9rem;
         line-height: 125%;
         font-weight: bold;
         a {
@@ -12,54 +12,51 @@
         }
       }
 
-      time {
+      > time {
         font-size: 0.9rem;
       }
 
       margin-bottom: 2.5rem;
     }
 
-    .entry-lede {
-      p {
+    > .entry-lede {
+      > p {
         margin: 0.75rem 0;
         text-indent: 2.1rem;
       }
-      margin-bottom: 1.5rem;
-      padding-left: 1rem;
-      padding-right: 1rem;
-
       .link-readmore {
         font-size: 90%;
       }
 
+      margin-bottom: 2.5rem;
+      padding-left: 1rem;
+      padding-right: 1rem;
     }
 
   }
 
   > footer {
 
-    ul {
+    > nav ul {
       list-style-type: none;
 
-      li {
+      > li {
         display: inline-block;
-        a {
+        > a {
           text-decoration: none;
         }
 
-      }
-      .home-next {
-        float: left;
-      }
-      .home-prev {
-        float: right;
+        > .home-next {
+          float: left;
+        }
+        > .home-prev {
+          float: right;
+        }
       }
     }
 
     padding-top: 0.2rem;
     padding-bottom: 1.5rem;
-
   }
-
 
 }
