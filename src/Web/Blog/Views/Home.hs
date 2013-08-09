@@ -24,37 +24,43 @@ viewHome eList = do
   return $ 
     H.section $ do
 
-      H.header $ 
+      H.header ! A.class_ "tile" $ 
 
         H.section $ do
           H.h1 $ H.toHtml $ siteDataTitle siteData
           H.p
             "Welcome to my blog."
 
-      forM_ eList $ \eData -> do
-        let
-          (D.Entity _ e,(u,ts)) = eData
+      H.ul $
+        forM_ eList $ \eData -> do
+          let
+            (D.Entity _ e,(u,ts)) = eData
 
-        H.article $ do
+          H.li $
+            H.article ! A.class_ "tile" $ do
 
-          H.header $ do
-            H.h2 $ 
-              H.a ! A.href (I.textValue u) $
-                H.toHtml $ entryTitle e
+              H.header $ do
+                H.time
+                  ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt e)
+                  ! A.pubdate "" 
+                  ! A.class_ "pubdate"
+                  $ H.toHtml $ renderFriendlyTime $ entryPostedAt e
 
-            H.time
-              ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt e)
-              ! A.pubdate "" 
-              ! A.class_ "pubdate"
-              $ H.toHtml $ renderFriendlyTime $ entryPostedAt e
+                H.h2 $ 
+                  H.a ! A.href (I.textValue u) $
+                    H.toHtml $ entryTitle e
 
-          H.div $
-            entryLedeHtml e
 
-          H.footer $
-            H.ul $
-              forM_ ts $ \t ->
-                tagLi t
+              H.div ! A.class_ "entry-lede" $ do
+                entryLedeHtml e
+                H.p $
+                  H.a ! A.href (I.textValue u) ! A.class_ "link-readmore" $
+                    "Read more & comment..."
+
+              H.footer $
+                H.ul ! A.class_ "tag-list" $
+                  forM_ ts $ \t ->
+                    tagLi t
 
 
       H.footer $ 

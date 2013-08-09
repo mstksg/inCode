@@ -21,8 +21,9 @@ viewLayout body = do
   title <- createTitle
 
   cssList <- mapM renderUrl
-    ["/css/reset.css"
-    ,"/css/gridiculous.css"
+    [
+     -- "/css/reset.css"
+     "/css/toast.css"
     ,"/css/main.css"
     ]
 
@@ -47,23 +48,23 @@ viewLayout body = do
 
       sequence_ (pageDataHeaders pageData')
 
-    H.body ! A.class_ "grid w960" $ do
+    H.body ! A.class_ "container" $ do
       
-        H.div ! A.id "header-container" ! A.class_ "row" $
-          H.div ! A.id "header-content" ! A.class_ "c12" $
+        H.div ! A.id "header-container" ! A.class_ "grid" $
+          H.div ! A.id "header-content" ! A.class_ "unit span-grid" $
             mempty
         
-        H.div ! A.id "body-container" ! A.class_ "row" $ do
+        H.div ! A.id "body-container" ! A.class_ "grid" $ do
 
-          H.div ! A.id "sidebar-container" ! A.class_ "c3" $ 
+          H.div ! A.id "sidebar-container" ! A.class_ "unit one-of-four" $ 
             sidebarHtml
 
-          H.div ! A.id "main-container" ! A.class_ "c9 end" ! I.customAttribute "role" "main" $
+          H.div ! A.id "main-container" ! A.class_ "unit three-of-four" ! I.customAttribute "role" "main" $
             bodyHtml
 
-        H.div ! A.id "footer-container" ! A.class_ "row" $
+        H.div ! A.id "footer-container" ! A.class_ "grid" $
 
-          H.div ! A.id "footer-content" ! A.class_ "c12" $
+          H.div ! A.id "footer-content" ! A.class_ "unit span-grid" $
             H.preEscapedToHtml ("&copy; Justin Le 2013" :: T.Text)
 
 viewLayoutEmpty :: SiteRender H.Html

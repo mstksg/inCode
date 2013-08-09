@@ -1,3 +1,10 @@
+@mixin vendor-prefix($name, $value) {
+  @each $vendor in ('', '-webkit-', '-moz-', '-ms-', '-o-') {
+    #{$vendor}#{$name}: #{$value};
+  }
+}
+
+
 body {
   background: #f3f3f3;
 }
@@ -37,23 +44,76 @@ h1 {
 
 /* Sidebar */
 
-#sidebar-container div {
-  background: #fff;
-  padding: 1rem;
-  margin-bottom: 1rem;
+#sidebar-container {
+
+  .home-link {
+    background-image: url('http://placehold.it/300x300.png');
+    background-size: cover;
+    display: block;
+    border-radius: 50%;
+    width: 100%;
+    height: 0;
+    padding-bottom: 100%;
+    text-indent: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    margin-bottom: 1.1rem;
+  }
+
+  p {
+    margin-bottom: 0.5rem;
+    padding-right: 0.5rem;
+    // font-size: 0.8rem;
+    // line-height: 125%;
+  }
+
+  ul {
+    list-style-type: none;
+    padding-right: 0.5rem;
+  }
+
+  text-align: right;
+  font-size: 0.9rem;
 }
+
+.tile {
+  padding: 1.5rem;
+  background: #fff;
+  margin-bottom: 2em;
+  border-right: #ddd 1px solid;
+  border-bottom: #ddd 2px solid;
+}
+
+
+.tag-list {
+  li {
+    a {
+      text-decoration: none;
+    }
+
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    margin: 0.5rem 0.5rem;
+    background: #eee;
+    font-size: 0.9rem;
+  }
+
+  list-style-type: none;
+}
+
 
 /* Main */
 
-#main-container {
-  > section, > article {
-    > {
-      article, header, footer, section, ul, div {
-        padding: 1.5rem;
-        background: #fff;
-        margin-bottom: 1em;
-      }
-    }
-  }
-}
+// #main-container {
+//   > section, > article {
+//     > {
+//       article, header, footer, section, ul, div {
+//         padding: 1.5rem;
+//         background: #fff;
+//         margin-bottom: 2em;
+//         box-shadow: 1px 1px 5px rgba(50,50,50,0.75);
+//       }
+//     }
+//   }
+// }
 

@@ -17,14 +17,15 @@ viewSidebar = do
 
   return $ do
 
-    H.div ! A.class_ "sidebar-content" $ do
-      "Sidebar" :: H.Html
+    H.div ! A.class_ "sidebar-content tile" $ do
+      H.a ! A.href (I.textValue homeUrl) ! A.class_ "home-link" $
+        "home"
+
+      H.p 
+        "A blog about stuff and and the likes of more"
 
       H.nav $
         H.ul $ do
-          H.li $
-            H.a ! A.href (I.textValue homeUrl) $
-              "home"
           H.li $
             H.a ! A.href (I.textValue archiveUrl) $
               "entries"
@@ -32,7 +33,7 @@ viewSidebar = do
             H.a ! A.href (I.textValue aboutUrl) $
               "about"
 
-    H.div
+    H.div ! A.class_ "tile" $
       "Post-sidebar"
 
 

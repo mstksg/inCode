@@ -69,24 +69,24 @@ viewEntry entry tags prevEntry nextEntry = do
         entryHtml entry 
 
       H.footer $ do
-        H.ul $
+        H.ul ! A.class_ "tag-list" $
           forM_ tags $ \t ->
             tagLi t
         npUl
 
-    H.div ! A.class_ "post-entry" $
-      H.div $ do
-        H.div ! A.id "disqus_thread" $ mempty
+      H.div ! A.class_ "post-entry" $
+        H.div $ do
+          H.div ! A.id "disqus_thread" $ mempty
 
-        H.noscript $ do
-          "Please enable JavaScript to view the " :: H.Html
-          H.a ! A.href "http://disqus.com/?ref_noscript" $
-            "comments powered by Disqus." :: H.Html
+          H.noscript $ do
+            "Please enable JavaScript to view the " :: H.Html
+            H.a ! A.href "http://disqus.com/?ref_noscript" $
+              "comments powered by Disqus." :: H.Html
 
-        H.a ! A.href "http://disqus.com" ! A.class_ "dsq-brlink" $ do
-          "comments powered by " :: H.Html
-          H.span ! A.class_ "logo-disqus" $
-            "Diqus" :: H.Html
+          H.a ! A.href "http://disqus.com" ! A.class_ "dsq-brlink" $ do
+            "comments powered by " :: H.Html
+            H.span ! A.class_ "logo-disqus" $
+              "Diqus" :: H.Html
 
 
     H.script ! A.type_ "text/javascript" $
