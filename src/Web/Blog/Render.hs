@@ -52,8 +52,10 @@ renderUrl' url =
   where
     hasP = length (T.splitOn "://" url) > 1
       
-renderScss :: FilePath -> IO L.Text
-renderScss fp = L.pack <$> readProcess "sass" ["--style","compressed",fp] []
+renderScss :: FilePath -> Bool -> IO L.Text
+renderScss fp minify = L.pack <$> readProcess "sass" ["--style",style,fp] []
+  where
+    style = if minify then "compressed" else "expanded"
 
 -- small optimization possibility here, require css root every time?
 renderCssLink :: T.Text -> H.Html

@@ -1,3 +1,4 @@
+@import "src/scss/main";
 
 #main-container article {
 
@@ -9,12 +10,12 @@
       margin-bottom: 0.4rem;
     }
 
-    a {
+    a, .bullet {
       font-weight: bold;
       font-style: normal;
     }
 
-    margin-bottom: 1rem;
+    margin-bottom: 0.8rem;
   }
 
 
@@ -72,6 +73,7 @@
       }
 
       margin: 2rem 0 0.5rem 0;
+      font-size: 0.9rem;
     }
 
 

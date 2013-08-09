@@ -4,6 +4,8 @@
   }
 }
 
+$photo: "/img/photo_square.jpg";
+
 
 body {
   background: #f3f3f3;
@@ -58,7 +60,7 @@ hr {
 #sidebar-container {
 
   .home-link {
-    background-image: url('http://placehold.it/300x300.png');
+    background-image: url($photo);
     background-size: cover;
     display: block;
     border-radius: 50%;
@@ -74,8 +76,6 @@ hr {
   p {
     margin-bottom: 2rem;
     padding-right: 0.5rem;
-    // font-size: 0.8rem;
-    // line-height: 125%;
   }
 
   ul {

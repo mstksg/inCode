@@ -24,7 +24,7 @@ viewLayout body = do
     [
      -- "/css/reset.css"
      "/css/toast.css"
-    ,"/css/main.css"
+    -- ,"/css/main.css"
     ]
 
 

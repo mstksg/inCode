@@ -3,24 +3,24 @@
 module Web.Blog.Routes (route) where
 
 import Control.Monad.Reader
+import Data.List                  (isSuffixOf)
 import Network.HTTP.Types.Status
+import System.Directory           (doesFileExist)
+import System.FilePath
 import Web.Blog.Models.Types
 import Web.Blog.Render
+import Web.Blog.Routes.About
 import Web.Blog.Routes.Archive
 import Web.Blog.Routes.Entry
 import Web.Blog.Routes.Home
 import Web.Blog.Routes.NotFound
 import Web.Blog.Routes.TagIndex
-import Web.Blog.Routes.About
 import Web.Blog.Types
 import Web.Blog.Views.Layout
 import qualified Data.Text        as T
 import qualified Data.Text.Lazy   as L
 import qualified Text.Blaze.Html5 as H
 import qualified Web.Scotty       as S
-import System.Directory (doesFileExist)
-import System.FilePath
-import System.Process
 
 
 route :: S.ScottyM ()
@@ -115,11 +115,12 @@ utilRoutes =
   S.get (S.regex "^/css/(.*)\\.css$") $ do
     path <- S.param "1"
     let
+      isMin = ".min" `isSuffixOf` path
       scssPath = "src/scss/" ++ replaceExtension path ".scss"
     exists <- liftIO $ doesFileExist scssPath
     if exists
       then do
-        scss <- liftIO $ renderScss scssPath
+        scss <- liftIO $ renderScss scssPath isMin
         S.text scss
         S.header "Content-Type" "text/css"
       else

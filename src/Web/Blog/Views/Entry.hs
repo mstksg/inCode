@@ -47,8 +47,9 @@ viewEntry entry tags prevEntry nextEntry = do
 
           H.a ! A.class_ "author" $ H.toHtml $ siteDataAuthor siteData'
 
-          H.preEscapedToHtml
-            (" &diams; " :: T.Text)
+          H.span ! A.class_ "bullet" $
+            H.preEscapedToHtml
+              (" &diams; " :: T.Text)
 
           H.time
             ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt entry)

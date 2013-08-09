@@ -51,7 +51,7 @@ routeHome page = do
 
         view = viewHome eList
         pageData' = pageData { pageDataTitle = Just "Home"
-                             , pageDataHeaders = [renderCssLink "/page/home.css"]
+                             , pageDataHeaders = [renderCssLink "/page/home.min.css"]
                              , pageDataMap   = pdMap M.empty
                              }
           

@@ -1,3 +1,5 @@
+@import "src/scss/main";
+
 #main-container section {
 
   > header {
@@ -30,6 +32,7 @@
 
     > p {
       margin-bottom: 1rem;
+      text-indent: 1rem;
     }
 
   }
@@ -107,11 +110,11 @@
     }
     .tag-description {
       margin: auto 1rem;
+      text-indent: 1rem;
     }
     footer {
       font-size: 0.9rem;
       line-height: 125%;
-      // text-align: right;
     }
   }
 
