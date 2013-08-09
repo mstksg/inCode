@@ -27,7 +27,8 @@ routeArchive title entries vat = do
   eList' <- liftIO $ runDB $ mapM (mapM (mapM wrapEntryData)) grouped
   let
     view = viewArchive eList' vat
-    pageData' = pageData { pageDataTitle = Just title }
+    pageData' = pageData { pageDataTitle = Just title
+                         , pageDataHeaders = [renderCssLink "/page/archive.css"] }
 
   return $ Right (view, pageData')
 

@@ -10,6 +10,7 @@ module Web.Blog.Views.Archive (
 import Control.Applicative                   ((<$>))
 import Control.Monad.Reader
 import Data.Maybe                            (fromMaybe, isJust, fromJust)
+import Data.Monoid                           (mempty)
 import Text.Blaze.Html5                      ((!))
 import Web.Blog.Models
 import Web.Blog.Models.Util
@@ -44,21 +45,27 @@ viewArchive eListYears viewType = do
   return $ 
     H.section $ do
 
-      H.header $ do
+      H.header ! A.class_ "tile" $ do
+
+        H.nav $ do
+          when (isJust upLink) $
+            H.a ! A.href (I.textValue $ fromJust upLink) ! A.class_ "back-link" $
+              "back"
+          nav
+
+        H.div ! A.class_ "clear" $ mempty
 
         H.h1 $ H.toHtml $ fromMaybe "Entries" pageTitle
-        when (isJust upLink) $
-          H.a ! A.href (I.textValue $ fromJust upLink) $ "back"
-        nav
 
-      H.div $ do
         Fo.forM_ (desc viewType) $ \d ->
           H.p $
             H.toHtml d
 
+      H.div $
+
         if null eListYears
           then
-            H.p $ H.toHtml $ case pageTitle of
+            H.p ! A.class_ "tile no-entries" $ H.toHtml $ case pageTitle of
               Just pt -> T.concat ["No entries found for ",pt,"."]
               Nothing -> "No entries found."
           else do
@@ -67,11 +74,11 @@ viewArchive eListYears viewType = do
               eList = concat eListMonths
             case viewType of
               ViewArchiveAll        -> viewArchiveByYears eListYears
-              ViewArchiveYear _     -> viewArchiveByMonths eListMonths
-              ViewArchiveMonth _ _  -> viewArchiveFlat eList
-              ViewArchiveTag _      -> viewArchiveFlat eList
-              ViewArchiveCategory _ -> viewArchiveFlat eList
-              ViewArchiveSeries _   -> viewArchiveFlat eList
+              ViewArchiveYear _     -> viewArchiveByMonths eListMonths True
+              ViewArchiveMonth _ _  -> viewArchiveFlat eList True
+              ViewArchiveTag _      -> viewArchiveFlat eList True
+              ViewArchiveCategory _ -> viewArchiveFlat eList True
+              ViewArchiveSeries _   -> viewArchiveFlat eList True
 
 upPath :: ViewArchiveType -> Maybe T.Text
 upPath ViewArchiveAll          = Nothing
@@ -99,25 +106,24 @@ viewArchiveNav isIndex = do
   byTagUrl  <- renderUrl "/tags"
   byCatUrl  <- renderUrl "/categories"
   bySerUrl  <- renderUrl "/series"
-  return $
-    H.nav $
-      H.ul $
+  return $ H.ul $
         forM_ [("History",byDateUrl,ViewArchiveIndexDate)
               ,("Tags",byTagUrl,ViewArchiveIndexTag)
               ,("Categories",byCatUrl,ViewArchiveIndexCategory)
               ,("Series",bySerUrl,ViewArchiveIndexSeries)] $ \(t,u,v) -> 
-          H.li $
-            if maybe True (/= v) isIndex
-              then
+          if maybe True (/= v) isIndex
+            then
+              H.li $
                 H.a ! A.href (I.textValue u) $
                   t
-              else
+            else
+              H.li ! A.class_ "curr-index" $
                 t
 
 
-viewArchiveFlat :: [(D.Entity Entry,(T.Text,[Tag]))] -> H.Html
-viewArchiveFlat eList = 
-  H.ul $
+viewArchiveFlat :: [(D.Entity Entry,(T.Text,[Tag]))] -> Bool -> H.Html
+viewArchiveFlat eList tile = 
+  H.ul ! A.class_ (if tile then "tile" else "") $
     forM_ eList $ \eData -> do
       let
         (D.Entity _ e,(u,ts)) = eData
@@ -135,9 +141,9 @@ viewArchiveFlat eList =
           forM_ ts $ \t ->
             tagLi t
 
-viewArchiveByMonths :: [[(D.Entity Entry,(T.Text,[Tag]))]] -> H.Html
-viewArchiveByMonths eListMonths = 
-  H.ul $
+viewArchiveByMonths :: [[(D.Entity Entry,(T.Text,[Tag]))]] -> Bool -> H.Html
+viewArchiveByMonths eListMonths tile = 
+  H.ul ! A.class_ (if tile then "tile" else "") $
 
     forM_ eListMonths $ \eList -> do
       let
@@ -149,7 +155,7 @@ viewArchiveByMonths eListMonths =
           H.a ! A.href (I.textValue $ renderUrl' $ T.pack $ renderMonthPath month) $
             H.toHtml $ renderMonthTime month
 
-        viewArchiveFlat eList
+        viewArchiveFlat eList False
 
 viewArchiveByYears :: [[[(D.Entity Entry,(T.Text,[Tag]))]]] -> H.Html
 viewArchiveByYears eListYears =
@@ -159,10 +165,10 @@ viewArchiveByYears eListYears =
         year = entryPostedAt $
           D.entityVal $ fst $ head $ head eListMonths
 
-      H.li $ do
+      H.li ! A.class_ "tile" $ do
         H.h2 $
           H.a ! A.href (I.textValue $ renderUrl' $ T.pack $ renderYearPath year) $
             H.toHtml $ renderYearTime year
 
-        viewArchiveByMonths eListMonths
+        viewArchiveByMonths eListMonths False
 

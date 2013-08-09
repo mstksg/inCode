@@ -1,0 +1,30 @@
+#main-container section {
+
+  nav {
+    .back-link {
+      display: block;
+      float: left;
+    }
+    .curr-index {
+      font-weight: bold;
+    }
+
+    ul {
+      li {
+        display: inline-block;
+        margin: 0 0.2rem;
+      }
+
+      float: right;
+      list-style-type: none;
+      margin-bottom: 0rem;
+    }
+
+    a {
+      text-decoration: none;
+    }
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+  }
+
+}

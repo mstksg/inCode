@@ -4,6 +4,7 @@ module Web.Blog.Views.TagIndex (
     viewTagIndex
   ) where
 
+import Data.Monoid                           (mempty)
 import Text.Blaze.Html5                      ((!))
 import Web.Blog.Models
 import Web.Blog.Models.Types
@@ -20,6 +21,11 @@ import qualified Text.Blaze.Internal         as I
 
 viewTagIndex :: [TagInfo] -> TagType -> SiteRender H.Html
 viewTagIndex tagInfos tt = do
+  let
+    ulClass = case tt of
+      CategoryTag -> ""
+      _           -> "tile"
+
 
   nav <- viewArchiveNav $ Just $
     case tt of
@@ -30,7 +36,12 @@ viewTagIndex tagInfos tt = do
   return $ 
     H.section $ do
 
-      H.header $ do
+      H.header ! A.class_ "tile" $ do
+
+        H.nav 
+          nav
+
+        H.div ! A.class_ "clear" $ mempty
 
         H.h1 $
           case tt of
@@ -38,9 +49,7 @@ viewTagIndex tagInfos tt = do
             CategoryTag -> "Categories"
             SeriesTag   -> "Series"
 
-        nav
-
-      H.ul $
+      H.ul ! A.class_ ulClass $
         mapM_ (tagIndexLi tt) tagInfos
 
 
@@ -53,8 +62,8 @@ tagIndexLi GeneralTag (TagInfo t c _) =
     H.toHtml $
       T.concat ["(",T.pack $ show c,")"]
 
-tagIndexLi _ (TagInfo t c r) =
-  H.li $ do
+tagIndexLi tt (TagInfo t c r) =
+  H.li ! A.class_ liClass $ do
     H.header $
       H.a ! A.href (I.textValue $ renderUrl' $ tagPath t) $
         H.toHtml $ tagLabel' t
@@ -77,3 +86,7 @@ tagIndexLi _ (TagInfo t c r) =
             ! A.class_ "pubdate"
             $ H.toHtml $ renderShortFriendlyTime $ entryPostedAt re
           ")" :: H.Html
+  where
+    liClass = case tt of
+      CategoryTag -> "tile"
+      _           -> ""
