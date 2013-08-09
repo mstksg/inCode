@@ -28,7 +28,7 @@ routeArchive title entries vat = do
   let
     view = viewArchive eList' vat
     pageData' = pageData { pageDataTitle = Just title
-                         , pageDataHeaders = [renderCssLink "/page/archive.min.css"] }
+                         , pageDataCss   = Just "/css/page/archive.min.css" }
 
   return $ Right (view, pageData')
 

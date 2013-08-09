@@ -3,6 +3,7 @@
 module Web.Blog.Views.Layout (viewLayout, viewLayoutEmpty) where
 
 import Control.Monad.Reader
+import Data.Maybe                            (fromMaybe)
 import Data.Monoid
 import Text.Blaze.Html5                      ((!))
 import Web.Blog.Render
@@ -22,9 +23,8 @@ viewLayout body = do
 
   cssList <- mapM renderUrl
     [
-     -- "/css/reset.css"
-     "/css/toast.css"
-    -- ,"/css/main.css"
+      "/css/toast.css"
+    , fromMaybe "/css/main.min.css" $ pageDataCss pageData'
     ]
 
 
