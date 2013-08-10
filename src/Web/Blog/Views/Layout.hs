@@ -52,24 +52,25 @@ viewLayout body = do
 
       sequence_ (pageDataHeaders pageData')
 
-    H.body ! A.class_ "container" $ do
+    H.body $ do
       
-        H.div ! A.id "header-container" ! A.class_ "grid" $
-          H.div ! A.id "header-content" ! A.class_ "unit span-grid" $
+        H.div ! A.id "header-container" $
+          H.div ! A.id "header-content" $
             mempty
         
-        H.div ! A.id "body-container" ! A.class_ "grid" $ do
+        H.div ! A.id "body-container" ! A.class_ "container" $
+          H.div ! A.id "body-grid" ! A.class_ "grid" $ do
 
-          H.div ! A.id "sidebar-container" ! A.class_ "unit one-of-four" $ 
-            sidebarHtml
+            H.div ! A.id "sidebar-container" ! A.class_ "unit one-of-four" $ 
+              sidebarHtml
 
-          H.div ! A.id "main-container" ! A.class_ "unit three-of-four" ! I.customAttribute "role" "main" $
-            bodyHtml
+            H.div ! A.id "main-container" ! A.class_ "unit three-of-four" ! I.customAttribute "role" "main" $
+              bodyHtml
 
-        H.div ! A.id "footer-container" ! A.class_ "grid" $
-
-          H.div ! A.id "footer-content" ! A.class_ "unit span-grid" $
-            H.preEscapedToHtml ("&copy; Justin Le 2013" :: T.Text)
+        H.div ! A.id "footer-container" $
+          H.div ! A.id "footer-content" $
+            H.div ! A.class_ "tile" $
+              H.preEscapedToHtml ("&copy; Justin Le 2013" :: T.Text)
 
 viewLayoutEmpty :: SiteRender H.Html
 viewLayoutEmpty = viewLayout $ return mempty

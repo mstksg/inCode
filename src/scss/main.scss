@@ -15,11 +15,16 @@
 
 $photo: "/img/photo_square.jpg";
 $background-image: "/img/background.png";
+$banner-bg: "/img/banner_bg.jpg";
+$banner-center: "/img/banner_center.jpg";
+$footer-bg: "/img/footer_bg.jpg";
+$footer-center: "/img/footer_center.jpg";
 
 
 body {
   background: #f3f3f3;
   background-image: url($background-image);
+  // background-attachment: fixed;
 }
 
 .clear {
@@ -29,22 +34,35 @@ body {
 .tile {
   padding: 1.0rem 1.5rem;
   background: #fff;
-  margin-bottom: 1.75em;
-  border-right: #ddd 1px solid;
-  border-bottom: #ddd 2px solid;
+  // background-color: rgba(255,255,255,0.95);
+  margin-bottom: 1.25em;
+  border-right: #d9d9d9 1px solid;
+  border-bottom: #d0d0d0 2px solid;
 }
 
 
 
-#header-container, #body-container, #sidebar-container, #main-container, #footer-container {
-  // outline: 1px dotted gray;
-}
+// #header-container, #body-container, #sidebar-container, #main-container, #footer-container {
+//   // outline: 1px dotted gray;
+// }
 
 #header-container {
-  height: 15rem;
+  height: 200px;
+  background-image: url($banner-bg);
+  margin: 0 auto;
+  width: 100%;
+}
+
+#header-content {
+  background-image: url($banner-center);
+  background-position: center;
+  height: 100%;
+  width: 960px;
+  margin: 0 auto;
 }
 
 #body-container {
+  margin-top: -2.5rem;
 }
 
 #sidebar-container {
@@ -54,14 +72,26 @@ body {
 }
 
 #footer-container {
-  margin-top: 2rem;
+  margin-top: 3rem;
   margin-bottom: 0;
+  width: 100%;
+  background-image: url($footer-bg);
+  height: 200px;
+  overflow: hidden;
+
 }
 
 #footer-content {
   text-align: center;
-  padding-top: 1rem;
-  padding-bottom: 5rem;
+  padding-top: 50px;
+  height: 100%;
+  background-image: url($footer-center);
+  width: 960px;
+  margin: 0 auto;
+
+  .tile {
+    padding-bottom: 1.5rem;
+  }
 }
 
 h1 {
@@ -93,6 +123,8 @@ hr {
     white-space: nowrap;
     overflow: hidden;
     margin-bottom: 1.1rem;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   p {
