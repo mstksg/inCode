@@ -3,6 +3,23 @@
 #main-container > article {
 
   > header {
+    
+    .unposted-banner {
+      display: block;
+      background: #f77;
+      margin: 0.5rem 1rem 1.5rem 1rem;
+      padding: 1.5rem;
+      border: 8px solid #fbb;
+      text-align: center;
+      text-transform: uppercase;
+      color: #eee;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+
+    .unposted-banner:before, .unposted-banner:after {
+      content: " !! ";
+    }
 
     > p {
       text-align: right;
@@ -18,6 +35,9 @@
     margin-bottom: 0.8rem;
   }
 
+  .main-content {
+    @include first-line-emphasis(1.5rem);
+  }
 
   > footer {
     > .entry-series {

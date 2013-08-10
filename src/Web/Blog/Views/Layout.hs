@@ -43,9 +43,12 @@ viewLayout body = do
 
       -- renderFonts [("Sorts+Mill+Goudy",["400","400italic"])
       --             ,("Lato",["400","700"])]
-      H.link ! A.href 
-        (I.textValue "http://fonts.googleapis.com/css?family=Lato:400,700|Sorts+Mill+Goudy:400,400italic") !
-        A.rel "stylesheet" ! A.type_ "text/css"
+      -- H.link ! A.href 
+      --   (I.textValue "http://fonts.googleapis.com/css?family=Lato:400,700|Sorts+Mill+Goudy:400,400italic") !
+      --   A.rel "stylesheet" ! A.type_ "text/css"
+
+      H.script ! A.type_ "text/javascript" ! A.src "//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" $
+        mempty
 
       sequence_ (pageDataHeaders pageData')
 

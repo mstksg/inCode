@@ -5,3 +5,4 @@
 cabal-dev
 dist
 tmp
+/static/img/test

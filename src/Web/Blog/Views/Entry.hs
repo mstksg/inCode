@@ -36,8 +36,8 @@ viewEntry entry tags prevEntry nextEntry = do
         -- npUl
 
         when isUnposted $
-          H.div 
-            "(Unposted entry)"
+          H.div ! A.class_ "unposted-banner" $
+            "Unposted entry"
 
         H.h1 $ H.toHtml $ entryTitle entry
 

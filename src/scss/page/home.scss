@@ -29,6 +29,8 @@
         font-size: 90%;
       }
 
+
+      @include first-line-emphasis(1.33rem);
       margin-bottom: 2.5rem;
       padding-left: 1rem;
       padding-right: 1rem;
