@@ -1,6 +1,6 @@
 @import "src/scss/main";
 
-#main-container section {
+#main-container > section {
 
   > header {
     > nav {
@@ -62,7 +62,7 @@
       border-bottom: 1px solid #999;
       line-height: 125%;
       width: 95%;
-      margin-bottom: 0.75rem;
+      margin-bottom: 0rem;
     }
 
     .entry-item {
@@ -91,7 +91,8 @@
         line-height: 175%;
       }
 
-      margin-bottom: 1.25rem;
+      margin-top: 0.75rem;
+      margin-bottom: 0.75rem;
 
     }
   }

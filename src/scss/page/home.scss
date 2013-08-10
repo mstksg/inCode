@@ -1,6 +1,6 @@
 @import "src/scss/main";
 
-#main-container section {
+#main-container > section {
 
   article {
     > header {
@@ -17,13 +17,13 @@
         font-size: 0.9rem;
       }
 
-      margin-bottom: 2.5rem;
+      margin-bottom: 2rem;
     }
 
     > .entry-lede {
       > p {
         margin: 0.75rem 0;
-        text-indent: 2.1rem;
+        text-indent: 2rem;
       }
       .link-readmore {
         font-size: 90%;
@@ -34,13 +34,15 @@
       padding-right: 1rem;
     }
 
+    .tag-list {
+      text-align: right;
+    }
+
   }
 
   > footer {
 
     > nav ul {
-      list-style-type: none;
-
       > li {
         display: inline-block;
         > a {
@@ -55,6 +57,8 @@
       > .home-prev {
         float: right;
       }
+
+      list-style-type: none;
     }
 
     padding-top: 0.2rem;

@@ -64,6 +64,7 @@ hr {
     background-size: cover;
     display: block;
     border-radius: 50%;
+    border: 2px solid #ddd;
     width: 100%;
     height: 0;
     padding-bottom: 100%;
@@ -84,6 +85,35 @@ hr {
   }
 
   text-align: right;
+}
+
+.single-page {
+
+  > header {
+    margin-bottom: 0;
+  }
+
+}
+
+.main-content {
+  h2 {
+    font-size: 1.6rem;
+    line-height: 125%;
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+  }
+  h3 {
+    font-size: 1.2em;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    text-indent: 2rem;
+  }
+
+  margin-top: 3rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 
 .tile {

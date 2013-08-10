@@ -1,6 +1,6 @@
 @import "src/scss/main";
 
-#main-container article {
+#main-container > article {
 
   > header {
 
@@ -19,29 +19,6 @@
   }
 
 
-  > .main-content {
-    > h2 {
-      font-size: 1.6rem;
-      line-height: 125%;
-      margin-top: 2.5rem;
-      margin-bottom: 1rem;
-    }
-    > h3 {
-      font-size: 1.2em;
-      margin-bottom: 0.5rem;
-    }
-
-    > p {
-      text-indent: 2.5rem;
-    }
-
-    margin-top: 3rem;
-    margin-bottom: 3rem;
-    padding-left: 1rem;
-    padding-right: 1rem;
-  }
-
-
   > footer {
     > .entry-series {
       > li {
@@ -53,6 +30,7 @@
       }
 
       list-style-type: none;
+      margin-top: 3rem;
     }
 
     nav {
