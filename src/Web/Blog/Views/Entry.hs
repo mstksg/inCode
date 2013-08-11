@@ -29,7 +29,7 @@ viewEntry entry tags prevEntry nextEntry = do
 
   return $ do
 
-    H.article ! A.class_ "tile" $ do
+    H.article ! A.class_ "tile article" $ do
       
       H.header $ do
 
@@ -99,6 +99,8 @@ viewEntry entry tags prevEntry nextEntry = do
     H.script ! A.type_ "text/javascript" $
       disqusJs
 
+    -- H.script ! A.type_ "text/javascript" $
+    --   tocifyJs
     
 
 nextPrevUrl :: Maybe Entry -> Maybe Entry -> SiteRender H.Html
@@ -152,3 +154,9 @@ disqusJs = H.preEscapedToHtml $ T.unlines
   , "dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';"
   , "(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);"
   , "})();" ]
+
+tocifyJs :: H.Html
+tocifyJs = H.preEscapedToHtml $ T.unlines
+              [ "$(function() {"
+              , "$('.toc').tocify( { context: '.main-content' } );"
+              , "});"]

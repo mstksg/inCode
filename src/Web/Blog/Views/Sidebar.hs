@@ -2,6 +2,7 @@
 
 module Web.Blog.Views.Sidebar (viewSidebar) where
 
+-- import Data.Monoid                           (mempty)
 import Text.Blaze.Html5                      ((!))
 import Web.Blog.Render
 import Web.Blog.Types
@@ -15,7 +16,7 @@ viewSidebar = do
   archiveUrl <- renderUrl "/entries"
   aboutUrl <- renderUrl "/about"
 
-  return $ do
+  return $
 
     H.div ! A.class_ "sidebar-content tile" $ do
       H.a ! A.href (I.textValue homeUrl) ! A.class_ "home-link" $
@@ -31,9 +32,8 @@ viewSidebar = do
               "archives"
           H.li $
             H.a ! A.href (I.textValue aboutUrl) $
-              "about"
+              "me"
 
-    H.div ! A.class_ "tile" $
-      "Post-sidebar"
+    -- H.div ! A.class_ "tile toc" $ mempty
 
 

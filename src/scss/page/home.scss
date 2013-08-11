@@ -34,6 +34,11 @@
       margin-bottom: 2.5rem;
       padding-left: 1rem;
       padding-right: 1rem;
+
+      @media #{$smaller-screen} {
+        padding-left: 0;
+        padding-right: 0;
+      }
     }
 
     .tag-list {
