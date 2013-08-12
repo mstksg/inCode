@@ -71,11 +71,12 @@
         font-size: 85%;
         line-height: 125%;
         font-style: italic;
+        margin-left: -0.5rem;
       }
 
       .entry-link {
-        display: block;
-        padding-left: 0.5rem;
+        // display: block;
+        // padding-left: 1rem;
         font-size: 125%;
         line-height: 125%;
       }
@@ -94,6 +95,7 @@
 
       margin-top: 0.75rem;
       margin-bottom: 0.75rem;
+      padding-left: 0.75rem;
 
     }
   }

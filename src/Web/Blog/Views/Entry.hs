@@ -25,6 +25,7 @@ viewEntry entry tags prevEntry nextEntry = do
   siteData' <- pageSiteData <$> ask
   npUl <- nextPrevUrl prevEntry nextEntry
   isUnposted <- (>) (entryPostedAt entry) <$> liftIO getCurrentTime
+  aboutUrl <- renderUrl "/about"
 
 
   return $ do
@@ -45,7 +46,8 @@ viewEntry entry tags prevEntry nextEntry = do
 
           "by " :: H.Html
 
-          H.a ! A.class_ "author" $ H.toHtml $ siteDataAuthor siteData'
+          H.a ! A.class_ "author" ! A.href (I.textValue aboutUrl) $
+            H.toHtml $ siteDataAuthor siteData'
 
           H.span ! A.class_ "bullet" $
             H.preEscapedToHtml
@@ -155,8 +157,8 @@ disqusJs = H.preEscapedToHtml $ T.unlines
   , "(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);"
   , "})();" ]
 
-tocifyJs :: H.Html
-tocifyJs = H.preEscapedToHtml $ T.unlines
-              [ "$(function() {"
-              , "$('.toc').tocify( { context: '.main-content' } );"
-              , "});"]
+-- tocifyJs :: H.Html
+-- tocifyJs = H.preEscapedToHtml $ T.unlines
+--               [ "$(function() {"
+--               , "$('.toc').tocify( { context: '.main-content' } );"
+--               , "});"]
