@@ -24,6 +24,7 @@ viewLayout body = do
   cssList <- mapM renderUrl
     [
       "/css/toast.css"
+    , "/css/font.css"
     -- , "/css/jquery.tocify.css"
     -- , "/css/pepper-grinder/jquery-ui-1.10.3.custom.min.css"
     , fromMaybe "/css/main.min.css" $ pageDataCss pageData'
@@ -45,12 +46,12 @@ viewLayout body = do
 
       -- renderFonts [("Sorts+Mill+Goudy",["400","400italic"])
       --             ,("Lato",["400","700"])]
-      H.link ! A.href 
+      -- H.link ! A.href 
         -- (I.textValue "http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic|Playfair+Display:400,700,900,400italic,700italic,900italic") !
         -- (I.textValue "http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic") !
-        (I.textValue "http://fonts.googleapis.com/css?family=Vollkorn:400,700,400italic,700italic") !
+        -- (I.textValue "http://fonts.googleapis.com/css?family=Vollkorn:400,700,400italic,700italic") !
         -- (I.textValue "http://fonts.googleapis.com/css?family=Prociono") !
-        A.rel "stylesheet" ! A.type_ "text/css"
+        -- A.rel "stylesheet" ! A.type_ "text/css"
 
       H.script ! A.type_ "text/javascript" ! A.src "//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" $
         mempty
