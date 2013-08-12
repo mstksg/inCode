@@ -4,7 +4,7 @@
   }
 }
 
-@mixin first-line-emphasis($size: 1.5rem) {
+@mixin first-line-emphasis($size: 150%) {
   > p:first-child:first-line {
     font-size: $size;
     line-height: 133%;
@@ -48,8 +48,8 @@ body {
 }
 
 html {
-  font-size: 100%;
-  line-height: 150%;
+  font-size: 115%;
+  line-height: 160%;
   // font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
   // font-family: Prociono, Vollkorn, Playfair Display, serif;
   font-family: Vollkorn, serif;
@@ -169,7 +169,7 @@ hr {
     margin-left: auto;
     margin-right: auto;
 
-  @media #{$smaller-screen} {
+    @media #{$smaller-screen} {
       width: 250px;
       height: 250px;
       padding-bottom: 0;
@@ -207,13 +207,13 @@ hr {
 
 .main-content {
   h2 {
-    font-size: 1.7rem;
+    font-size: 170%;
     line-height: 125%;
     margin-top: 2.5rem;
     margin-bottom: 0.75rem;
   }
   h3 {
-    font-size: 1.3em;
+    font-size: 130%;
     margin-bottom: 0.5rem;
   }
 
@@ -245,7 +245,7 @@ hr {
     border-right: #dedede 1px solid;
   }
 
-  font-size: 0.9rem;
+  font-size: 90%;
   margin-bottom: 0.5rem;
   list-style-type: none;
 }

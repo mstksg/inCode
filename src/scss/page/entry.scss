@@ -14,7 +14,7 @@
       text-transform: uppercase;
       color: #eee;
       font-weight: bold;
-      font-size: 1.2rem;
+      font-size: 120%;
     }
 
     .unposted-banner:before, .unposted-banner:after {
@@ -36,7 +36,7 @@
   }
 
   .main-content {
-    @include first-line-emphasis(1.5rem);
+    @include first-line-emphasis(150%);
   }
 
   > footer {
@@ -71,7 +71,7 @@
       }
 
       margin: 2rem 0 0.5rem 0;
-      font-size: 0.9rem;
+      font-size: 90%;
     }
 
 
