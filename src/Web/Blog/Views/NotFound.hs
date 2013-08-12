@@ -14,7 +14,7 @@ viewNotFound = do
   archiveUrl <- renderUrl "/entries"
 
   return $ 
-    H.section H.! A.class_ "tile single-page" $ do
+    H.section H.! A.class_ "tile single-page not-found-section" $ do
 
       H.header $
         H.h1 "Not Found"

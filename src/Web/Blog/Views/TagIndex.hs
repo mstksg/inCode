@@ -35,7 +35,7 @@ viewTagIndex tagInfos tt = do
       SeriesTag   -> ViewArchiveIndexSeries
 
   return $ 
-    H.section $ do
+    H.section ! A.class_ "archive-section" $ do
 
       H.header ! A.class_ "tile" $ do
 

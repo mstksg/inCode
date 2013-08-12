@@ -1,6 +1,6 @@
 @import "src/scss/main";
 
-#main-container > section {
+.home-section {
 
   article {
     > header {
@@ -8,6 +8,9 @@
         font-size: 190%;
         line-height: 125%;
         font-weight: bold;
+        // > a {
+        //   border: none;
+        // }
       }
 
       > time {
@@ -36,6 +39,8 @@
       }
 
       margin-bottom: 2.5rem;
+      @include first-line-emphasis(133%);
+  
 
     }
 

@@ -30,7 +30,7 @@ viewEntry entry tags prevEntry nextEntry = do
 
   return $ do
 
-    H.article ! A.class_ "tile article" $ do
+    H.article ! A.class_ "tile article entry-section" $ do
       
       H.header $ do
 

@@ -23,7 +23,7 @@ viewSidebar = do
         "home"
 
       H.p 
-        "A blog about stuff, more things, and perhaps greater."
+        "A blog about stuff, more things, and perhaps even more."
 
       H.nav $
         H.ul $ do

@@ -1,6 +1,6 @@
 @import "src/scss/main";
 
-#main-container > section {
+.archive-section {
 
   > header {
     > nav {
@@ -65,6 +65,12 @@
       margin-bottom: 0rem;
     }
 
+    h2, h3, h4 {
+      > a {
+        border: none;
+      }
+    }
+
     .entry-item {
       > time {
         display: block;
@@ -89,8 +95,13 @@
           padding-top: 0.05rem;
           margin: 0.2rem 0.25rem;
         }
+        margin-top: 0.25rem;
         font-size: 75%;
         line-height: 175%;
+
+        @media #{$smaller-screen} {
+          padding-left: 0;
+        }
       }
 
       margin-top: 0.75rem;
@@ -103,6 +114,11 @@
   > .tag-list {
     text-align: center;
     font-size: 100%;
+    > li {
+      padding: 0.4rem 1rem;
+      margin: 0.5rem;
+    }
+    // border-left: 5px solid #55f;
   }
 
   .category-list, .series-list {
@@ -134,7 +150,8 @@
         margin-bottom: 1.25rem;
       }
 
-      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      // border-left: 6px solid #f55;
     }
   }
 
@@ -156,6 +173,7 @@
       }
       margin-bottom: 2rem;
     }
+    // border-left: 6px solid #5f5;
   }
 
 

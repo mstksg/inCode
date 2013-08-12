@@ -1,3 +1,4 @@
+
 @mixin vendor-prefix($name, $value) {
   @each $vendor in ('', '-webkit-', '-moz-', '-ms-', '-o-') {
     #{$vendor}#{$name}: #{$value};
@@ -39,9 +40,9 @@ body {
 
 .tile {
   padding: 1.0rem 1.5rem;
-  background: #eee;
-  // background-color: rgba(255,255,255,0.95);
-  background-color: rgba(253,253,253,0.95);
+  background: #fff;
+  // background-color: rgba(253,253,253,0.95);
+  background-color: rgba(255,255,255,0.95);
   margin-bottom: 1.25em;
   border-right: #d4d4d4 1px solid;
   border-bottom: #d0d0d0 2px solid;
@@ -58,7 +59,7 @@ html {
   // font-family: Prociono, Vollkorn, Playfair Display, serif;
   font-family: Vollkorn, serif;
   // font-family: Playfair Display, serif;
-  color: #111;
+  color: #1a1a1a;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -70,7 +71,7 @@ h1, h2, h3, h4, h5, h6 {
 a {
   text-decoration: none;
   border-bottom: 1px dotted #bbb;
-  color: #33a;
+  color: #44b;
 }
 
 a:hover {
@@ -78,7 +79,7 @@ a:hover {
 }
 
 a:visited {
-  color: #338;
+  color: #228;
 }
 
 
@@ -89,7 +90,7 @@ pre, code {
 
 h1, h2, h3, h4, h5, h6 {
   a {
-    border: none;
+    // border: none;
   }
   a, a:visited {
     color: #000;
@@ -262,24 +263,26 @@ hr {
     line-height: 125%;
     margin-top: 2.5rem;
     margin-bottom: 0.75rem;
+    color: #115;
   }
   h3 {
     font-size: 130%;
     margin-bottom: 0.5rem;
+    color: #911;
   }
 
-  @include first-line-emphasis(133%);
-  
 }
 
 .tag-list {
   > li {
     display: inline-block;
-    padding: 0.0rem 0.5rem;
+    padding: 0rem 0.5rem;
+    padding-top: 0.05rem;
     margin: 0.3rem 0.3rem;
     background: #eee;
     border-bottom: #bbb 1px solid;
     border-right: #bbb 1px solid;
+    cursor: pointer;
     > a {
       border: none;
     }
@@ -303,9 +306,11 @@ hr {
   }
 
   font-size: 80%;
+  // line-height: 100%;
   margin-bottom: 0.5rem;
   list-style-type: none;
   text-align: right;
+  font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
 }
 
 

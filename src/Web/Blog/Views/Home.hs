@@ -22,7 +22,7 @@ viewHome eList = do
   pageDataMap' <- pageDataMap <$> ask
 
   return $ 
-    H.section $ do
+    H.section ! A.class_ "home-section" $ do
 
       H.header ! A.class_ "tile" $ 
 
