@@ -21,7 +21,7 @@ viewNotFound = do
 
       H.hr
 
-      H.div H.! A.class_ "main-content" $
+      H.div H.! A.class_ "main-content copy-content" $
         H.p $ do
           "The page you were looking for was not found.  Sorry!  "
           "Maybe try going to the "

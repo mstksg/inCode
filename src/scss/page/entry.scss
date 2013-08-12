@@ -24,7 +24,9 @@
     > p {
       text-align: right;
       font-style: italic;
-      margin-bottom: 0.4rem;
+      // margin-bottom: 0.4rem;
+      margin-bottom: 0;
+      // line-height: 100%;
     }
 
     a, .bullet {
@@ -36,7 +38,7 @@
   }
 
   .main-content {
-    @include first-line-emphasis(150%);
+    // margin-top: 3rem;
   }
 
   > footer {
@@ -60,9 +62,6 @@
         > li {
           display: block;
           font-style: italic;
-          > a {
-            text-decoration: none;
-          }
         }
       }
 
@@ -73,7 +72,6 @@
       margin: 2rem 0 0.5rem 0;
       font-size: 90%;
     }
-
 
   }
 

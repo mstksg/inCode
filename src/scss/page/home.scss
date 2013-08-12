@@ -8,13 +8,16 @@
         font-size: 190%;
         line-height: 125%;
         font-weight: bold;
-        a {
-          text-decoration: none;
-        }
       }
 
       > time {
         font-size: 90%;
+        font-style: italic;
+        // display: block;
+        line-height: 100%;
+        border-bottom: 1px solid #ddd;
+        // width: 50%;
+        padding-right: 3rem;
       }
 
       margin-bottom: 2rem;
@@ -25,24 +28,14 @@
         margin: 0.75rem 0;
         text-indent: 2rem;
       }
+
       .link-readmore {
         font-size: 90%;
+        font-style: italic;
       }
 
-
-      @include first-line-emphasis(133%);
       margin-bottom: 2.5rem;
-      padding-left: 1rem;
-      padding-right: 1rem;
 
-      @media #{$smaller-screen} {
-        padding-left: 0;
-        padding-right: 0;
-      }
-    }
-
-    .tag-list {
-      text-align: right;
     }
 
   }
@@ -52,9 +45,6 @@
     > nav ul {
       > li {
         display: inline-block;
-        > a {
-          text-decoration: none;
-        }
 
       }
 

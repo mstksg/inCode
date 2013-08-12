@@ -64,7 +64,7 @@ viewEntry entry tags prevEntry nextEntry = do
 
       H.hr
             
-      H.div ! A.class_ "main-content" $
+      H.div ! A.class_ "main-content copy-content" $
 
         entryHtml entry 
 

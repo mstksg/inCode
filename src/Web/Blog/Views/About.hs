@@ -17,7 +17,7 @@ viewAbout = return $
 
     H.hr
 
-    H.div ! A.class_ "main-content" $
+    H.div ! A.class_ "main-content copy-content" $
       H.p 
         "I'm a person."
 

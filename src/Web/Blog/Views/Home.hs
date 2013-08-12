@@ -51,7 +51,7 @@ viewHome eList = do
                     H.toHtml $ entryTitle e
 
 
-              H.div ! A.class_ "entry-lede" $ do
+              H.div ! A.class_ "entry-lede copy-content" $ do
                 entryLedeHtml e
                 H.p $
                   H.a ! A.href (I.textValue u) ! A.class_ "link-readmore" $
