@@ -23,6 +23,9 @@ $banner-center: "/img/banner_center.jpg";
 $footer-bg: "/img/footer_bg.jpg";
 $footer-center: "/img/footer_center.jpg";
 
+// $link-color: #338;
+// $link-color-subtle: #111;
+
 
 body {
   background: #f3f3f3;
@@ -36,10 +39,11 @@ body {
 
 .tile {
   padding: 1.0rem 1.5rem;
-  background: #fff;
-  background-color: rgba(255,255,255,0.95);
+  background: #eee;
+  // background-color: rgba(255,255,255,0.95);
+  background-color: rgba(253,253,253,0.95);
   margin-bottom: 1.25em;
-  border-right: #d9d9d9 1px solid;
+  border-right: #d4d4d4 1px solid;
   border-bottom: #d0d0d0 2px solid;
 
   // @media #{$smaller-screen} {
@@ -54,22 +58,44 @@ html {
   // font-family: Prociono, Vollkorn, Playfair Display, serif;
   font-family: Vollkorn, serif;
   // font-family: Playfair Display, serif;
+  color: #111;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+  color: #000;
   // font-family: Playfair Display, serif;
 }
 
 a {
   text-decoration: none;
+  color: #33a;
 }
 
-pre {
-  font-size: 105%;
+a:hover {
+  // text-decoration: underline;
+  background-color: #eee;
+}
+
+a:visited {
+  color: #338;
 }
 
 
+pre, code {
+  font-size: 110%;
+}
+
+
+h1, h2, h3, h4, h5, h6 {
+  a, a:visited {
+    color: #000;
+  }
+  a:hover {
+    background-color: #eee;
+    text-decoration: none;
+  }
+}
 
 // #header-container, #body-container, #sidebar-container, #main-container, #footer-container {
 //   // outline: 1px dotted gray;
@@ -246,13 +272,29 @@ hr {
 
 .tag-list {
   > li {
-
     display: inline-block;
     padding: 0.0rem 0.5rem;
     margin: 0.5rem 0.5rem;
     background: #eee;
-    border-bottom: #dedede 1px solid;
-    border-right: #dedede 1px solid;
+    border-bottom: #bbb 1px solid;
+    border-right: #bbb 1px solid;
+    > a, > a:visited {
+      color: #111;
+    }
+    > a:hover {
+      background-color: transparent;
+      color: #666;
+    }
+  }
+
+  .tag-li-tag {
+    background: #ded;
+  }
+  .tag-li-category {
+    background: #edd;
+  }
+  .tag-li-series {
+    background: #dde;
   }
 
   font-size: 80%;
