@@ -116,7 +116,7 @@ utilRoutes =
     path <- S.param "1"
     let
       isMin = ".min" `isSuffixOf` path
-      scssPath = "src/scss/" ++ replaceExtension path ".scss"
+      scssPath = "scss/" ++ replaceExtension path ".scss"
     exists <- liftIO $ doesFileExist scssPath
     if exists
       then do
