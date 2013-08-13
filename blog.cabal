@@ -38,6 +38,9 @@ executable blog
                      , directory
                      , filepath
                      , process
+                     , wai
+                     , wai-middleware-headers
+                     -- , wai-middleware-cache
   -- ghc-options:         -ddump-types
   extensions:          OverloadedStrings
 

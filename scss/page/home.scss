@@ -16,13 +16,17 @@
       > time {
         font-size: 90%;
         font-style: italic;
-        display: block;
+        // display: block;
         // line-height: 125%;
         border-bottom: 1px solid #bbb;
         line-height: 100%;
-        width: 33%;
+        // width: 50%;
         // padding-right: 3rem;
         color: #444;
+        cursor: default;
+        // overflow: visible;
+        // white-space: nowrap;
+        padding-right: 3rem;
       }
 
       margin-bottom: 2rem;
