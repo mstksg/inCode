@@ -4,7 +4,7 @@ $photo: "/img/photo_square.jpg";
 
 .sidebar-content {
 
-  .home-link {
+  .sidebar-author-card {
     background-image: url($photo);
     background-size: cover;
     display: block;
@@ -44,19 +44,22 @@ $photo: "/img/photo_square.jpg";
     list-style-type: none;
     margin: 0;
 
-    @media #{$smallest-screen} {
+    @media #{$smaller-screen} {
       > li {
         display: inline;
         > a {
-          line-height: 2.5rem;
+          line-height: 2.3rem;
           height: 100%;
-          padding: 0.5rem 1rem;
-          margin: 0 1rem;
+          padding: 0.8rem 0.4rem;
+          margin: 0 0.1rem;
           border: none;
+          font-size: 95%;
           height: 100%;
+          font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+          color: #335;
           &:hover {
             background: none;
-            color: #488;
+            color: #44a;
           }
         }
       }
@@ -67,27 +70,30 @@ $photo: "/img/photo_square.jpg";
   text-align: right;
 
   @media #{$smaller-screen} {
-    text-align: center;
-  }
-
-  @media #{$smallest-screen} {
     margin-left: -1.5rem;
     border-right: none;
+    border-bottom: 2px #aaa solid;
     padding: 0;
+    padding-right: 0.75rem;
+    background-color: rgba(255,255,255,0.9);
   }
 }
 
 #sidebar-container {
-  @media #{$smallest-screen} {
+  @media #{$smaller-screen} {
     margin-left: -1.5rem;
     margin-right: -1.5rem;
     padding-left: 1.5rem;
+    // margin-bottom: 5.5rem;
+    position: fixed;
+    width: 100%;
+    z-index: 100000;
+    margin-top: -173px;
   }
-  margin-bottom: 5.5rem;
 }
 
 .sidebar-info {
-  @media #{$smallest-screen} {
+  @media #{$smaller-screen} {
     display: none;
   }
 }

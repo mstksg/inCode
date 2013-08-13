@@ -111,7 +111,7 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: -6rem;
   z-index: 1000;
 
-  @media #{$smallest-screen} {
+  @media #{$smaller-screen} {
     margin-top: -200px;
   }
 }
@@ -120,6 +120,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 #main-container {
+  @media #{$smaller-screen} {
+    margin-top: 173px;
+  }
 }
 
 #footer-container {

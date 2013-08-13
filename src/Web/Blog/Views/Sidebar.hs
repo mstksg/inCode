@@ -19,10 +19,10 @@ viewSidebar = do
   return $
 
     H.div ! A.class_ "sidebar-content tile" $ do
-
       H.div ! A.class_ "sidebar-info" $ do
-        H.a ! A.href (I.textValue homeUrl) ! A.class_ "home-link" $
-          "home"
+        H.a ! A.href (I.textValue homeUrl) ! A.class_ "sidebar-author-card" $
+          "Justin Le"
+
         H.p 
           "A blog about stuff, more things, and perhaps even more."
 
