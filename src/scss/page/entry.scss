@@ -34,11 +34,12 @@
       font-style: normal;
     }
 
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
   }
 
   .main-content {
     @include first-line-emphasis(150%);
+    margin-top: 3rem;
   }
 
   > footer {

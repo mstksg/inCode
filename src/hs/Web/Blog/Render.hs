@@ -23,7 +23,14 @@ import qualified Web.Scotty                         as S
 
 
 pageData :: PageData
-pageData = PageData Nothing [] Nothing M.empty siteData
+pageData =  PageData
+            { pageDataTitle   = Nothing
+            , pageDataCss     = []
+            , pageDataJs      = []
+            , pageDataHeaders = []
+            , pageDataMap     = M.empty
+            , pageSiteData    = siteData
+            }
 
 siteRenderAction :: SiteRender H.Html -> PageData -> S.ActionM ()
 siteRenderAction htmlRender pageData' = do
@@ -34,7 +41,7 @@ siteRenderAction htmlRender pageData' = do
 renderUrl :: T.Text -> SiteRender T.Text
 renderUrl url = do
   let
-    hasP = length (T.splitOn "://" url) > 1
+    hasP = length (T.splitOn "//" url) > 1
   if hasP
     then return url
     else do

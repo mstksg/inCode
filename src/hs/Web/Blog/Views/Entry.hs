@@ -62,7 +62,9 @@ viewEntry entry tags prevEntry nextEntry = do
         H.p $ do
           "Posted in " :: H.Html
           categoryList (filter isCategoryTag tags)
-          "." :: H.Html
+          H.preEscapedToHtml
+            (" &diams; " :: T.Text)
+          H.a ! A.href "#disqus_thread" $ "Comments"
 
       H.hr
             
@@ -97,9 +99,6 @@ viewEntry entry tags prevEntry nextEntry = do
           H.span ! A.class_ "logo-disqus" $
               "Diqus" :: H.Html
 
-
-    H.script ! A.type_ "text/javascript" $
-      disqusJs
 
     -- H.script ! A.type_ "text/javascript" $
     --   tocifyJs
@@ -147,15 +146,6 @@ seriesLi t = H.li $
     H.a ! A.href (I.textValue $ renderUrl' $ tagPath t) $
       "series archives" :: H.Html
     "." :: H.Html
-
-disqusJs :: H.Html
-disqusJs = H.preEscapedToHtml $ T.unlines
-  [ "var disqus_shortname = 'justinleblogdevelopment';"
-  , "(function() {"
-  , "var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;"
-  , "dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';"
-  , "(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);"
-  , "})();" ]
 
 -- tocifyJs :: H.Html
 -- tocifyJs = H.preEscapedToHtml $ T.unlines

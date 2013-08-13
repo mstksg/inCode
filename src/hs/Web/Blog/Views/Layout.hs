@@ -3,7 +3,6 @@
 module Web.Blog.Views.Layout (viewLayout, viewLayoutEmpty) where
 
 import Control.Monad.Reader
-import Data.Maybe                            (maybeToList)
 import Data.Monoid
 import Text.Blaze.Html5                      ((!))
 import Web.Blog.Render
@@ -25,9 +24,10 @@ viewLayout body = do
     cssList = [ "/css/toast.css"
               , "/css/font.css"
               , "/css/main.min.css" ]
-    pageCss = maybeToList $ pageDataCss pageData'
+    jsList =  [ "//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ]
 
-  cssUrlList <- mapM renderUrl $ cssList ++ pageCss
+  cssUrlList <- mapM renderUrl $ cssList ++ pageDataCss pageData'
+  jsUrlList <- mapM renderUrl $ jsList ++ pageDataJs pageData'
 
 
   return $ H.docTypeHtml $ do
@@ -43,21 +43,13 @@ viewLayout body = do
 
       H.link ! A.rel "author" ! A.href (I.textValue $ siteDataAuthorRel $ pageSiteData pageData')
 
-      -- renderFonts [("Sorts+Mill+Goudy",["400","400italic"])
-      --             ,("Lato",["400","700"])]
-      -- H.link ! A.href 
-        -- (I.textValue "http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic|Playfair+Display:400,700,900,400italic,700italic,900italic") !
-        -- (I.textValue "http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic") !
-        -- (I.textValue "http://fonts.googleapis.com/css?family=Vollkorn:400,700,400italic,700italic") !
-        -- (I.textValue "http://fonts.googleapis.com/css?family=Prociono") !
-        -- A.rel "stylesheet" ! A.type_ "text/css"
+      H.script ! A.type_ "text/javascript" $
+        H.preEscapedToHtml 
+          ("var page_data = {}; var disqus_shortname='justinleblogdevelopment';" :: T.Text)
 
-      H.script ! A.type_ "text/javascript" ! A.src "//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" $
-        mempty
-      -- H.script ! A.type_ "text/javascript" ! A.src "/js/jquery-ui-1.10.3.custom.min.js" $
-      --   mempty
-      -- H.script ! A.type_ "text/javascript" ! A.src "/js/jquery.tocify.min.js" $
-      --   mempty
+      forM_ jsUrlList $ \u ->
+        H.script ! A.type_ "text/javascript" ! A.src (I.textValue u) $
+          mempty
 
       sequence_ (pageDataHeaders pageData')
 
