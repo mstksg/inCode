@@ -15,4 +15,6 @@
 
 $break: 650px;
 $smaller-screen: "only screen and (max-width : #{$break})";
+$bigger-screen: "only screen and (min-width : #{$break})";
+
 

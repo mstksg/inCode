@@ -5,25 +5,29 @@ $photo: "/img/photo_square.jpg";
 .sidebar-content {
 
   .sidebar-author-card {
-    background-image: url($photo);
-    background-size: cover;
-    display: block;
-    border-radius: 50%;
-    border: 2px solid #ddd;
-    width: 100%;
-    height: 0;
-    padding-bottom: 100%;
-    text-indent: 100%;
-    white-space: nowrap;
-    overflow: hidden;
-    margin-bottom: 1.1rem;
-    margin-left: auto;
-    margin-right: auto;
-
+    @media #{$bigger-screen} {
+      background-image: url($photo);
+      background-size: cover;
+      display: block;
+      border-radius: 50%;
+      border: 2px solid #ddd;
+      width: 100%;
+      height: 0;
+      padding-bottom: 100%;
+      text-indent: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      margin-bottom: 1.1rem;
+      margin-left: auto;
+      margin-right: auto;
+    }
     @media #{$smaller-screen} {
-      width: 250px;
-      height: 250px;
-      padding-bottom: 0;
+      float: left;
+      line-height: 0.6rem;
+      margin-left: 1rem;
+      font-size: 110%;
+      // font-weight: bold;
+      z-index: 100;
     }
   }
 
@@ -38,6 +42,9 @@ $photo: "/img/photo_square.jpg";
   p {
     margin-bottom: 2rem;
     font-size: 90%;
+    @media #{$smaller-screen} {
+      display: none;
+    }
   }
 
   ul {
@@ -47,21 +54,6 @@ $photo: "/img/photo_square.jpg";
     @media #{$smaller-screen} {
       > li {
         display: inline;
-        > a {
-          line-height: 2.3rem;
-          height: 100%;
-          padding: 0.8rem 0.4rem;
-          margin: 0 0.1rem;
-          border: none;
-          font-size: 95%;
-          height: 100%;
-          font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
-          color: #335;
-          &:hover {
-            background: none;
-            color: #44a;
-          }
-        }
       }
     }
 
@@ -70,6 +62,22 @@ $photo: "/img/photo_square.jpg";
   text-align: right;
 
   @media #{$smaller-screen} {
+    a {
+      line-height: 2.3rem;
+      height: 100%;
+      padding: 0.8rem 0.4rem;
+      margin: 0 0.1rem;
+      border: none;
+      font-size: 95%;
+      height: 100%;
+      font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+      color: #335;
+      &:hover {
+        background: none;
+        color: #44a;
+      }
+    }
+
     margin-left: -1.5rem;
     border-right: none;
     border-bottom: 2px #aaa solid;
@@ -92,8 +100,8 @@ $photo: "/img/photo_square.jpg";
   }
 }
 
-.sidebar-info {
-  @media #{$smaller-screen} {
-    display: none;
-  }
-}
+// .sidebar-info {
+//   @media #{$smaller-screen} {
+//     display: none;
+//   }
+// }

@@ -5,7 +5,9 @@ module Web.Blog.Views.Sidebar (viewSidebar) where
 -- import Data.Monoid                           (mempty)
 import Text.Blaze.Html5                      ((!))
 import Web.Blog.Render
+import Control.Applicative ((<$>))
 import Web.Blog.Types
+import Control.Monad.Reader
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
 import qualified Text.Blaze.Internal         as I
@@ -15,13 +17,17 @@ viewSidebar = do
   homeUrl <- renderUrl "/"
   archiveUrl <- renderUrl "/entries"
   aboutUrl <- renderUrl "/about"
+  author <- (siteDataAuthor . pageSiteData) <$> ask
 
   return $
 
     H.div ! A.class_ "sidebar-content tile" $ do
       H.div ! A.class_ "sidebar-info" $ do
-        H.a ! A.href (I.textValue homeUrl) ! A.class_ "sidebar-author-card" $
-          "Justin Le"
+        H.a
+          ! A.href (I.textValue homeUrl)
+          ! A.class_ "sidebar-author-card"
+          ! A.title (I.textValue author) $
+            H.toHtml author
 
         H.p 
           "A blog about stuff, more things, and perhaps even more."
