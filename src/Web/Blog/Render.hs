@@ -5,10 +5,13 @@ module Web.Blog.Render (
   , pageData
   , renderUrl
   , renderUrl'
+  , renderScss
   ) where
 
 -- import qualified Text.Blaze.Html.Renderer.Pretty as B
+import Control.Applicative                          ((<$>))
 import Control.Monad.Reader
+import System.Process
 import Web.Blog.SiteData
 import Web.Blog.Types
 import qualified Data.Map                           as M
@@ -20,7 +23,7 @@ import qualified Web.Scotty                         as S
 
 
 pageData :: PageData
-pageData = PageData Nothing [] M.empty siteData
+pageData = PageData Nothing [] Nothing M.empty siteData
 
 siteRenderAction :: SiteRender H.Html -> PageData -> S.ActionM ()
 siteRenderAction htmlRender pageData' = do
@@ -46,3 +49,7 @@ renderUrl' url =
   where
     hasP = length (T.splitOn "://" url) > 1
       
+renderScss :: FilePath -> Bool -> IO L.Text
+renderScss fp minify = L.pack <$> readProcess "sass" ["--style",style,fp] []
+  where
+    style = if minify then "compressed" else "expanded"

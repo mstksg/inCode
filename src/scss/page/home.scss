@@ -1,0 +1,73 @@
+@import "src/scss/util/mixins.scss";
+
+.home-section {
+
+  article {
+    > header {
+      > h2 {
+        font-size: 190%;
+        line-height: 125%;
+        font-weight: bold;
+        // > a {
+        //   border: none;
+        // }
+      }
+
+      > time {
+        font-size: 90%;
+        font-style: italic;
+        display: block;
+        // line-height: 125%;
+        border-bottom: 1px solid #ccc;
+        width: 33%;
+        // padding-right: 3rem;
+        color: #444;
+      }
+
+      margin-bottom: 2rem;
+    }
+
+    > .entry-lede {
+      > p {
+        margin: 0.75rem 0;
+        text-indent: 2rem;
+      }
+
+      .link-readmore {
+        font-size: 90%;
+        font-style: italic;
+      }
+
+      margin-bottom: 2.5rem;
+      @include first-line-emphasis(133%);
+  
+
+    }
+
+    padding-top: 1rem;
+
+  }
+
+  > footer {
+
+    > nav ul {
+      > li {
+        display: inline-block;
+
+      }
+
+      > .home-next {
+        float: left;
+      }
+      > .home-prev {
+        float: right;
+      }
+
+      list-style-type: none;
+    }
+
+    padding-top: 0.2rem;
+    padding-bottom: 1.7rem;
+  }
+
+}

@@ -35,6 +35,9 @@ executable blog
                      , pandoc
                      , old-locale
                      , http-types
+                     , directory
+                     , filepath
+                     , process
   -- ghc-options:         -ddump-types
   extensions:          OverloadedStrings
 
@@ -54,6 +57,7 @@ executable blog-scripts-migrate
                      , scotty 
                      , containers
                      , blaze-markup
+                     , process
   extensions:          OverloadedStrings
 
 executable blog-scripts-seed
@@ -79,4 +83,5 @@ executable blog-scripts-seed
                      , blaze-html 
                      , blaze-markup
                      , scotty 
+                     , process
   extensions:          OverloadedStrings

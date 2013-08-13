@@ -109,6 +109,7 @@ routeEntry (Right (D.Entity eKey e')) = do
       
     view = viewEntry e' tags (fst <$> prevData) (fst <$> nextData)
     pageData' = pageData { pageDataTitle = Just $ entryTitle e'
+                         , pageDataCss   = Just "/css/page/entry.min.css"
                          , pageDataMap   = pdMap M.empty
                          }
   

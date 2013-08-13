@@ -3,6 +3,7 @@
 module Web.Blog.Views.Layout (viewLayout, viewLayoutEmpty) where
 
 import Control.Monad.Reader
+import Data.Maybe                            (maybeToList)
 import Data.Monoid
 import Text.Blaze.Html5                      ((!))
 import Web.Blog.Render
@@ -20,7 +21,14 @@ viewLayout body = do
   sidebarHtml <- viewSidebar
   title <- createTitle
 
-  cssUrl <- renderUrl "/css/gridiculous.css"
+  let
+    cssList = [ "/css/toast.css"
+              , "/css/font.css"
+              , "/css/main.min.css" ]
+    pageCss = maybeToList $ pageDataCss pageData'
+
+  cssUrlList <- mapM renderUrl $ cssList ++ pageCss
+
 
   return $ H.docTypeHtml $ do
 
@@ -28,30 +36,50 @@ viewLayout body = do
 
       H.title title
       H.meta ! A.httpEquiv "Content-Type" ! A.content "text/html;charset=utf-8"
+      H.meta ! A.name "viewport" ! A.content "width=device-width,initial-scale=1.0"
 
-      H.link ! A.href (I.textValue cssUrl) ! A.rel "stylesheet" ! A.type_ "text/css"
+      forM_ cssUrlList $ \u ->
+        H.link ! A.href (I.textValue u) ! A.rel "stylesheet" ! A.type_ "text/css"
+
       H.link ! A.rel "author" ! A.href (I.textValue $ siteDataAuthorRel $ pageSiteData pageData')
+
+      -- renderFonts [("Sorts+Mill+Goudy",["400","400italic"])
+      --             ,("Lato",["400","700"])]
+      -- H.link ! A.href 
+        -- (I.textValue "http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic|Playfair+Display:400,700,900,400italic,700italic,900italic") !
+        -- (I.textValue "http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic") !
+        -- (I.textValue "http://fonts.googleapis.com/css?family=Vollkorn:400,700,400italic,700italic") !
+        -- (I.textValue "http://fonts.googleapis.com/css?family=Prociono") !
+        -- A.rel "stylesheet" ! A.type_ "text/css"
+
+      H.script ! A.type_ "text/javascript" ! A.src "//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" $
+        mempty
+      -- H.script ! A.type_ "text/javascript" ! A.src "/js/jquery-ui-1.10.3.custom.min.js" $
+      --   mempty
+      -- H.script ! A.type_ "text/javascript" ! A.src "/js/jquery.tocify.min.js" $
+      --   mempty
 
       sequence_ (pageDataHeaders pageData')
 
-    H.body ! A.class_ "grid w960" $ do
+    H.body $ do
       
-        H.div ! A.id "header_container" ! A.class_ "row" $
-          H.div ! A.id "header_content" ! A.class_ "c12" $
+        H.div ! A.id "header-container" $
+          H.div ! A.id "header-content" $
             mempty
         
-        H.div ! A.id "main_container" ! A.class_ "row" $ do
+        H.div ! A.id "body-container" ! A.class_ "container" $
+          H.div ! A.id "body-grid" ! A.class_ "grid" $ do
 
-          H.nav ! A.id "sidebar" ! A.class_ "c3" $ 
-            sidebarHtml
+            H.div ! A.id "sidebar-container" ! A.class_ "unit one-of-four" $ 
+              sidebarHtml
 
-          H.div ! A.id "main_content" ! A.class_ "c9 end" ! I.customAttribute "role" "main" $
-            bodyHtml
+            H.div ! A.id "main-container" ! A.class_ "unit three-of-four" ! I.customAttribute "role" "main" $
+              bodyHtml
 
-        H.div ! A.id "footer_container" ! A.class_ "row" $
-
-          H.div ! A.id "footer_content" ! A.class_ "c12" $
-            H.preEscapedToHtml ("&copy; Justin Le 2013" :: T.Text)
+        H.div ! A.id "footer-container" $
+          H.div ! A.id "footer-content" $
+            H.div ! A.class_ "tile" $
+              H.preEscapedToHtml ("&copy; Justin Le 2013" :: T.Text)
 
 viewLayoutEmpty :: SiteRender H.Html
 viewLayoutEmpty = viewLayout $ return mempty
@@ -67,3 +95,8 @@ createTitle = do
       Nothing    -> siteTitle
   return $ H.toHtml combined
  
+-- renderFonts :: [(T.Text,[T.Text])] -> H.Html
+-- renderFonts fs = H.link ! A.href l ! A.rel "stylesheet" ! A.type_ "text/css"
+ --  where
+ --    l = I.textValue $ T.concat $ map makeFont fs
+ --    makeFont (n,ts) = T.append n $ T.intersperse ',' ts

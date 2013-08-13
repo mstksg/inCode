@@ -1,6 +1,8 @@
 .log.log
-.virthualenv
+.sass-cache
 .shake
-dist
+.virthualenv
 cabal-dev
+dist
 tmp
+/static/img/test
