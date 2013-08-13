@@ -14,12 +14,14 @@
     margin-left: 1.5rem;
   }
 
+
+  dl {
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
   dt {
     font-weight: bold;
     display: block;
-    // border-bottom: 1px solid #faa;
-    // margin-bottom: 0.2rem;
-    // line-height: 100%;
   }
   dd {
     margin-left: 1rem;
@@ -47,7 +49,6 @@
     line-height: 175%;
     padding: 0.75rem 1rem;
     margin: 2rem 0;
-
   }
 
   blockquote {

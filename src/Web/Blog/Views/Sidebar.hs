@@ -19,14 +19,18 @@ viewSidebar = do
   return $
 
     H.div ! A.class_ "sidebar-content tile" $ do
-      H.a ! A.href (I.textValue homeUrl) ! A.class_ "home-link" $
-        "home"
 
-      H.p 
-        "A blog about stuff, more things, and perhaps even more."
+      H.div ! A.class_ "sidebar-info" $ do
+        H.a ! A.href (I.textValue homeUrl) ! A.class_ "home-link" $
+          "home"
+        H.p 
+          "A blog about stuff, more things, and perhaps even more."
 
       H.nav $
         H.ul $ do
+          H.li $
+            H.a ! A.href (I.textValue homeUrl) $
+              "home"
           H.li $
             H.a ! A.href (I.textValue archiveUrl) $
               "archives"

@@ -1,0 +1,93 @@
+@import "scss/util/mixins.scss";
+
+$photo: "/img/photo_square.jpg";
+
+.sidebar-content {
+
+  .home-link {
+    background-image: url($photo);
+    background-size: cover;
+    display: block;
+    border-radius: 50%;
+    border: 2px solid #ddd;
+    width: 100%;
+    height: 0;
+    padding-bottom: 100%;
+    text-indent: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    margin-bottom: 1.1rem;
+    margin-left: auto;
+    margin-right: auto;
+
+    @media #{$smaller-screen} {
+      width: 250px;
+      height: 250px;
+      padding-bottom: 0;
+    }
+  }
+
+  p, ul {
+    padding-right: 0.5rem;
+
+    @media #{$smaller-screen} {
+      padding-right: 0;
+    }
+  }
+
+  p {
+    margin-bottom: 2rem;
+    font-size: 90%;
+  }
+
+  ul {
+    list-style-type: none;
+    margin: 0;
+
+    @media #{$smallest-screen} {
+      > li {
+        display: inline;
+        > a {
+          line-height: 2.5rem;
+          height: 100%;
+          padding: 0.5rem 1rem;
+          margin: 0 1rem;
+          border: none;
+          height: 100%;
+          &:hover {
+            background: none;
+            color: #488;
+          }
+        }
+      }
+    }
+
+  }
+
+  text-align: right;
+
+  @media #{$smaller-screen} {
+    text-align: center;
+  }
+
+  @media #{$smallest-screen} {
+    margin-left: -1.5rem;
+    border-right: none;
+    padding: 0;
+  }
+}
+
+#sidebar-container {
+  @media #{$smallest-screen} {
+    margin-left: -1.5rem;
+    margin-right: -1.5rem;
+    padding-left: 1.5rem;
+  }
+  margin-bottom: 5.5rem;
+}
+
+.sidebar-info {
+  @media #{$smallest-screen} {
+    display: none;
+  }
+}

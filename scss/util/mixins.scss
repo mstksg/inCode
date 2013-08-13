@@ -13,6 +13,8 @@
   }
 }
 
-$break: 650px;
-$smaller-screen: "only screen and (max-width : #{$break})";
+$smaller-break: 650px;
+$smallest-break: 480px;
+$smaller-screen: "only screen and (max-width : #{$smaller-break})";
+$smallest-screen: "only screen and (max-width : #{$smallest-break})";
 

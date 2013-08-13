@@ -1,7 +1,5 @@
 @import "scss/util/mixins.scss";
-@import "scss/util/copy-content.scss";
 
-$photo: "/img/photo_square.jpg";
 $background-image: "/img/background.png";
 $banner-bg: "/img/banner_bg.jpg";
 $banner-center: "/img/banner_center.jpg";
@@ -112,6 +110,10 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: -2rem;
   margin-bottom: -6rem;
   z-index: 1000;
+
+  @media #{$smallest-screen} {
+    margin-top: -200px;
+  }
 }
 
 #sidebar-container {
@@ -165,49 +167,8 @@ hr {
   background-image:      -o-linear-gradient(left, rgba(0,0,0,0), rgba(0,0,0,0.5), rgba(0,0,0,0));
 }
 
-
-#sidebar-container {
-
-  .home-link {
-    background-image: url($photo);
-    background-size: cover;
-    display: block;
-    border-radius: 50%;
-    border: 2px solid #ddd;
-    width: 100%;
-    height: 0;
-    padding-bottom: 100%;
-    text-indent: 100%;
-    white-space: nowrap;
-    overflow: hidden;
-    margin-bottom: 1.1rem;
-    margin-left: auto;
-    margin-right: auto;
-
-    @media #{$smaller-screen} {
-      width: 250px;
-      height: 250px;
-      padding-bottom: 0;
-    }
-  }
-
-  p {
-    margin-bottom: 2rem;
-    padding-right: 0.5rem;
-  }
-
-  ul {
-    list-style-type: none;
-    padding-right: 0.5rem;
-  }
-
-
-  text-align: right;
-
-  @media #{$smaller-screen} {
-    text-align: center;
-  }
-}
+@import "scss/partial/copy-content.scss";
+@import "scss/partial/sidebar.scss";
 
 .single-page {
 
