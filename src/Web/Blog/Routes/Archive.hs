@@ -28,7 +28,8 @@ routeArchive title entries vat = do
   let
     view = viewArchive eList' vat
     pageData' = pageData { pageDataTitle = Just title
-                         , pageDataCss   = ["/css/page/archive.min.css"] }
+                         , pageDataCss   = ["/css/page/archive.min.css"]
+                         , pageDataJs    = ["/js/disqus_count.js"] }
 
   return $ Right (view, pageData')
 

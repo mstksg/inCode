@@ -52,7 +52,7 @@ routeHome page = do
         view = viewHome eList
         pageData' = pageData { pageDataTitle = Just "Home"
                              , pageDataCss   = ["/css/page/home.min.css"]
-                             , pageDataJs    = ["/js/disqus.js","/js/disqus_count.js"]
+                             , pageDataJs    = ["/js/disqus_count.js"]
                              , pageDataMap   = pdMap M.empty
                              }
           

@@ -45,7 +45,7 @@
         &:after {
           content: ")";
         }
-        margin-left: 0.5rem;
+        margin-left: 0.4rem;
       }
 
       margin-bottom: 2.5rem;
@@ -60,7 +60,7 @@
 
   > footer {
 
-    > nav ul {
+    > nav > ul {
       > li {
         display: inline-block;
 
@@ -74,10 +74,12 @@
       }
 
       list-style-type: none;
+      margin: 0;
     }
 
-    padding-top: 0.2rem;
-    padding-bottom: 1.7rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+
   }
 
 }

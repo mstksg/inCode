@@ -1,20 +1,17 @@
 @import "scss/util/mixins.scss";
 
-$code-color: #f4f4f4;
-
-
 .copy-content {
-  p, ul, ol, dl, pre {
+  p, ul, ol, dl, pre, blockquote {
     margin: 0;
     margin-bottom: 1rem;
   }
 
   p {
-    text-indent: 2rem;
+    text-indent: 1.5rem;
   }
 
   ul, ol, dl {
-    margin-left: 2rem;
+    margin-left: 1.5rem;
   }
 
   dt {
@@ -30,19 +27,39 @@ $code-color: #f4f4f4;
   }
 
   code {
-    background: $code-color;
+    background: #eee;
   }
 
   pre {
-    background: $code-color;
     > code {
       background: none;
     }
+    background: #dfd;
     overflow-x: auto;
-    padding: 0.75rem 1rem;
     font-size: 95%;
     line-height: 175%;
-    margin: 2rem 0 3rem;
+    padding: 0.75rem 1rem;
+    margin: 2rem 0;
+
+  }
+
+  blockquote {
+    > p {
+      &:first-child {
+        &:first-line {
+          font-weight: bold;
+          font-size: 110%;
+        }
+
+        margin-top: 0;
+      }
+      margin: 1rem 0 0 0;
+    }
+    background: #eef;
+    padding: 1rem 1.5rem;
+    margin: 2rem 1rem;
+    border-left: 6px solid #22f;
+    font-size: 110%;
   }
 
   h2 {
@@ -50,7 +67,7 @@ $code-color: #f4f4f4;
     line-height: 125%;
     margin-top: 4rem;
     margin-bottom: 0.75rem;
-    color: #224;
+    color: #225;
   }
   h3 {
     font-size: 130%;

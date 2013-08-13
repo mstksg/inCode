@@ -56,7 +56,7 @@ viewHome eList = do
                 entryLedeHtml e
                 H.p $ do
                   H.a ! A.href (I.textValue u) ! A.class_ "link-readmore" $
-                    "Read more"
+                    "Read more..."
                   " " :: H.Html
                   H.a ! A.href (I.textValue commentUrl) ! A.class_ "link-comment" $
                     ""
