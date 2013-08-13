@@ -68,6 +68,9 @@
     h2, h3, h4 {
       > a {
         border: none;
+        &:visited {
+          color: #000;
+        }
       }
     }
 
@@ -118,6 +121,10 @@
       padding-left: 0.75rem;
 
     }
+  }
+
+  .no-entries {
+    padding: 1.5rem;
   }
 
   > .tag-list {

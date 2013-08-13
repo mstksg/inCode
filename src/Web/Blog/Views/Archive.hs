@@ -63,9 +63,10 @@ viewArchive eListYears viewType = do
 
       if null eListYears
         then
-          H.p ! A.class_ "tile no-entries" $ H.toHtml $ case pageTitle of
-            Just pt -> T.concat ["No entries found for ",pt,"."]
-            Nothing -> "No entries found."
+          H.div ! A.class_ "tile no-entries" $
+            H.p $ H.toHtml $ case pageTitle of
+              Just pt -> T.concat ["No entries found for ",pt,"."]
+              Nothing -> "No entries found."
         else do
           let
             eListMonths = concat eListYears

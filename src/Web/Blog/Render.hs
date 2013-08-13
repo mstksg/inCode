@@ -8,6 +8,7 @@ module Web.Blog.Render (
   , renderScss
   ) where
 
+-- import Data.Time
 -- import qualified Text.Blaze.Html.Renderer.Pretty as B
 import Control.Applicative                          ((<$>))
 import Control.Monad.Reader
@@ -58,5 +59,14 @@ renderUrl' url =
       
 renderScss :: FilePath -> Bool -> IO L.Text
 renderScss fp minify = L.pack <$> readProcess "sass" ["--style",style,fp] []
+-- renderScss fp minify = do
+    -- t <- getCurrentTime
+    -- putStrLn $ unwords ["Rendering scss file",fp]
+    -- out <- L.pack <$> readProcess "sass" ["--style",style,fp] []
+    -- t2 <- getCurrentTime
+    -- let
+    --   elapsed = diffUTCTime t2 t
+    -- putStrLn $ unwords ["Rendered!  Total time:",show elapsed]
+    -- return out
   where
     style = if minify then "compressed" else "expanded"
