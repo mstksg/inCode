@@ -16,7 +16,7 @@ cabal-version:       >=1.8
 
 executable blog
   main-is:             Main.hs
-  hs-source-dirs:      src 
+  hs-source-dirs:      src/hs
   build-depends:       base 
                      , scotty 
                      , persistent 
@@ -43,7 +43,7 @@ executable blog
 
 executable blog-scripts-migrate
   main-is:             scripts/Migrate.hs
-  hs-source-dirs:      src
+  hs-source-dirs:      src/hs
   build-depends:       base 
                      , text
                      , time
@@ -62,7 +62,7 @@ executable blog-scripts-migrate
 
 executable blog-scripts-seed
   main-is:             scripts/Seed.hs
-  hs-source-dirs:      src
+  hs-source-dirs:      src/hs
   build-depends:       base 
                      , text
                      , time
