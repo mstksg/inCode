@@ -125,14 +125,20 @@ viewArchiveFlat eList tile =
     forM_ eList $ \eData -> do
       let
         (D.Entity _ e,(u,ts)) = eData
+        commentUrl = T.append u "#disqus_thread"
 
       H.li ! A.class_ "entry-item" $ do
-        H.time
-          ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt e)
-          ! A.pubdate "" 
-          ! A.class_ "pubdate"
-          $ H.toHtml $ renderFriendlyTime $ entryPostedAt e
-        " " :: H.Html
+        H.div ! A.class_ "entry-info" $ do
+          H.time
+            ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt e)
+            ! A.pubdate "" 
+            ! A.class_ "pubdate"
+            $ H.toHtml $ renderFriendlyTime $ entryPostedAt e
+          H.preEscapedToHtml 
+            (" &mdash; " :: T.Text)
+          H.a ! A.href (I.textValue commentUrl) ! A.class_ "entry-comments" $
+            "Comments"
+
         H.a ! A.href (I.textValue u) ! A.class_ "entry-link" $
           H.toHtml $ entryTitle e
         H.ul ! A.class_ "tag-list" $

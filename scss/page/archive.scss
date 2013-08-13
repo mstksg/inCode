@@ -72,13 +72,21 @@
     }
 
     .entry-item {
-      > time {
+      .entry-info {
+        > time {
+          color: #444;
+        }
+        .entry-comments {
+          color: #888;
+          border: none;
+        }
+        font-style: italic;
         display: block;
         font-size: 85%;
         line-height: 125%;
-        font-style: italic;
         margin-left: -0.5rem;
       }
+
 
       .entry-link {
         // display: block;

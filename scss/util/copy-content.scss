@@ -16,10 +16,17 @@
 
   dt {
     font-weight: bold;
+    display: block;
+    // border-bottom: 1px solid #faa;
+    // margin-bottom: 0.2rem;
+    // line-height: 100%;
   }
   dd {
     margin-left: 1rem;
     margin-bottom: 1rem;
+    border-left: 3px solid #933;
+    padding-left: 0.5rem;
+
   }
 
   a {
@@ -34,7 +41,7 @@
     > code {
       background: none;
     }
-    background: #dfd;
+    background: #efe;
     overflow-x: auto;
     font-size: 95%;
     line-height: 175%;
@@ -58,7 +65,7 @@
     background: #eef;
     padding: 1rem 1.5rem;
     margin: 2rem 1rem;
-    border-left: 6px solid #22f;
+    border-left: 6px solid #44d;
     font-size: 110%;
   }
 

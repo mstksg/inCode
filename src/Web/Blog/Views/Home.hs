@@ -59,7 +59,7 @@ viewHome eList = do
                     "Read more..."
                   " " :: H.Html
                   H.a ! A.href (I.textValue commentUrl) ! A.class_ "link-comment" $
-                    ""
+                    "Comments"
 
               H.footer $
                 H.ul ! A.class_ "tag-list" $
