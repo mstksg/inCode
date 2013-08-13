@@ -1,4 +1,4 @@
-@import "src/scss/main";
+@import "src/scss/util/mixins.scss";
 
 .entry-section {
 
@@ -34,7 +34,7 @@
       font-style: normal;
     }
 
-    margin-bottom: 1rem;
+    margin-bottom: 2rem;
   }
 
   .main-content {

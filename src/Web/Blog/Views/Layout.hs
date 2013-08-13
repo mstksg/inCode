@@ -3,7 +3,7 @@
 module Web.Blog.Views.Layout (viewLayout, viewLayoutEmpty) where
 
 import Control.Monad.Reader
-import Data.Maybe                            (fromMaybe)
+import Data.Maybe                            (maybeToList)
 import Data.Monoid
 import Text.Blaze.Html5                      ((!))
 import Web.Blog.Render
@@ -21,14 +21,13 @@ viewLayout body = do
   sidebarHtml <- viewSidebar
   title <- createTitle
 
-  cssList <- mapM renderUrl
-    [
-      "/css/toast.css"
-    , "/css/font.css"
-    -- , "/css/jquery.tocify.css"
-    -- , "/css/pepper-grinder/jquery-ui-1.10.3.custom.min.css"
-    , fromMaybe "/css/main.min.css" $ pageDataCss pageData'
-    ]
+  let
+    cssList = [ "/css/toast.css"
+              , "/css/font.css"
+              , "/css/main.min.css" ]
+    pageCss = maybeToList $ pageDataCss pageData'
+
+  cssUrlList <- mapM renderUrl $ cssList ++ pageCss
 
 
   return $ H.docTypeHtml $ do
@@ -39,7 +38,7 @@ viewLayout body = do
       H.meta ! A.httpEquiv "Content-Type" ! A.content "text/html;charset=utf-8"
       H.meta ! A.name "viewport" ! A.content "width=device-width,initial-scale=1.0"
 
-      forM_ cssList $ \u ->
+      forM_ cssUrlList $ \u ->
         H.link ! A.href (I.textValue u) ! A.rel "stylesheet" ! A.type_ "text/css"
 
       H.link ! A.rel "author" ! A.href (I.textValue $ siteDataAuthorRel $ pageSiteData pageData')

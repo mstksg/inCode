@@ -1,21 +1,4 @@
-
-@mixin vendor-prefix($name, $value) {
-  @each $vendor in ('', '-webkit-', '-moz-', '-ms-', '-o-') {
-    #{$vendor}#{$name}: #{$value};
-  }
-}
-
-@mixin first-line-emphasis($size: 150%) {
-  > p:first-child:first-line {
-    font-size: $size;
-    line-height: 120%;
-    text-indent: 3rem;
-    font-style: italic;
-  }
-}
-
-$break: 650px;
-$smaller-screen: "only screen and (max-width : #{$break})";
+@import "src/scss/util/mixins.scss";
 
 $photo: "/img/photo_square.jpg";
 $background-image: "/img/background.png";
@@ -23,10 +6,6 @@ $banner-bg: "/img/banner_bg.jpg";
 $banner-center: "/img/banner_center.jpg";
 $footer-bg: "/img/footer_bg.jpg";
 $footer-center: "/img/footer_center.jpg";
-
-// $link-color: #338;
-// $link-color-subtle: #111;
-
 
 body {
   background: #f3f3f3;
