@@ -51,10 +51,10 @@ main = shakeArgs opts $ do
 srcFiles :: Action [FilePath]
 srcFiles = getDirectoryFiles ""
   [ "blog.cabal"
-  , "src/*.hs"
-  , "src/scripts/*.hs"
-  , "src/Web/Blog/*.hs"
-  , "src/Web/Blog/*/*.hs"
-  , "src/Web/Blog/*/*/*.hs"
-  , "src/Development/Blog/*.hs"
-  , "src/Development/Blog/*/*.hs" ]
+  , "src/hs/*.hs"
+  , "src/hs/scripts/*.hs"
+  , "src/hs/Web/Blog/*.hs"
+  , "src/hs/Web/Blog/*/*.hs"
+  , "src/hs/Web/Blog/*/*/*.hs"
+  , "src/hs/Development/Blog/*.hs"
+  , "src/hs/Development/Blog/*/*.hs" ]
