@@ -49,18 +49,19 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 a {
+  &:hover {
+    background-color: #eee;
+  }
+  &:visited {
+    color: #228;
+  }
+
   text-decoration: none;
   border-bottom: 1px dotted #bbb;
   color: #44b;
 }
 
-a:hover {
-  background-color: #eee;
-}
 
-a:visited {
-  color: #228;
-}
 
 
 pre, code {
@@ -69,9 +70,6 @@ pre, code {
 
 
 h1, h2, h3, h4, h5, h6 {
-  a {
-    // border: none;
-  }
   a, a:visited {
     color: #000;
   }

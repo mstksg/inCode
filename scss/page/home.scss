@@ -33,9 +33,19 @@
         text-indent: 2rem;
       }
 
-      .link-readmore {
+      .link-readmore, .link-comment {
         font-size: 90%;
         font-style: italic;
+      }
+
+      .link-comment {
+        &:before {
+          content: "(";
+        }
+        &:after {
+          content: ")";
+        }
+        margin-left: 0.5rem;
       }
 
       margin-bottom: 2.5rem;

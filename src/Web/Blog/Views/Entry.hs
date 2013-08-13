@@ -49,7 +49,7 @@ viewEntry entry tags prevEntry nextEntry = do
           H.a ! A.class_ "author" ! A.href (I.textValue aboutUrl) $
             H.toHtml $ siteDataAuthor siteData'
 
-          H.span ! A.class_ "bullet" $
+          H.span ! A.class_ "info-separator" $
             H.preEscapedToHtml
               (" &diams; " :: T.Text)
 
@@ -62,9 +62,10 @@ viewEntry entry tags prevEntry nextEntry = do
         H.p $ do
           "Posted in " :: H.Html
           categoryList (filter isCategoryTag tags)
-          H.preEscapedToHtml
-            (" &diams; " :: T.Text)
-          H.a ! A.href "#disqus_thread" $ "Comments"
+          H.span ! A.class_ "info-separator" $
+            H.preEscapedToHtml
+              (" &diams; " :: T.Text)
+          H.a ! A.class_ "comment-link" ! A.href "#disqus_thread" $ "Comments"
 
       H.hr
             

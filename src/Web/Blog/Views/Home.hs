@@ -35,6 +35,7 @@ viewHome eList = do
         forM_ eList $ \eData -> do
           let
             (D.Entity _ e,(u,ts)) = eData
+            commentUrl = T.append u "#disqus_thread"
 
           H.li $
             H.article ! A.class_ "tile" $ do
@@ -53,9 +54,12 @@ viewHome eList = do
 
               H.div ! A.class_ "entry-lede copy-content" $ do
                 entryLedeHtml e
-                H.p $
+                H.p $ do
                   H.a ! A.href (I.textValue u) ! A.class_ "link-readmore" $
-                    "Read more & comment..."
+                    "Read more"
+                  " " :: H.Html
+                  H.a ! A.href (I.textValue commentUrl) ! A.class_ "link-comment" $
+                    ""
 
               H.footer $
                 H.ul ! A.class_ "tag-list" $

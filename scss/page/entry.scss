@@ -17,8 +17,10 @@
       font-size: 120%;
     }
 
-    .unposted-banner:before, .unposted-banner:after {
-      content: " !! ";
+    .unposted-banner {
+      &:before, &:after {
+        content: " !! ";
+      }
     }
 
     > p {
@@ -27,11 +29,21 @@
       // margin-bottom: 0.4rem;
       margin-bottom: 0;
       // line-height: 100%;
+      // word-spacing: 0.5rem;
     }
 
-    a, .bullet {
+    a, .info-separator {
       font-weight: bold;
       font-style: normal;
+    }
+
+    .info-separator {
+      margin: auto 0.3rem;
+    }
+
+    .comment-link {
+      font-weight: normal;
+      font-style: italic;
     }
 
     margin-bottom: 1rem;
