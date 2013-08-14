@@ -116,7 +116,7 @@ h1, h2, h3, h4, h5, h6 {
 
 #body-container {
   margin-top: -1.6rem;
-  margin-bottom: -6rem;
+  margin-bottom: -5.8rem;
   z-index: 1000;
 
   // @media #{$smaller-screen} {
@@ -142,9 +142,9 @@ h1, h2, h3, h4, h5, h6 {
   overflow: hidden;
   background-position: center;
 
-  @media #{$smaller-screen} {
-    background-image: none;
-  }
+  // @media #{$smaller-screen} {
+  //   background-image: none;
+  // }
 }
 
 #footer-content {

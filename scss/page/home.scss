@@ -5,23 +5,40 @@
   .home-banner {
 
     .copy-content {
-      @include first-line-emphasis(133%);
+      @include first-line-emphasis;
     }
 
-    .figure {
+    a {
       > img {
         width: 200px;
         height: 200px;
         border-radius: 50%;
         border: 2px #ddd solid;
+        margin: 0 auto;
+        display: block;
+        padding: 0;
       }
       .caption {
         display: none;
       }
 
       float: left;
-      padding-right: 1.5rem;
-      padding-top: 0.75rem;
+      padding: 0;
+      margin-right: 1.5rem;
+      margin-top: 0.75rem;
+      text-align: center;
+      &:hover {
+        background: none;
+      }
+      border: none;
+
+      @media #{$smallest-screen} {
+        float: none;
+        display: block;
+        margin: 0 auto;
+        padding: 0;
+        margin-bottom: 1rem;
+      }
     }
 
   }

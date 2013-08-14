@@ -202,4 +202,27 @@
   font-family: $sans;
   text-align: right;
 
+  @media #{$smaller-screen} {
+    > h2 {
+      margin-bottom: 0.5rem;
+      font-size: 150%;
+    }
+    > ul {
+      > li {
+          display: inline-block;
+          padding: 0 0.25rem;
+          margin: 0;
+          font-size: 85%;
+      }
+      margin: 0;
+    }
+    text-align: center;
+  }
+
+}
+
+@media #{$smaller-screen} {
+  h1 {
+    margin: 0;
+  }
 }
