@@ -101,9 +101,9 @@ navBar = do
   return $
     H.nav ! A.id "navbar-content" $ do
       H.div ! A.class_ "nav-info" $ do
-        H.a ! A.href (I.textValue homeUrl) ! A.class_ "nav-title" $
-          H.toHtml siteTitle
-        " " :: H.Html
+        H.h1 ! A.class_ "site-title" $
+          H.a ! A.href (I.textValue homeUrl) ! A.class_ "nav-title" $
+            H.toHtml siteTitle
         H.span ! A.class_ "nav-author" $
           H.toHtml author
           
