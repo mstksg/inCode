@@ -6,6 +6,7 @@ module Web.Blog.Render (
   , renderUrl
   , renderUrl'
   , renderScss
+  , mainSection
   ) where
 
 -- import Data.Time
@@ -20,6 +21,8 @@ import qualified Data.Text                          as T
 import qualified Data.Text.Lazy                     as L
 import qualified Text.Blaze.Html.Renderer.Text      as B
 import qualified Text.Blaze.Html5                   as H
+-- import qualified Text.Blaze.Html5.Attributes        as A
+import qualified Text.Blaze.Internal                as I
 import qualified Web.Scotty                         as S
 
 
@@ -70,3 +73,6 @@ renderScss fp minify = L.pack <$> readProcess "sass" ["--style",style,fp] []
     -- return out
   where
     style = if minify then "compressed" else "expanded"
+
+mainSection :: I.Attribute
+mainSection = I.customAttribute "role" "main"

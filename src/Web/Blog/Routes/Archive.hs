@@ -41,7 +41,7 @@ routeArchiveFilters title filters pdMap = do
 
 
 routeArchiveAll :: RouteEither
-routeArchiveAll = routeArchiveFilters "Entries" [] ViewArchiveAll
+routeArchiveAll = routeArchiveFilters "Entry History" [] ViewArchiveAll
 
 routeArchiveTag :: TagType -> T.Text -> RouteEither
 routeArchiveTag type_ slug = do

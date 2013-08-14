@@ -39,13 +39,13 @@ html {
   line-height: 160%;
   // font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
   // font-family: Prociono, Vollkorn, Playfair Display, serif;
-  font-family: Vollkorn, serif;
+  font-family: $serif;
   // font-family: Playfair Display, serif;
   color: #1a1a1a;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+  font-family: $sans;
   color: #000;
   // font-family: Playfair Display, serif;
 }
@@ -109,28 +109,28 @@ h1, h2, h3, h4, h5, h6 {
   max-width: 1024px;
   margin: 0 auto;
 
-  @media #{$smaller-screen} {
-    background-position-x: -125px;
-  }
+  // @media #{$smaller-screen} {
+  //   background-position-x: -125px;
+  // }
 }
 
 #body-container {
-  margin-top: -1.8rem;
+  margin-top: -1.6rem;
   margin-bottom: -6rem;
   z-index: 1000;
 
-  @media #{$smaller-screen} {
-    margin-top: -200px;
-  }
+  // @media #{$smaller-screen} {
+  //   margin-top: -200px;
+  // }
 }
 
 #sidebar-container {
 }
 
 #main-container {
-  @media #{$smaller-screen} {
-    margin-top: 172px;
-  }
+  // @media #{$smaller-screen} {
+  //   margin-top: 172px;
+  // }
 }
 
 #footer-container {
@@ -152,7 +152,7 @@ h1, h2, h3, h4, h5, h6 {
   text-align: center;
   padding: 5rem 5% 0 5%;
   height: 100%;
-  background-image: url($footer-center);
+  // background-image: url($footer-center);
   width: 100%;
   background-position: center;
   max-width: 1024px;
@@ -176,10 +176,8 @@ hr {
   background-image:    -moz-linear-gradient(left, rgba(0,0,0,0), rgba(0,0,0,0.5), rgba(0,0,0,0)); 
   background-image:     -ms-linear-gradient(left, rgba(0,0,0,0), rgba(0,0,0,0.5), rgba(0,0,0,0)); 
   background-image:      -o-linear-gradient(left, rgba(0,0,0,0), rgba(0,0,0,0.5), rgba(0,0,0,0));
+  margin-top: -0.75rem;
 }
-
-@import "scss/partial/copy-content.scss";
-@import "scss/partial/sidebar.scss";
 
 .single-page {
 
@@ -230,4 +228,6 @@ hr {
   font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
 }
 
+@import "scss/partial/copy-content.scss";
+@import "scss/partial/navbar.scss";
 

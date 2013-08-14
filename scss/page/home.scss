@@ -2,6 +2,30 @@
 
 .home-section {
 
+  .home-banner {
+
+    .copy-content {
+      @include first-line-emphasis(133%);
+    }
+
+    .figure {
+      > img {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        border: 2px #ddd solid;
+      }
+      .caption {
+        display: none;
+      }
+
+      float: left;
+      padding-right: 1.5rem;
+      padding-top: 0.75rem;
+    }
+
+  }
+
   article {
     > header {
       > h2 {

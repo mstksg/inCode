@@ -10,7 +10,6 @@ module Web.Blog.Views.Archive (
 import Control.Applicative                   ((<$>))
 import Control.Monad.Reader
 import Data.Maybe                            (fromMaybe, isJust, fromJust)
-import Data.Monoid                           (mempty)
 import Text.Blaze.Html5                      ((!))
 import Web.Blog.Models
 import Web.Blog.Models.Util
@@ -36,24 +35,24 @@ data ViewArchiveType = ViewArchiveAll
 viewArchive :: [[[(D.Entity Entry,(T.Text,[Tag]))]]] -> ViewArchiveType -> SiteRender H.Html
 viewArchive eListYears viewType = do
   pageTitle <- pageDataTitle <$> ask
-  nav <- viewArchiveNav (case viewType of
+  navHtml <- viewArchiveNav (case viewType of
                           ViewArchiveAll -> Just ViewArchiveIndexDate
                           _ -> Nothing)
 
   upLink <- Tr.mapM renderUrl (upPath viewType)
 
-  return $ 
-    H.section ! A.class_ "archive-section" $ do
+  return $ do
+    H.nav ! A.class_ "archive-nav tile unit one-of-four" $
+      navHtml
+
+    H.section ! A.class_ "archive-section unit three-of-four" ! mainSection $ do
 
       H.header ! A.class_ "tile" $ do
 
-        H.nav $ do
-          when (isJust upLink) $
+        when (isJust upLink) $
+          H.nav $
             H.a ! A.href (I.textValue $ fromJust upLink) ! A.class_ "back-link" $
               "back"
-          nav
-
-        H.div ! A.class_ "clear" $ mempty
 
         H.h1 $ H.toHtml $ fromMaybe "Entries" pageTitle
 
@@ -105,7 +104,10 @@ viewArchiveNav isIndex = do
   byTagUrl  <- renderUrl "/tags"
   byCatUrl  <- renderUrl "/categories"
   bySerUrl  <- renderUrl "/series"
-  return $ H.ul $
+  return $ do
+    H.h2 
+      "Archives"
+    H.ul $
         forM_ [("History",byDateUrl,ViewArchiveIndexDate)
               ,("Tags",byTagUrl,ViewArchiveIndexTag)
               ,("Categories",byCatUrl,ViewArchiveIndexCategory)

@@ -1,6 +1,6 @@
 @import "scss/util/mixins.scss";
 
-.entry-section {
+.article {
 
   > header {
     
@@ -30,6 +30,7 @@
       margin-bottom: 0;
       // line-height: 100%;
       // word-spacing: 0.5rem;
+      cursor: default;
     }
 
     a, .info-separator {
