@@ -108,9 +108,9 @@ navBar = do
           H.toHtml author
           
       H.ul ! A.class_ "nav-links" $ do
-        -- H.li $
-        --   H.a ! A.href (I.textValue homeUrl) $
-        --     "home"
+        H.li $
+          H.a ! A.href (I.textValue homeUrl) $
+            "home"
         H.li $
           H.a ! A.href (I.textValue archiveUrl) $
             "archives"
