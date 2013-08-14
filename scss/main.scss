@@ -37,17 +37,13 @@ body {
 html {
   font-size: 115%;
   line-height: 160%;
-  // font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
-  // font-family: Prociono, Vollkorn, Playfair Display, serif;
   font-family: $serif;
-  // font-family: Playfair Display, serif;
   color: #1a1a1a;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: $sans;
   color: #000;
-  // font-family: Playfair Display, serif;
 }
 
 a {
@@ -118,10 +114,6 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: -1.6rem;
   margin-bottom: -5.8rem;
   z-index: 1000;
-
-  // @media #{$smaller-screen} {
-  //   margin-top: -200px;
-  // }
 }
 
 #sidebar-container {

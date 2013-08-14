@@ -83,7 +83,23 @@ $photo: "/img/photo_square.jpg";
 
 .home-banner {
   .copy-content {
+    font-size: 85%;
     @include first-line-emphasis;
+  }
+
+  .home-banner-history {
+    margin: 0;
+    > a {
+      border: none;
+      color: #333;
+      &:visited {
+        color: #333;
+      }
+      &:hover {
+        background: none;
+        color: #555;
+      }
+    }
   }
 
   h2 {
@@ -118,40 +134,21 @@ $photo: "/img/photo_square.jpg";
     }
   }
 
+}
 
-  // h2 {
-  //   > a {
-  //     width: 200px;
-  //     height: 200px;
-  //     border-radius: 50%;
-  //     border: 2px #ddd solid;
-  //     padding: 0;
-  //     margin: 0 auto;
-  //     text-align: center;
-  //     text-indent: 100%;
-  //     overflow: hidden;
-  //     white-space: nowrap;
-  //     display: block;
-  //     background-image: url($photo);
-  //     background-size: cover;
-  //     cursor: pointer;
-  //     @media #{$smallest-screen} {
-  //       float: none;
-  //       display: block;
-  //       margin: 0 auto;
-  //       padding: 0;
-  //       margin-bottom: 1rem;
-  //     }
-  //   }
-  //   float: left;
-  //   margin: 0;
-  //   // margin-right: 1.5rem;
-  //   // margin-top: 0.75rem;
-  //   padding: 0;
-  //   display: block;
-  //   font-size: 100%;
-  //     cursor: pointer;
-  // }
+.home-sidebar {
+  > ul {
+    list-style-type: none;
+    ul {
+      margin-left: 1rem;
+      list-style-type: none;
+      font-size: 90%;
+    }
+  }
+  h2 {
+    margin-bottom: 0.5rem;
+  }
+
 
 }
 

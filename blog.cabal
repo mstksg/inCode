@@ -18,28 +18,28 @@ executable blog
   main-is:             Main.hs
   hs-source-dirs:      src 
   build-depends:       base 
-                     , scotty 
-                     , persistent 
-                     , persistent-template 
-                     , persistent-postgresql 
-                     , time 
-                     , text 
                      , blaze-html 
-                     , wai-extra 
-                     , wai-middleware-static 
-                     , mtl
-                     , containers
                      , blaze-markup
-                     , transformers
-                     , monad-loops
-                     , pandoc
-                     , old-locale
-                     , http-types
+                     , containers
                      , directory
                      , filepath
+                     , http-types
+                     , monad-loops
+                     , mtl
+                     , old-locale
+                     , pandoc
+                     , persistent 
+                     , persistent-postgresql 
+                     , persistent-template 
                      , process
+                     , scotty 
+                     , text 
+                     , time 
+                     , transformers
                      , wai
+                     , wai-extra 
                      , wai-middleware-headers
+                     , wai-middleware-static 
                      -- , wai-middleware-cache
   -- ghc-options:         -ddump-types
   extensions:          OverloadedStrings
@@ -48,43 +48,45 @@ executable blog-scripts-migrate
   main-is:             scripts/Migrate.hs
   hs-source-dirs:      src
   build-depends:       base 
+                     , blaze-markup
+                     , containers
+                     , directory
+                     , monad-loops
+                     , mtl
+                     , old-locale
+                     , persistent 
+                     , persistent-postgresql 
+                     , persistent-template 
+                     , process
+                     , scotty 
                      , text
                      , time
-                     , persistent 
-                     , mtl
-                     , persistent-template 
-                     , persistent-postgresql 
                      , transformers
-                     , monad-loops
-                     , old-locale
-                     , scotty 
-                     , containers
-                     , blaze-markup
-                     , process
   extensions:          OverloadedStrings
 
 executable blog-scripts-seed
   main-is:             scripts/Seed.hs
   hs-source-dirs:      src
   build-depends:       base 
-                     , text
-                     , time
-                     , persistent 
-                     , persistent-template 
-                     , persistent-postgresql 
-                     , transformers
                      , HTTP 
-                     , pandoc
-                     , split
-                     , mtl
-                     , random 
-                     , monad-loops
-                     , old-locale
                      , MonadRandom
-                     , containers
-                     , blaze-markup
                      , blaze-html 
                      , blaze-markup
-                     , scotty 
+                     , blaze-markup
+                     , containers
+                     , directory
+                     , monad-loops
+                     , mtl
+                     , old-locale
+                     , pandoc
+                     , persistent 
+                     , persistent-postgresql 
+                     , persistent-template 
                      , process
+                     , random 
+                     , scotty 
+                     , split
+                     , text
+                     , time
+                     , transformers
   extensions:          OverloadedStrings

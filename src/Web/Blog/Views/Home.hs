@@ -2,13 +2,13 @@
 
 module Web.Blog.Views.Home (viewHome) where
 
--- import Web.Blog.SiteData
 import Control.Applicative                   ((<$>))
 import Control.Monad.Reader
 import Text.Blaze.Html5                      ((!))
 import Web.Blog.Models
 import Web.Blog.Models.Util
 import Web.Blog.Render
+import Web.Blog.SiteData
 import Web.Blog.Types
 import Web.Blog.Util                         (renderFriendlyTime, renderDatetimeTime)
 import Web.Blog.Views.Copy
@@ -20,31 +20,36 @@ import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
 import qualified Text.Blaze.Internal         as I
 
-viewHome :: [(D.Entity Entry,(T.Text,[Tag]))] -> SiteRender H.Html
-viewHome eList = do
+viewHome :: [(D.Entity Entry,(T.Text,[Tag]))] -> Int -> SiteRender H.Html
+viewHome eList pageNum = do
   pageDataMap' <- pageDataMap <$> ask
-  bannerCopy <- viewCopyFile "in Code" "copy/static/home-banner.md"
+  bannerCopy <- viewCopyFile (siteDataTitle siteData) "copy/static/home-banner.md"
+  sidebarHtml <- viewSidebar
+  homeUrl <- renderUrl "/"
 
   return $ 
     H.section ! A.class_ "home-section" ! mainSection $ do
 
       H.header ! A.class_ "tile unit span-grid" $ 
         H.section ! A.class_ "home-banner" $
-          bannerCopy
+          if pageNum == 1
+            then
+              bannerCopy
+            else
+              H.h1 ! A.class_ "home-banner-history" $
+                H.a ! A.href (I.textValue homeUrl) $
+                  H.toHtml $ siteDataTitle siteData
 
-      H.aside ! A.class_ "tile unit one-of-four" $ do
-        H.h2 
-          "Stuff"
-        H.p
-          "I am stuff."
+      H.nav ! A.class_ "tile unit one-of-four home-sidebar" $
+        sidebarHtml
 
       H.div ! A.class_ "unit three-of-four" $ do
         H.div ! A.class_ "tile" $
           H.h2 ! A.class_ "recent-header" $ do
             "Recent Entries" :: H.Html
-            Fo.forM_ (M.lookup "pageNum" pageDataMap') $ \n -> do
+            when (pageNum > 1) $ do
               " (Page " :: H.Html
-              H.toHtml n
+              H.toHtml pageNum
               ")" :: H.Html
 
 
@@ -102,3 +107,5 @@ viewHome eList = do
 
             H.div ! A.class_ "clear" $ ""
 
+viewSidebar :: SiteRender H.Html
+viewSidebar = renderRawCopy "copy/static/home-links.md"
