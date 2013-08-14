@@ -62,7 +62,7 @@ viewLayout body = do
             mempty
         
         H.div ! A.id "body-container" ! A.class_ "container" $
-          H.div ! A.id "main-container" ! A.class_ "grid" ! I.customAttribute "role" "main" $
+          H.div ! A.id "main-container" ! A.class_ "grid" $
             bodyHtml
 
             -- H.div ! A.id "sidebar-container" ! A.class_ "unit one-of-four" $ 

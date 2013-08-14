@@ -45,7 +45,7 @@ viewArchive eListYears viewType = do
     H.nav ! A.class_ "archive-nav tile unit one-of-four" $
       navHtml
 
-    H.section ! A.class_ "archive-section unit three-of-four" $ do
+    H.section ! A.class_ "archive-section unit three-of-four" ! mainSection $ do
 
       H.header ! A.class_ "tile" $ do
 

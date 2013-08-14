@@ -30,7 +30,7 @@ viewEntry entry tags prevEntry nextEntry = do
 
   return $
 
-    H.div ! A.class_ "entry-section unit span-grid" $ do
+    H.div ! A.class_ "entry-section unit span-grid" ! mainSection $ do
 
       H.article ! A.class_ "tile article" $ do
         

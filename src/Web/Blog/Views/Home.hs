@@ -2,14 +2,16 @@
 
 module Web.Blog.Views.Home (viewHome) where
 
+-- import Web.Blog.SiteData
 import Control.Applicative                   ((<$>))
 import Control.Monad.Reader
 import Text.Blaze.Html5                      ((!))
 import Web.Blog.Models
 import Web.Blog.Models.Util
-import Web.Blog.SiteData
+import Web.Blog.Render
 import Web.Blog.Types
 import Web.Blog.Util                         (renderFriendlyTime, renderDatetimeTime)
+import Web.Blog.Views.Copy
 import qualified Data.Map                    as M
 import qualified Data.Text                   as T
 import qualified Database.Persist.Postgresql as D
@@ -20,16 +22,14 @@ import qualified Text.Blaze.Internal         as I
 viewHome :: [(D.Entity Entry,(T.Text,[Tag]))] -> SiteRender H.Html
 viewHome eList = do
   pageDataMap' <- pageDataMap <$> ask
+  bannerCopy <- viewCopyFile "in Code" "copy/static/home-banner.md"
 
   return $ 
-    H.section ! A.class_ "home-section unit span-grid" $ do
+    H.section ! A.class_ "home-section unit span-grid" ! mainSection $ do
 
       H.header ! A.class_ "tile" $ 
-
-        H.section $ do
-          H.h1 $ H.toHtml $ siteDataTitle siteData
-          H.p
-            "Welcome to my blog."
+        H.section ! A.class_ "home-banner" $
+          bannerCopy
 
       H.ul $
         forM_ eList $ \eData -> do

@@ -5,11 +5,15 @@
 }
 
 @mixin first-line-emphasis($size: 150%) {
-  > p:first-child:first-line {
-    font-size: $size;
-    line-height: 120%;
-    text-indent: 3rem;
-    font-style: italic;
+  > p {
+    &:first-child, &:first-of-type {
+      &:first-line {
+        font-size: $size;
+        line-height: 120%;
+        text-indent: 3rem;
+        font-style: italic;
+      }
+    }
   }
 }
 
@@ -20,3 +24,4 @@ $smaller-screen: "only screen and (max-width : #{$break})";
 $bigger-screen: "only screen and (min-width : #{$break})";
 
 $sans: Helvetica Neue, Helvetica, Arial, sans-serif;
+$serif: Vollkorn, serif;

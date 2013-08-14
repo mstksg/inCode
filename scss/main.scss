@@ -39,13 +39,13 @@ html {
   line-height: 160%;
   // font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
   // font-family: Prociono, Vollkorn, Playfair Display, serif;
-  font-family: Vollkorn, serif;
+  font-family: $serif;
   // font-family: Playfair Display, serif;
   color: #1a1a1a;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+  font-family: $sans;
   color: #000;
   // font-family: Playfair Display, serif;
 }
@@ -176,6 +176,7 @@ hr {
   background-image:    -moz-linear-gradient(left, rgba(0,0,0,0), rgba(0,0,0,0.5), rgba(0,0,0,0)); 
   background-image:     -ms-linear-gradient(left, rgba(0,0,0,0), rgba(0,0,0,0.5), rgba(0,0,0,0)); 
   background-image:      -o-linear-gradient(left, rgba(0,0,0,0), rgba(0,0,0,0.5), rgba(0,0,0,0));
+  margin-top: -0.75rem;
 }
 
 .single-page {
