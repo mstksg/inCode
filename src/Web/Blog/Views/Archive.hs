@@ -43,7 +43,7 @@ viewArchive eListYears viewType = do
   upLink <- Tr.mapM renderUrl (upPath viewType)
 
   return $ 
-    H.section ! A.class_ "archive-section" $ do
+    H.section ! A.class_ "archive-section unit span-grid" $ do
 
       H.header ! A.class_ "tile" $ do
 

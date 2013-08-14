@@ -11,7 +11,7 @@ import qualified Text.Blaze.Html5.Attributes as A
 
 viewAbout :: SiteRender H.Html
 viewAbout = return $
-  H.section ! A.class_ "tile single-page about-section" $ do
+  H.section ! A.class_ "tile single-page about-section unit span-grid" $ do
     H.header $
       H.h1 "About me"
 
