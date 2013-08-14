@@ -2,34 +2,25 @@
 
 module Web.Blog.Routes (route) where
 
--- import Control.Applicative                   ((<$>))
--- import Control.Monad                         (when)
--- import Control.Monad.IO.Class
--- import Data.Char                             (isDigit)
--- import Data.List                             (find)
--- import Data.Maybe
--- import Data.Monoid
--- import Data.String                           (fromString)
--- import Web.Blog.Database
--- import Web.Blog.Models
--- import Web.Blog.SiteData
--- import qualified Data.Map                    as M
--- import qualified Database.Persist.Postgresql as D
 import Control.Monad.Reader
+import Data.List                  (isSuffixOf)
 import Network.HTTP.Types.Status
+import System.Directory           (doesFileExist)
+import System.FilePath
 import Web.Blog.Models.Types
 import Web.Blog.Render
+import Web.Blog.Routes.About
 import Web.Blog.Routes.Archive
 import Web.Blog.Routes.Entry
 import Web.Blog.Routes.Home
 import Web.Blog.Routes.NotFound
 import Web.Blog.Routes.TagIndex
 import Web.Blog.Types
-import Web.Blog.Views
-import qualified Data.Text                      as T
-import qualified Data.Text.Lazy                 as L
-import qualified Text.Blaze.Html5               as H
-import qualified Web.Scotty                     as S
+import Web.Blog.Views.Layout
+import qualified Data.Text        as T
+import qualified Data.Text.Lazy   as L
+import qualified Text.Blaze.Html5 as H
+import qualified Web.Scotty       as S
 
 
 route :: S.ScottyM ()
@@ -38,6 +29,7 @@ route = do
   entryRoutes
   archiveRoutes
   indexRoutes
+  utilRoutes
   miscRoutes
 
 
@@ -54,6 +46,9 @@ homeRoutes = do
     page <- S.param "page"
     when (page < 1) S.next
     routeEither $ routeHome page
+
+  S.get "/about" $
+    routeEither routeAbout
 
 entryRoutes :: S.ScottyM ()
 entryRoutes = do
@@ -114,6 +109,24 @@ indexRoutes = do
 
   S.get "/series" $ 
     routeEither $ routeTagIndex SeriesTag
+
+utilRoutes :: S.ScottyM ()
+utilRoutes = 
+  S.get (S.regex "^/css/(.*)\\.css$") $ do
+    path <- S.param "1"
+    let
+      isMin = ".min" `isSuffixOf` path
+      scssPath = "scss/" ++ replaceExtension path ".scss"
+    exists <- liftIO $ doesFileExist scssPath
+    if exists
+      then do
+        scss <- liftIO $ renderScss scssPath isMin
+        S.text scss
+        S.header "Content-Type" "text/css"
+      else
+        S.next
+    
+
 
 miscRoutes :: S.ScottyM ()
 miscRoutes = do

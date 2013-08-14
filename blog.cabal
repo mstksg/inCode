@@ -2,7 +2,7 @@
 -- see http://haskell.org/cabal/users-guide/
 
 name:                blog
-version:             0.0.0.3
+version:             0.0.0.4
 synopsis:            Personal blog web system
 -- description:         
 license:             BSD3
@@ -35,6 +35,12 @@ executable blog
                      , pandoc
                      , old-locale
                      , http-types
+                     , directory
+                     , filepath
+                     , process
+                     , wai
+                     , wai-middleware-headers
+                     -- , wai-middleware-cache
   -- ghc-options:         -ddump-types
   extensions:          OverloadedStrings
 
@@ -54,6 +60,7 @@ executable blog-scripts-migrate
                      , scotty 
                      , containers
                      , blaze-markup
+                     , process
   extensions:          OverloadedStrings
 
 executable blog-scripts-seed
@@ -79,4 +86,5 @@ executable blog-scripts-seed
                      , blaze-html 
                      , blaze-markup
                      , scotty 
+                     , process
   extensions:          OverloadedStrings

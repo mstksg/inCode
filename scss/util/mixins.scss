@@ -1,0 +1,27 @@
+@mixin vendor-prefix($name, $value) {
+  @each $vendor in ('', '-webkit-', '-moz-', '-ms-', '-o-') {
+    #{$vendor}#{$name}: #{$value};
+  }
+}
+
+@mixin first-line-emphasis($size: 150%) {
+  > p {
+    &:first-child, &:first-of-type {
+      &:first-line {
+        font-size: $size;
+        line-height: 120%;
+        text-indent: 3rem;
+        font-style: italic;
+      }
+    }
+  }
+}
+
+$break: 650px;
+$smallest-break: 480px;
+$smallest-screen: "only screen and (max-width : #{$smallest-break})";
+$smaller-screen: "only screen and (max-width : #{$break})";
+$bigger-screen: "only screen and (min-width : #{$break})";
+
+$sans: Helvetica Neue, Helvetica, Arial, sans-serif;
+$serif: Vollkorn, serif;

@@ -2,27 +2,22 @@
 
 module Web.Blog.Routes.Entry (routeEntrySlug, routeEntryId) where
 
-import Control.Applicative ((<$>))
--- import Control.Monad.Reader
--- import Control.Monad.Trans
--- import qualified Text.Blaze.Html5 as H
+import Control.Applicative                   ((<$>))
 import Control.Monad.IO.Class
+import Control.Monad.State
+import Control.Monad.Trans.Maybe
+import Data.Maybe                            (isJust, fromJust)
 import Web.Blog.Database
 import Web.Blog.Models
+import Web.Blog.Models.Util
 import Web.Blog.Render
 import Web.Blog.Types
 import Web.Blog.Views.Entry
-import qualified Data.Text as T
-import qualified Data.Text.Lazy as L
+import qualified Data.Map                    as M
+import qualified Data.Text                   as T
+import qualified Data.Text.Lazy              as L
 import qualified Database.Persist.Postgresql as D
-import qualified Web.Scotty as S
--- import Control.Monad.Trans (lift)
-import qualified Data.Map as M
--- import Control.Monad (join)
-import Data.Maybe (isJust, fromJust)
-import Control.Monad.Trans.Maybe
-import Control.Monad.State
-import Web.Blog.Models.Util
+import qualified Web.Scotty                  as S
 
 routeEntrySlug :: RouteEither
 routeEntrySlug = do
@@ -114,6 +109,8 @@ routeEntry (Right (D.Entity eKey e')) = do
       
     view = viewEntry e' tags (fst <$> prevData) (fst <$> nextData)
     pageData' = pageData { pageDataTitle = Just $ entryTitle e'
+                         , pageDataCss   = ["/css/page/entry.min.css"]
+                         , pageDataJs    = ["/js/disqus.js","/js/disqus_count.js"]
                          , pageDataMap   = pdMap M.empty
                          }
   

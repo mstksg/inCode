@@ -2,78 +2,110 @@
 
 module Web.Blog.Views.Entry (viewEntry) where
 
--- import Data.Maybe
--- import Text.Pandoc
--- import Web.Blog.Render
--- import Web.Blog.SiteData
--- import qualified Data.Text.Lazy              as L
--- import qualified Database.Persist.Postgresql as D
-import Control.Applicative                      ((<$>))
+import Control.Applicative                   ((<$>))
 import Control.Monad.Reader
 import Data.Maybe
 import Data.Monoid
-import Data.Time                                (getCurrentTime)
-import Text.Blaze.Html5                         ((!))
+import Data.Time                             (getCurrentTime)
+import Text.Blaze.Html5                      ((!))
 import Web.Blog.Models
 import Web.Blog.Models.Util
+import Web.Blog.Render
 import Web.Blog.Types
-import Web.Blog.Util                            (renderFriendlyTime, renderDatetimeTime)
-import qualified Data.Map                       as M
-import qualified Data.Text                      as T
-import qualified Text.Blaze.Html5               as H
-import qualified Text.Blaze.Html5.Attributes    as A
-import qualified Text.Blaze.Internal            as I
+import Web.Blog.Util                         (renderFriendlyTime, renderDatetimeTime)
+import qualified Data.Map                    as M
+import qualified Data.Text                   as T
+import qualified Text.Blaze.Html5            as H
+import qualified Text.Blaze.Html5.Attributes as A
+import qualified Text.Blaze.Internal         as I
+import Data.List (intersperse)
 
 viewEntry :: Entry -> [Tag] -> Maybe Entry -> Maybe Entry -> SiteRender H.Html
 viewEntry entry tags prevEntry nextEntry = do
   siteData' <- pageSiteData <$> ask
   npUl <- nextPrevUrl prevEntry nextEntry
   isUnposted <- (>) (entryPostedAt entry) <$> liftIO getCurrentTime
+  aboutUrl <- renderUrl "/about"
 
-  return $ 
 
-    H.article $ do
-      
-      H.header $ do
+  return $
 
-        npUl
+    H.div ! A.class_ "entry-section unit span-grid" ! mainSection $ do
 
-        when isUnposted $
-          H.div 
-            "(Unposted entry)"
+      H.article ! A.class_ "tile article" $ do
+        
+        H.header $ do
 
-        H.h1 $ H.toHtml $ entryTitle entry
+          -- npUl
 
-        H.p $ do
+          when isUnposted $
+            H.div ! A.class_ "unposted-banner" $
+              "Unposted entry"
 
-          "by " :: H.Html
+          H.h1 $ H.toHtml $ entryTitle entry
 
-          H.a ! A.class_ "author" $ H.toHtml $ siteDataAuthor siteData'
+          H.p ! A.class_ "entry-info" $ do
 
-          " " :: H.Html
+            "by " :: H.Html
 
-          H.time
-            ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt entry)
-            ! A.pubdate "" 
-            ! A.class_ "pubdate"
-            $ H.toHtml $ renderFriendlyTime $ entryPostedAt entry
+            H.a ! A.class_ "author" ! A.href (I.textValue aboutUrl) $
+              H.toHtml $ siteDataAuthor siteData'
 
-          H.ul $
-            forM_ (filter isCategoryTag tags) $ \t ->
+            H.span ! A.class_ "info-separator" $
+              H.preEscapedToHtml
+                (" &diams; " :: T.Text)
+
+            H.time
+              ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt entry)
+              ! A.pubdate "" 
+              ! A.class_ "pubdate"
+              $ H.toHtml $ renderFriendlyTime $ entryPostedAt entry
+
+          H.p $ do
+            "Posted in " :: H.Html
+            categoryList (filter isCategoryTag tags)
+            H.span ! A.class_ "info-separator" $
+              H.preEscapedToHtml
+                (" &diams; " :: T.Text)
+            H.a ! A.class_ "comment-link" ! A.href "#disqus_thread" $ "Comments"
+
+        H.hr
+              
+        H.div ! A.class_ "main-content copy-content" $
+
+          entryHtml entry 
+
+        H.footer $ do
+
+          H.ul ! A.class_ "entry-series" $
+            forM_ (filter isSeriesTag tags) $ \t ->
+              seriesLi t
+
+          H.ul ! A.class_ "tag-list" $
+            forM_ tags $ \t ->
               tagLi t
 
-      H.div ! A.class_ "main-content" $
+          npUl
 
-        entryHtml entry 
-
-      H.footer $ do
-        H.ul $
-          forM_ tags $ \t ->
-            tagLi t
-        npUl
 
       H.div ! A.class_ "post-entry" $
-        mempty
+        H.div ! A.class_ "tile" $ do
+          H.div ! A.id "disqus_thread" $ mempty
+
+          H.noscript $ do
+            "Please enable JavaScript to view the " :: H.Html
+            H.a ! A.href "http://disqus.com/?ref_noscript" $
+              "comments powered by Disqus." :: H.Html
+
+          H.a ! A.href "http://disqus.com" ! A.class_ "dsq-brlink" $ do
+            "comments powered by " :: H.Html
+            H.span ! A.class_ "logo-disqus" $
+                "Diqus" :: H.Html
+
+
+    -- H.script ! A.type_ "text/javascript" $
+    --   tocifyJs
+    
 
 nextPrevUrl :: Maybe Entry -> Maybe Entry -> SiteRender H.Html
 nextPrevUrl prevEntry nextEntry = do
@@ -83,13 +115,43 @@ nextPrevUrl prevEntry nextEntry = do
     H.nav $
       H.ul $ do
         when (isJust prevEntry) $
-          H.li $ do
-            H.preEscapedToHtml ("Previous &mdash; " :: T.Text)
+          H.li ! A.class_ "prev-entry-link" $ do
+            H.preEscapedToHtml ("&larr; " :: T.Text)
             H.a ! A.href (I.textValue $ pageDataMap' M.! "prevUrl") $
               H.toHtml $ entryTitle $ fromJust prevEntry
+            " (Previous)" :: H.Html
 
         when (isJust nextEntry) $
-          H.li $ do
-            H.preEscapedToHtml ("Next &mdash; " :: T.Text)
+          H.li ! A.class_ "next-entry-link" $ do
+            "(Next) " :: H.Html
             H.a ! A.href (I.textValue $ pageDataMap' M.! "nextUrl") $
               H.toHtml $ entryTitle $ fromJust nextEntry
+            H.preEscapedToHtml (" &rarr;" :: T.Text)
+
+categoryList :: [Tag] -> H.Html
+categoryList ts = sequence_ hinter
+  where
+    hlist = map catLink ts
+    hinter = intersperse ", " hlist
+    catLink t =
+      H.a H.! A.href (I.textValue $ renderUrl' $ tagPath t) $
+        H.toHtml $ capitalize $ tagLabel t
+    capitalize t = T.append (T.take 1 t) (T.toLower $ T.tail t)
+
+
+seriesLi :: Tag -> H.Html
+seriesLi t = H.li $
+  H.div $ do
+    "This entry is a part of a series called " :: H.Html
+    H.b $ 
+      H.toHtml $ T.concat ["\"",tagLabel t,"\""]
+    ".  Find the rest of the entries in this series at the " :: H.Html
+    H.a ! A.href (I.textValue $ renderUrl' $ tagPath t) $
+      "series archives" :: H.Html
+    "." :: H.Html
+
+-- tocifyJs :: H.Html
+-- tocifyJs = H.preEscapedToHtml $ T.unlines
+--               [ "$(function() {"
+--               , "$('.toc').tocify( { context: '.main-content' } );"
+--               , "});"]

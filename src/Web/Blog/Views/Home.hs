@@ -2,17 +2,16 @@
 
 module Web.Blog.Views.Home (viewHome) where
 
--- import Data.Maybe
--- import Data.Monoid
--- import Web.Blog.Render
+-- import Web.Blog.SiteData
 import Control.Applicative                   ((<$>))
 import Control.Monad.Reader
 import Text.Blaze.Html5                      ((!))
 import Web.Blog.Models
 import Web.Blog.Models.Util
-import Web.Blog.SiteData
+import Web.Blog.Render
 import Web.Blog.Types
 import Web.Blog.Util                         (renderFriendlyTime, renderDatetimeTime)
+import Web.Blog.Views.Copy
 import qualified Data.Map                    as M
 import qualified Data.Text                   as T
 import qualified Database.Persist.Postgresql as D
@@ -23,59 +22,69 @@ import qualified Text.Blaze.Internal         as I
 viewHome :: [(D.Entity Entry,(T.Text,[Tag]))] -> SiteRender H.Html
 viewHome eList = do
   pageDataMap' <- pageDataMap <$> ask
+  bannerCopy <- viewCopyFile "in Code" "copy/static/home-banner.md"
 
   return $ 
-    H.section $ do
+    H.section ! A.class_ "home-section unit span-grid" ! mainSection $ do
 
-      H.header $ 
+      H.header ! A.class_ "tile" $ 
+        H.section ! A.class_ "home-banner" $
+          bannerCopy
 
-        H.section $ do
-          H.h1 $ H.toHtml $ siteDataTitle siteData
-          H.p
-            "Welcome to my blog."
+      H.ul $
+        forM_ eList $ \eData -> do
+          let
+            (D.Entity _ e,(u,ts)) = eData
+            commentUrl = T.append u "#disqus_thread"
 
-      forM_ eList $ \eData -> do
-        let
-          (D.Entity _ e,(u,ts)) = eData
+          H.li $
+            H.article ! A.class_ "tile" $ do
 
-        H.article $ do
+              H.header $ do
+                H.time
+                  ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt e)
+                  ! A.pubdate "" 
+                  ! A.class_ "pubdate"
+                  $ H.toHtml $ renderFriendlyTime $ entryPostedAt e
 
-          H.header $ do
-            H.h2 $ 
-              H.a ! A.href (I.textValue u) $
-                H.toHtml $ entryTitle e
-
-            H.time
-              ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt e)
-              ! A.pubdate "" 
-              ! A.class_ "pubdate"
-              $ H.toHtml $ renderFriendlyTime $ entryPostedAt e
-
-          H.div $
-            entryLedeHtml e
-
-          H.footer $
-            H.ul $
-              forM_ ts $ \t ->
-                tagLi t
+                H.h2 $ 
+                  H.a ! A.href (I.textValue u) $
+                    H.toHtml $ entryTitle e
 
 
-      H.footer $ 
+              H.div ! A.class_ "entry-lede copy-content" $ do
+                entryLedeHtml e
+                H.p $ do
+                  H.a ! A.href (I.textValue u) ! A.class_ "link-readmore" $
+                    "Read more..."
+                  " " :: H.Html
+                  H.a ! A.href (I.textValue commentUrl) ! A.class_ "link-comment" $
+                    "Comments"
 
-        H.nav $
+              H.footer $
+                H.ul ! A.class_ "tag-list" $
+                  forM_ ts $ \t ->
+                    tagLi t
+
+
+      H.footer ! A.class_ "tile" $ 
+
+        H.nav $ do
           H.ul $ do
 
             case M.lookup "nextPage" pageDataMap' of
               Just nlink -> 
-                H.li $
+                H.li ! A.class_ "home-next" $
                   H.a ! A.href (I.textValue nlink) $
-                    "Older"
+                    H.preEscapedToHtml ("&larr; Older" :: T.Text)
               _ -> return ()
 
             case M.lookup "prevPage" pageDataMap' of
               Just plink -> 
-                H.li $
+                H.li ! A.class_ "home-prev" $
                   H.a ! A.href (I.textValue plink) $
-                    "Newer"
+                    H.preEscapedToHtml ("Newer &rarr;" :: T.Text)
               _ -> return ()
+
+          H.div ! A.class_ "clear" $ ""
 

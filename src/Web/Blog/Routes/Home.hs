@@ -2,14 +2,6 @@
 
 module Web.Blog.Routes.Home (routeHome) where
 
--- import Control.Applicative                ((<$>))
--- import Control.Monad.Reader
--- import Control.Monad.Trans
--- import Control.Monad.Trans                (lift)
--- import Data.Char                          (isDigit)
--- import qualified Data.Text.Lazy           as L
--- import qualified Text.Blaze.Html5         as H
--- import qualified Web.Scotty               as S
 import Control.Monad.IO.Class
 import Control.Monad.State
 import Web.Blog.Database
@@ -59,6 +51,8 @@ routeHome page = do
 
         view = viewHome eList
         pageData' = pageData { pageDataTitle = Just "Home"
+                             , pageDataCss   = ["/css/page/home.min.css"]
+                             , pageDataJs    = ["/js/disqus_count.js"]
                              , pageDataMap   = pdMap M.empty
                              }
           

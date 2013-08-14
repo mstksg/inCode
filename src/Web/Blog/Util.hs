@@ -2,9 +2,8 @@ module Web.Blog.Util where
 
 import Data.Time
 import System.Locale
--- import qualified Data.Text as T
--- import qualified Text.Pandoc as P
--- import qualified Text.Blaze.Html5 as H
+import qualified Data.Text as T
+import Data.Char (isAlphaNum)
 
 
 renderFriendlyTime :: UTCTime -> String
@@ -12,6 +11,9 @@ renderFriendlyTime = formatTime defaultTimeLocale "%A %B %-e, %Y"
 
 renderDatetimeTime :: UTCTime -> String
 renderDatetimeTime = formatTime defaultTimeLocale "%FT%XZ"
+
+renderShortFriendlyTime :: UTCTime -> String
+renderShortFriendlyTime = formatTime defaultTimeLocale "%B %-e, %Y"
 
 renderYearTime :: UTCTime -> String
 renderYearTime = formatTime defaultTimeLocale "%Y"
@@ -25,6 +27,14 @@ renderYearPath = formatTime defaultTimeLocale "/entries/in/%Y"
 renderMonthPath :: UTCTime -> String
 renderMonthPath = formatTime defaultTimeLocale "/entries/in/%Y/%-m"
 
--- markdownToHtml :: T.Text -> H.Html
--- markdownToHtml = P.writeHtml (P.def P.WriterOptions) .
---   P.readMarkdown (P.def P.ReaderOptions) . T.unpack
+genSlug :: Int -> T.Text -> T.Text
+genSlug w = squash . T.dropAround isDash . T.map replaceSymbols . T.toCaseFold
+  where
+    isDash = (==) '-'
+    replaceSymbols s =
+      if isAlphaNum s
+        then
+          s
+        else
+          '-'
+    squash = T.intercalate "-" . take w . filter (not . T.null) . T.split isDash

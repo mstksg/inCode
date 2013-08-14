@@ -7,17 +7,6 @@ module Web.Blog.Routes.Archive (
   , routeArchiveMonth
   ) where
 
--- import Control.Applicative                ((<$>))
--- import Control.Monad.Reader
--- import Control.Monad.State
--- import Control.Monad.Trans
--- import Control.Monad.Trans                (lift)
--- import Data.Char                          (isDigit)
--- import Web.Blog.SiteData
--- import qualified Data.Map                 as M
--- import qualified Data.Text.Lazy           as L
--- import qualified Text.Blaze.Html5         as H
--- import qualified Web.Scotty               as S
 import Control.Monad.IO.Class
 import Data.Time
 import System.Locale
@@ -38,7 +27,9 @@ routeArchive title entries vat = do
   eList' <- liftIO $ runDB $ mapM (mapM (mapM wrapEntryData)) grouped
   let
     view = viewArchive eList' vat
-    pageData' = pageData { pageDataTitle = Just title }
+    pageData' = pageData { pageDataTitle = Just title
+                         , pageDataCss   = ["/css/page/archive.min.css"]
+                         , pageDataJs    = ["/js/disqus_count.js"] }
 
   return $ Right (view, pageData')
 
@@ -50,7 +41,7 @@ routeArchiveFilters title filters pdMap = do
 
 
 routeArchiveAll :: RouteEither
-routeArchiveAll = routeArchiveFilters "Entries" [] ViewArchiveAll
+routeArchiveAll = routeArchiveFilters "Entry History" [] ViewArchiveAll
 
 routeArchiveTag :: TagType -> T.Text -> RouteEither
 routeArchiveTag type_ slug = do
