@@ -12,6 +12,7 @@ import Web.Blog.Render
 import Web.Blog.Types
 import Web.Blog.Util                         (renderFriendlyTime, renderDatetimeTime)
 import Web.Blog.Views.Copy
+import qualified Data.Foldable               as Fo
 import qualified Data.Map                    as M
 import qualified Data.Text                   as T
 import qualified Database.Persist.Postgresql as D
@@ -25,66 +26,79 @@ viewHome eList = do
   bannerCopy <- viewCopyFile "in Code" "copy/static/home-banner.md"
 
   return $ 
-    H.section ! A.class_ "home-section unit span-grid" ! mainSection $ do
+    H.section ! A.class_ "home-section" ! mainSection $ do
 
-      H.header ! A.class_ "tile" $ 
+      H.header ! A.class_ "tile unit span-grid" $ 
         H.section ! A.class_ "home-banner" $
           bannerCopy
 
-      H.ul $
-        forM_ eList $ \eData -> do
-          let
-            (D.Entity _ e,(u,ts)) = eData
-            commentUrl = T.append u "#disqus_thread"
+      H.aside ! A.class_ "tile unit one-of-four" $ do
+        H.h2 
+          "Stuff"
+        H.p
+          "I am stuff."
 
-          H.li $
-            H.article ! A.class_ "tile" $ do
-
-              H.header $ do
-                H.time
-                  ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt e)
-                  ! A.pubdate "" 
-                  ! A.class_ "pubdate"
-                  $ H.toHtml $ renderFriendlyTime $ entryPostedAt e
-
-                H.h2 $ 
-                  H.a ! A.href (I.textValue u) $
-                    H.toHtml $ entryTitle e
+      H.div ! A.class_ "unit three-of-four" $ do
+        H.div ! A.class_ "tile" $
+          H.h2 ! A.class_ "recent-header" $ do
+            "Recent Entries" :: H.Html
+            Fo.forM_ (M.lookup "pageNum" pageDataMap') $ \n -> do
+              " (Page " :: H.Html
+              H.toHtml n
+              ")" :: H.Html
 
 
-              H.div ! A.class_ "entry-lede copy-content" $ do
-                entryLedeHtml e
-                H.p $ do
-                  H.a ! A.href (I.textValue u) ! A.class_ "link-readmore" $
-                    "Read more..."
-                  " " :: H.Html
-                  H.a ! A.href (I.textValue commentUrl) ! A.class_ "link-comment" $
-                    "Comments"
+        H.ul $
+          forM_ eList $ \eData -> do
+            let
+              (D.Entity _ e,(u,ts)) = eData
+              commentUrl = T.append u "#disqus_thread"
 
-              H.footer $
-                H.ul ! A.class_ "tag-list" $
-                  forM_ ts $ \t ->
-                    tagLi t
+            H.li $
+              H.article ! A.class_ "tile" $ do
+
+                H.header $ do
+                  H.time
+                    ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt e)
+                    ! A.pubdate "" 
+                    ! A.class_ "pubdate"
+                    $ H.toHtml $ renderFriendlyTime $ entryPostedAt e
+
+                  H.h3 $ 
+                    H.a ! A.href (I.textValue u) $
+                      H.toHtml $ entryTitle e
 
 
-      H.footer ! A.class_ "tile" $ 
+                H.div ! A.class_ "entry-lede copy-content" $ do
+                  entryLedeHtml e
+                  H.p $ do
+                    H.a ! A.href (I.textValue u) ! A.class_ "link-readmore" $
+                      "Read more..."
+                    " " :: H.Html
+                    H.a ! A.href (I.textValue commentUrl) ! A.class_ "link-comment" $
+                      "Comments"
 
-        H.nav $ do
-          H.ul $ do
+                H.footer $
+                  H.ul ! A.class_ "tag-list" $
+                    forM_ ts $ \t ->
+                      tagLi t
 
-            case M.lookup "nextPage" pageDataMap' of
-              Just nlink -> 
+
+        H.footer ! A.class_ "tile home-footer" $ 
+
+          H.nav $ do
+            H.ul $ do
+
+              Fo.forM_ (M.lookup "nextPage" pageDataMap') $ \nlink ->
                 H.li ! A.class_ "home-next" $
                   H.a ! A.href (I.textValue nlink) $
                     H.preEscapedToHtml ("&larr; Older" :: T.Text)
-              _ -> return ()
 
-            case M.lookup "prevPage" pageDataMap' of
-              Just plink -> 
+              Fo.forM_ (M.lookup "prevPage" pageDataMap') $ \plink ->
                 H.li ! A.class_ "home-prev" $
                   H.a ! A.href (I.textValue plink) $
                     H.preEscapedToHtml ("Newer &rarr;" :: T.Text)
-              _ -> return ()
 
-          H.div ! A.class_ "clear" $ ""
+
+            H.div ! A.class_ "clear" $ ""
 

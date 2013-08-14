@@ -44,6 +44,9 @@ routeHome page = do
                 else T.append urlBase $ T.pack $ show $ page - 1
             modify $
               M.insert "prevPage" prevUrl
+            modify $
+              M.insert "pageNum" $ T.pack $ show page
+
 
           when (page < maxPage') $
             modify $

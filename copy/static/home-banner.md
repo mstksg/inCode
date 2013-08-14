@@ -1,5 +1,4 @@
-
-[![Justin Le](/img/photo_square.jpg)][about]
+## [Justin Le][about]
 
 Welcome!  My name is **Justin Le**.  I'm a final-year undergraduate student at
 University of California, San Diego, studying Computational Physics and
