@@ -28,78 +28,80 @@ viewEntry entry tags prevEntry nextEntry = do
   aboutUrl <- renderUrl "/about"
 
 
-  return $ do
+  return $
 
-    H.article ! A.class_ "tile article entry-section" $ do
-      
-      H.header $ do
+    H.div ! A.class_ "entry-section unit span-grid" ! mainSection $ do
 
-        -- npUl
+      H.article ! A.class_ "tile article" $ do
+        
+        H.header $ do
 
-        when isUnposted $
-          H.div ! A.class_ "unposted-banner" $
-            "Unposted entry"
+          -- npUl
 
-        H.h1 $ H.toHtml $ entryTitle entry
+          when isUnposted $
+            H.div ! A.class_ "unposted-banner" $
+              "Unposted entry"
 
-        H.p ! A.class_ "entry-info" $ do
+          H.h1 $ H.toHtml $ entryTitle entry
 
-          "by " :: H.Html
+          H.p ! A.class_ "entry-info" $ do
 
-          H.a ! A.class_ "author" ! A.href (I.textValue aboutUrl) $
-            H.toHtml $ siteDataAuthor siteData'
+            "by " :: H.Html
 
-          H.span ! A.class_ "bullet" $
-            H.preEscapedToHtml
-              (" &diams; " :: T.Text)
+            H.a ! A.class_ "author" ! A.href (I.textValue aboutUrl) $
+              H.toHtml $ siteDataAuthor siteData'
 
-          H.time
-            ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt entry)
-            ! A.pubdate "" 
-            ! A.class_ "pubdate"
-            $ H.toHtml $ renderFriendlyTime $ entryPostedAt entry
+            H.span ! A.class_ "info-separator" $
+              H.preEscapedToHtml
+                (" &diams; " :: T.Text)
 
-        H.p $ do
-          "Posted in " :: H.Html
-          categoryList (filter isCategoryTag tags)
-          "." :: H.Html
+            H.time
+              ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt entry)
+              ! A.pubdate "" 
+              ! A.class_ "pubdate"
+              $ H.toHtml $ renderFriendlyTime $ entryPostedAt entry
 
-      H.hr
-            
-      H.div ! A.class_ "main-content copy-content" $
+          H.p $ do
+            "Posted in " :: H.Html
+            categoryList (filter isCategoryTag tags)
+            H.span ! A.class_ "info-separator" $
+              H.preEscapedToHtml
+                (" &diams; " :: T.Text)
+            H.a ! A.class_ "comment-link" ! A.href "#disqus_thread" $ "Comments"
 
-        entryHtml entry 
+        H.hr
+              
+        H.div ! A.class_ "main-content copy-content" $
 
-      H.footer $ do
+          entryHtml entry 
 
-        H.ul ! A.class_ "entry-series" $
-          forM_ (filter isSeriesTag tags) $ \t ->
-            seriesLi t
+        H.footer $ do
 
-        H.ul ! A.class_ "tag-list" $
-          forM_ tags $ \t ->
-            tagLi t
+          H.ul ! A.class_ "entry-series" $
+            forM_ (filter isSeriesTag tags) $ \t ->
+              seriesLi t
 
-        npUl
+          H.ul ! A.class_ "tag-list" $
+            forM_ tags $ \t ->
+              tagLi t
 
-
-    H.div ! A.class_ "post-entry" $
-      H.div ! A.class_ "tile" $ do
-        H.div ! A.id "disqus_thread" $ mempty
-
-        H.noscript $ do
-          "Please enable JavaScript to view the " :: H.Html
-          H.a ! A.href "http://disqus.com/?ref_noscript" $
-            "comments powered by Disqus." :: H.Html
-
-        H.a ! A.href "http://disqus.com" ! A.class_ "dsq-brlink" $ do
-          "comments powered by " :: H.Html
-          H.span ! A.class_ "logo-disqus" $
-              "Diqus" :: H.Html
+          npUl
 
 
-    H.script ! A.type_ "text/javascript" $
-      disqusJs
+      H.div ! A.class_ "post-entry" $
+        H.div ! A.class_ "tile" $ do
+          H.div ! A.id "disqus_thread" $ mempty
+
+          H.noscript $ do
+            "Please enable JavaScript to view the " :: H.Html
+            H.a ! A.href "http://disqus.com/?ref_noscript" $
+              "comments powered by Disqus." :: H.Html
+
+          H.a ! A.href "http://disqus.com" ! A.class_ "dsq-brlink" $ do
+            "comments powered by " :: H.Html
+            H.span ! A.class_ "logo-disqus" $
+                "Diqus" :: H.Html
+
 
     -- H.script ! A.type_ "text/javascript" $
     --   tocifyJs
@@ -147,15 +149,6 @@ seriesLi t = H.li $
     H.a ! A.href (I.textValue $ renderUrl' $ tagPath t) $
       "series archives" :: H.Html
     "." :: H.Html
-
-disqusJs :: H.Html
-disqusJs = H.preEscapedToHtml $ T.unlines
-  [ "var disqus_shortname = 'justinleblogdevelopment';"
-  , "(function() {"
-  , "var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;"
-  , "dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';"
-  , "(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);"
-  , "})();" ]
 
 -- tocifyJs :: H.Html
 -- tocifyJs = H.preEscapedToHtml $ T.unlines

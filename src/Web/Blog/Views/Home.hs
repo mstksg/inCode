@@ -2,14 +2,16 @@
 
 module Web.Blog.Views.Home (viewHome) where
 
+-- import Web.Blog.SiteData
 import Control.Applicative                   ((<$>))
 import Control.Monad.Reader
 import Text.Blaze.Html5                      ((!))
 import Web.Blog.Models
 import Web.Blog.Models.Util
-import Web.Blog.SiteData
+import Web.Blog.Render
 import Web.Blog.Types
 import Web.Blog.Util                         (renderFriendlyTime, renderDatetimeTime)
+import Web.Blog.Views.Copy
 import qualified Data.Map                    as M
 import qualified Data.Text                   as T
 import qualified Database.Persist.Postgresql as D
@@ -20,21 +22,20 @@ import qualified Text.Blaze.Internal         as I
 viewHome :: [(D.Entity Entry,(T.Text,[Tag]))] -> SiteRender H.Html
 viewHome eList = do
   pageDataMap' <- pageDataMap <$> ask
+  bannerCopy <- viewCopyFile "in Code" "copy/static/home-banner.md"
 
   return $ 
-    H.section ! A.class_ "home-section" $ do
+    H.section ! A.class_ "home-section unit span-grid" ! mainSection $ do
 
       H.header ! A.class_ "tile" $ 
-
-        H.section $ do
-          H.h1 $ H.toHtml $ siteDataTitle siteData
-          H.p
-            "Welcome to my blog."
+        H.section ! A.class_ "home-banner" $
+          bannerCopy
 
       H.ul $
         forM_ eList $ \eData -> do
           let
             (D.Entity _ e,(u,ts)) = eData
+            commentUrl = T.append u "#disqus_thread"
 
           H.li $
             H.article ! A.class_ "tile" $ do
@@ -53,9 +54,12 @@ viewHome eList = do
 
               H.div ! A.class_ "entry-lede copy-content" $ do
                 entryLedeHtml e
-                H.p $
+                H.p $ do
                   H.a ! A.href (I.textValue u) ! A.class_ "link-readmore" $
-                    "Read more & comment..."
+                    "Read more..."
+                  " " :: H.Html
+                  H.a ! A.href (I.textValue commentUrl) ! A.class_ "link-comment" $
+                    "Comments"
 
               H.footer $
                 H.ul ! A.class_ "tag-list" $

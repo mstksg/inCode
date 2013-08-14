@@ -2,6 +2,30 @@
 
 .home-section {
 
+  .home-banner {
+
+    .copy-content {
+      @include first-line-emphasis(133%);
+    }
+
+    .figure {
+      > img {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        border: 2px #ddd solid;
+      }
+      .caption {
+        display: none;
+      }
+
+      float: left;
+      padding-right: 1.5rem;
+      padding-top: 0.75rem;
+    }
+
+  }
+
   article {
     > header {
       > h2 {
@@ -16,12 +40,17 @@
       > time {
         font-size: 90%;
         font-style: italic;
-        display: block;
+        // display: block;
         // line-height: 125%;
-        border-bottom: 1px solid #ccc;
-        width: 33%;
+        border-bottom: 1px solid #bbb;
+        line-height: 100%;
+        // width: 50%;
         // padding-right: 3rem;
         color: #444;
+        cursor: default;
+        // overflow: visible;
+        // white-space: nowrap;
+        padding-right: 3rem;
       }
 
       margin-bottom: 2rem;
@@ -33,9 +62,21 @@
         text-indent: 2rem;
       }
 
-      .link-readmore {
+      .link-readmore, .link-comment {
         font-size: 90%;
         font-style: italic;
+      }
+
+      .link-comment {
+        &:before {
+          content: "(";
+        }
+        &:after {
+          content: ")";
+        }
+        margin-left: 0.4rem;
+        color: #888;
+        border: none;
       }
 
       margin-bottom: 2.5rem;
@@ -50,7 +91,7 @@
 
   > footer {
 
-    > nav ul {
+    > nav > ul {
       > li {
         display: inline-block;
 
@@ -64,10 +105,12 @@
       }
 
       list-style-type: none;
+      margin: 0;
     }
 
-    padding-top: 0.2rem;
-    padding-bottom: 1.7rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+
   }
 
 }

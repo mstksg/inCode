@@ -28,7 +28,8 @@ routeArchive title entries vat = do
   let
     view = viewArchive eList' vat
     pageData' = pageData { pageDataTitle = Just title
-                         , pageDataCss   = Just "/css/page/archive.min.css" }
+                         , pageDataCss   = ["/css/page/archive.min.css"]
+                         , pageDataJs    = ["/js/disqus_count.js"] }
 
   return $ Right (view, pageData')
 
@@ -40,7 +41,7 @@ routeArchiveFilters title filters pdMap = do
 
 
 routeArchiveAll :: RouteEither
-routeArchiveAll = routeArchiveFilters "Entries" [] ViewArchiveAll
+routeArchiveAll = routeArchiveFilters "Entry History" [] ViewArchiveAll
 
 routeArchiveTag :: TagType -> T.Text -> RouteEither
 routeArchiveTag type_ slug = do

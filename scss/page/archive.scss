@@ -4,30 +4,13 @@
 
   > header {
     > nav {
-      .back-link {
-        display: block;
-        float: left;
-      }
-      .curr-index {
-        font-weight: bold;
-      }
-
-      > ul {
-        > li {
-          display: inline-block;
-          margin: 0 0.2rem;
-        }
-
-        float: right;
-        list-style-type: none;
-        margin-bottom: 0rem;
-      }
-
-      a {
-        text-decoration: none;
-      }
-      margin-bottom: 1.5rem;
+      margin: 0;
+      padding: 0;
+    }
+    .back-link {
+      margin-bottom: 0;
       font-size: 90%;
+      margin-left: 0.5rem;
     }
 
     > p {
@@ -68,17 +51,29 @@
     h2, h3, h4 {
       > a {
         border: none;
+        &:visited {
+          color: #000;
+        }
       }
     }
 
     .entry-item {
-      > time {
+      .entry-info {
+        > time {
+          color: #444;
+          cursor: default;
+        }
+        .entry-comments {
+          color: #888;
+          border: none;
+        }
+        font-style: italic;
         display: block;
         font-size: 85%;
         line-height: 125%;
-        font-style: italic;
         margin-left: -0.5rem;
       }
+
 
       .entry-link {
         // display: block;
@@ -111,6 +106,10 @@
     }
   }
 
+  .no-entries {
+    padding: 1.5rem;
+  }
+
   > .tag-list {
     text-align: center;
     font-size: 100%;
@@ -135,6 +134,7 @@
     footer {
       font-size: 90%;
       line-height: 125%;
+      font-style: italic;
     }
   }
 
@@ -169,15 +169,37 @@
         margin-bottom: 0.5rem;
       }
       p {
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.75rem;
+      }
+      footer {
+        text-align: right;
       }
       margin-bottom: 2rem;
     }
     // border-left: 6px solid #5f5;
   }
 
+}
 
+.archive-nav {
 
+  > h2 {
+    margin: 0;
+    padding: 0;
+    font-size: 200%;
+    margin-bottom: 2rem;
+    line-height: 125%;
+  }
 
+  > ul {
+    list-style-type: none;
+  }
+
+  .curr-index {
+    font-weight: bold;
+  }
+
+  font-family: $sans;
+  text-align: right;
 
 }

@@ -16,7 +16,7 @@ routeNotFound = do
   let
     view = viewNotFound
     pageData' = pageData { pageDataTitle = Just "Not Found" 
-                         , pageDataCss   = Just "/css/page/not-found.min.css" }
+                         , pageDataCss   = ["/css/page/not-found.min.css"] }
 
   return $ case err of
     Just _  -> Left "/not-found"

@@ -7,11 +7,11 @@ import Web.Blog.Types (SiteData(..))
 siteData :: SiteData
 siteData =
   SiteData
-    "Blog"
+    "in Code"
     "Justin Le"
     "blog-dev.jle0.com"
     "https://plus.google.com/107705320197444500140/posts"
     6
     5
-    3
+    2
 

@@ -10,7 +10,6 @@ module Web.Blog.Views.Archive (
 import Control.Applicative                   ((<$>))
 import Control.Monad.Reader
 import Data.Maybe                            (fromMaybe, isJust, fromJust)
-import Data.Monoid                           (mempty)
 import Text.Blaze.Html5                      ((!))
 import Web.Blog.Models
 import Web.Blog.Models.Util
@@ -36,24 +35,24 @@ data ViewArchiveType = ViewArchiveAll
 viewArchive :: [[[(D.Entity Entry,(T.Text,[Tag]))]]] -> ViewArchiveType -> SiteRender H.Html
 viewArchive eListYears viewType = do
   pageTitle <- pageDataTitle <$> ask
-  nav <- viewArchiveNav (case viewType of
+  navHtml <- viewArchiveNav (case viewType of
                           ViewArchiveAll -> Just ViewArchiveIndexDate
                           _ -> Nothing)
 
   upLink <- Tr.mapM renderUrl (upPath viewType)
 
-  return $ 
-    H.section ! A.class_ "archive-section" $ do
+  return $ do
+    H.nav ! A.class_ "archive-nav tile unit one-of-four" $
+      navHtml
+
+    H.section ! A.class_ "archive-section unit three-of-four" ! mainSection $ do
 
       H.header ! A.class_ "tile" $ do
 
-        H.nav $ do
-          when (isJust upLink) $
+        when (isJust upLink) $
+          H.nav $
             H.a ! A.href (I.textValue $ fromJust upLink) ! A.class_ "back-link" $
               "back"
-          nav
-
-        H.div ! A.class_ "clear" $ mempty
 
         H.h1 $ H.toHtml $ fromMaybe "Entries" pageTitle
 
@@ -63,9 +62,10 @@ viewArchive eListYears viewType = do
 
       if null eListYears
         then
-          H.p ! A.class_ "tile no-entries" $ H.toHtml $ case pageTitle of
-            Just pt -> T.concat ["No entries found for ",pt,"."]
-            Nothing -> "No entries found."
+          H.div ! A.class_ "tile no-entries" $
+            H.p $ H.toHtml $ case pageTitle of
+              Just pt -> T.concat ["No entries found for ",pt,"."]
+              Nothing -> "No entries found."
         else do
           let
             eListMonths = concat eListYears
@@ -104,7 +104,10 @@ viewArchiveNav isIndex = do
   byTagUrl  <- renderUrl "/tags"
   byCatUrl  <- renderUrl "/categories"
   bySerUrl  <- renderUrl "/series"
-  return $ H.ul $
+  return $ do
+    H.h2 
+      "Archives"
+    H.ul $
         forM_ [("History",byDateUrl,ViewArchiveIndexDate)
               ,("Tags",byTagUrl,ViewArchiveIndexTag)
               ,("Categories",byCatUrl,ViewArchiveIndexCategory)
@@ -125,14 +128,20 @@ viewArchiveFlat eList tile =
     forM_ eList $ \eData -> do
       let
         (D.Entity _ e,(u,ts)) = eData
+        commentUrl = T.append u "#disqus_thread"
 
       H.li ! A.class_ "entry-item" $ do
-        H.time
-          ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt e)
-          ! A.pubdate "" 
-          ! A.class_ "pubdate"
-          $ H.toHtml $ renderFriendlyTime $ entryPostedAt e
-        " " :: H.Html
+        H.div ! A.class_ "entry-info" $ do
+          H.time
+            ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt e)
+            ! A.pubdate "" 
+            ! A.class_ "pubdate"
+            $ H.toHtml $ renderFriendlyTime $ entryPostedAt e
+          H.preEscapedToHtml 
+            (" &mdash; " :: T.Text)
+          H.a ! A.href (I.textValue commentUrl) ! A.class_ "entry-comments" $
+            "Comments"
+
         H.a ! A.href (I.textValue u) ! A.class_ "entry-link" $
           H.toHtml $ entryTitle e
         H.ul ! A.class_ "tag-list" $

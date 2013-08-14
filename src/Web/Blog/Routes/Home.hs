@@ -51,7 +51,8 @@ routeHome page = do
 
         view = viewHome eList
         pageData' = pageData { pageDataTitle = Just "Home"
-                             , pageDataCss   = Just "/css/page/home.min.css"
+                             , pageDataCss   = ["/css/page/home.min.css"]
+                             , pageDataJs    = ["/js/disqus_count.js"]
                              , pageDataMap   = pdMap M.empty
                              }
           
