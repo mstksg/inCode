@@ -14,7 +14,7 @@ import Web.Blog.Models.Types
 import Web.Blog.Render
 import Web.Blog.Util
 import qualified Data.Text                   as T
-import qualified Data.Traversable as Tr      (mapM)
+-- import qualified Data.Traversable as Tr      (mapM)
 import qualified Database.Esqueleto          as E
 import qualified Database.Persist.Postgresql as D
 import qualified Text.Blaze.Html5            as H
@@ -111,12 +111,10 @@ getTagInfoListRecent tt recent = do
     else
       D.selectList [ TagType_ D.==. tt ] [ D.Asc TagLabel ]
 
-
   let
     tagInfo (D.Entity tKey t) = do
       c <- D.count [ EntryTagTagId D.==. tKey ]
       eKeys <- map (entryTagEntryId . D.entityVal) <$> D.selectList [ EntryTagTagId D.==. tKey ] []
-
       r <- if recent
         then
           runMaybeT $ do
@@ -125,9 +123,36 @@ getTagInfoListRecent tt recent = do
             return (D.entityVal re,ru)
         else 
           return Nothing
-
       return $ TagInfo t c r
 
-  tagInfos <- mapM tagInfo tags
+  mapM tagInfo tags
 
-  return $ filter ((> 0) . tagInfoCount) tagInfos
+getTagInfoListRecent' :: TagType -> Bool -> D.SqlPersistM [TagInfo]
+getTagInfoListRecent' tt recent = do
+  now <- liftIO getCurrentTime
+
+  rawTagInfos <-
+    E.select $
+      E.from $ \(t `E.InnerJoin` et `E.InnerJoin` e) -> do
+        E.on (e E.^. EntryId E.==. et E.^. EntryTagEntryId)
+        E.on (et E.^. EntryTagTagId E.==. t E.^. TagId)
+        -- E.where_ $ t E.^. TagType_ E.==. E.val tt
+        -- E.where_ $ e E.^. EntryPostedAt E.<=. E.val now
+        E.groupBy $ t E.^. TagId
+        -- E.orderBy [ E.desc $ E.max_ $ e E.^. EntryPostedAt, E.asc $ t E.^. TagLabel ]
+        return (t E.^. TagLabel, E.countRows)
+    -- E.select $
+    --     E.from $ \(t `E.InnerJoin` et `E.InnerJoin` e) -> do
+    --         E.on (e E.^. EntryId E.==. et E.^. EntryTagEntryId)
+    --         E.on (et E.^. EntryTagTagId E.==. t E.^. TagId)
+    --         E.groupBy $ t E.^. TagId
+    --         E.orderBy [ E.desc $ E.max_ $ e E.^. EntryDayPosted, E.asc $ t E.^. TagLabel ]
+    --         -- return countRows'
+    --         return (t E.^. TagLabel, E.countRows)
+
+  -- let
+  --   tagInfo (t,c) = TagInfo (D.entityVal t) c Nothing
+
+  -- return $ map tagInfo rawTagInfos
+  
+  return []
