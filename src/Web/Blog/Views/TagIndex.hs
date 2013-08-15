@@ -23,9 +23,9 @@ viewTagIndex :: [TagInfo] -> TagType -> SiteRender H.Html
 viewTagIndex tagInfos tt = do
   let
     ulClass = case tt of
-      GeneralTag -> "tag-list tile"
-      CategoryTag -> "category-list"
-      SeriesTag -> "series-list tile"
+      GeneralTag -> "tag-index tile tag-list"
+      CategoryTag -> "category-index"
+      SeriesTag -> "series-index tile"
 
 
   navHtml <- viewArchiveNav $ Just $
@@ -54,12 +54,12 @@ viewTagIndex tagInfos tt = do
 
 tagIndexLi :: TagType -> TagInfo -> H.Html
 tagIndexLi GeneralTag (TagInfo t c _) =
-  H.li $ do
-    H.a ! A.href (I.textValue $ renderUrl' $ tagPath t) $
+  H.li $
+    H.a ! A.href (I.textValue $ renderUrl' $ tagPath t) ! A.class_ "tag-a-tag" $ do
       H.toHtml $ tagLabel' t
-    " " :: H.Html
-    H.toHtml $
-      T.concat ["(",T.pack $ show c,")"]
+      " (" :: H.Html
+      H.toHtml c
+      ")" :: H.Html
 
 tagIndexLi tt (TagInfo t c r) =
   H.li ! A.class_ liClass $ do

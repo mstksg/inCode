@@ -2,6 +2,7 @@
 
 module Web.Blog.Models.Tag  where
 
+-- import qualified Data.Traversable as Tr   (mapM)
 import Control.Applicative                   ((<$>))
 import Control.Monad.IO.Class                (liftIO)
 import Control.Monad.Trans                   (lift)
@@ -14,7 +15,6 @@ import Web.Blog.Models.Types
 import Web.Blog.Render
 import Web.Blog.Util
 import qualified Data.Text                   as T
-import qualified Data.Traversable as Tr      (mapM)
 import qualified Database.Esqueleto          as E
 import qualified Database.Persist.Postgresql as D
 import qualified Text.Blaze.Html5            as H
@@ -60,15 +60,15 @@ tagPath t = T.append prefix $ tagSlug t
         SeriesTag   -> "series/+")
 
 tagLi :: Tag -> H.Html
-tagLi t = H.li H.! A.class_ liClass $
-  H.a H.! A.href (I.textValue $ renderUrl' $ tagPath t) $
+tagLi t = H.li $
+  H.a H.! A.href (I.textValue $ renderUrl' $ tagPath t) H.! A.class_ liClass $
     H.toHtml $ tagLabel' t
   where
     liClass = I.textValue $
       case tagType_ t of
-        GeneralTag -> "tag-li-tag"
-        CategoryTag -> "tag-li-category"
-        SeriesTag -> "tag-li-series"
+        GeneralTag -> "tag-a-tag"
+        CategoryTag -> "tag-a-category"
+        SeriesTag -> "tag-a-series"
 
 isGeneralTag :: Tag -> Bool
 isGeneralTag t = case tagType_ t of

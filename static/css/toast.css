@@ -98,6 +98,12 @@
 	}
 }
 
+@media screen and (max-width: 480px) {
+	.container {
+		padding: 0 0.75rem;
+	}
+}
+
 /*-----------------------------------*\
 	$TYPE
 

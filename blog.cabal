@@ -51,6 +51,7 @@ executable blog-scripts-migrate
   build-depends:       base 
                      , blaze-markup
                      , containers
+                     , directory
                      , esqueleto >=1.3.2
                      , monad-loops
                      , mtl
@@ -75,6 +76,7 @@ executable blog-scripts-seed
                      , blaze-markup
                      , blaze-markup
                      , containers
+                     , directory
                      , esqueleto >=1.3.2
                      , monad-loops
                      , mtl

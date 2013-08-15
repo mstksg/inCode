@@ -14,14 +14,14 @@ viewNotFound = do
   archiveUrl <- renderUrl "/entries"
 
   return $ 
-    H.section H.! A.class_ "tile single-page not-found-section unit span-grid" H.! mainSection $ do
+    H.section H.! A.class_ "tile main-content single-page not-found-section unit span-grid" H.! mainSection $ do
 
       H.header $
         H.h1 "Not Found"
 
       H.hr
 
-      H.div H.! A.class_ "main-content copy-content" $
+      H.div H.! A.class_ "copy-content" $
         H.p $ do
           "The page you were looking for was not found.  Sorry!  "
           "Maybe try going to the "
