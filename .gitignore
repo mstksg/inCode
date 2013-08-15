@@ -6,3 +6,4 @@ cabal-dev
 dist
 tmp
 /static/img/test
+tags

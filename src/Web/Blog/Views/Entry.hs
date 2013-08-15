@@ -96,11 +96,12 @@ viewEntry entry tags prevEntry nextEntry = do
             "Please enable JavaScript to view the " :: H.Html
             H.a ! A.href "http://disqus.com/?ref_noscript" $
               "comments powered by Disqus." :: H.Html
+            H.br
 
           H.a ! A.href "http://disqus.com" ! A.class_ "dsq-brlink" $ do
-            "comments powered by " :: H.Html
+            "Comments powered by " :: H.Html
             H.span ! A.class_ "logo-disqus" $
-                "Diqus" :: H.Html
+                "Disqus" :: H.Html
 
 
     -- H.script ! A.type_ "text/javascript" $

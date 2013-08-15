@@ -123,7 +123,7 @@ getTagInfoListRecent tt recent = do
             re <- MaybeT $ D.selectFirst (postedFilter now ++ [ EntryId D.<-. eKeys ]) [ D.Desc EntryPostedAt ]
             ru <- lift $ getUrlPath re
             return (D.entityVal re,ru)
-        else 
+        else
           return Nothing
 
       return $ TagInfo t c r

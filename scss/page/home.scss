@@ -53,8 +53,12 @@ $photo: "/img/photo_square.jpg";
       }
 
       .link-readmore, .link-comment {
-        // font-size: 100%;
         font-style: italic;
+        // line-height: 175%;
+      }
+
+      .link-readmore {
+        // font-size: 133%;
       }
 
       .link-comment {

@@ -44,7 +44,7 @@ viewLayout body = do
       H.link ! A.rel "author" ! A.href (I.textValue $ siteDataAuthorRel $ pageSiteData pageData')
 
       H.script ! A.type_ "text/javascript" $
-        H.preEscapedToHtml 
+        H.preEscapedToHtml
           ("var page_data = {}; var disqus_shortname='justinleblogdevelopment';" :: T.Text)
 
       forM_ jsUrlList $ \u ->
@@ -54,18 +54,18 @@ viewLayout body = do
       sequence_ (pageDataHeaders pageData')
 
     H.body $ do
-      
+
         H.div ! A.id "header-container" $ do
           H.div! A.id "navbar-container" ! A.class_ "tile" $
             navBarHtml
           H.div ! A.id "header-content" $
             mempty
-        
+
         H.div ! A.id "body-container" ! A.class_ "container" $
           H.div ! A.id "main-container" ! A.class_ "grid" $
             bodyHtml
 
-            -- H.div ! A.id "sidebar-container" ! A.class_ "unit one-of-four" $ 
+            -- H.div ! A.id "sidebar-container" ! A.class_ "unit one-of-four" $
             --   sidebarHtml
 
             -- H.div ! A.id "main-container" ! A.class_ "unit three-of-four" ! I.customAttribute "role" "main" $
@@ -86,7 +86,7 @@ createTitle = do
     siteTitle = siteDataTitle $ pageSiteData pageData'
     pageTitle = pageDataTitle pageData'
     combined   = case pageTitle of
-      Just title -> T.concat [siteTitle, " - ", title]
+      Just title -> T.concat [siteTitle, " — ", title]
       Nothing    -> siteTitle
   return $ H.toHtml combined
 
@@ -106,7 +106,7 @@ navBar = do
             H.toHtml siteTitle
         H.span ! A.class_ "nav-author" $
           H.toHtml author
-          
+
       H.ul ! A.class_ "nav-links" $ do
         H.li $
           H.a ! A.href (I.textValue homeUrl) $
@@ -120,7 +120,7 @@ navBar = do
 
         H.div ! A.class_ "clear" $
           mempty
- 
+
 -- renderFonts :: [(T.Text,[T.Text])] -> H.Html
 -- renderFonts fs = H.link ! A.href l ! A.rel "stylesheet" ! A.type_ "text/css"
  --  where
