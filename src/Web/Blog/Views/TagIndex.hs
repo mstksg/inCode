@@ -23,9 +23,9 @@ viewTagIndex :: [TagInfo] -> TagType -> SiteRender H.Html
 viewTagIndex tagInfos tt = do
   let
     ulClass = case tt of
-      GeneralTag -> "tag-list tile"
-      CategoryTag -> "category-list"
-      SeriesTag -> "series-list tile"
+      GeneralTag -> "tag-index tile tag-list"
+      CategoryTag -> "category-index"
+      SeriesTag -> "series-index tile"
 
 
   navHtml <- viewArchiveNav $ Just $

@@ -110,22 +110,18 @@
     padding: 1.5rem;
   }
 
-  > .tag-list {
+  > .tag-index {
     text-align: center;
-    font-size: 100%;
+    font-size: 95%;
     > li {
-      margin: 0.5rem 0.75rem;
+      margin: 0.6rem 0.75rem;
       > a {
-        padding: 0.25rem 1rem;
-        margin: 0;
-        &:hover {
-          background: #dde;
-        }
+        padding: 0.25rem 0.75rem;
       }
     }
   }
 
-  .category-list, .series-list {
+  .category-index, .series-index {
     .tag-entry-count {
       line-height: 125%;
       font-size: 100%;
@@ -143,7 +139,7 @@
     }
   }
 
-  .category-list {
+  .category-index {
     > li {
       > header {
         > h2 {
@@ -160,7 +156,7 @@
     }
   }
 
-  .series-list {
+  .series-index {
     > li {
       > header {
         > h2 {

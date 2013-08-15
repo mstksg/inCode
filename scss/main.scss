@@ -191,20 +191,32 @@ hr {
         color: #111;
       }
       &:hover {
-        background: none;
-        color: #666;
+        background: #eee;
       }
     }
   }
 
+  $tag-color: #dde;
+  $category-color: #edd;
+  $series-color: #ded;
+
   .tag-a-tag {
-    background: #dde;
+    background: $tag-color;
+    &:hover {
+      background: lighten($tag-color,3);
+    }
   }
   .tag-a-category {
-    background: #edd;
+    background: $category-color;
+    &:hover {
+      background: lighten($category-color,3);
+    }
   }
   .tag-a-series {
-    background: #ded;
+    background: $series-color;
+    &:hover {
+      background: lighten($series-color,3);
+    }
   }
 
   font-size: 80%;
