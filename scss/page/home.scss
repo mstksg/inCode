@@ -53,7 +53,7 @@ $photo: "/img/photo_square.jpg";
       }
 
       .link-readmore, .link-comment {
-        font-size: 90%;
+        // font-size: 100%;
         font-style: italic;
       }
 
@@ -69,7 +69,7 @@ $photo: "/img/photo_square.jpg";
         border: none;
       }
 
-      margin-bottom: 2.5rem;
+      margin-bottom: 1.5rem;
       @include first-line-emphasis(133%);
 
     }
@@ -155,7 +155,15 @@ $photo: "/img/photo_square.jpg";
     font-size: 150%;
     margin-bottom: 0.5rem;
   }
+}
 
+.home-category-list {
+  ul {
+    li {
+      margin-bottom: 0.3rem;
+    }
+
+  }
 }
 
 .home-footer {

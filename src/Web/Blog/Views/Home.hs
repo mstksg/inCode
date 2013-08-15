@@ -121,13 +121,14 @@ viewTags = do
   tags <- liftIO $ runDB $ getTagInfoList GeneralTag
   cats <- liftIO $ runDB $ getTagInfoList CategoryTag
   let
-    tagLists = [("Topics","/categories",cats),("Tags","/tags",tags)]
+    tagLists = [("Topics","/categories","home-category-list",cats)
+               ,("Tags","/tags","home-tags-list",tags)]
 
   return $
     H.ul $ 
-      forM_ tagLists $ \(heading,link,tagList) ->
-        H.li $ do
-          H.h3 ! A.id "home-category-list" $
+      forM_ tagLists $ \(heading,link,class_,tagList) ->
+        H.li ! A.class_ class_ $ do
+          H.h3 $
             H.a ! A.href (I.textValue $ renderUrl' link) $
               heading
           H.ul $
