@@ -15,6 +15,7 @@ import Web.Blog.Render
 import Web.Blog.Util
 import qualified Data.Text                   as T
 import qualified Data.Traversable as Tr      (mapM)
+import qualified Database.Esqueleto          as E
 import qualified Database.Persist.Postgresql as D
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
@@ -94,8 +95,23 @@ getTagInfoList tt = getTagInfoListRecent tt True
 
 getTagInfoListRecent :: TagType -> Bool -> D.SqlPersistM [TagInfo]
 getTagInfoListRecent tt recent = do
-  allTags <- D.selectList [ TagType_ D.==. tt ] [ D.Asc TagLabel ]
   now <- liftIO getCurrentTime
+
+  tags <- if recent
+    then
+      E.select $
+          E.from $ \(t `E.InnerJoin` et `E.InnerJoin` e) -> do
+              E.on (e E.^. EntryId E.==. et E.^. EntryTagEntryId)
+              E.on (et E.^. EntryTagTagId E.==. t E.^. TagId)
+              E.where_ $ t E.^. TagType_ E.==. E.val tt
+              E.where_ $ e E.^. EntryPostedAt E.<=. E.val now
+              E.groupBy $ t E.^. TagId
+              E.orderBy [ E.desc $ E.max_ $ e E.^. EntryPostedAt, E.asc $ t E.^. TagLabel ]
+              return t
+    else
+      D.selectList [ TagType_ D.==. tt ] [ D.Asc TagLabel ]
+
+
   let
     tagInfo (D.Entity tKey t) = do
       c <- D.count [ EntryTagTagId D.==. tKey ]
@@ -112,6 +128,6 @@ getTagInfoListRecent tt recent = do
 
       return $ TagInfo t c r
 
-  tagInfos <- mapM tagInfo allTags
+  tagInfos <- mapM tagInfo tags
 
   return $ filter ((> 0) . tagInfoCount) tagInfos
