@@ -46,6 +46,7 @@ $photo: "/img/photo_square.jpg";
     }
 
     > .entry-lede {
+      
       > p {
         margin: 0.75rem 0;
         text-indent: 2rem;
@@ -70,7 +71,6 @@ $photo: "/img/photo_square.jpg";
 
       margin-bottom: 2.5rem;
       @include first-line-emphasis(133%);
-  
 
     }
 
@@ -78,12 +78,10 @@ $photo: "/img/photo_square.jpg";
 
   }
 
-
 }
 
 .home-banner {
   .copy-content {
-    font-size: 85%;
     @include first-line-emphasis;
   }
 
@@ -104,7 +102,7 @@ $photo: "/img/photo_square.jpg";
 
   h2 {
     float: left;
-    margin: 0.5rem 1.5rem 0 0;
+    margin: 0.6rem 1.5rem 0 0;
     padding: 0;
     height: 200px;
     display: block;
@@ -137,12 +135,12 @@ $photo: "/img/photo_square.jpg";
 }
 
 .home-sidebar {
-  > ul {
+  ul {
     list-style-type: none;
     ul {
-      margin-left: 1rem;
+      margin-left: 0.75rem;
       list-style-type: none;
-      font-size: 90%;
+      font-size: 95%;
       @media #{$smaller-screen} {
         text-align: center;
         margin-left: 0;
@@ -153,10 +151,10 @@ $photo: "/img/photo_square.jpg";
       }
     }
   }
-  h2 {
+  h3 {
+    font-size: 150%;
     margin-bottom: 0.5rem;
   }
-
 
 }
 

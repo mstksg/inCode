@@ -5,7 +5,9 @@ module Web.Blog.Views.Home (viewHome) where
 import Control.Applicative                   ((<$>))
 import Control.Monad.Reader
 import Text.Blaze.Html5                      ((!))
+import Web.Blog.Database
 import Web.Blog.Models
+import Web.Blog.Models.Types
 import Web.Blog.Models.Util
 import Web.Blog.Render
 import Web.Blog.SiteData
@@ -24,7 +26,8 @@ viewHome :: [(D.Entity Entry,(T.Text,[Tag]))] -> Int -> SiteRender H.Html
 viewHome eList pageNum = do
   pageDataMap' <- pageDataMap <$> ask
   bannerCopy <- viewCopyFile (siteDataTitle siteData) "copy/static/home-banner.md"
-  sidebarHtml <- viewSidebar
+  linksHtml <- viewLinks
+  tagsHtml <- viewTags
   homeUrl <- renderUrl "/"
 
   return $ 
@@ -40,8 +43,11 @@ viewHome eList pageNum = do
                 H.a ! A.href (I.textValue homeUrl) $
                   H.toHtml $ siteDataTitle siteData
 
-      H.nav ! A.class_ "tile unit one-of-four home-sidebar" $
-        sidebarHtml
+      H.nav ! A.class_ "unit one-of-four home-sidebar" $ do
+        H.div ! A.class_ "tile home-links" $
+          linksHtml
+        H.div ! A.class_ "tile home-tags" $
+          tagsHtml
 
       H.div ! A.class_ "unit three-of-four" $ do
         H.div ! A.class_ "tile" $
@@ -107,5 +113,28 @@ viewHome eList pageNum = do
 
             H.div ! A.class_ "clear" $ ""
 
-viewSidebar :: SiteRender H.Html
-viewSidebar = renderRawCopy "copy/static/home-links.md"
+viewLinks :: SiteRender H.Html
+viewLinks = renderRawCopy "copy/static/home-links.md"
+
+viewTags :: SiteRender H.Html
+viewTags = do
+  tags <- liftIO $ runDB $ getTagInfoList GeneralTag
+  cats <- liftIO $ runDB $ getTagInfoList CategoryTag
+  let
+    tagLists = [("Topics","/categories",cats),("Tags","/tags",tags)]
+
+  return $
+    H.ul $ 
+      forM_ tagLists $ \(heading,link,tagList) ->
+        H.li $ do
+          H.h3 ! A.id "home-category-list" $
+            H.a ! A.href (I.textValue $ renderUrl' link) $
+              heading
+          H.ul $
+            forM_ tagList $ \tagInfo ->
+              H.li $
+                H.a ! A.href (I.textValue $ renderUrl' $ tagPath $ tagInfoTag tagInfo) $
+                  H.toHtml $ tagLabel' $ tagInfoTag tagInfo
+
+
+
