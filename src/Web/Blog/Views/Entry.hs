@@ -25,57 +25,87 @@ viewEntry entry tags prevEntry nextEntry = do
   siteData' <- pageSiteData <$> ask
   npUl <- nextPrevUrl prevEntry nextEntry
   isUnposted <- (>) (entryPostedAt entry) <$> liftIO getCurrentTime
+  aboutUrl <- renderUrl "/about"
 
 
-  return $ 
+  return $
 
-    H.article $ do
-      
-      H.header $ do
+    H.div ! A.class_ "entry-section unit span-grid" ! mainSection $ do
 
-        npUl
+      H.article ! A.class_ "tile article" $ do
+        
+        H.header $ do
 
-        when isUnposted $
-          H.div 
-            "(Unposted entry)"
+          -- npUl
 
-        H.h1 $ H.toHtml $ entryTitle entry
+          when isUnposted $
+            H.div ! A.class_ "unposted-banner" $
+              "Unposted entry"
 
-        H.p $ do
+          H.h1 $ H.toHtml $ entryTitle entry
 
-          "by " :: H.Html
+          H.p ! A.class_ "entry-info" $ do
 
-          H.a ! A.class_ "author" $ H.toHtml $ siteDataAuthor siteData'
+            "by " :: H.Html
 
-          " " :: H.Html
+            H.a ! A.class_ "author" ! A.href (I.textValue aboutUrl) $
+              H.toHtml $ siteDataAuthor siteData'
 
-          H.time
-            ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt entry)
-            ! A.pubdate "" 
-            ! A.class_ "pubdate"
-            $ H.toHtml $ renderFriendlyTime $ entryPostedAt entry
+            H.span ! A.class_ "info-separator" $
+              H.preEscapedToHtml
+                (" &diams; " :: T.Text)
+
+            H.time
+              ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt entry)
+              ! A.pubdate "" 
+              ! A.class_ "pubdate"
+              $ H.toHtml $ renderFriendlyTime $ entryPostedAt entry
 
           H.p $ do
             "Posted in " :: H.Html
             categoryList (filter isCategoryTag tags)
-            "." :: H.Html
-            
-          H.ul $
+            H.span ! A.class_ "info-separator" $
+              H.preEscapedToHtml
+                (" &diams; " :: T.Text)
+            H.a ! A.class_ "comment-link" ! A.href "#disqus_thread" $ "Comments"
+
+        H.hr
+              
+        H.div ! A.class_ "main-content copy-content" $
+
+          entryHtml entry 
+
+        H.footer $ do
+
+          H.ul ! A.class_ "entry-series" $
             forM_ (filter isSeriesTag tags) $ \t ->
               seriesLi t
 
-      H.div ! A.class_ "main-content" $
+          H.ul ! A.class_ "tag-list" $
+            forM_ tags $ \t ->
+              tagLi t
 
-        entryHtml entry 
+          npUl
 
-      H.footer $ do
-        H.ul $
-          forM_ tags $ \t ->
-            tagLi t
-        npUl
 
       H.div ! A.class_ "post-entry" $
-        mempty
+        H.div ! A.class_ "tile" $ do
+          H.div ! A.id "disqus_thread" $ mempty
+
+          H.noscript $ do
+            "Please enable JavaScript to view the " :: H.Html
+            H.a ! A.href "http://disqus.com/?ref_noscript" $
+              "comments powered by Disqus." :: H.Html
+
+          H.a ! A.href "http://disqus.com" ! A.class_ "dsq-brlink" $ do
+            "comments powered by " :: H.Html
+            H.span ! A.class_ "logo-disqus" $
+                "Diqus" :: H.Html
+
+
+    -- H.script ! A.type_ "text/javascript" $
+    --   tocifyJs
+    
 
 nextPrevUrl :: Maybe Entry -> Maybe Entry -> SiteRender H.Html
 nextPrevUrl prevEntry nextEntry = do
@@ -85,16 +115,18 @@ nextPrevUrl prevEntry nextEntry = do
     H.nav $
       H.ul $ do
         when (isJust prevEntry) $
-          H.li $ do
-            H.preEscapedToHtml ("Previous &mdash; " :: T.Text)
+          H.li ! A.class_ "prev-entry-link" $ do
+            H.preEscapedToHtml ("&larr; " :: T.Text)
             H.a ! A.href (I.textValue $ pageDataMap' M.! "prevUrl") $
               H.toHtml $ entryTitle $ fromJust prevEntry
+            " (Previous)" :: H.Html
 
         when (isJust nextEntry) $
-          H.li $ do
-            H.preEscapedToHtml ("Next &mdash; " :: T.Text)
+          H.li ! A.class_ "next-entry-link" $ do
+            "(Next) " :: H.Html
             H.a ! A.href (I.textValue $ pageDataMap' M.! "nextUrl") $
               H.toHtml $ entryTitle $ fromJust nextEntry
+            H.preEscapedToHtml (" &rarr;" :: T.Text)
 
 categoryList :: [Tag] -> H.Html
 categoryList ts = sequence_ hinter
@@ -118,3 +150,8 @@ seriesLi t = H.li $
       "series archives" :: H.Html
     "." :: H.Html
 
+-- tocifyJs :: H.Html
+-- tocifyJs = H.preEscapedToHtml $ T.unlines
+--               [ "$(function() {"
+--               , "$('.toc').tocify( { context: '.main-content' } );"
+--               , "});"]

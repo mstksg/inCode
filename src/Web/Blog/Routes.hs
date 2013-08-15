@@ -3,9 +3,13 @@
 module Web.Blog.Routes (route) where
 
 import Control.Monad.Reader
+import Data.List                  (isSuffixOf)
 import Network.HTTP.Types.Status
+import System.Directory           (doesFileExist)
+import System.FilePath
 import Web.Blog.Models.Types
 import Web.Blog.Render
+import Web.Blog.Routes.About
 import Web.Blog.Routes.Archive
 import Web.Blog.Routes.Entry
 import Web.Blog.Routes.Home
@@ -25,6 +29,7 @@ route = do
   entryRoutes
   archiveRoutes
   indexRoutes
+  utilRoutes
   miscRoutes
 
 
@@ -41,6 +46,9 @@ homeRoutes = do
     page <- S.param "page"
     when (page < 1) S.next
     routeEither $ routeHome page
+
+  S.get "/about" $
+    routeEither routeAbout
 
 entryRoutes :: S.ScottyM ()
 entryRoutes = do
@@ -101,6 +109,24 @@ indexRoutes = do
 
   S.get "/series" $ 
     routeEither $ routeTagIndex SeriesTag
+
+utilRoutes :: S.ScottyM ()
+utilRoutes = 
+  S.get (S.regex "^/css/(.*)\\.css$") $ do
+    path <- S.param "1"
+    let
+      isMin = ".min" `isSuffixOf` path
+      scssPath = "scss/" ++ replaceExtension path ".scss"
+    exists <- liftIO $ doesFileExist scssPath
+    if exists
+      then do
+        scss <- liftIO $ renderScss scssPath isMin
+        S.text scss
+        S.header "Content-Type" "text/css"
+      else
+        S.next
+    
+
 
 miscRoutes :: S.ScottyM ()
 miscRoutes = do

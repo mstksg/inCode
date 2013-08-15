@@ -31,6 +31,8 @@ type PageDataMap = M.Map T.Text T.Text
 
 data PageData = PageData
                 { pageDataTitle   :: Maybe T.Text
+                , pageDataCss     :: [T.Text]
+                , pageDataJs     :: [T.Text]
                 , pageDataHeaders :: [H.Html]
                 , pageDataMap     :: PageDataMap
                 , pageSiteData    :: SiteData

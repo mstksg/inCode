@@ -18,5 +18,11 @@ routeTagIndex tt = do
 
   let
     view = viewTagIndex tagInfos tt
+    title = case tt of
+              GeneralTag -> "Tags List"
+              CategoryTag -> "Category List"
+              SeriesTag -> "Series List"
+    pageData' = pageData { pageDataTitle = Just title
+                         , pageDataCss   = ["/css/page/archive.min.css"] }
 
-  return $ Right (view,pageData)
+  return $ Right (view,pageData')

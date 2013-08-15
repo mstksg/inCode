@@ -19,6 +19,7 @@ import qualified Database.Persist.Postgresql as D
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
 import qualified Text.Blaze.Internal         as I
+import qualified Text.Pandoc                 as P
 
 data PreTag = PreTag T.Text TagType (Maybe T.Text)
 
@@ -41,6 +42,13 @@ fillTag ptag = tag
 tagLabel' :: Tag -> T.Text
 tagLabel' t = T.append (tagTypePrefix $ tagType_ t) $ tagLabel t
 
+tagDescHtml :: Tag -> Maybe H.Html
+tagDescHtml t = P.writeHtml (P.def P.WriterOptions) <$> tPandoc
+  where
+    tPandoc = P.readMarkdown (P.def P.ReaderOptions) <$> tString
+    tString = T.unpack <$> tagDescription t
+
+
 tagPath :: Tag -> T.Text
 tagPath t = T.append prefix $ tagSlug t
   where
@@ -51,9 +59,15 @@ tagPath t = T.append prefix $ tagSlug t
         SeriesTag   -> "series/+")
 
 tagLi :: Tag -> H.Html
-tagLi t = H.li $
+tagLi t = H.li H.! A.class_ liClass $
   H.a H.! A.href (I.textValue $ renderUrl' $ tagPath t) $
     H.toHtml $ tagLabel' t
+  where
+    liClass = I.textValue $
+      case tagType_ t of
+        GeneralTag -> "tag-li-tag"
+        CategoryTag -> "tag-li-category"
+        SeriesTag -> "tag-li-series"
 
 isGeneralTag :: Tag -> Bool
 isGeneralTag t = case tagType_ t of
@@ -81,34 +95,24 @@ getTagInfoList tt = getTagInfoListRecent tt True
 getTagInfoListRecent :: TagType -> Bool -> D.SqlPersistM [TagInfo]
 getTagInfoListRecent tt recent = do
   now <- liftIO getCurrentTime
-  -- allTags <- D.selectList [ TagType_ D.==. tt ] [ D.Asc TagLabel ]
-  -- allTags <- 
-  --   E.select $
-  --     E.from $ \t -> do
-  --       E.where_ (t E.^. TagType_ E.==. E.val tt)
-  --       E.orderBy [ E.asc (t E.^. TagLabel) ]
-  --       return t
-
-  allTags <- 
-    E.selectDistinct $
-      E.from $ \(t `E.InnerJoin` et `E.InnerJoin` e) -> do
-        E.on (e E.^. EntryId E.==. et E.^. EntryTagEntryId)
-        E.on (et E.^. EntryTagTagId E.==. t E.^. TagId)
-
-        E.where_ $ t E.^. TagType_ E.==. E.val tt E.&&.
-                    e E.^. EntryPostedAt E.<. E.val now
-        E.orderBy [ E.desc (e E.^. EntryPostedAt), E.asc (t E.^. TagLabel) ]
-        -- E.groupBy  (t E.^. TagId)
-        -- E.orderBy [ E.asc (E.random_ :: E.SqlExpr (E.Value Double)) ]
-        -- E.orderBy [ E.asc (t E.^. TagLabel) ]
-        return t
-
+  tags <- if recent
+    then
+      E.select $
+          E.from $ \(t `E.InnerJoin` et `E.InnerJoin` e) -> do
+              E.on (e E.^. EntryId E.==. et E.^. EntryTagEntryId)
+              E.on (et E.^. EntryTagTagId E.==. t E.^. TagId)
+              E.where_ $ t E.^. TagType_ E.==. E.val tt
+              E.where_ $ e E.^. EntryPostedAt E.<=. E.val now
+              E.groupBy $ t E.^. TagId
+              E.orderBy [ E.desc $ E.max_ $ e E.^. EntryPostedAt, E.asc $ t E.^. TagLabel ]
+              return t
+    else
+      D.selectList [ TagType_ D.==. tt ] [ D.Asc TagLabel ]
 
   let
     tagInfo (D.Entity tKey t) = do
       c <- D.count [ EntryTagTagId D.==. tKey ]
       eKeys <- map (entryTagEntryId . D.entityVal) <$> D.selectList [ EntryTagTagId D.==. tKey ] []
-
       r <- if recent
         then
           runMaybeT $ do
@@ -117,9 +121,36 @@ getTagInfoListRecent tt recent = do
             return (D.entityVal re,ru)
         else 
           return Nothing
-
       return $ TagInfo t c r
 
-  tagInfos <- mapM tagInfo allTags
+  mapM tagInfo tags
 
-  return $ filter ((> 0) . tagInfoCount) tagInfos
+getTagInfoListRecent' :: TagType -> Bool -> D.SqlPersistM [TagInfo]
+getTagInfoListRecent' tt recent = do
+  now <- liftIO getCurrentTime
+
+  rawTagInfos <-
+    E.select $
+      E.from $ \(t `E.InnerJoin` et `E.InnerJoin` e) -> do
+        E.on (e E.^. EntryId E.==. et E.^. EntryTagEntryId)
+        E.on (et E.^. EntryTagTagId E.==. t E.^. TagId)
+        -- E.where_ $ t E.^. TagType_ E.==. E.val tt
+        -- E.where_ $ e E.^. EntryPostedAt E.<=. E.val now
+        E.groupBy $ t E.^. TagId
+        -- E.orderBy [ E.desc $ E.max_ $ e E.^. EntryPostedAt, E.asc $ t E.^. TagLabel ]
+        return (t E.^. TagLabel, E.countRows)
+    -- E.select $
+    --     E.from $ \(t `E.InnerJoin` et `E.InnerJoin` e) -> do
+    --         E.on (e E.^. EntryId E.==. et E.^. EntryTagEntryId)
+    --         E.on (et E.^. EntryTagTagId E.==. t E.^. TagId)
+    --         E.groupBy $ t E.^. TagId
+    --         E.orderBy [ E.desc $ E.max_ $ e E.^. EntryDayPosted, E.asc $ t E.^. TagLabel ]
+    --         -- return countRows'
+    --         return (t E.^. TagLabel, E.countRows)
+
+  -- let
+  --   tagInfo (t,c) = TagInfo (D.entityVal t) c Nothing
+
+  -- return $ map tagInfo rawTagInfos
+  
+  return []
