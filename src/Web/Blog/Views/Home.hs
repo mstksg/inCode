@@ -90,7 +90,8 @@ entryList eList pageDataMap' pageNum = do
             entryLedeHtml e
             H.p $ do
               H.a ! A.href (I.textValue u) ! A.class_ "link-readmore" $
-                "Read more..."
+                H.preEscapedToHtml
+                  ("Read more &hellip; " :: T.Text)
               " " :: H.Html
               H.a ! A.href (I.textValue commentUrl) ! A.class_ "link-comment" $
                 "Comments"

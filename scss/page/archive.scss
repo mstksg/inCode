@@ -37,7 +37,7 @@
     border-bottom: 1px solid #bbb;
     padding-bottom: 0;
     line-height: 125%;
-    margin-bottom: 1.25rem;
+    margin-bottom: 0.5rem;
   }
 
   h3 {
@@ -85,14 +85,14 @@
 
     .tag-list {
       text-align: right;
-      padding-left: 20%;
+      // padding-left: 20%;
       li {
-        padding: 0rem 0.35rem;
-        padding-top: 0.05rem;
-        margin: 0.2rem 0.25rem;
+        padding: 0;
+        padding-top: 0;
+        margin: 0.2rem 0.3rem;
       }
-      margin-top: 0.25rem;
-      font-size: 75%;
+      margin-top: 0rem;
+      font-size: 70%;
       line-height: 175%;
 
       @media #{$smaller-screen} {
@@ -101,7 +101,7 @@
     }
 
     margin-top: 0.75rem;
-    margin-bottom: 0.75rem;
+    margin-bottom: 1rem;
     padding-left: 0.75rem;
 
   }

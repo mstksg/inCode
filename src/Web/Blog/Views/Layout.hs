@@ -57,7 +57,8 @@ viewLayout body = do
               [ "var disqus_shortname='"
               , siteDataDisqusShortname siteData
               , "';" ]
-            , "var addthis_config = {'data_track_addressbar':true};" ]
+            -- , "var addthis_config = {'data_track_addressbar':true};"
+            ]
 
 
       forM_ jsUrlList $ \u ->
