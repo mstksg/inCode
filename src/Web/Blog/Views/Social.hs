@@ -26,7 +26,7 @@ viewSocial :: SiteRender H.Html
 viewSocial = do
   url <- lift getCurrUrl
   return $
-    H.div ! A.class_ "social-buttons" $ do
+    H.aside ! A.class_ "social-buttons" $ do
       H.div! A.class_ "social-like" $ do
         H.div $
           facebookLike url

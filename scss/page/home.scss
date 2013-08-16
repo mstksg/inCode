@@ -4,7 +4,7 @@ $photo: "/img/photo_square.jpg";
 
 
 .home-section {
-  
+
   h2 {
     font-size: 200%;
     line-height: 125%;
@@ -46,7 +46,7 @@ $photo: "/img/photo_square.jpg";
     }
 
     > .entry-lede {
-      
+
       > p {
         margin: 0.75rem 0;
         text-indent: 2rem;
@@ -164,7 +164,8 @@ $photo: "/img/photo_square.jpg";
 .home-category-list {
   ul {
     li {
-      margin-bottom: 0.3rem;
+      // margin-bottom: 0.15rem;
+      text-transform: lowercase;
     }
 
   }
