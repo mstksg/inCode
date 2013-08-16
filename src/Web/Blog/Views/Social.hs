@@ -25,12 +25,20 @@ import qualified Text.Blaze.Internal         as I
 viewSocial :: SiteRender H.Html
 viewSocial = do
   url <- lift getCurrUrl
-  return $ do
-    facebookLike url
-    gPlusPlus
-    facebookShare
-    gPlusShare
-    twitterShare
+  return $
+    H.div ! A.class_ "social-buttons" $ do
+      H.div! A.class_ "social-like" $ do
+        H.div $
+          facebookLike url
+        H.div
+          gPlusPlus
+      H.div ! A.class_ "social-share" $ do
+        H.div $
+          facebookShare url
+        H.div
+          gPlusShare
+        H.div
+          twitterShare
 
 facebookLike :: T.Text -> H.Html
 facebookLike url =
@@ -50,13 +58,15 @@ gPlusPlus =
     ! I.dataAttribute "size" "medium"
     $ mempty
 
-facebookShare :: H.Html
-facebookShare =
+facebookShare :: T.Text -> H.Html
+facebookShare url =
   H.a
     ! A.onclick (I.textValue fullJs)
-    ! A.href "#"
+    ! A.class_ "facebook-share-link"
+    ! A.href (I.textValue fullUrl)
     $ "Share on Facebook"
   where
+    fullUrl = T.append "https://www.facebook.com/sharer/sharer.php?u=" url
     fullJs = T.unlines
       [ "window.open("
       , "  'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(location.href),"
@@ -70,7 +80,8 @@ gPlusShare =
   H.div
     ! A.class_ "g-plus"
     ! I.dataAttribute "action" "share"
-    ! I.dataAttribute "annotation" "bubble"
+    -- ! I.dataAttribute "annotation" "bubble"
+    ! I.dataAttribute "annotation" "none"
     $ mempty
 
 twitterShare :: H.Html
@@ -81,6 +92,6 @@ twitterShare =
     ! I.dataAttribute "via" "mstk"
     -- ! I.dataAttribute "related" "recommends"
     -- ! I.dataAttribute "hashtags" "tags"
-    -- ! I.dataAttribute "count" "none"
+    ! I.dataAttribute "count" "none"
     $ "Tweet"
 

@@ -3,7 +3,7 @@
 .article {
 
   > header {
-    
+
     .unposted-banner {
       display: block;
       background: #f77;
@@ -55,39 +55,63 @@
     margin-top: 3rem;
   }
 
-  > footer {
-    > .entry-series {
-      > li {
-        display: block;
-        background: #eee;
-        margin: 1.5rem 1rem;
-        padding: 1.5rem;
-        border: 8px solid #f9f9f9;
-      }
+}
 
-      list-style-type: none;
-      margin-top: 3rem;
-    }
-
-    nav {
-      > ul {
-        list-style-type: none;
-        margin-bottom: 0.5rem;
-        > li {
-          display: block;
-          font-style: italic;
-        }
-      }
-
-      .next-entry-link {
-        text-align: right;
-      }
-
-      margin: 2rem 0 0.5rem 0;
-      font-size: 90%;
-    }
-
+.entry-series {
+  > li {
+    display: block;
+    background: #eee;
+    margin: 1.5rem 1rem;
+    padding: 1.5rem;
+    border: 8px solid #f9f9f9;
   }
 
+  list-style-type: none;
+  margin-top: 3rem;
+}
 
+.social-buttons {
+  margin: 1.5rem 0.5rem 0 0;
+  text-align: right;
+}
+.social-like, .social-share {
+  > div {
+    display: inline-block;
+    margin-left: 0.75rem;
+  }
+}
+
+.facebook-share-link {
+  display: inline-block;
+  border: none;
+  height: 21px;
+  width: 61px;
+  text-indent: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  background-image: url('/img/assets/facebook_share.png');
+  background-size: cover;
+  &:hover {
+    background-color: transparent;
+  }
+  margin: 0;
+  margin-right: 0.1rem;
+}
+
+.next-prev-links {
+  > ul {
+    list-style-type: none;
+    margin-bottom: 0.5rem;
+    > li {
+      display: block;
+      font-style: italic;
+    }
+  }
+
+  .next-entry-link {
+    text-align: right;
+  }
+
+  margin: 2rem 0 0.5rem 0;
+  font-size: 90%;
 }

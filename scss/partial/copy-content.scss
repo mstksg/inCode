@@ -1,6 +1,10 @@
 @import "scss/util/mixins.scss";
 
 .copy-content {
+  @media #{$smallest-screen} {
+    font-size: 85%;
+  }
+
   p, ul, ol, dl, pre, blockquote {
     margin: 0;
     margin-bottom: 1rem;

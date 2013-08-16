@@ -83,11 +83,11 @@ viewEntry entry tags prevEntry nextEntry = do
             forM_ (filter isSeriesTag tags) $ \t ->
               seriesLi t
 
+          socialButtonsHtml
+
           H.ul ! A.class_ "tag-list" $
             forM_ tags $ \t ->
               tagLi t
-
-          socialButtonsHtml
 
           npUl
 
@@ -117,7 +117,7 @@ nextPrevUrl prevEntry nextEntry = do
   pageDataMap' <- pageDataMap <$> ask
 
   return $
-    H.nav $
+    H.nav ! A.class_ "next-prev-links" $
       H.ul $ do
         when (isJust prevEntry) $
           H.li ! A.class_ "prev-entry-link" $ do
