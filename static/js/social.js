@@ -25,10 +25,6 @@
   var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(li, s);
 })();
 
-
-
- 
-
 // (function () {
 //     var po = document.createElement('script');
 //     po.type = 'text/javascript';

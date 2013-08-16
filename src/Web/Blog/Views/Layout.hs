@@ -50,10 +50,15 @@ viewLayout body = do
       H.link ! A.rel "author" ! A.href (I.textValue $ siteDataAuthorRel $ pageSiteData pageData')
 
       H.script ! A.type_ "text/javascript" $ do
-        "var page_data = {};" :: H.Html
-        "var disqus_shortname='" :: H.Html
-        H.toHtml $ siteDataDisqusShortname siteData
-        "';" :: H.Html
+        H.toHtml $
+          T.unlines
+            [ "var page_data = {};"
+            , T.concat
+              [ "var disqus_shortname='"
+              , siteDataDisqusShortname siteData
+              , "';" ]
+            , "var addthis_config = {'data_track_addressbar':true};" ]
+
 
       forM_ jsUrlList $ \u ->
         H.script ! A.type_ "text/javascript" ! A.src (I.textValue u) $
