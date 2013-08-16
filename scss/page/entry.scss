@@ -70,33 +70,34 @@
   margin-top: 3rem;
 }
 
+
+
+
 .social-buttons {
-  margin: 1.5rem 0.5rem 0 0;
-  text-align: right;
+  a {
+    border: none;
+    &:hover {
+      background-color: transparent;
+    }
+  }
+  margin: 1.5rem 0 1.5rem 1rem;
 }
-.social-like, .social-share {
+
+
+.addthis-buttons {
+  float: right;
+  margin-bottom: 0.5rem;
+}
+
+.custom-social-buttons {
   > div {
     display: inline-block;
-    margin-left: 0.75rem;
+    margin-right: 1rem;
   }
 }
 
-.facebook-share-link {
-  display: inline-block;
-  border: none;
-  height: 21px;
-  width: 61px;
-  text-indent: 100%;
-  overflow: hidden;
-  white-space: nowrap;
-  background-image: url('/img/assets/facebook_share.png');
-  background-size: cover;
-  &:hover {
-    background-color: transparent;
-  }
-  margin: 0;
-  margin-right: 0.1rem;
-}
+
+
 
 .next-prev-links {
   > ul {

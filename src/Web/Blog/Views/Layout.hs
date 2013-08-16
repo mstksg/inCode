@@ -25,7 +25,10 @@ viewLayout body = do
     cssList = [ "/css/toast.css"
               , "/css/font.css"
               , "/css/main.min.css" ]
-    jsList =  [ "//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ]
+    jsList =  [ "//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"
+              , T.append "//s7.addthis.com/js/300/addthis_widget.js#pubid=" $
+                  developerAPIsAddThis $ siteDataDeveloperAPIs siteData
+              ]
 
   cssUrlList <- mapM renderUrl $ cssList ++ pageDataCss pageData'
   jsUrlList <- mapM renderUrl $ jsList ++ pageDataJs pageData'

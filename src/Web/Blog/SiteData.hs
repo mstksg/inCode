@@ -12,7 +12,7 @@ siteData =
     "blog-dev.jle0.com"
     "https://plus.google.com/107705320197444500140/posts"
     "justinleblogdevelopment"
-    (DeveloperAPIs ("UA-443711-7", "jle0.com") "645245675494525")
+    (DeveloperAPIs ("UA-443711-7", "jle0.com") "645245675494525" "ra-520df7c304b817b9")
     6
     5
     2

@@ -29,7 +29,8 @@ data SiteData = SiteData
 
 data DeveloperAPIs = DeveloperAPIs
                      { developerAPIsAnalytics :: (T.Text,T.Text)
-                     , developerAPIsFacebook :: T.Text
+                     , developerAPIsFacebook  :: T.Text
+                     , developerAPIsAddThis   :: T.Text
                      }
 
 
