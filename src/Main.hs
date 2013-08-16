@@ -15,7 +15,7 @@ main = scotty 4288 $ do
   liftIO $ runDB blogMigrate
 
   middleware logStdoutDev
-  middleware $ addHeaders [("Cache-Control","max-age=3600")]
+  middleware $ addHeaders [("Cache-Control","max-age=86400")]
   middleware $ staticPolicy (noDots >-> addBase "static")
   middleware $ staticPolicy (noDots >-> addBase "tmp/static")
   middleware $ addHeaders [("Cache-Control","max-age=0")]
