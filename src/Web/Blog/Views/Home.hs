@@ -14,6 +14,7 @@ import Web.Blog.SiteData
 import Web.Blog.Types
 import Web.Blog.Util                         (renderFriendlyTime, renderDatetimeTime)
 import Web.Blog.Views.Copy
+import Web.Blog.Views.Social
 import qualified Data.Foldable               as Fo
 import qualified Data.Map                    as M
 import qualified Data.Text                   as T
@@ -29,12 +30,14 @@ viewHome eList pageNum = do
   linksHtml <- viewLinks
   tagsHtml <- viewTags
   homeUrl <- renderUrl "/"
+  socialFollowsHtml <- viewSocialFollow
+
 
   return $
     H.section ! A.class_ "home-section" ! mainSection $ do
 
       H.header ! A.class_ "tile unit span-grid" $
-        H.section ! A.class_ "home-banner" $
+        H.section ! A.class_ "home-banner" $ do
           if pageNum == 1
             then
               bannerCopy
@@ -42,6 +45,9 @@ viewHome eList pageNum = do
               H.h1 ! A.class_ "home-banner-history" $
                 H.a ! A.href (I.textValue homeUrl) $
                   H.toHtml $ siteDataTitle siteData
+          H.aside ! A.class_ "social-follows" $ do
+            "Follow me on: " :: H.Html
+            socialFollowsHtml
 
       H.div ! A.class_ "unit three-of-four" $
         entryList eList pageDataMap' pageNum

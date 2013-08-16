@@ -9,6 +9,7 @@ import Text.Blaze.Html5                      ((!))
 import Web.Blog.Render
 import Web.Blog.SiteData
 import Web.Blog.Types
+import Web.Blog.Views.Social
 import qualified Data.Text                   as T
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
@@ -20,6 +21,7 @@ viewLayout body = do
   bodyHtml <- body
   navBarHtml <- navBar
   title <- createTitle
+  socialFollowsHtml <- viewSocialFollow
 
   let
     cssList = [ "/css/toast.css"
@@ -83,8 +85,11 @@ viewLayout body = do
 
         H.div ! A.id "footer-container" $
           H.div ! A.id "footer-content" $
-            H.div ! A.class_ "tile" $
-              H.preEscapedToHtml ("&copy; Justin Le 2013" :: T.Text)
+            H.div ! A.class_ "tile" $ do
+              H.div ! A.class_ "footer-copyright" $
+                H.preEscapedToHtml ("&copy; Justin Le 2013" :: T.Text)
+              H.div ! A.class_ "footer-follow social-follows" $
+                socialFollowsHtml
 
 viewLayoutEmpty :: SiteRender H.Html
 viewLayoutEmpty = viewLayout $ return mempty

@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Web.Blog.Views.Social (viewSocial) where
+module Web.Blog.Views.Social (viewSocialShare, viewSocialFollow) where
 
 -- import Control.Applicative                ((<$>))
 -- import Control.Monad.Reader
@@ -22,8 +22,8 @@ import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
 import qualified Text.Blaze.Internal         as I
 
-viewSocial :: SiteRender H.Html
-viewSocial = return $
+viewSocialShare :: SiteRender H.Html
+viewSocialShare = return $
   H.aside ! A.class_ "social-buttons" $ do
     addThisLine
     H.div ! A.class_ "custom-social-buttons" $ do
@@ -43,7 +43,6 @@ viewSocial = return $
             ! A.src "http://www.reddit.com/static/spreddit7.gif"
             ! A.alt "submit to reddit"
 
-
 addThisLine :: H.Html
 addThisLine =
   H.div ! A.class_ "addthis_toolbox addthis_default_style addthis-buttons" $ do
@@ -61,6 +60,28 @@ addThisLine =
     H.a
       ! A.class_ "addthis_counter addthis_pill_style"
       $ mempty
+
+viewSocialFollow :: SiteRender H.Html
+viewSocialFollow = return $
+  H.div ! A.class_ "addthis_toolbox addthis_default_style" $ do
+    H.a
+      ! A.class_ "addthis_button_facebook_follow"
+      ! I.customAttribute "addthis:userid" "mstksg"
+      $ mempty
+    H.a
+      ! A.class_ "addthis_button_twitter_follow"
+      ! I.customAttribute "addthis:userid" "mstk"
+      $ mempty
+    H.a
+      ! A.class_ "addthis_button_linkedin_follow"
+      ! I.customAttribute "addthis:userid" "lejustin"
+      $ mempty
+    H.a
+      ! A.class_ "addthis_button_google_follow"
+      ! I.customAttribute "addthis:userid" "107705320197444500140"
+      $ mempty
+
+
 
 -- viewSocial :: SiteRender H.Html
 -- viewSocial = do

@@ -139,7 +139,16 @@ h1, h2, h3, h4, h5, h6 {
 
   .tile {
     margin: 0 auto;
-    padding: 0.75rem 1rem 1.5rem;
+    padding: 0.75rem 1rem 0.75rem;
+  }
+
+  // .footer-copyright {
+  //   display: inline-block;
+  // }
+
+  .social-follows {
+    // margin: 0 0.75rem;
+    display: inline-block;
   }
 
 }
@@ -223,3 +232,11 @@ hr {
 @import "scss/partial/copy-content.scss";
 @import "scss/partial/navbar.scss";
 
+.social-follows {
+  a {
+    border: none;
+    &:hover {
+      background-color: transparent;
+    }
+  }
+}

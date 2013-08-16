@@ -27,7 +27,7 @@ viewEntry entry tags prevEntry nextEntry = do
   npUl <- nextPrevUrl prevEntry nextEntry
   isUnposted <- (>) (entryPostedAt entry) <$> liftIO getCurrentTime
   aboutUrl <- renderUrl "/about"
-  socialButtonsHtml <- viewSocial
+  socialButtonsHtml <- viewSocialShare
 
 
   return $
@@ -83,11 +83,11 @@ viewEntry entry tags prevEntry nextEntry = do
             forM_ (filter isSeriesTag tags) $ \t ->
               seriesLi t
 
-          socialButtonsHtml
-
           H.ul ! A.class_ "tag-list" $
             forM_ tags $ \t ->
               tagLi t
+
+          socialButtonsHtml
 
           npUl
 
