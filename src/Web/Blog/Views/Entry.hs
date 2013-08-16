@@ -4,6 +4,7 @@ module Web.Blog.Views.Entry (viewEntry) where
 
 import Control.Applicative                   ((<$>))
 import Control.Monad.Reader
+import Data.List                             (intersperse)
 import Data.Maybe
 import Data.Monoid
 import Data.Time                             (getCurrentTime)
@@ -13,12 +14,12 @@ import Web.Blog.Models.Util
 import Web.Blog.Render
 import Web.Blog.Types
 import Web.Blog.Util                         (renderFriendlyTime, renderDatetimeTime)
+import Web.Blog.Views.Social
 import qualified Data.Map                    as M
 import qualified Data.Text                   as T
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
 import qualified Text.Blaze.Internal         as I
-import Data.List (intersperse)
 
 viewEntry :: Entry -> [Tag] -> Maybe Entry -> Maybe Entry -> SiteRender H.Html
 viewEntry entry tags prevEntry nextEntry = do
@@ -26,6 +27,7 @@ viewEntry entry tags prevEntry nextEntry = do
   npUl <- nextPrevUrl prevEntry nextEntry
   isUnposted <- (>) (entryPostedAt entry) <$> liftIO getCurrentTime
   aboutUrl <- renderUrl "/about"
+  socialButtonsHtml <- viewSocial
 
 
   return $
@@ -33,7 +35,7 @@ viewEntry entry tags prevEntry nextEntry = do
     H.div ! A.class_ "entry-section unit span-grid" ! mainSection $ do
 
       H.article ! A.class_ "tile article" $ do
-        
+
         H.header $ do
 
           -- npUl
@@ -57,7 +59,7 @@ viewEntry entry tags prevEntry nextEntry = do
 
             H.time
               ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt entry)
-              ! A.pubdate "" 
+              ! A.pubdate ""
               ! A.class_ "pubdate"
               $ H.toHtml $ renderFriendlyTime $ entryPostedAt entry
 
@@ -70,10 +72,10 @@ viewEntry entry tags prevEntry nextEntry = do
             H.a ! A.class_ "comment-link" ! A.href "#disqus_thread" $ "Comments"
 
         H.hr
-              
+
         H.div ! A.class_ "main-content copy-content" $
 
-          entryHtml entry 
+          entryHtml entry
 
         H.footer $ do
 
@@ -84,6 +86,8 @@ viewEntry entry tags prevEntry nextEntry = do
           H.ul ! A.class_ "tag-list" $
             forM_ tags $ \t ->
               tagLi t
+
+          socialButtonsHtml
 
           npUl
 
@@ -106,7 +110,7 @@ viewEntry entry tags prevEntry nextEntry = do
 
     -- H.script ! A.type_ "text/javascript" $
     --   tocifyJs
-    
+
 
 nextPrevUrl :: Maybe Entry -> Maybe Entry -> SiteRender H.Html
 nextPrevUrl prevEntry nextEntry = do
@@ -144,7 +148,7 @@ seriesLi :: Tag -> H.Html
 seriesLi t = H.li $
   H.div $ do
     "This entry is a part of a series called " :: H.Html
-    H.b $ 
+    H.b $
       H.toHtml $ T.concat ["\"",tagLabel t,"\""]
     ".  Find the rest of the entries in this series at the " :: H.Html
     H.a ! A.href (I.textValue $ renderUrl' $ tagPath t) $

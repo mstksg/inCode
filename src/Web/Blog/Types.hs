@@ -1,5 +1,6 @@
 module Web.Blog.Types (
     SiteData(..)
+  , DeveloperAPIs(..)
   , SiteRender
   , PageDataMap
   , PageData(..)
@@ -20,11 +21,16 @@ data SiteData = SiteData
                 , siteDataSiteHost        :: T.Text
                 , siteDataAuthorRel       :: T.Text
                 , siteDataDisqusShortname :: T.Text
-                , siteDataAnalyticsKey    :: (T.Text,T.Text)
+                , siteDataDeveloperAPIs   :: DeveloperAPIs
                 , siteDataSlugLength      :: Int
                 , siteDataHomeEntries     :: Int
                 , siteDataLedeMax         :: Int
                 }
+
+data DeveloperAPIs = DeveloperAPIs
+                     { developerAPIsAnalytics :: (T.Text,T.Text)
+                     , developerAPIsFacebook :: T.Text
+                     }
 
 
 type SiteRender a = ReaderT PageData S.ActionM a

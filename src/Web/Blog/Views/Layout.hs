@@ -59,6 +59,8 @@ viewLayout body = do
     H.body $ do
 
         googleAnalyticsJs
+        H.div ! A.id "fb-root" $ mempty
+        facebookSdkJs
 
         H.div ! A.id "header-container" $ do
           H.div! A.id "navbar-container" ! A.class_ "tile" $
@@ -137,12 +139,27 @@ googleAnalyticsJs =
         , "})(window,document,'script','//www.google-analytics.com/analytics.js','ga');"
         , T.concat
           [ "ga('create', '"
-          , fst $ siteDataAnalyticsKey siteData
+          , fst $ developerAPIsAnalytics $ siteDataDeveloperAPIs siteData
           , "', '"
-          , snd $ siteDataAnalyticsKey siteData
+          , snd $ developerAPIsAnalytics $ siteDataDeveloperAPIs siteData
           , "');" ]
         , "ga('send', 'pageview');" ]
 
+facebookSdkJs :: H.Html
+facebookSdkJs =
+  H.script $
+    H.toHtml $
+      T.unlines
+        [ "(function(d, s, id) {"
+        , "  var js, fjs = d.getElementsByTagName(s)[0];"
+        , "  if (d.getElementById(id)) return;"
+        , "  js = d.createElement(s); js.id = id;"
+        , T.concat
+          [ "  js.src = \"//connect.facebook.net/en_US/all.js#xfbml=1&appId="
+          , developerAPIsFacebook $ siteDataDeveloperAPIs siteData
+          , "\";" ]
+        , "  fjs.parentNode.insertBefore(js, fjs);"
+        , "}(document, 'script', 'facebook-jssdk'));"]
 
 
 -- renderFonts :: [(T.Text,[T.Text])] -> H.Html

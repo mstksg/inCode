@@ -7,6 +7,7 @@ module Web.Blog.Render (
   , renderUrl'
   , renderScss
   , renderRawCopy
+  , getCurrUrl
   , mainSection
   ) where
 
@@ -15,6 +16,7 @@ module Web.Blog.Render (
 -- import qualified Text.Blaze.Html5.Attributes     as A
 import Control.Applicative                          ((<$>))
 import Control.Monad.Reader
+import Network.Wai
 import System.Directory                             (doesFileExist)
 import System.Process
 import Web.Blog.SiteData
@@ -54,7 +56,7 @@ renderUrl url = do
     else do
       host <- lift $ S.reqHeader "Host"
       return $ T.concat ["http://",L.toStrict host,url]
-      
+
 renderUrl' :: T.Text -> T.Text
 renderUrl' url =
   if hasP
@@ -62,7 +64,7 @@ renderUrl' url =
     else T.concat ["http://",siteDataSiteHost siteData,url]
   where
     hasP = length (T.splitOn "://" url) > 1
-      
+
 renderScss :: FilePath -> Bool -> IO L.Text
 renderScss fp minify = L.pack <$> readProcess "sass" ["--style",style,fp] []
   where
@@ -81,6 +83,12 @@ renderRawCopy fp = do
     else
       return $
         H.p "Error: Copy not found!"
+
+getCurrUrl :: S.ActionM T.Text
+getCurrUrl = do
+  path <- (T.intercalate "/" . pathInfo) <$> S.request
+  host <- S.reqHeader "Host"
+  return $ T.concat ["http://",L.toStrict host,"/",path]
 
 mainSection :: I.Attribute
 mainSection = I.customAttribute "role" "main"
