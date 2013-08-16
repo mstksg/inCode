@@ -15,13 +15,15 @@ import qualified Text.Blaze.Html5 as H
 import qualified Web.Scotty       as S
 
 data SiteData = SiteData
-                { siteDataTitle       :: T.Text
-                , siteDataAuthor      :: T.Text
-                , siteDataSiteHost    :: T.Text
-                , siteDataAuthorRel   :: T.Text
-                , siteDataSlugLength  :: Int
-                , siteDataHomeEntries :: Int
-                , siteDataLedeMax     :: Int
+                { siteDataTitle           :: T.Text
+                , siteDataAuthor          :: T.Text
+                , siteDataSiteHost        :: T.Text
+                , siteDataAuthorRel       :: T.Text
+                , siteDataDisqusShortname :: T.Text
+                , siteDataAnalyticsKey    :: (T.Text,T.Text)
+                , siteDataSlugLength      :: Int
+                , siteDataHomeEntries     :: Int
+                , siteDataLedeMax         :: Int
                 }
 
 

@@ -7,6 +7,7 @@ import Control.Monad.Reader
 import Data.Monoid
 import Text.Blaze.Html5                      ((!))
 import Web.Blog.Render
+import Web.Blog.SiteData
 import Web.Blog.Types
 import qualified Data.Text                   as T
 import qualified Text.Blaze.Html5            as H
@@ -43,9 +44,11 @@ viewLayout body = do
 
       H.link ! A.rel "author" ! A.href (I.textValue $ siteDataAuthorRel $ pageSiteData pageData')
 
-      H.script ! A.type_ "text/javascript" $
-        H.preEscapedToHtml
-          ("var page_data = {}; var disqus_shortname='justinleblogdevelopment';" :: T.Text)
+      H.script ! A.type_ "text/javascript" $ do
+        "var page_data = {};" :: H.Html
+        "var disqus_shortname='" :: H.Html
+        H.toHtml $ siteDataDisqusShortname siteData
+        "';" :: H.Html
 
       forM_ jsUrlList $ \u ->
         H.script ! A.type_ "text/javascript" ! A.src (I.textValue u) $
@@ -54,6 +57,8 @@ viewLayout body = do
       sequence_ (pageDataHeaders pageData')
 
     H.body $ do
+
+        googleAnalyticsJs
 
         H.div ! A.id "header-container" $ do
           H.div! A.id "navbar-container" ! A.class_ "tile" $
@@ -120,6 +125,25 @@ navBar = do
 
         H.div ! A.class_ "clear" $
           mempty
+
+googleAnalyticsJs :: H.Html
+googleAnalyticsJs =
+  H.script $
+    H.toHtml $
+      T.unlines
+        [ "(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){"
+        , "(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),"
+        , "m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)"
+        , "})(window,document,'script','//www.google-analytics.com/analytics.js','ga');"
+        , T.concat
+          [ "ga('create', '"
+          , fst $ siteDataAnalyticsKey siteData
+          , "', '"
+          , snd $ siteDataAnalyticsKey siteData
+          , "');" ]
+        , "ga('send', 'pageview');" ]
+
+
 
 -- renderFonts :: [(T.Text,[T.Text])] -> H.Html
 -- renderFonts fs = H.link ! A.href l ! A.rel "stylesheet" ! A.type_ "text/css"
