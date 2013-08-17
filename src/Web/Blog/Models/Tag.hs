@@ -70,14 +70,17 @@ tagPath t = T.append prefix $ tagSlug t
 
 tagLi :: Tag -> H.Html
 tagLi t = H.li $
-  H.a H.! A.href (I.textValue $ renderUrl' $ tagPath t) H.! A.class_ liClass $
-    H.toHtml $ tagLabel' t
-  where
-    liClass = I.textValue $
-      case tagType_ t of
-        GeneralTag -> "tag-a-tag"
-        CategoryTag -> "tag-a-category"
-        SeriesTag -> "tag-a-series"
+  H.a
+    H.! A.href (I.textValue $ renderUrl' $ tagPath t)
+    H.! A.class_ (tagLiClass t) $
+      H.toHtml $ tagLabel' t
+
+tagLiClass :: Tag -> I.AttributeValue
+tagLiClass t = I.textValue $
+  case tagType_ t of
+    GeneralTag -> "tag-a-tag"
+    CategoryTag -> "tag-a-category"
+    SeriesTag -> "tag-a-series"
 
 isGeneralTag :: Tag -> Bool
 isGeneralTag t = case tagType_ t of

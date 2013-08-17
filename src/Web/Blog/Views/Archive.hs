@@ -186,5 +186,8 @@ inlineTagList ts = sequence_ hinter
     hlist = map catLink ts
     hinter = intersperse ", " hlist
     catLink t =
-      H.a H.! A.href (I.textValue $ renderUrl' $ tagPath t) $
+      H.a
+      ! A.href (I.textValue $ renderUrl' $ tagPath t)
+      ! A.class_ (tagLiClass t) $
         H.toHtml $ tagLabel'' t
+

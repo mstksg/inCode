@@ -58,52 +58,70 @@
       }
     }
   }
+}
 
-  .entry-item {
-    .entry-info {
-      > time {
-        color: #444;
-        cursor: default;
-      }
-      .entry-comments {
-        color: #888;
-        border: none;
-      }
-      font-style: italic;
-      display: block;
-      font-size: 80%;
-      line-height: 125%;
+.entry-item {
+  .entry-info {
+    > time {
+      color: #444;
+      cursor: default;
+    }
+    .entry-comments {
+      color: #888;
+      border: none;
+    }
+    font-style: italic;
+    display: block;
+    font-size: 85%;
+    line-height: 125%;
+    margin-left: -0.5rem;
+  }
+
+
+  .entry-link {
+    // display: block;
+    // padding-left: 1rem;
+    font-size: 125%;
+    line-height: 125%;
+  }
+
+  .inline-tag-list {
+    a {
+      white-space: nowrap;
+    }
+    &:first-letter {
       margin-left: -0.5rem;
     }
-
-
-    .entry-link {
-      // display: block;
-      // padding-left: 1rem;
-      font-size: 125%;
-      line-height: 125%;
-    }
-
-    .inline-tag-list {
-      a {
-        white-space: nowrap;
+    font-style: italic;
+    margin: 0rem;
+    margin-left: 1rem;
+    padding-left: 0.5rem;
+    font-size: 90%;
+    line-height: 150%;
+    .tag-a-tag {
+      background: lighten($tag-color,7);
+      &:hover {
+        background: lighten($tag-color,9);
       }
-      &:first-letter {
-        margin-left: -0.5rem;
-      }
-      font-style: italic;
-      margin: 0rem;
-      margin-left: 1rem;
-      padding-left: 0.5rem;
-      font-size: 85%;
-      line-height: 150%;
     }
-
-    margin-top: 0.75rem;
-    margin-bottom: 1.25rem;
-    padding-left: 0.75rem;
-
+    .tag-a-category {
+      background: lighten($category-color,7);
+      &:hover {
+        background: lighten($category-color,9);
+      }
+    }
+    .tag-a-series {
+      background: lighten($series-color,7);
+      &:hover {
+        background: lighten($series-color,9);
+      }
+    }
   }
+
+  margin-top: 0.75rem;
+  margin-bottom: 1.25rem;
+  padding-left: 0.75rem;
+
 }
 
 // .closed_ul {
