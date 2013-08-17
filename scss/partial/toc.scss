@@ -1,0 +1,17 @@
+#toc {
+  width: 200px;
+  float: right;
+  z-index: 100;
+  margin: 0.5rem;
+  padding: 0.5rem;
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+    li {
+      margin: 0;
+      padding: 0;
+      margin-bottom: 0.5rem;
+    }
+  }
+}

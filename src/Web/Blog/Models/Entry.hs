@@ -15,7 +15,7 @@ import Web.Blog.SiteData
 import Web.Blog.Types
 import Web.Blog.Util
 import qualified Data.Text                   as T
-import qualified Database.Esqueleto          as E
+-- import qualified Database.Esqueleto          as E
 import qualified Database.Persist.Postgresql as D
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Pandoc                 as P
@@ -136,7 +136,7 @@ getTags :: D.Entity Entry -> D.SqlPersistM [Tag]
 getTags entry = getTagsByEntityKey $ D.entityKey entry
 
 getTagsByEntityKey :: D.Key Entry -> D.SqlPersistM [Tag]
-getTagsByEntityKey k = do 
+getTagsByEntityKey k = do
   ets <- D.selectList [ EntryTagEntryId D.==. k ] []
   let
     tagKeys = map (entryTagTagId . D.entityVal) ets

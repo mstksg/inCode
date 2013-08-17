@@ -73,7 +73,9 @@ viewEntry entry tags prevEntry nextEntry = do
 
         H.hr
 
-        H.div ! A.class_ "main-content copy-content" $
+        H.div ! A.class_ "main-content copy-content" $ do
+
+          H.aside ! A.id "toc" $ mempty
 
           entryHtml entry
 
