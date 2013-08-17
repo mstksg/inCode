@@ -41,9 +41,16 @@ executable blog
                      , wai
                      , wai-extra
                      , wai-middleware-headers
-                     , wai-middleware-static
-                     -- , heredoc
-                     -- , wai-middleware-cache
+                     , wai-middleware-static 
+                     , mtl
+                     , containers
+                     , blaze-markup
+                     , transformers
+                     , monad-loops
+                     , pandoc
+                     , old-locale
+                     , http-types
+                     , esqueleto
   -- ghc-options:         -ddump-types
   extensions:          OverloadedStrings
 
@@ -62,7 +69,10 @@ executable blog-scripts-migrate
                      , persistent-postgresql
                      , persistent-template
                      , process
-                     , scotty
+                     , scotty 
+                     , containers
+                     , blaze-markup
+                     , esqueleto
                      , text
                      , time
                      , transformers
@@ -89,8 +99,9 @@ executable blog-scripts-seed
                      , persistent-postgresql
                      , persistent-template
                      , process
-                     , random
-                     , scotty
+                     , random 
+                     , scotty 
+                     , esqueleto
                      , split
                      , text
                      , time

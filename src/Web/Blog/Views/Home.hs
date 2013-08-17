@@ -120,8 +120,8 @@ viewLinks = renderRawCopy "copy/static/home-links.md"
 
 viewTags :: SiteRender H.Html
 viewTags = do
-  tags <- liftIO $ runDB $ getTagInfoList GeneralTag
-  cats <- liftIO $ runDB $ getTagInfoList CategoryTag
+  tags <- liftIO $ runDB $ getTagInfoList GeneralTag TagSortCount False
+  cats <- liftIO $ runDB $ getTagInfoList CategoryTag TagSortLabel False
   let
     tagLists = [("Topics","/categories","home-category-list",cats)
                ,("Tags","/tags","home-tags-list",tags)]

@@ -60,7 +60,6 @@ viewLayout body = do
             -- , "var addthis_config = {'data_track_addressbar':true};"
             ]
 
-
       forM_ jsUrlList $ \u ->
         H.script ! A.type_ "text/javascript" ! A.src (I.textValue u) $
           mempty
