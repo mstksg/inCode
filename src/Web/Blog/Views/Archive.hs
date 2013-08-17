@@ -12,6 +12,7 @@ import Control.Monad.Reader
 import Data.List                             (intersperse)
 import Data.Maybe                            (fromMaybe, isJust, fromJust)
 import Text.Blaze.Html5                      ((!))
+import Web.Blog.Database
 import Web.Blog.Models
 import Web.Blog.Models.Util
 import Web.Blog.Render
@@ -40,9 +41,9 @@ viewArchive eListYears viewType = do
     eList = concat eListMonths
 
   pageTitle <- pageDataTitle <$> ask
-  sidebarHtml <- viewArchiveSidebar (case viewType of
+  sidebarHtml <- viewArchiveSidebar $ case viewType of
                           ViewArchiveAll -> Just ViewArchiveIndexDate
-                          _ -> Nothing) eList
+                          _ -> Nothing
 
   upLink <- Tr.mapM renderUrl (upPath viewType)
 
@@ -101,12 +102,18 @@ data ViewArchiveIndex = ViewArchiveIndexDate
                       | ViewArchiveIndexSeries
                       deriving (Show, Eq, Read)
 
-viewArchiveSidebar :: Maybe ViewArchiveIndex -> [(D.Entity Entry,(T.Text,[Tag]))] -> SiteRender H.Html
-viewArchiveSidebar isIndex eList = do
+-- TODO: One day this can be a "top entries"
+viewArchiveSidebar :: Maybe ViewArchiveIndex -> SiteRender H.Html
+viewArchiveSidebar isIndex = do
   byDateUrl <- renderUrl "/entries"
   byTagUrl  <- renderUrl "/tags"
   byCatUrl  <- renderUrl "/categories"
   bySerUrl  <- renderUrl "/series"
+
+  entries <- liftIO $ runDB $
+    postedEntriesFilter [] [ D.Desc EntryPostedAt, D.LimitTo 5 ]
+  eList <- liftIO $ runDB $ mapM wrapEntryData entries
+
   return $ do
     H.nav ! A.class_ "archive-nav tile" $ do
       H.h2
@@ -124,17 +131,21 @@ viewArchiveSidebar isIndex eList = do
               else
                 H.li ! A.class_ "curr-index" $
                   t
-    H.div ! A.class_ "archive-shorts tile" $
-      archiveShorts eList
+    H.div ! A.class_ "archive-recents tile" $ do
+      H.h2 "Recent"
+      H.ul $
+        forM_ eList $ \(D.Entity _ e,(u,_)) ->
+          H.li $
+            H.a ! A.href (I.textValue $ renderUrl' u) $
+              H.toHtml $ entryTitle e
 
 
 
 viewArchiveFlat :: [(D.Entity Entry,(T.Text,[Tag]))] -> Bool -> H.Html
 viewArchiveFlat eList tile =
   H.ul ! A.class_ (if tile then "tile entry-list" else "entry-list") $
-    forM_ eList $ \eData -> do
+    forM_ eList $ \(D.Entity _ e,(u,ts)) -> do
       let
-        (D.Entity _ e,(u,ts)) = eData
         commentUrl = T.append u "#disqus_thread"
 
       H.li ! A.class_ "entry-item" $ do
@@ -196,13 +207,3 @@ inlineTagList ts = sequence_ hinter
       ! A.href (I.textValue $ renderUrl' $ tagPath t)
       ! A.class_ (tagLiClass t) $
         H.toHtml $ tagLabel'' t
-
-archiveShorts :: [(D.Entity Entry,(T.Text,[Tag]))] -> H.Html
-archiveShorts eList =
-  H.ul $
-    forM_ (take 5 eList) $ \eData -> do
-      let
-        (D.Entity _ e,(u,_)) = eData
-      H.li $
-        H.a ! A.href (I.textValue u) $
-          H.toHtml $ entryTitle e
