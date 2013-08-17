@@ -3,7 +3,7 @@
 module Web.Blog.Views.Archive (
     viewArchive
   , ViewArchiveType(..)
-  , viewArchiveNav
+  , viewArchiveSidebar
   , ViewArchiveIndex(..)
   ) where
 
@@ -35,16 +35,21 @@ data ViewArchiveType = ViewArchiveAll
 
 viewArchive :: [[[(D.Entity Entry,(T.Text,[Tag]))]]] -> ViewArchiveType -> SiteRender H.Html
 viewArchive eListYears viewType = do
+  let
+    eListMonths = concat eListYears
+    eList = concat eListMonths
+
   pageTitle <- pageDataTitle <$> ask
-  navHtml <- viewArchiveNav (case viewType of
+  sidebarHtml <- viewArchiveSidebar (case viewType of
                           ViewArchiveAll -> Just ViewArchiveIndexDate
-                          _ -> Nothing)
+                          _ -> Nothing) eList
 
   upLink <- Tr.mapM renderUrl (upPath viewType)
 
+
   return $ do
-    H.nav ! A.class_ "archive-nav tile unit one-of-four" $
-      navHtml
+    H.div ! A.class_ "archive-sidebar unit one-of-four" $
+      sidebarHtml
 
     H.section ! A.class_ "archive-section unit three-of-four" ! mainSection $ do
 
@@ -67,10 +72,7 @@ viewArchive eListYears viewType = do
             H.p $ H.toHtml $ case pageTitle of
               Just pt -> T.concat ["No entries found for ",pt,"."]
               Nothing -> "No entries found."
-        else do
-          let
-            eListMonths = concat eListYears
-            eList = concat eListMonths
+        else
           case viewType of
             ViewArchiveAll        -> viewArchiveByYears eListYears
             ViewArchiveYear _     -> viewArchiveByMonths eListMonths True
@@ -99,28 +101,32 @@ data ViewArchiveIndex = ViewArchiveIndexDate
                       | ViewArchiveIndexSeries
                       deriving (Show, Eq, Read)
 
-viewArchiveNav :: Maybe ViewArchiveIndex -> SiteRender H.Html
-viewArchiveNav isIndex = do
+viewArchiveSidebar :: Maybe ViewArchiveIndex -> [(D.Entity Entry,(T.Text,[Tag]))] -> SiteRender H.Html
+viewArchiveSidebar isIndex eList = do
   byDateUrl <- renderUrl "/entries"
   byTagUrl  <- renderUrl "/tags"
   byCatUrl  <- renderUrl "/categories"
   bySerUrl  <- renderUrl "/series"
   return $ do
-    H.h2
-      "Entries"
-    H.ul $
-        forM_ [("History",byDateUrl,ViewArchiveIndexDate)
-              ,("Tags",byTagUrl,ViewArchiveIndexTag)
-              ,("Categories",byCatUrl,ViewArchiveIndexCategory)
-              ,("Series",bySerUrl,ViewArchiveIndexSeries)] $ \(t,u,v) ->
-          if maybe True (/= v) isIndex
-            then
-              H.li $
-                H.a ! A.href (I.textValue u) $
+    H.nav ! A.class_ "archive-nav tile" $ do
+      H.h2
+        "Entries"
+      H.ul $
+          forM_ [("History",byDateUrl,ViewArchiveIndexDate)
+                ,("Tags",byTagUrl,ViewArchiveIndexTag)
+                ,("Categories",byCatUrl,ViewArchiveIndexCategory)
+                ,("Series",bySerUrl,ViewArchiveIndexSeries)] $ \(t,u,v) ->
+            if maybe True (/= v) isIndex
+              then
+                H.li $
+                  H.a ! A.href (I.textValue u) $
+                    t
+              else
+                H.li ! A.class_ "curr-index" $
                   t
-            else
-              H.li ! A.class_ "curr-index" $
-                t
+    H.div ! A.class_ "archive-shorts tile" $
+      archiveShorts eList
+
 
 
 viewArchiveFlat :: [(D.Entity Entry,(T.Text,[Tag]))] -> Bool -> H.Html
@@ -191,3 +197,12 @@ inlineTagList ts = sequence_ hinter
       ! A.class_ (tagLiClass t) $
         H.toHtml $ tagLabel'' t
 
+archiveShorts :: [(D.Entity Entry,(T.Text,[Tag]))] -> H.Html
+archiveShorts eList =
+  H.ul $
+    forM_ (take 5 eList) $ \eData -> do
+      let
+        (D.Entity _ e,(u,_)) = eData
+      H.li $
+        H.a ! A.href (I.textValue u) $
+          H.toHtml $ entryTitle e

@@ -28,15 +28,15 @@ viewTagIndex tagInfos tt = do
       SeriesTag -> "series-index tile"
 
 
-  navHtml <- viewArchiveNav $ Just $
+  sidebarHtml <- viewArchiveSidebar (Just $
     case tt of
       GeneralTag  -> ViewArchiveIndexTag
       CategoryTag -> ViewArchiveIndexCategory
-      SeriesTag   -> ViewArchiveIndexSeries
+      SeriesTag   -> ViewArchiveIndexSeries) mempty
 
   return $ do
-    H.nav ! A.class_ "archive-nav tile unit one-of-four" $
-      navHtml
+    H.div ! A.class_ "archive-sidebar unit one-of-four" $
+      sidebarHtml
 
     H.section ! A.class_ "archive-section unit three-of-four" ! mainSection $ do
 
