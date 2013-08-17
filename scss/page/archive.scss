@@ -91,7 +91,7 @@
         padding-top: 0;
         margin: 0.2rem 0.3rem;
       }
-      margin-top: 0rem;
+      margin-top: 0.15rem;
       font-size: 70%;
       line-height: 175%;
 
@@ -101,11 +101,17 @@
     }
 
     margin-top: 0.75rem;
-    margin-bottom: 1rem;
+    margin-bottom: 1.15rem;
     padding-left: 0.75rem;
 
   }
 }
+
+// .closed_ul {
+//   > li {
+//     display: none;
+//   }
+// }
 
 .no-entries {
   padding: 1.5rem;
