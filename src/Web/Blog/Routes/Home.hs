@@ -27,11 +27,18 @@ routeHome page = do
       return $ Left "/"
     else do
       let
+        pageTitle =
+          if page == 1
+            then
+              "Home"
+            else
+              T.concat ["Home (Page ", T.pack $ show page,")"]
+
         urlBase = renderUrl' "/home/"
 
       eList <- liftIO $ runDB $
         postedEntries [ D.Desc EntryPostedAt
-                      , D.LimitTo m 
+                      , D.LimitTo m
                       , D.OffsetBy $ (page - 1) * m ]
           >>= mapM wrapEntryData
 
@@ -44,18 +51,21 @@ routeHome page = do
                 else T.append urlBase $ T.pack $ show $ page - 1
             modify $
               M.insert "prevPage" prevUrl
+            modify $
+              M.insert "pageNum" $ T.pack $ show page
+
 
           when (page < maxPage') $
             modify $
               M.insert "nextPage" (T.append urlBase $ T.pack $ show $ page + 1)
 
-        view = viewHome eList
-        pageData' = pageData { pageDataTitle = Just "Home"
+        view = viewHome eList page
+        pageData' = pageData { pageDataTitle = Just pageTitle
                              , pageDataCss   = ["/css/page/home.min.css"]
                              , pageDataJs    = ["/js/disqus_count.js"]
                              , pageDataMap   = pdMap M.empty
                              }
-          
+
       return $ Right (view, pageData')
 
 maxPage :: Int -> D.SqlPersistM Int

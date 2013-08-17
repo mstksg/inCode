@@ -7,19 +7,14 @@ module Web.Blog.Views.About (
 import Text.Blaze.Html5                      ((!))
 import Web.Blog.Render
 import Web.Blog.Types
+import Web.Blog.Views.Copy
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
 
 viewAbout :: SiteRender H.Html
-viewAbout = return $
-  H.section ! A.class_ "tile single-page about-section unit span-grid" ! mainSection $ do
-    H.header $
-      H.h1 "About me"
+viewAbout = do
+  copy <- viewCopyFile "About me" "copy/static/about.md"
 
-    H.hr
-
-    H.div ! A.class_ "main-content copy-content" $
-      H.p 
-        "I'm a person."
-
-
+  return $
+    H.section ! A.class_ "tile main-content single-page about-section unit span-grid" ! mainSection $
+      copy

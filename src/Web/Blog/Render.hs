@@ -6,13 +6,18 @@ module Web.Blog.Render (
   , renderUrl
   , renderUrl'
   , renderScss
+  , renderRawCopy
+  , getCurrUrl
   , mainSection
   ) where
 
 -- import Data.Time
 -- import qualified Text.Blaze.Html.Renderer.Pretty as B
+-- import qualified Text.Blaze.Html5.Attributes     as A
 import Control.Applicative                          ((<$>))
 import Control.Monad.Reader
+import Network.Wai
+import System.Directory                             (doesFileExist)
 import System.Process
 import Web.Blog.SiteData
 import Web.Blog.Types
@@ -21,8 +26,8 @@ import qualified Data.Text                          as T
 import qualified Data.Text.Lazy                     as L
 import qualified Text.Blaze.Html.Renderer.Text      as B
 import qualified Text.Blaze.Html5                   as H
--- import qualified Text.Blaze.Html5.Attributes        as A
 import qualified Text.Blaze.Internal                as I
+import qualified Text.Pandoc                        as P
 import qualified Web.Scotty                         as S
 
 
@@ -51,7 +56,7 @@ renderUrl url = do
     else do
       host <- lift $ S.reqHeader "Host"
       return $ T.concat ["http://",L.toStrict host,url]
-      
+
 renderUrl' :: T.Text -> T.Text
 renderUrl' url =
   if hasP
@@ -59,20 +64,31 @@ renderUrl' url =
     else T.concat ["http://",siteDataSiteHost siteData,url]
   where
     hasP = length (T.splitOn "://" url) > 1
-      
+
 renderScss :: FilePath -> Bool -> IO L.Text
 renderScss fp minify = L.pack <$> readProcess "sass" ["--style",style,fp] []
--- renderScss fp minify = do
-    -- t <- getCurrentTime
-    -- putStrLn $ unwords ["Rendering scss file",fp]
-    -- out <- L.pack <$> readProcess "sass" ["--style",style,fp] []
-    -- t2 <- getCurrentTime
-    -- let
-    --   elapsed = diffUTCTime t2 t
-    -- putStrLn $ unwords ["Rendered!  Total time:",show elapsed]
-    -- return out
   where
     style = if minify then "compressed" else "expanded"
+
+renderRawCopy :: FilePath -> SiteRender H.Html
+renderRawCopy fp = do
+  exists <- liftIO $ doesFileExist fp
+  if exists
+    then do
+      copyMarkdown <- liftIO $ readFile fp
+      let
+        copyPandoc = P.readMarkdown (P.def P.ReaderOptions) copyMarkdown
+        copyHtml = P.writeHtml (P.def P.WriterOptions) copyPandoc
+      return copyHtml
+    else
+      return $
+        H.p "Error: Copy not found!"
+
+getCurrUrl :: S.ActionM T.Text
+getCurrUrl = do
+  path <- (T.intercalate "/" . pathInfo) <$> S.request
+  host <- S.reqHeader "Host"
+  return $ T.concat ["http://",L.toStrict host,"/",path]
 
 mainSection :: I.Attribute
 mainSection = I.customAttribute "role" "main"

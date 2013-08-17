@@ -1,5 +1,6 @@
 module Web.Blog.Types (
     SiteData(..)
+  , DeveloperAPIs(..)
   , SiteRender
   , PageDataMap
   , PageData(..)
@@ -15,14 +16,22 @@ import qualified Text.Blaze.Html5 as H
 import qualified Web.Scotty       as S
 
 data SiteData = SiteData
-                { siteDataTitle       :: T.Text
-                , siteDataAuthor      :: T.Text
-                , siteDataSiteHost    :: T.Text
-                , siteDataAuthorRel   :: T.Text
-                , siteDataSlugLength  :: Int
-                , siteDataHomeEntries :: Int
-                , siteDataLedeMax     :: Int
+                { siteDataTitle           :: T.Text
+                , siteDataAuthor          :: T.Text
+                , siteDataSiteHost        :: T.Text
+                , siteDataAuthorRel       :: T.Text
+                , siteDataDisqusShortname :: T.Text
+                , siteDataDeveloperAPIs   :: DeveloperAPIs
+                , siteDataSlugLength      :: Int
+                , siteDataHomeEntries     :: Int
+                , siteDataLedeMax         :: Int
                 }
+
+data DeveloperAPIs = DeveloperAPIs
+                     { developerAPIsAnalytics :: (T.Text,T.Text)
+                     , developerAPIsFacebook  :: T.Text
+                     , developerAPIsAddThis   :: T.Text
+                     }
 
 
 type SiteRender a = ReaderT PageData S.ActionM a

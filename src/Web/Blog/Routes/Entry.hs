@@ -28,13 +28,13 @@ routeEntrySlug = do
 
     case slug of
       -- Found slug
-      Just (D.Entity _ slug') -> 
+      Just (D.Entity _ slug') ->
         return $ Right $ slugEntryId slug'
 
       -- Slug not found
       Nothing ->
         return $ error404 "SlugNotFound"
-        
+
   -- TODO: Wrap this all in an EitherT...that's what they were meant for,
   -- I think!
   case eKey of
@@ -48,7 +48,7 @@ routeEntrySlug = do
           routeEntry $ Right $ D.Entity eKey' e'
 
         -- Slug's entry does not exist.  How odd.
-        Nothing -> 
+        Nothing ->
           return $ error404 "SlugHasNoEntry"
 
     Left r ->
@@ -106,14 +106,13 @@ routeEntry (Right (D.Entity eKey e')) = do
         let nextUrl = snd $ fromJust nextData
         modify (M.insert ("nextUrl" :: T.Text) nextUrl)
 
-      
     view = viewEntry e' tags (fst <$> prevData) (fst <$> nextData)
     pageData' = pageData { pageDataTitle = Just $ entryTitle e'
                          , pageDataCss   = ["/css/page/entry.min.css"]
-                         , pageDataJs    = ["/js/disqus.js","/js/disqus_count.js"]
+                         , pageDataJs    = ["/js/disqus.js","/js/disqus_count.js","/js/social.js"]
                          , pageDataMap   = pdMap M.empty
                          }
-  
+
   return $ Right (view, pageData')
 routeEntry (Left r) = return $ Left r
 

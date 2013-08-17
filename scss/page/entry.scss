@@ -3,7 +3,7 @@
 .article {
 
   > header {
-    
+
     .unposted-banner {
       display: block;
       background: #f77;
@@ -45,6 +45,7 @@
     .comment-link {
       font-weight: normal;
       font-style: italic;
+      // color: #888;
     }
 
     margin-bottom: 1rem;
@@ -55,39 +56,65 @@
     margin-top: 3rem;
   }
 
-  > footer {
-    > .entry-series {
-      > li {
-        display: block;
-        background: #eee;
-        margin: 1.5rem 1rem;
-        padding: 1.5rem;
-        border: 8px solid #f9f9f9;
-      }
+}
 
-      list-style-type: none;
-      margin-top: 3rem;
-    }
-
-    nav {
-      > ul {
-        list-style-type: none;
-        margin-bottom: 0.5rem;
-        > li {
-          display: block;
-          font-style: italic;
-        }
-      }
-
-      .next-entry-link {
-        text-align: right;
-      }
-
-      margin: 2rem 0 0.5rem 0;
-      font-size: 90%;
-    }
-
+.entry-series {
+  > li {
+    display: block;
+    background: #eee;
+    margin: 1.5rem 1rem;
+    padding: 1.5rem;
+    border: 8px solid #f9f9f9;
   }
 
+  list-style-type: none;
+  margin-top: 3rem;
+}
 
+
+
+
+.social-buttons {
+  a {
+    border: none;
+    &:hover {
+      background-color: transparent;
+    }
+  }
+  margin: 1rem 0 1.75rem 1rem;
+}
+
+
+.addthis-buttons {
+  // float: right;
+  // margin-bottom: 0.5rem;
+}
+
+.custom-social-buttons {
+  > div {
+    display: inline-block;
+    margin-right: 1rem;
+  }
+}
+
+
+
+
+.next-prev-links {
+  > ul {
+    list-style-type: none;
+    margin-bottom: 0.5rem;
+    cursor: default;
+    > li {
+      display: block;
+      font-style: italic;
+    }
+  }
+
+  .next-entry-link {
+    text-align: right;
+  }
+
+  margin: 0.5rem 0 0.5rem 0;
+  font-size: 90%;
 }

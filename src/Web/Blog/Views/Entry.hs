@@ -4,6 +4,7 @@ module Web.Blog.Views.Entry (viewEntry) where
 
 import Control.Applicative                   ((<$>))
 import Control.Monad.Reader
+import Data.List                             (intersperse)
 import Data.Maybe
 import Data.Monoid
 import Data.Time                             (getCurrentTime)
@@ -13,12 +14,12 @@ import Web.Blog.Models.Util
 import Web.Blog.Render
 import Web.Blog.Types
 import Web.Blog.Util                         (renderFriendlyTime, renderDatetimeTime)
+import Web.Blog.Views.Social
 import qualified Data.Map                    as M
 import qualified Data.Text                   as T
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
 import qualified Text.Blaze.Internal         as I
-import Data.List (intersperse)
 
 viewEntry :: Entry -> [Tag] -> Maybe Entry -> Maybe Entry -> SiteRender H.Html
 viewEntry entry tags prevEntry nextEntry = do
@@ -26,6 +27,7 @@ viewEntry entry tags prevEntry nextEntry = do
   npUl <- nextPrevUrl prevEntry nextEntry
   isUnposted <- (>) (entryPostedAt entry) <$> liftIO getCurrentTime
   aboutUrl <- renderUrl "/about"
+  socialButtonsHtml <- viewSocialShare
 
 
   return $
@@ -33,7 +35,7 @@ viewEntry entry tags prevEntry nextEntry = do
     H.div ! A.class_ "entry-section unit span-grid" ! mainSection $ do
 
       H.article ! A.class_ "tile article" $ do
-        
+
         H.header $ do
 
           -- npUl
@@ -57,7 +59,7 @@ viewEntry entry tags prevEntry nextEntry = do
 
             H.time
               ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt entry)
-              ! A.pubdate "" 
+              ! A.pubdate ""
               ! A.class_ "pubdate"
               $ H.toHtml $ renderFriendlyTime $ entryPostedAt entry
 
@@ -70,10 +72,10 @@ viewEntry entry tags prevEntry nextEntry = do
             H.a ! A.class_ "comment-link" ! A.href "#disqus_thread" $ "Comments"
 
         H.hr
-              
+
         H.div ! A.class_ "main-content copy-content" $
 
-          entryHtml entry 
+          entryHtml entry
 
         H.footer $ do
 
@@ -84,6 +86,8 @@ viewEntry entry tags prevEntry nextEntry = do
           H.ul ! A.class_ "tag-list" $
             forM_ tags $ \t ->
               tagLi t
+
+          socialButtonsHtml
 
           npUl
 
@@ -96,23 +100,25 @@ viewEntry entry tags prevEntry nextEntry = do
             "Please enable JavaScript to view the " :: H.Html
             H.a ! A.href "http://disqus.com/?ref_noscript" $
               "comments powered by Disqus." :: H.Html
+            H.br
 
           H.a ! A.href "http://disqus.com" ! A.class_ "dsq-brlink" $ do
-            "comments powered by " :: H.Html
+            "Comments powered by " :: H.Html
             H.span ! A.class_ "logo-disqus" $
-                "Diqus" :: H.Html
+                "Disqus" :: H.Html
 
 
     -- H.script ! A.type_ "text/javascript" $
     --   tocifyJs
-    
+      -- smartLayers
+
 
 nextPrevUrl :: Maybe Entry -> Maybe Entry -> SiteRender H.Html
 nextPrevUrl prevEntry nextEntry = do
   pageDataMap' <- pageDataMap <$> ask
 
   return $
-    H.nav $
+    H.nav ! A.class_ "next-prev-links" $
       H.ul $ do
         when (isJust prevEntry) $
           H.li ! A.class_ "prev-entry-link" $ do
@@ -135,15 +141,14 @@ categoryList ts = sequence_ hinter
     hinter = intersperse ", " hlist
     catLink t =
       H.a H.! A.href (I.textValue $ renderUrl' $ tagPath t) $
-        H.toHtml $ capitalize $ tagLabel t
-    capitalize t = T.append (T.take 1 t) (T.toLower $ T.tail t)
+        H.toHtml $ tagLabel t
 
 
 seriesLi :: Tag -> H.Html
 seriesLi t = H.li $
   H.div $ do
     "This entry is a part of a series called " :: H.Html
-    H.b $ 
+    H.b $
       H.toHtml $ T.concat ["\"",tagLabel t,"\""]
     ".  Find the rest of the entries in this series at the " :: H.Html
     H.a ! A.href (I.textValue $ renderUrl' $ tagPath t) $
@@ -155,3 +160,33 @@ seriesLi t = H.li $
 --               [ "$(function() {"
 --               , "$('.toc').tocify( { context: '.main-content' } );"
 --               , "});"]
+
+-- smartLayers :: H.Html
+-- smartLayers = do
+--   H.script
+--     ! A.type_ "text/javascript"
+--     ! A.src "//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-520df44e0cc3bb14"
+--     $ mempty
+--   H.script
+--     ! A.type_ "text/javascript"
+--     $ H.toHtml $
+--       T.unlines
+--         [ "addthis.layers({"
+--         , "  'theme' : 'transparent',"
+--         , "  'share' : {"
+--         , "    'position' : 'left',"
+--         , "    'numPreferredServices' : 5"
+--         , "  },"
+--         , "  'follow' : {"
+--         , "    'services' : ["
+--         , "      {'service': 'facebook', 'id': 'mstksg'},"
+--         , "      {'service': 'twitter', 'id': 'mstk'},"
+--         , "      {'service': 'linkedin', 'id': 'lejustin'},"
+--         , "      {'service': 'google_follow', 'id': '107705320197444500140'}"
+--         , "    ]"
+--         , "  },"
+--         , "  'whatsnext' : {},"
+--         , "  'recommended' : {"
+--         , "    'title': 'Recommended for you:'"
+--         , "  }"
+--         , "});" ]
