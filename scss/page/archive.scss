@@ -219,13 +219,15 @@
   > h2 {
     margin: 0;
     padding: 0;
-    font-size: 200%;
-    margin-bottom: 2rem;
+    font-size: 150%;
+    // font-weight: bold;
+    margin-bottom: 0.5rem;
     line-height: 125%;
   }
 
   > ul {
     list-style-type: none;
+    margin-left: 0.5rem;
   }
 
   .curr-index {
@@ -233,12 +235,12 @@
   }
 
   font-family: $sans;
-  text-align: right;
+  text-align: left;
 
   @media #{$smaller-screen} {
     > h2 {
-      margin-bottom: 0.5rem;
-      font-size: 150%;
+      // margin-bottom: 0.5rem;
+      // font-size: 150%;
     }
     > ul {
       > li {
@@ -247,9 +249,9 @@
         margin: 0;
         font-size: 85%;
       }
+      text-align: center;
       margin: 0;
     }
-    text-align: left;
   }
 
 }

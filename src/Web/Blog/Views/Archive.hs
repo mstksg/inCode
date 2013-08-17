@@ -107,7 +107,7 @@ viewArchiveNav isIndex = do
   bySerUrl  <- renderUrl "/series"
   return $ do
     H.h2
-      "Archives"
+      "Entries"
     H.ul $
         forM_ [("History",byDateUrl,ViewArchiveIndexDate)
               ,("Tags",byTagUrl,ViewArchiveIndexTag)
