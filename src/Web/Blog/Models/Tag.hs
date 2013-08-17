@@ -7,7 +7,6 @@ import Control.Applicative                   ((<$>))
 import Control.Monad.IO.Class                (liftIO)
 import Control.Monad.Trans                   (lift)
 import Control.Monad.Trans.Maybe
-import Data.Char                             (toLower, toUpper)
 import Data.Time
 import Web.Blog.Models
 import Web.Blog.Models.Entry
@@ -36,12 +35,22 @@ fillTag ptag = tag
     PreTag l t d = ptag
     slug = genSlug (maxBound :: Int) l
     tag = case t of
-      GeneralTag  -> Tag (T.map toLower l) t d slug
-      CategoryTag -> Tag (T.map toUpper l) t d slug
-      SeriesTag   -> Tag l t d slug
+      GeneralTag  -> Tag (T.toLower l) t d slug
+      CategoryTag -> Tag (capitalize l) t d slug
+      SeriesTag   -> Tag (capitalize l) t d slug
+    capitalize s = T.append (T.toUpper $ T.take 1 s) (T.toLower $ T.tail s)
 
 tagLabel' :: Tag -> T.Text
-tagLabel' t = T.append (tagTypePrefix $ tagType_ t) $ tagLabel t
+tagLabel' t = T.append (tagTypePrefix $ tagType_ t) $ prettyLabel t
+
+prettyLabel :: Tag -> T.Text
+prettyLabel t =
+  case tagType_ t of
+    CategoryTag -> T.toUpper $ tagLabel t
+    _ -> tagLabel t
+
+tagLabel'' :: Tag -> T.Text
+tagLabel'' t = T.append (tagTypePrefix $ tagType_ t) $ tagLabel t
 
 tagDescHtml :: Tag -> Maybe H.Html
 tagDescHtml t = P.writeHtml (P.def P.WriterOptions) <$> tPandoc

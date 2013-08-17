@@ -9,6 +9,7 @@ module Web.Blog.Views.Archive (
 
 import Control.Applicative                   ((<$>))
 import Control.Monad.Reader
+import Data.List                             (intersperse)
 import Data.Maybe                            (fromMaybe, isJust, fromJust)
 import Text.Blaze.Html5                      ((!))
 import Web.Blog.Models
@@ -105,13 +106,13 @@ viewArchiveNav isIndex = do
   byCatUrl  <- renderUrl "/categories"
   bySerUrl  <- renderUrl "/series"
   return $ do
-    H.h2 
+    H.h2
       "Archives"
     H.ul $
         forM_ [("History",byDateUrl,ViewArchiveIndexDate)
               ,("Tags",byTagUrl,ViewArchiveIndexTag)
               ,("Categories",byCatUrl,ViewArchiveIndexCategory)
-              ,("Series",bySerUrl,ViewArchiveIndexSeries)] $ \(t,u,v) -> 
+              ,("Series",bySerUrl,ViewArchiveIndexSeries)] $ \(t,u,v) ->
           if maybe True (/= v) isIndex
             then
               H.li $
@@ -123,7 +124,7 @@ viewArchiveNav isIndex = do
 
 
 viewArchiveFlat :: [(D.Entity Entry,(T.Text,[Tag]))] -> Bool -> H.Html
-viewArchiveFlat eList tile = 
+viewArchiveFlat eList tile =
   H.ul ! A.class_ (if tile then "tile entry-list" else "entry-list") $
     forM_ eList $ \eData -> do
       let
@@ -134,22 +135,22 @@ viewArchiveFlat eList tile =
         H.div ! A.class_ "entry-info" $ do
           H.time
             ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt e)
-            ! A.pubdate "" 
+            ! A.pubdate ""
             ! A.class_ "pubdate"
             $ H.toHtml $ renderFriendlyTime $ entryPostedAt e
-          H.preEscapedToHtml 
+          H.preEscapedToHtml
             (" &mdash; " :: T.Text)
           H.a ! A.href (I.textValue commentUrl) ! A.class_ "entry-comments" $
             "Comments"
 
         H.a ! A.href (I.textValue u) ! A.class_ "entry-link" $
           H.toHtml $ entryTitle e
-        H.ul ! A.class_ "tag-list" $
-          forM_ ts $ \t ->
-            tagLi t
+        H.p ! A.class_ "inline-tag-list" $ do
+          "in " :: H.Html
+          inlineTagList ts
 
 viewArchiveByMonths :: [[(D.Entity Entry,(T.Text,[Tag]))]] -> Bool -> H.Html
-viewArchiveByMonths eListMonths tile = 
+viewArchiveByMonths eListMonths tile =
   H.ul ! A.class_ (if tile then "tile entry-list" else "entry-list") $
 
     forM_ eListMonths $ \eList -> do
@@ -166,7 +167,7 @@ viewArchiveByMonths eListMonths tile =
 
 viewArchiveByYears :: [[[(D.Entity Entry,(T.Text,[Tag]))]]] -> H.Html
 viewArchiveByYears eListYears =
-  H.ul ! A.class_ "entry-list" $ 
+  H.ul ! A.class_ "entry-list" $
     forM_ eListYears $ \eListMonths -> do
       let
         year = entryPostedAt $
@@ -179,3 +180,11 @@ viewArchiveByYears eListYears =
 
         viewArchiveByMonths eListMonths False
 
+inlineTagList :: [Tag] -> H.Html
+inlineTagList ts = sequence_ hinter
+  where
+    hlist = map catLink ts
+    hinter = intersperse ", " hlist
+    catLink t =
+      H.a H.! A.href (I.textValue $ renderUrl' $ tagPath t) $
+        H.toHtml $ tagLabel'' t

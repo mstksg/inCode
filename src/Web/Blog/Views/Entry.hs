@@ -141,8 +141,7 @@ categoryList ts = sequence_ hinter
     hinter = intersperse ", " hlist
     catLink t =
       H.a H.! A.href (I.textValue $ renderUrl' $ tagPath t) $
-        H.toHtml $ capitalize $ tagLabel t
-    capitalize t = T.append (T.take 1 t) (T.toLower $ T.tail t)
+        H.toHtml $ tagLabel t
 
 
 seriesLi :: Tag -> H.Html
