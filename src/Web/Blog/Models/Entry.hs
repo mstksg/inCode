@@ -2,22 +2,23 @@
 
 module Web.Blog.Models.Entry  where
 
-import Control.Applicative                      ((<$>))
+import Control.Applicative                   ((<$>))
 import Control.Monad
-import Control.Monad.IO.Class                   (liftIO)
-import Control.Monad.Loops                      (firstM)
-import Data.List                                (groupBy)
-import Data.Maybe                               (isNothing, fromJust, isJust)
+import Control.Monad.IO.Class                (liftIO)
+import Control.Monad.Loops                   (firstM)
+import Data.List                             (groupBy)
+import Data.Maybe                            (isNothing, fromJust, isJust)
 import Data.Time
 import Web.Blog.Models
 import Web.Blog.Models.Types
 import Web.Blog.SiteData
 import Web.Blog.Types
 import Web.Blog.Util
-import qualified Data.Text                      as T
-import qualified Database.Persist.Postgresql    as D
-import qualified Text.Blaze.Html5               as H
-import qualified Text.Pandoc                    as P
+import qualified Data.Text                   as T
+import qualified Database.Esqueleto          as E
+import qualified Database.Persist.Postgresql as D
+import qualified Text.Blaze.Html5            as H
+import qualified Text.Pandoc                 as P
 
 slugLength :: Int
 slugLength = siteDataSlugLength siteData

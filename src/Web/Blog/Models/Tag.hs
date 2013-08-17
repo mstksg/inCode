@@ -2,7 +2,6 @@
 
 module Web.Blog.Models.Tag  where
 
--- import qualified Data.Traversable as Tr   (mapM)
 import Control.Applicative                   ((<$>))
 import Control.Monad.IO.Class                (liftIO)
 import Control.Monad.Trans                   (lift)
@@ -102,32 +101,38 @@ data TagInfo = TagInfo
                , tagInfoCount     :: Int
                , tagInfoRecent    :: Maybe (Entry, T.Text) }
 
-getTagInfoList :: TagType -> D.SqlPersistM [TagInfo]
-getTagInfoList tt = getTagInfoListRecent tt True
+data TagSortType = TagSortLabel | TagSortCount | TagSortRecent
+                 deriving Show
+type ShowRecent = Bool
 
-getTagInfoListRecent :: TagType -> Bool -> D.SqlPersistM [TagInfo]
-getTagInfoListRecent tt recent = do
+getTagInfoList  :: TagType -> TagSortType -> ShowRecent -> D.SqlPersistM [TagInfo]
+getTagInfoList tt sorting recent = do
   now <- liftIO getCurrentTime
-  tags <- if recent
-    then
-      E.select $
-          E.from $ \(t `E.InnerJoin` et `E.InnerJoin` e) -> do
-              E.on (e E.^. EntryId E.==. et E.^. EntryTagEntryId)
-              E.on (et E.^. EntryTagTagId E.==. t E.^. TagId)
-              E.where_ $ t E.^. TagType_ E.==. E.val tt
-              E.where_ $ e E.^. EntryPostedAt E.<=. E.val now
-              E.groupBy $ t E.^. TagId
-              E.orderBy [ E.desc $ E.max_ $ e E.^. EntryPostedAt, E.asc $ t E.^. TagLabel ]
-              return t
-    else
-      D.selectList [ TagType_ D.==. tt ] [ D.Asc TagLabel ]
-
+  tags <-
+    E.select $
+      E.from $ \(t `E.InnerJoin` et `E.InnerJoin` e) -> do
+        E.on (e E.^. EntryId E.==. et E.^. EntryTagEntryId)
+        E.on (et E.^. EntryTagTagId E.==. t E.^. TagId)
+        E.where_ $ t E.^. TagType_ E.==. E.val tt
+        E.where_ $ e E.^. EntryPostedAt E.<=. E.val now
+        E.groupBy $ t E.^. TagId
+        let
+          countRows' = E.countRows :: E.SqlExpr (E.Value Int)
+        case sorting of
+          TagSortLabel ->
+            E.orderBy [ E.asc $ t E.^. TagLabel ]
+          TagSortCount ->
+            E.orderBy [ E.desc countRows'
+                      , E.asc $ t E.^. TagLabel ]
+          TagSortRecent ->
+            E.orderBy [ E.desc $ E.max_ $ e E.^. EntryPostedAt
+                      , E.asc $ t E.^. TagLabel ]
+        return (t, countRows')
   let
-    tagInfo (D.Entity tKey t) = do
-      c <- D.count [ EntryTagTagId D.==. tKey ]
-      eKeys <- map (entryTagEntryId . D.entityVal) <$> D.selectList [ EntryTagTagId D.==. tKey ] []
+    tagInfo (D.Entity tKey t, E.Value c) = do
       r <- if recent
-        then
+        then do
+          eKeys <- map (entryTagEntryId . D.entityVal) <$> D.selectList [ EntryTagTagId D.==. tKey ] []
           runMaybeT $ do
             re <- MaybeT $ D.selectFirst (postedFilter now ++ [ EntryId D.<-. eKeys ]) [ D.Desc EntryPostedAt ]
             ru <- lift $ getUrlPath re
@@ -137,33 +142,3 @@ getTagInfoListRecent tt recent = do
       return $ TagInfo t c r
 
   mapM tagInfo tags
-
-getTagInfoListRecent' :: TagType -> Bool -> D.SqlPersistM [TagInfo]
-getTagInfoListRecent' tt recent = do
-  now <- liftIO getCurrentTime
-
-  rawTagInfos <-
-    E.select $
-      E.from $ \(t `E.InnerJoin` et `E.InnerJoin` e) -> do
-        E.on (e E.^. EntryId E.==. et E.^. EntryTagEntryId)
-        E.on (et E.^. EntryTagTagId E.==. t E.^. TagId)
-        -- E.where_ $ t E.^. TagType_ E.==. E.val tt
-        -- E.where_ $ e E.^. EntryPostedAt E.<=. E.val now
-        E.groupBy $ t E.^. TagId
-        -- E.orderBy [ E.desc $ E.max_ $ e E.^. EntryPostedAt, E.asc $ t E.^. TagLabel ]
-        return (t E.^. TagLabel, E.countRows)
-    -- E.select $
-    --     E.from $ \(t `E.InnerJoin` et `E.InnerJoin` e) -> do
-    --         E.on (e E.^. EntryId E.==. et E.^. EntryTagEntryId)
-    --         E.on (et E.^. EntryTagTagId E.==. t E.^. TagId)
-    --         E.groupBy $ t E.^. TagId
-    --         E.orderBy [ E.desc $ E.max_ $ e E.^. EntryDayPosted, E.asc $ t E.^. TagLabel ]
-    --         -- return countRows'
-    --         return (t E.^. TagLabel, E.countRows)
-
-  -- let
-  --   tagInfo (t,c) = TagInfo (D.entityVal t) c Nothing
-
-  -- return $ map tagInfo rawTagInfos
-  
-  return []
