@@ -1,14 +1,14 @@
 
-$sprites: '/img/assets/social_follow_icons.gif';
+$sprites: '/img/assets/icons.png';
 
 @function sprite-y($i) {
   @return $i * -16px;
 }
 
-$facebook: 18;
-$gplus: 23;
-$linkedin: 29;
-$twitter: 56;
+$facebook: 1;
+$twitter: 2;
+$gplus: 3;
+$linkedin: 4;
 
 // .social-follows {
 //   a {
@@ -42,12 +42,12 @@ $twitter: 56;
     display: inline-block;
     height: 16px;
     width: 16px;
-    background-image: url('/img/assets/social_follow_icons.gif');
+    background-image: url($sprites);
     text-indent: 100%;
     overflow: hidden;
     white-space: nowrap;
     border: none;
-    border-radius: 2px;
+    // border-radius: 2px;
     &:hover {
       background-color: transparent;
       filter: alpha(opacity=67);
