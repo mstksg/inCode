@@ -31,7 +31,6 @@ viewHome eList pageNum = do
   tagsHtml <- viewTags
   homeUrl <- renderUrl "/"
   socialFollowsHtml <- viewSocialFollow
-  -- socialFollowsHtml' <- viewSocialFollow'
 
 
   return $
@@ -49,7 +48,6 @@ viewHome eList pageNum = do
           H.aside ! A.class_ "social-follows" $ do
             "Follow me on: " :: H.Html
             socialFollowsHtml
-            -- socialFollowsHtml'
 
       H.div ! A.class_ "unit three-of-four" $
         entryList eList pageDataMap' pageNum

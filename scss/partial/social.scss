@@ -1,31 +1,10 @@
+@import 'scss/util/mixins.scss';
 
-$sprites: '/img/assets/icons.png';
-
-@function sprite-y($i) {
-  @return $i * -16px;
-}
 
 $facebook: 1;
 $twitter: 2;
 $gplus: 3;
 $linkedin: 4;
-
-// .social-follows {
-//   a {
-//     border: none;
-//     &:hover {
-//       background-color: transparent;
-//     }
-//   }
-// }
-// .social-follows {
-//   > div {
-//     display: inline-block;
-//   }
-//   font-style: italic;
-//   float: right;
-//   margin-right: 1rem;
-// }
 
 .social-follows-list {
   list-style-type: none;
@@ -42,7 +21,7 @@ $linkedin: 4;
     display: inline-block;
     height: 16px;
     width: 16px;
-    background-image: url($sprites);
+    background-image: url($sprites16);
     text-indent: 100%;
     overflow: hidden;
     white-space: nowrap;
@@ -54,20 +33,20 @@ $linkedin: 4;
       opacity: 0.67;
     }
     padding: 0;
-    margin: 0 0.15rem;
+    margin: 0 0.1rem;
   }
 }
 
 
 .social-follow-facebook {
-    background-position-y: sprite-y($facebook);
+    background-position-y: sprite16-y($facebook);
 }
 .social-follow-twitter {
-    background-position-y: sprite-y($twitter);
+    background-position-y: sprite16-y($twitter);
 }
 .social-follow-linkedin {
-    background-position-y: sprite-y($linkedin);
+    background-position-y: sprite16-y($linkedin);
 }
 .social-follow-gplus {
-    background-position-y: sprite-y($gplus);
+    background-position-y: sprite16-y($gplus);
 }

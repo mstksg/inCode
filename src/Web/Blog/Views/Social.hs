@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Web.Blog.Views.Social (viewSocialShare, viewSocialFollow, viewSocialFollow') where
+module Web.Blog.Views.Social (viewSocialShare, viewSocialFollow) where
 
 -- import Control.Applicative                ((<$>))
 -- import Control.Monad.Reader
@@ -61,25 +61,25 @@ addThisLine =
       ! A.class_ "addthis_counter addthis_pill_style"
       $ mempty
 
-viewSocialFollow' :: SiteRender H.Html
-viewSocialFollow' = return $
-  H.div ! A.class_ "addthis_toolbox addthis_default_style" $ do
-    H.a
-      ! A.class_ "addthis_button_facebook_follow"
-      ! I.customAttribute "addthis:userid" "mstksg"
-      $ mempty
-    H.a
-      ! A.class_ "addthis_button_twitter_follow"
-      ! I.customAttribute "addthis:userid" "mstk"
-      $ mempty
-    H.a
-      ! A.class_ "addthis_button_linkedin_follow"
-      ! I.customAttribute "addthis:userid" "lejustin"
-      $ mempty
-    H.a
-      ! A.class_ "addthis_button_google_follow"
-      ! I.customAttribute "addthis:userid" "107705320197444500140"
-      $ mempty
+-- viewSocialFollow' :: SiteRender H.Html
+-- viewSocialFollow' = return $
+--   H.div ! A.class_ "addthis_toolbox addthis_default_style" $ do
+--     H.a
+--       ! A.class_ "addthis_button_facebook_follow"
+--       ! I.customAttribute "addthis:userid" "mstksg"
+--       $ mempty
+--     H.a
+--       ! A.class_ "addthis_button_twitter_follow"
+--       ! I.customAttribute "addthis:userid" "mstk"
+--       $ mempty
+--     H.a
+--       ! A.class_ "addthis_button_linkedin_follow"
+--       ! I.customAttribute "addthis:userid" "lejustin"
+--       $ mempty
+--     H.a
+--       ! A.class_ "addthis_button_google_follow"
+--       ! I.customAttribute "addthis:userid" "107705320197444500140"
+--       $ mempty
 
 viewSocialFollow :: SiteRender H.Html
 viewSocialFollow = return $
@@ -87,22 +87,26 @@ viewSocialFollow = return $
     H.li $
       H.a
         ! A.class_ "social-follow-facebook"
+        ! A.title "Friend me on Facebook!"
         ! A.href "http://www.facebook.com/mstksg" $
         "Facebook"
     H.li $
       H.a
         ! A.class_ "social-follow-twitter"
+        ! A.title "Follow me on Twitter!"
         ! A.href "https://twitter.com/intent/user?user_id=907281"
         ! A.onclick (I.textValue twitterFollowJs) $
         "Twitter"
     H.li $
       H.a
         ! A.class_ "social-follow-gplus"
+        ! A.title "Follow me on Google+!"
         ! A.href "https://plus.google.com/107705320197444500140" $
         "Google+"
     H.li $
       H.a
         ! A.class_ "social-follow-linkedin"
+        ! A.title "Connect with me on LinkedIn!"
         ! A.href "http://www.linkedin.com/in/lejustin" $
         "LinkedIn"
   where
