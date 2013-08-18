@@ -63,6 +63,16 @@
     h2,h3,h4,h5 {
       display: inline-block;
     }
+
+    > span {
+      // padding-top: 6rem;
+      // margin-top: -6rem;
+      // margin-top: -3rem;
+      // margin-bottom: 3rem;
+      display: block;
+      z-index: -1;
+    }
+
   }
 
 }

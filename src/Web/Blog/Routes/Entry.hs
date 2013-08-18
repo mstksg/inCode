@@ -112,7 +112,7 @@ routeEntry (Right (D.Entity eKey e')) = do
                          , pageDataJs    = ["/js/disqus.js"
                                            ,"/js/disqus_count.js"
                                            ,"/js/social.js"
-                                           ,"/js/jquery/jquery.toc.min.js"
+                                           ,"/js/jquery/jquery.toc.js"
                                            ,"/js/page/entry.js"]
                          , pageDataMap   = pdMap M.empty
                          }

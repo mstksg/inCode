@@ -84,33 +84,31 @@
   }
 
   h2, h3, h4, h5 {
-    border-top: 3rem solid transparent;
+    border-top: 3.25rem solid transparent;
   }
 
   h2 {
     font-size: 170%;
     line-height: 125%;
-    border-top: 4rem solid transparent;
-    margin-top: -1rem;
-    // margin-top: 0rem;
+    margin-top: 0.75rem;
     margin-bottom: 0.75rem;
     color: #225;
   }
   h3 {
     font-size: 130%;
     margin-bottom: 0.5rem;
-    margin-top: -1rem;
+    margin-top: -1.25rem;
     color: #911;
   }
   h4 {
     font-size: 105%;
-    margin-top: -1rem;
+    margin-top: -2.25rem;
     margin-bottom: 0.5rem;
     color: #541;
   }
   h5 {
     font-size: 105%;
-    margin-top: -1rem;
+    margin-top: -2.25rem;
     margin-bottom: 0rem;
     font-weight: normal;
     color: #515;

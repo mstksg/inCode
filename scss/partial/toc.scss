@@ -1,6 +1,7 @@
 @import "scss/util/mixins.scss";
 
 .contents-container {
+  display: none;
   width: 250px;
   float: right;
   z-index: 100;
