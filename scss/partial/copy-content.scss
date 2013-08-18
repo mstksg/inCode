@@ -90,28 +90,29 @@
   h2 {
     font-size: 170%;
     line-height: 125%;
-    margin-top: 1rem;
+    border-top: 4rem solid transparent;
+    margin-top: -1rem;
+    // margin-top: 0rem;
     margin-bottom: 0.75rem;
     color: #225;
   }
   h3 {
     font-size: 130%;
     margin-bottom: 0.5rem;
-    margin-top: 0rem;
+    margin-top: -1rem;
     color: #911;
   }
   h4 {
-    font-size: 110%;
-    margin-top: 0rem;
+    font-size: 105%;
+    margin-top: -1rem;
     margin-bottom: 0.5rem;
     color: #541;
   }
   h5 {
-    font-size: 110%;
-    margin-top: 0rem;
+    font-size: 105%;
+    margin-top: -1rem;
     margin-bottom: 0rem;
     font-weight: normal;
-    // font-style: italic;
     color: #515;
   }
 

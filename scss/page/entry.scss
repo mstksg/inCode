@@ -60,8 +60,23 @@
     @media #{$smaller-screen} {
       margin-top: 1rem;
     }
+    h2,h3,h4,h5 {
+      display: inline-block;
+    }
   }
 
+}
+
+.top-link {
+  font-size: 0.8rem;
+  font-style: normal;
+  font-weight: normal;
+  font-family: $serif;
+  margin-left: 0.5rem;
+  color: #777;
+  &:visited {
+    color: #777;
+  }
 }
 
 .entry-series {
