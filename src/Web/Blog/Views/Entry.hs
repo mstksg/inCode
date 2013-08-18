@@ -73,10 +73,11 @@ viewEntry entry tags prevEntry nextEntry = do
 
         H.hr
 
-        H.div ! A.class_ "main-content copy-content" $ do
+        H.aside ! A.class_ "contents-container" $ do
+          H.h4 "Contents"
+          H.div ! A.id "toc" $ mempty
 
-          H.aside ! A.id "toc" $ mempty
-
+        H.div ! A.class_ "main-content copy-content" $
           entryHtml entry
 
         H.footer $ do

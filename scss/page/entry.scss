@@ -31,6 +31,9 @@
       // line-height: 100%;
       // word-spacing: 0.5rem;
       cursor: default;
+      @media #{$smaller-screen} {
+        font-size: 85%;
+      }
     }
 
     a, .info-separator {
@@ -54,6 +57,9 @@
   .main-content {
     @include first-line-emphasis(150%);
     margin-top: 3rem;
+    @media #{$smaller-screen} {
+      margin-top: 1rem;
+    }
   }
 
 }
