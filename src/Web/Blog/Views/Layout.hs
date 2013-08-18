@@ -115,7 +115,7 @@ navBar :: SiteRender H.Html
 navBar = do
   homeUrl <- renderUrl "/"
   archiveUrl <- renderUrl "/entries"
-  aboutUrl <- renderUrl "/about"
+  -- aboutUrl <- renderUrl "/about"
   author <- (siteDataAuthor . pageSiteData) <$> ask
   siteTitle <- (siteDataTitle . pageSiteData) <$> ask
 
@@ -135,9 +135,9 @@ navBar = do
         H.li $
           H.a ! A.href (I.textValue archiveUrl) $
             "archives"
-        H.li $
-          H.a ! A.href (I.textValue aboutUrl) $
-            "about"
+        -- H.li $
+        --   H.a ! A.href (I.textValue aboutUrl) $
+        --     "about"
 
         H.div ! A.class_ "clear" $
           mempty
