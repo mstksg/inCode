@@ -138,13 +138,12 @@ $photo: "/img/photo_square.jpg";
   }
 
   .social-follows {
-    > div {
-      display: inline-block;
-    }
+    display: block;
+    text-align: right;
     font-style: italic;
-    float: right;
     margin-right: 1rem;
   }
+
 }
 
 .home-sidebar {

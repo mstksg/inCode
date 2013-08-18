@@ -146,11 +146,6 @@ h1, h2, h3, h4, h5, h6 {
   //   display: inline-block;
   // }
 
-  .social-follows {
-    // margin: 0 0.75rem;
-    display: inline-block;
-  }
-
 }
 
 h1 {
@@ -229,12 +224,4 @@ hr {
 
 @import "scss/partial/copy-content.scss";
 @import "scss/partial/navbar.scss";
-
-.social-follows {
-  a {
-    border: none;
-    &:hover {
-      background-color: transparent;
-    }
-  }
-}
+@import "scss/partial/social.scss";

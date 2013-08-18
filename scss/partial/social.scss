@@ -1,0 +1,26 @@
+
+
+// .social-follows {
+//   a {
+//     border: none;
+//     &:hover {
+//       background-color: transparent;
+//     }
+//   }
+// }
+// .social-follows {
+//   > div {
+//     display: inline-block;
+//   }
+//   font-style: italic;
+//   float: right;
+//   margin-right: 1rem;
+// }
+
+.social-follows-list {
+  list-style-type: none;
+  display: inline-block;
+  li {
+    display: inline-block;
+  }
+}
