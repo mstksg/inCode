@@ -154,7 +154,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 h1 {
-  margin-bottom: 0.4em;
+  // margin-bottom: 0.4em;
+  margin-bottom: 0;
 }
 
 hr {
@@ -164,7 +165,8 @@ hr {
   background-image:    -moz-linear-gradient(left, rgba(0,0,0,0), rgba(0,0,0,0.5), rgba(0,0,0,0));
   background-image:     -ms-linear-gradient(left, rgba(0,0,0,0), rgba(0,0,0,0.5), rgba(0,0,0,0));
   background-image:      -o-linear-gradient(left, rgba(0,0,0,0), rgba(0,0,0,0.5), rgba(0,0,0,0));
-  margin-top: -0.75rem;
+  // margin-top: -0.75rem;
+  margin-top: 0.25rem;
 }
 
 .single-page {
