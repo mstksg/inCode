@@ -23,6 +23,12 @@
       }
     }
 
+    h1 {
+      border-top: 4.25rem solid transparent;
+      margin-top: -4.25rem;
+    }
+
+
     > p {
       text-align: right;
       font-style: italic;
@@ -31,6 +37,9 @@
       // line-height: 100%;
       // word-spacing: 0.5rem;
       cursor: default;
+      @media #{$smallest-screen} {
+        font-size: 85%;
+      }
     }
 
     a, .info-separator {
@@ -54,8 +63,36 @@
   .main-content {
     @include first-line-emphasis(150%);
     margin-top: 3rem;
+    @media #{$smaller-screen} {
+      margin-top: 1rem;
+    }
+    h2,h3,h4,h5 {
+      display: inline-block;
+    }
+
+    > span {
+      // padding-top: 6rem;
+      // margin-top: -6rem;
+      // margin-top: -3rem;
+      // margin-bottom: 3rem;
+      display: block;
+      z-index: -1;
+    }
+
   }
 
+}
+
+.top-link {
+  font-size: 0.8rem;
+  font-style: normal;
+  font-weight: normal;
+  font-family: $serif;
+  margin-left: 0.5rem;
+  color: #777;
+  &:visited {
+    color: #777;
+  }
 }
 
 .entry-series {
@@ -118,3 +155,5 @@
   margin: 0.5rem 0 0.5rem 0;
   font-size: 90%;
 }
+
+@import "scss/partial/toc.scss"
