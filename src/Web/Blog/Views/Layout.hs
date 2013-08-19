@@ -48,7 +48,7 @@ viewLayout body = do
       forM_ cssUrlList $ \u ->
         H.link ! A.href (I.textValue u) ! A.rel "stylesheet" ! A.type_ "text/css"
 
-      H.link ! A.rel "author" ! A.href (I.textValue $ siteDataAuthorRel $ pageSiteData pageData')
+      H.link ! A.rel "author" ! A.href (I.textValue $ authorInfoRel $ siteDataAuthorInfo $ pageSiteData pageData')
 
       H.script ! A.type_ "text/javascript" $ do
         H.toHtml $
@@ -56,7 +56,7 @@ viewLayout body = do
             [ "var page_data = {};"
             , T.concat
               [ "var disqus_shortname='"
-              , siteDataDisqusShortname siteData
+              , developerAPIsDisqus $ siteDataDeveloperAPIs siteData
               , "';" ]
             -- , "var addthis_config = {'data_track_addressbar':true};"
             ]
@@ -116,7 +116,7 @@ navBar = do
   homeUrl <- renderUrl "/"
   archiveUrl <- renderUrl "/entries"
   -- aboutUrl <- renderUrl "/about"
-  author <- (siteDataAuthor . pageSiteData) <$> ask
+  author <- (authorInfoName . siteDataAuthorInfo . pageSiteData) <$> ask
   siteTitle <- (siteDataTitle . pageSiteData) <$> ask
 
   return $

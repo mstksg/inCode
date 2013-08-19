@@ -1,6 +1,7 @@
 module Web.Blog.Types (
     SiteData(..)
   , DeveloperAPIs(..)
+  , AuthorInfo(..)
   , SiteRender
   , PageDataMap
   , PageData(..)
@@ -17,10 +18,9 @@ import qualified Web.Scotty       as S
 
 data SiteData = SiteData
                 { siteDataTitle           :: T.Text
-                , siteDataAuthor          :: T.Text
+                , siteDataAuthorInfo      :: AuthorInfo
+                , siteDataDescription     :: T.Text
                 , siteDataSiteHost        :: T.Text
-                , siteDataAuthorRel       :: T.Text
-                , siteDataDisqusShortname :: T.Text
                 , siteDataDeveloperAPIs   :: DeveloperAPIs
                 , siteDataSlugLength      :: Int
                 , siteDataHomeEntries     :: Int
@@ -29,10 +29,16 @@ data SiteData = SiteData
 
 data DeveloperAPIs = DeveloperAPIs
                      { developerAPIsAnalytics :: (T.Text,T.Text)
+                     , developerAPIsDisqus    :: T.Text
                      , developerAPIsFacebook  :: T.Text
                      , developerAPIsAddThis   :: T.Text
                      }
 
+data AuthorInfo = AuthorInfo
+                  { authorInfoName :: T.Text
+                  , authorInfoEmail :: T.Text
+                  , authorInfoRel :: T.Text
+                  }
 
 type SiteRender a = ReaderT PageData S.ActionM a
 

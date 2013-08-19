@@ -52,7 +52,7 @@ viewEntry entry tags prevEntry nextEntry = do
             "by " :: H.Html
 
             H.a ! A.class_ "author" ! A.href (I.textValue aboutUrl) $
-              H.toHtml $ siteDataAuthor siteData'
+              H.toHtml $ authorInfoName $ siteDataAuthorInfo siteData'
 
             H.span ! A.class_ "info-separator" $
               H.preEscapedToHtml
