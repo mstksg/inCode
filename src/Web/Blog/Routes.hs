@@ -13,6 +13,7 @@ import Web.Blog.Routes.About
 import Web.Blog.Routes.Archive
 import Web.Blog.Routes.Entry
 import Web.Blog.Routes.Home
+import Web.Blog.Routes.Feed
 import Web.Blog.Routes.NotFound
 import Web.Blog.Routes.TagIndex
 import Web.Blog.Types
@@ -35,13 +36,13 @@ route = do
 
 homeRoutes :: S.ScottyM ()
 homeRoutes = do
-  S.get "/" $ 
+  S.get "/" $
     routeEither $ routeHome 1
 
   forM_ ["/home","/home/1"] $ \r ->
     S.get r $
       routeEither $ return $ Left "/"
-  
+
   S.get "/home/:page" $ do
     page <- S.param "page"
     when (page < 1) S.next
@@ -84,14 +85,14 @@ archiveRoutes = do
     tag <- S.param "tag"
     routeEither $ routeArchiveTag GeneralTag $ T.pack tag
 
-  S.get "/entries/in" $ 
+  S.get "/entries/in" $
     routeEither $ return $ Left "/entries"
 
   S.get "/entries/in/:year" $ do
     year <- S.param "year"
     when (year < 1) S.next
     routeEither $ routeArchiveYear year
- 
+
   S.get "/entries/in/:year/:month" $ do
     year <- S.param "year"
     month <- S.param "month"
@@ -107,11 +108,11 @@ indexRoutes = do
   S.get "/categories" $
     routeEither $ routeTagIndex CategoryTag
 
-  S.get "/series" $ 
+  S.get "/series" $
     routeEither $ routeTagIndex SeriesTag
 
 utilRoutes :: S.ScottyM ()
-utilRoutes = 
+utilRoutes = do
   S.get (S.regex "^/css/(.*)\\.css$") $ do
     path <- S.param "1"
     let
@@ -125,7 +126,13 @@ utilRoutes =
         S.header "Content-Type" "text/css"
       else
         S.next
-    
+
+  S.get "/rss" $ do
+    (v,d) <- routeFeed
+    ran <- runReaderT v d
+    S.text ran
+
+
 
 
 miscRoutes :: S.ScottyM ()
@@ -141,7 +148,7 @@ routeEither :: RouteEither -> S.ActionM ()
 routeEither r = do
   routeResult <- r
   case routeResult of
-    Left re -> 
+    Left re ->
       -- TODO: get this status stuff working?
       -- if L.isPrefixOf "/not-found" re
       --   then
