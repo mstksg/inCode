@@ -1,6 +1,8 @@
 module Web.Blog.Types (
     SiteData(..)
   , DeveloperAPIs(..)
+  , AuthorInfo(..)
+  , AppPrefs(..)
   , SiteRender
   , PageDataMap
   , PageData(..)
@@ -17,22 +19,33 @@ import qualified Web.Scotty       as S
 
 data SiteData = SiteData
                 { siteDataTitle           :: T.Text
-                , siteDataAuthor          :: T.Text
+                , siteDataAuthorInfo      :: AuthorInfo
+                , siteDataDescription     :: T.Text
                 , siteDataSiteHost        :: T.Text
-                , siteDataAuthorRel       :: T.Text
-                , siteDataDisqusShortname :: T.Text
                 , siteDataDeveloperAPIs   :: DeveloperAPIs
-                , siteDataSlugLength      :: Int
-                , siteDataHomeEntries     :: Int
-                , siteDataLedeMax         :: Int
+                , siteDataAppPrefs        :: AppPrefs
                 }
 
 data DeveloperAPIs = DeveloperAPIs
-                     { developerAPIsAnalytics :: (T.Text,T.Text)
-                     , developerAPIsFacebook  :: T.Text
-                     , developerAPIsAddThis   :: T.Text
+                     { developerAPIsAnalytics       :: (T.Text,T.Text)
+                     , developerAPIsDisqusShortname :: T.Text
+                     , developerAPIsFacebook        :: T.Text
+                     , developerAPIsAddThis         :: T.Text
+                     , developerAPIsFeedburner      :: T.Text
                      }
 
+data AuthorInfo = AuthorInfo
+                  { authorInfoName  :: T.Text
+                  , authorInfoEmail :: T.Text
+                  , authorInfoRel   :: T.Text
+                  }
+
+data AppPrefs = AppPrefs
+                { appPrefsSlugLength  :: Int
+                , appPrefsHomeEntries :: Int
+                , appPrefsLedeMax     :: Int
+                , appPrefsFeedEntries :: Int
+                }
 
 type SiteRender a = ReaderT PageData S.ActionM a
 

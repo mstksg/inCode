@@ -33,24 +33,16 @@ executable blog
                      , persistent-postgresql
                      , persistent-template
                      , process
+                     , rss
                      , scotty
                      , text
                      , time
                      , transformers
-                     , wai
+                     , network
                      , wai
                      , wai-extra
                      , wai-middleware-headers
                      , wai-middleware-static 
-                     , mtl
-                     , containers
-                     , blaze-markup
-                     , transformers
-                     , monad-loops
-                     , pandoc
-                     , old-locale
-                     , http-types
-                     , esqueleto
   -- ghc-options:         -ddump-types
   extensions:          OverloadedStrings
 

@@ -122,7 +122,7 @@ routeEntry (Left r) = return $ Left r
 
 entryAux :: D.Key Entry -> Entry -> D.SqlPersistM ([Tag],Maybe (Entry, T.Text),Maybe (Entry, T.Text))
 entryAux k e = do
-  tags <- getTagsByEntityKey k
+  tags <- getTagsByEntityKey k []
 
   prevData <- runMaybeT $ do
     prev <- MaybeT $ getPrevEntry e
