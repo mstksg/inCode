@@ -30,3 +30,7 @@ $tag-color: #dde;
 $category-color: #edd;
 $series-color: #ded;
 
+$sprites16: '/img/assets/icons16.png';
+@function sprite16-y($i) {
+  @return $i * -16px;
+}
