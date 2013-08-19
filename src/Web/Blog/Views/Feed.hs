@@ -25,7 +25,7 @@ feedRss entryInfos = RSS
             feedItems
   where
     siteDataString r = T.unpack $ r siteData
-    feedTitle = siteDataString siteDataTitle
+    feedTitle = siteDataString siteDataTitle ++ " (RSS Feed)"
     feedBaseUri = URI "http:" (Just auth)
       where
         auth = URIAuth "" host ""
@@ -56,7 +56,7 @@ feedRss entryInfos = RSS
       [ Title $ T.unpack $ entryTitle entry
       , Link $ feedBaseUri (T.unpack entryUrl) "" ""
       , Description $ B.renderHtml $ entryHtml entry
-      , Author feedAuthor
+      -- , Author feedAuthorName
       , Comments $ feedBaseUri (T.unpack entryUrl) "" "#disqus_thread"
       , Guid True $ show $ feedBaseUri (T.unpack $ entryPermalink eEntity) "" ""
       , PubDate $ entryPostedAt entry

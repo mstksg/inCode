@@ -5,6 +5,8 @@ $facebook: 1;
 $twitter: 2;
 $gplus: 3;
 $linkedin: 4;
+$rss: 5;
+$email: 6;
 
 .social-follows-list {
   list-style-type: none;
@@ -49,4 +51,10 @@ $linkedin: 4;
 }
 .social-follow-gplus {
     background-position-y: sprite16-y($gplus);
+}
+.social-follow-rss {
+    background-position-y: sprite16-y($rss);
+}
+.social-follow-email {
+    background-position-y: sprite16-y($email);
 }

@@ -30,9 +30,9 @@ routeHome page = do
         pageTitle =
           if page == 1
             then
-              "Home"
+              Nothing
             else
-              T.concat ["Home (Page ", T.pack $ show page,")"]
+              Just $ T.concat ["Home (Page ", T.pack $ show page,")"]
 
         urlBase = renderUrl' "/home/"
 
@@ -60,7 +60,7 @@ routeHome page = do
               M.insert "nextPage" (T.append urlBase $ T.pack $ show $ page + 1)
 
         view = viewHome eList page
-        pageData' = pageData { pageDataTitle = Just pageTitle
+        pageData' = pageData { pageDataTitle = pageTitle
                              , pageDataCss   = ["/css/page/home.min.css"]
                              , pageDataJs    = ["/js/disqus_count.js"]
                              , pageDataMap   = pdMap M.empty

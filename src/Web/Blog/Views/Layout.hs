@@ -22,6 +22,7 @@ viewLayout body = do
   navBarHtml <- navBar
   title <- createTitle
   socialFollowsHtml <- viewSocialFollow
+  -- rssUrl <- renderUrl "/rss"
 
   let
     cssList = [ "/css/toast.css"
@@ -42,13 +43,29 @@ viewLayout body = do
     H.head $ do
 
       H.title title
+      H.meta ! A.name "description" ! A.content (I.textValue $ siteDataDescription siteData)
+
       H.meta ! A.httpEquiv "Content-Type" ! A.content "text/html;charset=utf-8"
       H.meta ! A.name "viewport" ! A.content "width=device-width,initial-scale=1.0"
 
       forM_ cssUrlList $ \u ->
         H.link ! A.href (I.textValue u) ! A.rel "stylesheet" ! A.type_ "text/css"
 
-      H.link ! A.rel "author" ! A.href (I.textValue $ authorInfoRel $ siteDataAuthorInfo $ pageSiteData pageData')
+      H.link
+        ! A.rel "author"
+        ! A.href
+          (I.textValue $ authorInfoRel $ siteDataAuthorInfo $ pageSiteData pageData')
+
+      H.link
+        ! A.rel "alternate"
+        ! A.type_ "application/rss+xml"
+        ! A.title
+          (I.textValue $ T.append (siteDataTitle siteData) " (RSS Feed)")
+        -- ! A.href "/rss"
+        -- ! A.href
+        --   (I.textValue rssUrl)
+        ! A.href
+          (I.textValue $ T.append "http://feeds.feedburner.com/" $ developerAPIsFeedburner $ siteDataDeveloperAPIs siteData)
 
       H.script ! A.type_ "text/javascript" $ do
         H.toHtml $

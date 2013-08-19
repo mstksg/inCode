@@ -21,7 +21,11 @@ siteData =
     authorInfo = AuthorInfo
                    "Justin Le"
                    "mstksg@gmail.com"
-                   "https://plus.google.com/107705320197444500140/posts"
+                   "https://plus.google.com/107705320197444500140"
+                   "mstksg"
+                   "907281"
+                   "107705320197444500140"
+                   "lejustin"
     developerAPIs = DeveloperAPIs
                       ("UA-443711-7", "jle0.com")
                       "justinleblogdevelopment"
