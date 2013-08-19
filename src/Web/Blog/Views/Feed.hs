@@ -14,12 +14,12 @@ viewFeed :: SiteRender L.Text
 viewFeed = return $ L.pack $ showXML $ rssToXML $ feedRss []
 
 feedRss :: [String] -> RSS
-feedRss entryInfos = RSS
+feedRss _ = RSS
             feedTitle
             feedLink
             feedDescription
             feedChannel
-            []
+            [testItem]
   where
     siteDataString r = T.unpack $ r siteData
     feedTitle = siteDataString siteDataTitle
@@ -50,3 +50,20 @@ feedRss entryInfos = RSS
 
 testTime :: UTCTime
 testTime = UTCTime (ModifiedJulianDay 10352) 19542
+
+testUri :: URI
+testUri = URI "http:" (Just $ URIAuth "" "google.com" "") "" "" ""
+
+testItem :: [ItemElem]
+testItem =
+  [ Title "Test Item"
+  , Link testUri
+  , Description "This is a test item."
+  , Author "coolio@cools.ville"
+  , Category Nothing ""
+  , Comments testUri
+  , Enclosure testUri 1 ""
+  , Guid False ""
+  , PubDate testTime
+  , Source testUri ""
+  ]
