@@ -4,6 +4,7 @@ module Web.Blog.Views.Social (viewSocialShare, viewSocialFollow) where
 
 -- import Control.Applicative                ((<$>))
 -- import Control.Monad.Reader
+-- import Control.Monad.Trans
 -- import Data.List                          (intersperse)
 -- import Data.Maybe
 -- import Data.Time                          (getCurrentTime)
@@ -12,10 +13,10 @@ module Web.Blog.Views.Social (viewSocialShare, viewSocialFollow) where
 -- import Web.Blog.Models.Util
 -- import Web.Blog.Util                      (renderFriendlyTime, renderDatetimeTime)
 -- import qualified Data.Map                 as M
--- import Control.Monad.Trans
 import Data.Monoid
 import Text.Blaze.Html5                      ((!))
--- import Web.Blog.Render
+import Web.Blog.Render
+import Web.Blog.SiteData
 import Web.Blog.Types
 import qualified Data.Text                   as T
 import qualified Text.Blaze.Html5            as H
@@ -82,33 +83,47 @@ addThisLine =
 --       $ mempty
 
 viewSocialFollow :: SiteRender H.Html
-viewSocialFollow = return $
-  H.ul ! A.class_ "social-follows-list" $ do
-    H.li $
-      H.a
-        ! A.class_ "social-follow-facebook"
-        ! A.title "Friend me on Facebook!"
-        ! A.href "http://www.facebook.com/mstksg" $
-        "Facebook"
-    H.li $
-      H.a
-        ! A.class_ "social-follow-twitter"
-        ! A.title "Follow me on Twitter!"
-        ! A.href "https://twitter.com/intent/user?user_id=907281"
-        ! A.onclick (I.textValue twitterFollowJs) $
-        "Twitter"
-    H.li $
-      H.a
-        ! A.class_ "social-follow-gplus"
-        ! A.title "Follow me on Google+!"
-        ! A.href "https://plus.google.com/107705320197444500140" $
-        "Google+"
-    H.li $
-      H.a
-        ! A.class_ "social-follow-linkedin"
-        ! A.title "Connect with me on LinkedIn!"
-        ! A.href "http://www.linkedin.com/in/lejustin" $
-        "LinkedIn"
+viewSocialFollow = do
+  rssUrl <- renderUrl "/rss"
+  return $
+    H.ul ! A.class_ "social-follows-list" $ do
+      H.li $
+        H.a
+          ! A.class_ "social-follow-facebook"
+          ! A.title "Friend me on Facebook!"
+          ! A.href "http://www.facebook.com/mstksg" $
+          "Facebook"
+      H.li $
+        H.a
+          ! A.class_ "social-follow-twitter"
+          ! A.title "Follow me on Twitter!"
+          ! A.href "https://twitter.com/intent/user?user_id=907281"
+          ! A.onclick (I.textValue twitterFollowJs) $
+          "Twitter"
+      H.li $
+        H.a
+          ! A.class_ "social-follow-gplus"
+          ! A.title "Follow me on Google+!"
+          ! A.href "https://plus.google.com/107705320197444500140" $
+          "Google+"
+      H.li $
+        H.a
+          ! A.class_ "social-follow-linkedin"
+          ! A.title "Connect with me on LinkedIn!"
+          ! A.href "http://www.linkedin.com/in/lejustin" $
+          "LinkedIn"
+      H.li $
+        H.a
+          ! A.class_ "social-follow-rss"
+          ! A.title "Subscribe to my RSS Feed!"
+          ! A.href (I.textValue rssUrl) $
+          "RSS"
+      H.li $
+        H.a
+          ! A.class_ "social-follow-email"
+          ! A.title "Subscribe to the mailing list!"
+          ! A.href (I.textValue emailUrl) $
+          "Mailing list"
   where
     twitterFollowJs = T.unlines
       [ "window.open("
@@ -116,6 +131,9 @@ viewSocialFollow = return $
       , "  'facebook-share-dialog',"
       , "  'width=550,height=520');"
       , "return false;" ]
+    emailUrl = T.append
+      "http://feedburner.google.com/fb/a/mailverify?loc=en_US&uri=" $
+      developerAPIsFeedburner $ siteDataDeveloperAPIs siteData
 
 -- viewSocial :: SiteRender H.Html
 -- viewSocial = do
