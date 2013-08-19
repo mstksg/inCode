@@ -131,6 +131,7 @@ utilRoutes = do
     (v,d) <- routeFeed
     ran <- runReaderT v d
     S.text ran
+    S.header "Content-Type" "application/rss+xml"
 
 
 

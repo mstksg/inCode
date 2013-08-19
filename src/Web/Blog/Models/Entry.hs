@@ -106,7 +106,7 @@ postedEntryCount = do
 getEntryData :: D.Entity Entry -> D.SqlPersistM (T.Text,[Tag])
 getEntryData e = do
   p <- getUrlPath e
-  ts  <- getTags e
+  ts  <- getTags e []
   return (p,ts)
 
 wrapEntryData :: D.Entity Entry -> D.SqlPersistM (D.Entity Entry, (T.Text, [Tag]))
@@ -131,21 +131,25 @@ getUrlPath entry = do
         D.Entity eKey _ = entry
       return $ T.append "/entry/id/" (T.pack $ show eKey)
 
+entryPermalink :: D.Entity Entry -> T.Text
+entryPermalink (D.Entity eKey _) = T.append "/entry/id/" entryId
+  where
+    Right entryId = D.fromPersistValueText $ D.unKey eKey
 
-getTags :: D.Entity Entry -> D.SqlPersistM [Tag]
-getTags entry = getTagsByEntityKey $ D.entityKey entry
 
-getTagsByEntityKey :: D.Key Entry -> D.SqlPersistM [Tag]
-getTagsByEntityKey k = do
+getTags :: D.Entity Entry -> [D.Filter Tag] -> D.SqlPersistM [Tag]
+getTags entry = getTagsByEntityKey (D.entityKey entry)
+
+getTagsByEntityKey :: D.Key Entry -> [D.Filter Tag] -> D.SqlPersistM [Tag]
+getTagsByEntityKey k filters = do
   ets <- D.selectList [ EntryTagEntryId D.==. k ] []
   let
     tagKeys = map (entryTagTagId . D.entityVal) ets
     selectTags tt = D.selectList
-                      [ TagId D.<-. tagKeys, TagType_ D.==. tt ]
+                      ([ TagId D.<-. tagKeys, TagType_ D.==. tt ] ++ filters)
                       [ D.Asc TagLabel ]
   tags <- concat <$> mapM selectTags [GeneralTag .. SeriesTag]
   return $ map D.entityVal tags
-
 
 
 getPrevEntry :: Entry -> D.SqlPersistM (Maybe (D.Entity Entry))
