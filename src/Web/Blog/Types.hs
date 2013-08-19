@@ -27,10 +27,11 @@ data SiteData = SiteData
                 }
 
 data DeveloperAPIs = DeveloperAPIs
-                     { developerAPIsAnalytics :: (T.Text,T.Text)
-                     , developerAPIsDisqus    :: T.Text
-                     , developerAPIsFacebook  :: T.Text
-                     , developerAPIsAddThis   :: T.Text
+                     { developerAPIsAnalytics       :: (T.Text,T.Text)
+                     , developerAPIsDisqusShortname :: T.Text
+                     , developerAPIsFacebook        :: T.Text
+                     , developerAPIsAddThis         :: T.Text
+                     , developerAPIsFeedburner      :: T.Text
                      }
 
 data AuthorInfo = AuthorInfo

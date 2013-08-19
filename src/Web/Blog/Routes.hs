@@ -7,6 +7,7 @@ import Data.List                  (isSuffixOf)
 import Network.HTTP.Types.Status
 import System.Directory           (doesFileExist)
 import System.FilePath
+import Web.Blog.SiteData
 import Web.Blog.Models.Types
 import Web.Blog.Render
 import Web.Blog.Routes.About
@@ -127,6 +128,10 @@ utilRoutes = do
       else
         S.next
 
+  S.get "/rss" $
+    S.redirect $ L.append
+      "http://feeds.feedburner.com/" $
+      L.fromStrict $ developerAPIsFeedburner $ siteDataDeveloperAPIs siteData
   S.get "/rss.raw" $ do
     (v,d) <- routeFeed
     ran <- runReaderT v d

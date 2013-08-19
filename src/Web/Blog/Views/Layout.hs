@@ -56,7 +56,7 @@ viewLayout body = do
             [ "var page_data = {};"
             , T.concat
               [ "var disqus_shortname='"
-              , developerAPIsDisqus $ siteDataDeveloperAPIs siteData
+              , developerAPIsDisqusShortname $ siteDataDeveloperAPIs siteData
               , "';" ]
             -- , "var addthis_config = {'data_track_addressbar':true};"
             ]
