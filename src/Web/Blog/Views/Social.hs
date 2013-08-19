@@ -91,26 +91,26 @@ viewSocialFollow = do
         H.a
           ! A.class_ "social-follow-facebook"
           ! A.title "Friend me on Facebook!"
-          ! A.href "http://www.facebook.com/mstksg" $
+          ! A.href (I.textValue facebookUrl) $
           "Facebook"
       H.li $
         H.a
           ! A.class_ "social-follow-twitter"
           ! A.title "Follow me on Twitter!"
-          ! A.href "https://twitter.com/intent/user?user_id=907281"
+          ! A.href (I.textValue twitterUrl)
           ! A.onclick (I.textValue twitterFollowJs) $
           "Twitter"
       H.li $
         H.a
           ! A.class_ "social-follow-gplus"
           ! A.title "Follow me on Google+!"
-          ! A.href "https://plus.google.com/107705320197444500140" $
+          ! A.href (I.textValue gPlusUrl) $
           "Google+"
       H.li $
         H.a
           ! A.class_ "social-follow-linkedin"
           ! A.title "Connect with me on LinkedIn!"
-          ! A.href "http://www.linkedin.com/in/lejustin" $
+          ! A.href (I.textValue linkedInUrl) $
           "LinkedIn"
       H.li $
         H.a
@@ -131,8 +131,13 @@ viewSocialFollow = do
       , "  'facebook-share-dialog',"
       , "  'width=550,height=520');"
       , "return false;" ]
+    socialUrl base field = T.append base $ field $ siteDataAuthorInfo siteData
+    facebookUrl = socialUrl "https://facebook.com/" authorInfoFacebook
+    twitterUrl = socialUrl "https://twitter.com/intent/user?user_id=" authorInfoTwitterID
+    gPlusUrl = socialUrl "https://plus.google.com/" authorInfoGPlus
+    linkedInUrl = socialUrl "https://linkedin.com/in/" authorInfoLinkedIn
     emailUrl = T.append
-      "http://feedburner.google.com/fb/a/mailverify?loc=en_US&uri=" $
+      "https://feedburner.google.com/fb/a/mailverify?loc=en_US&uri=" $
       developerAPIsFeedburner $ siteDataDeveloperAPIs siteData
 
 -- viewSocial :: SiteRender H.Html

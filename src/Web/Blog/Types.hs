@@ -35,9 +35,13 @@ data DeveloperAPIs = DeveloperAPIs
                      }
 
 data AuthorInfo = AuthorInfo
-                  { authorInfoName  :: T.Text
-                  , authorInfoEmail :: T.Text
-                  , authorInfoRel   :: T.Text
+                  { authorInfoName      :: T.Text
+                  , authorInfoEmail     :: T.Text
+                  , authorInfoRel       :: T.Text
+                  , authorInfoFacebook  :: T.Text
+                  , authorInfoTwitterID :: T.Text
+                  , authorInfoGPlus     :: T.Text
+                  , authorInfoLinkedIn  :: T.Text
                   }
 
 data AppPrefs = AppPrefs
