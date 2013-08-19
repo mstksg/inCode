@@ -2,6 +2,7 @@ module Web.Blog.Types (
     SiteData(..)
   , DeveloperAPIs(..)
   , AuthorInfo(..)
+  , AppPrefs(..)
   , SiteRender
   , PageDataMap
   , PageData(..)
@@ -22,9 +23,7 @@ data SiteData = SiteData
                 , siteDataDescription     :: T.Text
                 , siteDataSiteHost        :: T.Text
                 , siteDataDeveloperAPIs   :: DeveloperAPIs
-                , siteDataSlugLength      :: Int
-                , siteDataHomeEntries     :: Int
-                , siteDataLedeMax         :: Int
+                , siteDataAppPrefs        :: AppPrefs
                 }
 
 data DeveloperAPIs = DeveloperAPIs
@@ -35,10 +34,17 @@ data DeveloperAPIs = DeveloperAPIs
                      }
 
 data AuthorInfo = AuthorInfo
-                  { authorInfoName :: T.Text
+                  { authorInfoName  :: T.Text
                   , authorInfoEmail :: T.Text
-                  , authorInfoRel :: T.Text
+                  , authorInfoRel   :: T.Text
                   }
+
+data AppPrefs = AppPrefs
+                { appPrefsSlugLength  :: Int
+                , appPrefsHomeEntries :: Int
+                , appPrefsLedeMax     :: Int
+                , appPrefsFeedEntries :: Int
+                }
 
 type SiteRender a = ReaderT PageData S.ActionM a
 

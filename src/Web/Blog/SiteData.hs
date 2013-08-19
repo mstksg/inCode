@@ -2,7 +2,7 @@ module Web.Blog.SiteData (
     siteData
   ) where
 
-import Web.Blog.Types (SiteData(..), DeveloperAPIs(..), AuthorInfo(..))
+import Web.Blog.Types (SiteData(..), DeveloperAPIs(..), AuthorInfo(..), AppPrefs(..))
 import qualified Data.Text as T
 
 siteData :: SiteData
@@ -16,9 +16,7 @@ siteData =
       , "physics, and knowledge."] )
     "blog-dev.jle0.com"
     developerAPIs
-    6
-    5
-    2
+    appPrefs
   where
     authorInfo = AuthorInfo
                    "Justin Le"
@@ -29,4 +27,9 @@ siteData =
                       "justinleblogdevelopment"
                       "645245675494525"
                       "ra-520df7c304b817b9"
+    appPrefs = AppPrefs
+                 6
+                 5
+                 2
+                 15
 

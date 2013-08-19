@@ -127,7 +127,7 @@ utilRoutes = do
       else
         S.next
 
-  S.get "/rss" $ do
+  S.get "/rss.raw" $ do
     (v,d) <- routeFeed
     ran <- runReaderT v d
     S.text ran

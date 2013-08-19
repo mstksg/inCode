@@ -18,7 +18,7 @@ import qualified Database.Persist.Postgresql as D
 routeHome :: Int -> RouteEither
 routeHome page = do
   let
-    m = siteDataHomeEntries siteData
+    m = appPrefsHomeEntries $ siteDataAppPrefs siteData
 
   maxPage' <- liftIO $ runDB $ maxPage m
 

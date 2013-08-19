@@ -21,9 +21,9 @@ import qualified Text.Blaze.Html5            as H
 import qualified Text.Pandoc                 as P
 
 slugLength :: Int
-slugLength = siteDataSlugLength siteData
+slugLength = appPrefsSlugLength $ siteDataAppPrefs siteData
 ledeMax :: Int
-ledeMax = siteDataLedeMax siteData
+ledeMax = appPrefsLedeMax $ siteDataAppPrefs siteData
 
 insertEntry :: Entry -> D.SqlPersistM (Maybe (D.Key Entry))
 insertEntry entry = do
