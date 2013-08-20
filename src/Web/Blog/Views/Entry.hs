@@ -159,39 +159,3 @@ seriesLi t = H.li $
     H.a ! A.href (I.textValue $ renderUrl' $ tagPath t) $
       "series archives" :: H.Html
     "." :: H.Html
-
--- tocifyJs :: H.Html
--- tocifyJs = H.preEscapedToHtml $ T.unlines
---               [ "$(function() {"
---               , "$('.toc').tocify( { context: '.main-content' } );"
---               , "});"]
-
--- smartLayers :: H.Html
--- smartLayers = do
---   H.script
---     ! A.type_ "text/javascript"
---     ! A.src "//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-520df44e0cc3bb14"
---     $ mempty
---   H.script
---     ! A.type_ "text/javascript"
---     $ H.toHtml $
---       T.unlines
---         [ "addthis.layers({"
---         , "  'theme' : 'transparent',"
---         , "  'share' : {"
---         , "    'position' : 'left',"
---         , "    'numPreferredServices' : 5"
---         , "  },"
---         , "  'follow' : {"
---         , "    'services' : ["
---         , "      {'service': 'facebook', 'id': 'mstksg'},"
---         , "      {'service': 'twitter', 'id': 'mstk'},"
---         , "      {'service': 'linkedin', 'id': 'lejustin'},"
---         , "      {'service': 'google_follow', 'id': '107705320197444500140'}"
---         , "    ]"
---         , "  },"
---         , "  'whatsnext' : {},"
---         , "  'recommended' : {"
---         , "    'title': 'Recommended for you:'"
---         , "  }"
---         , "});" ]

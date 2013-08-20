@@ -137,7 +137,7 @@ viewTags = do
             forM_ tagList $ \tagInfo ->
               H.li $
                 H.a ! A.href (I.textValue $ renderUrl' $ tagPath $ tagInfoTag tagInfo) $
-                  H.toHtml $ tagLabel' $ tagInfoTag tagInfo
+                  H.toHtml $ tagLabel'' $ tagInfoTag tagInfo
 
 
 
