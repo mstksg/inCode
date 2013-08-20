@@ -20,7 +20,11 @@ import qualified Text.Blaze.Html5.Attributes as A
 import qualified Text.Blaze.Internal         as I
 import qualified Text.Pandoc                 as P
 
-data PreTag = PreTag T.Text TagType (Maybe T.Text)
+data PreTag = PreTag
+              { preTagLabel       :: T.Text
+              , preTagType_       :: TagType
+              , preTagDescription :: Maybe T.Text
+              }
 
 insertTag :: PreTag -> D.SqlPersistM (Maybe (D.Key Tag))
 insertTag ptag = D.insertUnique $ fillTag ptag

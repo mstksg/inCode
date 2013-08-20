@@ -128,7 +128,8 @@ utilRoutes = do
       else
         S.next
 
-  S.get "/rss" $
+  S.get "/rss" $ do
+    S.status movedPermanently301
     S.redirect $ L.append
       "http://feeds.feedburner.com/" $
       L.fromStrict $ developerAPIsFeedburner $ siteDataDeveloperAPIs siteData

@@ -2,6 +2,7 @@
 
 module Web.Blog.Models.Entry  where
 
+-- import qualified Database.Esqueleto       as E
 import Control.Applicative                   ((<$>))
 import Control.Monad
 import Control.Monad.IO.Class                (liftIO)
@@ -15,7 +16,6 @@ import Web.Blog.SiteData
 import Web.Blog.Types
 import Web.Blog.Util
 import qualified Data.Text                   as T
--- import qualified Database.Esqueleto          as E
 import qualified Database.Persist.Postgresql as D
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Pandoc                 as P
@@ -25,12 +25,21 @@ slugLength = appPrefsSlugLength $ siteDataAppPrefs siteData
 ledeMax :: Int
 ledeMax = appPrefsLedeMax $ siteDataAppPrefs siteData
 
-insertEntry :: Entry -> D.SqlPersistM (Maybe (D.Key Entry))
-insertEntry entry = do
+data PreEntry = PreEntry
+                { preEntryTitle :: T.Text
+                , preEntryContent :: T.Text
+                , preEntryCreatedAt :: UTCTime
+                , preEntryPostedAt :: UTCTime
+                }
+
+insertEntry :: PreEntry -> D.SqlPersistM (Maybe (D.Key Entry))
+insertEntry (PreEntry t c cA pA) = do
   entryKey <- D.insertUnique entry
   when (isJust entryKey) $
     insertSlug $ D.Entity (fromJust entryKey) entry
   return entryKey
+  where
+    entry = Entry t c cA pA Nothing
 
 insertEntry_ :: Entry -> D.SqlPersistM ()
 insertEntry_ entry = do

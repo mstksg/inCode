@@ -21,6 +21,7 @@ Entry
     content     T.Text
     createdAt   UTCTime
     postedAt    UTCTime
+    modifiedAt  UTCTime Maybe
 
     UniqueEntryTitle title
     deriving    Show
