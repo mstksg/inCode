@@ -40,11 +40,14 @@
 .social-follow-twitter {
     background-position-y: sprite16-y($twitter16);
 }
+.social-follow-gplus {
+    background-position-y: sprite16-y($gplus16);
+}
 .social-follow-linkedin {
     background-position-y: sprite16-y($linkedin16);
 }
-.social-follow-gplus {
-    background-position-y: sprite16-y($gplus16);
+.social-follow-github {
+    background-position-y: sprite16-y($github16);
 }
 .social-follow-rss {
     background-position-y: sprite16-y($rss16);

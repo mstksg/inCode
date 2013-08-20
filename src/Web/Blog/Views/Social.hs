@@ -114,6 +114,12 @@ viewSocialFollow = do
           "LinkedIn"
       H.li $
         H.a
+          ! A.class_ "social-follow-github"
+          ! A.title "Fork me on Github!"
+          ! A.href (I.textValue githubUrl) $
+          "Github"
+      H.li $
+        H.a
           ! A.class_ "social-follow-rss"
           ! A.title "Subscribe to my RSS Feed!"
           ! A.href (I.textValue rssUrl) $
@@ -136,6 +142,7 @@ viewSocialFollow = do
     twitterUrl = socialUrl "https://twitter.com/intent/user?user_id=" authorInfoTwitterID
     gPlusUrl = socialUrl "https://plus.google.com/" authorInfoGPlus
     linkedInUrl = socialUrl "https://linkedin.com/in/" authorInfoLinkedIn
+    githubUrl = socialUrl "https://github.com/" authorInfoGithub
     emailUrl = T.append
       "https://feedburner.google.com/fb/a/mailverify?loc=en_US&uri=" $
       developerAPIsFeedburner $ siteDataDeveloperAPIs siteData

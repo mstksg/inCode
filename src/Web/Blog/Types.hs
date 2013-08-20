@@ -42,6 +42,7 @@ data AuthorInfo = AuthorInfo
                   , authorInfoFacebook  :: T.Text
                   , authorInfoTwitterID :: T.Text
                   , authorInfoGPlus     :: T.Text
+                  , authorInfoGithub    :: T.Text
                   , authorInfoLinkedIn  :: T.Text
                   }
 

@@ -26,6 +26,7 @@ siteData =
                    "mstksg"
                    "907281"
                    "107705320197444500140"
+                   "mstksg"
                    "lejustin"
     developerAPIs = DeveloperAPIs
                       ("UA-443711-7", "jle0.com")
