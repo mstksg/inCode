@@ -18,12 +18,13 @@ import qualified Text.Blaze.Html5 as H
 import qualified Web.Scotty       as S
 
 data SiteData = SiteData
-                { siteDataTitle           :: T.Text
-                , siteDataAuthorInfo      :: AuthorInfo
-                , siteDataDescription     :: T.Text
-                , siteDataSiteHost        :: T.Text
-                , siteDataDeveloperAPIs   :: DeveloperAPIs
-                , siteDataAppPrefs        :: AppPrefs
+                { siteDataTitle         :: T.Text
+                , siteDataAuthorInfo    :: AuthorInfo
+                , siteDataDescription   :: T.Text
+                , siteDataCopyright     :: T.Text
+                , siteDataSiteHost      :: T.Text
+                , siteDataDeveloperAPIs :: DeveloperAPIs
+                , siteDataAppPrefs      :: AppPrefs
                 }
 
 data DeveloperAPIs = DeveloperAPIs

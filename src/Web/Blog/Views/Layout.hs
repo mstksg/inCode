@@ -110,7 +110,8 @@ viewLayout body = do
           H.div ! A.id "footer-content" $
             H.div ! A.class_ "tile" $ do
               H.div ! A.class_ "footer-copyright" $
-                H.preEscapedToHtml ("&copy; Justin Le 2013" :: T.Text)
+                H.preEscapedToHtml $
+                  T.append "&copy; " $ siteDataCopyright siteData
               H.div ! A.class_ "footer-follow social-follows" $
                 socialFollowsHtml
 

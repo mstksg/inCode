@@ -14,6 +14,7 @@ siteData =
       [ "Weblog of Justin Le, covering his various adventures in "
       , "programming and explorations in the vast worlds of computation, "
       , "physics, and knowledge."] )
+    "2013 Justin Le"
     "blog-dev.jle0.com"
     developerAPIs
     appPrefs
