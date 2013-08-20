@@ -1,12 +1,6 @@
 @import 'scss/util/mixins.scss';
+@import 'scss/util/icons.scss';
 
-
-$facebook: 1;
-$twitter: 2;
-$gplus: 3;
-$linkedin: 4;
-$rss: 5;
-$email: 6;
 
 .social-follows-list {
   list-style-type: none;
@@ -41,20 +35,20 @@ $email: 6;
 
 
 .social-follow-facebook {
-    background-position-y: sprite16-y($facebook);
+    background-position-y: sprite16-y($facebook16);
 }
 .social-follow-twitter {
-    background-position-y: sprite16-y($twitter);
+    background-position-y: sprite16-y($twitter16);
 }
 .social-follow-linkedin {
-    background-position-y: sprite16-y($linkedin);
+    background-position-y: sprite16-y($linkedin16);
 }
 .social-follow-gplus {
-    background-position-y: sprite16-y($gplus);
+    background-position-y: sprite16-y($gplus16);
 }
 .social-follow-rss {
-    background-position-y: sprite16-y($rss);
+    background-position-y: sprite16-y($rss16);
 }
 .social-follow-email {
-    background-position-y: sprite16-y($email);
+    background-position-y: sprite16-y($email16);
 }

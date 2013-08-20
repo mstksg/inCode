@@ -1,4 +1,5 @@
 @import "scss/util/mixins.scss";
+@import "scss/util/icons.scss";
 
 $photo: "/img/photo_square.jpg";
 
@@ -154,7 +155,8 @@ $photo: "/img/photo_square.jpg";
   ul {
     list-style-type: none;
     ul {
-      margin-left: 0.75rem;
+      // margin-left: 0.75rem;
+      margin-left: 0;
       list-style-type: none;
       font-size: 95%;
       @media #{$smaller-screen} {
@@ -170,6 +172,48 @@ $photo: "/img/photo_square.jpg";
   h3 {
     font-size: 150%;
     margin-bottom: 0.5rem;
+  }
+}
+
+@mixin home-links-icons($title,$sprite) {
+  a[title=#{$title}]:before {
+    background-position-y: sprite16-y($sprite);
+  }
+}
+
+
+.home-links {
+  a {
+    &:before {
+      display: inline-block;
+      // background-color: #aaa;
+      height: 16px;
+      width: 16px;
+      content: "";
+      background-image: url($sprites16);
+      margin: 0 0.2rem -0.1rem 0.1rem;
+    }
+  }
+  @include home-links-icons("Facebook",$facebook16);
+  @include home-links-icons("Twitter",$twitter16);
+  @include home-links-icons("Google\+",$gplus16);
+  @include home-links-icons("LinkedIn",$linkedin16);
+  @include home-links-icons("Youtube",$youtube16);
+  @include home-links-icons("Stack\ Overflow",$stackoverflow16);
+  @include home-links-icons("Github",$github16);
+  @include home-links-icons("Resume",$resume16);
+  ul {
+    ul {
+      margin-left: 0.25rem;
+    }
+  }
+}
+
+.home-tags {
+  ul {
+    ul {
+      margin-left: 0.75rem;
+    }
   }
 }
 

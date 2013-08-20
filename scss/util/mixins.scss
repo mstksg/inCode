@@ -17,7 +17,7 @@
   }
 }
 
-$break: 650px;
+$break: 740px;
 $smallest-break: 480px;
 $smallest-screen: "only screen and (max-width : #{$smallest-break})";
 $smaller-screen: "only screen and (max-width : #{$break})";
@@ -30,7 +30,3 @@ $tag-color: #dde;
 $category-color: #edd;
 $series-color: #ded;
 
-$sprites16: '/img/assets/icons16.png';
-@function sprite16-y($i) {
-  @return $i * -16px;
-}
