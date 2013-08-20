@@ -1,8 +1,8 @@
-{-# LANGUAGE FlexibleContexts             #-} 
-{-# LANGUAGE GADTs                        #-} 
-{-# LANGUAGE TypeFamilies                 #-} 
-{-# LANGUAGE TypeSynonymInstances         #-} 
-{-# LANGUAGE GeneralizedNewtypeDeriving   #-} 
+{-# LANGUAGE FlexibleContexts             #-}
+{-# LANGUAGE GADTs                        #-}
+{-# LANGUAGE TypeFamilies                 #-}
+{-# LANGUAGE TypeSynonymInstances         #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving   #-}
 
 module Web.Blog.Database (runDB, blogMigrate, blogClear) where
 
@@ -22,7 +22,7 @@ blogMigrate :: SqlPersistM ()
 blogMigrate = runMigration migrateAll
 
 blogClear :: SqlPersistM ()
-blogClear = do 
+blogClear = do
   deleteWhere ([] :: [Filter Slug])
   deleteWhere ([] :: [Filter EntryTag])
   deleteWhere ([] :: [Filter Tag])

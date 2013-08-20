@@ -155,7 +155,7 @@ seriesLi t = H.li $
     "This entry is a part of a series called " :: H.Html
     H.b $
       H.toHtml $ T.concat ["\"",tagLabel t,"\""]
-    ".  Find the rest of the entries in this series at the " :: H.Html
+    ".  Find the rest of the entries in this series at its " :: H.Html
     H.a ! A.href (I.textValue $ renderUrl' $ tagPath t) $
-      "series archives" :: H.Html
+      " series history" :: H.Html
     "." :: H.Html
