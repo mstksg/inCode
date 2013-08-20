@@ -2,7 +2,6 @@
 
 module Web.Blog.Views.Feed (viewFeed) where
 
--- import Network.URI
 import Data.Time.Format                          (formatTime)
 import System.Locale
 import Text.DublinCore.Types
@@ -22,8 +21,8 @@ import qualified Text.XML.Light.Types            as X
 
 
 viewFeed :: [(D.Entity Entry, (T.Text,[Tag]))] -> SiteRender L.Text
--- viewFeed entryInfos = return $ L.pack $ showXML $ rssToXML $ feedRss entryInfos
 viewFeed entryInfos = return $ L.pack $ showElement $ xmlRSS $ feedRss entryInfos
+-- viewFeed entryInfos = return $ L.pack $ showXML $ rssToXML $ feedRss entryInfos
 
 feedRss :: [(D.Entity Entry, (T.Text, [Tag]))] -> RSS
 feedRss entryInfos = (nullRSS feedTitle feedLink)
@@ -74,13 +73,14 @@ feedRss entryInfos = (nullRSS feedTitle feedLink)
         }
       where
         dcItemData =
-          [ DCItem DC_Date $ formatDateIso $ entryPostedAt entry
-          , DCItem DC_Subject $ T.unpack $ T.intercalate ", " $ map (T.toLower . tagLabel) tags
+          [ DCItem DC_Creator feedAuthorName
+          , DCItem DC_Date $ formatDateIso $ entryPostedAt entry
+          , DCItem DC_Subject $ T.unpack $ T.intercalate ", " $ map tagLabel tags
           ]
     rssCategory tag = RSSCategory
       Nothing
       [] $
-      T.unpack $ T.toLower $ tagLabel tag
+      T.unpack $ tagLabel tag
     dcSpec = X.Attr
       (X.QName "dc" Nothing (Just "xmlns"))
       "http://purl.org/dc/elements/1.1/"

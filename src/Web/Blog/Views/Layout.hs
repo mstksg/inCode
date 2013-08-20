@@ -61,11 +61,11 @@ viewLayout body = do
         ! A.type_ "application/rss+xml"
         ! A.title
           (I.textValue $ T.append (siteDataTitle siteData) " (RSS Feed)")
-        -- ! A.href "/rss"
+        ! A.href "/rss"
         -- ! A.href
         --   (I.textValue rssUrl)
-        ! A.href
-          (I.textValue $ T.append "http://feeds.feedburner.com/" $ developerAPIsFeedburner $ siteDataDeveloperAPIs siteData)
+        -- ! A.href
+        --   (I.textValue $ T.append "http://feeds.feedburner.com/" $ developerAPIsFeedburner $ siteDataDeveloperAPIs siteData)
 
       H.script ! A.type_ "text/javascript" $ do
         H.toHtml $

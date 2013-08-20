@@ -29,15 +29,10 @@ insertTag_ :: PreTag -> D.SqlPersistM ()
 insertTag_ ptag = D.insert_ $ fillTag ptag
 
 fillTag :: PreTag -> Tag
-fillTag ptag = tag
+fillTag ptag = Tag l t d slug
   where
     PreTag l t d = ptag
-    slug = genSlug (maxBound :: Int) l
-    tag = case t of
-      GeneralTag  -> Tag (T.toLower l) t d slug
-      CategoryTag -> Tag (capitalize l) t d slug
-      SeriesTag   -> Tag (capitalize l) t d slug
-    capitalize s = T.append (T.toUpper $ T.take 1 s) (T.toLower $ T.tail s)
+    slug         = genSlug (maxBound :: Int) l
 
 tagLabel' :: Tag -> T.Text
 tagLabel' t = T.append (tagTypePrefix $ tagType_ t) $ prettyLabel t
