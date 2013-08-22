@@ -17,8 +17,8 @@ elsif environment == :development
 end
 
 # on_stylesheet_saved do |file|
-#   if File.exists?(file) and environment == :production
-#     # filename = File.basename(file, File.extname(file))
-#     # File.rename(file, "css" + "/" + filename + ".min" + File.extname(file))
+#   if File.exists?(file)
+#     filename = File.basename(file, File.extname(file))
+#     File.cp(file, File.dirname(file) + "/" + filename + ".min" + File.extname(file))
 #   end
 # end
