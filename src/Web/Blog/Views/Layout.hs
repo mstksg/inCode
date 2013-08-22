@@ -24,7 +24,7 @@ viewLayout body = do
   let
     cssList = [ "/css/toast.css"
               , "/css/font.css"
-              , "/css/main.min.css" ]
+              , "/css/main.css" ]
     jsList =  [ "//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ]
 
   cssUrlList <- mapM renderUrl $ cssList ++ pageDataCss pageData'

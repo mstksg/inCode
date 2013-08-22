@@ -108,7 +108,7 @@ routeEntry (Right (D.Entity eKey e')) = do
 
     view = viewEntry e' tags (fst <$> prevData) (fst <$> nextData)
     pageData' = pageData { pageDataTitle = Just $ entryTitle e'
-                         , pageDataCss   = ["/css/page/entry.min.css"]
+                         , pageDataCss   = ["/css/page/entry.css"]
                          , pageDataJs    = ["/js/disqus.js","/js/disqus_count.js"]
                          , pageDataMap   = pdMap M.empty
                          }

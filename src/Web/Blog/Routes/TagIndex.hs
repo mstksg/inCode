@@ -23,6 +23,6 @@ routeTagIndex tt = do
               CategoryTag -> "Category List"
               SeriesTag -> "Series List"
     pageData' = pageData { pageDataTitle = Just title
-                         , pageDataCss   = ["/css/page/archive.min.css"] }
+                         , pageDataCss   = ["/css/page/archive.css"] }
 
   return $ Right (view,pageData')
