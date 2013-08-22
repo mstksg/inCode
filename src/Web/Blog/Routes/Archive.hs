@@ -21,12 +21,12 @@ import qualified Data.Text                   as T
 import qualified Database.Persist.Postgresql as D
 
 routeArchive :: T.Text -> [D.Entity Entry] -> ViewArchiveType -> RouteEither
-routeArchive title entries vat = do
+routeArchive title entries viewType = do
   let
     grouped = groupEntries entries
   eList' <- liftIO $ runDB $ mapM (mapM (mapM wrapEntryData)) grouped
   let
-    view = viewArchive eList' vat
+    view = viewArchive eList' viewType
     pageData' = pageData { pageDataTitle = Just title
                          , pageDataCss   = ["/css/page/archive.min.css"]
                          , pageDataJs    = ["/js/disqus_count.js"] }
@@ -52,12 +52,12 @@ routeArchiveTag type_ slug = do
       entrytags <- liftIO $ runDB $ D.selectList [ EntryTagTagId D.==. tagKey ] []
       let
         entryKeys = map (entryTagEntryId . D.entityVal) entrytags
-        vat = case type_ of
+        viewType = case type_ of
                 GeneralTag  -> ViewArchiveTag
                 CategoryTag -> ViewArchiveCategory
                 SeriesTag   -> ViewArchiveSeries
 
-      routeArchiveFilters (tagLabel' tag') [ EntryId D.<-. entryKeys ] $ vat tag'
+      routeArchiveFilters (tagLabel' tag') [ EntryId D.<-. entryKeys ] $ viewType tag'
       
     Nothing ->
       return $ error404 "TagNotFound"

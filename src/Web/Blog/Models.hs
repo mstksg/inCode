@@ -34,7 +34,7 @@ Tag
 
     UniqueLabelType label type_
     UniqueSlugType  slug  type_
-    deriving        Show
+    deriving        Eq Show
 
 EntryTag
     entryId          EntryId

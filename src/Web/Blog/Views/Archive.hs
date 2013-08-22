@@ -75,12 +75,12 @@ viewArchive eListYears viewType = do
               Nothing -> "No entries found."
         else
           case viewType of
-            ViewArchiveAll        -> viewArchiveByYears eListYears
-            ViewArchiveYear _     -> viewArchiveByMonths eListMonths True
-            ViewArchiveMonth _ _  -> viewArchiveFlat eList True
-            ViewArchiveTag _      -> viewArchiveFlat eList True
-            ViewArchiveCategory _ -> viewArchiveFlat eList True
-            ViewArchiveSeries _   -> viewArchiveFlat eList True
+            ViewArchiveAll        -> viewArchiveByYears eListYears viewType
+            ViewArchiveYear _     -> viewArchiveByMonths eListMonths viewType
+            ViewArchiveMonth _ _  -> viewArchiveFlat eList viewType
+            ViewArchiveTag _      -> viewArchiveFlat eList viewType
+            ViewArchiveCategory _ -> viewArchiveFlat eList viewType
+            ViewArchiveSeries _   -> viewArchiveFlat eList viewType
 
 upPath :: ViewArchiveType -> Maybe T.Text
 upPath ViewArchiveAll          = Nothing
@@ -141,9 +141,9 @@ viewArchiveSidebar isIndex = do
 
 
 
-viewArchiveFlat :: [(D.Entity Entry,(T.Text,[Tag]))] -> Bool -> H.Html
-viewArchiveFlat eList tile =
-  H.ul ! A.class_ (if tile then "tile entry-list" else "entry-list") $
+viewArchiveFlat :: [(D.Entity Entry,(T.Text,[Tag]))] -> ViewArchiveType -> H.Html
+viewArchiveFlat eList viewType =
+  H.ul ! A.class_ ulClass $
     forM_ eList $ \(D.Entity _ e,(u,ts)) -> do
       let
         commentUrl = T.append u "#disqus_thread"
@@ -162,13 +162,29 @@ viewArchiveFlat eList tile =
 
         H.a ! A.href (I.textValue u) ! A.class_ "entry-link" $
           H.toHtml $ entryTitle e
-        H.p ! A.class_ "inline-tag-list" $ do
-          "in " :: H.Html
-          inlineTagList ts
+        let
+          tagList = filter tagFilter ts
+        unless (null tagList) $
+          H.p ! A.class_ "inline-tag-list" $ do
+            "in " :: H.Html
+            inlineTagList tagList
+  where
+    ulClass =
+      case viewType of
+        ViewArchiveAll -> "entry-list"
+        ViewArchiveYear _ -> "entry-list"
+        _ -> "tile entry-list"
+    tagFilter =
+      case viewType of
+        ViewArchiveTag t      -> (/=) t
+        ViewArchiveCategory t -> (/=) t
+        ViewArchiveSeries t   -> (/=) t
+        _                     -> const True
 
-viewArchiveByMonths :: [[(D.Entity Entry,(T.Text,[Tag]))]] -> Bool -> H.Html
-viewArchiveByMonths eListMonths tile =
-  H.ul ! A.class_ (if tile then "tile entry-list" else "entry-list") $
+
+viewArchiveByMonths :: [[(D.Entity Entry,(T.Text,[Tag]))]] -> ViewArchiveType -> H.Html
+viewArchiveByMonths eListMonths viewType =
+  H.ul ! A.class_ ulClass $
 
     forM_ eListMonths $ \eList -> do
       let
@@ -180,10 +196,15 @@ viewArchiveByMonths eListMonths tile =
           H.a ! A.href (I.textValue $ renderUrl' $ T.pack $ renderMonthPath month) $
             H.toHtml $ renderMonthTime month
 
-        viewArchiveFlat eList False
+        viewArchiveFlat eList viewType
+  where
+    ulClass =
+      case viewType of
+        ViewArchiveAll -> "entry-list"
+        _ -> "tile entry-list"
 
-viewArchiveByYears :: [[[(D.Entity Entry,(T.Text,[Tag]))]]] -> H.Html
-viewArchiveByYears eListYears =
+viewArchiveByYears :: [[[(D.Entity Entry,(T.Text,[Tag]))]]] -> ViewArchiveType -> H.Html
+viewArchiveByYears eListYears viewType =
   H.ul ! A.class_ "entry-list" $
     forM_ eListYears $ \eListMonths -> do
       let
@@ -195,7 +216,7 @@ viewArchiveByYears eListYears =
           H.a ! A.href (I.textValue $ renderUrl' $ T.pack $ renderYearPath year) $
             H.toHtml $ renderYearTime year
 
-        viewArchiveByMonths eListMonths False
+        viewArchiveByMonths eListMonths viewType
 
 inlineTagList :: [Tag] -> H.Html
 inlineTagList ts = sequence_ hinter
