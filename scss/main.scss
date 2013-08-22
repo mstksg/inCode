@@ -1,4 +1,4 @@
-@import "scss/util/mixins.scss";
+@import "util/mixins.scss";
 
 $background-image: "/img/background.png";
 $banner-bg: "/img/banner_bg.jpg";
@@ -223,6 +223,6 @@ hr {
   font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
 }
 
-@import "scss/partial/copy-content.scss";
-@import "scss/partial/navbar.scss";
+@import "partial/copy-content.scss";
+@import "partial/navbar.scss";
 
