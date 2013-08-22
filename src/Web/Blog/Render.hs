@@ -5,20 +5,19 @@ module Web.Blog.Render (
   , pageData
   , renderUrl
   , renderUrl'
-  , renderScss
   , renderRawCopy
   , getCurrUrl
   , mainSection
   ) where
 
 -- import Data.Time
+-- import System.Process
 -- import qualified Text.Blaze.Html.Renderer.Pretty as B
 -- import qualified Text.Blaze.Html5.Attributes     as A
 import Control.Applicative                          ((<$>))
 import Control.Monad.Reader
 import Network.Wai
 import System.Directory                             (doesFileExist)
-import System.Process
 import Web.Blog.SiteData
 import Web.Blog.Types
 import qualified Data.Map                           as M
@@ -65,10 +64,10 @@ renderUrl' url =
   where
     hasP = length (T.splitOn "://" url) > 1
 
-renderScss :: FilePath -> Bool -> IO L.Text
-renderScss fp minify = L.pack <$> readProcess "sass" ["--style",style,fp] []
-  where
-    style = if minify then "compressed" else "expanded"
+-- renderScss :: FilePath -> Bool -> IO L.Text
+-- renderScss fp minify = L.pack <$> readProcess "sass" ["--style",style,fp] []
+--   where
+--     style = if minify then "compressed" else "expanded"
 
 renderRawCopy :: FilePath -> SiteRender H.Html
 renderRawCopy fp = do
