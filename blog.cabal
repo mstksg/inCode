@@ -44,7 +44,7 @@ executable blog
                      , wai
                      , wai-extra
                      , wai-middleware-headers
-                     , wai-middleware-static 
+                     , wai-middleware-static
   -- ghc-options:         -ddump-types
   extensions:          OverloadedStrings
 
@@ -67,7 +67,7 @@ executable blog-scripts-migrate
                      , persistent-postgresql
                      , persistent-template
                      , process
-                     , scotty 
+                     , scotty
                      , text
                      , time
                      , transformers
@@ -96,8 +96,8 @@ executable blog-scripts-seed
                      , persistent-postgresql
                      , persistent-template
                      , process
-                     , random 
-                     , scotty 
+                     , random
+                     , scotty
                      , split
                      , text
                      , time

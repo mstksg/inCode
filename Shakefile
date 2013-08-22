@@ -16,7 +16,7 @@ main = shakeArgs opts $ do
 
   "clean" ~> removeFilesAfter ".shake" ["//*"]
 
-  "build" ~> 
+  "build" ~>
     need [ "cabal-dev/bin/blog" ]
 
   "launch" ~> do
