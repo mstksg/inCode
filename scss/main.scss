@@ -66,7 +66,7 @@ pre, code {
 h1, h2, h3, h4, h5, h6 {
   a {
     &:visited {
-      color: #333;
+      color: #3a3a3a;
     }
     &:hover {
       background-color: #e9e9e9;
@@ -112,9 +112,6 @@ h1, h2, h3, h4, h5, h6 {
   z-index: 1000;
 }
 
-#sidebar-container {
-}
-
 #main-container {
   // @media #{$smaller-screen} {
   //   margin-top: 172px;
@@ -142,23 +139,34 @@ h1, h2, h3, h4, h5, h6 {
 
   .tile {
     margin: 0 auto;
-    padding: 0.75rem 1rem 1.5rem;
+    padding: 0.75rem 1rem 0.75rem;
+  }
+
+  // .footer-copyright {
+  //   display: inline-block;
+  // }
+  //
+  .social-follows {
+    margin-top: -0.15rem;
+    margin-bottom: 0.15rem;
   }
 
 }
 
 h1 {
   margin-bottom: 0.4em;
+  // margin-bottom: 0;
 }
 
 hr {
   border: 0;
   height: 1px;
-  background-image: -webkit-linear-gradient(left, rgba(0,0,0,0), rgba(0,0,0,0.5), rgba(0,0,0,0)); 
-  background-image:    -moz-linear-gradient(left, rgba(0,0,0,0), rgba(0,0,0,0.5), rgba(0,0,0,0)); 
-  background-image:     -ms-linear-gradient(left, rgba(0,0,0,0), rgba(0,0,0,0.5), rgba(0,0,0,0)); 
+  background-image: -webkit-linear-gradient(left, rgba(0,0,0,0), rgba(0,0,0,0.5), rgba(0,0,0,0));
+  background-image:    -moz-linear-gradient(left, rgba(0,0,0,0), rgba(0,0,0,0.5), rgba(0,0,0,0));
+  background-image:     -ms-linear-gradient(left, rgba(0,0,0,0), rgba(0,0,0,0.5), rgba(0,0,0,0));
   background-image:      -o-linear-gradient(left, rgba(0,0,0,0), rgba(0,0,0,0.5), rgba(0,0,0,0));
   margin-top: -0.75rem;
+  // margin-top: 0.25rem;
 }
 
 .single-page {
@@ -192,10 +200,6 @@ hr {
     }
   }
 
-  $tag-color: #dde;
-  $category-color: #edd;
-  $series-color: #ded;
-
   .tag-a-tag {
     background: $tag-color;
     &:hover {
@@ -225,4 +229,4 @@ hr {
 
 @import "partial/copy-content.scss";
 @import "partial/navbar.scss";
-
+@import "partial/social.scss";

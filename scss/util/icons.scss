@@ -1,0 +1,16 @@
+$sprites16: '/img/assets/icons16.png';
+@function sprite16-y($i) {
+  @return $i * -16px;
+}
+
+$facebook16: 1;
+$twitter16: 2;
+$gplus16: 3;
+$linkedin16: 4;
+$rss16: 5;
+$email16: 6;
+$youtube16: 7;
+$stackoverflow16: 8;
+$github16: 9;
+$resume16: 10;
+

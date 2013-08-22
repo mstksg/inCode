@@ -1,5 +1,8 @@
 module Web.Blog.Types (
     SiteData(..)
+  , DeveloperAPIs(..)
+  , AuthorInfo(..)
+  , AppPrefs(..)
   , SiteRender
   , PageDataMap
   , PageData(..)
@@ -15,17 +18,40 @@ import qualified Text.Blaze.Html5 as H
 import qualified Web.Scotty       as S
 
 data SiteData = SiteData
-                { siteDataTitle           :: T.Text
-                , siteDataAuthor          :: T.Text
-                , siteDataSiteHost        :: T.Text
-                , siteDataAuthorRel       :: T.Text
-                , siteDataDisqusShortname :: T.Text
-                , siteDataAnalyticsKey    :: (T.Text,T.Text)
-                , siteDataSlugLength      :: Int
-                , siteDataHomeEntries     :: Int
-                , siteDataLedeMax         :: Int
+                { siteDataTitle         :: T.Text
+                , siteDataAuthorInfo    :: AuthorInfo
+                , siteDataDescription   :: T.Text
+                , siteDataCopyright     :: T.Text
+                , siteDataSiteHost      :: T.Text
+                , siteDataDeveloperAPIs :: DeveloperAPIs
+                , siteDataAppPrefs      :: AppPrefs
                 }
 
+data DeveloperAPIs = DeveloperAPIs
+                     { developerAPIsAnalytics       :: (T.Text,T.Text)
+                     , developerAPIsDisqusShortname :: T.Text
+                     , developerAPIsFacebook        :: T.Text
+                     , developerAPIsAddThis         :: T.Text
+                     , developerAPIsFeedburner      :: T.Text
+                     }
+
+data AuthorInfo = AuthorInfo
+                  { authorInfoName      :: T.Text
+                  , authorInfoEmail     :: T.Text
+                  , authorInfoRel       :: T.Text
+                  , authorInfoFacebook  :: T.Text
+                  , authorInfoTwitterID :: T.Text
+                  , authorInfoGPlus     :: T.Text
+                  , authorInfoGithub    :: T.Text
+                  , authorInfoLinkedIn  :: T.Text
+                  }
+
+data AppPrefs = AppPrefs
+                { appPrefsSlugLength  :: Int
+                , appPrefsHomeEntries :: Int
+                , appPrefsLedeMax     :: Int
+                , appPrefsFeedEntries :: Int
+                }
 
 type SiteRender a = ReaderT PageData S.ActionM a
 

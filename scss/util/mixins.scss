@@ -17,7 +17,7 @@
   }
 }
 
-$break: 650px;
+$break: 740px;
 $smallest-break: 480px;
 $smallest-screen: "only screen and (max-width : #{$smallest-break})";
 $smaller-screen: "only screen and (max-width : #{$break})";
@@ -25,3 +25,8 @@ $bigger-screen: "only screen and (min-width : #{$break})";
 
 $sans: Helvetica Neue, Helvetica, Arial, sans-serif;
 $serif: Vollkorn, serif;
+
+$tag-color: #dde;
+$category-color: #edd;
+$series-color: #ded;
+

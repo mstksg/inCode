@@ -2,34 +2,44 @@
 
 module Web.Blog.Models.Entry  where
 
-import Control.Applicative                      ((<$>))
+-- import qualified Database.Esqueleto       as E
+import Control.Applicative                   ((<$>))
 import Control.Monad
-import Control.Monad.IO.Class                   (liftIO)
-import Control.Monad.Loops                      (firstM)
-import Data.List                                (groupBy)
-import Data.Maybe                               (isNothing, fromJust, isJust)
+import Control.Monad.IO.Class                (liftIO)
+import Control.Monad.Loops                   (firstM)
+import Data.List                             (groupBy)
+import Data.Maybe                            (isNothing, fromJust, isJust)
 import Data.Time
 import Web.Blog.Models
 import Web.Blog.Models.Types
 import Web.Blog.SiteData
 import Web.Blog.Types
 import Web.Blog.Util
-import qualified Data.Text                      as T
-import qualified Database.Persist.Postgresql    as D
-import qualified Text.Blaze.Html5               as H
-import qualified Text.Pandoc                    as P
+import qualified Data.Text                   as T
+import qualified Database.Persist.Postgresql as D
+import qualified Text.Blaze.Html5            as H
+import qualified Text.Pandoc                 as P
 
 slugLength :: Int
-slugLength = siteDataSlugLength siteData
+slugLength = appPrefsSlugLength $ siteDataAppPrefs siteData
 ledeMax :: Int
-ledeMax = siteDataLedeMax siteData
+ledeMax = appPrefsLedeMax $ siteDataAppPrefs siteData
 
-insertEntry :: Entry -> D.SqlPersistM (Maybe (D.Key Entry))
-insertEntry entry = do
+data PreEntry = PreEntry
+                { preEntryTitle :: T.Text
+                , preEntryContent :: T.Text
+                , preEntryCreatedAt :: UTCTime
+                , preEntryPostedAt :: UTCTime
+                }
+
+insertEntry :: PreEntry -> D.SqlPersistM (Maybe (D.Key Entry))
+insertEntry (PreEntry t c cA pA) = do
   entryKey <- D.insertUnique entry
   when (isJust entryKey) $
     insertSlug $ D.Entity (fromJust entryKey) entry
   return entryKey
+  where
+    entry = Entry t c cA pA Nothing
 
 insertEntry_ :: Entry -> D.SqlPersistM ()
 insertEntry_ entry = do
@@ -105,7 +115,7 @@ postedEntryCount = do
 getEntryData :: D.Entity Entry -> D.SqlPersistM (T.Text,[Tag])
 getEntryData e = do
   p <- getUrlPath e
-  ts  <- getTags e
+  ts  <- getTags e []
   return (p,ts)
 
 wrapEntryData :: D.Entity Entry -> D.SqlPersistM (D.Entity Entry, (T.Text, [Tag]))
@@ -130,21 +140,25 @@ getUrlPath entry = do
         D.Entity eKey _ = entry
       return $ T.append "/entry/id/" (T.pack $ show eKey)
 
+entryPermalink :: D.Entity Entry -> T.Text
+entryPermalink (D.Entity eKey _) = T.append "/entry/id/" entryId
+  where
+    Right entryId = D.fromPersistValueText $ D.unKey eKey
 
-getTags :: D.Entity Entry -> D.SqlPersistM [Tag]
-getTags entry = getTagsByEntityKey $ D.entityKey entry
 
-getTagsByEntityKey :: D.Key Entry -> D.SqlPersistM [Tag]
-getTagsByEntityKey k = do 
+getTags :: D.Entity Entry -> [D.Filter Tag] -> D.SqlPersistM [Tag]
+getTags entry = getTagsByEntityKey (D.entityKey entry)
+
+getTagsByEntityKey :: D.Key Entry -> [D.Filter Tag] -> D.SqlPersistM [Tag]
+getTagsByEntityKey k filters = do
   ets <- D.selectList [ EntryTagEntryId D.==. k ] []
   let
     tagKeys = map (entryTagTagId . D.entityVal) ets
     selectTags tt = D.selectList
-                      [ TagId D.<-. tagKeys, TagType_ D.==. tt ]
+                      ([ TagId D.<-. tagKeys, TagType_ D.==. tt ] ++ filters)
                       [ D.Asc TagLabel ]
   tags <- concat <$> mapM selectTags [GeneralTag .. SeriesTag]
   return $ map D.entityVal tags
-
 
 
 getPrevEntry :: Entry -> D.SqlPersistM (Maybe (D.Entity Entry))

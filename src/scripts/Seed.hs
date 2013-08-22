@@ -1,8 +1,8 @@
-{-# LANGUAGE FlexibleContexts             #-} 
-{-# LANGUAGE GADTs                        #-} 
-{-# LANGUAGE TypeFamilies                 #-} 
-{-# LANGUAGE TypeSynonymInstances         #-} 
-{-# LANGUAGE GeneralizedNewtypeDeriving   #-} 
+{-# LANGUAGE FlexibleContexts             #-}
+{-# LANGUAGE GADTs                        #-}
+{-# LANGUAGE TypeFamilies                 #-}
+{-# LANGUAGE TypeSynonymInstances         #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving   #-}
 
 import Control.Applicative
 import Control.Monad
@@ -64,7 +64,7 @@ main = runDB $ do
 
 
   replicateM_ 40 $ do
-    ((entry,tags',category,series),entryid) <- 
+    ((entry,tags',category,series),entryid) <-
       untilJust $ do
         d@(e,_,_,_) <- liftIO genEntry
         eid <- insertEntry e
@@ -80,9 +80,9 @@ main = runDB $ do
 
     insert_ $ EntryTag entryid $ categories !! category
 
-    when (series < 4) $ 
+    when (series < 4) $
       insert_ $ EntryTag entryid $ serieses !! series
-    
+
     tagAssociations <- selectList [EntryTagEntryId ==. entryid] []
 
     let
@@ -92,7 +92,7 @@ main = runDB $ do
 
     liftIO $ do
       putStrLn "Created new entry:"
-      print $ entryTitle entry
+      print $ preEntryTitle entry
       print tags''
       hFlush stdout
 
@@ -101,7 +101,7 @@ main = runDB $ do
 
   return ()
 
-genEntry :: IO (Entry,[Double],Int,Int)
+genEntry :: IO (PreEntry,[Double],Int,Int)
 genEntry = do
   now <- getCurrentTime
 
@@ -110,7 +110,7 @@ genEntry = do
   let
     (createTime, postTime, tags, category, series) = (evalRand $ do
       cD <- getRandomR (-31536000,8035200)
-      pD <- getRandomR (100,604800) 
+      pD <- getRandomR (100,604800)
       ts <- forM [1..10] $ \i -> getRandomR (0,i*i/4+1)
       c  <- getRandomR (0,3)
       s  <- getRandomR (0,11)
@@ -122,16 +122,16 @@ genEntry = do
         , s
         )
       ) gen
-      
 
-  fullEntry <- genLoripsum "http://loripsum.net/api/7/code/bq/ul/ol/dl/link/long/decorate/headers"
+
+  fullEntry <- genLoripsum "http://loripsum.net/api/12/code/bq/ul/ol/dl/link/long/decorate/headers"
 
   let
     title = init    $ head   $ lines fullEntry
     body  = unlines $ drop 3 $ lines fullEntry
 
   let
-    e = Entry
+    e = PreEntry
       (T.pack title)
       (T.pack body)
       createTime
@@ -149,7 +149,7 @@ genLoripsum apiUrl = do
     readHtml (def ReaderOptions) body
 
 genDesc :: Int -> IO (Maybe T.Text)
-genDesc o = do 
+genDesc o = do
   possible <- T.pack <$> genLoripsum "http://loripsum.net/api/1/short"
   return $
     if T.length possible `mod` o == 0

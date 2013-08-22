@@ -21,6 +21,7 @@ Entry
     content     T.Text
     createdAt   UTCTime
     postedAt    UTCTime
+    modifiedAt  UTCTime Maybe
 
     UniqueEntryTitle title
     deriving    Show
@@ -33,7 +34,7 @@ Tag
 
     UniqueLabelType label type_
     UniqueSlugType  slug  type_
-    deriving        Show
+    deriving        Eq Show
 
 EntryTag
     entryId          EntryId

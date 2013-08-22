@@ -109,7 +109,11 @@ routeEntry (Right (D.Entity eKey e')) = do
     view = viewEntry e' tags (fst <$> prevData) (fst <$> nextData)
     pageData' = pageData { pageDataTitle = Just $ entryTitle e'
                          , pageDataCss   = ["/css/page/entry.css"]
-                         , pageDataJs    = ["/js/disqus.js","/js/disqus_count.js"]
+                         , pageDataJs    = ["/js/disqus.js"
+                                           ,"/js/disqus_count.js"
+                                           ,"/js/social.js"
+                                           ,"/js/jquery/jquery.toc.js"
+                                           ,"/js/page/entry.js"]
                          , pageDataMap   = pdMap M.empty
                          }
 
@@ -118,7 +122,7 @@ routeEntry (Left r) = return $ Left r
 
 entryAux :: D.Key Entry -> Entry -> D.SqlPersistM ([Tag],Maybe (Entry, T.Text),Maybe (Entry, T.Text))
 entryAux k e = do
-  tags <- getTagsByEntityKey k
+  tags <- getTagsByEntityKey k []
 
   prevData <- runMaybeT $ do
     prev <- MaybeT $ getPrevEntry e

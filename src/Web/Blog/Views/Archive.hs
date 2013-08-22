@@ -3,14 +3,16 @@
 module Web.Blog.Views.Archive (
     viewArchive
   , ViewArchiveType(..)
-  , viewArchiveNav
+  , viewArchiveSidebar
   , ViewArchiveIndex(..)
   ) where
 
 import Control.Applicative                   ((<$>))
 import Control.Monad.Reader
+import Data.List                             (intersperse)
 import Data.Maybe                            (fromMaybe, isJust, fromJust)
 import Text.Blaze.Html5                      ((!))
+import Web.Blog.Database
 import Web.Blog.Models
 import Web.Blog.Models.Util
 import Web.Blog.Render
@@ -34,16 +36,21 @@ data ViewArchiveType = ViewArchiveAll
 
 viewArchive :: [[[(D.Entity Entry,(T.Text,[Tag]))]]] -> ViewArchiveType -> SiteRender H.Html
 viewArchive eListYears viewType = do
+  let
+    eListMonths = concat eListYears
+    eList = concat eListMonths
+
   pageTitle <- pageDataTitle <$> ask
-  navHtml <- viewArchiveNav (case viewType of
+  sidebarHtml <- viewArchiveSidebar $ case viewType of
                           ViewArchiveAll -> Just ViewArchiveIndexDate
-                          _ -> Nothing)
+                          _ -> Nothing
 
   upLink <- Tr.mapM renderUrl (upPath viewType)
 
+
   return $ do
-    H.nav ! A.class_ "archive-nav tile unit one-of-four" $
-      navHtml
+    H.div ! A.class_ "archive-sidebar unit one-of-four" $
+      sidebarHtml
 
     H.section ! A.class_ "archive-section unit three-of-four" ! mainSection $ do
 
@@ -66,17 +73,14 @@ viewArchive eListYears viewType = do
             H.p $ H.toHtml $ case pageTitle of
               Just pt -> T.concat ["No entries found for ",pt,"."]
               Nothing -> "No entries found."
-        else do
-          let
-            eListMonths = concat eListYears
-            eList = concat eListMonths
+        else
           case viewType of
-            ViewArchiveAll        -> viewArchiveByYears eListYears
-            ViewArchiveYear _     -> viewArchiveByMonths eListMonths True
-            ViewArchiveMonth _ _  -> viewArchiveFlat eList True
-            ViewArchiveTag _      -> viewArchiveFlat eList True
-            ViewArchiveCategory _ -> viewArchiveFlat eList True
-            ViewArchiveSeries _   -> viewArchiveFlat eList True
+            ViewArchiveAll        -> viewArchiveByYears eListYears viewType
+            ViewArchiveYear _     -> viewArchiveByMonths eListMonths viewType
+            ViewArchiveMonth _ _  -> viewArchiveFlat eList viewType
+            ViewArchiveTag _      -> viewArchiveFlat eList viewType
+            ViewArchiveCategory _ -> viewArchiveFlat eList viewType
+            ViewArchiveSeries _   -> viewArchiveFlat eList viewType
 
 upPath :: ViewArchiveType -> Maybe T.Text
 upPath ViewArchiveAll          = Nothing
@@ -98,59 +102,89 @@ data ViewArchiveIndex = ViewArchiveIndexDate
                       | ViewArchiveIndexSeries
                       deriving (Show, Eq, Read)
 
-viewArchiveNav :: Maybe ViewArchiveIndex -> SiteRender H.Html
-viewArchiveNav isIndex = do
+-- TODO: One day this can be a "top entries"
+viewArchiveSidebar :: Maybe ViewArchiveIndex -> SiteRender H.Html
+viewArchiveSidebar isIndex = do
   byDateUrl <- renderUrl "/entries"
   byTagUrl  <- renderUrl "/tags"
   byCatUrl  <- renderUrl "/categories"
   bySerUrl  <- renderUrl "/series"
+
+  entries <- liftIO $ runDB $
+    postedEntriesFilter [] [ D.Desc EntryPostedAt, D.LimitTo 5 ]
+  eList <- liftIO $ runDB $ mapM wrapEntryData entries
+
   return $ do
-    H.h2 
-      "Archives"
-    H.ul $
-        forM_ [("History",byDateUrl,ViewArchiveIndexDate)
-              ,("Tags",byTagUrl,ViewArchiveIndexTag)
-              ,("Categories",byCatUrl,ViewArchiveIndexCategory)
-              ,("Series",bySerUrl,ViewArchiveIndexSeries)] $ \(t,u,v) -> 
-          if maybe True (/= v) isIndex
-            then
-              H.li $
-                H.a ! A.href (I.textValue u) $
+    H.nav ! A.class_ "archive-nav tile" $ do
+      H.h2
+        "Entries"
+      H.ul $
+          forM_ [("History",byDateUrl,ViewArchiveIndexDate)
+                ,("Tags",byTagUrl,ViewArchiveIndexTag)
+                ,("Categories",byCatUrl,ViewArchiveIndexCategory)
+                ,("Series",bySerUrl,ViewArchiveIndexSeries)] $ \(t,u,v) ->
+            if maybe True (/= v) isIndex
+              then
+                H.li $
+                  H.a ! A.href (I.textValue u) $
+                    t
+              else
+                H.li ! A.class_ "curr-index" $
                   t
-            else
-              H.li ! A.class_ "curr-index" $
-                t
+    H.div ! A.class_ "archive-recents tile" $ do
+      H.h2 "Recent"
+      H.ul $
+        forM_ eList $ \(D.Entity _ e,(u,_)) ->
+          H.li $
+            H.a ! A.href (I.textValue $ renderUrl' u) $
+              H.toHtml $ entryTitle e
 
 
-viewArchiveFlat :: [(D.Entity Entry,(T.Text,[Tag]))] -> Bool -> H.Html
-viewArchiveFlat eList tile = 
-  H.ul ! A.class_ (if tile then "tile entry-list" else "entry-list") $
-    forM_ eList $ \eData -> do
+
+viewArchiveFlat :: [(D.Entity Entry,(T.Text,[Tag]))] -> ViewArchiveType -> H.Html
+viewArchiveFlat eList viewType =
+  H.ul ! A.class_ ulClass $
+    forM_ eList $ \(D.Entity _ e,(u,ts)) -> do
       let
-        (D.Entity _ e,(u,ts)) = eData
         commentUrl = T.append u "#disqus_thread"
 
       H.li ! A.class_ "entry-item" $ do
         H.div ! A.class_ "entry-info" $ do
           H.time
             ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt e)
-            ! A.pubdate "" 
+            ! A.pubdate ""
             ! A.class_ "pubdate"
             $ H.toHtml $ renderFriendlyTime $ entryPostedAt e
-          H.preEscapedToHtml 
+          H.preEscapedToHtml
             (" &mdash; " :: T.Text)
           H.a ! A.href (I.textValue commentUrl) ! A.class_ "entry-comments" $
             "Comments"
 
         H.a ! A.href (I.textValue u) ! A.class_ "entry-link" $
           H.toHtml $ entryTitle e
-        H.ul ! A.class_ "tag-list" $
-          forM_ ts $ \t ->
-            tagLi t
+        let
+          tagList = filter tagFilter ts
+        unless (null tagList) $
+          H.p ! A.class_ "inline-tag-list" $ do
+            "in " :: H.Html
+            inlineTagList tagList
+  where
+    ulClass =
+      case viewType of
+        ViewArchiveAll -> "entry-list"
+        ViewArchiveYear _ -> "entry-list"
+        _ -> "tile entry-list"
+    tagFilter =
+      case viewType of
+        ViewArchiveTag t      -> (/=) t
+        ViewArchiveCategory t -> (/=) t
+        ViewArchiveSeries t   -> (/=) t
+        _                     -> const True
 
-viewArchiveByMonths :: [[(D.Entity Entry,(T.Text,[Tag]))]] -> Bool -> H.Html
-viewArchiveByMonths eListMonths tile = 
-  H.ul ! A.class_ (if tile then "tile entry-list" else "entry-list") $
+
+viewArchiveByMonths :: [[(D.Entity Entry,(T.Text,[Tag]))]] -> ViewArchiveType -> H.Html
+viewArchiveByMonths eListMonths viewType =
+  H.ul ! A.class_ ulClass $
 
     forM_ eListMonths $ \eList -> do
       let
@@ -162,11 +196,16 @@ viewArchiveByMonths eListMonths tile =
           H.a ! A.href (I.textValue $ renderUrl' $ T.pack $ renderMonthPath month) $
             H.toHtml $ renderMonthTime month
 
-        viewArchiveFlat eList False
+        viewArchiveFlat eList viewType
+  where
+    ulClass =
+      case viewType of
+        ViewArchiveAll -> "entry-list"
+        _ -> "tile entry-list"
 
-viewArchiveByYears :: [[[(D.Entity Entry,(T.Text,[Tag]))]]] -> H.Html
-viewArchiveByYears eListYears =
-  H.ul ! A.class_ "entry-list" $ 
+viewArchiveByYears :: [[[(D.Entity Entry,(T.Text,[Tag]))]]] -> ViewArchiveType -> H.Html
+viewArchiveByYears eListYears viewType =
+  H.ul ! A.class_ "entry-list" $
     forM_ eListYears $ \eListMonths -> do
       let
         year = entryPostedAt $
@@ -177,5 +216,15 @@ viewArchiveByYears eListYears =
           H.a ! A.href (I.textValue $ renderUrl' $ T.pack $ renderYearPath year) $
             H.toHtml $ renderYearTime year
 
-        viewArchiveByMonths eListMonths False
+        viewArchiveByMonths eListMonths viewType
 
+inlineTagList :: [Tag] -> H.Html
+inlineTagList ts = sequence_ hinter
+  where
+    hlist = map catLink ts
+    hinter = intersperse ", " hlist
+    catLink t =
+      H.a
+      ! A.href (I.textValue $ renderUrl' $ tagPath t)
+      ! A.class_ (tagLiClass t) $
+        H.toHtml $ tagLabel'' t

@@ -1,10 +1,11 @@
 @import "util/mixins.scss";
+@import "util/icons.scss";
 
 $photo: "/img/photo_square.jpg";
 
 
 .home-section {
-  
+
   h2 {
     font-size: 200%;
     line-height: 125%;
@@ -46,7 +47,7 @@ $photo: "/img/photo_square.jpg";
     }
 
     > .entry-lede {
-      
+
       > p {
         margin: 0.75rem 0;
         text-indent: 2rem;
@@ -106,9 +107,10 @@ $photo: "/img/photo_square.jpg";
 
   h2 {
     float: left;
-    margin: 0.6rem 1.5rem 0 0;
+    margin: 0.6rem 1.5rem 0.5rem 0;
     padding: 0;
     height: 200px;
+    border: none;
     display: block;
     width: 200px;
     z-index: 100;
@@ -136,13 +138,25 @@ $photo: "/img/photo_square.jpg";
     }
   }
 
+  .social-follows {
+    display: block;
+    text-align: right;
+    font-style: italic;
+    margin-right: 1rem;
+    cursor: default;
+    > ul {
+      margin-left: 0.15rem;
+    }
+  }
+
 }
 
 .home-sidebar {
   ul {
     list-style-type: none;
     ul {
-      margin-left: 0.75rem;
+      // margin-left: 0.75rem;
+      margin-left: 0;
       list-style-type: none;
       font-size: 95%;
       @media #{$smaller-screen} {
@@ -161,12 +175,54 @@ $photo: "/img/photo_square.jpg";
   }
 }
 
+@mixin home-links-icons($title,$sprite) {
+  a[title=#{$title}]:before {
+    background-position-y: sprite16-y($sprite);
+  }
+}
+
+
+.home-links {
+  a {
+    &:before {
+      display: inline-block;
+      // background-color: #aaa;
+      height: 16px;
+      width: 16px;
+      content: "";
+      background-image: url($sprites16);
+      margin: 0 0.2rem -0.1rem 0.1rem;
+    }
+  }
+  @include home-links-icons("Facebook",$facebook16);
+  @include home-links-icons("Twitter",$twitter16);
+  @include home-links-icons("Google\+",$gplus16);
+  @include home-links-icons("LinkedIn",$linkedin16);
+  @include home-links-icons("Youtube",$youtube16);
+  @include home-links-icons("Stack\ Overflow",$stackoverflow16);
+  @include home-links-icons("Github",$github16);
+  @include home-links-icons("Resume",$resume16);
+  ul {
+    ul {
+      margin-left: 0.25rem;
+    }
+  }
+}
+
+.home-tags {
+  ul {
+    ul {
+      margin-left: 0.75rem;
+    }
+  }
+}
+
 .home-category-list {
   ul {
     li {
-      margin-bottom: 0.3rem;
+      // margin-bottom: 0.15rem;
+      // text-transform: lowercase;
     }
-
   }
 }
 

@@ -18,7 +18,7 @@ import qualified Database.Persist.Postgresql as D
 routeHome :: Int -> RouteEither
 routeHome page = do
   let
-    m = siteDataHomeEntries siteData
+    m = appPrefsHomeEntries $ siteDataAppPrefs siteData
 
   maxPage' <- liftIO $ runDB $ maxPage m
 
@@ -27,18 +27,18 @@ routeHome page = do
       return $ Left "/"
     else do
       let
-        pageTitle = 
+        pageTitle =
           if page == 1
             then
-              "Home"
+              Nothing
             else
-              T.concat ["Home (Page ", T.pack $ show page,")"]
+              Just $ T.concat ["Home (Page ", T.pack $ show page,")"]
 
         urlBase = renderUrl' "/home/"
 
       eList <- liftIO $ runDB $
         postedEntries [ D.Desc EntryPostedAt
-                      , D.LimitTo m 
+                      , D.LimitTo m
                       , D.OffsetBy $ (page - 1) * m ]
           >>= mapM wrapEntryData
 
@@ -60,12 +60,12 @@ routeHome page = do
               M.insert "nextPage" (T.append urlBase $ T.pack $ show $ page + 1)
 
         view = viewHome eList page
-        pageData' = pageData { pageDataTitle = Just pageTitle
+        pageData' = pageData { pageDataTitle = pageTitle
                              , pageDataCss   = ["/css/page/home.css"]
                              , pageDataJs    = ["/js/disqus_count.js"]
                              , pageDataMap   = pdMap M.empty
                              }
-          
+
       return $ Right (view, pageData')
 
 maxPage :: Int -> D.SqlPersistM Int

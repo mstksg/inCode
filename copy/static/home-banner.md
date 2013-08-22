@@ -10,4 +10,4 @@ explorations in the vast worlds of computation, physics, and knowledge. Expect
 a healthy curiosity and an only slightly unhealthy obsession for finding new
 ways to marvel, wonder, and create.  Join me if you wish!
 
-[about]: /about "Justin Le"
+[about]: / "It's a picture of me! :D"
