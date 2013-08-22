@@ -58,7 +58,7 @@ routeArchiveTag type_ slug = do
                 SeriesTag   -> ViewArchiveSeries
 
       routeArchiveFilters (tagLabel' tag') [ EntryId D.<-. entryKeys ] $ viewType tag'
-      
+
     Nothing ->
       return $ error404 "TagNotFound"
 

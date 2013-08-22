@@ -88,48 +88,52 @@ viewSocialFollow = do
   return $
     H.ul ! A.class_ "social-follows-list" $ do
       H.li $
-        H.a
-          ! A.class_ "social-follow-facebook"
-          ! A.title "Friend me on Facebook!"
-          ! A.href (I.textValue facebookUrl) $
-          "Facebook"
+        H.ul ! A.class_ "social-follows-list-social" $ do
+          H.li $
+            H.a
+              ! A.class_ "social-follow-facebook"
+              ! A.title "Friend me on Facebook!"
+              ! A.href (I.textValue facebookUrl) $
+              "Facebook"
+          H.li $
+            H.a
+              ! A.class_ "social-follow-twitter"
+              ! A.title "Follow me on Twitter!"
+              ! A.href (I.textValue twitterUrl)
+              ! A.onclick (I.textValue twitterFollowJs) $
+              "Twitter"
+          H.li $
+            H.a
+              ! A.class_ "social-follow-gplus"
+              ! A.title "Add me on Google+!"
+              ! A.href (I.textValue gPlusUrl) $
+              "Google+"
+          H.li $
+            H.a
+              ! A.class_ "social-follow-linkedin"
+              ! A.title "Connect with me on LinkedIn!"
+              ! A.href (I.textValue linkedInUrl) $
+              "LinkedIn"
+          H.li $
+            H.a
+              ! A.class_ "social-follow-github"
+              ! A.title "Fork me on Github!"
+              ! A.href (I.textValue githubUrl) $
+              "Github"
       H.li $
-        H.a
-          ! A.class_ "social-follow-twitter"
-          ! A.title "Follow me on Twitter!"
-          ! A.href (I.textValue twitterUrl)
-          ! A.onclick (I.textValue twitterFollowJs) $
-          "Twitter"
-      H.li $
-        H.a
-          ! A.class_ "social-follow-gplus"
-          ! A.title "Follow me on Google+!"
-          ! A.href (I.textValue gPlusUrl) $
-          "Google+"
-      H.li $
-        H.a
-          ! A.class_ "social-follow-linkedin"
-          ! A.title "Connect with me on LinkedIn!"
-          ! A.href (I.textValue linkedInUrl) $
-          "LinkedIn"
-      H.li $
-        H.a
-          ! A.class_ "social-follow-github"
-          ! A.title "Fork me on Github!"
-          ! A.href (I.textValue githubUrl) $
-          "Github"
-      H.li $
-        H.a
-          ! A.class_ "social-follow-rss"
-          ! A.title "Subscribe to my RSS Feed!"
-          ! A.href (I.textValue rssUrl) $
-          "RSS"
-      H.li $
-        H.a
-          ! A.class_ "social-follow-email"
-          ! A.title "Subscribe to the mailing list!"
-          ! A.href (I.textValue emailUrl) $
-          "Mailing list"
+        H.ul ! A.class_ "social-follows-list-site" $ do
+          H.li $
+            H.a
+              ! A.class_ "social-follow-rss"
+              ! A.title "Subscribe to my RSS Feed!"
+              ! A.href (I.textValue rssUrl) $
+              "RSS"
+          H.li $
+            H.a
+              ! A.class_ "social-follow-email"
+              ! A.title "Subscribe to the mailing list!"
+              ! A.href (I.textValue emailUrl) $
+              "Mailing list"
   where
     twitterFollowJs = T.unlines
       [ "window.open("
