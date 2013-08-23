@@ -2,7 +2,7 @@ module Web.Blog.SiteData (
     siteData
   ) where
 
-import Web.Blog.Types (SiteData(..), DeveloperAPIs(..), AuthorInfo(..), AppPrefs(..))
+import Web.Blog.Types (SiteData(..), DeveloperAPIs(..), AuthorInfo(..), AppPrefs(..), DatabaseConfig(..))
 import qualified Data.Text as T
 
 siteData :: SiteData
@@ -18,6 +18,7 @@ siteData =
     "blog-dev.jle0.com"
     developerAPIs
     appPrefs
+    databaseConfig
   where
     authorInfo = AuthorInfo
                    "Justin Le"
@@ -39,4 +40,10 @@ siteData =
                  5
                  2
                  15
+    databaseConfig = DatabaseConfig
+                       "localhost"
+                       "test_blog"
+                       "blog-test"
+                       "blog-testblog-test"
+                       4432
 

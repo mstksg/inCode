@@ -3,6 +3,7 @@ module Web.Blog.Types (
   , DeveloperAPIs(..)
   , AuthorInfo(..)
   , AppPrefs(..)
+  , DatabaseConfig(..)
   , SiteRender
   , PageDataMap
   , PageData(..)
@@ -18,14 +19,16 @@ import qualified Text.Blaze.Html5 as H
 import qualified Web.Scotty       as S
 
 data SiteData = SiteData
-                { siteDataTitle         :: T.Text
-                , siteDataAuthorInfo    :: AuthorInfo
-                , siteDataDescription   :: T.Text
-                , siteDataCopyright     :: T.Text
-                , siteDataSiteHost      :: T.Text
-                , siteDataDeveloperAPIs :: DeveloperAPIs
-                , siteDataAppPrefs      :: AppPrefs
+                { siteDataTitle          :: T.Text
+                , siteDataAuthorInfo     :: AuthorInfo
+                , siteDataDescription    :: T.Text
+                , siteDataCopyright      :: T.Text
+                , siteDataSiteHost       :: T.Text
+                , siteDataDeveloperAPIs  :: DeveloperAPIs
+                , siteDataAppPrefs       :: AppPrefs
+                , siteDataDatabaseConfig :: DatabaseConfig
                 }
+
 
 data DeveloperAPIs = DeveloperAPIs
                      { developerAPIsAnalytics       :: (T.Text,T.Text)
@@ -53,6 +56,14 @@ data AppPrefs = AppPrefs
                 , appPrefsFeedEntries :: Int
                 }
 
+data DatabaseConfig = DatabaseConfig
+                      { databaseConfigHost     :: T.Text
+                      , databaseConfigName     :: T.Text
+                      , databaseConfigUser     :: T.Text
+                      , databaseConfigPassword :: T.Text
+                      , databaseConfigPort     :: Int
+                      }
+
 type SiteRender a = ReaderT PageData S.ActionM a
 
 type PageDataMap = M.Map T.Text T.Text
@@ -60,7 +71,7 @@ type PageDataMap = M.Map T.Text T.Text
 data PageData = PageData
                 { pageDataTitle   :: Maybe T.Text
                 , pageDataCss     :: [T.Text]
-                , pageDataJs     :: [T.Text]
+                , pageDataJs      :: [T.Text]
                 , pageDataHeaders :: [H.Html]
                 , pageDataMap     :: PageDataMap
                 , pageSiteData    :: SiteData

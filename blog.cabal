@@ -27,7 +27,6 @@ executable blog
                      , filepath
                      , http-types
                      , monad-loops
-                     , xml
                      , mtl
                      , network
                      , old-locale
@@ -36,7 +35,6 @@ executable blog
                      , persistent-postgresql
                      , persistent-template
                      , process
-                     -- , rss
                      , scotty
                      , text
                      , time
@@ -45,6 +43,7 @@ executable blog
                      , wai-extra
                      , wai-middleware-headers
                      , wai-middleware-static
+                     , xml
   -- ghc-options:         -ddump-types
   extensions:          OverloadedStrings
 
@@ -52,9 +51,8 @@ executable blog-scripts-migrate
   main-is:             scripts/Migrate.hs
   hs-source-dirs:      src
   build-depends:       base
+                     , blaze-html
                      , blaze-markup
-                     , blaze-markup
-                     , containers
                      , containers
                      , directory
                      , esqueleto
@@ -81,7 +79,6 @@ executable blog-scripts-seed
                      , HTTP
                      , MonadRandom
                      , blaze-html
-                     , blaze-markup
                      , blaze-markup
                      , containers
                      , directory

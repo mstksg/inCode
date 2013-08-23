@@ -3,15 +3,32 @@
 {-# LANGUAGE TypeFamilies                 #-}
 {-# LANGUAGE TypeSynonymInstances         #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving   #-}
+{-# LANGUAGE OverloadedStrings   #-}
 
 module Web.Blog.Database (runDB, blogMigrate, blogClear) where
 
 import Database.Persist.Postgresql
 import Web.Blog.Models
+import Web.Blog.SiteData
+import Web.Blog.Types
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
 
 connStr :: ConnectionString
-connStr =
-    "host=localhost dbname=test_blog user=blog-test password=blog-testblog-test port=4432"
+connStr = TE.encodeUtf8 $ T.intercalate " " $ map dbConfigString
+    [ ("host",databaseConfigHost)
+    , ("dbname",databaseConfigName)
+    , ("user",databaseConfigUser)
+    , ("password",databaseConfigPassword)
+    , ("port",T.pack . show . databaseConfigPort)
+    ]
+  where
+    dbConfigString (key,valField) = T.concat
+      [ key
+      , "="
+      , valField $ siteDataDatabaseConfig siteData
+      ]
+
 
 runDB :: SqlPersistM a -> IO a
 runDB commands = withPostgresqlPool connStr 10 $ \pool ->
