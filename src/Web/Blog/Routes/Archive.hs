@@ -28,7 +28,7 @@ routeArchive title entries viewType = do
   let
     view = viewArchive eList' viewType
     pageData' = pageData { pageDataTitle = Just title
-                         , pageDataCss   = ["/css/page/archive.min.css"]
+                         , pageDataCss   = ["/css/page/archive.css"]
                          , pageDataJs    = ["/js/disqus_count.js"] }
 
   return $ Right (view, pageData')

@@ -3,10 +3,10 @@
 module Web.Blog.Routes (route) where
 
 import Control.Monad.Reader
-import Data.List                  (isSuffixOf)
+-- import Data.List                  (isSuffixOf)
 import Network.HTTP.Types.Status
-import System.Directory           (doesFileExist)
-import System.FilePath
+-- import System.Directory           (doesFileExist)
+-- import System.FilePath
 import Web.Blog.SiteData
 import Web.Blog.Models.Types
 import Web.Blog.Render
@@ -114,19 +114,6 @@ indexRoutes = do
 
 utilRoutes :: S.ScottyM ()
 utilRoutes = do
-  S.get (S.regex "^/css/(.*)\\.css$") $ do
-    path <- S.param "1"
-    let
-      isMin = ".min" `isSuffixOf` path
-      scssPath = "scss/" ++ replaceExtension path ".scss"
-    exists <- liftIO $ doesFileExist scssPath
-    if exists
-      then do
-        scss <- liftIO $ renderScss scssPath isMin
-        S.text scss
-        S.header "Content-Type" "text/css"
-      else
-        S.next
 
   S.get "/rss" $ do
     S.status movedPermanently301

@@ -27,7 +27,7 @@ viewLayout body = do
   let
     cssList = [ "/css/toast.css"
               , "/css/font.css"
-              , "/css/main.min.css" ]
+              , "/css/main.css" ]
     jsList =  [ "//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"
               , T.append "//s7.addthis.com/js/300/addthis_widget.js#pubid=" $
                   developerAPIsAddThis $ siteDataDeveloperAPIs siteData
