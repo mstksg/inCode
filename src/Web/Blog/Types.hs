@@ -1,5 +1,6 @@
 module Web.Blog.Types (
     SiteData(..)
+  , SiteEnvironment(..)
   , DeveloperAPIs(..)
   , AuthorInfo(..)
   , AppPrefs(..)
@@ -19,15 +20,18 @@ import qualified Text.Blaze.Html5 as H
 import qualified Web.Scotty       as S
 
 data SiteData = SiteData
-                { siteDataTitle          :: T.Text
-                , siteDataAuthorInfo     :: AuthorInfo
-                , siteDataDescription    :: T.Text
-                , siteDataCopyright      :: T.Text
-                , siteDataSiteHost       :: T.Text
-                , siteDataDeveloperAPIs  :: DeveloperAPIs
-                , siteDataAppPrefs       :: AppPrefs
-                , siteDataDatabaseConfig :: DatabaseConfig
+                { siteDataTitle           :: T.Text
+                , siteDataAuthorInfo      :: AuthorInfo
+                , siteDataDescription     :: T.Text
+                , siteDataCopyright       :: T.Text
+                , siteDataSiteHost        :: T.Text
+                , siteDataDeveloperAPIs   :: DeveloperAPIs
+                , siteDataAppPrefs        :: AppPrefs
+                , siteDataDatabaseConfig  :: DatabaseConfig
+                , siteDataSiteEnvironment :: SiteEnvironment
                 }
+
+data SiteEnvironment = SiteEnvironmentProduction | SiteEnvironmentDevelopment
 
 
 data DeveloperAPIs = DeveloperAPIs
