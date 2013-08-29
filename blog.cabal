@@ -118,4 +118,5 @@ executable blog-scripts-load-entries
                      , pandoc
                      , transformers
                      , filepath
+                     , old-locale
   extensions:          OverloadedStrings

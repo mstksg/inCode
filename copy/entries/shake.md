@@ -6,7 +6,7 @@ Categories
 Tags
 :   shake
 :   shell scripting
-WriteTime
+CreateTime
 :   2013/08/24 19:31:22
 PostDate
 :   2013/09/24 22:36:03
@@ -30,79 +30,38 @@ on how to get started using it as a task management system.
 
 -------
 
+Okay, let's start!
+
+Sample Shakefile
+----------------
+
 First, the Shakefile from this blog.
 
-
 ~~~haskell
-import Development.Shake
-import Text.Pandoc
-import Control.Monad
-import Control.Monad.Loops
+{-# LANGUAGE OverloadedStrings #-}
+
+-- import Network.Wai
+-- import Web.Blog.Database
 import Control.Monad.IO.Class
-import System.INotify
-
-opts = shakeOptions { shakeFiles    = ".shake/"
-                    , shakeProgress = progressSimple }
-
-(~>) = phony
-
-binPath = "cabal-dev/bin/"
-cmdBin = cmd . (++) binPath
-cmdCabal = cmd "cabal-dev"
-systemBin = system' . (++) binPath
+import Development.Blog.Util
+import Network.Wai.Middleware.Headers
+import Network.Wai.Middleware.RequestLogger
+import Network.Wai.Middleware.Static
+import Web.Blog.Routes
+import Web.Scotty
 
 main :: IO ()
-main = shakeArgs opts $ do
-  want ["build"]
+main = scotty 4288 $ do
 
-  "clean" ~> removeFilesAfter ".shake" ["//*"]
+  liftIO startupHelpers
 
-  "build" ~>
-    need [ "cabal-dev/bin/blog" ]
+  middleware logStdoutDev
+  middleware $ addHeaders [("Cache-Control","max-age=86400")]
+  middleware $ staticPolicy (noDots >-> addBase "static")
+  middleware $ staticPolicy (noDots >-> addBase "tmp/static")
+  middleware $ addHeaders [("Cache-Control","max-age=0")]
 
-  "launch" ~> do
-    need ["build"]
-    systemBin "blog" []
-
-  "migrate" ~> do
-    need ["cabal-dev/bin/blog-scripts-migrate"]
-    cmdBin "blog-scripts-migrate"
-
-  "seed" ~> do
-    need ["cabal-dev/bin/blog-scripts-seed"]
-    cmdBin "blog-scripts-seed"
-
-  "view-src" ~> do
-    fs <- srcFiles
-    liftIO $ print fs
-
-  "watch-copy" ~>
-    cmd "scripts/watch_copy.sh"
-
-
-  "cabal-dev/bin/blog" *> \_ -> do
-    fs <- srcFiles
-    need fs
-    cmdCabal ["install"]
-
-  "cabal-dev/bin/blog-scripts-migrate" *> \_ -> do
-    need ["build"]
-    return ()
-
-  "cabal-dev/bin/blog-scripts-seed" *> \_ -> do
-    need ["build"]
-    return ()
-
-srcFiles :: Action [FilePath]
-srcFiles = getDirectoryFiles ""
-  [ "blog.cabal"
-  , "src/*.hs"
-  , "src/scripts/*.hs"
-  , "src/Web/Blog/*.hs"
-  , "src/Web/Blog/*/*.hs"
-  , "src/Web/Blog/*/*/*.hs"
-  , "src/Development/Blog/*.hs"
-  , "src/Development/Blog/*/*.hs" ]
+  route
 ~~~
 
 And that's it!
