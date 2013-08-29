@@ -67,7 +67,7 @@ main = runDB $ do
     ((entry,tags',category,series),entryid) <-
       untilJust $ do
         d@(e,_,_,_) <- liftIO genEntry
-        eid <- insertEntry e
+        eid <- insertPreEntry e
         case eid of
           Just eid' ->
             return $ Just (d,eid')

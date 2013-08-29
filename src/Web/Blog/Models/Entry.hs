@@ -32,12 +32,16 @@ data PreEntry = PreEntry
                 , preEntryPostedAt :: UTCTime
                 }
 
-insertEntry :: PreEntry -> D.SqlPersistM (Maybe (D.Key Entry))
-insertEntry (PreEntry t c cA pA) = do
+insertEntry :: Entry -> D.SqlPersistM (Maybe (D.Key Entry))
+insertEntry entry = do
   entryKey <- D.insertUnique entry
   when (isJust entryKey) $
     insertSlug $ D.Entity (fromJust entryKey) entry
   return entryKey
+
+
+insertPreEntry :: PreEntry -> D.SqlPersistM (Maybe (D.Key Entry))
+insertPreEntry (PreEntry t c cA pA) = insertEntry entry
   where
     entry = Entry t c cA pA Nothing
 

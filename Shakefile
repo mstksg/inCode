@@ -36,6 +36,10 @@ main = shakeArgs opts $ do
     need ["cabal-dev/bin/blog-scripts-seed"]
     cmdBin "blog-scripts-seed"
 
+  "load-entries" ~> do
+    need ["cabal-dev/bin/blog-scripts-load-entries"]
+    cmdBin "blog-scripts-load-entries"
+
   "view-src" ~> do
     fs <- srcFiles
     liftIO $ print fs
@@ -54,6 +58,10 @@ main = shakeArgs opts $ do
     return ()
 
   "cabal-dev/bin/blog-scripts-seed" *> \_ -> do
+    need ["build"]
+    return ()
+
+  "cabal-dev/bin/blog-scripts-load-entries" *> \_ -> do
     need ["build"]
     return ()
 
