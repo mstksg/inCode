@@ -2,11 +2,11 @@
 
 module Web.Blog.Models.Tag  where
 
+-- import Data.Maybe                         (isJust)
 import Control.Applicative                   ((<$>))
 import Control.Monad.IO.Class                (liftIO)
 import Control.Monad.Trans                   (lift)
 import Control.Monad.Trans.Maybe
-import Data.Maybe                            (isJust)
 import Data.Time
 import Web.Blog.Models
 import Web.Blog.Models.Entry
@@ -33,17 +33,18 @@ insertTag ptag = D.insertUnique $ fillTag ptag
 insertTag_ :: PreTag -> D.SqlPersistM ()
 insertTag_ ptag = D.insert_ $ fillTag ptag
 
-insertTag' :: PreTag -> D.SqlPersistM (Maybe Tag)
+insertTag' :: PreTag -> D.SqlPersistM (Maybe (D.Entity Tag))
 insertTag' ptag = do
   let
     tag = fillTag ptag
+    entity k = D.Entity k tag
   inserted <- D.insertUnique tag
-  return $
-    if isJust inserted
-      then
-        Just tag
-      else
-        Nothing
+  return $ entity <$> inserted
+    -- if isJust inserted
+    --   then
+    --     Just $ D.Entity (fromJust inserted) tag
+    --   else
+    --     Nothing
 
 
 fillTag :: PreTag -> Tag

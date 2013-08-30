@@ -1,5 +1,5 @@
 
--- import Control.Monad
+import Control.Monad
 -- import Data.Time.Format
 -- import Debug.Trace
 import Control.Applicative                    ((<$>), pure)
@@ -30,9 +30,9 @@ data MetaKey = MetaKeyTags
              | MetaKeyPostDate
              | MetaKeyModifiedTime
              | MetaKeyOriginalTitle
-             deriving ( Show, Eq, Read )
+             deriving ( Show, Eq, Read, Ord )
 data MetaValue = MetaValueTime UTCTime
-               | MetaValueTags [Tag]
+               | MetaValueTags [D.Entity Tag]
                | MetaValueString String
                deriving ( Show, Eq, Read )
 
@@ -56,14 +56,34 @@ processEntryFile entryFile = do
       (P.Header _ _ headerBlocks, metaBody) = stripAndTake isHeader contents
       (metaBlock, body) = stripAndTake isDefList metaBody
 
-      title = writeMarkdownBlocks $ pure $ P.Plain headerBlocks
+      title = T.pack $ writeMarkdownBlocks $ pure $ P.Plain headerBlocks
       entryMarkdown = writeMarkdownBlocks body
 
-    metas <- mapM processMeta $ defListList metaBlock
+    metas <- fmap M.fromList $ mapM processMeta $ defListList metaBlock
 
-    liftIO $ print title
-    liftIO $ print metas
-    liftIO $ putStrLn entryMarkdown
+    -- liftIO $ print title
+    -- liftIO $ print metas
+    -- liftIO $ putStrLn entryMarkdown
+    --
+    now <- liftIO getCurrentTime
+
+    entryEntity@(D.Entity entryKey entry) <- do
+      entryMaybe <- D.getBy $ UniqueEntryTitle title
+      case entryMaybe of
+        Just e -> return e
+        Nothing -> do
+          let
+            newEntry = Entry
+                         title
+                         (T.pack entryMarkdown)
+                         now
+                         now
+                         Nothing
+          k <- D.insert newEntry
+          return $ D.Entity k newEntry
+
+    void $ M.traverseWithKey (applyMetas entryEntity) metas
+
     return ()
   where
     readMarkdown = PM.readMarkdownWithWarnings (P.def P.ReaderOptions)
@@ -79,6 +99,15 @@ processEntryFile entryFile = do
     isDefList _                       = False
     defListList (P.DefinitionList ds) = ds
     defListList _                     = mempty
+    applyMetas (D.Entity entryKey _) MetaKeyCreateTime (MetaValueTime t) =
+      void $ D.update entryKey [EntryCreatedAt D.=. t]
+    applyMetas (D.Entity entryKey _) MetaKeyPostDate (MetaValueTime t) =
+      void $ D.update entryKey [EntryPostedAt D.=. t]
+    applyMetas (D.Entity entryKey _) MetaKeyModifiedTime (MetaValueTime t) =
+      void $ D.update entryKey [EntryModifiedAt D.=. Just t]
+    applyMetas (D.Entity entryKey _) _ (MetaValueTags ts) =
+      forM_ ts $ \(D.Entity tKey _) ->
+        void $ D.insertUnique $ EntryTag entryKey tKey
 
 processMeta :: ([P.Inline], [[P.Block]]) -> D.SqlPersistM (MetaKey, MetaValue)
 processMeta (keyBlocks, valBlockss) = do
@@ -100,12 +129,12 @@ processMeta (keyBlocks, valBlockss) = do
     generateTags tt bss = MetaValueTags <$>
       mapM (generateTag . T.pack . renderBlocks) bss
       where
-        generateTag :: T.Text -> D.SqlPersistM Tag
+        generateTag :: T.Text -> D.SqlPersistM (D.Entity Tag)
         generateTag label = do
           tag <- D.getBy $ UniqueLabelType label tt
           case tag of
-            Just (D.Entity _ t) -> return t
-            Nothing -> fromJust <$> (insertTag' $ PreTag label tt Nothing)
+            Just t -> return t
+            Nothing -> fmap fromJust $ insertTag' $ PreTag label tt Nothing
 
 
 renderBlocks :: [P.Block] -> String
