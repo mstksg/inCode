@@ -44,7 +44,7 @@ viewEntry entry tags prevEntry nextEntry = do
             H.div ! A.class_ "unposted-banner" $
               "Unposted entry"
 
-          H.h1 ! A.id "entry-title" $
+          H.h1 ! A.id "title" $
             H.toHtml $ entryTitle entry
 
           H.p ! A.class_ "entry-info" $ do
