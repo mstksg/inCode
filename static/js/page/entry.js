@@ -20,7 +20,7 @@ $(document).ready(function() {
     });
 
 
-    $('.main-content').children('h2,h3,h4,h5').append('<a href="#entry-title" class="top-link">top</a>');
+    $('.main-content').children('h2,h3,h4,h5').append('<a href="#title" class="top-link">top</a>');
 
     $('.top-link') .bind('click', function(e) {
         scrollTo(e);
