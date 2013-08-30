@@ -1,16 +1,21 @@
 
+-- import Control.Monad
+-- import Data.Time.Format
 -- import Debug.Trace
 import Control.Applicative                    ((<$>), pure)
 import Control.Monad.IO.Class
+import Data.Maybe                             (fromJust)
 import Data.Monoid
 import Data.Time
--- import Data.Time.Format
 import System.Directory                       (getDirectoryContents)
 import System.FilePath                        ((</>))
 import System.Locale
 import Web.Blog.Database
 import Web.Blog.Models
+import Web.Blog.Models.Types
+import Web.Blog.Models.Util
 import qualified Data.Map                     as M
+import qualified Data.Text                    as T
 import qualified Database.Persist.Postgresql  as D
 import qualified Text.Pandoc                  as P
 import qualified Text.Pandoc.Readers.Markdown as PM
@@ -62,7 +67,7 @@ processEntryFile entryFile = do
     return ()
   where
     readMarkdown = PM.readMarkdownWithWarnings (P.def P.ReaderOptions)
-    writeMarkdown = P.writeMarkdown (P.def P.WriterOptions) 
+    writeMarkdown = P.writeMarkdown (P.def P.WriterOptions)
     stripAndTake p l = (taken, rest)
       where
         stripped = dropWhile (not . p) l
@@ -82,13 +87,25 @@ processMeta (keyBlocks, valBlockss) = do
       MetaKeyModifiedTime -> readTimeBlockss valBlockss
       MetaKeyCreateTime -> readTimeBlockss valBlockss
       MetaKeyOriginalTitle -> return $ MetaValueString $ renderBlocks $ head valBlockss
-      _ -> return $ MetaValueString "hey"
+      MetaKeyCategories -> generateTags CategoryTag valBlockss
+      MetaKeyTags -> generateTags GeneralTag valBlockss
+      MetaKeySeries -> generateTags SeriesTag valBlockss
 
     return (metaKey, metaValue)
   where
     metaKey = read $ (++) "MetaKey" $ renderBlocks $ pure $ P.Plain keyBlocks
     readTime' = readTime defaultTimeLocale "%Y/%m/%d %X"
     readTimeBlockss bss = return $ MetaValueTime $ readTime' $ renderBlocks $ head bss
+    generateTags :: TagType -> [[P.Block]] -> D.SqlPersistM MetaValue
+    generateTags tt bss = MetaValueTags <$>
+      mapM (generateTag . T.pack . renderBlocks) bss
+      where
+        generateTag :: T.Text -> D.SqlPersistM Tag
+        generateTag label = do
+          tag <- D.getBy $ UniqueLabelType label tt
+          case tag of
+            Just (D.Entity _ t) -> return t
+            Nothing -> fromJust <$> (insertTag' $ PreTag label tt Nothing)
 
 
 renderBlocks :: [P.Block] -> String

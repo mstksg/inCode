@@ -106,17 +106,21 @@ executable blog-scripts-load-entries
   main-is:             scripts/LoadEntries.hs
   hs-source-dirs:      src
   build-depends:       base
-                     , text
-                     , directory
-                     , scotty
                      , blaze-html
+                     , blaze-markup
                      , containers
-                     , mtl
-                     , persistent-template
-                     , time
-                     , persistent-postgresql
-                     , pandoc
-                     , transformers
+                     , directory
+                     , esqueleto
                      , filepath
+                     , monad-loops
+                     , mtl
                      , old-locale
+                     , pandoc
+                     , persistent-postgresql
+                     , persistent-template
+                     , scotty
+                     , text
+                     , time
+                     , transformers
+                     , wai
   extensions:          OverloadedStrings
