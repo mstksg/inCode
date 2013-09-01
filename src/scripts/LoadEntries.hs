@@ -29,11 +29,12 @@ data MetaKey = MetaKeyTags
              | MetaKeyCreateTime
              | MetaKeyPostDate
              | MetaKeyModifiedTime
-             | MetaKeyOriginalTitle
+             | MetaKeyIdentifier
+             | MetaKeyPreviousTitle
              deriving ( Show, Eq, Read, Ord )
 data MetaValue = MetaValueTime UTCTime
                | MetaValueTags [D.Entity Tag]
-               | MetaValueString String
+               | MetaValueText T.Text
                deriving ( Show, Eq, Read )
 
 type EntryMeta = M.Map MetaKey MetaValue
@@ -67,15 +68,20 @@ processEntryFile entryFile = do
     --
     -- now <- liftIO getCurrentTime
 
+    -- let
+    --   previousTitle = M.lookup MetaKeyPreviousTitle metas
+
     entryEntity <- do
       entryMaybe <- D.getBy $ UniqueEntryTitle title
       case entryMaybe of
         Just e -> return e
         Nothing -> do
+          -- case (M.lookup MetaKeyPrevious)
           let
             newEntry = Entry
                          title
                          (T.pack entryMarkdown)
+                         Nothing
                          Nothing
                          Nothing
                          Nothing
@@ -107,9 +113,14 @@ processEntryFile entryFile = do
       void $ D.update entryKey [EntryPostedAt D.=. Just t]
     applyMetas (D.Entity entryKey _) MetaKeyModifiedTime (MetaValueTime t) =
       void $ D.update entryKey [EntryModifiedAt D.=. Just t]
-    applyMetas (D.Entity entryKey _) _ (MetaValueTags ts) =
+    applyMetas (D.Entity entryKey _) MetaKeyIdentifier (MetaValueText i) =
+      void $ D.update entryKey [EntryIdentifier D.=. Just i]
+    applyMetas _ MetaKeyPreviousTitle _ = return ()
+    applyMetas (D.Entity entryKey _) _ mvts =
       forM_ ts $ \(D.Entity tKey _) ->
         void $ D.insertUnique $ EntryTag entryKey tKey
+      where
+        MetaValueTags ts = mvts
 
 processMeta :: ([P.Inline], [[P.Block]]) -> D.SqlPersistM (MetaKey, MetaValue)
 processMeta (keyBlocks, valBlockss) = do
@@ -117,7 +128,8 @@ processMeta (keyBlocks, valBlockss) = do
       MetaKeyPostDate -> readTimeBlockss valBlockss
       MetaKeyModifiedTime -> readTimeBlockss valBlockss
       MetaKeyCreateTime -> readTimeBlockss valBlockss
-      MetaKeyOriginalTitle -> return $ MetaValueString $ renderBlocks $ head valBlockss
+      MetaKeyPreviousTitle -> return metaValueText
+      MetaKeyIdentifier -> return metaValueText
       MetaKeyCategories -> generateTags CategoryTag valBlockss
       MetaKeyTags -> generateTags GeneralTag valBlockss
       MetaKeySeries -> generateTags SeriesTag valBlockss
@@ -127,6 +139,7 @@ processMeta (keyBlocks, valBlockss) = do
     metaKey = read $ (++) "MetaKey" $ renderBlocks $ pure $ P.Plain keyBlocks
     readTime' = readTime defaultTimeLocale "%Y/%m/%d %X"
     readTimeBlockss bss = return $ MetaValueTime $ readTime' $ renderBlocks $ head bss
+    metaValueText = MetaValueText $ T.pack $ renderBlocks $ head valBlockss
     generateTags :: TagType -> [[P.Block]] -> D.SqlPersistM MetaValue
     generateTags tt bss = MetaValueTags <$>
       mapM (generateTag . T.pack . renderBlocks) bss
@@ -137,7 +150,6 @@ processMeta (keyBlocks, valBlockss) = do
           case tag of
             Just t -> return t
             Nothing -> fmap fromJust $ insertTag' $ PreTag label tt Nothing
-
 
 renderBlocks :: [P.Block] -> String
 renderBlocks bs = P.writeMarkdown (P.def P.WriterOptions) $ P.Pandoc emptyMeta bs

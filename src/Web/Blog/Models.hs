@@ -24,6 +24,7 @@ Entry
     createdAt   UTCTime Maybe
     postedAt    UTCTime Maybe
     modifiedAt  UTCTime Maybe
+    identifier  T.Text Maybe
 
     UniqueEntryTitle title
 
@@ -55,9 +56,10 @@ Slug
 |]
 
 instance Show Entry where
-  show (Entry t _ cA pA _) = concat
+  show (Entry t _ cA pA _ i) = concat
     [ show t
     , " ("
+    , maybe "" ((++ ", ") . show) i
     , maybe "" ((++ ", ") . show) cA
     , maybe "no post date" (("posted " ++) . show) pA
     , ")"

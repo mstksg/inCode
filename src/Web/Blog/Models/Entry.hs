@@ -25,13 +25,6 @@ slugLength = appPrefsSlugLength $ siteDataAppPrefs siteData
 ledeMax :: Int
 ledeMax = appPrefsLedeMax $ siteDataAppPrefs siteData
 
-data PreEntry = PreEntry
-                { preEntryTitle :: T.Text
-                , preEntryContent :: T.Text
-                , preEntryCreatedAt :: Maybe UTCTime
-                , preEntryPostedAt :: Maybe UTCTime
-                }
-
 insertEntry :: Entry -> D.SqlPersistM (Maybe (D.Key Entry))
 insertEntry entry = do
   entryKey <- D.insertUnique entry
@@ -39,11 +32,6 @@ insertEntry entry = do
     insertSlug $ D.Entity (fromJust entryKey) entry
   return entryKey
 
-
-insertPreEntry :: PreEntry -> D.SqlPersistM (Maybe (D.Key Entry))
-insertPreEntry (PreEntry t c cA pA) = insertEntry entry
-  where
-    entry = Entry t c cA pA Nothing
 
 insertEntry_ :: Entry -> D.SqlPersistM ()
 insertEntry_ entry = do
