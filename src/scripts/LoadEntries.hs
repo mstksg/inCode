@@ -65,9 +65,9 @@ processEntryFile entryFile = do
     -- liftIO $ print metas
     -- liftIO $ putStrLn entryMarkdown
     --
-    now <- liftIO getCurrentTime
+    -- now <- liftIO getCurrentTime
 
-    entryEntity@(D.Entity entryKey entry) <- do
+    entryEntity <- do
       entryMaybe <- D.getBy $ UniqueEntryTitle title
       case entryMaybe of
         Just e -> return e
@@ -76,13 +76,15 @@ processEntryFile entryFile = do
             newEntry = Entry
                          title
                          (T.pack entryMarkdown)
-                         now
-                         now
+                         Nothing
+                         Nothing
                          Nothing
           k <- D.insert newEntry
           return $ D.Entity k newEntry
 
     void $ M.traverseWithKey (applyMetas entryEntity) metas
+
+    liftIO $ print $ D.entityVal entryEntity
 
     return ()
   where
@@ -100,9 +102,9 @@ processEntryFile entryFile = do
     defListList (P.DefinitionList ds) = ds
     defListList _                     = mempty
     applyMetas (D.Entity entryKey _) MetaKeyCreateTime (MetaValueTime t) =
-      void $ D.update entryKey [EntryCreatedAt D.=. t]
+      void $ D.update entryKey [EntryCreatedAt D.=. Just t]
     applyMetas (D.Entity entryKey _) MetaKeyPostDate (MetaValueTime t) =
-      void $ D.update entryKey [EntryPostedAt D.=. t]
+      void $ D.update entryKey [EntryPostedAt D.=. Just t]
     applyMetas (D.Entity entryKey _) MetaKeyModifiedTime (MetaValueTime t) =
       void $ D.update entryKey [EntryModifiedAt D.=. Just t]
     applyMetas (D.Entity entryKey _) _ (MetaValueTags ts) =

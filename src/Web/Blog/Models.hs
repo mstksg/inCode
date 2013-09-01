@@ -6,12 +6,14 @@
 {-# LANGUAGE TypeSynonymInstances         #-} 
 {-# LANGUAGE GeneralizedNewtypeDeriving   #-} 
 {-# LANGUAGE EmptyDataDecls               #-} 
+{-# LANGUAGE FlexibleInstances            #-}
 
 module Web.Blog.Models  where
 
 import Data.Time
 import Database.Persist.TH
 import Web.Blog.Models.Types
+-- import Data.Maybe (maybe)
 import qualified Data.Text   as T
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
@@ -24,7 +26,6 @@ Entry
     modifiedAt  UTCTime Maybe
 
     UniqueEntryTitle title
-    deriving    Show
 
 Tag
     label           T.Text
@@ -53,3 +54,11 @@ Slug
 
 |]
 
+instance Show Entry where
+  show (Entry t _ cA pA _) = concat
+    [ show t
+    , " ("
+    , maybe "" ((++ ", ") . show) cA
+    , maybe "no post date" (("posted " ++) . show) pA
+    , ")"
+    ]
