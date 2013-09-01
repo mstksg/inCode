@@ -1,10 +1,10 @@
 
-import Control.Monad
 -- import Data.Time.Format
 -- import Debug.Trace
 import Control.Applicative                    ((<$>), pure)
+import Control.Monad
 import Control.Monad.IO.Class
-import Data.Maybe                             (fromJust)
+import Data.Maybe                             (fromJust, listToMaybe)
 import Data.Monoid
 import Data.Time
 import System.Directory                       (getDirectoryContents)
@@ -14,6 +14,7 @@ import Web.Blog.Database
 import Web.Blog.Models
 import Web.Blog.Models.Types
 import Web.Blog.Models.Util
+-- import qualified Data.Foldable as Fo          (forM_)
 import qualified Data.Map                     as M
 import qualified Data.Text                    as T
 import qualified Database.Persist.Postgresql  as D
@@ -41,7 +42,7 @@ type EntryMeta = M.Map MetaKey MetaValue
 
 main :: IO ()
 main = do
-  -- runDB blogMigrate
+  runDB blogMigrate
   entryFiles <-
     map (entriesDir </>) . filter (`notElem` [".",".."]) <$>
       getDirectoryContents "copy/entries"
@@ -72,11 +73,10 @@ processEntryFile entryFile = do
     --   previousTitle = M.lookup MetaKeyPreviousTitle metas
 
     entryEntity <- do
-      entryMaybe <- D.getBy $ UniqueEntryTitle title
+      entryMaybe <- findExistingEntry title metas
       case entryMaybe of
         Just e -> return e
         Nothing -> do
-          -- case (M.lookup MetaKeyPrevious)
           let
             newEntry = Entry
                          title
@@ -121,6 +121,35 @@ processEntryFile entryFile = do
         void $ D.insertUnique $ EntryTag entryKey tKey
       where
         MetaValueTags ts = mvts
+    findExistingEntry :: T.Text -> M.Map MetaKey MetaValue -> D.SqlPersistM (Maybe (D.Entity Entry))
+    findExistingEntry title metas = foldl go (return Nothing) attempts
+      where
+        go a x = do
+          acc <- a
+          case acc of
+            Just _ -> return acc
+            Nothing -> x
+        attempts :: [D.SqlPersistM (Maybe (D.Entity Entry))]
+        attempts =
+          [ progressReport "Looking up entry by title..."
+          , D.getBy $ UniqueEntryTitle title
+          , progressReport "Looking up entry by identifier..."
+          , case M.lookup MetaKeyIdentifier metas of
+              Just (MetaValueText i) -> listToMaybe <$>
+                D.selectList
+                  [ EntryIdentifier D.==. Just i ]
+                  [ D.Asc EntryCreatedAt ]
+              _ -> return Nothing
+          , progressReport "Looking up entry by previous titles..."
+          , case M.lookup MetaKeyPreviousTitle metas of
+              Just (MetaValueText t) -> D.getBy $ UniqueEntryTitle t
+              _ -> return Nothing
+          , progressReport "No entry found ... creating new entry"
+          ]
+          where
+            progressReport t = liftIO (putStrLn t) >> return Nothing
+
+
 
 processMeta :: ([P.Inline], [[P.Block]]) -> D.SqlPersistM (MetaKey, MetaValue)
 processMeta (keyBlocks, valBlockss) = do
@@ -155,3 +184,13 @@ renderBlocks :: [P.Block] -> String
 renderBlocks bs = P.writeMarkdown (P.def P.WriterOptions) $ P.Pandoc emptyMeta bs
   where
     emptyMeta = P.Meta mempty mempty mempty
+
+findM :: (Monad m) => (a -> m (Maybe b)) -> [a] -> m (Maybe b)
+findM f = foldl (go f) (return Nothing)
+  where
+    go :: (Monad m) => (a -> m (Maybe b)) -> m (Maybe b) -> a -> m (Maybe b)
+    go f' a x = do
+      acc <- a
+      case acc of
+        Just _ -> return acc
+        Nothing -> f' x
