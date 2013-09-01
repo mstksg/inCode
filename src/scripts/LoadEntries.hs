@@ -31,11 +31,12 @@ data MetaKey = MetaKeyTags
              | MetaKeyPostDate
              | MetaKeyModifiedTime
              | MetaKeyIdentifier
-             | MetaKeyPreviousTitle
+             | MetaKeyPreviousTitles
              deriving ( Show, Eq, Read, Ord )
 data MetaValue = MetaValueTime UTCTime
                | MetaValueTags [D.Entity Tag]
                | MetaValueText T.Text
+               | MetaValueTexts [T.Text]
                deriving ( Show, Eq, Read )
 
 type EntryMeta = M.Map MetaKey MetaValue
@@ -115,7 +116,7 @@ processEntryFile entryFile = do
       void $ D.update entryKey [EntryModifiedAt D.=. Just t]
     applyMetas (D.Entity entryKey _) MetaKeyIdentifier (MetaValueText i) =
       void $ D.update entryKey [EntryIdentifier D.=. Just i]
-    applyMetas _ MetaKeyPreviousTitle _ = return ()
+    applyMetas _ MetaKeyPreviousTitles _ = return ()
     applyMetas (D.Entity entryKey _) _ mvts =
       forM_ ts $ \(D.Entity tKey _) ->
         void $ D.insertUnique $ EntryTag entryKey tKey
@@ -130,23 +131,29 @@ processEntryFile entryFile = do
             Just _ -> return acc
             Nothing -> x
         attempts :: [D.SqlPersistM (Maybe (D.Entity Entry))]
-        attempts =
-          [ progressReport "Looking up entry by title..."
-          , D.getBy $ UniqueEntryTitle title
-          , progressReport "Looking up entry by identifier..."
-          , case M.lookup MetaKeyIdentifier metas of
-              Just (MetaValueText i) -> listToMaybe <$>
-                D.selectList
-                  [ EntryIdentifier D.==. Just i ]
-                  [ D.Asc EntryCreatedAt ]
-              _ -> return Nothing
-          , progressReport "Looking up entry by previous titles..."
-          , case M.lookup MetaKeyPreviousTitle metas of
-              Just (MetaValueText t) -> D.getBy $ UniqueEntryTitle t
-              _ -> return Nothing
-          , progressReport "No entry found ... creating new entry"
+        attempts = concat
+          [ [ progressReport "Looking up entry by title..."
+            , D.getBy $ UniqueEntryTitle title
+            , progressReport "Looking up entry by identifier..."
+            , case M.lookup MetaKeyIdentifier metas of
+                Just (MetaValueText i) -> listToMaybe <$>
+                  D.selectList
+                    [ EntryIdentifier D.==. Just i ]
+                    [ D.Asc EntryCreatedAt ]
+                _ -> return Nothing
+            , progressReport "Looking up entry by previous titles..."
+            ]
+          , prevTitlesSearch
+          , [ progressReport "No entry found ... creating new entry" 
+            ]
           ]
           where
+            prevTitlesSearch :: [D.SqlPersistM (Maybe (D.Entity Entry))]
+            prevTitlesSearch =
+              case M.lookup MetaKeyPreviousTitles metas of
+                Just (MetaValueTexts ts) ->
+                  map (D.getBy . UniqueEntryTitle) ts
+                _ -> []
             progressReport t = liftIO (putStrLn t) >> return Nothing
 
 
@@ -157,8 +164,10 @@ processMeta (keyBlocks, valBlockss) = do
       MetaKeyPostDate -> readTimeBlockss valBlockss
       MetaKeyModifiedTime -> readTimeBlockss valBlockss
       MetaKeyCreateTime -> readTimeBlockss valBlockss
-      MetaKeyPreviousTitle -> return metaValueText
-      MetaKeyIdentifier -> return metaValueText
+      MetaKeyPreviousTitles -> return $ MetaValueTexts $
+        map (T.pack . renderBlocks) valBlockss
+      MetaKeyIdentifier -> return $ MetaValueText $
+        T.pack $ renderBlocks $ head valBlockss
       MetaKeyCategories -> generateTags CategoryTag valBlockss
       MetaKeyTags -> generateTags GeneralTag valBlockss
       MetaKeySeries -> generateTags SeriesTag valBlockss
@@ -168,7 +177,6 @@ processMeta (keyBlocks, valBlockss) = do
     metaKey = read $ (++) "MetaKey" $ renderBlocks $ pure $ P.Plain keyBlocks
     readTime' = readTime defaultTimeLocale "%Y/%m/%d %X"
     readTimeBlockss bss = return $ MetaValueTime $ readTime' $ renderBlocks $ head bss
-    metaValueText = MetaValueText $ T.pack $ renderBlocks $ head valBlockss
     generateTags :: TagType -> [[P.Block]] -> D.SqlPersistM MetaValue
     generateTags tt bss = MetaValueTags <$>
       mapM (generateTag . T.pack . renderBlocks) bss
