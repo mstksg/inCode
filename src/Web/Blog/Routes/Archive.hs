@@ -68,8 +68,8 @@ routeArchiveYear year = routeArchiveFilters (T.pack $ show year) filters $ ViewA
   where
     startTime = buildTime defaultTimeLocale [('Y',show year)] :: UTCTime
     endTime = buildTime defaultTimeLocale [('Y',show $ year + 1)] :: UTCTime
-    filters = [ EntryPostedAt D.>=. startTime
-              , EntryPostedAt D.<=. endTime  ]
+    filters = [ EntryPostedAt D.>=. Just startTime
+              , EntryPostedAt D.<=. Just endTime  ]
 
 routeArchiveMonth :: Int -> Int -> RouteEither
 routeArchiveMonth year month = routeArchiveFilters (T.pack timeString) filters $ ViewArchiveMonth year month
@@ -79,7 +79,7 @@ routeArchiveMonth year month = routeArchiveFilters (T.pack timeString) filters $
     endDay = addGregorianMonthsRollOver 1 startDay
     startTime = UTCTime startDay 0
     endTime = UTCTime endDay 0
-    filters = [ EntryPostedAt D.>=. startTime
-              , EntryPostedAt D.<=. endTime  ]
+    filters = [ EntryPostedAt D.>=. Just startTime
+              , EntryPostedAt D.<=. Just endTime  ]
     timeString = formatTime defaultTimeLocale "%B %Y" startDay
 

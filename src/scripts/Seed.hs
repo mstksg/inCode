@@ -134,8 +134,8 @@ genEntry = do
     e = PreEntry
       (T.pack title)
       (T.pack body)
-      createTime
-      postTime
+      (Just createTime)
+      (Just postTime)
 
   return (e, tags, category, series)
 

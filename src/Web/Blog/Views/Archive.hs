@@ -150,13 +150,14 @@ viewArchiveFlat eList viewType =
 
       H.li ! A.class_ "entry-item" $ do
         H.div ! A.class_ "entry-info" $ do
-          H.time
-            ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt e)
-            ! A.pubdate ""
-            ! A.class_ "pubdate"
-            $ H.toHtml $ renderFriendlyTime $ entryPostedAt e
-          H.preEscapedToHtml
-            (" &mdash; " :: T.Text)
+          Fo.forM_ (entryPostedAt e) $ \t -> do
+            H.time
+              ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime t)
+              ! A.pubdate ""
+              ! A.class_ "pubdate"
+              $ H.toHtml $ renderFriendlyTime t
+            H.preEscapedToHtml
+              (" &mdash; " :: T.Text)
           H.a ! A.href (I.textValue commentUrl) ! A.class_ "entry-comments" $
             "Comments"
 
@@ -188,7 +189,7 @@ viewArchiveByMonths eListMonths viewType =
 
     forM_ eListMonths $ \eList -> do
       let
-        month = entryPostedAt $ D.entityVal $ fst $
+        month = fromJust $ entryPostedAt $ D.entityVal $ fst $
             head eList
 
       H.li $ do
@@ -208,7 +209,7 @@ viewArchiveByYears eListYears viewType =
   H.ul ! A.class_ "entry-list" $
     forM_ eListYears $ \eListMonths -> do
       let
-        year = entryPostedAt $
+        year = fromJust $ entryPostedAt $
           D.entityVal $ fst $ head $ head eListMonths
 
       H.li ! A.class_ "tile" $ do

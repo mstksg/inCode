@@ -128,7 +128,7 @@ getTagInfoList tt sorting recent = do
         E.on (e E.^. EntryId E.==. et E.^. EntryTagEntryId)
         E.on (et E.^. EntryTagTagId E.==. t E.^. TagId)
         E.where_ $ t E.^. TagType_ E.==. E.val tt
-        E.where_ $ e E.^. EntryPostedAt E.<=. E.val now
+        E.where_ $ e E.^. EntryPostedAt E.<=. E.val (Just now)
         E.groupBy $ t E.^. TagId
         let
           countRows' = E.countRows :: E.SqlExpr (E.Value Int)

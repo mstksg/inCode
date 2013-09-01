@@ -121,6 +121,7 @@ utilRoutes = do
       "http://feeds.feedburner.com/" $
       L.fromStrict $ developerAPIsFeedburner $ siteDataDeveloperAPIs siteData
   S.get "/rss.raw" $ do
+    -- now <- liftIO getCurrentTime
     (v,d) <- routeFeed
     ran <- runReaderT v d
     S.text ran

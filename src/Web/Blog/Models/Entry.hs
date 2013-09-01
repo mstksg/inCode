@@ -28,8 +28,8 @@ ledeMax = appPrefsLedeMax $ siteDataAppPrefs siteData
 data PreEntry = PreEntry
                 { preEntryTitle :: T.Text
                 , preEntryContent :: T.Text
-                , preEntryCreatedAt :: UTCTime
-                , preEntryPostedAt :: UTCTime
+                , preEntryCreatedAt :: Maybe UTCTime
+                , preEntryPostedAt :: Maybe UTCTime
                 }
 
 insertEntry :: Entry -> D.SqlPersistM (Maybe (D.Key Entry))
@@ -101,7 +101,7 @@ genEntrySlug w t = do
 -- names
 
 postedFilter :: UTCTime -> [D.Filter Entry]
-postedFilter now = [ EntryPostedAt D.<=. now ]
+postedFilter now = [ EntryPostedAt D.<=. Just now ]
 
 postedEntries :: [D.SelectOpt Entry] -> D.SqlPersistM [D.Entity Entry]
 postedEntries = postedEntriesFilter []
@@ -181,13 +181,14 @@ getNextEntry e = do
 groupEntries :: [D.Entity Entry] -> [[[D.Entity Entry]]]
 groupEntries entries = groupedMonthsYears
   where
+    hasPostDate = filter (isJust . entryPostedAt . D.entityVal) entries
     groupedMonthsYears = map (groupBy sameMonth) groupedYears
-    groupedYears = groupBy sameYear entries
+    groupedYears = groupBy sameYear hasPostDate
     sameYear e1 e2 = yearOf e1 == yearOf e2
     sameMonth e1 e2 = yearMonthOf e1 == yearMonthOf e2
     yearOf = yearOfDay . dayOf
     yearOfDay (y,_,_) = y
     yearMonthOf = yearMonthOfDay . dayOf
     yearMonthOfDay (y,m,_) = (y,m)
-    dayOf = toGregorian . utctDay . entryPostedAt . D.entityVal
+    dayOf = toGregorian . utctDay . fromJust . entryPostedAt . D.entityVal
 
