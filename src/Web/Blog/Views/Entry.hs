@@ -15,6 +15,7 @@ import Web.Blog.Render
 import Web.Blog.Types
 import Web.Blog.Util                         (renderFriendlyTime, renderDatetimeTime)
 import Web.Blog.Views.Social
+import qualified Data.Foldable as Fo         (forM_)
 import qualified Data.Map                    as M
 import qualified Data.Text                   as T
 import qualified Text.Blaze.Html5            as H
@@ -25,9 +26,15 @@ viewEntry :: Entry -> [Tag] -> Maybe Entry -> Maybe Entry -> SiteRender H.Html
 viewEntry entry tags prevEntry nextEntry = do
   siteData' <- pageSiteData <$> ask
   npUl <- nextPrevUrl prevEntry nextEntry
-  isUnposted <- (>) (entryPostedAt entry) <$> liftIO getCurrentTime
   aboutUrl <- renderUrl "/about"
   socialButtonsHtml <- viewSocialShare
+  now <- liftIO getCurrentTime
+
+  let
+    isUnposted =
+      case entryPostedAt entry of
+        Just t -> t < now
+        Nothing -> False
 
 
   return $
@@ -58,11 +65,12 @@ viewEntry entry tags prevEntry nextEntry = do
               H.preEscapedToHtml
                 (" &diams; " :: T.Text)
 
-            H.time
-              ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt entry)
-              ! A.pubdate ""
-              ! A.class_ "pubdate"
-              $ H.toHtml $ renderFriendlyTime $ entryPostedAt entry
+            Fo.forM_ (entryPostedAt entry) $ \t ->
+              H.time
+                ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime t)
+                ! A.pubdate ""
+                ! A.class_ "pubdate"
+                $ H.toHtml $ renderFriendlyTime t
 
           H.p $ do
             "Posted in " :: H.Html

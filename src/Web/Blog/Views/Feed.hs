@@ -2,6 +2,8 @@
 
 module Web.Blog.Views.Feed (viewFeed) where
 
+import Data.Maybe                                (fromJust)
+import Data.Time                                 (UTCTime)
 import Data.Time.Format                          (formatTime)
 import System.Locale
 import Text.DublinCore.Types
@@ -20,12 +22,12 @@ import qualified Text.Blaze.Html.Renderer.String as B
 import qualified Text.XML.Light.Types            as X
 
 
-viewFeed :: [(D.Entity Entry, (T.Text,[Tag]))] -> SiteRender L.Text
-viewFeed entryInfos = return $ L.pack $ showElement $ xmlRSS $ feedRss entryInfos
+viewFeed :: [(D.Entity Entry, (T.Text,[Tag]))] -> UTCTime -> SiteRender L.Text
+viewFeed entryInfos now = return $ L.pack $ showElement $ xmlRSS $ feedRss entryInfos now
 -- viewFeed entryInfos = return $ L.pack $ showXML $ rssToXML $ feedRss entryInfos
 
-feedRss :: [(D.Entity Entry, (T.Text, [Tag]))] -> RSS
-feedRss entryInfos = (nullRSS feedTitle feedLink)
+feedRss :: [(D.Entity Entry, (T.Text, [Tag]))] -> UTCTime -> RSS
+feedRss entryInfos now = (nullRSS feedTitle feedLink)
   { rssChannel = channel
   , rssAttrs   = [dcSpec]
   }
@@ -51,12 +53,14 @@ feedRss entryInfos = (nullRSS feedTitle feedLink)
       ]
     siteDataString r = T.unpack $ r siteData
     makeUrl          = T.unpack . renderUrl'
-    formatDateRfc    = formatTime defaultTimeLocale rfc822DateFormat
-    formatDateIso d  = formatTime defaultTimeLocale (iso8601DateFormat Nothing) d
+    formatDateRfc    =
+      formatTime defaultTimeLocale rfc822DateFormat . fromJust
+    formatDateIso d  =
+      formatTime defaultTimeLocale (iso8601DateFormat Nothing) $ fromJust d
     feedTitle        = siteDataString siteDataTitle ++ " — Entries"
     feedLink         = makeUrl ""
     feedDescription  = siteDataString siteDataDescription
-    feedBuildDate    = entryPostedAt $ D.entityVal $ fst $ head entryInfos
+    feedBuildDate    = Just now
     feedAuthorEmail  = siteDataString (authorInfoEmail . siteDataAuthorInfo)
     feedAuthorName   = siteDataString (authorInfoName . siteDataAuthorInfo)
     feedAuthor       = concat [feedAuthorEmail, " (", feedAuthorName, ")"]

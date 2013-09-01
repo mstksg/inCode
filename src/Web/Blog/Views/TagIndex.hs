@@ -82,14 +82,15 @@ tagIndexLi tt (TagInfo t c r) =
             H.preEscapedToHtml ("Most recent &mdash; " :: T.Text)
             H.a ! A.href (I.textValue $ renderUrl' ru) $
               H.toHtml $ entryTitle re
-          H.span ! A.class_ "recent-time" $ do
-            " (" :: H.Html
-            H.time
-              ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt re)
-              ! A.pubdate ""
-              ! A.class_ "pubdate"
-              $ H.toHtml $ renderShortFriendlyTime $ entryPostedAt re
-            ")" :: H.Html
+          Fo.forM_ (entryPostedAt re) $ \rt ->
+            H.span ! A.class_ "recent-time" $ do
+              " (" :: H.Html
+              H.time
+                ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime rt)
+                ! A.pubdate ""
+                ! A.class_ "pubdate"
+                $ H.toHtml $ renderShortFriendlyTime rt
+              ")" :: H.Html
   where
     liClass = case tt of
       CategoryTag -> "tile"

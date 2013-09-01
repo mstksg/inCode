@@ -19,8 +19,8 @@ share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Entry
     title       T.Text
     content     T.Text
-    createdAt   UTCTime
-    postedAt    UTCTime
+    createdAt   UTCTime Maybe
+    postedAt    UTCTime Maybe
     modifiedAt  UTCTime Maybe
 
     UniqueEntryTitle title

@@ -70,18 +70,18 @@ entryList eList pageDataMap' pageNum = do
         ")" :: H.Html
 
   H.ul $
-    forM_ eList $ \eData -> do
+    forM_ eList $ \(D.Entity _ e,(u,ts)) -> do
       let
-        (D.Entity _ e,(u,ts)) = eData
         commentUrl = T.append u "#disqus_thread"
       H.li $
         H.article ! A.class_ "tile" $ do
           H.header $ do
-            H.time
-              ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt e)
-              ! A.pubdate ""
-              ! A.class_ "pubdate"
-              $ H.toHtml $ renderFriendlyTime $ entryPostedAt e
+            Fo.forM_ (entryPostedAt e) $ \t ->
+              H.time
+                ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime t)
+                ! A.pubdate ""
+                ! A.class_ "pubdate"
+                $ H.toHtml $ renderFriendlyTime t
             H.h3 $
               H.a ! A.href (I.textValue u) $
                 H.toHtml $ entryTitle e
