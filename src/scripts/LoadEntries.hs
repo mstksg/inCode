@@ -73,7 +73,7 @@ processEntryFile entryFile = do
     -- let
     --   previousTitle = M.lookup MetaKeyPreviousTitle metas
 
-    entryEntity <- do
+    entryEntity@(D.Entity eKey _) <- do
       entryMaybe <- findExistingEntry title metas
       case entryMaybe of
         Just e -> return e
@@ -91,7 +91,11 @@ processEntryFile entryFile = do
 
     void $ M.traverseWithKey (applyMetas entryEntity) metas
 
-    liftIO $ print $ D.entityVal entryEntity
+    updateEntryTitle eKey title
+
+    eVal <- D.getJust eKey
+
+    liftIO $ print eVal
 
     return ()
   where

@@ -83,7 +83,7 @@ genEntrySlug w k t = do
   case base of
     Just _ -> do
       freshSlug <- firstM isFresh $
-        map (T.append baseSlug . T.pack . show) ([-2,-3..] :: [Integer])
+        map (T.append baseSlug . T.pack . show) ([-1,-2..] :: [Integer])
       return $ fromJust freshSlug
     Nothing ->
       return baseSlug
