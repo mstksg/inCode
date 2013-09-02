@@ -1,9 +1,11 @@
 
 -- import Data.Time.Format
 -- import Debug.Trace
+-- import qualified Data.Foldable as Fo       (forM_)
 import Control.Applicative                    ((<$>), pure)
 import Control.Monad
 import Control.Monad.IO.Class
+import Data.List                              (isPrefixOf)
 import Data.Maybe                             (fromJust, listToMaybe)
 import Data.Monoid
 import Data.Time
@@ -14,7 +16,6 @@ import Web.Blog.Database
 import Web.Blog.Models
 import Web.Blog.Models.Types
 import Web.Blog.Models.Util
--- import qualified Data.Foldable as Fo          (forM_)
 import qualified Data.Map                     as M
 import qualified Data.Text                    as T
 import qualified Database.Persist.Postgresql  as D
@@ -44,13 +45,18 @@ type EntryMeta = M.Map MetaKey MetaValue
 main :: IO ()
 main = do
   runDB blogMigrate
+
   entryFiles <-
-    map (entriesDir </>) . filter (`notElem` [".",".."]) <$>
+    map (entriesDir </>) . filter (not . isPrefixOf ".") <$>
       getDirectoryContents "copy/entries"
-  runDB $ mapM_ processEntryFile entryFiles
+
+  runDB $ do
+    eKeys <- mapM processEntryFile entryFiles
+    removeOrphanEntries eKeys
+
 
 -- TODO: emit warnings, wrap in writer monad.
-processEntryFile :: FilePath -> D.SqlPersistM ()
+processEntryFile :: FilePath -> D.SqlPersistM (D.Key Entry)
 processEntryFile entryFile = do
     (P.Pandoc pandocMeta contents, _) <- liftIO $
       readMarkdown <$> readFile entryFile
@@ -88,7 +94,7 @@ processEntryFile entryFile = do
 
     liftIO $ print eVal
 
-    return ()
+    return eKey
   where
     readMarkdown = PM.readMarkdownWithWarnings (P.def P.ReaderOptions)
     writeMarkdown = P.writeMarkdown (P.def P.WriterOptions)
@@ -183,18 +189,11 @@ processMeta (keyBlocks, valBlockss) = do
           case tag of
             Just t -> return t
             Nothing -> fmap fromJust $ insertTag' $ PreTag label tt Nothing
+    renderBlocks :: [P.Block] -> String
+    renderBlocks bs = P.writeMarkdown (P.def P.WriterOptions) $ P.Pandoc emptyMeta bs
+      where
+        emptyMeta = P.Meta mempty mempty mempty
 
-renderBlocks :: [P.Block] -> String
-renderBlocks bs = P.writeMarkdown (P.def P.WriterOptions) $ P.Pandoc emptyMeta bs
-  where
-    emptyMeta = P.Meta mempty mempty mempty
-
-findM :: (Monad m) => (a -> m (Maybe b)) -> [a] -> m (Maybe b)
-findM f = foldl (go f) (return Nothing)
-  where
-    go :: (Monad m) => (a -> m (Maybe b)) -> m (Maybe b) -> a -> m (Maybe b)
-    go f' a x = do
-      acc <- a
-      case acc of
-        Just _ -> return acc
-        Nothing -> f' x
+removeOrphanEntries :: [D.Key Entry] -> D.SqlPersistM ()
+removeOrphanEntries eKeys = D.updateWhere [ EntryId D./<-. eKeys ]
+                                          [ EntryPostedAt D.=. Nothing ]
