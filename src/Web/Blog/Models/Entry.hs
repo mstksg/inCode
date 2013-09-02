@@ -77,24 +77,16 @@ entryLedePandoc entry = P.Pandoc m ledeBs
 
 genEntrySlug :: Int -> D.Key Entry -> T.Text -> D.SqlPersistM T.Text
 genEntrySlug w k t = do
-  let
-    baseSlug = genSlug w t
-  base <- D.getBy $ UniqueSlug baseSlug
-  case base of
-    Just _ -> do
-      freshSlug <- firstM isFresh $
-        map (T.append baseSlug . T.pack . show) ([-1,-2..] :: [Integer])
-      return $ fromJust freshSlug
-    Nothing ->
-      return baseSlug
+  freshSlug <- firstM isFresh $
+    map (flip (genSlugSuffix w) t) [0..]
+  return $ fromJust freshSlug
   where
     isFresh :: T.Text -> D.SqlPersistM Bool
     isFresh s = do
       found <- D.selectList [ SlugSlug D.==. s, SlugEntryId D.!=. k ] []
       return $ null found
 
--- TODO: separate changeSlug function to be able to re-double back on old
--- names
+
 
 postedFilter :: UTCTime -> [D.Filter Entry]
 postedFilter now = [ EntryPostedAt D.<=. Just now ]

@@ -64,15 +64,6 @@ processEntryFile entryFile = do
 
     metas <- fmap M.fromList $ mapM processMeta $ defListList metaBlock
 
-    -- liftIO $ print title
-    -- liftIO $ print metas
-    -- liftIO $ putStrLn entryMarkdown
-    --
-    -- now <- liftIO getCurrentTime
-
-    -- let
-    --   previousTitle = M.lookup MetaKeyPreviousTitle metas
-
     entryEntity@(D.Entity eKey _) <- do
       entryMaybe <- findExistingEntry title metas
       case entryMaybe of
