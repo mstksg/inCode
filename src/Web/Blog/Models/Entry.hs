@@ -116,8 +116,14 @@ wrapEntryData e = do
   return (e,d)
 
 getCurrentSlug :: D.Entity Entry -> D.SqlPersistM (Maybe (D.Entity Slug))
-getCurrentSlug entry = D.selectFirst [ SlugEntryId   D.==. eKey
-                                     , SlugIsCurrent D.==. True ] []
+getCurrentSlug entry = do
+    current <- D.selectFirst [ SlugEntryId   D.==. eKey
+                             , SlugIsCurrent D.==. True ]
+                             [ D.Desc SlugId ]
+    case current of
+      Just _ -> return current
+      Nothing -> D.selectFirst [ SlugEntryId D.==. eKey ]
+                               [ D.Desc SlugId ]
   where
     D.Entity eKey _ = entry
 
