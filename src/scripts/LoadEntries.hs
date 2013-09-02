@@ -86,7 +86,7 @@ processEntryFile entryFile = do
                          Nothing
                          Nothing
                          Nothing
-          k <- D.insert newEntry
+          k <- fromJust <$> insertEntry newEntry
           return $ D.Entity k newEntry
 
     void $ M.traverseWithKey (applyMetas entryEntity) metas
@@ -136,10 +136,11 @@ processEntryFile entryFile = do
             , D.getBy $ UniqueEntryTitle title
             , progressReport "Looking up entry by identifier..."
             , case M.lookup MetaKeyIdentifier metas of
-                Just (MetaValueText i) -> listToMaybe <$>
-                  D.selectList
-                    [ EntryIdentifier D.==. Just i ]
-                    [ D.Asc EntryCreatedAt ]
+                Just (MetaValueText i) ->
+                  listToMaybe <$>
+                    D.selectList
+                      [ EntryIdentifier D.==. Just i ]
+                      [ D.Asc EntryCreatedAt ]
                 _ -> return Nothing
             , progressReport "Looking up entry by previous titles..."
             ]
