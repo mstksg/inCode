@@ -38,3 +38,8 @@ genSlug w = squash . T.dropAround isDash . T.map replaceSymbols . T.toCaseFold
         else
           '-'
     squash = T.intercalate "-" . take w . filter (not . T.null) . T.split isDash
+
+genSlugSuffix :: Int -> Int -> T.Text -> T.Text
+genSlugSuffix w s = (`T.append` (slugSuffix !! s)) . genSlug w
+  where
+    slugSuffix = "" : map (T.pack . show) ([-1,-2..] :: [Int])

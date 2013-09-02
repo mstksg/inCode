@@ -101,3 +101,26 @@ executable blog-scripts-seed
                      , transformers
                      , wai
   extensions:          OverloadedStrings
+
+executable blog-scripts-load-entries
+  main-is:             scripts/LoadEntries.hs
+  hs-source-dirs:      src
+  build-depends:       base
+                     , blaze-html
+                     , blaze-markup
+                     , containers
+                     , directory
+                     , esqueleto
+                     , filepath
+                     , monad-loops
+                     , mtl
+                     , old-locale
+                     , pandoc
+                     , persistent-postgresql
+                     , persistent-template
+                     , scotty
+                     , text
+                     , time
+                     , transformers
+                     , wai
+  extensions:          OverloadedStrings

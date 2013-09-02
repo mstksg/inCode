@@ -6,12 +6,14 @@
 {-# LANGUAGE TypeSynonymInstances         #-} 
 {-# LANGUAGE GeneralizedNewtypeDeriving   #-} 
 {-# LANGUAGE EmptyDataDecls               #-} 
+{-# LANGUAGE FlexibleInstances            #-}
 
 module Web.Blog.Models  where
 
 import Data.Time
 import Database.Persist.TH
 import Web.Blog.Models.Types
+-- import Data.Maybe (maybe)
 import qualified Data.Text   as T
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
@@ -22,9 +24,9 @@ Entry
     createdAt   UTCTime Maybe
     postedAt    UTCTime Maybe
     modifiedAt  UTCTime Maybe
+    identifier  T.Text Maybe
 
     UniqueEntryTitle title
-    deriving    Show
 
 Tag
     label           T.Text
@@ -34,7 +36,7 @@ Tag
 
     UniqueLabelType label type_
     UniqueSlugType  slug  type_
-    deriving        Eq Show
+    deriving        Eq Show Read
 
 EntryTag
     entryId          EntryId
@@ -51,5 +53,22 @@ Slug
     UniqueSlug slug
     deriving Show
 
+RemovedEntry
+    title       T.Text
+    content     T.Text
+    createdAt   UTCTime Maybe
+    postedAt    UTCTime Maybe
+    modifiedAt  UTCTime Maybe
+    removedAt   UTCTime
+    identifier  T.Text Maybe
 |]
 
+instance Show Entry where
+  show (Entry t _ cA pA _ i) = concat
+    [ show t
+    , " ("
+    , maybe "" ((++ ", ") . show) i
+    , maybe "" ((++ ", ") . show) cA
+    , maybe "no post date" (("posted " ++) . show) pA
+    , ")"
+    ]

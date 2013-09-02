@@ -40,12 +40,29 @@ routeEntrySlug = do
   case eKey of
     -- Yes there was a slug and entry found
     Right eKey' -> do
+
       e <- liftIO $ runDB $ D.get eKey'
 
       case e of
         -- Slug does indeed have a real entry
-        Just e' ->
-          routeEntry $ Right $ D.Entity eKey' e'
+        Just e' -> do
+          currentSlug <- liftIO $ runDB $ getCurrentSlug $ D.Entity eKey' e'
+
+          case currentSlug of
+            -- There is a current slug
+            Just (D.Entity _ slug'') ->
+              if slugSlug slug'' == T.pack eIdent
+                then
+                  -- It's the right one.
+                  routeEntry $ Right $ D.Entity eKey' e'
+                else
+                  -- There's a better one
+                  return $ Left $
+                    L.fromStrict $ T.append "/entry/" (slugSlug slug'')
+
+            -- No current slug, just give up and show this one.
+            Nothing ->
+              routeEntry $ Right $ D.Entity eKey' e'
 
         -- Slug's entry does not exist.  How odd.
         Nothing ->
@@ -68,11 +85,10 @@ routeEntryId = do
     case e' of
       -- ID Found
       Just e'' -> do
-        s' <- D.selectFirst [ SlugEntryId D.==. eKey ] []
+        s' <- getCurrentSlug $ D.Entity eKey e''
 
         case s' of
-          -- Found "a" slug.  It might not be "the" current slug,
-          -- but for now we'll let redirection take care of it.
+          -- Found current slug
           Just (D.Entity _ s'') ->
             return $ Left $ L.fromStrict $ T.append "/entry/" (slugSlug s'')
 

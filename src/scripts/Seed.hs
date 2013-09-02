@@ -92,7 +92,7 @@ main = runDB $ do
 
     liftIO $ do
       putStrLn "Created new entry:"
-      print $ preEntryTitle entry
+      print $ entryTitle entry
       print tags''
       hFlush stdout
 
@@ -101,7 +101,7 @@ main = runDB $ do
 
   return ()
 
-genEntry :: IO (PreEntry,[Double],Int,Int)
+genEntry :: IO (Entry,[Double],Int,Int)
 genEntry = do
   now <- getCurrentTime
 
@@ -131,11 +131,13 @@ genEntry = do
     body  = unlines $ drop 3 $ lines fullEntry
 
   let
-    e = PreEntry
+    e = Entry
       (T.pack title)
       (T.pack body)
       (Just createTime)
       (Just postTime)
+      Nothing
+      Nothing
 
   return (e, tags, category, series)
 
