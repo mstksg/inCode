@@ -53,6 +53,14 @@ Slug
     UniqueSlug slug
     deriving Show
 
+RemovedEntry
+    title       T.Text
+    content     T.Text
+    createdAt   UTCTime Maybe
+    postedAt    UTCTime Maybe
+    modifiedAt  UTCTime Maybe
+    removedAt   UTCTime
+    identifier  T.Text Maybe
 |]
 
 instance Show Entry where

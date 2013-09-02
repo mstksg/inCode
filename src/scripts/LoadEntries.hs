@@ -195,5 +195,6 @@ processMeta (keyBlocks, valBlockss) = do
         emptyMeta = P.Meta mempty mempty mempty
 
 removeOrphanEntries :: [D.Key Entry] -> D.SqlPersistM ()
-removeOrphanEntries eKeys = D.updateWhere [ EntryId D./<-. eKeys ]
-                                          [ EntryPostedAt D.=. Nothing ]
+removeOrphanEntries eKeys = do
+  orphans <- D.selectList [ EntryId D./<-. eKeys ] []
+  mapM_ removeEntry orphans

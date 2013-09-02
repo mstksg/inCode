@@ -186,3 +186,22 @@ groupEntries entries = groupedMonthsYears
     yearMonthOfDay (y,m,_) = (y,m)
     dayOf = toGregorian . utctDay . fromJust . entryPostedAt . D.entityVal
 
+-- Maybe have issue where a slug will one day point to a completely
+-- different entry.  Oh well.
+removeEntry :: D.Entity Entry -> D.SqlPersistM (D.Key RemovedEntry)
+removeEntry (D.Entity eKey e) = do
+  now <- liftIO getCurrentTime
+  let
+    removed = RemovedEntry
+                (entryTitle e)
+                (entryContent e)
+                (entryCreatedAt e)
+                (entryPostedAt e)
+                (entryModifiedAt e)
+                now
+                (entryIdentifier e)
+  D.deleteWhere [ SlugEntryId D.==. eKey ]
+  D.deleteWhere [ EntryTagEntryId D.==. eKey ]
+  D.delete eKey
+  D.insert removed
+
