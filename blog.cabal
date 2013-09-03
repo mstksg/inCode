@@ -55,7 +55,6 @@ executable blog-scripts-migrate
                      , blaze-markup
                      , containers
                      , directory
-                     , esqueleto
                      , esqueleto >=1.3.2
                      , feed
                      , monad-loops
@@ -82,7 +81,6 @@ executable blog-scripts-seed
                      , blaze-markup
                      , containers
                      , directory
-                     , esqueleto
                      , esqueleto >=1.3.2
                      , feed
                      , monad-loops

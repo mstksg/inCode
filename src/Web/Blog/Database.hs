@@ -11,8 +11,8 @@ import Database.Persist.Postgresql
 import Web.Blog.Models
 import Web.Blog.SiteData
 import Web.Blog.Types
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as TE
+import qualified Data.Text                       as T
+import qualified Data.Text.Encoding              as TE
 
 connStr :: ConnectionString
 connStr = TE.encodeUtf8 $ T.intercalate " " $ map dbConfigString
