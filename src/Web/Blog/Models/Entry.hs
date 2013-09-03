@@ -14,6 +14,7 @@ import Web.Blog.Models
 import Web.Blog.Models.Types
 import Web.Blog.SiteData
 import Web.Blog.Types
+import Web.Blog.Models.Slug
 import Web.Blog.Util
 import qualified Data.Aeson                  as A
 import qualified Data.Aeson.Types            as AT
@@ -191,8 +192,11 @@ groupEntries entries = groupedMonthsYears
 -- Maybe have issue where a slug will one day point to a completely
 -- different entry.  Oh well.
 removeEntry :: D.Entity Entry -> D.SqlPersistM (D.Key RemovedEntry)
-removeEntry (D.Entity eKey e) = do
+removeEntry eEnt@(D.Entity eKey e) = do
   now <- liftIO getCurrentTime
+  tagList <- T.pack . unlines . map show <$> getTags eEnt []
+  slugList <- T.unlines . map (slugPrettyLabel . D.entityVal) <$>
+    D.selectList [ SlugEntryId D.==. eKey ] [ D.Asc SlugId ]
   let
     removed = RemovedEntry
                 (entryTitle e)
@@ -202,6 +206,8 @@ removeEntry (D.Entity eKey e) = do
                 (entryModifiedAt e)
                 now
                 (entryIdentifier e)
+                tagList
+                slugList
   D.deleteWhere [ SlugEntryId D.==. eKey ]
   D.deleteWhere [ EntryTagEntryId D.==. eKey ]
   D.delete eKey

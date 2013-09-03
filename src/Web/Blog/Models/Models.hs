@@ -34,7 +34,7 @@ Tag json
 
     UniqueLabelType label type_
     UniqueSlugType  slug  type_
-    deriving        Eq Show Read
+    deriving        Eq Read
 
 EntryTag json
     entryId          EntryId
@@ -59,4 +59,6 @@ RemovedEntry json
     modifiedAt  UTCTime Maybe
     removedAt   UTCTime
     identifier  T.Text Maybe
+    tagList     T.Text
+    slugList    T.Text
 |]
