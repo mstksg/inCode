@@ -16,7 +16,7 @@ import qualified Data.Text   as T
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 
-Entry
+Entry json
     title       T.Text
     content     T.Text
     createdAt   UTCTime Maybe
@@ -26,7 +26,7 @@ Entry
 
     UniqueEntryTitle title
 
-Tag
+Tag json
     label           T.Text
     type_           TagType
     description     T.Text Maybe
@@ -36,14 +36,14 @@ Tag
     UniqueSlugType  slug  type_
     deriving        Eq Show Read
 
-EntryTag
+EntryTag json
     entryId          EntryId
     tagId            TagId
 
     UniqueEntryTag   entryId   tagId
     deriving         Show
 
-Slug
+Slug json
     entryId    EntryId Eq
     slug       T.Text
     isCurrent  Bool
@@ -51,7 +51,7 @@ Slug
     UniqueSlug slug
     deriving Show
 
-RemovedEntry
+RemovedEntry json
     title       T.Text
     content     T.Text
     createdAt   UTCTime Maybe

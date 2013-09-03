@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleInstances    #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
+
 module Web.Blog.Models.Instances where
 
 import Web.Blog.Models.Models

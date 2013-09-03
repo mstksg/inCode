@@ -31,6 +31,7 @@ executable blog
                      , network
                      , old-locale
                      , pandoc
+                     , aeson
                      , persistent
                      , persistent-postgresql
                      , persistent-template
@@ -61,6 +62,7 @@ executable blog-scripts-migrate
                      , mtl
                      , old-locale
                      , persistent
+                     , aeson
                      , persistent-postgresql
                      , persistent-template
                      , process
@@ -91,6 +93,7 @@ executable blog-scripts-seed
                      , persistent-postgresql
                      , persistent-template
                      , process
+                     , aeson
                      , random
                      , scotty
                      , split
@@ -115,6 +118,7 @@ executable blog-scripts-load-entries
                      , old-locale
                      , pandoc
                      , persistent-postgresql
+                     , aeson
                      , persistent-template
                      , scotty
                      , text
