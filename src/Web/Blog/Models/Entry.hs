@@ -2,9 +2,9 @@
 
 module Web.Blog.Models.Entry  where
 
+-- import Control.Monad
 -- import qualified Database.Esqueleto       as E
 import Control.Applicative                   ((<$>))
--- import Control.Monad
 import Control.Monad.IO.Class                (liftIO)
 import Control.Monad.Loops                   (firstM)
 import Data.List                             (groupBy)
@@ -15,6 +15,8 @@ import Web.Blog.Models.Types
 import Web.Blog.SiteData
 import Web.Blog.Types
 import Web.Blog.Util
+import qualified Data.Aeson                  as A
+import qualified Data.Aeson.Types            as AT
 import qualified Data.Foldable as Fo         (forM_)
 import qualified Data.Text                   as T
 import qualified Database.Persist.Postgresql as D
@@ -205,3 +207,18 @@ removeEntry (D.Entity eKey e) = do
   D.delete eKey
   D.insert removed
 
+genJSON :: D.Entity Entry -> D.SqlPersistM AT.Value
+genJSON eEnt@(D.Entity eKey e) = do
+
+  tagsJson <- A.encode <$> getTags eEnt []
+  slusJson <- A.encode <$>
+    D.selectList [ SlugEntryId D.==. eKey ] [ D.Asc SlugEntryId ]
+
+  let
+    eJson = A.encode e
+
+  return $ AT.object
+    [ "entryVal" AT..= eJson
+    , "entryTags" AT..= tagsJson
+    , "entrySlugs" AT..= slusJson
+    ]
