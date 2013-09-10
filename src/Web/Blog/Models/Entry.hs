@@ -11,15 +11,16 @@ import Data.List                             (groupBy)
 import Data.Maybe                            (fromJust, isJust)
 import Data.Time
 import Web.Blog.Models
+import Web.Blog.Models.Slug
 import Web.Blog.Models.Types
 import Web.Blog.SiteData
 import Web.Blog.Types
-import Web.Blog.Models.Slug
 import Web.Blog.Util
 import qualified Data.Aeson                  as A
 import qualified Data.Aeson.Types            as AT
 import qualified Data.Foldable as Fo         (forM_)
 import qualified Data.Text                   as T
+import qualified Data.Vector                 as V
 import qualified Database.Persist.Postgresql as D
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Pandoc                 as P
@@ -216,15 +217,22 @@ removeEntry eEnt@(D.Entity eKey e) = do
 genJSON :: D.Entity Entry -> D.SqlPersistM AT.Value
 genJSON eEnt@(D.Entity eKey e) = do
 
-  tagsJson <- A.encode <$> getTags eEnt []
-  slusJson <- A.encode <$>
+  tagsJson <- A.toJSON <$> getTags eEnt []
+  slusJson <- A.toJSON <$>
     D.selectList [ SlugEntryId D.==. eKey ] [ D.Asc SlugEntryId ]
 
   let
-    eJson = A.encode e
+    eJson = A.toJSON e
 
   return $ AT.object
     [ "entryVal" AT..= eJson
     , "entryTags" AT..= tagsJson
     , "entrySlugs" AT..= slusJson
     ]
+
+entryJSONs :: D.SqlPersistM AT.Value
+entryJSONs = do
+  es <- D.selectList [] [ D.Asc EntryId ]
+  vs <- mapM genJSON es
+  return $ AT.Array $ V.fromList vs
+
