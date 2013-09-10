@@ -41,7 +41,7 @@ siteData =
                  5
                  2
                  15
-    databaseConfig = DatabaseConfig
+    databaseConfig = Just $ DatabaseConfig
                        "localhost"
                        "test_blog"
                        "blog-test"

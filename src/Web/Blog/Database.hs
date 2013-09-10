@@ -11,28 +11,39 @@ import Database.Persist.Postgresql
 import Web.Blog.Models
 import Web.Blog.SiteData
 import Web.Blog.Types
+import Web.Heroku (dbConnParams)
 import qualified Data.Text                       as T
 import qualified Data.Text.Encoding              as TE
 
-connStr :: ConnectionString
-connStr = TE.encodeUtf8 $ T.intercalate " " $ map dbConfigString
-    [ ("host",databaseConfigHost)
-    , ("dbname",databaseConfigName)
-    , ("user",databaseConfigUser)
-    , ("password",databaseConfigPassword)
-    , ("port",T.pack . show . databaseConfigPort)
-    ]
+connStr :: IO ConnectionString
+connStr = do
+  dbConfigs <- dbConfigsGen
+
+  return $
+    TE.encodeUtf8 $ T.intercalate " " $ map dbConfigString dbConfigs
   where
     dbConfigString (key,valField) = T.concat
       [ key
       , "="
-      , valField $ siteDataDatabaseConfig siteData
+      , valField
       ]
+    dbConfigsGen =
+      case siteDataDatabaseConfig siteData of
+        Just dbc -> return
+          [ ("host",databaseConfigHost dbc)
+          , ("dbname",databaseConfigName dbc)
+          , ("user",databaseConfigUser dbc)
+          , ("password",databaseConfigPassword dbc)
+          , ("port",T.pack $ show $ databaseConfigPort dbc)
+          ]
+        Nothing -> dbConnParams
 
 
 runDB :: SqlPersistM a -> IO a
-runDB commands = withPostgresqlPool connStr 10 $ \pool ->
-  runSqlPersistMPool commands pool
+runDB commands = do
+  connstr <- connStr
+  withPostgresqlPool connstr 10 $ \pool ->
+    runSqlPersistMPool commands pool
 
 
 blogMigrate :: SqlPersistM ()

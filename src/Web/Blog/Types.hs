@@ -27,7 +27,7 @@ data SiteData = SiteData
                 , siteDataSiteHost        :: T.Text
                 , siteDataDeveloperAPIs   :: DeveloperAPIs
                 , siteDataAppPrefs        :: AppPrefs
-                , siteDataDatabaseConfig  :: DatabaseConfig
+                , siteDataDatabaseConfig  :: Maybe DatabaseConfig
                 , siteDataSiteEnvironment :: SiteEnvironment
                 }
 
