@@ -16,6 +16,7 @@ import Web.Blog.Util                         (renderFriendlyTime, renderDatetime
 import Web.Blog.Views.Copy
 import Web.Blog.Views.Social
 import qualified Data.Foldable               as Fo
+import qualified Data.List                   as L
 import qualified Data.Map                    as M
 import qualified Data.Text                   as T
 import qualified Database.Persist.Postgresql as D
@@ -101,19 +102,24 @@ entryList eList pageDataMap' pageNum = do
               forM_ ts $ \t ->
                 tagLi t
 
-  H.footer ! A.class_ "tile home-footer" $
-    H.nav $ do
-      H.ul $ do
-        Fo.forM_ (M.lookup "nextPage" pageDataMap') $ \nlink ->
-          H.li ! A.class_ "home-next" $
-            H.a ! A.href (I.textValue nlink) $
-              H.preEscapedToHtml ("&larr; Older" :: T.Text)
+  let
+    hasNextPrev = not $
+      null $ L.intersect ["nextPage","prevPage"] $ M.keys pageDataMap'
 
-        Fo.forM_ (M.lookup "prevPage" pageDataMap') $ \plink ->
-          H.li ! A.class_ "home-prev" $
-            H.a ! A.href (I.textValue plink) $
-              H.preEscapedToHtml ("Newer &rarr;" :: T.Text)
-      H.div ! A.class_ "clear" $ ""
+  when hasNextPrev $
+    H.footer ! A.class_ "tile home-footer" $
+      H.nav $ do
+        H.ul $ do
+          Fo.forM_ (M.lookup "nextPage" pageDataMap') $ \nlink ->
+            H.li ! A.class_ "home-next" $
+              H.a ! A.href (I.textValue nlink) $
+                H.preEscapedToHtml ("&larr; Older" :: T.Text)
+
+          Fo.forM_ (M.lookup "prevPage" pageDataMap') $ \plink ->
+            H.li ! A.class_ "home-prev" $
+              H.a ! A.href (I.textValue plink) $
+                H.preEscapedToHtml ("Newer &rarr;" :: T.Text)
+        H.div ! A.class_ "clear" $ ""
 
 viewLinks :: SiteRender H.Html
 viewLinks = renderRawCopy "copy/static/home-links.md"
