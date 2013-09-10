@@ -31,7 +31,14 @@ viewTagIndex tagInfos tt = do
     case tt of
       GeneralTag  -> ViewArchiveIndexTag
       CategoryTag -> ViewArchiveIndexCategory
-      SeriesTag   -> ViewArchiveIndexSeries 
+      SeriesTag   -> ViewArchiveIndexSeries
+
+  noTagsCopy <-
+    if null tagInfos
+      then
+        renderRawCopy "copy/static/empty-taglist.md"
+      else
+        return mempty
 
   return $ do
     H.div ! A.class_ "archive-sidebar unit one-of-four" $
@@ -48,7 +55,11 @@ viewTagIndex tagInfos tt = do
             SeriesTag   -> "Series"
 
       H.ul ! A.class_ ulClass $
-        mapM_ (tagIndexLi tt) tagInfos
+        if null tagInfos
+          then
+            noTagsCopy
+          else
+            mapM_ (tagIndexLi tt) tagInfos
 
 
 tagIndexLi :: TagType -> TagInfo -> H.Html
