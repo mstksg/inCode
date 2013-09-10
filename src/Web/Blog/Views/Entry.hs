@@ -31,9 +31,9 @@ viewEntry entry tags prevEntry nextEntry = do
   now <- liftIO getCurrentTime
 
   let
-    isUnposted =
+    isPosted =
       case entryPostedAt entry of
-        Just t -> t < now
+        Just t -> t <= now
         Nothing -> False
 
 
@@ -47,7 +47,7 @@ viewEntry entry tags prevEntry nextEntry = do
 
           -- npUl
 
-          when isUnposted $
+          unless isPosted $
             H.div ! A.class_ "unposted-banner" $
               "Unposted entry"
 
