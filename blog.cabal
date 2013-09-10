@@ -32,6 +32,7 @@ executable blog
                      , network
                      , old-locale
                      , pandoc
+                     , utf8-string
                      , aeson
                      , persistent
                      , persistent-postgresql
@@ -39,6 +40,7 @@ executable blog
                      , process
                      , scotty
                      , text
+                     , bytestring
                      , time
                      , transformers
                      , wai
@@ -59,9 +61,11 @@ executable blog-scripts-migrate
                      , directory
                      , esqueleto >=1.3.2
                      , feed
+                     , bytestring
                      , monad-loops
                      , vector
                      , mtl
+                     , utf8-string
                      , old-locale
                      , persistent
                      , aeson
@@ -88,7 +92,9 @@ executable blog-scripts-seed
                      , esqueleto >=1.3.2
                      , feed
                      , monad-loops
+                     , utf8-string
                      , mtl
+                     , bytestring
                      , old-locale
                      , pandoc
                      , persistent
@@ -122,6 +128,7 @@ executable blog-scripts-load-entries
                      , pandoc
                      , persistent-postgresql
                      , vector
+                     , utf8-string
                      , aeson
                      , persistent-template
                      , scotty

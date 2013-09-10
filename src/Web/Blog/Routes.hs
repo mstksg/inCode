@@ -2,21 +2,23 @@
 
 module Web.Blog.Routes (route) where
 
-import Control.Monad.Reader
--- import Data.List                  (isSuffixOf)
-import Network.HTTP.Types.Status
--- import System.Directory           (doesFileExist)
+-- import Control.Applicative     ((<$>))
+-- import Data.List               (isSuffixOf)
+-- import System.Directory        (doesFileExist)
 -- import System.FilePath
-import Web.Blog.SiteData
+import Control.Monad.Reader
+import Development.Blog.Util      (backupEntries)
+import Network.HTTP.Types.Status
 import Web.Blog.Models.Types
 import Web.Blog.Render
 import Web.Blog.Routes.About
 import Web.Blog.Routes.Archive
 import Web.Blog.Routes.Entry
-import Web.Blog.Routes.Home
 import Web.Blog.Routes.Feed
+import Web.Blog.Routes.Home
 import Web.Blog.Routes.NotFound
 import Web.Blog.Routes.TagIndex
+import Web.Blog.SiteData
 import Web.Blog.Types
 import Web.Blog.Views.Layout
 import qualified Data.Text        as T
@@ -126,6 +128,10 @@ utilRoutes = do
     ran <- runReaderT v d
     S.text ran
     S.header "Content-Type" "application/rss+xml"
+
+  S.get "/entry-backups" $ do
+    b <- liftIO backupEntries
+    S.text $ L.fromStrict b
 
 
 
