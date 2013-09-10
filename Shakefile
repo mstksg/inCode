@@ -47,6 +47,9 @@ main = shakeArgs opts $ do
   "watch-copy" ~>
     cmd "scripts/watch_copy.sh"
 
+  "watch-scss" ~>
+    cmd "compass watch"
+
 
   "cabal-dev/bin/blog" *> \_ -> do
     fs <- srcFiles

@@ -51,11 +51,16 @@
 
   code {
     background: #eee;
+    padding: 0.1em 0.4em;
+    border: 1px solid #ccc;
+    border-radius: 0.2em;
   }
 
   pre {
     > code {
       background: none;
+      border: none;
+      padding: 0;
     }
     background: #f8f8f8;
     border: 1px dashed #ddd;
