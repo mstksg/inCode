@@ -33,7 +33,7 @@ executable blog
                      , old-locale
                      , pandoc
                      , utf8-string
-                     , aeson
+                     , aeson ==0.6.2.*
                      , persistent
                      , heroku
                      , persistent-postgresql
@@ -70,7 +70,7 @@ executable blog-scripts-migrate
                      , utf8-string
                      , old-locale
                      , persistent
-                     , aeson
+                     , aeson >=0.6.2
                      , persistent-postgresql
                      , persistent-template
                      , process
@@ -104,7 +104,7 @@ executable blog-scripts-seed
                      , persistent-template
                      , heroku
                      , process
-                     , aeson
+                     , aeson >=0.6.2
                      , random
                      , vector
                      , scotty
@@ -132,7 +132,7 @@ executable blog-scripts-load-entries
                      , persistent-postgresql
                      , vector
                      , utf8-string
-                     , aeson
+                     , aeson >=0.6.2
                      , persistent-template
                      , scotty
                      , text
