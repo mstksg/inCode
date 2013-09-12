@@ -39,7 +39,7 @@ executable blog
                      -- , persistent-postgresql
                      -- , persistent-template
                      -- , process
-                     -- , scotty
+                     , scotty ==0.4.6
                      -- , text
                      -- , bytestring
                      -- , time
