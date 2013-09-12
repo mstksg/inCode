@@ -1,2 +1,2 @@
-https://github.com/heroku/heroku-buildpack-ruby.git
-https://github.com/jogrms/heroku-buildpack-haskell
+https://github.com/heroku/heroku-buildpack-ruby
+https://github.com/puffnfresh/heroku-buildpack-haskell
