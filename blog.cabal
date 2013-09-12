@@ -18,37 +18,37 @@ executable blog
   main-is:             Main.hs
   hs-source-dirs:      src
   build-depends:       base >= 3 && < 5
-                     -- , blaze-html
-                     -- , blaze-markup
-                     -- , containers ==0.5.3.*
-                     -- , vector
-                     -- , directory
-                     -- , esqueleto ==1.3.2.*
-                     -- , feed
-                     -- , filepath
-                     -- , http-types
-                     -- , monad-loops
-                     -- , mtl
-                     -- , network
-                     -- , old-locale
-                     -- , pandoc
-                     -- , utf8-string
-                     -- , aeson ==0.6.2.*
-                     -- , persistent
-                     -- , heroku
-                     -- , persistent-postgresql
-                     -- , persistent-template
-                     -- , process
+                     , blaze-html ==0.6.1.1
+                     , blaze-markup ==0.5.1.5
+                     , containers ==0.5.3.1
+                     , vector ==0.10.0.1
+                     , directory ==0.1.2.0.1
+                     , esqueleto ==1.3.2
+                     , feed ==0.3.9.1
+                     , filepath ==1.3.0.1
+                     , http-types ==0.8.1
+                     , monad-loops ==0.4.2
+                     , mtl ==2.1.2
+                     , network ==2.4.1.2
+                     , old-locale ==1.0.0.5
+                     , pandoc ==1.11.1
+                     , utf8-string ==0.3.7
+                     , aeson ==0.6.2.0
+                     , persistent ==1.2.3.0
+                     , heroku ==0.1
+                     , persistent-postgresql ==1.2.1
+                     , persistent-template ==1.2.0.2
+                     , process ==1.1.0.2
                      , scotty ==0.4.6
-                     -- , text
-                     -- , bytestring
-                     -- , time
-                     -- , transformers
-                     -- , wai
-                     -- , wai-extra
-                     -- , wai-middleware-headers
-                     -- , wai-middleware-static
-                     -- , xml
+                     , text ==0.11.3.1
+                     , bytestring ==0.10.0.2
+                     , time ==1.4.0.1
+                     , transformers ==0.3.0.0
+                     , wai ==1.4.0.2
+                     , wai-extra ==1.3.4.5
+                     , wai-middleware-headers ==0.1
+                     , wai-middleware-static ==0.3.2
+                     , xml ==1.3.13
   -- ghc-options:         -ddump-types
   extensions:          OverloadedStrings
 
