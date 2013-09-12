@@ -17,7 +17,7 @@ cabal-version:       >=1.8
 executable blog
   main-is:             Main.hs
   hs-source-dirs:      src
-  build-depends:       base
+  build-depends:       base ==4.6.*
                      , blaze-html
                      , blaze-markup
                      , containers ==0.5.0.*
@@ -55,7 +55,7 @@ executable blog
 executable blog-scripts-migrate
   main-is:             scripts/Migrate.hs
   hs-source-dirs:      src
-  build-depends:       base
+  build-depends:       base ==4.6.*
                      , blaze-html
                      , blaze-markup
                      , containers ==0.5.0.*
@@ -84,7 +84,7 @@ executable blog-scripts-migrate
 executable blog-scripts-seed
   main-is:             scripts/Seed.hs
   hs-source-dirs:      src
-  build-depends:       base
+  build-depends:       base ==4.6.*
                      , HTTP
                      , MonadRandom
                      , blaze-html
@@ -118,7 +118,7 @@ executable blog-scripts-seed
 executable blog-scripts-load-entries
   main-is:             scripts/LoadEntries.hs
   hs-source-dirs:      src
-  build-depends:       base
+  build-depends:       base ==4.6.*
                      , blaze-html
                      , blaze-markup
                      , containers ==0.5.0.*
