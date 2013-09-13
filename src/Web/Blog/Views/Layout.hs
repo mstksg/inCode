@@ -7,7 +7,7 @@ import Control.Monad.Reader
 import Data.Monoid
 import Text.Blaze.Html5                      ((!))
 import Web.Blog.Render
-import Web.Blog.SiteData
+import Config.SiteData
 import Web.Blog.Types
 import Web.Blog.Views.Social
 import qualified Data.Text                   as T

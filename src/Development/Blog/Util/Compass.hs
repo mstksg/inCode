@@ -3,7 +3,7 @@ module Development.Blog.Util.Compass (compileCompass) where
 
 import System.Cmd
 import Control.Monad
-import Web.Blog.SiteData
+import Config.SiteData
 import Web.Blog.Types
 
 compileCompass :: IO ()

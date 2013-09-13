@@ -8,7 +8,7 @@ import Web.Blog.Database
 import Web.Blog.Models
 import Web.Blog.Models.Util
 import Web.Blog.Render
-import Web.Blog.SiteData
+import Config.SiteData
 import Web.Blog.Types
 import Web.Blog.Views.Home
 import qualified Data.Map                    as M

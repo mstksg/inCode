@@ -18,7 +18,7 @@ import Control.Applicative                          ((<$>))
 import Control.Monad.Reader
 import Network.Wai
 import System.Directory                             (doesFileExist)
-import Web.Blog.SiteData
+import Config.SiteData
 import Web.Blog.Types
 import qualified Data.Map                           as M
 import qualified Data.Text                          as T

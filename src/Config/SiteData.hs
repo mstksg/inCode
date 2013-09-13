@@ -1,9 +1,9 @@
-module Web.Blog.SiteData (
+module Config.SiteData (
     siteData
   ) where
 
 import Web.Blog.Types
-import qualified Data.Text as T
+import qualified Data.Text as T (concat)
 
 siteData :: SiteData
 siteData =
@@ -33,7 +33,7 @@ siteData =
     hostConfig = HostConfig
                    "blog-dev.jle0.com"
                    (Just 4288)
-    
+
     developerAPIs = DeveloperAPIs
                       ("UA-443711-7", "jle0.com")
                       "justinleblogdevelopment"

@@ -18,7 +18,7 @@ import Web.Blog.Routes.Feed
 import Web.Blog.Routes.Home
 import Web.Blog.Routes.NotFound
 import Web.Blog.Routes.TagIndex
-import Web.Blog.SiteData
+import Config.SiteData
 import Web.Blog.Types
 import Web.Blog.Views.Layout
 import qualified Data.Text        as T

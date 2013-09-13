@@ -10,7 +10,7 @@ import Network.Wai.Middleware.RequestLogger
 import Network.Wai.Middleware.Static
 import System.Environment                   (getEnv)
 import Web.Blog.Routes
-import Web.Blog.SiteData
+import Config.SiteData
 import Web.Blog.Types
 import Web.Scotty
 

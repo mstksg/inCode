@@ -13,7 +13,7 @@ import Data.Time
 import Web.Blog.Models
 import Web.Blog.Models.Slug
 import Web.Blog.Models.Types
-import Web.Blog.SiteData
+import Config.SiteData
 import Web.Blog.Types
 import Web.Blog.Util
 import qualified Data.Aeson                  as A

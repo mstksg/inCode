@@ -10,7 +10,7 @@ import Web.Blog.Models
 import Web.Blog.Models.Types
 import Web.Blog.Models.Util
 import Web.Blog.Render
-import Web.Blog.SiteData
+import Config.SiteData
 import Web.Blog.Types
 import Web.Blog.Util                         (renderFriendlyTime, renderDatetimeTime)
 import Web.Blog.Views.Copy

@@ -9,7 +9,7 @@ module Web.Blog.Database (runDB, blogMigrate, blogClear) where
 
 import Database.Persist.Postgresql
 import Web.Blog.Models
-import Web.Blog.SiteData
+import Config.SiteData
 import Web.Blog.Types
 import Web.Heroku (dbConnParams)
 import qualified Data.Text                       as T

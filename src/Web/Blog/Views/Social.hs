@@ -16,7 +16,7 @@ module Web.Blog.Views.Social (viewSocialShare, viewSocialFollow) where
 import Data.Monoid
 import Text.Blaze.Html5                      ((!))
 import Web.Blog.Render
-import Web.Blog.SiteData
+import Config.SiteData
 import Web.Blog.Types
 import qualified Data.Text                   as T
 import qualified Text.Blaze.Html5            as H

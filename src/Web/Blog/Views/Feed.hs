@@ -13,7 +13,7 @@ import Text.XML.Light.Output
 import Web.Blog.Models
 import Web.Blog.Models.Util
 import Web.Blog.Render
-import Web.Blog.SiteData
+import Config.SiteData
 import Web.Blog.Types
 import qualified Data.Text                       as T
 import qualified Data.Text.Lazy                  as L
