@@ -19,6 +19,7 @@ import qualified Data.Map                     as M
 import qualified Data.Text                    as T
 import qualified Database.Persist.Postgresql  as D
 import qualified Text.Pandoc                  as P
+import qualified Text.Pandoc.Builder          as P
 import qualified Text.Pandoc.Readers.Markdown as PM
 
 data MetaKey = MetaKeyTags
@@ -52,10 +53,10 @@ loadEntries entriesDir = do
 -- TODO: emit warnings, wrap in writer monad.
 processEntryFile :: FilePath -> D.SqlPersistM (D.Key Entry)
 processEntryFile entryFile = do
-    (P.Pandoc pandocMeta contents, _) <- liftIO $
+    (P.Pandoc _ contents, _) <- liftIO $
       readMarkdown <$> readFile entryFile
     let
-      writeMarkdownBlocks bs = writeMarkdown $ P.Pandoc pandocMeta bs
+      writeMarkdownBlocks bs = writeMarkdown $ P.doc $ P.fromList bs
       (P.Header _ _ headerBlocks, metaBody) = stripAndTake isHeader contents
       (metaBlock, body) = stripAndTake isDefList metaBody
 
@@ -184,9 +185,8 @@ processMeta (keyBlocks, valBlockss) = do
             Just t -> return t
             Nothing -> fmap fromJust $ insertTag' $ PreTag label tt Nothing
     renderBlocks :: [P.Block] -> String
-    renderBlocks bs = P.writeMarkdown (P.def P.WriterOptions) $ P.Pandoc emptyMeta bs
-      where
-        emptyMeta = P.Meta mempty mempty mempty
+    renderBlocks bs =
+      P.writeMarkdown (P.def P.WriterOptions) $ P.doc $ P.fromList bs
 
 removeOrphanEntries :: [D.Key Entry] -> D.SqlPersistM ()
 removeOrphanEntries eKeys = do
