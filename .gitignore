@@ -1,8 +1,9 @@
-.log.log
-.sass-cache
-.shake
-.virthualenv
-cabal-dev
-dist
-tmp
+/*.log
+/.sass-cache
+/.shake
+/cabal-dev
+/dist
+/tmp
 /static/img/test
+/tags
+/copy/entries

@@ -21,14 +21,14 @@ import qualified Data.Text                   as T
 import qualified Database.Persist.Postgresql as D
 
 routeArchive :: T.Text -> [D.Entity Entry] -> ViewArchiveType -> RouteEither
-routeArchive title entries vat = do
+routeArchive title entries viewType = do
   let
     grouped = groupEntries entries
   eList' <- liftIO $ runDB $ mapM (mapM (mapM wrapEntryData)) grouped
   let
-    view = viewArchive eList' vat
+    view = viewArchive eList' viewType
     pageData' = pageData { pageDataTitle = Just title
-                         , pageDataCss   = ["/css/page/archive.min.css"]
+                         , pageDataCss   = ["/css/page/archive.css"]
                          , pageDataJs    = ["/js/disqus_count.js"] }
 
   return $ Right (view, pageData')
@@ -41,7 +41,7 @@ routeArchiveFilters title filters pdMap = do
 
 
 routeArchiveAll :: RouteEither
-routeArchiveAll = routeArchiveFilters "Entry History" [] ViewArchiveAll
+routeArchiveAll = routeArchiveFilters "History" [] ViewArchiveAll
 
 routeArchiveTag :: TagType -> T.Text -> RouteEither
 routeArchiveTag type_ slug = do
@@ -52,13 +52,13 @@ routeArchiveTag type_ slug = do
       entrytags <- liftIO $ runDB $ D.selectList [ EntryTagTagId D.==. tagKey ] []
       let
         entryKeys = map (entryTagEntryId . D.entityVal) entrytags
-        vat = case type_ of
+        viewType = case type_ of
                 GeneralTag  -> ViewArchiveTag
                 CategoryTag -> ViewArchiveCategory
                 SeriesTag   -> ViewArchiveSeries
 
-      routeArchiveFilters (tagLabel' tag') [ EntryId D.<-. entryKeys ] $ vat tag'
-      
+      routeArchiveFilters (tagLabel' tag') [ EntryId D.<-. entryKeys ] $ viewType tag'
+
     Nothing ->
       return $ error404 "TagNotFound"
 
@@ -68,8 +68,8 @@ routeArchiveYear year = routeArchiveFilters (T.pack $ show year) filters $ ViewA
   where
     startTime = buildTime defaultTimeLocale [('Y',show year)] :: UTCTime
     endTime = buildTime defaultTimeLocale [('Y',show $ year + 1)] :: UTCTime
-    filters = [ EntryPostedAt D.>=. startTime
-              , EntryPostedAt D.<=. endTime  ]
+    filters = [ EntryPostedAt D.>=. Just startTime
+              , EntryPostedAt D.<=. Just endTime  ]
 
 routeArchiveMonth :: Int -> Int -> RouteEither
 routeArchiveMonth year month = routeArchiveFilters (T.pack timeString) filters $ ViewArchiveMonth year month
@@ -79,7 +79,7 @@ routeArchiveMonth year month = routeArchiveFilters (T.pack timeString) filters $
     endDay = addGregorianMonthsRollOver 1 startDay
     startTime = UTCTime startDay 0
     endTime = UTCTime endDay 0
-    filters = [ EntryPostedAt D.>=. startTime
-              , EntryPostedAt D.<=. endTime  ]
+    filters = [ EntryPostedAt D.>=. Just startTime
+              , EntryPostedAt D.<=. Just endTime  ]
     timeString = formatTime defaultTimeLocale "%B %Y" startDay
 

@@ -1,6 +1,10 @@
-@import "scss/util/mixins.scss";
+@import "util/mixins.scss";
 
 .copy-content {
+  @media #{$smallest-screen} {
+    font-size: 85%;
+  }
+
   p, ul, ol, dl, pre, blockquote {
     margin: 0;
     margin-bottom: 1rem;
@@ -11,7 +15,7 @@
   }
 
   ul, ol, dl {
-    margin-left: 1.5rem;
+    margin-left: 2.5rem;
   }
 
   ul {
@@ -47,13 +51,19 @@
 
   code {
     background: #eee;
+    padding: 0.1em 0.4em;
+    border: 1px solid #ccc;
+    border-radius: 0.2em;
   }
 
   pre {
     > code {
       background: none;
+      border: none;
+      padding: 0;
     }
-    background: #efe;
+    background: #f8f8f8;
+    border: 1px dashed #ddd;
     overflow-x: auto;
     font-size: 95%;
     line-height: 175%;
@@ -68,32 +78,47 @@
           font-weight: bold;
           font-size: 110%;
         }
-
-        // margin-top: 0;
       }
-      // margin: 1rem 0 0 0;
     }
-    background: #eef;
-    padding: 1rem 1.5rem;
-    padding-bottom: 0.15rem;
-    margin: 2rem 1rem;
-    border-left: 6px solid #44d;
+    background: #f4f4ff;
+    padding: 1.5rem 1.5rem;
+    padding-bottom: 0.6rem;
+    margin: 1.25rem 1rem 2rem;
+    border-left: 4px solid #44c;
     font-size: 110%;
+  }
+
+  h2, h3, h4, h5 {
+    border-top: 3.25rem solid transparent;
   }
 
   h2 {
     font-size: 170%;
     line-height: 125%;
-    margin-top: 4rem;
+    margin-top: 0.75rem;
     margin-bottom: 0.75rem;
     color: #225;
   }
   h3 {
     font-size: 130%;
     margin-bottom: 0.5rem;
-    margin-top: 2rem;
+    margin-top: -1.25rem;
     color: #911;
   }
+  h4 {
+    font-size: 105%;
+    margin-top: -2.25rem;
+    margin-bottom: 0.5rem;
+    color: #541;
+  }
+  h5 {
+    font-size: 105%;
+    margin-top: -2.25rem;
+    margin-bottom: 0rem;
+    font-weight: normal;
+    color: #515;
+  }
+
 
 
   padding-left: 1rem;

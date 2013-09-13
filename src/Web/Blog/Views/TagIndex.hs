@@ -23,20 +23,26 @@ viewTagIndex :: [TagInfo] -> TagType -> SiteRender H.Html
 viewTagIndex tagInfos tt = do
   let
     ulClass = case tt of
-      GeneralTag -> "tag-list tile"
-      CategoryTag -> "category-list"
-      SeriesTag -> "series-list tile"
+      GeneralTag -> "tag-index tile tag-list"
+      CategoryTag -> "category-index"
+      SeriesTag -> "series-index tile"
 
-
-  navHtml <- viewArchiveNav $ Just $
+  sidebarHtml <- viewArchiveSidebar $ Just $
     case tt of
       GeneralTag  -> ViewArchiveIndexTag
       CategoryTag -> ViewArchiveIndexCategory
       SeriesTag   -> ViewArchiveIndexSeries
 
+  noTagsCopy <-
+    if null tagInfos
+      then
+        renderRawCopy "copy/static/empty-taglist.md"
+      else
+        return mempty
+
   return $ do
-    H.nav ! A.class_ "archive-nav tile unit one-of-four" $
-      navHtml
+    H.div ! A.class_ "archive-sidebar unit one-of-four" $
+      sidebarHtml
 
     H.section ! A.class_ "archive-section unit three-of-four" ! mainSection $ do
 
@@ -49,17 +55,21 @@ viewTagIndex tagInfos tt = do
             SeriesTag   -> "Series"
 
       H.ul ! A.class_ ulClass $
-        mapM_ (tagIndexLi tt) tagInfos
+        if null tagInfos
+          then
+            noTagsCopy
+          else
+            mapM_ (tagIndexLi tt) tagInfos
 
 
 tagIndexLi :: TagType -> TagInfo -> H.Html
 tagIndexLi GeneralTag (TagInfo t c _) =
-  H.li $ do
-    H.a ! A.href (I.textValue $ renderUrl' $ tagPath t) $
+  H.li $
+    H.a ! A.href (I.textValue $ renderUrl' $ tagPath t) ! A.class_ "tag-a-tag" $ do
       H.toHtml $ tagLabel' t
-    " " :: H.Html
-    H.toHtml $
-      T.concat ["(",T.pack $ show c,")"]
+      " (" :: H.Html
+      H.toHtml c
+      ")" :: H.Html
 
 tagIndexLi tt (TagInfo t c r) =
   H.li ! A.class_ liClass $ do
@@ -79,16 +89,19 @@ tagIndexLi tt (TagInfo t c r) =
     H.footer $
       Fo.forM_ r $ \(re,ru) ->
         H.div $ do
-          H.preEscapedToHtml ("Most recent &mdash; " :: T.Text)
-          H.a ! A.href (I.textValue $ renderUrl' ru) $
-            H.toHtml $ entryTitle re
-          " (" :: H.Html
-          H.time
-            ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime $ entryPostedAt re)
-            ! A.pubdate "" 
-            ! A.class_ "pubdate"
-            $ H.toHtml $ renderShortFriendlyTime $ entryPostedAt re
-          ")" :: H.Html
+          H.span ! A.class_ "recent-link" $ do
+            H.preEscapedToHtml ("Most recent &mdash; " :: T.Text)
+            H.a ! A.href (I.textValue $ renderUrl' ru) $
+              H.toHtml $ entryTitle re
+          Fo.forM_ (entryPostedAt re) $ \rt ->
+            H.span ! A.class_ "recent-time" $ do
+              " (" :: H.Html
+              H.time
+                ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime rt)
+                ! A.pubdate ""
+                ! A.class_ "pubdate"
+                $ H.toHtml $ renderShortFriendlyTime rt
+              ")" :: H.Html
   where
     liClass = case tt of
       CategoryTag -> "tile"

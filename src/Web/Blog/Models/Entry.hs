@@ -2,44 +2,59 @@
 
 module Web.Blog.Models.Entry  where
 
-import Control.Applicative                      ((<$>))
-import Control.Monad
-import Control.Monad.IO.Class                   (liftIO)
-import Control.Monad.Loops                      (firstM)
-import Data.List                                (groupBy)
-import Data.Maybe                               (isNothing, fromJust, isJust)
+-- import Control.Monad
+-- import qualified Database.Esqueleto       as E
+import Control.Applicative                   ((<$>))
+import Control.Monad.IO.Class                (liftIO)
+import Control.Monad.Loops                   (firstM)
+import Data.List                             (groupBy)
+import Data.Maybe                            (fromJust, isJust)
 import Data.Time
 import Web.Blog.Models
+import Web.Blog.Models.Slug
 import Web.Blog.Models.Types
-import Web.Blog.SiteData
+import Config.SiteData
 import Web.Blog.Types
 import Web.Blog.Util
-import qualified Data.Text                      as T
-import qualified Database.Persist.Postgresql    as D
-import qualified Text.Blaze.Html5               as H
-import qualified Text.Pandoc                    as P
+import qualified Data.Aeson                  as A
+import qualified Data.Aeson.Types            as AT
+import qualified Data.Foldable as Fo         (forM_)
+import qualified Data.Text                   as T
+import qualified Data.Vector                 as V
+import qualified Database.Persist.Postgresql as D
+import qualified Text.Blaze.Html5            as H
+import qualified Text.Pandoc                 as P
 
 slugLength :: Int
-slugLength = siteDataSlugLength siteData
+slugLength = appPrefsSlugLength $ siteDataAppPrefs siteData
 ledeMax :: Int
-ledeMax = siteDataLedeMax siteData
+ledeMax = appPrefsLedeMax $ siteDataAppPrefs siteData
 
 insertEntry :: Entry -> D.SqlPersistM (Maybe (D.Key Entry))
 insertEntry entry = do
   entryKey <- D.insertUnique entry
-  when (isJust entryKey) $
-    insertSlug $ D.Entity (fromJust entryKey) entry
+  Fo.forM_ entryKey $ \k ->
+    insertSlug k $ entryTitle entry
   return entryKey
 
 insertEntry_ :: Entry -> D.SqlPersistM ()
 insertEntry_ entry = do
   entryKey <- D.insert entry
-  insertSlug $ D.Entity entryKey entry
+  insertSlug entryKey $ entryTitle entry
 
-insertSlug :: D.Entity Entry -> D.SqlPersistM ()
-insertSlug (D.Entity entryKey entry) = do
-  slugText <- genEntrySlug slugLength (entryTitle entry)
-  D.insert_ $ Slug entryKey slugText True
+updateEntryTitle :: D.Key Entry -> T.Text -> D.SqlPersistM ()
+updateEntryTitle eKey newTitle = do
+    D.update eKey [EntryTitle D.=. newTitle]
+    D.updateWhere [SlugEntryId D.==. eKey] [SlugIsCurrent D.=. False]
+    insertSlug eKey newTitle
+
+insertSlug :: D.Key Entry -> T.Text -> D.SqlPersistM ()
+insertSlug eKey title = do
+  slugText <- genEntrySlug slugLength eKey title
+  oldSlug <- D.getBy $ UniqueSlug slugText
+  case oldSlug of
+    Just (D.Entity sKey _) -> D.update sKey [SlugIsCurrent D.=. True]
+    Nothing -> D.insert_ $ Slug eKey slugText True
 
 entryPandoc :: Entry -> P.Pandoc
 entryPandoc = P.readMarkdown (P.def P.ReaderOptions) . T.unpack . entryContent
@@ -64,30 +79,21 @@ entryLedePandoc entry = P.Pandoc m ledeBs
 
 
 
--- TODO: Find way to generalize and merge this with genTagSlug
-genEntrySlug :: Int -> T.Text -> D.SqlPersistM T.Text
-genEntrySlug w t = do
-  let
-    baseSlug = genSlug w t
-  base <- D.getBy $ UniqueSlug baseSlug
-  case base of
-    Just _ -> do
-      freshSlug <- firstM isFresh $
-        map (T.append baseSlug . T.pack . show) ([-2,-3..] :: [Integer])
-      return $ fromJust freshSlug
-    Nothing ->
-      return baseSlug
+genEntrySlug :: Int -> D.Key Entry -> T.Text -> D.SqlPersistM T.Text
+genEntrySlug w k t = do
+  freshSlug <- firstM isFresh $
+    map (flip (genSlugSuffix w) t) [0..]
+  return $ fromJust freshSlug
   where
     isFresh :: T.Text -> D.SqlPersistM Bool
     isFresh s = do
-      found <- D.getBy $ UniqueSlug s
-      return $ isNothing found
+      found <- D.selectList [ SlugSlug D.==. s, SlugEntryId D.!=. k ] []
+      return $ null found
 
--- TODO: separate changeSlug function to be able to re-double back on old
--- names
+
 
 postedFilter :: UTCTime -> [D.Filter Entry]
-postedFilter now = [ EntryPostedAt D.<=. now ]
+postedFilter now = [ EntryPostedAt D.<=. Just now ]
 
 postedEntries :: [D.SelectOpt Entry] -> D.SqlPersistM [D.Entity Entry]
 postedEntries = postedEntriesFilter []
@@ -105,7 +111,7 @@ postedEntryCount = do
 getEntryData :: D.Entity Entry -> D.SqlPersistM (T.Text,[Tag])
 getEntryData e = do
   p <- getUrlPath e
-  ts  <- getTags e
+  ts  <- getTags e []
   return (p,ts)
 
 wrapEntryData :: D.Entity Entry -> D.SqlPersistM (D.Entity Entry, (T.Text, [Tag]))
@@ -114,8 +120,14 @@ wrapEntryData e = do
   return (e,d)
 
 getCurrentSlug :: D.Entity Entry -> D.SqlPersistM (Maybe (D.Entity Slug))
-getCurrentSlug entry = D.selectFirst [ SlugEntryId   D.==. eKey
-                                     , SlugIsCurrent D.==. True ] []
+getCurrentSlug entry = do
+    current <- D.selectFirst [ SlugEntryId   D.==. eKey
+                             , SlugIsCurrent D.==. True ]
+                             [ D.Desc SlugId ]
+    case current of
+      Just _ -> return current
+      Nothing -> D.selectFirst [ SlugEntryId D.==. eKey ]
+                               [ D.Desc SlugId ]
   where
     D.Entity eKey _ = entry
 
@@ -130,21 +142,25 @@ getUrlPath entry = do
         D.Entity eKey _ = entry
       return $ T.append "/entry/id/" (T.pack $ show eKey)
 
+entryPermalink :: D.Entity Entry -> T.Text
+entryPermalink (D.Entity eKey _) = T.append "/entry/id/" entryId
+  where
+    Right entryId = D.fromPersistValueText $ D.unKey eKey
 
-getTags :: D.Entity Entry -> D.SqlPersistM [Tag]
-getTags entry = getTagsByEntityKey $ D.entityKey entry
 
-getTagsByEntityKey :: D.Key Entry -> D.SqlPersistM [Tag]
-getTagsByEntityKey k = do 
+getTags :: D.Entity Entry -> [D.Filter Tag] -> D.SqlPersistM [Tag]
+getTags entry = getTagsByEntityKey (D.entityKey entry)
+
+getTagsByEntityKey :: D.Key Entry -> [D.Filter Tag] -> D.SqlPersistM [Tag]
+getTagsByEntityKey k filters = do
   ets <- D.selectList [ EntryTagEntryId D.==. k ] []
   let
     tagKeys = map (entryTagTagId . D.entityVal) ets
     selectTags tt = D.selectList
-                      [ TagId D.<-. tagKeys, TagType_ D.==. tt ]
+                      ([ TagId D.<-. tagKeys, TagType_ D.==. tt ] ++ filters)
                       [ D.Asc TagLabel ]
   tags <- concat <$> mapM selectTags [GeneralTag .. SeriesTag]
   return $ map D.entityVal tags
-
 
 
 getPrevEntry :: Entry -> D.SqlPersistM (Maybe (D.Entity Entry))
@@ -163,13 +179,60 @@ getNextEntry e = do
 groupEntries :: [D.Entity Entry] -> [[[D.Entity Entry]]]
 groupEntries entries = groupedMonthsYears
   where
+    hasPostDate = filter (isJust . entryPostedAt . D.entityVal) entries
     groupedMonthsYears = map (groupBy sameMonth) groupedYears
-    groupedYears = groupBy sameYear entries
+    groupedYears = groupBy sameYear hasPostDate
     sameYear e1 e2 = yearOf e1 == yearOf e2
     sameMonth e1 e2 = yearMonthOf e1 == yearMonthOf e2
     yearOf = yearOfDay . dayOf
     yearOfDay (y,_,_) = y
     yearMonthOf = yearMonthOfDay . dayOf
     yearMonthOfDay (y,m,_) = (y,m)
-    dayOf = toGregorian . utctDay . entryPostedAt . D.entityVal
+    dayOf = toGregorian . utctDay . fromJust . entryPostedAt . D.entityVal
+
+-- Maybe have issue where a slug will one day point to a completely
+-- different entry.  Oh well.
+removeEntry :: D.Entity Entry -> D.SqlPersistM (D.Key RemovedEntry)
+removeEntry eEnt@(D.Entity eKey e) = do
+  now <- liftIO getCurrentTime
+  tagList <- T.pack . unlines . map show <$> getTags eEnt []
+  slugList <- T.unlines . map (slugPrettyLabel . D.entityVal) <$>
+    D.selectList [ SlugEntryId D.==. eKey ] [ D.Asc SlugId ]
+  let
+    removed = RemovedEntry
+                (entryTitle e)
+                (entryContent e)
+                (entryCreatedAt e)
+                (entryPostedAt e)
+                (entryModifiedAt e)
+                now
+                (entryIdentifier e)
+                tagList
+                slugList
+  D.deleteWhere [ SlugEntryId D.==. eKey ]
+  D.deleteWhere [ EntryTagEntryId D.==. eKey ]
+  D.delete eKey
+  D.insert removed
+
+genJSON :: D.Entity Entry -> D.SqlPersistM AT.Value
+genJSON eEnt@(D.Entity eKey e) = do
+
+  tagsJson <- A.toJSON <$> getTags eEnt []
+  slusJson <- A.toJSON <$>
+    D.selectList [ SlugEntryId D.==. eKey ] [ D.Asc SlugEntryId ]
+
+  let
+    eJson = A.toJSON e
+
+  return $ AT.object
+    [ "entryVal" AT..= eJson
+    , "entryTags" AT..= tagsJson
+    , "entrySlugs" AT..= slusJson
+    ]
+
+entryJSONs :: D.SqlPersistM AT.Value
+entryJSONs = do
+  es <- D.selectList [] [ D.Asc EntryId ]
+  vs <- mapM genJSON es
+  return $ AT.Array $ V.fromList vs
 

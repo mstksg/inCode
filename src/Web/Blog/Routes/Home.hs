@@ -8,7 +8,7 @@ import Web.Blog.Database
 import Web.Blog.Models
 import Web.Blog.Models.Util
 import Web.Blog.Render
-import Web.Blog.SiteData
+import Config.SiteData
 import Web.Blog.Types
 import Web.Blog.Views.Home
 import qualified Data.Map                    as M
@@ -18,7 +18,7 @@ import qualified Database.Persist.Postgresql as D
 routeHome :: Int -> RouteEither
 routeHome page = do
   let
-    m = siteDataHomeEntries siteData
+    m = appPrefsHomeEntries $ siteDataAppPrefs siteData
 
   maxPage' <- liftIO $ runDB $ maxPage m
 
@@ -27,11 +27,18 @@ routeHome page = do
       return $ Left "/"
     else do
       let
+        pageTitle =
+          if page == 1
+            then
+              Nothing
+            else
+              Just $ T.concat ["Home (Page ", T.pack $ show page,")"]
+
         urlBase = renderUrl' "/home/"
 
       eList <- liftIO $ runDB $
         postedEntries [ D.Desc EntryPostedAt
-                      , D.LimitTo m 
+                      , D.LimitTo m
                       , D.OffsetBy $ (page - 1) * m ]
           >>= mapM wrapEntryData
 
@@ -44,18 +51,22 @@ routeHome page = do
                 else T.append urlBase $ T.pack $ show $ page - 1
             modify $
               M.insert "prevPage" prevUrl
+            modify $
+              M.insert "pageNum" $ T.pack $ show page
+
 
           when (page < maxPage') $
             modify $
               M.insert "nextPage" (T.append urlBase $ T.pack $ show $ page + 1)
 
-        view = viewHome eList
-        pageData' = pageData { pageDataTitle = Just "Home"
-                             , pageDataCss   = ["/css/page/home.min.css"]
+        view = viewHome eList page
+        pageData' = pageData { pageDataTitle = pageTitle
+                             , pageDataCss   = ["/css/page/home.css"
+                                               ,"/css/pygments.css"]
                              , pageDataJs    = ["/js/disqus_count.js"]
                              , pageDataMap   = pdMap M.empty
                              }
-          
+
       return $ Right (view, pageData')
 
 maxPage :: Int -> D.SqlPersistM Int

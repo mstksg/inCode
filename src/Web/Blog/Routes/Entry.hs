@@ -28,27 +28,44 @@ routeEntrySlug = do
 
     case slug of
       -- Found slug
-      Just (D.Entity _ slug') -> 
+      Just (D.Entity _ slug') ->
         return $ Right $ slugEntryId slug'
 
       -- Slug not found
       Nothing ->
         return $ error404 "SlugNotFound"
-        
+
   -- TODO: Wrap this all in an EitherT...that's what they were meant for,
   -- I think!
   case eKey of
     -- Yes there was a slug and entry found
     Right eKey' -> do
+
       e <- liftIO $ runDB $ D.get eKey'
 
       case e of
         -- Slug does indeed have a real entry
-        Just e' ->
-          routeEntry $ Right $ D.Entity eKey' e'
+        Just e' -> do
+          currentSlug <- liftIO $ runDB $ getCurrentSlug $ D.Entity eKey' e'
+
+          case currentSlug of
+            -- There is a current slug
+            Just (D.Entity _ slug'') ->
+              if slugSlug slug'' == T.pack eIdent
+                then
+                  -- It's the right one.
+                  routeEntry $ Right $ D.Entity eKey' e'
+                else
+                  -- There's a better one
+                  return $ Left $
+                    L.fromStrict $ T.append "/entry/" (slugSlug slug'')
+
+            -- No current slug, just give up and show this one.
+            Nothing ->
+              routeEntry $ Right $ D.Entity eKey' e'
 
         -- Slug's entry does not exist.  How odd.
-        Nothing -> 
+        Nothing ->
           return $ error404 "SlugHasNoEntry"
 
     Left r ->
@@ -68,11 +85,10 @@ routeEntryId = do
     case e' of
       -- ID Found
       Just e'' -> do
-        s' <- D.selectFirst [ SlugEntryId D.==. eKey ] []
+        s' <- getCurrentSlug $ D.Entity eKey e''
 
         case s' of
-          -- Found "a" slug.  It might not be "the" current slug,
-          -- but for now we'll let redirection take care of it.
+          -- Found current slug
           Just (D.Entity _ s'') ->
             return $ Left $ L.fromStrict $ T.append "/entry/" (slugSlug s'')
 
@@ -106,20 +122,24 @@ routeEntry (Right (D.Entity eKey e')) = do
         let nextUrl = snd $ fromJust nextData
         modify (M.insert ("nextUrl" :: T.Text) nextUrl)
 
-      
     view = viewEntry e' tags (fst <$> prevData) (fst <$> nextData)
     pageData' = pageData { pageDataTitle = Just $ entryTitle e'
-                         , pageDataCss   = ["/css/page/entry.min.css"]
-                         , pageDataJs    = ["/js/disqus.js","/js/disqus_count.js"]
+                         , pageDataCss   = ["/css/page/entry.css"
+                                           ,"/css/pygments.css"]
+                         , pageDataJs    = ["/js/disqus.js"
+                                           ,"/js/disqus_count.js"
+                                           ,"/js/social.js"
+                                           ,"/js/jquery/jquery.toc.js"
+                                           ,"/js/page/entry.js"]
                          , pageDataMap   = pdMap M.empty
                          }
-  
+
   return $ Right (view, pageData')
 routeEntry (Left r) = return $ Left r
 
 entryAux :: D.Key Entry -> Entry -> D.SqlPersistM ([Tag],Maybe (Entry, T.Text),Maybe (Entry, T.Text))
 entryAux k e = do
-  tags <- getTagsByEntityKey k
+  tags <- getTagsByEntityKey k []
 
   prevData <- runMaybeT $ do
     prev <- MaybeT $ getPrevEntry e

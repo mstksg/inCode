@@ -1,0 +1,67 @@
+@import "util/mixins.scss";
+@import "util/icons.scss";
+
+
+.social-follows-list {
+  list-style-type: none;
+  display: inline-block;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+  ul {
+      display: inline-block;
+      margin: 0;
+      padding: 0;
+      height: 20px;
+  }
+  li {
+    display: inline-block;
+    margin: 0;
+    padding: 0
+  }
+  a {
+    display: inline-block;
+    height: 16px;
+    width: 16px;
+    background-image: url($sprites16);
+    text-indent: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    border: none;
+    // border-radius: 2px;
+    &:hover {
+      background-color: transparent;
+      filter: alpha(opacity=67);
+      opacity: 0.67;
+    }
+    padding: 0;
+    margin: 0 0.1rem;
+  }
+}
+
+.social-follows-list-site {
+    background-color: #eee;
+}
+
+
+.social-follow-facebook {
+    background-position-y: sprite16-y($facebook16);
+}
+.social-follow-twitter {
+    background-position-y: sprite16-y($twitter16);
+}
+.social-follow-gplus {
+    background-position-y: sprite16-y($gplus16);
+}
+.social-follow-linkedin {
+    background-position-y: sprite16-y($linkedin16);
+}
+.social-follow-github {
+    background-position-y: sprite16-y($github16);
+}
+.social-follow-rss {
+    background-position-y: sprite16-y($rss16);
+}
+.social-follow-email {
+    background-position-y: sprite16-y($email16);
+}

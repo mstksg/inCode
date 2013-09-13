@@ -14,7 +14,13 @@ import Web.Blog.Views.TagIndex
 
 routeTagIndex :: TagType -> RouteEither
 routeTagIndex tt = do
-  tagInfos <- liftIO $ runDB $ getTagInfoListRecent tt (tt /= GeneralTag)
+  let
+    sorting = case tt of
+                GeneralTag -> TagSortCount
+                CategoryTag -> TagSortLabel
+                SeriesTag -> TagSortRecent
+
+  tagInfos <- liftIO $ runDB $ getTagInfoList tt sorting (tt /= GeneralTag)
 
   let
     view = viewTagIndex tagInfos tt
@@ -23,6 +29,6 @@ routeTagIndex tt = do
               CategoryTag -> "Category List"
               SeriesTag -> "Series List"
     pageData' = pageData { pageDataTitle = Just title
-                         , pageDataCss   = ["/css/page/archive.min.css"] }
+                         , pageDataCss   = ["/css/page/archive.css"] }
 
   return $ Right (view,pageData')

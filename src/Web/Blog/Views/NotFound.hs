@@ -13,20 +13,20 @@ viewNotFound = do
   homeUrl <- renderUrl "/"
   archiveUrl <- renderUrl "/entries"
 
-  return $ 
-    H.section H.! A.class_ "tile single-page not-found-section unit span-grid" H.! mainSection $ do
+  return $
+    H.section H.! A.class_ "tile main-content single-page not-found-section unit span-grid" H.! mainSection $ do
 
       H.header $
         H.h1 "Not Found"
 
       H.hr
 
-      H.div H.! A.class_ "main-content copy-content" $
+      H.div H.! A.class_ "copy-content" $
         H.p $ do
-          "The page you were looking for was not found.  Sorry!  "
-          "Maybe try going to the "
+          "The page you were looking for was not found.  Sorry!  " :: H.Html
+          "Maybe try going to the " :: H.Html
           H.a H.! A.href (I.textValue homeUrl) $ "homepage"
-          " or checking out the "
-          H.a H.! A.href (I.textValue archiveUrl) $ "archives"
-          "?"
+          " or checking out the " :: H.Html
+          H.a H.! A.href (I.textValue archiveUrl) $ "archives" :: H.Html
+          "?" :: H.Html
 

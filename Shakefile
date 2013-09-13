@@ -1,4 +1,9 @@
 import Development.Shake
+import Text.Pandoc
+import Control.Monad
+import Control.Monad.Loops
+import Control.Monad.IO.Class
+import System.INotify
 
 opts = shakeOptions { shakeFiles    = ".shake/"
                     , shakeProgress = progressSimple }
@@ -16,7 +21,7 @@ main = shakeArgs opts $ do
 
   "clean" ~> removeFilesAfter ".shake" ["//*"]
 
-  "build" ~> 
+  "build" ~>
     need [ "cabal-dev/bin/blog" ]
 
   "launch" ~> do
@@ -31,9 +36,20 @@ main = shakeArgs opts $ do
     need ["cabal-dev/bin/blog-scripts-seed"]
     cmdBin "blog-scripts-seed"
 
+  "load-entries" ~> do
+    need ["cabal-dev/bin/blog-scripts-load-entries"]
+    cmdBin "blog-scripts-load-entries"
+
   "view-src" ~> do
     fs <- srcFiles
     liftIO $ print fs
+
+  "watch-copy" ~>
+    cmd "scripts/watch_copy.sh"
+
+  "watch-scss" ~>
+    cmd "compass watch"
+
 
   "cabal-dev/bin/blog" *> \_ -> do
     fs <- srcFiles
@@ -48,11 +64,16 @@ main = shakeArgs opts $ do
     need ["build"]
     return ()
 
+  "cabal-dev/bin/blog-scripts-load-entries" *> \_ -> do
+    need ["build"]
+    return ()
+
 srcFiles :: Action [FilePath]
 srcFiles = getDirectoryFiles ""
   [ "blog.cabal"
   , "src/*.hs"
   , "src/scripts/*.hs"
+  , "src/Config/*.hs"
   , "src/Web/Blog/*.hs"
   , "src/Web/Blog/*/*.hs"
   , "src/Web/Blog/*/*/*.hs"

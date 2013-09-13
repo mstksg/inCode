@@ -85,7 +85,7 @@
 .three-of-five { width: 57%; }
 .four-of-five { width: 77%; }
 
-@media screen and (max-width: 650px) {
+@media screen and (max-width: 740px) {
 	.grid {
 		margin-left: 0;
 		max-width: none;
@@ -95,6 +95,12 @@
 		width: auto;
 		margin-left: 0;
 		display: block;
+	}
+}
+
+@media screen and (max-width: 480px) {
+	.container {
+		padding: 0 0.75rem;
 	}
 }
 
@@ -148,7 +154,7 @@ html {
 	line-height: 150%;
 }
 
-@media screen and (max-width: 650px) {
+@media screen and (max-width: 740px) {
 	html {
 		font-size: 100%;
 	}

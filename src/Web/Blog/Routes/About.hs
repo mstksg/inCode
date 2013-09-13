@@ -13,7 +13,7 @@ routeAbout = do
   let
     view = viewAbout
     pageData' = pageData { pageDataTitle = Just "About Me" 
-                         , pageDataCss   = ["/css/page/about.min.css"] }
+                         , pageDataCss   = ["/css/page/about.css"] }
 
   return $ Right (view,pageData')
 

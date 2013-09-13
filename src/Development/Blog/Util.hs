@@ -1,2 +1,16 @@
-module Development.Blog.Util () where
+module Development.Blog.Util (startupHelpers, backupEntries) where
+
+import Development.Blog.Util.Compass
+import Development.Blog.Util.LoadEntries
+import Development.Blog.Util.BackupEntries
+import Web.Blog.Database
+
+entriesDir :: FilePath
+entriesDir = "copy/entries"
+
+startupHelpers :: IO ()
+startupHelpers = do
+    compileCompass
+    runDB blogMigrate
+    loadEntries entriesDir
 
