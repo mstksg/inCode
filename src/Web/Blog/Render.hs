@@ -14,11 +14,12 @@ module Web.Blog.Render (
 -- import System.Process
 -- import qualified Text.Blaze.Html.Renderer.Pretty as B
 -- import qualified Text.Blaze.Html5.Attributes     as A
+-- import qualified Text.Pandoc.Builder             as P
+import Config.SiteData
 import Control.Applicative                          ((<$>))
 import Control.Monad.Reader
 import Network.Wai
 import System.Directory                             (doesFileExist)
-import Config.SiteData
 import Web.Blog.Types
 import qualified Data.Map                           as M
 import qualified Data.Text                          as T
@@ -81,7 +82,12 @@ renderRawCopy fp = do
       copyMarkdown <- liftIO $ readFile fp
       let
         copyPandoc = P.readMarkdown (P.def P.ReaderOptions) copyMarkdown
-        copyHtml = P.writeHtml (P.def P.WriterOptions) copyPandoc
+        fixedLinks = P.bottomUp fixLinks copyPandoc
+          where
+            fixLinks (P.Link label (url,title)) =
+              P.Link label (T.unpack $ renderUrl' $ T.pack url, title)
+            fixLinks other = other
+        copyHtml = P.writeHtml (P.def P.WriterOptions) fixedLinks
       return copyHtml
     else
       return $
