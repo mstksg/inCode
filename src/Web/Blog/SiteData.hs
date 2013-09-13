@@ -15,7 +15,7 @@ siteData =
       , "programming and explorations in the vast worlds of computation, "
       , "physics, and knowledge."] )
     "2013 Justin Le"
-    "blog-dev.jle0.com"
+    hostConfig
     developerAPIs
     appPrefs
     databaseConfig
@@ -30,6 +30,10 @@ siteData =
                    "107705320197444500140"
                    "mstksg"
                    "lejustin"
+    hostConfig = HostConfig
+                   "blog-dev.jle0.com"
+                   (Just 4288)
+    
     developerAPIs = DeveloperAPIs
                       ("UA-443711-7", "jle0.com")
                       "justinleblogdevelopment"

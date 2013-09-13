@@ -60,7 +60,11 @@ renderUrl' :: T.Text -> T.Text
 renderUrl' url =
   if hasP
     then url
-    else T.concat ["http://",siteDataSiteHost siteData,url]
+    else T.concat
+      [ "http://"
+      , hostConfigHost $ siteDataHostConfig siteData
+      , url
+      ]
   where
     hasP = length (T.splitOn "://" url) > 1
 

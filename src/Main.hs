@@ -2,16 +2,25 @@
 
 -- import Network.Wai
 -- import Web.Blog.Database
+import Control.Applicative                  ((<$>))
 import Control.Monad.IO.Class
 import Development.Blog.Util
 import Network.Wai.Middleware.Headers
 import Network.Wai.Middleware.RequestLogger
 import Network.Wai.Middleware.Static
+import System.Environment                   (getEnv)
 import Web.Blog.Routes
+import Web.Blog.SiteData
+import Web.Blog.Types
 import Web.Scotty
 
 main :: IO ()
-main = scotty 4288 $ do
+main = do
+  port <- case hostConfigPort $ siteDataHostConfig siteData of
+    Just p' -> return p'
+    Nothing -> read <$> getEnv "PORT"
+
+  scotty port $ do
 
   liftIO startupHelpers
 

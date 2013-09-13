@@ -1,6 +1,7 @@
 module Web.Blog.Types (
     SiteData(..)
   , SiteEnvironment(..)
+  , HostConfig(..)
   , DeveloperAPIs(..)
   , AuthorInfo(..)
   , AppPrefs(..)
@@ -24,7 +25,7 @@ data SiteData = SiteData
                 , siteDataAuthorInfo      :: AuthorInfo
                 , siteDataDescription     :: T.Text
                 , siteDataCopyright       :: T.Text
-                , siteDataSiteHost        :: T.Text
+                , siteDataHostConfig      :: HostConfig
                 , siteDataDeveloperAPIs   :: DeveloperAPIs
                 , siteDataAppPrefs        :: AppPrefs
                 , siteDataDatabaseConfig  :: Maybe DatabaseConfig
@@ -33,6 +34,10 @@ data SiteData = SiteData
 
 data SiteEnvironment = SiteEnvironmentProduction | SiteEnvironmentDevelopment
 
+data HostConfig = HostConfig
+                  { hostConfigHost :: T.Text
+                  , hostConfigPort :: Maybe Int
+                  } 
 
 data DeveloperAPIs = DeveloperAPIs
                      { developerAPIsAnalytics       :: (T.Text,T.Text)
