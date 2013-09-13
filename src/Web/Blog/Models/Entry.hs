@@ -56,8 +56,16 @@ insertSlug eKey title = do
     Just (D.Entity sKey _) -> D.update sKey [SlugIsCurrent D.=. True]
     Nothing -> D.insert_ $ Slug eKey slugText True
 
+
 entryPandoc :: Entry -> P.Pandoc
-entryPandoc = P.readMarkdown (P.def P.ReaderOptions) . T.unpack . entryContent
+entryPandoc = P.bottomUp stripRules . entryPandocRaw
+  where
+    stripRules P.HorizontalRule = P.Null
+    stripRules other = other
+
+entryPandocRaw :: Entry -> P.Pandoc
+entryPandocRaw =
+    P.readMarkdown (P.def P.ReaderOptions) . T.unpack . entryContent
 
 entryHtml :: Entry -> H.Html
 entryHtml = P.writeHtml (P.def P.WriterOptions) . entryPandoc
@@ -71,11 +79,12 @@ entryLedeHtml = P.writeHtml (P.def P.WriterOptions) . entryLedePandoc
 entryLedePandoc :: Entry -> P.Pandoc
 entryLedePandoc entry = P.Pandoc m ledeBs
   where
-    P.Pandoc m bs = entryPandoc entry
-    ledeBs = take ledeMax $ takeWhile isNotHeader bs
-    isNotHeader b = case b of
-                      P.Header {} -> False
-                      _ -> True
+    P.Pandoc m bs = entryPandocRaw entry
+    ledeBs = take ledeMax $ takeWhile validLede bs
+    validLede b = case b of
+                    P.Header {} -> False
+                    P.HorizontalRule -> False
+                    _ -> True
 
 
 
