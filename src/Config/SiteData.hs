@@ -40,12 +40,13 @@ siteData =
                    }
 
     developerAPIs = DeveloperAPIs
-                      { developerAPIsAnalytics       = ("UA-443711-7", "jle0.com")
+                      { developerAPIsAnalytics       = ("UA-443711-8", "jle.im")
                       , developerAPIsDisqusShortname = "incode"
                       , developerAPIsFacebook        = "641852699171929"
                       , developerAPIsAddThis         = "ra-5234d67a6b68dcd4"
                       , developerAPIsFeedburner      = "incodeblog"
                       }
+
     appPrefs = AppPrefs
                  { appPrefsSlugLength  = 8
                  , appPrefsHomeEntries = 5

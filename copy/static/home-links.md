@@ -1,7 +1,7 @@
 
 - ### Links
     * [Github](https://github.com/mstksg "Github")
-    * [Resumé](http://cv.jle0.com "Resume")
+    * [Resumé](http://cv.jle.im "Resume")
     * [Stack Overflow](http://stackoverflow.com/users/292731/justin-l "Stack Overflow")
     * [LinkedIn](https://linkedin.com/in/lejustin "LinkedIn")
 
