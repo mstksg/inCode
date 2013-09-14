@@ -237,9 +237,10 @@ viewOpenGraphMetas = do
         ! I.customAttribute "property" "og:url"
         ! A.content (I.textValue url)
 
-
--- renderFonts :: [(T.Text,[T.Text])] -> H.Html
--- renderFonts fs = H.link ! A.href l ! A.rel "stylesheet" ! A.type_ "text/css"
- --  where
- --    l = I.textValue $ T.concat $ map makeFont fs
- --    makeFont (n,ts) = T.append n $ T.intersperse ',' ts
+    H.meta
+      ! A.name "twitter:card"
+      ! A.content "summary"
+    H.meta
+      ! A.name "twitter:creator:id"
+      ! A.content
+        (I.textValue . authorInfoTwitterID $ siteDataAuthorInfo siteData)
