@@ -78,6 +78,7 @@ processEntryFile entryFile = do
                          Nothing
                          Nothing
                          Nothing
+                         Nothing
           k <- fromJust <$> insertEntry newEntry
           return $ D.Entity k newEntry
 
