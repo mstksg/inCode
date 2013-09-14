@@ -2,22 +2,27 @@
 
 module Web.Blog.Routes.Entry (routeEntrySlug, routeEntryId) where
 
-import Control.Applicative                   ((<$>))
+-- import Web.Blog.Util
+-- import qualified Data.Foldable as Fo         (forM_)
+-- import qualified Text.Blaze.Html5            as H
+-- import qualified Text.Blaze.Html5.Attributes as A
+-- import qualified Text.Blaze.Internal         as I
+import Control.Applicative                      ((<$>))
 import Control.Monad.IO.Class
 import Control.Monad.State
 import Control.Monad.Trans.Maybe
-import Data.Maybe                            (isJust, fromJust)
+import Data.Maybe                               (isJust, fromJust)
 import Web.Blog.Database
 import Web.Blog.Models
 import Web.Blog.Models.Util
 import Web.Blog.Render
 import Web.Blog.Types
 import Web.Blog.Views.Entry
-import qualified Data.Map                    as M
-import qualified Data.Text                   as T
-import qualified Data.Text.Lazy              as L
-import qualified Database.Persist.Postgresql as D
-import qualified Web.Scotty                  as S
+import qualified Data.Map                       as M
+import qualified Data.Text                      as T
+import qualified Data.Text.Lazy                 as L
+import qualified Database.Persist.Postgresql    as D
+import qualified Web.Scotty                     as S
 
 routeEntrySlug :: RouteEither
 routeEntrySlug = do
@@ -128,15 +133,27 @@ routeEntry (Right (D.Entity eKey e')) = do
   blankPageData <- genPageData
 
   let
-    pageData = blankPageData { pageDataTitle = Just $ entryTitle e'
-                             , pageDataCss   = ["/css/page/entry.css"
-                                               ,"/css/pygments.css"]
-                             , pageDataJs    = ["/js/disqus.js"
-                                               ,"/js/disqus_count.js"
-                                               ,"/js/social.js"
-                                               ,"/js/jquery/jquery.toc.js"
-                                               ,"/js/page/entry.js"]
-                             , pageDataMap   = pdMap M.empty
+    -- headers  =
+    --   [ Fo.forM_ (entryPostedAt e') $ \t ->
+    --       H.meta
+    --         H.! I.customAttribute "property" "og:article:published_time"
+    --         H.! A.content (I.textValue . T.pack . renderDatetimeTime $ t)
+    --   , Fo.forM_ (entryModifiedAt e') $ \t ->
+    --       H.meta
+    --         H.! I.customAttribute "property" "og:article:modified_time"
+    --         H.! A.content (I.textValue . T.pack . renderDatetimeTime $ t)
+    --   ]
+    pageData = blankPageData { pageDataTitle   = Just $ entryTitle e'
+                             , pageDataType    = Just "article"
+                             , pageDataCss     = ["/css/page/entry.css"
+                                                 ,"/css/pygments.css"]
+                             , pageDataJs      = ["/js/disqus.js"
+                                                 ,"/js/disqus_count.js"
+                                                 ,"/js/social.js"
+                                                 ,"/js/jquery/jquery.toc.js"
+                                                 ,"/js/page/entry.js"]
+                             -- , pageDataHeaders = headers
+                             , pageDataMap     = pdMap M.empty
                              }
 
   return $ Right (view, pageData)

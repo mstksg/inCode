@@ -65,6 +65,10 @@ viewLayout body = do
           (I.textValue $ T.append (siteDataTitle siteData) " (RSS Feed)")
         ! A.href "/rss"
 
+      H.link
+        ! A.href "/favicon.ico"
+        ! A.rel "shortcut icon"
+
       forM_ cssUrlList $ \u ->
         H.link ! A.href (I.textValue u) ! A.rel "stylesheet" ! A.type_ "text/css"
 
@@ -199,14 +203,23 @@ facebookSdkJs =
 viewOpenGraphMetas :: SiteRender H.Html
 viewOpenGraphMetas = do
   pageData' <- ask
+  img <- case pageDataImage pageData' of
+    Just pdImage -> renderUrl pdImage
+    Nothing -> renderUrl "/img/site_logo.jpg"
   let
-    title = fromMaybe (siteDataTitle siteData) $ pageDataTitle pageData'
-    img = fromMaybe "TODO" $ pageDataImage pageData'
-    ogType = fromMaybe "wbsite" $ pageDataType pageData'
+    title =
+      fromMaybe (siteDataTitle siteData) $ pageDataTitle pageData'
+    ogType =
+      fromMaybe "website" $ pageDataType pageData'
+    description =
+      fromMaybe (siteDataDescription siteData) $ pageDataDesc pageData'
   return $ do
     H.meta
       ! I.customAttribute "property" "og:site_name"
       ! A.content (I.textValue . siteDataTitle $ siteData)
+    H.meta
+      ! I.customAttribute "property" "og:description"
+      ! A.content (I.textValue description)
     H.meta
       ! I.customAttribute "property" "og:type"
       ! A.content (I.textValue ogType)
@@ -224,9 +237,6 @@ viewOpenGraphMetas = do
         ! I.customAttribute "property" "og:url"
         ! A.content (I.textValue url)
 
-
-    -- H.meta
-    --   ! I.customAttribute "property" "og:image"
 
 -- renderFonts :: [(T.Text,[T.Text])] -> H.Html
 -- renderFonts fs = H.link ! A.href l ! A.rel "stylesheet" ! A.type_ "text/css"
