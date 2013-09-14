@@ -33,7 +33,7 @@ siteData =
                    , authorInfoGithub    = "mstksg"
                    , authorInfoLinkedIn  = "lejustin"
                    }
-                
+
     hostConfig = HostConfig
                    { hostConfigHost = "blog-dev.jle0.com"
                    , hostConfigPort = Just 4288

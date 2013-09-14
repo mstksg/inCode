@@ -2,14 +2,16 @@
 
 module Web.Blog.Views.Layout (viewLayout, viewLayoutEmpty) where
 
+import Config.SiteData
 import Control.Applicative                   ((<$>))
 import Control.Monad.Reader
+import Data.Maybe                            (fromMaybe)
 import Data.Monoid
 import Text.Blaze.Html5                      ((!))
 import Web.Blog.Render
-import Config.SiteData
 import Web.Blog.Types
 import Web.Blog.Views.Social
+import qualified Data.Foldable               as Fo
 import qualified Data.Text                   as T
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
@@ -22,6 +24,7 @@ viewLayout body = do
   navBarHtml <- navBar
   title <- createTitle
   socialFollowsHtml <- viewSocialFollow
+  openGraphMetas <- viewOpenGraphMetas
   -- rssUrl <- renderUrl "/rss"
 
   let
@@ -48,8 +51,7 @@ viewLayout body = do
       H.meta ! A.httpEquiv "Content-Type" ! A.content "text/html;charset=utf-8"
       H.meta ! A.name "viewport" ! A.content "width=device-width,initial-scale=1.0"
 
-      forM_ cssUrlList $ \u ->
-        H.link ! A.href (I.textValue u) ! A.rel "stylesheet" ! A.type_ "text/css"
+      openGraphMetas
 
       H.link
         ! A.rel "author"
@@ -62,10 +64,10 @@ viewLayout body = do
         ! A.title
           (I.textValue $ T.append (siteDataTitle siteData) " (RSS Feed)")
         ! A.href "/rss"
-        -- ! A.href
-        --   (I.textValue rssUrl)
-        -- ! A.href
-        --   (I.textValue $ T.append "http://feeds.feedburner.com/" $ developerAPIsFeedburner $ siteDataDeveloperAPIs siteData)
+
+      forM_ cssUrlList $ \u ->
+        H.link ! A.href (I.textValue u) ! A.rel "stylesheet" ! A.type_ "text/css"
+
 
       H.script ! A.type_ "text/javascript" $ do
         H.toHtml $
@@ -83,6 +85,7 @@ viewLayout body = do
           mempty
 
       sequence_ (pageDataHeaders pageData')
+
 
     H.body $ do
 
@@ -193,6 +196,37 @@ facebookSdkJs =
         , "  fjs.parentNode.insertBefore(js, fjs);"
         , "}(document, 'script', 'facebook-jssdk'));"]
 
+viewOpenGraphMetas :: SiteRender H.Html
+viewOpenGraphMetas = do
+  pageData' <- ask
+  let
+    title = fromMaybe (siteDataTitle siteData) $ pageDataTitle pageData'
+    img = fromMaybe "TODO" $ pageDataImage pageData'
+    ogType = fromMaybe "wbsite" $ pageDataType pageData'
+  return $ do
+    H.meta
+      ! I.customAttribute "property" "og:site_name"
+      ! A.content (I.textValue . siteDataTitle $ siteData)
+    H.meta
+      ! I.customAttribute "property" "og:type"
+      ! A.content (I.textValue ogType)
+    H.meta
+      ! I.customAttribute "property" "og:title"
+      ! A.content (I.textValue title)
+    H.meta
+      ! I.customAttribute "property" "og:image"
+      ! A.content (I.textValue img)
+    H.meta
+      ! I.customAttribute "property" "og:locale"
+      ! A.content "en_US"
+    Fo.forM_ (pageDataUrl pageData') $ \url ->
+      H.meta
+        ! I.customAttribute "property" "og:url"
+        ! A.content (I.textValue url)
+
+
+    -- H.meta
+    --   ! I.customAttribute "property" "og:image"
 
 -- renderFonts :: [(T.Text,[T.Text])] -> H.Html
 -- renderFonts fs = H.link ! A.href l ! A.rel "stylesheet" ! A.type_ "text/css"

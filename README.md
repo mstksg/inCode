@@ -15,7 +15,10 @@ after fifteen minutes.  You're going to have to compile the binaries to a
 similar architecture and push the binaries and static files.
 
 Basically using [these deploy instructions][yesod_deploy] to set up the
-virtual machine and everything.
+virtual machine and everything.  Be sure to upgrade GHC to at least 7.6.4 or
+something like that.  It kind of makes the time spent installing the GHC 7.4 a
+waste, but I might work on making a more up to date vagrant distribution
+later.
 
 Check out the repo and, on a branch of your choosing, run
 

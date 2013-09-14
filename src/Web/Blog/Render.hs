@@ -3,6 +3,7 @@
 module Web.Blog.Render (
     siteRenderAction
   , pageData
+  , genPageData
   , renderUrl
   , renderUrl'
   , renderRawCopy
@@ -34,12 +35,22 @@ import qualified Web.Scotty                         as S
 pageData :: PageData
 pageData =  PageData
             { pageDataTitle   = Nothing
+            , pageDataDesc    = Nothing
+            , pageDataImage   = Nothing
+            , pageDataUrl     = Nothing
+            , pageDataType    = Nothing
             , pageDataCss     = []
             , pageDataJs      = []
             , pageDataHeaders = []
             , pageDataMap     = M.empty
             , pageSiteData    = siteData
             }
+
+genPageData :: S.ActionM PageData
+genPageData = do
+    host <- L.toStrict <$> S.reqHeader "Host"
+    path <- T.concat . pathInfo <$> S.request
+    return pageData { pageDataUrl = Just $ T.append host path }
 
 siteRenderAction :: SiteRender H.Html -> PageData -> S.ActionM ()
 siteRenderAction htmlRender pageData' = do
