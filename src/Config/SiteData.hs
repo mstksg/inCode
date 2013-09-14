@@ -53,10 +53,3 @@ siteData =
                  , appPrefsLedeMax     = 2
                  , appPrefsFeedEntries = 15
                  }
-    -- databaseConfig = Just DatabaseConfig
-    --                    { databaseConfigHost     = "localhost"
-    --                    , databaseConfigName     = "test_blog"
-    --                    , databaseConfigUser     = "blog-test"
-    --                    , databaseConfigPassword = "blog-testblog-test"
-    --                    , databaseConfigPort     = 4432
-    --                    }
