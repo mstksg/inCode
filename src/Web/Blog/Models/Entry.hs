@@ -4,6 +4,7 @@ module Web.Blog.Models.Entry  where
 
 -- import Control.Monad
 -- import qualified Database.Esqueleto       as E
+import Config.SiteData
 import Control.Applicative                   ((<$>))
 import Control.Monad.IO.Class                (liftIO)
 import Control.Monad.Loops                   (firstM)
@@ -13,7 +14,6 @@ import Data.Time
 import Web.Blog.Models
 import Web.Blog.Models.Slug
 import Web.Blog.Models.Types
-import Config.SiteData
 import Web.Blog.Types
 import Web.Blog.Util
 import qualified Data.Aeson                  as A
@@ -24,6 +24,9 @@ import qualified Data.Vector                 as V
 import qualified Database.Persist.Postgresql as D
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Pandoc                 as P
+-- import qualified Text.Pandoc.Generic         as P
+import qualified Text.Pandoc.Shared          as P
+import qualified Text.Pandoc.Builder         as P
 
 slugLength :: Int
 slugLength = appPrefsSlugLength $ siteDataAppPrefs siteData
@@ -86,6 +89,34 @@ entryLedePandoc entry = P.Pandoc m ledeBs
                     P.HorizontalRule -> False
                     _ -> True
 
+entryLedeStripped :: Entry -> T.Text
+entryLedeStripped e = T.pack $ P.stringify inls
+  where
+    P.Pandoc _ bs = entryLedePandoc e
+    inls = concatMap grabInls bs
+    grabInls :: P.Block -> [P.Inline]
+    grabInls (P.Plain inls') = inls'
+    grabInls (P.Para inls') = inls'
+    grabInls (P.CodeBlock _ str) = P.toList $ P.text str
+    grabInls (P.RawBlock _ str) = P.toList $ P.text str
+    grabInls (P.BlockQuote bs') = concatMap grabInls bs'
+    grabInls (P.OrderedList _ bss ) =
+      concatMap ((++) (P.toList $ P.text " * ") . concatMap grabInls) bss
+    grabInls (P.BulletList bss) =
+      concatMap ((++) (P.toList $ P.text " * ") . concatMap grabInls) bss
+    grabInls (P.DefinitionList ds) = concatMap mapDs ds
+      where
+        mapDs (inls', bss) = 
+          concat
+            [ P.toList $ P.text " * "
+            , inls'
+            , P.toList $ P.text ": "
+            , concatMap (concatMap grabInls) bss
+            ]
+    grabInls (P.Header _ _ inls') = inls'
+    grabInls (P.HorizontalRule) = P.toList $ P.text "---"
+    grabInls (P.Table cap _ _ _ _) = cap
+    grabInls _ = []
 
 
 genEntrySlug :: Int -> D.Key Entry -> T.Text -> D.SqlPersistM T.Text

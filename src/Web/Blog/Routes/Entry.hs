@@ -133,18 +133,9 @@ routeEntry (Right (D.Entity eKey e')) = do
   blankPageData <- genPageData
 
   let
-    -- headers  =
-    --   [ Fo.forM_ (entryPostedAt e') $ \t ->
-    --       H.meta
-    --         H.! I.customAttribute "property" "og:article:published_time"
-    --         H.! A.content (I.textValue . T.pack . renderDatetimeTime $ t)
-    --   , Fo.forM_ (entryModifiedAt e') $ \t ->
-    --       H.meta
-    --         H.! I.customAttribute "property" "og:article:modified_time"
-    --         H.! A.content (I.textValue . T.pack . renderDatetimeTime $ t)
-    --   ]
     pageData = blankPageData { pageDataTitle   = Just $ entryTitle e'
                              , pageDataType    = Just "article"
+                             , pageDataDesc    = Just $ entryLedeStripped e'
                              , pageDataCss     = ["/css/page/entry.css"
                                                  ,"/css/pygments.css"]
                              , pageDataJs      = ["/js/disqus.js"
@@ -152,7 +143,6 @@ routeEntry (Right (D.Entity eKey e')) = do
                                                  ,"/js/social.js"
                                                  ,"/js/jquery/jquery.toc.js"
                                                  ,"/js/page/entry.js"]
-                             -- , pageDataHeaders = headers
                              , pageDataMap     = pdMap M.empty
                              }
 
