@@ -19,6 +19,7 @@ share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Entry json
     title       T.Text
     content     T.Text
+    image       FilePath Maybe
     createdAt   UTCTime Maybe
     postedAt    UTCTime Maybe
     modifiedAt  UTCTime Maybe

@@ -1,9 +1,12 @@
+module Main where
+
 import Development.Shake
 import Text.Pandoc
 import Control.Monad
 import Control.Monad.Loops
 import Control.Monad.IO.Class
 import System.INotify
+import System.Directory
 
 opts = shakeOptions { shakeFiles    = ".shake/"
                     , shakeProgress = progressSimple }
@@ -12,7 +15,6 @@ opts = shakeOptions { shakeFiles    = ".shake/"
 
 binPath = "cabal-dev/bin/"
 cmdBin = cmd . (++) binPath
-cmdCabal = cmd "cabal-dev"
 systemBin = system' . (++) binPath
 
 main :: IO ()
@@ -27,6 +29,13 @@ main = shakeArgs opts $ do
   "launch" ~> do
     need ["build"]
     systemBin "blog" []
+
+  "deploy" ~> do
+    need ["build"]
+    liftIO $ createDirectoryIfMissing True "bin"
+    copyFile' "dist/build/blog/blog" "bin/blog"
+
+    
 
   "migrate" ~> do
     need ["cabal-dev/bin/blog-scripts-migrate"]
@@ -54,7 +63,7 @@ main = shakeArgs opts $ do
   "cabal-dev/bin/blog" *> \_ -> do
     fs <- srcFiles
     need fs
-    cmdCabal ["install"]
+    cmd "cabal-dev" ["install"]
 
   "cabal-dev/bin/blog-scripts-migrate" *> \_ -> do
     need ["build"]

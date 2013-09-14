@@ -7,3 +7,6 @@
 /static/img/test
 /tags
 /copy/entries
+/bin
+
+!/bin/blog

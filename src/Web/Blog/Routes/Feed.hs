@@ -21,7 +21,7 @@ routeFeed = do
   let
     m = appPrefsFeedEntries $ siteDataAppPrefs siteData
 
-  now <- liftIO $ getCurrentTime
+  now <- liftIO getCurrentTime
   eList <- liftIO $ runDB $
     postedEntries [ D.Desc EntryPostedAt
                   , D.LimitTo m ]
@@ -34,4 +34,4 @@ routeFeed = do
 
   entryInfos <- mapM wrapEntryInfo eList
 
-  return (viewFeed entryInfos now, pageData)
+  return (viewFeed entryInfos now, emptyPageData)

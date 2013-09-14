@@ -2,15 +2,16 @@
 
 module Web.Blog.Views.Home (viewHome) where
 
+import Config.SiteData
 import Control.Applicative                   ((<$>))
 import Control.Monad.Reader
+import Data.Time                             (getCurrentTimeZone)
 import Text.Blaze.Html5                      ((!))
 import Web.Blog.Database
 import Web.Blog.Models
 import Web.Blog.Models.Types
 import Web.Blog.Models.Util
 import Web.Blog.Render
-import Config.SiteData
 import Web.Blog.Types
 import Web.Blog.Util                         (renderFriendlyTime, renderDatetimeTime)
 import Web.Blog.Views.Copy
@@ -32,6 +33,7 @@ viewHome eList pageNum = do
   tagsHtml <- viewTags
   homeUrl <- renderUrl "/"
   socialFollowsHtml <- viewSocialFollow
+  entryListHtml <- entryList eList pageDataMap' pageNum
 
 
   return $
@@ -51,7 +53,7 @@ viewHome eList pageNum = do
             socialFollowsHtml
 
       H.div ! A.class_ "unit three-of-four" $
-        entryList eList pageDataMap' pageNum
+        entryListHtml
 
       H.nav ! A.class_ "unit one-of-four home-sidebar" $ do
         H.div ! A.class_ "tile home-links" $
@@ -60,66 +62,69 @@ viewHome eList pageNum = do
           tagsHtml
 
 
-entryList :: [(D.Entity Entry,(T.Text,[Tag]))] -> PageDataMap -> Int -> H.Html
+entryList :: [(D.Entity Entry,(T.Text,[Tag]))] -> PageDataMap -> Int -> SiteRender H.Html
 entryList eList pageDataMap' pageNum = do
-  H.div ! A.class_ "tile" $
-    H.h2 ! A.class_ "recent-header" $ do
-      "Recent Entries" :: H.Html
-      when (pageNum > 1) $ do
-        " (Page " :: H.Html
-        H.toHtml pageNum
-        ")" :: H.Html
+  tz <- liftIO getCurrentTimeZone
 
-  H.ul $
-    forM_ eList $ \(D.Entity _ e,(u,ts)) -> do
-      let
-        commentUrl = T.append u "#disqus_thread"
-      H.li $
-        H.article ! A.class_ "tile" $ do
-          H.header $ do
-            Fo.forM_ (entryPostedAt e) $ \t ->
-              H.time
-                ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime t)
-                ! A.pubdate ""
-                ! A.class_ "pubdate"
-                $ H.toHtml $ renderFriendlyTime t
-            H.h3 $
-              H.a ! A.href (I.textValue u) $
-                H.toHtml $ entryTitle e
+  return $ do
+    H.div ! A.class_ "tile" $
+      H.h2 ! A.class_ "recent-header" $ do
+        "Recent Entries" :: H.Html
+        when (pageNum > 1) $ do
+          " (Page " :: H.Html
+          H.toHtml pageNum
+          ")" :: H.Html
 
-          H.div ! A.class_ "entry-lede copy-content" $ do
-            entryLedeHtml e
-            H.p $ do
-              H.a ! A.href (I.textValue u) ! A.class_ "link-readmore" $
-                H.preEscapedToHtml
-                  ("Read more &hellip; " :: T.Text)
-              " " :: H.Html
-              H.a ! A.href (I.textValue commentUrl) ! A.class_ "link-comment" $
-                "Comments"
+    H.ul $
+      forM_ eList $ \(D.Entity _ e,(u,ts)) -> do
+        let
+          commentUrl = T.append u "#disqus_thread"
+        H.li $
+          H.article ! A.class_ "tile" $ do
+            H.header $ do
+              Fo.forM_ (entryPostedAt e) $ \t ->
+                H.time
+                  ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime t)
+                  ! A.pubdate ""
+                  ! A.class_ "pubdate"
+                  $ H.toHtml $ renderFriendlyTime tz t
+              H.h3 $
+                H.a ! A.href (I.textValue u) $
+                  H.toHtml $ entryTitle e
 
-          H.footer $
-            H.ul ! A.class_ "tag-list" $
-              forM_ ts $ \t ->
-                tagLi t
+            H.div ! A.class_ "entry-lede copy-content" $ do
+              entryLedeHtml e
+              H.p $ do
+                H.a ! A.href (I.textValue u) ! A.class_ "link-readmore" $
+                  H.preEscapedToHtml
+                    ("Read more &hellip; " :: T.Text)
+                " " :: H.Html
+                H.a ! A.href (I.textValue commentUrl) ! A.class_ "link-comment" $
+                  "Comments"
 
-  let
-    hasNextPrev = not $
-      null $ L.intersect ["nextPage","prevPage"] $ M.keys pageDataMap'
+            H.footer $
+              H.ul ! A.class_ "tag-list" $
+                forM_ ts $ \t ->
+                  tagLi t
 
-  when hasNextPrev $
-    H.footer ! A.class_ "tile home-footer" $
-      H.nav $ do
-        H.ul $ do
-          Fo.forM_ (M.lookup "nextPage" pageDataMap') $ \nlink ->
-            H.li ! A.class_ "home-next" $
-              H.a ! A.href (I.textValue nlink) $
-                H.preEscapedToHtml ("&larr; Older" :: T.Text)
+    let
+      hasNextPrev = not $
+        null $ L.intersect ["nextPage","prevPage"] $ M.keys pageDataMap'
 
-          Fo.forM_ (M.lookup "prevPage" pageDataMap') $ \plink ->
-            H.li ! A.class_ "home-prev" $
-              H.a ! A.href (I.textValue plink) $
-                H.preEscapedToHtml ("Newer &rarr;" :: T.Text)
-        H.div ! A.class_ "clear" $ ""
+    when hasNextPrev $
+      H.footer ! A.class_ "tile home-footer" $
+        H.nav $ do
+          H.ul $ do
+            Fo.forM_ (M.lookup "nextPage" pageDataMap') $ \nlink ->
+              H.li ! A.class_ "home-next" $
+                H.a ! A.href (I.textValue nlink) $
+                  H.preEscapedToHtml ("&larr; Older" :: T.Text)
+
+            Fo.forM_ (M.lookup "prevPage" pageDataMap') $ \plink ->
+              H.li ! A.class_ "home-prev" $
+                H.a ! A.href (I.textValue plink) $
+                  H.preEscapedToHtml ("Newer &rarr;" :: T.Text)
+          H.div ! A.class_ "clear" $ ""
 
 viewLinks :: SiteRender H.Html
 viewLinks = renderRawCopy "copy/static/home-links.md"

@@ -42,6 +42,8 @@ routeHome page = do
                       , D.OffsetBy $ (page - 1) * m ]
           >>= mapM wrapEntryData
 
+      blankPageData <- genPageData
+
       let
         pdMap = execState $ do
           when (page > 1) $ do
@@ -60,14 +62,14 @@ routeHome page = do
               M.insert "nextPage" (T.append urlBase $ T.pack $ show $ page + 1)
 
         view = viewHome eList page
-        pageData' = pageData { pageDataTitle = pageTitle
-                             , pageDataCss   = ["/css/page/home.css"
-                                               ,"/css/pygments.css"]
-                             , pageDataJs    = ["/js/disqus_count.js"]
-                             , pageDataMap   = pdMap M.empty
-                             }
+        pageData = blankPageData { pageDataTitle = pageTitle
+                                 , pageDataCss   = ["/css/page/home.css"
+                                                   ,"/css/pygments.css"]
+                                 , pageDataJs    = ["/js/disqus_count.js"]
+                                 , pageDataMap   = pdMap M.empty
+                                 }
 
-      return $ Right (view, pageData')
+      return $ Right (view, pageData)
 
 maxPage :: Int -> D.SqlPersistM Int
 maxPage perPage = do

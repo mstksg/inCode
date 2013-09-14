@@ -2,22 +2,27 @@
 
 module Web.Blog.Routes.Entry (routeEntrySlug, routeEntryId) where
 
-import Control.Applicative                   ((<$>))
+-- import Web.Blog.Util
+-- import qualified Data.Foldable as Fo         (forM_)
+-- import qualified Text.Blaze.Html5            as H
+-- import qualified Text.Blaze.Html5.Attributes as A
+-- import qualified Text.Blaze.Internal         as I
+import Control.Applicative                      ((<$>))
 import Control.Monad.IO.Class
 import Control.Monad.State
 import Control.Monad.Trans.Maybe
-import Data.Maybe                            (isJust, fromJust)
+import Data.Maybe                               (isJust, fromJust)
 import Web.Blog.Database
 import Web.Blog.Models
 import Web.Blog.Models.Util
 import Web.Blog.Render
 import Web.Blog.Types
 import Web.Blog.Views.Entry
-import qualified Data.Map                    as M
-import qualified Data.Text                   as T
-import qualified Data.Text.Lazy              as L
-import qualified Database.Persist.Postgresql as D
-import qualified Web.Scotty                  as S
+import qualified Data.Map                       as M
+import qualified Data.Text                      as T
+import qualified Data.Text.Lazy                 as L
+import qualified Database.Persist.Postgresql    as D
+import qualified Web.Scotty                     as S
 
 routeEntrySlug :: RouteEither
 routeEntrySlug = do
@@ -123,18 +128,26 @@ routeEntry (Right (D.Entity eKey e')) = do
         modify (M.insert ("nextUrl" :: T.Text) nextUrl)
 
     view = viewEntry e' tags (fst <$> prevData) (fst <$> nextData)
-    pageData' = pageData { pageDataTitle = Just $ entryTitle e'
-                         , pageDataCss   = ["/css/page/entry.css"
-                                           ,"/css/pygments.css"]
-                         , pageDataJs    = ["/js/disqus.js"
-                                           ,"/js/disqus_count.js"
-                                           ,"/js/social.js"
-                                           ,"/js/jquery/jquery.toc.js"
-                                           ,"/js/page/entry.js"]
-                         , pageDataMap   = pdMap M.empty
-                         }
 
-  return $ Right (view, pageData')
+
+  blankPageData <- genPageData
+
+  let
+    pageData = blankPageData { pageDataTitle   = Just $ entryTitle e'
+                             , pageDataType    = Just "article"
+                             , pageDataDesc    = Just $ entryLedeStripped e'
+                             , pageDataImage   = entryImage e'
+                             , pageDataCss     = ["/css/page/entry.css"
+                                                 ,"/css/pygments.css"]
+                             , pageDataJs      = ["/js/disqus.js"
+                                                 ,"/js/disqus_count.js"
+                                                 ,"/js/social.js"
+                                                 ,"/js/jquery/jquery.toc.js"
+                                                 ,"/js/page/entry.js"]
+                             , pageDataMap     = pdMap M.empty
+                             }
+
+  return $ Right (view, pageData)
 routeEntry (Left r) = return $ Left r
 
 entryAux :: D.Key Entry -> Entry -> D.SqlPersistM ([Tag],Maybe (Entry, T.Text),Maybe (Entry, T.Text))

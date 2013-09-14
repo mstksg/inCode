@@ -24,14 +24,17 @@ routeArchive :: T.Text -> [D.Entity Entry] -> ViewArchiveType -> RouteEither
 routeArchive title entries viewType = do
   let
     grouped = groupEntries entries
+
   eList' <- liftIO $ runDB $ mapM (mapM (mapM wrapEntryData)) grouped
+  blankPageData <- genPageData
+
   let
     view = viewArchive eList' viewType
-    pageData' = pageData { pageDataTitle = Just title
-                         , pageDataCss   = ["/css/page/archive.css"]
-                         , pageDataJs    = ["/js/disqus_count.js"] }
+    pageData = blankPageData { pageDataTitle = Just title
+                             , pageDataCss   = ["/css/page/archive.css"]
+                             , pageDataJs    = ["/js/disqus_count.js"] }
 
-  return $ Right (view, pageData')
+  return $ Right (view, pageData)
 
 routeArchiveFilters :: T.Text -> [D.Filter Entry] -> ViewArchiveType -> RouteEither
 routeArchiveFilters title filters pdMap = do

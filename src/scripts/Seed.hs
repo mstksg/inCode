@@ -134,6 +134,7 @@ genEntry = do
     e = Entry
       (T.pack title)
       (T.pack body)
+      Nothing
       (Just createTime)
       (Just postTime)
       Nothing
