@@ -40,11 +40,13 @@ siteData =
                    }
 
     developerAPIs = DeveloperAPIs
-                      ("UA-443711-7", "jle0.com")
-                      "justinleblogdevelopment"
-                      "645245675494525"
-                      "ra-520df7c304b817b9"
-                      "justinleblogdevelopment"
+                      { developerAPIsAnalytics       = ("UA-443711-7", "jle0.com")
+                      , developerAPIsDisqusShortname = "justinleblogdevelopment"
+                      , developerAPIsFacebook        = "645245675494525"
+                      , developerAPIsAddThis         = "ra-520df7c304b817b9"
+                      , developerAPIsFeedburner      = "justinleblogdevelopment"
+                      }
+
     appPrefs = AppPrefs
                  { appPrefsSlugLength  = 8
                  , appPrefsHomeEntries = 5
