@@ -80,7 +80,7 @@ type PageDataMap = M.Map T.Text T.Text
 data PageData = PageData
                 { pageDataTitle   :: Maybe T.Text
                 , pageDataDesc    :: Maybe T.Text
-                , pageDataImage   :: Maybe T.Text
+                , pageDataImage   :: Maybe FilePath
                 , pageDataType    :: Maybe T.Text
                 , pageDataUrl     :: Maybe T.Text
                 , pageDataCss     :: [T.Text]

@@ -136,6 +136,7 @@ routeEntry (Right (D.Entity eKey e')) = do
     pageData = blankPageData { pageDataTitle   = Just $ entryTitle e'
                              , pageDataType    = Just "article"
                              , pageDataDesc    = Just $ entryLedeStripped e'
+                             , pageDataImage   = entryImage e'
                              , pageDataCss     = ["/css/page/entry.css"
                                                  ,"/css/pygments.css"]
                              , pageDataJs      = ["/js/disqus.js"

@@ -204,7 +204,7 @@ viewOpenGraphMetas :: SiteRender H.Html
 viewOpenGraphMetas = do
   pageData' <- ask
   img <- case pageDataImage pageData' of
-    Just pdImage -> renderUrl pdImage
+    Just pdImage -> renderUrl $ T.pack pdImage
     Nothing -> renderUrl "/img/site_logo.jpg"
   let
     title =
