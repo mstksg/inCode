@@ -2,7 +2,7 @@
 
 module Web.Blog.Render (
     siteRenderAction
-  , pageData
+  , emptyPageData
   , genPageData
   , renderUrl
   , renderUrl'
@@ -32,8 +32,8 @@ import qualified Text.Pandoc                        as P
 import qualified Web.Scotty                         as S
 
 
-pageData :: PageData
-pageData =  PageData
+emptyPageData :: PageData
+emptyPageData =  PageData
             { pageDataTitle   = Nothing
             , pageDataDesc    = Nothing
             , pageDataImage   = Nothing
@@ -48,15 +48,31 @@ pageData =  PageData
 
 genPageData :: S.ActionM PageData
 genPageData = do
-    host <- L.toStrict <$> S.reqHeader "Host"
-    path <- T.concat . pathInfo <$> S.request
-    return pageData { pageDataUrl = Just $ T.append host path }
+    protocolHost <- renderProtocolHost
+    pathText <- T.intercalate "/" . pathInfo <$> S.request
+    return emptyPageData { pageDataUrl = Just $ T.intercalate "/"
+                             [ protocolHost
+                             , pathText
+                             ] }
 
 siteRenderAction :: SiteRender H.Html -> PageData -> S.ActionM ()
 siteRenderAction htmlRender pageData' = do
   ran <- runReaderT htmlRender pageData'
   S.html $ B.renderHtml ran
   -- S.html $ L.pack $ B.renderHtml ran
+
+renderProtocolHost :: S.ActionM T.Text
+renderProtocolHost = do
+  host <- L.toStrict <$> S.reqHeader "Host"
+  request <- S.request
+  let
+    protocol =
+      if isSecure request
+        then
+          "https://"
+        else
+          "http://"
+  return $ T.append protocol host
 
 renderUrl :: T.Text -> SiteRender T.Text
 renderUrl url = do
@@ -65,8 +81,8 @@ renderUrl url = do
   if hasP
     then return url
     else do
-      host <- lift $ S.reqHeader "Host"
-      return $ T.concat ["http://",L.toStrict host,url]
+      protocolHost <- lift renderProtocolHost
+      return $ T.concat [protocolHost, url]
 
 renderUrl' :: T.Text -> T.Text
 renderUrl' url =

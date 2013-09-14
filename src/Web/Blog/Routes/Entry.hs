@@ -123,18 +123,23 @@ routeEntry (Right (D.Entity eKey e')) = do
         modify (M.insert ("nextUrl" :: T.Text) nextUrl)
 
     view = viewEntry e' tags (fst <$> prevData) (fst <$> nextData)
-    pageData' = pageData { pageDataTitle = Just $ entryTitle e'
-                         , pageDataCss   = ["/css/page/entry.css"
-                                           ,"/css/pygments.css"]
-                         , pageDataJs    = ["/js/disqus.js"
-                                           ,"/js/disqus_count.js"
-                                           ,"/js/social.js"
-                                           ,"/js/jquery/jquery.toc.js"
-                                           ,"/js/page/entry.js"]
-                         , pageDataMap   = pdMap M.empty
-                         }
 
-  return $ Right (view, pageData')
+
+  blankPageData <- genPageData
+
+  let
+    pageData = blankPageData { pageDataTitle = Just $ entryTitle e'
+                             , pageDataCss   = ["/css/page/entry.css"
+                                               ,"/css/pygments.css"]
+                             , pageDataJs    = ["/js/disqus.js"
+                                               ,"/js/disqus_count.js"
+                                               ,"/js/social.js"
+                                               ,"/js/jquery/jquery.toc.js"
+                                               ,"/js/page/entry.js"]
+                             , pageDataMap   = pdMap M.empty
+                             }
+
+  return $ Right (view, pageData)
 routeEntry (Left r) = return $ Left r
 
 entryAux :: D.Key Entry -> Entry -> D.SqlPersistM ([Tag],Maybe (Entry, T.Text),Maybe (Entry, T.Text))

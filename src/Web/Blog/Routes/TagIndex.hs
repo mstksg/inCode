@@ -21,6 +21,7 @@ routeTagIndex tt = do
                 SeriesTag -> TagSortRecent
 
   tagInfos <- liftIO $ runDB $ getTagInfoList tt sorting (tt /= GeneralTag)
+  blankPageData <- genPageData
 
   let
     view = viewTagIndex tagInfos tt
@@ -28,7 +29,7 @@ routeTagIndex tt = do
               GeneralTag -> "Tags List"
               CategoryTag -> "Category List"
               SeriesTag -> "Series List"
-    pageData' = pageData { pageDataTitle = Just title
-                         , pageDataCss   = ["/css/page/archive.css"] }
+    pageData = blankPageData { pageDataTitle = Just title
+                             , pageDataCss   = ["/css/page/archive.css"] }
 
-  return $ Right (view,pageData')
+  return $ Right (view,pageData)
