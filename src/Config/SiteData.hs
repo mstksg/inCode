@@ -15,8 +15,8 @@ siteData =
     , siteDataHostConfig      = hostConfig
     , siteDataDeveloperAPIs   = developerAPIs
     , siteDataAppPrefs        = appPrefs
-    , siteDataDatabaseConfig  = databaseConfig
-    , siteDataSiteEnvironment = SiteEnvironmentDevelopment
+    , siteDataDatabaseConfig  = Nothing
+    , siteDataSiteEnvironment = SiteEnvironmentProduction
     }
   where
     description = T.concat
@@ -35,26 +35,27 @@ siteData =
                    }
 
     hostConfig = HostConfig
-                   { hostConfigHost = "blog-dev.jle0.com"
-                   , hostConfigPort = Just 4288
+                   { hostConfigHost = "blog.jle.im"
+                   , hostConfigPort = Nothing
                    }
 
     developerAPIs = DeveloperAPIs
-                      ("UA-443711-7", "jle0.com")
-                      "justinleblogdevelopment"
-                      "645245675494525"
-                      "ra-520df7c304b817b9"
-                      "justinleblogdevelopment"
+                      { developerAPIsAnalytics       = ("UA-443711-7", "jle0.com")
+                      , developerAPIsDisqusShortname = "incode"
+                      , developerAPIsFacebook        = "641852699171929"
+                      , developerAPIsAddThis         = "ra-5234d67a6b68dcd4"
+                      , developerAPIsFeedburner      = "incode"
+                      }
     appPrefs = AppPrefs
                  { appPrefsSlugLength  = 8
                  , appPrefsHomeEntries = 5
                  , appPrefsLedeMax     = 2
                  , appPrefsFeedEntries = 15
                  }
-    databaseConfig = Just DatabaseConfig
-                       { databaseConfigHost     = "localhost"
-                       , databaseConfigName     = "test_blog"
-                       , databaseConfigUser     = "blog-test"
-                       , databaseConfigPassword = "blog-testblog-test"
-                       , databaseConfigPort     = 4432
-                       }
+    -- databaseConfig = Just DatabaseConfig
+    --                    { databaseConfigHost     = "localhost"
+    --                    , databaseConfigName     = "test_blog"
+    --                    , databaseConfigUser     = "blog-test"
+    --                    , databaseConfigPassword = "blog-testblog-test"
+    --                    , databaseConfigPort     = 4432
+    --                    }
