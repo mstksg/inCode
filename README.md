@@ -44,6 +44,14 @@ environment variable is set properly:
     # Note: Heroku recommends waiting five or so minutes between these
     #   commands when you are first setting up your database
 
+As a small but possily relevant sidenote, all of the "friendly" dates
+(including most importantly the dates in the entry metadata fields) are in
+terms of the system time zone; you can set this for Heroku by running
+(substituting the [TZ Timezone][TZs] if your choice):
+
+    heroku config:add TZ="America/Los_Angeles"
+
 And you should be good to go!
 
 [yesod_deploy]: https://github.com/yesodweb/yesod/wiki/Deploying-Yesod-Apps-to-Heroku
+[TZs]: http://en.wikipedia.org/wiki/List_of_tz_database_time_zones

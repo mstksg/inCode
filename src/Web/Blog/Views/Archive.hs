@@ -16,6 +16,7 @@ import Web.Blog.Database
 import Web.Blog.Models
 import Web.Blog.Models.Util
 import Web.Blog.Render
+import Data.Time
 import Web.Blog.Types
 import Web.Blog.Util
 import qualified Data.Foldable as Fo         (forM_)
@@ -155,7 +156,7 @@ viewArchiveFlat eList viewType =
               ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime t)
               ! A.pubdate ""
               ! A.class_ "pubdate"
-              $ H.toHtml $ renderFriendlyTime t
+              $ H.toHtml $ renderFriendlyTime utc t
             H.preEscapedToHtml
               (" &mdash; " :: T.Text)
           H.a ! A.href (I.textValue commentUrl) ! A.class_ "entry-comments" $
@@ -183,7 +184,7 @@ viewArchiveFlat eList viewType =
         _                     -> const True
 
 
-viewArchiveByMonths :: [[(D.Entity Entry,(T.Text,[Tag]))]] -> ViewArchiveType -> H.Html
+viewArchiveByMonths :: [[(D.Entity Entry,(T.Text,[Tag]))]] -> ViewArchiveType -> SiteRender H.Html
 viewArchiveByMonths eListMonths viewType =
   H.ul ! A.class_ ulClass $
 
@@ -204,7 +205,7 @@ viewArchiveByMonths eListMonths viewType =
         ViewArchiveAll -> "entry-list"
         _ -> "tile entry-list"
 
-viewArchiveByYears :: [[[(D.Entity Entry,(T.Text,[Tag]))]]] -> ViewArchiveType -> H.Html
+viewArchiveByYears :: [[[(D.Entity Entry,(T.Text,[Tag]))]]] -> ViewArchiveType -> SiteRender H.Html
 viewArchiveByYears eListYears viewType =
   H.ul ! A.class_ "entry-list" $
     forM_ eListYears $ \eListMonths -> do

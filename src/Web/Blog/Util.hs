@@ -6,8 +6,11 @@ import qualified Data.Text as T
 import Data.Char (isAlphaNum)
 
 
-renderFriendlyTime :: UTCTime -> String
-renderFriendlyTime = formatTime defaultTimeLocale "%A %B %-e, %Y"
+renderFriendlyTime :: TimeZone -> UTCTime -> String
+renderFriendlyTime tz = formatTime defaultTimeLocale "%A %B %-e, %Y" . zonedTime
+  where
+    zonedTime = utcToZonedTime tz
+
 
 renderDatetimeTime :: UTCTime -> String
 renderDatetimeTime = formatTime defaultTimeLocale "%FT%XZ"

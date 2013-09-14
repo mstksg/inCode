@@ -35,6 +35,7 @@ data MetaValue = MetaValueTime UTCTime
                | MetaValueTags [D.Entity Tag]
                | MetaValueText T.Text
                | MetaValueTexts [T.Text]
+               | MetaValueNull
                deriving ( Show, Eq, Read )
 
 loadEntries :: FilePath -> IO ()
@@ -53,8 +54,11 @@ loadEntries entriesDir = do
 -- TODO: emit warnings, wrap in writer monad.
 processEntryFile :: FilePath -> D.SqlPersistM (D.Key Entry)
 processEntryFile entryFile = do
+    tzone <- liftIO getCurrentTimeZone
+
     (P.Pandoc _ contents, _) <- liftIO $
       readMarkdown <$> readFile entryFile
+
     let
       writeMarkdownBlocks bs = writeMarkdown $ P.doc $ P.fromList bs
       (P.Header _ _ headerBlocks, metaBody) = stripAndTake isHeader contents
@@ -63,7 +67,7 @@ processEntryFile entryFile = do
       title = T.pack $ writeMarkdownBlocks $ pure $ P.Plain headerBlocks
       entryMarkdown = writeMarkdownBlocks body
 
-    metas <- fmap M.fromList $ mapM processMeta $ defListList metaBlock
+    metas <- fmap M.fromList . mapM (processMeta tzone) $ defListList metaBlock
 
     entryEntity@(D.Entity eKey _) <- do
       entryMaybe <- findExistingEntry title metas
@@ -105,6 +109,7 @@ processEntryFile entryFile = do
     isDefList _                       = False
     defListList (P.DefinitionList ds) = ds
     defListList _                     = mempty
+    applyMetas _ _ MetaValueNull = return ()
     applyMetas (D.Entity entryKey _) MetaKeyCreateTime (MetaValueTime t) =
       void $ D.update entryKey [EntryCreatedAt D.=. Just t]
     applyMetas (D.Entity entryKey _) MetaKeyPostDate (MetaValueTime t) =
@@ -142,7 +147,7 @@ processEntryFile entryFile = do
             , progressReport "Looking up entry by previous titles..."
             ]
           , prevTitlesSearch
-          , [ progressReport "No entry found ... creating new entry" 
+          , [ progressReport "No entry found ... creating new entry"
             ]
           ]
           where
@@ -156,8 +161,8 @@ processEntryFile entryFile = do
 
 
 
-processMeta :: ([P.Inline], [[P.Block]]) -> D.SqlPersistM (MetaKey, MetaValue)
-processMeta (keyBlocks, valBlockss) = do
+processMeta :: TimeZone -> ([P.Inline], [[P.Block]]) -> D.SqlPersistM (MetaKey, MetaValue)
+processMeta tzone (keyBlocks, valBlockss) = do
     metaValue <- case metaKey of
       MetaKeyPostDate -> readTimeBlockss valBlockss
       MetaKeyModifiedTime -> readTimeBlockss valBlockss
@@ -173,8 +178,11 @@ processMeta (keyBlocks, valBlockss) = do
     return (metaKey, metaValue)
   where
     metaKey = read $ (++) "MetaKey" $ renderBlocks $ pure $ P.Plain keyBlocks
-    readTime' = readTime defaultTimeLocale "%Y/%m/%d %X"
-    readTimeBlockss bss = return $ MetaValueTime $ readTime' $ renderBlocks $ head bss
+    readTime' = parseTime defaultTimeLocale "%Y/%m/%d %X %z"
+    readTimeBlockss bss =
+      case readTime' . (++ timeZoneOffsetString tzone) . renderBlocks $ head bss of
+        Just t -> return $ MetaValueTime t
+        Nothing -> return MetaValueNull
     generateTags :: TagType -> [[P.Block]] -> D.SqlPersistM MetaValue
     generateTags tt bss = MetaValueTags <$>
       mapM (generateTag . T.pack . renderBlocks) bss

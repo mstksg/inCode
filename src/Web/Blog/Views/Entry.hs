@@ -12,6 +12,7 @@ import Text.Blaze.Html5                      ((!))
 import Web.Blog.Models
 import Web.Blog.Models.Util
 import Web.Blog.Render
+import Config.SiteData
 import Web.Blog.Types
 import Web.Blog.Util                         (renderFriendlyTime, renderDatetimeTime)
 import Web.Blog.Views.Social
@@ -24,11 +25,11 @@ import qualified Text.Blaze.Internal         as I
 
 viewEntry :: Entry -> [Tag] -> Maybe Entry -> Maybe Entry -> SiteRender H.Html
 viewEntry entry tags prevEntry nextEntry = do
-  siteData' <- pageSiteData <$> ask
   npUl <- nextPrevUrl prevEntry nextEntry
   aboutUrl <- renderUrl "/about"
   socialButtonsHtml <- viewSocialShare
   now <- liftIO getCurrentTime
+  tz <- pageDataTimeZone <$> ask
 
   let
     isPosted =
@@ -59,7 +60,7 @@ viewEntry entry tags prevEntry nextEntry = do
             "by " :: H.Html
 
             H.a ! A.class_ "author" ! A.href (I.textValue aboutUrl) $
-              H.toHtml $ authorInfoName $ siteDataAuthorInfo siteData'
+              H.toHtml $ authorInfoName $ siteDataAuthorInfo siteData
 
             H.span ! A.class_ "info-separator" $
               H.preEscapedToHtml
@@ -70,7 +71,7 @@ viewEntry entry tags prevEntry nextEntry = do
                 ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime t)
                 ! A.pubdate ""
                 ! A.class_ "pubdate"
-                $ H.toHtml $ renderFriendlyTime t
+                $ H.toHtml $ renderFriendlyTime tz t 
 
           H.p $ do
             "Posted in " :: H.Html
