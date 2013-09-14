@@ -44,7 +44,7 @@ siteData =
                       , developerAPIsDisqusShortname = "incode"
                       , developerAPIsFacebook        = "641852699171929"
                       , developerAPIsAddThis         = "ra-5234d67a6b68dcd4"
-                      , developerAPIsFeedburner      = "incode"
+                      , developerAPIsFeedburner      = "incodeblog"
                       }
     appPrefs = AppPrefs
                  { appPrefsSlugLength  = 8
