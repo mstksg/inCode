@@ -10,10 +10,12 @@ import Web.Blog.Views.About
 
 routeAbout :: RouteEither
 routeAbout = do
+  blankPageData <- genPageData
+
   let
     view = viewAbout
-    pageData' = pageData { pageDataTitle = Just "About Me" 
-                         , pageDataCss   = ["/css/page/about.css"] }
+    pageData = blankPageData { pageDataTitle = Just "About Me" 
+                             , pageDataCss   = ["/css/page/about.css"] }
 
-  return $ Right (view,pageData')
+  return $ Right (view,pageData)
 

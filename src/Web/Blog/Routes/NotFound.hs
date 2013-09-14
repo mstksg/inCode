@@ -12,13 +12,14 @@ import qualified Web.Scotty    as S
 routeNotFound :: RouteEither
 routeNotFound = do
   err <- find ((== "err") . fst) <$> S.params
+  blankPageData <- genPageData
 
   let
     view = viewNotFound
-    pageData' = pageData { pageDataTitle = Just "Not Found" 
-                         , pageDataCss   = ["/css/page/not-found.css"] }
+    pageData = blankPageData { pageDataTitle = Just "Not Found" 
+                             , pageDataCss   = ["/css/page/not-found.css"] }
 
   return $ case err of
     Just _  -> Left "/not-found"
-    Nothing -> Right (view, pageData')
+    Nothing -> Right (view, pageData)
 

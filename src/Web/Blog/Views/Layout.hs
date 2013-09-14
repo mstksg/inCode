@@ -2,14 +2,16 @@
 
 module Web.Blog.Views.Layout (viewLayout, viewLayoutEmpty) where
 
+import Config.SiteData
 import Control.Applicative                   ((<$>))
 import Control.Monad.Reader
+import Data.Maybe                            (fromMaybe)
 import Data.Monoid
 import Text.Blaze.Html5                      ((!))
 import Web.Blog.Render
-import Config.SiteData
 import Web.Blog.Types
 import Web.Blog.Views.Social
+import qualified Data.Foldable               as Fo
 import qualified Data.Text                   as T
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
@@ -22,6 +24,7 @@ viewLayout body = do
   navBarHtml <- navBar
   title <- createTitle
   socialFollowsHtml <- viewSocialFollow
+  openGraphMetas <- viewOpenGraphMetas
   -- rssUrl <- renderUrl "/rss"
 
   let
@@ -48,13 +51,12 @@ viewLayout body = do
       H.meta ! A.httpEquiv "Content-Type" ! A.content "text/html;charset=utf-8"
       H.meta ! A.name "viewport" ! A.content "width=device-width,initial-scale=1.0"
 
-      forM_ cssUrlList $ \u ->
-        H.link ! A.href (I.textValue u) ! A.rel "stylesheet" ! A.type_ "text/css"
+      openGraphMetas
 
       H.link
         ! A.rel "author"
         ! A.href
-          (I.textValue $ authorInfoRel $ siteDataAuthorInfo $ pageSiteData pageData')
+          (I.textValue $ authorInfoRel $ siteDataAuthorInfo siteData)
 
       H.link
         ! A.rel "alternate"
@@ -62,10 +64,14 @@ viewLayout body = do
         ! A.title
           (I.textValue $ T.append (siteDataTitle siteData) " (RSS Feed)")
         ! A.href "/rss"
-        -- ! A.href
-        --   (I.textValue rssUrl)
-        -- ! A.href
-        --   (I.textValue $ T.append "http://feeds.feedburner.com/" $ developerAPIsFeedburner $ siteDataDeveloperAPIs siteData)
+
+      H.link
+        ! A.href "/favicon.ico"
+        ! A.rel "shortcut icon"
+
+      forM_ cssUrlList $ \u ->
+        H.link ! A.href (I.textValue u) ! A.rel "stylesheet" ! A.type_ "text/css"
+
 
       H.script ! A.type_ "text/javascript" $ do
         H.toHtml $
@@ -83,6 +89,7 @@ viewLayout body = do
           mempty
 
       sequence_ (pageDataHeaders pageData')
+
 
     H.body $ do
 
@@ -122,7 +129,7 @@ createTitle :: SiteRender H.Html
 createTitle = do
   pageData' <- ask
   let
-    siteTitle = siteDataTitle $ pageSiteData pageData'
+    siteTitle = siteDataTitle siteData
     pageTitle = pageDataTitle pageData'
     combined   = case pageTitle of
       Just title -> T.concat [siteTitle, " — ", title]
@@ -134,17 +141,15 @@ navBar = do
   homeUrl <- renderUrl "/"
   archiveUrl <- renderUrl "/entries"
   -- aboutUrl <- renderUrl "/about"
-  author <- (authorInfoName . siteDataAuthorInfo . pageSiteData) <$> ask
-  siteTitle <- (siteDataTitle . pageSiteData) <$> ask
 
   return $
     H.nav ! A.id "navbar-content" $ do
       H.div ! A.class_ "nav-info" $ do
         H.h1 ! A.class_ "site-title" $
           H.a ! A.href (I.textValue homeUrl) ! A.class_ "nav-title" $
-            H.toHtml siteTitle
+            H.toHtml $ siteDataTitle siteData
         H.span ! A.class_ "nav-author" $
-          H.toHtml author
+          H.toHtml . authorInfoName $ siteDataAuthorInfo siteData
 
       H.ul ! A.class_ "nav-links" $ do
         H.li $
@@ -193,9 +198,47 @@ facebookSdkJs =
         , "  fjs.parentNode.insertBefore(js, fjs);"
         , "}(document, 'script', 'facebook-jssdk'));"]
 
+viewOpenGraphMetas :: SiteRender H.Html
+viewOpenGraphMetas = do
+  pageData' <- ask
+  img <- case pageDataImage pageData' of
+    Just pdImage -> renderUrl $ T.pack pdImage
+    Nothing -> renderUrl "/img/site_logo.jpg"
+  let
+    title =
+      fromMaybe (siteDataTitle siteData) $ pageDataTitle pageData'
+    ogType =
+      fromMaybe "website" $ pageDataType pageData'
+    description =
+      fromMaybe (siteDataDescription siteData) $ pageDataDesc pageData'
+  return $ do
+    H.meta
+      ! I.customAttribute "property" "og:site_name"
+      ! A.content (I.textValue . siteDataTitle $ siteData)
+    H.meta
+      ! I.customAttribute "property" "og:description"
+      ! A.content (I.textValue description)
+    H.meta
+      ! I.customAttribute "property" "og:type"
+      ! A.content (I.textValue ogType)
+    H.meta
+      ! I.customAttribute "property" "og:title"
+      ! A.content (I.textValue title)
+    H.meta
+      ! I.customAttribute "property" "og:image"
+      ! A.content (I.textValue img)
+    H.meta
+      ! I.customAttribute "property" "og:locale"
+      ! A.content "en_US"
+    Fo.forM_ (pageDataUrl pageData') $ \url ->
+      H.meta
+        ! I.customAttribute "property" "og:url"
+        ! A.content (I.textValue url)
 
--- renderFonts :: [(T.Text,[T.Text])] -> H.Html
--- renderFonts fs = H.link ! A.href l ! A.rel "stylesheet" ! A.type_ "text/css"
- --  where
- --    l = I.textValue $ T.concat $ map makeFont fs
- --    makeFont (n,ts) = T.append n $ T.intersperse ',' ts
+    H.meta
+      ! A.name "twitter:card"
+      ! A.content "summary"
+    H.meta
+      ! A.name "twitter:creator:id"
+      ! A.content
+        (I.textValue . authorInfoTwitterID $ siteDataAuthorInfo siteData)

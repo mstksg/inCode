@@ -37,7 +37,7 @@ data SiteEnvironment = SiteEnvironmentProduction | SiteEnvironmentDevelopment
 data HostConfig = HostConfig
                   { hostConfigHost :: T.Text
                   , hostConfigPort :: Maybe Int
-                  } 
+                  }
 
 data DeveloperAPIs = DeveloperAPIs
                      { developerAPIsAnalytics       :: (T.Text,T.Text)
@@ -78,12 +78,15 @@ type SiteRender a = ReaderT PageData S.ActionM a
 type PageDataMap = M.Map T.Text T.Text
 
 data PageData = PageData
-                { pageDataTitle   :: Maybe T.Text
-                , pageDataCss     :: [T.Text]
-                , pageDataJs      :: [T.Text]
-                , pageDataHeaders :: [H.Html]
-                , pageDataMap     :: PageDataMap
-                , pageSiteData    :: SiteData
+                { pageDataTitle    :: Maybe T.Text
+                , pageDataDesc     :: Maybe T.Text
+                , pageDataImage    :: Maybe FilePath
+                , pageDataType     :: Maybe T.Text
+                , pageDataUrl      :: Maybe T.Text
+                , pageDataCss      :: [T.Text]
+                , pageDataJs       :: [T.Text]
+                , pageDataHeaders  :: [H.Html]
+                , pageDataMap      :: PageDataMap
                 }
 
 type RouteEither = S.ActionM (Either L.Text (SiteRender H.Html, PageData))

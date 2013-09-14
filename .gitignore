@@ -6,3 +6,6 @@
 /tmp
 /static/img/test
 /tags
+/bin
+
+!/bin/blog

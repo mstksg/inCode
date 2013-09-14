@@ -2,7 +2,8 @@
 
 module Web.Blog.Render (
     siteRenderAction
-  , pageData
+  , emptyPageData
+  , genPageData
   , renderUrl
   , renderUrl'
   , renderRawCopy
@@ -14,11 +15,12 @@ module Web.Blog.Render (
 -- import System.Process
 -- import qualified Text.Blaze.Html.Renderer.Pretty as B
 -- import qualified Text.Blaze.Html5.Attributes     as A
+-- import qualified Text.Pandoc.Builder             as P
+import Config.SiteData
 import Control.Applicative                          ((<$>))
 import Control.Monad.Reader
 import Network.Wai
 import System.Directory                             (doesFileExist)
-import Config.SiteData
 import Web.Blog.Types
 import qualified Data.Map                           as M
 import qualified Data.Text                          as T
@@ -30,21 +32,50 @@ import qualified Text.Pandoc                        as P
 import qualified Web.Scotty                         as S
 
 
-pageData :: PageData
-pageData =  PageData
+emptyPageData :: PageData
+emptyPageData =  PageData
             { pageDataTitle   = Nothing
+            , pageDataDesc    = Nothing
+            , pageDataImage   = Nothing
+            , pageDataUrl     = Nothing
+            , pageDataType    = Nothing
             , pageDataCss     = []
             , pageDataJs      = []
             , pageDataHeaders = []
             , pageDataMap     = M.empty
-            , pageSiteData    = siteData
             }
+
+genPageData :: S.ActionM PageData
+genPageData = do
+    protocolHost <- renderProtocolHost
+    pathText <- T.intercalate "/" . pathInfo <$> S.request
+
+    return emptyPageData
+           { pageDataUrl =
+               Just $ T.intercalate "/"
+                 [ protocolHost
+                 , pathText
+                 ]
+           }
 
 siteRenderAction :: SiteRender H.Html -> PageData -> S.ActionM ()
 siteRenderAction htmlRender pageData' = do
   ran <- runReaderT htmlRender pageData'
   S.html $ B.renderHtml ran
   -- S.html $ L.pack $ B.renderHtml ran
+
+renderProtocolHost :: S.ActionM T.Text
+renderProtocolHost = do
+  host <- L.toStrict <$> S.reqHeader "Host"
+  request <- S.request
+  let
+    protocol =
+      if isSecure request
+        then
+          "https://"
+        else
+          "http://"
+  return $ T.append protocol host
 
 renderUrl :: T.Text -> SiteRender T.Text
 renderUrl url = do
@@ -53,8 +84,8 @@ renderUrl url = do
   if hasP
     then return url
     else do
-      host <- lift $ S.reqHeader "Host"
-      return $ T.concat ["http://",L.toStrict host,url]
+      protocolHost <- lift renderProtocolHost
+      return $ T.concat [protocolHost, url]
 
 renderUrl' :: T.Text -> T.Text
 renderUrl' url =
@@ -81,7 +112,12 @@ renderRawCopy fp = do
       copyMarkdown <- liftIO $ readFile fp
       let
         copyPandoc = P.readMarkdown (P.def P.ReaderOptions) copyMarkdown
-        copyHtml = P.writeHtml (P.def P.WriterOptions) copyPandoc
+        fixedLinks = P.bottomUp fixLinks copyPandoc
+          where
+            fixLinks (P.Link label (url,title)) =
+              P.Link label (T.unpack $ renderUrl' $ T.pack url, title)
+            fixLinks other = other
+        copyHtml = P.writeHtml (P.def P.WriterOptions) fixedLinks
       return copyHtml
     else
       return $
