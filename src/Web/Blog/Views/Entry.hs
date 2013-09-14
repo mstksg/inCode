@@ -2,17 +2,17 @@
 
 module Web.Blog.Views.Entry (viewEntry) where
 
+import Config.SiteData
 import Control.Applicative                   ((<$>))
 import Control.Monad.Reader
 import Data.List                             (intersperse)
 import Data.Maybe
 import Data.Monoid
-import Data.Time                             (getCurrentTime)
+import Data.Time
 import Text.Blaze.Html5                      ((!))
 import Web.Blog.Models
 import Web.Blog.Models.Util
 import Web.Blog.Render
-import Config.SiteData
 import Web.Blog.Types
 import Web.Blog.Util                         (renderFriendlyTime, renderDatetimeTime)
 import Web.Blog.Views.Social
@@ -29,7 +29,7 @@ viewEntry entry tags prevEntry nextEntry = do
   aboutUrl <- renderUrl "/about"
   socialButtonsHtml <- viewSocialShare
   now <- liftIO getCurrentTime
-  tz <- pageDataTimeZone <$> ask
+  tz <- liftIO getCurrentTimeZone
 
   let
     isPosted =

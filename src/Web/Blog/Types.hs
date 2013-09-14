@@ -16,7 +16,6 @@ module Web.Blog.Types (
 import Control.Monad.Reader
 import qualified Data.Map         as M
 import qualified Data.Text        as T
-import Data.Time
 import qualified Data.Text.Lazy   as L
 import qualified Text.Blaze.Html5 as H
 import qualified Web.Scotty       as S
@@ -88,7 +87,6 @@ data PageData = PageData
                 , pageDataJs       :: [T.Text]
                 , pageDataHeaders  :: [H.Html]
                 , pageDataMap      :: PageDataMap
-                , pageDataTimeZone :: TimeZone
                 }
 
 type RouteEither = S.ActionM (Either L.Text (SiteRender H.Html, PageData))

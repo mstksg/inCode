@@ -11,6 +11,7 @@ module Web.Blog.Render (
   , mainSection
   ) where
 
+-- import Data.Time
 -- import System.Process
 -- import qualified Text.Blaze.Html.Renderer.Pretty as B
 -- import qualified Text.Blaze.Html5.Attributes     as A
@@ -18,7 +19,6 @@ module Web.Blog.Render (
 import Config.SiteData
 import Control.Applicative                          ((<$>))
 import Control.Monad.Reader
-import Data.Time
 import Network.Wai
 import System.Directory                             (doesFileExist)
 import Web.Blog.Types
@@ -43,14 +43,12 @@ emptyPageData =  PageData
             , pageDataJs      = []
             , pageDataHeaders = []
             , pageDataMap     = M.empty
-            , pageDataTimeZone = utc
             }
 
 genPageData :: S.ActionM PageData
 genPageData = do
     protocolHost <- renderProtocolHost
     pathText <- T.intercalate "/" . pathInfo <$> S.request
-    tz <- liftIO getCurrentTimeZone
 
     return emptyPageData
            { pageDataUrl =
@@ -58,7 +56,6 @@ genPageData = do
                  [ protocolHost
                  , pathText
                  ]
-           , pageDataTimeZone = tz
            }
 
 siteRenderAction :: SiteRender H.Html -> PageData -> S.ActionM ()
