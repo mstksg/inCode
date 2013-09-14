@@ -16,6 +16,7 @@ import Web.Blog.Database
 import Web.Blog.Models
 import Web.Blog.Models.Util
 import Web.Blog.Render
+import Data.Time
 import Web.Blog.Types
 import Web.Blog.Util
 import qualified Data.Foldable as Fo         (forM_)
@@ -47,6 +48,15 @@ viewArchive eListYears viewType = do
 
   upLink <- Tr.mapM renderUrl (upPath viewType)
 
+  archiveListHtml <-
+    case viewType of
+      ViewArchiveAll        -> viewArchiveByYears eListYears viewType
+      ViewArchiveYear _     -> viewArchiveByMonths eListMonths viewType
+      ViewArchiveMonth _ _  -> viewArchiveFlat eList viewType
+      ViewArchiveTag _      -> viewArchiveFlat eList viewType
+      ViewArchiveCategory _ -> viewArchiveFlat eList viewType
+      ViewArchiveSeries _   -> viewArchiveFlat eList viewType
+
 
   return $ do
     H.div ! A.class_ "archive-sidebar unit one-of-four" $
@@ -74,13 +84,7 @@ viewArchive eListYears viewType = do
               Just pt -> T.concat ["No entries found for ",pt,"."]
               Nothing -> "No entries found."
         else
-          case viewType of
-            ViewArchiveAll        -> viewArchiveByYears eListYears viewType
-            ViewArchiveYear _     -> viewArchiveByMonths eListMonths viewType
-            ViewArchiveMonth _ _  -> viewArchiveFlat eList viewType
-            ViewArchiveTag _      -> viewArchiveFlat eList viewType
-            ViewArchiveCategory _ -> viewArchiveFlat eList viewType
-            ViewArchiveSeries _   -> viewArchiveFlat eList viewType
+          archiveListHtml
 
 upPath :: ViewArchiveType -> Maybe T.Text
 upPath ViewArchiveAll          = Nothing
@@ -141,34 +145,37 @@ viewArchiveSidebar isIndex = do
 
 
 
-viewArchiveFlat :: [(D.Entity Entry,(T.Text,[Tag]))] -> ViewArchiveType -> H.Html
-viewArchiveFlat eList viewType =
-  H.ul ! A.class_ ulClass $
-    forM_ eList $ \(D.Entity _ e,(u,ts)) -> do
-      let
-        commentUrl = T.append u "#disqus_thread"
+viewArchiveFlat :: [(D.Entity Entry,(T.Text,[Tag]))] -> ViewArchiveType -> SiteRender H.Html
+viewArchiveFlat eList viewType = do
+  tz <- liftIO getCurrentTimeZone
 
-      H.li ! A.class_ "entry-item" $ do
-        H.div ! A.class_ "entry-info" $ do
-          Fo.forM_ (entryPostedAt e) $ \t -> do
-            H.time
-              ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime t)
-              ! A.pubdate ""
-              ! A.class_ "pubdate"
-              $ H.toHtml $ renderFriendlyTime t
-            H.preEscapedToHtml
-              (" &mdash; " :: T.Text)
-          H.a ! A.href (I.textValue commentUrl) ! A.class_ "entry-comments" $
-            "Comments"
-
-        H.a ! A.href (I.textValue u) ! A.class_ "entry-link" $
-          H.toHtml $ entryTitle e
+  return $
+    H.ul ! A.class_ ulClass $
+      forM_ eList $ \(D.Entity _ e,(u,ts)) -> do
         let
-          tagList = filter tagFilter ts
-        unless (null tagList) $
-          H.p ! A.class_ "inline-tag-list" $ do
-            "in " :: H.Html
-            inlineTagList tagList
+          commentUrl = T.append u "#disqus_thread"
+
+        H.li ! A.class_ "entry-item" $ do
+          H.div ! A.class_ "entry-info" $ do
+            Fo.forM_ (entryPostedAt e) $ \t -> do
+              H.time
+                ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime t)
+                ! A.pubdate ""
+                ! A.class_ "pubdate"
+                $ H.toHtml $ renderFriendlyTime tz t
+              H.preEscapedToHtml
+                (" &mdash; " :: T.Text)
+            H.a ! A.href (I.textValue commentUrl) ! A.class_ "entry-comments" $
+              "Comments"
+
+          H.a ! A.href (I.textValue u) ! A.class_ "entry-link" $
+            H.toHtml $ entryTitle e
+          let
+            tagList = filter tagFilter ts
+          unless (null tagList) $
+            H.p ! A.class_ "inline-tag-list" $ do
+              "in " :: H.Html
+              inlineTagList tagList
   where
     ulClass =
       case viewType of
@@ -183,41 +190,52 @@ viewArchiveFlat eList viewType =
         _                     -> const True
 
 
-viewArchiveByMonths :: [[(D.Entity Entry,(T.Text,[Tag]))]] -> ViewArchiveType -> H.Html
-viewArchiveByMonths eListMonths viewType =
-  H.ul ! A.class_ ulClass $
+viewArchiveByMonths :: [[(D.Entity Entry,(T.Text,[Tag]))]] -> ViewArchiveType -> SiteRender H.Html
+viewArchiveByMonths eListMonths viewType = do
+  eListHtml <- forM eListMonths $ \eList -> do
+    let
+      month = fromJust $ entryPostedAt $ D.entityVal $ fst $
+          head eList
 
-    forM_ eListMonths $ \eList -> do
-      let
-        month = fromJust $ entryPostedAt $ D.entityVal $ fst $
-            head eList
+    archiveFlatHtml <- viewArchiveFlat eList viewType
 
+    return $
       H.li $ do
         H.h3 $
           H.a ! A.href (I.textValue $ renderUrl' $ T.pack $ renderMonthPath month) $
             H.toHtml $ renderMonthTime month
 
-        viewArchiveFlat eList viewType
+        archiveFlatHtml
+
+  return $
+    H.ul ! A.class_ ulClass $
+      sequence_ eListHtml
   where
     ulClass =
       case viewType of
         ViewArchiveAll -> "entry-list"
         _ -> "tile entry-list"
 
-viewArchiveByYears :: [[[(D.Entity Entry,(T.Text,[Tag]))]]] -> ViewArchiveType -> H.Html
-viewArchiveByYears eListYears viewType =
-  H.ul ! A.class_ "entry-list" $
-    forM_ eListYears $ \eListMonths -> do
-      let
-        year = fromJust $ entryPostedAt $
-          D.entityVal $ fst $ head $ head eListMonths
+viewArchiveByYears :: [[[(D.Entity Entry,(T.Text,[Tag]))]]] -> ViewArchiveType -> SiteRender H.Html
+viewArchiveByYears eListYears viewType = do
+  eListHtml <- forM eListYears $ \eListMonths -> do
+    let
+      year = fromJust $ entryPostedAt $
+        D.entityVal $ fst $ head $ head eListMonths
 
+    archiveMonthsHtml <- viewArchiveByMonths eListMonths viewType
+
+    return $
       H.li ! A.class_ "tile" $ do
         H.h2 $
           H.a ! A.href (I.textValue $ renderUrl' $ T.pack $ renderYearPath year) $
             H.toHtml $ renderYearTime year
 
-        viewArchiveByMonths eListMonths viewType
+        archiveMonthsHtml
+
+  return $
+    H.ul ! A.class_ "entry-list" $
+      sequence_ eListHtml
 
 inlineTagList :: [Tag] -> H.Html
 inlineTagList ts = sequence_ hinter

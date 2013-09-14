@@ -56,7 +56,7 @@ viewLayout body = do
       H.link
         ! A.rel "author"
         ! A.href
-          (I.textValue $ authorInfoRel $ siteDataAuthorInfo $ pageSiteData pageData')
+          (I.textValue $ authorInfoRel $ siteDataAuthorInfo siteData)
 
       H.link
         ! A.rel "alternate"
@@ -129,7 +129,7 @@ createTitle :: SiteRender H.Html
 createTitle = do
   pageData' <- ask
   let
-    siteTitle = siteDataTitle $ pageSiteData pageData'
+    siteTitle = siteDataTitle siteData
     pageTitle = pageDataTitle pageData'
     combined   = case pageTitle of
       Just title -> T.concat [siteTitle, " — ", title]
@@ -141,17 +141,15 @@ navBar = do
   homeUrl <- renderUrl "/"
   archiveUrl <- renderUrl "/entries"
   -- aboutUrl <- renderUrl "/about"
-  author <- (authorInfoName . siteDataAuthorInfo . pageSiteData) <$> ask
-  siteTitle <- (siteDataTitle . pageSiteData) <$> ask
 
   return $
     H.nav ! A.id "navbar-content" $ do
       H.div ! A.class_ "nav-info" $ do
         H.h1 ! A.class_ "site-title" $
           H.a ! A.href (I.textValue homeUrl) ! A.class_ "nav-title" $
-            H.toHtml siteTitle
+            H.toHtml $ siteDataTitle siteData
         H.span ! A.class_ "nav-author" $
-          H.toHtml author
+          H.toHtml . authorInfoName $ siteDataAuthorInfo siteData
 
       H.ul ! A.class_ "nav-links" $ do
         H.li $

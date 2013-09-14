@@ -43,17 +43,20 @@ emptyPageData =  PageData
             , pageDataJs      = []
             , pageDataHeaders = []
             , pageDataMap     = M.empty
-            , pageSiteData    = siteData
             }
 
 genPageData :: S.ActionM PageData
 genPageData = do
     protocolHost <- renderProtocolHost
     pathText <- T.intercalate "/" . pathInfo <$> S.request
-    return emptyPageData { pageDataUrl = Just $ T.intercalate "/"
-                             [ protocolHost
-                             , pathText
-                             ] }
+
+    return emptyPageData
+           { pageDataUrl =
+               Just $ T.intercalate "/"
+                 [ protocolHost
+                 , pathText
+                 ]
+           }
 
 siteRenderAction :: SiteRender H.Html -> PageData -> S.ActionM ()
 siteRenderAction htmlRender pageData' = do
