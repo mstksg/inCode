@@ -89,6 +89,8 @@ processEntryFile entryFile = do
 
     void $ M.traverseWithKey (applyMetas entryEntity) metas
 
+    liftIO $ print entryFile
+
     D.update eKey [ EntrySourceFile D.=. Just entryFile ]
 
     updateEntryTitle eKey title

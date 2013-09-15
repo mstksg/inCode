@@ -71,7 +71,7 @@ viewEntry entry tags prevEntry nextEntry = do
                 ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime t)
                 ! A.pubdate ""
                 ! A.class_ "pubdate"
-                $ H.toHtml $ renderFriendlyTime tz t 
+                $ H.toHtml $ renderFriendlyTime tz t
 
           H.p $ do
             "Posted in " :: H.Html
@@ -120,11 +120,6 @@ viewEntry entry tags prevEntry nextEntry = do
             "Comments powered by " :: H.Html
             H.span ! A.class_ "logo-disqus" $
                 "Disqus" :: H.Html
-
-
-    -- H.script ! A.type_ "text/javascript" $
-    --   tocifyJs
-      -- smartLayers
 
 
 nextPrevUrl :: Maybe Entry -> Maybe Entry -> SiteRender H.Html
