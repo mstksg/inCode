@@ -9,7 +9,12 @@ import Web.Blog.Models.Types
 import qualified Data.Text as T
 
 instance Show Entry where
-  show (Entry t _ _ cA pA _ i) = concat
+  -- show (Entry t _ _ _ cA pA _ i) = concat
+  show (Entry { entryTitle      = t
+              , entryCreatedAt  = cA
+              , entryPostedAt   = pA
+              , entryIdentifier = i
+              } ) = concat
     [ show t
     , " ("
     , maybe "" ((++ ", ") . show) i
