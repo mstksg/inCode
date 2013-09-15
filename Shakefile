@@ -31,8 +31,9 @@ main = shakeArgs opts $ do
     need ["build"]
     liftIO $ createDirectoryIfMissing True "bin"
     copyFile' "dist/build/blog/blog" "bin/blog"
+    cmd "git" ["add", "-f", "bin/blog"]
 
-    
+
 
   "migrate" ~> do
     need ["cabal-dev/bin/blog-scripts-migrate"]
