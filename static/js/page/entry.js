@@ -1,3 +1,4 @@
+var source_toggled = false;
 
 $(document).ready(function() {
     $('#toc').toc({
@@ -22,7 +23,7 @@ $(document).ready(function() {
 
     $('.main-content').children('h2,h3,h4,h5').append('<a href="#title" class="top-link">top</a>');
 
-    $('.top-link') .bind('click', function(e) {
+    $('.top-link').click(function(e) {
         scrollTo(e);
     });
 
@@ -30,7 +31,30 @@ $(document).ready(function() {
         $('.contents-container').show();
     }
 
+
+    if ($('.source-info').length > 0) {
+        $('.article header').hover(function() {
+            if (!source_toggled) {
+                $('.source-info').show();
+            }
+        }, function() {
+            if (!source_toggled) {
+                $('.source-info').hide();
+            }
+        }).click(function() {
+            if (source_toggled) {
+                $('.source-info').hide();
+            } else {
+                $('.source-info').show();
+            }
+            source_toggled = !source_toggled;
+        });
+    }
+
+
+
 });
+
 
 var scrollTo = function(e) {
     e.preventDefault();
@@ -41,3 +65,4 @@ var scrollTo = function(e) {
         location.hash = elScrollTo;
     });
 };
+

@@ -53,10 +53,14 @@
       margin: auto 0.3rem;
     }
 
-    .comment-link {
+    .comment-link, .source-link {
       font-weight: normal;
       font-style: italic;
       // color: #888;
+    }
+
+    .source-info {
+      display: none;
     }
 
     margin-bottom: 0.75rem;
