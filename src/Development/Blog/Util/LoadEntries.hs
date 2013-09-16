@@ -83,10 +83,15 @@ processEntryFile entryFile = do
                          Nothing
                          Nothing
                          Nothing
+                         Nothing
           k <- fromJust <$> insertEntry newEntry
           return $ D.Entity k newEntry
 
     void $ M.traverseWithKey (applyMetas entryEntity) metas
+
+    liftIO $ print entryFile
+
+    D.update eKey [ EntrySourceFile D.=. Just entryFile ]
 
     updateEntryTitle eKey title
 

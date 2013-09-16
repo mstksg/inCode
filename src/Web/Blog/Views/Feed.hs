@@ -43,6 +43,7 @@ feedRss entryInfos now = (nullRSS feedTitle feedLink)
       , rssGenerator     = Just "feed-0.3.9.1 (Sigbjorn Finne)"
       , rssItems         = map rssItem entryInfos
       , rssChannelOther  = map dcItemToXml dcData
+      , rssImage         = Just siteLogo
       }
     dcData =
       [ DCItem DC_Creator feedAuthorName
@@ -88,6 +89,14 @@ feedRss entryInfos now = (nullRSS feedTitle feedLink)
     dcSpec = X.Attr
       (X.QName "dc" Nothing (Just "xmlns"))
       "http://purl.org/dc/elements/1.1/"
+    siteLogo =
+      nullImage
+        ( T.unpack $
+          T.append
+          (hostConfigHost $ siteDataHostConfig siteData)
+          "/img/site_logo.jpg" )
+        ( T.unpack $ siteDataTitle siteData )
+        ( T.unpack $ hostConfigHost $ siteDataHostConfig siteData )
 
 dcItemToXml :: DCItem -> X.Element
 dcItemToXml dcItem = X.Element eName [] [item] Nothing

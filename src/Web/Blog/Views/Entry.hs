@@ -71,15 +71,32 @@ viewEntry entry tags prevEntry nextEntry = do
                 ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime t)
                 ! A.pubdate ""
                 ! A.class_ "pubdate"
-                $ H.toHtml $ renderFriendlyTime tz t 
+                $ H.toHtml $ renderFriendlyTime tz t
 
           H.p $ do
+
+            Fo.forM_ (entrySourceFile entry) $ \fileSource ->
+              Fo.forM_ (siteDataPublicBlobs siteData) $ \blobUrl -> do
+                let
+                  sourceUrl = T.append blobUrl $ T.pack fileSource
+
+                H.span ! A.class_ "source-info" $ do
+                  H.a
+                    ! A.class_ "source-link"
+                    ! A.href (I.textValue sourceUrl)
+                    $ "View Source"
+
+                  H.span ! A.class_ "info-separator" $
+                    H.preEscapedToHtml
+                      (" &diams; " :: T.Text)
+
             "Posted in " :: H.Html
             categoryList (filter isCategoryTag tags)
             H.span ! A.class_ "info-separator" $
               H.preEscapedToHtml
                 (" &diams; " :: T.Text)
             H.a ! A.class_ "comment-link" ! A.href "#disqus_thread" $ "Comments"
+
 
         H.hr
 
@@ -120,11 +137,6 @@ viewEntry entry tags prevEntry nextEntry = do
             "Comments powered by " :: H.Html
             H.span ! A.class_ "logo-disqus" $
                 "Disqus" :: H.Html
-
-
-    -- H.script ! A.type_ "text/javascript" $
-    --   tocifyJs
-      -- smartLayers
 
 
 nextPrevUrl :: Maybe Entry -> Maybe Entry -> SiteRender H.Html

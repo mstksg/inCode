@@ -12,6 +12,7 @@ siteData =
     , siteDataAuthorInfo      = authorInfo
     , siteDataDescription     = description
     , siteDataCopyright       = "2013 Justin Le"
+    , siteDataPublicBlobs     = Just "https://github.com/mstksg/blog/blob/develop/"
     , siteDataHostConfig      = hostConfig
     , siteDataDeveloperAPIs   = developerAPIs
     , siteDataAppPrefs        = appPrefs

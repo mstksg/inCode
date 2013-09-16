@@ -20,6 +20,7 @@ Entry json
     title       T.Text
     content     T.Text
     image       FilePath Maybe
+    sourceFile  FilePath Maybe
     createdAt   UTCTime Maybe
     postedAt    UTCTime Maybe
     modifiedAt  UTCTime Maybe
