@@ -1,11 +1,8 @@
 module Main where
 
 import Development.Shake
-import Text.Pandoc
 import Control.Monad
-import Control.Monad.Loops
 import Control.Monad.IO.Class
-import System.INotify
 import System.Directory
 
 opts = shakeOptions { shakeFiles    = ".shake/"
@@ -34,8 +31,9 @@ main = shakeArgs opts $ do
     need ["build"]
     liftIO $ createDirectoryIfMissing True "bin"
     copyFile' "dist/build/blog/blog" "bin/blog"
+    cmd "git" ["add", "-f", "bin/blog"]
 
-    
+
 
   "migrate" ~> do
     need ["cabal-dev/bin/blog-scripts-migrate"]
