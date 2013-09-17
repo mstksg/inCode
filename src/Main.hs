@@ -28,7 +28,7 @@ main = do
   middleware $ addHeaders [("Cache-Control","max-age=86400")]
   middleware $ staticPolicy (noDots >-> addBase "static")
   middleware $ staticPolicy (noDots >-> addBase "tmp/static")
-  middleware $ addHeaders [("Cache-Control","max-age=0")]
+  middleware $ addHeaders [("Cache-Control","max-age=900")]
 
   route
 
