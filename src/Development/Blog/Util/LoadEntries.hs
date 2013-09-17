@@ -65,7 +65,7 @@ processEntryFile entryFile = do
       (metaBlock, body) = stripAndTake isDefList metaBody
 
       title = T.pack $ writeMarkdownBlocks $ pure $ P.Plain headerBlocks
-      entryMarkdown = writeMarkdownBlocks body
+      entryMarkdown = T.pack $ writeMarkdownBlocks body
 
     metas <- fmap M.fromList . mapM (processMeta tzone) $ defListList metaBlock
 
@@ -77,7 +77,7 @@ processEntryFile entryFile = do
           let
             newEntry = Entry
                          title
-                         (T.pack entryMarkdown)
+                         entryMarkdown
                          Nothing
                          Nothing
                          Nothing
@@ -92,6 +92,7 @@ processEntryFile entryFile = do
     liftIO $ print entryFile
 
     D.update eKey [ EntrySourceFile D.=. Just entryFile ]
+    D.update eKey [ EntryContent D.=. entryMarkdown ]
 
     updateEntryTitle eKey title
 
