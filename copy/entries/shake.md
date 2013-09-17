@@ -17,12 +17,13 @@ As someone who comes from a background with ruby and rake, I'm used to
 powerful task management systems with expressive dependency. **Make** is a
 favorite tool of mine when I'm working on projects with people who don't use
 ruby, and when I'm working on ruby projects I never go far without starting a
-good `Rakefile`.  The two tools provided a perfect DSL for setting up systems
+good Rakefile.  The two tools provided a perfect DSL for setting up systems
 of tasks that had complicated file and task dependencies.
 
 As I was starting to learn Haskell and building larger-scale Haskell projects,
 I began to look for alternatives in Haskell.  Was there a Haskell counterpart
-to Ruby's **rake**, Node's **jake**, Java's **ant**?
+to Ruby's [**rake**][rake], Node's [**jake**][jake]?  (Not to mention the
+tools of slightly different philosophy [**grunt**][grunt] and [**ant**][ant])
 
 It turns out that by far the most established answer is a library known as
 [**Shake**][shake], (maintained by Neil Mitchell of [**hoogle**][hoogle]
@@ -32,11 +33,15 @@ if you're looking to use it as a task management system, you might have to do
 some digging. Hopefully this post can help you get started.
 
 I also go over the core concepts of a task management system, so I assume no
-knowledge of `make` -- and the post therefore should also be a good
+knowledge of **make** -- and the post therefore should also be a good
 introduction to starting with any sort of task management system.
 
-[shake]: http://hackage.haskell.org/package/shake "Shake"
-[hoogle]: http://haskell.org/hoogle "hoogle"
+[rake]: http://rake.rubyforge.org/
+[jake]: https://github.com/mde/jake
+[grunt]: http://gruntjs.com/
+[ant]: http://ant.apache.org/
+[shake]: http://hackage.haskell.org/package/shake
+[hoogle]: http://haskell.org/hoogle
 
 Our Sample Project
 ------------------
@@ -124,7 +129,7 @@ Some notes:
 What is a Rule?
 ---------------
 
-If you haven't used `make` before, it is important that you understand the
+If you haven't used **make** before, it is important that you understand the
 key concepts before moving on.
 
 A task management system/build system is a system that works to ensure that
@@ -488,7 +493,7 @@ However, there is a lot more about scripting and task automation than managing
 dependencies.
 
 For example, almost everything we've done can be done with a simple
-`Makefile`.  What does Haskell offer to the scripting scene?
+Makefile.  What does Haskell offer to the scripting scene?
 
 #### Strong Typing
 
