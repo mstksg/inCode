@@ -83,7 +83,7 @@ cabal update
 cabal install shake
 ~~~
 
-I'll will be using `shake-0.10.6` for this entry.
+I'll will be using `shake-0.10.6` for this post.
 
 ### Setting up the Shakefile
 
