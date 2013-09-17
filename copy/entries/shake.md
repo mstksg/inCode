@@ -480,7 +480,7 @@ forM_ ["report1","report2","report3"] $ \reportName -> do
 
 [docs]: http://hackage.haskell.org/packages/archive/shake/0.10.6/doc/html/Development-Shake.html
 
-### Looking into the Future
+### Looking Forward
 
 We've seen how **Shake** is good at setting up systems for managing and
 executing dependencies.  This is good for running simple system commands.
