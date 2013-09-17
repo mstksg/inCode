@@ -5,7 +5,12 @@ Source code for my personal blog **inCode**.
 
 [Blog engine][engine] can be found on github.
 
+[The site is hosted online][incode] on [Heroku][heroku] at
+<http://blog.jle.im>.
+
 [engine]: https://github.com/mstksg/blog
+[incode]: http://blog.jle.im
+[heroku]: http://www.heroku.com
 
 Usage and Customization
 -----------------------
