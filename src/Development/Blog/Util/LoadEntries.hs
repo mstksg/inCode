@@ -64,7 +64,9 @@ processEntryFile entryFile = do
       (P.Header _ _ headerBlocks, metaBody) = stripAndTake isHeader contents
       (metaBlock, body) = stripAndTake isDefList metaBody
 
-      title = T.pack $ writeMarkdownBlocks $ pure $ P.Plain headerBlocks
+      titleRaw = writeMarkdownBlocks $ pure $ P.Plain headerBlocks
+      titleSmart = P.readMarkdown smartReaderOptions titleRaw
+      title = T.pack $ writeMarkdown titleSmart
       entryMarkdown = T.pack $ writeMarkdownBlocks body
 
     metas <- fmap M.fromList . mapM (processMeta tzone) $ defListList metaBlock
@@ -103,7 +105,7 @@ processEntryFile entryFile = do
     return eKey
   where
     readMarkdown = PM.readMarkdownWithWarnings (P.def P.ReaderOptions)
-    writeMarkdown = P.writeMarkdown (P.def P.WriterOptions)
+    writeMarkdown = P.writeMarkdown basicWriterOptions
     stripAndTake p l = (taken, rest)
       where
         stripped = dropWhile (not . p) l
@@ -201,10 +203,17 @@ processMeta tzone (keyBlocks, valBlockss) = do
             Nothing -> fmap fromJust $ insertTag' $ PreTag label tt Nothing
     renderBlocks :: [P.Block] -> String
     renderBlocks bs =
-      P.writeMarkdown basicOptions $ P.doc $ P.fromList bs
-    basicOptions = (P.def P.WriterOptions)
-                     { P.writerReferenceLinks = True
-                     }
+      P.writeMarkdown basicWriterOptions $ P.doc $ P.fromList bs
+
+basicWriterOptions :: P.WriterOptions
+basicWriterOptions = (P.def P.WriterOptions)
+                       { P.writerReferenceLinks = True
+                       }
+
+smartReaderOptions :: P.ReaderOptions
+smartReaderOptions = (P.def P.ReaderOptions)
+                       { P.readerSmart = True
+                       }
 
 removeOrphanEntries :: [D.Key Entry] -> D.SqlPersistM ()
 removeOrphanEntries eKeys = do
