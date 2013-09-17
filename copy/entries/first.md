@@ -35,8 +35,9 @@ my opportunity to finally give back.  My hope is first to fill in all of those
 small holes in knowledge that happen to slip through and can sometimes only be
 found with the perfect google search.  Second to share a bit of my discoveries
 along my journeys in development and any relevant insights from my studies
-that may be useful to others.  Third to maybe shine some light on greater
-themes that I have noticed when looking back on things.
+that may be useful to others.  Third, to share any mature open source projects
+I'm working on that may be of use to the world.  And forth, to maybe shine
+some light on greater themes that I have noticed when looking back on things.
 
 It's also been said that blogs are a good way for someone to help themselves
 organize their thoughts and kind of put them all together.  Maybe if I log my
