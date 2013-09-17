@@ -14,7 +14,7 @@ Identifier
 :   shake1
 
 As someone who comes from a background with ruby and rake, I'm used to
-powerful task management systems with expressive dependency. **Make** is a
+powerful task management systems with expressive dependency. *Make* is a
 favorite tool of mine when I'm working on projects with people who don't use
 ruby, and when I'm working on ruby projects I never go far without starting a
 good Rakefile.  The two tools provided a perfect DSL for setting up systems
@@ -22,18 +22,18 @@ of tasks that had complicated file and task dependencies.
 
 As I was starting to learn Haskell and building larger-scale Haskell projects,
 I began to look for alternatives in Haskell.  Was there a Haskell counterpart
-to Ruby's [**rake**][rake], Node's [**jake**][jake]?  (Not to mention the
-tools of slightly different philosophy [**grunt**][grunt] and [**ant**][ant])
+to Ruby's [*rake*][rake], Node's [*jake*][jake]?  (Not to mention the
+tools of slightly different philosophy [*grunt*][grunt] and [*ant*][ant])
 
 It turns out that by far the most established answer is a library known as
-[**Shake**][shake], (maintained by Neil Mitchell of [**hoogle**][hoogle]
+[*Shake*][shake], (maintained by Neil Mitchell of [*hoogle*][hoogle]
 fame).  So far it's served pretty well.  Its documentation is written from the
 perspective of chiefly using it as a build tool (more "make" than "rake"), so
 if you're looking to use it as a task management system, you might have to do
 some digging. Hopefully this post can help you get started.
 
 I also go over the core concepts of a task management system, so I assume no
-knowledge of **make** -- and the post therefore should also be a good
+knowledge of *make* -- and the post therefore should also be a good
 introduction to starting with any sort of task management system.
 
 [rake]: http://rake.rubyforge.org/
@@ -48,8 +48,8 @@ Our Sample Project
 
 Our sample project is going to be a report build system that builds reports
 written in markdown with [pandoc][] into html, pdf, and doc formats.  This is
-honestly one of my most common use cases for **make**, so porting it all to
-**shake** will be something useful for me.
+honestly one of my most common use cases for *make*, so porting it all to
+*shake* will be something useful for me.
 
 [pandoc]: http://johnmacfarlane.net/pandoc/
 
@@ -81,7 +81,7 @@ Setup
 
 ### Installing Shake
 
-Installing **shake** is as simple as installing any other cabal package:
+Installing *shake* is as simple as installing any other cabal package:
 
 ~~~shell
 cabal update
@@ -129,7 +129,7 @@ Some notes:
 What is a Rule?
 ---------------
 
-If you haven't used **make** before, it is important that you understand the
+If you haven't used *make* before, it is important that you understand the
 key concepts before moving on.
 
 A task management system/build system is a system that works to ensure that
@@ -209,7 +209,7 @@ out/report.pdf: src/report.md
 ~~~
 
 The operator `*>` attaches an [`Action`][action] (with a parameter) to a
-[`FilePattern`][filepattern] (a string) -- that is, when **shake** decides
+[`FilePattern`][filepattern] (a string) -- that is, when *shake* decides
 that it needs that specified file on the left hand side to be up to date, it
 runs the action on the right hand side with that filename as a parameter.
 
@@ -222,7 +222,7 @@ rightHandSide :: FilePattern -> Action ()
 where the `FilePattern` is the filename of the file that is being "needed".
 
 The `need` function specifies all of the dependencies of that action.  If
-**shake** decides it needs `out/report.doc` to be up to date, `need` tells it
+*shake* decides it needs `out/report.doc` to be up to date, `need` tells it
 that it first needs `src/report.md` and the images to be up to date -- or
 rather, that `out/report.doc` is only out of date if `src/report.md` or the
 images are out of date, or have changed since the last build.
@@ -260,14 +260,14 @@ And that is it!
 Running Shake
 -------------
 
-How do we tell **shake** what file it is that we want to be up to date?  We
+How do we tell *shake* what file it is that we want to be up to date?  We
 specify this by modifying the line `want []`:
 
 ~~~haskell
 want ["out/report.doc","out/report.pdf","out/report.html"]
 ~~~
 
-That tells **shake** that when we run `main` with no arguments, we want those
+That tells *shake* that when we run `main` with no arguments, we want those
 three files to be checked to be up to date.
 
 Now, to wrap it all together, we run:
@@ -299,7 +299,7 @@ You may have noticed that even though we had multiple images in the `img`
 folder, we required them all explicitly.  This could cause problems.  What if
 in the future, our documents used more images?
 
-We can define wildcards using **shake**'s `getDirectoryFiles`, which returns
+We can define wildcards using *shake*'s `getDirectoryFiles`, which returns
 results of a wildcard search in an `Action` monad.  `getDirectoryFiles` takes
 a directory base and a list of wildcards.
 
@@ -398,7 +398,7 @@ after the rule has completed its execution.  `removeFilesAfter` removes the
 files in the given base directory (`.shake`) matching the given wildcards
 (`["//*"]`) after all rules have completed their course.
 
-This is useful for cleaning up **shake**'s metadata files after you are done
+This is useful for cleaning up *shake*'s metadata files after you are done
 with your build, or if you want to run the task management system on a clean
 start.
 
@@ -487,7 +487,7 @@ forM_ ["report1","report2","report3"] $ \reportName -> do
 
 ### Looking Forward
 
-We've seen how **Shake** is good at setting up systems for managing and
+We've seen how *Shake* is good at setting up systems for managing and
 executing dependencies.  This is good for running simple system commands.
 However, there is a lot more about scripting and task automation than managing
 dependencies.
@@ -506,17 +506,17 @@ now we are just firing off arbitrary system commands that are basically
 specified in strings with no type of typing.  We can compile anything, whether
 there are bugs in it or not.
 
-Luckily **Shake** is very good at integrating seamlessly with any kind of
+Luckily *Shake* is very good at integrating seamlessly with any kind of
 framework.  We can leave this up to other frameworks.
 
 One popular framework for this that is gaining in maturity is
-[**Shelly**][shelly], but you are welcome to using your own.  At the present
+[*Shelly*][shelly], but you are welcome to using your own.  At the present
 Haskell is still developing and growing in this aspect.  I hope to eventually
-write an article about **Shelly** integration with **Shake**.
+write an article about *Shelly* integration with *Shake*.
 
 #### Other
 
-These are just some ways to think about using **Shake** in new more creative
+These are just some ways to think about using *Shake* in new more creative
 ways.  Let me know if you think of any clever integrations in the comments!
 
 
