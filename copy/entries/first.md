@@ -18,7 +18,7 @@ subject on the internet.  There are good books.  There is
 [Stack Overflow][stackoverflow].  And there are the blogs.
 
 I've probably learned more useful information from blogs than I have from
-nearly any other source --- from small things like how to fix that compile
+nearly any other source -- from small things like how to fix that compile
 error on ffmpeg or teaching me my first steps in learning tools I now use
 every day like git.  From blogs I've learned not just small things that help
 me here and there, but also the building blocks that I have to thank for
