@@ -201,7 +201,10 @@ processMeta tzone (keyBlocks, valBlockss) = do
             Nothing -> fmap fromJust $ insertTag' $ PreTag label tt Nothing
     renderBlocks :: [P.Block] -> String
     renderBlocks bs =
-      P.writeMarkdown (P.def P.WriterOptions) $ P.doc $ P.fromList bs
+      P.writeMarkdown basicOptions $ P.doc $ P.fromList bs
+    basicOptions = (P.def P.WriterOptions)
+                     { P.writerReferenceLinks = True
+                     }
 
 removeOrphanEntries :: [D.Key Entry] -> D.SqlPersistM ()
 removeOrphanEntries eKeys = do

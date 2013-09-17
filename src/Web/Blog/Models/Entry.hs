@@ -59,6 +59,16 @@ insertSlug eKey title = do
     Just (D.Entity sKey _) -> D.update sKey [SlugIsCurrent D.=. True]
     Nothing -> D.insert_ $ Slug eKey slugText True
 
+entryReaderOptions :: P.ReaderOptions
+entryReaderOptions = (P.def P.ReaderOptions)
+                       { P.readerSmart = True
+                       }
+
+entryWriterOptions :: P.WriterOptions
+entryWriterOptions = (P.def P.WriterOptions)
+                       { P.writerHtml5 = True
+                       }
+
 
 entryPandoc :: Entry -> P.Pandoc
 entryPandoc = P.bottomUp stripRules . entryPandocRaw
@@ -68,16 +78,16 @@ entryPandoc = P.bottomUp stripRules . entryPandocRaw
 
 entryPandocRaw :: Entry -> P.Pandoc
 entryPandocRaw =
-    P.readMarkdown (P.def P.ReaderOptions) . T.unpack . entryContent
+    P.readMarkdown entryReaderOptions . T.unpack . entryContent
 
 entryHtml :: Entry -> H.Html
-entryHtml = P.writeHtml (P.def P.WriterOptions) . entryPandoc
+entryHtml = P.writeHtml entryWriterOptions . entryPandoc
 
 entryLede :: Entry -> T.Text
-entryLede = T.pack . P.writeMarkdown (P.def P.WriterOptions) . entryLedePandoc
+entryLede = T.pack . P.writeMarkdown entryWriterOptions . entryLedePandoc
 
 entryLedeHtml :: Entry -> H.Html
-entryLedeHtml = P.writeHtml (P.def P.WriterOptions) . entryLedePandoc
+entryLedeHtml = P.writeHtml entryWriterOptions . entryLedePandoc
 
 entryLedePandoc :: Entry -> P.Pandoc
 entryLedePandoc entry = P.Pandoc m ledeBs
@@ -106,7 +116,7 @@ entryLedeStripped e = T.pack $ P.stringify inls
       concatMap ((++) (P.toList $ P.text " * ") . concatMap grabInls) bss
     grabInls (P.DefinitionList ds) = concatMap mapDs ds
       where
-        mapDs (inls', bss) = 
+        mapDs (inls', bss) =
           concat
             [ P.toList $ P.text " * "
             , inls'
