@@ -166,7 +166,7 @@ up, up until he hears the bell, and then stop it right after.  And then turn
 it down slightly to account for his predictable overshoot.
 
 The same thing works for going down -- tell him to turn the knob down, down
-until he hears a bell.  Then to turn it slightly up to account for his
+until he hears a bell; then, to turn it slightly up to account for his
 overshoot.  Conveniently, he always overshoots by the exact same amount every
 time.
 
@@ -182,11 +182,11 @@ stuff.  All he needs to know is "should I be increasing the flow, decreasing
 it, or leaving it alone?"  So maybe the heavier hamsters get to their
 destinations slower --- so what?  You've discovered something amazing.
 
-The key difference here is the *detection*.  The key here is that you are no
-longer thinking of a static system that will never change --- you are
-constantly adjusting on the fly.  You are doing things, detecting the
-reactions, and responding to those detections.  In control theory, this key
-difference is what we call **feedback**.
+The key difference here is the *detection*.  You are no longer thinking of a
+static system that will never change --- you are constantly adjusting on the
+fly.  You are doing things, detecting the reactions, and responding to those
+detections.  In control theory, this difference is what we call
+**feedback**.
 
 ***Feedback* is the process of letting what you *observe* from your changes
 affect what you *change next*, which then affects what you *observe*, etc.
@@ -219,13 +219,12 @@ and leave it constant if it's green.
 
 One day you realize that you don't even need an elevator boy anymore; you can
 do everything electronically.  To save money, you fire your elevator boy and
-set up a motor to twist the knob.  Instead of bothering with the lights light,
-your circuit will directly trigger the motor to loosen the valve if the car is
-too low, tighten it if it's too high, and stop the motor when it is just
-right.
+set up a motor to twist the knob.  Instead of bothering with the lights, your
+circuit will directly trigger the motor to loosen the valve if the car is too
+low, tighten it if it's too high, and stop the motor when it is just right.
 
-Congratulations, you now have your very first **closed feedback loop**, known
-as the [bang--bang controller][bangbang][^bangbangnote].
+Congratulations, you now have your very first automated **closed feedback
+loop**, known as the [bang--bang controller][bangbang][^bangbangnote].
 
 With this in mind, you are sure to have no obstacles to firmly establishing
 your hamster hotel empire.
@@ -247,13 +246,14 @@ Let's look at its shortcomings even in our simple scenario.
 In reality, the light will almost never be green for long.  Hamsters
 (especially the celebrities) are very finicky and require the highest of
 precision in their elevator car alignments.  If a platform is properly aligned
-as a hamster steps on it, it will be nudged off balance and will have to
-instantly re-adjust very quickly to stay green. This is felt as a "jitter". A
-particularly unpleasant sensation for a hamster.
+as a hamster steps on it, it will be nudged off balance and will have to be
+instantly re-adjusted very quickly to stay green. This is felt as a "jitter"
+(Which, as I have on good word, is a particularly unpleasant sensation for a
+hamster.)
 
 Could you possibly make the "adjustment speed" slower?  That is, could you
 slow down the speed that your motor runs at, so that the adjustment is slow
-enough as to not be felt as a jitter?
+enough as to not be felt as a rapid jitter?
 
 Well, you can!  But if your motor is slow, it will actually take much too long
 to ever move anywhere --- Perhaps the proper non-jittering motor speed is the
@@ -284,15 +284,18 @@ For now ... you might just have to rehire your elevator boy.
 The Hamster Hole Grows Deeper
 -----------------------------
 
-Are these the last of our problems?  If you noticed one trend in this post,
-it's that as soon as we conquer one problem ... many others pop up.  Any
+Are these the last of our problems standing in the way of a fully automated
+control system?  Well, if you've noticed one trend in this post, it might be
+that as soon as we conquer one problem ... many others inevitably pop up.  Any
 simple solution to these that you can think of now will have its own share of
 issues and problems.
 
-One day we will finally reach the end of the line and arrive at what is today
-known as the canonical "best" compromise --- the system that deals with all of
-the problems mentioned here, and all of the problems that come up with the
-naive solutions of the ones we face now.  The best we got.
+However, believe it or not, one day we will finally reach one satisfactory end
+of this line and arrive at what is today known as the canonical "best"
+compromise --- the system that deals with all of the problems mentioned here,
+and all of the problems that come up with the naive solutions of the ones we
+face now.  The best we got.  Not perfect --- and not the best for many
+specific system --- but the best overall, general, one-size-fits-all scheme.
 
 I'm saying this to prevent you from being weary.  We may have come a long way,
 but fear not --- there is an end to this hamster hole.
