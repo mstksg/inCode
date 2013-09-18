@@ -10,12 +10,19 @@
     margin-bottom: 1rem;
   }
 
+  hr {
+    margin: 1.5em 0 3em;
+  }
+
   p {
     text-indent: 1.5rem;
   }
 
   ul, ol, dl {
     margin-left: 2.5rem;
+    p {
+      text-indent: 0.5rem;
+    }
   }
 
   ul {
