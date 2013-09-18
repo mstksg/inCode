@@ -1,5 +1,5 @@
-Hamster Hotel: An Introduction to Control Theory
-================================================
+The Hamster Hotel: An Introduction to Control Theory
+====================================================
 
 Categories
 :   Engineering
@@ -24,7 +24,7 @@ Hopefully this series of posts will walk you through this wonderful world that
 is control theory, and explore just how much work goes into those simple
 things we all take for granted.
 
-Welcome to the *Hamster Hotel*.
+Welcome to *the Hamster Hotel*.
 
 The Hamster Hotel
 -----------------
@@ -41,10 +41,11 @@ The water jets push little plates in chutes up, and the hamsters hitch along
 for a ride.
 
 Let's say you can control how much the valve is open by twisting a knob (kind of
-like a garden hose).
+like a garden hose).  The more open the valve is, the higher the jet and the
+higher the elevator car.
 
-How do you know how much you have to open the valve up to go *exactly* to the
-second story?
+How do you know how much you have to open the valve up to get the car to go
+*exactly* to the second story?
 
 That's Easy! (?)
 ----------------
@@ -95,13 +96,13 @@ You just graduated with your bachelor's degree in Physics.  You know all about
 the laws governing force, gravity, water, pressure, potential energy,
 friction, turbulence, hamster physiology ... all of that stuff.  You memorized
 all of the equations, because that's what Physics is all about,
-right?[^itisnt]
+right?[^itsnot]
 
-[^itisnt]: It isn't
+[^itsnot]: It's not
 
 So, you whip out your precious equations (which you hold to be worth at least
 the $200,000 you spent to learn them).  Sure enough, you have enough equations
-in your toolbelt to describe and model the physical system almost perfectly.
+in your tool belt to describe and model the physical system almost perfectly.
 There are some constants you need to figure out --- the friction on the
 platforms, for example, or the width of your pipes --- and after that, given
 the weight of the load, the water pressure per degree of knob twist (which may
@@ -200,7 +201,7 @@ don't let what we observe affect what we change in this way) to a
 Also note one other fundamental shift we just made.  Based on what we observe,
 we *change*.  We no longer are finding out what we should *set* --- we are
 instead figuring out how we should *change*.  We don't care about 10%, 20%,
-30%, etc. anymore --- we only care about *left* or *right*.
+30%, etc. anymore --- we only care about twisting the knob *left* or *right*.
 
 ### Simple Improvements
 
@@ -244,10 +245,11 @@ control theory exists to provide.
 Let's look at its shortcomings even in our simple scenario.
 
 In reality, the light will almost never be green for long.  Hamsters
-(especially the celebrities) are very finicky and require a high precision in
-their elevator car alignment.  If a platform is properly aligned as a hamster
-steps on it, it will have to instantly re-adjust to stay green.  This is felt
-as a "jitter". A particularly unpleasant sensation for a hamster.
+(especially the celebrities) are very finicky and require the highest of
+precision in their elevator car alignments.  If a platform is properly aligned
+as a hamster steps on it, it will be nudged off balance and will have to
+instantly re-adjust very quickly to stay green. This is felt as a "jitter". A
+particularly unpleasant sensation for a hamster.
 
 Could you possibly make the "adjustment speed" slower?  That is, could you
 slow down the speed that your motor runs at, so that the adjustment is slow
@@ -257,11 +259,11 @@ Well, you can!  But if your motor is slow, it will actually take much too long
 to ever move anywhere --- Perhaps the proper non-jittering motor speed is the
 same speed that would take an hour to move up one story! Not acceptable!
 
-You either jitter, or you take too long to move anywhere.  Your motor speed
-can't have both!
+You either jitter, or you take too long to move anywhere.  Whatever motor
+speed you choose can't give you both.
 
 Furthermore, here we assume that our motor can instantaneously react to the
-changes in the red/blue/green lights.  However, real-life motors can't simply
+changes in the red/blue/green lights.  However, real-world motors can't simply
 change their direction immediately.  Have you ever tried getting a car going
 60 mph forwards to move 60 mph backwards instantly?
 
