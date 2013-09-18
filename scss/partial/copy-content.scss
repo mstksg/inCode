@@ -14,15 +14,15 @@
     margin: 1.5em 0 3em;
   }
 
-  p {
-    text-indent: 1.5rem;
-  }
+  // p {
+  //   text-indent: 1.5rem;
+  // }
 
   ul, ol, dl {
     margin-left: 2.5rem;
-    p {
-      text-indent: 0.5rem;
-    }
+    // p {
+    //   text-indent: 0.5rem;
+    // }
   }
 
   ul {
@@ -135,6 +135,22 @@
   @media #{$smaller-screen} {
     padding-left: 0;
     padding-right: 0;
+  }
+
+  .footnoteRef {
+    border-top: 3.25rem solid transparent;
+    // padding-top: 3.25rem;
+    margin-top: -3.25rem;
+    background-clip: content-box;
+  }
+
+  section.footnotes > ol > li {
+    border-top: 3.25rem solid transparent;
+    margin-top: -3.25rem;
+
+    > p {
+      z-index: 100;
+    }
   }
 
 
