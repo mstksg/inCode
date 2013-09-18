@@ -36,16 +36,16 @@ walk off.
 
 Due to an unfortunate mix-up on your contractor's part, your only option is
 elevators operated via water jets (like the ones at water fountains).  You can
-control how hard the jets push with a valve you can open or shut partially.
-The water jets push little plates in chutes up, and the hamsters hitch along
-for a ride.
+control how hard the jets push with a valve that you can open or shut
+partially. The water jets push little plates in chutes up, and the hamsters
+hitch along for a ride.
 
-Let's say you can control how much the valve is open by twisting a knob (kind of
-like a garden hose).  The more open the valve is, the higher the jet and the
-higher the elevator car.
+Let's say you can control how much the valve is open by twisting a knob (kind
+of like a garden hose).  The more open the valve is, the higher the jet goes
+and the higher the elevator car.
 
-How do you know how much you have to open the valve up to get the car to go
-*exactly* to the second story?
+How do you find out how much you have to open the valve up to get the car to
+go *exactly* to the second story?
 
 That's Easy! (?)
 ----------------
@@ -55,10 +55,10 @@ Let's try out some simple solutions.  What would you do first?
 ### Measure it out
 
 The most straightforward solution would be to get a ruler and do some good ol'
-empirical science-ing.  You'll open the valve until I get to each floor. Then,
-you'll write down the amount that I've twisted the knob (10%, 20%?). Then,
-whenever you want to go to a floor, you'll look it up on your table, twist the
-knob to the corresponding value, and hamsters rejoice!
+empirical science-ing.  You'll open the valve until you get to each floor.
+Then, you'll write down the amount that you've twisted the knob (10%, 20%?).
+Then, whenever you want to go to a floor, you'll look it up on your table,
+twist the knob to the corresponding value, and hamsters rejoice!
 
 Time to do this.  Ground floor?  0% twisted open.  Second floor?  3%.  Third
 floor?  12%.  Fourth floor?  27%.  To get to the roof, you need to only set it
@@ -71,14 +71,14 @@ my elevator.  You load up a hamster for the inaugural ride.
 
 First problem.  With a hamster actually inside the elevator, the whole thing
 is heavier, and a 3% open valve just doesn't cut it anymore to get it up even
-one story.  You find out that have to crank it up to 5%.  Second floor now
+one story.  You find out that have to crank it up to 5%.  Third floor now
 takes a 20% opened valve.
 
-This is a disaster!  Not only is your valued guest disappointed, this fiasco
-has also rendered the entire first table useless.  You might try to change my
-table to account for one hamster.  But what if your guest takes along also the
-missus as well?  Should we keep two tables -- one for a one-hamster car, and
-one for a two-hamster car?
+This is a disaster!  Not only is your valued guest disappointed, but this
+fiasco has also rendered the entire first percentages table useless.  You
+might try to change the table to account for one hamster.  But what if your
+guest takes along also the missus as well?  Should we keep two tables -- one
+for a one-hamster car, and one for a two-hamster car?
 
 But we musn't stereotype --- hamsters all have different weights.  And what if
 the guests had luggage?  Maybe we can measure the luggage, and create a new
@@ -103,13 +103,13 @@ right?[^itsnot]
 So, you whip out your precious equations (which you hold to be worth at least
 the $200,000 you spent to learn them).  Sure enough, you have enough equations
 in your tool belt to describe and model the physical system almost perfectly.
-There are some constants you need to figure out --- the friction on the
-platforms, for example, or the width of your pipes --- and after that, given
-the weight of the load, the water pressure per degree of knob twist (which may
-change depending on the day), the desired height, the ambient room
-temperature, the heat of the elevator shaft, the temperature inside the pipes,
-the current air pressure, the humidity, the state of the lubrication in the
-shaft ... you can predict exactly how much you need to twist that water knob.
+There are some constants you need to figure out --- the friction in the shaft,
+for example, or the width of your pipes --- and after that, given the weight
+of the load, the water pressure per degree of knob twist (which may change
+depending on the day), the desired height, the ambient room temperature, the
+heat of the elevator shaft, the temperature inside the pipes, the current air
+pressure, the humidity, the state of the lubrication in the shaft ... you can
+predict exactly how much you need to twist that water knob.
 
 You write a little program on your TI-89 to calculate the right amount of
 twist for all of those parameters, and you are good to go!
@@ -120,11 +120,11 @@ You see where the flaw in the plan is?
 
 It's very rude to ask a hamster for her weight!
 
-Also, aside from that, there are just to many parameters you have to
-constantly monitor, measure, and maintain things that are out of your control.
-If you don't get it all exactly right, your hamsters (who are extraordinarily
-squeamish guests) won't go anywhere near the elevator, or become stuck inside.
-Certainly not the path to gaining a five star reputation!
+Also, aside from that, there are just too many parameters you have to
+constantly monitor, measure, and maintain. If you don't get it all exactly
+right, your hamsters (who are extraordinarily squeamish guests) won't go
+anywhere near the elevator, or become stuck inside. Certainly not the path to
+gaining a five star reputation!
 
 Even if you somehow managed to find all of the proper parameters to a "good
 enough" level every time ... in general, it's unrealistic to expect to be able
@@ -134,7 +134,7 @@ Also, there are some things this system cannot account for ---
 
 What if the parameters change in mid-trip?  What if the water pressure
 suddenly dropped?  What if the lubrication was different along the length of
-the shaft?  What if a hamster jumped into the shaft last-minute?
+the shaft?  What if a hamster jumps onto the car last-minute?
 
 Certainly if any of these things happened, our poor hamster guests would
 undoubtedly fall straight to their deaths.
@@ -158,7 +158,7 @@ help but be embarrassed every day when you explain that your elevator is still
 not adequately controllable.
 
 You gain enough revenue that you decide to try things again with a human
-factor.
+factor.  You hire an elevator boy.
 
 Your scheme is simple: have a little bell attached at the point where every
 elevator reaches the perfect height.  Your elevator boy will turn the knob up,
@@ -195,10 +195,10 @@ etc.**
 And *this* is the key.
 
 In control theory, this would be known as moving from an **open loop** (where we
-don't let what we observe affect what we change in this way) to a
+don't let what we observe affect what we change on-the-fly) to a
 **closed loop** (where we do).
 
-Also note one other fundamental shift we just made.  Based on what we observe,
+Also note one other fundamental shift we just made: Based on what we observe,
 we *change*.  We no longer are finding out what we should *set* --- we are
 instead figuring out how we should *change*.  We don't care about 10%, 20%,
 30%, etc. anymore --- we only care about twisting the knob *left* or *right*.
@@ -206,7 +206,7 @@ instead figuring out how we should *change*.  We don't care about 10%, 20%,
 ### Simple Improvements
 
 Still, this system isn't perfect ... sometimes, if you forget to feed your
-elevator boy and he will overshoot unpredictably.  No big deal.  You attach
+elevator boy, he will overshoot unpredictably.  No big deal.  You attach
 some [very simple electronics][snapcircuits] to your elevator shaft so that a
 *red* light comes on if the elevator is too low, a *blue* light comes on if it's
 too high, and a *green* light if it's just right.
@@ -243,24 +243,23 @@ control theory exists to provide.
 
 Let's look at its shortcomings even in our simple scenario.
 
-In reality, the light will almost never be green for long.  Hamsters
-(especially the celebrities) are very finicky and require the highest of
-precision in their elevator car alignments.  If a platform is properly aligned
-as a hamster steps on it, it will be nudged off balance and will have to be
-instantly re-adjusted very quickly to stay green. This is felt as a "jitter"
-(Which, as I have on good word, is a particularly unpleasant sensation for a
-hamster.)
+In reality, the light will almost never be green for long.  If a platform is
+properly aligned as a hamster steps on it, it will be nudged off balance and
+will have to be instantly re-adjusted very quickly to stay green. This is felt
+as a "jitter" (Which, as I have on good word, is a particularly unpleasant
+sensation for a hamster.)
 
 Could you possibly make the "adjustment speed" slower?  That is, could you
 slow down the speed that your motor runs at, so that the adjustment is slow
 enough as to not be felt as a rapid jitter?
 
 Well, you can!  But if your motor is slow, it will actually take much too long
-to ever move anywhere --- Perhaps the proper non-jittering motor speed is the
-same speed that would take an hour to move up one story! Not acceptable!
+to ever move anywhere.  Perhaps the proper non-jittering motor speed is the
+same speed that would cause the car to take an hour to move up one story.  Not
+acceptable!
 
 You either jitter, or you take too long to move anywhere.  Whatever motor
-speed you choose can't give you both.
+speed you choose will always have one or the other.
 
 Furthermore, here we assume that our motor can instantaneously react to the
 changes in the red/blue/green lights.  However, real-world motors can't simply
@@ -290,16 +289,17 @@ that as soon as we conquer one problem ... many others inevitably pop up.  Any
 simple solution to these that you can think of now will have its own share of
 issues and problems.
 
-However, believe it or not, one day we will finally reach one satisfactory end
-of this line and arrive at what is today known as the canonical "best"
+However, believe it or not, one day we will finally reach an end
+to this rat race and arrive at what is today known as the canonical "best"
 compromise for our system --- the system that deals with all of the problems
 mentioned here, and nearly all of the problems that come up with the naive
 solutions of the ones we face now.  The best we got.  Not perfect --- and not
-the best for many specific system --- but the best overall, general scheme for
-problems of this type.
+the best for many specific systems --- but the best overall, general scheme for
+problems of this particular type.
 
 I'm saying this to prevent you from being weary.  We may have come a long way,
-but fear not --- there is an end to this hamster hole.
+and there may be much more to tackle, but fear not --- there is a satisfying
+end to this hamster hole.
 
 But first!  How will we solve these fundamental problems --- jittering and
 oscillation --- of the bang--bang controller?
