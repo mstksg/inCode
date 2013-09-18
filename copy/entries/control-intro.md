@@ -146,11 +146,5 @@ but is that really practical?
 For a genius the likes of which the world has never seen, it may be
 *possible*.
 
-But ... there has to be a better way.
-
-
-
-
-
-
+But ... there *has* to be a better way.
 
