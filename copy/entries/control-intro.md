@@ -21,8 +21,8 @@ temperature of a room or the speed of a fan -- is an extremely deep/rich
 mathematical and engineering discipline.
 
 Hopefully this series of posts will walk you through this wonderful world that
-is control theory, and explore just how much work goes into those simple
-things we all take for granted.
+is control theory, and explore (without any complex mathematics) just how much
+genius goes into those simple things we all take for granted.
 
 Welcome to *the Hamster Hotel*.
 
@@ -292,10 +292,11 @@ issues and problems.
 
 However, believe it or not, one day we will finally reach one satisfactory end
 of this line and arrive at what is today known as the canonical "best"
-compromise --- the system that deals with all of the problems mentioned here,
-and all of the problems that come up with the naive solutions of the ones we
-face now.  The best we got.  Not perfect --- and not the best for many
-specific system --- but the best overall, general, one-size-fits-all scheme.
+compromise for our system --- the system that deals with all of the problems
+mentioned here, and nearly all of the problems that come up with the naive
+solutions of the ones we face now.  The best we got.  Not perfect --- and not
+the best for many specific system --- but the best overall, general scheme for
+problems of this type.
 
 I'm saying this to prevent you from being weary.  We may have come a long way,
 but fear not --- there is an end to this hamster hole.
