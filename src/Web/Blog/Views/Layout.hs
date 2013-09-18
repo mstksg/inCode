@@ -2,8 +2,8 @@
 
 module Web.Blog.Views.Layout (viewLayout, viewLayoutEmpty) where
 
+-- import Control.Applicative                ((<$>))
 import Config.SiteData
-import Control.Applicative                   ((<$>))
 import Control.Monad.Reader
 import Data.Maybe                            (fromMaybe)
 import Data.Monoid
@@ -45,7 +45,8 @@ viewLayout body = do
 
     H.head $ do
 
-      H.title title
+      H.title $
+        H.toHtml title
       H.meta ! A.name "description" ! A.content (I.textValue $ siteDataDescription siteData)
 
       H.meta ! A.httpEquiv "Content-Type" ! A.content "text/html;charset=utf-8"
@@ -125,16 +126,16 @@ viewLayout body = do
 viewLayoutEmpty :: SiteRender H.Html
 viewLayoutEmpty = viewLayout $ return mempty
 
-createTitle :: SiteRender H.Html
+createTitle :: SiteRender T.Text
 createTitle = do
   pageData' <- ask
   let
     siteTitle = siteDataTitle siteData
     pageTitle = pageDataTitle pageData'
     combined   = case pageTitle of
-      Just title -> T.concat [siteTitle, " — ", title]
+      Just title -> T.concat [title," · ",siteTitle]
       Nothing    -> siteTitle
-  return $ H.toHtml combined
+  return combined
 
 navBar :: SiteRender H.Html
 navBar = do
