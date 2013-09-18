@@ -226,7 +226,7 @@ low, tighten it if it's too high, and stop the motor when it is just right.
 Congratulations, you now have your very first automated **closed feedback
 loop**, known as the [bang--bang controller][bangbang][^bangbangnote].
 
-With this in mind, you are sure to have no obstacles to firmly establishing
+With this in hand, you are sure to have no obstacles to firmly establishing
 your hamster hotel empire.
 
 [bangbang]: http://en.wikipedia.org/wiki/Bang%E2%80%93bang_control
