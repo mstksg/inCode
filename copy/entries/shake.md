@@ -510,15 +510,18 @@ Luckily *Shake* is very good at integrating seamlessly with any kind of
 framework.  We can leave this up to other frameworks.
 
 One popular framework for this that is gaining in maturity is
-[*Shelly*][shelly], but you are welcome to using your own.  At the present
-Haskell is still developing and growing in this aspect.  I hope to eventually
-write an article about *Shelly* integration with *Shake*.
+[*Shelly*][shelly] (A fork of an older project that is an [ongoing][shelly1]
+Yesod [experiment][shelly2]), but you are welcome to using your own.  At the
+present Haskell is still developing and growing in this aspect.  I hope to
+eventually write an article about *Shelly* integration with *Shake*.
+
+[shelly]: http://hackage.haskell.org/package/shelly
+[shelly1]: http://www.yesodweb.com/blog/2012/03/shelly-for-shell-scripts
+[shelly2]: http://www.yesodweb.com/blog/2012/07/shelly-update
 
 #### Other
 
 These are just some ways to think about using *Shake* in new more creative
 ways.  Let me know if you think of any clever integrations in the comments!
 
-
-[shelly]: http://hackage.haskell.org/package/shelly
 

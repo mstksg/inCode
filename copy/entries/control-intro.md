@@ -30,7 +30,7 @@ The Hamster Hotel
 -----------------
 
 You run a hamster hotel (a hotel for hamsters) and you have a problem.
-Elevators. Your hamster guests need to get from one storey to another.  They
+Elevators. Your hamster guests need to get from one story to another.  They
 walk into the elevator, the elevator takes them to the right floor, and they
 walk off.
 
@@ -55,7 +55,7 @@ Let's try out some simple solutions.  What would you do first?
 
 The most straightforward solution would be to get a ruler and do some good ol'
 empirical science-ing.  You'll open the valve until I get to each floor. Then,
-You'll write down the amount that I've twisted the knob (10%, 20%?). Then,
+you'll write down the amount that I've twisted the knob (10%, 20%?). Then,
 whenever you want to go to a floor, you'll look it up on your table, twist the
 knob to the corresponding value, and hamsters rejoice!
 
@@ -70,14 +70,14 @@ my elevator.  You load up a hamster for the inaugural ride.
 
 First problem.  With a hamster actually inside the elevator, the whole thing
 is heavier, and a 3% open valve just doesn't cut it anymore to get it up even
-one storey.  You find out that have to crank it up to 5%.  Second floor now
+one story.  You find out that have to crank it up to 5%.  Second floor now
 takes a 20% opened valve.
 
 This is a disaster!  Not only is your valued guest disappointed, this fiasco
 has also rendered the entire first table useless.  You might try to change my
 table to account for one hamster.  But what if your guest takes along also the
-Mrs. as well?  Should we keep two tables -- one for a one-hamster car, and one
-for a two-hamster car?
+missus as well?  Should we keep two tables -- one for a one-hamster car, and
+one for a two-hamster car?
 
 But we musn't stereotype --- hamsters all have different weights.  And what if
 the guests had luggage?  Maybe we can measure the luggage, and create a new
@@ -115,7 +115,7 @@ twist for all of those parameters, and you are good to go!
 
 #### Does Not Compute
 
-You see now where the flaw in the plan is?
+You see where the flaw in the plan is?
 
 It's very rude to ask a hamster for her weight!
 
@@ -147,4 +147,156 @@ For a genius the likes of which the world has never seen, it may be
 *possible*.
 
 But ... there *has* to be a better way.
+
+I Detect a Clue
+---------------
+
+Despite your elevator problems, your hamster guests appear perfectly content,
+and your hotel grows to large acclaim in the hamster world.  Still, you can't
+help but be embarrassed every day when you explain that your elevator is still
+not adequately controllable.
+
+You gain enough revenue that you decide to try things again with a human
+factor.
+
+Your scheme is simple: have a little bell attached at the point where every
+elevator reaches the perfect height.  Your elevator boy will turn the knob up,
+up, up until he hears the bell, and then stop it right after.  And then turn
+it down slightly to account for his predictable overshoot.
+
+The same thing works for going down -- tell him to turn the knob down, down
+until he hears a bell.  Then to turn it slightly up to account for his
+overshoot.  Conveniently, he always overshoots by the exact same amount every
+time.
+
+And suddenly, things seem to click.
+
+### The Key
+
+This system accounts for all of the problems we ran into before.  We have a
+human here who can account for everything.  He makes all of the adjustments on
+the fly.  He doesn't need to know any exact percentages ... he doesn't need to
+worry about water pressure or friction or hamster weights, or any of that
+stuff.  All he needs to know is "should I be increasing the flow, decreasing
+it, or leaving it alone?"  So maybe the heavier hamsters get to their
+destinations slower --- so what?  You've discovered something amazing.
+
+The key difference here is the *detection*.  The key here is that you are no
+longer thinking of a static system that will never change --- you are
+constantly adjusting on the fly.  You are doing things, detecting the
+reactions, and responding to those detections.  In control theory, this key
+difference is what we call **feedback**.
+
+***Feedback* is the process of letting what you *observe* from your changes
+affect what you *change next*, which then affects what you *observe*, etc.
+etc.**
+
+And *this* is the key.
+
+In control theory, this would be known as moving from an **open loop** (where we
+don't let what we observe affect what we change in this way) to a
+**closed loop** (where we do).
+
+Also note one other fundamental shift we just made.  Based on what we observe,
+we *change*.  We no longer are finding out what we should *set* --- we are
+instead figuring out how we should *change*.  We don't care about 10%, 20%,
+30%, etc. anymore --- we only care about *left* or *right*.
+
+### Simple Improvements
+
+Still, this system isn't perfect ... sometimes, if you forget to feed your
+elevator boy and he will overshoot unpredictably.  No big deal.  You attach
+some [very simple electronics][snapcircuits] to your elevator shaft so that a
+*red* light comes on if the elevator is too low, a *blue* light comes on if it's
+too high, and a *green* light if it's just right.
+
+[snapcircuits]: http://www.snapcircuits.net/
+
+Finally, with all of the electronics installed, your elevator boy knows three
+rules: increase the flow if the light is red, decrease the flow if it's blue,
+and leave it constant if it's green.
+
+One day you realize that you don't even need an elevator boy anymore; you can
+do everything electronically.  To save money, you fire your elevator boy and
+set up a motor to twist the knob.  Instead of bothering with the lights light,
+your circuit will directly trigger the motor to loosen the valve if the car is
+too low, tighten it if it's too high, and stop the motor when it is just
+right.
+
+Congratulations, you now have your very first **closed feedback loop**, known
+as the [bang--bang controller][bangbang][^bangbangnote].
+
+With this in mind, you are sure to have no obstacles to firmly establishing
+your hamster hotel empire.
+
+[bangbang]: http://en.wikipedia.org/wiki/Bang%E2%80%93bang_control
+
+[^bangbangnote]: Technically, it is a modified version of the bang--bang
+    controller with an option for "don't do anything".  A true bang--bang
+    controller would not have the "green light" option.
+
+### Problems Again
+
+Of course, our bang--bang controller is (as you might expect from the
+crudeness of the name) not exactly the be-all and end-all solution that
+control theory exists to provide.
+
+Let's look at its shortcomings even in our simple scenario.
+
+In reality, the light will almost never be green for long.  Hamsters
+(especially the celebrities) are very finicky and require a high precision in
+their elevator car alignment.  If a platform is properly aligned as a hamster
+steps on it, it will have to instantly re-adjust to stay green.  This is felt
+as a "jitter". A particularly unpleasant sensation for a hamster.
+
+Could you possibly make the "adjustment speed" slower?  That is, could you
+slow down the speed that your motor runs at, so that the adjustment is slow
+enough as to not be felt as a jitter?
+
+Well, you can!  But if your motor is slow, it will actually take much too long
+to ever move anywhere --- Perhaps the proper non-jittering motor speed is the
+same speed that would take an hour to move up one story! Not acceptable!
+
+You either jitter, or you take too long to move anywhere.  Your motor speed
+can't have both!
+
+Furthermore, here we assume that our motor can instantaneously react to the
+changes in the red/blue/green lights.  However, real-life motors can't simply
+change their direction immediately.  Have you ever tried getting a car going
+60 mph forwards to move 60 mph backwards instantly?
+
+Imagine applying this, then, to the elevator.  It'll move up, up, up, then
+notice that it's at the right level.  But before it can stop, it's already too
+high.  It starts turning the motor the other way, to go down, down at the same
+speed ... it reaches the right level, but by the time it can stop, it's to
+low.
+
+This idea of *overshoot* will cause your elevator car to forever go up and
+down, bouncing up and down without ever settling on the green zone even once.
+This is because your motor only has one speed, and however much you overshoot
+going up, it'll be exactly as much as you overshoot going down, and as much as
+you overshoot going up the next time.
+
+For now ... you might just have to rehire your elevator boy.
+
+The Hamster Hole Grows Deeper
+-----------------------------
+
+Are these the last of our problems?  If you noticed one trend in this post,
+it's that as soon as we conquer one problem ... many others pop up.  Any
+simple solution to these that you can think of now will have its own share of
+issues and problems.
+
+One day we will finally reach the end of the line and arrive at what is today
+known as the canonical "best" compromise --- the system that deals with all of
+the problems mentioned here, and all of the problems that come up with the
+naive solutions of the ones we face now.  The best we got.
+
+I'm saying this to prevent you from being weary.  We may have come a long way,
+but fear not --- there is an end to this hamster hole.
+
+But first!  How will we solve these fundamental problems --- jittering and
+oscillation --- of the bang--bang controller?
+
+
 
