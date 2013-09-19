@@ -8,7 +8,7 @@ Tags
 CreateTime
 :   2013/09/17 15:35:42
 PostDate
-:   2013/09/19 16:23:11
+:   Never
 Identifier
 :   control-intro
 
@@ -302,6 +302,4 @@ end to this hamster hole.
 
 But first!  How will we solve these fundamental problems --- jittering and
 oscillation --- of the bang--bang controller?
-
-
 
