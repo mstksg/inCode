@@ -64,8 +64,8 @@ Time to do this.  Ground floor?  0% twisted open.  Second floor?  3%.  Third
 floor?  12%.  Fourth floor?  27%.  To get to the roof, you need to only set it
 to 48% open.
 
-Now that I have completely science'd the situation, it's time to start using
-my elevator.  You load up a hamster for the inaugural ride.
+Now that you have completely science'd the situation, it's time to start using
+your elevator.  You load up a hamster for the inaugural ride.
 
 #### The Plight of the Hamster
 
@@ -118,7 +118,7 @@ twist for all of those parameters, and you are good to go!
 
 You see where the flaw in the plan is?
 
-It's very rude to ask a hamster for her weight!
+Of course: it's very rude to ask a hamster for her weight!
 
 Also, aside from that, there are just too many parameters you have to
 constantly monitor, measure, and maintain. If you don't get it all exactly
@@ -130,14 +130,14 @@ Even if you somehow managed to find all of the proper parameters to a "good
 enough" level every time ... in general, it's unrealistic to expect to be able
 to derive an analytic solution to all of your problems.
 
-Also, there are some things this system cannot account for ---
+All these things aside, there are even graver issues that plague this system.
 
 What if the parameters change in mid-trip?  What if the water pressure
 suddenly dropped?  What if the lubrication was different along the length of
 the shaft?  What if a hamster jumps onto the car last-minute?
 
 Certainly if any of these things happened, our poor hamster guests would
-undoubtedly fall straight to their deaths.
+undoubtedly fall straight to their doom.
 
 The problem with this system is that it's simply not **dynamic**.
 
@@ -162,13 +162,10 @@ factor.  You hire an elevator boy.
 
 Your scheme is simple: have a little bell attached at the point where every
 elevator reaches the perfect height.  Your elevator boy will turn the knob up,
-up, up until he hears the bell, and then stop it right after.  And then turn
-it down slightly to account for his predictable overshoot.
+up, up until he hears the bell, and then stop it right after.
 
 The same thing works for going down -- tell him to turn the knob down, down
-until he hears a bell; then, to turn it slightly up to account for his
-overshoot.  Conveniently, he always overshoots by the exact same amount every
-time.
+until he hears a bell.
 
 And suddenly, things seem to click.
 
@@ -189,8 +186,8 @@ detections.  In control theory, this difference is what we call
 **feedback**.
 
 ***Feedback* is the process of letting what you *observe* from your changes
-affect what you *change next*, which then affects what you *observe*, etc.
-etc.**
+affect what you *change next, on the fly***, which then affects what you
+*observe*, etc. etc.
 
 And *this* is the key.
 
@@ -205,11 +202,12 @@ instead figuring out how we should *change*.  We don't care about 10%, 20%,
 
 ### Simple Improvements
 
-Still, this system isn't perfect ... sometimes, if you forget to feed your
-elevator boy, he will overshoot unpredictably.  No big deal.  You attach
-some [very simple electronics][snapcircuits] to your elevator shaft so that a
-*red* light comes on if the elevator is too low, a *blue* light comes on if it's
-too high, and a *green* light if it's just right.
+Still, this system isn't perfect.  Sometimes, if you forget to feed your
+elevator boy, he will accidentally miss the bell and overshoot slightly.  No
+big deal.  You attach some [very simple electronics][snapcircuits] to your
+elevator shaft so that a *red* light comes on if the elevator is too low, a
+*blue* light comes on if it's too high, and a *green* light if it's just
+right.
 
 [snapcircuits]: http://www.snapcircuits.net/
 
@@ -220,11 +218,12 @@ and leave it constant if it's green.
 One day you realize that you don't even need an elevator boy anymore; you can
 do everything electronically.  To save money, you fire your elevator boy and
 set up a motor to twist the knob.  Instead of bothering with the lights, your
-circuit will directly trigger the motor to loosen the valve if the car is too
-low, tighten it if it's too high, and stop the motor when it is just right.
+circuit will directly trigger the motor to loosen the valve (spin right) if
+the car is too low, tighten it (spin left) if it's too high, and stop the
+motor when it is just right.
 
-Congratulations, you now have your very first automated **closed feedback
-loop**, known as the [bang--bang controller][bangbang][^bangbangnote].
+Congratulations, you now have your very first automated closed feedback
+loop, known as the [bang--bang controller][bangbang][^bangbangnote].
 
 With this in hand, you are sure to have no obstacles to firmly establishing
 your hamster hotel empire.
@@ -244,10 +243,10 @@ control theory exists to provide.
 Let's look at its shortcomings even in our simple scenario.
 
 In reality, the light will almost never be green for long.  If a platform is
-properly aligned as a hamster steps on it, it will be nudged off balance and
-will have to be instantly re-adjusted very quickly to stay green. This is felt
-as a "jitter" (Which, as I have on good word, is a particularly unpleasant
-sensation for a hamster.)
+properly aligned as a hamster steps on it, it will be nudged off balance.  The
+light will immediately turn red, the motor will immediately adjust the jet and
+the car at full speed.  This is felt as a "jitter" (Which, as I have on good
+word, is a particularly unpleasant sensation for a hamster.)
 
 Could you possibly make the "adjustment speed" slower?  That is, could you
 slow down the speed that your motor runs at, so that the adjustment is slow
@@ -259,9 +258,9 @@ same speed that would cause the car to take an hour to move up one story.  Not
 acceptable!
 
 You either jitter, or you take too long to move anywhere.  Whatever motor
-speed you choose will always have one or the other.
+speed you choose will always have one problem or the other.
 
-Furthermore, here we assume that our motor can instantaneously react to the
+Furthermore, here we assume that our motor can instantly react to the
 changes in the red/blue/green lights.  However, real-world motors can't simply
 change their direction immediately.  Have you ever tried getting a car going
 60 mph forwards to move 60 mph backwards instantly?
@@ -269,7 +268,7 @@ change their direction immediately.  Have you ever tried getting a car going
 Imagine applying this, then, to the elevator.  It'll move up, up, up, then
 notice that it's at the right level.  But before it can stop, it's already too
 high.  It starts turning the motor the other way, to go down, down at the same
-speed ... it reaches the right level, but by the time it can stop, it's to
+speed ... it reaches the right level, but by the time it can stop, it's too
 low.
 
 This idea of *overshoot* will cause your elevator car to forever go up and
