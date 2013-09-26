@@ -26,8 +26,8 @@ to Ruby's [*rake*][rake], Node's [*jake*][jake]?  (Not to mention the
 tools of slightly different philosophy [*grunt*][grunt] and [*ant*][ant])
 
 It turns out that by far the most established answer is a library known as
-[*Shake*][shake], (maintained by Neil Mitchell of [*hoogle*][hoogle]
-fame).  So far it's served pretty well.  Its documentation is written from the
+[*Shake*][shake] (maintained by Neil Mitchell of [*hoogle*][hoogle] fame).
+So far it's served me pretty well.  Its documentation is written from the
 perspective of chiefly using it as a build tool (more "make" than "rake"), so
 if you're looking to use it as a task management system, you might have to do
 some digging. Hopefully this post can help you get started.
@@ -342,10 +342,8 @@ one line:
 
 ~~~haskell
 "out/report.doc" *> \f -> do
-    void $ need <$> srcFiles
+    need <$> srcFiles
 ~~~
-
-(the `void` is to prevent ghc from complaining about a discarded result)
 
 Phony Rules
 -----------
@@ -424,11 +422,11 @@ main = shakeArgs opts $ do
         cmd "fortune" [""]
 
     "out/report.doc" *> \f -> do
-        void $ need <$> deps
+        need <$> deps
         cmd "pandoc" [ "src/report.md", "-o", f ]
 
     "out/report.pdf" *> \f -> do
-        void $ need <$> deps
+        need <$> deps
         cmd "pandoc" [ "src/report.md", "-o", f, "-V", "links-as-notes" ]
 
     "out/report.html" *> \f -> do
@@ -469,11 +467,11 @@ forM_ ["report1","report2","report3"] $ \reportName -> do
         srcName = "src/" ++ reportName ++ ".md"
 
     (outBase ++ ".doc") *> \f -> do
-        void $ need <$> deps
+        need <$> deps
         cmd "pandoc" [ srcName, "-o", f ]
 
     (outBase ++ ".pdf") *> \f -> do
-        void $ need <$> deps
+        need <$> deps
         cmd "pandoc" [ srcName, "-o", f, "-V", "links-as-notes" ]
 
     (outBase ++ ".html") *> \f -> do

@@ -1,5 +1,5 @@
-Deploying Medium/Large Haskell Apps to Heroku by Precompiling
-======================================================
+Deploying Medium/Large Haskell Apps to Heroku via Precompiling
+==============================================================
 
 Categories
 :   Haskell
