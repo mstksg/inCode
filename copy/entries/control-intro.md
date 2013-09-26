@@ -12,12 +12,12 @@ PostDate
 Identifier
 :   control-intro
 
-Over this summer my work has been in the realm of control theory.  I must
-admit that I find it a little odd that the idea of "controlling something" ---
-say, the temperature of a room or the speed of a fan --- can be an extremely
-deep/rich mathematical and engineering discipline.
+Over this summer my work has been in the field of control theory.  I must
+admit that I at first found it a little odd that the idea of "controlling
+something" --- say, the temperature of a room or the speed of a fan --- can be
+an extremely deep/rich mathematical and engineering discipline.
 
-This serious should hopefully be an enlightening walk through this wonderful
+This series should hopefully be an enlightening walk through this wonderful
 world that is control theory, and explore (without any complex mathematics)
 just how much genius goes into those simple things we all take for granted.
 
