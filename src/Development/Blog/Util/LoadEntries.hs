@@ -89,12 +89,18 @@ processEntryFile entryFile = do
           k <- fromJust <$> insertEntry newEntry
           return $ D.Entity k newEntry
 
+    D.update eKey [ EntryContent    D.=. entryMarkdown
+                  , EntryImage      D.=. Nothing
+                  , EntrySourceFile D.=. Just entryFile
+                  , EntryCreatedAt  D.=. Nothing
+                  , EntryPostedAt   D.=. Nothing
+                  , EntryModifiedAt D.=. Nothing
+                  , EntryIdentifier D.=. Nothing
+                  ]
+
     void $ M.traverseWithKey (applyMetas entryEntity) metas
 
     liftIO $ print entryFile
-
-    D.update eKey [ EntrySourceFile D.=. Just entryFile ]
-    D.update eKey [ EntryContent D.=. entryMarkdown ]
 
     updateEntryTitle eKey title
 
