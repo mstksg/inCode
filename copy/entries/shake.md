@@ -13,7 +13,7 @@ PostDate
 Identifier
 :   shake1
 
-As someone who comes from a background with ruby and rake, I'm used to
+As someone who comes from a background in ruby and rake, I'm used to
 powerful task management systems with expressive dependency. *Make* is a
 favorite tool of mine when I'm working on projects with people who don't use
 ruby, and when I'm working on ruby projects I never go far without starting a

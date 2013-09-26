@@ -122,9 +122,8 @@ Of course: it's very rude to ask a hamster for her weight!
 
 Also, aside from that, there are just too many parameters you have to
 constantly monitor, measure, and maintain. If you don't get it all exactly
-right, your hamsters (who are extraordinarily squeamish guests) won't go
-anywhere near the elevator, or become stuck inside. Certainly not the path to
-gaining a five star reputation!
+right, your hamsters are likely to get stuck inside somehow.  Certainly not
+the path to gaining a five star reputation!
 
 Even if you somehow managed to find all of the proper parameters to a "good
 enough" level every time ... in general, it's unrealistic to expect to be able
@@ -152,10 +151,11 @@ But ... there *has* to be a better way.
 I Detect a Clue
 ---------------
 
-Despite your elevator problems, your hamster guests appear perfectly content,
-and your hotel grows to large acclaim in the hamster world.  Still, you can't
-help but be embarrassed every day when you explain that your elevator is still
-not adequately controllable.
+You decide to put aside your elevator problems for now and focus on other
+aspects of your business.  You do very well, actually, and your hotel grows to
+large acclaim in the hamster world.  Still, you can't help but be embarrassed
+every day when you explain that your elevator is still not adequately
+controllable.
 
 You gain enough revenue that you decide to try things again with a human
 factor.  You hire an elevator boy.
@@ -215,12 +215,14 @@ Finally, with all of the electronics installed, your elevator boy knows three
 rules: increase the flow if the light is red, decrease the flow if it's blue,
 and leave it constant if it's green.
 
-One day you realize that you don't even need an elevator boy anymore; you can
-do everything electronically.  To save money, you fire your elevator boy and
-set up a motor to twist the knob.  Instead of bothering with the lights, your
-circuit will directly trigger the motor to loosen the valve (spin right) if
-the car is too low, tighten it (spin left) if it's too high, and stop the
-motor when it is just right.
+Of course, you were hoping (from the beginning) to be able to do have this be
+done without human intervention.
+
+One day, you figure out that you can do the entire thing electronically.  To
+save money, you fire your elevator boy and set up a motor to twist the knob.
+In addition to the lights, your circuit will also trigger the motor to loosen
+the valve (spin right) if the car is too low, tighten it (spin left) if it's
+too high, and stop the motor when it is just right.
 
 Congratulations, you now have your very first automated closed feedback
 loop, known as the [bang--bang controller][bangbang][^bangbangnote].
@@ -231,8 +233,8 @@ your hamster hotel empire.
 [bangbang]: http://en.wikipedia.org/wiki/Bang%E2%80%93bang_control
 
 [^bangbangnote]: Technically, it is a modified version of the bang--bang
-    controller with an option for "don't do anything".  A true bang--bang
-    controller would not have the "green light" option.
+    controller with an option for "don't do anything" --- a "bang--bang--shh".
+    A true bang--bang controller would not have the "green light" option.
 
 ### Problems Again
 
