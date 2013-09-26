@@ -12,19 +12,16 @@ PostDate
 Identifier
 :   control-intro
 
-Over this summer my work has been in the realm of control theory.  I've found
-that it's not exactly straightforward to explain what control theory actually
-*is* to people who haven't heard about it before.
+Over this summer my work has been in the realm of control theory.  I must
+admit that I find it a little odd that the idea of "controlling something" ---
+say, the temperature of a room or the speed of a fan --- can be an extremely
+deep/rich mathematical and engineering discipline.
 
-It's a little odd that the idea of "controlling something" -- say, the
-temperature of a room or the speed of a fan -- is an extremely deep/rich
-mathematical and engineering discipline.
+This serious should hopefully be an enlightening walk through this wonderful
+world that is control theory, and explore (without any complex mathematics)
+just how much genius goes into those simple things we all take for granted.
 
-Hopefully this series of posts will walk you through this wonderful world that
-is control theory, and explore (without any complex mathematics) just how much
-genius goes into those simple things we all take for granted.
-
-Welcome to *the Hamster Hotel*.
+Welcome to **the Hamster Hotel**.
 
 The Hamster Hotel
 -----------------
