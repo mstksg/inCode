@@ -412,7 +412,6 @@ Completed File
 
 ~~~haskell
 -- Shakefile
-
 {-# OPTIONS_GHC -fno-warn-wrong-do-bind #-}
 
 import Control.Applicative ((<$>))
