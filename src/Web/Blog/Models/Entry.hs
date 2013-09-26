@@ -8,7 +8,7 @@ import Config.SiteData
 import Control.Applicative                   ((<$>))
 import Control.Monad.IO.Class                (liftIO)
 import Control.Monad.Loops                   (firstM)
-import Data.List                             (groupBy)
+import Data.List                             (groupBy, intersperse)
 import Data.Maybe                            (fromJust, isJust)
 import Data.Time
 import Web.Blog.Models
@@ -103,7 +103,7 @@ entryLedeStripped :: Entry -> T.Text
 entryLedeStripped e = T.pack $ P.stringify inls
   where
     P.Pandoc _ bs = entryLedePandoc e
-    inls = concatMap grabInls bs
+    inls = concatMap grabInls . intersperse (P.Plain [P.Space]) $ bs
     grabInls :: P.Block -> [P.Inline]
     grabInls (P.Plain inls') = inls'
     grabInls (P.Para inls') = inls'
