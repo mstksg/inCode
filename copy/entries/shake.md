@@ -345,6 +345,10 @@ one line:
     need <$> srcFiles
 ~~~
 
+(You'll need to import `<$>` from `Control.Applicative`, and GHC will complain
+about the discarded value unless you use `void` or enable
+`-fno-warn-wrong-do-bind`)
+
 Phony Rules
 -----------
 
@@ -407,6 +411,9 @@ Completed File
 ~~~haskell
 -- Shakefile
 
+{-# OPTIONS_GHC -fno-warn-wrong-do-bind #-}
+
+import Control.Applicative ((<$>))
 import Development.Shake
 
 opts = shakeOptions { shakeFiles    = ".shake/" }
