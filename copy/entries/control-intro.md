@@ -14,8 +14,8 @@ Identifier
 
 Over this summer my work has been in the field of control theory.  I must
 admit that I at first found it a little odd that the idea of "controlling
-something" --- say, the temperature of a room or the speed of a fan --- can be
-an extremely deep/rich mathematical and engineering discipline.
+something" --- say, the temperature of a room or the speed of a fan --- could
+be an extremely deep/rich mathematical and engineering discipline.
 
 This series should hopefully be an enlightening walk through this wonderful
 world that is control theory, and explore (without any complex mathematics)
