@@ -4,6 +4,8 @@ module Web.Blog.Render (
     siteRenderAction
   , emptyPageData
   , genPageData
+  , renderProtocolHost
+  , extractSiteRender
   , renderUrl
   , renderUrl'
   , renderRawCopy
@@ -64,6 +66,10 @@ siteRenderAction htmlRender pageData' = do
   S.html $ B.renderHtml ran
   -- S.html $ L.pack $ B.renderHtml ran
 
+extractSiteRender :: SiteRender a -> S.ActionM a
+extractSiteRender toRender = runReaderT toRender emptyPageData
+  
+
 renderProtocolHost :: S.ActionM T.Text
 renderProtocolHost = do
   host <- L.toStrict <$> S.reqHeader "Host"
@@ -85,7 +91,7 @@ renderUrl url = do
     then return url
     else do
       protocolHost <- lift renderProtocolHost
-      return $ T.concat [protocolHost, url]
+      return $ T.append protocolHost url
 
 renderUrl' :: T.Text -> T.Text
 renderUrl' url =
