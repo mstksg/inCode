@@ -66,6 +66,11 @@ viewLayout body = do
           (I.textValue $ T.append (siteDataTitle siteData) " (RSS Feed)")
         ! A.href "/rss"
 
+      Fo.forM_ (pageDataUrl pageData') $ \url ->
+        H.link
+          ! A.rel "canonical"
+          ! A.href (I.textValue url)
+
       H.link
         ! A.href "/favicon.ico"
         ! A.rel "shortcut icon"

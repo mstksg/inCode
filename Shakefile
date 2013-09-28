@@ -1,9 +1,12 @@
+{-# OPTIONS_GHC -fno-warn-wrong-do-bind #-}
+
 module Main where
 
 import Development.Shake
 import Control.Monad
 import Control.Monad.IO.Class
 import System.Directory
+import Control.Applicative ((<$>))
 
 opts = shakeOptions { shakeFiles    = ".shake/"
                     , shakeProgress = progressSimple }
@@ -59,8 +62,7 @@ main = shakeArgs opts $ do
 
 
   "cabal-dev/bin/blog" *> \_ -> do
-    fs <- srcFiles
-    need fs
+    need <$> srcFiles
     cmd "cabal-dev" ["install"]
 
   "cabal-dev/bin/blog-scripts-migrate" *> \_ -> do

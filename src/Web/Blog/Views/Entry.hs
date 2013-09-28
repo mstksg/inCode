@@ -62,11 +62,12 @@ viewEntry entry tags prevEntry nextEntry = do
             H.a ! A.class_ "author" ! A.href (I.textValue aboutUrl) $
               H.toHtml $ authorInfoName $ siteDataAuthorInfo siteData
 
-            H.span ! A.class_ "info-separator" $
-              H.preEscapedToHtml
-                (" &diams; " :: T.Text)
+            Fo.forM_ (entryPostedAt entry) $ \t -> do
 
-            Fo.forM_ (entryPostedAt entry) $ \t ->
+              H.span ! A.class_ "info-separator" $
+                H.preEscapedToHtml
+                  (" &diams; " :: T.Text)
+
               H.time
                 ! A.datetime (I.textValue $ T.pack $ renderDatetimeTime t)
                 ! A.pubdate ""
