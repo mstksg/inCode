@@ -63,7 +63,7 @@ entryRoutes = do
 
     S.get (S.capture cap) $ do
       eIdent <- S.param "entryIdent"
-      S.redirect $ red eIdent
+      permanentRedirect $ red eIdent
 
   S.get "/entry/id/:eId" $
     routeEither routeEntryId
@@ -119,9 +119,10 @@ utilRoutes = do
 
   S.get "/rss" $ do
     S.status movedPermanently301
-    S.redirect $ L.append
+    S.header "Location" $ L.append
       "http://feeds.feedburner.com/" $
-      L.fromStrict $ developerAPIsFeedburner $ siteDataDeveloperAPIs siteData
+      L.fromStrict $
+        developerAPIsFeedburner $ siteDataDeveloperAPIs siteData
   S.get "/rss.raw" $ do
     -- now <- liftIO getCurrentTime
     (v,d) <- routeFeed
@@ -143,22 +144,29 @@ miscRoutes = do
     routeEither routeNotFound
 
   S.notFound $
-    S.redirect "/not-found"
+    permanentRedirect "/not-found"
 
 routeEither :: RouteEither -> S.ActionM ()
 routeEither r = do
   routeResult <- r
   case routeResult of
-    Left re ->
-      -- TODO: get this status stuff working?
-      -- if L.isPrefixOf "/not-found" re
-      --   then
-      --     S.status notFound404
-      --   else
-      --     S.status movedPermanently301
-      S.redirect re
+    Left re -> do
+      S.status $
+        if "/not-found" `L.isPrefixOf` re
+          then
+            notFound404
+          else
+            movedPermanently301
+
+      url <- extractSiteRender $ renderUrl $ L.toStrict re
+      S.header "Location" $ L.fromStrict url
     Right (v,d) -> siteRenderActionLayout v d
 
 siteRenderActionLayout :: SiteRender H.Html -> PageData -> S.ActionM ()
 siteRenderActionLayout view = siteRenderAction (viewLayout view)
+
+permanentRedirect :: L.Text -> S.ActionM ()
+permanentRedirect url = do
+  S.status movedPermanently301
+  S.header "Location" url
 
