@@ -5,6 +5,8 @@ Categories
 :   Engineering
 Tags
 :   control theory
+Series
+:   Introduction to Control Theory
 CreateTime
 :   2013/09/17 15:35:42
 PostDate
