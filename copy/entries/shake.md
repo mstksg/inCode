@@ -15,7 +15,7 @@ ModifiedTime
 Identifier
 :   shake1
 
-As someone who comes from a background in ruby and rake, I'm used to
+As someone who comes from a background in ruby and *rake*, I'm used to
 powerful task management systems with expressive dependency. *Make* is a
 favorite tool of mine when I'm working on projects with people who don't use
 ruby, and when I'm working on ruby projects I never go far without starting a
@@ -206,8 +206,8 @@ changed.
 This is equivalent to the Makefile rule:
 
 ~~~makefile
-out/report.pdf: src/report.md
-	pandoc src/report.md -o out/report.pdf
+out/report.doc: src/report.md
+	pandoc src/report.md -o out/report.doc
 ~~~
 
 The operator `*>` attaches an [`Action`][action] (with a parameter) to a
@@ -517,9 +517,9 @@ framework.  We can leave this up to other frameworks.
 
 One popular framework for this that is gaining in maturity is
 [*Shelly*][shelly] (A fork of an older project that is an [ongoing][shelly1]
-Yesod [experiment][shelly2]), but you are welcome to using your own.  At the
-present Haskell is still developing and growing in this aspect.  I hope to
-eventually write an article about *Shelly* integration with *Shake*.
+Yesod Project [experiment][shelly2]), but you are welcome to using your own.
+At the present Haskell is still developing and growing in this aspect.  I hope
+to eventually write an article about *Shelly* integration with *Shake*.
 
 [shelly]: http://hackage.haskell.org/package/shelly
 [shelly1]: http://www.yesodweb.com/blog/2012/03/shelly-for-shell-scripts
