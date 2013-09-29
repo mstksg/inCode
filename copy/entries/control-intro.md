@@ -3,6 +3,7 @@ The Hamster Hotel: An Introduction to Control Theory
 
 Categories
 :   Engineering
+:   Insights
 Tags
 :   control theory
 Series
