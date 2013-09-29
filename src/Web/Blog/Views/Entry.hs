@@ -26,7 +26,8 @@ import qualified Text.Blaze.Internal         as I
 viewEntry :: Entry -> [Tag] -> Maybe Entry -> Maybe Entry -> SiteRender H.Html
 viewEntry entry tags prevEntry nextEntry = do
   npUl <- nextPrevUrl prevEntry nextEntry
-  aboutUrl <- renderUrl "/about"
+  aboutUrl <- renderUrl "/"
+  -- aboutUrl <- renderUrl "/about"
   socialButtonsHtml <- viewSocialShare
   now <- liftIO getCurrentTime
   tz <- liftIO getCurrentTimeZone
