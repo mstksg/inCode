@@ -1,43 +1,51 @@
 
 module Development.Blog.Util.LoadTags (loadTags) where
 
-import Control.Applicative                    ((<$>))
+-- import Control.Monad.IO.Class
+-- import qualified Text.Pandoc                  as P
+-- import qualified Text.Pandoc.Readers.Markdown as PM
+import Control.Applicative                       ((<$>))
 import Control.Monad
-import Control.Monad.IO.Class
-import Data.List                              (isPrefixOf)
-import System.Directory                       (getDirectoryContents)
-import System.FilePath                        ((</>))
+import Data.List                                 (isPrefixOf)
+import System.Directory                          (getDirectoryContents, doesDirectoryExist)
+import System.FilePath                           ((</>), takeBaseName)
 import Web.Blog.Database
+import Web.Blog.Models
 import Web.Blog.Models.Types
-import qualified Database.Persist.Postgresql  as D
-import qualified Text.Pandoc                  as P
-import qualified Text.Pandoc.Readers.Markdown as PM
+import qualified Data.Foldable                   as Fo
+import qualified Data.Text                       as T
+import qualified Database.Persist.Postgresql     as D
 
 loadTags :: FilePath -> IO ()
 loadTags tagsDir = do
   runDB blogMigrate
 
-  -- let
-  --   generalsDir = tagsDir </> "tags"
-  --   categoriesDir = tagsDir </> "categories"
-  --   seriesDir = tagsDir </> "series"
-
   tagFiless <-
     forM ["tags","categories","series"] $ \dirName -> do
       let
         dir = tagsDir </> dirName
-      map (dir </>) . filter (not . isPrefixOf ".") <$>
-        getDirectoryContents dir
+
+      dirExists <- doesDirectoryExist dir
+
+      if dirExists
+        then
+          map (dir </>) . filter (not . isPrefixOf ".") <$>
+            getDirectoryContents dir
+        else
+          return []
 
   forM_ (zip tagFiless [GeneralTag ..]) $ \(tagFiles, tagType) ->
     mapM_ (processTagFile tagType) tagFiles
 
 processTagFile :: TagType -> FilePath -> IO ()
 processTagFile tagType tagFile = do
-    (P.Pandoc _ contents, _) <- liftIO $
-      readMarkdown <$> readFile tagFile
+    contents <- T.pack <$> readFile tagFile
 
-    
-    return ()
-  where
-    readMarkdown = PM.readMarkdownWithWarnings (P.def P.ReaderOptions)
+    let
+      slug = T.pack $ takeBaseName tagFile
+
+    tag <- runDB $ D.getBy $ UniqueSlugType slug tagType
+
+    Fo.forM_ tag $ \(D.Entity tagKey tagVal) -> do
+      print tagVal
+      runDB $ D.update tagKey [ TagDescription D.=. Just contents ]
