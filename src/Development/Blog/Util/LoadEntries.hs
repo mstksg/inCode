@@ -97,6 +97,7 @@ processEntryFile entryFile = do
                   , EntryModifiedAt D.=. Nothing
                   , EntryIdentifier D.=. Nothing
                   ]
+    D.deleteWhere [ EntryTagEntryId D.==. eKey ]
 
     void $ M.traverseWithKey (applyMetas entryEntity) metas
 
