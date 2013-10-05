@@ -6,7 +6,9 @@
 /tmp
 /static/img/test
 /tags
-/copy/entries
 /bin
+
+/copy/entries
+/copy/tags
 
 !/bin/blog
