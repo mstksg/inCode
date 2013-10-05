@@ -5,6 +5,8 @@ module Web.Blog.Views.Home (viewHome) where
 import Config.SiteData
 import Control.Applicative                   ((<$>))
 import Control.Monad.Reader
+import Data.Maybe                            (fromMaybe)
+import Data.Monoid                           (mempty)
 import Data.Time                             (getCurrentTimeZone)
 import Text.Blaze.Html5                      ((!))
 import Web.Blog.Database
@@ -145,10 +147,11 @@ viewTags = do
             H.a ! A.href (I.textValue $ renderUrl' link) $
               heading
           H.ul $
-            forM_ tagList $ \tagInfo ->
+            forM_ tagList $ \(TagInfo t _ _) ->
               H.li $
-                H.a ! A.href (I.textValue $ renderUrl' $ tagPath $ tagInfoTag tagInfo) $
-                  H.toHtml $ tagLabel'' $ tagInfoTag tagInfo
-
-
-
+                H.a
+                  ! A.href (I.textValue $
+                    renderUrl' $ tagPath t )
+                  ! A.title (I.textValue $
+                    fromMaybe mempty (tagDescriptionStripped t))
+                  $ H.toHtml $ tagLabel'' t

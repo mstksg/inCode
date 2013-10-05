@@ -3,6 +3,7 @@
 module Web.Blog.Models.Tag  where
 
 -- import Data.Maybe                         (isJust)
+-- import qualified Data.Foldable as Fo      (forM_)
 import Control.Applicative                   ((<$>))
 import Control.Monad.IO.Class                (liftIO)
 import Control.Monad.Trans                   (lift)
@@ -80,6 +81,12 @@ tagPath t = T.append prefix $ tagSlug t
         GeneralTag  -> "tagged/"
         CategoryTag -> "category/@"
         SeriesTag   -> "series/+")
+
+tagDescriptionStripped :: Tag -> Maybe T.Text
+tagDescriptionStripped t = T.map replaceNewline <$> tagDescription t
+  where
+    replaceNewline '\n' = ' '
+    replaceNewline c = c
 
 tagLi :: Tag -> H.Html
 tagLi t = H.li $
