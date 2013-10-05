@@ -15,11 +15,11 @@ PostDate
 Identifier
 :   control-intro-2
 
-As we left off in [Part 1][part1], our elevator is still in trouble.  You have
-an elevator for your humble hotel that consists of a plate being pushed up a
-shaft with a fountain of water where we can control the fountain strength, but
-you don't really have any way to automate getting it to go to just the right
-height.
+As we left it off in [part 1][part1], our elevator is still in trouble.  You
+have an elevator for your humble hotel that consists of a plate being pushed
+up a shaft with a fountain of water where we can control the fountain
+strength, but you don't really have any way to automate getting it to go to
+just the right height.
 
 You've tried writing down the proper fountain strengths for every floor, but
 changes in weight of the hamsters and lots of other factors make this
