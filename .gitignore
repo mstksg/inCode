@@ -8,4 +8,7 @@
 /tags
 /bin
 
+/copy/entries
+/copy/tags
+
 !/bin/blog

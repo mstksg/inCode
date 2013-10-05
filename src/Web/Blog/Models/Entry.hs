@@ -209,7 +209,7 @@ getTagsByEntityKey k filters = do
     selectTags tt = D.selectList
                       ([ TagId D.<-. tagKeys, TagType_ D.==. tt ] ++ filters)
                       [ D.Asc TagLabel ]
-  tags <- concat <$> mapM selectTags [GeneralTag .. SeriesTag]
+  tags <- concat <$> mapM selectTags [GeneralTag ..]
   return $ map D.entityVal tags
 
 
