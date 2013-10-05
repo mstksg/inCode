@@ -44,13 +44,13 @@ loadTags tagsDir = do
 
 processTagFile :: TagType -> FilePath -> IO (Maybe (D.Key Tag))
 processTagFile tagType tagFile = do
-    (P.Pandoc _ (b:bs), _) <- readMarkdown <$> readFile tagFile
+    (P.Pandoc _ rawContents, _) <- readMarkdown <$> readFile tagFile
     
     let
       contents = T.pack $ renderBlocks $
-        case b of
-          P.Header 1 _ _ -> bs
-          _ -> b:bs
+        case rawContents of
+          P.Header 1 _ _:bs -> bs
+          _ -> rawContents
 
     let
       slug = T.pack $ takeBaseName tagFile
