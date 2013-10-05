@@ -124,6 +124,7 @@ processEntryFile entryFile = do
     isDefList _                       = False
     defListList (P.DefinitionList ds) = ds
     defListList _                     = mempty
+    applyMetas :: D.Entity Entry -> MetaKey -> MetaValue -> D.SqlPersistM ()
     applyMetas _ _ MetaValueNull = return ()
     applyMetas (D.Entity entryKey _) MetaKeyCreateTime (MetaValueTime t) =
       void $ D.update entryKey [EntryCreatedAt D.=. Just t]
