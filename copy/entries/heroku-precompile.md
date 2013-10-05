@@ -1,5 +1,5 @@
-Deploying Medium/Large Haskell Apps to Heroku by Precompiling
-=============================================================
+Deploying Medium to Large Haskell Apps to Heroku by Precompiling
+================================================================
 
 Categories
 :   Haskell
@@ -53,6 +53,10 @@ Unfortunately, most tutorials on this are out-of-date and from the time before
 these Haskell buildpacks were even written.  Let's try to see how we can get a
 medium- to large- scale Haskell app on Heroku in 2013.
 
+As an **important note**: this method is a lot less elegant and maintanable
+(in principle) than the recommended buildpack method; only use it if you are
+absolutely certain that buildpacks won't work for you.
+
 How Heroku's Deploy/Proc System Works
 -------------------------------------
 
@@ -105,6 +109,23 @@ Let's walk through this.
 
 Compiling Your Binary
 ---------------------
+
+### The Virtual Machine
+
+First of all, we need to find ourselves a machine with the same architecture
+as the Heroku virtual machines.  For most people, it is not practical to go
+out and buy a physical machine that you can use for yourself, so we're going
+to be setting up a virtual one here.
+
+I'm going to be heavily basing this section off of
+[this  reference][vagrantref], with a few updates.
+
+[vagrantref]: https://github.com/yesodweb/yesod/wiki/Setting-up-a-virtual-machine%2C-using-VirtualBox-and-Vagrant
+
+1. You're going to need [VirtualBox][virtualbox], from Oracle.  Most modern
+   work on virtual machines leverage this great tool.
+
+   [virtualbox]: https://www.virtualbox.org/wiki/Downloads
 
 
 

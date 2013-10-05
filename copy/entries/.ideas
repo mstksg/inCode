@@ -6,4 +6,5 @@
 * deploy with compile to heroku
 * path integral monte carlo series
 * control theory primer
+* what purity/strictness really "means" in Haskell; describe how pure IO works
 
