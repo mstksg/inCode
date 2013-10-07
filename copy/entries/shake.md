@@ -29,11 +29,12 @@ to Ruby's [*rake*][rake], Node's [*jake*][jake]?  (Not to mention the
 tools of slightly different philosophy [*grunt*][grunt] and [*ant*][ant])
 
 It turns out that by far the most established answer is a library known as
-[*Shake*][shake] (maintained by Neil Mitchell of [*hoogle*][hoogle] fame).
-So far it's served me pretty well.  Its documentation is written from the
-perspective of chiefly using it as a build tool (more "make" than "rake"), so
-if you're looking to use it as a task management system, you might have to do
-some digging. Hopefully this post can help you get started.
+[*Shake*][shake] (maintained by the prolific Neil Mitchell of
+[*hoogle*][hoogle] fame and much more). So far it's served me pretty well.
+Its documentation is written from the perspective of chiefly using it as a
+build tool (more "make" than "rake"), so if you're looking to use it as a task
+management system, you might have to do some digging. Hopefully this post can
+help you get started.
 
 I also go over the core concepts of a task management system, so I assume no
 knowledge of *make* -- and the post therefore should also be a good
