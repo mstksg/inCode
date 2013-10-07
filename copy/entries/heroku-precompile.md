@@ -275,7 +275,7 @@ Heroku?
 
     If you plan on using both Python and Ruby dependencies...you have bigger
     problems to worry about.  But if you insist, you can use the
-    [multi][] buildpack to install both your Pytho and Ruby dependencies.
+    [multi][] buildpack to install both your Python and Ruby dependencies.
 
     [multi]: https://github.com/ddollar/heroku-buildpack-multi
 
