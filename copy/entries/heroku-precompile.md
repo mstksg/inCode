@@ -279,7 +279,7 @@ Heroku?
 
     [multi]: https://github.com/ddollar/heroku-buildpack-multi
 
-4.  Configure your [Heroku Toolbelt][toolbelt], and deploy!
+4.  Configure your [Heroku Toolbelt][toolbelt], and deploy.
 
     [toolbelt]: https://toolbelt.heroku.com/
 
@@ -290,7 +290,7 @@ Heroku?
     $ git push heroku master
     ~~~
 
-    If you have done everything right, this should be succesful!
+    If you have done everything right, this should be succesful.  Hooray!
 
 5.  Make sure your `web` process is running properly.  You can do this by
     going to <https://dashboard.heroku.com/apps>, clicking on your app, and
