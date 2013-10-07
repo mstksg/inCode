@@ -3,6 +3,7 @@ Deploying Medium to Large Haskell Apps to Heroku by Precompiling
 
 Categories
 :   Haskell
+:   Tutorials
 Tags
 :   web development
 :   heroku
