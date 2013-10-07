@@ -320,9 +320,9 @@ attention to.
 
     [hackage-heroku]: http://hackage.haskell.org/package/heroku
 
-*   You are probably going to want to automate your entire deploy process ---
-    the pull, the build/install, the copying of the executable, the committing
-    of the binary to version control, and the deploy to Heroku.
+*   You are probably going to want to automate your entire re-deploy process
+    --- the pull, the build/install, the copying of the executable, the
+    committing of the binary to version control, and the deploy to Heroku.
 
     You can use your favorite task management system, like *Make*, *Rake*, or
     even *Shake* (see my [brief tutorial on Shake][shake])
