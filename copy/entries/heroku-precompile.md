@@ -182,7 +182,7 @@ way to go about it.
         For *git*, this is pretty simple.  You only need to run `git init
         --bare` on the folder you want to use as the repository, and add the
         local filesystem path as the remote url.  There are many resources
-        explaining this, like [this post][local-git-1] and
+        explaining this process in detail, like [this post][local-git-1] and
         [this one][local-git-2]
 
         [local-git-1]: http://www.jedi.be/blog/2009/05/06/8-ways-to-share-your-git-repository/
