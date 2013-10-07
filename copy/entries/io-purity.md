@@ -1,4 +1,4 @@
-The Compromise-less Reconciliation of I/O and Purity
+The Compromiseless Reconciliation of I/O and Purity
 ====================================================
 
 Categories

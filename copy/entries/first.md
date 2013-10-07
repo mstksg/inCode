@@ -3,8 +3,6 @@ Introducing "in Code"!
 
 Categories
 :   Meta
-Tags
-:   programming
 CreateTime
 :   2013/09/16 22:27:48
 PostDate
@@ -16,6 +14,8 @@ Throughout my time programming and developing, I've noticed that there are few
 legitimately useful sources of practical and beneficial knowledge on the
 subject on the internet.  There are good books.  There is
 [Stack Overflow][stackoverflow].  And there are the blogs.
+
+[stackoverflow]: http://www.stackoverflow.com
 
 I've probably learned more useful information from blogs than I have from
 nearly any other source --- from small things like how to fix that compile
@@ -45,7 +45,3 @@ progress on projects as I go along, I can look back and refer to them later.
 And maybe --- just maybe --- they can be useful to other humans.
 
 So anyways, this is it.  Welcome to **in Code**!
-
-
-
-[stackoverflow]: http://www.stackoverflow.com
