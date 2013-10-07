@@ -29,7 +29,7 @@ account for dynamic changes in the system.
 
 Let's take a look at a possible solution that might have some promise.
 
-[part1]: http://blog.jle.im/entry/the-hamster-hotel-an-introduction-to-control-theory
+[part1]: /entry/the-hamster-hotel-an-introduction-to-control-theory
 
 I Detect a Clue
 ---------------

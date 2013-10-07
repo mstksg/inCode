@@ -85,9 +85,9 @@ Setup
 
 Installing *shake* is as simple as installing any other cabal package:
 
-~~~shell
-cabal update
-cabal install shake
+~~~bash
+$ cabal update
+$ cabal install shake
 ~~~
 
 I'll will be using `shake-0.10.6` for this post.
@@ -274,24 +274,24 @@ three files to be checked to be up to date.
 
 Now, to wrap it all together, we run:
 
-~~~shell
-runhaskell Shakefile
+~~~bash
+$ runhaskell Shakefile
 ~~~
 
 And let the magic happen!
 
 I run this enough times that I like to alias this:
 
-~~~shell
-# .bashrc
-alias shake=runhaskell Shakefile
+~~~bash
+$ # .bashrc
+$ alias shake=runhaskell Shakefile
 ~~~
 
 Note that `want` specifies the **default** "wants".  You can specify your own
 collection by passing a parameter:
 
-~~~shell
-runhaskell Shakefile out/report.doc
+~~~bash
+$ runhaskell Shakefile out/report.doc
 ~~~
 
 Wildcards
