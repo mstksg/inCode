@@ -208,7 +208,7 @@ way to go about it.
     of this for all relevant packages.
 
     After everything downloads, builds, installs, etc., your executable will
-    be created as `dist/build/app-name/app-name`
+    be created as `dist/build/app-name/app-name`.
 
     This will also be a good test as to whether or not you specified your
     dependencies in your `.cabal` file properly.

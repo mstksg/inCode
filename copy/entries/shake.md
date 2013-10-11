@@ -37,7 +37,7 @@ management system, you might have to do some digging. Hopefully this post can
 help you get started.
 
 I also go over the core concepts of a task management system, so I assume no
-knowledge of *make* -- and the post therefore should also be a good
+knowledge of *make*; this post therefore should also be a good
 introduction to starting with any sort of task management system.
 
 [rake]: http://rake.rubyforge.org/
