@@ -1,5 +1,5 @@
-Lightweight Command Line Note & Logging Script
-==============================================
+log.sh: Lightweight Command Line Note & Logging
+===============================================
 
 Categories
 :   Unix
