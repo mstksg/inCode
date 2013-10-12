@@ -61,7 +61,7 @@ Most of all, it is meant to be quick, fast, efficient, streamlined, simple.
 
 #### Entering a note
 
-Here's how you enter in a note:
+Don't believe me? Here's how you enter in a note:
 
 ~~~bash
 $ log.sh hey, this is a note!
@@ -124,6 +124,21 @@ If you try to enter a note from a subdirectory, you'll get something cool:
     [Sun Sep 29 16:10:38 PDT 2013]  (./subdir) logging from ./subdir!
 
 *[log.sh][]* will automatically include the context of your log in your note body.
+
+### Installation
+
+Didn't want to bore you right off the bat with implementation/installation
+details.  But here it is.  The entire thing is open source, and written in
+bash.
+
+Install by either cloning the github repo or downloading
+[the latest release][releases].  Put the file `log.sh` into a directory in
+your `$PATH`.  If you wish, alias it to something short, like `l` or `n`.
+
+[releases]: https://github.com/mstksg/log.sh/releases
+
+That should be it!
+
 
 ### That's it!
 
