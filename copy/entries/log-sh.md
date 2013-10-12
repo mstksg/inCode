@@ -88,7 +88,7 @@ which will handily add a cute `[ ]` before the item like so:
 The little `[ ]` is handy because you can open up the log file in a text
 editor of your choice and "check" it off.
 
-That's actaulyl easy, because
+That's actually very easy, because
 
 ~~~bash
 $ log.sh -e
@@ -111,7 +111,7 @@ $ log.sh -c
 
 This'll create a file `.log.log` in the directory.
 
-Now, if you are in any subdirectory, the default behavior is that *log.sh*
+Now, if you are in any subdirectory, the default behavior is that *[log.sh][]*
 will first check the current directory for a log file; if it doesn't find it,
 it goes up a directory and checks there, checking up and up until it finds a
 valid log file.  That file is the "active" one, where all of your adds and
@@ -123,7 +123,7 @@ If you try to enter a note from a subdirectory, you'll get something cool:
 
     [Sun Sep 29 16:10:38 PDT 2013]  (./subdir) logging from ./subdir!
 
-*log.sh* will automatically include the context of your log in your note body.
+*[log.sh][]* will automatically include the context of your log in your note body.
 
 ### That's it!
 
@@ -135,6 +135,12 @@ on how to do this in the documentation:
 ~~~bash
 $ log.sh -h
 ~~~
+
+Basically, the entire thing is meant to be as frictionless, fast, and
+thoughtless as possible.  Enter in small notes to reference later in only the
+time it takes for you to actually write the note --- no need to mungle around
+with text editors and picking which file to append to and dealing with
+timestamps.  *[log.sh][]* has got you covered!
 
 I do recommend, if you use this, aliasing the command to something short.  I
 personally use `n`, so I write notes by saying:
