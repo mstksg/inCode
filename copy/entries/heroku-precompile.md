@@ -35,7 +35,7 @@ roadblock:
 Heroku enforces a hard time-out limit of **fifteen minutes** for all of its
 apps to compile and deploy.  And because *cabal* needs time to download and
 compile every dependency, a typical non-trivial app (like a blog) would reach
-this limit very quickly with only a [modest amount][deps] of dependencies.
+this limit very quickly with only a [modest amount of dependencies][deps].
 
 [deps]: https://github.com/mstksg/blog/blob/master/blog.cabal#L20-52
 
@@ -216,7 +216,7 @@ way to go about it.
 Deploying it all
 ----------------
 
-Almost there!  Your binary is now compiled, how are you going to deploy it to
+Almost there!  Your binary is now compiled; how are you going to deploy it to
 Heroku?
 
 1.  First, you have to commit your binary to version control.  Some people
