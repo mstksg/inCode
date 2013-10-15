@@ -77,5 +77,5 @@ terms of the system time zone; you can set this for Heroku by running
 
 And you should be good to go!
 
-[yesod_deploy]: http://blog.jle.im/entry/deploying-medium-to-large-haskell-apps-to-heroku
+[heroku_deploy]: http://blog.jle.im/entry/deploying-medium-to-large-haskell-apps-to-heroku
 [TZs]: http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
