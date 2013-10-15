@@ -3,7 +3,6 @@ The Compromiseless Reconciliation of I/O and Purity
 
 Categories
 :   Haskell
-:   Programming
 :   Ramblings
 Tags
 :   functional programming

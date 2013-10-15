@@ -2,11 +2,11 @@ log.sh: Lightweight Command Line Note & Logging
 ===============================================
 
 Categories
-:   Unix
 :   Projects
 Tags
 :   shell scripting
 :   utilities
+:   unix
 :   bash
 :   command line
 CreateTime
