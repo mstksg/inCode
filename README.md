@@ -15,7 +15,7 @@ Source code for my personal blog **inCode**.
 Usage and Customization
 -----------------------
 
-1. Most of the basic customization is in `src/Config/SiteData.hs`.
+1.  Most of the basic customization is in `src/Config/SiteData.hs`.
 
    * If `hostConfigPort` is `Nothing`, it will use the `PORT` environment
      variable.
@@ -26,8 +26,8 @@ Usage and Customization
 
    * Expect more configuration slots to be nullable in a future release.
 
-2. Remove the line `/copy/entries` from `.gitignore` to allow entries to be
-   committed.
+2.  Remove the line `/copy/entries` from `.gitignore` to allow entries to be
+    committed.
 
         grep -v "^/copy/entries$" .gitignore > .gitignore
 
