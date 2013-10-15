@@ -17,10 +17,11 @@ Usage and Customization
 
 1. Most of the basic customization is in `src/Config/SiteData.hs`.
 
-   * If `hostConfigPort` is `Nothing`, it will use the `PORT` environment variable.
+   * If `hostConfigPort` is `Nothing`, it will use the `PORT` environment
+     variable.
 
    * If `siteDataDatabaseConfig` is `Nothing`, it will use the environment
-     variables to set up the database, as specified by the [heroku][] postgres
+     variables to set up the database, as specified by the heroku postgres
      specs.
 
    * Expect more configuration slots to be nullable in a future release.
@@ -29,8 +30,6 @@ Usage and Customization
    committed.
 
         grep -v "^/copy/entries$" .gitignore > .gitignore
-
-[heroku]: http://heroku.com
 
 Deployment
 ----------
