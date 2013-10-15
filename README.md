@@ -17,18 +17,18 @@ Usage and Customization
 
 1. Most of the basic customization is in `src/Config/SiteData.hs`.
 
-    * If `hostConfigPort` is `Nothing`, it will use the `PORT` environment variable.
+   * If `hostConfigPort` is `Nothing`, it will use the `PORT` environment variable.
 
-    * If `siteDataDatabaseConfig` is `Nothing`, it will use the environment
-      variables to set up the database, as specified by the [heroku][] postgres
-      specs.
+   * If `siteDataDatabaseConfig` is `Nothing`, it will use the environment
+     variables to set up the database, as specified by the [heroku][] postgres
+     specs.
 
-    * Expect more configuration slots to be nullable in a future release.
+   * Expect more configuration slots to be nullable in a future release.
 
 2. Remove the line `/copy/entries` from `.gitignore` to allow entries to be
    committed.
 
-       grep -v "^/copy/entries$" .gitignore > .gitignore
+        grep -v "^/copy/entries$" .gitignore > .gitignore
 
 [heroku]: http://heroku.com
 
@@ -41,11 +41,8 @@ Cannot use basic heroku haskell buildpacks because builds seem to timeout
 after fifteen minutes.  You're going to have to compile the binaries to a
 similar architecture and push the binaries and static files.
 
-Basically using [these deploy instructions][yesod_deploy] to set up the
-virtual machine and everything.  Be sure to upgrade GHC to at least 7.6.4 or
-something like that.  It kind of makes the time spent installing the GHC 7.4 a
-waste, but I might work on making a more up to date vagrant distribution
-later.
+You can follow my own [blog post on deploying to Heroku][heroku_deploy] to set
+up the virtual machine and everything for deployment.
 
 Check out the repo and, on a branch of your choosing, run
 
@@ -80,5 +77,5 @@ terms of the system time zone; you can set this for Heroku by running
 
 And you should be good to go!
 
-[yesod_deploy]: https://github.com/yesodweb/yesod/wiki/Deploying-Yesod-Apps-to-Heroku
+[yesod_deploy]: http://blog.jle.im/entry/deploying-medium-to-large-haskell-apps-to-heroku
 [TZs]: http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
