@@ -11,6 +11,8 @@ CreateTime
 :   2013/09/23 23:13:10
 PostDate
 :   2013/10/07 11:07:25
+ModifiedTime
+:   2013/10/20 10:59:31
 Identifier
 :   heroku-precompile
 
@@ -249,35 +251,27 @@ Heroku?
     variable.
 
 3.  Heroku requires every project to have *some* buildpack.  Because the
-    actual web processes are specified in your `Procfile`, buildpacks won't
-    interfere with any actual execution of your server.
+   actual web processes are specified in your `Procfile`, buildpacks won't
+   interfere with any actual execution of your server.
 
-    So to do this, you can "trick" Heroku into thinking your project is a
-    Python project by creating an empty file `requirements.txt` in your
-    project root.  Everything will then run fine --- Heroku will recognize a
-    Python project, install all of the *pip* dependencies in
-    `requirements.txt` (of which there are none), and then run the command
-    specified in your `Procfile`.
+    There are three easy ways to do this --- you can either use a blank
+    `requirements.txt` (the easiest way) to act like a *Python* app, a valid
+    but empty `package.json` to act like a *Node.js* app, `package.json`, or a
+    valid but empty `Gemfile` and `Gemfile.lock` combination.
 
-    You might actually be using a Python package in your project, so this
-    works out for you even better --- Heroku will first install and build the
-    Python dependencies and then launch your server.
-
-    I actually find myself often taking advantage of a lot of Ruby gems like
-    [*compass*][compass].  If that is more your style, you can use a `Gemfile`
-    (but remember to also to install your bundle locally and create a
-    `Gemfile.lock` file and commit that to version control)...Heroku will
-    automatically treat your project as a Ruby project, install your gems, and
-    you will be merrily on your way without having to worry about fiddling
-    with buildpacks!
+    But hey, if you use any node packages or gems or python packages in your
+    project, then you can actually use this to your advantage!  I personally
+    use *[compass][]* a lot for their extensions to *sass*, so adding it is as
+    simple as using a *Gemfile* --- just like in any normal ruby app.
 
     [compass]: http://compass-style.org/
 
-    If you plan on using both Python and Ruby dependencies...you have bigger
-    problems to worry about.  But if you insist, you can use the
-    [multi][] buildpack to install both your Python and Ruby dependencies.
+    If you want to mix and match libraries from different languages/ecosystems,
+    you can use the [multi][] buildpack and have Heroku check for packages in
+    all of the normal package managers of the languages you specify.
 
     [multi]: https://github.com/ddollar/heroku-buildpack-multi
+
 
 4.  Configure your [Heroku Toolbelt][toolbelt], and deploy.
 
