@@ -256,8 +256,8 @@ Heroku?
 
     There are three easy ways to do this --- you can either use a blank
     `requirements.txt` (the easiest way) to act like a *Python* app, a valid
-    but empty `package.json` to act like a *Node.js* app, `package.json`, or a
-    valid but empty `Gemfile` and `Gemfile.lock` combination.
+    but empty `package.json` to act like a *Node.js* app, or a valid but empty
+    `Gemfile` and `Gemfile.lock` combination to act like a *ruby* app.
 
     But hey, if you use any node packages or gems or python packages in your
     project, then you can actually use this to your advantage!  I personally

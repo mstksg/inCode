@@ -1,10 +1,18 @@
 
+ideas
+
 * lookup script
-* shake
 * esqueleto (many to many)
-* note/log script
-* deploy with compile to heroku
 * path integral monte carlo series
-* control theory primer
+* entropic forces
+
+in progress
+
 * what purity/strictness really "means" in Haskell; describe how pure IO works
 
+done
+
+* control theory primer
+* deploy with compile to heroku
+* note/log script
+* shake
