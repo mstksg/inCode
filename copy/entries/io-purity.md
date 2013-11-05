@@ -115,7 +115,7 @@ that contain things.
 Of course, this "program" doesn't actually *do* anything.  Let's look at some
 more programs and see if we can address this.
 
-### Actions
+### Representing Actions
 
 There are a lot of data structures/data types that may be expressed in
 Haskell.  One in particular is called `IO`.  `IO a` represents a computation
@@ -165,7 +165,8 @@ So these objects represent computations, but do not actually execute anything
 (how can math functions execute anything, anyway?  Nonsense!), how do we
 actually *do* something?
 
-### The Main Point
+The "Main" Point
+----------------
 
 So what happens when a Haskell program is interpreted/compiled?
 
@@ -179,8 +180,8 @@ Your program is a list of declarations of numbers, strings, and data
 structures.  Some of those data structures that your program defines may be
 `IO` objects (data structures that represent computations).
 
-The runtime environment picks a pre-agreed-upon defined data structure, and
-chooses to execute it.
+The runtime environment picks one of those data structures with a
+pre-agreed-upon name and chooses to execute it.
 
 In Haskell, we have generally agreed that the function we "choose" to pass
 onto the run time environment is called `main`.  So let's finish up our
@@ -212,177 +213,136 @@ the exact same computation.
 Therefore, `main` is pure, as well.  Every time we evaluate `main`, we get the
 exact same computational data structure.
 
+### Purity challenged?
+
 Now consider:
 
-~~~{.haskell}
+~~~haskell
 --| getStringFromStdin: returns a computation that represents the act of
 --|     getting a string from stdin
 getStringFromStdin :: IO String
 getStringFromStdin = getLine
 
 --| main: The function that we agree that the runtime environment will
---|     execute.  The `>>=` operator says "take the result of the first
---|     computation and use it as an argument to the second".  The second
---|     thing should be a function that takes one argument for this to make
---|     sense...which is what `print` is.  Phew!
+--|     execute.  The `>>=` operator in this case says "take the result of the
+--|     first computation and use it as an argument to the second".  The
+--|     second thing should be a function that takes one argument for this to
+--|     make sense...which is what `print` is.  Phew!
 main :: IO ()
 main = getStringFromStdin >>= print
 ~~~
 
 `main` gets something from the standard input, and then prints it.
 
-Oh wait.  This means that if I type something different into
+Oh wait.  This means that if I type something different into standard input,
+the program will return something different, right?  How is this pure?
 
+Here is the crucial difference between **evaluation** and **execution**.
 
+`main` will always **evaluate** to the exact same computation data structure.
 
+The runtime environment --- which is somethin that can be considered
+completely separate from the language, that is just passed the "football" of
+the computation data structure --- can then **execute** this evaluated
+computation, which will execute in [potentially unpredictable ways][halting],
+and will execute slightly differently every time because you have different
+inputs.
 
+[halting]: http://en.wikipedia.org/wiki/Halting_problem
 
+`main` is a function that returns/evaluates deterministically to a data
+structure representing a computaiton.
 
+The computation that it represents is not necessarily deterministic.
 
+This distinction between **evaluation** and **execution** is what makes
+Haskell unique.
 
+And *that* is how we can deal with I/O in Haskell while remaining a pure
+language.
 
-<!-- Program?  What's a program? -->
-<!-- --------------------------- -->
+### Illustrating the difference
 
-<!-- Let's jump right to the core of the issue here and get down and dirty, -->
-<!-- philosophically. -->
+To really understand the difference between evaluation and execution, let's
+look at this example:
 
-<!-- When you think about writing a program, what do you think of? -->
+~~~haskell
+ignoreAndSayHello :: IO a -> IO ()
+ignoreAndSayHello to_ignore = print "Hello!"
 
-<!-- You might think of code in a compiled low-level language like C.  You might -->
-<!-- think of code in a scripting language, like Python or Ruby.  You might have -->
-<!-- even jumped straight to thinking about assembly or machine code. -->
+main :: IO ()
+main = ignoreAndPrintNothing getStringFromStdin
+~~~
 
-<!-- What do all of these ideas of programming have in common?  In all of these, -->
-<!-- you are *writing instructions to manipulate memory*.  This is especially -->
-<!-- obvious in assembly...it's somewhat obvious in C (where all memory is -->
-<!-- essentially a giant array of bytes, and the program revolves around -->
-<!-- manipulating chunks of those bytes at a time).  It's a little less obvious in -->
-<!-- a scripting language, but scripting languages can be thought about as a list -->
-<!-- of lines for a runtime environment to execute, in order to modify/manipulate -->
-<!-- memory. -->
+What does this program do?
 
-<!-- ### What is it really? -->
+Naively, we expect it to ask for a string from standard input, ignore the
+result, and print "Hello!".
 
-<!-- There are some slight issues with this definition of the "idea" of -->
-<!-- programming, because in a way it betrays a lot of what we mentally do when we -->
-<!-- program.  It betrays the abstractions that we spend so much effort to -->
-<!-- carefully craft.  It betrays key principles in modular code or object oriented -->
-<!-- programming. -->
+Actually, this is **not** what it does.
 
-<!-- When you work with a data structure, such as a hash table, for example, you -->
-<!-- don't actually think about the low-level shuffling of bits for the complex -->
-<!-- storage and lookup operations.  When you deal with an object-oriented library, -->
-<!-- for example, you make method calls without any care about what memory -->
-<!-- shuffling is actually being done. -->
+Let's see what `main` evaluates to:
 
-<!-- ### Another thought -->
+~~~haskell
+main = ignoreAndPrintNothing getStringFromStdin
 
-<!-- I propose that you think about programs not as instructions to manipulate -->
-<!-- memory, but as a **language** by which you construct **ideas and concepts** -->
-<!-- and structures, and the way those ideas and constructs interact.  A program is -->
-<!-- not the manipulation of memory, but rather the manipulation of *ideas*. -->
+-- evaluates to
 
-<!-- So what is compilation?  Compilation is the process of turning ideas into an -->
-<!-- "executable" data structure.  As most of us have learned it, compilation is -->
-<!-- turning the text file (ideas) into machine code.  But really, is machine code -->
-<!-- the "inherent" target of a program?  What about turning the ideas in a text -->
-<!-- file into, say...executable javascript code?  What about turning the ideas in -->
-<!-- a text file into a screenplay that actors can act out on camera and complete a -->
-<!-- computation? -->
+ignoreAndPrintNothing getStringFromStdin = print "Hello!"
 
-<!-- Think hard about "separating" the **ideas/concepts** of coding with a possible -->
-<!-- **execution environment** of those ideas.  This is like saying how "ideas" of -->
-<!-- human thought can be put into multiple languages.  The idea is an entity in -->
-<!-- and of itself, and is not "tied" to a spoken sound representation, or a -->
-<!-- particular execution environment. -->
+-- which eventually evaluates to
 
-<!-- Another Model -->
-<!-- ------------- -->
+main = print "Hello!"
+~~~
 
-<!-- In functional languages, everything is a function that returns an answer given -->
-<!-- inputs. -->
+So `main` evaluates to one single IO action: `print "Hello!"`.
 
-<!-- So what if our "pure" functions return...instructions? -->
+So your program returns the simple IO action `print "Hello!"` --- the
+computation returned by `main` therefore simply prints "Hello!".  This
+computation does not represent anything that would ask for input.
 
-<!-- What about instead of thinking about a program as a list of instructions for a -->
-<!-- computer...we thought about a program as a function that **returns** a list of -->
-<!-- instructions? -->
+Ordering
+--------
 
-<!-- Let's put this thought aside for a bit and imagine a DSL we can embed in Ruby. -->
+One major implication that is apparent throughout this entire process is that
+statements in Haskell have **no inherent order**.  As we saw, we had a
+list of declaration of many different IO actions --- none of which were
+necessarily evaluated or executed.  There is no sense of "this function is
+'first', this function is 'second'".  Indeed, the idea of ordering makes no
+sense when you think of things as mathematical functions.
 
-<!-- ### A simple implementation -->
+While there is no "first" or "second", there is a `main`, which is the
+function the compiler/interpreter passes to the runtime environment as the
+computation we agree to run.  "Order" arrives at this point.  In our last
+`main`, `print` requires the result of `getStringFromStdin`, so there arises
+the first semblances of "ordering": in the composition of different IO actions
+into one big one.
 
-<!-- Let's say that our DSL in ruby will output some list of instructions.  It'll -->
-<!-- be in the form of a list of symbols. -->
+In fact, ordering is slightly more subtle and complex than this.  There is a
+[nice blog post][ordering] explaining how ordering is implemented in the
+internal data structure of IO.
 
-<!-- Let's create a sample program in this DSL: -->
+[ordering]: http://chris-taylor.github.io/blog/2013/02/09/io-is-not-a-side-effect/
 
-<!-- ~~~ruby -->
+Long story short, `IO`'s interface provides features to chain and combine IO
+actions into one big IO action, as we did before with `>>=`.  This interface
+creates dependency trees in the internal IO data structure that enforces
+ordering.
 
-<!-- def get_and_say_n_times(n) -->
-<!--   instruction_list = [] -->
-<!--   instruction_list << [:getline] -->
-<!--   instruction_list << [:store_result_in, "to_say"] -->
-<!--   n.times do -->
-<!--     instruction_list << [:print_line, "to_say"] -->
-<!--   end -->
-<!-- end -->
+But the real story is that outside of the internals of a single `IO`, there is
+no inherent ordering --- not even between different `IO` objects!
 
-<!-- get_and_say_n_times(4) -->
-<!-- # [ [:getline], -->
-<!-- #   [:store_result_in, "to_say"], -->
-<!-- #   [:print_line, "to_say"], -->
-<!-- #   [:print_line, "to_say"], -->
-<!-- #   [:print_line, "to_say"], -->
-<!-- #   [:print_line, "to_say"] ] -->
+Resolution
+----------
 
-<!-- ~~~ -->
+In retrospect, the solution seems obvious.  A functional program does what it
+does best --- return an object, purely.  This object is the actual computation
+itself, which can be pure or impure, deterministic or undeterministic --- we
+just pass it off, and the runtime environment can do whatever it wants with
+it.  Not our problem anymore!  This is the difference between evaluation (the
+pure process) and execution (the impure one).
 
-<!-- Let's break down how this is going to work: -->
+It is also apparent that any "true" pure, functional language is necessarily
+lazy, which implies that there is no inherent ordering in your statements.
 
-<!-- 1.  The interpreter will move down the list, executing each instruction -->
-<!--     one-by-one. -->
-<!-- 2.  Every list item will have access to the result of the item before. -->
-<!-- 3.  The first item in each instruction is the instruction, and rest are the -->
-<!--     parameters. -->
-
-<!-- So this `get_and_say_n_times` will take a number and return a program that -->
-<!-- takes a string in stdin and echoes it *n* times. -->
-
-
-
-
-
-
-<!-- Let's make a big leap of concepts.  How about we create some sort of dsl for -->
-<!-- Ruby where we can make ruby -->
-
-
-
-
-
------
-
-<!-- What is Purity? -->
-<!-- --------------- -->
-
-<!-- Let's think --> 
-
-
-
-
-
-
-<!-- What does this look like, practically?  The function *sin(x)*, for example, -->
-<!-- does not imply any change in the world.  Sure, if you sit down and try to -->
-<!-- calculate the sine of some number, you might change the state of your paper -->
-<!-- and pencil. But the actual mathematical ideal of the sine function...it does -->
-<!-- not involve any change in the world, -->
-<!-- [lest we run into some really big problems][smbc]. The entire idea kind of -->
-<!-- breaks down if you try to imagine it. Multiplication is an abstract, -->
-<!-- non-physical concept.  Not a physical machine you run.  And why should two -->
-<!-- times two change every time you calculate it? -->
-
-<!-- [smbc]: http://www.smbc-comics.com/?id=2595 -->
-
+We have the best of both worlds.  Purity and...well, usefulness!
