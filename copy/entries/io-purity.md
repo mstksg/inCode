@@ -61,22 +61,22 @@ A Functional "Program"
 Let's look at an almost-typical Haskell program.
 
 ~~~haskell
---| factorial n: n!
+--  factorial n: n!
 factorial :: Int -> Int
 factorial 0 = 1
 factorial n = n * factorial (n-1)
 
---| fib n: the nth Fibonacci number
+--  fib n: the nth Fibonacci number
 fib :: Int -> Int
 fib 0 = 1
 fib 1 = 1
 fib n = fib (n-2) + fib (n-1)
 
---| fibs: the list of all Fibonacci numbers
+--  fibs: the list of all Fibonacci numbers
 fibs :: [Int]
 fibs = map fib [1..]
 
---| first_n_fibs n: a list of the first n Fibonacci numbers
+--  first_n_fibs n: a list of the first n Fibonacci numbers
 first_n_fibs :: Int -> Int
 first_n_fibs n = take n $ fibs
 ~~~
@@ -125,13 +125,13 @@ almost-typical Haskell program with some.
 
 
 ~~~haskell
---| getStringFromStdin: returns a computation that represents the act of
---|     getting a string from stdin
+--  getStringFromStdin: returns a computation that represents the act of
+--      getting a string from stdin
 getStringFromStdin :: IO String
 getStringFromStdin = getLine
 
---| printFibN: returns a computation that represents the act of printing the
---|     nth Fibonacci number to stdout and returns () (Nothing).
+--  printFibN: returns a computation that represents the act of printing the
+--      nth Fibonacci number to stdout and returns () (Nothing).
 printFibN :: Int -> IO ()
 printFibN n = print (fib n)
 ~~~
@@ -188,13 +188,13 @@ onto the run time environment is called `main`.  So let's finish up our
 Haskell program:
 
 ~~~haskell
---| printFibN: returns a computation that represents the act of printing the
---|     nth Fibonacci number to stdout and returns () (Nothing).
+--  printFibN: returns a computation that represents the act of printing the
+--      nth Fibonacci number to stdout and returns () (Nothing).
 printFibN :: Int -> IO ()
 printFibN n = print (fib n)
 
---| main: The function that we agree that the runtime environment will
---|     execute.
+--  main: The function that we agree that the runtime environment will
+--      execute.
 main :: IO ()
 main = printFibN 10
 ~~~
@@ -218,16 +218,16 @@ exact same computational data structure.
 Now consider:
 
 ~~~haskell
---| getStringFromStdin: returns a computation that represents the act of
---|     getting a string from stdin
+--  getStringFromStdin: returns a computation that represents the act of
+--      getting a string from stdin
 getStringFromStdin :: IO String
 getStringFromStdin = getLine
 
---| main: The function that we agree that the runtime environment will
---|     execute.  The `>>=` operator in this case says "take the result of the
---|     first computation and use it as an argument to the second".  The
---|     second thing should be a function that takes one argument for this to
---|     make sense...which is what `print` is.  Phew!
+--  main: The function that we agree that the runtime environment will
+--      execute.  The `>>=` operator in this case says "take the result of the
+--      first computation and use it as an argument to the second".  The
+--      second thing should be a function that takes one argument for this to
+--      make sense...which is what `print` is.  Phew!
 main :: IO ()
 main = getStringFromStdin >>= print
 ~~~
