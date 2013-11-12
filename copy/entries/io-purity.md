@@ -290,7 +290,9 @@ main :: IO ()
 main = getStringFromStdin >>= (\result -> print result)
 ~~~
 
-`main` gets something from the standard input, and then prints it.
+`main` gets something from the standard input, and then prints it.  (Note:
+This program, and many that follow, will be slightly more "beginner" than
+normal Haskell, in order to illustrate some points.)
 
 Oh wait.  This means that if I type something different into standard input,
 the program will return something different, right?  How is this pure?
