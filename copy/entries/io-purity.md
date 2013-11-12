@@ -372,7 +372,7 @@ main = ignoreAndSayHello getStringFromStdin
 
 Remember, `>>=` sends the result of the left-hand side as an argument to the
 right-hand side.  This will return a new `IO ()` object that uses the result
-of a `getStringFromStdin` and chains it to an `ignoreAndSayHello`.
+of a `getStringFromStdin` and chains it to a `print "Hello"`.
 
 
 Ordering
