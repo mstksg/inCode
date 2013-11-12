@@ -220,11 +220,20 @@ Parsec to parse a string and return an `Int` from the parsing act.
 
 [parsec]: http://hackage.haskell.org/package/parsec
 
+And as a more concrete example, [persistent][] provides the `SqlPersistM` data
+structure that can be run by Persistent to represent an interaction with a
+data store/database.  What does this look like in real life?  Well, give it a
+`SqlPersistM` object, and it generates an **SQL query**!  That's right, it
+produces the actual SQL query string, using the instructions in the data
+structure.  It then executes the query, returning the result.
+
+[persistent]: http://hackage.haskell.org/package/persistent
+
 Here we see what Haskell really "does best": assembling and composing these
 possibly complex instruction data structures in a pure way and "passing them
 on" to things that can take them and use them to do great things.  A `Gen` is
-used by QuickCheck, a `Parsec` is used by Parsec, and an `IO` is used
-by...well, what?  A computer!
+used by QuickCheck, a `Parsec` is used by Parsec, an `SqlPersistM` is used by
+Persistent, and an `IO` is used by...well, what?  A computer!
 
 The "Main" Point
 ----------------
@@ -417,6 +426,9 @@ itself, which can be pure or impure, deterministic or undeterministic --- we
 just pass it off, and the runtime environment can do whatever it wants with
 it.  Not our problem anymore!  This is the difference between evaluation (the
 pure process) and execution (the impure one).
+
+In this sense, any language that deals with IO this way must clearly be lazy
+in its IO executions.
 
 It is also apparent that any "true" pure, functional language is necessarily
 lazy, which implies that there is no inherent ordering in your statements.
