@@ -427,11 +427,10 @@ just pass it off, and the runtime environment can do whatever it wants with
 it.  Not our problem anymore!  This is the difference between evaluation (the
 pure process) and execution (the impure one).
 
-In this sense, any language that deals with IO this way must clearly be lazy
-in its IO executions.
-
-It is also apparent that any "true" pure, functional language is necessarily
-lazy, which implies that there is no inherent ordering in your statements.
+In this sense, any language that deals with IO this way must clearly be
+non-strict in its IO executions (that is, evaluating an IO statement must not
+actually "execute" anything...it really wouldn't even make sense in this
+context!).
 
 We have the best of both worlds.  Purity and...well, usefulness!
 
