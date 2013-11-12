@@ -9,7 +9,7 @@ Tags
 CreateTime
 :   2013/10/04 18:31:44
 PostDate
-:   2013/11/13 16:14:47
+:   2013/11/12 11:37:27
 Identifier
 :   io-purity
 
@@ -473,10 +473,10 @@ We have the best of both worlds.  Purity and...well, usefulness!
 In fact, it doesn't seem like there is really any "other" way Haskell could
 handle this and still feel Haskell.
 
-And this is the reason why Haskell succeeds where other languages fail: Though
-we have only seen a glimpse of this in this in this article, Haskell provides
-very specialized tools for assembling and composing complex instruction data
-structures that make it extremely simple, expressive, and elegant.  Tools for
-combining two parsing rules into one.  Tools for combining two SQL operations
-into one.  For a language that handles computational data structures so well,
-*not* handling IO this way would be a real shame!
+And this is the reason why Haskell succeeds where other languages struggle:
+Though we have only seen a glimpse of this in this in this article, Haskell
+provides very specialized tools for assembling and composing complex
+instruction data structures that make it extremely simple, expressive, and
+elegant.  Tools for combining two parsing rules into one.  Tools for combining
+two SQL operations into one.  For a language that handles computational data
+structures so well, *not* handling IO this way would be a real shame!
