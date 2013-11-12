@@ -5,14 +5,24 @@ ideas
 * esqueleto (many to many)
 * path integral monte carlo series
 * entropic forces
+* baking monad
+* monad series:
+    - state
+    - reverse state/tardis
+    - writer?
+    - reader?
+    - Persistent
+    - Parsec/parsing
+    - Gen/Random
+    - baking
+* pid loop
 
 in progress
 
-* what purity/strictness really "means" in Haskell; describe how pure IO works
-
 done
 
-* control theory primer
 * deploy with compile to heroku
+* control theory primer
 * note/log script
 * shake
+* what purity/strictness really "means" in Haskell; describe how pure IO works

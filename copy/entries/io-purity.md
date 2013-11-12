@@ -132,8 +132,8 @@ getStringFromStdin = getLine
 
 --  printFibN: returns a computation that represents the act of printing the
 --      nth Fibonacci number to stdout and returns () (Nothing).  or rather,
---      a series of instruction on interacting with the computer and returning
---      nothing.
+--      a series of instruction on interacting with the computer to get it to
+--      print a Fibonacci number and returning nothing.
 printFibN :: Int -> IO ()
 printFibN n = print (fib n)
 ~~~
@@ -189,8 +189,9 @@ concretely in javascript.
 
 
 In fact it would not be too hard to imagine a compiler that would take any
-arbitrary `IO` structure and translate it into human-followable instructions
-on a piece of paper, written in plain English.  Or French, for that matter.
+arbitrary `IO` structure and translate it into human-followable (yet very
+verbose) instructions on a piece of paper, written in plain English.  Or
+French, for that matter.
 
 That is because that's all `IO` *is* --- a tree data structure representing an
 instruction series, that we assemble/build using Haskell code.  The same way
@@ -199,14 +200,13 @@ other language.
 
 ### Other Examples
 
-It might help to look at think about similar data structures.  How about
-`Gen`, from the [QuickCheck][] library, which returns an instruction sequence
-that QuickCheck (a library for testing functions and objects) can use to
-generate arbitrary test samples.   That is, if you want QuickCheck to generate
-ten random arrays of integers for you, you provide it with some kind of
-sequence of instructions to generate random arrays (a `Gen (Array Int)`).
-QuickCheck happily takes this instruction data structure, and uses it for its
-means.
+It might help to look at think about similar data structures.  Take `Gen`,
+from the [QuickCheck][] library, which returns an instruction sequence that
+QuickCheck (a library for testing functions and objects) can use to generate
+arbitrary test samples.   That is, if you want QuickCheck to generate ten
+random arrays of integers for you, you provide it with some kind of sequence
+of instructions to generate random arrays (a `Gen (Array Int)`). QuickCheck
+happily takes this instruction data structure, and uses it for its means.
 
 [QuickCheck]: http://hackage.haskell.org/package/QuickCheck
 
@@ -215,17 +215,17 @@ which are *instructions for Parsec to parse a string*.  That is, given a
 `Parsec` instruction data structure (which is just a list of instructions for
 Parsec) and a string, Parsec (the library) will return to you a parsed string,
 following the instructions in the instruction data structure.  A single
-`Parsec Int` object doesn't actually parse anything.  But it can be used by
-Parsec to parse a string and return an `Int` from the parsing act.
+`Parsec Int` object doesn't actually parse anything.  But it can be *used by
+Parsec* to parse a string and return an `Int` from the parsing act.
 
 [parsec]: http://hackage.haskell.org/package/parsec
 
 And as a more concrete example, [persistent][] provides the `SqlPersistM` data
 structure that can be run by Persistent to represent an interaction with a
 data store/database.  What does this look like in real life?  Well, give it a
-`SqlPersistM` object, and it generates an **SQL query**!  That's right, it
-produces the actual SQL query string, using the instructions in the data
-structure.  It then executes the query, returning the result.
+`SqlPersistM` object, and it generates a series of **SQL queries**!  That's
+right, it produces the actual SQL query strings, using the instructions in the
+data structure.  It then executes the query, returning the result.
 
 [persistent]: http://hackage.haskell.org/package/persistent
 
@@ -243,7 +243,8 @@ represents computer instructions (well, at least, Haskell's standard library
 handles all of it for us by giving us useful instruction primitives that we
 can build more complex instructions from).
 
-Now we have an instruction object.  How do we actually get a computer it?
+Now we have an instruction object.  How do we actually get a computer to use
+and execute it?
 
 For this, we rely on convention (or arbitrary specification, however you like
 to see it).  A Haskell compiler will "understand" your data structures, and it
@@ -381,9 +382,9 @@ main :: IO ()
 main = ignoreAndSayHello getStringFromStdin
 ~~~
 
-Remember, `>>=` sends the result of the left-hand side as an argument to the
-right-hand side.  This will return a new `IO ()` object that uses the result
-of a `getStringFromStdin` and chains it to a `print "Hello"`.
+Remember, `>>=` "combines" two IO objects into one.  It returns a new IO
+object that takes the result of the left-hand side and uses it as an argument
+to the right hand side.  Easy, right?
 
 
 Ordering
