@@ -367,7 +367,7 @@ ignoreAndSayHello :: IO a -> IO ()
 ignoreAndSayHello to_ignore = to_ignore >>= (\result -> print "Hello!")
 
 main :: IO ()
-main = ignoreAndSayHell getStringFromStdin
+main = ignoreAndSayHello getStringFromStdin
 ~~~
 
 Remember, `>>=` sends the result of the left-hand side as an argument to the
