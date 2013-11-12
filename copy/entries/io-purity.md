@@ -226,11 +226,12 @@ on" to things that can take them and use them to do great things.  A `Gen` is
 used by QuickCheck, a `Parsec` is used by Parsec, and an `IO` is used
 by...well, what?  A computer!
 
-(And yes, this is really what Haskell "does best" --- Haskell provides
-language features that make it excel at assembling instruction data structures
-like this, giving it a considerable leg up over most other languages.  Haskell
-can be considered almost as a language very strongly specialized in this
-assembly process.)
+(And yes, this is really what Haskell "does best" --- though we haven't seen
+it yet, and indeed this subject is beyond the scope of this article, Haskell
+provides language features that make it excel at assembling instruction data
+structures like this, giving it a considerable leg up over most other
+languages.  Haskell can be considered almost as a language very strongly
+specialized in this assembly process.)
 
 The "Main" Point
 ----------------
@@ -352,8 +353,8 @@ Let's see what `main` evaluates to:
 main = ignoreAndPrintNothing getStringFromStdin
 
 -- the function call evaluates to
-
-ignoreAndPrintNothing getStringFromStdin = print "Hello!"
+-- = ignoreAndPrintNothing getStringFromStdin
+-- = print "Hello!"
 
 -- so main evaluates to
 
