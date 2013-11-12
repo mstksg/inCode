@@ -125,12 +125,15 @@ almost-typical Haskell program with some.
 
 ~~~haskell
 --  getStringFromStdin: returns a computation that represents the act of
---      getting a string from stdin
+--      getting a string from stdin.  or rather, a series of instructions on
+--      interacting with the computer and generating a String.
 getStringFromStdin :: IO String
 getStringFromStdin = getLine
 
 --  printFibN: returns a computation that represents the act of printing the
---      nth Fibonacci number to stdout and returns () (Nothing).
+--      nth Fibonacci number to stdout and returns () (Nothing).  or rather,
+--      a series of instruction on interacting with the computer and returning
+--      nothing.
 printFibN :: Int -> IO ()
 printFibN n = print (fib n)
 ~~~
@@ -140,7 +143,8 @@ Let's look at these.
 These are simply functions/declarations, just like the ones above.  Although
 instead of returning an integer or a list data structure, it returns a special
 data structure that represents a computation.  `[a]` represents a list of
-`a`'s.  `IO a` represents an abstract computation that returns an `a`.
+`a`'s.  `IO a` represents an abstract computation (or a series of system
+instructions) that returns an `a`.
 
 These declarations and functions are also simply "math" functions.  Instead of
 returning a set or a matrix or a vector, it returns another type of object.
@@ -198,9 +202,10 @@ It might help to look at think about similar data structures.  How about
 `Gen`, from the [QuickCheck][] library, which returns an instruction sequence
 that QuickCheck (a library for testing functions and objects) can use to
 generate arbitrary test samples.   That is, if you want QuickCheck to generate
-ten random arrays for you, you provide it with some kind of sequence of
-instructions to generate ten random arrays.  QuickCheck happily takes this
-instruction data structure, and uses it for its means.
+ten random arrays of integers for you, you provide it with some kind of
+sequence of instructions to generate random arrays (a `Gen (Array Int)`).
+QuickCheck happily takes this instruction data structure, and uses it for its
+means.
 
 [QuickCheck]: http://hackage.haskell.org/package/QuickCheck
 
@@ -208,7 +213,9 @@ Then there's [parsec][], which provides a `Parsec` instruction , which are
 *instructions for Parsec to parse a string*.  That is, given a `Parsec`
 instruction data structure (which is just a list of instructions for Parsec)
 and a string, Parsec (the library) will return to you a parsed string,
-following the instructions in the instruction data structure.
+following the instructions in the instruction data structure.  A single
+`Parsec Int` object doesn't actually parse anything.  But it can be used by
+Parsec to parse a string and return an `Int` from the parsing act.
 
 [parsec]: http://hackage.haskell.org/package/parsec
 
