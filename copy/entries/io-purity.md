@@ -9,7 +9,7 @@ Tags
 CreateTime
 :   2013/10/04 18:31:44
 PostDate
-:   never
+:   2013/11/13 16:14:47
 Identifier
 :   io-purity
 
@@ -78,7 +78,7 @@ fibs = map fib [1..]
 
 --  first_n_fibs n: a list of the first n Fibonacci numbers
 first_n_fibs :: Int -> Int
-first_n_fibs n = take n $ fibs
+first_n_fibs n = take n fibs
 ~~~
 
 One of the first things you should notice is that this looks strikingly
@@ -123,7 +123,6 @@ that returns something of type `a`.  There are a couple of pre-packaged
 computations included in the standard library.  Let's write another
 almost-typical Haskell program with some.
 
-
 ~~~haskell
 --  getStringFromStdin: returns a computation that represents the act of
 --      getting a string from stdin
@@ -148,7 +147,7 @@ returning a set or a matrix or a vector, it returns another type of object.
 
 Note that this has nothing to do with execution.  `printFibN` does *not*
 execute a print statement.  No more than writing `printFibN` on a piece of
-paper will cause it to magically evaluate.  It does not execute anything ---
+paper will cause it to magically evaluate.  It does not execute anything:
 it is simply an abstract data structure representing a computation.
 
 Note again that there is no inherent ordering involved.  Whether you define
@@ -161,31 +160,88 @@ Also note that all of these declarations are completely pure.
 computation* every single time.  `printFibN n` will return the exact same
 *computation* for every `n` every single time.
 
-So these objects represent computations, but do not actually execute anything
-(how can math functions execute anything, anyway?  Nonsense!), how do we
-actually *do* something?
+And yes, the objects themselves don't actually execute anything.  That's like
+saying writing down a matrix executes something in the real world.
+
+Instructions as Data Structures
+-------------------------------
+
+Let's take a step back and think about what it even means to have a data
+structure representing computation.
+
+You can think about it as some kind of list/nested tree of instructions for
+someone to follow.  For the case of `IO Int`, you can see it as, internally,
+some kind of tree/nested instruction set for someone to follow in order to
+produce an `Int`.  In the case of `IO`, for GHC, the "someone" is a
+computer.  Or more specifically, a processor.  But really, there are many ways
+to "translate" this data structure into instructions for anyone.  [Haste][],
+for example, takes `IO` data structure and turns it into something that can be
+run in a Javascript interpreter.  That is, it takes something like
+`printFibN n`, takes the internal tree instruction set, and writes it out
+concretely in javascript.
+
+[Haste]: http://hackage.haskell.org/package/haste-compiler
+
+
+In fact it would not be too hard to imagine a compiler that would take any
+arbitrary `IO` structure and translate it into human-followable instructions
+on a piece of paper, written in plain English.  Or French, for that matter.
+
+That is because that's all `IO` *is* --- a tree data structure representing an
+instruction series, that we assemble/build using Haskell code.  The same way
+you would assemble/build an array, or a dictionary, or a linked list in any
+other language.
+
+### Other Examples
+
+It might help to look at think about similar data structures.  How about
+`Gen`, from the [QuickCheck][] library, which returns an instruction sequence
+that QuickCheck (a library for testing functions and objects) can use to
+generate arbitrary test samples.   That is, if you want QuickCheck to generate
+ten random arrays for you, you provide it with some kind of sequence of
+instructions to generate ten random arrays.  QuickCheck happily takes this
+instruction data structure, and uses it for its means.
+
+[QuickCheck]: http://hackage.haskell.org/package/QuickCheck
+
+Then there's [parsec][], which provides a `Parsec` instruction , which are
+*instructions for Parsec to parse a string*.  That is, given a `Parsec`
+instruction data structure (which is just a list of instructions for Parsec)
+and a string, Parsec (the library) will return to you a parsed string,
+following the instructions in the instruction data structure.
+
+[parsec]: http://hackage.haskell.org/package/parsec
+
+Here we see what Haskell really "does best": assembling and composing these
+possibly complex instruction data structures in a pure way and "passing them
+on" to things that can take them and use them to do great things.  A `Gen` is
+used by QuickCheck, a `Parsec` is used by Parsec, and an `IO` is used
+by...well, what?  A computer!
+
+(And yes, this is really what Haskell "does best" --- Haskell provides
+language features that make it excel at assembling instruction data structures
+like this, giving it a considerable leg up over most other languages.  Haskell
+can be considered almost as a language very strongly specialized in this
+assembly process.)
 
 The "Main" Point
 ----------------
 
-So what happens when a Haskell program is interpreted/compiled?
+So now we see that Haskell has no problems returning a data structure that
+represents computer instructions (well, at least, Haskell's standard library
+handles all of it for us by giving us useful instruction primitives that we
+can build more complex instructions from).
 
-1.  The interpreter/compiler internalizes and understands all of the
-    declarations, without actually executing them or evaluating them.
+Now we have an instruction object.  How do we actually get a computer it?
 
-2.  The runtime environment picks one item/declaration, established by
-    convention, and then chooses to execute it.
+For this, we rely on convention (or arbitrary specification, however you like
+to see it).  A Haskell compiler will "understand" your data structures, and it
+picks **one** of them to compile into a binary format for your computer (or
+whatever format your executing environment reads best).  Out of all of the IO
+objects you can return/represent, the Haskell compiler chooses one of them to
+be the one it actually compiles into computer-readable code.
 
-Your program is a list of declarations of numbers, strings, and data
-structures.  Some of those data structures that your program defines may be
-`IO` objects (data structures that represent computations).
-
-The runtime environment picks one of those data structures with a
-pre-agreed-upon name and chooses to execute it.
-
-In Haskell, we have generally agreed that the function we "choose" to pass
-onto the run time environment is called `main`.  So let's finish up our
-Haskell program:
+And by convention/specification, it is the IO object with the name `main`.
 
 ~~~haskell
 --  printFibN: returns a computation that represents the act of printing the
@@ -193,7 +249,7 @@ Haskell program:
 printFibN :: Int -> IO ()
 printFibN n = print (fib n)
 
---  main: The function that we agree that the runtime environment will
+--  main: The function that we agree that the execution environment will
 --      execute.
 main :: IO ()
 main = printFibN 10
@@ -241,17 +297,18 @@ Here is the crucial difference between **evaluation** and **execution**.
 
 `main` will always **evaluate** to the exact same computation data structure.
 
-The runtime environment --- which is somethin that can be considered
-completely separate from the language, that is just passed the "football" of
-the computation data structure --- can then **execute** this evaluated
-computation, which will execute in [potentially unpredictable ways][halting],
-and will execute slightly differently every time because you have different
-inputs.
+The computer/processor --- which is given a binary representation of the IO
+data structure, and is completely separate from the language itself --- now
+**executes** this binary/compiled data structure.  Its execution of this
+binary is, of course, [potentially unpredictable][halting].  The
+instructions/binary that it follows will be the same every time.  The result
+of those instructions will be different every time (as someone who has ever
+attempted to bake a cake can testify).
 
 [halting]: http://en.wikipedia.org/wiki/Halting_problem
 
 `main` is a function that returns/evaluates deterministically to a data
-structure representing a computaiton.
+structure representing a computation.
 
 The computation that it represents is not necessarily deterministic.
 
@@ -271,7 +328,7 @@ ignoreAndSayHello :: IO a -> IO ()
 ignoreAndSayHello to_ignore = print "Hello!"
 
 main :: IO ()
-main = ignoreAndPrintNothing getStringFromStdin
+main = ignoreAndSayHello getStringFromStdin
 ~~~
 
 What does this program do?
@@ -286,11 +343,11 @@ Let's see what `main` evaluates to:
 ~~~haskell
 main = ignoreAndPrintNothing getStringFromStdin
 
--- evaluates to
+-- the function call evaluates to
 
 ignoreAndPrintNothing getStringFromStdin = print "Hello!"
 
--- which eventually evaluates to
+-- so main evaluates to
 
 main = print "Hello!"
 ~~~
@@ -300,6 +357,21 @@ So `main` evaluates to one single IO action: `print "Hello!"`.
 So your program returns the simple IO action `print "Hello!"` --- the
 computation returned by `main` therefore simply prints "Hello!".  This
 computation does not represent anything that would ask for input.
+
+The "real" way to do this would be:
+
+~~~haskell
+ignoreAndSayHello :: IO a -> IO ()
+ignoreAndSayHello to_ignore = print "Hello!"
+
+main :: IO ()
+main = getStringFromStdin >>= ignoreAndSayHello
+~~~
+
+Remember, `>>=` sends the result of the left-hand side as an argument to the
+right-hand side.  This will return a new `IO ()` object that uses the result
+of a `getStringFromStdin` and chains it to an `ignoreAndSayHello`.
+
 
 Ordering
 --------
@@ -346,3 +418,11 @@ It is also apparent that any "true" pure, functional language is necessarily
 lazy, which implies that there is no inherent ordering in your statements.
 
 We have the best of both worlds.  Purity and...well, usefulness!
+
+In fact, it doesn't seem like there is really any "other" way Haskell could
+handle this and still feel Haskell.  And this is the reason why Haskell
+succeeds where other languages fail: Though we have not seen any of this in
+this article, Haskell provides very specialized tools for assembling and
+composing complex instruction data structures that make it extremely simple,
+expressive, and elegant.  For a language that handles computational data
+structures so well, *not* handling IO this way would be a real shame!
