@@ -226,13 +226,6 @@ on" to things that can take them and use them to do great things.  A `Gen` is
 used by QuickCheck, a `Parsec` is used by Parsec, and an `IO` is used
 by...well, what?  A computer!
 
-(And yes, this is really what Haskell "does best" --- though we haven't seen
-it yet, and indeed this subject is beyond the scope of this article, Haskell
-provides language features that make it excel at assembling instruction data
-structures like this, giving it a considerable leg up over most other
-languages.  Haskell can be considered almost as a language very strongly
-specialized in this assembly process.)
-
 The "Main" Point
 ----------------
 
@@ -429,9 +422,11 @@ lazy, which implies that there is no inherent ordering in your statements.
 We have the best of both worlds.  Purity and...well, usefulness!
 
 In fact, it doesn't seem like there is really any "other" way Haskell could
-handle this and still feel Haskell.  And this is the reason why Haskell
-succeeds where other languages fail: Though we have not seen any of this in
-this article, Haskell provides very specialized tools for assembling and
-composing complex instruction data structures that make it extremely simple,
-expressive, and elegant.  For a language that handles computational data
-structures so well, *not* handling IO this way would be a real shame!
+handle this and still feel Haskell.
+
+And this is the reason why Haskell succeeds where other languages fail: Though
+we have not seen any of this in this article, Haskell provides very
+specialized tools for assembling and composing complex instruction data
+structures that make it extremely simple, expressive, and elegant.  For a
+language that handles computational data structures so well, *not* handling IO
+this way would be a real shame!
