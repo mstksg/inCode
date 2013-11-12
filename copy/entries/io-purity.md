@@ -210,10 +210,10 @@ means.
 
 [QuickCheck]: http://hackage.haskell.org/package/QuickCheck
 
-Then there's [parsec][], which provides a `Parsec` instruction , which are
-*instructions for Parsec to parse a string*.  That is, given a `Parsec`
-instruction data structure (which is just a list of instructions for Parsec)
-and a string, Parsec (the library) will return to you a parsed string,
+Then there's [parsec][], which provides a `Parsec` instruction data structure,
+which are *instructions for Parsec to parse a string*.  That is, given a
+`Parsec` instruction data structure (which is just a list of instructions for
+Parsec) and a string, Parsec (the library) will return to you a parsed string,
 following the instructions in the instruction data structure.  A single
 `Parsec Int` object doesn't actually parse anything.  But it can be used by
 Parsec to parse a string and return an `Int` from the parsing act.
