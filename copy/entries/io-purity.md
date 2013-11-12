@@ -162,8 +162,8 @@ different order, it does not change the matrices they represent.
 Also note that all of these declarations are completely pure.
 `getStringFromStdin` will return the exact same *representation of a
 computation* every single time.  `printFibN n` will return the exact same
-*computation* for every `n` every single time.  The exact same instruction
-sequence every single time (for the same `n` of course).
+*computation representation* for every `n` every single time.  The exact same
+instruction sequence every single time for every `n`.
 
 And yes, the objects themselves don't actually execute anything.  That's like
 saying writing down a matrix executes something in the real world.
@@ -174,66 +174,98 @@ Instructions as Data Structures
 Let's take a step back and think about what it even means to have a data
 structure representing computation.
 
-You can think about it as some kind of list/nested tree of instructions for
-someone to follow.  For the case of `IO Int`, you can see it as, internally,
-some kind of tree/nested instruction set for someone to follow in order to
-produce an `Int`.  In the case of `IO`, for GHC, the "someone" is a
-computer.  Or more specifically, a processor.  But really, there are many ways
-to "translate" this data structure into instructions for anyone.  [Haste][],
-for example, takes `IO` data structure and turns it into something that can be
-run in a Javascript interpreter.  That is, it takes something like
-`printFibN n`, takes the internal tree instruction set, and writes it out
-concretely in javascript.
+You can think about it as some kind of list/nested tree (or more accurately, a
+graph) of instructions for someone to follow.  For the case of `IO Int`, you
+can see it as, internally, some kind of tree/nested instruction set for
+someone to follow in order to produce an `Int`.  In the case of `IO`, for GHC,
+the "someone" is a computer.  Or more specifically, a processor.
+
+But really, there are many ways to "translate" this data structure into
+instructions for anyone to follow.  [Haste][], for example, takes `IO` data
+structure and turns it into something that can be run in a Javascript
+interpreter.  That is, it takes something like `printFibN n`, takes the
+internal tree instruction set, and writes it out concretely in javascript.
 
 [Haste]: http://hackage.haskell.org/package/haste-compiler
-
 
 In fact it would not be too hard to imagine a compiler that would take any
 arbitrary `IO` structure and translate it into human-followable (yet very
 verbose) instructions on a piece of paper, written in plain English.  Or
 French, for that matter.
 
-That is because that's all `IO` *is* --- a tree data structure representing an
-instruction series, that we assemble/build using Haskell code.  The same way
-you would assemble/build an array, or a dictionary, or a linked list in any
-other language.
+That is because that's all `IO` *is* --- a tree/graph data structure
+representing an instruction series, that we assemble/build/compose using
+Haskell code.  The same way you would assemble/build an array, or a
+dictionary, or a linked list in any other language.
 
 ### Other Examples
 
-It might help to look at think about similar data structures.  Take `Gen`,
-from the [QuickCheck][] library, which returns an instruction sequence that
-QuickCheck (a library for testing functions and objects) can use to generate
-arbitrary test samples.   That is, if you want QuickCheck to generate ten
-random arrays of integers for you, you provide it with some kind of sequence
-of instructions to generate random arrays (a `Gen (Array Int)`). QuickCheck
-happily takes this instruction data structure, and uses it for its means.
+It might help to think about similar "instruction-like" data structures.
 
-[QuickCheck]: http://hackage.haskell.org/package/QuickCheck
-
-Then there's [parsec][], which provides a `Parsec` instruction data structure,
-which are *instructions for Parsec to parse a string*.  That is, given a
-`Parsec` instruction data structure (which is just a list of instructions for
-Parsec) and a string, Parsec (the library) will return to you a parsed string,
-following the instructions in the instruction data structure.  A single
-`Parsec Int` object doesn't actually parse anything.  But it can be *used by
-Parsec* to parse a string and return an `Int` from the parsing act.
-
-[parsec]: http://hackage.haskell.org/package/parsec
-
-And as a more concrete example, [persistent][] provides the `SqlPersistM` data
-structure that can be run by Persistent to represent an interaction with a
-data store/database.  What does this look like in real life?  Well, give it a
-`SqlPersistM` object, and it generates a series of **SQL queries**!  That's
-right, it produces the actual SQL query strings, using the instructions in the
-data structure.  It then executes the query, returning the result.
+Take [persistent][], which (in some variants) provides the `SqlPersistM` data
+structure.  This data structure represents an interaction with an SQL
+Database.  Rather, it represents a tree of instructions for interacting with
+one.  When you give it to the Persistent library, it'll translate that
+`SqlPersistM` into a series of **SQL queries**!  Yes, it produces actual SQL
+query strings, using the instructions from the data structure.  An
+`SqlPersistM Int` is an SQL interaction that returns an Int when run with the
+Persistent library.
 
 [persistent]: http://hackage.haskell.org/package/persistent
 
-Here we see what Haskell really "does best": assembling and composing these
-possibly complex instruction data structures in a pure way and "passing them
-on" to things that can take them and use them to do great things.  A `Gen` is
-used by QuickCheck, a `Parsec` is used by Parsec, an `SqlPersistM` is used by
-Persistent, and an `IO` is used by...well, what?  A computer!
+Then you have [parsec][], which provides a `Parsec` data structure, which are
+*instructions for Parsec to parse a string*.  A `Parsec Int` structure
+represents instructions for parsing a string into an `Int`.  When you give a
+`Parsec Int` and a string to parse to the Parsec library, it will run the
+parse specified by the `Parsec` object and return  (hopefully) a parsed `Int`.
+Remember, a `Parsec Int` object does not actually parse anything!  It is *used
+by Parsec* to parse a string and return an `Int`!
+
+[parsec]: http://hackage.haskell.org/package/parsec
+
+<!-- which are *instructions for Parsec to parse a string*.  That is, given a -->
+<!-- `Parsec` instruction data structure (which is just a list of instructions for -->
+<!-- Parsec, a tree of parsing rules) and a string, Parsec (the library) will -->
+<!-- return to you a parsed string, following the instructions in the instruction -->
+<!-- data structure.  A single `Parsec Int` object doesn't actually parse anything. -->
+<!-- But it can be *used by Parsec* to parse a string and return an `Int` from the -->
+<!-- parsing act. -->
+
+<!-- And as a more concrete example, [persistent][] provides the `SqlPersistM` data -->
+<!-- structure that can be run by Persistent to represent an interaction with a -->
+<!-- data store/database.  What does this look like in real life?  Well, give it a -->
+<!-- `SqlPersistM` object, and it generates a series of **SQL queries**!  That's -->
+<!-- right, it produces the actual SQL query strings, using the instructions in the -->
+<!-- data structure.  It then executes the query, returning the result. -->
+
+<!-- It might help to look at think about similar data structures.  Take `Gen`, -->
+<!-- from the [QuickCheck][] library, which returns an instruction sequence that -->
+<!-- QuickCheck (a library for testing functions and objects) can use to generate -->
+<!-- arbitrary test samples.   That is, if you want QuickCheck to generate ten -->
+<!-- random arrays of integers for you, you provide it with some kind of sequence -->
+<!-- of instructions to generate random arrays (a `Gen (Array Int)`). QuickCheck -->
+<!-- happily takes this instruction data structure, and uses it for its means. -->
+
+<!-- [QuickCheck]: http://hackage.haskell.org/package/QuickCheck -->
+
+The reason why we use these data structures in Haskell, instead of actually
+writing SQL queries and parsing rules from scratch, is because they become
+*composable*.  You can build complex SQL queries without ever touching a query
+string by composing simple queries.  You can create very complex and intricate
+parsing rules without every having to "worry" about actually writing the
+parser: you just compose simple, smaler parsers.
+
+And this is really what Haskell "does best" (and possibly what Haskell was
+really made for): assembling and composing these possibly complex instruction
+data structures in a pure way and "passing them on" to things that can take
+them and use them to do great things.  An `SqlPersistM` is used by Persistent,
+a `Parsec` is used by Parsec, and an `IO` is used by...well, what?  A computer!
+
+<!-- (A short aside: Yes, this is truly where (although it is beyond the scope of -->
+<!-- this article to explain why) Haskell excels --- composing instruction data -->
+<!-- structures, combining and nesting complex structures easily into one.  Turning -->
+<!-- two parse rules into one big one, etc.  It could be said that Haskell is a -->
+<!-- very specialized language for doing just this.) -->
 
 The "Main" Point
 ----------------
@@ -272,11 +304,11 @@ And here we are.  A full, executable Haskell program.
 As we can see, every function or declaration that makes up our program is
 completely pure and side-effectless. In fact, the assembly of `main` itself is
 side-effectless and pure.  We assemble the `IO ()` that `main` returns in a
-pure way. `printFibN 10` will return the exact same computation every single
-time we run it.
+pure way. `printFibN 10` will return the exact same computation representation
+every single time we run it.
 
 `printFibN 10` is **pure**.  Every time we *evaluate* `printFibN 10`, we get
-the exact same computation.
+the exact same computation representation/instruction list.
 
 Therefore, `main` is pure, as well.  Every time we evaluate `main`, we get the
 exact same computational data structure.
@@ -295,7 +327,8 @@ getStringFromStdin = getLine
 --      execute.  The `>>=` operator in this case says "take the result of the
 --      left hand side's computation and use it as an argument to the right
 --      hand side".  The right hand side takes a `result` and returns `print
---      result`.
+--      result`.  So the overall effect is that it prints the result of the
+--      getStringFromStdin.
 main :: IO ()
 main = getStringFromStdin >>= (\result -> print result)
 ~~~
@@ -307,17 +340,19 @@ normal Haskell, in order to illustrate some points.)
 Oh wait.  This means that if I type something different into standard input,
 the program will return something different, right?  How is this pure?
 
-Here is the crucial difference between **evaluation** and **execution**.
+Here is the crucial difference between **evaluation** and **execution**:
 
 `main` will always **evaluate** to the exact same computation data structure.
 
 The computer/processor --- which is given a binary representation of the IO
 data structure, and is completely separate from the language itself --- now
 **executes** this binary/compiled data structure.  Its execution of this
-binary is, of course, [potentially unpredictable][halting].  The
-instructions/binary that it follows will be the same every time.  The result
-of those instructions will be different every time (as someone who has ever
-attempted to bake a cake can testify).
+binary is, of course, [potentially unpredictable][halting], and can depend on
+things like the temperature, the network connection, the person at the
+keyboard, the database contents, etc.  The *instructions/binary* that it
+follows will be the same every time.  The *result* of those instructions will
+be different every time (as someone who has ever attempted to bake a cake can
+testify).
 
 [halting]: http://en.wikipedia.org/wiki/Halting_problem
 
@@ -439,8 +474,9 @@ In fact, it doesn't seem like there is really any "other" way Haskell could
 handle this and still feel Haskell.
 
 And this is the reason why Haskell succeeds where other languages fail: Though
-we have not seen any of this in this article, Haskell provides very
-specialized tools for assembling and composing complex instruction data
-structures that make it extremely simple, expressive, and elegant.  For a
-language that handles computational data structures so well, *not* handling IO
-this way would be a real shame!
+we have only seen a glimpse of this in this in this article, Haskell provides
+very specialized tools for assembling and composing complex instruction data
+structures that make it extremely simple, expressive, and elegant.  Tools for
+combining two parsing rules into one.  Tools for combining two SQL operations
+into one.  For a language that handles computational data structures so well,
+*not* handling IO this way would be a real shame!
