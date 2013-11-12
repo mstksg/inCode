@@ -162,7 +162,8 @@ different order, it does not change the matrices they represent.
 Also note that all of these declarations are completely pure.
 `getStringFromStdin` will return the exact same *representation of a
 computation* every single time.  `printFibN n` will return the exact same
-*computation* for every `n` every single time.
+*computation* for every `n` every single time.  The exact same instruction
+sequence every single time (for the same `n` of course).
 
 And yes, the objects themselves don't actually execute anything.  That's like
 saying writing down a matrix executes something in the real world.
@@ -248,7 +249,7 @@ whatever format your executing environment reads best).  Out of all of the IO
 objects you can return/represent, the Haskell compiler chooses one of them to
 be the one it actually compiles into computer-readable code.
 
-And by convention/specification, it is the IO object with the name `main`.
+And by convention/specification, it is the IO object with the name "main":
 
 ~~~haskell
 --  printFibN: returns a computation that represents the act of printing the
