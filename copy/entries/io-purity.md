@@ -196,15 +196,13 @@ is *not* a string --- it is a computation object.
 What will happen is that `print` won't print the result of
 `getStringFromStdin`.  `print` will print out the **representation of the
 computation**!  It'll print out the *data structure representing the
-computation*!
+computation*, or some string "representing" the act of the computation!
 
-At least, that's what it's supposed to do.  Unfortunately, `IO` data
-structures do not come with a serialization method, so you can't actually
-print out the contents of the abstract computational data structure in vanilla
-Haskell.  However, if you imagine being able to "write the contents" of the
-data structure, like *"Get a line from stdin!"*, then that would be what
-`print` would print.  **Not** the result of the computation, but the
-*representation* of the computation.
+(At least, that's what it's supposed to do.  Unfortunately, `IO` data
+structures do not come built-in with a method for their string representation
+in vanilla Haskell.  But the point remains that `print` would *try* to print
+out the data structure itself somehow, and not the actual result of the
+computation)
 
 Instructions as Data Structures
 -------------------------------
