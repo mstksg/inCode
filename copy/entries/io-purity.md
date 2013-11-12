@@ -10,6 +10,8 @@ CreateTime
 :   2013/10/04 18:31:44
 PostDate
 :   2013/11/12 11:37:27
+ModifiedTime
+:   2013/11/12 12:35:46
 Identifier
 :   io-purity
 
@@ -167,6 +169,42 @@ instruction sequence every single time for every `n`.
 
 And yes, the objects themselves don't actually execute anything.  That's like
 saying writing down a matrix executes something in the real world.
+
+### Data Structures, Not Commands
+
+To illustrate the difference between a data structure representing a
+computation and a computation itself, let's look at a possible confusion that
+might arise from mixing up the two.
+
+~~~haskell
+getStringAndPrint :: IO ()
+getStringAndPrint = print (getStringFromStdin)
+~~~
+
+What would you expect to happen here?
+
+Remember, `print` prints out what it is passed.  `getStringFromStdin` is a
+computation object that gives a string when executed.
+
+In another language, which deals with computations (and not representations of
+them), you would expect it to get a string from stdin and then print it.  Sort
+of like an echo.
+
+However, this is not the case in Haskell.  What is `getStringFromStdin`?  It
+is *not* a string --- it is a computation object.
+
+What will happen is that `print` won't print the result of
+`getStringFromStdin`.  `print` will print out the **representation of the
+computation**!  It'll print out the *data structure representing the
+computation*!
+
+At least, that's what it's supposed to do.  Unfortunately, `IO` data
+structures do not come with a serialization method, so you can't actually
+print out the contents of the abstract computational data structure in vanilla
+Haskell.  However, if you imagine being able to "write the contents" of the
+data structure, like *"Get a line from stdin!"*, then that would be what
+`print` would print.  **Not** the result of the computation, but the
+*representation* of the computation.
 
 Instructions as Data Structures
 -------------------------------
