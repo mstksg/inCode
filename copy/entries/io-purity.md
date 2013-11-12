@@ -283,11 +283,11 @@ getStringFromStdin = getLine
 
 --  main: The function that we agree that the runtime environment will
 --      execute.  The `>>=` operator in this case says "take the result of the
---      first computation and use it as an argument to the second".  The
---      second thing should be a function that takes one argument for this to
---      make sense...which is what `print` is.  Phew!
+--      left hand side's computation and use it as an argument to the right
+--      hand side".  The right hand side takes a `result` and returns `print
+--      result`.
 main :: IO ()
-main = getStringFromStdin >>= print
+main = getStringFromStdin >>= (\result -> print result)
 ~~~
 
 `main` gets something from the standard input, and then prints it.
@@ -343,10 +343,10 @@ Actually, this is **not** what it does.
 Let's see what `main` evaluates to:
 
 ~~~haskell
-main = ignoreAndPrintNothing getStringFromStdin
+main = ignoreAndSayHello getStringFromStdin
 
 -- the function call evaluates to
--- = ignoreAndPrintNothing getStringFromStdin
+-- = ignoreAndSayHello getStringFromStdin
 -- = print "Hello!"
 
 -- so main evaluates to
@@ -364,10 +364,10 @@ The "real" way to do this would be:
 
 ~~~haskell
 ignoreAndSayHello :: IO a -> IO ()
-ignoreAndSayHello to_ignore = print "Hello!"
+ignoreAndSayHello to_ignore = to_ignore >>= (\result -> print "Hello!")
 
 main :: IO ()
-main = getStringFromStdin >>= ignoreAndSayHello
+main = ignoreAndSayHell getStringFromStdin
 ~~~
 
 Remember, `>>=` sends the result of the left-hand side as an argument to the
