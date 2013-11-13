@@ -51,8 +51,12 @@ Of course, it should be obvious that not being able to perform IO means that
 your program is essentially useless in most real world applications.  But
 purity is pretty cool, and it gives us guarantees that let us reason with our
 code in ways that are impossible with impure code, and with unprecedented
-safety.  It allows the compiler to do crazy optimization tricks.  It allows
-for extremely powerful mathematical analysis of our programs.
+safety.  It opens the doors to previously inaccessible models of parallel,
+concurrent, and distributed programming.  It allows the compiler to do crazy
+optimization tricks.  It allows for powerful mathematical analysis of our
+programs.  The full benefits of purity are beyond the scope of this article,
+but you can trust me when they say that they are too much to give up over a
+technicality.
 
 So how can we reconcile the idea of a pure language with ~~anything useful~~
 I/O?
