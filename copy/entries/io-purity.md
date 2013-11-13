@@ -229,31 +229,34 @@ It might help to think about similar "instruction-like" data structures.
 
 Take [persistent][], which (in some variants) provides the `SqlPersistM` data
 structure.  This data structure represents an interaction with an SQL
-Database.  Rather, it represents a tree of instructions for interacting with
-one.  When you give it to the Persistent library, it'll translate that
-`SqlPersistM` into a series of **SQL queries**!  Yes, it produces actual SQL
-query strings, using the instructions from the data structure.  An
-`SqlPersistM Int` is an SQL interaction that returns an Int when run with the
-Persistent library.
+Database.  In other words, it represents a tree of instructions for
+interacting with one.  When you give it to the Persistent library, it'll
+translate that `SqlPersistM` into a series of **SQL queries**!  Yes, it
+produces actual SQL query strings, using the instructions from the data
+structure.  An `SqlPersistM Int` is an SQL interaction that returns an Int
+when run with the Persistent library.
 
 [persistent]: http://hackage.haskell.org/package/persistent
 
 Then you have [parsec][], which provides a `Parsec` data structure, which are
-*instructions for Parsec to parse a string*.  A `Parsec Int` structure
-represents instructions for parsing a string into an `Int`.  When you give a
-`Parsec Int` and a string to parse to the Parsec library, it will run the
-parse specified by the `Parsec` object and return  (hopefully) a parsed `Int`.
-Remember, a `Parsec Int` object does not actually parse anything!  It is *used
-by Parsec* to parse a string and return an `Int`!
+*instructions for Parsec to parse a string*.  A `Parsec Int`
+structure[^parsectype] represents instructions for parsing a string into an
+`Int`.  When you give a `Parsec Int` and a string to parse to the Parsec
+library, it will run the parse specified by the `Parsec` object and return
+(hopefully) a parsed `Int`. Remember, a `Parsec Int` object does *not*
+actually "parse" anything; It is *used by Parsec* to parse a string and return
+an `Int`!
 
 [parsec]: http://hackage.haskell.org/package/parsec
+[^parsectype]: Technically, the full type is `ParsecT s u m Int`.
 
 The reason why we use these data structures in Haskell, instead of actually
 writing SQL queries and parsing rules from scratch, is because they become
-*composable*.  You can build complex SQL queries without ever touching a query
-string by composing simple queries.  You can create very complex and intricate
-parsing rules without every having to "worry" about actually writing the
-parser: you just compose simple, smaler parsers.
+*composable*.  SQL queries?  Not very composable.  Parsing rules?  Not
+exactly, either.  In this way, you can build complex SQL queries without ever
+touching a query string by composing simple queries.  You can create very
+complex and intricate parsing rules without every having to "worry" about
+actually writing the parser: you just compose simple, smaler parsers.
 
 And this is really what Haskell "does best" (and possibly what Haskell was
 really made for): assembling and composing these possibly complex instruction
@@ -380,8 +383,6 @@ Naively, we expect it to ask for a string from standard input, ignore the
 result, and print "Hello!".
 
 Actually, this is **not** what it does.
-
-Let's see what `main` evaluates to:
 
 This is because `ignoreAndSayHello getStringFromStdin` will evaluate to `print
 "Hello"` (remember, it ignores its argument).  So `main` evaluates to one
