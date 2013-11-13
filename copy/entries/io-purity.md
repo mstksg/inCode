@@ -20,7 +20,7 @@ One of the crazy ideals of functional programming is the idea that your
 program is simply a list of definitions of mathematical functions.  And like
 real math functions, FP functions are **pure**.  That means that (1) they
 cannot affect any state, and (2) that they must return the same thing every
-time they are called.
+time they are called with the same arguments.
 
 When you first learn functional programming, this manifests as "your variables
 are immutable and you can't do loops; use recursion instead."  And if you do
@@ -79,7 +79,7 @@ fibs :: [Int]
 fibs = map fib [1..]
 
 --  first_n_fibs n: a list of the first n Fibonacci numbers
-first_n_fibs :: Int -> Int
+first_n_fibs :: Int -> [Int]
 first_n_fibs n = take n fibs
 ~~~
 
@@ -259,31 +259,6 @@ by Parsec* to parse a string and return an `Int`!
 
 [parsec]: http://hackage.haskell.org/package/parsec
 
-<!-- which are *instructions for Parsec to parse a string*.  That is, given a -->
-<!-- `Parsec` instruction data structure (which is just a list of instructions for -->
-<!-- Parsec, a tree of parsing rules) and a string, Parsec (the library) will -->
-<!-- return to you a parsed string, following the instructions in the instruction -->
-<!-- data structure.  A single `Parsec Int` object doesn't actually parse anything. -->
-<!-- But it can be *used by Parsec* to parse a string and return an `Int` from the -->
-<!-- parsing act. -->
-
-<!-- And as a more concrete example, [persistent][] provides the `SqlPersistM` data -->
-<!-- structure that can be run by Persistent to represent an interaction with a -->
-<!-- data store/database.  What does this look like in real life?  Well, give it a -->
-<!-- `SqlPersistM` object, and it generates a series of **SQL queries**!  That's -->
-<!-- right, it produces the actual SQL query strings, using the instructions in the -->
-<!-- data structure.  It then executes the query, returning the result. -->
-
-<!-- It might help to look at think about similar data structures.  Take `Gen`, -->
-<!-- from the [QuickCheck][] library, which returns an instruction sequence that -->
-<!-- QuickCheck (a library for testing functions and objects) can use to generate -->
-<!-- arbitrary test samples.   That is, if you want QuickCheck to generate ten -->
-<!-- random arrays of integers for you, you provide it with some kind of sequence -->
-<!-- of instructions to generate random arrays (a `Gen (Array Int)`). QuickCheck -->
-<!-- happily takes this instruction data structure, and uses it for its means. -->
-
-<!-- [QuickCheck]: http://hackage.haskell.org/package/QuickCheck -->
-
 The reason why we use these data structures in Haskell, instead of actually
 writing SQL queries and parsing rules from scratch, is because they become
 *composable*.  You can build complex SQL queries without ever touching a query
@@ -296,12 +271,6 @@ really made for): assembling and composing these possibly complex instruction
 data structures in a pure way and "passing them on" to things that can take
 them and use them to do great things.  An `SqlPersistM` is used by Persistent,
 a `Parsec` is used by Parsec, and an `IO` is used by...well, what?  A computer!
-
-<!-- (A short aside: Yes, this is truly where (although it is beyond the scope of -->
-<!-- this article to explain why) Haskell excels --- composing instruction data -->
-<!-- structures, combining and nesting complex structures easily into one.  Turning -->
-<!-- two parse rules into one big one, etc.  It could be said that Haskell is a -->
-<!-- very specialized language for doing just this.) -->
 
 The "Main" Point
 ----------------
@@ -360,14 +329,16 @@ getStringFromStdin :: IO String
 getStringFromStdin = getLine
 
 --  main: The function that we agree that the runtime environment will
---      execute.  The `>>=` operator in this case says "take the result of the
---      left hand side's computation and use it as an argument to the right
---      hand side".  The right hand side takes a `result` and returns `print
---      result`.  So the overall effect is that it prints the result of the
---      getStringFromStdin.
+--      execute.
 main :: IO ()
 main = getStringFromStdin >>= (\result -> print result)
 ~~~
+
+(An aside: `>>=` here is an operator that takes the result of the left hand
+side's computation and passes it as a parameter to the right hand side.
+Essentially, it turns two IO computation data structures and combines/chains
+them into one big one.  The `(\x -> print x)` syntax says "take the `x` passed
+to you and use it in `print x`")
 
 `main` gets something from the standard input, and then prints it.  (Note:
 This program, and many that follow, will be slightly more "beginner" than
@@ -425,19 +396,9 @@ Actually, this is **not** what it does.
 
 Let's see what `main` evaluates to:
 
-~~~haskell
-main = ignoreAndSayHello getStringFromStdin
-
--- the function call evaluates to
--- = ignoreAndSayHello getStringFromStdin
--- = print "Hello!"
-
--- so main evaluates to
-
-main = print "Hello!"
-~~~
-
-So `main` evaluates to one single IO action: `print "Hello!"`.
+This is because `ignoreAndSayHello getStringFromStdin` will evaluate to `print
+"Hello"` (remember, it ignores its argument).  So `main` evaluates to one
+single IO action: `print "Hello!"`.
 
 So your program returns the simple IO action `print "Hello!"` --- the
 computation returned by `main` therefore simply prints "Hello!".  This
@@ -499,10 +460,11 @@ just pass it off, and the runtime environment can do whatever it wants with
 it.  Not our problem anymore!  This is the difference between evaluation (the
 pure process) and execution (the impure one).
 
-In this sense, any language that deals with IO this way must clearly be
-non-strict in its IO executions (that is, evaluating an IO statement must not
+In this sense, any language that deals with IO this way is, as a consequence,
+non-strict in its IO executions (that is, evaluating an IO statement doesn't
 actually "execute" anything...it really wouldn't even make sense in this
-context!).
+context!).  The language itself may be strict or lazy, but this won't change
+whether or not the IO is actually evaluated.
 
 We have the best of both worlds.  Purity and...well, usefulness!
 
