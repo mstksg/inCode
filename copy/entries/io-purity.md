@@ -227,18 +227,18 @@ dictionary, or a linked list in any other language.
 
 It might help to think about similar "instruction-like" data structures.
 
-Take [persistent][], which (in some variants) provides the `SqlPersistM` data
+Take [Persistent][], which (in some variants) provides the `SqlPersistM` data
 structure.  This data structure represents an interaction with an SQL
 Database.  In other words, it represents a tree of instructions for
 interacting with one.  When you give it to the Persistent library, it'll
 translate that `SqlPersistM` into a series of **SQL queries**!  Yes, it
 produces actual SQL query strings, using the instructions from the data
-structure.  An `SqlPersistM Int` is an SQL interaction that returns an Int
-when run with the Persistent library.
+structure, executes them, and returns the result.  An `SqlPersistM Int` is an
+SQL interaction that returns an Int when run with the Persistent library.
 
-[persistent]: http://hackage.haskell.org/package/persistent
+[Persistent]: http://hackage.haskell.org/package/persistent
 
-Then you have [parsec][], which provides a `Parsec` data structure, which are
+Then you have [Parsec][], which provides a `Parsec` data structure, which are
 *instructions for Parsec to parse a string*.  A `Parsec Int`
 structure[^parsect] represents instructions for parsing a string into an
 `Int`.  When you give a `Parsec Int` and a string to parse to the Parsec
@@ -247,9 +247,9 @@ library, it will run the parse specified by the `Parsec` object and return
 actually "parse" anything; It is *used by Parsec* to parse a string and return
 an `Int`!
 
-[parsec]: http://hackage.haskell.org/package/parsec
+[Parsec]: http://hackage.haskell.org/package/parsec
 
-[^parsect]: Technically, the full type is `ParsecT s u m Int`.
+[^parsect]: Technically, the full type would be `ParsecT s u m Int`.
 
 The reason why we use these data structures in Haskell, instead of actually
 writing SQL queries and parsing rules from scratch, is because they become
