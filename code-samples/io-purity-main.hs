@@ -4,7 +4,7 @@
 -- interpreted.
 --
 -- To test/run:
--- $ runghc ./io-purity-main.hs
+-- $ runhaskell ./io-purity-main.hs
 --
 -- http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity#the-main-point
 

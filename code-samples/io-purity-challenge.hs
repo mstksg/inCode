@@ -6,7 +6,7 @@
 -- it still pure?
 --
 -- To test/run:
--- $ runghc ./io-purity-challenge.hs
+-- $ runhaskell ./io-purity-challenge.hs
 --
 -- http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity#purity-challenged
 
