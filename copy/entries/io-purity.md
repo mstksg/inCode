@@ -74,45 +74,36 @@ fib 0 = 1
 fib 1 = 1
 fib n = fib (n-2) + fib (n-1)
 
---  fibs: the list of all Fibonacci numbers
-fibs :: [Int]
-fibs = map fib [1..]
-
 --  first_n_fibs n: a list of the first n Fibonacci numbers
 first_n_fibs :: Int -> [Int]
-first_n_fibs n = take n fibs
+first_n_fibs n = map fib [1..n]
 ~~~
 
 One of the first things you should notice is that this looks strikingly
 similar to a list of math equations...and almost not like a program.
 
-In particular, look at the "constant" `fibs`.  In Haskell, `[1..]` represents
-a list from 1 to infinity.  `fibs` is basically an infinite list of Fibonacci
-numbers.
-
-In a normal language, this would explode.  However, imagine writing this
-declaration down on a piece of paper in math notation.
-
-Now, do it.
-
-Anything explode?  Did the world freeze and hang?
-
 Probably not.  That's because it's just a *declaration* of what things are,
 not an actual instruction to compute/execute.
 
-Now, notice one important thing about this: there is no inherent ordering in
-any of these statements.  When you write declarations of mathematical objects
-on paper, the order in which you declare them should have no bearing on what
-they represent.  These are functions.  Immortal, unchanging, ethereal,
-separate from time and space.  It is simply nonsensical to talk about order in
-this context.
+Now, notice one important thing about this (at least, in Haskell): there is no
+inherent ordering in any of these statements.  When you write declarations of
+mathematical objects on paper, the order in which you declare them should have
+no bearing on what they represent.  These are functions. Immortal, unchanging,
+ethereal, separate from time and space.  It is simply nonsensical to talk
+about order in this context.[^strictness]
+
+[^strictness]: So, the astute reader will note that I am slightly blurring the
+line between purity and non-strictness/laziness.  While it is true that pure
+languages can be strict, and ordering *does* matter, this demonstration is to
+mostly illustrate that declarations of items and objects don't necessarily
+have to correspond to execution and IO.
 
 Also note that these declarations don't always declare integers/numbers.
-`fibs` actually declares a data structure --- a list that contains integers.
-Of course this is no big problem...mathematical functions can map integers to
-matrices, or matrices to functions, anything you can think of.  We aren't
-limited to simply defining primitive things.  We can also define structures
-that contain things.
+`first_n_fibs` actually declares a data structure --- a list that contains
+integers. Of course this is no big problem...mathematical functions can map
+integers to matrices, or matrices to functions, anything you can think of.  We
+aren't limited to simply defining primitive things.  We can also define
+structures that contain things.
 
 Of course, this "program" doesn't actually *do* anything.  Let's look at some
 more programs and see if we can address this.
@@ -455,16 +446,10 @@ Resolution
 
 In retrospect, the solution seems obvious.  A functional program does what it
 does best --- return an object, purely.  This object is the actual computation
-itself, which can be pure or impure, deterministic or undeterministic --- we
-just pass it off, and the runtime environment can do whatever it wants with
+itself, which can be pure or impure, deterministic or nondeterministic --- we
+just pass it off, and the execution environment can do whatever it wants with
 it.  Not our problem anymore!  This is the difference between evaluation (the
 pure process) and execution (the impure one).
-
-In this sense, any language that deals with IO this way is, as a consequence,
-non-strict in its IO executions (that is, evaluating an IO statement doesn't
-actually "execute" anything...it really wouldn't even make sense in this
-context!).  The language itself may be strict or lazy, but this won't change
-whether or not the IO is actually evaluated.
 
 We have the best of both worlds.  Purity and...well, usefulness!
 
