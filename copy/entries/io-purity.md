@@ -94,9 +94,10 @@ about order in this context.[^strictness]
 
 [^strictness]: So, the astute reader will note that I am slightly blurring the
 line between purity and non-strictness/laziness.  While it is true that pure
-languages can be strict, and ordering *does* matter, this demonstration is to
-mostly illustrate that declarations of items and objects don't necessarily
-have to correspond to execution and IO.
+languages can be strict, and ordering *can* matter, this demonstration is to
+mostly illustrate that declarations of items and objects don't *necessarily*
+have to correspond to evaluation, execution and IO --- an important point for
+the next section.
 
 Also note that these declarations don't always declare integers/numbers.
 `first_n_fibs` actually declares a data structure --- a list that contains
