@@ -199,9 +199,10 @@ computation*, or some string "representing" the act of the computation!
 
 (At least, that's what it's supposed to do.  Unfortunately, `IO` data
 structures do not come built-in with a method for their string representation
-in vanilla Haskell.  But the point remains that `print` would *try* to print
-out the data structure itself somehow, and not the actual result of the
-computation)
+in vanilla Haskell.  Maybe it could be represented by the C code that it would
+compile to as a standalone IO object.  But the point remains that `print`
+would *try* to print out the data structure itself somehow, and not the actual
+result of the computation)
 
 Instructions as Data Structures
 -------------------------------
@@ -213,9 +214,19 @@ You can think about it as some kind of list/nested tree (or more accurately, a
 graph) of instructions for someone to follow.  For the case of `IO Int`, you
 can see it as, internally, some kind of tree/nested instruction set for
 someone to follow in order to produce an `Int`.  In the case of `IO`, for GHC,
-the "someone" is a computer.  Or more specifically, a processor.
+the "someone" is a computer.  Or more specifically, a processor.  GHC directly
+translates any standalone IO object into assembly code (or even a less optimal
+C code).
 
-But really, there are many ways to "translate" this data structure into
+Technically, you *could* think of every IO objects as an encapsulate little
+packet of assembly or C code that you can compose and nest and merge, etc.
+with others, without worrying about the lower level code itself.  This would
+admittedly be a slightly restrained way of thinking about things, because
+internally, the data structure is just an abstract data structure, and not
+concrete C code.  But at any time, you can "compile"/make concrete an IO
+object into C code.
+
+Really, though, there are many ways to "translate" this data structure into
 instructions for anyone to follow.  [Haste][], for example, takes `IO` data
 structure and turns it into something that can be run in a Javascript
 interpreter.  That is, it takes something like `printFibN n`, takes the
@@ -478,3 +489,4 @@ instruction data structures that make it extremely simple, expressive, and
 elegant.  Tools for combining two parsing rules into one.  Tools for combining
 two SQL operations into one.  For a language that handles computational data
 structures so well, *not* handling IO this way would be a real shame!
+
