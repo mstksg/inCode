@@ -82,10 +82,7 @@ first_n_fibs n = map fib [1..n]
 One of the first things you should notice is that this looks strikingly
 similar to a list of math equations...and almost not like a program.
 
-Probably not.  That's because it's just a *declaration* of what things are,
-not an actual instruction to compute/execute.
-
-Now, notice one important thing about this (at least, in Haskell): there is no
+Notice one important thing about this (at least, in Haskell): there is no
 inherent ordering in any of these statements.  When you write declarations of
 mathematical objects on paper, the order in which you declare them should have
 no bearing on what they represent.  These are functions. Immortal, unchanging,
