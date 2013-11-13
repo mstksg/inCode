@@ -199,10 +199,9 @@ computation*, or some string "representing" the act of the computation!
 
 (At least, that's what it's supposed to do.  Unfortunately, `IO` data
 structures do not come built-in with a method for their string representation
-in vanilla Haskell.  Maybe it could be represented by the C code that it would
-compile to as a standalone IO object.  But the point remains that `print`
-would *try* to print out the data structure itself somehow, and not the actual
-result of the computation)
+in vanilla Haskell.  But the point remains that `print` would *try* to print
+out the data structure itself somehow, and not the actual result of the
+computation)
 
 Instructions as Data Structures
 -------------------------------
@@ -218,13 +217,13 @@ the "someone" is a computer.  Or more specifically, a processor.  GHC directly
 translates any standalone IO object into assembly code (or even a less optimal
 C code).
 
-Technically, you *could* think of every IO objects as an encapsulate little
-packet of assembly or C code that you can compose and nest and merge, etc.
-with others, without worrying about the lower level code itself.  This would
-admittedly be a slightly restrained way of thinking about things, because
-internally, the data structure is just an abstract data structure, and not
-concrete C code.  But at any time, you can "compile"/make concrete an IO
-object into C code.
+Technically, you *could* "think" of every IO objects as a self-contained and
+encapsulated little packet of assembly or C code that you can compose and nest
+and merge, etc. with other such packets, without worrying about the lower
+level code itself.  But don't do this, or you risk confusing a possible
+representation of an object for the actual abstract object itself.  But yes,
+at any time, you can "compile"/make concrete an IO object into standalone C
+code with GHC.
 
 Really, though, there are many ways to "translate" this data structure into
 instructions for anyone to follow.  [Haste][], for example, takes `IO` data
