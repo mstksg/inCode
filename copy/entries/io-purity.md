@@ -297,7 +297,10 @@ main :: IO ()
 main = printFibN 10
 ~~~
 
-And here we are.  A full, executable Haskell program.
+And here we are.  A full, executable Haskell program.  You can [download and
+run it yourself][samplemain].
+
+[samplemain]: https://github.com/mstksg/inCode/blob/master/copy/code-samples/io-purity-main.hs
 
 As we can see, every function or declaration that makes up our program is
 completely pure and side-effectless. In fact, the assembly of `main` itself is
@@ -326,6 +329,10 @@ getStringFromStdin = getLine
 main :: IO ()
 main = getStringFromStdin >>= (\result -> print result)
 ~~~
+
+(Sample can be [downloaded and run][samplechallenge])
+
+[samplechallenge]: https://github.com/mstksg/inCode/blob/master/copy/code-samples/io-purity-challenge.hs
 
 (An aside: `>>=` here is an operator that takes the result of the left hand
 side's computation and passes it as a parameter to the right hand side.
