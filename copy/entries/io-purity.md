@@ -291,7 +291,7 @@ And by convention/specification, it is the IO object with the name "main":
 printFibN :: Int -> IO ()
 printFibN n = print (fib n)
 
---  main: The function that we agree that the execution environment will
+--  main: The IO object that we agree that the execution environment will
 --      execute.
 main :: IO ()
 main = printFibN 10
