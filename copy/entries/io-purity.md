@@ -35,8 +35,10 @@ The Problem
 For the obvious (input) example, consider `getchar()` in C.  It returns the
 character that a user enters.  Obviously, if `getchar()` returned the same
 thing every time, you'd have an extraordinarily useless function.  Input
-*inherently violates* purity, it seems.  (Also, consider a function generating
-random numbers)
+*inherently violates* purity, it seems.  (Also, consider a [function generating
+random numbers][randomness])
+
+[randomness]: http://xkcd.com/221/
 
 The idea of output violates purity as well.  Consider calling `printf()` in C.
 You're going to change the state of the terminal.  A benign example, of
@@ -83,11 +85,15 @@ One of the first things you should notice is that this looks strikingly
 similar to a list of math equations...and almost not like a program.
 
 Notice one important thing about this (at least, in Haskell): there is no
-inherent ordering in any of these statements.  When you write declarations of
-mathematical objects on paper, the order in which you declare them should have
-no bearing on what they represent.  These are functions. Immortal, unchanging,
-ethereal, separate from time and space.  It is simply nonsensical to talk
-about order in this context.[^strictness]
+inherent ordering in any of these statements.  By this, I mean that
+`factorial`, `fib`, and `first_n_fibs` can be defined in any order.  When you
+write declarations of mathematical objects on paper, the order in which you
+declare them should have no bearing on what they represent.  These are
+functions. Immortal, unchanging, ethereal, separate from time and space.  It
+is simply nonsensical to talk about order in this context.[^strictness]
+
+<!-- Thanks to evincarofautum of reddit for pointing out that the ordering of the -->
+<!-- pattern matches in this example actually do matter. -->
 
 [^strictness]: So, the astute reader will note that I am slightly blurring the
 line between purity and non-strictness/laziness.  While it is true that pure
@@ -366,8 +372,8 @@ structure representing a computation.
 
 The computation that it represents is not necessarily deterministic.
 
-This distinction between **evaluation** and **execution** is what makes
-Haskell unique.
+This distinction between **evaluation** and **execution** is what sets apart
+this I/O model that permits its purity.
 
 And *that* is how we can deal with I/O in Haskell while remaining a pure
 language.
