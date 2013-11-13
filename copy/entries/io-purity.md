@@ -240,7 +240,7 @@ when run with the Persistent library.
 
 Then you have [parsec][], which provides a `Parsec` data structure, which are
 *instructions for Parsec to parse a string*.  A `Parsec Int`
-structure[^parsectype] represents instructions for parsing a string into an
+structure[^parsect] represents instructions for parsing a string into an
 `Int`.  When you give a `Parsec Int` and a string to parse to the Parsec
 library, it will run the parse specified by the `Parsec` object and return
 (hopefully) a parsed `Int`. Remember, a `Parsec Int` object does *not*
@@ -248,7 +248,8 @@ actually "parse" anything; It is *used by Parsec* to parse a string and return
 an `Int`!
 
 [parsec]: http://hackage.haskell.org/package/parsec
-[^parsectype]: Technically, the full type is `ParsecT s u m Int`.
+
+[^parsect]: Technically, the full type is `ParsecT s u m Int`.
 
 The reason why we use these data structures in Haskell, instead of actually
 writing SQL queries and parsing rules from scratch, is because they become
