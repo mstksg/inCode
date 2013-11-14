@@ -15,6 +15,7 @@ ideas
     - Parsec/parsing
     - Gen/Random
     - baking
+    - AST code generator for a real life target language
 * pid loop
 
 in progress
