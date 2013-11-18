@@ -17,6 +17,7 @@ import Data.Time
 import Web.Blog.Models
 import Web.Blog.Models.Slug
 import Web.Blog.Models.Types
+import Web.Blog.Render
 import Web.Blog.Types
 import Web.Blog.Util
 import qualified Data.Aeson                  as A
@@ -59,16 +60,6 @@ insertSlug eKey title = do
     Just (D.Entity sKey _) -> D.update sKey [SlugIsCurrent D.=. True]
     Nothing -> D.insert_ $ Slug eKey slugText True
 
-entryReaderOptions :: P.ReaderOptions
-entryReaderOptions = (P.def P.ReaderOptions)
-                       { P.readerSmart = True
-                       }
-
-entryWriterOptions :: P.WriterOptions
-entryWriterOptions = (P.def P.WriterOptions)
-                       { P.writerHtml5 = True
-                       }
-
 
 entryPandoc :: Entry -> P.Pandoc
 entryPandoc = P.bottomUp stripRules . entryPandocRaw
@@ -78,16 +69,16 @@ entryPandoc = P.bottomUp stripRules . entryPandocRaw
 
 entryPandocRaw :: Entry -> P.Pandoc
 entryPandocRaw =
-    P.readMarkdown entryReaderOptions . T.unpack . entryContent
+    P.readMarkdown pandocReaderOptions . T.unpack . entryContent
 
 entryHtml :: Entry -> H.Html
-entryHtml = P.writeHtml entryWriterOptions . entryPandoc
+entryHtml = P.writeHtml pandocWriterOptions . entryPandoc
 
 entryLede :: Entry -> T.Text
-entryLede = T.pack . P.writeMarkdown entryWriterOptions . entryLedePandoc
+entryLede = T.pack . P.writeMarkdown pandocWriterOptions . entryLedePandoc
 
 entryLedeHtml :: Entry -> H.Html
-entryLedeHtml = P.writeHtml entryWriterOptions . entryLedePandoc
+entryLedeHtml = P.writeHtml pandocWriterOptions . entryLedePandoc
 
 entryLedePandoc :: Entry -> P.Pandoc
 entryLedePandoc entry = P.Pandoc m ledeBs
