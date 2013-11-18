@@ -11,7 +11,7 @@ CreateTime
 PostDate
 :   2013/11/12 11:37:27
 ModifiedTime
-:   2013/11/12 12:35:46
+:   2013/11/18 13:45:01
 Identifier
 :   io-purity
 
@@ -448,14 +448,15 @@ sense when you think of things as mathematical functions.
 
 While there is no "first" or "second", there is a `main`, which is the
 function the compiler/interpreter passes to the runtime environment as the
-computation we agree to run.  "Order" arrives at this point.  In our last
-`main`, `print` requires the result of `getStringFromStdin`, so there arises
-the first semblances of "ordering": in the composition of different IO actions
-into one big one.
+computation we agree to run.  "Order" arrives at this point.  We explicity
+"create" an IO data structure and specify the ordering implicitly with `>>=`.
+More specifically, `print` requires the result of `getStringFromStdin`, so
+there arises the first semblances of "ordering": in the explicit composition
+of different IO actions into one big one.
 
-In fact, ordering is slightly more subtle and complex than this.  There is a
-[nice blog post][ordering] explaining how ordering is implemented in the
-internal data structure of IO.
+As it turns out, there is a [nice blog post][ordering] by Chris Taylor
+illustrating how this wordering ordering could be implemented in the internal
+data structure of IO.
 
 [ordering]: http://chris-taylor.github.io/blog/2013/02/09/io-is-not-a-side-effect/
 
@@ -479,14 +480,20 @@ pure process) and execution (the impure one).
 
 We have the best of both worlds.  Purity and...well, usefulness!
 
-In fact, it doesn't seem like there is really any "other" way Haskell could
-handle this and still feel Haskell.
+In fact, because of how Haskell is structured...an impure function does not
+even make sense.  How would one even write a traditional "impure" function in
+this language?  The language itself is centered around the idea of composing
+computation instruction data types.  What would an impure function even look
+like?  Even if it were possible, impurity would be a jarring, unnatural
+adjustment to the language that doesn't even really "make sense".
 
-And this is the reason why Haskell succeeds where other languages struggle:
-Though we have only seen a glimpse of this in this in this article, Haskell
-provides very specialized tools for assembling and composing complex
-instruction data structures that make it extremely simple, expressive, and
-elegant.  Tools for combining two parsing rules into one.  Tools for combining
-two SQL operations into one.  For a language that handles computational data
-structures so well, *not* handling IO this way would be a real shame!
+More importantly, however, there isn't really any other way Haskell could
+handle this and still feel Haskell.  The reason for this is that this is why
+Haskell succeeds where other languages struggle: Though we have only seen a
+glimpse of this in this in this article, Haskell provides very specialized
+tools for assembling and composing complex instruction data structures that
+make it extremely simple, expressive, and elegant.  Tools for combining two
+parsing rules into one.  Tools for combining two SQL operations into one.  For
+a language that handles computational data structures so well, *not* handling
+IO this way would be a real shame!
 
