@@ -2,7 +2,7 @@
 -- see http://haskell.org/cabal/users-guide/
 
 name:                blog
-version:             0.0.2.5
+version:             0.0.2.6
 synopsis:            Personal blog web system
 -- description:
 license:             BSD3
