@@ -32,6 +32,7 @@ viewLayout body = do
               , "/css/font.css"
               , "/css/main.css" ]
     jsList =  [ "//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"
+              -- , "https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
               , T.append "//s7.addthis.com/js/300/addthis_widget.js#pubid=" $
                   developerAPIsAddThis $ siteDataDeveloperAPIs siteData
               , "/js/common.js"

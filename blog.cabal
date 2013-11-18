@@ -18,35 +18,35 @@ executable blog
   main-is:             Main.hs
   hs-source-dirs:      src
   build-depends:       base >= 4 && < 5
-                     , aeson                  == 0.6.2.0
+                     , aeson                  == 0.6.2.1
                      , blaze-html             == 0.6.1.1
                      , blaze-markup           == 0.5.1.5
                      , bytestring             == 0.10.0.2
                      , containers             == 0.5.3.1
                      , directory              == 1.2.0.1
-                     , esqueleto              == 1.3.2
-                     , feed                   == 0.3.9.1
+                     , esqueleto              == 1.3.4.2
+                     , feed                   == 0.3.9.2
                      , filepath               == 1.3.0.1
                      , heroku                 == 0.1
-                     , http-types             == 0.8.1
+                     , http-types             == 0.8.2
                      , monad-loops            == 0.4.2
                      , mtl                    == 2.1.2
-                     , network                == 2.4.1.2
+                     , network                == 2.4.2.0
                      , old-locale             == 1.0.0.5
-                     , pandoc                 == 1.11.1
-                     , pandoc-types           == 1.10
+                     , pandoc                 == 1.12.1
+                     , pandoc-types           == 1.12.3
                      , persistent             == 1.2.3.0
                      , persistent-postgresql  == 1.2.1
-                     , persistent-template    == 1.2.0.2
+                     , persistent-template    == 1.2.0.4
                      , process                == 1.1.0.2
                      , scotty                 == 0.4.6
                      , text                   == 0.11.3.1
                      , time                   == 1.4.0.1
                      , transformers           == 0.3.0.0
                      , utf8-string            == 0.3.7
-                     , vector                 == 0.10.0.1
-                     , wai                    == 1.4.0.2
-                     , wai-extra              == 1.3.4.5
+                     , vector                 == 0.10.9.1
+                     , wai                    == 1.4.1
+                     , wai-extra              == 1.3.4.6
                      , wai-middleware-headers == 0.1
                      , wai-middleware-static  == 0.3.2
                      , xml                    == 1.3.13
@@ -57,55 +57,55 @@ executable blog-scripts-migrate
   main-is:             scripts/Migrate.hs
   hs-source-dirs:      src
   build-depends:       base >= 4 && < 5
-                     , aeson                 == 0.6.2.0
+                     , aeson                 == 0.6.2.1
                      , blaze-html            == 0.6.1.1
                      , blaze-markup          == 0.5.1.5
                      , bytestring            == 0.10.0.2
                      , containers            == 0.5.3.1
                      , directory             == 1.2.0.1
-                     , esqueleto             == 1.3.2.*
-                     , feed                  == 0.3.9.1
+                     , esqueleto             == 1.3.4.2
+                     , feed                  == 0.3.9.2
                      , heroku                == 0.1
                      , monad-loops           == 0.4.2
                      , mtl                   == 2.1.2
                      , old-locale            == 1.0.0.5
-                     , pandoc-types           == 1.10
+                     , pandoc-types           == 1.12.3
                      , persistent            == 1.2.3.0
                      , persistent-postgresql == 1.2.1
-                     , persistent-template   == 1.2.0.2
+                     , persistent-template   == 1.2.0.4
                      , process               == 1.1.0.2
                      , scotty                == 0.4.6
                      , text                  == 0.11.3.1
                      , time                  == 1.4.0.1
                      , transformers          == 0.3.0.0
                      , utf8-string           == 0.3.7
-                     , vector                == 0.10.0.1
-                     , wai                   == 1.4.0.2
+                     , vector                == 0.10.9.1
+                     , wai                   == 1.4.1
   extensions:          OverloadedStrings
 
 executable blog-scripts-seed
   main-is:             scripts/Seed.hs
   hs-source-dirs:      src
   build-depends:       base >=3 && < 5
-                     , HTTP                  == 4000.2.8
-                     , MonadRandom           == 0.1.11
-                     , aeson                 == 0.6.2.0
+                     , HTTP                  == 4000.2.9
+                     , MonadRandom           == 0.1.12
+                     , aeson                 == 0.6.2.1
                      , blaze-html            == 0.6.1.1
                      , blaze-markup          == 0.5.1.5
                      , bytestring            == 0.10.0.2
                      , containers            == 0.5.3.1
                      , directory             == 1.2.0.1
-                     , esqueleto             == 1.3.2
-                     , feed                  == 0.3.9.1
+                     , esqueleto             == 1.3.4.2
+                     , feed                  == 0.3.9.2
                      , heroku                == 0.1
                      , monad-loops           == 0.4.2
                      , mtl                   == 2.1.2
                      , old-locale            == 1.0.0.5
-                     , pandoc                == 1.11.1
-                     , pandoc-types           == 1.10
+                     , pandoc                == 1.12.1
+                     , pandoc-types           == 1.12.3
                      , persistent            == 1.2.3.0
                      , persistent-postgresql == 1.2.1
-                     , persistent-template   == 1.2.0.2
+                     , persistent-template   == 1.2.0.4
                      , process               == 1.1.0.2
                      , random                == 1.0.1.1
                      , scotty                == 0.4.6
@@ -114,34 +114,34 @@ executable blog-scripts-seed
                      , time                  == 1.4.0.1
                      , transformers          == 0.3.0.0
                      , utf8-string           == 0.3.7
-                     , vector                == 0.10.0.1
-                     , wai                   == 1.4.0.2
+                     , vector                == 0.10.9.1
+                     , wai                   == 1.4.1
   extensions:          OverloadedStrings
 
 executable blog-scripts-load-entries
   main-is:             scripts/LoadEntries.hs
   hs-source-dirs:      src
   build-depends:       base >=3 && < 5
-                     , aeson                 == 0.6.2.0
+                     , aeson                 == 0.6.2.1
                      , blaze-html            == 0.6.1.1
                      , blaze-markup          == 0.5.1.5
                      , containers            == 0.5.3.1
                      , directory             == 1.2.0.1
-                     , esqueleto             == 1.3.2
+                     , esqueleto             == 1.3.4.2
                      , filepath              == 1.3.0.1
                      , heroku                == 0.1
                      , monad-loops           == 0.4.2
                      , mtl                   == 2.1.2
                      , old-locale            == 1.0.0.5
-                     , pandoc                == 1.11.1
-                     , pandoc-types           == 1.10
+                     , pandoc                == 1.12.1
+                     , pandoc-types           == 1.12.3
                      , persistent-postgresql == 1.2.1
-                     , persistent-template   == 1.2.0.2
+                     , persistent-template   == 1.2.0.4
                      , scotty                == 0.4.6
                      , text                  == 0.11.3.1
                      , time                  == 1.4.0.1
                      , transformers          == 0.3.0.0
                      , utf8-string           == 0.3.7
-                     , vector                == 0.10.0.1
-                     , wai                   == 1.4.0.2
+                     , vector                == 0.10.9.1
+                     , wai                   == 1.4.1
   extensions:          OverloadedStrings

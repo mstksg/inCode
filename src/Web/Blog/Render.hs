@@ -8,6 +8,8 @@ module Web.Blog.Render (
   , extractSiteRender
   , renderUrl
   , renderUrl'
+  , pandocReaderOptions
+  , pandocWriterOptions
   , renderRawCopy
   , getCurrUrl
   , mainSection
@@ -110,6 +112,19 @@ renderUrl' url =
 --   where
 --     style = if minify then "compressed" else "expanded"
 
+pandocReaderOptions :: P.ReaderOptions
+pandocReaderOptions = (P.def P.ReaderOptions)
+                      { P.readerSmart = True
+                      }
+
+pandocWriterOptions :: P.WriterOptions
+pandocWriterOptions = (P.def P.WriterOptions)
+                      { P.writerHtml5 = True
+                      , P.writerHTMLMathMethod = P.WebTeX "http://chart.apis.google.com/chart?cht=tx&chl="
+                      -- , P.writerHTMLMathMethod = P.WebTeX "http://www.mathtran.org/cgi-bin/mathtran?D=1&tex="
+                      -- , P.writerHTMLMathMethod = P.WebTeX "http://webtex-2.sys.kth.se/api/webtex/v1/WebTex?tex="
+                      }
+
 renderRawCopy :: FilePath -> SiteRender H.Html
 renderRawCopy fp = do
   exists <- liftIO $ doesFileExist fp
@@ -117,13 +132,13 @@ renderRawCopy fp = do
     then do
       copyMarkdown <- liftIO $ readFile fp
       let
-        copyPandoc = P.readMarkdown (P.def P.ReaderOptions) copyMarkdown
+        copyPandoc = P.readMarkdown pandocReaderOptions copyMarkdown
         fixedLinks = P.bottomUp fixLinks copyPandoc
           where
             fixLinks (P.Link label (url,title)) =
               P.Link label (T.unpack $ renderUrl' $ T.pack url, title)
             fixLinks other = other
-        copyHtml = P.writeHtml (P.def P.WriterOptions) fixedLinks
+        copyHtml = P.writeHtml pandocWriterOptions fixedLinks
       return copyHtml
     else
       return $

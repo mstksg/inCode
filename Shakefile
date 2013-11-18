@@ -11,8 +11,6 @@ import Control.Applicative ((<$>))
 opts = shakeOptions { shakeFiles    = ".shake/"
                     , shakeProgress = progressSimple }
 
-(~>) = phony
-
 binPath = "cabal-dev/bin/"
 cmdBin = cmd . (++) binPath
 systemBin = system' . (++) binPath
