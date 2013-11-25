@@ -2,6 +2,7 @@
 /.sass-cache
 /.shake
 /.cabal-sandbox
+/cabal.sandbox.config
 /cabal-dev
 /dist
 /tmp
