@@ -12,7 +12,7 @@ CreateTime
 PostDate
 :   2013/09/17 16:23:11
 ModifiedTime
-:   2013/09/26 14:19:05
+:   2013/11/25 00:08:07
 Identifier
 :   shake1
 
@@ -106,6 +106,7 @@ import Development.Shake
 opts = shakeOptions { shakeFiles    = ".shake/" }        -- 1
 
 (~>) = phony                                             -- 2
+                                                         -- (obsolete)
 
 main :: IO ()
 main = shakeArgs opts $ do
@@ -120,12 +121,15 @@ called "shakeup", so I can start a project up on a Shakefile by simply typing
 
 Some notes:
 
-1. Store shake's metadata files to the folder `.shake/`.  This differs from
-   the default behavior, where all files would be saved to the root directory
-   with `.shake` as a filename prefix.
-2. I've aliased the operator `~>` for `phony` to allow for a more expressive
-   infix notation --- more on this later.  I've submitted a patch to the
-   project and it should be included in the next cabal release.
+1.  Store shake's metadata files to the folder `.shake/`.  This differs from
+    the default behavior, where all files would be saved to the root directory
+    with `.shake` as a filename prefix.
+2.  I've aliased the operator `~>` for `phony` to allow for a more expressive
+    infix notation --- more on this later.  I've submitted a patch to the
+    project and it should be included in the next cabal release.
+
+    **Edit**: As of the 0.10.7 release of *Shake*, this is no longer needed,
+    as  `~>` is included in the library.
 
 
 [shakeup]: https://gist.github.com/mstksg/6588764
@@ -420,8 +424,6 @@ import Control.Applicative ((<$>))
 import Development.Shake
 
 opts = shakeOptions { shakeFiles    = ".shake/" }
-
-(~>) = phony
 
 main :: IO ()
 main = shakeArgs opts $ do
