@@ -1,6 +1,7 @@
 /*.log
 /.sass-cache
 /.shake
+/.cabal-sandbox
 /cabal-dev
 /dist
 /tmp
