@@ -16,7 +16,7 @@
 getStringFromStdin :: IO String
 getStringFromStdin = getLine
 
---  main: The function that we agree that the runtime environment will
---      execute.
+--  main: The IO object that we agree that the compiler will actaully
+--      compile.
 main :: IO ()
 main = getStringFromStdin >>= (\result -> print result)

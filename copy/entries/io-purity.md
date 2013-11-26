@@ -312,8 +312,7 @@ And by convention/specification, it is the IO object with the name "main":
 printFibN :: Int -> IO ()
 printFibN n = print (fib n)
 
---  main: The IO object that we agree that the execution environment will
---      execute.
+--  main: The IO object that we agree that the compiler will actually compile.
 main :: IO ()
 main = printFibN 10
 ~~~
@@ -345,8 +344,7 @@ Now consider:
 getStringFromStdin :: IO String
 getStringFromStdin = getLine
 
---  main: The function that we agree that the runtime environment will
---      execute.
+--  main: The IO object that we agree that the compiler will actually compile.
 main :: IO ()
 main = getStringFromStdin >>= (\result -> print result)
 ~~~

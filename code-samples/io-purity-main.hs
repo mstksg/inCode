@@ -28,7 +28,7 @@ getStringFromStdin = getLine
 printFibN :: Int -> IO ()
 printFibN n = print (fib n)
 
---  main: The IO object that we agree that the execution environment will
---      execute.
+--  main: The IO object that we agree that the compiler will actaully
+--      compile.
 main :: IO ()
 main = printFibN 10
