@@ -87,7 +87,8 @@ We call this potential field $U(x)$, which means "$U$ at the point $x$".
 Relating this to $F = m a$, the force on the object is now equal to the
 steepness of the potential field at the point where the object is, and in the
 direction that would allow the object to go downwards in potential.  Objects
-always wish to minimize their potential, and do so as fast as they can.
+always wish to minimize their potential, and do so as fast as they can.  In
+mathematical terminology, we say that $F(x) = - \nabla U(x)$.
 
 Now, for Lagrangian Mechanics:
 
@@ -97,7 +98,7 @@ that object take to get from point A to point B?
 
 A pretty open question, right?  You don't really have that much information to
 go off of.  You just know point A and point B.  It could have taken any path,
-for all we know!  If we only knew $F = m a$, we would not only be at a
+for all we know!  If we only knew $F = m a$, not only would we be at a
 complete loss at how to even start, but we wouldn't even know if there was
 only one or even a hundred valid paths a particle could have taken.
 
@@ -154,9 +155,9 @@ velocities of the objects in question don't even have well-defined values.
 Physicists' first solutions involved creating a new "state" that did not
 involve particles at all.  This "state" described the state of the universe,
 but not in terms of particles and positions and velocities.  It is a new
-*abstract* state.  Then, they invented the $F = m a$ of this state --- an
-equation that, for every abstract state at time $t_0$, gives you the abstract
-state at time $t_0 + \Delta t$.
+*abstract* state.  Then, they invented the equivalent of an $F = m a$ for this
+abstract state --- an equation that, for every abstract state at time $t_0$,
+gives you the abstract state at time $t_0 + \Delta t$.
 
 This approach is useful...just like $F = m a$ was useful.  But it inherits all
 of the problems of $F = m a$.  How can we apply what we learned about actions
@@ -179,9 +180,10 @@ There are some small technical differences (the process of calculating the
 action is slightly different, and you end up summing over complex numbers for
 certain reasons), but the fundamental principle remains the same.
 
-So say we have an electron floating around a hydrogen atom.  We know it is at
-point A at time $t_0$, and point B at time $t_1$.  What path did the electron
-take to get there?
+So say we have an electron floating around a hydrogen atom (a hydrogen atom
+creates a very pretty and easy to work with potential field).  We know it is
+at point A at time $t_0$, and point B at time $t_1$.  What path did the
+electron take to get there?
 
 Simple: We don't know.  But we can say that it *probably* took the path with
 the least action.  It *could have also* taken the path with the *second to
@@ -192,7 +194,7 @@ weighted so that lower-action paths are rolled more often than higher-action
 paths.
 
 The electron *wants* to take the lowest-action path...but sometimes decides
-not to.  Sometimes it fails.
+not to.
 
 So now we see what Lagrangian Mechanics in classical mechanics really *is*:
 It's quantum mechanics, except that the lowest-action path is *so much
@@ -225,21 +227,19 @@ the next installment's contents.
 
 Let's go back again to our electron next to an atom.  Let's say that this
 electron will move around and return back to its current position at time
-$t_0 + \Delta t$, for very large $\Delta t$.  Basically, it can do whatever it
-wants and has plenty of time to do so, following path integral mechanics (that
-is, the choice of path it takes follows the proper probability
-distribution)...it just has to somehow eventually end up back at its original
-position.
+$t_0 + \Delta t$, for very large $\Delta t$.  From what we learned, this
+electron can really take any path it wants, going anywhere in the universe and
+back again.  Any closed loop that that zig zags or curls anywhere is a valid
+path.
 
-The electron basically wanders around aimlessly, following path integral
-mechanics.
+We can "pick" a random path, weighted by the action, and see where the
+electron goes in that path.  See where we find the electron along points in
+the path.  After many picks, we start seeing where the electron is "most
+likely to be".  We find the probability distribution of an electron in that
+potential.
 
-We can pick a few random points in our path...those points pretty much
-represent **where an electron is most likely to be found**.
-
-We now have a way, given any quantum potential, find the probability
-distribution of a particle in that potential.  Take thousands or millions of
-such points, and find the probability distribution of those points.
+We now have a way, given any quantum potential, find the probability 
+distribution of a particle in that potential.
 
 From here we can also find the particle's average energy, and many other
 properties of a particle given an arbitrary quantum potential.
