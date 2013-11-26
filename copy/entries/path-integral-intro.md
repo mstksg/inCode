@@ -1,5 +1,5 @@
-The Quantum Mechanical Feynman Path Integral Problem
-====================================================
+The Numeric Quantum Mechanical Feynman Path Integral Problem
+============================================================
 
 Categories
 :   Physics
@@ -11,7 +11,7 @@ Series
 CreateTime
 :   2013/11/19 22:05:34
 PostDate
-:   Never
+:   2013/11/27 18:32:36
 Identifier
 :   path-integral-intro
 
@@ -72,13 +72,19 @@ To understand Lagrangian Mechanics, we must abandon our idea of "force" as the
 fundamental phenomenon.  Instead of forces, we deal with "potential fields".
 
 You can imagine potential fields as a roller coaster track, or as a landscape
-of rolling hills.  The "potential" at a given point on a track is equal to the
-height. Potential fields work like this: Every object "wants" to go
-*downwards* a potential field --- it will want to go in the direction (left or
-right) that will take it downwards.  We don't care why, or how --- it just
-"wants" to.  And the steeper the downwardness, the greater the compulsion.
+of rolling grassy hills.  The height of a track or a landscape at that point
+corresponds to the potential at that point.  Potential fields work like this:
+Every object "wants" to go *downwards* a potential field --- it will want to
+go in the direction (left/right, north/south/east/west) that will take it
+downwards.  We don't care why, or how --- it just "wants" to.  And the steeper
+the downwardness, the greater the compulsion.
 
 We call this potential field $U(x)$, which means "$U$ at the point $x$".
+
+Relating this to $F = m a$, the force on the object is now equal to the
+steepness of the potential field at the point where the object is, and in the
+direction that would allow the force to go downwards in potential.  Objects
+always wish to minimize their potential, and do so as fast as they can.
 
 Now, for Lagrangian Mechanics:
 
@@ -88,7 +94,9 @@ that object take to get from point A to point B?
 
 A pretty open question, right?  You don't really have that much information to
 go off of.  You just know point A and point B.  It could have taken any path,
-for all we know!
+for all we know!  If we only knew $F = m a$, we would not only be at a
+complete loss at how to even start, but we wouldn't even know if there was
+only one or even a hundred valid paths a particle could have taken.
 
 The solution to this problem is actually rather unexpected.  Consider every
 single path/curve from point A to point B.  Every single one.  Now, assign
@@ -96,7 +104,7 @@ each path a number known as the **Action**:
 
 1.  For every point, add up $U(x)$ at that point.
 2.  For every point, add up the square of the object's speed.  Multiply it by
-    $\frac{m}{2}$.
+    $\frac{1}{2} m$.
 3.  Subtract (1) from (2).
 
 Think about every possible path.  Calculate the action for each one.
@@ -110,11 +118,11 @@ Lagrangian Mechanics provides for us a way to find out just what path an
 object must have taken to get from point A to point B.
 
 As it turns out, looking at things this way opens up entire worlds of
-understanding.  For example, just from this, we find that **total energy is
-conserved** over time for a closed system (trust me on this; the calculus is
+understanding.  For example, just from this, we find that *total energy is
+conserved* over time for a closed system (trust me on this; the calculus is
 slightly tricky).  And yes, if you actually try to find the path of lowest
-action, the path will somehow magically always be the same one you would get
-if you used $F = m a$.  It's just now we have a much more insighftul and
+action, the path will somehow magically always follow the state-updating
+equations $F = m a$.  It's just now we have a much more insighftul and
 meaningful way to look at the universe.
 
 Paths **always attempt to minimize their action**.
@@ -139,9 +147,11 @@ probability, and nothing is certain, we can't really use the same
 velocities of the objects in question don't even have well-defined values.
 
 Physicists' first solutions involved creating a new "state" that did not
-involve particles at all.  They invented a new, abstract sort of "state" that
-sort-of corresponds to the probability of finding an object here or there, and
-then created state-updating equations that updated that new, abstract state.
+involve particles at all.  This "state" described the state of the universe,
+but not in terms of particles and positions and velocities.  It is a new
+*abstract* state.  Then, they invented the $F = m a$ of this state --- an
+equation that, for every abstract state at time $t_0$, gives you the abstract
+state at time $t_0 + \Delta t$.
 
 This approach is useful...just like $F = m a$ was useful.  But we want
 something more.  How can we apply what we learned about actions and Lagrangian
@@ -150,29 +160,30 @@ mechanics to Quantum Mechanics?  How do we make Lagrangian mechanics
 
 ### Path Integral Formulation
 
-The answer is a bit obvious, actually.
+The answer is a bit simple, actually.
 
 Instead of saying "the object will chose the path with the least action", we
-say **the object chooses a random path, with probability depending on the
-action**.  That is, again, if an electron is shot from point A to point B, the
-electron picks a random path from point A to point B.  It is a *weighted
-random choice* based on the action of each path --- if Path $\alpha$ has
-lower action than Path $\beta$, the electron will pick path $\alpha$ more
-often than path $\beta$.
+say **the object chooses a random path, choosing lower-action paths more
+often**. That is, if an electron is shot from point A to point B, the electron
+picks a random path from point A to point B.  It is a *weighted random choice*
+based on the action of each path --- if Path $\alpha$ has lower action than
+Path $\beta$, the electron will pick path $\alpha$ more often than path
+$\beta$.
 
-There are some small technical differences, but the fundamental principle
-remains the same.
+There are some small technical differences (the process of calculating the
+action is slightly different), but the fundamental principle remains the same.
 
 So say we have an electron floating around a hydrogen atom.  We know it is at
 point A at time $t_0$, and point B at time $t_1$.  What path did the electron
 take to get there?
 
 Simple: We don't know.  But we can say that it *probably* took the path with
-the least action.  It *could have also* taken the path with the second to
-least action...just slightly less likely.  It *probably did not* take the path
-with the greatest action...but who knows, it might have.  It's like it rolls a
-dice to determine which path it goes on, but the dice is weighted so that
-lower-action paths are rolled more often than higher-action paths.
+the least action.  It *could have also* taken the path with the *second to
+least* action...but that's just slightly less likely.  It *probably did not*
+take the path with the greatest action...but who knows, it might have.  It's
+like it rolls a dice to determine which path it goes on, but the dice is
+weighted so that lower-action paths are rolled more often than higher-action
+paths.
 
 The electron *wants* to take the lowest-action path...but sometimes decides
 not to.  Sometimes fails.
@@ -188,8 +199,8 @@ formula" approach could have never dreamed of.
 
 [^naming]: Why is it called the "Path Integral" formulation?  When we add up
 something at every single point on a path, we are mathematically perfoming a
-"Path Integral".  So Path Integral Formulation means physics based on the
-adding up stuff for every point on a path.
+"Path Integral".  So Path Integral Formulation means "physics based on the
+adding up stuff for every point on a path".
 
 Implications
 ------------
@@ -197,8 +208,8 @@ Implications
 Okay, so what does this all have to do with us?
 
 How many processes do we know that can be modeled by something trying to
-minimize itself, but not always succeeding?  What data patterns can be gleamed
-by modeling things this way?
+minimize itself, but not always succeeding?  What data patterns can be
+unveiled by modeling things this way?
 
 I'll leave this question slightly open-ended, but I'm also going to hint at
 the next installment's contents.
