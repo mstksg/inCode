@@ -59,11 +59,11 @@ they had other tools with which to study the mechanics of certain systems.
 Newton's equations worked very well for the cases that made it famous, but
 were surprisingly unuseful, impractical, or clumsy in many others.  And when
 we talk about relativity, where things like $\Delta t$ can't even be trivially
-defined, it is almost completely useless without complex modifications.
+defined, it is almost completely useless without complicated modifications.
 
 So it was almost exactly one hundred years after Newton's laws that two people
 named [Lagrange][] and [Euler][] (who is the "e" in $e$) followed a wild hunch
-that ended up paying off and being the solution everyone had been waiting for.
+that ended up paying off.
 
 [Lagrange]: http://en.wikipedia.org/wiki/Joseph-Louis_Lagrange
 [Euler]: http://en.wikipedia.org/wiki/Leonhard_Euler
@@ -75,17 +75,18 @@ fundamental phenomenon.  Instead of forces, we deal with "potential fields".
 
 You can imagine potential fields as a roller coaster track, or as a landscape
 of rolling grassy hills.  The height of a track or a landscape at that point
-corresponds to the potential at that point.  Potential fields work like this:
-Every object "wants" to go *downwards* a potential field --- it will want to
-go in the direction (left/right, north/south/east/west) that will take it
-downwards.  We don't care why, or how --- it just "wants" to.  And the steeper
+corresponds to the value of the potential at that point.  Potential fields
+work like this: Every object "wants" to go *downwards* in a potential field
+--- it will want to go in the direction (backwards/forwards for the roller
+coaster, north/south/east/west for the hilly landscape) that will take it
+downwards. We don't care why, or how --- it just "wants" to. And the steeper
 the downwardness, the greater the compulsion.
 
 We call this potential field $U(x)$, which means "$U$ at the point $x$".
 
 Relating this to $F = m a$, the force on the object is now equal to the
 steepness of the potential field at the point where the object is, and in the
-direction that would allow the force to go downwards in potential.  Objects
+direction that would allow the object to go downwards in potential.  Objects
 always wish to minimize their potential, and do so as fast as they can.
 
 Now, for Lagrangian Mechanics:
@@ -105,8 +106,8 @@ single path/curve from point A to point B.  Every single one.  Now, assign
 each path a number known as the **Action**:
 
 1.  For every point, add up $U(x)$ at that point.
-2.  For every point, add up the square of the object's speed.  Multiply it by
-    $\frac{1}{2} m$.
+2.  For every point, add up the "Kinetic Energy" at that point, which is the
+    square of the object's speed multiplied by $\frac{1}{2} m$.
 3.  Subtract (1) from (2).
 
 Think about every possible path.  Calculate the action for each one.
@@ -124,9 +125,9 @@ understanding.  For example, just from this, we find that *total energy is
 conserved* over time for a closed system (trust me on this; the calculus is
 slightly tricky).  We also have a formulation that works fine under Special
 Relativity in all frames of reference with almost no tweaks.  And yes, if you
-actually try to find the path of lowest action, the path will somehow
-magically always follow the state-updating equations $F = m a$.  It's just now
-we have a much more insighftul and meaningful way to look at the universe.
+actually do find the path of lowest action, the path will somehow magically
+always follow the state-updating equations $F = m a$.  It's just now we have a
+much more insighftul and meaningful way to look at the universe:
 
 Paths **always attempt to minimize their action**.
 
@@ -156,10 +157,10 @@ but not in terms of particles and positions and velocities.  It is a new
 equation that, for every abstract state at time $t_0$, gives you the abstract
 state at time $t_0 + \Delta t$.
 
-This approach is useful...just like $F = m a$ was useful.  It inherits all of
-the problem that $F = m a$ did.  How can we apply what we learned about
-actions and Lagrangian mechanics to Quantum Mechanics?  How do we make
-Lagrangian mechanics "quantum"?
+This approach is useful...just like $F = m a$ was useful.  But it inherits all
+of the problems of $F = m a$.  How can we apply what we learned about actions
+and Lagrangian mechanics to Quantum Mechanics?  How do we make Lagrangian
+mechanics "quantum"?
 
 ### Path Integral Formulation
 
@@ -184,17 +185,18 @@ take to get there?
 Simple: We don't know.  But we can say that it *probably* took the path with
 the least action.  It *could have also* taken the path with the *second to
 least* action...but that's just slightly less likely.  It *probably did not*
-take the path with the greatest action...but who knows, it might have.  It's
-like it rolls a dice to determine which path it goes on, but the dice is
+take the path with the greatest action...but who knows --- it might have!
+It's like it rolls a dice to determine which path it goes on, but the dice is
 weighted so that lower-action paths are rolled more often than higher-action
 paths.
 
 The electron *wants* to take the lowest-action path...but sometimes decides
-not to.  Sometimes fails.
+not to.  Sometimes it fails.
 
-So now we see what Lagrangian Mechanics really *is*: It's quantum mechanics,
-except that the lowest-action path is *so much likelier* than any other path
-that we almost never see the second-to-least action path taken.
+So now we see what Lagrangian Mechanics in classical mechanics really *is*:
+It's quantum mechanics, except that the lowest-action path is *so much
+likelier* than any other path that we almost never see the second-to-least
+action path taken.
 
 As it turns out, like Lagrangian mechanics opened eyes to new worlds in
 classical mechanics, the Path Integral formulation[^naming] of quantum
@@ -223,18 +225,23 @@ the next installment's contents.
 Let's go back again to our electron next to an atom.  Let's say that this
 electron will move around and return back to its current position at time
 $t_0 + \Delta t$, for very large $\Delta t$.  Basically, it can do whatever it
-wants and has plenty of time to do so, following path integral mechanics...it
-just has to somehow eventually end up back at its original position.
+wants and has plenty of time to do so, following path integral mechanics (that
+is, the choice of path it takes follows the proper probability
+distribution)...it just has to somehow eventually end up back at its original
+position.
 
 The electron basically wanders around aimlessly, following path integral
 mechanics.
 
-We pick a few random points in our path...those points pretty much represent
-**where an electron is most likely to be found**.
+We can pick a few random points in our path...those points pretty much
+represent **where an electron is most likely to be found**.
 
 We now have a way, given any quantum potential, find the probability
 distribution of a particle in that potential.  Take thousands or millions of
 such points, and find the probability distribution of those points.
+
+From here we can also find the particle's average energy, and many other
+properties of a particle given an arbitrary quantum potential.
 
 Now let's implement it.
 
