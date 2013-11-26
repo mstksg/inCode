@@ -15,8 +15,8 @@ PostDate
 Identifier
 :   path-integral-intro
 
-Happy to get a chance to write about my first love, Physics and Computational
-Physics.  In this series we will be going over many subjects in both physics
+I get a chance now to write about my personal field, physics and computational
+physics!  In this series we will be going over many subjects in both physics
 and computational techniques, including the Lagrangian formulation of
 classical mechanics, basic principles of quantum mechanics, the Path Integral
 formatulion of quantum mechanics, the Metropolis-Hastings Monte Carlo method,
@@ -57,7 +57,9 @@ to "generate" the state of the world at time $t_0 + \Delta t$.
 This sounds pretty useful, but it wasn't long before physicists began wishing
 they had other tools with which to study the mechanics of certain systems.
 Newton's equations worked very well for the cases that made it famous, but
-were surprisingly unuseful, impractical, or clumsy in many others.
+were surprisingly unuseful, impractical, or clumsy in many others.  And when
+we talk about relativity, where things like $\Delta t$ can't even be trivially
+defined, it is almost completely useless without complex modifications.
 
 So it was almost exactly one hundred years after Newton's laws that two people
 named [Lagrange][] and [Euler][] (who is the "e" in $e$) followed a wild hunch
@@ -120,10 +122,11 @@ object must have taken to get from point A to point B.
 As it turns out, looking at things this way opens up entire worlds of
 understanding.  For example, just from this, we find that *total energy is
 conserved* over time for a closed system (trust me on this; the calculus is
-slightly tricky).  And yes, if you actually try to find the path of lowest
-action, the path will somehow magically always follow the state-updating
-equations $F = m a$.  It's just now we have a much more insighftul and
-meaningful way to look at the universe.
+slightly tricky).  We also have a formulation that works fine under Special
+Relativity in all frames of reference with almost no tweaks.  And yes, if you
+actually try to find the path of lowest action, the path will somehow
+magically always follow the state-updating equations $F = m a$.  It's just now
+we have a much more insighftul and meaningful way to look at the universe.
 
 Paths **always attempt to minimize their action**.
 
@@ -153,10 +156,10 @@ but not in terms of particles and positions and velocities.  It is a new
 equation that, for every abstract state at time $t_0$, gives you the abstract
 state at time $t_0 + \Delta t$.
 
-This approach is useful...just like $F = m a$ was useful.  But we want
-something more.  How can we apply what we learned about actions and Lagrangian
-mechanics to Quantum Mechanics?  How do we make Lagrangian mechanics
-"quantum"?
+This approach is useful...just like $F = m a$ was useful.  It inherits all of
+the problem that $F = m a$ did.  How can we apply what we learned about
+actions and Lagrangian mechanics to Quantum Mechanics?  How do we make
+Lagrangian mechanics "quantum"?
 
 ### Path Integral Formulation
 
@@ -171,7 +174,8 @@ Path $\beta$, the electron will pick path $\alpha$ more often than path
 $\beta$.
 
 There are some small technical differences (the process of calculating the
-action is slightly different), but the fundamental principle remains the same.
+action is slightly different, and you end up summing over complex numbers for
+certain reasons), but the fundamental principle remains the same.
 
 So say we have an electron floating around a hydrogen atom.  We know it is at
 point A at time $t_0$, and point B at time $t_1$.  What path did the electron
