@@ -106,8 +106,9 @@ single path/curve from point A to point B.  Every single one.  Now, assign
 each path a number known as the **Action**:
 
 1.  For every point, add up $U(x)$ at that point.
-2.  For every point, add up the "Kinetic Energy" at that point, which is the
-    square of the object's speed multiplied by $\frac{1}{2} m$.
+2.  For every point, add up the "Kinetic Energy" at that point, which, for
+    classical mechanics, is the square of the object's speed multiplied by
+    $\frac{1}{2} m$.
 3.  Subtract (1) from (2).
 
 Think about every possible path.  Calculate the action for each one.
