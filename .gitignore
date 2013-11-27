@@ -11,5 +11,6 @@
 
 /copy/entries
 /copy/tags
+/static/img/entries
 
 !/bin/blog
