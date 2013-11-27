@@ -5,7 +5,7 @@
     font-size: 85%;
   }
 
-  p, ul, ol, dl, pre, blockquote {
+  p, ul, ol, dl, pre, blockquote, figure {
     margin: 0;
     margin-bottom: 1rem;
   }
@@ -14,15 +14,8 @@
     margin: 1.5em 0 3em;
   }
 
-  // p {
-  //   text-indent: 1.5rem;
-  // }
-
   ul, ol, dl {
     margin-left: 2.5rem;
-    // p {
-    //   text-indent: 0.5rem;
-    // }
   }
 
   ul {
@@ -100,6 +93,30 @@
     font-size: 110%;
   }
 
+  figure {
+    width: 80%;
+    border: 2px solid #ddd;
+    margin: 3.0rem auto 3.5rem;
+    text-align: center;
+
+    > img {
+      max-width: 100%;
+      padding: 2.5%;
+      margin: 1rem auto;
+    }
+
+    > figcaption {
+      width: 100%;
+      margin: 0 auto;
+      font-family: $sans;
+      font-size: 80%;
+      font-style: italic;
+      background-color: #aee;
+      padding: 1rem;
+      border-top: 2px solid #ddd;
+    }
+  }
+
   h2, h3, h4, h5 {
     border-top: 3.25rem solid transparent;
   }
@@ -154,6 +171,7 @@
 
     > p {
       z-index: 100;
+      font-size: 85%;
     }
   }
 
