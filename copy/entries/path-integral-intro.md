@@ -11,7 +11,7 @@ Series
 CreateTime
 :   2013/11/19 22:05:34
 PostDate
-:   2013/11/27 18:32:36
+:   2013/11/29 10:48:19
 Identifier
 :   path-integral-intro
 
@@ -82,13 +82,18 @@ coaster, north/south/east/west for the hilly landscape) that will take it
 downwards. We don't care why, or how --- it just "wants" to. And the steeper
 the downwardness, the greater the compulsion.
 
-We call this potential field $U(x)$, which means "$U$ at the point $x$".
+We call this potential field $U(\vec{r})$, which means "$U$ at the point
+$\vec{r}$".  ($\vec{r}$ denotes a point in space)
 
 Relating this to $F = m a$, the force on the object is now equal to the
 steepness of the potential field at the point where the object is, and in the
 direction that would allow the object to go downwards in potential.  Objects
 always wish to minimize their potential, and do so as fast as they can.  In
-mathematical terminology, we say that $F(x) = - \nabla U(x)$.
+mathematical terminology, we say that $F(\vec{r}) = - \vec{\nabla} U(\vec{r})$.
+
+![potential](/img/entries/path-integral-intro/potential3d.png "An example of a 2D potential $U(\vec{r})$")
+
+![gradient](/img/entries/path-integral-intro/gradient.png "Top-down view of the potential in the previous figure, overlayed with arrows indicating the direction and magnitude of $F(\vec{r})$")
 
 Now, for Lagrangian Mechanics:
 
@@ -106,11 +111,11 @@ The solution to this problem is actually rather unexpected.  Consider every
 single path/curve from point A to point B.  Every single one.  Now, assign
 each path a number known as the **Action**:
 
-1.  For every point, add up $U(x)$ at that point.
-2.  For every point, add up the "Kinetic Energy" at that point, which, for
+1.  For every point, add up the "Kinetic Energy" at that point, which, for
     classical mechanics, is the square of the object's speed multiplied by
     $\frac{1}{2} m$.
-3.  Subtract (1) from (2).
+2.  For every point, add up $U(\vec{r})$ at that point.
+3.  Subtract (2) from (1).
 
 Think about every possible path.  Calculate the action for each one.
 The path that the object takes is *the path with the lowest action*
@@ -238,7 +243,7 @@ the path.  After many picks, we start seeing where the electron is "most
 likely to be".  We find the probability distribution of an electron in that
 potential.
 
-We now have a way, given any quantum potential, find the probability 
+We now have a way, given any quantum potential, find the probability
 distribution of a particle in that potential.
 
 From here we can also find the particle's average energy, and many other
