@@ -91,9 +91,9 @@ direction that would allow the object to go downwards in potential.  Objects
 always wish to minimize their potential, and do so as fast as they can.  In
 mathematical terminology, we say that $F(\vec{r}) = - \vec{\nabla} U(\vec{r})$.
 
-![potential](/img/entries/path-integral-intro/potential3d.png "An example of a 2D potential $U(\vec{r})$")
+![An example of a 2D potential $U(\vec{r})$](/img/entries/path-integral-intro/potential3d.png)
 
-![gradient](/img/entries/path-integral-intro/gradient.png "Top-down view of the potential in the previous figure, overlayed with arrows indicating the direction and magnitude of $F(\vec{r})$")
+![Top-down view of the potential in the previous figure, overlayed with arrows indicating the direction and magnitude of $F(\vec{r})$](/img/entries/path-integral-intro/gradient.png)
 
 Now, for Lagrangian Mechanics:
 
