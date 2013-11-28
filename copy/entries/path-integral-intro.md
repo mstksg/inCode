@@ -243,7 +243,7 @@ the path.  After many picks, we start seeing where the electron is "most
 likely to be".  We find the probability distribution of an electron in that
 potential.
 
-We now have a way, given any quantum potential, find the probability
+We now have a way, given any quantum potential, to find the probability
 distribution of a particle in that potential.
 
 From here we can also find the particle's average energy, and many other
