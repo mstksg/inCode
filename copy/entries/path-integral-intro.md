@@ -15,20 +15,21 @@ PostDate
 Identifier
 :   path-integral-intro
 
-I get a chance now to write about my personal field, physics and computational
-physics!  In this series we will be going over many subjects in both physics
-and computational techniques, including the Lagrangian formulation of
-classical mechanics, basic principles of quantum mechanics, the Path Integral
-formatulion of quantum mechanics, the Metropolis-Hastings Monte Carlo method,
-dealing with entropy and randomness in a pure language, and general principles
-in numerical computation!  Fun stuff, right?
+Here's my chance to write about my own personal field, physics and
+computational physics! In this series we will be going over many subjects in
+both physics and computational techniques, including the Lagrangian
+formulation of classical mechanics, basic principles of quantum mechanics, the
+Path Integral formatulion of quantum mechanics, the Metropolis-Hastings Monte
+Carlo method, dealing with entropy and randomness in a pure language, and
+general principles in numerical computation!  Fun stuff, right?
 
-The end product will be a tool for deriving the wave state solutions of
-arbitrary quantum systems, which is somewhat of a big deal in any field that
-runs into quantum effects (which is basically every modern field).  But the
-real goal will be to hopefully impart some insight that can be applied to
-broarder and more abstract applications.  I am confident that these techniques
-can be applied to many problems in computation to great results.
+The end product will be a tool for deriving the ground state probability
+distribution of arbitrary quantum systems, which is somewhat of a big deal in
+any field that runs into quantum effects (which is basically every modern
+field).  But the real goal will be to hopefully impart some insight that can
+be applied to broarder and more abstract applications.  I am confident that
+these techniques can be applied to many problems in computation to great
+results.
 
 I'm going to assume little to no knowledge in Physics and a somewhat
 intermediate working knowledge of programming.  We're going to be working in
