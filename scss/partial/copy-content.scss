@@ -102,7 +102,7 @@
     > img {
       max-width: 100%;
       padding: 2.5%;
-      margin: 1rem auto;
+      margin: 1rem auto 0.5rem;
     }
 
     > figcaption {
@@ -114,6 +114,10 @@
       background-color: #aee;
       padding: 1rem;
       border-top: 2px solid #ddd;
+    }
+
+    @media #{$smaller-screen} {
+      width: 100%;
     }
   }
 
