@@ -1,5 +1,5 @@
-The Numeric Quantum Mechanical Feynman Path Integral Problem
-============================================================
+Numeric Techniques & Quantum Mechanics: The Feynman Path Integral Method
+========================================================================
 
 Categories
 :   Physics
