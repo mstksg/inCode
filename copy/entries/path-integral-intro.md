@@ -6,6 +6,8 @@ Categories
 :   Computation
 Tags
 :   numerical methods
+:   classical mechanics
+:   quantum mechanics
 Series
 :   Path Integral Monte Carlo
 CreateTime
