@@ -157,7 +157,7 @@
   padding-left: 1rem;
   padding-right: 1rem;
 
-  @media #{$smaller-screen} {
+  @media #{$smallest-screen} {
     padding-left: 0;
     padding-right: 0;
   }
