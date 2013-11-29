@@ -217,7 +217,7 @@ the "someone" is a computer.  Or more specifically, a processor.  GHC directly
 translates any standalone IO object into assembly code (or even a less optimal
 C code).
 
-Technically, you *could* "think" of every IO objects as a self-contained and
+Technically, you *could* "think" of every IO object as a self-contained and
 encapsulated little packet of assembly or C code that you can compose and nest
 and merge, etc. with other such packets, without worrying about the lower
 level code itself.  But don't do this, or you risk confusing a possible
