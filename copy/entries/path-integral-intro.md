@@ -1,5 +1,5 @@
-Numeric Techniques & Quantum Mechanics: The Feynman Path Integral Method
-========================================================================
+Numerical Techniques: A Brief Primer on Path Integral Classical and Quantum Mechanics
+=====================================================================================
 
 Categories
 :   Physics
