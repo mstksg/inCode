@@ -1,5 +1,5 @@
-Numerical Techniques: A Brief Primer on Path Integral Classical and Quantum Mechanics
-=====================================================================================
+Numerical Techniques: Brief Primer on Classical and Quantum Mechanics
+=====================================================================
 
 Categories
 :   Physics
