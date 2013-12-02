@@ -3,7 +3,6 @@ ideas
 
 * lookup script
 * esqueleto (many to many)
-* path integral monte carlo series
 * entropic forces
 * baking monad
 * monad series:
@@ -19,6 +18,8 @@ ideas
 * pid loop
 
 in progress
+
+* path integral monte carlo series
 
 done
 
