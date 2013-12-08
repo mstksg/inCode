@@ -211,13 +211,13 @@ Nothing
 Nothing
 ~~~
 
-In this case, `x`, `y`, and `z`'s do not contain the `Just`/`Nothing`'s ---
-they represent the actual **Ints inside them**, so we can so something like
-`halve x` (where `halve` only takes Ints, not `Maybe Int`'s)
+In this notation, `x`, `y`, and `z`'s do not contain the `Just`/`Nothing`'s
+--- they represent the actual **Ints inside them**, so we can so something
+like `halve x` (where `halve` only takes Ints, not `Maybe Int`'s)
 
-It's kind of imperative-y --- "do `halve 32` and assign the result (16) to
-`x`...do `halve x` and assign the result (8) to `y`..." --- but remember,
-it's still just a bunch of chained `>>=`s in the end.
+It kind of feels very imperative-y --- "do `halve 32` and assign the
+result (16) to `x`...do `halve x` and assign the result (8) to `y`..." --- but
+remember, it's still just a bunch of chained `>>=`s in the end.
 
 Failure is an option
 --------------------
