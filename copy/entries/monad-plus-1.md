@@ -26,9 +26,9 @@ behind monads and show that they are fun!  And exciting!  And really just a
 way of chaining together functions that allow for new ways of approaching
 puzzles.
 
-The first sub-series (chapter?) will be on a certain way of implementing
-monads known as *MonadPlus*.  At the end of it all, we are going to be solving
-the classic logic puzzle, as old as time itself, using **only** the List monad
+The first sub-series (chapter?) will be on a specific class/family of monads
+known as *MonadPlus*.  At the end of it all, we are going to be solving the
+classic logic puzzle, as old as time itself, using **only** the List monad
 instance, and no loops, queues, stacks, or fancy stuff like that:
 
 > A farmer has a wolf, a goat, and a cabbage that he wishes to transport
