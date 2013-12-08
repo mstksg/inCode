@@ -517,8 +517,8 @@ Okay, so what have we learned?
 
 -   One useful "chaining approach" is to model things as success-failure chains,
     where you are building something from successes, but if you fail once in
-    the process, the entire process fails.  This approach/design pattern is
-    called a MonadPlus.
+    the process, the entire process fails.  An object that uses this
+    approach/design pattern is called a MonadPlus.
 
 -   The Maybe object is one such example.  We can define 'chaining' failable
     functions as functions that continue if the previous function succeeded,
@@ -530,9 +530,9 @@ Okay, so what have we learned?
     `x` (if we haven't failed already)", and `mzero` meaning "fail now".
 
 For the mean time, think about how it makes sense to chain operations on lists
-(ie, repeatedly applying functions `:: a -> [b]` to lists), and in what we can
-define this "chaining" to represent success/failure...somehow.  Until next
-time!
+(ie, repeatedly applying functions `:: a -> [b]` to lists).  Is there more
+than one way to define it, even?  And in what ways we can define this
+"chaining" to represent success/failure?  Until next time!
 
 
 
