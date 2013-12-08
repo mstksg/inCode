@@ -152,8 +152,9 @@ at the interactive prompt, ghci.  Code that doesn't is actual source code.
 Remember, `>>=` means "use the results of the last thing to calculate this
 next thing" --- it "chains" the functions.
 
-How does this work exactly?  Don't ask me, this isn't a monad tutorial!  But
-here are some interesting points:
+How does this work, exactly?  That's not really in the scope of this article
+(any monad tutorial will explain this in more detail).  But here are some
+interesting points:
 
 1.  Note that this command doesn't even bother with the second `halve`.  It
     knows that the end result will be `Nothing` no matter what (because `halve
