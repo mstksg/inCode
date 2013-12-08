@@ -40,7 +40,7 @@ instance, and no loops, queues, stacks, or fancy stuff like that:
 
 Let us enter a brave new world!
 
-A Quick Review of Monads
+A quick review of monads
 ------------------------
 
 As a Haskell blogger, I'm not allowed to write any monad tutorials.  I don't
@@ -172,7 +172,7 @@ You can think of this failing phenomenon like this: At every step, Haskell
 attempts to apply `halve` to the result of the previous step.  However, you
 can't `halve` a `Nothing` because a `Nothing` has no value to halve!
 
-### Do Notation
+### Do notation
 
 Haskell provides a convenient way of writing chained `>>=`'s called do
 notation; here are a few samples matched with their equivalent `>>=` form:
