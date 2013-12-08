@@ -504,8 +504,8 @@ ignores your current health.
 
 Interestingly enough, we could actually eliminate all references to Maybe
 altogether by always using `return` and `mzero` instead of `Just` and
-`Nothing`.  And if we get our type signature generic enough, we could use this
-with *any* MonadPlus! But that is for another day.
+`Nothing`.  And if we make our type signatures generic enough, we could use
+this with *any* MonadPlus! But that is for another day.
 
 
 Looking forward
@@ -533,10 +533,10 @@ Okay, so what have we learned?
     "general" MonadPlus's, with `return x` meaning "succeed automatically with
     `x` (if we haven't failed already)", and `mzero` meaning "fail now".
 
-For the mean time, think about how it makes sense to chain operations on lists
-(ie, repeatedly applying functions `:: a -> [b]` to lists).  Is there more
-than one way to define it, even?  And in what ways we can define this
-"chaining" to represent success/failure?  Until next time!
+For the mean time, think about how it might make sense to chain operations on
+lists (ie, repeatedly applying functions `:: a -> [b]` to lists).  Is there
+more than one way to think about chaining them, even?  And in what ways we can
+define this "chaining" to represent success/failure?  Until next time!
 
 
 
