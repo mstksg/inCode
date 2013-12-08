@@ -469,8 +469,9 @@ applications.
 ### Monadic Tricks
 
 Because everything is Haskell, you can easily generate rules using your basic
-monad iterators by taking advantage of Haskell's monad goodness.  For example,
-if you want to generate multiple reports:
+monad iterators by taking advantage of Haskell's extensive standard library of
+monad functions.  For example, if you want to generate multiple reports, you
+can use `forM_`:
 
 ~~~haskell
 forM_ ["report1","report2","report3"] $ \reportName -> do
