@@ -164,9 +164,9 @@ interesting points:
     last thing and always return this".  So `>> Nothing` means "I don't care
     what the last thing succeeded with, I'm going to fail right here."
 3.  Disastrous!  Even though halving 32 four times usually is fine (giving
-    `Just 2`) having just one failure along the way means that the entire
-    thing is a failure.  Think of it as `Nothing >>= halve >>= halve >>=
-    halve`.
+    `Just 2`), having just one failure along the way means that the entire
+    thing is a failure.  `halve 32 >> Nothing` is `Nothing`, so the whole
+    thing is just `(Nothing) >>= halve >>= halve >>= halve`.
 
 You can think of this failing phenomenon like this: At every step, Haskell
 attempts to apply `halve` to the result of the previous step.  However, you
