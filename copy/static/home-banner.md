@@ -11,3 +11,8 @@ a healthy curiosity and an only slightly unhealthy obsession for finding new
 ways to marvel, wonder, and create.  Join me if you wish!
 
 [about]: / "It's a picture of me! :D"
+
+Check out my most popular article: [The Comprise-less Reconciliation of Puriy
+and I/O][io]!
+
+[io]: http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity
