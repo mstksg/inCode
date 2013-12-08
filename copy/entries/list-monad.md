@@ -428,56 +428,200 @@ apparent that list can model success...very interestingly.
 Consider `[3, 5]`.  Clearly this is to represent some sort of "success".  But
 what?
 
-How about we look at it this way:  `[3, 5]` represents a success of *either* 3
-or 5...and we don't know which, it could be either!
+How about we look at it this way: `[3, 5]` represents two separate *paths* to
+success.  When we look at a `Just 5`, we see a computation that succeeded with
+a 5.  When we see a `[3, 5]`, we may interpret it as a computation that had
+two possible succesful paths: one succeeding with a 3 and another with a 5.
 
-This view of a list as a superposition of succesful states is not the only way
-to think of a list as a monad...but it is the way that the Haskell community
-has adopted as arguably the most useful.  (The other main way is to approach
-it completely differently, making list not even a MonadPlus and therefore not
-representing failure or success at all)
+You can also say that it represents a computaiton that *could have chosen* to
+succeed in a 3, or a 5.  In this way, the list monad is often referred to as
+the "choice" monad.
 
-So let's say we have a function `doubleOrHalve` that succeeds by either
-doubling or halving the number: (succeeds in multiple possible ways)
+This view of a list as a collection of possible successes or choices of
+successes is not the only way to think of a list as a monad...but it is the
+way that the Haskell community has adopted as arguably the most useful.  (The
+other main way is to approach it completely differently, making list not even
+a MonadPlus and therefore not representing failure or success at all)
+
+Think of it this way: A value goes through a long and arduous journey with
+many choices and possible paths and forks.  At the end of it, you have the
+result of every path that could have lead to a success.  Contrast this to the
+`Maybe` monad, where a value goes through this arduous journey, but never has
+any choice.  There is only one path --- succesful, or otherwise.  A `Maybe` is
+deterministic...a list provides a choice in paths.
+
+Let's take a simple example: `halveOrDouble`.  It provides two succesful paths
+if you are even: halving and doubling.  It only provides one choice or
+possible path to success if you are odd: doubling.  In this way it is slightly
+racist.
 
 ~~~haskell
-doubleOrHalve :: Int -> [Int]
-doubleOrHalve n | even n    = [n `div` 2, n * 2]
+halveOrDouble :: Int -> [Int]
+halveOrDouble n | even n    = [n `div` 2, n * 2]
                 | otherwise = [n * 2]
 ~~~
 
-If n is even, it can succeed in both halving and doubling.  If n is odd, it
-can only succeed in doubling.
+~~~haskell
+λ: halveOrDouble 6
+[3, 6]
+λ: halveOrDouble 7
+[  14]
+~~~
 
-Let's try chaining it!
+As you can see in the first case, with the 6, there are two paths to success:
+the halve, and the double.  In the second case, with the 7, there is only one
+--- the double.
 
-~~~haskel
-doubleOrHalveTwice :: Int -> [Int]
-doubleOrHalveTwice n = do       -- n = 6
-    x <- return n               -- [   6    ]
-    y <- doubleOrHalve x        -- [3,  12  ]
-    z <- doubleOrHalve y        -- [6, 6,24 ]
+How about we subject a number to this halving-or-doubling journey twice?  What
+do we expect?
+
+1.  The path of halve-halve only works if the number is divisible by two
+    twice.  So this is only a succesful path if the number is divisible by
+    four.
+2.  The path of halve-double only works if the number is even.  So this is
+    only a succesful path in that case.
+3.  The path of double-halve will work in all cases!  It is a success always.
+4.  The path of double-double will also work in all cases...it'll never fail
+    for our sojourning number!
+
+So...halving-or-doubling twice has two possible succesful paths for an odd
+number, three succesful paths for a number divisible by two but not four, and
+four succesful paths for a number divisible by four.
+
+Let's try it out:
+
+~~~haskell
+λ: return 5 >>= halveOrDouble >>= halveOrDouble
+[       5, 20]
+λ: return 6 >>= halveOrDouble >>= halveOrDouble
+[    6, 6, 24]
+λ: return 8 >>= halveOrDouble >>= halveOrDouble
+[ 2, 8, 8, 32]
+~~~
+
+The first list represents the results of all of the possible succesful paths 5
+could have taken to "traverse" the dreaded `halveOrDouble` landscape twice ---
+double-halve, or double-double.  The second, 6 could have emerged succesful
+with halve-double, double-halve, or double-double.  8 had the succesful paths
+it could have taken.
+
+Let's look at this in the do notation form to offer some possible insight:
+
+~~~haskell
+doubleAndHalveTwice :: Int -> [Int]
+doubleAndHalveTwice n = do
+    x <- return n
+    y <- doubleAndHalve x
+    z <- doubleAndHalve y
     return z
 ~~~
 
-Oh boy.  How are we going to look at this?  How does this even make sense?
+Do notation describes **a single path of a value**.  This is slightly
+confusing at first.  But look at it --- it has the exact same form as a
+Maybe monad do block.
 
-Our result at the end of `doubleAndHalveTwice 6` is `[6, 6, 24]`.
+This thing describes, in general terms, the path of a single value.  `x`, `y`,
+and `z` are not lists --- they represent a single value, in the middle of the
+treacherous journey.
 
-Let's reason this out in english:
+Here is an illustration, tracing out "individual paths":
 
-1.  If we double or halve a 6, we get either 3 or 12.  We don't know which.
-2.  What do we get if we double or halve twice?
-3.  Well...if we had gotten 3 the first time, then the second time, we
-    definitely get 6.
-4.  If we had gotten 12 the first time, then the second time, we would either
-    have a 6 or a 24.
-5.  So, we either have a 6, or a 6 and a 24.  We either have 6, 6, or 24.  We
-    don't know which.
-6.  So, this `doubleAndHalveTwice` *suceeds*, definitely...but it can possibly
-    succeed in three ways --- it can possibly succeed twice giving a 6, or
-    partially succeed twice giving a 6, or partially succeed twice giving a
-    24.
+~~~haskell
+doubleAndHalveTwice :: Int -> [Int]
+doubleAndHalveTwice n = do      -- doubleAndHalveTwice 6
+    x <- return n               -- x =              Just 6
+    y <- doubleAndHalve x       -- y =      Just 3          Just 12
+    z <- doubleAndHalve y       -- z = Nothing  Just 6  Just 6  Just 24
+    return z                    --     Nothing  Just 6  Just 6  Just 24
+~~~
+
+where you take the left path if you want to halve, and the right path if you
+want to double.
+
+Remember, just like in the Maybe monad, the `x`, `y`, and `z` represent the
+*value* inside the object --- `x` represents the 6, `y` represents either the
+3 or the 12, depending on what path you take.  This binding of `x`, `y`, or
+`z` remains the same throughout the remainder of the path.
+
+Here is the tricky part: the last line, `return z`, returns **what `z` is on
+that path**.  In the halve-double path, `z` is 6.  In the `double-double`
+path, `z` is 24.
+
+What if we had typed `return y` instead of `return z`?
+
+~~~haskell
+doubleAndHalveDance :: Int -> [Int]
+doubleAndHalveDance n = do      -- doubleAndHalveTwice 6
+    x <- return n               -- x =              Just 6
+    y <- doubleAndHalve x       -- y =      Just 3          Just 12
+    z <- doubleAndHalve y       -- z = Nothing  Just 6  Just 6  Just 24
+    return z                    --     Nothing  Just 3  Just 12 Just 12
+~~~
+
+~~~haskell
+λ: doubleAndHalveDance 6
+[    3,12,12]
+λ: doubleAndHalveDance 7
+[      14,14]
+λ: doubleAndHalveDance 8
+[ 4, 4,16,16]
+~~~
+
+Huh.  What happened here?
+
+
+
+
+<!-- How about we look at it this way:  `[3, 5]` represents a success of *either* 3 -->
+<!-- or 5...and we don't know which, it could be either! -->
+
+<!-- This view of a list as a superposition of succesful states is not the only way -->
+<!-- to think of a list as a monad...but it is the way that the Haskell community -->
+<!-- has adopted as arguably the most useful.  (The other main way is to approach -->
+<!-- it completely differently, making list not even a MonadPlus and therefore not -->
+<!-- representing failure or success at all) -->
+
+<!-- So let's say we have a function `doubleOrHalve` that succeeds by either -->
+<!-- doubling or halving the number: (succeeds in multiple possible ways) -->
+
+<!-- ~~~haskell -->
+<!-- doubleOrHalve :: Int -> [Int] -->
+<!-- doubleOrHalve n | even n    = [n `div` 2, n * 2] -->
+<!--                 | otherwise = [n * 2] -->
+<!-- ~~~ -->
+
+<!-- If n is even, it can succeed in both halving and doubling.  If n is odd, it -->
+<!-- can only succeed in doubling. -->
+
+<!-- Let's try chaining it! -->
+
+<!-- ~~~haskell -->
+<!-- doubleOrHalveTwice :: Int -> [Int] -->
+<!-- doubleOrHalveTwice n = do       -- n = 6 -->
+<!--     x <- return n               -- [   6    ] -->
+<!--     y <- doubleOrHalve x        -- [3,  12  ] -->
+<!--     z <- doubleOrHalve y        -- [6, 6,24 ] -->
+<!--     return z -->
+<!-- ~~~ -->
+
+<!-- Oh boy.  How are we going to look at this?  How does this even make sense? -->
+
+<!-- Our result at the end of `doubleAndHalveTwice 6` is `[6, 6, 24]`. -->
+
+<!-- Let's reason this out in english: -->
+
+<!-- 1.  If we double or halve a 6, we get either 3 or 12.  We don't know which. -->
+<!-- 2.  What do we get if we double or halve twice? -->
+<!-- 3.  Well...if we had gotten 3 the first time, then the second time, we -->
+<!--     definitely get 6. -->
+<!-- 4.  If we had gotten 12 the first time, then the second time, we would either -->
+<!--     have a 6 or a 24. -->
+<!-- 5.  So, we either have a 6, or a 6 and a 24.  We either have 6, 6, or 24.  We -->
+<!--     don't know which. -->
+<!-- 6.  So, this `doubleAndHalveTwice` *suceeds*, definitely...but it can possibly -->
+<!--     succeed in three ways --- it can possibly succeed twice giving a 6, or -->
+<!--     partially succeed twice giving a 6, or partially succeed twice giving a -->
+<!--     24. -->
 
 <!-- ### Maybe? -->
 
