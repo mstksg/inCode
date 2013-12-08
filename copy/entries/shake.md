@@ -434,11 +434,11 @@ main = shakeArgs opts $ do
         cmd "fortune" [""]
 
     "out/report.doc" *> \f -> do
-        need <$> deps
+        need <$> srcFiles
         cmd "pandoc" [ "src/report.md", "-o", f ]
 
     "out/report.pdf" *> \f -> do
-        need <$> deps
+        need <$> srcFiles
         cmd "pandoc" [ "src/report.md", "-o", f, "-V", "links-as-notes" ]
 
     "out/report.html" *> \f -> do
@@ -479,11 +479,11 @@ forM_ ["report1","report2","report3"] $ \reportName -> do
         srcName = "src/" ++ reportName ++ ".md"
 
     (outBase ++ ".doc") *> \f -> do
-        need <$> deps
+        need <$> srcFiles
         cmd "pandoc" [ srcName, "-o", f ]
 
     (outBase ++ ".pdf") *> \f -> do
-        need <$> deps
+        need <$> srcFiles
         cmd "pandoc" [ srcName, "-o", f, "-V", "links-as-notes" ]
 
     (outBase ++ ".html") *> \f -> do
