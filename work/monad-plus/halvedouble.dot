@@ -36,7 +36,7 @@ digraph {
         z4 [label="Just 24"] ;
         z3 [label="Just 6"] ;
         z2 [label="Just 6"] ;
-        z1 [label="Nothing",fontcolor=darkslategray] ;
+        z1 [label="Nothing",fontcolor=slategray] ;
     }
 
     subgraph cluster3 {
@@ -49,7 +49,7 @@ digraph {
         r4 [label="Just 12"] ;
         r3 [label="Just 12"] ;
         r2 [label="Just 3"] ;
-        r1 [label="Nothing",fontcolor=darkslategray] ;
+        r1 [label="Nothing",fontcolor=slategray] ;
     }
 
     x  -> y1 ;
@@ -60,7 +60,7 @@ digraph {
     y2 -> z3 ;
     y2 -> z4 ;
 
-    z1 -> r1 [color=darkslategray];
+    z1 -> r1 [color=slategray];
     z2 -> r2 ;
     z3 -> r3 ;
     z4 -> r4 ;

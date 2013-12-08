@@ -48,13 +48,13 @@ digraph {
         fontcolor=blue;
         style=filled;
         color=linen;
-        g7 [label="Nothing",fontcolor=darkslategray] ;
+        g7 [label="Nothing",fontcolor=slategray] ;
         g6 [label="Just ()"] ;
-        g5 [label="Nothing",fontcolor=darkslategray] ;
-        g4 [label="Nothing",fontcolor=darkslategray] ;
-        g3 [label="Nothing",fontcolor=darkslategray] ;
+        g5 [label="Nothing",fontcolor=slategray] ;
+        g4 [label="Nothing",fontcolor=slategray] ;
+        g3 [label="Nothing",fontcolor=slategray] ;
         g2 [label="Just ()"] ;
-        g1 [label="Nothing",fontcolor=darkslategray] ;
+        g1 [label="Nothing",fontcolor=slategray] ;
     }
 
     subgraph cluster4 {
@@ -63,13 +63,13 @@ digraph {
         fontcolor=blue;
         style=filled;
         color=linen;
-        r7 [label="Nothing",fontcolor=darkslategray] ;
+        r7 [label="Nothing",fontcolor=slategray] ;
         r6 [label="Just ((+1).(^3))"] ;
-        r5 [label="Nothing",fontcolor=darkslategray] ;
-        r4 [label="Nothing",fontcolor=darkslategray] ;
-        r3 [label="Nothing",fontcolor=darkslategray] ;
+        r5 [label="Nothing",fontcolor=slategray] ;
+        r4 [label="Nothing",fontcolor=slategray] ;
+        r3 [label="Nothing",fontcolor=slategray] ;
         r2 [label="Just (*3)"] ;
-        r1 [label="Nothing",fontcolor=darkslategray] ;
+        r1 [label="Nothing",fontcolor=slategray] ;
     }
 
     x  -> y1 ;
@@ -88,20 +88,20 @@ digraph {
     y6 -> z6 ;
     y7 -> z7 ;
 
-    z1 -> g1 [color=darkslategray];
+    z1 -> g1 [color=slategray];
     z2 -> g2 ;
-    z3 -> g3 [color=darkslategray];
-    z4 -> g4 [color=darkslategray];
-    z5 -> g5 [color=darkslategray];
+    z3 -> g3 [color=slategray];
+    z4 -> g4 [color=slategray];
+    z5 -> g5 [color=slategray];
     z6 -> g6 ;
-    z7 -> g7 [color=darkslategray];
+    z7 -> g7 [color=slategray];
 
-    g1 -> r1 [color=darkslategray];
+    g1 -> r1 [color=slategray];
     g2 -> r2 ;
-    g3 -> r3 [color=darkslategray];
-    g4 -> r4 [color=darkslategray];
-    g5 -> r5 [color=darkslategray];
+    g3 -> r3 [color=slategray];
+    g4 -> r4 [color=slategray];
+    g5 -> r5 [color=slategray];
     g6 -> r6 ;
-    g7 -> r7 [color=darkslategray];
+    g7 -> r7 [color=slategray];
 
 }
