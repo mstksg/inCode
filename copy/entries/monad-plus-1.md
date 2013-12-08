@@ -60,10 +60,12 @@ case, containers.
 This article attempts to explain as much special Haskell syntax as possible,
 for readers not familiar with Haskell.  Nevertheless, this article is written
 for someone with a somewhat fuzzy idea of monads and a sorta maybe basic
-understanding of functional programming principles.  That being said, if you
-ever run into anything you can't understand, feel free to either read the
-articles above, give [Learn You A Haskell][lyah] a quick read, or leave a
-comment --- I'd love to answer your questions or hear your responses!
+understanding of functional programming principles, but who might be more
+familiar with imperative or object oriented languages like Java or C++.  That
+being said, if you ever run into anything you can't understand, feel free to
+either read the articles above, give [Learn You A Haskell][lyah] a quick read,
+or leave a comment --- I'd love to answer your questions or hear your
+responses!
 
 [lyah]: http://learnyouahaskell.com/
 
@@ -274,6 +276,22 @@ whatever your failure is.
 
 That means that for Maybe, `return x` is the same as `Just x`, and `mzero` is
 basically an alias for `Nothing`.
+
+<aside>
+    ###### Aside
+
+If you are familiar with object oriented languages like Java, MonadPlus is
+really like an **interface**.  That is, if something is a MonadPlus, there is
+a "guarantee" that that something will implement/define `return` and `mzero`
+for that particular object.  In this way, `return` and `mzero` are
+*polymorphic functions* that change their behavior based on what type you are
+talking about, and you can write code that works with all MonadPlus's
+generically without worrying about their actual type by using only `return`
+and `mzero` (instead of say, `Just` and `Nothing`).
+
+In Haskell, the term we use (instead of "interface") is "**typeclass**".
+There are some subtle differences, but it doesn't hurt to make the analogy.
+</aside>
 
 ### MonadPlus examples
 
