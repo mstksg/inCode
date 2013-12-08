@@ -27,9 +27,9 @@ way of chaining together functions that allow for new ways of approaching
 puzzles.
 
 The first sub-series (chapter?) will be on a specific class/family of monads
-known as *MonadPlus*.  At the end of it all, we are going to be solving the
+known as *MonadPlus*.  At the end of it all, we are going to be solving the 
 classic logic puzzle, as old as time itself, using **only** the List monad
-instance, and no loops, queues, stacks, or fancy stuff like that:
+instance, and no loops, queues, or fancy stuff like that:
 
 > A farmer has a wolf, a goat, and a cabbage that he wishes to transport
 > across a river.  Unfortunately, his only boat can carry one thing at a time.
@@ -57,22 +57,30 @@ relationship to one another.  When we say monads, we just mean things that
 chain together functions "inside" wrappers, containers, or contexts.  In our
 case, containers.
 
-This article attempts to explain as much special Haskell syntax as possible,
-for readers not familiar with Haskell.  Nevertheless, this article is written
-for someone with a somewhat fuzzy idea of monads and a sorta maybe basic
-understanding of functional programming principles, but who might be more
-familiar with imperative or object oriented languages like Java or C++.  That
-being said, if you ever run into anything you can't understand, feel free to
-either read the articles above, give [Learn You A Haskell][lyah] a quick read,
-or leave a comment --- I'd love to answer your questions or hear your
-responses!
+This article is written for both beginners --- people who have a fuzzy idea of
+monads and a minimal understanding of functional programming principles, but
+who have some experience in Object-Oriented Programming in a language like
+Java or C++ --- and intermediate Haskell users who have a somewhat firm grasp
+on monads, but want to know about monads on a broader context (in particular,
+the MonadPlus typeclass).
+
+This article attempts to explain all Haskell syntax that might be foreign to
+beginners.  That being said, if you ever run into anything you can't
+understand, feel free to either read the articles above, give [Learn You A
+Haskell][lyah] a quick read (you won't regret it!), or leave a comment --- I'd
+love to answer your questions or hear your responses!
 
 [lyah]: http://learnyouahaskell.com/
+
+This first post will cover the basics of MonadPlus with the simplest MonadPlus
+of all; the second part will explore the List MonadPlus, and the third will
+finally tackle the Wolf/Goat/Cabbage puzzle with our combined knowledge.
 
 
 Maybe, maybe not
 ----------------
 
+Monads are very useful when you are dealing with objects that are containers.
 Let's look at the most obvious container -- a `Maybe a`.  A `Maybe a` is a
 container that can either be `Just x` (representing a successful result `x` of
 type `a`) or a `Nothing` (representing a failed result).
@@ -256,8 +264,8 @@ MonadPlus has to fulfill two roles, the other being unrelated to its
 fail/success purpose. Ideally, we would have two classes: MonadFail and
 Alternative.  In practice, however, the part of MonadPlus that does not
 involve dealing with failure/success is rarely used, and we use Alternative
-for that instead, so the only practical problem is really just not-so-useful
-naming.
+for that instead; the only real problem is therefore really just the
+not-so-helpful naming.
 
 [maf]: http://www.haskell.org/haskellwiki/Functor-Applicative-Monad_Proposal
 
@@ -269,7 +277,7 @@ a general way:
     science.  But hey.  Oh well.
 -   We call a failure an "mzero".  Yes, this name is pretty lame too.
 
-For Maybe, a success with the value `x` is `Just x`, and an mzero is a
+For Maybe, a "return" with the value `x` is `Just x`, and an "mzero" is a
 `Nothing`.
 
 Something cool about Haskell is that if we type `return x`, it'll interpret it
@@ -405,19 +413,26 @@ halve :: Int -> Maybe Int
 halve n = do
     guard $ even n
     return $ n `div` 2
+
+-- or
+
+halve :: Int -> Maybe Int
+halve n = guard (even n) >> return (n `div` 2)
 ~~~
 
-The answer is that we could...but just hang on until the next couple chapters
-and see why I didn't write it this way!  However, in real life, do it this way
-if you can. Heh.
+The answer is that we *could*...and admittedly, this is how you really should
+write it in real life.  But just hang on until the next couple of chapters to
+see why I didn't write it this way.
 </aside>
 
 A practical use
 ---------------
 
 We aren't where we need to be to begin tackling that Wolf/Goat/Cabbage puzzle
-yet...so to let this article not be a complete anticlimax, let's look at a
-practical problem that you can solve using the Maybe monad.
+yet...so to let this article not be a complete anticlimax (as a result of my
+bad planning --- I had originally intended to do the entire three-part series
+as one article), let's look at a practical problem that you can solve using
+the Maybe monad.
 
 The obvious examples are situations where it is useful to be able to chain
 failable operations such as retrieving things from a database or a network
@@ -493,11 +508,12 @@ And voila!
 You can think of the last do block conceptually this way: remember, `h3` does
 not represent the `Just 1` value --- `h3` represents the number *inside* the
 `Just 1` --- the 1.  So `h4` is supposed to represent the number inside its
-value, too.  But because `hit h3` results in `Nothing`, `Nothing` has no
-value "inside", so `h4` doesn't even have a value!  So obviously it doesn't
-even make sense to call `powerup h4`...therefore `h5` has no value either!
-It's therefore meaningless to call `powerup h5`, so meaningless to `return
-h6`...the entire thing is a disaster/fiasco.  Mission accomplished!
+value, too.  But because `hit h3` results in `Nothing`; `Nothing` has no value
+"inside", so `h4` doesn't even have a value!  So obviously it doesn't even
+make sense to call `powerup h4`...therefore `h5` has no value either! It's
+therefore meaningless to call `powerup h5`, so meaningless to `return
+h6`...the entire thing is a beautiful disaster.  A fiasco.  Mission
+accomplished!
 
 The whole thing works as expected; you can even die suddenly with `die`, which
 ignores your current health.
@@ -534,9 +550,20 @@ Okay, so what have we learned?
     `x` (if we haven't failed already)", and `mzero` meaning "fail now".
 
 For the mean time, think about how it might make sense to chain operations on
-lists (ie, repeatedly applying functions `:: a -> [b]` to lists).  Is there
-more than one way to think about chaining them, even?  And in what ways we can
-define this "chaining" to represent success/failure?  Until next time!
+lists (ie, repeatedly applying functions `:: a -> [b]` to lists).
+
+By this, I mean, given a function that turns a value into a list of values `f
+:: a -> [b]`, find a way to meaningfully "chain" that function to a previous
+list and get a new list:
+
+~~~haskell
+λ: oldList >>= f
+newList             -- a new list based on old lift; f "chained" to `oldList`.
+~~~
+
+Is there more than one way to think about chaining them, even?  And in what
+ways we can define this "chaining" to represent success/failure?  Until next
+time!
 
 
 
