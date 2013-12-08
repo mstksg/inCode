@@ -1,0 +1,68 @@
+digraph {
+
+    node [shape=none, color=white, fontname="palatino"] ;
+    graph [fontname="helvetica"] ;
+
+    /* rankdir=LR; */
+
+    labeljust="l";
+    constraint=false;
+
+    subgraph cluster0 {
+        label="x ←" ;
+        fontcolor=blue;
+        style=filled ;
+        color=linen ;
+        /* xl [label="x",shape=none] ; */
+        x  [label="Just 6"] ;
+    }
+
+    subgraph cluster1 {
+        label="y ←" ;
+        fontcolor=blue;
+        style=filled ;
+        color=linen ;
+        /* yl [label="y"] ; */
+        y2 [label="Just 12"] ;
+        y1 [label="Just 3"] ;
+    }
+
+    subgraph cluster2 {
+        label="z ←" ;
+        fontcolor=blue;
+        style=filled;
+        color=linen;
+        /* zl [label="z"] ; */
+        z4 [label="Just 24"] ;
+        z3 [label="Just 6"] ;
+        z2 [label="Just 6"] ;
+        z1 [label="Nothing",fontcolor=darkslategray] ;
+    }
+
+    subgraph cluster3 {
+        label="return y" ;
+        labelloc=b;
+        fontcolor=blue;
+        style=filled;
+        color=linen;
+        /* rl [label="return z"] ; */
+        r4 [label="Just 12"] ;
+        r3 [label="Just 12"] ;
+        r2 [label="Just 3"] ;
+        r1 [label="Nothing",fontcolor=darkslategray] ;
+    }
+
+    x  -> y1 ;
+    x  -> y2 ;
+
+    y1 -> z1 ;
+    y1 -> z2 ;
+    y2 -> z3 ;
+    y2 -> z4 ;
+
+    z1 -> r1 [color=darkslategray];
+    z2 -> r2 ;
+    z3 -> r3 ;
+    z4 -> r4 ;
+
+}
