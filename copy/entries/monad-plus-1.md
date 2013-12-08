@@ -232,9 +232,9 @@ build that `Maybe a`, you fail, then you have `Nothing`.
 
 Now, remember, saying "x is a monad" just means "we have defined a way of
 chaining functions/operations on x".  Just like how we can now chain multiple
-functions that return Maybe's (but don't take Maybe's as input).  Now, given
-any object, there is probably more than one way to meaningfully define this
-"chaining".
+functions that return Maybe's (that don't take Maybe's as input).  However,
+given any object, there is probably more than one way to meaningfully define
+this "chaining".
 
 Sometimes, it's useful to base your definition of chaining on the idea of a
 failure/success process.  Sometimes it's useful to define chaining as "We are
@@ -265,14 +265,15 @@ There is a nice vocabulary we can use so we can talk about all MonadPlus's in
 a general way:
 
 -   We call a success a "return".  Yeah...the name is super confusing because
-    of how the word return is used in almost every other context in computer
+    of how the word "return" is used in almost every other context in computer
     science.  But hey.  Oh well.
 -   We call a failure an "mzero".  Yes, this name is pretty lame too.
 
-For Maybe, a success is a `Just x`, and an mzero is a `Nothing`.
+For Maybe, a success with the value `x` is `Just x`, and an mzero is a
+`Nothing`.
 
-Something cool about Haskell is that if we type `return a`, it'll represent an
-auto-success of value `a`.  If we type `mzero`, it'll be an "alias" of
+Something cool about Haskell is that if we type `return x`, it'll interpret it
+as an auto-success of value `x`.  If we type `mzero`, it'll be an "alias" of
 whatever your failure is.
 
 That means that for Maybe, `return x` is the same as `Just x`, and `mzero` is
@@ -292,7 +293,7 @@ and `mzero` (instead of say, `Just` and `Nothing`).
 
 In Haskell, the term we use (instead of "interface") is "**typeclass**". There
 are some subtle differences (including the fact that you can define default
-methods, and you also have a bit more power in what you can specify), but it
+functions, and you also have a bit more power in what you can specify), but it
 doesn't hurt *too* much to make the analogy.
 </aside>
 
@@ -325,7 +326,7 @@ would be the value returned if you just exited at that step.
     in this value")  So while this is sort of redundant, the reason for this
     will be clear in a later article.  Also, it's nice to just sort of see a
     nice "Step 0"
-2.  The failure.  Remember, `empty` means "fail here automatically", which, in
+2.  The failure.  Remember, `mzero` means "fail here automatically", which, in
     a Maybe object, means `Nothing`.
 3.  Now from here on, nothing else even matters...the entire block is a
     failure!
@@ -336,8 +337,8 @@ would be the value returned if you just exited at that step.
 
 ### Guards
 
-It feels like just slapping in `mzero` there is not that useful, because then
-things just fail always no matter what.  Wouldn't it be handy to have a
+It feels like just slapping in `mzero` willy-nilly is not that useful, because
+then things just fail always no matter what.  Wouldn't it be handy to have a
 function that says "fail right...here, if this condition is not met"?  Like
 `mzero`, but instead of always failing, fails on certain conditions.
 

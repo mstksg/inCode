@@ -49,11 +49,11 @@ digraph {
         style=filled;
         color=linen;
         g7 [label="Nothing",fontcolor=darkslategray] ;
-        g6 [label="Just 126"] ;
+        g6 [label="Just ()"] ;
         g5 [label="Nothing",fontcolor=darkslategray] ;
         g4 [label="Nothing",fontcolor=darkslategray] ;
         g3 [label="Nothing",fontcolor=darkslategray] ;
-        g2 [label="Just 15"] ;
+        g2 [label="Just ()"] ;
         g1 [label="Nothing",fontcolor=darkslategray] ;
     }
 
