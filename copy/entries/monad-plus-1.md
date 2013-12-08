@@ -1,5 +1,5 @@
-(Practical) Fun with Monads!  MonadPlus: The Success/Failure Monad
-==================================================================
+(Practical) Fun with Monads!  Introducing: MonadPlus!
+=====================================================
 
 Categories
 :   Haskell
@@ -21,14 +21,15 @@ ill-understood concepts to the public.  They are mostly shrouded in mystery
 because of their association with how Haskell models I/O.  This reputation is
 undeserved.  Monads don't have anything to do with I/O.
 
-This series is a part of a global effort to deshroud the mystery behind monads
-and show that they are fun!  And exciting!  And really just a way of chaining
-together functions that allow for new ways of approaching puzzles.
+This series is a part of a global effort to pull away the shroud of mystery
+behind monads and show that they are fun!  And exciting!  And really just a
+way of chaining together functions that allow for new ways of approaching
+puzzles.
 
-The first sub-series will be on a certain way of implementing monads known as
-*MonadPlus*.  At the end of it all, we are going to be solving the classic
-logic puzzle, as old as time itself, using **only** the List monad, and no
-other fancy data structures:
+The first sub-series (chapter?) will be on a certain way of implementing
+monads known as *MonadPlus*.  At the end of it all, we are going to be solving
+the classic logic puzzle, as old as time itself, using **only** the List monad
+instance, and no loops, queues, stacks, or fancy stuff like that:
 
 > A farmer has a wolf, a goat, and a cabbage that he wishes to transport
 > across a river.  Unfortunately, his only boat can carry one thing at a time.
@@ -69,8 +70,8 @@ Maybe, maybe not
 ----------------
 
 Let's look at the most obvious container -- a `Maybe a`.  A `Maybe a` is a
-container that can either be `Just a` (representing a succesful result `a`) or
-a `Nothing` (representing a failed result).
+container that can either be `Just a` (representing a successful result `a`)
+or a `Nothing` (representing a failed result).
 
 <aside>
     ###### Aside
@@ -90,7 +91,7 @@ easiest way is that any function that is chained onto a failed value will
 be skipped; a failure is the final result.
 
 Consider the `halve` function, which returns ``Just (x `div` 2)`` on a
-succesful halving, or `Nothing` on an unsuccesful halving:
+successful halving, or `Nothing` on an unsuccessful halving:
 
 ~~~haskell
 halve :: Int -> Maybe Int                       -- 1
@@ -106,14 +107,15 @@ Hi again!  There are some quick syntax features here.
 1.  This first line declares that the type of the function `halve` is `Int ->
     Maybe Int`, which means that it takes in an `Int` and returns a `Maybe
     Int` --- an integer wrapped in a "Maybe" container.
-2.  This says that if x is even, then return a succesful ``Just (x `div` 2)``.
+2.  This says that if x is even, then return a successful ``Just (x `div` 2)``.
     ``x `div` 2`` is basically x divided by two, in case you couldn't guess
     already.
 3.  Otherwise, return `Nothing` --- a failure.
 </aside>
 
-We can now chain `halve`s on results of other `halves`, and have any failures
-automatically propagate to the end and short circuit your entire computation:
+Because Maybe comes built-in as a monad, we can now chain `halve`s on results
+of other `halves`, and have any failures automatically propagate to the end
+and short circuit your entire computation:
 
 ~~~haskell
 λ: halve 8
@@ -127,13 +129,13 @@ Nothing                         -- 1
 λ: halve 6 >>= halve
 Nothing
 λ: halve 6 >>= halve >>= halve
+Nothing
+λ: halve 32 >> Nothing
 Nothing                         -- 2
-λ: halve 32 >>= (\_ -> Nothing)
-Nothing                         -- 3
 λ: halve 32 >>= halve >>= halve >>= halve
 Just 2
-λ: halve 32 >>= (\_ -> Nothing) >>= halve >>= halve >>= halve
-Nothing                         -- 4
+λ: halve 32 >> Nothing >>= halve >>= halve >>= halve
+Nothing                         -- 3
 ~~~
 
 <aside>
@@ -143,20 +145,27 @@ In this article, code that begins with `λ: ` represents commands to be entered
 at the interactive prompt, ghci.  Code that doesn't is actual source code.
 </aside>
 
-Some interesting points:
+Remember, `>>=` means "use the results of the last thing to calculate this
+next thing" --- it "chains" the functions.
+
+How does this work exactly?  Don't ask me, this isn't a monad tutorial!  But
+here are some interesting points:
 
 1.  Note that this command doesn't even bother with the second `halve`.  It
     knows that the end result will be `Nothing` no matter what (because `halve
     7` is `Nothing`), so it just skips right past the second `halve`.
-2.  Same thing here; it just skips right past the third `halve`, becuase
-    `halve 6 >>= halve` is `Nothing`.
-3.  Somewhat interesting.  `(\_ -> Nothing)` is a function that returns
-    `Nothing` no matter what.  So chaining that at the end of `halve 32` (a
-    `Just 12`) sort of means instant failure no matter what.
-4.  Disaterous!  Even though halving 32 four times usually is fine, giving
-    `Just 2`, having just one failure along the way means that the entire
+2.  `>>` is a special variation of `>>=`.  `>>=` says "take the result of the
+    last thing and use it on this", while `>>` says "ignore the result of the
+    last thing and always return this".  So `>> Nothing` means "I don't care
+    what the last thing succeeded with, I'm going to fail right here."
+3.  Disastrous!  Even though halving 32 four times usually is fine (giving
+    `Just 2`) having just one failure along the way means that the entire
     thing is a failure.  Think of it as `Nothing >>= halve >>= halve >>=
     halve`.
+
+You can think of this failing phenomenon like this: At every step, Haskell
+attempts to apply `halve` to the result of the previous step.  However, you
+can't `halve` a `Nothing` because a `Nothing` has no value to halve!
 
 ### Do Notation
 
@@ -186,7 +195,7 @@ Just 2
  |     halve z
 Just 2
 
-λ: halve 32 >>= (\_ -> Nothing) >>= halve >>= halve
+λ: halve 32 >> Nothing >>= halve >>= halve
 Nothing
 λ: do
  |     x <- halve 32
@@ -197,9 +206,13 @@ Nothing
 Nothing
 ~~~
 
+In this case, `x`, `y`, and `z`'s do not contain the `Just`/`Nothing`'s ---
+they represent the actual **Ints inside them**, so we can so something like
+`halve x` (where `halve` only takes Ints, not `Maybe Int`'s)
+
 It's kind of imperative-y --- "do `halve 32` and assign the result (16) to
 `x`...do `halve x` and assign the result (8) to `y`..." --- but remember,
-it's still just a bunch of chained `>>=`'s in the end.
+it's still just a bunch of chained `>>=`s in the end.
 
 Failure is an option
 --------------------
@@ -212,36 +225,67 @@ the last example, all of those lines were in an effort to build one giant
 entire computation is one big `Maybe a`.  If at any point in your attempt to
 build that `Maybe a`, you fail, then you have `Nothing`.
 
-This behavior of "fail anywhere, fail the entire thing" is a special subclass
-of Monads.  Not all monads are like this.  This special subclass of monads, we
-call "MonadPlus".  I know, the name isn't really that fancy and it's also
-slightly embarassing.  But a MonadPlus is basically a monad that embodies this
-ideal of _"I am building up either a success or a failure...and if at any
-point I fail, the whole thing is a failure."_
+Now, remember, saying "x is a monad" just means "we have defined a way of
+chaining functions/operations on x".  Just like how we can now chain multiple
+functions that return Maybe's (but don't take Maybe's as input).  Now, given
+any object, there is probably more than one way to meaningfully define this
+"chaining".
 
-What do I mean?
+Sometimes, it's useful to base your definition of chaining on the idea of a
+failure/success process.  Sometimes it's useful to define chaining as "We are
+building up either a success or a failure...and if at any point I fail, the
+whole thing is a failure".
 
-Well, "monads" really is just a way to allow things to return new objects
-based on the contents of previous objects.  Given any object, there is
-technically more than one way to do this, obviously...you can have the
-"chaining" process be anything you want, arbitrarily.  Sometimes, it's useful
-to think of this chaining as a failure/success process.  When we model
-chaining as a failure/success process, we say that we model it as a MonadPlus.
+There is a special name for this design pattern.  In Haskell, we call
+something like this a "MonadPlus".
 
-When you're working with a MonadPlus, your failure case is called "empty".  In
-fact, you can type in `empty` instead of `Nothing`, and Haskell will know you
-mean `Nothing` --- it's like an alias.
+I know, it's an embarrassingly bad name, and the reason it's like this is for
+historical reasons.[^alternative]  But we're stuck with it for pretty much the
+entire foreseeable future, and when you chose to adopt a success/failure model
+for your chaining process, you have a MonadPlus.
 
-Now let's revisit the last do block and make it more generic, and just
-rephrase it in a form that we are going to be encountering more when we solve
-our problem with the List monad:
+[^alternative]: This issue actually stems from one of the more famous
+embarassing mistakes in the design the Haskell standard library --- the
+infamous [monad-applicative-functor hierarchy issue][maf].  As a result,
+MonadPlus has to fulfill two roles, the other being unrelated to its
+fail/success purpose. Ideally, we would have two classes: MonadFail and
+Alternative.  In practice, however, the part of MonadPlus that does not
+involve dealing with failure/success is rarely used, and we use Alternative
+for that instead, so the only practical problem is really just not-so-useful
+naming.
+
+[maf]: http://www.haskell.org/haskellwiki/Functor-Applicative-Monad_Proposal
+
+There is a nice vocabulary we can use so we can talk about all MonadPlus's in
+a general way:
+
+-   We call a success a "return".  Yeah...the name is super confusing because
+    of how the word return is used in almost every other context in computer
+    science.  But hey.  Oh well.
+-   We call a failure an "mzero".  Yes, this name is pretty lame too.
+
+For Maybe, a success is a `Just a`, and an mzero is a `Nothing`.
+
+Something cool about Haskell is that if we type `return a`, it'll represent an
+auto-success of value `a`.  If we type `mzero`, it'll be an "alias" of
+whatever your failure is.
+
+That means that for Maybe, `return a` is the same as `Just a`, and `mzero` is
+basically an alias for `Nothing`.
+
+### MonadPlus examples
+
+To see this in action, let's revisit the last do block and make it more
+generic, and just rephrase it in a form that we are going to be encountering
+more when we solve our problem with the List monad (which is (spoilers) also a
+MonadPlus):
 
 ~~~haskell
 halveThriceOops :: Int -> Maybe Int
 halveThriceOops n = do          -- call with n = 32
-    x  <- Just n                -- Just 32              -- 1
+    x  <- return n              -- Just 32              -- 1
     y  <- halve x               -- Just 16
-    empty                       -- Nothing              -- 2
+    mzero                       -- Nothing              -- 2
     z  <- halve x'              -- (skip)               -- 3
     zz <- halve x'              -- (skip)
     return zz                   -- (skip)               -- 4
@@ -252,36 +296,34 @@ the monad "is" at that point.  It is what is calculated on that line, and it
 would be the value returned if you just exited at that step.
 
 1.  We're going to "initialize" by setting the whole result to be `Just n`, at
-    first.  This is slightly redundant becuase this is sort of dummy step ---
+    first.  This is slightly redundant because this is sort of dummy step ---
     as soon as we put `n` in the `Just`, we "take it out" again and put it in
-    `x`.  (The arrows mean "take the content inside of the `Maybe` and put it
-    in this value")  So while this is sort of redudant, the reason for this
-    will be clear later.  Also, it's nice to just sort of see a nice "Step 0"
+    `x`.  (The arrows mean "take the content inside of the Maybe and put it
+    in this value")  So while this is sort of redundant, the reason for this
+    will be clear in a later article.  Also, it's nice to just sort of see a
+    nice "Step 0"
 2.  The failure.  Remember, `empty` means "fail here automatically", which, in
     a Maybe object, means `Nothing`.
 3.  Now from here on, nothing else even matters...the entire block is a
     failure!
-4.  `return :: a -> Maybe a` --- it basically "always succeeds" with the value
-    given to it.  And if it wasn't for the fact that the block already failed
-    before it could get to this line, it would succeed with `zz`.  This, too,
-    is slightly redundant, but it'll also make sense later.  Remember, this is
-    just a "succeed automatically with this value" --- if we had written
-    `return 5`, the entire block would have succeeded with a 5 if it didn't
-    already fail.  If we had written `return x`, it would have succeeded with
-    the original unchanged value!
+4.  Succeed with the value in `zz`.  This is supposed to be a `Just` with
+    the value of `zz`.  Unfortunately, `zz` doesn't even have a value, because
+    the entire block failed a long time ago.  So sad!
+
 
 ### Guards
 
-Wouldn't it be handy to have a function that says "fail right...here.  if this
-condition is not met"?  Sort of like a more judicious `empty`, which says
-"fail here no matter what".
+It feels like just slapping in `mzero` there is not that useful, because then
+things just fail always no matter what.  Wouldn't it be handy to have a
+function that says "fail right...here, if this condition is not met"?  Like
+`mzero`, but instead of always failing, fails on certain conditions.
 
 Luckily, Haskell gives us one in the standard library:
 
 ~~~haskell
 guard :: MonadPlus m => Bool -> m ()        -- 1
 guard True  = return ()
-guard False = empty
+guard False = mzero
 ~~~
 
 <aside>
@@ -291,7 +333,7 @@ guard False = empty
     that takes a `Bool` and returns a `m ()` --- a monad containing `()`.  But
     we say that `m`, the monad, must be a MonadPlus.
 
-    For example, if we applied this to `Maybe`, the concrete signature would
+    For example, if we applied this to Maybe, the concrete signature would
     be `guard :: Bool -> Maybe ()`
 </aside>
 
@@ -299,11 +341,12 @@ So `guard` will make sure a condition is met, or else it fails the entire
 thing.  If the condition is met, then it succeeds automatically and places a
 `()` in the value.
 
-We can use this to re-implement `halve`, using do notation:
+We can use this to re-implement `halve`, using do notation, aware of Maybe's
+MonadPlus-ness:
 
 ~~~haskell
 halve :: Int -> Maybe Int
-halve n = do                -- n = 8        n = 7
+halve n = do                -- <halve 8>   <halve 7>
     x <- return n           -- Just 8       Just 7
     guard $ even x          -- Just ()      Nothing
     return $ x `div` 2      -- Just 4       (skip)
@@ -312,13 +355,12 @@ halve n = do                -- n = 8        n = 7
 <aside>
     ###### Aside
 
-`guard $ even x` is no mystery...it is just shorthand for `guard (even x)`.
-We just don't like writing all those parentheses out.
-</aside>
+`guard $ even x` is no big mystery...it is just shorthand for `guard (even
+x)`. We just don't like writing all those parentheses out. </aside>
 
-So...halve puts `n` into a `Just` to get it in the context of `Maybe`.  Then,
-if `x` (which is just `n`) is not even, it fails right there.  If not, it
-auto-succeeds with ``x `div` 2``.
+So...halve first puts `n` into a `Just` to get it in the context of Maybe.
+Then, if `x` (which is just `n`) is not even, it fails right there.  If not,
+it auto-succeeds with ``x `div` 2``.
 
 You can trust me when I say this works the exact same way!
 
@@ -326,7 +368,7 @@ As a friendly reminder, this entire block is "compiled"/desugared to:
 
 ~~~haskell
 halve n :: Int -> Maybe Int
-halve n = return n >>= (\x -> guard (even x)) >>= return (x `div` 2)
+halve n = return n >>= (\x -> guard (even x)) >> return (x `div` 2)
 ~~~
 
 <aside>
@@ -341,17 +383,123 @@ halve n = do
     return $ n `div` 2
 ~~~
 
-The answer is that we could...but just hang on tight for a bit and see why I
-didn't write it this way!  However, in real life, do it this way if you can.
-Heh.
+The answer is that we could...but just hang on until the next couple chapters
+and see why I didn't write it this way!  However, in real life, do it this way
+if you can. Heh.
 </aside>
 
+A practical use
+---------------
+
+We aren't where we need to be to begin tackling that Wolf/Goat/Cabbage puzzle
+yet...so to let this article not be a complete anticlimax, let's look at a
+practical problem that you can solve using the Maybe monad!
+
+The obvious examples are things like being able to chain failable operations,
+like retrieving things from a database or a network connection or partial
+functions (functions that only work on some values).
+
+However, here is a neat one.
+
+Let's say we are playing a game, where you can lose health by being hit, or
+gain health by picking up powerups.  We want to calculate the final health at
+the end of the game.  That's easy, just add up all the losses and gains!
+Unfortunately, it's not so simple --- if your health ever dips below 0, you
+are dead.  Forever.  No powerups will ever help you.
+
+Think about how you would implement this normally.  You might have a state
+object that stores the current health as well as a flag with the current
+dead/alive state, and at every step, check if the health is below 0; if it is,
+swap the flag to be dead and ignore all other updates.
+
+Let's try doing this with the Maybe monad :)
+
+~~~haskell
+die :: Maybe Int
+die = Nothing                       -- or die = mzero
+
+setHealth :: Int -> Maybe Int
+setHealth n = Just n                -- or setHealth n = return n
+
+hit :: Int -> Maybe Int
+hit currHealth = do
+    let newHealth = currHealth - 1
+    guard $ newHealth > 0           -- fail immediately unless newHealth is
+                                    -- positive
+    return newHealth                -- succeed with newHealth if possible
+
+-- an alternative definition, using >>= and >>
+hit' :: Int -> Maybe Int
+hit' currHealth = guard (newHealth > 0) >> return newHealth
+    where
+        newHealth = currHealth - 1
 
 
+powerup :: Int -> Maybe Int
+powerup currHealth = Just $ currHealth + 1
+~~~
+
+~~~haskell
+λ: setHealth 2 >>= hit >>= powerup >>= hit >>= powerup >>= powerup
+Just 3
+λ: setHealth 2 >>= hit >>= powerup >>= hit >>= hit >>= powerup
+Nothing
+λ: setHealth 10 >>= powerup >>= die >>= powerup >>= powerup 
+Nothing
+λ: do
+ |     h0 <- setHealth 2        -- Just 2
+ |     h1 <- hit h0             -- Just 1
+ |     h2 <- powerup h1         -- Just 2
+ |     h3 <- hit h2             -- Just 1
+ |     h4 <- hit h3             -- Nothing
+ |     h5 <- powerup h4         -- (skip)
+ |     h6 <- powerup h5         -- (skip)
+ |     return h6                -- (skip)
+Nothing
+~~~
+
+And voila!
+
+You can think of the last do block conceptually as this: remember, `h3` does
+not represent the `Just 1` value --- `h3` represents the number *inside* the
+`Just 1` --- the 1.  So `h4` represents the number inside its value too.  But
+because `hit h3` results in `Nothing`...`Nothing` has no value "inside", so
+`h4` doesn't even have a value!  So obviously it doesn't even make sense to
+call `powerup h4`...therefore `h5` has no value either!  It's therefore
+meaningless to call `powerup h5`, so meaningless to `return h6`...the entire
+thing is a disaster/fiasco.  Mission accomplished!
+
+Note that we could actually eliminate all references to Maybe altogether by
+always using `return` and `mzero` instead of `Just` and `Nothing`.  And if we
+get our type signature generic enough, we could use this with *any* MonadPlus!
+But that is for another day.
 
 
+Looking forward
+---------------
 
+Wow, who knew you could spend so much time talking about failure.  Anyways,
+this is a good place to stop before we move onto how List is also a MonadPlus.
+Okay, so what have we learned?
 
+-   Monads are just a way of chaining functions on objects, and of course,
+    every object's chaining process is different.  In fact there might be even
+    more than one way to meaningfully chain functions on an object!
+-   One useful "chaining method" is to model things as success-failure chains,
+    where you are building something from successes, but if you fail once in
+    the process, the entire process fails.
+-   The Maybe object is one such example.  We can define 'chaining' failable
+    functions as functions that continue if the previous function succeeded,
+    or completely skip if the previous function fails.  A failable function is
+    a function `:: a -> Maybe b` or even `:: Maybe b`.
+-   We can "forget" we are using Maybe and in fact talk about/write for
+    "general" MonadPlus's, with `return x` meaning "succeed automatically with
+    `x` (if we haven't failed already)", and `mzero` meaning "fail now".
+
+For the mean time, think about how it makes sense to chain operations on lists
+(ie, repeatedly applying functions `:: a -> [b]` to lists), and in what we can
+define this "chaining" to represent success/failure...somehow.  Until next
+time!
 
 
 
