@@ -1,5 +1,5 @@
-Practical Fun with Monads:  Introducing: MonadPlus!
-===================================================
+Practical Fun with Monads --- Introducing: MonadPlus!
+=====================================================
 
 Categories
 :   Haskell
