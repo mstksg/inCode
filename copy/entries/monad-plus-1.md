@@ -43,8 +43,8 @@ Let us enter a brave new world!
 A Quick Review of Monads
 ------------------------
 
-As a Haskell blogger, I'm not allowed to write any straight-up monad
-tutorials, but I don't need too --- there are a wealth of great ones.
+As a Haskell blogger, I'm not allowed to write any monad tutorials.  I don't
+need too --- there are a wealth of great ones.
 [Adit provides a great concise one][adit], and, if you want,
 [a more in depth one][wiki] is on the haskell.org wiki about using them in
 real life.
@@ -57,11 +57,13 @@ relationship to one another.  When we say monads, we just mean things that
 chain together functions "inside" wrappers, containers, or contexts.  In our
 case, containers.
 
-This article attempts to explain as much special Haskell syntax as possible
-and explain how monads are used "in real life", and how to use (mostly
-idiomatic) monadic style to solve problems.  That being said, if you ever run
-into anything you can't understand, feel free to read the articles above, give
-[Learn You A Haskell][lyah] a quick read, or leave a comment.
+This article attempts to explain as much special Haskell syntax as possible,
+for readers not familiar with Haskell.  Nevertheless, this article is written
+for someone with a somewhat fuzzy idea of monads and a sorta maybe basic
+understanding of functional programming principles.  That being said, if you
+ever run into anything you can't understand, feel free to read the articles
+above, give [Learn You A Haskell][lyah] a quick read, or leave a comment ---
+I'd love to answer your questions or hear your responses!
 
 [lyah]: http://learnyouahaskell.com/
 
