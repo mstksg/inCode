@@ -1,7 +1,7 @@
 digraph {
 
     node [shape=none, color=white, fontname="palatino"] ;
-    graph [fontname="helvetica"] ;
+    graph [fontname="palatino"] ;
 
     labeljust="l";
     constraint=false;
@@ -29,7 +29,7 @@ digraph {
     }
 
     subgraph cluster2 {
-        label="z =" ;
+        label="f x" ;
         fontcolor=blue;
         style=filled;
         color=linen;
@@ -43,7 +43,7 @@ digraph {
     }
 
     subgraph cluster3 {
-        label="guard (isMultThree z)" ;
+        label="guard (isMultThree (f x))" ;
         labelloc=b;
         fontcolor=blue;
         style=filled;

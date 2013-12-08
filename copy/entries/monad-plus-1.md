@@ -417,11 +417,12 @@ A practical use
 
 We aren't where we need to be to begin tackling that Wolf/Goat/Cabbage puzzle
 yet...so to let this article not be a complete anticlimax, let's look at a
-practical problem that you can solve using the Maybe monad!
+practical problem that you can solve using the Maybe monad.
 
-The obvious examples are things like being able to chain failable operations,
-like retrieving things from a database or a network connection or partial
-functions (functions that only work on some values).
+The obvious examples are situations where it is useful to be able to chain
+failable operations such as retrieving things from a database or a network
+connection or applying partial functions (functions that only work on some
+values, like our `halve`).
 
 However, here is a neat one.
 
@@ -433,32 +434,36 @@ are dead.  Forever.  No powerups will ever help you.
 
 Think about how you would implement this normally.  You might have a state
 object that stores the current health as well as a flag with the current
-dead/alive state, and at every step, check if the health is below 0; if it is,
-swap the flag to be dead and ignore all other updates.
+dead/alive state, and at every step, check if the health is 0 or lower; if it
+is, swap the flag to be dead and ignore all other updates.
 
-Let's try doing this with the Maybe monad :)
+But let's try doing this instead with the Maybe monad:
 
 ~~~haskell
+-- die or fail immediately
 die :: Maybe Int
 die = Nothing                       -- or die = mzero
 
+-- if not dead, sets the health to the given level
 setHealth :: Int -> Maybe Int
 setHealth n = Just n                -- or setHealth n = return n
 
+-- damage the player (from its previous health) and check for death
 hit :: Int -> Maybe Int
 hit currHealth = do
     let newHealth = currHealth - 1
-    guard $ newHealth > 0           -- fail immediately unless newHealth is
-                                    -- positive
-    return newHealth                -- succeed with newHealth if possible
+    guard $ newHealth > 0           -- fail/die immediately unless newHealth
+                                    --     is positive
+    return newHealth                -- succeed with newHealth if not already
+                                    --     dead
 
--- an alternative definition, using >>= and >>
+-- an alternative but identical definition of `hit`, using >>= and >>
 hit' :: Int -> Maybe Int
 hit' currHealth = guard (newHealth > 0) >> return newHealth
     where
         newHealth = currHealth - 1
 
-
+-- increase the player's health from its previous health
 powerup :: Int -> Maybe Int
 powerup currHealth = Just $ currHealth + 1
 ~~~
@@ -509,13 +514,16 @@ Okay, so what have we learned?
 -   Monads are just a way of chaining functions on objects, and of course,
     every object's chaining process is different.  In fact there might be even
     more than one way to meaningfully chain functions on an object!
+
 -   One useful "chaining method" is to model things as success-failure chains,
     where you are building something from successes, but if you fail once in
     the process, the entire process fails.
+
 -   The Maybe object is one such example.  We can define 'chaining' failable
     functions as functions that continue if the previous function succeeded,
-    or completely skip if the previous function fails.  A failable function is
-    a function `:: a -> Maybe b` or even `:: Maybe b`.
+    or propagate a failure if the previous function fails.  A failable
+    function is a function `:: a -> Maybe b` or even `:: Maybe b`.
+
 -   We can "forget" we are using Maybe and in fact talk about/write for
     "general" MonadPlus's, with `return x` meaning "succeed automatically with
     `x` (if we haven't failed already)", and `mzero` meaning "fail now".

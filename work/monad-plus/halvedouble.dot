@@ -1,7 +1,7 @@
 digraph {
 
     node [shape=none, color=white, fontname="palatino"] ;
-    graph [fontname="helvetica"] ;
+    graph [fontname="palatino"] ;
 
     /* rankdir=LR; */
 
