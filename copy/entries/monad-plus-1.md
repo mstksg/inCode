@@ -518,7 +518,7 @@ Okay, so what have we learned?
 -   One useful "chaining approach" is to model things as success-failure chains,
     where you are building something from successes, but if you fail once in
     the process, the entire process fails.  This approach/design pattern is
-    called MonadPlus.
+    called a MonadPlus.
 
 -   The Maybe object is one such example.  We can define 'chaining' failable
     functions as functions that continue if the previous function succeeded,
