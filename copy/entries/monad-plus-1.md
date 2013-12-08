@@ -426,11 +426,12 @@ values, like our `halve`).
 
 However, here is a neat one.
 
-Let's say we are playing a game, where you can lose health by being hit, or
-gain health by picking up powerups.  We want to calculate the final health at
-the end of the game.  That's easy, just add up all the losses and gains!
-Unfortunately, it's not so simple --- if your health ever dips below 0, you
-are dead.  Forever.  No powerups will ever help you.
+Let's say we are making a game where you can lose health by being hit or gain
+health by picking up powerups.  We want to calculate the final health at the
+end of the game.  It seems a bit easy: just add up all the losses and gains!
+Unfortunately, it's not so simple --- it needs to be implemented such that if
+your health ever dips below 0, you are dead.  Forever.  No powerups will ever
+help you.
 
 Think about how you would implement this normally.  You might have a state
 object that stores the current health as well as a flag with the current
@@ -489,19 +490,22 @@ Nothing
 
 And voila!
 
-You can think of the last do block conceptually as this: remember, `h3` does
+You can think of the last do block conceptually this way: remember, `h3` does
 not represent the `Just 1` value --- `h3` represents the number *inside* the
-`Just 1` --- the 1.  So `h4` represents the number inside its value too.  But
-because `hit h3` results in `Nothing`...`Nothing` has no value "inside", so
-`h4` doesn't even have a value!  So obviously it doesn't even make sense to
-call `powerup h4`...therefore `h5` has no value either!  It's therefore
-meaningless to call `powerup h5`, so meaningless to `return h6`...the entire
-thing is a disaster/fiasco.  Mission accomplished!
+`Just 1` --- the 1.  So `h4` is supposed to represent the number inside its
+value, too.  But because `hit h3` results in `Nothing`, `Nothing` has no
+value "inside", so `h4` doesn't even have a value!  So obviously it doesn't
+even make sense to call `powerup h4`...therefore `h5` has no value either!
+It's therefore meaningless to call `powerup h5`, so meaningless to `return
+h6`...the entire thing is a disaster/fiasco.  Mission accomplished!
 
-Note that we could actually eliminate all references to Maybe altogether by
-always using `return` and `mzero` instead of `Just` and `Nothing`.  And if we
-get our type signature generic enough, we could use this with *any* MonadPlus!
-But that is for another day.
+The whole thing works as expected; you can even die suddenly with `die`, which
+ignores your current health.
+
+Interestingly enough, we could actually eliminate all references to Maybe
+altogether by always using `return` and `mzero` instead of `Just` and
+`Nothing`.  And if we get our type signature generic enough, we could use this
+with *any* MonadPlus! But that is for another day.
 
 
 Looking forward
