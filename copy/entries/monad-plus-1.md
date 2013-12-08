@@ -61,9 +61,9 @@ This article attempts to explain as much special Haskell syntax as possible,
 for readers not familiar with Haskell.  Nevertheless, this article is written
 for someone with a somewhat fuzzy idea of monads and a sorta maybe basic
 understanding of functional programming principles.  That being said, if you
-ever run into anything you can't understand, feel free to read the articles
-above, give [Learn You A Haskell][lyah] a quick read, or leave a comment ---
-I'd love to answer your questions or hear your responses!
+ever run into anything you can't understand, feel free to either read the
+articles above, give [Learn You A Haskell][lyah] a quick read, or leave a
+comment --- I'd love to answer your questions or hear your responses!
 
 [lyah]: http://learnyouahaskell.com/
 
@@ -72,8 +72,8 @@ Maybe, maybe not
 ----------------
 
 Let's look at the most obvious container -- a `Maybe a`.  A `Maybe a` is a
-container that can either be `Just a` (representing a successful result `a`)
-or a `Nothing` (representing a failed result).
+container that can either be `Just x` (representing a successful result `x` of
+type `a`) or a `Nothing` (representing a failed result).
 
 <aside>
     ###### Aside
@@ -266,13 +266,13 @@ a general way:
     science.  But hey.  Oh well.
 -   We call a failure an "mzero".  Yes, this name is pretty lame too.
 
-For Maybe, a success is a `Just a`, and an mzero is a `Nothing`.
+For Maybe, a success is a `Just x`, and an mzero is a `Nothing`.
 
 Something cool about Haskell is that if we type `return a`, it'll represent an
 auto-success of value `a`.  If we type `mzero`, it'll be an "alias" of
 whatever your failure is.
 
-That means that for Maybe, `return a` is the same as `Just a`, and `mzero` is
+That means that for Maybe, `return x` is the same as `Just x`, and `mzero` is
 basically an alias for `Nothing`.
 
 ### MonadPlus examples
