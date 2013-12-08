@@ -289,8 +289,10 @@ talking about, and you can write code that works with all MonadPlus's
 generically without worrying about their actual type by using only `return`
 and `mzero` (instead of say, `Just` and `Nothing`).
 
-In Haskell, the term we use (instead of "interface") is "**typeclass**".
-There are some subtle differences, but it doesn't hurt to make the analogy.
+In Haskell, the term we use (instead of "interface") is "**typeclass**". There
+are some subtle differences (including the fact that you can define default
+methods, and you also have a bit more power in what you can specify), but it
+doesn't hurt *too* much to make the analogy.
 </aside>
 
 ### MonadPlus examples
