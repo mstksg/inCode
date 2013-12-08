@@ -503,7 +503,7 @@ Nothing
 Nothing
 ~~~
 
-And voila!
+And voilà!
 
 You can think of the last do block conceptually this way: remember, `h3` does
 not represent the `Just 1` value --- `h3` represents the number *inside* the

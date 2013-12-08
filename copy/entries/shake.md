@@ -253,7 +253,7 @@ With this in mind, let us write the rest of our file rules:
          , "img/img1.jpg"
          , "img/img2.jpg"
          , "css/report.css" ]
-    cmd "pandoc" [ "src/report.md", "-o", f, "-c", "css/report.css" ]
+    cmd "pandoc" [ "src/report.md", "-o", f, "-c", "css/report.css", "-S" ]
 
 "img/img2.jpg" *> \f -> do
     cmd "wget" [ "http://example.com/img2.jpg", "-O", f ]
@@ -336,7 +336,7 @@ main = shakeArgs opts $ do
     "out/report.html" *> \f -> do
         deps <- srcFiles
         need $ "css/report.css" : deps
-        cmd "pandoc" [ "src/report.md", "-o", f, "-c", "css/report.css" ]
+        cmd "pandoc" [ "src/report.md", "-o", f, "-c", "css/report.css", "-S" ]
 
     "img/img2.jpg" *> \f -> do
         cmd "wget" [ "http://example.com/img2.jpg", "-O", f ]
@@ -444,7 +444,7 @@ main = shakeArgs opts $ do
     "out/report.html" *> \f -> do
         deps <- srcFiles
         need $ "css/report.css" : deps
-        cmd "pandoc" [ "src/report.md", "-o", f, "-c", "css/report.css" ]
+        cmd "pandoc" [ "src/report.md", "-o", f, "-c", "css/report.css", "-S" ]
 
     "img/img2.jpg" *> \f -> do
         cmd "wget" [ "http://example.com/img2.jpg", "-O", f ]
@@ -489,7 +489,7 @@ forM_ ["report1","report2","report3"] $ \reportName -> do
     (outBase ++ ".html") *> \f -> do
         deps <- srcFiles
         need $ "css/report.css" : deps
-        cmd "pandoc" [ srcName, "-o", f, "-c", "css/report.css" ]
+        cmd "pandoc" [ srcName, "-o", f, "-c", "css/report.css", "-S" ]
 ~~~
 
 
