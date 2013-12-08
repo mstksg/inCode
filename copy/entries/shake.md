@@ -289,8 +289,8 @@ And let the magic happen!
 I run this enough times that I like to alias this:
 
 ~~~bash
-$ # .bashrc
-$ alias shake=runhaskell Shakefile
+# in ~/.bashrc
+alias shake=runhaskell Shakefile
 ~~~
 
 Note that `want` specifies the **default** "wants".  You can specify your own
