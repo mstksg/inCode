@@ -375,12 +375,14 @@ A small diversion.
 
 This is a little nicety, but there is the common library monad function
 `sequence :: Monad m => [m a] -> m [a]`, which turns a `[Maybe a]` into a
-`Maybe [a]`.  Sequence turns a list of monads into a monad containing a list.
-In the context of MonadPlus, it would be turning a list of Success/Failures
-into a Success/Failure containing a list.
+`Maybe [a]`.  Conceptually, `sequence` turns a list of monads into a monad
+containing a list.
 
-Knowing what we know now, if any part of the building is a failure, the entire
-thing is a failure.  This is reflected in `sequence`:
+In the context of MonadPlus, it would be turning a list of Success/Failures
+into a succesful or failed list.
+
+Knowing what we know now, if any part of the building process is a failure,
+the entire thing is a failure.  This is reflected in `sequence`:
 
 ~~~haskell
 λ: sequence [Just 1, Just 4, Just 6]
