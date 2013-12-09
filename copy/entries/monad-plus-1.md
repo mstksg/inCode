@@ -40,30 +40,23 @@ instance, and no loops, queues, or fancy stuff like that:
 
 Let us enter a brave new world!
 
-### A quick review
+### A quick review of monads
 
-As a Haskell blogger, I'm not allowed to write any monad tutorials.  I don't
-need too --- there are a wealth of great ones.
-[Adit provides a great concise one][adit], and, if you want,
-[a more in depth one][wiki] is on the haskell.org wiki about using them in
-real life.
-
-[adit]: http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html
-[wiki]: http://www.haskell.org/haskellwiki/All_About_Monads
-
-Remember --- different monads do not actually have any non-superficial
-relationship to one another.  When we say monads, we just mean things that
-chain together functions "inside" wrappers, containers, or contexts.  In our
-case, containers.
+<aside>
+    ###### Note
 
 This article is written for both beginners --- people who have a fuzzy idea of
 monads and a minimal understanding of functional programming principles, but
 who have some experience in Object-Oriented Programming in a language like
 Java or C++ --- and intermediate Haskell users who have a somewhat firm grasp
 on monads, but want to know about monads on a broader context (in particular,
-the MonadPlus typeclass).  Intermediate Haskell users will most likely find
-this part to be review, but if you read it while asking the question "how
-can this be abstracted and generalized?", you will have the maximum payoff
+the MonadPlus typeclass).
+
+Intermediate Haskell users will most likely find this post to be review, and
+I'll put a link in this paragraph when the next part is up so we can get to
+"real" Haskelling.  However, this post might be beneficial if you read it
+while asking, at every point, "How can this be abstracted and generalized?".
+It's a fun exercise!
 
 This article attempts to explain all Haskell syntax that might be foreign to
 beginners.  That being said, if you ever run into anything you can't
@@ -76,6 +69,21 @@ love to answer your questions or hear your responses!
 This first post will cover the basics of MonadPlus with the simplest MonadPlus
 of all; the second part will explore the List MonadPlus, and the third will
 finally tackle the Wolf/Goat/Cabbage puzzle with our combined knowledge.
+</aside>
+
+Okay, so as a Haskell blogger, I'm actually not allowed to write any monad
+tutorials.  Luckily for you, however, I don't need too --- there are a wealth
+of great ones. [Adit provides a great concise one][adit], and, if you want, [a
+more in depth one][wiki] is on the haskell.org wiki about all sorts of monads
+and using them in real life.
+
+[adit]: http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html
+[wiki]: http://www.haskell.org/haskellwiki/All_About_Monads
+
+Remember --- different monads do not actually have any non-superficial
+relationship to one another.  When we say monads, we just mean objects for
+which we have defined a way to chain together functions "inside" wrappers,
+containers, or contexts.
 
 
 Maybe, maybe not
