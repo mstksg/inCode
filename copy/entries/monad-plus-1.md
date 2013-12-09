@@ -7,7 +7,7 @@ Categories
 Tags
 :   functional programming
 Series
-:   MonadPlus: The Success/Failure Monad
+:   MonadPlus: Success/Failure Monads
 :   Practical Monads
 CreateTime
 :   2013/12/04 21:43:34
