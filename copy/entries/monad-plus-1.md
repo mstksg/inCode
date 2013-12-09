@@ -40,8 +40,7 @@ instance, and no loops, queues, or fancy stuff like that:
 
 Let us enter a brave new world!
 
-A quick review of monads
-------------------------
+### A quick review
 
 As a Haskell blogger, I'm not allowed to write any monad tutorials.  I don't
 need too --- there are a wealth of great ones.
@@ -62,7 +61,9 @@ monads and a minimal understanding of functional programming principles, but
 who have some experience in Object-Oriented Programming in a language like
 Java or C++ --- and intermediate Haskell users who have a somewhat firm grasp
 on monads, but want to know about monads on a broader context (in particular,
-the MonadPlus typeclass).
+the MonadPlus typeclass).  Intermediate Haskell users will most likely find
+this part to be review, but if you read it while asking the question "how
+can this be abstracted and generalized?", you will have the maximum payoff
 
 This article attempts to explain all Haskell syntax that might be foreign to
 beginners.  That being said, if you ever run into anything you can't
@@ -94,8 +95,8 @@ Haskell syntax.  Feel free to ignore them if you already feel comfortable.
 Anyways, if you've ever done any object-oriented programming, you might be
 able to think of `Maybe a` as an abstract/virtual superclass with
 templates/generics --- `Maybe<a>`, kinda.  And that superclass has two
-subclasses: `Just<a>`, which has one public instance variable of type `a`, and
-`Nothing`, which contains no instance variables.
+subclasses: `Just<a>`, which has one public instance variable `x` of type `a`,
+and `Nothing`, which contains no instance variables.
 </aside>
 
 Often times you'll have functions that fail, and you want to chain them.  The
@@ -318,8 +319,8 @@ halveThriceOops n = do          -- call with n = 32
     x  <- return n              -- Just 32              -- 1
     y  <- halve x               -- Just 16
     mzero                       -- Nothing              -- 2
-    z  <- halve x'              -- (skip)               -- 3
-    zz <- halve x'              -- (skip)
+    z  <- halve y               -- (skip)               -- 3
+    zz <- halve z               -- (skip)
     return zz                   -- (skip)               -- 4
 ~~~
 
@@ -543,7 +544,8 @@ Okay, so what have we learned?
 -   The Maybe object is one such example.  We can define 'chaining' failable
     functions as functions that continue if the previous function succeeded,
     or propagate a failure if the previous function fails.  A failable
-    function is a function `:: a -> Maybe b` or even `:: Maybe b`.
+    function, for a Maybe object, is a function `:: a -> Maybe b` or even `::
+    Maybe b`.
 
 -   We can "forget" we are using Maybe and in fact talk about/write for
     "general" MonadPlus's, with `return x` meaning "succeed automatically with
