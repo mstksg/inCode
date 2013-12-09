@@ -262,9 +262,10 @@ There is a special name for this design pattern.  In Haskell, we call
 something like this a "MonadPlus".
 
 I know, it's an embarrassingly bad name, and the reason it's like this is for
-historical reasons.[^alternative]  But we're stuck with it for pretty much the
-entire foreseeable future, and when you chose to adopt a success/failure model
-for your chaining process, you have a MonadPlus.
+historical reasons.[^alternative]  The name doesn't even hint at a
+fail/succeedness.  But we're stuck with it for pretty much the entire
+foreseeable future, so when you chose to adopt a success/failure model for
+your chaining process, you have a *MonadPlus*.
 
 [^alternative]: This issue actually stems from one of the more famous
 embarassing mistakes in the design the Haskell standard library --- the
@@ -278,8 +279,8 @@ not-so-helpful naming.
 
 [maf]: http://www.haskell.org/haskellwiki/Functor-Applicative-Monad_Proposal
 
-There is a nice vocabulary we can use so we can talk about all MonadPlus's in
-a general way:
+There is a vocabulary we can use so we can talk about all MonadPlus's in a
+general way:
 
 -   We call a success a "return".  Yeah...the name is super confusing because
     of how the word "return" is used in almost every other context in computer
@@ -314,6 +315,12 @@ functions, and you also have a bit more power in what you can specify), but it
 doesn't hurt *too* much to make the analogy.
 </aside>
 
+As a small note, the term/command "return"/`return` is shared by all monads.
+It is, in general, a meaning-free term --- it can "mean", conceptually,
+whatever you want it to mean, in general.  However, in the context of
+MonadPlus, "return" has a very specific meaning: *succeed*.  Because of this,
+"return" and "succeed" will be treated as synonyms in this article.
+
 ### MonadPlus examples
 
 To see this in action, let's revisit the last do block and make it more
@@ -324,32 +331,26 @@ MonadPlus):
 ~~~haskell
 halveThriceOops :: Int -> Maybe Int
 halveThriceOops n = do          -- call with n = 32
-    x  <- return n              -- Just 32              -- 1
-    y  <- halve x               -- Just 16
+    x <- halve n                -- Just 16              -- 1
     mzero                       -- Nothing              -- 2
-    z  <- halve y               -- (skip)               -- 3
-    zz <- halve z               -- (skip)
-    return zz                   -- (skip)               -- 4
+    y <- halve x                -- (skip)               -- 3
+    z <- halve y                -- (skip)
+    return z                    -- (skip)               -- 4
 ~~~
 
 Note that I've also included a line-by-line 'trace' of the do block with what
 the monad "is" at that point.  It is what is calculated on that line, and it
 would be the value returned if you just exited at that step.
 
-1.  We're going to "initialize" by setting the whole result to be `Just n`, at
-    first.  This is slightly redundant because this is sort of dummy step ---
-    as soon as we put `n` in the `Just`, we "take it out" again and put it in
-    `x`.  (The arrows mean "take the content inside of the Maybe and put it
-    in this value")  So while this is sort of redundant, the reason for this
-    will be clear in a later article.  Also, it's nice to just sort of see a
-    nice "Step 0"
+1.  Business as usual.  Halve `n` if possible and place the reuslt in `x`.  If
+    `n` is 32, then `x` will be 16.
 2.  The failure.  Remember, `mzero` means "fail here automatically", which, in
     a Maybe object, means `Nothing`.
 3.  Now from here on, nothing else even matters...the entire block is a
     failure!
-4.  Succeed with the value in `zz`.  This is supposed to be a `Just` with
-    the value of `zz`.  Unfortunately, `zz` doesn't even have a value, because
-    the entire block failed a long time ago.  So sad!
+4.  If possible, succeed with the value in `z`.  This is supposed to be a
+    `Just` with the value of `z`.  Unfortunately, the entire block failed a
+    long time ago.  So sad!
 
 
 ### Guards
@@ -376,11 +377,12 @@ guard False = mzero
 
     For example, if we applied this to Maybe, the concrete signature would
     be `guard :: Bool -> Maybe ()`
+
 </aside>
 
 So `guard` will make sure a condition is met, or else it fails the entire
-thing.  If the condition is met, then it succeeds automatically and places a
-`()` in the value.
+thing.  If the condition is met, then it succeeds and places a `()` in the
+value.
 
 We can use this to re-implement `halve`, using do notation, aware of Maybe's
 MonadPlus-ness:
@@ -388,20 +390,20 @@ MonadPlus-ness:
 ~~~haskell
 halve :: Int -> Maybe Int
 halve n = do                -- <halve 8>   <halve 7>
-    x <- return n           -- Just 8       Just 7
-    guard $ even x          -- Just ()      Nothing
-    return $ x `div` 2      -- Just 4       (skip)
+    guard $ even n          -- Just ()      Nothing
+    return $ n `div` 2      -- Just 4       (skip)
 ~~~
 
 <aside>
     ###### Aside
 
-`guard $ even x` is no big mystery...it is just shorthand for `guard (even
-x)`. We just don't like writing all those parentheses out. </aside>
+`guard $ even n` seems confusing, but it is just shorthand for `guard (even
+n)`. We just don't like writing all those parentheses out.
+</aside>
 
-So...halve first puts `n` into a `Just` to get it in the context of Maybe.
-Then, if `x` (which is just `n`) is not even, it fails right there.  If not,
-it auto-succeeds with ``x `div` 2``.
+So, first, `halve` is `Just ()` (succeeds with a blank value `()`) if `n` is
+even, or  else `Nothing` (fails automatically) otherwise.  Finally, if it has
+not yet failed, it attempts to succeed with ``n `div` 2``.
 
 You can trust me when I say this works the exact same way!
 
@@ -409,30 +411,9 @@ As a friendly reminder, this entire block is "compiled"/desugared to:
 
 ~~~haskell
 halve n :: Int -> Maybe Int
-halve n = return n >>= (\x -> guard (even x)) >> return (x `div` 2)
-~~~
-
-<aside>
-    ###### Note
-
-Some of this might seem a little convoluted...why didn't we just do:
-
-~~~haskell
-halve :: Int -> Maybe Int
-halve n = do
-    guard $ even n
-    return $ n `div` 2
-
--- or
-
-halve :: Int -> Maybe Int
 halve n = guard (even n) >> return (n `div` 2)
 ~~~
 
-The answer is that we *could*...and admittedly, this is how you really should
-write it in real life.  But just hang on until the next couple of chapters to
-see why I didn't write it this way.
-</aside>
 
 A practical use
 ---------------
@@ -543,21 +524,20 @@ Okay, so what have we learned?
 -   Monads are just a way of chaining functions on objects, and of course,
     every object's chaining process is different.  In fact there might be even
     more than one way to meaningfully chain functions on an object!
-
 -   One useful "chaining approach" is to model things as success-failure chains,
     where you are building something from successes, but if you fail once in
     the process, the entire process fails.  An object that uses this
     approach/design pattern is called a MonadPlus.
-
 -   The Maybe object is one such example.  We can define 'chaining' failable
     functions as functions that continue if the previous function succeeded,
     or propagate a failure if the previous function fails.  A failable
     function, for a Maybe object, is a function `:: a -> Maybe b` or even `::
     Maybe b`.
-
--   We can "forget" we are using Maybe and in fact talk about/write for
-    "general" MonadPlus's, with `return x` meaning "succeed automatically with
-    `x` (if we haven't failed already)", and `mzero` meaning "fail now".
+-   There is a common vocabulary for talking about MonadPlus concepts ---
+    "return" means "succeed with this value", and "mzero" means "fail now".
+-   Due to Haskell's polymorphism, we can "forget" we are using Maybe and in
+    fact talk about/write for "general" MonadPlus's, with `return x` and
+    `mzero` resulting in the appropriate success/fail objects.
 
 For the mean time, think about how it might make sense to chain operations on
 lists (ie, repeatedly applying functions `:: a -> [b]` to lists).
