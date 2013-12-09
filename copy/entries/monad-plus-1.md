@@ -368,6 +368,28 @@ would be the value returned if you just exited at that step.
     long time ago.  So sad!
 
 
+<aside>
+    ###### Node
+
+A small diversion.
+
+This is a little nicety, but there is the common library monad function
+`sequence :: Monad m => [m a] -> m [a]`, which turns a `[Maybe a]` into a
+`Maybe [a]`.  Sequence turns a list of monads into a monad containing a list.
+In the context of MonadPlus, it would be turning a list of Success/Failures
+into a Success/Failure containing a list.
+
+Knowing what we know now, if any part of the building is a failure, the entire
+thing is a failure.  This is reflected in `sequence`:
+
+~~~haskell
+λ: sequence [Just 1, Just 4, Just 6]
+Just [1,4,6]
+λ: sequence [Just 1, Nothing, Just 6]
+Nothing
+~~~
+</aside>
+
 ### Guards
 
 It feels like just slapping in `mzero` willy-nilly is not that useful, because
