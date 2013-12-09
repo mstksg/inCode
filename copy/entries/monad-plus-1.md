@@ -329,11 +329,11 @@ doesn't hurt *too* much to make the analogy.
 </aside>
 
 As a small note, the term/command "return"/`return` is shared by all monads.
-However, in general, monads don't ascribe any real conceptual "meaning" or
-"purpose" to return.  For any old monad, it can mean whatever you want.
-However, in the context of MonadPlus, "return" has a very specific meaning:
-*succeed*.  Because of this, "return" and "succeed" will be treated as
-synonyms in this article.
+However, generally, monads don't ascribe any real conceptual "meaning" or
+"purpose" to return.  For any old monad, it can mean whatever you want it to
+mean for that specific monad. However, in the context of MonadPlus, "return"
+has a very specific meaning: *succeed*.  Because of this, "return" and
+"succeed" will be treated as synonyms in this article.
 
 ### MonadPlus examples
 
