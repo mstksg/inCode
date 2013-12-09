@@ -379,10 +379,10 @@ This is a little nicety, but there is the common library monad function
 containing a list.
 
 In the context of MonadPlus, it would be turning a list of Success/Failures
-into a succesful or failed list.
+into a succesful or failed list.  It builds a succesful/failed list.
 
-Knowing what we know now, if any part of the building process is a failure,
-the entire thing is a failure.  This is reflected in `sequence`:
+From what we have learned, if any part of that building process is a failure,
+the entire thing is necessarily a failure.  This is reflected in `sequence`:
 
 ~~~haskell
 λ: sequence [Just 1, Just 4, Just 6]
@@ -390,6 +390,9 @@ Just [1,4,6]
 λ: sequence [Just 1, Nothing, Just 6]
 Nothing
 ~~~
+
+Try reasoning about how other common library monad functions (like
+`replicateM`, `forM`, etc.) would work on Maybe's and MonadPlus's in general!
 </aside>
 
 ### Guards
