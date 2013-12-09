@@ -271,11 +271,11 @@ your chaining process, you have a *MonadPlus*.
 embarassing mistakes in the design the Haskell standard library --- the
 infamous [monad-applicative-functor hierarchy issue][maf].  As a result,
 MonadPlus has to fulfill two roles, the other being unrelated to its
-fail/success purpose. Ideally, we would have two classes: MonadFail and
-Alternative.  In practice, however, the part of MonadPlus that does not
-involve dealing with failure/success is rarely used, and we use Alternative
-for that instead; the only real problem is therefore really just the
-not-so-helpful naming.
+fail/success purpose. In a perfect world, we would have two typeclasses:
+MonadFail and Alternative.  In practice, however, the part of MonadPlus that
+does not involve dealing with failure/success is rarely used, and we use
+Alternative for that instead; the only real problem is therefore really just
+the not-so-helpful naming.
 
 [maf]: http://www.haskell.org/haskellwiki/Functor-Applicative-Monad_Proposal
 
