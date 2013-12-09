@@ -259,7 +259,9 @@ building up either a success or a failure...and if at any point I fail, the
 whole thing is a failure".
 
 There is a special name for this design pattern.  In Haskell, we call
-something like this a "MonadPlus".
+something like this a "[MonadPlus][]".
+
+[MonadPlus]: http://hackage.haskell.org/package/base-4.6.0.1/docs/Control-Monad.html#t:MonadPlus
 
 I know, it's an embarrassingly bad name, and the reason it's like this is for
 historical reasons.[^alternative]  The name doesn't even hint at a
