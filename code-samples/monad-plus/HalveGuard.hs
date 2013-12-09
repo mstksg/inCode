@@ -4,7 +4,7 @@
 --
 -- To load:
 -- $ ghci
--- λ: :i HalveGuard.hs
+-- λ: :l HalveGuard.hs
 --
 -- Some things to play around with:
 -- λ: halve 7
@@ -17,6 +17,8 @@
 -- λ: halve 32 >> mzero >>= halve >>= halve >>= halve
 --
 -- http://blog.jle.im/entry/practical-fun-with-monads-introducing-monadplus#guards
+
+import Control.Monad (guard)
 
 halve :: Int -> Maybe Int
 halve n = do

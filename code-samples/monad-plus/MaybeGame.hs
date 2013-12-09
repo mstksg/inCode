@@ -10,7 +10,7 @@
 --
 -- To load:
 -- $ ghci
--- λ: :i MaybeGame.hs
+-- λ: :l MaybeGame.hs
 --
 -- Some things to play around with:
 -- λ: setHealth 2 >>= hit >>= powerup >>= hit >>= powerup >>= powerup
@@ -18,6 +18,8 @@
 -- λ: setHealth 10 >>= powerup >>= die >>= powerup >>= powerup 
 --
 -- http://blog.jle.im/entry/practical-fun-with-monads-introducing-monadplus#a-practical-use
+
+import Control.Monad (guard)
 
 -- die or fail immediately
 die :: Maybe Int

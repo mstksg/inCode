@@ -4,7 +4,7 @@
 --
 -- To load:
 -- $ ghci
--- λ: :i Halve.hs
+-- λ: :l Halve.hs
 -- 
 -- Some things to play around with:
 -- λ: halve 7
