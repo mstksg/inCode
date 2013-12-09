@@ -270,14 +270,16 @@ your chaining process, you have a *MonadPlus*.
 [^alternative]: This issue actually stems from one of the more famous
 embarassing mistakes in the design the Haskell standard library --- the
 infamous [monad-applicative-functor hierarchy issue][maf].  As a result,
-MonadPlus has to fulfill two roles, the other being unrelated to its
-fail/success purpose. In a perfect world, we would have two typeclasses:
-MonadFail and Alternative.  In practice, however, the part of MonadPlus that
-does not involve dealing with failure/success is rarely used, and we use
-Alternative for that instead; the only real problem is therefore really just
-the not-so-helpful naming.
+MonadPlus has to fulfill two roles, with one of those roles being only
+slightly related to its fail/success role.  As it turns out, another
+typeclass, [Alternative][], fulfills that second role.  In an ideal world, we
+would have two typeclasses: MonadFail and Alternative.  In practice, however,
+we are happy using MonadPlus only for its failingness and Alternative for the
+"other role" (the "Plus" in MonadPlus), so the only real downside is the
+not-so-helpful naming.
 
 [maf]: http://www.haskell.org/haskellwiki/Functor-Applicative-Monad_Proposal
+[Alternative]: http://hackage.haskell.org/package/base-4.6.0.1/docs/Control-Applicative.html#t:Alternative
 
 There is a vocabulary we can use so we can talk about all MonadPlus's in a
 general way:
