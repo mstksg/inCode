@@ -48,9 +48,9 @@ Let us enter a brave new world!
 This article is written for both beginners --- people who have a fuzzy idea of
 monads and a minimal understanding of functional programming principles, but
 who have some experience in Object-Oriented Programming in a language like
-Java or C++ --- and intermediate Haskell users who have a somewhat firm grasp
-on monads, but want to know about monads on a broader context (in particular,
-the MonadPlus typeclass).
+Java or C++ --- and intermediate Haskell users --- people who have a somewhat
+firm grasp on monads, but want to know about monads on a broader context (in
+particular, the MonadPlus typeclass).
 
 Intermediate Haskell users will most likely find this post to be review, and
 I'll put a link in this paragraph when the next part is up so we can get to
