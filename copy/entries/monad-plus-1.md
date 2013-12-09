@@ -511,7 +511,7 @@ Nothing
 ~~~
 
 And voilà!  [Fire it up yourself][maybegame] if you want to test it out in
-person.
+person!
 
 [maybegame]: https://github.com/mstksg/inCode/blob/master/code-samples/monad-plus/MaybeGame.hs
 
