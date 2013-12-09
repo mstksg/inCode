@@ -568,7 +568,7 @@ list and get a new list:
 
 ~~~haskell
 λ: oldList >>= f
-newList             -- a new list based on old lift; f "chained" to `oldList`.
+newList             -- a new list based on old list; f "chained" to `oldList`.
 ~~~
 
 Is there more than one way to think about chaining them, even?  And in what
