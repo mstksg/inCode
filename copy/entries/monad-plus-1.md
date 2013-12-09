@@ -259,9 +259,14 @@ building up either a success or a failure...and if at any point I fail, the
 whole thing is a failure".
 
 There is a special name for this design pattern.  In Haskell, we call
-something like this a "[MonadPlus][]".
+something like this a "[MonadPlus][]"[^either].
 
 [MonadPlus]: http://hackage.haskell.org/package/base-4.6.0.1/docs/Control-Monad.html#t:MonadPlus
+
+[^either]: Actually, there is one noteworthy success/failure monad that isn't
+implemented as a MonadPlus in Haskell --- the Either.  However, if the failure
+type is a monoid, Either can be made into a MonadPlus.  Still, arguably,
+Either fulfills the "spirit" of MonadPlus.
 
 I know, it's an embarrassingly bad name, and it's like this is for historical
 reasons.[^alternative]  The name doesn't even hint at a fail/succeedness.  But
