@@ -272,10 +272,10 @@ implemented as a MonadPlus in Haskell --- the Either.  Arguably, Either
 embodies the "spirit" of MonadPlus; the problem is that Haskell requires that
 "fail"/"mzero" must not take any parameters, and Either must always have a
 "reason" when it fails.  However, one could easily instance their own Either
-instance with a "default reason" if the `Left` type is known.  The easiest way
-is to constrain the `Left` type to be a monoid and make `mzero = Left mempty`.
-Alternatively, if your Left is a String, you can just put in whatever default
-error message you want.
+instance with a "default reason" if the `Left` type is known or constrained.
+The easiest way is to constrain the `Left` type to be a monoid and make `mzero
+= Left mempty`. Alternatively, if your Left is a String, you can just put in
+whatever default error message you want.
 
 However, if the failure
 type is a monoid, Either can be made in general a MonadPlus.  Still, arguably,
