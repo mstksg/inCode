@@ -270,7 +270,8 @@ something like this a "[MonadPlus][]"[^either].
 [^either]: Actually, there is one noteworthy success/failure monad that isn't
 implemented as a MonadPlus in Haskell --- the Either.  However, if the failure
 type is a monoid, Either can be made into a MonadPlus.  Still, arguably,
-Either fulfills the "spirit" of MonadPlus.
+Either fulfills the "spirit" of MonadPlus, despite not being implemented as
+one.
 
 I know, it's an embarrassingly bad name, and it's like this is for historical
 reasons.[^alternative]  The name doesn't even hint at a fail/succeedness.  But
