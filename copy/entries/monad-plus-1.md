@@ -417,7 +417,7 @@ halve n = return n >>= (\x -> guard (even x)) >> return (x `div` 2)
 
 Some of this might seem a little convoluted...why didn't we just do:
 
-~~~
+~~~haskell
 halve :: Int -> Maybe Int
 halve n = do
     guard $ even n
