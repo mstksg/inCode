@@ -27,7 +27,7 @@ way of chaining together functions that allow for new ways of approaching
 puzzles.
 
 The first sub-series (chapter?) will be on a specific class/family of monads
-known as *MonadPlus*.  At the end of it all, we are going to be solving the 
+known as *MonadPlus*.  At the end of it all, we are going to be solving the
 classic logic puzzle, as old as time itself, using **only** the List monad
 instance, and no loops, queues, or fancy stuff like that:
 
@@ -268,10 +268,21 @@ something like this a "[MonadPlus][]"[^either].
 [MonadPlus]: http://hackage.haskell.org/package/base-4.6.0.1/docs/Control-Monad.html#t:MonadPlus
 
 [^either]: Actually, there is one noteworthy success/failure monad that isn't
-implemented as a MonadPlus in Haskell --- the Either.  However, if the failure
-type is a monoid, Either can be made into a MonadPlus.  Still, arguably,
+implemented as a MonadPlus in Haskell --- the Either.  Arguably, Either
+embodies the "spirit" of MonadPlus; the problem is that Haskell depands that
+"fail"/"mzero" must not take any parameters, and Either must always have a
+"reason" when it fails.  However, one could easily instance their own Either
+instance with a "default reason" if the `Left` type is known.  The easiest way
+is to constrain the `Left` type to be a monoid and make `mzero = Left mempty`.
+Alternatively, if your Left is a String, you can just put in whatever default
+error message you want.
+
+However, if the failure
+type is a monoid, Either can be made in general a MonadPlus.  Still, arguably,
 Either fulfills the "spirit" of MonadPlus, despite not being implemented as
-one.
+one.  The main problem is that "fail"/"mzero", as defined, cannot take any
+parameters, so you cannot specify a "reason" for the failure.  However, if you
+make your *own* Either MonadPlus instance and specify
 
 I know, it's an embarrassingly bad name, and it's like this is for historical
 reasons.[^alternative]  The name doesn't even hint at a fail/succeedness.  But
@@ -525,7 +536,7 @@ powerup currHealth = Just $ currHealth + 1
 Just 3
 λ: setHealth 2 >>= hit >>= powerup >>= hit >>= hit >>= powerup
 Nothing
-λ: setHealth 10 >>= powerup >>= die >>= powerup >>= powerup 
+λ: setHealth 10 >>= powerup >>= die >>= powerup >>= powerup
 Nothing
 λ: do
  |     h0 <- setHealth 2        -- Just 2
