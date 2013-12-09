@@ -159,6 +159,10 @@ Just 2
 Nothing                         -- 3
 ~~~
 
+You can play with this yourself by [loading up the function yourself][halve].
+
+[halve]: https://github.com/mstksg/inCode/blob/master/code-samples/monad-plus/Halve.hs
+
 <aside>
     ###### Aside
 
@@ -415,7 +419,10 @@ So, first, `halve` is `Just ()` (succeeds with a blank value `()`) if `n` is
 even, or  else `Nothing` (fails automatically) otherwise.  Finally, if it has
 not yet failed, it attempts to succeed with ``n `div` 2``.
 
-You can trust me when I say this works the exact same way!
+You can trust me when I say this works the exact same way!  You can [try it
+out yourself][halveguard]!
+
+[halveguard]: https://github.com/mstksg/inCode/blob/master/code-samples/monad-plus/HalveGuard.hs
 
 As a friendly reminder, this entire block is "compiled"/desugared to:
 
@@ -503,7 +510,10 @@ Nothing
 Nothing
 ~~~
 
-And voilà!
+And voilà!  [Fire it up yourself][maybegame] if you want to test it out in
+person.
+
+[maybegame]: https://github.com/mstksg/inCode/blob/master/code-samples/monad-plus/MaybeGame.hs
 
 You can think of the last do block conceptually this way: remember, `h3` does
 not represent the `Just 1` value --- `h3` represents the number *inside* the
