@@ -391,8 +391,9 @@ Just [1,4,6]
 Nothing
 ~~~
 
-Try reasoning about how other common library monad functions (like
-`replicateM`, `forM`, etc.) would work on Maybe's and MonadPlus's in general!
+If you already know a few other common library monad functions (like
+`replicateM`, `forM`, etc.), try reasoning about how they would work on
+Maybe's and MonadPlus's in general --- they aren't just for IO!
 </aside>
 
 ### Guards
