@@ -269,7 +269,7 @@ something like this a "[MonadPlus][]"[^either].
 
 [^either]: Actually, there is one noteworthy success/failure monad that isn't
 implemented as a MonadPlus in Haskell --- the Either.  Arguably, Either
-embodies the "spirit" of MonadPlus; the problem is that Haskell depands that
+embodies the "spirit" of MonadPlus; the problem is that Haskell requires that
 "fail"/"mzero" must not take any parameters, and Either must always have a
 "reason" when it fails.  However, one could easily instance their own Either
 instance with a "default reason" if the `Left` type is known.  The easiest way
