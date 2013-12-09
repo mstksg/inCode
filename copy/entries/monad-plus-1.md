@@ -263,11 +263,11 @@ something like this a "[MonadPlus][]".
 
 [MonadPlus]: http://hackage.haskell.org/package/base-4.6.0.1/docs/Control-Monad.html#t:MonadPlus
 
-I know, it's an embarrassingly bad name, and the reason it's like this is for
-historical reasons.[^alternative]  The name doesn't even hint at a
-fail/succeedness.  But we're stuck with it for pretty much the entire
-foreseeable future, so when you chose to adopt a success/failure model for
-your chaining process, you have a *MonadPlus*.
+I know, it's an embarrassingly bad name, and it's like this is for historical
+reasons.[^alternative]  The name doesn't even hint at a fail/succeedness.  But
+we're stuck with it for pretty much the entire foreseeable future, so when you
+chose to adopt a success/failure model for your chaining process, you have a
+*MonadPlus*.
 
 [^alternative]: This issue actually stems from one of the more famous
 embarassing mistakes in the design the Haskell standard library --- the
