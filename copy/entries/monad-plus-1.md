@@ -369,7 +369,7 @@ would be the value returned if you just exited at that step.
 
 
 <aside>
-    ###### Node
+    ###### Diversion
 
 A small diversion.
 
