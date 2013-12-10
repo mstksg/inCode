@@ -277,13 +277,6 @@ The easiest way is to constrain the `Left` type to be a monoid and make `mzero
 = Left mempty`. Alternatively, if your Left is a String, you can just put in
 whatever default error message you want.
 
-However, if the failure
-type is a monoid, Either can be made in general a MonadPlus.  Still, arguably,
-Either fulfills the "spirit" of MonadPlus, despite not being implemented as
-one.  The main problem is that "fail"/"mzero", as defined, cannot take any
-parameters, so you cannot specify a "reason" for the failure.  However, if you
-make your *own* Either MonadPlus instance and specify
-
 I know, it's an embarrassingly bad name, and it's like this is for historical
 reasons.[^alternative]  The name doesn't even hint at a fail/succeedness.  But
 we're stuck with it for pretty much the entire foreseeable future, so when you
