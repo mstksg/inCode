@@ -129,7 +129,7 @@ Hi again!  There are some quick syntax features here.
     Maybe Int`, which means that it takes in an `Int` and returns a `Maybe
     Int` --- an integer wrapped in a "Maybe" container.
 2.  This says that if x is even, then return a successful ``Just (x `div` 2)``.
-    ``x `div` 2`` is basically x divided by two, in case you couldn't guess
+    ``x `div` 2`` is x divided by two, in case you couldn't guess
     already.
 3.  Otherwise, return `Nothing` --- a failure.
 </aside>
@@ -313,7 +313,7 @@ as an auto-success of value `x`.  If we type `mzero`, it'll be an "alias" of
 whatever your failure is.
 
 That means that for Maybe, `return x` is the same as `Just x`, and `mzero` is
-basically an alias for `Nothing`.
+an alias for `Nothing`.
 
 <aside>
     ###### Aside
