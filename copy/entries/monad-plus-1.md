@@ -289,10 +289,13 @@ infamous [monad-applicative-functor hierarchy issue][maf].  As a result,
 MonadPlus has to fulfill two roles, with one of those roles being only
 slightly related to its fail/success role.  As it turns out, another
 typeclass, [Alternative][] (which is unrelated to monads), fulfills that
-second role.  In an ideal world, we would have two typeclasses: MonadFail and
-Alternative.  In practice, however, we are happy using MonadPlus only for its
-failingness and Alternative for the "other role" (the "Plus" in MonadPlus), so
-the only real downside is the not-so-helpful naming.
+second role.  In an ideal world, we would have two typeclasses: "MonadZero"
+and Alternative.  In practice, however, we are happy using MonadPlus only for
+its failingness and Alternative for the "other role" (the "Plus" in
+MonadPlus), so the only real downside is the not-so-helpful naming.  So, as a
+disclaimer, Haskell's MonadPlus technically does more than just handle
+success/failure; what I am describing here is the spirit of its unique
+purpose.
 
 [maf]: http://www.haskell.org/haskellwiki/Functor-Applicative-Monad_Proposal
 [Alternative]: http://hackage.haskell.org/package/base-4.6.0.1/docs/Control-Applicative.html#t:Alternative
