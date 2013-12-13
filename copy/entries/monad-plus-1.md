@@ -263,16 +263,25 @@ building up either a success or a failure...and if at any point I fail, the
 whole thing is a failure".
 
 There is a special name for this design pattern.  In Haskell, we call
-something like this a "[MonadPlus][]"[^disclaimer][^either].
+something like this a "[MonadPlus][]"[^disclaimer] [^either].
 
 [^disclaimer]: I have to give a fair disclaimer here.  MonadPlus, as it is
 currently implemented, actually serves two functionalities/purposes.  However,
 its functionality not related to success/failure is actually (except for a few
-cases) mostly redundant, due to another typeclass that now handles it in all
-modern usage.  For this article and this series, I will be addressing
-specifically this non-redundant functionality, the success/failureness; just
-be aware that in some other places, you will find other explanations of
-MonadPlus as a "whole" that includes the redundant parts.
+cases) mostly redundant, due to another typeclass called [Alternative][] that
+now handles it in all nearly all modern usage.  The redundancy actually stems
+from one of the more famous embarassing misakes in the design of the Haskell
+standard library --- the infamous [monad-applicative-functor hierarchy
+issue][maf].  In practice, however, simply using the appropriate typeclass for
+the appropriate property is the norm. For this article and this series, I will
+be addressing specifically this non-redundant functionality, the
+success/failureness; just be aware that in some other places, you will find
+other explanations of MonadPlus as a "whole" that includes the redundant
+parts.
+
+[Alternative]: http://hackage.haskell.org/package/base-4.6.0.1/docs/Control-Applicative.html#t:Alternative
+[maf]: http://www.haskell.org/haskellwiki/Functor-Applicative-Monad_Proposal
+
 
 [^either]: Actually, there is one noteworthy success/failure monad that isn't
 implemented as a MonadPlus in Haskell --- the Either.  Arguably, Either
@@ -284,28 +293,13 @@ The easiest way is to constrain the `Left` type to be a monoid and make `mzero
 = Left mempty`. Alternatively, if your Left is a String, you can just put in
 whatever default error message you want.
 
-
 [MonadPlus]: http://hackage.haskell.org/package/base-4.6.0.1/docs/Control-Monad.html#t:MonadPlus
 
 I know, it's an embarrassingly bad name, and it's like this is for historical
-reasons.[^alternative]  The name doesn't even hint at a fail/succeedness.  But
-we're stuck with it for pretty much the entire foreseeable future, so when you
-chose to adopt a success/failure model for your chaining process, you have a
-*MonadPlus*.
-
-[^alternative]: This issue actually stems from one of the more famous
-embarassing mistakes in the design the Haskell standard library --- the
-infamous [monad-applicative-functor hierarchy issue][maf].  As a result,
-MonadPlus has to fulfill two roles, with one of those roles being only
-slightly related to its fail/success role.  As it turns out, another
-typeclass, [Alternative][] (which is unrelated to monads), fulfills that
-second role.  In an ideal world, we would have two typeclasses: "MonadZero"
-and Alternative.  In practice, however, we are happy using MonadPlus only for
-its failingness and Alternative for the "other role" (the "Plus" in
-MonadPlus), so the only real downside is the not-so-helpful naming.
-
-[maf]: http://www.haskell.org/haskellwiki/Functor-Applicative-Monad_Proposal
-[Alternative]: http://hackage.haskell.org/package/base-4.6.0.1/docs/Control-Applicative.html#t:Alternative
+reasons (related to the footnote above).  The name doesn't even hint at a
+fail/succeedness.  But we're stuck with it for pretty much the entire
+foreseeable future, so when you chose to adopt a success/failure model for
+your chaining process, you have a *MonadPlus*.
 
 There is a vocabulary we can use so we can talk about all MonadPlus's in a
 general way:
