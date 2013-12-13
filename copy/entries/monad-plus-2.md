@@ -1,5 +1,5 @@
-(Practical) Fun with Monads!  MonadPlus: The Success/Failure Monad (Part 2)
-===========================================================================
+Practical Fun with Monads --- The List MonadPlus
+================================================
 
 Categories
 :   Haskell
@@ -7,21 +7,65 @@ Categories
 Tags
 :   functional programming
 Series
-:   MonadPlus: The Success/Failure Monad
+:   MonadPlus: Success/Failure Monads
 :   Practical Monads
 CreateTime
-:   2013/12/04 21:43:34
+:   2013/12/11 21:29:37
 PostDate
 :   Never
 Identifier
 :   monad-plus-2
 
+Part two of an exploration of a very useful design pattern in Haskell known as
+MonadPlus, a part of an effort to make "practical" monads less of a mystery
+and fun to the good peoples of this earth.
 
-Lists
------
+When we last left off on the [MonadPlus introduction][intro], we understood
+that there are times when you want to chain functions on objects in a way that
+"resembles" a failure/success process.  We did this by exploring the most
+simple of all MonadPlus's: a simple "dumb" container for a value is either in
+a success or a failure.  We looked at how the MonadPlus design pattern really
+"behaved".
 
-Well, this article is about the List monad and I have done very little to talk
-about it at all.
+[intro]: http://blog.jle.im/entry/practical-fun-with-monads-introducing-monadplus
+
+This time we're going to look at another MonadPlus --- the List.  By the end
+of this series we're going to be using nothing but the list's MonadPlus
+properties to solve this classic logic problem:
+
+> A farmer has a wolf, a goat, and a cabbage that he wishes to transport
+> across a river.  Unfortunately, his only boat can carry one thing at a time.
+> He can't leave the wolf alone with the goat, or the wolf will eat the goat.
+> He can't leave the goat alone with the cabbage, or the goat will eat the
+> cabbage.  How can he properly transport his belongings to the other side one
+> at a time, without any disasters?
+
+Let's get to it!
+
+### MonadWhat? A review
+
+Let's take a quick review!  Remember, a monad is just an object where you have
+defined a way to chain functions inside it.  One type of object that is useful
+to chain stuff onto are containers.  It's useful to repeatedly apply a
+function (returning a container) to the thing inside the containers, instead
+of on the container itself.
+
+You'll find that you can be creative this "chaining" behavior, and for any
+given type of object you can definitely define more than one way to "chain"
+functions on that type of object.  One "design pattern" of chaining is
+MonadPlus, where we use this chaining to model success/failure.
+
+*   `mzero` means "failure", and chaining anything onto a failure will still be
+   a failure.
+*   `return x` means "succeed with `x`", and will return a "succesful" result
+    with a value of `x`.
+
+You can read through the [previous article][intro] for examples of seeing
+these principles in action and in real code.
+
+
+The List Monad
+--------------
 
 When I say "list monad", I mean "one way that you can implement chaining
 operations on a list".  To be more precise, I should say "haskell's default

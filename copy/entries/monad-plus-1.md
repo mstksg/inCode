@@ -263,9 +263,16 @@ building up either a success or a failure...and if at any point I fail, the
 whole thing is a failure".
 
 There is a special name for this design pattern.  In Haskell, we call
-something like this a "[MonadPlus][]"[^either].
+something like this a "[MonadPlus][]"[^disclaimer][^either].
 
-[MonadPlus]: http://hackage.haskell.org/package/base-4.6.0.1/docs/Control-Monad.html#t:MonadPlus
+[^disclaimer]: I have to give a fair disclaimer here.  MonadPlus, as it is
+currently implemented, actually serves two functionalities/purposes.  However,
+its functionality not related to success/failure is actually (except for a few
+cases) mostly redundant, due to another typeclass that now handles it in all
+modern usage.  For this article and this series, I will be addressing
+specifically this non-redundant functionality, the success/failureness; just
+be aware that in some other places, you will find other explanations of
+MonadPlus as a "whole" that includes the redundant parts.
 
 [^either]: Actually, there is one noteworthy success/failure monad that isn't
 implemented as a MonadPlus in Haskell --- the Either.  Arguably, Either
@@ -276,6 +283,9 @@ instance with a "default reason" if the `Left` type is known or constrained.
 The easiest way is to constrain the `Left` type to be a monoid and make `mzero
 = Left mempty`. Alternatively, if your Left is a String, you can just put in
 whatever default error message you want.
+
+
+[MonadPlus]: http://hackage.haskell.org/package/base-4.6.0.1/docs/Control-Monad.html#t:MonadPlus
 
 I know, it's an embarrassingly bad name, and it's like this is for historical
 reasons.[^alternative]  The name doesn't even hint at a fail/succeedness.  But
@@ -292,10 +302,7 @@ typeclass, [Alternative][] (which is unrelated to monads), fulfills that
 second role.  In an ideal world, we would have two typeclasses: "MonadZero"
 and Alternative.  In practice, however, we are happy using MonadPlus only for
 its failingness and Alternative for the "other role" (the "Plus" in
-MonadPlus), so the only real downside is the not-so-helpful naming.  So, as a
-disclaimer, Haskell's MonadPlus technically does more than just handle
-success/failure; what I am describing here is the spirit of its unique
-purpose.
+MonadPlus), so the only real downside is the not-so-helpful naming.
 
 [maf]: http://www.haskell.org/haskellwiki/Functor-Applicative-Monad_Proposal
 [Alternative]: http://hackage.haskell.org/package/base-4.6.0.1/docs/Control-Applicative.html#t:Alternative
