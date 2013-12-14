@@ -139,8 +139,8 @@ Watch:
 []
 ~~~
 
-So there we have it.  `Nothing` is just like `[]`, `Just x` is just like
-`[x]`.  This whole time.  It's all so clear now.  Why does `Maybe` even exist,
+So there we have it!  `Nothing` is just like `[]`, `Just x` is just like
+`[x]`.  This whole time!  It's all so clear now!  Why does `Maybe` even exist,
 anyway, when we can just use `[]` and `[x]` for `Nothing` and `Just x` and be
 none the wiser?
 
@@ -599,13 +599,13 @@ with them the exact same way you do with Maybe's.  In something like `x <-
 Just 5`, `x` represents a **single value**, the 5.  In something like `x <-
 [1,2,3]`, `x` *also* represents a single value --- the 1, the 2, or the 3,
 depending on which path you are currently on.  Then later in the block, you
-can refer to `x`, and `x` refers to that singular `x` that that path has.
+can refer to `x`, and `x` refers to *that* one specific `x` for that path.
 
 
 ### Until next time
 
-Okay, I feel like we are at all we need to know to really use the list monad
-to solve a large class of logic problems (because who needs Prolog, anyway?).
+So I feel like we are at all we need to know to really use the list monad to
+solve a large class of logic problems (because who needs Prolog, anyway?).
 
 Between now and next time, think about how you would approach a logic problem
 like the Wolf/Goat/Cabbage problem with the concepts of MonadPlus?  What would
