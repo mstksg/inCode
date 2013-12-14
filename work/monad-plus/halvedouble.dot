@@ -9,60 +9,56 @@ digraph {
     constraint=false;
 
     subgraph cluster0 {
+        /* label="n =" ; */
+        /* fontcolor=blue; */
+        /* style=filled ; */
+        /* color=linen ; */
+        n  [label="n = 6"] ;
+    }
+
+    subgraph cluster1 {
         label="x ←" ;
         fontcolor=blue;
         style=filled ;
         color=linen ;
-        /* xl [label="x",shape=none] ; */
-        x  [label="Just 6"] ;
-    }
-
-    subgraph cluster1 {
-        label="y ←" ;
-        fontcolor=blue;
-        style=filled ;
-        color=linen ;
-        /* yl [label="y"] ; */
-        y2 [label="Just 12"] ;
-        y1 [label="Just 3"] ;
+        x2 [label="Just 12"] ;
+        x1 [label="Just 3"] ;
     }
 
     subgraph cluster2 {
-        label="z ←" ;
+        /* label="" ; */
         fontcolor=blue;
         style=filled;
         color=linen;
-        /* zl [label="z"] ; */
-        z4 [label="Just 24"] ;
-        z3 [label="Just 6"] ;
-        z2 [label="Just 6"] ;
-        z1 [label="Nothing",fontcolor=slategray] ;
+        y4 [label="Just 24"] ;
+        y3 [label="Just 6"] ;
+        y2 [label="Just 6"] ;
+        y1 [label="Nothing",fontcolor=slategray] ;
     }
 
     subgraph cluster3 {
-        label="return y" ;
+        label="return (x + 1)" ;
         labelloc=b;
         fontcolor=blue;
         style=filled;
         color=linen;
-        /* rl [label="return z"] ; */
-        r4 [label="Just 12"] ;
-        r3 [label="Just 12"] ;
-        r2 [label="Just 3"] ;
+        r4 [label="Just 13"] ;
+        r3 [label="Just 13"] ;
+        r2 [label="Just 4"] ;
         r1 [label="Nothing",fontcolor=slategray] ;
     }
 
-    x  -> y1 ;
-    x  -> y2 ;
+    n  -> x1 ;
+    n  -> x2 ;
 
-    y1 -> z1 ;
-    y1 -> z2 ;
-    y2 -> z3 ;
-    y2 -> z4 ;
+    x1 -> y1 ;
+    x1 -> y2 ;
+    x2 -> y3 ;
+    x2 -> y4 ;
 
-    z1 -> r1 [color=slategray];
-    z2 -> r2 ;
-    z3 -> r3 ;
-    z4 -> r4 ;
+    y1 -> r1 [color=slategray];
+    y2 -> r2 ;
+    y3 -> r3 ;
+    y4 -> r4 ;
 
 }

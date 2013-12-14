@@ -177,7 +177,8 @@ ghci which MonadPlus we want.
 So there you have it. Maybe and lists are one and the same.  Lists *do* too
 represent the concept of failure and success.  So...what's the difference?
 
-### A List Apart
+A List Apart
+------------
 
 Lists can model failure the same way that Maybe can.  But it should be
 apparent that lists can do a little "more" than Maybe...
@@ -207,6 +208,8 @@ result of every path that could have lead to a success.  Contrast this to the
 `Maybe` monad, where a value goes through this arduous journey, but never has
 any choice.  There is only one path --- succesful, or otherwise.  A `Maybe` is
 deterministic...a list provides a choice in paths.
+
+### halveOrDouble
 
 Let's take a simple example: `halveOrDouble`.  It provides two succesful paths
 if you are even: halving and doubling.  It only provides one choice or
@@ -263,6 +266,8 @@ double-halve, or double-double.  The second, 6 could have emerged succesful
 with halve-double, double-halve, or double-double.  For 8, all paths are
 succesful, incidentally.  He better check his privilege.
 
+#### Do notation
+
 Let's look at this in the do notation form to offer some possible insight:
 
 ~~~haskell
@@ -297,6 +302,8 @@ inside the object --- `x` represents **a** 3 or **a** 12 (but not "both" at
 the same time), depending on what path you are taking/are "in".  That's why we
 can call `halveOrDouble x`: `halveOrDouble` only takes `Int`s and `x` is *one*
 `Int` along the path.
+
+### A winding journey
 
 Note that once you bind a value to a variable (like `x`), then that is the
 value for `x` for the entire rest of the journey.  In fact, let's see it in
@@ -337,37 +344,53 @@ four possible "paths".
 4.  Same story here, but for double-double; `x` is 12.  At the end of it all,
     the journey never fails, so it succeeds with `x + 1`, or 13.
 
+#### Taking it every way
 
-
-
-
-
-<!-- ![*halveOrDoubleDance 6*, all journeys illustrated](/img/entries/monad-plus/halvedouble.png "halveOrDoubleDance 6") -->
-
-Huh.  What happened here?
-
-Again, there are four possible paths/journies...only three of them end in
-success.  In the halve-halve path...it fails.  Now let's see what happens in
-the "halve-double" path.  In this case, it might be useful to look at the
-corresponding Maybe do-block, and using the choices we make explicitly:
+If this doesn't satisfy you, here is an example of four Maybe do blocks where
+we "flesh out" each possible path, with the value of the block at each line in
+comments:
 
 ~~~haskell
-halveOrDoubleDance' :: Int -> Maybe Int
-halveOrDoubleDance' n = do      -- halveOrDoubleDance' 6
-    x <- return n               -- Just 6
-    y <- halve x                -- Just 3
-    z <- double y               -- Just 6  (double n = Just n)
-    return y                    -- Just 3
+double :: Int -> Maybe Int
+double n = Just n
+
+halveHalvePlusOne :: Int -> Maybe Int
+halveHalvePlusOne n = do                -- n = 6
+    x <- halve n                        -- Just 3 (x = 3)
+    halve x                             -- Nothing
+    return $ x + 1                      -- (skip)
+
+halveDoublePlusOne :: Int -> Maybe Int
+halveDoublePlusOne = do                 -- n = 6
+    x <- halve n                        -- Just 3 (x = 3)
+    double x                            -- Just 6
+    return $ x + 1                      -- Just 4
+
+doubleHalvePlusOne :: Int -> Maybe Int
+doubleHalvePlusOne = do                 -- n = 6
+    x <- double n                       -- Just 12 (x = 12)
+    halve x                             -- Just 6
+    return $ x + 1                      -- Just 13
+
+doubleDoublePlusOne :: Int -> Maybe Int
+doubleDoublePlusOne = do                -- n = 6
+    x <- double n                       -- Just 12 (x = 12)
+    double x                            -- Just 6
+    return $ x + 1                      -- Just 13
 ~~~
 
-It is clear in this case that `return y` will give you the value of `y` **on
-that path**.
+#### A graphical look
 
-In our halve-double path, the value of `y` (which is bound on the second line)
-is 3.  That's why when we say `return y`, it is `[3]`.
+This tree might also be a nice illustration, showing what happens at each
+stage of the journey.
 
-Remember --- you have to treat everything as its own individual path.  In the
-halve-double path, `y` is 3.  So `return y` returns 3.
+![*hod2PlusOne 6*, all journeys illustrated](/img/entries/monad-plus/halvedouble.png "hod2PlusOne 6")
+
+Every complete "journey" is a complete path from top to
+bottom.  You can see that the left-left journey (the half-halve journey)
+fails.  The left-right journey (the halve-double journey) passes, and at the
+end is given the value of `x + 1` for the `x` in that particular journey.  The
+other journeys work the same way!
 
 ### Solving real-ish problems
 
