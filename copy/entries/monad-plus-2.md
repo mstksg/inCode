@@ -403,7 +403,7 @@ But we're going to go through a couple more examples of branching journeys
 first --- both as a way to build more familiarity with the "branching journey
 monad" (list), and also as a nice conclusion to this post.
 
-### Testing Multiple Conditions
+### Testing multiple paths
 
 Here's a fun one.
 
@@ -466,7 +466,7 @@ Here is another diagram, similar to the last.
 
 ![*testNumber 5*, all journeys illustrated](/img/entries/monad-plus/testnumber.png "testNumber 5")
 
-### Testing combinations
+### Finding the right combinations
 
 Here is probably the most common of all examples involving the list monad:
 finding Pythagorean triples.
