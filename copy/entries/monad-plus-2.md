@@ -168,13 +168,10 @@ Nothing
 <aside>
     ###### Aside
 
-Hi again; remember, these asides are for people who might be unfamiliar with
-Haskel syntax.  If you are comfortable already, feel free to ignore these.
-
-No, when we say something like `genericHalve 8 :: Maybe Int`, it means "I want
-`genericHalve 8`...and I want the type to be `Maybe Int`."  This is necessary
-here becuase in our `genericHalve` can be *any* MonadPlus, so we have to tell
-ghci which MonadPlus we want.
+Now, when we say something like `genericHalve 8 :: Maybe Int`, it means "I
+want `genericHalve 8`...and I want the type to be `Maybe Int`."  This is
+necessary here becuase in our `genericHalve` can be *any* MonadPlus, so we
+have to tell ghci which MonadPlus we want.
 </aside>
 
 So there you have it. Maybe and lists are one and the same.  Lists *do* too
