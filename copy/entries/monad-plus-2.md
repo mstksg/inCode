@@ -482,9 +482,9 @@ triplesUnder n = do
 
 1.  Our journey begins with picking a number between 1 and `n` and setting it
     to `a`.
-2.  Next, we pick a number between `a` and `n` and set it to `b`.  In order to
-    be unique, our triples should probably go in ascending order.  That's why
-    we want our pick for `b` to be at least `a`.
+2.  Next, we pick a number between `a` and `n` and set it to `b`.  We start
+    from `a` because if we don't, we are probably going to be testing the same
+    tuple twice.
 3.  Next, we pick a number between `b` and `n`.  This is our hypotenuse, and
     of course all hypontenii are larger than either side.
 4.  Now, we mercilessly and ruthlessly end all journeys who were unfortunate
@@ -527,8 +527,7 @@ Let's see what we get when we try it at the prompt:
 Perfect!  You can probably quickly verify that all of these solutions are
 indeed Pythagorean triples.
 
-I'm not going to put a diagram here because I'm going to have to display 60
-branches for `triplesUnder 5` --- but I'm sure by now that you get the
-picture.
+I'm not going to put a diagram here because I'd to have to display 60 branches
+for just `triplesUnder 5` --- but I'm sure by now that you get the picture.
 
 
