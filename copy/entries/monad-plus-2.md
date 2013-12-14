@@ -272,14 +272,6 @@ halveOrDoubleTwice n = do
     halveOrDouble x
 ~~~
 
-~~~haskell
-halveOrDoubleTwice :: Int -> [Int]
-halveOrDoubleTwice n = do
-    x <- halveOrDouble n
-    y <- halveOrDouble x
-    return y
-~~~
-
 Do notation describes **a single path of a value**.  This is slightly
 confusing at first.  But look at it --- it has the *exact same form* as a
 Maybe monad do block.
@@ -294,42 +286,63 @@ Here is an illustration, tracing out "individual paths":
 halveOrDoubleTwice :: Int -> [Int]
 halveOrDoubleTwice n = do       -- halveOrDoubleTwice 6
     x <- halveOrDouble n        -- x <-     Just 3          Just 12
-    halveOrDouble x        -- y <- Nothing  Just 6  Just 6  Just 24
+    halveOrDouble x             --      Nothing  Just 6  Just 6  Just 24
 ~~~
 
 where you take the left path if you want to halve, and the right path if you
 want to double.
 
-Remember, just like in the Maybe monad, the `x` and the `y` represent the
-*value* inside the object --- `x` represents **a** 3 or **a** 12 (but not
-"both" at the same time), depending on what path you are taking/are "in".
-Your choices of `x` and `y` remains the same throughout the remainder of the
-path.
+Remember, just like in the Maybe monad, the `x` represents the value *inside*
+inside the object --- `x` represents **a** 3 or **a** 12 (but not "both" at
+the same time), depending on what path you are taking/are "in".  That's why we
+can call `halveOrDouble x`: `halveOrDouble` only takes `Int`s and `x` is *one*
+`Int` along the path.
 
-Here is the tricky part: the last line, `return y`, returns **what `y` is on
-*that* path**.  In the halve-double path, `y` is 6.  In the `double-double`
-path, `y` is 24.
-
-What if we had typed `return x` instead of `return y`?
+Note that once you bind a value to a variable (like `x`), then that is the
+value for `x` for the entire rest of the journey.  In fact, let's see it in
+action:
 
 ~~~haskell
-halveOrDoubleWeird :: Int -> [Int]
-halveOrDoubleWeird n = do       -- halveOrDoubleWeird 6
+hod2PlusOne :: Int -> [Int]
+hod2PlusOne n = do              -- hod2plusOne 6
     x <- halveOrDouble n        -- x <-     Just 3          Just 12
-    y <- halveOrDouble x        -- y <- Nothing Just 6  Just 6  Just 24
-    return x                    --      Nothing Just 3  Just 12 Just 12
+    halveOrDouble x             --      Nothing  Just 6  Just 6  Just 24
+    return $ x + 1              --      (skip)   Just 4  Just 13 Just 13
 ~~~
 
 ~~~haskell
-λ: halveOrDoubleDance 6
-[    3,12,12]
-λ: halveOrDoubleDance 7
-[      14,14]
-λ: halveOrDoubleDance 8
-[ 4, 4,16,16]
+λ: hod2PlusOne 6
+[4, 13, 13]
 ~~~
 
-![*halveOrDoubleDance 6*, all journeys illustrated](/img/entries/monad-plus/halvedouble.png "halveOrDoubleDance 6")
+Okay!  This is getting interesting now.  What's going on?  Well, there are
+four possible "paths".
+
+1.  In the half-half path, `x` (the result of the first halving) is 3.
+    However, the half-half path is a failure --- 6 cannot be halved twice.
+    Therefore, even though `x` is three, the path has already failed before we
+    get to the `return (x + 1)`.  Just like in the case with Maybe, once
+    something fails during the process of the journey, the entire journey is a
+    failure.
+2.  In the half-double path, `x` is also 3.  However, this journey doesn't
+    fail.  It survives to the end.  After the doubling, the value of the
+    journey at that point is "Just 6".  Afterwards, it "auto-succeeds" and
+    replaces the current value with the value of `x` on that path (3) plus 1
+    --- 4.  This is just like how in the Maybe monad, we return a new value
+    after the guard.
+3.  In the double-halve path, `x` (the result of the first operation, a
+    double) is 12.  The second operation makes the value in the journey a 6.
+    At the end of it all, we succeed with whatever the value of `x` is on that
+    specific journey (12) is, plus one.  13.
+4.  Same story here, but for double-double; `x` is 12.  At the end of it all,
+    the journey never fails, so it succeeds with `x + 1`, or 13.
+
+
+
+
+
+
+<!-- ![*halveOrDoubleDance 6*, all journeys illustrated](/img/entries/monad-plus/halvedouble.png "halveOrDoubleDance 6") -->
 
 Huh.  What happened here?
 
