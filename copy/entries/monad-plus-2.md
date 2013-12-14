@@ -114,7 +114,10 @@ This is...the exact same function.  We didn't do anything but change the type
 signature.  But because you believe me when I say that List is a
 MonadPlus...this should work, right?  `guard` should work for any MonadPlus,
 because every MonadPlus has an `mzero` (fail).  `return` should work for any
-MonadPlus, too --- it wouldn't be a MonadPlus without `return` implemented!
+MonadPlus, too --- it wouldn't be a MonadPlus without `return` implemented! We
+don't know exactly what failing and succeeding looks like in a list yet...but
+if you know it's a MonadPlus (which List is, in the standard library), you
+know that it *has* these concepts defined somewhere.
 
 So, how is list a meaningful MonadPlus?  Simple: a "failure" is an empty list.
 A "success" is a non-empty list.
@@ -528,6 +531,87 @@ Perfect!  You can probably quickly verify that all of these solutions are
 indeed Pythagorean triples.
 
 I'm not going to put a diagram here because I'd to have to display 60 branches
-for just `triplesUnder 5` --- but I'm sure by now that you get the picture.
+for just `triplesUnder 5` --- but I'm sure by now that you get the picture.  B
+now you are a list monad pro!
 
+Almost There!
+-------------
+
+Let's do a quick review:
+
+*   You can really treat List exactly as if it were Maybe by using the general
+    MonadPlus terms `mzero` and `return`.  If you do this, `Nothing` is
+    equivalent to `[]`, and `Just x` is equivalent to `[x]`.  Trippy!
+*   However, whereas Maybe is a "deterministic" success, for a list, a list of
+    successes represents the end results of *possible paths* to success.
+    Chaining two "path splits" results in the item having to traverse both
+    splits one after another.
+*   If any of these paths meet a failure at some point in their journey, the
+    entire path is a failure and doesn't show up in the list of successes.
+    *This* is the "MonadPlus"ness of it all.
+*   When you use a do block (or reason about paths), it helps to think of each
+    do block as representing one specific path in a Maybe monad, with
+    arbitrary choices.  Your `<-` binds all represent *one specific element*,
+    *just* like for Maybe.
+
+The last point is particularly important and is pretty pivotal in
+understanding what is coming up next.  Remember that all Maybe blocks and List
+blocks really essentially look *exactly the same*.  This
+keeping-track-of-separate-paths thing is all handled behind-the scenes.
+
+In fact you should be able to look at code like:
+
+~~~haskell
+triplesUnder n = do
+    a <- [1..n]
+    b <- [a..n]
+    c <- [b..n]
+    guard $ a^2 + b^2 == c^2
+    return (a,b,c)
+~~~
+
+and see that it is structurally identical to
+
+~~~haskell
+triplesUnder' n = do
+    a <- Just 3
+    b <- Just 5
+    c <- Just 8
+    guard $ a^2 + b^2 == c^2
+    return (a,b,c)
+~~~
+
+for any arbitrary choice of `a`, `b`, and `c`, except instead of `Just 3` (or
+`[3]`), you have `[2,3,4]`, etc.
+
+In fact recall that this block:
+
+~~~haskell
+genericHalve :: MonadPlus m => Int -> m Int
+genericHalve n = do
+    guard $ even n
+    return $ n `div` 2
+~~~
+
+is general enough that it works for both.  Hopefully it serves to show that
+**in do blocks, Lists and Maybes are structurally identical**.  You reason
+with them the exact same way you do with Maybe's.  In something like `x <-
+Just 5`, `x` represents a **single value**, the 5.  In something like `x <-
+[1,2,3]`, `x` *also* represents a single value --- the 1, the 2, or the 3,
+depending on which path you are currently on.  Then later in the block, you
+can refer to `x`, and `x` refers to that singular `x` that that path has.
+
+
+### Until next time
+
+Okay, I feel like we are at all we need to know to really use the list monad
+to solve a large class of logic problems (because who needs Prolog, anyway?).
+
+Between now and next time, think about how you would approach a logic problem
+like the Wolf/Goat/Cabbage problem with the concepts of MonadPlus?  What would
+`mzero`/fail be useful for?  What would the idea of a success be useful for,
+and what would the idea of "multiple paths to success" in a journey even mean?
+What is the journey?
+
+Until next!
 
