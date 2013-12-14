@@ -249,11 +249,11 @@ four succesful paths for a number divisible by four.
 Let's try it out:
 
 ~~~haskell
-λ: return 5 >>= halveOrDouble >>= halveOrDouble
+λ: halveOrDouble 5 >>= halveOrDouble
 [       5, 20]
-λ: return 6 >>= halveOrDouble >>= halveOrDouble
+λ: halveOrDouble 6 >>= halveOrDouble
 [    6, 6, 24]
-λ: return 8 >>= halveOrDouble >>= halveOrDouble
+λ: halveOrDouble 8 >>= halveOrDouble
 [ 2, 8, 8, 32]
 ~~~
 
@@ -268,53 +268,56 @@ Let's look at this in the do notation form to offer some possible insight:
 ~~~haskell
 halveOrDoubleTwice :: Int -> [Int]
 halveOrDoubleTwice n = do
-    x <- return n
+    x <- halveOrDouble n
+    halveOrDouble x
+~~~
+
+~~~haskell
+halveOrDoubleTwice :: Int -> [Int]
+halveOrDoubleTwice n = do
+    x <- halveOrDouble n
     y <- halveOrDouble x
-    z <- halveOrDouble y
-    return z
+    return y
 ~~~
 
 Do notation describes **a single path of a value**.  This is slightly
 confusing at first.  But look at it --- it has the *exact same form* as a
 Maybe monad do block.
 
-This thing describes, in general terms, the path of a **single value**.  `x`,
-`y`, and `z` are *not* lists --- they represent a single value, in the middle
-of its treacherous journey.
+This thing describes, in general terms, the path of a **single value**.  `x`
+is **not** a list --- it represents a single value, in the middle of its
+treacherous journey.
 
 Here is an illustration, tracing out "individual paths":
 
 ~~~haskell
 halveOrDoubleTwice :: Int -> [Int]
 halveOrDoubleTwice n = do       -- halveOrDoubleTwice 6
-    x <- return n               -- x =              Just 6
-    y <- halveOrDouble x        -- y =      Just 3          Just 12
-    z <- halveOrDouble y        -- z = Nothing  Just 6  Just 6  Just 24
-    return z                    --     Nothing  Just 6  Just 6  Just 24
+    x <- halveOrDouble n        -- x <-     Just 3          Just 12
+    halveOrDouble x        -- y <- Nothing  Just 6  Just 6  Just 24
 ~~~
 
 where you take the left path if you want to halve, and the right path if you
 want to double.
 
-Remember, just like in the Maybe monad, the `x`, `y`, and `z` represent the
-*value* inside the object --- `x` represents the 6, `y` represents either the
-3 or the 12 (but only **one** of them, per path), depending on what path you
-take.  This binding of `x`, `y`, or `z` remains the same throughout the
-remainder of the path.
+Remember, just like in the Maybe monad, the `x` and the `y` represent the
+*value* inside the object --- `x` represents **a** 3 or **a** 12 (but not
+"both" at the same time), depending on what path you are taking/are "in".
+Your choices of `x` and `y` remains the same throughout the remainder of the
+path.
 
-Here is the tricky part: the last line, `return z`, returns **what `z` is on
-that path**.  In the halve-double path, `z` is 6.  In the `double-double`
-path, `z` is 24.
+Here is the tricky part: the last line, `return y`, returns **what `y` is on
+*that* path**.  In the halve-double path, `y` is 6.  In the `double-double`
+path, `y` is 24.
 
-What if we had typed `return y` instead of `return z`?
+What if we had typed `return x` instead of `return y`?
 
 ~~~haskell
-halveOrDoubleDance :: Int -> [Int]
-halveOrDoubleDance n = do       -- halveOrDoubleDance 6
-    x <- return n               -- x <-             Just 6
-    y <- halveOrDouble x        -- y <-     Just 3          Just 12
-    z <- halveOrDouble y        -- z <- Nothing Just 6  Just 6  Just 24
-    return y                    --      Nothing Just 3  Just 12 Just 12
+halveOrDoubleWeird :: Int -> [Int]
+halveOrDoubleWeird n = do       -- halveOrDoubleWeird 6
+    x <- halveOrDouble n        -- x <-     Just 3          Just 12
+    y <- halveOrDouble x        -- y <- Nothing Just 6  Just 6  Just 24
+    return x                    --      Nothing Just 3  Just 12 Just 12
 ~~~
 
 ~~~haskell
