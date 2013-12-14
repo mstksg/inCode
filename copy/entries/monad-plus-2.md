@@ -45,15 +45,11 @@ Let's get to it!
 ### MonadWhat? A review
 
 Let's take a quick review!  Remember, a monad is just an object where you have
-defined a way to chain functions inside it.  One type of object that is useful
-to chain stuff onto are containers.  It's useful to repeatedly apply a
-function (returning a container) to the thing inside the containers, instead
-of on the container itself.
-
-You'll find that you can be creative this "chaining" behavior, and for any
-given type of object you can definitely define more than one way to "chain"
-functions on that type of object.  One "design pattern" of chaining is
-MonadPlus, where we use this chaining to model success/failure.
+defined a way to chain functions inside it.  You'll find that you can be
+creative this "chaining" behavior, and for any given type of object you can
+definitely define more than one way to "chain" functions on that type of
+object.  One "design pattern" of chaining is MonadPlus, where we use this
+chaining to model success/failure.
 
 *   `mzero` means "failure", and chaining anything onto a failure will still be
    a failure.
@@ -63,57 +59,87 @@ MonadPlus, where we use this chaining to model success/failure.
 You can read through the [previous article][intro] for examples of seeing
 these principles in action and in real code.
 
+Without further ado, let us start on the list monad.
 
-The List Monad
---------------
+Starting the List Monad
+-----------------------
 
-When I say "list monad", I mean "one way that you can implement chaining
+Now, when I say "list monad", I mean "one way that you can implement chaining
 operations on a list".  To be more precise, I should say "haskell's default
-choice of chaining method on lists".  There is no "the list monad"...there is
-"a way we can make *list* a monad".
+choice of chaining method on lists".  *There is no "the list monad"*...there
+is "a way we can make the List data structure a monad".
 
-And one way we can do it?  We saw it before --- yup!  We can model lists as a
-MonadPlus --- a method of chaining that revolves around successes and
-failures.
+And what's one way we can do this?  You could probably take a wild guess.
+Yup, we can model lists as a MonadPlus --- we can model chaining in a way that
+revolves around successes and failures.
 
-Don't believe me?  Let's take the exact same `halve` function...but instead of
-returning a `Maybe Int`, we returned a list of `Int`s:
+So, how can a list mode success/failure?
+
+Let's take a look at last article's `halve` function:
 
 ~~~haskell
-halve :: Int -> [Int]
+halve :: Int -> Maybe Int
 halve n = do
-    x <- return n
-    guard $ even x
-    return $ x `div` 2
+    guard $ even n
+    return $ n `div` 2
+~~~
+
+~~~haskell
+λ: halve 6
+Just 3
+λ: halve 7
+Nothing
+λ: halve 8 >>= halve
+Just 2
+λ: halve 7 >>= halve
+Nothing
+~~~
+
+Here, our success/fail mechanism was built into the Maybe container. Remember,
+first, it fails automatically if `n` is not even; then, it auto-succeeds with
+``n `div` 2`` (which only works if it has not already failed).  But note that
+we didn't actually really "need" Maybe here...we could have used anything that
+had an `mzero` (insta-fail) and a `return` (auto-succeed).
+
+Let's see what happens when we replace our Maybe container with a list:
+
+~~~haskell
+halve' :: Int -> [Int]
+halve' n = do
+    guard $ even n
+    return $ n `div` 2
 ~~~
 
 This is...the exact same function.  We didn't do anything but change the type
 signature.  But because you believe me when I say that List is a
-MonadPlus...this should work, right?  `guarad` should work for any MonadPlus.
+MonadPlus...this should work, right?  `guard` should work for any MonadPlus,
+because every MonadPlus has an `mzero` (fail).  `return` should work for any
+MonadPlus, too --- it wouldn't be a MonadPlus without `return` implemented!
 
-How is list a meaningful MonadPlus?  Simple: a "failure" is an empty list.  A
-"success" is a non-empty list.
+So, how is list a meaningful MonadPlus?  Simple: a "failure" is an empty list.
+A "success" is a non-empty list.
 
 Watch:
 
 ~~~haskell
-λ: halve 8
-[4]
-λ: halve 7
+λ: halve' 6
+[3]
+λ: halve' 7
 []
-λ: halve 8 >>= halve
-[4]
-λ: halve 7 >>= halve
-[]
-λ: halve 32 >>= halve >>= halve >>= halve
+λ: halve' 8 >>= halve'
 [2]
-λ: halve 32 >>= (\_ -> empty) >>= halve >>= halve >>= halve
+λ: halve' 7 >>= halve'
+[]
+λ: halve' 32 >>= halve' >>= halve' >>= halve'
+[2]
+λ: halve' 32 >> mzero >>= halve' >>= halve' >>= halve'
 []
 ~~~
 
-Oh my goodness.  `Nothing` is just `[]`...`Just a` is now just `[a]`.  It's al
-so clear now.  Why does `Maybe` even exist?  What an outrage!  This whole
-time!  It's all a lie!
+So there we have it.  `Nothing` is just like `[]`, `Just x` is just like
+`[x]`.  This whole time.  It's all so clear now.  Why does `Maybe` even exist,
+anyway, when we can just use `[]` and `[x]` for `Nothing` and `Just x` and be
+none the wiser?
 
 In fact, if we generalize our type signature for `halve`, we can do some crazy
 things...
@@ -121,9 +147,8 @@ things...
 ~~~haskell
 genericHalve :: MonadPlus m => Int -> m Int
 genericHalve n = do
-    x <- return n
-    guard $ even x
-    return x
+    guard $ even n
+    return $ n `div` 2
 ~~~
 
 ~~~haskell
@@ -140,7 +165,10 @@ Nothing
 <aside>
     ###### Aside
 
-When we say something like `genericHalve 8 :: Maybe Int`, it means "I want
+Hi again; remember, these asides are for people who might be unfamiliar with
+Haskel syntax.  If you are comfortable already, feel free to ignore these.
+
+No, when we say something like `genericHalve 8 :: Maybe Int`, it means "I want
 `genericHalve 8`...and I want the type to be `Maybe Int`."  This is necessary
 here becuase in our `genericHalve` can be *any* MonadPlus, so we have to tell
 ghci which MonadPlus we want.
@@ -152,17 +180,18 @@ represent the concept of failure and success.  So...what's the difference?
 ### A List Apart
 
 Lists can model failure the same way that Maybe can.  But it should be
-apparent that list can model success...very interestingly.
+apparent that lists can do a little "more" than Maybe...
 
-Consider `[3, 5]`.  Clearly this is to represent some sort of "success".  But
-what?
+Consider `[3, 5]`.  Clearly this is to represent some sort of "success"
+(because a failure would be an empty list).  But
+what kind of "success" could it represent?
 
 How about we look at it this way: `[3, 5]` represents two separate *paths* to
 success.  When we look at a `Just 5`, we see a computation that succeeded with
 a 5.  When we see a `[3, 5]`, we may interpret it as a computation that had
 two possible succesful paths: one succeeding with a 3 and another with a 5.
 
-You can also say that it represents a computaiton that *could have chosen* to
+You can also say that it represents a computation that *could have chosen* to
 succeed in a 3, or a 5.  In this way, the list monad is often referred to as
 the "choice" monad.
 
@@ -231,8 +260,8 @@ Let's try it out:
 The first list represents the results of all of the possible succesful paths 5
 could have taken to "traverse" the dreaded `halveOrDouble` landscape twice ---
 double-halve, or double-double.  The second, 6 could have emerged succesful
-with halve-double, double-halve, or double-double.  8 had the succesful paths
-it could have taken.
+with halve-double, double-halve, or double-double.  For 8, all paths are
+succesful, incidentally.  He better check his privilege.
 
 Let's look at this in the do notation form to offer some possible insight:
 
@@ -246,12 +275,12 @@ halveOrDoubleTwice n = do
 ~~~
 
 Do notation describes **a single path of a value**.  This is slightly
-confusing at first.  But look at it --- it has the exact same form as a
+confusing at first.  But look at it --- it has the *exact same form* as a
 Maybe monad do block.
 
-This thing describes, in general terms, the path of a single value.  `x`, `y`,
-and `z` are not lists --- they represent a single value, in the middle of the
-treacherous journey.
+This thing describes, in general terms, the path of a **single value**.  `x`,
+`y`, and `z` are *not* lists --- they represent a single value, in the middle
+of its treacherous journey.
 
 Here is an illustration, tracing out "individual paths":
 
@@ -269,8 +298,9 @@ want to double.
 
 Remember, just like in the Maybe monad, the `x`, `y`, and `z` represent the
 *value* inside the object --- `x` represents the 6, `y` represents either the
-3 or the 12, depending on what path you take.  This binding of `x`, `y`, or
-`z` remains the same throughout the remainder of the path.
+3 or the 12 (but only **one** of them, per path), depending on what path you
+take.  This binding of `x`, `y`, or `z` remains the same throughout the
+remainder of the path.
 
 Here is the tricky part: the last line, `return z`, returns **what `z` is on
 that path**.  In the halve-double path, `z` is 6.  In the `double-double`
@@ -284,7 +314,7 @@ halveOrDoubleDance n = do       -- halveOrDoubleDance 6
     x <- return n               -- x <-             Just 6
     y <- halveOrDouble x        -- y <-     Just 3          Just 12
     z <- halveOrDouble y        -- z <- Nothing Just 6  Just 6  Just 24
-    return z                    --      Nothing Just 3  Just 12 Just 12
+    return y                    --      Nothing Just 3  Just 12 Just 12
 ~~~
 
 ~~~haskell
