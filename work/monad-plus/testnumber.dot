@@ -1,17 +1,17 @@
 digraph {
-
     node [shape=none, color=white, fontname="palatino"] ;
     graph [fontname="palatino"] ;
+
 
     labeljust="l";
     constraint=false;
 
     subgraph cluster0 {
-        label="x ←" ;
-        fontcolor=blue;
-        style=filled ;
-        color=linen ;
-        x  [label="Just 5"] ;
+        /* label="x ←" ; */
+        /* fontcolor=blue; */
+        /* style=filled ; */
+        /* color=linen ; */
+        n  [label="n = 5"] ;
     }
 
     subgraph cluster1 {
@@ -19,18 +19,19 @@ digraph {
         fontcolor=blue;
         style=filled ;
         color=linen ;
-        y7 [label="Just id"] ;
-        y6 [label="Just ((+1).(^3))"] ;
-        y5 [label="Just ((+1).(^2))"] ;
-        y4 [label="Just (^2)"] ;
-        y3 [label="Just (+2)"] ;
-        y2 [label="Just (*3)"] ;
-        y1 [label="Just (*2)"] ;
+        f7 [label="Just id"] ;
+        f6 [label="Just ((+1).(^3))"] ;
+        f5 [label="Just ((+1).(^2))"] ;
+        f4 [label="Just (^2)"] ;
+        f3 [label="Just (+2)"] ;
+        f2 [label="Just (*3)"] ;
+        f1 [label="Just (*2)"] ;
     }
 
     subgraph cluster2 {
-        label="f x" ;
+        label="f n" ;
         fontcolor=blue;
+        labelloc=b;
         style=filled;
         color=linen;
         z7 [label="Just 5"] ;
@@ -43,7 +44,7 @@ digraph {
     }
 
     subgraph cluster3 {
-        label="guard (isMultThree (f x))" ;
+        label="guard (isMultThree (f n))" ;
         labelloc=b;
         fontcolor=blue;
         style=filled;
@@ -72,21 +73,21 @@ digraph {
         r1 [label="Nothing",fontcolor=slategray] ;
     }
 
-    x  -> y1 ;
-    x  -> y2 ;
-    x  -> y3 ;
-    x  -> y4 ;
-    x  -> y5 ;
-    x  -> y6 ;
-    x  -> y7 ;
+    n  -> f1 ;
+    n  -> f2 ;
+    n  -> f3 ;
+    n  -> f4 ;
+    n  -> f5 ;
+    n  -> f6 ;
+    n  -> f7 ;
 
-    y1 -> z1 ;
-    y2 -> z2 ;
-    y3 -> z3 ;
-    y4 -> z4 ;
-    y5 -> z5 ;
-    y6 -> z6 ;
-    y7 -> z7 ;
+    f1 -> z1 ;
+    f2 -> z2 ;
+    f3 -> z3 ;
+    f4 -> z4 ;
+    f5 -> z5 ;
+    f6 -> z6 ;
+    f7 -> z7 ;
 
     z1 -> g1 [color=slategray];
     z2 -> g2 ;

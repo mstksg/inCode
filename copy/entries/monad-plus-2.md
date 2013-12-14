@@ -209,7 +209,8 @@ result of every path that could have lead to a success.  Contrast this to the
 any choice.  There is only one path --- succesful, or otherwise.  A `Maybe` is
 deterministic...a list provides a choice in paths.
 
-### halveOrDouble
+halveOrDouble
+-------------
 
 Let's take a simple example: `halveOrDouble`.  It provides two succesful paths
 if you are even: halving and doubling.  It only provides one choice or
@@ -266,7 +267,7 @@ double-halve, or double-double.  The second, 6 could have emerged succesful
 with halve-double, double-halve, or double-double.  For 8, all paths are
 succesful, incidentally.  He better check his privilege.
 
-#### Do notation
+### Do notation
 
 Let's look at this in the do notation form to offer some possible insight:
 
@@ -319,7 +320,7 @@ hod2PlusOne n = do              -- hod2plusOne 6
 
 ~~~haskell
 λ: hod2PlusOne 6
-[4, 13, 13]
+[   4,13,13]
 ~~~
 
 Okay!  This is getting interesting now.  What's going on?  Well, there are
@@ -338,13 +339,13 @@ four possible "paths".
     --- 4.  This is just like how in the Maybe monad, we return a new value
     after the guard.
 3.  In the double-halve path, `x` (the result of the first operation, a
-    double) is 12.  The second operation makes the value in the journey a 6.
+    double) is 12.  The second operation makes the value in the journey a 6;
     At the end of it all, we succeed with whatever the value of `x` is on that
     specific journey (12) is, plus one.  13.
 4.  Same story here, but for double-double; `x` is 12.  At the end of it all,
     the journey never fails, so it succeeds with `x + 1`, or 13.
 
-#### Taking it every way
+#### Trying out every path
 
 If this doesn't satisfy you, here is an example of four Maybe do blocks where
 we "flesh out" each possible path, with the value of the block at each line in
@@ -392,12 +393,19 @@ fails.  The left-right journey (the halve-double journey) passes, and at the
 end is given the value of `x + 1` for the `x` in that particular journey.  The
 other journeys work the same way!
 
-### Solving real-ish problems
+Solving real-ish problems
+-------------------------
 
-Okay, we are *almost* ready to finally implement our solution to the
-Wolf/Goat/Cabbage puzzle.  Just one more demonstration.
+That wasn't too bad!  We're *almost* ready to begin implementing our solution
+to the Wolf/Goat/Cabbage puzzle.
 
-Let's try this somewhat practical question:
+But we're going to go through a couple more examples of branching journies
+first --- both as a way to build more familiarity with the "branching journey
+monad" (list), and also as a nice conclusion to this post.
+
+### Testing Multiple Conditions
+
+Here's a fun one.
 
 "What operations on a number will make it a multiple of three?"
 
@@ -407,8 +415,7 @@ isMultThree a = a `mod` 3 == 0
 
 testNumber :: Int -> [String]
 testNumber n = do
-    x <- return n                                       -- 2
-    (f, fName)  <-  [ ((*2)         , "times two")      -- 3
+    (f, fName)  <-  [ ((*2)         , "times two")      -- 2
                     , ((*3)         , "times three")
                     , ((+2)         , "plus two")
                     , ((+3)         , "plus three")
@@ -417,10 +424,10 @@ testNumber n = do
                     , ((+1).(^3)    , "cube plus 1")
                     , (id           , "stay the same")
                     ]
-    let z = f x                                         -- 4
+    let z = f n                                         -- 3
 
-    guard $ isMultThree z                               -- 5
-    return fName                                        -- 6
+    guard $ isMultThree z                               -- 4
+    return fName                                        -- 5
 ~~~
 
 ~~~haskell
@@ -440,15 +447,13 @@ Let's go over this step-by-step:
 
 1.  First of all, define the utility function `isMultThree a`, which is true
     when `a` is a multiple of three and false when it isn't.
-1.  In the block, `x` is set to be a choice in the journey.  This choice is
-    always going to be `n`, but if we wanted to test multiple numbers, we
-    could do something like `x <- [n, n+1, n+2]`.
-2.  Now, the journey digerges.  `f` and `fName` is now a value that depends on
-    the path we took.  If we took the first path, `f = (*2)` (the doubling
-    function) and `fName = "times two"`.  On the second path, `f = (*3)` (the
-    tripling function) and `fName = "times three"`, etc.
+2.  The journey diverges immediately.  `f` and `fName` is now a value that
+    depends on the path we take.  If we take the first path, `f = (*2)` (the
+    doubling function) and `fName = "times two"`.  On the second path, `f =
+    (*3)` (the tripling function) and `fName = "times three"`, etc.
 3.  We alias `z` to be the function we chose applied to `x`.  If we had chosen
-    the path `f = (*2)`, `z` would be `(*2) x`, which is `x*2`.
+    the path `f = (*2)`, `z` would be `(*2) x`, which is `x*2`.  This is
+    mainly for readability.
 4.  We check if `z` is a multiple of three.  If it isn't, the journey sadly
     ends here.  For example, if we called the function with `n = 4`, and we
     had chosen `f = (^2)` (the square function), this journey (involving the
@@ -457,6 +462,73 @@ Let's go over this step-by-step:
 5.  At the end of the weary journey, we return the name of the function we
     chose.  This step is never reached for failed journeys.
 
-Here is a diagram!
+Here is another diagram, similar to the last.
 
 ![*testNumber 5*, all journeys illustrated](/img/entries/monad-plus/testnumber.png "testNumber 5")
+
+### Testing combinations
+
+Here is probably the most common of all examples involving the list monad:
+finding Pythagorean triples.
+
+~~~haskell
+triplesUnder n = do
+    a <- [1..n]                     -- 1
+    b <- [a..n]                     -- 2
+    c <- [b..n]                     -- 3
+    guard $ a^2 + b^2 == c^2        -- 4
+    return (a,b,c)                  -- 5
+~~~
+
+1.  Our journey begins with picking a number between 1 and `n` and setting it
+    to `a`.
+2.  Next, we pick a number between `a` and `n` and set it to `b`.  In order to
+    be unique, our triples should probably go in ascending order.  That's why
+    we want our pick for `b` to be at least `a`.
+3.  Next, we pick a number between `b` and `n`.  This is our hypotenuse, and
+    of course all hypontenii are larger than either side.
+4.  Now, we mercilessly and ruthlessly end all journeys who were unfortunate
+    enough to pick a non-Pythagorean combination --- combinations where `a^2 +
+    b^2` is not `c^2`
+5.  For those successful journeys, we succeed with a tuple containing our
+    victorious triple `(a,b,c)`.
+
+Let's try "following" this path with some arbitrary choices, looking at
+arbitrary journeys for `n = 10`:
+
+*   We pick `a = 2`, `b = 3`, and `c = 9`.  All is good until we get to the
+    guard.  `a^2 + b^2` is 10, which is not `c^2` (81), unfortunately.  This
+    `(2,3,10)` journey ends here.
+*   We pick `a = 3`, `b = 4`, and `c = 5`.  On the guard, we succeed: `a^2 +
+    b^2` is 25, which indeed is `c^2`.  Our journey passes the guard, and then
+    succeeds with a value of `(3,4,5)`. This is indeed counted among the
+    successful paths --- among the victorious!
+
+Paths like `a = 5` and `b = 3` do not even happen.  This is because if we pick
+`a = 5`, then in that particular journey, `b` can only be chosen between `5`
+and `n` inclusive.
+
+Remember, the final result is the accumulation of **all such successful
+journeys**.  A little bit of combinatorics will show that there are $n! /
+(n-3)!$ possible journeys to attempt.  Only the ones that do not fail (at the
+guard) will make it to the end.  Remember how MonadPlus works --- one failure
+along the journey means that the *entire journey* is a failure.
+
+Let's see what we get when we try it at the prompt:
+
+~~~haskell
+λ: triplesUnder 10
+[ ( 3, 4, 5),( 6, 8,10) ]
+λ: triplesUnder 25
+[ ( 3, 4, 5),( 5,12,13),( 6, 8,10),( 7,24,25)
+ ,( 8,15,17),( 9,12,15),(12,16,20),(15,20,25) ]
+~~~
+
+Perfect!  You can probably quickly verify that all of these solutions are
+indeed Pythagorean triples.
+
+I'm not going to put a diagram here because I'm going to have to display 60
+branches for `triplesUnder 5` --- but I'm sure by now that you get the
+picture.
+
+
