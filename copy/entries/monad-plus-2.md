@@ -53,7 +53,7 @@ chaining to model success/failure.
 
 *   `mzero` means "failure", and chaining anything onto a failure will still be
    a failure.
-*   `return x` means "succeed with `x`", and will return a "succesful" result
+*   `return x` means "succeed with `x`", and will return a "successful" result
     with a value of `x`.
 
 You can read through the [previous article][intro] for examples of seeing
@@ -206,13 +206,13 @@ Think of it this way: A value goes through a long and arduous journey with
 many choices and possible paths and forks.  At the end of it, you have the
 result of every path that could have lead to a success.  Contrast this to the
 `Maybe` monad, where a value goes through this arduous journey, but never has
-any choice.  There is only one path --- succesful, or otherwise.  A `Maybe` is
+any choice.  There is only one path --- successful, or otherwise.  A `Maybe` is
 deterministic...a list provides a choice in paths.
 
 halveOrDouble
 -------------
 
-Let's take a simple example: `halveOrDouble`.  It provides two succesful paths
+Let's take a simple example: `halveOrDouble`.  It provides two successful paths
 if you are even: halving and doubling.  It only provides one choice or
 possible path to success if you are odd: doubling.  In this way it is slightly
 racist.
@@ -238,17 +238,17 @@ How about we subject a number to this halving-or-doubling journey twice?  What
 do we expect?
 
 1.  The path of halve-halve only works if the number is divisible by two
-    twice.  So this is only a succesful path if the number is divisible by
+    twice.  So this is only a successful path if the number is divisible by
     four.
 2.  The path of halve-double only works if the number is even.  So this is
-    only a succesful path in that case.
+    only a successful path in that case.
 3.  The path of double-halve will work in all cases!  It is a success always.
 4.  The path of double-double will also work in all cases...it'll never fail
     for our sojourning number!
 
-So...halving-or-doubling twice has two possible succesful paths for an odd
-number, three succesful paths for a number divisible by two but not four, and
-four succesful paths for a number divisible by four.
+So...halving-or-doubling twice has two possible successful paths for an odd
+number, three successful paths for a number divisible by two but not four, and
+four successful paths for a number divisible by four.
 
 Let's try it out:
 
@@ -261,11 +261,11 @@ Let's try it out:
 [ 2, 8, 8, 32]
 ~~~
 
-The first list represents the results of all of the possible succesful paths 5
+The first list represents the results of all of the possible successful paths 5
 could have taken to "traverse" the dreaded `halveOrDouble` landscape twice ---
-double-halve, or double-double.  The second, 6 could have emerged succesful
+double-halve, or double-double.  The second, 6 could have emerged successful
 with halve-double, double-halve, or double-double.  For 8, all paths are
-succesful, incidentally.  He better check his privilege.
+successful, incidentally.  He better check his privilege.
 
 ### Do notation
 
@@ -399,7 +399,7 @@ Solving real-ish problems
 That wasn't too bad!  We're *almost* ready to begin implementing our solution
 to the Wolf/Goat/Cabbage puzzle.
 
-But we're going to go through a couple more examples of branching journies
+But we're going to go through a couple more examples of branching journeys
 first --- both as a way to build more familiarity with the "branching journey
 monad" (list), and also as a nice conclusion to this post.
 
@@ -496,12 +496,12 @@ triplesUnder n = do
 Let's try "following" this path with some arbitrary choices, looking at
 arbitrary journeys for `n = 10`:
 
-*   We pick `a = 2`, `b = 3`, and `c = 9`.  All is good until we get to the
+*   We pick `a` as 2, `b` as 3, and `c` as 9.  All is good until we get to the
     guard.  `a^2 + b^2` is 10, which is not `c^2` (81), unfortunately.  This
     `(2,3,10)` journey ends here.
-*   We pick `a = 3`, `b = 4`, and `c = 5`.  On the guard, we succeed: `a^2 +
-    b^2` is 25, which indeed is `c^2`.  Our journey passes the guard, and then
-    succeeds with a value of `(3,4,5)`. This is indeed counted among the
+*   We pick `a` as 3, `b` as 4, and `c` as 5.  On the guard, we succeed: `a^2
+    + b^2` is 25, which indeed is `c^2`.  Our journey passes the guard, and
+    then succeeds with a value of `(3,4,5)`. This is indeed counted among the
     successful paths --- among the victorious!
 
 Paths like `a = 5` and `b = 3` do not even happen.  This is because if we pick
@@ -525,7 +525,11 @@ Let's see what we get when we try it at the prompt:
 ~~~
 
 Perfect!  You can probably quickly verify that all of these solutions are
-indeed Pythagorean triples.
+indeed Pythagorean triples.  Out of the 720 journeys undertaken by
+`triplesUnder 10`, only two of them survived to the end to be successful.  Out
+of the 13800 journeys in `triplesUnder 25`, only eight of them made it to the
+end.  The rest "died"/failed, and as a result we do not even observer their
+remains.
 
 I'm not going to put a diagram here because I'd to have to display 60 branches
 for just `triplesUnder 5` --- but I'm sure by now that you get the picture.  B
