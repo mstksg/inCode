@@ -61,8 +61,8 @@ these principles in action and in real code.
 
 Without further ado, let us start on the list monad.
 
-Starting the List Monad
------------------------
+Starting on the List Monad
+--------------------------
 
 Now, when I say "list monad", I mean "one way that you can implement chaining
 operations on a list".  To be more precise, I should say "haskell's default
@@ -73,7 +73,7 @@ And what's one way we can do this?  You could probably take a wild guess.
 Yup, we can model lists as a MonadPlus --- we can model chaining in a way that
 revolves around successes and failures.
 
-So, how can a list mode success/failure?
+So, how can a list model success/failure?  Does that even make sense?
 
 Let's take a look at last article's `halve` function:
 
