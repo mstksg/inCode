@@ -1,18 +1,19 @@
-import Control.Monad
-
 -- "What operations on a number will make it a multiple of three?"
 --
 -- To test/run:
 -- $ ghci
 -- λ: :i TestNumber.hs
--- λ: testNumber (number you want to test)
+-- λ: testNumber 9
+--
+-- http://blog.jle.im/entry/practical-fun-with-monads-the-list-monadplus#testing-multiple-paths
+
+import Control.Monad (guard)
 
 isMultThree :: Int -> Bool
 isMultThree a = a `mod` 3 == 0
 
 testNumber :: Int -> [String]
 testNumber n = do
-    x <- return n
     (f, fName)  <-  [ ((*2)         , "times two")
                     , ((*3)         , "times three")
                     , ((+2)         , "plus two")
@@ -23,7 +24,7 @@ testNumber n = do
                     , (id           , "stay the same")
                     ]
     let
-        z = f x
+        z = f n
 
     guard $ isMultThree z
     return fName

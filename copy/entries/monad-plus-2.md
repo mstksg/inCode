@@ -170,9 +170,13 @@ Nothing
 
 Now, when we say something like `genericHalve 8 :: Maybe Int`, it means "I
 want `genericHalve 8`...and I want the type to be `Maybe Int`."  This is
-necessary here becuase in our `genericHalve` can be *any* MonadPlus, so we
+necessary here because in our `genericHalve` can be *any* MonadPlus, so we
 have to tell ghci which MonadPlus we want.
 </aside>
+
+([All three versions of `halve` available for playing around with][halves])
+
+[halves]: https://github.com/mstksg/inCode/blob/master/code-samples/monad-plus/Halves.hs
 
 So there you have it. Maybe and lists are one and the same.  Lists *do* too
 represent the concept of failure and success.  So...what's the difference?
@@ -229,6 +233,10 @@ halveOrDouble n | even n    = [n `div` 2, n * 2]
 λ: halveOrDouble 7
 [  14]
 ~~~
+
+([Play with this the other functions this section on your own][halveOrDouble])
+
+[halveOrDouble]: https://github.com/mstksg/inCode/blob/master/code-samples/monad-plus/HalveOrDouble.hs
 
 As you can see in the first case, with the 6, there are two paths to success:
 the halve, and the double.  In the second case, with the 7, there is only one
@@ -443,6 +451,10 @@ testNumber n = do
 ["times three", "cube plus 1"]
 ~~~
 
+[Play with it here!][testNumber]
+
+[testNumber]: https://github.com/mstksg/inCode/blob/master/code-samples/monad-plus/TestNumber.hs
+
 Let's go over this step-by-step:
 
 1.  First of all, define the utility function `isMultThree a`, which is true
@@ -479,6 +491,10 @@ triplesUnder n = do
     guard $ a^2 + b^2 == c^2        -- 4
     return (a,b,c)                  -- 5
 ~~~
+
+[(Available for download)][triplesUnder]
+
+[triplesUnder]: https://github.com/mstksg/inCode/blob/master/code-samples/monad-plus/TriplesUnder.hs
 
 1.  Our journey begins with picking a number between 1 and `n` and setting it
     to `a`.
