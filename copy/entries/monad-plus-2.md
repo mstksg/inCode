@@ -66,7 +66,7 @@ Starting on the List Monad
 
 Now, when I say "list monad", I mean "one way that you can implement chaining
 operations on a list".  To be more precise, I should say "haskell's default
-choice of chaining method on lists".  *There is no "the list monad"*...there
+choice of chaining method on lists".  **There is no "the list monad"**...there
 is "a way we can make the List data structure a monad".
 
 And what's one way we can do this?  You could probably take a wild guess.
@@ -492,7 +492,7 @@ triplesUnder n = do
     return (a,b,c)                  -- 5
 ~~~
 
-[(Available for download)][triplesUnder]
+([Available for download])[triplesUnder]
 
 [triplesUnder]: https://github.com/mstksg/inCode/blob/master/code-samples/monad-plus/TriplesUnder.hs
 
