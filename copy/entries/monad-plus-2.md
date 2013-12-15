@@ -558,7 +558,7 @@ remains.
 While the full diagram of `triplesUnder 5` has 60 branches, here is a diagram
 for those branches with $a > 2$:
 
-![*triplesUnder 5*, all journeys where a > 2 illustrated](/img/entries/monad-plus/testnumber.png "tripesUnder 5")
+![*triplesUnder 5*, all journeys where a > 2 illustrated](/img/entries/monad-plus/triplesunder.png "triplesUnder 5")
 
 Almost There!
 -------------
