@@ -66,8 +66,8 @@ Starting on the List Monad
 
 Now, when I say "list monad", I mean "one way that you can implement chaining
 operations on a list".  To be more precise, I should say "haskell's default
-choice of chaining method on lists".  **There is no "the list monad"**...there
-is "a way we can make the List data structure a monad".
+choice of chaining method on lists".  Technically, **there is no "the list
+monad"**...there is "a way we can make the List data structure a monad".
 
 And what's one way we can do this?  You could probably take a wild guess.
 Yup, we can model lists as a MonadPlus --- we can model chaining in a way that

@@ -533,7 +533,7 @@ powerup currHealth = Just $ currHealth + 1
 Just 3
 λ: setHealth 2 >>= hit >>= powerup >>= hit >>= hit >>= powerup
 Nothing
-λ: setHealth 10 >>= powerup >>= die >>= powerup >>= powerup
+λ: setHealth 10 >>= powerup >> die >>= powerup >>= powerup
 Nothing
 λ: do
  |     h0 <- setHealth 2        -- Just 2
