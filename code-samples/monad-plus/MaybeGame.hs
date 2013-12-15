@@ -1,3 +1,5 @@
+module MaybeGame where
+
 -- A simple game using Maybe to keep track of dying.
 --
 -- From the article:

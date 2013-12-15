@@ -404,79 +404,87 @@ other journeys work the same way!
 Solving real-ish problems
 -------------------------
 
-That wasn't too bad!  We're *almost* ready to begin implementing our solution
-to the Wolf/Goat/Cabbage puzzle.
+That wasn't too bad, was it?  We're actually just about ready to start
+implementing our solution to the Wolf/Goat/Cabbage puzzle!
 
-But we're going to go through a couple more examples of branching journeys
-first --- both as a way to build more familiarity with the "branching journey
-monad" (list), and also as a nice conclusion to this post.
+Before we end this post let's build some more familiarity with the List monad
+and try out a very common practical example.
 
-### Testing multiple paths
+<!-- That wasn't too bad!  We're *almost* ready to begin implementing our solution -->
+<!-- to the Wolf/Goat/Cabbage puzzle. -->
 
-Here's a fun one.
+<!-- Let's try one "real"-ish problem to build some more -->
 
-"What operations on a number will make it a multiple of three?"
+<!-- But we're going to go through a couple more examples of branching journeys -->
+<!-- first --- both as a way to build more familiarity with the "branching journey -->
+<!-- monad" (list), and also as a nice conclusion to this post. -->
 
-~~~haskell
-isMultThree :: Int -> Bool                              -- 1
-isMultThree a = a `mod` 3 == 0
+<!-- ### Testing multiple paths -->
 
-testNumber :: Int -> [String]
-testNumber n = do
-    (f, fName)  <-  [ ((*2)         , "times two")      -- 2
-                    , ((*3)         , "times three")
-                    , ((+2)         , "plus two")
-                    , ((+3)         , "plus three")
-                    , ((^2)         , "square")
-                    , ((+1).(^2)    , "square plus 1")
-                    , ((+1).(^3)    , "cube plus 1")
-                    , (id           , "stay the same")
-                    ]
-    let z = f n                                         -- 3
+<!-- Here's a fun one. -->
 
-    guard $ isMultThree z                               -- 4
-    return fName                                        -- 5
-~~~
+<!-- "What operations on a number will make it a multiple of three?" -->
 
-~~~haskell
-λ: testNumber 4
-["times three", "plus two"]
-λ: testNumber 5
-["times three", "cube plus 1"]
-λ: testNumber 6
-["times two", "times three", "plus three", "square", "stay the same"]
-λ: testNumber 7
-["times three", "plus two"]
-λ: testNumber 8
-["times three", "cube plus 1"]
-~~~
+<!-- ~~~haskell -->
+<!-- isMultThree :: Int -> Bool                              -- 1 -->
+<!-- isMultThree a = a `mod` 3 == 0 -->
 
-[Play with it here!][testNumber]
+<!-- testNumber :: Int -> [String] -->
+<!-- testNumber n = do -->
+<!--     (f, fName)  <-  [ ((*2)         , "times two")      -- 2 -->
+<!--                     , ((*3)         , "times three") -->
+<!--                     , ((+2)         , "plus two") -->
+<!--                     , ((+3)         , "plus three") -->
+<!--                     , ((^2)         , "square") -->
+<!--                     , ((+1).(^2)    , "square plus 1") -->
+<!--                     , ((+1).(^3)    , "cube plus 1") -->
+<!--                     , (id           , "stay the same") -->
+<!--                     ] -->
+<!--     let z = f n                                         -- 3 -->
 
-[testNumber]: https://github.com/mstksg/inCode/blob/master/code-samples/monad-plus/TestNumber.hs
+<!--     guard $ isMultThree z                               -- 4 -->
+<!--     return fName                                        -- 5 -->
+<!-- ~~~ -->
 
-Let's go over this step-by-step:
+<!-- ~~~haskell -->
+<!-- λ: testNumber 4 -->
+<!-- ["times three", "plus two"] -->
+<!-- λ: testNumber 5 -->
+<!-- ["times three", "cube plus 1"] -->
+<!-- λ: testNumber 6 -->
+<!-- ["times two", "times three", "plus three", "square", "stay the same"] -->
+<!-- λ: testNumber 7 -->
+<!-- ["times three", "plus two"] -->
+<!-- λ: testNumber 8 -->
+<!-- ["times three", "cube plus 1"] -->
+<!-- ~~~ -->
 
-1.  First of all, define the utility function `isMultThree a`, which is true
-    when `a` is a multiple of three and false when it isn't.
-2.  The journey diverges immediately.  `f` and `fName` is now a value that
-    depends on the path we take.  If we take the first path, `f = (*2)` (the
-    doubling function) and `fName = "times two"`.  On the second path, `f =
-    (*3)` (the tripling function) and `fName = "times three"`, etc.
-3.  We alias `z` to be the function we chose applied to `x`.  If we had chosen
-    the path `f = (*2)`, `z` would be `(*2) x`, which is `x*2`.  This is
-    mainly for readability.
-4.  We check if `z` is a multiple of three.  If it isn't, the journey sadly
-    ends here.  For example, if we called the function with `n = 4`, and we
-    had chosen `f = (^2)` (the square function), this journey (involving the
-    choice of `(^2)`) would meet its failure here...but the journey with the
-    choice `f = (+2)` would not!
-5.  At the end of the weary journey, we return the name of the function we
-    chose.  This step is never reached for failed journeys.
+<!-- [Play with it here!][testNumber] -->
 
-Here is another diagram, similar to the last.
+<!-- [testNumber]: https://github.com/mstksg/inCode/blob/master/code-samples/monad-plus/TestNumber.hs -->
 
-![*testNumber 5*, all journeys illustrated](/img/entries/monad-plus/testnumber.png "testNumber 5")
+<!-- Let's go over this step-by-step: -->
+
+<!-- 1.  First of all, define the utility function `isMultThree a`, which is true -->
+<!--     when `a` is a multiple of three and false when it isn't. -->
+<!-- 2.  The journey diverges immediately.  `f` and `fName` is now a value that -->
+<!--     depends on the path we take.  If we take the first path, `f = (*2)` (the -->
+<!--     doubling function) and `fName = "times two"`.  On the second path, `f = -->
+<!--     (*3)` (the tripling function) and `fName = "times three"`, etc. -->
+<!-- 3.  We alias `z` to be the function we chose applied to `x`.  If we had chosen -->
+<!--     the path `f = (*2)`, `z` would be `(*2) x`, which is `x*2`.  This is -->
+<!--     mainly for readability. -->
+<!-- 4.  We check if `z` is a multiple of three.  If it isn't, the journey sadly -->
+<!--     ends here.  For example, if we called the function with `n = 4`, and we -->
+<!--     had chosen `f = (^2)` (the square function), this journey (involving the -->
+<!--     choice of `(^2)`) would meet its failure here...but the journey with the -->
+<!--     choice `f = (+2)` would not! -->
+<!-- 5.  At the end of the weary journey, we return the name of the function we -->
+<!--     chose.  This step is never reached for failed journeys. -->
+
+<!-- Here is another diagram, similar to the last. -->
+
+<!-- ![*testNumber 5*, all journeys illustrated](/img/entries/monad-plus/testnumber.png "testNumber 5") -->
 
 ### Finding the right combinations
 
@@ -492,7 +500,7 @@ triplesUnder n = do
     return (a,b,c)                  -- 5
 ~~~
 
-([Available for download])[triplesUnder]
+([Available for download to play with yourself])[triplesUnder]
 
 [triplesUnder]: https://github.com/mstksg/inCode/blob/master/code-samples/monad-plus/TriplesUnder.hs
 
@@ -547,9 +555,10 @@ of the 13800 journeys in `triplesUnder 25`, only eight of them made it to the
 end.  The rest "died"/failed, and as a result we do not even observer their
 remains.
 
-I'm not going to put a diagram here because I'd to have to display 60 branches
-for just `triplesUnder 5` --- but I'm sure by now that you get the picture.  B
-now you are a list monad pro!
+While the full diagram of `triplesUnder 5` has 60 branches, here is a diagram
+for those branches with $a > 2$:
+
+![*triplesUnder 5*, all journeys where a > 2 illustrated](/img/entries/monad-plus/testnumber.png "tripesUnder 5")
 
 Almost There!
 -------------

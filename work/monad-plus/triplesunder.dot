@@ -1,0 +1,136 @@
+digraph {
+    node [shape=none, color=white, fontname="palatino"] ;
+    graph [fontname="palatino"] ;
+
+
+    labeljust="l";
+    constraint=false;
+
+    subgraph cluster0 {
+        label="a ←" ;
+        fontcolor=blue ;
+        style=filled ;
+        color=linen ;
+        a3  [label="Just 5"] ;
+        a2  [label="Just 4"] ;
+        a1  [label="Just 3"] ;
+    }
+
+    subgraph cluster1 {
+        label="b ←" ;
+        fontcolor=blue;
+        style=filled ;
+        color=linen ;
+        b32 [label="Just 5"] ;
+        b31 [label="Just 4"] ;
+        b22 [label="Just 5"] ;
+        b21 [label="Just 4"] ;
+        b12 [label="Just 5"] ;
+        b11 [label="Just 4"] ;
+    }
+
+    subgraph cluster2 {
+        label="c ←" ;
+        fontcolor=blue;
+        style=filled;
+        color=linen;
+        c32 [label="Just 5"] ;
+        c31 [label="Just 5"] ;
+        c22 [label="Just 5"] ;
+        c21 [label="Just 5"] ;
+        c12 [label="Just 5"] ;
+        c11 [label="Just 5"] ;
+    }
+
+    subgraph cluster3 {
+        label="guard (a^2 + b^2 == c^2)" ;
+        labelloc=b;
+        fontcolor=blue;
+        style=filled;
+        color=linen;
+        g22 [label="Nothing",fontcolor=slategray] ;
+        g21 [label="Nothing",fontcolor=slategray] ;
+        g32 [label="Nothing",fontcolor=slategray] ;
+        g31 [label="Nothing",fontcolor=slategray] ;
+        g12 [label="Nothing",fontcolor=slategray] ;
+        g11 [label="Just ()"] ;
+    }
+
+    subgraph cluster4 {
+        label="return (a,b,c)" ;
+        labelloc=b;
+        fontcolor=blue;
+        style=filled;
+        color=linen;
+        r22 [label="Nothing",fontcolor=slategray] ;
+        r21 [label="Nothing",fontcolor=slategray] ;
+        r32 [label="Nothing",fontcolor=slategray] ;
+        r31 [label="Nothing",fontcolor=slategray] ;
+        r12 [label="Nothing",fontcolor=slategray] ;
+        r11 [label="Just (3,4,5)"] ;
+    }
+
+
+    /* subgraph cluster4 { */
+    /*     label="return f" ; */
+    /*     labelloc=b; */
+    /*     fontcolor=blue; */
+    /*     style=filled; */
+    /*     color=linen; */
+    /*     r7 [label="Nothing",fontcolor=slategray] ; */
+    /*     r6 [label="Just ((+1).(^3))"] ; */
+    /*     r5 [label="Nothing",fontcolor=slategray] ; */
+    /*     r4 [label="Nothing",fontcolor=slategray] ; */
+    /*     r3 [label="Nothing",fontcolor=slategray] ; */
+    /*     r2 [label="Just (*3)"] ; */
+    /*     r1 [label="Nothing",fontcolor=slategray] ; */
+    /* } */
+
+    a1 -> b11 -> c11 ;
+    a1 -> b12 -> c12 ;
+    a2 -> b21 -> c21 ;
+    a2 -> b22 -> c22 ;
+    a3 -> b31 -> c31 ;
+    a3 -> b32 -> c32 ;
+
+    c11 -> g11 -> r11;
+    c12 -> g12 -> r12 [color=slategray] ;
+    c21 -> g21 -> r21 [color=slategray] ;
+    c22 -> g22 -> r22 [color=slategray] ;
+    c31 -> g31 -> r31 [color=slategray] ;
+    c32 -> g32 -> r32 [color=slategray] ;
+
+    /* n  -> f1 ; */
+    /* n  -> f2 ; */
+    /* n  -> f3 ; */
+    /* n  -> f4 ; */
+    /* n  -> f5 ; */
+    /* n  -> f6 ; */
+    /* n  -> f7 ; */
+
+    /* f1 -> z1 ; */
+    /* f2 -> z2 ; */
+    /* f3 -> z3 ; */
+    /* f4 -> z4 ; */
+    /* f5 -> z5 ; */
+    /* f6 -> z6 ; */
+    /* f7 -> z7 ; */
+
+    /* z1 -> g1 [color=slategray]; */
+    /* z2 -> g2 ; */
+    /* z3 -> g3 [color=slategray]; */
+    /* z4 -> g4 [color=slategray]; */
+    /* z5 -> g5 [color=slategray]; */
+    /* z6 -> g6 ; */
+    /* z7 -> g7 [color=slategray]; */
+
+    /* g1 -> r1 [color=slategray]; */
+    /* g2 -> r2 ; */
+    /* g3 -> r3 [color=slategray]; */
+    /* g4 -> r4 [color=slategray]; */
+    /* g5 -> r5 [color=slategray]; */
+    /* g6 -> r6 ; */
+    /* g7 -> r7 [color=slategray]; */
+
+}
+
