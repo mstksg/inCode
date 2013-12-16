@@ -479,15 +479,15 @@ forM_ ["report1","report2","report3"] $ \reportName -> do
         outBase = "out/" ++ reportName
         srcName = "src/" ++ reportName ++ ".md"
 
-    (outBase ++ ".doc") *> \f -> do
+    outBase ++ ".doc" *> \f -> do
         need <$> srcFiles
         cmd "pandoc" [ srcName, "-o", f ]
 
-    (outBase ++ ".pdf") *> \f -> do
+    outBase ++ ".pdf" *> \f -> do
         need <$> srcFiles
         cmd "pandoc" [ srcName, "-o", f, "-V", "links-as-notes" ]
 
-    (outBase ++ ".html") *> \f -> do
+    outBase ++ ".html" *> \f -> do
         deps <- srcFiles
         need $ "css/report.css" : deps
         cmd "pandoc" [ srcName, "-o", f, "-c", "css/report.css", "-S" ]
