@@ -500,7 +500,7 @@ triplesUnder n = do
     return (a,b,c)                  -- 5
 ~~~
 
-([Available for download to play with yourself])[triplesUnder]
+([Download it and try it out yourself!][triplesUnder])
 
 [triplesUnder]: https://github.com/mstksg/inCode/blob/master/code-samples/monad-plus/TriplesUnder.hs
 
