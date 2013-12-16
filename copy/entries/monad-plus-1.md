@@ -332,9 +332,9 @@ generically without worrying about their actual type by using only `return`
 and `mzero` (instead of say, `Just` and `Nothing`).
 
 In Haskell, the term we use (instead of "interface") is "**typeclass**". There
-are some subtle differences (including the fact that you can define default
-functions, and you also have a bit more power in what you can specify), but it
-doesn't hurt *too* much to make the analogy.
+are some subtle differences --- typeclasses are in general more powerful of a
+tool than interfaces --- but the two concepts provide similar roles in their
+respective languages.
 </aside>
 
 As a small note, the term/command "return"/`return` is shared by all monads.
