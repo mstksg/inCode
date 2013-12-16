@@ -463,6 +463,9 @@ Wrapping Up
 If you look at the [Shake Documentation][docs], you will find a lot of ways
 you can build complex networks of dependencies.
 
+[docs]: http://hackage.haskell.org/packages/archive/shake/0.10.6/doc/html/Development-Shake.html
+
+
 Hopefully there are enough use cases here to be useful in general
 applications.
 
@@ -493,8 +496,12 @@ forM_ ["report1","report2","report3"] $ \reportName -> do
         cmd "pandoc" [ srcName, "-o", f, "-c", "css/report.css", "-S" ]
 ~~~
 
+and "require" them in applicative style, as well:
 
-[docs]: http://hackage.haskell.org/packages/archive/shake/0.10.6/doc/html/Development-Shake.html
+~~~haskell
+want $ (\s f -> "out/" ++ s ++ "." ++ f) <$>
+    ["report1","report2","report3"] <*> ["doc","pdf","html"]
+~~~
 
 ### Looking Forward
 
