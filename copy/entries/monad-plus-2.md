@@ -534,7 +534,7 @@ and `n` inclusive.
 
 Remember, the final result is the accumulation of **all such successful
 journeys**.  A little bit of combinatorics will show that there are
-$\frac{1}{6} n (n + 1) (n + 2)$ possible journeys to attempt.  Only the ones
+$\frac{1}{6} \frac{(n+2)!}{(n-1)!}$ possible journeys to attempt.  Only the ones
 that do not fail (at the guard) will make it to the end.  Remember how
 MonadPlus works --- one failure along the journey means that the *entire
 journey* is a failure.
