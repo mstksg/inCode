@@ -477,6 +477,11 @@ monad functions.  For example, if you want to generate multiple reports, you
 can use `forM_`:
 
 ~~~haskell
+let reports = ["report1", "report2", "report3"]
+
+want $ (\s f -> "out/" ++ s ++ "." ++ f) <$>
+    ["report1","report2","report3"] <*> ["doc","pdf","html"]
+
 forM_ ["report1","report2","report3"] $ \reportName -> do
     let
         outBase = "out/" ++ reportName
@@ -494,13 +499,6 @@ forM_ ["report1","report2","report3"] $ \reportName -> do
         deps <- srcFiles
         need $ "css/report.css" : deps
         cmd "pandoc" [ srcName, "-o", f, "-c", "css/report.css", "-S" ]
-~~~
-
-and "require" them in applicative style, as well:
-
-~~~haskell
-want $ (\s f -> "out/" ++ s ++ "." ++ f) <$>
-    ["report1","report2","report3"] <*> ["doc","pdf","html"]
 ~~~
 
 ### Looking Forward
