@@ -21,12 +21,12 @@ digraph {
         fontcolor=blue;
         style=filled ;
         color=linen ;
-        b32 [label="Just 5"] ;
-        b31 [label="Just 4"] ;
+        b31 [label="Just 5"] ;
         b22 [label="Just 5"] ;
         b21 [label="Just 4"] ;
-        b12 [label="Just 5"] ;
-        b11 [label="Just 4"] ;
+        b13 [label="Just 5"] ;
+        b12 [label="Just 4"] ;
+        b11 [label="Just 3"] ;
     }
 
     subgraph cluster2 {
@@ -34,12 +34,16 @@ digraph {
         fontcolor=blue;
         style=filled;
         color=linen;
-        c32 [label="Just 5"] ;
-        c31 [label="Just 5"] ;
-        c22 [label="Just 5"] ;
-        c21 [label="Just 5"] ;
-        c12 [label="Just 5"] ;
-        c11 [label="Just 5"] ;
+        c311[label="Just 5"] ;
+        c221[label="Just 5"] ;
+        c212[label="Just 5"] ;
+        c211[label="Just 4"] ;
+        c131[label="Just 5"] ;
+        c122[label="Just 5"] ;
+        c121[label="Just 4"] ;
+        c113[label="Just 5"] ;
+        c112[label="Just 4"] ;
+        c111[label="Just 3"] ;
     }
 
     subgraph cluster3 {
@@ -48,12 +52,16 @@ digraph {
         fontcolor=blue;
         style=filled;
         color=linen;
-        g22 [label="Nothing",fontcolor=slategray] ;
-        g21 [label="Nothing",fontcolor=slategray] ;
-        g32 [label="Nothing",fontcolor=slategray] ;
-        g31 [label="Nothing",fontcolor=slategray] ;
-        g12 [label="Nothing",fontcolor=slategray] ;
-        g11 [label="Just ()"] ;
+        g311[label="Nothing",fontcolor=slategray] ;
+        g221[label="Nothing",fontcolor=slategray] ;
+        g212[label="Nothing",fontcolor=slategray] ;
+        g211[label="Nothing",fontcolor=slategray] ;
+        g131[label="Nothing",fontcolor=slategray] ;
+        g122[label="Just ()"] ;
+        g121[label="Nothing",fontcolor=slategray] ;
+        g113[label="Nothing",fontcolor=slategray] ;
+        g112[label="Nothing",fontcolor=slategray] ;
+        g111[label="Nothing",fontcolor=slategray] ;
     }
 
     subgraph cluster4 {
@@ -62,12 +70,16 @@ digraph {
         fontcolor=blue;
         style=filled;
         color=linen;
-        r22 [label="Nothing",fontcolor=slategray] ;
-        r21 [label="Nothing",fontcolor=slategray] ;
-        r32 [label="Nothing",fontcolor=slategray] ;
-        r31 [label="Nothing",fontcolor=slategray] ;
-        r12 [label="Nothing",fontcolor=slategray] ;
-        r11 [label="Just (3,4,5)"] ;
+        r311[label="Nothing",fontcolor=slategray] ;
+        r221[label="Nothing",fontcolor=slategray] ;
+        r212[label="Nothing",fontcolor=slategray] ;
+        r211[label="Nothing",fontcolor=slategray] ;
+        r131[label="Nothing",fontcolor=slategray] ;
+        r122[label="Just (3,4,5)"] ;
+        r121[label="Nothing",fontcolor=slategray] ;
+        r113[label="Nothing",fontcolor=slategray] ;
+        r112[label="Nothing",fontcolor=slategray] ;
+        r111[label="Nothing",fontcolor=slategray] ;
     }
 
 
@@ -86,19 +98,41 @@ digraph {
     /*     r1 [label="Nothing",fontcolor=slategray] ; */
     /* } */
 
-    a1 -> b11 -> c11 ;
-    a1 -> b12 -> c12 ;
-    a2 -> b21 -> c21 ;
-    a2 -> b22 -> c22 ;
-    a3 -> b31 -> c31 ;
-    a3 -> b32 -> c32 ;
+    a1 -> b11 -> c111 ;
+          b11 -> c112 ;
+          b11 -> c113 ;
+    a1 -> b12 -> c121 ;
+          b12 -> c122 ;
+    a1 -> b13 -> c131 ;
+    a2 -> b21 -> c211 ;
+          b21 -> c212 ;
+    a2 -> b22 -> c221 ;
+    a3 -> b31 -> c311 ;
 
-    c11 -> g11 -> r11;
-    c12 -> g12 -> r12 [color=slategray] ;
-    c21 -> g21 -> r21 [color=slategray] ;
-    c22 -> g22 -> r22 [color=slategray] ;
-    c31 -> g31 -> r31 [color=slategray] ;
-    c32 -> g32 -> r32 [color=slategray] ;
+    c111 -> g111 -> r111 ;
+    c112 -> g112 -> r112 [color=slategray] ;
+    c113 -> g113 -> r113 [color=slategray] ;
+    c121 -> g121 -> r121 [color=slategray] ;
+    c122 -> g122 -> r122 [color=slategray] ;
+    c131 -> g131 -> r131 [color=slategray] ;
+    c211 -> g211 -> r211 [color=slategray] ;
+    c212 -> g212 -> r212 [color=slategray] ;
+    c221 -> g221 -> r221 [color=slategray] ;
+    c311 -> g311 -> r311 [color=slategray] ;
+
+    /* a1 -> b11 -> c11 ; */
+    /* a1 -> b12 -> c12 ; */
+    /* a2 -> b21 -> c21 ; */
+    /* a2 -> b22 -> c22 ; */
+    /* a3 -> b31 -> c31 ; */
+    /* a3 -> b32 -> c32 ; */
+
+    /* c11 -> g11 -> r11; */
+    /* c12 -> g12 -> r12 [color=slategray] ; */
+    /* c21 -> g21 -> r21 [color=slategray] ; */
+    /* c22 -> g22 -> r22 [color=slategray] ; */
+    /* c31 -> g31 -> r31 [color=slategray] ; */
+    /* c32 -> g32 -> r32 [color=slategray] ; */
 
     /* n  -> f1 ; */
     /* n  -> f2 ; */

@@ -533,10 +533,11 @@ Paths like `a = 5` and `b = 3` do not even happen.  This is because if we pick
 and `n` inclusive.
 
 Remember, the final result is the accumulation of **all such successful
-journeys**.  A little bit of combinatorics will show that there are $n! /
-(n-3)!$ possible journeys to attempt.  Only the ones that do not fail (at the
-guard) will make it to the end.  Remember how MonadPlus works --- one failure
-along the journey means that the *entire journey* is a failure.
+journeys**.  A little bit of combinatorics will show that there are
+$\frac{1}{6} n (n + 1) (n + 2)$ possible journeys to attempt.  Only the ones
+that do not fail (at the guard) will make it to the end.  Remember how
+MonadPlus works --- one failure along the journey means that the *entire
+journey* is a failure.
 
 Let's see what we get when we try it at the prompt:
 
@@ -549,14 +550,14 @@ Let's see what we get when we try it at the prompt:
 ~~~
 
 Perfect!  You can probably quickly verify that all of these solutions are
-indeed Pythagorean triples.  Out of the 720 journeys undertaken by
+indeed Pythagorean triples.  Out of the 220 journeys undertaken by
 `triplesUnder 10`, only two of them survived to the end to be successful.  Out
-of the 13800 journeys in `triplesUnder 25`, only eight of them made it to the
+of the 2925 journeys in `triplesUnder 25`, only eight of them made it to the
 end.  The rest "died"/failed, and as a result we do not even observer their
 remains.
 
-While the full diagram of `triplesUnder 5` has 60 branches, here is a diagram
-for those branches with $a > 2$:
+While the full diagram of `triplesUnder 5` has 35 branches, here is a diagram
+for those branches with $a > 2$, which has 10:
 
 ![*triplesUnder 5*, all journeys (where a > 2) illustrated](/img/entries/monad-plus/triplesunder.png "triplesUnder 5")
 
