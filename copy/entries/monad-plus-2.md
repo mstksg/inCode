@@ -1,4 +1,4 @@
-Practical Fun with Monads --- The List MonadPlus (Part 2 of 3)
+The List MonadPlus --- Practical Fun with Monads (Part 2 of 3)
 ==============================================================
 
 Categories
@@ -12,7 +12,7 @@ Series
 CreateTime
 :   2013/12/11 21:29:37
 PostDate
-:   Never
+:   2013/12/18 10:12:43
 Identifier
 :   monad-plus-2
 
