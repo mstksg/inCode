@@ -73,8 +73,8 @@ specify where journeys fail and end.  At the end of it all, all trails that
 have completed the journey are the solution.
 
 So what could this journey be?  How about we see this journey as the
-accumulation of moves to a solution?  We start out with a blank solution ("Do
-nothing").  The next step, we add one move to our solution: "Just move the
+accumulation of moves to a plan?  We start out with a blank plan ("Do
+nothing").  The next step, we add one move to our plan: "Just move the
 fox", for example.  Then the next step, we add another move: "First move the
 fox, then move the farmer."
 
@@ -82,10 +82,9 @@ fox, then move the farmer."
     rasa.
 2.  Then, you add a "possible and safe move" (move the farmer, for example)
 3.  Then, you add another "possible and safe move" (move the fox, for
-    example).  Repeat this all until your total move list is `n` moves long.
+    example).  Repeat this all until your total plan is `n` moves long.
     "Safe" means that it doesn't involve anything eating anything.
-4.  After `n` moves, only the paths that end on correct solutions are allowed
-    to survive.
+4.  After `n` moves, only the plans that result in a solution will survive.
 
 Seems simple, right?
 
@@ -116,7 +115,7 @@ instance Show Move where                        -- 3
     show (Move Goat)    = "G"
     show (Move Cabbage) = "C"
 
-type Solution = [Move]                          -- 4
+type Plan = [Move]                          -- 4
 
 data Position = West | East                     -- 5
     deriving (Show, Eq, Ord, Enum)
@@ -129,7 +128,7 @@ data Position = West | East                     -- 5
     Wolf` will represent the movement of both the farmer and the wolf, etc.
 3.  For the purposes of easy debugging, we're going to define our own instance
     of `Show` for moves so that we can use `print` on them.
-4.  A simple type synonym --- a `Solution` is just a list of `Move`s.  Note
+4.  A simple type synonym --- a `Plan` is just a list of `Move`s.  Note
     that we are not using this list as a MonadPlus.
 5.  For convenience, we define a `Position` type --- either on the west bank
     or on the east bank of the river.  Everyone starts out on the west bank,
@@ -148,23 +147,23 @@ The last stage of our journey is after we have made all `n` moves, we end the
 journey if it is not a solution.
 
 ~~~haskell
-makeNMoves :: Int -> [Solution]     -- 1
-isFinalSol :: Solution -> Bool
+makeNMoves :: Int -> [Plan]         -- 1
+isSolution :: Plan -> Bool
 
-findSolutions :: Int -> [Solution]  -- 2
+findSolutions :: Int -> [Plan]      -- 2
 findSolutions n = do
-    s <- makeNMoves n               -- 3
-    guard $ isFinalSol s            -- 4
-    return s                        -- 5
+    p <- makeNMoves n               -- 3
+    guard $ isSolution p            -- 4
+    return p                        -- 5
 ~~~
 
 1.  The type signatures of the helper functions we will be using before.
 2.  `findSolutions` is going to be the all succesful solutions after `n`
     moves.
-3.  Let `s` be the result after making `n` moves
-4.  End the journey unless `s` is a "final solution" (all characters are on
-    the east side)
-5.  Succeed with `s` if the journey has not yet ended.
+3.  Let `p` be a path after `n` moves.
+4.  End the journey unless `p` is a solution (all characters are on the east
+    side)
+5.  Succeed with `p` if the journey has not yet ended.
 
 Hm.  Sounds good!  We're done!
 
@@ -179,14 +178,14 @@ additions of moves.
 That means we want something like:
 
 ~~~haskell
-makeMove :: Solution -> [Solution]
+makeMove :: Plan -> [Plan]
 
-startingSol :: Solution
-startingSol = []
+startingPlan :: Plan
+startingPlan = []
 
-makeNMoves :: Int -> [Solution]
+makeNMoves :: Int -> [Plan]
 makeNMoves n = do
-    m1 <- makeMove startingSol
+    m1 <- makeMove startingPlan
     m2 <- makeMove m1
     m3 <- makeMove m2
     -- ... (n times)
@@ -197,9 +196,9 @@ makeNMoves n = do
 Of course we have seen that type of `do` block before, it is simply:
 
 ~~~haskell
-makeNMoves :: Int -> [Solution]
+makeNMoves :: Int -> [Plan]
 makeNMoves n =
-    makeMove startingSol >>= makeMove
+    makeMove startingPlan >>= makeMove
         >>= makeMove >>= makeMove   -- ...
         >>= makeMove                -- (n times)
 ~~~
@@ -219,12 +218,12 @@ indexing function, getting the `n`th element of the list)
 So now we can define `makeNMoves`:
 
 ~~~haskell
-makeNMoves :: Int -> [Solution]
+makeNMoves :: Int -> [Plan]
 makeNMoves n = iterate (>>= makeMove) (return startingSol) !! n
 ~~~
 
 We say "apply `(>>= makeMove)` `n` times, starting the single starting
-solution path".
+plan".
 
 <aside>
     ###### Note
@@ -248,41 +247,25 @@ that `f y` is the same as `f x`.
 
 ### isFinalSol
 
-Let's define our function `isFinalSol :: Solution -> Bool`.  Basically, we
+Let's define our function `isSolution :: Plan -> Bool`.  Basically, we
 want to check if the positions of all of the characters are `East`.
 
-First, we need a way to get the position of a farmer/animal from a given
-solution.
+First, we need a way to get the position of a farmer/animal after a given plan
+has been executed plan.
 
-Our function `positionOf :: Solution -> Character -> Position` is going to
-take a `Solution` and a `Character` to care about, and report what side of the
+Our function `positionOf :: Plan -> Character -> Position` is going to
+take a `Plan` and a `Character` to care about, and report what side of the
 river the character is on.
 
 Because every single move swaps the position of the farmer, the final position
 of the farmer depends only on the parity of the number of total moves.  If it
 is even, then the farmer is on the west bank still (consider 0 moves, two
-moves, etc.).  if it is odd, then the farmer is on the east bank.
-
-And because `Position` is an `Enum`, Haskell provides us a way to turn any
-`Int` into a corresponding `Enum`: `toEnum :: Enum a => Int -> a`.  Let's see
-it at work:
+moves, etc.).  If it is odd, then the farmer is on the east bank.
 
 ~~~haskell
-λ: toEnum 0 :: Position
-West
-λ: toEnum 1 :: Position
-East
-~~~
-
-Okay, so `West` is the 0th position, and `East` is the 1st position.
-
-Knowing that we can get the length of a solution with `length :: [a] -> Int`
-and we can turn any odd or even number into 
-
-~~~haskell
-positionOf :: Solution -> Character -> Position
-positionOf s c = case t of
-    Farmer  -> countToPosition $ length s
+positionOf :: Plan -> Character -> Position
+positionOf p c = case t of
+    Farmer  -> countToPosition $ length p
     _       -> undefined
     where
         countToPosition n | even n      = West
@@ -294,20 +277,20 @@ Now, what if we want to know about non-farmers?
 Instead of finding the total number of moves, we only need to find the number
 of moves involving that given animal.
 
-Let's first filter the Solution `s` by moves involving the character `c`:
+Let's first filter the Plan `p` by moves involving the character `c`:
 
 ~~~haskell
-filter (== Move c) s
+filter (== Move c) p
 ~~~
 
-This will return a new Solution `s`, but with only the moves involving the
+This will return a new Plan, but with only the moves involving the
 character `c`.  We can then use the length of *that*.
 
 ~~~haskell
-positionOf :: Solution -> Character -> Position
-positionOf s c = case c of
-    Farmer  -> countToPosition . length $ s
-    c       -> countToPosition . length $ filter (== Move c) s
+positionOf :: Plan -> Character -> Position
+positionOf p c = case c of
+    Farmer  -> countToPosition . length $ p
+    c       -> countToPosition . length $ filter (== Move c) p
     where
         countToPosition n | even n      = West
                           | othherwise  = East
@@ -316,20 +299,19 @@ positionOf s c = case c of
 <aside>
     ###### Aside
 
-What freak is `countToPosition . length $ s`?
+What freak is `countToPosition . length $ p`?
 
-Well, remember that in Haskell, the `(.)` operator represents function
-composition.  `(f . g) x` is equvalient to `f (g x)`.  "Apply `g` first, then
-apply `f`".  Also recall that you can think of `($)` as adding an implict
-parentheses around both sides of it.  In that sense, `f . g $ x` is the same
-as `(f . g) (x)`.
+Well, in Haskell, the `(.)` operator represents function composition.  `(f .
+g) x` is equvalient to `f (g x)`.  "Apply `g` first, then apply `f`".  Also
+recall that you can think of `($)` as adding an implict parentheses around
+both sides of it.  In that sense, `f . g $ x` is the same as `(f . g) (x)`.
 
-So, altogether, `countToPosition . length $ s` is the same as
-`(countToPosition . length) s`, which says "first, find the length of `s`,
+So, altogether, `countToPosition . length $ p` is the same as
+`(countToPosition . length) p`, which says "first, find the length of `p`,
 then turn that length into a position."
 
-Also, `countToPosition . length $ filter (== Move c) s` can be interpreted as
-`(countToPosition . length) (filter (== Move c) s)` --- find the length of the
+Also, `countToPosition . length $ filter (== Move c) p` can be interpreted as
+`(countToPosition . length) (filter (== Move c) p)` --- find the length of the
 filtered list, then turn that length into a position.  We use `($)` mostly
 because we don't like writing parentheses everywhere when we don't have to.
 </aside>
@@ -337,10 +319,14 @@ because we don't like writing parentheses everywhere when we don't have to.
 Does this actually work?  Let's try out some examples.
 
 ~~~haskell
-λ: positionOf [Move Farmer, Move Goat, Move Farmer] Goat
-East
-λ: positionOf [Move Farmer, Move Goat, Move Farmer] Wolf
+λ: let p = [Move Goat, Move Farmer, Move Wolf, Move Goat]
+λ: positionOf p Goat
 West
-λ: positionOf [Move Farmer, Move Goat, Move Farmer] Farmer
-East        -- remember, the farmer is moves every single move.
+λ: positionOf p Wolf
+East
+λ: positionOf p Farmer
+West
 ~~~
+
+It works!  By the way, as an unrelated note, isn't it cool that our plan
+literal reads a lot like English? Move Goat, Move Farmer, Move Wolf...
