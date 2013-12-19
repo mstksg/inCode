@@ -19,9 +19,30 @@ type Plan = [Move]
 data Position = West | East
     deriving (Show, Eq, Ord, Enum)
 
+-- Starting plan
 startingPlan :: Plan
 startingPlan = []
 
+-- The full journey
+findSolutions :: Int -> [Plan]
+findSolutions n = do
+    p <- makeNMoves
+    guard $ isSolution p
+    return p
+    where
+        makeNMoves = iterate (>>= makeMove) (return startingPlan) !! n
+
+-- One step of the journey --- add a move.
+makeMove :: Plan -> [Plan]
+makeMove p = do
+    next <- Move <$> [Farmer .. Cabbage]
+    guard $ moveLegal p next
+    let
+        p' = p ++ [next]
+    guard $ safePlan p'
+    return p'
+
+-- Helper functions
 positionOf :: Plan -> Character -> Position
 positionOf p c = case c of
     Farmer  -> countToPosition $ length p
@@ -32,39 +53,20 @@ positionOf p c = case c of
 
 moveLegal :: Plan -> Move -> Bool
 moveLegal p (Move Farmer) = True
-moveLegal p (Move t) = positionOf p t == positionOf p Farmer
+moveLegal p (Move c) = positionOf p c == positionOf p Farmer
 
 safePlan :: Plan -> Bool
-safePlan p = safeGoat && safeCabbage || goatPos == farmerPos
+safePlan p = goatPos == farmerPos || safeGoat && safeCabbage
     where
         goatPos     = positionOf p Goat
         farmerPos   = positionOf p Farmer
         safeGoat    = goatPos /= positionOf p Wolf
         safeCabbage = positionOf p Cabbage /= goatPos
 
-makeMove :: Plan -> [Plan]
-makeMove p = do
-    next <- Move <$> [Farmer .. Cabbage]
-    guard $ moveLegal p next
-    let
-        p' = p ++ [next]
-    guard $ safePlan p'
-    return p'
-
--- finalState :: Plan -> [Position]
--- finalState s = map (positionOf s) [Farmer .. Cabbage]
-
 isSolution :: Plan -> Bool
 isSolution p = all (== East) positions
     where
         positions = map (positionOf p) [Farmer .. Cabbage]
 
-findSolutions :: Int -> [Plan]
-findSolutions n = do
-    p <- makeNMoves
-    guard $ isSolution p
-    return p
-    where
-        makeNMoves = iterate (>>= makeMove) (return startingPlan) !! n
-
+main :: IO ()
 main = print $ findSolutions 7

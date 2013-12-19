@@ -477,6 +477,50 @@ As an exercise, see how the journey fares if we had picked `Move Wolf` for
 Anyways, at the end of it all, `makeMove` will return all new plans from the
 succesful journeys.  So it won't be returning the plans with `Move Farmer` and
 `Move Cabbage` added to it, but will likely be retuning the plans with `Move
-Goat` and `Move Wolf` added to it.
+Goat` and `Move Wolf` added to it.  And it'll return those two together in a
+List strucure.
+
+We're almost there --- now to just define our helper predicates `moveLegal`
+and `safePlan`.
+
+#### moveLegal
+
+What makes a move legal?  Well, the farmer has to be on the same side as
+whatever is being moved.
+
+We can re-use our `positionOF :: Plan -> Character -> Position` function here.
+
+~~~haskell
+moveLegal :: Plan -> Move -> Bool
+moveLegal p (Move Farmer)   = True
+moveLegal p (Move c)        = positionOf p c == positionOf p Farmer
+~~~
+
+#### safePlan
+
+One last piece.  How can we tell if a plan is safe or not?
+
+Well, the plan is safe if the wolf and goat or goat and cabbage are together,
+and the farmer is not.  Some boolean arithmetic shows that this is equivalent
+to saying either the Farmer is with the Goat, or the goat and cabbage aren't
+together and the wolf and goat aren't together.
+
+<!-- $\neg ((P_w = P_g \wedge \neg (P_f = P_g)) \vee (P_g = P_c \wedge \neg (P_f = P_g))$ -->
+
+~~~haskell
+safePlan :: Plan -> Bool
+safePlan p = goatPos == farmerPos || safeGoat && safeCabbage
+    where
+        goatPos     = positionOf p Goat
+        farmerPos   = positionOf p Farmer
+        safeGoat    = goatPos /= positionOf p Wolf
+        safeCabbage = positionOf p Cabbage /= goatPos
+~~~
+
+And...that's it!
+
+The Full Solution
+-----------------
+
 
 
