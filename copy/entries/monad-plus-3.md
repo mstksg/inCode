@@ -519,8 +519,13 @@ safePlan p = goatPos == farmerPos || safeGoat && safeCabbage
 
 And...that's it!
 
-The Full Solution
------------------
+#### Exercise
 
+Notice that sometimes we are going to make "redundant moves".  For example, we
+could move the farmer or goat twice in a row.  How can we add another guard to
+check if the move isn't redundant?  That is, that the move we are adding isn't
+identical to the last move of the plan?
 
+The solution is in the final solution later on, but think about how you would
+do it and compare!
 

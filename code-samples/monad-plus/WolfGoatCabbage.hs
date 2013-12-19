@@ -3,10 +3,10 @@ import Control.Applicative ((<$>))
 
 -- Our types
 data Character = Farmer | Wolf | Goat | Cabbage
-        deriving (Show, Eq, Enum)
+    deriving (Show, Eq, Enum)
 
 data Move = Move Character
-        deriving (Eq)
+    deriving (Eq)
 
 instance Show Move where
     show (Move Farmer)  = "F"
@@ -37,6 +37,7 @@ makeMove :: Plan -> [Plan]
 makeMove p = do
     next <- Move <$> [Farmer .. Cabbage]
     guard $ moveLegal p next
+    guard . not $ moveRedundant p next
     let
         p' = p ++ [next]
     guard $ safePlan p'
@@ -55,6 +56,10 @@ moveLegal :: Plan -> Move -> Bool
 moveLegal p (Move Farmer) = True
 moveLegal p (Move c) = positionOf p c == positionOf p Farmer
 
+moveRedundant :: Plan -> Move -> Bool
+moveRedundant [] m' = False
+moveRedundant p m   = last p == m
+
 safePlan :: Plan -> Bool
 safePlan p = goatPos == farmerPos || safeGoat && safeCabbage
     where
@@ -69,4 +74,4 @@ isSolution p = all (== East) positions
         positions = map (positionOf p) [Farmer .. Cabbage]
 
 main :: IO ()
-main = print $ findSolutions 7
+main = print $ findSolutions 13
