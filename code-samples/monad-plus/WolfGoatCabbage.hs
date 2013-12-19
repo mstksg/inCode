@@ -46,8 +46,8 @@ makeMove p = do
 -- Helper functions
 positionOf :: Plan -> Character -> Position
 positionOf p c = case c of
-    Farmer  -> countToPosition $ length p
-    c       -> countToPosition $ length $ filter (== Move c) p
+    Farmer  -> countToPosition . length $ p
+    c       -> countToPosition . length $ filter (== Move c) p
     where
         countToPosition n | even n    = West
                           | otherwise = East
