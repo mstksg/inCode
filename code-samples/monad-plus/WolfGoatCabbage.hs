@@ -74,4 +74,6 @@ isSolution p = all (== East) positions
         positions = map (positionOf p) [Farmer .. Cabbage]
 
 main :: IO ()
-main = print $ findSolutions 13
+main = do
+    print $ findSolutions 7
+    print $ findSolutions 13

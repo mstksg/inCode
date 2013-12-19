@@ -72,6 +72,9 @@ specifying at every step of the way what choices it has to continue.  Then
 specify where journeys fail and end.  At the end of it all, all trails that
 have completed the journey are the solution.
 
+With the List monad, we say "Here is the description of a journey.  What
+journeys following this description succeed?"
+
 So what could this journey be?  How about we see this journey as the
 accumulation of moves to a plan?  We start out with a blank plan ("Do
 nothing").  The next step, we add one move to our plan: "Just move the
@@ -528,4 +531,82 @@ identical to the last move of the plan?
 
 The solution is in the final solution later on, but think about how you would
 do it and compare!
+
+Wrapping Up
+-----------
+
+The final code for this project is available [on Github][gh] so you can follow
+along yourself.  You can also [load it interactively online][fpci] on
+[FPComplete][], a great online Haskell IDE where you can test your code right
+there in the browser.
+
+[gh]: https://github.com/mstksg/inCode/blob/master/code-samples/monad-plus/WolfGoatCabbage.hs
+[fpci]: https://www.fpcomplete.com/user/jle/wolf-goat-cabbage
+[FPComplete]: http://www.fpcomplete.com
+
+So...let's test it!
+
+### Tests
+
+First, let's load it up on ghci:
+
+~~~haskell
+λ: :l WolfGoatCabbage.hs
+Ok, modules loaded: Main.
+~~~
+
+Let's try a few plan lengths and see when we get one that has a valid
+solution:
+
+~~~haskell
+λ: findSolutions 5
+[]
+λ: findSolutions 6
+[]
+λ: findSolutions 7
+[[G,F,W,G,C,F,G],[G,F,C,G,W,F,G]]
+~~~
+
+Great, we have two solutions of length 7.  If we try them out, it seems like
+they both work!  Notice that, interestingly enough, the two solutions are
+their own reverses.  This makes sense, because any solution of getting from
+the west bank to the east bank must also be, backwards, a valid solution of
+getting from the east bank to the west bank.
+
+It turns out that the solutions of length 9 and 11 are both identical to the
+solutions for length 7, just with some redundant moves thrown in (moving the
+farmer twice in a row, moving the goat twice in a row, etc.).  Also notice
+that only odd lengths are valid, because for even lengths, the farmer is on
+the west bank.
+
+If we add a filter on redundant moves, the next "unique" valid solution comes
+at length 13, and then at 19:
+
+~~~haskell
+λ: findSolutions 13
+[[G,F,W,G,C,W,G,C,W,G,C,F,G],[G,F,C,G,W,C,G,W,C,G,W,F,G]]
+λ: findSolutions 19
+[[G,F,W,G,C,W,G,C,W,G,C,W,G,C,W,G,C,F,G]
+,[G,F,C,G,W,C,G,W,C,G,W,C,G,W,C,G,W,F,G]]
+~~~haskell
+
+Again notice that both of these solutions come in pairs, with one being the
+reverse of the other. Also, see that they are actually the same as the first
+solution of length 7, just with cycles of `W,G,C` (or `C,G,W`) over and over
+again.
+
+### Reflections
+
+We have solved the classic logic puzzle without using any control flow other
+than the List's MonadPlus instance.  The solution isn't necessarily optimal,
+but it is interesting that we can model something like this simply as saying:
+"Here is the description of a journey.  What journeys following this
+description succeed?"
+
+With the List MonadPlus, you can solve any problem that can be described as
+the result of a nondeterministic journey.
+
+Hopefully as a result of this three part series and through playing around
+with the source code, you can appreciate the wonders of Succeed/Fail!
+
 
