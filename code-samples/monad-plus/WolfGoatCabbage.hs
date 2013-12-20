@@ -5,19 +5,19 @@ import Control.Applicative ((<$>))
 data Character = Farmer | Wolf | Goat | Cabbage
     deriving (Show, Eq, Enum)
 
-data Move = Move Character
+newtype Move = MoveThe Character
     deriving (Eq)
 
 instance Show Move where
-    show (Move Farmer)  = "F"
-    show (Move Wolf)    = "W"
-    show (Move Goat)    = "G"
-    show (Move Cabbage) = "C"
+    show (MoveThe Farmer)  = "F"
+    show (MoveThe Wolf)    = "W"
+    show (MoveThe Goat)    = "G"
+    show (MoveThe Cabbage) = "C"
 
 type Plan = [Move]
 
 data Position = West | East
-    deriving (Show, Eq, Ord, Enum)
+    deriving (Show, Eq)
 
 -- Starting plan
 startingPlan :: Plan
@@ -35,7 +35,7 @@ findSolutions n = do
 -- One step of the journey: add a move.
 makeMove :: Plan -> [Plan]
 makeMove p = do
-    next <- Move <$> [Farmer .. Cabbage]
+    next <- MoveThe <$> [Farmer .. Cabbage]
     guard       $ moveLegal p next
     guard . not $ moveRedundant p next
     let
@@ -47,14 +47,14 @@ makeMove p = do
 positionOf :: Plan -> Character -> Position
 positionOf p c = case c of
     Farmer  -> countToPosition . length $ p
-    c       -> countToPosition . length $ filter (== Move c) p
+    c       -> countToPosition . length $ filter (== MoveThe c) p
     where
         countToPosition n | even n    = West
                           | otherwise = East
 
 moveLegal :: Plan -> Move -> Bool
-moveLegal p (Move Farmer) = True
-moveLegal p (Move c)      = positionOf p c == positionOf p Farmer
+moveLegal p (MoveThe Farmer)  = True
+moveLegal p (MoveThe c)       = positionOf p c == positionOf p Farmer
 
 moveRedundant :: Plan -> Move -> Bool
 moveRedundant [] m' = False

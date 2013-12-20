@@ -72,34 +72,29 @@ specifying at every step of the way what choices it has to continue.  Then
 specify where journeys fail and end.  At the end of it all, all trails that
 have completed the journey are the solution.
 
-With the List monad, we say "Here is the description of a journey.  What
-journeys following this description succeed?"
+With the List monad, we say "Here is the description of *a* (single) journey.
+What journeys following this description succeed?"
 
-So what could this journey be?  How about we see this journey as the
-accumulation of moves to a plan?  We start out with a blank plan ("Do
-nothing").  The next step, we add one move to our plan: "Just move the
-fox", for example.  Then the next step, we add another move: "First move the
-fox, then move the farmer."
+So what could this journey be?  Well, we see this journey as the accumulation
+of moves to a plan?  We start out with a blank plan ("Do nothing").  The next
+step, we add one move to our plan: "Just move the fox", for example.  Then the
+next step, we add another move: "First move the fox, then move the farmer."
 
-1.  At the beginning, your plan is blank.  You start out as a tabula
-    rasa.
-2.  Then, you add a "possible and safe" move (move the farmer, for example)
-3.  Then, you add another "possible and safe" move (move the fox, for
-    example).  Repeat this all until your total plan is `n` moves long.
-    "Safe" means that it doesn't involve anything eating anything.
-4.  After adding `n` moves, we fail you if you aren't a succesful
-    plan/solution.
+1.  Start with a blank plan; a tabula rasa.
+2.  Add a legal and safe move to it.
+3.  Repeat Step 2 `n` times
+4.  Fail if you aren't a solution; succeed if you are.
 
-Seems simple enough, right?  Every possible plan will go through that journey,
-and the ones that don't fail will be the ones that are succesful.
+Simple, right?  We just laid out *the path of a single plan*, from its birth
+to its eventual death or ascension.
 
-Note one important thing about this approach is that you model things as a
-"journey" of one individual possibility.  At no point do you ever deal
-manually with any branching or filtering and at no points do you ever deal
-with the set of all movelists as a whole.  You abstract everything as if you
-were telling *one individual* story.
+This is the most significant thing about this approach: it allows you to
+describe **one journey**, in general terms, and List will "automatically" find
+out all succesful journeys that fit your mold.  You don't ever have to worry
+about the ensemble, or manually deal with branch or filtering.  Cognitively,
+all you have to do is *write a story*.  Just one.  That is the power of the
+abstraction.
 
-So let's get down to it already!
 
 Our Types
 ---------
@@ -110,26 +105,27 @@ The first thing we do when writing any Haskell program --- define our types!
 data Character = Farmer | Wolf | Goat | Cabbage -- 1
         deriving (Show, Eq, Enum)
 
-data Move = Move Character                      -- 2
+newtype Move = MoveThe Character                -- 2
         deriving (Eq)
 
 instance Show Move where                        -- 3
-    show (Move Farmer)  = "F"
-    show (Move Wolf)    = "W"
-    show (Move Goat)    = "G"
-    show (Move Cabbage) = "C"
+    show (MoveThe Farmer)  = "F"
+    show (MoveThe Wolf)    = "W"
+    show (MoveThe Goat)    = "G"
+    show (MoveThe Cabbage) = "C"
 
 type Plan = [Move]                              -- 4
 
 data Position = West | East                     -- 5
-    deriving (Show, Eq, Ord, Enum)
+    deriving (Show, Eq)
 ~~~
 
 1.  First, we define the enumerated type `Character` all the characters we
-    will be working with --- a farmer, a wolf, a goat, and a cabbage.
-2.  Next, we define a `Move` container type, which just contains a character.
-    A `Move Farmer` will represent a movement of only the farmer, a `Move
-    Wolf` will represent the movement of both the farmer and the wolf, etc.
+    will be working with --- the farmer, the wolf, the goat, and the cabbage.
+2.  Next, we define a simple `Move` container newtype, which just contains a
+    character.  A `MoveThe Farmer` will represent a movement of only the
+    farmer, a `MoveThe Wolf` will represent the movement of both the farmer
+    and the wolf, etc.
 3.  For the purposes of easy debugging, we're going to define our own instance
     of `Show` for moves so that we can use `print` on them.
 4.  A simple type synonym --- a `Plan` is just a list of `Move`s.  Note
@@ -275,7 +271,7 @@ two moves, etc.).  If it is odd, then the farmer is on the east bank.
 
 ~~~haskell
 positionOf :: Plan -> Character -> Position
-positionOf p c = case t of
+positionOf p c = case c of
     Farmer  -> countToPosition $ length p
     _       -> undefined
     where
@@ -291,7 +287,7 @@ of moves involving that given animal.
 Let's first filter the Plan `p` by moves involving the character `c`:
 
 ~~~haskell
-filter (== Move c) p
+filter (== MoveThe c) p
 ~~~
 
 This will return a new Plan, but with only the moves involving the
@@ -301,7 +297,7 @@ character `c`.  We can then use the length of *that*.
 positionOf :: Plan -> Character -> Position
 positionOf p c = case c of
     Farmer  -> countToPosition . length $ p
-    c       -> countToPosition . length $ filter (== Move c) p
+    c       -> countToPosition . length $ filter (== MoveThe c) p
     where
         countToPosition n | even n      = West
                           | othherwise  = East
@@ -313,9 +309,9 @@ positionOf p c = case c of
 What is `countToPosition . length $ p`?
 
 In Haskell, the `(.)` operator represents function composition.
-`(f . g) x` is equvalient to `f (g x)`.  "Apply `g` first, then apply `f`".
+`(f . g) x` is equivalent to `f (g x)`.  "Apply `g` first, then apply `f`".
 
-Also recall that you can think of `$` as adding an implict parentheses
+Also recall that you can think of `$` as adding an implicit parentheses
 around both sides of it.  You can think of it like the spine of a butterfly
 --- the "wings" are wrapped parentheses around either side of it.  In that
 sense, `f . g $ x` is the same as `(f . g) (x)` (A rather lopsided butterfly).
@@ -325,7 +321,7 @@ So, altogether, `countToPosition . length $ p` is the same as
 then turn that length into a position."
 
 In the same way, `countToPosition . length $ filter (== Move c) p` is
-`(countToPosition . length) (filter (== Move c) p)` --- find the length of the
+`(countToPosition . length) (filter (== MoveThe c) p)` --- find the length of the
 filtered list, then turn that length into a position.  We use `$` mostly
 because we don't like writing parentheses everywhere when we don't have to.
 </aside>
@@ -333,7 +329,7 @@ because we don't like writing parentheses everywhere when we don't have to.
 Does this actually work?  Let's try out some examples.
 
 ~~~haskell
-λ: let p = [Move Goat, Move Farmer, Move Wolf, Move Goat]
+λ: let p = [MoveThe Goat, MoveThe Farmer, MoveThe Wolf, MoveThe Goat]
 λ: positionOf p Goat
 West
 λ: positionOf p Wolf
@@ -343,7 +339,8 @@ West
 ~~~
 
 It works!  By the way, as an unrelated note, isn't it cool that our `Plan`
-literal reads a lot like English? Move Goat, Move Farmer, Move Wolf...
+literal reads a lot like English? MoveThe Goat, MoveThe Farmer, MoveThe
+Wolf...
 
 #### Checking the Path
 
@@ -409,7 +406,7 @@ What does a plan have to "go through" in its journey in adding a move?
 4.  Then, we fail/end the journey if that new plan is "unsafe" --- if it
     leaves either the Wolf and Goat alone on a riverbank or the Goat and
     Cabbage.
-5.  At the end of it all, we succed with the new plan.
+5.  At the end of it all, we succeed with the new plan.
 
 Let's try this out:
 
@@ -419,7 +416,7 @@ safePlan :: Plan -> Bool
 
 makeMove :: Plan -> [Plan]
 makeMove p = do
-    next <- Move <$> [Farmer .. Cabbage]    -- 2
+    next <- MoveThe <$> [Farmer .. Cabbage] -- 2
     guard $ moveLegal p next                -- 3
     let
         p' = p ++ [next]                    -- 4
@@ -480,20 +477,20 @@ successes:
 ~~~haskell
 λ: (*2) <$> [3,4,5]
 [6,8,10]
-λ: Move <$> [Farmer, Wolf, Goat, Cabbage]
-[Move Farmer, Move Wolf, Move Goat, Move Cabbage]
+λ: MoveThe <$> [Farmer, Wolf, Goat, Cabbage]
+[MoveThe Farmer, MoveThe Wolf, MoveThe Goat, MoveThe Cabbage]
 ~~~
 
 So when I said
 
 ~~~haskell
-next <- Move <$> [Farmer, Wolf, Goat, Cabbage]
+next <- MoveThe <$> [Farmer, Wolf, Goat, Cabbage]
 ~~~
 
 I really mean
 
 ~~~haskell
-next <- [Move Farmer, Move Wolf, Move Goat, Move Cabbage]
+next <- [MoveThe Farmer, MoveThe Wolf, MoveThe Goat, MoveThe Cabbage]
 ~~~
 
 But still, it sometimes makes sense to think of it as "Get the item inside,
@@ -501,17 +498,16 @@ and then apply this function to it before you bind it to your variable", if
 only for funsies.
 </aside>
 
-So let's say our plan is, currently, `[Move Goat, Move Farmer, Move Wolf]`.
-At the end of it all, our goat, wolf, and farmer are on the east bank, and the
-cabbage is on the west bank.
+So let's say our plan is, currently, `[MoveThe Goat, MoveThe Farmer, MoveThe
+Wolf]`. At the end of it all, our goat, wolf, and farmer are on the east bank,
+and the cabbage is on the west bank.
 
 What happens on a typical journey of `makeMove`?
 
-1.  First, we pick something to move.  Let's say `next` is `Move Farmer`.
-    <!-- (Actually, technically, we pick `Farmer`, and then turn it into a `Move` -->
-    <!-- right after with `<$>`) -->
+1.  First, we pick something to move.  Let's say `next` is `MoveThe Farmer`.
 2.  This move is legal (moving the farmer is always legal).
-3.  Our new plan is `[Move Goat, Move Farmer, Move Wolf, Move Farmer]`
+3.  Our new plan is `[MoveThe Goat, MoveThe Farmer, MoveThe Wolf, MoveThe
+    Farmer]`
 4.  This plan is not safe.  If we move the farmer, the goat and the wolf will
     be alone, and that is bad news for the goat.  We fail at the second guard.
 5.  We don't return anything, because this journey is a total and utter
@@ -519,29 +515,30 @@ What happens on a typical journey of `makeMove`?
 
 Huh.  How unfortunate.  Let's try again with another pick for `next`:
 
-1.  Let's pick `Move Cabbage` this time for `next`.
+1.  Let's pick `MoveThe Cabbage` this time for `next`.
 2.  This move isn't even legal!  The cabbage is on the west bank but the
     farmer is on the east.  Failure!
 
 Well, that's kind of depressing.  Let's try another:
 
-1.  We pick `Move Goat` for `next`.
+1.  We pick `MoveThe Goat` for `next`.
 2.  This move is legal --- both the goat and the farmer are on the east bank.
-3.  Our new plan is `[Move Goat, Move Farmer, Move Wolf, Move Goat]`.
+3.  Our new plan is `[MoveThe Goat, MoveThe Farmer, MoveThe Wolf, MoveThe
+    Goat]`.
 4.  This plan is indeed safe.  The goat and the cabbage are now on the west
     bank, but so is the farmer.
 5.  Because all is well, we return our new plan!
 
 Hooray!
 
-As an exercise, see how the journey fares if we had picked `Move Wolf` for
+As an exercise, see how the journey fares if we had picked `MoveThe Wolf` for
 `next`.
 
 Anyways, at the end of it all, `makeMove` will return all new plans from the
-succesful journeys.  So it won't be returning the plans with `Move Farmer` and
-`Move Cabbage` added to it, but will likely be retuning the plans with `Move
-Goat` and `Move Wolf` added to it.  And it'll return those two together in a
-List strucure.
+successful journeys.  So it won't be returning the plans with `MoveThe Farmer`
+and `MoveThe Cabbage` added to it, but will likely be retuning the plans with
+`MoveThe Goat` and `MoveThe Wolf` added to it.  And it'll return those two together
+in a List structure.
 
 We're almost there --- now to just define our helper predicates `moveLegal`
 and `safePlan`.
@@ -555,8 +552,8 @@ We can re-use our `positionOf :: Plan -> Character -> Position` function here.
 
 ~~~haskell
 moveLegal :: Plan -> Move -> Bool
-moveLegal p (Move Farmer)   = True
-moveLegal p (Move c)        = positionOf p c == positionOf p Farmer
+moveLegal p (MoveThe Farmer)  = True
+moveLegal p (MoveThe c)       = positionOf p c == positionOf p Farmer
 ~~~
 
 #### safePlan
