@@ -320,7 +320,7 @@ So, altogether, `countToPosition . length $ p` is the same as
 `(countToPosition . length) p`, which says "first, find the length of `p`,
 then turn that length into a position."
 
-In the same way, `countToPosition . length $ filter (== Move c) p` is
+In the same way, `countToPosition . length $ filter (== MoveThe c) p` is
 `(countToPosition . length) (filter (== MoveThe c) p)` --- find the length of the
 filtered list, then turn that length into a position.  We use `$` mostly
 because we don't like writing parentheses everywhere when we don't have to.
@@ -397,8 +397,8 @@ paths our int could have taken (it could have halved...or doubled)
 
 What does a plan have to "go through" in its journey in adding a move?
 
-1.  First, we get the move we want to add.  We could pick a `Move Farmer`, a
-    `Move Goat`, or anything!
+1.  First, we get the move we want to add.  We could pick a `MoveThe Farmer`,
+    a `MoveThe Goat`, or anything!
 2.  Then, we fail/end the journey if we pick a move that isn't legal.  For
     example, we can't move the goat if the farmer is not on the same side of
     the river that the goat is on.
@@ -425,17 +425,17 @@ makeMove p = do
 ~~~
 
 1.  Here are the types of the helper functions we will be using.
-2.  Look at me being all fancy applicative!  In this context, `Move <$>` means
-    to apply `Move` to whatever we choose out of `[Farmer .. Cabbage]`.  Kind
-    of an "intercept it on the way out, and turn it into a Move".  So `next`
-    is `Move Farmer`, `Move Wolf`, etc.;  `next` is *one* of those.  For every
-    journey, we pick one of those.
+2.  Look at me being all fancy applicative!  In this context, `MoveThe <$>`
+    means to apply `MoveThe` to whatever we choose out of `[Farmer ..
+    Cabbage]`. Kind of an "intercept it on the way out, and turn it into a
+    Move".  So `next` is `MoveThe Farmer`, `MoveThe Wolf`, etc.;  `next` is
+    *one* of those. For every journey, we pick one of those.
 3.  We insta-fail if the move is not legal with the given plan.  By this, we
     mean that we can't possibly move an animal unless the farmer is on the
     same side as the animal.
 4.  Let's let `p'` be `next` appended to the original plan `p`.
 5.  We insta-fail unless the new plan is safe.
-6.  If we haven't failed yet, then we succed, returning the new plan in our
+6.  If we haven't failed yet, then we succeed, returning the new plan in our
     success.
 
 <aside>
