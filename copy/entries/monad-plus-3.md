@@ -40,7 +40,7 @@ claims dates back to the 9th century:
 > at a time, without any disasters?
 
 
-### A monadPlus Review
+### A MonadPlus Review
 
 Remember that in this series, MonadPlus refers to the design pattern (and
 Haskell typeclass) where you model the chaining functions on objects together
@@ -505,11 +505,11 @@ So let's say our plan is, currently, `[Move Goat, Move Farmer, Move Wolf]`.
 At the end of it all, our goat, wolf, and farmer are on the east bank, and the
 cabbage is on the west bank.
 
-What happens on this journey of `makeMove`?
+What happens on a typical journey of `makeMove`?
 
 1.  First, we pick something to move.  Let's say `next` is `Move Farmer`.
-    (Actually, technically, we pick `Farmer`, and then turn it into a `Move`
-    right after with `<$>`)
+    <!-- (Actually, technically, we pick `Farmer`, and then turn it into a `Move` -->
+    <!-- right after with `<$>`) -->
 2.  This move is legal (moving the farmer is always legal).
 3.  Our new plan is `[Move Goat, Move Farmer, Move Wolf, Move Farmer]`
 4.  This plan is not safe.  If we move the farmer, the goat and the wolf will
