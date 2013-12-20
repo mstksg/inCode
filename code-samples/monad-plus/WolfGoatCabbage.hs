@@ -32,11 +32,11 @@ findSolutions n = do
     where
         makeNMoves = iterate (>>= makeMove) (return startingPlan) !! n
 
--- One step of the journey --- add a move.
+-- One step of the journey: add a move.
 makeMove :: Plan -> [Plan]
 makeMove p = do
     next <- Move <$> [Farmer .. Cabbage]
-    guard $ moveLegal p next
+    guard       $ moveLegal p next
     guard . not $ moveRedundant p next
     let
         p' = p ++ [next]
@@ -54,7 +54,7 @@ positionOf p c = case c of
 
 moveLegal :: Plan -> Move -> Bool
 moveLegal p (Move Farmer) = True
-moveLegal p (Move c) = positionOf p c == positionOf p Farmer
+moveLegal p (Move c)      = positionOf p c == positionOf p Farmer
 
 moveRedundant :: Plan -> Move -> Bool
 moveRedundant [] m' = False

@@ -163,7 +163,7 @@ findSolutions n = do
 ~~~
 
 1.  The type signatures of the helper functions we will be using.
-2.  `findSolutions` is going to be the all succesful plans after `n`
+2.  `findSolutions n` is going to be the all succesful plans after `n`
     moves.
 3.  Let `p` be a plan after `n` moves have been added to it.
 4.  End the journey unless `p` is a solution (all characters are on the east
@@ -431,7 +431,7 @@ makeMove p = do
 2.  Look at me being all fancy applicative!  In this context, `Move <$>` means
     to apply `Move` to whatever we choose out of `[Farmer .. Cabbage]`.  Kind
     of an "intercept it on the way out, and turn it into a Move".  So `next`
-    is `Move Farmer`, `Move Wolf`, etc.  `next` is *one* of those.  For every
+    is `Move Farmer`, `Move Wolf`, etc.;  `next` is *one* of those.  For every
     journey, we pick one of those.
 3.  We insta-fail if the move is not legal with the given plan.  By this, we
     mean that we can't possibly move an animal unless the farmer is on the
@@ -441,6 +441,66 @@ makeMove p = do
 6.  If we haven't failed yet, then we succed, returning the new plan in our
     success.
 
+<aside>
+    ###### Aside
+
+Okay, so I was slightly handwavy with `<$>`.  But it is true that something
+like:
+
+~~~haskell
+x <- (*2) <$> Just 3
+~~~
+
+will put 6 ($3*2$) into `x` --- it'll take out the 3 and then apply `(*2)` to
+it before storing it in `x`.
+
+What's going on under the hood is actually less magical.  `<$>` basically says
+"apply inside".  It is like `$`, but "inside".  Remember how we can do:
+
+~~~haskell
+λ: (*2) $ 3
+6
+~~~
+
+to apply `(*2)` to 3?  We can then also do:
+
+~~~haskell
+λ: (*2) $ 3
+6
+λ: (*2) <$> Just 3
+Just 6
+λ: (*2) <$> [3]
+[6]
+~~~
+
+Now, if we think of a List like a list of possible successes, then applying a
+function "inside" means applying the function to all of the possible
+successes:
+
+~~~haskell
+λ: (*2) <$> [3,4,5]
+[6,8,10]
+λ: Move <$> [Farmer, Wolf, Goat, Cabbage]
+[Move Farmer, Move Wolf, Move Goat, Move Cabbage]
+~~~
+
+So when I said
+
+~~~haskell
+next <- Move <$> [Farmer, Wolf, Goat, Cabbage]
+~~~
+
+I really mean
+
+~~~haskell
+next <- [Move Farmer, Move Wolf, Move Goat, Move Cabbage]
+~~~
+
+But still, it sometimes makes sense to think of it as "Get the item inside,
+and then apply this function to it before you bind it to your variable", if
+only for funsies.
+</aside>
+
 So let's say our plan is, currently, `[Move Goat, Move Farmer, Move Wolf]`.
 At the end of it all, our goat, wolf, and farmer are on the east bank, and the
 cabbage is on the west bank.
@@ -448,8 +508,8 @@ cabbage is on the west bank.
 What happens on this journey of `makeMove`?
 
 1.  First, we pick something to move.  Let's say `next` is `Move Farmer`.
-    Technically, we pick `Farmer`, and then turn it into a `Move` as we are
-    picking it.
+    (Actually, technically, we pick `Farmer`, and then turn it into a `Move`
+    right after with `<$>`)
 2.  This move is legal (moving the farmer is always legal).
 3.  Our new plan is `[Move Goat, Move Farmer, Move Wolf, Move Farmer]`
 4.  This plan is not safe.  If we move the farmer, the goat and the wolf will
