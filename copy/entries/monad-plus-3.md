@@ -551,7 +551,7 @@ and `safePlan`.
 What makes a move legal?  Well, the farmer has to be on the same side as
 whatever is being moved.
 
-We can re-use our `positionOF :: Plan -> Character -> Position` function here.
+We can re-use our `positionOf :: Plan -> Character -> Position` function here.
 
 ~~~haskell
 moveLegal :: Plan -> Move -> Bool
@@ -589,8 +589,8 @@ could move the farmer or goat twice in a row.  How can we add another guard to
 check if the move isn't redundant?  That is, that the move we are adding isn't
 identical to the last move of the plan?
 
-The solution is in the final solution later on, but think about how you would
-do it and compare!
+The implementation is in the final solution later on, but think about how you
+would do it and compare the final solution to yours!
 
 Wrapping Up
 -----------
@@ -648,12 +648,12 @@ at length 13, and then at 19:
 λ: findSolutions 19
 [[G,F,W,G,C,W,G,C,W,G,C,W,G,C,W,G,C,F,G]
 ,[G,F,C,G,W,C,G,W,C,G,W,C,G,W,C,G,W,F,G]]
-~~~haskell
+~~~
 
 Again notice that both of these solutions come in pairs, with one being the
-reverse of the other. Also, see that they are actually the same as the first
-solution of length 7, just with cycles of `W,G,C` (or `C,G,W`) over and over
-again.
+reverse of the other.  Also curious is the fact that they are actually
+identical to the length 7 solutions, just with cycles of `W,G,C` (or `C,G,W`)
+over and over again in the middle.
 
 ### Reflections
 
@@ -664,7 +664,8 @@ but it is interesting that we can model something like this simply as saying:
 description succeed?"
 
 With the List MonadPlus, you can solve any problem that can be described as
-the result of a nondeterministic journey.
+the result of a nondeterministic journey with choices and pitfalls along the
+way.
 
 Hopefully as a result of this three part series and through playing around
 with the source code, you can appreciate the wonders of Succeed/Fail!
