@@ -1,5 +1,5 @@
-Wolf, Goat, Cabbage: The List MonadPlus and Logic Problems (Part 3 of 3)
-========================================================================
+Wolf, Goat, Cabbage: The List MonadPlus & Logic Problems
+========================================================
 
 Categories
 :   Haskell
