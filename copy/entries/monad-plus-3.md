@@ -16,16 +16,8 @@ PostDate
 Identifier
 :   monad-plus-3
 
-Today we're going to learn to solve classic and ageless logic problems without
-any data structures besides List's monadic properties as a MonadPlus!
-
-If you aren't familiar with MonadPlus/Alternative, or Haskell in general,
-check out [Part 1][] and [Part 2][] --- it provides all of the background
-necessary for any new, beginning or intermediate Haskeller to understand this,
-including all essential Haskell syntax :)
-
-[Part 1]: http://blog.jle.im/entry/practical-fun-with-monads-introducing-monadplus
-[Part 2]: http://blog.jle.im/entry/the-list-monadplus-practical-fun-with-monads-part
+Today we're going to learn to solve the classic and ageless logic problems
+without any data structures besides List's monadic properties as a MonadPlus!
 
 We are going to be solving this old-as-time logic puzzle, which [Wikipedia][]
 claims dates back to the 9th century:
@@ -39,12 +31,22 @@ claims dates back to the 9th century:
 > cabbage.  How can he properly transport his belongings to the other side one
 > at a time, without any disasters?
 
-We're going to assume a somewhat basic familiarity with functional programming
-concepts and a basic understanding of monads (supplemented by the concepts of
-parts 1 and 2); most Haskell syntax is either be explained here or in parts 1
-and 2. Still, if you have any questions, feel free to leave a comment, give
-[Learn You A Haskell][LYAH] a quick read, or stop by freenode's #haskell!
+If you aren't familiar with MonadPlus/Alternative, or Haskell in general,
+check out [Part 1][] and [Part 2][] --- it provides all of the background
+necessary for any new, beginning or intermediate Haskeller to understand this,
+including all essential Haskell syntax :)
 
+We're going to assume a somewhat basic familiarity with functional programming
+concepts and a basic understanding of monads.  If you aren't familiar with
+MonadPlus/Alternative (and how they work as monads) check out [Part 1][] and
+[Part 2][], which should provide all the background and most of the syntax.
+Most Haskell syntax is either be explained here as we get to it or in the
+previous parts. Still, if you have any questions, feel free to leave a
+comment, give [Learn You A Haskell][LYAH] a quick read, or stop by
+freenode's #haskell!
+
+[Part 1]: http://blog.jle.im/entry/practical-fun-with-monads-introducing-monadplus
+[Part 2]: http://blog.jle.im/entry/the-list-monadplus-practical-fun-with-monads-part
 [LYAH]: http://learnyouahaskell.com
 
 
