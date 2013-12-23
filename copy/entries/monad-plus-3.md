@@ -264,15 +264,19 @@ makeNMoves n =
 <aside>
     ###### Welcome to Haskell!
 
-So remember the operator 
-`(>>=) :: m a -> (a -> m b) -> m b` is the heart of monads.  If you have an
-object (in our case, `[a]`) and a function returning the object (`a -> [b]`),
-`>>=` will "chain" that function onto the object to create a new object `[b]`.
-Using `>>=` we can chain multiple functions successively onto one object.  See
-[adit's][adit] great article on the subject for more information, or
-[Part 1][] for a more complete description of how `>>=` works for MonadPlus.
+A description of `>>=` and `do` notation is actually a bit beyond the scope of
+this post; you can look into [adit's][adit] great post on the subject or view
+[Part 1] for a description that is more specialized to the context of
+MonadPlus's.  For now, you should know that at least for Lists,
+`(>>=) :: [a] -> (a -> [b]) -> [b]`; given a list and a function returning a
+list, `>>=` allows you to chain that function onto that list to make a new
+list.  For the List Monad, it conceptually involves "stepping" all items on
+the list through the given step of the journey, and returning a new list with
+the result of all of the successful paths of the journey.  Do notation is
+syntactical sugar for repeated applications of `>>=`.
 
 [adit]: http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html
+
 </aside>
 
 Luckily there is a function in the standard library that allows us to
@@ -298,7 +302,7 @@ We say "apply `(>>= makeMove)` `n` times, starting the single starting
 plan".
 
 <aside>
-    ###### Note
+    ###### Welcome to Haskell!
 
 Remember that `return x >>= f` is the same as `f x`.  You can see this here:
 
@@ -455,6 +459,18 @@ isSolution p = all (== East) positions
     where
         positions = map (positionOf p) [Farmer .. Cabbage]
 ~~~
+
+<aside>
+    ###### Welcome to Haskell!
+
+In Haskell, we have a magical trick called "currying", or "partial
+application".  Remember that `positionOf :: Plan -> Character -> Position`.
+`positionOf p c` gives us a position.  But have `positionOf p` gives us a
+function "waiting" for a character.  `map` takes a function and list of items
+and returns a new list with the function applied to every item.  So when we
+map the function `positionOf p` over a list of characters, we get a list of
+resulting positions, with each character.
+</aside>
 
 We use `[Farmer .. Cabbage]` as shorthand for `[Farmer, Wolf, Goat, Cabbage]`
 --- this is because `Character` is an Enum, so it can be enumerated using
