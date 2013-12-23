@@ -31,11 +31,6 @@ claims dates back to the 9th century:
 > eat the cabbage.  How can he properly transport his belongings to the other
 > side one at a time, without any disasters?
 
-If you aren't familiar with MonadPlus/Alternative, or Haskell in general,
-check out [Part 1][] and [Part 2][] --- it provides all of the background
-necessary for any new, beginning or intermediate Haskeller to understand this,
-including all essential Haskell syntax :)
-
 We're going to assume a somewhat basic familiarity with functional programming
 concepts and a basic understanding of monads.  If you aren't familiar with
 MonadPlus/Alternative (and how they work as monads) check out [Part 1][] and
