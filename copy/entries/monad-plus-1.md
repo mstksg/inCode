@@ -32,11 +32,11 @@ classic logic puzzle, as old as time itself, using **only** the List monad
 instance, and no loops, queues, or fancy stuff like that:
 
 > A farmer has a wolf, a goat, and a cabbage that he wishes to transport
-> across a river.  Unfortunately, his only boat can carry one thing at a time.
-> He can't leave the wolf alone with the goat, or the wolf will eat the goat.
-> He can't leave the goat alone with the cabbage, or the goat will eat the
-> cabbage.  How can he properly transport his belongings to the other side one
-> at a time, without any disasters?
+> across a river.  Unfortunately, his boat can carry only one thing at a time
+> with him. He can't leave the wolf alone with the goat, or the wolf will eat
+> the goat. He can't leave the goat alone with the cabbage, or the goat will
+> eat the cabbage.  How can he properly transport his belongings to the other
+> side one at a time, without any disasters?
 
 Let us enter a brave new world!
 
