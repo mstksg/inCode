@@ -91,8 +91,9 @@ What journeys following this description succeed?"
 
 So what could this journey be?  Well, we see this journey as the accumulation
 of moves to a plan?  We start out with a blank plan ("Do nothing").  The next
-step, we add one move to our plan: "Just move the fox", for example.  Then the
-next step, we add another move: "First move the fox, then move the farmer."
+step, we add one move to our plan ("Just move the fox", for example).  Then
+the next step, we add another move ("First move the fox, then move the
+farmer").
 
 1.  Start with a blank plan; a tabula rasa.
 2.  Add a legal and safe move to it.
@@ -142,8 +143,8 @@ data Position = West | East                     -- 5
     and the wolf, etc.
 3.  For the purposes of easy debugging, we're going to define our own instance
     of `Show` for moves so that we can use `print` on them.
-4.  A simple type synonym: a `Plan` is just a list of `Move`s.  Note that
-    we are not using this list as a MonadPlus: it's just a plain dumb list
+4.  A simple type synonym; a `Plan` is just a list of `Move`s.  Note that
+    we are not using this list as a MonadPlus --- it's just a plain dumb list
     of moves in our plan.
 5.  A `Position` type: either on the west bank or on the east bank of the
     river.  Everyone starts out on the west bank, and we want them all to end
@@ -219,7 +220,7 @@ findSolutions n = do
 2.  `findSolutions n` is going to be the all successful plans after `n`
     moves.
 3.  Let `p` be a plan after `n` moves have been added to it.  Note that
-    `makeNMoves` is itself a journey:  a sub-journey.
+    `makeNMoves` is itself a journey --- a sub-journey.
 4.  End the journey unless `p` is a solution (all characters are on the east
     side)
 5.  Succeed with `p` if the journey has not yet ended.
@@ -231,7 +232,7 @@ So now we only need to implement `makeNMoves` and `isFinalSol`!
 ### makeNMoves
 
 `makeNMoves` is going to be the main logic of our program.  We want it to be
-a journey, itself: a journey of a single solution going through `n`
+a journey, itself --- a journey of a single solution going through `n`
 additions of moves.
 
 That means we want something like:
@@ -383,7 +384,7 @@ In Haskell, the `(.)` operator represents function composition.
 `(f . g) x` is equivalent to `f (g x)`.  "Apply `g` first, then apply `f`".
 
 Also recall that you can think of `$` as adding an implicit parentheses around
-both sides of it.  You visualize it like the spine of a butterfly: the
+both sides of it.  You visualize it like the spine of a butterfly --- the
 "wings" are wrapped parentheses around either side of it.  In that sense, `f .
 g $ x` is the same as `(f . g) (x)` (A rather lopsided butterfly).
 
@@ -392,7 +393,7 @@ So, altogether, `countToPosition . length $ p` is the same as
 then turn that length into a position."
 
 In the same way, `countToPosition . length $ filter (== MoveThe c) p` is
-`(countToPosition . length) (filter (== MoveThe c) p)`: find the length of the
+`(countToPosition . length) (filter (== MoveThe c) p)` --- find the length of the
 filtered list, then turn that length into a position.  We use `$` mostly
 because we don't like writing parentheses everywhere when we don't have to.
 </aside>
@@ -417,7 +418,7 @@ Wolf...
 
 Now we have to check that the plan is a solution.
 
-Simple: that means that all `Characters` are on the east side.
+Simple --- that means that all `Characters` are on the east side.
 
 We can check this manually:
 
@@ -486,7 +487,7 @@ What does a plan have to "go through" in its journey in adding a move?
     example, we can't move the goat if the farmer is not on the same side of
     the river that the goat is on.
 3.  Now, we add that move that we got to the plan.
-4.  Then, we fail/end the journey if that new plan is "unsafe": if it
+4.  Then, we fail/end the journey if that new plan is "unsafe" --- if it
     leaves either the Wolf and Goat alone on a riverbank or the Goat and
     Cabbage.
 5.  At the end of it all, we succeed with the new plan.
@@ -530,7 +531,7 @@ like:
 x <- (*2) <$> Just 3
 ~~~
 
-will put 6 ($3 * 2$) into `x`: it'll take out the 3 and then apply `(*2)`
+will put 6 ($3 * 2$) into `x` --- it'll take out the 3 and then apply `(*2)`
 to it before storing it in `x`.
 
 What's going on under the hood is actually less magical.  `<$>` basically says
@@ -604,7 +605,7 @@ Huh.  How unfortunate.  Let's try again with another pick for `next`:
 Well, that's kind of depressing.  Let's try another:
 
 1.  We pick `MoveThe Goat` for `next`.
-2.  This move is legal: both the goat and the farmer are on the east bank.
+2.  This move is legal; both the goat and the farmer are on the east bank.
 3.  Our new plan is `[MoveThe Goat, MoveThe Farmer, MoveThe Wolf, MoveThe
     Goat]`.
 4.  This plan is indeed safe.  The goat and the cabbage are now on the west
@@ -622,7 +623,7 @@ and `MoveThe Cabbage` added to it, but will likely be retuning the plans with
 `MoveThe Goat` and `MoveThe Wolf` added to it.  And it'll return those two together
 in a List structure.
 
-ye're almost there: now to just define our helper predicates `moveLegal`
+We're almost there!  Now to just define our helper predicates `moveLegal`
 and `safePlan`.
 
 #### moveLegal
