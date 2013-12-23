@@ -531,7 +531,7 @@ like:
 x <- (*2) <$> Just 3
 ~~~
 
-will put 6 ($3 * 2$) into `x` --- it'll take out the 3 and then apply `(*2)`
+will put 6 (`3 * 2`) into `x` --- it'll take out the 3 and then apply `(*2)`
 to it before storing it in `x`.
 
 What's going on under the hood is actually less magical.  `<$>` basically says
@@ -744,6 +744,11 @@ description succeed?"
 With the List MonadPlus, you can solve any problem that can be described as
 the result of a nondeterministic journey with choices and pitfalls along the
 way.
+
+In this particular puzzle, you could have done something similar using only
+maps and filters.  However, sometimes it is more useful or more insightful to,
+instead of using maps and filters, use abstractions that help you frame the
+problem in a more meaningful way.
 
 Hopefully as a result of this three part series and through playing around
 with the source code, you can appreciate the wonders of Succeed/Fail!
