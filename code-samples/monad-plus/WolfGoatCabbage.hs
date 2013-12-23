@@ -47,11 +47,11 @@ makeMove p = do
 -- | Helper functions
 positionOf :: Plan -> Character -> Position
 positionOf p c = case c of
-    Farmer  -> countToPosition . length $ p
-    c       -> countToPosition . length $ filter (== MoveThe c) p
+    Farmer  -> positionFromCount . length $ p
+    c       -> positionFromCount . length $ filter (== MoveThe c) p
     where
-        countToPosition n | even n    = West
-                          | otherwise = East
+        positionFromCount n | even n    = West
+                            | otherwise = East
 
 moveLegal :: Plan -> Move -> Bool
 moveLegal p (MoveThe Farmer)  = True

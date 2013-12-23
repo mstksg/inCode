@@ -331,11 +331,11 @@ two moves, etc.).  If it is odd, then the farmer is on the east bank.
 ~~~haskell
 positionOf :: Plan -> Character -> Position
 positionOf p c = case c of
-    Farmer  -> countToPosition $ length p
+    Farmer  -> positionFromCount $ length p
     _       -> undefined
     where
-        countToPosition n | even n      = West
-                          | othherwise  = East
+        positionFromCount n | even n      = West
+                            | othherwise  = East
 ~~~
 
 Now, what if we want to know about non-farmers?
@@ -368,17 +368,17 @@ Putting it all together:
 ~~~haskell
 positionOf :: Plan -> Character -> Position
 positionOf p c = case c of
-    Farmer  -> countToPosition . length $ p
-    c       -> countToPosition . length $ filter (== MoveThe c) p
+    Farmer  -> positionFromCount . length $ p
+    c       -> positionFromCount . length $ filter (== MoveThe c) p
     where
-        countToPosition n | even n      = West
-                          | othherwise  = East
+        positionFromCount n | even n      = West
+                            | othherwise  = East
 ~~~
 
 <aside>
     ###### Welcome to Haskell!
 
-What is `countToPosition . length $ p`?
+What is `positionFromCount . length $ p`?
 
 In Haskell, the `(.)` operator represents function composition.
 `(f . g) x` is equivalent to `f (g x)`.  "Apply `g` first, then apply `f`".
@@ -388,15 +388,15 @@ both sides of it.  You visualize it like the spine of a butterfly --- the
 "wings" are wrapped parentheses around either side of it.  In that sense, `f .
 g $ x` is the same as `(f . g) (x)` (A rather lopsided butterfly).
 
-So, altogether, `countToPosition . length $ p` is the same as
-`(countToPosition . length) p`, which says "first, find the length of `p`,
+So, altogether, `positionFromCount . length $ p` is the same as
+`(positionFromCount . length) p`, which says "first, find the length of `p`,
 then turn that length into a position."
 
-In the same way, `countToPosition . length $ filter (== MoveThe c) p` is
-`(countToPosition . length) (filter (== MoveThe c) p)` --- find the length of the
-filtered list, then turn that length into a position.  We use `$` mostly
-because we don't like writing parentheses everywhere when we don't have to.
-</aside>
+In the same way, `positionFromCount . length $ filter (== MoveThe c) p` is
+`(positionFromCount . length) (filter (== MoveThe c) p)` --- find the length
+of the filtered list, then turn that length into a position.  We use `$`
+mostly because we don't like writing parentheses everywhere when we don't have
+to. </aside>
 
 Does this actually work?  Let's try out some examples.
 
