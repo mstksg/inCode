@@ -533,8 +533,8 @@ like:
 x <- (*2) <$> Just 3
 ~~~
 
-will put 6 ($3*2$) into `x` --- it'll take out the 3 and then apply `(*2)` to
-it before storing it in `x`.
+will put 6 ($3 * 2$) into `x` --- it'll take out the 3 and then apply `(*2)`
+to it before storing it in `x`.
 
 What's going on under the hood is actually less magical.  `<$>` basically says
 "apply inside".  It is like `$`, but "inside".  Remember how we can do:
@@ -578,7 +578,7 @@ I really mean
 next <- [MoveThe Farmer, MoveThe Wolf, MoveThe Goat, MoveThe Cabbage]
 ~~~
 
-But still, it sometimes makes sense to think of it as "Get the item inside,
+But still, it sometimes is cool to think of it as "Get the item inside,
 and then apply this function to it before you bind it to your variable", if
 only for funsies.
 </aside>
@@ -650,8 +650,6 @@ and the farmer is not.  Some boolean arithmetic shows that this is equivalent
 to saying either the Farmer is with the Goat, or the goat and cabbage aren't
 together and the wolf and goat aren't together.
 
-<!-- $\neg ((P_w = P_g \wedge \neg (P_f = P_g)) \vee (P_g = P_c \wedge \neg (P_f = P_g))$ -->
-
 ~~~haskell
 safePlan :: Plan -> Bool
 safePlan p = goatPos == farmerPos || safeGoat && safeCabbage
@@ -716,22 +714,23 @@ getting from the east bank to the west bank.
 
 It turns out that the solutions of length 9 and 11 are both identical to the
 solutions for length 7, just with some redundant moves thrown in (moving the
-farmer twice in a row, moving the goat twice in a row, etc.).  Also notice
-that only odd lengths are valid, because for even lengths, the farmer is on
-the west bank.
+farmer twice in a row, moving the goat twice in a row, etc.).  Also, note that
+all possible solutions are of odd lengths, because for even lengths, the
+farmer ends up on the west bank.
 
-If we add a filter on redundant moves, the next "unique" valid solution comes
-at length 13, and then at 19:
+If we add the filter on redundant moves mentioned earlier, the next valid
+solutions come at length 13, and then at 19:
 
 ~~~haskell
 λ: findSolutions 13
-[[G,F,W,G,C,W,G,C,W,G,C,F,G],[G,F,C,G,W,C,G,W,C,G,W,F,G]]
+[[G,F,W,G,C,W,G,C,W,G,C,F,G]
+,[G,F,C,G,W,C,G,W,C,G,W,F,G]]
 λ: findSolutions 19
 [[G,F,W,G,C,W,G,C,W,G,C,W,G,C,W,G,C,F,G]
 ,[G,F,C,G,W,C,G,W,C,G,W,C,G,W,C,G,W,F,G]]
 ~~~
 
-Again notice that both of these solutions come in pairs, with one being the
+Again note that both of these solutions come in pairs, with one being the
 reverse of the other.  Also curious is the fact that they are actually
 identical to the length 7 solutions, just with cycles of `W,G,C` (or `C,G,W`)
 over and over again in the middle.
