@@ -67,9 +67,17 @@ pattern.  For the purposes of this article, MonadPlus is essentially
 </aside>
 
 We adopt a common language to talk about this process: `mzero` means "fail
-here" and `return x` means "succeed with the value `x` here".  Chaining works
-in the manner that chaining anything to a failure will propagate that failure
-forward.
+here" and `return x` means "succeed with a result of the value `x` here".
+Chaining works in the manner that chaining anything to a failure will
+propagate that failure forward.
+
+You should understand the basic idea of monads and what `>>=` and `do` mean;
+it's slightly beyond the scope of this post. If you want, you can check out
+[adit's][adit] great tutorial on the subject, or check out [Part 1][] to see
+what these things mean specifically in the context of MonadPlus.
+
+[adit]: http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html
+
 
 Our Approach
 ------------
@@ -261,24 +269,6 @@ makeNMoves n =
         >>= makeMove                -- (n times)
 ~~~
 
-<aside>
-    ###### Welcome to Haskell!
-
-A description of `>>=` and `do` notation is actually a bit beyond the scope of
-this post; you can look into [adit's][adit] great post on the subject or view
-[Part 1] for a description that is more specialized to the context of
-MonadPlus's.  For now, you should know that at least for Lists,
-`(>>=) :: [a] -> (a -> [b]) -> [b]`; given a list and a function returning a
-list, `>>=` allows you to chain that function onto that list to make a new
-list.  For the List Monad, it conceptually involves "stepping" all items on
-the list through the given step of the journey, and returning a new list with
-the result of all of the successful paths of the journey.  Do notation is
-syntactical sugar for repeated applications of `>>=`.
-
-[adit]: http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html
-
-</aside>
-
 Luckily there is a function in the standard library that allows us to
 repeatedly apply a function `n` times --- `iterate :: (a -> a) -> a -> [a]`.
 `iterate f x` takes a function `f :: a -> a` and repeatedly applies it to a
@@ -465,11 +455,11 @@ isSolution p = all (== East) positions
 
 In Haskell, we have a magical trick called "currying", or "partial
 application".  Remember that `positionOf :: Plan -> Character -> Position`.
-`positionOf p c` gives us a position.  But have `positionOf p` gives us a
-function "waiting" for a character.  `map` takes a function and list of items
-and returns a new list with the function applied to every item.  So when we
-map the function `positionOf p` over a list of characters, we get a list of
-resulting positions, with each character.
+`positionOf p c` gives us a position.  But `positionOf p` gives us a function
+"waiting" for a character.  `map` takes a function and list of items and
+returns a new list with the function applied to every item.  So when we map
+the function `positionOf p` over a list of characters, we get a list of
+resulting positions for each character.
 </aside>
 
 We use `[Farmer .. Cabbage]` as shorthand for `[Farmer, Wolf, Goat, Cabbage]`
@@ -487,9 +477,9 @@ makeMove :: Plan -> [Plan]
 ~~~
 
 `makeMove` will be a function that takes a plan and returns all the successful
-ways you can make a move on that plan. This is similar to our old
+ways you can add a move to that plan. This is similar to our old
 `halveOrDouble :: Int -> [Int]`, which takes an int and returns the successful
-paths our int could have taken (it could have halved...or doubled)
+paths our int could have taken (it could have halved...or doubled).
 
 What does a plan have to "go through" in its journey in adding a move?
 
@@ -521,18 +511,17 @@ makeMove p = do
 ~~~
 
 1.  Here are the types of the helper functions we will be using.
-2.  Look at me being all fancy applicative!  In this context, `MoveThe <$>`
-    means to apply `MoveThe` to whatever we choose out of `[Farmer ..
-    Cabbage]`. Kind of an "intercept it on the way out, and turn it into a
-    Move".  So `next` is `MoveThe Farmer`, `MoveThe Wolf`, etc.;  `next` is
-    *one* of those. For every journey, we pick one of those.
+2.  In this context, `MoveThe <$>` means to apply `MoveThe` to whatever we
+    choose out of `[Farmer .. Cabbage]`. Kind of an "intercept it on the way
+    out, and turn it into a Move".  So `next` is `MoveThe Farmer`, `MoveThe
+    Wolf`, etc.;  `next` is *one* of those. For every journey, we pick one of
+    the possible moves.
 3.  We insta-fail if the move is not legal with the given plan.  By this, we
     mean that we can't possibly move an animal unless the farmer is on the
     same side as the animal.
 4.  Let's let `p'` be `next` appended to the original plan `p`.
 5.  We insta-fail unless the new plan is safe.
-6.  If we haven't failed yet, then we succeed, returning the new plan in our
-    success.
+6.  If we haven't failed yet, then we succeed with the new plan as the result.
 
 <aside>
     ###### Welcome to Haskell!
