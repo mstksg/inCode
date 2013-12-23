@@ -39,19 +39,28 @@ claims dates back to the 9th century:
 > cabbage.  How can he properly transport his belongings to the other side one
 > at a time, without any disasters?
 
+We're going to assume a somewhat basic familiarity with functional programming
+concepts and a basic understanding of monads (supplemented by the concepts of
+parts 1 and 2); most Haskell syntax is either be explained here or in parts 1
+and 2. Still, if you have any questions, feel free to leave a comment, give
+[Learn You A Haskell][LYAH] a quick read, or stop by freenode's #haskell!
+
+[LYAH]: http://learnyouahaskell.com 
+
 
 ### A MonadPlus Review
 
-Remember that in this series, MonadPlus refers to the design pattern (and
-Haskell typeclass) where you model the chaining functions on objects together
-as a "success/fail" process.
+Remember, a monad is an object where you have defined a meaningful way to
+chain functions on that object.  For this article, MonadPlus refers to the
+design pattern (and Haskell typeclass) where you model this "chaining" as a
+"success/fail" process.
 
 <aside>
     ###### Note
 
 You might be aware that in the current Haskell standard library organization,
 the implementation of MonadPlus also provides separate functionality ---  the
-"Plus".  We won't be focusing on this part, because it is commonly reguarded
+"Plus".  We won't be focusing on this part, because it is commonly regarded
 that it is more of a characteristic of the *Alternative* typeclass/design
 pattern.  For the purposes of this article, MonadPlus is essentially
 "MonadZero", as it should have been.
@@ -65,12 +74,12 @@ forward.
 Our Approach
 ------------
 
-So, armed with what we leared in part 2, let's formulate a general plan for
+So, armed with what we learned in part 2, let's formulate a general plan for
 finding all solutions in `n` moves.  In the List monad, we like to to think of
-things as "journeys" --- subject your value to a long and arduous journey,
-specifying at every step of the way what choices it has to continue.  Then
-specify where journeys fail and end.  At the end of it all, all trails that
-have completed the journey are the solution.
+things as "journeys" or stories --- subject your value to a long and arduous
+journey, specifying at every step of the way what choices it has to continue.
+Then specify where journeys fail and end.  At the end of it all, the result is
+a list of the finishing values of all trails that have completed the journey.
 
 With the List monad, we say "Here is the description of *a* (single) journey.
 What journeys following this description succeed?"
@@ -90,10 +99,10 @@ to its eventual death or ascension.
 
 This is the most significant thing about this approach: it allows you to
 describe **one journey**, in general terms, and List will "automatically" find
-out all succesful journeys that fit your mold.  You don't ever have to worry
-about the ensemble, or manually deal with branch or filtering.  Cognitively,
-all you have to do is *write a story*.  Just one.  That is the power of the
-abstraction.
+out all successful journeys that fit your mold.  You don't ever have to worry
+about the ensemble, or manually deal with explicit branching or filtering.
+Cognitively, all you have to do is *write a story*.  Just one.  That is the
+power of the abstraction.
 
 
 Our Types
@@ -122,18 +131,61 @@ data Position = West | East                     -- 5
 
 1.  First, we define the enumerated type `Character` all the characters we
     will be working with --- the farmer, the wolf, the goat, and the cabbage.
-2.  Next, we define a simple `Move` container newtype, which just contains a
+2.  Next, we define a simple `Move` container, which just contains a
     character.  A `MoveThe Farmer` will represent a movement of only the
     farmer, a `MoveThe Wolf` will represent the movement of both the farmer
     and the wolf, etc.
 3.  For the purposes of easy debugging, we're going to define our own instance
     of `Show` for moves so that we can use `print` on them.
-4.  A simple type synonym --- a `Plan` is just a list of `Move`s.  Note
-    that we are not using this list as a MonadPlus --- it's just a list of
-    moves in our plan.
-5.  For convenience, we define a `Position` type --- either on the west bank
-    or on the east bank of the river.  Everyone starts out on the west bank,
-    and we want them all to end up on the east bank.
+4.  A simple type synonym --- a `Plan` is just a list of `Move`s.  Note that
+    we are not using this list as a MonadPlus --- it's just a plain dumb list
+    of moves in our plan.
+5.  A `Position` type --- either on the west bank or on the east bank of the
+    river.  Everyone starts out on the west bank, and we want them all to end
+    up on the east bank.
+
+<aside>
+    ###### Welcome to Haskell!
+
+Hi!  These "Welcome to Haskell" asides are for people unfamiliar with Haskell,
+mostly for Haskell syntax stuff.  If you already feel comfortable, feel free
+to skip them.
+
+There's a lot of Haskell syntax and concepts here; mostly, all we are doing is
+declaring new types.
+
+1.  We declare that `Character` is "either" a `Farmer`, `Wolf`, `Goat`, or
+    `Cabbage`.  This is like saying that a `Bool` is either a `False` or a
+    `True` --- in fact, you could define your own `Bool` with something like
+    this: (or even your own `Int`)
+
+    ~~~haskell
+    data Bool = False | True
+    data Int = -536870912 ... | -1 | 0 | 1 | 2 | ... 536870911
+    ~~~
+
+    The `deriving` syntax tells the compiler to automatically derive methods
+    for printing the type (Show), testing for equality (Eq), and enumerating
+    through them (Enum)
+
+2.  We declare a new type `Move` which is just a wrapper around a `Character`.
+    We can create a new `Move` by using `MoveThe`:
+
+    ~~~haskell
+    λ: :t MoveThe Wolf
+    MoveThe Wolf :: Move
+    ~~~
+
+    (`λ: ` represents a command at the interactive prompt ghci, and `:t` asks
+    for the type of whatever comes after it)
+
+3.  Here we define custom methods for printing out a `Move`
+
+4.  Here is a type synonym `Plan`.  Every time we use `Plan` as a type, we
+    really mean `[Move]`, and the compiler treats the two things as the same.
+
+5.  `Position` --- same deal as `Character`.
+</aside>
 
 Implementation
 --------------
@@ -159,9 +211,10 @@ findSolutions n = do
 ~~~
 
 1.  The type signatures of the helper functions we will be using.
-2.  `findSolutions n` is going to be the all succesful plans after `n`
+2.  `findSolutions n` is going to be the all successful plans after `n`
     moves.
-3.  Let `p` be a plan after `n` moves have been added to it.
+3.  Let `p` be a plan after `n` moves have been added to it.  Note that
+    `makeNMoves` is itself a journey ---  a sub-journey.
 4.  End the journey unless `p` is a solution (all characters are on the east
     side)
 5.  Succeed with `p` if the journey has not yet ended.
@@ -208,6 +261,20 @@ makeNMoves n =
         >>= makeMove                -- (n times)
 ~~~
 
+<aside>
+    ###### Welcome to Haskell!
+
+So remember the operator 
+`(>>=) :: m a -> (a -> m b) -> m b` is the heart of monads.  If you have an
+object (in our case, `[a]`) and a function returning the object (`a -> [b]`),
+`>>=` will "chain" that function onto the object to create a new object `[b]`.
+Using `>>=` we can chain multiple functions successively onto one object.  See
+[adit's][adit] great article on the subject for more information, or
+[Part 1][] for a more complete description of how `>>=` works for MonadPlus.
+
+[adit]: http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html
+</aside>
+
 Luckily there is a function in the standard library that allows us to
 repeatedly apply a function `n` times --- `iterate :: (a -> a) -> a -> [a]`.
 `iterate f x` takes a function `f :: a -> a` and repeatedly applies it to a
@@ -244,15 +311,15 @@ foo1 = do
 foo2 = f x
 ~~~
 
-Where `return x` says "succeed with the value `x`", and `y <-` immediately
-says "set `y` to the value of that success".  Of course, `y` is just going to
-be `x`, because we had just said "succeed with the value of `x`.  That means
-that `f y` is the same as `f x`.
+Where `return x` says "succeed with the value `x`", and `y <-` says "set `y`
+to the value of that success".  Of course, `y` is just going to be `x`,
+because we had just said "succeed with the value of `x`.  That means that `f
+y` is the same as `f x`.
 </aside>
 
 ### isFinalSol
 
-Let's define our function `isSolution :: Plan -> Bool`.  Basically, we
+Let's define our helper function `isSolution :: Plan -> Bool`.  Basically, we
 want to check if the positions of all of the characters are `East`.
 
 First, we need a way to get the position of a farmer/animal after a given plan
@@ -293,6 +360,19 @@ filter (== MoveThe c) p
 This will return a new Plan, but with only the moves involving the
 character `c`.  We can then use the length of *that*.
 
+<aside>
+    ###### Welcome to Haskell!
+
+`filter :: (a -> Bool) -> [a] -> [a]` is a common function that takes a
+predicate `a -> Bool` and a list, and returns a new list with only the items
+for which the predicate returns true.
+
+`(== MoveThe c)` is a function that returns true if the move is equal to
+`MoveThe c`.
+</aside>
+
+Putting it all together:
+
 ~~~haskell
 positionOf :: Plan -> Character -> Position
 positionOf p c = case c of
@@ -304,17 +384,17 @@ positionOf p c = case c of
 ~~~
 
 <aside>
-    ###### Aside
+    ###### Welcome to Haskell!
 
 What is `countToPosition . length $ p`?
 
 In Haskell, the `(.)` operator represents function composition.
 `(f . g) x` is equivalent to `f (g x)`.  "Apply `g` first, then apply `f`".
 
-Also recall that you can think of `$` as adding an implicit parentheses
-around both sides of it.  You can think of it like the spine of a butterfly
---- the "wings" are wrapped parentheses around either side of it.  In that
-sense, `f . g $ x` is the same as `(f . g) (x)` (A rather lopsided butterfly).
+Also recall that you can think of `$` as adding an implicit parentheses around
+both sides of it.  You visualize it like the spine of a butterfly --- the
+"wings" are wrapped parentheses around either side of it.  In that sense, `f .
+g $ x` is the same as `(f . g) (x)` (A rather lopsided butterfly).
 
 So, altogether, `countToPosition . length $ p` is the same as
 `(countToPosition . length) p`, which says "first, find the length of `p`,
@@ -390,9 +470,9 @@ So let's get down to the meat of our journey.  How do we make a move?
 makeMove :: Plan -> [Plan]
 ~~~
 
-`makeMove` will be a function that takes a plan and returns all the succesful
+`makeMove` will be a function that takes a plan and returns all the successful
 ways you can make a move on that plan. This is similar to our old
-`halveOrDouble :: Int -> [Int]`, which takes an int and returns the succesful
+`halveOrDouble :: Int -> [Int]`, which takes an int and returns the successful
 paths our int could have taken (it could have halved...or doubled)
 
 What does a plan have to "go through" in its journey in adding a move?
@@ -439,9 +519,9 @@ makeMove p = do
     success.
 
 <aside>
-    ###### Aside
+    ###### Welcome to Haskell!
 
-Okay, so I was slightly handwavy with `<$>`.  But it is true that something
+Okay, so I was slightly hand-wavey with `<$>`.  But it is true that something
 like:
 
 ~~~haskell
@@ -594,12 +674,11 @@ Wrapping Up
 
 The final code for this project is available [on Github][gh] so you can follow
 along yourself.  You can also [load it interactively online][fpci] on
-[FPComplete][], a great online Haskell IDE where you can test your code right
+FPComplete, a great online Haskell IDE where you can test your code right
 there in the browser.
 
 [gh]: https://github.com/mstksg/inCode/blob/master/code-samples/monad-plus/WolfGoatCabbage.hs
 [fpci]: https://www.fpcomplete.com/user/jle/wolf-goat-cabbage
-[FPComplete]: http://www.fpcomplete.com
 
 So...let's test it!
 

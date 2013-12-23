@@ -1,13 +1,14 @@
 import Control.Monad (guard)
 import Control.Applicative ((<$>))
 
--- Our types
+-- | Our types
 data Character = Farmer | Wolf | Goat | Cabbage
     deriving (Show, Eq, Enum)
 
 newtype Move = MoveThe Character
     deriving (Eq)
 
+-- (just for debugging)
 instance Show Move where
     show (MoveThe Farmer)  = "F"
     show (MoveThe Wolf)    = "W"
@@ -19,11 +20,11 @@ type Plan = [Move]
 data Position = West | East
     deriving (Show, Eq)
 
--- Starting plan
+-- | Starting plan
 startingPlan :: Plan
 startingPlan = []
 
--- The full journey
+-- | The full journey
 findSolutions :: Int -> [Plan]
 findSolutions n = do
     p <- makeNMoves
@@ -32,7 +33,7 @@ findSolutions n = do
     where
         makeNMoves = iterate (>>= makeMove) (return startingPlan) !! n
 
--- One step of the journey: add a move.
+-- | One step of the journey: add a move.
 makeMove :: Plan -> [Plan]
 makeMove p = do
     next <- MoveThe <$> [Farmer .. Cabbage]
@@ -43,7 +44,7 @@ makeMove p = do
     guard $ safePlan p'
     return p'
 
--- Helper functions
+-- | Helper functions
 positionOf :: Plan -> Character -> Position
 positionOf p c = case c of
     Farmer  -> countToPosition . length $ p
@@ -73,6 +74,7 @@ isSolution p = all (== East) positions
     where
         positions = map (positionOf p) [Farmer .. Cabbage]
 
+-- | Main
 main :: IO ()
 main = do
     print $ findSolutions 7

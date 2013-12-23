@@ -95,10 +95,11 @@ container that can either be `Just x` (representing a successful result `x` of
 type `a`) or a `Nothing` (representing a failed result).
 
 <aside>
-    ###### Aside
+    ###### Welcome to Haskell!
 
-Hi!  These asides are going to be for you readers that are unfamiliar with
-Haskell syntax.  Feel free to ignore them if you already feel comfortable.
+Hi!  These "Welcome to Haskell" asides are going to be for you readers that
+are unfamiliar with Haskell syntax.  Feel free to ignore them if you already
+feel comfortable.
 
 Anyways, if you've ever done any object-oriented programming, you might be
 able to think of `Maybe a` as an abstract/virtual superclass with
@@ -121,7 +122,7 @@ halve x | even x    = Just (x `div` 2)          -- 2
 ~~~
 
 <aside>
-    ###### Aside
+    ###### Welcome to Haskell!
 
 Hi again!  There are some quick syntax features here.
 
@@ -164,7 +165,7 @@ You can play with this yourself by [loading up the function yourself][halve].
 [halve]: https://github.com/mstksg/inCode/blob/master/code-samples/monad-plus/Halve.hs
 
 <aside>
-    ###### Aside
+    ###### Welcome to Haskell!
 
 In this article, code that begins with `λ: ` represents commands to be entered
 at the interactive prompt, ghci.  Code that doesn't is actual source code.
@@ -320,7 +321,7 @@ That means that for Maybe, `return x` is the same as `Just x`, and `mzero` is
 an alias for `Nothing`.
 
 <aside>
-    ###### Aside
+    ###### Welcome to Haskell!
 
 If you are familiar with object oriented languages like Java, MonadPlus is
 really like an **interface**.  That is, if something is a MonadPlus, there is
@@ -420,7 +421,7 @@ guard False = mzero
 ~~~
 
 <aside>
-    ###### Aside
+    ###### Welcome to Haskell!
 
 1.  This is a type signature, like before.  We say that `guard` is a function
     that takes a `Bool` and returns a `m ()` --- a monad containing `()`.  But
@@ -446,7 +447,7 @@ halve n = do                -- <halve 8>   <halve 7>
 ~~~
 
 <aside>
-    ###### Aside
+    ###### Welcome to Haskell!
 
 `guard $ even n` seems confusing, but it is just shorthand for `guard (even
 n)`. We just don't like writing all those parentheses out.

@@ -166,7 +166,7 @@ Nothing
 ~~~
 
 <aside>
-    ###### Aside
+    ###### Welcome to Haskell!
 
 Now, when we say something like `genericHalve 8 :: Maybe Int`, it means "I
 want `genericHalve 8`...and I want the type to be `Maybe Int`."  This is
