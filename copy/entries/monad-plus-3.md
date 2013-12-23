@@ -45,7 +45,7 @@ parts 1 and 2); most Haskell syntax is either be explained here or in parts 1
 and 2. Still, if you have any questions, feel free to leave a comment, give
 [Learn You A Haskell][LYAH] a quick read, or stop by freenode's #haskell!
 
-[LYAH]: http://learnyouahaskell.com 
+[LYAH]: http://learnyouahaskell.com
 
 
 ### A MonadPlus Review
