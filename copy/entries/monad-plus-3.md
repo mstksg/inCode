@@ -477,10 +477,10 @@ So in our case:
 
 ~~~haskell
 map (positionOf p) [Farmer, Wolf, Goat, Cabbage]
-= [ positionOf p Farmer
-  , positionOf p Wolf
-  , positionOf p Goat
-  , positionOf p Cabbage
+= [ positionOf p Farmer             -- Position of the farmer
+  , positionOf p Wolf               -- Position of the wolf
+  , positionOf p Goat               -- Position of the goat
+  , positionOf p Cabbage            -- Position of the cabbage
   ]
 ~~~
 
@@ -502,10 +502,10 @@ makeMove :: Plan -> [Plan]
 
 `makeMove` will be a function that takes a plan and returns all the successful
 ways you can add a move to that plan.  It takes a plan and takes it through a
-journey of adding a move, and returns all of the successful ways it can
-fulfill this journey.  This is similar to our old `halveOrDouble :: Int ->
-[Int]`, which takes an int and returns the successful paths our int could have
-taken (it could have halved...or doubled).
+journey of adding a move, and returns the results of all of the successful
+ways it can fulfill this journey.  This is similar to our old `halveOrDouble
+:: Int -> [Int]`, which takes an int and returns the successful paths our int
+could have taken (it could have been halved...or doubled).
 
 What does a plan have to "go through" in its journey in adding a move?
 
@@ -539,9 +539,9 @@ makeMove p = do
 1.  Here are the types of the helper functions we will be using.
 2.  In this context, `MoveThe <$>` means to apply `MoveThe` to whatever we
     choose out of `[Farmer .. Cabbage]`. Kind of an "intercept it on the way
-    out, and turn it into a Move".  So `next` is `MoveThe Farmer`, `MoveThe
-    Wolf`, etc.;  `next` is *one* of those. For every journey, we pick one of
-    the possible moves.
+    out, and turn it into a Move".  So `next` is `MoveThe Farmer` or `MoveThe
+    Wolf`, etc.;  `next` is *one* of those. For every journey, we pick *one*
+    of the possible moves.
 3.  We insta-fail if the move is not legal with the given plan.  By this, we
     mean that we can't possibly move an animal unless the farmer is on the
     same side as the animal.
@@ -601,7 +601,7 @@ So when I said
 next <- MoveThe <$> [Farmer, Wolf, Goat, Cabbage]
 ~~~
 
-I really mean
+I really meant
 
 ~~~haskell
 next <- [MoveThe Farmer, MoveThe Wolf, MoveThe Goat, MoveThe Cabbage]
@@ -611,6 +611,8 @@ But still, it sometimes is cool to think of it as "Get the item inside,
 and then apply this function to it before you bind it to your variable", if
 only for funsies.
 </aside>
+
+#### Thought experiment
 
 So let's say our plan is, currently, `[MoveThe Goat, MoveThe Farmer, MoveThe
 Wolf]`. At the end of it all, our goat, wolf, and farmer are on the east bank,
@@ -674,10 +676,11 @@ moveLegal p (MoveThe c)       = positionOf p c == positionOf p Farmer
 
 One last piece.  How can we tell if a plan is safe or not?
 
-Well, the plan is safe if the wolf and goat or goat and cabbage are together,
-and the farmer is not.  Some boolean arithmetic shows that this is equivalent
-to saying either the Farmer is with the Goat, or the goat and cabbage aren't
-together and the wolf and goat aren't together.
+The plan is safe if nothing can eat anything else.  That means if the wolf and
+goat or goat and cabbage sit on the same bank, so too must the farmer.  Some
+boolean arithmetic will show that this is the same as if either the farmer is
+on the same side as the goat or the goat and cabbage are both "safe" (not on
+the side of their predators).
 
 ~~~haskell
 safePlan :: Plan -> Bool
@@ -689,7 +692,7 @@ safePlan p = goatPos == farmerPos || safeGoat && safeCabbage
         safeCabbage = positionOf p Cabbage /= goatPos
 ~~~
 
-And...that's it!
+And...that's it!  We finished!
 
 #### Exercise
 
@@ -748,7 +751,7 @@ all possible solutions are of odd lengths, because for even lengths, the
 farmer ends up on the west bank.
 
 If we add the filter on redundant moves mentioned earlier, the next valid
-solutions come at length 13, and then at 19:
+solutions with no direct redundancies come at length 13, and then at 19:
 
 ~~~haskell
 λ: findSolutions 13
@@ -776,12 +779,30 @@ With the List MonadPlus, you can solve any problem that can be described as
 the result of a nondeterministic journey with choices and pitfalls along the
 way.
 
-In this particular puzzle, you could have done something similar using only
-maps and filters.  However, sometimes it is more useful or more insightful to,
-instead of using maps and filters, use abstractions that help you frame the
-problem in a more meaningful way.
+In this particular puzzle, you could have done something similar from the
+start using only maps and filters.  However, sometimes it is more useful or
+more insightful to, instead of using maps and filters, use abstractions that
+help you frame the problem in a more meaningful way.
 
 Hopefully as a result of this three part series and through playing around
-with the source code, you can appreciate the wonders of Succeed/Fail!
+with the source code, you can appreciate the wonders of Succeed/Fail and
+MonadPlus!
 
+### The future
+
+From here, you might want to look into the [Alternative][] typeclass/design
+pattern.  Alternative also deals with the concept of success/failure, but
+instead of dealing with "this, then that" like MonadPlus, it deals with "this,
+or that" --- a choice.  Whereas MonadPlus deals with successes and failures in
+series/one after the other, Alternative deals with successes and failures in
+parallel, side-by-side.  This "parallel choice" operator is `<|>`.  Given two
+Maybe's, `<|>` picks the first succesful (`Just`) one as "the" success it
+wants to show.  Given two Lists, `<|>` "splits" our journey into two forks and
+returns all succesful forks.  I might write something more in-depth about this
+in the future, but it is good to know now that thinking about "chaining"
+successes/failures (as a Monad) is not the only useful thing you can do with
+succeses/failures.  Alternative/`<|>` has nothing to do with monads at all,
+because it doesn't involve chaining --- but it's still just as useful!
+
+[Alternative]: http://hackage.haskell.org/package/base/docs/Control-Applicative.html
 
