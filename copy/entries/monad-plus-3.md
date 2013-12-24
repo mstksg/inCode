@@ -106,8 +106,8 @@ This is the most significant thing about this approach: it allows you to
 describe **one journey**, in general terms, and List will "automatically" find
 out all successful journeys that fit your mold.  You don't ever have to worry
 about the ensemble or manually deal with explicit branching or filtering.
-Cognitively, all you have to do is *write one story*.  Just one.  That is the
-power of the List Monad abstraction.
+Cognitively, all you have to do is *write **one** story*.  Just *one*.  That
+is the power of the List Monad abstraction.
 
 
 Our Types
@@ -169,7 +169,7 @@ declaring new types.
     data Int = -536870912 ... | -1 | 0 | 1 | 2 | ... 536870911
     ~~~
 
-    The `deriving` syntax tells the compiler to automatically derive methods
+    The `deriving` syntax tells the compiler to automatically derive functions
     for printing the type (Show), testing for equality (Eq), and enumerating
     through them (Enum)
 
@@ -186,7 +186,7 @@ declaring new types.
     (`λ: ` represents a command at the interactive prompt ghci, and `:t` asks
     for the type of whatever comes after it)
 
-3.  Here we define custom methods for printing out a `Move`
+3.  Here we define custom functions for printing out a `Move`
 
 4.  Here is a type synonym `Plan`.  Every time we use `Plan` as a type, we
     really mean `[Move]`, and the compiler treats the two things as the same.
@@ -221,7 +221,9 @@ findSolutions n = do
 2.  `findSolutions n` is going to be the all successful plans after `n`
     moves.
 3.  Let `p` be a plan after `n` moves have been added to it.  Note that
-    `makeNMoves` is itself a journey --- a sub-journey.
+    `makeNMoves` is itself a journey --- a sub-journey.  So `p` is a single
+    plan that has *already gone through* the `makeNMoves` journey.  We are
+    continuing that journey.
 4.  End the journey unless `p` is a solution (all characters are on the east
     side)
 5.  Succeed with `p` if the journey has not yet ended.
@@ -309,6 +311,11 @@ to the value of that success".  Of course, `y` is just going to be `x`,
 because we had just said "succeed with the value of `x`.  That means that `f
 y` is the same as `f x`.
 </aside>
+
+Even though the syntax is slightly cumbersome and not too clean, it is
+important to remember here that what we are doing is simply defining the
+journey `makeNMoves` as the result of taking `n` `makeMove` journeys one after
+the other.
 
 ### isFinalSol
 
