@@ -313,10 +313,10 @@ because we had just said "succeed with the value of `x`.  That means that `f
 y` is the same as `f x`.
 </aside>
 
-Even though the syntax is slightly cumbersome and not too clean, it is
-important to remember here that what we are doing is simply defining the
-journey `makeNMoves` as the result of taking `n` `makeMove` journeys one after
-the other.
+Even though the syntax is not the cleanest, it is important to remember here
+that what we are doing is simply defining the journey `makeNMoves` as the
+result of taking `n` `makeMove` journeys one after the other.  The same as
+that very first do block.
 
 ### isFinalSol
 
@@ -501,9 +501,11 @@ makeMove :: Plan -> [Plan]
 ~~~
 
 `makeMove` will be a function that takes a plan and returns all the successful
-ways you can add a move to that plan. This is similar to our old
-`halveOrDouble :: Int -> [Int]`, which takes an int and returns the successful
-paths our int could have taken (it could have halved...or doubled).
+ways you can add a move to that plan.  It takes a plan and takes it through a
+journey of adding a move, and returns all of the successful ways it can
+fulfill this journey.  This is similar to our old `halveOrDouble :: Int ->
+[Int]`, which takes an int and returns the successful paths our int could have
+taken (it could have halved...or doubled).
 
 What does a plan have to "go through" in its journey in adding a move?
 
@@ -586,6 +588,9 @@ successes:
 ~~~haskell
 λ: (*2) <$> [3,4,5]
 [6,8,10]
+
+λ: MoveThe $ Farmer
+MoveThe Farmer
 λ: MoveThe <$> [Farmer, Wolf, Goat, Cabbage]
 [MoveThe Farmer, MoveThe Wolf, MoveThe Goat, MoveThe Cabbage]
 ~~~
