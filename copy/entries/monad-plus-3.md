@@ -50,28 +50,25 @@ freenode's #haskell!
 Remember, a monad is an object where you have defined a meaningful way to
 chain functions on that object.  For this article, MonadPlus refers to the
 design pattern (and Haskell typeclass) where you model this "chaining" as a
-"success/fail" process.
+"success/fail" process[^plus].
 
-<aside>
-    ###### Note
+[^plus]: You might be aware that in the current Haskell standard library
+organization, the implementation of MonadPlus also provides separate
+functionality --- the "Plus".  We won't be focusing on this part, because it
+is commonly regarded that it is more of a characteristic of the *Alternative*
+typeclass/design pattern.  For the purposes of this article, MonadPlus is
+essentially "MonadZero", as it should have been.
 
-You might be aware that in the current Haskell standard library organization,
-the implementation of MonadPlus also provides separate functionality --- the
-"Plus".  We won't be focusing on this part, because it is commonly regarded
-that it is more of a characteristic of the *Alternative* typeclass/design
-pattern.  For the purposes of this article, MonadPlus is essentially
-"MonadZero", as it should have been.
-</aside>
+There is a common language with to talk about this process: `mzero` means
+"fail here" and `return x` means "succeed with a result of the value `x`
+here".  So chaining is implemented such that chaining anything to a failure
+will propagate that failure forward.  That is, `mzero >> return x == return x`
 
-We adopt a common language to talk about this process: `mzero` means "fail
-here" and `return x` means "succeed with a result of the value `x` here".
-Chaining works in the manner that chaining anything to a failure will
-propagate that failure forward.
-
-You should understand the basic idea of monads and what `>>=` and `do` mean;
-it's slightly beyond the scope of this post. If you want, you can check out
-[adit's][adit] great tutorial on the subject, or check out [Part 1][] to see
-what these things mean specifically in the context of MonadPlus.
+For most of this post to make sense you should understand the basic idea of
+monads and what `>>=` and `do` mean; it's slightly beyond the scope of this
+post. If you want, you can check out [adit's][adit] great tutorial on the
+subject, or check out [Part 1][] to see what these things mean specifically in
+the context of MonadPlus.
 
 [adit]: http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html
 
@@ -178,6 +175,8 @@ declaring new types.
     We can create a new `Move` by using `MoveThe`:
 
     ~~~haskell
+    λ: :t MoveThe
+    MoveThe :: Character -> Move
     λ: :t MoveThe Wolf
     MoveThe Wolf :: Move
     ~~~
