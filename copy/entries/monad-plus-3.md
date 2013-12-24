@@ -76,21 +76,23 @@ the context of MonadPlus.
 Our Approach
 ------------
 
-So, armed with what we learned in part 2, let's formulate a general plan for
-finding all solutions in `n` moves.  In the List monad, we like to to think of
-things as "journeys" or stories: subject your value to a long and arduous
-journey, specifying at every step of the way what choices it has to continue.
-Then specify where journeys fail and end.  At the end of it all, the result is
-a list of the finishing values of all trails that have completed the journey.
+So, armed with what we learned in [Part 2][], let's formulate a general plan
+for finding all solutions in `n` moves.
+
+Now, in the List monad, we can think of things as "journeys" or stories:
+subject your value to a long and arduous journey, specifying at every step of
+the way what choices it has to continue. Then specify where journeys fail and
+end.  At the end of it all, the result is a list of the finishing values of
+all trails that have completed the journey.
 
 With the List monad, we say "Here is the description of *a* (single) journey.
 What journeys following this description succeed?"
 
-So what could this journey be?  Well, we see this journey as the accumulation
-of moves to a plan?  We start out with a blank plan ("Do nothing").  The next
-step, we add one move to our plan ("Just move the fox", for example).  Then
-the next step, we add another move ("First move the fox, then move the
-farmer").
+So what could this journey be for us?  Well, we think of a journey in this
+situation as the accumulation of moves to a plan.  We start out with a blank
+plan ("Do nothing").  The next step, we add one move to our plan ("Just move
+the fox", for example).  Then the next step, we add another move ("First move
+the fox, then move the farmer").
 
 1.  Start with a blank plan; a tabula rasa.
 2.  Add a legal and safe move to it.
@@ -103,9 +105,9 @@ to its eventual death or ascension.
 This is the most significant thing about this approach: it allows you to
 describe **one journey**, in general terms, and List will "automatically" find
 out all successful journeys that fit your mold.  You don't ever have to worry
-about the ensemble, or manually deal with explicit branching or filtering.
-Cognitively, all you have to do is *write a story*.  Just one.  That is the
-power of the abstraction.
+about the ensemble or manually deal with explicit branching or filtering.
+Cognitively, all you have to do is *write one story*.  Just one.  That is the
+power of the List Monad abstraction.
 
 
 Our Types
