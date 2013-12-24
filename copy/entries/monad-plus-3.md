@@ -62,7 +62,8 @@ essentially "MonadZero", as it should have been.
 There is a common language with to talk about this process: `mzero` means
 "fail here" and `return x` means "succeed with a result of the value `x`
 here".  So chaining is implemented such that chaining anything to a failure
-will propagate that failure forward.  That is, `mzero >> return x == return x`
+will propagate that failure forward.  That is, `mzero >> return x` = `return
+x`.
 
 For most of this post to make sense you should understand the basic idea of
 monads and what `>>=` and `do` mean; it's slightly beyond the scope of this
@@ -459,13 +460,30 @@ isSolution p = all (== East) positions
 <aside>
     ###### Welcome to Haskell!
 
-In Haskell, we have a magical trick called "currying", or "partial
-application".  Remember that `positionOf :: Plan -> Character -> Position`.
-`positionOf p c` gives us a position.  But `positionOf p` gives us a function
-"waiting" for a character.  `map` takes a function and list of items and
-returns a new list with the function applied to every item.  So when we map
-the function `positionOf p` over a list of characters, we get a list of
-resulting positions for each character.
+`map` is probably the most ubiquitous concept in functional programming --- it
+takes a function and a list and returns a new list with the function applied
+to every item.
+
+So `map f [x,y,z]` = `map [f x, f y, f z]`.  If we wanted to find the lengths
+of a list of strings:
+
+~~~haskell
+map length ["alice","bob"]
+= [length "alice", length "bob"]
+= [5,3]
+~~~
+
+So in our case:
+
+~~~haskell
+map (positionOf p) [Farmer, Wolf, Goat, Cabbage]
+= [ positionOf p Farmer
+  , positionOf p Wolf
+  , positionOf p Goat
+  , positionOf p Cabbage
+  ]
+~~~
+
 </aside>
 
 We use `[Farmer .. Cabbage]` as shorthand for `[Farmer, Wolf, Goat, Cabbage]`
