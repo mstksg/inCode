@@ -32,14 +32,16 @@ claims dates back to the 9th century:
 > side one at a time, without any disasters?
 
 We're going to assume a somewhat basic familiarity with functional programming
-concepts and a basic understanding of monads.  If you aren't familiar with
+concepts and a basic understanding of monads (if you don't know that much,
+check out [adit's][adit] great concice guide).  If you aren't familiar with
 MonadPlus/Alternative (and how they work as monads) check out [Part 1][] and
 [Part 2][], which should provide all the background and most of the syntax.
 Most Haskell syntax is either be explained here as we get to it or in the
 previous parts. Still, if you have any questions, feel free to leave a
-comment, give [Learn You A Haskell][LYAH] a quick read, or stop by
-freenode's #haskell!
+comment, give [Learn You A Haskell][LYAH] a quick read, or stop by freenode's
+friendly #haskell!
 
+[adit]: http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html
 [Part 1]: http://blog.jle.im/entry/practical-fun-with-monads-introducing-monadplus
 [Part 2]: http://blog.jle.im/entry/the-list-monadplus-practical-fun-with-monads-part
 [LYAH]: http://learnyouahaskell.com
@@ -64,15 +66,6 @@ There is a common language with to talk about this process: `mzero` means
 here".  So chaining is implemented such that chaining anything to a failure
 will propagate that failure forward.  That is, `mzero >> return x` = `return
 x`.
-
-For most of this post to make sense you should understand the basic idea of
-monads and what `>>=` and `do` mean; it's slightly beyond the scope of this
-post. If you want, you can check out [adit's][adit] great tutorial on the
-subject, or check out [Part 1][] to see what these things mean specifically in
-the context of MonadPlus.
-
-[adit]: http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html
-
 
 Our Approach
 ------------
@@ -233,6 +226,25 @@ Hm.  Sounds good!  We're done!
 
 So now we only need to implement `makeNMoves` and `isFinalSol`!
 
+<aside>
+    ###### Welcome to Haskell!
+
+Haskell is a functional language...but that "do" block sure looks very
+imperative to me.  What gives?
+
+As explained in [Part 1][], all do blocks are just syntactical sugar for
+repeated applications of `>>=`:
+
+~~~haskell
+findSolutions :: Int -> [Plan]
+findSolutions =
+    makeNMoves n >>= (\p -> guard (isSolution p) >> return p)
+~~~
+
+And `>>=` is just the (hopefully) familiar bind.  Again, look at [Part 1][] or
+[adit's][adit] tutorial for a fuller explanation.
+</aside>
+
 ### makeNMoves
 
 `makeNMoves` is going to be the main logic of our program.  We want it to be
@@ -316,7 +328,7 @@ y` is the same as `f x`.
 Even though the syntax is not the cleanest, it is important to remember here
 that what we are doing is simply defining the journey `makeNMoves` as the
 result of taking `n` `makeMove` journeys one after the other.  The same as
-that very first do block.
+that first do block.
 
 ### isFinalSol
 
@@ -464,8 +476,8 @@ isSolution p = all (== East) positions
 takes a function and a list and returns a new list with the function applied
 to every item.
 
-So `map f [x,y,z]` = `map [f x, f y, f z]`.  If we wanted to find the lengths
-of a list of strings:
+For example, `map f [x,y,z]` = `[f x, f y, f z]`.  If we wanted to find the
+lengths of a list of strings, we'd do:
 
 ~~~haskell
 map length ["alice","bob"]
@@ -477,10 +489,10 @@ So in our case:
 
 ~~~haskell
 map (positionOf p) [Farmer, Wolf, Goat, Cabbage]
-= [ positionOf p Farmer             -- Position of the farmer
-  , positionOf p Wolf               -- Position of the wolf
-  , positionOf p Goat               -- Position of the goat
-  , positionOf p Cabbage            -- Position of the cabbage
+= [ positionOf p Farmer         -- Position of the farmer
+  , positionOf p Wolf           -- Position of the wolf
+  , positionOf p Goat           -- Position of the goat
+  , positionOf p Cabbage        -- Position of the cabbage
   ]
 ~~~
 
@@ -653,8 +665,8 @@ As an exercise, see how the journey fares if we had picked `MoveThe Wolf` for
 Anyways, at the end of it all, `makeMove` will return all new plans from the
 successful journeys.  So it won't be returning the plans with `MoveThe Farmer`
 and `MoveThe Cabbage` added to it, but will likely be retuning the plans with
-`MoveThe Goat` and `MoveThe Wolf` added to it.  And it'll return those two together
-in a List structure.
+`MoveThe Goat` and `MoveThe Wolf` added to it.  And it'll return those two
+together in a List structure.
 
 We're almost there!  Now to just define our helper predicates `moveLegal`
 and `safePlan`.
