@@ -806,7 +806,7 @@ Where to go from here?  You might want to take a look at the [Alternative][]
 typeclass/design pattern, which also deals with the concept of success/failure
 --- just not with their consecutive chaining, like MonadPlus.  It deals with
 their parallel choices, actually, as the name implies.  This functionality is
-redundantly implemented in MonadPlus in current Haskell, and the
+redundantly implemented in MonadPlus in Haskell today (2013), and the
 parallel-choice operator `<|>` for Alternative is `mplus` for MonadPlus.  I
 might write something on the matter some day.  It will help you gain the
 perspective which much of the early Haskell implementors apparently lacked:
