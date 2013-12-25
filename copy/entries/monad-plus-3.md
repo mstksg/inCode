@@ -10,7 +10,7 @@ Series
 :   MonadPlus: Success/Failure Monads
 :   Practical Monads
 CreateTime
-:   2013/12/17 13:16:07
+:   2013/12/26 10:09:22
 PostDate
 :   Never
 Identifier
