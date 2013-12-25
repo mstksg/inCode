@@ -802,19 +802,15 @@ MonadPlus!
 
 ### The future
 
-From here, you might want to look into the [Alternative][] typeclass/design
-pattern.  Alternative also deals with the concept of success/failure, but
-instead of dealing with "this, then that" like MonadPlus, it deals with "this,
-or that" --- a choice.  Whereas MonadPlus deals with successes and failures in
-series/one after the other, Alternative deals with successes and failures in
-parallel, side-by-side.  This "parallel choice" operator is `<|>`.  Given two
-Maybe's, `<|>` picks the first succesful (`Just`) one as "the" success it
-wants to show.  Given two Lists, `<|>` "splits" our journey into two forks and
-returns all succesful forks.  I might write something more in-depth about this
-in the future, but it is good to know now that thinking about "chaining"
-successes/failures (as a Monad) is not the only useful thing you can do with
-succeses/failures.  Alternative/`<|>` has nothing to do with monads at all,
-because it doesn't involve chaining --- but it's still just as useful!
+Where to go from here?  You might want to take a look at the [Alternative][]
+typeclass/design pattern, which also deals with the concept of success/failure
+--- just not with their consecutive chaining, like MonadPlus.  It deals with
+their parallel choices, actually, as the name implies.  This functionality is
+redundantly implemented in MonadPlus in current Haskell, and the
+parallel-choice operator `<|>` for Alternative is `mplus` for MonadPlus.  I
+might write something on the matter some day.  It will help you gain the
+perspective which much of the early Haskell implementors apparently lacked:
+not everything is a monad!
 
 [Alternative]: http://hackage.haskell.org/package/base/docs/Control-Applicative.html
 
