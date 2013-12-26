@@ -808,9 +808,10 @@ typeclass/design pattern, which also deals with the concept of success/failure
 their parallel choices, actually, as the name implies.  This functionality is
 redundantly implemented in MonadPlus in Haskell today (2013), and the
 parallel-choice operator `<|>` for Alternative is `mplus` for MonadPlus.  I
-might write something on the matter some day.  It will help you gain the
-perspective which much of the early Haskell implementors apparently lacked:
-not everything is a monad!
+might write something on the matter some day.  Anyways, learning about
+Alternative will help you see more about the usefulness of the success/fail
+design pattern, and it might help you gain the perspective which much of the
+early Haskell implementors apparently lacked: not everything is a monad!
 
 [Alternative]: http://hackage.haskell.org/package/base/docs/Control-Applicative.html
 
