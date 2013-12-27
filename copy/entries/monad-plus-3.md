@@ -49,9 +49,9 @@ friendly #haskell!
 
 ### A MonadPlus Review
 
-Remember, a monad is an object where you have defined a meaningful way to
-chain functions on that object.  For this article, MonadPlus refers to the
-design pattern (and Haskell typeclass) where you model this "chaining" as a
+The usefulness of a monad depends on how you define the characteristic "bind"
+or "chaining" behavior. For this article, MonadPlus refers to the design
+pattern (and Haskell typeclass) where you model this "chaining" as a
 "success/fail" process[^plus].
 
 [^plus]: You might be aware that in the current Haskell standard library
@@ -64,8 +64,7 @@ essentially "MonadZero", as it should have been.
 There is a common language with to talk about this process: `mzero` means
 "fail here" and `return x` means "succeed with a result of the value `x`
 here".  So chaining is implemented such that chaining anything to a failure
-will propagate that failure forward.  That is, `mzero >> return x` = `return
-x`.
+will propagate that failure forward.  That is, `mzero >> return x` = `mzero`.
 
 Our Approach
 ------------
