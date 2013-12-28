@@ -552,8 +552,8 @@ Perfect!  You can probably quickly verify that all of these solutions are
 indeed Pythagorean triples.  Out of the 220 journeys undertaken by
 `triplesUnder 10`, only two of them survived to the end to be successful.  Out
 of the 2925 journeys in `triplesUnder 25`, only eight of them made it to the
-end.  The rest "died"/failed, and as a result we do not even observer their
-remains.
+end.  The rest "died"/failed, and as a result we do not even observe their
+remains.  It is a cruel and unforgiving world.
 
 While the full diagram of `triplesUnder 5` has 35 branches, here is a diagram
 for those branches with $a > 2$, which has 10:
