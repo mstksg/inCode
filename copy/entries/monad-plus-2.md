@@ -307,10 +307,10 @@ where you take the left path if you want to halve, and the right path if you
 want to double.
 
 Remember, just like in the Maybe monad, the `x` represents the value *inside*
-inside the object --- `x` represents *a* 3 or *a* 12 (but not "both" at
-the same time), depending on what path you are taking/are "in".  That's why we
-can call `halveOrDouble x`: `halveOrDouble` only takes `Int`s and `x` is *one*
-`Int` along the path.
+inside the object --- `x` represents a 3 **or** a 12 (but not "both"),
+depending on what path you are taking/are "in".  That's why we can call
+`halveOrDouble x`: `halveOrDouble` only takes `Int`s and `x` is *one* `Int`
+along the path.
 
 ### A winding journey
 
