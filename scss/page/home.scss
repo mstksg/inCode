@@ -212,19 +212,26 @@ $photo: "/img/photo_square.jpg";
 .home-tags {
   ul {
     ul {
-      margin-left: 0.75rem;
+      margin-left: 0.6rem;
+      font-size: 82%;
+      line-height: 166%;
+      > li {
+        > span {
+          font-style: italic;
+        }
+      }
     }
   }
 }
 
-.home-category-list {
-  ul {
-    li {
-      // margin-bottom: 0.15rem;
-      // text-transform: lowercase;
-    }
-  }
-}
+// .home-category-list {
+//   ul {
+//     li {
+//       // margin-bottom: 0.15rem;
+//       // text-transform: lowercase;
+//     }
+//   }
+// }
 
 .home-footer {
 

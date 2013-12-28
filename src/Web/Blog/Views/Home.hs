@@ -147,11 +147,17 @@ viewTags = do
             H.a ! A.href (I.textValue $ renderUrl' link) $
               heading
           H.ul $
-            forM_ tagList $ \(TagInfo t _ _) ->
-              H.li $
+            forM_ tagList $ \(TagInfo t d _) ->
+              H.li $ do
                 H.a
                   ! A.href (I.textValue $
                     renderUrl' $ tagPath t )
                   ! A.title (I.textValue $
                     fromMaybe mempty (tagDescriptionStripped t))
                   $ H.toHtml $ tagLabel'' t
+                H.preEscapedToHtml ("&nbsp;" :: T.Text)
+                H.span $ do
+                  "(" :: H.Html
+                  H.toHtml d
+                  ")" :: H.Html
+

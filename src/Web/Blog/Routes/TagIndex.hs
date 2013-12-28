@@ -17,7 +17,8 @@ routeTagIndex tt = do
   let
     sorting = case tt of
                 GeneralTag -> TagSortCount
-                CategoryTag -> TagSortLabel
+                -- CategoryTag -> TagSortLabel
+                CategoryTag -> TagSortCount
                 SeriesTag -> TagSortRecent
 
   tagInfos <- liftIO $ runDB $ getTagInfoList tt sorting (tt /= GeneralTag)
