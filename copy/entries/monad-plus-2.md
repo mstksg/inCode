@@ -142,7 +142,7 @@ Watch:
 So there we have it!  `Nothing` is just like `[]`, `Just x` is just like
 `[x]`.  This whole time!  It's all so clear now!  Why does `Maybe` even exist,
 anyway, when we can just use `[]` and `[x]` for `Nothing` and `Just x` and be
-none the wiser?
+none the wiser? (Take some time to think about it if you want!)
 
 In fact, if we generalize our type signature for `halve`, we can do some crazy
 things...
