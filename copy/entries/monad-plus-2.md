@@ -198,7 +198,7 @@ two possible succesful paths: one succeeding with a 3 and another with a 5.
 
 You can also say that it represents a computation that *could have chosen* to
 succeed in a 3, or a 5.  In this way, the list monad is often referred to as
-the "choice" monad.
+"the choice monad".
 
 This view of a list as a collection of possible successes or choices of
 successes is not the only way to think of a list as a monad...but it is the
