@@ -234,7 +234,7 @@ halveOrDouble n | even n    = [n `div` 2, n * 2]
 [   14]
 ~~~
 
-([Play with this the other functions this section on your own][halveOrDouble])
+([Play with this and other functions this section on your own][halveOrDouble])
 
 [halveOrDouble]: https://github.com/mstksg/inCode/blob/master/code-samples/monad-plus/HalveOrDouble.hs
 
