@@ -94,10 +94,10 @@ upPath (ViewArchiveTag _)      = Just "/tags"
 upPath (ViewArchiveCategory _) = Just "/categories"
 upPath (ViewArchiveSeries _)   = Just "/series"
 
-desc :: ViewArchiveType -> Maybe T.Text
-desc (ViewArchiveTag t)      = tagDescription t
-desc (ViewArchiveCategory c) = tagDescription c
-desc (ViewArchiveSeries s)   = tagDescription s
+desc :: ViewArchiveType -> Maybe H.Html
+desc (ViewArchiveTag t)      = tagDescHtml t
+desc (ViewArchiveCategory c) = tagDescHtml c
+desc (ViewArchiveSeries s)   = tagDescHtml s
 desc _                       = Nothing
 
 data ViewArchiveIndex = ViewArchiveIndexDate
