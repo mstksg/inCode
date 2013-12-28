@@ -15,7 +15,7 @@
   }
 
   ul, ol, dl {
-    margin-left: 2.5rem;
+    margin-left: 1.5rem;
   }
 
   ul {
@@ -93,6 +93,22 @@
     font-size: 110%;
   }
 
+  aside {
+    margin: 0.5rem 0.5rem 1.5rem 0.5rem;
+    padding: 1rem 1rem 0.5rem;
+    border-left: 4px solid #383;
+    background: #f4fff4;
+    font-size: 85%;
+    > p {
+
+    }
+    h6 {
+      font-size: 120%;
+      margin-bottom: 1rem;
+      color: #541;
+    }
+  }
+
   figure {
     width: 80%;
     border: 2px solid #ddd;
@@ -157,7 +173,7 @@
   padding-left: 1rem;
   padding-right: 1rem;
 
-  @media #{$smaller-screen} {
+  @media #{$smallest-screen} {
     padding-left: 0;
     padding-right: 0;
   }
