@@ -229,9 +229,9 @@ halveOrDouble n | even n    = [n `div` 2, n * 2]
 
 ~~~haskell
 λ: halveOrDouble 6
-[3, 6]
+[ 3,12]
 λ: halveOrDouble 7
-[  14]
+[   14]
 ~~~
 
 ([Play with this the other functions this section on your own][halveOrDouble])
