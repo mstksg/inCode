@@ -606,13 +606,13 @@ MoveThe Farmer
 [MoveThe Farmer, MoveThe Wolf, MoveThe Goat, MoveThe Cabbage]
 ~~~
 
-So when I said
+So when I say
 
 ~~~haskell
 next <- MoveThe <$> [Farmer, Wolf, Goat, Cabbage]
 ~~~
 
-I really meant
+I really mean
 
 ~~~haskell
 next <- [MoveThe Farmer, MoveThe Wolf, MoveThe Goat, MoveThe Cabbage]
