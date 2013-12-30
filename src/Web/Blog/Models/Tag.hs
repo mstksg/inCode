@@ -67,9 +67,9 @@ tagLabel'' :: Tag -> T.Text
 tagLabel'' t = T.append (tagTypePrefix $ tagType_ t) $ tagLabel t
 
 tagDescHtml :: Tag -> Maybe H.Html
-tagDescHtml t = P.writeHtml (P.def P.WriterOptions) <$> tPandoc
+tagDescHtml t = P.writeHtml pandocWriterOptions <$> tPandoc
   where
-    tPandoc = P.readMarkdown (P.def P.ReaderOptions) <$> tString
+    tPandoc = P.readMarkdown pandocReaderOptions <$> tString
     tString = T.unpack <$> tagDescription t
 
 
