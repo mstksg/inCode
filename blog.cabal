@@ -2,7 +2,7 @@
 -- see http://haskell.org/cabal/users-guide/
 
 name:                blog
-version:             0.0.2.8
+version:             0.0.2.9
 synopsis:            Personal blog web system
 -- description:
 license:             BSD3
@@ -24,6 +24,7 @@ executable blog
                      , bytestring             == 0.10.0.2
                      , containers             == 0.5.3.1
                      , directory              == 1.2.0.1
+                     , monad-logger           == 0.3.2.0
                      , esqueleto              == 1.3.4.2
                      , feed                   == 0.3.9.2
                      , filepath               == 1.3.0.1
@@ -49,6 +50,7 @@ executable blog
                      , wai-extra              == 1.3.4.6
                      , wai-middleware-headers == 0.1
                      , wai-middleware-static  == 0.3.2
+                     , wai-middleware-cache   == 0.3.6
                      , xml                    == 1.3.13
   -- ghc-options:         -ddump-types
   extensions:          OverloadedStrings
