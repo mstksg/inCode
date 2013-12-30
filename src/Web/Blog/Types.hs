@@ -10,7 +10,6 @@ module Web.Blog.Types (
   , PageDataMap
   , PageData(..)
   , SiteDatabase(..)
-  , RouteEither
   , RenderData
   , RouteDatabase
   ) where
@@ -22,6 +21,7 @@ import qualified Data.Text        as T
 import Web.Blog.Models
 import qualified Data.Text.Lazy   as L
 import qualified Text.Blaze.Html5 as H
+-- import Data.Default
 import qualified Web.Scotty       as S
 
 data SiteData = SiteData
@@ -101,9 +101,11 @@ data SiteDatabase = SiteDatabase
                     , siteDatabaseSlugs     :: IxSet Slug
                     }
 
+-- instance Default SiteDatabase where
+--     def = SiteDatabase empty empty empty empty
+
 type RenderData  = (SiteRender H.Html, PageData)
 
-type RouteEither = ReaderT SiteDatabase (Either L.Text) RenderData
-
-type RouteDatabase = S.ActionM RouteEither
+type RouteDatabase =
+        S.ActionM (ReaderT SiteDatabase (Either L.Text) RenderData)
 

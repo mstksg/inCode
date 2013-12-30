@@ -6,6 +6,7 @@ module Web.Blog.Routes (route) where
 -- import Data.List               (isSuffixOf)
 -- import System.Directory        (doesFileExist)
 -- import System.FilePath
+import Config.SiteData
 import Control.Monad.Reader
 import Development.Blog.Util      (backupEntries)
 import Network.HTTP.Types.Status
@@ -18,7 +19,6 @@ import Web.Blog.Routes.Feed
 import Web.Blog.Routes.Home
 import Web.Blog.Routes.NotFound
 import Web.Blog.Routes.TagIndex
-import Config.SiteData
 import Web.Blog.Types
 import Web.Blog.Views.Layout
 import qualified Data.Text        as T
@@ -27,35 +27,35 @@ import qualified Text.Blaze.Html5 as H
 import qualified Web.Scotty       as S
 
 
-route :: S.ScottyM ()
-route = do
-  homeRoutes
-  entryRoutes
-  archiveRoutes
-  indexRoutes
-  utilRoutes
-  miscRoutes
+route :: SiteDatabase -> S.ScottyM ()
+route db = do
+  homeRoutes db
+  entryRoutes db
+  archiveRoutes db
+  indexRoutes db
+  utilRoutes db
+  miscRoutes db
 
 
-homeRoutes :: S.ScottyM ()
-homeRoutes = do
+homeRoutes :: SiteDatabase -> S.ScottyM ()
+homeRoutes db = do
   S.get "/" $
-    routeEither $ routeHome 1
+    routeDatabase db $ routeHome 1
 
   forM_ ["/home","/home/1"] $ \r ->
     S.get r $
-      routeEither $ return $ Left "/"
+      routeDatabase db $ siteLeft "/"
 
   S.get "/home/:page" $ do
     page <- S.param "page"
     when (page < 1) S.next
-    routeEither $ routeHome page
+    routeDatabase db $ routeHome page
 
   S.get "/about" $
-    routeEither routeAbout
+    routeDatabase db routeAbout
 
-entryRoutes :: S.ScottyM ()
-entryRoutes = do
+entryRoutes :: SiteDatabase -> S.ScottyM ()
+entryRoutes db = do
   forM_ ["/","/id"] $ \r -> do
     let
       cap = "/e" ++ (L.unpack r ++ "/:entryIdent")
@@ -66,56 +66,56 @@ entryRoutes = do
       permanentRedirect $ red eIdent
 
   S.get "/entry/id/:eId" $
-    routeEither routeEntryId
+    routeDatabase db routeEntryId
 
   S.get "/entry/:entryIdent" $
-    routeEither routeEntrySlug
+    routeDatabase db routeEntrySlug
 
-archiveRoutes :: S.ScottyM ()
-archiveRoutes = do
+archiveRoutes :: SiteDatabase -> S.ScottyM ()
+archiveRoutes db = do
   S.get "/entries" $
-    routeEither routeArchiveAll
+    routeDatabase db routeArchiveAll
 
   S.get (S.regex "^/entries/category/@(.*)$") $ do
     category <- S.param "1"
-    routeEither $ routeArchiveTag CategoryTag $ T.pack category
+    routeDatabase db $ routeArchiveTag CategoryTag $ T.pack category
 
   S.get (S.regex "^/entries/series/\\+(.*)$") $ do
     series <- S.param "1"
-    routeEither $ routeArchiveTag SeriesTag $ T.pack series
+    routeDatabase db $ routeArchiveTag SeriesTag $ T.pack series
 
   S.get "/entries/tagged/:tag" $ do
     tag <- S.param "tag"
-    routeEither $ routeArchiveTag GeneralTag $ T.pack tag
+    routeDatabase db $ routeArchiveTag GeneralTag $ T.pack tag
 
   S.get "/entries/in" $
-    routeEither $ return $ Left "/entries"
+    routeDatabase db $ siteLeft "/entries"
 
   S.get "/entries/in/:year" $ do
     year <- S.param "year"
     when (year < 1) S.next
-    routeEither $ routeArchiveYear year
+    routeDatabase db $ routeArchiveYear year
 
   S.get "/entries/in/:year/:month" $ do
     year <- S.param "year"
     month <- S.param "month"
     when (year < 1) S.next
     when (month < 1 || month > 12) S.next
-    routeEither $ routeArchiveMonth year month
+    routeDatabase db $ routeArchiveMonth year month
 
-indexRoutes :: S.ScottyM ()
-indexRoutes = do
+indexRoutes :: SiteDatabase -> S.ScottyM ()
+indexRoutes db = do
   S.get "/tags" $
-    routeEither $ routeTagIndex GeneralTag
+    routeDatabase db $ routeTagIndex GeneralTag
 
   S.get "/categories" $
-    routeEither $ routeTagIndex CategoryTag
+    routeDatabase db $ routeTagIndex CategoryTag
 
   S.get "/series" $
-    routeEither $ routeTagIndex SeriesTag
+    routeDatabase db $ routeTagIndex SeriesTag
 
-utilRoutes :: S.ScottyM ()
-utilRoutes = do
+utilRoutes :: SiteDatabase -> S.ScottyM ()
+utilRoutes _ = do
 
   S.get "/rss" $ do
     S.status movedPermanently301
@@ -137,19 +137,19 @@ utilRoutes = do
 
 
 
-miscRoutes :: S.ScottyM ()
-miscRoutes = do
+miscRoutes :: SiteDatabase -> S.ScottyM ()
+miscRoutes db = do
   S.get "/not-found" $ do
     S.status notFound404
-    routeEither routeNotFound
+    routeDatabase db routeNotFound
 
   S.notFound $
     permanentRedirect "/not-found"
 
-routeEither :: RouteEither -> S.ActionM ()
-routeEither r = do
+routeDatabase :: SiteDatabase -> RouteDatabase -> S.ActionM ()
+routeDatabase db r = do
   routeResult <- r
-  case routeResult of
+  case runReaderT routeResult db of
     Left re -> do
       S.status $
         if "/not-found" `L.isPrefixOf` re
@@ -157,10 +157,26 @@ routeEither r = do
             notFound404
           else
             movedPermanently301
-
       url <- extractSiteRender $ renderUrl $ L.toStrict re
       S.header "Location" $ L.fromStrict url
     Right (v,d) -> siteRenderActionLayout v d
+
+
+-- routeEither :: RouteEither -> S.ActionM ()
+-- routeEither r = do
+--   routeResult <- r
+--   case routeResult of
+--     Left re -> do
+--       S.status $
+--         if "/not-found" `L.isPrefixOf` re
+--           then
+--             notFound404
+--           else
+--             movedPermanently301
+
+      -- url <- extractSiteRender $ renderUrl $ L.toStrict re
+      -- S.header "Location" $ L.fromStrict url
+    -- Right (v,d) -> siteRenderActionLayout v d
 
 siteRenderActionLayout :: SiteRender H.Html -> PageData -> S.ActionM ()
 siteRenderActionLayout view = siteRenderAction (viewLayout view)
