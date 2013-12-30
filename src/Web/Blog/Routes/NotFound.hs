@@ -9,7 +9,7 @@ import Web.Blog.Types
 import Web.Blog.Views.NotFound
 import qualified Web.Scotty    as S
 
-routeNotFound :: RouteEither
+routeNotFound :: RouteDatabase
 routeNotFound = do
   err <- find ((== "err") . fst) <$> S.params
   blankPageData <- genPageData
@@ -19,7 +19,7 @@ routeNotFound = do
     pageData = blankPageData { pageDataTitle = Just "Not Found" 
                              , pageDataCss   = ["/css/page/not-found.css"] }
 
-  return $ case err of
-    Just _  -> Left "/not-found"
-    Nothing -> Right (view, pageData)
+  case err of
+    Just _  -> siteLeft "/not-found"
+    Nothing -> siteRight (view, pageData)
 

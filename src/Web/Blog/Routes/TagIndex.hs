@@ -12,7 +12,7 @@ import Web.Blog.Render
 import Web.Blog.Types
 import Web.Blog.Views.TagIndex
 
-routeTagIndex :: TagType -> RouteEither
+routeTagIndex :: TagType -> RouteDatabase
 routeTagIndex tt = do
   let
     sorting = case tt of
@@ -33,4 +33,4 @@ routeTagIndex tt = do
     pageData = blankPageData { pageDataTitle = Just title
                              , pageDataCss   = ["/css/page/archive.css"] }
 
-  return $ Right (view,pageData)
+  siteRight (view,pageData)

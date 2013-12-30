@@ -9,8 +9,10 @@ module Web.Blog.Types (
   , SiteRender
   , PageDataMap
   , PageData(..)
+  , SiteDatabase(..)
   , RouteEither
-  , error404
+  , RenderData
+  , RouteDatabase
   ) where
 
 import Control.Monad.Reader
@@ -99,9 +101,9 @@ data SiteDatabase = SiteDatabase
                     , siteDatabaseSlugs     :: IxSet Slug
                     }
 
-type RouteData = ReaderT SiteDatabase (Either L.Text) (SiteRender H.Html, PageData)
+type RenderData  = (SiteRender H.Html, PageData)
 
-type RouteEither = S.ActionM RouteData
+type RouteEither = ReaderT SiteDatabase (Either L.Text) RenderData
 
-error404 :: L.Text -> Either L.Text a
-error404 reason = Left $ L.append "/not-found?err=" reason
+type RouteDatabase = S.ActionM RouteEither
+

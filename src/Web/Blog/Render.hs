@@ -13,6 +13,9 @@ module Web.Blog.Render (
   , renderRawCopy
   , getCurrUrl
   , mainSection
+  , siteLeft
+  , siteRight
+  , error404
   ) where
 
 -- import Data.Time
@@ -70,7 +73,15 @@ siteRenderAction htmlRender pageData' = do
 
 extractSiteRender :: SiteRender a -> S.ActionM a
 extractSiteRender toRender = runReaderT toRender emptyPageData
-  
+
+siteLeft :: L.Text -> RouteDatabase
+siteLeft = return . lift . Left
+
+error404 :: L.Text -> RouteDatabase
+error404 = siteLeft . L.append "/not-found?err="
+
+siteRight :: RenderData -> RouteDatabase
+siteRight = return . lift . Right
 
 renderProtocolHost :: S.ActionM T.Text
 renderProtocolHost = do

@@ -24,7 +24,7 @@ import qualified Data.Text.Lazy                 as L
 import qualified Database.Persist.Postgresql    as D
 import qualified Web.Scotty                     as S
 
-routeEntrySlug :: RouteEither
+routeEntrySlug :: RouteDatabase
 routeEntrySlug = do
   eIdent <- S.param "entryIdent"
 
@@ -38,7 +38,7 @@ routeEntrySlug = do
 
       -- Slug not found
       Nothing ->
-        return $ error404 "SlugNotFound"
+        return $ Left "SlugNotFound"
 
   -- TODO: Wrap this all in an EitherT...that's what they were meant for,
   -- I think!
@@ -62,7 +62,7 @@ routeEntrySlug = do
                   routeEntry $ Right $ D.Entity eKey' e'
                 else
                   -- There's a better one
-                  return $ Left $
+                  siteLeft $
                     L.fromStrict $ T.append "/entry/" (slugSlug slug'')
 
             -- No current slug, just give up and show this one.
@@ -71,12 +71,12 @@ routeEntrySlug = do
 
         -- Slug's entry does not exist.  How odd.
         Nothing ->
-          return $ error404 "SlugHasNoEntry"
+          error404 "SlugHasNoEntry"
 
     Left r ->
-      return $ Left r
+      siteLeft r
 
-routeEntryId :: RouteEither
+routeEntryId :: RouteDatabase
 routeEntryId = do
   eIdent <- S.param "eId"
 
@@ -106,12 +106,12 @@ routeEntryId = do
 
       -- ID not found
       Nothing ->
-        return $ error404 "entryIdNotFound"
+        return $ Left "entryIdNotFound"
 
   routeEntry e
 
 
-routeEntry :: Either L.Text (D.Entity Entry) -> RouteEither
+routeEntry :: Either L.Text (D.Entity Entry) -> RouteDatabase
 routeEntry (Right (D.Entity eKey e')) = do
   (tags,prevData,nextData) <- liftIO $ runDB $ entryAux eKey e'
 
@@ -147,8 +147,8 @@ routeEntry (Right (D.Entity eKey e')) = do
                              , pageDataMap     = pdMap M.empty
                              }
 
-  return $ Right (view, pageData)
-routeEntry (Left r) = return $ Left r
+  siteRight (view, pageData)
+routeEntry (Left r) = error404 r
 
 entryAux :: D.Key Entry -> Entry -> D.SqlPersistM ([Tag],Maybe (Entry, T.Text),Maybe (Entry, T.Text))
 entryAux k e = do

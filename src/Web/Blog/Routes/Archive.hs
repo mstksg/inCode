@@ -20,7 +20,7 @@ import Web.Blog.Views.Archive
 import qualified Data.Text                   as T
 import qualified Database.Persist.Postgresql as D
 
-routeArchive :: T.Text -> [D.Entity Entry] -> ViewArchiveType -> RouteEither
+routeArchive :: T.Text -> [D.Entity Entry] -> ViewArchiveType -> RouteDatabase
 routeArchive title entries viewType = do
   let
     grouped = groupEntries entries
@@ -34,19 +34,19 @@ routeArchive title entries viewType = do
                              , pageDataCss   = ["/css/page/archive.css"]
                              , pageDataJs    = ["/js/disqus_count.js"] }
 
-  return $ Right (view, pageData)
+  siteRight (view, pageData)
 
-routeArchiveFilters :: T.Text -> [D.Filter Entry] -> ViewArchiveType -> RouteEither
+routeArchiveFilters :: T.Text -> [D.Filter Entry] -> ViewArchiveType -> RouteDatabase
 routeArchiveFilters title filters pdMap = do
   entries <- liftIO $ runDB $
     postedEntriesFilter filters [ D.Desc EntryPostedAt ]
   routeArchive title entries pdMap
 
 
-routeArchiveAll :: RouteEither
+routeArchiveAll :: RouteDatabase
 routeArchiveAll = routeArchiveFilters "History" [] ViewArchiveAll
 
-routeArchiveTag :: TagType -> T.Text -> RouteEither
+routeArchiveTag :: TagType -> T.Text -> RouteDatabase
 routeArchiveTag type_ slug = do
   tag <- liftIO $ runDB $ D.getBy $ UniqueSlugType slug type_
 
@@ -63,10 +63,10 @@ routeArchiveTag type_ slug = do
       routeArchiveFilters (tagLabel' tag') [ EntryId D.<-. entryKeys ] $ viewType tag'
 
     Nothing ->
-      return $ error404 "TagNotFound"
+      error404 "TagNotFound"
 
 
-routeArchiveYear :: Int -> RouteEither
+routeArchiveYear :: Int -> RouteDatabase
 routeArchiveYear year = routeArchiveFilters (T.pack $ show year) filters $ ViewArchiveYear year
   where
     startTime = buildTime defaultTimeLocale [('Y',show year)] :: UTCTime
@@ -74,7 +74,7 @@ routeArchiveYear year = routeArchiveFilters (T.pack $ show year) filters $ ViewA
     filters = [ EntryPostedAt D.>=. Just startTime
               , EntryPostedAt D.<=. Just endTime  ]
 
-routeArchiveMonth :: Int -> Int -> RouteEither
+routeArchiveMonth :: Int -> Int -> RouteDatabase
 routeArchiveMonth year month = routeArchiveFilters (T.pack timeString) filters $ ViewArchiveMonth year month
   where
     startDay = buildTime defaultTimeLocale

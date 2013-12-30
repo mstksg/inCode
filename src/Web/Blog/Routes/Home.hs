@@ -15,7 +15,7 @@ import qualified Data.Map                    as M
 import qualified Data.Text                   as T
 import qualified Database.Persist.Postgresql as D
 
-routeHome :: Int -> RouteEither
+routeHome :: Int -> RouteDatabase
 routeHome page = do
   let
     m = appPrefsHomeEntries $ siteDataAppPrefs siteData
@@ -24,7 +24,7 @@ routeHome page = do
 
   if page < 1 || page > maxPage'
     then
-      return $ Left "/"
+      siteLeft "/"
     else do
       let
         pageTitle =
@@ -69,7 +69,7 @@ routeHome page = do
                                  , pageDataMap   = pdMap M.empty
                                  }
 
-      return $ Right (view, pageData)
+      siteRight (view, pageData)
 
 maxPage :: Int -> D.SqlPersistM Int
 maxPage perPage = do
