@@ -16,8 +16,8 @@ import Network.Wai.Middleware.Static
 import System.Environment                   (getEnv)
 import Web.Blog.Routes
 import Web.Blog.Types
-import Data.IxSet
 import Web.Scotty
+import qualified Data.IntMap                as IM
 
 main :: IO ()
 main = do
@@ -37,7 +37,7 @@ main = do
     middleware $ staticPolicy (noDots >-> addBase "tmp/static")
     middleware $ addHeaders [("Cache-Control","max-age=900")]
 
-    route $ SiteDatabase empty empty empty empty
+    route $ SiteDatabase IM.empty IM.empty IM.empty IM.empty
 
 cacheBackend :: CacheBackend
 cacheBackend app req =

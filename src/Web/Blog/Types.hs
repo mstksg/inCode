@@ -14,14 +14,14 @@ module Web.Blog.Types (
   , RouteDatabase
   ) where
 
+-- import Data.Default
 import Control.Monad.Reader
-import Data.IxSet
+import Web.Blog.Models
+import qualified Data.IntMap      as IM
 import qualified Data.Map         as M
 import qualified Data.Text        as T
-import Web.Blog.Models
 import qualified Data.Text.Lazy   as L
 import qualified Text.Blaze.Html5 as H
--- import Data.Default
 import qualified Web.Scotty       as S
 
 data SiteData = SiteData
@@ -95,10 +95,10 @@ data PageData = PageData
 type PageDataMap = M.Map T.Text T.Text
 
 data SiteDatabase = SiteDatabase
-                    { siteDatabaseEntries   :: IxSet Entry
-                    , siteDatabaseTags      :: IxSet Tag
-                    , siteDatabaseEntryTags :: IxSet EntryTag
-                    , siteDatabaseSlugs     :: IxSet Slug
+                    { siteDatabaseEntries   :: IM.IntMap Entry
+                    , siteDatabaseTags      :: IM.IntMap Tag
+                    , siteDatabaseEntryTags :: IM.IntMap EntryTag
+                    , siteDatabaseSlugs     :: IM.IntMap Slug
                     }
 
 -- instance Default SiteDatabase where

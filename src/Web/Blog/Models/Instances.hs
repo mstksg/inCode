@@ -25,3 +25,10 @@ instance Show Entry where
 
 instance Show Tag where
   show t = T.unpack $ T.append (tagTypePrefix $ tagType_ t) $ tagLabel t
+
+-- instance Indexable Entry where
+--   empty = ixSet
+--     [ ixGen (Proxy :: Proxy T.Text)
+--     , ixGen (Proxy :: Proxy Content)
+--     , ixGen (Proxy :: Proxy )
+--     ]
