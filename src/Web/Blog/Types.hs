@@ -100,12 +100,14 @@ data SiteDatabase = SiteDatabase
                     , siteDatabaseEntryTags :: IM.IntMap EntryTag
                     , siteDatabaseSlugs     :: IM.IntMap Slug
                     }
+                    deriving (Show)
 
 -- instance Default SiteDatabase where
 --     def = SiteDatabase empty empty empty empty
 
 type RenderData  = (SiteRender H.Html, PageData)
 
-type RouteDatabase =
-        S.ActionM (ReaderT SiteDatabase (Either L.Text) RenderData)
+type RouteReader  = ReaderT SiteDatabase (Either L.Text) RenderData
+
+type RouteDatabase = S.ActionM RouteReader
 

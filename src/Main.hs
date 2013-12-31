@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 -- import Control.Monad.IO.Class
 -- import Debug.Trace
 -- import Network.Wai
@@ -14,10 +12,11 @@ import Network.Wai.Middleware.Headers
 import Network.Wai.Middleware.RequestLogger
 import Network.Wai.Middleware.Static
 import System.Environment                   (getEnv)
+import Web.Blog.Database                    (runDB)
+import Web.Blog.Models.Util                 (loadDatabase)
 import Web.Blog.Routes
 import Web.Blog.Types
 import Web.Scotty
-import qualified Data.IntMap                as IM
 
 main :: IO ()
 main = do
@@ -26,6 +25,8 @@ main = do
   port <- case hostConfigPort $ siteDataHostConfig siteData of
     Just p' -> return p'
     Nothing -> read <$> getEnv "PORT"
+
+  db <- runDB loadDatabase
 
   scotty port $ do
 
@@ -37,7 +38,7 @@ main = do
     middleware $ staticPolicy (noDots >-> addBase "tmp/static")
     middleware $ addHeaders [("Cache-Control","max-age=900")]
 
-    route $ SiteDatabase IM.empty IM.empty IM.empty IM.empty
+    route db
 
 cacheBackend :: CacheBackend
 cacheBackend app req =
