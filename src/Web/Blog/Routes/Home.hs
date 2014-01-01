@@ -2,13 +2,16 @@
 
 module Web.Blog.Routes.Home (routeHome) where
 
+import Config.SiteData
 import Control.Monad.IO.Class
+import Control.Monad.Reader
 import Control.Monad.State
+import Data.Time
 import Web.Blog.Database
 import Web.Blog.Models
+import Web.Blog.Models.EntryI
 import Web.Blog.Models.Util
 import Web.Blog.Render
-import Config.SiteData
 import Web.Blog.Types
 import Web.Blog.Views.Home
 import qualified Data.Map                    as M
@@ -20,58 +23,78 @@ routeHome page = do
   let
     m = appPrefsHomeEntries $ siteDataAppPrefs siteData
 
-  maxPage' <- liftIO $ runDB $ maxPage m
+  now <- liftIO getCurrentTime
 
-  if page < 1 || page > maxPage'
-    then
-      return $ siteLeft "/"
-    else do
-      let
-        pageTitle =
-          if page == 1
-            then
-              Nothing
-            else
-              Just $ T.concat ["Home (Page ", T.pack $ show page,")"]
+  return $ readerHome now page
 
-        urlBase = renderUrl' "/home/"
+  -- posteds <- 
+  -- maxPage' <- liftIO $ runDB $ maxPage m
 
-      eList <- liftIO $ runDB $
-        postedEntries [ D.Desc EntryPostedAt
-                      , D.LimitTo m
-                      , D.OffsetBy $ (page - 1) * m ]
-          >>= mapM wrapEntryData
+--   if page < 1 || page > maxPage'
+--     then
+--       return $ siteLeft "/"
+--     else do
+--       let
+--         pageTitle =
+--           if page == 1
+--             then
+--               Nothing
+--             else
+--               Just $ T.concat ["Home (Page ", T.pack $ show page,")"]
 
-      blankPageData <- genPageData
+--         urlBase = renderUrl' "/home/"
 
-      let
-        pdMap = execState $ do
-          when (page > 1) $ do
-            let
-              prevUrl = if page == 1
-                then renderUrl' "/"
-                else T.append urlBase $ T.pack $ show $ page - 1
-            modify $
-              M.insert "prevPage" prevUrl
-            modify $
-              M.insert "pageNum" $ T.pack $ show page
+--       eList <- liftIO $ runDB $
+--         postedEntries [ D.Desc EntryPostedAt
+--                       , D.LimitTo m
+--                       , D.OffsetBy $ (page - 1) * m ]
+--           >>= mapM wrapEntryData
+
+--       blankPageData <- genPageData
+
+--       let
+--         pdMap = execState $ do
+--           when (page > 1) $ do
+--             let
+--               prevUrl = if page == 1
+--                 then renderUrl' "/"
+--                 else T.append urlBase $ T.pack $ show $ page - 1
+--             modify $
+--               M.insert "prevPage" prevUrl
+--             modify $
+--               M.insert "pageNum" $ T.pack $ show page
 
 
-          when (page < maxPage') $
-            modify $
-              M.insert "nextPage" (T.append urlBase $ T.pack $ show $ page + 1)
+--           when (page < maxPage') $
+--             modify $
+--               M.insert "nextPage" (T.append urlBase $ T.pack $ show $ page + 1)
 
-        view = viewHome eList page
-        pageData = blankPageData { pageDataTitle = pageTitle
-                                 , pageDataCss   = ["/css/page/home.css"
-                                                   ,"/css/pygments.css"]
-                                 , pageDataJs    = ["/js/disqus_count.js"]
-                                 , pageDataMap   = pdMap M.empty
-                                 }
+--         view = viewHome eList page
+--         pageData = blankPageData { pageDataTitle = pageTitle
+--                                  , pageDataCss   = ["/css/page/home.css"
+--                                                    ,"/css/pygments.css"]
+--                                  , pageDataJs    = ["/js/disqus_count.js"]
+--                                  , pageDataMap   = pdMap M.empty
+--                                  }
 
-      return $ siteRight (view, pageData)
+--       return $ siteRight (view, pageData)
 
-maxPage :: Int -> D.SqlPersistM Int
-maxPage perPage = do
-  c <- postedEntryCount
-  return $ (c + perPage - 1) `div` perPage
+readerHome :: UTCTime -> Int -> RouteReader
+readerHome now page = do
+  (db, _) <- ask
+
+
+  return undefined
+
+maxPage :: UTCTime -> Int -> SiteDatabase -> Int
+maxPage now perPage db = (c + perPage - 1) `div` perPage
+  where
+    c = postedEntryCountI now db
+
+
+
+
+-- maxPage :: Int -> D.SqlPersistM Int
+-- maxPage perPage = do
+--   c <- postedEntryCount
+--   return $ (c + perPage - 1) `div` perPage
