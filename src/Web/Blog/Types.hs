@@ -12,6 +12,7 @@ module Web.Blog.Types (
   , SiteDatabase(..)
   , RenderData
   , RouteReader
+  , RouteReaderM
   , RouteDatabase
   , KeyMapKey
   , KeyMapPair
@@ -118,7 +119,9 @@ data SiteDatabase = SiteDatabase
 
 type RenderData  = (SiteRender H.Html, PageData)
 
-type RouteReader  = ReaderT (SiteDatabase, PageData) (Either L.Text) RenderData
+type RouteReaderM a = ReaderT (SiteDatabase, PageData) (Either L.Text) a
+
+type RouteReader  = RouteReaderM RenderData
 
 type RouteDatabase = S.ActionM RouteReader
 

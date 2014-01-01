@@ -105,26 +105,14 @@ readerEntryId i now = do
 readerEntry :: (KeyMapKey Entry, Entry) -> UTCTime -> RouteReader
 readerEntry (k, e) now = do
   (db, blankPageData) <- ask
+  (prev, next) <- prevNext now
 
   let
     tags = getTagsI k db
-    posteds = M.elems $ postedEntriesI now db
-    postedsAsc = sortBy (comparing (fromJust . entryPostedAt)) posteds
-    postedsDesc = sortBy (flip (comparing (fromJust . entryPostedAt))) posteds
-    afters = dropWhile ((< now) . fromJust . entryPostedAt) postedsAsc
-    befores = dropWhile ((> now) . fromJust . entryPostedAt) postedsDesc
-    next = do
-      eIdent <- entryIdentifier <$> listToMaybe afters
-      listToMaybe . M.toList $
-        M.filter ((== eIdent) . entryIdentifier) (siteDatabaseEntries db)
-    prev = do
-      eIdent <- entryIdentifier <$> listToMaybe befores
-      listToMaybe . M.toList $
-        M.filter ((== eIdent) . entryIdentifier) (siteDatabaseEntries db)
 
     pdMap = execState $ do
       Fo.forM_ prev $ \(k',_) ->
-        modify (M.insert ("nextUrl" :: T.Text) (getUrlPathI k' db))
+        modify (M.insert ("prevUrl" :: T.Text) (getUrlPathI k' db))
 
       Fo.forM_ next $ \(k',_) ->
         modify (M.insert ("nextUrl" :: T.Text) (getUrlPathI k' db))
@@ -149,4 +137,26 @@ readerEntry (k, e) now = do
 
 
   siteRight (view, pageData)
+
+prevNext :: UTCTime ->
+            RouteReaderM
+                (Maybe (KeyMapPair Entry), Maybe (KeyMapPair Entry))
+prevNext now = do
+  (db, _) <- ask
+  let
+    posteds = M.elems $ postedEntriesI now db
+    postedsDesc = sortBy (flip (comparing (fromJust . entryPostedAt))) posteds
+    postedsAsc = sortBy (comparing (fromJust . entryPostedAt)) posteds
+    befores = dropWhile ((> now) . fromJust . entryPostedAt) postedsDesc
+    afters = dropWhile ((< now) . fromJust . entryPostedAt) postedsAsc
+    prev = do
+      eIdent <- entryIdentifier <$> listToMaybe befores
+      listToMaybe . M.toList $
+        M.filter ((== eIdent) . entryIdentifier) (siteDatabaseEntries db)
+    next = do
+      eIdent <- entryIdentifier <$> listToMaybe afters
+      listToMaybe . M.toList $
+        M.filter ((== eIdent) . entryIdentifier) (siteDatabaseEntries db)
+
+  return (prev, next)
 
