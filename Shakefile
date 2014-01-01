@@ -6,14 +6,21 @@ import Development.Shake
 import Control.Monad
 import Control.Monad.IO.Class
 import System.Directory
+import Development.Shake.FilePath
 import Control.Applicative ((<$>))
 
 opts = shakeOptions { shakeFiles    = ".shake/"
-                    , shakeProgress = progressSimple }
+                    , shakeVersion  = "1.0"
+                    , shakeThreads  = 32
+                    -- , shakeReport   = Just "profile.html"
+                    , shakeProgress = progressSimple
+                    }
 
-binPath = "cabal-dev/bin/"
-cmdBin = cmd . (++) binPath
-systemBin = system' . (++) binPath
+binPath = ".cabal-sandbox/bin"
+-- cmdBin = cmd . (++) binPath
+-- systemBin = system' . (++) binPath
+
+bin = (binPath </>)
 
 main :: IO ()
 main = shakeArgs opts $ do
@@ -21,36 +28,38 @@ main = shakeArgs opts $ do
 
   "clean" ~> removeFilesAfter ".shake" ["//*"]
 
-  "build" ~>
-    need [ "cabal-dev/bin/blog" ]
+  "build" ~> do
+    need $ map bin
+        [ "blog-scripts-migrate"
+        , "blog-scripts-seed"
+        , "blog-scripts-load-entries"
+        , "blog" ]
+    return ()
+
+  "configure" ~>
+    cmd "cabal configure"
 
   "launch" ~> do
-    need ["build"]
-    systemBin "blog" []
+    need [bin "blog"]
+    system' (bin "blog") []
 
   "deploy" ~> do
-    need ["build"]
+    need [bin "blog"]
     liftIO $ createDirectoryIfMissing True "bin"
-    copyFile' "dist/build/blog/blog" "bin/blog"
+    copyFile' (bin "blog") "bin/blog"
     cmd "git" ["add", "-f", "bin/blog"]
 
-
-
   "migrate" ~> do
-    need ["cabal-dev/bin/blog-scripts-migrate"]
-    cmdBin "blog-scripts-migrate"
+    need [bin "blog-scripts-migrate"]
+    cmd (bin "blog-scripts-migrate")
 
   "seed" ~> do
-    need ["cabal-dev/bin/blog-scripts-seed"]
-    cmdBin "blog-scripts-seed"
+    need [bin "blog-scripts-seed"]
+    cmd (bin "blog-scripts-seed")
 
   "load-entries" ~> do
-    need ["cabal-dev/bin/blog-scripts-load-entries"]
-    cmdBin "blog-scripts-load-entries"
-
-  "view-src" ~> do
-    fs <- srcFiles
-    liftIO $ print fs
+    need [bin "blog-scripts-load-entries"]
+    cmd (bin "blog-scripts-load-entries")
 
   "watch-copy" ~>
     cmd "scripts/watch_copy.sh"
@@ -58,32 +67,6 @@ main = shakeArgs opts $ do
   "watch-scss" ~>
     cmd "compass watch"
 
-
-  "cabal-dev/bin/blog" *> \_ -> do
-    need <$> srcFiles
-    cmd "cabal-dev" ["install"]
-
-  "cabal-dev/bin/blog-scripts-migrate" *> \_ -> do
-    need ["build"]
-    return ()
-
-  "cabal-dev/bin/blog-scripts-seed" *> \_ -> do
-    need ["build"]
-    return ()
-
-  "cabal-dev/bin/blog-scripts-load-entries" *> \_ -> do
-    need ["build"]
-    return ()
-
-srcFiles :: Action [FilePath]
-srcFiles = getDirectoryFiles ""
-  [ "blog.cabal"
-  , "src/*.hs"
-  , "src/scripts/*.hs"
-  , "src/Config/*.hs"
-  , "src/Web/Blog/*.hs"
-  , "src/Web/Blog/*/*.hs"
-  , "src/Web/Blog/*/*/*.hs"
-  , "src/Web/Blog/*/*/*/*.hs"
-  , "src/Development/Blog/*.hs"
-  , "src/Development/Blog/*/*.hs" ]
+  bin "*" *> \f -> do
+    need ["configure"]
+    cmd "cabal" ["build", takeFileName f]

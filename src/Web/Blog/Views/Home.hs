@@ -1,33 +1,31 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Web.Blog.Views.Home (viewHome) where
 
+-- import qualified Database.Persist.Postgresql as D
 import Config.SiteData
-import Control.Applicative                   ((<$>))
+import Control.Applicative                      ((<$>))
 import Control.Monad.Reader
-import Data.Maybe                            (fromMaybe)
-import Data.Monoid                           (mempty)
-import Data.Time                             (getCurrentTimeZone)
-import Text.Blaze.Html5                      ((!))
+import Data.Maybe                               (fromMaybe)
+import Data.Monoid                              (mempty)
+import Data.Time                                (getCurrentTimeZone)
+import Text.Blaze.Html5                         ((!))
 import Web.Blog.Database
 import Web.Blog.Models
 import Web.Blog.Models.Types
 import Web.Blog.Models.Util
 import Web.Blog.Render
 import Web.Blog.Types
-import Web.Blog.Util                         (renderFriendlyTime, renderDatetimeTime)
+import Web.Blog.Util                            (renderFriendlyTime, renderDatetimeTime)
 import Web.Blog.Views.Copy
 import Web.Blog.Views.Social
-import qualified Data.Foldable               as Fo
-import qualified Data.List                   as L
-import qualified Data.Map                    as M
-import qualified Data.Text                   as T
-import qualified Database.Persist.Postgresql as D
-import qualified Text.Blaze.Html5            as H
-import qualified Text.Blaze.Html5.Attributes as A
-import qualified Text.Blaze.Internal         as I
+import qualified Data.Foldable                  as Fo
+import qualified Data.List                      as L
+import qualified Data.Map                       as M
+import qualified Data.Text                      as T
+import qualified Text.Blaze.Html5               as H
+import qualified Text.Blaze.Html5.Attributes    as A
+import qualified Text.Blaze.Internal            as I
 
-viewHome :: [(D.Entity Entry,(T.Text,[Tag]))] -> Int -> SiteRender H.Html
+viewHome :: [(KeyMapPair Entry,(T.Text,[Tag]))] -> Int -> SiteRender H.Html
 viewHome eList pageNum = do
   pageDataMap' <- pageDataMap <$> ask
   bannerCopy <- viewCopyFile (siteDataTitle siteData) "copy/static/home-banner.md"
@@ -64,7 +62,7 @@ viewHome eList pageNum = do
           tagsHtml
 
 
-entryList :: [(D.Entity Entry,(T.Text,[Tag]))] -> PageDataMap -> Int -> SiteRender H.Html
+entryList :: [(KeyMapPair Entry,(T.Text,[Tag]))] -> PageDataMap -> Int -> SiteRender H.Html
 entryList eList pageDataMap' pageNum = do
   tz <- liftIO getCurrentTimeZone
 
@@ -78,7 +76,7 @@ entryList eList pageDataMap' pageNum = do
           ")" :: H.Html
 
     H.ul $
-      forM_ eList $ \(D.Entity _ e,(u,ts)) -> do
+      forM_ eList $ \((_,e),(u,ts)) -> do
         let
           commentUrl = T.append u "#disqus_thread"
         H.li $
