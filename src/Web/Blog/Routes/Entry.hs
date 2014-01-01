@@ -10,16 +10,20 @@ module Web.Blog.Routes.Entry (routeEntrySlug, routeEntryId) where
 -- import qualified Text.Blaze.Html5            as H
 -- import qualified Text.Blaze.Html5.Attributes as A
 -- import qualified Text.Blaze.Internal         as I
-import Control.Applicative                      ((<$>),(<*>))
+import Control.Applicative                      ((<$>))
 import Control.Monad.Reader
 import Control.Monad.State
-import Data.List                                (find)
-import Data.Maybe                               (isJust, fromJust, mapMaybe)
+import Data.List                                (find, sortBy)
+import Data.Maybe                               (fromJust, listToMaybe)
+import Data.Ord                                 (comparing)
+import Data.Time
 import Web.Blog.Models
+import Web.Blog.Models.EntryI
 import Web.Blog.Models.Util
 import Web.Blog.Render
 import Web.Blog.Types
 import Web.Blog.Views.Entry
+import qualified Data.Foldable                  as Fo
 import qualified Data.Map                       as M
 import qualified Data.Text                      as T
 import qualified Data.Text.Lazy                 as L
@@ -29,16 +33,18 @@ import qualified Web.Scotty                     as S
 routeEntrySlug :: RouteDatabase
 routeEntrySlug = do
   eIdent <- S.param "entryIdent"
-  return $ readerEntrySlug eIdent
+  now <- liftIO getCurrentTime
+  return $ readerEntrySlug eIdent now
 
 routeEntryId :: RouteDatabase
 routeEntryId = do
   eIdent <- S.param "entryIdent"
-  return $ readerEntryId (read eIdent)
+  now <- liftIO getCurrentTime
+  return $ readerEntryId (read eIdent) now
 
 
-readerEntrySlug :: L.Text -> RouteReader
-readerEntrySlug sText = do
+readerEntrySlug :: L.Text -> UTCTime -> RouteReader
+readerEntrySlug sText now = do
   (db, _) <- ask
 
   let
@@ -54,39 +60,36 @@ readerEntrySlug sText = do
       case e of
         Just e' -> do
           let
-            matchingSlug = (==) eKey . slugEntryId
-            currSlug = find ((&&) <$> slugIsCurrent <*> matchingSlug) slugs
+            currSlug = getCurrentSlugI eKey db
 
           case currSlug of
             Just currSlug' ->
               if slugSlug currSlug' == slugSlug s'
-                then readerEntry (eKey, e')
+                then readerEntry (eKey, e') now
                 else siteLeft $
                   L.append "/entry/" (L.fromStrict . slugSlug $ currSlug')
 
             Nothing ->
-              readerEntry (eKey, e')
+              readerEntry (eKey, e') now
 
         Nothing ->
-          lift . Left $ "SlugHasNoEntry"
+          error404 "SlugHasNoEntry"
 
     Nothing ->
       error404 "SlugNotFound"
 
-readerEntryId :: Int -> RouteReader
-readerEntryId i = do
+readerEntryId :: Int -> UTCTime -> RouteReader
+readerEntryId i now = do
   (db, _) <- ask
 
   let
-    slugs = M.elems $ siteDatabaseSlugs db
     eKey = D.Key . D.PersistInt64 $ fromIntegral i
     e   = eKey `M.lookup` siteDatabaseEntries db
 
   case e of
     Just e' -> do
       let
-        matchingSlug = (==) eKey . slugEntryId
-        currSlug = find ((&&) <$> slugIsCurrent <*> matchingSlug) slugs
+        currSlug = getCurrentSlugI eKey db
 
       case currSlug of
         Just currSlug' ->
@@ -94,33 +97,41 @@ readerEntryId i = do
             L.append "/entry/" (L.fromStrict . slugSlug $ currSlug')
 
         Nothing ->
-          readerEntry (eKey, e')
+          readerEntry (eKey, e') now
 
     Nothing ->
       error404 "entryIdNotFound"
 
-readerEntry :: (KeyMapKey Entry, Entry) -> RouteReader
-readerEntry (k, e) = do
+readerEntry :: (KeyMapKey Entry, Entry) -> UTCTime -> RouteReader
+readerEntry (k, e) now = do
   (db, blankPageData) <- ask
 
   let
-    matchingEntryTag = (==) k . entryTagEntryId
-    entryTags = filter matchingEntryTag (M.elems . siteDatabaseEntryTags $ db)
-    tagIds = map entryTagTagId entryTags
-    tags = mapMaybe (`M.lookup` siteDatabaseTags db) tagIds
-    prevData = Nothing
-    nextData = Nothing
+    tags = getTagsI k db
+    posteds = M.elems $ postedEntriesI now db
+    postedsAsc = sortBy (comparing (fromJust . entryPostedAt)) posteds
+    postedsDesc = sortBy (flip (comparing (fromJust . entryPostedAt))) posteds
+    afters = dropWhile ((< now) . fromJust . entryPostedAt) postedsAsc
+    befores = dropWhile ((> now) . fromJust . entryPostedAt) postedsDesc
+    next = do
+      eIdent <- entryIdentifier <$> listToMaybe afters
+      listToMaybe . M.toList $
+        M.filter ((== eIdent) . entryIdentifier) (siteDatabaseEntries db)
+    prev = do
+      eIdent <- entryIdentifier <$> listToMaybe befores
+      listToMaybe . M.toList $
+        M.filter ((== eIdent) . entryIdentifier) (siteDatabaseEntries db)
 
     pdMap = execState $ do
-      when (isJust prevData) $ do
-        let prevUrl = snd $ fromJust prevData
-        modify (M.insert ("prevUrl" :: T.Text) prevUrl)
+      Fo.forM_ prev $ \(k',_) ->
+        modify (M.insert ("nextUrl" :: T.Text) (getUrlPathI k' db))
 
-      when (isJust nextData) $ do
-        let nextUrl = snd $ fromJust nextData
-        modify (M.insert ("nextUrl" :: T.Text) nextUrl)
+      Fo.forM_ next $ \(k',_) ->
+        modify (M.insert ("nextUrl" :: T.Text) (getUrlPathI k' db))
 
-    view = viewEntry e tags (fst <$> prevData) (fst <$> nextData)
+
+
+    view = viewEntry e tags (snd <$> prev) (snd <$> next)
 
     pageData = blankPageData { pageDataTitle   = Just $ entryTitle e
                              , pageDataType    = Just "article"
@@ -138,22 +149,4 @@ readerEntry (k, e) = do
 
 
   siteRight (view, pageData)
-
-
-
--- entryAux :: D.Key Entry -> Entry -> D.SqlPersistM ([Tag],Maybe (Entry, T.Text),Maybe (Entry, T.Text))
--- entryAux k e = do
---   tags <- getTagsByEntityKey k []
-
---   prevData <- runMaybeT $ do
---     prev <- MaybeT $ getPrevEntry e
---     prevUrl <- lift $ getUrlPath prev
---     lift $ return (D.entityVal prev, prevUrl)
-
---   nextData <- runMaybeT $ do
---     next <- MaybeT $ getNextEntry e
---     nextUrl <- lift $ getUrlPath next
---     lift $ return (D.entityVal next, nextUrl)
-
---   return (tags,prevData,nextData)
 
