@@ -26,11 +26,11 @@ routeHome page = do
 
 readerHome :: UTCTime -> Int -> RouteReader
 readerHome now page = do
-  (db, blankPageData) <- ask
+  (_, blankPageData) <- ask
+  posteds <- postedEntriesI now
 
   let
     perPage = appPrefsHomeEntries $ siteDataAppPrefs siteData
-    posteds = postedEntriesI now db
     mPage = (M.size posteds + perPage - 1) `div` perPage
 
 
@@ -48,7 +48,7 @@ readerHome now page = do
 
         urlBase = renderUrl' "/home/"
 
-        eList = map (`wrapEntryDataI` db) (M.keys posteds)
+      eList <- mapM wrapEntryDataI (M.keys posteds)
 
       let
         pdMap = execState $ do

@@ -16,6 +16,8 @@ module Web.Blog.Render (
   , siteLeft
   , siteRight
   , error404
+  , askDb
+  , runRouteReaderMRight
   ) where
 
 -- import Data.Time
@@ -82,6 +84,16 @@ siteRight = lift . Right
 
 error404 :: L.Text -> RouteReader
 error404 = siteLeft . L.append "/not-found?err="
+
+askDb :: RouteReaderM SiteDatabase
+askDb = fst <$> ask
+
+runRouteReaderMRight :: RouteReaderM a -> (SiteDatabase, PageData) -> a
+runRouteReaderMRight rr rd =
+  case runReaderT rr rd of
+    Right val -> val
+    Left _ -> undefined
+
 
 renderProtocolHost :: S.ActionM T.Text
 renderProtocolHost = do

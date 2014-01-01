@@ -7,6 +7,7 @@ module Web.Blog.Routes.Entry (routeEntrySlug, routeEntryId) where
 -- import Web.Blog.Database
 -- import Web.Blog.Util
 -- import qualified Data.Foldable as Fo         (forM_)
+-- import qualified Data.Text                   as T
 -- import qualified Text.Blaze.Html5            as H
 -- import qualified Text.Blaze.Html5.Attributes as A
 -- import qualified Text.Blaze.Internal         as I
@@ -25,7 +26,6 @@ import Web.Blog.Types
 import Web.Blog.Views.Entry
 import qualified Data.Foldable                  as Fo
 import qualified Data.Map                       as M
-import qualified Data.Text                      as T
 import qualified Data.Text.Lazy                 as L
 import qualified Database.Persist.Postgresql    as D
 import qualified Web.Scotty                     as S
@@ -59,8 +59,7 @@ readerEntrySlug sText now = do
 
       case e of
         Just e' -> do
-          let
-            currSlug = getCurrentSlugI eKey db
+          currSlug <- getCurrentSlugI eKey
 
           case currSlug of
             Just currSlug' ->
@@ -88,8 +87,7 @@ readerEntryId i now = do
 
   case e of
     Just e' -> do
-      let
-        currSlug = getCurrentSlugI eKey db
+      currSlug <- getCurrentSlugI eKey
 
       case currSlug of
         Just currSlug' ->
@@ -104,20 +102,25 @@ readerEntryId i now = do
 
 readerEntry :: (KeyMapKey Entry, Entry) -> UTCTime -> RouteReader
 readerEntry (k, e) now = do
-  (db, blankPageData) <- ask
-  (prev, next) <- prevNext now
+  rd@(_, blankPageData) <- ask
+  tags          <- getTagsI k
+  (prev, next)  <- prevNext now
 
   let
-    tags = getTagsI k db
-
     pdMap = execState $ do
       Fo.forM_ prev $ \(k',_) ->
-        modify (M.insert ("prevUrl" :: T.Text) (getUrlPathI k' db))
+        modify
+          ( M.insert
+            "prevUrl"
+            (runRouteReaderMRight (getUrlPathI k') rd)
+          )
 
       Fo.forM_ next $ \(k',_) ->
-        modify (M.insert ("nextUrl" :: T.Text) (getUrlPathI k' db))
-
-
+        modify
+          ( M.insert
+            "nextUrl"
+            (runRouteReaderMRight (getUrlPathI k') rd)
+          )
 
     view = viewEntry e tags (snd <$> prev) (snd <$> next)
 
@@ -143,8 +146,8 @@ prevNext :: UTCTime ->
                 (Maybe (KeyMapPair Entry), Maybe (KeyMapPair Entry))
 prevNext now = do
   (db, _) <- ask
+  posteds <- M.elems <$> postedEntriesI now
   let
-    posteds = M.elems $ postedEntriesI now db
     postedsDesc = sortBy (flip (comparing (fromJust . entryPostedAt))) posteds
     postedsAsc = sortBy (comparing (fromJust . entryPostedAt)) posteds
     befores = dropWhile ((> now) . fromJust . entryPostedAt) postedsDesc
