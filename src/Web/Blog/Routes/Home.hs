@@ -23,7 +23,7 @@ routeHome page = do
   now <- liftIO getCurrentTime
   return $ readerHome now page
 
-  -- posteds <- 
+  -- posteds <-
   -- maxPage' <- liftIO $ runDB $ maxPage m
 
 --   if page < 1 || page > maxPage'

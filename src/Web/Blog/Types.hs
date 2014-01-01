@@ -14,6 +14,7 @@ module Web.Blog.Types (
   , RouteReader
   , RouteDatabase
   , KeyMapKey
+  , KeyMapPair
   , KeyMap
   ) where
 
@@ -99,6 +100,8 @@ data PageData = PageData
 type PageDataMap = M.Map T.Text T.Text
 
 type KeyMapKey a = D.KeyBackend (D.PersistEntityBackend a) a
+
+type KeyMapPair a = (KeyMapKey a, a)
 
 type KeyMap a = M.Map (KeyMapKey a) a
 
