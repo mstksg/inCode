@@ -1,12 +1,16 @@
 module Web.Blog.Models.EntryI where
 
--- import Control.Applicative
+import Control.Applicative
+import Data.List                             (find)
+import Data.Maybe                            (mapMaybe, fromJust)
 import Data.Time
 import Web.Blog.Models.Models
+import Web.Blog.Models.Types
 import Web.Blog.Types
-import qualified Data.Foldable as F
-import qualified Data.Map      as M
-import qualified Data.Text     as T
+import qualified Data.Foldable               as F
+import qualified Data.Map                    as M
+import qualified Data.Text                   as T
+import qualified Database.Persist.Postgresql as D
 
 postedEntriesI :: UTCTime -> SiteDatabase -> KeyMap Entry
 postedEntriesI now db =
@@ -16,48 +20,40 @@ postedEntryCountI :: UTCTime -> SiteDatabase -> Int
 postedEntryCountI = (M.size .) . postedEntriesI
 
 
-getEntryData :: KeyMapKey Entry -> SiteDatabase -> (T.Text,[Tag])
-getEntryData k db = undefined
-  -- p <- getUrlPath e
-  -- ts  <- getTags e []
-  -- return (p,ts)
+getEntryDataI :: KeyMapKey Entry -> SiteDatabase -> (T.Text,[Tag])
+getEntryDataI k db = (urlPath, tags)
+  where
+    urlPath = getUrlPathI k db
+    tags = getTagsI k db
 
-wrapEntryData :: KeyMapKey Entry -> SiteDatabase -> (KeyMapPair Entry, (T.Text, [Tag]))
-wrapEntryData k db = undefined
-  -- d <- getEntryData e
-  -- return (e,d)
+wrapEntryDataI :: KeyMapKey Entry -> SiteDatabase -> (KeyMapPair Entry, (T.Text, [Tag]))
+wrapEntryDataI k db = ((k, e), getEntryDataI k db)
+  where
+    e = fromJust $ k `M.lookup` siteDatabaseEntries db
 
-getTagsByEntityKey :: KeyMapKey Entry -> SiteDatabase -> [Tag]
-getTagsByEntityKey k filters = undefined
-  -- ets <- D.selectList [ EntryTagEntryId D.==. k ] []
-  -- let
-  --   tagKeys = map (entryTagTagId . D.entityVal) ets
-  --   selectTags tt = D.selectList
-  --                     ([ TagId D.<-. tagKeys, TagType_ D.==. tt ] ++ filters)
-  --                     [ D.Asc TagLabel ]
-  -- tags <- concat <$> mapM selectTags [GeneralTag ..]
-
-  -- return $ map D.entityVal tags
+getTagsI :: KeyMapKey Entry -> SiteDatabase -> [Tag]
+getTagsI k db = sortedTags
+  where
+    entryTags = M.elems . siteDatabaseEntryTags $ db
+    filtered = filter ((== k) . entryTagEntryId) entryTags
+    tagKeys = map entryTagTagId filtered
+    tags = mapMaybe (`M.lookup` siteDatabaseTags db) tagKeys
+    tagsOf tt = filter ((== tt) . tagType_) tags
+    sortedTags = concatMap tagsOf [GeneralTag ..]
 
 getUrlPathI :: KeyMapKey Entry -> SiteDatabase -> T.Text
-getUrlPathI k db = undefined
-  -- slug <- getCurrentSlug entry
-  -- case slug of
-  --   Just (D.Entity _ slug') ->
-  --     return $ T.append "/entry/" (slugSlug slug')
-  --   Nothing               -> do
-  --     let
-  --       D.Entity eKey _ = entry
-  --     return $ T.append "/entry/id/" (T.pack $ show eKey)
+getUrlPathI k db =
+  case getCurrentSlugI k db of
+    Just slug -> T.append "/entry/" (slugSlug slug)
+    Nothing -> T.append "/entry/id/" (T.pack . show . intFromKey $ k)
 
-getCurrentSlugI :: KeyMapKey Entry -> SiteDatabase -> Maybe (KeyMapPair Slug)
-getCurrentSlugI k db = undefined
-    -- current <- D.selectFirst [ SlugEntryId   D.==. eKey
-    --                          , SlugIsCurrent D.==. True ]
-    --                          [ D.Desc SlugId ]
-    -- case current of
-    --   Just _ -> return current
-    --   Nothing -> D.selectFirst [ SlugEntryId D.==. eKey ]
-    --                            [ D.Desc SlugId ]
-  -- where
-    -- D.Entity eKey _ = entry
+intFromKey :: KeyMapKey a -> Int
+intFromKey (D.Key (D.PersistInt64 i)) = fromIntegral i
+intFromKey _ = undefined
+
+getCurrentSlugI :: KeyMapKey Entry -> SiteDatabase -> Maybe Slug
+getCurrentSlugI k db = find ((&&) <$> slugIsCurrent <*> matchingSlug) slugs
+  where
+    slugs = M.elems $ siteDatabaseSlugs db
+    matchingSlug = (== k) . slugEntryId
+
