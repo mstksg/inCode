@@ -1,38 +1,35 @@
 module Web.Blog.Models.Load (loadDatabase) where
 
-import Web.Blog.Types
-import Web.Blog.Models
-import qualified Data.IntMap                 as IM
-import qualified Database.Persist.Postgresql as D
-import Data.List (foldl')
+-- import qualified Data.IntMap              as IM
 import Control.Applicative
+import Data.List                             (foldl')
+import Web.Blog.Models
+import Web.Blog.Types
+import qualified Data.Map                    as M
+import qualified Database.Persist.Postgresql as D
 
 
 loadDatabase :: D.SqlPersistM SiteDatabase
 loadDatabase =
   SiteDatabase <$> loadEntries <*> loadTags <*> loadEntryTags <*> loadSlugs
 
--- loadTable :: D.SqlPersistM (IM.IntMap a)
+-- loadTable :: D.PersistEntity a => D.SqlPersistM (KeyMap a)
 -- loadTable = loadEntities <$> D.selectList [] []
 
-loadEntries :: D.SqlPersistM (IM.IntMap Entry)
+loadEntries :: D.SqlPersistM (KeyMap Entry)
 loadEntries = loadEntities <$> D.selectList [] []
 
-loadTags :: D.SqlPersistM (IM.IntMap Tag)
+loadTags :: D.SqlPersistM (KeyMap Tag)
 loadTags = loadEntities <$> D.selectList [] []
 
-loadEntryTags :: D.SqlPersistM (IM.IntMap EntryTag)
+loadEntryTags :: D.SqlPersistM (KeyMap EntryTag)
 loadEntryTags = loadEntities <$> D.selectList [] []
 
-loadSlugs :: D.SqlPersistM (IM.IntMap Slug)
+loadSlugs :: D.SqlPersistM (KeyMap Slug)
 loadSlugs = loadEntities <$> D.selectList [] []
 
-loadEntities :: [D.Entity a] -> IM.IntMap a
-loadEntities = foldl' addEntity IM.empty
+loadEntities :: [D.Entity a] -> KeyMap a
+loadEntities = foldl' addEntity M.empty
   where
-    addEntity m (D.Entity k e) =
-      case k of
-        D.Key (D.PersistInt64 i)    -> IM.insert (fromIntegral i) e m
-        _                           -> m
-
+    addEntity m (D.Entity k e) = M.insert k e m
 

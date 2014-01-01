@@ -44,7 +44,7 @@ homeRoutes db = do
 
   forM_ ["/home","/home/1"] $ \r ->
     S.get r $
-      routeDatabase db $ siteLeft "/"
+      routeDatabase db . return $ siteLeft "/"
 
   S.get "/home/:page" $ do
     page <- S.param "page"
@@ -89,7 +89,7 @@ archiveRoutes db = do
     routeDatabase db $ routeArchiveTag GeneralTag $ T.pack tag
 
   S.get "/entries/in" $
-    routeDatabase db $ siteLeft "/entries"
+    routeDatabase db . return $ siteLeft "/entries"
 
   S.get "/entries/in/:year" $ do
     year <- S.param "year"
@@ -149,7 +149,9 @@ miscRoutes db = do
 routeDatabase :: SiteDatabase -> RouteDatabase -> S.ActionM ()
 routeDatabase db r = do
   routeResult <- r
-  case runReaderT routeResult db of
+  blankPageData <- genPageData
+
+  case runReaderT routeResult (db, blankPageData) of
     Left re -> do
       S.status $
         if "/not-found" `L.isPrefixOf` re

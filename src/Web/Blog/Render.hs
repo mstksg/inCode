@@ -74,13 +74,13 @@ siteRenderAction htmlRender pageData' = do
 extractSiteRender :: SiteRender a -> S.ActionM a
 extractSiteRender toRender = runReaderT toRender emptyPageData
 
-siteLeft :: L.Text -> RouteDatabase
-siteLeft = return . lift . Left
+siteLeft :: L.Text -> RouteReader
+siteLeft = lift . Left
 
-siteRight :: RenderData -> RouteDatabase
-siteRight = return . lift . Right
+siteRight :: RenderData -> RouteReader
+siteRight = lift . Right
 
-error404 :: L.Text -> RouteDatabase
+error404 :: L.Text -> RouteReader
 error404 = siteLeft . L.append "/not-found?err="
 
 renderProtocolHost :: S.ActionM T.Text

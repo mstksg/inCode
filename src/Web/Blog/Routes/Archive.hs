@@ -34,7 +34,7 @@ routeArchive title entries viewType = do
                              , pageDataCss   = ["/css/page/archive.css"]
                              , pageDataJs    = ["/js/disqus_count.js"] }
 
-  siteRight (view, pageData)
+  return $ siteRight (view, pageData)
 
 routeArchiveFilters :: T.Text -> [D.Filter Entry] -> ViewArchiveType -> RouteDatabase
 routeArchiveFilters title filters pdMap = do
@@ -63,7 +63,7 @@ routeArchiveTag type_ slug = do
       routeArchiveFilters (tagLabel' tag') [ EntryId D.<-. entryKeys ] $ viewType tag'
 
     Nothing ->
-      error404 "TagNotFound"
+      return $ error404 "TagNotFound"
 
 
 routeArchiveYear :: Int -> RouteDatabase

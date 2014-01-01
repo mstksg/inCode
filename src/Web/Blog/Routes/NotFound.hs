@@ -19,7 +19,7 @@ routeNotFound = do
     pageData = blankPageData { pageDataTitle = Just "Not Found" 
                              , pageDataCss   = ["/css/page/not-found.css"] }
 
-  case err of
+  return $ case err of
     Just _  -> siteLeft "/not-found"
     Nothing -> siteRight (view, pageData)
 

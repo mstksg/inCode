@@ -11,18 +11,22 @@ module Web.Blog.Types (
   , PageData(..)
   , SiteDatabase(..)
   , RenderData
+  , RouteReader
   , RouteDatabase
+  , KeyMapKey
+  , KeyMap
   ) where
 
 -- import Data.Default
+-- import qualified Data.IntMap              as IM
 import Control.Monad.Reader
 import Web.Blog.Models
-import qualified Data.IntMap      as IM
-import qualified Data.Map         as M
-import qualified Data.Text        as T
-import qualified Data.Text.Lazy   as L
-import qualified Text.Blaze.Html5 as H
-import qualified Web.Scotty       as S
+import qualified Data.Map                    as M
+import qualified Data.Text                   as T
+import qualified Data.Text.Lazy              as L
+import qualified Database.Persist.Postgresql as D
+import qualified Text.Blaze.Html5            as H
+import qualified Web.Scotty                  as S
 
 data SiteData = SiteData
                 { siteDataTitle           :: T.Text
@@ -94,11 +98,15 @@ data PageData = PageData
 
 type PageDataMap = M.Map T.Text T.Text
 
+type KeyMapKey a = D.KeyBackend (D.PersistEntityBackend a) a
+
+type KeyMap a = M.Map (KeyMapKey a) a
+
 data SiteDatabase = SiteDatabase
-                    { siteDatabaseEntries   :: IM.IntMap Entry
-                    , siteDatabaseTags      :: IM.IntMap Tag
-                    , siteDatabaseEntryTags :: IM.IntMap EntryTag
-                    , siteDatabaseSlugs     :: IM.IntMap Slug
+                    { siteDatabaseEntries   :: KeyMap Entry
+                    , siteDatabaseTags      :: KeyMap Tag
+                    , siteDatabaseEntryTags :: KeyMap EntryTag
+                    , siteDatabaseSlugs     :: KeyMap Slug
                     }
                     deriving (Show)
 
@@ -107,7 +115,7 @@ data SiteDatabase = SiteDatabase
 
 type RenderData  = (SiteRender H.Html, PageData)
 
-type RouteReader  = ReaderT SiteDatabase (Either L.Text) RenderData
+type RouteReader  = ReaderT (SiteDatabase, PageData) (Either L.Text) RenderData
 
 type RouteDatabase = S.ActionM RouteReader
 

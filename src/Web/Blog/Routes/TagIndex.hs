@@ -33,4 +33,4 @@ routeTagIndex tt = do
     pageData = blankPageData { pageDataTitle = Just title
                              , pageDataCss   = ["/css/page/archive.css"] }
 
-  siteRight (view,pageData)
+  return $ siteRight (view,pageData)

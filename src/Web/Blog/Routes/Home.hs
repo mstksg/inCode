@@ -24,7 +24,7 @@ routeHome page = do
 
   if page < 1 || page > maxPage'
     then
-      siteLeft "/"
+      return $ siteLeft "/"
     else do
       let
         pageTitle =
@@ -69,7 +69,7 @@ routeHome page = do
                                  , pageDataMap   = pdMap M.empty
                                  }
 
-      siteRight (view, pageData)
+      return $ siteRight (view, pageData)
 
 maxPage :: Int -> D.SqlPersistM Int
 maxPage perPage = do

@@ -17,5 +17,5 @@ routeAbout = do
     pageData = blankPageData { pageDataTitle = Just "About Me" 
                              , pageDataCss   = ["/css/page/about.css"] }
 
-  siteRight (view,pageData)
+  return $ siteRight (view,pageData)
 
