@@ -20,11 +20,7 @@ import qualified Database.Persist.Postgresql as D
 
 routeHome :: Int -> RouteDatabase
 routeHome page = do
-  let
-    m = appPrefsHomeEntries $ siteDataAppPrefs siteData
-
   now <- liftIO getCurrentTime
-
   return $ readerHome now page
 
   -- posteds <- 
@@ -81,10 +77,61 @@ routeHome page = do
 
 readerHome :: UTCTime -> Int -> RouteReader
 readerHome now page = do
-  (db, _) <- ask
+  (db, blankPageData) <- ask
+
+  let
+    perPage = appPrefsHomeEntries $ siteDataAppPrefs siteData
+    mPage = maxPage now perPage db
 
 
-  return undefined
+  if page < 1 || page > mPage
+    then
+      siteLeft "/"
+    else do
+      let
+        pageTitle =
+          if page == 1
+            then
+              Nothing
+            else
+              Just $ T.concat ["Home (Page ", T.pack $ show page,")"]
+
+        urlBase = renderUrl' "/home/"
+
+        eList = undefined
+      -- eList <- liftIO $ runDB $
+      --   postedEntries [ D.Desc EntryPostedAt
+      --                 , D.LimitTo m
+      --                 , D.OffsetBy $ (page - 1) * m ]
+      --     >>= mapM wrapEntryData
+
+      -- blankPageData <- genPageData
+
+      let
+        pdMap = execState $ do
+          when (page > 1) $ do
+            let
+              prevUrl = if page == 1
+                then renderUrl' "/"
+                else T.append urlBase $ T.pack $ show $ page - 1
+            modify $
+              M.insert "prevPage" prevUrl
+            modify $
+              M.insert "pageNum" $ T.pack $ show page
+
+          when (page < mPage) $
+            modify $
+              M.insert "nextPage" (T.append urlBase $ T.pack $ show $ page + 1)
+
+        view = viewHome eList page
+        pageData = blankPageData { pageDataTitle = pageTitle
+                                 , pageDataCss   = ["/css/page/home.css"
+                                                   ,"/css/pygments.css"]
+                                 , pageDataJs    = ["/js/disqus_count.js"]
+                                 , pageDataMap   = pdMap M.empty
+                                 }
+
+      siteRight (view, pageData)
 
 maxPage :: UTCTime -> Int -> SiteDatabase -> Int
 maxPage now perPage db = (c + perPage - 1) `div` perPage
