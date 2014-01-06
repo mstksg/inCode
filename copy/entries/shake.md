@@ -1,12 +1,12 @@
-Shake: Task Automation and Shell Scripting in Haskell
-=====================================================
+Shake: Task Automation and Scripting in Haskell
+===============================================
 
 Categories
 :   Haskell
 :   Tutorials
 Tags
 :   shake
-:   shell scripting
+:   scripting
 CreateTime
 :   2013/08/24 19:31:22
 PostDate
