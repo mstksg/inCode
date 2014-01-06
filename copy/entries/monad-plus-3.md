@@ -223,7 +223,7 @@ findSolutions n = do
 
 Hm.  Sounds good!  We're done!
 
-So now we only need to implement `makeNMoves` and `isFinalSol`!
+So now we only need to implement `makeNMoves` and `isSolution`!
 
 <aside>
     ###### Welcome to Haskell!
@@ -329,7 +329,7 @@ that what we are doing is simply defining the journey `makeNMoves` as the
 result of taking `n` `makeMove` journeys one after the other.  The same as
 that first do block.
 
-### isFinalSol
+### isSolution
 
 Let's define our helper function `isSolution :: Plan -> Bool`.  Basically, we
 want to check if the positions of all of the characters are `East`.
@@ -458,14 +458,14 @@ looks like a map!
 
 We also compare all of them to `East`.  That sounds like a job for the prelude
 function `all :: (a -> Bool) -> [a] -> Bool`, which takes a predicate and a
-list and returns true if all items on the list satisfy the predicate.
+list and returns true if all items in the list satisfy the predicate.
 
 Let's piece it all together:
 
 ~~~haskell
 isSolution p = all (== East) positions
     where
-        positions = map (positionOf p) [Farmer .. Cabbage]
+        positions = map (positionOf p) [Farmer ..]
 ~~~
 
 <aside>
@@ -497,11 +497,9 @@ map (positionOf p) [Farmer, Wolf, Goat, Cabbage]
 
 </aside>
 
-We use `[Farmer .. Cabbage]` as shorthand for `[Farmer, Wolf, Goat, Cabbage]`
+We use `[Farmer ..]` as shorthand for `[Farmer, Wolf, Goat, Cabbage]`
 --- this is because `Character` is an Enum, so it can be enumerated using
-enumeration syntax.  It basically means "all characters from `Farmer` to
-`Cabbage`", ordered by the order they were defined.
-
+enumeration syntax.  It basically means "`Farmer`, etc."
 
 ### makeMove
 

@@ -36,7 +36,7 @@ findSolutions n = do
 -- | One step of the journey: add a move.
 makeMove :: Plan -> [Plan]
 makeMove p = do
-    next <- MoveThe <$> [Farmer .. Cabbage]
+    next <- MoveThe <$> [Farmer ..]
     guard       $ moveLegal p next
     guard . not $ moveRedundant p next
     let
