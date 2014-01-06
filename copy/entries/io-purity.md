@@ -184,8 +184,9 @@ getStringAndPrint = print (getStringFromStdin)
 
 What would you expect to happen here?
 
-Remember, `print` prints out what it is passed.  `getStringFromStdin` is a
-computation object that gives a string when executed.
+Remember, `print` is an IO instruction prints out what it is passed.
+`getStringFromStdin` is a computation object that gives a string when
+executed.
 
 In another language, which deals with computations (and not representations of
 them), you would expect it to get a string from stdin and then print it.  Sort
@@ -194,9 +195,9 @@ of like an echo.
 However, this is not the case in Haskell.  What is `getStringFromStdin`?  It
 is *not* a string --- it is a computation object.
 
-What will happen is that `print` won't print the result of
-`getStringFromStdin`.  `print` will print out the **representation of the
-computation**!  It'll print out the *data structure representing the
+What will happen is that `print` (when executed by a computer) won't print the
+result of `getStringFromStdin`.  `print` will print out the **representation
+of the computation**!  It'll print out the *data structure representing the
 computation*, or some string "representing" the act of the computation!
 
 (At least, that's what it's supposed to do.  Unfortunately, `IO` data
