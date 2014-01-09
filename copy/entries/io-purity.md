@@ -389,6 +389,9 @@ The computation that it represents is not necessarily deterministic.
 This distinction between **evaluation** and **execution** is what sets apart
 this I/O model that permits its purity.
 
+`main` is a pure value.  The instruction data structure `main` represesents
+impure instructions.
+
 And *that* is how we can deal with I/O in Haskell while remaining a pure
 language.
 
