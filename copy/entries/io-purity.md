@@ -374,14 +374,12 @@ Here is the crucial difference between **evaluation** and **execution**:
 The computer/processor --- which is given a binary representation of the IO
 data structure, and is completely separate from the language itself --- now
 **executes** this binary/compiled data structure.  Its execution of this
-binary is, of course, [potentially unpredictable][halting], and can depend on
-things like the temperature, the network connection, the person at the
-keyboard, the database contents, etc.  The *instructions/binary* that it
-follows will be the same every time.  The *result* of those instructions will
-be different every time (as someone who has ever attempted to bake a cake can
-testify).
-
-[halting]: http://en.wikipedia.org/wiki/Halting_problem
+binary is, of course, potentially unpredictable and in general
+non-deterministic, and can depend on things like the temperature, the network
+connection, the person at the keyboard, the database contents, etc.  The
+*instructions/binary* that it follows will be the same every time.  The
+*result* of those instructions will be different every time (as someone who
+has ever attempted to bake a cake can testify).
 
 `main` is a function that returns/evaluates deterministically to a data
 structure representing a computation.
