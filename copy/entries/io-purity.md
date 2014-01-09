@@ -227,7 +227,8 @@ level code itself.  But don't do this, or you risk confusing a possible
 representation of an object for the actual abstract object itself.  (Think
 about it like saying that a mathematical matrix is a series of pencil swirls
 on a piece of paper.)  But yes, at any time, you can "compile"/make concrete
-an IO object into standalone C code with GHC.
+an IO object into standalone C code with GHC.  This is actually a fact, and
+every IO object can be said to correspond directly with a chunk of C code.
 
 Really, though, there are many ways to "translate" this data structure into
 instructions for anyone to follow.  [Haste][], for example, takes `IO` data
