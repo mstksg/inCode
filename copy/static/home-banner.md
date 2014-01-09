@@ -12,7 +12,7 @@ ways to marvel, wonder, and create.  Join me if you wish!
 
 [about]: / "It's a picture of me! :D"
 
-Check out my most popular article: [The Comprise-less Reconciliation of Puriy
+Check out my most popular article: [The Compriseless Reconciliation of Purity
 and I/O][io]!
 
 [io]: http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity
