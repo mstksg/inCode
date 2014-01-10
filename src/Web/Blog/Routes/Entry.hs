@@ -15,7 +15,7 @@ import Control.Applicative                      ((<$>))
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.List                                (find, sortBy)
-import Data.Maybe                               (fromJust, listToMaybe)
+import Data.Maybe                               (listToMaybe)
 import Data.Ord                                 (comparing)
 import Data.Time
 import Web.Blog.Models
@@ -104,7 +104,7 @@ readerEntry :: (KeyMapKey Entry, Entry) -> UTCTime -> RouteReader
 readerEntry (k, e) now = do
   rd@(_, blankPageData) <- ask
   tags          <- getTagsI k
-  (prev, next)  <- prevNext now
+  (prev, next)  <- prevNext now e
 
   let
     pdMap = execState $ do
@@ -141,17 +141,18 @@ readerEntry (k, e) now = do
 
   siteRight (view, pageData)
 
-prevNext :: UTCTime ->
+prevNext :: UTCTime -> Entry ->
             RouteReaderM
                 (Maybe (KeyMapPair Entry), Maybe (KeyMapPair Entry))
-prevNext now = do
+prevNext now e = do
   (db, _) <- ask
   posteds <- M.elems <$> postedEntriesI now
   let
-    postedsDesc = sortBy (comparing (fromJust . entryPostedAt)) posteds
-    postedsAsc = sortBy (flip (comparing (fromJust . entryPostedAt))) posteds
-    befores = dropWhile ((> now) . fromJust . entryPostedAt) postedsDesc
-    afters = dropWhile ((< now) . fromJust . entryPostedAt) postedsAsc
+    eTime = entryPostedAt e
+    postedsDesc = sortBy (flip (comparing entryPostedAt)) posteds
+    postedsAsc = sortBy (comparing entryPostedAt) posteds
+    befores = dropWhile ((>= eTime) . entryPostedAt) postedsDesc
+    afters = dropWhile ((<= eTime) . entryPostedAt) postedsAsc
     prev = do
       eIdent <- entryIdentifier <$> listToMaybe befores
       listToMaybe . M.toList $
