@@ -97,7 +97,7 @@ processEntryFile entryFile = do
                   , EntryModifiedAt D.=. Nothing
                   , EntryIdentifier D.=. Nothing
                   ]
-    D.deleteWhere [ EntryTagEntryId D.==. eKey ]
+    -- D.deleteWhere [ EntryTagEntryId D.==. eKey ]
 
     void $ M.traverseWithKey (applyMetas eKey) metas
 
@@ -172,9 +172,14 @@ applyMetas entryKey MetaKeyModifiedTime (MetaValueTime t) =
 applyMetas entryKey MetaKeyIdentifier (MetaValueText i) =
   void $ D.update entryKey [EntryIdentifier D.=. Just i]
 applyMetas _ MetaKeyPreviousTitles _ = return ()
-applyMetas entryKey MetaKeyTags (MetaValueTags ts) =
-  forM_ ts $ \(D.Entity tKey _) ->
-    void $ D.insertUnique $ EntryTag entryKey tKey
+applyMetas entryKey MetaKeyTags (MetaValueTags ts) = do
+  let
+    tagIds = map D.entityKey ts
+  D.deleteWhere
+    [ EntryTagEntryId D.==. entryKey
+    , EntryTagTagId D./<-. tagIds ]
+  forM_ tagIds $ \tKey ->
+    D.insertUnique $ EntryTag entryKey tKey
 applyMetas _ _ _ = undefined
 
 
