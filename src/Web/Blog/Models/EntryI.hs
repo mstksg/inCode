@@ -2,8 +2,9 @@ module Web.Blog.Models.EntryI where
 
 import Control.Applicative
 import Control.Monad.Reader
-import Data.List                             (find)
+import Data.List                             (find, sortBy)
 import Data.Maybe                            (mapMaybe, fromJust)
+import Data.Ord                              (comparing)
 import Data.Time
 import Web.Blog.Models.Models
 import Web.Blog.Models.Types
@@ -63,5 +64,11 @@ getCurrentSlugI k = do
   return $ find ((&&) <$> slugIsCurrent <*> matchingSlug) slugs
   where
     matchingSlug = (== k) . slugEntryId
+
+sortEntries :: KeyMap Entry -> [KeyMapPair Entry]
+sortEntries es = sorted
+  where
+    entryList = M.toList es
+    sorted = sortBy (flip (comparing (entryPostedAt . snd))) entryList
 
 

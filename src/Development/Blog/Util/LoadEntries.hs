@@ -176,7 +176,7 @@ applyMetas entryKey _ (MetaValueTags ts) = do
   let
     tagIds = map D.entityKey ts
   D.deleteWhere
-    [ EntryTagEntryId D.==. entryKey
+    [ EntryTagEntryId D.==. entryKey 
     , EntryTagTagId D./<-. tagIds ]
   forM_ tagIds $ \tKey ->
     D.insertUnique $ EntryTag entryKey tKey

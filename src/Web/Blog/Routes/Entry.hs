@@ -148,8 +148,8 @@ prevNext now = do
   (db, _) <- ask
   posteds <- M.elems <$> postedEntriesI now
   let
-    postedsDesc = sortBy (flip (comparing (fromJust . entryPostedAt))) posteds
-    postedsAsc = sortBy (comparing (fromJust . entryPostedAt)) posteds
+    postedsDesc = sortBy (comparing (fromJust . entryPostedAt)) posteds
+    postedsAsc = sortBy (flip (comparing (fromJust . entryPostedAt))) posteds
     befores = dropWhile ((> now) . fromJust . entryPostedAt) postedsDesc
     afters = dropWhile ((< now) . fromJust . entryPostedAt) postedsAsc
     prev = do
