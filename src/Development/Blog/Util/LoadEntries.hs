@@ -101,8 +101,6 @@ processEntryFile entryFile = do
 
     void $ M.traverseWithKey (applyMetas eKey) metas
 
-    liftIO $ print entryFile
-
     updateEntryTitle eKey title
 
     eVal <- D.getJust eKey
@@ -171,18 +169,27 @@ applyMetas entryKey MetaKeyModifiedTime (MetaValueTime t) =
   void $ D.update entryKey [EntryModifiedAt D.=. Just t]
 applyMetas entryKey MetaKeyIdentifier (MetaValueText i) =
   void $ D.update entryKey [EntryIdentifier D.=. Just i]
-applyMetas _ MetaKeyPreviousTitles _ = return ()
-applyMetas entryKey MetaKeyTags (MetaValueTags ts) = do
+applyMetas entryKey mk (MetaValueTags ts) = do
   let
     tagIds = map D.entityKey ts
+    tt = case mk of
+      MetaKeyTags       -> GeneralTag
+      MetaKeyCategories -> CategoryTag
+      MetaKeySeries     -> SeriesTag
+      _                 -> error $ "Not a tag type meta key: " ++ show mk
+
+  tagsOfType <- map D.entityKey <$> D.selectList [ TagType_ D.==. tt ] []
   D.deleteWhere
     [ EntryTagEntryId D.==. entryKey
-    , EntryTagTagId D./<-. tagIds ]
-  forM_ tagIds $ \tKey ->
-    D.insertUnique $ EntryTag entryKey tKey
-applyMetas _ _ _ = undefined
-
-
+    , EntryTagTagId D./<-. tagIds
+    , EntryTagTagId D.<-. tagsOfType ]
+  forM_ tagIds $ \tKey -> do
+    -- liftIO $ print tKey
+    res <- D.insertUnique $ EntryTag entryKey tKey
+    liftIO $ print res
+    return res
+applyMetas _ MetaKeyPreviousTitles _ = return ()
+applyMetas _ k v = error $ "Weird meta key/value: " ++ show (k,v)
 
 processMeta :: TimeZone -> ([P.Inline], [[P.Block]]) -> D.SqlPersistM (MetaKey, MetaValue)
 processMeta tzone (keyBlocks, valBlockss) = do
@@ -207,15 +214,16 @@ processMeta tzone (keyBlocks, valBlockss) = do
         Just t -> return $ MetaValueTime t
         Nothing -> return MetaValueNull
     generateTags :: TagType -> [[P.Block]] -> D.SqlPersistM MetaValue
-    generateTags tt bss = MetaValueTags <$>
-      mapM (generateTag . T.pack . renderBlocks) bss
-      where
-        generateTag :: T.Text -> D.SqlPersistM (D.Entity Tag)
-        generateTag label = do
-          tag <- D.getBy $ UniqueLabelType label tt
-          case tag of
-            Just t -> return t
-            Nothing -> fmap fromJust $ insertTag' $ PreTag label tt Nothing
+    generateTags tt bss =
+      MetaValueTags <$>
+        mapM (generateTag . T.pack . renderBlocks) bss
+        where
+          generateTag :: T.Text -> D.SqlPersistM (D.Entity Tag)
+          generateTag label = do
+            tag <- D.getBy $ UniqueLabelType label tt
+            case tag of
+              Just t -> return t
+              Nothing -> fmap fromJust $ insertTag' $ PreTag label tt Nothing
     renderBlocks :: [P.Block] -> String
     renderBlocks bs =
       P.writeMarkdown basicWriterOptions $ P.doc $ P.fromList bs
