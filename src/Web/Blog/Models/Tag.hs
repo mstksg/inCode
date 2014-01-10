@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Web.Blog.Models.Tag  where
 
 -- import Data.Maybe                         (isJust)

@@ -71,7 +71,7 @@ processEntryFile entryFile = do
 
     metas <- fmap M.fromList . mapM (processMeta tzone) $ defListList metaBlock
 
-    entryEntity@(D.Entity eKey _) <- do
+    (D.Entity eKey _) <- do
       entryMaybe <- findExistingEntry title metas
       case entryMaybe of
         Just e -> return e
@@ -97,9 +97,9 @@ processEntryFile entryFile = do
                   , EntryModifiedAt D.=. Nothing
                   , EntryIdentifier D.=. Nothing
                   ]
-    D.deleteWhere [ EntryTagEntryId D.==. eKey ]
+    -- D.deleteWhere [ EntryTagEntryId D.==. eKey ]
 
-    void $ M.traverseWithKey (applyMetas entryEntity) metas
+    void $ M.traverseWithKey (applyMetas eKey) metas
 
     liftIO $ print entryFile
 
@@ -124,56 +124,63 @@ processEntryFile entryFile = do
     isDefList _                       = False
     defListList (P.DefinitionList ds) = ds
     defListList _                     = mempty
-    applyMetas :: D.Entity Entry -> MetaKey -> MetaValue -> D.SqlPersistM ()
-    applyMetas _ _ MetaValueNull = return ()
-    applyMetas (D.Entity entryKey _) MetaKeyCreateTime (MetaValueTime t) =
-      void $ D.update entryKey [EntryCreatedAt D.=. Just t]
-    applyMetas (D.Entity entryKey _) MetaKeyPostDate (MetaValueTime t) =
-      void $ D.update entryKey [EntryPostedAt D.=. Just t]
-    applyMetas (D.Entity entryKey _) MetaKeyModifiedTime (MetaValueTime t) =
-      void $ D.update entryKey [EntryModifiedAt D.=. Just t]
-    applyMetas (D.Entity entryKey _) MetaKeyIdentifier (MetaValueText i) =
-      void $ D.update entryKey [EntryIdentifier D.=. Just i]
-    applyMetas _ MetaKeyPreviousTitles _ = return ()
-    applyMetas (D.Entity entryKey _) _ mvts =
-      forM_ ts $ \(D.Entity tKey _) ->
-        void $ D.insertUnique $ EntryTag entryKey tKey
+
+findExistingEntry :: T.Text -> M.Map MetaKey MetaValue -> D.SqlPersistM (Maybe (D.Entity Entry))
+findExistingEntry title metas = foldl go (return Nothing) attempts
+  where
+    go a x = do
+      acc <- a
+      case acc of
+        Just _ -> return acc
+        Nothing -> x
+    attempts :: [D.SqlPersistM (Maybe (D.Entity Entry))]
+    attempts = concat
+      [ [ progressReport "Looking up entry by title..."
+        , D.getBy $ UniqueEntryTitle title
+        , progressReport "Looking up entry by identifier..."
+        , case M.lookup MetaKeyIdentifier metas of
+            Just (MetaValueText i) ->
+              listToMaybe <$>
+                D.selectList
+                  [ EntryIdentifier D.==. Just i ]
+                  [ D.Asc EntryCreatedAt ]
+            _ -> return Nothing
+        , progressReport "Looking up entry by previous titles..."
+        ]
+      , prevTitlesSearch
+      , [ progressReport "No entry found ... creating new entry"
+        ]
+      ]
       where
-        MetaValueTags ts = mvts
-    findExistingEntry :: T.Text -> M.Map MetaKey MetaValue -> D.SqlPersistM (Maybe (D.Entity Entry))
-    findExistingEntry title metas = foldl go (return Nothing) attempts
-      where
-        go a x = do
-          acc <- a
-          case acc of
-            Just _ -> return acc
-            Nothing -> x
-        attempts :: [D.SqlPersistM (Maybe (D.Entity Entry))]
-        attempts = concat
-          [ [ progressReport "Looking up entry by title..."
-            , D.getBy $ UniqueEntryTitle title
-            , progressReport "Looking up entry by identifier..."
-            , case M.lookup MetaKeyIdentifier metas of
-                Just (MetaValueText i) ->
-                  listToMaybe <$>
-                    D.selectList
-                      [ EntryIdentifier D.==. Just i ]
-                      [ D.Asc EntryCreatedAt ]
-                _ -> return Nothing
-            , progressReport "Looking up entry by previous titles..."
-            ]
-          , prevTitlesSearch
-          , [ progressReport "No entry found ... creating new entry"
-            ]
-          ]
-          where
-            prevTitlesSearch :: [D.SqlPersistM (Maybe (D.Entity Entry))]
-            prevTitlesSearch =
-              case M.lookup MetaKeyPreviousTitles metas of
-                Just (MetaValueTexts ts) ->
-                  map (D.getBy . UniqueEntryTitle) ts
-                _ -> []
-            progressReport t = liftIO (putStrLn t) >> return Nothing
+        prevTitlesSearch :: [D.SqlPersistM (Maybe (D.Entity Entry))]
+        prevTitlesSearch =
+          case M.lookup MetaKeyPreviousTitles metas of
+            Just (MetaValueTexts ts) ->
+              map (D.getBy . UniqueEntryTitle) ts
+            _ -> []
+        progressReport t = liftIO (putStrLn t) >> return Nothing
+
+
+applyMetas :: D.Key Entry -> MetaKey -> MetaValue -> D.SqlPersistM ()
+applyMetas _ _ MetaValueNull = return ()
+applyMetas entryKey MetaKeyCreateTime (MetaValueTime t) =
+  void $ D.update entryKey [EntryCreatedAt D.=. Just t]
+applyMetas entryKey MetaKeyPostDate (MetaValueTime t) =
+  void $ D.update entryKey [EntryPostedAt D.=. Just t]
+applyMetas entryKey MetaKeyModifiedTime (MetaValueTime t) =
+  void $ D.update entryKey [EntryModifiedAt D.=. Just t]
+applyMetas entryKey MetaKeyIdentifier (MetaValueText i) =
+  void $ D.update entryKey [EntryIdentifier D.=. Just i]
+applyMetas _ MetaKeyPreviousTitles _ = return ()
+applyMetas entryKey MetaKeyTags (MetaValueTags ts) = do
+  let
+    tagIds = map D.entityKey ts
+  D.deleteWhere
+    [ EntryTagEntryId D.==. entryKey
+    , EntryTagTagId D./<-. tagIds ]
+  forM_ tagIds $ \tKey ->
+    D.insertUnique $ EntryTag entryKey tKey
+applyMetas _ _ _ = undefined
 
 
 

@@ -9,16 +9,26 @@ module Web.Blog.Types (
   , SiteRender
   , PageDataMap
   , PageData(..)
-  , RouteEither
-  , error404
+  , SiteDatabase(..)
+  , RenderData
+  , RouteReader
+  , RouteReaderM
+  , RouteDatabase
+  , KeyMapKey
+  , KeyMapPair
+  , KeyMap
   ) where
 
+-- import Data.Default
+-- import qualified Data.IntMap              as IM
 import Control.Monad.Reader
-import qualified Data.Map         as M
-import qualified Data.Text        as T
-import qualified Data.Text.Lazy   as L
-import qualified Text.Blaze.Html5 as H
-import qualified Web.Scotty       as S
+import Web.Blog.Models
+import qualified Data.Map                    as M
+import qualified Data.Text                   as T
+import qualified Data.Text.Lazy              as L
+import qualified Database.Persist.Postgresql as D
+import qualified Text.Blaze.Html5            as H
+import qualified Web.Scotty                  as S
 
 data SiteData = SiteData
                 { siteDataTitle           :: T.Text
@@ -76,8 +86,6 @@ data DatabaseConfig = DatabaseConfig
 
 type SiteRender a = ReaderT PageData S.ActionM a
 
-type PageDataMap = M.Map T.Text T.Text
-
 data PageData = PageData
                 { pageDataTitle    :: Maybe T.Text
                 , pageDataDesc     :: Maybe T.Text
@@ -90,7 +98,30 @@ data PageData = PageData
                 , pageDataMap      :: PageDataMap
                 }
 
-type RouteEither = S.ActionM (Either L.Text (SiteRender H.Html, PageData))
+type PageDataMap = M.Map T.Text T.Text
 
-error404 :: L.Text -> Either L.Text a
-error404 reason = Left $ L.append "/not-found?err=" reason
+type KeyMapKey a = D.KeyBackend (D.PersistEntityBackend a) a
+
+type KeyMapPair a = (KeyMapKey a, a)
+
+type KeyMap a = M.Map (KeyMapKey a) a
+
+data SiteDatabase = SiteDatabase
+                    { siteDatabaseEntries   :: KeyMap Entry
+                    , siteDatabaseTags      :: KeyMap Tag
+                    , siteDatabaseEntryTags :: KeyMap EntryTag
+                    , siteDatabaseSlugs     :: KeyMap Slug
+                    }
+                    deriving (Show)
+
+-- instance Default SiteDatabase where
+--     def = SiteDatabase empty empty empty empty
+
+type RenderData  = (SiteRender H.Html, PageData)
+
+type RouteReaderM a = ReaderT (SiteDatabase, PageData) (Either L.Text) a
+
+type RouteReader  = RouteReaderM RenderData
+
+type RouteDatabase = S.ActionM RouteReader
+

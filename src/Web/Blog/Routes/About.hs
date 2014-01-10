@@ -8,7 +8,7 @@ import Web.Blog.Render
 import Web.Blog.Types
 import Web.Blog.Views.About
 
-routeAbout :: RouteEither
+routeAbout :: RouteDatabase
 routeAbout = do
   blankPageData <- genPageData
 
@@ -17,5 +17,5 @@ routeAbout = do
     pageData = blankPageData { pageDataTitle = Just "About Me" 
                              , pageDataCss   = ["/css/page/about.css"] }
 
-  return $ Right (view,pageData)
+  return $ siteRight (view,pageData)
 
