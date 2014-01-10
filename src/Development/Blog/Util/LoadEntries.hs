@@ -172,7 +172,7 @@ applyMetas entryKey MetaKeyModifiedTime (MetaValueTime t) =
 applyMetas entryKey MetaKeyIdentifier (MetaValueText i) =
   void $ D.update entryKey [EntryIdentifier D.=. Just i]
 applyMetas _ MetaKeyPreviousTitles _ = return ()
-applyMetas entryKey MetaKeyTags (MetaValueTags ts) = do
+applyMetas entryKey _ (MetaValueTags ts) = do
   let
     tagIds = map D.entityKey ts
   D.deleteWhere
@@ -180,7 +180,7 @@ applyMetas entryKey MetaKeyTags (MetaValueTags ts) = do
     , EntryTagTagId D./<-. tagIds ]
   forM_ tagIds $ \tKey ->
     D.insertUnique $ EntryTag entryKey tKey
-applyMetas _ _ _ = undefined
+applyMetas _ _ _ = return ()
 
 
 
