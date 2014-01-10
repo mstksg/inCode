@@ -183,11 +183,8 @@ applyMetas entryKey mk (MetaValueTags ts) = do
     [ EntryTagEntryId D.==. entryKey
     , EntryTagTagId D./<-. tagIds
     , EntryTagTagId D.<-. tagsOfType ]
-  forM_ tagIds $ \tKey -> do
-    -- liftIO $ print tKey
-    res <- D.insertUnique $ EntryTag entryKey tKey
-    liftIO $ print res
-    return res
+  forM_ tagIds $ \tKey ->
+    D.insertUnique $ EntryTag entryKey tKey
 applyMetas _ MetaKeyPreviousTitles _ = return ()
 applyMetas _ k v = error $ "Weird meta key/value: " ++ show (k,v)
 

@@ -48,8 +48,9 @@ readerHome now page = do
               Just $ T.concat ["Home (Page ", T.pack $ show page,")"]
 
         urlBase = renderUrl' "/home/"
+        onPage = take perPage . drop (perPage * (page - 1)) $ posteds
 
-      eList <- mapM wrapEntryDataI posteds
+      eList <- mapM wrapEntryDataI onPage
 
       let
         pdMap = execState $ do
