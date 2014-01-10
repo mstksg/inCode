@@ -7,6 +7,7 @@ Categories
 Tags
 :   web development
 :   heroku
+:   haskell
 CreateTime
 :   2013/09/23 23:13:10
 PostDate

@@ -7,6 +7,7 @@ Categories
 Tags
 :   shake
 :   scripting
+:   haskell
 CreateTime
 :   2013/08/24 19:31:22
 PostDate

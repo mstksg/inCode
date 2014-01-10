@@ -6,6 +6,7 @@ Categories
 :   Ramblings
 Tags
 :   functional programming
+:   haskell
 Series
 :   MonadPlus: Success/Failure Monads
 :   Practical Monads
