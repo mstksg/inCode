@@ -169,17 +169,27 @@ applyMetas entryKey MetaKeyModifiedTime (MetaValueTime t) =
   void $ D.update entryKey [EntryModifiedAt D.=. Just t]
 applyMetas entryKey MetaKeyIdentifier (MetaValueText i) =
   void $ D.update entryKey [EntryIdentifier D.=. Just i]
-applyMetas entryKey _ (MetaValueTags ts) = do
+applyMetas entryKey mk (MetaValueTags ts) = do
   let
     tagIds = map D.entityKey ts
+    tt = case mk of
+      MetaKeyTags       -> GeneralTag
+      MetaKeyCategories -> CategoryTag
+      MetaKeySeries     -> SeriesTag
+      _                 -> error $ "Not a tag type meta key: " ++ show mk
+
+  tagsOfType <- map D.entityKey <$> D.selectList [ TagType_ D.==. tt ] []
   D.deleteWhere
     [ EntryTagEntryId D.==. entryKey
-    , EntryTagTagId D./<-. tagIds ]
-  forM_ tagIds $ \tKey ->
-    D.insertUnique $ EntryTag entryKey tKey
+    , EntryTagTagId D./<-. tagIds
+    , EntryTagTagId D.<-. tagsOfType ]
+  forM_ tagIds $ \tKey -> do
+    -- liftIO $ print tKey
+    res <- D.insertUnique $ EntryTag entryKey tKey
+    liftIO $ print res
+    return res
 applyMetas _ MetaKeyPreviousTitles _ = return ()
-applyMetas _ k v = fail . show $ (k,v) 
-
+applyMetas _ k v = error $ "Weird meta key/value: " ++ show (k,v)
 
 processMeta :: TimeZone -> ([P.Inline], [[P.Block]]) -> D.SqlPersistM (MetaKey, MetaValue)
 processMeta tzone (keyBlocks, valBlockss) = do
