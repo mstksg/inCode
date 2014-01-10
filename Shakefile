@@ -17,10 +17,13 @@ opts = shakeOptions { shakeFiles    = ".shake/"
                     }
 
 binPath = ".cabal-sandbox/bin"
+distPath = "dist/build/"
+-- binPath = "dist/build/blog/"
 -- cmdBin = cmd . (++) binPath
 -- systemBin = system' . (++) binPath
 
 bin = (binPath </>)
+dist f = distPath </> f </> f
 
 main :: IO ()
 main = shakeArgs opts $ do
@@ -69,4 +72,6 @@ main = shakeArgs opts $ do
 
   bin "*" *> \f -> do
     need ["configure"]
-    cmd "cabal" ["build", takeFileName f]
+    cmd "cabal" ["build", takeFileName f] :: Action ()
+    copyFile' (dist (takeFileName f)) f
+    -- cmd "cabal" ["copy", "--verbose=0"]
