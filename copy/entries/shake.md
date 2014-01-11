@@ -502,6 +502,10 @@ forM_ ["report1","report2","report3"] $ \reportName -> do
         cmd "pandoc" [ srcName, "-o", f, "-c", "css/report.css", "-S" ]
 ~~~
 
+Note however that you can get the same thing by just using wildcards (with
+`takeFileName`).  But this is just an example, feel free to let your
+imagination roam!
+
 ### Looking Forward
 
 We've seen how *Shake* is good at setting up systems for managing and
