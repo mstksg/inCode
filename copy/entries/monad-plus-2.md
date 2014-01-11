@@ -79,6 +79,11 @@ So, how can a list model success/failure?  Does that even make sense?
 Let's take a look at last article's `halve` function:
 
 ~~~haskell
+-- the built in function `guard`, to refresh your memory
+guard :: MonadPlus m => Bool -> m ()
+guard True  = return ()
+guard False = mzero
+
 halve :: Int -> Maybe Int
 halve n = do
     guard $ even n
@@ -100,7 +105,8 @@ Here, our success/fail mechanism was built into the Maybe container. Remember,
 first, it fails automatically if `n` is not even; then, it auto-succeeds with
 ``n `div` 2`` (which only works if it has not already failed).  But note that
 we didn't actually really "need" Maybe here...we could have used anything that
-had an `mzero` (insta-fail) and a `return` (auto-succeed).
+had an `mzero` (insta-fail, which is used in `guard`) and a `return`
+(auto-succeed).
 
 Let's see what happens when we replace our Maybe container with a list:
 
@@ -111,12 +117,13 @@ halve' n = do
     return $ n `div` 2
 ~~~
 
-This is...the exact same function.  We didn't do anything but change the type
-signature.  But because you believe me when I say that List is a
-MonadPlus...this should work, right?  `guard` should work for any MonadPlus,
+This is...the exact same function body.  We didn't do anything but change the
+type signature.  But because you believe me when I say that List is a
+MonadPlus...this should work, right?  `guard` should work for *any* MonadPlus,
 because every MonadPlus has an `mzero` (fail).  `return` should work for any
-MonadPlus, too --- it wouldn't be a MonadPlus without `return` implemented! We
-don't know exactly what failing and succeeding looks like in a list yet...but
+MonadPlus, too --- it wouldn't be a MonadPlus without `return` implemented!
+(Remember, typeclasses are similar to interfaces in OOP)  We don't know
+exactly what failing and succeeding actually *looks* like in a list yet...but
 if you know it's a MonadPlus (which List is, in the standard library), you
 know that it *has* these concepts defined somewhere.
 
@@ -189,8 +196,8 @@ Lists can model failure the same way that Maybe can.  But it should be
 apparent that lists can do a little "more" than Maybe...
 
 Consider `[3, 5]`.  Clearly this is to represent some sort of "success"
-(because a failure would be an empty list).  But
-what kind of "success" could it represent?
+(because a failure would be an empty list).  But what kind of "success" could
+it represent?
 
 How about we look at it this way: `[3, 5]` represents two separate *paths* to
 success.  When we look at a `Just 5`, we see a computation that succeeded with
@@ -210,8 +217,8 @@ a MonadPlus and therefore not representing failure or success at all)
 Think of it this way: A value goes through a long and arduous journey with
 many choices and possible paths and forks.  At the end of it, you have the
 result of every path that could have lead to a success.  Contrast this to the
-`Maybe` monad, where a value goes through this arduous journey, but never has
-any choice.  There is only one path --- successful, or otherwise.  A `Maybe` is
+Maybe monad, where a value goes through this arduous journey, but never has
+any choice.  There is only one path --- successful, or otherwise.  A Maybe is
 deterministic...a list provides a choice in paths.
 
 halveOrDouble
@@ -270,15 +277,16 @@ Let's try it out:
 [ 2, 8, 8, 32]
 ~~~
 
-The first list represents the results of all of the possible successful paths 5
-could have taken to "traverse" the dreaded `halveOrDouble` landscape twice ---
-double-halve, or double-double.  The second, 6 could have emerged successful
-with halve-double, double-halve, or double-double.  For 8, all paths are
-successful, incidentally.  He better check his privilege.
+The first list represents the results of all of the possible successful paths
+5 could have taken to "traverse" the dreaded `halveOrDouble` landscape twice
+--- double-halve, or double-double.  The second, 6 could have emerged
+successful with halve-double, double-halve, or double-double.  For 8, all
+paths are successful, incidentally.  He better check his privilege.
 
 ### Do notation
 
-Let's look at this in the do notation form to offer some possible insight:
+Let's look at the same thing in do notation form to offer some possible
+insight:
 
 ~~~haskell
 halveOrDoubleTwice :: Int -> [Int]
@@ -620,13 +628,15 @@ genericHalve n = do
     return $ n `div` 2
 ~~~
 
-is general enough that it works for both.  Hopefully it serves to show that
-**in do blocks, Lists and Maybes are structurally identical**.  You reason
-with them the exact same way you do with Maybe's.  In something like `x <-
-Just 5`, `x` represents a **single value**, the 5.  In something like `x <-
-[1,2,3]`, `x` *also* represents a single value --- the 1, the 2, or the 3,
-depending on which path you are currently on.  Then later in the block, you
-can refer to `x`, and `x` refers to *that* one specific `x` for that path.
+is general enough that it works for both.
+
+Hopefully this all serves to show that **in do blocks, Lists and Maybes are
+structurally identical**.  You reason with them the exact same way you do with
+Maybe's.  In something like `x <- Just 5`, `x` represents a **single value**,
+the 5.  In something like `x <- [1,2,3]`, `x` *also* represents a single value
+--- the 1, the 2, or the 3, depending on which path you are currently on.
+Then later in the block, you can refer to `x`, and `x` refers to *that* one
+specific `x` for that path.
 
 
 ### Until next time
