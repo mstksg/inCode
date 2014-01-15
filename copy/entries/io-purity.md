@@ -12,7 +12,7 @@ CreateTime
 PostDate
 :   2013/11/12 11:37:27
 ModifiedTime
-:   2013/11/18 13:45:01
+:   2014/01/15 05:13:36
 Identifier
 :   io-purity
 
@@ -373,10 +373,13 @@ Here is the crucial difference between **evaluation** and **execution**:
 
 `main` will always **evaluate** to the exact same computation data structure.
 
+`main` will always be the *exact* same program, no matter when you run it. (In
+particular, the program that gets a string from stdin and prints it)
+
 The computer/processor --- which is given a binary representation of the IO
 data structure, and is completely separate from the language itself --- now
-**executes** this binary/compiled data structure.  Its execution of this
-binary is, of course, potentially unpredictable and in general
+**executes** this binary/compiled data structure/program.  Its execution of
+this binary is, of course, potentially unpredictable and in general
 non-deterministic, and can depend on things like the temperature, the network
 connection, the person at the keyboard, the database contents, etc.  The
 *instructions/binary* that it follows will be the same every time.  The
@@ -500,4 +503,26 @@ make it extremely simple, expressive, and elegant.  Tools for combining two
 parsing rules into one.  Tools for combining two SQL operations into one.  For
 a language that handles computational data structures so well, *not* handling
 IO this way would be a real shame!
+
+
+### Why?
+
+One might ask about the usefulness of this whole thing.  After all, don't most
+languages "compile" to the same assembly code every time?  Why this game?
+
+The reason is that we can now deal with programs --- entire chunks of assembly
+code --- as first-class objects.  You can pass in computational instruction
+objects to a function the same way you can pass any normal object.  You can
+have two separate little "assembly code chunks" in complete isolation...and
+then you can combine them if you want, as well.  You can easily introduce
+parallel forks --- you can always pass in an "assembly code chunk", so why not
+pass an IO object into a fork function?  Every separate IO object is
+self-contained and manipulatable.  This fact is also true for the other
+"instruction set"-like objects mentioned earlier.  You can build them up and
+compose them and pass them as first-class things.
+
+And like we said before, you get all the benefits of [equational
+reasoning][eqreas] because you're dealing with pure "inert" compositions ---
+this is something you could never get if you dealt with executing the actual
+functions themselves!
 
