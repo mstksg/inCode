@@ -235,19 +235,21 @@ streamFrom n = SCons ( n, streamFrom (n+1) )
 ~~~
 
 The "current state" whenever we call `streamFrom n` is `n`...the "next state"
-(the "initial state" of the "tail") is `n+1`.
+(the "initial state" of the "tail") is `n+1`.  We could have provided any
+function `:: Int -> Int` there (say, `n+2`), that would be for us our "next
+state" function.
 
 So `myStream` is a Moore-like machine whose "next state" function is "the current
 state plus one".
 
-The problem with streams, however, is that you don't really affect their
+The problem with streams, however, is that you can't really affect their
 progress once they start.  Once you start `myStream`, it'll keep on marching
 on, and on, and on...you have no way to "influence" its progression *during*
-its march.  The *behavior* of our stream *can't be influenced* by the
-outside world in any way, once it has started.  This is a bit limiting,
-because we want behaviors that can compose and interact with eachother.
+its march.  The *behavior* of our stream *can't be influenced* by the outside
+world in any way, once it has started.  This is a bit limiting, because we
+want behaviors that we can have interact with each other.
 
-And so, we have the natural generalization of streams:
+And so, we have the natural generalization of streams: Auto.
 
 Auto
 ----
@@ -266,17 +268,17 @@ produce a different tuple based on an outside input.
 
 This is cool!
 
-Let's look at the type signature of Auto before we go too much futher.
+Let's look at the type signature of Auto before we go too much further.
 
 In `Auto a b`, `b` is the type of your "head" and the type of the items in
-your "tail".
+your "tail".  It's the type of your "stream".
 
 `a` is the type of the "influencing input".
 
 So now, we basically have a `Stream b`, except at every "step", we can
 "influence" the Stream with something of type `a`.
 
-### The Trivial Auto
+### A Trivial Auto
 
 Let's look at a direct "port" of our `myStream`:
 
@@ -311,7 +313,7 @@ xs :: Auto a Int
 
 Remember that we are really doing `(runAuto myStreamAuto) undefined`, but
 because of how Haskell associates function calls, the parentheses are
-unnecessary.  And besides, it kind of looks like `runAuto` is a two-parameter
+unnecessary.  And hey, it kind of looks like `runAuto` is a two-parameter
 function with an Auto as the first parameter and the "influence"/"input" as
 its second.  Which, due to the magic of currying-by-default, it really is!
 
@@ -324,7 +326,7 @@ Let's have a *resettable counter*.  Kind of like `myStreamAuto`, but at every
 step, you can choose to "reset" the count back to zero.
 
 Actually, let's just jump to something even bigger.  At every step, we can
-choose to "set" the counter to whatever we like.
+choose to "set" the counter to whatever int we like.
 
 We can do this by having the influence/input be a `Maybe Int`.  If we want the
 counter to progress normally, we pass in a `Nothing`.  If we want the counter
@@ -396,10 +398,10 @@ already passed in and what the internal state is.  As we will see, this
 internal state is completely opaque to the world.  The world only has access
 to the "output", the result.
 
-(Remember that, because we're in a functional language, nothing is actually
-really "mutable".  When we say that we have a stateful function, we really
-mean that every time we "call" the function, we get back an "updated" function
-with the new state that behaves differently when "called").
+(Remember that, because we're in a functional language, nothing is technically
+actually really "mutable".  When we say that we have a stateful function, we
+really mean that every time we "call" the function, we get back an "updated"
+function with the new state that behaves differently when "called").
 
 To put it in terms of `settableAuto`:
 
@@ -454,11 +456,12 @@ False
 True
 ~~~
 
-Not that there is in general really no way to ever access the `n` internally.
-We only "offer" a way to "set" it using our input.
+Note that there is in general really no way to ever access the `n` internally.
+It is completely sealed off from the world, except by explicit design.  Here,
+we choose to only "offer" a way to "set" it using our input.
 
-Now it should be clear the three distinct concepts --- the input, output, and
-state.
+Now it the three distinct concepts --- the input, output, and
+state --- should be clear.
 
 *   The "input" again is a `Maybe Int` where we can choose to reset the march
     of the state.
@@ -487,6 +490,22 @@ values.
 Now, we have a way to model behaviors that can somehow interact with the
 outside world.
 
+It might be interesting to note one thing.  The type of the input and the type
+of the output are specified explicitly in the type of the Auto.  From seeing
+`Auto a b`, you know that the input type must always be `a` and the output
+type must always be `b`.
+
+However...what is the type of the internal state?
+
+Curiously enough, it isn't in the type of the Auto.  So not only can you not
+in general access it...you can't even know the type of it!  So even if you
+could "pull" it out arbitrarily, you wouldn't be able to work with it in a
+typesafe manner.
+
+Even more trippy is the fact that because the type of your Auto does not fix
+the type of the state...the type of the state can actually *change*
+dynamically over the progression of the Auto!
+
 ### The Accumulator
 
 Let's try our hand at another Auto, but instead of looking at things as an
@@ -494,7 +513,8 @@ influencable and eternally marching stream, we're going to try to look at
 things as a function with state that affects its output.
 
 How about an Auto that "accumulates" and "sums up" all of its incoming inputs,
-starting at 0?
+starting at 0?  More correctly, an Auto that, given any int, "returns" the sum
+of that int with all of the previous ints it has received in its lifetime.
 
 ~~~haskell
 summer :: Auto Int Int
@@ -523,8 +543,8 @@ summer = sumFrom 0
 
 *   The "input" is our incoming `Int` --- 10, 3, 15, -17, etc.
 *   The "output" is the accumulated sum/integral -- 10, 13, 28, 11, etc.
-*   The "state" in this case is the accumulator, and stays in sync with the
-    output. But remember that this is not in general the case.
+*   The "state" in this case is the accumulator, which in this case stays in
+    sync with the output. But remember that this is not the case in general.
 
 Just for kicks, let's generalize this and make an Auto version of `foldl`:
 give us an operator and an initial value, and we'll "fold up" all of our
@@ -604,7 +624,7 @@ like the others before it.  It's a...."function-like thing".
 "Function Things"
 -----------------
 
-Which leads us to our next point.
+Which brings us back to our main point of emphasis.
 
 *Autos are function-like things*.
 
