@@ -205,7 +205,7 @@ Basically, we get for free the function `runStream`, a function that yanks the
 tuple out of the stream.
 
 One more final step --- because `Stream` has only one constructor and one
-field, we can make it a `newtype`, which has the exact same semantics/usage as
+field, we can make it a `newtype`, which has similar usage patterns/syntax as
 a `data`, but which the compiler can more easily optimize:
 
 ~~~haskell
