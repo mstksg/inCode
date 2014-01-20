@@ -204,7 +204,7 @@ runStream :: Stream b -> (b, Stream b)
 Basically, we get for free the function `runStream`, a function that yanks the
 tuple out of the stream.
 
-One more final step --- because `Stream` has only one constructor and one
+One minor final touch --- because `Stream` has only one constructor and one
 field, we can make it a `newtype`, which has similar usage patterns/syntax as
 a `data`, but which the compiler can more easily optimize:
 
@@ -239,15 +239,75 @@ The "current state" whenever we call `streamFrom n` is `n`...the "next state"
 function `:: Int -> Int` there (say, `n+2`), that would be for us our "next
 state" function.
 
-So `myStream` is a Moore-like machine whose "next state" function is "the current
-state plus one".
+So `myStream` is a Moore-like machine whose "next state" function is "the
+current state plus one".
 
-The problem with streams, however, is that you can't really affect their
-progress once they start.  Once you start `myStream`, it'll keep on marching
-on, and on, and on...you have no way to "influence" its progression *during*
-its march.  The *behavior* of our stream *can't be influenced* by the outside
-world in any way, once it has started.  This is a bit limiting, because we
-want behaviors that we can have interact with each other.
+#### Notes on state
+
+Let's take a quick diversion to discuss the nature of the "state" in our
+Streams.
+
+Note that while the type signature of our Stream gives us the type of the
+elements in the stream...it actually doesn't really say anything about the
+type of the *state* of the stream.  This is a clue to a useful aspect of these
+types of machines --- the state is, in the general case, completely
+inaccessible.  If instead of `n`, we had put, say, `even . round . log .
+fromIntegral $ n`, we would have a stream that seemed to vary erratically from
+`True` and `False`.  Internally, there would be a counting `n`...but
+externally, all we would be able to "see" was the erratic `True`/`False`
+behavior.
+
+
+~~~haskell
+myErraticStream :: Stream Bool
+myErraticStream = erraticStreamFrom 1
+  where
+    erraticStreamFrom :: Int -> Streal Bool
+    erraticStreamFrom n = SCons (
+        even . round . log . fromIntegral $ n
+      , erraticStreamFrom (n+1)
+      )
+~~~
+
+~~~haskell
+λ: let (x,xs) = runStream myErraticStrea
+λ: x
+True
+λ: :t xs
+xs :: Stream Bool
+λ: let (y,ys) = runStream xs
+λ: y
+False
+λ: let (z,zs) = runStream ys
+λ: z
+False
+λ: let (j,js) = runStream zs
+λ: j
+False
+λ: let (k,ks) = runStream js
+λ: k
+True
+λ: let (l,ls) = runStream ks
+λ: l
+True
+~~~
+
+Internally, there is state.  Externally, all we can observe is a function of
+the state; we cannot actually in general ever directly access or modify it.
+
+Actually...because the type of our Stream does not fix the type of our state,
+the type of our state can actually *vary dynamically* over the course of the
+progression of the stream!  Trippy stuff.
+
+#### Continuing on
+
+Anyways, the problem with streams, as you might have seen, is that you can't really
+affect their progress once they start.  Once you start `myStream`, it'll keep
+on marching on, and on, and on...you have no way to "influence" its
+progression *during* its march.  The *behavior* of our stream *can't be
+influenced* by the outside world in any way, once it has started. This is a
+bit limiting, because we want behaviors that we can have interact with each
+other.
 
 And so, we have the natural generalization of streams: Auto.
 
@@ -417,9 +477,10 @@ To put it in terms of `settableAuto`:
 #### The opaque state
 
 It's a little tricky because the "output" and the "state" in our example
-function seem to be exactly the same, but let's whip up a quick example where
-it's a little more obvious that the state and the output are different things,
-and that the state is completely opaque and encapsulated.
+function seem to be exactly the same (just like for `myStream`), but let's
+whip up a quick example inspired by our `myErraticStream` where it's a little
+more obvious that the state and the output are different things, and that the
+state is completely opaque and encapsulated.
 
 ~~~haskell
 settableCounterFromIsEven n :: Int -> Auto (Maybe Int) Bool
@@ -490,21 +551,24 @@ values.
 Now, we have a way to model behaviors that can somehow interact with the
 outside world.
 
-It might be interesting to note one thing.  The type of the input and the type
-of the output are specified explicitly in the type of the Auto.  From seeing
-`Auto a b`, you know that the input type must always be `a` and the output
-type must always be `b`.
+Again, we bring over all of the curious properties of the type of the state
+from Stream. The type of the input and the type of the output are specified
+explicitly in the type of the Auto. From seeing `Auto a b`, you know that the
+input type must always be `a` and the output type must always be `b`.
 
-However...what is the type of the internal state?
+Just like for streams, it isn't even in the type of the Auto.  This further
+cements our claim that not only are the states in our machines
+inaccessible...you can't even know the type of them (in fact, the type might
+even change dynamically over the course of the machine's life)!  So even if
+you could "pull" it out arbitrary, you wouldn't be able to work with it in a
+typesafe way.
 
-Curiously enough, it isn't in the type of the Auto.  So not only can you not
-in general access it...you can't even know the type of it!  So even if you
-could "pull" it out arbitrarily, you wouldn't be able to work with it in a
-typesafe manner.
-
-Even more trippy is the fact that because the type of your Auto does not fix
-the type of the state...the type of the state can actually *change*
-dynamically over the progression of the Auto!
+However, with the interface of Auto...we now have design a way to *allow
+people to access/modify our state* if we wanted them to.  Before, with
+Streams, states were completely off-limits forever no way José.  Even the
+maker of the stream could not offer any way for you to touch the state.
+However, as an Auto maker/designer, we can give the Auto "user" a way to
+influence our state in ways that we can allow them...and in a type-safe way.
 
 ### The Accumulator
 
