@@ -117,10 +117,10 @@ Let's see if `myList` does what we want: (a list from 1 to 3):
 1
 λ: :t xs
 xs :: List Int
-λ: let (Cons (y,ys)) = myList
+λ: let (Cons (y,ys)) = xs
 λ: y
 2
-λ: let (Cons (z,zs)) = myList
+λ: let (Cons (z,zs)) = ys
 λ: z
 3
 λ: zs
@@ -212,6 +212,36 @@ a `data`, but which the compiler can more easily optimize:
 newtype Stream b = SCons { runStream :: (b, Stream b) }
 ~~~
 
+#### Automating Traversal
+
+The repeated pattern matching is actually kind of tedious, and it'll only get
+more annoying over time, so let's make a function that can automate the
+pattern matching for us really quickly so that we can test it more easily.
+
+`testStram` will take a stream and a number `n` and pull out the first `n`
+items in the stream and give us the new modified stream.  We also write
+`testStream_`, which throws away the new modified stream and just gives us the
+collection of results.
+
+~~~haskell
+testStream :: Stream b -> Int -> ([b], Stream b)
+testStream strm 0  = ([], strm)
+testStream strm n  = (y:ys, strm'')
+  where
+    (y, strm')     = runStream strm
+    (ys, strm'')   = testStream strm' (n-1)
+
+testStream_ :: Stream b -> Int -> [b]
+testStream_ = (fst .) . testStream
+~~~
+
+So now we can do
+
+~~~haskell
+λ: testStream_ myStream 10
+[1,2,3,4,5,6,7,8,9,10]
+~~~
+
 ### Streams are nice
 
 Streams are nice!  If you've been using Haskell for any stretch of time,
@@ -272,26 +302,8 @@ myErraticStream = erraticStreamFrom 1
 ~~~
 
 ~~~haskell
-λ: let (x,xs) = runStream myErraticStrea
-λ: x
-True
-λ: :t xs
-xs :: Stream Bool
-λ: let (y,ys) = runStream xs
-λ: y
-False
-λ: let (z,zs) = runStream ys
-λ: z
-False
-λ: let (j,js) = runStream zs
-λ: j
-False
-λ: let (k,ks) = runStream js
-λ: k
-True
-λ: let (l,ls) = runStream ks
-λ: l
-True
+λ: testStream_ myErraticStream 10
+[True,False,False,False,True,True,True,True,True,True]
 ~~~
 
 Internally, there is state.  Externally, all we can observe is a function of
@@ -306,9 +318,9 @@ progression of the stream!  Trippy stuff.
 
 #### Continuing on
 
-Anyways, the problem with streams, as you might have seen, is that you can't really
-affect their progress once they start.  Once you start `myStream`, it'll keep
-on marching on, and on, and on...you have no way to "influence" its
+Anyways, the problem with streams, as you might have seen, is that you can't
+really affect their progress once they start.  Once you start `myStream`,
+it'll keep on marching on, and on, and on...you have no way to "influence" its
 progression *during* its march.  The *behavior* of our stream *can't be
 influenced* by the outside world in any way, once it has started. This is a
 bit limiting, because we want behaviors that we can have interact with each
@@ -450,6 +462,39 @@ Cool, let's try it out.
 ~~~
 
 And there ya go.
+
+#### Automatic traversals
+
+Again, the manual pattern matching is a little tedious so let's write us a
+function to automate "progressing" down an Auto.
+
+Like our `testStream`, `testAuto` takes an Auto.  But because every "step"
+needs an input, `testAuto auto` takes a *list* that specifies the input for
+every step.  `testAuto` returns the resulting collection of results, and also
+the modified Auto.  `testAuto_` throws away the new Auto and just gives us the
+collection.
+
+~~~haskell
+testAuto :: Auto a b -> [a] -> ([b], Auto)
+testAuto auto []      = ([], auto)
+testAuto auto (x:xs)  = (y:ys, auto'')
+  where
+    (y,  aut' ) = runAuto  aut  x
+    (ys, aut'') = testAuto aut' xs
+
+testAuto_ :: Auto a b -> [a] -> [b]
+testAuto_ = (fst .) . testAuto
+~~~
+
+Trying it out on `settableAuto`:
+
+~~~
+λ: testAuto settableAuto [ Nothing, Nothing, Just 10
+                         , Nothing, Nothing, Just (-1)
+                         , Nothing ]
+[1,2,10,11,12,-1,0]
+~~~
+
 
 ### A Shift
 
