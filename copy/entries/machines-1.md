@@ -251,11 +251,12 @@ Note that while the type signature of our Stream gives us the type of the
 elements in the stream...it actually doesn't really say anything about the
 type of the *state* of the stream.  This is a clue to a useful aspect of these
 types of machines --- the state is, in the general case, completely
-inaccessible.  If instead of `n`, we had put, say, `even . round . log .
-fromIntegral $ n`, we would have a stream that seemed to vary erratically from
-`True` and `False`.  Internally, there would be a counting `n`...but
-externally, all we would be able to "see" was the erratic `True`/`False`
-behavior.
+inaccessible.  If for `streamFrom`, instead of `n` we had put, say, `even .
+round . log . fromIntegral $ n`, we would have a stream that seemed to vary
+erratically from `True` and `False`.  Internally, there would be a counting
+`n`...but externally, all we would be able to "see" was the erratic
+`True`/`False` behavior.  We might not even know that the internal counting
+state was an int!
 
 
 ~~~haskell
@@ -294,6 +295,8 @@ True
 
 Internally, there is state.  Externally, all we can observe is a function of
 the state; we cannot actually in general ever directly access or modify it.
+And because we don't know the type, even if we could forcefully pull it out,
+we wouldn't be able to handle it in a typesafe way.
 
 Actually...because the type of our Stream does not fix the type of our state,
 the type of our state can actually *vary dynamically* over the course of the
@@ -554,14 +557,11 @@ outside world.
 Again, we bring over all of the curious properties of the type of the state
 from Stream. The type of the input and the type of the output are specified
 explicitly in the type of the Auto. From seeing `Auto a b`, you know that the
-input type must always be `a` and the output type must always be `b`.
-
-Just like for streams, it isn't even in the type of the Auto.  This further
-cements our claim that not only are the states in our machines
-inaccessible...you can't even know the type of them (in fact, the type might
-even change dynamically over the course of the machine's life)!  So even if
-you could "pull" it out arbitrary, you wouldn't be able to work with it in a
-typesafe way.
+input type must always be `a` and the output type must always be `b`.  But the
+type of the state is not anywhere.  It can be anything, and it can even vary
+dynamically over the course of the auto's progression.  Again, even if you
+could forcibly pull it out or modify it, it'd be impossible to do it in a
+typesafe way because the type of the Auto gives no clue.
 
 However, with the interface of Auto...we now have design a way to *allow
 people to access/modify our state* if we wanted them to.  Before, with
