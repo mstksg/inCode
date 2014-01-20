@@ -49,19 +49,21 @@ question, because without a real answer, all of this will be a waste.  Is it
 just because it's cool?
 
 The (a?) reason why (pure) functional programming is powerful is because is a
-subset of what can be called **compositional programming**.  Almost all of the
+subset of what can be called **[compositional programming][]**.  Almost all of the
 benefits of functional programming can be drawn from its unmatched power of
 composability.  Think of the power of unix pipes.  We can build programs by
 the free composition of smaller, simpler self-contained programs and concepts
 that don't have to be aware of any other part.  Recognizing this completely
 changes the way we approach problems.
 
+[compositional programming]: http://www.haskellforall.com/2012/08/the-category-design-pattern.html
+
 So why FRP?  FRP provides for us meaningful semantics by which to *compose*
-time-varying and reactive behaviors from smaller ones.  You reason about a
-self-contained behavior "wire"...and then use tools to build complex behaviors
-from smaller ones.  You don't specify what happens when, you specify how
-things *should behave*, from a top-down level.  And then compose those
-behaviors.
+time-varying and reactive behaviors, and create complex ones from smaller
+ones.  You reason about a self-contained behavior "wire"...and then use tools
+to build complex behaviors from simple ones.  You don't specify what happens
+when, you specify how things *should behave*, from a top-down level.  And then
+compose those behaviors.
 
 Yadda yadda.  I am probably boring you at this point, let's just get started
 and jump into machines!
@@ -221,7 +223,7 @@ potentially infinite sets of state and output values).  They are machines that
 basically progress from state to state to state to state. They just keep on
 marching on...like a machine.  In `myStream`, the initial state is 1.  The
 next state is 2; the next is 3, etc.  What is important is that the next state
-*is a function of the current state*.  
+*is a function of the current state*.
 
 [Moore machines]: http://en.wikipedia.org/wiki/Moore_machine
 
@@ -319,7 +321,7 @@ Okay, that was fun I guess.  But now let's take a first look at an auto which
 "can" be influenced.
 
 Let's have a *resettable counter*.  Kind of like `myStreamAuto`, but at every
-step, you can choose to "reset" the count back to zero.  
+step, you can choose to "reset" the count back to zero.
 
 Actually, let's just jump to something even bigger.  At every step, we can
 choose to "set" the counter to whatever we like.
