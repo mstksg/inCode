@@ -242,7 +242,8 @@ state" function.
 So `myStream` is a Moore-like machine whose "next state" function is "the
 current state plus one".
 
-#### Notes on state
+<aside>
+    #### Aside
 
 Let's take a quick diversion to discuss the nature of the "state" in our
 Streams.
@@ -301,6 +302,7 @@ we wouldn't be able to handle it in a typesafe way.
 Actually...because the type of our Stream does not fix the type of our state,
 the type of our state can actually *vary dynamically* over the course of the
 progression of the stream!  Trippy stuff.
+</aside>
 
 #### Continuing on
 
@@ -492,7 +494,7 @@ settableCounterFromIsEven n = ACons $ \reset ->
   in  ( even c, settableCounterFromIsEven (c + 1) )
 
 settableAutoIsEven :: Auto (Maybe Int) Bool
-settableAutoIsEven = settableCounterFromEven 1
+settableAutoIsEven = settableCounterFromIsEven 1
 ~~~
 
 So `settableCounterFromIsEven` (yeah, it has a horrible name) is the same as
@@ -554,6 +556,9 @@ values.
 Now, we have a way to model behaviors that can somehow interact with the
 outside world.
 
+<aside>
+    ###### Aside
+
 Again, we bring over all of the curious properties of the type of the state
 from Stream. The type of the input and the type of the output are specified
 explicitly in the type of the Auto. From seeing `Auto a b`, you know that the
@@ -569,6 +574,7 @@ Streams, states were completely off-limits forever no way José.  Even the
 maker of the stream could not offer any way for you to touch the state.
 However, as an Auto maker/designer, we can give the Auto "user" a way to
 influence our state in ways that we can allow them...and in a type-safe way.
+</aside>
 
 ### The Accumulator
 
