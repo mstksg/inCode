@@ -1,4 +1,4 @@
-Machines (Part 1)
+Intro to Machines (Part 1)
 =================
 
 Categories
@@ -13,7 +13,7 @@ CreateTime
 PostDate
 :   never
 Series
-:   Machines
+:   Intro to Machines
 Identifier
 :   machines-1
 
