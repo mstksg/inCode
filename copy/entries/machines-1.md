@@ -879,6 +879,15 @@ whereas `maybeIsEven` is "memoryless" (it's the same every time you call it),
 `settableAutoIsEven` *has memory* --- it returns a different Boolean based on
 its history.
 
+Contrast this with a Stream, which as we have seen is just an `Auto () b`.
+Streams are then "function like things" analgous to some `(->) () b`, or `()
+-> b`.  We can call functions like `() -> b` "constants", or "producers". They
+are the same every time you call them.  Streams, however, "return" a
+potentially different `b` value every time they are "called".  So, just like
+an Auto is a function that has memory, a Stream is like a *constant* that has
+memory.  A stateful generator.  A "constant" that returns something different
+every time you ask for it.
+
 ### "Function...things?"
 
 You should be able to guess where I am going with this.
