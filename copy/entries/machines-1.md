@@ -1,5 +1,5 @@
-Intro to Machines (Part 1)
-=================
+Intro to Machines & Arrows (Part 1)
+===================================
 
 Categories
 :   Haskell
@@ -8,14 +8,15 @@ Tags
 :   haskell
 :   functional reactive programming
 :   machines
+:   arrows
 CreateTime
 :   2014/01/19 22:55:57
 PostDate
-:   never
+:   Never
 Series
-:   Intro to Machines
+:   Intro to Machines and Arrows
 Identifier
-:   machines-1
+:   machines-arrows-1
 
 So I'm going to be running a series soon on computation and (physical)
 simulations using AFRP (Arrowized Functional Reactive Programming) principles.
@@ -225,11 +226,11 @@ collection of results.
 
 ~~~haskell
 testStream :: Stream b -> Int -> ([b], Stream b)
-testStream strm 0  = ([], strm)
-testStream strm n  = (y:ys, strm'')
+testStream strm 0 = ([]  , strm )
+testStream strm n = (y:ys, final)
   where
-    (y, strm')     = runStream strm
-    (ys, strm'')   = testStream strm' (n-1)
+    (y , next )   = runStream  strm
+    (ys, final)   = testStream next (n-1)
 
 testStream_ :: Stream b -> Int -> [b]
 testStream_ = (fst .) . testStream
@@ -239,6 +240,21 @@ So now we can do
 
 ~~~haskell
 λ: testStream_ myStream 10
+[1,2,3,4,5,6,7,8,9,10]
+~~~
+
+Alternatively (and for reasons which will later be clear), we can also define
+a function `streamToList`, which takes any Stream and does the straightforward
+conversion to an infinite list: (we lose access to the "modified" stream of
+course)
+
+~~~haskell
+streamToList :: Stream b -> [b]
+streamToList (SCons (x, xs)) = x : streamToList xs
+~~~
+
+~~~haskell
+λ: take 10 $ streamToList myStream
 [1,2,3,4,5,6,7,8,9,10]
 ~~~
 
@@ -272,23 +288,14 @@ state" function.
 So `myStream` is a Moore-like machine whose "next state" function is "the
 current state plus one".
 
-<aside>
-    #### Aside
+#### on State
 
-Let's take a quick diversion to discuss the nature of the "state" in our
-Streams.
-
-Note that while the type signature of our Stream gives us the type of the
-elements in the stream...it actually doesn't really say anything about the
-type of the *state* of the stream.  This is a clue to a useful aspect of these
-types of machines --- the state is, in the general case, completely
-inaccessible.  If for `streamFrom`, instead of `n` we had put, say, `even .
-round . log . fromIntegral $ n`, we would have a stream that seemed to vary
-erratically from `True` and `False`.  Internally, there would be a counting
-`n`...but externally, all we would be able to "see" was the erratic
-`True`/`False` behavior.  We might not even know that the internal counting
-state was an int!
-
+Before we move on, let's take a slight diversion --- you can skip this if you
+wish, to get onto the main point.  I'll leave here the interesting observation
+that the "state" of the stream is in general inaccessible and opaque.  Every
+stream carries its own internal state that is hidden from the rest of the
+world. Consider `myErraticStream`, which is like `myStream`, but returns a
+random-like hash-ish function of the state `n`.
 
 ~~~haskell
 myErraticStream :: Stream Bool
@@ -302,31 +309,61 @@ myErraticStream = erraticStreamFrom 1
 ~~~
 
 ~~~haskell
-λ: testStream_ myErraticStream 10
+λ: take 10 $ streamToList myErraticStream
 [True,False,False,False,True,True,True,True,True,True]
 ~~~
 
-Internally, there is state.  Externally, all we can observe is a function of
-the state; we cannot actually in general ever directly access or modify it.
-And because we don't know the type, even if we could forcefully pull it out,
-we wouldn't be able to handle it in a typesafe way.
+If we have `myErraticStream`, we can only observe (from both looking at its
+output and looking at its type `Stream Bool`) that it is a stream of Booleans.
+We don't really have any way of knowing that the internal state is an
+`Int`...in every way, this internal state is completely hidden from the
+outside world and completely uninfluencable by it.  In fact...because the type
+of the state is not fixed by the type of the stream, the *type* might even
+vary dynamically over the progression of the stream!
 
-Actually...because the type of our Stream does not fix the type of our state,
-the type of our state can actually *vary dynamically* over the course of the
-progression of the stream!  Trippy stuff.
-</aside>
+This property --- that the states of these types of machines are hidden from
+the world --- is actually going to be very useful.  Like I said before, every
+machine can really be considered self-contained.  This is unlike using a State
+monad-based loop, where all internal states are more or less freely viewable
+manipulatable by anyone.  Here, every machine is truly its own little world.
 
-#### Continuing on
+In fact, because the type of the state is unknown and unpredictable...even if
+we could "force" the state out of a stream somehow, we wouldn't even be able
+to work with it in a type safe way.  The type is truly dynamic and the type of
+the nth state of a stream is unknowable at compile time.
 
-Anyways, the problem with streams, as you might have seen, is that you can't
-really affect their progress once they start.  Once you start `myStream`,
-it'll keep on marching on, and on, and on...you have no way to "influence" its
-progression *during* its march.  The *behavior* of our stream *can't be
-influenced* by the outside world in any way, once it has started. This is a
-bit limiting, because we want behaviors that we can have interact with each
-other.
+Here is a stream whose state switches from an `Int` to a `Bool` dynamically.
 
-And so, we have the natural generalization of streams: Auto.
+~~~
+wackyStateStream :: Stream (Maybe Int)
+wackyStateStream = wackyStateBool True
+  where
+    wackyStateBool :: Bool -> Stream (Maybe Int)
+    wakcyStateBool False  = SCons (Nothing , wackyStateBool True)
+    wackyStateBool True   = SCons (Just 100, wackyStateInt 8)
+    wakcyStateInt :: Int -> Stream (Maybe Int)
+    wackyStateInt n
+        | n % 7 == 0      = SCons (Just n, wackyStateBool True)
+        | otherwise       = SCons (Just (n+2), wackyStateInt (n+3))
+~~~
+
+~~~
+λ: take 7 $ streamToList wackyStateStream
+[Nothing, Just 100, Just 8, Just 11, Just 16, Nothing, Just 100]
+~~~
+
+### Continuing on
+
+Anyways, the problem with streams, as you might have guessed, is that you
+can't really affect their progress once they start.  Once you start
+`myStream`, it'll keep on marching on, and on, and on...you have no way to
+"influence" its progression *during* its march.  The *behavior* of our stream
+*can't be influenced* by the outside world in any way, once it has started.
+This is a bit limiting, because we want behaviors that we can have interact
+with each other.
+
+And so, we have the natural generalization of streams (and the machine we will
+be spending the most time looking at): Auto.
 
 Auto
 ----
@@ -463,7 +500,7 @@ Cool, let's try it out.
 
 And there ya go.
 
-#### Automatic traversals
+#### Automatic traversals for our Autos
 
 Again, the manual pattern matching is a little tedious so let's write us a
 function to automate "progressing" down an Auto.
@@ -476,11 +513,11 @@ collection.
 
 ~~~haskell
 testAuto :: Auto a b -> [a] -> ([b], Auto)
-testAuto auto []      = ([], auto)
-testAuto auto (x:xs)  = (y:ys, auto'')
+testAuto auto []      = ([]  , auto )
+testAuto auto (x:xs)  = (y:ys, final)
   where
-    (y,  aut' ) = runAuto  aut  x
-    (ys, aut'') = testAuto aut' xs
+    (y,  next ) = runAuto  auto x
+    (ys, final) = testAuto next xs
 
 testAuto_ :: Auto a b -> [a] -> [b]
 testAuto_ = (fst .) . testAuto
@@ -494,7 +531,6 @@ Trying it out on `settableAuto`:
                          , Nothing ]
 [1,2,10,11,12,-1,0]
 ~~~
-
 
 ### A Shift
 
@@ -533,46 +569,34 @@ more obvious that the state and the output are different things, and that the
 state is completely opaque and encapsulated.
 
 ~~~haskell
-settableCounterFromIsEven n :: Int -> Auto (Maybe Int) Bool
-settableCounterFromIsEven n = ACons $ \reset ->
+isEvenAutoFrom n :: Int -> Auto (Maybe Int) Bool
+isEvenAutoFrom n = ACons $ \reset ->
   let c = fromMaybe n reset
   in  ( even c, settableCounterFromIsEven (c + 1) )
 
-settableAutoIsEven :: Auto (Maybe Int) Bool
-settableAutoIsEven = settableCounterFromIsEven 1
+isEvenAuto :: Auto (Maybe Int) Bool
+isEvenAuto = isEvenAuto 1
 ~~~
 
-So `settableCounterFromIsEven` (yeah, it has a horrible name) is the same as
-`settableCounterFrom`, except instead of "yielding"/"outputting" `n`, it
-outputs `even n` --- `True` if `n` is even and `False` if `n` is odd.
+So `isEvenAuto` is the same as `settableCounterFrom`, except instead of
+"yielding"/"outputting" `n`, it outputs `even n` --- `True` if `n` is even and
+`False` if `n` is odd.
 
-Here is a demonstration of its behavior.  I've abandoned the `(x,xs)` naming
-in favor of some more meaningful names.
+Here is a demonstration of its behavior ---
 
-~~~haskell
-λ: let (out1, auto1) = runAuto settableAutoIsEven Nothing
-λ: out1
-False
-λ: let (out2, auto2) = runAuto auto1 Nothing
-λ: out2
-True
-λ: let (out3, auto3) = runAuto auto2 (Just 10)
-λ: out3
-True
-λ: let (out4, auto4) = runAuto auto3 Nothing
-λ: out4
-False
-λ: let (out5, auto5) = runAuto auto4 Nothing
-λ: out5
-True
+~~~
+λ: testAuto settableAutoIsEven  [ Nothing, Nothing, Just 10
+                                , Nothing, Nothing, Just (-1)
+                                , Nothing ]
+[False,True,True,False,True]
 ~~~
 
 Note that there is in general really no way to ever access the `n` internally.
 It is completely sealed off from the world, except by explicit design.  Here,
 we choose to only "offer" a way to "set" it using our input.
 
-Now it the three distinct concepts --- the input, output, and
-state --- should be clear.
+Now it the three distinct concepts --- the input, output, and state --- should
+be clear.
 
 *   The "input" again is a `Maybe Int` where we can choose to reset the march
     of the state.
@@ -601,25 +625,17 @@ values.
 Now, we have a way to model behaviors that can somehow interact with the
 outside world.
 
-<aside>
-    ###### Aside
+#### More on state
 
-Again, we bring over all of the curious properties of the type of the state
-from Stream. The type of the input and the type of the output are specified
-explicitly in the type of the Auto. From seeing `Auto a b`, you know that the
-input type must always be `a` and the output type must always be `b`.  But the
-type of the state is not anywhere.  It can be anything, and it can even vary
-dynamically over the course of the auto's progression.  Again, even if you
-could forcibly pull it out or modify it, it'd be impossible to do it in a
-typesafe way because the type of the Auto gives no clue.
+Another short diversion with concerning state!  As we have seen, Auto's carry
+all of the hidden-internal-state features of Streams.  The type of an Auto
+(`Auto a b`) reveals the type of the "input" and the "ouput"...but it never
+reveals nor fixes the type of the "state".
 
-However, with the interface of Auto...we now have design a way to *allow
-people to access/modify our state* if we wanted them to.  Before, with
-Streams, states were completely off-limits forever no way José.  Even the
-maker of the stream could not offer any way for you to touch the state.
-However, as an Auto maker/designer, we can give the Auto "user" a way to
-influence our state in ways that we can allow them...and in a type-safe way.
-</aside>
+What Auto offers over Stream is then a way for the outside world to access and
+modify the state *if the Auto wants it to*.  Now, we can design Autos that,
+like we have seen with `settableAuto`, we can offer limited ways to allow the
+world to modify the state on our own terms.
 
 ### The Accumulator
 
@@ -648,18 +664,14 @@ summer = sumFrom 0
 λ: let (out2, auto2) = runAuto auto1 3
 λ: out1
 13
-λ: let (out3, auto3) = runAuto auto2 15
-λ: out3
-28
-λ: let (out4, auto4) = runAuto auto3 (-17)
-λ: out4
-11
+λ: testAuto_ auto2 [15,-17,6,0,-1]
+[28,11,17,17,16]
 ~~~
 
 *   The "input" is our incoming `Int` --- 10, 3, 15, -17, etc.
 *   The "output" is the accumulated sum/integral -- 10, 13, 28, 11, etc.
 *   The "state" in this case is the accumulator, which in this case stays in
-    sync with the output. But remember that this is not the case in general.
+    sync with the output.  But remember that this is not the case in general.
 
 Just for kicks, let's generalize this and make an Auto version of `foldl`:
 give us an operator and an initial value, and we'll "fold up" all of our
@@ -667,7 +679,7 @@ inputs.
 
 ~~~haskell
 autoFold :: (b -> a -> b) -> b -> Auto a b
-autoFold op initial = foldFrom initial
+autoFold op init = foldFrom init
   where
     foldFrom :: b -> Auto a b
     foldFrom x = ACons $ \input ->
@@ -697,7 +709,7 @@ monoidAccum = autoFold mappend mempty
 
 Cool, huh?
 
-#### Parallel with list folds
+#### Parallels with list folds
 
 Let's look very carefully at a comparison between the type signature of
 Prelude's `foldl` and the type signature of `autoFold`:
@@ -718,8 +730,8 @@ autoFold   :: (b -> a -> b) -> b -> ( Auto  a  b )
 Let's get rid of some of the points, too:
 
 ~~~haskell
-foldl    op initial :: (->) [a] b
-autoFold op initial :: Auto  a  b
+foldl    op init  :: (->) [a] b
+autoFold op init  :: Auto  a  b
 ~~~
 
 So both `foldl` and `autoFold` have very similar behaviors:
@@ -736,10 +748,72 @@ returns a `b` value based on the previous `a`'s it has seen.
 The main point here is that `autoFold` is a sort of "function" in a way...just
 like the others before it.  It's a...."function-like thing".
 
+<aside>
+    ###### Aside
+
+And now, another diversion.
+
+Recall the function `scanl :: (b -> a -> b) -> b -> [a] -> [b]`.  `scanl` is
+just like `foldl`, it "keeps track" of the history of the accumulator.
+
+For example:
+
+~~~haskell
+λ: foldl (+) 0 [1..10]
+55
+λ: scanl (+) 0 [1..10]
+[0,1,3,6,10,15,21,28,36,45,55]
+~~~
+
+One way to think about scan is that scan is "map with memory".  With `map`,
+you apply a memoryless function to every element in a list.  With `scanl`,
+you apply a function to every element in a list...but this function
+"remembers" the values of the elements it has already "mapped".
+
+This is very apparent when we examine the two type signatures:
+
+~~~haskell
+map f         :: [a] -> [b]
+scanl op init :: [a] -> [b]
+~~~
+
+While `map` takes a function and returns a "mapper" (`[a] -> [b]`), `scanl`
+takes an *operator and an initial value* and returns a "mapper".
+
+They both take *something* and return a "mapper".
+
+But wait!  We have seen something before with this exact same type signature!
+
+~~~haskell
+map f           :: [a] -> [b]
+scanl op init   :: [a] -> [b]
+testAuto_ auto  :: [a] -> [b]
+~~~
+
+Huh.  Interesting!
+
+Actually, if we think about it...`scanl op init` behaves *exactly the same* as
+`testAuto_ auto`.  `testAuto_` is some sort of "mapper"...but *with memory*
+--- just like `scanl op init`!
+
+Isn't this what we said that Auto was?  A function with memory?  Is an `Auto a
+b` equivalent to a `(b -> a -> b)` + `b` combination?  Are all Autos
+equivalent to a scan of some sort?  Can every `scanl op init` be recreated
+with a proper Auto `testAuto_ auto`?  More importantly, can every `testAuto_
+auto` be recreated with a proper choice of `op` and `init` in `scanl op init`?
+
+Now consider the curious fact we mentioned before.  In an `Auto a b`, the type
+of the state is not mentioned and is possibly dynamic.  A `scanl op init` also
+involves only two types, `a` and `b`.  Where is the type of the state here?
+Is it fixed, or is it free like for Autos?
+
+I'll leave these questions to you, the reader.
+</aside>
+
 "Function Things"
 -----------------
 
-Which brings us back to our main point of emphasis.
+Anyways, back to our main point of emphasis:
 
 *Autos are function-like things*.
 
