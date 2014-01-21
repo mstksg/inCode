@@ -841,6 +841,44 @@ I'll leave these questions to you, the reader.  Leave an answer in the
 comments if you want!
 </aside>
 
+### More Auto examples
+
+Here is an Auto that is always `False`...except whenever it receives a signal
+matching a given predicate (if it is "triggered"), it remains `True` for a specified amount of time.
+If it is "triggered"
+
+~~~haskell
+onFor ::
+     (a -> Bool)  -- test to see if an input 'triggers'
+  -> Int          -- amount of time to stay True for
+  -> Auto a Bool  -- An auto that takes an `a` and returns a `Bool`
+onFor p hold = countOn 0
+  where
+    countOn :: Int -> Auto a bool
+    countOn 0 = ACons $ \input ->     -- the "off" (n = 0) state
+      if p input                      -- if triggered,
+        then ( True , countOn (hold-1) )
+                                      -- then turn into "on" (n > 0) state
+        else ( False, countOn 0    )  -- otherwise remain in "off" state
+
+    countOn n = ACons $ \input ->     -- the "on" (n > 0) state, a countdown
+      if p input                      -- if triggered,
+        then ( True, countOn (hold-1) )
+                                      -- then reset the countdown
+        else ( True, countOn (n-1) )  -- otherwise, count down the hold time
+~~~
+
+~~~haskell
+λ: :t onFor even 3
+onFor even 3 :: Auto Int Bool
+λ: testAuto_ (onFor even 3) [1,1,2,1,1,1,1,4,1,6,1,1,1,1]
+[False,False,True ,True,True
+,False,True ,True ,True,True
+,True ,False,False]
+~~~
+
+
+
 "Function Things"
 -----------------
 
@@ -884,9 +922,9 @@ Streams are then "function like things" analgous to some `(->) () b`, or `()
 -> b`.  We can call functions like `() -> b` "constants", or "producers". They
 are the same every time you call them.  Streams, however, "return" a
 potentially different `b` value every time they are "called".  So, just like
-an Auto is a function that has memory, a Stream is like a *constant* that has
-memory.  A stateful generator.  A "constant" that returns something different
-every time you ask for it.
+an Auto is a "function" that has memory, a Stream is like a *constant* that
+has memory.  A stateful generator.  A "constant" that returns something
+different every time you ask for it.
 
 ### "Function...things?"
 
