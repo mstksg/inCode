@@ -38,8 +38,11 @@ explaining concepts here and there if I feel that they might not be very
 commonly known.  But if you have any questions, feel free to leave a comment
 or stop by freenode's #haskell on irc!
 
-Composability
--------------
+We are going to start with Streams and then move on to the main machine of the
+rest of our study, Autos.
+
+Why FRP?
+--------
 
 Why do we even bother with FRP?  Why not just wrap everything in a giant
 global state monad and program imperatively?
@@ -290,36 +293,55 @@ current state plus one".
 
 #### on State
 
-Before we move on, let's take a slight diversion --- you can skip this if you
-wish, to get onto the main point.  I'll leave here the interesting observation
-that the "state" of the stream is in general inaccessible and opaque.  Every
-stream carries its own internal state that is hidden from the rest of the
-world. Consider `myErraticStream`, which is like `myStream`, but returns a
-random-like hash-ish function of the state `n`.
+Before we move on, let's take a slight diversion --- you can skip this whole
+section if you wish, to get onto the main point.
+
+Notice that in our last example, our "state" `n` was the same type as our
+"output" `n+1`.  Is this in general the case?
+
+The type of our stream is `Stream Int`...does `Int` refer to the state or the
+output?
+
+As it turns out, this `Int` refers to the output --- it is the type of the
+"head" of the stream, and all values we will eventually grab from it.
+
+Note however that the type of the state can actually vary!  As a trivial
+example, pretend that `streamFrom` actually takes a `x :: Double` instead of
+an `n :: Int`, and rounds it before it pops it out as the "head":
 
 ~~~haskell
-myErraticStream :: Stream Bool
-myErraticStream = erraticStreamFrom 1
-  where
-    erraticStreamFrom :: Int -> Streal Bool
-    erraticStreamFrom n = SCons (
-        even . round . log . fromIntegral $ n
-      , erraticStreamFrom (n+1)
-      )
+streamFrom' :: Double -> Stream Int
+streamFrom' x = SCons ( round x, streamFrom' (x+1) )
+
+myStream' :: Stream Int
+myStream' = streamFrom' 1.0
+~~~
+
+This function now sorta behaves similarly to our original `streamFrom`...
+`myStream'` would still be `Stream Int` and output ints, and we might not ever
+be able to tell that the internal state of `myStream'` was "actually" a
+double!
+
+Now also observe that the internal state is actually in general *inaccessible*
+and *opaque* to the outside world.  What if we had `streamFrom` simply return
+whether or not `n` was even?
+
+~~~haskell
+boolStreamFrom :: Int -> Stream Bool
+boolStreamFrom n = SCons ( even n, boolStreamFrom (n+1) )
+
+myBoolStream :: Stream Bool
+myBoolStream = boolStreamFrom 1
 ~~~
 
 ~~~haskell
-λ: take 10 $ streamToList myErraticStream
-[True,False,False,False,True,True,True,True,True,True]
+λ: take 5 $ streamToList myBoolStream
+[False,True,False,True,False]
 ~~~
 
-If we have `myErraticStream`, we can only observe (from both looking at its
-output and looking at its type `Stream Bool`) that it is a stream of Booleans.
-We don't really have any way of knowing that the internal state is an
-`Int`...in every way, this internal state is completely hidden from the
-outside world and completely uninfluencable by it.  In fact...because the type
-of the state is not fixed by the type of the stream, the *type* might even
-vary dynamically over the progression of the stream!
+`myBoolStream` simply cycles between `False` and `True`.  Yet, it has an
+internal state that is completely closed off to us that is an `Int` counting
+from `1` to infinity.  We might not have ever even known.
 
 This property --- that the states of these types of machines are hidden from
 the world --- is actually going to be very useful.  Like I said before, every
@@ -341,6 +363,7 @@ wackyStateStream = wackyStateBool True
     wackyStateBool :: Bool -> Stream (Maybe Int)
     wakcyStateBool False  = SCons (Nothing , wackyStateBool True)
     wackyStateBool True   = SCons (Just 100, wackyStateInt 8)
+
     wakcyStateInt :: Int -> Stream (Maybe Int)
     wackyStateInt n
         | n % 7 == 0      = SCons (Just n, wackyStateBool True)
@@ -354,13 +377,13 @@ wackyStateStream = wackyStateBool True
 
 ### Continuing on
 
-Anyways, the problem with streams, as you might have guessed, is that you
-can't really affect their progress once they start.  Once you start
-`myStream`, it'll keep on marching on, and on, and on...you have no way to
-"influence" its progression *during* its march.  The *behavior* of our stream
-*can't be influenced* by the outside world in any way, once it has started.
-This is a bit limiting, because we want behaviors that we can have interact
-with each other.
+The problem with streams, as you might have guessed, is that you can't really
+affect their progress once they start.  Once you start `myStream`, it'll keep
+on marching on, and on, and on...you have no way to "influence" its
+progression *during* its march.  The *behavior* of our stream *can't be
+influenced* by the outside world in any way, once it has started. This is a
+bit limiting, because we want behaviors that we can have interact with each
+other.
 
 And so, we have the natural generalization of streams (and the machine we will
 be spending the most time looking at): Auto.
@@ -375,10 +398,10 @@ Let's call it an Auto.
 newtype Auto a b = ACons { runAuto :: a -> (b, Auto a b) }
 ~~~
 
-Now, instead of an `SCons` being just a tuple (a head-tails), an `ACons` is a
-*function* that *produces* your head-tails tuple.  Before, all of our
-`runStreams` produced the same tuple no matter what.  Now, our `runAuto` can
-produce a different tuple based on an outside input.
+Now, instead of an `SCons` containing just a tuple (a head-tails), an `ACons`
+contains a *function* that *produces* your head-tails tuple.  Before, all of
+our `runStreams` produced the same tuple no matter what.  Now, our `runAuto`
+can produce a different tuple based on an outside input.
 
 This is cool!
 
@@ -564,9 +587,9 @@ To put it in terms of `settableAuto`:
 
 It's a little tricky because the "output" and the "state" in our example
 function seem to be exactly the same (just like for `myStream`), but let's
-whip up a quick example inspired by our `myErraticStream` where it's a little
-more obvious that the state and the output are different things, and that the
-state is completely opaque and encapsulated.
+whip up a quick example where it's a little more obvious that the state and
+the output are different things, and that the state is completely opaque and
+encapsulated.
 
 ~~~haskell
 isEvenAutoFrom n :: Int -> Auto (Maybe Int) Bool
@@ -630,7 +653,9 @@ outside world.
 Another short diversion with concerning state!  As we have seen, Auto's carry
 all of the hidden-internal-state features of Streams.  The type of an Auto
 (`Auto a b`) reveals the type of the "input" and the "ouput"...but it never
-reveals nor fixes the type of the "state".
+reveals nor fixes the type of the "state".  The type of the state is not only
+unknown, by possibly dynamically changing over the course of the Auto's
+progression.
 
 What Auto offers over Stream is then a way for the outside world to access and
 modify the state *if the Auto wants it to*.  Now, we can design Autos that,
@@ -751,7 +776,9 @@ like the others before it.  It's a...."function-like thing".
 <aside>
     ###### Aside
 
-And now, another diversion.
+And now, another diversion.  This is actually a pretty big one, so if you are
+still digesting the post so far, there is no problem with completely skipping
+this aside :)
 
 Recall the function `scanl :: (b -> a -> b) -> b -> [a] -> [b]`.  `scanl` is
 just like `foldl`, it "keeps track" of the history of the accumulator.
@@ -798,14 +825,14 @@ Actually, if we think about it...`scanl op init` behaves *exactly the same* as
 
 Isn't this what we said that Auto was?  A function with memory?  Is an `Auto a
 b` equivalent to a `(b -> a -> b)` + `b` combination?  Are all Autos
-equivalent to a scan of some sort?  Can every `scanl op init` be recreated
-with a proper Auto `testAuto_ auto`?  More importantly, can every `testAuto_
-auto` be recreated with a proper choice of `op` and `init` in `scanl op init`?
+equivalent to a scan of some sort?  We see that every `scanl op init` be
+recreated with a proper Auto `testAuto_ auto`.  But can every `testAuto_ auto`
+be recreated with a proper choice of `op` and `init` in `scanl op init`?
 
-Now consider the curious fact we mentioned before.  In an `Auto a b`, the type
-of the state is not mentioned and is possibly dynamic.  A `scanl op init` also
-involves only two types, `a` and `b`.  Where is the type of the state here?
-Is it fixed, or is it free like for Autos?
+Consider the curious fact we mentioned before.  In an `Auto a b`, the type of
+the state is not mentioned and is possibly dynamic.  A `scanl op init` also
+involves only two types, `a` and `b`.  Where is the type of the state here? Is
+it fixed, or is it free like for Autos?
 
 I'll leave these questions to you, the reader.
 </aside>
