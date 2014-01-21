@@ -16,7 +16,7 @@ PostDate
 Series
 :   Intro to Machines and Arrows
 Identifier
-:   machines-arrows-1
+:   machines-1
 
 So I'm going to be running a series soon on computation and (physical)
 simulations using AFRP (Arrowized Functional Reactive Programming) principles.
