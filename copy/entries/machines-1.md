@@ -810,19 +810,20 @@ takes an *operator and an initial value* and returns a "mapper".
 
 They both take *something* and return a "mapper".
 
-But wait!  We have seen something before with this exact same type signature!
+But wait!  We have seen something before with this *exact* same type
+signature: `testAuto_ auto`!
 
 ~~~haskell
-map f           :: [a] -> [b]
-scanl op init   :: [a] -> [b]
-testAuto_ auto  :: [a] -> [b]
+map       f       :: [a] -> [b]
+scanl     op init :: [a] -> [b]
+testAuto_ auto    :: [a] -> [b]
 ~~~
 
 Huh.  Interesting!
 
 Actually, if we think about it...any `scanl op init` behaves *exactly the
-same* as a `testAuto_ auto`, for some value of `auto`.  `testAuto_` is some
-sort of "mapper"...but *with memory* --- just like `scanl op init`!
+same* as a `testAuto_ auto`, for some value of `auto`.  `testAuto_ auto` is
+some sort of "mapper"...but *with memory* --- just like `scanl op init`!
 
 Isn't this what we said that Auto was?  A function with memory?  Is an `Auto a
 b` equivalent to a `(b -> a -> b)` + `b` combination?  Are all Autos
@@ -849,8 +850,8 @@ Anyways, back to our main point of emphasis:
 
 They are functions...with state.
 
-Let's do the same analysis for `settableAutoIsEven`.  Our "input" was a `Maybe
-Int` and our "output" was a `Bool`.
+Let's do an analysis for `settableAutoIsEven` like the one we did with
+`foldAuto`. Our "input" was a `Maybe Int` and our "output" was a `Bool`.
 
 You can think of `settleAutoIsEven` as a "function thing" from `Maybe Int` to
 `Bool`.
