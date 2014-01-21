@@ -777,11 +777,12 @@ like the others before it.  It's a...."function-like thing".
     ###### Aside
 
 And now, another diversion.  This is actually a pretty big one, so if you are
-still digesting the post so far, there is no problem with completely skipping
-this aside :)
+still digesting the rest of the post, there is no problem with completely
+skipping this aside :)
 
 Recall the function `scanl :: (b -> a -> b) -> b -> [a] -> [b]`.  `scanl` is
-just like `foldl`, it "keeps track" of the history of the accumulator.
+just like `foldl`, except that it "keeps track" of the history of the
+accumulator.
 
 For example:
 
@@ -800,7 +801,7 @@ you apply a function to every element in a list...but this function
 This is very apparent when we examine the two type signatures:
 
 ~~~haskell
-map f         :: [a] -> [b]
+map   f       :: [a] -> [b]
 scanl op init :: [a] -> [b]
 ~~~
 
@@ -819,22 +820,24 @@ testAuto_ auto  :: [a] -> [b]
 
 Huh.  Interesting!
 
-Actually, if we think about it...`scanl op init` behaves *exactly the same* as
-`testAuto_ auto`.  `testAuto_` is some sort of "mapper"...but *with memory*
---- just like `scanl op init`!
+Actually, if we think about it...any `scanl op init` behaves *exactly the
+same* as a `testAuto_ auto`, for some value of `auto`.  `testAuto_` is some
+sort of "mapper"...but *with memory* --- just like `scanl op init`!
 
 Isn't this what we said that Auto was?  A function with memory?  Is an `Auto a
 b` equivalent to a `(b -> a -> b)` + `b` combination?  Are all Autos
 equivalent to a scan of some sort?  We see that every `scanl op init` be
-recreated with a proper Auto `testAuto_ auto`.  But can every `testAuto_ auto`
-be recreated with a proper choice of `op` and `init` in `scanl op init`?
+recreated with a corresponding `auto` in `testAuto_ auto`.  But can every
+`testAuto_ auto` be recreated with a proper choice of `op` and `init` in
+`scanl op init`?
 
 Consider the curious fact we mentioned before.  In an `Auto a b`, the type of
 the state is not mentioned and is possibly dynamic.  A `scanl op init` also
-involves only two types, `a` and `b`.  Where is the type of the state here? Is
-it fixed, or is it free like for Autos?
+involves only two types, `a` and `b`.  Where is the type of the state in
+`scanl op init`? Is it fixed, or is it free like for Autos?
 
-I'll leave these questions to you, the reader.
+I'll leave these questions to you, the reader.  Leave an answer in the
+comments if you want!
 </aside>
 
 "Function Things"
@@ -889,7 +892,6 @@ For now, think of what it means to be "function like".  Not only do you have
 inputs and outputs...but there are also certain things about being a function
 that are key to its nature.  Things like...function composition, maybe?  What
 would that even look like with our autos?
-
 
 
 <!-- ### Categories and Arrows -->
