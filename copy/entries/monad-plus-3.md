@@ -248,7 +248,7 @@ And `>>=` is just the (hopefully) familiar bind.  Again, look at [Part 1][] or
 ### makeNMoves
 
 `makeNMoves` is going to be the main logic of our program.  We want it to be
-a journey, itself --- a journey of a single solution going through `n`
+a journey, itself --- a journey of a single plan going through `n`
 additions of moves.
 
 That means we want something like:
@@ -299,7 +299,7 @@ So now we can define `makeNMoves`:
 
 ~~~haskell
 makeNMoves :: Int -> [Plan]
-makeNMoves n = iterate (>>= makeMove) (return startingSol) !! n
+makeNMoves n = iterate (>>= makeMove) (return startingPlan) !! n
 ~~~
 
 We say "apply `(>>= makeMove)` `n` times, starting the single starting

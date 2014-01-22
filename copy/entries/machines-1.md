@@ -146,8 +146,7 @@ myStream' :: Stream Int
 myStream' = SCons ( 1, SCons ( 2, SCons ( 3, ... ) ) )
 ~~~
 
-Hm.  This probably isn't going to work.  We can't type out all the numbers
-from 1 to infinity.
+Hm.  This is going to take a while.  I wonder if there's an easier way.
 
 We can take advantage of Haskell's "lazy-by-default"-ness and leave the "rest"
 of the stream as an unevaluated function call.  And then we can recurse!
@@ -790,8 +789,11 @@ For example:
 λ: foldl (+) 0 [1..10]
 55
 λ: scanl (+) 0 [1..10]
-[0,1,3,6,10,15,21,28,36,45,55]
+[1,3,6,10,15,21,28,36,45,55]
 ~~~
+
+(in real life, `scanl` also adds the initial value of the accumulator to the
+head of the list, but we'll pretend here that it doesn't)
 
 One way to think about scan is that scan is "map with memory".  With `map`,
 you apply a memoryless function to every element in a list.  With `scanl`,
@@ -822,15 +824,19 @@ testAuto_ auto    :: [a] -> [b]
 Huh.  Interesting!
 
 Actually, if we think about it...any `scanl op init` behaves *exactly the
-same* as a `testAuto_ auto`, for some value of `auto`.  `testAuto_ auto` is
-some sort of "mapper"...but *with memory* --- just like `scanl op init`!
+same* as a `testAuto_ auto`, for some value of `auto` (Actually, that `auto`
+is exactly `foldAuto op init`).  `testAuto_ auto` is some sort of
+"mapper"...but *with memory* --- just like `scanl op init`!
 
 Isn't this what we said that Auto was?  A function with memory?  Is an `Auto a
 b` equivalent to a `(b -> a -> b)` + `b` combination?  Are all Autos
 equivalent to a scan of some sort?  We see that every `scanl op init` be
-recreated with a corresponding `auto` in `testAuto_ auto`.  But can every
-`testAuto_ auto` be recreated with a proper choice of `op` and `init` in
-`scanl op init`?
+recreated with a corresponding `auto` in `testAuto_ auto`, `auto = foldAuto op
+init`.  But can every `testAuto_ auto` be recreated with a proper choice of
+`op` and `init` in `scanl op init`?
+
+If not, what can you "add" to `scanl op init` to give it the same power as
+`testAuto_ auto`?
 
 Consider the curious fact we mentioned before.  In an `Auto a b`, the type of
 the state is not mentioned and is possibly dynamic.  A `scanl op init` also
@@ -843,44 +849,128 @@ comments if you want!
 
 ### More Auto examples
 
+Here is an Auto that outputs a rolling average of the values it accumulates,
+with a given window size.
+
+~~~haskell
+rollingAverage :: Fractional a
+    => Int          -- length of the window
+    -> Auto a a     -- an Auto taking an `a` and returning an average `a`
+rollingAverage window = roll []
+  where
+    roll xs = ACons $ \val ->
+      let xs' = take window $ val:xs  -- pop on the new value, drop all
+                                      --   values past the window
+          ave = sum xs' / genericLength xs'  -- the average
+      in  ( ave, roll xs' )
+~~~
+
+~~~haskell
+λ: testAuto_ (rollingAverage 4) [2,8,4,5,1,8,3,5,1,1,8,3,5,9,2]
+[2.0 ,5.0 ,4.67,4.75,4.5
+,4.5 ,4.25,4.25,4.25,2.5
+,3.75,3.25,4.25,6.25,4.75]
+~~~
+
 Here is an Auto that is always `False`...except whenever it receives a signal
-matching a given predicate (if it is "triggered"), it remains `True` for a specified amount of time.
-If it is "triggered"
+matching a given predicate (if it is "triggered"), it remains `True` for a
+specified amount of time.
 
 ~~~haskell
 onFor ::
      (a -> Bool)  -- test to see if an input 'triggers'
   -> Int          -- amount of time to stay True for
-  -> Auto a Bool  -- An auto that takes an `a` and returns a `Bool`
-onFor p hold = countOn 0
+  -> Auto a Bool  -- An Auto that takes an `a` and returns a `Bool`
+onFor p hold = wait
   where
-    countOn :: Int -> Auto a bool
-    countOn 0 = ACons $ \input ->     -- the "off" (n = 0) state
-      if p input                      -- if triggered,
-        then ( True , countOn (hold-1) )
-                                      -- then turn into "on" (n > 0) state
-        else ( False, countOn 0    )  -- otherwise remain in "off" state
+    wait :: Auto a Bool                 -- the "waiting" state
+    wait = ACons $ \input ->
+      if p input                        -- if triggered,
+        then (True, countdown (hold-1)) -- jump to "countdown" state
+        else (False, wait)              -- otherwise, stay waiting
 
-    countOn n = ACons $ \input ->     -- the "on" (n > 0) state, a countdown
-      if p input                      -- if triggered,
-        then ( True, countOn (hold-1) )
-                                      -- then reset the countdown
-        else ( True, countOn (n-1) )  -- otherwise, count down the hold time
+    countdown :: Int -> Auto a Bool     -- the "countdown" state
+    countdown n = ACons $ \input ->
+      if p input                        -- if re-triggered
+        then (True, countdown (hold-1)) -- countdown all over again
+        else
+          if n == 1
+            then (False, wait)          -- If counted down, go wait again
+            else (True, countdown (n-1))  -- otherwise, count down.
 ~~~
 
 ~~~haskell
 λ: :t onFor even 3
 onFor even 3 :: Auto Int Bool
 λ: testAuto_ (onFor even 3) [1,1,2,1,1,1,1,4,1,6,1,1,1,1]
-[False,False,True ,True,True
-,False,True ,True ,True,True
-,True ,False,False]
+[ False, False, True , True,True
+, False, True , True , True,True
+, True , False, False ]
 ~~~
 
+Here is an auto that keeps a Map as its state, and takes as input a data type
+`data Command k v = Insert k v | Lookup k | Delete k` allows you to either
+insert, lookup, or delete an item.  However, the map has a "maximum size".  If
+you insert past the maximum size, the insert will fail and you'll receive a
+`Nothing`.  Otherwise, you'll receive a `Just val` with the value you just
+inserted.  Successful lookups will return `Just val`, or `Nothing` on a
+failure.  Same for deletions.
+
+~~~haskell
+import qualified Data.Map.Strict as Map
+
+data Command a b = Insert a b | Lookup a
+
+autoMap :: Ord k
+    => Int              -- the maximum capacity of the map
+    -> Auto (Command k v) (Maybe v)
+autoMap cap = go Map.empty
+  where
+    go :: Ord k => Map.Map k v -> Auto (Command k v) (Maybe v)
+    go m = ACons $ \command ->
+      case command of
+        Insert key val ->
+          if Map.size m >= cap && key `Map.notMember` m
+            then
+              ( Nothing, go m )
+            else
+              let m' = Map.insert key val m
+              in  ( Just val, go m' )
+        Lookup key ->
+          ( key `Map.lookup` m, go m )
+        Delete key ->
+          let result  = key `Map.lookup` m
+              m'      = key `Map.delete` m
+          in  ( result, m' )
+~~~
+
+~~~haskell
+λ: testAuto_ (autoMap 3)
+  |  [ Insert "hello" 7
+  |  , Insert "world" 10
+  |  , Insert "foo" 12
+  |  , Insert "bar" 15
+  |  , Delete "baz"
+  |  , Delete "world"
+  |  , Insert "haskell" 19
+  |  , Lookup "world"
+  |  , Lookup "hello"
+  |  ]
+[ Just 7 , Just 10, Just 12
+, Nothing, Nothing, Just 10
+, Just 19, Nothing, Just 7  ]
+~~~
+
+The main thing to note here is that you get to completely encapsulate your
+"state", and allow it only to be "modified" or "viewed" under your own terms.
+In OOP terms, it is like exposing only a few public methods to modify your
+private state with discrimination.  If you were passed an `autoMap` with items
+already inside, you would have no way to have full "access" to the map --- you
+would never be able to perform general operations (such as getting a list of
+all of the keys).
 
 
-"Function Things"
------------------
+## "Function Things"
 
 Anyways, back to our main point of emphasis:
 
