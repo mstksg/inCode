@@ -156,11 +156,11 @@ We can take advantage of Haskell's "lazy-by-default"-ness and leave the "rest"
 of the stream as an unevaluated function call.  And then we can recurse!
 
 ~~~haskell
-streamFrom :: Int -> Stream Int
-streamFrom n = SCons ( n, streamFrom (n+1) )
-
 myStream :: Stream Int
 myStream = streamFrom 1
+  where
+    streamFrom :: Int -> Stream Int
+    streamFrom n = SCons ( n, streamFrom (n+1) )
 ~~~
 
 Cool!  Let's see if this `myStream` really does what we want, the same way we
@@ -225,10 +225,25 @@ The repeated pattern matching is actually kind of tedious, and it'll only get
 more annoying over time, so let's make a function that can automate the
 pattern matching for us really quickly so that we can test it more easily.
 
-`testStram` will take a stream and a number `n` and pull out the first `n`
-items in the stream and give us the new modified stream.  We also write
-`testStream_`, which throws away the new modified stream and just gives us the
-collection of results.
+`streamToList` will take a Stream and perform the very straightforward
+conversion into an infinite list.
+
+~~~haskell
+streamToList :: Stream b -> [b]
+streamToList (SCons (x, xs)) = x : streamToList xs
+~~~
+
+So now we can do:
+
+~~~haskell
+λ: take 10 $ streamToList myStream
+[1,2,3,4,5,6,7,8,9,10]
+~~~
+
+Alternatively (and for reasons which will later become clear), we can also
+define `testStream`, which takes a specified amount of elements and returns
+also the "resulting" stream after all of those steps, and `testStream_`, which
+is the same thing except that we throw away the modified stream.
 
 ~~~haskell
 testStream :: Stream b -> Int -> ([b], Stream b)
@@ -242,25 +257,8 @@ testStream_ :: Stream b -> Int -> [b]
 testStream_ = (fst .) . testStream
 ~~~
 
-So now we can do
-
 ~~~haskell
 λ: testStream_ myStream 10
-[1,2,3,4,5,6,7,8,9,10]
-~~~
-
-Alternatively (and for reasons which will later be clear), we can also define
-a function `streamToList`, which takes any Stream and does the straightforward
-conversion to an infinite list: (we lose access to the "modified" stream of
-course)
-
-~~~haskell
-streamToList :: Stream b -> [b]
-streamToList (SCons (x, xs)) = x : streamToList xs
-~~~
-
-~~~haskell
-λ: take 10 $ streamToList myStream
 [1,2,3,4,5,6,7,8,9,10]
 ~~~
 
@@ -314,11 +312,11 @@ that `streamFrom` actually takes a `x :: Double` instead of an `n :: Int`, and
 rounds it before it pops it out as the "head":
 
 ~~~haskell
-streamFrom' :: Double -> Stream Int
-streamFrom' x = SCons ( round x, streamFrom' (x+1) )
-
 myStream' :: Stream Int
 myStream' = streamFrom' 1.0
+  where
+    streamFrom' :: Double -> Stream Int
+    streamFrom' x = SCons ( round x, streamFrom' (x+1) )
 ~~~
 
 This function now sorta behaves similarly to our original `streamFrom`...
@@ -331,11 +329,11 @@ and *opaque* to the outside world.  What if we had `streamFrom` simply return
 whether or not `n` was even?
 
 ~~~haskell
-boolStreamFrom :: Int -> Stream Bool
-boolStreamFrom n = SCons ( even n, boolStreamFrom (n+1) )
-
 myBoolStream :: Stream Bool
 myBoolStream = boolStreamFrom 1
+  where
+    boolStreamFrom :: Int -> Stream Bool
+    boolStreamFrom n = SCons ( even n, boolStreamFrom (n+1) )
 ~~~
 
 ~~~haskell
@@ -368,9 +366,9 @@ wackyStateStream = wackyStateBool True
     wakcyStateBool False  = SCons (Nothing , wackyStateBool True)
     wackyStateBool True   = SCons (Just 100, wackyStateInt 8)
 
-    wakcyStateInt :: Int -> Stream (Maybe Int)
+    wackyStateInt :: Int -> Stream (Maybe Int)
     wackyStateInt n
-        | n % 7 == 0      = SCons (Just n, wackyStateBool True)
+        | n `mod` 7 == 0  = SCons (Just n, wackyStateBool True)
         | otherwise       = SCons (Just (n+2), wackyStateInt (n+3))
 ~~~
 
@@ -424,11 +422,11 @@ So now, we basically have a `Stream b`, except at every "step", we can
 Let's look at a direct "port" of our `myStream`:
 
 ~~~haskell
-streamAutoFrom :: Int -> Auto a Int
-streamAutoFrom n = ACons $ \_ -> ( n, streamAutoFrom (n+1) )
-
 myStreamAuto :: Auto a Int
 myStreamAuto = streamAutoFrom 1
+  where
+    streamAutoFrom :: Int -> Auto a Int
+    streamAutoFrom n = ACons $ \_ -> ( n, streamAutoFrom (n+1) )
 ~~~
 
 This is kind of a dumb example, but `myStreamAuto` is just the exact same as
@@ -474,13 +472,13 @@ counter to progress normally, we pass in a `Nothing`.  If we want the counter
 to reset to a number `n` of our choosing, we pass in a `Just n`
 
 ~~~haskell
-settableCounterFrom n :: Int -> Auto (Maybe Int) Int
-settableCounterFrom n = ACons $ \reset ->
-  let c = fromMaybe n reset
-  in  ( c, settableCounterFrom (c + 1) )
-
 settableAuto :: Auto (Maybe Int) Int
 settableAuto = settableCounterFrom 1
+  where
+    settableCounterFrom :: Int -> Auto (Maybe Int) Int
+    settableCounterFrom n = ACons $ \reset ->
+      let c = fromMaybe n reset
+      in  ( c, settableCounterFrom (c + 1) )
 ~~~
 
 Remember that `fromMaybe :: a -> Maybe a -> a` takes a "default" value, a
@@ -533,7 +531,7 @@ the modified Auto.  `testAuto_` throws away the new Auto and just gives us the
 collection.
 
 ~~~haskell
-testAuto :: Auto a b -> [a] -> ([b], Auto)
+testAuto :: Auto a b -> [a] -> ([b], Auto a b)
 testAuto auto []      = ([]  , auto )
 testAuto auto (x:xs)  = (y:ys, final)
   where
@@ -590,13 +588,13 @@ the output are different things, and that the state is completely opaque and
 encapsulated.
 
 ~~~haskell
-isEvenAutoFrom n :: Int -> Auto (Maybe Int) Bool
-isEvenAutoFrom n = ACons $ \reset ->
-  let c = fromMaybe n reset
-  in  ( even c, settableCounterFromIsEven (c + 1) )
-
 isEvenAuto :: Auto (Maybe Int) Bool
 isEvenAuto = isEvenAuto 1
+  where
+    isEvenAutoFrom :: Int -> Auto (Maybe Int) Bool
+    isEvenAutoFrom n = ACons $ \reset ->
+      let c = fromMaybe n reset
+      in  ( even c, isEvenAutoFrom (c + 1) )
 ~~~
 
 So `isEvenAuto` is the same as `settableCounterFrom`, except instead of
@@ -606,9 +604,9 @@ So `isEvenAuto` is the same as `settableCounterFrom`, except instead of
 Here is a demonstration of its behavior ---
 
 ~~~
-λ: testAuto settableAutoIsEven  [ Nothing, Nothing, Just 10
-                                , Nothing, Nothing, Just (-1)
-                                , Nothing ]
+λ: testAuto isEvenAuto  [ Nothing, Nothing, Just 10
+                        , Nothing, Nothing, Just (-1)
+                        , Nothing ]
 [False,True,True,False,True]
 ~~~
 
@@ -701,7 +699,7 @@ give us an operator and an initial value, and we'll "fold up" all of our
 inputs.
 
 ~~~haskell
-autoFold :: (b -> a -> b) -> b -> Auto a b
+autoFold :: forall a b. (b -> a -> b) -> b -> Auto a b
 autoFold op init = foldFrom init
   where
     foldFrom :: b -> Auto a b
@@ -709,6 +707,13 @@ autoFold op init = foldFrom init
       let y = x `op` input
       in  ( y, foldFrom y )
 ~~~
+
+(the `forall` is used with the [Scoped Type Variables][stv] extension to let
+us say that the `b` we mention in the type of `foldFrom` is the same as the
+`b` in the type of `autoFold`.  If we leave off the type signature of
+`foldFrom`, this is not necessary)
+
+[stv]: http://www.haskell.org/haskellwiki/Scoped_type_variables
 
 Note that `summer` then is just `autoFold (+) 0`.
 
@@ -774,6 +779,10 @@ like the others before it.  It's a...."function-like thing".
 <aside>
 ###### Aside
 
+Here is a quick diversion, if you're up for it.  This doesn't really have too
+much to do with the rest of the post, but it'll help you test your intuition a
+bit with Autos.
+
 As an exercise, compare (and contrast) these three functions of identical type
 signatures:
 
@@ -797,11 +806,12 @@ Here is an Auto that outputs a rolling average of the values it accumulates,
 with a given window size.
 
 ~~~haskell
-rollingAverage :: Fractional a
+rollingAverage :: forall a. Fractional a
     => Int          -- length of the window
     -> Auto a a     -- an Auto taking an `a` and returning an average `a`
 rollingAverage window = roll []
   where
+    roll :: [a] -> Auto a a
     roll xs = ACons $ \val ->
       let xs' = take window $ val:xs  -- pop on the new value, drop all
                                       --   values past the window
@@ -821,7 +831,7 @@ matching a given predicate (if it is "triggered"), it remains `True` for a
 specified amount of time.
 
 ~~~haskell
-onFor ::
+onFor :: forall a.
      (a -> Bool)  -- test to see if an input 'triggers'
   -> Int          -- amount of time to stay True for
   -> Auto a Bool  -- An Auto that takes an `a` and returns a `Bool`
@@ -863,14 +873,14 @@ failure.  Same for deletions.
 ~~~haskell
 import qualified Data.Map.Strict as Map
 
-data Command a b = Insert a b | Lookup a
+data Command k v = Insert k v | Lookup k | Delete k
 
-autoMap :: Ord k
+autoMap :: forall k v. Ord k
     => Int              -- the maximum capacity of the map
     -> Auto (Command k v) (Maybe v)
 autoMap cap = go Map.empty
   where
-    go :: Ord k => Map.Map k v -> Auto (Command k v) (Maybe v)
+    go :: Map.Map k v -> Auto (Command k v) (Maybe v)
     go m = ACons $ \command ->
       case command of
         Insert key val ->
@@ -885,7 +895,7 @@ autoMap cap = go Map.empty
         Delete key ->
           let result  = key `Map.lookup` m
               m'      = key `Map.delete` m
-          in  ( result, m' )
+          in  ( result, go m' )
 ~~~
 
 ~~~haskell
@@ -922,10 +932,10 @@ Anyways, back to our main point of emphasis:
 
 They are functions...with state.
 
-Let's do an analysis for `settableAutoIsEven` like the one we did with
-`foldAuto`. Our "input" was a `Maybe Int` and our "output" was a `Bool`.
+Let's do an analysis for `isEvenAuto` like the one we did with `foldAuto`. Our
+"input" was a `Maybe Int` and our "output" was a `Bool`.
 
-You can think of `settleAutoIsEven` as a "function thing" from `Maybe Int` to
+You can think of `isEvenAuto` as a "function thing" from `Maybe Int` to
 `Bool`.
 
 Here's another function from `Maybe Int` to `Bool`: (I'm going to be using the
@@ -939,16 +949,16 @@ maybeIsEven = even . fromMaybe 1
 `maybeIsEven` returns `True` when value inside the `Just` is even, or `False`
 if the value is odd or it's a `Nothing`.
 
-Compare that type signature to that of our `settableAutoIsEven`
+Compare that type signature to that of our `isEvenAuto`
 
 ~~~haskell
-maybeIsEven         :: (->) (Maybe Int) Bool
-settableAutoIsEven  :: Auto (Maybe Int) Bool
+maybeIsEven :: (->) (Maybe Int) Bool
+isEvenAuto  :: Auto (Maybe Int) Bool
 ~~~
 
-`maybeIsEven` and `settableAutoIsEven` are *both* "function-like things".  But
+`maybeIsEven` and `isEvenAuto` are *both* "function-like things".  But
 whereas `maybeIsEven` is "memoryless" (it's the same every time you call it),
-`settableAutoIsEven` *has memory* --- it returns a different Boolean based on
+`isEvenAuto` *has memory* --- it returns a different Boolean based on
 its history.
 
 Contrast this with a Stream, which as we have seen is just an `Auto () b`.
