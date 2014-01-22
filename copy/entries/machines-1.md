@@ -38,13 +38,17 @@ explaining concepts here and there if I feel that they might not be very
 commonly known.  But if you have any questions, feel free to leave a comment
 or stop by freenode's #haskell on irc!
 
-We are going to start with Streams and then move on to the main machine of the
-rest of our study, Autos.
+In this post we are going to introduce Streams and (more importantly) Autos.
+In the next, we will be looking at Autos as a member of the powerful Category
+and Arrow typeclasses.  Finally, we will bring in the final machine, the Wire,
+to transition into the popular AFRP library [netwire][].
+
+[netwire]: http://hackage.haskell.org/package/netwire
 
 Why FRP?
 --------
 
-Why do we even bother with FRP?  Why not just wrap everything in a giant
+So why do we even bother with FRP?  Why not just wrap everything in a giant
 global state monad and program imperatively?
 
 To get to the bottom of this, we must remember why we even bother with
@@ -773,47 +777,10 @@ The main point here is that `autoFold` is a sort of "function" in a way...just
 like the others before it.  It's a...."function-like thing".
 
 <aside>
-    ###### Aside
+###### Aside
 
-And now, another diversion.  This is actually a pretty big one, so if you are
-still digesting the rest of the post, there is no problem with completely
-skipping this aside :)
-
-Recall the function `scanl :: (b -> a -> b) -> b -> [a] -> [b]`.  `scanl` is
-just like `foldl`, except that it "keeps track" of the history of the
-accumulator.
-
-For example:
-
-~~~haskell
-λ: foldl (+) 0 [1..10]
-55
-λ: scanl (+) 0 [1..10]
-[1,3,6,10,15,21,28,36,45,55]
-~~~
-
-(in real life, `scanl` also adds the initial value of the accumulator to the
-head of the list, but we'll pretend here that it doesn't)
-
-One way to think about scan is that scan is "map with memory".  With `map`,
-you apply a memoryless function to every element in a list.  With `scanl`,
-you apply a function to every element in a list...but this function
-"remembers" the values of the elements it has already "mapped".
-
-This is very apparent when we examine the two type signatures:
-
-~~~haskell
-map   f       :: [a] -> [b]
-scanl op init :: [a] -> [b]
-~~~
-
-While `map` takes a function and returns a "mapper" (`[a] -> [b]`), `scanl`
-takes an *operator and an initial value* and returns a "mapper".
-
-They both take *something* and return a "mapper".
-
-But wait!  We have seen something before with this *exact* same type
-signature: `testAuto_ auto`!
+As an exercise, compare (and contrast) these three functions of identical type
+signatures:
 
 ~~~haskell
 map       f       :: [a] -> [b]
@@ -821,30 +788,12 @@ scanl     op init :: [a] -> [b]
 testAuto_ auto    :: [a] -> [b]
 ~~~
 
-Huh.  Interesting!
+(Assume that `scanl` does not include the initial accumulator...that is, we
+are really talking about `drop 1 . scanl op init`)
 
-Actually, if we think about it...any `scanl op init` behaves *exactly the
-same* as a `testAuto_ auto`, for some value of `auto` (Actually, that `auto`
-is exactly `foldAuto op init`).  `testAuto_ auto` is some sort of
-"mapper"...but *with memory* --- just like `scanl op init`!
-
-Isn't this what we said that Auto was?  A function with memory?  Is an `Auto a
-b` equivalent to a `(b -> a -> b)` + `b` combination?  Are all Autos
-equivalent to a scan of some sort?  We see that every `scanl op init` be
-recreated with a corresponding `auto` in `testAuto_ auto`, `auto = foldAuto op
-init`.  But can every `testAuto_ auto` be recreated with a proper choice of
-`op` and `init` in `scanl op init`?
-
-If not, what can you "add" to `scanl op init` to give it the same power as
-`testAuto_ auto`?
-
-Consider the curious fact we mentioned before.  In an `Auto a b`, the type of
-the state is not mentioned and is possibly dynamic.  A `scanl op init` also
-involves only two types, `a` and `b`.  Where is the type of the state in
-`scanl op init`? Is it fixed, or is it free like for Autos?
-
-I'll leave these questions to you, the reader.  Leave an answer in the
-comments if you want!
+Compare what they do conceptually.  Then, for fun, try implementing some of
+them in terms of the other.  Which re-implementations are possible?  Which
+ones arent?
 </aside>
 
 ### More Auto examples
@@ -1016,61 +965,17 @@ an Auto is a "function" that has memory, a Stream is like a *constant* that
 has memory.  A stateful generator.  A "constant" that returns something
 different every time you ask for it.
 
-### "Function...things?"
-
-You should be able to guess where I am going with this.
-
 You should be able to guess that, after vaguely using the phrase "function
 things" several times...I'm going to surprise you all with the revelation that
 these "function things" have a name!  And maybe even...a typeclass?
 
-But I'll leave this for the next part.
+Onward
+------
 
-For now, think of what it means to be "function like".  Not only do you have
-inputs and outputs...but there are also certain things about being a function
-that are key to its nature.  Things like...function composition, maybe?  What
-would that even look like with our autos?
+So far we haven't really made too convincing of an argument for the advantages
+of using machines (like Auto and the related Wire).  Yeah, they provide
+encapsulation and a changing state...but these things come for free in most
+good Object-Oriented Programming languages.  So what gives?
 
-
-<!-- ### Categories and Arrows -->
-
-<!-- Okay, I think I've belabored the point enough.  It should come as no surprise -->
-<!-- to you that this "function like" concept has a name in Haskell. -->
-
-<!-- These "function things" are all members of the `Category` typeclass. -->
-<!-- Technically, they represent morphisms in the mathematical concept of a -->
-<!-- category.  To prevent confusion, I will usually refer to them as morphisms or -->
-<!-- as "arrows". -->
-
-<!-- <aside> -->
-<!--     ###### Aside -->
-
-<!-- Technically, there is actually a separate `Arrow` typeclass.  This typeclass -->
-<!-- more or less provides convenient functions and combinators for chaining and -->
-<!-- composing categories, so for now and forever, I will mostly use the words -->
-<!-- "arrow" and "morphism" interchangeably.  And sometimes, if I slip, "category". -->
-<!-- However, this distinction should be made very clear. -->
-<!-- </aside> -->
-
-<!-- #### Semantics of categories -->
-
-<!-- So what does it mean to be a category morphism? -->
-
-<!-- First of all, and most importantly of all, morphisms can be **composed**. -->
-
-<!-- For example, if you have two functions `f :: (->) b c` and `g :: (->) a b`, -->
-<!-- you should be able to have some way of "chaining" them --- first apply `g`, -->
-<!-- then apply `f`.  Baiscally, `f . g` produces a *new* function from `a` to `c`. -->
-<!-- It takes an `a` to `b` functiona and a `b` to `c` function and composes them -->
-<!-- into a brand new `a` to `c` function. -->
-
-<!-- Apart from composition, categories must also provide *identity morphisms*. -->
-<!-- That is, given any morphism `f :: Category r => r a b`, your category has to -->
-<!-- provide for you a left-hand "post-apply" identity `id :: r b b` such that `id -->
-<!-- . f` is the same as just `f` alone, as well as a right-hand "pre-apply" -->
-<!-- identity `id :: r a a` such that `f . id` is the same as just `f` alone. -->
-
-<!-- The Category typeclass in Haskell exactly provides just the composition `(.)` -->
-<!-- and the "identity generator" `id`. -->
 
 
