@@ -308,9 +308,10 @@ output?
 As it turns out, this `Int` refers to the output --- it is the type of the
 "head" of the stream, and all values we will eventually grab from it.
 
-Note however that the type of the state can actually vary!  As a trivial
-example, pretend that `streamFrom` actually takes a `x :: Double` instead of
-an `n :: Int`, and rounds it before it pops it out as the "head":
+Note however that the type of the state is not actually included in the type
+signature, so it can be whatever you want!  As a trivial example, let's say
+that `streamFrom` actually takes a `x :: Double` instead of an `n :: Int`, and
+rounds it before it pops it out as the "head":
 
 ~~~haskell
 streamFrom' :: Double -> Stream Int
@@ -349,7 +350,7 @@ from `1` to infinity.  We might not have ever even known.
 This property --- that the states of these types of machines are hidden from
 the world --- is actually going to be very useful.  Like I said before, every
 machine can really be considered self-contained.  This is unlike using a State
-monad-based loop, where all internal states are more or less freely viewable
+monad-based loop, where all internal state is more or less freely viewable
 manipulatable by anyone.  Here, every machine is truly its own little world.
 
 In fact, because the type of the state is unknown and unpredictable...even if
@@ -472,12 +473,6 @@ We can do this by having the influence/input be a `Maybe Int`.  If we want the
 counter to progress normally, we pass in a `Nothing`.  If we want the counter
 to reset to a number `n` of our choosing, we pass in a `Just n`
 
-If you have been following along, this should be a pretty straightforward
-upgrade of `myStreamAuto`, and I recommend trying to implement it yourself
-before reading on.
-
-Welp, here we go!
-
 ~~~haskell
 settableCounterFrom n :: Int -> Auto (Maybe Int) Int
 settableCounterFrom n = ACons $ \reset ->
@@ -492,7 +487,7 @@ Remember that `fromMaybe :: a -> Maybe a -> a` takes a "default" value, a
 Maybe value, and then returns the value inside the Maybe if it's a `Just`, or
 the default value if it's a `Nothing`.
 
-So basically, when you `runAuto` with an Auto, if you give it a `Nothing`,
+So basically, when you `runAuto` with the Auto, if you give it a `Nothing`,
 it'll give you `( n, settableCounterFrom (n+1) )`.  If you give it `Just m`,
 it'll give you `( m, settableCounterFrom (m+1) )`.
 
@@ -881,9 +876,9 @@ autoMap cap = go Map.empty
         Insert key val ->
           if Map.size m >= cap && key `Map.notMember` m
             then
-              ( Nothing, go m )
+              ( Nothing, go m )                 -- Map is full, no go!
             else
-              let m' = Map.insert key val m
+              let m' = Map.insert key val m     -- go for it!
               in  ( Just val, go m' )
         Lookup key ->
           ( key `Map.lookup` m, go m )
@@ -976,6 +971,17 @@ So far we haven't really made too convincing of an argument for the advantages
 of using machines (like Auto and the related Wire).  Yeah, they provide
 encapsulation and a changing state...but these things come for free in most
 good Object-Oriented Programming languages.  So what gives?
+
+As it turns out, as we suggested before, Autos are much more "composable" than
+the objects of OOP.  That is because, at their heart, they are just functions.
+And what do functions do best?  They compose!  Complex object built seamlessly
+from simpler ones.
+
+Now, I haven't really been able to back this up so far.  But in the next post,
+as we explore more the function-like nature of these things, we will be able
+to witness the full power of machine composition.  And we'll even be able to
+re-implement *many* of the complex machines of this post with compositions of
+smaller, simpler Autos.
 
 
 
