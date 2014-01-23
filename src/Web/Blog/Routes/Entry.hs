@@ -38,7 +38,7 @@ routeEntrySlug = do
 
 routeEntryId :: RouteDatabase
 routeEntryId = do
-  eIdent <- S.param "entryIdent"
+  eIdent <- S.param "eId"
   now <- liftIO getCurrentTime
   return $ readerEntryId (read eIdent) now
 
