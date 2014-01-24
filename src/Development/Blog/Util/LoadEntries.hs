@@ -2,7 +2,8 @@
 module Development.Blog.Util.LoadEntries (loadEntries, sampleSpec, SampleSpec(..), processSample) where
 
 import Config.SiteData
-import Control.Applicative                    ((<$>), pure)
+import Control.Applicative                    ((<$>), (*>), pure)
+import Control.Arrow                          ((&&&))
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.State
@@ -11,11 +12,11 @@ import Data.List                              (isPrefixOf)
 import Data.Maybe                             (fromJust, listToMaybe, isJust, fromMaybe)
 import Data.Monoid
 import Data.Time
+import Debug.Trace
 import System.Directory                       (getDirectoryContents)
 import System.FilePath                        ((</>))
 import System.Locale
-import Text.Parsec
-import Debug.Trace
+import Text.Parsec                            as Parsec
 import Text.Parsec.Text
 import Web.Blog.Database
 import Web.Blog.Models
@@ -262,16 +263,15 @@ readPreProcess entryFile = do
 
     return . T.unpack . T.unlines $ eLinesPP
 
-data SampleSpec = SampleSpec  { sSpecFirst    :: Bool
-                              , sSpecFile     :: FilePath
-                              , sSpecKeyword  :: Maybe FilePath
+data SampleSpec = SampleSpec  { sSpecFile     :: FilePath
                               , sSpecLive     :: Maybe String
+                              , sSpecKeywords :: [(String,Maybe Int)]
                               } deriving (Show)
 
 insertSample :: T.Text -> IO T.Text
 insertSample sampline = do
-    let spec' = runP sampleSpec () "Sample specification" sampline
-    
+    let spec' = runP sampleSpec () (T.unpack sampline) sampline
+
     case spec' of
         Left err    ->
             return $ T.pack (show err)
@@ -279,15 +279,47 @@ insertSample sampline = do
             rawSamp <- T.readFile (samplesDir </> sSpecFile spec)
             return $ processSample spec rawSamp
 
-
 processSample :: SampleSpec -> T.Text -> T.Text
-processSample (SampleSpec sFirst sFile sKey sLive) rawSamp =
-    processed
+processSample (SampleSpec sFile sLive sKeys) rawSamp = processed
   where
-    rawLines      = T.lines rawSamp
-    zipped        = zip rawLines [1..]
-    zDropped      =
-      dropWhile (not . (T.pack (fromJust sKey) `T.isInfixOf`) . fst) zipped
+    rawLines = T.lines rawSamp
+    zipped = zip rawLines [1..]
+    blocks =
+      if null sKeys
+        then 
+          return
+            ( (snd . head &&& snd . last) zipped
+            , T.unlines (map fst zipped)        )
+        else
+          map (uncurry (grabBlock zipped)) sKeys
+    startLine = fst . fst . head $ blocks
+    endLine   = snd . fst . last $ blocks
+    sampCode  = T.unlines . map snd $ blocks
+    toHeading key val = T.pack . concat $ ["-- ", key, ": ", val, "\n"]
+    sourceHeading   =
+      case publicBlobs of
+        Nothing -> ""
+        Just blob ->
+          let suffix  = concat ["#L",show startLine,"-",show endLine]
+              suffix' = if null sKeys then "" else suffix
+          in  toHeading
+                "source"
+                (blob </> samplesDir </> sFile ++ suffix')
+    interHeading =
+      let maybeHeading = do
+            inter <- interactiveUrl
+            live <- sLive
+            return $ toHeading "interactive" (inter </> live)
+      in fromMaybe "" maybeHeading
+    processed = T.concat [sourceHeading, interHeading, sampCode]
+
+
+
+grabBlock :: [(T.Text,Int)] -> String -> Maybe Int -> ((Int,Int), T.Text)
+grabBlock zipped key limit = grabbed
+  where
+    zDropped =
+      dropWhile (not . (T.pack key `T.isInfixOf`) . fst) zipped
     (zHead,zRest) =
       span (\(l,_) -> not (" " `T.isPrefixOf` l) && not (T.null l)) zDropped
     zBlock        =
@@ -298,38 +330,63 @@ processSample (SampleSpec sFirst sFile sKey sLive) rawSamp =
           takeWhile (\(l,_) -> not (T.null l) || " " `T.isPrefixOf` l) zRest
     zBlock'       =
       reverse . dropWhile (T.null . fst) . reverse $ zBlock
-    zAll          =
-      if isJust sKey
-        then zHead ++ zBlock'
-        else zipped
+    zAll =
+      case limit of
+        Just lim -> take lim zDropped
+        Nothing  -> zHead ++ zBlock'
     startLine     = snd . head $ zAll
     endLine       = snd . last $ zAll
     sampCode      = T.unlines . map fst $ zAll
-    toHeading key val = T.pack . concat $ ["-- ", key, ": ", val, "\n"]
-    sourceHeading   =
-      if sFirst
-        then
-          case publicBlobs of
-            Nothing -> ""
-            Just blob ->
-              let suffix  = concat ["#L",show startLine,"-",show endLine]
-                  suffix' = maybe "" (const suffix) sKey
-              in  toHeading
-                    "source"
-                    (blob </> samplesDir </> sFile ++ suffix')
-        else ""
-    interHeading =
-      if sFirst
-        then
-          let maybeHeading = do
-                inter <- interactiveUrl
-                live <- sLive
-                return $ toHeading "interactive" (inter </> live)
-          in fromMaybe "" maybeHeading
-        else ""
-    processed = T.concat [sourceHeading, interHeading, sampCode]
+    grabbed = ((startLine, endLine), sampCode)
 
-
+-- processSample :: SampleSpec -> T.Text -> T.Text
+-- processSample (SampleSpec sFile sLive sKeys) rawSamp =
+--     processed
+--   where
+--     rawLines      = T.lines rawSamp
+--     zipped        = zip rawLines [1..]
+--     zDropped      =
+--       dropWhile (not . (T.pack (fromJust sKey) `T.isInfixOf`) . fst) zipped
+--     (zHead,zRest) =
+--       span (\(l,_) -> not (" " `T.isPrefixOf` l) && not (T.null l)) zDropped
+--     zBlock        =
+--       if T.null . fst . last $ zHead
+--         then
+--           []
+--         else
+--           takeWhile (\(l,_) -> not (T.null l) || " " `T.isPrefixOf` l) zRest
+--     zBlock'       =
+--       reverse . dropWhile (T.null . fst) . reverse $ zBlock
+--     zAll          =
+--       if isJust sKey
+--         then zHead ++ zBlock'
+--         else zipped
+--     startLine     = snd . head $ zAll
+--     endLine       = snd . last $ zAll
+--     sampCode      = T.unlines . map fst $ zAll
+--     toHeading key val = T.pack . concat $ ["-- ", key, ": ", val, "\n"]
+--     sourceHeading   =
+--       if sFirst
+--         then
+--           case publicBlobs of
+--             Nothing -> ""
+--             Just blob ->
+--               let suffix  = concat ["#L",show startLine,"-",show endLine]
+--                   suffix' = maybe "" (const suffix) sKey
+--               in  toHeading
+--                     "source"
+--                     (blob </> samplesDir </> sFile ++ suffix')
+--         else ""
+--     interHeading =
+--       if sFirst
+--         then
+--           let maybeHeading = do
+--                 inter <- interactiveUrl
+--                 live <- sLive
+--                 return $ toHeading "interactive" (inter </> live)
+--           in fromMaybe "" maybeHeading
+--         else ""
+--     processed = T.concat [sourceHeading, interHeading, sampCode]
 
 
 publicBlobs :: Maybe String
@@ -340,18 +397,18 @@ interactiveUrl = T.unpack <$> siteDataInteractiveUrl siteData
 
 sampleSpec :: Parser SampleSpec
 sampleSpec = do
-    isFirst <- option True (False <$ try (char '*')) <?> "isFirst"
+    filePath <- noSpaces <?> "sample filePath"
     spaces
-    filePath <- noSpaces <?> "filePath"
+    keywords <- many $ do
+      keyword <- char '"' *> manyTill anyChar (char '"') <?> "keyword"
+      keylimit <- optionMaybe (read <$> many1 digit <?> "keyword limit")
+      spaces
+      return (keyword,keylimit)
     spaces
-    keyword <- let q = char '"' in
-        optionMaybe (q >> manyTill anyChar q) <?> "keyword"
-    spaces
-    live <- optionMaybe (noSpaces) <?> "live"
+    live <- optionMaybe (noSpaces) <?> "live url"
     let
-      live' = live >>= isEmpty
+      live' = mfilter (not . null) live
 
-    return $ SampleSpec isFirst filePath keyword live'
+    return $ SampleSpec filePath live' keywords
   where
     noSpaces = manyTill anyChar (space <|> ' ' <$ eof)
-    isEmpty l = if length l > 0 then Just l else Nothing
