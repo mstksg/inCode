@@ -1,9 +1,12 @@
 
-module Development.Blog.Util.LoadEntries (loadEntries) where
+module Development.Blog.Util.LoadEntries (loadEntries, sampleSpec, SampleSpec(..)) where
 
+-- import qualified Data.Text.Lazy            as L
 import Control.Applicative                    ((<$>), pure)
 import Control.Monad
 import Control.Monad.IO.Class
+import Control.Monad.State
+import Data.Functor
 import Data.List                              (isPrefixOf)
 import Data.Maybe                             (fromJust, listToMaybe)
 import Data.Monoid
@@ -11,16 +14,22 @@ import Data.Time
 import System.Directory                       (getDirectoryContents)
 import System.FilePath                        ((</>))
 import System.Locale
+import Text.Parsec
+import Text.Parsec.Text
 import Web.Blog.Database
 import Web.Blog.Models
 import Web.Blog.Models.Types
 import Web.Blog.Models.Util
 import qualified Data.Map                     as M
 import qualified Data.Text                    as T
+import qualified Data.Text.IO                 as T
 import qualified Database.Persist.Postgresql  as D
 import qualified Text.Pandoc                  as P
 import qualified Text.Pandoc.Builder          as P
 import qualified Text.Pandoc.Readers.Markdown as PM
+
+samplesDir :: FilePath
+samplesDir = "code-samples"
 
 data MetaKey = MetaKeyTags
              | MetaKeyCategories
@@ -55,6 +64,8 @@ loadEntries entriesDir = do
 processEntryFile :: FilePath -> D.SqlPersistM (D.Key Entry)
 processEntryFile entryFile = do
     tzone <- liftIO getCurrentTimeZone
+
+    -- entryText <- readPreProcess entryFile
 
     (P.Pandoc _ contents, _) <- liftIO $
       readMarkdown <$> readFile entryFile
@@ -239,3 +250,70 @@ removeOrphanEntries :: [D.Key Entry] -> D.SqlPersistM ()
 removeOrphanEntries eKeys = do
   orphans <- D.selectList [ EntryId D./<-. eKeys ] []
   mapM_ removeEntry orphans
+
+readPreProcess :: FilePath -> IO String
+readPreProcess entryFile = do
+    eLines <- T.lines <$> T.readFile entryFile
+
+    eLinesPP <- forM eLines $ \line -> do
+      if "!!!" `T.isPrefixOf` line
+        then insertSample . T.strip . T.dropWhile (== '!') $ line
+        else return line
+
+    return . T.unpack . T.unlines $ eLinesPP
+
+data SampleSpec = SampleSpec  { sSpecFirst    :: Bool
+                              , sSpecFile     :: FilePath
+                              , sSpecKeyword  :: Maybe FilePath
+                              , sSpecLive     :: Maybe String
+                              } deriving (Show)
+
+insertSample :: T.Text -> IO T.Text
+insertSample samp = do
+    let spec = runP sampleSpec () "Sample specification" samp
+
+    return ""
+
+-- !!!*machines/Auto.hs "onFor ::" 28jr44534
+
+sampleSpec :: Parser SampleSpec
+sampleSpec = do
+    isFirst <- option True (False <$ try (char '*')) <?> "isFirst"
+    spaces
+    filePath <- noSpaces <?> "filePath"
+    spaces
+    keyword <- let q = char '"' in
+        optionMaybe (q >> manyTill anyChar q) <?> "keyword"
+    spaces
+    live <- optionMaybe (noSpaces) <?> "live"
+
+    return $ SampleSpec isFirst filePath keyword live
+  where
+    noSpaces = manyTill anyChar (space <|> ' ' <$ eof)
+
+
+    -- let
+    --   isFirst = maybe 
+    -- case T.uncons samp of
+    --   Nothing -> return samp
+    --   Just ()
+    -- let
+
+    -- let
+    --   (filep:matcherlit) = T.unpack <$> T.words samp
+    --   matcher = read $ unwords matcherlit
+
+    -- codesource <- T.lines <$> T.readFile filep
+
+    -- let
+    --   zipped = zip codesource [1..]
+    --   zDropped = dropWhile (not . (matcher `T.isInfixOf`) . fst) zipped
+    --   (zHead,zRest) = span (not . (" " `T.isPrefixOf`) . fst) zDropped
+    --   zBlock = takeWhile
+    --     (\(l,_) -> T.length l > 0 || " " `T.isPrefixOf` l) zRest
+    --   zBlock' =
+    --     reverse . dropWhile ((< 0) . T.length . fst) . reverse $ zBlock
+
+    -- return . T.concat $ map fst (zHead ++ zBlock')
+
+-- !!!machines/Auto.hs "onFor ::"

@@ -1,5 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-
 module Web.Blog.Models.Types where
 
 import Data.Aeson.TH
