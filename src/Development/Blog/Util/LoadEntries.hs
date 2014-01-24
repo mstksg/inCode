@@ -1,25 +1,27 @@
 
-module Development.Blog.Util.LoadEntries (loadEntries, sampleSpec, SampleSpec(..)) where
+module Development.Blog.Util.LoadEntries (loadEntries, sampleSpec, SampleSpec(..), processSample) where
 
--- import qualified Data.Text.Lazy            as L
+import Config.SiteData
 import Control.Applicative                    ((<$>), pure)
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.State
 import Data.Functor
 import Data.List                              (isPrefixOf)
-import Data.Maybe                             (fromJust, listToMaybe)
+import Data.Maybe                             (fromJust, listToMaybe, isJust, fromMaybe)
 import Data.Monoid
 import Data.Time
 import System.Directory                       (getDirectoryContents)
 import System.FilePath                        ((</>))
 import System.Locale
 import Text.Parsec
+import Debug.Trace
 import Text.Parsec.Text
 import Web.Blog.Database
 import Web.Blog.Models
 import Web.Blog.Models.Types
 import Web.Blog.Models.Util
+import Web.Blog.Types
 import qualified Data.Map                     as M
 import qualified Data.Text                    as T
 import qualified Data.Text.IO                 as T
@@ -65,10 +67,8 @@ processEntryFile :: FilePath -> D.SqlPersistM (D.Key Entry)
 processEntryFile entryFile = do
     tzone <- liftIO getCurrentTimeZone
 
-    -- entryText <- readPreProcess entryFile
-
     (P.Pandoc _ contents, _) <- liftIO $
-      readMarkdown <$> readFile entryFile
+      readMarkdown <$> readPreProcess entryFile
 
     let
       writeMarkdownBlocks bs = writeMarkdown $ P.doc $ P.fromList bs
@@ -269,10 +269,75 @@ data SampleSpec = SampleSpec  { sSpecFirst    :: Bool
                               } deriving (Show)
 
 insertSample :: T.Text -> IO T.Text
-insertSample samp = do
-    let spec = runP sampleSpec () "Sample specification" samp
+insertSample sampline = do
+    let spec' = runP sampleSpec () "Sample specification" sampline
+    
+    case spec' of
+        Left err    ->
+            return $ T.pack (show err)
+        Right spec  -> do
+            rawSamp <- T.readFile (samplesDir </> sSpecFile spec)
+            return $ processSample spec rawSamp
 
-    return ""
+
+processSample :: SampleSpec -> T.Text -> T.Text
+processSample (SampleSpec sFirst sFile sKey sLive) rawSamp =
+    processed
+  where
+    rawLines      = T.lines rawSamp
+    zipped        = zip rawLines [1..]
+    zDropped      =
+      dropWhile (not . (T.pack (fromJust sKey) `T.isInfixOf`) . fst) zipped
+    (zHead,zRest) =
+      span (\(l,_) -> not (" " `T.isPrefixOf` l) && not (T.null l)) zDropped
+    zBlock        =
+      if T.null . fst . last $ zHead
+        then
+          []
+        else
+          takeWhile (\(l,_) -> not (T.null l) || " " `T.isPrefixOf` l) zRest
+    zBlock'       =
+      reverse . dropWhile (T.null . fst) . reverse $ zBlock
+    zAll          =
+      if isJust sKey
+        then zHead ++ zBlock'
+        else zipped
+    startLine     = snd . head $ zAll
+    endLine       = snd . last $ zAll
+    sampCode      = T.unlines . map fst $ zAll
+    toHeading key val = T.pack . concat $ ["-- ", key, ": ", val, "\n"]
+    sourceHeading   =
+      if sFirst
+        then
+          case publicBlobs of
+            Nothing -> ""
+            Just blob ->
+              let suffix  = concat ["#L",show startLine,"-",show endLine]
+                  suffix' = maybe "" (const suffix) sKey
+              in  toHeading
+                    "source"
+                    (blob </> samplesDir </> sFile ++ suffix')
+        else ""
+    interHeading =
+      if sFirst
+        then
+          let maybeHeading = do
+                inter <- interactiveUrl
+                live <- sLive
+                return $ toHeading "interactive" (inter </> live)
+          in fromMaybe "" maybeHeading
+        else ""
+    processed = T.concat [sourceHeading, interHeading, sampCode]
+
+
+
+
+publicBlobs :: Maybe String
+publicBlobs = T.unpack <$> siteDataPublicBlobs siteData
+
+interactiveUrl :: Maybe String
+interactiveUrl = T.unpack <$> siteDataInteractiveUrl siteData
+    -- processed     = ((startLine, endLine), samp)
 
 -- !!!*machines/Auto.hs "onFor ::" 28jr44534
 
@@ -286,10 +351,13 @@ sampleSpec = do
         optionMaybe (q >> manyTill anyChar q) <?> "keyword"
     spaces
     live <- optionMaybe (noSpaces) <?> "live"
+    let
+      live' = live >>= isEmpty
 
-    return $ SampleSpec isFirst filePath keyword live
+    return $ SampleSpec isFirst filePath keyword live'
   where
     noSpaces = manyTill anyChar (space <|> ' ' <$ eof)
+    isEmpty l = if length l > 0 then Just l else Nothing
 
 
     -- let

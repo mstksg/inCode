@@ -13,6 +13,7 @@ siteData =
     , siteDataDescription     = description
     , siteDataCopyright       = "2013 Justin Le"
     , siteDataPublicBlobs     = Just "https://github.com/mstksg/blog/blob/develop/"
+    , siteDataInteractiveUrl  = Just "https://www.fpcomplete.com/user/jle/"
     , siteDataHostConfig      = hostConfig
     , siteDataDeveloperAPIs   = developerAPIs
     , siteDataAppPrefs        = appPrefs

@@ -36,6 +36,7 @@ data SiteData = SiteData
                 , siteDataDescription     :: T.Text
                 , siteDataCopyright       :: T.Text
                 , siteDataPublicBlobs     :: Maybe T.Text
+                , siteDataInteractiveUrl  :: Maybe T.Text
                 , siteDataHostConfig      :: HostConfig
                 , siteDataDeveloperAPIs   :: DeveloperAPIs
                 , siteDataAppPrefs        :: AppPrefs
