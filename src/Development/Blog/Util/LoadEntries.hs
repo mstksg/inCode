@@ -337,9 +337,6 @@ publicBlobs = T.unpack <$> siteDataPublicBlobs siteData
 
 interactiveUrl :: Maybe String
 interactiveUrl = T.unpack <$> siteDataInteractiveUrl siteData
-    -- processed     = ((startLine, endLine), samp)
-
--- !!!*machines/Auto.hs "onFor ::" 28jr44534
 
 sampleSpec :: Parser SampleSpec
 sampleSpec = do
@@ -358,30 +355,3 @@ sampleSpec = do
   where
     noSpaces = manyTill anyChar (space <|> ' ' <$ eof)
     isEmpty l = if length l > 0 then Just l else Nothing
-
-
-    -- let
-    --   isFirst = maybe 
-    -- case T.uncons samp of
-    --   Nothing -> return samp
-    --   Just ()
-    -- let
-
-    -- let
-    --   (filep:matcherlit) = T.unpack <$> T.words samp
-    --   matcher = read $ unwords matcherlit
-
-    -- codesource <- T.lines <$> T.readFile filep
-
-    -- let
-    --   zipped = zip codesource [1..]
-    --   zDropped = dropWhile (not . (matcher `T.isInfixOf`) . fst) zipped
-    --   (zHead,zRest) = span (not . (" " `T.isPrefixOf`) . fst) zDropped
-    --   zBlock = takeWhile
-    --     (\(l,_) -> T.length l > 0 || " " `T.isPrefixOf` l) zRest
-    --   zBlock' =
-    --     reverse . dropWhile ((< 0) . T.length . fst) . reverse $ zBlock
-
-    -- return . T.concat $ map fst (zHead ++ zBlock')
-
--- !!!machines/Auto.hs "onFor ::"
