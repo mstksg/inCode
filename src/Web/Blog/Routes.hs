@@ -134,6 +134,16 @@ utilRoutes _ = do
     b <- liftIO backupEntries
     S.text $ L.fromStrict b
 
+  S.get (S.regex "/source/(.*)$") $
+    case siteDataPublicBlobs siteData of
+      Nothing -> permanentRedirect "/not-found"
+      Just blob -> do
+        p <- S.param "1"
+        S.status movedPermanently301
+        S.header "Location" $ L.append
+          (L.fromStrict blob)
+          p
+
 
 
 

@@ -22,6 +22,7 @@ import Web.Blog.Database
 import Web.Blog.Models
 import Web.Blog.Models.Types
 import Web.Blog.Models.Util
+import Web.Blog.Render                        (renderUrl')
 import Web.Blog.Types
 import qualified Data.Map                     as M
 import qualified Data.Text                    as T
@@ -286,7 +287,7 @@ processSample (SampleSpec sFile sLive sKeys) rawSamp = processed
     zipped = zip rawLines [1..]
     blocks =
       if null sKeys
-        then 
+        then
           return
             ( (snd . head &&& snd . last) zipped
             , T.unlines (map fst zipped)        )
@@ -297,14 +298,14 @@ processSample (SampleSpec sFile sLive sKeys) rawSamp = processed
     sampCode  = T.unlines . map snd $ blocks
     toHeading key val = T.pack . concat $ ["-- ", key, ": ", val, "\n"]
     sourceHeading   =
-      case publicBlobs of
+      case sampleBlobs of
         Nothing -> ""
         Just blob ->
           let suffix  = concat ["#L",show startLine,"-",show endLine]
               suffix' = if null sKeys then "" else suffix
           in  toHeading
                 "source"
-                (blob </> samplesDir </> sFile ++ suffix')
+                (blob </> sFile ++ suffix')
     interHeading =
       let maybeHeading = do
             inter <- interactiveUrl
@@ -312,7 +313,6 @@ processSample (SampleSpec sFile sLive sKeys) rawSamp = processed
             return $ toHeading "interactive" (inter </> live)
       in fromMaybe "" maybeHeading
     processed = T.concat [sourceHeading, interHeading, sampCode]
-
 
 
 grabBlock :: [(T.Text,Int)] -> String -> Maybe Int -> ((Int,Int), T.Text)
@@ -323,11 +323,7 @@ grabBlock zipped key limit = grabbed
     (zHead,zRest) =
       span (\(l,_) -> not (" " `T.isPrefixOf` l) && not (T.null l)) zDropped
     zBlock        =
-      if T.null . fst . last $ zHead
-        then
-          []
-        else
-          takeWhile (\(l,_) -> not (T.null l) || " " `T.isPrefixOf` l) zRest
+      takeWhile (\(l,_) -> not (T.null l) || " " `T.isPrefixOf` l) zRest
     zBlock'       =
       reverse . dropWhile (T.null . fst) . reverse $ zBlock
     zAll =
@@ -339,58 +335,12 @@ grabBlock zipped key limit = grabbed
     sampCode      = T.unlines . map fst $ zAll
     grabbed = ((startLine, endLine), sampCode)
 
--- processSample :: SampleSpec -> T.Text -> T.Text
--- processSample (SampleSpec sFile sLive sKeys) rawSamp =
---     processed
---   where
---     rawLines      = T.lines rawSamp
---     zipped        = zip rawLines [1..]
---     zDropped      =
---       dropWhile (not . (T.pack (fromJust sKey) `T.isInfixOf`) . fst) zipped
---     (zHead,zRest) =
---       span (\(l,_) -> not (" " `T.isPrefixOf` l) && not (T.null l)) zDropped
---     zBlock        =
---       if T.null . fst . last $ zHead
---         then
---           []
---         else
---           takeWhile (\(l,_) -> not (T.null l) || " " `T.isPrefixOf` l) zRest
---     zBlock'       =
---       reverse . dropWhile (T.null . fst) . reverse $ zBlock
---     zAll          =
---       if isJust sKey
---         then zHead ++ zBlock'
---         else zipped
---     startLine     = snd . head $ zAll
---     endLine       = snd . last $ zAll
---     sampCode      = T.unlines . map fst $ zAll
---     toHeading key val = T.pack . concat $ ["-- ", key, ": ", val, "\n"]
---     sourceHeading   =
---       if sFirst
---         then
---           case publicBlobs of
---             Nothing -> ""
---             Just blob ->
---               let suffix  = concat ["#L",show startLine,"-",show endLine]
---                   suffix' = maybe "" (const suffix) sKey
---               in  toHeading
---                     "source"
---                     (blob </> samplesDir </> sFile ++ suffix')
---         else ""
---     interHeading =
---       if sFirst
---         then
---           let maybeHeading = do
---                 inter <- interactiveUrl
---                 live <- sLive
---                 return $ toHeading "interactive" (inter </> live)
---           in fromMaybe "" maybeHeading
---         else ""
---     processed = T.concat [sourceHeading, interHeading, sampCode]
+sampleBlobs :: Maybe String
+sampleBlobs = do
+    siteDataPublicBlobs siteData
+    return . T.unpack . renderUrl' . T.pack $ "/source" </> samplesDir
 
 
-publicBlobs :: Maybe String
-publicBlobs = T.unpack <$> siteDataPublicBlobs siteData
 
 interactiveUrl :: Maybe String
 interactiveUrl = T.unpack <$> siteDataInteractiveUrl siteData
