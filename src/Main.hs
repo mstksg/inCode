@@ -33,8 +33,8 @@ main = do
     -- middleware $ addHeaders [("Cache-Control","max-age=86400")]
     middleware headerETag
     middleware $ cache cacheBackend
-    middleware $ staticPolicy (noDots >-> addBase "static")
     middleware $ staticPolicy (noDots >-> addBase "tmp/static")
+    middleware $ staticPolicy (noDots >-> addBase "static")
     middleware $ addHeaders [("Cache-Control","max-age=900")]
 
     route db
@@ -58,7 +58,7 @@ toCache = [
   , "/favicon.ico"
   , "/font"
   , "/img"
-  , "/js"
+  -- , "/js"
   , "/robots.txt"
   ]
 

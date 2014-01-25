@@ -1,8 +1,10 @@
 module Main (main) where
 
-import Fay
 import "base" Prelude
-import Data.Default
+import Development.Blog.Util.Fay
+
+fayDir :: FilePath
+fayDir = "fay"
 
 main :: IO ()
-main = compileFromTo def "fay/Blog/Entry.hs" (Just "tmp/entry.js")
+main = compileFay fayDir
