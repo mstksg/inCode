@@ -1,7 +1,12 @@
+{-# LANGUAGE PackageImports, CPP #-}
+
 module Web.Blog.Fay.Entry where
 
-import Fay
+#ifdef FAY
+import Prelude
+#else
 import "fay-base" Prelude
+#endif
 
 main :: Fay ()
-main = putStrLn "Hello world!"
+main = putStrLn "hello world!"
