@@ -5,6 +5,7 @@ Categories
 :   Physics
 :   Computation
 Tags
+:   physics
 :   numerical methods
 Series
 :   Path Integral Monte Carlo
