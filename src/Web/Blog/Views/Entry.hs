@@ -1,7 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Web.Blog.Views.Entry (viewEntry) where
 
+import "base" Prelude
 import Config.SiteData
 import Control.Applicative                   ((<$>))
 import Control.Monad.Reader

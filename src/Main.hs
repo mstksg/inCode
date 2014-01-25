@@ -1,7 +1,6 @@
--- import Control.Monad.IO.Class
--- import Debug.Trace
--- import Network.Wai
--- import Web.Blog.Database
+module Main where
+
+import "base" Prelude
 import Config.SiteData
 import Control.Applicative                  ((<$>))
 import Data.ByteString                      (ByteString, isPrefixOf)

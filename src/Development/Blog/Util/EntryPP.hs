@@ -1,11 +1,12 @@
 module Development.Blog.Util.EntryPP (readPreProcess) where
 
+import "base" Prelude
 import Config.SiteData
-import Control.Arrow ((&&&))
-import Control.Applicative    ((*>),(<$>))
+import Control.Applicative    ((*>))
+import Control.Arrow          ((&&&))
 import Control.Monad
 import Data.Functor
-import Data.Maybe             (fromJust, listToMaybe, isJust, fromMaybe)
+import Data.Maybe             (fromMaybe)
 import System.FilePath        ((</>))
 import Text.Parsec
 import Text.Parsec.Text
@@ -21,16 +22,16 @@ readPreProcess :: FilePath -> IO String
 readPreProcess entryFile = do
     eLines <- T.lines <$> T.readFile entryFile
 
-    eLinesPP <- forM eLines $ \line -> do
+    eLinesPP <- forM eLines $ \line ->
       if "!!!" `T.isPrefixOf` line
         then insertSample . T.strip . T.dropWhile (== '!') $ line
         else return line
 
     return . T.unpack . T.unlines $ eLinesPP
 
-data SampleSpec = SampleSpec  { sSpecFile     :: FilePath
-                              , sSpecLive     :: Maybe String
-                              , sSpecKeywords :: [(String,Maybe Int)]
+data SampleSpec = SampleSpec  { sSpecFile       :: FilePath
+                              , _sSpecLive      :: Maybe String
+                              , _sSpecKeywords  :: [(String,Maybe Int)]
                               } deriving (Show)
 
 insertSample :: T.Text -> IO T.Text
@@ -101,7 +102,7 @@ grabBlock zipped key limit = grabbed
 
 sampleBlobs :: Maybe String
 sampleBlobs = do
-    siteDataPublicBlobs siteData
+    void $ siteDataPublicBlobs siteData
     return . T.unpack . renderUrl' . T.pack $ "/source" </> samplesDir
 
 interactiveUrl :: Maybe String
@@ -117,7 +118,7 @@ sampleSpec = do
       spaces
       return (keyword,keylimit)
     spaces
-    live <- optionMaybe (noSpaces) <?> "live url"
+    live <- optionMaybe noSpaces <?> "live url"
     let
       live' = mfilter (not . null) live
 

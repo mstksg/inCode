@@ -19,8 +19,7 @@ module Web.Blog.Types (
   , KeyMap
   ) where
 
--- import Data.Default
--- import qualified Data.IntMap              as IM
+import "base" Prelude
 import Control.Monad.Reader
 import Web.Blog.Models
 import qualified Data.Map                    as M

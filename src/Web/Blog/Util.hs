@@ -1,6 +1,6 @@
 module Web.Blog.Util where
 
--- import qualified Text.Pandoc.Generic as P
+import "base" Prelude
 import Data.Char                        (isAlphaNum)
 import Data.List                        (intersperse)
 import Data.Time

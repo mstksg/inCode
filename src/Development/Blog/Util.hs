@@ -1,5 +1,6 @@
 module Development.Blog.Util (startupHelpers, backupEntries) where
 
+import "base" Prelude
 import Development.Blog.Util.BackupEntries
 import Development.Blog.Util.Compass
 import Development.Blog.Util.LoadEntries

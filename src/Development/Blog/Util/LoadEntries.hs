@@ -1,33 +1,25 @@
 
 module Development.Blog.Util.LoadEntries (loadEntries) where
 
-import Config.SiteData
-import Control.Applicative                    ((<$>), (*>), pure)
-import Control.Arrow                          ((&&&))
+import "base" Prelude
+import Control.Applicative                    (pure)
 import Control.Monad
 import Control.Monad.IO.Class
-import Control.Monad.State
 import Data.Functor
 import Data.List                              (isPrefixOf)
-import Data.Maybe                             (fromJust, listToMaybe, isJust, fromMaybe)
+import Data.Maybe                             (fromJust, listToMaybe)
 import Data.Monoid
 import Data.Time
-import Debug.Trace
 import Development.Blog.Util.EntryPP
 import System.Directory                       (getDirectoryContents)
 import System.FilePath                        ((</>))
 import System.Locale
-import Text.Parsec
-import Text.Parsec.Text
 import Web.Blog.Database
 import Web.Blog.Models
 import Web.Blog.Models.Types
 import Web.Blog.Models.Util
-import Web.Blog.Render                        (renderUrl')
-import Web.Blog.Types
 import qualified Data.Map                     as M
 import qualified Data.Text                    as T
-import qualified Data.Text.IO                 as T
 import qualified Database.Persist.Postgresql  as D
 import qualified Text.Pandoc                  as P
 import qualified Text.Pandoc.Builder          as P

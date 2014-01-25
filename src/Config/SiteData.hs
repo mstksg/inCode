@@ -2,6 +2,7 @@ module Config.SiteData (
     siteData
   ) where
 
+import "base" Prelude
 import Web.Blog.Types
 import qualified Data.Text as T (concat)
 

@@ -1,5 +1,8 @@
+{-# LANGUAGE TemplateHaskell              #-}
+
 module Web.Blog.Models.Types where
 
+import "base" Prelude
 import Data.Aeson.TH
 import Database.Persist.TH
 import qualified Data.Text as T

@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Web.Blog.Views.Archive (
     viewArchive
   , ViewArchiveType(..)
@@ -7,6 +5,7 @@ module Web.Blog.Views.Archive (
   , ViewArchiveIndex(..)
   ) where
 
+import "base" Prelude
 import Control.Applicative                   ((<$>))
 import Control.Monad.Reader
 import Data.List                             (intersperse)

@@ -4,6 +4,7 @@ module Web.Blog.Views.Copy (
   , viewCopyFile
   ) where
 
+import "base" Prelude
 import Data.Monoid
 import Text.Blaze.Html5                         ((!))
 import Web.Blog.Render

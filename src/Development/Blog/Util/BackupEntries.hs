@@ -1,6 +1,6 @@
-
 module Development.Blog.Util.BackupEntries (backupEntries) where
 
+import "base" Prelude
 import Control.Applicative       ((<$>))
 import Data.Aeson
 import Data.ByteString.Lazy.UTF8

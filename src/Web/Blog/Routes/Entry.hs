@@ -1,16 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Web.Blog.Routes.Entry (routeEntrySlug, routeEntryId) where
 
--- import Control.Monad.IO.Class
--- import Control.Monad.Trans.Maybe
--- import Web.Blog.Database
--- import Web.Blog.Util
--- import qualified Data.Foldable as Fo         (forM_)
--- import qualified Data.Text                   as T
--- import qualified Text.Blaze.Html5            as H
--- import qualified Text.Blaze.Html5.Attributes as A
--- import qualified Text.Blaze.Internal         as I
+import "base" Prelude
 import Control.Applicative                      ((<$>))
 import Control.Monad.Reader
 import Control.Monad.State

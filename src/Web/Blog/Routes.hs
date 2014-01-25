@@ -1,11 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Web.Blog.Routes (route) where
 
--- import Control.Applicative     ((<$>))
--- import Data.List               (isSuffixOf)
--- import System.Directory        (doesFileExist)
--- import System.FilePath
+import "base" Prelude
 import Config.SiteData
 import Control.Monad.Reader
 import Development.Blog.Util      (backupEntries)

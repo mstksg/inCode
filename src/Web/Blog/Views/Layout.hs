@@ -1,8 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Web.Blog.Views.Layout (viewLayout, viewLayoutEmpty) where
 
--- import Control.Applicative                ((<$>))
+import "base" Prelude
 import Config.SiteData
 import Control.Monad.Reader
 import Data.Maybe                            (fromMaybe)
@@ -80,7 +78,7 @@ viewLayout body = do
         H.link ! A.href (I.textValue u) ! A.rel "stylesheet" ! A.type_ "text/css"
 
 
-      H.script ! A.type_ "text/javascript" $ do
+      H.script ! A.type_ "text/javascript" $
         H.toHtml $
           T.unlines
             [ "var page_data = {};"

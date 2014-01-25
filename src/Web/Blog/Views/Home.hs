@@ -1,6 +1,6 @@
 module Web.Blog.Views.Home (viewHome) where
 
--- import qualified Database.Persist.Postgresql as D
+import "base" Prelude
 import Config.SiteData
 import Control.Applicative                      ((<$>))
 import Control.Monad.Reader
