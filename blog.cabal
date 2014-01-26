@@ -172,6 +172,7 @@ executable blog-scripts-compile-fay
                      , filepath     == 1.3.0.1
                      , fay-base     == 0.19
                      , fay-text == 0.3.0.1
+                     , fay-ref == 0.1.0.0
   extensions:          OverloadedStrings
                      , NoImplicitPrelude
                      , PackageImports
@@ -185,6 +186,7 @@ executable blog-fay-srcs
                      , fay-jquery == 0.6.0.2
                      -- , fay-dom == 0.3
                      , fay-text == 0.3.0.1
+                     , fay-ref == 0.1.0.0
   extensions:          OverloadedStrings
                      , NoImplicitPrelude
                      , PackageImports

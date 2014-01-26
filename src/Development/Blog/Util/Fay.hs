@@ -14,8 +14,9 @@ outputBase = "tmp/static/js"
 
 fayConfig :: CompileConfig
 fayConfig = def
-  { configOptimize = True
-  , configPackages = ["fay-text","fay-jquery","fay-base"]
+  { configPrettyPrint = False
+  -- , configOptimize = True
+  , configPackages = ["fay-text","fay-jquery","fay-base","fay-ref"]
   , configPackageConf = Just ".cabal-sandbox/x86_64-linux-ghc-7.6.3-packages.conf.d"
   -- , configDirectoryIncludes = [(Just "fay-text",".cabal-sandbox/share/x86_64-linux-ghc-7.6.3/fay-text-0.3.0.1")]
   , configDirectoryIncludes = [(Nothing,".cabal-sandbox/share/x86_64-linux-ghc-7.6.3/")]
