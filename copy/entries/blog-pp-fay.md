@@ -40,7 +40,9 @@ yields:
 !!!monad-plus/WolfGoatCabbage.hs "findSolutions ::" "makeMove ::" wolf-goat-cabbage
 ~~~
 
-(Mouse over or click them to see the full effect :) )
+(If you're reading this on the actual website, mouse over or click them to see
+the full effect, or if nothing is happening, try a hard refresh ---
+CTRL+SHIFT+R in Chrome --- to clear out the cache)
 
 Code quoting/linking preprocessor
 ---------------------------------
