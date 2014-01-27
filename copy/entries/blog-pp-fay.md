@@ -10,7 +10,7 @@ Tags
 CreateTime
 :   2014/01/27 11:12:21
 PostDate
-:   Never
+:   2014/01/27 01:03:38
 Identifier
 :   blog-pp-fay
 
@@ -37,7 +37,7 @@ yields:
 !!!monad-plus/WolfGoatCabbage.hs "makeMove ::" "moveLegal ::" wolf-goat-cabbage
 ~~~
 
-(Mouse over or click them!)
+(Mouse over or click them to see the full effect :) )
 
 Code quoting/linking preprocessor
 ---------------------------------
