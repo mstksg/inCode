@@ -22,7 +22,7 @@ siteData =
     , siteDataSiteEnvironment = SiteEnvironmentProduction
     , siteDataShareLibs       = Just ".cabal-sandbox/share/x86_64-linux-ghc-7.6.3/"
     , siteDataPackageConf     = Just ".cabal-sandbox/x86_64-linux-ghc-7.6.3-packages.conf.d"
-    , siteDataPrecompileFay   = False
+    , siteDataPrecompileFay   = True
     }
   where
     description = T.concat
