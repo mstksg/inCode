@@ -49,7 +49,7 @@ genSlug w = squash . T.dropAround isDash . T.map replaceSymbols . T.toCaseFold
 genSlugSuffix :: Int -> Int -> T.Text -> T.Text
 genSlugSuffix w s = (`T.append` (slugSuffix !! s)) . genSlug w
   where
-    slugSuffix = "" : map (T.pack . show) ([-1,-2..] :: [Int])
+    slugSuffix = "" : map (T.pack . show) ([-2,-3..] :: [Int])
 
 stripPandoc :: P.Pandoc -> T.Text
 stripPandoc (P.Pandoc _ bs) = T.pack $ P.stringify inls
