@@ -24,16 +24,20 @@ import FayRef
 jLength :: JQuery -> Fay Int
 jLength = ffi "%1.length"
 
+sHide :: JQuery -> Fay JQuery
+sHide = ffi "%1['hide']()"
+
 -- toJSON :: TocData -> Fay Text
 -- toJSON = ffi "JSON.stringify(%1)"
 
 main :: Fay ()
 main = ready $ do
-  print "Hello, world!"
+  print "Hello, from the world of Fay!"
 
   -- initToc
   appendTopLinks
   setupSourceLink
+  processCodeBlocks
 
   return ()
 
@@ -135,30 +139,13 @@ animScroll targH dur easing = do
     animScrollFFI :: JQuery -> Double -> Text -> Text -> Fay ()
     animScrollFFI = ffi "$('body,html').animate({ scrollTop: %1.offset().top }, %2, %3, function() { location.hash = %4 })"
 
--- if ($('.source-info').length > 0) {
---     $('.article header').hover(function() {
---         if (!source_toggled) {
---             $('.source-info').show();
---         }
---     }, function() {
---         if (!source_toggled) {
---             $('.source-info').hide();
---         }
---     }).click(function() {
---         if (source_toggled) {
---             $('.source-info').hide();
---         } else {
---             $('.source-info').show();
---         }
---         source_toggled = !source_toggled;
---     });
--- }
-
 setupSourceLink :: Fay ()
 setupSourceLink = do
   sourceInfo <- select ".source-info"
-  print sourceInfo
-  hasSource <- jLength sourceInfo >>= return . (> 0)
+  -- print sourceInfo
+  sourceCount <- jLength sourceInfo
+  let
+    hasSource = sourceCount > 0
 
   when hasSource $ do
     sourceToggled <- newFayRef False
@@ -170,17 +157,139 @@ setupSourceLink = do
 
     flip mouseleave header $ \_ -> do
       toggled <- readFayRef sourceToggled
-      unless toggled (hide Instantly sourceInfo)
+      unless toggled (sHide sourceInfo)
 
     flip click header $ \_ -> do
       toggled <- readFayRef sourceToggled
       if toggled
-        then hide Instantly sourceInfo
+        then sHide sourceInfo
         else unhide sourceInfo
-      modifyFayRef sourceToggled Prelude.not
+      modifyFayRef' sourceToggled Prelude.not
 
 -- sShow :: JQuery -> Fay ()
 -- sShow = ffi "%1['show']()"
 
--- sHide :: JQuery -> Fay ()
--- sHide = ffi "%1['hide]()"
+processCodeBlocks :: Fay ()
+processCodeBlocks = do
+  blocks <- select ".main-content pre.sourceCode"
+  flip each blocks $ \_ el ->
+    select el >>= processBlock >> return True
+  return ()
+  where
+    processBlock :: JQuery -> Fay ()
+    processBlock blk = do
+      oldcode <- children blk
+
+      newcode <- select "<code />"
+      oldclasses <- fromDefined "" `mapFay` getAttr "class" oldcode
+      setAttr "class" oldclasses newcode
+
+      codecontents <- contents oldcode
+
+      afterProcessed <- newFayRef False
+
+      flip each codecontents $ \_ el -> do
+        ap <- readFayRef afterProcessed
+        if ap
+          then writeFayRef afterProcessed False
+          else do
+            processed <- processComment el blk
+            if processed
+              then writeFayRef afterProcessed True
+              else void (JQuery.append el newcode)
+        return True
+
+      replaceWithJQuery newcode oldcode
+      return ()
+
+    processComment :: Element -> JQuery -> Fay Bool
+    processComment el blk = do
+      elJ <- select el
+      isComment <- hasClass "co" elJ
+      if isComment
+        then do
+          coText <- getText elJ
+          processes <-
+            forM  [("-- source: "     , handleSource)
+                  ,("-- interactive: ", handleInter )] $
+              \(pref,handler) -> do
+                let isPre = pref `isPrefixOfT` coText
+                when isPre (handler blk coText)
+                return isPre
+          return (or processes)
+        else return False
+
+    handleSource :: JQuery -> Text -> Fay ()
+    handleSource blk coText = do
+      prepend sourceLink blk
+      return ()
+      where
+        u = dropT (T.length "-- source: ") coText
+        sourceLink = T.concat ["<a href='", u, "' class='code-source-link'>Download source</a>"]
+    handleInter :: JQuery -> Text -> Fay ()
+    handleInter blk coText = do
+      prepend interactiveLink blk
+      return ()
+      where
+        u = dropT (T.length "-- interactive: ") coText
+        interactiveLink = T.concat ["<a href='", u, "' class='code-interactive-link'>Interactive</a>"]
+
+    -- processBlock :: JQuery -> Fay ()
+    -- processBlock blk = do
+    --   preblk <- children blk
+    --   comments <- childrenMatching ".co" preblk
+    --   flip each comments $ \i el ->
+    --     select el >>= processComment blk >> return (i < 2)
+    --   return ()
+    -- processComment :: JQuery -> JQuery -> Fay ()
+    -- processComment blk co = do
+    --   coText <- getText co
+    --   when ("-- source: " `isPrefixOfT` coText) $ handleSource blk co coText
+    --   when ("-- interactive: " `isPrefixOfT` coText) $ handleInter blk co coText
+    -- handleSource :: JQuery -> JQuery -> Text -> Fay ()
+    -- handleSource blk co coText = do
+    --   -- prepend sourceLink blk
+    --   -- void $ sHide co
+    --   -- void $ setHeight 0 co
+    --   return ()
+    --   where
+    --     u = dropT (T.length "-- source: ") coText
+    --     sourceLink = T.concat ["<a href='", u, "' class='code-source-link'>Download source</a>"]
+    -- handleInter :: JQuery -> JQuery -> Text -> Fay ()
+    -- handleInter blk co coText = do
+    --   -- prepend interactiveLink blk
+    --   -- void $ sHide co
+    --   -- void $ setHeight 0 co
+    --   return ()
+    --   where
+    --     u = dropT (T.length "-- interactive: ") coText
+    --     interactiveLink = T.concat ["<a href='", u, "' class='code-interactive-link'>Interactive</a>"]
+
+
+mapFay :: (a -> b) -> Fay a -> Fay b
+mapFay f fay = do
+  res <- fay
+  return (f res)
+
+fromDefined :: a -> Defined a -> a
+fromDefined x Undefined = x
+fromDefined _ (Defined x) = x
+
+isPrefixOf :: String -> String -> Bool
+isPrefixOf [] _ = True
+isPrefixOf _ [] = False
+isPrefixOf (x:xs) (y:ys) = x == y && isPrefixOf xs ys
+
+isPrefixOfT :: Text -> Text -> Bool
+isPrefixOfT s1 s2 =
+  case (uncons s1, uncons s2) of
+    (Nothing, _) -> True
+    (_, Nothing) -> False
+    (Just (x,xs),Just (y,ys)) -> x == y && isPrefixOfT xs ys
+
+dropT :: Int -> Text -> Text
+dropT i txt | i <= 0    = txt
+            | otherwise =
+                case uncons txt of
+                  Nothing -> txt
+                  Just (_,xs) -> dropT (i-1) xs
