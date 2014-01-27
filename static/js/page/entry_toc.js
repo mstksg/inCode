@@ -13,7 +13,7 @@ $(document).ready(function() {
             return prefix+i;
         },
         'headerText': function(i, heading, $heading) { //custom function building the header-item text
-            return $heading.text();
+            return $heading.text().replace(/top$/,'');
         },
         'itemClass': function(i, heading, $heading, prefix) { // custom function for item class
             return $heading[0].tagName.toLowerCase();
