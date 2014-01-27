@@ -200,6 +200,17 @@ processCodeBlocks = do
         return True
 
       replaceWithJQuery newcode oldcode
+
+      linkBox <- childrenMatching ".code-link-box" blk
+
+      flip mouseenter blk $ \_ -> do
+        unhide linkBox
+        return ()
+
+      flip mouseleave blk $ \_ -> do
+        sHide linkBox
+        return ()
+
       return ()
 
     processComment :: Element -> JQuery -> Fay Bool
@@ -221,18 +232,32 @@ processCodeBlocks = do
 
     handleSource :: JQuery -> Text -> Fay ()
     handleSource blk coText = do
-      prepend sourceLink blk
+      linkBox <- getLinkBox blk
+      JQuery.append sourceLink linkBox
       return ()
       where
         u = dropT (T.length "-- source: ") coText
-        sourceLink = T.concat ["<a href='", u, "' class='code-source-link'>Download source</a>"]
+        sourceLink = T.concat ["<a href='", u, "' class='code-source-link' target='_blank'>Download source</a>"]
     handleInter :: JQuery -> Text -> Fay ()
     handleInter blk coText = do
-      prepend interactiveLink blk
+      linkBox <- getLinkBox blk
+      JQuery.append interactiveLink linkBox
       return ()
       where
         u = dropT (T.length "-- interactive: ") coText
-        interactiveLink = T.concat ["<a href='", u, "' class='code-interactive-link'>Interactive</a>"]
+        interactiveLink = T.concat ["<a href='", u, "' class='code-interactive-link' target='_blank'>Interactive</a>"]
+    getLinkBox :: JQuery -> Fay JQuery
+    getLinkBox blk = do
+      already <- childrenMatching ".code-link-box" blk
+      hasAlready <- (> 0) `mapFay` jLength already
+      if hasAlready
+        then return already
+        else do
+          linkBox <- select "<div />"
+          addClass "code-link-box" linkBox
+          prepend linkBox blk
+          return linkBox
+
 
     -- processBlock :: JQuery -> Fay ()
     -- processBlock blk = do

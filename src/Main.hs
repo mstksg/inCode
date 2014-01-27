@@ -58,7 +58,7 @@ toCache = [
   , "/favicon.ico"
   , "/font"
   , "/img"
-  -- , "/js"
+  , "/js"
   , "/robots.txt"
   ]
 

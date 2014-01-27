@@ -85,6 +85,34 @@
       z-index: -1;
     }
 
+    div.code-link-box {
+      float: right;
+      font-family: $sans;
+      background-color: #fff;
+      font-size: 80%;
+      margin-top: -0.75rem;
+      margin-right: -1rem;
+      text-align: right;
+      border-bottom: 1px solid #eee;
+      border-left: 1px solid #eee;
+      display: none;
+      > a {
+        padding: 0.1rem 0.9rem;
+        border: none;
+        display: block;
+        font-style: italic;
+        &:hover {
+          background-color: #fbfbfb;
+        }
+        &:first-child {
+          padding-top: 0.2rem;
+        }
+        &:last-child {
+          padding-bottom: 0.2rem;
+        }
+      }
+    }
+
   }
 
 }
