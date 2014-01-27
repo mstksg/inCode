@@ -2,8 +2,10 @@
 {-# LANGUAGE GADTs                        #-}
 {-# LANGUAGE TypeFamilies                 #-}
 {-# LANGUAGE TypeSynonymInstances         #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving   #-}
 
+module Main (main) where
+
+import "base" Prelude
 import Control.Applicative
 import Control.Monad
 import Control.Monad.IO.Class

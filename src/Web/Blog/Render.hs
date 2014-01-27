@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Web.Blog.Render (
     siteRenderAction
   , emptyPageData
@@ -20,11 +18,7 @@ module Web.Blog.Render (
   , runRouteReaderMRight
   ) where
 
--- import Data.Time
--- import System.Process
--- import qualified Text.Blaze.Html.Renderer.Pretty as B
--- import qualified Text.Blaze.Html5.Attributes     as A
--- import qualified Text.Pandoc.Builder             as P
+import "base" Prelude
 import Config.SiteData
 import Control.Applicative                          ((<$>))
 import Control.Monad.Reader

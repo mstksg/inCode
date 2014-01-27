@@ -1,7 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Web.Blog.Views.NotFound (viewNotFound) where
 
+import "base" Prelude
 import Web.Blog.Render
 import Web.Blog.Types
 import qualified Text.Blaze.Html5            as H

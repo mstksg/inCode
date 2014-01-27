@@ -1,9 +1,8 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Web.Blog.Views.About (
     viewAbout
   ) where
 
+import "base" Prelude
 import Text.Blaze.Html5                      ((!))
 import Web.Blog.Render
 import Web.Blog.Types

@@ -1,8 +1,7 @@
 
 module Development.Blog.Util.LoadTags (loadTags) where
 
--- import Control.Monad.IO.Class
--- import qualified Data.Foldable             as Fo
+import "base" Prelude
 import Control.Applicative                    ((<$>))
 import Control.Monad
 import Data.List                              (isPrefixOf)

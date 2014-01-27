@@ -36,6 +36,7 @@ main = shakeArgs opts $ do
         [ "blog-scripts-migrate"
         , "blog-scripts-seed"
         , "blog-scripts-load-entries"
+        , "blog-scripts-compile-fay"
         , "blog" ]
     return ()
 

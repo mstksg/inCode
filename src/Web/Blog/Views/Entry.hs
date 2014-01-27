@@ -1,7 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Web.Blog.Views.Entry (viewEntry) where
 
+import "base" Prelude
 import Config.SiteData
 import Control.Applicative                   ((<$>))
 import Control.Monad.Reader
@@ -78,9 +77,9 @@ viewEntry entry tags prevEntry nextEntry = do
           H.p $ do
 
             Fo.forM_ (entrySourceFile entry) $ \fileSource ->
-              Fo.forM_ (siteDataPublicBlobs siteData) $ \blobUrl -> do
+              when (isJust (siteDataPublicBlobs siteData)) $ do
                 let
-                  sourceUrl = T.append blobUrl $ T.pack fileSource
+                  sourceUrl = renderUrl' . T.pack $ "/source/"++fileSource
 
                 H.span ! A.class_ "source-info" $ do
                   H.a

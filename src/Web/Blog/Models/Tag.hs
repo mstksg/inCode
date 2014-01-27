@@ -1,7 +1,6 @@
 module Web.Blog.Models.Tag  where
 
--- import Data.Maybe                         (isJust)
--- import qualified Data.Foldable as Fo      (forM_)
+import "base" Prelude
 import Control.Applicative                   ((<$>))
 import Control.Monad.IO.Class                (liftIO)
 import Control.Monad.Trans                   (lift)

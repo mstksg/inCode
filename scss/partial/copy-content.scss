@@ -53,8 +53,8 @@
     background: #eee;
     padding: 0.1em 0.4em;
     margin: 0 0.1em;
-    border: 1px solid #ccc;
-    border-radius: 0.2em;
+    border: 1px solid #ddd;
+    border-radius: 1px;
     white-space: nowrap;
   }
 
@@ -72,7 +72,7 @@
     font-size: 95%;
     line-height: 175%;
     padding: 0.75rem 1rem;
-    border-radius: 3px;
+    border-radius: 1px;
     margin: 2rem 0;
   }
 
@@ -93,7 +93,7 @@
     font-size: 110%;
   }
 
-  aside {
+  aside, p.note {
     margin: 0.5rem 0.5rem 1.5rem 0.5rem;
     padding: 1rem 1rem 0.5rem;
     border-left: 4px solid #383;

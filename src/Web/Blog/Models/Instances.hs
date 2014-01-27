@@ -1,9 +1,9 @@
 {-# LANGUAGE FlexibleInstances    #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-
 module Web.Blog.Models.Instances where
 
+import "base" Prelude
 import Web.Blog.Models.Models
 import Web.Blog.Models.Types
 import qualified Data.Text as T

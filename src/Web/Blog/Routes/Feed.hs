@@ -1,7 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Web.Blog.Routes.Feed (routeFeed) where
 
+import "base" Prelude
 import Control.Monad.IO.Class
 import Web.Blog.Database
 import Web.Blog.Models

@@ -1,7 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Web.Blog.Views.Feed (viewFeed) where
 
+import "base" Prelude
 import Data.Maybe                                (fromJust)
 import Data.Time                                 (UTCTime)
 import Data.Time.Format                          (formatTime)
