@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Web.Blog.Routes.Archive (
     routeArchiveAll
   , routeArchiveTag
@@ -7,6 +5,7 @@ module Web.Blog.Routes.Archive (
   , routeArchiveMonth
   ) where
 
+import "base" Prelude
 import Control.Monad.IO.Class
 import Data.Time
 import System.Locale

@@ -1,7 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Web.Blog.Routes.NotFound (routeNotFound) where
 
+import "base" Prelude
 import Control.Applicative     ((<$>))
 import Data.List               (find)
 import Web.Blog.Render
@@ -16,7 +15,7 @@ routeNotFound = do
 
   let
     view = viewNotFound
-    pageData = blankPageData { pageDataTitle = Just "Not Found" 
+    pageData = blankPageData { pageDataTitle = Just "Not Found"
                              , pageDataCss   = ["/css/page/not-found.css"] }
 
   return $ case err of

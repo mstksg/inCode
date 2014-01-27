@@ -1,11 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Web.Blog.Routes (route) where
 
--- import Control.Applicative     ((<$>))
--- import Data.List               (isSuffixOf)
--- import System.Directory        (doesFileExist)
--- import System.FilePath
+import "base" Prelude
 import Config.SiteData
 import Control.Monad.Reader
 import Development.Blog.Util      (backupEntries)
@@ -133,6 +128,16 @@ utilRoutes _ = do
   S.get "/entry-backups" $ do
     b <- liftIO backupEntries
     S.text $ L.fromStrict b
+
+  S.get (S.regex "/source/(.*)$") $
+    case siteDataPublicBlobs siteData of
+      Nothing -> permanentRedirect "/not-found"
+      Just blob -> do
+        p <- S.param "1"
+        S.status movedPermanently301
+        S.header "Location" $ L.append
+          (L.fromStrict blob)
+          p
 
 
 

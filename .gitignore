@@ -11,3 +11,5 @@
 /bin
 
 !/bin/blog
+!/.cabal-sandbox/share
+!/.cabal-sandbox/*.conf.d

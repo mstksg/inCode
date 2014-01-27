@@ -1,4 +1,6 @@
+module Main (main) where
 
+import "base" Prelude
 import Development.Blog.Util.LoadEntries
 
 entriesDir :: FilePath

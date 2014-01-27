@@ -1,9 +1,8 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Web.Blog.Views.TagIndex (
     viewTagIndex
   ) where
 
+import "base" Prelude
 import Data.Monoid                           (mempty)
 import Text.Blaze.Html5                      ((!))
 import Web.Blog.Models

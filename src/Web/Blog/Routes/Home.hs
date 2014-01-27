@@ -1,11 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Web.Blog.Routes.Home (routeHome) where
 
--- import Web.Blog.Database
--- import Web.Blog.Models
--- import Web.Blog.Models.Util
--- import qualified Database.Persist.Postgresql as D
+import "base" Prelude
 import Config.SiteData
 import Control.Monad.IO.Class
 import Control.Applicative ((<$>))

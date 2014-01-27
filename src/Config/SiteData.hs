@@ -2,6 +2,7 @@ module Config.SiteData (
     siteData
   ) where
 
+import "base" Prelude
 import Web.Blog.Types
 import qualified Data.Text as T (concat)
 
@@ -18,6 +19,8 @@ siteData =
     , siteDataAppPrefs        = appPrefs
     , siteDataDatabaseConfig  = Nothing
     , siteDataSiteEnvironment = SiteEnvironmentProduction
+    , siteDataShareLibs       = Just ".cabal-sandbox/share/x86_64-linux-ghc-7.6.3/"
+    , siteDataPackageConf     = Just ".cabal-sandbox/x86_64-linux-ghc-7.6.3-packages.conf.d"
     }
   where
     description = T.concat

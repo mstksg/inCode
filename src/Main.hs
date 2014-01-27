@@ -1,7 +1,6 @@
--- import Control.Monad.IO.Class
--- import Debug.Trace
--- import Network.Wai
--- import Web.Blog.Database
+module Main where
+
+import "base" Prelude
 import Config.SiteData
 import Control.Applicative                  ((<$>))
 import Data.ByteString                      (ByteString, isPrefixOf)
@@ -34,8 +33,8 @@ main = do
     -- middleware $ addHeaders [("Cache-Control","max-age=86400")]
     middleware headerETag
     middleware $ cache cacheBackend
-    middleware $ staticPolicy (noDots >-> addBase "static")
     middleware $ staticPolicy (noDots >-> addBase "tmp/static")
+    middleware $ staticPolicy (noDots >-> addBase "static")
     middleware $ addHeaders [("Cache-Control","max-age=900")]
 
     route db

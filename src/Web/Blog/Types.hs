@@ -19,8 +19,7 @@ module Web.Blog.Types (
   , KeyMap
   ) where
 
--- import Data.Default
--- import qualified Data.IntMap              as IM
+import "base" Prelude
 import Control.Monad.Reader
 import Web.Blog.Models
 import qualified Data.Map                    as M
@@ -36,11 +35,14 @@ data SiteData = SiteData
                 , siteDataDescription     :: T.Text
                 , siteDataCopyright       :: T.Text
                 , siteDataPublicBlobs     :: Maybe T.Text
+                , siteDataInteractiveUrl  :: Maybe T.Text
                 , siteDataHostConfig      :: HostConfig
                 , siteDataDeveloperAPIs   :: DeveloperAPIs
                 , siteDataAppPrefs        :: AppPrefs
                 , siteDataDatabaseConfig  :: Maybe DatabaseConfig
                 , siteDataSiteEnvironment :: SiteEnvironment
+                , siteDataShareLibs       :: Maybe FilePath
+                , siteDataPackageConf     :: Maybe FilePath
                 }
 
 data SiteEnvironment = SiteEnvironmentProduction | SiteEnvironmentDevelopment
