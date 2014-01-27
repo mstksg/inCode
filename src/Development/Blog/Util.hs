@@ -2,7 +2,7 @@ module Development.Blog.Util (startupHelpers, backupEntries) where
 
 import "base" Prelude
 import Config.SiteData
-import Control.Monad                       (when)
+import Control.Monad                       (unless)
 import Development.Blog.Util.BackupEntries
 import Development.Blog.Util.Compass
 import Development.Blog.Util.Fay
@@ -23,7 +23,7 @@ fayDir = ("fay", "tmp/static/js")
 startupHelpers :: IO ()
 startupHelpers = do
     compileCompass
-    when (siteDataPrecompileFay siteData) (uncurry compileFay fayDir)
+    unless (siteDataPrecompileFay siteData) (uncurry compileFay fayDir)
     runDB blogMigrate
     loadEntries entriesDir
     loadTags tagsDir

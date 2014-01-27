@@ -117,7 +117,7 @@ sampleSpec = do
       keylimit <- optionMaybe (read <$> many1 digit <?> "keyword limit")
       spaces
       return (keyword,keylimit)
-    spaces
+
     live <- optionMaybe noSpaces <?> "live url"
     let
       live' = mfilter (not . null) live

@@ -4,9 +4,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 #ifdef FAY
-module Main where
+module Main (main) where
 #else
-module Fay.Page.Entry where
+module Fay.Page.Entry (main) where
 #endif
 
 #ifdef FAY
@@ -45,7 +45,7 @@ main = ready $ do
 appendTopLinks :: Fay ()
 appendTopLinks = do
   mainContent <- select ".main-content"
-  headings <- "h2,h3,h4,h5" `childrenMatching` mainContent
+  headings <- childrenMatching "h2,h3,h4,h5" mainContent
   J.append topLink headings
   topLinks <- select ".top-link"
   click (scrollTo 400) topLinks
@@ -112,8 +112,10 @@ setupSourceLink = do
 processCodeBlocks :: Fay ()
 processCodeBlocks = do
   blocks <- select ".main-content pre.sourceCode"
-  flip each blocks $ \_ el ->
-    select el >>= processBlock >> return True
+  flip each blocks $ \_ el -> do
+    elJ <- select el
+    processBlock elJ
+    return True
   return ()
   where
     processBlock :: JQuery -> Fay ()
@@ -136,20 +138,18 @@ processCodeBlocks = do
             processed <- processComment el blk
             if processed
               then writeFayRef afterProcessed True
-              else void (el `J.append` newcode)
+              else void $ J.append el newcode
         return True
 
       replaceWithJQuery newcode oldcode
 
       linkBox <- childrenMatching ".code-link-box" blk
 
-      flip mouseenter blk $ \_ -> do
-        unhide linkBox
-        return ()
+      flip mouseenter blk $ \_ ->
+        void $ unhide linkBox
 
-      flip mouseleave blk $ \_ -> do
-        sHide linkBox
-        return ()
+      flip mouseleave blk $ \_ ->
+        void $ sHide linkBox
 
       return ()
 
@@ -173,15 +173,15 @@ processCodeBlocks = do
     handleSource :: JQuery -> Text -> Fay ()
     handleSource blk coText = do
       linkBox <- getLinkBox blk
-      sourceLink `J.append` linkBox
+      J.append sourceLink linkBox
       return ()
       where
         u = dropT (T.length "-- source: ") coText
-        sourceLink = T.concat ["<a href='", u, "' class='code-source-link' target='_blank'>Download source</a>"]
+        sourceLink = T.concat ["<a href='", u, "' class='code-source-link' target='_blank'>View full source</a>"]
     handleInter :: JQuery -> Text -> Fay ()
     handleInter blk coText = do
       linkBox <- getLinkBox blk
-      interactiveLink `J.append` linkBox
+      J.append interactiveLink linkBox
       return ()
       where
         u = dropT (T.length "-- interactive: ") coText
@@ -194,8 +194,8 @@ processCodeBlocks = do
         then return already
         else do
           linkBox <- select "<div />"
-          "code-link-box" `addClass` linkBox
-          linkBox `prepend` blk
+          addClass "code-link-box" linkBox
+          prepend linkBox blk
           return linkBox
 
 -- | Util functions
