@@ -29,12 +29,12 @@ guess this post is to show off some new features of the blog engine?
 Here it is in action:
 
 ~~~
-> !!!monad-plus/WolfGoatCabbage.hs "makeMove ::" "moveLegal ::" wolf-goat-cabbage
+> !!!monad-plus/WolfGoatCabbage.hs "findSolutions ::" "makeMove ::" wolf-goat-cabbage
 ~~~
 yields:
 
 ~~~haskell
-!!!monad-plus/WolfGoatCabbage.hs "makeMove ::" "moveLegal ::" wolf-goat-cabbage
+!!!monad-plus/WolfGoatCabbage.hs "findSolutions ::" "makeMove ::" wolf-goat-cabbage
 ~~~
 
 (Mouse over or click them to see the full effect :) )
