@@ -1,5 +1,5 @@
-Blog engine updates --- a markdown preprocessor and simple Fay scripts
-======================================================================
+Blog engine updates: Markdown Preprocessor & Fay Scripts
+========================================================
 
 Categories
 :   Haskell
@@ -162,7 +162,7 @@ binding, which needed the handlers *before* the object being binded.
 
 
 ~~~haskell
-!!!source/entry.hs "flip each blocks"4
+!!!source/entry.hs "processCodeBlocks ::"8
 ~~~
 
 This one kind of bucks the convention that methods like `append`
@@ -173,12 +173,14 @@ there is a reason why we have both `mapM` and `forM` in base.
 
 #### Deploying fay
 
-Deploying fay ain't all too bad.  I [deploy binaries][heroku], however, so I was unable
-to ever process fay on my limited-access production server because it requires
-`ghc-pkg`.  You also need to provide the binaries and headers in `share` for
-all of your fay libraries in order to use them when compiling to javascript.
-So while this isn't so bad if you have the whole Haskell Platform and are
-compiling on your production server, I had to pre-compile my fay
+Deploying fay ain't all too bad.  I [deploy binaries][heroku], however, so I
+was unable to ever process fay on my limited-access production server because
+it requires `ghc-pkg` (installed under `/usr/local/bin`) among other
+things...I probably could have gotten this to work, but I did not have the
+proper skills.  You also need to provide the binaries and headers in `share`
+for all of your fay libraries in order to use them when compiling to
+javascript. So while this isn't so bad if you have the whole Haskell Platform
+and are compiling on your production server, I had to pre-compile my fay
 "binaries" before pushing...just like I have to pre-compile my regular
 binaries, interestingly enough.
 
@@ -194,16 +196,16 @@ Not ideal, but what else could I expect?
 Future stuff
 ------------
 
-Hopefully I'm able to make that javascript call on fay one day, without having
+Hopefully I'm able to make [that javascript call][toc] on fay one day, without having
 to rewrite the entire library in Fay (although it might be a fun exercise).
 
-For those curious, the call is:
+[toc]: http://blog.jle.im/source/code-samples/source/entry_toc.js#L4-21
 
-~~~javascript
-!!!source/entry_toc.js "#toc"18
-~~~
+<!-- ~~~javascript -->
+<!-- !!!source/entry_toc.js "#toc"18 -->
+<!-- ~~~ -->
 
-If anyone knows how I can do this, that'd be great!
+If anyone knows how I can do this, I'd really appreciate any help!
 
 I'd also in the future like to make my preprocessor a bit more robust and take
 more languages.  But...I probably wouldn't do this until the need actually
