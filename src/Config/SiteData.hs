@@ -20,6 +20,8 @@ siteData =
     , siteDataAppPrefs        = appPrefs
     , siteDataDatabaseConfig  = databaseConfig
     , siteDataSiteEnvironment = SiteEnvironmentDevelopment
+    , siteDataShareLibs       = Just ".cabal-sandbox/share/x86_64-linux-ghc-7.6.3/"
+    , siteDataPackageConf     = Just ".cabal-sandbox/x86_64-linux-ghc-7.6.3-packages.conf.d"
     }
   where
     description = T.concat

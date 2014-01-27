@@ -41,6 +41,8 @@ data SiteData = SiteData
                 , siteDataAppPrefs        :: AppPrefs
                 , siteDataDatabaseConfig  :: Maybe DatabaseConfig
                 , siteDataSiteEnvironment :: SiteEnvironment
+                , siteDataShareLibs       :: Maybe FilePath
+                , siteDataPackageConf     :: Maybe FilePath
                 }
 
 data SiteEnvironment = SiteEnvironmentProduction | SiteEnvironmentDevelopment

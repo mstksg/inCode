@@ -93,22 +93,24 @@
       margin-top: -0.75rem;
       margin-right: -1rem;
       text-align: right;
-      border-bottom: 1px solid #eee;
-      border-left: 1px solid #eee;
+      border-bottom: 1px solid #ddd;
+      border-left: 1px solid #ddd;
       display: none;
       > a {
         padding: 0.1rem 0.9rem;
         border: none;
+        border-bottom: 1px solid #eee;
         display: block;
         font-style: italic;
         &:hover {
-          background-color: #fbfbfb;
+          background-color: #fafafa;
         }
         &:first-child {
           padding-top: 0.2rem;
         }
         &:last-child {
           padding-bottom: 0.2rem;
+          border: none;
         }
       }
     }
