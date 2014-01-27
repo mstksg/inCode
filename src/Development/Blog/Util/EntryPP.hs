@@ -58,8 +58,8 @@ processSample (SampleSpec sFile sLive sKeys) rawSamp = processed
             , T.unlines (map fst zipped)        )
         else
           map (uncurry (grabBlock zipped)) sKeys
-    startLine = fst . fst . head $ blocks
-    endLine   = snd . fst . last $ blocks
+    startLine = minimum . map (fst . fst) $ blocks
+    endLine   = maximum . map (snd . fst) $ blocks
     sampCode  = T.unlines . map snd $ blocks
     toHeading key val = T.pack . concat $ ["-- ", key, ": ", val, "\n"]
     sourceHeading   =
@@ -86,9 +86,9 @@ grabBlock zipped key limit = grabbed
     zDropped =
       dropWhile (not . (T.pack key `T.isInfixOf`) . fst) zipped
     (zHead,zRest) =
-      span (\(l,_) -> not (" " `T.isPrefixOf` l) && not (T.null l)) zDropped
+      span (\(l,_) -> not (T.null l)) zDropped
     zBlock        =
-      takeWhile (\(l,_) -> not (T.null l) || " " `T.isPrefixOf` l) zRest
+      takeWhile (\(l,_) -> T.null l || " " `T.isPrefixOf` l) zRest
     zBlock'       =
       reverse . dropWhile (T.null . fst) . reverse $ zBlock
     zAll =
