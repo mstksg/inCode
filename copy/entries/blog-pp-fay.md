@@ -26,6 +26,9 @@ guess this post is to show off some new features of the blog engine?
 
 [posts]: https://github.com/mstksg/inCode/tree/master/copy/entries
 
+Demonstration
+-------------
+
 Here it is in action:
 
 ~~~
