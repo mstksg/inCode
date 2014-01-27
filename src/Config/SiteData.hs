@@ -19,6 +19,13 @@ siteData =
     , siteDataAppPrefs        = appPrefs
     , siteDataDatabaseConfig  = Nothing
     , siteDataSiteEnvironment = SiteEnvironmentProduction
+    , siteDataPublicBlobs     = Just "https://github.com/mstksg/blog/blob/develop/"
+    , siteDataInteractiveUrl  = Just "https://www.fpcomplete.com/user/jle/"
+    , siteDataHostConfig      = hostConfig
+    , siteDataDeveloperAPIs   = developerAPIs
+    , siteDataAppPrefs        = appPrefs
+    , siteDataDatabaseConfig  = databaseConfig
+    , siteDataSiteEnvironment = SiteEnvironmentDevelopment
     , siteDataShareLibs       = Just ".cabal-sandbox/share/x86_64-linux-ghc-7.6.3/"
     , siteDataPackageConf     = Just ".cabal-sandbox/x86_64-linux-ghc-7.6.3-packages.conf.d"
     }
