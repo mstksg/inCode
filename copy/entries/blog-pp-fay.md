@@ -125,14 +125,16 @@ myself some day.
 
 #### fay-jquery
 
-Here is a characteristic example of fay code with fay-jquery (0.6.0.2):
+Here is a characteristic example of fay code with [fay-jquery][] (0.6.0.2):
+
+[fay-jquery]: http://hackage.haskell.org/package/fay-jquery-0.6.0.2
 
 ~~~haskell
 !!!source/entry.hs "appendTopLinks ::"
 ~~~
 
 As you can see, some of the method calls in fay-jquery seem a bit
-backwards...I keep on resisting the urge to write things like
+backwards...I had to resist the urge to write things like
 
 ~~~haskell
 container `append` contained
@@ -146,8 +148,9 @@ container.append(contained);
 container.children('.contained');
 ~~~
 
-But alas, the decision was made otherwise.  I guess it is more Haskell-y to be
-able to play with partial application and do something like
+Unfortunately, this doesn't work, and you're supposed to reverse the order of
+the parameters.  I guess it is more Haskell-y in a way, to be able to play
+with partial application and do something like
 
 ~~~haskell
 let
@@ -173,6 +176,15 @@ maintain...and also needs those annoying `flips` to have easy anonymous
 callbacks.  I don't want to have to name every little thing.  Oh well.  Maybe
 there is a good justification here?  I just don't see it.  But then again,
 there is a reason why we have both `mapM` and `forM` in base.
+
+Other than that, the fay-jquery library is a pretty good example of how to
+interface seamlessly with JQuery from Fay.  Sometimes, though, the dynamic
+nature of JQuery (implicit lists, dynamic type of returns, etc) was a little
+unsettling...but that's the nature of JQuery.  Perhaps working directly with
+the DOM would alleviate this --- there's [fay-dom][] out there, but I didn't get
+a chance to give it a try.
+
+[fay-dom]: https://github.com/faylang/fay-dom
 
 #### Deploying fay
 
@@ -210,7 +222,7 @@ to rewrite the entire library in Fay (although it might be a fun exercise).
 
 If anyone knows how I can do this, I'd really appreciate any help!
 
-I'd also in the future like to make my preprocessor a bit more robust and take
-more languages.  But...I probably wouldn't do this until the need actually
-arises :)
+I'd also in the future like to make my preprocessor a bit more robust and also
+take more languages to determine the right comment syntax.  But...I probably
+wouldn't do this until the need actually arises :)
 
