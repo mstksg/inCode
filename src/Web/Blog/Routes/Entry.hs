@@ -124,6 +124,7 @@ readerEntry (k, e) now = do
                                                  ,"/js/disqus_count.js"
                                                  ,"/js/social.js"
                                                  ,"/js/jquery/jquery.toc.js"
+                                                 ,"/js/fay-runtime.min.js"
                                                  ,"/js/page/entry.js"
                                                  ,"/js/page/entry_toc.js"]
                              , pageDataMap     = pdMap M.empty

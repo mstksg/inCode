@@ -15,13 +15,13 @@ outputBase = "tmp/static/js"
 fayConfig :: CompileConfig
 fayConfig = def
   { configPrettyPrint = False
-  -- , configOptimize = True
+  , configOptimize = True
   , configPackages = ["fay-text","fay-jquery","fay-base","fay-ref"]
   , configPackageConf = Just ".cabal-sandbox/x86_64-linux-ghc-7.6.3-packages.conf.d"
   -- , configDirectoryIncludes = [(Just "fay-text",".cabal-sandbox/share/x86_64-linux-ghc-7.6.3/fay-text-0.3.0.1")]
   , configDirectoryIncludes = [(Nothing,".cabal-sandbox/share/x86_64-linux-ghc-7.6.3/")]
-  -- , configExportRuntime = False
-  -- , configRuntimePath = Just runtimePath
+  , configExportRuntime = False
+  , configRuntimePath = Just runtimePath
   }
   where
     runtimePath = "static/js/fay-runtime.min.js"

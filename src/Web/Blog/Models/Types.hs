@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell              #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Web.Blog.Models.Types where
 
