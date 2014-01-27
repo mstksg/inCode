@@ -184,7 +184,7 @@ unsettling...but that's the nature of JQuery.  Perhaps working directly with
 the DOM would alleviate this --- there's [fay-dom][] out there, but I didn't get
 a chance to give it a try.
 
-[fay-dom]: https://github.com/faylang/fay-dom
+[fay-dom]: http://hackage.haskell.org/package/fay-dom
 
 #### Deploying fay
 
