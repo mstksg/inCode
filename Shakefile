@@ -51,12 +51,11 @@ main = shakeArgs opts $ do
     need [bin "blog", "fay"]
     liftIO $ createDirectoryIfMissing True "bin"
     copyFile' (bin "blog") "bin/blog"
-    cmd "git" ["add", "-f", "bin/blog"]
+    cmd "git" ["add", "-f", "bin/blog", "static/js"]
 
   "fay" ~> do
     need [bin "blog-scripts-compile-fay"]
     cmd (bin "blog-scripts-compile-fay")
-
 
   "migrate" ~> do
     need [bin "blog-scripts-migrate"]
