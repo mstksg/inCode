@@ -11,9 +11,6 @@ import System.Directory
 import System.FilePath
 import Web.Blog.Types
 
-outputBase :: FilePath
-outputBase = "tmp/static/js"
-
 fayPackages :: [String]
 fayPackages = [ "fay-text 0.3.0.1"
               , "fay-jquery 0.6.0.2"
@@ -44,15 +41,17 @@ fayConfig = def
   where
     runtimePath = "static/js/fay-runtime.min.js"
 
-compileFay :: FilePath -> IO ()
-compileFay fayBase =  when (isJust (siteDataPackageConf siteData))
-                        (compileFayDir fayBase "")
+compileFay :: FilePath -> FilePath -> IO ()
+compileFay fayBase outBase =
+  if isJust (siteDataPackageConf siteData)
+    then compileFayDir fayBase outBase ""
+    else error "Cannot compile fay without packageconf and share"
 
-compileFayDir :: FilePath -> FilePath -> IO ()
-compileFayDir fayBase fayDir = do
+compileFayDir :: FilePath -> FilePath -> FilePath -> IO ()
+compileFayDir fayBase outBase fayDir = do
   let
     fullPath = fayBase </> fayDir
-    outPath = outputBase </> fayDir
+    outPath = outBase </> fayDir
 
   createDirectoryIfMissing True outPath
 
@@ -64,7 +63,7 @@ compileFayDir fayBase fayDir = do
         fullFF = fullPath </> ff
       isDir <- doesDirectoryExist fullFF
       if isDir
-        then compileFayDir fayBase (fayDir </> ff)
+        then compileFayDir fayBase outBase (fayDir </> ff)
         else do
           let
             fullOut = toJsName $ outPath </> ff

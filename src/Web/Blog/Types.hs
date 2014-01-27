@@ -43,6 +43,7 @@ data SiteData = SiteData
                 , siteDataSiteEnvironment :: SiteEnvironment
                 , siteDataShareLibs       :: Maybe FilePath
                 , siteDataPackageConf     :: Maybe FilePath
+                , siteDataPrecompileFay   :: Bool
                 }
 
 data SiteEnvironment = SiteEnvironmentProduction | SiteEnvironmentDevelopment
