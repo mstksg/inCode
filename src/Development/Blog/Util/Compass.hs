@@ -1,6 +1,6 @@
-
 module Development.Blog.Util.Compass (compileCompass) where
 
+import "base" Prelude
 import System.Cmd
 import Control.Monad
 import Config.SiteData

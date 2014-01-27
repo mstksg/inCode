@@ -1,8 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Web.Blog.Views.Layout (viewLayout, viewLayoutEmpty) where
 
--- import Control.Applicative                ((<$>))
+import "base" Prelude
 import Config.SiteData
 import Control.Monad.Reader
 import Data.Maybe                            (fromMaybe)
@@ -31,7 +29,7 @@ viewLayout body = do
     cssList = [ "/css/toast.css"
               , "/css/font.css"
               , "/css/main.css" ]
-    jsList =  [ "//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"
+    jsList =  [ "//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"
               -- , "https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
               , T.append "//s7.addthis.com/js/300/addthis_widget.js#pubid=" $
                   developerAPIsAddThis $ siteDataDeveloperAPIs siteData
@@ -80,7 +78,7 @@ viewLayout body = do
         H.link ! A.href (I.textValue u) ! A.rel "stylesheet" ! A.type_ "text/css"
 
 
-      H.script ! A.type_ "text/javascript" $ do
+      H.script ! A.type_ "text/javascript" $
         H.toHtml $
           T.unlines
             [ "var page_data = {};"

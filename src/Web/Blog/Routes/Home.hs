@@ -1,11 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Web.Blog.Routes.Home (routeHome) where
 
--- import Web.Blog.Database
--- import Web.Blog.Models
--- import Web.Blog.Models.Util
--- import qualified Database.Persist.Postgresql as D
+import "base" Prelude
 import Config.SiteData
 import Control.Monad.IO.Class
 import Control.Applicative ((<$>))
@@ -48,8 +43,9 @@ readerHome now page = do
               Just $ T.concat ["Home (Page ", T.pack $ show page,")"]
 
         urlBase = renderUrl' "/home/"
+        onPage = take perPage . drop (perPage * (page - 1)) $ posteds
 
-      eList <- mapM wrapEntryDataI posteds
+      eList <- mapM wrapEntryDataI onPage
 
       let
         pdMap = execState $ do

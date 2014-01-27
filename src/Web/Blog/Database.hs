@@ -2,11 +2,10 @@
 {-# LANGUAGE GADTs                        #-}
 {-# LANGUAGE TypeFamilies                 #-}
 {-# LANGUAGE TypeSynonymInstances         #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving   #-}
-{-# LANGUAGE OverloadedStrings   #-}
 
 module Web.Blog.Database (runDB, blogMigrate, blogClear) where
 
+import "base" Prelude
 import Database.Persist.Postgresql
 import Web.Blog.Models
 import Config.SiteData

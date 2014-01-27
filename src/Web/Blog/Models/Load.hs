@@ -1,6 +1,5 @@
 module Web.Blog.Models.Load (loadDatabase) where
 
--- import qualified Data.IntMap              as IM
 import Control.Applicative
 import Data.List                             (foldl')
 import Web.Blog.Models

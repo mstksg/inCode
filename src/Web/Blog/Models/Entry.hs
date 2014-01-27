@@ -1,12 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Web.Blog.Models.Entry  where
 
--- import Control.Monad
--- import qualified Database.Esqueleto       as E
--- import qualified Text.Pandoc.Builder      as P
--- import qualified Text.Pandoc.Generic      as P
--- import qualified Text.Pandoc.Shared       as P
+import "base" Prelude
 import Config.SiteData
 import Control.Applicative                   ((<$>))
 import Control.Monad.IO.Class                (liftIO)
@@ -31,6 +25,7 @@ import qualified Text.Pandoc                 as P
 
 slugLength :: Int
 slugLength = appPrefsSlugLength $ siteDataAppPrefs siteData
+
 ledeMax :: Int
 ledeMax = appPrefsLedeMax $ siteDataAppPrefs siteData
 

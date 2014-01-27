@@ -1,9 +1,8 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Web.Blog.Routes.TagIndex (
     routeTagIndex
   ) where
 
+import "base" Prelude
 import Control.Monad.IO.Class
 import Web.Blog.Database
 import Web.Blog.Models.Types

@@ -1,13 +1,16 @@
 
 module Development.Blog.Util.LoadEntries (loadEntries) where
 
-import Control.Applicative                    ((<$>), pure)
+import "base" Prelude
+import Control.Applicative                    (pure)
 import Control.Monad
 import Control.Monad.IO.Class
+import Data.Functor
 import Data.List                              (isPrefixOf)
 import Data.Maybe                             (fromJust, listToMaybe)
 import Data.Monoid
 import Data.Time
+import Development.Blog.Util.EntryPP
 import System.Directory                       (getDirectoryContents)
 import System.FilePath                        ((</>))
 import System.Locale
@@ -57,7 +60,7 @@ processEntryFile entryFile = do
     tzone <- liftIO getCurrentTimeZone
 
     (P.Pandoc _ contents, _) <- liftIO $
-      readMarkdown <$> readFile entryFile
+      readMarkdown <$> readPreProcess entryFile
 
     let
       writeMarkdownBlocks bs = writeMarkdown $ P.doc $ P.fromList bs
@@ -183,11 +186,8 @@ applyMetas entryKey mk (MetaValueTags ts) = do
     [ EntryTagEntryId D.==. entryKey
     , EntryTagTagId D./<-. tagIds
     , EntryTagTagId D.<-. tagsOfType ]
-  forM_ tagIds $ \tKey -> do
-    -- liftIO $ print tKey
-    res <- D.insertUnique $ EntryTag entryKey tKey
-    liftIO $ print res
-    return res
+  forM_ tagIds $ \tKey ->
+    D.insertUnique $ EntryTag entryKey tKey
 applyMetas _ MetaKeyPreviousTitles _ = return ()
 applyMetas _ k v = error $ "Weird meta key/value: " ++ show (k,v)
 
@@ -242,3 +242,4 @@ removeOrphanEntries :: [D.Key Entry] -> D.SqlPersistM ()
 removeOrphanEntries eKeys = do
   orphans <- D.selectList [ EntryId D./<-. eKeys ] []
   mapM_ removeEntry orphans
+

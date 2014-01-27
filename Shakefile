@@ -36,6 +36,7 @@ main = shakeArgs opts $ do
         [ "blog-scripts-migrate"
         , "blog-scripts-seed"
         , "blog-scripts-load-entries"
+        , "blog-scripts-compile-fay"
         , "blog" ]
     return ()
 
@@ -47,10 +48,14 @@ main = shakeArgs opts $ do
     system' (bin "blog") []
 
   "deploy" ~> do
-    need [bin "blog"]
+    need [bin "blog", "fay"]
     liftIO $ createDirectoryIfMissing True "bin"
     copyFile' (bin "blog") "bin/blog"
-    cmd "git" ["add", "-f", "bin/blog"]
+    cmd "git" ["add", "-f", "bin/blog", "static/js"]
+
+  "fay" ~> do
+    need [bin "blog-scripts-compile-fay"]
+    cmd (bin "blog-scripts-compile-fay")
 
   "migrate" ~> do
     need [bin "blog-scripts-migrate"]

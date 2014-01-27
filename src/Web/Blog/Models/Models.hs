@@ -1,14 +1,15 @@
-{-# LANGUAGE FlexibleContexts             #-} 
-{-# LANGUAGE GADTs                        #-} 
-{-# LANGUAGE QuasiQuotes                  #-} 
-{-# LANGUAGE TemplateHaskell              #-} 
-{-# LANGUAGE TypeFamilies                 #-} 
-{-# LANGUAGE TypeSynonymInstances         #-} 
-{-# LANGUAGE GeneralizedNewtypeDeriving   #-} 
-{-# LANGUAGE EmptyDataDecls               #-} 
+{-# LANGUAGE FlexibleContexts             #-}
+{-# LANGUAGE GADTs                        #-}
+{-# LANGUAGE TemplateHaskell              #-}
+{-# LANGUAGE QuasiQuotes                  #-}
+{-# LANGUAGE TypeFamilies                 #-}
+{-# LANGUAGE TypeSynonymInstances         #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving   #-}
+{-# LANGUAGE EmptyDataDecls               #-}
 
 module Web.Blog.Models.Models  where
 
+import "base" Prelude
 import Data.Time
 import Database.Persist.TH
 import Web.Blog.Models.Types

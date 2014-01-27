@@ -1,5 +1,6 @@
 module Web.Blog.Models.EntryI where
 
+import "base" Prelude
 import Control.Applicative
 import Control.Monad.Reader
 import Data.List                             (find, sortBy)

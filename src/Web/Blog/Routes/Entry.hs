@@ -1,16 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Web.Blog.Routes.Entry (routeEntrySlug, routeEntryId) where
 
--- import Control.Monad.IO.Class
--- import Control.Monad.Trans.Maybe
--- import Web.Blog.Database
--- import Web.Blog.Util
--- import qualified Data.Foldable as Fo         (forM_)
--- import qualified Data.Text                   as T
--- import qualified Text.Blaze.Html5            as H
--- import qualified Text.Blaze.Html5.Attributes as A
--- import qualified Text.Blaze.Internal         as I
+import "base" Prelude
 import Control.Applicative                      ((<$>))
 import Control.Monad.Reader
 import Control.Monad.State
@@ -38,7 +28,7 @@ routeEntrySlug = do
 
 routeEntryId :: RouteDatabase
 routeEntryId = do
-  eIdent <- S.param "entryIdent"
+  eIdent <- S.param "eId"
   now <- liftIO getCurrentTime
   return $ readerEntryId (read eIdent) now
 
@@ -134,7 +124,9 @@ readerEntry (k, e) now = do
                                                  ,"/js/disqus_count.js"
                                                  ,"/js/social.js"
                                                  ,"/js/jquery/jquery.toc.js"
-                                                 ,"/js/page/entry.js"]
+                                                 ,"/js/fay-runtime.min.js"
+                                                 ,"/js/page/entry.js"
+                                                 ,"/js/page/entry_toc.js"]
                              , pageDataMap     = pdMap M.empty
                              }
 

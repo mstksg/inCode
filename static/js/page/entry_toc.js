@@ -1,4 +1,4 @@
-var source_toggled = false;
+// var source_toggled = false;
 
 $(document).ready(function() {
     $('#toc').toc({
@@ -13,18 +13,11 @@ $(document).ready(function() {
             return prefix+i;
         },
         'headerText': function(i, heading, $heading) { //custom function building the header-item text
-            return $heading.text();
+            return $heading.text().replace(/top$/,'');
         },
         'itemClass': function(i, heading, $heading, prefix) { // custom function for item class
             return $heading[0].tagName.toLowerCase();
         }
-    });
-
-
-    $('.main-content').children('h2,h3,h4,h5').append('<a href="#title" class="top-link">top</a>');
-
-    $('.top-link').click(function(e) {
-        scrollTo(e);
     });
 
     if ($('#toc li').length > 0) {
@@ -32,37 +25,26 @@ $(document).ready(function() {
     }
 
 
-    if ($('.source-info').length > 0) {
-        $('.article header').hover(function() {
-            if (!source_toggled) {
-                $('.source-info').show();
-            }
-        }, function() {
-            if (!source_toggled) {
-                $('.source-info').hide();
-            }
-        }).click(function() {
-            if (source_toggled) {
-                $('.source-info').hide();
-            } else {
-                $('.source-info').show();
-            }
-            source_toggled = !source_toggled;
-        });
-    }
-
+    // if ($('.source-info').length > 0) {
+    //     $('.article header').hover(function() {
+    //         if (!source_toggled) {
+    //             $('.source-info').show();
+    //         }
+    //     }, function() {
+    //         if (!source_toggled) {
+    //             $('.source-info').hide();
+    //         }
+    //     }).click(function() {
+    //         if (source_toggled) {
+    //             $('.source-info').hide();
+    //         } else {
+    //             $('.source-info').show();
+    //         }
+    //         source_toggled = !source_toggled;
+    //     });
+    // }
 
 
 });
 
-
-var scrollTo = function(e) {
-    e.preventDefault();
-    var elScrollTo = $(e.target).attr('href');
-    var $el = $(elScrollTo);
-
-    $('body,html').animate({ scrollTop: $el.offset().top }, 400, 'swing', function() {
-        location.hash = elScrollTo;
-    });
-};
 

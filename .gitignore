@@ -12,5 +12,6 @@
 /copy/entries
 /copy/tags
 /static/img/entries
+/code-samples
 
 !/bin/blog
