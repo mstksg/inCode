@@ -84,10 +84,7 @@ guard :: MonadPlus m => Bool -> m ()
 guard True  = return ()
 guard False = mzero
 
-halve :: Int -> Maybe Int
-halve n = do
-    guard $ even n
-    return $ n `div` 2
+!!!monad-plus/Halves.hs "halve ::"
 ~~~
 
 ~~~haskell
@@ -111,10 +108,7 @@ had an `mzero` (insta-fail, which is used in `guard`) and a `return`
 Let's see what happens when we replace our Maybe container with a list:
 
 ~~~haskell
-halve' :: Int -> [Int]
-halve' n = do
-    guard $ even n
-    return $ n `div` 2
+!!!monad-plus/Halves.hs "halve' ::"
 ~~~
 
 This is...the exact same function body.  We didn't do anything but change the
@@ -156,10 +150,7 @@ In fact, if we generalize our type signature for `halve`, we can do some crazy
 things...
 
 ~~~haskell
-genericHalve :: MonadPlus m => Int -> m Int
-genericHalve n = do
-    guard $ even n
-    return $ n `div` 2
+!!!monad-plus/Halves.hs "genericHalve ::"
 ~~~
 
 ~~~haskell
@@ -230,9 +221,7 @@ possible path to success if you are odd: doubling.  In this way it is slightly
 racist.
 
 ~~~haskell
-halveOrDouble :: Int -> [Int]
-halveOrDouble n | even n    = [n `div` 2, n * 2]
-                | otherwise = [n * 2]
+!!!monad-plus/HalveOrDouble.hs "halveOrDouble ::"
 ~~~
 
 ~~~haskell
@@ -289,10 +278,7 @@ Let's look at the same thing in do notation form to offer some possible
 insight:
 
 ~~~haskell
-halveOrDoubleTwice :: Int -> [Int]
-halveOrDoubleTwice n = do
-    x <- halveOrDouble n
-    halveOrDouble x
+!!!monad-plus/HalveOrDouble.hs "halveOrDoubleTwice ::"
 ~~~
 
 Do notation describes **a single path of a value**.  This is slightly
@@ -500,12 +486,7 @@ Here is probably the most common of all examples involving the list monad:
 finding Pythagorean triples.
 
 ~~~haskell
-triplesUnder n = do
-    a <- [1..n]                     -- 1
-    b <- [a..n]                     -- 2
-    c <- [b..n]                     -- 3
-    guard $ a^2 + b^2 == c^2        -- 4
-    return (a,b,c)                  -- 5
+!!!monad-plus/TriplesUnder.hs "triplesUnder ::"
 ~~~
 
 ([Download it and try it out yourself!][triplesUnder])
@@ -597,17 +578,13 @@ keeping-track-of-separate-paths thing is all handled behind-the scenes.
 In fact you should be able to look at code like:
 
 ~~~haskell
-triplesUnder n = do
-    a <- [1..n]
-    b <- [a..n]
-    c <- [b..n]
-    guard $ a^2 + b^2 == c^2
-    return (a,b,c)
+!!!monad-plus/TriplesUnder.hs "triplesUnder ::"
 ~~~
 
 and see that it is structurally identical to
 
 ~~~haskell
+triplesUnder' :: Int -> Maybe Int
 triplesUnder' n = do
     a <- Just 3
     b <- Just 5
@@ -622,10 +599,7 @@ for any arbitrary choice of `a`, `b`, and `c`, except instead of `Just 3` (or
 In fact recall that this block:
 
 ~~~haskell
-genericHalve :: MonadPlus m => Int -> m Int
-genericHalve n = do
-    guard $ even n
-    return $ n `div` 2
+!!!monad-plus/Halves.hs "genericHalve ::"
 ~~~
 
 is general enough that it works for both.

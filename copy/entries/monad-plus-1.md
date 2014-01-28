@@ -502,32 +502,7 @@ is, swap the flag to be dead and ignore all other updates.
 But let's try doing this instead with the Maybe monad:
 
 ~~~haskell
--- die or fail immediately
-die :: Maybe Int
-die = Nothing                       -- or die = mzero
-
--- if not dead, sets the health to the given level
-setHealth :: Int -> Maybe Int
-setHealth n = Just n                -- or setHealth n = return n
-
--- damage the player (from its previous health) and check for death
-hit :: Int -> Maybe Int
-hit currHealth = do
-    let newHealth = currHealth - 1
-    guard $ newHealth > 0           -- fail/die immediately unless newHealth
-                                    --     is positive
-    return newHealth                -- succeed with newHealth if not already
-                                    --     dead
-
--- an alternative but identical definition of `hit`, using >>= and >>
-hit' :: Int -> Maybe Int
-hit' currHealth = guard (newHealth > 0) >> return newHealth
-    where
-        newHealth = currHealth - 1
-
--- increase the player's health from its previous health
-powerup :: Int -> Maybe Int
-powerup currHealth = Just $ currHealth + 1
+!!!monad-plus/MaybeGame.hs "die or fail" "if not dead" "damage the player" "an alternative" "increase"
 ~~~
 
 ~~~haskell

@@ -9,6 +9,7 @@
 
 import Control.Monad (guard)
 
+triplesUnder :: Int -> [Int]
 triplesUnder n = do
     a <- [1..n]
     b <- [a..n]
