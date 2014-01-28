@@ -313,8 +313,8 @@ value for `x` for the entire rest of the journey.  In fact, let's see it in
 action:
 
 ~~~haskell
-hod2PlusOne :: Int -> [Int]
-hod2PlusOne n = do              -- hod2plusOne 6
+!!!monad-plus/HalveOrDouble.hs "hod2PlusOne ::"1
+hod2PlusOne n = do              -- hod2PlusOne 6
     x <- halveOrDouble n        -- x <-     Just 3          Just 12
     halveOrDouble x             --      Nothing  Just 6  Just 6  Just 24
     return $ x + 1              --      (skip)   Just 4  Just 13 Just 13
