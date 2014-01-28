@@ -170,7 +170,7 @@ binding and loops, which needed the handlers *before* the object being binded.
 
 
 ~~~haskell
-!!!source/entry.hs "flip mouseenter blk"2
+!!!source/entry.hs "flip click header"6
 ~~~
 
 This one kind of bucks the convention that methods like `append`
