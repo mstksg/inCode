@@ -166,11 +166,11 @@ in
 So I guess that's okay.
 
 However, something I was less understanding of was the ordering for event
-binding, which needed the handlers *before* the object being binded.
+binding and loops, which needed the handlers *before* the object being binded.
 
 
 ~~~haskell
-!!!source/entry.hs "processCodeBlocks ::"8
+!!!source/entry.hs "flip mouseenter blk"2
 ~~~
 
 This one kind of bucks the convention that methods like `append`
