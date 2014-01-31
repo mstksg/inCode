@@ -625,8 +625,8 @@ autoFold   :: (b -> a -> b) -> b -> ( Auto  a  b )
 Let's get rid of some of the points, too:
 
 ~~~haskell
-foldl    op init  :: (->) [a] b
-autoFold op init  :: Auto  a  b
+foldl    op initial  :: (->) [a] b
+autoFold op initial  :: Auto  a  b
 ~~~
 
 So both `foldl` and `autoFold` have very similar behaviors:
@@ -654,9 +654,9 @@ As an exercise, compare (and contrast) these three functions of identical type
 signatures:
 
 ~~~haskell
-map       f       :: [a] -> [b]
-scanl     op init :: [a] -> [b]
-testAuto_ auto    :: [a] -> [b]
+map       f          :: [a] -> [b]
+scanl     op initial :: [a] -> [b]
+testAuto_ auto       :: [a] -> [b]
 ~~~
 
 (Assume that `scanl` does not include the initial accumulator...that is, we
@@ -805,5 +805,4 @@ as we explore more the function-like nature of these things, we will be able
 to witness the full power of machine composition.  And we'll even be able to
 re-implement *many* of the complex machines of this post with compositions of
 smaller, simpler Autos.
-
 
