@@ -111,12 +111,6 @@ rollingAverage window = roll []
           ave = sum xs' / genericLength xs'  -- the average
       in  ( ave, roll xs' )
 
-{-
-   λ: testAuto_ (rollingAverage 4) [2,8,4,5,1,8,3,5,1,1,8,3,5,9,2]
-        [2.0 ,5.0 ,4.67,4.75,4.5
-        ,4.5 ,4.25,4.25,4.25,2.5
-        ,3.75,3.25,4.25,6.25,4.75]
--}
 
 -- onFor: normally False (off), but when triggered against the given
 --      predicate, is True for the given amount of time afterwards.
@@ -141,14 +135,6 @@ onFor p hold = wait
             then (False, wait)          -- If counted down, go wait again
             else (True, countdown (n-1))  -- otherwise, count down.
 
-{- 
-   λ: :t onFor even 3
-        onFor even 3 :: Auto Int Bool
-   λ: testAuto_ (onFor even 3) [1,1,2,1,1,1,1,4,1,6,1,1,1,1]
-        [ False, False, True , True,True
-        , False, True , True , True,True
-        , True , False, False ]
--}
 
 -- Command: Commands for working w/ an autoMap with keys k and values v
 data Command k v = Insert k v | Lookup k | Delete k
@@ -179,22 +165,6 @@ autoMap cap = go Map.empty
               m'      = key `Map.delete` m
           in  ( result, go m' )
 
-{-
-   λ: testAuto_ (autoMap 3)
-     |    [ Insert "hello" 7
-     |    , Insert "world" 10
-     |    , Insert "foo" 12
-     |    , Insert "bar" 15
-     |    , Delete "baz"
-     |    , Delete "world"
-     |    , Insert "haskell" 19
-     |    , Lookup "world"
-     |    , Lookup "hello"
-     |    ]
-        [ Just 7 , Just 10, Just 12
-        , Nothing, Nothing, Just 10
-        , Just 19, Nothing, Just 7  ]
--}
 
 
 -- | Sample "normal" function

@@ -680,19 +680,26 @@ blocks.
 :   `rollingAverage n :: Fractional a => Auto a a` outputs a rolling average
     of the last `n` values it has encountered
 
-    ~~~haskell
+~~~haskell
 λ: :t onFor even 3
 onFor even 3 :: Auto Int Bool
 λ: testAuto_ (onFor even 3) [1,1,2,1,1,1,1,4,1,6,1,1,1,1]
 [ False, False, True , True,True
 , False, True , True , True,True
 , True , False, False ]
-    ~~~
+~~~
 
 [onFor][]
 :   `onFor p i :: Auto a Bool` normally outputs `False`...except whenever the
     input matches the given predicate `p :: a -> Bool`.  Then it stays "on"
     (`True`) for `i` steps.
+
+~~~haskell
+λ: testAuto_ (rollingAverage 4) [2,8,4,5,1,8,3,5,1,1,8,3,5,9,2]
+[2.0 ,5.0 ,4.67,4.75,4.5
+,4.5 ,4.25,4.25,4.25,2.5
+,3.75,3.25,4.25,6.25,4.75]
+~~~
 
 [autoMap][]
 :   `autoMap cap :: Auto (Command k v) (Maybe v)` is a neat one.
@@ -708,6 +715,22 @@ onFor even 3 :: Auto Int Bool
     "access" to the map --- you would never be able to perform general
     operations (such as getting a list of all of the keys).
 
+~~~haskell
+λ: testAuto_ (autoMap 3)
+  |    [ Insert "hello" 7
+  |    , Insert "world" 10
+  |    , Insert "foo" 12
+  |    , Insert "bar" 15
+  |    , Delete "baz"
+  |    , Delete "world"
+  |    , Insert "haskell" 19
+  |    , Lookup "world"
+  |    , Lookup "hello"
+  |    ]
+[ Just 7 , Just 10, Just 12
+, Nothing, Nothing, Just 10
+, Just 19, Nothing, Just 7  ]
+~~~
 
 !!![rollingAverage]:machines/Auto.hs "rollingAverage:"
 !!![onFor]:machines/Auto.hs "onFor:"
@@ -733,8 +756,7 @@ Here's another function from `Maybe Int` to `Bool`: (I'm going to be using the
 prefix form of `(->)` a lot from now on)
 
 ~~~haskell
-maybeIsEven :: (->) (Maybe Int) Bool
-maybeIsEven = even . fromMaybe 1
+!!!machines/Auto.hs "maybeIsEven ::"
 ~~~
 
 `maybeIsEven` returns `True` when value inside the `Just` is even, or `False`
