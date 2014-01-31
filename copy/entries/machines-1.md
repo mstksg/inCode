@@ -493,7 +493,7 @@ So `isEvenAuto` is the same as `settableCounterFrom`, except instead of
 
 Here is a demonstration of its behavior ---
 
-~~~
+~~~haskell
 λ: testAuto isEvenAuto  [ Nothing, Nothing, Just 10
                         , Nothing, Nothing, Just (-1)
                         , Nothing ]
