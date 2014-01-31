@@ -2,7 +2,7 @@ module Development.Blog.Util.EntryPP (readPreProcess) where
 
 import "base" Prelude
 import Config.SiteData
-import Control.Applicative    ((*>))
+import Control.Applicative    ((*>),(<*))
 import Control.Arrow          ((&&&))
 import Control.Monad
 import Data.Functor
@@ -32,6 +32,7 @@ readPreProcess entryFile = do
 data SampleSpec = SampleSpec  { sSpecFile       :: FilePath
                               , _sSpecLive      :: Maybe String
                               , _sSpecKeywords  :: [(String,Maybe Int)]
+                              , _sSpecLink      :: Maybe String
                               } deriving (Show)
 
 insertSample :: T.Text -> IO T.Text
@@ -46,7 +47,7 @@ insertSample sampline = do
             return $ processSample spec rawSamp
 
 processSample :: SampleSpec -> T.Text -> T.Text
-processSample (SampleSpec sFile sLive sKeys) rawSamp = processed
+processSample (SampleSpec sFile sLive sKeys sLink) rawSamp = processed
   where
     rawLines = T.lines rawSamp
     zipped = zip rawLines [1..]
@@ -62,22 +63,25 @@ processSample (SampleSpec sFile sLive sKeys) rawSamp = processed
     endLine   = maximum . map (snd . fst) $ blocks
     sampCode  = T.unlines . map snd $ blocks
     toHeading key val = T.pack . concat $ ["-- ", key, ": ", val, "\n"]
-    sourceHeading   =
-      case sampleBlobs of
-        Nothing -> ""
-        Just blob ->
-          let suffix  = concat ["#L",show startLine,"-",show endLine]
-              suffix' = if null sKeys then "" else suffix
-          in  toHeading
-                "source"
-                (blob </> sFile ++ suffix')
+    sourceUrl = do
+      blob <- sampleBlobs
+      let
+        suffix  = concat ["#L",show startLine,"-",show endLine]
+        suffix' = if null sKeys then "" else suffix
+      return (blob </> sFile ++ suffix')
+    sourceHeading   = maybe "" (toHeading "source") sourceUrl
     interHeading =
       let maybeHeading = do
             inter <- interactiveUrl
             live <- sLive
             return $ toHeading "interactive" (inter </> live)
       in fromMaybe "" maybeHeading
-    processed = T.concat [sourceHeading, interHeading, sampCode]
+    processed =
+      case sLink of
+        Nothing ->
+          T.concat [sourceHeading, interHeading, sampCode]
+        Just l ->
+          T.pack $ concat ["[",l,"]: ",fromMaybe "/not-found" sourceUrl]
 
 
 grabBlock :: [(T.Text,Int)] -> String -> Maybe Int -> ((Int,Int), T.Text)
@@ -110,6 +114,7 @@ interactiveUrl = T.unpack <$> siteDataInteractiveUrl siteData
 
 sampleSpec :: Parser SampleSpec
 sampleSpec = do
+    link <- try . optionMaybe $ between (char '[') (char ']') (many1 (noneOf "]")) <* char ':'
     filePath <- noSpaces <?> "sample filePath"
     spaces
     keywords <- many $ do
@@ -122,6 +127,6 @@ sampleSpec = do
     let
       live' = mfilter (not . null) live
 
-    return $ SampleSpec filePath live' keywords
+    return $ SampleSpec filePath live' keywords link
   where
     noSpaces = manyTill anyChar (space <|> ' ' <$ eof)
