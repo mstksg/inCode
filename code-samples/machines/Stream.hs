@@ -40,19 +40,12 @@ myStream = streamFrom 1
     streamFrom :: Int -> Stream Int
     streamFrom n = SCons ( n, streamFrom (n+1) )
 
--- myStream': the Stream is of Ints, but the state is a Double
-myStream' :: Stream Int
-myStream' = streamFrom' 1.0
+-- charStream: the Stream is of Chars, but the state is an Int
+charStream :: Stream Char
+charStream = charStreamFrom 65
   where
-    streamFrom' :: Double -> Stream Int
-    streamFrom' x = SCons ( round x, streamFrom' (x+1) )
-
--- myBoolStream: The state is undeducable from the stream output
-myBoolStream :: Stream Bool
-myBoolStream = boolStreamFrom 1
-  where
-    boolStreamFrom :: Int -> Stream Bool
-    boolStreamFrom n = SCons ( even n, boolStreamFrom (n+1) )
+    charStreamFrom :: Int -> Stream Char
+    charStreamFrom n = SCons ( chr n, charStreamFrom (n+1) )
 
 -- wackyStateStream: The type of the state varys dynamically
 wackyStateStream :: Stream (Maybe Int)
