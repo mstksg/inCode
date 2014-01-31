@@ -76,6 +76,10 @@
     margin: 2rem 0;
   }
 
+  pre.code-block-prompt {
+    background: #f8f8fd;
+  }
+
   blockquote {
     > p {
       &:first-child {
