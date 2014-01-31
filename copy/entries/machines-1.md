@@ -26,22 +26,14 @@ us with semantics by which to compose and build time-varying, reactive
 behaviors and completely changes the way we approach any sort of
 simulation/state-like project.
 
-However, it's fairly difficult to approach the subject (and not dumb things
-down to the point of magic) without a solid foundation on the basic building
-blocks of AFRP: **machines**.  And so before I get started on my simulations
-in FRP series, here is hopefully a practical foundation on the practical usage
-and construction of the machine design pattern that we can build on to get
-started on our Physics simulation!
+AFRP has its own elegant way of approaching problems, but to be able to
+properly use it for simulations, we're going to have to start by learning
+about the fundamental abstraction behind its **implementation**: machines.
 
-This post will assume a somewhat basic knowledge of Haskell.  I'll try
+(This post will assume a somewhat basic knowledge of Haskell.  I'll try
 explaining concepts here and there if I feel that they might not be very
 commonly known.  But if you have any questions, feel free to leave a comment
-or stop by freenode's #haskell on irc!
-
-In this post we are going to introduce Streams and (more importantly) Autos.
-In the next, we will be looking at Autos as a member of the powerful Category
-and Arrow typeclasses.  Finally, we will bring in the final machine, the Wire,
-to transition into the popular AFRP library [netwire][].
+or stop by freenode's #haskell on irc!)
 
 [netwire]: http://hackage.haskell.org/package/netwire
 
@@ -51,20 +43,12 @@ Why FRP?
 So why do we even bother with FRP?  Why not just wrap everything in a giant
 global state monad and program imperatively?
 
-To get to the bottom of this, we must remember why we even bother with
-functional programming in the first place.  Think very hard about this
-question, because without a real answer, all of this will be a waste.  Is it
-just because it's cool?
+The answer is the full power of functional programming: **[composition][]**.
+Anyone who has dabbled in functional programming (or who has even used unix
+pipes) has had a glimpse into the power of composition.  We start with simple,
+fundamental behaviors and compose them piece-by-piece into a complex one.
 
-The (a?) reason why (pure) functional programming is powerful is because is a
-subset of what can be called **[compositional programming][]**.  Almost all of the
-benefits of functional programming can be drawn from its unmatched power of
-composability.  Think of the power of unix pipes.  We can build programs by
-the free composition of smaller, simpler self-contained programs and concepts
-that don't have to be aware of any other part.  Recognizing this completely
-changes the way we approach problems.
-
-[compositional programming]: http://www.haskellforall.com/2012/08/the-category-design-pattern.html
+[compositional]: http://www.haskellforall.com/2012/08/the-category-design-pattern.html
 
 So why FRP?  FRP provides for us meaningful semantics by which to *compose*
 time-varying and reactive behaviors, and create complex ones from smaller
@@ -73,8 +57,12 @@ to build complex behaviors from simple ones.  You don't specify what happens
 when, you specify how things *should behave*, from a top-down level.  And then
 compose those behaviors.
 
-Yadda yadda.  I am probably boring you at this point, let's just get started
-and jump into machines!
+So to proceed, in this post we are going to introduce Streams and (more
+importantly) Autos. In the next, we will be looking at Autos as a member of
+the powerful Category and Arrow typeclasses.  Finally, we will bring in the
+final machine, the Wire, to transition into the popular AFRP library
+[netwire][].
+
 
 Streams
 -------
