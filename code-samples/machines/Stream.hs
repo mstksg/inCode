@@ -1,5 +1,7 @@
 module Stream where
 
+import Data.Char (chr)
+
 data List a = Cons (a, List a) | Nil
   deriving (Show)
 
@@ -28,8 +30,13 @@ testStream_ = (fst .) . testStream
 
 -- | Sample List
 --
+-- our custom datatype List
 myList :: List Int
 myList = Cons ( 1, Cons ( 2, Cons (3, Nil) ) )
+
+-- a "normal" Haskell list
+myList' :: [Int]
+myList' = 1:(2:(3:[]))
 
 -- | Sample Streams
 --

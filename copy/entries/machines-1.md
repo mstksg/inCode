@@ -44,11 +44,11 @@ So why do we even bother with FRP?  Why not just wrap everything in a giant
 global state monad and program imperatively?
 
 The answer is the full power of functional programming: **[composition][]**.
-Anyone who has dabbled in functional programming (or who has even used unix
+Anyone who has dabbled in functional programming (or who has even used Unix
 pipes) has had a glimpse into the power of composition.  We start with simple,
 fundamental behaviors and compose them piece-by-piece into a complex one.
 
-[compositional]: http://www.haskellforall.com/2012/08/the-category-design-pattern.html
+[composition]: http://www.haskellforall.com/2012/08/the-category-design-pattern.html
 
 So why FRP?  FRP provides for us meaningful semantics by which to *compose*
 time-varying and reactive behaviors, and create complex ones from smaller
@@ -81,7 +81,7 @@ Compare that with the linked list data type, which is a Stream with an Ending
 (`Nil`):
 
 ~~~haskell
-!!!machines/Stream.hs "data List"
+!!!machines/Stream.hs "data List" machines
 ~~~
 
 or, as is more traditionally written:
@@ -93,14 +93,13 @@ data [a] = (:) a [a] | []
 It's pretty easy to build lists:
 
 ~~~haskell
-!!!machines/Stream.hs "myList ::"
+!!!machines/Stream.hs "myList ::" machines
 ~~~
 
 which is just, in the more traditional (infix) form:
 
 ~~~haskell
-myList' :: [Int]
-myList' = 1:(2:(3:[]))
+!!!machines/Stream.hs "myList' ::" machines
 ~~~
 
 Let's see if `myList` does what we want: (a list from 1 to 3):
@@ -142,7 +141,7 @@ We can take advantage of Haskell's "lazy-by-default"-ness and leave the "rest"
 of the stream as an unevaluated function call.  And then we can recurse!
 
 ~~~haskell
-!!!machines/Stream.hs "myStream ::"
+!!!machines/Stream.hs "myStream ::" machines
 ~~~
 
 Cool!  Let's see if this `myStream` really does what we want, the same way we
@@ -198,7 +197,7 @@ field, we can make it a `newtype`, which has similar usage patterns/syntax as
 a `data`, but which the compiler can more easily optimize:
 
 ~~~haskell
-!!!machines/Stream.hs "newtype Stream"
+!!!machines/Stream.hs "newtype Stream" machines
 ~~~
 
 #### Automating Traversal
@@ -211,7 +210,7 @@ pattern matching for us really quickly so that we can test it more easily.
 conversion into an infinite list.
 
 ~~~haskell
-!!!machines/Stream.hs "streamToList ::"
+!!!machines/Stream.hs "streamToList ::" machines
 ~~~
 
 So now we can do:
@@ -227,7 +226,7 @@ also the "resulting" stream after all of those steps, and `testStream_`, which
 is the same thing except that we throw away the modified stream.
 
 ~~~haskell
-!!!machines/Stream.hs "testStream ::" "testStream_ ::"
+!!!machines/Stream.hs "testStream ::" "testStream_ ::" machines
 ~~~
 
 ~~~haskell
@@ -253,7 +252,7 @@ state *is a function of the current state*.
 This is made very apparent in our definition of `streamFrom`:
 
 ~~~haskell
-!!!machines/Stream.hs "streamFrom ::" 2
+!!!machines/Stream.hs "streamFrom ::"2 machines
 ~~~
 
 The "current state" whenever we call `streamFrom n` is `n`...the "next state"
@@ -272,7 +271,7 @@ let's have a stream whose state is an integer, yet whose output is a
 character:
 
 ~~~haskell
-!!!machines/Stream.hs "charStream ::"
+!!!machines/Stream.hs "charStream ::" machines
 ~~~
 
 ~~~haskell
@@ -280,10 +279,10 @@ character:
 "ABCDEFGHIJ"
 ~~~
 
-Hm.  Wait, this is kind of weird.  The type of our stream is `Stream
+Wait, this is kind of weird.  The type of our stream is `Stream
 Char`...`Char` is the type of output/elements in the stream, the "head" when
 we pattern match.  But where is the `Int` that is the state of our stream in
-the type `Stream`...?
+the type `Stream Char`...?
 
 Can we even write a function `getState :: Stream a -> b` that works in
 general for all streams?
@@ -317,7 +316,7 @@ Let's upgrade our streams, and introduce a way to affect how they progress.
 Let's call it an Auto.
 
 ~~~haskell
-!!!machines/Auto.hs "newtype Auto"
+!!!machines/Auto.hs "newtype Auto" machines
 ~~~
 
 Now, instead of an `SCons` containing just a tuple (a head-tails), an `ACons`
@@ -342,7 +341,7 @@ So now, we basically have a `Stream b`, except at every "step", we can
 Let's look at a direct "port" of our `myStream`:
 
 ~~~haskell
-!!!machines/Auto.hs "myStreamAuto ::"
+!!!machines/Auto.hs "myStreamAuto ::" machines
 ~~~
 
 This is kind of a dumb example, but `myStreamAuto` is just the exact same as
@@ -385,7 +384,7 @@ counter to progress normally, we pass in a `Nothing`.  If we want the counter
 to reset to a number `n` of our choosing, we pass in a `Just n`
 
 ~~~haskell
-!!!machines/Auto.hs "settableAuto ::"
+!!!machines/Auto.hs "settableAuto ::" machines
 ~~~
 
 Remember that `fromMaybe :: a -> Maybe a -> a` takes a "default" value, a
@@ -436,15 +435,15 @@ the modified Auto.  `testAuto_` throws away the new Auto and just gives us the
 collection.
 
 ~~~haskell
-!!!machines/Auto.hs "testAuto ::" "testAuto_ ::"
+!!!machines/Auto.hs "testAuto ::" "testAuto_ ::" machines
 ~~~
 
 Trying it out on `settableAuto`:
 
 ~~~
-λ: testAuto settableAuto [ Nothing, Nothing, Just 10
-                         , Nothing, Nothing, Just (-1)
-                         , Nothing ]
+λ: testAuto_ settableAuto [ Nothing, Nothing, Just 10
+                          , Nothing, Nothing, Just (-1)
+                          , Nothing ]
 [1,2,10,11,12,-1,0]
 ~~~
 
@@ -471,7 +470,7 @@ To put it in terms of `settableAuto`:
     reset or allow to increment by one as normal.
 *   The "output" of `settableAuto` is the "head" of the `ACons` that is
     returned --- the `x`, `y`, etc.  It's the `Int`, the counter.
-*   The "state" of `settableAuto` is, in essense, the `n` of
+*   The "state" of `settableAuto` is, in essence, the `n` of
     `counterFrom n`.  It's the internal value by which the behavior is
     determined.  The behavior of `runAuto` depends on the `n` --- it either
     yields `n` itself and increments `n`, or ignores it.
@@ -485,7 +484,7 @@ the output are different things, and that the state is completely opaque and
 encapsulated.
 
 ~~~haskell
-!!!machines/Auto.hs "isEvenAuto ::"
+!!!machines/Auto.hs "isEvenAuto ::" machines
 ~~~
 
 So `isEvenAuto` is the same as `settableCounterFrom`, except instead of
@@ -559,7 +558,7 @@ starting at 0?  More correctly, an Auto that, given any int, "returns" the sum
 of that int with all of the previous ints it has received in its lifetime.
 
 ~~~haskell
-!!!machines/Auto.hs "summer ::"
+!!!machines/Auto.hs "summer ::" machines
 ~~~
 
 ~~~haskell
@@ -583,7 +582,7 @@ Just for kicks, let's generalize this and make an Auto version of `foldl`
 value, and we'll "fold up" all of our inputs.
 
 ~~~haskell
-!!!machines/Auto.hs "autoFold ::"
+!!!machines/Auto.hs "autoFold ::" machines
 ~~~
 
 (the `forall` is used with the [Scoped Type Variables][stv] extension to let
@@ -600,7 +599,7 @@ You can probably imagine lots of different folds you can turn into
 are some cute ones:
 
 ~~~haskell
-!!!machines/Auto.hs "accumulateIntoList ::" "productor ::" "accumulateStrings ::" "monoidAccum ::"
+!!!machines/Auto.hs "accumulateIntoList ::" "productor ::" "accumulateStrings ::" "monoidAccum ::" machines
 ~~~
 
 Cool, huh?
@@ -665,7 +664,7 @@ are really talking about `drop 1 . scanl op init`)
 
 Compare what they do conceptually.  Then, for fun, try implementing some of
 them in terms of the other.  Which re-implementations are possible?  Which
-ones arent?
+ones aren't?
 </aside>
 
 ### More Auto examples
@@ -677,14 +676,26 @@ blocks.
 
 !!![fewexamples]:machines/Auto.hs "rollingAverage:" "onFor:" "Command:" "autoMap:"
 
-1.  `[rollingAverage n][rollingAverage] :: Fractional a => Auto a a` outputs a
-    rolling average of the last `n` values it has encountered
+[rollingAverage][]
+:   `rollingAverage n :: Fractional a => Auto a a` outputs a rolling average
+    of the last `n` values it has encountered
 
-2.  `[onFor p i][onFor] :: Auto a Bool` normally outputs `False`...except
-    whenever the input matches the given predicate `p :: a -> Bool`.  Then it
-    stays "on" (`True`) for `i` steps.
+    ~~~haskell
+λ: :t onFor even 3
+onFor even 3 :: Auto Int Bool
+λ: testAuto_ (onFor even 3) [1,1,2,1,1,1,1,4,1,6,1,1,1,1]
+[ False, False, True , True,True
+, False, True , True , True,True
+, True , False, False ]
+    ~~~
 
-3.  `[autoMap cap][autoMap] :: Auto (Command k v) (Maybe v)` is a neat one.
+[onFor][]
+:   `onFor p i :: Auto a Bool` normally outputs `False`...except whenever the
+    input matches the given predicate `p :: a -> Bool`.  Then it stays "on"
+    (`True`) for `i` steps.
+
+[autoMap][]
+:   `autoMap cap :: Auto (Command k v) (Maybe v)` is a neat one.
     It internally holds a [Map][] (a key-value store) --- you can give it
     `[Command][]` data types that tell it to insert, lookup, and delete
     values.  However, it enforces a maximum of items.
@@ -742,7 +753,7 @@ whereas `maybeIsEven` is "memoryless" (it's the same every time you call it),
 its history.
 
 Contrast this with a Stream, which as we have seen is just an `Auto () b`.
-Streams are then "function like things" analgous to some `(->) () b`, or `()
+Streams are then "function like things" analogous to some `(->) () b`, or `()
 -> b`.  We can call functions like `() -> b` "constants", or "producers". They
 are the same every time you call them. Streams, however, "return" a
 potentially different `b` value every time they are "called".  So, just like

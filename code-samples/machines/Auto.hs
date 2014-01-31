@@ -129,13 +129,13 @@ onFor p hold = wait
     wait :: Auto a Bool                 -- the "waiting" state
     wait = ACons $ \input ->
       if p input                        -- if triggered,
-        then (True, countdown (hold-1)) -- jump to "countdown" state
+        then (True, countdown hold)     -- jump to "countdown" state
         else (False, wait)              -- otherwise, stay waiting
 
     countdown :: Int -> Auto a Bool     -- the "countdown" state
     countdown n = ACons $ \input ->
       if p input                        -- if re-triggered
-        then (True, countdown (hold-1)) -- countdown all over again
+        then (True, countdown hold)     -- countdown all over again
         else
           if n == 1
             then (False, wait)          -- If counted down, go wait again
