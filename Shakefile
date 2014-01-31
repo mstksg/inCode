@@ -11,7 +11,7 @@ import Control.Applicative ((<$>))
 
 opts = shakeOptions { shakeFiles    = ".shake/"
                     , shakeVersion  = "1.0"
-                    , shakeThreads  = 32
+                    , shakeThreads  = 1
                     -- , shakeReport   = Just "profile.html"
                     , shakeProgress = progressSimple
                     }
