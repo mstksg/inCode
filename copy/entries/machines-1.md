@@ -12,7 +12,7 @@ Tags
 CreateTime
 :   2014/01/19 22:55:57
 PostDate
-:   Never
+:   2014/02/04 09:16:28
 Series
 :   Intro to Machines and Arrows
 Identifier
@@ -805,4 +805,3 @@ as we explore more the function-like nature of these things, we will be able
 to witness the full power of machine composition.  And we'll even be able to
 re-implement *many* of the complex machines of this post with compositions of
 smaller, simpler Autos.
-
