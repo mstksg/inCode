@@ -578,7 +578,7 @@ of that int with all of the previous ints it has received in its lifetime.
     sync with the output.  But remember that this is not the case in general.
 
 Just for kicks, let's generalize this and make an Auto version of `foldl`
-(actually, it'd be more like `scanl`): give us an operator and an initial
+(technically, more like `scanl`): give us an operator and an initial
 value, and we'll "fold up" all of our inputs.
 
 ~~~haskell
