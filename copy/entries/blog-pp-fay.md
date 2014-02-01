@@ -170,7 +170,12 @@ binding and loops, which needed the handlers *before* the object being binded.
 
 
 ~~~haskell
-!!!source/entry.hs "flip click header"6
+flip click header $ \_ -> do
+  toggled <- readFayRef sourceToggled
+  if toggled
+    then sHide sourceInfo
+    else unhide sourceInfo
+  modifyFayRef' sourceToggled Prelude.not
 ~~~
 
 This one kind of bucks the convention that methods like `append`
