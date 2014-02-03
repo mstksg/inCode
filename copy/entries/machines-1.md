@@ -37,6 +37,11 @@ or stop by freenode's #haskell on irc!)
 
 [netwire]: http://hackage.haskell.org/package/netwire
 
+(A short disclaimer: this article has not too much to do with the great
+[machines][mlib] library by Rúnar Bjarnason and Edward Kmett)
+
+[mlib]: http://hackage.haskell.org/package/machines
+
 Why FRP?
 --------
 
