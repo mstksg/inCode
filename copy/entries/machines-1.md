@@ -1,5 +1,5 @@
-Intro to Machines & Arrows (Part 1)
-===================================
+Intro to Machines & Arrows (Part 1: Stream and Auto)
+====================================================
 
 Categories
 :   Haskell
@@ -12,7 +12,7 @@ Tags
 CreateTime
 :   2014/01/19 22:55:57
 PostDate
-:   2014/02/03 09:02:28
+:   2014/02/03 09:13:28
 Series
 :   Intro to Machines and Arrows
 Identifier
@@ -174,14 +174,14 @@ down the stream by pattern matching out the "head" of the stream (the first
 part of the tuple) and the "tail" of the stream (the second part of the
 tuple).
 
-Note that we can use some syntax trickery with our data definition of
-`Stream` by adding a label to the first (and only) field:
+Note that we can have some fun with Haskell syntax `Stream` by adding a record
+label to the first (and only) field:
 
 ~~~haskell
 data Stream b = SCons { runStream :: (b, Stream b) }
 ~~~
 
-and we can do fancy things like:
+so that we can do fancy things like:
 
 ~~~haskell
 λ: :t runStream
@@ -204,9 +204,9 @@ a `data`, but which the compiler can more easily optimize:
 
 #### Automating Traversal
 
-The repeated pattern matching is actually kind of tedious, and it'll only get
-more annoying over time, so let's make a function that can automate the
-pattern matching for us really quickly so that we can test it more easily.
+The repeated pattern matching we've been doing is kind of tedious, and it'll
+only get more annoying over time, so let's make a function that can automate
+the pattern matching for us really quickly so that we can test it more easily.
 
 `streamToList` will take a Stream and perform the very straightforward
 conversion into an infinite list.
@@ -290,8 +290,8 @@ Can we even write a function `getState :: Stream a -> b` that works in
 general for all streams?
 
 Hm.  If the state of our stream can have a type totally unrelated to the type
-of the stream...that means that we probably can't even know what it is.  And
-that even if we could "force" it out somehow, we would not even be able to
+of the stream...that means that we probably can't even know what it type is.
+And that even if we could "force" it out somehow, we would not even be able to
 work with it in a type-safe way!
 
 In fact...couldn't the state even *[vary dynamically][wss]* as the stream progresses?
@@ -330,8 +330,8 @@ This is cool!
 
 Let's look at the type signature of Auto before we go too much further.
 
-In `Auto a b`, `b` is the type of your "head" and the type of the items in
-your "tail".  It's the type of your "stream".
+In `Auto a b`, `b` is (just like for a Stream) the type of your "head" and the
+type of the items in your "tail".  It's the type of your "stream".
 
 `a` is the type of the "influencing input".
 
@@ -371,12 +371,13 @@ Remember that we are really doing `(runAuto myStreamAuto) undefined`, but
 because of how Haskell associates function calls, the parentheses are
 unnecessary.  And hey, it kind of looks like `runAuto` is a two-parameter
 function with an Auto as the first parameter and the "influence"/"input" as
-its second.  Which, due to the magic of currying-by-default, it really is!
+its second.  Which, due to the magic of currying-by-default, it basically is,
+in Haskell!
 
 ### A Non-trivial Auto
 
 Okay, that was fun I guess.  But now let's take a first look at an auto which
-"can" be influenced.
+*can* be influenced.
 
 Let's have a stream where at every step, we can choose to "reset" the counter
 to whatever integer we like.
@@ -468,8 +469,8 @@ function with the new state that behaves differently when "called").
 
 To put it in terms of `settableAuto`:
 
-*   The "input" of `settableAuto` is our `Maybe Int` by which we specify to
-    reset or allow to increment by one as normal.
+*   The "input" of `settableAuto` is our `Maybe Int` by which we convey or
+    decision to reset or allow to increment by one as normal.
 *   The "output" of `settableAuto` is the "head" of the `ACons` that is
     returned --- the `x`, `y`, etc.  It's the `Int`, the counter.
 *   The "state" of `settableAuto` is, in essence, the `n` of
@@ -502,9 +503,11 @@ Here is a demonstration of its behavior ---
 [False,True,True,False,True]
 ~~~
 
-Note that there is in general really no way to ever access the `n` internally.
-It is completely sealed off from the world, except by explicit design.  Here,
-we choose to only "offer" a way to "set" it using our input.
+Note that there is in general really no way to ever access the `n` internally
+(in fact, like we said before, it is in theory possible because we can't even
+know its type).  It is completely sealed off from the world, except by our
+explicit design.  Here, we choose to only "offer" a way to "set" it using our
+input.
 
 Now it the three distinct concepts --- the input, output, and state --- should
 be clear.
@@ -683,12 +686,10 @@ blocks.
     of the last `n` values it has encountered
 
 ~~~haskell
-λ: :t onFor even 3
-onFor even 3 :: Auto Int Bool
-λ: testAuto_ (onFor even 3) [1,1,2,1,1,1,1,4,1,6,1,1,1,1]
-[ False, False, True , True,True
-, False, True , True , True,True
-, True , False, False ]
+λ: testAuto_ (rollingAverage 4) [2,8,4,5,1,8,3,5,1,1,8,3,5,9,2]
+[2.0 ,5.0 ,4.67,4.75,4.5
+,4.5 ,4.25,4.25,4.25,2.5
+,3.75,3.25,4.25,6.25,4.75]
 ~~~
 
 [onFor][]
@@ -697,10 +698,12 @@ onFor even 3 :: Auto Int Bool
     (`True`) for `i` steps.
 
 ~~~haskell
-λ: testAuto_ (rollingAverage 4) [2,8,4,5,1,8,3,5,1,1,8,3,5,9,2]
-[2.0 ,5.0 ,4.67,4.75,4.5
-,4.5 ,4.25,4.25,4.25,2.5
-,3.75,3.25,4.25,6.25,4.75]
+λ: :t onFor even 3
+onFor even 3 :: Auto Int Bool
+λ: testAuto_ (onFor even 3) [1,1,2,1,1,1,1,4,1,6,1,1,1,1]
+[ False, False, True , True,True
+, False, True , True , True,True
+, True , False, False ]
 ~~~
 
 [autoMap][]
@@ -779,15 +782,16 @@ its history.
 Contrast this with a Stream, which as we have seen is just an `Auto () b`.
 Streams are then "function like things" analogous to some `(->) () b`, or `()
 -> b`.  We can call functions like `() -> b` "constants", or "producers". They
-are the same every time you call them. Streams, however, "return" a
-potentially different `b` value every time they are "called".  So, just like
-an Auto is a "function" that has memory, a Stream is like a *constant* that
-has memory.  A stateful generator.  A "constant" that returns something
-different every time you ask for it.
+are the same every time you call them or ask for them. Streams, however,
+"return" a potentially different `b` value every time they are "asked for".
+So, just like an Auto is a "function" that has memory, a Stream is like a
+"constant" that has memory.  A stateful generator.  A "constant" that returns
+something different every time you ask for it.
 
-Anyway, you should be able to guess that, after vaguely using the phrase "function
-things" several times...I'm going to surprise you all with the revelation that
-these "function things" have a name!  And maybe even...a typeclass?
+Anyway, you should be able to guess that, after vaguely using the phrase
+"function things" several times...I'm going to surprise you all with the
+revelation that the general class of these "function things" have a name!  And
+maybe even...a typeclass?
 
 Onward
 ------
@@ -797,10 +801,11 @@ of using machines (like Auto and the related Wire).  Yeah, they provide
 encapsulation and a changing state...but these things come for free in most
 good Object-Oriented Programming languages.  So what gives?
 
-As it turns out, as we suggested before, Autos are much more "composable" than
-the objects of OOP.  That is because, at their heart, they are just functions.
-And what do functions do best?  They compose!  Complex object built seamlessly
-from simpler ones.
+As it turns out, as we suggested before, Autos are potentially more
+"composable" than the objects of OOP.  That is because, at their heart, they
+are just functions. And what do functions do best (as every functional
+programmer knows)?  They compose!  Complex object built seamlessly from
+simpler ones.
 
 Now, I haven't really been able to back this up so far.  But in the next post,
 as we explore more the function-like nature of these things, we will be able
