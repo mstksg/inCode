@@ -62,12 +62,18 @@ compose those behaviors.
 So to proceed, in this post we are going to introduce Streams and (more
 importantly) Autos. In the next, we will be looking at Autos as a member of
 the powerful Category and Arrow typeclasses.  Finally, we will bring in the
-final machine, the Wire, to transition into the popular AFRP library
-[netwire][].
+final machine we will be looking at, the Wire, to transition into the popular
+AFRP library [netwire][].
 
 
 Streams
 -------
+
+(All the code for Streams can be downloaded [from github][streams] and tried
+interactively online [at FPComplete][streamsint])
+
+!!![streams]:machines/Stream.hs
+[streamsint]: https://www.fpcomplete.com/user/jle/machines
 
 Let's start with streams, one of the simpler of machines.
 
@@ -286,7 +292,7 @@ Char`...`Char` is the type of output/elements in the stream, the "head" when
 we pattern match.  But where is the `Int` that is the state of our stream in
 the type `Stream Char`...?
 
-Can we even write a function `getState :: Stream a -> b` that works in
+Can we even write a function `getState :: Stream b -> s` that works in
 general for all streams?
 
 Hm.  If the state of our stream can have a type totally unrelated to the type
@@ -313,6 +319,12 @@ be spending the most time looking at): Auto.
 
 Auto
 ----
+
+(All the code for Autos can be downloaded [from github][autos] and tried
+interactively online [at FPComplete][autosint])
+
+!!![streams]:machines/Auto.hs
+[autosint]: https://www.fpcomplete.com/user/jle/machines
 
 Let's upgrade our streams, and introduce a way to affect how they progress.
 Let's call it an Auto.
