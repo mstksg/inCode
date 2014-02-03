@@ -328,7 +328,7 @@ Auto
 (All the code for Autos can be downloaded [from github][autos] and tried
 interactively online [at FPComplete][autosint])
 
-!!![streams]:machines/Auto.hs
+!!![autos]:machines/Auto.hs
 [autosint]: https://www.fpcomplete.com/user/jle/machines
 
 Let's upgrade our streams, and introduce a way to affect how they progress.
