@@ -12,7 +12,7 @@ Tags
 CreateTime
 :   2014/01/19 22:55:57
 PostDate
-:   2014/02/03 09:16:28
+:   2014/02/03 09:02:28
 Series
 :   Intro to Machines and Arrows
 Identifier
@@ -22,7 +22,7 @@ So I'm going to be running a series soon on computation and (physical)
 simulations using AFRP (Arrowized Functional Reactive Programming) principles.
 
 I consider (A)FRP to actually be a pretty game changing paradigm.  It provides
-us with semantics by which to compose and build time-varying, reactive
+us with semantics by which to *compose* and build time-varying, reactive
 behaviors and completely changes the way we approach any sort of
 simulation/state-like project.
 
@@ -40,13 +40,15 @@ or stop by freenode's #haskell on irc!)
 Why FRP?
 --------
 
-So why do we even bother with FRP?  Why not just wrap everything in a giant
-global state monad and program imperatively?
+So why do we even bother with FRP?  Why not just just program imperatively and
+mutate a state?  It's just as easy in a functional/pure language (with a
+trivial State monad wrapper) as it is in an imperative language.
 
 The answer is the full power of functional programming: **[composition][]**.
 Anyone who has dabbled in functional programming (or who has even used Unix
 pipes) has had a glimpse into the power of composition.  We start with simple,
-fundamental behaviors and compose them piece-by-piece into a complex one.
+fundamental, self-contained behaviors and compose them piece-by-piece into a
+complex one.
 
 [composition]: http://www.haskellforall.com/2012/08/the-category-design-pattern.html
 
