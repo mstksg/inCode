@@ -28,7 +28,15 @@ simulation/state-like project.
 
 AFRP has its own elegant way of approaching problems, but to be able to
 properly use it for simulations, we're going to have to start by learning
-about the fundamental abstraction behind its **implementation**: machines.
+about the fundamental abstraction behind its **implementation**:
+machines.[^implementation]
+
+[^implementation]: It is somewhat important to note here that the semantics of
+FRP do not inherently involve machines.  We'll learn more about this later.
+For now, remember that this series will chiefly study the low-level
+*implementation* of AFRP, which may or may not be related to the
+*semantics*/abstractions of FRP --- in an ideal world we wouldn't even have to
+worry about implementation and just work on the level of the abstractions.
 
 (This post will assume a somewhat basic knowledge of Haskell.  I'll try
 explaining concepts here and there if I feel that they might not be very
