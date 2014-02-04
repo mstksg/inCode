@@ -824,8 +824,10 @@ are just functions. And what do functions do best (as every functional
 programmer knows)?  They compose!  Complex object built seamlessly from
 simpler ones.
 
-Now, I haven't really been able to back this up so far.  But in the next post,
-as we explore more the function-like nature of these things, we will be able
-to witness the full power of machine composition.  And we'll even be able to
-re-implement *many* of the complex machines of this post with compositions of
-smaller, simpler Autos.
+Now, I haven't really been able to back this up so far.  We've only scratched
+the surface, and we haven't even considered function-like things that can
+return other function-like things.  But in the next post, as we explore more
+the function-like nature of these things, we will be able to witness more of
+the full power of machine composition.  And we'll even be able to re-implement
+*many* of the complex machines of this post with compositions of smaller,
+simpler Autos.
