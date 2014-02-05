@@ -102,7 +102,7 @@ Compare that with the linked list data type, which is a Stream with an Ending
 (`Nil`):
 
 ~~~haskell
-!!!machines/Stream.hs "data List" machines
+!!!machines/Stream.hs "data List"1 machines
 ~~~
 
 or, as is more traditionally written:
