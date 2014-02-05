@@ -37,6 +37,7 @@ For now, remember that this series will chiefly study the low-level
 *implementation* of AFRP, which may or may not be related to the
 *semantics*/abstractions of FRP --- in an ideal world we wouldn't even have to
 worry about implementation and just work on the level of the abstractions.
+Unfortunately, we don't live in an ideal world :(
 
 (This post will assume a somewhat basic knowledge of Haskell.  I'll try
 explaining concepts here and there if I feel that they might not be very

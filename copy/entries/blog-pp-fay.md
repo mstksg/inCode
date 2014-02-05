@@ -2,7 +2,6 @@ Blog engine updates: Markdown Preprocessor & Fay Scripts
 ========================================================
 
 Categories
-:   Haskell
 :   Meta
 Tags
 :   fay
