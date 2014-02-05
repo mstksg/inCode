@@ -44,8 +44,6 @@ explaining concepts here and there if I feel that they might not be very
 commonly known.  But if you have any questions, feel free to leave a comment
 or stop by freenode's #haskell on irc!)
 
-[netwire]: http://hackage.haskell.org/package/netwire
-
 (A short disclaimer: this article has not too much to do with the great
 [machines][mlib] library by Rúnar Bjarnason and Edward Kmett)
 
@@ -79,6 +77,7 @@ the powerful Category and Arrow typeclasses.  Finally, we will bring in the
 final machine we will be looking at, the Wire, to transition into the popular
 AFRP library [netwire][].
 
+[netwire]: http://hackage.haskell.org/package/netwire
 
 Streams
 -------
