@@ -1,3 +1,5 @@
+-- | http://blog.jle.im/entry/intro-to-machines-arrows-part-1-stream-and
+
 module Stream where
 
 import Data.Char (chr)
