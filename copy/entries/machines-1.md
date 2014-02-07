@@ -699,12 +699,13 @@ ones aren't?
 
 ### More Auto examples
 
-[I've thrown up a few auto examples][fewexamples] so you can try it out and
-see how different ones work.  Don't get too attached to them, because we will
-later be re-implementing them as compositions of smaller, simpler building
-blocks.
+[I've thrown up a few auto examples][fewexamples] [that you can run
+online][fewexamplesfp] so you can try it out and see how different ones work.
+Don't get too attached to them, because we will later be re-implementing them
+as compositions of smaller, simpler building blocks.
 
 !!![fewexamples]:machines/Auto.hs "rollingAverage:" "onFor:" "Command:" "autoMap:"
+[fewexamplesfp]: https://www.fpcomplete.com/user/jle/machines
 
 [rollingAverage][]
 :   `rollingAverage n :: Fractional a => Auto a a` outputs a rolling average
@@ -726,9 +727,9 @@ blocks.
 λ: :t onFor even 3
 onFor even 3 :: Auto Int Bool
 λ: testAuto_ (onFor even 3) [1,1,2,1,1,1,1,4,1,6,1,1,1,1]
-[ False, False, True , True,True
-, False, True , True , True,True
-, True , False, False ]
+[ False, False, True , True , True
+, False, False, True , True , True
+, True , True , False, False ]
 ~~~
 
 [autoMap][]
