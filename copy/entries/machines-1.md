@@ -705,6 +705,7 @@ Don't get too attached to them, because we will later be re-implementing them
 as compositions of smaller, simpler building blocks.
 
 !!![fewexamples]:machines/Auto.hs "rollingAverage:" "onFor:" "Command:" "autoMap:"
+
 [fewexamplesfp]: https://www.fpcomplete.com/user/jle/machines
 
 [rollingAverage][]
