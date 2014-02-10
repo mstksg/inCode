@@ -38,7 +38,7 @@ Recap
 In the last post, we introduced first a simple stream ---
 
 ~~~haskell
-<!-- !!!machines/Stream.hs "data Stream" -->
+!!!machines/Stream.hs "newtype Stream"
 ~~~
 
 Which we saw as a an infinitely long linked list, or an infinitely long stream
@@ -52,13 +52,13 @@ We saw this with a [simple stream][simplestream] that counts from 1 to
 infinity, whose state was a number that counted up and whose output at every
 step was just that same number.
 
-<!-- !!![simplestream]:machines/Stream.hs "myStream:" -->
+!!![simplestream]:machines/Stream.hs "myStream:"
 
 We saw that having a time-varying behavior that could not be affected by the
 outside world was kinda limiting, so we then looked at Auto:
 
 ~~~haskell
-<!-- !!!machines/Auto.hs "data Auto" -->
+!!!machines/Auto.hs "newtype Auto"
 ~~~
 
 Which is a stream, but every time you "ask" for the next value, you give an
@@ -72,7 +72,7 @@ Which is a stream, but every time you "ask" for the next value, you give an
 And we looked at [a simple auto][simpleauto] we which was like our stream, but
 at every step could be "reset" with a value.
 
-<!-- !!![simpleauto]:machines/Auto.hs "settableAuto:" -->
+!!![simpleauto]:machines/Auto.hs "settableAuto:"
 
 Then we took another approach to looking at this --- we thought about Autos as
 functions "with state".  As in, `Auto a b` was like a function `a -> b`, but
@@ -83,7 +83,7 @@ constant possibly changed every time you asked for it.
 We saw this in an auto that [returns the sum][summer] of everyhting you have
 given it.
 
-<!-- !!![simpleauto]:machines/Auto.hs "summer:" -->
+!!![simpleauto]:machines/Auto.hs "summer:"
 
 Autos are "function-like things"...they map or "morph" things of type `a` to
 things of type `b` in some form, just like functions.  As it turns out, this
@@ -210,7 +210,7 @@ With this in mind, let's write a Category instance for `(->)`:
 ~~~haskell
 instance Category (->) where
     id = \x -> x
-    (.) f g = \x -> f (g x)
+    f . g = \x -> f (g x)
 ~~~
 
 Et voilà!
@@ -459,7 +459,7 @@ output a `5`, if I `fmap (+1)`, I'd actually output a `6`.
 instance Functor (Auto i) where
     fmap f a =  ACons $ \x ->
                   let (y  , a') = runAuto a x
-                  in  (f y, a')
+                  in  (f y, fmap f a')
 ~~~
 
 ~~~haskell
