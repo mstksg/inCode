@@ -86,7 +86,259 @@ given it.
 !!![simpleauto]:machines/Auto.hs "summer:"
 
 Autos are "function-like things"...they map or "morph" things of type `a` to
-things of type `b` in some form, just like functions.  As it turns out, this
+things of type `b` in some form, just like functions.  It looks like we
+stumbled onto some sort of design pattern.  Wouldn't it be cool if we could
+treat Autos the same way we treat functions?  And reason about them the same
+way, think about them using the same logic?
+
+What is the *essense* of function-like-ness?
+
+The Essense of Function-like-ness
+---------------------------------
+
+Okay, so using "function-like-ness" more than a few times is slightly silly so
+I'm going to introduce a word or two.  These things I will call *morphisms*.
+Sometimes you'll see them called "arrows", but this is a slightly loaded word
+as there is an Arrow typeclass in Haskell that doesn't exactly refer to the
+same thing.
+
+### The Essense of Essenses
+
+Pause for a bit.  Do you remember learning about Monoids?  If you haven't
+actaully learned about them, monoids are things where it makes sense to define
+an operation between two of them (for example, adding two numbers together)
+and where there is a "thing" that doesn't change the thing it's being operated
+with (for example, the number zero for addition of two numbers).  Also, the
+order in which you apply the operation doesn't matter --- (1+2)+3 = 1+(2+3)
+
+At first it's a little crazy to think that these two simple properties give
+you anything of use to study.  They're way too general.  How can you learn
+anything meaningful from only studying these extremely general properties?
+
+As it turns out...there is actually a lot more than you'd initially expect.
+[Brent Yorgey][Brent], maintainer and author of the popular Haskell library
+[diagrams][] explains this perhaps [better than anyone][monoids].
+
+[Brent]: http://www.cis.upenn.edu/~byorgey/pub/monoid-pearl.pdf
+[diagrams]: http://hackage.haskell.org/package/diagrams
+[monoids]: http://www.cis.upenn.edu/~byorgey/pub/monoid-pearl.pdf
+
+Monoids can be said to encapsulate the essense of a sort of 'combining-ness'.
+Combine two integers.  Combine two pictures.  Combine two lists.  Combine two
+booleans.  And now, all of a sudden, we can study all of these extremely
+different things under the same framework.  Conclusions we make when we talk
+about adding integers now apply when we combine lists, figures...
+
+The pattern is clear --- isolate the essense, and now we can study all
+instances all the same way, and apply the conclusions we learn to all of them.
+
+### The Essense of Morphisms
+
+Okay, enough rambling.  I'm going to make a bold claim.  The *essense* of what
+makes something function-like is three things:
+
+1.  You must be able to "chain" (or more formally, "compose") them.  You have
+    to be able to take a morphism `a -> b` and a morphism `b -> c` and make a
+    new morphism `a -> c`, which applies the first and then the second.
+
+    We denote this as an operator `.`, where `f . g` composes `g` and `f` ---
+    it's a morphism that first applies `g`, then applies `f`.
+
+2.  For every morphism there must be a morphism you can chain "before" it and
+    the resulting chained morphism is identical to the original one.  There
+    must also be one you can chain "after" it that will do the same thing.
+
+    We denote this as `id`.  `f . id` must be identical to `f`, and `id . g`
+    must be identical to `g`.
+
+3.  As long as you compose a bunch of morphisms in the same order, it doesn't
+    matter which ones you compose first.
+
+    This means that `(f . g) . h` must be the same as `f . (g . h)`.
+
+And...that's it!
+
+#### The "Normal" Function
+
+Just to prove that I'm not crazy, let's see that normal functions fulfill
+this.
+
+Anyways, we have the composition operator `(.)` that does exactly what the
+definition above says --- `f . g` is a function that applies first `g`, then
+`f`.
+
+~~~haskell
+λ: (*2) 5
+10
+λ: (+1) 10
+11
+λ: ( (+1) . (*2) ) 5
+11
+~~~
+
+There is also `id`, which is a function that returns its input.  This fulfills
+the second property.
+
+~~~haskell
+λ: (*2) 5
+10
+λ: ( (*2) . id ) 5
+10
+λ: ( id . (*2) ) 5
+10
+~~~
+
+As you can see, `id . (*2)` and `(*2) . id` are both identical to just `(*2)`.
+
+Here is a quick proof about the `id . f` law --- you can prove the
+`f . id` law yourself as an exercise.
+
+~~~haskell
+-- definition of (.)
+f . g = \x -> f (g x)
+
+-- definition of id
+id x = x
+
+-- f . id == f
+   id . f
+== \x -> id (f x)       -- expand out the definition of (.)
+== \x -> f x            -- expand out the definition of id
+== f                    -- eta reduce, (\x -> f x) == f
+~~~
+
+You can also trust me when I say that function composition is associative
+(functions can be combined in any order).  The proof is not too difficult,
+either.
+
+### Autos are morphisms!
+
+Alright, let's see if we can get Autos to fulfill these properties.  And if
+they do, then if I'm right, we can now reason about them the same way we
+reason about normal functions.
+
+(This kinda puts Object-Oriented abstractions to shame, huh?  In OOP we
+can abstract Cats and Dogs to be Animals...in Haksell we abstract
+functions themselves!)
+
+#### Auto composition
+
+Autos need to be able to be chained.
+
+Let's think about two Autos `g :: Auto a b` and `f :: Auto b c`, and their
+composition `f . g`.  What would it mean?
+
+Well, it would yield a new big fat "mashed" Auto, `f . g :: Auto a c`, which
+first runs the input through `g`, then runs that result though `f`, and pops
+out the result of that.
+
+`f` and `g` are functions with state.  So when we run `f . g`, we can say that
+we run the input through `g`, then `f` --- and both times, "ticking" the state
+as we go along.  So after we run `f . g`, we now have `f' . g'`, where `f'`
+and `g'` are the updated-state functions.  And every time we run our `f . g`,
+we update both states.
+
+Let's write this out!
+
+Let's use (`.~`) as our composition operator for now, to avoid confusion.
+It's `(.)`, but for Autos!
+
+~~~haskell
+(.~) :: Auto b c -> Auto a b -> Auto a c
+f .~ g = ACons $ \x ->
+  let (y, g') = runAuto g x     -- run `g`
+      (z, f') = runAuto f y     -- fun `f`
+  in  (z, f' .~ g')
+~~~
+
+To test this, let's make a helpful function `autoize`, which takes a normal
+function `a -> b` and turns it into an `Auto a b`, with no state.
+
+~~~haskell
+autoize :: (a -> b) -> Auto a b
+autoize f = ACons $ \x -> (f x, autoize f)
+~~~
+
+Now to test with both these "pure" Autos and Autos we made last post --
+
+~~~haskell
+λ: let double = autoize (*2)
+λ: let succ = autoize (+1)
+λ: let constant x = autoize (const x)
+
+λ: testAuto_ (succ .~ double) [1..10]
+[3,5,7,9,11,13,15,17,19,21]
+
+λ: testAuto_ (succ .~ constant 20) [1,2,undefined]
+[21,21,21]
+
+λ: testAuto_ summer [5,1,9,2,-3,4]
+[5,6,15,17,14,18]
+
+λ: testAuto_ double [5,6,15,17,14,18]
+[10,12,30,34,28,36]
+
+λ: testAuto_ (double .~ summer) [5,1,9,2,-3,4]
+[10,12,30,34,28,36]
+
+λ: testAuto_ settableAuto [Nothing,Nothing,Just (-3),Nothing,Nothing]
+[1,2,-3,-2,-1]
+
+λ: testAuto_ summer [1,2,-3,-2,-1]
+[1,3,0,-2,-3]
+
+λ: testAuto_ (summer .~ settableAuto)
+  |    [Nothing,Nothing,Just (-3),Nothing,Nothing]
+[1,3,0,-2,-3]
+
+λ: take 10 $ testAuto_ (settableAuto .~ constant Nothing) [(),()..]
+[1,2,3,4,5,6,7,8,9,10]
+
+λ: take 10 $ testAuto_ (summer .~ double .~ constant 2) [(),()..]
+[4,8,12,16,20,24,28,32,36,40]
+
+λ: take 10 $ testAuto_ (summer .~ summer .~ constant 1) [(),()..]
+[1,3,6,10,15,21,28,36,45,55]
+~~~
+
+Sweet!  It looks like it actually does make sense to compose Autos.  Maybe
+Autos really are morphisms?  We need one more thing though.
+
+#### The Identity Auto
+
+This is the last thing we need to make to have all of the things we need to
+consider Autos as full-fledged morphisms.  We need an identity Auto --- an
+Auto that always returns exactly what it is given.
+
+This is sort of trivial using even the combinators we have already defined ---
+`idAuto = autoize id`.  But we can write it out by hand too.
+
+~~~haskell
+idAuto :: Auto a a
+idAuth = ACons $ \x -> (x, idAuto)
+~~~
+
+~~~haskell
+λ: testAuto_ double [1..10]
+[2,4,6,8,10,12,14,16,18,20]
+
+λ: testAuto_ (double .~ idAuto) [1..10]
+[2,4,6,8,10,12,14,16,18,20]
+~~~
+
+
+
+
+------------------------------------
+
+
+
+
+
+
+
+
+As it turns out, this
 design pattern has a name.  They're instances of the type class "Category".
 
 Categories
