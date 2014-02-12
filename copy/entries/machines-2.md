@@ -315,7 +315,7 @@ This is sort of trivial using even the combinators we have already defined ---
 
 ~~~haskell
 idAuto :: Auto a a
-idAuth = ACons $ \x -> (x, idAuto)
+idAuto = ACons $ \x -> (x, idAuto)
 ~~~
 
 ~~~haskell
@@ -326,244 +326,57 @@ idAuth = ACons $ \x -> (x, idAuto)
 [2,4,6,8,10,12,14,16,18,20]
 ~~~
 
+### Category
 
+As it turns out, I wasn't pulling all of this out of thin air --- all of these
+properties are actually formalized in a formal mathematical concept.  The name
+of this concept has developed quite a scary reputation within the Haskell
+community --- especially for newcomers.  In fact the mere mention of the C
+word has been known to strike fear in even the bravest of souls.
 
+But now that we already understand its concepts, let's just get it over and
+say it, Bella.
 
-------------------------------------
+These ideas are formalized in the mathematical concept of a *category*.
 
+Categories describe objects (in our case, Haskell values), *morphisms* between
+these objects (in our case, `Auto a b` and `idAuto`) and the *composition* of
+those morphisms, following the laws I mentioned before.
 
-
-
-
-
-
-
-As it turns out, this
-design pattern has a name.  They're instances of the type class "Category".
-
-Categories
-----------
-
-You might have heard of the word "category" applied to Haskell in a few
-different contexts.  Don't worry, the Category typeclass isn't scary!  It's
-rather simple, actually!  Much simpler than a certain other infamous typeclass
-(that rhymes with Shmonad).
-
-The Functor typeclass represents the idea of mapability.  `Maybe`, for
-example, is a functor.  `Maybe a`, a concrete type for all `a`, is a concrete
-object that "contains" an `a`.
-
-As we will see, `Auto` is a Category.  `Auto a b` is called, for all `a` and
-`b`, a *morphism* (or an "arrow", but that is a loaded term in Haskell) in
-that category from things of type `a` to things of type `b`.
-
-The Category typeclass represents the very essense of "function-like"-ness.
-As it turns out, it includes one special member and one function over
-members.
+There's actually a typeclass in Haskell base that captures this.  It's called,
+unsurprisingly, Category.
 
 ~~~haskell
 class Category cat where
-    id  :: cat a a
     (.) :: cat b c -> cat a b -> cat a c
+    id  :: cat a a
 ~~~
 
-Basically, something is a Category if it has:
+A Category (capital C) has two things:
 
-1.  A special member (remember, members of Category are called "morphisms" or
-    "arrows") that is an "identity function-like"
-2.  An operator that takes two arrows and "composes"/sequences them into one
-    big one.
+1.  An associative composition operator between two concrete members.
+2.  A special identity member.
 
-These come with three laws:
+Which must follow three laws:
 
-1.  "Left identity": `id . f == f`
-2.  "Right identity": `f . id == f`
-3.  "Associativity": `f . (g . h) == (f . g) . h`
+1.  `f . id` = `f`
+2.  `id . g` = `g`
+3.  `(f . g) . h` = `f . (g . h)`
 
-<aside>
-    ###### Aside
+Note that the full concrete *members* of Category, say, `cat a b`, are
+morphisms/arrows --- those are the `f` and `g` mentioned here..
 
-Remember that `id` represents a *concrete member* of the Category, and that
-`(.)` represents a *function between members*.
-
-This is similar in pattern to the classic Monoid typeclass:
-
-~~~haskell
-class Monoid a where
-    mempty :: a
-    (<>) :: a -> a -> a
-~~~
-
-Where `mempty` describes one specific member, and `(<>)` represents a
-binary function between two members.
-
-It's just that for Monoid, our members are concrete "things", but for
-Category, our members are morphisms/functions!
-
-Also, remember the Monoid laws?
-
-1. "Left identity": `mempty <> x == x`
-2. "Right identity": `x <> mempty == x`
-3. "Associativity": `x <> (y <> z) == (x <> y) <> z`
-
-Looks awfully similar!  But can you see why a given Category `cat a b` and
-Monoid `a` are not technically the same?
-</aside>
-
-But enough with silly maths, let's look at a concrete example.
-
-Basically, this typeclass says that the essense of function-like-ness is the
-existence of an identity function-like, and the ability to compose and
-sequence functions.
-
-### The `(->)` Category
-
-If categories embody function-like things, then obviously we would expect a
-normal function `(->)` to be a Category.
-
-The first item in the Category typeclass is `id`, a member that's an "arrow"
-represents an identity function: a function that returns, unchanged, its
-input.
-
-~~~haskell
-funcId :: (->) a a
-funcId = \x -> x
-~~~
-
-~~~haskell
-λ: funcId 1
-1
-λ: funcId "hello"
-"hello"
-~~~
-
-The second item in the Category typeclass is `(.)`, a function between arrows
-that composes and sequences.  It takes `g :: a -> b` and `f :: b -> c` (in
-reverse order) and creates a new function `a -> c` that first applies `f` and
-then applies `g`:
-
-~~~haskell
-funcComp :: (->) b c -> (->) a b -> (->) a c
-funcComp f g = \x -> f (g x)
-~~~
-
-~~~haskell
-λ: ((+1) `funcComp` (*2)) 5
-11
-λ: (show `funcComp` not) True
-"False"
-~~~
-
-Checking that these satisfy the category laws is a nice exercise, and involves
-just substituting the definitions for eachother.
-
-With this in mind, let's write a Category instance for `(->)`:
+We know that `(->) a b` describes a morphism following the category laws, so
+`(->)` is a Category:
 
 ~~~haskell
 instance Category (->) where
-    id = \x -> x
     f . g = \x -> f (g x)
+    id x  = x
 ~~~
 
-Et voilà!
-
-### The `Auto` Category
-
-Now let's create a Category instance for our Autos.
-
-First, the identity arrow.  It is supposed to take an `a` and return an
-identical `a` unchanged.
-
-~~~haskell
-autoId :: Auto a a
-autoId = ACons $ \x -> (x, autoId)
-~~~
-
-~~~haskell
-λ: testAuto_ autoId [1..10]
-[1,2,3,4,5,6,7,8,9,10]
-λ: testAuto_ autoId "hello world"
-"hello world"
-λ: testAuto_ autoId [True]
-[True]
-~~~
-
-Perfect!  We created an Auto that does nothing and has no internal state ---
-it only "dumb"ly returns the input as-is; the "head" is the same as the input
-and the "tail" is just the same identity Auto.
-
-Composition is a bit tricker.  Let's think a bit about what it would mean.
-
-If we sequence `g :: Auto a b` and `f :: Auto b c`...we can think of it as
-creating a big Auto with two states that keep on ticking.  `g` takes an `a`,
-advances its state appropriately, and gives the resulting `b` to `f`.  `f`
-takes that `b`, advances its own state, and pops out a `c` overall.  The
-result is an `a` turning into a `c`, and both `g` and `f` updating their
-state.
-
-Let's take a deep breath and jump right into it.
-
-~~~haskell
-autoComp :: Auto b c -> Auto a b -> Auto a c
-f `autoComp` g = ACons $ \x ->
-  let (y, f') = runAuto f x
-      (z, g') = runAuto g y
-  in  (z, f' `autoComp` g')
-~~~
-
-To test this, let's make a simple Auto combinator `functionToAuto`, that takes
-a pure function and turns it into a "pure Auto" --- that is, an Auto that
-behaves exactly like that function and does not have any internal state.
-
-~~~haskell
-functionToAuto :: (a -> b) -> Auto a b
-functionToAuto f = ACons $ \x -> (f x, functionToAuto f)
-~~~
-
-And let's test some compositions of our pure Autos:
-
-~~~haskell
-λ: let doubleAuto = functionToAuto (*2)
-λ: let succAuto = functionToAuto (+1)
-λ: let constAuto x = functionToAuto (const x)
-
-λ: testAuto_ (succAuto `autoComp` doubleAuto) [1..10]
-[3,5,7,9,11,13,15,17,19,21]
-
-λ: testAuto_ (doubleAuto `autoComp` autoId) [1..10]
-[2,4,6,8,10,12,14,16,18,20]
-
-λ: testAuto_ doubleAuto [1..10]         -- f . id == f
-[2,4,6,8,10,12,14,16,18,20]
-
-λ: testAuto_ (succAuto `autoComp` (constAuto 20)) [1,2,undefined]
-[21,21,21]
-~~~
-
-And how about we compose with some of our "impure" Autos from before?
-
-~~~haskell
-λ: testAuto_ summer [5,1,9,2,-3,4]
-[5,6,15,17,14,18]
-
-λ: testAuto_ doubleAuto [5,6,15,17,14,18]
-[10,12,30,34,28,36]
-
-λ: testAuto_ (doubleAuto `autoComp` summer) [5,1,9,2,-3,4]
-[10,12,30,34,28,36]
-
-λ: testAuto_ settableAuto [Nothing,Nothing,Just (-3),Nothing,Nothing]
-[1,2,-3,-2,-1]
-
-λ: testAuto_ summer [1,2,-3,-2,-1]
-[1,3,0,-2,-3]
-
-λ: testAuto (summer `autoComp` settableAuto)
-  |    [Nothing,Nothing,Just (-3),Nothing,Nothing]
-[1,3,0,-2,-3]
-~~~
-
-And now we can write a Category instance for Auto:
+And we know that `Auto a b` also describes a morphism following the category
+laws, so `Auto` is a Category (from the functions we defined before):
 
 ~~~haskell
 instance Category Auto where
@@ -574,48 +387,18 @@ instance Category Auto where
               in  (z, f' . g')
 ~~~
 
-Now we can use Autos just like we use functions!
+And there you go.
 
-~~~haskell
-λ: ((+1) . (*2)) 2
-5
+What hath man wrought
+---------------------
 
-λ: testAuto_ (succAuto . doubleAuto) [2]
-[5]
+You might not have caught it, but we actually just did something amazing.
 
-λ: ((+1) . id) 2
-3
+This is really a demonstration of the true power of Haskell typeclasses, and a
+poignant example of the motivation behind typeclasses in the first place.
 
-λ: testAuto_ (succAuto . id) [2]
-[3]
-
-λ: testAuto_ (summer . settableAuto . id)
-  |  [Nothing,Nothing,Just (-3),Nothing,Nothing]
-[1,3,0,-2,-3]
-~~~
-
-It's...a bit trippy at first, getting used to the fact that `id` and `(.)` are
-now "overloaded" in the same sense that `(>>=)` and `return` or `mempty` and
-`(<>)` are, but the more we work with multiple Category instances, the more we
-get used to it :)
-
-Of course remember that you have to explicily hide the `(.)` and `id` that
-come in Prelude:
-
-~~~haskell
-import Prelude hiding ((.), id)
-~~~
-
-The Power of Typeclasses
-------------------------
-
-Let's step back for a second and see what we just did.  This is the true power
-of Haskell typeclasses in action.  We just took two types that had completely
-different implementations and representations...and now are able to talk about
-both of them **using the same language**.
-
-This is actaully a pretty amazing thing and is a real triumph of the typeclass
-approach to abstraction.
+We just took two types with completely different implementations and
+representations...and now are able to talk about them using the same language.
 
 I talked about this in an earlier blog post [on MonadPlus][monadplus], where
 we were able to use both Maybe and List in the exact same way by providing a
@@ -637,61 +420,57 @@ the *exact same way* --- we capture the essential design pattern in `fmap (+1)
 operators like `(<$>)` and expect them to work the same high-level way for IO,
 State, Maybe, List, etc.
 
-You might have first learned that you can map over lists.  Then one day, you
-realize that you can map over a *lot* of things...and now lists are longer any
-"special" mappable object.  They are just one mappable thing out of many.
+Why not just have `maybeMap`, `ioMap`, etc.?  Why not just have `.` and `.~`,
+`id` and `idAuto`?
 
-This is what we just did here.
+Because now we can truly write *generic code* -- code that works for *all*
+Functors, all Categories, *not even caring* what they actually are.
 
-You might have one day learned that you could compose functions `(.)` and have
-identity functions `id`.  Then, one day (maybe that day is today!) you realize
-that you can also compose and have identity arrows over...lots of things!  So
-many things!  We haven't even scratched the surface of the wide variety of
-useful `Category` instances!
-
-Now, plain ol' `(->)` functions are no longer any "special" function things.
-They are just one function-like thing out of many, many.
-
-And now we can reason with *all* of them, as a whole, using `(.)` and `id`.
-We can `(.)` and have `id` for many things.
-
-If you're interested in this, you might want to look into the Kleisli
-category, whose arrows are of type `Kleisli a b`, and which represent
-functions `a -> m b` for monad `m`.  Using `Kleisli`, we can also use `(.)`
-and `id` to reason with monads, as well as functions and Autos.
+We can write `fmap (*2) x`, without even caring about what type `x` is, and
+*expect* it to behave in meaningful ways.  We can write `f . g`, without
+even knowing about what the types of `f` and `g` really are, and expect it to
+behave in a way that "matches" our idea of what `(.)` is supposed to "mean",
+because we have isolated the essence of `(.)`-ness and made it generic.
 
 More Typeclasses!
 -----------------
 
-Now that we know how cool typeclasses are, let's take some time to try to
-instance our Autos into the "cool" typeclasses to be in: [Functor,
-Applicative, and Monad][fam].
+So because we now love typeclasses so much, let's see what other useful
+abstractions we can apply to Auto.
 
-[fam]: http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html
+This section is just going to be a whirlwind tour of instancing Auto as
+various useful typeclasses --- mostly typeclassess that we'll be using later.
 
 ### Functor
 
+Of course we already spent a lot of time talking about Functor, so we might as
+well start here.
+
 What is a functor?  It represents something that can be mapped over.  More
-pedantically, it is something that implements `fmap` and follows certain laws.
+pedantically, it is something that implements a lawful `fmap`.
 
 ~~~haskell
-fmap :: Functor f => (a -> b) -> f a -> f b
+class Functor f where
+    fmap :: (a -> b) -> f a -> f b
 ~~~
 
-It doesn't really make sense for `Auto` to be a functor, because you are
-mapping over both the input and the output?  What?
+Can we make `Auto` a Functor?
 
-You can see this absurdify by trying to substitute `f ~ Auto` in the type
-signature for `fmap`:
+Actually...well...not really.  It really doesn't make sense, if you think
+about it.  If you look at the type signature for `fmap` and substitute `f ~
+Auto`, you'll immediately see why:
 
 ~~~haskell
 fmap :: (a -> b) -> Auto a -> Auto b
 ~~~
 
-`Auto a` isn't even a concrete type...so this doesn't really make too much
-sense!
+You can't have a function `Auto a -> Auto b`...it doesn't really make sense
+because `Auto a` isn't even the type of a value, a concrete type.
 
-But it does make sense for `Auto i` to be a functor!
+Conceptually, you can think of this as asking "What am I even mapping over?",
+and see that you can't really "map over" `a b` with one function.
+
+*BUT*, it *does* make sense for `Auto i` to be a Functor:
 
 ~~~haskell
 fmap :: (a -> b) -> (Auto i) a -> (Auto i) b
@@ -701,8 +480,9 @@ Okay, what would this even mean?
 
 `Auto i` is something that takes an `i` as an input.  `Auto i a` is something
 that outputs an `a`.  So if `Auto i` is a functor...it means that I can turn
-`Auto i a` into `Auto i b` with a function `a -> b`.  I "map over" the
-"output".
+`Auto i a` into `Auto i b` with a function `a -> b`.  I can turn an Auto
+taking an `i` and outputting an `b` into an Auto taking an `i` and outputting
+a `b`.  I "map over" the *output*.
 
 So `Auto i` is a functor where you can `map` the output.  If I was going to
 output a `5`, if I `fmap (+1)`, I'd actually output a `6`.
@@ -724,12 +504,21 @@ instance Functor (Auto i) where
 [2,4,-6,-4,-2]
 ~~~
 
+Functor...check!  What next?
+
 ### Applicative
 
-What is an Applicative functor?  It really is two things: the ability to apply
-functions "inside" containers to values "inside" containers, and the ability
-to wrap a value in a default context/container (all following the laws of
-course).  The second part is going to be more useful to us.[^pointed]
+Everyone knows that the "cool", *hip* typeclasses are the classic trio,
+[Functor, Applicative, Monad][fam].  Let's just move on right along and go for
+Applicative.
+
+[fam]: http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html
+
+What is an Applicative functor, anyway?  It really has two things: the ability
+to apply functions "inside" containers to values "inside" containers, and the
+ability to wrap a value in a default context/container (all following the laws
+of course).  The second part is going to be more immediately useful to
+us.[^pointed]
 
 [^pointed]: Actually this "wrapping" property really was kind of jammed into
 Applicative, it technically belongs [Pointed][] typeclass, and Applicative is
@@ -770,7 +559,7 @@ It must be the "constant" arrow.
 ~~~haskell
 instance Applicative (Auto i) where
     pure k = ACons $ \_ -> (k, pure k)
-    (<*>)  = undefined
+    (<*>)  = undefined      -- for now
 ~~~
 
 ~~~haskell
@@ -784,16 +573,45 @@ instance Applicative (Auto i) where
 [5,5,5,5,5,5,5,5,5,5]
 ~~~
 
-As it turns out, `pure k` is the same as the `constAuto k` that we defined
+As it turns out, `pure k` is the same as the `constant k` that we defined
 earlier.  Now we just have a more semantically meaningful way of constructing
-it instead of using `functonToAuto`
+it instead of using `autoize`
 
 I'll leave the implementation of `(<*>)` as an exercise, partially because
-it's not too surprising, and mostly because `pure` is more interesting for the
-time being.
+it's not too surprising and would be a fun thing to work out on your own, and
+partially because `pure` is more useful for the time being.
 
-Arrow
------
+### Monad
+
+So a Monad, conceptually, is just a functor we can "squish".  Basically, we
+need the function:
+
+~~~haskell
+join :: (Auto i) ((Auto i) a) -> (Auto i) a
+~~~~
+
+Basically, we must turn an Auto returning an Auto into just an Auto returning
+a value.
+
+We must turn a morphism returning a morphism and turn it into a morphism
+returning a value.
+
+Typically, this is done by feeding your `i` into the outside Auto to get a
+returned Auto, and feeding that *same* `i` into the returned Auto, and getting
+the result of that.
+
+This actually gives you a *Reader-like* monad behavior, for Auto --- the
+ability to chain together multiple Auto's all together with a "common"
+input/environment.
+
+However, even though this is interesting, we actually won't be using the Monad
+instance of `Auto` all too much for now either.  I'll again leave this as an
+exercise.  The solutions for all of these exercises are available in the
+sample code for the article.
+
+### Arrow
+
+Now, one final typeclass: Arrow.
 
 As it turns out, `Category` by itself is nice, but for the games we will
 eventually be playing with function composition, it doesn't offer too much in
@@ -802,7 +620,7 @@ terms of combinators.
 There is a well-established Haskell extension that provides syntactic sugar
 for complex, multi-way, side-chained compositions, called "proc notation".
 Proc notation will prove invaluable to us eventually, but it requires some
-Category combinators to work.
+more Category combinators to work.
 
 As it turns out, the `Arrow` typeclass exists as a general grab-bag of
 combinators to make life a lot easier for us.
@@ -857,5 +675,10 @@ As it turns out, there are actually a lot of specialized Arrow typeclasses,
 too, which are the same sort of "grab bag" of combinators, except for
 different purposes.
 
-The relevant ones we will be using later are:
+The more useful ones for our purpose will be ArrowChoice and ArrowLoop, and
+you can read into these.  It actually isn't all too important to understand
+how these are implemented --- just know that ArrowChoice gives you
+combinators for forking compositions and ArrowLoop gives you combinators for
+*recursive* compositions.
+
 
