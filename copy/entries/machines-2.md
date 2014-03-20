@@ -1,4 +1,4 @@
-Intro to Machines & Arrows: Category and Arrow Typeclasses (Part 2)
+Intro to Machines & Arrows: the Category Typeclass (Part 2)
 ===================================================================
 
 Categories
@@ -83,7 +83,7 @@ constant possibly changed every time you asked for it.
 We saw this in an auto that [returns the sum][summer] of everyhting you have
 given it.
 
-!!![simpleauto]:machines/Auto.hs "summer:"
+!!![summer]:machines/Auto.hs "summer:"
 
 Autos are "function-like things"...they map or "morph" things of type `a` to
 things of type `b` in some form, just like functions.  It looks like we
@@ -389,6 +389,14 @@ instance Category Auto where
 
 And there you go.
 
+(Remember then to hide `(.)` and `id` from Prelude, which by default only work
+on the `(->)` Category:
+
+~~~haskell
+import Prelude hiding ((.),id)
+~~~
+)
+
 What hath man wrought
 ---------------------
 
@@ -427,10 +435,9 @@ Because now we can truly write *generic code* -- code that works for *all*
 Functors, all Categories, *not even caring* what they actually are.
 
 We can write `fmap (*2) x`, without even caring about what type `x` is, and
-*expect* it to behave in meaningful ways.  We can write `f . g`, without
-even knowing about what the types of `f` and `g` really are, and expect it to
-behave in a way that "matches" our idea of what `(.)` is supposed to "mean",
-because we have isolated the essence of `(.)`-ness and made it generic.
+say "This code works for all Functors!  I don't even care!".  You can write `f
+. g` and say "This works for all Categories!  This code is powerful and
+generic!"
 
 More Typeclasses!
 -----------------
@@ -609,7 +616,8 @@ instance of `Auto` all too much for now either.  I'll again leave this as an
 exercise.  The solutions for all of these exercises are available in the
 sample code for the article.
 
-### Arrow
+Arrow
+-----
 
 Now, one final typeclass: Arrow.
 
@@ -617,10 +625,10 @@ As it turns out, `Category` by itself is nice, but for the games we will
 eventually be playing with function composition, it doesn't offer too much in
 terms of combinators.
 
-There is a well-established Haskell extension that provides syntactic sugar
-for complex, multi-way, side-chained compositions, called "proc notation".
-Proc notation will prove invaluable to us eventually, but it requires some
-more Category combinators to work.
+There is a neat Haskell extension that provides syntactic sugar for complex,
+multi-way, side-chained compositions, called "proc notation". Proc notation
+will prove invaluable to us eventually, but it requires some more Category
+combinators to work.
 
 As it turns out, the `Arrow` typeclass exists as a general grab-bag of
 combinators to make life a lot easier for us.
@@ -633,6 +641,10 @@ class Category r => Arrow r where
     (***)  :: r a b -> r c d -> r (a,c) (b,d)
     (&&&)  :: r a b -> r a c -> r a (b,c)
 ~~~
+
+### instance Arrow
+
+Let's write an Arrow instance for Auto.
 
 `arr` takes a normal function and turns it into a pure Auto --- we wrote this
 before, it's just `functionToAuto`
@@ -676,9 +688,115 @@ too, which are the same sort of "grab bag" of combinators, except for
 different purposes.
 
 The more useful ones for our purpose will be ArrowChoice and ArrowLoop, and
-you can read into these.  It actually isn't all too important to understand
-how these are implemented --- just know that ArrowChoice gives you
+you can read into these.  It actually isn't all too important right now to
+understand how these are implemented --- just know that ArrowChoice gives you
 combinators for forking compositions and ArrowLoop gives you combinators for
 *recursive* compositions.
 
+### Proc Notation
 
+The *main* purpose for Arrow (in our situation) is that now that we have
+instanced Arrow for our Autos, we can now use it in proc notation.
+
+This is similar to how once we instance something as a Monad, we can use it in
+"do" notation.
+
+Proc notation is basically "do notation for Arrows", and is just syntactical
+sugar for the various Arrow combinators we described before.
+
+Proc notation consists of lines of cute little ASCII "arrows":
+
+~~~haskell
+output <- arrow -< input
+~~~
+
+where `arrow` is the Arrow, `input` is the "input" fed into the Arrow, and
+"output" binds the result to the name "output".  We can omit "output" and
+we will "forget" the output.
+
+Cute, right?
+
+For example, to write our `succ . double` composition we wrote earlier:
+
+~~~haskell
+doubleSucc1 :: Auto Int Int
+doubleSucc1 = succ . double
+
+doubleSucc2 :: Auto Int Int
+doubleSucc2 = proc n -> do
+  doubled <- double -< n
+  succ -< doubled
+~~~
+
+What if we wanted the arrow to return a tuple with the result of doubling, and
+also the result of doubling then succing??
+
+~~~haskell
+doubleSucc'1 :: Auto Int (Int,Int)
+doubleSucc'1 = (id *** succ) . (double &&& id)
+
+doubleSucc'2 :: Auto Int (Int,Int)
+doubleSucc'2 = proc n -> do
+  doubled      <- double -< n
+  doubleSucced <- succ   -< doubled
+  returnA -< (doubled, doubleSucced)
+~~~
+
+`returnA` is just `id` (for Category Auto), the identity Arrow.  But we call
+it `returnA` to draw an analogy between `return` for Monads.  They both serve
+the same purpose --- they take normal values and turn them into something you
+can use in a do/proc block.
+
+So basically, every line in a proc block must look like:
+
+~~~haskell
+arrow -< input
+~~~
+
+Or, if you want to name the result for later use,
+
+~~~haskell
+output <- arrow -< input
+~~~
+
+Just like how "do" blocks compose several monad values into one giant monad
+value, "proc" blocks compose several morphisms/arrows into one giant arrow.
+
+Remember that proc blocks don't actually "do" anything.  You aren't sequencing
+actions.  You basically are creating a *dependency* graph --- saying which
+arrows depend on the output of which arrows, and how they all twist and
+combine together.
+
+In `doubleSucc'2`, we are saying this:
+
+"If you want to run this arrow, and you give us a value `n`, then the result
+is a tuple `(doubled, doubleSucced)`, where `doubled` is the result of running
+that `n` through `double`, and `doubleSucced` is the result of running
+`doubled` through `succ`."
+
+So when we eventually use proc notation with our Auto, it describes one giant
+"tick" of the big function.
+
+#### proc rec
+
+Finally, we often will need to have Autos that "depend" on eachother in a
+cyclic way.  For example, in a harmonic oscillator system, the position
+depends on the force applied to the object, but the force applied depends on
+the position.
+
+These "recursive" bindings come from combinators provided by the ArrowLoop
+typeclass:
+
+~~~haskell
+object :: Auto () Int
+object = proc _ -> do
+  rec
+    let acc = -1 * pos
+    vel <- summer -< acc
+    pos <- summer -< vel
+  returnA -< pos
+~~~
+
+So we can have `pos` depend on `acc`, and `acc` depend on `pos`.
+
+Hopefully our Autos im
