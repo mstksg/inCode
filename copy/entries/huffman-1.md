@@ -184,8 +184,7 @@ them and impose some total ordering.  Haskell has a typeclass that abstracts
 these comparing operations, `Ord`:
 
 ~~~haskell
-!!!huffman/Weighted.hs "instance Eq (Weighted a)"
-!!!huffman/Weighted.hs "instance Ord (Weighted a)"
+!!!huffman/Weighted.hs "instance Eq (Weighted a)" "instance Ord (Weighted a)"
 ~~~
 
 Which says that `Weighted w a` is an `Ord` (is orderable/comparable) if `w` is
@@ -288,11 +287,7 @@ Ok, neat!
 Let's wrap this up in a tidy interface/API for a `PQueue` type:
 
 ~~~haskell
-!!!huffman/PQueue.hs "newtype PQueue"
-!!!huffman/PQueue.hs "emptyPQ ::"
-!!!huffman/PQueue.hs "insertPQ ::"
-!!!huffman/PQueue.hs "popPQ ::"
-!!!huffman/PQueue.hs "sizePQ ::"
+!!!huffman/PQueue.hs "newtype PQueue" "emptyPQ ::" "insertPQ ::" "popPQ ::" "sizePQ ::"
 ~~~
 
 We do this so that we hide our low-level skew heap implementation over a
@@ -518,8 +513,7 @@ mean that `listFreqState` is a function from a `FreqTable a` to `((),
 FreqTable a)`.
 
 ~~~haskell
-!!!huffman/Huffman.hs "listQueueState ::"
-!!!huffman/Huffman.hs "runListQueue ::"
+!!!huffman/Huffman.hs "listQueueState ::" "runListQueue ::"
 ~~~
 
 Note that in these cases, the monadic usage isn't actually necessary --- nor
@@ -544,8 +538,7 @@ So let's remember how the building process works:
 Sounds simple enough.
 
 ~~~haskell
-!!!huffman/Huffman.hs "buildTree ::"
-!!!huffman/Huffman.hs "runBuildTree ::"
+!!!huffman/Huffman.hs "buildTree ::" "runBuildTree ::"
 ~~~
 
 Note that due to our uncanny foresight, `popPQ :: PQueue a -> (Maybe a, PQueue
