@@ -105,7 +105,7 @@ This isn't too bad either:
 
 ~~~haskell
 mergePT' :: PreTree a -> PreTree a -> PreTree a
-mergePT' t1 t2 = PNode t1 t2
+mergePT' t1 t2 = PTNode t1 t2
 ~~~
 
 Which, from what we saw before, can just be written as:
@@ -121,7 +121,7 @@ Which, from what we saw before, can just be written as:
 λ: :t pt3
 PreTree Char
 λ: pt3
-PNode (PLeaf 'c') (PLeaf 't')
+PTNode (PTLeaf 'c') (PTLeaf 't')
 ~~~
 
 Hm.  Maybe that's a bit too easy.  Feels a little unsettling, isn't it?
@@ -144,8 +144,8 @@ We can create, say, a `PreTree` containing the character 'a', weighted with
 integer 1:
 
 ~~~haskell
-λ: WPair 1 (makePLeaf 'a')
-WPair 1 (makePLeaf 'a') :: Weighted (PreTree Char)
+λ: WPair 1 (makePTLeaf 'a')
+WPair 1 (makePTLeaf 'a') :: Weighted (PreTree Char)
 ~~~
 
 This weighted `PreTree` is pretty useful, let's give it an alias/typedef:
@@ -184,6 +184,7 @@ them and impose some total ordering.  Haskell has a typeclass that abstracts
 these comparing operations, `Ord`:
 
 ~~~haskell
+!!!huffman/Weighted.hs "instance Eq (Weighted a)"
 !!!huffman/Weighted.hs "instance Ord (Weighted a)"
 ~~~
 
@@ -311,7 +312,7 @@ First, we need to have some sort of frequency table.  We will use
 `Data.Map.Strict`'s `Map` type:
 
 ~~~haskell
-type FreqTable a = Map a Int
+!!!huffman/Huffman.hs "type FreqTable"
 ~~~
 
 and we'll import the operations from `Data.Map.Strict` qualified:
@@ -324,10 +325,7 @@ Just to work with things now, let's make a way to generate a `FreqTable` from
 an arbitrary string:
 
 ~~~haskell
-listFreq :: [a] -> FreqTable a
-listFreq = foldr f M.empty
-  where
-    f x = M.insertWith (+) x 1
+!!!huffman/Huffman.hs "liftFreq ::"
 ~~~
 
 This says that `listFreq` is a fold, where you start with `M.empty` (an empty
@@ -347,10 +345,7 @@ by using `M.foldrWithKey`, which is a `foldr` over the map, giving the folding
 function both the key and the value.
 
 ~~~haskell
-listQueue :: [a] -> PQueue (WPTree a)
-listQueue = M.foldrWithKey f emptyPQ . listFreq
-  where
-    f k v pq = insertPQ (WPair v k) pq
+!!!huffman/Huffman.hs "listQueue ::"
 ~~~
 
 ~~~haskell
@@ -512,14 +507,7 @@ Now note that we could have actually done our previous `fold`s as `State`
 monad operations:
 
 ~~~haskell
-listFreq' :: [a] -> FreqTable a
-listFreq' xs = execState listFreqState M.empty
-  where
-    listFreqState :: State (FreqTable a) ()
-    listFreqState = mapM_ addFreq xs
-
-    addFreq :: a -> State (FreqTable a) ()
-    addFreq x = modify (M.insertWith (+) 1 x)
+!!!huffman/Huffman.hs "runListFreq ::"
 ~~~
 
 `execState` runs the given `State` computation with the given initial state.
@@ -530,20 +518,17 @@ mean that `listFreqState` is a function from a `FreqTable a` to `((),
 FreqTable a)`.
 
 ~~~haskell
-listQueue' :: [a] -> PQueue (WPTree a)
-listQueue' xs = execState (listQueueState xs) emptyPQ
-
-listQueueState :: [a] -> State (PQueue (WPTree a)) ()
-listQueueState xs = M.traverseWithKey addNode (listFreq xs)
-  where
-    addNode :: a -> w -> State (PQueue (WPTree a)) ()
-    addNode x w = modify (insertPQ (WPair w x))
+!!!huffman/Huffman.hs "listQueueState ::"
+!!!huffman/Huffman.hs "runListQueue ::"
 ~~~
 
 Note that in these cases, the monadic usage isn't actually necessary --- nor
 is it very useful (a fold would be just as expressive and probably easier to
 read).  However, what if we wanted to make decisions and branch based on the
 current state?  That's when the State monad shines as a monad.
+
+(We're not going to use `listFreq'` and `listQueue'`...but let's hang onto
+`listQueueState` for a bit.)
 
 
 ### Building with State
@@ -559,22 +544,8 @@ So let's remember how the building process works:
 Sounds simple enough.
 
 ~~~haskell
-buildTree :: State (PQueue (WPTree a)) (PTree a)
-buildTree = do
-    t1  <- fromJust <$> state popPQ         -- queue should never be empty
-    t2' <- state popPQ
-    case t2' of
-        Nothing  ->
-            -- We're done!
-            return (_wItem t1)              -- break out of the loop
-        Just t2 -> do
-            -- merge and push
-            let combined = mergeWPT t1 t2
-            modify (pushPQ combined)
-            buildTreeState                  -- recursive call
-
-runBuildTree :: [a] -> PTree a
-runBuildTree xs = evalState (listQueueState xs >> buildTree) emptyPQ
+!!!huffman/Huffman.hs "buildTree ::"
+!!!huffman/Huffman.hs "runBuildTree ::"
 ~~~
 
 Note that due to our uncanny foresight, `popPQ :: PQueue a -> (Maybe a, PQueue
@@ -590,10 +561,10 @@ way).
 
 Remember also that `(>>)` is Monad-speak for our `andThen` function we
 defined earlier, so for `buildTree`, we do "`listQueueState xs` *and then*
-`buildTreeState`".  `(>>)` joins two `s -> (a, s)` functions into one giant `s
+`buildTree`".  `(>>)` joins two `s -> (a, s)` functions into one giant `s
 -> (a,s)`, by feeding the resulting state of the first action into the next
 one.  `listQueueState` takes an empty priority queue and 'fills' it with nodes
-generated from `xs`, leaving a filled priority queue.  `buildTreeState` then
+generated from `xs`, leaving a filled priority queue.  `buildTree` then
 takes that filled queue and performs our building operations on it, modifying
 it as it goes along, and ends up with an empty queue as a state and returning
 the finished tree as a result.
@@ -604,10 +575,25 @@ of the final state).
 
 ~~~haskell
 λ: buildTree "hello world"
-TODO: put result here
+PQTNode (PTNode (PTNode (PTLeaf 'h')
+                        (PTLeaf 'e')
+                )
+                (PTNode (PTLeaf 'w')
+                        (PTLeaf 'r')
+                )
+        )
+        (PTNode (PTLeaf 'l')
+                (PTNode (PTNode (PTLeaf 'd')
+                                (PTLeaf ' ')
+                        )
+                        (PTLeaf 'o')
+                )
+        )
 ~~~
 
-Congrats, we built a huffman encoding tree!
+Congrats, we built a Huffman encoding tree!  Notice that the most commonly
+used letter (`'l'`, occuring 3 times) is only at depth 2, while the others are
+at depths 2 and 3.
 
 Next steps
 ----------
@@ -618,9 +604,4 @@ In the next posts we will look at how we would use this Huffman tree to encode
 and decode text, and general bytes (`Word8`s), and then hook it all up to make
 a "streaming" compressor and uncompressor that reads a file byte-by-byte and
 outputs a compressed file as it goes.
-
-
-
-
-
 

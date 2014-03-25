@@ -1,63 +1,59 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module Huffman where
 
-data PreTree a = PTLeaf a
-               | PTNode (PreTree a) (PreTree a)
-               deriving (Show, Eq)
+import Control.Applicative              ((<$>))
+import Control.Monad.Trans.State.Strict
+import Data.Map.Strict                  (Map)
+import Data.Maybe                       (fromJust)
+import PQueue
+import PreTree
+import Weighted
+import qualified Data.Map.Strict        as M
 
-makePT :: a -> PreTree a
-makePT = PLeaf
+type FreqTable a = Map a Int
 
-mergePT :: PreTree a -> PreTree a -> PreTree a
-mergePT = PNode
-
-data Weighted a = WPair Int a
-                deriving Show
-
-type WPreTree a = Weighted (PreTree a)
-
-makeWPT :: Int -> a -> WPreTree a
-makeWPT w = WPair w . makePT
-
-mergeWPT :: WPreTree a -> WPreTree a -> WPreTree a
-mergeWPT (WPair w1 pt1) (WPair w2 pt2)
-    = WPair (w1 + w2) (mergePT pt1 p2)
-
-instance Ord (Weighted a) where
-    compare (WPair w1 _) (WPair w2 _) = compare w1 w2
-
-data SkewHeap a = SEmpty
-                | SNode a (SkewHeap a) (SkewHeap a)
-                deriving (Show, Eq)
-
-makeSH :: a -> SkewHeap a
-makeSH x = SNode x SEmpty SEmpty
-
-popSH :: Ord a => SkewHeap a -> (Maybe a, SkewHeap a)
-popSH SEmpty          = (Nothing, SEmpty)
-popSH (SNode r h1 h2) = (Just r , mergeSH h1 h2)
-
-mergeSH :: Ord a => SkewHeap a -> SkewHeap a -> SkewHeap a
-mergeSH SEmpty h = h
-mergeSH h SEmpty = h
-mergeSH l@(SNode nl ll rl) r@(SNode nr lr rr)
-    | nl < nr    = SNode nl (mergeSH lr r) ll
-    | otherwise  = SNode nr (mergeSH rr l) lr
-
-newtype PQueue a = PQ (SkewHeap a)
-
-emptyPQ :: PQueue a
-emptyPQ = PQ SEmpty
-
-insertPQ :: Ord a => a -> PQueue a -> PQueue a
-insertPQ x (PQ h) = PQ (mergeSH h (makeSH x))
-
-popPQ :: Ord a => PQueue a -> (Maybe a, PQeueue a)
-popPQ (PQ h) = (res, PQ h')
+listFreq :: Ord a => [a] -> FreqTable a
+listFreq = foldr f M.empty
   where
-    (res, h') = popSH h
+    f x = M.insertWith (+) x 1
 
-sizePQ :: PQueue a -> Int
-sizePQ (PQ h) = sizeSH h
+listQueue :: Ord a => [a] -> PQueue (Weighted a)
+listQueue = M.foldrWithKey f emptyPQ . listFreq
   where
-    sizeSH SEmpty  = 0
-    sizeSH _ h1 h2 = 1 + sizeSH h1 + sizeSH h2
+    f k v pq = insertPQ (WPair v k) pq
+
+runListFreq :: forall a. Ord a => [a] -> FreqTable a
+runListFreq xs = execState listFreqState M.empty
+  where
+    listFreqState :: State (FreqTable a) ()
+    listFreqState = mapM_ addFreq xs
+
+    addFreq :: a -> State (FreqTable a) ()
+    addFreq x = modify (M.insertWith (+) x 1)
+
+runListQueue :: Ord a => [a] -> PQueue (WPreTree a)
+runListQueue xs = execState (listQueueState xs) emptyPQ
+
+listQueueState :: Ord a => [a] -> State (PQueue (WPreTree a)) ()
+listQueueState xs = M.traverseWithKey addNode (listFreq xs) >> return ()
+  where
+    addNode :: a -> Int -> State (PQueue (WPreTree a)) ()
+    addNode x i = modify (insertPQ (WPair i (makePT x)))
+
+buildTree :: State (PQueue (WPreTree a)) (PreTree a)
+buildTree = do
+    t1  <- fromJust <$> state popPQ         -- queue should never be empty
+    t2' <- state popPQ
+    case t2' of
+        Nothing  ->
+            -- We're done!
+            return (_wItem t1)              -- break out of the loop
+        Just t2 -> do
+            -- merge and push
+            let combined = mergeWPT t1 t2
+            modify (insertPQ combined)
+            buildTree                       -- recursive call
+
+runBuildTree :: Ord a => [a] -> PreTree a
+runBuildTree xs = evalState (listQueueState xs >> buildTree) emptyPQ
