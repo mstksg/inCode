@@ -325,7 +325,7 @@ Just to work with things now, let's make a way to generate a `FreqTable` from
 an arbitrary string:
 
 ~~~haskell
-!!!huffman/Huffman.hs "liftFreq ::"
+!!!huffman/Huffman.hs "listFreq ::"
 ~~~
 
 This says that `listFreq` is a fold, where you start with `M.empty` (an empty
