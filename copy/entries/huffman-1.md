@@ -55,16 +55,11 @@ is stored in the leaves, and all internal nodes have exactly two children.
 This sounds like the perfect candidate for an Algebraic Data Structure.
 
 ~~~haskell
-data PreTree a = PTLeaf a
-               | PTNode (PreTree a) (PreTree a)
-               deriving (Show, Eq)
+!!!huffman/PreTree.hs "data PreTree"
 ~~~
 
 We leave the type parameterized on `a` (which is like a template/generic in
-C++/Java) so we can decide what to put into it later.  Also, leaving it
-generic means that we might be able to play around with it as a functor,
-applicative, or monad, and who knows how useful those would end up being?  (If
-you didn't understand that, don't worry!)
+C++/Java) so we can decide what to put into it later.
 
 #### `PreTree` operations
 
@@ -87,8 +82,7 @@ However, something like this is just begging to be eta-reduced, and we can
 simplify it as:
 
 ~~~haskell
-makePT :: a -> PreTree a
-makePT = PLeaf
+!!!huffman/PreTree.hs "makePT ::"
 ~~~
 
 Which does the same thing.  Basically, `PLeaf` is already a function `a ->
@@ -117,8 +111,7 @@ mergePT' t1 t2 = PNode t1 t2
 Which, from what we saw before, can just be written as:
 
 ~~~haskell
-mergePT :: PreTree a -> PreTree a -> PreTree a
-mergePT = PNode
+!!!huffman/PreTree.hs "mergePT ::"
 ~~~
 
 ~~~haskell
@@ -139,54 +132,49 @@ Welcome to Haskell!
 
 We're going to need some way of comparing the weights/priorities of two
 `PreTree`s when we are assembling the tree.  Let's introduce a data type that
-includes both a `PreTree` and a weight.
+includes both a `PreTree` and an (integer) weight.
 
 ~~~haskell
-data Weighted w a = Weighted { _wWeight :: w
-                             , _wItem   :: a
-                             } deriving Show
+!!!huffman/Weighted.hs "data Weighted"
 ~~~
 
-We will say that a `Weighted w a` is some `a` associated with a weight `w`.
+We will say that a `Weighted a` is some `a` associated with an integer weight.
 
 We can create, say, a `PreTree` containing the character 'a', weighted with
 integer 1:
 
 ~~~haskell
-λ: Weighted 1 (makePLeaf 'a')
-Weighted 1 (makePLeaf 'a') :: Weighted Int (PreTree Char)
+λ: WPair 1 (makePLeaf 'a')
+WPair 1 (makePLeaf 'a') :: Weighted (PreTree Char)
 ~~~
 
 This weighted `PreTree` is pretty useful, let's give it an alias/typedef:
 
 ~~~haskell
-type WPreTree = Weighted Int
+!!!huffman/PreTree.hs "type WPreTree"
 ~~~
 
 Let's make the same functions for `WPreTree` as we did for `PreTree`:
 
 ~~~haskell
-makeWPT :: Int -> a -> WPreTree a
-makeWPT w = Weighted w . makePT
+!!!huffman/PreTree.hs "makeWPT ::"
 ~~~
 
 The above basically says "to make a `WPreTree` with weight `w`, first
-`makePT` it, and then add it to a `Weighted w`.
+`makePT` it, and then add it to a `WPair w`.
 
 ~~~haskell
 λ: let pt = makeWPT 1 'w'
 λ: :t pt
-Weighted Int (PreTree Char)
+WPreTree Char
 λ: pt
-Weighted { _wWeight = 1, _wItem = (PLeaf 'w') }
+WPair 1 (PLeaf 'w')
 ~~~
 
 We will also want to merge two `WPreTree`s:
 
 ~~~haskell
-mergeWPT :: WPreTree a -> WPreTree a -> WPreTree a
-mergeWPT (Weighted w1 pt1) (Weighted w2 pt2)
-    = Weighted (w1 + w2) (mergePT pt1 p2)
+!!!huffman/PreTree.hs "mergeWPT ::"
 ~~~
 
 so that the total weight is the sum of the weights of the two subtrees.
@@ -196,12 +184,11 @@ them and impose some total ordering.  Haskell has a typeclass that abstracts
 these comparing operations, `Ord`:
 
 ~~~haskell
-instance Ord w => Ord (Weighted w a) where
-    compare (Weighted w1 _) (Weighted w2 _) = compare w1 w2
+!!!huffman/Weighted.hs "instance Ord (Weighted a)"
 ~~~
 
 Which says that `Weighted w a` is an `Ord` (is orderable/comparable) if `w` is
-an `Ord`...and to compare two `Weighted w a`'s, you compare the `w`'s.
+an `Ord`...and to compare two `WPair w x`'s, you compare the `w`'s.
 
 ~~~haskell
 λ: makeWPT 2 'a' > makeWPT 3 'b'
@@ -251,24 +238,19 @@ sub-trees to make the new tree.
 This is a new type of binary tree, so let's define a new data type:
 
 ~~~haskell
-data SkewHeap a = SEmpty
-                | SNode a (SkewHeap a) (SkewHeap a)
-                deriving (Show, Eq)
+!!!huffman/PQueue.hs "data SkewHeap"
 ~~~
 
 Creating a new `SkewHeap` with one item:
 
 ~~~haskell
-makeSH :: a -> SkewHeap a
-makeSH x = SNode x SEmpty SEmpty
+!!!huffman/PQueue.hs "makeSH ::"
 ~~~
 
 Popping the root off of a skew tree:
 
 ~~~haskell
-popSH :: Ord a => SkewHeap a -> (Maybe a, SkewHeap a)
-popSH SEmpty          = (Nothing, SEmpty)
-popSH (SNode r h1 h2) = (Just r , mergeSH h1 h2)
+!!!huffman/PQueue.hs "popSH ::"
 ~~~
 
 We make it return a potential result (`Maybe a`), and the resulting new popped
@@ -279,12 +261,7 @@ skew heaps, the data must be comparable.
 Finally, the hardest piece of code so far: merging two skew heaps:
 
 ~~~haskell
-mergeSH :: Ord a => SkewHeap a -> SkewHeap a -> SkewHeap a
-mergeSH SEmpty h = h
-mergeSH h SEmpty = h
-mergeSH l@(SNode nl ll rl) r@(SNode nr lr rr)
-    | nl < nr    = SNode nl (mergeSH lr r) ll
-    | otherwise  = SNode nr (mergeSH rr l) lr
+!!!huffman/PQueue.hs "mergeSH ::"
 ~~~
 
 Hopefully this is very pleasing to read --- it reads a lot like a
@@ -310,24 +287,11 @@ Ok, neat!
 Let's wrap this up in a tidy interface/API for a `PQueue` type:
 
 ~~~haskell
-newtype PQueue a = PQ (SkewHeap a)
-
-emptyPQ :: PQueue a
-emptyPQ = PQ SEmpty
-
-insertPQ :: Ord a => a -> PQueue a -> PQueue a
-insertPQ x (PQ h) = PQ (mergeSH h (makeSH x))
-
-popPQ :: Ord a => PQueue a -> (Maybe a, PQeueue a)
-popPQ (PQ h) = (res, PQ h')
-  where
-    (res, h') = popSH h
-
-sizePQ :: PQueue a -> Int
-sizePQ (PQ h) = sizeSH h
-  where
-    sizeSH SEmpty  = 0
-    sizeSH _ h1 h2 = 1 + sizeSH h1 + sizeSH h2
+!!!huffman/PQueue.hs "newtype PQueue"
+!!!huffman/PQueue.hs "emptyPQ ::"
+!!!huffman/PQueue.hs "insertPQ ::"
+!!!huffman/PQueue.hs "popPQ ::"
+!!!huffman/PQueue.hs "sizePQ ::"
 ~~~
 
 We do this so that we hide our low-level skew heap implementation over a
@@ -386,13 +350,13 @@ function both the key and the value.
 listQueue :: [a] -> PQueue (WPTree a)
 listQueue = M.foldrWithKey f emptyPQ . listFreq
   where
-    f k v pq = insertPQ (Weighted v k) pq
+    f k v pq = insertPQ (WPair v k) pq
 ~~~
 
 ~~~haskell
 λ: let pq = listQueue "hello world"
 λ: :t pq
-pq :: PQueue (Weighted Int (PreTree Char))
+pq :: PQueue (WPair Int (PreTree Char))
 λ: sizePQ pq
 8
 λ: let (popped, pq') = popPQ pq
@@ -420,15 +384,31 @@ stateful computations can be described as "compositions" of these functions.
 
 What do I mean by "compositions"?
 
-Let's say I had a function `f1 :: s -> (a, s)` and a function `f2 :: s -> (b,
-s)`, and I wanted to "sequence" them, ``f1 `andThen` f2``.  What would that
-even "look like"?
+Let's say I have two functions:
+
+~~~haskell
+f1 :: s -> (a, s)
+f2 :: s -> (b, s)
+~~~
+
+And I wanted to sequence them:
+
+~~~haskell
+f1 `andThen` f2
+~~~
+
+What would that even "look like"?
 
 Well, I expect that sequencing two state functions will return a new, "giant"
-state function that does both functions "one after the other".  That is, ``f1
-`andThen` f2 :: s -> (b, s)``.  This new function will first run the input
-state on `f1`, and take that resulting state and pass it into `f2`, and then
-return the result of `f2` and the resulting modified state of `f2`.
+state function that does both functions "one after the other".  That is:
+
+~~~haskell
+f1 `andThen` f2 :: s -> (b, s)
+~~~
+
+This new function will first run the input state on `f1`, and take that
+resulting state and pass it into `f2`, and then return the result of `f2` and
+the resulting modified state of `f2`.
 
 So we have something like
 
@@ -441,10 +421,21 @@ andThen f1 f2 = \s -> let (_,s') = f1 s
 Think of `andThen` like a semicolon, of sorts.
 
 Notice that we "lose" the result of `f1` with `andThen`.  What if we wanted to
-use it?  We might write a combinator `andThenWith :: (s -> (a,s)) -> (a -> (s
--> (b,s))) -> (s -> (b,s))`, where you would use it like ``f1 `andThenWith` \x
--> f2 x``, where `f2` is a function that takes an `a` and returns a `s ->
-(a,s)`.
+use it?  We might write a combinator:
+
+~~~
+andThenWith ::       (s -> (a, s))
+            -> (a -> (s -> (b, s)))
+            ->       (s -> (b, s))
+~~~
+
+Which you would use like
+
+~~~haskell
+f1 `andThenWith` (\x -> f2 x)
+~~~
+
+where `f2` is a function that takes an `a` and returns a `s -> (a,s)`.
 
 Basically, it would be exactly the same as `andThen`, except the second
 argument gets access to the result of the first.  Writing it is almost as
@@ -546,7 +537,7 @@ listQueueState :: [a] -> State (PQueue (WPTree a)) ()
 listQueueState xs = M.traverseWithKey addNode (listFreq xs)
   where
     addNode :: a -> w -> State (PQueue (WPTree a)) ()
-    addNode x w = modify (insertPQ (Weighted w x))
+    addNode x w = modify (insertPQ (WPair w x))
 ~~~
 
 Note that in these cases, the monadic usage isn't actually necessary --- nor
