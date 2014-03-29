@@ -111,13 +111,16 @@ all, and can clearly be launched in parallel alongside the calculation of
 arrows that all 'fork themselves' under composition.
 
 You should also be able to "join together" parallel computations.  That is, if
-you have an `a -> b` and a `c -> d`, you could make a "parallel" `(a,c) ->
-(b,d)`.  If I wanted to sequence after that a `(d,f) -> (e,g)`, I *should* be
-able to "join" my `(a,c) -> (b,d)` and `(d,f) -> (e,g)` into one "giant"
-`(a,c) -> (e,g)` --- and I shouldn't have to re-fork during the middle of the
-computation.
+you have an `a -> b` and a `c -> d`, you could make a "parallel" `(a,b) ->
+(c,d)`.  If I wanted to sequence after that a `(c,d) -> (e,f)`, I *should* be
+able to "join" my `(a,b) -> (c,d)` and `(c,d) -> (e,f)` into one "giant"
+`(a,b) -> (e,f)` --- and I shouldn't have to re-fork during the middle of the
+computation.  Because you basically have an "`a` to `c` to `e`" and a "`b` to
+`d` to `f`", you should be able to just perform the entire `a -> e` parallel
+from `b -> f`.
 
-Okay, well...if it sounds stupid to you now, *I* thought it was a nice
-endeavor back then :)  Let's try implementing it, and let's see where things
-go wrong.
+Okay, well...if the downfall to this idea is obvious to you know...in my
+defense, *I* thought it was a nice endeavor back then :)
+
+In any case, let's try implementing it, and let's see where things go wrong.
 
