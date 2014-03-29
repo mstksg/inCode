@@ -26,7 +26,7 @@ So what do I mean?
 
 ### Data Parallelism
 
-By "data parallelism", i refer to structuring parallel computations by "what
+By "data parallelism", I refer to structuring parallel computations by "what
 depends on what".  If two values *can* be computed in parallel, then that is
 taken advantage of.  Consider something like:
 
@@ -111,13 +111,13 @@ all, and can clearly be launched in parallel alongside the calculation of
 arrows that all 'fork themselves' under composition.
 
 You should also be able to "join together" parallel computations.  That is, if
-you have an `a -> b` and a `c -> d`, you could make a "parallel" `(a,b) ->
-(c,d)`.  If I wanted to sequence after that a `(c,d) -> (e,f)`, I *should* be
-able to "join" my `(a,b) -> (c,d)` and `(c,d) -> (e,f)` into one "giant"
-`(a,b) -> (e,f)` --- and I shouldn't have to re-fork during the middle of the
-computation.  Because you basically have an "`a` to `c` to `e`" and a "`b` to
-`d` to `f`", you should be able to just perform the entire `a -> e` parallel
-from `b -> f`.
+you have an `a -> c` and a `b -> d`, you could make a "parallel" `(a,b) ->
+(c,d)`.  But what if I also had a `c -> e` and a `d -> f`?  I could chain the
+entire `a`-`c`-`e` chain and the `b`-`d`-`f` chain, and perform both chains in
+parallel and re-collect things at the end.  That is, a `(a,b) -> (c,d)` and a
+`(c,d) -> (e,f)` should meaningfully compose into a `(a,b) -> (e,f)`, where
+the left and right sides (the `a -> e` and the `b -> f`) are performed "in
+parallel" from eachother.
 
 With that in mind, we could even do something like `parMap`:
 
