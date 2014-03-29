@@ -2,6 +2,9 @@ module PreTree where
 
 import Weighted
 
+-- | Prefix trees, used to implement Huffman encodings.
+--
+-- PrefixTree: The data type.
 data PreTree a = PTLeaf a
                | PTNode (PreTree a) (PreTree a)
                deriving (Show, Eq)

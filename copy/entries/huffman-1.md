@@ -50,12 +50,17 @@ Our first challenge --- representing a Huffman tree as a data structure!
 
 ### The Tree
 
+(All the code in this section on is [available for download][sourcept] for
+you to try it out yourself!)
+
+!!![sourcept]:huffman/PreTree.hs
+
 So some properties about prefix trees that might be useful to us --- all data
 is stored in the leaves, and all internal nodes have exactly two children.
 This sounds like the perfect candidate for an Algebraic Data Structure.
 
 ~~~haskell
-!!!huffman/PreTree.hs "data PreTree"
+!!!huffman/PreTree.hs "data PreTree" huffman-encoding
 ~~~
 
 We leave the type parameterized on `a` (which is like a template/generic in
@@ -82,7 +87,7 @@ However, something like this is just begging to be eta-reduced, and we can
 simplify it as:
 
 ~~~haskell
-!!!huffman/PreTree.hs "makePT ::"
+!!!huffman/PreTree.hs "makePT ::" huffman-encoding
 ~~~
 
 Which does the same thing.  Basically, `PLeaf` is already a function `a ->
@@ -111,7 +116,7 @@ mergePT' t1 t2 = PTNode t1 t2
 Which, from what we saw before, can just be written as:
 
 ~~~haskell
-!!!huffman/PreTree.hs "mergePT ::"
+!!!huffman/PreTree.hs "mergePT ::" huffman-encoding
 ~~~
 
 ~~~haskell
@@ -135,8 +140,13 @@ We're going to need some way of comparing the weights/priorities of two
 includes both a `PreTree` and an (integer) weight.
 
 ~~~haskell
-!!!huffman/Weighted.hs "data Weighted"
+!!!huffman/Weighted.hs "data Weighted" huffman-encoding
 ~~~
+
+(Code for the Weighted module is [available for download][sourcew])
+
+!!![sourcew]:huffman/Weighted.hs
+
 
 We will say that a `Weighted a` is some `a` associated with an integer weight.
 
@@ -151,17 +161,17 @@ WPair 1 (makePTLeaf 'a') :: Weighted (PreTree Char)
 This weighted `PreTree` is pretty useful, let's give it an alias/typedef:
 
 ~~~haskell
-!!!huffman/PreTree.hs "type WPreTree"
+!!!huffman/PreTree.hs "type WPreTree" huffman-encoding
 ~~~
 
 Let's make the same functions for `WPreTree` as we did for `PreTree`:
 
 ~~~haskell
-!!!huffman/PreTree.hs "makeWPT ::"
+!!!huffman/PreTree.hs "makeWPT ::" huffman-encoding
 ~~~
 
 The above basically says "to make a `WPreTree` with weight `w`, first
-`makePT` it, and then add it to a `WPair w`.
+`makePT` it, and then add that result it to a `WPair w`.
 
 ~~~haskell
 λ: let pt = makeWPT 1 'w'
@@ -174,7 +184,7 @@ WPair 1 (PLeaf 'w')
 We will also want to merge two `WPreTree`s:
 
 ~~~haskell
-!!!huffman/PreTree.hs "mergeWPT ::"
+!!!huffman/PreTree.hs "mergeWPT ::" huffman-encoding
 ~~~
 
 so that the total weight is the sum of the weights of the two subtrees.
@@ -184,7 +194,7 @@ them and impose some total ordering.  Haskell has a typeclass that abstracts
 these comparing operations, `Ord`:
 
 ~~~haskell
-!!!huffman/Weighted.hs "instance Eq (Weighted a)" "instance Ord (Weighted a)"
+!!!huffman/Weighted.hs "instance Eq (Weighted a)" "instance Ord (Weighted a)" huffman-encoding
 ~~~
 
 Which says that `Weighted w a` is an `Ord` (is orderable/comparable) if `w` is
@@ -204,6 +214,11 @@ There are some great priority queue libraries on Hackage, like [PSQueue][].
 However, for fun, we're going to be making our own!  Yay!
 
 [PSQueue]: http://hackage.haskell.org/package/PSQueue
+
+Our Priority Queue code module is [available for download][sourcepq] to try
+out!
+
+!!![sourcepq]:huffman/PQueue.hs
 
 ### Skew heaps
 
@@ -238,19 +253,19 @@ sub-trees to make the new tree.
 This is a new type of binary tree, so let's define a new data type:
 
 ~~~haskell
-!!!huffman/PQueue.hs "data SkewHeap"
+!!!huffman/PQueue.hs "data SkewHeap" huffman-encoding
 ~~~
 
 Creating a new `SkewHeap` with one item:
 
 ~~~haskell
-!!!huffman/PQueue.hs "makeSH ::"
+!!!huffman/PQueue.hs "makeSH ::" huffman-encoding
 ~~~
 
 Popping the root off of a skew tree:
 
 ~~~haskell
-!!!huffman/PQueue.hs "popSH ::"
+!!!huffman/PQueue.hs "popSH ::" huffman-encoding
 ~~~
 
 We make it return a potential result (`Maybe a`), and the resulting new popped
@@ -261,7 +276,7 @@ skew heaps, the data must be comparable.
 Finally, the hardest piece of code so far: merging two skew heaps:
 
 ~~~haskell
-!!!huffman/PQueue.hs "mergeSH ::"
+!!!huffman/PQueue.hs "mergeSH ::" huffman-encoding
 ~~~
 
 Hopefully this is very pleasing to read --- it reads a lot like a
@@ -286,20 +301,25 @@ Ok, neat!
 
 Let's wrap this up in a tidy interface/API for a `PQueue` type:
 
+
 ~~~haskell
-!!!huffman/PQueue.hs "newtype PQueue" "emptyPQ ::" "insertPQ ::" "popPQ ::" "sizePQ ::"
+!!!huffman/PQueue.hs "newtype PQueue" "emptyPQ ::" "insertPQ ::" "popPQ ::" "sizePQ ::" huffman-encoding
 ~~~
 
 We do this so that we hide our low-level skew heap implementation over a
-"high-level" priority queue interface.  In this case, the high level isn't
-much higher of a level, but it's good practice to hide away the implementation
-details when you can in Haskell, a language whose power lies so much in
-abstraction.
+"high-level" priority queue interface.  We do not export the `PQ` constructor,
+so users cannot ever directly access the underlying skew hea.  In this case,
+the high level isn't much higher of a level, but it's good practice to hide
+away the implementation details when you can in Haskell, a language whose
+power lies so much in abstraction.
 
 Building our Huffman encoding tree
 ----------------------------------
 
 Now that we have what we need in place, let's get to doing building our tree.
+(Again, all available [for download][sourcehuff].)
+
+!!![sourcehuff]:huffman/Huffman.hs
 
 ### Frequency Tables
 
@@ -307,7 +327,7 @@ First, we need to have some sort of frequency table.  We will use
 `Data.Map.Strict`'s `Map` type:
 
 ~~~haskell
-!!!huffman/Huffman.hs "type FreqTable"
+!!!huffman/Huffman.hs "type FreqTable" huffman-encoding
 ~~~
 
 and we'll import the operations from `Data.Map.Strict` qualified:
@@ -320,7 +340,7 @@ Just to work with things now, let's make a way to generate a `FreqTable` from
 an arbitrary string:
 
 ~~~haskell
-!!!huffman/Huffman.hs "listFreq ::"
+!!!huffman/Huffman.hs "listFreq ::" huffman-encoding
 ~~~
 
 This says that `listFreq` is a fold, where you start with `M.empty` (an empty
@@ -340,7 +360,7 @@ by using `M.foldrWithKey`, which is a `foldr` over the map, giving the folding
 function both the key and the value.
 
 ~~~haskell
-!!!huffman/Huffman.hs "listQueue ::"
+!!!huffman/Huffman.hs "listQueue ::" huffman-encoding
 ~~~
 
 ~~~haskell
@@ -349,9 +369,14 @@ function both the key and the value.
 pq :: PQueue (WPair Int (PreTree Char))
 λ: sizePQ pq
 8
-λ: let (popped, pq') = popPQ pq
-λ: popped
-Just 'w'
+λ: let (popped1, pq') = popPQ pq
+λ: popped1
+Just (WPair 1 ' ')
+λ: let (popped2, pq'') = popPQ pq'
+λ: popped2
+Just (WPair 1 'd')
+λ: sizePQ pq''
+6
 ~~~
 
 ### Building the tree
@@ -498,11 +523,44 @@ modify' f = do
     put (f s)
 ~~~
 
+If you're still lost, check out Brandon Simmon's [state monad
+tutorial][statetut], which was the article that eventually cleared it all up
+for myself.  And feel free to ask questions!
+
+[statetut]: http://brandon.si/code/the-state-monad-a-tutorial-for-the-confused/
+
+#### Why monads?
+
+One might pause to wonder why we would want to instance our `s -> (a, s)`
+functions as a Monad.  Why can't we just always sequence our state functions
+using `andThen` and `andThenWith`?
+
+1.  Using monads, we can now use `do` notation, which is pretty nice sugar.
+
+2.  We now have access to the wide library of useful Haskell [monad
+    combinators][controlmonad].  And boy are there a lot --- `sequence`,
+    `mapM`, `when`, `filterM`, etc.
+
+3.  We also get an Applicative instance for free, so we can do arbitrary-arity
+    lifting with things like `f <$> x <*> y`, where `f` is a pure function
+    like `(+)` and `x` and `y` are stateful functions.  We also get a free
+    Functor instance as well, so we can `fmap`.
+
+4.  We can now reason with our stateful functions with all of the powerful
+    equational reasoning tools that the monad laws offer.
+
+[controlmonad]: http://hackage.haskell.org/package/base-4.6.0.1/docs/Control-Monad.html
+
+As you can see, monads are not just a curiosity --- they are a powerful and
+expressive tool!
+
+#### A quick look back
+
 Now note that we could have actually done our previous `fold`s as `State`
 monad operations:
 
 ~~~haskell
-!!!huffman/Huffman.hs "runListFreq ::"
+!!!huffman/Huffman.hs "runListFreq ::" huffman-encoding
 ~~~
 
 `execState` runs the given `State` computation with the given initial state.
@@ -513,7 +571,7 @@ mean that `listFreqState` is a function from a `FreqTable a` to `((),
 FreqTable a)`.
 
 ~~~haskell
-!!!huffman/Huffman.hs "listQueueState ::" "runListQueue ::"
+!!!huffman/Huffman.hs "listQueueState ::" "runListQueue ::" huffman-encoding
 ~~~
 
 Note that in these cases, the monadic usage isn't actually necessary --- nor
@@ -538,19 +596,23 @@ So let's remember how the building process works:
 Sounds simple enough.
 
 ~~~haskell
-!!!huffman/Huffman.hs "buildTree ::" "runBuildTree ::"
+!!!huffman/Huffman.hs "buildTree ::" "runBuildTree ::" huffman-encoding
 ~~~
 
 Note that due to our uncanny foresight, `popPQ :: PQueue a -> (Maybe a, PQueue
 a)` is already a state function `s -> (a, s)`, where the state is `PSQueue a`
 and the return value is `Maybe a`.  So all we need to do is say `state popPQ`
 to wrap it in the `State s a` newtype wrapper/container, and it becomes an
-"official" `State (PQueue a) (Maybe a)`.  But remember, `State s a` is just a
-thin wrapper/container over a function `s -> (a, s)`, anyway, so the two
-should be somewhat equivalent in your mind; the requirement to wrap it in
-`State` using `state` is only because of Haskell's own language limitations
-(namely, that you can't define a Monad instance for `s -> (a, s)` in a clean
-way).
+"official" `State (PQueue a) (Maybe a)`.
+
+
+Remember that `State s a` is *just a thin wrapper/container* over a function
+`s -> (a, s)`, anyway, so the two should be somewhat equivalent in your mind;
+the requirement to wrap it in `State` using `state` is only because of
+Haskell's own language limitations (namely, that you can't define a Monad
+instance for `s -> (a, s)` in a clean way).  When you read `State s a`, you
+*should really read* `s -> (a, s)`, because they are for the most part
+*completely equivalent*.
 
 Remember also that `(>>)` is Monad-speak for our `andThen` function we
 defined earlier, so for `buildTree`, we do "`listQueueState xs` *and then*
@@ -567,7 +629,7 @@ operation on the given starting state, and outputs the final result (instead
 of the final state).
 
 ~~~haskell
-λ: buildTree "hello world"
+λ: runBuildTree "hello world"
 PQTNode (PTNode (PTNode (PTLeaf 'h')
                         (PTLeaf 'e')
                 )
@@ -585,8 +647,8 @@ PQTNode (PTNode (PTNode (PTLeaf 'h')
 ~~~
 
 Congrats, we built a Huffman encoding tree!  Notice that the most commonly
-used letter (`'l'`, occuring 3 times) is only at depth 2, while the others are
-at depths 2 and 3.
+used letter (`'l'`, occuring 3 times) is only at depth 2 (and is most
+accessible), while the others are at depths 3 and 4.
 
 Next steps
 ----------
@@ -596,5 +658,12 @@ That's it for this post, it's already long enough!
 In the next posts we will look at how we would use this Huffman tree to encode
 and decode text, and general bytes (`Word8`s), and then hook it all up to make
 a "streaming" compressor and uncompressor that reads a file byte-by-byte and
-outputs a compressed file as it goes.
+outputs a compressed file as it goes.  We'll then figure out how to store this
+huffman tree in a compact, serialized binary way, and load it cleanly.
 
+In the mean time, try [downloading the source][sourceall], or [playing with it
+online][sourcefp] on [fpcomplete]!
+
+[sourceall]: https://github.com/mstksg/inCode/tree/master/code-samples/huffman
+[sourcefp]: https://www.fpcomplete.com/user/jle/huffman-encoding
+[fpcomplete]: http://www.fpcomplete.com

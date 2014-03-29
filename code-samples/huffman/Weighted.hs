@@ -1,9 +1,15 @@
 {-# LANGUAGE DeriveFunctor #-}
+-- http://blog.jle.im/entry/implementing-huffman-compression-encoding-in-haskell
 
 module Weighted
   ( Weighted(..)
   ) where
 
+-- | Weighted data
+--
+-- Weighted: Represents weighted data.  It's basically a glorified tuple
+--      `(Int, a)`, with special Ord and Eq instances that compare only the
+--      `Int`, and ignores the stored data.
 data Weighted a = WPair { _wWeight :: Int
                         , _wItem   :: a
                         } deriving (Show, Functor)

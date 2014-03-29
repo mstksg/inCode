@@ -1,5 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
--- | http://blog.jle.im/entry/intro-to-machines-arrows-part-1-stream-and
+-- http://blog.jle.im/entry/intro-to-machines-arrows-part-1-stream-and
 
 module Auto where
 

@@ -1,4 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
+-- http://blog.jle.im/entry/implementing-huffman-compression-encoding-in-haskell
 
 module Huffman where
 
@@ -6,23 +7,25 @@ import Control.Applicative              ((<$>))
 import Control.Monad.Trans.State.Strict
 import Data.Map.Strict                  (Map)
 import Data.Maybe                       (fromJust)
+import qualified Data.Map.Strict        as M
+
 import PQueue
 import PreTree
 import Weighted
-import qualified Data.Map.Strict        as M
 
+-- | Frequency tables
+--
+-- FreqTable: A map of items to their frequency of occurrence.
 type FreqTable a = Map a Int
 
+-- listFreq: Build a frequency table of `a`'s from a list of `a`'s.
 listFreq :: Ord a => [a] -> FreqTable a
 listFreq = foldr f M.empty
   where
     f x = M.insertWith (+) x 1
 
-listQueue :: Ord a => [a] -> PQueue (Weighted a)
-listQueue = M.foldrWithKey f emptyPQ . listFreq
-  where
-    f k v pq = insertPQ (WPair v k) pq
-
+-- runListFreq: The same thing as listFreq, but using the mapM_ in a State
+--      monad instead of a fold.  Identical, mostly, and sorta pointless.
 runListFreq :: forall a. Ord a => [a] -> FreqTable a
 runListFreq xs = execState listFreqState M.empty
   where
@@ -32,22 +35,41 @@ runListFreq xs = execState listFreqState M.empty
     addFreq :: a -> State (FreqTable a) ()
     addFreq x = modify (M.insertWith (+) x 1)
 
+
+-- | List queues
+--
+-- listQueue: Build a priority queue of weighted `a`'s from a list of
+--      `a`'s. Lower-weighted items are prioritized highest.
+listQueue :: Ord a => [a] -> PQueue (Weighted a)
+listQueue = M.foldrWithKey f emptyPQ . listFreq
+  where
+    f k v pq = insertPQ (WPair v k) pq
+
+-- runListQueue: The same thing as listQueue, but using traverseWithKey in
+--      a State monad.
 runListQueue :: Ord a => [a] -> PQueue (WPreTree a)
 runListQueue xs = execState (listQueueState xs) emptyPQ
 
+-- listQueueState: The stateful computation of building a priority list
+--      from a given queue, using a PQueue state.
 listQueueState :: Ord a => [a] -> State (PQueue (WPreTree a)) ()
 listQueueState xs = M.traverseWithKey addNode (listFreq xs) >> return ()
   where
     addNode :: a -> Int -> State (PQueue (WPreTree a)) ()
     addNode x i = modify (insertPQ (WPair i (makePT x)))
 
+-- | Building trees
+--
+-- buildTree: The stateful computation of building a Huffman encoding tree
+--      with an underlying PQueue state.  It expects a populated PQueue as
+--      an initial state.
 buildTree :: State (PQueue (WPreTree a)) (PreTree a)
 buildTree = do
     t1  <- fromJust <$> state popPQ         -- queue should never be empty
     t2' <- state popPQ
     case t2' of
         Nothing  ->
-            -- We're done!
+            -- We're done, there was only one item!
             return (_wItem t1)              -- break out of the loop
         Just t2 -> do
             -- merge and push
@@ -55,5 +77,7 @@ buildTree = do
             modify (insertPQ combined)
             buildTree                       -- recursive call
 
+-- runBuildTree: Returns a Huffman-encoded prefix tree of `a`s from the
+--      given list of `a`'s.
 runBuildTree :: Ord a => [a] -> PreTree a
 runBuildTree xs = evalState (listQueueState xs >> buildTree) emptyPQ
