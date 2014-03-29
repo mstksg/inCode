@@ -251,10 +251,10 @@ three operations: making new (singleton) one, merging two skew heaps, and
 popping off the root.  Traditional "insert" is done by making a new skew heap
 with one element, and merging it with the main heap.
 
-Merging is embarrassingly simple: The higher-priority root becomes the new
+Merging is simple enough: The higher-priority root becomes the new
 root, and the lower-priority root is merged with the child tree of that new
-root.  Some left-right flipping of branches is done to make sure things tend
-to stay balanced.  Pictures provided in the wikipedia article.
+root.  (Some left-right flipping of branches is done to make sure things tend
+to stay balanced.  Pictures provided in the wikipedia article.)
 
 Popping the root is simple too; just take the root, and merge its two
 sub-trees to make the new tree.
@@ -660,7 +660,7 @@ PQTNode (PTNode (PTNode (PTLeaf 'h')
 ~~~
 
 Congrats, we built a Huffman encoding tree!  Notice that the most commonly
-used letter (`'l'`, occuring 3 times) is only at depth 2 (and is most
+used letter (`'l'`, occurring 3 times) is only at depth 2 (and is most
 accessible), while the others are at depths 3 and 4.
 
 Next steps
