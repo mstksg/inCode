@@ -119,8 +119,29 @@ computation.  Because you basically have an "`a` to `c` to `e`" and a "`b` to
 `d` to `f`", you should be able to just perform the entire `a -> e` parallel
 from `b -> f`.
 
+With that in mind, we could even do something like `parMap`:
+
+~~~haskell
+parMap :: ParArrow a b -> ParArrow [a] [b]
+parMap f = proc input -> do
+    case input of
+      []     ->
+          returnA        -< []
+      (x:xs) -> do
+          y  <- f        -< x
+          ys <- parMap f -< xs
+          returnA        -< y:ys
+~~~
+
+And because "what depends on what" is so *obviously clear* from proc/do
+notation --- you know exactly what depends on what, and the graph is already
+laid out there for you --- and because `f` is actaully a "smart" function,
+with "smart" semantics which can do things like fork threads to solve
+itself...this should be great way to structure programs and take advantage of
+implicit data parallelism.
+
 Okay, well...if the downfall to this idea is obvious to you know...in my
-defense, *I* thought it was a nice endeavor back then :)
+defense, *I* thought it was a worthwhile endeavor back then :)
 
 In any case, let's try implementing it, and let's see where things go wrong.
 
