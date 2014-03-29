@@ -1,5 +1,5 @@
-Streaming Huffman Compression in Haskell
-========================================
+Streaming Huffman Compression in Haskell (Part 1)
+=================================================
 
 Categories
 :   Haskell
