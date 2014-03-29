@@ -1,5 +1,5 @@
-Implementing Huffman compression/encoding in Haskell
-===================================================================
+Streaming Huffman Compression in Haskell
+========================================
 
 Categories
 :   Haskell
@@ -9,7 +9,7 @@ Tags
 CreateTime
 :   2014/03/19 01:25:50
 PostDate
-:   Never
+:   2014/03/31 10:13:44
 Series
 :   Huffman Compression
 Identifier
@@ -30,6 +30,15 @@ write to another in a pure way, avoiding lazy IO using the ever-more-popular
 
 [Huffman encoding]: http://en.wikipedia.org/wiki/Huffman_coding
 [pipes]: http://hackage.haskell.org/package/pipes
+
+We're going to be assuming some basic Haskell knowledge, like algebraic data
+types, higher order functions, and some basic familiarity with the functions
+in Prelude/base, the standard library.  If you have any questions, feel free
+to leave a comment, drop by on #haskell on freenode, throw me a
+[tweet][twitter], or give the great [Learn You A Haskell][lyah] a quick read!
+
+[twitter]: https://twitter.com/mstk
+[lyah]: http://learnyouahaskell.com
 
 Prefix trees & Huffman coding
 -----------------------------
@@ -598,6 +607,10 @@ Sounds simple enough.
 ~~~haskell
 !!!huffman/Huffman.hs "buildTree ::" "runBuildTree ::" huffman-encoding
 ~~~
+
+(Remember that `(<$>)` is the operator alias of `fmap`, which applies a
+function "inside" the Monad --- in our case, we use it to apply `fromJust` to
+whatever comes out of `state popPQ`.)
 
 Note that due to our uncanny foresight, `popPQ :: PQueue a -> (Maybe a, PQueue
 a)` is already a state function `s -> (a, s)`, where the state is `PSQueue a`
