@@ -208,8 +208,8 @@ these comparing operations, `Ord`:
 !!!huffman/Weighted.hs "instance Eq (Weighted a)" "instance Ord (Weighted a)" huffman-encoding
 ~~~
 
-Which says that `Weighted w a` is an `Ord` (is orderable/comparable) if `w` is
-an `Ord`...and to compare two `WPair w x`'s, you compare the `w`'s.
+Which says that `Weighted a` is an `Ord` (is orderable/comparable), and to
+compare two `WPair w x`'s, you compare the `w`'s.
 
 ~~~haskell
 λ: makeWPT 2 'a' > makeWPT 3 'b'
