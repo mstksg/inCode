@@ -1,3 +1,5 @@
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE DeriveFoldable #-}
 -- http://blog.jle.im/entry/implementing-huffman-compression-encoding-in-haskell
 
 module PQueue
@@ -10,12 +12,14 @@ module PQueue
   , SkewHeap(..), makeSH, popSH, mergeSH
   ) where
 
+import Data.Foldable
+
 -- | (Internal) SkewHeap
 --
 -- SkewHeap: The data type
 data SkewHeap a = SEmpty
                 | SNode a (SkewHeap a) (SkewHeap a)
-                deriving (Show, Eq)
+                deriving (Show, Eq, Foldable)
 
 -- makeSH: Make a SkewHeap from a single item.
 makeSH :: a -> SkewHeap a
@@ -40,7 +44,7 @@ mergeSH l@(SNode nl ll rl) r@(SNode nr lr rr)
 -- | External PQueue (Priority Queue) interface
 --
 -- PQueue: Newtype wrapper around a SkewHeap, for the purposes of keeping
--- the implementaiton opaque.
+--      the implementaiton opaque.
 newtype PQueue a = PQ (SkewHeap a) deriving Show
 
 -- emptyPQ: Create a new empty priority queue.
@@ -48,22 +52,20 @@ emptyPQ :: PQueue a
 emptyPQ = PQ SEmpty
 
 -- insertPQ: Insert an item into a prioritiy queue, and return the new
--- priority queue.
+--      priority queue.
 insertPQ :: Ord a => a -> PQueue a -> PQueue a
 insertPQ x (PQ h) = PQ (mergeSH h (makeSH x))
 
 -- popPQ: Attempts to pop the highest-priority element out of the priority
--- queue.  Returns `Nothing` if the queue is empty and `Just x`, with the
--- highest priority element, if it is not.  Also returns the modified
--- queue.
+--      queue.  Returns `Nothing` if the queue is empty and `Just x`, with
+--      the highest priority element, if it is not.  Also returns the
+--      modified queue.
 popPQ :: Ord a => PQueue a -> (Maybe a, PQueue a)
 popPQ (PQ h) = (res, PQ h')
   where
     (res, h') = popSH h
 
--- sizePQ: Returns the size of the given priority queue.
+-- sizePQ: Returns the size of the given priority queue.  Uses `toList`
+--      from Data.Foldable
 sizePQ :: PQueue a -> Int
-sizePQ (PQ h) = sizeSH h
-  where
-    sizeSH SEmpty          = 0
-    sizeSH (SNode _ h1 h2) = 1 + sizeSH h1 + sizeSH h2
+sizePQ (PQ h) = length (toList h)
