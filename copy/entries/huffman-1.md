@@ -502,12 +502,24 @@ andThenWith :: m a -> (a -> m b) -> m b
 Neat!
 
 As it turns out, we can turn our state functions into a Monad, which
-encapsulates "sequencing" state functions one after another.  In real life, we
-can't define typeclass instances on type synonyms, so we actually use a
-`newtype`.  The standard implementation comes from the [transformers][]
-library.  Because `State s` is a member of the `Monad` typeclass, we can use
-normal monad combinators, operators, and do notation.  The transformers
-implementation comes with a few useful primitives:
+encapsulates "sequencing" state functions one after another.
+
+We just need `return`:
+
+~~~haskell
+returnState :: a -> State s a
+returnState x = \s -> (x, s)
+~~~
+
+And `return` is `returnState`, `(>>)` is `andThen`, and `(>>=)` is
+`andThenWith`.
+
+
+In real life, we can't define typeclass instances on type synonyms,
+so we actually use a `newtype`.  The standard implementation comes from the
+[transformers][] library.  Because `State s` is a member of the `Monad`
+typeclass, we can use normal monad combinators, operators, and do notation.
+The transformers implementation comes with a few useful primitives:
 
 [transformers]: http://hackage.haskell.org/package/transformers
 
