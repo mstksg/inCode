@@ -538,6 +538,13 @@ for myself.  And feel free to ask questions!
 
 [statetut]: http://brandon.si/code/the-state-monad-a-tutorial-for-the-confused/
 
+The *big* usefulness for this "composing stateful functions" business, instead
+of manually unwrapping and re-wrapping the state, is that now `State` actions
+are first-class, and you can freely compose them and pass them around as
+objects, and you can write individual "sub-routines", are little packets of
+commands that modify state, and then "call them" and compose them from other
+stateful computations.
+
 #### Why monads?
 
 One might pause to wonder why we would want to instance our `s -> (a, s)`
@@ -572,7 +579,8 @@ monad operations:
 !!!huffman/Huffman.hs "runListFreq ::" huffman-encoding
 ~~~
 
-`execState` runs the given `State` computation with the given initial state.
+`execState` runs the given `State` computation with the given initial state,
+and returns the final state `s` at the end of it all.
 
 Remember that the best way to read `State s a` is just "a type synonym for
 `s -> (a,s)`".  So when we say `listFreqState :: State (FreqTable a) ()`, we
