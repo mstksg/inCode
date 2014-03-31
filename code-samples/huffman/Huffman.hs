@@ -6,7 +6,6 @@ module Huffman where
 import Control.Applicative              ((<$>))
 import Control.Monad.Trans.State.Strict
 import Data.Map.Strict                  (Map)
-import Data.Maybe                       (fromJust)
 import qualified Data.Map.Strict        as M
 
 import PQueue
@@ -63,21 +62,27 @@ listQueueState xs = M.traverseWithKey addNode (listFreq xs) >> return ()
 -- buildTree: The stateful computation of building a Huffman encoding tree
 --      with an underlying PQueue state.  It expects a populated PQueue as
 --      an initial state.
-buildTree :: State (PQueue (WPreTree a)) (PreTree a)
+buildTree :: State (PQueue (WPreTree a)) (Maybe (PreTree a))
 buildTree = do
-    t1  <- fromJust <$> state popPQ         -- queue should never be empty
-    t2' <- state popPQ
-    case t2' of
-        Nothing  ->
-            -- We're done, there was only one item!
-            return (_wItem t1)              -- break out of the loop
-        Just t2 -> do
-            -- merge and push
-            let combined = mergeWPT t1 t2
-            modify (insertPQ combined)
-            buildTree                       -- recursive call
+    t1' <- state popPQ
+    case t1' of
+      Nothing ->
+        -- queue was empty to begin with, so this fails.
+        return Nothing
+      Just t1 -> do
+        t2' <- state popPQ
+        case t2' of
+            Nothing  ->
+                -- We're done, there was only one item!  Return a `Just` to
+                -- indicate success.
+                return (Just (_wItem t1))     -- break out of the loop
+            Just t2 -> do
+                -- merge and push
+                let combined = mergeWPT t1 t2
+                modify (insertPQ combined)
+                buildTree                     -- recursive call
 
 -- runBuildTree: Returns a Huffman-encoded prefix tree of `a`s from the
 --      given list of `a`'s.
-runBuildTree :: Ord a => [a] -> PreTree a
+runBuildTree :: Ord a => [a] -> (Maybe (PreTree a))
 runBuildTree xs = evalState (listQueueState xs >> buildTree) emptyPQ

@@ -514,7 +514,6 @@ returnState x = \s -> (x, s)
 And `return` is `returnState`, `(>>)` is `andThen`, and `(>>=)` is
 `andThenWith`.
 
-
 In real life, we can't define typeclass instances on type synonyms,
 so we actually use a `newtype`.  The standard implementation comes from the
 [transformers][] library.  Because `State s` is a member of the `Monad`
@@ -624,22 +623,19 @@ So let's remember how the building process works:
 3.  Merge the two popped items, and push them back into the queue.  Go back to
     step 1.
 
-Sounds simple enough.
+Sounds simple enough.  We should take into account that we would fail to build
+a tree if the queue was empty to begin with, by returning a `Maybe (PreTree
+a)` instead of a `PreTree a`.
 
 ~~~haskell
 !!!huffman/Huffman.hs "buildTree ::" "runBuildTree ::" huffman-encoding
 ~~~
-
-(Remember that `(<$>)` is the operator alias of `fmap`, which applies a
-function "inside" the Monad --- in our case, we use it to apply `fromJust` to
-whatever comes out of `state popPQ`.)
 
 Note that due to our uncanny foresight, `popPQ :: PQueue a -> (Maybe a, PQueue
 a)` is already a state function `s -> (a, s)`, where the state is `PSQueue a`
 and the return value is `Maybe a`.  So all we need to do is say `state popPQ`
 to wrap it in the `State s a` newtype wrapper/container, and it becomes an
 "official" `State (PQueue a) (Maybe a)`.
-
 
 Remember that `State s a` is *just a thin wrapper/container* over a function
 `s -> (a, s)`, anyway, so the two should be somewhat equivalent in your mind;
@@ -664,7 +660,7 @@ operation on the given starting state, and outputs the final result (instead
 of the final state).
 
 ~~~haskell
-λ: runBuildTree "hello world"
+λ: fromJust $ runBuildTree "hello world"
 PQTNode (PTNode (PTNode (PTLeaf 'h')
                         (PTLeaf 'e')
                 )
