@@ -34,10 +34,11 @@ write to another in a pure way, avoiding lazy IO using the ever-more-popular
 [pipes]: http://hackage.haskell.org/package/pipes
 
 We're going to be assuming some basic Haskell knowledge, like algebraic data
-types, higher order functions, and some basic familiarity with the functions
-in Prelude/base, the standard library.  If you have any questions, feel free
-to leave a comment, drop by on #haskell on freenode, throw me a
-[tweet][twitter], or give the great [Learn You A Haskell][lyah] a quick read!
+types, higher order functions, basic monad usage, and some basic familiarity
+with the functions in Prelude/base, the standard library.  If you have any
+questions, feel free to leave a comment, drop by on #haskell on freenode,
+throw me a [tweet][twitter], or give the great [Learn You A Haskell][lyah] a
+quick read!
 
 [twitter]: https://twitter.com/mstk
 [lyah]: http://learnyouahaskell.com
@@ -319,7 +320,7 @@ Let's wrap this up in a tidy interface/API for a `PQueue` type:
 
 We do this so that we hide our low-level skew heap implementation over a
 "high-level" priority queue interface.  We do not export the `PQ` constructor,
-so users cannot ever directly access the underlying skew hea.  In this case,
+so users cannot ever directly access the underlying skew heap.  In this case,
 the high level isn't much higher of a level, but it's good practice to hide
 away the implementation details when you can in Haskell, a language whose
 power lies so much in abstraction.
