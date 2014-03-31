@@ -6,12 +6,14 @@ Categories
 :   Tutorials
 Tags
 :   haskell
+:   monads
 CreateTime
 :   2014/03/19 01:25:50
 PostDate
 :   2014/03/31 10:13:44
 Series
 :   Huffman Compression
+:   Beginner/Intermediate Haskell Projects
 Identifier
 :   huffman-1
 
