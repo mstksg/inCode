@@ -26,11 +26,13 @@ Let's take a go at [Huffman encoding][] in Haskell.  We will look at two types
 of binary trees, which we use to implement immutable/persistent priority
 queues and prefix trees.  We'll play around with the State monad a bit,
 explore some useful typeclasses, learn how to serialize, marshal, and
-unmarshal data structures, and also look at how to load data from a file and
-write to another in a pure way, avoiding lazy IO using the ever-more-popular
-*[pipes][]* library.  And hopefully we learn some neat Haskell idioms!
+unmarshal data structures using the [binary][] library, and also look at how
+to load data from a file and write to another in a pure way, avoiding lazy IO
+using the ever-more-popular *[pipes][]* library.  And hopefully we learn some
+neat Haskell idioms!
 
 [Huffman encoding]: http://en.wikipedia.org/wiki/Huffman_coding
+[binary]: http://hackage.haskell.org/package/binary
 [pipes]: http://hackage.haskell.org/package/pipes
 
 We're going to be assuming some basic Haskell knowledge, like algebraic data
