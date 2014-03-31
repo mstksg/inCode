@@ -207,20 +207,13 @@ not loose too much by just returning a `b` instead of an `IO b` with
 Okay, let's define a Category instance, that lets us compose `ParArrow`s:
 
 ~~~haskell
-instance Category ParArrow where
-    id    = Pure id
-    f . g = Seq g f
+!!!pararrow/ParArrow.hs "instance Category ParArrow"
 ~~~
 
 No surprises there, hopefully!  Now an Arrow instance:
 
 ~~~haskell
-instance Arrow ParArrow where
-    arr      = Pure
-    first f  = f  *** id
-    second g = id *** g
-    f &&& g  = Par (id &&& id) f g id
-    f *** g  = Par id          f g id
+!!!pararrow/ParArrow.hs "instance Arrow ParArrow"
 ~~~
 
 Also simple enough.  Note that `first` and `second` are defined in terms of
@@ -233,29 +226,57 @@ Now, for the magic --- consolidating a big composition of fragmented
 `ParArrow`s into a streamlined simple-as-possible graph:
 
 ~~~haskell
-collapse :: ParArrow a b -> ParArrow a b
-collapse (Seq f g)       =
-    case (collapse f, collapse g) of
-      (Pure p1, Pure p2)      -> Pure (p1 >>> p2)
-      (Seq s1 s2, _)          -> Seq (collapse s1)
-                                     (collapse (Seq s2 g))
-      (_, Seq s1 s2)          -> Seq (collapse (Seq f s1))
-                                     (collapse s2)
-      (Pure p, Par l p1 p2 r) -> Par (p >>> l)
-                                     (collapse p1) (collapse p2)
-                                     r
-      (Par l p1 p2 r, Pure p) -> Par l
-                                     (collapse p1) (collapse p2)
-                                     (r >>> p)
-      (Par l p1 p2 r,
-       Par l' p1' p2' r')     -> let p1f x = fst . l' . r $ (x, undefined)
-                                     p2f x = snd . l' . r $ (undefined, x)
-                                     pp1 = collapse (p1 >>> arr p1f >>> p1')
-                                     pp2 = collapse (p2 >>> arr p2f >>> p2')
-                                 in  Par l pp1 pp2 r'
-      (f', g') -> Seq f' g'
-collapse p = p
+!!!pararrow/ParArrow.hs "collapse ::"
 ~~~
+
+There are probably a couple of redundant calls to `collapse` in there, but the
+picture should still be evident:
+
+*   Collapsing two sequenced `Pure`s should just be a single `Pure` with their
+    pure functions composed.
+*   Collapsing a `Seq` sequenced with anything else should re-associate the
+    `Seq`s to the left, and collapse the `ParArrow`s inside as well.
+*   Collapsing a `Pure` and a `Par` should just involve moving the function
+    inside the `Pure` to the wrapping/unwrapping functions around the `Par`.
+*   Collapsing two `Par`s is where the fun happens!
+
+    We "fuse" the parallel branches of the fork together.  We do that by
+    running the export functions and the extract functions on each side,
+    "ignoring" the other half of the tuple.  This should work if the
+    export/extract functions are all either `id` or `id &&& id`.
+
+And...here we have a highly condensed parallelism graph.
+
+### Inspecting `ParArrow` structures
+
+It might be useful to get a peek at the internal structures of a collapsed
+`ParArrow`.  I used a helper data type, `Graph`.
+
+~~~haskell
+!!!pararrow/ParArrow.hs "data Graph"
+~~~
+
+And we can convert a given `ParArrow` into its internal graph:
+
+~~~haskell
+!!!pararrow/ParArrow.hs "analyze' ::" "analyze ::"
+~~~
+
+
+Running ParArrows
+-----------------
+
+Now we just need a way to run a `ParArrow`, and do the proper forking.
+
+This actually isn't too bad at all.
+
+~~~haskell
+!!!pararrow/ParArrow.hs "run ::"
+~~~
+
+(Note that I left in debug traces)
+
+
 
 
 

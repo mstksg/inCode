@@ -3,6 +3,7 @@ digraph {
 
     node [shape=box, fontname="palatino"] ;
     edge [fontname="palatino"] ;
+    graph [rankdir=LR] ;
 
 
     x [shape=oval] ;
