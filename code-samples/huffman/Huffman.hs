@@ -72,15 +72,15 @@ buildTree = do
       Just t1 -> do
         t2' <- state popPQ
         case t2' of
-            Nothing  ->
-                -- We're done, there was only one item!  Return a `Just` to
-                -- indicate success.
-                return (Just (_wItem t1))     -- break out of the loop
-            Just t2 -> do
-                -- merge and push
-                let combined = mergeWPT t1 t2
-                modify (insertPQ combined)
-                buildTree                     -- recursive call
+          Nothing  ->
+            -- We're done, there was only one item!  Return a `Just` to
+            -- indicate success.
+            return (Just (_wItem t1))     -- break out of the loop
+          Just t2 -> do
+            -- merge and push
+            let combined = mergeWPT t1 t2
+            modify (insertPQ combined)
+            buildTree                     -- recursive call
 
 -- runBuildTree: Returns a Huffman-encoded prefix tree of `a`s from the
 --      given list of `a`'s.
