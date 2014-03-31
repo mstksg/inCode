@@ -15,11 +15,11 @@ makePT = PTLeaf
 mergePT :: PreTree a -> PreTree a -> PreTree a
 mergePT = PTNode
 
-type WPreTree a = Weighted (PreTree a)
+type WeightedPT a = Weighted (PreTree a)
 
-makeWPT :: Int -> a -> WPreTree a
+makeWPT :: Int -> a -> WeightedPT a
 makeWPT w = WPair w . makePT
 
-mergeWPT :: WPreTree a -> WPreTree a -> WPreTree a
+mergeWPT :: WeightedPT a -> WeightedPT a -> WeightedPT a
 mergeWPT (WPair w1 pt1) (WPair w2 pt2)
     = WPair (w1 + w2) (mergePT pt1 pt2)

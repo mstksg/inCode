@@ -46,15 +46,15 @@ listQueue = M.foldrWithKey f emptyPQ . listFreq
 
 -- runListQueue: The same thing as listQueue, but using traverseWithKey in
 --      a State monad.
-runListQueue :: Ord a => [a] -> PQueue (WPreTree a)
+runListQueue :: Ord a => [a] -> PQueue (WeightedPT a)
 runListQueue xs = execState (listQueueState xs) emptyPQ
 
 -- listQueueState: The stateful computation of building a priority list
 --      from a given queue, using a PQueue state.
-listQueueState :: Ord a => [a] -> State (PQueue (WPreTree a)) ()
+listQueueState :: Ord a => [a] -> State (PQueue (WeightedPT a)) ()
 listQueueState xs = M.traverseWithKey addNode (listFreq xs) >> return ()
   where
-    addNode :: a -> Int -> State (PQueue (WPreTree a)) ()
+    addNode :: a -> Int -> State (PQueue (WeightedPT a)) ()
     addNode x i = modify (insertPQ (WPair i (makePT x)))
 
 -- | Building trees
@@ -62,7 +62,7 @@ listQueueState xs = M.traverseWithKey addNode (listFreq xs) >> return ()
 -- buildTree: The stateful computation of building a Huffman encoding tree
 --      with an underlying PQueue state.  It expects a populated PQueue as
 --      an initial state.
-buildTree :: State (PQueue (WPreTree a)) (Maybe (PreTree a))
+buildTree :: State (PQueue (WeightedPT a)) (Maybe (PreTree a))
 buildTree = do
     t1' <- state popPQ
     case t1' of

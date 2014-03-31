@@ -175,27 +175,27 @@ WPair 1 (makePTLeaf 'a') :: Weighted (PreTree Char)
 This weighted `PreTree` is pretty useful, let's give it an alias/typedef:
 
 ~~~haskell
-!!!huffman/PreTree.hs "type WPreTree" huffman-encoding
+!!!huffman/PreTree.hs "type WeightedPT" huffman-encoding
 ~~~
 
-Let's make the same functions for `WPreTree` as we did for `PreTree`:
+Let's make the same functions for `WeightedPT` as we did for `PreTree`:
 
 ~~~haskell
 !!!huffman/PreTree.hs "makeWPT ::" huffman-encoding
 ~~~
 
-The above basically says "to make a `WPreTree` with weight `w`, first
+The above basically says "to make a `WeightedPT` with weight `w`, first
 `makePT` it, and then add that result it to a `WPair w`.
 
 ~~~haskell
 λ: let pt = makeWPT 1 'w'
 λ: :t pt
-WPreTree Char
+WeightedPT Char
 λ: pt
 WPair 1 (PLeaf 'w')
 ~~~
 
-We will also want to merge two `WPreTree`s:
+We will also want to merge two `WeightedPT`s:
 
 ~~~haskell
 !!!huffman/PreTree.hs "mergeWPT ::" huffman-encoding
