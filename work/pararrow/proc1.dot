@@ -1,0 +1,21 @@
+
+digraph {
+
+    node [shape=box, fontname="palatino"] ;
+    edge [fontname="palatino"] ;
+
+
+    x [shape=oval] ;
+    f ;
+    g ;
+    h ;
+    r [shape=oval, label = "y * z + q"] ;
+
+    x -> f ;
+    f -> r [label = "y"] ;
+    x -> g ;
+    f -> h ;
+    h -> r [label = "q"] ;
+    g -> r [label = "z"] ;
+
+}
