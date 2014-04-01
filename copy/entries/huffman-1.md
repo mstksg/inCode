@@ -91,11 +91,11 @@ That function is sort of embarrassingly easy:
 
 ~~~haskell
 makePT' :: a -> PreTree a
-makePT' x = PLeaf x
+makePT' x = PTLeaf x
 ~~~
 
-Remember, that's `PLeaf` is a data constructor that "creates" a `PreTree` when
-you use `PLeaf x`.
+Remember, that's `PTLeaf` is a data constructor that "creates" a `PreTree` when
+you use `PTLeaf x`.
 
 However, something like this is just begging to be eta-reduced, and we can
 simplify it as:
@@ -104,8 +104,8 @@ simplify it as:
 !!!huffman/PreTree.hs "makePT ::" huffman-encoding
 ~~~
 
-Which does the same thing.  Basically, `PLeaf` is already a function `a ->
-PreTree a`...so `makePT` is literally just `PLeaf`.
+Which does the same thing.  Basically, `PTLeaf` is already a function `a ->
+PreTree a`...so `makePT` is literally just `PTLeaf`.
 
 
 ~~~haskell
@@ -113,7 +113,7 @@ PreTree a`...so `makePT` is literally just `PLeaf`.
 λ: :t pt
 PreTree Char
 λ: pt
-PLeaf 'c'
+PTLeaf 'c'
 ~~~
 
 Now, we might also want a way to "merge" two `PreTree a`'s.  This is at the
@@ -192,7 +192,7 @@ The above basically says "to make a `WeightedPT` with weight `w`, first
 λ: :t pt
 WeightedPT Char
 λ: pt
-WPair 1 (PLeaf 'w')
+WPair 1 (PTLeaf 'w')
 ~~~
 
 We will also want to merge two `WeightedPT`s:
