@@ -37,9 +37,9 @@ popSH (SNode r h1 h2) = (Just r , mergeSH h1 h2)
 mergeSH :: Ord a => SkewHeap a -> SkewHeap a -> SkewHeap a
 mergeSH SEmpty h = h
 mergeSH h SEmpty = h
-mergeSH l@(SNode nl ll rl) r@(SNode nr lr rr)
-    | nl < nr    = SNode nl (mergeSH rl r) ll
-    | otherwise  = SNode nr (mergeSH rr l) lr
+mergeSH h1@(SNode x1 l1 r1) h2@(SNode x2 l2 r2)
+    | x1 < x2    = SNode x1 (mergeSH r1 h2) l1
+    | otherwise  = SNode x2 (mergeSH r2 h1) l2
 
 -- | External PQueue (Priority Queue) interface
 --
