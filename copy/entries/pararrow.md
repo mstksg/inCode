@@ -1,5 +1,5 @@
-An (Semi-failed) Arrow-based Dataflow Parallelism Interface [Dead ends & musings]
-=================================================================================
+An (Semi-dead end) Arrowized Dataflow Parallelism Interface
+===========================================================
 
 Categories
 :   Haskell
