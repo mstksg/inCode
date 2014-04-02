@@ -1,5 +1,5 @@
-An (Semi-dead end) Arrowized Dataflow Parallelism Interface
-===========================================================
+A (Semi-dead end) Arrowized Dataflow Parallelism Interface
+==========================================================
 
 Categories
 :   Haskell
