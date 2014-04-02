@@ -532,8 +532,8 @@ would actaully suggest that we forked three times, but...I'm not totally sure
 what's going on here heh.  Still two is much more than what should ideally be
 required (one).
 
-Oh
---
+Oh.
+---
 
 So now we can no longer fully "collapse" the two parallel forks, and it
 involves forking twice.  Which makes complete sense, because we have to swap
