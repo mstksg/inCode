@@ -320,6 +320,11 @@ Let's wrap this up in a tidy interface/API for a `PQueue` type:
 !!!huffman/PQueue.hs "newtype PQueue" "emptyPQ ::" "insertPQ ::" "popPQ ::" "sizePQ ::" huffman-encoding
 ~~~
 
+(Notice `toList`, from the [Foldable] module; we derived `Foldable` so that we
+can use `toList` on our `SkewHeap`s)
+
+[foldable]: http://hackage.haskell.org/package/base-4.6.0.1/docs/Data-Foldable.html
+
 We do this so that we hide our low-level skew heap implementation over a
 "high-level" priority queue interface.  We do not export the `PQ` constructor,
 so users cannot ever directly access the underlying skew heap.  In this case,
@@ -443,8 +448,8 @@ So we have something like
 
 ~~~haskell
 andThen :: (s -> (a,s)) -> (s -> (b,s)) -> (s -> (b,s))
-andThen f1 f2 = \s -> let (_,s') = f1 s
-                      in  f2 s'
+andThen f1 f2 = \st -> let (_,st') = f1 s
+                       in  f2 st'
 ~~~
 
 Think of `andThen` like a semicolon, of sorts.
@@ -472,8 +477,8 @@ simple, actually ---
 
 ~~~haskell
 andThenWith :: (s -> (a,s)) -> (a -> (s -> (b, s))) -> (s -> (b, s))
-andThenWith f1 f2 = \s -> let (x,s') = f1 s
-                          in  (f2 x) s'
+andThenWith f1 f2 = \st -> let (x,st') = f1 s
+                           in  (f2 x) st'
 ~~~
 
 As it turns out...if you squint hard enough, the type signature `andThenWith`
@@ -511,7 +516,7 @@ We just need `return`:
 
 ~~~haskell
 returnState :: a -> State s a
-returnState x = \s -> (x, s)
+returnState x = \st -> (x, st)
 ~~~
 
 And `return` is `returnState`, `(>>)` is `andThen`, and `(>>=)` is
@@ -531,21 +536,21 @@ state :: (s -> (a, s)) -> State s a
 
 -- get grabs the state as the result.
 get :: State s s
-get = state (\s -> (s,s))
+get = state (\st -> (st, st))
 
 -- put sets the state to the input
 put :: s -> State s ()
-put s = state (\_ -> ((), s))
+put s = state (\_ -> ((), st))
 
 -- modifies the state with the given function
 modify :: (s -> s) -> State s ()
-modify f = state (\s -> ((), f s))
+modify f = state (\st -> ((), f st))
 
 -- alternative implementation of `modify`
 modify' f :: (s -> s) -> State s ()
 modify' f = do
-    s <- get
-    put (f s)
+    st <- get
+    put (f st)
 ~~~
 
 If you're still lost, check out Brandon Simmon's [state monad
@@ -588,33 +593,84 @@ expressive tool!
 
 #### A quick look back
 
-Now note that we could have actually done our previous `fold`s as `State`
-monad operations:
+This is a bit of an unrelated aside...but notice that we could have actually
+done our previous `fold`s as state monad operations; like `listFreq`:
 
 ~~~haskell
 !!!huffman/Huffman.hs "runListFreq ::" huffman-encoding
 ~~~
 
 `execState` runs the given `State` computation with the given initial state,
-and returns the final state `s` at the end of it all.
+and returns the final state `s` at the end of it all.  Basically, it takes an
+`s -> (a, s)` (the `State s a`), an `s`, applies the function to it, and
+returns just the `s` in the tuple.
 
 Remember that the best way to read `State s a` is just "a type synonym for
 `s -> (a,s)`".  So when we say `listFreqState :: State (FreqTable a) ()`, we
 mean that `listFreqState` is a function from a `FreqTable a` to `((),
 FreqTable a)`.
 
+How about `listQueue`?  We could do it with the state monad too, if we wanted
+to.
+
 ~~~haskell
 !!!huffman/Huffman.hs "listQueueState ::" "runListQueue ::" huffman-encoding
 ~~~
 
-Note that in these cases, the monadic usage isn't actually necessary --- nor
-is it very useful (a fold would be just as expressive and probably easier to
-read).  However, what if we wanted to make decisions and branch based on the
-current state?  That's when the State monad shines as a monad.
+In these cases, the monadic usage isn't quite necessary or useful on its own.
+A fold would have probably been more expressive and easier to read.  The above
+examples were just for demonstrations/exercises.
 
-(We're not going to use `listFreq'` and `listQueue'`...but let's hang onto
-`listQueueState` for a bit.)
+But when do we "need" the state monad?  (Or rather, when is a fold not
+powerful enough or much messier?)
 
+It's when we want to make decisions or "branch" based on the current state, or
+the results of our state actions.  "Fold for three items; if the next list
+item is even then do this fold afterwards, otherwise do that fold".  This is
+when the state monad shines as a monad.
+
+Another case where we might want to use a state monad over a fold is if we
+forsee us wanting to "compose" our folds into bigger stateful computations.
+For example, in `listQueueState`, we "process" a state, and leave it modified
+for *another state monad action* to use.
+
+For example:
+
+~~~haskell
+prepareQueue :: State (PQueue (WeightedPT a)) ()
+useQueue     :: State (PQueue (WeightedPT a)) a
+
+doAllTogether :: Ord a => [a] -> State (PQueue (WeightedPT a)) a
+doAllTogether xs = prepareQueue >> listQueueState xs >> useQueue
+
+-- alternatively, the same thing but in do notation
+doAllTogether' :: Ord a => [a] -> State (PQueue (WeightedPT a)) a
+doAllTogether' xs = do
+    prepareQueue
+    listQueueState xs
+    useQueue
+
+runDoAllTogether :: Ord a => [a] -> a
+runDoAllTogether xs = evalState (doAllTogether xs) emptyPQ
+~~~
+
+(Remember that `(>>)` is just our `andThen`, and when we sequence using `(>>)`
+we mean "combine these two actions into one big action that feeds the
+resulting state of the left side into the beginning state of the right side.")
+
+Anyways, see that we can "drop" a call to `listQueueState` inside a sequence
+of stateful actions, and it'll just process the queue and leave it for the
+next action to use.
+
+If we had used `listQueue` as a "pure" fold...this is a bit harder to do.
+You'd have to rewrite `listQueue` to take in any arbitrary "starting
+queue"...extract the starting queue using `get` after `prepareQueue`, use a
+`let` to bind it as a pure function, then use `put` to pop the result back
+into the state for `useQueue` to use.  Or use `modify` in a just-as-convoluted
+way.
+
+Moving on, we actually won't be using `runListFreq` in the future (it was
+mostly for fun), but (spoilers) we might want to hold onto `listQueueState` :)
 
 ### Building with State
 
@@ -648,19 +704,20 @@ instance for `s -> (a, s)` in a clean way).  When you read `State s a`, you
 *should really read* `s -> (a, s)`, because they are for the most part
 *completely equivalent*.
 
-Remember also that `(>>)` is Monad-speak for our `andThen` function we
-defined earlier, so for `buildTree`, we do "`listQueueState xs` *and then*
-`buildTree`".  `(>>)` joins two `s -> (a, s)` functions into one giant `s
--> (a,s)`, by feeding the resulting state of the first action into the next
-one.  `listQueueState` takes an empty priority queue and 'fills' it with nodes
-generated from `xs`, leaving a filled priority queue.  `buildTree` then
-takes that filled queue and performs our building operations on it, modifying
-it as it goes along, and ends up with an empty queue as a state and returning
-the finished tree as a result.
+Again, `(>>)` is Monad-speak for our `andThen` function we defined earlier, so
+for `buildTree`, we do "`listQueueState xs` *and then* `buildTree`".  `(>>)`
+joins two `s -> (a, s)` functions into one giant `s -> (a,s)`, by feeding the
+resulting state of the first action into the next one.  `listQueueState` takes
+an empty priority queue and 'fills' it with nodes generated from `xs`, leaving
+a filled priority queue.  `buildTree` then takes that filled queue and
+performs our building operations on it, modifying it as it goes along, and
+ends up with an empty queue as a state and returning the finished tree as a
+result.
 
-`evalState` is like the opposite of `execState` --- it runs the state
-operation on the given starting state, and outputs the final result (instead
-of the final state).
+`evalState` is like partner of `execState` --- it runs the state operation on
+the given starting state, and outputs the final result (instead of the final
+state).  It takes an `s -> (a, s)`, an `s`, and applies the function to it and
+gives the resulting `a` of the tuple.
 
 ~~~haskell
 λ: fromJust $ runBuildTree "hello world"
