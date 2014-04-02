@@ -19,8 +19,8 @@ Identifier
 So I've been having several 'dead end' projects in Haskell recently that I've
 sort of just scrapped and move from, but I decided that it might be nice to
 document some of them :)  For reading back on it later, for people to possibly
-help, for people to peruse and possibly learn something, or for people to
-laugh at me.  Here is my most recent semi-failure --- implicit
+help/offer suggestions, for people to peruse and possibly learn something, or
+for people to laugh at me.  Here is my most recent semi-failure --- implicit
 dataflow parallelism through an Arrow interface.
 
 The Vision
@@ -59,7 +59,7 @@ and add them up later.
 
 So what kind of Arrow interface am I imagining with this?
 
-Haskell has some nice syntax for composing "functions":
+Haskell has some nice syntax for composing "functions" (`f`, `g`, and `h`):
 
 ~~~haskell
 proc x -> do
@@ -69,11 +69,11 @@ proc x -> do
     returnA -< y * z + q
 ~~~
 
-![The above proc statement, diagrammed.](/img/entries/pararrow/proc1.png "proc")
-
 A `proc` statement is a fancy lambda, which takes an input `x` and "funnels"
 `x` through several different "functions" --- in our case, `f`, `g`, and `h`
 --- and lets you name the results so that you can use them later.
+
+![The above proc statement, diagrammed.](/img/entries/pararrow/proc1.png "proc")
 
 While this looks like you are 'performing' `f`, then `g`, then `h`, what is
 actually happening is that you are *composing* and synthesizing a *new
@@ -293,7 +293,8 @@ And we can convert a given `ParArrow` into its internal graph:
 
 ### Sample ParArrows
 
-Let's try examining it with our example `Arrow`:
+Let's try examining it with some simple `Arrow`s, like the one we mentioned
+before:
 
 ~~~haskell
 λ: let test1 =
@@ -317,7 +318,9 @@ are indeed only two parallel forks of pure functions.
 How about a much simpler one that we unroll ourselves:
 
 ~~~haskell
-λ: let test2 = arr (uncurry (+)) . (arr (*2) *** arr (+3)) . (id &&& id)
+λ: let test2 = arr (uncurry (+))
+ |           . (arr (*2) *** arr (+3))
+ |           . (id &&& id)
 λ: :t test2
 test2 :: (Arrow r, Num t) => r t t
 λ: test2 5
@@ -341,7 +344,7 @@ Running ParArrows
 
 Now we just need a way to run a `ParArrow`, and do the proper forking.
 
-This actually isn't too bad at all.
+This actually isn't too bad at all, because of what we did in `collapse`.
 
 ~~~haskell
 !!!pararrow/ParArrow.hs "runPar' ::" "runPar ::"
@@ -373,7 +376,7 @@ mentioned above)
 Okay, so it looks like this does exactly what we want.  It intelligently
 "knows" when to fork, when to unfork, when to "sequence" forks...
 
-Let's try it with `test1`, the entire "point", the `proc` notation.
+Let's try it with `test1`, which was written in `proc` notation.
 
 ~~~haskell
 λ: test1 5
@@ -473,10 +476,10 @@ Actually, this doesn't even make any sense in terms of our parallel
 computation model!
 
 How can we "combine" two parallel forks...when halfway in between the two
-forks, they must exchange information?  Then it's no longer parallel!
+forks, they must exchange information?  Then it's no longer fully parallel!
 
-We can, of course, fix this.  We can make `collapse` not collapse the
-`Pure`/`Par` cases:
+We can "fix" this.  We can make `collapse` not collapse the `Pure`-`Par`
+cases:
 
 ~~~haskell
 !!!pararrow/ParArrow.hs "collapse_ ::" "analyze_ ::" "runPar_ ::"
@@ -526,22 +529,28 @@ P
 
 And the trace shows that it is "forking" two times.  The structural analysis
 would actaully suggest that we forked three times, but...I'm not totally sure
-what's going on here heh.
+what's going on here heh.  Still two is much more than what should ideally be
+required (one).
 
 Oh
 --
 
-So now we can no longer "collapse" the two parallel forks, and it involves
-forking twice.  Which makes complete sense, because we have to swap in the
-middle.
+So now we can no longer fully "collapse" the two parallel forks, and it
+involves forking twice.  Which makes complete sense, because we have to swap
+in the middle.
 
-Which is rather annoying, because the analogous manual `(&&&)` / `(***)` /
-`second`-based `test1` should not ever fail, because we never fork.  So if the
-proc block had desugared to using those combinators and never using `arr
-(\(x,y) -> (y,x))`, everything would work out fine!
+And without the collapsing...there are a lot of unecessary
+reforks/recominbations that would basically kill any useful parallelization
+unless you pre-compose all of your forks...which kind of defeats the purpose
+of the implicit dataflow parallization in the first place.
+
+Anyways, this is all rather annoying, because the analogous manual `(&&&)` /
+`(***)` / `second`-based `test1` should not ever fail, because we never fork.
+So if the proc block had desugared to using those combinators and never using
+`arr (\(x,y) -> (y,x))`, everything would work out fine!
 
 But hey, if you write out the arrow computation manually by composing `(&&&)`,
-`(***)`, and `second`...this would *all actually work*!  I mean serious!
+`(***)`, and `second`...this will *all actually work*!  I mean serious!
 Isn't that crazy!  (Provided, all of your `Pure`'s are sufficiently
 "parallel").
 
@@ -553,7 +562,7 @@ system to enforce "sufficiently parallel" `Pure`'s.  You can't even check
 against something like `arr (\(x,y) -> (x,x))`, which makes no sense again in
 'isolated parallel' computations.
 
-(Interestingly enough, you *can* check against things like `arr (\(x,y) -> x)`
+(Interestingly enough, you *can* use the type system to enforce against things like `arr (\(x,y) -> x)`
 or `arr (\(x,y) -> 5)`; you can't collapse tuples)
 
 So, well...back to the drawing board I guess.
@@ -599,5 +608,5 @@ learn :)  And of course for entertainment in case I am hilariously awful.
 [^another] Actually, this is technically not true; while I was writing this
 article another idea came to me by using some sort of state machine/automation
 arrow to wait on the results and pass them on, but that's still in the first
-stages.
+stages of being thought through :)
 
