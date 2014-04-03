@@ -12,7 +12,7 @@ Tags
 CreateTime
 :   2014/03/29 02:37:56
 PostDate
-:   2014/04/03 11:26:01
+:   2014/04/03 11:35:01
 Identifier
 :   pararrow
 
@@ -30,30 +30,17 @@ So what do I mean?
 
 ### Dataflow Parallelism
 
-By "dataflow parallelism", I refer to structuring parallel computations by "what
-depends on what".  If two values *can* be computed in parallel, then that is
-taken advantage of.  Consider something like:
-
-~~~haskell
-sum (map f xs)
-~~~
-
-Normally, this would:
-
-1. One by one step over `xs` and apply `f` to each one, building a new list as
-   you go along one at a time.
-2. One by one step over your new mapped list, adding each element to an
-   accumulator and outputting it at the end.
+By "dataflow parallelism", I refer to structuring parallel computations by
+"what depends on what".  If two values *can* be computed in parallel, then
+that is taken advantage of.  Consider something like `map f xs`.  Normally,
+this would: one by one step over `xs` and apply `f` to each one, building a
+new list as you go along one at a time.
 
 But note that there are some easy places to parallelize this --- because none
 of the results the mapped list depend on eachother, you can apply `f` to every
 element in parallel, and re-collect everything back at the end.  And this is a
 big deal if `f` takes a long time.  This is an example of something commonly
 refered to as "embarassingly parallel".
-
-Note that because `sum` is associative, we could even sum something like
-`[1,2,3,4]` in parallel --- we can do `sum [1,2]` and `sum [3,4]` in parallel,
-and add them up later.
 
 ### Arrows
 
@@ -86,13 +73,10 @@ Except...`f`, `g`, and `h` don't have to be normal functions.  They are
 or trigger special things, or be evaluated in special ways.  They are
 instances of the `Arrow` typeclass.
 
-Proc notation allows us to assemble a giant new arrow, from sequencing smaller
-arrows.
-
 An `Arrow a b` just represents, abstractly, a way to get some `b` from some
-`a`, equipped with combinators that allow you to compose them in powerful
-ways.  A normal function `(->)` is an arrow in the most obvious way, as `a ->
-b` represents a way to get a `b` from an input `a`.
+`a`, equipped with combinators that allow you to compose them in neat ways.
+Proc notation allows us to assemble a giant new arrow, from sequencing and
+composing smaller arrows.
 
 ### Forking Arrows
 
@@ -111,11 +95,11 @@ runArrow :: ParArrow a b -> a -> IO b
 Where if i gave `runArrow` a `ParArrow a b`, and an `a`, It would fork itself
 into its own thread and give you an `IO b` in response to your `a`.
 
-Okay, because of Arrow's ability to "separate out" and "side-chain"
-compositions (note that `q` in the previous example does not depend on `z` at
-all, and can clearly be launched in parallel alongside the calculation of
-`z`), it looks like from a `proc` notation statement, we can easily write
-arrows that all 'fork themselves' under composition.
+Because of Arrow's ability to "separate out" and "side-chain" compositions
+(note that `q` in the previous example does not depend on `z` at all, and can
+clearly be launched in parallel alongside the calculation of `z`), it looks
+like from a `proc` notation statement, we can easily write arrows that all
+'fork themselves' under composition.
 
 Using this, in the above proc example with the fancy diagram, we should be
 able to see that `z` is completely independent of `y` and `q`, so the `g`
@@ -180,13 +164,7 @@ parallel, forked computation!
 
 Yup!
 
-#### Well..
-
-
-Okay, well...if the downfall to this idea is obvious to you know...in my
-defense, *I* thought it was a worthwhile endeavor back then :)
-
-In any case, let's try implementing it, and let's see where things go wrong.
+Let's try implementing it, and let's see where things go wrong.
 
 ParArrow
 --------
@@ -342,9 +320,8 @@ collapse it, we get `GPure :/: GPure`, as we would expect.
 Running ParArrows
 -----------------
 
-Now we just need a way to run a `ParArrow`, and do the proper forking.
-
-This actually isn't too bad at all, because of what we did in `collapse`.
+Now we just need a way to run a `ParArrow`, and do the proper forking.  This
+actually isn't too bad at all, because of what we did in `collapse`.
 
 ~~~haskell
 !!!pararrow/ParArrow.hs "runPar' ::" "runPar ::"
@@ -374,9 +351,8 @@ for the `(->)` version.  (Note how we can use `test2` as both, due to what we
 mentioned above)
 
 Okay, so it looks like this does exactly what we want.  It intelligently
-"knows" when to fork, when to unfork, when to "sequence" forks...
-
-Let's try it with `test1`, which was written in `proc` notation.
+"knows" when to fork, when to unfork, when to "sequence" forks.  Let's try it
+with `test1`, which was written in `proc` notation.
 
 ~~~haskell
 λ: test1 5
@@ -394,37 +370,7 @@ What! :/
 What went wrong
 ---------------
 
-Let's look at the uncollapsed structure of `test1`, that I so cleverly hid
-from you earlier.
-
-~~~haskell
-λ: analyze' test1
-GPure :->: ( GPure :->: (
-    ( GPure :->: (
-        ( ( GPure :->: GPure) :/: GPure ) :->: GPure
-      )
-    ) :-> (
-    ( GPure :-> (
-        ( ( GPure :->: GPure ) :/: GPure ) :-> GPure
-      )
-    ) :->: (
-    ( GPure :->: (
-        ( ( GPure :->: GPure ) :/: GPure ) :-> GPure)
-    ) :-> (
-      GPure :-> (GPure :->: GPure)
-    )
-    )
-    )
-  )
-)
-~~~
-
-Hm.  That's a lot messier than I would have expected.  But that's okay,
-because `collapse` was supposed to meaningfully collapse this all down into
-the eventual `GPure :/: GPure`, right?
-
-Let's dig into the actual desguaring of our `test1`.  According to the proc
-notation specs, and desugar something like `test2`
+Let's dig into actual desguaring.  According to the proc notation specs:
 
 ~~~haskell
 test3 = proc x -> do
@@ -442,7 +388,8 @@ test3' = arr (\(x,y) -> x + y)     -- add
 ~~~
 
 Ah.  Everything is in terms of `arr` and `first`, and it never uses `second`,
-`(***)`, or `(&&&)`
+`(***)`, or `(&&&)`.  (These should be equivalent, due to the Arrow laws, of
+course; my instance is obviously unlawful, oops)
 
 I'm going to cut right to the chase here.  The main problem is our collapsing
 sequenced `Pure` and `Par`s.
@@ -467,16 +414,15 @@ Basically, it has to be derived from functions `a -> c` and `b -> d`.  A
 
 As long as this is true, this will work.
 
-However, see in the desugaring of `test3` that `f` is not always that.  `f`
+However, we see in the desugaring of `test3` that `f` is not always that.  `f`
 can be *any* function, actually, and we can't really control what happens to
 it.  In `test3`, we actaully use `f = \(x,y) -> (y,x)`...definitely not a
 "parallel" function!
 
 Actually, this doesn't even make any sense in terms of our parallel
-computation model!
-
-How can we "combine" two parallel forks...when halfway in between the two
-forks, they must exchange information?  Then it's no longer fully parallel!
+computation model!  How can we "combine" two parallel forks...when halfway in
+between the two forks, they must exchange information?  Then it's no longer
+fully parallel!
 
 We can "fix" this.  We can make `collapse` not collapse the `Pure`-`Par`
 cases:
@@ -500,14 +446,10 @@ Then we have:
 ))
 ~~~
 
-We can see what's going on here.
-
 We basically have three `GPure :-> ((GPure :->: GPure) :/: GPure)`'s in a row.
-A pure function followed by parallel functions.
-
-This sort of makes sense, and if we sort of imagined manually unrolling
-`test1`, this is what we'd imagine we'd get, sorta.  now we don't "collapse"
-the three parallel forks together.
+A pure function followed by parallel functions.  This sort of makes sense, and
+if we sort of imagined manually unrolling `test3`, this is what we'd imagine
+we'd get, sorta.  now we don't "collapse" the three parallel forks together.
 
 This runs without error:
 
