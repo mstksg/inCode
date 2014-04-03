@@ -172,9 +172,9 @@ We can now use `map'` as *both* a normal, sequentual function *and* a
 parallel, forked computation!
 
 ~~~haskell
-λ: map' (*2) [1..5]
+λ: map' (arr (*2)) [1..5]
 [2,4,6,8,10]
-λ: runPar (*2) [1..5]
+λ: runPar (arr (*2)) [1..5]
 [2,4,6,8,10]
 ~~~
 

@@ -658,9 +658,9 @@ runDoAllTogether xs = evalState (doAllTogether xs) emptyPQ
 we mean "combine these two actions into one big action that feeds the
 resulting state of the left side into the beginning state of the right side.")
 
-Anyways, see that we can "drop" a call to `listQueueState` inside a sequence
-of stateful actions, and it'll just process the queue and leave it for the
-next action to use.
+Anyways, see that we can just plop a call to `listQueueState` inside a
+sequence of stateful actions, and it'll just process the queue and leave it
+for the next action to use.
 
 If we had used `listQueue` as a "pure" fold...this is a bit harder to do.
 You'd have to rewrite `listQueue` to take in any arbitrary "starting
