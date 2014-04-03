@@ -1,7 +1,4 @@
 {-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE KindSignatures #-}
-{-# LANGUAGE GADTs #-}
--- http://blog.jle.im/entry/a-semi-failed-project-an-arrow-based-dataflow
 
 module ParArrow where
 
@@ -12,20 +9,13 @@ import Control.Category
 import Control.Concurrent
 import Prelude hiding      (id, (.))
 
-data ParArrow :: * -> * -> * where 
-         Pure :: forall a b.
-                      (a -> b)
-                   -> ParArrow a b
-         Seq  :: forall a z b.
-                      ParArrow a z
-                   -> ParArrow z b
-                   -> ParArrow a b
-         Par  :: forall a a1 a2 b1 b2 b.
-                      (a -> (a1, a2))
-                   -> ParArrow a1 b1
-                   -> ParArrow a2 b2
-                   -> ((b1,b2) -> b)
-                   -> ParArrow a b
+data ParArrow a b =                     Pure  (a -> b)
+                  | forall z.           Seq   (ParArrow a z)
+                                              (ParArrow z b)
+                  | forall a1 a2 b1 b2. Par   (a -> (a1, a2))
+                                              (ParArrow a1 b1)
+                                              (ParArrow a2 b2)
+                                              ((b1, b2) -> b)
 
 instance Category ParArrow where
     id    = Pure id

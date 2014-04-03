@@ -1,5 +1,5 @@
-Streaming Huffman Compression in Haskell (Part 1)
-=================================================
+Streaming Huffman Compression in Haskell (Part 1: Trees and State)
+==================================================================
 
 Categories
 :   Haskell
@@ -321,7 +321,10 @@ Let's wrap this up in a tidy interface/API for a `PQueue` type:
 ~~~
 
 (Notice `toList`, from the [Foldable] module; we derived `Foldable` so that we
-can use `toList` on our `SkewHeap`s)
+can use `toList` on our `SkewHeap`s.  If your Haskell implementation cannot
+derive foldable (if you are not using GHC, for example) --- and even if your
+implementation can --- it might be fun to think about how to implement
+`sizePQ` without it!)
 
 [foldable]: http://hackage.haskell.org/package/base-4.6.0.1/docs/Data-Foldable.html
 

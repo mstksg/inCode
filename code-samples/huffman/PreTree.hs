@@ -1,5 +1,9 @@
+{-# LANGUAGE DeriveGeneric #-}
+-- http://blog.jle.im/entry/implementing-huffman-compression-encoding-in-haskell
+
 module PreTree where
 
+import GHC.Generics
 import Weighted
 
 -- | Prefix trees, used to implement Huffman encodings.
@@ -7,7 +11,7 @@ import Weighted
 -- PrefixTree: The data type.
 data PreTree a = PTLeaf a
                | PTNode (PreTree a) (PreTree a)
-               deriving (Show, Eq)
+               deriving (Show, Eq, Generic)
 
 makePT :: a -> PreTree a
 makePT = PTLeaf
