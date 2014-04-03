@@ -1,5 +1,5 @@
-A (Dead End?) Arrowized Dataflow Parallelism Interface
-==========================================================
+A (Dead End?) Arrowized Dataflow Parallelism Interface Attempt
+==============================================================
 
 Categories
 :   Haskell
