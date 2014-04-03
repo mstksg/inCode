@@ -547,7 +547,7 @@ putting up my thought process up in written form somewhere so that I could
 look back on them, or so that people can see what doesn't work and/or possibly
 learn :)  And of course for entertainment in case I am hilariously awful.
 
-[^another] Actually, this is technically not true; while I was writing this
+[^another]: Actually, this is technically not true; while I was writing this
 article another idea came to me by using some sort of state machine/automation
 arrow to wait on the results and pass them on, but that's still in the first
 stages of being thought through :)
