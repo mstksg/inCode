@@ -1,4 +1,4 @@
-A (Semi-dead end) Arrowized Dataflow Parallelism Interface
+A (Dead End?) Arrowized Dataflow Parallelism Interface
 ==========================================================
 
 Categories
