@@ -56,7 +56,7 @@ deserialize our `PreTree`s (if what they contain is itself serializable).
 In real life, we would do this.  However, for the sake of learning, let's dig
 a bit more into the `Binary` typeclass.
 
-### Binary duals
+### The *Other* Easy Way
 
 So the big crux of *binary* is the `Binary` typeclass:
 
@@ -139,6 +139,62 @@ that the final two `get`s both expect `PreTree a`'s, so it nows what to parse
 for that too.
 
 Hooray for type inference!
+
+
+### Testing it out
+
+However way we decide to write our `Binary` instance, let's test it all out.
+
+~~~haskell
+λ: let t = fromJust $ runBuildTree "hello world"
+λ: let encoded = encode t
+λ: :t encoded
+encoded :: ByteString       -- a string of bytes
+λ: let decoded = decode t :: PreTree Char
+λ: decoded
+PQTNode (PTNode (PTNode (PTLeaf 'h')
+                        (PTLeaf 'e')
+                )
+                (PTNode (PTLeaf 'w')
+                        (PTLeaf 'r')
+                )
+        )
+        (PTNode (PTLeaf 'l')
+                (PTNode (PTNode (PTLeaf 'd')
+                                (PTLeaf ' ')
+                        )
+                        (PTLeaf 'o')
+                )
+        )
+λ: decoded == t
+True
+~~~
+
+Sweet!  We can also write it to a file and re-read:
+
+~~~haskell
+λ: encodeFile "test.dat" t
+λ: t' <- decodeFile "test.dat" :: IO (PreTree Char)
+λ: t'
+PQTNode (PTNode (PTNode (PTLeaf 'h')
+                        (PTLeaf 'e')
+                )
+                (PTNode (PTLeaf 'w')
+                        (PTLeaf 'r')
+                )
+        )
+        (PTNode (PTLeaf 'l')
+                (PTNode (PTNode (PTLeaf 'd')
+                                (PTLeaf ' ')
+                        )
+                        (PTLeaf 'o')
+                )
+        )
+λ: t' == t
+True
+~~~
+
+And this looks like it works pretty well!
 
 
 

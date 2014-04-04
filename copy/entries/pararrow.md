@@ -89,10 +89,10 @@ arrow...what if `f`, `g`, and `h` represented "a way to get a `b` from an
 So if I were to "run" this special arrow, a `ParArrow a b`, I would do
 
 ~~~haskell
-runArrow :: ParArrow a b -> a -> IO b
+runPar :: ParArrow a b -> a -> IO b
 ~~~
 
-Where if i gave `runArrow` a `ParArrow a b`, and an `a`, It would fork itself
+Where if i gave `runPar` a `ParArrow a b`, and an `a`, It would fork itself
 into its own thread and give you an `IO b` in response to your `a`.
 
 Because of Arrow's ability to "separate out" and "side-chain" compositions
@@ -156,9 +156,9 @@ We can now use `map'` as *both* a normal, sequentual function *and* a
 parallel, forked computation!
 
 ~~~haskell
-λ: map' (arr (*2)) [1..5]
+λ:          map' (arr (*2)) [1..5]
 [2,4,6,8,10]
-λ: runPar (arr (*2)) [1..5]
+λ: runPar $ map' (arr (*2)) [1..5]
 [2,4,6,8,10]
 ~~~
 
