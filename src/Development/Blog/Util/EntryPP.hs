@@ -2,18 +2,20 @@ module Development.Blog.Util.EntryPP (readPreProcess) where
 
 import "base" Prelude
 import Config.SiteData
-import Control.Applicative    ((*>),(<*))
-import Control.Arrow          ((&&&))
+import Control.Applicative         ((*>),(<*))
+import Control.Arrow               ((&&&))
 import Control.Monad
+import Data.Char                   (isSpace)
 import Data.Functor
-import Data.Maybe             (fromMaybe)
-import System.FilePath        ((</>))
+import Data.Maybe                  (fromMaybe, listToMaybe)
+import System.FilePath             ((</>))
 import Text.Parsec
 import Text.Parsec.Text
-import Web.Blog.Render        (renderUrl')
+import Web.Blog.Render             (renderUrl')
 import Web.Blog.Types
-import qualified Data.Text    as T
-import qualified Data.Text.IO as T
+import qualified Control.Exception as E
+import qualified Data.Text         as T
+import qualified Data.Text.IO      as T
 
 samplesDir :: FilePath
 samplesDir = "code-samples"
@@ -40,11 +42,16 @@ insertSample sampline = do
     let spec' = runP sampleSpec () (T.unpack sampline) sampline
 
     case spec' of
-        Left err    ->
-            return $ T.pack (show err)
-        Right spec  -> do
-            rawSamp <- T.readFile (samplesDir </> sSpecFile spec)
-            return $ processSample spec rawSamp
+      Left err    ->
+        return $ T.pack (show err)
+      Right spec  -> do
+        rawSamp <- E.try (T.readFile (samplesDir </> sSpecFile spec))
+                     :: IO (Either E.SomeException T.Text)
+        case rawSamp of
+          Left _ ->
+            return . T.pack $ "File " ++ sSpecFile spec ++ " not found"
+          Right rawSamp' ->
+            return $ processSample spec rawSamp'
 
 processSample :: SampleSpec -> T.Text -> T.Text
 processSample (SampleSpec sFile sLive sKeys sLink) rawSamp = processed
@@ -85,10 +92,11 @@ processSample (SampleSpec sFile sLive sKeys sLink) rawSamp = processed
 
 
 grabBlock :: [(T.Text,Int)] -> String -> Maybe Int -> ((Int,Int), T.Text)
-grabBlock zipped key limit = grabbed
+grabBlock zipped key limit = fromMaybe notFound grabbed
   where
     zDropped =
       dropWhile (not . (T.pack key `T.isInfixOf`) . fst) zipped
+    -- initialIndent = T.length . T.takeWhile isSpace . fst . head $ zDropped
     (zHead,zRest) =
       span (\(l,_) -> not (T.null l)) zDropped
     zBlock        =
@@ -99,10 +107,14 @@ grabBlock zipped key limit = grabbed
       case limit of
         Just lim -> take lim zDropped
         Nothing  -> zHead ++ zBlock'
-    startLine     = snd . head $ zAll
-    endLine       = snd . last $ zAll
+    startLine     = snd <$> listToMaybe zAll
+    endLine       = snd <$> listToMaybe (reverse zAll)
     sampCode      = T.unlines . map fst $ zAll
-    grabbed = ((startLine, endLine), sampCode)
+    grabbed       = do
+      strtl <- startLine
+      endl  <- endLine
+      return ((strtl, endl), sampCode)
+    notFound      = ((0,0), T.pack ("Key not found: " ++ key))
 
 sampleBlobs :: Maybe String
 sampleBlobs = do
