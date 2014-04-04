@@ -132,9 +132,9 @@ Hooray for type inference!
 
 And finally, to tie it all together:
 
-<!-- ~~~haskell -->
-<!-- !!!huffman/PreTree.hs "instance Binary a => Binary (PreTree a)" huffman-encoding -->
-<!-- ~~~ -->
+~~~haskell
+!!!huffman/PreTree.hs "instance Binary a => Binary (PreTree a)" huffman-encoding
+~~~
 
 ### Testing it out
 
