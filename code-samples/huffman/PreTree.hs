@@ -15,11 +15,11 @@ data PreTree a = PTLeaf a
                | PTNode (PreTree a) (PreTree a)
                deriving (Show, Eq, Generic)
 
--- instance Binary a => Binary (PreTree a)
-
 instance Binary a => Binary (PreTree a) where
     put = putPT
     get = getPT
+
+-- instance Binary a => Binary (PreTree a)
 
 makePT :: a -> PreTree a
 makePT = PTLeaf
