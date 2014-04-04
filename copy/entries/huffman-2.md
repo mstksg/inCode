@@ -221,16 +221,39 @@ direction...what the heck?  Why would you even want to do that?
 
 #### Direct search
 
-Here's a direct search.  It's horribly inefficient.
+Here's a naive recursive direct (depth-first) search.  It's horribly
+inefficient.
 
 ~~~haskell
 findPT :: Eq a => a -> PreTree a -> Maybe Encoding
-findPT x t0 = reverse <$> go t0 []
+findPT x pt0 = reverse <$> go pt0 []
   where
     go (PTLeaf y      ) enc | x == y    = Just enc
                             | otherwise = Nothing
-    go (PTNode pt1 pt2) enc = go h1 (DLeft:ds) <|> go h2 (DRight:ds)
+    go (PTNode pt1 pt2) enc = go pt1 (DLeft : enc) <|>
+                              go pt2 (DRight : enc)
 ~~~
+
+The algorithm goes:
+
+1.  If you find a `PTLeaf`, if the data matches what you are looking for,
+    return the current path in a `Just`.  If not, this is a dead-end; return
+    `Nothing`.
+
+2.  If you find a `PTNode`, search the left branch adding a `DLeft` to the
+    current path, and the right branch adding a `DRight` to the current path.
+    Use `(<|>)` to perform the search lazily (ie, stop after the first
+    success).
+
+The reason it is horribly inefficient is because Huffman trees are horrible
+search trees, because you have to do a full depth-first traversal.
+
+Also, you probably don't want to do this every time you want to encode
+something; you'd want to have some sort of memoing and cacheing, ideally.
+
+But it's it neat how expressive depth-first searches are in Haskell? :)
+
+
 
 
 

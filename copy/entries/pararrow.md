@@ -32,6 +32,15 @@ tl;dr:
 4.  All "parallelizable" functions can also trivially be typechecked and run
     as normal functions, due to arrow polymorphism.
 
+The main problem:
+
+*   Consider `ParArrow a c`, `ParArrow b d`, `ParArrow (c,d) (e,f)`, `ParArrow
+    e g`, and `ParArrow f h`.  We execute the first two in parallel, apply the
+    third, and execute the second two in parallel.  Basically, we want two
+    independent `ParArrow a g` and `ParArrow c h` that we can fork.  And this
+    is possible, as long as the "middle" arrow does not "cross-talk" --- that
+    is, it can't be something like `arr (\(x,y) -> (y,x))`.
+
 The Vision
 ----------
 
