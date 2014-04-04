@@ -513,8 +513,11 @@ system to enforce "sufficiently parallel" `Pure`'s.  You can't even check
 against something like `arr (\(x,y) -> (x,x))`, which makes no sense again in
 'isolated parallel' computations.
 
-(Interestingly enough, you *can* use the type system to enforce against things like `arr (\(x,y) -> x)`
-or `arr (\(x,y) -> 5)`; you can't collapse tuples)
+(Interestingly enough, you *can* use the type system to enforce against things
+like `arr (\(x,y) -> x)` or `arr (\(x,y) -> 5)`; you can't collapse tuples)
+
+Basically, *it mostly works* for almost all `ParArrow (a,b) (c,d)`...*except*
+for when they have cross-talk.
 
 So, well...back to the drawing board I guess.
 
@@ -544,6 +547,10 @@ things like the [constrained monads technique][constmonad], I couldn't get the
 were Typeable.
 
 [constmonad]: http://hsenag.livejournal.com/11803.html
+
+Perhaps without the exception method, I could use `MVar`s to sort of have a
+branch "wait" on the other if they find out that they have been given an `arr`
+that has cross-talk.
 
 Another path is just giving up `Arrow` completely and using non-typeclass ...
 but I don't think that offers much advantages over the current system (using

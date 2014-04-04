@@ -197,9 +197,44 @@ Encoding and Decoding
 Now that we've got that out of the way, let's work on actually encoding and
 decoding.
 
+### Encoding
+
+So, basically, we encode a character in a huffman tree by path you take to
+reach the character.
+
+Let's represent this path as a list of `Direction`s:
+
 ~~~haskell
-data Direction = DLeft | DRight deriving (Show, Eq)
+data Direction = DLeft
+               | DRight
+               deriving (Show, Eq)
+
+type Encoding = [Direction]
 ~~~
+
+Eventually, an `Encoding` will be turned into a `ByteString`, with `DLeft`
+representing the 0 bit and `DRight` representing the 1 bit.  But we keep them
+as their own data types now because everyone hates [boolean blindness][].
+Instead of keeping a `True` or `False`, we keep data types that actually carry
+semantic meaning :)  And we can't do silly things like use a boolean as a
+direction...what the heck?  Why would you even want to do that?
+
+#### Direct search
+
+Here's a direct search.  It's horribly inefficient.
+
+~~~haskell
+findPT :: Eq a => a -> PreTree a -> Maybe Encoding
+findPT x t0 = reverse <$> go t0 []
+  where
+    go (PTLeaf y      ) enc | x == y    = Just enc
+                            | otherwise = Nothing
+    go (PTNode pt1 pt2) enc = go h1 (DLeft:ds) <|> go h2 (DRight:ds)
+~~~
+
+
+
+
 
 
 
