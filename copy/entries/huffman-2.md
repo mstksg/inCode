@@ -81,9 +81,9 @@ instructions by hand are easy peasy!
 
 Let's define our own custom `Put` for our `PreTree`s:
 
-<!-- ~~~haskell -->
-<!-- !!!huffman/PreTree.hs "putPT ::" huffman-encoding -->
-<!-- ~~~ -->
+~~~haskell
+!!!huffman/PreTree.hs "putPT ::" huffman-encoding
+~~~
 
 This all should be fairly readable and self-explanatory.
 
@@ -108,9 +108,9 @@ so bad to live with boolean blindness for now.
 
 Now let's define our own custom `Get`:
 
-<!-- ~~~haskell -->
-<!-- !!!huffman/PreTree.hs "getPT ::" huffman-encoding -->
-<!-- ~~~ -->
+~~~haskell
+!!!huffman/PreTree.hs "getPT ::" huffman-encoding
+~~~
 
 This also shouldn't be too bad!
 
