@@ -82,14 +82,7 @@ instructions by hand are easy peasy!
 Let's define our own custom `Put` for our `PreTree`s:
 
 ~~~haskell
-putPT :: Binary a => PreTree a -> Put
-putPT (PTLeaf x) = do
-    put True                    -- signify we have a leaf
-    put x
-putPT (PTNode pt1 pt2) = do
-    put False                   -- signify we have a node
-    put pt1
-    put pt2
+!!!huffman/PreTree.hs "putPT ::" huffman-encoding
 ~~~
 
 This all should be fairly readable and self-explanatory.
@@ -115,13 +108,8 @@ so bad to live with boolean blindness for now.
 
 Now let's define our own custom `Get`:
 
-~~~
-getPT :: Binary a => Get (PreTree a)
-getPT = do
-    isLeaf <- get
-    if isLeaf
-      then PTLeaf <$> get
-      else PTNode <$> get <*> get
+~~~haskell
+!!!huffman/PreTree.hs "getPT ::" huffman-encoding
 ~~~
 
 This also shouldn't be too bad!
@@ -140,6 +128,13 @@ for that too.
 
 Hooray for type inference!
 
+#### Wrapping it up
+
+And finally, to tie it all together:
+
+~~~haskell
+!!!huffman/PreTree.hs "instance Binary a => Binary (PreTree a)" huffman-encoding
+~~~
 
 ### Testing it out
 
@@ -170,7 +165,7 @@ PQTNode (PTNode (PTNode (PTLeaf 'h')
 True
 ~~~
 
-Sweet!  We can also write it to a file and re-read:
+Neat!  We can also write it to a file and re-read:
 
 ~~~haskell
 λ: encodeFile "test.dat" t
@@ -196,6 +191,15 @@ True
 
 And this looks like it works pretty well!
 
+Encoding and Decoding
+---------------------
+
+Now that we've got that out of the way, let's work on actually encoding and
+decoding.
+
+~~~haskell
+data Direction = DLeft | DRight deriving (Show, Eq)
+~~~
 
 
 

@@ -23,6 +23,15 @@ help/offer suggestions, for people to peruse and possibly learn something, or
 for people to laugh at me.  Here is my most recent semi-failure --- implicit
 dataflow parallelism through an Arrow interface.
 
+tl;dr:
+
+1.  Compose parallelizable computations using expressive proc notation.
+2.  Consolidate and join forks to maintain maximum parallelization.
+3.  All data dependencies implicit; allows for nice succinct direct
+    translations of normal functions.
+4.  All "parallelizable" functions can also trivially be typechecked and run
+    as normal functions, due to arrow polymorphism.
+
 The Vision
 ----------
 
