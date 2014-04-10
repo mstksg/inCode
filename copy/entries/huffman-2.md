@@ -129,6 +129,18 @@ for that too.
 
 Hooray for type inference!
 
+If you're not familiar with the `f <$> x <*> y` idiom, you can consider it to
+be the same thing as `f x y`, except that `x` and `y` are "inside" things:
+
+~~~haskell
+λ: (+) 1 4
+5
+λ: (+) <$> Just 1 <*> Just 4
+Just 5
+~~~
+
+We call this "applicative style", in the biz.
+
 #### Wrapping it up
 
 And finally, to tie it all together:
