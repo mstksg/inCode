@@ -10,7 +10,7 @@ Tags
 CreateTime
 :   2014/04/03 01:53:53
 PostDate
-:   Never
+:   2014/04/11 10:12:55
 Series
 :   Huffman Compression
 :   Beginner/Intermediate Haskell Projects
@@ -140,7 +140,7 @@ Just 5
 ~~~
 
 Where `(<$>)` and `(<*>)` come from `Control.Applicative`.  We call this style
-of writing "applicative style", in the biz.
+"applicative style", in the biz.
 
 #### Wrapping it up
 
@@ -225,7 +225,8 @@ representing the 0 bit and `DRight` representing the 1 bit.  But we keep them
 as their own data types now because everyone hates [boolean blindness][].
 Instead of keeping a `True` or `False`, we keep data types that actually carry
 semantic meaning :)  And we can't do silly things like use a boolean as a
-direction...what the heck?  Why would you even want to do that?
+direction...what the heck?  Why would you even want to do that?  How is "true"
+a direction?
 
 ### Direct search
 
@@ -299,8 +300,10 @@ Here are some key flags that you might want a Writer:
 3.  You never need to decide anything based on the current state.
 4.  Your entire computation revolves around building up a giant thing by
     continuously adding little things to it.
-5.  Your "final computation" returns `()` in the end.  (Not all uses of
-    `Writer` have this, but if you have this, you should consider `Writer`!)
+5.  Your "final computation" returns `()` in the end.
+
+(Note that these things are signs you might want to use a Writer monad, but
+actually, the Writer monad has more uses than just the ones described above.)
 
 The Writer monad is actually a lot simpler than the State monad, so don't
 worry!
@@ -321,7 +324,7 @@ Writer, and `w` is the type of our accumulator.  We can call them "data with
 attached accumulators".
 
 So what would `andThen` look like, for `(a, w)`?  How can we "sequence" two
-"data with attached accumulators"?  Well...we can simply add their
+"data with attached accumulators"?  Well...we can simply combine their
 accumulators!
 
 ~~~haskell
@@ -370,10 +373,11 @@ return x = (x, mempty)
 Where `return` just has the item with an empty/"fresh" accumulator.
 
 Again, in real life, we can't define a typeclass instance on a type synonym,
-and defining an instance on `(a, w)` itself might not be clean.  So again, the
-canonical implementation comes in the [transformers][] library, and wraps the
-`(a, w)` in a newtype as `Writer w a`, just like for State.  It also offers a
-few nice primitives, but we will only be using one:
+and we actually can't even define an instance directly on `(a, w)` (can you
+see why?).  So again, the canonical implementation comes in the
+[transformers][] library, and wraps the `(a, w)` in a newtype as `Writer w a`,
+just like for State.  It also offers a few nice primitives, but we will only
+be using one:
 
 [transformers]: http://hackage.haskell.org/package/transformers
 
@@ -390,7 +394,7 @@ something that will be `<>`'d to the accumulator.
 Let's take a whack at an example computation using the Writer monad.
 
 Let's re-write a simple fold that goes down a list and adds up every even
-number.
+number in that list.
 
 ~~~haskell
 addEven :: Integral a => a -> Writer (Sum a) ()
@@ -444,7 +448,8 @@ depth-first search:
 ~~~
 
 Except instead of returning a value based on equality at the leaves, we
-"write" it.
+"write" it.  And instead of "choosing between" the two branches of a node, we
+"sequence"/do them both.
 
 ### Lookup, Act 2
 
@@ -601,6 +606,7 @@ proposition `testTree xs == xs` by generating several random `xs`'s.
 
 ~~~haskell
 λ: import Test.QuickCheck
+λ: :set -XScopedTypeVariables
 λ: quickCheck (\(xs :: String) -> testTree xs == xs)
 *** Failed! Falsifiable (after 3 tests and 2 shrinks):
 "a"

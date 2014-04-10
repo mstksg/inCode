@@ -87,6 +87,10 @@ buildTree = do
 runBuildTree :: Ord a => [a] -> (Maybe (PreTree a))
 runBuildTree xs = evalState (listQueueState xs >> buildTree) emptyPQ
 
+-- | Testing functions
+--
+-- testTree: Tests an encode-decode cycle.  Does not terminate for strings
+--      that contain only one (repeated) character.
 testTree :: Ord a => [a] -> [a]
 testTree [] = []                    -- handle the empty list
 testTree xs = decodeAll pt enc
@@ -94,6 +98,7 @@ testTree xs = decodeAll pt enc
     Just pt  = runBuildTree xs
     Just enc = encodeAll pt xs
 
+-- testTree': Tests an encode-decode cycle.  Is safe and total.
 testTree' :: Ord a => [a] -> Maybe [a]
 testTree' xs = do
     pt  <- runBuildTree xs
