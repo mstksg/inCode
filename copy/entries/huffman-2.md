@@ -264,7 +264,7 @@ and probably a nice reference implementation for us to reference later.
 
 Its inefficiency lies in many things --- chiefly of those being the fact that
 Huffman trees don't give you any real help as a search tree, and nothing short
-of a full depth-first traversal would help you.  Also, you probably don't want
+of a full depth-first traversal would work.  Also, you probably don't want
 to do this every time you want to encode something; you'd want to have some
 sort of memoing and cacheing, ideally.
 
@@ -331,7 +331,7 @@ accumulators!
 
 ~~~haskell
 andThen :: Monoid w => (a, w) -> (b, w) -> (a, w)
-andThen (_, acc) (x, acc') = (x, acc <> acc')
+(_, acc) `andThen` (x, acc') = (x, acc <> acc')
 ~~~
 
 I'm assuming you already know about the Monoid typeclass and `<>`.  If you
@@ -368,7 +368,7 @@ try to implement yourself.
 There's also `return`:
 
 ~~~haskell
-return :: a -> (a, w)
+return :: Monoid w => a -> (a, w)
 return x = (x, mempty)
 ~~~
 
@@ -385,7 +385,7 @@ be using one:
 
 ~~~haskell
 tell :: Monoid w => w -> Writer w a
-tell acc = Writer ((), acc)
+tell y = Writer ((), y)
 ~~~
 
 Basically, `tell` is just a simple `Writer` that returns no result, but adds
@@ -422,9 +422,9 @@ runAddAllEvens = execWriter addAllEvens
 Sum 14
 ~~~
 
-`Num a => Sum a` is a Monoid, whose "combining"/"merging" function is simply
-to add the values inside.  `Sum 1 <> Sum 2 == Sum 3`.  `mempty` is, of course,
-`Sum 0`.
+`Sum a` (where `a` is a `Num`) is a Monoid, whose "combining"/"merging"
+function is simply to add the values inside.  `Sum 1 <> Sum 2 == Sum 3`.
+`mempty` is, of course, `Sum 0`.
 
 `execWriter` unwraps the `Writer` newtype, and returns only the `w`.
 
@@ -437,10 +437,10 @@ With this in mind, let's build up our memoized lookup tree.
 ~~~
 
 We take advantage of the fact that `Map k v` is in fact a monoid, and that
-`map1 <> map 2` means "adding" the two maps together.  We use the `singleton`
-function, where `singleton k v` means making a new map with only one entry ---
-with key `k` of value `v`.  So when we "append" a singleton to a map, it's
-like simply adding a key/value pair.
+`map1 <> map 2` means "adding" the two maps together.  We define a `(~:)`
+operator that takes a key and a value and returns a map with just that one
+entry.  So when we "append" a (`k ~: v`) to a map, it's
+like simply adding a key/value pair to the map.
 
 Notice that this has pretty much the exact same structure as our previous
 depth-first search:
@@ -583,7 +583,7 @@ Which works exactly as we'd like!
 Testing
 -------
 
-We can write a utility to test our building:
+We can write a utility to test our encoding/decoding functions:
 
 ~~~haskell
 !!!huffman/Huffman.hs "testTree ::" huffman-encoding
