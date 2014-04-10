@@ -451,8 +451,8 @@ depth-first search:
 ~~~
 
 Except instead of returning a value based on equality at the leaves, we
-"write" it.  And instead of "choosing between" the two branches of a node, we
-"sequence"/do them both.
+"write" it.  And instead of "choosing between" the two branches of a node with
+`(<|>)`, we "sequence"/do them both with `(>>)`.
 
 ### Lookup, Act 2
 
