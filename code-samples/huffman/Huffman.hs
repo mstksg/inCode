@@ -86,3 +86,17 @@ buildTree = do
 --      given list of `a`'s.
 runBuildTree :: Ord a => [a] -> (Maybe (PreTree a))
 runBuildTree xs = evalState (listQueueState xs >> buildTree) emptyPQ
+
+testTree :: Ord a => [a] -> [a]
+testTree [] = []                    -- handle the empty list
+testTree xs = decodeAll pt enc
+  where
+    Just pt  = runBuildTree xs
+    Just enc = encodeAll pt xs
+
+testTree' :: Ord a => [a] -> Maybe [a]
+testTree' [] = Nothing
+testTree' xs = decodeAll' pt enc
+  where
+    Just pt  = runBuildTree xs
+    Just enc = encodeAll pt xs

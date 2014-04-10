@@ -722,6 +722,10 @@ the given starting state, and outputs the final result (instead of the final
 state).  It takes an `s -> (a, s)`, an `s`, and applies the function to it and
 gives the resulting `a` of the tuple.
 
+### Putting it all together
+
+Let's try it out, shall we?
+
 ~~~haskell
 λ: fromJust $ runBuildTree "hello world"
 PQTNode (PTNode (PTNode (PTLeaf 'h')
