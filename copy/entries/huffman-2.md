@@ -139,7 +139,8 @@ be the same thing as `f x y`, except that `x` and `y` are "inside" things:
 Just 5
 ~~~
 
-We call this "applicative style", in the biz.
+Where `(<$>)` and `(<*>)` come from `Control.Applicative`.  We call this style
+of writing "applicative style", in the biz.
 
 #### Wrapping it up
 
