@@ -95,8 +95,7 @@ testTree xs = decodeAll pt enc
     Just enc = encodeAll pt xs
 
 testTree' :: Ord a => [a] -> Maybe [a]
-testTree' [] = Nothing
-testTree' xs = decodeAll' pt enc
-  where
-    Just pt  = runBuildTree xs
-    Just enc = encodeAll pt xs
+testTree' xs = do
+    pt  <- runBuildTree xs
+    enc <- encodeAll pt xs
+    decodeAll' pt enc

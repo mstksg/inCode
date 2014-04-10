@@ -625,7 +625,8 @@ given tree is a singleton tree.  We can write a "safe" `decodeAll`:
 !!!huffman/PreTree.hs "decodeAll' ::" huffman-encoding
 ~~~
 
-And also a "safe" `testTree`:
+And also a "safe" `testTree`, taking advantage of the Monad instance for
+Maybe.
 
 ~~~haskell
 !!!huffman/Huffman.hs "testTree' ::" huffman-encoding
