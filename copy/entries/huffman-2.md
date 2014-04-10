@@ -432,7 +432,7 @@ to add the values inside.  `Sum 1 <> Sum 2 == Sum 3`.  `mempty` is, of course,
 
 With this in mind, let's build up our memoized lookup tree.
 
-~~~
+~~~haskell
 !!!huffman/PreTree.hs "ptTable ::" huffman-encoding
 ~~~
 
@@ -478,7 +478,7 @@ Nothing
 Now, we'd like to be able to decode an entire stream of `a`'s, returning a
 list of the encodings.
 
-~~~
+~~~haskell
 !!!huffman/PreTree.hs "encodeAll ::" huffman-encoding
 ~~~
 
@@ -557,7 +557,7 @@ up and build a list from it.
 
 This sounds a lot like the `Data.List` function `unfoldr`:
 
-~~~
+~~~haskell
 unfoldr :: (b -> Maybe (a, b)) -> b -> [a]
 ~~~
 
