@@ -20,9 +20,11 @@ Identifier
 Continuing on this series of beginner/intermediate projects for newer Haskell
 users, let's look back at our Huffman encoding project.
 
-In our last post we went over two types of binary trees implemented as
+In our [last post][] we went over two types of binary trees implemented as
 algebraic data structures in Haskell, and also a scheme for assembling a
 Huffman encoding tree using the State monad.
+
+[last post]: http://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-1-trees
 
 Now let's look at serializing and unserializing our prefix trees for easy
 storage, and then at actually using them to encode and decode!  And maybe
@@ -669,7 +671,8 @@ write tests in quickcheck.  One line could mean five unit tests, and you might
 even test edge/corner cases that you might have never even thought about!
 
 For example, we probably should have tested `lookupPTTable` against `findPT`,
-our reference implementation :)
+our reference implementation :)  We should have also tested our
+binary encode/decode!
 
 Next Time
 ---------
@@ -678,7 +681,7 @@ We're almost there!
 
 For our last section, we are going to be focusing on pulling it all together
 to make a streaming compression/decompression interface that will be able to
-read a file and encode/decode into a new file as it goes, in constant memory.
-We will also be looking at some optimization tricks we can do to get things
-just right, and other things to wrap up.
+read a file and encode/decode into a new file as it goes, in constant memory,
+using pipes.  We will also be looking at some optimization tricks we can do to
+get things just right, and other things to wrap up.
 

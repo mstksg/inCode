@@ -1,5 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
--- http://blog.jle.im/entry/implementing-huffman-compression-encoding-in-haskell
+-- http://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-1-trees
+-- http://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-2-binary
 
 module Huffman where
 
