@@ -437,10 +437,11 @@ With this in mind, let's build up our memoized lookup tree.
 ~~~
 
 We take advantage of the fact that `Map k v` is in fact a monoid, and that
-`map1 <> map 2` means "adding" the two maps together.  We define a `(~:)`
-operator that takes a key and a value and returns a map with just that one
-entry.  So when we "append" a (`k ~: v`) to a map, it's
-like simply adding a key/value pair to the map.
+`map1 <> map 2` means "adding" the two maps together.
+
+``k `singleton` v`` creates a new map with only one entry (`k` and `v`), so
+when we "append" ``k `singleton` v`` to a map, it's like simply adding a
+key/value pair to the map.
 
 Notice that this has pretty much the exact same structure as our previous
 depth-first search:
