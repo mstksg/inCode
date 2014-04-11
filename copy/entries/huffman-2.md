@@ -384,7 +384,7 @@ be using one:
 [transformers]: http://hackage.haskell.org/package/transformers
 
 ~~~haskell
-tell :: Monoid w => w -> Writer w a
+tell :: Monoid w => w -> Writer w ()
 tell y = Writer ((), y)
 ~~~
 
@@ -414,7 +414,7 @@ addAllEvens' :: Integral a => [a] -> Writer (Sum a) ()
 addAllEvens' = mapM_ addEven
 
 runAddAllEvens :: Integral a => [a] -> Sum a
-runAddAllEvens = execWriter addAllEvens
+runAddAllEvens = execWriter . addAllEvens
 ~~~
 
 ~~~haskell
@@ -437,7 +437,7 @@ With this in mind, let's build up our memoized lookup tree.
 ~~~
 
 We take advantage of the fact that `Map k v` is in fact a monoid, and that
-`map1 <> map 2` means "adding" the two maps together.
+`map1 <> map2` means "adding" the two maps together; it *merges* the maps.
 
 ``k `singleton` v`` creates a new map with only one entry (`k` and `v`), so
 when we "append" ``k `singleton` v`` to a map, it's like simply adding a
