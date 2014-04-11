@@ -10,7 +10,7 @@ Tags
 CreateTime
 :   2014/04/03 01:53:53
 PostDate
-:   2014/04/11 10:12:55
+:   2014/04/11 9:27:19
 Series
 :   Huffman Compression
 :   Beginner/Intermediate Haskell Projects
@@ -683,6 +683,6 @@ We're almost there!
 For our last section, we are going to be focusing on pulling it all together
 to make a streaming compression/decompression interface that will be able to
 read a file and encode/decode into a new file as it goes, in constant memory,
-using pipes.  We will also be looking at some optimization tricks we can do to
-get things just right, and other things to wrap up.
+using pipes.  After that, we will also be looking at some optimization tricks
+we can do to get things just right, and other things to wrap up.
 
