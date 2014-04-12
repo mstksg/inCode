@@ -347,7 +347,8 @@ This is a bit dense!  But I'm sure that you are up for it.
     It turns a list of Maybe's into a list inside a Maybe.  Recall the
     semantics of the Maybe monad: If you ever encounter a `Nothing`, the
     *whole thing* is a `Nothing`.  So in this case, if *any* of the inputs are
-    not decodable, *the entire thing is Nothing*.
+    not decodable, *the entire thing is Nothing*. (see my [blog post][mp] on
+    this affair)
 
     ~~~haskell
     λ: sequence [Just 5, Just 4]
@@ -400,11 +401,12 @@ run out of directions while on a node...something has gone wrong.
 Just ('h', [DLeft, DLeft ...])
 ~~~
 
-(Here we are using the Maybe monad, to perform three "possibly failing"
-operations in a row.  The semantics are that `pt` and `enc` are the items
-"inside" `Just pt`, `Just enc` returned by `runBuildTree` and `encodeAll`.  If
+(Here we are using the Maybe monad, in order to "stitch together" three
+possibly-failing operations in a row.  We call `pt` and `enc` the values
+"inside" the `Just pt` and `Just enc` returned by `runBuildTree` and
+`encodeAll`; the whole thing fails if any of the steps fail at any time. If
 you are not familiar with this, [I sort of literally wrote an entire blog
-post][mp] on this :) )
+post][mp] on this subject :) )
 
 [mp]: http://blog.jle.im/entry/practical-fun-with-monads-introducing-monadplus
 
