@@ -27,8 +27,7 @@ Huffman encoding tree using the State monad.
 [last post]: http://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-1-trees
 
 Now let's look at serializing and unserializing our prefix trees for easy
-storage, and then at actually using them to encode and decode!  And maybe
-learn about the Writer monad along the way!
+storage, and then at actually using them to encode and decode!
 
 Binary
 ------
@@ -187,20 +186,20 @@ Neat!  We can also write it to a file and re-read:
 λ: encodeFile "test.dat" t
 λ: t' <- decodeFile "test.dat" :: IO (PreTree Char)
 λ: t'
-PQTNode (PTNode (PTNode (PTLeaf 'h')
-                        (PTLeaf 'e')
-                )
-                (PTNode (PTLeaf 'w')
-                        (PTLeaf 'r')
-                )
-        )
-        (PTNode (PTLeaf 'l')
-                (PTNode (PTNode (PTLeaf 'd')
-                                (PTLeaf ' ')
-                        )
-                        (PTLeaf 'o')
-                )
-        )
+PTNode (PTNode (PTNode (PTLeaf 'h')
+                       (PTLeaf 'e')
+               )
+               (PTNode (PTLeaf 'w')
+                       (PTLeaf 'r')
+               )
+       )
+       (PTNode (PTLeaf 'l')
+               (PTNode (PTNode (PTLeaf 'd')
+                               (PTLeaf ' ')
+                       )
+                       (PTLeaf 'o')
+               )
+       )
 λ: t' == t
 True
 ~~~
@@ -319,13 +318,19 @@ simple and performant:
 given, of course, that we generate our table first.
 
 ~~~haskell
-λ: let (Just pt) = runBuildTree "hello world"
-λ: let tb = ptTable pt
-λ: lookupPTTable tb 'e'
+λ: let pt = runBuildTree "hello world"
+λ: let tb = fmap ptTable pt
+λ: tb >>= \tb' -> lookupPTTable tb' 'e'
 Just [DLeft, DLeft, DRight]
-λ: lookupPTTable tb 'q'
+λ: tb >>= \tb' -> lookupPTTable tb' 'q'
 Nothing
 ~~~
+
+(Here we use the Monad instance for Maybe, to extract the `tb'` out of the
+`Just tb`.  We "sequence" two Maybe's together.  For more information, check
+out my [blog post][mp] on this exact topic)
+
+[mp]: http://blog.jle.im/entry/practical-fun-with-monads-introducing-monadplus
 
 ### Encoding many
 
@@ -347,8 +352,7 @@ This is a bit dense!  But I'm sure that you are up for it.
     It turns a list of Maybe's into a list inside a Maybe.  Recall the
     semantics of the Maybe monad: If you ever encounter a `Nothing`, the
     *whole thing* is a `Nothing`.  So in this case, if *any* of the inputs are
-    not decodable, *the entire thing is Nothing*. (see my [blog post][mp] on
-    this affair)
+    not decodable, *the entire thing is Nothing*.
 
     ~~~haskell
     λ: sequence [Just 5, Just 4]
@@ -366,13 +370,13 @@ This is a bit dense!  But I'm sure that you are up for it.
     `Encoding`s inside the Maybe.
 
 ~~~haskell
-λ: let (Just pt) = runBuildTree "hello world"
-λ: encodeAll pt "hello world"
+λ: let pt = runBuildTree "hello world"          -- :: Maybe (PreTree Char)
+λ: pt >>= \pt' -> encodeAll pt' "hello world"
 Just [DLeft, DLeft, DLeft, DLeft, DLeft, DRight, DRight, DLeft, DRight, DLeft,
 DRight, DRight, DRight, DRight, DRight, DLeft, DRight, DLeft, DRight, DLeft,
 DRight, DRight, DRight, DLeft, DRight, DRight, DRight, DLeft, DRight, DRight,
 DLeft, DLeft]
-λ: encodeAll pt "hello worldq"
+λ: pt >>= \pt' -> encodeAll pt' "hello worldq"
 Nothing
 ~~~
 
@@ -407,9 +411,6 @@ possibly-failing operations in a row.  We call `pt` and `enc` the values
 `encodeAll`; the whole thing fails if any of the steps fail at any time. If
 you are not familiar with this, [I sort of literally wrote an entire blog
 post][mp] on this subject :) )
-
-[mp]: http://blog.jle.im/entry/practical-fun-with-monads-introducing-monadplus
-
 
 ### Decoding many
 
@@ -452,6 +453,9 @@ We can write a utility to test our encoding/decoding functions:
 !!!huffman/Huffman.hs "testTree ::" huffman-encoding
 ~~~
 
+(Again, refer to my [MonadPlus][mp] article from earlier, if you are
+unfamiliar with working with the Maybe monad)
+
 `testTree` should be an identity; that is, `testTree xs === xs`.
 
 ~~~haskell
@@ -460,6 +464,9 @@ We can write a utility to test our encoding/decoding functions:
 λ: testTree "the quick brown fox jumps over the lazy dog"
 "the quick brown fox jumps over the lazy dog"
 ~~~
+
+Note the very unsafe irrefutable pattern match on `Just decoded`.  We'll fix
+this later!
 
 ### QuickCheck
 
@@ -519,8 +526,7 @@ handle the unterminating case, by carefuly reading documentation or something.
 In this case, the type system is a big, explicit reminder saying "hey, deal
 with the unterminating case."
 
-We'll also a "safe" `testTree`, taking advantage of the Monad instance for
-Maybe. (See the [MonadPlus][mc] article from earlier, if you are unfamiliar)
+We'll also a "safe" `testTree`:
 
 ~~~haskell
 !!!huffman/Huffman.hs "testTree' ::" huffman-encoding
@@ -542,8 +548,6 @@ case until I decided to add a quickcheck section to this post.  It just goes
 to show that you should always test!  And it also shows how easy it is to
 write tests in quickcheck.  One line could mean five unit tests, and you might
 even test edge/corner cases that you might have never even thought about!
-
-
 
 For example, we probably should have tested `lookupPTTable` against `findPT`,
 our reference implementation :)  We should have also tested our

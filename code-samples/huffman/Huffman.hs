@@ -92,14 +92,16 @@ runBuildTree xs = evalState (listQueueState xs >> buildTree) emptyPQ
 --
 -- testTree: Tests an encode-decode cycle.  Does not terminate for strings
 --      that contain only one (repeated) character.  Unsafe!  Note the
---      explicit extarction of `Just pt`, etc, and not handling the error
---      cases.
+--      explicit extraction of `Just decoded`, etc, and not handling the
+--      error (Nothing) cases.
 testTree :: Ord a => [a] -> [a]
 testTree [] = []                    -- handle the empty list
-testTree xs = decodeAll pt enc
+testTree xs = decoded
   where
-    Just pt  = runBuildTree xs
-    Just enc = encodeAll pt xs
+    Just decoded = do
+      pt  <- runBuildTree xs
+      enc <- encodeAll pt xs
+      return (decodeAll pt enc)
 
 -- testTree': Tests an encode-decode cycle.  Is safe and total.  Note the
 --      Maybe monad, which handles failures safely for us.

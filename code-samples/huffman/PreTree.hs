@@ -4,15 +4,14 @@
 
 module PreTree where
 
-import Control.Applicative               ((<$>),(<*>),(<|>))
-import Control.Monad.Trans.Writer.Strict
+import Control.Applicative       ((<$>),(<*>),(<|>))
 import Data.Binary
-import Data.List                         (unfoldr)
-import Data.Map.Strict                   (Map)
-import Data.Monoid
+import Data.List                 (unfoldr)
+import Data.Map.Strict           (Map)
+import Data.Monoid               ((<>))
 import GHC.Generics
 import Weighted
-import qualified Data.Map.Strict         as M
+import qualified Data.Map.Strict as M
 
 -- | Types
 --
