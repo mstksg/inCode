@@ -1,5 +1,5 @@
-Streaming Huffman Compression in Haskell (Part 2: Binary, Searches, and Writer)
-===============================================================================
+Streaming Huffman Compression in Haskell (Part 2: Binary and Searches)
+======================================================================
 
 Categories
 :   Haskell
@@ -268,7 +268,13 @@ of a full depth-first traversal would work.  Also, you probably don't want
 to do this every time you want to encode something; you'd want to have some
 sort of memoing and cacheing, ideally.
 
-### Pre-searching[^rewrite]
+### Pre-searching
+
+We can sort of "solve" both of these problems this by traversing through our
+`PreTree` and adding an entry to a `Map` at every leaf.  This fixes our
+repetition problem by memoizing all of our results into a map...and it fixes
+our search problem because `Map`s are an ordered binary search tree with
+efficient O(log n) lookups.[^rewrite]
 
 [^rewrite]: Note --- this section was largely rewritten; it used to contain a
 rather involved yet misled tutorial about the Writer monad, as suggested by
@@ -276,12 +282,6 @@ old links/titles. This can [still be found here][oldwriter], if you want to
 read through it.
 
 [oldwriter]: https://github.com/mstksg/inCode/blob/master/copy/entries/.huffman-2-writer.md
-
-We can sort of "solve" both of these problems this by traversing through our
-`PreTree` and adding an entry to a `Map` at every leaf.  This fixes our
-repetition problem by memoizing all of our results into a map...and it fixes
-our search problem because `Map`s are an ordered binary search tree with
-efficient O(log n) lookups.
 
 There are many ways to do this; my favorite right now is to do it by doing
 collapsing our tree into one giant map, using the Monoid instance of `Map`.
