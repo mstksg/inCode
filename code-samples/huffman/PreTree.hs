@@ -103,7 +103,7 @@ ptTable :: Ord a => PreTree a -> Map a Encoding
 ptTable pt = go pt []
   where
     go (PTLeaf x) enc       = x `M.singleton` reverse enc
-    go (PTNode pt1 pt2) enc = go pt1 (DLeft : enc) <>
+    go (PTNode pt1 pt2) enc = go pt1 (DLeft  : enc) <>
                               go pt2 (DRight : enc)
 
 -- lookupPTTable: Looks up the given input in the given memoization table
