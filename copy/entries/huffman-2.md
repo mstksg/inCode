@@ -163,20 +163,20 @@ However way we decide to write our `Binary` instance, let's test it all out.
 encoded :: ByteString       -- a string of bytes
 λ: let decoded = decode encoded :: PreTree Char
 λ: decoded
-PQTNode (PTNode (PTNode (PTLeaf 'h')
-                        (PTLeaf 'e')
-                )
-                (PTNode (PTLeaf 'w')
-                        (PTLeaf 'r')
-                )
-        )
-        (PTNode (PTLeaf 'l')
-                (PTNode (PTNode (PTLeaf 'd')
-                                (PTLeaf ' ')
-                        )
-                        (PTLeaf 'o')
-                )
-        )
+PTNode (PTNode (PTNode (PTLeaf 'h')
+                       (PTLeaf 'e')
+               )
+               (PTNode (PTLeaf 'w')
+                       (PTLeaf 'r')
+               )
+       )
+       (PTNode (PTLeaf 'l')
+               (PTNode (PTNode (PTLeaf 'd')
+                               (PTLeaf ' ')
+                       )
+                       (PTLeaf 'o')
+               )
+       )
 λ: decoded == t
 True
 ~~~
@@ -250,10 +250,10 @@ The algorithm goes:
     success).
 
 ~~~haskell
-λ: let (Just pt) = runBuildTree "hello world"
-λ: findPT t 'e'
+λ: let pt = runBuildTree "hello world"
+λ: findPT pt 'e'
 Just [DLeft, DLeft, DRight]
-λ: findPT t 'q'
+λ: findPT pt 'q'
 Nothing
 ~~~
 
@@ -268,191 +268,44 @@ of a full depth-first traversal would work.  Also, you probably don't want
 to do this every time you want to encode something; you'd want to have some
 sort of memoing and cacheing, ideally.
 
-### Pre-searching
+### Pre-searching[^rewrite]
+
+[^rewrite]: Note --- this section was largely rewritten; it used to contain a
+rather involved yet misled tutorial about the Writer monad, as suggested by
+old links/titles. This can [still be found here][oldwriter], if you want to
+read through it.
+
+[oldwriter]: https://github.com/mstksg/inCode/blob/master/copy/entries/.huffman-2-writer.md
 
 We can sort of "solve" both of these problems this by traversing through our
 `PreTree` and adding an entry to a `Map` at every leaf.  This fixes our
-repetition problem by memozing all of our results into a map...and it fixes
+repetition problem by memoizing all of our results into a map...and it fixes
 our search problem because `Map`s are an ordered binary search tree with
 efficient O(log n) lookups.
 
-We can do this using the `State` monad as we learned about in [the previous
-post][state], by using a `Map a Encoding` as an underlying state and adding to
-it using `modify` at every step.
+There are many ways to do this; my favorite right now is to do it by doing
+collapsing our tree into one giant map, using the Monoid instance of `Map`.
 
-[state]: http://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-1-trees#the-state-monad
-
-However, let's note something interesting --- all we ever "do" to the state is
-"add" to it.  We never `get` it, and we *never* need to "branch" on the
-results of our stateful actions.  Our stateful actions don't even return
-anything ever!
-
-We said earlier that, for things that don't require "branching", one can use a
-fold instead of State.  But a fold in this case might be a little unweildy,
-because each "write" depends on how deep in the tree you are.
-
-Let's look at our next big general useful monad: Writer.
-
-#### The Writer Monad
-
-Here are some key flags that you might want a Writer:
-
-1.  All you ever do is some sort of "append" or "adding" to your underlying
-    state.
-3.  You never need to decide anything based on the current state.
-4.  Your entire computation revolves around building up a giant thing by
-    continuously adding little things to it.
-5.  Your "final computation" returns `()` in the end.
-
-(Note that these things are signs you might want to use a Writer monad, but
-actually, the Writer monad has more uses than just the ones described above.)
-
-The Writer monad is actually a lot simpler than the State monad, so don't
-worry!
-
-Like `State`, `Writer` is also a newtype wrapper; let's compare them!
-
-~~~haskell
-newtype State  s a = State (s -> (a, s))
-newtype Writer w a = Writer      (a, w)
-~~~
-
-And so it looks like `Writer` is just a "dumb `State`".  It's a `State` that
-*doesn't have direct access to its state*.
-
-Semantically, we say that `(a, w)` (or `Writer w a`) is a Writer with a
-*result* `a` and an *accumulator* `w`.  `a` is the type of the result of the
-Writer, and `w` is the type of our accumulator.  We can call them "data with
-attached accumulators".
-
-So what would `andThen` look like, for `(a, w)`?  How can we "sequence" two
-"data with attached accumulators"?  Well...we can simply combine their
-accumulators!
-
-~~~haskell
-andThen :: Monoid w => (a, w) -> (b, w) -> (a, w)
-(_, acc) `andThen` (x, acc') = (x, acc <> acc')
-~~~
-
-I'm assuming you already know about the Monoid typeclass and `<>`.  If you
-don't, then to put it briefly, a `Monoid` is something that implements `<>`
-("`mappend`"):
-
-~~~haskell
-(<>) :: Monoid a => a -> a -> a
-~~~
-
-which is an associative "combining function".  "Give me two `a`'s and I'll
-give you a combined `a`."  It is important that this combining operator is
-associative, meaning that `x <> (y <> z)` is the same as `(x <> y) <> z`.
-
-Monoids also implement `mempty :: Monoid a => a`, which is the element that,
-when `<>`'d with something else, does not change that something else.
-
-The canonical example of a Monoid is the list `[a]`, also known as the "free
-monoid".  For lists, `<>` is `++` and `mempty` is `[]`:
-
-~~~haskell
-x ++ (y ++ z) == (x ++ y) ++ z
-      x ++ [] == x
-      [] ++ x == x
-~~~
-
-Basically, monoids represent "combinable things".
-
-So, when we `andThen` two writer tuples, we combine the `w`.
-
-I'll leave `andThenWith :: (a, w) -> (a -> (b, w)) -> (b, w)`  up to you to
-try to implement yourself.
-
-There's also `return`:
-
-~~~haskell
-return :: Monoid w => a -> (a, w)
-return x = (x, mempty)
-~~~
-
-Where `return` just has the item with an empty/"fresh" accumulator.
-
-Again, in real life, we can't define a typeclass instance on a type synonym,
-and we actually can't even define an instance directly on `(a, w)` (can you
-see why?).  So again, the canonical implementation comes in the
-[transformers][] library, and wraps the `(a, w)` in a newtype as `Writer w a`,
-just like for State.  It also offers a few nice primitives, but we will only
-be using one:
-
-[transformers]: http://hackage.haskell.org/package/transformers
-
-~~~haskell
-tell :: Monoid w => w -> Writer w ()
-tell y = Writer ((), y)
-~~~
-
-Basically, `tell` is just a simple `Writer` that returns no result, but adds
-something that will be `<>`'d to the accumulator.
-
-##### Sample Writer
-
-Let's take a whack at an example computation using the Writer monad.
-
-Let's re-write a simple fold that goes down a list and adds up every even
-number in that list.
-
-~~~haskell
-addEven :: Integral a => a -> Writer (Sum a) ()
-addEven x | even x    = tell (Sum x)
-          | otherwise = return ()
-
-addAllEvens :: Integral a => [a] -> Writer (Sum a) ()
-addAllEvens []     = return ()
-addAllEvens (x:xs) = do
-    addEven x
-    addAllEvens xs
-
--- or, using higher order functions
-addAllEvens' :: Integral a => [a] -> Writer (Sum a) ()
-addAllEvens' = mapM_ addEven
-
-runAddAllEvens :: Integral a => [a] -> Sum a
-runAddAllEvens = execWriter . addAllEvens
-~~~
-
-~~~haskell
-λ: runAddAllEvens [2,7,3,5,4,7,8]
-Sum 14
-~~~
-
-`Sum a` (where `a` is a `Num`) is a Monoid, whose "combining"/"merging"
-function is simply to add the values inside.  `Sum 1 <> Sum 2 == Sum 3`.
-`mempty` is, of course, `Sum 0`.
-
-`execWriter` unwraps the `Writer` newtype, and returns only the `w`.
-
-#### Pre-searching, with Writer
-
-With this in mind, let's build up our memoized lookup tree.
+Basically, we turn each of our leaves into little `Map`s, and then "combine"
+them all, using `(<>)`, which "combines" or merges two `Map k v`'s, using
+their Monoid instance:
 
 ~~~haskell
 !!!huffman/PreTree.hs "ptTable ::" huffman-encoding
 ~~~
 
-We take advantage of the fact that `Map k v` is in fact a monoid, and that
-`map1 <> map2` means "adding" the two maps together; it *merges* the maps.
+We do some sort of fancy depth-first "map" over all of the leaves, keeping
+track of how deep we are.  Then we combine it all as we go along with `<>`.
 
-``k `singleton` v`` creates a new map with only one entry (`k` and `v`), so
-when we "append" ``k `singleton` v`` to a map, it's like simply adding a
-key/value pair to the map.
-
-Notice that this has pretty much the exact same structure as our previous
-depth-first search:
+Note how it is almost identical in structure to `findPT`:
 
 ~~~haskell
 !!!huffman/PreTree.hs "findPT ::" huffman-encoding
 ~~~
 
-Except instead of returning a value based on equality at the leaves, we
-"write" it.  And instead of "choosing between" the two branches of a node with
-`(<|>)`, we "sequence"/do them both with `(>>)`.
+Except instead of doing a "short-circuit combination" with `(<|>)`, we do a
+"full combination" with `(<>)`.
+
 
 ### Lookup, Act 2
 
@@ -541,11 +394,19 @@ found something (and return the directions you haven't followed yet).  If you
 run out of directions while on a node...something has gone wrong.
 
 ~~~haskell
-λ: let (Just pt)  = runBuildTree "hello world"
-λ: let (Just enc) = encodeAll pt "hello world"
-λ: decodePT pt enc
+λ: do pt  <- runBuildTree "hello world"
+ |    enc <- encodeAll pt "hello world"
+ |    decodePT pt enc
 Just ('h', [DLeft, DLeft ...])
 ~~~
+
+(Here we are using the Maybe monad, to perform three "possibly failing"
+operations in a row.  The semantics are that `pt` and `enc` are the items
+"inside" `Just pt`, `Just enc` returned by `runBuildTree` and `encodeAll`.  If
+you are not familiar with this, [I sort of literally wrote an entire blog
+post][mp] on this :) )
+
+[mp]: http://blog.jle.im/entry/practical-fun-with-monads-introducing-monadplus
 
 
 ### Decoding many
@@ -573,10 +434,9 @@ Using `unfoldr`, we can write a `decodeAll`:
 ~~~
 
 ~~~haskell
-λ: let (Just pt)  = runBuildTree "hello world"
-λ: let (Just enc) = encodeAll pt "hello world"
-λ: decodeAll t enc
-"hello world"
+λ: do pt  <- runBuildTree "hello world"
+ |    enc <- encodeAll pt "hello world"
+ |    return (decodeAll pt enc)
 ~~~
 
 Which works exactly as we'd like!
@@ -640,15 +500,25 @@ naively huffman encode it.
 #### Success!
 
 There are a few ways to deal with this.  The most "immediate" way would be to
-realize that `decodeAll` is partial, and will actually never terminate if the
+realize that `decodeAll` is partial (that is, it does not terminate/is
+undefined on some of its inputs), and will actually never terminate if the
 given tree is a singleton tree.  We can write a "safe" `decodeAll`:
 
 ~~~haskell
 !!!huffman/PreTree.hs "decodeAll' ::" huffman-encoding
 ~~~
 
-And also a "safe" `testTree`, taking advantage of the Monad instance for
-Maybe.
+In doing this, we don't exactly "fix" the problem...we only defer
+responsibility.  Now, whoever uses `decodeAll'` (like our eventual encoding
+interface) is *forced to handle the error* (by handing the `Nothing` case). In
+this way, *the type system enforces safety*.  Had we always used the unsafe
+`decodeAll`, then whoever uses it eventually has to "manually remember" to
+handle the unterminating case, by carefuly reading documentation or something.
+In this case, the type system is a big, explicit reminder saying "hey, deal
+with the unterminating case."
+
+We'll also a "safe" `testTree`, taking advantage of the Monad instance for
+Maybe. (See the [MonadPlus][mc] article from earlier, if you are unfamiliar)
 
 ~~~haskell
 !!!huffman/Huffman.hs "testTree' ::" huffman-encoding
@@ -670,6 +540,8 @@ case until I decided to add a quickcheck section to this post.  It just goes
 to show that you should always test!  And it also shows how easy it is to
 write tests in quickcheck.  One line could mean five unit tests, and you might
 even test edge/corner cases that you might have never even thought about!
+
+
 
 For example, we probably should have tested `lookupPTTable` against `findPT`,
 our reference implementation :)  We should have also tested our

@@ -728,20 +728,20 @@ Let's try it out, shall we?
 
 ~~~haskell
 λ: fromJust $ runBuildTree "hello world"
-PQTNode (PTNode (PTNode (PTLeaf 'h')
-                        (PTLeaf 'e')
-                )
-                (PTNode (PTLeaf 'w')
-                        (PTLeaf 'r')
-                )
-        )
-        (PTNode (PTLeaf 'l')
-                (PTNode (PTNode (PTLeaf 'd')
-                                (PTLeaf ' ')
-                        )
-                        (PTLeaf 'o')
-                )
-        )
+PTNode (PTNode (PTNode (PTLeaf 'h')
+                       (PTLeaf 'e')
+               )
+               (PTNode (PTLeaf 'w')
+                       (PTLeaf 'r')
+               )
+       )
+       (PTNode (PTLeaf 'l')
+               (PTNode (PTNode (PTLeaf 'd')
+                               (PTLeaf ' ')
+                       )
+                       (PTLeaf 'o')
+               )
+       )
 ~~~
 
 Congrats, we built a Huffman encoding tree!  Notice that the most commonly
