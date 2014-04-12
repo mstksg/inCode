@@ -203,21 +203,18 @@ notation; here are a few samples matched with their equivalent `>>=` form:
 ~~~haskell
 λ: half 8
 Just 4
-λ: do
- |     half 8
+λ: do  half 8
 Just 4
 
 λ: halve 8 >>= halve
 Just 2
-λ: do
- |     x <- halve 8
+λ: do  x <- halve 8
  |     halve x
 Just 2
 
 λ: halve 32 >>= halve >>= halve >>= halve
 Just 2
-λ: do
- |     x <- halve 32
+λ: do  x <- halve 32
  |     y <- halve x
  |     z <- halve y
  |     halve z
@@ -225,8 +222,7 @@ Just 2
 
 λ: halve 32 >> Nothing >>= halve >>= halve
 Nothing
-λ: do
- |     x <- halve 32
+λ: do  x <- halve 32
  |     Nothing
  |     y <- halve x
  |     z <- halve y
@@ -512,8 +508,7 @@ Just 3
 Nothing
 λ: setHealth 10 >>= powerup >> die >>= powerup >>= powerup
 Nothing
-λ: do
- |     h0 <- setHealth 2        -- Just 2
+λ: do  h0 <- setHealth 2        -- Just 2
  |     h1 <- hit h0             -- Just 1
  |     h2 <- powerup h1         -- Just 2
  |     h3 <- hit h2             -- Just 1

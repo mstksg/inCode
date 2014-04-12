@@ -395,9 +395,9 @@ found something (and return the directions you haven't followed yet).  If you
 run out of directions while on a node...something has gone wrong.
 
 ~~~haskell
-λ: do pt  <- runBuildTree "hello world"
- |    enc <- encodeAll pt "hello world"
- |    decodePT pt enc
+λ: do  pt  <- runBuildTree "hello world"
+ |     enc <- encodeAll pt "hello world"
+ |     decodePT pt enc
 Just ('h', [DLeft, DLeft ...])
 ~~~
 
