@@ -6,7 +6,6 @@ Categories
 :   Tutorials
 Tags
 :   haskell
-:   monads
 CreateTime
 :   2014/04/03 01:53:53
 PostDate
