@@ -38,30 +38,10 @@ So let's see what we can do!
 Choosing Pipes
 --------------
 
-### Pure, Declarative IO
-
-"Pure IO?  What?"
-
-The goal here is to purely "assemble" an "IO Machine".  Using abstractions and
-composition, we construct a machine/construct using normal pure functions
-that, when run by the user, will do exactly what we want it to do.  GHC will
-take the IO machine we spec'd out and compile it to an executable that will do
-what we want, when run.  The ideal abstraction will let us somehow "declare"
-at a high level what kind of behavior we want, and assemble (behind the
-scenes) the proper IO machine from our declarations.
-
-In this way, we don't ever deal with impurity or mutability or all that messy
-stuff :)  This is Haskell!  (I wrote a [blog post][pureio] on this issue about
-half a year ago)
-
-[pureio]: http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity
-
-### Picking our Abstraction
-
-We're looking for *constant-space* IO streaming --- that is, we only ever have
-in memory exactly what we are processing at that moment, and nothing else. For
-this, there are a couple go-to abstractions we can use that provides this (at
-the low level).
+So we are searching for an abstraction to handle *constant-space* IO
+streaming.--- that is, we only ever have in memory exactly what we are
+processing at that moment, and nothing else. For this, there are a couple
+go-to abstractions we can use that provides this (at the low level).
 
 1.  We have the always-classic conceptually simple **lazy IO**. Basically, we
     construct a series of IO operations on a file that operates on it
@@ -99,6 +79,11 @@ the low level).
     some are provided by libraries, and some we write ourselves using a very
     simple monadic DSL/API based on await/yield semantics.
 
+    No relying on laziness to time our IO; the library handles it all for us
+    in a meaningful, predicatable, and controllable way --- and the cleanup,
+    too!
+
+
 The choice between *conduit* and *pipes* depends a lot on what you want to
 accomplish.  There was a very nice [Haskell Cast][hc] episode on this matter
 (and more) that I would highly recommend.  Both libraries come from very
@@ -117,5 +102,9 @@ wanted to show pipes to maybe display some of the nice equational reasoning
 possible with mathematics-based abstractions that Haskell is so famous for.
 
 [pipes-parse]: http://hackage.haskell.org/package/pipes-parse
+
+
+Structure
+---------
 
 
