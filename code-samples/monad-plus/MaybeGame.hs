@@ -25,11 +25,11 @@ import Control.Monad (guard)
 
 -- die or fail immediately
 die :: Maybe Int
-die = Nothing                       -- or die = mzero
+die = mzero                         -- or die = mzero
 
 -- if not dead, sets the health to the given level
 setHealth :: Int -> Maybe Int
-setHealth n = Just n                -- or setHealth n = return n
+setHealth n = return n              -- or setHealth n = return n
 
 -- damage the player (from its previous health) and check for death
 hit :: Int -> Maybe Int
@@ -48,4 +48,4 @@ hit' currHealth = guard (newHealth > 0) >> return newHealth
 
 -- increase the player's health from its previous health
 powerup :: Int -> Maybe Int
-powerup currHealth = Just $ currHealth + 1
+powerup currHealth = return $ currHealth + 1
