@@ -6,6 +6,7 @@ module Huffman where
 
 import Control.Applicative              ((<$>))
 import Control.Monad.Trans.State.Strict
+import Control.Monad
 import Data.Map.Strict                  (Map)
 import qualified Data.Map.Strict        as M
 
@@ -57,6 +58,15 @@ listQueueState xs = M.traverseWithKey addNode (listFreq xs) >> return ()
   where
     addNode :: a -> Int -> State (PQueue (WeightedPT a)) ()
     addNode x i = modify (insertPQ (WPair i (makePT x)))
+
+-- listQueueState: The stateful computation of building a priority list
+--      from a given queue, using a PQueue state.
+listQueueStateTable :: Ord a => FreqTable a -> State (PQueue (WeightedPT a)) ()
+listQueueStateTable tab = void $ M.traverseWithKey addNode tab
+  where
+    addNode :: a -> Int -> State (PQueue (WeightedPT a)) ()
+    addNode x i = modify (insertPQ (WPair i (makePT x)))
+
 
 -- | Building trees
 --
