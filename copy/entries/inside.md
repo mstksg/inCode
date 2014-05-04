@@ -537,6 +537,63 @@ popIsEven :: State [Int] Bool
 (True, [10])
 ~~~
 
+I think you get the picture at this point.  If I wanted to supply a `State s
+b` (a machaine that popes out a `b`) but I only had a `State s a` (a machine
+that pops out an `a`) and an `a -> b`, I could turn my `a -> b` into a `State
+s a -> State s b` using `fmap`, because `State s` is a `Functor`!
+
+I can apply normal functions and still remain in my
+state-changing-result-realizing-machine world!
+
+### I am IO
+
+And then there is perhaps one of the more "infamous" worlds.  There is the
+`IO` world.
+
+But really, the `IO` world is a lot like the `Reader s` world!  Remember that
+`Reader s Int` represents an `Int` living in a world that is waiting for an
+`s` (the world of "awaiting").  `Reader s a` basically represents a
+yet-to-be-realized `a` --- all you have to do is "run" it with that `s`.
+
+In the same way, an `IO a` represents a yet-to-be-realized `a`.  It represents
+*a computer routine that computes an `a` when run*.
+
+An `IO a` is an object, like `Reader s a`, that, when compiled by the
+appropriate compiler and then "run" by a computer, yields an `a`.  But only
+when it is eventually run by the computer.
+
+(Like for `Reader s a`, the `a` doesn't "exist" anywhere, *yet*.  But it does
+after you run the `Reader`, in the future.  For `IO a`, the `a` doesn't
+"exist" anywhere, yet.  The `a` is what that `IO` world promises to generate
+when executed by a computer.)
+
+
+This `IO` world --- world of things where you only describe *how* to produce
+the thing (if you were a CPU) --- is unique among the ones we have looked at
+before in that there is *no way to exit this world*.
+
+That is, where is no sort of meaningful function `IO a -> a`.  We had many
+ways to "get out of" our previous worlds (`certaintify`, `runReader` and
+`runState`, for example) and work with the naked values after they exit.  But
+you can't exit from the `IO` world within a Haskell program.  The reason is
+not too hard to see.  Getting a value from an `IO` cannot possibly involve
+anything other than actually running it on a CPU.  And it'd be kind of silly
+to evaluate CPU computations, so what usually happens is when we have some `IO
+a` object, we give it the name `main`, and the compiler compiles that object
+into assembly/machine code, and the machine that you are on will run that
+machine code; and *then* it'll get that `a` :)
+
+Because you can never even meaningfully "exit" the `IO` world if you tried, a
+function like `fmap` is *extremely* handy.
+
+Let's say that our database example has moved to something multi-proceea2
+
+Let's say we have an `IO Person` object that is a command/instruction on how to
+assemble
+
+
+
+
 
 
 
