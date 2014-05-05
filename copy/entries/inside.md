@@ -235,7 +235,7 @@ We can even write our `ageFromId`:
 
 ~~~haskell
 ageFromId :: ID -> Maybe Int
-ageFromId i = inMaybe age (personFromId i)
+ageFromId i = (inMaybe age) (personFromId i)
 ~~~
 
 We can write out `inMaybe` ourselves:
@@ -305,29 +305,6 @@ properties ---
     functions be the same as composing lifted functions.
 2.  `fmap id thing` should leave `thing` unchanged.
 </aside>
-
-#### What does it "mean"?
-
-We've been staying with `Maybe` so far, but we're going to jump head-first
-into generalizing this to different worlds really fast, so it's important to
-remember what `fmap` means and doesn't mean.
-
-*All fmap does* is take a function and turn it into a function that works
-"inside the Functor"; inside your world.  It takes an `a -> b` and turns it
-into an `f a -> f b`.
-
-What does this actually mean, "semantically"?
-
-This is *completely up to the world/instance to decide*.
-
-For `Maybe`, we used the *semantics* that "fmapping will apply the function to
-the value if there is one."
-
-For a different world...what does it mean to apply a function "inside that
-world"?
-
-It's up to that instance!  You get to pick whatever meaning/implementation
-"makes the most sense" in your world.
 
 Worlds of all sorts
 -------------------
@@ -431,24 +408,24 @@ multiple `People`".
 
 Here's an interesting one.
 
-In Haskell, we have a `Reader s` world.  You can think of `Reader s a` as a
+In Haskell, we have a `Reader s` world.  You can think of `(Reader s) a` as a
 little machine that "waits" for something of type `s`, then *uses* it to make
 an `a`.
 
 ~~~haskell
 λ: :t lengthReader
-lengthReader :: Reader [x] Int
+lengthReader :: (Reader [x]) Int
 λ: runReader lengthReader [1,2,3]
 3
 λ: :t oddReader
-oddReader :: Reader Int Bool
+oddReader :: (Reader Int) Bool
 λ: runReader oddReader 6
 False
 λ: runReader oddReader 5
 True
 ~~~
 
-So if I have a `Reader Int Bool`, I have a `Bool` that "lives" in the `Reader
+So if I have a `(Reader Int) Bool`, I have a `Bool` that "lives" in the `Reader
 Int` world --- it is an ephemereal `Bool` perpetually awaiting an
 `Int` in order to be realized and found.  It's a `Bool` *waiting to be
 produced* --- all it needs is some `Int`.
@@ -457,15 +434,15 @@ Back to our database analogy, we can have a `Reader ID` world, a world where
 all of its values are not there yet...they are in the future; they are
 *waiting* for an `ID` to be able to realize themselves.
 
-Let's say I have `personReader :: Reader ID Person` --- a future Person living
-in the world of awaiting --- but I want `ageReader :: Reader ID Int`.  I
+Let's say I have `personReader :: (Reader ID) Person` --- a future Person living
+in the world of awaiting --- but I want `ageReader :: (Reader ID) Int`.  I
 want to give someone an *age* that is just waiting for an `ID`.
 
 Well, no fear!  Because `Reader ID` is a `Functor`, we can move the same old
 `age :: Person -> Int` function that we have been using all along, into our
 world of awaiting!
 
-We can turn a `Person -> Int` into a `Reader ID Person -> Reader ID Int`.
+We can turn a `Person -> Int` into a `(Reader ID) Person -> (Reader ID) Int`.
 
 ~~~haskell
 λ: runReader personReader 108
@@ -474,7 +451,7 @@ Jason
 37
 λ: let ageReader = (fmap age) personReader
 λ: :t ageReader
-ageReader :: Reader ID Person
+ageReader :: (Reader ID) Person
 λ: runReader ageReader 108
 37
 ~~~
@@ -489,16 +466,16 @@ Now we can move all of our functions into the world of awaiting!
 ### The world of state changers
 
 Now, the world of awaiting might seem a little boring or uninteresting.  (And
-you might have guessed that `Reader s a` is just a fancy wrapper around a
+you might have guessed that `(Reader s) a` is just a fancy wrapper around a
 function `s -> a`)
 
-But here's a slight twist to it.  Let's have a little machine `State s a`,
+But here's a slight twist to it.  Let's have a little machine `(State s) a`,
 where it *awaits* an `s` (like before) --- but when it receives it, it pops
 out not just a resulting `a` but a *modified `s`*.
 
 ~~~haskell
 λ: :t popList
-popList :: State [a] a
+popList :: (State [a]) a
    -- pass the state `[8,1,5]` to the `popList` machine
 λ: let (result, newstate) = runState popList [8,1,5]
 λ: result
@@ -507,10 +484,10 @@ popList :: State [a] a
 [1,5]
 ~~~
 
-So we say this: `State [Int] Int` is a `Int` that lives in the world of `State
-[Int]` --- it is awaiting a list of `Int`s before it can be fully realized or
-known, but it also returns a new modified `Int` that is modified as a result
-of its "processing".
+So we say this: `(State [Int]) Int` is a `Int` that lives in the world of
+`State [Int]` --- it is awaiting a list of `Int`s before it can be fully
+realized or known, but it also returns a new modified `Int` that is modified
+as a result of its "processing".
 
 For `popList`, it is basically an `a` that is waiting to be realized if just
 given an `[a]`.  It removes the first element in the list, and that is the
@@ -520,8 +497,8 @@ the list suffers a casualty/change.
 The `State s` world is a world of values waiting to be produced by an `s`, but
 alter the `s` in the process.
 
-Let's say we want have our `popList :: State [Int] Int` (for `Int`s).  How can
-we stay "inside our state world" and give a `popIsEven :: State [Int] Bool`,
+Let's say we want have our `popList :: (State [Int]) Int` (for `Int`s).  How can
+we stay "inside our state world" and give a `popIsEven :: (State [Int]) Bool`,
 where it takes the first item off of the list and then tells if it is even or
 not?
 
@@ -532,15 +509,15 @@ You got it --- `fmap`.
                                                 -- newstate = [8,10]
 λ: let popIsEven = fmap even poopList
 λ: :t popIsEven
-popIsEven :: State [Int] Bool
+popIsEven :: (State [Int]) Bool
 λ: runState popIsEven newstate
 (True, [10])
 ~~~
 
-I think you get the picture at this point.  If I wanted to supply a `State s
-b` (a machaine that popes out a `b`) but I only had a `State s a` (a machine
-that pops out an `a`) and an `a -> b`, I could turn my `a -> b` into a `State
-s a -> State s b` using `fmap`, because `State s` is a `Functor`!
+I think you get the picture at this point.  If I wanted to supply a `(State s)
+b` (a machaine that popes out a `b`) but I only had a `(State s) a` (a machine
+that pops out an `a`) and an `a -> b`, I could turn my `a -> b` into a `(State
+s) a -> (State s) b` using `fmap`, because `State s` is a `Functor`!
 
 I can apply normal functions and still remain in my
 state-changing-result-realizing-machine world!
@@ -552,54 +529,84 @@ And then there is perhaps one of the more "infamous" worlds.  There is the
 
 But really, the `IO` world is a lot like the `Reader s` world!  Remember that
 `Reader s Int` represents an `Int` living in a world that is waiting for an
-`s` (the world of "awaiting").  `Reader s a` basically represents a
+`s` (the world of "awaiting").  `(Reader s) a` basically represents a
 yet-to-be-realized `a` --- all you have to do is "run" it with that `s`.
 
 In the same way, an `IO a` represents a yet-to-be-realized `a`.  It represents
 *a computer routine that computes an `a` when run*.
 
-An `IO a` is an object, like `Reader s a`, that, when compiled by the
+An `IO a` is an object, like `(Reader s) a`, that, when compiled by the
 appropriate compiler and then "run" by a computer, yields an `a`.  But only
 when it is eventually run by the computer.
 
-(Like for `Reader s a`, the `a` doesn't "exist" anywhere, *yet*.  But it does
-after you run the `Reader`, in the future.  For `IO a`, the `a` doesn't
+You can almost think of `IO a` as a literal chunk of machine code/C code that,
+when run, will produce your `a`.
+
+(Like for `(Reader s) a`, the `a` doesn't "exist" anywhere, *yet*.  But it
+does after you run the `Reader`, in the future.  For `IO a`, the `a` doesn't
 "exist" anywhere, yet.  The `a` is what that `IO` world promises to generate
 when executed by a computer.)
 
-
 This `IO` world --- world of things where you only describe *how* to produce
 the thing (if you were a CPU) --- is unique among the ones we have looked at
-before in that there is *no way to exit this world*.
+before in that there is *no way to exit this world* in Haskell.
 
 That is, where is no sort of meaningful function `IO a -> a`.  We had many
 ways to "get out of" our previous worlds (`certaintify`, `runReader` and
-`runState`, for example) and work with the naked values after they exit.  But
-you can't exit from the `IO` world within a Haskell program.  The reason is
-not too hard to see.  Getting a value from an `IO` cannot possibly involve
-anything other than actually running it on a CPU.  And it'd be kind of silly
-to evaluate CPU computations, so what usually happens is when we have some `IO
-a` object, we give it the name `main`, and the compiler compiles that object
-into assembly/machine code, and the machine that you are on will run that
-machine code; and *then* it'll get that `a` :)
-
-Because you can never even meaningfully "exit" the `IO` world if you tried, a
-function like `fmap` is *extremely* handy.
-
-Let's say that our database example has moved to something multi-proceea2
-
-Let's say we have an `IO Person` object that is a command/instruction on how to
-assemble
+`runState`, for example) and work with the naked values after they exit.
 
 
+This kind of makes sense what you think about it.  If `IO a` is a little
+chunk of machine code or an object containing instructions for some computer,
+then the only thing that can really "get the `a`" is a computer --- and not a
+Haskell program.
+
+Because you can never even meaningfully "exit" the `IO` world if you tried
+within a Haskell program, a function like `fmap` is *extremely* handy.
+
+Let's say our database of persons exists on a text file somewhere.  Because
+processors and computers are very good at reading text files, `IO` looks like
+a pretty nice world to live in.  So let's say we had a function
+
+~~~haskell
+lookupPerson :: ID -> IO Person
+~~~
+
+that looks up a person from a text file on disk somewhere, by their ID.  And
+we want to write a function
+
+~~~hasell
+lookupAge :: ID -> IO Age
+~~~
+
+Remember, `lookupPerson i` is an object describing a computation that will
+return a `Person` when a computer eventually runs it.
+
+We can do some shifting, like we did for `Reader s`, and think of `IO Person`
+as "a `Person` that lives in a world of awaiting being computed by a
+computer."
+
+We already have our normal `age :: Person -> Int` function, but this is
+apparently useless!
+
+~~~haskell
+λ: age (lookupPerson 10)
+<< SCARY ERROR! >>
+-- > age only works on Person, but you gave it an IO Person, a Person that
+-- > lives in IO.  You have to rethink your life, buddy.
+~~~
+
+But we can turn a `Person -> Int` into an `IO Person -> IO Int`.  Riiight?
+Because `IO` is a `Functor`, and we have `fmap`!
 
 
+~~~haskell
+lookupAge :: ID -> IO Age
+lookupAge i = (fmap age) (lookupPerson i)
+~~~
 
-
-
-
-
-
+Hooray `fmap`!  Thanks you you, we can bring normal functions into any world
+we like, and we can stay in that world and use normal functions!
 
 
 
@@ -608,6 +615,7 @@ assemble
 
 
 ----
+
 
 
 
