@@ -20,8 +20,8 @@ There are a lot of special worlds out there.
 
 1.  The world of *Maybe*, in which things may or may not be there.
 2.  The world of *List*, in which things may be many things.
-3.  The world of *State*, in which things are things that will be computed in
-    the future.
+3.  The world of *State s*, in which things are things that will be computed
+    in the future.
 4.  The world of *IO*, in which things are things that will be computed by a
     CPU, which can react to the outside world during that process.
 
@@ -608,9 +608,228 @@ lookupAge i = (fmap age) (lookupPerson i)
 Hooray `fmap`!  Thanks you you, we can bring normal functions into any world
 we like, and we can stay in that world and use normal functions!
 
+Combining Worlds
+----------------
+
+Well, maybe.  After a while, you might notice that `fmap` and `Functor` has
+some shortcomings.
+
+Let's return to the world of `Maybe`, and our database of people.  Let's say
+that you have a matchmaking algorithm that calculates the compatibility
+between two people.
+
+~~~haskell
+compatibility :: Person -> Person -> Double
+~~~
+
+~~~haskell
+λ: compatibility John Sarah
+82.3
+~~~
+
+That's fine and dandy if we are living in the world of normal functions and
+normal types, but what if we were in the world of `Maybe`, the world of
+uncertainty?
+
+~~~haskell
+λ: personFromId 144
+Just John
+λ: personFromId 14
+Just Sarah
+λ: compatibility (personFromId 144) (personFromId 14)
+<< SCARY ERROR! >>
+-- > compatibility takes two Persons, but you gave two Maybe Persons.
+-- > do you have no shame?
+~~~
+
+That didn't work, but what kind of answer would we have even expected?
+
+Well, if we want to find the compatibility between two people that might not
+even exist...the answer *should* be a compatibility that might not exist.
+
+That is:
+
+~~~haskell
+compatiblityInMaybes :: Maybe Person -> Maybe Person -> Maybe Double
+~~~
+
+~~~haskell
+λ: compatibilityInMaybes (personFromId 144) (personFromId 14)
+Just 82.3
+λ: personFromId 59
+Nothing
+λ: compatibilityInMaybes (persomFromId 144) (personFromId 59)
+Nothing
+~~~
+
+For the last answer, the compatibility between someone that does exist and
+someone that doesn't exist ... well, doesn't exist!
+
+### Apply Yourself
+
+You might be guessing that, like `Functor` and `fmap`, this is a common design
+pattern as well, that might be expanded to different worlds.
+
+And you're right.  It's called `Applicative`.  And instead of `fmap`, we have
+a new grab bag of functions that are aimed at *combining values inside
+worlds*.
+
+For `Functor`, we have functions aimed at *applying functions inside worlds*.
+`Applicative` comes along and lets us *combine values inside worlds*.
+
+For that, we have a handy function called `liftA2`.
+
+~~~haskell
+liftA2 :: Applicative f => (a -> b -> c) -> (f a -> f b -> f c)
+~~~
+
+And because `Maybe` is an `Applicative`, we can jump right away into turning
+`compatibility :: Person -> Person -> Double` into a `Maybe Person -> Maybe
+Person -> Maybe Double`
+
+~~~haskell
+λ: (liftA2 compatibility) (personFromId 144) (personFromId 14)
+Just 82.3
+λ: (liftA2 compatibility) (personFromId 144) (persomFromId 59)
+Nothing
+~~~
+
+Using `Applicative`, we were able to combine two `Maybe a` values into one
+`Maybe c`.  We were able to "combine" two values inside the same world.
+
+But `Applicative` actually is a little "deeper" than just `liftA2`.  If you
+peek into the definition of `Applicative`, you'll see that it doesn't even
+mention `liftA2`worlds.:
+
+~~~haskell
+class Functor f => Applicative f where
+    pure  :: a -> f a
+    (<*>) :: f (a -> b) -> f a -> f b
+~~~
+
+You probably could guess the semantics/meaning of `pure` and `(<*>)` when we
+think about worlds:
+
+*   `pure` lets us "enter" a world, for free.  For `Maybe`, it took here a
+    certain 4, an `Int`, and pushed it into the world of uncertainty, a `Maybe
+    Int`.
+
+    The only meaningful implementation in `Maybe` is of course to just wrap
+    the value in a `Just` --- a `Maybe` value that is *there*, obviously.
+
+*   `(<*>)` applies the function inside the world on the left hand side to the
+    value inside the world on the right hand side, all staying in the world
+    the entire time.
+
+Using this, we can write something like `liftA2 f x y` as
+
+~~~haskell
+liftA2 :: (a -> b -> c) -> f a -> f b -> f c
+liftA2 f x y = f <$> x <*> y
+~~~
+
+Where `(<$>)` is `fmap`.  And we can write `liftA3` as
+
+~~~haskell
+liftA3 :: (a -> b -> c -> d) -> f a -> f b -> f c -> f d
+liftA3 f x y z = f <$> x <*> y <*> z
+~~~
+
+<aside>
+    ###### Aside
+
+How does this work?  It's not magic.  If we add explicit parentheses, can see
+that the above definition of `liftA2` is just
+
+~~~haskell
+(f <$> x) <*> y
+~~~
+
+And if `f :: a -> b -> c`, and `x :: Maybe a`, then `fmap f x` is `Maybe (b ->
+c)` (because of currying).
+
+So if `(f <$> x)` is `Maybe (b -> c)` --- that is, a function that might or
+might not exist --- we can use `<*>` to apply that function to our `Maybe b`
+to get a `Maybe c`.
+
+If you don't understand this, don't worry; you can sort of just read `f <$> x
+<*> y` as "apply `f` 'inside' `x` and `y`", and `f <$> x <*> y <*> z` as
+"apply `f` 'inside' x, y, and z".
+</aside>
 
 
+#### Other worlds are Applicatives too
 
+Other worlds are `Applicative`s too.  In fact, I sort of specifically picked
+worlds that were both `Functor` and `Applicative`; how clever of me!
+
+##### State Applicative
+
+Combining two `State s` machines has interesting semantics.
+
+What would it even mean to combine two machines that take in and modify a
+state, and create a new machine that takes in and modifies a state?
+
+Let's think about something like 
+
+~~~haskell
+pop2 :: (State [a]) (a,a)
+pop2 = (liftA2 (,)) popList popList
+~~~
+
+where `(,)` is the tupling function `a -> b -> (a, b)`.
+
+The type of `pop2` should tell you that it is some sort of state machine that
+takes in an `[a]` as a state, and produces an `(a,a)` and pops out a modified
+`[a]`.
+
+The *semantics* of "combining" two `State s` machines is that when you
+"combine" two machines, you create a new machine that feeds the input state into the
+first machine, feeds the modified state of the first machine into the second
+machine, and then pops out finally the modified state of the second machine.
+
+<!-- TODO: Add a diagram here -->
+
+So `pop2` should basically take something like `[1,2,3,4]`, give it to the first
+`popList`, which would output `[2,3,4]`, which would then be fed into the
+second `popList`, which would output `[3,4]`, which would be the final
+modified state.
+
+~~~haskell
+λ: let (result, newstate) = runState pop2 [1,2,3,4]
+λ: newstate
+[3,4]
+~~~
+
+And what would `result` be?
+
+Well, `popList` "contains" a to-be-realized `Int` (awaiting a state of `[Int]`
+to realize it).  So to apply `(,)` "inside" the `State [Int]` world, we would
+just take those two to-be-realized `Int`'s...and tuple them.  We create a
+to-be-realized `(Int, Int)`!
+
+And that's exactly what `(State [Int]) (Int, Int)` means!
+
+So, `(liftA2 (,)) popList popList` snags up those two to-be-realized `Int`s,
+and couples them up into a to-be-realized tuple, `(Int, Int)`.
+
+The big picture --- we can stay in our "to-be-realized" world, and *still* use
+our normal functions like `(,)`.  Not only that, we can combine the two
+results "living" in the "to-be-realized" world, into one "to-be-realized"
+world.
+
+So back to what `result` must be --- the first `popList` pops an item off of
+`[1,2,3,4]` and "realizes" a 1.  The second `popList` pops an item off of
+`[2,3,4]` and "realizes" a 2.  So `pop2` on `[1,2,3,4]` should snag up those
+two "realized" numbers 1 and 2 and realize a `(1, 2)`.
+
+~~~haskell
+λ: let (result, newstate) = runState pop2 [1,2,3,4]
+λ: result
+(1,2)
+~~~
+
+Neat.
 
 
 
