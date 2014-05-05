@@ -770,7 +770,7 @@ Combining two `State s` machines has interesting semantics.
 What would it even mean to combine two machines that take in and modify a
 state, and create a new machine that takes in and modifies a state?
 
-Let's think about something like 
+Let's think about something like
 
 ~~~haskell
 pop2 :: (State [a]) (a,a)
@@ -831,6 +831,40 @@ two "realized" numbers 1 and 2 and realize a `(1, 2)`.
 
 Neat.
 
+
+#### The IO Applicative
+
+`IO` is, too, an `Applicative`.  But what does that mean?
+
+Well, if we have two "instructions on how to compute" something, we have two
+values living in a "to-be-computed-in-the-future-by-a-computer" world.
+
+Let's see what that would mean?
+
+Let's take the classic `IO String` --- a `String` living in that world ---
+`getLine :: IO String`.  `getLine` is describes, for the computer, the act of
+reading a line from stdin, and the string that it promises to deliver is that
+line.
+
+So what would something like
+
+~~~haskell
+getTwoLines :: IO String
+getTwoLines = (liftA2 (++)) getLine getLine
+~~~
+
+do?
+
+`getTwoLines` is an IO computation --- a object describing a
+computation --- that does `getLine` *twice* to get those two `String`s that
+`getLine` promises, and then applies `(++)` to those realized `Strings` to get
+a realized `String` that is the concatenation of both.
+
+So `getTwoLines` is an IO computation that promises a `String` --- and that
+`String` is promised to be the concatenation (the `(++)`) of the `String`s
+promised by the two `getLine`s.
+
+Wow this article is way too long, I haven't even started on Monads yet.
 
 
 ----
