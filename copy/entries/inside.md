@@ -20,10 +20,13 @@ There are a lot of special worlds out there.
 
 1.  The world of *Maybe*, in which things may or may not be there.
 2.  The world of *List*, in which things may be many things.
-3.  The world of *State s*, in which things are things that will be computed
-    in the future.
-4.  The world of *IO*, in which things are things that will be computed by a
-    CPU, which can react to the outside world during that process.
+3.  The world of *Reader r*, in which things are things that do not yet exist
+    but are awaiting an *r* before they can come to be.
+3.  The world of *State s*, in which things are things that are awaiting an
+    *s* before they can come to be, but modify the *s* in the process.
+4.  The world of *IO*, in which things are promised things that will be
+    computed by a CPU, which can react to the outside world during that
+    process.
 
 And many more.
 
@@ -51,38 +54,28 @@ similar to saying `Maybe<a>` -- `Maybe<a>` is a parameterized type over some
 This type is useful for functions that might fail:
 
 ~~~haskell
+-- Takes two integers and returns -- possibly -- their integer quotient. It
+-- succeeds if the denominator is not zero, and fails if it is.
 divideMaybe :: Int -> Int -> Maybe Int
 divideMaybe _ 0 = Nothing
 divideMaybe x y = Just (x `div` y)
 
+-- Takes a list and returns -- possibly -- its first element.  Fails if the
+-- list is empty, and succeeds with the first element otherwise.
 headMaybe :: [a] -> Maybe a
 headMaybe []    = Nothing
 headMaybe (x:_) = Just x
 
+-- Takes an integer and returns -- possibly -- its half.  Fails if it is an
+-- odd number.
 halveMaybe :: Int -> Maybe Int
 halveMaybe x | x `mod` 2 == 0 = Just (x `div` 2)
              | otherwise      = Nothing
 ~~~
 
 When you want to return a value of type `Maybe a`, you can either return `Just
-x` or `Nothing` --- they both are members of type `Maybe a`.
-
-`divideMaybe` is a function that takes two integers and returns --- maybe ---
-their integer quotient.  If the second number is a zero, return `Nothing`.
-Otherwise, return a `Just` containing the integer quotient.
-
-`headMaybe` is a function that takes a list and returns --- maybe --- the
-first element.  If given an empty list (`[]`), it returns `Nothing`.  If given
-a list with a first element (the pattern `x:xs` matches `x` to the first
-element and `xs` to the rest of the list, but we ignore `xs`), it returns a
-`Just` containing the first element.
-
-`halveMaybe` is a function that takes an integer and returns --- maybe ---
-half of it.  If the integer is even, then it returns its half in a `Just`; if
-it's not, it returns `Nothing`.
-
-That's the type --- `halveMaybe :: Int -> Maybe Int`.  `halveMaybe` takes an
-`Int` and returns a `Maybe Int` --- "an integer might possibly be there".
+x` or `Nothing` --- they both are members of type `Maybe a`.  That's what
+`Maybe Int` means --- an `Int` that might or might not be there!
 
 If I gave you something of type `Maybe Int`, would you know for sure if that
 `Int` was there or not?  You wouldn't!  You are living in the world of
@@ -134,8 +127,8 @@ certaintifyWithDefault _ (Just x) = x
 certaintifyWithDefault d Nothing  = d
 ~~~
 
-(in `Data.Maybe`, `certaintify` is `fromJust`, and `certaintifyWithDefault` is
-`fromMaybe`)
+(in `Data.Maybe` in the standard libraries, `certaintify` is `fromJust`, and
+`certaintifyWithDefault` is `fromMaybe`)
 
 And then you can just willy-nilly use your normal `Int -> Int` functions on
 what you pull out.
@@ -157,7 +150,7 @@ Let's say you had a function that looked up a person from a database given
 their ID number.  But not all ID numbers have a person attached, so the
 function might fail and not lookup anyone.
 
-~~~
+~~~haskell
 personFromId :: ID -> Maybe Person
 ~~~
 
@@ -194,12 +187,11 @@ To phrase it in types, I want to turn an `a -> b` into a `Maybe a ->
 Maybe b`.
 
 I have a function on an `a` that returns a `b`...and so I want to turn it into
-a function on an `a` that is possibly there/not there, to return --- well, a `b` that is
-possibly there/not there!
+a function on an `a` that is possibly there/not there, to return --- well, a
+`b` that is possibly there/not there!
 
-Basically, I want to move my `a -> b` into *my world of uncertainty*.  So
-that I can use *any* `a -> b` as if it were written for uncertain values
-this entire time.
+I want to move my `a -> b` into *my world of uncertainty*.  So that I can use
+*any* `a -> b` as if it were written for uncertain values this entire time.
 
 If you look at this carefully, we want some sort of "function transformer".
 Give our transfomer an `a -> b`, it'll output a new function `Maybe a -> Maybe
@@ -219,8 +211,7 @@ inMaybe :: (a -> b) -> (Maybe a -> Maybe b)
 Just 10
 λ: addThreeInMaybe Nothing
 Nothing
-λ: (inMaybe square) (Just 9)    -- equivalent to inMaybe square (Just 9), the
-                                -- parentheses are syntactically redundant
+λ: (inMaybe square) (Just 9)
 Just 81
 λ: (inMaybe showInt) Nothing
 Nothing
@@ -252,15 +243,15 @@ Now we are no longer afraid of dealing with uncertainty.  It's a scary realm,
 but as long as we have `inMaybe`...all of our normal tools apply!
 
 ~~~haskell
-λ: let x = headMaybe [2,3,4]    -- x = Just 2
-λ: let y = inMaybe square x     -- y = Just 4
-λ: let z = inMaybe addThree y   -- z = Just 7
-λ: inMaybe (> 5) z
+λ: let x = headMaybe [2,3,4]        -- x = Just 2
+λ: let y = (inMaybe square) x       -- y = Just 4
+λ: let z = (inMaybe addThree) y     -- z = Just 7
+λ: (inMaybe (> 5)) z
 Just True
-λ: let x' = halveMaybe 7        -- x' = Nothing
-λ: let y' = inMaybe square x'   -- y' = Nothing
-λ: let z' = inMaybe addThree y' -- z' = Nothing
-λ: inMaybe (> 5) z'
+λ: let x' = halveMaybe 7            -- x' = Nothing
+λ: let y' = (inMaybe square) x'     -- y' = Nothing
+λ: let z' = (inMaybe addThree) y'   -- z' = Nothing
+λ: (inMaybe (> 5)) z'
 Nothing
 ~~~
 
@@ -275,7 +266,7 @@ We call it `Functor`:
 
 ~~~haskell
 class Functor f where
-  fmap :: (a -> b) -> f a -> f b
+  fmap :: (a -> b) -> (f a -> f b)
 ~~~
 
 If you haven't done much Haskell, this might seem scary, but don't worry.  All
@@ -360,9 +351,9 @@ from person to age.  I want to write a function that, when given a food,
 returns the age of every person who has it as their favorite food.
 
 ~~~haskell
-isFavoriteFoodOf :: Food -> [Person]
+isFavoriteFoodOf :: Food   -> [Person]
 age              :: Person -> Int
-favoriteFoodAges :: Food -> [Age]
+favoriteFoodAges :: Food   -> [Int]
 ~~~
 
 Clearly, we want to stay in nondeterminism/multiple possible answers the
@@ -380,7 +371,7 @@ double of the inverse square"...that computation should yield -6 or 6.
 Applying functions to a superposition values is like applying them to every
 value.
 
-So `[]` is a `Functor`, so that means that it has such an `fmap :: (a -> b) ->
+`[]` is a `Functor`, so that means that it has such an `fmap :: (a -> b) ->
 ([a] -> [b])`.
 
 ~~~haskell
@@ -408,8 +399,8 @@ multiple `People`".
 
 Here's an interesting one.
 
-In Haskell, we have a `Reader s` world.  You can think of `(Reader s) a` as a
-little machine that "waits" for something of type `s`, then *uses* it to make
+In Haskell, we have a `Reader r` world.  You can think of `(Reader r) a` as a
+little machine that "waits" for something of type `r`, then *uses* it to make
 an `a`.
 
 ~~~haskell
@@ -425,10 +416,10 @@ False
 True
 ~~~
 
-So if I have a `(Reader Int) Bool`, I have a `Bool` that "lives" in the `Reader
-Int` world --- it is an ephemereal `Bool` perpetually awaiting an
-`Int` in order to be realized and found.  It's a `Bool` *waiting to be
-produced* --- all it needs is some `Int`.
+So if I have a `(Reader Int) Bool`, I have a `Bool` that "lives" in the
+`Reader Int` world --- it is an ephemereal `Bool` awaiting an `Int` in order
+to be realized and found.  It's a `Bool` *waiting to be produced* --- all it
+needs is some `Int`.
 
 Back to our database analogy, we can have a `Reader ID` world, a world where
 all of its values are not there yet...they are in the future; they are
@@ -463,15 +454,20 @@ popping it out.
 
 Now we can move all of our functions into the world of awaiting!
 
-### The world of state changers
+### The world of state-modifying awaiters
 
 Now, the world of awaiting might seem a little boring or uninteresting.  (And
-you might have guessed that `(Reader s) a` is just a fancy wrapper around a
-function `s -> a`)
+you might have guessed that `(Reader r) a` is just a fancy wrapper around a
+function `r -> a`)
 
 But here's a slight twist to it.  Let's have a little machine `(State s) a`,
-where it *awaits* an `s` (like before) --- but when it receives it, it pops
-out not just a resulting `a` but a *modified `s`*.
+where it *awaits* an `s` to produce an `a` (like before), but it *modifies the
+input in the process of producing* the `a`.[^modify]  It pops out not only the result,
+but the modified `s`.
+
+[^modify]: Of course, nothing is actually "modified" in-place in-memory ---
+when we say `s` is modified, we mean that an altered version of the `s` is
+returned.
 
 ~~~haskell
 λ: :t popList
@@ -480,19 +476,17 @@ popList :: (State [a]) a
 λ: let (result, newstate) = runState popList [8,1,5]
 λ: result
 8
-λ: newstate
+λ: newstate     -- list is changed in the process of making the 8
 [1,5]
 ~~~
 
 So we say this: `(State [Int]) Int` is a `Int` that lives in the world of
 `State [Int]` --- it is awaiting a list of `Int`s before it can be fully
-realized or known, but it also returns a new modified `Int` that is modified
-as a result of its "processing".
+realized or known, and modifies that list in the process of its realization.
 
 For `popList`, it is basically an `a` that is waiting to be realized if just
-given an `[a]`.  It removes the first element in the list, and that is the
-result --- the list has been maimed.  In the process of "realizing" the `a`,
-the list suffers a casualty/change.
+given an `[a]`.  The result is the first element, but in the process of
+producing it, it leaves the list with one less element.
 
 The `State s` world is a world of values waiting to be produced by an `s`, but
 alter the `s` in the process.
@@ -507,7 +501,7 @@ You got it --- `fmap`.
 ~~~haskell
 λ: let (x,newstate) = runState popList [3,8,10] -- x        = 3
                                                 -- newstate = [8,10]
-λ: let popIsEven = fmap even poopList
+λ: let popIsEven = fmap even popList
 λ: :t popIsEven
 popIsEven :: (State [Int]) Bool
 λ: runState popIsEven newstate
@@ -522,27 +516,27 @@ s) a -> (State s) b` using `fmap`, because `State s` is a `Functor`!
 I can apply normal functions and still remain in my
 state-changing-result-realizing-machine world!
 
-### I am IO
+### Infamous IO
 
 And then there is perhaps one of the more "infamous" worlds.  There is the
 `IO` world.
 
-But really, the `IO` world is a lot like the `Reader s` world!  Remember that
-`Reader s Int` represents an `Int` living in a world that is waiting for an
-`s` (the world of "awaiting").  `(Reader s) a` basically represents a
-yet-to-be-realized `a` --- all you have to do is "run" it with that `s`.
+But really, the `IO` world is a lot like the `Reader r` world!  Remember that
+`Reader r Int` represents an `Int` living in a world that is waiting for an
+`r` (the world of "awaiting").  `(Reader r) a` basically represents a
+yet-to-be-realized `a` --- all you have to do is "run" it with that `r`.
 
 In the same way, an `IO a` represents a yet-to-be-realized `a`.  It represents
 *a computer routine that computes an `a` when run*.
 
-An `IO a` is an object, like `(Reader s) a`, that, when compiled by the
+An `IO a` is an object, like `(Reader r) a`, that, when compiled by the
 appropriate compiler and then "run" by a computer, yields an `a`.  But only
 when it is eventually run by the computer.
 
 You can almost think of `IO a` as a literal chunk of machine code/C code that,
 when run, will produce your `a`.
 
-(Like for `(Reader s) a`, the `a` doesn't "exist" anywhere, *yet*.  But it
+(Like for `(Reader r) a`, the `a` doesn't "exist" anywhere, *yet*.  But it
 does after you run the `Reader`, in the future.  For `IO a`, the `a` doesn't
 "exist" anywhere, yet.  The `a` is what that `IO` world promises to generate
 when executed by a computer.)
@@ -555,14 +549,15 @@ That is, where is no sort of meaningful function `IO a -> a`.  We had many
 ways to "get out of" our previous worlds (`certaintify`, `runReader` and
 `runState`, for example) and work with the naked values after they exit.
 
-
 This kind of makes sense what you think about it.  If `IO a` is a little
 chunk of machine code or an object containing instructions for some computer,
 then the only thing that can really "get the `a`" is a computer --- and not a
-Haskell program.
+Haskell program.  Because IO computations can involve things like disk reading
+and getting input from the user and checking the weather...these are things
+that you can't quite simulate.
 
-Because you can never even meaningfully "exit" the `IO` world if you tried
-within a Haskell program, a function like `fmap` is *extremely* handy.
+Because you can never even meaningfully "exit" the `IO` world within a Haskell
+program if you tried, a function like `fmap` is *extremely* handy.
 
 Let's say our database of persons exists on a text file somewhere.  Because
 processors and computers are very good at reading text files, `IO` looks like
@@ -582,7 +577,7 @@ lookupAge :: ID -> IO Age
 Remember, `lookupPerson i` is an object describing a computation that will
 return a `Person` when a computer eventually runs it.
 
-We can do some shifting, like we did for `Reader s`, and think of `IO Person`
+We can do some shifting, like we did for `Reader r`, and think of `IO Person`
 as "a `Person` that lives in a world of awaiting being computed by a
 computer."
 
@@ -599,7 +594,6 @@ apparently useless!
 But we can turn a `Person -> Int` into an `IO Person -> IO Int`.  Riiight?
 Because `IO` is a `Functor`, and we have `fmap`!
 
-
 ~~~haskell
 lookupAge :: ID -> IO Age
 lookupAge i = (fmap age) (lookupPerson i)
@@ -608,10 +602,31 @@ lookupAge i = (fmap age) (lookupPerson i)
 Hooray `fmap`!  Thanks you you, we can bring normal functions into any world
 we like, and we can stay in that world and use normal functions!
 
+### Left Adjoint Fun
+
+I'll leave a couple of notes here before moving on ---
+
+First of all, even though we have been writing things like `(fmap f) x`, the
+parentheses are actually unnecessary due to the way Haskell associates function
+calls.  So `(fmap f) x` is the same as `fmap f x`, and we'll be writing it
+that way from now on.
+
+You probably could have guessed the same about the types `(Reader r) a` and
+`(State s) a`, which are more traditionally written as `Reader r a` and `State
+s a`.[^worldpar]
+
+[^worldpar]: The parentheses are there to emphasize that `Reader r` is the
+"world", and *not* `Reader`.  This is an important distinction.  `Reader Int
+Bool` is a `Bool` living in the `Reader Int` world.
+
+Finally, an infix operator alias for `fmap` exists: `(<$>)`.  That way, you
+can write `fmap f x` as `f <$> x`, which is like "applying" `f` "inside" `x`.
+This might be more useful or expressive in some cases.
+
 Combining Worlds
 ----------------
 
-Well, maybe.  After a while, you might notice that `fmap` and `Functor` has
+After a while, you might notice that `fmap` and `Functor` has
 some shortcomings.
 
 Let's return to the world of `Maybe`, and our database of people.  Let's say
@@ -690,14 +705,21 @@ Person -> Maybe Double`
 ~~~haskell
 λ: (liftA2 compatibility) (personFromId 144) (personFromId 14)
 Just 82.3
-λ: (liftA2 compatibility) (personFromId 144) (persomFromId 59)
+--  remember, the parentheses are optional
+λ: liftA2 compatibility (personFromId 144) (persomFromId 59)
 Nothing
 ~~~
 
 Using `Applicative`, we were able to combine two `Maybe a` values into one
 `Maybe c`.  We were able to "combine" two values inside the same world.
 
-But `Applicative` actually is a little "deeper" than just `liftA2`.  If you
+`Applicative` also offers `liftA3`, and tools to combine arbitrary numbers of
+worlds.
+
+<aside>
+    ###### Aside
+
+`Applicative` actually is a little "deeper" than just `liftA2`.  If you
 peek into the definition of `Applicative`, you'll see that it doesn't even
 mention `liftA2`worlds.:
 
@@ -710,9 +732,7 @@ class Functor f => Applicative f where
 You probably could guess the semantics/meaning of `pure` and `(<*>)` when we
 think about worlds:
 
-*   `pure` lets us "enter" a world, for free.  For `Maybe`, it took here a
-    certain 4, an `Int`, and pushed it into the world of uncertainty, a `Maybe
-    Int`.
+*   `pure` lets us "enter" a world, for free.
 
     The only meaningful implementation in `Maybe` is of course to just wrap
     the value in a `Just` --- a `Maybe` value that is *there*, obviously.
@@ -721,22 +741,16 @@ think about worlds:
     value inside the world on the right hand side, all staying in the world
     the entire time.
 
-Using this, we can write something like `liftA2 f x y` as
+Using this, we can write things like `liftA2 f x y` and `liftA3 f x y z` as
 
 ~~~haskell
 liftA2 :: (a -> b -> c) -> f a -> f b -> f c
 liftA2 f x y = f <$> x <*> y
-~~~
 
-Where `(<$>)` is `fmap`.  And we can write `liftA3` as
-
-~~~haskell
 liftA3 :: (a -> b -> c -> d) -> f a -> f b -> f c -> f d
 liftA3 f x y z = f <$> x <*> y <*> z
 ~~~
 
-<aside>
-    ###### Aside
 
 How does this work?  It's not magic.  If we add explicit parentheses, can see
 that the above definition of `liftA2` is just
@@ -754,7 +768,8 @@ to get a `Maybe c`.
 
 If you don't understand this, don't worry; you can sort of just read `f <$> x
 <*> y` as "apply `f` 'inside' `x` and `y`", and `f <$> x <*> y <*> z` as
-"apply `f` 'inside' x, y, and z".
+"apply `f` 'inside' `x`, `y`, and `z`".
+
 </aside>
 
 
@@ -773,7 +788,7 @@ state, and create a new machine that takes in and modifies a state?
 Let's think about something like
 
 ~~~haskell
-pop2 :: (State [a]) (a,a)
+pop2 :: State [a] (a,a)
 pop2 = (liftA2 (,)) popList popList
 ~~~
 
@@ -781,12 +796,13 @@ where `(,)` is the tupling function `a -> b -> (a, b)`.
 
 The type of `pop2` should tell you that it is some sort of state machine that
 takes in an `[a]` as a state, and produces an `(a,a)` and pops out a modified
-`[a]`.
+`[a]` in the process.
 
 The *semantics* of "combining" two `State s` machines is that when you
-"combine" two machines, you create a new machine that feeds the input state into the
-first machine, feeds the modified state of the first machine into the second
-machine, and then pops out finally the modified state of the second machine.
+"combine" two machines, you create a new machine that feeds the input state
+into the first machine, feeds the modified state of the first machine into the
+second machine, and then pops out finally the modified state of the second
+machine.
 
 <!-- TODO: Add a diagram here -->
 
@@ -803,12 +819,12 @@ modified state.
 
 And what would `result` be?
 
-Well, `popList` "contains" a to-be-realized `Int` (awaiting a state of `[Int]`
-to realize it).  So to apply `(,)` "inside" the `State [Int]` world, we would
+Well, `popList` "contains" a to-be-realized `Int` (awaiting an `[Int]` to
+realize itself).  So to apply `(,)` "inside" the `State [Int]` world, we would
 just take those two to-be-realized `Int`'s...and tuple them.  We create a
 to-be-realized `(Int, Int)`!
 
-And that's exactly what `(State [Int]) (Int, Int)` means!
+And that's exactly what `State [Int] (Int, Int)` means!
 
 So, `(liftA2 (,)) popList popList` snags up those two to-be-realized `Int`s,
 and couples them up into a to-be-realized tuple, `(Int, Int)`.
@@ -860,11 +876,267 @@ computation --- that does `getLine` *twice* to get those two `String`s that
 `getLine` promises, and then applies `(++)` to those realized `Strings` to get
 a realized `String` that is the concatenation of both.
 
-So `getTwoLines` is an IO computation that promises a `String` --- and that
-`String` is promised to be the concatenation (the `(++)`) of the `String`s
-promised by the two `getLine`s.
+So `getTwoLines` is an IO computation that promises a `String`.  Where does it
+come from?  Well, the two `getLine`s both promise `String`s.  `getTwoLines`
+runs the two one after the other, and *promises* to deliver the concatenation
+(the `(++)`) of the two strings promised by the `getLine`s.
 
-Wow this article is way too long, I haven't even started on Monads yet.
+### Applicati-cations
+
+What did we just see?
+
+*   A way to move any function working on normal values to work on values
+    inside our worlds.
+
+    In types, a way to move `a -> b` into `f a -> f b`.
+
+*   A way to "combine" two values inside worlds into just one.
+
+    And in the process, a way to move `a -> b -> c` into `f a -> f b -> f c`.
+
+It looks like with these two tools, working with values inside worlds seems to
+really be no biggie at all.  We can use normal functions just fine, and take
+advantage of maximum code re-use.  Imagine having to write two separate
+`age` functions for both `Person` and `Maybe Person`!
+
+One very important thing to note here is that *what it actually means* to be
+moved "into world" depends on the actual world.  And this is the power of the
+abstraction --- every world can offer its own way of lifting functions.  All
+`Functor` and `Applicative` say is: if there is a meaningful way to move this
+into this world, here it is.
+
+Note that I didn't go over what it would look like to combine `[]` and `Reader
+r`.  Feel free to try to interpret it yourself!
+
+Chaining worlds
+---------------
+
+There's just one tool that we need to yet add to our arsenal to make this
+complete.
+
+I claim that I can stay inside `Maybe` forever.  But what if I had `Just 8 ::
+Maybe Int` and I wanted to apply `halveMaybe :: Int -> Maybe Int` to it?
+
+This sounds like something that I should be able to do.  After all, both `Just
+7` and `halveMaybe` deal with uncertainty.  `Just 8` is a value that might or
+might not be there, and `halveMaybe` is a function that produces a number that
+might or not not be there.
+
+We stay inside the world of uncertainty the entire time.  No biggie!
+
+If I wanted to somehow be able to apply `halveMaybe` to `Just 8`, I would
+expect something like `Just 4`.
+
+If I wanted to apply `halveMaybe` to `Nothing`, I would expect...well,
+`Nothing`.  If I apply it to `Just 7`, I'd expect `Nothing`.  Makes sense,
+right?
+
+So how do we get `Int -> Maybe Int` to work on `Maybe Int`?
+
+What we are really looking for is a way to turn `a -> Maybe b` into `Maybe a
+-> Maybe b`
+
+Hm.  This is harder than it looks at first.  We can't use `fmap`:
+
+~~~haskell
+λ: fmap halveMaybe (Just 8)
+Just (Just 4)   -- :: Maybe (Maybe Int)
+λ: fmap halveMaybe (Just 7)
+Just Nothing    -- :: Maybe (Maybe Int)
+~~~
+
+`fmap` turns an `Int -> Maybe Int` into a `Maybe Int -> Maybe (Maybe Int)`.
+It "lifts" both sides.
+
+Let's imagine we had a function `preLift :: (a -> Maybe b) -> (Maybe a ->
+Maybe b)`
+
+Compare:
+
+~~~haskell
+fmap    :: (a ->       b) -> (Maybe a -> Maybe b)
+preLift :: (a -> Maybe b) -> (Maybe a -> Maybe b)
+~~~
+
+And now we can finally properly apply `halveMaybe` to `Just 8`:
+
+~~~haskell
+λ: (preLift halveMaybe) (Just 8)
+Just 4
+λ: (preLift halveMaybe) Nothing
+Nothing
+λ: (preLift halveMaybe) (Just 7)
+Nothing
+~~~
+
+We can write `preLift` ourselves:
+
+~~~haskell
+preLift :: (a -> Maybe b) -> (Maybe a -> Maybe b)
+preLift f = go
+  where
+    go Nothing  = Nothing
+    go (Just x) = f x
+~~~
+
+And just like that...we have found our final, integral tool.
+
+### Monads
+
+Like with `Functor` and `Applicative`, `Monad` generalizes a special type of
+application to many worlds and offers a common interface.
+
+And this functionality (with some other things) --- the ability to turn an `a
+-> Maybe b` into a `Maybe a -> Maybe b` --- gives you the `Monad` typeclass.
+Not so scary, is it?
+
+There unfortunately actually isn't a named function that does what `preLift`
+does.  However, there is an operator --- `(=<<)`:
+
+~~~haskell
+λ: halveMaybe =<< Just 8
+Just 4
+λ: halveMaybe =<< Nothing
+Nothing
+λ: halveMaybe =<< Just 7
+Nothing
+~~~
+
+Note the similarities between `(=<<)` and the infix `fmap`, `(<$>)`:
+
+~~~haskell
+λ: addThree <$> Just 8
+Just 11
+λ: halveMaybe =<< Just 8
+Just 4
+λ: :t (<$>)
+(<$>) :: Functor f => (a ->   b) -> f a -> f b
+λ: :t (=<<)
+(=<<) :: Monad f   => (a -> f b) -> f a -> f b
+~~~
+
+`(<$>)` lifts an `a -> b` to `f a -> f b`, and `(=<<)` lifts an `a -> f b` to
+`f a -> f b`.
+
+The *target* (`f a -> f b`) is the *same* for both.  But the inputs are
+slightly different.
+
+Let's see `(=<<)` in action for our multitude of worlds!
+
+<aside>
+    ###### Aside
+
+`Monad` is only slightly more than just `(=<<)`:
+
+~~~haskell
+class Monad m where
+    return :: a -> m a
+    (>>=)  :: m a -> (a -> m b) -> m b
+~~~
+
+`return` is just `pure` --- it "injects" a value straight up into your world.
+And `(>>=)` is just `(=<<)` reversed.
+
+`Monad`s are encouraged to follow a couple of laws that we won't go into too
+much detail here.
+</aside>
+
+### More Monads!
+
+Because, remember, every world their its own unique semantics that make them all
+uniquely useful, let's see what this sort of "lifting" would look like in
+different worlds.
+
+#### State Monad
+
+We can look at what `(=<<)` must mean for the world of `State s`.
+
+If I have something like `f :: a -> State s b`, that must mean that `f` is a
+function from a value to a state-modifying machine.
+
+Let's say I already had an `x :: State s a`.  A state modifying machine that
+promises an `a`, but requires and modifies an input `s`.  And I wanted to
+apply `f` "to it".
+
+Well...`f` would just be applied to that `a` promised by `x`!
+
+And so, `f =<< x` would be of type `State s b`, where the `b` is the
+yet-to-be-realized value that is the result of applying `f` to the
+yet-to-be-realized result of `x`.
+
+Let's look at an example.
+
+~~~haskell
+pushList :: a -> State [a] ()
+popList  :: State [a] a
+~~~
+
+`popList` contains an `a` that is yet to be computed, and is waiting for an
+`[a]` that it will change in that process (by removing an element).
+
+`pushList` takes an `a` and returns a `()` --- more more specifically, a `()`
+that is yet to be computed, and is waiting for an incoming list `[a]` that it
+will change in that process (by appending the element).
+
+~~~haskell
+λ: let push5 = pushList 5   -- State [Int] ()
+λ: let (result,newstate) = runState push5 [1,2,3]
+λ: newstate
+[5,1,2,3]
+~~~
+
+So if we looked at `(pushList =<<)` here, we see a `State [Int] Int -> State
+[Int] ()`.  That is, we turned `pushList` into a function that takes a `State
+[Int] Int` instead of an `Int`.
+
+It takes to-be-realized `Int`.  Well, it'll just use that to-be-realized `Int`
+and feed it into `pushList`!
+
+So `(pushList =<<)` takes a to-be-realized `a` and turns it into a
+to-be-realized `()`.  Sound like `fmap` to you?
+
+What would happen if we did `pushList =<< popList` ?
+
+~~~haskell
+λ: let popPush = pushList =<< popList
+λ: let (result,newstate) = runState popPush [1,2,3,4]
+λ: result
+()
+~~~
+
+Okay, well, the result is what we would expect.  What about the newly modified
+`s`?
+
+Well, `(=<<)` for `State s` is implemented so that `pushList =<< popList`
+creates a new machine, who takes in a state, runs it to to `popList`, takes
+the resulting state and feeds it into the state input of the `pushList i`
+machine.
+
+In our case, `popList` takes an item off the list and returns the value.
+`pushList` takes a value and adds it onto the list.
+
+For `pushList =<< popList`, if we ran something like `[1,2,3,4]`:
+
+1.  `popList` takes in the `[1,2,3,4]` state and proudly makes a 1 and pops
+    out a state of `[2,3,4]`.
+2.  `pushList` is called with 1 to get `pushList 1 :: State [Int] ()`.  The
+    state `[2,3,4]` is fed into `pushList 1` to get `[1,2,3,4]`.
+
+~~~haskell
+λ: let (result,newstate) = runState pushPop [1,2,3,4]
+λ: newstate
+[1,2,3,4]
+~~~
+
+
+
+<!-- The semantics work in that the new `State s b` is a new state-modifying -->
+<!-- machine.  It takes an input of type `s`, feeds it into the first machine, -->
+
+
+
+
+
 
 
 ----
