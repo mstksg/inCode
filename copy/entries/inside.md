@@ -19,11 +19,15 @@ I like Haskell because it lets me live inside my world.
 There are a lot of special worlds out there.
 
 1.  The world of *Maybe*, in which things may or may not be there.
+
 2.  The world of *List*, in which things may be many things.
+
 3.  The world of *Reader r*, in which things are things that do not yet exist
     but are awaiting an *r* before they can come to be.
+
 3.  The world of *State s*, in which things are things that are awaiting an
     *s* before they can come to be, but modify the *s* in the process.
+
 4.  The world of *IO*, in which things are promised things that will be
     computed by a CPU, which can react to the outside world during that
     process.
@@ -73,9 +77,9 @@ halveMaybe x | x `mod` 2 == 0 = Just (x `div` 2)
              | otherwise      = Nothing
 ~~~
 
-When you want to return a value of type `Maybe a`, you can either return `Just
-x` or `Nothing` --- they both are members of type `Maybe a`.  That's what
-`Maybe Int` means --- an `Int` that might or might not be there!
+When you want to return a value of type `Maybe a`, you can either return
+`Just x` or `Nothing` --- they both are members of type `Maybe a`.  That's
+what `Maybe Int` means --- an `Int` that might or might not be there!
 
 If I gave you something of type `Maybe Int`, would you know for sure if that
 `Int` was there or not?  You wouldn't!  You are living in the world of
@@ -106,8 +110,8 @@ But...I can't do these things on `Maybe Int`!
 ~~~haskell
 λ: addThree (Just 5)
 << SCARY ERROR! >>
--- > addThree takes an `Int` but you gave it a `Maybe Int`.  What are you
--- >   trying to do anyway, wise guy.
+<< addThree takes an `Int` but you gave it a `Maybe Int`.  What are you >>
+<< trying to do anyway, wise guy. >>
 ~~~
 
 In most other languages, to get around this, you would "exit" your uncertain
@@ -127,8 +131,8 @@ certaintifyWithDefault _ (Just x) = x
 certaintifyWithDefault d Nothing  = d
 ~~~
 
-(in `Data.Maybe` in the standard libraries, `certaintify` is `fromJust`, and
-`certaintifyWithDefault` is `fromMaybe`)
+(In the standard libraries, these exist in the `Data.Maybe` module:
+`certaintify` is `fromJust`, and `certaintifyWithDefault` is `fromMaybe`)
 
 And then you can just willy-nilly use your normal `Int -> Int` functions on
 what you pull out.
@@ -171,7 +175,10 @@ ageFromId :: ID -> Maybe Int
 In this case, it would make no sense to "exit" the world of uncertainty as
 soon as we get a `Maybe Person`, and then "re-enter" it somehow when you
 return the `Maybe Int`.  Our entire answer is shrowded in uncertainty, so we
-need to stay inside this world the entire time.
+need to *stay inside this world* the entire time.
+
+*This is the key*.  We want to find a way to deal with values inside a world
+*without leaving it*.
 
 So we have a function `Person -> Int`, and a `Maybe Person`...darnit.  How do
 we use our `age` function, without leaving `Maybe`?  We certaintly want to
@@ -199,7 +206,7 @@ b`.
 
 We want a function of type `(a -> b) -> (Maybe a -> Maybe b)`
 
-Let's pretend we have one!
+Let's pretend we have one!  What could we do with it?
 
 ~~~haskell
 inMaybe :: (a -> b) -> (Maybe a -> Maybe b)
@@ -232,7 +239,7 @@ ageFromId i = (inMaybe age) (personFromId i)
 We can write out `inMaybe` ourselves:
 
 ~~~haskell
-inMaybe :: (a -> a) -> (Maybe a -> Maybe b)
+inMaybe :: (a -> b) -> (Maybe a -> Maybe b)
 inMaybe f = go
   where
     go (Just x) = Just (f x)
@@ -296,6 +303,64 @@ properties ---
     functions be the same as composing lifted functions.
 2.  `fmap id thing` should leave `thing` unchanged.
 </aside>
+
+
+Some notes about Functors before we move on!
+
+First of all, even though we have been writing things like `(fmap f) x`, the
+parentheses are actually unnecessary due to the way Haskell associates function
+calls.  So `(fmap f) x` is the same as `fmap f x`, and we'll be writing it
+that way from now on.
+
+Secondly, an infix operator alias for `fmap` exists: `(<$>)`.  That way, you
+can write `fmap f x` as `f <$> x`, which is like "applying" `f` "inside" `x`.
+This might be more useful or expressive in some cases.
+
+
+
+
+
+
+--------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+------------
+
+
+
 
 Worlds of all sorts
 -------------------
