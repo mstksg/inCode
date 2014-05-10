@@ -40,16 +40,8 @@ decodeFile fpi fpo =
           let searchPipe = searchPT t >~ cat
           runEffect $ view P.pack ( encpipe >-> bytes
                                 >-> dirs    >-> searchPipe
-                                >-> limit i )
+                                >-> PP.take i )
                   >-> P.toHandle hOut
-
--- utility function to limit the amount of bytes drawn.  this is because
--- our direction stream actually is padded with zeroes, so it's important
--- to terminate before trying to decode those padded zeroes.
-limit :: Monad m => Int -> Pipe a a m r
-limit n = do
-    PP.take n
-    PP.drain
 
 -- Takes a stream of Directions and yields a byte every time it succesfuly
 -- decodes one.  This works because we have Prefix Tree; every direction
