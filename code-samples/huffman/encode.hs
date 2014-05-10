@@ -13,12 +13,12 @@ import Data.ByteString                          (ByteString)
 import Data.Char
 import Data.Foldable
 import Data.List hiding                         (sum)
-import Data.Map.Strict                          (Map)
+import Data.Map.Strict                          (Map, (!))
 import Data.Monoid
 import Data.Word
 import Huffman
-import PQueue
 import Lens.Family2
+import PQueue
 import Pipes
 import Pipes.ByteString                  hiding (ByteString)
 import Pipes.Parse
@@ -68,9 +68,8 @@ encodeFile fpi fpo l t =
 
 -- Transforms a stream of bytes into a stream of directions that encode
 -- every byte.
-encodeByte t = forever $ do
-    b <- await
-    forM_ (b `M.lookup` t) (mapM_ yield)
+encodeByte :: (Ord a, Monad m) => Map a Encoding -> Pipe a Direction m r
+encodeByte t = PP.mapFoldable (t !)
 
 -- Parser that turns a stream of directions into a stream of bytes, by
 -- condensing eight directions into one byte.  If the direction stream
