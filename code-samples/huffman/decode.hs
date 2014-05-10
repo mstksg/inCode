@@ -1,4 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE RankNTypes #-}
 
 module Main where
 
@@ -11,6 +12,7 @@ import Huffman
 import Pipes
 import Pipes.Binary
 import Pipes.Parse
+import Control.Lens
 import PreTree
 import System.IO
 import qualified Data.ByteString      as B
@@ -35,10 +37,11 @@ decodeFile fpi fpo =
         Left e      -> error "Corrupt metadata."
         Right (i,t) -> do
           -- do everything with the rest
-          runEffect $     encpipe    >-> bytes   >-> dirs
-                      >-> searchPT t >-> limit i
-                      >-> PP.map B.singleton
-                      >-> P.toHandle hOut
+          let searchPipe = searchPT t >~ cat
+          runEffect $ view P.pack ( encpipe >-> bytes
+                                >-> dirs    >-> searchPipe
+                                >-> limit i )
+                  >-> P.toHandle hOut
 
 -- utility function to limit the amount of bytes drawn.  this is because
 -- our direction stream actually is padded with zeroes, so it's important
@@ -52,13 +55,12 @@ limit n = do
 -- decodes one.  This works because we have Prefix Tree; every direction
 -- "traverses down" the tree, and as soon as a leaf is hit, its data is
 -- emitted and we move back to the root to start again.
-searchPT :: forall m r. Monad m => PreTree Word8 -> Pipe Direction Word8 m r
+searchPT :: forall m r a. Monad m => PreTree a -> Consumer' Direction m a
 searchPT pt0 = go pt0
   where
-    go :: PreTree Word8 -> Pipe Direction Word8 m r
-    go (PTLeaf x) = do
-      yield x
-      go pt0
+    go :: PreTree a -> Consumer' Direction m a
+    go (PTLeaf x)       =
+      return x
     go (PTNode pt1 pt2) = do
       dir <- await
       case dir of
@@ -67,8 +69,7 @@ searchPT pt0 = go pt0
 
 -- Takes bytestrings from upstream and yields its component bytes
 bytes :: Monad m => Pipe B.ByteString Word8 m r
-bytes = forever $
-          B.foldl (\p c -> p >> yield c) (return ()) =<< await
+bytes = PP.mapFoldable B.unpack
 
 -- Turns a stream of bytes into a stream of directions, yielding eight
 -- times per byte.

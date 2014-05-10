@@ -18,6 +18,7 @@ import Data.Monoid
 import Data.Word
 import Huffman
 import PQueue
+import Lens.Family2
 import Pipes
 import Pipes.ByteString                  hiding (ByteString)
 import Pipes.Parse
@@ -56,24 +57,20 @@ encodeFile fpi fpo l t =
     withFile fpo WriteMode $ \hOut -> do
       B.hPut hOut . BL.toStrict $ encode l
       B.hPut hOut . BL.toStrict $ encode t
-      let dirStream =     fromHandle hIn
-                      >-> bytes
-                      >-> encodeByte tb
-      runEffect $     dirsBytes dirStream
-                  >-> PP.map B.singleton
-                  >-> toHandle hOut
+      let dirStream = fromHandle hIn
+                  >-> bytes
+                  >-> encodeByte tb
+      runEffect $ view pack (dirsBytes dirStream)
+              >-> toHandle hOut
   where
     tb = ptTable t
 
 
 -- Transforms a stream of bytes into a stream of directions that encode
 -- every byte.
-encodeByte :: Monad m => Map Word8 Encoding -> Pipe Word8 Direction m r
 encodeByte t = forever $ do
     b <- await
-    case b `M.lookup` t of
-      Nothing   -> error "Corrupt table."
-      Just dirs -> mapM_ yield dirs
+    forM_ (b `M.lookup` t) (mapM_ yield)
 
 -- Parser that turns a stream of directions into a stream of bytes, by
 -- condensing eight directions into one byte.  If the direction stream
@@ -110,6 +107,4 @@ dirsBytes p = do
 -- Receive ByteStrings from upstream and send its Word8 components
 -- downstream
 bytes :: Monad m => Pipe ByteString Word8 m r
-bytes = forever $
-          B.foldl (\p c -> p >> yield c) (return ()) =<< await
-
+bytes = PP.mapFoldable B.unpack
