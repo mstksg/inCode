@@ -499,6 +499,47 @@ Nothing
 And now maybe we can finally rest easy knowing that we can "stay inside
 `Maybe`" and never have to leave it.
 
+### Haskellers are weird
+
+Now, for some strange reason, it is actually much more popular to use `(>>=)`
+over `(=<<)`; `(>>=)` is just `(=<<)` backwards:
+
+~~~haskell
+λ: halveMaybe =<< Just 8
+Just 4
+λ: Just 4 >>= halveMaybe
+Just 2
+~~~
+
+This is really weird!  I mean...really *really* weird!  Why would you ever put
+the function you are applying *after* the value you are applying it to?
+That's like having `x :: a` and `f :: a -> b`, and doing `x f` or something!
+
+Why is this style the norm?  Who knows! [^whoknows]  People are just weird!
+
+[^whoknows]: I know!  And I'm not telling!  Just kidding.  The main reason is
+    that code ends up looking more "imperative"...imagine `divideMaybe 12 3
+    >>= halveMaybe >>= halveMaybe` versus `halveMaybe =<< halveMaybe =<<
+    divideMaybe 12 3`.  The former looks like you divide 12 by 3, then halve
+    it, then halve it again...kind of like Unix pipes.  The latter looks like
+    normal function application.
+
+    Believe it or not, usage of Monads was originally motivated by structuring
+    IO actions.  So, in that setting, it seemed natural to have an
+    "imperative-y" feel.
+
+    Also, in the popular "do notation" syntactical sugar, `(>>=)` is used in
+    the desugaring and not `(=<<)`, so `(>>=)` pops out naturally when
+    reasoning about Monads coming through do notation.
+
+    Still, I personally feel like the prevalence of `(>>=)` over `(=<<)` is a
+    rather unfortunate historical accident; almost all other code in Haskell
+    is read "right to left" (like `f . g . h`), so having a "left to right"
+    operator just seems to throw everything out of whack.
+
+For the rest of this article, we will be using `(=<<)`; just be aware that you
+might see `(>>=)` out in the wild more often!
+
 Recap
 -----
 
