@@ -117,6 +117,17 @@ But...I can't do these things on `Maybe Int`!
 << trying to do anyway, wise guy. >>
 ~~~
 
+<aside>
+    ###### Aside
+
+Oh hi!
+
+In this post, commands at the interactive Haskell interpreter (REPL) ghci are
+prefaced with the prompt `λ:`.  If you see `λ:`, it means that this is
+something you'd enter at ghci.  If not, it is normal Haskell source code!
+</aside>
+
+
 In most other languages, to get around this, you would "exit" your uncertain
 world.  That is, you would turn your uncertain 5 into either a certain 5 or an
 error.  Or you would turn your uncertain 5 into either a certain 5 or some
