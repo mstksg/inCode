@@ -625,5 +625,110 @@ ways to turn "into" our world-y functions: `a -> b`, `a -> Maybe b`, and now
 Other Worlds
 ------------
 
+### About
+
+You might have noticed that up until now I have used the word "world" pretty
+vaguely.
+
+When I say that a value is "inside" a "world", I mean that it "lives" inside
+the context of what that world represents.
+
+A `Maybe a` is an `a` living in the `Maybe` "world" --- it is an `a` that can
+exist or not exist.  `Maybe` represents a context of
+existing-or-not-existing.[^worlds]
+
+[^worlds]: In Haskell, "worlds" are represented at the type level as type
+    constructors.  `Maybe` is a type constructor that takes a type like `Int` and
+    returns a new type, `Maybe Int`.  However, I make the distinction here
+    that not all type constructors can be called "worlds".
+
+    Also, as you may or may not have guessed, "worlds" is my cute,
+    semantically meaningful word for a certain class of Monads.
+
+But there are other worlds, and other contexts too.  And though I have shown
+you what `Functor` and `Monad` look like for `Maybe`...you probably need to
+see a few more examples to be really convinced that these are general design
+patterns that you can apply to multiple "values in contexts".
+
+What does `fmap` and `(=<<)` really "mean"?  Is there some deep underlying
+meaning and order to this madness?
+
+The answer is no.  `fmap` is only an `(a -> b) -> (f a -> f b)` for a given
+world `f`, and `(=<<)` is only an `(a -> m b) -> (m a -> m b)` for a given
+world `m`.[^laws]  What that "means" (what does it even mean to turn an `a -> m b`
+into an `m a -> m b`?) is really only up to that specific "world" to describe.
+
+[^laws]: For sanity's sake, of course, `fmap` and `(=<<)` should behave
+according to certain laws, like the Functor laws I mentioned earlier.
+
+For `Maybe`, `fmap` and `(=<<)` were defined with the semantics of propagating
+unknownness.  But for other "worlds", as we will see, we can make them mean
+whatever.
+
+Anyways, here is a worldwind tour of different worlds, to help you realize how
+often you'll actually want to live in these worlds in Haskell, and why having
+`fmap` and `(=<<)` are so useful!
+
+### The world of awaiting
+
+This might be an interesting one!
+
+In Haskell, we have a `Reader r` world.  You can think of `(Reader r) a` as a
+little machine that "waits" for something of type `r`, then *uses* it to make
+an `a`.
+
+~~~haskell
+λ: :t lengthReader
+lengthReader :: (Reader [x]) Int
+λ: runReader lengthReader [1,2,3]
+3
+λ: :t oddReader
+oddReader :: (Reader Int) Bool
+λ: runReader oddReader 6
+False
+λ: runReader oddReader 5
+True
+~~~
+
+So if I have a `(Reader Int) Bool`, I have a `Bool` that "lives" in the
+`Reader Int` world --- it is an ephemeral `Bool` awaiting an `Int` in order
+to be realized and found.  It's a `Bool` *waiting to be produced* --- all it
+needs is some `Int`.
+
+Back to our database analogy, we can have a `Reader ID` world, a world where
+all of its values are not there yet...they are in the future; they are
+*waiting* for an `ID` to be able to realize themselves.
+
+Let's say I have `personReader :: (Reader ID) Person` --- a future Person living
+in the world of awaiting --- but I want `ageReader :: (Reader ID) Int`.  I
+want to give someone an *age* that is just waiting for an `ID`.
+
+Well, no fear!  Because `Reader ID` is a `Functor`, we can move the same old
+`age :: Person -> Int` function that we have been using all along, into our
+world of awaiting!
+
+We can turn a `Person -> Int` into a `(Reader ID) Person -> (Reader ID) Int`.
+
+~~~haskell
+λ: runReader personReader 108
+Jason
+λ: age Jason
+37
+λ: let ageReader = (fmap age) personReader
+λ: :t ageReader
+ageReader :: (Reader ID) Person
+λ: runReader ageReader 108
+37
+~~~
+
+The *semantics* of `fmap` for `Reader Int` is that it applies that function to
+the future value, once it has been obtained.  That is, once you get a `Person`
+from the `ID`, it applies the function `age` to that `Person` before finally
+popping it out.
+
+
+Now we can move all of our functions into the world of awaiting!
+
+
 
 
