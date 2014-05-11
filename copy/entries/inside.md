@@ -312,97 +312,215 @@ Secondly, an infix operator alias for `fmap` exists: `(<$>)`.  That way, you
 can write `fmap f x` as `f <$> x`, which is like "applying" `f` "inside" `x`.
 This might be more useful or expressive in some cases.
 
-Merging Worlds
---------------
+'Pre-lifting'
+-------------
 
-So with `Functor`, if we have a `Maybe a`, we can use an `a -> b` on it by
-turning it into a `Maybe a -> Maybe b`.
+Okay, so we now can turn `a -> b` into `Maybe a -> Maybe b`.
 
-That's neat and all...but, you might eventually realize that maybe you need a
-little bit more some times.
+That might be nice, but if you scroll up just a bit, you might see that there
+are other functions that might be interesting to apply on a `Maybe a`.
 
-Let's say that you have a matchmaking algorithm that calculates the
-compatibility between two people.
+What about `halveMaybe :: Int -> Maybe Int`?
+
+Let's say I have a `Maybe Int` already...maybe something I got from using
+`divideMaybe`.
+
+Can I use `halveMaybe` on my `Maybe Int`?
 
 ~~~haskell
-compatibility :: Person -> Person -> Double
+λ: let x = divideMaybe 12 3     -- x = Just 4 :: Maybe Int
+λ: halveMaybe x
+<< SCARY ERROR! >>
+<< halveMaybe takes an Int but you gave it  >>
+<< a Maybe Int.  Think about your life.     >>
+~~~
+
+Oh no!  Maybe we can't really stay inside our `Maybe` world after all!
+
+But wait, calm down.  We have overcome similar things before.  With our recent
+journey to `Functor` enlightenment in mind, let's try to look for a similar
+path.
+
+We had an `a -> b` that we wanted to apply to a `Maybe a`, we used `fmap` to
+turn it into a `Maybe a -> Maybe b`.
+
+So we have a `a -> Maybe b` here that we want to apply to a `Maybe a`.
+
+The plan is simple!  We turn an `a -> Maybe b` into a `Maybe a -> Maybe b`.
+Let's pretend we had such a function.
+
+~~~haskell
+preLift :: (a -> Maybe b) -> (Maybe a -> Maybe b)
+~~~
+
+How should we expect this to behave?
+
+Well, let's think this through case-by-case.
+
+If we want to apply `halveMaybe` to a number that isn't there...well...it
+should also return a number that isn't there.  It should propagate the
+not-thereness.
+
+If we want to apply `halveMaybe` to a number that *is* there...well, just
+apply it to that number, and take that result!  If the result is there, then
+you have a result there.  If the result is not there, then you don't.
+
+We have enough to write this out ourselves:
+
+~~~haskell
+preLift :: (a -> Maybe b) -> (Maybe a -> Maybe b)
+preLift f = go
+  where
+    go Nothing  = Nothing
+    go (Just x) = f x
 ~~~
 
 ~~~haskell
-λ: compatibility John Sarah
-82.3
+λ: :t preLift halveMaybe
+Maybe Int -> Maybe Int
+λ: let x = divideMaybe 12 3     -- x = Just 4 :: Maybe Int
+λ: (preLift halveMaybe) x
+Just 2
+λ: let y = divideMaybe 12 0     -- y = Nothing :: Maybe Int
+λ: (preLift halveMaybe) y
+Nothing
 ~~~
 
-That's fine and dandy if we are living in the world of normal functions and
-normal types, but what if we were in the world of `Maybe`, the world of
-uncertainty?
+Neat!  Now we don't have to fear `a -> Maybe b`'s...we can use them and *still
+stay in our world*, without leaving our world of uncertainty!
+
+### Monad
+
+Like with `Functor` and `fmap`, this general pattern of turning an `a -> f b`
+into an `f a -> f b` is also useful to generalize.
+
+We say that if a world has such a way of "pre-lifting" a function (plus some
+other requirements), it implements the `Monad` typeclass.
+
+Now, you may or not have known this, but Monads have a...reputation.  You
+might have heard that Monads were super scary and intimidating.  And you might
+have tried to "get" Monads.  Well, search no more, it's that simple.
+
+`Monad` is a typeclass (which is kinda like an interface), so that means that
+if `Maybe` is a `Monad`, it "implements" that way to turn a `a -> Maybe b`
+into a `Maybe a -> Maybe b`.
+
+We call this `(a -> Maybe a) -> (Maybe a -> Maybe b)` function `bind`.
+
+<aside>
+    ###### Aside
+
+The "other thing" that `Monad` has to have (the other thing that the
+"interface" demands, besides `(=<<)`) is a way to "bring a value into your
+world".
+
+This function is called `return`.
+
+For example, for `Maybe`, we need a way to take a normal value like an `Int`
+and "bring it into" our world of uncertainty --- an `Int -> Maybe Int`.
+
+For `Maybe`, semantically, to bring something like `7` into the world of
+uncertainty...well, we already know the `7` is there.  So to bring a `7` into
+`Maybe`, it's just `Just 7`
+</aside>
+
+Now, embarassingly enough, `bind` actually isn't called `bind` in the standard
+library...it actually only exists as an operator, `(=<<)`.
+
+(Remember how there was an operator form of `fmap`?  We have both `fmap` and
+`(<$>)`?  Well, in this case, we *only* have the operator form of `bind`,
+`(=<<)`. Yeah, I know.  But we live with it just fine!).
+
+`(=<<)` is exactly our `preLift` for `Maybe`.  Let's try it out:
+
+~~~haskell
+λ: :t (=<<) halveMaybe
+Maybe Int -> Maybe Int
+λ: let x = divideMaybe 12 3     -- x = Just 4 :: Maybe Int
+
+-- use it as a prefix function
+λ: (=<<) halveMaybe x
+Just 2
+λ: let y = divideMaybe 12 0     -- y = Nothing :: Maybe Int
+
+-- use it as an infix operator
+λ: halveMaybe =<< y
+Nothing
+~~~
+
+And now maybe we can finally rest easy knowing that we can "stay inside
+`Maybe`" and never have to leave it.
+
+Recap
+-----
+
+Thanks to `Functor` and `Monad`, we now have a way to confidently stay in our
+world of uncertainty and still use normal functions on our uncertain values
+--- we only have to use the right "lifters".
+
+If you have an `x :: Maybe a` and you have a:
+
+*   `f :: a -> b`, then use `fmap` or `(<$>)` --- `fmap f x` or `f <$> x`
+
+*   `f :: a -> Maybe b`, then use `(=<<)` --- `f =<< x`
+
+Armed with these two, you can comfortably stay in `Maybe` without ever having
+to "get out of it"!
+
+<aside>
+    ###### Aside
+
+Between `Functor` and `Monad`, there is another useful typeclass called
+`Applicative` that lets you "merge" values in worlds together.
+
+That is, if you had a matchmaking algorithm that calculates the compatibility
+of two `Person`s, `compatibility :: Person -> Person -> Double`.
+
+`compatiblity` can be described as a function that takes two `Person`s and
+"squashes" them into one `Double`.
+
+What if we wanted a `compatibiliy` that takes two `Maybe Person`s and
+"squashes" them into one `Maybe Double`?
+
+For that, we have the "squashing" typeclass, `Applicative`, which allows us
+two arbitrarily combine two or three or as many `Maybe a`s as we want!
+(Because `Maybe` implements/instances `Applicative`)
+
+In our case, we can use `liftA2`, which does exactly what we wanted for
+`compatibility`: `liftA2 :: (a -> b -> c) -> (Maybe a -> Maybe b -> Maybe c)`.
 
 ~~~haskell
 λ: personFromId 144
 Just John
-λ: personFromId 14
-Just Sarah
-λ: compatibility (personFromId 144) (personFromId 14)
-<< SCARY ERROR! >>
-<< compatibility takes two Persons, but you gave two Maybe Persons. >>
-<< have you no shame? >>
-~~~
-
-That didn't work, but what kind of answer would we have even expected?
-
-Well, if we want to find the compatibility between two people that might not
-even exist...the answer *should* be a compatibility that might not exist.
-
-We want to move `compatibility :: Person -> Person -> Double`, and make it
-work on two `Maybe Person`s; it'll work on two `Person`s inside the world and
-create a `Double` inside the world.
-
-We want some sort of "super `fmap`", that takes an `a -> b -> c` and turns it
-into a `Maybe a -> Maybe b -> Maybe c`.
-
-~~~haskell
-inMaybes :: (a -> b -> c) -> (Maybe a -> Maybe b -> Maybe c)
-~~~
-
-~~~haskell
-λ: (inMaybes compatibility) (personFromId 144) (personFromId 14)
-Just 82.3
-λ: personFromId 59
+λ: personFromId 15
+Just Sara
+λ: personFromId 73
 Nothing
-λ: (inMaybes compatibility) (persomFromId 144) (personFromId 59)
+λ: compatibility John Sara
+82.3
+λ: (liftA2 compatibility) (personFromId 144) (personFromId 15)
+Just 82.3
+λ: (liftA2 compatibility) (personFromId 144) (personFromId 73)
 Nothing
 ~~~
 
-Note the last example --- you can't have a compatibility between a person that
-exists and a person that doesn't exist!
+In the last case, obviously there is no value of compatibility between a
+person that exists and a person that doesn't exist.
+
+The `Applicative` typeclass is a rather powerful and amazing typeclass, and
+there is a [great tutorial on it here][adit] on all of its nuances.
+
+[adit]: http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html
+
+The main *point* is that `Applicative` lets us take *two or more* "values" in
+our worlds, and combine them into one value, all staying "inside" the world.
+And staying "inside the world" is what this post is all about, isn't it?
+
+For the purposes of this article, we will mostly be considering `liftA2` and
+`liftA3`, to sort of "fill out" that list of normal functions that we have
+ways to turn "into" our world-y functions: `a -> b`, `a -> Maybe b`, and now
+`a -> b -> c` and `a -> b -> c -> d`!
+</aside>
 
 
-### Apply yourself
-
-As you probably could have guessed, this but this pattern is actually
-generalizable to many different worlds, like `Functor` was.
-
-We call it `Applicative`.  And because `Maybe` is an `Applicative`, we have
-access to `liftA2`:
-
-~~~haskell
-liftA2 :: Applicative f => (a -> b -> c) -> (f a -> f b -> f c)
-~~~
-
-~~~haskell
-λ: (liftA2 compatibility) (personFromId 144) (personFromId 14)
-Just 82.3
-~~~
-
-What's the big deal about `Applicative`, anyway?  Do we need a separate, new
-typeclass for just "`fmap` with two arguments"?
-
-As it turns out, `Applicative` actually represents much more than just
-`liftA2`.  `Applicative` *lets you combine values inside worlds*.
-
-For example, in our previous example, we had `Maybe Person` and `Maybe
-Person`, and we wanted to "combine" the *two* `Maybe`-things into *one*
-`Maybe`-thing, a `Maybe Double`
-
-We can actually
 
