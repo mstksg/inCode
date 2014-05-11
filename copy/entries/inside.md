@@ -526,7 +526,7 @@ This is really weird!  I mean...really *really* weird!  Why would you ever put
 the function you are applying *after* the value you are applying it to?
 That's like having `x :: a` and `f :: a -> b`, and doing `x f` or something!
 
-Why is this style the norm?  Who knows! [^whoknows]  People are just weird!
+Why is this style the norm?  Who knows![^whoknows]  People are just weird!
 
 [^whoknows]: I know!  And I'm not telling!  Just kidding.  The main reason is
     that code ends up looking more "imperative"...imagine `divideMaybe 12 3
