@@ -24,15 +24,22 @@ There are a lot of special worlds out there.
     but are awaiting an *r* before they can come to be.
 3.  The world of *State s*, in which things are things that are awaiting an
     *s* before they can come to be, but modify the *s* in the process.
-4.  The world of *IO*, in which things are promised things that will be
-    computed by a CPU, which can react to the outside world during that
-    process.
+4.  The world of *IO*, in which things are things that will be computed by a
+    CPU, which can react to the outside world during that process.
 
 And many more.
 
 Haskell lets me stay in those worlds, and use all of the tools I normally have
 when I'm not there.  I get to transform normal tools into tools that work in
 my world.
+
+(This post is meant to be approachable by people unfamiliar with Haskell!
+That being said, if there is a concept you don't understand, feel free to
+leave a comment, [tweet][] me, stop by on irc at freenode's #haskell, or give
+[Learn You a Haskell][LYAH] a quick read!)
+
+[tweet]: https://twitter.com/mstk
+[LYAH]: http://learnyouahaskell.com/
 
 Stuck in Maybe
 --------------
@@ -230,6 +237,9 @@ We can even write our `ageFromId`:
 ~~~haskell
 ageFromId :: ID -> Maybe Int
 ageFromId i = (inMaybe age) (personFromId i)
+
+-- alternatively
+ageFromId = inMaybe age . personFromId
 ~~~
 
 We can write out `inMaybe` ourselves:
@@ -309,8 +319,20 @@ calls.  So `(fmap f) x` is the same as `fmap f x`, and we'll be writing it
 that way from now on.
 
 Secondly, an infix operator alias for `fmap` exists: `(<$>)`.  That way, you
-can write `fmap f x` as `f <$> x`, which is like "applying" `f` "inside" `x`.
-This might be more useful or expressive in some cases.
+can write `fmap f x` as `f <$> x`, which is meant to look similar to `f $ x`:
+
+~~~haskell
+λ: addThree $ 7
+10
+λ: addThree <$> Just 7
+Just 10
+λ: addThree <$> Nothing
+Nothing
+~~~
+
+(If you had forgotten, `f $ x` = `f x`)
+
+
 
 'Pre-lifting'
 -------------
@@ -336,6 +358,32 @@ Can I use `halveMaybe` on my `Maybe Int`?
 ~~~
 
 Oh no!  Maybe we can't really stay inside our `Maybe` world after all!
+
+This might be important!  Let's imagine this trip down our world of
+uncertainty --- let's say we wanted a function `halfOfAge`
+
+~~~haskell
+halfOfAge :: ID -> Maybe Int
+~~~
+
+That returns (possibly), half of the age of the person corresponding to that
+ID (and `Nothing` if the person looked up has an odd age.  Because odd ages
+don't have halves, of course.).  Well, we already have `ageFromId :: ID ->
+Maybe Int`, but we want to apply `halveMaybe` to that `Maybe Int`.  Bu we
+can't!  Because `halveMaybe` only works on `Int`!
+
+And we can't even use `fmap`, because:
+
+~~~haskell
+λ: :t fmap halveMaybe
+fmap halveMaybe :: Maybe Int -> Maybe (Maybe Int)
+~~~
+
+Wrong wrong wrong!  We don't want a `Maybe Int -> Maybe (Maybe Int)`, we want
+a `Maybe Int -> Maybe Int`!  `fmap` lifts "both sides" of the function, but we
+only want, in this case, to "lift" the input.
+
+This is a disaster!
 
 But wait, calm down.  We have overcome similar things before.  With our recent
 journey to `Functor` enlightenment in mind, let's try to look for a similar
@@ -424,7 +472,7 @@ uncertainty...well, we already know the `7` is there.  So to bring a `7` into
 `Maybe`, it's just `Just 7`
 </aside>
 
-Now, embarassingly enough, `bind` actually isn't called `bind` in the standard
+Now, embarrassingly enough, `bind` actually isn't called `bind` in the standard
 library...it actually only exists as an operator, `(=<<)`.
 
 (Remember how there was an operator form of `fmap`?  We have both `fmap` and
@@ -521,6 +569,9 @@ For the purposes of this article, we will mostly be considering `liftA2` and
 ways to turn "into" our world-y functions: `a -> b`, `a -> Maybe b`, and now
 `a -> b -> c` and `a -> b -> c -> d`!
 </aside>
+
+Other Worlds
+------------
 
 
 
