@@ -528,12 +528,14 @@ That's like having `x :: a` and `f :: a -> b`, and doing `x f` or something!
 
 Why is this style the norm?  Who knows![^whoknows]  People are just weird!
 
-[^whoknows]: I know!  And I'm not telling!  Just kidding.  The main reason is
-    that code ends up looking more "imperative"...imagine `divideMaybe 12 3
-    >>= halveMaybe >>= halveMaybe` versus `halveMaybe =<< halveMaybe =<<
-    divideMaybe 12 3`.  The former looks like you divide 12 by 3, then halve
-    it, then halve it again...kind of like Unix pipes.  The latter looks like
-    normal function application.
+[^whoknows]: I know!  And I'm not telling!  Just kidding.
+    
+    `(>>=)` is actually a lot of times more useful than `(=<<)`, despite its
+    awkward reversed nature.
+
+    One major reason is that things end up looking more "imperative" (which
+    may or may not be desired).  Imagine `divideMaybe 12 3 >>= halveMaybe >>=
+    halveMaybe` versus `halveMaybe =<< halveMaybe =<< divideMaybe 12 3`.
 
     Believe it or not, usage of Monads was originally motivated by structuring
     IO actions.  So, in that setting, it seemed natural to have an
@@ -543,15 +545,20 @@ Why is this style the norm?  Who knows![^whoknows]  People are just weird!
     the desugaring and not `(=<<)`, so `(>>=)` pops out naturally when
     reasoning about Monads coming through do notation.
 
-    Still, I personally feel like the prevalence of `(>>=)` over `(=<<)` is a
-    rather unfortunate historical accident; almost all other code in Haskell
-    is read "right to left" (like `f . g . h`), so having a "left to right"
-    operator just seems to throw everything out of whack.
-
-    However, whenever you use lambda syntax (like `(\x -> f x)`), `(>>=)`
+    Also, whenever you use lambda syntax (like `(\x -> f x)`), `(>>=)`
     might be nice, because lambda syntax carries some sort of inherent
-    left-to-rightness in it with the arrow.
+    left-to-rightness in it with the arrow.  It's also tricky to write
+    "chained binds" using lambda syntax using `(=<<)` --- try writing `f >>=
+    (\x -> g >>= (\y -> h x y))` using `(=<<)` and you'll see that it's
+    slightly less natural.
 
+    Still, it is worth being aware that `(>>=)` is a is a bit "different" from
+    the rest of the pack of normal haskell function application and
+    composition operators; it is unique in that it is the only one where the
+    backwards form is more common than the normal one.
+
+    A general guideline is that you ever mix bind with `(<$>)` and/or `($)`
+    and `(.)`, you should prefer `(=<<)`.
 
 For the rest of this article, we will be using `(=<<)`; just be aware that you
 might see `(>>=)` out in the wild more often!
@@ -571,6 +578,21 @@ If you have an `x :: Maybe a` and you have a:
 
 Armed with these two, you can comfortably stay in `Maybe` without ever having
 to "get out of it"!
+
+### Why?
+
+Why would we want to do this?
+
+In Haskell, we often end up with values inside worlds.  And with normal tools
+from other languages, this would be very limiting, restricting, and annoying.
+You have a `Maybe Int`.  Well that's nice, but all of your functions work on
+`Int`.  Now what?
+
+What Haskell allows is for you to work with that `Maybe Int` just as if it
+were really an `Int`, and lets you use normal `Int` functions on it.  In that
+way, `Maybe Int` is no longer really a big deal anymore!  We can use it
+everywhere, return it everywhere, even write entire computations inside
+`Maybe`...because we aren't afraid of it.  And it is no hassle at all!
 
 <aside>
     ###### Aside
@@ -621,10 +643,10 @@ The main *point* is that `Applicative` lets us take *two or more* "values" in
 our worlds, and combine them into one value, all staying "inside" the world.
 And staying "inside the world" is what this post is all about, isn't it?
 
-For the purposes of this article, we will mostly be considering `liftA2` and
-`liftA3`, to sort of "fill out" that list of normal functions that we have
-ways to turn "into" our world-y functions: `a -> b`, `a -> Maybe b`, and now
-`a -> b -> c` and `a -> b -> c -> d`!
+For the purposes of this article, `liftA2` and
+`liftA3` are the most interesting; they sort of "fill out" that list of normal
+functions that we have ways to turn "into" our world-y functions: `a -> b`, `a
+-> Maybe b`, and now `a -> b -> c` and `a -> b -> c -> d`!
 </aside>
 
 Other Worlds
@@ -676,8 +698,6 @@ often you'll actually want to live in these worlds in Haskell, and why having
 
 ### The world of awaiting
 
-This might be an interesting one!
-
 In Haskell, we have a `Reader r` world.  You can think of `(Reader r) a` as a
 little machine that "waits" for something of type `r`, then *uses* it to make
 an `a`.
@@ -687,6 +707,10 @@ an `a`.
 lengthReader :: (Reader [x]) Int
 λ: runReader lengthReader [1,2,3]
 3
+λ: :t headReader
+headReader :: (Reader [x]) x
+λ: runReader headReader [1,2,3]
+1
 λ: :t oddReader
 oddReader :: (Reader Int) Bool
 λ: runReader oddReader 6
@@ -700,42 +724,68 @@ So if I have a `(Reader Int) Bool`, I have a `Bool` that "lives" in the
 to be realized and found.  It's a `Bool` *waiting to be produced* --- all it
 needs is some `Int`.
 
-Back to our database analogy, we can have a `Reader ID` world, a world where
-all of its values are not there yet...they are in the future; they are
-*waiting* for an `ID` to be able to realize themselves.
+Welcome to the world of awaiting.
 
-Let's say I have `personReader :: (Reader ID) Person` --- a future Person living
-in the world of awaiting --- but I want `ageReader :: (Reader ID) Int`.  I
-want to give someone an *age* that is just waiting for an `ID`.
+You use `runReader` to finally feed a `Reader r` the `r` that it is waiting
+for, and finally produce the value.
 
-Well, no fear!  Because `Reader ID` is a `Functor`, we can move the same old
-`age :: Person -> Int` function that we have been using all along, into our
-world of awaiting!
+Let's say we had `headReader`, which is a machine that is awaiting a list in
+order to produce a value (the head of that given list).  We can also think of
+this as a value that has yet to be calculated --- and that is awaiting for a
+list in order to be realized. Let's say that we want to make `headEvenReader`,
+which is a `Bool` that is waiting for a list in order to be realized, and that
+`Bool` comes from whether or not the first element is even.
 
-We can turn a `Person -> Int` into a `(Reader ID) Person -> (Reader ID) Int`.
+We have a `(Reader [Int]) Int`, and we have `even :: Int -> Bool` that tells
+if an integer is even.
+
+Well, we can use our normal function inside our `Reader [Int]` world!
 
 ~~~haskell
-λ: runReader personReader 108
-Jason
-λ: age Jason
-37
-λ: let ageReader = (fmap age) personReader
-λ: :t ageReader
-ageReader :: (Reader ID) Person
-λ: runReader ageReader 108
-37
+headEvenReader :: (Reader [Int]) Int
+headEvenReader = fmap even headReader
 ~~~
 
-The *semantics* of `fmap` for `Reader Int` is that it applies that function to
-the future value, once it has been obtained.  That is, once you get a `Person`
-from the `ID`, it applies the function `age` to that `Person` before finally
+~~~haskell
+λ: runReader headReader [2,3,4]
+2
+λ: runReader headEvenReader [2,3,4]
+True
+λ: runReader headEvenReader [5,3,4]
+False
+~~~
+
+The *semantics* of `fmap` for `Reader [Int]` is that it applies that function
+to the future value, once it has been obtained.  That is, once you get a `Int`
+from the `[Int]`, it applies the function `even` to that `Int` before finally
 popping it out.
 
-Now we can move all of our functions into the world of awaiting!
+Let's look at an `a -> (Reader r) b`:
 
-As it turns out, `a -> (Reader r) a` functions do not come up that often in
-the wild,
+~~~haskell
+isLongerThan :: Int -> (Reader [x]) Bool
+isLongerThan n = fmap (> n) lengthReader
+~~~
 
+where `isLongerThan 2` is a `Bool` living in the world of awaiting --- it is
+awaiting an `[x]` before it can be realized.  When that `[x]` finally comes
+in, the `Bool` is whether or not the length of the list is greater than `2`.
+
+We can "apply" `isLongerThan` to our `headReader`!  So that we know if the
+head of the list is a number that is smaller than or equal to the length of
+the whole list.
+
+~~~haskell
+headIsLongerThan :: (Reader [Int]) Bool
+headIsLongerThan = isLongerThan =<< headReader
+~~~
+
+Remember, `isLongerThan` is an `Int -> (Reader [Int]) Bool`, and `headReader`
+is a `(Reader [Int]) Int`.  We can turn our `Int -> (Reader [Int]) Bool` into
+a `(Reader [Int]) Int -> (Reader [Int]) Bool` using `(=<<)`!
+
+And just like that, we can now work with the world of awaiting as if it were
+no biggie.
 
 
 
