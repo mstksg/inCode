@@ -529,7 +529,7 @@ That's like having `x :: a` and `f :: a -> b`, and doing `x f` or something!
 Why is this style the norm?  Who knows![^whoknows]  People are just weird!
 
 [^whoknows]: I know!  And I'm not telling!  Just kidding.
-    
+
     `(>>=)` is actually a lot of times more useful than `(=<<)`, despite its
     awkward reversed nature.
 
@@ -670,7 +670,8 @@ existing-or-not-existing.[^worlds]
     that not all type constructors can be called "worlds".
 
     Also, as you may or may not have guessed, "worlds" is my cute,
-    semantically meaningful word for a certain class of Monads.
+    semantically meaningful word for a certain class of Monads.  This metaphor
+    also parades around under the name "context".
 
 But there are other worlds, and other contexts too.  And though I have shown
 you what `Functor` and `Monad` look like for `Maybe`...you probably need to
@@ -703,19 +704,33 @@ little machine that "waits" for something of type `r`, then *uses* it to make
 an `a`.
 
 ~~~haskell
-λ: :t lengthReader
-lengthReader :: (Reader [x]) Int
-λ: runReader lengthReader [1,2,3]
+-- An `Int` that will be the length of whatever the list it is waiting for
+-- will be.
+futureLength :: (Reader [x]) Int
+
+-- An `x` that will be the first element of whatever the list it is waiting
+-- for will be.
+futureHead   :: (Reader [x]) x
+
+-- A `Bool` that will be whether the `Int` it is waiting for is even or not.
+futureOdd    :: (Reader Int) Bool
+~~~
+
+We use the function `runReader` to "force" the `a` out of the `(Reader r) a`:
+
+~~~haskell
+-- given a `(Reader r) a` and an `r`, uses that `r` to finally get the `a`:
+runReader :: (Reader r) a -> r -> a
+~~~
+
+~~~haskell
+λ: runReader futureLength [1,2,3]
 3
-λ: :t headReader
-headReader :: (Reader [x]) x
-λ: runReader headReader [1,2,3]
+λ: runReader futureHead [1,2,3]
 1
-λ: :t oddReader
-oddReader :: (Reader Int) Bool
-λ: runReader oddReader 6
+λ: runReader futureOdd 6
 False
-λ: runReader oddReader 5
+λ: runReader futureOdd 5
 True
 ~~~
 
@@ -726,66 +741,67 @@ needs is some `Int`.
 
 Welcome to the world of awaiting.
 
-You use `runReader` to finally feed a `Reader r` the `r` that it is waiting
-for, and finally produce the value.
+Okay, so let's say we wanted to make a "future `Bool`" in a `Reader [x]` world
 
-Let's say we had `headReader`, which is a machine that is awaiting a list in
-order to produce a value (the head of that given list).  We can also think of
-this as a value that has yet to be calculated --- and that is awaiting for a
-list in order to be realized. Let's say that we want to make `headEvenReader`,
-which is a `Bool` that is waiting for a list in order to be realized, and that
-`Bool` comes from whether or not the first element is even.
 
-We have a `(Reader [Int]) Int`, and we have `even :: Int -> Bool` that tells
-if an integer is even.
 
-Well, we can use our normal function inside our `Reader [Int]` world!
+<!-- Let's say we had `headReader`, which is a machine that is awaiting a list in -->
+<!-- order to produce a value (the head of that given list).  We can also think of -->
+<!-- this as a value that has yet to be calculated --- and that is awaiting for a -->
+<!-- list in order to be realized. Let's say that we want to make `headEvenReader`, -->
+<!-- which is a `Bool` that is waiting for a list in order to be realized, and that -->
+<!-- `Bool` comes from whether or not the first element is even. -->
 
-~~~haskell
-headEvenReader :: (Reader [Int]) Int
-headEvenReader = fmap even headReader
-~~~
+<!-- We have a `(Reader [Int]) Int`, and we have `even :: Int -> Bool` that tells -->
+<!-- if an integer is even. -->
 
-~~~haskell
-λ: runReader headReader [2,3,4]
-2
-λ: runReader headEvenReader [2,3,4]
-True
-λ: runReader headEvenReader [5,3,4]
-False
-~~~
+<!-- Well, we can use our normal function inside our `Reader [Int]` world! -->
 
-The *semantics* of `fmap` for `Reader [Int]` is that it applies that function
-to the future value, once it has been obtained.  That is, once you get a `Int`
-from the `[Int]`, it applies the function `even` to that `Int` before finally
-popping it out.
+<!-- ~~~haskell -->
+<!-- headEvenReader :: (Reader [Int]) Int -->
+<!-- headEvenReader = fmap even headReader -->
+<!-- ~~~ -->
 
-Let's look at an `a -> (Reader r) b`:
+<!-- ~~~haskell -->
+<!-- λ: runReader headReader [2,3,4] -->
+<!-- 2 -->
+<!-- λ: runReader headEvenReader [2,3,4] -->
+<!-- True -->
+<!-- λ: runReader headEvenReader [5,3,4] -->
+<!-- False -->
+<!-- ~~~ -->
 
-~~~haskell
-isLongerThan :: Int -> (Reader [x]) Bool
-isLongerThan n = fmap (> n) lengthReader
-~~~
+<!-- The *semantics* of `fmap` for `Reader [Int]` is that it applies that function -->
+<!-- to the future value, once it has been obtained.  That is, once you get a `Int` -->
+<!-- from the `[Int]`, it applies the function `even` to that `Int` before finally -->
+<!-- popping it out. -->
 
-where `isLongerThan 2` is a `Bool` living in the world of awaiting --- it is
-awaiting an `[x]` before it can be realized.  When that `[x]` finally comes
-in, the `Bool` is whether or not the length of the list is greater than `2`.
+<!-- Let's look at an `a -> (Reader r) b`: -->
 
-We can "apply" `isLongerThan` to our `headReader`!  So that we know if the
-head of the list is a number that is smaller than or equal to the length of
-the whole list.
+<!-- ~~~haskell -->
+<!-- isLongerThan :: Int -> (Reader [x]) Bool -->
+<!-- isLongerThan n = fmap (> n) lengthReader -->
+<!-- ~~~ -->
 
-~~~haskell
-headIsLongerThan :: (Reader [Int]) Bool
-headIsLongerThan = isLongerThan =<< headReader
-~~~
+<!-- where `isLongerThan 2` is a `Bool` living in the world of awaiting --- it is -->
+<!-- awaiting an `[x]` before it can be realized.  When that `[x]` finally comes -->
+<!-- in, the `Bool` is whether or not the length of the list is greater than `2`. -->
 
-Remember, `isLongerThan` is an `Int -> (Reader [Int]) Bool`, and `headReader`
-is a `(Reader [Int]) Int`.  We can turn our `Int -> (Reader [Int]) Bool` into
-a `(Reader [Int]) Int -> (Reader [Int]) Bool` using `(=<<)`!
+<!-- We can "apply" `isLongerThan` to our `headReader`!  So that we know if the -->
+<!-- head of the list is a number that is smaller than or equal to the length of -->
+<!-- the whole list. -->
 
-And just like that, we can now work with the world of awaiting as if it were
-no biggie.
+<!-- ~~~haskell -->
+<!-- headIsLongerThan :: (Reader [Int]) Bool -->
+<!-- headIsLongerThan = isLongerThan =<< headReader -->
+<!-- ~~~ -->
+
+<!-- Remember, `isLongerThan` is an `Int -> (Reader [Int]) Bool`, and `headReader` -->
+<!-- is a `(Reader [Int]) Int`.  We can turn our `Int -> (Reader [Int]) Bool` into -->
+<!-- a `(Reader [Int]) Int -> (Reader [Int]) Bool` using `(=<<)`! -->
+
+<!-- And just like that, we can now work with the world of awaiting as if it were -->
+<!-- no biggie. -->
 
 
 
