@@ -12,7 +12,7 @@ import Web.Blog.Models.Types
 import Web.Blog.Render
 import Web.Blog.Types
 import qualified Data.Foldable               as F
-import qualified Data.Map                    as M
+import qualified Data.Map.Strict             as M
 import qualified Data.Text                   as T
 import qualified Database.Persist.Postgresql as D
 

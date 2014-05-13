@@ -22,7 +22,7 @@ module Web.Blog.Types (
 import "base" Prelude
 import Control.Monad.Reader
 import Web.Blog.Models
-import qualified Data.Map                    as M
+import qualified Data.Map.Strict             as M
 import qualified Data.Text                   as T
 import qualified Data.Text.Lazy              as L
 import qualified Database.Persist.Postgresql as D

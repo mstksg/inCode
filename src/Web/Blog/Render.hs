@@ -25,7 +25,7 @@ import Control.Monad.Reader
 import Network.Wai
 import System.Directory                             (doesFileExist)
 import Web.Blog.Types
-import qualified Data.Map                           as M
+import qualified Data.Map.Strict                    as M
 import qualified Data.Text                          as T
 import qualified Data.Text.Lazy                     as L
 import qualified Text.Blaze.Html.Renderer.Text      as B

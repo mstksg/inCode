@@ -18,7 +18,7 @@ import Web.Blog.Database
 import Web.Blog.Models
 import Web.Blog.Models.Types
 import Web.Blog.Models.Util
-import qualified Data.Map                     as M
+import qualified Data.Map.Strict              as M
 import qualified Data.Text                    as T
 import qualified Database.Persist.Postgresql  as D
 import qualified Text.Pandoc                  as P
