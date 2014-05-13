@@ -548,6 +548,11 @@ Why is this style the norm?  Who knows![^whoknows]  People are just weird!
     is read "right to left" (like `f . g . h`), so having a "left to right"
     operator just seems to throw everything out of whack.
 
+    However, whenever you use lambda syntax (like `(\x -> f x)`), `(>>=)`
+    might be nice, because lambda syntax carries some sort of inherent
+    left-to-rightness in it with the arrow.
+
+
 For the rest of this article, we will be using `(=<<)`; just be aware that you
 might see `(>>=)` out in the wild more often!
 
@@ -726,8 +731,10 @@ the future value, once it has been obtained.  That is, once you get a `Person`
 from the `ID`, it applies the function `age` to that `Person` before finally
 popping it out.
 
-
 Now we can move all of our functions into the world of awaiting!
+
+As it turns out, `a -> (Reader r) a` functions do not come up that often in
+the wild,
 
 
 
