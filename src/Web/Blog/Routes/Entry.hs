@@ -15,7 +15,7 @@ import Web.Blog.Render
 import Web.Blog.Types
 import Web.Blog.Views.Entry
 import qualified Data.Foldable                  as Fo
-import qualified Data.Map                       as M
+import qualified Data.Map.Strict                as M
 import qualified Data.Text.Lazy                 as L
 import qualified Database.Persist.Postgresql    as D
 import qualified Web.Scotty                     as S
