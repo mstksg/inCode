@@ -834,6 +834,8 @@ because it provided for beautiful abstractions.
 For `IO`, we can't exit it; we *need* Functor and `(=<<)` for it for us to
 *ever* do anything with our "future values"!
 
+#### Functor and Monad
+
 One common IO object is `getLine :: IO String`.  `getLine` is kind of like the
 unix program `cat` --- it promises a `String`, and it gets that `String` by
 taking in from standard input.  That is, it is a program that, when executed
@@ -894,7 +896,9 @@ view.  `getLine` is an `IO String` ---  a future `String`.  `wc` takes a
 `String` and returns a future `Int`.  If we "applied `wc` to `getLine`", we
 would be applying `wc` to that future `String`, to get a future `Int`.
 
-In a real program, we might want to print that `Int` to standard output. Well,
+#### A real executable
+
+In a real executable, we might want to print that `Int` to standard output. Well,
 luckily, we have `print :: Int -> IO ()`[^print], which takes an `Int` and
 produces a future `()`.[^unit]  But in that process of producing that `()`, it
 sneaks in computer instructions (assembly/C code) to print out that given
@@ -930,7 +934,9 @@ What is happening?
 3.  `print =<< wc =<< getLine` is a future `()`, which prints out that future
     `Int` in the process.
 
-This program, when executed,
+When you use ghc to compile this `IO ()`, it'll create a binary executable.
+
+This executable, when executed:
 
 1.  Gets a line from standard input.
 2.  Gets the line count from the given filename.
