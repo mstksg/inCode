@@ -458,7 +458,8 @@ other requirements), it implements the `Monad` typeclass.
 
 Now, you may or not have known this, but Monads have a...reputation.  You
 might have heard that Monads were super scary and intimidating.  And you might
-have tried to "get" Monads.  Well, search no more, it's that simple.
+have tried (successfully or unsuccessfully) to "get" Monads. Well, search no
+more; it's that simple!
 
 `Monad` is a typeclass (which is kinda like an interface), so that means that
 if `Maybe` is a `Monad`, it "implements" that way to turn a `a -> Maybe b`
@@ -594,61 +595,6 @@ way, `Maybe Int` is no longer really a big deal anymore!  We can use it
 everywhere, return it everywhere, even write entire computations inside
 `Maybe`...because we aren't afraid of it.  And it is no hassle at all!
 
-<aside>
-    ###### Aside
-
-Between `Functor` and `Monad`, there is another useful typeclass called
-`Applicative` that lets you "merge" values in worlds together.
-
-That is, if you had a matchmaking algorithm that calculates the compatibility
-of two `Person`s, `compatibility :: Person -> Person -> Double`.
-
-`compatiblity` can be described as a function that takes two `Person`s and
-"squashes" them into one `Double`.
-
-What if we wanted a `compatibiliy` that takes two `Maybe Person`s and
-"squashes" them into one `Maybe Double`?
-
-For that, we have the "squashing" typeclass, `Applicative`, which allows us
-two arbitrarily combine two or three or as many `Maybe a`s as we want!
-(Because `Maybe` implements/instances `Applicative`)
-
-In our case, we can use `liftA2`, which does exactly what we wanted for
-`compatibility`: `liftA2 :: (a -> b -> c) -> (Maybe a -> Maybe b -> Maybe c)`.
-
-~~~haskell
-λ: personFromId 144
-Just John
-λ: personFromId 15
-Just Sara
-λ: personFromId 73
-Nothing
-λ: compatibility John Sara
-82.3
-λ: (liftA2 compatibility) (personFromId 144) (personFromId 15)
-Just 82.3
-λ: (liftA2 compatibility) (personFromId 144) (personFromId 73)
-Nothing
-~~~
-
-In the last case, obviously there is no value of compatibility between a
-person that exists and a person that doesn't exist.
-
-The `Applicative` typeclass is a rather powerful and amazing typeclass, and
-there is a [great tutorial on it here][adit] on all of its nuances.
-
-[adit]: http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html
-
-The main *point* is that `Applicative` lets us take *two or more* "values" in
-our worlds, and combine them into one value, all staying "inside" the world.
-And staying "inside the world" is what this post is all about, isn't it?
-
-For the purposes of this article, `liftA2` and
-`liftA3` are the most interesting; they sort of "fill out" that list of normal
-functions that we have ways to turn "into" our world-y functions: `a -> b`, `a
--> Maybe b`, and now `a -> b -> c` and `a -> b -> c -> d`!
-</aside>
-
 Other Worlds
 ------------
 
@@ -716,6 +662,9 @@ futureHead   :: (Reader [x]) x
 futureOdd    :: (Reader Int) Bool
 ~~~
 
+`futureLength` is a "future `Int`"; an `Int` waiting to be realized.
+`futureHead` is a "future `x`".
+
 We use the function `runReader` to "force" the `a` out of the `(Reader r) a`:
 
 ~~~haskell
@@ -737,11 +686,57 @@ True
 So if I have a `(Reader Int) Bool`, I have a `Bool` that "lives" in the
 `Reader Int` world --- it is an ephemeral `Bool` awaiting an `Int` in order
 to be realized and found.  It's a `Bool` *waiting to be produced* --- all it
-needs is some `Int`.
+needs is some `Int`.  A `(Reader Int) Bool` is a future `Bool`; a *waiting*
+`Bool`.
 
 Welcome to the world of awaiting.
 
-Okay, so let's say we wanted to make a "future `Bool`" in a `Reader [x]` world
+Let's say I have a future `Int`.  Say, `futureLength`, waiting on an `[a]`.
+And I have a function `(< 5) :: Int -> Bool`.  Can I apply `(< 5)` to my future
+`Int`, in order to get a future `Bool`?
+
+That is, can I apply `(< 5) :: Int -> Bool` to my future `Int`, `futureLength ::
+(Reader [a]) Int`?  And produce a future `Bool`, `(Reader [a]) Bool`?
+
+Because `Reader [a]` is a `Functor` --- I can!  I can use `fmap` to turn
+`(< 5) :: Int -> Bool` into `fmap (< 5) :: (Reader [a]) Int -> (Reader [a])
+Bool`!
+
+
+~~~haskell
+futureShorterThan :: Int -> (Reader [a]) Bool
+futureShorterThan n = fmap (< n) futureLength
+
+futureShorterThan5 :: (Reader [a]) Bool
+futureShorterThan5 = futureShorterThan 5
+~~~
+
+~~~haskell
+λ: runReader futureShorterThan5 [1,2,3]
+True
+λ: runReader (futureShorterThan 3) [1,2,3,4]
+False
+~~~
+
+And voila, we have a future `Bool`.  We turned an `Int -> Bool` into a
+function that takes a future `Int` and returns a future `Bool`.  We *applied
+`(< 5)` to our future length*, to get a future `Bool` telling us if that length
+is less than 5.
+
+Okay, so `futureShorterThan` is a function that takes an `Int` and turns it
+into a future `Bool`.  Let's go...deeper.  What if I wanted to apply
+`futureShorterThan` to a *future* `Int`?  To *still* get a future `Bool`?
+
+I can't apply `futureShorterThan` to a future `Int` straight-up, because it
+only takes `Int`.  But `Reader [Int]` is a `Monad`, so that means I can take
+the `Int -> (Reader [a]) Bool` and turn it into a `(Reader [a]) Int -> (Reader
+[a]) Bool` using `(=<<)`!
+
+Using `(=<<)`, we :w
+:w
+
+
+
 
 
 
