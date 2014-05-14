@@ -782,10 +782,98 @@ Neat!
 Now, we can live in a world of "future values", and now use all of our
 "normal" functions on future values!
 
-We *don't have to be scared of future values*.  We can work with them just as
-well as if they were normal values, and "leave" them as futures.
+In another language, we might have had to do this complicated dance of
+"forcing" futures to get the value (to "exit" the world of future values),
+applying functions to that value, and going "back into" the future.
+
+But now, we *don't have to be scared of future values*.  We can work with them
+just as well as if they were normal values, and "leave" them as futures the
+entire time, without ever forcing them until when we really need to, and only
+force them *once*.
 
 Who said futures were complicated, anyway?
+
+### The world of "IO"
+
+And now we go into the most infamous of Haskell worlds, `IO`.
+
+`IO` is "kind of like" our `Reader r` world --- an `IO Int` is an `Int` that
+*doesn't yet exist*...but that will be computed by a CPU/computer *when a CPU
+executes it*.
+
+In this sense, an `IO Int` is kind of like a little packet of Assembly or C
+code --- it contains instructions (assembly commands, machine language) for a
+computer to do this and that and eventually produce an `Int`.
+
+So an `IO String` could, for example, be a little packet of C code that reads
+a file and outputs the contents of that file.  The `String` doesn't exist yet
+--- but it will, once the computer executes those commands.
+
+If you've ever used a Unix operating system, there is a shell command `ls`
+that lists the contents of a directory.  The actual `ls` program
+is kind of like an `IO [FilePath]`.  The `[FilePath]` does not "exist"
+*inside* `ls` --- rather, `ls` is a program that promises a list of
+`FilePath`s when it is executed by the computer or interpreter.
+
+So an `IO String` doesn't *contain* a `String` --- it is a program that
+*promises* a `String` in the future, when a computer eventually executes it.
+
+An important distinction between `IO` and the other worlds we have looked at
+is that there is no way to "exit" the world of `IO` within Haskell.  That is,
+there is no meaningful `IO a -> a`.
+
+If you think about it for a while, it kind of makes sense.  If `IO a` is
+assembly code for a computer...the only thing that can "get" that `a` is the
+computer itself --- by shifting those registers, ticking that program clock,
+reading from IO...
+
+Remember, *a Haskell program can only "evaluate"* expressions, *not "execute"*
+them.  So the only way a Haskell function would be able to be `IO a -> a`
+would be to fully simulate a CPU/processor as a pure function, and "evaluate"
+the assembly code.  But that doesn't sound very practical --- wouldn't it make
+more sense to actually just let a computer *execute* it?
+
+That's what `ghc` or any Haskell compiler does.  It takes whatever `IO ()` is
+named `main` in your program, evaluates it, and compiles it into a binary.
+Then you, the computer user, can execute that binary like any other binary
+(compiled from C or whatever).[^iopure]
+
+[^iopure]: I actually wrote a whole [blog post][iopurepost] on this topic :)
+
+[iopurepost]: http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity
+
+Because you can never "exit" `IO` in your Haskell code, this makes `IO` an
+extreme version of the worlds we mentioned before; in the others, we could
+"exit" the world if we really wanted to.  We only used `fmap` and `(=<<)`
+because it provided for beautiful abstractions.
+
+For `IO`, we can't exit it; we *need* `Functor` and `(=<<)` for it for us to
+*ever* do anything with our "future values"!
+
+You know the drill.  Let's say I have the program/IO action `wc`, which takes a
+filename and returns a program that, when executed, promises an `Int` --- the
+number of lines in that file, calculated after loading and reading the file.
+
+~~~haskell
+wc            :: String -> IO Int
+wc "file.txt" :: IO Int
+~~~
+
+So `wc "file.txt"` is a program/IO action that promises an `Int`, when
+executed by a computer.
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
