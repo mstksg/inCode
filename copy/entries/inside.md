@@ -19,13 +19,18 @@ I like Haskell because it lets me live inside my world.
 There are a lot of special worlds out there.
 
 1.  The world of *Maybe*, in which things may or may not be there.
-2.  The world of *List*, in which things may be many things.
-3.  The world of *Reader r*, in which things are things that do not yet exist
-    but are awaiting an *r* before they can come to be.
-3.  The world of *State s*, in which things are things that are awaiting an
-    *s* before they can come to be, but modify the *s* in the process.
-4.  The world of *IO*, in which things are things that will be computed by a
-    CPU, which can react to the outside world during that process.
+1.  The world of Either, in which things may or may not be there, and come
+    with a reason as to why they are not there.
+2.  The world of *List*, in which things are values between many
+    possibilities.
+3.  The world of *Reader r*, in which things are things that do not yet exist,
+    but will exist in the future as soon as you one day supply an r.
+4.  The world of State s, in which things are things that do not yet exist,
+    but will exist in the future as soon as you one day supply an s; but that
+    s may be modified in the process.
+5.  The world of *IO*, in which things are things that do not yet exist ---
+    things that will be computed by a CPU in the future, in which their
+    computation process may interact with the outside world.
 
 And many more.
 
@@ -643,27 +648,29 @@ Anyways, here is a worldwind tour of different worlds, to help you realize how
 often you'll actually want to live in these worlds in Haskell, and why having
 `fmap` and `(=<<)` are so useful!
 
-### The world of awaiting
+### The world of future values
 
 In Haskell, we have a `Reader r` world.  You can think of `(Reader r) a` as a
 little machine that "waits" for something of type `r`, then *uses* it to make
-an `a`.
+an `a`.  The `a` doesn't exist yet; it's a future `a` that will exist as soon
+as you give it an `r`.
 
 ~~~haskell
--- An `Int` that will be the length of whatever the list it is waiting for
--- will be.
+-- A future `Int` that will be the length of whatever the list it is waiting
+-- for will be.
 futureLength :: (Reader [x]) Int
 
--- An `x` that will be the first element of whatever the list it is waiting
--- for will be.
+-- An future `x` that will be the first element of whatever the list it is
+-- waiting for will be.
 futureHead   :: (Reader [x]) x
 
--- A `Bool` that will be whether the `Int` it is waiting for is even or not.
+-- A future `Bool` that will be whether the `Int` it is waiting for is even or
+-- not.
 futureOdd    :: (Reader Int) Bool
 ~~~
 
-`futureLength` is a "future `Int`"; an `Int` waiting to be realized.
-`futureHead` is a "future `x`".
+`futureLength` is a "future `Int`"; an `Int` waiting (for an `[a]`) to be realized.
+`futureHead` is a "future `x`", waiting for an `[a]`.
 
 We use the function `runReader` to "force" the `a` out of the `(Reader r) a`:
 
@@ -684,16 +691,24 @@ True
 ~~~
 
 So if I have a `(Reader Int) Bool`, I have a `Bool` that "lives" in the
-`Reader Int` world --- it is an ephemeral `Bool` awaiting an `Int` in order
-to be realized and found.  It's a `Bool` *waiting to be produced* --- all it
-needs is some `Int`.  A `(Reader Int) Bool` is a future `Bool`; a *waiting*
-`Bool`.
+`Reader Int` world --- it is an ephemeral `Bool` that does not yet exist; it
+exists in the world of future values, awaiting an `Int`.  A `(Reader Int)
+Bool` is a future `Bool`; a *waiting* `Bool`.
 
-Welcome to the world of awaiting.
+Welcome to the world of future values.
 
-Let's say I have a future `Int`.  Say, `futureLength`, waiting on an `[a]`.
-And I have a function `(< 5) :: Int -> Bool`.  Can I apply `(< 5)` to my future
-`Int`, in order to get a future `Bool`?
+<aside>
+    ###### Aside
+
+It is important to note here that `(Reader Int) Bool` and `(Reader [Int])
+Bool` *do not exist* in the same world.  One lives in a `Reader Int` world ---
+a world of future values awaiting an `Int`.  The other lives in a `Reader
+[Int]` world --- a world of future values awaiting an `[Int]`.
+</aside>
+
+Okay, so let's say I have a future `Int`.  Say, `futureLength`, waiting on an
+`[a]`. And I have a function `(< 5) :: Int -> Bool`.  Can I apply `(< 5)` to
+my future `Int`, in order to get a future `Bool`?
 
 That is, can I apply `(< 5) :: Int -> Bool` to my future `Int`, `futureLength ::
 (Reader [a]) Int`?  And produce a future `Bool`, `(Reader [a]) Bool`?
@@ -771,6 +786,8 @@ We *don't have to be scared of future values*.  We can work with them just as
 well as if they were normal values, and "leave" them as futures.
 
 Who said futures were complicated, anyway?
+
+
 
 
 
