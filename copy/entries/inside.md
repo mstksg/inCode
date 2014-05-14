@@ -69,6 +69,27 @@ halveMaybe x | x `mod` 2 == 0 = Just (x `div` 2)
              | otherwise      = Nothing
 ~~~
 
+<aside>
+    ###### Aside
+
+Oh hi!
+
+For people new to Haskell:
+
+~~~haskell
+foo :: Int -> Bool
+foo x = ...
+~~~
+
+basically declares a function named `foo` of type `Int -> Bool` --- we use
+`::` to specify type signatures.  It takes an `Int` (named `x`) and returns a
+`Bool`.
+
+I'll often just say `bar :: Bool` to say "the value `bar` (of type `Bool`)";
+you could just read `::` as "type of".
+
+</aside>
+
 When you want to return a value of type `Maybe a`, you can either return
 `Just x` or `Nothing` --- they both are members of type `Maybe a`.  That's
 what `Maybe Int` means --- an `Int` that might or might not be there!
@@ -109,11 +130,18 @@ But...I can't do these things on `Maybe Int`!
 <aside>
     ###### Aside
 
-Oh hi!
-
 In this post, commands at the interactive Haskell interpreter (REPL) ghci are
 prefaced with the prompt `λ:`.  If you see `λ:`, it means that this is
 something you'd enter at ghci.  If not, it is normal Haskell source code!
+
+In `ghci`, we have this command `:t` that you'll be seeing often that lets you
+find the type of something:
+
+~~~haskell
+λ: :t True
+True :: Bool
+~~~
+
 </aside>
 
 
@@ -308,6 +336,7 @@ properties ---
 1.  `fmap (f . g)` should equal `fmap f . fmap g`; that is, lifting composed
     functions be the same as composing lifted functions.
 2.  `fmap id thing` should leave `thing` unchanged.
+
 </aside>
 
 
@@ -471,6 +500,7 @@ and "bring it into" our world of uncertainty --- an `Int -> Maybe Int`.
 For `Maybe`, semantically, to bring something like `7` into the world of
 uncertainty...well, we already know the `7` is there.  So to bring a `7` into
 `Maybe`, it's just `Just 7`
+
 </aside>
 
 Now, embarrassingly enough, `bind` actually isn't called `bind` in the standard
@@ -688,6 +718,7 @@ It is important to note here that `(Reader Int) Bool` and `(Reader [Int])
 Bool` *do not exist* in the same world.  One lives in a `Reader Int` world ---
 a world of future values awaiting an `Int`.  The other lives in a `Reader
 [Int]` world --- a world of future values awaiting an `[Int]`.
+
 </aside>
 
 Okay, so let's say I have a future `Int`.  Say, `futureLength`, waiting on an
