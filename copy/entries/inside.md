@@ -16,23 +16,7 @@ Identifier
 
 I like Haskell because it lets me live inside my world.
 
-There are a lot of special worlds out there.
-
-1.  The world of *Maybe*, in which things may or may not be there.
-1.  The world of Either, in which things may or may not be there, and come
-    with a reason as to why they are not there.
-2.  The world of *List*, in which things are values between many
-    possibilities.
-3.  The world of *Reader r*, in which things are things that do not yet exist,
-    but will exist in the future as soon as you one day supply an r.
-4.  The world of State s, in which things are things that do not yet exist,
-    but will exist in the future as soon as you one day supply an s; but that
-    s may be modified in the process.
-5.  The world of *IO*, in which things are things that do not yet exist ---
-    things that will be computed by a CPU in the future, in which their
-    computation process may interact with the outside world.
-
-And many more.
+There are a lot of special worlds out there!
 
 Haskell lets me stay in those worlds, and use all of the tools I normally have
 when I'm not there.  I get to transform normal tools into tools that work in
@@ -299,10 +283,10 @@ class Functor f where
 ~~~
 
 If you haven't done much Haskell, this might seem scary, but don't worry.  All
-it says that "if your world `f` is a `Functor`, then you have a function
+it says that "if your world `f` is a Functor, then you have a function
 `fmap` that turns any `a -> b` into an `f a -> f b`".
 
-It should come as no surprise that `Maybe` is a `Functor`, so `fmap` *does*
+It should come as no surprise that `Maybe` is a Functor, so `fmap` *does*
 take any function `a -> b` and "lifts" it into a the `Maybe` world, turning it
 into a `Maybe a -> Maybe b`.
 
@@ -402,7 +386,7 @@ only want, in this case, to "lift" the input.
 This is a disaster!
 
 But wait, calm down.  We have overcome similar things before.  With our recent
-journey to `Functor` enlightenment in mind, let's try to look for a similar
+journey to Functor enlightenment in mind, let's try to look for a similar
 path.
 
 We had an `a -> b` that we wanted to apply to a `Maybe a`, we used `fmap` to
@@ -455,7 +439,7 @@ stay in our world*, without leaving our world of uncertainty!
 
 ### Monad
 
-Like with `Functor` and `fmap`, this general pattern of turning an `a -> f b`
+Like with Functor and `fmap`, this general pattern of turning an `a -> f b`
 into an `f a -> f b` is also useful to generalize.
 
 We say that if a world has such a way of "pre-lifting" a function (plus some
@@ -466,8 +450,8 @@ might have heard that Monads were super scary and intimidating.  And you might
 have tried (successfully or unsuccessfully) to "get" Monads. Well, search no
 more; it's that simple!
 
-`Monad` is a typeclass (which is kinda like an interface), so that means that
-if `Maybe` is a `Monad`, it "implements" that way to turn a `a -> Maybe b`
+Monad is a typeclass (which is kinda like an interface), so that means that
+if `Maybe` is a Monad, it "implements" that way to turn a `a -> Maybe b`
 into a `Maybe a -> Maybe b`.
 
 We call this `(a -> Maybe a) -> (Maybe a -> Maybe b)` function `bind`.
@@ -475,7 +459,7 @@ We call this `(a -> Maybe a) -> (Maybe a -> Maybe b)` function `bind`.
 <aside>
     ###### Aside
 
-The "other thing" that `Monad` has to have (the other thing that the
+The "other thing" that Monad has to have (the other thing that the
 "interface" demands, besides `(=<<)`) is a way to "bring a value into your
 world".
 
@@ -572,7 +556,7 @@ might see `(>>=)` out in the wild more often!
 Recap
 -----
 
-Thanks to `Functor` and `Monad`, we now have a way to confidently stay in our
+Thanks to Functor and Monad, we now have a way to confidently stay in our
 world of uncertainty and still use normal functions on our uncertain values
 --- we only have to use the right "lifters".
 
@@ -625,7 +609,7 @@ existing-or-not-existing.[^worlds]
     also parades around under the name "context".
 
 But there are other worlds, and other contexts too.  And though I have shown
-you what `Functor` and `Monad` look like for `Maybe`...you probably need to
+you what Functor and Monad look like for `Maybe`...you probably need to
 see a few more examples to be really convinced that these are general design
 patterns that you can apply to multiple "values in contexts".
 
@@ -658,11 +642,11 @@ as you give it an `r`.
 ~~~haskell
 -- A future `Int` that will be the length of whatever the list it is waiting
 -- for will be.
-futureLength :: (Reader [x]) Int
+futureLength :: (Reader [a]) Int
 
--- An future `x` that will be the first element of whatever the list it is
+-- An future `a` that will be the first element of whatever the list it is
 -- waiting for will be.
-futureHead   :: (Reader [x]) x
+futureHead   :: (Reader [a]) a
 
 -- A future `Bool` that will be whether the `Int` it is waiting for is even or
 -- not.
@@ -670,7 +654,7 @@ futureOdd    :: (Reader Int) Bool
 ~~~
 
 `futureLength` is a "future `Int`"; an `Int` waiting (for an `[a]`) to be realized.
-`futureHead` is a "future `x`", waiting for an `[a]`.
+`futureHead` is a "future `a`", waiting for an `[a]`.
 
 We use the function `runReader` to "force" the `a` out of the `(Reader r) a`:
 
@@ -713,7 +697,7 @@ my future `Int`, in order to get a future `Bool`?
 That is, can I apply `(< 5) :: Int -> Bool` to my future `Int`, `futureLength ::
 (Reader [a]) Int`?  And produce a future `Bool`, `(Reader [a]) Bool`?
 
-Because `Reader [a]` is a `Functor` --- I can!  I can use `fmap` to turn
+Because `Reader [a]` is a Functor --- I can!  I can use `fmap` to turn
 `(< 5) :: Int -> Bool` into `fmap (< 5) :: (Reader [a]) Int -> (Reader [a])
 Bool`!
 
@@ -743,7 +727,7 @@ into a future `Bool`.  Let's go...deeper.  What if I wanted to apply
 `futureShorterThan` to a *future* `Int`?  To *still* get a future `Bool`?
 
 I can't apply `futureShorterThan` to a future `Int` straight-up, because it
-only takes `Int`.  But `Reader [Int]` is a `Monad`, so that means I can take
+ynly takes `Int`.  But `Reader [Int]` is a Monad, so that means I can take
 the `Int -> (Reader [a]) Bool` and turn it into a `(Reader [a]) Int -> (Reader
 [a]) Bool` using `(=<<)`!
 
@@ -847,38 +831,162 @@ extreme version of the worlds we mentioned before; in the others, we could
 "exit" the world if we really wanted to.  We only used `fmap` and `(=<<)`
 because it provided for beautiful abstractions.
 
-For `IO`, we can't exit it; we *need* `Functor` and `(=<<)` for it for us to
+For `IO`, we can't exit it; we *need* Functor and `(=<<)` for it for us to
 *ever* do anything with our "future values"!
 
-You know the drill.  Let's say I have the program/IO action `wc`, which takes a
-filename and returns a program that, when executed, promises an `Int` --- the
-number of lines in that file, calculated after loading and reading the file.
+One common IO object is `getLine :: IO String`.  `getLine` is kind of like the
+unix program `cat` --- it promises a `String`, and it gets that `String` by
+taking in from standard input.  That is, it is a program that, when executed
+by a computer, pulls a line from stdin, and returns that as the `String` it
+promises.  `getLine` contains instructions for a computer to get a `String`
+from stdin.  A future/promised `String`.
+
+We want to apply `length :: String -> Int` to that future/promised `String`,
+to get us a future/promised `Int`.  Again, we can't apply `length` to
+`getLine` directly --- but because `IO` is a Functor, we can use `fmap
+length :: IO String -> IO Int`.
 
 ~~~haskell
-wc            :: String -> IO Int
-wc "file.txt" :: IO Int
+getLine             :: IO String
+length              :: String -> Int
+fmap length         :: IO String -> IO Int
+fmap length getLine :: IO Int
 ~~~
 
-So `wc "file.txt"` is a program/IO action that promises an `Int`, when
-executed by a computer.
+Neat!
 
+We had a function that only worked on `String`, but we made it work the
+"future/promised" `String` of `IO String`
 
+Let's look at `wc`, which takes a filename and returns a program that, when
+executed, promises an `Int` --- the number of lines in that file.
 
+~~~haskell
+wc :: String -> IO Int
+~~~
 
+So `wc "file.txt"` would evaluate to a computation that, when executed by a
+computer, produces an `Int` (by loading the file from disk using system calls,
+reading it, and counting the lines).
 
+`wc` is a function that takes a `String`.
 
+But what if we wanted to apply `wc` to `getLine`, the `IO String` we had?  We
+want to apply `wc` to that "future `String`".  We can't apply it directly.  We
+want to turn our `String -> IO Int` into an `IO String -> IO Int`.
 
+Luckily, `IO` is a Monad, so we have `(=<<)` at our disposal.
 
+~~~haskell
+getLine        :: IO String
+wc             :: String -> IO Int
+(=<<) wc       :: IO String -> IO Int
+wc =<< getLine :: IO Int
+~~~
 
+Neat!
 
+What does `wc =<< getLine` do, as a program?  How does it compute that
+`Int`?
 
+Conceptually, it all sort of "makes sense" if you look it it from a high level
+view.  `getLine` is an `IO String` ---  a future `String`.  `wc` takes a
+`String` and returns a future `Int`.  If we "applied `wc` to `getLine`", we
+would be applying `wc` to that future `String`, to get a future `Int`.
 
+In a real program, we might want to print that `Int` to standard output. Well,
+luckily, we have `print :: Int -> IO ()`[^print], which takes an `Int` and
+produces a future `()`.[^unit]  But in that process of producing that `()`, it
+sneaks in computer instructions (assembly/C code) to print out that given
+integer to standard output.  We like to use `print` not because of what it
+computes, but rather because of the side effects it sneaks into its
+computation process.
 
+[^print]: the real type signature of  `print` takes all showable things, not
+just `Int`.
 
+[^unit]: `()`, pronunced "unit", is basically the "boring type", which only
+has one value --- `()`.  `IO ()` is loosely comparable to a "void"
+function/computation in other languages, which "return nothing".
 
+We can apply `print` to an `IO Int` by using `(=<<)`, of course:
 
+~~~haskell
+print       :: Int -> IO ()
+(=<<) print :: IO Int -> IO ()
+~~~
 
+Putting it all together, we can write a compilable Haskell executable:
 
+~~~haskell
+main :: IO ()
+main = print =<< wc =<< getLine
+~~~
 
+What is happening?
 
+1.  `getLine` is a future `String`.
+2.  `wc =<< getLine` is a future `Int`.
+3.  `print =<< wc =<< getLine` is a future `()`, which prints out that future
+    `Int` in the process.
+
+This program, when executed,
+
+1.  Gets a line from standard input.
+2.  Gets the line count from the given filename.
+3.  Prints that line count.
+
+And so there we have it!
+
+We *don't ever have to* actually work with computed values `a` that are received
+from IO.  All we ever have to do is work with `IO a`, and we can use *all of
+our normal functions* on that `IO a`, as if they were normal `a`'s.
+
+In that way, we don't have to be scared of working with "future computable
+values" --- we can use all of our normal tools on them!
+
+Even more
+---------
+
+There are lots of other worlds besides just `Maybe`, `Reader r`, and `IO`.
+Each one comes with their own unique semantics/meanings/contexts, and their
+own answer for what `fmap` and `(=<<)` are supposed to "mean".
+
+Here are some others --- with a brief description.
+
+1.  The world of `Either e`, which is like `Maybe` in which things may or may
+    not be there.  But in `Either e`, when things aren't there, they come with
+    a reason why they are not (of type `e`).
+
+2.  The world of `[]`, where things are possibly many different things at
+    once.  I wrote a [series of posts][monadplus] on this :)
+
+    [monadplus]: http://blog.jle.im/entries/series/+monadplus-success-failure-monads
+
+3.  The world of `State s`, which is a world of future things awaiting an `s`,
+    which modify the `s` in the process.
+
+4.  The world of `Parser`, which is a world of things that an input string
+    will be parsed into.
+
+There are many more!  The great thing about Haskell is that with `fmap` and
+`(=<<)`, it is easy to work with values inside these worlds with all of your
+normal functions!
+
+Haskell lets me stay *inside my world*!
+
+Further Reading
+---------------
+
+1.  [adit's Functor and Monad tutorial][adit] (beginner)
+2.  [Gabriel Gonzalez's Functor post][tekmo] (intermediate)
+3.  [LYAH's Monad chapter][lyahmonad] (beginner)
+4.  [My own MonadPlus tutorial][monadplus] (intermediate)
+
+As always, if you have any questions, leave them in the comments, or come find
+me on freenode's #haskell --- I go by *jle`* :)
+
+[adit]: http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html
+[lyahmonad]: http://learnyouahaskell.com/a-fistful-of-monads
+[tekmo]: http://www.haskellforall.com/2012/09/the-functor-design-pattern.html
 
