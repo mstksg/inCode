@@ -27,6 +27,8 @@ main = do
 
   db <- runDB loadDatabase
 
+  print db
+
   scotty port $ do
 
     middleware logStdoutDev
