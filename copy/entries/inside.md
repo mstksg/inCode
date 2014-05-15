@@ -846,11 +846,10 @@ executes it*.
 
 In this sense, an `IO Int` is kind of like a little packet of Assembly or C
 code --- it contains instructions (assembly commands, machine language) for a
-computer to do this and that and eventually produce an `Int`.
-
-So an `IO String` could, for example, be a little packet of C code that reads
-a file and outputs the contents of that file.  The `String` doesn't exist yet
---- but it will, once the computer executes those commands.
+computer to do this and that and eventually produce an `Int`.  An `IO String`
+could, for example, be a little packet of C code that reads a file and outputs
+the contents of that file.  The `String` doesn't exist yet --- but it will,
+once the computer executes those commands.
 
 If you've ever used a Unix operating system, there is a shell command `ls`
 that lists the contents of a directory.  The actual `ls` program
@@ -871,17 +870,11 @@ computer itself --- by shifting those registers, ticking that program clock,
 reading from IO...
 
 Remember, *a Haskell program can only "evaluate"* expressions, *not "execute"*
-them.  So the only way a Haskell function would be able to be `IO a -> a`
-would be to fully simulate a CPU/processor as a pure function, and "evaluate"
-the assembly code.  But that doesn't sound very practical, and it's often not
-even what you want (you want to interact with the world, not evaluate an
-expression).  Wouldn't it make more sense to actually just let a computer
-*execute* it?
-
-That's what *ghc* or any Haskell compiler does.  It takes whatever `IO ()` is
-named `main` in your program, evaluates it, and compiles it into a binary.
-Then you, the computer user, can execute that binary like any other binary
-(compiled from C or whatever).[^iopure]
+them.  The execution is the computer's job.  That's what *ghc* or any Haskell
+compiler does.  It takes whatever `IO ()` is named `main` in your program,
+evaluates it, and compiles it into a binary. Then you, the computer user, can
+execute that binary like any other binary (compiled from C or
+whatever).[^iopure]
 
 [^iopure]: I actually wrote a whole [blog post][iopurepost] on this topic :)
 
