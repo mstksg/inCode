@@ -1051,6 +1051,12 @@ Further Reading
     over similar concepts and introduces "Applicative", which can be seen as a
     way to combine contexted values.
 
+Don't forget as you're reading these things and moving on that it's not
+correct to say "Functors are worlds", or "Monads are worlds".  As I mentioned
+before in an aside, Monads aren't "anything" other than the functions and the
+laws.  Rather, if we look at `Maybe`, etc. as a "world", then *having a Monad
+interface/instance* allows us to do cool things with that world.
+
 As always, if you have any questions, leave them in the comments, or come find
 me on freenode's #haskell --- I go by *jle`* :)
 
