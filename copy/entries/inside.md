@@ -48,17 +48,7 @@ similar to saying `Maybe<a>` -- `Maybe<a>` is a parameterized type over some
 This type is useful for functions that might fail:
 
 ~~~haskell
--- Takes two integers and returns -- possibly -- their integer quotient. It
--- succeeds if the denominator is not zero, and fails if it is.
-!!!inside/maybe.hs "divideMaybe ::" inside-my-world
-
--- Takes a list and returns -- possibly -- its first element.  Fails if the
--- list is empty, and succeeds with the first element otherwise.
-!!!inside/maybe.hs "headMaybe ::" inside-my-world
-
--- Takes an integer and returns -- possibly -- its half.  Fails if it is an
--- odd number.
-!!!inside/maybe.hs "halveMaybe ::" inside-my-world
+!!!inside/maybe.hs "-- divideMaybe:" "-- headMaybe:" "-- halveMaybe:" inside-my-world
 ~~~
 
 <aside>
@@ -702,17 +692,7 @@ an `a`.  The `a` doesn't exist yet; it's a future `a` that will exist as soon
 as you give it an `r`.
 
 ~~~haskell
--- A future `Int` that will be the length of whatever the list it is waiting
--- for will be.
-!!!inside/reader.hs "futureLength ::"1 inside-my-world
-
--- An future `a` that will be the first element of whatever the list it is
--- waiting for will be.
-!!!inside/reader.hs "futureHead   ::"1 inside-my-world
-
--- A future `Bool` that will be whether the `Int` it is waiting for is odd or
--- not.
-!!!inside/reader.hs "futureOdd    ::"1 inside-my-world
+!!!inside/reader.hs "-- futureLength:" "-- futureHead:" "-- futureOdd:" inside-my-world
 ~~~
 
 `futureLength` is a "future `Int`"; an `Int` waiting (for an `[a]`) to be realized.

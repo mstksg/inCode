@@ -8,13 +8,21 @@ module InsideReader where
 
 import Control.Monad.Trans.Reader
 
+-- futureLength: A future `Int` that will be the length of whatever the
+--      list it is waiting for will be.
 futureLength :: (Reader [a]) Int
-futureLength = reader length
 
+-- futureHead: An future `a` that will be the first element of whatever the
+--      list it is waiting for will be.
 futureHead   :: (Reader [a]) a
-futureHead   = reader head
 
+-- futureOdd: A future `Bool` that will be whether the `Int` it is waiting
+--      for is odd or not.
 futureOdd    :: (Reader Int) Bool
+
+-- secret implementations!
+futureLength = reader length
+futureHead   = reader head
 futureOdd    = reader odd
 
 futureShorterThan :: Int -> (Reader [a]) Bool

@@ -14,14 +14,22 @@ import Control.Applicative ((<$>))
 
 -- | Various functions used in the post
 
+-- divideMaybe: Takes two integers and returns -- possibly -- their integer
+--      quotient. It succeeds if the denominator is not zero, and fails if
+--      it is.
 divideMaybe :: Int -> Int -> Maybe Int
 divideMaybe _ 0 = Nothing
 divideMaybe x y = Just (x `div` y)
 
+-- headMaybe: Takes a list and returns -- possibly -- its first element.
+--      Fails if the list is empty, and succeeds with the first element
+--      otherwise.
 headMaybe :: [a] -> Maybe a
 headMaybe []    = Nothing
 headMaybe (x:_) = Just x
 
+-- halveMaybe: Takes an integer and returns -- possibly -- its half.  Fails
+--      if it is an odd number.
 halveMaybe :: Int -> Maybe Int
 halveMaybe x | x `mod` 2 == 0 = Just (x `div` 2)
              | otherwise      = Nothing
