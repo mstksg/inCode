@@ -30,9 +30,9 @@ readPreProcess entryFile = do
       if | "!!!" `T.isPrefixOf` line      ->
               insertSample . T.strip . T.dropWhile (== '!')     $ line
          | "<aside>" `T.isPrefixOf` line  ->
-              return . T.concat "<p class=\"note\">" . T.drop 7 $ line
+              return . T.append "<p class=\"note\">" . T.drop 7 $ line
          | "</aside>" `T.isPrefixOf` line ->
-              return . T.concat "</p>" . T.drop 8               $ line
+              return . T.append "</p>" . T.drop 8               $ line
          | otherwise                      ->
               return line
 
@@ -149,9 +149,3 @@ sampleSpec = do
     return $ SampleSpec filePath live' keywords link
   where
     noSpaces = manyTill anyChar (space <|> ' ' <$ eof)
-
-replace :: String -> String -> String
-rep a b s@(x:xs) = if isPrefixOf a s
-                     then b ++ rep a b (drop (length a) s)
-                     else x :  rep a b xs
-rep _ _ [] = []
