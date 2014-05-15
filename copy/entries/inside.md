@@ -16,11 +16,9 @@ Identifier
 
 I like Haskell because it lets me live inside my world.
 
-There are a lot of special worlds out there!
-
-Haskell lets me stay in those worlds, and use all of the tools I normally have
-when I'm not there.  I get to transform normal tools into tools that work in
-my world.
+There are a lot of special worlds out there!  And Haskell lets me stay in
+those worlds, and use all of the tools I normally have when I'm not there.  I
+get to transform normal tools into tools that work in my world.
 
 (This post is meant to be approachable by people unfamiliar with Haskell!
 That being said, if there is a concept you don't understand, feel free to
@@ -39,8 +37,8 @@ In Haskell, we have a type called `Maybe a`:
 data Maybe a = Just a | Nothing
 ~~~
 
-This says that `Maybe a` is like an Enum type of sorts...it can either be in
-the form `Just x` --- something is there --- or `Nothing` --- nothing is
+This says that `Maybe a` is like an Enumerable type of sorts...it can either
+be in the form `Just x` --- something is there --- or `Nothing` --- nothing is
 there.
 
 If you are used to an OOP language with templates or generics, this is
@@ -81,24 +79,29 @@ foo :: Int -> Bool
 foo x = ...
 ~~~
 
-basically declares a function named `foo` of type `Int -> Bool` --- we use
-`::` to specify type signatures.  It takes an `Int` (named `x`) and returns a
-`Bool`.
+declares a function named `foo` of type `Int -> Bool` --- we use `::` to
+specify type signatures.  `Int -> Bool` means that it takes an `Int` (named
+`x`) and returns a `Bool`.
 
 I'll often just say `bar :: Bool` to say "the value `bar` (of type `Bool`)";
 you could just read `::` as "type of".
 
+So `divideMaybe :: Int -> Int -> Maybe Int` means that `divideMaybe` takes two
+`Int`s and returns something of type `Maybe Int`.
+
 </aside>
 
-When you want to return a value of type `Maybe a`, you can either return
-`Just x` or `Nothing` --- they both are members of type `Maybe a`.  That's
-what `Maybe Int` means --- an `Int` that might or might not be there!
+When you want to return a value of type `Maybe a`, you can either return `Just
+x` or `Nothing` (where `x :: a`) --- they both are members of type `Maybe a`.
+That's what `Maybe Int` means --- an `Int` that might or might not be there!
 
 If I gave you something of type `Maybe Int`, would you know for sure if that
 `Int` was there or not?  You wouldn't!  You are living in the world of
 uncertainties.
 
-Welcome to the world of uncertainty.
+Welcome to the world of uncertainty.[^dundundun]
+
+[^dundundun]: Dun dun dun!
 
 ### The Problem
 
@@ -122,9 +125,9 @@ But...I can't do these things on `Maybe Int`!
 
 ~~~haskell
 λ: addThree (Just 5)
-<< SCARY ERROR! >>
-<< addThree takes an `Int` but you gave it a `Maybe Int`.  What are you >>
-<< trying to do anyway, wise guy. >>
+!! SCARY ERROR!
+!! addThree takes an Int but you gave it a Maybe Int.
+!! What are you trying to do anyway, wise guy.
 ~~~
 
 <aside>
@@ -134,8 +137,8 @@ In this post, commands at the interactive Haskell interpreter (REPL) ghci are
 prefaced with the prompt `λ:`.  If you see `λ:`, it means that this is
 something you'd enter at ghci.  If not, it is normal Haskell source code!
 
-In `ghci`, we have this command `:t` that you'll be seeing often that lets you
-find the type of something:
+In `ghci`, we also have this command `:t` that you'll be seeing often that
+lets you find the type of something:
 
 ~~~haskell
 λ: :t True
@@ -150,7 +153,10 @@ world.  That is, you would turn your uncertain 5 into either a certain 5 or an
 error.  Or you would turn your uncertain 5 into either a certain 5 or some
 "default" value.
 
-That is, you would use functions like these to exit your world:
+That is, you would use functions like these to exit your world:[^fjfm]
+
+[^fjfm]: In the standard libraries, `certaintify` and `certaintifyWithDefault`
+exist in the `Data.Maybe` module as `fromJust` and `fromMaybe`, respectively.
 
 ~~~haskell
 certaintify :: Maybe a -> a
@@ -161,9 +167,6 @@ certaintifyWithDefault :: a -> Maybe a -> a
 certaintifyWithDefault _ (Just x) = x
 certaintifyWithDefault d Nothing  = d
 ~~~
-
-(In the standard libraries, these exist in the `Data.Maybe` module:
-`certaintify` is `fromJust`, and `certaintifyWithDefault` is `fromMaybe`)
 
 And then you can just willy-nilly use your normal `Int -> Int` functions on
 what you pull out.
@@ -299,9 +302,10 @@ Nothing
 ### Functor
 
 This concept of "bringing functions into worlds" is actually a useful and
-generalizable concept.  In fact, in the standard libraryies, there's a
+generalizable concept.  In fact, in the standard libraries, there's a
 typeclass (which is like an interface, sorta, for you Java/OOP people) that
-provides a common API/interface for "worlds that you can bring functions into."
+provides a common API/interface for "worlds that you can bring functions
+into."
 
 We call it `Functor`:
 
@@ -315,7 +319,7 @@ it says that "if your world `f` is a Functor, then you have a function
 `fmap` that turns any `a -> b` into an `f a -> f b`".
 
 It should come as no surprise that `Maybe` is a Functor, so `fmap` *does*
-take any function `a -> b` and "lifts" it into a the `Maybe` world, turning it
+take any function `a -> b` and "lifts" it into the `Maybe` world, turning it
 into a `Maybe a -> Maybe b`.
 
 `fmap` for `Maybe` is incidentally exactly our `inMaybe`.
@@ -362,8 +366,37 @@ Nothing
 (If you had forgotten, `f $ x` = `f x`)
 
 
+### Sort of a big deal
 
-'Pre-lifting'
+Okay, so let's pause and reflect to see that this is sort of a big deal, and
+see what problem `Functor` just solved.
+
+In another language, you might somehow have a `Maybe<Int>` (using generics
+syntax).  And you have lots and lots and lots of functions that take `Int`s.
+Heck, why would you even ever have a function take a `Maybe<Int>`?  A function
+would be like:
+
+~~~java
+class Monster {
+    void deal_damage(int damage) {};
+}
+~~~
+
+where your `deal_damage` function would take an integer.  So `Maybe Int` is
+useless!  You either have to re-write `deal_damage` to take a `Maybe Int`, and
+have *two versions* of it, or you turn your `Maybe Int` into an `Int` somehow.
+
+In this light, `Maybe` is a huge nuisance.  It is a big, annoying thing to
+deal with and it probably results in a lot of boilerplate, making you either
+duplicate functions or extract `Maybe` values every time you get one.
+
+But now...*now*, `Maybe` is not a nuisance, and there is *no boilerplate*.
+All your functions now...*just work*, as they are!
+
+And this is a big deal.
+
+
+ "Pre-lifting"
 -------------
 
 Okay, so we now can turn `a -> b` into `Maybe a -> Maybe b`.
@@ -381,9 +414,9 @@ Can I use `halveMaybe` on my `Maybe Int`?
 ~~~haskell
 λ: let x = divideMaybe 12 3     -- x = Just 4 :: Maybe Int
 λ: halveMaybe x
-<< SCARY ERROR! >>
-<< halveMaybe takes an Int but you gave it  >>
-<< a Maybe Int.  Think about your life.     >>
+!! SCARY ERROR!
+!! halveMaybe takes an Int but you gave it
+!! a Maybe Int.  Please think about your life.
 ~~~
 
 Oh no!  Maybe we can't really stay inside our `Maybe` world after all!
@@ -398,10 +431,14 @@ halfOfAge :: ID -> Maybe Int
 That returns (possibly), half of the age of the person corresponding to that
 ID (and `Nothing` if the person looked up has an odd age.  Because odd ages
 don't have halves, of course.).  Well, we already have `ageFromId :: ID ->
-Maybe Int`, but we want to apply `halveMaybe` to that `Maybe Int`.  Bu we
+Maybe Int`, but we want to apply `halveMaybe` to that `Maybe Int`.  But we
 can't!  Because `halveMaybe` only works on `Int`!
 
-And we can't even use `fmap`, because:
+Ah!  Is this whole `Maybe` a nuisance...should we exit our `Maybe` world...or
+maybe write a second version of `halveMaybe` to take `Maybe Int` instead of
+`Int` and not be useless?  Is everything falling apart?
+
+We can't even use `fmap`, because:
 
 ~~~haskell
 λ: :t fmap halveMaybe
@@ -427,7 +464,7 @@ The plan is simple!  We turn an `a -> Maybe b` into a `Maybe a -> Maybe b`.
 Let's pretend we had such a function.
 
 ~~~haskell
-preLift :: (a -> Maybe b) -> (Maybe a -> Maybe b)
+liftInput :: (a -> Maybe b) -> (Maybe a -> Maybe b)
 ~~~
 
 How should we expect this to behave?
@@ -445,21 +482,21 @@ you have a result there.  If the result is not there, then you don't.
 We have enough to write this out ourselves:
 
 ~~~haskell
-preLift :: (a -> Maybe b) -> (Maybe a -> Maybe b)
-preLift f = go
+liftInput :: (a -> Maybe b) -> (Maybe a -> Maybe b)
+liftInput f = go
   where
     go Nothing  = Nothing
     go (Just x) = f x
 ~~~
 
 ~~~haskell
-λ: :t preLift halveMaybe
+λ: :t liftInput halveMaybe
 Maybe Int -> Maybe Int
 λ: let x = divideMaybe 12 3     -- x = Just 4 :: Maybe Int
-λ: (preLift halveMaybe) x
+λ: (liftInput halveMaybe) x
 Just 2
 λ: let y = divideMaybe 12 0     -- y = Nothing :: Maybe Int
-λ: (preLift halveMaybe) y
+λ: (liftInput halveMaybe) y
 Nothing
 ~~~
 
@@ -471,8 +508,15 @@ stay in our world*, without leaving our world of uncertainty!
 Like with Functor and `fmap`, this general pattern of turning an `a -> f b`
 into an `f a -> f b` is also useful to generalize.
 
-We say that if a world has such a way of "pre-lifting" a function (plus some
-other requirements), it implements the `Monad` typeclass.
+In general, you can think functions `a -> world b` as functions that "bring
+you into your world".  We would like to turn it, in general, into `world a ->
+world b`.  Lifting the input only, so to speak.
+
+We say that if a world has such a way of lifting the input of such a function
+(plus some other requirements), it implements the `Monad`
+typeclass[^othermonad].
+
+[^othermonad]: It also needs `return`, which I will mention in due time.
 
 Now, you may or not have known this, but Monads have a...reputation.  You
 might have heard that Monads were super scary and intimidating.  And you might
@@ -483,7 +527,34 @@ Monad is a typeclass (which is kinda like an interface), so that means that
 if `Maybe` is a Monad, it "implements" that way to turn a `a -> Maybe b`
 into a `Maybe a -> Maybe b`.
 
-We call this `(a -> Maybe a) -> (Maybe a -> Maybe b)` function `bind`.
+We call this `(a -> Maybe b) -> (Maybe a -> Maybe b)` function "bind".
+
+Now, embarrassingly enough, "bind" actually isn't called `bind` in the standard
+library...it actually only exists as an operator, `(=<<)`.
+
+(Remember how there was an operator form of `fmap`?  We have both `fmap` and
+`(<$>)`?  Well, in this case, we *only* have the operator form of `bind`,
+`(=<<)`. Yeah, I know.  But we live with it just fine!).
+
+`(=<<)` is exactly our `liftInput` for `Maybe`.  Let's try it out:
+
+~~~haskell
+λ: :t (=<<) halveMaybe
+Maybe Int -> Maybe Int
+λ: let x = divideMaybe 12 3     -- x = Just 4 :: Maybe Int
+
+-- use it as a prefix function
+λ: (=<<) halveMaybe x
+Just 2
+λ: let y = divideMaybe 12 0     -- y = Nothing :: Maybe Int
+
+-- use it as an infix operator
+λ: halveMaybe =<< y
+Nothing
+~~~
+
+And now maybe we can finally rest easy knowing that we can "stay inside
+`Maybe`" and never have to leave it.
 
 <aside>
     ###### Aside
@@ -503,32 +574,6 @@ uncertainty...well, we already know the `7` is there.  So to bring a `7` into
 
 </aside>
 
-Now, embarrassingly enough, `bind` actually isn't called `bind` in the standard
-library...it actually only exists as an operator, `(=<<)`.
-
-(Remember how there was an operator form of `fmap`?  We have both `fmap` and
-`(<$>)`?  Well, in this case, we *only* have the operator form of `bind`,
-`(=<<)`. Yeah, I know.  But we live with it just fine!).
-
-`(=<<)` is exactly our `preLift` for `Maybe`.  Let's try it out:
-
-~~~haskell
-λ: :t (=<<) halveMaybe
-Maybe Int -> Maybe Int
-λ: let x = divideMaybe 12 3     -- x = Just 4 :: Maybe Int
-
--- use it as a prefix function
-λ: (=<<) halveMaybe x
-Just 2
-λ: let y = divideMaybe 12 0     -- y = Nothing :: Maybe Int
-
--- use it as an infix operator
-λ: halveMaybe =<< y
-Nothing
-~~~
-
-And now maybe we can finally rest easy knowing that we can "stay inside
-`Maybe`" and never have to leave it.
 
 ### Haskellers are weird
 
@@ -577,8 +622,11 @@ Why is this style the norm?  Who knows![^whoknows]  People are just weird!
     composition operators; it is unique in that it is the only one where the
     backwards form is more common than the normal one.
 
-    A general guideline is that you ever mix bind with `(<$>)` and/or `($)`
-    and `(.)`, you should prefer `(=<<)`.
+    Even the term "bind" is often used to refer to both.
+
+    A general guideline is that you ever mix a bind with a `(<$>)` and/or a
+    `($)` and `(.)`, you should prefer `(=<<)`, to prevent your eyes from
+    jumping directions.
 
 For the rest of this article, we will be using `(=<<)`; just be aware that you
 might see `(>>=)` out in the wild more often!
@@ -599,25 +647,41 @@ If you have an `x :: Maybe a` and you have a:
 Armed with these two, you can comfortably stay in `Maybe` without ever having
 to "get out of it"!
 
-### Why?
+### The big picture
 
-Why would we want to do this?
+Again, the big picture is this: sometimes we get values inside contexts, or
+worlds.  And yet, every single function in our program takes normal values,
+not values inside worlds.  All the functions you have take `Int`, not `Maybe
+Int`.
 
-In Haskell, we often end up with values inside worlds.  And with normal tools
-from other languages, this would be very limiting, restricting, and annoying.
-You have a `Maybe Int`.  Well that's nice, but all of your functions work on
-`Int`.  Now what?
+Instead of exiting your world (which might not even make sense, depending on
+the world) or writing a new function, you can now magically make any function
+work on your world.
 
-What Haskell allows is for you to work with that `Maybe Int` just as if it
-were really an `Int`, and lets you use normal `Int` functions on it.  In that
-way, `Maybe Int` is no longer really a big deal anymore!  We can use it
-everywhere, return it everywhere, even write entire computations inside
-`Maybe`...because we aren't afraid of it.  And it is no hassle at all!
+Functions `a -> world b` are important too; they are functions that *produce
+values inside your world*.
+
+Which normally would leave you "high and dry", because you can't, say, apply
+that same function twice.  You either have to write a new `world a -> world b`
+version, pop your result out of the world before you can feed it back in.  But
+now, you don't have to.
+
+You see, now, `Maybe Int`, or `Maybe Bool`, or `Maybe whatever` can now be
+treated *just like a normal value*, and *all of your normal functions* that
+take normal values *now work* on it.  What Functor and Monad give us,
+together, is a way to seamlessly work with such values as if they were just
+normal values the entire time.
+
+In that way, `Maybe Int` is no longer really a big deal or hassle anymore!  We
+can use it everywhere, return it everywhere, even write entire computations
+inside `Maybe`...because we aren't afraid of it.  And it is no problem to us
+at all!  In other languages, we'd have to jump through hoops to work with
+context-ful values.  In Haskell...hah!
 
 Other Worlds
 ------------
 
-### About
+### on Worlds
 
 You might have noticed that up until now I have used the word "world" pretty
 vaguely.
@@ -631,12 +695,8 @@ existing-or-not-existing.[^worlds]
 
 [^worlds]: In Haskell, "worlds" are represented at the type level as type
     constructors.  `Maybe` is a type constructor that takes a type like `Int` and
-    returns a new type, `Maybe Int`.  However, I make the distinction here
-    that not all type constructors can be called "worlds".
-
-    Also, as you may or may not have guessed, "worlds" is my cute,
-    semantically meaningful word for a certain class of Monads.  This metaphor
-    also parades around under the name "context".
+    returns a new type, `Maybe Int`.  Not all type constructors represent
+    Worlds, of course.
 
 But there are other worlds, and other contexts too.  And though I have shown
 you what Functor and Monad look like for `Maybe`...you probably need to
@@ -658,7 +718,22 @@ For `Maybe`, `fmap` and `(=<<)` were defined with the semantics of propagating
 unknownness.  But for other "worlds", as we will see, we can make them mean
 whatever.
 
-Anyways, here is a worldwind tour of different worlds, to help you realize how
+<aside>
+    ###### Aside
+
+There are some important nuances that might trip you up!  Though useful worlds
+are instances of Monad, it is improper to say that "Monads are worlds/values
+in contexts".  That's not what Monads *are*.  Monads are just Monads (the two
+functions and their laws), no more and no less.
+
+In our usage here, Functor and Monad mean only "these things implement some
+sort of `fmap` and `(=<<)`, etc., and those two are useful."  That is, the
+interface offered by Functor and Monad are useful for our specific world.  But
+there are plenty of Functors and Monads that are not "worlds".
+
+</aside>
+
+Anyways, here is a whirlwind tour of different worlds, to help you realize how
 often you'll actually want to live in these worlds in Haskell, and why having
 `fmap` and `(=<<)` are so useful!
 
@@ -678,7 +753,7 @@ futureLength :: (Reader [a]) Int
 -- waiting for will be.
 futureHead   :: (Reader [a]) a
 
--- A future `Bool` that will be whether the `Int` it is waiting for is even or
+-- A future `Bool` that will be whether the `Int` it is waiting for is odd or
 -- not.
 futureOdd    :: (Reader Int) Bool
 ~~~
@@ -728,10 +803,14 @@ my future `Int`, in order to get a future `Bool`?
 That is, can I apply `(< 5) :: Int -> Bool` to my future `Int`, `futureLength ::
 (Reader [a]) Int`?  And produce a future `Bool`, `(Reader [a]) Bool`?
 
-Because `Reader [a]` is a Functor --- I can!  I can use `fmap` to turn
-`(< 5) :: Int -> Bool` into `fmap (< 5) :: (Reader [a]) Int -> (Reader [a])
-Bool`!
+At first, no!  This future `Bool` is useless!  I can't even use it in *any* of
+my normal functions!
 
+Oh --- but, Because `Reader [a]` is a Functor --- maybe I can?  I can use
+`fmap` to turn `(< 5) :: Int -> Bool` into `fmap (< 5) :: (Reader [a]) Int ->
+(Reader [a]) Bool`!
+
+No problem at all!
 
 ~~~haskell
 futureShorterThan :: Int -> (Reader [a]) Bool
@@ -758,9 +837,9 @@ into a future `Bool`.  Let's go...deeper.  What if I wanted to apply
 `futureShorterThan` to a *future* `Int`?  To *still* get a future `Bool`?
 
 I can't apply `futureShorterThan` to a future `Int` straight-up, because it
-ynly takes `Int`.  But `Reader [Int]` is a Monad, so that means I can take
-the `Int -> (Reader [a]) Bool` and turn it into a `(Reader [a]) Int -> (Reader
-[a]) Bool` using `(=<<)`!
+only takes `Int`.  Boo!  But, wait --- `Reader [Int]` is a Monad, so that
+means I can take the `Int -> (Reader [a]) Bool` and turn it into a `(Reader
+[a]) Int -> (Reader [a]) Bool` using `(=<<)`!
 
 Using `(=<<)`, we turned a function from `Int` to a future `Bool` to a
 function from a future `Int` to a future `Bool`.
@@ -827,10 +906,10 @@ a file and outputs the contents of that file.  The `String` doesn't exist yet
 If you've ever used a Unix operating system, there is a shell command `ls`
 that lists the contents of a directory.  The actual `ls` program
 is kind of like an `IO [FilePath]`.  The `[FilePath]` does not "exist"
-*inside* `ls` --- rather, `ls` is a program that promises a list of
+inside" `ls` --- rather, `ls` is a program that promises a list of
 `FilePath`s when it is executed by the computer or interpreter.
 
-So an `IO String` doesn't *contain* a `String` --- it is a program that
+So an `IO String` doesn't "contain" a `String` --- it is a program that
 *promises* a `String` in the future, when a computer eventually executes it.
 
 An important distinction between `IO` and the other worlds we have looked at
@@ -845,10 +924,12 @@ reading from IO...
 Remember, *a Haskell program can only "evaluate"* expressions, *not "execute"*
 them.  So the only way a Haskell function would be able to be `IO a -> a`
 would be to fully simulate a CPU/processor as a pure function, and "evaluate"
-the assembly code.  But that doesn't sound very practical --- wouldn't it make
-more sense to actually just let a computer *execute* it?
+the assembly code.  But that doesn't sound very practical, and it's often not
+even what you want (you want to interact with the world, not evaluate an
+expression).  Wouldn't it make more sense to actually just let a computer
+*execute* it?
 
-That's what `ghc` or any Haskell compiler does.  It takes whatever `IO ()` is
+That's what *ghc* or any Haskell compiler does.  It takes whatever `IO ()` is
 named `main` in your program, evaluates it, and compiles it into a binary.
 Then you, the computer user, can execute that binary like any other binary
 (compiled from C or whatever).[^iopure]
@@ -862,17 +943,19 @@ extreme version of the worlds we mentioned before; in the others, we could
 "exit" the world if we really wanted to.  We only used `fmap` and `(=<<)`
 because it provided for beautiful abstractions.
 
-For `IO`, we can't exit it; we *need* Functor and `(=<<)` for it for us to
-*ever* do anything with our "future values"!
+Because of this, if it weren't for Functor and Monad, it would be extremely
+hard to do *anything* useful with `IO`!  We literally can't pass an `IO a`
+into *any* normal function.  We need Functor and Monad for us to *ever* work
+at all with our "future values"!
 
-#### Functor and Monad
+#### Anything Useful
 
-One common IO object is `getLine :: IO String`.  `getLine` is kind of like the
-unix program `cat` --- it promises a `String`, and it gets that `String` by
-taking in from standard input.  That is, it is a program that, when executed
-by a computer, pulls a line from stdin, and returns that as the `String` it
-promises.  `getLine` contains instructions for a computer to get a `String`
-from stdin.  A future/promised `String`.
+One common IO object we are given is `getLine :: IO String`.  `getLine` is
+kind of like the unix program `cat` --- it promises a `String`, and it gets
+that `String` by taking in from standard input.  That is, it is a program
+that, when executed by a computer, pulls a line from stdin, and returns that
+as the `String` it promises.  `getLine` contains instructions for a computer
+to get a `String` from stdin.  A future/promised `String`.
 
 We want to apply `length :: String -> Int` to that future/promised `String`,
 to get us a future/promised `Int`.  Again, we can't apply `length` to
@@ -891,8 +974,9 @@ Neat!
 We had a function that only worked on `String`, but we made it work the
 "future/promised" `String` of `IO String`
 
-Let's look at `wc`, which takes a filename and returns a program that, when
-executed, promises an `Int` --- the number of lines in that file.
+Let's look at a function returning an IO action `wc`, which takes a filename
+and returns a program that, when executed, promises an `Int` --- the number of
+lines in that file.
 
 ~~~haskell
 wc :: String -> IO Int
@@ -902,11 +986,12 @@ So `wc "file.txt"` would evaluate to a computation that, when executed by a
 computer, produces an `Int` (by loading the file from disk using system calls,
 reading it, and counting the lines).
 
-`wc` is a function that takes a `String`.
+`wc` is a function that takes a (non-future, normal) `String`.
 
 But what if we wanted to apply `wc` to `getLine`, the `IO String` we had?  We
 want to apply `wc` to that "future `String`".  We can't apply it directly.  We
 want to turn our `String -> IO Int` into an `IO String -> IO Int`.
+
 
 Luckily, `IO` is a Monad, so we have `(=<<)` at our disposal.
 
@@ -935,12 +1020,13 @@ produces a future `()`.[^unit]  But in that process of producing that `()`, it
 sneaks in computer instructions (assembly/C code) to print out that given
 integer to standard output.  We like to use `print` not because of what it
 computes, but rather because of the side effects it sneaks into its
-computation process.
+computation process.  (Remember, these side effects don't actually happen
+until it is computed, in the future)
 
 [^print]: the real type signature of  `print` takes all showable things, not
 just `Int`.
 
-[^unit]: `()`, pronunced "unit", is basically the "boring type", which only
+[^unit]: `()`, pronounced "unit", is basically the "boring type", which only
 has one value --- `()`.  `IO ()` is loosely comparable to a "void"
 function/computation in other languages, which "return nothing".
 
@@ -1008,17 +1094,20 @@ Here are some others --- with a brief description.
 
 There are many more!  The great thing about Haskell is that with `fmap` and
 `(=<<)`, it is easy to work with values inside these worlds with all of your
-normal functions!
+normal functions, without any real extra effort.  Normal functions, normal
+values, values inside worlds...we have them all at our disposal.
 
 Haskell lets me stay *inside my world*!
 
 Further Reading
 ---------------
 
-1.  [adit's Functor and Monad tutorial][adit] (beginner)
-2.  [Gabriel Gonzalez's Functor post][tekmo] (intermediate)
-3.  [LYAH's Monad chapter][lyahmonad] (beginner)
-4.  [My own MonadPlus tutorial][monadplus] (intermediate)
+1.  Gabriel Gonzalez's ["Functor Design Pattern"][tekmo] post, which covers a
+    similar concept and explains it more elegantly than I.
+
+2.  adit's [Functor, Applicative, and Monad tutorial][adit], which also goes
+    over similar concepts and introduces "Applicative", which can be seen as a
+    way to combine contexted values.
 
 As always, if you have any questions, leave them in the comments, or come find
 me on freenode's #haskell --- I go by *jle`* :)
