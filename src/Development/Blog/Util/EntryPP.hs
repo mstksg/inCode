@@ -1,3 +1,5 @@
+{-# LANGUAGE MultiWayIf #-}
+
 module Development.Blog.Util.EntryPP (readPreProcess) where
 
 import "base" Prelude
@@ -25,9 +27,14 @@ readPreProcess entryFile = do
     eLines <- T.lines <$> T.readFile entryFile
 
     eLinesPP <- forM eLines $ \line ->
-      if "!!!" `T.isPrefixOf` line
-        then insertSample . T.strip . T.dropWhile (== '!') $ line
-        else return line
+      if | "!!!" `T.isPrefixOf` line      ->
+              insertSample . T.strip . T.dropWhile (== '!')     $ line
+         | "<aside>" `T.isPrefixOf` line  ->
+              return . T.concat "<p class=\"note\">" . T.drop 7 $ line
+         | "</aside>" `T.isPrefixOf` line ->
+              return . T.concat "</p>" . T.drop 8               $ line
+         | otherwise                      ->
+              return line
 
     return . T.unpack . T.unlines $ eLinesPP
 
@@ -142,3 +149,9 @@ sampleSpec = do
     return $ SampleSpec filePath live' keywords link
   where
     noSpaces = manyTill anyChar (space <|> ' ' <$ eof)
+
+replace :: String -> String -> String
+rep a b s@(x:xs) = if isPrefixOf a s
+                     then b ++ rep a b (drop (length a) s)
+                     else x :  rep a b xs
+rep _ _ [] = []
