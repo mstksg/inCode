@@ -205,15 +205,9 @@ So the problem:  I have a function `a -> b` that I want to be able to use
 on a `Maybe a`...I want to stay in my `Maybe` world and use that function on
 the uncertain value.
 
-To phrase it in types, I want to turn an `a -> b` into a `Maybe a ->
-Maybe b`.
-
 I have a function on an `a` that returns a `b`...and so I want to turn it into
 a function on an `a` that is possibly there/not there, to return --- well, a
 `b` that is possibly there/not there!
-
-I want to move my `a -> b` into *my world of uncertainty*.  So that I can use
-*any* `a -> b` as if it were written for uncertain values this entire time.
 
 If you look at this carefully, we want some sort of "function transformer".
 Give our transfomer an `a -> b`, it'll output a new function `Maybe a -> Maybe
@@ -244,7 +238,7 @@ Just "8"
 Wow!  If I had this, I can now use normal functions and still stay inside my
 uncertain world.
 
-We can even write our `ageFromId`:
+We could even write our `ageFromId`:
 
 ~~~haskell
 !!!inside/maybe.hs "ageFromId ::"
@@ -283,16 +277,7 @@ typeclass (which is like an interface, sorta, for you Java/OOP people) that
 provides a common API/interface for "worlds that you can bring functions
 into."
 
-We call it `Functor`:
-
-~~~haskell
-class Functor f where
-  fmap :: (a -> b) -> (f a -> f b)
-~~~
-
-If you haven't done much Haskell, this might seem scary, but don't worry.  All
-it says that "if your world `f` is a Functor, then you have a function
-`fmap` that turns any `a -> b` into an `f a -> f b`".
+We call it `Functor`, and this "bring into world" function is called `fmap`.
 
 It should come as no surprise that `Maybe` is a Functor, so `fmap` *does*
 take any function `a -> b` and "lifts" it into the `Maybe` world, turning it
@@ -320,7 +305,7 @@ properties ---
 </aside>
 
 
-Some notes about Functors before we move on!
+Some notes before we move on!
 
 First of all, even though we have been writing things like `(fmap f) x`, the
 parentheses are actually unnecessary due to the way Haskell associates function
@@ -339,7 +324,7 @@ Just 10
 Nothing
 ~~~
 
-(If you had forgotten, `f $ x` = `f x`)
+(In case you forgot, `f $ x` = `f x`)
 
 
 ### Sort of a big deal
@@ -434,10 +419,9 @@ path.
 We had an `a -> b` that we wanted to apply to a `Maybe a`, we used `fmap` to
 turn it into a `Maybe a -> Maybe b`.
 
-So we have a `a -> Maybe b` here that we want to apply to a `Maybe a`.
-
-The plan is simple!  We turn an `a -> Maybe b` into a `Maybe a -> Maybe b`.
-Let's pretend we had such a function.
+So we have a `a -> Maybe b` here that we want to apply to a `Maybe a`.  The
+plan is simple!  We turn an `a -> Maybe b` into a `Maybe a -> Maybe b`. Let's
+pretend we had such a function.
 
 ~~~haskell
 liftInput :: (a -> Maybe b) -> (Maybe a -> Maybe b)
@@ -551,7 +535,8 @@ uncertainty...well, we already know the `7` is there.  So to bring a `7` into
 </aside>
 
 
-### Haskellers are weird
+<aside>
+    ###### Aside
 
 Now, for some strange reason, it is actually much more popular to use `(>>=)`
 over `(=<<)`; `(>>=)` is just `(=<<)` backwards:
@@ -607,6 +592,8 @@ Why is this style the norm?  Who knows![^whoknows]  People are just weird!
 For the rest of this article, we will be using `(=<<)`; just be aware that you
 might see `(>>=)` out in the wild more often!
 
+</aside>
+
 Recap
 -----
 
@@ -642,17 +629,11 @@ that same function twice.  You either have to write a new `world a -> world b`
 version, pop your result out of the world before you can feed it back in.  But
 now, you don't have to.
 
-You see, now, `Maybe Int`, or `Maybe Bool`, or `Maybe whatever` can now be
-treated *just like a normal value*, and *all of your normal functions* that
-take normal values *now work* on it.  What Functor and Monad give us,
-together, is a way to seamlessly work with such values as if they were just
-normal values the entire time.
+With Functor, we can make normal functions treat our world values like normal
+values; with Monad, we can do the same with functions that "bring us into"
+worlds.  With these two together...maybe contexted values aren't so bad after
+all!
 
-In that way, `Maybe Int` is no longer really a big deal or hassle anymore!  We
-can use it everywhere, return it everywhere, even write entire computations
-inside `Maybe`...because we aren't afraid of it.  And it is no problem to us
-at all!  In other languages, we'd have to jump through hoops to work with
-context-ful values.  In Haskell...hah!
 
 Other Worlds
 ------------
@@ -1058,6 +1039,8 @@ Here are some others --- with a brief description.
 4.  The world of `Parser`, which is a world of things that an input string
     will be parsed into.
 
+[monadplus]: http://blog.jle.im/entries/series/+monadplus-success-failure-monads
+
 There are many more!  The great thing about Haskell is that with `fmap` and
 `(=<<)`, it is easy to work with values inside these worlds with all of your
 normal functions, without any real extra effort.  Normal functions, normal
@@ -1071,14 +1054,13 @@ Further Reading
 1.  Gabriel Gonzalez's ["Functor Design Pattern"][tekmo] post, which covers a
     lot of similar concept and explains it more elegantly than I could have.
 
-2.  adit's [Functor, Applicative, and Monad tutorial][adit], which also goes
+2.  Adit's [Functor, Applicative, and Monad tutorial][adit], which also goes
     over similar concepts and introduces "Applicative", which can be seen as a
     way to combine contexted values.
 
 As always, if you have any questions, leave them in the comments, or come find
 me on freenode's #haskell --- I go by *jle`* :)
 
-[monadplus]: http://blog.jle.im/entries/series/+monadplus-success-failure-monads
 [adit]: http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html
 [lyahmonad]: http://learnyouahaskell.com/a-fistful-of-monads
 [tekmo]: http://www.haskellforall.com/2012/09/the-functor-design-pattern.html
