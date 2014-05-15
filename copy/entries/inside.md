@@ -708,11 +708,11 @@ as you give it an `r`.
 
 -- An future `a` that will be the first element of whatever the list it is
 -- waiting for will be.
-!!!inside/reader.hs "futureHead ::"1 inside-my-world
+!!!inside/reader.hs "futureHead   ::"1 inside-my-world
 
 -- A future `Bool` that will be whether the `Int` it is waiting for is odd or
 -- not.
-!!!inside/reader.hs "futureOdd ::"1 inside-my-world
+!!!inside/reader.hs "futureOdd    ::"1 inside-my-world
 ~~~
 
 `futureLength` is a "future `Int`"; an `Int` waiting (for an `[a]`) to be realized.
