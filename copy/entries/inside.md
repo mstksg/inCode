@@ -50,21 +50,15 @@ This type is useful for functions that might fail:
 ~~~haskell
 -- Takes two integers and returns -- possibly -- their integer quotient. It
 -- succeeds if the denominator is not zero, and fails if it is.
-divideMaybe :: Int -> Int -> Maybe Int
-divideMaybe _ 0 = Nothing
-divideMaybe x y = Just (x `div` y)
+!!!inside/maybe.hs "divideMaybe ::"
 
 -- Takes a list and returns -- possibly -- its first element.  Fails if the
 -- list is empty, and succeeds with the first element otherwise.
-headMaybe :: [a] -> Maybe a
-headMaybe []    = Nothing
-headMaybe (x:_) = Just x
+!!!inside/maybe.hs "headMaybe ::"
 
 -- Takes an integer and returns -- possibly -- its half.  Fails if it is an
 -- odd number.
-halveMaybe :: Int -> Maybe Int
-halveMaybe x | x `mod` 2 == 0 = Just (x `div` 2)
-             | otherwise      = Nothing
+!!!inside/maybe.hs "halveMaybe ::"
 ~~~
 
 <aside>
@@ -111,23 +105,16 @@ normal inty-things with it.
 That is...I have all these functions that work only on `Int`!
 
 ~~~haskell
-addThree :: Int -> Int
-addThree = (+ 3)
-
-square :: Int -> Int
-square = (^ 2)
-
-showInt :: Int -> String
-showInt = show
+!!!inside/maybe.hs "addThree ::" "square ::" "showInt ::"
 ~~~
 
 But...I can't do these things on `Maybe Int`!
 
 ~~~haskell
 λ: addThree (Just 5)
-!! SCARY ERROR!
-!! addThree takes an Int but you gave it a Maybe Int.
-!! What are you trying to do anyway, wise guy.
+*** SCARY ERROR!
+*** addThree takes an Int but you gave it a Maybe Int.
+*** What are you trying to do anyway, wise guy.
 ~~~
 
 <aside>
@@ -159,13 +146,7 @@ That is, you would use functions like these to exit your world:[^fjfm]
 exist in the `Data.Maybe` module as `fromJust` and `fromMaybe`, respectively.
 
 ~~~haskell
-certaintify :: Maybe a -> a
-certaintify (Just x) = x
-certaintify Nothing  = error "Nothing was there, you fool!"
-
-certaintifyWithDefault :: a -> Maybe a -> a
-certaintifyWithDefault _ (Just x) = x
-certaintifyWithDefault d Nothing  = d
+!!!inside/maybe.hs "certaintify ::" "certaintifyWithDefault ::"
 ~~~
 
 And then you can just willy-nilly use your normal `Int -> Int` functions on
@@ -266,8 +247,7 @@ uncertain world.
 We can even write our `ageFromId`:
 
 ~~~haskell
-ageFromId :: ID -> Maybe Int
-ageFromId i = (inMaybe age) (personFromId i)
+!!!inside/maybe.hs "ageFromId ::"
 
 -- alternatively
 ageFromId = inMaybe age . personFromId
@@ -276,11 +256,7 @@ ageFromId = inMaybe age . personFromId
 We can write out `inMaybe` ourselves:
 
 ~~~haskell
-inMaybe :: (a -> b) -> (Maybe a -> Maybe b)
-inMaybe f = go
-  where
-    go (Just x) = Just (f x)
-    go Nothing  = Nothing
+!!!inside/maybe.hs "inMaybe ::"
 ~~~
 
 Now we are no longer afraid of dealing with uncertainty.  It's a scary realm,
@@ -482,11 +458,7 @@ you have a result there.  If the result is not there, then you don't.
 We have enough to write this out ourselves:
 
 ~~~haskell
-liftInput :: (a -> Maybe b) -> (Maybe a -> Maybe b)
-liftInput f = go
-  where
-    go Nothing  = Nothing
-    go (Just x) = f x
+!!!inside/maybe.hs "liftInput ::"
 ~~~
 
 ~~~haskell
@@ -502,6 +474,10 @@ Nothing
 
 Neat!  Now we don't have to fear `a -> Maybe b`'s...we can use them and *still
 stay in our world*, without leaving our world of uncertainty!
+
+~~~haskell
+!!!inside/maybe.hs "halfOfAge ::"
+~~~
 
 ### Monad
 
@@ -583,8 +559,8 @@ over `(=<<)`; `(>>=)` is just `(=<<)` backwards:
 ~~~haskell
 λ: halveMaybe =<< Just 8
 Just 4
-λ: Just 4 >>= halveMaybe
-Just 2
+λ: Just 8 >>= halveMaybe
+Just 4
 ~~~
 
 This is really weird!  I mean...really *really* weird!  Why would you ever put
@@ -747,15 +723,15 @@ as you give it an `r`.
 ~~~haskell
 -- A future `Int` that will be the length of whatever the list it is waiting
 -- for will be.
-futureLength :: (Reader [a]) Int
+!!!inside/reader.hs "futureLength ::"1
 
 -- An future `a` that will be the first element of whatever the list it is
 -- waiting for will be.
-futureHead   :: (Reader [a]) a
+!!!inside/reader.hs "futureHead ::"1
 
 -- A future `Bool` that will be whether the `Int` it is waiting for is odd or
 -- not.
-futureOdd    :: (Reader Int) Bool
+!!!inside/reader.hs "futureOdd ::"1
 ~~~
 
 `futureLength` is a "future `Int`"; an `Int` waiting (for an `[a]`) to be realized.
@@ -813,11 +789,7 @@ Oh --- but, Because `Reader [a]` is a Functor --- maybe I can?  I can use
 No problem at all!
 
 ~~~haskell
-futureShorterThan :: Int -> (Reader [a]) Bool
-futureShorterThan n = fmap (< n) futureLength
-
-futureShorterThan5 :: (Reader [a]) Bool
-futureShorterThan5 = futureShorterThan 5
+!!!inside/reader.hs "futureShorterThan ::" "futureShorterThan5 ::"
 ~~~
 
 ~~~haskell
@@ -845,10 +817,7 @@ Using `(=<<)`, we turned a function from `Int` to a future `Bool` to a
 function from a future `Int` to a future `Bool`.
 
 ~~~haskell
-λ: :t futureShortherThan
 futureShorterThan       :: Int              -> (Reader [a]) Bool
-
-λ: :t (=<<) futureShorterThan
 (=<<) futureShorterThan :: (Reader [a]) Int -> (Reader [a]) Bool
 ~~~
 
@@ -856,8 +825,7 @@ Hm.  Let's try this out on a future `Int` we have...we can use `futureHead ::
 (Reader [Int]) Int`.
 
 ~~~haskell
-futureShorterThanHead :: (Reader [Int]) Bool
-futureShorterThanHead = futureShorterThan =<< futureHead
+!!!inside/reader.hs "futureShorterThanHead ::"
 ~~~
 
 So, we are applying `futureShorterThan` to the `Int` we got from `futureHead`.
@@ -979,7 +947,7 @@ and returns a program that, when executed, promises an `Int` --- the number of
 lines in that file.
 
 ~~~haskell
-wc :: String -> IO Int
+!!!inside/io.hs "wc ::"1
 ~~~
 
 So `wc "file.txt"` would evaluate to a computation that, when executed by a
@@ -1040,8 +1008,7 @@ print       :: Int -> IO ()
 Putting it all together, we can write a compilable Haskell executable:
 
 ~~~haskell
-main :: IO ()
-main = print =<< wc =<< getLine
+!!!inside/io.hs "main ::"
 ~~~
 
 What is happening?
@@ -1061,9 +1028,10 @@ This executable, when executed:
 
 And so there we have it!
 
-We *don't ever have to* actually work with computed values `a` that are received
-from IO.  All we ever have to do is work with `IO a`, and we can use *all of
-our normal functions* on that `IO a`, as if they were normal `a`'s.
+We *don't ever have to* actually work directly with computed values `a` that
+are received from IO.  All we ever have to do is work with `IO a`, and we can
+use *all of our normal functions* on that `IO a`, as if they were normal
+`a`s.
 
 In that way, we don't have to be scared of working with "future computable
 values" --- we can use all of our normal tools on them!
@@ -1084,8 +1052,6 @@ Here are some others --- with a brief description.
 2.  The world of `[]`, where things are possibly many different things at
     once.  I wrote a [series of posts][monadplus] on this :)
 
-    [monadplus]: http://blog.jle.im/entries/series/+monadplus-success-failure-monads
-
 3.  The world of `State s`, which is a world of future things awaiting an `s`,
     which modify the `s` in the process.
 
@@ -1103,7 +1069,7 @@ Further Reading
 ---------------
 
 1.  Gabriel Gonzalez's ["Functor Design Pattern"][tekmo] post, which covers a
-    similar concept and explains it more elegantly than I.
+    lot of similar concept and explains it more elegantly than I could have.
 
 2.  adit's [Functor, Applicative, and Monad tutorial][adit], which also goes
     over similar concepts and introduces "Applicative", which can be seen as a
@@ -1112,6 +1078,7 @@ Further Reading
 As always, if you have any questions, leave them in the comments, or come find
 me on freenode's #haskell --- I go by *jle`* :)
 
+[monadplus]: http://blog.jle.im/entries/series/+monadplus-success-failure-monads
 [adit]: http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html
 [lyahmonad]: http://learnyouahaskell.com/a-fistful-of-monads
 [tekmo]: http://www.haskellforall.com/2012/09/the-functor-design-pattern.html
