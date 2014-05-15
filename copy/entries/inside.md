@@ -1041,6 +1041,5 @@ As always, if you have any questions, leave them in the comments, or come find
 me on freenode's #haskell --- I go by *jle`* :)
 
 [adit]: http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html
-[lyahmonad]: http://learnyouahaskell.com/a-fistful-of-monads
 [tekmo]: http://www.haskellforall.com/2012/09/the-functor-design-pattern.html
 
