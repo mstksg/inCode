@@ -50,15 +50,15 @@ This type is useful for functions that might fail:
 ~~~haskell
 -- Takes two integers and returns -- possibly -- their integer quotient. It
 -- succeeds if the denominator is not zero, and fails if it is.
-!!!inside/maybe.hs "divideMaybe ::"
+!!!inside/maybe.hs "divideMaybe ::" inside-my-world
 
 -- Takes a list and returns -- possibly -- its first element.  Fails if the
 -- list is empty, and succeeds with the first element otherwise.
-!!!inside/maybe.hs "headMaybe ::"
+!!!inside/maybe.hs "headMaybe ::" inside-my-world
 
 -- Takes an integer and returns -- possibly -- its half.  Fails if it is an
 -- odd number.
-!!!inside/maybe.hs "halveMaybe ::"
+!!!inside/maybe.hs "halveMaybe ::" inside-my-world
 ~~~
 
 <aside>
@@ -105,7 +105,7 @@ normal inty-things with it.
 That is...I have all these functions that work only on `Int`!
 
 ~~~haskell
-!!!inside/maybe.hs "addThree ::" "square ::" "showInt ::"
+!!!inside/maybe.hs "addThree ::" "square ::" "showInt ::" inside-my-world
 ~~~
 
 But...I can't do these things on `Maybe Int`!
@@ -146,7 +146,7 @@ That is, you would use functions like these to exit your world:[^fjfm]
 exist in the `Data.Maybe` module as `fromJust` and `fromMaybe`, respectively.
 
 ~~~haskell
-!!!inside/maybe.hs "certaintify ::" "certaintifyWithDefault ::"
+!!!inside/maybe.hs "certaintify ::" "certaintifyWithDefault ::" inside-my-world
 ~~~
 
 And then you can just willy-nilly use your normal `Int -> Int` functions on
@@ -241,7 +241,7 @@ uncertain world.
 We could even write our `ageFromId`:
 
 ~~~haskell
-!!!inside/maybe.hs "ageFromId ::"
+!!!inside/maybe.hs "ageFromId ::" inside-my-world
 
 -- alternatively
 ageFromId = inMaybe age . personFromId
@@ -250,7 +250,7 @@ ageFromId = inMaybe age . personFromId
 We can write out `inMaybe` ourselves:
 
 ~~~haskell
-!!!inside/maybe.hs "inMaybe ::"
+!!!inside/maybe.hs "inMaybe ::" inside-my-world
 ~~~
 
 Now we are no longer afraid of dealing with uncertainty.  It's a scary realm,
@@ -442,7 +442,7 @@ you have a result there.  If the result is not there, then you don't.
 We have enough to write this out ourselves:
 
 ~~~haskell
-!!!inside/maybe.hs "liftInput ::"
+!!!inside/maybe.hs "liftInput ::" inside-my-world
 ~~~
 
 ~~~haskell
@@ -460,7 +460,7 @@ Neat!  Now we don't have to fear `a -> Maybe b`'s...we can use them and *still
 stay in our world*, without leaving our world of uncertainty!
 
 ~~~haskell
-!!!inside/maybe.hs "halfOfAge ::"
+!!!inside/maybe.hs "halfOfAge ::" inside-my-world
 ~~~
 
 ### Monad
@@ -704,15 +704,15 @@ as you give it an `r`.
 ~~~haskell
 -- A future `Int` that will be the length of whatever the list it is waiting
 -- for will be.
-!!!inside/reader.hs "futureLength ::"1
+!!!inside/reader.hs "futureLength ::"1 inside-my-world
 
 -- An future `a` that will be the first element of whatever the list it is
 -- waiting for will be.
-!!!inside/reader.hs "futureHead ::"1
+!!!inside/reader.hs "futureHead ::"1 inside-my-world
 
 -- A future `Bool` that will be whether the `Int` it is waiting for is odd or
 -- not.
-!!!inside/reader.hs "futureOdd ::"1
+!!!inside/reader.hs "futureOdd ::"1 inside-my-world
 ~~~
 
 `futureLength` is a "future `Int`"; an `Int` waiting (for an `[a]`) to be realized.
@@ -770,7 +770,7 @@ Oh --- but, Because `Reader [a]` is a Functor --- maybe I can?  I can use
 No problem at all!
 
 ~~~haskell
-!!!inside/reader.hs "futureShorterThan ::" "futureShorterThan5 ::"
+!!!inside/reader.hs "futureShorterThan ::" "futureShorterThan5 ::" inside-my-world
 ~~~
 
 ~~~haskell
@@ -806,7 +806,7 @@ Hm.  Let's try this out on a future `Int` we have...we can use `futureHead ::
 (Reader [Int]) Int`.
 
 ~~~haskell
-!!!inside/reader.hs "futureShorterThanHead ::"
+!!!inside/reader.hs "futureShorterThanHead ::" inside-my-world
 ~~~
 
 So, we are applying `futureShorterThan` to the `Int` we got from `futureHead`.
@@ -928,7 +928,7 @@ and returns a program that, when executed, promises an `Int` --- the number of
 lines in that file.
 
 ~~~haskell
-!!!inside/io.hs "wc ::"1
+!!!inside/io.hs "wc ::"1 inside-my-world
 ~~~
 
 So `wc "file.txt"` would evaluate to a computation that, when executed by a
@@ -989,7 +989,7 @@ print       :: Int -> IO ()
 Putting it all together, we can write a compilable Haskell executable:
 
 ~~~haskell
-!!!inside/io.hs "main ::"
+!!!inside/io.hs "main ::" inside-my-world
 ~~~
 
 What is happening?
