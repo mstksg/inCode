@@ -29,10 +29,10 @@ readPreProcess entryFile = do
     eLinesPP <- forM eLines $ \line ->
       if | "!!!" `T.isPrefixOf` line      ->
               insertSample . T.strip . T.dropWhile (== '!')     $ line
-         | "<aside>" `T.isPrefixOf` line  ->
-              return . T.append "<p class=\"note\">" . T.drop 7 $ line
-         | "</aside>" `T.isPrefixOf` line ->
-              return . T.append "</p>" . T.drop 8               $ line
+         -- | "<aside>" `T.isPrefixOf` line  ->
+         --      return . T.append "<p class=\"note\">" . T.drop 7 $ line
+         -- | "</aside>" `T.isPrefixOf` line ->
+         --      return . T.append "</p>" . T.drop 8               $ line
          | otherwise                      ->
               return line
 
