@@ -1003,8 +1003,8 @@ Here are some others --- with a brief description.
     not be there.  But in `Either e`, when things aren't there, they come with
     a reason why they are not (of type `e`).
 
-2.  The world of `[]`, where things are possibly many different things at
-    once.  I wrote a [series of posts][monadplus] on this :)
+2.  The world of `[]`, where things are the results of computations that have
+    ambiguous answers.  I wrote a [series of posts][monadplus] on this :)
 
 3.  The world of `State s`, which is a world of future things awaiting an `s`,
     which modify the `s` in the process.
