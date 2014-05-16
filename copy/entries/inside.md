@@ -31,6 +31,11 @@ leave a comment, [tweet][] me, stop by on irc at freenode's #haskell, or give
 Stuck in Maybe
 --------------
 
+(Feel free to play along with the code in this section by [loading it into
+ghci][insidemaybe], the Haskell interpreter!)
+
+!!![insidemaybe]:inside/maybe.hs
+
 In Haskell, we have a type called `Maybe a`:
 
 ~~~haskell
@@ -79,9 +84,9 @@ When you want to return a value of type `Maybe a`, you can either return `Just
 x` or `Nothing` (where `x :: a`) --- they both are members of type `Maybe a`.
 That's what `Maybe Int` means --- an `Int` that might or might not be there!
 
-If I gave you something of type `Maybe Int`, would you know for sure if that
-`Int` was there or not?  You wouldn't!  You are living in the world of
-uncertainties.
+If I had something of type `Maybe Int`, would you know for sure if that `Int`
+was there or not (from just the type)?  You wouldn't!  You are living in the
+world of uncertainties.
 
 Welcome to the world of uncertainty.[^dundundun]
 
@@ -285,7 +290,7 @@ Nothing
 <aside>
     ###### Aside
 
-Any "legitimate" instance of `Functor` should ideally satisfy a couple of
+Any "legitimate" instance of `Functor` must satisfy a couple of
 properties ---
 
 1.  `fmap (f . g)` should equal `fmap f . fmap g`; that is, lifting composed
@@ -686,6 +691,11 @@ often you'll actually want to live in these worlds in Haskell, and why having
 
 ### The world of future values
 
+(Play along with this section too by [loading the source][insidereader]!)
+
+!!![insidereader]:inside/reader.hs
+
+
 In Haskell, we have a `Reader r` world.  You can think of `(Reader r) a` as a
 little machine that "waits" for something of type `r`, then *uses* it to make
 an `a`.  The `a` doesn't exist yet; it's a future `a` that will exist as soon
@@ -817,6 +827,11 @@ force them *once*.
 Who said futures were complicated, anyway?
 
 ### The world of "IO"
+
+(The source code for this section is [also available online][insideio] for you
+to play with!)
+
+!!![insideio]:inside/io.hs
 
 And now we go into the most infamous of Haskell worlds, `IO`.
 
@@ -1037,9 +1052,13 @@ before in an aside, Monads aren't "anything" other than the functions and the
 laws.  Rather, if we look at `Maybe`, etc. as a "world", then *having a Monad
 interface/instance* allows us to do cool things with that world.
 
+Feel free to again [play around with][srcs] the code used here and load it in
+ghci yourself!
+
 As always, if you have any questions, leave them in the comments, or come find
 me on freenode's #haskell --- I go by *jle`* :)
 
+[srcs]: https://github.com/mstksg/inCode/tree/master/code-samples/inside
 [adit]: http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html
 [tekmo]: http://www.haskellforall.com/2012/09/the-functor-design-pattern.html
 

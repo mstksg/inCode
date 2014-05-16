@@ -63,7 +63,7 @@ ageFromId :: ID -> Maybe Int
 ageFromId i = (inMaybe age) (personFromId i)
 
 halfOfAge :: ID -> Maybe Int
-halfOfAge i = halveMaybe =<< ageFromId i
+halfOfAge i = (liftInput halveMaybe) (ageFromId i)
 
 -- | The Maybe utility functions we defined in the post
 
@@ -76,14 +76,14 @@ certaintifyWithDefault _ (Just x) = x
 certaintifyWithDefault d Nothing  = d
 
 inMaybe :: (a -> b) -> (Maybe a -> Maybe b)
-inMaybe f = go
+inMaybe f = liftedF
   where
-    go (Just x) = Just (f x)
-    go Nothing  = Nothing
+    liftedF (Just x) = Just (f x)
+    liftedF Nothing  = Nothing
 
 liftInput :: (a -> Maybe b) -> (Maybe a -> Maybe b)
-liftInput f = go
+liftInput f = liftedF
   where
-    go Nothing  = Nothing
-    go (Just x) = f x
+    liftedF Nothing  = Nothing
+    liftedF (Just x) = f x
 
