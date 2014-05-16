@@ -475,6 +475,25 @@ Trying it out on `settableAuto`:
 [1,2,10,11,12,-1,0]
 ~~~
 
+Alternatively, here is a fun way to test an Auto interactively, where you ask
+for input at each iteration from the user ---
+
+~~~haskell
+!!!machines/Auto.hs "interactAuto ::"
+~~~
+
+~~~haskell
+λ: interactAuto settableAuto
+> Nothing
+1
+> Nothing
+2
+> Just 10
+10
+> Nothing
+Just 11
+~~~
+
 ### A Shift
 
 Let's shift our thinking a bit.  Instead of seeing Autos as "streams you can

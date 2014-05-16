@@ -23,6 +23,14 @@ testAuto auto (x:xs)  = (y:ys, final)
 testAuto_ :: Auto a b -> [a] -> [b]
 testAuto_ = (fst .) . testAuto
 
+interactAuto :: (Read a, Show b) => Auto a b -> IO ()
+interactAuto a0 = do
+    inp <- getLine
+    let (x,a1) = runAuto a0 (read inp)
+    print x
+    interactAuto a1
+
+
 
 -- | Sample autos
 --
