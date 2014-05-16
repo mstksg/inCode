@@ -479,7 +479,7 @@ Alternatively, here is a fun way to test an Auto interactively, where you ask
 for input at each iteration from the user ---
 
 ~~~haskell
-!!!machines/Auto.hs "interactAuto ::"
+!!!machines/Auto.hs "interactAuto ::" machines
 ~~~
 
 ~~~haskell
@@ -491,7 +491,7 @@ for input at each iteration from the user ---
 > Just 10
 10
 > Nothing
-Just 11
+11
 ~~~
 
 ### A Shift
