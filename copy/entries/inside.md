@@ -1063,6 +1063,8 @@ ghci yourself!
 As always, if you have any questions, leave them in the comments, or come find
 me on freenode's #haskell --- I go by *jle`* :)
 
+(Special thanks to c_wraith and rhaps0dy for their time reviewing this post)
+
 [srcs]: https://github.com/mstksg/inCode/tree/master/code-samples/inside
 [tekmo]: http://www.haskellforall.com/2012/09/the-functor-design-pattern.html
 
