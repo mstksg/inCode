@@ -521,11 +521,16 @@ world".
 This function is called `return`.
 
 For example, for `Maybe`, we need a way to take a normal value like an `Int`
-and "bring it into" our world of uncertainty --- an `Int -> Maybe Int`.
-
-For `Maybe`, semantically, to bring something like `7` into the world of
+and "bring it into" our world of uncertainty --- an `Int -> Maybe Int`.  For
+`Maybe`, semantically, to bring something like `7` into the world of
 uncertainty...well, we already know the `7` is there.  So to bring a `7` into
 `Maybe`, it's just `Just 7`
+
+For an instance of `Monad` to be considered legitimate, there are a few
+rules/laws that `return` and `(=<<)` must obey when used together in order to
+be useful (just like for `Functor`).  If you define nonsensical `return` and
+`(=<<)`, of course, your instance won't be very useful anyway, and you
+wouldn't be able to reason with how they work together.
 
 </aside>
 
