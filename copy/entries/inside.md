@@ -242,6 +242,9 @@ We could even write our `ageFromId`:
 ageFromId = inMaybe age . personFromId
 ~~~
 
+(`(.)` is function composition; applying `f . g` to `x` is the same as `f (g
+x)`.)
+
 We can write out `inMaybe` ourselves:
 
 ~~~haskell
@@ -870,10 +873,10 @@ computer itself --- by shifting those registers, ticking that program clock,
 reading from IO...
 
 Remember, *a Haskell program can only "evaluate"* expressions, *not "execute"*
-them.  The execution is the computer's job.  That's what *ghc* or any Haskell
-compiler does.  It takes whatever `IO ()` is named `main` in your program,
-evaluates it, and compiles it into a binary. Then you, the computer user, can
-execute that binary like any other binary (compiled from C or
+them.  The execution is the computer's job.  When you compile a Haskell
+program, the compiler takes whatever `IO ()` is named `main` in your program,
+*evaluates* it, and compiles it into a binary. Then you, the computer user,
+can *execute* that binary like any other binary (compiled from C or
 whatever).[^iopure]
 
 [^iopure]: I actually wrote a whole [blog post][iopurepost] on this topic :)
@@ -888,7 +891,7 @@ because it provided for beautiful abstractions.
 Because of this, if it weren't for Functor and Monad, it would be extremely
 hard to do *anything* useful with `IO`!  We literally can't pass an `IO a`
 into *any* normal function.  We need Functor and Monad for us to *ever* work
-at all with our "future values"!
+at all with our "future values" with normal functions!
 
 #### Anything Useful
 
@@ -1017,7 +1020,7 @@ There are lots of other worlds besides just `Maybe`, `Reader r`, and `IO`.
 Each one comes with their own unique semantics/meanings/contexts, and their
 own answer for what `fmap` and `(=<<)` are supposed to "mean".
 
-Here are some others --- with a brief description.
+Here are some others --- with brief descriptions.
 
 1.  The world of `Either e`, which is like `Maybe` in which things may or may
     not be there.  But in `Either e`, when things aren't there, they come with
@@ -1041,17 +1044,14 @@ values, values inside worlds...we have them all at our disposal.
 
 Haskell lets me stay *inside my world*!
 
-Further Reading
----------------
+Final Notes
+-----------
 
-1.  Gabriel Gonzalez's ["Functor Design Pattern"][tekmo] post, which covers a
-    lot of similar concept and explains it more elegantly than I could have.
+For some further reading, Gabriel Gonzalez's ["Functor Design Pattern"][tekmo]
+post covers a similar concept and explains it more elegantly than I could
+have.
 
-2.  Adit's [Functor, Applicative, and Monad tutorial][adit], which also goes
-    over similar concepts and introduces "Applicative", which can be seen as a
-    way to combine contexted values.
-
-Don't forget as you're reading these things and moving on that it's not
+Don't forget as you're reading and moving on that it's not
 correct to say "Functors are worlds", or "Monads are worlds".  As I mentioned
 before in an aside, Monads aren't "anything" other than the functions and the
 laws.  Rather, if we look at `Maybe`, etc. as a "world", then *having a Monad
@@ -1064,6 +1064,5 @@ As always, if you have any questions, leave them in the comments, or come find
 me on freenode's #haskell --- I go by *jle`* :)
 
 [srcs]: https://github.com/mstksg/inCode/tree/master/code-samples/inside
-[adit]: http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html
 [tekmo]: http://www.haskellforall.com/2012/09/the-functor-design-pattern.html
 
