@@ -223,12 +223,12 @@ great, but we won't go into that too deeply here :)
 
 #### File metadata
 
-`analyzeFile` is going to be how we build the lookup tree for the encoding, as
-discussed in part 2.  It'll go through an entire pass of the file and count up
-the number of occurrences for each byte and build a Huffman Encoding Tree out
-of it.  It'll also give us the length of the file in bytes, which is actually
-necessary for *decoding* the file later, because it tells us where to stop
-decoding (lest we begin decoding the leftover padding bits).
+`analyzeFile` is going to be how we build the Huffman Tree for the encoding,
+as discussed in part 1.  It'll go through an entire pass of the file
+and count up the number of occurrences for each byte and build a Huffman
+Encoding Tree out of it.  It'll also give us the length of the file in bytes,
+which is actually necessary for *decoding* the file later, because it tells us
+where to stop decoding (lest we begin decoding the leftover padding bits).
 
 ~~~haskell
 analyzeFile :: FilePath -> IO (Maybe (Int, PreTree Word8))
@@ -277,6 +277,9 @@ build our tree (review Part 1 if you do not understand the declaration of
 our `tree` using `fmap` and the TupleSections extension.  (That is, `(,y)` is
 sugar for `(\x -> (x,y))`).
 
+#### The Encoding Pipeline
+
+Once we have that, we can get onto the actual encoding pipeline.
 
 
 
