@@ -127,6 +127,8 @@ And without any further delay, let's write `encode.hs`!
 Encoding
 --------
 
+### Design
+
 Let's think of the main pipeline we want here.
 
 Remembering that we can only read and write `ByteString`s directly from a
@@ -145,6 +147,8 @@ file:
 
 Sounds simple enough, right?  Basically like using unix pipes!
 
+#### The Problem
+
 Unfortunately, the naive approach displays some cracks in our case in that
 vanilla pipes do not have *leftover support*.  That is, the stream terminates
 as soon as the Producer terminates.
@@ -159,6 +163,8 @@ full byte downstream to write it down (padding the extra space with 0's).
 
 However, in the way that vanilla pipes works, once our incoming direction
 stream stops...that in-progress chunk disappears and is never written.
+
+#### pipes-parse
 
 This is the problem that is solved with *pipes-parse*.  *pipes-parse* provides
 *pipe transformers* that let us elegantly tackle the problem of leftovers.
@@ -199,6 +205,79 @@ byteProducer = directionClumper directionProducer
 ~~~
 
 where `directionClumper` does exactly what we want to (clumps up all
-directions, and handles the leftovers as expected).
+directions from the given producer, and handles the leftovers as expected).
+
+*pipes-parse* gives us the tools to write a `directionClumper` that does what
+we need.
+
+### Down to it
+
+So let's get down to it.
+
+~~~haskell
+!!!huffman/encode.hs "import " "main ::"
+~~~
+
+Just straight-forward, more or less.  The error handling is kind of not too
+great, but we won't go into that too deeply here :)
+
+#### File metadata
+
+`analyzeFile` is going to be how we build the lookup tree for the encoding, as
+discussed in part 2.  It'll go through an entire pass of the file and count up
+the number of occurrences for each byte and build a Huffman Encoding Tree out
+of it.  It'll also give us the length of the file in bytes, which is actually
+necessary for *decoding* the file later, because it tells us where to stop
+decoding (lest we begin decoding the leftover padding bits).
+
+~~~haskell
+analyzeFile :: FilePath -> IO (Maybe (Int, PreTree Word8))
+~~~
+
+We encounter our first usage of pipes here, in the definition of `freqs`,
+which uses `PP.fold` (from pipes prelude) to basically run a giant "fold" over
+all of the incoming items of the given producer.
+
+The fold is identical in logic to `listFreq` from a Part 2:
+
+~~~haskell
+!!!huffman/Huffman.hs "listFreq ::"
+~~~
+
+Except instead of folding over a list, we fold over the elements of the
+producer.
+
+The producer we use is the `fromHandle handle` Producer, which is a Producer
+that emits every `ByteString` from the file at the given handle.  We opened
+the handle with [`withFile`][withFile] from System.IO, which gives us a file
+handler for a given filepath.
+
+[withFile]: http://hackage.haskell.org/package/base-4.7.0.0/docs/System-IO.html#v:withFile
+
+Now, we want to fold over all of the `Word8`s, not all of the `ByteString`s,
+so we use `bsToBytes`:
+
+~~~haskell
+!!!huffman/encode.hs "bsToBytes ::"
+~~~
+
+which uses `B.unpack :: ByteString -> [Word8]`, which turns a `ByteString`
+into a list of its constituent `Word8`s.  We use `PP.mapFoldable`, which is
+sort of like `concatMap` --- it applies the given function to every incoming
+element in the stream, and emits the items in the resulting list[^foldable]
+one-by-one.  So `bsToBytes` is a Pipe that takes in `ByteString`s and emits
+each contained `Word8` one-by-one.
+
+[^foldable]: It actually works on all `Foldable`s, not just `[]`.
+
+We use `sum` from `Data.Foldable`, which sums up all the numbers in our
+frequency map.  Then we use what we learned about the State monad in Part 1 to
+build our tree (review Part 1 if you do not understand the declaration of
+`tree`).  `tree` is a `Maybe (PreTree Word8)`; we then tag on the length to
+our `tree` using `fmap` and the TupleSections extension.  (That is, `(,y)` is
+sugar for `(\x -> (x,y))`).
+
+
+
 
 
