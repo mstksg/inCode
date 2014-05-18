@@ -41,7 +41,7 @@ main = do
 -- returns the file length and the huffman encoding tree
 analyzeFile :: FilePath -> IO (Maybe (Int, PreTree Word8))
 analyzeFile fp = withFile fp ReadMode $ \hIn -> do
-    fqs <- runEffect $ freqs (fromHandle hIn >-> bytes)
+    fqs <- freqs (fromHandle hIn >-> bytes)
     let l    = sum fqs
         tree = evalState (listQueueStateTable fqs >> buildTree) emptyPQ
     return $ fmap (l,) tree
