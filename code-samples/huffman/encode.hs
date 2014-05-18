@@ -48,7 +48,18 @@ analyzeFile fp = withFile fp ReadMode $ \hIn -> do
 
 
 encodeFile :: FilePath -> FilePath -> Int -> PreTree Word8 -> IO ()
-encodeFile inp out len tree = return ()
+encodeFile fpi fpo l t =
+    withFile fpi ReadMode $ \hIn ->
+    withFile fpo WriteMode $ \hOut -> do
+      B.hPut hOut . BL.toStrict $ encode l
+      B.hPut hOut . BL.toStrict $ encode t
+      let dirStream = fromHandle hIn
+                  >-> bytes
+                  >-> encodeByte tb
+      runEffect $ view pack (dirsBytes dirStream)
+              >-> toHandle hOut
+  where
+    tb = ptTable t
 
 -- Receive ByteStrings from upstream and send its Word8 components
 -- downstream

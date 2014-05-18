@@ -1,5 +1,5 @@
-Inside My World
-===============
+Inside My World (Or, Why I Love Functor & Monad)
+================================================
 
 Categories
 :   Haskell
