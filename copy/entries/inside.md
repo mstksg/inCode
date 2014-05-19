@@ -282,7 +282,8 @@ Any "legitimate" instance of `Functor` must satisfy a couple of
 properties ---
 
 1.  `fmap (f . g)` should equal `fmap f . fmap g`; that is, lifting composed
-    functions be the same as composing lifted functions.
+    functions be the same as composing lifted functions. (`(.)` is the
+    function composition operator)
 2.  `fmap id thing` should leave `thing` unchanged.
 
 </aside>
