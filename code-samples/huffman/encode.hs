@@ -23,11 +23,11 @@ import Pipes.Parse
 import qualified Pipes.Prelude                  as PP
 
 -- Working with Binary
-import Data.Binary hiding        (encodeFile)
-import Data.Bits                 (setBit)
-import Data.ByteString           (ByteString)
-import Data.ByteString.Lazy      (toStrict)
-import qualified Data.ByteString as B
+import Data.Binary hiding             (encodeFile)
+import Data.Bits                      (setBit)
+import Data.ByteString                (ByteString)
+import qualified Data.ByteString      as B
+import qualified Data.ByteString.Lazy as BL
 
 -- Huffman imports
 import Huffman
@@ -64,8 +64,8 @@ encodeFile :: FilePath -> FilePath -> Int -> PreTree Word8 -> IO ()
 encodeFile inp out len tree =
     withFile inp ReadMode $ \hIn ->
     withFile out WriteMode $ \hOut -> do
-      B.hPut hOut . toStrict $ encode len
-      B.hPut hOut . toStrict $ encode tree
+      BL.hPut hOut $ encode len
+      BL.hPut hOut $ encode tree
       let fileBs    = fromHandle hIn
           dirStream = fileBs
                   >-> bsToBytes

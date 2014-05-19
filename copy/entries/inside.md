@@ -106,7 +106,7 @@ That is...I have all these functions that work only on `Int`!
 But...I can't do these things on `Maybe Int`!
 
 ~~~haskell
-λ: addThree (Just 5)
+ghci> addThree (Just 5)
 *** SCARY ERROR!
 *** addThree takes an Int but you gave it a Maybe Int.
 *** What are you trying to do anyway, wise guy.
@@ -116,14 +116,14 @@ But...I can't do these things on `Maybe Int`!
     ###### Aside
 
 In this post, commands at the interactive Haskell interpreter (REPL) ghci are
-prefaced with the prompt `λ:`.  If you see `λ:`, it means that this is
+prefaced with the prompt `ghci>`.  If you see `ghci>`, it means that this is
 something you'd enter at ghci.  If not, it is normal Haskell source code!
 
 In `ghci`, we also have this command `:t` that you'll be seeing often that
 lets you find the type of something:
 
 ~~~haskell
-λ: :t True
+ghci> :t True
 True :: Bool
 ~~~
 
@@ -148,11 +148,11 @@ And then you can just willy-nilly use your normal `Int -> Int` functions on
 what you pull out.
 
 ~~~haskell
-λ: addThree (certaintify (headMaybe [1,2,3]))
+ghci> addThree (certaintify (headMaybe [1,2,3]))
 3
-λ: square (certaintify (halveMaybe 7))
+ghci> square (certaintify (halveMaybe 7))
 *** Exception: Nothing was there, you fool!
-λ: square (certaintifyWithDefault 0 (halveMaybe 7))
+ghci> square (certaintifyWithDefault 0 (halveMaybe 7))
 0
 ~~~
 
@@ -217,16 +217,16 @@ inMaybe :: (a -> b) -> (Maybe a -> Maybe b)
 ~~~
 
 ~~~haskell
-λ: let addThreeInMaybe = inMaybe addThree
-λ: addThreeInMaybe (Just 7)
+ghci> let addThreeInMaybe = inMaybe addThree
+ghci> addThreeInMaybe (Just 7)
 Just 10
-λ: addThreeInMaybe Nothing
+ghci> addThreeInMaybe Nothing
 Nothing
-λ: (inMaybe square) (Just 9)
+ghci> (inMaybe square) (Just 9)
 Just 81
-λ: (inMaybe showInt) Nothing
+ghci> (inMaybe showInt) Nothing
 Nothing
-λ: (inMaybe showInt) (Just 8)
+ghci> (inMaybe showInt) (Just 8)
 Just "8"
 ~~~
 
@@ -255,15 +255,15 @@ Now we are no longer afraid of dealing with uncertainty.  It's a scary realm,
 but as long as we have `inMaybe`...all of our normal tools apply!
 
 ~~~haskell
-λ: let x = headMaybe [2,3,4]        -- x = Just 2
-λ: let y = (inMaybe square) x       -- y = Just 4
-λ: let z = (inMaybe addThree) y     -- z = Just 7
-λ: (inMaybe (> 5)) z
+ghci> let x = headMaybe [2,3,4]        -- x = Just 2
+ghci> let y = (inMaybe square) x       -- y = Just 4
+ghci> let z = (inMaybe addThree) y     -- z = Just 7
+ghci> (inMaybe (> 5)) z
 Just True
-λ: let x' = halveMaybe 7            -- x' = Nothing
-λ: let y' = (inMaybe square) x'     -- y' = Nothing
-λ: let z' = (inMaybe addThree) y'   -- z' = Nothing
-λ: (inMaybe (> 5)) z'
+ghci> let x' = halveMaybe 7            -- x' = Nothing
+ghci> let y' = (inMaybe square) x'     -- y' = Nothing
+ghci> let z' = (inMaybe addThree) y'   -- z' = Nothing
+ghci> (inMaybe (> 5)) z'
 Nothing
 ~~~
 
@@ -284,9 +284,9 @@ into a `Maybe a -> Maybe b`.
 `fmap` for `Maybe` is incidentally exactly our `inMaybe`.
 
 ~~~haskell
-λ: (fmap square) (headMaybe [4,5,6])
+ghci> (fmap square) (headMaybe [4,5,6])
 Just 16
-λ: (fmap square) (halveMaybe 7)
+ghci> (fmap square) (halveMaybe 7)
 Nothing
 ~~~
 
@@ -314,11 +314,11 @@ Secondly, an infix operator alias for `fmap` exists: `(<$>)`.  That way, you
 can write `fmap f x` as `f <$> x`, which is meant to look similar to `f $ x`:
 
 ~~~haskell
-λ: addThree $ 7
+ghci> addThree $ 7
 10
-λ: addThree <$> Just 7
+ghci> addThree <$> Just 7
 Just 10
-λ: addThree <$> Nothing
+ghci> addThree <$> Nothing
 Nothing
 ~~~
 
@@ -370,8 +370,8 @@ Let's say I have a `Maybe Int` already...maybe something I got from using
 Can I use `halveMaybe` on my `Maybe Int`?
 
 ~~~haskell
-λ: let x = divideMaybe 12 3     -- x = Just 4 :: Maybe Int
-λ: halveMaybe x
+ghci> let x = divideMaybe 12 3     -- x = Just 4 :: Maybe Int
+ghci> halveMaybe x
 *** SCARY ERROR!
 *** halveMaybe takes an Int but you gave it
 *** a Maybe Int.  Please think about your life.
@@ -399,7 +399,7 @@ maybe write a second version of `halveMaybe` to take `Maybe Int` instead of
 We can't even use `fmap`, because:
 
 ~~~haskell
-λ: :t fmap halveMaybe
+ghci> :t fmap halveMaybe
 fmap halveMaybe :: Maybe Int -> Maybe (Maybe Int)
 ~~~
 
@@ -441,13 +441,13 @@ We have enough to write this out ourselves:
 ~~~
 
 ~~~haskell
-λ: :t liftInput halveMaybe
+ghci> :t liftInput halveMaybe
 Maybe Int -> Maybe Int
-λ: let x = divideMaybe 12 3     -- x = Just 4 :: Maybe Int
-λ: (liftInput halveMaybe) x
+ghci> let x = divideMaybe 12 3     -- x = Just 4 :: Maybe Int
+ghci> (liftInput halveMaybe) x
 Just 2
-λ: let y = divideMaybe 12 0     -- y = Nothing :: Maybe Int
-λ: (liftInput halveMaybe) y
+ghci> let y = divideMaybe 12 0     -- y = Nothing :: Maybe Int
+ghci> (liftInput halveMaybe) y
 Nothing
 ~~~
 
@@ -494,17 +494,17 @@ library...it actually only exists as an operator, `(=<<)`.
 `(=<<)` is exactly our `liftInput` for `Maybe`.  Let's try it out:
 
 ~~~haskell
-λ: :t (=<<) halveMaybe
+ghci> :t (=<<) halveMaybe
 Maybe Int -> Maybe Int
-λ: let x = divideMaybe 12 3     -- x = Just 4 :: Maybe Int
+ghci> let x = divideMaybe 12 3     -- x = Just 4 :: Maybe Int
 
 -- use it as a prefix function
-λ: (=<<) halveMaybe x
+ghci> (=<<) halveMaybe x
 Just 2
-λ: let y = divideMaybe 12 0     -- y = Nothing :: Maybe Int
+ghci> let y = divideMaybe 12 0     -- y = Nothing :: Maybe Int
 
 -- use it as an infix operator
-λ: halveMaybe =<< y
+ghci> halveMaybe =<< y
 Nothing
 ~~~
 
@@ -542,9 +542,9 @@ Now, for some strange reason, it is actually much more popular to use `(>>=)`
 over `(=<<)`; `(>>=)` is just `(=<<)` backwards:
 
 ~~~haskell
-λ: halveMaybe =<< Just 8
+ghci> halveMaybe =<< Just 8
 Just 4
-λ: Just 8 >>= halveMaybe
+ghci> Just 8 >>= halveMaybe
 Just 4
 ~~~
 
@@ -702,13 +702,13 @@ runReader :: (Reader r) a -> r -> a
 ~~~
 
 ~~~haskell
-λ: runReader futureLength [1,2,3]
+ghci> runReader futureLength [1,2,3]
 3
-λ: runReader futureHead [1,2,3]
+ghci> runReader futureHead [1,2,3]
 1
-λ: runReader futureOdd 6
+ghci> runReader futureOdd 6
 False
-λ: runReader futureOdd 5
+ghci> runReader futureOdd 5
 True
 ~~~
 
@@ -750,9 +750,9 @@ No problem at all!
 ~~~
 
 ~~~haskell
-λ: runReader futureShorterThan5 [1,2,3]
+ghci> runReader futureShorterThan5 [1,2,3]
 True
-λ: runReader (futureShorterThan 3) [1,2,3,4]
+ghci> runReader (futureShorterThan 3) [1,2,3,4]
 False
 ~~~
 
@@ -790,9 +790,9 @@ And so we get a future `Bool` that tells us if that future `Int` we got from
 the input list is shorter than the input list.
 
 ~~~haskell
-λ: runReader futureShorterThanHead [1,2,3]
+ghci> runReader futureShorterThanHead [1,2,3]
 False
-λ: runReader futureShorterThanHead [5,2,3]
+ghci> runReader futureShorterThanHead [5,2,3]
 True
 ~~~
 
