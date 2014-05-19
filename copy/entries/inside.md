@@ -476,8 +476,8 @@ typeclass[^othermonad].
 
 Now, you may or not have known this, but Monads have a...reputation.  You
 might have heard that Monads were super scary and intimidating.  And you might
-have tried (successfully or unsuccessfully) to "get" Monads. Well, search no
-more; it's that simple!
+have tried (successfully or unsuccessfully) to "get" Monads.  Well, hopefully
+you don't have to search too much further!
 
 Monad is a typeclass (which is kinda like an interface), so that means that
 if `Maybe` is a Monad, it "implements" that way to turn a `a -> Maybe b`
