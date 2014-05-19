@@ -373,9 +373,9 @@ Can I use `halveMaybe` on my `Maybe Int`?
 ~~~haskell
 λ: let x = divideMaybe 12 3     -- x = Just 4 :: Maybe Int
 λ: halveMaybe x
-!! SCARY ERROR!
-!! halveMaybe takes an Int but you gave it
-!! a Maybe Int.  Please think about your life.
+*** SCARY ERROR!
+*** halveMaybe takes an Int but you gave it
+*** a Maybe Int.  Please think about your life.
 ~~~
 
 Oh no!  Maybe we can't really stay inside our `Maybe` world after all!

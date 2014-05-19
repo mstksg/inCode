@@ -298,7 +298,7 @@ Once we have that, we can get onto the actual encoding process.
 First, we open our file handles for our input and output files.  Then, we use
 what we learned in Part 2 to get binary serializations of our length and our
 tree using `encode`, and use `B.hPut` to write it to our file, as the
-metadata.
+metadata.  `B.hPut` takes a file handle and a bytestring, and writes it out
 
 
 
