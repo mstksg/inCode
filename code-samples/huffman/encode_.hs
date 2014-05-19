@@ -76,8 +76,6 @@ encodeByte t = PP.mapFoldable (t !)
 -- stops mid-byte, pad it with zero's.  If direction stream is already
 -- exhausted, return Nothing.
 --
--- Ideally, I'd like to be able to do this without explicit recursion.
---
 dirsBytesP :: (Monad m, Functor m) => Parser Direction m (Maybe Word8)
 dirsBytesP = do
     isEnd <- isEndOfInput

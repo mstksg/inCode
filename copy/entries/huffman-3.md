@@ -173,12 +173,12 @@ For example, if we look at `p1 >-> p2 >-> p3` (`p1` being the pipe at step 1
 above, etc.), we can think of it as a "`Direction` producer":
 
 ~~~haskell
-bytestrings :: Producer ByteString           IO r
-bsToBytes   :: Pipe     ByteString Word8     m  r
-toDirs      :: Pipe     Byte       Direction m r
+fileBs    :: Producer ByteString           IO r
+bsToBytes :: Pipe     ByteString Word8     m  r
+toDirs    :: Pipe     Byte       Direction m r
 
 directionProducer :: Producer Direction IO r
-directionProducer = bytestrings >-> bsToBytes >-> toDirs
+directionProducer = fileBs >-> bsToBytes >-> toDirs
 ~~~
 
 `bytestrings` is a producer of `ByteStrings`...and we "pipe it" to `bsToBytes`
@@ -214,8 +214,18 @@ we need.
 
 So let's get down to it.
 
+First, our imports:
+
 ~~~haskell
-!!!huffman/encode.hs "import " "main ::"
+!!!huffman/encode.hs "-- General imports" "-- Pipes imports" "-- Working with Binary" "-- Huffman imports
+~~~
+
+It's a doozy, admitedly!
+
+Now `main`:
+
+~~~haskell
+!!!huffman/encode.hs "main ::"
 ~~~
 
 Just straight-forward, more or less.  The error handling is kind of not too
@@ -231,7 +241,7 @@ which is actually necessary for *decoding* the file later, because it tells us
 where to stop decoding (lest we begin decoding the leftover padding bits).
 
 ~~~haskell
-analyzeFile :: FilePath -> IO (Maybe (Int, PreTree Word8))
+!!!huffman/encode.hs "analyzeFile ::"
 ~~~
 
 We encounter our first usage of pipes here, in the definition of `freqs`,
@@ -279,7 +289,16 @@ sugar for `(\x -> (x,y))`).
 
 #### The Encoding Pipeline
 
-Once we have that, we can get onto the actual encoding pipeline.
+Once we have that, we can get onto the actual encoding process.
+
+~~~haskell
+!!!huffman/encode.hs "encodeFile ::"
+~~~
+
+First, we open our file handles for our input and output files.  Then, we use
+what we learned in Part 2 to get binary serializations of our length and our
+tree using `encode`, and use `B.hPut` to write it to our file, as the
+metadata.
 
 
 

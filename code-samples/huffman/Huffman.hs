@@ -4,7 +4,6 @@
 
 module Huffman where
 
-import Control.Applicative              ((<$>))
 import Control.Monad.Trans.State.Strict
 import Control.Monad
 import Data.Map.Strict                  (Map)
