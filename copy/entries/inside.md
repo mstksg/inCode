@@ -10,7 +10,7 @@ Tags
 CreateTime
 :   2014/05/02 03:09:13
 PostDate
-:   Never
+:   2014/05/19 09:46:22
 Identifier
 :   inside
 
@@ -322,7 +322,7 @@ Just 10
 Nothing
 ~~~
 
-(In case you forgot, `f $ x` = `f x`)
+(For those unfamiliar, `f $ x` = `f x`)
 
 
 ### Sort of a big deal
@@ -355,8 +355,7 @@ All your functions now...*just work*, as they are!
 And this is a big deal.
 
 
- "Pre-lifting"
--------------
+## "Pre-lifting"
 
 Okay, so we now can turn `a -> b` into `Maybe a -> Maybe b`.
 
@@ -415,11 +414,9 @@ journey to Functor enlightenment in mind, let's try to look for a similar
 path.
 
 We had an `a -> b` that we wanted to apply to a `Maybe a`, we used `fmap` to
-turn it into a `Maybe a -> Maybe b`.
-
-So we have a `a -> Maybe b` here that we want to apply to a `Maybe a`.  The
-plan is simple!  We turn an `a -> Maybe b` into a `Maybe a -> Maybe b`. Let's
-pretend we had such a function.
+turn it into a `Maybe a -> Maybe b`.  So we have a `a -> Maybe b` here that we
+want to apply to a `Maybe a`.  The plan is simple!  We turn an `a -> Maybe b`
+into a `Maybe a -> Maybe b`. Let's pretend we had such a function.
 
 ~~~haskell
 liftInput :: (a -> Maybe b) -> (Maybe a -> Maybe b)
@@ -616,21 +613,12 @@ to "get out of it"!
 ### The big picture
 
 Again, the big picture is this: sometimes we get values inside contexts, or
-worlds.  And yet, every single function in our program takes normal values,
-not values inside worlds.  All the functions you have take `Int`, not `Maybe
-Int`.
-
-Instead of exiting your world (which might not even make sense, depending on
-the world) or writing a new function, you can now magically make any function
-work on your world.
-
-Functions `a -> world b` are important too; they are functions that *produce
-values inside your world*.
+worlds.  But we have functions like `a -> world b` that *produce values inside
+your world*.
 
 Which normally would leave you "high and dry", because you can't, say, apply
 that same function twice.  You either have to write a new `world a -> world b`
-version, pop your result out of the world before you can feed it back in.  But
-now, you don't have to.
+version or some other boilerplate.
 
 With Functor, we can make normal functions treat our world values like normal
 values; with Monad, we can do the same with functions that "bring us into"
@@ -663,20 +651,11 @@ you what Functor and Monad look like for `Maybe`...you probably need to
 see a few more examples to be really convinced that these are general design
 patterns that you can apply to multiple "values in contexts".
 
-What does `fmap` and `(=<<)` really "mean"?  Is there some deep underlying
-meaning and order to this madness?
-
-The answer is no.  `fmap` is only an `(a -> b) -> (f a -> f b)` for a given
-world `f`, and `(=<<)` is only an `(a -> m b) -> (m a -> m b)` for a given
-world `m`.[^laws]  What that "means" (what does it even mean to turn an `a -> m b`
-into an `m a -> m b`?) is really only up to that specific "world" to describe.
-
-[^laws]: For sanity's sake, of course, `fmap` and `(=<<)` should behave
-according to certain laws, like the Functor laws I mentioned earlier.
-
-For `Maybe`, `fmap` and `(=<<)` were defined with the semantics of propagating
-unknownness.  But for other "worlds", as we will see, we can make them mean
-whatever.
+It's important to remember that `fmap` and `(=<<)` don't really have any
+inherent semantic meaning...and their usefulness and "meaning" come from just
+the specific instance.  We saw what they "did" for `Maybe`, but their meaning
+came from `Maybe` itself.  For other worlds, as we will see, we can make them
+mean completely different things.
 
 <aside>
     ###### Aside
@@ -703,11 +682,10 @@ often you'll actually want to live in these worlds in Haskell, and why having
 
 !!![insidereader]:inside/reader.hs
 
-
 In Haskell, we have a `Reader r` world.  You can think of `(Reader r) a` as a
-little machine that "waits" for something of type `r`, then *uses* it to make
-an `a`.  The `a` doesn't exist yet; it's a future `a` that will exist as soon
-as you give it an `r`.
+little machine that "waits" for something of type `r`, then *uses* it to
+(purely) make an `a`.  The `a` doesn't exist yet; it's a future `a` that will
+exist as soon as you give it an `r`.
 
 ~~~haskell
 !!!inside/reader.hs "-- futureLength:" "-- futureHead:" "-- futureOdd:" inside-my-world
@@ -877,16 +855,14 @@ them.  The execution is the computer's job.  When you compile a Haskell
 program, the compiler takes whatever `IO ()` is named `main` in your program,
 *evaluates* it, and compiles it into a binary. Then you, the computer user,
 can *execute* that binary like any other binary (compiled from C or
-whatever).[^iopure]
+whatever).[^iopure]  Because you can never "exit" `IO` in your Haskell code,
+this makes `IO` an extreme version of the worlds we mentioned before; in the
+others, we could "exit" the world if we really wanted to.  We only used `fmap`
+and `(=<<)` because it provided for beautiful abstractions.
 
 [^iopure]: I actually wrote a whole [blog post][iopurepost] on this topic :)
 
 [iopurepost]: http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity
-
-Because you can never "exit" `IO` in your Haskell code, this makes `IO` an
-extreme version of the worlds we mentioned before; in the others, we could
-"exit" the world if we really wanted to.  We only used `fmap` and `(=<<)`
-because it provided for beautiful abstractions.
 
 Because of this, if it weren't for Functor and Monad, it would be extremely
 hard to do *anything* useful with `IO`!  We literally can't pass an `IO a`
@@ -1005,10 +981,9 @@ This executable, when executed:
 
 And so there we have it!
 
-We *don't ever have to* actually work directly with computed values `a` that
+We *don't ever have to* actually work "directly" with computed values `a` that
 are received from IO.  All we ever have to do is work with `IO a`, and we can
-use *all of our normal functions* on that `IO a`, as if they were normal
-`a`s.
+use *all of our normal functions* on that `IO a`, as if they were normal `a`s.
 
 In that way, we don't have to be scared of working with "future computable
 values" --- we can use all of our normal tools on them!
@@ -1048,8 +1023,8 @@ Final Notes
 -----------
 
 For some further reading, Gabriel Gonzalez's ["Functor Design Pattern"][tekmo]
-post covers a similar concept and explains it more elegantly than I could
-have.
+post covers a similar concept for people more familiar with haskell and
+explains it more elegantly than I ever could have.
 
 Don't forget as you're reading and moving on that it's not
 correct to say "Functors are worlds", or "Monads are worlds".  As I mentioned
@@ -1061,14 +1036,14 @@ Feel free to again [play around with][srcs] the code used here and load it in
 ghci yourself!
 
 Experienced readers might have noted an unconventional omission of
-"Applicative Functors", which traditionally goes somewhere in between the
-section on Functor and the section on Monad.  Applicative Functors, in this
-context, are handy in that they let you combine two values in worlds together;
-that is, if you have a `Maybe a` and a `Maybe b`, it allows you to use an `a
--> b -> c` to "squash" them into a `Maybe c`.  For the nuances of this, check
-out a great [tutorial by adit][adit] that explains the Applicative typeclass
-well; you should easily be able to connect Applicative Functors to the
-concepts discussed in this post and see how they are useful :)
+"Applicative Functors", which (since 2008-ish) traditionally goes somewhere in
+between the section on Functor and the section on Monad.  Applicative
+Functors, in this context, are handy in that they let you combine two values
+in worlds together; that is, if you have a `Maybe a` and a `Maybe b`, it
+allows you to use an `a -> b -> c` to "squash" them into a `Maybe c`.  For the
+nuances of this, check out a great [tutorial by adit][adit] that explains the
+Applicative typeclass well; you should easily be able to connect Applicative
+Functors to the concepts discussed in this post and see how they are useful :)
 
 As always, if you have any questions, leave them in the comments, or come find
 me on freenode's #haskell --- I go by *jle`* :)
