@@ -44,7 +44,7 @@ data Maybe a = Just a | Nothing
 
 This says that `Maybe a` is like an Enumerable type of sorts...it can either
 be in the form `Just x` --- something is there --- or `Nothing` --- nothing is
-there.
+there.  The `|` reads like "*or*".
 
 If you are used to an OOP language with templates or generics, this is
 similar to saying `Maybe<a>` -- `Maybe<a>` is a parameterized type over some
