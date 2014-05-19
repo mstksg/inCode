@@ -186,10 +186,8 @@ ageFromId :: ID -> Maybe Int
 In this case, it would make no sense to "exit" the world of uncertainty as
 soon as we get a `Maybe Person`, and then "re-enter" it somehow when you
 return the `Maybe Int`.  Our entire answer is shrowded in uncertainty, so we
-need to *stay inside this world* the entire time.
-
-*This is the key*.  We want to find a way to deal with values inside a world
-*without leaving it*.
+need to *stay inside this world* the entire time.  We want to find a way to
+deal with values inside a world *without leaving it*.
 
 So we have a function `Person -> Int`, and a `Maybe Person`...darnit.  How do
 we use our `age` function, without leaving `Maybe`?  We certaintly want to
@@ -201,21 +199,20 @@ So the problem:  I have a function `a -> b` that I want to be able to use
 on a `Maybe a`...I want to stay in my `Maybe` world and use that function on
 the uncertain value.
 
-I have a function on an `a` that returns a `b`...and so I want to turn it into
-a function on an `a` that is possibly there/not there, to return --- well, a
-`b` that is possibly there/not there!
-
 If you look at this carefully, we want some sort of "function transformer".
 Give our transfomer an `a -> b`, it'll output a new function `Maybe a -> Maybe
-b`.
+b`.  The new function takes an `a` that may or may not be there, and outputs a
+`b` that may or not be there.
 
 We want a function of type `(a -> b) -> (Maybe a -> Maybe b)`
 
-Let's pretend we have one!  What could we do with it?
+Let's make one!
 
 ~~~haskell
-inMaybe :: (a -> b) -> (Maybe a -> Maybe b)
+!!!inside/maybe.hs "inMaybe ::" inside-my-world
 ~~~
+
+What can we do with it?
 
 ~~~haskell
 ghci> let addThreeInMaybe = inMaybe addThree
@@ -231,25 +228,13 @@ ghci> (inMaybe showInt) (Just 8)
 Just "8"
 ~~~
 
-Wow!  If I had this, I can now use normal functions and still stay inside my
-uncertain world.
+Wow!  We can now use normal functions and still stay inside my uncertain
+world.
 
 We could even write our `ageFromId`:
 
 ~~~haskell
 !!!inside/maybe.hs "ageFromId ::" inside-my-world
-
--- alternatively
-ageFromId = inMaybe age . personFromId
-~~~
-
-(`(.)` is function composition; applying `f . g` to `x` is the same as `f (g
-x)`.)
-
-We can write out `inMaybe` ourselves:
-
-~~~haskell
-!!!inside/maybe.hs "inMaybe ::" inside-my-world
 ~~~
 
 Now we are no longer afraid of dealing with uncertainty.  It's a scary realm,
@@ -363,12 +348,8 @@ Okay, so we now can turn `a -> b` into `Maybe a -> Maybe b`.
 That might be nice, but if you scroll up just a bit, you might see that there
 are other functions that might be interesting to apply on a `Maybe a`.
 
-What about `halveMaybe :: Int -> Maybe Int`?
-
-Let's say I have a `Maybe Int` already...maybe something I got from using
-`divideMaybe`.
-
-Can I use `halveMaybe` on my `Maybe Int`?
+What about `halveMaybe :: Int -> Maybe Int`?  Can I use `halveMaybe` on a
+`Maybe Int`?
 
 ~~~haskell
 ghci> let x = divideMaybe 12 3     -- x = Just 4 :: Maybe Int
@@ -392,10 +373,6 @@ ID (and `Nothing` if the person looked up has an odd age.  Because odd ages
 don't have halves, of course.).  Well, we already have `ageFromId :: ID ->
 Maybe Int`, but we want to apply `halveMaybe` to that `Maybe Int`.  But we
 can't!  Because `halveMaybe` only works on `Int`!
-
-Ah!  Is this whole `Maybe` a nuisance...should we exit our `Maybe` world...or
-maybe write a second version of `halveMaybe` to take `Maybe Int` instead of
-`Int` and not be useless?  Is everything falling apart?
 
 We can't even use `fmap`, because:
 
@@ -611,7 +588,7 @@ If you have an `x :: Maybe a` and you have a:
 Armed with these two, you can comfortably stay in `Maybe` without ever having
 to "get out of it"!
 
-### The big picture
+### A big picture
 
 Again, the big picture is this: sometimes we get values inside contexts, or
 worlds.  But we have functions like `a -> world b` that *produce values inside
@@ -636,11 +613,9 @@ You might have noticed that up until now I have used the word "world" pretty
 vaguely.
 
 When I say that a value is "inside" a "world", I mean that it "lives" inside
-the context of what that world represents.
-
-A `Maybe a` is an `a` living in the `Maybe` "world" --- it is an `a` that can
-exist or not exist.  `Maybe` represents a context of
-existing-or-not-existing.[^worlds]
+the context of what that world represents.   A `Maybe a` is an `a` living in
+the `Maybe` "world" --- it is an `a` that can exist or not exist.  `Maybe`
+represents a context of existing-or-not-existing.[^worlds]
 
 [^worlds]: In Haskell, "worlds" are represented at the type level as type
     constructors.  `Maybe` is a type constructor that takes a type like `Int` and
@@ -734,17 +709,11 @@ Okay, so let's say I have a future `Int`.  Say, `futureLength`, waiting on an
 `[a]`. And I have a function `(< 5) :: Int -> Bool`.  Can I apply `(< 5)` to
 my future `Int`, in order to get a future `Bool`?
 
-That is, can I apply `(< 5) :: Int -> Bool` to my future `Int`, `futureLength ::
-(Reader [a]) Int`?  And produce a future `Bool`, `(Reader [a]) Bool`?
-
 At first, no!  This future `Bool` is useless!  I can't even use it in *any* of
-my normal functions!
+my normal functions!  Time to reach for the exit button?
 
-Oh --- but, Because `Reader [a]` is a Functor --- maybe I can?  I can use
-`fmap` to turn `(< 5) :: Int -> Bool` into `fmap (< 5) :: (Reader [a]) Int ->
-(Reader [a]) Bool`!
-
-No problem at all!
+Oh --- but, because `Reader [a]` is a Functor, I can use `fmap` to turn `(< 5) ::
+Int -> Bool` into `fmap (< 5) :: (Reader [a]) Int -> (Reader [a]) Bool`!
 
 ~~~haskell
 !!!inside/reader.hs "futureShorterThan ::" "futureShorterThan5 ::" inside-my-world
@@ -841,36 +810,6 @@ inside" `ls` --- rather, `ls` is a program that promises a list of
 
 So an `IO String` doesn't "contain" a `String` --- it is a program that
 *promises* a `String` in the future, when a computer eventually executes it.
-
-An important distinction between `IO` and the other worlds we have looked at
-is that there is no way to "exit" the world of `IO` within Haskell.  That is,
-there is no meaningful `IO a -> a`.
-
-If you think about it for a while, it kind of makes sense.  If `IO a` is
-assembly code for a computer...the only thing that can "get" that `a` is the
-computer itself --- by shifting those registers, ticking that program clock,
-reading from IO...
-
-Remember, *a Haskell program can only "evaluate"* expressions, *not "execute"*
-them.  The execution is the computer's job.  When you compile a Haskell
-program, the compiler takes whatever `IO ()` is named `main` in your program,
-*evaluates* it, and compiles it into a binary. Then you, the computer user,
-can *execute* that binary like any other binary (compiled from C or
-whatever).[^iopure]  Because you can never "exit" `IO` in your Haskell code,
-this makes `IO` an extreme version of the worlds we mentioned before; in the
-others, we could "exit" the world if we really wanted to.  We only used `fmap`
-and `(=<<)` because it provided for beautiful abstractions.
-
-[^iopure]: I actually wrote a whole [blog post][iopurepost] on this topic :)
-
-[iopurepost]: http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity
-
-Because of this, if it weren't for Functor and Monad, it would be extremely
-hard to do *anything* useful with `IO`!  We literally can't pass an `IO a`
-into *any* normal function.  We need Functor and Monad for us to *ever* work
-at all with our "future values" with normal functions!
-
-#### Anything Useful
 
 One common IO object we are given is `getLine :: IO String`.  `getLine` is
 kind of like the unix program `cat` --- it promises a `String`, and it gets
