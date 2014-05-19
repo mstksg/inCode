@@ -145,7 +145,8 @@ exist in the `Data.Maybe` module as `fromJust` and `fromMaybe`, respectively.
 ~~~
 
 And then you can just willy-nilly use your normal `Int -> Int` functions on
-what you pull out.
+what you pull out...using various "error handling" mechanisms if it was
+`Nothing`.
 
 ~~~haskell
 ghci> addThree (certaintify (headMaybe [1,2,3]))
