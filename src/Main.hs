@@ -3,6 +3,7 @@ module Main where
 import "base" Prelude
 import Config.SiteData
 import Control.Applicative                  ((<$>))
+import Control.Exception                    (evaluate)
 import Data.ByteString                      (ByteString, isPrefixOf)
 import Development.Blog.Util
 import Network.Wai                          (rawPathInfo)
@@ -26,6 +27,9 @@ main = do
     Nothing -> read <$> getEnv "PORT"
 
   db <- runDB loadDatabase
+
+  evaluate db
+  print db
 
   scotty port $ do
 

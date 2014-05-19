@@ -11,7 +11,7 @@ import Web.Blog.Models.EntryI
 import Web.Blog.Render
 import Web.Blog.Types
 import Web.Blog.Views.Home
-import qualified Data.Map                       as M
+import qualified Data.Map.Strict                as M
 import qualified Data.Text                      as T
 
 routeHome :: Int -> RouteDatabase

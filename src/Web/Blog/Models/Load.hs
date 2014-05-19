@@ -4,7 +4,7 @@ import Control.Applicative
 import Data.List                             (foldl')
 import Web.Blog.Models
 import Web.Blog.Types
-import qualified Data.Map                    as M
+import qualified Data.Map.Strict             as M
 import qualified Database.Persist.Postgresql as D
 
 

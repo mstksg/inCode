@@ -19,7 +19,7 @@ import Web.Blog.Views.Copy
 import Web.Blog.Views.Social
 import qualified Data.Foldable                  as Fo
 import qualified Data.List                      as L
-import qualified Data.Map                       as M
+import qualified Data.Map.Strict                as M
 import qualified Data.Text                      as T
 import qualified Text.Blaze.Html5               as H
 import qualified Text.Blaze.Html5.Attributes    as A

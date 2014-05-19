@@ -28,6 +28,7 @@ Entry json
     identifier  T.Text Maybe
 
     UniqueEntryTitle title
+    deriving Show
 
 Tag json
     label           T.Text
@@ -37,7 +38,7 @@ Tag json
 
     UniqueLabelType label type_
     UniqueSlugType  slug  type_
-    deriving        Eq Read
+    deriving        Eq Show Read
 
 EntryTag json
     entryId          EntryId

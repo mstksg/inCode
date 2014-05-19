@@ -120,6 +120,17 @@ processCodeBlocks = do
   where
     processBlock :: JQuery -> Fay ()
     processBlock blk = do
+      cde <- processForSource blk
+      processForPrompt blk cde
+
+    processForPrompt :: JQuery -> JQuery -> Fay ()
+    processForPrompt blk cde = do
+      promptString <- contents cde >>= first >>= getText
+      when ("λ:" `isPrefixOfT` promptString) $
+        addClass "code-block-prompt" blk
+
+    processForSource :: JQuery -> Fay JQuery
+    processForSource blk = do
       oldcode <- children blk
 
       newcode <- select "<code />"
@@ -144,14 +155,15 @@ processCodeBlocks = do
       replaceWithJQuery newcode oldcode
 
       linkBox <- childrenMatching ".code-link-box" blk
+      hasLinkBox <- (> 0) `mapFay` jLength linkBox
 
-      flip mouseenter blk $ \_ ->
-        void $ unhide linkBox
+      when hasLinkBox $ do
+        flip mouseenter blk $ \_ ->
+          void $ unhide linkBox
+        flip mouseleave blk $ \_ ->
+          void $ sHide linkBox
 
-      flip mouseleave blk $ \_ ->
-        void $ sHide linkBox
-
-      return ()
+      return newcode
 
     processComment :: Element -> JQuery -> Fay Bool
     processComment el blk = do
