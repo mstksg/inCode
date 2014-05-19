@@ -803,7 +803,36 @@ inside" `ls` --- rather, `ls` is a program that promises a list of
 `FilePath`s when it is executed by the computer or interpreter.
 
 So an `IO String` doesn't "contain" a `String` --- it is a program that
-*promises* a `String` in the future, when a computer eventually executes it.
+*promises* a `String` in the future, when a computer eventually executes
+it,[^exitio].
+
+[^exitio]: An important distinction between `IO` and the other worlds we have
+    looked at is that there is no way to "exit" the world of `IO` within
+    Haskell. That is, there is no meaningful `IO a -> a`.
+
+    If you think about it for a while, it kind of makes sense.  If `IO a` is
+    assembly code for a computer...the only thing that can "get" that `a` is
+    the computer itself --- by shifting those registers, ticking that program
+    clock, reading from IO...
+    
+    Remember, *a Haskell program can only "evaluate"* expressions, *not
+    "execute"* them.  The execution is the computer's job.  When you compile a
+    Haskell program, the compiler takes whatever `IO ()` is named `main` in
+    your program, *evaluates* it, and compiles it into a binary. Then you, the
+    computer user, can *execute* that binary like any other binary (compiled
+    from C or whatever).  Because you can never "exit" `IO` in your Haskell
+    code, this makes `IO` an extreme version of the worlds we mentioned
+    before; in the others, we could "exit" the world if we really wanted to.
+    We only used `fmap` and `(=<<)` because it provided for beautiful
+    abstractions.  This topic is discussed in depth at an [old blog
+    post][iopurepost] of mine.
+    
+    [iopurepost]: http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity
+    
+    Because of this, if it weren't for Functor and Monad, it would be
+    extremely hard to do *anything* useful with `IO`!  We literally can't pass
+    an `IO a` into *any* normal function.  We need Functor and Monad for us to
+    *ever* work at all with our "future values" with normal functions!
 
 One common IO object we are given is `getLine :: IO String`.  `getLine` is
 kind of like the unix program `cat` --- it promises a `String`, and it gets
