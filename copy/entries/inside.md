@@ -873,57 +873,10 @@ view.  `getLine` is an `IO String` ---  a future `String`.  `wc` takes a
 `String` and returns a future `Int`.  If we "applied `wc` to `getLine`", we
 would be applying `wc` to that future `String`, to get a future `Int`.
 
-#### A real executable
-
-In a real executable, we might want to print that `Int` to standard output. Well,
-luckily, we have `print :: Int -> IO ()`[^print], which takes an `Int` and
-produces a future `()`.[^unit]  But in that process of producing that `()`, it
-sneaks in computer instructions (assembly/C code) to print out that given
-integer to standard output.  We like to use `print` not because of what it
-computes, but rather because of the side effects it sneaks into its
-computation process.  (Remember, these side effects don't actually happen
-until it is computed, in the future)
-
-[^print]: the real type signature of  `print` takes all showable things, not
-just `Int`.
-
-[^unit]: `()`, pronounced "unit", is basically the "boring type", which only
-has one value --- `()`.  `IO ()` is loosely comparable to a "void"
-function/computation in other languages, which "return nothing".
-
-We can apply `print` to an `IO Int` by using `(=<<)`, of course:
-
-~~~haskell
-print       :: Int -> IO ()
-(=<<) print :: IO Int -> IO ()
-~~~
-
-Putting it all together, we can write a compilable Haskell executable:
-
-~~~haskell
-!!!inside/io.hs "main ::" inside-my-world
-~~~
-
-What is happening?
-
-1.  `getLine` is a future `String`.
-2.  `wc =<< getLine` is a future `Int`.
-3.  `print =<< wc =<< getLine` is a future `()`, which prints out that future
-    `Int` in the process.
-
-When you use ghc to compile this `IO ()`, it'll create a binary executable.
-
-This executable, when executed:
-
-1.  Gets a line from standard input.
-2.  Gets the line count from the given filename.
-3.  Prints that line count.
-
-And so there we have it!
-
-We *don't ever have to* actually work "directly" with computed values `a` that
-are received from IO.  All we ever have to do is work with `IO a`, and we can
-use *all of our normal functions* on that `IO a`, as if they were normal `a`s.
+And so there we have it --- we *don't ever have to* actually work "directly"
+with computed values `a` that are received from IO.  All we ever have to do is
+work with `IO a`, and we can use *all of our normal functions* on that `IO a`,
+as if they were normal `a`s.
 
 In that way, we don't have to be scared of working with "future computable
 values" --- we can use all of our normal tools on them!
