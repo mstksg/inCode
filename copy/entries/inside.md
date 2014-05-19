@@ -206,7 +206,8 @@ b`.  The new function takes an `a` that may or may not be there, and outputs a
 
 We want a function of type `(a -> b) -> (Maybe a -> Maybe b)`
 
-Let's make one!
+Let's make one!  It'll apply the function to the value inside a `Just`, and
+leave a `Nothing` alone.
 
 ~~~haskell
 !!!inside/maybe.hs "inMaybe ::" inside-my-world
@@ -229,9 +230,7 @@ Just "8"
 ~~~
 
 Wow!  We can now use normal functions and still stay inside my uncertain
-world.
-
-We could even write our `ageFromId`:
+world.  We could even write our `ageFromId`:
 
 ~~~haskell
 !!!inside/maybe.hs "ageFromId ::" inside-my-world
@@ -451,10 +450,10 @@ typeclass[^othermonad].
 
 [^othermonad]: It also needs `return`, which I will mention in due time.
 
-Now, you may or not have known this, but Monads have a...reputation.  You
-might have heard that Monads were super scary and intimidating.  And you might
-have tried (successfully or unsuccessfully) to "get" Monads.  Well, hopefully
-you don't have to search too much further!
+<!-- Now, you may or not have known this, but Monads have a...reputation.  You -->
+<!-- might have heard that Monads were super scary and intimidating.  And you might -->
+<!-- have tried (successfully or unsuccessfully) to "get" Monads.  Well, hopefully -->
+<!-- you don't have to search too much further! -->
 
 Monad is a typeclass (which is kinda like an interface), so that means that
 if `Maybe` is a Monad, it "implements" that way to turn a `a -> Maybe b`
@@ -687,11 +686,6 @@ False
 ghci> runReader futureOdd 5
 True
 ~~~
-
-So if I have a `(Reader Int) Bool`, I have a `Bool` that "lives" in the
-`Reader Int` world --- it is an ephemeral `Bool` that does not yet exist; it
-exists in the world of future values, awaiting an `Int`.  A `(Reader Int)
-Bool` is a future `Bool`; a *waiting* `Bool`.
 
 Welcome to the world of future values.
 
