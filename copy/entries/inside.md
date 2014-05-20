@@ -892,7 +892,7 @@ Neat!
 What does `wc =<< getLine` do, as a program?  How does it compute that
 `Int`?
 
-Conceptually, it all sort of "makes sense" if you look it it from a high level
+Conceptually, it all sort of "makes sense" if you look at it from a high level
 view.  `getLine` is an `IO String` ---  a future `String`.  `wc` takes a
 `String` and returns a future `Int`.  If we "applied `wc` to `getLine`", we
 would be applying `wc` to that future `String`, to get a future `Int`.
