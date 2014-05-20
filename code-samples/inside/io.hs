@@ -1,10 +1,16 @@
 -- Load it up inside GHCI and give follow along with the post!
 --
--- λ: :l io.hs
+-- ghci> :l io.hs
 --
 -- Or run it:
 --
 -- $ runghc io.hs
+--
+-- Before starting anything on ghci
+--
+-- ghci> :set -XNoMonomorphismRestriction
+--
+-- to get rid of many potential frustrations.
 --
 -- http://blog.jle.im/entry/inside-my-world
 

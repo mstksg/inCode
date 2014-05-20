@@ -1,6 +1,12 @@
 -- Load it up inside GHCI and give follow along with the post!
 --
--- λ: :l reader.hs
+-- ghci> :l reader.hs
+--
+-- Before starting anything:
+--
+-- ghci> :set -XNoMonomorphismRestriction
+--
+-- to get rid of many potential frustrations.
 --
 -- http://blog.jle.im/entry/inside-my-world
 
