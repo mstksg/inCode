@@ -279,7 +279,9 @@ Nothing
     ###### Aside
 
 Any "legitimate" instance of `Functor` must satisfy a couple of
-properties ---
+properties --- "laws", so to speak.  These laws basically ensure that whatever
+instance you define is useful and sensible, and follow what sort of meaning
+`fmap` is supposed to convey.
 
 1.  `fmap (f . g)` should equal `fmap f . fmap g`; that is, lifting composed
     functions be the same as composing lifted functions. (`(.)` is the
@@ -508,7 +510,9 @@ For an instance of `Monad` to be considered legitimate, there are a few
 rules/laws that `return` and `(=<<)` must obey when used together in order to
 be useful (just like for `Functor`).  If you define nonsensical `return` and
 `(=<<)`, of course, your instance won't be very useful anyway, and you
-wouldn't be able to reason with how they work together.
+wouldn't be able to reason with how they work together.  The laws sort of are
+some way of ensuring that your instance is useful and sensible, and that
+`(=<<)` and `return` make sense at all.
 
 </aside>
 
