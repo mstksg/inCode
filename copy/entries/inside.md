@@ -185,12 +185,12 @@ ageFromId :: ID -> Maybe Int
 
 In this case, it would make no sense to "exit" the world of uncertainty as
 soon as we get a `Maybe Person`, and then "re-enter" it somehow when you
-return the `Maybe Int`.  Our entire answer is shrowded in uncertainty, so we
+return the `Maybe Int`.  Our entire answer is shrouded in uncertainty, so we
 need to *stay inside this world* the entire time.  We want to find a way to
 deal with values inside a world *without leaving it*.
 
 So we have a function `Person -> Int`, and a `Maybe Person`...darnit.  How do
-we use our `age` function, without leaving `Maybe`?  We certaintly want to
+we use our `age` function, without leaving `Maybe`?  We certainly want to
 re-use the same function somehow, and not write it again from scratch!
 
 ### Can I have a lift?
@@ -200,7 +200,7 @@ on a `Maybe a`...I want to stay in my `Maybe` world and use that function on
 the uncertain value.
 
 If you look at this carefully, we want some sort of "function transformer".
-Give our transfomer an `a -> b`, it'll output a new function `Maybe a -> Maybe
+Give our transformer an `a -> b`, it'll output a new function `Maybe a -> Maybe
 b`.  The new function takes an `a` that may or may not be there, and outputs a
 `b` that may or not be there.
 
@@ -315,8 +315,8 @@ Nothing
 
 ### Sort of a big deal
 
-Okay, so let's pause and reflect to see that this is sort of a big deal, and
-see what problem `Functor` just solved.
+Let's pause and reflect to see that this is sort of a big deal, and see what
+problem `Functor` just solved.
 
 In another language, you might somehow have a `Maybe<Int>` (using generics
 syntax).  And you have lots and lots and lots of functions that take `Int`s.
@@ -561,7 +561,7 @@ Why is this style the norm?  Who knows![^whoknows]  People are just weird!
     slightly less natural.
 
     Still, it is worth being aware that `(>>=)` is a is a bit "different" from
-    the rest of the pack of normal haskell function application and
+    the rest of the pack of normal Haskell function application and
     composition operators; it is unique in that it is the only one where the
     backwards form is more common than the normal one.
 
@@ -704,7 +704,7 @@ a world of future values awaiting an `Int`.  The other lives in a `Reader
 
 </aside>
 
-Okay, so let's say I have a future `Int`.  Say, `futureLength`, waiting on an
+Let's say I have a future `Int`.  Say, `futureLength`, waiting on an
 `[a]`. And I have a function `(< 5) :: Int -> Bool`.  Can I apply `(< 5)` to
 my future `Int`, in order to get a future `Bool`?
 
@@ -725,13 +725,13 @@ ghci> runReader (futureShorterThan 3) [1,2,3,4]
 False
 ~~~
 
-And voila, we have a future `Bool`.  We turned an `Int -> Bool` into a
+And voilà, we have a future `Bool`.  We turned an `Int -> Bool` into a
 function that takes a future `Int` and returns a future `Bool`.  We *applied
 `(< 5)` to our future length*, to get a future `Bool` telling us if that length
 is less than 5.
 
-Okay, so `futureShorterThan` is a function that takes an `Int` and turns it
-into a future `Bool`.  Let's go...deeper.  What if I wanted to apply
+So `futureShorterThan` is a function that takes an `Int` and turns it into a
+future `Bool`.  Let's go...deeper.  What if I wanted to apply
 `futureShorterThan` to a *future* `Int`?  To *still* get a future `Bool`?
 
 I can't apply `futureShorterThan` to a future `Int` straight-up, because it
@@ -832,15 +832,15 @@ it,[^exitio].
     abstractions.  This topic is discussed in depth at an [old blog
     post][iopurepost] of mine.
 
-    [iopurepost]: http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity
-
     Because of this, if it weren't for Functor and Monad, it would be
     extremely hard to do *anything* useful with `IO`!  We literally can't pass
     an `IO a` into *any* normal function.  We need Functor and Monad for us to
     *ever* work at all with our "future values" with normal functions!
 
+[iopurepost]: http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity
+
 One common IO object we are given is `getLine :: IO String`.  `getLine` is
-kind of like the unix program `cat` --- it promises a `String`, and it gets
+kind of like the Unix program `cat` --- it promises a `String`, and it gets
 that `String` by taking in from standard input.  That is, it is a program
 that, when executed by a computer, pulls a line from stdin, and returns that
 as the `String` it promises.  `getLine` contains instructions for a computer
@@ -944,7 +944,7 @@ Final Notes
 -----------
 
 For some further reading, Gabriel Gonzalez's ["Functor Design Pattern"][tekmo]
-post covers a similar concept for people more familiar with haskell and
+post covers a similar concept for people more familiar with Haskell and
 explains it more elegantly than I ever could have.
 
 Don't forget as you're reading and moving on that it's not
