@@ -150,7 +150,7 @@ what you pull out...using various "error handling" mechanisms if it was
 
 ~~~haskell
 ghci> addThree (certaintify (headMaybe [1,2,3]))
-3
+4
 ghci> square (certaintify (halveMaybe 7))
 *** Exception: Nothing was there, you fool!
 ghci> square (certaintifyWithDefault 0 (halveMaybe 7))
@@ -815,7 +815,7 @@ it,[^exitio].
     assembly code for a computer...the only thing that can "get" that `a` is
     the computer itself --- by shifting those registers, ticking that program
     clock, reading from IO...
-    
+
     Remember, *a Haskell program can only "evaluate"* expressions, *not
     "execute"* them.  The execution is the computer's job.  When you compile a
     Haskell program, the compiler takes whatever `IO ()` is named `main` in
@@ -827,9 +827,9 @@ it,[^exitio].
     We only used `fmap` and `(=<<)` because it provided for beautiful
     abstractions.  This topic is discussed in depth at an [old blog
     post][iopurepost] of mine.
-    
+
     [iopurepost]: http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity
-    
+
     Because of this, if it weren't for Functor and Monad, it would be
     extremely hard to do *anything* useful with `IO`!  We literally can't pass
     an `IO a` into *any* normal function.  We need Functor and Monad for us to

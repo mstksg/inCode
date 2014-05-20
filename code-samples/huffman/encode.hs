@@ -70,7 +70,8 @@ encodeFile inp out len tree =
           dirStream = fileBs
                   >-> bsToBytes
                   >-> encodeByte enctable
-      runEffect $ view pack (dirsBytes dirStream)
+          bytesOut  = dirsBytes dirStream
+      runEffect $ view pack bsOut
               >-> toHandle hOut
   where
     enctable = ptTable tree
