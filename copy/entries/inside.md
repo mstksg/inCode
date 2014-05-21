@@ -52,8 +52,9 @@ data Bool = False | True
 ~~~
 
 to define a `Bool` data type.  If I have something of type `Bool`, it can be
-`False` or `True`.  If I have something of type `Maybe a`, it can be `Nothing`
-(nothing is there, it's empty) or `Just x` (it contains a value `x`).
+(literally) `False` or `True`.  If I have something of type `Maybe a`, it can
+be `Nothing` (nothing is there, it's empty) or `Just x` (it contains a value
+`x`).
 
 If you are used to an OOP language with templates or generics, this is
 similar to saying `Maybe<a>` -- `Maybe<a>` is a parameterized type over some
