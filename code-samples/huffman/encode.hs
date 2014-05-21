@@ -66,12 +66,11 @@ encodeFile inp out len tree =
     withFile out WriteMode $ \hOut -> do
       BL.hPut hOut $ encode len
       BL.hPut hOut $ encode tree
-      let fileBs    = fromHandle hIn
-          dirStream = fileBs
+      let dirStream = fromHandle hIn
                   >-> bsToBytes
                   >-> encodeByte enctable
           bytesOut  = dirsBytes dirStream
-      runEffect $ view pack bsOut
+      runEffect $ view pack bytesOut
               >-> toHandle hOut
   where
     enctable = ptTable tree

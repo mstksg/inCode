@@ -173,12 +173,12 @@ For example, if we look at `p1 >-> p2 >-> p3` (`p1` being the pipe at step 1
 above, etc.), we can think of it as a "`Direction` producer":
 
 ~~~haskell
-fileBs    :: Producer ByteString           IO r
+fileBS    :: Producer ByteString           IO r
 bsToBytes :: Pipe     ByteString Word8     m  r
 toDirs    :: Pipe     Byte       Direction m r
 
 directionProducer :: Producer Direction IO r
-directionProducer = fileBs >-> bsToBytes >-> toDirs
+directionProducer = fileBS >-> bsToBytes >-> toDirs
 ~~~
 
 `bytestrings` is a producer of `ByteStrings`...and we "pipe it" to `bsToBytes`
@@ -301,6 +301,14 @@ tree using `encode`, and use `B.hPut` to write it to our file, as the
 metadata.  `BL.hPut` from `Data.ByteString.Lazy` takes a file handle and a
 lazy `ByteString`, and writes that `ByteString` out to the file.  We use the
 lazy version because `encode` gives us a lazy `ByteString` by default.
+
+Now, we get to our actual pipes.  The first "pipeline" is `dirStream`, which
+is our stream (producer) of `Direction`s encoding
+
+Now we get to our actual pipes --- first, our producer and source, `fromHandle
+hIn`, which is a producer of `ByteString`s from the given handle.
+
+<!-- say something about `view` -->
 
 
 

@@ -39,12 +39,21 @@ ghci][insidemaybe], the Haskell interpreter!)
 In Haskell, we have a type called `Maybe a`:
 
 ~~~haskell
-data Maybe a = Just a | Nothing
+data Maybe a = Nothing | Just a
 ~~~
 
-This says that `Maybe a` is like an Enumerable type of sorts...it can either
-be in the form `Just x` --- something is there --- or `Nothing` --- nothing is
-there.  The `|` reads like "*or*".
+This says that `Maybe a` is like an Enumerable type of sorts; The `|` reads
+like "*or*".
+
+This is like saying
+
+~~~haskell
+data Bool = False | True
+~~~
+
+to define a `Bool` data type.  If I have something of type `Bool`, it can be
+`False` or `True`.  If I have something of type `Maybe a`, it can be `Nothing`
+(nothing is there, it's empty) or `Just x` (it contains a value `x`).
 
 If you are used to an OOP language with templates or generics, this is
 similar to saying `Maybe<a>` -- `Maybe<a>` is a parameterized type over some
