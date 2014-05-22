@@ -88,6 +88,10 @@ you could just read `::` as "type of".
 So `divideMaybe :: Int -> Int -> Maybe Int` means that `divideMaybe` takes two
 `Int`s and returns something of type `Maybe Int`.
 
+You might have also noticed the pattern matching construct, `headMaybe (x:_)`.
+This matches the first element in the list to the name `x`, and the rest of
+the list to the wildcard, `_`.
+
 </aside>
 
 When you want to return a value of type `Maybe a`, you can either return `Just
