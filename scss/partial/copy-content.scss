@@ -8,6 +8,10 @@
   p, ul, ol, dl, pre, blockquote, figure {
     margin: 0;
     margin-bottom: 1rem;
+
+    @media print {
+      margin-bottom: 0.3rem;
+    }
   }
 
   hr {
@@ -74,6 +78,11 @@
     padding: 0.75rem 1rem;
     border-radius: 1px;
     margin: 2rem 0;
+
+    @media print {
+      overflow-x: visible;
+      font-size: 0.67rem;
+    }
   }
 
   pre.code-block-prompt {
@@ -199,6 +208,17 @@
     }
   }
 
+  @media print {
+    p a[href]:after { content: " (" attr(href) ")"; }
+    abbr[title]:after { content: " (" attr(title) ")"; }
+    .ir a:after, a[href^="javascript:"]:after, a[href^="#"]:after { content: ""; }  /* Don't show links for images, or javascript/internal links */
 
+    font-size: 85%;
+    line-height: 150%;
 
+    p {
+      text-indent: 1.25rem;
+    }
+
+  }
 }
