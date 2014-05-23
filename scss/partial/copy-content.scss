@@ -60,6 +60,9 @@
     border: 1px solid #ddd;
     border-radius: 1px;
     white-space: nowrap;
+    @media print {
+      font-size: 0.67rem;
+    }
   }
 
   pre {
