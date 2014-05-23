@@ -54,7 +54,7 @@
     border-left: 1px dotted #aaa;
   }
 
-  @media #{$smaller-screen} {
+  @media #{$smaller-screen}, print {
     width: 100%;
     margin-left: 0;
     margin-right: 0;
