@@ -1,9 +1,10 @@
 module Web.Blog.Routes (route) where
 
-import "base" Prelude
+import "base" Prelude hiding       (mapM_)
 import Config.SiteData
-import Control.Monad.Reader
-import Development.Blog.Util      (backupEntries)
+import Control.Monad.Reader hiding (forM_, mapM_)
+import Data.Foldable
+import Development.Blog.Util       (backupEntries)
 import Network.HTTP.Types.Status
 import Web.Blog.Models.Types
 import Web.Blog.Render
@@ -16,10 +17,10 @@ import Web.Blog.Routes.NotFound
 import Web.Blog.Routes.TagIndex
 import Web.Blog.Types
 import Web.Blog.Views.Layout
-import qualified Data.Text        as T
-import qualified Data.Text.Lazy   as L
-import qualified Text.Blaze.Html5 as H
-import qualified Web.Scotty       as S
+import qualified Data.Text         as T
+import qualified Data.Text.Lazy    as L
+import qualified Text.Blaze.Html5  as H
+import qualified Web.Scotty        as S
 
 
 route :: SiteDatabase -> S.ScottyM ()
@@ -60,11 +61,24 @@ entryRoutes db = do
       eIdent <- S.param "entryIdent"
       permanentRedirect $ red eIdent
 
-  S.get "/entry/id/:eId" $
-    routeDatabase db routeEntryId
+  S.get "/entry/id/:eId" $ do
+    eIdent <- S.param "eId"
+    case L.stripSuffix ".md" eIdent of
+      Just i  -> let i' = read . L.unpack $ i
+                 in  mapM_ S.text =<< routeDatabase' db (markdownEntryId i')
+      Nothing -> case L.stripSuffix ".tex" eIdent of
+                   Just i  -> let i' = read . L.unpack $ i
+                              in mapM_ S.text =<< routeDatabase' db (texEntryId i')
+                   Nothing -> routeDatabase db routeEntryId
 
-  S.get "/entry/:entryIdent" $
-    routeDatabase db routeEntrySlug
+  S.get "/entry/:entryIdent" $ do
+    eIdent <- S.param "entryIdent"
+    case L.stripSuffix ".md" eIdent of
+      Just i' -> mapM_ S.text =<< routeDatabase' db (markdownEntrySlug i')
+      Nothing -> case L.stripSuffix ".tex" eIdent of
+                   Just i' -> mapM_ S.text =<< routeDatabase' db (texEntrySlug i')
+                   Nothing -> routeDatabase db routeEntrySlug
+
 
 archiveRoutes :: SiteDatabase -> S.ScottyM ()
 archiveRoutes db = do
@@ -118,8 +132,8 @@ utilRoutes _ = do
       "http://feeds.feedburner.com/" $
       L.fromStrict $
         developerAPIsFeedburner $ siteDataDeveloperAPIs siteData
+
   S.get "/rss.raw" $ do
-    -- now <- liftIO getCurrentTime
     (v,d) <- routeFeed
     ran <- runReaderT v d
     S.text ran
@@ -151,8 +165,8 @@ miscRoutes db = do
   S.notFound $
     permanentRedirect "/not-found"
 
-routeDatabase :: SiteDatabase -> RouteDatabase -> S.ActionM ()
-routeDatabase db r = do
+routeDatabase' :: SiteDatabase -> S.ActionM (RouteReaderM a) -> S.ActionM (Maybe a)
+routeDatabase' db r = do
   routeResult <- r
   blankPageData <- genPageData
 
@@ -160,13 +174,18 @@ routeDatabase db r = do
     Left re -> do
       S.status $
         if "/not-found" `L.isPrefixOf` re
-          then
-            notFound404
-          else
-            movedPermanently301
-      url <- extractSiteRender $ renderUrl $ L.toStrict re
+          then notFound404
+          else movedPermanently301
+      url <- extractSiteRender . renderUrl $ L.toStrict re
       S.header "Location" $ L.fromStrict url
-    Right (v,d) -> siteRenderActionLayout v d
+      return Nothing
+    Right x ->
+      return (Just x)
+
+routeDatabase :: SiteDatabase -> RouteDatabase -> S.ActionM ()
+routeDatabase db r = do
+  res <- routeDatabase' db r
+  mapM_ (uncurry siteRenderActionLayout) res
 
 
 -- routeEither :: RouteEither -> S.ActionM ()

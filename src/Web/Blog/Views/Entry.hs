@@ -22,10 +22,11 @@ import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
 import qualified Text.Blaze.Internal         as I
 
-viewEntry :: Entry -> [Tag] -> Maybe Entry -> Maybe Entry -> SiteRender H.Html
-viewEntry entry tags prevEntry nextEntry = do
+viewEntry :: Entry -> T.Text -> [Tag] -> Maybe Entry -> Maybe Entry -> SiteRender H.Html
+viewEntry entry url tags prevEntry nextEntry = do
   npUl <- nextPrevUrl prevEntry nextEntry
   aboutUrl <- renderUrl "/"
+  url' <- renderUrl url
   -- aboutUrl <- renderUrl "/about"
   socialButtonsHtml <- viewSocialShare
   now <- liftIO getCurrentTime
@@ -76,20 +77,30 @@ viewEntry entry tags prevEntry nextEntry = do
 
           H.p $ do
 
-            Fo.forM_ (entrySourceFile entry) $ \fileSource ->
-              when (isJust (siteDataPublicBlobs siteData)) $ do
-                let
-                  sourceUrl = renderUrl' . T.pack $ "/source/"++fileSource
+            -- Fo.forM_ (entrySourceFile entry) $ \fileSource ->
+            --   when (isJust (siteDataPublicBlobs siteData)) $ do
+            --     let
+            --       sourceUrl = renderUrl' . T.pack $ "/source/" ++ fileSource
 
-                H.span ! A.class_ "source-info" $ do
-                  H.a
-                    ! A.class_ "source-link"
-                    ! A.href (I.textValue sourceUrl)
-                    $ "View Source"
+            --     H.span ! A.class_ "source-info" $ do
+            --       H.a
+            --         ! A.class_ "source-link"
+            --         ! A.href (I.textValue sourceUrl)
+            --         $ "View Source"
 
-                  H.span ! A.class_ "info-separator" $
-                    H.preEscapedToHtml
-                      (" &diams; " :: T.Text)
+            --       H.span ! A.class_ "info-separator" $
+            --         H.preEscapedToHtml
+            --           (" &diams; " :: T.Text)
+
+            H.span ! A.class_ "source-info" $ do
+              H.a
+                ! A.class_ "source-link"
+                ! A.href (I.textValue (T.append url' ".md"))
+                $ "View Source"
+
+              H.span ! A.class_ "info-separator" $
+                H.preEscapedToHtml
+                  (" &diams; " :: T.Text)
 
             "Posted in " :: H.Html
             categoryList (filter isCategoryTag tags)

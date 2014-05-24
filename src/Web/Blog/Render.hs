@@ -70,13 +70,13 @@ siteRenderAction htmlRender pageData' = do
 extractSiteRender :: SiteRender a -> S.ActionM a
 extractSiteRender toRender = runReaderT toRender emptyPageData
 
-siteLeft :: L.Text -> RouteReader
+siteLeft :: L.Text -> RouteReaderM a
 siteLeft = lift . Left
 
 siteRight :: RenderData -> RouteReader
 siteRight = lift . Right
 
-error404 :: L.Text -> RouteReader
+error404 :: L.Text -> RouteReaderM a
 error404 = siteLeft . L.append "/not-found?err="
 
 askDb :: RouteReaderM SiteDatabase
@@ -139,6 +139,9 @@ pandocWriterOptions = (P.def P.WriterOptions)
                       { P.writerHtml5 = True
                       , P.writerHTMLMathMethod = P.WebTeX "http://chart.apis.google.com/chart?cht=tx&chf=bg,s,FFFFFF00&chl="
                       , P.writerHighlight = True
+                      , P.writerNumberSections = True
+                      , P.writerVariables = [("geometry:margin","0.5in")
+                                            ,("links-as-notes","")]
                       -- , P.writerHTMLMathMethod = P.WebTeX "http://chart.apis.google.com/chart?cht=tx&chl="
                       -- , P.writerHTMLMathMethod = P.WebTeX "http://www.mathtran.org/cgi-bin/mathtran?D=1&tex="
                       -- , P.writerHTMLMathMethod = P.WebTeX "http://webtex-2.sys.kth.se/api/webtex/v1/WebTex?tex="
