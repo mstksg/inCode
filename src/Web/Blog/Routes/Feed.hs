@@ -27,10 +27,11 @@ routeFeed = do
 
   let
     wrapEntryInfo eEntity = do
-      entryUrl <- liftIO $ runDB $ getUrlPath eEntity
+      entryUrl  <- liftIO $ runDB $ getUrlPath eEntity
       entryTags <- liftIO $ runDB $ getTags eEntity [ TagType_ D.==. CategoryTag ]
       return (eEntity,(entryUrl,entryTags))
 
   entryInfos <- mapM wrapEntryInfo eList
 
   return (viewFeed entryInfos now, emptyPageData)
+

@@ -88,6 +88,18 @@ entryLedePandoc entry = P.Pandoc m ledeBs
 entryLedeStripped :: Entry -> T.Text
 entryLedeStripped = stripPandoc . entryLedePandoc
 
+entryMarkdownFull :: Entry -> T.Text
+entryMarkdownFull e = T.unlines [ t
+                                , T.map (const '=') t
+                                , T.empty
+                                , entryContent e
+                                ]
+  where
+    t = T.unwords . T.lines $ entryTitle e
+
+
+
+
 genEntrySlug :: Int -> D.Key Entry -> T.Text -> D.SqlPersistM T.Text
 genEntrySlug w k t = do
   freshSlug <- firstM isFresh $

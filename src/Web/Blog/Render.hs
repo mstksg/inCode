@@ -70,13 +70,13 @@ siteRenderAction htmlRender pageData' = do
 extractSiteRender :: SiteRender a -> S.ActionM a
 extractSiteRender toRender = runReaderT toRender emptyPageData
 
-siteLeft :: L.Text -> RouteReader
+siteLeft :: L.Text -> RouteReaderM a
 siteLeft = lift . Left
 
 siteRight :: RenderData -> RouteReader
 siteRight = lift . Right
 
-error404 :: L.Text -> RouteReader
+error404 :: L.Text -> RouteReaderM a
 error404 = siteLeft . L.append "/not-found?err="
 
 askDb :: RouteReaderM SiteDatabase
