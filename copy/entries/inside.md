@@ -722,7 +722,7 @@ Let's say I have a future `Int`.  Say, `futureLength`, waiting on an
 `[a]`. And I have a function `(< 5) :: Int -> Bool`.  Can I apply `(< 5)` to
 my future `Int`, in order to get a future `Bool`?
 
-At first, no!  This future `Bool` is useless!  I can't even use it in *any* of
+At first, no!  This future `Int` is useless!  I can't even use it in *any* of
 my normal functions!  Time to reach for the exit button?
 
 Oh --- but, because `Reader [a]` is a Functor, I can use `fmap` to turn `(< 5) ::

@@ -166,7 +166,7 @@ map' f = proc input -> do
           returnA        -< []
       (x:xs) -> do
           y  <- f        -< x
-          ys <- map' f -< xs
+          ys <- map' f   -< xs
           returnA        -< y:ys
 ~~~
 
