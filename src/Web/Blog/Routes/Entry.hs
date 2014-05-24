@@ -3,15 +3,17 @@ module Web.Blog.Routes.Entry (
   , routeEntryId
   , markdownEntrySlug
   , markdownEntryId
+  , texEntrySlug
+  , texEntryId
   ) where
 
 import "base" Prelude
-import Control.Applicative                      ((<$>))
+import Control.Applicative                   ((<$>))
 import Control.Monad.Reader
 import Control.Monad.State
-import Data.List                                (find, sortBy)
-import Data.Maybe                               (listToMaybe)
-import Data.Ord                                 (comparing)
+import Data.List                             (find, sortBy)
+import Data.Maybe                            (listToMaybe)
+import Data.Ord                              (comparing)
 import Data.Time
 import Web.Blog.Models
 import Web.Blog.Models.EntryI
@@ -19,31 +21,46 @@ import Web.Blog.Models.Util
 import Web.Blog.Render
 import Web.Blog.Types
 import Web.Blog.Views.Entry
-import qualified Data.Foldable                  as Fo
-import qualified Data.Map.Strict                as M
-import qualified Data.Text.Lazy                 as L
-import qualified Database.Persist.Postgresql    as D
-import qualified Web.Scotty                     as S
+import qualified Data.Foldable               as Fo
+import qualified Data.Map.Strict             as M
+import qualified Data.Text.Lazy              as L
+import qualified Database.Persist.Postgresql as D
+import qualified Text.Pandoc.Templates       as P
+import qualified Web.Scotty                  as S
 
 routeEntrySlug :: RouteDatabase
 routeEntrySlug = do
   eIdent <- S.param "entryIdent"
   now <- liftIO getCurrentTime
+  let url = L.append "/entry/" eIdent
   return $
-    flip readerEntry now =<< entryBySlug eIdent False
+    readerEntry now url =<< entryBySlug eIdent False
 
 routeEntryId :: RouteDatabase
 routeEntryId = do
   eId <- S.param "eId"
   now <- liftIO getCurrentTime
+  let url = L.append "/entry/id/" (L.pack (show eId))
   return $
-    flip readerEntry now =<< entryById eId False
+    readerEntry now url =<< entryById eId False
 
 markdownEntrySlug :: L.Text -> S.ActionM (RouteReaderM L.Text)
 markdownEntrySlug ident = return $ L.fromStrict . entryMarkdownFull . snd <$> entryBySlug ident True
 
 markdownEntryId :: Int -> S.ActionM (RouteReaderM L.Text)
 markdownEntryId i = return $ L.fromStrict . entryMarkdownFull . snd <$> entryById i True
+
+texEntrySlug :: L.Text -> S.ActionM (RouteReaderM L.Text)
+texEntrySlug ident = do
+    temp <- either (const Nothing) Just <$> liftIO (P.getDefaultTemplate Nothing "latex")
+    return $
+      L.fromStrict . entryTexFull temp . snd <$> entryBySlug ident True
+
+texEntryId :: Int -> S.ActionM (RouteReaderM L.Text)
+texEntryId i = do
+    temp <- either (const Nothing) Just <$> liftIO (P.getDefaultTemplate Nothing "latex")
+    return $
+      L.fromStrict . entryTexFull temp . snd <$> entryById i True
 
 
 entryBySlug :: L.Text -> Bool -> RouteReaderM (KeyMapKey Entry, Entry)
@@ -92,15 +109,15 @@ entryById i md = do
       case currSlug of
         Just currSlug' | md        ->
                            siteLeft . flip L.append ".md" . L.append "/entry/" . L.fromStrict . slugSlug $ currSlug'
-                       | otherwise -> 
+                       | otherwise ->
                            siteLeft . L.append "/entry/" . L.fromStrict . slugSlug $ currSlug'
         Nothing         -> return (eKey, e')
 
     Nothing ->
       error404 "entryIdNotFound"
 
-readerEntry :: (KeyMapKey Entry, Entry) -> UTCTime -> RouteReader
-readerEntry (k, e) now = do
+readerEntry ::  UTCTime -> L.Text -> (KeyMapKey Entry, Entry) -> RouteReader
+readerEntry now url (k,e) = do
   rd@(_, blankPageData) <- ask
   tags          <- getTagsI k
   (prev, next)  <- prevNext now e
@@ -120,7 +137,7 @@ readerEntry (k, e) now = do
               (runRouteReaderMRight (getUrlPathI k') rd)
             )
 
-      view = viewEntry e tags (snd <$> prev) (snd <$> next)
+      view = viewEntry e (L.toStrict url) tags (snd <$> prev) (snd <$> next)
 
       pageData = blankPageData { pageDataTitle   = Just $ entryTitle e
                                , pageDataType    = Just "article"

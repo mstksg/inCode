@@ -22,6 +22,7 @@ import qualified Data.Vector                 as V
 import qualified Database.Persist.Postgresql as D
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Pandoc                 as P
+import qualified Text.Pandoc.Templates       as P
 
 slugLength :: Int
 slugLength = appPrefsSlugLength $ siteDataAppPrefs siteData
@@ -97,6 +98,15 @@ entryMarkdownFull e = T.unlines [ t
   where
     t = T.unwords . T.lines $ entryTitle e
 
+entryTexFull :: Maybe String -> Entry -> T.Text
+entryTexFull temp e = case temp of
+    Just t  -> let opts = pandocWriterOptions { P.writerStandalone = True
+                                              , P.writerTemplate   = t
+                                              }
+               in  T.pack . P.writeLaTeX opts $ pd
+    Nothing -> T.pack . P.writeLaTeX pandocWriterOptions $ pd
+  where
+    pd   = entryPandoc (e { entryContent = entryMarkdownFull e })
 
 
 
