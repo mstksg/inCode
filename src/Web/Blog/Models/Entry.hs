@@ -100,13 +100,14 @@ entryMarkdownFull e = T.unlines [ t
 
 entryTexFull :: Maybe String -> Entry -> T.Text
 entryTexFull temp e = case temp of
-    Just t  -> let opts = pandocWriterOptions { P.writerStandalone = True
-                                              , P.writerTemplate   = t
-                                              }
-               in  T.pack . P.writeLaTeX opts $ pd
-    Nothing -> T.pack . P.writeLaTeX pandocWriterOptions $ pd
+    Just t  -> let opts' = opts { P.writerStandalone = True
+                                , P.writerTemplate   = t
+                                }
+               in  T.pack . P.writeLaTeX opts' $ pd
+    Nothing -> T.pack . P.writeLaTeX opts $ pd
   where
     pd   = entryPandoc (e { entryContent = entryMarkdownFull e })
+    opts = pandocWriterOptions { P.writerNumberSections = True }
 
 
 

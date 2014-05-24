@@ -139,7 +139,6 @@ pandocWriterOptions = (P.def P.WriterOptions)
                       { P.writerHtml5 = True
                       , P.writerHTMLMathMethod = P.WebTeX "http://chart.apis.google.com/chart?cht=tx&chf=bg,s,FFFFFF00&chl="
                       , P.writerHighlight = True
-                      , P.writerNumberSections = True
                       , P.writerVariables = [("geometry:margin","0.5in")
                                             ,("links-as-notes","")]
                       -- , P.writerHTMLMathMethod = P.WebTeX "http://chart.apis.google.com/chart?cht=tx&chl="
