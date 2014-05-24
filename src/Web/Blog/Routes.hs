@@ -79,7 +79,7 @@ entryRoutes db = do
       -- Nothing -> case L.stripSuffix ".tex" eIdent of
       --              Just i' -> mapM_ S.text =<< routeDatabase' db (texEntrySlug i')
       --              Nothing -> routeDatabase db routeEntrySlug
-      Nothing -> routeDatabase db routeEntryId
+      Nothing -> routeDatabase db routeEntrySlug
 
 
 archiveRoutes :: SiteDatabase -> S.ScottyM ()
