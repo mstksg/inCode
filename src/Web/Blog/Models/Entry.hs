@@ -107,7 +107,8 @@ entryTexFull temp e = case temp of
     Nothing -> T.pack . P.writeLaTeX opts $ pd
   where
     pd   = entryPandoc (e { entryContent = entryMarkdownFull e })
-    opts = pandocWriterOptions { P.writerNumberSections = True }
+    -- opts = pandocWriterOptions { P.writerNumberSections = True }
+    opts = pandocWriterOptions
 
 
 

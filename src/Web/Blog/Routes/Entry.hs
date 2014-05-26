@@ -9,6 +9,7 @@ module Web.Blog.Routes.Entry (
 
 import "base" Prelude
 import Control.Applicative                   ((<$>))
+import Control.Exception
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.List                             (find, sortBy)
@@ -52,9 +53,10 @@ markdownEntryId i = return $ L.fromStrict . entryMarkdownFull . snd <$> entryByI
 
 texEntrySlug :: L.Text -> S.ActionM (RouteReaderM L.Text)
 texEntrySlug ident = do
-    temp <- either (const Nothing) Just <$> liftIO (P.getDefaultTemplate Nothing "latex")
+    temp <- liftIO (try (readFile "copy/templates/default.latex") :: IO (Either SomeException String))
+    let temp' = either (const Nothing) Just temp
     return $
-      L.fromStrict . entryTexFull temp . snd <$> entryBySlug ident True
+      L.fromStrict . entryTexFull temp' . snd <$> entryBySlug ident True
 
 texEntryId :: Int -> S.ActionM (RouteReaderM L.Text)
 texEntryId i = do

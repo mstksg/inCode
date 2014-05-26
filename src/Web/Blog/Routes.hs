@@ -66,20 +66,20 @@ entryRoutes db = do
     case L.stripSuffix ".md" eIdent of
       Just i  -> let i' = read . L.unpack $ i
                  in  mapM_ S.text =<< routeDatabase' db (markdownEntryId i')
-      -- Nothing -> case L.stripSuffix ".tex" eIdent of
-      --              Just i  -> let i' = read . L.unpack $ i
-      --                         in mapM_ S.text =<< routeDatabase' db (texEntryId i')
-      --              Nothing -> routeDatabase db routeEntryId
-      Nothing -> routeDatabase db routeEntryId
+      Nothing -> case L.stripSuffix ".tex" eIdent of
+                   Just i  -> let i' = read . L.unpack $ i
+                              in mapM_ S.text =<< routeDatabase' db (texEntryId i')
+                   Nothing -> routeDatabase db routeEntryId
+      -- Nothing -> routeDatabase db routeEntryId
 
   S.get "/entry/:entryIdent" $ do
     eIdent <- S.param "entryIdent"
     case L.stripSuffix ".md" eIdent of
       Just i' -> mapM_ S.text =<< routeDatabase' db (markdownEntrySlug i')
-      -- Nothing -> case L.stripSuffix ".tex" eIdent of
-      --              Just i' -> mapM_ S.text =<< routeDatabase' db (texEntrySlug i')
-      --              Nothing -> routeDatabase db routeEntrySlug
-      Nothing -> routeDatabase db routeEntrySlug
+      Nothing -> case L.stripSuffix ".tex" eIdent of
+                   Just i' -> mapM_ S.text =<< routeDatabase' db (texEntrySlug i')
+                   Nothing -> routeDatabase db routeEntrySlug
+      -- Nothing -> routeDatabase db routeEntrySlug
 
 
 archiveRoutes :: SiteDatabase -> S.ScottyM ()
