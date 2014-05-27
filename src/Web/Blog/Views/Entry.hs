@@ -3,7 +3,8 @@ module Web.Blog.Views.Entry (viewEntry) where
 import "base" Prelude
 import Config.SiteData
 import Control.Applicative                   ((<$>))
-import Control.Monad.Reader
+import Control.Monad.Reader hiding           (forM_)
+import Data.Foldable                         (forM_)
 import Data.List                             (intersperse)
 import Data.Maybe
 import Data.Monoid
@@ -15,7 +16,6 @@ import Web.Blog.Render
 import Web.Blog.Types
 import Web.Blog.Util                         (renderFriendlyTime, renderDatetimeTime)
 import Web.Blog.Views.Social
-import qualified Data.Foldable as Fo         (forM_)
 import qualified Data.Map.Strict             as M
 import qualified Data.Text                   as T
 import qualified Text.Blaze.Html5            as H
@@ -63,7 +63,7 @@ viewEntry entry url tags prevEntry nextEntry = do
             H.a ! A.class_ "author" ! A.href (I.textValue aboutUrl) $
               H.toHtml $ authorInfoName $ siteDataAuthorInfo siteData
 
-            Fo.forM_ (entryPostedAt entry) $ \t -> do
+            forM_ (entryPostedAt entry) $ \t -> do
 
               H.span ! A.class_ "info-separator" $
                 H.preEscapedToHtml
@@ -77,26 +77,34 @@ viewEntry entry url tags prevEntry nextEntry = do
 
           H.p $ do
 
-            -- Fo.forM_ (entrySourceFile entry) $ \fileSource ->
-            --   when (isJust (siteDataPublicBlobs siteData)) $ do
-            --     let
-            --       sourceUrl = renderUrl' . T.pack $ "/source/" ++ fileSource
-
-            --     H.span ! A.class_ "source-info" $ do
-            --       H.a
-            --         ! A.class_ "source-link"
-            --         ! A.href (I.textValue sourceUrl)
-            --         $ "View Source"
-
-            --       H.span ! A.class_ "info-separator" $
-            --         H.preEscapedToHtml
-            --           (" &diams; " :: T.Text)
-
             H.span ! A.class_ "source-info" $ do
+              forM_ (entrySourceFile entry) $ \fileSource ->
+                forM_ (siteDataPublicBlobs siteData) $ \_ -> do
+                  let
+                    sourceUrl = renderUrl' . T.pack $ "/source/" ++ fileSource
+
+                  H.a
+                    ! A.class_ "source-link"
+                    ! A.href (I.textValue sourceUrl)
+                    $ "Source"
+
+                  H.span ! A.class_ "info-separator" $
+                    H.preEscapedToHtml
+                      (" &diams; " :: T.Text)
+
               H.a
                 ! A.class_ "source-link"
                 ! A.href (I.textValue (T.append url' ".md"))
-                $ "View Source"
+                $ "Markdown"
+
+              H.span ! A.class_ "info-separator" $
+                H.preEscapedToHtml
+                  (" &diams; " :: T.Text)
+
+              H.a
+                ! A.class_ "source-link"
+                ! A.href (I.textValue (T.append url' ".tex"))
+                $ "LaTeX"
 
               H.span ! A.class_ "info-separator" $
                 H.preEscapedToHtml
@@ -158,14 +166,14 @@ nextPrevUrl prevEntry nextEntry = do
   return $
     H.nav ! A.class_ "next-prev-links" $
       H.ul $ do
-        when (isJust prevEntry) $
+        forM_ prevEntry $ \_ ->
           H.li ! A.class_ "prev-entry-link" $ do
             H.preEscapedToHtml ("&larr; " :: T.Text)
             H.a ! A.href (I.textValue $ pageDataMap' M.! "prevUrl") $
               H.toHtml $ entryTitle $ fromJust prevEntry
             " (Previous)" :: H.Html
 
-        when (isJust nextEntry) $
+        forM_ nextEntry $ \_ ->
           H.li ! A.class_ "next-entry-link" $ do
             "(Next) " :: H.Html
             H.a ! A.href (I.textValue $ pageDataMap' M.! "nextUrl") $
