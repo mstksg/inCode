@@ -133,9 +133,9 @@ If you're not familiar with the `f <$> x <*> y` idiom, you can consider it to
 be the same thing as `f x y`, except that `x` and `y` are "inside" things:
 
 ~~~haskell
-λ: (+) 1 4
+ghci> (+) 1 4
 5
-λ: (+) <$> Just 1 <*> Just 4
+ghci> (+) <$> Just 1 <*> Just 4
 Just 5
 ~~~
 
@@ -155,12 +155,12 @@ And finally, to tie it all together:
 However way we decide to write our `Binary` instance, let's test it all out.
 
 ~~~haskell
-λ: let (Just pt) = runBuildTree "hello world"
-λ: let encoded = encode pt
-λ: :t encoded
+ghci> let (Just pt) = runBuildTree "hello world"
+ghci> let encoded = encode pt
+ghci> :t encoded
 encoded :: ByteString       -- a string of bytes
-λ: let decoded = decode encoded :: PreTree Char
-λ: decoded
+ghci> let decoded = decode encoded :: PreTree Char
+ghci> decoded
 PTNode (PTNode (PTNode (PTLeaf 'h')
                        (PTLeaf 'e')
                )
@@ -175,16 +175,16 @@ PTNode (PTNode (PTNode (PTLeaf 'h')
                        (PTLeaf 'o')
                )
        )
-λ: decoded == t
+ghci> decoded == t
 True
 ~~~
 
 Neat!  We can also write it to a file and re-read:
 
 ~~~haskell
-λ: encodeFile "test.dat" t
-λ: t' <- decodeFile "test.dat" :: IO (PreTree Char)
-λ: t'
+ghci> encodeFile "test.dat" t
+ghci> t' <- decodeFile "test.dat" :: IO (PreTree Char)
+ghci> t'
 PTNode (PTNode (PTNode (PTLeaf 'h')
                        (PTLeaf 'e')
                )
@@ -199,7 +199,7 @@ PTNode (PTNode (PTNode (PTLeaf 'h')
                        (PTLeaf 'o')
                )
        )
-λ: t' == t
+ghci> t' == t
 True
 ~~~
 
@@ -248,10 +248,10 @@ The algorithm goes:
     success).
 
 ~~~haskell
-λ: let pt = runBuildTree "hello world"
-λ: findPT pt 'e'
+ghci> let pt = runBuildTree "hello world"
+ghci> findPT pt 'e'
 Just [DLeft, DLeft, DRight]
-λ: findPT pt 'q'
+ghci> findPT pt 'q'
 Nothing
 ~~~
 
@@ -317,11 +317,11 @@ simple and performant:
 given, of course, that we generate our table first.
 
 ~~~haskell
-λ: let pt = runBuildTree "hello world"
-λ: let tb = fmap ptTable pt
-λ: tb >>= \tb' -> lookupPTTable tb' 'e'
+ghci> let pt = runBuildTree "hello world"
+ghci> let tb = fmap ptTable pt
+ghci> tb >>= \tb' -> lookupPTTable tb' 'e'
 Just [DLeft, DLeft, DRight]
-λ: tb >>= \tb' -> lookupPTTable tb' 'q'
+ghci> tb >>= \tb' -> lookupPTTable tb' 'q'
 Nothing
 ~~~
 
@@ -354,9 +354,9 @@ This is a bit dense!  But I'm sure that you are up for it.
     not decodable, *the entire thing is Nothing*.
 
     ~~~haskell
-    λ: sequence [Just 5, Just 4]
+    ghci> sequence [Just 5, Just 4]
     Just [5,4]
-    λ: sequence [Just 6, Nothing]
+    ghci> sequence [Just 6, Nothing]
     Nothing
     ~~~
 
@@ -369,13 +369,13 @@ This is a bit dense!  But I'm sure that you are up for it.
     `Encoding`s inside the Maybe.
 
 ~~~haskell
-λ: let pt = runBuildTree "hello world"          -- :: Maybe (PreTree Char)
-λ: pt >>= \pt' -> encodeAll pt' "hello world"
+ghci> let pt = runBuildTree "hello world"          -- :: Maybe (PreTree Char)
+ghci> pt >>= \pt' -> encodeAll pt' "hello world"
 Just [DLeft, DLeft, DLeft, DLeft, DLeft, DRight, DRight, DLeft, DRight, DLeft,
 DRight, DRight, DRight, DRight, DRight, DLeft, DRight, DLeft, DRight, DLeft,
 DRight, DRight, DRight, DLeft, DRight, DRight, DRight, DLeft, DRight, DRight,
 DLeft, DLeft]
-λ: pt >>= \pt' -> encodeAll pt' "hello worldq"
+ghci> pt >>= \pt' -> encodeAll pt' "hello worldq"
 Nothing
 ~~~
 
@@ -398,9 +398,9 @@ found something (and return the directions you haven't followed yet).  If you
 run out of directions while on a node...something has gone wrong.
 
 ~~~haskell
-λ: do  pt  <- runBuildTree "hello world"
- |     enc <- encodeAll pt "hello world"
- |     decodePT pt enc
+ghci> do  pt  <- runBuildTree "hello world"
+    |     enc <- encodeAll pt "hello world"
+    |     decodePT pt enc
 Just ('h', [DLeft, DLeft ...])
 ~~~
 
@@ -436,7 +436,7 @@ Using `unfoldr`, we can write a `decodeAll`:
 ~~~
 
 ~~~haskell
-λ: do pt  <- runBuildTree "hello world"
+ghci> do pt  <- runBuildTree "hello world"
  |    enc <- encodeAll pt "hello world"
  |    return (decodeAll pt enc)
 ~~~
@@ -458,9 +458,9 @@ unfamiliar with working with the Maybe monad)
 `testTree` should be an identity; that is, `testTree xs === xs`.
 
 ~~~haskell
-λ: testTree "hello world"
+ghci> testTree "hello world"
 "hello world"
-λ: testTree "the quick brown fox jumps over the lazy dog"
+ghci> testTree "the quick brown fox jumps over the lazy dog"
 "the quick brown fox jumps over the lazy dog"
 ~~~
 
@@ -476,9 +476,9 @@ proposition `testTree xs == xs` by generating several random `xs`'s.
 [QuickCheck]: http://hackage.haskell.org/package/QuickCheck
 
 ~~~haskell
-λ: import Test.QuickCheck
-λ: :set -XScopedTypeVariables
-λ: quickCheck (\(xs :: String) -> testTree xs == xs)
+ghci> import Test.QuickCheck
+ghci> :set -XScopedTypeVariables
+ghci> quickCheck (\(xs :: String) -> testTree xs == xs)
 *** Failed! Falsifiable (after 3 tests and 2 shrinks):
 "a"
 ~~~
@@ -490,12 +490,12 @@ Oh!  We failed?  And on such a simple case?  What happened?
 If we look at how `"a"` is encoded, it'll become apparent:
 
 ~~~haskell
-λ: let (Just pt) = runBuildTree "aaa"
-λ: pt
+ghci> let (Just pt) = runBuildTree "aaa"
+ghci> pt
 PTLeaf 'a'
-λ: findPT pt 'a'
+ghci> findPT pt 'a'
 Just []
-λ: encodeAll pt "aaaaaaaaaaa"
+ghci> encodeAll pt "aaaaaaaaaaa"
 Just []
 ~~~
 
@@ -534,7 +534,7 @@ We'll also a "safe" `testTree`:
 So we can now quickcheck:
 
 ~~~haskell
-λ: quickCheck (\(xs :: String) -> testTree' xs `elem` [Nothing, Just xs])
+ghci> quickCheck (\(xs :: String) -> testTree' xs `elem` [Nothing, Just xs])
 +++ OK, passed 100 tests.
 ~~~
 

@@ -126,18 +126,18 @@ which is just, in the more traditional (infix) form:
 Let's see if `myList` does what we want: (a list from 1 to 3):
 
 ~~~haskell
-λ: let (Cons (x,xs)) = myList
-λ: x
+ghci> let (Cons (x,xs)) = myList
+ghci> x
 1
-λ: :t xs
+ghci> :t xs
 xs :: List Int
-λ: let (Cons (y,ys)) = xs
-λ: y
+ghci> let (Cons (y,ys)) = xs
+ghci> y
 2
-λ: let (Cons (z,zs)) = ys
-λ: z
+ghci> let (Cons (z,zs)) = ys
+ghci> z
 3
-λ: zs
+ghci> zs
 Nil
 ~~~
 
@@ -169,22 +169,22 @@ Cool!  Let's see if this `myStream` really does what we want, the same way we
 tested `myList`:
 
 ~~~haskell
-λ: let (SCons (x, xs)) = myStream
-λ: x
+ghci> let (SCons (x, xs)) = myStream
+ghci> x
 1
-λ: :t xs
+ghci> :t xs
 xs :: Stream Int
-λ: let (SCons (y, ys)) = xs
-λ: y
+ghci> let (SCons (y, ys)) = xs
+ghci> y
 2
-λ: let (SCons (z, zs)) = ys
-λ: z
+ghci> let (SCons (z, zs)) = ys
+ghci> z
 3
-λ: let (SCons (j,js)) = zs
-λ: j
+ghci> let (SCons (j,js)) = zs
+ghci> j
 4
-λ: let (SCons (k,ks)) = js
-λ: k
+ghci> let (SCons (k,ks)) = js
+ghci> k
 5
 ~~~
 
@@ -203,10 +203,10 @@ data Stream b = SCons { runStream :: (b, Stream b) }
 so that we can do fancy things like:
 
 ~~~haskell
-λ: :t runStream
+ghci> :t runStream
 runStream :: Stream b -> (b, Stream b)
-λ: let (x, xs) = runStream myStream
-λ: x
+ghci> let (x, xs) = runStream myStream
+ghci> x
 1
 ~~~
 
@@ -237,7 +237,7 @@ conversion into an infinite list.
 So now we can do:
 
 ~~~haskell
-λ: take 10 $ streamToList myStream
+ghci> take 10 $ streamToList myStream
 [1,2,3,4,5,6,7,8,9,10]
 ~~~
 
@@ -251,7 +251,7 @@ is the same thing except that we throw away the modified stream.
 ~~~
 
 ~~~haskell
-λ: testStream_ myStream 10
+ghci> testStream_ myStream 10
 [1,2,3,4,5,6,7,8,9,10]
 ~~~
 
@@ -296,7 +296,7 @@ character:
 ~~~
 
 ~~~haskell
-λ: take 10 $ streamToList charStream
+ghci> take 10 $ streamToList charStream
 "ABCDEFGHIJ"
 ~~~
 
@@ -377,18 +377,18 @@ This is kind of a dumb example, but `myStreamAuto` is just the exact same as
 Let's try it out.
 
 ~~~haskell
-λ: :t runAuto
+ghci> :t runAuto
 runAuto :: Auto a b -> (a -> (b, Auto a b))
-λ: let (x, xs) = runAuto myStreamAuto undefined
-λ: x
+ghci> let (x, xs) = runAuto myStreamAuto undefined
+ghci> x
 1
-λ: :t xs
+ghci> :t xs
 xs :: Auto a Int
-λ: let (y, ys) = runAuto xs undefined
-λ: y
+ghci> let (y, ys) = runAuto xs undefined
+ghci> y
 2
-λ: let (z, zs) = runAuto ys undefined
-λ: z
+ghci> let (z, zs) = runAuto ys undefined
+ghci> z
 3
 ~~~
 
@@ -426,26 +426,26 @@ it'll give you `( m, counterFrom (m+1) )`.
 Cool --- let's try it out.
 
 ~~~haskell
-λ: let (x, xs) = runAuto settableAuto Nothing
-λ: x
+ghci> let (x, xs) = runAuto settableAuto Nothing
+ghci> x
 1
-λ: let (y, ys) = runAuto xs Nothing
-λ: y
+ghci> let (y, ys) = runAuto xs Nothing
+ghci> y
 2
-λ: let (z, zs) = runAuto ys (Just 10)
-λ: z
+ghci> let (z, zs) = runAuto ys (Just 10)
+ghci> z
 10
-λ: let (j, js) = runAuto zs Nothing
-λ: j
+ghci> let (j, js) = runAuto zs Nothing
+ghci> j
 11
-λ: let (k, ks) = runAuto js Nothing
-λ: k
+ghci> let (k, ks) = runAuto js Nothing
+ghci> k
 12
-λ: let (l, ls) = runAuto ks (Just (-1))
-λ: l
+ghci> let (l, ls) = runAuto ks (Just (-1))
+ghci> l
 -1
-λ: let (m, ms) = runAuto ls Nothing
-λ: m
+ghci> let (m, ms) = runAuto ls Nothing
+ghci> m
 0
 ~~~
 
@@ -469,9 +469,9 @@ collection.
 Trying it out on `settableAuto`:
 
 ~~~
-λ: testAuto_ settableAuto [ Nothing, Nothing, Just 10
-                          , Nothing, Nothing, Just (-1)
-                          , Nothing ]
+ghci> testAuto_ settableAuto [ Nothing, Nothing, Just 10
+                             , Nothing, Nothing, Just (-1)
+                             , Nothing ]
 [1,2,10,11,12,-1,0]
 ~~~
 
@@ -483,7 +483,7 @@ for input at each iteration from the user ---
 ~~~
 
 ~~~haskell
-λ: interactAuto settableAuto
+ghci> interactAuto settableAuto
 > Nothing
 1
 > Nothing
@@ -541,9 +541,9 @@ So `isEvenAuto` is the same as `settableCounterFrom`, except instead of
 Here is a demonstration of its behavior ---
 
 ~~~haskell
-λ: testAuto isEvenAuto  [ Nothing, Nothing, Just 10
-                        , Nothing, Nothing, Just (-1)
-                        , Nothing ]
+ghci> testAuto isEvenAuto  [ Nothing, Nothing, Just 10
+                           , Nothing, Nothing, Just (-1)
+                           , Nothing ]
 [False,True,True,False,True]
 ~~~
 
@@ -611,13 +611,13 @@ of that int with all of the previous ints it has received in its lifetime.
 ~~~
 
 ~~~haskell
-λ: let (out1, auto1) = runAuto summer 10
-λ: out1
+ghci> let (out1, auto1) = runAuto summer 10
+ghci> out1
 10
-λ: let (out2, auto2) = runAuto auto1 3
-λ: out1
+ghci> let (out2, auto2) = runAuto auto1 3
+ghci> out1
 13
-λ: testAuto_ auto2 [15,-17,6,0,-1]
+ghci> testAuto_ auto2 [15,-17,6,0,-1]
 [28,11,17,17,16]
 ~~~
 
@@ -732,7 +732,7 @@ as compositions of smaller, simpler building blocks.
     of the last `n` values it has encountered
 
 ~~~haskell
-λ: testAuto_ (rollingAverage 4) [2,8,4,5,1,8,3,5,1,1,8,3,5,9,2]
+ghci> testAuto_ (rollingAverage 4) [2,8,4,5,1,8,3,5,1,1,8,3,5,9,2]
 [2.0 ,5.0 ,4.67,4.75,4.5
 ,4.5 ,4.25,4.25,4.25,2.5
 ,3.75,3.25,4.25,6.25,4.75]
@@ -744,9 +744,9 @@ as compositions of smaller, simpler building blocks.
     (`True`) for `i` steps.
 
 ~~~haskell
-λ: :t onFor even 3
+ghci> :t onFor even 3
 onFor even 3 :: Auto Int Bool
-λ: testAuto_ (onFor even 3) [1,1,2,1,1,1,1,4,1,6,1,1,1,1]
+ghci> testAuto_ (onFor even 3) [1,1,2,1,1,1,1,4,1,6,1,1,1,1]
 [ False, False, True , True , True
 , False, False, True , True , True
 , True , True , False, False ]
@@ -767,17 +767,17 @@ onFor even 3 :: Auto Int Bool
     operations (such as getting a list of all of the keys).
 
 ~~~haskell
-λ: testAuto_ (autoMap 3)
-  |    [ Insert "hello" 7
-  |    , Insert "world" 10
-  |    , Insert "foo" 12
-  |    , Insert "bar" 15
-  |    , Delete "baz"
-  |    , Delete "world"
-  |    , Insert "haskell" 19
-  |    , Lookup "world"
-  |    , Lookup "hello"
-  |    ]
+ghci> testAuto_ (autoMap 3)
+    |   [ Insert "hello" 7
+    |   , Insert "world" 10
+    |   , Insert "foo" 12
+    |   , Insert "bar" 15
+    |   , Delete "baz"
+    |   , Delete "world"
+    |   , Insert "haskell" 19
+    |   , Lookup "world"
+    |   , Lookup "hello"
+    |   ]
 [ Just 7 , Just 10, Just 12
 , Nothing, Nothing, Just 10
 , Just 19, Nothing, Just 7  ]

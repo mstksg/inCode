@@ -171,13 +171,13 @@ declaring new types.
     We can create a new `Move` by using `MoveThe`:
 
     ~~~haskell
-    λ: :t MoveThe
+    ghci> :t MoveThe
     MoveThe :: Character -> Move
-    λ: :t MoveThe Wolf
+    ghci> :t MoveThe Wolf
     MoveThe Wolf :: Move
     ~~~
 
-    (`λ: ` represents a command at the interactive prompt ghci, and `:t` asks
+    (`ghci> ` represents a command at the interactive prompt ghci, and `:t` asks
     for the type of whatever comes after it)
 
 3.  Here we define custom functions for printing out a `Move`
@@ -424,12 +424,12 @@ to.
 Does this actually work?  Let's try out some examples.
 
 ~~~haskell
-λ: let p = [MoveThe Goat, MoveThe Farmer, MoveThe Wolf, MoveThe Goat]
-λ: positionOf p Goat
+ghci> let p = [MoveThe Goat, MoveThe Farmer, MoveThe Wolf, MoveThe Goat]
+ghci> positionOf p Goat
 West
-λ: positionOf p Wolf
+ghci> positionOf p Wolf
 East
-λ: positionOf p Farmer
+ghci> positionOf p Farmer
 West
 ~~~
 
@@ -577,18 +577,18 @@ What's going on under the hood is actually less magical.  `<$>` basically says
 "apply inside".  It is like `$`, but "inside".  Remember how we can do:
 
 ~~~haskell
-λ: (*2) $ 3
+ghci> (*2) $ 3
 6
 ~~~
 
 to apply `(*2)` to 3?  We can then also do:
 
 ~~~haskell
-λ: (*2) $ 3
+ghci> (*2) $ 3
 6
-λ: (*2) <$> Just 3
+ghci> (*2) <$> Just 3
 Just 6
-λ: (*2) <$> [3]
+ghci> (*2) <$> [3]
 [6]
 ~~~
 
@@ -597,12 +597,12 @@ function "inside" means applying the function to all of the possible
 successes:
 
 ~~~haskell
-λ: (*2) <$> [3,4,5]
+ghci> (*2) <$> [3,4,5]
 [6,8,10]
 
-λ: MoveThe $ Farmer
+ghci> MoveThe $ Farmer
 MoveThe Farmer
-λ: MoveThe <$> [Farmer, Wolf, Goat, Cabbage]
+ghci> MoveThe <$> [Farmer, Wolf, Goat, Cabbage]
 [MoveThe Farmer, MoveThe Wolf, MoveThe Goat, MoveThe Cabbage]
 ~~~
 
@@ -733,7 +733,7 @@ So...let's test it!
 First, let's load it up on ghci:
 
 ~~~haskell
-λ: :l WolfGoatCabbage.hs
+ghci> :l WolfGoatCabbage.hs
 Ok, modules loaded: Main.
 ~~~
 
@@ -741,11 +741,11 @@ Let's try a few plan lengths and see when we get one that has a valid
 solution:
 
 ~~~haskell
-λ: findSolutions 5
+ghci> findSolutions 5
 []
-λ: findSolutions 6
+ghci> findSolutions 6
 []
-λ: findSolutions 7
+ghci> findSolutions 7
 [[G,F,W,G,C,F,G],[G,F,C,G,W,F,G]]
 ~~~
 
@@ -765,10 +765,10 @@ If we add the filter on redundant moves mentioned earlier, the next valid
 solutions with no direct redundancies come at length 13, and then at 19:
 
 ~~~haskell
-λ: findSolutions 13
+ghci> findSolutions 13
 [[G,F,W,G,C,W,G,C,W,G,C,F,G]
 ,[G,F,C,G,W,C,G,W,C,G,W,F,G]]
-λ: findSolutions 19
+ghci> findSolutions 19
 [[G,F,W,G,C,W,G,C,W,G,C,W,G,C,W,G,C,F,G]
 ,[G,F,C,G,W,C,G,W,C,G,W,C,G,W,C,G,W,F,G]]
 ~~~

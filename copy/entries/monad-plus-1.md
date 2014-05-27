@@ -142,23 +142,23 @@ of other `halves`, and have any failures automatically propagate to the end
 and short circuit your entire computation:
 
 ~~~haskell
-λ: halve 8
+ghci> halve 8
 Just 4
-λ: halve 7
+ghci> halve 7
 Nothing
-λ: halve 8 >>= halve
+ghci> halve 8 >>= halve
 Just 2
-λ: halve 7 >>= halve
+ghci> halve 7 >>= halve
 Nothing                         -- 1
-λ: halve 6 >>= halve
+ghci> halve 6 >>= halve
 Nothing
-λ: halve 6 >>= halve >>= halve
+ghci> halve 6 >>= halve >>= halve
 Nothing
-λ: halve 32 >> Nothing
+ghci> halve 32 >> Nothing
 Nothing                         -- 2
-λ: halve 32 >>= halve >>= halve >>= halve
+ghci> halve 32 >>= halve >>= halve >>= halve
 Just 2
-λ: halve 32 >> Nothing >>= halve >>= halve >>= halve
+ghci> halve 32 >> Nothing >>= halve >>= halve >>= halve
 Nothing                         -- 3
 ~~~
 
@@ -169,7 +169,7 @@ You can play with this yourself by [loading up the function yourself][halve].
 <div class="note">
 **Welcome to Haskell!**
 
-In this article, code that begins with `λ: ` represents commands to be entered
+In this article, code that begins with `ghci> ` represents commands to be entered
 at the interactive prompt, ghci.  Code that doesn't is actual source code.
 </div>
 
@@ -202,32 +202,32 @@ Haskell provides a convenient way of writing chained `>>=`'s called do
 notation; here are a few samples matched with their equivalent `>>=` form:
 
 ~~~haskell
-λ: half 8
+ghci> half 8
 Just 4
-λ: do  half 8
+ghci> do  half 8
 Just 4
 
-λ: halve 8 >>= halve
+ghci> halve 8 >>= halve
 Just 2
-λ: do  x <- halve 8
- |     halve x
-Just 2
-
-λ: halve 32 >>= halve >>= halve >>= halve
-Just 2
-λ: do  x <- halve 32
- |     y <- halve x
- |     z <- halve y
- |     halve z
+ghci> do  x <- halve 8
+    |     halve x
 Just 2
 
-λ: halve 32 >> Nothing >>= halve >>= halve
+ghci> halve 32 >>= halve >>= halve >>= halve
+Just 2
+ghci> do  x <- halve 32
+    |     y <- halve x
+    |     z <- halve y
+    |     halve z
+Just 2
+
+ghci> halve 32 >> Nothing >>= halve >>= halve
 Nothing
-λ: do  x <- halve 32
- |     Nothing
- |     y <- halve x
- |     z <- halve y
- |     halve z
+ghci> do  x <- halve 32
+    |     Nothing
+    |     y <- halve x
+    |     z <- halve y
+    |     halve z
 Nothing
 ~~~
 
@@ -392,9 +392,9 @@ From what we have learned, if any part of that building process is a failure,
 the entire thing is necessarily a failure.  This is reflected in `sequence`:
 
 ~~~haskell
-λ: sequence [Just 1, Just 4, Just 6]
+ghci> sequence [Just 1, Just 4, Just 6]
 Just [1,4,6]
-λ: sequence [Just 1, Nothing, Just 6]
+ghci> sequence [Just 1, Nothing, Just 6]
 Nothing
 ~~~
 
@@ -503,20 +503,20 @@ But let's try doing this instead with the Maybe monad:
 ~~~
 
 ~~~haskell
-λ: setHealth 2 >>= hit >>= powerup >>= hit >>= powerup >>= powerup
+ghci> setHealth 2 >>= hit >>= powerup >>= hit >>= powerup >>= powerup
 Just 3
-λ: setHealth 2 >>= hit >>= powerup >>= hit >>= hit >>= powerup
+ghci> setHealth 2 >>= hit >>= powerup >>= hit >>= hit >>= powerup
 Nothing
-λ: setHealth 10 >>= powerup >> die >>= powerup >>= powerup
+ghci> setHealth 10 >>= powerup >> die >>= powerup >>= powerup
 Nothing
-λ: do  h0 <- setHealth 2        -- Just 2
- |     h1 <- hit h0             -- Just 1
- |     h2 <- powerup h1         -- Just 2
- |     h3 <- hit h2             -- Just 1
- |     h4 <- hit h3             -- Nothing
- |     h5 <- powerup h4         -- (skip)
- |     h6 <- powerup h5         -- (skip)
- |     return h6                -- (skip)
+ghci> do  h0 <- setHealth 2        -- Just 2
+    |     h1 <- hit h0             -- Just 1
+    |     h2 <- powerup h1         -- Just 2
+    |     h3 <- hit h2             -- Just 1
+    |     h4 <- hit h3             -- Nothing
+    |     h5 <- powerup h4         -- (skip)
+    |     h6 <- powerup h5         -- (skip)
+    |     return h6                -- (skip)
 Nothing
 ~~~
 
@@ -577,7 +577,7 @@ By this, I mean, given a function that turns a value into a list of values `f
 list and get a new list:
 
 ~~~haskell
-λ: oldList >>= f
+ghci> oldList >>= f
 newList             -- a new list based on old list; f "chained" to `oldList`.
 ~~~
 

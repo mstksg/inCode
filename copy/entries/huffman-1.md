@@ -109,10 +109,10 @@ PreTree a`...so `makePT` is literally just `PTLeaf`.
 
 
 ~~~haskell
-λ: let pt = makePT 'c'
-λ: :t pt
+ghci> let pt = makePT 'c'
+ghci> :t pt
 PreTree Char
-λ: pt
+ghci> pt
 PTLeaf 'c'
 ~~~
 
@@ -134,12 +134,12 @@ Which, from what we saw before, can just be written as:
 ~~~
 
 ~~~haskell
-λ: let pt1 = makePT 'c'
-λ: let pt2 = makePT 't'
-λ: let pt3 = pt1 `mergePT` pt2
-λ: :t pt3
+ghci> let pt1 = makePT 'c'
+ghci> let pt2 = makePT 't'
+ghci> let pt3 = pt1 `mergePT` pt2
+ghci> :t pt3
 PreTree Char
-λ: pt3
+ghci> pt3
 PTNode (PTLeaf 'c') (PTLeaf 't')
 ~~~
 
@@ -168,7 +168,7 @@ We can create, say, a `PreTree` containing the character 'a', weighted with
 integer 1:
 
 ~~~haskell
-λ: WPair 1 (makePTLeaf 'a')
+ghci> WPair 1 (makePTLeaf 'a')
 WPair 1 (makePTLeaf 'a') :: Weighted (PreTree Char)
 ~~~
 
@@ -188,10 +188,10 @@ The above basically says "to make a `WeightedPT` with weight `w`, first
 `makePT` it, and then add that result it to a `WPair w`.
 
 ~~~haskell
-λ: let pt = makeWPT 1 'w'
-λ: :t pt
+ghci> let pt = makeWPT 1 'w'
+ghci> :t pt
 WeightedPT Char
-λ: pt
+ghci> pt
 WPair 1 (PTLeaf 'w')
 ~~~
 
@@ -215,9 +215,9 @@ Which says that `Weighted a` is an `Ord` (is orderable/comparable), and to
 compare two `WPair w x`'s, you compare the `w`'s.
 
 ~~~haskell
-λ: makeWPT 2 'a' > makeWPT 3 'b'
+ghci> makeWPT 2 'a' > makeWPT 3 'b'
 False
-λ: makeWPT 4 't' == makeWPT 4 'k'
+ghci> makeWPT 4 't' == makeWPT 4 'k'
 True
 ~~~
 
@@ -370,7 +370,7 @@ This says that `listFreq` is a fold, where you start with `M.empty` (an empty
 value 1.  If the key already exists, add one to its current value instead.
 
 ~~~haskell
-λ: listFreq "hello world"
+ghci> listFreq "hello world"
 fromList [(' ',1),('d',1),('e',1),('h',1),('l',3),('o',2),('r',1),('w',1)]
 ~~~
 
@@ -386,18 +386,18 @@ function both the key and the value.
 ~~~
 
 ~~~haskell
-λ: let pq = listQueue "hello world"
-λ: :t pq
+ghci> let pq = listQueue "hello world"
+ghci> :t pq
 pq :: PQueue (WPair Int (PreTree Char))
-λ: sizePQ pq
+ghci> sizePQ pq
 8
-λ: let (popped1, pq') = popPQ pq
-λ: popped1
+ghci> let (popped1, pq') = popPQ pq
+ghci> popped1
 Just (WPair 1 ' ')
-λ: let (popped2, pq'') = popPQ pq'
-λ: popped2
+ghci> let (popped2, pq'') = popPQ pq'
+ghci> popped2
 Just (WPair 1 'd')
-λ: sizePQ pq''
+ghci> sizePQ pq''
 6
 ~~~
 
@@ -727,7 +727,7 @@ gives the resulting `a` of the tuple.
 Let's try it out, shall we?
 
 ~~~haskell
-λ: fromJust $ runBuildTree "hello world"
+ghci> fromJust $ runBuildTree "hello world"
 PTNode (PTNode (PTNode (PTLeaf 'h')
                        (PTLeaf 'e')
                )

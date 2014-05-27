@@ -88,13 +88,13 @@ guard False = mzero
 ~~~
 
 ~~~haskell
-λ: halve 6
+ghci> halve 6
 Just 3
-λ: halve 7
+ghci> halve 7
 Nothing
-λ: halve 8 >>= halve
+ghci> halve 8 >>= halve
 Just 2
-λ: halve 7 >>= halve
+ghci> halve 7 >>= halve
 Nothing
 ~~~
 
@@ -127,17 +127,17 @@ A "success" is a non-empty list.
 Watch:
 
 ~~~haskell
-λ: halve' 6
+ghci> halve' 6
 [3]
-λ: halve' 7
+ghci> halve' 7
 []
-λ: halve' 8 >>= halve'
+ghci> halve' 8 >>= halve'
 [2]
-λ: halve' 7 >>= halve'
+ghci> halve' 7 >>= halve'
 []
-λ: halve' 32 >>= halve' >>= halve' >>= halve'
+ghci> halve' 32 >>= halve' >>= halve' >>= halve'
 [2]
-λ: halve' 32 >> mzero >>= halve' >>= halve' >>= halve'
+ghci> halve' 32 >> mzero >>= halve' >>= halve' >>= halve'
 []
 ~~~
 
@@ -154,13 +154,13 @@ things...
 ~~~
 
 ~~~haskell
-λ: genericHalve 8 :: Maybe Int
+ghci> genericHalve 8 :: Maybe Int
 Just 4
-λ: genericHalve 8 :: [Int]
+ghci> genericHalve 8 :: [Int]
 [4]
-λ: genericHalve 7 :: Maybe Int
+ghci> genericHalve 7 :: Maybe Int
 Nothing
-λ: genericHalve 7 :: [Int]
+ghci> genericHalve 7 :: [Int]
 []
 ~~~
 
@@ -225,9 +225,9 @@ racist.
 ~~~
 
 ~~~haskell
-λ: halveOrDouble 6
+ghci> halveOrDouble 6
 [ 3,12]
-λ: halveOrDouble 7
+ghci> halveOrDouble 7
 [   14]
 ~~~
 
@@ -258,11 +258,11 @@ four successful paths for a number divisible by four.
 Let's try it out:
 
 ~~~haskell
-λ: halveOrDouble 5 >>= halveOrDouble
+ghci> halveOrDouble 5 >>= halveOrDouble
 [       5, 20]
-λ: halveOrDouble 6 >>= halveOrDouble
+ghci> halveOrDouble 6 >>= halveOrDouble
 [    6, 6, 24]
-λ: halveOrDouble 8 >>= halveOrDouble
+ghci> halveOrDouble 8 >>= halveOrDouble
 [ 2, 8, 8, 32]
 ~~~
 
@@ -321,7 +321,7 @@ hod2PlusOne n = do              -- hod2PlusOne 6
 ~~~
 
 ~~~haskell
-λ: hod2PlusOne 6
+ghci> hod2PlusOne 6
 [   4,13,13]
 ~~~
 
@@ -441,15 +441,15 @@ and try out a very common practical example.
 <!-- ~~~ -->
 
 <!-- ~~~haskell -->
-<!-- λ: testNumber 4 -->
+<!-- ghci> testNumber 4 -->
 <!-- ["times three", "plus two"] -->
-<!-- λ: testNumber 5 -->
+<!-- ghci> testNumber 5 -->
 <!-- ["times three", "cube plus 1"] -->
-<!-- λ: testNumber 6 -->
+<!-- ghci> testNumber 6 -->
 <!-- ["times two", "times three", "plus three", "square", "stay the same"] -->
-<!-- λ: testNumber 7 -->
+<!-- ghci> testNumber 7 -->
 <!-- ["times three", "plus two"] -->
-<!-- λ: testNumber 8 -->
+<!-- ghci> testNumber 8 -->
 <!-- ["times three", "cube plus 1"] -->
 <!-- ~~~ -->
 
@@ -531,9 +531,9 @@ journey* is a failure.
 Let's see what we get when we try it at the prompt:
 
 ~~~haskell
-λ: triplesUnder 10
+ghci> triplesUnder 10
 [ ( 3, 4, 5),( 6, 8,10) ]
-λ: triplesUnder 25
+ghci> triplesUnder 25
 [ ( 3, 4, 5),( 5,12,13),( 6, 8,10),( 7,24,25)
  ,( 8,15,17),( 9,12,15),(12,16,20),(15,20,25) ]
 ~~~
