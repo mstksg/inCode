@@ -95,10 +95,22 @@ entryMarkdownFull :: Entry -> T.Text
 entryMarkdownFull e = T.unlines [ t
                                 , T.map (const '=') t
                                 , T.empty
+                                , T.concat [ "(Originally posted by "
+                                           , authorInfoName (siteDataAuthorInfo siteData)
+                                           , " ["
+                                           , renderUrl' "/"
+                                           , "]"
+                                           , timeString
+                                           , ")"
+                                           ]
+                                , T.empty
                                 , entryContent e
                                 ]
   where
     t = T.unwords . T.lines $ entryTitle e
+    timeString = case entryPostedAt e of
+                   Just ti -> T.append " on " . T.pack . renderShortFriendlyTime $ ti
+                   Nothing -> T.empty
 
 entryTexFull :: Maybe String -> Entry -> T.Text
 entryTexFull temp e = case temp of
@@ -113,6 +125,14 @@ entryTexFull temp e = case temp of
     mdHeader = T.unlines [ T.append "% " eTitle
                          , T.append "% " . authorInfoName . siteDataAuthorInfo $ siteData
                          , eDate
+                         , T.empty
+                         , T.concat [ "*Originally posted on **"
+                                    , "["
+                                    , siteDataTitle siteData
+                                    , "]("
+                                    , renderUrl' "/"
+                                    , ")**.*"
+                                    ]
                          , T.empty
                          , entryContent e
                          ]
