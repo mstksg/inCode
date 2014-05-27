@@ -16,23 +16,26 @@ module Web.Blog.Render (
   , error404
   , askDb
   , runRouteReaderMRight
+  , cacheAndServe
   ) where
 
 import "base" Prelude
 import Config.SiteData
-import Control.Applicative                          ((<$>))
+import Control.Applicative                     ((<$>))
 import Control.Monad.Reader
 import Network.Wai
-import System.Directory                             (doesFileExist)
+import System.Directory
+import System.FilePath
 import Web.Blog.Types
-import qualified Data.Map.Strict                    as M
-import qualified Data.Text                          as T
-import qualified Data.Text.Lazy                     as L
-import qualified Text.Blaze.Html.Renderer.Text      as B
-import qualified Text.Blaze.Html5                   as H
-import qualified Text.Blaze.Internal                as I
-import qualified Text.Pandoc                        as P
-import qualified Web.Scotty                         as S
+import qualified Data.Map.Strict               as M
+import qualified Data.Text                     as T
+import qualified Data.Text.Lazy                as L
+import qualified Data.Text.Lazy.IO             as L
+import qualified Text.Blaze.Html.Renderer.Text as B
+import qualified Text.Blaze.Html5              as H
+import qualified Text.Blaze.Internal           as I
+import qualified Text.Pandoc                   as P
+import qualified Web.Scotty                    as S
 
 
 emptyPageData :: PageData
@@ -173,3 +176,12 @@ getCurrUrl = do
 
 mainSection :: I.Attribute
 mainSection = I.customAttribute "role" "main"
+
+cacheAndServe :: FilePath -> L.Text -> S.ActionM ()
+cacheAndServe fp t = do
+  liftIO $ do
+    createDirectoryIfMissing True (takeDirectory fp)
+    L.writeFile fp t
+  S.file fp
+
+

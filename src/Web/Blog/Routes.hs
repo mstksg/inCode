@@ -6,6 +6,7 @@ import Control.Monad.Reader hiding (forM_, mapM_)
 import Data.Foldable
 import Development.Blog.Util       (backupEntries)
 import Network.HTTP.Types.Status
+import System.FilePath             ((</>))
 import Web.Blog.Models.Types
 import Web.Blog.Render
 import Web.Blog.Routes.About
@@ -53,9 +54,8 @@ homeRoutes db = do
 entryRoutes :: SiteDatabase -> S.ScottyM ()
 entryRoutes db = do
   forM_ ["/","/id"] $ \r -> do
-    let
-      cap = "/e" ++ (L.unpack r ++ "/:entryIdent")
-      red ident = L.append "/entry" $ L.append r $ L.pack ident
+    let cap = "/e" ++ (L.unpack r ++ "/:entryIdent")
+        red ident = L.append "/entry" $ L.append r $ L.pack ident
 
     S.get (S.capture cap) $ do
       eIdent <- S.param "entryIdent"
@@ -63,23 +63,23 @@ entryRoutes db = do
 
   S.get "/entry/id/:eId" $ do
     eIdent <- S.param "eId"
+    let cacher = cacheAndServe ("tmp/static/entry/id" </> L.unpack eIdent)
     case L.stripSuffix ".md" eIdent of
       Just i  -> let i' = read . L.unpack $ i
-                 in  mapM_ S.text =<< routeDatabase' db (markdownEntryId i')
+                 in  mapM_ cacher =<< routeDatabase' db (markdownEntryId i')
       Nothing -> case L.stripSuffix ".tex" eIdent of
                    Just i  -> let i' = read . L.unpack $ i
-                              in mapM_ S.text =<< routeDatabase' db (texEntryId i')
+                              in mapM_ cacher =<< routeDatabase' db (texEntryId i')
                    Nothing -> routeDatabase db routeEntryId
-      -- Nothing -> routeDatabase db routeEntryId
 
   S.get "/entry/:entryIdent" $ do
     eIdent <- S.param "entryIdent"
+    let cacher = cacheAndServe ("tmp/static/entry" </> L.unpack eIdent)
     case L.stripSuffix ".md" eIdent of
-      Just i' -> mapM_ S.text =<< routeDatabase' db (markdownEntrySlug i')
+      Just i' -> mapM_ cacher =<< routeDatabase' db (markdownEntrySlug i')
       Nothing -> case L.stripSuffix ".tex" eIdent of
-                   Just i' -> mapM_ S.text =<< routeDatabase' db (texEntrySlug i')
+                   Just i' -> mapM_ cacher =<< routeDatabase' db (texEntrySlug i')
                    Nothing -> routeDatabase db routeEntrySlug
-      -- Nothing -> routeDatabase db routeEntrySlug
 
 
 archiveRoutes :: SiteDatabase -> S.ScottyM ()
