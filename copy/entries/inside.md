@@ -464,11 +464,6 @@ typeclass[^othermonad].
 
 [^othermonad]: It also needs `return`, which I will mention in due time.
 
-<!-- Now, you may or not have known this, but Monads have a...reputation.  You -->
-<!-- might have heard that Monads were super scary and intimidating.  And you might -->
-<!-- have tried (successfully or unsuccessfully) to "get" Monads.  Well, hopefully -->
-<!-- you don't have to search too much further! -->
-
 Monad is a typeclass (which is kinda like an interface), so that means that
 if `Maybe` is a Monad, it "implements" that way to turn a `a -> Maybe b`
 into a `Maybe a -> Maybe b`.
