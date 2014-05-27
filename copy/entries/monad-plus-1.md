@@ -134,6 +134,7 @@ Hi again!  There are some quick syntax features here.
     ``x `div` 2`` is x divided by two, in case you couldn't guess
     already.
 3.  Otherwise, return `Nothing` --- a failure.
+
 </div>
 
 Because Maybe comes built-in as a monad, we can now chain `halve`s on results

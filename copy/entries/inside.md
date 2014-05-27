@@ -299,6 +299,7 @@ instance you define is useful and sensible, and follow what sort of meaning
     functions be the same as composing lifted functions. (`(.)` is the
     function composition operator)
 2.  `fmap id thing` should leave `thing` unchanged.
+
 </div>
 
 

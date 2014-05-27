@@ -120,6 +120,7 @@ A bunch of Haskell syntax features here!
     form `P f`, and the second is just a string `str`. Remember, `P f` is how
     you specify a `Parser a`; the `f` is the function inside the object.  We
     then call `f` with `str`, and that's what we want.
+
 </div>
 
 Let's say we had a parser `integerParser` pre-made, that parses a string into
@@ -216,6 +217,7 @@ Nothing
     parsing function.
 2. `_` is a wildcard in Haskell; `returnNothing` is a function that takes
     *anything* and returns `Nothing`.
+
 </div>
 
 Easy enough.  How about some parsers that always succeeds with a pre-defined
@@ -298,6 +300,7 @@ anyChar = P getFirst
     string is just an alias for a list of characters.  So `getFirst "hello"`
     will return `Just ('h', "ello")`.
 2.  If you call `getFirst` on an empty list, it fails.
+
 </div>
 
 Let's see it at work.
@@ -630,6 +633,7 @@ instance Functor Parser where                                       -- 1
     to the result first.
 6.  If `unmapped_result` is `Nothing`...well, you can't apply anything to the
     result if the result is a failure (a `Nothing`).  Pass on the failure.
+
 </div>
 
 And now we can use our `Parser a` as a functor; all of our use cases above

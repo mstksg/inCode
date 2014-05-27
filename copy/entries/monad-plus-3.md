@@ -186,6 +186,7 @@ declaring new types.
     really mean `[Move]`, and the compiler treats the two things as the same.
 
 5.  `Position`: same deal as `Character`.
+
 </div>
 
 Implementation
