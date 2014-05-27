@@ -164,14 +164,14 @@ Nothing
 []
 ~~~
 
-<aside>
-    ###### Welcome to Haskell!
+<div class="note">
+**Welcome to Haskell!**
 
 Now, when we say something like `genericHalve 8 :: Maybe Int`, it means "I
 want `genericHalve 8`...and I want the type to be `Maybe Int`."  This is
 necessary here because in our `genericHalve` can be *any* MonadPlus, so we
 have to tell ghci which MonadPlus we want.
-</aside>
+</div>
 
 ([All three versions of `halve` available for playing around with][halves])
 

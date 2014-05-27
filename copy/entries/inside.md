@@ -66,8 +66,8 @@ This type is useful for functions that might fail:
 !!!inside/maybe.hs "-- divideMaybe:" "-- headMaybe:" "-- halveMaybe:" inside-my-world
 ~~~
 
-<aside>
-    ###### Aside
+<div class="note">
+**Aside**
 
 Oh hi!
 
@@ -91,8 +91,7 @@ So `divideMaybe :: Int -> Int -> Maybe Int` means that `divideMaybe` takes two
 You might have also noticed the pattern matching construct, `headMaybe (x:_)`.
 This matches the first element in the list to the name `x`, and the rest of
 the list to the wildcard, `_`.
-
-</aside>
+</div>
 
 When you want to return a value of type `Maybe a`, you can either return `Just
 x` or `Nothing` (where `x :: a`) --- they both are members of type `Maybe a`.
@@ -126,8 +125,8 @@ ghci> addThree (Just 5)
 *** What are you trying to do anyway, wise guy.
 ~~~
 
-<aside>
-    ###### Aside
+<div class="note">
+**Aside**
 
 In this post, commands at the interactive Haskell interpreter (REPL) ghci are
 prefaced with the prompt `ghci>`.  If you see `ghci>`, it means that this is
@@ -140,8 +139,7 @@ lets you find the type of something:
 ghci> :t True
 True :: Bool
 ~~~
-
-</aside>
+</div>
 
 
 In most other languages, to get around this, you would "exit" your uncertain
@@ -289,8 +287,8 @@ ghci> (fmap square) (halveMaybe 7)
 Nothing
 ~~~
 
-<aside>
-    ###### Aside
+<div class="note">
+**Aside**
 
 Any "legitimate" instance of `Functor` must satisfy a couple of
 properties --- "laws", so to speak.  These laws basically ensure that whatever
@@ -301,8 +299,7 @@ instance you define is useful and sensible, and follow what sort of meaning
     functions be the same as composing lifted functions. (`(.)` is the
     function composition operator)
 2.  `fmap id thing` should leave `thing` unchanged.
-
-</aside>
+</div>
 
 
 Some notes before we move on!
@@ -505,8 +502,8 @@ Nothing
 And now maybe we can finally rest easy knowing that we can "stay inside
 `Maybe`" and never have to leave it.
 
-<aside>
-    ###### Aside
+<div class="note">
+**Aside**
 
 The "other thing" that Monad has to have (the other thing that the
 "interface" demands, besides `(=<<)`) is a way to "bring a value into your
@@ -527,12 +524,11 @@ be useful (just like for `Functor`).  If you define nonsensical `return` and
 wouldn't be able to reason with how they work together.  The laws sort of are
 some way of ensuring that your instance is useful and sensible, and that
 `(=<<)` and `return` make sense at all.
+</div>
 
-</aside>
 
-
-<aside>
-    ###### Aside
+<div class="note">
+**Aside**
 
 Now, for some strange reason, it is actually much more popular to use `(>>=)`
 over `(=<<)`; `(>>=)` is just `(=<<)` backwards:
@@ -587,8 +583,7 @@ Why is this style the norm?  Who knows![^whoknows]  People are just weird!
 
 For the rest of this article, we will be using `(=<<)`; just be aware that you
 might see `(>>=)` out in the wild more often!
-
-</aside>
+</div>
 
 Recap
 -----
@@ -651,8 +646,8 @@ the specific instance.  We saw what they "did" for `Maybe`, but their meaning
 came from `Maybe` itself.  For other worlds, as we will see, we can make them
 mean completely different things.
 
-<aside>
-    ###### Aside
+<div class="note">
+**Aside**
 
 There are some important nuances that might trip you up!  Though useful worlds
 are instances of Monad, it is improper to say that "Monads are worlds/values
@@ -663,8 +658,7 @@ In our usage here, Functor and Monad mean only "these things implement some
 sort of `fmap` and `(=<<)`, etc., and those two are useful."  That is, the
 interface offered by Functor and Monad are useful for our specific world.  But
 there are plenty of Functors and Monads that are not "worlds".
-
-</aside>
+</div>
 
 Anyways, here is a whirlwind tour of different worlds, to help you realize how
 often you'll actually want to live in these worlds in Haskell, and why having
@@ -708,15 +702,14 @@ True
 
 Welcome to the world of future values.
 
-<aside>
-    ###### Aside
+<div class="note">
+**Aside**
 
 It is important to note here that `(Reader Int) Bool` and `(Reader [Int])
 Bool` *do not exist* in the same world.  One lives in a `Reader Int` world ---
 a world of future values awaiting an `Int`.  The other lives in a `Reader
 [Int]` world --- a world of future values awaiting an `[Int]`.
-
-</aside>
+</div>
 
 Let's say I have a future `Int`.  Say, `futureLength`, waiting on an
 `[a]`. And I have a function `(< 5) :: Int -> Bool`.  Can I apply `(< 5)` to

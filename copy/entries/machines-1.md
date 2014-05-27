@@ -692,8 +692,8 @@ returns a `b` value based on the previous `a`'s it has seen.
 The main point here is that `autoFold` is a sort of "function" in a way...just
 like the others before it.  It's a...."function-like thing".
 
-<aside>
-###### Aside
+<div class="note">
+**Aside**
 
 Here is a quick diversion, if you're up for it.  This doesn't really have too
 much to do with the rest of the post, but it'll help you test your intuition a
@@ -714,7 +714,7 @@ are really talking about `drop 1 . scanl op init`)
 Compare what they do conceptually.  Then, for fun, try implementing some of
 them in terms of the other.  Which re-implementations are possible?  Which
 ones aren't?
-</aside>
+</div>
 
 ### More Auto examples
 
