@@ -128,6 +128,8 @@ processCodeBlocks = do
       promptString <- contents cde >>= first >>= getText
       when ("λ:" `isPrefixOfT` promptString) $
         addClass "code-block-prompt" blk
+      when ("ghci>" `isPrefixOfT` promptString) $
+        addClass "code-block-prompt" blk
 
     processForSource :: JQuery -> Fay JQuery
     processForSource blk = do
