@@ -22,7 +22,9 @@ import qualified Data.Vector                 as V
 import qualified Database.Persist.Postgresql as D
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Pandoc                 as P
+import qualified Text.Pandoc.Builder         as P
 import qualified Text.Pandoc.Templates       as P
+import qualified Text.Pandoc.Walk            as P
 
 slugLength :: Int
 slugLength = appPrefsSlugLength $ siteDataAppPrefs siteData
@@ -106,10 +108,23 @@ entryTexFull temp e = case temp of
                in  T.pack . P.writeLaTeX opts' $ pd
     Nothing -> T.pack . P.writeLaTeX opts $ pd
   where
-    pd   = entryPandoc (e { entryContent = entryMarkdownFull e })
+    pd      = P.walk upgrade rawPd
+    rawPd   = entryPandoc (e { entryContent = mdHeader })
+    mdHeader = T.unlines [ T.append "% " eTitle
+                         , T.append "% " . authorInfoName . siteDataAuthorInfo $ siteData
+                         , eDate
+                         , T.empty
+                         , entryContent e
+                         ]
+    eDate   = case entryPostedAt e of
+                Just t  -> T.append "% " . T.pack . renderShortFriendlyTime $ t
+                Nothing -> T.empty
+    eTitle  = T.unwords . T.lines $ entryTitle e
     -- opts = pandocWriterOptions { P.writerNumberSections = True }
     opts = pandocWriterOptions
-
+    upgrade (P.Header n t xs) | n > 1 = P.Header (n-1) t xs
+    upgrade (P.Div di@(_,is,_) xs) | "note" `elem` is = P.Div di (P.HorizontalRule : xs ++ [P.HorizontalRule])
+    upgrade x               = x
 
 
 genEntrySlug :: Int -> D.Key Entry -> T.Text -> D.SqlPersistM T.Text
