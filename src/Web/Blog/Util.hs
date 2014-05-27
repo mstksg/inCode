@@ -79,4 +79,3 @@ stripPandoc (P.Pandoc _ bs) = T.pack $ P.stringify inls
     grabInls (P.Table cap _ _ _ _) = cap
     grabInls _ = []
 
-
