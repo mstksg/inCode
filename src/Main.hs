@@ -58,11 +58,12 @@ cacheBackend app req =
 
 toCache :: [ByteString]
 toCache = [
-    "/css"
-  , "/favicon.ico"
+    -- "/css"
+  -- , "/favicon.ico"
+    "/favicon.ico"
   , "/font"
   , "/img"
-  , "/js"
+  -- , "/js"
   , "/robots.txt"
   ]
 
