@@ -116,8 +116,7 @@ in a way, I really wasn't --- this was the part of Physics that I loved this
 entire time, and I am not the first in History to make this choice.  I was
 eager to apply all of the intuition and tools and insight that I learned from
 studying Physics and finishing a B.S. on it to this field that needed --- more
-than any other --- someone who came from exactly that background.  I found my
-fit!
+than any other --- someone who came from exactly that background.
 
 Why Chapman?
 ------------
