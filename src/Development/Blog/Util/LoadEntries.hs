@@ -3,6 +3,7 @@ module Development.Blog.Util.LoadEntries (loadEntries) where
 
 import "base" Prelude
 import Control.Applicative                    (pure)
+import Control.Arrow
 import Control.Monad
 import Control.Monad.IO.Class
 import Data.Functor
@@ -18,12 +19,14 @@ import Web.Blog.Database
 import Web.Blog.Models
 import Web.Blog.Models.Types
 import Web.Blog.Models.Util
+import Web.Blog.Render                        (renderUrl')
 import qualified Data.Map.Strict              as M
 import qualified Data.Text                    as T
 import qualified Database.Persist.Postgresql  as D
 import qualified Text.Pandoc                  as P
 import qualified Text.Pandoc.Builder          as P
 import qualified Text.Pandoc.Readers.Markdown as PM
+import qualified Text.Pandoc.Walk             as P
 
 data MetaKey = MetaKeyTags
              | MetaKeyCategories
@@ -62,15 +65,16 @@ processEntryFile entryFile = do
     (P.Pandoc _ contents, _) <- liftIO $
       readMarkdown <$> readPreProcess entryFile
 
-    let
-      writeMarkdownBlocks bs = writeMarkdown $ P.doc $ P.fromList bs
-      (P.Header _ _ headerBlocks, metaBody) = stripAndTake isHeader contents
-      (metaBlock, body) = stripAndTake isDefList metaBody
+    let writeMarkdownBlocks bs = writeMarkdown $ P.doc $ P.fromList bs
+        (P.Header _ _ headerBlocks, metaBody) = stripAndTake isHeader contents
 
-      titleRaw = writeMarkdownBlocks $ pure $ P.Plain headerBlocks
-      titleSmart = P.readMarkdown smartReaderOptions titleRaw
-      title = T.pack $ writeMarkdown titleSmart
-      entryMarkdown = T.pack $ writeMarkdownBlocks body
+        (metaBlock, body) = stripAndTake isDefList metaBody
+        body'             = P.walk qualifyLinks body
+
+        titleRaw      = writeMarkdownBlocks $ pure $ P.Plain headerBlocks
+        titleSmart    = P.readMarkdown smartReaderOptions titleRaw
+        title         = T.pack $ writeMarkdown titleSmart
+        entryMarkdown = T.pack $ writeMarkdownBlocks body'
 
     metas <- fmap M.fromList . mapM (processMeta tzone) $ defListList metaBlock
 
@@ -119,12 +123,19 @@ processEntryFile entryFile = do
         stripped = dropWhile (not . p) l
         taken = head stripped
         rest = tail stripped
+
     isHeader (P.Header 1 _ _)         = True
     isHeader _                        = False
     isDefList (P.DefinitionList _)    = True
     isDefList _                       = False
     defListList (P.DefinitionList ds) = ds
     defListList _                     = mempty
+    qualifyLinks (P.Link il t)        = P.Link il (first renderUrlStr t)
+    qualifyLinks (P.Image il t)       = P.Image il (first renderUrlStr t)
+    qualifyLinks b                    = b
+
+    unliftText f = T.unpack . f . T.pack
+    renderUrlStr = unliftText renderUrl'
 
 findExistingEntry :: T.Text -> M.Map MetaKey MetaValue -> D.SqlPersistM (Maybe (D.Entity Entry))
 findExistingEntry title metas = foldl go (return Nothing) attempts
