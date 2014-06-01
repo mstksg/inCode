@@ -5,6 +5,8 @@ Categories
 :   Personal
 Tags
 :   education
+:   chapman
+:   doctorate
 CreateTime
 :   2014/05/28 23:50:48
 PostDate
@@ -96,6 +98,15 @@ eager to apply all of the intuition and tools and insight that I learned from
 studying Physics and finishing a B.S. on it to this field that needed --- more
 than any other --- someone who came from exactly that background.  I found my
 fit :)
+
+Why Chapman?
+------------
+
+After doing the above soul-searching, it came time to finally send out my
+applications.  I collected the best of my references and wrote out my best
+personal statement and submitted my applications to a very narrow set of
+schools, from a wide variety of programs and fields --- from Physics to
+Engineering to Computational Sciences (from that SIAM list above).
 
 
 
