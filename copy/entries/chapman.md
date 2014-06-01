@@ -14,8 +14,6 @@ PostDate
 Identifier
 :   chapman
 
-![Williams Hall --- Chapman University (Photo by Tom Arthur)](/img/entries/chapman/williams-hall.png "Williams Hall --- Chapman University (Photo by Tom Arthur)")
-
 So a bit of some personal news (which you can safely ignore if you're not
 interested in my personal life!) --- I'm excited to announce that I have
 decided to accept an offer to the Computational and Data Science Doctorate
@@ -25,10 +23,12 @@ over, and weighting opportunities at Chapman against my other offers.
 However, having just finalized everything this week, I am in my choice of
 Chapman as my home for my doctoral studies in the upcoming years.
 
+[chapman]: http://www.chapman.edu/
+
 There are two main aspects to my decision --- why computational science, and
 why Chapman?
 
-[chapman]: http://www.chapman.edu/
+![Williams Hall --- Chapman University (Photo by Tom Arthur)](/img/entries/chapman/williams-hall.jpg "Williams Hall --- Chapman University (Photo by Tom Arthur)")
 
 Why Computational Science?
 --------------------------
