@@ -14,6 +14,8 @@ PostDate
 Identifier
 :   chapman
 
+![Chapman University (Photo by Tom Arthur)](/img/entries/chapman/williams-hall.png "Chapman University (Photo by Tom Arthur)")
+
 So a bit of some personal news (which you can safely ignore if you're not
 interested in my personal life!) --- I'm excited to announce that I have
 decided to accept an offer to the Computational and Data Science Doctorate
@@ -96,11 +98,11 @@ maths.  And I knew that it was really what I had wanted to do all along.
 Not only was it what I was apparently passionate about this entire time, I saw
 it as a very important field in the coming ages.  With computation and data
 science more important than ever in the fields of medicine, engineering,
-meteorology, defense, technology, artificial intelligence, and in simply
-rethinking the way we live life --- I was excited to be able to be a pioneer
-in this new field that had the potential to impact so many sectors of the
-world.  It was exciting also because it was such a new field that there was
-much room for innovation, and people today still are only beginning to
+healthcare, economics, meteorology, defense, artificial intelligence, and in
+simply rethinking the way we live life --- I was excited to be able to be a
+pioneer in this new field that had the potential to impact so many sectors of
+the world.  It was exciting also because it was such a new field that there
+was much room for innovation, and people today still are only beginning to
 partially realize what was even possible with computational science.  If I can
 look back in sixty years at the world around me and see a revolutionized world
 and believe that I had a part in it all, I don't think I'd be regretting
