@@ -14,7 +14,7 @@ PostDate
 Identifier
 :   chapman
 
-![Chapman University (Photo by Tom Arthur)](/img/entries/chapman/williams-hall.png "Chapman University (Photo by Tom Arthur)")
+![Williams Hall --- Chapman University (Photo by Tom Arthur)](/img/entries/chapman/williams-hall.png "Williams Hall --- Chapman University (Photo by Tom Arthur)")
 
 So a bit of some personal news (which you can safely ignore if you're not
 interested in my personal life!) --- I'm excited to announce that I have
