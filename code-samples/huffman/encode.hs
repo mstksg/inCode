@@ -10,6 +10,7 @@ import Control.Monad.IO.Class
 import Control.Monad.Trans.State.Strict
 import Data.Foldable                    (sum, forM_)
 import Data.Map.Strict                  (Map, (!))
+import Data.Maybe                       (fromMaybe)
 import Lens.Family2                     (view)
 import Prelude hiding                   (sum)
 import System.Environment               (getArgs)
@@ -42,10 +43,7 @@ main = do
                        _          -> error "Give input and output files."
 
     metadata <- analyzeFile inp
-    let (len,tree) = case metadata of
-                       Just (l,t) -> (l,t)
-                       _          -> error "Empty file."
-
+    let (len,tree) = fromMaybe (error "Empty File") metadata
     encodeFile inp out len tree
 
 -- returns the file length and the huffman encoding tree
@@ -68,32 +66,39 @@ encodeFile inp out len tree =
       BL.hPut hOut $ encode tree
       let dirStream = fromHandle hIn
                   >-> bsToBytes
-                  >-> encodeByte enctable
+                  >-> encodeByte encTable
           bytesOut  = dirsBytes dirStream
       runEffect $ view pack bytesOut
               >-> toHandle hOut
   where
-    enctable = ptTable tree
+    encTable = ptTable tree
+
+
+-- Receive ByteStrings from upstream and send its Word8 components
+-- downstream
+bsToBytes :: Monad m => Pipe ByteString Word8 m r
+bsToBytes = PP.mapFoldable B.unpack
 
 -- Transforms a stream of bytes into a stream of directions that encode
 -- every byte.
 encodeByte :: (Ord a, Monad m) => Map a Encoding -> Pipe a Direction m r
-encodeByte enctable = PP.mapFoldable (enctable !)
+encodeByte encTable = PP.mapFoldable (encTable !)
 
 -- Transform a Direction producer into a byte/Word8 producer.  Pads the
 -- last byte with zeroes if the direction stream runs out mid-byte.
 dirsBytes :: (MonadIO m, Functor m) => Producer Direction m r -> Producer Word8 m ()
 dirsBytes p = do
     (res,lo) <- lift $ runStateT dirsBytesP p
-    forM_ res $ \byte -> do
-      yield byte
-      dirsBytes lo
+    case res of
+      Just byte -> do
+        yield byte
+        dirsBytes lo
+      Nothing   -> return ()
 
 -- Parser that turns a stream of directions into a stream of bytes, by
 -- condensing eight directions into one byte.  If the direction stream
 -- stops mid-byte, pad it with zero's.  If direction stream is already
 -- exhausted, return Nothing.
---
 dirsBytesP :: (Monad m, Functor m) => Parser Direction m (Maybe Word8)
 dirsBytesP = do
     isEnd <- isEndOfInput
@@ -110,9 +115,3 @@ dirsBytesP = do
         Just DRight -> go     (setBit b i) (i + 1)
         Nothing     -> return b
 
-
-
--- Receive ByteStrings from upstream and send its Word8 components
--- downstream
-bsToBytes :: Monad m => Pipe ByteString Word8 m r
-bsToBytes = PP.mapFoldable B.unpack

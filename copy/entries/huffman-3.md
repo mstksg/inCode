@@ -58,7 +58,7 @@ There have been many solutions developed to this problem and in modern times,
 [conduit][] and [pipes][] have emerged, built on the backs of early
 coroutine-based libararies.  These libraries are built on the idea of purely
 assembling and "declaring" the IO pipline that you want, with each pipeline
-component having very explicit and composable and reasonable IO
+component having very explicit and composable and able-to-reason-with IO
 read/write/close semantics.
 
 [pipes]: http://hackage.haskell.org/package/pipes
@@ -282,13 +282,116 @@ lazy `ByteString`, and writes that `ByteString` out to the file.  We use the
 lazy version because `encode` gives us a lazy `ByteString` by default.
 
 Now, we get to our actual pipes.  The first "pipeline" is `dirStream`, which
-is our stream (producer) of `Direction`s encoding
+is our stream (producer) of `Direction`s encoding the input file.  As can be
+read, `dirStream` is `fromHandle hIn` (a `ByteString` producer from the given
+handle) piped into our old friend `bsToBytes` piped into `encodeByte
+encTable`, which is a pipe taking in bytes (`Word8`), looks them up in
+`encTable` (the table mapping `Word8` to `[Direction]`, which we built in Part
+2), and spits out the resulting `Direction`s one at a time.
 
-Now we get to our actual pipes --- first, our producer and source, `fromHandle
-hIn`, which is a producer of `ByteString`s from the given handle.
+`encodeByte encTable` is implemented "exactly the same" as `bsToBytes`:
 
-<!-- say something about `view` -->
+~~~haskell
+!!!huffman/encode.hs "encodeByte ::"
+~~~
 
+instead of using `mapFoldable` with a `ByteString -> [Word8]`, we use
+`mapFoldable` with a `Word8 -> [Direction]`, which does the same thing ---
+apply the function to every incoming item, and spit out the items in the
+resulting list one at a time.
+
+#### Parser
+
+So now we have `dirStream :: Producer Direction IO r`, `fromHandle hIn >->
+bsToBytes >-> encodeByte encTable`, which is a producer of `Direction` drawn
+from the file.  It's now time to "group up" the directions, using the
+"producer transformer" tactic we discussed earlier.
+
+~~~haskell
+!!!huffman/encode.hs "dirsBytes ::"
+~~~
+
+`dirsBytes` turns out `Direction` producer into a `Word8` producer by running
+the *parser* `dirsBytesP` onto the producer, and looping onto itself.
+Remember that in *pipes-parse*:
+
+~~~haskell
+runStateT :: Parser a m b -> Producer a m r -> m (b, Producer a m r)
+~~~
+
+Basically, `runStateT parser` takes a `Producer a` and "parses" a value out of
+it, returning the parsed value and the "leftover/used" `Producer`.
+
+In our case:
+
+~~~haskell
+runStateT :: Parser   Direction IO (Maybe Word8)
+          -> Producer Direction IO r
+          -> IO (Maybe Word8, Producer Direction IO r)
+~~~
+
+So we use the `dirsBytesP` parser onto the producer we are given.  If it
+doesn't parse any bytes (`Nothing`), then we stop.  If it does (`Just byte`),
+then we `yield` the parsed `Word8` and then start over again with the
+leftovers producer.
+
+Let's take a look at the `dirsBytesP` parser, which parses `Direction`s into a
+`Word8`:
+
+~~~haskell
+!!!huffman/encode.hs "dirsBytesP ::"
+~~~
+
+This implemenation is pretty straightforward --- "if the producer is empty,
+return `Nothing`.  Otherwise, start with `00000000` and draw `Direction`s one
+at a time, flipping the appropriate bit when you get a `Right`."  For more
+information on the exact functions for bitwise operators, they all come from
+the [bits][] package.
+
+[bits]: http://hackage.haskell.org/package/bits
+
+Note the usage of `draw`, which "returns" a `Nothing` if you draw from the end
+of the producer, and a `Just x` if there is something to draw.  `draw` is
+special to parsers, because it lets you react on end-of-input as a `Nothing`
+(as opposed to `await`).  In `go`, we loop drawing until we run out, or hit
+all eight bits; then return the result.
+
+We can finally put it all together, by saying `bytesOut = dirsBytes
+dirStream`.
+
+#### view
+
+Now, the next step could have been to pipe in the stream of `Word8` into
+`PP.map pack`, which takes each incoming `Word8` and "packs" them into a
+singleton `ByteString`.
+
+However, this is a bad idea, as you are basically creating a full `ByteString`
+and triggering a write on every byte.  Instead, we use
+
+~~~haskell
+view pack bytesOut
+~~~
+
+where the implementation of `view` basically says "give me your Producer
+(`bytesOut`), and I'll wait for a decent amount of `Word8`'s to go through,
+and *then* pack them all up."  So instead of creating a new full `ByteString`
+for every `Word8` that comes down, you now only create a few for every certain
+reasonably-sized group of `Word8`'s.
+
+~~~haskell
+view :: (Word8 -> ByteString)
+     -> Producer Word8 m r
+     -> Producer ByteString m r
+~~~
+
+note that `view` is *also* a "producer transformer", just like `dirsBytes`.
+
+Anyways, now that we have a stream of `ByteString`, all that's left to do is
+write it to disk.  And for that, we have `toHandle out`, which is a consumer
+that takes in `ByteString` and writes each incoming `ByteString` to the given
+file handler.
+
+And...that's it for encoding!
 
 
 
