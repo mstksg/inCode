@@ -12,7 +12,8 @@ ways to marvel, wonder, and create.  Join me if you wish!
 
 [about]: / "It's a picture of me! :D"
 
-Check out my most popular article: [The Compriseless Reconciliation of Purity
-and I/O][io]!
+Check out my most popular articles: [Inside My World (Ode to Functor and
+Monad)][inside] and [The Compriseless Reconciliation of Purity and I/O][io]!
 
+[inside]: http://blog.jle.im/entry/inside-my-world-ode-to-functor-and-monad
 [io]: http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity
