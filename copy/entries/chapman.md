@@ -45,9 +45,8 @@ beautiful framework with as few assumptions and axioms as possible, and the
 fact that from such simplicity, things weave themselves together to create
 such stunning complexity.
 
-It was, in some ways, not too long (and in other ways, not soon enough) before
-I realized that I was a little out of place amongst my peers, and (apparently)
-a long tradition of physicists.
+It wasn't too long before I realized that I was a little out of place amongst
+my peers, and (apparently) a long tradition of physicists.
 
 I had often remarked that I would have just as much joy in figuring out the
 "physics" of a made-up universe --- that the joy was in finding the
@@ -70,11 +69,10 @@ Maybe, instead of taming the world, I was more fascinated with taming thought?
 ### Taming Thought
 
 Anyways, over the course of the first half of my final year at my
-undergraduate university (when I was already, incidentally, working on my
-applications to physics doctoral programs), I talked to more and more people
-and received a lot of suggestions on what was for me.  I ended up spending
-most of my time in the Applied Maths department of my school, and I eventually
-stumbled upon the field of "Computational Science".
+undergraduate university , I talked to more and more people and received a lot
+of suggestions on what was for me.  I ended up spending most of my time in the
+Applied Maths department of my school, and I eventually stumbled upon the
+field of "Computational Science".
 
 Really, it seemed to represent everything that I had been interested in and
 was pursuing on my own time, for the past year or two.  It represented
@@ -88,8 +86,8 @@ always a bit more experienced in maths than my CS peers.  My peers were often
 times better grounded than me in their respective fields, but I always
 recognized myself as one of the few with that specific and unique
 interdisciplinary blend. Surely, there were people like me --- surely I wasn't
-alone.  And after finding out about Computational Science, as a field...I
-realized that I wasn't.
+alone.  And after finding out about Computational Science, I realized that I
+wasn't.
 
 I knew that I could easily and eagerly spend my entire academic career focused
 on pioneering new methods and models and theories of computation and applied
@@ -98,11 +96,11 @@ maths.  And I knew that it was really what I had wanted to do all along.
 Not only was it what I was apparently passionate about this entire time, I saw
 it as a very important field in the coming ages.  With computation and data
 science more important than ever in the fields of medicine, engineering,
-healthcare, economics, meteorology, defense, artificial intelligence, and in
-simply rethinking the way we live life --- I was excited to be able to be a
-pioneer in this new field that had the potential to impact so many sectors of
-the world.  It was exciting also because it was such a new field that there
-was much room for innovation, and people today still are only beginning to
+health care, economics, defense, artificial intelligence, and in simply
+rethinking the way we live life --- I was excited to be able to be a pioneer
+in this new field that had the potential to impact so many sectors of the
+world.  It was exciting also because it was such a new field that there was
+much room for innovation, and people today still are only beginning to
 partially realize what was even possible with computational science.  If I can
 look back in sixty years at the world around me and see a revolutionized world
 and believe that I had a part in it all, I don't think I'd be regretting
@@ -122,59 +120,61 @@ Why Chapman?
 ------------
 
 After doing the above soul-searching, it came time to finally send out my
-applications.  I collected the best of my references and wrote out my best
-personal statements and submitted my applications to a very narrow and
-selective set of schools, from a variety of programs and fields --- from
-Physics to Electrical Engineering to Computational Sciences (drawn from this
-[useful SIAM journal list][siam]).  I only picked programs where I felt I
-could apply what I mentioned above.  I was even able to manage to get a
-much-appreciated recommendation from a distinguished person in the Haskell
-community that I admired very much, a professor at University of California,
-San Diego.
+applications.  I collected the best of my references and wrote out my personal
+statements, researched schools and faculty, and submitted my applications to a
+very narrow and selective set of schools, from a variety of programs and
+fields --- from Physics to Electrical Engineering to Computational Sciences
+(picking from universities on this [useful SIAM journal list][siam]).  I only
+picked programs where I felt I could apply what I mentioned above.  I was even
+able to manage to get a much-appreciated recommendation from a distinguished
+person in the Haskell community that I admired very much, a professor at
+University of California, San Diego.
 
 [siam]: http://www.siam.org/students/resources/cse_programs.php
 
-The months passed and the offers and rejections came.  I did not receive an
-offer from my few choices in pure Physics, but I received offers from places
-in Electrical Engineering and Computational Science --- Chapman among them.
+The months passed and the offers and rejections came.  As expected, I did not
+receive an offer from my few choices in pure Physics, but I received offers
+from places in Electrical Engineering and Computational Science --- Chapman
+among them.
 
 Every place I received an offer from offered their own unique benefits ---
 from the reputation of a big name to strong ties in favorable industries, and
 the like.
 
-Probably the first really impactful event in my becoming certain of Chapman
+Probably the first significant event in my decision to accept Chapman's offer
 was my meeting with the Chancellor, Daniele Struppa --- a brilliant
 mathematician who literally embodied everything about the field that I loved.
 A chancellor who still was active in research, he showed me how he himself
-worked in the fields of biology, seismology, geology, meteorology, and
-ontology, and many more by simply looking at the problems and linking concepts
-of applied mathematics.  With knowledge of the wider context of applied maths,
-he was able to look into problems and find just the tool that was missing.
+worked in the fields of biology, geology, meteorology, and ontology, and many
+more by simply looking at the problems and linking concepts of applied
+mathematics.  With knowledge of the wider context of applied maths, he was
+able to look into problems and find just the tool that was missing.
 
 He shared with me his vision of Chapman's future in the sciences, and much of
 it reflected his own philosophy.  He dreamed of expanding Chapman as an
 established name into industries and fields I was excited to be a part of. And
 I saw myself able to not only be a part of a growing field but to also be a
 part of a new movement and a very grand vision of an up-and-coming science
-university, and maybe even being able to help shape it.
+university, and maybe (just maybe!) even being able to help shape it.
 
 The fact that Chapman was home to an impressive list of top world physicists
 (including a 2013 Nobel Laureate involved in discovering the Higgs mechanism)
 didn't hurt either!
 
-Still, this wasn't enough to clinch my decision.  Other universities I had
-offers from weren't just up-and-coming --- they were already established!
+Still, even with this, I still was not yet fully decided.  My other offers
+were from schools that weren't just up-and-coming --- they were already
+established!
 
 However, when I looked at their doctorate programs (in comparison to
 Chapman's), I couldn't help but feel like I'd be compromising myself.  Other
-departments had aspects that I could apply what I was passionate about to;
-advisers and teams that I could, if I twisted myself just the right way, apply
-my interests.  However, everything about Chapman's program seemed to just fit
-like a glove.  The objective, the courses, and the projects and advisers, as I
-began to realize, were almost as if they were lifted straight from my dream
-school --- my dream program!  If I could write my own doctoral program,
-environment, and culture, it would almost exactly match the environment,
-culture, and program of Chapman.
+departments had aspects that I could apply what I was passionate about to.
+They had advisors an teams that I could  --- if I twisted myself in just the
+right way --- apply my interests towards. However, everything about Chapman's
+program seemed to just fit like a glove.  The objective, the courses, and the
+projects and advisers, as I began to realize, were almost as if they were
+lifted straight from my dream school --- my dream program!  If I could write
+my own doctoral program, environment, and culture, it would almost exactly
+match the environment, culture, and program of Chapman.
 
 When I realized that, I realized that I had made my decision.
 
