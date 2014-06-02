@@ -45,46 +45,24 @@ streaming.--- that is, we only ever have in memory exactly what we are
 processing at that moment, and nothing else. For this, there are a couple
 go-to abstractions we can use that provides this (at the low level).
 
-1.  We have the always-classic conceptually simple **lazy IO**. Basically, we
-    construct a series of IO operations on a file that operates on it
-    line-by-line (or whatever your buffering settings are), as if it were
-    actually all in memory.
+We can use lazy IO, which basically relies on Haskell's built in laziness
+semantics that we know and love to control when IO happens.  The problem here
+is that your IO actions are no longer first-class members of the language ---
+they are "runtime magic".  You can no longer really reason about when file
+handles are closed and exactly when reads happen.  This really is a bit
+antithetical to Haskell, a language where we actually have the ability to move
+IO into a first-class member of the language and make it something that we can
+actually reason about.
 
-    We then rely on the GHC runtime's *lazy evaluation* to "not read the IO
-    until we ask for it".  Just like lazy evaluation for normal values (values
-    that are "defined" are not evaluated until you ask for them).  In this
-    way, the file is only read whenever you actually ask for it/need it, into
-    memory line-by-line.  When you no longer need it, it is garbage collected
-    --- just like normal values.  This maintains the "constant space".
+There have been many solutions developed to this problem and in modern times,
+[conduit][] and [pipes][] have emerged, built on the backs of early
+coroutine-based libararies.  These libraries are built on the idea of purely
+assembling and "declaring" the IO pipline that you want, with each pipeline
+component having very explicit and composable and reasonable IO
+read/write/close semantics.
 
-    While this solution is apparently elegant at first, it suffers from much
-    of the problems that plague lazy evaluation in general: unpredictable
-    resource usage.  With lazy semantics, what is done when is very
-    unpredictable because you rely on the runtime system --- something not in
-    the control of your code.  You have very little control of specifying when
-    you read anything or when files are closed.
-
-    For this reason, lazy IO is discouraged for most resource-sensitive
-    applications in the real world.
-
-2.  We have a whole selection of libraries based on Coroutines.  Born out of
-    the first Iteratee libraries, over the past five or so years,
-    implementations and libraries have risen and fallen and, as of 2014, two
-    main ones stand: [conduit][] and [pipes][].
-
-    [pipes]: http://hackage.haskell.org/package/pipes
-    [conduit]: https://hackage.haskell.org/package/conduit
-
-    Both conduits and pipes are based around the idea of a "processing
-    pipeline" that, at each step (each "pipe"), transforms streaming data
-    explicitly piece-by-piece.  We build these pipelines out of components ---
-    some are provided by libraries, and some we write ourselves using a very
-    simple monadic DSL/API based on await/yield semantics.
-
-    No relying on laziness to time our IO; the library handles it all for us
-    in a meaningful, predicatable, and controllable way --- and the cleanup,
-    too!
-
+[pipes]: http://hackage.haskell.org/package/pipes
+[conduit]: https://hackage.haskell.org/package/conduit
 
 The choice between *conduit* and *pipes* depends a lot on what you want to
 accomplish.  There was a very nice [Haskell Cast][hc] episode on this matter
@@ -96,12 +74,13 @@ different backgrounds and histories.
 Conduit focuses around safe resource handling, and pipes focuses on equational
 reasoning and applied mathematical abstractions.
 
-We're going to use pipes for this tutorial.  More specifically, pipes
-augmented with [pipes-parse][].  Why not conduit, which has built-in
-leftover/end-of-stream detection?  Well, no major reason.  You could actually
-translate much of what is described here to conduit with little work.  But I
-wanted to show pipes to maybe display some of the nice equational reasoning
-possible with mathematics-based abstractions that Haskell is so famous for.
+We're going to use pipes for this tutorial, with some elements from
+[pipes-parse][] for our limited requirements of leftover support.  Why not conduit,
+which has built-in leftover/end-of-stream detection?  Well, no major reason.
+You could actually translate much of what is described here to conduit with
+little work.  But I wanted to show pipes to maybe display some of the nice
+equational reasoning possible with mathematics-based abstractions that Haskell
+is so famous for.
 
 [pipes-parse]: http://hackage.haskell.org/package/pipes-parse
 
