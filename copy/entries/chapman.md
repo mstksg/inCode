@@ -19,9 +19,9 @@ interested in my personal life!) --- I'm excited to announce that I have
 decided to accept an offer to the Computational and Data Science Doctorate
 Program at [Chapman University][chapman] in California.  I came to this
 decision after a decently long period of deliberation and thinking things
-over, and weighting opportunities at Chapman against my other offers.
-However, having just finalized everything this week, I am in my choice of
-Chapman as my home for my doctoral studies in the upcoming years.
+over, and weighing opportunities at Chapman against my other offers. However,
+having just finalized everything this week, I am ready to announce Chapman as
+my home for my doctoral studies in the upcoming years.
 
 [chapman]: http://www.chapman.edu/
 
@@ -52,17 +52,17 @@ I had often remarked that I would have just as much joy in figuring out the
 "physics" of a made-up universe --- that the joy was in finding the
 mathematical models that would describe it and finding out the implications.
 
-Apparently --- and who knew! --- these days, physicists are driven by a desire
-to understand our own physical world.
+Apparently --- and who knew! --- these days, most physicists are driven by a
+desire to understand our *own* physical world.
 
 I looked back on all of the physicists of history who I admired --- Gauss,
-Gibbs, Metropolis, Heisenberg --- I admired them for their ability to invent
+Gibbs, Metropolis, Heisenberg --- I looked up to them for their ability to invent
 and draw from new mathematics to tackle their very real problems at hand.  The
-fact that Gauss is almost just as popular in Mathematics as he is in Physics
-is a true testament to his genius.  And while Gibbs is known for
-revolutionizing statistical mechanics and thermodynamics as we know it, I was
-more fascinated by the intricate maths that he pioneered and *invented*,
-*just* to solve the problems at hand.
+fact that Gauss is just as popular in Mathematics as he is in Physics is a
+true testament to his genius.  And while Gibbs is known for revolutionizing
+thermodynamics and statistical mechanics as we know it, I more admired the
+intricate maths that he pioneered and *invented*, *just* to solve the problems
+at hand.
 
 Maybe, instead of taming the world, I was more fascinated with taming thought?
 
