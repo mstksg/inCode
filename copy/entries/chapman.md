@@ -70,14 +70,16 @@ Maybe, instead of taming the world, I was more fascinated with taming thought?
 
 Anyways, over the course of the first half of my final year at my
 undergraduate university , I talked to more and more people and received a lot
-of suggestions on what was for me.  I ended up spending most of my time in the
-Applied Maths department of my school, and I eventually stumbled upon the
-field of "Computational Science", which was presented to me as this
-interdisciplinary blend of Physics/Engineering, Applied Mathematics, and
-Computer Science.  It basically involves pulling in from the entire landscape
-of maths and applying it to developing new computational techniques, models,
-and methods in order to solve vast and complex problems in the real world
-across a wide variety of domains.
+of suggestions on what was for me.  I owe a lot of where I am today to the
+people who helped me during this stage, and for the people who took time out
+to invest in guiding me.  I found myself spending a lot of time in the Applied
+Maths department of my school, and I eventually stumbled upon the field of
+"Computational Science", which was presented to me as this interdisciplinary
+blend of Physics/Engineering, Applied Mathematics, and Computer Science.  It
+basically involves pulling in from the entire landscape of maths and applying
+it to developing new computational techniques, models, and methods in order to
+solve vast and complex problems in the real world across a wide variety of
+domains.
 
 Really, it seemed to represent everything that I had been interested in and
 was pursuing on my own time, for the past year or two.  It represented
