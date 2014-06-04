@@ -6,15 +6,14 @@ module Main where
 
 -- General imports
 import Control.Applicative              ((<$>))
-import Control.Monad.IO.Class
-import Control.Monad.Trans.State.Strict
+import Control.Monad.Trans.State.Strict (evalState)
 import Data.Foldable                    (sum, forM_)
 import Data.Map.Strict                  (Map, (!))
 import Data.Maybe                       (fromMaybe)
 import Lens.Family2                     (view)
 import Prelude hiding                   (sum)
 import System.Environment               (getArgs)
-import System.IO
+import System.IO                        (withFile, IOMode(..))
 import qualified Data.Map.Strict        as M
 
 -- Pipes imports
@@ -68,7 +67,7 @@ encodeFile inp out len tree =
                   >-> bsToBytes
                   >-> encodeByte encTable
           bytesOut  = dirsBytes dirStream
-      runEffect $ view pack bytesOut
+      runEffect $ (view pack) bytesOut
               >-> toHandle hOut
   where
     encTable = ptTable tree

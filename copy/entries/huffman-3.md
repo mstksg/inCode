@@ -369,8 +369,32 @@ However, this is a bad idea, as you are basically creating a full `ByteString`
 and triggering a write on every byte.  Instead, we use
 
 ~~~haskell
-view pack bytesOut
+(view pack) bytesOut
 ~~~
+
+Which is an idiom that comes from the infamouse *lens* library.  Basically,
+`pack`, from *pipes-bytestring*, holds "producer transformers", like
+`dirsBytes`.  It contains two, actually --- a `Producer Word8 m r -> Producer
+ByteString m r`, and a `Producer ByteString m r -> Producer Word8 m r`.  You
+can think of `pack` as a tupling of the two transformer functions.  `view` is
+a function that takes such a tupling and returns the first transformer
+function.  So `view pack` is just `Producer Word8 m r -> Producer ByteString
+m r`.
+
+So we use `(view pack) bytesOut` to turn our `Word8` producer into a
+`ByteString` producer.  Note that we could have maybe used something like
+`PP.map` (apply a function to every received item and re-yield it with the
+function applied) which would just have called `B.pack` (turn a `[Word8]` into
+a compact `ByteString`).  However, this is pretty inefficient, because we get
+`Word8`'s one-by-one, and using `PP.map`.  Even after that, we still write the
+resulting singleton `ByteString`s to disk one-by-one.  What `pack` does is
+offer "producer transformers" to take an input and
+
+
+<!-- `pack` is from `pipes-bytestring` and is basically a "two-way 'Producer -->
+<!-- Transformer'" (Producer transformer, as in like our `dirsBytes` before) -->
+
+
 
 where the implementation of `view` basically says "give me your Producer
 (`bytesOut`), and I'll wait for a decent amount of `Word8`'s to go through,
@@ -379,7 +403,7 @@ for every `Word8` that comes down, you now only create a few for every certain
 reasonably-sized group of `Word8`'s.
 
 ~~~haskell
-view :: (Word8 -> ByteString)
+view :: ([Word8] -> ByteString)
      -> Producer Word8 m r
      -> Producer ByteString m r
 ~~~
