@@ -28,6 +28,9 @@ jLength = ffi "%1.length"
 sHide :: JQuery -> Fay JQuery
 sHide = ffi "%1['hide']()"
 
+sToggle :: JQuery -> Fay JQuery
+sToggle = ffi "%1['toggle']()"
+
 -- $(document).ready()
 main :: Fay ()
 main = ready $ do
@@ -36,6 +39,7 @@ main = ready $ do
   appendTopLinks
   setupSourceLink
   processCodeBlocks
+  setupAsides
 
   return ()
 
@@ -211,6 +215,31 @@ processCodeBlocks = do
           addClass "code-link-box" linkBox
           prepend linkBox blk
           return linkBox
+
+setupAsides :: Fay ()
+setupAsides = do
+  asides <- select ".main-content .note"
+  flip each asides $ \_ el -> do
+    flipAside True =<< select el
+    return True
+  return ()
+
+flipAside :: Bool -> JQuery -> Fay ()
+flipAside setup aside = do
+  blks <- children aside
+  flip each blks $ \i el -> do
+    elJ <- select el
+    if i == 0
+      then do
+        when setup $ do
+          flip click elJ $ \_ -> flipAside False aside
+          addClass "clickable aside-header" elJ
+        return ()
+      else do
+        sToggle elJ
+        return ()
+    return True
+  return ()
 
 -- | Util functions
 
