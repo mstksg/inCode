@@ -236,7 +236,7 @@ flipAside setup aside = do
           addClass "clickable aside-header" elJ
         return ()
       else do
-        sToggle elJ
+        toggle Fast elJ
         return ()
     return True
   return ()
