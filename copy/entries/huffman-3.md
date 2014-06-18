@@ -196,7 +196,7 @@ So let's get down to it.
 First, our imports:
 
 ~~~haskell
-!!!huffman/encode.hs "-- General imports" "-- Pipes imports" "-- Working with Binary" "-- Huffman imports
+!!!huffman/encode.hs "-- General imports" "-- Pipes imports" "-- Working with Binary" "-- Huffman imports"
 ~~~
 
 It's a doozy, admitedly!
@@ -227,7 +227,7 @@ We encounter our first usage of pipes here, in the definition of `freqs`,
 which uses `PP.fold` (from pipes prelude) to basically run a giant "fold" over
 all of the incoming items of the given producer.
 
-The fold is identical in logic to `listFreq` from a Part 2:
+The fold is identical in logic to `listFreq` from a [Part 2][part 2]:
 
 ~~~haskell
 !!!huffman/Huffman.hs "listFreq ::"
@@ -260,11 +260,11 @@ each contained `Word8` one-by-one.
 [^foldable]: It actually works on all `Foldable`s, not just `[]`.
 
 We use `sum` from `Data.Foldable`, which sums up all the numbers in our
-frequency map.  Then we use what we learned about the State monad in Part 1 to
-build our tree (review Part 1 if you do not understand the declaration of
-`tree`).  `tree` is a `Maybe (PreTree Word8)`; we then tag on the length to
-our `tree` using `fmap` and the TupleSections extension.  (That is, `(,y)` is
-sugar for `(\x -> (x,y))`).
+frequency map.  Then we use what we learned about the State monad in [Part
+1][part 1] to build our tree (review [Part 1][part 1] if you do not understand
+the declaration of `tree`).  `tree` is a `Maybe (PreTree Word8)`; we then tag
+on the length to our `tree` using `fmap` and the TupleSections extension.
+(That is, `(,y)` is sugar for `(\x -> (x,y))`).
 
 #### The Encoding Pipeline
 
@@ -275,8 +275,8 @@ Once we have that, we can get onto the actual encoding process.
 ~~~
 
 First, we open our file handles for our input and output files.  Then, we use
-what we learned in Part 2 to get binary serializations of our length and our
-tree using `encode`, and use `B.hPut` to write it to our file, as the
+what we learned in [Part 2][part 2] to get binary serializations of our length
+and our tree using `encode`, and use `B.hPut` to write it to our file, as the
 metadata.  `BL.hPut` from `Data.ByteString.Lazy` takes a file handle and a
 lazy `ByteString`, and writes that `ByteString` out to the file.  We use the
 lazy version because `encode` gives us a lazy `ByteString` by default.
@@ -286,8 +286,8 @@ is our stream (producer) of `Direction`s encoding the input file.  As can be
 read, `dirStream` is `fromHandle hIn` (a `ByteString` producer from the given
 handle) piped into our old friend `bsToBytes` piped into `encodeByte
 encTable`, which is a pipe taking in bytes (`Word8`), looks them up in
-`encTable` (the table mapping `Word8` to `[Direction]`, which we built in Part
-2), and spits out the resulting `Direction`s one at a time.
+`encTable` (the table mapping `Word8` to `[Direction]`, which we built in
+[Part 2][part 2]), and spits out the resulting `Direction`s one at a time.
 
 `encodeByte encTable` is implemented "exactly the same" as `bsToBytes`:
 
@@ -440,6 +440,49 @@ gigabyte.  We'll look into performance in a later post!
 
 Decoding
 --------
+
+Luckily we can use most of the concepts we learned in writing the encoding
+script to write the decoding script; we also have a less imports, so it's a
+sign that decoding is going to be slightly simpler than encoding.
+
+~~~haskell
+!!!huffman/decode.hs.hs "-- General imports" "-- Pipes imports" "-- Working with Binary" "-- Huffman imports"
+~~~
+
+`main` should seem very familiar:
+
+~~~haskell
+!!!huffman/decode.hs "main ::"
+~~~
+
+And now on to the juicy parts:
+
+~~~haskell
+!!!huffman/decode.hs "decodeFile ::"
+~~~
+
+### Loading metadata
+
+Loading the metadata is a snap, and it uses what we learned earlier from
+`runStateT` and `Parser`s.
+
+Here, our `Parser` is `decode`, from the *pipes-binary* package, and it does
+more or less exactly what you'd expect: it reads in binary data from the
+source stream, consuming it until it has a succesful (or unsuccesful) parse,
+as given by the *binary* package talked about in [Part 2][part 2].  The
+"result" is the `Either` containing the success or failure, and the
+"leftover", consumed source stream.
+
+In our case:
+
+~~~haskell
+runStateT
+  :: Parser   ByteString IO (Either DecodingError (Int, PreTree Word8))
+  -> Producer ByteString IO r
+  -> IO (Either DecodingError (Int, PreTree Word8), Producer ByteString IO r)
+~~~
+
+
 
 
 

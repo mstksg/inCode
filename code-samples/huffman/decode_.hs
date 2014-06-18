@@ -47,17 +47,14 @@ decodeFile fpi fpo =
 -- decodes one.  This works because we have Prefix Tree; every direction
 -- "traverses down" the tree, and as soon as a leaf is hit, its data is
 -- emitted and we move back to the root to start again.
-searchPT :: forall m r a. Monad m => PreTree a -> Consumer' Direction m a
-searchPT pt0 = go pt0
-  where
-    go :: PreTree a -> Consumer' Direction m a
-    go (PTLeaf x)       =
-      return x
-    go (PTNode pt1 pt2) = do
-      dir <- await
-      case dir of
-        DLeft  -> go pt1
-        DRight -> go pt2
+searchPT :: Monad m => PreTree a -> Consumer' Direction m a
+searchPT (PTLeaf x)       =
+    return x
+searchPT (PTNode pt1 pt2) = do
+    dir <- await
+    case dir of
+      DLeft  -> searchPT pt1
+      DRight -> searchPT pt2
 
 -- Takes bytestrings from upstream and yields its component bytes
 bytes :: Monad m => Pipe B.ByteString Word8 m r

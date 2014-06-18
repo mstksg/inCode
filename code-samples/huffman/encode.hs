@@ -7,7 +7,7 @@ module Main where
 -- General imports
 import Control.Applicative              ((<$>))
 import Control.Monad.Trans.State.Strict (evalState)
-import Data.Foldable                    (sum, forM_)
+import Data.Foldable                    (sum)
 import Data.Map.Strict                  (Map, (!))
 import Data.Maybe                       (fromMaybe)
 import Lens.Family2                     (view)
@@ -59,10 +59,9 @@ analyzeFile fp = withFile fp ReadMode $ \hIn -> do
 
 encodeFile :: FilePath -> FilePath -> Int -> PreTree Word8 -> IO ()
 encodeFile inp out len tree =
-    withFile inp ReadMode $ \hIn ->
+    withFile inp ReadMode  $ \hIn  ->
     withFile out WriteMode $ \hOut -> do
-      BL.hPut hOut $ encode len
-      BL.hPut hOut $ encode tree
+      BL.hPut hOut $ encode (len, tree)
       let dirStream = fromHandle hIn
                   >-> bsToBytes
                   >-> encodeByte encTable
@@ -87,11 +86,11 @@ encodeByte encTable = PP.mapFoldable (encTable !)
 -- last byte with zeroes if the direction stream runs out mid-byte.
 dirsBytes :: (MonadIO m, Functor m) => Producer Direction m r -> Producer Word8 m ()
 dirsBytes p = do
-    (res,lo) <- lift $ runStateT dirsBytesP p
-    case res of
+    (result, leftovers) <- lift $ runStateT dirsBytesP p
+    case result of
       Just byte -> do
         yield byte
-        dirsBytes lo
+        dirsBytes leftovers
       Nothing   -> return ()
 
 -- Parser that turns a stream of directions into a stream of bytes, by

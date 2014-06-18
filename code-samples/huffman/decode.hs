@@ -1,0 +1,86 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE RankNTypes #-}
+
+
+module Main where
+
+-- General imports
+import Control.Monad      (forever)
+import Lens.Family2       (view)
+import System.Environment (getArgs)
+import System.IO          (withFile, IOMode(..))
+
+-- Pipes imports
+import Pipes
+import Pipes.Binary                             (decode)
+import Pipes.ByteString                  hiding (ByteString, map)
+import Pipes.Parse
+import qualified Pipes.Prelude                  as PP
+
+-- Working with Binary
+import Data.Bits                 (testBit)
+import Data.ByteString           (ByteString)
+import qualified Data.ByteString as B
+
+-- Huffman imports
+import PreTree
+
+main :: IO ()
+main = do
+    args     <- getArgs
+    let (inp,out)  = case args of
+                       i:o:_      -> (i,o)
+                       _          -> error "Give input and output files."
+    decodeFile inp out
+
+decodeFile :: FilePath -> FilePath -> IO ()
+decodeFile inp out =
+    withFile inp ReadMode  $ \hIn  ->
+    withFile out WriteMode $ \hOut -> do
+      let metadataPipe = fromHandle hIn
+
+      -- consume metapipe to read in the tree/metadata
+      (metadata, decodingPipe) <- runStateT decode metadataPipe
+
+      case metadata of
+        Left   _         ->
+          error "Corrupt metadata."
+        Right (len,tree) -> do
+          -- do everything with the rest
+          let byteStream = decodingPipe >-> bsToBytes
+                       >-> bytesToDirs  >-> searchPT tree
+                       >-> PP.take len
+          runEffect $ view pack byteStream
+                  >-> toHandle hOut
+
+searchPT :: forall a m r. Monad m => PreTree a -> Pipe Direction a m r
+searchPT t = searchPT' t >~ cat
+  where
+    searchPT' :: PreTree a -> Consumer' Direction m a
+    searchPT' (PTLeaf x)       =
+        return x
+    searchPT' (PTNode pt1 pt2) = do
+        dir <- await
+        case dir of
+          DLeft  -> searchPT' pt1
+          DRight -> searchPT' pt2
+
+
+-- Receive ByteStrings from upstream and send its Word8 components
+-- downstream
+bsToBytes :: Monad m => Pipe ByteString Word8 m r
+bsToBytes = PP.mapFoldable B.unpack
+
+
+-- Turns a stream of bytes into a stream of directions, yielding eight
+-- times per byte.
+bytesToDirs :: Monad m => Pipe Word8 Direction m r
+bytesToDirs = forever $ do
+                mapM_ yield . byteToDirList =<< await
+  where
+    -- Turns a byte into a list of directions
+    byteToDirList :: Word8 -> [Direction]
+    byteToDirList b = map f [0..7]
+      where
+        f i | testBit b i = DRight
+            | otherwise   = DLeft
