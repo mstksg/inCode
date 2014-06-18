@@ -43,22 +43,24 @@ Pipes
 So we are searching for an abstraction to handle *constant-space* IO
 streaming.--- that is, we only ever have in memory exactly what we are
 processing at that moment, and nothing else. For this, there are a couple
-go-to abstractions we can use that provides this (at the low level).
+go-to abstractions we can use that provide this (at the low level).
 
 We can use lazy IO, which basically relies on Haskell's built in laziness
 semantics that we know and love to control when IO happens.  The problem here
-is that your IO actions are no longer first-class members of the language ---
-they are "runtime magic".  You can no longer really reason about when file
-handles are closed and exactly when reads happen.  This really is a bit
-antithetical to Haskell, a language where we actually have the ability to move
-IO into a first-class member of the language and make it something that we can
-actually reason about.
+is that your IO actions are no longer [first-class members][pureio] of the
+language --- they are "runtime magic".  You can no longer really reason about
+when file handles are closed and exactly when reads happen.  This really is a
+bit antithetical to Haskell, a language where we actually have the ability to
+move IO into a first-class member of the language and make it something that
+we can actually reason about.
+
+[pureio]: http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity
 
 There have been many solutions developed to this problem and in modern times,
 [conduit][] and [pipes][] have emerged, built on the backs of early
-coroutine-based libararies.  These libraries are built on the idea of purely
-assembling and "declaring" the IO pipline that you want, with each pipeline
-component having very explicit and composable and able-to-reason-with IO
+coroutine-based libraries.  These libraries are built on the idea of purely
+assembling and "declaring" the IO pipeline that you want, with each pipeline
+component having very explicit and comparable and able-to-reason-with IO
 read/write/close semantics.
 
 [pipes]: http://hackage.haskell.org/package/pipes
@@ -71,16 +73,17 @@ different backgrounds and histories.
 
 [hc]: http://www.haskellcast.com/episode/006-gabriel-gonzalez-and-michael-snoyman-on-pipes-and-conduit/
 
-Conduit focuses around safe resource handling, and pipes focuses on equational
-reasoning and applied mathematical abstractions.
+This picture is slightly simplified, but conduit focuses around safe resource
+handling, and pipes focuses on equational reasoning and applied mathematical
+abstractions.
 
 We're going to use pipes for this tutorial, with some elements from
-[pipes-parse][] for our limited requirements of leftover support.  Why not conduit,
-which has built-in leftover/end-of-stream detection?  Well, no major reason.
-You could actually translate much of what is described here to conduit with
-little work.  But I wanted to show pipes to maybe display some of the nice
-equational reasoning possible with mathematics-based abstractions that Haskell
-is so famous for.
+[pipes-parse][] for our limited requirements of leftover support.  Why not
+conduit, which has built-in leftover/end-of-stream detection?  Well, no major
+reason. You could actually translate much of what is described here to conduit
+with little work.  But I wanted to show pipes to maybe display some of the
+nice equational reasoning possible with mathematics-based abstractions that
+Haskell is so famous for.
 
 [pipes-parse]: http://hackage.haskell.org/package/pipes-parse
 
@@ -94,12 +97,17 @@ for it, only a "what's next?".
 [ptut]: http://hackage.haskell.org/package/pipes-4.1.2/docs/Pipes-Tutorial.html
 
 Basically, the entire meat of our program (and the bulk of the design process)
-will be in "declaring" chains of producers, pipes, and consumers.
+will be in "declaring" and "transforming" chains of producers, pipes, and
+consumers.
 
 This approach should be very familiar with anyone who has ever used unix pipes
 --- you can do amazing things by just chaining simple utilities.  At each step
-of the way, each "pipe" transforms an input and pops out an output, which is
+of the way, each "pipe" processes an input and pops out an output, which is
 received by the next step.
+
+We also have ways to "modify components": "pipe transformers"; an analogy in
+bash would be like `sudo`, which takes a normal bash commands and "turns it
+into" a super user command.
 
 And without any further delay, let's write `encode.hs`!
 
@@ -276,7 +284,7 @@ Once we have that, we can get onto the actual encoding process.
 
 First, we open our file handles for our input and output files.  Then, we use
 what we learned in [Part 2][part 2] to get binary serializations of our length
-and our tree using `encode`, and use `B.hPut` to write it to our file, as the
+and our tree using `encode`, and use `BL.hPut` to write it to our file, as the
 metadata.  `BL.hPut` from `Data.ByteString.Lazy` takes a file handle and a
 lazy `ByteString`, and writes that `ByteString` out to the file.  We use the
 lazy version because `encode` gives us a lazy `ByteString` by default.
@@ -284,8 +292,7 @@ lazy version because `encode` gives us a lazy `ByteString` by default.
 Note that we can "put" `(len, tree)` together as a tuple instead of putting
 `len` and `tree` one after the other.  This is okay because we will be
 eventually reading them back as a tuple in our decoding script (also, the
-`Binary` instance for `(a, b)` is also literally just to put `a`, then put
-`b`).
+`Binary` instance for `(a, b)` is literally just to put `a`, then put `b`).
 
 Now, we get to our actual pipes.  The first "pipeline" is `dirStream`, which
 is our stream (producer) of `Direction`s encoding the input file.  As can be
@@ -306,6 +313,8 @@ instead of using `mapFoldable` with a `ByteString -> [Word8]`, we use
 apply the function to every incoming item, and spit out the items in the
 resulting list one at a time.
 
+`(!) :: Map k v -> k -> v` is the lookup function for `Map`s.
+
 #### Parser
 
 So now we have `dirStream :: Producer Direction IO r`, `fromHandle hIn >->
@@ -318,7 +327,13 @@ from the file.  It's now time to "group up" the directions, using the
 ~~~
 
 `dirsBytes` turns out `Direction` producer into a `Word8` producer by running
-the *parser* `dirsBytesP` onto the producer, and looping onto itself.
+the *parser* `dirsBytesP` onto the producer, and looping onto itself.  We'll
+look at `dirsBytesP` later, but for now, know that it is a parser that
+attempts to consume eight `Direction`s and returns them together in a `Just
+byte` with zero padding if the stream runs out; if the stream is already
+empty to start with, it returns `Nothing`.
+
+
 Remember that in *pipes-parse*:
 
 ~~~haskell
@@ -351,16 +366,17 @@ Let's take a look at the `dirsBytesP` parser, which parses `Direction`s into a
 This implemenation is pretty straightforward --- "if the producer is empty,
 return `Nothing`.  Otherwise, start with `00000000` and draw `Direction`s one
 at a time, flipping the appropriate bit when you get a `Right`."  For more
-information on the exact functions for bitwise operators, they all come from
-the [bits][] package.
+information on the exact functions for bitwise operators, look into the
+[bits][] package, where they come from.
 
 [bits]: http://hackage.haskell.org/package/bits
 
 Note the usage of `draw`, which "returns" a `Nothing` if you draw from the end
 of the producer, and a `Just x` if there is something to draw.  `draw` is
 special to parsers, because it lets you react on end-of-input as a `Nothing`
-(as opposed to `await`).  In `go`, we loop drawing until we run out, or hit
-all eight bits; then return the result.
+(as opposed to `await`).  In `go`, we loop drawing until we either get all
+eight bits (and return the resulting byte) or run out of inputs (and return
+the byte that we have so far).
 
 We can finally put it all together, by saying `bytesOut = dirsBytes
 dirStream`.
@@ -368,7 +384,7 @@ dirStream`.
 #### view
 
 Now, the next step could have been to pipe in the stream of `Word8` into
-`PP.map pack`, which takes each incoming `Word8` and "packs" them into a
+`PP.map B.pack`, which takes each incoming `Word8` and "packs" them into a
 singleton `ByteString`.
 
 However, this is a bad idea, as you are basically creating a full `ByteString`
@@ -379,17 +395,40 @@ and triggering a write on every incoming byte.  Instead, we use
 ~~~
 
 Which is an idiom that comes from the infamouse *lens* library.  Basically,
-`pack`, from *pipes-bytestring*, holds "producer transformers", (like
-`dirsBytes`).  It contains two, actually --- a `Producer Word8 m r -> Producer
-ByteString m r`, and a `Producer ByteString m r -> Producer Word8 m r`.
+*pack*, from *pipes-bytestring* (and not the one from *bytestring*), contains
+"producer transformers", (like `dirsBytes`).  It contains two, actually --- a
+`Producer Word8 m r -> Producer ByteString m r`, and a `Producer ByteString m
+r -> Producer Word8 m r`.
 
-In fact you can think of `pack` as simply a tupling of the two transformer
-functions together.  Practically, the tupling/packaging them together is
-useful because the two are inverses of eachother.  For our purposes we can
-just think of them as a tupling.
+In fact, in a way, you can think of `pack` as simply a tupling of the two
+transformer functions together.  Practically, the tupling/packaging them
+together is useful because the two are inverses of eachother.
+
+<div class="note">
+**Aside**
+
+`pack` is actually an isomorphism; if `toBS` is your forward
+transformer and `toW8` is your backwards transformer, `pack` is `iso toBS
+toW8`.
+
+You can then think of `view` as a function that obeys the properties:
+
+~~~haskell
+view (iso to from) = to
+~~~
+
+So when we say `view pack`:
+
+~~~haskell
+view pack
+== view (iso toBS toW8)     -- definition of `pack`
+== toBS                     -- behavior of `view` and `iso`
+~~~
+
+</div>
 
 Simply speaking, `view` is a function from *lens* that takes the "first" part
-(kind of like `fst`) of the tuple.
+(kind of like `fst`) of that "tuple".
 
 So *pipes-bytestring* gives us this tupling of two transformers (one going
 from `Word8` to `ByteString` and one going from `ByteString` to `Word8`),
@@ -403,7 +442,7 @@ let word8ToByte = view pack
 in  word8ToByte bytesOut
 ~~~
 
-There are many reasons why *pipes-bytestring* gives us the two useful
+There are many reasons why *pipes-bytestring* gives us these useful
 functions "tied together" in `pack` instead of just them separately, and they
 have to do with ways you can manipulate them with *lens*.  But that's another
 story :)
@@ -449,8 +488,9 @@ see that the dictionary itself only takes 259 bytes (which is negligible) ---
 so 58% is pretty much the asymptotic compression rate.
 
 At this point it's not as snappy (performance wise) as we'd like; a
-compressing a 3.1M file is not "slow", but you probably won't be compressing a
-gigabyte.  We'll look into performance in a later post!
+compressing a 3.1M file is not "super slow" (it takes seven seconds on my
+computer), but you probably won't be compressing a gigabyte.  We'll look into
+performance in a later post!
 
 Decoding
 --------
@@ -458,17 +498,16 @@ Decoding
 ### Design
 
 Let's try to see the plan for our decoding script, applying what we learned
-before:
-did before in
+before; we want a pipe that:
 
-1.  Read in `ByteString`s from a file
-2.  Turn those `ByteString`s into `Word8`s.
-3.  Turn those `Word8`s into `Direction`s.
-4.  Turn those `Direction`s into `Word8`s again, by using each incoming
-    `Direction` to search our given huffman encoding tree.
-5.  Take the `Word8` producer given by the composition/connecting of steps 1 -
+1.  Reads in `ByteString`s from a file
+2.  Turns those `ByteString`s into `Word8`s.
+3.  Turns those `Word8`s into `Direction`s.
+4.  Turns those `Direction`s into `Word8`s again, by using each incoming
+    `Direction` to search our given Huffman encoding tree.
+5.  Takes the `Word8` producer given by the composition/connecting of steps 1 -
     5, and transform it into a `ByteString` producer using `view pack`
-6.  Write those incoming `ByteString`s to our output file.
+6.  Writes those incoming `ByteString`s to our output file.
 
 ### Down to it
 
@@ -497,12 +536,12 @@ And now on to the juicy parts:
 Loading the metadata is a snap, and it uses what we learned earlier from
 `runStateT` and `Parser`s.
 
-Here, our `Parser` is `decode`, from the *pipes-binary* package, and it does
-more or less exactly what you'd expect: it reads in binary data from the
-source stream, consuming it until it has a succesful (or unsuccesful) parse,
-as given by the *binary* package talked about in [Part 2][part 2].  The
-"result" is the `Either` containing the success or failure, and the
-"leftover", consumed source stream.
+Here, our `Parser` is `decode`, from the *pipes-binary* package (and not from
+*binary*), and it does more or less exactly what you'd expect: it reads in
+binary data from the source stream, consuming it until it has a successful (or
+unsuccessful) parse, as given by the *binary* package talked about in [Part
+2][part 2].  The "result" is the `Either` containing the success or failure,
+and the "leftover", consumed source stream.
 
 In our case:
 
@@ -514,7 +553,7 @@ runStateT
 ~~~
 
 So `metadata` is `Either DecodingError (Int, PreTree Word8)`.  If we get a
-`Left e`, then we throw an error for unparsable/corrupted metadata.  If we get
+`Left e`, then we throw an error for unparseable/corrupted metadata.  If we get
 a `Right (len, tree)`, then we are good to go.
 
 #### The Decoding Pipeline
@@ -682,6 +721,10 @@ $ md5sum warandpeace.dec
 ~~~
 
 And yup, we get an exact, lossless decompression.
+
+Decompression is faster than compression, as you'd expect; on my computer it
+takes about two seconds to decompress the 3.1M file.  Still a bit slower than
+we'd like, but not *too* bad.
 
 Conclusion
 ----------
