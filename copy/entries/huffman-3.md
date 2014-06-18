@@ -457,15 +457,18 @@ Decoding
 
 ### Design
 
-Let's try to see the plan for our decoding script.
+Let's try to see the plan for our decoding script, applying what we learned
+before:
+did before in
 
 1.  Read in `ByteString`s from a file
 2.  Turn those `ByteString`s into `Word8`s.
 3.  Turn those `Word8`s into `Direction`s.
 4.  Turn those `Direction`s into `Word8`s again, by using each incoming
     `Direction` to search our given huffman encoding tree.
-5.  Pack those `Word8`s back into `ByteString`s
-6.  Write the incoming `ByteString`s to our output file.
+5.  Take the `Word8` producer given by the composition/connecting of steps 1 -
+    5, and transform it into a `ByteString` producer using `view pack`
+6.  Write those incoming `ByteString`s to our output file.
 
 ### Down to it
 
@@ -631,7 +634,12 @@ consumer >~ cat
 ~~~
 
 Basically, `consumer >~ cat` repeatedly consumes the input and yields
-downstream the of the consuming.
+downstream the return of the consuming.
+
+(Remember, the value the pipe returns (the `r`) is different than the value
+the pipe "sends downstream"; the downstream values are used in connecting with
+`(>->)` and the like, and the return value is just the value that the specific
+thing *returns* when ran, to the thing doing the running.)
 
 Play around with `(>~)`-ifying different `Pipe`s and seeing what it does to
 it; you might have some fun.
@@ -683,7 +691,7 @@ chaining together streaming computations in a pure, constant-space way.  I
 hope that looking back on it all you can see everything as either a
 transformation of pipes, or a chaining of pipes.
 
-I recommend looking more into the great *pipes* documentation, joining the 
+I recommend looking more into the great *pipes* documentation, joining the
 [pipes mailing list][pml], and trying your own streaming data projects with
 *pipes* to see what you can do with it.
 
