@@ -28,9 +28,9 @@ import PreTree
 main :: IO ()
 main = do
     args     <- getArgs
-    let (inp,out)  = case args of
-                       i:o:_      -> (i,o)
-                       _          -> error "Give input and output files."
+    let (inp, out)  = case args of
+                        i:o:_      -> (i,o)
+                        _          -> error "Give input and output files."
     decodeFile inp out
 
 decodeFile :: FilePath -> FilePath -> IO ()
@@ -43,15 +43,17 @@ decodeFile inp out =
       (metadata, decodingPipe) <- runStateT decode metadataPipe
 
       case metadata of
-        Left   _         ->
+        Left   _          ->
           error "Corrupt metadata."
-        Right (len,tree) -> do
+        Right (len, tree) -> do
           -- do everything with the rest
           let byteStream = decodingPipe >-> bsToBytes
                        >-> bytesToDirs  >-> searchPT tree
                        >-> PP.take len
-          runEffect $ view pack byteStream
-                  >-> toHandle hOut
+              pipeline = (view pack) byteStream
+                     >-> toHandle hOut
+
+          runEffect pipeline
 
 searchPT :: forall a m r. Monad m => PreTree a -> Pipe Direction a m r
 searchPT t = searchPT' t >~ cat
@@ -61,9 +63,9 @@ searchPT t = searchPT' t >~ cat
         return x
     searchPT' (PTNode pt1 pt2) = do
         dir <- await
-        case dir of
-          DLeft  -> searchPT' pt1
-          DRight -> searchPT' pt2
+        searchPT' $ case dir of
+                      DLeft  -> pt1
+                      DRight -> pt2
 
 
 -- Receive ByteStrings from upstream and send its Word8 components

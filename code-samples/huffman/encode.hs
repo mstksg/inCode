@@ -37,12 +37,12 @@ import PreTree
 main :: IO ()
 main = do
     args     <- getArgs
-    let (inp,out)  = case args of
-                       i:o:_      -> (i,o)
-                       _          -> error "Give input and output files."
+    let (inp, out)  = case args of
+                        i:o:_      -> (i,o)
+                        _          -> error "Give input and output files."
 
     metadata <- analyzeFile inp
-    let (len,tree) = fromMaybe (error "Empty File") metadata
+    let (len, tree) = fromMaybe (error "Empty File") metadata
     encodeFile inp out len tree
 
 -- returns the file length and the huffman encoding tree
@@ -66,8 +66,10 @@ encodeFile inp out len tree =
                   >-> bsToBytes
                   >-> encodeByte encTable
           bytesOut  = dirsBytes dirStream
-      runEffect $ (view pack) bytesOut
-              >-> toHandle hOut
+          pipeline  = (view pack) bytesOut
+                  >-> toHandle hOut
+
+      runEffect pipeline
   where
     encTable = ptTable tree
 

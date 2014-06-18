@@ -281,6 +281,12 @@ metadata.  `BL.hPut` from `Data.ByteString.Lazy` takes a file handle and a
 lazy `ByteString`, and writes that `ByteString` out to the file.  We use the
 lazy version because `encode` gives us a lazy `ByteString` by default.
 
+Note that we can "put" `(len, tree)` together as a tuple instead of putting
+`len` and `tree` one after the other.  This is okay because we will be
+eventually reading them back as a tuple in our decoding script (also, the
+`Binary` instance for `(a, b)` is also literally just to put `a`, then put
+`b`).
+
 Now, we get to our actual pipes.  The first "pipeline" is `dirStream`, which
 is our stream (producer) of `Direction`s encoding the input file.  As can be
 read, `dirStream` is `fromHandle hIn` (a `ByteString` producer from the given
@@ -411,7 +417,15 @@ write it to disk.  And for that, we have `toHandle out`, which is a consumer
 that takes in `ByteString` and writes each incoming `ByteString` to the given
 file handler.
 
-And...that's it for encoding!  We're done!
+#### All together
+
+That gives us our final `pipeline`; we lay out a series of pipes and pipes
+transformers that takes our file and streamingly processes the data and writes
+it into the output file.
+
+Once we have our `pipeline`, we use `runEffect` to "run" it; then...that's it!
+
+
 
 ### Testing it out
 
@@ -482,13 +496,168 @@ runStateT
   -> IO (Either DecodingError (Int, PreTree Word8), Producer ByteString IO r)
 ~~~
 
+So `metadata` is `Either DecodingError (Int, PreTree Word8)`.  If we get a
+`Left e`, then we throw an error for unparsable/corrupted metadata.  If we get
+a `Right (len, tree)`, then we are good to go.
+
+### The Decoding Pipeline
+
+The rest just reads like poetry!
+
+~~~haskell
+let byteStream = decodingPipe >-> bsToBytes
+             >-> bytesToDirs  >-> searchPT tree
+             >-> PP.take len
+~~~
+
+Beautiful!  `decodingPipe` is the leftover producer after the parse of the
+metadata.  `bsToBytes` is the same as from our encoder.  `bytesToDirs` is new,
+but pretty simple:
+
+~~~haskell
+!!!huffman/decode.hs "bytesToDirs ::"
+~~~
+
+It uses the *bits* package to turn an incoming `Word8` into a list of its
+constituent bits (in the form of `Direction`s), and yields each of them in
+turn.
+
+We have `searchPT tree`, which is a pipe turning incoming `Direction`s into
+aggregate/outgoing `Word8`s by finding them on the given `PreTree`.  The
+implementation is a bit tricky so we're going to go into it in more detail
+later.
+
+`PP.take len` is new; it's from `Pipes.Prelude`, and it basically says "take
+`len` items from the source, then stop drawing."  This is necessary because,
+because of the padding of 0's we did from the encoding script, there will be
+more bits in the file than are actually a part of the encoding; using
+`PP.take` ensures that we don't try to read the extra padding bits.  It'll
+take up to `len` `Word8`s, and then stop.
+
+And so now we have our `Word8`/byte Producer/stream!
+
+#### searchPT
+
+One could actually have written `searchPT` like this:
+
+~~~haskell
+searchPT :: PreTree a -> Pipe Direction Word8 m r
+searchPT pt0 = go pt0
+  where
+    go (PTLeaf x) = do
+        yield x
+        go pt0
+    go (PTNode pt1 pt2) = do
+        dir <- await
+        go $ case dir of
+               DLeft  -> pt1
+               DRight -> pt2
+~~~
+
+which looks a lot like the logic of our decoder functions from [Part 2][part
+2].
+
+However, we can do better.  This way sort of mixes together the "logic" of
+decoding from the yielding/pipe-ness of it all.  Ideally we'd like to be able
+to separate the logic.  This isn't *too* necessary, but doing this will expose
+us to some nice *pipes* idioms :)
+
+One way we can do it is to turn `searchPT` into a `Consumer'` (a `Consumer`
+with the ends not sealed off) that consumes `Direction`s and *returns*
+resulting `Word8`s.
+
+Then we use `(>~ cat)`, which turns a `Consumer'` into something that is
+forever consuming and re-yielding --- it turns a `Consumer'` returning values
+into a `Pipe` repeatedly yielding the returned values.
+
+~~~haskell
+!!!huffman/decode.hs "searchPT ::"
+~~~
+
+The logic is slightly cleaner; the gain isn't that much, but just being able
+to have this separation is nice.  This also is a good exposure to `(>~)`!
+
+<div class="note">
+**Aside**
+
+`(>~)` is a pretty useful thing.  Basically, when you say
+
+~~~haskell
+consumer >~ pipe
+~~~~
+
+it is like saying "*Every time `pipe` `await`s, just use the result returned
+by `consumer` instead*".
+
+We can look at `cat`:
+
+~~~haskell
+cat :: Pipe a a m r
+cat = forever $ do
+        a <- await
+        yield a
+~~~
+
+Which just simply echoes/sends back down whatever it receives.
+
+When we say:
+
+~~~haskell
+consumer >~ cat
+~~~
+
+We basically say "every time we `await` something in `cat`, just use
+`consumer`'s return value":
+
+~~~haskell
+consumer >~ cat
+    = forever $ do
+        a <- consumer
+        yield a
+~~~
+
+Basically, `consumer >~ cat` repeatedly consumes the input and yields
+downstream the of the consuming.
+
+Play around with `(>~)`-ifying different `Pipe`s and seeing what it does to
+it; you might have some fun.
+
+Why `Consumer'` and not `Consumer`?  Well, remember that all lines of the `do`
+block have to have the same "yield" type (because the Monad is `Pipe a b m`,
+so all lines have to be `Pipe a b m r` for different `r`'s --- the `a`'s and
+`b`'s (the yield type) and `m`'s have to be the same), so `Consumer'` lets the
+yield type be whatever it needs to be to match with the rest of the `do`
+block.
+
+Don't worry if this is a bit complicated; you don't need to really undersatnd
+this to use *pipes* :)
+
+Admittedly, my description isn't too great, so if anyone has a better one, I'd
+be happy to use it here!
+</div>
 
 
+### The Rest
 
+And the rest is...well, we already know it!
 
+We use `(view pack) byteStream` like last time to turn our stream of `Word8`
+into a stream of `ByteString`, with "smart chunking".  Then we pipe that in to
+`toHandle`, like we did last time, and have it all flow into the output file.
 
+We have assembled our pipeline; all we have to do now is `runEffect`, to "run"
+it.  And again, that's it!
 
+### Testing
 
+~~~haskell
+$ ghc -O2 decode.hs
+$ ./decode warandpeace.enc warandpeace.dec
+$ md5sum warandpeace.txt
+3c8168e48f49784ac3c2c25d15388e96  warandpeace.txt
+$ md5sum warandpeace.dec
+3c8168e48f49784ac3c2c25d15388e96  warandpeace.dec
+~~~
 
-
+And yup, we get an exact, lossless decompression.
 
