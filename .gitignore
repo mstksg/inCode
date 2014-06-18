@@ -13,3 +13,6 @@
 !/bin/blog
 !/.cabal-sandbox/share
 !/.cabal-sandbox/*.conf.d
+
+/code-samples/huffman/bin
+/code-samples/huffman/samples

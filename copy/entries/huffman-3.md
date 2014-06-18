@@ -366,56 +366,84 @@ Now, the next step could have been to pipe in the stream of `Word8` into
 singleton `ByteString`.
 
 However, this is a bad idea, as you are basically creating a full `ByteString`
-and triggering a write on every byte.  Instead, we use
+and triggering a write on every incoming byte.  Instead, we use
 
 ~~~haskell
 (view pack) bytesOut
 ~~~
 
 Which is an idiom that comes from the infamouse *lens* library.  Basically,
-`pack`, from *pipes-bytestring*, holds "producer transformers", like
-`dirsBytes`.  It contains two, actually --- a `Producer Word8 m r -> Producer
-ByteString m r`, and a `Producer ByteString m r -> Producer Word8 m r`.  You
-can think of `pack` as a tupling of the two transformer functions.  `view` is
-a function that takes such a tupling and returns the first transformer
-function.  So `view pack` is just `Producer Word8 m r -> Producer ByteString
-m r`.
+`pack`, from *pipes-bytestring*, holds "producer transformers", (like
+`dirsBytes`).  It contains two, actually --- a `Producer Word8 m r -> Producer
+ByteString m r`, and a `Producer ByteString m r -> Producer Word8 m r`.
 
-So we use `(view pack) bytesOut` to turn our `Word8` producer into a
-`ByteString` producer.  Note that we could have maybe used something like
-`PP.map` (apply a function to every received item and re-yield it with the
-function applied) which would just have called `B.pack` (turn a `[Word8]` into
-a compact `ByteString`).  However, this is pretty inefficient, because we get
-`Word8`'s one-by-one, and using `PP.map`.  Even after that, we still write the
-resulting singleton `ByteString`s to disk one-by-one.  What `pack` does is
-offer "producer transformers" to take an input and
+In fact you can think of `pack` as simply a tupling of the two transformer
+functions together.  Practically, the tupling/packaging them together is
+useful because the two are inverses of eachother.  For our purposes we can
+just think of them as a tupling.
 
+Simply speaking, `view` is a function from *lens* that takes the "first" part
+(kind of like `fst`) of the tuple.
 
-<!-- `pack` is from `pipes-bytestring` and is basically a "two-way 'Producer -->
-<!-- Transformer'" (Producer transformer, as in like our `dirsBytes` before) -->
+So *pipes-bytestring* gives us this tupling of two transformers (one going
+from `Word8` to `ByteString` and one going from `ByteString` to `Word8`),
+called `pack`, and we use `view` to get the "forward" direction, the first
+one.
 
-
-
-where the implementation of `view` basically says "give me your Producer
-(`bytesOut`), and I'll wait for a decent amount of `Word8`'s to go through,
-and *then* pack them all up."  So instead of creating a new full `ByteString`
-for every `Word8` that comes down, you now only create a few for every certain
-reasonably-sized group of `Word8`'s.
+It might be more clear to see this as
 
 ~~~haskell
-view :: ([Word8] -> ByteString)
-     -> Producer Word8 m r
-     -> Producer ByteString m r
+let word8ToByte = view pack
+in  word8ToByte bytesOut
 ~~~
 
-note that `view` is *also* a "producer transformer", just like `dirsBytes`.
+There are many reasons why *pipes-bytestring* gives us the two useful
+functions "tied together" in `pack` instead of just them separately, and they
+have to do with ways you can manipulate them with *lens*.  But that's another
+story :)
 
-Anyways, now that we have a stream of `ByteString`, all that's left to do is
+Anyways, the implementation of `view pack` basically takes a chunk
+of `Word8`s and then packs them into a big `ByteString`, and uses "smart"
+chunking that allows us to maximize both space and time usage.  Pretty smart!
+
+Ok, now that we have a stream of `ByteString`, all that's left to do is
 write it to disk.  And for that, we have `toHandle out`, which is a consumer
 that takes in `ByteString` and writes each incoming `ByteString` to the given
 file handler.
 
-And...that's it for encoding!
+And...that's it for encoding!  We're done!
+
+### Testing it out
+
+Cool, let's try it out with Leo Tolstoy's great classic [War and Peace][wp]
+from Project Gutenberg!
+
+[wp]: http://www.gutenberg.org/files/2600/2600.txt
+
+~~~bash
+$ ghc -O2 encode.hs
+$ ./encode warandpeace.txt warandpeace.enc
+$ du -h warandpeace.*
+1.8M warandpeace.enc
+3.1M warandpeace.txt
+~~~
+
+Cool, we compressed it to 58% of the original file size.  Not bad!  Using
+`gzip` with default settings gives a compression of 39%, so it's not the best,
+but it's something.  If we take out the encoding part of the script, we can
+see that the dictionary itself only takes 259 bytes (which is negligible) ---
+so 58% is pretty much the asymptotic compression rate.
+
+At this point it's not as snappy (performance wise) as we'd like; a
+compressing a 3.1M file is not "slow", but you probably won't be compressing a
+gigabyte.  We'll look into performance in a later post!
+
+Decoding
+--------
+
+
+
+
 
 
 
