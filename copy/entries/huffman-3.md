@@ -244,10 +244,10 @@ The fold is identical in logic to `listFreq` from a [Part 2][part 2]:
 Except instead of folding over a list, we fold over the elements of the
 producer.
 
-The producer we use is the `fromHandle handle` Producer, which is a Producer
-that emits every `ByteString` from the file at the given handle.  We opened
-the handle with [`withFile`][withFile] from System.IO, which gives us a file
-handler for a given filepath.
+The producer we use is the `PB.fromHandle handle` Producer, which is a
+Producer that emits every `ByteString` from the file at the given handle.  We
+opened the handle with [`withFile`][withFile] from System.IO, which gives us a
+file handler for a given filepath.
 
 [withFile]: http://hackage.haskell.org/package/base-4.7.0.0/docs/System-IO.html#v:withFile
 
@@ -296,8 +296,8 @@ eventually reading them back as a tuple in our decoding script (also, the
 
 Now, we get to our actual pipes.  The first "pipeline" is `dirStream`, which
 is our stream (producer) of `Direction`s encoding the input file.  As can be
-read, `dirStream` is `fromHandle hIn` (a `ByteString` producer from the given
-handle) piped into our old friend `bsToBytes` piped into `encodeByte
+read, `dirStream` is `PB.fromHandle hIn` (a `ByteString` producer from the
+given handle) piped into our old friend `bsToBytes` piped into `encodeByte
 encTable`, which is a pipe taking in bytes (`Word8`), looks them up in
 `encTable` (the table mapping `Word8` to `[Direction]`, which we built in
 [Part 2][part 2]), and spits out the resulting `Direction`s one at a time.
@@ -317,7 +317,7 @@ resulting list one at a time.
 
 #### Parser
 
-So now we have `dirStream :: Producer Direction IO r`, `fromHandle hIn >->
+So now we have `dirStream :: Producer Direction IO r`, `PB.fromHandle hIn >->
 bsToBytes >-> encodeByte encTable`, which is a producer of `Direction` drawn
 from the file.  It's now time to "group up" the directions, using the
 "producer transformer" tactic we discussed earlier.
@@ -391,24 +391,24 @@ However, this is a bad idea, as you are basically creating a full `ByteString`
 and triggering a write on every incoming byte.  Instead, we use
 
 ~~~haskell
-(view pack) bytesOut
+(view PB.pack) bytesOut
 ~~~
 
 Which is an idiom that comes from the infamouse *lens* library.  Basically,
-*pack*, from *pipes-bytestring* (and not the one from *bytestring*), contains
+`PB.pack` from *pipes-bytestring* (and not the one from *bytestring*), contains
 "producer transformers", (like `dirsBytes`).  It contains two, actually --- a
 `Producer Word8 m r -> Producer ByteString m r`, and a `Producer ByteString m
 r -> Producer Word8 m r`.
 
-In fact, in a way, you can think of `pack` as simply a tupling of the two
+In fact, in a way, you can think of `PB.pack` as simply a tupling of the two
 transformer functions together.  Practically, the tupling/packaging them
 together is useful because the two are inverses of eachother.
 
 <div class="note">
 **Aside**
 
-`pack` is actually an isomorphism; if `toBS` is your forward
-transformer and `toW8` is your backwards transformer, `pack` is `iso toBS
+`PB.pack` is actually an isomorphism; if `toBS` is your forward
+transformer and `toW8` is your backwards transformer, `PB.pack` is `iso toBS
 toW8`.
 
 You can then think of `view` as a function that obeys the properties:
@@ -417,11 +417,11 @@ You can then think of `view` as a function that obeys the properties:
 view (iso to from) = to
 ~~~
 
-So when we say `view pack`:
+So when we say `view PB.pack`:
 
 ~~~haskell
-view pack
-== view (iso toBS toW8)     -- definition of `pack`
+view PB.pack
+== view (iso toBS toW8)     -- definition of `PB.pack`
 == toBS                     -- behavior of `view` and `iso`
 ~~~
 
@@ -432,13 +432,13 @@ Simply speaking, `view` is a function from *lens* that takes the "first" part
 
 So *pipes-bytestring* gives us this tupling of two transformers (one going
 from `Word8` to `ByteString` and one going from `ByteString` to `Word8`),
-called `pack`, and we use `view` to get the "forward" direction, the first
+called `PB.pack`, and we use `view` to get the "forward" direction, the first
 one.
 
 It might be more clear to see this as
 
 ~~~haskell
-let word8ToByte = view pack
+let word8ToByte = view PB.pack
 in  word8ToByte bytesOut
 ~~~
 
@@ -451,10 +451,10 @@ Anyways, the implementation of `view pack` basically takes a chunk
 of `Word8`s and then packs them into a big `ByteString`, and uses "smart"
 chunking that allows us to maximize both space and time usage.  Pretty smart!
 
-Ok, now that we have a stream of `ByteString`, all that's left to do is
-write it to disk.  And for that, we have `toHandle out`, which is a consumer
-that takes in `ByteString` and writes each incoming `ByteString` to the given
-file handler.
+Ok, now that we have a stream of `ByteString`, all that's left to do is write
+it to disk.  And for that, we have `PB.toHandle out`, which is a consumer that
+takes in `ByteString` and writes each incoming `ByteString` to the given file
+handler.
 
 #### All together
 
@@ -506,7 +506,7 @@ before; we want a pipe that:
 4.  Turns those `Direction`s into `Word8`s again, by using each incoming
     `Direction` to search our given Huffman encoding tree.
 5.  Takes the `Word8` producer given by the composition/connecting of steps 1 -
-    5, and transform it into a `ByteString` producer using `view pack`
+    5, and transform it into a `ByteString` producer using `view PB.pack`
 6.  Writes those incoming `ByteString`s to our output file.
 
 ### Down to it
@@ -536,12 +536,12 @@ And now on to the juicy parts:
 Loading the metadata is a snap, and it uses what we learned earlier from
 `runStateT` and `Parser`s.
 
-Here, our `Parser` is `decode`, from the *pipes-binary* package (and not from
-*binary*), and it does more or less exactly what you'd expect: it reads in
-binary data from the source stream, consuming it until it has a successful (or
-unsuccessful) parse, as given by the *binary* package talked about in [Part
-2][part 2].  The "result" is the `Either` containing the success or failure,
-and the "leftover", consumed source stream.
+Here, our `Parser` is `PB.decode`, from the *pipes-binary* package (and not
+from *binary*), and it does more or less exactly what you'd expect: it reads
+in binary data from the source stream, consuming it until it has a successful
+(or unsuccessful) parse, as given by the *binary* package talked about in
+[Part 2][part 2].  The "result" is the `Either` containing the success or
+failure, and the "leftover", consumed source stream.
 
 In our case:
 
@@ -702,9 +702,9 @@ be happy to use it here!
 
 And the rest is...well, we already know it!
 
-We use `(view pack) byteStream` like last time to turn our stream of `Word8`
+We use `(view PB.pack) byteStream` like last time to turn our stream of `Word8`
 into a stream of `ByteString`, with "smart chunking".  Then we pipe that in to
-`toHandle`, like we did last time, and have it all flow into the output file.
+`PB.toHandle`, like we did last time, and have it all flow into the output file.
 
 We have assembled our pipeline; all we have to do now is `runEffect`, to "run"
 it.  And again, that's it!

@@ -18,9 +18,9 @@ import qualified Data.Map.Strict        as M
 
 -- Pipes imports
 import Pipes
-import Pipes.ByteString                  hiding (ByteString)
 import Pipes.Parse
-import qualified Pipes.Prelude                  as PP
+import qualified Pipes.ByteString as PB
+import qualified Pipes.Prelude    as PP
 
 -- Working with Binary
 import Data.Binary hiding             (encodeFile)
@@ -48,7 +48,7 @@ main = do
 -- returns the file length and the huffman encoding tree
 analyzeFile :: FilePath -> IO (Maybe (Int, PreTree Word8))
 analyzeFile fp = withFile fp ReadMode $ \hIn -> do
-    fqs <- freqs (fromHandle hIn >-> bsToBytes)
+    fqs <- freqs (PB.fromHandle hIn >-> bsToBytes)
     let len  = sum fqs
         tree = evalState (listQueueStateTable fqs >> buildTree) emptyPQ
     return $ fmap (len,) tree
@@ -62,12 +62,12 @@ encodeFile inp out len tree =
     withFile inp ReadMode  $ \hIn  ->
     withFile out WriteMode $ \hOut -> do
       BL.hPut hOut $ encode (len, tree)
-      let dirStream = fromHandle hIn
+      let dirStream = PB.fromHandle hIn
                   >-> bsToBytes
                   >-> encodeByte encTable
           bytesOut  = dirsBytes dirStream
-          pipeline  = (view pack) bytesOut
-                  >-> toHandle hOut
+          pipeline  = (view PB.pack) bytesOut
+                  >-> PB.toHandle hOut
 
       runEffect pipeline
   where

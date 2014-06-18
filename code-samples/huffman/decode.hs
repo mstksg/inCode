@@ -12,14 +12,15 @@ import System.IO          (withFile, IOMode(..))
 
 -- Pipes imports
 import Pipes
-import Pipes.Binary                             (decode)
-import Pipes.ByteString                  hiding (ByteString, map)
 import Pipes.Parse
-import qualified Pipes.Prelude                  as PP
+import qualified Pipes.Binary     as PB
+import qualified Pipes.ByteString as PB
+import qualified Pipes.Prelude    as PP
 
 -- Working with Binary
 import Data.Bits                 (testBit)
 import Data.ByteString           (ByteString)
+import Data.Word (Word8)
 import qualified Data.ByteString as B
 
 -- Huffman imports
@@ -37,10 +38,10 @@ decodeFile :: FilePath -> FilePath -> IO ()
 decodeFile inp out =
     withFile inp ReadMode  $ \hIn  ->
     withFile out WriteMode $ \hOut -> do
-      let metadataPipe = fromHandle hIn
+      let metadataPipe = PB.fromHandle hIn
 
       -- consume metapipe to read in the tree/metadata
-      (metadata, decodingPipe) <- runStateT decode metadataPipe
+      (metadata, decodingPipe) <- runStateT PB.decode metadataPipe
 
       case metadata of
         Left   _          ->
@@ -50,8 +51,8 @@ decodeFile inp out =
           let byteStream = decodingPipe >-> bsToBytes
                        >-> bytesToDirs  >-> searchPT tree
                        >-> PP.take len
-              pipeline = (view pack) byteStream
-                     >-> toHandle hOut
+              pipeline = (view PB.pack) byteStream
+                     >-> PB.toHandle hOut
 
           runEffect pipeline
 
