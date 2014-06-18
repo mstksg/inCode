@@ -20,7 +20,7 @@ import qualified Pipes.Prelude    as PP
 -- Working with Binary
 import Data.Bits                 (testBit)
 import Data.ByteString           (ByteString)
-import Data.Word (Word8)
+import Data.Word                 (Word8)
 import qualified Data.ByteString as B
 
 -- Huffman imports
