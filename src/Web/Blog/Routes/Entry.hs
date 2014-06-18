@@ -145,15 +145,17 @@ readerEntry now url (k,e) = do
                                , pageDataType    = Just "article"
                                , pageDataDesc    = Just $ entryLedeStripped e
                                , pageDataImage   = entryImage e
-                               , pageDataCss     = ["/css/page/entry.css"
-                                                   ,"/css/pygments.css"]
-                               , pageDataJs      = ["/js/disqus.js"
-                                                   ,"/js/disqus_count.js"
-                                                   ,"/js/social.js"
-                                                   ,"/js/jquery/jquery.toc.js"
-                                                   ,"/js/fay-runtime.min.js"
-                                                   ,"/js/page/entry.js"
-                                                   ,"/js/page/entry_toc.js"]
+                               , pageDataCss     = [ "/css/page/entry.css"
+                                                   , "/css/pygments.css"
+                                                   ]
+                               , pageDataJs      = [ "/js/fay-runtime.min.js"
+                                                   , "/js/page/entry.js"
+                                                   , "/js/page/entry_toc.js"
+                                                   , "/js/disqus.js"
+                                                   , "/js/disqus_count.js"
+                                                   , "/js/social.js"
+                                                   , "/js/jquery/jquery.toc.js"
+                                                   ]
                                , pageDataMap     = pdMap M.empty
                                }
 
