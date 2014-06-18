@@ -455,6 +455,20 @@ gigabyte.  We'll look into performance in a later post!
 Decoding
 --------
 
+### Design
+
+Let's try to see the plan for our decoding script.
+
+1.  Read in `ByteString`s from a file
+2.  Turn those `ByteString`s into `Word8`s.
+3.  Turn those `Word8`s into `Direction`s.
+4.  Turn those `Direction`s into `Word8`s again, by using each incoming
+    `Direction` to search our given huffman encoding tree.
+5.  Pack those `Word8`s back into `ByteString`s
+6.  Write the incoming `ByteString`s to our output file.
+
+### Down to it
+
 Luckily we can use most of the concepts we learned in writing the encoding
 script to write the decoding script; we also have a less imports, so it's a
 sign that decoding is going to be slightly simpler than encoding.
@@ -475,7 +489,7 @@ And now on to the juicy parts:
 !!!huffman/decode.hs "decodeFile ::"
 ~~~
 
-### Loading metadata
+#### Loading metadata
 
 Loading the metadata is a snap, and it uses what we learned earlier from
 `runStateT` and `Parser`s.
@@ -500,7 +514,7 @@ So `metadata` is `Either DecodingError (Int, PreTree Word8)`.  If we get a
 `Left e`, then we throw an error for unparsable/corrupted metadata.  If we get
 a `Right (len, tree)`, then we are good to go.
 
-### The Decoding Pipeline
+#### The Decoding Pipeline
 
 The rest just reads like poetry!
 
@@ -637,7 +651,7 @@ be happy to use it here!
 </div>
 
 
-### The Rest
+#### The Rest
 
 And the rest is...well, we already know it!
 
@@ -661,3 +675,37 @@ $ md5sum warandpeace.dec
 
 And yup, we get an exact, lossless decompression.
 
+Conclusion
+----------
+
+Hopefully from this all, you can see *pipes* as a beautiful abstraction for
+chaining together streaming computations in a pure, constant-space way.  I
+hope that looking back on it all you can see everything as either a
+transformation of pipes, or a chaining of pipes.
+
+I recommend looking more into the great *pipes* documentation, joining the 
+[pipes mailing list][pml], and trying your own streaming data projects with
+*pipes* to see what you can do with it.
+
+[pml]: https://groups.google.com/forum/#!forum/haskell-pipes
+
+You should also checkout *[conduit][]* and try to implement this streaming
+logic in that framework.  Let me know how it turns out!
+
+As always the great people of freenode's #haskell are always free to answer
+any questions you might have, and also of course the [haskell tag][] on Stack
+Overflow.  And I'll try to address as many questions as I can in the comments!
+
+[haskell tag]: http://stackoverflow.com/questions/tagged/haskell
+
+Keep in mind that I'm still a new user of *pipes* myself; if I've made any
+huge mistakes in style or idiomaticness, I'm available here in the comments
+and I'd appreciate any corrections y'all can offer.
+
+So ends the "pipes tutorial" section of this series; tune in next time and
+we'll try our best to optimize this baby! [^nexttime]
+
+[^nexttime]: Hopefully you aren't holding your breath on this one :)  This
+next part is not scheduled any ime soon and might not come for a while, as I'll
+be pursuing some other things in the near future --- I apologize for any
+disappointment/inconvenience this may cause.
