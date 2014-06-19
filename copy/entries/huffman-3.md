@@ -421,7 +421,7 @@ sizes".
 <div class="note">
 **Aside**
 
-`view PB.pack` is an idiom that comes from the infamous *lens* library.
+`view PB.pack` is an idiom that comes from the *lens* library.
 
 Basically, `PB.pack` from *pipes-bytestring* (and not the one from
 *bytestring*), contains "producer transformers" ---  two, actually: a
