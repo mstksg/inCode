@@ -70,7 +70,7 @@ encodeFile inp out len tree =
                   >-> bsToBytes
                   >-> encodeByte encTable
           bytesOut  = dirsBytes dirStream
-          pipeline  = (view PB.pack) bytesOut
+          pipeline  = view PB.pack bytesOut
                   >-> PB.toHandle hOut
 
       runEffect pipeline
