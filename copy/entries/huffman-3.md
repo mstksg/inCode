@@ -540,7 +540,7 @@ script to write the decoding script; we also have a less imports, so it's a
 sign that decoding is going to be slightly simpler than encoding.
 
 ~~~haskell
-!!!huffman/decode.hs.hs "-- General imports" "-- Pipes imports" "-- Working with Binary" "-- Huffman imports"
+!!!huffman/decode.hs "-- General imports" "-- Pipes imports" "-- Working with Binary" "-- Huffman imports"
 ~~~
 
 `main` should seem very familiar:
