@@ -56,7 +56,9 @@ decodeFile inp out =
 
           runEffect pipeline
 
-searchPT :: forall a m r. Monad m => PreTree a -> Pipe Direction a m r
+searchPT :: forall a m r. Monad m
+         => PreTree a
+         -> Pipe Direction a m r
 searchPT t = searchPT' t >~ cat
   where
     searchPT' :: PreTree a -> Consumer' Direction m a

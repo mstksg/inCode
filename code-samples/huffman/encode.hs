@@ -48,13 +48,16 @@ main = do
 -- returns the file length and the huffman encoding tree
 analyzeFile :: FilePath -> IO (Maybe (Int, PreTree Word8))
 analyzeFile fp = withFile fp ReadMode $ \hIn -> do
-    fqs <- freqs (PB.fromHandle hIn >-> bsToBytes)
+    let byteProducer = PB.fromHandle hIn >-> bsToBytes
+    fqs <- freqs byteProducer
     let len  = sum fqs
         tree = evalState (listQueueStateTable fqs >> buildTree) emptyPQ
     return $ fmap (len,) tree
   where
     freqs :: (Monad m, Ord a) => Producer a m () -> m (M.Map a Int)
-    freqs = PP.fold (\m x -> M.insertWith (+) x 1 m) M.empty id
+    freqs = PP.fold f M.empty id
+      where
+        f m x = M.insertWith (+) x 1 m
 
 
 encodeFile :: FilePath -> FilePath -> Int -> PreTree Word8 -> IO ()
@@ -81,12 +84,16 @@ bsToBytes = PP.mapFoldable B.unpack
 
 -- Transforms a stream of bytes into a stream of directions that encode
 -- every byte.
-encodeByte :: (Ord a, Monad m) => Map a Encoding -> Pipe a Direction m r
+encodeByte :: (Ord a, Monad m)
+           => Map a Encoding
+           -> Pipe a Direction m r
 encodeByte encTable = PP.mapFoldable (encTable !)
 
 -- Transform a Direction producer into a byte/Word8 producer.  Pads the
 -- last byte with zeroes if the direction stream runs out mid-byte.
-dirsBytes :: (MonadIO m, Functor m) => Producer Direction m r -> Producer Word8 m ()
+dirsBytes :: (MonadIO m, Functor m)
+          => Producer Direction m r
+          -> Producer Word8 m ()
 dirsBytes p = do
     (result, leftovers) <- lift $ runStateT dirsBytesP p
     case result of

@@ -73,26 +73,26 @@ different backgrounds and histories.
 
 [hc]: http://www.haskellcast.com/episode/006-gabriel-gonzalez-and-michael-snoyman-on-pipes-and-conduit/
 
-This picture is slightly simplified, but conduit focuses around safe resource
-handling, and pipes focuses on equational reasoning and applied mathematical
-abstractions.
+This picture is slightly simplified, but *conduit* focuses around safe
+resource handling, and *pipes* focuses on equational reasoning and applied
+mathematical abstractions.
 
-We're going to use pipes for this tutorial, with some elements from
-[pipes-parse][] for our limited requirements of leftover support.  Why not
-conduit, which has built-in leftover/end-of-stream detection?  Well, no major
-reason. You could actually translate much of what is described here to conduit
-with little work.  But I wanted to show pipes to maybe display some of the
-nice equational reasoning possible with mathematics-based abstractions that
-Haskell is so famous for.
+We're going to use *pipes* for this tutorial, with some elements from
+*[pipes-parse][]* for our limited requirements of leftover support.  Why not
+*conduit*, which has built-in leftover/end-of-stream detection?  Well, no
+major reason. You could actually translate much of what is described here to
+conduit with little work.  But I wanted to use *pipes* to maybe display some
+of the nice equational reasoning possible with mathematics-based abstractions
+that Haskell is so famous for --- also, I wanted to learn it, myself :)
 
 [pipes-parse]: http://hackage.haskell.org/package/pipes-parse
 
 ### Starting Pipes
 
 Before you proceed, it is recommended that you read over or are at least
-somewhat familiar with the amazing [pipes tutorial][ptut], which is a part of
-the actual pipes documentation.  This post does not attempt to be a substitute
-for it, only a "what's next?".
+somewhat familiar with the excellent [pipes tutorial][ptut], which is a part
+of the actual pipes documentation.  This post does not attempt to be a
+substitute for it, only a "what's next?".
 
 [ptut]: http://hackage.haskell.org/package/pipes-4.1.2/docs/Pipes-Tutorial.html
 
@@ -105,32 +105,35 @@ This approach should be very familiar with anyone who has ever used unix pipes
 of the way, each "pipe" processes an input and pops out an output, which is
 received by the next step.
 
-We also have ways to "modify components": "pipe transformers"; an analogy in
-bash would be like `sudo`, which takes a normal bash commands and "turns it
+We also have ways to "modify components": "pipe transformers".  An analogy in
+bash would be like `sudo`, which takes a normal bash command and "turns it
 into" a super user command.
 
-And without any further delay, let's write `encode.hs`!
+And without any further delay, let's write *encode.hs*!
 
 Encoding
 --------
 
 ### Design
 
-Let's think of the main pipeline we want here.
+Let's think of the main pipeline we want here; what components would we want?
 
-Remembering that we can only read and write `ByteString`s directly from a
-file:
+1.  A component that reads in in `ByteString`s from a file (our *Producer*,
+    the source of the stream)
+2.  A pipe to turn those `ByteString`s into bytes[^bs] (`Word8`s), emitting one at
+    a time.
+3.  A pipe that takes a stream of incoming `Word8`s, looks them up in an
+    encoding table, and turns it into a stream of `Direction`s, emitting one
+    direction at a time.
+4.  A pipe to clump up incoming `Direction`s into chunks of 8, and re-emit
+    them as `Word8`s.
+5.  A pipe to take incoming `Word8`s and pack them back up into `ByteString`s.
+6.  A component to write each incoming `ByteString` to an output file (our
+    *Consumer*, the terminal of the stream)
 
-1.  Read in `ByteString`s from a file (our *Producer*, the source of the
-    stream)
-2.  Turn those `ByteString`s into `Byte`s (`Word8`), emitting one at a time
-3.  Look up each `Word8` and turn them into a stream of `Direction`s, emitting
-    one direction at a time.
-4.  Clump up incoming `Direction`s into chunks of 8, and re-emit them as
-    `Word8`s.
-5.  Take the incoming `Word8`s and convert them into `ByteString`s
-6.  Write each incoming `ByteString` to an output file (our *Consumer*, the
-    terminal of the stream)
+[^bs]: Remember, a `ByteString` is an efficiently packed "chunk"/"list" of
+`Word8`/bytes; we can use functions like `unpack` and `pack` to turn a
+`ByteString` into a list of `Word8`s or go backwards.
 
 Sounds simple enough, right?  Basically like using unix pipes!
 
@@ -153,8 +156,9 @@ stream stops...that in-progress chunk disappears and is never written.
 
 #### pipes-parse
 
-This is the problem that is solved with *pipes-parse*.  *pipes-parse* provides
-*pipe transformers* that let us elegantly tackle the problem of leftovers.
+This is exactly the kind of problem that *pipes-parse* attempts to solve.
+*pipes-parse* provides "pipe transformers" that let us elegantly tackle the
+problem of leftovers.
 
 For example, if we look at `p1 >-> p2 >-> p3` (`p1` being the pipe at step 1
 above, etc.), we can think of it as a "`Direction` producer":
@@ -181,7 +185,9 @@ byteProducer = directionProducer >-> dirsToBytes
 ~~~
 
 Which gets something of the right type (a producer of `Word8`s)...but not the
-right behavior.
+right behavior.  This is because when `filesBS` stops producing, the entire
+stream "stops"...so any "in-progress" bytes in `dirsToBytes` won't be
+transmitted downstream.
 
 However, we can define a `directionClumper` *producer transformer*:
 
@@ -207,7 +213,7 @@ First, our imports:
 !!!huffman/encode.hs "-- General imports" "-- Pipes imports" "-- Working with Binary" "-- Huffman imports"
 ~~~
 
-It's a doozy, admitedly!
+It's a doozy, admittedly!
 
 Now `main`:
 
@@ -221,19 +227,46 @@ great, but we won't go into that too deeply here :)
 #### File metadata
 
 `analyzeFile` is going to be how we build the Huffman Tree for the encoding,
-as discussed in part 1.  It'll go through an entire pass of the file
-and count up the number of occurrences for each byte and build a Huffman
-Encoding Tree out of it.  It'll also give us the length of the file in bytes,
-which is actually necessary for *decoding* the file later, because it tells us
-where to stop decoding (lest we begin decoding the leftover padding bits).
+as discussed in part 1.  It'll go through an entire pass of the file and count
+up the number of occurrences for each byte and build a Huffman encoding tree
+out of it.  It'll also give us the length of the file in bytes; this is
+actually necessary for *decoding* the file later, because it tells us where to
+stop decoding (lest we begin decoding the leftover padding bits).
 
 ~~~haskell
 !!!huffman/encode.hs "analyzeFile ::"
 ~~~
 
-We encounter our first usage of pipes here, in the definition of `freqs`,
-which uses `PP.fold` (from pipes prelude) to basically run a giant "fold" over
-all of the incoming items of the given producer.
+First, we use [`withFile`][withFile] from System.IO, which gives us a file
+handler for a given filepath; we can pass this handler onto functions that
+take file handlers.  `withFile` actually handles most of the IO-based error
+handling and cleanup we would ever need.
+
+[withFile]: http://hackage.haskell.org/package/base-4.7.0.0/docs/System-IO.html#v:withFile
+
+Now we run into real *pipes* for the first time!
+
+We'll assemble our producer of bytes by using `PB.fromHandle hIn` --- a
+producer of `ByteString`s --- and chaining it to `bsToBytes`, a pipe that
+takes incoming `ByteString`s and emits their constituent, unpacked `Word8`s
+one-by-one:
+
+~~~haskell
+!!!huffman/encode.hs "bsToBytes ::"
+~~~
+
+Our implementation uses `B.unpack :: ByteString -> [Word8]`, which turns a
+`ByteString` into a list of its constituent `Word8`s.  We use
+`PP.mapFoldable`, which is sort of like `concatMap` --- it applies the given
+function to every incoming element in the stream, and emits the items in the
+resulting list[^foldable] one-by-one.  So `bsToBytes` is a Pipe that takes in
+`ByteString`s and emits each contained `Word8` one-by-one.
+
+[^foldable]: It actually works on all `Foldable`s, not just `[]`.
+
+Then with our pipe ready, we "run"/"use" it, using `PP.fold`, from the pipes
+Prelude.  This basically runs a giant "foldl" all over the incoming items of
+the given producer.
 
 The fold is identical in logic to `listFreq` from a [Part 2][part 2]:
 
@@ -242,32 +275,11 @@ The fold is identical in logic to `listFreq` from a [Part 2][part 2]:
 ~~~
 
 Except instead of folding over a list, we fold over the elements of the
-producer.
+producer.  Note that the helper function has its arguments reversed.  This
+whole thing, then, will fold over all of the items produced by the given
+producer (all of the `Word8`s) with our frequency-table-building.
 
-The producer we use is the `PB.fromHandle handle` Producer, which is a
-Producer that emits every `ByteString` from the file at the given handle.  We
-opened the handle with [`withFile`][withFile] from System.IO, which gives us a
-file handler for a given filepath.
-
-[withFile]: http://hackage.haskell.org/package/base-4.7.0.0/docs/System-IO.html#v:withFile
-
-Now, we want to fold over all of the `Word8`s, not all of the `ByteString`s,
-so we use `bsToBytes`:
-
-~~~haskell
-!!!huffman/encode.hs "bsToBytes ::"
-~~~
-
-which uses `B.unpack :: ByteString -> [Word8]`, which turns a `ByteString`
-into a list of its constituent `Word8`s.  We use `PP.mapFoldable`, which is
-sort of like `concatMap` --- it applies the given function to every incoming
-element in the stream, and emits the items in the resulting list[^foldable]
-one-by-one.  So `bsToBytes` is a Pipe that takes in `ByteString`s and emits
-each contained `Word8` one-by-one.
-
-[^foldable]: It actually works on all `Foldable`s, not just `[]`.
-
-We use `sum` from `Data.Foldable`, which sums up all the numbers in our
+We then use `sum` from `Data.Foldable`, which sums up all the numbers in our
 frequency map.  Then we use what we learned about the State monad in [Part
 1][part 1] to build our tree (review [Part 1][part 1] if you do not understand
 the declaration of `tree`).  `tree` is a `Maybe (PreTree Word8)`; we then tag

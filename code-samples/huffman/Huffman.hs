@@ -22,7 +22,7 @@ type FreqTable a = Map a Int
 listFreq :: Ord a => [a] -> FreqTable a
 listFreq = foldr f M.empty
   where
-    f x = M.insertWith (+) x 1
+    f x m = M.insertWith (+) x 1 m
 
 -- runListFreq: The same thing as listFreq, but using the mapM_ in a State
 --      monad instead of a fold.  Identical, mostly, and sorta pointless.
