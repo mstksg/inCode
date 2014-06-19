@@ -52,8 +52,8 @@ decodeFile inp out =
           let byteStream = decodingPipe >-> bsToBytes
                        >-> bytesToDirs  >-> searchPT tree
                        >-> PP.take len
-              pipeline = (view PB.pack) byteStream
-                     >-> PB.toHandle hOut
+              pipeline   = view PB.pack byteStream
+                       >-> PB.toHandle hOut
 
           runEffect pipeline
 
