@@ -738,7 +738,7 @@ it.  And again, that's it!
 
 ### Testing
 
-~~~haskell
+~~~bash
 $ ghc -O2 decode.hs
 $ ./decode warandpeace.enc warandpeace.dec
 $ md5sum warandpeace.txt
