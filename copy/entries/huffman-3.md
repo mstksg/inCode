@@ -288,7 +288,8 @@ on the length to our `tree` using `fmap` and the TupleSections extension.
 
 #### The Encoding Pipeline
 
-Once we have that, we can get onto the actual encoding process.
+Once we have that, we can get onto the actual encoding process: the second
+pass.
 
 ~~~haskell
 !!!huffman/encode.hs "encodeFile ::"
@@ -302,9 +303,10 @@ lazy `ByteString`, and writes that `ByteString` out to the file.  We use the
 lazy version because `encode` gives us a lazy `ByteString` by default.
 
 Note that we can "put" `(len, tree)` together as a tuple instead of putting
-`len` and `tree` one after the other.  This is okay because we will be
-eventually reading them back as a tuple in our decoding script (also, the
-`Binary` instance for `(a, b)` is literally just to put `a`, then put `b`).
+`len` and `tree` one after the other.  This is because `(a, b)` has a `Binary`
+instance.  We'll read it back in later as a tuple, but it actually
+doesn't matter, because the `Binary` instance for tuples is just
+putting/getting each item one after the other.
 
 Now, we get to our actual pipes.  The first "pipeline" is `dirStream`, which
 is our stream (producer) of `Direction`s encoding the input file.  As can be
@@ -344,7 +346,6 @@ look at `dirsBytesP` later, but for now, know that it is a parser that
 attempts to consume eight `Direction`s and returns them together in a `Just
 byte` with zero padding if the stream runs out; if the stream is already
 empty to start with, it returns `Nothing`.
-
 
 Remember that in *pipes-parse*:
 
@@ -399,29 +400,55 @@ Now, the next step could have been to pipe in the stream of `Word8` into
 `PP.map B.pack`, which takes each incoming `Word8` and "packs" them into a
 singleton `ByteString`.
 
-However, this is a bad idea, as you are basically creating a full `ByteString`
+However, this is a bad idea: you are basically creating a full `ByteString`
 and triggering a write on every incoming byte.  Instead, we use
 
 ~~~haskell
 (view PB.pack) bytesOut
 ~~~
 
-Which is an idiom that comes from the infamouse *lens* library.  Basically,
-`PB.pack` from *pipes-bytestring* (and not the one from *bytestring*), contains
-"producer transformers", (like `dirsBytes`).  It contains two, actually --- a
+Where `view PB.pack` is a "producer transformer" (like `dirsBytes`).
+
+The implementation of `view pack` basically repeatedly takes chunks of
+`Word8`s and then packs them into a big `ByteString`, and uses "smart"
+chunking that allows us to maximize both space and time usage.  Pretty cool!
+In a way it's a lot like our `dirsBytes` producer transformer (chunking
+`Direction`s into `Word8`s), except with "smart chunk sizes".
+
+<div class="note">
+**Aside**
+
+`view PB.pack` is an idiom that comes from the infamous *lens* library.
+
+Basically, `PB.pack` from *pipes-bytestring* (and not the one from
+*bytestring*), contains "producer transformers" ---  two, actually: a
 `Producer Word8 m r -> Producer ByteString m r`, and a `Producer ByteString m
 r -> Producer Word8 m r`.
 
 In fact, in a way, you can think of `PB.pack` as simply a tupling of the two
 transformer functions together.  Practically, the tupling/packaging them
-together is useful because the two are inverses of eachother.
+together is useful because the two are inverses of each other.
+
+Simply speaking, `view` is a function from *lens* that takes the "first" part
+(kind of like `fst`) of that "tuple".
+
+So *pipes-bytestring* gives us this tupling of two transformers (one going
+from `Word8` to `ByteString` and one going from `ByteString` to `Word8`),
+called `PB.pack`, and we use `view` to get the "forward" direction, the first
+one.
+
+There are many reasons why *pipes-bytestring* gives us these useful
+functions "tied together" in `pack` instead of just them separately, and they
+have to do with ways you can manipulate them with *lens*.  But that's another
+story :)
+</div>
 
 <div class="note">
 **Aside**
 
-`PB.pack` is actually an isomorphism; if `toBS` is your forward
-transformer and `toW8` is your backwards transformer, `PB.pack` is `iso toBS
-toW8`.
+Perhaps more formally stated, `PB.pack` is an "isomorphism"; if `toBS` is your
+forward transformer and `toW8` is your backwards transformer, `PB.pack` is
+`iso toBS toW8`.
 
 You can then think of `view` as a function that obeys the properties:
 
@@ -439,34 +466,10 @@ view PB.pack
 
 </div>
 
-Simply speaking, `view` is a function from *lens* that takes the "first" part
-(kind of like `fst`) of that "tuple".
-
-So *pipes-bytestring* gives us this tupling of two transformers (one going
-from `Word8` to `ByteString` and one going from `ByteString` to `Word8`),
-called `PB.pack`, and we use `view` to get the "forward" direction, the first
-one.
-
-It might be more clear to see this as
-
-~~~haskell
-let word8ToByte = view PB.pack
-in  word8ToByte bytesOut
-~~~
-
-There are many reasons why *pipes-bytestring* gives us these useful
-functions "tied together" in `pack` instead of just them separately, and they
-have to do with ways you can manipulate them with *lens*.  But that's another
-story :)
-
-Anyways, the implementation of `view pack` basically takes a chunk
-of `Word8`s and then packs them into a big `ByteString`, and uses "smart"
-chunking that allows us to maximize both space and time usage.  Pretty smart!
-
-Ok, now that we have a stream of `ByteString`, all that's left to do is write
-it to disk.  And for that, we have `PB.toHandle out`, which is a consumer that
-takes in `ByteString` and writes each incoming `ByteString` to the given file
-handler.
+Ok, now that we have a stream of `ByteString`, all that's left to do is add on
+a final pipe/consumer that writes it to disk.  For that, we have `PB.toHandle
+out`, which is a consumer that takes in `ByteString` and writes each incoming
+`ByteString` to the given file handler.
 
 #### All together
 
@@ -475,8 +478,6 @@ transformers that takes our file and streamingly processes the data and writes
 it into the output file.
 
 Once we have our `pipeline`, we use `runEffect` to "run" it; then...that's it!
-
-
 
 ### Testing it out
 
@@ -496,13 +497,14 @@ $ du -h warandpeace.*
 Cool, we compressed it to 58% of the original file size.  Not bad!  Using
 `gzip` with default settings gives a compression of 39%, so it's not the best,
 but it's something.  If we take out the encoding part of the script, we can
-see that the dictionary itself only takes 259 bytes (which is negligible) ---
-so 58% is pretty much the asymptotic compression rate.
+see that the metadata (the length and the dictionary) itself only takes 259
+bytes (which is negligible) --- so 58% is pretty much the asymptotic
+compression rate.
 
 At this point it's not as snappy (performance wise) as we'd like; a
-compressing a 3.1M file is not "super slow" (it takes seven seconds on my
-computer), but you probably won't be compressing a gigabyte.  We'll look into
-performance in a later post!
+compressing a 3.1M file is not "super slow" (it takes about seven seconds on
+my computer), but you probably won't be compressing a gigabyte.  We'll look
+into performance in a later post!
 
 Decoding
 --------
@@ -510,16 +512,23 @@ Decoding
 ### Design
 
 Let's try to see the plan for our decoding script, applying what we learned
-before; we want a pipe that:
+before.  What components do we need?
 
-1.  Reads in `ByteString`s from a file
-2.  Turns those `ByteString`s into `Word8`s.
-3.  Turns those `Word8`s into `Direction`s.
-4.  Turns those `Direction`s into `Word8`s again, by using each incoming
-    `Direction` to search our given Huffman encoding tree.
-5.  Takes the `Word8` producer given by the composition/connecting of steps 1 -
-    5, and transform it into a `ByteString` producer using `view PB.pack`
-6.  Writes those incoming `ByteString`s to our output file.
+1.  First, a component producing decoded `Word8`s (that will be `view
+    PB.pack`'d into a component producing decoded `ByteString`s with smart
+    chunking)
+    1.  A producer that reads in `ByteString`s from a file and sends them
+        downstream.
+    2.  A pipe that unpacks those `ByteString`s into `Word8`s and sends each
+        one down.
+    3.  A pipe that "unpacks" those `Word8`s into `Direction`s and sends
+        *those* down.
+    4.  A pipe that traverses down the Huffman encoding tree following the
+        incoming `Direction`s, and emits a decoded `Word8` every time it
+        decodes a value.
+2.  A component consuming the incoming `ByteString`s, and writing them to our
+    output file.
+
 
 ### Down to it
 
@@ -626,24 +635,26 @@ which looks a lot like the logic of our decoder functions from [Part 2][part
 2].
 
 However, we can do better.  This way sort of mixes together the "logic" of
-decoding from the yielding/pipe-ness of it all.  Ideally we'd like to be able
-to separate the logic.  This isn't *too* necessary, but doing this will expose
-us to some nice *pipes* idioms :)
+decoding from the yielding/continuation/recursion/pipe-ness of it all.
+Ideally we'd like to be able to separate the logic.  This isn't *too*
+necessary, but doing this will expose us to some nice *pipes* idioms :)
 
 One way we can do it is to turn `searchPT` into a `Consumer'` (a `Consumer`
 with the ends not sealed off) that consumes `Direction`s and *returns*
 resulting `Word8`s.
 
 Then we use `(>~ cat)`, which turns a `Consumer'` into something that is
-forever consuming and re-yielding --- it turns a `Consumer'` returning values
-into a `Pipe` repeatedly yielding the returned values.
+forever consuming and re-yielding --- in essence, it turns a `Consumer'`
+returning values into a `Pipe` repeatedly yielding the returned values.
 
 ~~~haskell
 !!!huffman/decode.hs "searchPT ::"
 ~~~
 
 The logic is slightly cleaner; the gain isn't that much, but just being able
-to have this separation is nice.  This also is a good exposure to `(>~)`!
+to have this separation is nice.  We also get rid of the "infinite loop";
+`searchPT'` only "runs once".  In any case, this is also a good exposure to
+`(>~)`!
 
 <div class="note">
 **Aside**
@@ -682,6 +693,7 @@ consumer >~ cat
     = forever $ do
         a <- consumer
         yield a
+
 ~~~
 
 Basically, `consumer >~ cat` repeatedly consumes the input and yields
