@@ -409,11 +409,14 @@ and triggering a write on every incoming byte.  Instead, we use
 
 Where `view PB.pack` is a "producer transformer" (like `dirsBytes`).
 
-The implementation of `view pack` basically repeatedly takes chunks of
-`Word8`s and then packs them into a big `ByteString`, and uses "smart"
-chunking that allows us to maximize both space and time usage.  Pretty cool!
-In a way it's a lot like our `dirsBytes` producer transformer (chunking
-`Direction`s into `Word8`s), except with "smart chunk sizes".
+The implementation of `view PB.pack` basically repeatedly takes chunks of
+`Word8`s and then packs them into a big `ByteString`, and uses ["smart
+chunking"][smartchunking] that allows us to maximize both space and time
+usage.  Pretty cool! In a way it's a lot like our `dirsBytes` producer
+transformer (chunking `Direction`s into `Word8`s), except with "smart chunk
+sizes".
+
+[smartchunking]: http://www.haskellforall.com/2013/09/perfect-streaming-using-pipes-bytestring.html
 
 <div class="note">
 **Aside**
