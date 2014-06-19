@@ -34,6 +34,7 @@ main = do
                         _          -> error "Give input and output files."
     decodeFile inp out
 
+-- The "decoding pipeline"
 decodeFile :: FilePath -> FilePath -> IO ()
 decodeFile inp out =
     withFile inp ReadMode  $ \hIn  ->
@@ -56,6 +57,9 @@ decodeFile inp out =
 
           runEffect pipeline
 
+-- Uses each incoming direction to "travel down" a Huffman tree and pop
+-- a decoded byte downstream every time it reaches a leaf.  Repeats
+-- forever.
 searchPT :: forall a m r. Monad m
          => PreTree a
          -> Pipe Direction a m r

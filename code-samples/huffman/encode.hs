@@ -60,6 +60,7 @@ analyzeFile fp = withFile fp ReadMode $ \hIn -> do
         f m x = M.insertWith (+) x 1 m
 
 
+-- The "encoding pipeline"
 encodeFile :: FilePath -> FilePath -> Int -> PreTree Word8 -> IO ()
 encodeFile inp out len tree =
     withFile inp ReadMode  $ \hIn  ->
