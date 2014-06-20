@@ -118,8 +118,8 @@ Encoding
 
 Let's think of the main pipeline we want here; what components would we want?
 
-1.  A component that reads in in `ByteString`s from a file (our *Producer*,
-    the source of the stream)
+1.  A component that emits `ByteString`s read from a file (our *Producer*, the
+    source of the stream)
 2.  A pipe to turn those `ByteString`s into bytes[^bs] (`Word8`s), emitting one at
     a time.
 3.  A pipe that takes a stream of incoming `Word8`s, looks them up in an
@@ -139,9 +139,9 @@ Sounds simple enough, right?  Basically like using unix pipes!
 
 #### The Problem
 
-Unfortunately, the naive approach displays some cracks in our case in that
-vanilla pipes do not have *leftover support*.  That is, the stream terminates
-as soon as the Producer terminates.
+Unfortunately, the naive approach has some holes: vanilla pipes do not have
+*leftover support*.  That is, the stream terminates as soon as the Producer
+terminates.
 
 This is normally not a problem (it won't be an issue at all for our decoding
 program), except here in step 4: we need to clump up incoming directions into
@@ -395,6 +395,16 @@ We can finally put it all together, by saying `bytesOut = dirsBytes
 dirStream`.
 
 #### view
+
+<div class="note">
+**Note**
+
+Just as a warning, much of this section might be considered obsolute or out of
+date on the next breaking release of *pipes-bytestring*, which replaces the
+`PB.pack` iso with a pair of lenses.  Just be aware!  Once it's out, I'll
+replace/augment this and possibly much of this post with new material
+addressing the library redesign.
+</div>
 
 Now, the next step could have been to pipe in the stream of `Word8` into
 `PP.map B.pack`, which takes each incoming `Word8` and "packs" them into a

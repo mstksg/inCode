@@ -42,7 +42,10 @@ main = do
                         _          -> error "Give input and output files."
 
     metadata <- analyzeFile inp
-    let (len, tree) = fromMaybe (error "Empty File") metadata
+    let (len, tree) = case metadata of
+                        Just (l, t) -> (l, t)
+                        Nothing     -> error "Empty File"
+
     encodeFile inp out len tree
 
 -- returns the file length and the huffman encoding tree
