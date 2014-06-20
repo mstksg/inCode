@@ -35,6 +35,11 @@ In Haskell, when we can, we try to look for a pure, declarative approach based
 on compositions of abstractions.  That's what Haskell does best, after all.
 So let's see what we can do!
 
+(All of the code in this article and the ones before can be downloaded [from
+github][allcode], so you can download it and try it out yourself!)
+
+!!![allcode]:huffman
+
 Pipes
 -----
 
@@ -113,6 +118,16 @@ And without any further delay, let's write *encode.hs*!
 
 Encoding
 --------
+
+(Remember that you can download *[encode.hs][]* from github and try it out
+yourself; just remember to also grab [Huffman.hs][], [PQueue.hs][], and
+[PreTree.hs][], and [Weighted.hs][] from the previous parts of this tutorial!)
+
+!!![encode.hs]:huffman/encode.hs
+!!![Huffman.hs]:huffman/Huffman.hs
+!!![PQueue.hs]:huffman/PQueue.hs
+!!![PreTree.hs]:huffman/PreTree.hs
+!!![Weighted.hs]:huffman/Weighted.hs
 
 ### Design
 
@@ -521,6 +536,13 @@ into performance in a later post!
 
 Decoding
 --------
+
+(Remember again that download *[decode.hs][]* is also available online from
+github!  Again, be sure to also grab [Huffman.hs][], [PQueue.hs][], and
+[PreTree.hs][], and [Weighted.hs][] from posts past.)
+
+!!![decode.hs]:huffman/decode.hs
+
 
 ### Design
 
