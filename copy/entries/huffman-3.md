@@ -38,7 +38,7 @@ So let's see what we can do!
 (All of the code in this article and the ones before can be downloaded [from
 github][allcode], so you can download it and try it out yourself!)
 
-!!![allcode]:huffman
+[allcode]: https://github.com/mstksg/inCode/tree/master/code-samples/huffman
 
 Pipes
 -----
@@ -119,7 +119,7 @@ And without any further delay, let's write *encode.hs*!
 Encoding
 --------
 
-(Remember that you can download *[encode.hs][]* from github and try it out
+(Remember that you can download [encode.hs][] from github and try it out
 yourself; just remember to also grab [Huffman.hs][], [PQueue.hs][], and
 [PreTree.hs][], and [Weighted.hs][] from the previous parts of this tutorial!)
 
@@ -537,7 +537,7 @@ into performance in a later post!
 Decoding
 --------
 
-(Remember again that download *[decode.hs][]* is also available online from
+(Remember again that download [decode.hs][] is also available online from
 github!  Again, be sure to also grab [Huffman.hs][], [PQueue.hs][], and
 [PreTree.hs][], and [Weighted.hs][] from posts past.)
 
