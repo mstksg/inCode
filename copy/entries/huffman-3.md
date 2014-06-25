@@ -46,7 +46,7 @@ Pipes
 ### Choosing Pipes
 
 So we are searching for an abstraction to handle *constant-space* IO
-streaming.--- that is, we only ever have in memory exactly what we are
+streaming --- that is, we only ever have in memory exactly what we are
 processing at that moment, and nothing else. For this, there are a couple
 go-to abstractions we can use that provide this (at the low level).
 
@@ -82,17 +82,22 @@ This picture is slightly simplified, but *conduit* focuses around safe
 resource handling, and *pipes* focuses on equational reasoning and applied
 mathematical abstractions.
 
-We're going to use *pipes* for this tutorial, with some elements from
-*[pipes-parse][]* for our limited requirements of leftover support.  Why not
-*conduit*, which has built-in leftover/end-of-stream detection?  Well, no
-major reason. You could actually translate much of what is described here to
-conduit with little work.  But I wanted to use *pipes* to maybe display some
-of the nice equational reasoning possible with mathematics-based abstractions
-that Haskell is so famous for --- also, I wanted to learn it, myself :)
+I'm picking *pipes* for this tutorial, for no major reason.  All of this could
+be written in *conduit* with little difference in code size or expressiveness,
+I'm sure.  I mostly chose *pipes* because I wanted to demonstrate some of the
+nice reasoning that pipes enables that Haskell is so famous for.  I also just
+wanted to learn it, myself :)
 
-[pipes-parse]: http://hackage.haskell.org/package/pipes-parse
+### Before we go
 
-### Starting Pipes
+
+<!-- We're going to use *pipes* for this tutorial, with some elements from -->
+<!-- *[pipes-parse][]* for our limited requirements of leftover support.  Why not -->
+<!-- *conduit*, which has built-in leftover/end-of-stream detection?  Well, no -->
+<!-- major reason. You could actually translate much of what is described here to -->
+<!-- conduit with little work.  But I wanted to use *pipes* to maybe display some -->
+<!-- of the nice equational reasoning possible with mathematics-based abstractions -->
+<!-- that Haskell is so famous for --- also, I wanted to learn it, myself :) -->
 
 Before you proceed, it is recommended that you read over or are at least
 somewhat familiar with the excellent [pipes tutorial][ptut], which is a part
@@ -101,20 +106,46 @@ substitute for it, only a "what's next?".
 
 [ptut]: http://hackage.haskell.org/package/pipes-4.1.2/docs/Pipes-Tutorial.html
 
-Basically, the entire meat of our program (and the bulk of the design process)
-will be in "declaring" and "transforming" chains of producers, pipes, and
-consumers.
+Now, we are going to be using a bit more than just plain old *pipes* for our
+program.  In addition to the libraries used in our previous parts, we're going
+to be using:
 
-This approach should be very familiar with anyone who has ever used unix pipes
---- you can do amazing things by just chaining simple utilities.  At each step
-of the way, each "pipe" processes an input and pops out an output, which is
-received by the next step.
+1.  *[pipes-parse][]*, for leftover support.  We're going to be using limited
+    leftover handling for this project in a couple of situations.
+2.  *[lens][]*, for an expressive way to transform and manipulate pipes.
 
-We also have ways to "modify components": "pipe transformers".  An analogy in
-bash would be like `sudo`, which takes a normal bash command and "turns it
-into" a super user command.
+[pipes-parse]: http://hackage.haskell.org/package/pipes-parse
+[lens]: http://lens.github.io/
 
-And without any further delay, let's write *encode.hs*!
+Today, our work with *pipes* will revolve around a couple of main concepts:
+
+*   Taking two or more pipes and chaining them together to make new ones;
+    hooking up input generators ("sources", or `Producer`s) to pipes and to
+    data consumers ("sinks", or `Consumer`s)
+
+*   Taking producers and pipes and chains of pipes (which are themselves just
+    pipes, by the way) and *transforming* them into new producers and pipes.
+
+If you've ever used bash/unix, the first concept is like using unix pipes to
+"declare" a chain of tools.  You can do powerful things by just chaining
+simple components.  The second concept relates to things to *sudo* or *time*;
+they take normal bash commands and "transform" them into super user commands,
+or timeable commands.
+
+<!-- Basically, the entire meat of our program (and the bulk of the design process) -->
+<!-- will be in "declaring" and "transforming" chains of producers, pipes, and -->
+<!-- consumers. -->
+
+<!-- This approach should be very familiar with anyone who has ever used unix pipes -->
+<!-- --- you can do amazing things by just chaining simple utilities.  At each step -->
+<!-- of the way, each "pipe" processes an input and pops out an output, which is -->
+<!-- received by the next step. -->
+
+<!-- We also have ways to "modify components": "pipe transformers".  An analogy in -->
+<!-- bash would be like `sudo`, which takes a normal bash command and "turns it -->
+<!-- into" a super user command. -->
+
+<!-- And without any further delay, let's write *encode.hs*! -->
 
 Encoding
 --------

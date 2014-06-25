@@ -9,8 +9,7 @@ import Control.Applicative              ((<$>))
 import Control.Monad.Trans.State.Strict (evalState)
 import Data.Foldable                    (sum)
 import Data.Map.Strict                  (Map, (!))
-import Data.Maybe                       (fromMaybe)
-import Lens.Family2                     (view)
+import Lens.Family2                     ((&), (%~))
 import Prelude hiding                   (sum)
 import System.Environment               (getArgs)
 import System.IO                        (withFile, IOMode(..))
@@ -69,16 +68,16 @@ encodeFile inp out len tree =
     withFile inp ReadMode  $ \hIn  ->
     withFile out WriteMode $ \hOut -> do
       BL.hPut hOut $ encode (len, tree)
-      let dirStream = PB.fromHandle hIn
-                  >-> bsToBytes
-                  >-> encodeByte encTable
-          bytesOut  = dirsBytes dirStream
-          pipeline  = view PB.pack bytesOut
-                  >-> PB.toHandle hOut
+      let bsIn      = PB.fromHandle hIn
+          bsOut     = bsIn & PB.unpack %~ \bytes ->
+                        dirsBytes ( bytes
+                                >-> encodeByte encTable )
+          pipeline  = bsOut
+                        >-> PB.toHandle hOut
 
       runEffect pipeline
   where
-    encTable = ptTable tree
+    encTable  = ptTable tree
 
 
 -- Receive ByteStrings from upstream and send its Word8 components
