@@ -120,8 +120,8 @@ to be using:
 Today, our work with *pipes* will revolve around a couple of main concepts:
 
 *   Taking two or more pipes and chaining them together to make new ones;
-    hooking up input generators ("sources", or `Producer`s) to pipes and to
-    data consumers ("sinks", or `Consumer`s)
+    hooking up input generators ("sources", or *Producers*) to pipes and to
+    data consumers ("sinks", or *Consumers*)
 
 *   Taking producers and pipes and chains of pipes (which are themselves just
     pipes, by the way) and *transforming* them into new producers and pipes.
@@ -130,22 +130,9 @@ If you've ever used bash/unix, the first concept is like using unix pipes to
 "declare" a chain of tools.  You can do powerful things by just chaining
 simple components.  The second concept relates to things to *sudo* or *time*;
 they take normal bash commands and "transform" them into super user commands,
-or timeable commands.
+or "timeable" commands.
 
-<!-- Basically, the entire meat of our program (and the bulk of the design process) -->
-<!-- will be in "declaring" and "transforming" chains of producers, pipes, and -->
-<!-- consumers. -->
-
-<!-- This approach should be very familiar with anyone who has ever used unix pipes -->
-<!-- --- you can do amazing things by just chaining simple utilities.  At each step -->
-<!-- of the way, each "pipe" processes an input and pops out an output, which is -->
-<!-- received by the next step. -->
-
-<!-- We also have ways to "modify components": "pipe transformers".  An analogy in -->
-<!-- bash would be like `sudo`, which takes a normal bash command and "turns it -->
-<!-- into" a super user command. -->
-
-<!-- And without any further delay, let's write *encode.hs*! -->
+And without any further delay, let's write *encode.hs*!
 
 Encoding
 --------
@@ -162,20 +149,27 @@ yourself; just remember to also grab [Huffman.hs][], [PQueue.hs][], and
 
 ### Design
 
-Let's think of the main pipeline we want here; what components would we want?
+Okay, so with the above in mind, let's sketch out a rough plan.  We'll talk
+about the holes in the plan earlier, but it's useful to see exactly what won't
+work, or what is a bad idea :)
 
-1.  A component that emits `ByteString`s read from a file (our *Producer*, the
-    source of the stream)
-2.  A pipe to turn those `ByteString`s into bytes[^bs] (`Word8`s), emitting one at
-    a time.
-3.  A pipe that takes a stream of incoming `Word8`s, looks them up in an
-    encoding table, and turns it into a stream of `Direction`s, emitting one
-    direction at a time.
-4.  A pipe to clump up incoming `Direction`s into chunks of 8, and re-emit
-    them as `Word8`s.
-5.  A pipe to take incoming `Word8`s and pack them back up into `ByteString`s.
-6.  A component to write each incoming `ByteString` to an output file (our
-    *Consumer*, the terminal of the stream)
+We can envision this all as a big single giant pipeline of atomic components.
+
+As a *Producer*, we have `fromHandle`, which emits `ByteString`s read from a
+given file handle.  As a *Consumer*, we have `toHandle`, which takes in
+`ByteString`s and writes them to the given file handle.
+
+Those in hand, we'll need:
+
+1.  A pipe that turns incoming `ByteString`s into bytes[^bs] (`Word8`s),
+    emitting one at a time.
+2.  A pipe that turns incoming `Word8`s into `Direction`s, by looking up each
+    `Word8` in an encoding table to get a list of `Direction`s and emitting
+    them one at a time.
+3.  A pipe that takes in `Direction`s and "chunks them up" 8-at-a-time, and
+    re-emits those chunks of 8 as bytes/`Word8`'s.
+4.  A pipe that takes incoming `Word8`s and wraps them each back into
+    `ByteString`s and emits them.
 
 [^bs]: Remember, a `ByteString` is an efficiently packed "chunk"/"list" of
 `Word8`/bytes; we can use functions like `unpack` and `pack` to turn a
@@ -183,71 +177,139 @@ Let's think of the main pipeline we want here; what components would we want?
 
 Sounds simple enough, right?  Basically like using unix pipes!
 
-#### The Problem
+We'll be making two modifications to this plan before we go forward.
 
-Unfortunately, the naive approach has some holes: vanilla pipes do not have
-*leftover support*.  That is, the stream terminates as soon as the Producer
-terminates.
+#### A Problem
 
-This is normally not a problem (it won't be an issue at all for our decoding
-program), except here in step 4: we need to clump up incoming directions into
-groups of 8 to turn them into bytes.
+The first hole: vanilla *pipes* do not have *leftover support*.  That is, the
+stream terminates as soon as the producer terminates.
 
-If our incoming stream of directions stop mid-byte (that is, maybe we only
-have 15 directions instead of 16), ideally we would want to be able to send a
-full byte downstream to write it down (padding the extra space with 0's).
+To put more technically: when a pipe is *awaiting* something, there is no
+guarantee that it'll ever get anything --- if the producer it is awaiting from
+terminates, then that's that; no chance to respond.
 
-However, in the way that vanilla pipes works, once our incoming direction
-stream stops...that in-progress chunk disappears and is never written.
+This is normally not a problem, and it won't be an issue for our decoding
+program.  However, we run into a problem for pipe #3 above: we need to "clump
+up" incoming `Direction`s and emit them in groups of 8.
+
+This spells trouble for us, because our pipe will be merrily be waiting for
+eight Directions before clumping them up --- until our producer terminates
+mid-clump.  Then what?  That final in-progress clump will be lost...forever!
+
+The problem is in the semantics of pipe composition with `(>->)`.
+
+So it's clear that using normal pipe composition (`(>->)`) doesn't work.
+We're going to have to transform our `Direction` producer in another way.
 
 #### pipes-parse
 
-This is exactly the kind of problem that *pipes-parse* attempts to solve.
-*pipes-parse* provides "pipe transformers" that let us elegantly tackle the
-problem of leftovers.
+This is precisely the problem that *pipes-parse* attempts to solve.
 
-For example, if we look at `p1 >-> p2 >-> p3` (`p1` being the pipe at step 1
-above, etc.), we can think of it as a "`Direction` producer":
+We'll go into more detail about how it solves this later.  At the high level,
+instead of composing pipes with `(>->)`, we'll *transform* pipes by using pipe
+transformers/functions.
 
-~~~haskell
-fileBS    :: Producer ByteString           IO r
-bsToBytes :: Pipe     ByteString Word8     m  r
-toDirs    :: Pipe     Byte       Direction m r
+So we'll modify our plan.  We'll have our "`Direction` producer", which
+consists of:
 
-directionProducer :: Producer Direction IO r
-directionProducer = fileBS >-> bsToBytes >-> toDirs
-~~~
+1.  Our `ByteString` producer.
+1.  Our `ByteString` to `Word8` pipe.
+2.  Our `Word8` to `Direction` pipe.
 
-`bytestrings` is a producer of `ByteStrings`...and we "pipe it" to `bsToBytes`
-and `toDirs` and call the whole thing a producer of `Direction`s.
-
-In the naive attempt, we would attempt to pipe this into a `dirsToBytes`:
+And then we "transform" that `Direction` producer into a `Word8` producer,
+which we'll call `dirsBytes`:
 
 ~~~haskell
-dirsToBytes :: Pipe Direction Word8 m r
-
-byteProducer :: Producer Word8 IO r
-byteProducer = directionProducer >-> dirsToBytes
+dirsBytes :: Producer Direction m r -> Producer Word8 m r
 ~~~
 
-Which gets something of the right type (a producer of `Word8`s)...but not the
-right behavior.  This is because when `filesBS` stops producing, the entire
-stream "stops"...so any "in-progress" bytes in `dirsToBytes` won't be
-transmitted downstream.
+which turns a `Direction` producer into a `Word8` producer that clumps up the
+`Direction`s into groups of 8 --- and if the directions run out, pad the rest
+of the byte with 0's.
 
-However, we can define a `directionClumper` *producer transformer*:
+*pipes-parse* gives us the ability to write `dirsBytes`.
 
-~~~haskell
-directionClumper :: Producer Direction m r -> Producer Word8 m r
+#### In and Out
 
-byteProducer = directionClumper directionProducer
-~~~
+The next problem.
 
-where `directionClumper` does exactly what we want to (clumps up all
-directions from the given producer, and handles the leftovers as expected).
+If you've ever worked with `ByteString`s, you might have noted an asymmetry to
+what we are doing.  Look closely --- do you see it?
 
-*pipes-parse* gives us the tools to write a `directionClumper` that does what
-we need.
+We *read* `ByteString`s from the file --- entire *big chunks* of bytes/`Word8`s.
+
+We *write* individual bytes, one at a time.  That is, we emit individual
+`Word8`s, which we each individually wrap into singleton `ByteString`s one at
+a time, which we write to the file one at a time.
+
+This is bad!
+
+#### There's a lens for that
+
+Fortunately, some smart people brought to Haskell this beautiful abstraction
+called "lens" --- maybe you've heard of it?
+
+One 
+
+
+
+<!-- This is a term [coined by Gabriel Gonzalez][persp] --- the "Perfect Streaming -->
+<!-- Problem". -->
+
+<!-- [persp]: http://www.haskellforall.com/2013/09/perfect-streaming-using-pipes-bytestring.html -->
+
+
+
+
+
+<!-- #### pipes-parse -->
+
+<!-- This is exactly the kind of problem that *pipes-parse* attempts to solve. -->
+<!-- *pipes-parse* provides "pipe transformers" that let us elegantly tackle the -->
+<!-- problem of leftovers. -->
+
+<!-- For example, if we look at `p1 >-> p2 >-> p3` (`p1` being the pipe at step 1 -->
+<!-- above, etc.), we can think of it as a "`Direction` producer": -->
+
+<!-- ~~~haskell -->
+<!-- fileBS    :: Producer ByteString           IO r -->
+<!-- bsToBytes :: Pipe     ByteString Word8     m  r -->
+<!-- toDirs    :: Pipe     Byte       Direction m r -->
+
+<!-- directionProducer :: Producer Direction IO r -->
+<!-- directionProducer = fileBS >-> bsToBytes >-> toDirs -->
+<!-- ~~~ -->
+
+<!-- `bytestrings` is a producer of `ByteStrings`...and we "pipe it" to `bsToBytes` -->
+<!-- and `toDirs` and call the whole thing a producer of `Direction`s. -->
+
+<!-- In the naive attempt, we would attempt to pipe this into a `dirsToBytes`: -->
+
+<!-- ~~~haskell -->
+<!-- dirsToBytes :: Pipe Direction Word8 m r -->
+
+<!-- byteProducer :: Producer Word8 IO r -->
+<!-- byteProducer = directionProducer >-> dirsToBytes -->
+<!-- ~~~ -->
+
+<!-- Which gets something of the right type (a producer of `Word8`s)...but not the -->
+<!-- right behavior.  This is because when `filesBS` stops producing, the entire -->
+<!-- stream "stops"...so any "in-progress" bytes in `dirsToBytes` won't be -->
+<!-- transmitted downstream. -->
+
+<!-- However, we can define a `directionClumper` *producer transformer*: -->
+
+<!-- ~~~haskell -->
+<!-- directionClumper :: Producer Direction m r -> Producer Word8 m r -->
+
+<!-- byteProducer = directionClumper directionProducer -->
+<!-- ~~~ -->
+
+<!-- where `directionClumper` does exactly what we want to (clumps up all -->
+<!-- directions from the given producer, and handles the leftovers as expected). -->
+
+<!-- *pipes-parse* gives us the tools to write a `directionClumper` that does what -->
+<!-- we need. -->
 
 ### Down to it
 
