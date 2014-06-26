@@ -768,9 +768,9 @@ Conclusion
 ----------
 
 Hopefully from this all, you can see *pipes* as a beautiful abstraction for
-chaining together streaming computations in a pure, constant-space way.  I
-hope that looking back on it all you can see everything as either a
-transformation of pipes, or a chaining of pipes.
+chaining together and transforming streaming computations in a pure,
+constant-space way.  I hope that looking back on it all you can see everything
+as either a transformation of pipes, or a chaining of pipes.
 
 I recommend looking more into the great *pipes* documentation, joining the
 [pipes mailing list][pml], and trying your own streaming data projects with
