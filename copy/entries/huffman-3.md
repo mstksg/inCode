@@ -495,8 +495,8 @@ from Project Gutenberg!
 $ ghc -O2 encode.hs
 $ ./encode warandpeace.txt warandpeace.enc
 $ du -h warandpeace.*
-% 1.8M warandpeace.enc
-% 3.1M warandpeace.txt
+# 1.8M warandpeace.enc
+# 3.1M warandpeace.txt
 ~~~
 
 Cool, we compressed it to 58% of the original file size.  Not bad!  Using
@@ -753,9 +753,9 @@ it.  And again, that's it!
 $ ghc -O2 decode.hs
 $ ./decode warandpeace.enc warandpeace.dec
 $ md5sum warandpeace.txt
-% 3c8168e48f49784ac3c2c25d15388e96  warandpeace.txt
+# 3c8168e48f49784ac3c2c25d15388e96  warandpeace.txt
 $ md5sum warandpeace.dec
-% 3c8168e48f49784ac3c2c25d15388e96  warandpeace.dec
+# 3c8168e48f49784ac3c2c25d15388e96  warandpeace.dec
 ~~~
 
 And yup, we get an exact, lossless decompression.
