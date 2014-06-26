@@ -9,7 +9,7 @@ import Control.Applicative              ((<$>))
 import Control.Monad.Trans.State.Strict (evalState)
 import Data.Foldable                    (sum)
 import Data.Map.Strict                  (Map, (!))
-import Lens.Family2                     ((&), (%~))
+import Lens.Family2                     (over)
 import Prelude hiding                   (sum)
 import System.Environment               (getArgs)
 import System.IO                        (withFile, IOMode(..))
@@ -69,7 +69,7 @@ encodeFile inp out len tree =
     withFile out WriteMode $ \hOut -> do
       BL.hPut hOut $ encode (len, tree)
       let bsIn      = PB.fromHandle hIn
-          bsOut     = bsIn & PB.unpack %~ \bytes ->
+          bsOut     = flip (over PB.unpack) bsIn $ \bytes ->
                         dirsBytes ( bytes
                                 >-> encodeByte encTable )
           pipeline  = bsOut
@@ -78,7 +78,6 @@ encodeFile inp out len tree =
       runEffect pipeline
   where
     encTable  = ptTable tree
-
 
 -- Receive ByteStrings from upstream and send its Word8 components
 -- downstream
@@ -96,7 +95,7 @@ encodeByte encTable = PP.mapFoldable (encTable !)
 -- last byte with zeroes if the direction stream runs out mid-byte.
 dirsBytes :: (MonadIO m, Functor m)
           => Producer Direction m r
-          -> Producer Word8 m ()
+          -> Producer Word8     m ()
 dirsBytes p = do
     (result, leftovers) <- lift $ runStateT dirsBytesP p
     case result of
