@@ -1,6 +1,17 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RankNTypes #-}
 
+-- | decode.hs
+--
+-- Huffman decoding implementation in Haskell.  For use with encode.hs.
+--
+-- Usage:
+--
+-- > ghc -O2 decode.hs
+-- > ./decode input.enc output.txt
+--
+-- http://blog.jle.im/entry/pipes-streaming-huffman-compression-in-haskell-part-3
+--
 
 module Main where
 

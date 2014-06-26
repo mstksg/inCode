@@ -2,6 +2,18 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
+-- | encode.hs
+--
+-- Huffman encoding implementation in Haskell.
+--
+-- Usage:
+--
+-- > ghc -O2 encode.hs
+-- > ./encode input.txt output.enc
+--
+-- http://blog.jle.im/entry/pipes-streaming-huffman-compression-in-haskell-part-3
+--
+
 module Main where
 
 -- General imports
