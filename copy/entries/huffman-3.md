@@ -664,9 +664,11 @@ returning values into a `Pipe` repeatedly yielding the returned values.
 ~~~
 
 The logic is slightly cleaner; the gain isn't that much, but just being able
-to have this separation is nice.  We also get rid of the "infinite loop";
-`searchPT'` only "runs once".  In any case, this is also a good exposure to
-`(>~)`!
+to have this separation is nice.  Also, we get rid of explicit recursion.  And
+everybody knows that every time you can get rid of explicit recursion, you get
+a big win --- in lack of potential bugs, in more concise code, and in
+leveraging higher order functions.  In any case, this is also a good exposure
+to `(>~)`!
 
 <div class="note">
 **Aside**
