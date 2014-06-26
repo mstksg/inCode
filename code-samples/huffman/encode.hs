@@ -9,7 +9,7 @@ import Control.Applicative              ((<$>))
 import Control.Monad.Trans.State.Strict (evalState)
 import Data.Foldable                    (sum)
 import Data.Map.Strict                  (Map, (!))
-import Lens.Family2                     (over)
+import Lens.Family2                     (view)
 import Prelude hiding                   (sum)
 import System.Environment               (getArgs)
 import System.IO                        (withFile, IOMode(..))
@@ -68,12 +68,12 @@ encodeFile inp out len tree =
     withFile inp ReadMode  $ \hIn  ->
     withFile out WriteMode $ \hOut -> do
       BL.hPut hOut $ encode (len, tree)
-      let bsIn      = PB.fromHandle hIn
-          bsOut     = flip (over PB.unpack) bsIn $ \bytes ->
-                        dirsBytes ( bytes
-                                >-> encodeByte encTable )
+      let dirsOut   = PB.fromHandle hIn
+                  >-> bsToBytes
+                  >-> encodeByte encTable
+          bsOut     = view PB.pack . dirsBytes $ dirsOut
           pipeline  = bsOut
-                        >-> PB.toHandle hOut
+                  >-> PB.toHandle hOut
 
       runEffect pipeline
   where

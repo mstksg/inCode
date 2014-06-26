@@ -6,7 +6,7 @@ module Main where
 
 -- General imports
 import Control.Monad      (forever)
-import Lens.Family2       (over)
+import Lens.Family2       (view)
 import System.Environment (getArgs)
 import System.IO          (withFile, IOMode(..))
 
@@ -49,11 +49,10 @@ decodeFile inp out =
           error "Corrupt metadata."
         Right (len, tree) -> do
           -- do everything with the rest
-          let bsOut     = flip (over PB.unpack) decodingPipe $ \bytes ->
-                                bytes
-                            >-> bytesToDirs
-                            >-> searchPT tree
-                            >-> PP.take len
+          let bytesOut  = decodingPipe >-> bsToBytes
+                      >-> bytesToDirs  >-> searchPT tree
+                      >-> PP.take len
+              bsOut     = (view PB.pack) bytesOut
               pipeline  = bsOut
                       >-> PB.toHandle hOut
 
@@ -75,17 +74,6 @@ searchPT t = searchPT' t >~ cat
         searchPT' $ case dir of
                       DLeft  -> pt1
                       DRight -> pt2
-
--- "Maps" a function onto the the `Word8`s in the `ByteStream` producer...
--- "as if" you had a `Word8` producer.  Handles the unpacking and repacking
--- of the `ByteString`s for you.
-forBytes :: Monad m
-         => Producer ByteString m r
-         -> (Producer Word8 m r -> Producer Word8 m r)
-         -> Producer ByteString m r
-forBytes p f = (over PB.unpack) f p
-
-
 
 -- Receive ByteStrings from upstream and send its Word8 components
 -- downstream

@@ -247,103 +247,165 @@ a time, which we write to the file one at a time.
 
 This is bad!
 
-#### There's a lens for that
+At this point, you should already be anticipating how we're going to solve
+this.  Yup, it's with another pipe transformer.
 
-Luckily for us, there's a lens for just this job in *pipes-bytestring*:
-`unpack`.
+We're not going to write it ourselves using *pipes-parse*; *pipes-bytestring*
+actually comes with such a transformer for us.
 
-One thing that *lens* offers us is a way to, for some data structures,
-effectively treat one thing like another thing.  Specific lenses provide
-instructions on how to make that make sense.
-
-This should be familiar to anyone who has ever used `fmap` on, say, `Identity a`:
+The only hitch is that it's "trapped" in a "lens", called `pack`.
 
 ~~~haskell
-ghci> fmap (\x -> show (x + 3)) (Identity 5)
-Identity "8"
+pack :: Lens' (Producer Word8 m r) (Producer ByteString m r)
 ~~~
 
-(For those unfamiliar with `Identity`, it's basically `Maybe` with only
-`Just`, and no `Nothing`: `data Identity a = Identity a`)
+For those of you know your way around lens, this basically means that `pack`
+contains functions that allow you to go "back and forth" from a `Word8`
+producer to a `ByteString` producer.
 
-In this specific instance[^instance], `fmap` allows us to "treat a `Identity
-Int` as if it were an `Int`" in the function that we pass it (in this case,
-`\x -> show (x + 3)`).  In that function, we basically are "given" an `Int`
-(which we named, endearingly, "*x*"), and we can do whatever we want with
-it...and it'll update the entire `Identity` with the changes we make.
-
-[^instance]: Pun intended.
-
-So a lens literally contains the "instructions"/implementation on how to make
-this happen.  If you have a lens, you can use the function `over` to
-"retrieve" that implementation.
-
-Say there was a lens called `_Identity` for `Identity a` that let us treat it
-like an `a` in the same way as `fmap`, we would use it as:
+We're interested in the "forward" direction: the pipe transformer that turns a
+`Word8` producer into a `ByteString` producer.  The function `view` lets us
+unlock that pipe transformer from the lens.
 
 ~~~haskell
-ghci> (over _Identity) (\x -> show (x + 3)) (Identity 5)
-Identity "8"
+view :: Lens' a b -> (a -> b)       -- in our case
 ~~~
 
-<div class="note">
-**Aside**
-
-In simple terms, you can think of `over _Identity` as being exactly like
-`fmap` for `Identity`.  In our case, `over` has type:
+So,
 
 ~~~haskell
-over :: Lens (Identity a) (Identity b) a b
-     -> (a -> b)
-     -> Identity a
-     -> Identity b
+view pack :: Producer Word8      m r
+          -> Producer ByteString m r
 ~~~
 
-and, to take one step in generalization:
+Cool.  Anyways, *pipes-bytestring* implements `view pack` (the conversion
+function) in a way that does ["smart chunking"][smartchunking] --- it waits
+until an appropriate amount of `Word8`s have accumulated in a buffer before
+packing them all into a big fat `ByteString`.
+
+[smartchunking]: http://www.haskellforall.com/2013/09/perfect-streaming-using-pipes-bytestring.html
+
+#### Final Plan
+
+Okay, so the final plan?  We transformed our `Direction` producer into a
+`Word8` producer using a pipe transformer, right?  And so now we transform
+that `Word8` producer into a `ByteString` producer using another pipe
+transformer.  Neat!
+
+From
 
 ~~~haskell
-over :: Lens s t a b
-     -> (a -> b)
-     -> s
-     -> t
+dirsBytes directionProducer
 ~~~
 
-Also, `_Identity` isn't a `Lens` that comes in most packages; the one you'd
-"actually" use is called `_Wrapped`, which works on (most) `newtype`s.
-</aside>
+we go tooooo...
 
-Not all lenses "fit" this sort of semantic model (the "let me treat this thing
-like this thing" model); the point is that *if you want this sort of
-functionality, a lens can offer it to you*.  If you wish to provide this sort
-of functionality for your type, a lens + `over` can be a way to offer it[^notfmap]; it
-can be an expressive, common API[^api].
 
-[^notfmap]: Why a lens + `over`, and not `fmap`?  Well, for one, `fmap` has to
-follow many strict laws, and many times, you want to be able to do ad-hoc
-things that might not necessarily be the `fmap` of a valid `Functor`.  Another
-reason is that you can provide *many* lenses for a single type --- with each
-one giving different "treat as this other thing" behaviors.
-
-[^api]: ...one day in the future, when lens is common and idiomatic :)  One
-day.  Yup.  Any day now...
-
-Anyways, back to the problem at hand.  *pipes-bytestring* gives us the lens
-*unpack*, which lets us treat any *bytestring producer* as a *byte producer*.
-
-That is, you can do:
 
 ~~~haskell
-(over unpack) ( \byteProducer -> stuffWithByteProducer ) bsProducer
+view pack . dirsBytes $ directionProducer
 ~~~
 
-As long as your function both takes and returns a byte producer, then the lens
-unpack will basically handle all of the manual bytestring unpacking and "smart
-repacking" for you.  The "smart chunking" problem that we discussed earlier
-goes away, because we aren't handling it; *pipes-bytestring* handles it for
-us, using the *unpack* lens.  Thank you Gabriel!
 
-As it turns out, this is the last key to our puzzle.  Let's put it all
-together.
+And that should be the last hole in our puzzle!
+
+<!-- #### There's a lens for that -->
+
+<!-- Luckily for us, there's a lens for just this job in *pipes-bytestring*: -->
+<!-- `unpack`. -->
+
+<!-- One thing that *lens* offers us is a way to, for some data structures, -->
+<!-- effectively treat one thing like another thing.  Specific lenses provide -->
+<!-- instructions on how to make that make sense. -->
+
+<!-- This should be familiar to anyone who has ever used `fmap` on, say, `Identity a`: -->
+
+<!-- ~~~haskell -->
+<!-- ghci> fmap (\x -> show (x + 3)) (Identity 5) -->
+<!-- Identity "8" -->
+<!-- ~~~ -->
+
+<!-- (For those unfamiliar with `Identity`, it's basically `Maybe` with only -->
+<!-- `Just`, and no `Nothing`: `data Identity a = Identity a`) -->
+
+<!-- In this specific instance[^instance], `fmap` allows us to "treat a `Identity -->
+<!-- Int` as if it were an `Int`" in the function that we pass it (in this case, -->
+<!-- `\x -> show (x + 3)`).  In that function, we basically are "given" an `Int` -->
+<!-- (which we named, endearingly, "*x*"), and we can do whatever we want with -->
+<!-- it...and it'll update the entire `Identity` with the changes we make. -->
+
+<!-- [^instance]: Pun intended. -->
+
+<!-- So a lens literally contains the "instructions"/implementation on how to make -->
+<!-- this happen.  If you have a lens, you can use the function `over` to -->
+<!-- "retrieve" that implementation. -->
+
+<!-- Say there was a lens called `_Identity` for `Identity a` that let us treat it -->
+<!-- like an `a` in the same way as `fmap`, we would use it as: -->
+
+<!-- ~~~haskell -->
+<!-- ghci> (over _Identity) (\x -> show (x + 3)) (Identity 5) -->
+<!-- Identity "8" -->
+<!-- ~~~ -->
+
+<!-- <div class="note"> -->
+<!-- **Aside** -->
+
+<!-- In simple terms, you can think of `over _Identity` as being exactly like -->
+<!-- `fmap` for `Identity`.  In our case, `over` has type: -->
+
+<!-- ~~~haskell -->
+<!-- over :: Lens (Identity a) (Identity b) a b -->
+<!--      -> (a -> b) -->
+<!--      -> Identity a -->
+<!--      -> Identity b -->
+<!-- ~~~ -->
+
+<!-- and, to take one step in generalization: -->
+
+<!-- ~~~haskell -->
+<!-- over :: Lens s t a b -->
+<!--      -> (a -> b) -->
+<!--      -> s -->
+<!--      -> t -->
+<!-- ~~~ -->
+
+<!-- Also, `_Identity` isn't a `Lens` that comes in most packages; the one you'd -->
+<!-- "actually" use is called `_Wrapped`, which works on (most) `newtype`s. -->
+<!-- </aside> -->
+
+<!-- Not all lenses "fit" this sort of semantic model (the "let me treat this thing -->
+<!-- like this thing" model); the point is that *if you want this sort of -->
+<!-- functionality, a lens can offer it to you*.  If you wish to provide this sort -->
+<!-- of functionality for your type, a lens + `over` can be a way to offer it[^notfmap]; it -->
+<!-- can be an expressive, common API[^api]. -->
+
+<!-- [^notfmap]: Why a lens + `over`, and not `fmap`?  Well, for one, `fmap` has to -->
+<!-- follow many strict laws, and many times, you want to be able to do ad-hoc -->
+<!-- things that might not necessarily be the `fmap` of a valid `Functor`.  Another -->
+<!-- reason is that you can provide *many* lenses for a single type --- with each -->
+<!-- one giving different "treat as this other thing" behaviors. -->
+
+<!-- [^api]: ...one day in the future, when lens is common and idiomatic :)  One -->
+<!-- day.  Yup.  Any day now... -->
+
+<!-- Anyways, back to the problem at hand.  *pipes-bytestring* gives us the lens -->
+<!-- *unpack*, which lets us treat any *bytestring producer* as a *byte producer*. -->
+
+<!-- That is, you can do: -->
+
+<!-- ~~~haskell -->
+<!-- (over unpack) ( \byteProducer -> stuffWithByteProducer ) bsProducer -->
+<!-- ~~~ -->
+
+<!-- As long as your function both takes and returns a byte producer, then the lens -->
+<!-- unpack will basically handle all of the manual bytestring unpacking and "smart -->
+<!-- repacking" for you.  The "smart chunking" problem that we discussed earlier -->
+<!-- goes away, because we aren't handling it; *pipes-bytestring* handles it for -->
+<!-- us, using the *unpack* lens.  Thank you Gabriel! -->
+
+<!-- As it turns out, this is the last key to our puzzle.  Let's put it all -->
+<!-- together. -->
 
 ### Down to it
 
@@ -450,7 +512,7 @@ instance.  We'll read it back in later as a tuple, but it actually
 doesn't matter, because the `Binary` instance for tuples is just
 putting/getting each item one after the other.
 
-Now, we get to our actual pipes.  The first "pipeline" is `dirStream`, which
+Now, we get to our actual pipes.  The first "pipeline" is `dirsOut`, which
 is our stream (producer) of `Direction`s encoding the input file.  As can be
 read, `dirStream` is `PB.fromHandle hIn` (a `ByteString` producer from the
 given handle) piped into our old friend `bsToBytes` piped into `encodeByte
@@ -473,10 +535,9 @@ resulting list one at a time.
 
 #### Parser
 
-So now we have `dirStream :: Producer Direction IO r`, `PB.fromHandle hIn >->
-bsToBytes >-> encodeByte encTable`, which is a producer of `Direction` drawn
-from the file.  It's now time to "group up" the directions, using the
-"producer transformer" tactic we discussed earlier.
+So now we have `dirsOut :: Producer Direction IO r`, which is a producer of
+`Direction`s drawn from the file.  It's now time to "group up" the directions,
+using the "producer transformer" tactic we discussed earlier.
 
 ~~~haskell
 !!!huffman/encode.hs "dirsBytes ::"
@@ -518,7 +579,7 @@ Let's take a look at the `dirsBytesP` parser, which parses `Direction`s into a
 !!!huffman/encode.hs "dirsBytesP ::"
 ~~~
 
-This implemenation is pretty straightforward --- "if the producer is empty,
+This implementation is pretty straightforward --- "if the producer is empty,
 return `Nothing`.  Otherwise, start with `00000000` and draw `Direction`s one
 at a time, flipping the appropriate bit when you get a `Right`."  For more
 information on the exact functions for bitwise operators, look into the
@@ -533,98 +594,109 @@ special to parsers, because it lets you react on end-of-input as a `Nothing`
 eight bits (and return the resulting byte) or run out of inputs (and return
 the byte that we have so far).
 
-We can finally put it all together, by saying `bytesOut = dirsBytes
-dirStream`.
+We get our direction producer by doing `dirsBytes dirsOut`.
 
-#### view
+#### Smart Chunker
 
-<div class="note">
-**Note**
-
-Just as a warning, much of this section might be considered obsolute or out of
-date on the next breaking release of *pipes-bytestring*, which replaces the
-`PB.pack` iso with a pair of lenses.  Just be aware!  Once it's out, I'll
-replace/augment this and possibly much of this post with new material
-addressing the library redesign.
-</div>
-
-Now, the next step could have been to pipe in the stream of `Word8` into
-`PP.map B.pack`, which takes each incoming `Word8` and "packs" them into a
-singleton `ByteString`.
-
-However, this is a bad idea: you are basically creating a full `ByteString`
-and triggering a write on every incoming byte.  Instead, we use
+And finally, we use the "smart chunking" provided by *pipes-bytestring* by
+transforming our bytes stream:
 
 ~~~haskell
-(view PB.pack) bytesOut
+!!!huffman/encode.hs "bsOut"1
 ~~~
 
-Where `view PB.pack` is a "producer transformer" (like `dirsBytes`).
 
-The implementation of `view PB.pack` basically repeatedly takes chunks of
-`Word8`s and then packs them into a big `ByteString`, and uses ["smart
-chunking"][smartchunking] that allows us to maximize both space and time
-usage.  Pretty cool! In a way it's a lot like our `dirsBytes` producer
-transformer (chunking `Direction`s into `Word8`s), except with "smart chunk
-sizes".
 
-[smartchunking]: http://www.haskellforall.com/2013/09/perfect-streaming-using-pipes-bytestring.html
 
-<div class="note">
-**Aside**
+<!-- #### view -->
 
-`view PB.pack` is an idiom that comes from the *lens* library.
+<!-- <div class="note"> -->
+<!-- **Note** -->
 
-Basically, `PB.pack` from *pipes-bytestring* (and not the one from
-*bytestring*), contains "producer transformers" ---  two, actually: a
-`Producer Word8 m r -> Producer ByteString m r`, and a `Producer ByteString m
-r -> Producer Word8 m r`.
+<!-- Just as a warning, much of this section might be considered obsolute or out of -->
+<!-- date on the next breaking release of *pipes-bytestring*, which replaces the -->
+<!-- `PB.pack` iso with a pair of lenses.  Just be aware!  Once it's out, I'll -->
+<!-- replace/augment this and possibly much of this post with new material -->
+<!-- addressing the library redesign. -->
+<!-- </div> -->
 
-In fact, in a way, you can think of `PB.pack` as simply a tupling of the two
-transformer functions together.  Practically, the tupling/packaging them
-together is useful because the two are inverses of each other.
+<!-- Now, the next step could have been to pipe in the stream of `Word8` into -->
+<!-- `PP.map B.pack`, which takes each incoming `Word8` and "packs" them into a -->
+<!-- singleton `ByteString`. -->
 
-Simply speaking, `view` is a function from *lens* that takes the "first" part
-(kind of like `fst`) of that "tuple".
+<!-- However, this is a bad idea: you are basically creating a full `ByteString` -->
+<!-- and triggering a write on every incoming byte.  Instead, we use -->
 
-So *pipes-bytestring* gives us this tupling of two transformers (one going
-from `Word8` to `ByteString` and one going from `ByteString` to `Word8`),
-called `PB.pack`, and we use `view` to get the "forward" direction, the first
-one.
+<!-- ~~~haskell -->
+<!-- (view PB.pack) bytesOut -->
+<!-- ~~~ -->
 
-There are many reasons why *pipes-bytestring* gives us these useful
-functions "tied together" in `pack` instead of just them separately, and they
-have to do with ways you can manipulate them with *lens*.  But that's another
-story :)
-</div>
+<!-- Where `view PB.pack` is a "producer transformer" (like `dirsBytes`). -->
 
-<div class="note">
-**Aside**
+<!-- The implementation of `view PB.pack` basically repeatedly takes chunks of -->
+<!-- `Word8`s and then packs them into a big `ByteString`, and uses ["smart -->
+<!-- chunking"][smartchunking] that allows us to maximize both space and time -->
+<!-- usage.  Pretty cool! In a way it's a lot like our `dirsBytes` producer -->
+<!-- transformer (chunking `Direction`s into `Word8`s), except with "smart chunk -->
+<!-- sizes". -->
 
-Perhaps more formally stated, `PB.pack` is an "isomorphism"; if `toBS` is your
-forward transformer and `toW8` is your backwards transformer, `PB.pack` is
-`iso toBS toW8`.
+<!-- [smartchunking]: http://www.haskellforall.com/2013/09/perfect-streaming-using-pipes-bytestring.html -->
 
-You can then think of `view` as a function that obeys the properties:
+<!-- <div class="note"> -->
+<!-- **Aside** -->
 
-~~~haskell
-view (iso to from) = to
-~~~
+<!-- `view PB.pack` is an idiom that comes from the *lens* library. -->
 
-So when we say `view PB.pack`:
+<!-- Basically, `PB.pack` from *pipes-bytestring* (and not the one from -->
+<!-- *bytestring*), contains "producer transformers" ---  two, actually: a -->
+<!-- `Producer Word8 m r -> Producer ByteString m r`, and a `Producer ByteString m -->
+<!-- r -> Producer Word8 m r`. -->
 
-~~~haskell
-view PB.pack
-== view (iso toBS toW8)     -- definition of `PB.pack`
-== toBS                     -- behavior of `view` and `iso`
-~~~
+<!-- In fact, in a way, you can think of `PB.pack` as simply a tupling of the two -->
+<!-- transformer functions together.  Practically, the tupling/packaging them -->
+<!-- together is useful because the two are inverses of each other. -->
 
-</div>
+<!-- Simply speaking, `view` is a function from *lens* that takes the "first" part -->
+<!-- (kind of like `fst`) of that "tuple". -->
 
-Ok, now that we have a stream of `ByteString`, all that's left to do is add on
-a final pipe/consumer that writes it to disk.  For that, we have `PB.toHandle
-out`, which is a consumer that takes in `ByteString` and writes each incoming
-`ByteString` to the given file handler.
+<!-- So *pipes-bytestring* gives us this tupling of two transformers (one going -->
+<!-- from `Word8` to `ByteString` and one going from `ByteString` to `Word8`), -->
+<!-- called `PB.pack`, and we use `view` to get the "forward" direction, the first -->
+<!-- one. -->
+
+<!-- There are many reasons why *pipes-bytestring* gives us these useful -->
+<!-- functions "tied together" in `pack` instead of just them separately, and they -->
+<!-- have to do with ways you can manipulate them with *lens*.  But that's another -->
+<!-- story :) -->
+<!-- </div> -->
+
+<!-- <div class="note"> -->
+<!-- **Aside** -->
+
+<!-- Perhaps more formally stated, `PB.pack` is an "isomorphism"; if `toBS` is your -->
+<!-- forward transformer and `toW8` is your backwards transformer, `PB.pack` is -->
+<!-- `iso toBS toW8`. -->
+
+<!-- You can then think of `view` as a function that obeys the properties: -->
+
+<!-- ~~~haskell -->
+<!-- view (iso to from) = to -->
+<!-- ~~~ -->
+
+<!-- So when we say `view PB.pack`: -->
+
+<!-- ~~~haskell -->
+<!-- view PB.pack -->
+<!-- == view (iso toBS toW8)     -- definition of `PB.pack` -->
+<!-- == toBS                     -- behavior of `view` and `iso` -->
+<!-- ~~~ -->
+
+<!-- </div> -->
+
+<!-- Ok, now that we have a stream of `ByteString`, all that's left to do is add on -->
+<!-- a final pipe/consumer that writes it to disk.  For that, we have `PB.toHandle -->
+<!-- out`, which is a consumer that takes in `ByteString` and writes each incoming -->
+<!-- `ByteString` to the given file handler. -->
 
 #### All together
 
@@ -946,3 +1018,84 @@ we'll try our best to optimize this baby! [^nexttime]
 next part is not scheduled any ime soon and might not come for a while, as I'll
 be pursuing some other things in the near future --- I apologize for any
 disappointment/inconvenience this may cause.
+
+<div class="note">
+**Bonus Round: Full Lens**
+
+Hey guess what!  We're going to go **full lens**.
+
+(This section does not invalidate anything you learned already, so if you have
+problems with it, it's okay :) )
+
+Now, you might have thought, "Hey, we used `view PB.pack` to turn our `Word8`
+producer into a `ByteString` producer...couldn't we just use `view PB.unpack`
+to turn our `ByteString` producer into a `Word8` producer in the first
+place???"
+
+Yup!  In fact, this takes us into a..."pipe transformer style" of pipes code,
+as opposed to a "pipe composition style" of pipes code.  Both ways are
+considered "idiomatic", and it's up to you to decide what suits you more.
+
+Basically, we don't ever need `bsToBytes`; instead of
+
+~~~haskell
+!!!huffman/encode.hs "let byteProducer"1
+~~~
+
+We can just write
+
+~~~haskell
+let byteProducer = (view PB.unpack) (PB.fromHandle hIn)
+~~~
+
+Okay, one last thing.
+
+With *lens*, we not only have the ability to "view" the `ByteString` producer
+"as a" `Word8` producer.
+
+We also have the ability to *modify* the `Word8` producer that we "see"...and
+*put it back into* the `ByteString` producer!
+
+That is, if I have a `ByteString` producer, I can see the `Word8` producer,
+modify it, and "stick it back into" the `ByteString` producer...to basically
+create a new `ByteString` producer that instead outputs our "modified" `Word8`
+producer.
+
+It's like a fancy `fmap`.  And like how `view` was how we "unlocked" the
+viewer from the lens, we use `over` to "unlock" the "pull out, edit, and stick
+back in".
+
+That is, in our case,
+
+~~~haskell
+over :: Lens' (Producer ByteString m r) (Producer Word8 m r)
+     -> (Producer Word8 m r -> Producer Word8 m r)
+     -> Producer ByteString m r
+     -> Producer ByteString m r
+~~~
+
+What does this mean, in practice?
+
+That means that we can use `over`, apply a function to the `Word8` producer,
+and `over` will *handle the re-packing* (with the smart chunking) for us, all
+in one swoop.
+
+So, we can rewrite `bsOut`:
+
+~~~haskell
+bsIn      = PB.fromHandle hIn
+bsOut     = flip (over PB.unpack) bsIn $ \bytesOut ->
+                dirsBytes ( bytesOut
+                        >-> encodeByte encTable )
+pipeline  = bsOut
+        >-> PB.toHandle hOut
+~~~
+
+So `over PB.unpack` handles the unpacking (to get `bytesOut`) and the
+re-packing (after the result of `dirsBytes`) for us, in one fell swoop.
+
+Neat!
+
+Okay now, good bye, for reals!
+</div>
+
