@@ -276,25 +276,6 @@ packing them all into a big fat `ByteString`.
 
 [smartchunking]: http://www.haskellforall.com/2013/09/perfect-streaming-using-pipes-bytestring.html
 
-#### Final Plan
-
-Okay, so the final plan?  We transformed our `Direction` producer into a
-`Word8` producer using a pipe transformer, right?  And so now we transform
-that `Word8` producer into a `ByteString` producer using another pipe
-transformer.  Neat!
-
-From
-
-~~~haskell
-dirsBytes directionProducer
-~~~
-
-we go tooooo...
-
-~~~haskell
-view pack . dirsBytes $ directionProducer
-~~~
-
 And that should be the last hole in our puzzle!
 
 ### Down to it
