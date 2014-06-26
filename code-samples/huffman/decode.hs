@@ -16,7 +16,6 @@
 module Main where
 
 -- General imports
-import Control.Monad      (forever)
 import Lens.Family2       (view)
 import System.Environment (getArgs)
 import System.IO          (withFile, IOMode(..))
@@ -95,8 +94,7 @@ bsToBytes = PP.mapFoldable B.unpack
 -- Turns a stream of bytes into a stream of directions, yielding eight
 -- times per byte.
 bytesToDirs :: Monad m => Pipe Word8 Direction m r
-bytesToDirs = forever $ do
-                mapM_ yield . byteToDirList =<< await
+bytesToDirs = PP.mapFoldable byteToDirList
   where
     -- Turns a byte into a list of directions
     byteToDirList :: Word8 -> [Direction]

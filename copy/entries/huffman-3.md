@@ -10,7 +10,7 @@ Tags
 CreateTime
 :   2014/04/12 19:06:07
 PostDate
-:   Never
+:   2014/06/26 12:44:11
 Series
 :   Huffman Compression
 :   Beginner/Intermediate Haskell Projects
@@ -104,12 +104,10 @@ to be using:
 1.  *[pipes-parse][]*, for leftover support.  We're going to be using limited
     leftover handling for this project in a couple of situations.
 2.  *[pipes-bytestring][]*, which provides lenses for us to manipulate
-    bytestring producers in efficient and expressive ways.
+    bytestring and byte producers in efficient and expressive ways.
 
 [pipes-parse]: http://hackage.haskell.org/package/pipes-parse
 [pipes-bytestring]: http://hackage.haskell.org/package/pipes-bytestring
-
-<!-- [lens]: http://lens.github.io/ -->
 
 Today, our work with *pipes* will revolve around a couple of main concepts:
 
@@ -122,9 +120,11 @@ Today, our work with *pipes* will revolve around a couple of main concepts:
 
 If you've ever used bash/unix, the first concept is like using unix pipes to
 "declare" a chain of tools.  You can do powerful things by just chaining
-simple components.  The second concept relates to things to *sudo* or *time*;
-they take normal bash commands and "transform" them into super user commands,
-or "timeable" commands.
+simple components.
+
+The second concept relates to things to *sudo* or *time*; they take normal
+bash commands and "transform" them into super user commands, or "timeable"
+commands.
 
 And without any further delay, let's write *encode.hs*!
 
@@ -144,7 +144,7 @@ yourself; just remember to also grab [Huffman.hs][], [PQueue.hs][], and
 ### Design
 
 Okay, so with the above in mind, let's sketch out a rough plan.  We'll talk
-about the holes in the plan earlier, but it's useful to see exactly what won't
+about the holes in the plan later, but it's useful to see exactly what won't
 work, or what is a bad idea :)
 
 We can envision this all as a big single giant pipeline of atomic components.
@@ -166,17 +166,18 @@ Those in hand, we'll need:
     `ByteString`s and emits them.
 
 [^bs]: Remember, a `ByteString` is an efficiently packed "chunk"/"list" of
-`Word8`/bytes; we can use functions like `unpack` and `pack` to turn a
-`ByteString` into a list of `Word8`s or go backwards.
+`Word8`/bytes; we can use functions like `ByteString.unpack` and
+`ByteString.pack` to turn a `ByteString` into a list of `Word8`s or go
+backwards.
 
 Sounds simple enough, right?  Basically like using unix pipes!
 
 We'll be making two modifications to this plan before we go forward.
 
-#### A Problem
+#### Leftovers
 
-The first hole: vanilla *pipes* do not have *leftover support*.  That is, the
-stream terminates as soon as the producer terminates.
+The first hole: vanilla *pipes* does not have *leftover support*.  That is,
+the stream terminates as soon as the producer terminates.
 
 To put more technically: when a pipe is *awaiting* something, there is no
 guarantee that it'll ever get anything --- if the producer it is awaiting from
@@ -195,13 +196,12 @@ The problem is in the semantics of pipe composition with `(>->)`.
 So it's clear that using normal pipe composition (`(>->)`) doesn't work.
 We're going to have to transform our `Direction` producer in another way.
 
-#### pipes-parse
+Luckily for us, this is precisely the problem that *pipes-parse* was made to
+solve.
 
-This is precisely the problem that *pipes-parse* attempts to solve.
-
-We'll go into more detail about how it solves this later.  At the high level,
-instead of composing pipes with `(>->)`, we'll *transform* pipes by using pipe
-transformers/functions.
+We'll go into more detail about just *how* it solves this later.  At the high
+level, instead of composing pipes with `(>->)`, we'll *transform* pipes by
+using pipe transformers/functions.
 
 So we'll modify our plan.  We'll have our "`Direction` producer", which
 consists of:
@@ -223,7 +223,7 @@ of the byte with 0's.
 
 *pipes-parse* gives us the ability to write `dirsBytes`.
 
-#### In and Out
+#### Perfect Packing
 
 The next problem.
 
@@ -238,25 +238,23 @@ a time, which we write to the file one at a time.
 
 This is bad!
 
-At this point, you should already be anticipating how we're going to solve
-this.  Yup, it's with another pipe transformer.
+As you might have guessed, the solution is to not use `(>->)` and instead use
+a pipe transformer.
 
 We're not going to write it ourselves using *pipes-parse*; *pipes-bytestring*
-actually comes with such a transformer for us.
+(which we will import qualified as `PB`) actually comes with such a
+transformer for us.
 
-The only hitch is that it's "trapped" in a "lens", called `pack`.
+The only hitch is that it's "trapped" in a "lens", called `PB.pack`.
 
 ~~~haskell
-pack :: Lens' (Producer Word8 m r) (Producer ByteString m r)
+PB.pack :: Lens' (Producer Word8 m r) (Producer ByteString m r)
 ~~~
 
-For those of you know your way around lens, this basically means that `pack`
-contains functions that allow you to go "back and forth" from a `Word8`
-producer to a `ByteString` producer.
-
-We're interested in the "forward" direction: the pipe transformer that turns a
-`Word8` producer into a `ByteString` producer.  The function `view` lets us
-unlock that pipe transformer from the lens.
+If you are still learning lens, this basically means that `PB.pack` contains,
+among other things, a function that allows you to go from a `Word8` producer
+to a `ByteString` producer.  The function `view` lets us unlock that pipe
+transformer from the lens.
 
 ~~~haskell
 view :: Lens' a b -> (a -> b)       -- in our case
@@ -265,8 +263,8 @@ view :: Lens' a b -> (a -> b)       -- in our case
 So,
 
 ~~~haskell
-view pack :: Producer Word8      m r
-          -> Producer ByteString m r
+view PB.pack :: Producer Word8      m r
+             -> Producer ByteString m r
 ~~~
 
 Cool.  Anyways, *pipes-bytestring* implements `view pack` (the conversion
@@ -315,7 +313,7 @@ stop decoding (lest we begin decoding the leftover padding bits).
 First, we use [`withFile`][withFile] from System.IO, which gives us a file
 handler for a given filepath; we can pass this handler onto functions that
 take file handlers.  `withFile` actually handles most of the IO-based error
-handling and cleanup we would ever need.
+handling and cleanup we would ever need for our simple use cases of *pipes*.
 
 [withFile]: http://hackage.haskell.org/package/base-4.7.0.0/docs/System-IO.html#v:withFile
 
@@ -330,12 +328,12 @@ one-by-one:
 !!!huffman/encode.hs "bsToBytes ::"
 ~~~
 
-Our implementation uses `B.unpack :: ByteString -> [Word8]`, which turns a
-`ByteString` into a list of its constituent `Word8`s.  We use
-`PP.mapFoldable`, which is sort of like `concatMap` --- it applies the given
-function to every incoming element in the stream, and emits the items in the
-resulting list[^foldable] one-by-one.  So `bsToBytes` is a Pipe that takes in
-`ByteString`s and emits each contained `Word8` one-by-one.
+Our implementation uses `B.unpack :: ByteString -> [Word8]` from
+*pipes-bytestring*, which turns a `ByteString` into a list of its constituent
+`Word8`s.  We use `PP.mapFoldable`, which is sort of like `concatMap` --- it
+applies the given function to every incoming element in the stream, and emits
+the items in the resulting list[^foldable] one-by-one.  So `bsToBytes` is a
+Pipe that takes in `ByteString`s and emits each contained `Word8` one-by-one.
 
 [^foldable]: It actually works on all `Foldable`s, not just `[]`.
 
@@ -600,8 +598,9 @@ let byteStream = decodingPipe >-> bsToBytes
 ~~~
 
 Beautiful!  `decodingPipe` is the leftover producer after the parse of the
-metadata.  `bsToBytes` is the same as from our encoder.  `bytesToDirs` is new,
-but pretty simple:
+metadata.  `bsToBytes` is the same as from our encoder.  `bytesToDirs` is
+implemented "exactly" like `bsToBytes` and `encodeByte` (from *encode.hs*) ---
+using `PP.mapFoldable` and a `Word8 -> [Direction]` function.
 
 ~~~haskell
 !!!huffman/decode.hs "bytesToDirs ::"
@@ -677,7 +676,7 @@ to `(>~)`!
 
 ~~~haskell
 consumer >~ pipe
-~~~~
+~~~
 
 it is like saying "*Every time `pipe` `await`s, just use the result returned
 by `consumer` instead*".
@@ -800,9 +799,10 @@ be pursuing some other things in the near future --- I apologize for any
 disappointment/inconvenience this may cause.
 
 <div class="note">
+
 **Bonus Round: *Full Lens***
 
-Hey guess what!  We're going to go **full lens**.
+Hey guess what!  Let's try and go *full lens* :)
 
 (This section does not invalidate anything you learned already, so if you have
 problems with it, it's okay :) )
@@ -877,5 +877,6 @@ re-packing (after the result of `dirsBytes`) for us, in one fell swoop.
 Neat!
 
 Okay now, good bye, for reals!
+
 </div>
 
