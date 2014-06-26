@@ -762,7 +762,7 @@ And yup, we get an exact, lossless decompression.
 
 Decompression is faster than compression, as you'd expect; on my computer it
 takes about two seconds to decompress the 3.1M file.  Still a bit slower than
-we'd like, but not *too* bad.
+we'd like, but not *too* bad.  Well.  Maybe.
 
 Conclusion
 ----------
