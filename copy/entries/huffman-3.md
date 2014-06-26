@@ -90,15 +90,6 @@ wanted to learn it, myself :)
 
 ### Before we go
 
-
-<!-- We're going to use *pipes* for this tutorial, with some elements from -->
-<!-- *[pipes-parse][]* for our limited requirements of leftover support.  Why not -->
-<!-- *conduit*, which has built-in leftover/end-of-stream detection?  Well, no -->
-<!-- major reason. You could actually translate much of what is described here to -->
-<!-- conduit with little work.  But I wanted to use *pipes* to maybe display some -->
-<!-- of the nice equational reasoning possible with mathematics-based abstractions -->
-<!-- that Haskell is so famous for --- also, I wanted to learn it, myself :) -->
-
 Before you proceed, it is recommended that you read over or are at least
 somewhat familiar with the excellent [pipes tutorial][ptut], which is a part
 of the actual pipes documentation.  This post does not attempt to be a
@@ -300,112 +291,11 @@ dirsBytes directionProducer
 
 we go tooooo...
 
-
-
 ~~~haskell
 view pack . dirsBytes $ directionProducer
 ~~~
 
-
 And that should be the last hole in our puzzle!
-
-<!-- #### There's a lens for that -->
-
-<!-- Luckily for us, there's a lens for just this job in *pipes-bytestring*: -->
-<!-- `unpack`. -->
-
-<!-- One thing that *lens* offers us is a way to, for some data structures, -->
-<!-- effectively treat one thing like another thing.  Specific lenses provide -->
-<!-- instructions on how to make that make sense. -->
-
-<!-- This should be familiar to anyone who has ever used `fmap` on, say, `Identity a`: -->
-
-<!-- ~~~haskell -->
-<!-- ghci> fmap (\x -> show (x + 3)) (Identity 5) -->
-<!-- Identity "8" -->
-<!-- ~~~ -->
-
-<!-- (For those unfamiliar with `Identity`, it's basically `Maybe` with only -->
-<!-- `Just`, and no `Nothing`: `data Identity a = Identity a`) -->
-
-<!-- In this specific instance[^instance], `fmap` allows us to "treat a `Identity -->
-<!-- Int` as if it were an `Int`" in the function that we pass it (in this case, -->
-<!-- `\x -> show (x + 3)`).  In that function, we basically are "given" an `Int` -->
-<!-- (which we named, endearingly, "*x*"), and we can do whatever we want with -->
-<!-- it...and it'll update the entire `Identity` with the changes we make. -->
-
-<!-- [^instance]: Pun intended. -->
-
-<!-- So a lens literally contains the "instructions"/implementation on how to make -->
-<!-- this happen.  If you have a lens, you can use the function `over` to -->
-<!-- "retrieve" that implementation. -->
-
-<!-- Say there was a lens called `_Identity` for `Identity a` that let us treat it -->
-<!-- like an `a` in the same way as `fmap`, we would use it as: -->
-
-<!-- ~~~haskell -->
-<!-- ghci> (over _Identity) (\x -> show (x + 3)) (Identity 5) -->
-<!-- Identity "8" -->
-<!-- ~~~ -->
-
-<!-- <div class="note"> -->
-<!-- **Aside** -->
-
-<!-- In simple terms, you can think of `over _Identity` as being exactly like -->
-<!-- `fmap` for `Identity`.  In our case, `over` has type: -->
-
-<!-- ~~~haskell -->
-<!-- over :: Lens (Identity a) (Identity b) a b -->
-<!--      -> (a -> b) -->
-<!--      -> Identity a -->
-<!--      -> Identity b -->
-<!-- ~~~ -->
-
-<!-- and, to take one step in generalization: -->
-
-<!-- ~~~haskell -->
-<!-- over :: Lens s t a b -->
-<!--      -> (a -> b) -->
-<!--      -> s -->
-<!--      -> t -->
-<!-- ~~~ -->
-
-<!-- Also, `_Identity` isn't a `Lens` that comes in most packages; the one you'd -->
-<!-- "actually" use is called `_Wrapped`, which works on (most) `newtype`s. -->
-<!-- </aside> -->
-
-<!-- Not all lenses "fit" this sort of semantic model (the "let me treat this thing -->
-<!-- like this thing" model); the point is that *if you want this sort of -->
-<!-- functionality, a lens can offer it to you*.  If you wish to provide this sort -->
-<!-- of functionality for your type, a lens + `over` can be a way to offer it[^notfmap]; it -->
-<!-- can be an expressive, common API[^api]. -->
-
-<!-- [^notfmap]: Why a lens + `over`, and not `fmap`?  Well, for one, `fmap` has to -->
-<!-- follow many strict laws, and many times, you want to be able to do ad-hoc -->
-<!-- things that might not necessarily be the `fmap` of a valid `Functor`.  Another -->
-<!-- reason is that you can provide *many* lenses for a single type --- with each -->
-<!-- one giving different "treat as this other thing" behaviors. -->
-
-<!-- [^api]: ...one day in the future, when lens is common and idiomatic :)  One -->
-<!-- day.  Yup.  Any day now... -->
-
-<!-- Anyways, back to the problem at hand.  *pipes-bytestring* gives us the lens -->
-<!-- *unpack*, which lets us treat any *bytestring producer* as a *byte producer*. -->
-
-<!-- That is, you can do: -->
-
-<!-- ~~~haskell -->
-<!-- (over unpack) ( \byteProducer -> stuffWithByteProducer ) bsProducer -->
-<!-- ~~~ -->
-
-<!-- As long as your function both takes and returns a byte producer, then the lens -->
-<!-- unpack will basically handle all of the manual bytestring unpacking and "smart -->
-<!-- repacking" for you.  The "smart chunking" problem that we discussed earlier -->
-<!-- goes away, because we aren't handling it; *pipes-bytestring* handles it for -->
-<!-- us, using the *unpack* lens.  Thank you Gabriel! -->
-
-<!-- As it turns out, this is the last key to our puzzle.  Let's put it all -->
-<!-- together. -->
 
 ### Down to it
 
@@ -604,99 +494,6 @@ transforming our bytes stream:
 ~~~haskell
 !!!huffman/encode.hs "bsOut"1
 ~~~
-
-
-
-
-<!-- #### view -->
-
-<!-- <div class="note"> -->
-<!-- **Note** -->
-
-<!-- Just as a warning, much of this section might be considered obsolute or out of -->
-<!-- date on the next breaking release of *pipes-bytestring*, which replaces the -->
-<!-- `PB.pack` iso with a pair of lenses.  Just be aware!  Once it's out, I'll -->
-<!-- replace/augment this and possibly much of this post with new material -->
-<!-- addressing the library redesign. -->
-<!-- </div> -->
-
-<!-- Now, the next step could have been to pipe in the stream of `Word8` into -->
-<!-- `PP.map B.pack`, which takes each incoming `Word8` and "packs" them into a -->
-<!-- singleton `ByteString`. -->
-
-<!-- However, this is a bad idea: you are basically creating a full `ByteString` -->
-<!-- and triggering a write on every incoming byte.  Instead, we use -->
-
-<!-- ~~~haskell -->
-<!-- (view PB.pack) bytesOut -->
-<!-- ~~~ -->
-
-<!-- Where `view PB.pack` is a "producer transformer" (like `dirsBytes`). -->
-
-<!-- The implementation of `view PB.pack` basically repeatedly takes chunks of -->
-<!-- `Word8`s and then packs them into a big `ByteString`, and uses ["smart -->
-<!-- chunking"][smartchunking] that allows us to maximize both space and time -->
-<!-- usage.  Pretty cool! In a way it's a lot like our `dirsBytes` producer -->
-<!-- transformer (chunking `Direction`s into `Word8`s), except with "smart chunk -->
-<!-- sizes". -->
-
-<!-- [smartchunking]: http://www.haskellforall.com/2013/09/perfect-streaming-using-pipes-bytestring.html -->
-
-<!-- <div class="note"> -->
-<!-- **Aside** -->
-
-<!-- `view PB.pack` is an idiom that comes from the *lens* library. -->
-
-<!-- Basically, `PB.pack` from *pipes-bytestring* (and not the one from -->
-<!-- *bytestring*), contains "producer transformers" ---  two, actually: a -->
-<!-- `Producer Word8 m r -> Producer ByteString m r`, and a `Producer ByteString m -->
-<!-- r -> Producer Word8 m r`. -->
-
-<!-- In fact, in a way, you can think of `PB.pack` as simply a tupling of the two -->
-<!-- transformer functions together.  Practically, the tupling/packaging them -->
-<!-- together is useful because the two are inverses of each other. -->
-
-<!-- Simply speaking, `view` is a function from *lens* that takes the "first" part -->
-<!-- (kind of like `fst`) of that "tuple". -->
-
-<!-- So *pipes-bytestring* gives us this tupling of two transformers (one going -->
-<!-- from `Word8` to `ByteString` and one going from `ByteString` to `Word8`), -->
-<!-- called `PB.pack`, and we use `view` to get the "forward" direction, the first -->
-<!-- one. -->
-
-<!-- There are many reasons why *pipes-bytestring* gives us these useful -->
-<!-- functions "tied together" in `pack` instead of just them separately, and they -->
-<!-- have to do with ways you can manipulate them with *lens*.  But that's another -->
-<!-- story :) -->
-<!-- </div> -->
-
-<!-- <div class="note"> -->
-<!-- **Aside** -->
-
-<!-- Perhaps more formally stated, `PB.pack` is an "isomorphism"; if `toBS` is your -->
-<!-- forward transformer and `toW8` is your backwards transformer, `PB.pack` is -->
-<!-- `iso toBS toW8`. -->
-
-<!-- You can then think of `view` as a function that obeys the properties: -->
-
-<!-- ~~~haskell -->
-<!-- view (iso to from) = to -->
-<!-- ~~~ -->
-
-<!-- So when we say `view PB.pack`: -->
-
-<!-- ~~~haskell -->
-<!-- view PB.pack -->
-<!-- == view (iso toBS toW8)     -- definition of `PB.pack` -->
-<!-- == toBS                     -- behavior of `view` and `iso` -->
-<!-- ~~~ -->
-
-<!-- </div> -->
-
-<!-- Ok, now that we have a stream of `ByteString`, all that's left to do is add on -->
-<!-- a final pipe/consumer that writes it to disk.  For that, we have `PB.toHandle -->
-<!-- out`, which is a consumer that takes in `ByteString` and writes each incoming -->
-<!-- `ByteString` to the given file handler. -->
 
 #### All together
 
@@ -1020,7 +817,7 @@ be pursuing some other things in the near future --- I apologize for any
 disappointment/inconvenience this may cause.
 
 <div class="note">
-**Bonus Round: Full Lens**
+**Bonus Round: *Full Lens***
 
 Hey guess what!  We're going to go **full lens**.
 
