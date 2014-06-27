@@ -113,9 +113,13 @@ viewArchiveSidebar isIndex = do
   byCatUrl  <- renderUrl "/categories"
   bySerUrl  <- renderUrl "/series"
 
-  entries <- liftIO $ runDB $
-    postedEntriesFilter [] [ D.Desc EntryPostedAt, D.LimitTo 5 ]
-  eList <- liftIO $ runDB $ mapM wrapEntryData entries
+  eList <- liftIO . runDB $ mapM wrapEntryData
+                        =<< postedEntriesFilter [] [ D.Desc EntryPostedAt
+                                                   , D.LimitTo 5
+                                                   ]
+  -- entries <- liftIO $ runDB $
+  --   postedEntriesFilter [] [ D.Desc EntryPostedAt, D.LimitTo 5 ]
+  -- eList <- liftIO $ runDB $ mapM wrapEntryData entries
 
   return $ do
     H.nav ! A.class_ "archive-nav tile" $ do
