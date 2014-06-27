@@ -247,16 +247,16 @@ getNextEntry e = do
 groupEntries :: [D.Entity Entry] -> [[[D.Entity Entry]]]
 groupEntries entries = groupedMonthsYears
   where
-    hasPostDate = filter (isJust . entryPostedAt . D.entityVal) entries
-    groupedMonthsYears = map (groupBy sameMonth) groupedYears
-    groupedYears = groupBy sameYear hasPostDate
-    sameYear e1 e2 = yearOf e1 == yearOf e2
-    sameMonth e1 e2 = yearMonthOf e1 == yearMonthOf e2
-    yearOf = yearOfDay . dayOf
-    yearOfDay (y,_,_) = y
-    yearMonthOf = yearMonthOfDay . dayOf
+    hasPostDate            = filter (isJust . entryPostedAt . D.entityVal) entries
+    groupedMonthsYears     = map (groupBy sameMonth) groupedYears
+    groupedYears           = groupBy sameYear hasPostDate
+    sameYear e1 e2         = yearOf e1 == yearOf e2
+    sameMonth e1 e2        = yearMonthOf e1 == yearMonthOf e2
+    yearOf                 = yearOfDay . dayOf
+    yearOfDay (y,_,_)      = y
+    yearMonthOf            = yearMonthOfDay . dayOf
     yearMonthOfDay (y,m,_) = (y,m)
-    dayOf = toGregorian . utctDay . fromJust . entryPostedAt . D.entityVal
+    dayOf                  = toGregorian . utctDay . fromJust . entryPostedAt . D.entityVal
 
 -- Maybe have issue where a slug will one day point to a completely
 -- different entry.  Oh well.
