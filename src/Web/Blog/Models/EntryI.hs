@@ -38,12 +38,11 @@ wrapEntryDataI k = do
 getTagsI :: KeyMapKey Entry -> RouteReaderM [Tag]
 getTagsI k = do
   (db, _) <- ask
-  let
-    entryTags = M.elems . siteDatabaseEntryTags $ db
-    filtered = filter ((== k) . entryTagEntryId) entryTags
-    tagKeys = map entryTagTagId filtered
-    tags = mapMaybe (`M.lookup` siteDatabaseTags db) tagKeys
-    tagsOf tt = filter ((== tt) . tagType_) tags
+  let entryTags = M.elems . siteDatabaseEntryTags $ db
+      filtered  = filter ((== k) . entryTagEntryId) entryTags
+      tagKeys   = map entryTagTagId filtered
+      tags      = mapMaybe (`M.lookup` siteDatabaseTags db) tagKeys
+      tagsOf tt = filter ((== tt) . tagType_) tags
 
   return $ concatMap tagsOf [GeneralTag ..]
 

@@ -14,6 +14,6 @@ derivePersistField "TagType"
 deriveJSON defaultOptions ''TagType
 
 tagTypePrefix :: TagType -> T.Text
-tagTypePrefix GeneralTag = "#"
+tagTypePrefix GeneralTag  = "#"
 tagTypePrefix CategoryTag = "@"
-tagTypePrefix SeriesTag = "+"
+tagTypePrefix SeriesTag   = "+"
