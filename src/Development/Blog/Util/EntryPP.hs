@@ -56,7 +56,7 @@ insertSample sampline = do
                      :: IO (Either E.SomeException T.Text)
         case rawSamp of
           Left _ ->
-            return . T.pack $ "File " ++ sSpecFile spec ++ " not found"
+            return . T.pack $ "File \"" ++ sSpecFile spec ++ "\" not found"
           Right rawSamp' ->
             return $ processSample spec rawSamp'
 

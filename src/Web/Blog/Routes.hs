@@ -126,20 +126,19 @@ indexRoutes db = do
     routeDatabase db $ routeTagIndex SeriesTag
 
 utilRoutes :: SiteDatabase -> S.ScottyM ()
-utilRoutes _ = do
+utilRoutes db = do
 
   S.get "/rss" $ do
     S.status movedPermanently301
-    S.header "Location" $ L.append
-      "http://feeds.feedburner.com/" $
-      L.fromStrict $
-        developerAPIsFeedburner $ siteDataDeveloperAPIs siteData
+    S.header "Location"
+      . L.append "http://feeds.feedburner.com/"
+      . L.fromStrict
+      . developerAPIsFeedburner
+      $ siteDataDeveloperAPIs siteData
 
   S.get "/rss.raw" $ do
-    (v,d) <- routeFeed
-    ran <- runReaderT v d
-    S.text ran
     S.header "Content-Type" "application/rss+xml"
+    mapM_ S.text =<< routeDatabase' db routeFeed
 
   S.get "/entry-backups" $ do
     b <- liftIO backupEntries

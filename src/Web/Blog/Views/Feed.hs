@@ -21,9 +21,8 @@ import qualified Text.Blaze.Html.Renderer.String as B
 import qualified Text.XML.Light.Types            as X
 
 
-viewFeed :: [(D.Entity Entry, (T.Text,[Tag]))] -> UTCTime -> SiteRender L.Text
-viewFeed entryInfos now = return $ L.pack $ showElement $ xmlRSS $ feedRss entryInfos now
--- viewFeed entryInfos = return $ L.pack $ showXML $ rssToXML $ feedRss entryInfos
+viewFeed :: [(D.Entity Entry, (T.Text,[Tag]))] -> UTCTime -> L.Text
+viewFeed entryInfos now = L.pack . showElement . xmlRSS $ feedRss entryInfos now
 
 feedRss :: [(D.Entity Entry, (T.Text, [Tag]))] -> UTCTime -> RSS
 feedRss entryInfos now = (nullRSS feedTitle feedLink)
