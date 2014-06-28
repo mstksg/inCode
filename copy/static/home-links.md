@@ -6,8 +6,8 @@
     * [LinkedIn](https://linkedin.com/in/lejustin "LinkedIn")
 
 - ### Social
+    * [Twitter](https://twitter.com/mstk "Twitter")
     * [Google+](https://plus.google.com/+JustinLe "Google+")
     * [Facebook](https://facebook.com/mstksg "Facebook")
     * [Youtube](https://youtube.com/justinlemusic "Youtube")
-    * [Twitter](https://twitter.com/mstk "Twitter")
 
