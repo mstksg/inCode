@@ -7,22 +7,24 @@ import Data.Function (fix)
 import Control.Category
 import Prelude hiding      ((.), id)
 
-
 instance Category Auto where
     id    = ACons $ \x -> (x, id)
-    g . f = ACons $ \x -> let (y, f') = runAuto f x
-                              (z, g') = runAuto g y
-                          in  (z, g' . f')
+    g . f = ACons $ \x ->
+              let (y, f') = runAuto f x
+                  (z, g') = runAuto g y
+              in  (z, g' . f')
 
 instance Functor (Auto r) where
-    fmap f a = ACons $ \x -> let (y  , a') = runAuto a x
-                             in  (f y, fmap f a')
+    fmap f a = ACons $ \x ->
+                 let (y, a') = runAuto a x
+                 in  (f y, fmap f a')
 
 instance Applicative (Auto r) where
     pure y    = ACons $ \_ -> (y, pure y)
-    af <*> ay = ACons $ \x -> let (f, af') = runAuto af x
-                                  (y, ay') = runAuto ay x
-                              in  (f y, af' <*> ay')
+    af <*> ay = ACons $ \x ->
+                  let (f, af') = runAuto af x
+                      (y, ay') = runAuto ay x
+                  in  (f y, af' <*> ay')
 
 instance Arrow Auto where
     arr f     = ACons $ \x -> (f x, arr f)
@@ -49,9 +51,14 @@ instance ArrowChoice Auto where
                    Right r -> (Right r, left a)
 
 instance ArrowLoop Auto where
-    loop a = ACons $ \x -> (fst *** loop) (fix (\ ~((_,d), _) -> runAuto a (x, d)))
-    -- loop a = mkAutoM (loop <$> loadAuto a)
-    --                  (saveAuto a)
-    --                  $ \x -> liftM (onOutput fst loop)
-    --                          . mfix
-    --                          $ \ ~(Output (_, d) _) -> stepAuto a (x, d)
+    loop a = ACons $ \x ->
+        (fst *** loop) (fix (\ ~((_,d), _) -> runAuto a (x, d)))
+
+toAuto :: (a -> b) -> Auto a b
+toAuto f = ACons $ \x -> (f x, toAuto f)
+
+idA :: Auto a a
+idA = ACons $ \x -> (x, idA)
+
+doTwice :: Category r => r a a -> r a a
+doTwice f = f . f

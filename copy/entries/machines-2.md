@@ -86,7 +86,7 @@ which had an internal state that updated every time it was called.  In this
 sense, `Stream b` was like a function `() -> b`, or a "constant"...yet the
 constant possibly changed every time you asked for it.
 
-We saw this in an auto that [returns the sum][summer] of everyhting you have
+We saw this in an auto that [returns the sum][summer] of everything you have
 given it.
 
 !!![summer]:machines/Auto.hs "summer:"
@@ -241,8 +241,7 @@ Let's write a useful helper function so that we have more things to test this
 out on:
 
 ~~~haskell
-toAuto :: (a -> b) -> Auto a b
-toAuto f = ACons \x -> (f x, toAuto f)
+!!!machines/Auto2.hs "toAuto ::"
 ~~~
 
 `toAuto` basically turns a function `a -> b` into a stateless `Auto a b`.
@@ -288,8 +287,7 @@ And it looks like our Autos really can meaningfully compose!
 Well, wait.  We need one last thing: the identity Auto:
 
 ~~~haskell
-idA :: Auto a a
-idA = ACons $ \x -> (x, idA)
+!!!machines/Auto2.hs "idA ::"
 ~~~
 
 ~~~haskell
@@ -354,19 +352,14 @@ instance Category (->) where
 And then our `Auto` Category instance:
 
 ~~~haskell
-instance Category Auto where
-    id    = ACons $ \x -> (x, id)
-    g . f = ACons $ \x -> let (y, f') = runAuto f x
-                              (z, g') = runAuto g y
-                          in  (z, g' . f')
+!!!machines/Auto2.hs "instance Category Auto"
 ~~~
 
 And now... we can work with both `(->)` and `Auto` as if they were the "same
 thing" :)
 
 ~~~haskell
-doTwice :: Category r => r a a -> r a a
-doTwice f = f . f
+!!!machines/Auto2.hs "doTwice ::"
 ~~~
 
 ~~~haskell
@@ -441,9 +434,7 @@ output a 1, it will now output a `"1"`.  It turns an `Auto Int Int` into an
 `Auto Int String`!
 
 ~~~haskell
-instance Functor (Auto r) where
-    fmap f a = ACons $ \x -> let (y  , a') = runAuto a x
-                             in  (f y, fmap f a')
+!!!machines/Auto2.hs "instance Functor (Auto r)"
 ~~~
 
 ~~~haskell
@@ -484,11 +475,7 @@ producer of `b`.
 We can pretty much use this to write our Applicative instance for `Auto r`.
 
 ~~~haskell
-instance Applicative (Auto r) where
-    pure y    = ACons $ \_ -> (y, pure y)
-    af <*> ay = ACons $ \x -> let (f, af') = runAuto af x
-                                  (y, ay') = runAuto ay x
-                              in  (f y, af' <*> ay')
+!!!machines/Auto2.hs "instance Applicative (Auto r)"
 ~~~
 
 Note that `pure` gives us a "constant Auto" --- `pure` is basically the
@@ -507,6 +494,7 @@ applies the function to them, and the returns the result.
 ~~~haskell
 ghci> testAuto_ summer [5,1,9,2,-3,4]
 [5,6,15,17,14,18]
+
 ghci> let addSumDoub = liftA2 (+) doubleA summer
 ghci> testAuto_ addSumDoub [5,1,9,2,-3,4]
 [15,8,33,21,8,26]
@@ -528,6 +516,10 @@ Okay, now on to...
 Sykes!! We're not going to make a Monad instance :)  Even though it is
 possible, a Monad instance for `Auto` is remarkably useless.  We won't be
 using a monadic interface when working with Auto, so forget about it!
+
+Take *that*, [tomtomtom7][]! :D
+
+[tomtomtom7]: http://www.reddit.com/r/programming/comments/25yent/i_like_haskell_because_it_lets_me_live_inside_my/chmj8al
 
 Arrow
 -----
@@ -569,22 +561,7 @@ d)`.  It basically has each Auto operate on the tuple "in parallel".
 Writing the instance is straightforward enough:
 
 ~~~haskell
-instance Arrow Auto where
-    arr f     = ACons $ \x -> (f x, arr f)
-    first a   = ACons $ \(x, z) ->
-                  let (y, a') = runAuto a x
-                  in  ((y, z), first a')
-    second a  = ACons $ \(z, x) ->
-                  let (y, a') = runAuto a x
-                  in  ((z, y), second a')
-    a1 *** a2 = ACons $ \(x1, x2) ->
-                  let (y1, a1') = runAuto a1 x1
-                      (y2, a2') = runAuto a2 x2
-                  in  ((y1, y2), a1' *** a2')
-    a1 &&& a2 = ACons $ \x ->
-                  let (y1, a1') = runAuto a1 x
-                      (y2, a2') = runAuto a2 x
-                  in  ((y1, y2), a1' &&& a2')
+!!!machines/Auto2.hs "instance Arrow Auto"
 ~~~
 
 <div class="note">
@@ -632,8 +609,8 @@ sort of look at the problem in a "different way".
 
 What we have here isn't really anything too mystical.  It's just some basic
 combinators.  And like the aside says, we didn't introduce any "new power" ---
-we already had a free Arrow instance with our Category and Applicative
-instances.
+anything we could "do" with Auto using Arrow, we could already do with
+Category and Applicative.
 
 The main point is just that we have these neat combinators to chain things in
 more useful and expressive ways --- something very important when we
@@ -645,25 +622,39 @@ ghci> testAuto_ sumDoub [5,1,9,2,-3,4]
 [(5, 10), (6, 2), (15, 18), (17, 4), (14, -6), (18, 8)]
 ~~~
 
+As we'll see, the *real* benefit of Arrow will be in the syntactical sugar it
+provides, analogous to Monad's do-blocks.
+
 #### ArrowChoice
 
 Another useful set of combinators is the `ArrowChoice` typeclass, which
-provides `left`:
+provides:
 
 ~~~haskell
-left :: Auto a b -> Auto (Either a c) (Either b c)
+left  :: Auto a b -> Auto (Either a c) (Either b c)
+right :: Auto a b -> Auto (Either c a) (Either c b)
+(+++) :: Auto a b -> Auto c d -> Auto (Either a c) (Either b d)
+(|||) :: Auto a c -> Auto b c -> Auto (Either a b) c
 ~~~
 
-It applies the Auto to the `Left` case, but leaves the `Right` case unchanged.
+If you look really closely...`left` is kinda like `first`; `right` is kinda
+like `second`...`(+++)` is kinda like `(***)`, and `(|||)` is like a backwards
+`(&&&)`.
+
+If `Arrow` allows computations to be "side-chained", `ArrowChoice` allows
+computations to be "skipped/ignored".
+
+We'll instance `left`, which applies the given `Auto` on every `Left` input,
+and passes any `Right` input along unchanged; the `Auto` isn't stepped or
+anything.
 
 ~~~haskell
-instance ArrowChoice Auto where
-    left a = ACons $ \x ->
-                 case x of
-                   Left l  -> let (l', a') = runAuto a l
-                              in  (Left l', left a')
-                   Right r -> (Right r, left a)
+!!!machines/Auto2.hs "instance ArrowChoice Auto"
 ~~~
+
+We'll see `ArrowChoice` used in the upcoming syntactic sugar construct,
+enabling for if/then/else's and case statements.  Don't worry about it for now
+if you don't understand it.
 
 ### Proc Notation
 
