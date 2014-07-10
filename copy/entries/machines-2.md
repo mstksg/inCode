@@ -190,9 +190,9 @@ I mean it, you can prove it yourself if you are bored some time :)  I'll start
 you off with one of the identity laws:
 
 ~~~haskell
-g . id = \x -> g (id x)
-       = \x -> g x
-       = g
+g . id = \x -> g (id x)     -- definition of (.)
+       = \x -> g x          -- definition of id
+       = g                  -- eta reduction
 ~~~
 </div>
 
@@ -329,6 +329,14 @@ can also write "generic code" that works on *all* morphisms --- not just
 for *all* Monads, not just IO or Maybe or something.  We can reason about
 Monads as things on their own, instead of just as isolated instances.
 
+Just be sure to use the write imports so you don't have name clashes with the
+Prelude operators:
+
+~~~haskell
+import Control.Category
+import Prelude hiding (id, (.))
+~~~
+
 First, let's write the `(->)` Category instance:
 
 ~~~haskell
@@ -428,7 +436,7 @@ output a 1, it will now output a `"1"`.  It turns an `Auto Int Int` into an
 
 ~~~haskell
 instance Functor (Auto r) where
-    fmap f a = ACons $ \x -> let (y  , a') = runAuto f x
+    fmap f a = ACons $ \x -> let (y  , a') = runAuto a x
                              in  (f y, fmap f a')
 ~~~
 
@@ -522,9 +530,12 @@ Okay.  As it turns out, `Category` by itself is nice, but for many of the
 things we will be playing with function composition, it's just not going to
 cut it.
 
-We'd like to be able to "side chain" compositions.  That is, split off values,
-perform different compositions on both forks, and recombine them.  We require
-sort of basic set of combinators on top of our Category instance.
+As it turns out, we can actually sort of take advantage of a "do
+notation-like" syntactical sugar construct to perform complex compositions.
+But in order to do that, we first need to be able to "side chain"
+compositions.  That is, split off values, perform different compositions on
+both forks, and recombine them.  We require sort of basic set of combinators
+on top of our Category instance.
 
 The Arrow typeclass was invented for just this --- a grab-bag of combinators
 that allow such side-chaining, forking, merging behavior.
@@ -554,20 +565,20 @@ Writing the instance is straightforward enough:
 ~~~haskell
 instance Arrow Auto where
     arr f     = ACons $ \x -> (f x, arr f)
-    first a   = ACons $ \(x,y) ->
-                  let (x', a') = runAuto a x
-                  in  ((x', y), first a')
-    second a  = ACons $ \(x,y) ->
-                  let (y', a') = runAuto a y
-                  in  ((x, y'), second a')
-    a1 *** a2 = ACons $ \(x,y) ->
-                  let (x', a1') = runAuto a1 x
-                      (y', a2') = runAuto a2 y
-                  in  ((x',y'), a1' *** a2')
+    first a   = ACons $ \(x, z) ->
+                  let (y, a') = runAuto a x
+                  in  ((y, z), first a')
+    second a  = ACons $ \(z, x) ->
+                  let (y, a') = runAuto a x
+                  in  ((z, y), second a')
+    a1 *** a2 = ACons $ \(x1, x2) ->
+                  let (y1, a1') = runAuto a1 x1
+                      (y2, a2') = runAuto a2 x2
+                  in  ((y1, y2), a1' *** a2')
     a1 &&& a2 = ACons $ \x ->
                   let (y1, a1') = runAuto a1 x
                       (y2, a2') = runAuto a2 x
-                  in  ((y1,y2), a1' &&& a2')
+                  in  ((y1, y2), a1' &&& a2')
 ~~~
 
 <div class="note">
@@ -622,9 +633,16 @@ The main point is just that we have these neat combinators to chain things in
 more useful and expressive ways --- something very important when we
 eventually go into AFRP.
 
+~~~haskell
+ghci> let sumDoub = summer &&& doubleA
+ghci> testAuto_ sumDoub [5,1,9,2,-3,4]
+[(5, 10), (6, 2), (15, 18), (17, 4), (14, -6), (18, 8)]
+~~~
+
 #### ArrowChoice
 
-Another useful set of combinators is `ArrowChoice`, which provides `left`:
+Another useful set of combinators is the `ArrowChoice` typeclass, which
+provides `left`:
 
 ~~~haskell
 left :: Auto a b -> Auto (Either a c) (Either b c)
@@ -636,116 +654,173 @@ It applies the Auto to the `Left` case, but leaves the `Right` case unchanged.
 instance ArrowChoice Auto where
     left a = ACons $ \x ->
                  case x of
-                   Left l  -> let (l', a') <- runAuto a l
+                   Left l  -> let (l', a') = runAuto a l
                               in  (Left l', left a')
-                   Right r -> (Right r, left a')
+                   Right r -> (Right r, left a)
 ~~~
-
 
 ### Proc Notation
 
-<!-- The *main* purpose for Arrow (in our situation) is that now that we have -->
-<!-- instanced Arrow for our Autos, we can now use it in proc notation. -->
+Actually, here is the *real* reason Arrow is useful.  It's actually a pretty
+well-kept secret, but...just like Monad enables *do notation* syntactical
+sugar, Arrow enables *proc notation* syntactical sugar.  Which is probably
+cooler.
 
-<!-- This is similar to how once we instance something as a Monad, we can use it in -->
-<!-- "do" notation. -->
+Not gonna lie. 
 
-<!-- Proc notation is basically "do notation for Arrows", and is just syntactical -->
-<!-- sugar for the various Arrow combinators we described before. -->
+A lot of AFRP and a lot of what we're going to be doing will pretty much rely
+on proc notation to be able to express complex compositions...rather
+elegantly.
 
-<!-- Proc notation consists of lines of cute little ASCII "arrows": -->
+Proc notation consists of lines of "arrows":
+
+~~~haskell
+y <- arrow -< x
+~~~
+
+It's a little ASCII arrow, get it?
+
+This represents "feeding `x` into the Arrow `arrow`, and binding the result to
+`y`".
+
+Let's write our first proc block; one that emulates our `liftA2 (+) doubleA
+summer`:
+
+~~~haskell
+doubSummer :: Auto Int Int
+doubSummer = proc x -> do
+    summed  <- summer  -< x
+    doubled <- doubleA -< x
+    id -< summed + doubled
+~~~
+
+The "last line" of a proc block must be an Arrow; it doesn't have a `<-` part,
+because that's the "final return" value.  The final return value is just
+`summed + doubled`; we run it through the `id` Auto because we need an Auto.
+
+You can think of `id` like `return` in normal do notation.
+
+#### Simple useful example
+
+How about an `Auto (Either Int Int) (Int, Int)`, which maintains *two*
+internal counters.  You increment the first one with an input of `Left x`, and
+you increment the second one with an input of `Right x`.  The output is the
+state of both counters.
+
+We could write this "from scratch":
+
+~~~haskell
+dualCounterR :: Auto (Either Int Int) (Int, Int)
+dualCounterR = dualCounterWith (0, 0)
+  where
+    dualCounterWith (x, y) = ACons $ \inp ->
+                               let newC = case inp of
+                                            Left i  -> (x + i, y)
+                                            Right i -> (x, y + 1)
+                               in  (newC, dualCounterWith newC)
+~~~
+
+But we know in Haskell that explicit recursion is usually a sign of bad
+design.  So many potential places for bugs!  
+
+Let's try writing the same thing using Auto composition:
+
+~~~haskell
+dualCounterC :: Auto (Either Int Int) (Int, Int)
+dualCounterC = (summer &&& summer) . arr (either (,0) (0,))
+~~~
+
+(Remember `either f g x` "tears apart" an Either by applying `f` to the `Left`
+case and `g` to the `Right` case:  `either :: (a -> b) -> (a -> c) -> Either a
+b -> c`)
+
+That's a bit more succinct, but I think the proc notation is much nicer!
+
+~~~haskell
+dualCounterP :: Auto (Either Int Int) (Int, Int)
+dualCounterP = proc inp -> do
+    let (add1, add2) = case inp of Left i  -> (i, 0)
+                                   Right i -> (0, i)
+
+    sum1 <- summer -< add1
+    sum2 <- summer -< sum2
+
+    id -< (sum1, sum2)
+~~~
+
+It's a bit more verbose...but I think it's much clearer what's going on,
+right?
+
+~~~haskell
+ghci> testAuto_ dualCounterP [Right 1, Left 2, Right (-4), Left 10, Right 3]
+[(0, 1), (2, 1), (2, -3), (12, -3), (12, 0)]
+~~~
+
+#### Locally Stateful
+
+And let's say we wanted another constraint.  Let's say that...for the `Left`
+case, every *other* time it's a Left, *ignore the value* and don't add
+anything.  That is, every second, fourth, sixth `Left i` input should ignore
+the `i` and not add anything.
+
+How would we do this in the explicit recursive case?  Why --- well, adding
+another component to the "explicit state" tuple, and dealing with that when
+necessary.
+
+I don't even know how to begin writing it in a readable way using arrow
+composition.
+
+But the proc notation?  Piece of cake!
+
+~~~haskell
+dualCounterSkip :: Auto (Either Int Int) (Int, Int)
+dualCounterSkip = proc inp -> do
+    (add1, add2) <- case inp of
+                      Left i -> do
+                        count <- summer -< 1
+                        id -< (if odd count then i else 0, 0)
+                      Right i ->
+                        id -< (0, i)
+
+    sum1 <- summer -< add1
+    sum2 <- summer -< add2
+~~~
+
+~~~haskell
+ghci> testAuto_ dualCounterP [Right 1, Left 2, Right (-4), Left 10, Right 3]
+[(0, 1), (2, 1), (2, -3), (2, -3), (2, 0)]
+~~~
+
+And that's something to write home about :)
+
+<!-- ### Proc rec -->
+
+<!-- Many times, we want our bindings to affect each other. -->
+
+<!-- For example, consider this "resetting counter": -->
 
 <!-- ~~~haskell -->
-<!-- output <- arrow -< input -->
+<!-- resettable :: Auto Bool Int -->
+<!-- resettable = proc reset -> do -->
+<!--     let toAdd | reset     = -counter -->
+<!--               | otherwise = 1 -->
+
+<!--     counter <- summer -< toAdd -->
+
+<!--     id -< counter -->
 <!-- ~~~ -->
 
-<!-- where `arrow` is the Arrow, `input` is the "input" fed into the Arrow, and -->
-<!-- "output" binds the result to the name "output".  We can omit "output" and -->
-<!-- we will "forget" the output. -->
+<!-- So if `reset` is true, `toAdd` should be the negation of `counter`...which, -->
+<!-- when passed to `summer`, would put `counter` back to 0.  (If `counter` is 5, and -->
+<!-- you pass in -5 to `summer`, `counter` is now 5 - 5 = 0) -->
 
-<!-- Cute, right? -->
+<!-- However, there is a predicament here.  `toAdd` depends on `counter`...but -->
+<!-- `counter` depends on `toAdd`!  It's an infinite loop! -->
 
-<!-- For example, to write our `succ . double` composition we wrote earlier: -->
 
-<!-- ~~~haskell -->
-<!-- doubleSucc1 :: Auto Int Int -->
-<!-- doubleSucc1 = succ . double -->
 
-<!-- doubleSucc2 :: Auto Int Int -->
-<!-- doubleSucc2 = proc n -> do -->
-<!--   doubled <- double -< n -->
-<!--   succ -< doubled -->
-<!-- ~~~ -->
 
-<!-- What if we wanted the arrow to return a tuple with the result of doubling, and -->
-<!-- also the result of doubling then succing?? -->
 
-<!-- ~~~haskell -->
-<!-- doubleSucc'1 :: Auto Int (Int,Int) -->
-<!-- doubleSucc'1 = (id *** succ) . (double &&& id) -->
 
-<!-- doubleSucc'2 :: Auto Int (Int,Int) -->
-<!-- doubleSucc'2 = proc n -> do -->
-<!--   doubled      <- double -< n -->
-<!--   doubleSucced <- succ   -< doubled -->
-<!--   returnA -< (doubled, doubleSucced) -->
-<!-- ~~~ -->
 
-<!-- `returnA` is just `id` (for Category Auto), the identity Arrow.  But we call -->
-<!-- it `returnA` to draw an analogy between `return` for Monads.  They both serve -->
-<!-- the same purpose --- they take normal values and turn them into something you -->
-<!-- can use in a do/proc block. -->
 
-<!-- So basically, every line in a proc block must look like: -->
-
-<!-- ~~~haskell -->
-<!-- arrow -< input -->
-<!-- ~~~ -->
-
-<!-- Or, if you want to name the result for later use, -->
-
-<!-- ~~~haskell -->
-<!-- output <- arrow -< input -->
-<!-- ~~~ -->
-
-<!-- Just like how "do" blocks compose several monad values into one giant monad -->
-<!-- value, "proc" blocks compose several morphisms/arrows into one giant arrow. -->
-
-<!-- Remember that proc blocks don't actually "do" anything.  You aren't sequencing -->
-<!-- actions.  You basically are creating a *dependency* graph --- saying which -->
-<!-- arrows depend on the output of which arrows, and how they all twist and -->
-<!-- combine together. -->
-
-<!-- In `doubleSucc'2`, we are saying this: -->
-
-<!-- "If you want to run this arrow, and you give us a value `n`, then the result -->
-<!-- is a tuple `(doubled, doubleSucced)`, where `doubled` is the result of running -->
-<!-- that `n` through `double`, and `doubleSucced` is the result of running -->
-<!-- `doubled` through `succ`." -->
-
-<!-- So when we eventually use proc notation with our Auto, it describes one giant -->
-<!-- "tick" of the big function. -->
-
-<!-- #### proc rec -->
-
-<!-- Finally, we often will need to have Autos that "depend" on eachother in a -->
-<!-- cyclic way.  For example, in a harmonic oscillator system, the position -->
-<!-- depends on the force applied to the object, but the force applied depends on -->
-<!-- the position. -->
-
-<!-- These "recursive" bindings come from combinators provided by the ArrowLoop -->
-<!-- typeclass: -->
-
-<!-- ~~~haskell -->
-<!-- object :: Auto () Int -->
-<!-- object = proc _ -> do -->
-<!--   rec -->
-<!--     let acc = -1 * pos -->
-<!--     vel <- summer -< acc -->
-<!--     pos <- summer -< vel -->
-<!--   returnA -< pos -->
-<!-- ~~~ -->
-
-<!-- So we can have `pos` depend on `acc`, and `acc` depend on `pos`. -->
-
-<!-- Hopefully our Autos im -->
