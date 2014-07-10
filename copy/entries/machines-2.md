@@ -375,262 +375,274 @@ is powerful not only for expressiveness but for reasoning and maintainability.
 
 [monadplus]: http://blog.jle.im/entry/the-list-monadplus-practical-fun-with-monads-part
 
+More Typeclasses!
+-----------------
 
-<!-- More Typeclasses! -->
-<!-- ----------------- -->
+Anyways, we love typeclasses so much.  Let's get more familiar with our Auto
+type and see what other useful typeclases it can be :)  Not only are these
+good excercises for understanding our type, we'll also be using these
+instances later!
 
-<!-- So because we now love typeclasses so much, let's see what other useful -->
-<!-- abstractions we can apply to Auto. -->
+### Functor
 
-<!-- This section is just going to be a whirlwind tour of instancing Auto as -->
-<!-- various useful typeclasses --- mostly typeclassess that we'll be using later. -->
+Functor is always a fun typeclass!  One way to think of a Functor is that `f
+a` encapsulates the idea of some sort of "producer of `a`".  `Maybe a`
+produces an `a` when used with `fromMaybe d`; `IO a` is a computation that
+computes an `a`, `Reader r a` produces an `a` when given an `r`.
 
-<!-- ### Functor -->
+So if you have `f a`, we have a handy function `fmap`:
 
-<!-- Of course we already spent a lot of time talking about Functor, so we might as -->
-<!-- well start here. -->
+~~~haskell
+fmap :: Functor f => (a -> b) -> f a -> f b
+~~~
 
-<!-- What is a functor?  It represents something that can be mapped over.  More -->
-<!-- pedantically, it is something that implements a lawful `fmap`. -->
+Which says, "If you have an `a -> b`, I can turn a producer of `a`'s into a
+producer of `b`'s."
 
-<!-- ~~~haskell -->
-<!-- class Functor f where -->
-<!--     fmap :: (a -> b) -> f a -> f b -->
-<!-- ~~~ -->
+There are some laws associated with fmap --- most importantly that `fmap id =
+id`.
 
-<!-- Can we make `Auto` a Functor? -->
+Can we turn `Auto` into a Functor?
 
-<!-- Actually...well...not really.  It really doesn't make sense, if you think -->
-<!-- about it.  If you look at the type signature for `fmap` and substitute `f ~ -->
-<!-- Auto`, you'll immediately see why: -->
+...well, no, we can't.  Because `fmap :: (a -> b) -> Auto a -> Auto b` makes
+no sense...Auto takes two type parameters, not one.
 
-<!-- ~~~haskell -->
-<!-- fmap :: (a -> b) -> Auto a -> Auto b -->
-<!-- ~~~ -->
+But we *can* think of `Auto r a` as a "producer of `a`"s, when used with
+`runAuto`.  Our Functor is `Auto r`:
 
-<!-- You can't have a function `Auto a -> Auto b`...it doesn't really make sense -->
-<!-- because `Auto a` isn't even the type of a value, a concrete type. -->
+~~~haskell
+fmap :: (a -> b) -> Auto r a -> Auto r b
+~~~
 
-<!-- Conceptually, you can think of this as asking "What am I even mapping over?", -->
-<!-- and see that you can't really "map over" `a b` with one function. -->
+Which says, "Give me any `a -> b`, and I'll take an Auto that takes an `r` and
+returns an `a`...and give you an Auto tht takes an `r` and returns a `b`".
 
-<!-- *BUT*, it *does* make sense for `Auto i` to be a Functor: -->
+How can I do that?
 
-<!-- ~~~haskell -->
-<!-- fmap :: (a -> b) -> (Auto i) a -> (Auto i) b -->
-<!-- ~~~ -->
+Well...for one...I can just "run" the Auto you give me to get the `a`...and
+then apply the function to that `a` to get the `b`!
 
-<!-- Okay, what would this even mean? -->
+For example, if I fmapped `show` onto `summer` --- if `summer` was going to
+output a 1, it will now output a `"1"`.  It turns an `Auto Int Int` into an
+`Auto Int String`!
 
-<!-- `Auto i` is something that takes an `i` as an input.  `Auto i a` is something -->
-<!-- that outputs an `a`.  So if `Auto i` is a functor...it means that I can turn -->
-<!-- `Auto i a` into `Auto i b` with a function `a -> b`.  I can turn an Auto -->
-<!-- taking an `i` and outputting an `b` into an Auto taking an `i` and outputting -->
-<!-- a `b`.  I "map over" the *output*. -->
+~~~haskell
+instance Functor (Auto r) where
+    fmap f a = ACons $ \x -> let (y  , a') = runAuto f x
+                             in  (f y, fmap f a')
+~~~
 
-<!-- So `Auto i` is a functor where you can `map` the output.  If I was going to -->
-<!-- output a `5`, if I `fmap (+1)`, I'd actually output a `6`. -->
+~~~haskell
+ghci> testAuto_ (fmap show summer) [5,1,9,2,-3,4]
+["5","6","15","17","14","18"]
+~~~
 
-<!-- ~~~haskell -->
-<!-- instance Functor (Auto i) where -->
-<!--     fmap f a =  ACons $ \x -> -->
-<!--                   let (y  , a') = runAuto a x -->
-<!--                   in  (f y, fmap f a') -->
-<!-- ~~~ -->
+Functor, check!
 
-<!-- ~~~haskell -->
-<!-- λ: testAuto_ settableAuto -->
-<!--   |  [Nothing,Nothing,Just (-3),Nothing,Nothing] -->
-<!-- [1,2,-3,-2,-1] -->
+What's next?
 
-<!-- λ: testAuto_ (fmap (*2) settableAuto) -->
-<!--   |  [Nothing,Nothing,Just (-3),Nothing,Nothing] -->
-<!-- [2,4,-6,-4,-2] -->
-<!-- ~~~ -->
+### Applicative
 
-<!-- Functor...check!  What next? -->
+Everyone knows that the "cool", *hip* typeclasses are the classic trio,
+[Functor, Applicative, Monad][fam].  Let's just move on right along and go for
+Applicative.
 
-<!-- ### Applicative -->
+[fam]: http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html
 
-<!-- Everyone knows that the "cool", *hip* typeclasses are the classic trio, -->
-<!-- [Functor, Applicative, Monad][fam].  Let's just move on right along and go for -->
-<!-- Applicative. -->
+If we continue the same sort of pattern that we did with Functor (Functors as
+producers-kinda), Applicative gives you two things: the ability to "create a
+new 'producer'", and the ability to take something that produces a function
+and something that produces a value and squash it into something that produces
+the application of the two.
 
-<!-- [fam]: http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html -->
+This stuff...is really better said in types.
 
-<!-- What is an Applicative functor, anyway?  It really has two things: the ability -->
-<!-- to apply functions "inside" containers to values "inside" containers, and the -->
-<!-- ability to wrap a value in a default context/container (all following the laws -->
-<!-- of course).  The second part is going to be more immediately useful to -->
-<!-- us.[^pointed] -->
+~~~haskell
+class Applicative f where
+    pure  :: a -> f a
+    (<*>) :: f (a -> b) -> f a -> f b
+~~~
 
-<!-- [^pointed]: Actually this "wrapping" property really was kind of jammed into -->
-<!-- Applicative, it technically belongs [Pointed][] typeclass, and Applicative is -->
-<!-- technically only supposed to mean the function wrapping ability, under some -->
-<!-- interpretations.  But splitting up typeclasses to such a fine degree isn't -->
-<!-- quite practical. -->
+In `pure`, give me an `a` and I'll give you a "producer" of `a`.  In `(<*>)`,
+give me a producer of `a -> b` and a produer of `a` and I'll give you a
+producer of `b`.
 
-<!-- [Pointed]: http://hackage.haskell.org/package/pointed-4.0/docs/Data-Pointed.html -->
-
-<!-- ~~~haskell -->
-<!-- class Functor f => Applicative f where -->
-<!--     pure  :: a -> f a -->
-<!--     (<*>) :: f (a -> b) -> f a -> f b -->
-<!-- ~~~ -->
-
-<!-- Again, we see that it doesn't make too much sense for `Auto` to be an -->
-<!-- Applicative...but `Auto i` definitely can be. -->
-
-<!-- ~~~haskell -->
-<!-- pure :: a -> (Auto i) a -->
-<!-- ~~~ -->
-
-<!-- Can you think of a function that has this type signature? -->
-
-<!-- As it turns out, due to [parametricity][], there is actually only exactly one -->
-<!-- meaningful function that has this type signature. -->
-
-<!-- [parametricity]: http://en.wikipedia.org/wiki/Parametricity -->
-
-<!-- What must that `Auto i a` be?  Well, it clearly must output an `a`.  Can it -->
-<!-- possibly incorporate `i` in any way?  It can't!  Because it can't really -->
-<!-- "make" any `a`s besides the one given to it in `pure k`.  So that `pure k :: -->
-<!-- Auto i a` must be an Auto that ignores its input `i` and always returns `k` -->
-<!-- every time. -->
-
-<!-- It must be the "constant" arrow. -->
-
-<!-- ~~~haskell -->
-<!-- instance Applicative (Auto i) where -->
-<!--     pure k = ACons $ \_ -> (k, pure k) -->
-<!--     (<*>)  = undefined      -- for now -->
-<!-- ~~~ -->
-
-<!-- ~~~haskell -->
-<!-- λ: testAuto_ (pure 5) [1..10] -->
-<!-- [5,5,5,5,5,5,5,5,5,5] -->
-
-<!-- λ: testAuto_ (summer . pure 5) [1..10] -->
-<!-- [5,10,15,20,25,30,35,40,45,50] -->
-
-<!-- λ: testAuto_ (pure 5 . summer) [1..10] -->
-<!-- [5,5,5,5,5,5,5,5,5,5] -->
-<!-- ~~~ -->
-
-<!-- As it turns out, `pure k` is the same as the `constant k` that we defined -->
-<!-- earlier.  Now we just have a more semantically meaningful way of constructing -->
-<!-- it instead of using `autoize` -->
-
-<!-- I'll leave the implementation of `(<*>)` as an exercise, partially because -->
-<!-- it's not too surprising and would be a fun thing to work out on your own, and -->
-<!-- partially because `pure` is more useful for the time being. -->
-
-<!-- ### Monad -->
-
-<!-- So a Monad, conceptually, is just a functor we can "squish".  Basically, we -->
-<!-- need the function: -->
-
-<!-- ~~~haskell -->
-<!-- join :: (Auto i) ((Auto i) a) -> (Auto i) a -->
-<!-- ~~~~ -->
-
-<!-- Basically, we must turn an Auto returning an Auto into just an Auto returning -->
-<!-- a value. -->
-
-<!-- We must turn a morphism returning a morphism and turn it into a morphism -->
-<!-- returning a value. -->
-
-<!-- Typically, this is done by feeding your `i` into the outside Auto to get a -->
-<!-- returned Auto, and feeding that *same* `i` into the returned Auto, and getting -->
-<!-- the result of that. -->
-
-<!-- This actually gives you a *Reader-like* monad behavior, for Auto --- the -->
-<!-- ability to chain together multiple Auto's all together with a "common" -->
-<!-- input/environment. -->
-
-<!-- However, even though this is interesting, we actually won't be using the Monad -->
-<!-- instance of `Auto` all too much for now either.  I'll again leave this as an -->
-<!-- exercise.  The solutions for all of these exercises are available in the -->
-<!-- sample code for the article. -->
-
-<!-- Arrow -->
-<!-- ----- -->
-
-<!-- Now, one final typeclass: Arrow. -->
-
-<!-- As it turns out, `Category` by itself is nice, but for the games we will -->
-<!-- eventually be playing with function composition, it doesn't offer too much in -->
-<!-- terms of combinators. -->
-
-<!-- There is a neat Haskell extension that provides syntactic sugar for complex, -->
-<!-- multi-way, side-chained compositions, called "proc notation". Proc notation -->
-<!-- will prove invaluable to us eventually, but it requires some more Category -->
-<!-- combinators to work. -->
-
-<!-- As it turns out, the `Arrow` typeclass exists as a general grab-bag of -->
-<!-- combinators to make life a lot easier for us. -->
-
-<!-- ~~~haskell -->
-<!-- class Category r => Arrow r where -->
-<!--     arr    :: (a -> b) -> r a b -->
-<!--     first  :: r a b -> r (a,c) (b,c) -->
-<!--     second :: r a b -> r (c,a) (c,b) -->
-<!--     (***)  :: r a b -> r c d -> r (a,c) (b,d) -->
-<!--     (&&&)  :: r a b -> r a c -> r a (b,c) -->
-<!-- ~~~ -->
-
-<!-- ### instance Arrow -->
-
-<!-- Let's write an Arrow instance for Auto. -->
-
-<!-- `arr` takes a normal function and turns it into a pure Auto --- we wrote this -->
-<!-- before, it's just `functionToAuto` -->
-
-<!-- `first` takes an Auto and turns it into an Auto that only operates on the -->
-<!-- first part of a tuple.  `second` is the same, but for the second part. -->
-
-<!-- `(***)` takes two Autos and makes an Auto that applies them "in parallel" to -->
-<!-- two parts of a tuple.  `(&&&)` takes two Autos that both take the same type, -->
-<!-- and makes an Auto that applies both Autos to the same value "in parallel" and -->
-<!-- returns the results as a tuple. -->
-
-<!-- ~~~haskell -->
-<!-- instance Arrow Auto where -->
-<!--     arr f     = ACons $ \x -> (f x, arr f) -->
-<!--     first a   = ACons $ \(x,y) -> -->
-<!--                   let (x', a') = runAuto a x -->
-<!--                   in  ((x', y), first a') -->
-<!--     second a  = ACons $ \(x,y) -> -->
-<!--                   let (y', a') = runAuto a y -->
-<!--                   in  ((x, y'), second a') -->
-<!--     a1 *** a2 = ACons $ \(x,y) -> -->
-<!--                   let (x', a1') = runAuto a1 x -->
-<!--                       (y', a2') = runAuto a2 y -->
-<!--                   in  ((x',y'), a1' *** a2') -->
-<!--     a1 &&& a2 = ACons $ \x -> -->
-<!--                   let (y1, a1') = runAuto a1 x -->
-<!--                       (y2, a2') = runAuto a2 x -->
-<!--                   in  ((y1,y2), a1' &&& a2') -->
-<!-- ~~~ -->
-
-<!-- Don't be too mystified by the Arrow typeclass.  Really, Arrows are just -->
-<!-- Categories for which we have defined ways to chain compositions side-by-side. -->
-<!-- Things like `(***)` and `(&&&)` are pretty useful if we want to be able to -->
-<!-- compose multiple functions in fork-like ways, or to compose two functions -->
-<!-- side-by-side with another function.  We will end up doing this a lot when we -->
-<!-- work with AFRP, so this is pretty handy to have. -->
-
-<!-- As it turns out, there are actually a lot of specialized Arrow typeclasses, -->
-<!-- too, which are the same sort of "grab bag" of combinators, except for -->
-<!-- different purposes. -->
-
-<!-- The more useful ones for our purpose will be ArrowChoice and ArrowLoop, and -->
-<!-- you can read into these.  It actually isn't all too important right now to -->
-<!-- understand how these are implemented --- just know that ArrowChoice gives you -->
-<!-- combinators for forking compositions and ArrowLoop gives you combinators for -->
-<!-- *recursive* compositions. -->
-
-<!-- ### Proc Notation -->
+We can pretty much use this to write our Applicative instance for `Auto r`.
+
+~~~haskell
+instance Applicative (Auto r) where
+    pure y    = ACons $ \_ -> (y, pure y)
+    af <*> ay = ACons $ \x -> let (f, af') = runAuto af x
+                                  (y, ay') = runAuto ay x
+                              in  (f y, af' <*> ay')
+~~~
+
+Note that `pure` gives us a "constant Auto" --- `pure` is basically the
+`constA` that we wrote before.
+
+The useful thing about Applicative is that it gives us `liftA2`, which allows
+us to apply a function "over Applicative"s.
+
+~~~haskell
+liftA2 :: (a -> b -> c) -> Auto r a -> Auto r b -> Auto r c
+~~~
+
+That is, it "feeds in" the input to *both* the `Auto r a` and the `Auto r b`,
+applies the function to them, and the returns the result.
+
+~~~haskell
+ghci> testAuto_ summer [5,1,9,2,-3,4]
+[5,6,15,17,14,18]
+ghci> let addSumDoub = liftA2 (+) doubleA summer
+ghci> testAuto_ addSumDoub [5,1,9,2,-3,4]
+[15,8,33,21,8,26]
+-- [5 + 10, 6 + 2, 15 + 18, 17 + 4, 14 - 6, 18 + 8]
+~~~
+
+Hopefully by now you've seen enough usage of the `Auto` type and writing
+`Auto` combinators that do useful things that you are now Auto experts :) Feel
+free to press pause here, because we're going to ramp up to some more
+unfamiliar abstractions.  If you don't understand some of the examples above,
+feel free to tinker with them on your own until you are comfortable.  And as
+always, if you have any questions, feel free to leave a comment or drop by the
+freenode #haskell channel.
+
+Okay, now on to...
+
+### Monad
+
+Sykes!! We're not going to make a Monad instance :)  Even though it is
+possible, a Monad instance for `Auto` is remarkably useless.  We won't be
+using a monadic interface when working with Auto, so forget about it!
+
+Arrow
+-----
+
+Okay.  As it turns out, `Category` by itself is nice, but for many of the
+things we will be playing with function composition, it's just not going to
+cut it.
+
+We'd like to be able to "side chain" compositions.  That is, split off values,
+perform different compositions on both forks, and recombine them.  We require
+sort of basic set of combinators on top of our Category instance.
+
+The Arrow typeclass was invented for just this --- a grab-bag of combinators
+that allow such side-chaining, forking, merging behavior.
+
+
+~~~haskell
+class Category r => Arrow r where
+    arr    :: (a -> b) -> r a b
+    first  :: r a b -> r (a, c) (b, c)
+    second :: r a b -> r (c, a) (c, b)
+    (***)  :: r a b -> r c d -> r (a, c) (b, d)
+    (&&&)  :: r a b -> r a c -> r a (b, c)
+~~~
+
+`arr` turns any `a -> b` function into an `Auto a b`.  `first` turns an `Auto
+a b` into an `Auto (a, c) (b, c)` --- an Auto that operates on single values
+to an Auto that operates only on the first part of a tuple.
+
+`(***)` chains Autos side-by-side: `Auto a b -> Auto c d -> Auto (a, c) (b,
+d)`.  It basically has each Auto operate on the tuple "in parallel".
+
+`(&&&)` "forks".  Give an `Auto a b` and an `Auto a c`, and it'll create a
+"forking" `Auto a (b, c)`.
+
+Writing the instance is straightforward enough:
+
+~~~haskell
+instance Arrow Auto where
+    arr f     = ACons $ \x -> (f x, arr f)
+    first a   = ACons $ \(x,y) ->
+                  let (x', a') = runAuto a x
+                  in  ((x', y), first a')
+    second a  = ACons $ \(x,y) ->
+                  let (y', a') = runAuto a y
+                  in  ((x, y'), second a')
+    a1 *** a2 = ACons $ \(x,y) ->
+                  let (x', a1') = runAuto a1 x
+                      (y', a2') = runAuto a2 y
+                  in  ((x',y'), a1' *** a2')
+    a1 &&& a2 = ACons $ \x ->
+                  let (y1, a1') = runAuto a1 x
+                      (y2, a2') = runAuto a2 x
+                  in  ((y1,y2), a1' &&& a2')
+~~~
+
+<div class="note">
+**Aside**
+
+We can also just take a shortcut and implement these in terms of combinators
+we have already written from different typeclasses:
+
+~~~haskell
+instance Arrow Auto where
+    arr f     = fmap f id
+    first a   = liftA2 (,) (a . arr fst) (arr snd)
+    second a  = liftA2 (,) (arr fst) (a . arr snd)
+    a1 *** a2 = second a2 . first a1
+    a1 &&& a2 = (a1 *** a2) . arr (\x -> (x, x))
+~~~
+
+Remember, `id` is the identity Auto... and `fmap f` applies `f` "after" the
+identity.  So this makes sense.
+
+`first` is a little tricker; we are using `liftA2 (,)` on two Autos, kind of
+like we used before.  `liftA2` says "run these two Autos in parallel, and then
+at the end, `(,)`-up their results."
+
+The first of those two autos is `a . arr fst` --- get the first thing in the
+tuple, and then chain the `a` auto onto it.  The second of those two autos
+just simply extracts out the second part of the tuple.
+
+~~~haskell
+a           :: Auto a b
+arr fst     :: Auto (a, c) a
+a . arr fst :: Auto (a, c) b
+arr snd     :: Auto (a, c) c
+liftA2 (,) (a . arr fst) (arr snd) :: Auto (a, c) (b, c)
+~~~
+
+The rest I think should be a straightforward, as they all refer to other parts
+of `Arrow`.
+
+What does this show?  Well, that `Arrow` really isn't anything too
+special...it's really just what we already had --- a `Category` with
+`Applicative`.  But we are able to define more efficient instances, and also
+sort of look at the problem in a "different way".
+</div>
+
+What we have here isn't really anything too mystical.  It's just some basic
+combinators.  And like the aside says, we didn't introduce any "new power" ---
+we already had a free Arrow instance with our Category and Applicative
+instances.
+
+The main point is just that we have these neat combinators to chain things in
+more useful and expressive ways --- something very important when we
+eventually go into AFRP.
+
+#### ArrowChoice
+
+Another useful set of combinators is `ArrowChoice`, which provides `left`:
+
+~~~haskell
+left :: Auto a b -> Auto (Either a c) (Either b c)
+~~~
+
+It applies the Auto to the `Left` case, but leaves the `Right` case unchanged.
+
+~~~haskell
+instance ArrowChoice Auto where
+    left a = ACons $ \x ->
+                 case x of
+                   Left l  -> let (l', a') <- runAuto a l
+                              in  (Left l', left a')
+                   Right r -> (Right r, left a')
+~~~
+
+
+### Proc Notation
 
 <!-- The *main* purpose for Arrow (in our situation) is that now that we have -->
 <!-- instanced Arrow for our Autos, we can now use it in proc notation. -->
