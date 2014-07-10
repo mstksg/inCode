@@ -1,3 +1,5 @@
+{-# LANGUAGE Arrows #-}
+
 module Auto2 where
 
 import Auto
@@ -7,6 +9,7 @@ import Data.Function (fix)
 import Control.Category
 import Prelude hiding      ((.), id)
 
+-- | Instances
 instance Category Auto where
     id    = ACons $ \x -> (x, id)
     g . f = ACons $ \x ->
@@ -54,11 +57,87 @@ instance ArrowLoop Auto where
     loop a = ACons $ \x ->
         (fst *** loop) (fix (\ ~((_,d), _) -> runAuto a (x, d)))
 
+-- | Helpers
+
+-- toAuto: turns a normal function into a stateless Auto that just performs
+--      that function on incoming items.
 toAuto :: (a -> b) -> Auto a b
 toAuto f = ACons $ \x -> (f x, toAuto f)
 
+-- idA: a stateless Auto that just returns its input.
 idA :: Auto a a
 idA = ACons $ \x -> (x, idA)
 
+-- | Category functions
+
+-- doTwice: turns a morphism into a morphism that "repeats" itself twice.
 doTwice :: Category r => r a a -> r a a
 doTwice f = f . f
+
+-- | dualCounters
+--
+-- The dualCounters both contain two counters that are incremented by an
+-- incoming Either Int Int; a Left value increments the left counter and
+-- a Right value increments the right counter.
+
+-- dualCounterR: Explicit recursion
+dualCounterR :: Auto (Either Int Int) (Int, Int)
+dualCounterR = dualCounterWith (0, 0)
+  where
+    dualCounterWith (x, y) = ACons $ \inp ->
+                               let newC = case inp of
+                                            Left i  -> (x + i, y)
+                                            Right i -> (x, y + 1)
+                               in  (newC, dualCounterWith newC)
+
+-- dualCounterC: Composition with Arrow combinators
+dualCounterC :: Auto (Either Int Int) (Int, Int)
+dualCounterC = (summer *** summer) . arr wrap
+  where
+    wrap (Left i)  = (i, 0)
+    wrap (Right i) = (0, i)
+
+-- dualCounterP: using proc notation
+dualCounterP :: Auto (Either Int Int) (Int, Int)
+dualCounterP = proc inp -> do
+    let (add1, add2) = case inp of Left i  -> (i, 0)
+                                   Right i -> (0, i)
+
+    sum1 <- summer -< add1
+    sum2 <- summer -< add2
+
+    id -< (sum1, sum2)
+
+-- | dualCounterSkips
+--
+-- The dualCounterSkips act the same way; except, every other Left value is
+-- ignored.  The first, third, fifth, etc. Left values contribute to the
+-- counter, but the rest are just ignored.
+
+-- dualCounterSkipR: explicit recursion
+dualCounterSkipR :: Auto (Either Int Int) (Int, Int)
+dualCounterSkipR = counterFrom ((0, 0), 1)
+  where
+    counterFrom ((x, y), s) =
+      ACons $ \inp ->
+        let newCS = case inp of
+                      Left i  | odd s     -> ((x + i, y), s + 1)
+                              | otherwise -> ((x    , y), s + 1)
+                      Right i             -> ((x, y + i), s    )
+        in  (fst newCS, counterFrom newCS)
+
+-- dualCounterSkipP: using proc notation
+dualCounterSkipP :: Auto (Either Int Int) (Int, Int)
+dualCounterSkipP = proc inp -> do
+    (add1, add2) <- case inp of
+                      Left i -> do
+                        count <- summer -< 1
+                        id -< (if odd count then i else 0, 0)
+                      Right i ->
+                        id -< (0, i)
+
+    sum1 <- summer -< add1
+    sum2 <- summer -< add2
+
+    id -< (sum1, sum2)
+

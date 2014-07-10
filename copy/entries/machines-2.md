@@ -646,7 +646,8 @@ computations to be "skipped/ignored".
 
 We'll instance `left`, which applies the given `Auto` on every `Left` input,
 and passes any `Right` input along unchanged; the `Auto` isn't stepped or
-anything.
+anything.  The rest of the methods can be implemented in terms of `left` and
+`arr`.
 
 ~~~haskell
 !!!machines/Auto2.hs "instance ArrowChoice Auto"
@@ -672,13 +673,24 @@ elegantly.
 Proc notation consists of lines of "arrows":
 
 ~~~haskell
+arrow -< x
+~~~
+
+which says "feed `x` through the Arrow `arrow`".
+
+Like in monadic do-blocks, you can also "bind" the result, to be used later in
+the block:
+
+~~~haskell
 y <- arrow -< x
 ~~~
 
-It's a little ASCII arrow, get it?
+Which says "feed `x` through the Arrow `arrow`, and name the result `y`".
 
-This represents "feeding `x` into the Arrow `arrow`, and binding the result to
-`y`".
+Hey!  It looks like a little ASCII arrow!  Cute, huh?
+
+The last line of a proc do block is the "return"/result of the block, like in
+monadic do-blocks.
 
 Let's write our first proc block; one that emulates our `liftA2 (+) doubleA
 summer`:
@@ -691,9 +703,9 @@ doubSummer = proc x -> do
     id -< summed + doubled
 ~~~
 
-The "last line" of a proc block must be an Arrow; it doesn't have a `<-` part,
-because that's the "final return" value.  The final return value is just
-`summed + doubled`; we run it through the `id` Auto because we need an Auto.
+In the last line, we want to "return" `summed + double`; we have to put an
+Arrow command there, so we can just feed `summed + double` through `id`, to
+have it pop out at the end.
 
 You can think of `id` like `return` in normal do notation.
 
@@ -707,14 +719,7 @@ state of both counters.
 We could write this "from scratch":
 
 ~~~haskell
-dualCounterR :: Auto (Either Int Int) (Int, Int)
-dualCounterR = dualCounterWith (0, 0)
-  where
-    dualCounterWith (x, y) = ACons $ \inp ->
-                               let newC = case inp of
-                                            Left i  -> (x + i, y)
-                                            Right i -> (x, y + 1)
-                               in  (newC, dualCounterWith newC)
+!!!machines/Auto2.hs "dualCounterR ::"
 ~~~
 
 But we know in Haskell that explicit recursion is usually a sign of bad
@@ -723,26 +728,13 @@ design.  So many potential places for bugs!
 Let's try writing the same thing using Auto composition:
 
 ~~~haskell
-dualCounterC :: Auto (Either Int Int) (Int, Int)
-dualCounterC = (summer &&& summer) . arr (either (,0) (0,))
+!!!machines/Auto2.hs "dualCounterC ::"
 ~~~
-
-(Remember `either f g x` "tears apart" an Either by applying `f` to the `Left`
-case and `g` to the `Right` case:  `either :: (a -> b) -> (a -> c) -> Either a
-b -> c`)
 
 That's a bit more succinct, but I think the proc notation is much nicer!
 
 ~~~haskell
-dualCounterP :: Auto (Either Int Int) (Int, Int)
-dualCounterP = proc inp -> do
-    let (add1, add2) = case inp of Left i  -> (i, 0)
-                                   Right i -> (0, i)
-
-    sum1 <- summer -< add1
-    sum2 <- summer -< sum2
-
-    id -< (sum1, sum2)
+!!!machines/Auto2.hs "dualCounterP ::"
 ~~~
 
 It's a bit more verbose...but I think it's much clearer what's going on,
@@ -753,7 +745,7 @@ ghci> testAuto_ dualCounterP [Right 1, Left 2, Right (-4), Left 10, Right 3]
 [(0, 1), (2, 1), (2, -3), (12, -3), (12, 0)]
 ~~~
 
-#### Locally Stateful
+#### Proc shines
 
 And let's say we wanted another constraint.  Let's say that...for the `Left`
 case, every *other* time it's a Left, *ignore the value* and don't add
@@ -770,17 +762,7 @@ composition.
 But the proc notation?  Piece of cake!
 
 ~~~haskell
-dualCounterSkip :: Auto (Either Int Int) (Int, Int)
-dualCounterSkip = proc inp -> do
-    (add1, add2) <- case inp of
-                      Left i -> do
-                        count <- summer -< 1
-                        id -< (if odd count then i else 0, 0)
-                      Right i ->
-                        id -< (0, i)
-
-    sum1 <- summer -< add1
-    sum2 <- summer -< add2
+!!!machines/Auto2.hs "dualCounterSkipP ::"
 ~~~
 
 ~~~haskell
@@ -790,34 +772,77 @@ ghci> testAuto_ dualCounterP [Right 1, Left 2, Right (-4), Left 10, Right 3]
 
 And that's something to write home about :)
 
-<!-- ### Proc rec -->
+### Locally Stateful Composition
 
-<!-- Many times, we want our bindings to affect each other. -->
+The last example highlights something very significant about Autos and their
+Arrow-based composition: Autos with composition allow you to make *locally
+stateful compositions*.
 
-<!-- For example, consider this "resetting counter": -->
+What if we had done the above using some sort of state monad, or doing the
+explicit recursion?
 
-<!-- ~~~haskell -->
-<!-- resettable :: Auto Bool Int -->
-<!-- resettable = proc reset -> do -->
-<!--     let toAdd | reset     = -counter -->
-<!--               | otherwise = 1 -->
+We'd have carried the "entire" state in the parameter:
 
-<!--     counter <- summer -< toAdd -->
+~~~haskell
+!!!machines/Auto2.hs "dualCounterSkipR ::"
+~~~
 
-<!--     id -< counter -->
-<!-- ~~~ -->
+Not only is it a real mess and pain --- and somewhere where bugs are rife to
+pop up --- note the entire state is contained in one thing.  That means
+everything has access to it; all access is sort of haphazard and ad-hoc, as
+well.  Note that the `Right` case can do whatever it wants with the `s`.  It
+has access to it, can read it, act on it, modify it...anything it wants!
 
-<!-- So if `reset` is true, `toAdd` should be the negation of `counter`...which, -->
-<!-- when passed to `summer`, would put `counter` back to 0.  (If `counter` is 5, and -->
-<!-- you pass in -5 to `summer`, `counter` is now 5 - 5 = 0) -->
+In the proc example...the `s` is a `summer` that is "locked inside" the `Left`
+branch.  `Right` branch stuff can't touch it.
 
-<!-- However, there is a predicament here.  `toAdd` depends on `counter`...but -->
-<!-- `counter` depends on `toAdd`!  It's an infinite loop! -->
+In fact, all of the `summers` keep their own state, independently from
+each other.  Nothing can really modify their state except for themselves, if
+they chose to.  Less room for bugs, too, in adding, because you already know
+that `summer` works.
 
+This property --- that every single component maintains its own internal state
+--- is, in my opinion, one of the most significant aspects of this whole
+game with Auto and Category and Arrow etc.  Every component minds its own
+state.
 
+And also --- if we wanted to "add a new component" to the state, like we did,
+we don't have to really change anything besides just plopping it on.  In the
+explicit recursion example, we needed to go in and *change the state type* to
+"make room" for the new state.  We needed to pretty much refactor the entire
+thing!
 
+This really demonstrates the core principles of what *composability* and
+*modularity* even really *mean*.
 
+Moving on
+---------
 
+Welp, hopefully by now you are experts at working with the Auto machine, and
+understanding it as "function-like things".  You've gotten deep and intimate
+by instancing some common typeclasses.
 
+Then you saw Arrow, and understood how Auto fits into the Arrow abstraction.
+And then you learned about proc notation, and how...everything just...fits
+together.  And you can declare some nice computations/compositions in a way
+that looks a lot like monadic do blocks.
+
+We saw how complex compositions --- and complex recursions --- now look really
+pretty and nice in proc-do notation.
+
+And then we saw an extension of the "opaque state" concept we learned last
+time --- *locally stateful compositions*.  Using Auto composition and the
+Arrow instance, we can now combine Autos with local state together...and they
+all maintain and keep track of their own state.  No more "global state", like
+before --- every individual component only minds what it knows, and nothing
+else.  And that this is really what "composability" really is all about.
+
+Up next, we will transition from Auto to the Wire abstraction, which is sort
+of like an Auto with more features.
+
+Then we will finally bridge the gap between the Wire abstraction
+implementation and the *semantic model* of FRP.
+
+And then we will be on our way! :D
 
 
