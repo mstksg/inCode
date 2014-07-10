@@ -32,6 +32,12 @@ transition into the popular AFRP library [netwire][].  Join along if you wish!
 [part1]: http://blog.jle.im/entry/intro-to-machines-arrows-part-1-stream-and
 [netwire]: http://hackage.haskell.org/package/netwire
 
+As always, feel free to leave a comment if you have any questions, or try to
+find me on [twitter][], or drop by the #haskell Freenode IRC channel!  (I go
+by *jle`*)
+
+[twitter]: https://twitter.com/mstk "Twitter"
+
 Recap
 -----
 
@@ -41,7 +47,7 @@ In the last post, we introduced first a simple stream ---
 !!!machines/Stream.hs "newtype Stream"
 ~~~
 
-Which we saw as a an infinitely long linked list, or an infinitely long stream
+Which we saw as an infinitely long linked list, or an infinitely long stream
 of values that had:
 
 1.  An internal state that progresses deterministically as a function of the
@@ -666,7 +672,7 @@ well-kept secret, but...just like Monad enables *do notation* syntactical
 sugar, Arrow enables *proc notation* syntactical sugar.  Which is probably
 cooler.
 
-Not gonna lie. 
+Not gonna lie.
 
 A lot of AFRP and a lot of what we're going to be doing will pretty much rely
 on proc notation to be able to express complex compositions...rather
@@ -721,7 +727,7 @@ dualCounterR = dualCounterWith (0, 0)
 ~~~
 
 But we know in Haskell that explicit recursion is usually a sign of bad
-design.  So many potential places for bugs!  
+design.  So many potential places for bugs!
 
 Let's try writing the same thing using Auto composition:
 
