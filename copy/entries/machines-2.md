@@ -19,18 +19,16 @@ Series
 Identifier
 :   machines-2
 
-In this post we're going to be continuing on with building up from simple
-machines like Stream and Auto to a semantic picture of Arrowized Functional
-Reactive Programming.
+Welcome back!  It's been a while since the last post, admittedly; sorry!  In
+this post we'll be continuing on from [the previous post][part1].  In
+particular, we're going to be looking at the `Auto` type as something that is
+a part of a pretty powerful pattern of abstraction, and try to exploit it to
+write concise, expressive code using Auto composition and proc notation.
 
-In [the last post][part1], we introduced two simple machines, the Stream and
-the Auto.  In this post we're going to be focusing on Auto and recognizing it
-as a member of a very powerful typeclass (or two!).  In the next, we bridge
-the gap and introduce the final machine we'll be working with, the Wire, and
-transition into the popular AFRP library [netwire][].  Join along if you wish!
+And eventually, we're going to tie it all together into how it fits into the
+semantics and implementation of Functional Reactive Programming!  Yay!
 
 [part1]: http://blog.jle.im/entry/intro-to-machines-arrows-part-1-stream-and
-[netwire]: http://hackage.haskell.org/package/netwire
 
 As always, feel free to leave a comment if you have any questions, or try to
 find me on [twitter][], or drop by the #haskell Freenode IRC channel!  (I go
@@ -38,53 +36,37 @@ by *jle`*)
 
 [twitter]: https://twitter.com/mstk "Twitter"
 
+Note that all of the code in this post can be downloaded (from
+[Auto.hs][autodl] for the last post, and [Auto2.hs][auto2dl] for this post's
+new material) so you can play along on GHCi, or write your own code using it
+the concepts and types here :)
+
+!!![autodl]:machines/Auto.hs
+!!![auto2dl]:machines/Auto2.hs
+
 Recap
 -----
 
-In the last post, we introduced first a simple stream ---
-
-~~~haskell
-!!!machines/Stream.hs "newtype Stream"
-~~~
-
-Which we saw as an infinitely long linked list, or an infinitely long stream
-of values that had:
-
-1.  An internal state that progresses deterministically as a function of the
-    last.
-2.  An output (a "head") of type `b`, a function of the internal state.
-
-We saw this with a [simple stream][simplestream] that counts from 1 to
-infinity, whose state was a number that counted up and whose output at every
-step was just that same number.
-
-!!![simplestream]:machines/Stream.hs "myStream:"
-
-We saw that having a time-varying behavior that could not be affected by the
-outside world was kinda limiting, so we then looked at Auto:
+We left off in our last post having looked at `Auto`:
 
 ~~~haskell
 !!!machines/Auto.hs "newtype Auto"
 ~~~
 
-Which is a stream, but every time you "ask" for the next value, you give an
-"influencing input".  Autos have:
+which we saw as a stream that had an influencing input of type `a`, an
+internal, opaque state (a function of the input and of the previous state),
+and an output "head" of type `b` (also a function of the input and of the
+previous state).
 
-1.  An influencing input of type `a` that is taken at every step
-2.  An internal state that is a function of the previous state and the
-    influencing input
-3.  An output "head" of type `b`, a function of the internal state.
-
-And we looked at [a simple auto][simpleauto] we which was like our stream, but
-at every step could be "reset" with a value.
+And we looked at [a simple auto][simpleauto] which acted like a constantly
+incrementing stream, but where you could reset the counter by passing in a
+`Just`.
 
 !!![simpleauto]:machines/Auto.hs "settableAuto:"
 
 Then we took another approach to looking at this --- we thought about Autos as
 functions "with state".  As in, `Auto a b` was like a function `a -> b`, but
-which had an internal state that updated every time it was called.  In this
-sense, `Stream b` was like a function `() -> b`, or a "constant"...yet the
-constant possibly changed every time you asked for it.
+which had an internal state that updated every time it was called.
 
 We saw this in an auto that [returns the sum][summer] of everything you have
 given it.
@@ -102,11 +84,10 @@ What is the *essense* of function-like-ness?
 The Essense of Function-like-ness
 ---------------------------------
 
-Okay, so using "function-like-ness" more than a few times is slightly silly so
-I'm going to introduce a word or two.  These things I will call *morphisms*.
-Sometimes you'll see them called "arrows", but this is a slightly loaded word
-as there is an Arrow typeclass in Haskell that doesn't exactly refer to the
-same thing.
+I'm going to introduce some formality and call things "function-like-things"
+*morphisms*. Sometimes you'll see them called "arrows", but this is a slightly
+loaded word as there is an Arrow typeclass in Haskell that doesn't exactly
+refer to the same thing.
 
 Here is my claim: the "essense" of this functionlikeness is their ability to
 *compose* and "chain", and the *nature* of that composition process.
