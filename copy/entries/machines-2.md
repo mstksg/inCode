@@ -39,10 +39,12 @@ by *jle`*)
 Note that all of the code in this post can be downloaded (from
 [Auto.hs][autodl] for the last post, and [Auto2.hs][auto2dl] for this post's
 new material) so you can play along on GHCi, or write your own code using it
-the concepts and types here :)
+the concepts and types here :)  You can also run it [online
+interactively][fpcomplint].
 
 !!![autodl]:machines/Auto.hs
 !!![auto2dl]:machines/Auto2.hs
+[fpcomplint]: https://www.fpcomplete.com/user/jle/machines
 
 A fair warning: at times this post might feel a bit fragmented; but remember
 that we really are just going to be exploring and getting very familiar with
@@ -56,7 +58,7 @@ Recap
 We left off in our last post having looked at `Auto`:
 
 ~~~haskell
-!!!machines/Auto.hs "newtype Auto"
+!!!machines/Auto.hs "newtype Auto" machines
 ~~~
 
 which we saw as a stream that had an influencing input of type `a`, an
@@ -228,7 +230,7 @@ Let's write a useful helper function so that we have more things to test this
 out on:
 
 ~~~haskell
-!!!machines/Auto2.hs "toAuto ::"
+!!!machines/Auto2.hs "toAuto ::" machines
 ~~~
 
 `toAuto` basically turns a function `a -> b` into a stateless `Auto a b`.
@@ -274,7 +276,7 @@ And it looks like our Autos really can meaningfully compose!
 Well, wait.  We need one last thing: the identity Auto:
 
 ~~~haskell
-!!!machines/Auto2.hs "idA ::"
+!!!machines/Auto2.hs "idA ::" machines
 ~~~
 
 ~~~haskell
@@ -339,14 +341,14 @@ instance Category (->) where
 And then our `Auto` Category instance:
 
 ~~~haskell
-!!!machines/Auto2.hs "instance Category Auto"
+!!!machines/Auto2.hs "instance Category Auto" machines
 ~~~
 
 And now... we can work with both `(->)` and `Auto` as if they were the "same
 thing" :)
 
 ~~~haskell
-!!!machines/Auto2.hs "doTwice ::"
+!!!machines/Auto2.hs "doTwice ::" machines
 ~~~
 
 ~~~haskell
@@ -420,7 +422,7 @@ output a 1, it will now output a `"1"`.  It turns an `Auto Int Int` into an
 `Auto Int String`!
 
 ~~~haskell
-!!!machines/Auto2.hs "instance Functor (Auto r)"
+!!!machines/Auto2.hs "instance Functor (Auto r)" machines
 ~~~
 
 ~~~haskell
@@ -461,7 +463,7 @@ producer of `b`.
 We can pretty much use this to write our Applicative instance for `Auto r`.
 
 ~~~haskell
-!!!machines/Auto2.hs "instance Applicative (Auto r)"
+!!!machines/Auto2.hs "instance Applicative (Auto r)" machines
 ~~~
 
 Note that `pure` gives us a "constant Auto" --- `pure` is basically the
@@ -547,7 +549,7 @@ d)`.  It basically has each Auto operate on the tuple "in parallel".
 Writing the instance is straightforward enough:
 
 ~~~haskell
-!!!machines/Auto2.hs "instance Arrow Auto"
+!!!machines/Auto2.hs "instance Arrow Auto" machines
 ~~~
 
 <div class="note">
@@ -636,7 +638,7 @@ anything.  The rest of the methods can be implemented in terms of `left` and
 `arr`.
 
 ~~~haskell
-!!!machines/Auto2.hs "instance ArrowChoice Auto"
+!!!machines/Auto2.hs "instance ArrowChoice Auto" machines
 ~~~
 
 We'll see `ArrowChoice` used in the upcoming syntactic sugar construct,
@@ -705,7 +707,7 @@ state of both counters.
 We could write this "from scratch":
 
 ~~~haskell
-!!!machines/Auto2.hs "dualCounterR ::"
+!!!machines/Auto2.hs "dualCounterR ::" machines
 ~~~
 
 But we know in Haskell that explicit recursion is usually a sign of bad
@@ -714,13 +716,13 @@ design.  So many potential places for bugs!
 Let's try writing the same thing using Auto composition:
 
 ~~~haskell
-!!!machines/Auto2.hs "dualCounterC ::"
+!!!machines/Auto2.hs "dualCounterC ::" machines
 ~~~
 
 That's a bit more succinct, but I think the proc notation is much nicer!
 
 ~~~haskell
-!!!machines/Auto2.hs "dualCounterP ::"
+!!!machines/Auto2.hs "dualCounterP ::" machines
 ~~~
 
 It's a bit more verbose...but I think it's much clearer what's going on,
@@ -748,7 +750,7 @@ composition.
 But the proc notation?  Piece of cake!
 
 ~~~haskell
-!!!machines/Auto2.hs "dualCounterSkipP ::"
+!!!machines/Auto2.hs "dualCounterSkipP ::" machines
 ~~~
 
 ~~~haskell
@@ -770,7 +772,7 @@ explicit recursion?
 We'd have carried the "entire" state in the parameter:
 
 ~~~haskell
-!!!machines/Auto2.hs "dualCounterSkipR ::"
+!!!machines/Auto2.hs "dualCounterSkipR ::" machines
 ~~~
 
 Not only is it a real mess and pain --- and somewhere where bugs are rife to
