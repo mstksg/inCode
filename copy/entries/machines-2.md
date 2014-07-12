@@ -373,16 +373,15 @@ More Typeclasses!
 -----------------
 
 Anyways, we love typeclasses so much.  Let's get more familiar with our Auto
-type and see what other useful typeclases it can be :)  Not only are these
-good excercises for understanding our type, we'll also be using these
+type and see what other useful typeclasses it can be :)  Not only are these
+good exercises for understanding our type, we'll also be using these
 instances later!
 
 ### Functor
 
-Functor is always a fun typeclass!  One way to think of a Functor is that `f
-a` encapsulates the idea of some sort of "producer of `a`".  `Maybe a`
-produces an `a` when used with `fromMaybe d`; `IO a` is a computation that
-computes an `a`, `Reader r a` produces an `a` when given an `r`.
+Functor is always a fun typeclass!  One use case of Functor is as a "producer
+transformer" --- the `f a` is some "producer of `a`".  `IO a` is a computation
+that produces an `a`; `Reader r a` produces an `a` when given an `r`.
 
 So if you have `f a`, we have a handy function `fmap`:
 
@@ -409,7 +408,7 @@ fmap :: (a -> b) -> Auto r a -> Auto r b
 ~~~
 
 Which says, "Give me any `a -> b`, and I'll take an Auto that takes an `r` and
-returns an `a`...and give you an Auto tht takes an `r` and returns a `b`".
+returns an `a`...and give you an Auto that takes an `r` and returns a `b`".
 
 How can I do that?
 
@@ -443,9 +442,9 @@ Applicative.
 
 If we continue the same sort of pattern that we did with Functor (Functors as
 producers-kinda), Applicative gives you two things: the ability to "create a
-new 'producer'", and the ability to take something that produces a function
-and something that produces a value and squash it into something that produces
-the application of the two.
+new 'producer'" producing a given value, and the ability to take something
+that produces a function and something that produces a value and squash it
+into something that produces the application of the two.
 
 This stuff...is really better said in types.
 
@@ -456,7 +455,7 @@ class Applicative f where
 ~~~
 
 In `pure`, give me an `a` and I'll give you a "producer" of `a`.  In `(<*>)`,
-give me a producer of `a -> b` and a produer of `a` and I'll give you a
+give me a producer of `a -> b` and a producer of `a` and I'll give you a
 producer of `b`.
 
 We can pretty much use this to write our Applicative instance for `Auto r`.

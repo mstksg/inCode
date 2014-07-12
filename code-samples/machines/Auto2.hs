@@ -5,8 +5,8 @@ module Auto2 where
 import Auto
 import Control.Applicative
 import Control.Arrow
-import Data.Function (fix)
 import Control.Category
+import Data.Function       (fix)
 import Prelude hiding      ((.), id)
 
 -- | Instances
