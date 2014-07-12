@@ -1,5 +1,5 @@
-Intro to Machines & Arrows: the Category Typeclass (Part 2)
-===================================================================
+Auto as Category, Applicative, & Arrow (Intro to Machines/Arrows Part 2)
+========================================================================
 
 Categories
 :   Haskell
@@ -25,10 +25,10 @@ particular, we're going to be looking at the `Auto` type as something that is
 a part of a pretty powerful pattern of abstraction, and try to exploit it to
 write concise, expressive code using Auto composition and proc notation.
 
+[part1]: http://blog.jle.im/entry/intro-to-machines-arrows-part-1-stream-and
+
 And eventually, we're going to tie it all together into how it fits into the
 semantics and implementation of Functional Reactive Programming!  Yay!
-
-[part1]: http://blog.jle.im/entry/intro-to-machines-arrows-part-1-stream-and
 
 As always, feel free to leave a comment if you have any questions, or try to
 find me on [twitter][], or drop by the #haskell Freenode IRC channel!  (I go
@@ -43,6 +43,12 @@ the concepts and types here :)
 
 !!![autodl]:machines/Auto.hs
 !!![auto2dl]:machines/Auto2.hs
+
+A fair warning: at times this post might feel a bit fragmented; but remember
+that we really are just going to be exploring and getting very familiar with
+the Auto type and building an intuition.  Everything comes to a mini-climax at
+the end, and a final satisfying one at the next post --- kind of like every
+Part 2 in every trilogy ever, you know? :)
 
 Recap
 -----
@@ -529,9 +535,9 @@ class Category r => Arrow r where
     (&&&)  :: r a b -> r a c -> r a (b, c)
 ~~~
 
-`arr` turns any `a -> b` function into an `Auto a b`.  `first` turns an `Auto
-a b` into an `Auto (a, c) (b, c)` --- an Auto that operates on single values
-to an Auto that operates only on the first part of a tuple.
+In our case, `arr` turns any `a -> b` function into an `Auto a b`.  `first`
+turns an `Auto a b` into an `Auto (a, c) (b, c)` --- an Auto that operates on
+single values to an Auto that operates only on the first part of a tuple.
 
 `(***)` chains Autos side-by-side: `Auto a b -> Auto c d -> Auto (a, c) (b,
 d)`.  It basically has each Auto operate on the tuple "in parallel".
