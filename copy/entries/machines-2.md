@@ -24,6 +24,7 @@ this post we'll be continuing on from [the previous post][part1].  In
 particular, we're going to be looking at the `Auto` type as something that is
 a part of a pretty powerful pattern of abstraction, and try to exploit it to
 write concise, expressive code using Auto composition and proc notation.
+We'll also see first hands the principles of locally stateful composition.
 
 [part1]: http://blog.jle.im/entry/intro-to-machines-arrows-part-1-stream-and
 
@@ -87,17 +88,17 @@ stumbled onto some sort of design pattern.  Wouldn't it be cool if we could
 treat Autos the same way we treat functions?  And reason about them the same
 way, think about them using the same logic?
 
-What is the *essense* of function-like-ness?
+What is the *essence* of function-like-ness?
 
-The Essense of Function-like-ness
+The Essence of Function-like-ness
 ---------------------------------
 
 I'm going to introduce some formality and call things "function-like-things"
-*morphisms*. Sometimes you'll see them called "arrows", but this is a slightly
-loaded word as there is an Arrow typeclass in Haskell that doesn't exactly
-refer to the same thing.
+*morphisms* (with some laws). Sometimes you'll see them called "arrows", but
+this is a slightly loaded word as there is an Arrow typeclass in Haskell that
+doesn't exactly refer to the same thing.
 
-Here is my claim: the "essense" of this functionlikeness is their ability to
+Here is my claim: the "essence" of this functionlikeness is their ability to
 *compose* and "chain", and the *nature* of that composition process.
 
 That is, if you have a morphism `f` from `a` to `b`, and a morphism `g` from
@@ -240,7 +241,6 @@ Time to test these out!
 ~~~haskell
 ghci> let doubleA  = toAuto (*2)      :: Auto Int Int
 ghci> let succA    = toAuto (+1)      :: Auto Int Int
-ghci> let constA x = toAuto (const x) :: a -> Auto b a
 
 ghci> testAuto_ doubleA [1..10]
 [2,4,6,8,10,12,14,16,18,20]
@@ -248,13 +248,10 @@ ghci> testAuto_ doubleA [1..10]
 ghci> testAuto_ (succA ~.~ doubleA) [1..10]
 [3,5,7,9,11,13,15,17,19,21]
 
-ghci> testAuto_ (succA ~.~ constA 20) [1,2,undefined]
-[21,21,21]
-
 ghci> testAuto_ summer [5,1,9,2,-3,4]
 [5,6,15,17,14,18]
 
-ghci> testAuto_ (double ~.~ summer) [5,1,9,2,-3,4]
+ghci> testAuto_ (doubleA ~.~ summer) [5,1,9,2,-3,4]
 [10,12,30,34,28,39]
 
 ghci> testAuto_ settableAuto [Nothing,Nothing,Just (-3),Nothing,Nothing]
@@ -266,9 +263,6 @@ ghci> testAuto_ summer [1,2,-3,-2,-1]
 ghci> testAuto_ (summer ~.~ settableAuto)
     |     [Nothing,Nothing,Just (-3),Nothing,Nothing]
 [1,3,0,-2,-3]
-
-ghci> take 10 $ testAuto_ (settableAuto ~.~ constA Nothing) [(),()..]
-[1,2,3,4,5,6,7,8,9,10]
 ~~~
 
 And it looks like our Autos really can meaningfully compose!
@@ -315,7 +309,7 @@ class Category r where
 ~~~
 
 Basically, with Category, we can "abstract over" function composition and
-`id`.  That is, insteaed of `(.)` being only for composing normal
+`id`.  That is, instead of `(.)` being only for composing normal
 functions...we can use to compose morphisms in any Category, like Auto!  We
 can also write "generic code" that works on *all* morphisms --- not just
 `(->)`!  This is like having functions `mapM` and `sequence` --- which work
@@ -434,6 +428,17 @@ Functor, check!
 
 What's next?
 
+<div class="note">
+**Aside**
+
+Do some research on the [Contravariant][] Functors and [Profunctors][].  Can
+you make `Auto` or `Auto r` either one of those?  Which ones?  If not all of
+them, why not?
+
+[Contravariant]: https://ocharles.org.uk/blog/guest-posts/2013-12-21-24-days-of-hackage-contravariant.html
+[Profunctors]: https://ocharles.org.uk/blog/guest-posts/2013-12-22-24-days-of-hackage-profunctors.html
+</div>
+
 ### Applicative
 
 Everyone knows that the "cool", *hip* typeclasses are the classic trio,
@@ -442,11 +447,11 @@ Applicative.
 
 [fam]: http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html
 
-If we continue the same sort of pattern that we did with Functor (Functors as
-producers-kinda), Applicative gives you two things: the ability to "create a
-new 'producer'" producing a given value, and the ability to take something
-that produces a function and something that produces a value and squash it
-into something that produces the application of the two.
+If we continue the same sort of pattern that we did with Functor (some
+Functors being producers-kinda), Applicative gives you two things: the ability
+to "create a new 'producer'" producing a given value, and the ability to take
+something that produces a function and something that produces a value and
+squash it into something that produces the application of the two.
 
 This stuff...is really better said in types.
 
@@ -456,9 +461,9 @@ class Applicative f where
     (<*>) :: f (a -> b) -> f a -> f b
 ~~~
 
-In `pure`, give me an `a` and I'll give you a "producer" of `a`.  In `(<*>)`,
-give me a producer of `a -> b` and a producer of `a` and I'll give you a
-producer of `b`.
+In `pure`, give me an `a` and I'll give you a "producer" of that very `a`.  In
+`(<*>)`, give me a producer of `a -> b` and a producer of `a` and I'll give
+you a producer of `b`.
 
 We can pretty much use this to write our Applicative instance for `Auto r`.
 
@@ -466,8 +471,9 @@ We can pretty much use this to write our Applicative instance for `Auto r`.
 !!!machines/Auto2.hs "instance Applicative (Auto r)" machines
 ~~~
 
-Note that `pure` gives us a "constant Auto" --- `pure` is basically the
-`constA` that we wrote before.
+Note that `pure` gives us a "constant Auto" --- an `Auto` that ignores its
+input and always just produces the same thing.
+
 
 The useful thing about Applicative is that it gives us `liftA2`, which allows
 us to apply a function "over Applicative"s.
@@ -476,8 +482,8 @@ us to apply a function "over Applicative"s.
 liftA2 :: (a -> b -> c) -> Auto r a -> Auto r b -> Auto r c
 ~~~
 
-That is, it "feeds in" the input to *both* the `Auto r a` and the `Auto r b`,
-applies the function to them, and the returns the result.
+That is, it "feeds in" the `r` input to *both* the `Auto r a` and the `Auto r
+b`, applies the function to both of the results, and the returns the result.
 
 ~~~haskell
 ghci> testAuto_ summer [5,1,9,2,-3,4]
@@ -503,7 +509,8 @@ Okay, now on to...
 
 Sykes!! We're not going to make a Monad instance :)  Even though it is
 possible, a Monad instance for `Auto` is remarkably useless.  We won't be
-using a monadic interface when working with Auto, so forget about it!
+using a monadic interface when working with Auto, so forget about it!  What
+are Monads, anyway?
 
 Take *that*, [tomtomtom7][]! :D
 
@@ -525,7 +532,6 @@ on top of our Category instance.
 
 The Arrow typeclass was invented for just this --- a grab-bag of combinators
 that allow such side-chaining, forking, merging behavior.
-
 
 ~~~haskell
 class Category r => Arrow r where
@@ -561,9 +567,9 @@ we have already written from different typeclasses:
 ~~~haskell
 instance Arrow Auto where
     arr f     = fmap f id
-    first a   = liftA2 (,) (a . arr fst) (arr snd)
-    second a  = liftA2 (,) (arr fst) (a . arr snd)
-    a1 *** a2 = second a2 . first a1
+    first a   = liftA2 (,) (a  . arr fst) (arr snd)
+    second a  = liftA2 (,) (arr fst)      (a  . arr snd)
+    a1 *** a2 = liftA2 (,) (a1 . arr fst) (a2 . arr snd)
     a1 &&& a2 = (a1 *** a2) . arr (\x -> (x, x))
 ~~~
 
@@ -571,8 +577,8 @@ Remember, `id` is the identity Auto... and `fmap f` applies `f` "after" the
 identity.  So this makes sense.
 
 `first` is a little tricker; we are using `liftA2 (,)` on two Autos, kind of
-like we used before.  `liftA2` says "run these two Autos in parallel, and then
-at the end, `(,)`-up their results."
+like we used before.  `liftA2` says "run these two Autos in parallel on the
+same input, and then at the end, `(,)`-up their results."
 
 The first of those two autos is `a . arr fst` --- get the first thing in the
 tuple, and then chain the `a` auto onto it.  The second of those two autos
@@ -581,13 +587,12 @@ just simply extracts out the second part of the tuple.
 ~~~haskell
 a           :: Auto a b
 arr fst     :: Auto (a, c) a
+
 a . arr fst :: Auto (a, c) b
 arr snd     :: Auto (a, c) c
+
 liftA2 (,) (a . arr fst) (arr snd) :: Auto (a, c) (b, c)
 ~~~
-
-The rest I think should be a straightforward, as they all refer to other parts
-of `Arrow`.
 
 What does this show?  Well, that `Arrow` really isn't anything too
 special...it's really just what we already had --- a `Category` with
@@ -647,7 +652,7 @@ if you don't understand it.
 
 ### Proc Notation
 
-Actually, here is the *real* reason Arrow is useful.  It's actually a pretty
+So finally, here is the *real* reason Arrow is useful.  It's actually a pretty
 well-kept secret, but...just like Monad enables *do notation* syntactical
 sugar, Arrow enables *proc notation* syntactical sugar.  Which is probably
 cooler.
@@ -704,14 +709,15 @@ internal counters.  You increment the first one with an input of `Left x`, and
 you increment the second one with an input of `Right x`.  The output is the
 state of both counters.
 
-We could write this "from scratch":
+We could write this "from scratch", using explicit recursion:
 
 ~~~haskell
 !!!machines/Auto2.hs "dualCounterR ::" machines
 ~~~
 
-But we know in Haskell that explicit recursion is usually a sign of bad
-design.  So many potential places for bugs!
+But we all know in Haskell that explicit recursion is usually a sign of bad
+design and is best avoided whenever possible.  So many potential places for
+bugs!
 
 Let's try writing the same thing using Auto composition:
 
@@ -779,7 +785,9 @@ Not only is it a real mess and pain --- and somewhere where bugs are rife to
 pop up --- note the entire state is contained in one thing.  That means
 everything has access to it; all access is sort of haphazard and ad-hoc, as
 well.  Note that the `Right` case can do whatever it wants with the `s`.  It
-has access to it, can read it, act on it, modify it...anything it wants!
+has access to it, can read it, act on it, modify it...anything it wants!  We
+can't really "enforce" that the `Right` case can't touch the `s`, without
+putting in more complicated work/overhead.
 
 In the proc example...the `s` is a `summer` that is "locked inside" the `Left`
 branch.  `Right` branch stuff can't touch it.

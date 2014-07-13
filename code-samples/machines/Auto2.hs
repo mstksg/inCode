@@ -68,6 +68,12 @@ toAuto f = ACons $ \x -> (f x, toAuto f)
 idA :: Auto a a
 idA = ACons $ \x -> (x, idA)
 
+doubleA :: Num a => Auto a a
+doubleA = toAuto (*2)
+
+succA :: Num a => Auto a a
+succA = toAuto (+1)
+
 -- | Category functions
 
 -- doTwice: turns a morphism into a morphism that "repeats" itself twice.
