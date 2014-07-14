@@ -840,4 +840,40 @@ implementation and the *semantic model* of FRP.
 
 And then we will be on our way! :D
 
+### Exercises
+
+Yeah, I know that a lot of this post was pretty abstract...finding ways to
+make this post immediately useful with applications was one of the reasons why
+it took so long for me to get it out, after the last one.
+
+That being said, there are some things you can try out test your understanding
+before Part 3 :)
+
+1.  Write the [Profunctor][Profunctors] instance mentioned above; look at the
+    Functor instance we wrote as a reference.
+
+2.  Try writing the various Autos we wrote last time at the end using
+    composition and proc notation instead of explicit recursion.  Feel free to
+    define your own "primitives" if you find that you must.
+
+    Some of these might be trickier than others!
+
+    Note that some of these can be done with just a straight-up `autoFold`,
+    for the entire thing.  While this is neat and all, it might be more useful
+    to practice the principles of *local statefulness*, and try to break
+    things up into as many primitives as possible; always try to avoid keeping
+    every part of your state in one giant `autoFold` parameter.
+
+    *   *Rolling average*: You should be able to do this with just `autoFold`,
+        the right proc block.  You can even do it with straight up
+        composition, but it's a bit less clean.
+
+    *   *onFor*: You should be able to do this with just `summer` (or
+        something equivalent) and some nice proc routing, with if/then/elses.
+
+    *   *autoMap*: This should also be doable with `autoFold`; although there
+        isn't much state to separate out.  It might be more fun to use this
+        one as a component of a larger `Auto`, and see what you can use it
+        for!
+
 
