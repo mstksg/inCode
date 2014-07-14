@@ -428,9 +428,9 @@ What's next?
 <div class="note">
 **Aside**
 
-Do some research on the [Contravariant][] Functors and [Profunctors][].  Can
-you make `Auto` or `Auto r` either one of those?  Which ones?  If not all of
-them, why not?
+If you ever have time, try doing some research on the [Contravariant][]
+Functors and [Profunctors][].  Can you make `Auto` or `Auto r` either one of
+those?  Which ones?  If not all of them, why not?
 
 [Contravariant]: https://ocharles.org.uk/blog/guest-posts/2013-12-21-24-days-of-hackage-contravariant.html
 [Profunctors]: https://ocharles.org.uk/blog/guest-posts/2013-12-22-24-days-of-hackage-profunctors.html
