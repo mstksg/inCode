@@ -57,5 +57,5 @@ siteData =
                  { appPrefsSlugLength  = 8
                  , appPrefsHomeEntries = 8
                  , appPrefsLedeMax     = 6
-                 , appPrefsFeedEntries = 15
+                 , appPrefsFeedEntries = 10
                  }
