@@ -59,6 +59,12 @@ instance ArrowLoop Auto where
 
 -- | Helpers
 
+-- (~.~): Auto composition
+(~.~) :: Auto b c -> Auto a b -> Auto a c
+g ~.~ f = ACons $ \x -> let (y, f') = runAuto f x
+                            (z, g') = runAuto g y
+                        in  (z, g' ~.~ f')
+
 -- toAuto: turns a normal function into a stateless Auto that just performs
 --      that function on incoming items.
 toAuto :: (a -> b) -> Auto a b
@@ -68,9 +74,11 @@ toAuto f = ACons $ \x -> (f x, toAuto f)
 idA :: Auto a a
 idA = ACons $ \x -> (x, idA)
 
+-- doubleA: a stateless Auto that just doubles its input.
 doubleA :: Num a => Auto a a
 doubleA = toAuto (*2)
 
+-- succA: a stateless Auto that just increments its input.
 succA :: Num a => Auto a a
 succA = toAuto (+1)
 

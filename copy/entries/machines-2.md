@@ -1,5 +1,5 @@
-Auto as Category, Applicative, & Arrow (Intro to Machines/Arrows Part 2)
-========================================================================
+Auto as Category, Applicative & Arrow (Intro to Machines/Arrows Part 2)
+=======================================================================
 
 Categories
 :   Haskell
@@ -138,7 +138,7 @@ it leaves morphisms unchanged.
 
 And...that's it!
 
-### Functions are morphisms
+### Functions are "morphisms"
 
 We're just going to take a quick detour verify that normal functions satisfy
 this new notion of "function-likeness"...so that we aren't crazy.
@@ -195,7 +195,7 @@ g . id = \x -> g (id x)     -- definition of (.)
 So cool...this intuition applies to our actual idea of functions, so we are on
 a sane track!
 
-### Autos are morphism!
+### Autos are "morphisms"!
 
 So we see that functions fit this idea.  Let's jump back to what we were
 trying to show in the first place --- that Autos fit this "idea" of
@@ -217,10 +217,7 @@ Autos!
 Enough talk, let's code!  We'll call our composition operator `(~.~)`.
 
 ~~~haskell
-(~.~) :: Auto b c -> Auto a b -> Auto a c
-g ~.~ f = ACons $ \x -> let (y, f') = runAuto f x
-                            (z, g') = runAuto g y
-                        in  (z, g' ~.~ f')
+!!!machines/Auto2.hs "(~.~) ::" machines
 ~~~
 
 And...that should be it!  We run the input through first `f` then `g`,
@@ -437,6 +434,7 @@ them, why not?
 
 [Contravariant]: https://ocharles.org.uk/blog/guest-posts/2013-12-21-24-days-of-hackage-contravariant.html
 [Profunctors]: https://ocharles.org.uk/blog/guest-posts/2013-12-22-24-days-of-hackage-profunctors.html
+
 </div>
 
 ### Applicative
