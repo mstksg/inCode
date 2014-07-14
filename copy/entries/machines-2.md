@@ -24,7 +24,8 @@ this post we'll be continuing on from [the previous post][part1].  In
 particular, we're going to be looking at the `Auto` type as something that is
 a part of a pretty powerful pattern of abstraction, and try to exploit it to
 write concise, expressive code using Auto composition and proc notation.
-We'll also see first hands the principles of locally stateful composition.
+We'll also see first hands the principles of locally stateful composition, and
+how much more expressive and safe it makes our code.
 
 [part1]: http://blog.jle.im/entry/intro-to-machines-arrows-part-1-stream-and
 
