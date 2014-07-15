@@ -314,8 +314,8 @@ can also write "generic code" that works on *all* morphisms --- not just
 for *all* Monads, not just IO or Maybe or something.  We can reason about
 Monads as things on their own, instead of just as isolated instances.
 
-Just be sure to use the write imports so you don't have name clashes with the
-Prelude operators:
+Just be sure to use the correct imports so you don't have name clashes with
+the Prelude operators:
 
 ~~~haskell
 import Control.Category
