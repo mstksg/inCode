@@ -864,16 +864,16 @@ before Part 3 :)
     things up into as many primitives as possible; always try to avoid keeping
     every part of your state in one giant `autoFold` parameter.
 
-    *   *Rolling average*: You should be able to do this with just `autoFold`,
-        the right proc block.  You can even do it with straight up
+    *   *Rolling average*: You should be able to do this with just `autoFold`
+        and the right proc block.  You can even do it with straight up
         composition, but it's a bit less clean.
 
-    *   *onFor*: You should be able to do this with just `summer` (or
-        something equivalent) and some nice proc routing, with if/then/elses.
+    *   *onFor*: You should be able to do this with `settableAuto` (or
+        something like that), and some nice proc routing with if/then/elses.
 
     *   *autoMap*: This should also be doable with `autoFold`; although there
-        isn't much state to separate out.  It might be more fun to use this
-        one as a component of a larger `Auto`, and see what you can use it
-        for!
+        isn't much state to separate out, so this example isn't as
+        interesting.  It might be more fun to use this one as a component of a
+        larger `Auto`, and see what you can use it for!
 
 
