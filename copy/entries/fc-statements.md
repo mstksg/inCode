@@ -150,8 +150,10 @@ return ()                            :: IO ()  -- definition of when False
 ~~~
 
 `when` is a function that takes a `Bool` and an `IO ()` object and *evaluates*
-to that `IO ()` object.  But remember, calling `when` doesn't actually execute
-anything!  It's just a normal function and normal expression.
+to that `IO ()` object when the boolean is True.  But remember, calling `when`
+doesn't actually execute anything!  It's just a normal function and normal
+expression.  An `IO ()` goes in, and `IO ()` comes out.  Just a normal
+function on normal data.
 
 With only a basic knowledge of functional programming (using a
 fold/reduce/inject, basically, or even recursion), you can easy write your own
@@ -174,7 +176,7 @@ sequence :: [IO ()] -> IO ()
 sequence xs = foldr (>>) (return ()) xs
 ~~~
 
-If you're familiar with folds/reduces, `return ()` is the "initial value", and
+If you're familiar with folds/reduces, `return ()` is the "base value", and
 `(>>)` is the "accumulating function".
 
 ~~~haskell
@@ -241,12 +243,15 @@ object representing a computer action executed in a parallel fork!  That is,
 it represents a new computer action that *launches* that `IO ()` in a parallel
 fork.
 
-We can write `par` ourselves, then, with this:
+We can write `par` ourselves, then, with this:[^parsimp]
 
 ~~~haskell
 par :: IO () -> IO () -> IO ()
 par x y = forkIO x >> forkIO y
 ~~~
+
+[^parsimp]: Note that this action doesn't "wait" for both threads to complete;
+all it does is launch the two threads.
 
 "To create a new `IO ()` from two `IO ()`'s that represent executing them in
 parallel, transform them both into parallel `IO ()`'s, and sequence the
@@ -319,6 +324,8 @@ offers for the `IO ()` type works as you would expect, of course.
 
 If you're interested in learning Haskell, try picking up [Learn You a
 Haskell][lyah] and giving it a read, it's pretty accessible!
+
+[lyah]: http://www.learnyouahaskell.com/
 
 
 
