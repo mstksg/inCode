@@ -309,8 +309,8 @@ In this post I've suggested that `IO ()` is some sort of data structure that
 stores the "action" it represents in some abstract way.  If you're curious on
 what this representation/storage might look like in concrete terms, [Chris
 Taylor has a post][ct] on what you might see if you "peek into" the internal
-representation of an IO action, and how it might be implemented --- you could
-even use this to implement first-class statements in your language of
+representation of (a possible implementation of) an IO action type --- you
+could even use this to implement first-class statements in your language of
 choice![^ghc]
 
 [ct]: http://chris-taylor.github.io/blog/2013/02/09/io-is-not-a-side-effect/
