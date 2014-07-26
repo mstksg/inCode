@@ -66,6 +66,27 @@ It's still just an `Int`.
 (through some abstract representation that isn't really important) the act of
 a *computer* printing the string `"hello world"` to stdout.
 
+<div class="note">
+**Aside**
+
+The type `IO ()` means "an object/abstracted data structure that represents
+the act of a computer computing a `()`" --- or, in other terms, "instructions
+for a computer to produce a `()`".  `()` is sort of like the empty
+tuple...it's a type that is only inhabited by just...well, `()`.  You can
+think of `()` as being analogous to a function returning "void" in other
+languages.
+
+There are definitely many values of type `IO Int` or `IO String`, which
+represent actions that produce an `Int` or a `String`, respectively.  One
+common example is `getLine`, which is of type `IO String` --- `getLine` is an
+object that represents the act of a computer getting input from stdin; the
+"result" of this action is a `String`.  An `IO Int` would represent a CPU
+computation/IO-based computation that produces an `Int`.
+
+For the sake of this discussion, we'll only be considering `IO ()`'s...but in
+real life, these other types pop up just as often.
+</div>
+
 Haskell gives you a bunch of *combinators*/functions to *work* with these `IO
 a`'s.  To manipulate then, merge them, sequence them, compose them...anything
 you can dream of!
@@ -109,7 +130,9 @@ when True  p = p
 when False _ = return ()
 ~~~
 
-(`return ()` is an `IO ()` that represents the act of doing nothing)
+(`return ()` is an `IO ()` that represents the act of doing nothing...it
+doesn't actually have anything to do with the `return` keyword in many other
+languages.)
 
 `when` is just a normal function!  It takes a `Bool` and an `IO ()`; if the
 `Bool` is true, then the "result" is just that same `IO ()`.
@@ -259,6 +282,43 @@ Your computer can then execute that generated binary, and...off we go!
 
 In a way, one can think of Haskell as a very elaborate metaprogramming system,
 providing a DSL to "generate" byte code.
+
+Haskell
+-------
+
+If you have any questions or comments, feel free to leave a comment, drop
+by the freenode *#haskell* channel, or find me on [twitter][].
+
+[twitter]: https://twitter.com/mstk "Twitter"
+
+This post is a distillation of concepts I have mentioned in [some
+other][iopure] [blog posts][inside] in the past; I've had a lot of new
+thoughts after writing both of them and I figured I'd condense them and make a
+new post summarizing it.  If you want to go into this in more detail, those
+posts might help!
+
+[iopure]: http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity
+[inside]: http://blog.jle.im/entry/inside-my-world-ode-to-functor-and-monad
+
+In this post I've suggested that `IO ()` is some sort of data structure that
+stores the "action" it represents in some abstract way.  If you're curious on
+what this representation/storage might look like in concrete terms, [Chris
+Taylor has a post][ct] on what you might see if you "peek into" the internal
+representation of an IO action, and how it might be implemented --- you could
+even use this to implement first-class statements in your language of
+choice![^ghc]
+
+[ct]: http://chris-taylor.github.io/blog/2013/02/09/io-is-not-a-side-effect/
+
+[^ghc]: For performance reasons, this actually isn't the way it's implemented
+in the popular Haskell compiler *GHC*.  GHC's implementation is best described
+as "hacky", and doesn't really line up too well with the semantic picture of
+what `IO ()` is supposed to represent.  But remember that this is really just
+an (admittedly ugly) *implementation detail*.  The outward-facing API that it
+offers for the `IO ()` type works as you would expect, of course.
+
+If you're interested in learning haskell, try picking up [Learn You a
+Haskell][lyah] and giving it a read, it's pretty accessible!
 
 
 
