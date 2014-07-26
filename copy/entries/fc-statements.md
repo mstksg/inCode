@@ -320,7 +320,8 @@ in the popular Haskell compiler *GHC*.  GHC's implementation is best described
 as "hacky", and doesn't really line up too well with the semantic picture of
 what `IO ()` is supposed to represent.  But remember that this is really just
 an (admittedly ugly) *implementation detail*.  The outward-facing API that it
-offers for the `IO ()` type works as you would expect, of course.
+offers for the `IO ()` type works as you would expect, of course.  One would
+hope, at least!
 
 If you're interested in learning Haskell, try picking up [Learn You a
 Haskell][lyah] and giving it a read, it's pretty accessible!
