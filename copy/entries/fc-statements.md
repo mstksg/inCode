@@ -220,8 +220,8 @@ sequencePar xs = foldr par (return ()) xs
 By the way, `par` isn't defined by default, but we'll define it really soon.
 </div>
 
-There are an entier wealth of combinators by which to compose and sequence and
-manipulate `IO a`'s together.  And many of them you can even write yourself,
+There are an entire wealth of combinators by which to compose and sequence and
+manipulate `IO ()`'s together.  And many of them you can even write yourself,
 from scratch.
 
 There are also many "IO transformers" you have access to --- one notable one
@@ -275,7 +275,7 @@ useless if our data structures remain inert and don't actually do anything.
 Luckily, one can think of a Haskell compiler as a giant function: `IO () ->
 Binary`.  Give the Haskell compiler an `IO ()`, and it'll convert it to a
 binary for a given architecture/computer/CPU.  It "translates" the
-*represenation of a computation* into concrete bytecode that a computer can
+*representation of a computation* into concrete bytecode that a computer can
 actually execute.
 
 Your computer can then execute that generated binary, and...off we go!
@@ -317,7 +317,7 @@ what `IO ()` is supposed to represent.  But remember that this is really just
 an (admittedly ugly) *implementation detail*.  The outward-facing API that it
 offers for the `IO ()` type works as you would expect, of course.
 
-If you're interested in learning haskell, try picking up [Learn You a
+If you're interested in learning Haskell, try picking up [Learn You a
 Haskell][lyah] and giving it a read, it's pretty accessible!
 
 
