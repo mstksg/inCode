@@ -193,8 +193,14 @@
   font-size: 90%;
 }
 
-.aside-header:hover {
-  background-color: #fafaff;
+.aside-header {
+  .clickme {
+    margin-left: 0.3em;
+    font-style: italic;
+  }
+  &:hover {
+    background-color: #fafaff;
+  }
 }
 
 @import "partial/toc.scss";
