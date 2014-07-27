@@ -88,8 +88,8 @@ real life, these other types pop up just as often.
 </div>
 
 Haskell gives you a bunch of *combinators*/functions to *work* with these `IO
-a`'s.  To manipulate then, merge them, sequence them, compose them...anything
-you can dream of!
+()`'s (and `IO a`'s in general).  To manipulate then, merge them, sequence
+them, compose them...anything you can dream of!
 
 The most popular and common combinator is `(>>)`, which is usually used as an
 infix operator.  A common use case: Say you want to create an IO action that
