@@ -317,8 +317,9 @@ providing a DSL to "generate" byte code.
 Haskell
 -------
 
-If you have any questions or comments, feel free to leave a comment, drop
-by the freenode *#haskell* channel, or find me on [twitter][].
+If you have any questions or comments, feel free to leave a comment, drop by
+freenode's *#haskell*, *#nothaskell*, or *#haskell-beginners*, or find me on
+[twitter][].
 
 [twitter]: https://twitter.com/mstk "Twitter"
 
