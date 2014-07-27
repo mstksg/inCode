@@ -1,5 +1,5 @@
-First-Class Statements
-======================
+First-Class "Statements"
+========================
 
 Categories
 :   Haskell
@@ -16,12 +16,15 @@ Identifier
 :   fc-statements
 
 One thing I've really always appreciated about Haskell is that all
-"statements" in Haskell are first-class members of the language.  That is,
-(imperative) statements are literally just normal objects (no different from
-numbers, or lists, or booleans) --- they can be saved to variables, passed to
-functions, transformed using normal functions, copied, etc.  This really opens
-up a whole world of possibilities for not only reasoning about your code, but
-also for new ways to frame ideas like parallelism & concurrency.
+"statements" in Haskell (or at least, what would be statements in other
+languages) are first-class members of the language.  That is, (imperative)
+statements are literally just normal objects (no different from numbers, or
+lists, or booleans) --- they can be saved to variables, passed to functions,
+transformed using normal functions, copied, etc.  Haskell doesn't have
+statements --- everything is an expression, representing normal data!  This
+really opens up a whole world of possibilities for not only reasoning about
+your code, but also for new ways to frame ideas like parallelism &
+concurrency.
 
 To clarify, by "statement", I mean it in the sense of a "command" from
 traditional imperative programming that, when control flow reaches it,
@@ -84,7 +87,7 @@ object that represents the act of a computer getting input from stdin; the
 "result" of this action is a `String`.  An `IO Int` would represent a CPU
 computation/IO-based computation that produces an `Int`.
 
-For the sake of this discussion, we'll only be considering `IO ()`'s...but in
+For the sake of this discussion, we'll only be considering `IO ()`s...but in
 real life, these other types pop up just as often.
 </div>
 
@@ -98,7 +101,7 @@ prints "hello", then "world".  But you only have `putStrLn "hello"`, which
 represents printing "hello", and `putStrLn "world"`, which represents printing
 "world".
 
-If you have those two `IO ()`'s, you can use the `(>>)` combinator to "merge"
+If you have those two `IO ()`s, you can use the `(>>)` combinator to "merge"
 them and create a new `IO ()`.  In this case:
 
 ~~~haskell
@@ -165,8 +168,8 @@ function:
 sequence :: [IO ()] -> IO ()
 ~~~
 
-Which says, "give me a list of `IO ()`'s, and I'll give you a new `IO ()` that
-represents executing all of those `IO ()`'s one-after-another".
+Which says, "give me a list of `IO ()`s, and I'll give you a new `IO ()` that
+represents executing all of those `IO ()`s one-after-another".
 
 <div class="note">
 **Aside**
@@ -189,7 +192,7 @@ putStrLn "hello" >> (putStrLn "world" >> (putStrLn "goodbye!" >> return ())
 ~~~
 </div>
 
-But wait!  There are a lot of things I can do with two `IO ()`'s besides
+But wait!  There are a lot of things I can do with two `IO ()`s besides
 executing them one-after-the-other.  I can...merge them *in parallel*!
 
 I can write a combinator:
@@ -198,7 +201,7 @@ I can write a combinator:
 par :: IO () -> IO () -> IO ()
 ~~~
 
-That takes two `IO ()`'s and create a new shiny `IO ()` that represents the
+That takes two `IO ()`s and create a new shiny `IO ()` that represents the
 act of executing them *in parallel*.
 
 Then I can also write a new `sequencePar`:
@@ -207,7 +210,7 @@ Then I can also write a new `sequencePar`:
 sequencePar :: [IO ()] -> IO ()
 ~~~
 
-That takes a list of `IO ()`'s and returns a new shiny `IO ()` that represents
+That takes a list of `IO ()`s and returns a new shiny `IO ()` that represents
 the act of executing them all *in parallel*!
 
 <div class="note">
@@ -225,11 +228,11 @@ By the way, `par` isn't defined by default, but we'll define it really soon.
 </div>
 
 There are an entire wealth of combinators by which to compose and sequence and
-manipulate `IO ()`'s together.  And many of them you can even write yourself,
+manipulate `IO ()`s together.  And many of them you can even write yourself,
 from scratch.
 
-There are also many "IO transformers" you have access to --- one notable one
-being `forkIO`:[^fio]
+There are also many "IO action transformers" you have access to --- one
+notable one being `forkIO`:[^fio]
 
 [^fio]: It's actually `forkIO :: IO () -> IO ThreadId`, but we can ignore the
 "return value" of a `ThreadId` for now, for simplicity.
@@ -255,8 +258,8 @@ par x y = forkIO x >> forkIO y
 [^parsimp]: Note that this action doesn't "wait" for both threads to complete;
 all it does is launch the two threads.
 
-"To create a new `IO ()` from two `IO ()`'s that represent executing them in
-parallel, transform them both into parallel `IO ()`'s, and sequence the
+"To create a new `IO ()` from two `IO ()`s that represent executing them in
+parallel, transform them both into parallel `IO ()`s, and sequence the
 launches."
 
 ### Much More
