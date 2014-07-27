@@ -7,6 +7,7 @@ Categories
 Tags
 :   functional programming
 :   haskell
+:   io
 CreateTime
 :   2013/10/04 18:31:44
 PostDate
