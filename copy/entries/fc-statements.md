@@ -259,6 +259,8 @@ all it does is launch the two threads.
 parallel, transform them both into parallel `IO ()`'s, and sequence the
 launches."
 
+### Much More
+
 This is only a small subset of what you can do with "statements as data".  In
 fact, there are many frameworks that completely abstract over statements
 entirely.  For example, you can "construct" a system declaratively using a
