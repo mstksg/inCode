@@ -241,12 +241,9 @@ notable one being `forkIO`:[^fio]
 forkIO :: IO () -> IO ()
 ~~~
 
-That takes an `IO ()`, and "transforms" it into a *parallel `IO ()`*.
-
-It takes an object representing a computer action, and *transforms* it into an
-object representing a computer action executed in a parallel fork!  That is,
-it represents a new computer action that *launches* that `IO ()` in a parallel
-fork.
+That takes an `IO ()`, and "transforms" it into a *parallel `IO ()`*.  Or
+rather, it takes an object representing a computer action, and returns an
+object representing launching that computer action in a parallel fork.
 
 We can write `bothPar` ourselves, then, with this:[^parsimp]
 
@@ -258,9 +255,9 @@ bothPar x y = forkIO x >> forkIO y
 [^parsimp]: Note that this action doesn't "wait" for both threads to complete;
 all it does is launch the two threads.
 
-"To create a new `IO ()` from two `IO ()`s that represent executing them in
-parallel, transform them both into parallel `IO ()`s, and sequence the
-launches."
+Give `bothPar` two `IO ()`'s representing computer actions, and it'll give you a
+new one that represents launching both computer actions in parallel.  To do
+that, simply launch them both one after the other!
 
 Another common combinator/transformer on an `IO ()` is `catch`:[^catch]
 
@@ -283,7 +280,6 @@ with built in error handling if things go wrong for some reason.
 Again --- no execution is being done.  We're simply taking an object
 representing an IO action, and returning a new, modified one representing a
 slightly different IO action.
-
 
 ### Much More
 
