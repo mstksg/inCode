@@ -226,20 +226,23 @@ setupAsides = do
 
 flipAside :: Bool -> JQuery -> Fay ()
 flipAside setup aside = do
-  blks <- children aside
-  flip each blks $ \i el -> do
-    elJ <- select el
-    if i == 0
-      then do
-        when setup $ do
-          flip click elJ $ \_ -> flipAside False aside
-          addClass "clickable aside-header" elJ
-        return ()
-      else do
-        toggle Fast elJ
-        return ()
-    return True
-  return ()
+    blks <- children aside
+    flip each blks $ \i el -> do
+      elJ <- select el
+      if i == 0
+        then do
+          when setup $ do
+            flip click elJ $ \_ -> flipAside False aside
+            addClass "clickable aside-header" elJ
+            J.append clickMe elJ
+          return ()
+        else do
+          toggle Fast elJ
+          return ()
+      return True
+    return ()
+  where
+    clickMe = " <span class='clickme'>(Click me!)</span>"
 
 -- | Util functions
 

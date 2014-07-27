@@ -89,62 +89,15 @@ feedRss entryInfos now = (nullRSS feedTitle feedLink)
       "http://purl.org/dc/elements/1.1/"
     siteLogo =
       nullImage
-        ( T.unpack $
-          T.append
-          (hostConfigHost $ siteDataHostConfig siteData)
-          "/img/site_logo.jpg" )
+        ( T.unpack . renderUrl'
+        . T.append (hostConfigHost (siteDataHostConfig siteData))
+        $ "/img/site_logo.jpg" )
         ( T.unpack $ siteDataTitle siteData )
-        ( T.unpack $ hostConfigHost $ siteDataHostConfig siteData )
+        ( T.unpack . renderUrl' . hostConfigHost
+        $ siteDataHostConfig siteData )
 
 dcItemToXml :: DCItem -> X.Element
 dcItemToXml dcItem = X.Element eName [] [item] Nothing
   where
     eName = X.QName (infoToTag $ dcElt dcItem) Nothing (Just "dc")
     item = X.Text $ X.CData X.CDataText (dcText dcItem) Nothing
-
--- feedRss :: [(D.Entity Entry, (T.Text, [Tag]))] -> RSS
--- feedRss entryInfos = RSS
---             feedTitle
---             feedLink
---             feedDescription
---             feedChannel
---             feedItems
---   where
---     siteDataString r = T.unpack $ r siteData
---     feedTitle = siteDataString siteDataTitle ++ " (RSS Feed)"
---     feedBaseUri = URI "http:" (Just auth)
---       where
---         auth = URIAuth "" host ""
---         host = siteDataString siteDataSiteHost
---     feedLink = feedBaseUri "" "" ""
---     feedDescription = siteDataString siteDataDescription
---     feedAuthorEmail = siteDataString (authorInfoEmail . siteDataAuthorInfo)
---     feedAuthorName = siteDataString (authorInfoName . siteDataAuthorInfo)
---     feedAuthor = concat [feedAuthorEmail, " (", feedAuthorName, ")"]
---     feedChannel =
---       [ Language "en"
---       , Copyright "Copyright 2013 Justin Le"
---       , ManagingEditor feedAuthor
---       , WebMaster feedAuthor
---       -- , ChannelPubDate ""
---       , LastBuildDate feedBuildDate
---       -- , ChannelCategory (Just "dmoz") "Computers/Programming/Internet/Personal_Pages"
---       -- , ChannelCategory (Just "syndic8") ""
---       , Generator "rss-3000.2.0.2 (Bas van Dijk)"
---       -- , TTL 60
---       -- , Image "" "" "" "" "" ""
---       , SkipHours []
---       , SkipDays []
---       ]
---     feedBuildDate = entryPostedAt $ D.entityVal $ fst $ head entryInfos
---     feedItems = map feedItem entryInfos
---     feedItem (eEntity@(D.Entity _ entry), (entryUrl, tags)) =
---       [ Title $ T.unpack $ entryTitle entry
---       , Link $ feedBaseUri (T.unpack entryUrl) "" ""
---       , Description $ B.renderHtml $ entryHtml entry
---       -- , Author feedAuthorName
---       , Comments $ feedBaseUri (T.unpack entryUrl) "" "#disqus_thread"
---       , Guid True $ show $ feedBaseUri (T.unpack $ entryPermalink eEntity) "" ""
---       , PubDate $ entryPostedAt entry
---       ] ++ map categoryElem tags
---     categoryElem tag = Category Nothing $ T.unpack $ tagLabel tag

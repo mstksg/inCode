@@ -13,23 +13,42 @@ import Web.Blog.Views.TagIndex
 
 routeTagIndex :: TagType -> RouteDatabase
 routeTagIndex tt = do
-  let
+    tagInfos <- liftIO $ runDB $ getTagInfoList tt sorting (tt /= GeneralTag)
+    blankPageData <- genPageData
+
+    let view = viewTagIndex tagInfos tt
+        title = case tt of
+                  GeneralTag -> "Tags List"
+                  CategoryTag -> "Category List"
+                  SeriesTag -> "Series List"
+        pageData = blankPageData { pageDataTitle = Just title
+                                 , pageDataCss   = ["/css/page/archive.css"] }
+
+    return $ siteRight (view,pageData)
+  where
     sorting = case tt of
                 GeneralTag -> TagSortCount
                 -- CategoryTag -> TagSortLabel
                 CategoryTag -> TagSortCount
                 SeriesTag -> TagSortRecent
 
-  tagInfos <- liftIO $ runDB $ getTagInfoList tt sorting (tt /= GeneralTag)
-  blankPageData <- genPageData
+  -- let
+  --   sorting = case tt of
+  --               GeneralTag -> TagSortCount
+  --               -- CategoryTag -> TagSortLabel
+  --               CategoryTag -> TagSortCount
+  --               SeriesTag -> TagSortRecent
 
-  let
-    view = viewTagIndex tagInfos tt
-    title = case tt of
-              GeneralTag -> "Tags List"
-              CategoryTag -> "Category List"
-              SeriesTag -> "Series List"
-    pageData = blankPageData { pageDataTitle = Just title
-                             , pageDataCss   = ["/css/page/archive.css"] }
+  -- tagInfos <- liftIO $ runDB $ getTagInfoList tt sorting (tt /= GeneralTag)
+  -- blankPageData <- genPageData
 
-  return $ siteRight (view,pageData)
+  -- let
+  --   view = viewTagIndex tagInfos tt
+  --   title = case tt of
+  --             GeneralTag -> "Tags List"
+  --             CategoryTag -> "Category List"
+  --             SeriesTag -> "Series List"
+  --   pageData = blankPageData { pageDataTitle = Just title
+  --                            , pageDataCss   = ["/css/page/archive.css"] }
+
+  -- return $ siteRight (view,pageData)
