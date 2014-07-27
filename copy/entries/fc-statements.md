@@ -23,8 +23,8 @@ lists, or booleans) --- they can be saved to variables, passed to functions,
 transformed using normal functions, copied, etc.  Haskell doesn't have
 statements --- everything is an expression, representing normal data!  This
 really opens up a whole world of possibilities for not only reasoning about
-your code, but also for new ways to frame ideas like parallelism &
-concurrency.
+your code, but also for new ways to frame ideas like exceptions, parallelism,
+and concurrency,
 
 To clarify, by "statement", I mean it in the sense of a "command" from
 traditional imperative programming that, when control flow reaches it,
@@ -198,7 +198,7 @@ executing them one-after-the-other.  I can...merge them *in parallel*!
 I can write a combinator:
 
 ~~~haskell
-par :: IO () -> IO () -> IO ()
+bothPar :: IO () -> IO () -> IO ()
 ~~~
 
 That takes two `IO ()`s and create a new shiny `IO ()` that represents the
@@ -217,14 +217,14 @@ the act of executing them all *in parallel*!
 **Aside**
 
 `sequencePar`'s implementation is pretty much identical to `sequence`'s, but
-swapping out `(>>)` for `par`:
+swapping out `(>>)` for `bothPar`:
 
 ~~~haskell
 sequencePar :: [IO ()] -> IO ()
-sequencePar xs = foldr par (return ()) xs
+sequencePar xs = foldr bothPar (return ()) xs
 ~~~
 
-By the way, `par` isn't defined by default, but we'll define it really soon.
+By the way, `bothPar` isn't defined by default, but we'll define it really soon.
 </div>
 
 There are an entire wealth of combinators by which to compose and sequence and
@@ -248,11 +248,11 @@ object representing a computer action executed in a parallel fork!  That is,
 it represents a new computer action that *launches* that `IO ()` in a parallel
 fork.
 
-We can write `par` ourselves, then, with this:[^parsimp]
+We can write `bothPar` ourselves, then, with this:[^parsimp]
 
 ~~~haskell
-par :: IO () -> IO () -> IO ()
-par x y = forkIO x >> forkIO y
+bothPar :: IO () -> IO () -> IO ()
+bothPar x y = forkIO x >> forkIO y
 ~~~
 
 [^parsimp]: Note that this action doesn't "wait" for both threads to complete;
