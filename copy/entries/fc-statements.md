@@ -132,7 +132,7 @@ when False _ = return ()
 
 (`return ()` is an `IO ()` that represents the act of doing nothing...it
 doesn't actually have anything to do with the `return` keyword in many other
-languages.)
+languages.  It basically represents a no-op.)
 
 `when` is just a normal function!  It takes a `Bool` and an `IO ()`; if the
 `Bool` is true, then the "result" is just that same `IO ()`.
