@@ -149,11 +149,12 @@ when False (putStrLn "it's True!")   :: IO ()  -- evaluate 4 < 0
 return ()                            :: IO ()  -- definition of when False
 ~~~
 
-`when` is a function that takes a `Bool` and an `IO ()` object and *evaluates*
-to that `IO ()` object when the boolean is True.  But remember, calling `when`
-doesn't actually execute anything!  It's just a normal function and normal
-expression.  An `IO ()` goes in, and `IO ()` comes out.  Just a normal
-function on normal data.
+The above is *not* an "execution"...it's an *evaluation*.  `when` is a
+function that takes a `Bool` and an `IO ()` object and *evaluates* to that `IO
+()` object when the boolean is True.  But remember, calling `when` doesn't
+actually execute anything!  It's just a normal function and normal expression.
+An `IO ()` goes in, and `IO ()` comes out.  Just a normal function on normal
+data.
 
 With only a basic knowledge of functional programming (using a
 fold/reduce/inject, basically, or even recursion), you can easy write your own
@@ -299,13 +300,9 @@ by the freenode *#haskell* channel, or find me on [twitter][].
 This post is a distillation of concepts I have mentioned in [some
 other][iopure] [blog posts][inside] in the past; I've had a lot of new
 thoughts after writing both of them and I figured I'd condense them and make a
-new post summarizing the ideas in a new and more concise way.  I thought, "Do
-I really need to write yet another post on IO in Haskell?"...but as time went
-on, I really wish that I had somewhere that condensed this specific aspect of
-Haskell IO in a focused manner.
-
-Anyways, if you want to go into this topic in more detail, those posts above
-might help!
+new post summarizing the new ideas in a new and more concise way, to have them
+all in one neat place.  Anyways, if you want to go into this topic in more
+detail, those posts above might help!
 
 [iopure]: http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity
 [inside]: http://blog.jle.im/entry/inside-my-world-ode-to-functor-and-monad
