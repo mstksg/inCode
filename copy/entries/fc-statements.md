@@ -262,6 +262,25 @@ all it does is launch the two threads.
 parallel, transform them both into parallel `IO ()`s, and sequence the
 launches."
 
+Another common combinator/transformer on an `IO ()` is `catch`:[^catch]
+
+~~~haskell
+catch :: IO () -> (SomeException -> IO ()) -> IO ()
+~~~
+
+Which takes an `IO ()` object and a handler function, and imbues it with "error
+handling capabilities".  It returns a new `IO ()` object that represents doing
+the same thing as the original one, except with built-in error handling if
+things go wrong.  Neat!
+
+So if I used `catch (putStrLn "hello world") handlerFunc`...I'm "transforming"
+the `IO ()` (`putStrLn "hello world"`), representing printing a string to the
+console, into a new `IO ()` which represents printing a string to the console,
+with built in error handling if things go wrong for some reason.
+
+[^catch]: Again, the real definition here is slightly more general.
+
+
 ### Much More
 
 This is only a small subset of what you can do with "statements as data".  In
