@@ -299,8 +299,13 @@ by the freenode *#haskell* channel, or find me on [twitter][].
 This post is a distillation of concepts I have mentioned in [some
 other][iopure] [blog posts][inside] in the past; I've had a lot of new
 thoughts after writing both of them and I figured I'd condense them and make a
-new post summarizing the ideas in a new and more concise way.  If you want to
-go into this topic in more detail, those posts above might help!
+new post summarizing the ideas in a new and more concise way.  I thought, "Do
+I really need to write yet another post on IO in Haskell?"...but as time went
+on, I really wish that I had somewhere that condensed this specific aspect of
+Haskell IO in a focused manner.
+
+Anyways, if you want to go into this topic in more detail, those posts above
+might help!
 
 [iopure]: http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity
 [inside]: http://blog.jle.im/entry/inside-my-world-ode-to-functor-and-monad
@@ -327,7 +332,4 @@ If you're interested in learning Haskell, try picking up [Learn You a
 Haskell][lyah] and giving it a read, it's pretty accessible!
 
 [lyah]: http://www.learnyouahaskell.com/
-
-
-
 
