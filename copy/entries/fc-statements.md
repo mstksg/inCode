@@ -126,6 +126,10 @@ actually ever "happens" of you evaluate `putStrLn "hello" >> putStrLn
 printed.  It's simply just taking two regular old data structures, running
 them through a function, and giving you a third one.
 
+In many other languages, sequencing actions is a special part of the syntax
+--- a semicolon, usually.  In Haskell, sequencing is not special --- it's just
+a normal function on normal data structures.
+
 You can even make your own "first class" control flow!
 
 ~~~haskell
@@ -213,6 +217,17 @@ sequencePar :: [IO ()] -> IO ()
 That takes a list of `IO ()`s and returns a new shiny `IO ()` that represents
 the act of executing them all *in parallel*!
 
+This is one great thing about IO-as-data: If you have a bunch of IO actions,
+you have the *choice* in how you want to "sequence" or "combine" them.  In
+Haskell, combining a bunch of actions in sequence and combining them in
+parallel is just a matter of swapping out your combining function!  There is
+*no difference* at the syntax level!
+
+Compare this to other languages, where the syntax for sequencing statements
+--- the semicolon --- and the syntax required for launching a bunch of
+parallel actions is noticeably different.  In Haskell, "sequencing" isn't a
+part of the syntax (the semicolon) --- it's just *a regular ol' function*!
+
 <div class="note">
 **Aside**
 
@@ -241,7 +256,7 @@ notable one being `forkIO`:[^fio]
 forkIO :: IO () -> IO ()
 ~~~
 
-That takes an `IO ()`, and "transforms" it into a *parallel `IO ()`*.  Or
+That takes an `IO ()`, and "transforms" it into a "parallel" `IO ()`.  Or
 rather, it takes an object representing a computer action, and returns an
 object representing launching that computer action in a parallel fork.
 
@@ -263,12 +278,16 @@ Another common combinator/transformer on an `IO ()` is `catch`:[^catch]
 
 ~~~haskell
 catch :: IO () -> (SomeException -> IO ()) -> IO ()
+--       ^         ^                          ^
+--       |         |                          +-- modified object
+--       |         +-- handler function
+--       +-- original object
 ~~~
 
-Which takes an `IO ()` object and a handler function, and imbues it with "error
-handling capabilities".  It returns a new `IO ()` object that represents doing
-the same thing as the original one, except with built-in error handling if
-things go wrong.  Neat!
+Which takes an `IO ()` object and a handler function, and imbues that `IO ()`
+with "error handling capabilities".  It returns a new `IO ()` object that
+represents doing the same thing as the original one, except with built-in
+error handling if things go wrong.  Neat!
 
 So if I used `catch (putStrLn "hello world") myHandler`...I'm "transforming"
 the `IO ()` (`putStrLn "hello world"`), representing printing a string to the
@@ -286,15 +305,21 @@ slightly different IO action.
 This is only a small subset of what you can do with "statements as data".  In
 fact, there are many frameworks that completely abstract over statements
 entirely.  For example, you can "construct" a system declaratively using a
-simple DSL, and never even worry about statements or IO.  The DSL might
-provide you with a way to specify a high-level overlook of your program in
-simple terms.  The DSL might be abstracting/wrapping over *extremely complex*
-IO actions, and all you ever see is the simple API.
+simple DSL, and never even worry about statements or IO.  You can specify an
+*entire program*, with a full description of its interactions, without ever
+even *touching* the IO type.  The DSL might provide you with a way to specify
+a high-level overlook of your program in simple terms.  The DSL might be
+abstracting/wrapping over *complex* IO actions, and all you ever see is the
+simple API.
 
 And then, you might have a function: `DSL -> IO ()`.  Construct the elaborate
 high-level thing in simple terms...and then, at the end, *convert it to an `IO
 ()` object*.  That you can copy, or clone, or throw into a function, or do
 *anything* we just mentioned here!
+
+If that DSL is your entire program, then you also have certain guarantees
+about what IO your program can even do, if the DSL library forbids users from
+mixing in arbitrary IO.
 
 Execution
 ---------
@@ -323,16 +348,6 @@ freenode's *#haskell*, *#nothaskell*, or *#haskell-beginners*, or find me on
 
 [twitter]: https://twitter.com/mstk "Twitter"
 
-This post is a distillation of concepts I have mentioned in [some
-other][iopure] [blog posts][inside] in the past; I've had a lot of new
-thoughts after writing both of them and I figured I'd condense them and make a
-new post summarizing the new ideas in a new and more concise way, to have them
-all in one neat place.  Anyways, if you want to go into this topic in more
-detail, those posts above might help!
-
-[iopure]: http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity
-[inside]: http://blog.jle.im/entry/inside-my-world-ode-to-functor-and-monad
-
 In this post I've suggested that `IO ()` is some sort of data structure that
 stores the "action" it represents in some abstract way.  If you're curious on
 what this representation/storage might look like in concrete terms, [Chris
@@ -343,16 +358,32 @@ choice![^ghc]
 
 [ct]: http://chris-taylor.github.io/blog/2013/02/09/io-is-not-a-side-effect/
 
-[^ghc]: For performance reasons, this actually isn't the way it's implemented
-in the popular Haskell compiler *GHC*.  GHC's implementation is best described
-as "hacky", and doesn't really line up too well with the semantic picture of
-what `IO ()` is supposed to represent.  But remember that this is really just
-an (admittedly ugly) *implementation detail*.  The outward-facing API that it
-offers for the `IO ()` type works as you would expect, of course.  One would
-hope, at least!
+[^ghc]: For performance reasons, the way IO is implemented in that article
+actually isn't the way it's implemented in the popular Haskell compiler *GHC*.
+GHC's implementation is best described as "hacky", and doesn't really line up
+too well with the semantic picture of what `IO ()` is supposed to represent.
+But remember that this is really just an (admittedly ugly) *implementation
+detail*.  The outward-facing API that it offers for the `IO ()` type works as
+you would expect, of course.  One would hope, at least!  In any case, it's
+important to remember the difference between *Haskell the language*, and what
+the IO type is supposed to "represent", and *Haskell the implementation*,
+which provides the semantics of the language, abstracting over ugly
+implementation details.
+
+This post is a distillation of concepts I have mentioned in [some
+other][iopure] [blog posts][inside] in the past; I've had a lot of new
+thoughts after writing both of them and I figured I'd condense them and make a
+new post summarizing the new ideas in a new and more concise way, to have them
+all in one neat place.  Anyways, if you want to go into this topic in more
+detail, those posts above might help!
+
+[iopure]: http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity
+[inside]: http://blog.jle.im/entry/inside-my-world-ode-to-functor-and-monad
 
 If you're interested in learning Haskell, try picking up [Learn You a
-Haskell][lyah] and giving it a read, it's pretty accessible!
+Haskell][lyah] and giving it a read, it's pretty accessible!  [bitemyapp's
+guide][bma] also lays out a nice roadmap for learning Haskell.
 
 [lyah]: http://www.learnyouahaskell.com/
+[bma]: https://github.com/bitemyapp/learnhaskell
 
