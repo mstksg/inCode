@@ -48,15 +48,11 @@ just *happens* when you see an assignment.
 
 It is clear that something about these statements are magical or a special
 part of the language.  They are wholly different than, say, an integer, or a
-boolean.  They aren't normal "objects" or "data" in your system.[^fff]
+boolean.  They aren't normal "objects" or "data" in your system.
 
-[^fff]: In some languages with first-class *functions*, you can wrap a call
-within a function (to delay execution), save that function to a variable, and
-pass that around. This is a good step, and puts you on the way towards
-first-class statements.  You can actually sort of fake a (somewhat less
-powerful) system of first class statements this way, to some degree.  I
-recommend trying to implement something like what the rest of the post
-describes in your language of choice if you ever want a fun challenge.
+Even if your programming languages have first-class functions, `printf` might
+be a first-class value, but the *call* of it (usually indicated with
+parentheses, like `printf()`) is definitely something...different altogether.
 
 Statements as data
 ------------------
@@ -133,7 +129,7 @@ We can apply `(>>)` as an infix operator:
 putStrLn "hello" >> putStrLn "world" :: IO ()
 ~~~
 
-That new `IO ()` is an data structure that represents the act of printing
+That new `IO ()` is a data structure that represents the act of printing
 "hello", then printing "world".
 
 Remember that this new one is, still, only a normal object.  No printing
@@ -460,8 +456,10 @@ guide][bma] also lays out a nice roadmap for learning Haskell.
 [lyah]: http://www.learnyouahaskell.com/
 [bma]: https://github.com/bitemyapp/learnhaskell
 
-Also, I'd love to hear if any of you had taken the challenge in the footnote
-of implementing a system like this in your language of choice (even if Haskell
-is your language of choice, you can write a `MyIO` type :D ), so let me know
-in the comments or via [twitter][]!
+Also, I encourage you to try to implement your own system of "first class IO"
+in languages in which it is possible!  Like a normal data structure (like in
+the Chris Taylor post), or an abstracted function call.  I'd love to hear of
+any results or attempts you've made implementing this in your language of
+choice (even if Haskell is your language of choice, you can write a `MyIO`
+type :D ); let me know in the comments or via [twitter][]!
 
