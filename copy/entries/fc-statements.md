@@ -320,6 +320,8 @@ slightly different IO action.
 <div class="note">
 **Aside**
 
+This is a pretty aside-y aside, and you can definitely skip it if you want!
+
 One particularly important combinator I have not mentioned yet is called
 "bind": `(>>=)`
 
@@ -345,10 +347,11 @@ getLine >>= putStrLn
 does exactly what we want!
 
 As it turns out, `(>>=)` is actually a lot more powerful than it might seem at
-first. As soon as you add the `(>>=)` combinator to your arsenal...the space
-of programs you can construct using various `IO a`'s opens up in crazy ways
-that are difficult to explain in a little aside.  But anyways, that's not the
-point!  Let's move on!
+first.  As soon as you add the `(>>=)` combinator to your arsenal...the space
+of programs you can construct using various `IO a`'s opens up in crazy ways.
+Just imagine bash with no pipes, and only semicolons!  If you ever decide to
+implement some system of first-class statements, and it might be tricky to
+state/model imperative computations without `(>>=)`.
 
 For something fun to do in your spare time, can you think about what the type
 of `(>>=)` has to be?  What is its type in `getLine >>= putStrLn`?
