@@ -24,7 +24,7 @@ transformed using normal functions, copied, etc.  Haskell doesn't have
 statements --- everything is an expression, representing normal data!  This
 really opens up a whole world of possibilities for not only reasoning about
 your code, but also for new ways to frame ideas in contexts of parallelism,
-concurrency, exceptions, DSLs, and more!
+concurrency, exceptions, DSLs, and more.
 
 To clarify, by "statement", I mean it in the sense of a "command" from
 traditional imperative programming that, when control flow reaches it,
