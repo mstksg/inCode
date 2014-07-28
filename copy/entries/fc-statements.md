@@ -463,3 +463,8 @@ any results or attempts you've made implementing this in your language of
 choice (even if Haskell is your language of choice, you can write a `MyIO`
 type :D ); let me know in the comments or via [twitter][]!
 
+(Credit to [computionist][] and [bitemyapp][] for proofreading/helpful
+suggestions)
+
+[computionist]: https://twitter.com/computionist
+[bitemyapp]: https://twitter.com/bitemyapp
