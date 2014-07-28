@@ -23,8 +23,8 @@ lists, or booleans) --- they can be saved to variables, passed to functions,
 transformed using normal functions, copied, etc.  Haskell doesn't have
 statements --- everything is an expression, representing normal data!  This
 really opens up a whole world of possibilities for not only reasoning about
-your code, but also for new ways to frame ideas like exceptions, parallelism,
-and concurrency,
+your code, but also for new ways to frame ideas in contexts of parallelism,
+concurrency, exceptions, DSLs, and more!
 
 To clarify, by "statement", I mean it in the sense of a "command" from
 traditional imperative programming that, when control flow reaches it,
@@ -54,7 +54,9 @@ boolean.  They aren't normal "objects" or "data" in your system.[^fff]
 within a function (to delay execution), save that function to a variable, and
 pass that around. This is a good step, and puts you on the way towards
 first-class statements.  You can actually sort of fake a (somewhat less
-powerful) system of first class statements this way, to some degree.
+powerful) system of first class statements this way, to some degree.  I
+recommend trying to implement something like what the rest of the post
+describes in your language of choice if you ever want a fun challenge.
 
 Statements as data
 ------------------
@@ -80,6 +82,9 @@ tuple...it's a type that is only inhabited by just...well, `()`.  You can
 think of `()` as being analogous to a function returning "void" in other
 languages.
 
+If you have experience with object-oriented languages and templates/generics,
+`IO a` sort of corresponds to something like `IO<a>`.
+
 There are definitely many values of type `IO Int` or `IO String`, which
 represent actions that produce an `Int` or a `String`, respectively.  One
 common example is `getLine`, which is of type `IO String` --- `getLine` is an
@@ -102,23 +107,34 @@ represents printing "hello", and `putStrLn "world"`, which represents printing
 "world".
 
 If you have those two `IO ()`s, you can use the `(>>)` combinator to "merge"
-them and create a new `IO ()`.  In this case:
+them and create a new `IO ()`.[^fftype]  In this case:
+
+[^fftype]: The type of `(>>)` is actually more general: `(>>) :: IO a -> IO b
+-> IO b`.  We do only use it for `IO ()` in this post; but it might be nice to
+know the true type!
 
 ~~~haskell
 -- :: means "has the type"
 
--- the (>>) has this type:
-(>>) :: IO () -> IO () -> IO ()
-
+-- putStrLn "hello" is an object with type IO ().
 putStrLn "hello" :: IO ()
 putStrLn "world" :: IO ()
+
+(>>) :: IO () -> IO () -> IO ()
+~~~
+
+The type signature of `(>>)` says (in simple terms) that it's a function that
+takes two `IO ()`s and returns a shiny new `IO ()`.  It's a function that
+takes two objects and returns one.
+
+We can apply `(>>)` as an infix operator:
+
+~~~haskell
 putStrLn "hello" >> putStrLn "world" :: IO ()
 ~~~
 
-"Give me two `IO ()`s, and I'll give you a shiny new third one."
-
-That new one is a new `IO ()` that represents the act of printing "hello",
-then printing "world".
+That new `IO ()` is an data structure that represents the act of printing
+"hello", then printing "world".
 
 Remember that this new one is, still, only a normal object.  No printing
 actually ever "happens" of you evaluate `putStrLn "hello" >> putStrLn
@@ -162,10 +178,11 @@ function that takes a `Bool` and an `IO ()` object and *evaluates* to that `IO
 ()` object when the boolean is True.  But remember, calling `when` doesn't
 actually execute anything!  It's just a normal function and normal expression.
 An `IO ()` goes in, and `IO ()` comes out.  Just a normal function on normal
-data.
+data.  And we know it's just a normal function, because we wrote it ourself
+form scratch!
 
 With only a basic knowledge of functional programming (using a
-fold/reduce/inject, basically, or even recursion), you can easy write your own
+fold/reduce/inject, basically, or even recursion), you can easy write this
 function:
 
 ~~~haskell
@@ -180,7 +197,7 @@ represents executing all of those `IO ()`s one-after-another".
 
 If you are curious, here is the definition of `sequence` using a fold:
 
-~~~
+~~~haskell
 sequence :: [IO ()] -> IO ()
 sequence xs = foldr (>>) (return ()) xs
 ~~~
@@ -300,6 +317,43 @@ Again --- no execution is being done.  We're simply taking an object
 representing an IO action, and returning a new, modified one representing a
 slightly different IO action.
 
+<div class="note">
+**Aside**
+
+One particularly important combinator I have not mentioned yet is called
+"bind": `(>>=)`
+
+Let's say you wanted to read a line from stin, and then print it out right
+away.  You can do this with `getLine :: IO String` and `putStrLn :: String ->
+IO ()`. But wait!  This doesn't work:
+
+~~~haskell
+getLine >> putStrLn "hello?"
+~~~
+
+`(>>)` acts like a semicolon...it just sequences them together one after the
+other.  Wouldn't it be nice if we had something like a unix pipe?  It
+"sequences" the two things, but the result of the first can be used by the
+second?
+
+Well, if `(>>)` is a bash semicolon `;`, then `(>>=)` is a bash pipe `|`!
+
+~~~haskell
+getLine >>= putStrLn
+~~~
+
+does exactly what we want!
+
+As it turns out, `(>>=)` is actually a lot more powerful than it might seem at
+first. As soon as you add the `(>>=)` combinator to your arsenal...the space
+of programs you can construct using various `IO a`'s opens up in crazy ways
+that are difficult to explain in a little aside.  But anyways, that's not the
+point!  Let's move on!
+
+For something fun to do in your spare time, can you think about what the type
+of `(>>=)` has to be?  What is its type in `getLine >>= putStrLn`?
+</div>
+
 ### Much More
 
 This is only a small subset of what you can do with "statements as data".  In
@@ -354,7 +408,7 @@ what this representation/storage might look like in concrete terms, [Chris
 Taylor has a post][ct] on what you might see if you "peek into" the internal
 representation of (a possible implementation of) an IO action type --- you
 could even use this to implement first-class statements in your language of
-choice![^ghc]
+choice! [^ghc]
 
 [ct]: http://chris-taylor.github.io/blog/2013/02/09/io-is-not-a-side-effect/
 
@@ -386,4 +440,9 @@ guide][bma] also lays out a nice roadmap for learning Haskell.
 
 [lyah]: http://www.learnyouahaskell.com/
 [bma]: https://github.com/bitemyapp/learnhaskell
+
+Also, I'd love to hear if any of you had taken the challenge in the footnote
+of implementing a system like this in your language of choice (even if Haskell
+is your language of choice, you can write a `MyIO` type :D ), so let me know
+in the comments or via [twitter][]!
 
