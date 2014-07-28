@@ -342,9 +342,28 @@ Well, if `(>>)` is a bash semicolon `;`, then `(>>=)` is a bash pipe `|`!
 
 ~~~haskell
 getLine >>= putStrLn
+                      :: IO ()
 ~~~
 
 does exactly what we want!
+
+The type of `(>>=)` is:
+
+~~~haskell
+(>>=) :: IO a -> (a -> IO b) -> IO b
+~~~
+
+And in our specific case, it is:
+
+~~~haskell
+(>>=) :: IO String -> (String -> IO ()) -> IO ()
+~~~
+
+Which says, "give me an `IO String` and a function taking a `String` and
+producing an `IO ()`, and I'll give you a shiny new `IO ()`"  This might
+sound a little weird at first, but see how `getLine :: IO String` and
+`putStrLn :: String -> IO ()` fit into this, and see how it basically works
+like a unix pipe in a lot of ways.
 
 As it turns out, `(>>=)` is actually a lot more powerful than it might seem at
 first.  As soon as you add the `(>>=)` combinator to your arsenal...the space
@@ -352,9 +371,6 @@ of programs you can construct using various `IO a`'s opens up in crazy ways.
 Just imagine bash with no pipes, and only semicolons!  If you ever decide to
 implement some system of first-class statements, and it might be tricky to
 state/model imperative computations without `(>>=)`.
-
-For something fun to do in your spare time, can you think about what the type
-of `(>>=)` has to be?  What is its type in `getLine >>= putStrLn`?
 </div>
 
 ### Much More
