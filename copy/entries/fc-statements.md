@@ -64,7 +64,7 @@ It's like evaluating the number `1`, or the expression `2 + 5`.  Cool --- you
 evaluated `2 + 5` into a `7`; now what?  Does anything happen?  Not really.
 It's still just an `Int`.
 
-`putStrLn "hello world"` is just a normal data structure that represents
+`putStrLn "hello world"` is just a normal data/term/value that represents
 (through some abstract representation that isn't really important) the act of
 a *computer* printing the string `"hello world"` to stdout.
 
@@ -135,7 +135,7 @@ That new `IO ()` is a data structure that represents the act of printing
 Remember that this new one is, still, only a normal object.  No printing
 actually ever "happens" of you evaluate `putStrLn "hello" >> putStrLn
 "world"`.  If you ever reach that expression in a Haskell program...nothing is
-printed.  It's simply just taking two regular old data structures, running
+printed.  It's simply just taking two regular old data values, running
 them through a function, and giving you a third one.
 
 In many other languages, sequencing actions is a special part of the syntax
