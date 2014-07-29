@@ -306,14 +306,15 @@ manipulate `IO ()`s together.  And many of them you can even write yourself,
 from scratch.
 
 There are also many "IO action transformers" you have access to --- one
-notable one being `forkIO`:[^fio]
+notable one being `makePar`:[^fio]
 
-[^fio]: It's actually `forkIO :: IO () -> IO ThreadId`, but we can ignore the
-"return value" of a `ThreadId` for now, for simplicity.  We can pretend it was
-defined as `IO () -> IO ()`.
+[^fio]: `makePar` actually exists in the standard Haskell libraries as
+`forkIO`...kinda.  `forkIO :: IO () -> IO ThreadId`.  Our `makePar` is
+basically `forkIO`, but with the return value ignored.  Basically, it is
+`makePar x = forkIO x >> return ()`
 
 ~~~haskell
-forkIO :: IO () -> IO ()
+makePar :: IO () -> IO ()
 ~~~
 
 That takes an `IO ()`, and "transforms" it into a "parallel" `IO ()`.  Or
@@ -324,7 +325,7 @@ We can write `bothPar` ourselves, then, with this:[^parsimp]
 
 ~~~haskell
 bothPar :: IO () -> IO () -> IO ()
-bothPar x y = forkIO x >> forkIO y
+bothPar x y = makePar x >> makePar y
 ~~~
 
 [^parsimp]: Note that this action doesn't "wait" for both threads to complete;
