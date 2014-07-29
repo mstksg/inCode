@@ -46,9 +46,10 @@ happens.  We do not differentiate the act of *evaluating* these statements
 (figuring out what they are) from *executing* these statements.  Something
 just *happens* when you see an assignment.
 
-It is clear that something about these statements are magical or a special
-part of the language.  They are wholly different than, say, an integer, or a
-boolean.  They aren't normal "objects" or "data" in your system.
+It is clear that in these languages, something about these statements are
+magical or a special part of the language.  They are wholly different than,
+say, an integer, or a boolean.  They aren't normal "objects" or "data" in your
+system.
 
 Even if your programming languages have first-class functions, `printf` might
 be a first-class value, but the *call* of it (usually indicated with
@@ -61,11 +62,12 @@ Statements as data
 ------------------
 
 In Haskell, `putStrLn "hello world"` is literally just a normal, boring
-object, of type `IO ()`.  Like an `Int`, or `Bool`, or a `String`, or a
-`[Double]` (a list of `Double`).  *Evaluating* it doesn't really do anything.
-It's like evaluating the number `1`, or the expression `2 + 5`.  Cool --- you
-evaluated `2 + 5` into a `7`; now what?  Does anything happen?  Not really.
-It's still just an `Int`.
+object, of type `IO ()` (If you come from an OOP background, `IO a` is sort of
+like a generic/template, `IO <a>`).  Like an `Int`, or `Bool`, or a `String`,
+or a `[Double]` (a list of `Double`).  *Evaluating* it doesn't really do
+anything. It's like evaluating the number `1`, or the expression `2 + 5`.
+Cool --- you evaluated `2 + 5` into a `7`; now what?  Does anything happen?
+Not really. It's still just an `Int`.
 
 `putStrLn "hello world"` is just a normal data/term/value that represents
 (through some abstract representation that isn't really important) the act of
@@ -178,13 +180,14 @@ when False (putStrLn "it's True!")   :: IO ()  -- evaluate 4 < 0
 return ()                            :: IO ()  -- definition of when False
 ~~~
 
-The above is *not* an "execution"...it's an *evaluation*.  `when` is a
-function that takes a `Bool` and an `IO ()` object and *evaluates* to that `IO
-()` object when the boolean is True.  But remember, calling `when` doesn't
-actually execute anything!  It's just a normal function and normal expression.
-An `IO ()` goes in, and `IO ()` comes out.  Just a normal function on normal
-data.  And we know it's just a normal function, because we wrote it ourself
-from scratch!
+The above is *not* an "execution"...it's an *evaluation*.  Execution involves
+executing actions on a computer, where evaluation is simply a reduction, like
+`1 + 1 ==> 2`.  `when` is a function that takes a `Bool` and an `IO ()` object
+and *evaluates* to that `IO ()` object when the boolean is True.  But
+remember, calling `when` doesn't actually execute anything!  It's just a
+normal function and normal expression. An `IO ()` goes in, and `IO ()` comes
+out.  Just a normal function on normal data.  And we know it's just a normal
+function, because we wrote it ourself from scratch!
 
 You can't write `when` in this naive way in a language like, say, Javascript:
 
@@ -246,7 +249,7 @@ helloworld :: IO ()
 helloworld = hello >> world
 
 helloworldhelloworld :: IO ()
-helloworldhelloworld = sequence [hello, world, helloworld]
+helloworldhelloworld = sequence_ [hello, world, helloworld]
 ~~~
 
 Remember -- nothing is being called or executed.  It's just all normal
@@ -306,7 +309,8 @@ There are also many "IO action transformers" you have access to --- one
 notable one being `forkIO`:[^fio]
 
 [^fio]: It's actually `forkIO :: IO () -> IO ThreadId`, but we can ignore the
-"return value" of a `ThreadId` for now, for simplicity.
+"return value" of a `ThreadId` for now, for simplicity.  We can pretend it was
+defined as `IO () -> IO ()`.
 
 ~~~haskell
 forkIO :: IO () -> IO ()
@@ -330,7 +334,7 @@ Give `bothPar` two `IO ()`'s representing computer actions, and it'll give you a
 new one that represents launching both computer actions in parallel.  To do
 that, simply launch them both one after the other!
 
-Another common combinator/transformer on an `IO ()` is `catch`:[^catch]
+Another common transformer on an `IO ()` is `catch`:[^catch]
 
 ~~~haskell
 catch :: IO () -> (SomeException -> IO ()) -> IO ()
