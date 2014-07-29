@@ -53,6 +53,9 @@ boolean.  They aren't normal "objects" or "data" in your system.
 Even if your programming languages have first-class functions, `printf` might
 be a first-class value, but the *call* of it (usually indicated with
 parentheses, like `printf()`) is definitely something...different altogether.
+You *can* simulate this in languages by creating a sub-language inside the
+language, but you're always going to have an interplay between the two.  There
+will always be the dichotomy between statements and data.
 
 Statements as data
 ------------------
@@ -137,7 +140,7 @@ That new `IO ()` is a data structure that represents the act of printing
 "hello", then printing "world".
 
 Remember that this new one is, still, only a normal object.  No printing
-actually ever "happens" of you evaluate `putStrLn "hello" >> putStrLn
+actually ever "happens" if you evaluate `putStrLn "hello" >> putStrLn
 "world"`.  If you ever reach that expression in a Haskell program...nothing is
 printed.  It's simply just taking two regular old data values, running
 them through a function, and giving you a third one.
@@ -179,7 +182,21 @@ function that takes a `Bool` and an `IO ()` object and *evaluates* to that `IO
 actually execute anything!  It's just a normal function and normal expression.
 An `IO ()` goes in, and `IO ()` comes out.  Just a normal function on normal
 data.  And we know it's just a normal function, because we wrote it ourself
-form scratch!
+from scratch!
+
+You can't write `when` in this naive way in a language like, say, Javascript:
+
+~~~haskell
+var when = function(cond, act) { if (cond) { act; } };
+
+when(false, console.log("hello"));
+// "hello" is printed, even though the condition is false
+~~~
+
+(You can simulate something that works by having `when` take functions instead
+of statements...but that's the point!  You can't pass in a "statement", you
+have to pass in a function/data.  In this sense, statements and data behave
+completely differently.)
 
 With only a basic knowledge of functional programming (using a
 fold/reduce/inject, basically, or even recursion), you can easy write this
@@ -209,7 +226,7 @@ If you're familiar with folds/reduces, `return ()` is the "base value", and
 sequence_ [putStrLn "hello", putStrLn "world", putStrLn "goodbye!"]
 
 -- evaluates to:
-putStrLn "hello" >> (putStrLn "world" >> (putStrLn "goodbye!" >> return ())
+putStrLn "hello" >> (putStrLn "world" >> (putStrLn "goodbye!" >> return ()))
 ~~~
 </div>
 
@@ -345,7 +362,7 @@ This is a pretty aside-y aside, and you can definitely skip it if you want!
 One particularly important combinator I have not mentioned yet is called
 "bind": `(>>=)`
 
-Let's say you wanted to read a line from stin, and then print it out right
+Let's say you wanted to read a line from stdin, and then print it out right
 away.  You can do this with `getLine :: IO String` and `putStrLn :: String ->
 IO ()`. But wait!  This doesn't work:
 
