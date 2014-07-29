@@ -126,7 +126,11 @@ takes two objects and returns one.
 We can apply `(>>)` as an infix operator:
 
 ~~~haskell
-putStrLn "hello" >> putStrLn "world" :: IO ()
+helloThenWorld :: IO ()
+helloThenWorld = putStrLn "hello" >> putStrLn "world"
+
+-- define `helloThenWorld` as putStrLn "hello" >> putStrLn "world"; and its
+type is `IO ()`.
 ~~~
 
 That new `IO ()` is a data structure that represents the act of printing
@@ -208,6 +212,23 @@ sequence_ [putStrLn "hello", putStrLn "world", putStrLn "goodbye!"]
 putStrLn "hello" >> (putStrLn "world" >> (putStrLn "goodbye!" >> return ())
 ~~~
 </div>
+
+Note that all of these functions take anything of type `IO ()`...so I could
+really be passing in named `IO ()`'s, or the result of combinators, or...
+
+~~~haskell
+hello :: IO ()
+hello = putStrLn "hello"
+
+world :: IO ()
+world = putStrLn "world"
+
+helloworld :: IO ()
+helloworld = hello >> world
+
+helloworldhelloworld :: IO ()
+helloworldhelloworld = sequence [hello, world, helloworld]
+~~~
 
 But wait!  There are a lot of things I can do with two `IO ()`s besides
 executing them one-after-the-other.  I can...merge them *in parallel*!
