@@ -143,7 +143,9 @@ Remember that this new one is, still, only a normal object.  No printing
 actually ever "happens" if you evaluate `putStrLn "hello" >> putStrLn
 "world"`.  If you ever reach that expression in a Haskell program...nothing is
 printed.  It's simply just taking two regular old data values, running
-them through a function, and giving you a third one.
+them through a function, and giving you a third one.  The process of defining
+`helloThenWorld` --- or even later evaluating it --- doesn't cause anything to
+happen.  They are inert data structures.
 
 In many other languages, sequencing actions is a special part of the syntax
 --- a semicolon, usually.  In Haskell, sequencing is not special --- it's just
