@@ -182,7 +182,7 @@ fold/reduce/inject, basically, or even recursion), you can easy write this
 function:
 
 ~~~haskell
-sequence :: [IO ()] -> IO ()
+sequence_ :: [IO ()] -> IO ()
 ~~~
 
 Which says, "give me a list of `IO ()`s, and I'll give you a new `IO ()` that
@@ -194,15 +194,15 @@ represents executing all of those `IO ()`s one-after-another".
 If you are curious, here is the definition of `sequence` using a fold:
 
 ~~~haskell
-sequence :: [IO ()] -> IO ()
-sequence xs = foldr (>>) (return ()) xs
+sequence_ :: [IO ()] -> IO ()
+sequence_ xs = foldr (>>) (return ()) xs
 ~~~
 
 If you're familiar with folds/reduces, `return ()` is the "base value", and
 `(>>)` is the "accumulating function".
 
 ~~~haskell
-sequence [putStrLn "hello", putStrLn "world", putStrLn "goodbye!"]
+sequence_ [putStrLn "hello", putStrLn "world", putStrLn "goodbye!"]
 
 -- evaluates to:
 putStrLn "hello" >> (putStrLn "world" >> (putStrLn "goodbye!" >> return ())
@@ -404,6 +404,15 @@ binary for a given architecture/computer/CPU.  It "translates" the
 actually execute.
 
 Your computer can then execute that generated binary, and...off we go!
+
+Every Haskell program by convention compiles *one single `IO ()`*.  That
+is, you might have a *bunch* of `IO a`s in your program, but you "offer the
+compiler" *one* `IO ()` for it to compile, and it compiles it for you.  So if
+you have a lot of different IO computations you wish to do, you basically
+continually sequence, merge, pipe, combine, transform, etc. them until you get
+one final `IO ()` which represents your entire desired computation.  And then
+you name it "main".  When your compiler compiles the Haskell file, it'll find
+the `IO ()` named "main", and compile that one.
 
 In a way, one can think of Haskell as a very elaborate metaprogramming system,
 providing a DSL to "generate" byte code.
