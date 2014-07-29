@@ -230,6 +230,9 @@ helloworldhelloworld :: IO ()
 helloworldhelloworld = sequence [hello, world, helloworld]
 ~~~
 
+Remember -- nothing is being called or executed.  It's just all normal
+functions on normal data.  The inputs are data, the outputs are data.
+
 But wait!  There are a lot of things I can do with two `IO ()`s besides
 executing them one-after-the-other.  I can...merge them *in parallel*!
 
