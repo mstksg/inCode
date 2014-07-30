@@ -111,8 +111,20 @@ If you have those two `IO ()`s, you can use the `(>>)` combinator to "merge"
 them and create a new `IO ()`.[^fftype]  In this case:
 
 [^fftype]: The type of `(>>)` is actually more general: `(>>) :: IO a -> IO b
--> IO b`.  We do only use it for `IO ()` in this post; but it might be nice to
-know the true type!
+    -> IO b`.  We do only use it for `IO ()` in this post, though.
+
+    Actually, would you be mad at me if I told you that its true type in
+    Haskell is even more general?  It's actually `m a -> m b -> m b`, for any
+    type `m` that is a member of the `Monad` typeclass.  You can think of it
+    like any type that "implements" `(>>)` for that type, and more, following
+    some rules on how it should behave.
+
+    Ah!  This rabbit hole is a bit deep though, so I recommend you not to
+    worry about it!
+
+
+
+
 
 ~~~haskell
 -- :: means "has the type"
