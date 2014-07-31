@@ -29,7 +29,7 @@ concurrency, exceptions, DSLs, and more.
 To clarify, by "statement", I mean it in the sense of a "command" from
 traditional imperative programming that, when control flow reaches it,
 executes some sort of action or modification to some state.  The [wikipedia
-article][wiki] has a nice explanation.  Some typical expressions from common
+article][wiki] has a nice explanation.  Some typical statements from common
 imperative languages include:
 
 [wiki]: http://en.wikipedia.org/wiki/Statement_(computer_science)
