@@ -109,9 +109,9 @@ to `c`.
 In Haskell we use the `(.)` operator for this --- to say more formally:
 
 ~~~haskell
-f     :: Morphism a b
-g     :: Morphism b c
-g . f :: Morphism a c
+f     :: morphism a b
+g     :: morphism b c
+g . f :: morphism a c
 ~~~
 
 Some important aspects of the nature of this composition is that it must
@@ -291,7 +291,7 @@ certain properties (like the ones I mentioned earlier).
 In Haskell, we often consider our objects as Haskell types; our usual
 morphisms is the function arrow, `(->)`[^func] --- but in this case, it might be
 interesting to consider a different category --- the category of Haskell types
-and morphisms `Auto`.
+and morphisms `Auto a b`.
 
 [^func]: Remember, we can write `a -> b` as `(->) a b`; like other operators,
 `(->)` can be used both infix and prefix.
