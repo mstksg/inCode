@@ -203,7 +203,7 @@ function, because we wrote it ourself from scratch!
 
 You can't write `when` in this naive way in a language like, say, Javascript:
 
-~~~haskell
+~~~javascript
 var when = function(cond, act) { if (cond) { act; } };
 
 when(false, console.log("hello"));
@@ -459,7 +459,7 @@ useless if our data structures remain inert and don't actually do anything.
 
 Luckily, one can think of a Haskell compiler as a giant function: `IO () ->
 Binary`.  Give the Haskell compiler an `IO ()`, and it'll convert it to a
-binary for a given architecture/computer/CPU.  It "translates" the
+"binary" for a given architecture/computer/CPU.  It "translates" the
 *representation of a computation* into concrete bytecode that a computer can
 actually execute.
 
@@ -476,6 +476,20 @@ the `IO ()` named "main", and compile that one.
 
 In a way, one can think of Haskell as a very elaborate metaprogramming system,
 providing a DSL to "generate" byte code.
+
+By the way, did you see how `IO ()` is *completely separate* from its binary
+representation?  Hm.  Why do we have to compile it to binary, anyway?
+
+Enter in *other Haskell compilers*, like [ghcjs] --- instead of being `IO ()
+-> Binary`, it's `IO () -> Javascript`!  That is, give it *any* ol' `IO ()`
+(the same one that you would design for a CPU/processor), and instead of
+translating it into bytecode/binary, it translates it into Javascript!  This
+is another power of having `IO ()` being its own, abstract object that is
+independent of the architecture or computer that it will be eventually run on.
+Because it's so abstract...it can be compiled and run really on *anything*!
+
+[ghcjs]: https://github.com/ghcjs/ghcjs
+
 
 Haskell
 -------
