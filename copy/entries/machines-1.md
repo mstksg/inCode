@@ -615,7 +615,7 @@ ghci> let (out1, auto1) = runAuto summer 10
 ghci> out1
 10
 ghci> let (out2, auto2) = runAuto auto1 3
-ghci> out1
+ghci> out2
 13
 ghci> testAuto_ auto2 [15,-17,6,0,-1]
 [28,11,17,17,16]
