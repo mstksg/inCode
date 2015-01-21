@@ -107,7 +107,7 @@ ghci> liftA2 (,) getLine getLine
 > hello         -- asking for the first field
 > world         -- asking for the second field
 ("hello", "world")
-ghci> runFlip (liftA2 (,) (FlipIO getLine) (FlipIO getLine)
+ghci> runFlipIO $ liftA2 (,) (FlipIO getLine) (FlipIO getLine)
 > hello         -- asking for the second field
 > world         -- asking for the first field
 ("world", "hello")
@@ -131,7 +131,7 @@ So cool.  Types that have `Functor` instances only have one.  Types that have
 `Applicative` instances very often have more than one.
 
 So, the obvious next question is...what about `Monad`s?  Is a `Monad` instance
-uniquly determined by its type?
+uniquely determined by its type?
 
 Monad
 -----
@@ -143,7 +143,7 @@ you need the effects of the first action in order to even decide what the
 effects of the next action are.
 
 I vaguely remember from my past two data types that are very similar yet have
-very different `Monad` and `Applicative` instances:  (finite) lists, and
+very different `Monad` and `Applicative` instances:  (finite) lists, 
 (infinite) [streams].  From the outset, the two have almost identical
 structure.  A `Stream` is just a list with no `[]`/nil:
 
@@ -212,6 +212,8 @@ In case you were wondering, here is an elaboration :D
     infinite lists, "joining"/concatenating them back will just give you an
     infinite list of the first item in `m`.
 
+    To put succincently, for `Stream`, `concat == head`.
+
 *   Lists can have the `Applicative` instance fine, but not the `Monad`
     instance.  Here we assume that zipping and "getting the diagonal" go only
     as "far as possible", and stop when one of the lists is too short.
@@ -274,7 +276,7 @@ instance of `w`.
 
 And...`Monoid` instances in Haskell are rarely ever unique!  A different
 `Monoid` instance would create a very different `Monad` instance for the same
-time!
+type!
 
 So, by factoring out the dependency on an external `Monoid` instance, you
 get...
@@ -293,6 +295,9 @@ and...voila!  There it is!
 This type is basically equivalent to `(Bool, a)`.  And `Bool` has multiple
 `Monoid`s on it.  Instead of requiring an outside `Monoid` instance, we can
 encode the instance directly into the behavior of `(>>=)`.  And here we go!
+
+Our instances are basically the `Writer` instance for `(Bool, a)`, with
+different `Monoid` instances for `Bool`.
 
 The first instance:
 
