@@ -9,7 +9,6 @@ Tags
 :   functional reactive programming
 :   machines
 :   arrows
-:   category
 CreateTime
 :   2014/02/04 21:18:53
 PostDate
