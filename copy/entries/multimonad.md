@@ -3,6 +3,7 @@ A Non-Unique Monad Instance
 
 Categories
 :   Haskell
+:   Projects
 Tags
 :   haskell
 :   functional programming
@@ -17,7 +18,7 @@ Identifier
 
 Hi all!  Sorry about the lack of posting recently; the new environment of grad
 school has sort of taken some time to get used to.  Just stopping in for a
-short post before continuing with some long-overdue serieses :)
+short post before continuing with a long-overdue series or two :)
 
 Soon after I discovered Haskell, one question has plagued my mind.  Day and
 night, I wondered...
