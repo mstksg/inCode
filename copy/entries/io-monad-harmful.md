@@ -26,12 +26,13 @@ stopping this nonsense once and for all, okay?
 
 So I'll say it here:
 
-**The phrase "IO monad" considered harmful.  Please do not use it.**[^never]
+**The phrase "IO monad" considered harmful.  Please do not use
+it.**[^never][^sometimes]
 
 In most circumstances, the *IO type* is the more helpful and more correct
 answer.
 
-[^never]: In any case, ever, for any circumstance or reason.[^sometimes]
+[^never]: In any case, ever, for any circumstance or reason.
 [^sometimes]: Just kidding.  Only a sith deals in absolutes.
 
 Let's say someone comes to you and asks you the question:
