@@ -36,6 +36,9 @@ answer.
 [^never]: In any case, ever, for any circumstance or reason.
 [^sometimes]: Just kidding.  Only a sith deals in absolutes.
 
+Please, Not the IO Monad
+------------------------
+
 Let's say someone comes to you and asks you the question: "How does Haskell do
 things like print a string?"
 
@@ -173,3 +176,17 @@ Why doesn't this world make any sense?
 
 Please, please, stop saying "the IO monad".
 
+Some side notes
+---------------
+
+*   "State monad" and "Writer monad" and "Reader monad" are just as bad, and
+    you know it.  Shame on you.
+
+*   I have qualms with the "monad" part of "IO monad", but some times, I even
+    wonder about the "IO" part.  Yes, Haskell can do IO through the IO type,
+    but it's really possible to program effectful code interfacing with IO
+    without ever directly working with the IO type; one could even just think
+    of IO as a nice "intermediate data structure" that GHC or whatever Haskell
+    compiler you are using can understand.  Use a library or DSL or whatever
+    to write your IO-based code, just make sure your library has a function to
+    transform it into an IO.
