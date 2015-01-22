@@ -139,11 +139,13 @@ handle impure side-effects?"
 
 Again, the answer is **anything except "the IO Monad"**.  If I were to make a
 list of the most misleading, incorrect, dangerous, and disgusting possible
-answers, this would be on the top spot.
+answers, this would be on the top spot.  The *IO type itself* is what enables
+this.  Not the monadic interface.
 
 Bringing in the idea of "monads" into the idea really only leads to confusion,
 because they literally contribute *nothing* to the subject.  And yet, why do I
-see people answering, "Haskell handles IO and impurity with monads"?
+see people answering, "Haskell handles IO and impurity with monads"?  I'm sure
+you've heard at leas tone person saying this.  But it's 100% wrong.
 
 **Monads actually have nothing to do with it**, and I'm not even exaggerating
 here.
