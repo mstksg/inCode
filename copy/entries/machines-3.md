@@ -23,6 +23,8 @@ school][chapman] and things like that have made me have to scramble to adjust
 to the new life.  But a couple of people have asked me to finish up and wrap
 up this series, and I think I owe it to them :)
 
+[chapman]:http://blog.jle.im/entry/looking-forward-a-doctorate-program
+
 In the [last post][part2], we looked deeper into the Auto type, played
 around with instancing it as familiar typeclasses, saw it as a member of the
 powerful *Category* and *Arrow* typeclasses, and took advantage of this by
@@ -140,12 +142,12 @@ Some domains actually want this behavior "built-in".  That is, they want *all*
     `Auto`:
 
     ~~~haskell
-    !!!machines/Auto3.hs "newtype AutoOn1" "instance Functor (AutoOn1 a)" "instance Category AutoOn1" "instance Arrow AutoOn1" machines
+!!!machines/Auto3.hs "newtype AutoOn1" "instance Functor (AutoOn1 a)" "instance Category AutoOn1" "instance Arrow AutoOn1" machines
     ~~~
 
 
-In this case, we can even define `Category` and
-`Arrow` instances using a newtype wrapper:
+<!-- In this case, we can even define `Category` and -->
+<!-- `Arrow` instances using a newtype wrapper: -->
 
 <!-- ~~~haskell -->
 <!-- newtype AutoOnOff a b = AutoOnOff (Auto a (Maybe b)) -->
