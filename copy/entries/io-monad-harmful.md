@@ -35,6 +35,10 @@ it.**[^never][^sometimes]
 In most circumstances, the *IO type* is the more helpful and more correct
 answer.
 
+I'm going to say that this is probably **the single most harmful and damaging
+thing** in Haskell, with regards to pedagogy, practice, public perception, and
+kittens.
+
 [^never]: In any case, ever, for any circumstance or reason.
 [^sometimes]: Just kidding.  Only a sith deals in absolutes.
 
@@ -148,7 +152,11 @@ see people answering, "Haskell handles IO and impurity with monads"?  I'm sure
 you've heard at leas tone person saying this.  But it's 100% wrong.
 
 **Monads actually have nothing to do with it**, and I'm not even exaggerating
-here.
+here.  If anything it adds to the perceived learning barrier of Haskell.  If
+something as simple as IO requires *category theory* to understand, then
+something must be way off. (Luckily, it doesn't)  This really only adds more
+to the perception of Haskell as an academic language that people learn only to
+be able to feel smarter.
 
 Furthermore, imagine someone new to Haskell asked you, "Can I store a sequence
 of numbers?"
