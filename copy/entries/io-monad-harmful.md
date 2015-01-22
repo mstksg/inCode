@@ -20,7 +20,7 @@ intentionally misleading and designed to incite controversy --- or at least
 grab your attention.  Because of this, please take my exaggerations in this
 article for what they are :)  In following tradition I will try to leave as
 many quotes and soundbytes as possible that can be easily taken terribly out
-of context.
+of context and twisted.
 
 Anyways, I don't mean that this "IO Monad" is something to be avoid.  What I
 mean is that the phrase "IO Monad"...it's got to go.  It has its usages, but
