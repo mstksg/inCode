@@ -93,6 +93,8 @@ Haskell.
 So, monads "have something to do" with the design decisions of IO in Haskell.
 But it is still true that IO doesn't need to have a monadic interface in order
 to do IO.  But that isn't as nice of a one-liner/sound byte now, is it?
+
+Special thanks to Chris Allen for this important clarification.
 </div>
 
 You could take away monads and even the entire monadic interface from Haskell

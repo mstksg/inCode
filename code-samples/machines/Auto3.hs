@@ -46,3 +46,5 @@ instance Arrow AutoOn1 where
     first (AutoOn1 f) = AutoOn1 $ proc (x, y) -> do
                                       z <- f -< x
                                       id -< fmap (,y) z
+
+newtype AutoOn2 a b = 
