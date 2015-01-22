@@ -154,7 +154,7 @@ this.  Not the monadic interface.
 Bringing in the idea of "monads" into the idea really only leads to confusion,
 because they literally contribute *nothing* to the subject.  And yet, why do I
 see people answering, "Haskell handles IO and impurity with monads"?  I'm sure
-you've heard at leas tone person saying this.  But it's 100% wrong.  **Monads
+you've heard at least one person saying this.  But it's 100% wrong.  **Monads
 actually have nothing to do with it**, and I'm not even exaggerating here.
 
 If anything it adds to the perceived learning barrier of Haskell.  **If
