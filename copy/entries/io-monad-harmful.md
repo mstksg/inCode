@@ -154,14 +154,16 @@ this.  Not the monadic interface.
 Bringing in the idea of "monads" into the idea really only leads to confusion,
 because they literally contribute *nothing* to the subject.  And yet, why do I
 see people answering, "Haskell handles IO and impurity with monads"?  I'm sure
-you've heard at leas tone person saying this.  But it's 100% wrong.
+you've heard at leas tone person saying this.  But it's 100% wrong.  **Monads
+actually have nothing to do with it**, and I'm not even exaggerating here.
 
-**Monads actually have nothing to do with it**, and I'm not even exaggerating
-here.  If anything it adds to the perceived learning barrier of Haskell.  If
+If anything it adds to the perceived learning barrier of Haskell.  **If
 something as simple as IO requires *category theory* to understand, then
-something must be way off. (Luckily, it doesn't)  This really only adds more
-to the perception of Haskell as an academic language that people learn only to
-be able to feel smarter.
+something must be way off.** (Luckily, it doesn't)  This really only *adds
+more* to the perception of Haskell as an academic language that people learn
+only to be able to feel smarter.  Haskell already has a huge PR problem as it
+is; we don't need people going around doing this and making it even worse.
+Please, do not contribute to this.
 
 Furthermore, imagine someone new to Haskell asked you, "Can I store a sequence
 of numbers?"
