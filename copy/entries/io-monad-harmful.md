@@ -37,7 +37,7 @@ answer.
 
 I'm going to say that this is probably **the single most harmful and damaging
 thing** in Haskell and the community, with regards to pedagogy, practice,
-public perception, and kittens.  Not even kidding.  It's actaully literally
+public perception, and kittens.  Not even kidding.  It's actually literally
 the worst and everyone in the world is worse off every time someone says it.
 
 [^never]: In any case, ever, for any circumstance or reason.
