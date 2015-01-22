@@ -201,8 +201,8 @@ Please, please, stop saying "the IO monad".
 Some side notes
 ---------------
 
-*   "State monad" and "Writer monad" and "Reader monad" are just as bad, and
-    you know it.  Shame on you.
+*   "State monad" and "Writer monad" and "Reader monad" are just as bad when
+    abused, and you know it.  Shame on you.
 
 *   A good time to use the "(something) monad" is when you are referring in
     particular to the monad instance or its monadic interface.
