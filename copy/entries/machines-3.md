@@ -145,7 +145,7 @@ Some domains actually want this behavior "built-in".  That is, they want *all*
 !!!machines/Auto3.hs "newtype AutoOn1" "instance Functor (AutoOn1 a)" "instance Category AutoOn1" "instance Arrow AutoOn1" machines
 ~~~
 
-2.  Poop it does not work :(
+2.  it does not work :(
 
 
 <!-- In this case, we can even define `Category` and -->

@@ -236,7 +236,7 @@ In case you were wondering, here is an elaboration :D
 
     For a monad, joining the inner layer and then joining it all should be the
     same as joining it all and joining it all.  The order of the joining
-    shouldn't count.  We can see this in the more traditional monad laws by
+    shouldn't count.  We can see this in the more haskelly monad laws by
     noting:
 
     ~~~haskell
@@ -257,7 +257,7 @@ Revelation
 ----------
 
 Several centuries later[^timeframe], the final revelation came as many
-revelations do in haskell --- from a hint by Edward Kmett.  He pointed out
+revelations do in Haskell --- from a hint by Edward Kmett.  He pointed out
 something interesting regarding a `Monad` instance that I had yet to notice:
 
 [^timeframe]: More accurately, "about a year"

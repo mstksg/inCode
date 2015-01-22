@@ -89,7 +89,7 @@ said that the *reason* why the model for IO that Haskell has was chosen is
 monadic interface was a major factor in its adoption as *the* IO model for
 Haskell.
 
-So, monads "have something to do" with the design decisions of IO in haskell.
+So, monads "have something to do" with the design decisions of IO in Haskell.
 But it is still true that IO doesn't need to have a monadic interface in order
 to do IO.  But that isn't as nice of a one-liner/sound byte now, is it?
 </div>
@@ -119,23 +119,23 @@ Not only is that question completely *irrelevant* to doing IO at all, it's
 also a question that has [historically lead to much confusion][mtf].  I
 consider it one of the worst "sidequests" you could embark on in learning
 Haskell.  Seeking an intuitive grasp of what a monad is is not only worthless
-for learning practical haskell (at the start), but one that can lead to many
+for learning practical Haskell (at the start), but one that can lead to many
 false answers, confusing and contradictory answers, and just a lot of headache
 in general.  Before I even ever heard about Haskell, I heard about the
 infamous "IO monad".  I read, "monads are a crazy hard-to-understand subject,
-but once you understand it, Haskell becomes amazing."  Haskell is haskell and
+but once you understand it, Haskell becomes amazing."  Haskell is Haskell and
 is useful before you ever introduce Monad into the picture...and a quote like
-that implies that understanding monads is important to understanding haskell
+that implies that understanding monads is important to understanding Haskell
 or IO.
 
 [mtf]: https://byorgey.wordpress.com/2009/01/12/abstraction-intuition-and-the-monad-tutorial-fallacy/
 
 It just simply *isn't*.  If you want to "understand Monads" (whatever that
 means), then go ahead; try.  But please don't think that it'll help you **even
-a single bit** in understanding IO in haskell.
+a single bit** in understanding IO in Haskell.
 
 Saying "IO Monad" implies that understanding monads is some prerequisite to
-understanding IO, or at the very least that IO in haskell is inherently tied
+understanding IO, or at the very least that IO in Haskell is inherently tied
 to monads.  **Both are untrue**.
 
 Another commonly mis-answered question is, "How does Haskell, a pure language,
@@ -214,5 +214,5 @@ Some side notes
     of IO as a nice "intermediate data structure" that GHC or whatever Haskell
     compiler you are using can understand.  Use a library or DSL or whatever
     to write your IO-based code, just make sure your library has a function to
-    transform it into an IO.  Already, many real-world haskell code that "does
+    transform it into an IO.  Already, many real-world Haskell code that "does
     IO" doesn't ever directly work with the IO type itself.
