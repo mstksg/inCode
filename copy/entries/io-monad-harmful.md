@@ -11,7 +11,7 @@ Tags
 CreateTime
 :   2015/01/20 22:08:11
 PostDate
-:   Never
+:   2015/01/21 10:01:17
 Identifier
 :   io-monad-harmful
 
@@ -72,6 +72,21 @@ something important.  **It's not.**
 
 **IO in Haskell has nothing to do with monads.**
 
+<div class="note">
+**Aside**
+
+The truth is a bit more complicated than this.  While monads
+aren't required at all to do IO with haskell, IO's monadic interface is
+intimately intertwined with its history, and one could say that the reason the
+Haskell designers have chosen the IO model that it has now was because of its
+monadic interface.  At the time of its conception, this approach to IO was
+revolutionary because the monadic interface solved a long-standing problem of
+a nice way of sequencing IO.  So in truth, IO in Haskell was designed in a
+such a way because a monadic interface made it feasible.  So monads "have
+something to do" with the design decisions of IO.  But IO doesn't need monads
+to be able to do IO.
+</div>
+
 You could take away monads and even the entire monadic interface from Haskell
 and Haskell could *still* do IO *with the same IO type*.
 
@@ -80,7 +95,9 @@ regular ol' data type that represents IO actions, in the same way that `Bool`
 represents a boolean or `Integer` represents an integer.
 
 Saying "the IO monad" is literally the most misleading thing you could
-possibly say.  IO in Haskell has nothing to do with monads.
+possibly say.  IO in Haskell has nothing to do with monads.[^seeaside]
+
+[^seeaside]: See the aside for a qualification.
 
 How did this idea become so prevalent and pervasive?  I cannot say!  But
 somehow, somewhere, this idea happened, and it is persistent now.  Please do
@@ -124,14 +141,12 @@ answers, this would be on the top spot.
 Haskell doesn't handle impure side-effects and IO actions by usage of Monad or
 anything of the sort.  Haskell handles side-effects and IO actions by simply
 storing IO actions as a data type, instead of something to be executed as soon
-as they are encountered.  Just like storing the string "print this", or
-something.  The run-time system is what takes the IO action and executes it;
-Haskell itself only works with assembling the actions purely.
+as they are encountered.
 
 Nothing here has anything to do with monads or anything monadic.  Bringing in
 the idea of "monads" into the idea really only leads to confusion, because
 they literally contribute *nothing* to the subject.  And yet, why do I see
-people answering, "Haskell handles IO and impurity with monads!"
+people answering, "Haskell handles IO and impurity with monads"?
 
 **Monads actually have nothing to do with it**, and I'm not even exaggerating
 here.
@@ -181,6 +196,9 @@ Some side notes
 
 *   "State monad" and "Writer monad" and "Reader monad" are just as bad, and
     you know it.  Shame on you.
+
+*   A good time to use the "(something) monad" is when you are referring in
+    particular to the monad instance or its monadic interface.
 
 *   I have qualms with the "monad" part of "IO monad", but some times, I even
     wonder about the "IO" part.  Yes, Haskell can do IO through the IO type,
