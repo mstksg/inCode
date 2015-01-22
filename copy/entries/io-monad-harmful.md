@@ -17,9 +17,10 @@ Identifier
 
 In the tradition of "considered harmful" posts, this post's title is
 intentionally misleading and designed to incite controversy --- or at least
-grab your attention :D
+grab your attention.  Because of this, please take my exaggerations in this
+article for what they are :)
 
-I don't mean that this "IO Monad" is something to be avoid.  What I
+Anyways, I don't mean that this "IO Monad" is something to be avoid.  What I
 mean is that the phrase "IO Monad"...it's got to go.  It has its usages, but
 99.9% of times it is used, it is used improperly.  So let's go ahead with
 stopping this nonsense once and for all, okay?
@@ -35,15 +36,14 @@ answer.
 [^never]: In any case, ever, for any circumstance or reason.
 [^sometimes]: Just kidding.  Only a sith deals in absolutes.
 
-Let's say someone comes to you and asks you the question:
+Let's say someone comes to you and asks you the question: "How does Haskell do
+things like print a string?"
 
-> How does Haskell do things like print a string?
+The answer is: **Definitely not with the IO monad.**
 
-**Definitely not with the IO monad.**
-
-This is literally one of the simplest question a new person to Haskell can
-ask.  There are many incorrect answers you could give, but "the IO Monad" is
-one of the most incorrect answers possible.
+This is literally one of the simplest question a new person to Haskell could
+possibly ask.  There are many incorrect answers you could give, but "the IO
+Monad" is one of the most incorrect answers possible.
 
 For one, one of the most beautiful things about Haskell is that IO actions are
 all [first-class normal data objects][fcs], like lists or integers or
@@ -73,8 +73,8 @@ You could take away monads and even the entire monadic interface from Haskell
 and Haskell could *still* do IO *with the same IO type*.
 
 The ability for Haskell to work with IO comes from the fact that we have a
-data type that represents IO actions, in the same way that `Bool` represents a
-boolean or `Integer` represents an integer.
+regular ol' data type that represents IO actions, in the same way that `Bool`
+represents a boolean or `Integer` represents an integer.
 
 Saying "the IO monad" is literally the most misleading thing you could
 possibly say.  IO in Haskell has nothing to do with monads.
@@ -111,6 +111,28 @@ Saying "IO Monad" implies that understanding monads is some prerequisite to
 understanding IO, or at the very least that IO in haskell is inherently tied
 to monads.  **Both are untrue**.
 
+Another commonly mis-answered question is, "How does Haskell, a pure language,
+handle impure side-effects?"
+
+Again, the answer is **anything except "the IO Monad"**.  If I were to make a
+list of the most misleading, incorrect, dangerous, and disgusting possible
+answers, this would be on the top spot.
+
+Haskell doesn't handle impure side-effects and IO actions by usage of Monad or
+anything of the sort.  Haskell handles side-effects and IO actions by simply
+storing IO actions as a data type, instead of something to be executed as soon
+as they are encountered.  Just like storing the string "print this", or
+something.  The run-time system is what takes the IO action and executes it;
+Haskell itself only works with assembling the actions purely.
+
+Nothing here has anything to do with monads or anything monadic.  Bringing in
+the idea of "monads" into the idea really only leads to confusion, because
+they literally contribute *nothing* to the subject.  And yet, why do I see
+people answering, "Haskell handles IO and impurity with monads!"
+
+**Monads actually have nothing to do with it**, and I'm not even exaggerating
+here.
+
 Furthermore, imagine someone new to Haskell asked you, "Can I store a sequence
 of numbers?"
 
@@ -124,7 +146,7 @@ in some way.
 
 But having a list like `[1,2,3]` has nothing to do with monads.  Calling every
 list "the list monad", or calling every situation where a list would be useful
-a situation where "you want the List moand" is misleading, false, and just
+a situation where "you want the List monad" is misleading, false, and just
 leads to more confusion.
 
 I need to find all even numbers from one to one hundred.
@@ -147,7 +169,7 @@ Why do people say the IO monad?
 
 Why did people start saying that in the first place?
 
-Why doesn't this world many any sense?
+Why doesn't this world make any sense?
 
 Please, please, stop saying "the IO monad".
 
