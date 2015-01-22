@@ -141,9 +141,11 @@ Some domains actually want this behavior "built-in".  That is, they want *all*
 1.  We can define our new type as simply a newtype wrapper over such an
     `Auto`:
 
-    ~~~haskell
+~~~haskell
 !!!machines/Auto3.hs "newtype AutoOn1" "instance Functor (AutoOn1 a)" "instance Category AutoOn1" "instance Arrow AutoOn1" machines
-    ~~~
+~~~
+
+2.  Poop it does not work :(
 
 
 <!-- In this case, we can even define `Category` and -->
@@ -158,7 +160,7 @@ Some domains actually want this behavior "built-in".  That is, they want *all*
 
 <!-- instance Arrow AutoOnOff where -->
 <!--     arr   = AutoOnOff (fmap Just . arr) -->
-<!--     first = --> 
+<!--     first = -->
 <!-- ~~~ -->
 
 
