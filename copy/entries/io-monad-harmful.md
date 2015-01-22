@@ -24,8 +24,8 @@ of context and twisted.
 
 Anyways, I don't mean that this "IO Monad" is something to be avoid.  What I
 mean is that the phrase "IO Monad"...it's got to go.  It has its usages, but
-99.9% of times it is used, it is used improperly.  So let's go ahead with
-stopping this nonsense once and for all, okay?
+99.9% of times it is used, it is used improperly, with much damaging effects.
+So let's go ahead with stopping this nonsense once and for all, okay?
 
 So I'll say it here:
 
@@ -36,8 +36,9 @@ In most circumstances, the *IO type* is the more helpful and more correct
 answer.
 
 I'm going to say that this is probably **the single most harmful and damaging
-thing** in Haskell, with regards to pedagogy, practice, public perception, and
-kittens.
+thing** in Haskell and the community, with regards to pedagogy, practice,
+public perception, and kittens.  Not even kidding.  It's actaully literally
+the worst and everyone in the world is worse off every time someone says it.
 
 [^never]: In any case, ever, for any circumstance or reason.
 [^sometimes]: Just kidding.  Only a sith deals in absolutes.
