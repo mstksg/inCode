@@ -38,8 +38,8 @@ answer.
 [^never]: In any case, ever, for any circumstance or reason.
 [^sometimes]: Just kidding.  Only a sith deals in absolutes.
 
-Please, Not the IO Monad
-------------------------
+Please, Not the "IO Monad"
+--------------------------
 
 Let's say someone comes to you and asks you the question: "How does Haskell do
 things like print a string?"
