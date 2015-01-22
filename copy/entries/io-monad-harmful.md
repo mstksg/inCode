@@ -75,16 +75,17 @@ something important.  **It's not.**
 <div class="note">
 **Aside**
 
-The truth is a bit more complicated than this.  While monads
-aren't required at all to do IO with haskell, IO's monadic interface is
-intimately intertwined with its history, and one could say that the reason the
-Haskell designers have chosen the IO model that it has now was because of its
-monadic interface.  At the time of its conception, this approach to IO was
-revolutionary because the monadic interface solved a long-standing problem of
-a nice way of sequencing IO.  So in truth, IO in Haskell was designed in a
-such a way because a monadic interface made it feasible.  So monads "have
-something to do" with the design decisions of IO.  But IO doesn't need monads
-to be able to do IO.
+Okay, so the truth is a *little* more complicated than this.
+
+IO's monadic interface is intimately intertwined with its history.  It can be
+said that the *reason* why the model for IO that Haskell has was chosen is
+*because* of its monadic interface.  The fact that this IO model admits a
+monadic interface was a major factor in its adoption as *the* IO model for
+Haskell.
+
+So, monads "have something to do" with the design decisions of IO in haskell.
+But it is still true that IO doesn't need to have a monadic interface in order
+to do IO.
 </div>
 
 You could take away monads and even the entire monadic interface from Haskell
@@ -138,15 +139,9 @@ Again, the answer is **anything except "the IO Monad"**.  If I were to make a
 list of the most misleading, incorrect, dangerous, and disgusting possible
 answers, this would be on the top spot.
 
-Haskell doesn't handle impure side-effects and IO actions by usage of Monad or
-anything of the sort.  Haskell handles side-effects and IO actions by simply
-storing IO actions as a data type, instead of something to be executed as soon
-as they are encountered.
-
-Nothing here has anything to do with monads or anything monadic.  Bringing in
-the idea of "monads" into the idea really only leads to confusion, because
-they literally contribute *nothing* to the subject.  And yet, why do I see
-people answering, "Haskell handles IO and impurity with monads"?
+Bringing in the idea of "monads" into the idea really only leads to confusion,
+because they literally contribute *nothing* to the subject.  And yet, why do I
+see people answering, "Haskell handles IO and impurity with monads"?
 
 **Monads actually have nothing to do with it**, and I'm not even exaggerating
 here.
@@ -200,11 +195,12 @@ Some side notes
 *   A good time to use the "(something) monad" is when you are referring in
     particular to the monad instance or its monadic interface.
 
-*   I have qualms with the "monad" part of "IO monad", but some times, I even
+*   I have qualms with the "monad" part of "IO monad", but sometimes, I even
     wonder about the "IO" part.  Yes, Haskell can do IO through the IO type,
     but it's really possible to program effectful code interfacing with IO
     without ever directly working with the IO type; one could even just think
     of IO as a nice "intermediate data structure" that GHC or whatever Haskell
     compiler you are using can understand.  Use a library or DSL or whatever
     to write your IO-based code, just make sure your library has a function to
-    transform it into an IO.
+    transform it into an IO.  Already, many real-world haskell code that "does
+    IO" doesn't ever directly work with the IO type itself.
