@@ -189,6 +189,9 @@ hundred.
 Wrong: Use the list monad and `filter even` over a list from one to one
 hundred.
 
+Even more wrong but you couldn't really get more wrong in the first place: Use
+the list monoid and `filter even` over a list from one to one hundred.
+
 Why would you ever do that?
 
 What good does it do?
