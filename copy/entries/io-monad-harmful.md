@@ -246,8 +246,9 @@ Some side notes
         "map" your `Int -> Bool` onto the `IO Int`.
     *   "I have to do line-by-line constant-memory text processing of a large
         file": No; please use a streaming combinator library like *pipes* or
-        *conduit*.  The `IO` type is actually notoriously bad at this.  Don't
-        use it; and of course, don't use its monad instance either.
+        *conduit*.  (Working directly with) the `IO` type is actually
+        notoriously bad at this.  Don't use it; and of course, don't use its
+        monad instance either.
     *   "I have to directly use the result of one IO action in order to decide
         which IO action should happen next": Yes, this is a use case for IO's
         monadic interface.
@@ -262,31 +263,6 @@ Some side notes
 
 [imw]: http://blog.jle.im/entry/inside-my-world-ode-to-functor-and-monad
 
-
-<!-- ### Appropriate usages -->
-
-<!-- This post was originally meant to be intentionally one-sided and -->
-<!-- overgeneralizing in the proud tradition of "considered harmful", but it's come -->
-<!-- to my attention that leaving out the exceptions might make things more -->
-<!-- confusing for people who aren't familiar with the IO type.  So I'll put some -->
-<!-- cases where one might or might not appropriately use "the IO Monad". -->
-
-<!-- *   *"I have to print a string."* -->
-
-<!--     Not quite.  Printing a string is just an IO action you can build out of -->
-<!--     "primities". -->
-
-<!-- *   *"I have to print a string twice."* -->
-
-<!--     Not really.  You only need to use the Applicative interface to do this. -->
-<!--     However, some people abuse the Monadic interface in order to merge two IO -->
-<!--     actions, so I guess if you are speaking specifically on such an abuse, -->
-<!--     then go ahead. -->
-
-<!-- *   "I have to use the result of an IO action to determine what IO action I -->
-<!--     want next" -->
-
-<!--     Yup, this requires the Monad instance.  This is a job for the IO monad. -->
 
 
 
