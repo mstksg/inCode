@@ -32,19 +32,48 @@ g .? f = proc x -> do
         Nothing -> id -< Nothing
         Just x  -> g  -< x
 
-newtype AutoOn1 a b = AutoOn1 (Auto a (Maybe b))
+-- newtype AutoOn1 a b = AutoOn1 (Auto a (Maybe b))
 
-instance Category AutoOn1 where
-    id                    = AutoOn1 (arr Just)
-    AutoOn1 g . AutoOn1 f = AutoOn1 (g .? f)
+-- instance Category AutoOn1 where
+--     id                    = AutoOn1 (arr Just)
+--     AutoOn1 g . AutoOn1 f = AutoOn1 (g .? f)
 
-instance Functor (AutoOn1 a) where
-    fmap f (AutoOn1 a) = AutoOn1 (fmap (fmap f) a)
+-- instance Functor (AutoOn1 a) where
+--     fmap f (AutoOn1 a) = AutoOn1 (fmap (fmap f) a)
 
-instance Arrow AutoOn1 where
-    arr f             = AutoOn1 (fmap Just (arr f))
-    first (AutoOn1 f) = AutoOn1 $ proc (x, y) -> do
-                                      z <- f -< x
-                                      id -< fmap (,y) z
+-- instance Arrow AutoOn1 where
+--     arr f             = AutoOn1 (fmap Just (arr f))
+--     first (AutoOn1 f) = AutoOn1 $ proc (x, y) -> do
+--                                       z <- f -< x
+--                                       id -< fmap (,y) z
 
-newtype AutoOn2 a b = 
+newtype AutoOn a b = AConsOn { runAutoOn :: a -> (Maybe b, AutoOn a b) }
+
+instance Functor (AutoOn r) where
+    fmap f a = AConsOn $ \x ->
+                 let (y, a') = runAutoOn a x
+                 in  (fmap f y, fmap f a')
+
+instance Category AutoOn where
+    id    = AConsOn $ \x -> (Just x, id)
+    g . f = AConsOn $ \x ->
+              let (y, f') = runAutoOn f x
+                  (z, g') = case y of
+                              Nothing -> (Nothing, g)
+                              Just y' -> runAutoOn g y'
+              in  (z, g' . f')
+
+instance Arrow AutoOn where
+    arr f     = AConsOn $ \x -> (Just (f x), arr f)
+    first a   = AConsOn $ \(x, z) ->
+                  let (y, a') = runAutoOn a x
+                      res     = fmap (, z) y
+                  in  (res, first a')
+
+instance ArrowChoice AutoOn where
+    left a = AConsOn $ \x ->
+                 case x of
+                   Left l  -> let (l', a') = runAutoOn a l
+                              in  (fmap Left l', left a')
+                   Right r -> (Just (Right r), left a)
+

@@ -136,16 +136,28 @@ first one cuts out after three, and the second one cuts out after the first
 value greater than 4.
 
 Some domains actually want this behavior "built-in".  That is, they want *all*
-`Auto`s to behave this way.  There are actually two routes we can take:
-
-1.  We can define our new type as simply a newtype wrapper over such an
-    `Auto`:
+`Auto`s to behave this way.  We can actually provide such an `Auto` type that
+composes this way!  We can either make a newtype wrapper over
+`Auto a (Maybe b)`, or we can write an instance from scratch:
 
 ~~~haskell
-!!!machines/Auto3.hs "newtype AutoOn1" "instance Functor (AutoOn1 a)" "instance Category AutoOn1" "instance Arrow AutoOn1" machines
+!!!machines/Auto3.hs "newtype AutoOn" "instance Functor (AutoOn a)" "instance Category AutoOn" "instance Arrow AutoOn" machines
 ~~~
 
-2.  it does not work :(
+<div class="note">
+
+**Aside**
+
+As an exercise, try instead writing all of those instances but for a newtype
+wrapper around our old `Auto` instead:
+
+~~~haskell
+newtype AutoOn2 a b = AutoOn2 { runAutoOn2 :: Auto a (Maybe b) }
+~~~
+
+You can also write out the `ArrowChoice` instances for both; I wrote the one
+for `AutoOn` out in the source of the code samples, if you want a reference!
+</div>
 
 
 <!-- In this case, we can even define `Category` and -->
