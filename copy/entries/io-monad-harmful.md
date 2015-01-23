@@ -12,6 +12,8 @@ CreateTime
 :   2015/01/20 22:08:11
 PostDate
 :   2015/01/22 10:01:17
+ModifiedTime
+:   2015/01/22 22:20:44
 Identifier
 :   io-monad-harmful
 
@@ -226,3 +228,65 @@ Some side notes
     to write your IO-based code, just make sure your library has a function to
     transform it into an IO.  Already, many real-world Haskell code that "does
     IO" doesn't ever directly work with the IO type itself.
+
+*   For those confused at this point there are some appropriate times to use
+    "the X monad".  It's in the cases where you take advantage of the monadic
+    interface.  Just like you call an array an iterator when you use the
+    Iterator interface. Here are some examples:
+
+    *   "I have to print a string": No; use the "primitive" `putStrLn`.
+    *   "I have to print a string twice, or multiple strings": No; use
+        `traverse_`, or `(*>)`.  This is a job for Applicative.  You have two
+        separate IO actions and want to turn them into one.
+    *   "I want to combine two IO actions, two programs, into one that does
+        both of the original ones one after the other": No; again, use
+        Applicative please.
+    *   "I have to turn an IO action returning an `Int` into an IO action
+        returning a `Bool` (if it's even)": No; use [`fmap`][imw] to
+        "map" your `Int -> Bool` onto the `IO Int`.
+    *   "I have to do line-by-line constant-memory text processing of a large
+        file": No; please use a streaming combinator library like *pipes* or
+        *conduit*.  The `IO` type is actually notoriously bad at this.  Don't
+        use it; and of course, don't use its monad instance either.
+    *   "I have to directly use the result of one IO action in order to decide
+        which IO action should happen next": Yes, this is a use case for IO's
+        monadic interface.
+    *   "What is one type can I use with a *do* block": Yes, IO Monad.
+        Because only monads can be used with *do* blocks.
+    *   "What is a Monad I can use as the underlying monad for my monad
+        transformer?": Yes, IO Monad.  Because you need a monad in particular.
+    *   "What is best way to get to the grocery store?": No; use Google Maps
+        or something like that.
+    *   "What is a word that begins with I and rhymes with 'Bio Monad'?":
+        Yes, IO Monad.
+
+[imw]: http://blog.jle.im/entry/inside-my-world-ode-to-functor-and-monad
+
+
+<!-- ### Appropriate usages -->
+
+<!-- This post was originally meant to be intentionally one-sided and -->
+<!-- overgeneralizing in the proud tradition of "considered harmful", but it's come -->
+<!-- to my attention that leaving out the exceptions might make things more -->
+<!-- confusing for people who aren't familiar with the IO type.  So I'll put some -->
+<!-- cases where one might or might not appropriately use "the IO Monad". -->
+
+<!-- *   *"I have to print a string."* -->
+
+<!--     Not quite.  Printing a string is just an IO action you can build out of -->
+<!--     "primities". -->
+
+<!-- *   *"I have to print a string twice."* -->
+
+<!--     Not really.  You only need to use the Applicative interface to do this. -->
+<!--     However, some people abuse the Monadic interface in order to merge two IO -->
+<!--     actions, so I guess if you are speaking specifically on such an abuse, -->
+<!--     then go ahead. -->
+
+<!-- *   "I have to use the result of an IO action to determine what IO action I -->
+<!--     want next" -->
+
+<!--     Yup, this requires the Monad instance.  This is a job for the IO monad. -->
+
+
+
