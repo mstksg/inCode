@@ -24,23 +24,32 @@ article for what they are :)  In following tradition I will try to leave as
 many quotes and soundbytes as possible that can be easily taken terribly out
 of context and twisted.
 
-Anyways, I don't mean that this "IO Monad" is something to be avoid.  What I
-mean is that the phrase "IO Monad"...it's got to go.  It has its usages, but
-99.9% of times it is used, it is used improperly, with much damaging effects.
-So let's go ahead with stopping this nonsense once and for all, okay?
+Anyways, I don't mean that this "IO Monad" is something to be avoid.  In fact,
+there's a lot I rather like about it.  What I mean is that the phrase "IO
+Monad"...it's got to go.  It has its usages, but 99.9% of times it is used, it
+is used improperly, with much damaging effects. So let's go ahead with
+stopping this nonsense once and for all, okay?
 
 So I'll say it here:
 
 **The phrase "IO monad" considered harmful.  Please do not use
 it.**[^never][^sometimes]
 
-In most circumstances, the *IO type* is the more helpful and more correct
+In most circumstances, the *IO type*[^iotype] is the more helpful and more correct
 answer.
+
+[^iotype]: Note here, I am referring to the *IO type*, not the *`IO` type
+constructor*.  The actual abstract data type, and not the `IO :: * -> *` type
+constructor that you use in type signatures.  Just like "Map type" is an
+abstract data structure of an associative map and the `Map` type constructor
+are different.
 
 I'm going to say that this is probably **the single most harmful and damaging
 thing** in Haskell and the community, with regards to pedagogy, practice,
 public perception, and kittens.  Not even kidding.  It's actually literally
 the worst and everyone in the world is worse off every time someone says it.
+Not only is this a problem in and of itself, but it is at the core root of 90%
+(+/- 80%) of Haskell's problems.
 
 [^never]: In any case, ever, for any circumstance or reason.
 [^sometimes]: Just kidding.  Only a sith deals in absolutes.
@@ -232,7 +241,7 @@ Some side notes
 *   For those confused at this point there are some appropriate times to use
     "the X monad".  It's in the cases where you take advantage of the monadic
     interface.  Just like you call an array an iterator when you use the
-    Iterator interface. Here are some examples:
+    Iterator interface.  Here are some examples:
 
     *   "I have to print a string": No; use the "primitive" `putStrLn`.
     *   "I have to print a string twice, or multiple strings": No; use
