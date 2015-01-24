@@ -40,9 +40,10 @@ answer.
 
 [^iotype]: Note here, I am referring to the *IO type*, not the *`IO` type
 constructor*.  The actual abstract data type, and not the `IO :: * -> *` type
-constructor that you use in type signatures.  Just like "Map type" is an
-abstract data structure of an associative map and the `Map` type constructor
-are different.
+constructor that you use in type signatures.  When we talk about the "Map
+type", we talk about the abstract data type, the underlying binary search
+tree, and the API that it offers...we don't really talk about the
+`Map :: * -> * -> *` *type constructor*.
 
 I'm going to say that this is probably **the single most harmful and damaging
 thing** in Haskell and the community, with regards to pedagogy, practice,
