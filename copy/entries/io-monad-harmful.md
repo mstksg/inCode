@@ -244,15 +244,16 @@ Some side notes
     Iterator interface.  Here are some examples:
 
     *   "I have to print a string": No; use the "primitive" `putStrLn`.
-    *   "I have to print a string twice, or multiple strings": No; use
-        `traverse_`, or `(*>)`.  This is a job for Applicative.  You have two
-        separate IO actions and want to turn them into one.
-    *   "I want to combine two IO actions, two programs, into one that does
-        both of the original ones one after the other": No; again, use
-        Applicative please.
     *   "I have to turn an IO action returning an `Int` into an IO action
         returning a `Bool` (if it's even)": No; use [`fmap`][imw] to
         "map" your `Int -> Bool` onto the `IO Int`.
+    *   "I have to print a string twice, or multiple strings": Kinda.  You can
+        use the monadic interface to do this using *do* notation, or `mapM_`
+        or `(>>)`.  I say abuse because while using the monadic interface to
+        do this is possible, it is a little overkill; `(*>)` and `traverse_`
+        do the trick as well.
+    *   "I want to combine two IO actions, two programs, into one that does
+        both of the original ones one after the other": See the above.
     *   "I have to do line-by-line constant-memory text processing of a large
         file": No; please use a streaming combinator library like *pipes* or
         *conduit*.  (Working directly with) the `IO` type is actually
