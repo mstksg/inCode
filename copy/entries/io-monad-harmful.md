@@ -63,7 +63,7 @@ things like print a string?"
 
 The answer is: **Definitely not with the IO monad.**
 
-This is literally one of the simplest question a new person to Haskell could
+This is literally one of the simplest questions a new person to Haskell could
 possibly ask.  There are many incorrect answers you could give, but "the IO
 Monad" is one of the most incorrect answers possible.
 
