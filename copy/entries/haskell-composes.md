@@ -18,24 +18,26 @@ compile a list of all the ways you can compose two functions, `(a -> b)` and
 `(b -> c)` using functions in base and common libraries (and their simple
 manipulations). There are an embarassingly large amount of them, and I'm sure
 that I'll find more over time.  If any of you have suggestions, feel free to
-leave a comment or find me on twitter ([\@mstk][twitter]) or #haskell on
-freenode as *jle`* :)
+leave a comment or find me on [twitter][] or #haskell on freenode as *jle`* :)
 
 [twitter]: https://twitter.com/mstk "Twitter"
 
 1.  `(.)` (Prelude)
 2.  `fmap` (Prelude)
 3.  `(<$>)` (Data.Functor)
-4.  `(.)` (Control.Category)
-5.  `(<<<)` (Control.Category)
-6.  `flip (>>>)` (Control.Category)
-7.  `(<<^)` (Control.Arrow)
-8.  `(^<<)` (Control.Arrow)
-9.  `flip (^>>)` (Control.Arrow)
-10. `flip (>>^)` (Control.Arrow)
-11. `rmap` (Data.Profunctor)
-12. `const dimap` (Data.Profunctor)
-13. `dimap id` (Data.Profunctor)
+4.  `liftA` (Control.Applicative)
+5.  `liftM` (Control.Monad)
+6.  `(.)` (Control.Category)
+7.  `(<<<)` (Control.Category)
+8.  `flip (>>>)` (Control.Category)
+9.  `(<<^)` (Control.Arrow)
+10. `(^<<)` (Control.Arrow)
+11. `flip (^>>)` (Control.Arrow)
+12. `flip (>>^)` (Control.Arrow)
+13. `rmap` (Data.Profunctor)
+14. `const dimap` (Data.Profunctor)
+15. `dimap id` (Data.Profunctor)
 
+So, am I missing any?
 
 
