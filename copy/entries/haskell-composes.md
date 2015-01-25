@@ -18,7 +18,7 @@ compile a list of all the ways you can compose two functions, `(a -> b)` and
 `(b -> c)` using functions in base and common libraries (and their simple
 manipulations). There are an embarassingly large amount of them, and I'm sure
 that I'll find more over time.  If any of you have suggestions, feel free to
-leave a comment or find me on twitter ([@mstk][twitter]) or #haskell on
+leave a comment or find me on twitter ([\@mstk][twitter]) or #haskell on
 freenode as *jle`* :)
 
 [twitter]: https://twitter.com/mstk "Twitter"
