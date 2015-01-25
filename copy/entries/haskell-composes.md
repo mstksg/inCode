@@ -35,10 +35,9 @@ leave a comment or find me on [twitter][] or #haskell on freenode as *jle`* :)
 11. `flip (^>>)` (Control.Arrow)
 12. `flip (>>^)` (Control.Arrow)
 13. `rmap` (Data.Profunctor)
-14. `const dimap` (Data.Profunctor)
-15. `dimap id` (Data.Profunctor)
-16. `over mapped` (Control.Lens)
-18. `(mapped %~)` (Control.Lens)
+14. `dimap id` (Data.Profunctor)
+15. `over mapped` (Control.Lens)
+16. `(mapped %~)` (Control.Lens)
 
 So, am I missing any?
 
