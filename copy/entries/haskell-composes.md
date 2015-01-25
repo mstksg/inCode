@@ -37,6 +37,10 @@ leave a comment or find me on [twitter][] or #haskell on freenode as *jle`* :)
 13. `rmap` (Data.Profunctor)
 14. `const dimap` (Data.Profunctor)
 15. `dimap id` (Data.Profunctor)
+16. `over mapped` (Control.Lens)
+17. `over (id 0)` (Control.Lens)
+18. `(mapped %~)` (Control.Lens)
+19. `(id 0 %~)` (Control.Lens)
 
 So, am I missing any?
 
