@@ -1,5 +1,5 @@
-An open list of was to compose functions in Haskell
-===================================================
+An open list of ways to compose functions in Haskell
+====================================================
 
 Categories
 :   Haskell
