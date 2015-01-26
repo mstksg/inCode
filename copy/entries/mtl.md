@@ -31,8 +31,8 @@ The Patterns
 
 ### MonadIO
 
-The simplest pattern abstracted over by *mtl* is probably the *MonadIO*
-pattern.
+While this pattern is actually provided by *transformers* and not *mtl*, it is
+a good illustration of the types of patterns *mtl* attempts to abstract over.
 
 There are several types you can make that can construct that can "represent"
 or "encode" an IO action: (something of an `IO` type)
@@ -99,9 +99,6 @@ instance MonadIO MaybeIO where
     liftIO x = MaybeIO (fmap Just x)
 ~~~
 
-<div class="note">
-**Aside**
-
 In order for `liftIO` to behave meaningfully, it has to follow some laws:
 
 1.  Lifting the no-op will also be a no-op.
@@ -128,12 +125,30 @@ In order for `liftIO` to behave meaningfully, it has to follow some laws:
        liftIO (f x)
     ~~~
 
-
 Basically, we say that `liftIO` is a [monad morphism][mmorph].
 
 [mmorph]: http://hackage.haskell.org/package/mmorph-1.0.4/docs/Control-Monad-Morph.html
 
 
+#### Monad transformers and MonadIO
+
+One of the neat things about monad transformers is that for any `m` that is
+`MonadIO`, monad transformers on `m` give you a "free" `MonadIO`.[^free]
+
+[^free]: Free here used in the sense of not having to "work" for anything to
+get it, and not in the sense of the right adjunctions :)
+
+Let's take a sample monad transformer, `ReaderT r`:
+
+~~~haskell
+instance MonadIO m => MonadIO (ReaderT r m) where
+    liftIO i = lift (liftIO i)
+~~~
+
+What does this say?
+
+If any Monad `m` has the ability to embed IO actions or represent IO actions,
+then `ReaderT r m` *can also represent IO actions*.  Magic, huh?
 
 
 
