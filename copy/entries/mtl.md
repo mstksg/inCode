@@ -99,16 +99,23 @@ instance MonadIO MaybeIO where
     liftIO x = MaybeIO (fmap Just x)
 ~~~
 
+<div class="note">
+**Aside**
+
 In order for `liftIO` to behave meaningfully, it has to follow some laws:
 
-1.
+1.  Lifting the no-op will also be a no-op.
+
     ~~~haskell
     liftIO (return x) = return x
     ~~~
 
     That is, lifting the no-op will also be a no-op.
 
-2.
+2.  That is, `liftIO` "distributes" over bind.  `liftIO`-ing a bunch of
+    chained `IO` actions is the same as `liftIO`-ing them each individually
+    and chaining those.
+
     ~~~haskell
     liftIO $ do x <- m
                 f x
@@ -121,9 +128,6 @@ In order for `liftIO` to behave meaningfully, it has to follow some laws:
        liftIO (f x)
     ~~~
 
-    That is, `liftIO` "distributes" over bind.  `liftIO`-ing a bunch of
-    chained `IO` actions is the same as `liftIO`-ing them each individually
-    and chaining those.
 
 Basically, we say that `liftIO` is a [monad morphism][mmorph].
 
