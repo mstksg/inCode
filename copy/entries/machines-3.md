@@ -142,10 +142,12 @@ composes this way!  We can either make a newtype wrapper over
 
 ~~~haskell
 !!!machines/Auto3.hs "newtype AutoOn" "instance Functor (AutoOn a)" "instance Category AutoOn" "instance Arrow AutoOn" machines
+
+-- ArrowChoice instance left out of the article as an exercise; solution is in
+-- the code sample source
 ~~~
 
 <div class="note">
-
 **Aside**
 
 As an exercise, try instead writing all of those instances but for a newtype
@@ -153,30 +155,31 @@ wrapper around our old `Auto` instead:
 
 ~~~haskell
 newtype AutoOn2 a b = AutoOn2 { runAutoOn2 :: Auto a (Maybe b) }
+
+instance Functor (AutoOn2 r) where
+    fmap f (AutoOn2 a) = AutoOn2 (fmap (fmap f) a)
 ~~~
 
-You can also write out the `ArrowChoice` instances for both; I wrote the one
-for `AutoOn` out in the source of the code samples, if you want a reference!
+There's the `Functor` instance to get you started :)
 </div>
 
+<!-- #### Fancy math stuff -->
 
-<!-- In this case, we can even define `Category` and -->
-<!-- `Arrow` instances using a newtype wrapper: -->
+<!-- Haskellers like to relate interfaces and concepts like these to concepts from -->
+<!-- math.  If this is not your thing, then feel free to skip this section :) -->
 
-<!-- ~~~haskell -->
-<!-- newtype AutoOnOff a b = AutoOnOff (Auto a (Maybe b)) -->
+<!-- Anyways, what we have done in essense was take the `Auto` category (the -->
+<!-- category where the objects are types and a morphism from type `a` to type `b` -->
+<!-- is `Auto a b`) and formed a **Kleisli category** on it. -->
 
-<!-- instance Category AutoOnOff where -->
-<!--     id  = AutoOnOff (arr Just) -->
-<!--     (.) = (.?) -->
+<!-- The Kleisli category formed on a category with a monad `m` is a category with -->
+<!-- all of the same objects (so again, types, here), but the morphisms now all -->
+<!-- target `m b` instead of `b`. -->
 
-<!-- instance Arrow AutoOnOff where -->
-<!--     arr   = AutoOnOff (fmap Just . arr) -->
-<!--     first = -->
-<!-- ~~~ -->
+<!-- If we form a Kleisli category with `Maybe` on `Auto`, in this new category, -->
+<!-- our morphisms are now `Auto a (Maybe b)`. -->
 
-
-
+<!-- What we've done here is turned that into a --> 
 
 
 

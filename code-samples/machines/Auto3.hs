@@ -32,21 +32,6 @@ g .? f = proc x -> do
         Nothing -> id -< Nothing
         Just x  -> g  -< x
 
--- newtype AutoOn1 a b = AutoOn1 (Auto a (Maybe b))
-
--- instance Category AutoOn1 where
---     id                    = AutoOn1 (arr Just)
---     AutoOn1 g . AutoOn1 f = AutoOn1 (g .? f)
-
--- instance Functor (AutoOn1 a) where
---     fmap f (AutoOn1 a) = AutoOn1 (fmap (fmap f) a)
-
--- instance Arrow AutoOn1 where
---     arr f             = AutoOn1 (fmap Just (arr f))
---     first (AutoOn1 f) = AutoOn1 $ proc (x, y) -> do
---                                       z <- f -< x
---                                       id -< fmap (,y) z
-
 newtype AutoOn a b = AConsOn { runAutoOn :: a -> (Maybe b, AutoOn a b) }
 
 instance Functor (AutoOn r) where

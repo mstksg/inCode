@@ -35,8 +35,8 @@ So I'll say it here:
 **The phrase "IO monad" considered harmful.  Please do not use
 it.**[^never][^sometimes]
 
-In most circumstances, the *IO type*[^iotype] is the more helpful and more correct
-answer.
+In most circumstances, an *IO action* of an *IO type*[^iotype] is the more
+helpful and more correct answer.
 
 [^iotype]: Note here, I am referring to the *IO type*, not the *`IO` type
 constructor*.  The actual abstract data type, and not the `IO :: * -> *` type
@@ -73,9 +73,10 @@ booleans.
 
 [fcs]: http://blog.jle.im/entry/first-class-statements
 
-The answer to this is that you use something of an `IO` type.
+The answer to this is that you use something of an IO action -- somethign of
+an `IO` type.
 
-You use the *IO type*.
+You use an *IO action* (of the *IO type*)
 
 ~~~haskell
 ghci> :t putStrLn "hello world"
