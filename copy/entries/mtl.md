@@ -26,74 +26,19 @@ patterns* for different types, in the form of typeclasses.  Just like Functor
 abstracts over "things that can be `fmap`ped".  *mtl* provides typeclasses
 abstracting over many useful patterns that many types satisfy.
 
-So, where do transformers fit in this picture?  Well...they're not very close
-to the main idea.  But, they do fill an interesting role in the context of
-these different interfaces, which we will reveal soon :)
+The Patterns
+------------
 
-MonadIO
--------
+### MonadIO
 
-The simplest of these is `MonadIO`.  A lot of times, you have a type that can
-represent an IO action.
+The simplest pattern abstracted over by *mtl* is probably the *MonadIO*
+pattern.
 
-A contrived example is:
-
-~~~haskell
-data IOOrPure a = IPure a
-                | IIO (IO a)
-
-instance Functor IOOrPure where
-    fmap f (IPure x) = IPure (f x)
-    fmap f (IIO x)   = IIO   (fmap f x)
-
-instance Applicative IOOrPure where
-    pure = IPure
-    IPure f <*> IPure x = IPure (f x)
-    IIO f   <*> IPure x = IIO   (f <*> pure x)
-    IPure f <*> IIO x   = IIO   (pure f <*> x)
-    IIO f   <*> IIO x   = IIO   (f <*> x)
-
-instance Monad IOOrPure where
-    return = pure
-    IPure x >>= f = f x
-    IIO   x >>= f = IIO $ do
-                        y <- x
-                        case f y of
-                          IPure z -> return z
-                          IIO z   -> z
-~~~
-
-`IOOrPure` is a type that can either represent an `IO` action, or the "pure"
-value (pure in the sense of `pure` from Applicative).  The `Functor`,
-`Applicative`, and `Monad` instances all reflect this. `fmap` over an `IPure`
-leaves it as `IPure`; using `(<*>)` on two `IPure`s leave them as `IPure`s,
-but if either is `IIO`, then the result is `IIO`.  For the Monad
-instance...binding to an `IIO` will always be `IIO`, but binding to an `IPure`
-might potentially be either.[^iopuresilly]
-
-[^iopuresilly]: `IOOrPure` might seem a little silly, but it is definitely
-useful for a sort of re-ified "static analysis" --- you can can chain together
-a bunch of `IOOrPure`s with the Applicative or Monad instances and in the end
-"check" if the value requires IO or not before you run it.  There are also
-potential performance benefits if you run an `a -> b` (if possible) over an `a
--> IO b`, and this type lets you "retain" the `a -> b` form, if the function
-does indeed not need `IO`.
-
-`IOOrPure` is definitely a data type that can represent any arbitrary `IO a`
-inside its type.
+There are several types you can make that can construct that can "represent"
+or "encode" an IO action: (something of an `IO` type)
 
 ~~~haskell
-iAbsorbIO :: IO a -> IOOrPure a
-iAbsorbIO = IIO
-~~~
-
-And so, `IOOrPure` is a Monad that can "encode" or "absorb" or "represent" or
-"have embedded" any arbitrary IO action.
-
-Here is another one which might be much more useful in the real world:
-
-~~~haskell
-data MaybeIO a = MaybeIO { runMaybeIO :: IO (Maybe a) }
+newtype MaybeIO a = MaybeIO { runMaybeIO :: IO (Maybe a) }
 
 instance Functor MaybeIO where
     fmap f (MaybeIO mx) = MaybeIO (fmap f mx)
@@ -107,400 +52,93 @@ instance Monad MaybeIO where
     mx >>= f = MaybeIO $ do
                    x <- runMaybeIO mx
                    case x of
-                       Just x' -> f x'
+                       Just y  -> f y
                        Nothing -> return Nothing
 ~~~
 
-This basically lets you do things like short-circuiting on IO actions that
-might "fail".  You can then apply a `a -> IO (Maybe b)` to an `IO (Maybe a)`
-to get an `IO (Maybe b)`, with short-circuiting.  It's all the usefulness of
-`Maybe`...but for `IO` actions!  Short circuiting IO!  Wow!
+`MaybeIO` is an IO action, describing an action a computer/CPU can take to
+possibly produce an `a`, or fail in the process (indicated by `Just` and
+`Nothing`).
 
-Anyways, it should then make perfect sense that you can really "absorb" or use
-any normal `IO a` here.  You can make any `IO a` into an `IO (Maybe a)`...any
-`IO` into a "short circuiting" `IO`.  Easy.
+We encoded in the `Monad` instance that this type has "short circuit" binding;
+if at any point along a chained sequence of computations, if any of the
+chained values fails, the entire thing fails.  The rest of the sequence is
+skipped.
 
-~~~haskell
-mioAbsorbIO :: IO a -> MaybeIO a
-mioAbsobIO iox = MaybeIO (fmap Just iox)
+It is clear that we can "encode" any value `a` into this type, by producing a
+`MaybeIO` that describes a no-op that always succeeds with that value.  We
+call that `pure`, or `return`.
 
-mioAbsorbMaybe :: Maybe a -> MaybeIO a
-mioAbsorbMaybe mx = MaybeIO (return mx)
-~~~
+This would be pretty useless if we can't use any of our existing `IO a`
+actions from other libraries.  Luckily, it is clear that we can *use* any `IO
+a` action *as if it were* a `MaybeIO`.  In other words, we can use `MaybeIO`
+to represent any `IO a` that you might want.  A `MaybeIO` --- an IO action
+that represents a computer/IO computation that might "fail" --- can also be
+used to represent an `IO` --- an IO action that represents a computer/IO
+computation that does not "fail"[^nofail].
 
-~~~haskell
-main = do
-    res <- runMaybeIO askAndDiv
-    putStrLn res
-
-askAndDiv :: MaybeIO Int
-askAndDiv = do
-    x' <- mioAbsorbIO getLine
-    x  <- mioAbsorbMaybe (readMaybe x')
-    y' <- mioAbsorbIO getLine
-    y  <- maoAbsorbMaybe (readMaybe y')
-    if y > 0
-      then return (x `div` y)
-      else maoAbsorbMaybe Nothing
-~~~
-
-Now we can interweave IO and short-circuiting...and also, if IO functions that
-could fail were given as `IO (Maybe a)`, we could throw those in, too.
-
-Let's look at another.  Instead of "IO actions that can fail and be
-short-circuited", how about "IO actions that can access a global immutable
-environment?"
+[^nofail]: That is, "fail" in the same way that `MaybeIO` "fails".  You know
+what I mean :)
 
 ~~~haskell
-data ReaderIO r a = ReaderIO { runReaderIO :: r -> IO a }
-
-instance Functor (ReaderIO r) where
-    fmap f (ReaderIO g) = ReaderIO (fmap f . g)
-
-instance Applicative (ReaderIO r) where
-    pure x = ReaderIO (\_ -> return x)
-    ReaderIO ff <*> ReaderIO fx = ReaderIO (\r -> ff r <*> fx r)
-
-instance Monad (ReaderIO r) where
-    return = pure
-    ReaderIO fx >>= f = ReaderIO $ \r -> do
-                            y <- fx r
-                            runReaderIO (f y) y
+representIO :: IO a -> MaybeIO a
+representIO x = MaybeIO (fmap Just x)
 ~~~
 
-A `ReaderIO r a` is like an `IO a`...except, that `IO a` has "access" to a
-global immutable environment of type `r`.  Chaining together such `IO` actions
-will give them both access to the same environment.
+There are a lot of types that actually fit this pattern.  In fact, many DSL's
+and things that manage IO and cusom monads for interpreted environments can do
+this.  Being able to represent arbitrary IO actions in your type opens up a
+lot of doors.[^doors]
 
-Because `ReaderIO r a` can really represent any arbitrary `IO a`...and
-"more"...then it can really also be able to absorb any `IO a`...that `IO a`
-would just happen to be an `IO a` that never takes advantage of the available
-environment
+[^doors]: Some good, some bad :)
+
+This design pattern is encapsulated in *mtl* as a typeclass, `MonadIO`:
 
 ~~~haskell
-riAbsorbIO :: IO a -> ReaderIO r a
-riAbsorbIO iox = ReaderIO (\_ -> iox)
+instance MonadIO MaybeIO where
+    liftIO x = MaybeIO (fmap Just x)
 ~~~
 
-Let's throw in a utility function to "access the environment":
-
-~~~haskell
-riAsk :: ReaderIO r r
-riAsk = ReaderIO return
-~~~
-
-And we can do some examples:
-
-~~~haskell
-main = runReaderIO toLoop 4
-
-theLoop :: ReaderIO Int ()
-theLoop = do
-    riAbsorbIO $ putStrLn "I'm thinking of a number."
-    theGuess <- riAbsorbIO readLn
-    theNumber <- riAsk
-    if theNumber /= theGuess
-      then do
-        riAbsorbIO $ putStrLn "definitely not it.  Try again!"
-        theLoop
-      else
-        riAbsorbIO $ putStrLn "good job!"
-~~~
-
-It should be clear that there is some sort of common recurring pattern here.
-All of these types are their own types in their own right...and they all also
-can absorb arbitrary `IO`.  There are some obvious things that this absorbtion
-process should obey, in order to be meaningful:
+In order for `liftIO` to behave meaningfully, it has to follow some laws:
 
 1.
     ~~~haskell
-    return x == absorbIO (return x)
+    liftIO (return x) = return x
     ~~~
 
-    `return` is like a no-op, so `return`ing into your main type should be the
-    same as absorbing the no-op in IO.
+    That is, lifting the no-op will also be a no-op.
 
 2.
     ~~~haskell
-    absorbIO (do x <- m
-                 f x
-             )
-      ==      do x <- absorbIO m
-                 absorbIO (f x)
+    liftIO $ do x <- m
+                f x
     ~~~
 
-    This means that "absorb" distributes over binds.  Absorbing a do block or
-    chain of binds should be the same as going in and absorbing every
-    component individually.
+    is equal to
 
     ~~~haskell
-    foo = do
-        x <- absorbIO getLine
-        absorbIO $ putStrLn ("you entered: " ++ x)
+    do x <- liftIO m
+       liftIO (f x)
     ~~~
 
-    should be the same as
+    That is, `liftIO` "distributes" over bind.  `liftIO`-ing a bunch of
+    chained `IO` actions is the same as `liftIO`-ing them each individually
+    and chaining those.
 
-    ~~~haskell
-    foo = absorbIO $ do
-            x <- getLine
-            putStrLn ("you entered: " ++ x)
-    ~~~
-
-Basically, we say that `absorbIO` is a [monad morphism][mmorph].
+Basically, we say that `liftIO` is a [monad morphism][mmorph].
 
 [mmorph]: http://hackage.haskell.org/package/mmorph-1.0.4/docs/Control-Monad-Morph.html
 
-This general pattern actually pops up a lot.  And we can actually create a
-typeclass that will give it all a common name.
-
-This is where *mtl* comes in!  This is where it shines!  This is what it was
-made for!  It has a typeclass for us that represents exactly this!
-
-~~~haskell
-class Monad m => MonadIO m where
-    liftIO :: IO a -> m a
-~~~
-
-We require `Monad` because the "laws" that `MonadIO` must satisfy only make
-sense in the context of `m` being a `Monad`.  We could "relax" the constraint,
-and make it `Applicative` or even *anything*, but then a type being an
-instance of `MonadIO` would have less guaruntees under its monadness.
-
-<div class="note">
-**Aside**
-
-But why not just have it have no constraints, and stipulate that
-the laws only really apply as needed?  After all, the first law can be stated
-in terms of Applicative.  And we can say that *if* the type is a Monad, it
-must also follow the second law!  (We can also state the second law's
-consequences to an Applicative, as well).  Actually, I don't really know the
-answer to this.
-
-However, it *does* solve the practical purpose of sparing us from having to
-write:
-
-~~~haskell
-foo :: (Monad m, MonadIO m) => ...
-~~~
-
-every time we provide a `MonadIO` function that also uses `Monad` stuff.
-
-In all honesty, the name `MonadIO` is kind of silly anyways.  But.  A lot of
-things in mtl are silly.
-</div>
-
-Now, we can write all of the functions above using `liftIO` instead of their
-individual *absorb* function.  And also, we can now write functions that can
-work for *all* `MonadIO`s!  Hooray!
-
-<div class="note">
-**Aside**
-
-It's mostly useful to write functions generic over `MonadIO` when you combine
-other constraints:
-
-~~~haskell
-foo :: (MonadReader s m, MonadIO m) => ...
-~~~
-
-Please don't write any functions like:
-
-~~~haskell
-foo :: MonadIO m => ...
-~~~
-
-in real life.  Thank you! :D  The world will appreciate you.
-
-Signed, \
-the world.[^justwenthere]
-
-[^justwenthere]: Yes, I just went there.  What you gonna do about it?
-</div>
-
-MonadReader
------------
-
-Let's look at a more interesting type of interface over Monads ... monads with
-some sort of "environment" in the context of their evaluation.
-
-For example, here is a type that runs a "pure" function, but...when it is
-"run", it asks for a string from *stdin* that the function will be provided.
-
-~~~haskell
-data WithStdIn a = WithStdIn (String -> a)
-
-runWithStdIn :: WithStdIn a -> IO a
-runWithStdIn (WithStdIn w) = fmap w getLine
-
-askStdIn :: WithStdIn String
-askStdIn = WithStdIn $ \s -> s
-
-instance Functor WithStdIn where
-    fmap f (WithStdIn w) = WithStdIn $ \s -> f (w s)
-~~~
-
-The `Functor` instance is defined so that "mapping" `f` is like applying `f`
-to the value produced by the resulting `IO` action.
-
-We might want to combine/compose/chain such actions...if we have multiple
-`WithStdIn a`'s, we might want to combine them into one big `WithStdIn a`, and
-"run it" all at once, with the guaruntee that it only "asks" for input once
-from *stdin*.
-
-~~~haskell
-instance Applicative WithStdIn where
-    pure x = WithStdIn $ \_ -> x
-    WithStdIn wf <*> WithStdIn wx = WithStdIn $ \s -> (wf s) (wx s)
-
-instance Monad WithStdIn where
-    return = pure
-    WithStdIn wx >>= f = WithStdIn $ \s -> let (WithStdIn wy) = f (x s)
-                                           in  wy s
-~~~
-
-Here, we have defined `(<*>)` and `(>>=)` such that combining `WithStdIn`s
-basically provides all of the functions with the same input string.
-
-~~~haskell
-ghci> let sayHello :: WithStdIn String
-          sayHello = fmap ("hello " ++) askStdIn
-ghci> let countLength :: WithStdIn Int
-          countLength = fmap length askStdIn
-ghci> let doBoth :: WithStdIn (String, Int)
-          doBoth = liftA2 (,) sayHello countLength
-
-ghci> runWithStdIn doBoth
-"Justin"
--- ==> ("hello Justin", 6)
-
-ghci> runWithStdIn $ liftA2 (,) askStdIn askStdIn
-"Hi"
--- ==> ("Hi", "Hi")
-~~~
-
-Here, `liftA2` makes a new `WithStdIn`, and runs "both" of the original ones
-from the same *stdin* input query.  In this way, we could have guaruntees that
-every "chained" item requires only one IO request...even "asking" twice only
-yields the original request.
-
-We could make `WithStdIn` a bit more powerful by allowing us to perform
-different `IO` actions on the result of querying `stdin`:
-
-~~~haskell
-data WithStdInIO a = WithStdInIO (String -> IO a)
-
-runWithStdInIO :: WithStdInIO a -> IO a
-runWithStdInIO (WithStdInIO w) = w =<< getLine
-
-askStdInIO :: WithStdInIO String
-askStdInIO = WithStdInIO $ \s -> return s
-
-instance Functor WithStdInIO where
-    fmap f (WithStdInIO w) = WithStdInIO $ \s -> fmap f (w s)
-
-instance Applicative WithStdInIO where
-    pure x = WithStdInIO $ \_ -> return x
-    WithStdInIO wf <*> WithStdInIO wx = WithStdInIO $ \s -> wf s <*> wx s
-
-instance Monad WithStdInIO where
-    return = pure
-    WithStdInIO wx >>= f = WithStdInIO $ \s -> do
-                             x <- wx s
-                             let (WithStdInIO wy) = f x
-                             wy s
-
-instance MonadIO WithStdInIO where
-    liftIO iox = WithStdInIO $ \_ -> iox
-~~~
-
-Note that it is indeed an instance of `MonadIO`, like we discussed earlier.
-
-~~~haskell
-ghci> let countLengthIO :: WithStdInIO Int
-          countLengthIO = fmap length askStdIn
-ghci> let sayHelloIO :: WithStdInIO ()
-          sayHelloIO = do
-              s <- askStdInIO
-              k1 <- countLengthIO
-              liftIO $ do
-                  putStrLn ("hello " ++ s)
-                  putStrLn ("length " ++ show k1)
-              k2 <- countLengthIO
-              liftIO $
-                  putStrLn ("length is still " ++ show k2)
-
-ghci> runWithStdInIO (sayHelloIO >> sayHelloIO)
-"Justin"
--- hello Justin
--- length: 6
--- length is still 6
--- hello Justin
--- length: 6
--- length is still 6
-~~~
-
-Note that each call to `countLengthIO` still only relies on a single.query at
-the beginning.  And even "doing `sayHelloIO` twice" (the *entire*
-`sayHelloIO` command) only asks for the input once; if we had just made
-`sayHelloIO` a normal `IO` action, then it would be hard to make two of them
-only ask for input once.
 
 
 
 
-<!-- There are many situations where your data types embody some sort of idea of an -->
-<!-- "environment" in the context of their evaluation. -->
 
-<!-- The typical example given is for the type `a -> b`. If you write such a -->
-<!-- function: -->
 
-<!-- ~~~haskell -->
-<!-- foo :: Int -> Bool -->
-<!-- foo x = ... -->
-<!-- ~~~ -->
 
-<!-- Then, everywhere in your function, you have "access" to that `Int`, `x`.  `x` -->
-<!-- is a part of the environment of that function's attempt to provide a `Bool`. -->
-<!-- `foo` can be seen as "a `Bool`...where you are given an `Int` to play around -->
-<!-- with to make such a `Bool`". -->
 
-<!-- Commonly, this can be extended to functions returning a `Bool` in some sort of -->
-<!-- context or container: -->
 
-<!-- ~~~haskell -->
-<!-- fooMayb :: Int -> Maybe Bool -->
-<!-- ~~~ -->
 
-<!-- Hm.  This doesn't really seem much more interesting.  Instead of having an -->
-<!-- `Int` to produce a `Bool`, you have an `Int` to produce a `Maybe Bool`. -->
-
-<!-- But...some time around the turn of the decade, we discovered that the real -->
-<!-- "magic" occurs when you try to "fuse together" two such -->
-<!-- "environmenty-functions".  "Sequence", so to speak.  Run them both from the -->
-<!-- same environment. -->
-
-<!-- For example, say you have `foo :: Int -> Bool` and `bar :: Int -> String`.  We -->
-<!-- can define a function `runFork`: -->
-
-<!-- ~~~haskell -->
-<!-- runFork :: (a -> b) -> (a -> c) -> (a -> (b, c)) -->
-<!-- runFork f g = \x -> (f x, g x) -->
-<!-- ~~~ -->
-
-<!-- That would take both `a -> b`'s and then turn them all into an `a -> (b, -->
-<!-- c)`.  It "runs both", with `a` as the "environment" for both. -->
-
-<!-- If you are familiar with Haskell, you might recognize this pattern as `liftA2 -->
-<!-- (,)`. -->
-
-<!-- But what about `fooMayb`?  Can we do the same thing there?  What would be the -->
-<!-- "analogous" version?  How about: -->
-
-<!-- ~~~haskell -->
-<!-- runForkMayb :: (a -> Maybe b) -> (a -> Maybe c) -> (a -> Maybe (b, c)) -->
-<!-- runForkMayb f g = \x -> liftA2 (,) (f x) (g x) -->
-<!-- ~~~ -->
 
 
 
