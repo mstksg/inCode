@@ -7,6 +7,8 @@ Categories
 Tags
 :   functional programming
 :   haskell
+:   monads
+:   io
 CreateTime
 :   2014/05/02 03:09:13
 PostDate

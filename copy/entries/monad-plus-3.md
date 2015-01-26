@@ -7,6 +7,7 @@ Categories
 Tags
 :   functional programming
 :   haskell
+:   monads
 Series
 :   MonadPlus: Success/Failure Monads
 :   Practical Monads
