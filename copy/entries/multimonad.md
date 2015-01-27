@@ -12,13 +12,12 @@ Tags
 CreateTime
 :   2015/01/18 20:29:30
 PostDate
-:   2015/01/27 10:43:10
+:   Never
 Identifier
 :   multimonad
 
-Hi all!  Sorry about the lack of posting recently; the new environment of grad
-school has sort of taken some time to get used to.  Just stopping in for a
-short post before continuing with a long-overdue series or two :)
+Just stopping in for a short post before continuing with a long-overdue series
+or two :)
 
 Soon after I discovered Haskell, one question has plagued my mind.  Day and
 night, I wondered...
