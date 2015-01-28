@@ -12,12 +12,13 @@ Tags
 CreateTime
 :   2015/01/18 20:29:30
 PostDate
-:   Never
+:   2015/01/28 10:36:34
 Identifier
 :   multimonad
 
 Just stopping in for a short post before continuing with a long-overdue series
-or two :)
+or two :)  This post is a bit of a short fun one that describes a quest I had,
+and hopefully some useful extra ideas I found along the way.
 
 Soon after I discovered Haskell, one question has plagued my mind.  Day and
 night, I wondered...
@@ -343,4 +344,23 @@ Which represents the monoid formed by `(/=)` (or "XOR") with `False`.
 
 And there you go.  One type, two possible unique, non-isomorphic `Monad`
 instances.
+
+<div class="note">
+**Aside**
+
+One interesting thing to note is that the Monad instance for `(->) a`
+requires no monoid constraint, and the Monad instance for `(,) a` *does*.
+
+Interestingly enough, if we look at *comonads*, the Comonad instance for `(->)
+a` *does* require a monoid constraint on `a` (so for example there are many
+unique Comonad instances for things isomorphic to `(->) a` where `a` has more
+than one Monoid instance) and and the Comonad instance for `(,) a` *does not*
+require a monoid constraint on `a`.
+
+Is there some duality at play here?
+
+The answer is, apparently, yes!  But according to Edward Kmett, it is one that
+is pretty hard to arrive at and a big headache and overall not worth the time
+to dig into.  So you're going to have to take my second-hand word for it.
+</div>
 
