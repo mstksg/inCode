@@ -1,4 +1,4 @@
-Going Kleisli: Intro to Machines and Arrow Part 3
+Effectful Arrows: Intro to Machines and Arrow Part 3
 =================================================
 
 Categories
@@ -35,10 +35,9 @@ this composition, and saw some neat properties, like local statefulness.
 [part2]: http://blog.jle.im/entry/auto-as-category-applicative-arrow-intro-to-machines
 
 Here we are going to push the abstraction further to see where it will go by
-introducing the Kleisli category based on our `Auto` category in order to add
-effects, making the plain ol' Auto type into something rich and featureful.
-And finally, at the very end, we'll do a short case study on one motivating
-example: arrowized FRP libraries!
+introducing mechanisms for adding effects, making the plain ol' Auto type into
+something rich and featureful. And finally, at the very end, we'll do a short
+case study on one motivating example: arrowized FRP libraries!
 
 As always, feel free to leave a comment if you have any questions, drop by
 freenode's *#haskell*, or find me on [twitter][] :)
@@ -163,23 +162,55 @@ instance Functor (AutoOn2 r) where
 There's the `Functor` instance to get you started :)
 </div>
 
-<!-- #### Fancy math stuff -->
+#### Fancy math stuff
 
-<!-- Haskellers like to relate interfaces and concepts like these to concepts from -->
-<!-- math.  If this is not your thing, then feel free to skip this section :) -->
+Haskellers like to relate interfaces and concepts like these to concepts from
+math.  If this is not your thing, then feel free to skip this section :)
 
-<!-- Anyways, what we have done in essense was take the `Auto` category (the -->
-<!-- category where the objects are types and a morphism from type `a` to type `b` -->
-<!-- is `Auto a b`) and formed a **Kleisli category** on it. -->
+Anyways, what we have done in essense was take the `Auto` category (the
+category where the objects are types and a morphism from type `a` to type `b`
+is `Auto a b`) and formed a **Kleisli category** on it.
 
-<!-- The Kleisli category formed on a category with a monad `m` is a category with -->
-<!-- all of the same objects (so again, types, here), but the morphisms now all -->
-<!-- target `m b` instead of `b`. -->
+The Kleisli category formed on a category with a monad `m` is a category with
+all of the same objects (so again, types, here), but the morphisms now all
+target `m b` instead of `b`.
 
-<!-- If we form a Kleisli category with `Maybe` on `Auto`, in this new category, -->
-<!-- our morphisms are now `Auto a (Maybe b)`. -->
+If we form a Kleisli category with `Maybe` on `Auto`, in this new category,
+our morphisms are now `Auto a (Maybe b)`.
 
-<!-- What we've done here is turned that into a --> 
+What we've done here is turned that into a regular category and formed a new
+one by *simply changing the shape of the compositions*.  The behavior of this
+new `Category` instance is different from the old one, but only because we
+changed the morphisms the category describes, and adjusted the behavior of
+`(.)`.
+
+By the way!  I played a little fast and loose with what I used as a "monad"
+here.  Read the aside for more clarification :)
+
+<div class="note">
+So, when I said "for a monad `m`", I was really being a little shifty about
+what kind of monad I meant.  Because it really isn't the traditional haskell
+`Monad`.
+
+This is even a bit more deep into the rabbit hole, so feel free to skip this
+if you don't mind the hand-wavy explanation I gave above.
+
+A monad is a (endo)functor with two special natural transformations.  So, we
+need to first establish: What is the functor here?
+
+A functor from one category to another changes the objects and the morphisms.
+So if we say that `Maybe` is a functor on `Auto`, then `Maybe` changes the
+objects (the types; from `a` to `Maybe a`), and the morphisms (from `Auto a b`
+to `Auto (Maybe a) (Maybe b)`).
+
+So `Maybe` is our Functor still, and our Monad still...but instead of
+`fmap :: (a -> b) -> (Maybe a -> Maybe b)`, in our new category `Auto`, we
+need `fmapAuto :: Auto a b -> Auto (Maybe a) (Maybe b)`, such that `fmapAuto
+id = id`, and `fmapAuto g . fmapAuto f == fmapAuto (g . f)`
+
+As it turns out, not all haskell `Monad`s can do this.  `Maybe` is one that
+can.  Can you think of any others?
+</div>
 
 
 

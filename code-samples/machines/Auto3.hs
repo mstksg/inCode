@@ -1,14 +1,18 @@
 {-# LANGUAGE Arrows #-}
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Auto3 where
 
-import Auto hiding (onFor)
+import Auto hiding         (onFor)
 import Auto2
 import Control.Applicative
 import Control.Arrow
 import Control.Category
+import Data.Foldable
 import Data.Function       (fix)
+import Data.Maybe
+import Data.Traversable
 import Prelude hiding      ((.), id)
 
 onFor :: Int -> Auto a (Maybe a)
@@ -31,6 +35,21 @@ g .? f = proc x -> do
     case resF of
         Nothing -> id -< Nothing
         Just x  -> g  -< x
+
+fmapAutoMaybe :: Auto a b -> Auto (Maybe a) (Maybe b)
+fmapAutoMaybe a = ACons $ \x -> let mya' = fmap (runAuto a) x
+                                    my   = fmap fst mya'
+                                    ma'  = fmap snd mya'
+                                in  (my, fmapAutoMaybe (fromMaybe a ma'))
+
+-- fmapAuto :: forall f a b. Functor f => Auto a b -> Auto (f a) (f b)
+-- fmapAuto a = ACons $ \x -> let fya' :: f (b, Auto a b)
+--                                fya' = fmap (runAuto a) x
+--                                fy   :: f b
+--                                fy   = fmap fst fya'
+--                                fa'  :: f (Auto a b)
+--                                fa'  = fmap snd fya'
+--                            in  (fy, _a')
 
 newtype AutoOn a b = AConsOn { runAutoOn :: a -> (Maybe b, AutoOn a b) }
 
@@ -62,3 +81,5 @@ instance ArrowChoice AutoOn where
                               in  (fmap Left l', left a')
                    Right r -> (Just (Right r), left a)
 
+joinAutoOn :: AutoOn (Maybe a) a
+joinAutoOn = AConsOn $ \x -> (x, joinAutoOn)

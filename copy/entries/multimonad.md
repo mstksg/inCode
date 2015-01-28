@@ -25,6 +25,11 @@ night, I wondered...
 
 > Are there any Haskell types with more than one unique `Monad` instance?
 
+This was a question that was pretty simple...so simple that I was sure many
+people had already asked and answered this.  But I couldn't really find any
+answers and nobody I asked at the time could really give me one either, so
+this soon embedded itself as a pretty deep mystery to my psyche.
+
 The background?
 
 Functor and Applicative
