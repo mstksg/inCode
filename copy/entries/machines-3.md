@@ -178,11 +178,10 @@ target `m b` instead of `b`.
 If we form a Kleisli category with `Maybe` on `Auto`, in this new category,
 our morphisms are now `Auto a (Maybe b)`.
 
-What we've done here is turned that into a regular category and formed a new
-one by *simply changing the shape of the compositions*.  The behavior of this
-new `Category` instance is different from the old one, but only because we
-changed the morphisms the category describes, and adjusted the behavior of
-`(.)`.
+What we've done here form a new one by *simply changing the shape of the
+compositions*.  The behavior of this new `Category` instance is different from
+the old one, but only because we changed the morphisms the category describes,
+and adjusted the behavior of `(.)`.
 
 By the way!  I played a little fast and loose with what I used as a "monad"
 here.  Read the aside for more clarification :)
@@ -211,6 +210,10 @@ id = id`, and `fmapAuto g . fmapAuto f == fmapAuto (g . f)`
 As it turns out, not all haskell `Monad`s can do this.  `Maybe` is one that
 can.  Can you think of any others?
 </div>
+
+Effectful Conses
+----------------
+
 
 
 

@@ -313,7 +313,7 @@ instance Applicative Two where
     One f <*> One x = One (f x)
     One f <*> Two x = Two (f x)
     Two f <*> One x = Two (f x)
-    Two f <*> Two f = Two (f x)
+    Two f <*> Two x = Two (f x)
 
 instance Monad Two where
     return = One
