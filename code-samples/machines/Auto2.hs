@@ -49,9 +49,11 @@ instance Arrow Auto where
 instance ArrowChoice Auto where
     left a = ACons $ \x ->
                  case x of
-                   Left l  -> let (l', a') = runAuto a l
-                              in  (Left l', left a')
-                   Right r -> (Right r, left a)
+                   Left l  ->
+                     let (l', a') = runAuto a l
+                     in  (Left l', left a')
+                   Right r ->
+                     (Right r, left a)
 
 instance ArrowLoop Auto where
     loop a = ACons $ \x ->

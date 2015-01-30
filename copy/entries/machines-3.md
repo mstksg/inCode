@@ -44,266 +44,112 @@ freenode's *#haskell*, or find me on [twitter][] :)
 
 [twitter]: https://twitter.com/mstk "Twitter"
 
-Composition is the key
-----------------------
+Effectful Stepping
+------------------
 
-We're going to be seeing this pop a lot --- and you'll actually see this
-pattern in haskell a lot, too.  Sometimes in Haskell, things gain their power,
-their usefulness, not from the data type or concept itself, but from its
-*composition*.
-
-So let's find new and novel ways to compose different "varieties" of our
-`Auto`, and maybe we can find some use for them :D
-
-### On and Off
-
-Often times in real-life implementations, we might have `Auto`s that maybe
-"on" or "off".  If we imagine it as a stateful functions...at some times, the
-function may be outputting, or it may be "closed off" for a while.
-
-The important thing to keep in mind here is that while the function is not
-outputting anything, its internal state is still ticking along.
-
-We can pull in a data type from Haskell to represent these semantics: `Maybe`!
+Recall our original definition of `Auto a b` as a newtype wrapper over a
+function:
 
 ~~~haskell
-!!!machines/Auto3.hs "onFor ::" machines
+a -> (b, Auto a b)
 ~~~
 
-This will basically let a value "pass through" for `n` steps as Just, and then
-stop forevermore.
+This can be read as saying, "feed the `Auto` an `a`, and (purely) get a
+resulting `b`, and a 'next stepper'" --- the `b` is the result, and the `Auto
+a b` contains the information on how to proceed from then on.
+
+Well, if you've been doing Haskell for any decent amount of time, you can
+probably guess what's going to happen next.  It's, incidentally, one of the
+things that Haskellers love doing the most, and it's been engrained deeply
+into the Haskell culture.
+
+Instead of "purely" creating a naked result and a "next step"...we're going to
+return it in a context.
 
 ~~~haskell
-ghci> take 6 $ testAuto_ (onFor 3 . pure "hello") (repeat ())
-[Just "hello", Just "hello", Just "hello", Nothing, Nothing, Nothing]
+a -> f (b, Auto a b)
 ~~~
 
-How about an Auto that lets items pass through until the first one that
-matches a predicate?
+Whaat, you say?  What good does that do?
+
+Well, what does returning things in a context ever lets you do?
+
+In Haskell, contexts like these are usually meant to be able to defer the
+process of "getting the value" until the end, after you've built up your
+contextual computation.  This process can be complicated, or simple, or
+trivial.
+
+For example, a function like:
 
 ~~~haskell
-!!!machines/Auto3.hs "onUntil ::" machines
+a -> b
 ~~~
+
+means that it simply creates a `b` from an `a`.  But a function like:
 
 ~~~haskell
-ghci> take 6 $ testAuto_ (onUntil (> 4)) [1..]
-[Just 1, Just 2, Just 3, Just 4, Nothing, Nothing]
+a -> Maybe b
 ~~~
 
-You can think of these as "filters".  Stateful filters.  The first filters out
-all but the first `n` elements, and the second lets everything through until
-the first thing greater than four.
+Means...it *might* give you a `b` from an `a`?  Or it might not?  You won't
+really know until you inspect the result later.  If you eventually use
+`fromMaybe`, then the resulting `Maybe b` can *control*, using its Nothingness
+or its Justness, the final `b` that you get.
+
+A function like:
 
 ~~~haskell
-onFor 3       :: Auto a   (Maybe a)
-onUntil (> 4) :: Auto Int (Maybe Int)       -- specialized for Int for fun
+a -> State s b
 ~~~
 
-So, how could you "compose" these?  Run a value through one filter, then the
-other, so that only values that pass through both go through?
+Means that, given an `a`, you get a state machine that can *create a `b`*
+using a stateful process, once given an initial state.  The `b` doesn't
+"exist" yet; all you've given is instructions for creating that `b`...and the
+`b` that is eventually created will in general depend on whatever initial `s`
+you give the state machine.
 
-Naively, you might do something like this:
+A function like:
 
 ~~~haskell
-til3or4 = onFor 3 . onUntil (> 4)
+a -> IO b
 ~~~
 
-Except that doesn't work...`onFor 3` expects an `a`, but you're giving it a
-`Maybe a`.
+Means that, given an `a`, you're given *a computer program* that, when
+executed by a computer, will generate a `b`.  The `b` doesn't "exist" yet;
+depending on how the world is and how IO processes interact, how you are
+feeling that day...the `b` generated will be different.  The process of IO
+execution has the ability to *choose* the `b`.
 
-Perhaps we can imagine a new operator to compose them in a meaningful way,
-such that the `Nothing`s "propagate" all the way down the chain...
-
+So how about something like:
 
 ~~~haskell
-!!!machines/Auto3.hs "(.?) ::" machines
+a -> State s (b, Auto a b)
 ~~~
+
+This means that, given `a`, "running" the `Auto` with an `a` will give you *a
+state machine* that gives you, using a stateful process, both the *result* and
+the *next step*.  The crazy thing is that now you are given the state machine
+*the ability to decide the next `Auto`*, the next "step".
+
+
+Something like:
 
 ~~~haskell
-ghci> let til3or4 = onFor 3 .? onUntil (> 4)
-ghci> :t til3or4
-til3or4 :: Auto Int (Maybe Int)             -- specialized to Int for fun
-ghci> take 6 $ testAuto_ til3or4 [1..]
-[Just 1, Just 2, Just 3, Nothing, Nothing, Nothing]
-ghci> take 6 $ testAuto_ til3or4 [4..]
-[Just 4, Nothing, Nothing, Nothing, Nothing, Nothing]
+a -> IO (b, Auto a b)
 ~~~
 
-As we can see, the "composed" filters make the input values (ascending
-integers) have to pass through both filters before making it through.  The
-first one cuts out after three, and the second one cuts out after the first
-value greater than 4.
+means that your new `Auto`-running function will give you a result and a "next
+step" that is going to be dependent on IO actions.
 
-Some domains actually want this behavior "built-in".  That is, they want *all*
-`Auto`s to behave this way.  We can actually provide such an `Auto` type that
-composes this way!  We can either make a newtype wrapper over
-`Auto a (Maybe b)`, or we can write an instance from scratch:
+Let's jump straight to abstracting over this and explore a new type, shall we?
+
+### Monadic Auto
 
 ~~~haskell
-!!!machines/Auto3.hs "newtype AutoOn" "instance Functor (AutoOn a)" "instance Category AutoOn" "instance Arrow AutoOn" machines
-
--- ArrowChoice instance left out of the article as an exercise; solution is in
--- the code sample source
+!!!machines/Auto3.hs "newtype AutoM" machines
 ~~~
 
-<div class="note">
-**Aside**
 
-As an exercise, try instead writing all of those instances but for a newtype
-wrapper around our old `Auto` instead:
-
-~~~haskell
-newtype AutoOn2 a b = AutoOn2 { runAutoOn2 :: Auto a (Maybe b) }
-
-instance Functor (AutoOn2 r) where
-    fmap f (AutoOn2 a) = AutoOn2 (fmap (fmap f) a)
-~~~
-
-There's the `Functor` instance to get you started :)
-</div>
-
-#### Fancy math stuff
-
-Haskellers like to relate interfaces and concepts like these to concepts from
-math.  If this is not your thing, then feel free to skip this section :)
-
-Anyways, what we have done in essense was take the `Auto` category (the
-category where the objects are types and a morphism from type `a` to type `b`
-is `Auto a b`) and formed a **Kleisli category** on it.
-
-The Kleisli category formed on a category with a monad `m` is a category with
-all of the same objects (so again, types, here), but the morphisms now all
-target `m b` instead of `b`.
-
-If we form a Kleisli category with `Maybe` on `Auto`, in this new category,
-our morphisms are now `Auto a (Maybe b)`.
-
-What we've done here form a new one by *simply changing the shape of the
-compositions*.  The behavior of this new `Category` instance is different from
-the old one, but only because we changed the morphisms the category describes,
-and adjusted the behavior of `(.)`.
-
-By the way!  I played a little fast and loose with what I used as a "monad"
-here.  Read the aside for more clarification :)
-
-<div class="note">
-So, when I said "for a monad `m`", I was really being a little shifty about
-what kind of monad I meant.  Because it really isn't the traditional haskell
-`Monad`.
-
-This is even a bit more deep into the rabbit hole, so feel free to skip this
-if you don't mind the hand-wavy explanation I gave above.
-
-A monad is a (endo)functor with two special natural transformations.  So, we
-need to first establish: What is the functor here?
-
-A functor from one category to another changes the objects and the morphisms.
-So if we say that `Maybe` is a functor on `Auto`, then `Maybe` changes the
-objects (the types; from `a` to `Maybe a`), and the morphisms (from `Auto a b`
-to `Auto (Maybe a) (Maybe b)`).
-
-So `Maybe` is our Functor still, and our Monad still...but instead of
-`fmap :: (a -> b) -> (Maybe a -> Maybe b)`, in our new category `Auto`, we
-need `fmapAuto :: Auto a b -> Auto (Maybe a) (Maybe b)`, such that `fmapAuto
-id = id`, and `fmapAuto g . fmapAuto f == fmapAuto (g . f)`
-
-As it turns out, not all haskell `Monad`s can do this.  `Maybe` is one that
-can.  Can you think of any others?
-</div>
-
-Effectful Conses
-----------------
-
-
-
-
-
-
-
-
-
-<!-- We saw earlier --- sure, `Auto` is nice.  But when we define composition, we -->
-<!-- changed the game up a lot.  Sure, `Maybe` is nice, but when we learn how to -->
-<!-- compose `a -> Maybe b` functions, everything is changed.  `IO` as a data type -->
-<!-- is a great idea.  But the ability to compose `a -> IO b`'s was what changed -->
-<!-- the world.[^changedworld] -->
-
-<!-- [^changedworld]: We're still waiting on this one, admittedly :) -->
-
-<!-- If you've been using Haskell for even a little amount of time, you might -->
-<!-- notice that often, the same "type" can be composed in different ways. -->
-
-<!-- For example, how can you compose a function that returns `IO (Maybe b)`? -->
-
-<!-- Well, you can imagine composing `Maybe a -> IO (Maybe b)`'s, which is what -->
-<!-- `IO`'s `Monad` instance gives you.  Or, you can imagine composing `a -> IO -->
-<!-- (Maybe b)`'s. -->
-
-
-
-
-<!-- When -->
-<!-- the composition operator is from a typeclass, we can use newt -->
-
-<!-- Thanks to [abstractions like Functor, Monad, and Applicative][ode], we are -->
-<!-- able to compose and manipulate "effectful functions".  It can be argued that -->
-<!-- this ability (of composition and modification) really makes effects something -->
-<!-- we can meaningfully work with in Haskell, and gives them their richness. -->
-
-<!-- [ode]: http://blog.jle.im/entry/inside-my-world-ode-to-functor-and-monad -->
-
-<!-- Indeed, many problems in Haskell can be solved not by asking, "how should my -->
-<!-- function behave?", but "how should my functions *compose*"?  Indeed, the power -->
-<!-- of `Maybe` is often revealed only in meaningful compositions of `a -> Maybe -->
-<!-- b`'s. -->
-
-<!-- Well hey, if `a -> Maybe b` is useful...hey, remember that we *are* in a -->
-<!-- series about `Auto`, which is like "a generalization of `(->)`" in a way. -->
-<!-- Let's see how we could compose `Auto a (Maybe b)` :D -->
-
-<!-- Inhibition -->
-<!-- ---------- -->
-
-<!-- So, with -->
-
-<!-- One of the most fascinating parts of Haskell is the mechanisms by which we -->
-<!-- take ordinary functions and manipulate them into representing "effects". -->
-<!-- Things like IO actions, stateful transitions, logging, failure, error -->
-<!-- propagation.  Overall, they provide us with a much richer toolset for -->
-<!-- describing functions and function composition. -->
-
-<!-- The "magic", however, is in the *composition* of these functions.  And their -->
-<!-- modification, combination, etc. with respect to these effects.  Haskell's -->
-<!-- category-theory inspired abstractions give us a way to work with "effectful" -->
-<!-- functions in a way that respect and preserve their semantic meaning. -->
-
-<!-- For example, a commonly cited effect is "the ability to do IO".  In Haskell, -->
-<!-- nothing does IO.  Instead, you have a data structure (no different than any -->
-<!-- ADT you could cook up yourself) that represents computer instructions. -->
-
-<!-- ~~~haskell -->
-<!-- getLine  :: IO String -->
-<!-- putStrLn :: String -> IO () -->
-<!-- ~~~ -->
-
-<!-- `getLine` is just a normal data structure, and so is `putStrLn`. -->
-
-<!-- However, with Functor, Applicative, and Monad, we have the ability to "treat -->
-<!-- an `IO String` like a `String`", and abstract away the effect.  If we wanted -->
-<!-- to `getLength`, an IO action that gets input and returns the length, we can -->
-<!-- use `fmap`: -->
-
-<!-- ~~~haskell -->
-<!-- getLength :: IO Int -->
-<!-- getLength = fmap length getLine -->
-<!-- ~~~ -->
-
-<!-- If we wanted to put the string that we just retrieved, we can use `(=<<)`: -->
-
-<!-- ~~~haskell -->
-<!-- echo :: IO () -->
-<!-- echo = putStrLn =<< getLine -->
-<!-- ~~~ -->
 
 
 
