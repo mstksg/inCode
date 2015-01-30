@@ -272,6 +272,21 @@ Some side notes
         or something like that.
     *   "What is a word that begins with I and rhymes with 'Bio Monad'?":
         Yes, IO Monad.
+*   **Edit**: So a lot of people seem to be getting the impression that I
+    advocate not using the word "monad" to describe things like "binding"
+    expressions, do blocks, using `(>>=)` with `IO`, etc.  I am not really
+    quite for this.  I do advise that if you are talking specifically about
+    monadic things, you should say that they are monadic things.  Hiding
+    things from people isn't going to help anyone and only leads to more
+    confusion, and I think it might get in the way of learning and making
+    important connections.
+
+    However, what I *am* against is saying "monad" to describe things that are
+    clearly not monadic.  Like printing a string, or sequencing a bunch of
+    independent actions.
+
+    In short: use Monad when you are talking about IO's monadic properties;
+    don't use it when you aren't.  Simple, right?
 
 [imw]: http://blog.jle.im/entry/inside-my-world-ode-to-functor-and-monad
 
