@@ -243,15 +243,45 @@ can't?
 Let's look at some esoteric and contrived applications and some actual
 useful ones.
 
-First some utility functions: `toM`, which upgrades an `Auto a b` to an `Auto
-m a b` for any `Monad` m, and `arrM`, which is like `arr`, but instead of
-turning an `a -> b` into an `Auto a b`, it turns an `a -> m b` into an `AutoM
-m a b`:
+First some utility functions: `autoM`, which upgrades an `Auto a b` to an
+`Auto m a b` for any `Monad` m, and `arrM`, which is like `arr`, but instead
+of turning an `a -> b` into an `Auto a b`, it turns an `a -> m b` into an
+`AutoM m a b`:
 
 ~~~haskell
-!!!machines/Auto3.hs "toM ::" "arrM ::" machines
+!!!machines/Auto3.hs "autoM ::" "arrM ::" machines
 ~~~
 
+We will need to of course re-write our trusty `testAuto` functions from the
+first entry, which is again a direct translation of the original ones:
+
+~~~haskell
+!!!machines/Auto3.hs "testAutoM ::" "testAutoM_ ::" machines
+~~~
+
+First, let's test `arrM` ---
+
+~~~haskell
+ghci> :t arrM putStrLn
+arrM putStrLn :: AutoM IO String ()
+ghci> res <- testAutoM_ (arrM putStrLn) ["hello", "world"]
+"hello"
+"world"
+ghci> res
+[(), ()]
+~~~
+
+`arrM putStrLn`, like `arr show`, is just an `Auto` with no internal state
+that returns `()` for every single input string, except, in the process of
+getting the "next Auto", it emits a side-effect --- in our case, printing the
+string.
+
+We can sort of abuse this to get an `Auto` with "two input streams": one from
+the normal input, and the other from `IO`:
+
+~~~haskell
+!!!machines/Auto3.hs "replicateGets ::"
+~~~
 
 
 

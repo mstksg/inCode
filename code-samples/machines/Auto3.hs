@@ -1,4 +1,4 @@
--- {-# LANGUAGE Arrows #-}
+{-# LANGUAGE Arrows #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -9,13 +9,24 @@ import Auto2
 import Control.Applicative
 import Control.Arrow
 import Control.Category
-import Data.Foldable
+import Control.Monad
 import Data.Function       (fix)
-import Data.Maybe
-import Data.Traversable
 import Prelude hiding      ((.), id)
 
 newtype AutoM m a b = AConsM { runAutoM :: a -> m (b, AutoM m a b) }
+
+-- | Auto testers
+--
+testAutoM :: Monad m => AutoM m a b -> [a] -> m ([b], AutoM m a b)
+testAutoM a []      = return ([]  , a )
+testAutoM a (x:xs)  = do
+    (y , a')  <- runAutoM a x
+    (ys, a'') <- testAutoM a' xs
+    return (y:ys, a'')
+
+testAutoM_ :: Monad m => AutoM m a b -> [a] -> m [b]
+testAutoM_ a = liftM fst . testAutoM a
+
 
 -- | Instances
 instance Monad m => Category (AutoM m) where
@@ -63,11 +74,17 @@ instance Monad m => ArrowChoice (AutoM m) where
                    Right r ->
                      return (Right r, left a)
 
-toM :: Monad m => Auto a b -> AutoM m a b
-toM a = AConsM $ \x -> let (y, a') = runAuto a x
-                       in  return (y, toM a')
+autoM :: Monad m => Auto a b -> AutoM m a b
+autoM a = AConsM $ \x -> let (y, a') = runAuto a x
+                         in  return (y, autoM a')
 
 arrM :: Monad m => (a -> m b) -> AutoM m a b
 arrM f = AConsM $ \x -> do
                     y <- f x
                     return (y, arrM f)
+
+replicateGets :: AutoM IO Int String
+replicateGets = proc n -> do
+    ioInp <- arrM (\_ -> getLine) -< ()
+    let inpStr = concat (replicate n ioInp)
+    autoM monoidAccum -< inpStr

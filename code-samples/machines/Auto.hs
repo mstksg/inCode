@@ -21,7 +21,7 @@ testAuto auto (x:xs)  = (y:ys, final)
     (ys, final) = testAuto next xs
 
 testAuto_ :: Auto a b -> [a] -> [b]
-testAuto_ = (fst .) . testAuto
+testAuto_ a = fst . testAuto a
 
 interactAuto :: (Read a, Show b) => Auto a b -> IO ()
 interactAuto a0 = do
