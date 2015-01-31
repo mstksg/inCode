@@ -4,14 +4,16 @@
 
 module Auto3 where
 
-import Auto hiding         (onFor)
+import Auto
 import Auto2
+import System.Random
 import Control.Applicative
 import Control.Arrow
 import Control.Category
 import Control.Monad
-import Data.Function       (fix)
-import Prelude hiding      ((.), id)
+import Control.Monad.Trans.State
+import Data.Function             (fix)
+import Prelude hiding            ((.), id)
 
 newtype AutoM m a b = AConsM { runAutoM :: a -> m (b, AutoM m a b) }
 
@@ -85,6 +87,35 @@ arrM f = AConsM $ \x -> do
 
 replicateGets :: AutoM IO Int String
 replicateGets = proc n -> do
-    ioInp <- arrM (\_ -> getLine) -< ()
-    let inpStr = concat (replicate n ioInp)
+    ioString <- arrM (\_ -> getLine) -< ()
+    let inpStr = concat (replicate n ioString)
     autoM monoidAccum -< inpStr
+
+resetSummer :: AutoM IO Int Int
+resetSummer = proc n -> do
+    toReset <- arrM (\_ -> getLine) -< ()
+    let resetter | null toReset = Just n
+                 | otherwise    = Nothing
+    autoM (autoFold foldFunc 0) -< resetter
+  where
+    foldFunc :: Int -> Maybe Int -> Int
+    foldFunc i (Just j) = i + j
+    foldFunc i Nothing  = 0
+
+multiplyRandomly :: AutoM (State StdGen) Double Double
+multiplyRandomly = proc n -> do
+    toLeaveAlone <- arrM (\_ -> state random) -< ()
+    if toLeaveAlone
+      then id -< n
+      else do
+        theFactor <- arrM (\_ -> state random) -< ()
+        id -< n * theFactor
+
+doubleFive' :: Auto Int Int
+doubleFive' = proc n -> do
+    currState <- summer -< 1
+    id -< if currState <= 5 then n*2 else n
+
+
+
+

@@ -230,8 +230,8 @@ instance Functor m => Functor (AutoM m r) where
     fmap f a = AConsM $ (f *** fmap f) . runAutoM a
 ~~~
 
-is just fine.  We only need `Functor` to make `AutoM m r` a `Functor`.  Kind
-of neat, huh?
+is just fine.  We only need `Functor` to make `AutoM m r` a `Functor`.  Cool,
+right?
 
 If you try, how much can we "generalize" our other instances to?  Which ones
 can be generalized to `Functor`, which ones `Applicative`...and which ones
@@ -276,46 +276,79 @@ that returns `()` for every single input string, except, in the process of
 getting the "next Auto", it emits a side-effect --- in our case, printing the
 string.
 
+#### in IO
+
 We can sort of abuse this to get an `Auto` with "two input streams": one from
 the normal input, and the other from `IO`:
 
 ~~~haskell
-!!!machines/Auto3.hs "replicateGets ::"
+!!!machines/Auto3.hs "replicateGets ::" machines
 ~~~
 
+So, `replicateGets` uses [`monoidAccum`][macum] (or, an `AutoM` version) to
+accumulate a string.  At every step, it adds `inpStr` to the running
+accumulated string.  `inpStr` is the result of repeating the the string that
+`getLine` returns replicated `n` times --- `n` being the official "input" to
+the `AutoM` when we eventually run it.
 
+!!![macum]:machines/Auto.hs "monoidAccum ::"
 
-<!-- Fancy Bells And Whistles -->
-<!-- ------------------------ -->
+~~~haskell
+ghci> testAutoM_ replicateGets [3,1,5]
+> hello
+> world
+> bye
+[ "hellohellohello"         -- added "hello" three times
+, "hellohellohelloworld"    -- added "world" once
+, "hellohellohelloworldbyebyebyebyebye"     -- added "bye" five times
+]
+~~~
 
-<!-- ### Adding Inhibition -->
+Here, we used `IO` to get a "side channel input".  The main input is the
+number of times we repeat the string, and the side input is what we get from
+sequencing the `getLine` effect.
 
-<!-- ### Inhibition with a value -->
+~~~haskell
+!!!machines/Auto3.hs "resetSummer ::" machines
+~~~
 
-<!-- ### Over a Monad -->
+Here, this is a summer that continually sums all of its input.  However, at
+every step, it asks, in IO, if the user wants to "reset" everything at that
+point.  If the user passes in an empty string, the summer keeps on chugging
+along.  If the input string is non-empty, then the summer is reset.  Here we
+use (lifted to `AutoM`) [`autoFold`][autofold], from the first post.
 
-<!-- ### Samples -->
+!!![autofold]:machines/Auto.hs "autoFold ::"
 
-<!-- Functional Reactive Programming and Continuous Time -->
-<!-- --------------------------------------------------- -->
+~~~haskell
+ghci> testAutoM_ resetSummer [5,2,8,4,1]
+>
+>
+> reset now
+>
+>
+[5,7,0,4,5]
+~~~
 
-<!-- ### Continuous Time -->
+By the way, note that *proc* notation is desugared in such a way that the
+ordering of effects is preserved; if an effectful Auto shows up on a line
+before another one, the effects of the first will always happen before the
+effects of the second.
 
-<!-- ### Denotative semantics -->
+##### Motivation
 
-<!-- ### The Model -->
+hello
 
-<!-- Adding Time -->
-<!-- ----------- -->
+#### in State
 
-<!-- ### Samples -->
+Let's try another one, where we give every composed `Auto` access to a
+shared modifiable state.
 
-<!-- ### Preserving continuous time -->
+~~~haskell
+!!!machines/Auto3.hs "doubleFive ::" machines
+~~~
 
-<!-- All together -->
-<!-- ------------ -->
-
-<!-- Looking forward -->
-<!-- --------------- -->
-
+~~~haskell
+let atest = testAutoM_ doubleFive\bej
+~~~
 
