@@ -161,6 +161,9 @@ In our new type, the "ticking" happens *in a context*.  And we need to tick
 twice; and the second one is dependent on the result of the first.  This means
 that your context has to be *monadic*, in order to allow you to do this.
 
+So we sequence two "ticks" inside the monadic context, and then return the
+result afterwards, with the new composed autos.
+
 The neat thing is that Haskell's built-in syntax for handling monadic
 sequencing is nice, so you might be surprised when you write the `Category`
 instance:
@@ -177,10 +180,63 @@ It should!  Remember the logic from the `Auto` Category instance?
 !!!machines/Auto2.hs "instance Category Auto" machines
 ~~~
 
+It's basically *identical* and exactly the same :O  The only difference is
+that instead of `let`, we have `do`...instead of `=` we have `<-`, and instead
+of `in` we have `return`.  :O
+
+The takeaway here is that when you have monadic functions, their sequencing
+and application and composition can really be abstracted away to look pretty
+much like application and composition of normal values.  And Haskell is one of
+the few languages that gives you language features and a culture to be able to
+fully realize the symmetry and similarities.
+
+Following this exact same pattern, let's see the other various instances we
+wrote in the last article, along with the new monadic instances:
 
 
+~~~haskell
+!!!machines/Auto2.hs "instance Functor (Auto r)" "instance Applicative (Auto r)" "instance Arrow Auto" "instance ArrowChoice Auto" machines
+~~~
+
+~~~haskell
+!!!machines/Auto3.hs "instance Monad m => Functor (AutoM m r)" "instance Monad m => Applicative (AutoM m r)" "instance Monad m => Arrow (AutoM m)" "instance Monad m => ArrowChoice (AutoM m)" machines
+~~~
 
 
+Neat, huh?
+
+Instead of having to learn over again the logic of `Functor`, `Applicative`,
+`Arrow`, `ArrowPlus`, etc., you can directly use the intution that you gained
+from the past part and apply it to here, if you abstract away function
+application and composition to application and composition in a context.
+
+Our previous instances then were just a "specialized" version of `AutoM`, one
+where we used naked application and composition :)[^compapl]
+
+[^compapl]: I'm going to go out on a limb here and say that, where Haskell
+lets you abstract over functions and function composition with `Category`,
+Haskell lets you abstract over values and function application with `Monad`,
+`Applicative`, and `Functor`.
+
+
+<div class="note">
+**Aside**
+
+If we look closely at the instances we wrote, we might notice that for some of
+them, `Monad` is a bit overkill.  For example, for the `Functor` instance,
+
+~~~haskell
+instance Functor m => Functor (AutoM m r) where
+    fmap f a = AConsM $ (f *** fmap f) . runAutoM a
+~~~
+
+is just fine.  We only need `Functor` to make `AutoM m r` a `Functor`.  Kind
+of neat, huh?
+
+If you try, how much can we "generalize" our other instances to?  Which ones
+can be generalized to `Functor`, which ones `Applicative`...and which ones
+can't?
+</div>
 
 
 
