@@ -17,7 +17,6 @@ import Prelude hiding      ((.), id)
 
 newtype AutoM m a b = AConsM { runAutoM :: a -> m (b, AutoM m a b) }
 
-
 -- | Instances
 instance Monad m => Category (AutoM m) where
     id    = AConsM $ \x -> return (x, id)
@@ -64,3 +63,11 @@ instance Monad m => ArrowChoice (AutoM m) where
                    Right r ->
                      return (Right r, left a)
 
+toM :: Monad m => Auto a b -> AutoM m a b
+toM a = AConsM $ \x -> let (y, a') = runAuto a x
+                       in  return (y, toM a')
+
+arrM :: Monad m => (a -> m b) -> AutoM m a b
+arrM f = AConsM $ \x -> do
+                    y <- f x
+                    return (y, arrM f)

@@ -238,6 +238,20 @@ can be generalized to `Functor`, which ones `Applicative`...and which ones
 can't?
 </div>
 
+### Putting it to use
+
+Let's look at some esoteric and contrived applications and some actual
+useful ones.
+
+First some utility functions: `toM`, which upgrades an `Auto a b` to an `Auto
+m a b` for any `Monad` m, and `arrM`, which is like `arr`, but instead of
+turning an `a -> b` into an `Auto a b`, it turns an `a -> m b` into an `AutoM
+m a b`:
+
+~~~haskell
+!!!machines/Auto3.hs "toM ::" "arrM ::" machines
+~~~
+
 
 
 
