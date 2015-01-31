@@ -333,7 +333,7 @@ looked at as an "`Auto` transformer".  It takes a normal `Auto` and transforms
 it into an otherwise identical `Auto`, yet which logs its results as it ticks
 on.
 
-#### Motivation for IO
+#### Motivations
 
 At this point, hopefully you are either excited about the possibilities that
 monadic `Auto` composition/ticking offers, or are horribly revolted at how we
@@ -391,10 +391,12 @@ just "composes" nicer.  Suppose that `replicateGets` *isn't* the *final*
 is just a small cog in a huge nested composition of `Auto`s.  Instead of
 having to thread a `String` input throughout your *entire* composition chain
 *just* for `replicateGets` to use it...you can just pull it out when you need
-it.  In addition, one thing danger from manually treading a `String` input
-throughout your entire composition is that somewhere along the way, you can
-chose to "change" the input before it's passed, meaning that you can't
-gauruntee that the `String` that `replicateGets` eventually gets is the same
+it.
+
+In addition, one thing danger from manually treading a `String` input
+throughout your entire composition is that somewhere along the way, any `Auto`
+can chose to "change" the input before it's passed, meaning that you can't
+guarantee that the `String` that `replicateGets` eventually gets is the same
 one that was originally "gotten" before the whole thing was run anyway.
 
 (This is indeed a problem solved by having `AutoM`, but in real life, perhaps
@@ -405,12 +407,13 @@ For `logging`, if you only want to log a small portion of your entire `Auto`
 --- that is, only log one small composed `Auto` out of an entire big
 composition --- if you take the "thread the output" approach, you're going to
 have to manually thread the output throughout the entire composition to the
-end.  And, back to our "locally stateful" emphasis from before, every other
-`Auto` in your composition has accessed to the logged items...even if you
-wanted to keep it hidden.  And what if you wanted to log five, six `Auto`s to
-five or six different files?  You're going to be passing five or six strings
-from different places!  In this case, you gain a lot from implicit
-logging.
+end.
+
+And, back to our "locally stateful" emphasis from before, every other `Auto`
+in your composition has accessed to the logged items...even if you wanted to
+keep it hidden.  And what if you wanted to log five, six `Auto`s to five or
+six different files?  You're going to be passing five or six strings from
+different places!  In this case, you gain a lot from implicit logging.
 
 The point here is that there is a trade-off in either case.  But these monadic
 compositions really just give us another tool in our toolset that we can
@@ -433,7 +436,7 @@ to proceed, etc.
 Good?  Bad?  Uncontrollable, unpredictable?  Perhaps.  You now bring in all of
 the problems of shared state and reasoning with shared mutable state...and
 avoiding these problems was one of the things that originally motivated the
-usage of `Auto` in the first place.  But, we can make sound and judicious
+usage of `Auto` in the first place!  But, we can make sound and judicious
 decisions without resorting to "never do this" dogma.[^dogma]  Remember, these
 are just tools we can possibly explore.  Whether or not they work in the real
 world --- or whether or not they are self-defeating --- is a complex story!
@@ -448,11 +451,11 @@ in Functional Reactive Programming: `Reader`.
 With `AutoM (Reader r) a b`:
 
 ~~~haskell
-stepAutoM :: AutoM (Reader r) a b -> a -> (... next ...)
+stepAutoM :: AutoM (Reader r) a b -> a -> (b, AutoM (Reader r) a b)
 
 -- really becomes a
 
-stepAutoM :: AutoM (Reader r) a b -> a -> r -> (... next ...)
+stepAutoR :: Auto a b -> a -> r -> (b, Auto a b)
 ~~~
 
 Meaning, instead of just passing an `a` to get the next step, you have to pass
