@@ -1,5 +1,5 @@
 Effectful Arrows: Intro to Machines and Arrow Part 3
-=================================================
+====================================================
 
 Categories
 :   Haskell
@@ -147,6 +147,34 @@ Let's jump straight to abstracting over this and explore a new type, shall we?
 
 ~~~haskell
 !!!machines/Auto3.hs "newtype AutoM" machines
+~~~
+
+We already explained earlier the new power of this type.  Let's see if we can
+write our favorite instances with it.  First of all, what would a `Category`
+instance even do?
+
+Recall that the previous `Category` instance "ticked" each `Auto` one after
+the other and gave the final results, and then the "next Auto" was the
+compositions of the ticked autos.
+
+In our new type, the "ticking" happens *in a context*.  And we need to tick
+twice; and the second one is dependent on the result of the first.  This means
+that your context has to be *monadic*, in order to allow you to do this.
+
+The neat thing is that Haskell's built-in syntax for handling monadic
+sequencing is nice, so you might be surprised when you write the `Category`
+instance:
+
+~~~haskell
+!!!machines/Auto3.hs "instance Monad m => Category (AutoM m)" machines
+~~~
+
+Does it look familiar?
+
+It should!  Remember the logic from the `Auto` Category instance?
+
+~~~haskell
+!!!machines/Auto2.hs "instance Category Auto" machines
 ~~~
 
 
