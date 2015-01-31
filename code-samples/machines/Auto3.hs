@@ -8,6 +8,7 @@ import Auto
 import Auto2
 import System.Random
 import Control.Applicative
+import System.IO
 import Control.Arrow
 import Control.Category
 import Control.Monad
@@ -91,16 +92,11 @@ replicateGets = proc n -> do
     let inpStr = concat (replicate n ioString)
     autoM monoidAccum -< inpStr
 
-resetSummer :: AutoM IO Int Int
-resetSummer = proc n -> do
-    toReset <- arrM (\_ -> getLine) -< ()
-    let resetter | null toReset = Just n
-                 | otherwise    = Nothing
-    autoM (autoFold foldFunc 0) -< resetter
-  where
-    foldFunc :: Int -> Maybe Int -> Int
-    foldFunc i (Just j) = i + j
-    foldFunc i Nothing  = 0
+logging :: Show b => Auto a b -> AutoM IO a b
+logging a = proc x -> do
+    y <- autoM a -< x
+    arrM (appendFile "log.txt") -< show y ++ "\n"
+    id -< y
 
 multiplyRandomly :: AutoM (State StdGen) Double Double
 multiplyRandomly = proc n -> do
@@ -110,12 +106,4 @@ multiplyRandomly = proc n -> do
       else do
         theFactor <- arrM (\_ -> state random) -< ()
         id -< n * theFactor
-
-doubleFive' :: Auto Int Int
-doubleFive' = proc n -> do
-    currState <- summer -< 1
-    id -< if currState <= 5 then n*2 else n
-
-
-
 

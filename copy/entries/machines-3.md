@@ -308,47 +308,169 @@ Here, we used `IO` to get a "side channel input".  The main input is the
 number of times we repeat the string, and the side input is what we get from
 sequencing the `getLine` effect.
 
-~~~haskell
-!!!machines/Auto3.hs "resetSummer ::" machines
-~~~
-
-Here, this is a summer that continually sums all of its input.  However, at
-every step, it asks, in IO, if the user wants to "reset" everything at that
-point.  If the user passes in an empty string, the summer keeps on chugging
-along.  If the input string is non-empty, then the summer is reset.  Here we
-use (lifted to `AutoM`) [`autoFold`][autofold], from the first post.
-
-!!![autofold]:machines/Auto.hs "autoFold ::"
+You can also use this to "tack on" effects into your pipeline.
 
 ~~~haskell
-ghci> testAutoM_ resetSummer [5,2,8,4,1]
->
->
-> reset now
->
->
-[5,7,0,4,5]
+!!!machines/Auto3.hs "logging ::" machines
 ~~~
 
-By the way, note that *proc* notation is desugared in such a way that the
-ordering of effects is preserved; if an effectful Auto shows up on a line
-before another one, the effects of the first will always happen before the
-effects of the second.
-
-##### Motivation
-
-hello
-
-#### in State
-
-Let's try another one, where we give every composed `Auto` access to a
-shared modifiable state.
+Here, `logging a` will "run" `a` with the input like normal (no side-channel
+inputs), but then also log the results line-by-line to *log.txt*.
 
 ~~~haskell
-!!!machines/Auto3.hs "doubleFive ::" machines
+ghci> testAutoM_ (logging summer) [6,2,3,4,1]
+[6,8,11,15,16]
+ghci> putStrLn =<< readFile "log.txt"
+6
+8
+11
+15
+16
 ~~~
 
+By the way, as a side note, `logging :: Auto a b -> AutoM IO a b` here can be
+looked at as an "`Auto` transformer".  It takes a normal `Auto` and transforms
+it into an otherwise identical `Auto`, yet which logs its results as it ticks
+on.
+
+#### Motivation for IO
+
+At this point, hopefully you are either excited about the possibilities that
+monadic `Auto` composition/ticking offers, or are horribly revolted at how we
+mixed IO and unconstrained effects and "implicit side channel" inputs.  Or
+both!
+
+You might have noted that we could have actually "factored out" the direct IO
+from our functions.  For example, we could have made `replicateGets` into
+something that actually takes an explicit string:
+
 ~~~haskell
-let atest = testAutoM_ doubleFive\bej
+replicateGets  :: AutoM IO Int String
+
+-- the only point of IO is to get a String, so why not:
+replicateGets' :: Auto (String, Int) String
 ~~~
+
+And then defer the "getting of the `String`" to the actual process of
+"testing" the `Auto`:
+
+~~~haskell
+testReplicateGets' :: Auto (String, Int) String -> IO String
+~~~
+
+That is, have the "testing function" do the IO for you, and take it out of the
+`Auto`.
+
+And for `logging`, maybe we could have just had the "testing function"
+manually do the logging:
+
+~~~haskell
+testAutoLogging_ :: Show b => Auto a b -> [a] -> IO [b]
+~~~
+
+That is, while `testAutoLogging_` is stepping the `Auto`s, it is also logging
+along the way, factoring out the IO.
+
+These are all valid alternatives, depending on your domain.  However, there
+are some advantages.
+
+One is that you simplify what your *user* might do.  Instead of building a
+"pure"[^pure] Auto (non-IO) and making your user get the IO themselves, you
+can have it implicitly handle it for you.  And instead of forcing your user to
+log the results at the end, you can just handle it in-house.
+
+[^pure]: "pure": This word is so loaded in so many ways in this
+context...there are so many meanings it could take here, especially when we
+have multiple levels of states and effects like we do now.  So I'm trusting
+you to know what I'm talking about :)  In this case, it is an `Auto` instead
+of an `AutoM`.
+
+But probably the *biggest* advantage of implicit logging or inputs is that it
+just "composes" nicer.  Suppose that `replicateGets` *isn't* the *final*
+`Auto` that you want to run, or give your user.  Suppose that `replicateGets`
+is just a small cog in a huge nested composition of `Auto`s.  Instead of
+having to thread a `String` input throughout your *entire* composition chain
+*just* for `replicateGets` to use it...you can just pull it out when you need
+it.  In addition, one thing danger from manually treading a `String` input
+throughout your entire composition is that somewhere along the way, you can
+chose to "change" the input before it's passed, meaning that you can't
+gauruntee that the `String` that `replicateGets` eventually gets is the same
+one that was originally "gotten" before the whole thing was run anyway.
+
+(This is indeed a problem solved by having `AutoM`, but in real life, perhaps
+`Reader String` would be a better way to solve this specific situation than
+`IO`)
+
+For `logging`, if you only want to log a small portion of your entire `Auto`
+--- that is, only log one small composed `Auto` out of an entire big
+composition --- if you take the "thread the output" approach, you're going to
+have to manually thread the output throughout the entire composition to the
+end.  And, back to our "locally stateful" emphasis from before, every other
+`Auto` in your composition has accessed to the logged items...even if you
+wanted to keep it hidden.  And what if you wanted to log five, six `Auto`s to
+five or six different files?  You're going to be passing five or six strings
+from different places!  In this case, you gain a lot from implicit
+logging.
+
+The point here is that there is a trade-off in either case.  But these monadic
+compositions really just give us another tool in our toolset that we can
+(judiciously) use.
+
+#### Other contexts
+
+It's fun to imagine what sort of implications the different popular monads in
+Haskell can provide.  `Writer` gives you a running log that all `Auto`s can
+append to, for example.
+
+`State` gives every composed `Auto` the ability to access and modify a
+globally shared state.  We talk a lot about every `Auto` having their own
+local, internal state; usually, it is impossible for two composed `Auto`s to
+directly access each other's state (except by communicating through output and
+input).  With `State`, we now give the opportunity for every `Auto` to share
+and modify a collective and global state, which they can use to determine how
+to proceed, etc.
+
+Good?  Bad?  Uncontrollable, unpredictable?  Perhaps.  You now bring in all of
+the problems of shared state and reasoning with shared mutable state...and
+avoiding these problems was one of the things that originally motivated the
+usage of `Auto` in the first place.  But, we can make sound and judicious
+decisions without resorting to "never do this" dogma.[^dogma]  Remember, these
+are just tools we can possibly explore.  Whether or not they work in the real
+world --- or whether or not they are self-defeating --- is a complex story!
+
+[^dogma]: Which really isn't the point of these posts anyway!
+
+I will however offer one tried-and-true monadic context that is used *to great
+extent* in the real world and in real life applications of `Auto`.  In fact,
+it is one of *the critical abstractions* that even *allows* `Auto` to be used
+in Functional Reactive Programming: `Reader`.
+
+With `AutoM (Reader r) a b`:
+
+~~~haskell
+stepAutoM :: AutoM (Reader r) a b -> a -> (... next ...)
+
+-- really becomes a
+
+stepAutoM :: AutoM (Reader r) a b -> a -> r -> (... next ...)
+~~~
+
+Meaning, instead of just passing an `a` to get the next step, you have to pass
+both an `a` *and* an `r` for every step.
+
+Having a `Reader r` environment gives every `Auto` access to shared, read-only
+global data.  But `Reader r` is *much more useful* than just "passing the
+parameter".  It's much more useful than manually explicitly requiring an `a`
+and an `r`.  `AutoM (Reader r) a b` is *more useful* than `Auto (a, r) b`.
+Why?
+
+Because we can *guarantee* that *every composed Auto* will, for every step,
+*receive the same `r`*.  With the manual parameter passing method, any `Auto`
+along the way can modify what they pass down along.  Using `Reader r` will
+guarantee that, across every "tick", every `Auto` gets the same `r`.
+
+We will see later that our ability to do this makes it possible to implement
+semantics-following FRP using `Auto`s.
+
+
 
