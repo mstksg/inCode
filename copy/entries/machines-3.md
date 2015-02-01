@@ -483,14 +483,14 @@ running.
 -- a State machine returning the result and the next Auto
 ghci> let stuffState  = runAutoM stuff 4
 -- a State machine returning the result
-ghci> let stuffState' = fst <$> stuffState
-ghci> :t stuffState'
-stuffState' :: State Int (Maybe Int, Maybe Int, Int)
+ghci> let stuffState_ = fst <$> stuffState
+ghci> :t stuffState_
+stuffState_ :: State Int (Maybe Int, Maybe Int, Int)
 -- start with 10 fuel
-ghci> runState stuffState' 10
+ghci> runState stuffState_ 10
 ((Just 8, Just 12, 12),   3)        -- end up with 3 fuel left
 -- start with 2 fuel
-ghci> runState stuffState' 2
+ghci> runState stuffState_ 2
 ((Just 8, Nothing, 16),   0)        -- poop out halfway
 ~~~
 
@@ -549,6 +549,85 @@ Basically, if you can isolate a portion of the logic of your program that
 needs "global" state, you can use `AutoM` to *compose `Auto`s in that matter*,
 and then lock away the global state all at the end.
 
+Here is another use, when we use `Reader` to basically give a "second
+argument" to an `Auto` when we eventually run it, but we use the fact that
+every composed `Auto` gets the *exact same* input to great effect:
+
+~~~haskell
+!!!machines/AutoReader.hs "delay ::" "integral ::" "derivative ::" "fancyCalculus ::" machines
+~~~
+
+(Note the delay helper auto, `delay x0`, which outputs the "last received"
+value...starting with `x0` as the first output.  This really could have been
+written using `foldAuto` and a tuple, but the explicit recursion version is
+arguably nicer)
+
+Now, we are treating our input starts as time-varying values, and the "Reader
+environment" contains the "time passed since the last tick" --- The time step
+or sampling rate, so to speak, of the input stream.  We have two stateful
+`Auto`s ("locally stateful", internal state) that compute the time integral
+and time derivative of the input stream of numbers...but in order to do so, it
+needs the time step.  We get it using `ask` and `arrM`.  Note that the time
+step doesn't have to be the same for every different tick ... `integral` and
+`derivative` should work just fine with a new timestep every tick.
+
+In `fancyCalculus`, we calculate the integral, the derivative, the second
+derivative, and the integral of the derivative, and return the second
+derivative and the integral of the derivative.
+
+In order for us to even *meaningfully say* "the second derivative" or "the
+integral of the derivative", the double derivative has to be calculated with
+the same time step, and the integral and the derivative have to be calculated
+with the same time step.  If they are fed different time steps, then we aren't
+really calculating a real second derivative or a real integral of a derivative
+anymore.  We're just calculating random numbers.
+
+Anyways, if you have taken any introduction to calculus course, you'll know
+that the integral of a derivative is the original function --- so the integral
+of the derivative, if we pick the right initial values, should just be an "id"
+function:
+
+~~~haskell
+integral x0 . derivative d0 == id
+~~~
+
+Let's try this out with some input streams where we know what the second
+derivative should be, too.
+
+We'll try it first with `x^2`, where we know the second derivative will just
+be 2, the entire time:
+
+~~~haskell
+ghci> let x2s = map (^2) [0,0.05..1]
+ghci> let x2Reader = testAutoM_ fancyCalculus x2s
+ghci> :t x2Reader
+x2Reader :: Reader Double [(Double, Double)]
+ghci> map fst (runReader x2Reader 0.05)
+[ ... 2.0, 2.0 ... ]    -- with a couple of "stabilizing" first terms
+ghci> map snd (runReader x2Reader 0.05)
+[ 0.0, 0.0025, 0.01, 0.0225, 0.04 ...]
+ghci> x2s
+[ 0.0, 0.0025, 0.01, 0.0225, 0.04 ...]
+~~~
+
+Perfect!  The second derivative we expected (all 2's) showed up, and the
+integral of the derivative is pretty much exactly the original function.
+
+For fun, try running it with a `sin` function.  The second derivative should
+be original `sin` stream flipped, this time.  Does it end up as expected?
+
+The alternative to using `AutoM` and `Reader` here would be to have each
+composed Auto be manually "passed" the `dt` timestep.  But then we really
+don't have any "guarantees", besides checking ourselves, that every `Auto`
+down the road, down every composition, will have the same `dt`.
+
+By the way, we can pull the same trick that we pulled for `State` --- compose
+a sub-portion of our logic with a global common environment, and then use it
+as a part of a bigger logic that doesn't:
+
+~~~haskell
+!!!machines/AutoReader.hs "runReaderAuto ::" machines
+~~~
 
 
 
