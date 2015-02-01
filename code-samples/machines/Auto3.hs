@@ -21,9 +21,9 @@ newtype AutoM m a b = AConsM { runAutoM :: a -> m (b, AutoM m a b) }
 -- | Auto testers
 --
 testAutoM :: Monad m => AutoM m a b -> [a] -> m ([b], AutoM m a b)
-testAutoM a []      = return ([]  , a )
+testAutoM a []      = return ([], a)
 testAutoM a (x:xs)  = do
-    (y , a')  <- runAutoM a x
+    (y , a' ) <- runAutoM a x
     (ys, a'') <- testAutoM a' xs
     return (y:ys, a'')
 

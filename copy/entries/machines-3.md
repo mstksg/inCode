@@ -1,5 +1,5 @@
-Effectful Arrows: Intro to Machines and Arrow Part 3
-====================================================
+Effectful, Recursive, and Real-World Autos: Intro to Machine/Auto Part 3
+========================================================================
 
 Categories
 :   Haskell
@@ -159,7 +159,7 @@ compositions of the ticked autos.
 
 In our new type, the "ticking" happens *in a context*.  And we need to tick
 twice; and the second one is dependent on the result of the first.  This means
-that your context has to be *monadic*, in order to allow you to do this.
+that your context has to be *monadic* in order to allow you to do this.
 
 So we sequence two "ticks" inside the monadic context, and then return the
 result afterwards, with the new composed autos.
@@ -240,13 +240,12 @@ can't?
 
 ### Putting it to use
 
-Let's look at some esoteric and contrived applications and some actual
-useful ones.
+Now let's try using these!
 
 First some utility functions: `autoM`, which upgrades an `Auto a b` to an
-`Auto m a b` for any `Monad` m, and `arrM`, which is like `arr`, but instead
-of turning an `a -> b` into an `Auto a b`, it turns an `a -> m b` into an
-`AutoM m a b`:
+`AutoM m a b` for any `Monad` `m`, and `arrM`, which is like `arr`, but
+instead of turning an `a -> b` into an `Auto a b`, it turns an `a -> m b` into
+an `AutoM m a b`:
 
 ~~~haskell
 !!!machines/Auto3.hs "autoM ::" "arrM ::" machines
@@ -475,5 +474,16 @@ guarantee that, across every "tick", every `Auto` gets the same `r`.
 We will see later that our ability to do this makes it possible to implement
 semantics-following FRP using `Auto`s.
 
+#### For fun
+
+Here is a toy state example to demonstrate different autos talking to
+each other; here, the state is a measure of "fuel"; we can take any `Auto a b`
+and give it a "cost" using the `limit` function defined here.  Here, every
+`Auto` consumes fuel from the same pool, given at the initial `runState`
+running.
+
+~~~haskell
+!!!machines/AutoState.hs "limit ::" "sumSqDiff ::" "stuff ::" machines
+~~~
 
 
