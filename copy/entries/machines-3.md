@@ -251,8 +251,10 @@ an `AutoM m a b`:
 !!!machines/Auto3.hs "autoM ::" "arrM ::" machines
 ~~~
 
-We will need to of course re-write our trusty `testAuto` functions from the
+We will need to of course re-write our trusty [`testAuto`][testauto] functions from the
 first entry, which is again a direct translation of the original ones:
+
+!!![testauto]:machines/Auto.hs "testAuto ::" "testAuto_ ::" machines
 
 ~~~haskell
 !!!machines/Auto3.hs "testAutoM ::" "testAutoM_ ::" machines
@@ -422,7 +424,10 @@ compositions really just give us another tool in our toolset that we can
 
 It's fun to imagine what sort of implications the different popular monads in
 Haskell can provide.  `Writer` gives you a running log that all `Auto`s can
-append to, for example.
+append to, for example.  `Reader` gives you every composed `Auto` the ability
+to access a shared global environment...and has an advantage over manual
+"passing in" of parameters because every composed `Auto` is guaranteed to
+"see" the same global environment per tick.
 
 `State` gives every composed `Auto` the ability to access and modify a
 globally shared state.  We talk a lot about every `Auto` having their own
@@ -440,34 +445,34 @@ decisions without resorting to "never do this" dogma.[^dogma]  Remember, these
 are just tools we can possibly explore.  Whether or not they work in the real
 world --- or whether or not they are self-defeating --- is a complex story!
 
-[^dogma]: Which really isn't the point of these posts anyway!
+[^dogma]: Which really isn't the point of these posts, anyway!
 
-I will however offer one tried-and-true monadic context that is used *to great
-extent* in the real world and in real life applications of `Auto`.  In fact,
-it is one of *the critical abstractions* that even *allows* `Auto` to be used
-in Functional Reactive Programming: `Reader`.
+<!-- I will however offer one tried-and-true monadic context that is used *to great -->
+<!-- extent* in the real world and in real life applications of `Auto`.  In fact, -->
+<!-- it is one of *the critical abstractions* that even *allows* `Auto` to be used -->
+<!-- in Functional Reactive Programming: `Reader`. -->
 
-With `AutoM (Reader r) a b`, instead of needing an `a` to get the next step,
-you need an `a` *and* a `b`.
+<!-- With `AutoM (Reader r) a b`, instead of needing an `a` to get the next step, -->
+<!-- you need an `a` *and* a `b`. -->
 
-Meaning, instead of just passing an `a` to get the next step, you have to pass
-both an `a` *and* an `r` for every step.
+<!-- Meaning, instead of just passing an `a` to get the next step, you have to pass -->
+<!-- both an `a` *and* an `r` for every step. -->
 
-Having a `Reader r` environment gives every `Auto` access to shared, read-only
-global data.  But `Reader r` is *much more useful* than just "passing the
-parameter".  It's much more useful than manually explicitly requiring an `a`
-and an `r`.  `AutoM (Reader r) a b` is *more useful* than `Auto (a, r) b`.
-Why?
+<!-- Having a `Reader r` environment gives every `Auto` access to shared, read-only -->
+<!-- global data.  But `Reader r` is *much more useful* than just "passing the -->
+<!-- parameter".  It's much more useful than manually explicitly requiring an `a` -->
+<!-- and an `r`.  `AutoM (Reader r) a b` is *more useful* than `Auto (a, r) b`. -->
+<!-- Why? -->
 
-Because we can *guarantee* that *every composed Auto* will, for every step,
-*receive the same `r`*.  With the manual parameter passing method, any `Auto`
-along the way can modify what they pass down along.  Using `Reader r` will
-guarantee that, across every "tick", every `Auto` gets the same `r`.
+<!-- Because we can *guarantee* that *every composed Auto* will, for every step, -->
+<!-- *receive the same `r`*.  With the manual parameter passing method, any `Auto` -->
+<!-- along the way can modify what they pass down along.  Using `Reader r` will -->
+<!-- guarantee that, across every "tick", every `Auto` gets the same `r`. -->
 
-We will see later that our ability to do this makes it possible to implement
-semantics-following FRP using `Auto`s.
+<!-- We will see later that our ability to do this makes it possible to implement -->
+<!-- semantics-following FRP using `Auto`s. -->
 
-#### For fun
+#### in State
 
 Here is a toy state example to demonstrate different autos talking to
 each other; here, the state is a measure of "fuel"; we can take any `Auto a b`
@@ -540,18 +545,33 @@ transformer (we love those, don't we?):
 
 That takes any `AutoM (State s) a b` and turns it into an `Auto (a, s) (b,
 s)`.  Meaning, we can isolate a specific part of our overall program that
-needs a shared global state..."lock it away" there, and then use it as *a
-normal `Auto`*, in normal `Auto` composition.  And now when you compose that
-final `Auto` with other `Auto`s, the state-ness is locked away in there.
-Local statefulness, again!  
+needs a shared global state...and only have to deal with it there, as if it
+were a normal `Auto`.  We can compose it like normal now, too...and the
+implicit state from `State` is not accessible from outside in the same
+implicit way.
+
+And maybe we don't even want the outside to even ever *touch* the state, and
+recover our "local statefulness" principles:
+
+~~~haskell
+!!!machines/AutoState.hs "sealState ::" machines
+~~~
+
+This takes an `AutoM (State s)` and an initial state and turns it into a plain
+ol' `Auto` which chugs along, passing the internal state back into itself.
+We built the logic using global statefulness.  But now we can compose it as if
+it were locally stateful.  (Kind of like "scoping", in a sense...the `AutoM`'s
+have the global state in scope, and the `Auto` outside does not.)
 
 Basically, if you can isolate a portion of the logic of your program that
-needs "global" state, you can use `AutoM` to *compose `Auto`s in that matter*,
-and then lock away the global state all at the end.
+needs "global" state, you can use `AutoM` to *compose `Auto`s in that
+matter*, and only in that portion.
 
-Here is another use, when we use `Reader` to basically give a "second
-argument" to an `Auto` when we eventually run it, but we use the fact that
-every composed `Auto` gets the *exact same* input to great effect:
+#### in Reader
+
+Here we use `Reader` to basically give a "second argument" to an `Auto` when
+we eventually run it, but we use the fact that every composed `Auto` gets the
+*exact same* input to great effect:
 
 ~~~haskell
 !!!machines/AutoReader.hs "delay ::" "integral ::" "derivative ::" "fancyCalculus ::" machines
@@ -562,7 +582,7 @@ value...starting with `x0` as the first output.  This really could have been
 written using `foldAuto` and a tuple, but the explicit recursion version is
 arguably nicer)
 
-Now, we are treating our input starts as time-varying values, and the "Reader
+Now, we are treating our input stream as time-varying values, and the "Reader
 environment" contains the "time passed since the last tick" --- The time step
 or sampling rate, so to speak, of the input stream.  We have two stateful
 `Auto`s ("locally stateful", internal state) that compute the time integral

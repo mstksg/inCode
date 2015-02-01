@@ -41,3 +41,8 @@ runStateAuto :: AutoM (State s) a b -> Auto (a, s) (b, s)
 runStateAuto a = ACons $ \(x, s) ->
                    let ((y, a'), s') = runState (runAutoM a x) s
                    in  ((y, s'), runStateAuto a')
+
+sealState :: AutoM (State s) a b -> s -> Auto a b
+sealState a s0 = ACons $ \x ->
+                   let ((y, a'), s1) = runState (runAutoM a x) s0
+                   in  (y, sealState a' s1)
