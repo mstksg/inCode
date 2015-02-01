@@ -36,3 +36,8 @@ stuff = proc x -> do
                  else id         -< Just (x * 3)
     sumSqD  <- sumSqDiff -< x
     id -< (doubled, tripled, sumSqD)
+
+runStateAuto :: AutoM (State s) a b -> Auto (a, s) (b, s)
+runStateAuto a = ACons $ \(x, s) ->
+                   let ((y, a'), s') = runState (runAutoM a x) s
+                   in  ((y, s'), runStateAuto a')

@@ -447,15 +447,8 @@ extent* in the real world and in real life applications of `Auto`.  In fact,
 it is one of *the critical abstractions* that even *allows* `Auto` to be used
 in Functional Reactive Programming: `Reader`.
 
-With `AutoM (Reader r) a b`:
-
-~~~haskell
-stepAutoM :: AutoM (Reader r) a b -> a -> (b, AutoM (Reader r) a b)
-
--- really becomes a
-
-stepAutoR :: Auto a b -> a -> r -> (b, Auto a b)
-~~~
+With `AutoM (Reader r) a b`, instead of needing an `a` to get the next step,
+you need an `a` *and* a `b`.
 
 Meaning, instead of just passing an `a` to get the next step, you have to pass
 both an `a` *and* an `r` for every step.
@@ -485,5 +478,77 @@ running.
 ~~~haskell
 !!!machines/AutoState.hs "limit ::" "sumSqDiff ::" "stuff ::" machines
 ~~~
+
+~~~haskell
+-- a State machine returning the result and the next Auto
+ghci> let stuffState  = runAutoM stuff 4
+-- a State machine returning the result
+ghci> let stuffState' = fst <$> stuffState
+ghci> :t stuffState'
+stuffState' :: State Int (Maybe Int, Maybe Int, Int)
+-- start with 10 fuel
+ghci> runState stuffState' 10
+((Just 8, Just 12, 12),   3)        -- end up with 3 fuel left
+-- start with 2 fuel
+ghci> runState stuffState' 2
+((Just 8, Nothing, 16),   0)        -- poop out halfway
+~~~
+
+You can see that an initial round with an even number should cost you seven
+fuel...if you can get to the end.  In the case where we only started with two
+fuel, we only were able to get to the "doubled" part before running out of
+fuel.
+
+Let's see what happens if we run it several times:
+
+~~~hasell
+ghci> let stuffStateMany = testAutoM_ stuff [3..6]
+ghci> :t stuffStateMany
+stuffStateMany :: State Int [(Maybe Int, Maybe Int, Int)]
+ghci> runState stuffStateMany 9
+( [ (Just 6 , Just 9 , 6 )
+  , (Just 8 , Just 12, 25)
+  , (Nothing, Just 15, 0 )
+  , (Nothing, Nothing, 0 ) ]
+, 0 )
+~~~
+
+So starting with nine fuel, we seem to run out halfway through the second
+step.  The third field should be the sum of the squares so far, minus the sum
+so far...at `25`, it's probably just the sum of the squares so far.  So it
+couldn't even subtract out the sum so far.  Note that the `Just 15` on the
+third step goes through because for *odd* inputs (5, in this case), the second
+field doesn't require any fuel.
+
+Anyways, imagine having to thread this global state through by hand.  Try it.
+It'd be a disaster!  Everything would have to take an extra parameter and get
+and extra parameter...it really is quite a headache.  Imagine the source for
+`stuff` being written out in `Auto` with manual state threading.
+
+But hey, if your program needs global state, then it's probably a good sign
+that you might have had a design flaw somewhere along the way, right?
+
+Luckily, with Haskell, we can have the best of both worlds.  If we have an
+*isolated part of our program* that needs a shared global state, we can write
+*that part* in `AutoM (State s)` --- and everything in that part, with that
+logic, can use the shared global state.  And then we can write an Auto
+transformer (we love those, don't we?):
+
+~~~haskell
+!!!machines/AutoState.hs "runStateAuto ::" machines
+~~~
+
+That takes any `AutoM (State s) a b` and turns it into an `Auto (a, s) (b,
+s)`.  Meaning, we can isolate a specific part of our overall program that
+needs a shared global state..."lock it away" there, and then use it as *a
+normal `Auto`*, in normal `Auto` composition.  And now when you compose that
+final `Auto` with other `Auto`s, the state-ness is locked away in there.
+Local statefulness, again!  
+
+Basically, if you can isolate a portion of the logic of your program that
+needs "global" state, you can use `AutoM` to *compose `Auto`s in that matter*,
+and then lock away the global state all at the end.
+
+
 
 

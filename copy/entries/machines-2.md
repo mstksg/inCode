@@ -875,4 +875,3 @@ before Part 3 :)
         interesting.  It might be more fun to use this one as a component of a
         larger `Auto`, and see what you can use it for!
 
-
