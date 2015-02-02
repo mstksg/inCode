@@ -740,9 +740,18 @@ depend on each other.
 
 In another language, this would be hopeless.  We'd have to have to resort to
 keeping explicit state and using a loop.  However, with Haskell...and the
-world of laziness, recursive bindings, and tying loops...I think that we're
+world of laziness, recursive bindings, and tying knots...I think that we're
 going to have a *real win* if we can make something like what we wrote work.
 
 ### ArrowLoop
 
+There is actually a construct in *proc* notation that lets you do just that.
+I'm going to cut to the chase and show you how it looks, and how you use it.
+I'll explain the drawbacks and caveats.  And then I'll explain how it works in
+an aside --- it's slightly heavy, but some people like to understand.
 
+Without further ado ---
+
+~~~haskell
+!!!machines/Auto3.hs "piController ::" machines
+~~~
