@@ -662,4 +662,87 @@ program that does not:
 `r`, and returns just an normal `Auto` that repeatedly runs it with the given
 `r`.
 
+Recursive Auto
+--------------
+
+Let's move back to our normal `Auto` for now, and imagine a very common use
+case that might come up.
+
+What if you wanted two chained `Auto`s to "talk to eachother" --- for their
+inputs to depend on the other's outputs?
+
+Here's a common example --- in control theory, you often have to have adjust
+an input to a system to get it to "respond" to a certain desired output (a
+control).
+
+One way is to start with a test input, at every step, observe the resulting
+response and adjust it up or down until we get the response we want.  We call
+the difference between the response and the control the "error".
+
+How do you think you would calculate the adjustment?  Well...if the error is
+big, we probably want a big adjustment.  And, the longer we are away from the
+error, we also might want to make a bigger adjustment accordingly, too.
+
+In other words, we might want our adjustment to have a term *proportional* to
+the error, and a term that is *the sum of all* errors so far.
+
+This system is known as [PI][pid], and is actually used in many industrial
+control systems today, for controlling things like lasers and other super
+important stuff.  Congrats, you are now a control theorist!
+
+[pid]: http://en.wikipedia.org/wiki/PID_controller
+
+Let's see how we would write this using our `Auto`s:
+
+~~~haskell
+piTargeter :: Auto Double Double
+piTargeter = proc control -> do
+    let err = control - currResp
+
+    errSums <- summer -< err
+
+    currInp  <- summer -< 0.2 * err + 0.01 * errSums
+    currResp <- blackBoxSystem  -< currInp
+
+    id -< currVal
+  where
+    blackBoxSystem = id         -- just to simplify things
+~~~
+
+So this is an `Auto` that takes in a `Double` --- the control --- and outputs
+a `Double` --- the response.  The goal is to get the response to "match"
+control, by running a value, `currInp`, through a "black box system" (To
+simplify here, we're only running `currInp` through `id`).
+
+The logic is this:
+
+1.  The "error" value `err` is the difference of the control and the current
+    response.
+2.  The "sum of errors" `errSums` value is the cumulative sum of all of the
+    error values so far.
+3.  The current input `currInp` is adjusted at every step with `err` and
+    `errSums`.
+4.  `currInp` is fed through our black bock system to get the current
+    response.  In this case, it's just `id`, so it returns it as-is.
+
+
+Look at what we wrote; isn't it just...beautifully declarative?  Elegant?  We
+basically just took the description word-for-word and translated it.  We
+didn't need to worry about keeping track of state...swapping variables...there
+are no loops.  It all just basically popped out exactly like we would have
+"said" it.
+
+But, do you see the problem?  To calculate `err`, we used `currResp`.  But to
+get `currResp`, we need `err`!
+
+We need to be able to define "recursive bindings".  Have Autos recursively
+depend on each other.
+
+In another language, this would be hopeless.  We'd have to have to resort to
+keeping explicit state and using a loop.  However, with Haskell...and the
+world of laziness, recursive bindings, and tying loops...I think that we're
+going to have a *real win* if we can make something like what we wrote work.
+
+### ArrowLoop
+
 

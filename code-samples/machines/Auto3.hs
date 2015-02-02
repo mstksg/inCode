@@ -105,12 +105,18 @@ logging a = proc x -> do
     arrM (appendFile "log.txt") -< show y ++ "\n"
     id -< y
 
-multiplyRandomly :: AutoM (State StdGen) Double Double
-multiplyRandomly = proc n -> do
-    toLeaveAlone <- arrM (\_ -> state random) -< ()
-    if toLeaveAlone
-      then id -< n
-      else do
-        theFactor <- arrM (\_ -> state random) -< ()
-        id -< n * theFactor
+laggingSummer :: Num a => a -> Auto a a
+laggingSummer x0 = ACons $ \x -> (x0, laggingSummer (x0 + x))
+
+piTargeter :: Auto Double Double
+piTargeter = proc control -> do
+    rec let err = control - currResp
+        errSums <- laggingSummer 0 -< err
+
+        let p = 0.2  * err
+            i = 0.01 * errSums
+
+        currResp <- laggingSummer 0 -< p + i
+
+    id -< currVal
 
