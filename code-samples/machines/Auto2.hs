@@ -57,7 +57,9 @@ instance ArrowChoice Auto where
 
 instance ArrowLoop Auto where
     loop a = ACons $ \x ->
-        (fst *** loop) (fix (\ ~((_,d), _) -> runAuto a (x, d)))
+               let ((y, d), a') = runAuto a (x, d)
+               in  (y, loop a')
+
 
 -- | Helpers
 

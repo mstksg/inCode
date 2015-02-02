@@ -206,7 +206,7 @@ wrote in the last article, along with the new monadic instances:
 Neat, huh?
 
 Instead of having to learn over again the logic of `Functor`, `Applicative`,
-`Arrow`, `ArrowPlus`, etc., you can directly use the intution that you gained
+`Arrow`, `ArrowPlus`, etc., you can directly use the intuition that you gained
 from the past part and apply it to here, if you abstract away function
 application and composition to application and composition in a context.
 
@@ -217,7 +217,6 @@ where we used naked application and composition :)[^compapl]
 lets you abstract over functions and function composition with `Category`,
 Haskell lets you abstract over values and function application with `Monad`,
 `Applicative`, and `Functor`.
-
 
 <div class="note">
 **Aside**
@@ -238,14 +237,24 @@ can be generalized to `Functor`, which ones `Applicative`...and which ones
 can't?
 </div>
 
+By the way, it might be worth noting that our original `Auto` type is
+identical to `AutoM Identity` --- all of the instances do the exact same
+thing.
+
 ### Putting it to use
 
 Now let's try using these!
 
 First some utility functions: `autoM`, which upgrades an `Auto a b` to an
-`AutoM m a b` for any `Monad` `m`, and `arrM`, which is like `arr`, but
+`AutoM m a b` for any `Monad` `m`[^autom], and `arrM`, which is like `arr`, but
 instead of turning an `a -> b` into an `Auto a b`, it turns an `a -> m b` into
 an `AutoM m a b`:
+
+[^autom]: This function really could be avoided if we had written all of our
+`Auto`s is `AutoM`'s parameterized over all `m` in the first place --- that
+is, written our `Auto a b`'s as the equally powerful `Monad m => AutoM m a b`.
+But we're just going to run with `Auto` for the rest of this series to make
+things a bit less confusing.
 
 ~~~haskell
 !!!machines/Auto3.hs "autoM ::" "arrM ::" machines
@@ -447,31 +456,6 @@ world --- or whether or not they are self-defeating --- is a complex story!
 
 [^dogma]: Which really isn't the point of these posts, anyway!
 
-<!-- I will however offer one tried-and-true monadic context that is used *to great -->
-<!-- extent* in the real world and in real life applications of `Auto`.  In fact, -->
-<!-- it is one of *the critical abstractions* that even *allows* `Auto` to be used -->
-<!-- in Functional Reactive Programming: `Reader`. -->
-
-<!-- With `AutoM (Reader r) a b`, instead of needing an `a` to get the next step, -->
-<!-- you need an `a` *and* a `b`. -->
-
-<!-- Meaning, instead of just passing an `a` to get the next step, you have to pass -->
-<!-- both an `a` *and* an `r` for every step. -->
-
-<!-- Having a `Reader r` environment gives every `Auto` access to shared, read-only -->
-<!-- global data.  But `Reader r` is *much more useful* than just "passing the -->
-<!-- parameter".  It's much more useful than manually explicitly requiring an `a` -->
-<!-- and an `r`.  `AutoM (Reader r) a b` is *more useful* than `Auto (a, r) b`. -->
-<!-- Why? -->
-
-<!-- Because we can *guarantee* that *every composed Auto* will, for every step, -->
-<!-- *receive the same `r`*.  With the manual parameter passing method, any `Auto` -->
-<!-- along the way can modify what they pass down along.  Using `Reader r` will -->
-<!-- guarantee that, across every "tick", every `Auto` gets the same `r`. -->
-
-<!-- We will see later that our ability to do this makes it possible to implement -->
-<!-- semantics-following FRP using `Auto`s. -->
-
 #### in State
 
 Here is a toy state example to demonstrate different autos talking to
@@ -532,40 +516,6 @@ and extra parameter...it really is quite a headache.  Imagine the source for
 
 But hey, if your program needs global state, then it's probably a good sign
 that you might have had a design flaw somewhere along the way, right?
-
-Luckily, with Haskell, we can have the best of both worlds.  If we have an
-*isolated part of our program* that needs a shared global state, we can write
-*that part* in `AutoM (State s)` --- and everything in that part, with that
-logic, can use the shared global state.  And then we can write an Auto
-transformer (we love those, don't we?):
-
-~~~haskell
-!!!machines/AutoState.hs "runStateAuto ::" machines
-~~~
-
-That takes any `AutoM (State s) a b` and turns it into an `Auto (a, s) (b,
-s)`.  Meaning, we can isolate a specific part of our overall program that
-needs a shared global state...and only have to deal with it there, as if it
-were a normal `Auto`.  We can compose it like normal now, too...and the
-implicit state from `State` is not accessible from outside in the same
-implicit way.
-
-And maybe we don't even want the outside to even ever *touch* the state, and
-recover our "local statefulness" principles:
-
-~~~haskell
-!!!machines/AutoState.hs "sealState ::" machines
-~~~
-
-This takes an `AutoM (State s)` and an initial state and turns it into a plain
-ol' `Auto` which chugs along, passing the internal state back into itself.
-We built the logic using global statefulness.  But now we can compose it as if
-it were locally stateful.  (Kind of like "scoping", in a sense...the `AutoM`'s
-have the global state in scope, and the `Auto` outside does not.)
-
-Basically, if you can isolate a portion of the logic of your program that
-needs "global" state, you can use `AutoM` to *compose `Auto`s in that
-matter*, and only in that portion.
 
 #### in Reader
 
@@ -641,13 +591,75 @@ composed Auto be manually "passed" the `dt` timestep.  But then we really
 don't have any "guarantees", besides checking ourselves, that every `Auto`
 down the road, down every composition, will have the same `dt`.
 
-By the way, we can pull the same trick that we pulled for `State` --- compose
-a sub-portion of our logic with a global common environment, and then use it
-as a part of a bigger logic that doesn't:
+
+#### Unrolling AutoM's
+
+We talked about a huge drawback of `State s` --- global mutable state is really
+something that we originally looked to `Auto` to avoid in the first place.
+But some portions of logic are much more convenient to write with autos that
+all have access to a global state.
+
+What if we could have the best of both worlds?  What if we knew that an
+isolated part of our program.logic needs access to some global state, and
+would be better written as an `AutoM (State s)` ... but we would rather not
+have the rest of the program have access to it, or even know about it?  Sort
+of like a "local scope", in other languages?
+
+We can do this!  We can write an Auto using global state --- most importantly,
+*taking advantage of Category, Arrow instances* to make things work like you
+want them to --- and then, at the end, "use them in a normal Auto":
 
 ~~~haskell
-!!!machines/AutoReader.hs "runReaderAuto ::" machines
+!!!machines/AutoState.hs "runStateAuto ::" machines
 ~~~
 
+This lets you turn any `AutoM (State s) a b` that you built up into an `Auto
+(a, s) (b, s)`...and throw it into any normal `Auto`.  At every step, give it
+the input state and get out the output state as another channel if
+input/output.  You'll have to throw in the state and the output manually,
+though...but you only do it *once*, instead of through every single
+composition.
+
+If we ever don't want the outside to ever have access to the state at all, we
+can recover our "local statefulness" principles that we loved so much by
+throwing in an initial state and letting it just tick itself away:
+
+~~~haskell
+!!!machines/AutoState.hs "sealStateAuto ::" machines
+~~~
+
+This "seals away" the state in a `AutoM (State s)` in an `Auto`; give it an
+initial `State` and it keeps on ticking away with that initial state, feeding
+it back into itself.
+
+The trick here is we "reduce" or "unroll" an `AutoM` into a normal `Auto`, so
+that we can compose it in with normal `Auto`s.  This way, we are allowed to
+"think" in whatever manner we want (global state, non-global state...),
+compose them in the way that suits us the best, and in the end, use them all
+together in the "greatest common denominator", `Auto`.
+
+<div class="note">
+**Aside**
+
+We can even pull this trick to turn any `AutoM (StateT s m)` into an `AutoM
+m`.  See if you can write it :)
+
+~~~haskell
+runStateAutoM :: AutoM (StateT s m) a b -> AutoM m a b
+runStateAutoM = ...
+~~~
+</div>
+
+We can do the same thing with `Reader`, btw --- compose a part of our program
+that would like a common global environment, and then use it in a bigger
+program that does not:
+
+~~~haskell
+!!!machines/AutoReader.hs "runReaderAuto ::" "sealReaderAuto ::" machines
+~~~
+
+`sealReaderAuto` here takes a `AutoM (Reader r)` and a permanent unchanging
+`r`, and returns just an normal `Auto` that repeatedly runs it with the given
+`r`.
 
 

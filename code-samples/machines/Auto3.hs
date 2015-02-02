@@ -1,6 +1,7 @@
 {-# LANGUAGE Arrows #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE RecursiveDo #-}
 
 module Auto3 where
 
@@ -9,6 +10,7 @@ import Auto2
 import System.Random
 import Control.Applicative
 import System.IO
+import Control.Monad.Fix
 import Control.Arrow
 import Control.Category
 import Control.Monad
@@ -76,6 +78,11 @@ instance Monad m => ArrowChoice (AutoM m) where
                      return (Left l', left a')
                    Right r ->
                      return (Right r, left a)
+
+instance MonadFix m => ArrowLoop (AutoM m) where
+    loop a = AConsM $ \x -> do
+               rec ((y, d), a') <- runAutoM a (x, d)
+               return (y, loop a')
 
 autoM :: Monad m => Auto a b -> AutoM m a b
 autoM a = AConsM $ \x -> let (y, a') = runAuto a x

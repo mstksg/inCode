@@ -34,6 +34,12 @@ fancyCalculus = proc x -> do
     id -< (deriv2, intdev)
 
 runReaderAuto :: AutoM (Reader r) a b -> Auto (a, r) b
-runReaderAuto a = ACons $ \(x, r) ->
-                    let (y, a') = runReader (runAutoM a x) r
+runReaderAuto a = ACons $ \(x, e) ->
+                    let (y, a') = runReader (runAutoM a x) e
                     in  (y, runReaderAuto a')
+
+sealReaderAuto :: AutoM (Reader r) a b -> r -> Auto a b
+sealReaderAuto a e = ACons $ \x ->
+                       let (y, a') = runReader (runAutoM a x) e
+                       in  (y, sealReaderAuto a e)
+
