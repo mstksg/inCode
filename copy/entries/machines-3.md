@@ -753,5 +753,60 @@ an aside --- it's slightly heavy, but some people like to understand.
 Without further ado ---
 
 ~~~haskell
-!!!machines/Auto3.hs "piController ::" machines
+!!!machines/Auto3.hs "piTargeter ::" machines
 ~~~
+
+The key here is the *rec* keyword.  Basically, we require that we write an
+instance of `ArrowLoop` for our `Auto`...and now things can refer to
+each other, and it all works out like magic!  Now our solution works...the
+feedback loop is closed with the usage of `rec`.  Now, our algorithm looks
+*exactly* like how we would "declare" the relationship of all the variables.
+We "declare" that `err` is the difference between the control and the
+response.  We "declare" that `errSums` is the cumulative sum of the error
+values.  We "declare" that our `currInp` is the cumulative sum of all of the
+adjustment terms.  And we "declare" that our response is just the result of
+feeding our input through our black box.
+
+No loops.  No iteration.  No mutable variables.  Just...a declaration of
+relationships.
+
+Wait wait wait hold on...but how does this even work?  Is this magic?  Can we
+just throw *anything* into a recursive binding, and expect it to magically
+figure out what we mean?
+
+Kinda, yes, no.  This works based on Haskell's laziness.  It's the reason
+something like `fix` works:
+
+~~~haskell
+fix :: (a -> a) -> a
+fix f = f (fix f)
+~~~
+
+Infinite loop, right?
+
+~~~haskell
+ghci> head (fix (1:))
+1
+~~~
+
+What?
+
+`fix (1:)` is basically an infinite lists of ones.  But remember that `head`
+only requires the first element to be evaluated:
+
+~~~haskell
+head (fix (1:))
+head (1 : fix (1:))
+1
+~~~
+
+So that's the key.  If what we *want* doesn't require the entire result of the
+infinite loop...then we can safely reason about infinite recursion in haskell.
+
+So the key here really is this function that I sneakily introduced,
+`laggingSummer`:
+
+~~~haskell
+!!!machines/Auto3.hs "laggingSummer ::" machines
+~~~
+
