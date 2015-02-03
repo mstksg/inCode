@@ -889,10 +889,10 @@ The type signature seems a bit funny.  Loop takes a morphism from `(a, c)` to
 that?
 
 I'll point you to [a whole article about the `(->)` instance of
-`ArrowLoop`][circularprogrmaming] and how it is useful, if you're interested.
+`ArrowLoop`][circprog] and how it is useful, if you're interested.
 But we're looking at `Auto` for now.
 
-[circularprogramming]: https://wiki.haskell.org/Circular_programming
+[circprog]: https://wiki.haskell.org/Circular_programming
 
 We can write an `ArrowLoop` instance for `Auto`:
 
@@ -902,27 +902,57 @@ We can write an `ArrowLoop` instance for `Auto`:
 
 So what does this mean?  When will we be able to "get a `y`"?
 
-We will get `y` *in the case where `y` does not depend on `x` or `d`*.
+We will be able to get a `y` in the case that the `Auto` can just "pop out"
+your `y` without ever evaluating its arguments...or only using `x`.
 
-If we just want `y`, then
+The evaluation of `a'` is then deferred until later...and through this,
+everything kinda makes sense.  The loop is closed.  See the article linked
+above for more information on how `loop` really works.
 
-<!-- (By the way, we can write the exact same instance again for `AutoM` by taking -->
-<!-- advantage of `MonadFix`, which extends this recursion idea to monads that -->
-<!-- support it: -->
+The actual desugaring of a `rec` block is a little tricky, but we can
+trust that if we have a properly defined `loop` (that typechecks and has the
+circular dependencies that loop demands), then `ArrowLoop` will do what it is
+supposed to do.
 
-<!-- ~~~haskell -->
-<!-- instance MonadFix m => ArrowLoop (AutoM m) where -->
-<!--     loop a = AConsM $ \x -> do -->
-<!--                rec ((y, d), a') <- runAutoM a (x, d) -->
-<!--                return (y, loop a') -->
-<!-- ~~~ -->
-<!-- ) -->
+In any case, we can actually understand *how to work with rec blocks* pretty
+well --- as long as we can have an `Auto` in the pipeline that can pop
+something out immediately ignoring its input, then we can rest assured that
+our knot will be closed.
 
+By the way, this trick works with `ArrowM` too --- provided that the `Monad`
+is an instance of `MonadFix`, which is basically a generalization of the
+recursive `let` bindings we used above:
 
-
-
+~~~haskell
+!!!machines/Auto3.hs "instance MonadFix m => ArrowLoop (AutoM m)" machines
+~~~
 </div>
 
+
+Going Kleisli
+-------------
+
+This is going to be our last "modification" to the `Auto` type --- one more
+common `Auto` variation/trick that is used in real life usages of `Auto`.
+
+Strap on your category theory hats.  We're going Kleisli.
+
+It might some times be convenient to imagine the *results* of the `Auto`s
+coming in contexts --- for example, `Maybe`:
+
+~~~haskell
+Auto a (Maybe b)
+~~~
+
+How can we interpret/use this?  In many domains, this is used to model
+"on/off" behavior of `Auto`s.  The `Auto` is "on" if the output is `Just`, and
+"off" if the output is `Nothing`.
+
+We can imagine "baking this in" to our Auto type:
+
+~~~haskell
+!!!machines/AutoOn.hs "newtype AutoOn" machines
+~~~
 
 
 
