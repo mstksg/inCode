@@ -105,18 +105,21 @@ logging a = proc x -> do
     arrM (appendFile "log.txt") -< show y ++ "\n"
     id -< y
 
-laggingSummer :: Num a => a -> Auto a a
-laggingSummer x0 = ACons $ \x -> (x0, laggingSummer (x0 + x))
+laggingSummer :: Num a => Auto a a
+laggingSummer = sumFrom 0
+  where
+    sumFrom :: Num a => a -> Auto a a
+    sumFrom x0 = ACons $ \x -> (x0, sumFrom (x0 + x))
 
 piTargeter :: Auto Double Double
 piTargeter = proc control -> do
-    rec let err = control - currResp
-        errSums <- laggingSummer 0 -< err
+    rec let err = control - response
+        errSums  <- summer         -< err
 
-        let p = 0.2  * err
-            i = 0.01 * errSums
+        input    <- laggingSummer  -< 0.2 * err + 0.01 * errSums
+        response <- blackBoxSystem -< input
 
-        currResp <- laggingSummer 0 -< p + i
-
-    id -< currVal
+    id -< response
+  where
+    blackBoxSystem = id     -- to simplify things :)
 

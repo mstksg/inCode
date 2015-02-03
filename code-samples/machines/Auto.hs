@@ -63,10 +63,10 @@ isEvenAuto = isEvenAutoFrom 1
       in  ( even c, isEvenAutoFrom (c + 1) )
 
 -- summer: outputs the result of all the integer inputs it has received.
-summer :: Auto Int Int
+summer :: Num a => Auto a a
 summer = sumFrom 0
   where
-    sumFrom :: Int -> Auto Int Int
+    sumFrom :: Num a => a -> Auto a a
     sumFrom n = ACons $ \input ->
       let s = n + input
       in  ( s , sumFrom s )

@@ -697,40 +697,42 @@ Let's see how we would write this using our `Auto`s:
 ~~~haskell
 piTargeter :: Auto Double Double
 piTargeter = proc control -> do
-    let err = control - currResp
+    let err = control - response
+    errSums  <- summer         -< err
 
-    errSums <- summer -< err
+    input    <- summer         -< 0.2 * err + 0.01 * errSums
+    response <- blackBoxSystem -< input
 
-    currInp  <- summer -< 0.2 * err + 0.01 * errSums
-    currResp <- blackBoxSystem  -< currInp
-
-    id -< currVal
+    id -< response
   where
-    blackBoxSystem = id         -- just to simplify things
+    blackBoxSystem = id     -- to simplify things :)
+
 ~~~
 
 So this is an `Auto` that takes in a `Double` --- the control --- and outputs
 a `Double` --- the response.  The goal is to get the response to "match"
-control, by running a value, `currInp`, through a "black box system" (To
-simplify here, we're only running `currInp` through `id`).
+control, by running a value, `input`, through a "black box system" (To
+simplify here, we're only running `input` through `id`).
 
-The logic is this:
+Here is the "logic", or the relationships between the values:
 
-1.  The "error" value `err` is the difference of the control and the current
+1.  The error value `err` is the difference between the control and the
     response.
-2.  The "sum of errors" `errSums` value is the cumulative sum of all of the
-    error values so far.
-3.  The current input `currInp` is adjusted at every step with `err` and
-    `errSums`.
-4.  `currInp` is fed through our black bock system to get the current
-    response.  In this case, it's just `id`, so it returns it as-is.
+2.  The sum of errors `errSums` is the cumulative sum of all of the error
+    values so far.
+3.  The input `input` is the cumulative sum of all of the correction terms: a
+    multiple of `err` and a multiple of `errSums`.
+4.  The response `response` is the result of running the input through the
+    black box system (here, just `id`).
+5.  The output is the response!
 
-
-Look at what we wrote; isn't it just...beautifully declarative?  Elegant?  We
-basically just took the description word-for-word and translated it.  We
-didn't need to worry about keeping track of state...swapping variables...there
-are no loops.  It all just basically popped out exactly like we would have
-"said" it.
+Look at what we wrote.  Isn't it just...beautifully declarative?  Elegant?
+All we stated were *relationships between terms*...we didn't worry about
+state, loops, variables, iterations...there is no concept of "how to update",
+everything is just "how things are".  It basically popped up exactly as how we
+"said" it.  I don't know about you, but this demonstration always leaves me
+amazed, and was one of the things that sold me on this abstraction in the
+first place.
 
 But, do you see the problem?  To calculate `err`, we used `currResp`.  But to
 get `currResp`, we need `err`!
@@ -757,18 +759,27 @@ Without further ado ---
 ~~~
 
 The key here is the *rec* keyword.  Basically, we require that we write an
-instance of `ArrowLoop` for our `Auto`...and now things can refer to
-each other, and it all works out like magic!  Now our solution works...the
-feedback loop is closed with the usage of `rec`.  Now, our algorithm looks
-*exactly* like how we would "declare" the relationship of all the variables.
-We "declare" that `err` is the difference between the control and the
-response.  We "declare" that `errSums` is the cumulative sum of the error
-values.  We "declare" that our `currInp` is the cumulative sum of all of the
-adjustment terms.  And we "declare" that our response is just the result of
-feeding our input through our black box.
+instance of `ArrowLoop` for our `Auto`...and now things can refer to each
+other, and it all works out like magic!  Now our solution works...the feedback
+loop is closed with the usage of `rec`.  Now, our algorithm looks *exactly*
+like how we would "declare" the relationship of all the variables. We
+"declare" that `err` is the difference between the control and the response.
+We "declare" that `errSums` is the cumulative sum of the error values.  We
+"declare" that our `input` is the cumulative sum of all of the adjustment
+terms.  And we "declare" that our response is just the result of feeding our
+input through our black box.
 
 No loops.  No iteration.  No mutable variables.  Just...a declaration of
 relationships.
+
+~~~haskell
+ghci> testAuto_ piTargeter [5,5.01..6]      -- vary our desired target slowly
+[ 0, 1.05, 1.93, 2.67, 3.28 ...         -- "seeking"/tracking to 5
+, 5.96, 5.97, 5.98, 5.99, 6.00          -- properly tracking
+]
+~~~
+
+Perfect!
 
 Wait wait wait hold on...but how does this even work?  Is this magic?  Can we
 just throw *anything* into a recursive binding, and expect it to magically
@@ -796,7 +807,7 @@ only requires the first element to be evaluated:
 
 ~~~haskell
 head (fix (1:))
-head (1 : fix (1:))
+head (1 : fix (1:))     -- head (x:_) = x
 1
 ~~~
 
@@ -809,4 +820,111 @@ So the key here really is this function that I sneakily introduced,
 ~~~haskell
 !!!machines/Auto3.hs "laggingSummer ::" machines
 ~~~
+
+`laggingSummer` is like `summer`, except all of the sums are delayed.  It
+*doesn't use its current input* to create the output.  If the accumulator is
+at 10, and it receives a 2, it *outputs 10*, and *updates the accumulator to
+12*.
+
+~~~haskell
+ghci> testAuto_ laggingSummer [5..10]
+[0, 5, 11, 18, 26, 35]
+~~~
+
+The accumulator starts off at 0, and receives a 5...it then outputs 0 and
+updates the accumulator to 5.  The accumulator then has 5 and receives a
+6...it outputs 5 and then updates the accumulator to 11.  Etc.  The next step
+it would output 45 *no matter what input it gets*.
+
+Look at the definition of `piTargeter` again.  How would it get its "first
+value"?
+
+1.  The first output is just `response`.
+2.  The first response is just the first `input`
+3.  The first `input` is just the result of `laggingSummer`.
+4.  The first result of `laggingSummer` is 0.
+
+And that's it!  Loop closed!  The first result is zero...no infinite recursion
+here.
+
+Now that we know that the first result of `response` is 0, we can also find
+the first values of `err` and `errSums`:  The first `err` is the first control
+(input to the `Auto`) minus 0 (the first response), and the first `errSums` is
+a cumulative sum of `errs`, so it too starts off as the first control minus
+zero.
+
+So now, we have all of the first values of *all* of our Autos.  Check!  Now
+the next step is the same thing!
+
+Recursive bindings have a lot of power in that they allow us to directly
+translate natural language and (cyclic) graph-like "relationships" (here,
+between the different values of a control system) and model them *as
+relationships*.  Not as loops and updates and state modifications.  But *as
+relationships*.  Something we can *declare*, at a high level.
+
+And that's definitely something I would write home about.
+
+The only caveat is, of course, that we have to make sure our loop can produce
+a "first value" without worrying about its input.  Autos like `laggingSummer`
+give this to us.
+
+In the following aside, I detail the exact mechanics of how this works :)
+
+<div class="note">
+**Aside**
+
+Ah, so you're curious?  Or maybe you are just one of those people who really
+wants to know how things work?
+
+The `rec` keyword in proc/do blocks desugars to applications of a function
+called `loop`:
+
+~~~haskell
+class Arrow r => ArrowLoop r where
+    loop :: r (a, c) (b, c) -> r a b
+~~~
+
+The type signature seems a bit funny.  Loop takes a morphism from `(a, c)` to
+`(b, c)` and turns it into a morphism from `a` to `b`.  But...how does it do
+that?
+
+I'll point you to [a whole article about the `(->)` instance of
+`ArrowLoop`][circularprogrmaming] and how it is useful, if you're interested.
+But we're looking at `Auto` for now.
+
+[circularprogramming]: https://wiki.haskell.org/Circular_programming
+
+We can write an `ArrowLoop` instance for `Auto`:
+
+~~~haskell
+!!!machines/Auto2.hs "instance ArrowLoop Auto" machines
+~~~
+
+So what does this mean?  When will we be able to "get a `y`"?
+
+We will get `y` *in the case where `y` does not depend on `x` or `d`*.
+
+If we just want `y`, then
+
+<!-- (By the way, we can write the exact same instance again for `AutoM` by taking -->
+<!-- advantage of `MonadFix`, which extends this recursion idea to monads that -->
+<!-- support it: -->
+
+<!-- ~~~haskell -->
+<!-- instance MonadFix m => ArrowLoop (AutoM m) where -->
+<!--     loop a = AConsM $ \x -> do -->
+<!--                rec ((y, d), a') <- runAutoM a (x, d) -->
+<!--                return (y, loop a') -->
+<!-- ~~~ -->
+<!-- ) -->
+
+
+
+
+</div>
+
+
+
+
+
 
