@@ -954,6 +954,19 @@ We can imagine "baking this in" to our Auto type:
 !!!machines/AutoOn.hs "newtype AutoOn" machines
 ~~~
 
+Where the semantics of composition are: if you get a `Nothing` as an input,
+just don't tick anything and pop out a `Nothing`; if you get a `Just x` as an
+input run the auto on the `x`:
+
+~~~haskell
+!!!machines/AutoOn.hs "instance Category AutoOn" machines
+~~~
+
+The other instances are on the file linked above, but I won't post them here,
+so you can write them as an exercise.
+
+
+
 
 
 
