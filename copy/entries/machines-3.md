@@ -963,7 +963,54 @@ input run the auto on the `x`:
 ~~~
 
 The other instances are on the file linked above, but I won't post them here,
-so you can write them as an exercise.
+so you can write them as an exercise.  Have fun on the `ArrowLoop` instance!
+
+I'm not going to spend too much time on this, other than saying that it is
+useful to imagine how it might be useful to have an "off" Auto "shut down"
+every next Auto in the chain.
+
+One neat thing is that `AutoOn` admits a handy `Alternative` instance; we want
+`(<|>)` to squish two `AutoOn`'s into one, where the new one runs *both* on
+the same input (kind of like `(&&&)` does), and returns the first one that is
+`Just`.
+
+~~~haskell
+(<|>) :: AutoOn a b -> AutoOn a b -> AutoOn a b
+~~~
+
+~~~haskell
+!!!machines/AutoOn.hs "instance Alternative (AutoOn a)"
+~~~
+
+Unexpectedly, we also get the handy `empty`, which is a "fail here" `AutoOn`.
+Feed anything through `empty` and it'll produce a failure no matter what.
+
+Let's test this out; first, some helper functions (the same ones we wrote for
+`AutoM`)
+
+~~~haskell
+!!!machines/AutoOn.hs "autoOn ::" "arrOn ::" "fromAutoOn ::" machines
+~~~
+
+`autoOn` turns an `Auto a b` into an `AutoOn a b`, where the result is always
+`Just`.  `arrOn` is like `arr` and `arrM`...it takes an `a -> Maybe b` and
+turns it into an `AutoOn a b`.  `fromAutoOn` turns an `AutoOn a b` into a
+normal `Auto a (Maybe b)`, just so that we can leverage our existing test
+functions on normal `Auto`s.
+
+Let's play around with some test `AutoOn`s!
+
+~~~haskell
+!!!machines/AutoOn.hs "onFor ::" "filterA ::" "untilA ::" machines
+~~~
+
+
+
+note to remember that you can't have autos in a Proc block depend on results
+
+
+
+
 
 
 

@@ -1,15 +1,31 @@
+{-# LANGUAGE Arrows #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE RecursiveDo #-}
 
 module AutoOn where
 
+import Auto
+import Control.Monad
 import Control.Applicative
 import Control.Arrow
-import Control.Monad.Fix
 import Control.Category
+import Control.Monad.Fix
 import Prelude hiding      ((.), id)
 
 newtype AutoOn a b = AConsOn { runAutoOn :: a -> (Maybe b, AutoOn a b) }
+
+autoOn :: Auto a b -> AutoOn a b
+autoOn a = AConsOn $ \x ->
+             let (y, a') = runAuto a x
+             in  (Just y, autoOn a')
+
+arrOn :: (a -> Maybe b) -> AutoOn a b
+arrOn f = AConsOn $ \x -> (f x, arrOn f)
+
+fromAutoOn :: AutoOn a b -> Auto a (Maybe b)
+fromAutoOn a = ACons $ \x ->
+                 let (y, a') = runAutoOn a x
+                 in  (y, fromAutoOn a')
 
 -- | Instances
 instance Category AutoOn where
@@ -68,3 +84,30 @@ instance ArrowLoop AutoOn where
                in  case res of
                      Just (_y, _a') -> (Just _y, loop _a')
                      Nothing        -> (Nothing, loop a)
+
+
+instance Alternative (AutoOn a) where
+    empty     = AConsOn $ \_ -> (Nothing, empty)
+    a1 <|> a2 = AConsOn $ \x ->
+                  let (y1, a1') = runAutoOn a1 x
+                      (y2, a2') = runAutoOn a2 x
+                  in  (y1 <|> y2, a1' <|> a2')
+
+
+onFor :: Int -> AutoOn a a
+onFor n = proc x -> do
+    i <- autoOn summer -< 1
+    if i <= n
+      then id    -< x       -- succeed
+      else empty -< x       -- fail
+
+filterA :: (a -> Bool) -> AutoOn a a
+filterA p = arrOn (\x -> x <$ guard (p x))
+
+untilA :: (a -> Bool) -> AutoOn a a
+untilA p = proc x -> do
+    stopped <- autoOn (autoFold (||) False) -< p x
+    if stopped
+      then empty -< x       -- fail
+      else id    -< x       -- succeed
+    
