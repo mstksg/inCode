@@ -1172,7 +1172,7 @@ seems to imply.  Neat!
 Wrapping it up
 --------------
 
-Wow, this was a doozy, wasn't it?
+With so many new avenues and features of
 
 
 
