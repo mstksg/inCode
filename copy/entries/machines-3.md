@@ -1,5 +1,5 @@
-Effectful, Recursive, and Real-World Autos: Intro to Machine/Auto Part 3
-========================================================================
+Effectful, Recursive, Real-World Autos: Intro to Machine/Auto Part 3
+====================================================================
 
 Categories
 :   Haskell
@@ -34,10 +34,24 @@ this composition, and saw some neat properties, like local statefulness.
 
 [part2]: http://blog.jle.im/entry/auto-as-category-applicative-arrow-intro-to-machines
 
-Here we are going to push the abstraction further to see where it will go by
-introducing mechanisms for adding effects, making the plain ol' Auto type into
-something rich and featureful. And finally, at the very end, we'll do a short
-case study on one motivating example: arrowized FRP libraries!
+At this point I consider most of the important concepts about working with
+`Auto` covered, but now, we are going to push this abstraction further, to the
+limits of real-world industrial usage.  We're going to be exploring mechanisms
+for adding effects and, making the plain ol' `Auto` into something more rich
+and featureful.  We'll see how to express denotative and declarative
+compositions using recursively binded `Auto`s, and what that even means.
+Overall, it'll be a trip down several avenues to motivate and see practical
+Auto usage.[^nofrp]
+
+[^nofrp]: Some of you might recall an earlier plan for this post that would
+include FRP.  Unfortunately, I've refactored FRP into a completely new topic,
+because I've realized that the two aren't exactly as related as I had led you
+all to believe.  Still, most if not all of these techniques here are used in
+actual arrowized FRP libraries today.  So, look out for that one soon!
+
+A fair bit of warning --- if the last post is not fresh in your mind, or you
+still have some holes, I recommend going back and reading through them again.
+This one is going to hit hard and fast :)
 
 As always, feel free to leave a comment if you have any questions, drop by
 freenode's *#haskell*, or find me on [twitter][] :)
@@ -963,7 +977,99 @@ input run the auto on the `x`:
 ~~~
 
 The other instances are on the file linked above, but I won't post them here,
-so you can write them as an exercise.  Have fun on the `ArrowLoop` instance!
+so you can write them as an exercise.  Have fun on the `ArrowLoop`
+instance![^autoonnt]
+
+[^autoonnt]: Another exercise you can do if you wanted is to write the exact
+same instances, but for `newtype AutoOn a b = AutoOn (Auto a (Maybe b))` :)
+
+<div class="note">
+**Aside**
+
+This aside contains category-theoretic justification for what we just did.
+You can feel free to skip it if you aren't really too familiar with the basics
+of Category Theory ... but, if you are, this might be a fun perspective :)
+
+What we've really done here is taken a category with objects as Haskell types
+and morphisms are `Auto a b`, and turned it into a category with objects as
+Haskell types and whose morphisms are `Auto a (m b)`, where `m` is a Monad.
+
+The act of forming the second category from the first is called forming the
+*Kleisli category* on a category.  We took `Auto` and are now looking at the
+Kleisli category on `Auto`.
+
+By the way, a "Monad" here is actually different from the normal `Monad`
+typeclass found in standard Haskell.  A Monad is an endofunctor on a category
+with two associated natural transformations --- unit and join.
+
+Because we're not dealing with the typical Haskell category anymore (on
+`(->)`), we have to rethink what we actually "have".
+
+For any Haskell Monad, we get for free our natural transformations:
+
+~~~haskell
+unitA :: Monad m => Auto a (m a)
+unitA = arr return
+
+joinA :: Monad m => Auto (m (m a)) a
+joinA = arr join
+~~~
+
+But what we *don't get*, necessarily, the *endofunctor*.  An endofunctor must
+map both objects and morphisms.  A type constructor like `Maybe` can map
+objects fine --- we have the same objects in `Auto` as we do in `(->)`
+(haskell types).  But we also need the ability to map *morphism*:
+
+~~~haskell
+class FunctorA f where
+    fmapA :: Auto a b -> Auto (f a) (f b)
+    -- fmapA id = id
+    -- fmapA g . fmapA f = fmapA (g . f)
+~~~
+
+So, if this function exists for a type constructor, following the usual `fmap`
+laws, then that type is an endofunctor in our `Auto` category.  And if it's a
+Monad in `(->)`, then it's also then a Monad in `Auto`.
+
+We can write such an `fmapA` for `Maybe`:
+
+~~~haskell
+instance FunctorA Maybe where
+    fmapA a = ACons $ \x ->
+                case x of
+                  Just _x -> let (y, a') = runAuto a x
+                             in  (Just y, fmapA a')
+                  Nothing -> (Nothing, fmapA a)
+~~~
+
+And, it is a fact that if we have a Monad, we can write the composition of its
+Kleisli category for free:
+
+~~~haskell
+(<==<) :: (FunctorA f, Monad f) => Auto a (f c) -> Auto a (f b) -> Auto a (f c)
+g <==< f = arr join . fmapA g . f
+~~~
+
+In fact, for `f ~ Maybe`, this definition is identical to the one for the
+`Category` instance we wrote above for `AutoOn`.
+
+And, if the `FunctorA` is a real functor, and if the `Monad` is a real monad,
+then we have for free the associativity of this super-fish operator:
+
+
+~~~haskell
+(h <==< g) <==< f == h <==< (g <==< f)
+f <==< arr return == arr return <==< f == f
+~~~
+
+Category theory is neat!
+
+By the way, definitely not all endofunctors on `(->)` are endofunctors on
+`Auto`.  We see that `Maybe` is one.  Can you think of any others?  Any others
+where we could write an instance of `FunctorA` that follows the laws?  Think
+about it, and post some in the comments!
+</div>
+
 
 I'm not going to spend too much time on this, other than saying that it is
 useful to imagine how it might be useful to have an "off" Auto "shut down"
@@ -985,6 +1091,17 @@ the same input (kind of like `(&&&)` does), and returns the first one that is
 Unexpectedly, we also get the handy `empty`, which is a "fail here" `AutoOn`.
 Feed anything through `empty` and it'll produce a failure no matter what.
 
+There's also an interesting and useful concept called "switching" that comes
+from this; the ability to switch from running one Auto or the other by looking
+if the result is on or off --- here is a common switch that behaves like the
+first `AutoOn` until it is off, and then behaves like the second forever more:
+
+~~~haskell
+!!!machines/AutoOn.hs "(-->) ::" machines
+~~~
+
+### Usages
+
 Let's test this out; first, some helper functions (the same ones we wrote for
 `AutoM`)
 
@@ -1003,6 +1120,63 @@ Let's play around with some test `AutoOn`s!
 ~~~haskell
 !!!machines/AutoOn.hs "onFor ::" "filterA ::" "untilA ::" machines
 ~~~
+
+One immediate usage is that we can use these to "short circuit" our proc
+blocks, just like with monadic `Maybe` and do blocks:
+
+~~~haskell
+!!!machines/AutoOn.hs "shortCircuit1 ::" "shortCircut2 ::" machines
+~~~
+
+If either the `filterA` or the `onFor` are off, then the whole thing is off.
+How do you think the two differ?
+
+~~~haskell
+ghci> testAuto (fromAutoOn shortCircuit1) [1..12]
+[ Nothing, Just 20, Nothing, Just 40, Nothing, Just 60
+, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing]
+ghci> testAuto (fromAutoOn shortCircuit2) [1..12]
+[ Nothing, Just 20, Nothing, Nothing, Nothing, Nothing
+, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing]
+~~~
+
+Ah.  For `shortCircuit1`, as soon as the `filterA` fails, it jumps *straight
+to the end*, short-circuiting; it doesn't bother "ticking along" the `onFor`
+and updating its state!
+
+The arguably more interesting usage, and the one that happens often in real
+life, is the powerful usage of the switching combinator `(-->)` inorder to be
+able to combine multiple `Auto`'s that simulate "stages"...an `Auto` can "do
+what it wants", and then chose to "hand it off" when it is ready.
+
+~~~haskell
+!!!machines/AutoOn.hs "stages ::"
+~~~
+
+~~~haskell
+ghci> testAuto_ (fromAutoOn stages) [1..15]
+[ Just (-1), Just (-2)              -- stage 1
+, Just 3, Just 7, Just 12           -- stage 2
+, Just 100, Just 200, Just 100      -- stage 3
+, Just (-9), Just (-10)             -- stage 1
+, Just 11                           -- stage 2
+, Just 100, Just 200, Just 100      -- stage 3
+, Just (-15), Just (-16)            -- stage 1
+]
+
+~~~
+
+Note that the stages continually "loop around", as our recursive definition
+seems to imply.  Neat!
+
+Wrapping it up
+--------------
+
+Wow, this was a doozy, wasn't it?
+
+
+
+
 
 
 
