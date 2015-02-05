@@ -52,6 +52,9 @@ or stop by freenode's #haskell on irc!)
 Why FRP?
 --------
 
+This series doesn't directly deal with FRP, but implementing FRP is one of the
+motivating factors for what we are discussing.
+
 So why do we even bother with FRP?  Why not just just program imperatively and
 mutate a state?  It's just as easy in a functional/pure language (with a
 trivial State monad wrapper) as it is in an imperative language.
@@ -73,9 +76,10 @@ compose those behaviors.
 
 So to proceed, in this post we are going to introduce Streams and (more
 importantly) Autos. In the next, we will be looking at Autos as a member of
-the powerful Category and Arrow typeclasses.  Finally, we will bring in the
-final machine we will be looking at, the Wire, to transition into the popular
-AFRP library [netwire][].
+the powerful Category and Arrow typeclasses.  In the final post, we'll really
+be throwing in a lot of useful enhancements to the `Auto` type in hopes that
+you may be prepared for anything you encounter in the real world involving it,
+including the popular AFRP library [netwire][].
 
 [netwire]: http://hackage.haskell.org/package/netwire
 

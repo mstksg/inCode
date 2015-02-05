@@ -122,11 +122,12 @@ untilA p = proc x -> do
     if stopped
       then empty -< x       -- fail
       else id    -< x       -- succeed
--- alternatively, using explicit recursion:
--- untilA p = AutoOn $ \x ->
---              if p x
---                then (Just x , untilA p)
---                else (Nothing, empty   )
+
+untilA' :: (a -> Bool) -> AutoOn a a
+untilA' p = AConsOn $ \x ->
+              if p x
+                then (Just x , untilA p)
+                else (Nothing, empty   )
     
 shortCircuit1 :: AutoOn Int Int
 shortCircuit1 = proc x -> do

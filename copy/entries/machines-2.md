@@ -28,8 +28,10 @@ how much more expressive and safe it makes our code.
 
 [part1]: http://blog.jle.im/entry/intro-to-machines-arrows-part-1-stream-and
 
-And eventually, we're going to tie it all together into how it fits into the
-semantics and implementation of Functional Reactive Programming!  Yay!
+One motivating factor that I will eventually write about is that we can use
+this to implement the semantics of Functional Reactive Programming, yay!  But
+through this, I hope you can actually see that it is useful for much, much
+more!
 
 As always, feel free to leave a comment if you have any questions, or try to
 find me on [twitter][], or drop by the #haskell Freenode IRC channel!  (I go
@@ -809,6 +811,45 @@ thing!
 This really demonstrates the core principles of what *composability* and
 *modularity* even really *mean*.
 
+#### A Quick Gotcha
+
+Remember that with proc notation, you are really just composing and building
+up a giant `Auto`.  Each individual `Auto` that you compose has to already be
+known at "composition time".  (That is, before you ever "run" it, the
+structure of the `Auto` is known and fixed).
+
+This means that you can't use bindings from *proc* blocks to form the `Auto`s
+that you are composing:
+
+~~~haskell
+foo = proc x -> do
+    y <- auto1 -< x
+    auto2 y -< y
+~~~
+
+This won't work.  That's because this is really supposed to be a composition
+of `auto1` and `auto2 y`.  But what is `auto2 y`?  `y` doesn't even
+exist when you are making the compositions!  `y` is just a name we gave to the
+output of `auto1`, in the process of our stepping it.  `y` doesn't exist until
+we "step" `foo`...so can't use `auto2 y` in the process of composing `foo`.
+
+To see more clearly, see what we'd do if we tried to write `foo` as a
+compositino:
+
+~~~haskell
+foo = auto2 y . auto1
+~~~
+
+Where does the `y` come from?!
+
+Hopefully from this it is clear to see that it doesn't make sense to use what
+you bind/name in *proc* notation to actually "create" the `Arrow` you are
+using.
+
+Remember, *proc* notation is `result <- arrow -< input`.  The `arrow` part has
+to already be known before everything even starts, so you can't use things you
+bind to determine it :)
+
 Moving on
 ---------
 
@@ -833,9 +874,6 @@ else.  And that this is really what "composability" really is all about.
 
 Up next, we will transition from Auto to the Wire abstraction, which is sort
 of like an Auto with more features.
-
-Then we will finally bridge the gap between the Wire abstraction
-implementation and the *semantic model* of FRP.
 
 And then we will be on our way! :D
 

@@ -1068,6 +1068,9 @@ By the way, definitely not all endofunctors on `(->)` are endofunctors on
 `Auto`.  We see that `Maybe` is one.  Can you think of any others?  Any others
 where we could write an instance of `FunctorA` that follows the laws?  Think
 about it, and post some in the comments!
+
+One immediate example is `Either e`, which is used for great effect in many
+FRP libraries!
 </div>
 
 
@@ -1119,6 +1122,12 @@ Let's play around with some test `AutoOn`s!
 
 ~~~haskell
 !!!machines/AutoOn.hs "onFor ::" "filterA ::" "untilA ::" machines
+
+-- alternatively, using explicit recursion:
+-- untilA p = AConsOn $ \x ->
+--              if p x
+--                then (Just x , untilA p)
+--                else (Nothing, empty   )
 ~~~
 
 One immediate usage is that we can use these to "short circuit" our proc
@@ -1169,25 +1178,165 @@ ghci> testAuto_ (fromAutoOn stages) [1..15]
 Note that the stages continually "loop around", as our recursive definition
 seems to imply.  Neat!
 
+<div class="note">
+**Aside**
+
+You might note that sometimes, to model on/off behavior, it might be nice to
+really be able to "keep on counting" even when receiving a `Nothing` in a
+composition.  For example, you might want both versions of `shortCircuit` to
+be the same --- let `onFor` still "keep on counting" even when it has been
+inhibited upstream.
+
+If this is the behavior you want to model (and this is actually the behavior
+modeled in some FRP libraries), then the type above isn't powerful enough;
+you'll have to go deeper:
+
+
+~~~haskell
+!!!machines/AutoOn2.hs "newtype AutoOn2" machines
+~~~
+
+So now, you can write something like `onFor`, which keeps on "ticking on" even
+if it receives a `Nothing` from upstream:
+
+~~~haskell
+!!!machines/AutoOn2.hs "onFor ::" machines
+
+~~~
+
+You can of course translate all of your `AutoOn`s into this new type:
+
+~~~haskell
+!!!machines/AutoOn2.hs "autoOn ::" machines
+~~~
+
+Or you can use the smart constructor method detailed immediately following.
+</div>
+
+
 Wrapping it up
 --------------
 
-With so many new avenues and features of
+Of course, we can always literally throw everything we can add together into
+our `Auto` type:
+
+~~~haskell
+!!!machines/AutoX.hs "newtype AutoX" machines
+~~~
+
+(Again, instances are in the source file, but not here in the post directly)
+
+Which has effects *and* short-circuiting.
+
+The benefit?  Well, we could work and compose "normal" `Auto`s, selecting for
+features that we only need to work with.  And then, when we need to, we can
+just "convert it up" to our "lowest common denominator" type.
+
+This is a common theme we've seen, isn't it?  Pick a common type that can
+absorb *everything*...and then work on transformations from your limited types
+to that common type.  When you want to work with limited power, simply work
+with the limited power types.  But when you want to combine multiple things
+together, all you need to do is convert into your lowest common
+denominator/common type!
+
+We can actually get rid of the need for separate types altogether by playing a
+neat trick: we can replace the "normal constructors" like `ACons`, `AConsM`,
+and `AConsOn`, with *smart constructors* `aCons`, `aConsM`, `aConsOn`, that
+work *exactly the same way*:
+
+~~~haskell
+!!!machines/AutoX.hs "aCons ::" "aConsM ::" "aConsOn ::" machines
+~~~
+
+Compare these definitions of `summer`, `arrM`, and `untilA` from their
+"specific type" "real constructor" versions to their `AutoX`-generic "smart
+constructor" versions:
+
+~~~haskell
+!!!machines/Auto.hs "summer ::" machines
+!!!machines/Auto3.hs "arrM ::" machines
+!!!machines/AutoOn.hs "untilA' ::" machines
+~~~
+
+~~~haskell
+!!!machines/AutoX.hs "summer ::" "arrM ::" "untilA ::" machines
+~~~
+
+They are literally exactly the same...we just change the constructor to the
+smart constructor!
+
+You might also note that we can express a "pure, non-Monadic" `Auto` in
+`AutoM` and `AutoX` by making the type polymorphic over all monads:
+
+~~~haskell
+!!!machines/AutoX.hs "summer ::"1 machines
+~~~
+
+An `Auto` with a type like this says, "I cannot perform any effects during
+stepping" --- and we know that `summer` definitely does not.
+
+The takeaway?  You don't even have to mungle around multiple types to make
+this strategy work --- just make all your `Auto`s from the start using these
+smart constructors, and they all compose together!
+
+Now it's all just to chose your "greatest common denominator".  If you know
+that your `Auto`s never inhibit for example, you can write the same `aCons`
+smart constructor for `AutoM`, as well.
+
+~~~haskell
+!!!machines/Auto3.hs "aCons ::"
+~~~
 
 
+Closing Remarks
+---------------
+
+That was a doozy, wasn't it?  For those of you who have been waiting, thank
+you for being patient.  I hope most if not all of you are still with me.
+
+Hopefully after going through all of these examples, you can take away some
+things:
+
+1.  From the previous parts, you've recognized the power of local statefulness
+    and the declarative style offered by proc notation.
+2.  From here, you've seen that the Auto type can be equipped in many ways to
+    give it many features which have practical applications in the real world.
+3.  You've learned how to handle those features and use and manage them
+    together in sane ways, and their limitations.
+4.  You've seen the power of recursive bindings to make complete the promise
+    of declarative programming --- being able to extend the realm of what we
+    can express "declaratively", and what we can *denote*.
+5.  You are ready to really understand anything you encounter involving `Auto`
+    and `Auto`-like entities.
+
+So, what's next?
+
+*   Feel ready to be able to have a grasp of the situation you see `Auto` in
+    the real world, such as in the popular FRP library [netwire][]!
+
+*   Apply it to the real world and your real world problems!
+
+*   Well, a bit of self-promotion, my upcoming library [auto][] is basically
+    supposed to be almost all of these concepts implemented as a finely tuned
+    and optimized library, attached with semantic tools for working with
+    real-world problems with these concepts of local statefulness,
+    composition, and declarative style.  You can really apply what you learned
+    here to start building projects right away!
+
+    Well, sorta.  Unfortunately, as of Feburary 2015, it is not yet ready for
+    real usage, and the API is still being finalized.  But now that this post
+    is finished, I will be posting more examples and hype posts in the
+    upcoming weeks and months leading up to its official release.
+
+    I am open to pull requests and help on the final stages of documentation
+    :)
+
+*   Look forward to an actual series on Arrowized FRP, coming up soon!  We'll
+    be using the concepts in this series to *implement FRP*.
 
 
-
-
-
-note to remember that you can't have autos in a Proc block depend on results
-
-
-
-
-
-
-
+[netwire]: http://hackage.haskell.org/package/netwire
+[auto]: https://github.com/mstksg/auto.
 
 
 

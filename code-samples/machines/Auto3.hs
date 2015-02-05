@@ -93,6 +93,9 @@ arrM f = AConsM $ \x -> do
                     y <- f x
                     return (y, arrM f)
 
+aCons :: Monad m => (a -> (b, AutoM m a b)) -> AutoM m a b
+aCons f = AConsM $ \x -> return (f x)
+
 replicateGets :: AutoM IO Int String
 replicateGets = proc n -> do
     ioString <- arrM (\_ -> getLine) -< ()
