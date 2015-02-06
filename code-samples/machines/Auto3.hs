@@ -126,3 +126,69 @@ piTargeter = proc control -> do
   where
     blackBoxSystem = id     -- to simplify things :)
 
+delay :: a -> Auto a a
+delay x0 = ACons $ \x -> (x0, delay x)
+
+integral :: Double -> AutoM (Reader Double) Double Double
+integral x0 = proc x -> do
+    dt <- arrM (\_ -> ask)  -< ()
+    autoM (autoFold (+) x0) -< x * dt
+
+derivative :: Double -> AutoM (Reader Double) Double Double
+derivative d0 = proc x -> do
+    dt   <- arrM (\_ -> ask) -< ()
+    last <- autoM (delay Nothing) -< Just x
+    id   -< maybe d0 (\lst -> (x - lst) / dt) last
+
+fancyCalculus :: AutoM (Reader Double) Double (Double, Double)
+fancyCalculus = proc x -> do
+    deriv  <- derivative 0 -< x
+    deriv2 <- derivative 0 -< deriv
+    intdev <- integral 0   -< deriv
+    id -< (deriv2, intdev)
+
+runReaderAuto :: AutoM (Reader r) a b -> Auto (a, r) b
+runReaderAuto a = ACons $ \(x, e) ->
+                    let (y, a') = runReader (runAutoM a x) e
+                    in  (y, runReaderAuto a')
+
+sealReaderAuto :: AutoM (Reader r) a b -> r -> Auto a b
+sealReaderAuto a e = ACons $ \x ->
+                       let (y, a') = runReader (runAutoM a x) e
+                       in  (y, sealReaderAuto a e)
+
+limit :: Int -> Auto a b -> AutoM (State Int) a (Maybe b)
+limit cost a = proc x -> do
+    fuel <- arrM (\_ -> get) -< ()
+    if fuel >= cost
+      then do
+        arrM (\_ -> modify (subtract cost)) -< ()
+        y <- autoM a -< x
+        id -< Just y
+      else
+        id -< Nothing
+
+sumSqDiff :: AutoM (State Int) Int Int
+sumSqDiff = proc x -> do
+  sums   <- fromMaybe 0 <$> limit 3 summer -< x
+  sumSqs <- fromMaybe 0 <$> limit 1 summer -< x^2
+  id -< sumSqs - sums
+
+stuff :: AutoM (State Int) Int (Maybe Int, Maybe Int, Int)
+stuff = proc x -> do
+    doubled <- limit 1 id -< x * 2
+    tripled <- if even x
+                 then limit 2 id -< x * 3
+                 else id         -< Just (x * 3)
+    sumSqD  <- sumSqDiff -< x
+    id -< (doubled, tripled, sumSqD)
+
+runStateAuto :: AutoM (State s) a b -> Auto (a, s) (b, s)
+runStateAuto a = ACons $ \(x, s) ->
+                   let ((y, a'), s') = runState (runAutoM a x) s
+                   in  ((y, s'), runStateAuto a')
+
+sealStateAuto :: AutoM (State s) a b -> s -> Auto a b
+sealStateAuto a s0 = ACons $ \x ->
+                       let ((y, a'), s1) = runState (runAutoM a x) s0
+                       in  (y, sealStateAuto a' s1)
