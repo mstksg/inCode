@@ -40,8 +40,8 @@ limits of real-world industrial usage.  We're going to be exploring mechanisms
 for adding effects and, making the plain ol' `Auto` into something more rich
 and featureful.  We'll see how to express denotative and declarative
 compositions using recursively binded `Auto`s, and what that even means.
-Overall, it'll be a trip down several avenues to motivate and see practical
-Auto usage.[^nofrp]
+It'll be a trip down several avenues to motivate and see practical
+Auto usage.[^nofrp]  Basically, it'll be a "final hurrah".
 
 [^nofrp]: Some of you might recall an earlier plan for this post that would
 include FRP.  Unfortunately, I've refactored FRP into a completely new topic,
@@ -72,10 +72,8 @@ This can be read as saying, "feed the `Auto` an `a`, and (purely) get a
 resulting `b`, and a 'next stepper'" --- the `b` is the result, and the `Auto
 a b` contains the information on how to proceed from then on.
 
-Well, if you've been doing Haskell for any decent amount of time, you can
-probably guess what's going to happen next.  It's, incidentally, one of the
-things that Haskellers love doing the most, and it's been engrained deeply
-into the Haskell culture.
+If you've been doing Haskell for any decent amount of time, you can probably
+guess what's going to happen next!
 
 Instead of "purely" creating a naked result and a "next step"...we're going to
 return it in a context.
@@ -84,9 +82,9 @@ return it in a context.
 a -> f (b, Auto a b)
 ~~~
 
-Whaat, you say?  What good does that do?
+What, you say?  What good does that do?
 
-Well, what does returning things in a context ever lets you do?
+Well, what does returning things in a context *ever* let you do?
 
 In Haskell, contexts like these are usually meant to be able to defer the
 process of "getting the value" until the end, after you've built up your
@@ -100,17 +98,6 @@ a -> b
 ~~~
 
 means that it simply creates a `b` from an `a`.  But a function like:
-
-~~~haskell
-a -> Maybe b
-~~~
-
-Means...it *might* give you a `b` from an `a`?  Or it might not?  You won't
-really know until you inspect the result later.  If you eventually use
-`fromMaybe`, then the resulting `Maybe b` can *control*, using its Nothingness
-or its Justness, the final `b` that you get.
-
-A function like:
 
 ~~~haskell
 a -> State s b
@@ -204,25 +191,27 @@ much like application and composition of normal values.  And Haskell is one of
 the few languages that gives you language features and a culture to be able to
 fully realize the symmetry and similarities.
 
-Following this exact same pattern, let's see the other various instances we
-wrote in the last article, along with the new monadic instances:
+Check out the `Functor` and `Arrow` instances, too --- they're exactly the
+same!
 
 
 ~~~haskell
-!!!machines/Auto2.hs "instance Functor (Auto r)" "instance Applicative (Auto r)" "instance Arrow Auto" "instance ArrowChoice Auto" machines
+!!!machines/Auto2.hs "instance Functor (Auto r)" "instance Arrow Auto" machines
 ~~~
 
 ~~~haskell
-!!!machines/Auto3.hs "instance Monad m => Functor (AutoM m r)" "instance Monad m => Applicative (AutoM m r)" "instance Monad m => Arrow (AutoM m)" "instance Monad m => ArrowChoice (AutoM m)" machines
+!!!machines/Auto3.hs "instance Monad m => Functor (AutoM m r)" instance Monad m => Arrow (AutoM m)" machines
 ~~~
 
 
-Neat, huh?
+(I've left the rest of the instances from the previous part as an
+exercise; the solutions are available in the downloadable.)
 
-Instead of having to learn over again the logic of `Functor`, `Applicative`,
-`Arrow`, `ArrowPlus`, etc., you can directly use the intuition that you gained
-from the past part and apply it to here, if you abstract away function
-application and composition to application and composition in a context.
+Neat, huh?  Instead of having to learn over again the logic of `Functor`,
+`Applicative`, `Arrow`, `ArrowPlus`, etc., you can directly use the intuition
+that you gained from the past part and apply it to here, if you abstract away
+function application and composition to application and composition in a
+context.
 
 Our previous instances then were just a "specialized" version of `AutoM`, one
 where we used naked application and composition :)[^compapl]
@@ -235,7 +224,7 @@ Haskell lets you abstract over values and function application with `Monad`,
 <div class="note">
 **Aside**
 
-If we look closely at the instances we wrote, we might notice that for some of
+If you look at the instances we wrote out, you might see that for some of
 them, `Monad` is a bit overkill.  For example, for the `Functor` instance,
 
 ~~~haskell
@@ -259,10 +248,10 @@ thing.
 
 Now let's try using these!
 
-First some utility functions: `autoM`, which upgrades an `Auto a b` to an
-`AutoM m a b` for any `Monad` `m`[^autom], and `arrM`, which is like `arr`, but
-instead of turning an `a -> b` into an `Auto a b`, it turns an `a -> m b` into
-an `AutoM m a b`:
+First some utility functions just for playing around: `autoM`, which upgrades
+an `Auto a b` to an `AutoM m a b` for any `Monad` `m`[^autom], and `arrM`,
+which is like `arr`, but instead of turning an `a -> b` into an `Auto a b`, it
+turns an `a -> m b` into an `AutoM m a b`:
 
 [^autom]: This function really could be avoided if we had written all of our
 `Auto`s is `AutoM`'s parameterized over all `m` in the first place --- that
@@ -479,7 +468,7 @@ and give it a "cost" using the `limit` function defined here.  Here, every
 running.
 
 ~~~haskell
-!!!machines/AutoState.hs "limit ::" "sumSqDiff ::" "stuff ::" machines
+!!!machines/Auto3.hs "limit ::" "sumSqDiff ::" "stuff ::" machines
 ~~~
 
 ~~~haskell
@@ -538,7 +527,7 @@ we eventually run it, but we use the fact that every composed `Auto` gets the
 *exact same* input to great effect:
 
 ~~~haskell
-!!!machines/AutoReader.hs "delay ::" "integral ::" "derivative ::" "fancyCalculus ::" machines
+!!!machines/Auto3.hs "delay ::" "integral ::" "derivative ::" "fancyCalculus ::" machines
 ~~~
 
 (Note the delay helper auto, `delay x0`, which outputs the "last received"
@@ -624,7 +613,7 @@ We can do this!  We can write an Auto using global state --- most importantly,
 want them to --- and then, at the end, "use them in a normal Auto":
 
 ~~~haskell
-!!!machines/AutoState.hs "runStateAuto ::" machines
+!!!machines/Auto3.hs "runStateAuto ::" machines
 ~~~
 
 This lets you turn any `AutoM (State s) a b` that you built up into an `Auto
@@ -639,7 +628,7 @@ can recover our "local statefulness" principles that we loved so much by
 throwing in an initial state and letting it just tick itself away:
 
 ~~~haskell
-!!!machines/AutoState.hs "sealStateAuto ::" machines
+!!!machines/Auto3.hs "sealStateAuto ::" machines
 ~~~
 
 This "seals away" the state in a `AutoM (State s)` in an `Auto`; give it an
@@ -669,7 +658,7 @@ that would like a common global environment, and then use it in a bigger
 program that does not:
 
 ~~~haskell
-!!!machines/AutoReader.hs "runReaderAuto ::" "sealReaderAuto ::" machines
+!!!machines/Auto3.hs "runReaderAuto ::" "sealReaderAuto ::" machines
 ~~~
 
 `sealReaderAuto` here takes a `AutoM (Reader r)` and a permanent unchanging
