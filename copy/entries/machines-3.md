@@ -284,10 +284,10 @@ ghci> res
 [(), ()]
 ~~~
 
-`arrM putStrLn`, like `arr show`, is just an `Auto` with no internal state
-that returns `()` for every single input string, except, in the process of
-getting the "next Auto", it emits a side-effect --- in our case, printing the
-string.
+`arrM putStrLn` is, like `arr show`, just an `Auto` with no internal state. It
+outputs `()` for every single input string, except, in the process of getting
+the "next Auto" (and producing the `()`), it emits a side-effect --- in our
+case, printing the string.
 
 #### in IO
 
@@ -341,10 +341,10 @@ ghci> putStrLn =<< readFile "log.txt"
 16
 ~~~
 
-By the way, as a side note, `logging :: Auto a b -> AutoM IO a b` here can be
+(By the way, as a side note, `logging :: Auto a b -> AutoM IO a b` here can be
 looked at as an "`Auto` transformer".  It takes a normal `Auto` and transforms
 it into an otherwise identical `Auto`, yet which logs its results as it ticks
-on.
+on.)
 
 #### Motivations
 
@@ -353,84 +353,55 @@ monadic `Auto` composition/ticking offers, or are horribly revolted at how we
 mixed IO and unconstrained effects and "implicit side channel" inputs.  Or
 both!
 
-You might have noted that we could have actually "factored out" the direct IO
-from our functions.  For example, we could have made `replicateGets` into
-something that actually takes an explicit string:
+After all, if all we were doing in `replicateGets` was having two inputs, we
+could have just used:
 
 ~~~haskell
-replicateGets  :: AutoM IO Int String
-
--- the only point of IO is to get a String, so why not:
 replicateGets' :: Auto (String, Int) String
 ~~~
 
-And then defer the "getting of the `String`" to the actual process of
-"testing" the `Auto`:
+And have the user "get" the string before they run the `Auto`.
 
-~~~haskell
-testReplicateGets' :: Auto (String, Int) String -> IO String
-~~~
+And hey, if all we were doing in `logging` was having an extra logging
+channel, we could have just manually logged all of the outputs as they popped
+out.
 
-That is, have the "testing function" do the IO for you, and take it out of the
-`Auto`.
+All valid suggestions.  Separate the pure from the impure.  We went out of our
+way to avoid *global* states and side-effects, so why bring it all in and *use
+it* when we already have disciplined methods to handle it purely?
 
-And for `logging`, maybe we could have just had the "testing function"
-manually do the logging:
+Superficially, it might seem like just moving the burden from one place to the
+other.  Instead of having the user having to worry about getting the string,
+or writing the log, the `Auto` can just handle it itself internally without
+the "running" code having to worry.
 
-~~~haskell
-testAutoLogging_ :: Show b => Auto a b -> [a] -> IO [b]
-~~~
+The real, deep advantage in `AutoM`, however, is --- like in `Auto` --- its
+*composability*.
 
-That is, while `testAutoLogging_` is stepping the `Auto`s, it is also logging
-along the way, factoring out the IO.
+Imagine `replicateGets'` was not our "final `Auto`" that we run...imagine it
+was in fact an `Auto` used in a composition inside the definition of an `Auto`
+used several times inside a composition inside the definition of another
+`Auto`.  All of a sudden, having to "manually thread" the extra channel of
+input in is a real nightmare.  In addition, you can't even statically
+guarantee that the `String` `replicateGets` eventually was the same `String`
+that the user originally passed in....some `Auto` along the way could have
+changed it before passing it on![^readernotio]
 
-These are all valid alternatives, depending on your domain.  However, there
-are some advantages.
+[^readernotio]: By the way, you might notice this pattern as something that
+seems more fit for `Reader` than `IO`.  We'll look at that later!
 
-One is that you simplify what your *user* might do.  Instead of building a
-"pure"[^pure] Auto (non-IO) and making your user get the IO themselves, you
-can have it implicitly handle it for you.  And instead of forcing your user to
-log the results at the end, you can just handle it in-house.
+Imagine that the `Auto` whose results we wanted to log actually was not the
+final output of the entire `Auto` we run (maybe we want to log a small
+internal portion of a big `Auto`).  Again, now you have to manually thread the
+*output*.  And if you're logging several things through several layers --- it
+gets ugly very fast.
 
-[^pure]: "pure": This word is so loaded in so many ways in this
-context...there are so many meanings it could take here, especially when we
-have multiple levels of states and effects like we do now.  So I'm trusting
-you to know what I'm talking about :)  In this case, it is an `Auto` instead
-of an `AutoM`.
+And now, all of your other `Auto`s in the composition get to (and *have* to)
+see the values of the log!  So much for "locally stateful"!
 
-But probably the *biggest* advantage of implicit logging or inputs is that it
-just "composes" nicer.  Suppose that `replicateGets` *isn't* the *final*
-`Auto` that you want to run, or give your user.  Suppose that `replicateGets`
-is just a small cog in a huge nested composition of `Auto`s.  Instead of
-having to thread a `String` input throughout your *entire* composition chain
-*just* for `replicateGets` to use it...you can just pull it out when you need
-it.
-
-In addition, one thing danger from manually treading a `String` input
-throughout your entire composition is that somewhere along the way, any `Auto`
-can chose to "change" the input before it's passed, meaning that you can't
-guarantee that the `String` that `replicateGets` eventually gets is the same
-one that was originally "gotten" before the whole thing was run anyway.
-
-(This is indeed a problem solved by having `AutoM`, but in real life, perhaps
-`Reader String` would be a better way to solve this specific situation than
-`IO`)
-
-For `logging`, if you only want to log a small portion of your entire `Auto`
---- that is, only log one small composed `Auto` out of an entire big
-composition --- if you take the "thread the output" approach, you're going to
-have to manually thread the output throughout the entire composition to the
-end.
-
-And, back to our "locally stateful" emphasis from before, every other `Auto`
-in your composition has accessed to the logged items...even if you wanted to
-keep it hidden.  And what if you wanted to log five, six `Auto`s to five or
-six different files?  You're going to be passing five or six strings from
-different places!  In this case, you gain a lot from implicit logging.
-
-The point here is that there is a trade-off in either case.  But these monadic
-compositions really just give us another tool in our toolset that we can
-(judiciously) use.
+As you can see, there is a trade-off in either decision we make.  But these
+monadic compositions really just give us another tool in our toolset that we
+can (judiciously) use.
 
 #### Other contexts
 
@@ -527,22 +498,17 @@ we eventually run it, but we use the fact that every composed `Auto` gets the
 *exact same* input to great effect:
 
 ~~~haskell
-!!!machines/Auto3.hs "delay ::" "integral ::" "derivative ::" "fancyCalculus ::" machines
+!!!machines/Auto3.hs "integral ::" "derivative ::" "fancyCalculus ::" machines
 ~~~
-
-(Note the delay helper auto, `delay x0`, which outputs the "last received"
-value...starting with `x0` as the first output.  This really could have been
-written using `foldAuto` and a tuple, but the explicit recursion version is
-arguably nicer)
 
 Now, we are treating our input stream as time-varying values, and the "Reader
 environment" contains the "time passed since the last tick" --- The time step
 or sampling rate, so to speak, of the input stream.  We have two stateful
 `Auto`s ("locally stateful", internal state) that compute the time integral
 and time derivative of the input stream of numbers...but in order to do so, it
-needs the time step.  We get it using `ask` and `arrM`.  Note that the time
-step doesn't have to be the same for every different tick ... `integral` and
-`derivative` should work just fine with a new timestep every tick.
+needs the time step.  We get it using `ask`.  (Note that the time step doesn't
+have to be the same between every different tick ... `integral` and
+`derivative` should work just fine with a new timestep every tick.)
 
 In `fancyCalculus`, we calculate the integral, the derivative, the second
 derivative, and the integral of the derivative, and return the second
@@ -587,59 +553,62 @@ Perfect!  The second derivative we expected (all 2's) showed up, and the
 integral of the derivative is pretty much exactly the original function.
 
 For fun, try running it with a `sin` function.  The second derivative should
-be original `sin` stream flipped, this time.  Does it end up as expected?
+be negative of original `sin`, this time.  Does it end up as expected?
 
 The alternative to using `AutoM` and `Reader` here would be to have each
 composed Auto be manually "passed" the `dt` timestep.  But then we really
 don't have any "guarantees", besides checking ourselves, that every `Auto`
-down the road, down every composition, will have the same `dt`.
+down the road, down every composition, will have the same `dt`.  We can't say
+that we really are calculating integrals or derivatives.  And plus, it's
+pretty messy when literally every one of your composed `Auto` needs `dt`.
 
-
-#### Unrolling AutoM's
+#### Mixing Worlds
 
 We talked about a huge drawback of `State s` --- global mutable state is really
 something that we originally looked to `Auto` to avoid in the first place.
 But some portions of logic are much more convenient to write with autos that
 all have access to a global state.
 
-What if we could have the best of both worlds?  What if we knew that an
-isolated part of our program.logic needs access to some global state, and
-would be better written as an `AutoM (State s)` ... but we would rather not
-have the rest of the program have access to it, or even know about it?  Sort
-of like a "local scope", in other languages?
+What if we wanted the best of both worlds?  What would that look like?
 
-We can do this!  We can write an Auto using global state --- most importantly,
-*taking advantage of Category, Arrow instances* to make things work like you
-want them to --- and then, at the end, "use them in a normal Auto":
+In Haskell, one common technique we like to use, eloquently stated by Gabriel
+Gonzalez in his post [the Functor design pattern][tekmo], is to pick a "common
+denominator" type, and push all of our other types into it.
 
-~~~haskell
-!!!machines/Auto3.hs "runStateAuto ::" machines
-~~~
+[tekmo]: http://www.haskellforall.com/2012/09/the-functor-design-pattern.html
 
-This lets you turn any `AutoM (State s) a b` that you built up into an `Auto
-(a, s) (b, s)`...and throw it into any normal `Auto`.  At every step, give it
-the input state and get out the output state as another channel if
-input/output.  You'll have to throw in the state and the output manually,
-though...but you only do it *once*, instead of through every single
-composition.
+We have two fundamentally different options here.  We can pick our "main type"
+to be `AutoM (State s)` and have global state, and "push" all of our
+non-global-state Autos into it, or we can pick our "main type" to be `Auto`,
+and "seal" our global-state-Autos into non-global-state ones.
 
-If we ever don't want the outside to ever have access to the state at all, we
-can recover our "local statefulness" principles that we loved so much by
-throwing in an initial state and letting it just tick itself away:
+For the former, we'd use `autoM`'s whenever we want to bring our `Auto`s into
+`AutoM (State s)`...or we can always write `AutoM`'s parameterized over `m`:
 
 ~~~haskell
-!!!machines/Auto3.hs "sealStateAuto ::" machines
+summer :: (Monad m, Num a) => AutoM m a a
 ~~~
 
-This "seals away" the state in a `AutoM (State s)` in an `Auto`; give it an
-initial `State` and it keeps on ticking away with that initial state, feeding
-it back into itself.
+It is statically guaranteed that `summer` *cannot touch any global state*.
 
-The trick here is we "reduce" or "unroll" an `AutoM` into a normal `Auto`, so
-that we can compose it in with normal `Auto`s.  This way, we are allowed to
-"think" in whatever manner we want (global state, non-global state...),
-compose them in the way that suits us the best, and in the end, use them all
-together in the "greatest common denominator", `Auto`.
+For the latter, we take `AutoM (State s)`'s that operate on global state and
+then basically "seal off" their access to be just within their local worlds,
+as we turn them into `Auto`'s.
+
+For the latter, we'd use some functions that abstract over the explicit state:
+
+~~~haskell
+!!!machines/Auto3.hs "sealStateAuto ::" "runStateAuto ::" machines
+~~~
+
+`sealStateAuto` does exactly this.  Give it an initial state, and the `Auto`
+will just continuously feed in its output state at every tick back in as the
+input state.  Every `Auto` inside now has access to a local state, untouchable
+from the outside.
+
+`runStateAuto` is a way to do this were you can pass in a new initial state
+every time you "step" the `Auto`, and observe how it changes --- also another
+useful use case.
 
 <div class="note">
 **Aside**
@@ -648,22 +617,41 @@ We can even pull this trick to turn any `AutoM (StateT s m)` into an `AutoM
 m`.  See if you can write it :)
 
 ~~~haskell
+sealStateAutoM :: AutoM (StateT s m) a b -> s -> AutoM m a b
+sealStateAutoM = ...
+
 runStateAutoM :: AutoM (StateT s m) a b -> AutoM m a b
 runStateAutoM = ...
 ~~~
 </div>
 
-We can do the same thing with `Reader`, btw --- compose a part of our program
-that would like a common global environment, and then use it in a bigger
-program that does not:
+In both of these methods, what is the real win?  The big deal is that you can
+now chose to "work only in the world of non-global-state", combining
+non-global `Auto`s like we did in part 1 and part 2 to create non-global
+algorithms.  And then you can also chose to "work in the world of global
+state", combining global `Auto`s like we did in the previous section, where
+having `State s` made everything more clear.
+
+We're allowed to live and compose (using `Category`, proc notation, etc.) in
+whatever world we like --- create as complex compositions as we could even
+imagine --- and at the end of it all, we take the final complex product and
+"glue it on" to our big overall type so everything can work together.
+
+This discussion is about `State`, but the ramifications work with almost any
+`Auto` or type of `Auto` or underlying monad we talk about.
+
+We can simulate an "immutable local enviromnet", for example:
+
 
 ~~~haskell
-!!!machines/Auto3.hs "runReaderAuto ::" "sealReaderAuto ::" machines
+!!!machines/Auto3.hs "runReaderAuto ::" machines
 ~~~
 
-`sealReaderAuto` here takes a `AutoM (Reader r)` and a permanent unchanging
-`r`, and returns just an normal `Auto` that repeatedly runs it with the given
-`r`.
+Now you can use a `Reader` --- composed with "global environment" semantics
+--- inside a normal `Auto`!  Just give it the new environment very step!  (Can
+you write a `sealReaderAuto` that just takes an initial `r` and feeds it back
+in forever?)
+
 
 Recursive Auto
 --------------
@@ -983,9 +971,9 @@ What we've really done here is taken a category with objects as Haskell types
 and morphisms are `Auto a b`, and turned it into a category with objects as
 Haskell types and whose morphisms are `Auto a (m b)`, where `m` is a Monad.
 
-The act of forming the second category from the first is called forming the
+The act of forming this second category from the first is called forming the
 *Kleisli category* on a category.  We took `Auto` and are now looking at the
-Kleisli category on `Auto`.
+Kleisli category on `Auto` formed by `Maybe`.
 
 By the way, a "Monad" here is actually different from the normal `Monad`
 typeclass found in standard Haskell.  A Monad is an endofunctor on a category
@@ -1000,7 +988,7 @@ For any Haskell Monad, we get for free our natural transformations:
 unitA :: Monad m => Auto a (m a)
 unitA = arr return
 
-joinA :: Monad m => Auto (m (m a)) a
+joinA :: Monad m => Auto (m (m a)) (m a)
 joinA = arr join
 ~~~
 
@@ -1017,8 +1005,8 @@ class FunctorA f where
 ~~~
 
 So, if this function exists for a type constructor, following the usual `fmap`
-laws, then that type is an endofunctor in our `Auto` category.  And if it's a
-Monad in `(->)`, then it's also then a Monad in `Auto`.
+laws, then that type is an endofunctor in our `Auto` category.  And if it's
+also a Monad in `(->)`, then it's also then a Monad in `Auto`.
 
 We can write such an `fmapA` for `Maybe`:
 
@@ -1036,7 +1024,7 @@ Kleisli category for free:
 
 ~~~haskell
 (<==<) :: (FunctorA f, Monad f) => Auto a (f c) -> Auto a (f b) -> Auto a (f c)
-g <==< f = arr join . fmapA g . f
+g <==< f = joinA . fmapA g . f
 ~~~
 
 In fact, for `f ~ Maybe`, this definition is identical to the one for the
@@ -1048,7 +1036,7 @@ then we have for free the associativity of this super-fish operator:
 
 ~~~haskell
 (h <==< g) <==< f == h <==< (g <==< f)
-f <==< arr return == arr return <==< f == f
+f <==< unitA      == unitA <==< f      == f
 ~~~
 
 Category theory is neat!
@@ -1067,10 +1055,10 @@ I'm not going to spend too much time on this, other than saying that it is
 useful to imagine how it might be useful to have an "off" Auto "shut down"
 every next Auto in the chain.
 
-One neat thing is that `AutoOn` admits a handy `Alternative` instance; we want
-`(<|>)` to squish two `AutoOn`'s into one, where the new one runs *both* on
-the same input (kind of like `(&&&)` does), and returns the first one that is
-`Just`.
+One neat thing is that `AutoOn` admits a handy `Alternative` instance; `a1 <|>
+a2` will create a new `AutoOn` that feeds in its input to *both* `a1` and
+`a2`, and the result is the first `Just`.
+
 
 ~~~haskell
 (<|>) :: AutoOn a b -> AutoOn a b -> AutoOn a b
@@ -1123,7 +1111,7 @@ One immediate usage is that we can use these to "short circuit" our proc
 blocks, just like with monadic `Maybe` and do blocks:
 
 ~~~haskell
-!!!machines/AutoOn.hs "shortCircuit1 ::" "shortCircut2 ::" machines
+!!!machines/AutoOn.hs "shortCircuit1 ::" "shortCircuit2 ::" machines
 ~~~
 
 If either the `filterA` or the `onFor` are off, then the whole thing is off.
@@ -1142,10 +1130,14 @@ Ah.  For `shortCircuit1`, as soon as the `filterA` fails, it jumps *straight
 to the end*, short-circuiting; it doesn't bother "ticking along" the `onFor`
 and updating its state!
 
-The arguably more interesting usage, and the one that happens often in real
-life, is the powerful usage of the switching combinator `(-->)` inorder to be
-able to combine multiple `Auto`'s that simulate "stages"...an `Auto` can "do
-what it wants", and then chose to "hand it off" when it is ready.
+The arguably more interesting usage, and the one that is more used in real
+life[^schead], is the powerful usage of the switching combinator `(-->)`
+inorder to be able to combine multiple `Auto`'s that simulate "stages"...an
+`Auto` can "do what it wants", and then choose to "hand it off" when it is
+ready.
+
+[^schead]: Admittedly, implicit short-circuiting with `Auto`s is actually
+often times a lot more of a headache than it's worth.
 
 ~~~haskell
 !!!machines/AutoOn.hs "stages ::"
@@ -1215,23 +1207,24 @@ our `Auto` type:
 
 (Again, instances are in the source file, but not here in the post directly)
 
-Which has effects *and* short-circuiting.
+Here is a same of a big conglomerate type where we throw in a bunch of things.
 
 The benefit?  Well, we could work and compose "normal" `Auto`s, selecting for
 features that we only need to work with.  And then, when we need to, we can
 just "convert it up" to our "lowest common denominator" type.
 
-This is a common theme we've seen, isn't it?  Pick a common type that can
-absorb *everything*...and then work on transformations from your limited types
-to that common type.  When you want to work with limited power, simply work
-with the limited power types.  But when you want to combine multiple things
-together, all you need to do is convert into your lowest common
-denominator/common type!
+This is the common theme, the "functor design pattern".  Pick your common
+unifying type, and just pop everything into it.  You can compose, etc. with
+the semantics of the other type when convenient, and then have all the parts
+work togetherin the end.
 
-We can actually get rid of the need for separate types altogether by playing a
-neat trick: we can replace the "normal constructors" like `ACons`, `AConsM`,
-and `AConsOn`, with *smart constructors* `aCons`, `aConsM`, `aConsOn`, that
-work *exactly the same way*:
+This pattern is awesome, if only we didn't have so many types to convert in
+between manually.
+
+Well, we're in luck.  There's actually a great trick, that makes *all of this*
+even more streamlined: we can replace the "normal constructors" like `ACons`,
+`AConsM`, and `AConsOn`, with *smart constructors* `aCons`, `aConsM`,
+`aConsOn`, that work *exactly the same way*:
 
 ~~~haskell
 !!!machines/AutoX.hs "aCons ::" "aConsM ::" "aConsOn ::" machines
@@ -1262,15 +1255,20 @@ You might also note that we can express a "pure, non-Monadic" `Auto` in
 ~~~
 
 An `Auto` with a type like this says, "I cannot perform any effects during
-stepping" --- and we know that `summer` definitely does not.
+stepping" --- and we know that `summer` definitely does not.  `summer` is
+statically guaranteed not to affect any state or IO, and it's reflected in its
+type.
 
 The takeaway?  You don't even have to mungle around multiple types to make
 this strategy work --- just make all your `Auto`s from the start using these
-smart constructors, and they all compose together!
+smart constructors, and they all compose together!  One type from the start
+--- we just expose different constructors to expose the different "subtypes of
+power" we want to offer.
 
-Now it's all just to chose your "greatest common denominator".  If you know
-that your `Auto`s never inhibit for example, you can write the same `aCons`
-smart constructor for `AutoM`, as well.
+Now it's all just to chose your "greatest common denominator".  If you don't
+want inhibition-based semantics, just only use `AutoM`, for example!
+
+By the way, here's a "smart constructor" for `AutoM`.
 
 ~~~haskell
 !!!machines/Auto3.hs "aCons ::"
@@ -1286,16 +1284,26 @@ you for being patient.  I hope most if not all of you are still with me.
 Hopefully after going through all of these examples, you can take away some
 things:
 
-1.  From the previous parts, you've recognized the power of local statefulness
+*   From the previous parts, you've recognized the power of local statefulness
     and the declarative style offered by proc notation.
-2.  From here, you've seen that the Auto type can be equipped in many ways to
+
+*   From here, you've seen that the Auto type can be equipped in many ways to
     give it many features which have practical applications in the real world.
-3.  You've learned how to handle those features and use and manage them
+
+*   You've learned how to handle those features and use and manage them
     together in sane ways, and their limitations.
-4.  You've seen the power of recursive bindings to make complete the promise
+
+*   You also know that you can really "program", "compose", or "think" in any
+    sort of Auto or composition semantics that you want, for any small part of
+    the problem.  And then at the end, just push them all into your greatest
+    common denominator type.  So, you aren't afraid to play with different
+    effect types even in the same program!
+
+*   You've seen the power of recursive bindings to make complete the promise
     of declarative programming --- being able to extend the realm of what we
     can express "declaratively", and what we can *denote*.
-5.  You are ready to really understand anything you encounter involving `Auto`
+
+*   You are ready to really understand anything you encounter involving `Auto`
     and `Auto`-like entities.
 
 So, what's next?
@@ -1326,7 +1334,4 @@ So, what's next?
 
 [netwire]: http://hackage.haskell.org/package/netwire
 [auto]: https://github.com/mstksg/auto.
-
-
-
 

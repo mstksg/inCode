@@ -97,6 +97,7 @@ instance ArrowLoop AutoOn where
 
 instance Alternative (AutoOn a) where
     empty     = AConsOn $ \_ -> (Nothing, empty)
+    -- (<|>) :: AutoOn a b -> AutoOn a b -> AutoOn a b
     a1 <|> a2 = AConsOn $ \x ->
                   let (y1, a1') = runAutoOn a1 x
                       (y2, a2') = runAutoOn a2 x
@@ -128,7 +129,7 @@ untilA' p = AConsOn $ \x ->
               if p x
                 then (Just x , untilA p)
                 else (Nothing, empty   )
-    
+
 shortCircuit1 :: AutoOn Int Int
 shortCircuit1 = proc x -> do
     filterA even -< x
@@ -156,7 +157,7 @@ onOffMaze = proc x -> do
 
     filterA (\n -> n `mod` 5 /= 0) -< x
     id -< (normalThenSum * flipEveryThree, reachedTenYet)
-    
+
 stages :: AutoOn Int Int
 stages = stage1 --> stage2 --> stage3 --> stages
   where

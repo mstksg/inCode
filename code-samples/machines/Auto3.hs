@@ -7,16 +7,17 @@ module Auto3 where
 
 import Auto
 import Auto2
-import System.Random
 import Control.Applicative
-import System.IO
-import Control.Monad.Fix
 import Control.Arrow
 import Control.Category
 import Control.Monad
+import Control.Monad.Fix
+import Control.Monad.Trans.Reader
 import Control.Monad.Trans.State
-import Data.Function             (fix)
-import Prelude hiding            ((.), id)
+import Data.Function              (fix)
+import Data.Maybe
+import Prelude hiding             ((.), id)
+import System.IO
 
 newtype AutoM m a b = AConsM { runAutoM :: a -> m (b, AutoM m a b) }
 
@@ -126,19 +127,23 @@ piTargeter = proc control -> do
   where
     blackBoxSystem = id     -- to simplify things :)
 
-delay :: a -> Auto a a
-delay x0 = ACons $ \x -> (x0, delay x)
-
 integral :: Double -> AutoM (Reader Double) Double Double
-integral x0 = proc x -> do
-    dt <- arrM (\_ -> ask)  -< ()
-    autoM (autoFold (+) x0) -< x * dt
+integral x0 = AConsM $ \dx -> do
+                dt <- ask
+                let x1 = x0 + dx * dt
+                return (x1, integral x1)
 
 derivative :: Double -> AutoM (Reader Double) Double Double
-derivative d0 = proc x -> do
-    dt   <- arrM (\_ -> ask) -< ()
-    last <- autoM (delay Nothing) -< Just x
-    id   -< maybe d0 (\lst -> (x - lst) / dt) last
+derivative d0 = AConsM $ \x -> return (d0, derivative' x)
+            -- d0 is just the thing to pop out first, because there is no
+            -- meaningful derivative on the first tick.
+  where
+                 -- x0 is the "previous input"
+    derivative' x0 = AConsM $ \x1 -> do
+                       let dx = x1 - x0
+                       dt <- ask
+                       return (dx/dt, derivative' x1)
+
 
 fancyCalculus :: AutoM (Reader Double) Double (Double, Double)
 fancyCalculus = proc x -> do
