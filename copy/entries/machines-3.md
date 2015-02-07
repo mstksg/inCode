@@ -63,7 +63,7 @@ freenode's *#haskell*, or find me on [twitter][] :)
 All of the code in this post is [available for download][codesamps] and to
 load up into ghci for playing along!
 
-!!![codesamps]:machines/
+[codesamps]: http://blog.jle.im/source/code-samples/machines
 
 Effectful Stepping
 ------------------
