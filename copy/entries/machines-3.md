@@ -5,10 +5,10 @@ Categories
 :   Haskell
 :   Ramblings
 Tags
-:   haskell
-:   functional reactive programming
 :   arrows
-:   netwire
+:   auto
+:   haskell
+:   machines
 CreateTime
 :   2014/07/21 21:28:28
 PostDate
@@ -57,6 +57,11 @@ As always, feel free to leave a comment if you have any questions, drop by
 freenode's *#haskell*, or find me on [twitter][] :)
 
 [twitter]: https://twitter.com/mstk "Twitter"
+
+All of the code in this post is [available for download][codesamps] and to
+load up into ghci for playing along!
+
+!!![codesamps]:machines
 
 Effectful Stepping
 ------------------
@@ -595,8 +600,6 @@ For the latter, we take `AutoM (State s)`'s that operate on global state and
 then basically "seal off" their access to be just within their local worlds,
 as we turn them into `Auto`'s.
 
-For the latter, we'd use some functions that abstract over the explicit state:
-
 ~~~haskell
 !!!machines/Auto3.hs "sealStateAuto ::" "runStateAuto ::" machines
 ~~~
@@ -640,7 +643,7 @@ imagine --- and at the end of it all, we take the final complex product and
 This discussion is about `State`, but the ramifications work with almost any
 `Auto` or type of `Auto` or underlying monad we talk about.
 
-We can simulate an "immutable local enviromnet", for example:
+We can simulate an "immutable local environment", for example:
 
 
 ~~~haskell
@@ -659,7 +662,7 @@ Recursive Auto
 Let's move back to our normal `Auto` for now, and imagine a very common use
 case that might come up.
 
-What if you wanted two chained `Auto`s to "talk to eachother" --- for their
+What if you wanted two chained `Auto`s to "talk to each other" --- for their
 inputs to depend on the other's outputs?
 
 Here's a common example --- in control theory, you often have to have adjust
@@ -697,7 +700,6 @@ piTargeter = proc control -> do
     id -< response
   where
     blackBoxSystem = id     -- to simplify things :)
-
 ~~~
 
 So this is an `Auto` that takes in a `Double` --- the control --- and outputs
@@ -926,7 +928,7 @@ Going Kleisli
 This is going to be our last "modification" to the `Auto` type --- one more
 common `Auto` variation/trick that is used in real life usages of `Auto`.
 
-Strap on your category theory hats.  We're going Kleisli.
+### Inhibition
 
 It might some times be convenient to imagine the *results* of the `Auto`s
 coming in contexts --- for example, `Maybe`:
@@ -995,7 +997,7 @@ joinA = arr join
 But what we *don't get*, necessarily, the *endofunctor*.  An endofunctor must
 map both objects and morphisms.  A type constructor like `Maybe` can map
 objects fine --- we have the same objects in `Auto` as we do in `(->)`
-(haskell types).  But we also need the ability to map *morphism*:
+(haskell types).  But we also need the ability to map *morphisms*:
 
 ~~~haskell
 class FunctorA f where
@@ -1023,8 +1025,8 @@ And, it is a fact that if we have a Monad, we can write the composition of its
 Kleisli category for free:
 
 ~~~haskell
-(<==<) :: (FunctorA f, Monad f) => Auto a (f c) -> Auto a (f b) -> Auto a (f c)
-g <==< f = joinA . fmapA g . f
+(<~=<) :: (FunctorA f, Monad f) => Auto a (f c) -> Auto a (f b) -> Auto a (f c)
+g <~=< f = joinA . fmapA g . f
 ~~~
 
 In fact, for `f ~ Maybe`, this definition is identical to the one for the
@@ -1035,8 +1037,8 @@ then we have for free the associativity of this super-fish operator:
 
 
 ~~~haskell
-(h <==< g) <==< f == h <==< (g <==< f)
-f <==< unitA      == unitA <==< f      == f
+(h <~=< g) <~=< f == h <~=< (g <~=< f)
+f <~=< unitA      == unitA <~=< f      == f
 ~~~
 
 Category theory is neat!
@@ -1047,7 +1049,7 @@ where we could write an instance of `FunctorA` that follows the laws?  Think
 about it, and post some in the comments!
 
 One immediate example is `Either e`, which is used for great effect in many
-FRP libraries!
+FRP libraries!  It's "inhibit, with a *value*".
 </div>
 
 
@@ -1061,20 +1063,19 @@ a2` will create a new `AutoOn` that feeds in its input to *both* `a1` and
 
 
 ~~~haskell
-(<|>) :: AutoOn a b -> AutoOn a b -> AutoOn a b
-~~~
-
-~~~haskell
 !!!machines/AutoOn.hs "instance Alternative (AutoOn a)"
 ~~~
 
-Unexpectedly, we also get the handy `empty`, which is a "fail here" `AutoOn`.
-Feed anything through `empty` and it'll produce a failure no matter what.
+Unexpectedly, we also get the handy `empty`, which is a "always off" `AutoOn`.
+Feed anything through `empty` and it'll produce a `Nothing` no matter what.
+You can use this to provide an "always fail", "short-circuit here" kind of
+composition, like `Nothing` in the `Maybe` monad.
 
 There's also an interesting and useful concept called "switching" that comes
 from this; the ability to switch from running one Auto or the other by looking
 if the result is on or off --- here is a common switch that behaves like the
-first `AutoOn` until it is off, and then behaves like the second forever more:
+first `AutoOn` until it is off, and then behaves like the second forever
+after:
 
 ~~~haskell
 !!!machines/AutoOn.hs "(-->) ::" machines
@@ -1099,7 +1100,6 @@ Let's play around with some test `AutoOn`s!
 
 ~~~haskell
 !!!machines/AutoOn.hs "onFor ::" "filterA ::" "untilA ::" machines
-
 -- alternatively, using explicit recursion:
 -- untilA p = AConsOn $ \x ->
 --              if p x
@@ -1132,7 +1132,7 @@ and updating its state!
 
 The arguably more interesting usage, and the one that is more used in real
 life[^schead], is the powerful usage of the switching combinator `(-->)`
-inorder to be able to combine multiple `Auto`'s that simulate "stages"...an
+in order to be able to combine multiple `Auto`'s that simulate "stages"...an
 `Auto` can "do what it wants", and then choose to "hand it off" when it is
 ready.
 
@@ -1216,7 +1216,7 @@ just "convert it up" to our "lowest common denominator" type.
 This is the common theme, the "functor design pattern".  Pick your common
 unifying type, and just pop everything into it.  You can compose, etc. with
 the semantics of the other type when convenient, and then have all the parts
-work togetherin the end.
+work together in the end.
 
 This pattern is awesome, if only we didn't have so many types to convert in
 between manually.
@@ -1308,6 +1308,10 @@ things:
 
 So, what's next?
 
+*   [Download the files of this post][codesamps], play along with the examples
+    in this post, CTRL+F this page for "exercise" to find exercises, and try
+    writing your own examples!
+
 *   Feel ready to be able to have a grasp of the situation you see `Auto` in
     the real world, such as in the popular FRP library [netwire][]!
 
@@ -1315,8 +1319,8 @@ So, what's next?
 
 *   Well, a bit of self-promotion, my upcoming library [auto][] is basically
     supposed to be almost all of these concepts implemented as a finely tuned
-    and optimized library, attached with semantic tools for working with
-    real-world problems with these concepts of local statefulness,
+    and optimized performant library, attached with semantic tools for working
+    with real-world problems with these concepts of local statefulness,
     composition, and declarative style.  You can really apply what you learned
     here to start building projects right away!
 
@@ -1328,10 +1332,13 @@ So, what's next?
     I am open to pull requests and help on the final stages of documentation
     :)
 
+    If you're interested, or are curious, stop by #haskell-auto on freenode or
+    send me a message!
+
 *   Look forward to an actual series on Arrowized FRP, coming up soon!  We'll
     be using the concepts in this series to *implement FRP*.
-
 
 [netwire]: http://hackage.haskell.org/package/netwire
 [auto]: https://github.com/mstksg/auto.
 
+Happy Haskelling!

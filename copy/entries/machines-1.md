@@ -5,10 +5,11 @@ Categories
 :   Haskell
 :   Ramblings
 Tags
-:   haskell
-:   functional reactive programming
-:   machines
 :   arrows
+:   auto
+:   functional reactive programming
+:   haskell
+:   machines
 CreateTime
 :   2014/01/19 22:55:57
 PostDate
