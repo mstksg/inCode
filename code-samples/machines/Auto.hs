@@ -8,6 +8,7 @@ import Data.Maybe (fromMaybe)
 import Data.Monoid (Monoid, mappend, mempty)
 import qualified Data.Map as Map
 
+-- | The Auto type
 newtype Auto a b = ACons { runAuto :: a -> (b, Auto a b) }
 
 

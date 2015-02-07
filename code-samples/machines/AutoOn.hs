@@ -1,6 +1,7 @@
 {-# LANGUAGE Arrows #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE RecursiveDo #-}
+-- http://blog.jle.im/entry/id/28
 
 module AutoOn where
 
@@ -12,28 +13,8 @@ import Control.Monad
 import Control.Monad.Fix
 import Prelude hiding      ((.), id)
 
+-- | The AutoOn type: Auto with on/off behavior
 newtype AutoOn a b = AConsOn { runAutoOn :: a -> (Maybe b, AutoOn a b) }
-
-autoOn :: Auto a b -> AutoOn a b
-autoOn a = AConsOn $ \x ->
-             let (y, a') = runAuto a x
-             in  (Just y, autoOn a')
-
-arrOn :: (a -> Maybe b) -> AutoOn a b
-arrOn f = AConsOn $ \x -> (f x, arrOn f)
-
-fromAutoOn :: AutoOn a b -> Auto a (Maybe b)
-fromAutoOn a = ACons $ \x ->
-                 let (y, a') = runAutoOn a x
-                 in  (y, fromAutoOn a')
-
-(-->) :: AutoOn a b -> AutoOn a b -> AutoOn a b
-a1 --> a2 = AConsOn $ \x ->
-              let (y1, a1') = runAutoOn a1 x
-              in   case y1 of
-                     Just _  -> (y1, a1' --> a2)
-                     Nothing -> runAutoOn a2 x
-infixr 1 -->
 
 -- | Instances
 instance Category AutoOn where
@@ -94,7 +75,6 @@ instance ArrowLoop AutoOn where
                      Just (_y, _a') -> (Just _y, loop _a')
                      Nothing        -> (Nothing, loop a)
 
-
 instance Alternative (AutoOn a) where
     empty     = AConsOn $ \_ -> (Nothing, empty)
     -- (<|>) :: AutoOn a b -> AutoOn a b -> AutoOn a b
@@ -103,7 +83,49 @@ instance Alternative (AutoOn a) where
                       (y2, a2') = runAutoOn a2 x
                   in  (y1 <|> y2, a1' <|> a2')
 
+-- | Auto converters
+--
+-- autoOn: Converts an `Auto` into an "always on" `AutoOn`.
+autoOn :: Auto a b -> AutoOn a b
+autoOn a = AConsOn $ \x ->
+             let (y, a') = runAuto a x
+             in  (Just y, autoOn a')
 
+-- arrOn: Turns an `a -> Maybe b` into an `AutoOn` that just runs that
+--      function every step.  Like `arr`, but can chose to be on or off on
+--      its own.
+arrOn :: (a -> Maybe b) -> AutoOn a b
+arrOn f = AConsOn $ \x -> (f x, arrOn f)
+
+-- fromAutoOn: Turns an `AutoOn` back into the `Auto` with a `Maybe` output
+--      that it really is.  Used for testing.
+fromAutoOn :: AutoOn a b -> Auto a (Maybe b)
+fromAutoOn a = ACons $ \x ->
+                 let (y, a') = runAutoOn a x
+                 in  (y, fromAutoOn a')
+
+-- | Switching
+--
+-- (-->): Behave like the first `Auto` until it is off, and then behave
+--      like the second `Auto`.  See blog post for more information.
+--
+--      Basically lets an Auto "chose" when to pass on control.
+(-->) :: AutoOn a b -> AutoOn a b -> AutoOn a b
+a1 --> a2 = AConsOn $ \x ->
+              let (y1, a1') = runAutoOn a1 x
+              in   case y1 of
+                     Just _  -> (y1, a1' --> a2)
+                     Nothing -> runAutoOn a2 x
+infixr 1 -->
+
+
+-- | AutoOn Test Autos
+--
+-- onFor: is "on" for the given amount of ticks, and lets input flow out
+--      freely, and then is off forever.
+--
+--      Note that state is only "ticked" when this auto is not
+--      "short-circuited" away.
 onFor :: Int -> AutoOn a a
 onFor n = proc x -> do
     i <- autoOn summer -< 1
@@ -114,9 +136,12 @@ onFor n = proc x -> do
 -- onFor 0 = empty
 -- onFor n = AConsOn $ \x -> (Just x, onFor' (n-1))
 
+-- filterA: Only allow inputs satisfying the predicate to pass through
 filterA :: (a -> Bool) -> AutoOn a a
 filterA p = arrOn (\x -> x <$ guard (p x))
 
+-- untilA: Only allow things to pass through until the first item that
+--      satisfies the predicate.
 untilA :: (a -> Bool) -> AutoOn a a
 untilA p = proc x -> do
     stopped <- autoOn (autoFold (||) False) -< p x
@@ -130,6 +155,9 @@ untilA' p = AConsOn $ \x ->
                 then (Just x , untilA p)
                 else (Nothing, empty   )
 
+-- | AutoOn experiments
+--
+-- shortCircuit1, shortCircuit2: Tests in short circuiting behavior.
 shortCircuit1 :: AutoOn Int Int
 shortCircuit1 = proc x -> do
     filterA even -< x
@@ -142,22 +170,9 @@ shortCircuit2 = proc x -> do
     filterA even -< x
     id           -< x * 10
 
-onOffMaze :: AutoOn Int (Int, Bool)
-onOffMaze = proc x -> do
-    count <- autoOn summer -< 1
-
-    normalThenSum  <- onFor 3
-                  --> autoOn summer -< x
-
-    flipEveryThree <- pure (-1) . filterA (\n -> n `mod` 3 == 0)
-                  <|> pure 1        -< count
-
-    reachedTenYet  <- pure False . untilA (>= 10)
-                  --> pure True     -< normalThenSum
-
-    filterA (\n -> n `mod` 5 /= 0) -< x
-    id -< (normalThenSum * flipEveryThree, reachedTenYet)
-
+-- stages: demonstrates switching.  Each one "moves on" after it turns off.
+--      Note the recursive demonstration --- the actual behavior loops
+--      around forever.
 stages :: AutoOn Int Int
 stages = stage1 --> stage2 --> stage3 --> stages
   where

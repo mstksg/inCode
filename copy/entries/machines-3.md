@@ -814,10 +814,12 @@ So the key here really is this function that I sneakily introduced,
 !!!machines/Auto3.hs "laggingSummer ::" machines
 ~~~
 
-`laggingSummer` is like `summer`, except all of the sums are delayed.  It
-*doesn't use its current input* to create the output.  If the accumulator is
-at 10, and it receives a 2, it *outputs 10*, and *updates the accumulator to
-12*.
+`laggingSummer` is like `summer`, except all of the sums are delayed.  Every
+step, it adds the input to the accumulator...but returns the accumulator
+*before* the addition.  Sort of like `x++` instead of `++x` in C. If the
+accumulator is at 10, and it receives a 2, it *outputs 10*, and *updates the
+accumulator to 12*.  The key is that it *doesn't need the input* to
+*immediately return that step's output*.
 
 ~~~haskell
 ghci> testAuto_ laggingSummer [5..10]
@@ -1318,11 +1320,12 @@ So, what's next?
 *   Apply it to the real world and your real world problems!
 
 *   Well, a bit of self-promotion, my upcoming library [auto][] is basically
-    supposed to be almost all of these concepts implemented as a finely tuned
-    and optimized performant library, attached with semantic tools for working
-    with real-world problems with these concepts of local statefulness,
-    composition, and declarative style.  You can really apply what you learned
-    here to start building projects right away!
+    supposed to be almost all of these concepts (except for implicit on/off
+    behavior) implemented as a finely tuned and optimized performant library,
+    attached with semantic tools for working with real-world problems with
+    these concepts of local statefulness, composition, and declarative style.
+    You can really apply what you learned here to start building projects
+    right away!
 
     Well, sorta.  Unfortunately, as of Feburary 2015, it is not yet ready for
     real usage, and the API is still being finalized.  But now that this post
