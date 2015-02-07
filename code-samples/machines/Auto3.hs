@@ -3,6 +3,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecursiveDo #-}
 -- http://blog.jle.im/entry/id/28
+--
+-- Auto with effectul stepping, demonstrations of such, and demonstrations
+-- on recursive bindings.
 
 module Auto3 where
 

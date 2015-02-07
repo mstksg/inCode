@@ -1,4 +1,6 @@
 -- http://blog.jle.im/entry/id/28
+--
+-- Auto with on/off behavior, without implicit short-circuiting.
 
 module AutoOn2 where
 

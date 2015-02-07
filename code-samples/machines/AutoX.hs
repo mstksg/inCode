@@ -1,6 +1,8 @@
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE RecursiveDo #-}
 -- http://blog.jle.im/entry/id/28
+--
+-- Auto with on/off behavior and effectful stepping.
 
 module AutoX where
 
@@ -12,7 +14,7 @@ import Data.Functor.Identity
 import Control.Monad.Fix
 import Prelude hiding      ((.), id)
 
--- The AutoX type: Auto with on/off behavior and effectful stepping.
+-- | The AutoX type: Auto with on/off behavior and effectful stepping.
 newtype AutoX m a b = AConsX { runAutoX :: a -> m (Maybe b, AutoX m a b) }
 
 -- | Instances

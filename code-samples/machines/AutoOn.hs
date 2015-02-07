@@ -2,6 +2,8 @@
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE RecursiveDo #-}
 -- http://blog.jle.im/entry/id/28
+--
+-- Auto with on/off behavior
 
 module AutoOn where
 
