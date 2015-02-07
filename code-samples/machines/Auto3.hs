@@ -2,7 +2,7 @@
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecursiveDo #-}
--- http://blog.jle.im/entry/id/28
+-- http://blog.jle.im/entry/effectful-recursive-real-world-autos-intro-to-machine
 --
 -- Auto with effectul stepping, demonstrations of such, and demonstrations
 -- on recursive bindings.

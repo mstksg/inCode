@@ -1,7 +1,7 @@
 {-# LANGUAGE Arrows #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE RecursiveDo #-}
--- http://blog.jle.im/entry/id/28
+-- http://blog.jle.im/entry/effectful-recursive-real-world-autos-intro-to-machine
 --
 -- Auto with on/off behavior
 
