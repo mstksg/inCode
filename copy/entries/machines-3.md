@@ -12,7 +12,7 @@ Tags
 CreateTime
 :   2014/07/21 21:28:28
 PostDate
-:   Never
+:   2015/02/09 10:19:03
 Series
 :   Intro to Machines and Arrows
 Identifier
@@ -51,7 +51,9 @@ actual arrowized FRP libraries today.  So, look out for that one soon!
 
 A fair bit of warning --- if the last post is not fresh in your mind, or you
 still have some holes, I recommend going back and reading through them again.
-This one is going to hit hard and fast :)
+This one is going to hit hard and fast :)  Also, it's admittedly kind of long
+for a single post, but I didn't want to break things up into two really short
+parts. :)
 
 As always, feel free to leave a comment if you have any questions, drop by
 freenode's *#haskell*, or find me on [twitter][] :)
