@@ -152,7 +152,7 @@ Let's jump straight to abstracting over this and explore a new type, shall we?
 ### Monadic Auto
 
 ~~~haskell
-!!!machines/Auto3.hs "newtype AutoM" machines
+!!!machines/Auto3.hs "newtype AutoM"
 ~~~
 
 We already explained earlier the new power of this type.  Let's see if we can
@@ -175,7 +175,7 @@ sequencing is nice, so you might be surprised when you write the `Category`
 instance:
 
 ~~~haskell
-!!!machines/Auto3.hs "instance Monad m => Category (AutoM m)" machines
+!!!machines/Auto3.hs "instance Monad m => Category (AutoM m)"
 ~~~
 
 Does it look familiar?
@@ -183,7 +183,7 @@ Does it look familiar?
 It should!  Remember the logic from the `Auto` Category instance?
 
 ~~~haskell
-!!!machines/Auto2.hs "instance Category Auto" machines
+!!!machines/Auto2.hs "instance Category Auto"
 ~~~
 
 It's basically *identical* and exactly the same :O  The only difference is
@@ -201,11 +201,11 @@ same!
 
 
 ~~~haskell
-!!!machines/Auto2.hs "instance Functor (Auto r)" "instance Arrow Auto" machines
+!!!machines/Auto2.hs "instance Functor (Auto r)" "instance Arrow Auto"
 ~~~
 
 ~~~haskell
-!!!machines/Auto3.hs "instance Monad m => Functor (AutoM m r)" "instance Monad m => Arrow (AutoM m)" machines
+!!!machines/Auto3.hs "instance Monad m => Functor (AutoM m r)" "instance Monad m => Arrow (AutoM m)"
 ~~~
 
 
@@ -265,16 +265,16 @@ But we're just going to run with `Auto` for the rest of this series to make
 things a bit less confusing.
 
 ~~~haskell
-!!!machines/Auto3.hs "autoM ::" "arrM ::" machines
+!!!machines/Auto3.hs "autoM ::" "arrM ::"
 ~~~
 
 We will need to of course re-write our trusty [`testAuto`][testauto] functions from the
 first entry, which is again a direct translation of the original ones:
 
-!!![testauto]:machines/Auto.hs "testAuto ::" "testAuto_ ::" machines
+!!![testauto]:machines/Auto.hs "testAuto ::" "testAuto_ ::"
 
 ~~~haskell
-!!!machines/Auto3.hs "testAutoM ::" "testAutoM_ ::" machines
+!!!machines/Auto3.hs "testAutoM ::" "testAutoM_ ::"
 ~~~
 
 First, let's test `arrM` ---
@@ -300,7 +300,7 @@ We can sort of abuse this to get an `Auto` with "two input streams": one from
 the normal input, and the other from `IO`:
 
 ~~~haskell
-!!!machines/Auto3.hs "replicateGets ::" machines
+!!!machines/Auto3.hs "replicateGets ::"
 ~~~
 
 So, `replicateGets` uses [`monoidAccum`][macum] (or, an `AutoM` version) to
@@ -329,7 +329,7 @@ sequencing the `getLine` effect.
 You can also use this to "tack on" effects into your pipeline.
 
 ~~~haskell
-!!!machines/Auto3.hs "logging ::" machines
+!!!machines/Auto3.hs "logging ::"
 ~~~
 
 Here, `logging a` will "run" `a` with the input like normal (no side-channel
@@ -445,7 +445,7 @@ and give it a "cost" using the `limit` function defined here.  Here, every
 running.
 
 ~~~haskell
-!!!machines/Auto3.hs "limit ::" "sumSqDiff ::" "stuff ::" machines
+!!!machines/Auto3.hs "limit ::" "sumSqDiff ::" "stuff ::"
 ~~~
 
 ~~~haskell
@@ -504,7 +504,7 @@ we eventually run it, but we use the fact that every composed `Auto` gets the
 *exact same* input to great effect:
 
 ~~~haskell
-!!!machines/Auto3.hs "integral ::" "derivative ::" "fancyCalculus ::" machines
+!!!machines/Auto3.hs "integral ::" "derivative ::" "fancyCalculus ::"
 ~~~
 
 Now, we are treating our input stream as time-varying values, and the "Reader
@@ -602,7 +602,7 @@ state and then basically "seal off" their access to be just within their local
 worlds, as we turn them into `Auto`'s.
 
 ~~~haskell
-!!!machines/Auto3.hs "sealStateAuto ::" "runStateAuto ::" machines
+!!!machines/Auto3.hs "sealStateAuto ::" "runStateAuto ::"
 ~~~
 
 `sealStateAuto` does exactly this.  Give it an initial state, and the `Auto`
@@ -648,7 +648,7 @@ We can simulate an "immutable local environment", for example:
 
 
 ~~~haskell
-!!!machines/Auto3.hs "runReaderAuto ::" machines
+!!!machines/Auto3.hs "runReaderAuto ::"
 ~~~
 
 Now you can use a `Reader` --- composed with "global environment" semantics
@@ -749,7 +749,7 @@ an aside --- it's slightly heavy, but some people like to understand.
 Without further ado ---
 
 ~~~haskell
-!!!machines/Auto3.hs "piTargeter ::" machines
+!!!machines/Auto3.hs "piTargeter ::"
 ~~~
 
 The key here is the *rec* keyword.  Basically, we require that we write an
@@ -812,7 +812,7 @@ The MVP here really is this function that I sneakily introduced,
 `laggingSummer`:
 
 ~~~haskell
-!!!machines/Auto3.hs "laggingSummer ::" machines
+!!!machines/Auto3.hs "laggingSummer ::"
 ~~~
 
 `laggingSummer` is like `summer`, except all of the sums are delayed.  Every
@@ -893,7 +893,7 @@ But we're looking at `Auto` for now.
 We can write an `ArrowLoop` instance for `Auto`:
 
 ~~~haskell
-!!!machines/Auto2.hs "instance ArrowLoop Auto" machines
+!!!machines/Auto2.hs "instance ArrowLoop Auto"
 ~~~
 
 So what does this mean?  When will we be able to "get a `y`"?
@@ -920,7 +920,7 @@ is an instance of `MonadFix`, which is basically a generalization of the
 recursive `let` bindings we used above:
 
 ~~~haskell
-!!!machines/Auto3.hs "instance MonadFix m => ArrowLoop (AutoM m)" machines
+!!!machines/Auto3.hs "instance MonadFix m => ArrowLoop (AutoM m)"
 ~~~
 </div>
 
@@ -947,7 +947,7 @@ How can we interpret/use this?  In many domains, this is used to model
 We can imagine "baking this in" to our Auto type:
 
 ~~~haskell
-!!!machines/AutoOn.hs "newtype AutoOn" machines
+!!!machines/AutoOn.hs "newtype AutoOn"
 ~~~
 
 Where the semantics of composition are: if you get a `Nothing` as an input,
@@ -955,7 +955,7 @@ just don't tick anything and pop out a `Nothing`; if you get a `Just x` as an
 input run the auto on the `x`:
 
 ~~~haskell
-!!!machines/AutoOn.hs "instance Category AutoOn" machines
+!!!machines/AutoOn.hs "instance Category AutoOn"
 ~~~
 
 The other instances are on the file linked above, but I won't post them here,
@@ -1084,7 +1084,7 @@ like the first `AutoOn` until it is off, and then behaves like the second
 forever after:
 
 ~~~haskell
-!!!machines/AutoOn.hs "(-->) ::" machines
+!!!machines/AutoOn.hs "(-->) ::"
 ~~~
 
 ### Usages
@@ -1093,7 +1093,7 @@ Let's test this out; first, some helper functions (the same ones we wrote for
 `AutoM`)
 
 ~~~haskell
-!!!machines/AutoOn.hs "autoOn ::" "arrOn ::" "fromAutoOn ::" machines
+!!!machines/AutoOn.hs "autoOn ::" "arrOn ::" "fromAutoOn ::"
 ~~~
 
 `autoOn` turns an `Auto a b` into an `AutoOn a b`, where the result is always
@@ -1105,7 +1105,7 @@ functions on normal `Auto`s.
 Let's play around with some test `AutoOn`s!
 
 ~~~haskell
-!!!machines/AutoOn.hs "onFor ::" "filterA ::" "untilA ::" machines
+!!!machines/AutoOn.hs "onFor ::" "filterA ::" "untilA ::"
 -- alternatively, using explicit recursion:
 -- untilA p = AConsOn $ \x ->
 --              if p x
@@ -1117,7 +1117,7 @@ One immediate usage is that we can use these to "short circuit" our proc
 blocks, just like with monadic `Maybe` and do blocks:
 
 ~~~haskell
-!!!machines/AutoOn.hs "shortCircuit1 ::" "shortCircuit2 ::" machines
+!!!machines/AutoOn.hs "shortCircuit1 ::" "shortCircuit2 ::"
 ~~~
 
 If either the `filterA` or the `onFor` are off, then the whole thing is off.
@@ -1182,21 +1182,21 @@ you'll have to go deeper:
 
 
 ~~~haskell
-!!!machines/AutoOn2.hs "newtype AutoOn2" machines
+!!!machines/AutoOn2.hs "newtype AutoOn2"
 ~~~
 
 So now, you can write something like `onFor`, which keeps on "ticking on" even
 if it receives a `Nothing` from upstream:
 
 ~~~haskell
-!!!machines/AutoOn2.hs "onFor ::" machines
+!!!machines/AutoOn2.hs "onFor ::"
 
 ~~~
 
 You can of course translate all of your `AutoOn`s into this new type:
 
 ~~~haskell
-!!!machines/AutoOn2.hs "autoOn ::" machines
+!!!machines/AutoOn2.hs "autoOn ::"
 ~~~
 
 Or you can use the smart constructor method detailed immediately following.
@@ -1210,7 +1210,7 @@ Of course, we can always literally throw everything we can add together into
 our `Auto` type:
 
 ~~~haskell
-!!!machines/AutoX.hs "newtype AutoX" machines
+!!!machines/AutoX.hs "newtype AutoX"
 ~~~
 
 (Again, instances are in the source file, but not here in the post directly)
@@ -1235,7 +1235,7 @@ even more streamlined: we can replace the "normal constructors" like `ACons`,
 `aConsOn`, that work *exactly the same way*:
 
 ~~~haskell
-!!!machines/AutoX.hs "aCons ::" "aConsM ::" "aConsOn ::" machines
+!!!machines/AutoX.hs "aCons ::" "aConsM ::" "aConsOn ::"
 ~~~
 
 Compare these definitions of `summer`, `arrM`, and `untilA` from their
@@ -1243,13 +1243,13 @@ Compare these definitions of `summer`, `arrM`, and `untilA` from their
 constructor" versions:
 
 ~~~haskell
-!!!machines/Auto.hs "summer ::" machines
-!!!machines/Auto3.hs "arrM ::" machines
-!!!machines/AutoOn.hs "untilA' ::" machines
+!!!machines/Auto.hs "summer ::"
+!!!machines/Auto3.hs "arrM ::"
+!!!machines/AutoOn.hs "untilA' ::"
 ~~~
 
 ~~~haskell
-!!!machines/AutoX.hs "summer ::" "arrM ::" "untilA ::" machines
+!!!machines/AutoX.hs "summer ::" "arrM ::" "untilA ::"
 ~~~
 
 They are literally exactly the same...we just change the constructor to the
@@ -1259,7 +1259,7 @@ You might also note that we can express a "pure, non-Monadic" `Auto` in
 `AutoM` and `AutoX` by making the type polymorphic over all monads:
 
 ~~~haskell
-!!!machines/AutoX.hs "summer ::"1 machines
+!!!machines/AutoX.hs "summer ::"1
 ~~~
 
 An `Auto` with a type like this says, "I cannot perform any effects during
