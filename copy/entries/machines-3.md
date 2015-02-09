@@ -21,7 +21,7 @@ Identifier
 Hi!  I have to apologize a bit for the long delay; [starting grad
 school][chapman] and things like that have made me have to scramble to adjust
 to the new life.  But a couple of people have asked me to finish up and wrap
-up this series, and I think I owe it to them :)
+up this series, and I think I owe it to them then :)
 
 [chapman]:http://blog.jle.im/entry/looking-forward-a-doctorate-program
 
@@ -51,9 +51,9 @@ actual arrowized FRP libraries today.  So, look out for that one soon!
 
 A fair bit of warning --- if the last post is not fresh in your mind, or you
 still have some holes, I recommend going back and reading through them again.
-This one is going to hit hard and fast :)  Also, it's admittedly kind of long
+This one is going to hit hard and fast :)  (Also, it's admittedly kind of long
 for a single post, but I didn't want to break things up into two really short
-parts. :)
+parts.)
 
 As always, feel free to leave a comment if you have any questions, drop by
 freenode's *#haskell*, or find me on [twitter][] :)
@@ -207,7 +207,7 @@ same!
 ~~~
 
 ~~~haskell
-!!!machines/Auto3.hs "instance Monad m => Functor (AutoM m r)" instance Monad m => Arrow (AutoM m)" machines
+!!!machines/Auto3.hs "instance Monad m => Functor (AutoM m r)" "instance Monad m => Arrow (AutoM m)" machines
 ~~~
 
 
@@ -220,8 +220,8 @@ that you gained from the past part and apply it to here, if you abstract away
 function application and composition to application and composition in a
 context.
 
-Our previous instances then were just a "specialized" version of `AutoM`, one
-where we used naked application and composition :)[^compapl]
+Our previous instances were then just a "specialized" version of `AutoM`, one
+where we used naked application and composition,[^compapl]
 
 [^compapl]: I'm going to go out on a limb here and say that, where Haskell
 lets you abstract over functions and function composition with `Category`,
@@ -374,8 +374,8 @@ channel, we could have just manually logged all of the outputs as they popped
 out.
 
 All valid suggestions.  Separate the pure from the impure.  We went out of our
-way to avoid *global* states and side-effects, so why bring it all in and *use
-it* when we already have disciplined methods to handle it purely?
+way to avoid *global* states and side-effects, so why bother to bring it all
+back?
 
 Superficially, it might seem like just moving the burden from one place to the
 other.  Instead of having the user having to worry about getting the string,
@@ -383,7 +383,7 @@ or writing the log, the `Auto` can just handle it itself internally without
 the "running" code having to worry.
 
 The real, deep advantage in `AutoM`, however, is --- like in `Auto` --- its
-*composability*.
+(literal) *composability*.
 
 Imagine `replicateGets'` was not our "final `Auto`" that we run...imagine it
 was in fact an `Auto` used in a composition inside the definition of an `Auto`
@@ -391,8 +391,9 @@ used several times inside a composition inside the definition of another
 `Auto`.  All of a sudden, having to "manually thread" the extra channel of
 input in is a real nightmare.  In addition, you can't even statically
 guarantee that the `String` `replicateGets` eventually was the same `String`
-that the user originally passed in....some `Auto` along the way could have
-changed it before passing it on![^readernotio]
+that the user originally passed in.  When composing/calling it, who knows if
+the Auto that composes `replicateGets'` passes in the same initially gotten
+String?[^readernotio]
 
 [^readernotio]: By the way, you might notice this pattern as something that
 seems more fit for `Reader` than `IO`.  We'll look at that later!
@@ -526,7 +527,7 @@ integral of the derivative", the double derivative has to be calculated with
 the same time step, and the integral and the derivative have to be calculated
 with the same time step.  If they are fed different time steps, then we aren't
 really calculating a real second derivative or a real integral of a derivative
-anymore.  We're just calculating random numbers.
+anymore.  We're just calculating arbitrary numbers.
 
 Anyways, if you have taken any introduction to calculus course, you'll know
 that the integral of a derivative is the original function --- so the integral
@@ -559,8 +560,8 @@ ghci> x2s
 Perfect!  The second derivative we expected (all 2's) showed up, and the
 integral of the derivative is pretty much exactly the original function.
 
-For fun, try running it with a `sin` function.  The second derivative should
-be negative of original `sin`, this time.  Does it end up as expected?
+For fun, try running it with a `sin` function.  The second derivative of `sin`
+is `netage . sin`.  Does it end up as expected?
 
 The alternative to using `AutoM` and `Reader` here would be to have each
 composed Auto be manually "passed" the `dt` timestep.  But then we really
@@ -598,9 +599,9 @@ summer :: (Monad m, Num a) => AutoM m a a
 
 It is statically guaranteed that `summer` *cannot touch any global state*.
 
-For the latter, we take `AutoM (State s)`'s that operate on global state and
-then basically "seal off" their access to be just within their local worlds,
-as we turn them into `Auto`'s.
+For the latter option, we take `AutoM (State s)`'s that operate on global
+state and then basically "seal off" their access to be just within their local
+worlds, as we turn them into `Auto`'s.
 
 ~~~haskell
 !!!machines/Auto3.hs "sealStateAuto ::" "runStateAuto ::" machines
@@ -688,7 +689,7 @@ important stuff.  Congrats, you are now a control theorist!
 
 [pid]: http://en.wikipedia.org/wiki/PID_controller
 
-Let's see how we would write this using our `Auto`s:
+Let's see how we might write this using our `Auto`s:
 
 ~~~haskell
 piTargeter :: Auto Double Double
@@ -809,7 +810,7 @@ head (1 : fix (1:))     -- head (x:_) = x
 So that's the key.  If what we *want* doesn't require the entire result of the
 infinite loop...then we can safely reason about infinite recursion in haskell.
 
-So the key here really is this function that I sneakily introduced,
+The MVP here really is this function that I sneakily introduced,
 `laggingSummer`:
 
 ~~~haskell
@@ -969,9 +970,10 @@ same instances, but for `newtype AutoOn a b = AutoOn (Auto a (Maybe b))` :)
 <div class="note">
 **Aside**
 
-This aside contains category-theoretic justification for what we just did.
-You can feel free to skip it if you aren't really too familiar with the basics
-of Category Theory ... but, if you are, this might be a fun perspective :)
+This aside contains category-theoretic justification for what we just did. You
+can feel free to skip it if you aren't really too familiar with the bare
+basics of Category Theory (What an endofunctor is, for example)... but, if you
+are, this might be a fun perspective :)
 
 What we've really done here is taken a category with objects as Haskell types
 and morphisms are `Auto a b`, and turned it into a category with objects as
@@ -1036,9 +1038,8 @@ g <~=< f = joinA . fmapA g . f
 In fact, for `f ~ Maybe`, this definition is identical to the one for the
 `Category` instance we wrote above for `AutoOn`.
 
-And, if the `FunctorA` is a real functor, and if the `Monad` is a real monad,
+And, if the `FunctorA` is a real functor and the `Monad` is a real monad,
 then we have for free the associativity of this super-fish operator:
-
 
 ~~~haskell
 (h <~=< g) <~=< f == h <~=< (g <~=< f)
@@ -1053,7 +1054,10 @@ where we could write an instance of `FunctorA` that follows the laws?  Think
 about it, and post some in the comments!
 
 One immediate example is `Either e`, which is used for great effect in many
-FRP libraries!  It's "inhibit, with a *value*".
+FRP libraries!  It's "inhibit, with a *value*".  As an exercise, see if you
+can write its `FunctorA` instance, or re-write the `AutoOn` in this section to
+work with `Either e` (you might need to impose a typeclass constraint on the
+`e`) instaed of `Maybe`!
 </div>
 
 
@@ -1075,11 +1079,11 @@ Feed anything through `empty` and it'll produce a `Nothing` no matter what.
 You can use this to provide an "always fail", "short-circuit here" kind of
 composition, like `Nothing` in the `Maybe` monad.
 
-There's also an interesting and useful concept called "switching" that comes
-from this; the ability to switch from running one Auto or the other by looking
-if the result is on or off --- here is a common switch that behaves like the
-first `AutoOn` until it is off, and then behaves like the second forever
-after:
+You also get this an interesting and useful concept called "switching" that
+comes from this; the ability to switch from running one Auto or the other by
+looking if the result is on or off --- here is a common switch that behaves
+like the first `AutoOn` until it is off, and then behaves like the second
+forever after:
 
 ~~~haskell
 !!!machines/AutoOn.hs "(-->) ::" machines
@@ -1141,7 +1145,10 @@ in order to be able to combine multiple `Auto`'s that simulate "stages"...an
 ready.
 
 [^schead]: Admittedly, implicit short-circuiting with `Auto`s is actually
-often times a lot more of a headache than it's worth.
+often times a lot more of a headache than it's worth; note that "switching"
+still works if you have a normal `Auto a (Maybe b)`; this is the approach that
+many libraries like [*auto*][auto] take --- write switching combinators on
+normal `Auto a (Maybe b)`'s instead.
 
 ~~~haskell
 !!!machines/AutoOn.hs "stages ::"
@@ -1157,7 +1164,6 @@ ghci> testAuto_ (fromAutoOn stages) [1..15]
 , Just 100, Just 200, Just 100      -- stage 3
 , Just (-15), Just (-16)            -- stage 1
 ]
-
 ~~~
 
 Note that the stages continually "loop around", as our recursive definition
@@ -1199,8 +1205,8 @@ Or you can use the smart constructor method detailed immediately following.
 </div>
 
 
-Wrapping it up
---------------
+Working all together
+--------------------
 
 Of course, we can always literally throw everything we can add together into
 our `Auto` type:
@@ -1337,8 +1343,8 @@ So, what's next?
     I am open to pull requests and help on the final stages of documentation
     :)
 
-    If you're interested, or are curious, stop by #haskell-auto on freenode or
-    send me a message!
+    If you're interested, or are curious, stop by *#haskell-auto* on freenode
+    or send me a message!
 
 *   Look forward to an actual series on Arrowized FRP, coming up soon!  We'll
     be using the concepts in this series to *implement FRP*.
