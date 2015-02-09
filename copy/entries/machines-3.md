@@ -18,12 +18,10 @@ Series
 Identifier
 :   machines-3
 
-Hi!  I have to apologize a bit for the long delay; [starting grad
-school][chapman] and things like that have made me have to scramble to adjust
-to the new life.  But a couple of people have asked me to finish up and wrap
-up this series, and I think I owe it to them then :)
-
-[chapman]:http://blog.jle.im/entry/looking-forward-a-doctorate-program
+Hi! I have to apologize a bit for the long delay; starting grad school and
+things like that have made me have to scramble to adjust to the new life.  But
+a couple of people have asked me to finish up and wrap up this series, and I
+think I owe it to them then :)
 
 In the [last post][part2], we looked deeper into the Auto type, played
 around with instancing it as familiar typeclasses, saw it as a member of the
