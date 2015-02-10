@@ -514,7 +514,10 @@ or sampling rate, so to speak, of the input stream.  We have two stateful
 and time derivative of the input stream of numbers...but in order to do so, it
 needs the time step.  We get it using `ask`.  (Note that the time step doesn't
 have to be the same between every different tick ... `integral` and
-`derivative` should work just fine with a new timestep every tick.)
+`derivative` should work just fine with a new timestep every tick.) (Also note
+that `derivative` is `Nothing` on its first step, because there is not yet any
+meaningful derivative on the first input)
+
 
 In `fancyCalculus`, we calculate the integral, the derivative, the second
 derivative, and the integral of the derivative, and return the second
@@ -529,11 +532,11 @@ anymore.  We're just calculating arbitrary numbers.
 
 Anyways, if you have taken any introduction to calculus course, you'll know
 that the integral of a derivative is the original function --- so the integral
-of the derivative, if we pick the right initial values, should just be an "id"
+of the derivative, if we pick the right `x0`, should just be an "id"
 function:
 
 ~~~haskell
-integral x0 . derivative d0 == id
+integral x0 . derivative == id      -- or off by a constant difference
 ~~~
 
 Let's try this out with some input streams where we know what the second
@@ -624,7 +627,7 @@ m`.  See if you can write it :)
 sealStateAutoM :: AutoM (StateT s m) a b -> s -> AutoM m a b
 sealStateAutoM = ...
 
-runStateAutoM :: AutoM (StateT s m) a b -> AutoM m a b
+runStateAutoM :: AutoM (StateT s m) a b -> AutoM m (a, s) (b, s)
 runStateAutoM = ...
 ~~~
 </div>
@@ -1190,7 +1193,6 @@ if it receives a `Nothing` from upstream:
 
 ~~~haskell
 !!!machines/AutoOn2.hs "onFor ::"
-
 ~~~
 
 You can of course translate all of your `AutoOn`s into this new type:
