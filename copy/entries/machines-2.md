@@ -834,11 +834,14 @@ output of `auto1`, in the process of our stepping it.  `y` doesn't exist until
 we "step" `foo`...so can't use `auto2 y` in the process of composing `foo`.
 
 To see more clearly, see what we'd do if we tried to write `foo` as a
-compositino:
+compositino:[^compositino]
 
 ~~~haskell
 foo = auto2 y . auto1
 ~~~
+
+[^compositino]: This was originally a typo but I like the word so much that
+I'm just going to leave it in here.
 
 Where does the `y` come from?!
 
@@ -887,7 +890,8 @@ That being said, there are some things you can try out test your understanding
 before Part 3 :)
 
 1.  Write the [Profunctor][Profunctors] instance mentioned above; look at the
-    Functor instance we wrote as a reference.
+    Functor instance we wrote as a reference.  And hey, how about `Strong` and
+    `Choice`, too?
 
 2.  Try writing the various Autos we wrote last time at the end using
     composition and proc notation instead of explicit recursion.  Feel free to
