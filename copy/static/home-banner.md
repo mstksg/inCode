@@ -18,7 +18,8 @@ me if you wish!
 [about]: / "It's a picture of me! :D"
 
 Check out my most popular articles: [Inside My World (Ode to Functor and
-Monad)][inside] and [The Compriseless Reconciliation of Purity and I/O][io]!
+Monad)][inside] and ["IO Monad" Considered Harmful][conharm]!
 
 [inside]: http://blog.jle.im/entry/inside-my-world-ode-to-functor-and-monad
+[conharm]: http://blog.jle.im/entry/io-monad-considered-harmful
 [io]: http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity
