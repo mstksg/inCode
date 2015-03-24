@@ -6,7 +6,7 @@ Categories
 :   Ramblings
 Tags
 :   arrows
-:   auto
+:   auto-machines
 :   haskell
 :   machines
 CreateTime

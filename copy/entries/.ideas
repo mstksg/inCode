@@ -16,10 +16,12 @@ ideas
     - baking
     - AST code generator for a real life target language
 * pid loop
+* free monads with rand
 
 in progress
 
 * path integral monte carlo series
+* mtl not a monad transformers library
 
 done
 

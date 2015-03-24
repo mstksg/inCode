@@ -6,7 +6,7 @@ Categories
 :   Ramblings
 Tags
 :   arrows
-:   auto
+:   auto-machines
 :   haskell
 :   machines
 CreateTime
@@ -731,8 +731,8 @@ everything is just "how things are".  It basically popped up exactly as how we
 amazed, and was one of the things that sold me on this abstraction in the
 first place.
 
-But, do you see the problem?  To calculate `err`, we used `currResp`.  But to
-get `currResp`, we need `err`!
+But, do you see the problem?  To calculate `err`, we used `resp`.  But to
+get `resp`, we need `err`!
 
 We need to be able to define "recursive bindings".  Have Autos recursively
 depend on each other.
