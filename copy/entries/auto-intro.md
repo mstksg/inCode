@@ -12,7 +12,7 @@ Tags
 CreateTime
 :   2015/03/24 01:02:06
 PostDate
-:   Never
+:   2015/03/24 10:30:57
 Series
 :   All About Auto
 Identifier
@@ -35,7 +35,7 @@ projects][auto-examples], and even see a live running [todoMVC][]
 [auto-examples]: https://github.com/mstksg/auto-examples
 [todoMVC]: http://mstksg.github.io/auto-examples/todo/
 [todosrc]: https://github.com/mstksg/auto-examples/blob/master/src/Todo.hs
-[auto-examples]: https://github.com/mstksg/auto
+[autogh]: https://github.com/mstksg/auto
 
 Over the next week or two I'm going to be breaking down real-world projects
 written on *auto*, and even be talking about the design processes of programs
@@ -58,9 +58,12 @@ principles?
 Auto
 ----
 
-Auto is for GUI's, turn-based games, numerical computations and simulations,
+*auto* is for GUI's, turn-based games, numerical computations and simulations,
 and anything that involves an input or output that is a discrete stream of
-events or views.
+things --- events, views etc.  *auto* provides a language for stating
+(potentially cyclic) *relationships* between streams that are maintained along
+items...and allowing you to compose and create complex relationships out of
+simple ones.
 
 ### on State
 
@@ -163,6 +166,9 @@ been working on this library and have been writing "real world" code for it
 for almost a year now, so I have some experience with design practices and
 patterns that work and don't work.
 
+For now, you can try reading over the [tutorial][] if you want, or peruse the
+[examples][auto-examples] repo!
+
 ### on Support
 
 For now, the official support channel is *#haskell-auto* on freenode (I'm
@@ -171,3 +177,8 @@ me](mailto:justin@jle.im), or find me on twitter as [mstk][twitter].
 
 [tracker]: https://github.com/mstksg/issues
 [twitter]: https://twitter.com/mstk "Twitter"
+
+All this being said, *auto* is still kind of technically in a sorta
+pre-release state, because not all of the tests are written yet.  But the API
+should be stable and updates before `0.3.x` are going to all be backwards
+compatible (API-wise) bug fixes or filling in holes.

@@ -4,7 +4,7 @@ auto
 Posts about the [auto][] library, a library offering a denotative, locally
 stateful programming DSL and platform.
 
-[auto]: http://hackage.haskell.org/package/auto
+[auto]: https://github.com/mstksg/auto
 
 For posts about the mealy machine automation arrow, see [#auto-machines][am].
 
