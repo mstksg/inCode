@@ -12,7 +12,7 @@ module Web.Blog.Models.Models  where
 import "base" Prelude
 import Data.Time
 import Database.Persist.TH
-import Database.Persiste.Quasi
+import Database.Persist.Quasi
 import Web.Blog.Models.Types
 import qualified Data.Text     as T
 
