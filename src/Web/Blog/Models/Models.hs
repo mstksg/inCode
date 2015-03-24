@@ -12,11 +12,12 @@ module Web.Blog.Models.Models  where
 import "base" Prelude
 import Data.Time
 import Database.Persist.TH
+import Database.Persiste.Quasi
 import Web.Blog.Models.Types
-import qualified Data.Text   as T
+import qualified Data.Text     as T
 
 sqlSettings' :: PersistSettings
-sqlSetings' = sqlSettings { psStrictFields = True }
+sqlSettings' = sqlSettings { psStrictFields = True }
 
 
 share [mkPersist sqlSettings', mkMigrate "migrateAll"] [persistLowerCase|
