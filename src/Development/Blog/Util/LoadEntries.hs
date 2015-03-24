@@ -4,6 +4,7 @@ module Development.Blog.Util.LoadEntries (loadEntries) where
 import "base" Prelude
 import Control.Applicative                    (pure)
 import Control.Arrow
+import Control.Exception
 import Control.Monad
 import Control.Monad.IO.Class
 import Data.Functor
