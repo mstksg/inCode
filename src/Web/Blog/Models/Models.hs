@@ -9,13 +9,13 @@
 
 module Web.Blog.Models.Models  where
 
+-- import Database.Persist.Quasi
 import "base" Prelude
 import Data.Time
-import Database.Persist.Quasi
 import Database.Persist.TH
 import Web.Blog.Models.Persist
 import Web.Blog.Models.Types
-import qualified Data.Text     as T
+import qualified Data.Text       as T
 
 -- how can i make this strict?
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
