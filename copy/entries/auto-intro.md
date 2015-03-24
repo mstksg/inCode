@@ -43,9 +43,9 @@ projects][auto-examples], and even see a live running [todoMVC][]
 
 Over the next week or two I'm going to be breaking down real-world projects
 written on *auto*, and even be talking about the design processes of programs
-written using *auto*.  You can follow along on [the series page][series], or
-just subscribe to the [rss feed][rss] feed; expect a post on designing, from
-start to finish,
+written using *auto*.  You can follow along on [the series page][series],
+follow me on [twitter][], or just subscribe to the [rss feed][rss] feed;
+expect a post on designing, from start to finish,
 
 1.  A fully running chat bot
 2.  A GUI-based todo app on ghcjs
@@ -55,6 +55,7 @@ start to finish,
 [series]: http://blog.jle.im/entries/series/+all-about-auto
 [rss]: http://blog.jle.im/rss
 [rogue]: http://en.wikipedia.org/wiki/Rogue_%28video_game%29
+[twitter]: https://twitter.com/mstk "Twitter"
 
 But enough of that...what is *auto*, why does it exist, and what are its design
 principles?
@@ -173,7 +174,6 @@ For now, the official support channel is *#haskell-auto* on freenode (I'm
 me](mailto:justin@jle.im), or find me on twitter as [mstk][twitter].
 
 [tracker]: https://github.com/mstksg/issues
-[twitter]: https://twitter.com/mstk "Twitter"
 
 All this being said, *auto* is still kind of technically in a sorta
 pre-release state, because not all of the tests are written yet.  But the API
