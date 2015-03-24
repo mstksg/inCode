@@ -3,6 +3,7 @@ module Development.Blog.Util.LoadTags (loadTags) where
 
 import "base" Prelude
 import Control.Applicative                    ((<$>))
+import Control.Exception
 import Control.Monad
 import Data.List                              (isPrefixOf)
 import Data.Maybe
@@ -57,7 +58,7 @@ processTagFile tagType tagFile = do
     tag <- runDB $ D.getBy $ UniqueSlugType slug tagType
 
     Tr.forM tag $ \(D.Entity tagKey tagVal) -> do
-      print tagVal
+      evaluate tagVal
       runDB $ D.update tagKey [ TagDescription D.=. Just contents ]
       return tagKey
 

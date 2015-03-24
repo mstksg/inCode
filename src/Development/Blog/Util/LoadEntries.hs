@@ -112,7 +112,7 @@ processEntryFile entryFile = do
 
     eVal <- D.getJust eKey
 
-    liftIO $ print eVal
+    liftIO $ evaluate eVal
 
     return eKey
   where
