@@ -23,7 +23,11 @@ Identifier
 
 Today I'm announcing and beginning promotion of my *auto* library, a
 denotative and locally stateful programming DSL and platform, now [on
-hackage][auto].  You can read the [README] too for a detailed buzz-word laden
+hackage][auto].  *auto* is suitable when your program involves an input or
+output that is a discrete stream of things --- events, views, etc., like turn
+based games, GUI's, numerical computations...; it allows you to state
+(possibly cyclic) complex relationships between streams by composing simple,
+primitive ones.  You can read the [README] too for a detailed buzz-word laden
 exposition with nice well-commented short demos and examples, get started with
 [the tutorial][tutorial], check out the directory of [sample
 projects][auto-examples], and even see a live running [todoMVC][]
@@ -57,13 +61,6 @@ principles?
 
 Auto
 ----
-
-*auto* is for GUI's, turn-based games, numerical computations and simulations,
-and anything that involves an input or output that is a discrete stream of
-things --- events, views etc.  *auto* provides a language for stating
-(potentially cyclic) *relationships* between streams that are maintained along
-items...and allowing you to compose and create complex relationships out of
-simple ones.
 
 ### on State
 
