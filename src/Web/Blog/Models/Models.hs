@@ -11,12 +11,13 @@ module Web.Blog.Models.Models  where
 
 import "base" Prelude
 import Data.Time
-import Database.Persist.TH
 import Database.Persist.Quasi
+import Database.Persist.TH
+import Web.Blog.Models.Persist
 import Web.Blog.Models.Types
 import qualified Data.Text     as T
 
-share [mkPersist sqlSettings { psStrictFields = True }, mkMigrate "migrateAll"] [persistLowerCase|
+share [mkPersist sqlSettings' { psStrictFields = True }, mkMigrate "migrateAll"] [persistLowerCase|
 
 Entry json
     title       T.Text
