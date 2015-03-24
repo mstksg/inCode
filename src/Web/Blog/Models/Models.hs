@@ -17,7 +17,7 @@ import Web.Blog.Models.Persist
 import Web.Blog.Models.Types
 import qualified Data.Text     as T
 
-share [mkPersist sqlSettings' { psStrictFields = True }, mkMigrate "migrateAll"] [persistLowerCase|
+share [mkPersist sqlSettings', mkMigrate "migrateAll"] [persistLowerCase|
 
 Entry json
     title       T.Text
