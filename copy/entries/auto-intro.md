@@ -18,8 +18,11 @@ Series
 Identifier
 :   auto-intro
 
-**Auto**: [hackage][auto] / [README][] / [tutorial][] /
+**Auto**: [README][] (with examples) / [hackage][auto] / [tutorial][] /
 [examples][auto-examples] / [github][autogh]
+
+(Before anything, maybe take a quick look at the detailed description in the
+[README][] for a quick motivating example and explanation of the library)
 
 Today I'm announcing and beginning promotion of my *auto* library, a
 denotative and locally stateful programming DSL and platform, now [on
@@ -154,6 +157,21 @@ By the way, *auto* does allow you to take "snap shots" of the actual states of
 `Auto`s as they are run, as a binary...so you can serialize, freeze, and
 resume `Auto`s from any previous state at-will.  Free undos, free save states.
 
+### on FRP
+
+Throughout its development *auto* has been compared to FRP libraries like
+netwire.  A full address of this comparison is offered on [the readme][frp].
+The main difference is that FRP offers an expressive language for working
+with, manipulating, and transforming continuous-time behaviors.  *auto*
+borrows some aspects of FRP as well as some practical API aspects in order to
+build something separate, manipulating and transforming causal (discrete)
+streams.  There are many situations where FRP is not quite suited --- it'd be
+like using a vector art program to describe a bitmap.  There are domains where
+*auto* is not suited --- that is, the semantic model doesn't allow you to say
+anything meaningful about continuous time behaviors.
+
+[frp]: https://github.com/mstksg/auto#relation-to-frp
+
 on the Future
 -------------
 
@@ -166,6 +184,11 @@ patterns that work and don't work.
 
 For now, you can try reading over the [tutorial][] if you want, or peruse the
 [examples][auto-examples] repo!
+
+Also, I definitely welcome any criticism on the design of the library or the
+semantic model, or of its use cases.  I've been more or less working on this
+alone for almost a year, so now is the time for any delusions of mine to be
+vetted out in public!
 
 ### on Support
 
