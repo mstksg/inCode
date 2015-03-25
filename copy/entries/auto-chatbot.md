@@ -604,11 +604,13 @@ And...you get it all for free!  No extra work.  Now both the `ChatBot` and the
 `ChronBot` will wait on the input stream, and the `Left`s will be fed to the
 `ChatBot` and the `Right`s will be fed to the `ChronBot`.
 
-Anyway, this post is long enough.  Have fun exploring *auto* on your own; I'm
-always happy to hear about any project you might be working on!  You can find
-me on twitter as [mstk][twitter].  If you have any questions or
+Anyway, this post is long enough.  Have fun exploring *auto* on your own;
+expect more tutorials soon as I continue the [All About Auto][series] series,
+too.  I'm always happy to hear about any project you might be working on!  You
+can find me on twitter as [mstk][twitter].  If you have any questions or
 comments/suggestions, feel free to leave a comment down below or drop by
 freenode's *#haskell-auto* or *#haskell-game*, where I go by *jle`*!  And, as
 always, happy Haskelling!
 
+[series]: http://blog.jle.im/entries/series/+all-about-auto
 [twitter]: https://twitter.com/mstk "Twitter"
