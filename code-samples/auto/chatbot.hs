@@ -4,7 +4,7 @@
 -- | Chatbot source code, accompanying
 -- http://blog.jle.im/entry/auto-building-a-declarative-chatbot-with-implicit-serialization
 --
--- dependencies: auto (0.2.0.0+), simpleirc (0.3.0.0), transformers
+-- dependencies: auto (0.2.0.0+), simpleirc (0.3.0), transformers
 --
 -- You can run globally:
 --

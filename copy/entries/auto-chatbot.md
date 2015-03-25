@@ -227,7 +227,7 @@ This will vary based on what library you use; I'm going to use the
 [simpleirc-0.3.0][simpleirc], but feel free to use any interface/library you
 want.
 
-[simpleirc]: http://hackage.haskell.org/package/simpleirc
+[simpleirc]: http://hackage.haskell.org/package/simpleirc-0.3.0
 
 ~~~haskell
 !!!auto/chatbot.hs "withIrcConf ::" "channels ::" "conf ::" "main ::"
@@ -383,11 +383,12 @@ updateBlips = emitJusts getUpdateCommand
         _                                  -> Nothing
 ~~~
 
-`updateBlips` takes in a `(Nick, Message)` blip, with the person who is
-sending the message and their message, and emit with a `(Nick, Int)` whenever
-the message is a command.  The emitted `(Nick, Int)` has the person to adjust,
-and the amount to adjust by.  Note that we ignore commands where the person is
-trying to increase their own reputation because that's just lame.
+`updateBlips` takes in a stream of `(Nick, Message)`, with the person who is
+sending the message and their message, and outputs a blip stream that and
+emits with a `(Nick, Int)` whenever the message is a command.  The emitted
+`(Nick, Int)` has the person to adjust, and the amount to adjust by.  Note
+that we ignore commands where the person is trying to increase their own
+reputation because that's just lame.
 
 We probably want to keep track of the scores as a `Map Nick Int`, so we can do
 that with something like `accum` again.  However, `accum` takes a stream of
@@ -472,7 +473,6 @@ the whole thing whenever the blip stream emits:
 
 ~~~haskell
 resetOn :: Monad m => Auto m a b -> Auto m (a        , Blip c) b
-
 resetOn trackAnns :: Monad m =>     Auto m (Blip Nick, Blip c) (Map Nick Int)
 ~~~
 
@@ -518,8 +518,8 @@ whenever `outB` emits.
 Note here that we use `(<$)` from the `Functor` instance of blip streams.  `x
 <$ fooB` is a new blip stream that emits whenever `fooB` emits...but
 instead *replaces the emitted value*.  So for `4 <$ fooB`, if `fooB`
-emits with `"hello"`, `4 <$ fooB` emits with `4`.  Emit at the same time, but
-pop out the value and put in your own.
+emits with `"hello"`, `4 <$ fooB` emits with `4`.  "Emit at the same time, but
+pry out the value and put in your own."
 
 Finally we use `fromBlips`, which we met before in the definition of
 `perRoom`: the output is the `OutMessage` in `outMsgsB` whenever `outMsgsB`
@@ -584,12 +584,12 @@ Where can we go from here?  Well, you might actually want to maybe write
 type ChronBot m = Auto m UTCTime OutMessages
 ~~~
 
-You call them every minute with the type, and it's allowed to react with the
-the time and output an `OutMessages`.  You can use this bot to implement
+You feed them inputs every minute with the time, and it's allowed to react
+with the time and output an `OutMessages`.  You can use this bot to implement
 things like rss feed watchers/subscribers, for instance.
 
-Then, instead of using an input channel waiting for `InMessage`, you might
-wait for `Either InMessage UTCTime`...drop in `Left im` whenever you get a
+So, instead of using an input channel waiting for `InMessage`, you might wait
+for `Either InMessage UTCTime`...and drop in `Left im` whenever you get a
 message, and `Right time` from a thread that just waits a minute and
 repeatedly throws in times.
 
