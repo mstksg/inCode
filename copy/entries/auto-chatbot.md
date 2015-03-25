@@ -1,5 +1,5 @@
-Auto: Building a declarative chat bot with implicit serialization
-=================================================================
+Auto: Building a Declarative Chatbot with Implicit Serialization
+================================================================
 
 Categories
 :   Haskell
@@ -21,7 +21,7 @@ Today we're going to continue along with the [All About Auto][series]
 and principles of architecture that you can apply to your own projects.
 denotational components from the [auto][] library that is modular and has
 implicit serialization.  Most importantly, we'll look at the "design process",
-inroduction series and look at building a declarative chatbot using the
+introduction series and look at building a declarative chatbot using the
 
 [auto]: http://hackage.haskell.org/package/auto
 
@@ -139,7 +139,7 @@ We have enough now then to imagine our entire program architecture:
     that's our entire chat bot!
 *   Having an overall `chatBot :: ChatBot m`, we can use something like
     `runOnChan` from `Control.Auto.Run` to have it exist on a concurrent
-    thread and whatch a channel for input, and perform an action on output.
+    thread and watch a channel for input, and perform an action on output.
 *   Find an out-of-the-box irc library that can trigger adding something to a
     concurrent queue when it receives a message, and where you can send
     messages to rooms.
@@ -203,7 +203,7 @@ old save files.
 One solution at this point is just to serialize individual modules that you do
 not see yourself changing...or even just serializing parts of the modules you
 don't see yourself changing.  Then you can change each portion separately and
-not worry about migrtion issues.
+not worry about migration issues.
 
 ~~~haskell
 chatBot :: MonadIO m => ChatBot m
@@ -492,7 +492,7 @@ newDayBlips = onChange
 `newDayBlips` takes in a stream of `Day`s (from `Data.Time`) that we get from
 the `InMessage` and outputs a blip stream that emits whenever the day changes.
 It emits with the new `Day`...but we don't really care about the emitted
-value, we're just using it to triger `resetOn trackAnns`.
+value, we're just using it to trigger `resetOn trackAnns`.
 
 Finally, let's wrap it all together!
 
@@ -567,7 +567,7 @@ process.
 
 Also, hopefully the "declarative" nature of everything is apparent.
 Especially for *proc* blocks...everything just "looks like" a graph of
-relationships.  This quantity is related to this quantitiy in this way, this
+relationships.  This quantity is related to this quantity in this way, this
 quantity is related to that in that way, etc.  It looks like you're just
 specifying a graph of relationships, which is really what the core of *auto*
 is all about.  We assemble complex relationships by putting together small,

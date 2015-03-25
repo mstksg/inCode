@@ -2,7 +2,7 @@
 {-# LANGUAGE TupleSections #-}
 
 -- | Chatbot source code, accompanying
--- http://blog.jle.im/entry/auto-building-a-declarative-chat-bot-with-implicit
+-- http://blog.jle.im/entry/auto-building-a-declarative-chatbot-with-implicit-serialization
 --
 -- dependencies: auto (0.2.0.0+), simpleirc (0.3.0.0), transformers
 --
