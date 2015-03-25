@@ -38,7 +38,7 @@ import Data.Text.Encoding
 import Data.Text.Encoding.Error
 import Data.Time
 import Network.SimpleIRC
-import Prelude hiding           ((.), id)
+import Prelude hiding           ((.), id)   -- we use (.) and id from `Control.Category`
 import qualified Data.Map       as M
 
 channels :: [Channel]

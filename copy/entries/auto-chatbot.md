@@ -28,7 +28,7 @@ This post assumes *some* concepts from the [tutorial][], or at least my [last
 post][intro] or the [README][].  If some of these ideas seem completely new,
 than looking through the [tutorial][] or the [docs][auto] might refresh your
 mind...feel free to also leave a comment, stop by *#haskell-auto* on freenode
-where I go by *jle`*, or send a tweet to [\@mstk][twitter].
+where I go by *jle`*, or [tweet me][twitter]
 
 [tutorial]: https://github.com/mstksg/auto/blob/master/tutorial/tutorial.md
 [intro]: http://blog.jle.im/entry/introducing-the-auto-library
