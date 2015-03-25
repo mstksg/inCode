@@ -17,10 +17,11 @@ Series
 Identifier
 :   auto-chatbot
 
-Today we're going to look at building a declarative chatbot using the
+Today we're going to continue along with the [All About Auto][series]
+and principles of architecture that you can apply to your own projects.
 denotational components from the [auto][] library that is modular and has
 implicit serialization.  Most importantly, we'll look at the "design process",
-and principles of architecture that you can apply to your own projects.
+inroduction series and look at building a declarative chatbot using the
 
 [auto]: http://hackage.haskell.org/package/auto
 
