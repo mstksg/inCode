@@ -74,10 +74,8 @@ lack of denotational semantics to reason with them.
 
 The go-to implementation for a turn-based game is to have a "giant state
 monad".  It is a clever "hack", but really, all we've done is began
-programming a game with *global mutable state*.  Why have we done this to
-ourselves?  Why progress back before language design principles of the 1960's?
-People have tried getting over this by using lenses and zoomers, but this
-processes doesn't quite scale.
+programming a game with *global mutable state*.  People have tried getting
+over this by using lenses and zoomers, but this processes doesn't quite scale.
 
 Even now many games, GUI's, numerical computations, etc. are written as
 folds or state compositions over a giant state.  Surely there is a better way?
@@ -155,9 +153,11 @@ composition.
 
 By the way, *auto* does allow you to take "snap shots" of the actual states of
 `Auto`s as they are run, as a binary...so you can serialize, freeze, and
-resume `Auto`s from any previous state at-will.  Free undos, free save states.
+resume `Auto`s from any previous state at-will.  Free undos, *free save
+states*.  And this serialization **composes**, so the combination of two
+serialized `Auto`s with internal state will also be serialized appropriately.
 
-### on FRP
+### on Comparisons
 
 Throughout its development *auto* has been compared to FRP libraries like
 netwire.  A full address of this comparison is offered on [the readme][frp].
@@ -171,6 +171,15 @@ like using a vector art program to describe a bitmap.  There are domains where
 anything meaningful about continuous time behaviors.
 
 [frp]: https://github.com/mstksg/auto#relation-to-frp
+
+*auto* has also been compared to pipes and conduit, but there are some major
+differences in design and philosophy.  pipes and conduit focus around the
+problem of effective streaming with resource management.  They encourage
+"sources" that come from underlying monads like IO; *auto* discourages this
+except for disciplined exceptions, and it's definitely not the norm.  Autos
+all have explicit input and output; they also don't do much to manage
+resources or IO.  They're meant to express programs as (pure) stream
+transformations, instead of doing "work" and processing IO streams.
 
 on the Future
 -------------
