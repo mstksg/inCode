@@ -11,7 +11,7 @@ Tags
 CreateTime
 :   2015/03/24 18:02:54
 PostDate
-:   Never
+:   2015/03/25 10:20:17
 Series
 :   All About Auto
 Identifier
@@ -24,6 +24,22 @@ and principles of architecture that you can apply to your own projects.
 
 [auto]: http://hackage.haskell.org/package/auto
 
+This post assumes *some* concepts from the [tutorial][], or at least my [last
+post][intro] or the [README][].  If some of these ideas seem completely new,
+than looking through the [tutorial][] or the [docs][auto] might refresh your
+mind...feel free to also leave a comment, stop by *#haskell-auto* on freenode
+where I go by *jle`*, or send a tweet to [\@mstk][twitter].
+
+[tutorial]: https://github.com/mstksg/auto/blob/master/tutorial/tutorial.md
+[intro]: http://blog.jle.im/entry/introducing-the-auto-library
+[README]: https://github.com/mstksg/auto/blob/master/README.md
+
+All of the code in this tutorial can be [downloaded and run][source] using
+`runghc` (with the appropriate dependencies installed).  Feel free to play
+along!
+
+!!![source]:auto/chatbot.hs
+
 Overall Layout
 --------------
 
@@ -35,6 +51,11 @@ The choice should be pretty straightforward -- our input stream is a stream of
 input messages from the irc server, and our output stream is a stream of
 messages to send to the server.  In haskell we like types, so let's make some
 types.
+
+~~~haskell
+-- first, our imports
+!!!auto/chatbot.hs "import Control.Auto"
+~~~
 
 ~~~haskell
 !!!auto/chatbot.hs "type Nick" "data InMessage" "newtype OutMessages" "instance Monoid"
@@ -208,7 +229,7 @@ want.
 [simpleirc]: http://hackage.haskell.org/package/simpleirc
 
 ~~~haskell
-!!!auto/chatbot.hs "withIrcConf ::" "conf ::" "main ::"
+!!!auto/chatbot.hs "withIrcConf ::" "channels ::" "conf ::" "main ::"
 ~~~
 
 That should be it...don't worry if you don't understand all of it, most of it
@@ -261,8 +282,6 @@ Logically, this is pretty straightforward, and anything other than `accum`
 just update the output map.
 
 ~~~haskell
-!!!auto/chatbot.hs "trackSeens ::"
-
 trackSeens :: Monad m => Auto m (Nick, UTCTime) (Map Nick UTCTime)
 trackSeens = accum (\mp (nick, time) -> M.insert nick time mp) M.empty
 ~~~
@@ -285,8 +304,6 @@ will "trigger" some special response.  This is a sign that we can use *blip
 streams*.
 
 ~~~haskell
-!!!auto/chatbot.hs "queryBlips ::"
-
 queryBlips :: Auto m Message (Blip Nick)
 queryBlips = emitJusts (getRequest . words)
   where
@@ -354,8 +371,6 @@ triggered by certain words in the message.  Again, this pattern calls for a
 blip stream:
 
 ~~~haskell
-!!!auto/chatbot.hs "updateBlips ::"
-
 updateBlips :: Auto m (Nick, Message) (Blip (Nick, Int))
 updateBlips = emitJusts getUpdateCommand
   where
@@ -383,8 +398,6 @@ value stream by holding the "current result" of the fold.[^accumB]
 Auto m a (Blip a) (Blip b)`, which emits whenever the input emits only.
 
 ~~~haskell
-!!!auto/chatbot.hs "trackReps ::"
-
 trackReps :: Monad m => Auto m (Blip (Nick, Int)) (Map Nick Int)
 trackReps = scanB (\mp (nick, change) -> M.insertWith (+) nick change mp) M.empty
 ~~~
@@ -394,8 +407,6 @@ commands and look up the result.  We basically had this identical pattern for
 `seenBot`:
 
 ~~~haskell
-!!!auto/chatbot.hs "queryBlips ::"
-
 queryBlips :: Auto m Message (Blip Nick)
 queryBlips = emitJusts (getRequest . words)
   where
@@ -430,8 +441,6 @@ We can start with our typical "blip stream that emits on a certain command" to
 start off everything:
 
 ~~~haskell
-!!!auto/chatbot.hs "announceBlips ::"
-
 announceBlips :: Monad m => Auto m (Nick, Message) (Blip [Message])
 announceBlips = emitJusts getAnnounces
   where
@@ -449,8 +458,6 @@ announcement today.  This is pretty much just `scanB` again like with
 `repBot`:
 
 ~~~haskell
-!!!auto/chatbot.hs "trackAnns ::"
-
 trackAnns :: Monad m => Auto m (Blip Nick) (Map Nick Int)
 trackAnns = scanB (\mp nick -> M.insertWith (+) nick 1 mp) M.empty
 ~~~
@@ -477,7 +484,6 @@ day.  For that, we can use `onChange` from [`Control.Auto.Blip`][cablip]:
 [cablip]: http://hackage.haskell.org/package/auto/docs/Control-Auto-Blip.html
 
 ~~~haskell
-!!!auto/chatbot.hs "newDayBlips ::"
 newDayBlips :: Monad m => Auto m Day (Blip Day)
 newDayBlips = onChange
 ~~~
@@ -545,6 +551,9 @@ Or, to future-proof, in case we foresee adding new modules:
 ~~~
 
 And...that's it!
+
+Feel free to [download and run this all yourself][source] using `runghc`!
+(provided you have the appropriate libraries installed)
 
 Fin
 ---

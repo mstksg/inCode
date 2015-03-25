@@ -1,6 +1,25 @@
 {-# LANGUAGE Arrows #-}
 {-# LANGUAGE TupleSections #-}
 
+-- | Chatbot source code, accompanying
+-- http://blog.jle.im/entry/auto-building-a-declarative-chat-bot-with-implicit
+--
+-- dependencies: auto (0.2.0.0+), simpleirc (0.3.0.0), transformers
+--
+-- You can run globally:
+--
+-- $ cabal install auto simpleirc
+-- $ runghc chatbot.hs
+--
+-- Or you can run in a sandbox (recommended)
+--
+-- $ cabal sandbox init
+-- $ cabal install auto simpleirc
+-- $ cabal exec runghc chatbot.hs
+--
+-- Remember to edit `channels` and `conf` with the channels and server/nick
+-- you would like to join.
+
 module Main where
 
 import Control.Auto
@@ -22,9 +41,11 @@ import Network.SimpleIRC
 import Prelude hiding           ((.), id)
 import qualified Data.Map       as M
 
-conf :: IrcConfig
-conf = (mkDefaultConfig "irc.freenode.org" "testautobot") { cChannels = ["#jlebot-test"] }
+channels :: [Channel]
+channels = ["#testchan1", "#testchan2"]
 
+conf :: IrcConfig
+conf = (mkDefaultConfig "myserver" "mynick") { cChannels = channels }
 
 type Nick    = String
 type Channel = String
@@ -55,13 +76,13 @@ chatBot :: MonadIO m => ChatBot m
 chatBot = serializing' "chatbot.dat"
         . mconcat $ [ perRoom seenBot
                     , perRoom repBot
-                    , announceBot ["#jlebot-test"]
+                    , announceBot channels
                     ]
 
 chatBot' :: MonadIO m => ChatBot m
 chatBot' = mconcat [ perRoom . serializing' "seens.dat" $ seenBot
                    , perRoom . serializing' "reps.dat"  $ repBot
-                   ,           serializing' "anns.dat"  $ announceBot ["#jlebot-test"]
+                   ,           serializing' "anns.dat"  $ announceBot channels
                    ]
 
 seenBot :: Monad m => RoomBot m
