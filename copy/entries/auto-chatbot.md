@@ -3,8 +3,8 @@ Auto: Building a Declarative Chatbot with Implicit Serialization
 
 Categories
 :   Haskell
-:   Projects
 :   Auto
+:   Tutorials
 Tags
 :   auto
 :   haskell
@@ -14,6 +14,7 @@ PostDate
 :   2015/03/25 10:20:17
 Series
 :   All About Auto
+:   Beginner/Intermediate Haskell Projects
 Identifier
 :   auto-chatbot
 
@@ -133,6 +134,7 @@ messages to send to that source.
 
 So now if we have a `RoomBot m`, we can convert it up into a `ChatBot m`, and
 combine it/merge it with other `ChatBot m`s.
+
 
 ### The whole deal
 
@@ -562,6 +564,55 @@ And...that's it!
 
 Feel free to [download and run this all yourself][source] using `runghc`!
 (provided you have the appropriate libraries installed)
+
+<div class="note">
+
+**Aside**
+
+This is a quick diversion!  It's slightly more advanced, so don't worry if you
+don't understand it immediately.
+
+Note that the `perRoom` upgrade has the same `RoomBot m` watch *all* of the
+channels and send any replies back to the channel that it just received from.
+Every channel is really interacting with the *same* `RoomBot` instance, with
+one shared state.  So `perRoom repBot` keeps track of reputations between
+rooms --- asking for someone's reputation in one room will be the same as
+asking for it in another room.
+
+Another way we could "upgrade" a `RoomBot` is to give each channel its own
+little copy, with separate state.  We can do this using `mux`:
+
+~~~haskell
+!!!auto/chatbot.hs "isolatedRooms ::"
+~~~
+
+`mux` is an "`Auto` multiplexer":
+
+~~~haskell
+mux :: (k -> Auto m a b) -> Auto m (k, a) b
+~~~
+
+`mux f` associates a separate/different `Auto`, with its own isolated state,
+with every key `k`.  It takes in a key-input pair `(k, a)` and feeds the `a`
+into the `Auto` it has associated with that key `k`.  The function `f` is what
+`Auto` initialize if the `k` has not yet been seen before.
+
+So we feed it a `(Channel, InMessage)`, and it feeds in that `InMessage` to
+the `RoomBot m` associated with that `Channel`...and the output is the `Blip
+[Message]` blip stream that the `RoomBot` at that `Channel` popped out.
+
+Our "auto initialization function" is `const rb`, because no matter what
+channel we're in, we always want to initialize with the same `rb`.
+
+So, for example, if we had `isolatedRooms repBot`, if a message came from
+channel *#foo* saying `"@rep john"`, *only the `repBot` associated with #foo*
+would get the message, and only that `repBot`'s output will be displayed.  If
+here is not yet a `repBot` instance associated with *#foo*, then a new one
+will be created by calling `const repBot` on `"#foo"`...initializing a new
+`repBot` that only knows about *#foo* messages.
+
+</div>
+
 
 Fin
 ---

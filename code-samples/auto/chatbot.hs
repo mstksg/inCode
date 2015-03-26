@@ -24,6 +24,7 @@ module Main where
 
 import Control.Auto
 import Control.Auto.Blip
+import Control.Auto.Collection  (mux)
 import Control.Auto.Run         (runOnChanM)
 import Control.Auto.Serialize   (serializing')
 import Control.Auto.Switch      (resetOn)
@@ -67,10 +68,17 @@ instance Monoid OutMessages where
 type ChatBot m = Auto m InMessage OutMessages
 type RoomBot m = Auto m InMessage (Blip [Message])
 
+-- one instance of rb watches all rooms
 perRoom :: Monad m => RoomBot m -> ChatBot m
-perRoom rb = proc inp -> do
+perRoom rb = proc inp@(InMessage _ _ src _) -> do
     messages <- fromBlips [] . rb -< inp
-    id -< OutMessages $ M.singleton (_inMessageSource inp) messages
+    id -< OutMessages $ M.singleton src messages
+
+-- each room gets its own isolated copy of rb
+isolatedRooms :: Monad m => RoomBot m -> ChatBot m
+isolatedRooms rb = proc inp@(InMessage _ _ src _) -> do
+    messages <- fromBlips [] . mux (const rb) -< (src, inp)
+    id -< OutMessages $ M.singleton src messages
 
 chatBot :: MonadIO m => ChatBot m
 chatBot = serializing' "chatbot.dat"
