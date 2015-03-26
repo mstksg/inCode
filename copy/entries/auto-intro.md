@@ -29,10 +29,10 @@ denotative and locally stateful programming DSL and platform, now [on
 hackage][auto].  *auto* is suitable when your program involves an input or
 output that is a discrete stream of things --- events, views, etc., like turn
 based games, GUI's, numerical computations...; it allows you to state
-(possibly cyclic) complex relationships between streams by composing simple,
-primitive ones.  You can read the [README] too for a detailed buzz-word laden
-exposition with nice well-commented short demos and examples, get started with
-[the tutorial][tutorial], check out the directory of [sample
+(possibly cyclic) complex relationships between streams of values by composing
+simple, primitive ones.  You can read the [README] too for a detailed
+buzz-word laden exposition with nice well-commented short demos and examples,
+get started with [the tutorial][tutorial], check out the directory of [sample
 projects][auto-examples], and even see a live running [todoMVC][]
 ([source][todosrc]) example!
 
@@ -176,10 +176,11 @@ anything meaningful about continuous time behaviors.
 differences in design and philosophy.  pipes and conduit focus around the
 problem of effective streaming with resource management.  They encourage
 "sources" that come from underlying monads like IO; *auto* discourages this
-except for disciplined exceptions, and it's definitely not the norm.  Autos
-all have explicit input and output; they also don't do much to manage
-resources or IO.  They're meant to express programs as (pure) stream
-transformations, instead of doing "work" and processing IO streams.
+except for disciplined exceptions, and it's definitely not the norm.  *auto*
+works as *value stream transformers*, working with "pure" one-by-one
+transformations on streams of *values*; pipes and conduit are *effect stream
+manipulators*, managing streams of *effects* in constant space, with resource
+management, etc...and often involving output effects as a result ("consumers").
 
 on the Future
 -------------

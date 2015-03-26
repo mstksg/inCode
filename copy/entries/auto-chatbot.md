@@ -101,6 +101,13 @@ room it got its input from.  It outputs a blip stream of message lists; when
 it doesn't want to send messages out, it doesn't emit.  When it does, it
 *does* emit, with the list of messages.
 
+(Remember, a *blip stream* is just like a normal stream of values, except it
+only actually *has* a value every once in a while, when it "emits".  A `Blip
+Bool` is a stream that sometimes, occasionally emits with a `Bool`.  We work
+with them using combinators and `Auto`s from [`Control.Auto.Blip`][cablip])
+
+[cablip]: http://hackage.haskell.org/package/auto/docs/Control-Auto-Blip.html
+
 ### Converting
 
 We can write a quick helper function to convert a `RoomBot` into a full-on
@@ -573,7 +580,13 @@ specifying a graph of relationships, which is really what the core of *auto*
 is all about.  We assemble complex relationships by putting together small,
 simple relationships.
 
-Note that we didn't just implement "easy" modules/components...these are
+Another interesting thing is that we never really explicitly managed any sort
+of state or state type.  All of our `Auto`s handled their state on their own.
+We didn't need to make a giant massive aggregate bulky "global state"
+type...and we can add new "aspects" of state (new modules) without ever having
+to change any data type.  The state all manages itself!
+
+And yeah, we didn't just implement "easy" modules/components...these are
 actual working components that you might see in real bots, and not just toy
 ones.
 
