@@ -10,9 +10,9 @@ Tags
 :   haskell
 :   ghcjs
 CreateTime
-:   2015/03/24 18:02:54
+:   2015/03/26 00:15:21
 PostDate
-:   2015/03/25 10:20:17
+:   Never
 Series
 :   All About Auto
 :   Beginner/Intermediate Haskell Projects
