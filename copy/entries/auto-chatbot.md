@@ -593,9 +593,10 @@ mux :: (k -> Auto m a b) -> Auto m (k, a) b
 ~~~
 
 `mux f` associates a separate/different `Auto`, with its own isolated state,
-with every key `k`.  It takes in a key-input pair `(k, a)` and feeds the `a`
-into the `Auto` it has associated with that key `k`.  The function `f` is what
-`Auto` initialize if the `k` has not yet been seen before.
+with every key `k`.  It takes in a stream of key-input pairs `(k, a)` and
+feeds the `a` into the `Auto` it has associated with that key `k`.  The
+function `f` is what `Auto` initialize if the `k` has not yet been seen
+before.
 
 So we feed it a `(Channel, InMessage)`, and it feeds in that `InMessage` to
 the `RoomBot m` associated with that `Channel`...and the output is the `Blip
@@ -610,6 +611,9 @@ would get the message, and only that `repBot`'s output will be displayed.  If
 here is not yet a `repBot` instance associated with *#foo*, then a new one
 will be created by calling `const repBot` on `"#foo"`...initializing a new
 `repBot` that only knows about *#foo* messages.
+
+So now every channel has its own `repBot`, and maintains its own independent
+reputation database.
 
 </div>
 
