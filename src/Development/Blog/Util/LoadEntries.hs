@@ -139,7 +139,7 @@ processEntryFile entryFile = do
     renderUrlStr = unliftText renderUrl'
 
 findExistingEntry :: T.Text -> M.Map MetaKey MetaValue -> D.SqlPersistM (Maybe (D.Entity Entry))
-findExistingEntry title metas = foldl go (return Nothing) attempts
+findExistingEntry title metas = foldl go (return Nothing) attempts    -- wait this probably can be with Maybe instead of m Maybe...
   where
     go a x = do
       acc <- a

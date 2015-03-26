@@ -662,7 +662,7 @@ message, and `Right time` from a thread that just waits a minute and
 repeatedly throws in times.
 
 We can do this with minimal extra work by using the `(|||)` combinator from
-`Control.Auto`:
+`Control.Arrow`:
 
 ~~~haskell
 (|||) :: Auto m a c -> Auto m b c -> Auto m (Either a         b      ) c
