@@ -116,8 +116,6 @@ can look up with the `IntMap` API.  What would a `TaskMap` store other than a
 bunch of `Task`s, which we are defining as jus a tupling of a `String`
 description and a `Bool` completed/uncompleted status.
 
-
-
 Now, at this point, we really could build everything as a giant `accum` that
 takes in inputs and processes the change they do to our task list.  But that
 would probably be a pain to write and read...and reading it would not really

@@ -173,14 +173,25 @@ anything meaningful about continuous time behaviors.
 [frp]: https://github.com/mstksg/auto#relation-to-frp
 
 *auto* has also been compared to pipes and conduit, but there are some major
-differences in design and philosophy.  pipes and conduit focus around the
-problem of effective streaming with resource management.  They encourage
-"sources" that come from underlying monads like IO; *auto* discourages this
-except for disciplined exceptions, and it's definitely not the norm.  *auto*
-works as *value stream transformers*, working with "pure" one-by-one
-transformations on streams of *values*; pipes and conduit are *effect stream
-manipulators*, managing streams of *effects* in constant space, with resource
-management, etc...and often involving output effects as a result ("consumers").
+differences in design and philosophy.  pipes is a more general-purpose
+co-routine library with an emphasis on being able to apply equational
+reasoning to many different domains.  conduit focuses around the problem of
+effective streaming with resource management.  Both work "sources" that
+come from underlying monads like IO; *auto* discourages this except for
+disciplined exceptions, and it's definitely not the norm.  *auto* works as
+*value stream transformers*, working with "pure" one-by-one transformations on
+streams of *values*; pipes and conduit provide *effect stream manipulators*,
+managing streams of *effects* in constant space, with resource management,
+etc...and often involving output effects as a result ("consumers").[^pipes] 
+
+[^pipes]: One could still use a subset of pipes that does not stream effects,
+but merely values, and *that* does somewhat fill a similar role; this is used
+in the [mvc][] library to build similar applications that *auto* tries to
+build.  However, due to mvc's "global state" nature, you lose many of the local
+statefulness idioms in *auto*, and a lot of *auto*'s benefits and design
+philosophies go away, for other reasons as well.
+
+[mvc]: https://hackage.haskell.org/package/mvc
 
 on the Future
 -------------
