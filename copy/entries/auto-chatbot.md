@@ -19,10 +19,10 @@ Identifier
 :   auto-chatbot
 
 Today we're going to continue along with the [All About Auto][series]
-and principles of architecture that you can apply to your own projects.
+introduction series and look at building a declarative chatbot using the
 denotational components from the [auto][] library that is modular and has
 implicit serialization.  Most importantly, we'll look at the "design process",
-introduction series and look at building a declarative chatbot using the
+and principles of architecture that you can apply to your own projects.
 
 [auto]: http://hackage.haskell.org/package/auto
 
@@ -45,9 +45,10 @@ along!
 Overall Layout
 --------------
 
-*auto* is a library that at the highest level gives you a stream transformer.
-Transform a stream of inputs to a stream of outputs.  So when we approach a
-chat bot, we have to think --- what are the inputs, and what are the outputs?
+*auto* is a library that at the highest level gives you a stream transformer
+on streams of values. Transform a stream of input values to a stream of output
+values.  So when we approach a chat bot, we have to think --- what are the
+inputs, and what are the outputs?
 
 The choice should be pretty straightforward -- our input stream is a stream of
 input messages from the irc server, and our output stream is a stream of
