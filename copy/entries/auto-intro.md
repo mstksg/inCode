@@ -69,8 +69,8 @@ Auto
 ### on State
 
 I designed *auto* because there really aren't any good solutions in Haskell
-for declaratively describing locally programs in a compositional way.  And a
-lack of denotational semantics to reason with them.
+for declaratively describing locally stateful programs in a compositional way.
+And a lack of denotational semantics to reason with them.
 
 The go-to implementation for a turn-based game is to have a "giant state
 monad".  It is a clever "hack", but really, all we've done is began
@@ -182,7 +182,7 @@ disciplined exceptions, and it's definitely not the norm.  *auto* works as
 *value stream transformers*, working with "pure" one-by-one transformations on
 streams of *values*; pipes and conduit provide *effect stream manipulators*,
 managing streams of *effects* in constant space, with resource management,
-etc...and often involving output effects as a result ("consumers").[^pipes] 
+etc...and often involving output effects as a result ("consumers").[^pipes]
 
 [^pipes]: One could still use a subset of pipes that does not stream effects,
 but merely values, and *that* does somewhat fill a similar role; this is used
