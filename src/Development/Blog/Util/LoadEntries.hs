@@ -4,6 +4,7 @@ module Development.Blog.Util.LoadEntries (loadEntries) where
 import "base" Prelude
 import Control.Applicative                    (pure)
 import Control.Arrow
+import Control.Concurrent
 import Control.Exception
 import Control.Monad
 import Control.Monad.IO.Class
@@ -145,7 +146,9 @@ findExistingEntry title metas = foldl go (return Nothing) attempts    -- wait th
       acc <- a
       case acc of
         Just _ -> return acc
-        Nothing -> x
+        Nothing -> do
+          threadDelay 500000
+          x
     attempts :: [D.SqlPersistM (Maybe (D.Entity Entry))]
     attempts = concat
       [ [ progressReport "Looking up entry by title..."

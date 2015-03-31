@@ -309,6 +309,15 @@ value.  Every time an input comes, the output is the new folded history of
 inputs.  You can sort of think of it as it applying the function to any
 incoming values to an internal accumulator and updating it at every step.
 
+By the way, because `trackSeens` is self-serializing, we need a `Serialize`
+instance for `UTCTime`...just for the sake of demonstration, let's make one
+now.  Let's also write a `Serialize` instance for `Day` (which represents a
+date) too, while we're at it.
+
+~~~haskell
+!!!auto/chatbot.hs "instance Serialize UTCTime" "instance Serialize Day"
+~~~
+
 The next component is just to respond to requests.  We want to do something on
 some "triggering" input.  Every once in a while, some input will come that
 will "trigger" some special response.  This is a sign that we can use *blip
@@ -539,17 +548,6 @@ Wrapping it all up
 ------------------
 
 We have three nice modules now.  Now let's wrap it all together.
-
-First, if you've been following around, you might have noticed that we needed
-`Serialize` instances (from the *cereal* library) for `UTCTime` and `Day` in
-order for `trackSeens` and `newDayBlips` to serialize properly.  We can just
-write really rough versions of them for now for demonstration purposes:
-
-~~~haskell
-!!!auto/chatbot.hs "instance Serialize UTCTime" "instance Serialize Day"
-~~~
-
-And, writing `chatBot`:
 
 ~~~haskell
 !!!auto/chatbot.hs "chatBot ::"
