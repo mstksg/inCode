@@ -147,7 +147,7 @@ findExistingEntry title metas = foldl go (return Nothing) attempts    -- wait th
       case acc of
         Just _ -> return acc
         Nothing -> do
-          threadDelay 500000
+          liftIO $ threadDelay 500000
           x
     attempts :: [D.SqlPersistM (Maybe (D.Entity Entry))]
     attempts = concat

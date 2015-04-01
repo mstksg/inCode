@@ -13,9 +13,22 @@ CreateTime
 PostDate
 :   2013/10/07 11:07:25
 ModifiedTime
-:   2013/10/20 10:59:31
+:   2015/04/01 02:50:27
 Identifier
 :   heroku-precompile
+
+**UPDATE**: This post was written in 2013, where the options available to
+someone looking to host a Haskell site on Heroku were fairly limited.  It's
+(as of the time of writing this) 2015 now and things have changed.  Check out
+[the comments][new] for two good alternatives to this that are working today!
+
+[new]: http://blog.jle.im/entry/deploying-medium-to-large-haskell-apps-to-heroku#disqus_thread
+
+Consider the rest of this article obsoluete, or here if none of the solutions
+given in the comments work :)
+
+Old Article (Written 2013)
+--------------------------
 
 If you do a search on how to deploy Haskell apps to Heroku these days, chances
 are you are going to find the very elegant method (here's
