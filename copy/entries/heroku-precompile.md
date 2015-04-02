@@ -8,6 +8,7 @@ Tags
 :   web development
 :   heroku
 :   haskell
+:   outdated
 CreateTime
 :   2013/09/23 23:13:10
 PostDate

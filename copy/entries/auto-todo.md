@@ -28,11 +28,14 @@ managing isolated state components and modeling GUI logic.  We're really going
 to be focusing on application logic --- "control" and "model" --- and not
 looking too close on "views", which *auto* doesn't quite try to offer and
 where you can really pick your own view rendering system, making this
-adaptable to really any platform --- javascript/web, desktop, command line...
+adaptable to really any platform --- javascript/web, desktop, command line,
+etc.; in particular, we're going to be using the low-level *[ghcjs-dom][]*
+library to render our front end for the purpose of this tutorial.
 
 [series]: http://blog.jle.im/entries/series/+all-about-auto
 [auto]: http://hackage.haskell.org/package/auto
 [todoMVC]: http://todomvc.com/
+[ghcjs-dom]: http://hackage.haskell.org/package/ghcjs-dom
 
 A live version of our end-product [is hosted and online][demo].
 
@@ -49,6 +52,12 @@ refresh your mind.  As always, comments are welcome, and I'm also usually on
 [intro]: http://blog.jle.im/entry/introducing-the-auto-library
 [README]: https://github.com/mstksg/auto/blob/master/README.md
 [twitter]: https://twitter.com/mstk "Twitter"
+
+This post is also a 
+
+<!-- (Fair warning...this is not quite a "ghcjs tutorial", if that's what you're -->
+<!-- looking for; it's an auto tutorial that uses some rudimentary ghcjs. -->
+<!-- Hopefully you can learn from that too!) -->
 
 Overall Layout
 --------------
@@ -68,13 +77,14 @@ choose.  Our todo app then is a transformer of a stream of commands to a
 stream of todo lists...where the todo list we get changes as we process more
 commands.
 
-Our overall architecture will therefore be a front-end of things that trigger
-"events" that will drop commands into a concurrent `Chan` queue...with
-something like `runOnChan` watching the queue, waiting for input commands,
-feeding the commands through the `Auto` when they get them, and rendering the
-output that pops out to the webpage/front-end display.  We write the logic in
-*auto*, and hook up our event triggers and renderers to be the inputs and
-outputs.
+So the "overall loop" will be:
+
+1.  A front-end rendered by *ghcjs-dom* (or whatever) with event handlers that
+    drop commands into a concurrent `Chan` queue.  This just handles
+    rendering.
+2.  Our `Auto` launched with `runOnChan`, which waits on the `Chan` queue,
+    runs the inputs through the `Auto`, and renders the result.  This handles
+    all of the logic.
 
 We like types in Haskell, so let's begin by laying out our types!
 
@@ -88,6 +98,7 @@ data TaskCmd = CDelete
              | CPrune
              | CComplete Bool
              | CModify String
+             | CNop
              deriving Show
 
 type TaskMap = IntMap Task
@@ -116,15 +127,121 @@ can look up with the `IntMap` API.  What would a `TaskMap` store other than a
 bunch of `Task`s, which we are defining as jus a tupling of a `String`
 description and a `Bool` completed/uncompleted status.
 
-Now, at this point, we really could build everything as a giant `accum` that
-takes in inputs and processes the change they do to our task list.  But that
-would probably be a pain to write and read...and reading it would not really
-tell you anything about the algorithm's structure itself.  It doesn't convey
-programmer intent.  And also, we're pretty much shoe-horning in an imperative
-algorithm.  That's not what *auto* is about.  *auto* is about giving you tools
-to define complex streams transformations as compositions and combinations of
-primitive, simple, semantically meaningful stream tranformations.  Define
-relationships between quantities that hold "forever", using simple
-building-block relationships.
+### The Todo Auto
+
+Time to go over the logic portion!  The part that *auto* is meant for!  We're
+going to structure the logic of our app (also known as the "model") by using
+principles of local statefulness to avoid ever working with a "global state",
+and working in a declarative, high-level manner.
+
+### Tasks
+
+With *auto* and with Haskell in general, we have the choice to either start
+from the top down or the bottom up.  For the purpose of this tutorial, let's
+explore a bottom-up approach.
+
+The smallest meaningful "stream transformer" at the very bottom of the core of
+the app is going to be a single `Task`'s `Auto`.  `TaskCmd`s come in, and
+`Task`s come out.
+
+This is really best expressed with `accum`, folding up the input commands.
+Normally we try to avoid `accum` when possible, because it leads to
+non-composable and possibly imperative-style code, but in this case, we can
+consider this as a "primitive action" by which we build up the rest of our
+program.
+
+~~~haskell
+taskAuto :: Monad m => String -> Interval m TaskCmd Task
+taskAuto descr = accum f (Just (Task descr False))
+  where
+    f (Just t) tc = case tc of
+                      CDelete                  -> Nothing
+                      CPrune | taskCompleted t -> Nothing
+                             | otherwise       -> Just t
+                      CComplete s              -> Just t { taskCompleted = s }
+                      CModify descr            -> Just t { taskDescr = descr }
+                      CNop                     -> Just t
+    f Nothing _   = Nothing
+~~~
+
+`accum` will basically "fold up" input commands on a held `Task`.  Every step,
+it looks at the input and the task and outputs the task that results from that
+applying that command.  We give it an initial `Task`, with the input
+description and a "false" completed status.
+
+Note that we opt for an `Interval` instead of an `Auto`.  (Remember that an
+`Interval m a b` is just a type synonym for `Auto m a (Maybe b)`).  This is
+because we want to convey the semantic idea that the `Task` can be "on"
+(active) or "off" (deleted).  This "on"/"offness" --- combined with the notion
+that the `Task` will be on for a period of time, then off for another ---
+means that it fits well with the spirit/semantics of `Interval`.  The type
+synonym helps us convey what the `Maybe` "means".
+
+Now, we're going to be managing a dynamic *collection* of
+`taskAuto`s...something that we can add and remove dynamically from.  Working
+with collections like these is the job of the [Control.Auto.Collection][cacol]
+module.  Looking through these, we see that what we need --- a dynamic
+collection of `Auto`s that can be added, removed, etc., indexed by a key ---
+is exactly `dynMap` and `dynMapF`.  We chose `dynMapF` because it's
+serializable and slightly less powerful, so easier to work with.
+
+[cacol]: http://hackage.haskell.org/package/auto/docs/Control-Auto-Collection.html
+
+~~~haskell
+dynMapF :: (k -> Interval m a b) -> a -> Auto m (IntMap a, Blip [k]) (IntMap b)
+~~~
+
+`dynMapF` is a very commonly used tool that shows up often when we have
+dynamic collections, so it might be helpful to get to know it.
+
+`dynMapF` keeps a dynamic collection of `Interval m a b`s, each stored at an
+`Int` key.  At every step, it takes in an `IntMap` associating `Int` keys to
+an inputs `a`, "feeds" it into the `Interval` associated with that key, and
+outputs an `IntMap` of the results.  It also takes in a blip stream of
+`[k]`...whenever it emits, it "adds a new `Interval`" to the collection, using
+the "initialization function" `k -> Interval m a b`.  It also takes an `a`
+"default input", if a given `Auto` has no input in the input `IntMap`.
+
+Read over the [tutorial section on blip streams and `Interval`s][blipint] if
+you are still unfamiliar with them.
+
+[blipint]: https://github.com/mstksg/auto/blob/master/tutorial/tutorial.md#semantic-tools
+
+For our purposes, `dynMapF` will be storing `taskAuto`s.  This works out well,
+because it'll automatically remove `taskAuto`s that are *off* (`Nothing`).
+Perfect!
+
+~~~haskell
+taskMap :: Monad m => Auto m (IntMap TaskCmd, Blip [String]) (IntMap Task)
+taskMap = dynMapF taskAuto CNop
+~~~
+
+So, when the input blip stream emits any `String`, it'll "initialize" a new
+`taskAuto` with that given string as a description.  It'll also take an input
+`IntMap` associating a command with a key, feed the command to the `taskAuto`
+stored at that key, and output all of the results of the updates.
+
+### Todo
+
+With `taskMap`, we really have exactly all we need for an output --- output an
+`IntMap` of tasks associated with ID's.  Now just to determine the input
+streams --- the `IntMap TaskCmd` with the command to give to every ID, and the
+`Blip [String]` which emits whenever we want to pop in a new task.
+
+
+
+
+<!-- Now, at this point, we really could build everything as a giant `accum` that -->
+<!-- takes in inputs and processes the change they do to our task list.  But that -->
+<!-- would probably be a pain to write and read...and reading it would not really -->
+<!-- tell you anything about the algorithm's structure itself.  It doesn't convey -->
+<!-- programmer intent.  And also, we're pretty much shoe-horning in an imperative -->
+<!-- algorithm.  That's not what *auto* is about.  *auto* is about giving you tools -->
+<!-- to define complex streams transformations as compositions and combinations of -->
+<!-- primitive, simple, semantically meaningful stream tranformations.  Define -->
+<!-- relationships between quantities that hold "forever", using simple -->
+<!-- building-block relationships. -->
+
+
 
 
