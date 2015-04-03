@@ -136,23 +136,82 @@ and working in a declarative, high-level manner.
 
 ### Tasks
 
-With *auto* and with Haskell in general, we have the choice to either start
-from the top down or the bottom up.  For the purpose of this tutorial, let's
-explore a bottom-up approach.
+It's clear that the core of our entire thing is going to be the "task list"
+construct itself...something that can dynamically add or remove tasks.
 
-The smallest meaningful "stream transformer" at the very bottom of the core of
-the app is going to be a single `Task`'s `Auto`.  `TaskCmd`s come in, and
-`Task`s come out.
+In *auto*, there is a construct created just for this kind of situation:
+dynamic collections indexed by a key (a "task id"), where you can add or
+subtract `Auto`s from dynamically --- they are `dynMap` and `dynMapF` from
+*[Control.Auto.Collection][cacol]*.  We'll be using `dynMapF` because it's
+serializable, and we don't need the extra power that `dynMap` offers.
 
-This is really best expressed with `accum`, folding up the input commands.
-Normally we try to avoid `accum` when possible, because it leads to
-non-composable and possibly imperative-style code, but in this case, we can
-consider this as a "primitive action" by which we build up the rest of our
-program.
+[cacol]: http://hackage.haskell.org/package/auto/docs/Control-Auto-Collection.html
 
 ~~~haskell
-taskAuto :: Monad m => String -> Interval m TaskCmd Task
-taskAuto descr = accum f (Just (Task descr False))
+dynMapF :: (k -> Interval m a b)    -- ^ function to initialize new `Auto`s
+        -> a                        -- ^ default inputs
+        -> Auto m ( IntMap a        -- ^ input for each internal `Auto`, indexed by key
+                  , Blip [k]        -- ^ blip stream to initialize new `Auto`s
+                  )
+                  (IntMap b)        -- ^ `Auto` outputs, by key
+~~~
+
+`dynMapF` keeps a "dynamic collection" of `Interval m a b`s, indexed by an
+`Int` key, or an "ID".  It takes as input a stream of `IntMap a`...basically a
+bunch of `(Int, a)` pairs.  `dynMapF` routes each input to the `Interval` at
+that ID/address (with a suitable "default" `a` if none was sent in), and then
+outputs all of the results as an `IntMap b` --- a bunch of `(Int, b)` pairs,
+each output with the address of the `Auto` that made it.
+
+For example, `IntMap.singleton 5 True` would send `True` to the `Auto` stored
+at `5`.  It'll then output something that includes `(5, "received True!")` ---
+the output of the `Auto` at slot 5.
+
+Whenever an `Interval` turns "off" (is `Nothing`), it is removed from the
+collection.  In this way we can have `Auto`s "turn themselves off".
+
+It also takes as input a blip stream of `[k]`s.  We use each emitted `k` to
+"initialize a new `Interval`" and throw it into the collection, creating a new
+unique key for it.  Every time a new `Auto` is initialized, `dynMapF` creates
+a new key for it.
+
+Read over the [tutorial section on blip streams and `Interval`s][blipint] if
+you are still unfamiliar with them.
+
+[blipint]: https://github.com/mstksg/auto/blob/master/tutorial/tutorial.md#semantic-tools
+
+This pretty much fits exactly what we want for our task collection.  If we
+imagined that we had our `Task` as an `Auto`:
+
+~~~haskell
+initTask :: Monad m => String -> Interval m TaskCmd Task
+~~~
+
+`initTask` takes a string (a starting description) and initializes an
+`Interval` that takes in a stream of task commands, and has a stream of new,
+updated `Task`s as its output stream.  At every step, it processes the command
+and outputs the new appropriate `Task`.
+
+We can then use this as our "initializer" for `dynMapF`...and now we have a
+dynamic collection of tasks!
+
+~~~haskell
+taskCollection :: Auto (IntMap TaskCmd, Blip [String]) (IntMap Task)
+taskCollection = dynMapF initTask CNop
+~~~
+
+If we wanted to send in the command `CModify "hey!"` to the task whose
+id/key/address is `12`, I'd feed in `IntMap.singleton 12 (CModify "hey!")`.
+The output would then contain the output of feeding that `CModify` to the
+`Auto` at that slot 12, associated with slot 12 on the output `IntMap`.
+
+Writing `initTask` and the task `Auto` is straightforward with `accum`, which
+is basically like `foldl` on the inputs and a "current state".  (The current
+state is of course the `Task`).
+
+~~~haskell
+initTask :: Monad m => String -> Interval m TaskCmd Task
+initTask descr = accum f (Just (Task descr False))
   where
     f (Just t) tc = case tc of
                       CDelete                  -> Nothing
@@ -164,69 +223,20 @@ taskAuto descr = accum f (Just (Task descr False))
     f Nothing _   = Nothing
 ~~~
 
-`accum` will basically "fold up" input commands on a held `Task`.  Every step,
-it looks at the input and the task and outputs the task that results from that
-applying that command.  We give it an initial `Task`, with the input
-description and a "false" completed status.
+We normally like to avoid using `accum` in case it drives us towards imperative
+code.  But here, it is an expressive and meaningful way to state something
+simple.
 
-Note that we opt for an `Interval` instead of an `Auto`.  (Remember that an
-`Interval m a b` is just a type synonym for `Auto m a (Maybe b)`).  This is
-because we want to convey the semantic idea that the `Task` can be "on"
-(active) or "off" (deleted).  This "on"/"offness" --- combined with the notion
-that the `Task` will be on for a period of time, then off for another ---
-means that it fits well with the spirit/semantics of `Interval`.  The type
-synonym helps us convey what the `Maybe` "means".
+See that our `Auto` "turns off" by outputting `Nothing`.  That's interval
+semantics, and it's what `dynMapF` relies on for its internal `Auto`s!
 
-Now, we're going to be managing a dynamic *collection* of
-`taskAuto`s...something that we can add and remove dynamically from.  Working
-with collections like these is the job of the [Control.Auto.Collection][cacol]
-module.  Looking through these, we see that what we need --- a dynamic
-collection of `Auto`s that can be added, removed, etc., indexed by a key ---
-is exactly `dynMap` and `dynMapF`.  We chose `dynMapF` because it's
-serializable and slightly less powerful, so easier to work with.
 
-[cacol]: http://hackage.haskell.org/package/auto/docs/Control-Auto-Collection.html
+<!-- ### Todo -->
 
-~~~haskell
-dynMapF :: (k -> Interval m a b) -> a -> Auto m (IntMap a, Blip [k]) (IntMap b)
-~~~
-
-`dynMapF` is a very commonly used tool that shows up often when we have
-dynamic collections, so it might be helpful to get to know it.
-
-`dynMapF` keeps a dynamic collection of `Interval m a b`s, each stored at an
-`Int` key.  At every step, it takes in an `IntMap` associating `Int` keys to
-an inputs `a`, "feeds" it into the `Interval` associated with that key, and
-outputs an `IntMap` of the results.  It also takes in a blip stream of
-`[k]`...whenever it emits, it "adds a new `Interval`" to the collection, using
-the "initialization function" `k -> Interval m a b`.  It also takes an `a`
-"default input", if a given `Auto` has no input in the input `IntMap`.
-
-Read over the [tutorial section on blip streams and `Interval`s][blipint] if
-you are still unfamiliar with them.
-
-[blipint]: https://github.com/mstksg/auto/blob/master/tutorial/tutorial.md#semantic-tools
-
-For our purposes, `dynMapF` will be storing `taskAuto`s.  This works out well,
-because it'll automatically remove `taskAuto`s that are *off* (`Nothing`).
-Perfect!
-
-~~~haskell
-taskMap :: Monad m => Auto m (IntMap TaskCmd, Blip [String]) (IntMap Task)
-taskMap = dynMapF taskAuto CNop
-~~~
-
-So, when the input blip stream emits any `String`, it'll "initialize" a new
-`taskAuto` with that given string as a description.  It'll also take an input
-`IntMap` associating a command with a key, feed the command to the `taskAuto`
-stored at that key, and output all of the results of the updates.
-
-### Todo
-
-With `taskMap`, we really have exactly all we need for an output --- output an
-`IntMap` of tasks associated with ID's.  Now just to determine the input
-streams --- the `IntMap TaskCmd` with the command to give to every ID, and the
-`Blip [String]` which emits whenever we want to pop in a new task.
+<!-- With `taskMap`, we really have exactly all we need for an output --- output an -->
+<!-- `IntMap` of tasks associated with ID's.  Now just to determine the input -->
+<!-- streams --- the `IntMap TaskCmd` with the command to give to every ID, and the -->
+<!-- `Blip [String]` which emits whenever we want to pop in a new task. -->
 
 
 
