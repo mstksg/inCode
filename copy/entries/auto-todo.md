@@ -1,5 +1,5 @@
-Auto: A Todo GUI application with Auto and GHCJS
-================================================
+Auto: A Todo GUI application with Auto and GHCJS + ghcjs-vdom
+=============================================================
 
 Categories
 :   Haskell
@@ -29,7 +29,7 @@ to be focusing on application logic --- "control" and "model" --- and not
 looking too close on "views", which *auto* doesn't quite try to offer and
 where you can really pick your own view rendering system, making this
 adaptable to really any platform --- javascript/web, desktop, command line,
-etc.; in particular, we're going to be using the low-level *[ghcjs-dom][]*
+etc.; in particular, we're going to be using *[ghcjs-vdom][]*
 library to render our front end for the purpose of this tutorial.
 
 [series]: http://blog.jle.im/entries/series/+all-about-auto
@@ -53,7 +53,7 @@ refresh your mind.  As always, comments are welcome, and I'm also usually on
 [README]: https://github.com/mstksg/auto/blob/master/README.md
 [twitter]: https://twitter.com/mstk "Twitter"
 
-This post is also a 
+This post is also a short tutorial
 
 <!-- (Fair warning...this is not quite a "ghcjs tutorial", if that's what you're -->
 <!-- looking for; it's an auto tutorial that uses some rudimentary ghcjs. -->
@@ -89,27 +89,7 @@ So the "overall loop" will be:
 We like types in Haskell, so let's begin by laying out our types!
 
 ~~~haskell
-data TodoInp = IAdd  String
-             | ITask TaskID TaskCmd
-             | IAll TaskCmd
-             deriving Show
-
-data TaskCmd = CDelete
-             | CPrune
-             | CComplete Bool
-             | CModify String
-             | CNop
-             deriving Show
-
-type TaskMap = IntMap Task
-type TaskID  = Int
-
-data Task = Task { taskDescr     :: String
-                 , taskCompleted :: Bool
-                 } deriving (Show, Generic)
-
--- from Data.Serialize, from the cereal library
-instance Serialize Task
+!!!auto/Todo.hs "import " "data TodoInp" "data TaskCmd" "type TaskMap" "data Task " "instance Serialize Task"
 ~~~
 
 We have a type to represent our inputs, `TodoInp`, which can be an
@@ -134,7 +114,7 @@ going to structure the logic of our app (also known as the "model") by using
 principles of local statefulness to avoid ever working with a "global state",
 and working in a declarative, high-level manner.
 
-### Tasks
+#### Tasks
 
 It's clear that the core of our entire thing is going to be the "task list"
 construct itself...something that can dynamically add or remove tasks.
@@ -163,12 +143,12 @@ that ID/address (with a suitable "default" `a` if none was sent in), and then
 outputs all of the results as an `IntMap b` --- a bunch of `(Int, b)` pairs,
 each output with the address of the `Auto` that made it.
 
-For example, `IntMap.singleton 5 True` would send `True` to the `Auto` stored
+For example, `IM.singleton 5 True` would send `True` to the `Auto` stored
 at `5`.  It'll then output something that includes `(5, "received True!")` ---
 the output of the `Auto` at slot 5.
 
 Whenever an `Interval` turns "off" (is `Nothing`), it is removed from the
-collection.  In this way we can have `Auto`s "turn themselves off".
+collection.  In this way we can have `Auto`s "remove themselves".
 
 It also takes as input a blip stream of `[k]`s.  We use each emitted `k` to
 "initialize a new `Interval`" and throw it into the collection, creating a new
@@ -196,8 +176,7 @@ We can then use this as our "initializer" for `dynMapF`...and now we have a
 dynamic collection of tasks!
 
 ~~~haskell
-taskCollection :: Auto (IntMap TaskCmd, Blip [String]) (IntMap Task)
-taskCollection = dynMapF initTask CNop
+!!!auto/Todo.hs "taskCollection ::"
 ~~~
 
 If we wanted to send in the command `CModify "hey!"` to the task whose
@@ -210,48 +189,102 @@ is basically like `foldl` on the inputs and a "current state".  (The current
 state is of course the `Task`).
 
 ~~~haskell
-initTask :: Monad m => String -> Interval m TaskCmd Task
-initTask descr = accum f (Just (Task descr False))
-  where
-    f (Just t) tc = case tc of
-                      CDelete                  -> Nothing
-                      CPrune | taskCompleted t -> Nothing
-                             | otherwise       -> Just t
-                      CComplete s              -> Just t { taskCompleted = s }
-                      CModify descr            -> Just t { taskDescr = descr }
-                      CNop                     -> Just t
-    f Nothing _   = Nothing
+!!!auto/Todo.hs "initTask ::"
 ~~~
-
-We normally like to avoid using `accum` in case it drives us towards imperative
-code.  But here, it is an expressive and meaningful way to state something
-simple.
 
 See that our `Auto` "turns off" by outputting `Nothing`.  That's interval
 semantics, and it's what `dynMapF` relies on for its internal `Auto`s!
 
+#### Routing the inputs
 
-<!-- ### Todo -->
+The only thing left, then, is just to route our input stream to send
+everything to the correct `Auto` in `taskCollection`.
 
-<!-- With `taskMap`, we really have exactly all we need for an output --- output an -->
-<!-- `IntMap` of tasks associated with ID's.  Now just to determine the input -->
-<!-- streams --- the `IntMap TaskCmd` with the command to give to every ID, and the -->
-<!-- `Blip [String]` which emits whenever we want to pop in a new task. -->
+Our input stream is going to be a stream of `TodoInp`, which can be "add",
+"send command to a single task", or "send command to all tasks".  Really,
+though, you can think of it three separate streams all "jammed" into one
+stream.
 
+This is a common pattern that we can use *blip streams* for.  Instead of
+working with one big fatty stream, we can work with several blip streams that
+only emit when the input that we care about comes in.
 
+Typically, we'd do this with `emitJusts`:
 
+~~~haskell
+emitJusts :: (a -> Maybe b) -> Auto m a (Blip b)
+~~~
 
-<!-- Now, at this point, we really could build everything as a giant `accum` that -->
-<!-- takes in inputs and processes the change they do to our task list.  But that -->
-<!-- would probably be a pain to write and read...and reading it would not really -->
-<!-- tell you anything about the algorithm's structure itself.  It doesn't convey -->
-<!-- programmer intent.  And also, we're pretty much shoe-horning in an imperative -->
-<!-- algorithm.  That's not what *auto* is about.  *auto* is about giving you tools -->
-<!-- to define complex streams transformations as compositions and combinations of -->
-<!-- primitive, simple, semantically meaningful stream tranformations.  Define -->
-<!-- relationships between quantities that hold "forever", using simple -->
-<!-- building-block relationships. -->
+You can imagine `emitJusts` is a "siphon" off of the input stream of
+`a`s...and pulling out only the values that we care about, as a blip stream of
+`b`'s.
 
+We can build our "siphoners":
 
+~~~haskell
+!!!auto/Todo.hs "getAddEvts ::" "getModEvts ::" "getMassEvts ::"
+~~~
 
+`getAddEvts`, when used with `emitJusts`, will siphon off all `IAdd` commands
+as a blip stream of `[String]`s, emitting descriptions of new tasks to add.
+
+`getModEvts`, when used with `emitJusts`, will siphon off all `ITask` commands
+as a blip stream of `IntMap TaskCmd`, which will be fed into `taskCollection`
+and `dynMapF`.
+
+`getMassEvts` is pretty much the same thing...siphoning off all `IAll`
+commands as a blip stream of `IntMap TaskCmd`.  It needs a list of all
+`TaskID`s though, to do its job...because it needs to make an `IntMap`
+targeting all of the current tasks.
+
+Remember, we interace with tasks through an `IntMap TaskCmd`...which is a map
+of task id-task command pairs.  The `TaskCmd` stored at key `1` will be the
+command we want to send to task id 1.
+
+Let's see it all work together!
+
+~~~haskell
+!!!auto/Todo.hs "todoApp ::"
+~~~
+
+To read the proc block, it does help to sort of see all of the lines as
+english statements of what things "are".
+
+1.  `allIds` is a list of keys (id's) currently in the task map `taskMap`.
+    All of the id's of the tasks currently alive.
+
+2.  Now, we fork into blip streams:
+
+    *   `newTaskB` is a blip stream that emits with task description whenever
+        `inpEvt` calls for one.
+    *   `modTaskB` is a blip stream that emits with a command to a specific task
+        whenever `inpEvt` calls for one.
+    *   `masstaskB` is a blip stream that emits commands to every single task in
+        `allIds` whenever `inpEvt` calls for it.
+    *   `allInpB` is a blip stream with addressed commands whenever either
+        `modTaskB` or `massTaskB` emits.
+
+6.  `taskCommands` is a map of addressed commands for each task.  It's
+    whatever `allInpB` emits, when it does emit...or just `IM.empty` (an empty
+    map) when it doesn't.
+
+7.  `taskMap` is the map of tasks that we get from our `taskCollection`
+    updater, which manages a collection of tasks.  `taskCollection` needs the
+    commands for each task and the new tasks we want to do its job.
+
+We state things as an interplay of streams.  And in the end, the result is
+what we want --- an indexed list of tasks.
+
+Note that we needed the `rec` block because we referred to `taskMap` at the
+beginning (to get `allIds`), but we don't define `taskMap` until the end.
+
+We use `arrD` here to "close the loop".  `arrD IM.keys []` means, "apply
+`IM.keys` to the[^delayed] input, but...the very first result, just output
+`[]`.".  So, the very first time we ask for anything, it'll just output `[]`.
+This means we don't run into any recursive loops (if we ask for `taskMap`, but
+`taskMap` doesn't even exist yet, how does that work?  in this way, we don't
+even need `taskMap` at first.  After the second, third steps, etc, we already
+have `taskMap`, so it's no problem).
+
+[^delayed]: (delayed)
 
