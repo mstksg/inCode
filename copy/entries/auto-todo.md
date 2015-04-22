@@ -1,5 +1,5 @@
-Auto: A Todo GUI application with Auto and GHCJS + ghcjs-vdom
-=============================================================
+Auto: A Todo GUI application with Auto (w/ GHCJS)
+=================================================
 
 Categories
 :   Haskell
@@ -29,13 +29,11 @@ to be focusing on application logic --- "control" and "model" --- and not
 looking too close on "views", which *auto* doesn't quite try to offer and
 where you can really pick your own view rendering system, making this
 adaptable to really any platform --- javascript/web, desktop, command line,
-etc.; in particular, we're going to be using *[ghcjs-vdom][]*
-library to render our front end for the purpose of this tutorial.
+etc.
 
 [series]: http://blog.jle.im/entries/series/+all-about-auto
 [auto]: http://hackage.haskell.org/package/auto
 [todoMVC]: http://todomvc.com/
-[ghcjs-dom]: http://hackage.haskell.org/package/ghcjs-dom
 
 A live version of our end-product [is hosted and online][demo].
 
@@ -53,11 +51,9 @@ refresh your mind.  As always, comments are welcome, and I'm also usually on
 [README]: https://github.com/mstksg/auto/blob/master/README.md
 [twitter]: https://twitter.com/mstk "Twitter"
 
-This post is also a short tutorial
-
-<!-- (Fair warning...this is not quite a "ghcjs tutorial", if that's what you're -->
-<!-- looking for; it's an auto tutorial that uses some rudimentary ghcjs. -->
-<!-- Hopefully you can learn from that too!) -->
+(Fair warning...this is not quite a "ghcjs tutorial", if that's what you're
+looking for; it's an auto tutorial that uses some rudimentary ghcjs.
+Hopefully you can learn from that too!)
 
 Overall Layout
 --------------
@@ -107,14 +103,15 @@ can look up with the `IntMap` API.  What would a `TaskMap` store other than a
 bunch of `Task`s, which we are defining as jus a tupling of a `String`
 description and a `Bool` completed/uncompleted status.
 
-### The Todo Auto
+The Todo Auto
+-------------
 
 Time to go over the logic portion!  The part that *auto* is meant for!  We're
 going to structure the logic of our app (also known as the "model") by using
 principles of local statefulness to avoid ever working with a "global state",
 and working in a declarative, high-level manner.
 
-#### Tasks
+### Tasks
 
 It's clear that the core of our entire thing is going to be the "task list"
 construct itself...something that can dynamically add or remove tasks.
@@ -195,7 +192,7 @@ state is of course the `Task`).
 See that our `Auto` "turns off" by outputting `Nothing`.  That's interval
 semantics, and it's what `dynMapF` relies on for its internal `Auto`s!
 
-#### Routing the inputs
+### Routing the inputs
 
 The only thing left, then, is just to route our input stream to send
 everything to the correct `Auto` in `taskCollection`.
@@ -288,3 +285,187 @@ have `taskMap`, so it's no problem).
 
 [^delayed]: (delayed)
 
+Interfacing with the world
+--------------------------
+
+Our application logic is done; let's explore ways to interface with it!
+
+### Testing/command line
+
+~~~haskell
+!!!auto/todo-cmd.hs "parseInp ::" "formatTodo ::" "main ::"
+~~~
+
+`interactAuto` runs an `Interval` by feeding it in strings from stdin printing
+the output to stdout, until the output is "off"/`Nothing` --- then stops.
+Here we use `parseInp` to emit input events whenever there is a parse, run
+`todoApp` (formatted) on the emitted events, and then condense it all with
+`fromBlips` and wrap it in an "always on" `toOn`.
+
+~~~
+Enter command! 'A descr' or '[D/C/U/P/M] [id/*]'
+> A take out the trash
+0. [ ] take out the trash
+> A do the dishes
+0. [ ] take out the trash
+1. [ ] do the dishes
+> C 1
+0. [ ] take out the trash
+1. [X] do the dishes
+> U 1
+0. [ ] take out the trash
+1. [ ] do the dishes
+> C 0
+0. [X] take out the trash
+1. [ ] do the dishes
+> P *
+1. [ ] do the dishes
+~~~
+
+Looks like the logic works!  Time to take it to GUI!
+
+### As a GUI
+
+To build a GUI, we must build an `Auto` that takes in inputs from events and
+output everything the front-end renderer needs to render the interface.
+
+For a typical todomvc gui, we need to be able to filter and select things.  So
+that means we need to be extend our input type with filtering and selecting
+events.  And our output has to also indicate the current filter selected, and
+the current task selected, as well.
+
+~~~haskell
+data GUIOpts = GUI { _currFilter   :: Filter        -- currently applied filter
+                   , _currSelected :: Maybe TaskID  -- currently selected task
+                   }
+
+data GUIInp = GIFilter Filter
+            | GISelect (Maybe TaskID)
+
+data Filter = All | Active | Completed
+            deriving (Show, Generic, Enum, Eq)
+
+instance Serialize Filter
+~~~
+
+Instead of defining a new mega-type with all input events and the todo map
+with the options, we can use good ol' fashioned `Either` and `(,)`.  So now,
+instead of:
+
+~~~haskell
+todoApp :: Auto m TodoInp (IntMap Task)
+~~~
+
+We have:
+
+~~~haskell
+todoAppGUI :: Auto m (Either TodoInp GUIInp) (IntMap Task, GUIOpts)
+~~~
+
+Now we take *either* `TodoInp` or `GUIInp` ("free sums" like `Either` spare us
+from writing a new type that incorporates both) and then return *both* `IntMap
+Task` *and* `GUIOpts` ("free products" like `(,)` spare us from creating a new
+type that contains both).
+
+~~~haskell
+todoAppGUI :: Auto' (Either TodoInp GUIInp) (IntMap Task, GUIOpts)
+todoAppGUI = proc inp -> do
+    filt <- holdWith All                      . emitJusts filtInps -< inp
+    selc <- holdWith Nothing                  . emitJusts selcInps -< inp
+    tasks <- holdWith mempty . perBlip todoApp . emitJusts todoInps -< inp
+
+    id -< (tasks, GUI filt selc)
+  where
+    todoInps :: Either TodoInp GUIInp -> Maybe TodoInp
+    todoInps (Left ti) = Just ti
+    todoInps _         = Nothing
+    filtInps :: Either TodoInp GUIInp -> Maybe Filter
+    filtInps (Right (GIFilter filt)) = Just filt
+    filtInps _                       = Nothing
+    selcInps :: Either TodoInp GUIInp -> Maybe (Maybe TaskID)
+    selcInps (Right (GISelect sec))  = Just selc
+    selcInps _                       = Nothing
+~~~
+
+Here we have the same idea as before.  One input stream of `Either TodoInp
+GUIInp` comes through, and we fork it into three blip streams that each do
+what we want.  `holdWith x :: Auto m (Blip b) b` is always the value of the
+last emitted item...but starts off as `x` first.
+
+### Giving it life
+
+The last step is to hook everything up together ---
+
+1.  Setting up events in our GUI to feed inputs to a queue
+2.  Setting up the queue to wait on inputs, and output the task map/gui status
+    on every one using `todoAppGUI`
+3.  Rendering the output into the GUI framework of your choice
+
+The second step in particular can be handled with good ol' `[runOnChan][]`:
+
+[runOnChan]: http://hackage.haskell.org/package/auto/docs/Control-Auto-Run.html#v:runOnChan
+
+~~~haskell
+runOnChan :: (b -> IO Bool) -> Chan a -> Auto' a b -> IO (Auto' a b)
+~~~
+
+We know and love `runOnChan` from when we used it to make our
+[chatbot][cbroc].  It runs an `Auto' a b` "on a `Chan`" (concurrent queue).
+The first argument is an "output hander" --- it handles the `b`s that the
+`Auto'` pops out.  It decides whether to stop the whole thing or keep on
+listening based on the `Bool` result of the handler.  The second argument is
+the `Chan a` to listen for inputs on.  Whenever something is dropped into that
+`Chan`, it runs the `Auto'` with the `a` and processes the output `b` with the
+handler.
+
+[cbroc]: http://blog.jle.im/entry/auto-building-a-declarative-chatbot-with-implicit-serialization#irc-backend-the-ugly-part
+
+Our final thing is then just:
+
+~~~haskell
+void $ runOnChan renderGUI inputChan todoAppGUI
+~~~
+
+where
+
+~~~haskell
+renderGUI :: (IntMap Task, GUIOpts) -> IO Bool
+inputChan :: Chan (Either TodoInp GUIInp)
+~~~
+
+The rendering is done with `renderGUI`...and it really depends on your
+framework here.  That's #3 from the list above.
+
+All you need after that is just to have your GUI hook up event handlers to
+drop the appropriate `Either TodoInp GUIInp` into `inputChan`...and you're
+golden!
+
+Seeing it in action
+-------------------
+
+We've reached the end of our tutorial --- the parts about `auto`.  It is my
+hope that whatever GUI front-end you want to work with, it'll be simple enough
+to "plug in" our `Auto` logic.
+
+A [live demo][demo] is online too; you can see [the source of the front-end
+bindings][todojs]
+
+[todojs]: https://github.com/mstksg/auto-examples/blob/master/src/TodoJS.hs
+
+This is a bare-bons *ghcjs* implementation using *ghcjs-dom*, which uses
+direct dom manipulation.
+
+User [eryx67][] has been kind enough to provide an implementation in *ghcjs*
+with the *[virtual-dom][]* library, so there is a slightly less uglier
+implementation with abstraction :)
+
+[eryx67]: https://github.com/eryx67
+[todojsvdom]: https://github.com/eryx67/auto-examples/blob/master/src/TodoJS.hs
+[virtual-dom]: https://github.com/ocharles/virtual-dom
+
+As always, feel free to ask questions in the comments, hop over to
+*#haskell-game* or *#haskell-auto* on freenode, or send me a [tweet][twitter]!
+And look forward to more tutorials as the [All About Auto][series] series
+progresses!
+
+[twitter]: https://twitter.com/mstk "Twitter"
