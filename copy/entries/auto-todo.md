@@ -423,7 +423,7 @@ last emitted item...but starts off as `x` first.
 By the way, the above code is much more succinct if you are willing to use
 *[lens][]*...
 
-[lens]: https://github.com/ekmett/lens
+[lens]: http://lens.github.com
 
 ~~~haskell
 todoAppGUI :: Auto' (Either TodoInp GUIInp) (IntMap Task, GUIOpts)
