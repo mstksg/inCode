@@ -5,7 +5,13 @@
 -- | http://blog.jle.im/entry/auto-a-todo-gui-application-with-auto-on
 --
 
-module Todo where
+module Todo (
+    TodoInp(..)
+  , TaskCmd(..)
+  , TaskID
+  , Task(..)
+  , todoApp
+  ) where
 
 import Control.Auto
 import Control.Auto.Collection
@@ -28,7 +34,6 @@ data TaskCmd = CDelete          -- delete
              | CNop             -- do nothing
              deriving Show
 
-type TaskMap = IntMap Task
 type TaskID  = Int
 
 data Task = Task { taskDescr     :: String

@@ -6,7 +6,7 @@
 -- $ cabal install auto
 -- $ cabal exec runghc todo-cmd.hs
 -- 
-module Main where
+module Main (main) where
 
 import Control.Auto
 import Control.Auto.Interval
