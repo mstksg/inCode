@@ -332,18 +332,23 @@ $ cabal exec runghc todo-cmd.hs
 Enter command! 'A descr' or '[D/C/U/P/M] [id/*]'
 > A take out the trash
 0. [ ] take out the trash
+
 > A do the dishes
 0. [ ] take out the trash
 1. [ ] do the dishes
+
 > C 1
 0. [ ] take out the trash
 1. [X] do the dishes
+
 > U 1
 0. [ ] take out the trash
 1. [ ] do the dishes
+
 > C 0
 0. [X] take out the trash
 1. [ ] do the dishes
+
 > P *
 1. [ ] do the dishes
 ~~~
