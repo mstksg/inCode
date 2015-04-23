@@ -48,9 +48,10 @@ formatTodo = unlines . map format . IM.toList
 main :: IO ()
 main = do
     putStrLn "Enter command! 'A descr' or '[D/C/U/P/M] [id/*]'"
-    void . interactAuto $ -- interactAuto takes an Interval; run forever
+    void . interactAuto $ -- interactAuto takes an Interval; `toOn` gives
+                          --   one that runs forever
                           toOn
-                          -- default value on bad command
+                          -- default output value on bad command
                         . fromBlips "Bad command!"
                           -- run `formatTodo <$> todoApp` on emitted commands
                         . perBlip (formatTodo <$> todoApp)

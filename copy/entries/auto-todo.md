@@ -1,5 +1,5 @@
-Auto: A Todo GUI application with Auto (w/ GHCJS)
-=================================================
+Auto: A Todo GUI application with Auto (on GHCJS, etc.)
+=======================================================
 
 Categories
 :   Haskell
@@ -12,7 +12,7 @@ Tags
 CreateTime
 :   2015/03/26 00:15:21
 PostDate
-:   Never
+:   2015/04/23 10:04:10
 Series
 :   All About Auto
 :   Beginner/Intermediate Haskell Projects
@@ -20,7 +20,7 @@ Identifier
 :   auto-todo
 
 Continuing along with [All About Auto][series], let's look at another exciting
-and useful application of the [*auto*][] library: GUI's.  We're going to look
+and useful application of the *[auto][]* library: GUI's.  We're going to look
 at the canonical "hello world" of GUI apps these days --- the todo app.  We're
 going to be using the specs of [todoMVC][] to build a todoMVC "candidate" that
 follows the specs...and along the way see what *auto* offers in its tools of
@@ -177,7 +177,7 @@ dynamic collection of tasks!
 ~~~
 
 If we wanted to send in the command `CModify "hey!"` to the task whose
-id/key/address is `12`, I'd feed in `IntMap.singleton 12 (CModify "hey!")`.
+id/key/address is `12`, I'd feed in `IM.singleton 12 (CModify "hey!")`.
 The output would then contain the output of feeding that `CModify` to the
 `Auto` at that slot 12, associated with slot 12 on the output `IntMap`.
 
@@ -252,11 +252,11 @@ english statements of what things "are".
 
 2.  Now, we fork into blip streams:
 
-    *   `newTaskB` is a blip stream that emits with task description whenever
+    *   `newTaskB` is a blip stream that emits with task descriptions whenever
         `inpEvt` calls for one.
     *   `modTaskB` is a blip stream that emits with a command to a specific task
         whenever `inpEvt` calls for one.
-    *   `masstaskB` is a blip stream that emits commands to every single task in
+    *   `massTaskB` is a blip stream that emits commands to every single task in
         `allIds` whenever `inpEvt` calls for it.
     *   `allInpB` is a blip stream with addressed commands whenever either
         `modTaskB` or `massTaskB` emits.
@@ -275,15 +275,38 @@ what we want --- an indexed list of tasks.
 Note that we needed the `rec` block because we referred to `taskMap` at the
 beginning (to get `allIds`), but we don't define `taskMap` until the end.
 
-We use `arrD` here to "close the loop".  `arrD IM.keys []` means, "apply
-`IM.keys` to the[^delayed] input, but...the very first result, just output
-`[]`.".  So, the very first time we ask for anything, it'll just output `[]`.
-This means we don't run into any recursive loops (if we ask for `taskMap`, but
-`taskMap` doesn't even exist yet, how does that work?  in this way, we don't
-even need `taskMap` at first.  After the second, third steps, etc, we already
-have `taskMap`, so it's no problem).
+Note that we use `arrD` for `allIds`.  What we really "meant" was something
+like:
 
-[^delayed]: (delayed)
+~~~haskell
+allIds <- arr IM.keys -< taskMap
+~~~
+
+But...this doesn't really work out, because when the whole thing "starts", we
+don't know what `taskMap` is.  We need to know `massTaskB` to know `taskMap`,
+and we need to know `allIds` to know `massTaskB`, and...recursive dependency!
+
+We can use `arrD` to specify an "initial output" to "close the loop" (in
+technical terms).  We want `allIds` to initially be `[]` (we can assume we
+start with no task id's), so instead of
+
+~~~haskell
+allIds <- arr IM.keys -< taskMap
+~~~
+
+we have
+
+~~~haskell
+allIds <- arrD IM.keys [] -< taskMap
+~~~
+
+Where `[]` is the "initial output", so when we first try to do anything, we
+don't need `taskMap` --- we just pop out `[]`!
+
+This is just a small thing to worry about whenever you have recursive
+bindings.  There is a small cognitive price to pay, but in return, you have
+something that really just looks like laying out relationships between
+different quantities :)
 
 Interfacing with the world
 --------------------------
@@ -303,6 +326,9 @@ Here we use `parseInp` to emit input events whenever there is a parse, run
 `fromBlips` and wrap it in an "always on" `toOn`.
 
 ~~~
+$ cabal sandbox init
+$ cabal install auto
+$ cabal exec runghc todo-cmd.hs
 Enter command! 'A descr' or '[D/C/U/P/M] [id/*]'
 > A take out the trash
 0. [ ] take out the trash
@@ -321,6 +347,10 @@ Enter command! 'A descr' or '[D/C/U/P/M] [id/*]'
 > P *
 1. [ ] do the dishes
 ~~~
+
+You can [download and run this yourself][testcmd]!
+
+!!![testcmd]:auto/todo-cmd.hs
 
 Looks like the logic works!  Time to take it to GUI!
 
@@ -348,9 +378,9 @@ data Filter = All | Active | Completed
 instance Serialize Filter
 ~~~
 
-Instead of defining a new mega-type with all input events and the todo map
-with the options, we can use good ol' fashioned `Either` and `(,)`.  So now,
-instead of:
+Instead of defining a new input mega-type with all input events and the todo
+map with the options, we can use good ol' fashioned `Either` and `(,)`.  So
+now, instead of:
 
 ~~~haskell
 todoApp :: Auto m TodoInp (IntMap Task)
@@ -362,16 +392,14 @@ We have:
 todoAppGUI :: Auto m (Either TodoInp GUIInp) (IntMap Task, GUIOpts)
 ~~~
 
-Now we take *either* `TodoInp` or `GUIInp` ("free sums" like `Either` spare us
-from writing a new type that incorporates both) and then return *both* `IntMap
-Task` *and* `GUIOpts` ("free products" like `(,)` spare us from creating a new
-type that contains both).
+Now we take *either* `TodoInp` or `GUIInp` and then return *both* `IntMap
+Task` *and* `GUIOpts`.
 
 ~~~haskell
 todoAppGUI :: Auto' (Either TodoInp GUIInp) (IntMap Task, GUIOpts)
 todoAppGUI = proc inp -> do
-    filt <- holdWith All                      . emitJusts filtInps -< inp
-    selc <- holdWith Nothing                  . emitJusts selcInps -< inp
+    filt  <- holdWith All                      . emitJusts filtInps -< inp
+    selc  <- holdWith Nothing                  . emitJusts selcInps -< inp
     tasks <- holdWith mempty . perBlip todoApp . emitJusts todoInps -< inp
 
     id -< (tasks, GUI filt selc)
@@ -391,6 +419,29 @@ Here we have the same idea as before.  One input stream of `Either TodoInp
 GUIInp` comes through, and we fork it into three blip streams that each do
 what we want.  `holdWith x :: Auto m (Blip b) b` is always the value of the
 last emitted item...but starts off as `x` first.
+
+By the way, the above code is much more succinct if you are willing to use
+*[lens][]*...
+
+[lens]: https://github.com/ekmett/lens
+
+~~~haskell
+todoAppGUI :: Auto' (Either TodoInp GUIInp) (IntMap Task, GUIOpts)
+todoAppGUI = proc inp -> do
+    filt  <- holdWith All
+           . emitJusts (preview (_Right . _GIFilter)) -< inp
+    selc  <- holdWith Nothing
+           . emitJusts (preview (_Right . _GISelect)) -< inp
+    tasks <- holdWith mempty . perBlip todoApp
+           . emitJusts (preview _Left)                -< inp
+
+    id -< (tasks, GUI filt selc)
+~~~
+
+(assuming we defined the prisms for `GUIInp` or used `''mkPrisms`)
+
+Neat, right?  In a way, you can say that `emitJusts` and `Prisms`/lens was a
+match made in heaven :)
 
 ### Giving it life
 
@@ -420,10 +471,10 @@ handler.
 
 [cbroc]: http://blog.jle.im/entry/auto-building-a-declarative-chatbot-with-implicit-serialization#irc-backend-the-ugly-part
 
-Our final thing is then just:
+Our final runner is then just:
 
 ~~~haskell
-void $ runOnChan renderGUI inputChan todoAppGUI
+runOnChan renderGUI inputChan todoAppGUI
 ~~~
 
 where

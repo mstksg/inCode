@@ -13,16 +13,16 @@ import GHC.Generics
 import Prelude hiding          ((.), id)
 import qualified Data.IntMap   as IM
 
-data TodoInp = IAdd  String
-             | ITask TaskID TaskCmd
-             | IAll TaskCmd
+data TodoInp = IAdd  String           -- new task with description
+             | ITask TaskID TaskCmd   -- send command to task by ID
+             | IAll TaskCmd           -- send command to all tasks
              deriving Show
 
-data TaskCmd = CDelete
-             | CPrune
-             | CComplete Bool
-             | CModify String
-             | CNop
+data TaskCmd = CDelete          -- delete
+             | CPrune           -- delete if completed
+             | CComplete Bool   -- set completed status
+             | CModify String   -- modify description
+             | CNop             -- do nothing
              deriving Show
 
 type TaskMap = IntMap Task
@@ -53,23 +53,30 @@ initTask descr = accum f (Just (Task descr False))
 todoApp :: MonadFix m => Auto m TodoInp (IntMap Task)
 todoApp = proc inpEvt -> do
 
-    rec allIds <- arrD IM.keys [] -< taskMap
+    rec -- all id's currently alive
+        allIds <- arrD IM.keys [] -< taskMap
 
         -- "forking" `inpEvt` into three blip streams:
+        -- newTaskB :: Blip [String]
         newTaskB  <- emitJusts getAddEvts  -< inpEvt
+        -- modTaskB :: Blip (IntMap TaskCmd)
         modTaskB  <- emitJusts getModEvts  -< inpEvt
+        -- massTaskB :: Blip (IntMap TaskCmd)
         massTaskB <- emitJusts getMassEvts -< (allIds, inpEvt)
 
         -- merge the two streams together to get "all" inputs, single and
         -- mass.
-        let allInpB = modTaskB <> massTaskB
+        let allInpB :: Blip (IntMap TaskCmd)
+            allInpB = modTaskB <> massTaskB
 
         -- from a blip stream to an `IntMap` stream that is empty when the
         -- stream doesn't emit
+        -- taskCommands :: IntMap TaskCmd
         taskCommands <- fromBlips IM.empty -< allInpB
 
         -- feed the commands and the new tasks to `taskMap`...the result is
         -- the `IntMap` of tasks.
+        -- taskMap :: IntMap Task
         taskMap <- taskCollection -< (taskCommands, newTaskB)
 
     id -< taskMap
