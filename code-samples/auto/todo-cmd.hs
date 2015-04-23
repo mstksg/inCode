@@ -1,4 +1,4 @@
--- |
+-- | http://blog.jle.im/entry/auto-a-todo-gui-application-with-auto-on
 --
 -- Recommended to run with cabal sandboxes:
 --
