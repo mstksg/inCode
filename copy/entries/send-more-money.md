@@ -1,5 +1,5 @@
-Unique sample drawing/searches with List and StateT ("Send more money")
-=======================================================================
+Unique sample drawing/searches with List and StateT --- "Send more money"
+=========================================================================
 
 Categories
 :   Haskell
@@ -175,7 +175,7 @@ And, to test it out...
 ~~~bash
 $ ghc -O2 send-more-money.hs
 $ ./send-more-money
-[(9567,1085,10652)]
+# [(9567,1085,10652)]
 ~~~
 
 It returns the one and only solution, `SEND = 9567`, `MORE = 1085`, and `MONEY
@@ -225,18 +225,21 @@ pokerGame = flip evalStateT [0..51] $ do
 ~~~
 
 Which would draw five distinct cards from a deck of `[0..51]`, and return who
-won (assuming you had a suitable `pokerCompare :: [Card] -> [Card] ->
-Ordering`).  Note that if you use `runStateT`, you'd get the results (the
-winner), *as well as* the leftover cards in the deck for each path!
+won for each draw (assuming you had a suitable `pokerCompare :: [Card] ->
+[Card] -> Ordering`).  Note that if you use `runStateT`, you'd get the results
+(the winner), *as well as* the leftover cards in the deck for each path!
 
-Maybe even encode a game of russian roulette:
+You could maybe even encode a game of russian roulette!
 
 ~~~haskell
 !!!misc/send-more-money.hs "roulette ::"
 ~~~
 
 `go` keeps on pulling the trigger and getting a `shot` from the revolver
-chambers...and keeps on going until `shot` is `True`.
+chambers...and keeps on going until `shot` is `True`.  We start the revolver
+to have one loaded slot (`True`) and five unloaded ones (`False`).  The result
+will be a list of every possible way the game could turn out...where each item
+is the shot # where the revolver fired.
 
 You can even combine the two sorts of drawings --- sampling independently
 (like rolling dice) using `lift`, and drawing from an underlying deck.  For
@@ -256,4 +259,5 @@ What you get in the end, remember, is a list of "all possible paths".  You'll
 get a list of every possible result from all of your different rolling and
 drawing choices.
 
-Go crazy!
+Happy Haskelling!
+
