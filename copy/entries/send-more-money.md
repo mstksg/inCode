@@ -179,7 +179,35 @@ $ ./send-more-money
 ~~~
 
 It returns the one and only solution, `SEND = 9567`, `MORE = 1085`, and `MONEY
-= 10652`.
+= 10652`.[^perf]
+
+[^perf]: For some reason this runs pretty slowly if you use
+`runghc`/`runHaskell`, but it runs in the blink of an eye when you actually
+compile it (and especially with optimizations on).  The difference is pretty
+striking...and I don't really know what's going on here, to be honest.
+
+<div class="note">
+**Aside**
+
+We can make things a little bit more efficient with minimal cost in
+expressiveness.  But not that it matters...the original version runs fast
+already.
+
+~~~haskell
+!!!misc/send-more-money.hs "select' ::" "main' ::"
+~~~
+
+This is a more performant version of `select` [courtesy of Simon Marlow][pch]
+that doesn't preserve the order of the "rest of the elements".
+
+[pch]: http://chimera.labs.oreilly.com/books/1230000000929/pr01.html
+
+Also, we use `mfilter` to "eliminate bad `s` and `m`s" right off the bat,
+before having to pick any more things.  `mfilter` can be thought of as
+"killing the fork immediately" if the action doesn't satisfy the predicate.
+If the `s` picked doesn't match `(/= 0)`, then the entire branch/fork is
+immediately ruled invalid.
+</div>
 
 Other Applications
 ------------------
