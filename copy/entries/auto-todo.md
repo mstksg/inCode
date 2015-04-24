@@ -511,12 +511,14 @@ bindings][todojs]
 This is a bare-bons *ghcjs* implementation using *ghcjs-dom*, which uses
 direct dom manipulation.
 
-User [eryx67][] has been kind enough to provide an implementation in *ghcjs*
-with the *[virtual-dom][]* library, so there is a slightly less uglier
-implementation with abstraction :)
+User [eryx67][] has been kind enough to provide [an implementation in
+*ghcjs*][todojsvdom] with the *[virtual-dom][]* library ([side-by-side
+comparison][compare]), so there is a slightly less uglier implementation with
+abstraction :)
 
 [eryx67]: https://github.com/eryx67
 [todojsvdom]: https://github.com/eryx67/auto-examples/blob/master/src/TodoJS.hs
+[compare]: https://github.com/mstksg/auto-examples/commit/246133a89fbca6a2ec7ea276d8536701f6ab8d2c?diff=split
 [virtual-dom]: https://github.com/ocharles/virtual-dom
 
 As always, feel free to ask questions in the comments, hop over to
