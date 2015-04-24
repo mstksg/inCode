@@ -238,9 +238,9 @@ You could maybe even encode a game of russian roulette!
 
 `go` keeps on pulling the trigger and getting a `shot` from the revolver
 chambers...and keeps on going until `shot` is `True`.  We start the revolver
-to have one loaded slot (`True`) and five unloaded ones (`False`).  The result
-will be a list of every possible way the game could turn out...where each item
-is the shot # where the revolver fired.
+to have one loaded slot (`bullet`/`True`) and five unloaded ones
+(`blank`/`False`).  The result will be a list of every possible way the game
+could turn out...where each item is the shot # where the revolver fired.
 
 You can even combine the two sorts of drawings --- sampling independently
 (like rolling dice) using `lift`, and drawing from an underlying deck.  For

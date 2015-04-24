@@ -38,7 +38,7 @@ main = print . flip evalStateT [0..9] $ do
 -- ghci> roulette
 --
 roulette :: [Int]
-roulette = evalStateT (go 1) [True,False,False,False,False,False]
+roulette = evalStateT (go 1) [bullet, blank, blank, blank, blank, blank]
   where
     go :: Int -> StateT [Bool] [] Int
     go i = do
@@ -46,6 +46,8 @@ roulette = evalStateT (go 1) [True,False,False,False,False,False]
       if shot
         then return i
         else go $ i + 1
+    bullet = True
+    blank  = False
 
 -- faster than select, but doesn't preserve order
 select' :: [a] -> [(a,[a])]
