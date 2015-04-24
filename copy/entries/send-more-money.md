@@ -10,15 +10,15 @@ Tags
 CreateTime
 :   2015/04/24 01:57:56
 PostDate
-:   Never
+:   2015/04/24 11:05:56
 Identifier
 :   send-more-money
 
-A short and quick response to Mark Dominus's excellent [Universe of
-Discourse][] post on [Easy exhaustive search with the list monad][ees]
-intended for people new or unfamiliar with haskell demonstrating the common
-"list monad as a constraint solver" approach that is standard fare for
-learning Haskell.  I myself have literally done [an entire series of blog
+Just a short and quick response with a cute trick to Mark Dominus's excellent
+[Universe of Discourse][] post on [Easy exhaustive search with the list
+monad][ees] intended for people new or unfamiliar with haskell demonstrating
+the common "list monad as a constraint solver" approach that is standard fare
+for learning Haskell.  I myself have literally done [an entire series of blog
 posts][monad-plus] on this usage.
 
 [Universe of Discourse]: http://blog.plover.com
