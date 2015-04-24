@@ -9,6 +9,8 @@
 /static/img/test
 /tags
 /bin
+*.o
+*.hi
 
 !/bin/blog
 !/.cabal-sandbox/share
@@ -17,4 +19,5 @@
 /code-samples/huffman/bin
 /code-samples/huffman/samples
 /code-samples/huffman/old
+/code-samples/misc/send-more-money
 
