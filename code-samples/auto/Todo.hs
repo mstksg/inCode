@@ -4,6 +4,9 @@
 
 -- | http://blog.jle.im/entry/auto-a-todo-gui-application-with-auto-on
 --
+-- Can be tested with a simple command line driver, at
+-- https://github.com/mstksg/inCode/blob/master/code-samples/auto/todo-cmd.hs
+--
 
 module Todo (
     TodoInp(..)

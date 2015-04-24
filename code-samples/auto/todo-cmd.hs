@@ -1,5 +1,8 @@
 -- | http://blog.jle.im/entry/auto-a-todo-gui-application-with-auto-on
 --
+-- You probably will also need the actual application logic, at
+-- https://github.com/mstksg/inCode/blob/master/code-samples/auto/Todo.hs
+--
 -- Recommended to run with cabal sandboxes:
 --
 -- $ cabal sandbox init
