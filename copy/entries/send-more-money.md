@@ -218,6 +218,7 @@ filter not-equal-to's can work now.  You can do things like drawing from a
 deck:
 
 ~~~haskell
+pokerGame :: [Ordering]
 pokerGame = flip evalStateT [0..51] $ do
     p2Hand <- replicateM 5 (StateT select)
     p1Hand <- replicateM 5 (StateT select)
