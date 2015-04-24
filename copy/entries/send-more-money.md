@@ -1,5 +1,5 @@
-Unique sample drawing/searches with List and StateT --- "Send more money"
-=========================================================================
+Unique sample drawing & searches with List and StateT --- "Send more money"
+===========================================================================
 
 Categories
 :   Haskell
@@ -14,12 +14,12 @@ PostDate
 Identifier
 :   send-more-money
 
-Just a short and quick response with a cute trick to Mark Dominus's excellent
-[Universe of Discourse][] post on [Easy exhaustive search with the list
-monad][ees] intended for people new or unfamiliar with haskell demonstrating
-the common "list monad as a constraint solver" approach that is standard fare
-for learning Haskell.  I myself have literally done [an entire series of blog
-posts][monad-plus] on this usage.
+Nothing too crazy today, just a cute (basic/intermediate) haskell trick as a
+response to Mark Dominus's excellent [Universe of Discourse][] post on [Easy
+exhaustive search with the list monad][ees] intended for people new or
+unfamiliar with haskell demonstrating the common "list monad as a constraint
+solver" approach that is standard fare for learning Haskell.  I myself have
+literally done [an entire series of blog posts][monad-plus] on this usage.
 
 [Universe of Discourse]: http://blog.plover.com
 [ees]: http://blog.plover.com/prog/haskell/monad-search.html
