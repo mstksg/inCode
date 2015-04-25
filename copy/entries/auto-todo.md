@@ -59,7 +59,7 @@ Overall Layout
 --------------
 
 At the highest level, *auto* is a library that provides us tools to build and
-worth with stream transformers on streams of values.  Transform a stream of
+work with stream transformers on streams of values.  Transform a stream of
 input values to a stream of output values.  So, let's try to phrase our Todo
 app problem in that perspective.  What are our inputs, and what are our
 outputs?
