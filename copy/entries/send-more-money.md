@@ -230,17 +230,12 @@ won for each draw (assuming you had a suitable `pokerCompare :: [Card] ->
 [Card] -> Ordering`).  Note that if you use `runStateT`, you'd get the results
 (the winner), *as well as* the leftover cards in the deck for each path!
 
-You could maybe even encode a game of russian roulette!
+<!-- I used to have an example here about simulating russian roulette -->
 
-~~~haskell
-!!!misc/send-more-money.hs "roulette ::"
-~~~
-
-`go` keeps on pulling the trigger and getting a `shot` from the revolver
-chambers...and keeps on going until `shot` is `True`.  We start the revolver
-to have one loaded slot (`bullet`/`True`) and five unloaded ones
-(`blank`/`False`).  The result will be a list of every possible way the game
-could turn out...where each item is the shot # where the revolver fired.
+<!-- But this doesn't really work in a useful way...because the paths all "stop" -->
+<!-- after the first shot.  In reality, you are just as likely to be shot on the -->
+<!-- first pull as you are on the second.  But as this simulation runs, it "stops" -->
+<!-- after the first shot...so `1` will only show up once. -->
 
 You can even combine the two sorts of drawings --- sampling independently
 (like rolling dice) using `lift`, and drawing from an underlying deck.  For

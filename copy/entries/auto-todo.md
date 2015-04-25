@@ -85,7 +85,7 @@ So the "overall loop" will be:
 We like types in Haskell, so let's begin by laying out our types!
 
 ~~~haskell
-!!!auto/Todo.hs "import " "data TodoInp" "data TaskCmd" "type TaskMap" "data Task " "instance Serialize Task"
+!!!auto/Todo.hs "import " "data TodoInp" "data TaskCmd" "data Task " "instance Serialize Task"
 ~~~
 
 We have a type to represent our inputs, `TodoInp`, which can be an
