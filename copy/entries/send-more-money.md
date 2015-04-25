@@ -167,6 +167,15 @@ And armed with this...we have all we need
 !!!misc/send-more-money.hs "import Control.Monad " "asNumber ::" "main ::"
 ~~~
 
+Remember, `StateT` here operates with an underlying state of `[Int]`, a list
+of numbers not yet picked.  `StateT select` picks one of these numbers, and
+modifies the state to now only include the items that were not picked.  So
+every time you sequence `StateT select`, `select` draws from a smaller and
+smaller pool of numbers, and makes the state list smaller and smaller.  What
+sequencing `StateT` does is allow us to explore *all* of the possible ways we
+could pick and modify state, all at once.  Using `guard`, we then "close off"
+and kill off the paths that don't end up how we'd like.
+
 `asNumber` takes a list like `[1,2,3]` and turns it into the number `123`;
 credit to the source blog.
 
@@ -184,7 +193,8 @@ It returns the one and only solution, `SEND = 9567`, `MORE = 1085`, and `MONEY
 [^perf]: For some reason this runs pretty slowly if you use
 `runghc`/`runHaskell`, but it runs in the blink of an eye when you actually
 compile it (and especially with optimizations on).  The difference is pretty
-striking...and I don't really know what's going on here, to be honest.
+striking...and I don't really know what's going on here, to be honest.  If
+anyone does know a good explanation, I'd love to hear it :)
 
 <div class="note">
 **Aside**
