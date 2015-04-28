@@ -219,6 +219,11 @@ If the `s` picked doesn't match `(/= 0)`, then the entire branch/fork is
 immediately ruled invalid.
 </div>
 
+By the way, isn't it neat that it does all of this in "constant space"?  It
+just keeps track of the output list, but the actual search processes is in
+constant space.  You don't need to keep track of all `10!` combinations in
+memory at once.  Hooray laziness!
+
 Other Applications
 ------------------
 
