@@ -32,7 +32,10 @@ first step to beginning to understand several extensions, including
 And using type system plugins.  (And of course the usual
 `UndecidableInstances` etc.)  We'll be discussing two different ways to
 implement this --- using type-level nats, and using the *GHC.TypeLits* model
-to actually be able to use numeric literals in your types.
+to actually be able to use numeric literals in your types.  These things are
+seen in the wild like with the popular *[linear][]* package's `V` type.
+
+[linear]: http://hackage.haskell.org/package/linear-1.18.0.1/docs/Linear-V.html
 
 There are a few tutorials/writeups on this topic, but many of them are from
 the time before we had some of these extensions, or only discuss a few.  I
@@ -167,30 +170,6 @@ This means that, because of type erasure, everything "runtime" on our new type
 is basically going to be identical to `[]` (not considering compiler tricks).
 In-memory, this new type is essentially exactly `[]`, but its type has an
 extra tag that is erased at compile-time.
-
-<div class="note">
-**Aside**
-
-Things don't have to be this way, by the way.  We are basically "enhancing" a
-list with type information.  We could have also done:
-
-~~~haskell
-newtype Vec :: Nat -> * -> * where
-    VecList :: [a] -> Vec n a
-~~~
-
-And only offer "smart constructors", to construct things.  But you're going to
-have to accept some runtime errors if you want to be able to convert arbitrary
-lists to a target type.  You could also do
-
-~~~haskell
-newtype Vec :: Nat -> * -> * where
-    VecVector :: Vector a -> Vec n a
-~~~
-
-Where a `Vec` really just wraps a `Vector` from the *vector* package, so now
-we have $O(1)$ random access :)
-</div>
 
 Okay, let's define some useful methods:
 
@@ -449,7 +428,7 @@ Nothing
 a "safe `fromList`":
 
 ~~~haskell
-fromListV :: [a] -> Maybe (Vec n a)
+fromListV :: (UnfoldV n, Traversable (Vec n)) => [a] -> Maybe (Vec n a)
 fromListV = sequence . fromListMaybes
 ~~~
 
@@ -476,7 +455,7 @@ have one at hand, you can just use `undefined` with a type annotation.  It's a
 bit of a dirty hack, but it works because `typeOf` doesn't care about the
 first argument's value...just its type.
 
-These days, we like to be a bit less embarassing and use something called
+These days, we like to be a bit less embarrassing and use something called
 `Proxy`:
 
 ~~~haskell
@@ -520,7 +499,7 @@ instance forall n m. IndexV n m => IndexV (S n) (S m) where
 The first case makes sense.  We can definitely index a `Vec (S n) a` with `Z`.
 That's just the head/first element...and of course it has a first element,
 it's a `Vec (S n) a` (that is, it's not `Vec Z a`, the vector with no
-elements).  Put in english, if your vector's size is 1 or higher, then you can
+elements).  Put in English, if your vector's size is 1 or higher, then you can
 index it with index 0 for sure.
 
 The second case is slightly more complex.  But it's saying that if we had a
@@ -548,7 +527,282 @@ Compile error!
 It's an error, but remember, it's a *compiler* error, that happens before any
 code is ever even run!
 
+Using TypeLits and Type Checker Plugins
+---------------------------------------
 
+Using a custom `Nat` kind and *DataKinds* is nice and all, but it's a bit of a
+hassle to express large numbers like 100, 1000, etc.  However, as of GHC 7.8,
+we've had the ability to actually *use* numeric (integer) literals in our
+types.  Instead of writing `S (S Z)`, we can write `2`.
 
+GHC can't yet quite work with that well by default.  It has trouble proving
+statements about variables, like `(n + 1) ~ (1 + n)` (that `n + 1` is "the
+same as" `1 + n`). Fortunately for us, as of GHC 7.10, we have a way to
+"extend" the type checker with custom plugins that *can* prove things like
+this for us.
 
+The *[ghc-typelits-normalise][gtn]* package is a package providing such a
+plugin.  We can have GHC use it to extend its type checking by passing in
+`-fplugin GHC.TypeLits.Normalise` when we execute our code, or by adding a
+pragma:
 
+[gtn]: https://hackage.haskell.org/package/ghc-typelits-natnormalise
+
+~~~haskell
+{-# OPTIONS_GHC -fplugin GHC.TypeLits.Normalise #-}
+~~~
+
+to the top of our file, along with our `LANGUAGE` pragmas.  (Assuming, of
+course, a GHC 7.10+)
+
+~~~haskell
+ghci> :set -XDataKinds -XTypeOperators -XTypeFamilies
+ghci> import GHC.TypeLits
+ghci> Proxy :: ((n + 1) ~ (1 + n)) => Proxy n
+-- Cannot match `1 + n` with `n + 1`
+ghci> :set -fplugin GHC.TypeLits.Normalise
+ghci> Proxy :: ((n + 1) ~ (1 + n)) => Proxy n
+Proxy   -- success!
+~~~
+
+GHC now uses the plugin to prove that the two are really equal.
+
+With that in mind, let's start restating everything in terms of *TypeLits* and
+see what it gains us.
+
+~~~haskell
+data Vec :: Nat -> * -> * where
+    Nil  :: Vec 0 a
+    (:#) :: a -> Vec (n - 1) a -> Vec n a
+
+deriving instance Show a => Show (Vec n a)
+~~~
+
+A little nicer, right?  `Nil` is a `Vec 0 a`, and `x :# xs` is an element with
+a `Vec (n - 1) a`, which overall is a `Vec n a`.  Let's go over everything
+again to see how it'd look in the new regime.  (Note that the kind of the type
+number literals is also called `Nat`...unrelated to our `Nat` we used before.)
+
+A new look
+----------
+
+First of all, we're going to have to define *TypeLit* comparison operators, as
+they aren't built in in a useful way.
+
+We have the type family (remember those?) `CmpNat x y`, which returns an
+`Ordering` (`LT`, `EQ`, or `GT`) type (of kind `Ordering`, using
+*DataKinds*...lifting a type and its value constructors to a kind and its
+types), which is provided and defined for us by GHC in `GHC.TypeLits`.
+
+So defining a `x > y` constraint is pretty straightforward:
+
+~~~haskell
+type x > y = CmpNat x y ~ GT
+~~~
+
+Note that we need the *ConstraintKinds* extension for this to work, as `1 > 2`
+is now a *constraint*, of kind `Constraint`.
+
+Given this, let's do our favorite list functions, `headV` and `tailV`:
+
+~~~haskell
+headV :: (n > 0) => Vec (S n) a -> a
+headV (x :# _)  = x
+
+tailV :: (n > 0) => Vec n a -> Vec (n - 1) a
+tailV (_ :# xs) = xs
+~~~
+
+Magnificent!
+
+~~~haskell
+ghci> headV (Nil :: Vec 0 ())
+-- Error!  Cannot unite 'EQ with 'GT
+~~~
+
+Neat!  The error, remember, is at *compile time*, and not at runtime.  If we
+ever tried to do an unsafe head, our code wouldn't even *compile*!  The error
+message comes from the fact that we need $n > 0$, but we have $n = 0$ instead.
+We have `EQ`, but we need `GT`.
+
+We don't even have to do any extra work to define our own type family `x +
+y`...because `GHC.TypeLits` already defines it for us!
+
+~~~haskell
+appendV :: Vec n a -> Vec m a -> Vec (n + m) a
+appendV Nil       ys = ys
+appendV (x :# xs) ys = x :# appendV xs ys
+~~~
+
+And our list generating typeclasses ---
+
+~~~haskell
+class UnfoldV (n :: Nat) where
+    unfoldV :: (b -> (a, b)) -> b -> Vec n a
+
+instance UnfoldV 0 where
+    unfoldV _ _ = Nil
+
+instance (UnfoldV (n - 1), n > 0) => UnfoldV n where
+    unfoldV f x0 = y :# unfoldV f x1
+      where
+        (y, x1) = f x0
+~~~
+
+The translation is pretty mechanical, but I think that this new formulation
+looks...really nice, and really powerful.  "If you can build a list from
+$n - 1$ and $n > 0$, then you can build a list for $n$!
+
+~~~haskell
+replicateV :: UnfoldV n => a -> Vec n a
+replicateV = unfoldV (\x -> (x, x))
+
+iterateV :: UnfoldV n => (a -> a) -> a -> Vec n a
+iterateV f = unfoldV (\x -> (x, f x))
+
+fromListMaybes :: UnfoldV n => [a] -> Vec n (Maybe a)
+fromListMaybes = unfoldV $ \l -> case l of
+                                   []   -> (Nothing, [])
+                                   x:xs -> (Just x , xs)
+~~~
+
+~~~haskell
+ghci> iterateV succ 1 :: Vec 3 int
+1 :# 2 :# 3 :# Nil
+ghci> iterateV succ 1 :: Vec 10 Int
+1 :# 2 :# 3 :# 4 :# 5 :# 6 :# 7 :# 8 :# 9 :# 10 :# Nil
+ghci> replicateV 'a' :: Vec 4 Char
+'a' :# 'a' :# 'a' :# 'a' :# Nil
+~~~
+
+The actual types are much nicer, too --- we can write `Vec 10 Int` instead of
+`Vec (S (S (S (S (S (S (S (S (S (S Z)))))))))) Int`
+
+Going through all of our other typeclasses/functions and making the
+adjustments...
+
+~~~haskell
+instance Functor (Vec n) where
+    fmap _ Nil = Nil
+    fmap f (x :# xs) = f x :# fmap f xs
+
+instance Applicative (Vec 0) where
+    pure _ = Nil
+    Nil <*> _ = Nil
+
+instance (Applicative (Vec (n - 1)), n > 0) => Applicative (Vec n) where
+    pure x = x :# pure x
+    (f :# fs) <*> (x :# xs) = f x :# (fs <*> xs)
+
+instance Foldable (Vec 0) where
+    foldMap _ Nil = mempty
+
+instance (Foldable (Vec (n - 1)), n > 0) => Foldabe (Vec n) where
+    foldMap f (x :# xs) = f x <> foldMap f xs
+
+instance Traversable (Vec 0) where
+    traverse _ Nil = pure Nil
+
+instance (Traversable (Vec (n - 1)), n > 0) => Traversable (Vec n) where
+    traverse f (x :# xs) = liftA2 (:#) (f x) (traverse f xs)
+
+fromListV :: (UnfoldV n, Traversable (Vec n)) => [a] -> Maybe (Vec n a)
+fromListV = sequence . fromListMaybes
+
+class IndexV (n :: Nat) (m :: Nat) where
+    indexV :: Proxy n -> Vec m a -> a
+
+instance (m > 0) => IndexV 0 m where
+    indexV _ (x :# _) = x
+
+instance forall n m. (IndexV (n - 1) (m - 1), n > 0, m > 0) => IndexV n m where
+    indexV _ (_ :# xs) = indexV (Proxy :: Proxy (n - 1)) xs
+~~~
+
+~~~haskell
+ghci> fromListV [1,2,3,4] :: Vec 10 Int
+Nothing
+ghci> fromListV [1,2,3,4] :: Vec 3 Int
+Just (1 :# 2 :# 3 :# Nil)
+ghci> indexV (Proxy :: Proxy 2) (1 :# 2 :# 3 :# Nil)
+3
+ghci> indexV (Proxy :: Proxy 2) (1 :# 2 :# Nil)
+-- Error: Cannot match 'EQ with 'GT
+~~~
+
+I think, overall, this formulation gives a much nicer interface.  Being able
+to just write $10$ is pretty powerful.
+
+Alternative Underlying Representations
+--------------------------------------
+
+Recall that our `Vec` was basically identically the normal list type, with an
+extra field in the type.  Due to type erasure, the two are represented exactly
+the same in memory.  So we have $O(n)$ appends, $O(n)$ indexing, etc.  Our
+type is essentially equal to
+
+~~~haskell
+newtype Vec :: Nat -> * -> * where
+    VecList :: [a] -> Vec n a
+~~~
+
+For this type, though, we'd need to use "smart constructors" and extractors
+instead of `1 :# 2 :# Nil` etc.
+
+We could, however, chose a more efficient type, like `Vector` from the
+*[vector][]* package:
+
+[vector]: http://hackage.haskell.org/package/vector-0.10.12.2/docs/Data-Vector.html#t:Vector
+
+~~~haskell
+newtype Vec :: Nat -> * -> * where
+    VecVector :: Vector a -> Vec n a
+~~~
+
+And, if you made sure to wrap everything with smart constructors, you now have
+*type safe* $O(1)$ random indexing!
+
+(This is representation is similar to the one used by the *[linear][]*
+package.)
+
+More Operations
+---------------
+
+One really weird quirk with this is that many functions you'd normally write
+using pattern matching you'd now might start writing using typeclasses.  One
+example would be our implementation of indexing, using an `IndexV` typeclass.
+
+I did mention one way around it, which was to make a typeclass to "reify" or
+turn your type into actual data, and then manipulate your data in an "unsafe"
+way knowing that the type checker checked that the data matched.
+
+We'll demonstrate with `SomeNat` from `GHC.TypeLits`, but you can also make
+our own for our inductive `Nat` type we used in the first half, too.
+
+If we use our "wrapped `Vector` approach", we can just do:
+
+~~~haskell
+newtype Vec :: Nat -> * -> * where
+    Vec :: Vector a -> Vec n a
+
+index :: (KnownNat n, m > n) => Proxy n -> Vec m a -> a
+index p (Vec v) = v ! fromInteger (natVal p)
+~~~
+
+That is, `index` internally uses `(!)`, an unsafe operator...but only after we
+assure properly that it's safe to use by stating `m > n` in the constraint. We
+can be sure that GHC will catch any instance where someone would try to index
+into a Vector improperly.  (Assuming, of course, you always maintain that your
+internal `Vector` has the length that its type would suggest)
+
+Conclusion
+----------
+
+Hopefully you'll see that we are able to apply the full type-safety of the
+Haskell compiler to our programs regarding lists by encoding the length of the
+list in its type and limiting its operations by specifically typed functions
+and choice of instances.  I also hope that you've been able to become familiar
+with seeing a lot of GHC's basic type extensions in real applications :)
+
+Let me know if I got anything wrong, or if there are any techniques that I
+should mention here that are out and in the wild today :)
