@@ -389,6 +389,20 @@ For `(<*>)`, we can get the first item easily, it's just `f x`.  But for the
 next item, we need a `Vec n a`.  Luckily...we have exactly that with the
 `(<*>)` for `Vec n`!
 
+Remember, at the end, we're saying "We have an `Applicative` instance for
+*any* type `Vec n`".  The instance for `Vec Z` has `pure _ = Nil`.  The
+instance for `Vec (S Z)` has `pure x = x :# Nil`.  The instance for `Vec (S (S
+Z))` has `pure x = x :# x :# Nil`, etc. etc.
+
+~~~haskell
+ghci> fmap (*2) (1 :# 2 :# 3 :# Nil)
+2 :# 4 :# 6 :# Nil
+ghci> pure 10 :: Vec (S (S Z)) Int
+10 :# 10 :# Nil         -- like replicateV!
+ghci> liftA2 (+) (1 :# 2 :# 3 :# Nil) (100 :# 201 :# 302 :# Nil)
+101 :# 203 :# 305 :# Nil
+~~~
+
 I'll leave the `Monad` instance as an exercise, but it's in the source files
 for this post.  `join` for this instance should be a "diagonal" --- the first
 item of the first vector, the second item of the second vector, the third item
@@ -417,8 +431,122 @@ Again, `liftA2 (:#) :: Applicative f => f a -> f (Vec n a) -> f (Vec (S n)
 a)`...so this only makes sense if `traverse f s` gives us a `Vec n a`.  So we
 have to add that as a constraint.
 
-TODO: ADD EXAMPLES OF THESE TYPECLASSES
+~~~haskell
+ghci> toList $ 1 :# 2 :# 3 :# Nil
+[1,2,3]
+ghci> traverse Identity $ 1 :# 2 :# 3 :# Nil
+Identity (1 :# 2 :# 3 :# Nil)
+ghci> sequence_ $ putStrLn "hello" :# putStrLn "world" :# Nil
+"hello"
+"world"
+ghci> sequence $ Just 1 :# Just 2 :# Nil
+Just (1 :# 2 :# Nil)
+ghci> sequence $ Just 1 :# Nothing :# Nil
+Nothing
+~~~
 
+`Traversable` of course opens a whole lot of doors.  For example, we can write
+a "safe `fromList`":
+
+~~~haskell
+fromListV :: [a] -> Maybe (Vec n a)
+fromListV = sequence . fromListMaybes
+~~~
+
+~~~haskell
+ghci> fromListV [1,2,3] :: Maybe (Vec (S Z) Int)
+Just (1 :# Nil)
+ghci> fromListV [1,2,3] :: Maybe (Vec (S (S (S Z))) Int)
+Just (1 :# 2 :# 3 :# Nil)
+ghci> fromListV [1,2,3] :: Maybe (Vec (S (S (S (S Z)))) Int)
+Nothing
+~~~
+
+### Indexing
+
+It'd be nice to be able to index into these, of course.  For type-safe
+indexing, we're going to need to take advantage of a trick using the `Proxy`
+type.
+
+Many might remember having to get a `TypeRep` for `Typeable` instance by doing
+something like `typeOf (undefined :: IO Double)`.  That's because `typeOf ::
+Typeable a => a -> TypeRep`.  If you wanted to get the `typeRep` for an `IO
+Double` using `typeOf`, you have to pass in an `IO Double`.  But if you don't
+have one at hand, you can just use `undefined` with a type annotation.  It's a
+bit of a dirty hack, but it works because `typeOf` doesn't care about the
+first argument's value...just its type.
+
+These days, we like to be a bit less embarassing and use something called
+`Proxy`:
+
+~~~haskell
+data Proxy a = Proxy
+~~~
+
+`Proxy a` is a bit like `()`.  It only has one constructor, and doesn't take
+any arguments.  But we can use the type signature to "pass in types" to
+functions, as "arguments".
+
+We have a couple of options here.  One is to make a typeclass for type level
+nats to turn them into an `Integer` or a value-level `Nat`, and then do an
+"unsafe indexing" after verifying, through types, that the index is smaller
+than the length.
+
+However, this is a little bit silly because we're just doing an unsafe
+indexing in the end anyway, so the compiler can't help us at all.  Wouldn't it
+be nice if we could get the compiler on our side and write a *real* safe
+index?  How about this?
+
+~~~haskell
+class IndexV (n :: Nat) (m :: Nat) where
+    indexV :: Proxy n -> Vec m a -> a
+~~~
+
+Here, we say that `n` and `m` are instances of `IndexV n m` *if and only if*
+`Vec m a` has an index `n`.  So $n = 2$ and $m = 4$ have an instance, but $n =
+3$ and $m = 2$ does not --- a vector of length two cannot have a "third"
+index!
+
+Let's write our instances --- but only the instances that *make sense*.
+
+~~~haskell
+instance IndexV Z (S n) where
+    indexV _ (x :# _) = x
+
+instance forall n m. IndexV n m => IndexV (S n) (S m) where
+    indexV _ (_ :# xs) = indexV (Proxy :: Proxy n) xs
+~~~
+
+The first case makes sense.  We can definitely index a `Vec (S n) a` with `Z`.
+That's just the head/first element...and of course it has a first element,
+it's a `Vec (S n) a` (that is, it's not `Vec Z a`, the vector with no
+elements).  Put in english, if your vector's size is 1 or higher, then you can
+index it with index 0 for sure.
+
+The second case is slightly more complex.  But it's saying that if we had a
+way to index into `Vec m a` at position `n`, then we have a way to index into
+`Vec (S m) a` at position `S n`.  Of course, right?  We just index `n` to the
+tail of the vector!
+
+Note the similarity of this algorithm to the actual indexing function on
+lists:
+
+~~~haskell
+index 0 (x:_ ) = x
+index n (_:xs) = index (n - 1) xs
+~~~
+
+trying it out...
+
+~~~haskell
+ghci> indexV (Proxy :: Proxy (S (S Z))) (1 :# 2 :# 3 :# Nil)
+3
+ghci> indexV (Proxy :: Proxy (S (S Z))) (1 :# 2 :# Nil)
+Compile error!
+~~~
+
+It's an error, but remember, it's a *compiler* error, that happens before any
+code is ever even run!
 
 
 

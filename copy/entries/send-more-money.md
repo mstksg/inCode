@@ -52,7 +52,14 @@ This is a little bit awkward...and it definitely gets a lot worse ($O(n^2)$)
 when you have more items.  Also, it relies on an `Eq` constraint --- what if
 our thing doesn't have an `Eq` instance?  And this also falls apart when our
 list contains duplicate items.  If we had used `"aabc"` instead of `"abc"`,
-the result would be the same --- despite having more `'a'`s to pick from!
+the result would be the same --- despite having more `'a'`s to pick
+from![^precedent]
+
+[^precedent]: After writing this article, I found out that the [11th issue of
+the Monad Reader][tmr11] solved this exact same problem with pretty much the
+exact same approach :)  So if you wanted further reading, check it out! :D
+
+[tmr11]: https://wiki.haskell.org/wikiupload/6/6a/TMR-Issue11.pdf
 
 StateT
 ------
