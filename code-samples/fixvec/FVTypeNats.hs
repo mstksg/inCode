@@ -16,6 +16,7 @@ import Data.Foldable
 import Data.Monoid
 import Data.Proxy
 import Unfoldable
+import qualified GHC.Exts as L (IsList(..))
 
 data Nat = Z | S Nat
          deriving Show
@@ -74,6 +75,15 @@ instance Index Z (Vec (S n)) where
 instance forall n m. Index n (Vec m) => Index (S n) (Vec (S m)) where
     index _ (_ :# xs) = index (Proxy :: Proxy n) xs
 
+instance L.IsList (Vec Z a) where
+    type Item (Vec Z a) = a
+    fromList _          = Nil
+    toList   _          = []
+
+instance (L.IsList (Vec n a), L.Item (Vec n a) ~ a) => L.IsList (Vec (S n) a) where
+    type Item (Vec (S n) a) = a
+    fromList (x:xs)         = x :# L.fromList xs
+    toList (x :# xs)        = x : L.toList xs
 
 headV :: Vec (S n) a -> a
 headV (x :# _)  = x

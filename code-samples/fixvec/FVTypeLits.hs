@@ -1,15 +1,16 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE IncoherentInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE IncoherentInstances #-}
 {-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -fplugin GHC.TypeLits.Normalise #-}
 
 module FVTypeLits where
@@ -20,6 +21,7 @@ import Data.Monoid
 import Data.Proxy
 import GHC.TypeLits
 import Unfoldable
+import qualified GHC.Exts as L (IsList(..))
 
 type x > y = CmpNat x y ~ 'GT
 
@@ -28,16 +30,6 @@ data Vec :: Nat -> * -> * where
     (:#) :: a -> Vec (n - 1) a -> Vec n a
 
 deriving instance Show a => Show (Vec n a)
-
-headV :: (n > 0) => Vec n a -> a
-headV (x :# _)  = x
-
-tailV :: (n > 0) => Vec n a -> Vec (n - 1) a
-tailV (_ :# xs) = xs
-
-appendV :: Vec n a -> Vec m a -> Vec (n + m) a
-appendV Nil       ys = ys
-appendV (x :# xs) ys = x :# appendV xs ys
 
 instance Unfoldable (Vec 0) where
     unfold _ _ = Nil
@@ -78,3 +70,23 @@ instance (m > 0) => Index 0 (Vec m) where
 
 instance forall n m. (Index (n - 1) (Vec (m - 1)), n > 0, m > 0) => Index n (Vec m) where
     index _ (_ :# xs) = index (Proxy :: Proxy (n - 1)) xs
+
+instance L.IsList (Vec 0 a) where
+    type Item (Vec 0 a) = a
+    fromList _          = Nil
+    toList   _          = []
+
+instance (L.IsList (Vec (n - 1) a), n > 0) => L.IsList (Vec n a) where
+    type Item (Vec n a) = a
+    fromList (x:xs)     = x :# L.fromList xs
+    toList (x :# xs)    = x : L.toList xs
+
+headV :: (n > 0) => Vec n a -> a
+headV (x :# _)  = x
+
+tailV :: (n > 0) => Vec n a -> Vec (n - 1) a
+tailV (_ :# xs) = xs
+
+appendV :: Vec n a -> Vec m a -> Vec (n + m) a
+appendV Nil       ys = ys
+appendV (x :# xs) ys = x :# appendV xs ys
