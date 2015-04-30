@@ -12,6 +12,9 @@
 *.o
 *.hi
 
+cabal.sandbox.config
+.cabal-sandbox
+
 !/bin/blog
 !/.cabal-sandbox/share
 !/.cabal-sandbox/*.conf.d
@@ -20,4 +23,3 @@
 /code-samples/huffman/samples
 /code-samples/huffman/old
 /code-samples/misc/send-more-money
-
