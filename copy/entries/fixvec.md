@@ -579,6 +579,19 @@ our return type carefully...but for here, it's just `a`.  I'd love to hear if
 anyone has any thoughts on this.
 </div>
 
+You might notice that it's a bit of a plain to write `S (S (S (S Z)))`, etc.,
+especially for large numbers.  And I wouldn't even think about writing it for
+the hundreds.
+
+We'll "fix" this in the next section.  However, even before this, you actually
+can generate these "automatically" with template haskell, using techniques
+from [Functional Pearls: Implicit Configurations][fpic], and the [linear][]
+package does just this.  (This path slipped my mind before I posted because I
+didn't really consider template Haskell, and I think I'll edit in a section
+here soon).
+
+[fpic]: http://www.cs.rutgers.edu/~ccshan/prepose/prepose.pdf
+
 Using TypeLits and Type Checker Plugins
 ---------------------------------------
 
@@ -735,7 +748,8 @@ ghci> replicateU 'a' :: Vec 4 Char
 ~~~
 
 The actual types are much nicer, too --- we can write `Vec 10 Int` instead of
-`Vec (S (S (S (S (S (S (S (S (S (S Z)))))))))) Int`
+`Vec (S (S (S (S (S (S (S (S (S (S Z)))))))))) Int` or resorting to template
+haskell.
 
 Going through all of our other typeclasses/functions and making the
 adjustments...
