@@ -588,7 +588,8 @@ can generate these "automatically" with template haskell, using techniques
 from [Functional Pearls: Implicit Configurations][fpic], and the [linear][]
 package does just this.  (This path slipped my mind before I posted because I
 didn't really consider template Haskell, and I think I'll edit in a section
-here soon).
+here soon).  With this in mind, I still don't really consider Template Haskell
+an optimal or clean approach :)
 
 [fpic]: http://www.cs.rutgers.edu/~ccshan/prepose/prepose.pdf
 
@@ -748,8 +749,8 @@ ghci> replicateU 'a' :: Vec 4 Char
 ~~~
 
 The actual types are much nicer, too --- we can write `Vec 10 Int` instead of
-`Vec (S (S (S (S (S (S (S (S (S (S Z)))))))))) Int` or resorting to template
-haskell.
+`Vec (S (S (S (S (S (S (S (S (S (S Z)))))))))) Int` without resorting to
+template haskell.
 
 Going through all of our other typeclasses/functions and making the
 adjustments...
@@ -785,8 +786,12 @@ Int` and take full advantage of list syntax and succinct vector types.
 However, you do again get the problem that GHC is not able to do real
 completeness checking and asks for the `Nil` cases still of everything...but
 adding a `Nil` case will cause a type error.  The only solution is to add a
-`_` wildcard chase, but...again, this isn't quite satisfactory.  If anybody
-has a way to get around this, I'd love to know :)
+`_` wildcard chase, but...again, this isn't quite satisfactory.[^thsolve]  If
+anybody has a way to get around this, I'd love to know :)
+
+[^thsolve]: Interestingly enough, I think this is something where you could
+have the best of both situations with the Template Haskell method.  But I'd
+hope for something that works on the beautiful TypeLits :'(
 
 Alternative Underlying Representations
 --------------------------------------
