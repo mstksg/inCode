@@ -336,7 +336,7 @@ expect.
 For `Functor`, we can define one that works for everything:
 
 ~~~haskell
-!!!fixvec/FVTypeNats.hs "instance Functor (Vec n)
+!!!fixvec/FVTypeNats.hs "instance Functor (Vec n)"
 ~~~
 
 For `Applicative`, it isn't so simple.  The Applicative instance is going to
@@ -447,7 +447,7 @@ now available to us.[^impossible]  Unfortunately, you now open yourself up to
 runtime errors, so...it's actually a really bad idea for safety purposes
 unless you stick to only using it with infinite lists or are very disciplined.
 (Unless you really want to use list syntax, `fromListU` is probably a safer
-choice!)
+choice for finite lists!)
 
 [^impossible]: By the way, the GHC wiki seems to claim that [using
 *OverloadedLists* this way is impossible][olimp].  Anyone know what's going on
@@ -512,7 +512,7 @@ length-1 vectors that have a $1$ index (second element).
 
 Note that we use the `Proxy` trick we discussed, so that we can indicate
 somehow what index we really want.  It is a trick that basically allows us to
-pass a *type* (`S Z`, `S (S Z)`, etc.) as a *value*.
+pass a *type* (`S Z`, `S (S Z)`, etc.) as a "value".
 
 Let's write our instances --- but only the instances that *make sense*.
 
@@ -548,7 +548,7 @@ trying it out...
 ghci> index (Proxy :: Proxy (S (S Z))) (1 :# 2 :# 3 :# Nil)
 3
 ghci> index (Proxy :: Proxy (S (S Z))) (1 :# 2 :# Nil)
-Compile error!
+*** Compile error!
 ~~~
 
 It's an error, but remember, it's a *compiler* error, that happens before any
@@ -591,7 +591,8 @@ GHC can't yet quite work with that well by default.  It has trouble proving
 statements about variables, like `(n + 1) ~ (1 + n)` (that `n + 1` is "the
 same as" `1 + n`). Fortunately for us, since GHC 7.10, we have a way to
 "extend" the type checker with custom plugins that *can* prove things like
-this for us.
+this for us.  (Note that this `+` is the one from `GHC.TypeLits`...not the one
+we defined earlier.)
 
 The *[ghc-typelits-natnormalise][gtn]* package is a package providing such a
 plugin.  We can have GHC use it to extend its type checking by passing in
@@ -611,7 +612,7 @@ course, a GHC 7.10+)
 ghci> :set -XDataKinds -XTypeOperators -XTypeFamilies
 ghci> import GHC.TypeLits
 ghci> Proxy :: ((n + 1) ~ (1 + n)) => Proxy n
--- Cannot match `1 + n` with `n + 1`
+*** Compile error: Cannot match `1 + n` with `n + 1`
 ghci> :set -fplugin GHC.TypeLits.Normalise
 ghci> Proxy :: ((n + 1) ~ (1 + n)) => Proxy n
 Proxy   -- success!
@@ -708,7 +709,7 @@ v1 `appendV` v2 :: Vec 5 Int
 And our list generating typeclasses ---
 
 ~~~haskell
-!!!fixvec/FVTypeLits.hs "instance Unfoldable (Vec 0)" "instance Unfoldable (Vec (n - 1), n > 0) => Unfoldable (Vec n)"
+!!!fixvec/FVTypeLits.hs "instance Unfoldable (Vec 0)" "instance (Unfoldable (Vec (n - 1)), n > 0) => Unfoldable (Vec n)"
 ~~~
 
 The translation is pretty mechanical, but I think that this new formulation

@@ -41,7 +41,7 @@ deriving instance Show a => Show (Vec n a)
 instance Unfoldable (Vec 0) where
     unfold _ _ = Nil
 
-instance Unfoldable (Vec (n - 1), n > 0) => Unfoldable (Vec n) where
+instance (Unfoldable (Vec (n - 1)), n > 0) => Unfoldable (Vec n) where
     unfold f x0 = let (y, x1) = f x0
                   in  y :# unfold f x1
 
@@ -83,7 +83,7 @@ instance (Unfoldable (Vec n), Traversable (Vec n)) => L.IsList (Vec n a) where
     fromList xs = case fromListU xs of
                     Nothing -> error "Demanded vector from a list that was too short."
                     Just ys -> ys
-    toList      = toList
+    toList      = Data.Foldable.toList
 
 headV :: (n > 0) => Vec n a -> a
 headV (x :# _)  = x

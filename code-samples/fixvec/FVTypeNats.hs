@@ -87,7 +87,7 @@ instance (Unfoldable (Vec n), Traversable (Vec n)) => L.IsList (Vec n a) where
     fromList xs = case fromListU xs of
                     Nothing -> error "Demanded vector from a list that was too short."
                     Just ys -> ys
-    toList      = toList
+    toList      = Data.Foldable.toList
 
 headV :: Vec (S n) a -> a
 headV (x :# _)  = x
