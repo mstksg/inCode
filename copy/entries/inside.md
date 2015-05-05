@@ -966,10 +966,8 @@ Experienced readers might have noted an unconventional omission of
 between the section on Functor and the section on Monad.  Applicative
 Functors, in this context, are handy in that they let you combine two values
 in worlds together; that is, if you have a `Maybe a` and a `Maybe b`, it
-allows you to use an `a -> b -> c` to "squash" them into a `Maybe c`.  For the
-nuances of this, check out a great [tutorial by adit][adit] that explains the
-Applicative typeclass well; you should easily be able to connect Applicative
-Functors to the concepts discussed in this post and see how they are useful :)
+allows you to use an `a -> b -> c` to "squash" them into a `Maybe c`.  This
+squashing action is called `liftA2`.
 
 As always, if you have any questions, leave them in the comments, or come find
 me on freenode's #haskell --- I go by *jle`* :)
@@ -977,6 +975,5 @@ me on freenode's #haskell --- I go by *jle`* :)
 (Special thanks to c_wraith and rhaps0dy for their time reviewing this post)
 
 [srcs]: https://github.com/mstksg/inCode/tree/master/code-samples/inside
-[adit]: http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html
 [tekmo]: http://www.haskellforall.com/2012/09/the-functor-design-pattern.html
 

@@ -1,3 +1,5 @@
+-- | http://blog.jle.im/entry/fixed-length-vector-types-in-haskell-2015
+
 module Unfoldable where
 
 import Data.Traversable -- required before GHC 7.10

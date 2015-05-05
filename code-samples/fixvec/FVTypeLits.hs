@@ -13,6 +13,11 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -fplugin GHC.TypeLits.Normalise #-}
 
+-- | http://blog.jle.im/entry/fixed-length-vector-types-in-haskell-2015
+--
+-- Depends on Unfoldable.hs from
+-- <https://github.com/mstksg/inCode/blob/master/code-samples/fixvec>
+
 module FVTypeLits where
 
 import Control.Applicative
@@ -29,12 +34,14 @@ data Vec :: Nat -> * -> * where
     Nil  :: Vec 0 a
     (:#) :: a -> Vec (n - 1) a -> Vec n a
 
+infixr 5 :#
+
 deriving instance Show a => Show (Vec n a)
 
 instance Unfoldable (Vec 0) where
     unfold _ _ = Nil
 
-instance Unfoldable (Vec (n - 1)) => Unfoldable (Vec n) where
+instance Unfoldable (Vec (n - 1), n > 0) => Unfoldable (Vec n) where
     unfold f x0 = let (y, x1) = f x0
                   in  y :# unfold f x1
 
@@ -71,15 +78,12 @@ instance (m > 0) => Index 0 (Vec m) where
 instance forall n m. (Index (n - 1) (Vec (m - 1)), n > 0, m > 0) => Index n (Vec m) where
     index _ (_ :# xs) = index (Proxy :: Proxy (n - 1)) xs
 
-instance L.IsList (Vec 0 a) where
-    type Item (Vec 0 a) = a
-    fromList _          = Nil
-    toList   _          = []
-
-instance (L.IsList (Vec (n - 1) a), n > 0) => L.IsList (Vec n a) where
+instance (Unfoldable (Vec n), Traversable (Vec n)) => L.IsList (Vec n a) where
     type Item (Vec n a) = a
-    fromList (x:xs)     = x :# L.fromList xs
-    toList (x :# xs)    = x : L.toList xs
+    fromList xs = case fromListU xs of
+                    Nothing -> error "Demanded vector from a list that was too short."
+                    Just ys -> ys
+    toList      = toList
 
 headV :: (n > 0) => Vec n a -> a
 headV (x :# _)  = x

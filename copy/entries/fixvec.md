@@ -9,9 +9,7 @@ Tags
 CreateTime
 :   2015/04/27 21:56:11
 PostDate
-:   Never
-Series
-:   Beginner/Intermediate Haskell Projects
+:   2015/05/05 10:08:07
 Identifier
 :   fixvec
 
@@ -28,6 +26,7 @@ first step to beginning to understand several extensions, including
 *   KindSignatures
 *   TypeFamilies
 *   TypeOperators
+*   OverloadedLists
 
 And using type system plugins.  (And of course the usual
 `UndecidableInstances` etc.)  We'll be discussing two different ways to
@@ -42,7 +41,8 @@ from the time before we had some of these extensions, or only discuss a few.
 I hope to provide a nice comprehensive look about the tools available today to
 really approach this topic.  That being said, I am no expert myself, so I
 would appreciate any tips/edits/suggestions for things that I've missed or
-done not-the-best :)
+done not-the-best :)  This post has a lot of open questions that I'm sure
+people who know more about this than me can answer.
 
 Most of the code in this article can be [downloaded and tried out][allsamps],
 so follow along if you want!
@@ -135,7 +135,7 @@ Now we can make our `Vec` data type, with the *GADTs* extension, or
 "generalized algebraic data types":
 
 ~~~haskell
-!!!fixvec/FVTypeNats.hs "data Vec ::" "deriving instance Show a => Show (Vec n a)"
+!!!fixvec/FVTypeNats.hs "data Vec ::" "infixr 5 :#" "deriving instance Show a => Show (Vec n a)"
 ~~~
 
 If you've never seen GADTs before, think of it as a way of declaring a type
@@ -404,7 +404,7 @@ Nothing
 a "safe `fromList`":
 
 ~~~haskell
-!!!fixvec/FVTypeNats.hs "fromListU ::"
+!!!fixvec/Unfoldable.hs "fromListU ::"
 ~~~
 
 ~~~haskell
@@ -415,6 +415,39 @@ Just (1 :# 2 :# 3 :# Nil)
 ghci> fromListU [1,2,3] :: Maybe (Vec (S (S (S (S Z)))) Int)
 Nothing
 ~~~
+
+And, if you're on GHC 7.8+, you have access to the *OverloadedLists* language
+extension, where you can interpret list literals as if they were other
+structures.[^impossible]
+
+We've already already implemented both `fromList` and `toList`, in a way,
+already, so this should be a breeze.  The only trick you might see is that the
+`IsList` typeclass asks for a type family to return the *type of the element
+in the container* from the container type.
+
+~~~haskell
+!!!fixvec/FVTypeNats.hs "instance (Unfoldable (Vec n), Traversable (Vec n)) => L.IsList (Vec n a)"
+~~~
+
+~~~haskell
+ghci> :set -XOverloadedLists
+ghci> [1,2,3] :: Vec (S (S Z)) Int
+1 :# 2 :# Nil
+ghci> [1,2,3] :: Vec (S (S (S (S Z)))) Int
+*** Exception: Demanded vector from a list that was too short.
+ghci> [1,3..] :: Vec (S (S (S (S Z)))) Int
+1 :# 3 :# 5 :# 7 :# Nil
+~~~
+
+Neat!  All of the benefits of list literals that *OverloadedLists* offers is
+now available to us.[^impossible]
+
+[^impossible]: By the way, the GHC wiki seems to claim that [using
+*OverloadedLists* this way is impossible][olimp].  Anyone know what's going on
+here?  Did we move fast and break everything?
+
+[olimp]: https://ghc.haskell.org/trac/ghc/wiki/OverloadedLists#Length-indexedobservedVectors
+
 
 ### Indexing
 
@@ -594,7 +627,7 @@ With that in mind, let's start restating everything in terms of *TypeLits* and
 see what it gains us.
 
 ~~~haskell
-!!!fixvec/FVTypeLits.hs "data Vec ::" "deriving instance Show a => Show (Vec n a)"
+!!!fixvec/FVTypeLits.hs "data Vec ::" "infixr 5 :#" "deriving instance Show a => Show (Vec n a)"
 ~~~
 
 A little nicer, right?  `Nil` is a `Vec 0 a`, and `x :# xs` is an element with
@@ -668,7 +701,7 @@ v1 `appendV` v2 :: Vec 5 Int
 And our list generating typeclasses ---
 
 ~~~haskell
-!!!fixvec/FVTypeNats.hs "class Unfoldable v" "instance Unfoldable (Vec 0)" "instance Unfoldable (Vec (n - 1)) => Unfoldable (Vec n)"
+!!!fixvec/FVTypeNats.hs "instance Unfoldable (Vec 0)" "instance Unfoldable (Vec (n - 1), n > 0) => Unfoldable (Vec n)"
 ~~~
 
 The translation is pretty mechanical, but I think that this new formulation
@@ -695,7 +728,7 @@ Going through all of our other typeclasses/functions and making the
 adjustments...
 
 ~~~haskell
-!!!fixvec/FixVecTypeLits.hs "instance Functor" "instance Applicative" "instance (Applicative" "instance Foldable" "instance (Foldable" "instance Traversable" "instance (Traversable" "class Index" "instance (m > 0)" "instance forall n m."
+!!!fixvec/FVTypeLits.hs "instance Functor" "instance Applicative" "instance (Applicative" "instance Foldable" "instance (Foldable" "instance Traversable" "instance (Traversable" "class Index" "instance (m > 0)" "instance forall n m." "instance (Unfoldable (Vec n), Traversable (Vec n)) => L.IsList (Vec n a)"
 ~~~
 
 ~~~haskell
@@ -703,17 +736,26 @@ ghci> fromListU [1,2,3,4] :: Vec 10 Int
 Nothing
 ghci> fromListU [1,2,3,4] :: Vec 3 Int
 Just (1 :# 2 :# 3 :# Nil)
-ghci> indexU (Proxy :: Proxy 2) (1 :# 2 :# 3 :# Nil)
+ghci> index (Proxy :: Proxy 2) (1 :# 2 :# 3 :# Nil)
 3
-ghci> indexU (Proxy :: Proxy 2) (1 :# 2 :# Nil)
--- Error: Cannot match 'EQ with 'GT
+ghci> index (Proxy :: Proxy 2) (1 :# 2 :# Nil)
+*** Type Error: Couldn't match 'EQ with 'GT
+ghci> :set -XOverloadedLists
+ghci> [1,2,3] :: Vec 2 Int
+1 :# 2 :# Nil
+ghci> [1,2,3] :: Vec 4 Int
+*** Exception: Demanded vector from a list that was too short.
+ghci> [1,3..] :: Vec 5 Int
+1 :# 3 :# 5 :# 7 :# 9 :# Nil
 ~~~
 
 I think, overall, this formulation gives a much nicer interface.  Being able
-to just write $10$ is pretty powerful.
+to just write $10$ is pretty powerful.  The usage with *OverloadedLists*  is
+pretty clean, too, especially when you can do things like `[1,3..] :: Vec 10
+Int` and take full advantage of list syntax and succinct vector types.
 
 However, you do again get the problem that GHC is not able to do real
-completness checking and asks for the `Nil` cases still of everything...but
+completeness checking and asks for the `Nil` cases still of everything...but
 adding a `Nil` case will cause a type error.  The only solution is to add a
 `_` wildcard chase, but...again, this isn't quite satisfactory.  If anybody
 has a way to get around this, I'd love to know :)
@@ -794,7 +836,7 @@ with seeing a lot of GHC's basic type extensions in real applications :)
 
 Feel free to [download and run][allsamps] any of the samples
 
-!!![allsamps]:fixvec
+[allsamps]: https://github.com/mstksg/inCode/blob/master/code-samples/fixvec
 
 Please let me know if I got anything wrong, or if there are any techniques
 that I should mention here that are out and in the wild today :)
