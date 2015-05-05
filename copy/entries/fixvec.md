@@ -572,6 +572,12 @@ behavior we don't want!
 
 Does anybody know a way to state the type of `Index` or `index` in a way that
 implementations like this are impossible?
+
+There's a "fundental" problem here, it seems, because we can't really demand
+or specify anything by the return type, like we could in the other examples.
+In the other examples, we sort of restricted the implementation by choosing
+our return type carefully...but for here, it's just `a`.  I'd love to hear if
+anyone has any thoughts on this.
 </div>
 
 Using TypeLits and Type Checker Plugins
