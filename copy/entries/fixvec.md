@@ -4,8 +4,11 @@ Fixed-Length Vector Types in Haskell, 2015
 Categories
 :   Haskell
 :   Tutorials
+:   Reference
 Tags
 :   haskell
+:   types
+Series
 CreateTime
 :   2015/04/27 21:56:11
 PostDate
