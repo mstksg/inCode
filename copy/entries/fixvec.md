@@ -418,7 +418,7 @@ Nothing
 
 And, if you're on GHC 7.8+, you have access to the *OverloadedLists* language
 extension, where you can interpret list literals as if they were other
-structures.[^impossible]
+structures.
 
 We've already already implemented both `fromList` and `toList`, in a way,
 already, so this should be a breeze.  The only trick you might see is that the
@@ -440,7 +440,11 @@ ghci> [1,3..] :: Vec (S (S (S (S Z)))) Int
 ~~~
 
 Neat!  All of the benefits of list literals that *OverloadedLists* offers is
-now available to us.[^impossible]
+now available to us.[^impossible]  Unfortunately, you now open yourself up to
+runtime errors, so...it's actually a really bad idea for safety purposes
+unless you stick to only using it with infinite lists or are very disciplined.
+(Unless you really want to use list syntax, `fromListU` is probably a safer
+choice!)
 
 [^impossible]: By the way, the GHC wiki seems to claim that [using
 *OverloadedLists* this way is impossible][olimp].  Anyone know what's going on
@@ -701,7 +705,7 @@ v1 `appendV` v2 :: Vec 5 Int
 And our list generating typeclasses ---
 
 ~~~haskell
-!!!fixvec/FVTypeNats.hs "instance Unfoldable (Vec 0)" "instance Unfoldable (Vec (n - 1), n > 0) => Unfoldable (Vec n)"
+!!!fixvec/FVTypeLits.hs "instance Unfoldable (Vec 0)" "instance Unfoldable (Vec (n - 1), n > 0) => Unfoldable (Vec n)"
 ~~~
 
 The translation is pretty mechanical, but I think that this new formulation
@@ -753,6 +757,7 @@ I think, overall, this formulation gives a much nicer interface.  Being able
 to just write $10$ is pretty powerful.  The usage with *OverloadedLists*  is
 pretty clean, too, especially when you can do things like `[1,3..] :: Vec 10
 Int` and take full advantage of list syntax and succinct vector types.
+(Minding your runtime errors, of course)
 
 However, you do again get the problem that GHC is not able to do real
 completeness checking and asks for the `Nil` cases still of everything...but
