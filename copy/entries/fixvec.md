@@ -883,8 +883,9 @@ advantage is that you replace typeclasses with type families and more
 parameterized types.  You'll have to work with an understanding of how
 singletons work, and accept using some template haskell to generate singleton
 types for your data types (or write them yourself!).  But it's a powerful way
-to bring something like dependent types into Haskell.  I recommend looking at
-the linked article!
+to bring something like dependent types into Haskell, and there's already a
+lot of infrastructure of support on it on hackage and in the haskell dev
+ecosystem in general.  I recommend looking at the linked article!
 
 [singletons]: https://www.fpcomplete.com/user/konn/prove-your-haskell-for-great-safety/dependent-types-in-haskell
 

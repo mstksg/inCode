@@ -48,15 +48,23 @@ data MetaValue = MetaValueTime UTCTime
 
 loadEntries :: FilePath -> IO ()
 loadEntries entriesDir = do
-  runDB blogMigrate
+    runDB blogMigrate
 
-  entryFiles <-
-    map (entriesDir </>) . filter (not . isPrefixOf ".") <$>
-      getDirectoryContents entriesDir
+    entryFiles <-
+      map (entriesDir </>) . filter (not . isPrefixOf ".") <$>
+        getDirectoryContents entriesDir
 
-  runDB $ do
-    eKeys <- mapM processEntryFile entryFiles
-    removeOrphanEntries eKeys
+    doItAll
+  where
+    doItAll = do
+      tried <- try . runDB $ do
+        eKeys <- mapM processEntryFile entryFiles
+        removeOrphanEntries eKeys
+      case tried of
+        Right _ -> return ()
+        Left e -> do
+          print (e :: SomeException)
+          doItAll
 
 
 -- TODO: emit warnings, wrap in writer monad.
@@ -114,7 +122,7 @@ processEntryFile entryFile = do
 
     eVal <- D.getJust eKey
 
-    liftIO $ evaluate eVal
+    -- liftIO $ evaluate eVal
 
     return eKey
   where
@@ -147,7 +155,7 @@ findExistingEntry title metas = foldl go (return Nothing) attempts    -- wait th
       case acc of
         Just _ -> return acc
         Nothing -> do
-          liftIO $ threadDelay 500000
+          -- liftIO $ threadDelay 500000
           x
     attempts :: [D.SqlPersistM (Maybe (D.Entity Entry))]
     attempts = concat
