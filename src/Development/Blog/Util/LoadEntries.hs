@@ -54,9 +54,9 @@ loadEntries entriesDir = do
       map (entriesDir </>) . filter (not . isPrefixOf ".") <$>
         getDirectoryContents entriesDir
 
-    doItAll
+    doItAll entryFiles
   where
-    doItAll = do
+    doItAll entryFiles = do
       tried <- try . runDB $ do
         eKeys <- mapM processEntryFile entryFiles
         removeOrphanEntries eKeys
