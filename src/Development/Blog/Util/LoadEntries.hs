@@ -64,7 +64,7 @@ loadEntries entriesDir = do
         Right _ -> return ()
         Left e -> do
           print (e :: SomeException)
-          doItAll
+          doItAll entryFiles
 
 
 -- TODO: emit warnings, wrap in writer monad.
