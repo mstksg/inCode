@@ -25,8 +25,8 @@ someone looking to host a Haskell site on Heroku were fairly limited.  It's
 
 [new]: http://blog.jle.im/entry/deploying-medium-to-large-haskell-apps-to-heroku#disqus_thread
 
-Consider the rest of this article obsoluete, or here if none of the solutions
-given in the comments work :)
+Consider the rest of this article obsolete, or look here if none of the
+solutions given in the comments work :)
 
 Old Article (Written 2013)
 --------------------------

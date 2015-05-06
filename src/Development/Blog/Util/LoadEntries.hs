@@ -64,6 +64,7 @@ loadEntries entriesDir = do
         Right _ -> return ()
         Left e -> do
           print (e :: SomeException)
+          threadDelay 5000000
           doItAll entryFiles
 
 
