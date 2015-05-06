@@ -292,8 +292,8 @@ state and return `Nil`.
 The instance for `Vec (S n)` is slightly more involved.  To make a `Vec (S n)
 a`, you need an `a` and a `Vec n a`.  You can get the `a` from the unfolding
 function...but where will you get the `Vec n a` from?  Well, you can use
-`unfold` to make a `Vec n a`!  But
-that only makes sense if `Vec n` is an `Unfoldable`.
+`unfold` to make a `Vec n a`!  But that only makes sense if `Vec n` is an
+`Unfoldable`.
 
 So, that's why in the instance for `Vec (S n)`, we constrain that `Vec n` must
 also be an `Unfoldable`.  We make our result by using our function to create
@@ -332,7 +332,8 @@ the entire vector we want!
 We can go in and implement common typeclasses, too.  All the ones you'd
 expect.
 
-For `Functor`, we can define one that works for everything:
+We can actually use the *DeriveFunctor* extension to write a `Functor`
+instance, but let's write one on our own just for learning purposes:
 
 ~~~haskell
 !!!fixvec/FVTypeNats.hs "instance Functor (Vec n)"
@@ -375,7 +376,9 @@ for this post.  `join` for this instance should be a "diagonal" --- the first
 item of the first vector, the second item of the second vector, the third item
 of the third vector, etc.
 
-We can define `Foldable` and `Traversable` the same way.
+We can define `Foldable` and `Traversable` the same way.  Like for `Functor`,
+GHC can derive these with *DeriveFoldable* and *DeriveTraversable*...but we'll
+do it again here just to demonstrate.
 
 ~~~haskell
 !!!fixvec/FVTypeNats.hs "instance Foldable (Vec Z)" "instance Foldable (Vec n) => Foldable (Vec (S n))" "instance Traversable (Vec Z)" "instance Traversable (Vec n) => Traversable (Vec (S n))"
@@ -500,7 +503,8 @@ specific `Index` typeclass: (or make another typeclass like `Take`, and write
 
 Here, we can say that `n` and `v` are instances of `Index n v` if and only if
 you can safely (totally) index into `v a` at index `n`.  That is, if every
-value of type `v a` ever has an index at `n`, a `Nat`.
+value of type `v a` ever has an index at `n`, a `Nat`. (By the way, we need
+*MultiParamTypeClasses* to be able to make a type class with two parameters)
 
 So, `n ~ S Z` and `v ~ Vec (S (S Z)) a` has an instance, because you can get
 the $n = 1$ element (the second element) from *any* value of type `Vec (S (S
@@ -519,9 +523,10 @@ Let's write our instances --- but only the instances that *make sense*.
 !!!fixvec/FVTypeNats.hs "instance Index Z (Vec (S n))" "instance forall n m. Index n (Vec m) => Index (S n) (Vec (S m))"
 ~~~
 
-The first case instance sense.  We can definitely index at index `Z` (zero) of
-*any* `Vec (S n) a` --- the only thing we can't index `Z` into is `Vec Z a`.
-So, if our vector is of length 1 or higher, we can index at position 0.
+The first case instance makes sense.  We can definitely index at index `Z`
+(zero) of *any* `Vec (S n) a` --- the only thing we can't index `Z` into is
+`Vec Z a`. So, if our vector is of length 1 or higher, we can index at
+position 0.
 
 The second case says that, if we can index into `n` of a `Vec m a`, then of
 course we can index into an `S n` of a `Vec (S m) a`.  To index into `S n` of
@@ -531,7 +536,7 @@ We have to use the *ScopedTypeVariables* extension to enable us to use, with
 the `forall` statement, the `n` in our instance when we are writing our type
 for `Proxy`.  If we didn't, the `n` in `Proxy n` in our `index` definition
 would be considered unrelated by GHC to the `n` in the instance statement,
-`Index (S n) (Vec (S m))`.
+`Index (S n) (Vec (S m))`.  (This is the only reason we need the `forall`)
 
 In any case, note the similarity of this algorithm to the actual indexing
 function on lists:
@@ -572,7 +577,7 @@ behavior we don't want!
 Does anybody know a way to state the type of `Index` or `index` in a way that
 implementations like this are impossible?
 
-There's a "fundental" problem here, it seems, because we can't really demand
+There's a "fundamental" problem here, it seems, because we can't really demand
 or specify anything by the return type, like we could in the other examples.
 In the other examples, we sort of restricted the implementation by choosing
 our return type carefully...but for here, it's just `a`.  I'd love to hear if
@@ -753,11 +758,16 @@ The actual types are much nicer, too --- we can write `Vec 10 Int` instead of
 template haskell.
 
 Going through all of our other typeclasses/functions and making the
-adjustments...
+adjustments... (remembering that we can also derive `Functor`, `Traversable`,
+and `Foldable` using GHC)
 
 ~~~haskell
 !!!fixvec/FVTypeLits.hs "instance Functor" "instance Applicative" "instance (Applicative" "instance Foldable" "instance (Foldable" "instance Traversable" "instance (Traversable" "class Index" "instance (m > 0)" "instance forall n m." "instance (Unfoldable (Vec n), Traversable (Vec n)) => L.IsList (Vec n a)"
 ~~~
+
+(Remember, we use the `forall` here with *ScopedTypeVariables* to be able to
+say that the `n` in the type signature is the same `n` that is in the type of
+`Proxy`)
 
 ~~~haskell
 ghci> fromListU [1,2,3,4] :: Vec 10 Int
@@ -832,9 +842,13 @@ One really weird quirk with this is that many functions you'd normally write
 using pattern matching you'd now might start writing using typeclasses.  One
 example would be our implementation of indexing, using an `IndexV` typeclass.
 
-I did mention one way around it, which was to make a typeclass to "reify" or
-turn your type into actual data, and then manipulate your data in an "unsafe"
-way knowing that the type checker checked that the data matched.
+A bunch of one-shot typeclasses is sort of unideal, as typeclasses are sort of
+ugly and non-first-class.  Ideally you'd only have a few typeclasses for as
+generic an interface as possible, and then be able to do everything from
+those.  Sometimes this just isn't practical.  I did mention one way around it,
+which was to make a typeclass to "reify" or turn your type into actual data,
+and then manipulate your data in an "unsafe" way knowing that the type checker
+checked that the data matched.
 
 We'll demonstrate with `SomeNat` from `GHC.TypeLits`, but you can also make
 our own for our inductive `Nat` type we used in the first half, too.
@@ -857,6 +871,22 @@ a `Vec m a` whose `m` is *not* greater than the index desired.
 The rest is up to you, though --- to prove that indexing into a number smaller
 than `m` will always provide an answer.  We have to make sure our smart
 constructors are okay and that `(!)` behaves like we think it does.
+
+Singletons
+----------
+
+Another answer to these sort of ad-hoc typeclasses is to use techniques
+involving singletons.  Going all into how to use singletons to work with these
+is an article on its own...luckily, this article has already been written as
+[Part 1: Dependent Types in Haskell][singletons] by Hiromi ISHII.  A major
+advantage is that you replace typeclasses with type families and more
+parameterized types.  You'll have to work with an understanding of how
+singletons work, and accept using some template haskell to generate singleton
+types for your data types (or write them yourself!).  But it's a powerful way
+to bring something like dependent types into Haskell.  I recommend looking at
+the linked article!
+
+[singletons]: https://www.fpcomplete.com/user/konn/prove-your-haskell-for-great-safety/dependent-types-in-haskell
 
 Conclusion
 ----------

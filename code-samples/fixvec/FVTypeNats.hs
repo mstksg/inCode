@@ -26,9 +26,9 @@ import qualified GHC.Exts as L (IsList(..))
 data Nat = Z | S Nat
          deriving Show
 
-type family x + y where
-    Z   + y = y
-    S x + y = S (x + y)
+type family (x :: Nat) + (y :: Nat) where
+    'Z   + y = y
+    'S x + y = 'S (x + y)
 
 (+#) :: Nat -> Nat -> Nat       -- types!
 Z   +# y = y
@@ -41,6 +41,7 @@ data Vec :: Nat -> * -> * where
 infixr 5 :#
 
 deriving instance Show a => Show (Vec n a)
+deriving instance Eq a => Eq (Vec n a)
 
 instance Unfoldable (Vec Z) where
     unfold _ _ = Nil
@@ -98,4 +99,13 @@ tailV (_ :# xs) = xs
 appendV :: Vec n a -> Vec m a -> Vec (n + m) a
 appendV Nil       ys = ys
 appendV (x :# xs) ys = x :# appendV xs ys
+
+-- | Trick with singletons
+data Fin :: Nat -> * where
+    FZ :: Fin k
+    FS :: Fin k -> Fin (S k)
+
+index' :: Vec (S n) a -> Fin n -> a
+index' (x :# _) FZ = x
+index' (_ :# xs) (FS n) = index' xs n
 

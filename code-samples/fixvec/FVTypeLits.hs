@@ -37,6 +37,7 @@ data Vec :: Nat -> * -> * where
 infixr 5 :#
 
 deriving instance Show a => Show (Vec n a)
+deriving instance Eq a => Eq (Vec n a)
 
 instance Unfoldable (Vec 0) where
     unfold _ _ = Nil
@@ -94,3 +95,4 @@ tailV (_ :# xs) = xs
 appendV :: Vec n a -> Vec m a -> Vec (n + m) a
 appendV Nil       ys = ys
 appendV (x :# xs) ys = x :# appendV xs ys
+
