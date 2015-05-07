@@ -33,6 +33,72 @@ abstracting over many useful patterns that many types satisfy.
 The Patterns
 ------------
 
+### MonadIO
+
+While this pattern is actually provided by *transformers* and not *mtl*, it is
+still a good illustration of the types of patterns *mtl* attempts to abstract
+over.
+
+There are several types you can make that can construct that can "represent"
+or "encode" an IO action.  One example is just this `MaybeIO`, which does IO
+with short-circuiting:
+
+~~~haskell
+newtype MaybeIO a = MaybeIO { runMaybeIO :: IO (Maybe a) }
+
+instance Functor MaybeIO where
+    fmap f (MaybeIO mx) = MaybeIO (fmap f mx)
+
+instance Applicative MaybeIO where
+    pure x = return (Just x)
+    MaybeIO mf <*> MaybeIO mx = MaybeIO $ liftA2 (<*>) f x
+
+instance Monad MaybeIO where
+    return = pure
+    mx >>= f = MaybeIO $ do
+                   x <- runMaybeIO mx
+                   case x of
+                       Just y  -> f y
+                       Nothing -> return Nothing
+~~~
+
+`MaybeIO` is an IO action, describing an action a computer/CPU can take to
+possibly produce an `a`, or fail in the process (indicated by `Just` and
+`Nothing`).
+
+Clearly, we can "encode" any value `a` into this type, by producing a
+`MaybeIO` that describes a no-op that always succeeds with that value.  We
+call that `pure`, or `return`.
+
+But hey, this would all be pretty useless if we can't use any of our existing `IO a`
+actions from other libraries.  Luckily, it seems like we *can* represent
+arbitrary IO actions here...just as a `MaybeIO` that doesn't "fail"...
+
+~~~haskell
+representIO :: IO a -> MaybeIO a
+representIO x = MaybeIO (fmap Just x)
+~~~
+
+There are plenty of types that fit this pattern...the types that you would
+want to "embed" or "represent" arbitrary IO actions in.  A lot of DSL's, IO
+managers, database query monads, etc. etc. all come with the ability to
+"encode"/embed/sequence arbitrary IO in their process.  All of these would
+benefit with a nice `IO a -> m a` embedder, no?
+
+This design pattern is encapsulated in *transformers* as a typeclass,
+`MonadIO`:
+
+~~~haskell
+instance MonadIO MaybeIO where
+    liftIO x = MaybeIO (fmap Just x)
+~~~
+
+Now, we can write functions "generic" over all "things-that-can-embed-IO"!
+All those possibilities can now be written for generically.  Write functions
+generic over `MonadIO` (and with other constraints like the ones below), and
+you have great power and expressivity to be able to really say, "this thing
+can be run/sequenced under any Monad that can execute IO...no matter what1"
+
 ### MonadError
 
 `MonadError` is a generic interface over things where you can throw "errors"
@@ -133,122 +199,26 @@ line arguments, or environment variables, assuming they are read once and
 fixed when things start up.  You could access the command line arguments with
 `ask`, and use them in your program.
 
-### MonadIO
-
-While this pattern is actually provided by *transformers* and not *mtl*, it is
-still a good illustration of the types of patterns *mtl* attempts to abstract
-over.
-
-There are several types you can make that can construct that can "represent"
-or "encode" an IO action: (something of an `IO` type)
-
-~~~haskell
-newtype MaybeIO a = MaybeIO { runMaybeIO :: IO (Maybe a) }
-
-instance Functor MaybeIO where
-    fmap f (MaybeIO mx) = MaybeIO (fmap f mx)
-
-instance Applicative MaybeIO where
-    pure x = return (Just x)
-    MaybeIO mf <*> MaybeIO mx = MaybeIO $ liftA2 (<*>) f x
-
-instance Monad MaybeIO where
-    return = pure
-    mx >>= f = MaybeIO $ do
-                   x <- runMaybeIO mx
-                   case x of
-                       Just y  -> f y
-                       Nothing -> return Nothing
-~~~
-
-`MaybeIO` is an IO action, describing an action a computer/CPU can take to
-possibly produce an `a`, or fail in the process (indicated by `Just` and
-`Nothing`).
-
-We encoded in the `Monad` instance that this type has "short circuit" binding;
-if at any point along a chained sequence of computations, if any of the
-chained values fails, the entire thing fails.  The rest of the sequence is
-skipped.
-
-It is clear that we can "encode" any value `a` into this type, by producing a
-`MaybeIO` that describes a no-op that always succeeds with that value.  We
-call that `pure`, or `return`.
-
-This would be pretty useless if we can't use any of our existing `IO a`
-actions from other libraries.  Luckily, it is clear that we can *use* any `IO
-a` action *as if it were* a `MaybeIO`.  In other words, we can use `MaybeIO`
-to represent any `IO a` that you might want.  A `MaybeIO` --- an IO action
-that represents a computer/IO computation that might "fail" --- can also be
-used to represent an `IO` --- an IO action that represents a computer/IO
-computation that does not "fail"[^nofail].
-
-[^nofail]: That is, "fail" in the same way that `MaybeIO` "fails".  You know
-what I mean :)
-
-~~~haskell
-representIO :: IO a -> MaybeIO a
-representIO x = MaybeIO (fmap Just x)
-~~~
-
-There are a lot of types that actually fit this pattern.  In fact, many DSL's
-and things that manage IO and cusom monads for interpreted environments can do
-this.  Being able to represent arbitrary IO actions in your type opens up a
-lot of doors.[^doors]
-
-[^doors]: Some good, some bad :)
-
-This design pattern is encapsulated in *transformers* as a typeclass,
-`MonadIO`:
-
-~~~haskell
-instance MonadIO MaybeIO where
-    liftIO x = MaybeIO (fmap Just x)
-~~~
-
-Now, we can write *generically* over *all* things-that-can-embed-IO.  Not just
-trivial things like the example above, but things like DSL's,
-computation-building interpreter monads (like `Database` from
-*persistent*)...we can now write functions generally over all things that can
-embed IO.  All things that offer this embedding interface.
-
-<div class="note">
+<div>
 **Aside**
 
-In order for `liftIO` to behave meaningfully, it has to follow some laws:
+You know...ideally, all of these typeclasses would have laws, so we could make
+conclusions and apply equational reasoning to generically written functions.
 
-1.  Lifting the no-op will also be a no-op.
-
-    ~~~haskell
-    liftIO (return x) = return x
-    ~~~
-
-    That is, lifting the no-op will also be a no-op.
-
-2.  That is, `liftIO` "distributes" over bind.  `liftIO`-ing a bunch of
-    chained `IO` actions is the same as `liftIO`-ing them each individually
-    and chaining those.
-
-    ~~~haskell
-    liftIO $ do x <- m
-                f x
-    ~~~
-
-    is equal to
-
-    ~~~haskell
-    do x <- liftIO m
-       liftIO (f x)
-    ~~~
-
-Basically, we say that `liftIO` is a [monad morphism][mmorph].
+Some of the laws are simple...`liftIO` from `MonadIO` should be a [monad
+morphism][mmorph].  But the rest of them don't really have any
+well-established laws.  This is a bit of a shame, because we'd really like to
+be able to apply reasoning to generic functions.
 
 [mmorph]: http://hackage.haskell.org/package/mmorph-1.0.4/docs/Control-Monad-Morph.html
 
-And so...that's all *mtl* offers.  Typeclasses abstracting over different
-interfaces, with (hopefully) laws.
+People have suggested `MonadState` have laws similar to how view/set/over
+interact in the *lens* laws.  But as of now, most of we have in terms of our
+capability of analyzing generic programs is rough heuristins/feelings about
+what "should" be right.
 
+A bit un-ideal, but...in practice, this ends up working not-so-badly :)
 </div>
-
 
 
 Not a Monad Transformer Library
