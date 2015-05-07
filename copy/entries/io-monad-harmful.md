@@ -8,6 +8,8 @@ Tags
 :   functional programming
 :   monads
 :   io
+Series
+:   Haskell Mythbusters
 CreateTime
 :   2015/01/20 22:08:11
 PostDate
