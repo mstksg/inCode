@@ -188,7 +188,7 @@ Okay, let's define some useful methods:
 !!!fixvec/FVTypeNats.hs "headV ::" "tailV ::"
 ~~~
 
-Ah, the classic `head`/`tail` trio from the days pre-dating Haskell.  `head`
+Ah, the classic `head`/`tail` duo from the days pre-dating Haskell.  `head`
 and `tail` are somewhat of a sore spot or wart in Haskell's list API[^htgone],
 because they're *partial functions*.  You tell people all about how Haskell is
 great because it can prevent run-time errors by ensuring completeness and
@@ -221,7 +221,7 @@ For that, we can use a type family, using the *TypeFamilies* extension (with
 `TypeOperators`):
 
 ~~~haskell
-!!!fixvec/FVTypeNats.hs "type family x + y where"
+!!!fixvec/FVTypeNats.hs "type family (x :: Nat) + (y :: Nat)"
 ~~~
 
 A "type family" is like a type level function.  Compare this to defining `(+)`
