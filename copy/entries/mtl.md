@@ -16,11 +16,11 @@ PostDate
 Identifier
 :   mtl
 
-*mtl* is not a transformer library --- contrary to popular conception.  I
-believe that this commonly spread myth is due in part to some rather peculiar
-branding choices (the name of the library) and in part to some historical
-accidents (*mtl* was, in the distant and pre-historic past, indeed a monad
-transformer library).
+*mtl* is not a monad transformer library --- contrary to popular conception.
+I believe that this commonly spread myth is due in part to some rather
+peculiar branding choices (the name of the library) and in part to some
+historical accidents (*mtl* was, in the distant and pre-historic past, indeed
+a monad transformer library).
 
 What is *mtl*?  It is a library of *interfaces* you can provide to your own
 types, in the form of typeclasses.  It abstracts over *different design
@@ -148,7 +148,7 @@ That's what `MonadIO` is for --- it allows you to write functions and say,
 that can embed IO can sequence my function/type".  The generic "embedding"
 action is `liftIO :: MonadIO m => IO a -> m a`.
 
-<div>
+<div class="note">
 **Aside**
 
 You know...ideally, all of these typeclasses would have laws, so we could make
