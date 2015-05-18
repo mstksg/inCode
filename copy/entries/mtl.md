@@ -12,7 +12,7 @@ Series
 CreateTime
 :   2014/10/19 03:50:57
 PostDate
-:   Never
+:   2015/05/18 10:07:36
 Identifier
 :   mtl
 
@@ -22,8 +22,6 @@ branding choices (the name of the library) and in part to some historical
 accidents (*mtl* was, in the distant and pre-historic past, indeed a monad
 transformer library).
 
-Is `Control.Monad` an "IO module"?  Is `Data.Monoid` a "list module"?
-
 What is *mtl*?  It is a library of *interfaces* you can provide to your own
 types, in the form of typeclasses.  It abstracts over *different design
 patterns* for different types, in the form of typeclasses.  Just like Functor
@@ -32,72 +30,6 @@ abstracting over many useful patterns that many types satisfy.
 
 The Patterns
 ------------
-
-### MonadIO
-
-While this pattern is actually provided by *transformers* and not *mtl*, it is
-still a good illustration of the types of patterns *mtl* attempts to abstract
-over.
-
-There are several types you can make that can construct that can "represent"
-or "encode" an IO action.  One example is just this `MaybeIO`, which does IO
-with short-circuiting:
-
-~~~haskell
-newtype MaybeIO a = MaybeIO { runMaybeIO :: IO (Maybe a) }
-
-instance Functor MaybeIO where
-    fmap f (MaybeIO mx) = MaybeIO (fmap f mx)
-
-instance Applicative MaybeIO where
-    pure x = return (Just x)
-    MaybeIO mf <*> MaybeIO mx = MaybeIO $ liftA2 (<*>) f x
-
-instance Monad MaybeIO where
-    return = pure
-    mx >>= f = MaybeIO $ do
-                   x <- runMaybeIO mx
-                   case x of
-                       Just y  -> f y
-                       Nothing -> return Nothing
-~~~
-
-`MaybeIO` is an IO action, describing an action a computer/CPU can take to
-possibly produce an `a`, or fail in the process (indicated by `Just` and
-`Nothing`).
-
-Clearly, we can "encode" any value `a` into this type, by producing a
-`MaybeIO` that describes a no-op that always succeeds with that value.  We
-call that `pure`, or `return`.
-
-But hey, this would all be pretty useless if we can't use any of our existing `IO a`
-actions from other libraries.  Luckily, it seems like we *can* represent
-arbitrary IO actions here...just as a `MaybeIO` that doesn't "fail"...
-
-~~~haskell
-representIO :: IO a -> MaybeIO a
-representIO x = MaybeIO (fmap Just x)
-~~~
-
-There are plenty of types that fit this pattern...the types that you would
-want to "embed" or "represent" arbitrary IO actions in.  A lot of DSL's, IO
-managers, database query monads, etc. etc. all come with the ability to
-"encode"/embed/sequence arbitrary IO in their process.  All of these would
-benefit with a nice `IO a -> m a` embedder, no?
-
-This design pattern is encapsulated in *transformers* as a typeclass,
-`MonadIO`:
-
-~~~haskell
-instance MonadIO MaybeIO where
-    liftIO x = MaybeIO (fmap Just x)
-~~~
-
-Now, we can write functions "generic" over all "things-that-can-embed-IO"!
-All those possibilities can now be written for generically.  Write functions
-generic over `MonadIO` (and with other constraints like the ones below), and
-you have great power and expressivity to be able to really say, "this thing
-can be run/sequenced under any Monad that can execute IO...no matter what1"
 
 ### MonadError
 
@@ -173,8 +105,8 @@ Again, we can actually imbue any Monad `m` with some very rudimentary, "dumb"
 stateful interface, using a type called `StateT`.  A `StateT s m` behaves just
 like our monad `m` (be it `IO`, `Reader`, `ST`, `STM`...), except now we have
 access to a rudimentary state getting-and-putting mechanism on a state of type
-`s`.  The implementation of the interface and of `MonadState` handles it under
-the hood.
+`s`, using a form of function composition.  The implementation of the `StateT`
+handles it under the hood.
 
 Obviously, being able to add a rudimentary stateful interface on top of any
 Monad is pretty useful.  Very useful, in fact!
@@ -199,6 +131,23 @@ line arguments, or environment variables, assuming they are read once and
 fixed when things start up.  You could access the command line arguments with
 `ask`, and use them in your program.
 
+### MonadIO
+
+This one is actaully from *transformers*, but it gives a nice picture.  Any
+`MonadIO m` is a `Monad` that allows you to embed and sequence in any
+arbitrary IO action.  This is pretty useful!  In the *[persistent][]* database
+library, for example --- the main "database access type monad" can sequence
+actions that access databases *and* arbitrary IO actions, as well.  A lot of
+resource managers and DSL's offer the ability to sequence IO in the middle of
+all the other actions.
+
+[persistent]: http://hackage.haskell.org/package/persistent
+
+That's what `MonadIO` is for --- it allows you to write functions and say,
+"hey, my function is generic over *all* things that can embed IO...anything
+that can embed IO can sequence my function/type".  The generic "embedding"
+action is `liftIO :: MonadIO m => IO a -> m a`.
+
 <div>
 **Aside**
 
@@ -219,7 +168,6 @@ what "should" be right.
 
 A bit un-ideal, but...in practice, this ends up working not-so-badly :)
 </div>
-
 
 Not a Monad Transformer Library
 -------------------------------
