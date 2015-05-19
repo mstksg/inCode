@@ -26,7 +26,8 @@ What is *mtl*?  It is a library of *interfaces* you can provide to your own
 types, in the form of typeclasses.  It abstracts over *different design
 patterns* for different types, in the form of typeclasses.  Just like Functor
 abstracts over "things that can be fmapped".  *mtl* provides typeclasses
-abstracting over many useful patterns that many types satisfy.
+abstracting over many useful patterns that many types satisfy --- patterns
+involving different sorts of "effects".
 
 The Patterns
 ------------
