@@ -183,7 +183,8 @@ findExistingEntry title metas = foldl go (return Nothing) attempts    -- wait th
             Just (MetaValueTexts ts) ->
               map (D.getBy . UniqueEntryTitle) ts
             _ -> []
-        progressReport t = liftIO (putStrLn t) >> return Nothing
+        -- progressReport t = liftIO (putStrLn t) >> return Nothing
+        progresReport t = return Nothing
 
 
 applyMetas :: D.Key Entry -> MetaKey -> MetaValue -> D.SqlPersistM ()
