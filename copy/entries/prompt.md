@@ -88,6 +88,22 @@ receive a `Prompt`, you know it can't wipe out your hard drive or do any IO
 other than exactly what you allow it to do!  I'd feel more safe running a
 `Prompt a b r` than an `IO r`.
 
+You can also do some cute tricks; `Prompt a () r` with a "prompt response
+function" like `putStrLn` lets you do streaming logging, and defer *how* the
+logging is done --- to IO, to a list?
+
+~~~haskell
+ghci> let logHelloWord = mapM_ prompt ["hello", "world"]
+ghci> runPromptM logHelloWorld putStrLn
+hello
+world
+ghci> execWriter $ runPromptM logHelloWorld tell
+"helloworld"
+~~~
+
+`Prompt () b r` is like a fancy `ReaderT b m r`, where you "defer" the choice of the
+Monad.
+
 Combining with other effects
 ----------------------------
 
@@ -162,6 +178,13 @@ baz
 Just (Foo "hello" 8)
 ~~~
 
+The previous example of `logHelloWorld`?
+
+~~~haskell
+ghci> runPromptT (logHelloWorld :: PromptT String () (Writer String) ()) tell
+"helloworld"
+~~~
+
 Runners
 -------
 
@@ -234,9 +257,9 @@ throughStdIOBlankIsError :: IO (Either MyError Foo)
 throughStdIOBlankIsError = runPromptTM parseFoo3 $ \k -> do
     putStrLn k
     resp <- getLine
-    if null resp
-      then return . Left  $ MENotFound k
-      else return . Right $ resp
+    return $ if null resp
+      then Left (MENotFound k)
+      else Right resp
 
 -- Fulfill the prompt purely through a Map lookup
 throughMap :: M.Map Key Val -> Either MyError Foo
