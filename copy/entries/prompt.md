@@ -294,6 +294,11 @@ really mean much :)
 It's also unrelated in this same manner to `Prompt` from the *MonadPrompt*
 package, and `Program` from *operational* too.
 
+One close relative to this type is `forall m. ReaderT (a -> m b) m r`, where
+`prompt k = ReaderT ($ k)`.  This is more or less equivalent to `Prompt`, but
+still can't do the things that `PromptT` can do without a special instance of
+Monad.
+
 This type is also similar in structure to `Bazaar`, from the *lens* package.
 The biggest difference that makes `Bazaar` unusable is because the RankN
 constraint is only `Applicative`, not `Monad`, so a `Monad` instance is
