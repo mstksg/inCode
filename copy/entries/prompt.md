@@ -29,11 +29,11 @@ week at 4am and prayed that it didn't launch missiles if you decided to
 execute it?  Do you want to be able to run an effectful computation and
 explicitly *say* what IO it can or cannot do?
 
-Introducing the *[prompt][]* library!  It allows you to specify and describe
-computations involving forms of effects where you "ask" with a value and
-receive a value in return (such as a database query, etc.), but not ever care
-about how the effects are fulfilled --- freeing you from working directly with
-IO.
+Introducing the *[prompt][]* library!  It's a small little lightweight library
+that allows you to specify and describe computations involving forms of
+effects where you "ask" with a value and receive a value in return (such as a
+database query, etc.), but not ever care about how the effects are fulfilled
+--- freeing you from working directly with IO.
 
 ~~~haskell
 data Foo = Foo { fooBar :: String
