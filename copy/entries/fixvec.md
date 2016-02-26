@@ -90,6 +90,7 @@ way is to use the simple inductive `Nat`:
 !!!fixvec/FVTypeNats.hs "data Nat ="
 ~~~
 
+
 You might have seen this type before...it gives us value-level natural
 numbers, where `Z` is zero, `S Z` is one, `S (S Z)` is two, `S (S (S Z))` is
 three, etc.  So if we had something of type `Nat`, it could represent any
