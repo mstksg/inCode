@@ -8,6 +8,9 @@
 /static/img/test
 /tags
 /bin
+/.stack-work
+/_site
+/_cache
 
 /copy/entries
 /copy/tags
