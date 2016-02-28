@@ -14,9 +14,10 @@ category:            Web
 build-type:          Simple
 cabal-version:       >=1.8
 
-executable blog-build
-  main-is:             Executable/Site.hs
+library
   hs-source-dirs:      src
+  exposed-modules:     Blog.Types
+                       Hakyll.Web.Redirect
   build-depends:       base >= 4 && < 5
                      , aeson
                      , data-default
@@ -30,11 +31,29 @@ executable blog-build
                      , yaml
   ghc-options:         -Wall
 
-executable blog-migrate-entries
-  main-is:             Executable/MigrateEntries.hs
-  hs-source-dirs:      src
+executable blog-build
+  main-is:             Site.hs
+  hs-source-dirs:      app
   build-depends:       base >= 4 && < 5
                      , aeson
+                     , blog
+                     , data-default
+                     , filepath
+                     , hakyll
+                     , hakyll-sass
+                     , hjsmin
+                     , hsass
+                     , neat-interpolation
+                     , text
+                     , yaml
+  ghc-options:         -Wall
+
+executable blog-migrate-entries
+  main-is:             MigrateEntries.hs
+  hs-source-dirs:      app
+  build-depends:       base >= 4 && < 5
+                     , aeson
+                     , blog
                      , bytestring
                      , cases
                      , containers
