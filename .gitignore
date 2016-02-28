@@ -14,7 +14,7 @@
 
 /copy/entries
 /copy/entries-old
-/config/old-slugs.json
+/config/migrate
 /copy/tags
 /static/img/entries
 /code-samples

@@ -9,6 +9,7 @@ import           Data.Default
 import           Data.Foldable
 import           Data.List
 import           Data.Maybe
+import           Data.Scientific
 import           Options.Applicative
 import           System.Directory
 import           System.FilePath
@@ -29,6 +30,7 @@ data EntryPieces = EP { epTitle :: String
 
 data Opts = O { oSource :: FilePath
               , oSlugs  :: FilePath
+              , oIds    :: FilePath
               , oTarget :: FilePath
               , oForce  :: Bool
               }
@@ -45,7 +47,14 @@ parseOpts = O <$> strOption ( long "input"
                            <> short 's'
                            <> metavar "SLUGS"
                            <> help "JSON file containing list of identifiers and slugs"
-                           <> value "config/old-slugs.json"
+                           <> value "config/migrate/slugs.json"
+                           <> showDefaultWith id
+                            )
+              <*> strOption ( long "ids"
+                           <> short 'i'
+                           <> metavar "ENTRY IDS"
+                           <> help "JSON file containing list of identifiers and ID numbers"
+                           <> value "config/migrate/entry-ids.json"
                            <> showDefaultWith id
                             )
               <*> strOption ( long "output"
@@ -75,6 +84,10 @@ main = do
                                  then return M.empty
                                  else throwIO e
     putStrLn $ "Loaded slugs for " ++ show (M.size slugMap) ++ " entries."
+    idMap   <- (maybe M.empty parseIds . A.decode' <$> BL.readFile oIds)
+                 `catch` \e -> if isDoesNotExistError e
+                                 then return M.empty
+                                 else throwIO e
 
     fns <- getDirectoryContents oSource
     forM_ (filter (not . ("." `isPrefixOf`)) fns) $ \fn -> do
@@ -95,7 +108,8 @@ main = do
                       Right (Pandoc _ m) -> do
                         DefinitionList ds <- m
                         (kIs, vIss) <- ds
-                        let k = T.unpack
+                        let k = kFilt
+                              . T.unpack
                               . spinalize
                               . T.pack
                               . writePlain def
@@ -109,12 +123,16 @@ main = do
               let currSlug = (("slug",) . (:[])) <$> slugsCurr
                   oldSlugs = ("old-slugs",) . S.toList  $ slugsOld
               return $ toList currSlug <> [oldSlugs]
+            entryId = maybeToList $ do
+              [ident] <- lookup "identifier" metas
+              i       <- M.lookup ident idMap
+              return ("entry-id", [show i])
             out = unlines
                     [ "---"
                     , "title: " ++ epTitle
                     , intercalate "\n"
                         . map (\(k, vs) -> k ++ ": " ++ intercalate ", " vs)
-                        $ (metas ++ slugs)
+                        $ (metas ++ slugs ++ entryId)
                     , "---"
                     , ""
                     , epBody
@@ -134,6 +152,9 @@ main = do
 
   where
     opts = def { readerExtensions = S.insert Ext_compact_definition_lists pandocExtensions }
+    kFilt :: String -> String
+    kFilt "post-date" = "date"
+    kFilt s           = s
 
 data Slugs = Slugs { slugsCurr :: Maybe String
                    , slugsOld  :: S.Set String
@@ -173,6 +194,19 @@ parseSlugs = M.fromListWith (<>)
           then Slugs (Just slugStr) S.empty
           else Slugs Nothing (S.singleton slugStr)
 
+parseIds :: V.Vector A.Array -> M.Map String Integer
+parseIds = M.fromList
+         . mapMaybe f
+         . V.toList
+  where
+    f :: V.Vector A.Value -> Maybe (String, Integer)
+    f v = do
+      A.String ident <- v V.!? 0
+      A.Number i     <- v V.!? 1
+      i'             <- toMaybe (floatingOrInteger i)
+      return (T.unpack ident, i')
+    toMaybe :: Either Double Integer -> Maybe Integer
+    toMaybe = either (\_ -> Nothing) Just
 
 
 -- | SQL for getting the right format:
@@ -184,3 +218,9 @@ parseSlugs = M.fromListWith (<>)
 --     on slug.entry_id = entry.id
 --   order by
 --     entry.identifier, slug.id;
+--
+--
+-- select
+--     identifier, id
+--   from entry
+--   order by identifier;

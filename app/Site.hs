@@ -2,17 +2,18 @@
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE FlexibleContexts  #-}
 
-import Blog.Types
-import Control.Exception
-import Data.Default
-import Data.Foldable
-import Data.List
-import Hakyll
-import Hakyll.Web.Redirect
-import Hakyll.Web.Sass
-import System.FilePath
-import Text.Jasmine
-import Text.Sass
+import           Blog.Types
+import           Control.Exception
+import           Data.Default
+import           Data.Foldable
+import           Data.List
+import           Hakyll
+import           Hakyll.Web.Redirect
+import           Hakyll.Web.Sass
+import           System.FilePath
+import           Text.Jasmine
+import           Text.Sass
+import qualified Data.Map                as M
 import qualified Data.Text               as T
 import qualified Data.Text.Lazy          as TL
 import qualified Data.Text.Lazy.Encoding as TL
@@ -40,12 +41,19 @@ main = do
         route   idRoute
         compile compressJsCompiler
 
-      -- match "copy/entries/*" $ do
-      --     -- route $ setExtension "html"
-      --     -- compile $ pandocCompiler
-      --     --     >>= loadAndApplyTemplate "templates/post.html"    postCtx
-      --     --     >>= loadAndApplyTemplate "templates/default.html" postCtx
-      --     --     >>= relativizeUrls
+      match "copy/entries/*" $ do
+          route . metadataRoute $ \m ->
+            case M.lookup "slug" m of
+                   Nothing -> gsubRoute "copy/entries/" (\_ -> "entry/ident/")
+                                `composeRoutes`
+                                setExtension ""
+                   Just s  -> constRoute ("entry" </> s) 
+          compile $ pandocCompiler
+          -- compile copyFileCompiler
+          -- compile $ pandocCompiler
+          --     >>= loadAndApplyTemplate "templates/post.html"    postCtx
+          --     >>= loadAndApplyTemplate "templates/default.html" postCtx
+          --     >>= relativizeUrls
 
       forM_ confBlobs $ \b -> do
         match "code-samples/**" $ do

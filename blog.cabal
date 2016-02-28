@@ -20,15 +20,15 @@ library
                        Hakyll.Web.Redirect
   build-depends:       base >= 4 && < 5
                      , aeson
-                     , data-default
-                     , filepath
                      , hakyll
-                     , hakyll-sass
-                     , hjsmin
-                     , hsass
                      , neat-interpolation
                      , text
-                     , yaml
+                     -- , data-default
+                     -- , filepath
+                     -- , hakyll-sass
+                     -- , hjsmin
+                     -- , hsass
+                     -- , yaml
   ghc-options:         -Wall
 
 executable blog-build
@@ -39,6 +39,7 @@ executable blog-build
                      , blog
                      , data-default
                      , filepath
+                     , containers
                      , hakyll
                      , hakyll-sass
                      , hjsmin
@@ -62,6 +63,7 @@ executable blog-migrate-entries
                      , filepath
                      , optparse-applicative
                      , pandoc
+                     , scientific
                      , text
                      , transformers
                      , vector
