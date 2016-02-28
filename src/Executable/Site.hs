@@ -40,6 +40,13 @@ main = do
         route   idRoute
         compile compressJsCompiler
 
+      -- match "copy/entries/*" $ do
+      --     -- route $ setExtension "html"
+      --     -- compile $ pandocCompiler
+      --     --     >>= loadAndApplyTemplate "templates/post.html"    postCtx
+      --     --     >>= loadAndApplyTemplate "templates/default.html" postCtx
+      --     --     >>= relativizeUrls
+
       forM_ confBlobs $ \b -> do
         match "code-samples/**" $ do
           route   $ gsubRoute ".hs" (\_ -> ".hs.html")
