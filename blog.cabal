@@ -19,10 +19,10 @@ executable blog-build
   hs-source-dirs:      src
   build-depends:       base >= 4 && < 5
                      , aeson
+                     , data-default
                      , filepath
                      , hakyll
                      , hakyll-sass
-                     , data-default
                      , hjsmin
                      , hsass
                      , neat-interpolation
@@ -30,21 +30,23 @@ executable blog-build
                      , yaml
   ghc-options:         -Wall
 
--- executable blog-migrate-entries
---   main-is:             Executable/MigrateEntries.hs
---   hs-source-dirs:      src
---   build-depends:       base >= 4 && < 5
---                      -- , aeson
---                      -- , filepath
---                      -- , hakyll
---                      -- , hakyll-sass
---                      -- , data-default
---                      -- , hjsmin
---                      -- , hsass
---                      -- , neat-interpolation
---                      -- , text
---                      -- , yaml
---   ghc-options:         -Wall
+executable blog-migrate-entries
+  main-is:             Executable/MigrateEntries.hs
+  hs-source-dirs:      src
+  build-depends:       base >= 4 && < 5
+                     , aeson
+                     , bytestring
+                     , cases
+                     , containers
+                     , data-default
+                     , directory
+                     , filepath
+                     , optparse-applicative
+                     , pandoc
+                     , text
+                     , transformers
+                     , vector
+  ghc-options:         -Wall
 
 -- executable blog-scripts-migrate
 --   main-is:             scripts/Migrate.hs
