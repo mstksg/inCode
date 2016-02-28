@@ -18,11 +18,15 @@ library
   hs-source-dirs:      src
   exposed-modules:     Blog.Types
                        Hakyll.Web.Redirect
+                       Blog.View.Social
   build-depends:       base >= 4 && < 5
                      , aeson
                      , hakyll
                      , neat-interpolation
+                     , blaze-markup
+                     , blaze-html
                      , text
+                     , mtl
                      -- , data-default
                      -- , filepath
                      -- , hakyll-sass
@@ -37,15 +41,17 @@ executable blog-build
   build-depends:       base >= 4 && < 5
                      , aeson
                      , blog
+                     , containers
                      , data-default
                      , filepath
-                     , containers
                      , hakyll
                      , hakyll-sass
                      , hjsmin
                      , hsass
                      , neat-interpolation
                      , text
+                     , time
+                     , transformers
                      , yaml
   ghc-options:         -Wall
 
