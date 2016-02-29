@@ -73,19 +73,17 @@ main = do
             e <- itemBody <$> loadSnapshot i "entry"
             makeItem $ T.unpack (entryMarkdown e)
 
+      match "copy/entries/*" . version "latex" $ do
+        route $ routeEntry `composeRoutes` setExtension "tex"
+        compile $ do
+            i <- setVersion Nothing <$> getUnderlying
+            e <- itemBody <$> loadSnapshot i "entry"
+            makeItem $ T.unpack (entryLaTeX e)
+
       -- homePag <- buildPaginateWith mkPage "copy/entries/*" (\i -> fromFilePath ("home" </> show i))
       -- paginateRules homePag $ \i p -> do
       --   route idRoute
       --   compile $ blazeCompiler (viewHome undefined)
-
-      forM_ confBlobs $ \b -> do
-        match "code-samples/**" $ do
-          route idRoute
-          compile $ redirectCompiler (T.pack . (T.unpack b </>) . toFilePath)
-          -- route   $ gsubRoute ".hs" (\_ -> ".hs.html")
-          -- let f p | ".hs.html" `isSuffixOf` p = dropEnd 5 p
-          --         | otherwise                 = p
-          -- compile $ redirectCompiler (T.pack . (T.unpack b </>) . f . toFilePath)
 
   where
     routeEntry :: Routes
