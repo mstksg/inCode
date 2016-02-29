@@ -145,8 +145,6 @@ data Entry = Entry
     { entryTitle      :: T.Text
     , entryContents   :: T.Text
     , entryLede       :: T.Text
-    , entryMarkdown   :: T.Text
-    , entryLaTeX      :: T.Text
     , entrySourceFile :: FilePath
     , entryCreateTime :: Maybe LocalTime
     , entryPostTime   :: Maybe LocalTime
