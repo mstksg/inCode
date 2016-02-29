@@ -87,16 +87,19 @@ main = do
                         <$> loadAllSnapshots p "entry"
           renders <- traverse (renderPandocWith entryReaderOpts entryWriterOpts)
                        contents
-          makeItem $ unlines (map itemBody renders)
+          render <- makeItem $ unlines (map itemBody renders)
+          if i == 1
+            then do
+              saveSnapshot "index" render
+              redirectCompiler (\_ -> renderUrl "/index.html")
+            else do
+              return render
 
       create ["index.html"] $ do
         route idRoute
         compile $ do
-          home1 <- itemBody <$> load "home/1"
+          home1 <- itemBody <$> loadSnapshot "home/1" "index"
           makeItem (home1 :: String)
-
-    -- create ["archive.html"] $ do
-    --     route idRoute
 
         -- compile $ blazeCompiler (viewHome undefined)
 
