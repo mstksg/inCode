@@ -18,21 +18,22 @@ library
   hs-source-dirs:      src
   exposed-modules:     Blog.Types
                        Hakyll.Web.Redirect
-                       Blog.View.Social
+                       Hakyll.Web.Blaze
+                       -- Blog.View.Social
+                       Blog.View.Home
+                       Blog.View
   build-depends:       base >= 4 && < 5
                      , aeson
-                     , hakyll
-                     , neat-interpolation
-                     , blaze-markup
+                     , binary
+                     , binary-orphans
                      , blaze-html
-                     , text
+                     , blaze-markup
+                     , hakyll
                      , mtl
-                     -- , data-default
-                     -- , filepath
-                     -- , hakyll-sass
-                     -- , hjsmin
-                     -- , hsass
-                     -- , yaml
+                     , neat-interpolation
+                     , pandoc
+                     , text
+                     , time
   ghc-options:         -Wall
 
 executable blog-build
@@ -40,6 +41,8 @@ executable blog-build
   hs-source-dirs:      app
   build-depends:       base >= 4 && < 5
                      , aeson
+                     , binary
+                     , binary-orphans
                      , blog
                      , containers
                      , data-default
@@ -49,6 +52,8 @@ executable blog-build
                      , hjsmin
                      , hsass
                      , neat-interpolation
+                     , pandoc
+                     , pandoc-types
                      , text
                      , time
                      , transformers

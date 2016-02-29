@@ -5,13 +5,18 @@
 
 module Blog.Types where
 
-import Control.Applicative
-import Control.Monad
-import Data.Aeson
-import Data.Char
-import GHC.Generics
-import qualified Data.Aeson.Types as A
-import qualified Data.Text        as T
+import           Control.Applicative
+import           Control.Monad
+import           Data.Aeson
+import           Data.Binary.Orphans()
+import           Data.Char
+import           Data.Time.LocalTime
+import           GHC.Generics
+import           Data.Typeable
+import           Text.Pandoc
+import qualified Data.Aeson.Types    as A
+import qualified Data.Binary         as B
+import qualified Data.Text           as T
 
 
 data Config = Config
@@ -60,7 +65,7 @@ data AuthorInfo = AuthorInfo
 
 data HostInfo = HostInfo
     { hostBase :: T.Text
-    , hostPort :: Int
+    , hostPort :: Maybe Int
     }
   deriving (Show, Generic)
 
@@ -131,3 +136,39 @@ instance FromJSON BlogPrefs where
 instance ToJSON BlogPrefs where
   toJSON = A.genericToJSON $ A.defaultOptions
              { A.fieldLabelModifier = A.camelTo '-' . drop 4 }
+
+
+data TagType = GeneralTag | CategoryTag | SeriesTag
+  deriving (Show, Read, Eq, Ord, Enum)
+
+data Entry = Entry
+    { entryTitle      :: T.Text
+    , entryContents   :: T.Text
+    , entryLede       :: T.Text
+    , entryMarkdown   :: T.Text
+    , entryLaTeX      :: T.Text
+    , entrySourceFile :: FilePath
+    , entryCreateTime :: Maybe LocalTime
+    , entryPostTime   :: Maybe LocalTime
+    , entryModifyTime :: Maybe LocalTime
+    , entryIdentifier :: Maybe T.Text
+    , entrySlug       :: Maybe T.Text
+    , entryOldSlugs   :: [T.Text]
+    , entryId         :: Maybe Int
+    }
+  deriving (Show, Generic, Typeable)
+
+instance B.Binary Entry
+
+data Tag = Tag
+    { tagLabel       :: T.Text
+    , tagType        :: TagType
+    , tagDescription :: Maybe T.Text
+    , tagSlug        :: T.Text
+    }
+  deriving (Show)
+
+tagTypePrefix :: TagType -> T.Text
+tagTypePrefix GeneralTag  = "#"
+tagTypePrefix CategoryTag = "@"
+tagTypePrefix SeriesTag   = "+"
