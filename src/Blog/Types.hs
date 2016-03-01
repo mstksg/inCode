@@ -8,11 +8,12 @@ module Blog.Types where
 import           Control.Applicative
 import           Control.Monad
 import           Data.Aeson
-import           Data.Binary.Orphans()
+import           Data.Binary.Orphans ()
 import           Data.Char
 import           Data.Time.LocalTime
-import           GHC.Generics
 import           Data.Typeable
+import           GHC.Generics
+import           Hakyll
 import           Text.Pandoc
 import qualified Data.Aeson.Types    as A
 import qualified Data.Binary         as B
@@ -79,10 +80,10 @@ data DeveloperAPIs = DeveloperAPIs
   deriving (Show, Generic)
 
 data BlogPrefs = BlogPrefs
-    { prefSlugLength  :: Integer
-    , prefHomeEntries :: Integer
-    , prefLedeMax     :: Integer
-    , prefFeedEntries :: Integer
+    { prefSlugLength  :: Int
+    , prefHomeEntries :: Int
+    , prefLedeMax     :: Int
+    , prefFeedEntries :: Int
     }
   deriving (Show, Generic)
 
@@ -153,6 +154,7 @@ data Entry = Entry
     , entrySlug       :: Maybe T.Text
     , entryOldSlugs   :: [T.Text]
     , entryId         :: Maybe Int
+    , entryCanonical  :: Identifier
     }
   deriving (Show, Generic, Typeable)
 

@@ -31,6 +31,7 @@ library
                      , blaze-html
                      , blaze-markup
                      , data-default
+                     , filepath
                      , hakyll
                      , mtl
                      , neat-interpolation

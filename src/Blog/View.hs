@@ -5,8 +5,9 @@
 
 module Blog.View where
 
-import Blog.Types
-import Data.Monoid
+import           Blog.Types
+import           Data.Monoid
+import           System.FilePath
 import qualified Data.Text           as T
 import qualified Text.Blaze.Internal as H
 
@@ -15,7 +16,8 @@ mainSection = H.customAttribute "role" "main"
 
 renderUrl :: (?config :: Config) => T.Text -> T.Text
 renderUrl u | hasP      = u
-            | otherwise = urlBase ?config <> u
+            | otherwise = T.pack $
+                            T.unpack (urlBase ?config) </> T.unpack u
   where
     hasP = length (T.splitOn "//" u) > 1
 

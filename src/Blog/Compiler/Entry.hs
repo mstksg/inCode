@@ -8,9 +8,12 @@ import           Blog.Types
 import           Blog.Util
 import           Blog.View
 import           Data.Default
+import           Data.Foldable
+import           Data.Maybe          (fromMaybe)
 import           Data.Monoid
 import           Data.Time.LocalTime
 import           Hakyll
+import           System.FilePath
 import           Text.Read           (readMaybe)
 import qualified Data.Text           as T
 import qualified Text.Pandoc         as P
@@ -23,7 +26,10 @@ compileEntry = do
     ePandoc   <- readPandocWith entryReaderOpts eBody
     let eContents  = T.pack . itemBody $ writePandocWith entryWriterOpts ePandoc
         ePandocLede = flip fmap ePandoc $ \(P.Pandoc m bs) ->
-                        P.Pandoc m . take 5 . takeWhile validLede $ bs
+                        P.Pandoc m
+                          . take (prefLedeMax (confBlogPrefs ?config))
+                          . takeWhile validLede
+                          $ bs
         eLede       = T.pack <$> writePandocWith entryWriterOpts ePandocLede
     eTitle    <- T.unwords . T.lines . T.pack <$> getMetadataField' i "title"
     eCreate   <- (parseETime =<<) <$> getMetadataField i "create-time"
@@ -46,6 +52,7 @@ compileEntry = do
                      , entrySlug       = eSlug
                      , entryOldSlugs   = eOldSlugs
                      , entryId         = eId
+                     , entryCanonical  = i
                      }
   where
     validLede b = case b of
@@ -146,3 +153,11 @@ entryWriterOpts =
         , P.writerVariables = [("geometry","margin=1in")
                               ,("links-as-notes","true")]
         }
+
+-- entryPath :: Entry -> FilePath
+-- entryPath Entry{..} =
+--       fromMaybe (entrySourceFile `replaceDirectory` "entry/ident")
+--     . asum
+--     $ [ ("entry" </>)       . T.unpack <$> entrySlug
+--       , ("entry/ident" </>) . T.unpack <$> entryIdentifier
+--       ]

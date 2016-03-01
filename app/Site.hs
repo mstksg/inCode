@@ -66,7 +66,14 @@ main = do
           route   routeEntry
           compile $ do
             e <- saveSnapshot "entry" =<< compileEntry
-            makeItem ("" :: String)
+            -- forM_ (entryId (itemBody e)) $ \i -> do
+            --   unsafeCompiler . putStrLn $ "saving snapshot " ++ ("entry/id" </> show i)
+            --   void . saveSnapshot "entry" $
+            --     Item (fromFilePath ("entry/id" </> show i)) e
+            pd <- renderPandocWith entryReaderOpts entryWriterOpts
+                . fmap (T.unpack . entryContents)
+                $ e
+            return pd
 
       match "copy/entries/*" . version "markdown" $ do
         route   $ routeEntry `composeRoutes` setExtension "md"
@@ -76,8 +83,24 @@ main = do
         route   $ routeEntry `composeRoutes` setExtension "tex"
         compile $ entryLaTeXCompiler lTempl
 
+      match "copy/entries/*" . version "id" $ do
+        route . metadataRoute $ \m ->
+          case M.lookup "entry-id" m of
+            Just x  -> constRoute $ "entry/id" </> x
+            Nothing -> mempty
+        compile $ do
+          m <- getMetadata =<< getUnderlying
+          fp <- ("entry/ident"</>)
+              . takeBaseName
+              . toFilePath
+            <$> getUnderlying
+          let canonical = fromMaybe fp (entryCanonical m)
+          redirectCompiler $ \_ ->
+            renderUrl $ T.pack canonical
+
+
       homePag <- buildPaginateWith
-                   mkHomePages
+                   (mkHomePages (prefHomeEntries confBlogPrefs))
                    "copy/entries/*"
                    (\i -> fromFilePath ("home" </> show i))
       paginateRules homePag $ \i p -> do
@@ -90,10 +113,11 @@ main = do
           render <- makeItem $ unlines (map itemBody renders)
           if i == 1
             then do
-              saveSnapshot "index" render
+              _ <- saveSnapshot "index" render
               redirectCompiler (\_ -> renderUrl "/index.html")
             else do
               return render
+
 
       create ["index.html"] $ do
         route idRoute
@@ -106,16 +130,18 @@ main = do
   where
     routeEntry :: Routes
     routeEntry = metadataRoute $ \m ->
-        fromMaybe (setExtension ""
+        maybe (setExtension ""
                      `composeRoutes`
                      gsubRoute "copy/entries/" (\_ -> "entry/ident/")
                   )
-          $ asum [ constRoute . ("entry" </>)       <$> M.lookup "slug" m
-                 , constRoute . ("entry/ident" </>) <$> M.lookup "identifier" m
-                 -- , constRoute . ("entry/id" </>)    <$> M.lookup "entry-id" m
-                 ]
-    mkHomePages :: MonadMetadata m => [Identifier] -> m [[Identifier]]
-    mkHomePages ids = do
+              constRoute
+          $ entryCanonical m
+    entryCanonical :: Metadata -> Maybe FilePath
+    entryCanonical m = asum [("entry"</>) <$> M.lookup "slug" m
+                            ,("entry/ident"</>) <$> M.lookup "identifier" m
+                            ]
+    mkHomePages :: MonadMetadata m => Int -> [Identifier] -> m [[Identifier]]
+    mkHomePages n ids = do
       withDates <- fmap catMaybes
                  . forM ids $ \i -> runMaybeT $ do
         dString <- MaybeT $ getMetadataField i "date"
@@ -124,7 +150,7 @@ main = do
       let sorted = map snd
                  . sortBy (flip $ comparing fst)
                  $ withDates
-      return $ paginateEvery 4 sorted
+      return $ paginateEvery n sorted
 
 
 compressJsCompiler :: Compiler (Item String)
