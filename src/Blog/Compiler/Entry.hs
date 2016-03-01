@@ -33,7 +33,7 @@ compileEntry = do
         eLede       = T.pack <$> writePandocWith entryWriterOpts ePandocLede
     eTitle    <- T.unwords . T.lines . T.pack <$> getMetadataField' i "title"
     eCreate   <- (parseETime =<<) <$> getMetadataField i "create-time"
-    ePost     <- (parseETime =<<) <$> getMetadataField i "post-time"
+    ePost     <- (parseETime =<<) <$> getMetadataField i "date"
     eModified <- (parseETime =<<) <$> getMetadataField i "modified-time"
     eIdent    <- fmap T.pack <$> getMetadataField i "identifier"
     eSlug     <- fmap T.pack <$> getMetadataField i "slug"

@@ -3,14 +3,21 @@
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE FlexibleContexts  #-}
 
+-- import           Blog.View.Home
+-- import           Control.Applicative
+-- import           Data.Monoid
+-- import           Data.Time.Format
 -- import           Data.Traversable
+-- import           Hakyll.Web.Blaze
+-- import           Text.Read              (readMaybe)
 -- import           Text.Sass
+-- import qualified Text.Pandoc            as P
+-- import qualified Text.Pandoc.Walk       as P
 import           Blog.Compiler.Entry
+import           Blog.Rule.Archive
 import           Blog.Types
 import           Blog.Util
 import           Blog.View
-import           Blog.View.Home
-import           Control.Applicative
 import           Control.Exception
 import           Control.Monad
 import           Control.Monad.Trans.Maybe
@@ -18,24 +25,18 @@ import           Data.Default
 import           Data.Foldable
 import           Data.List
 import           Data.Maybe
-import           Data.Monoid
 import           Data.Ord
-import           Data.Time.Format
 import           Data.Time.LocalTime
 import           Hakyll
-import           Hakyll.Web.Blaze
 import           Hakyll.Web.Redirect
 import           Hakyll.Web.Sass
 import           System.FilePath
 import           Text.Jasmine
-import           Text.Read                 (readMaybe)
 import qualified Data.Map                  as M
 import qualified Data.Text                 as T
 import qualified Data.Text.Lazy            as TL
 import qualified Data.Text.Lazy.Encoding   as TL
 import qualified Data.Yaml                 as Y
-import qualified Text.Pandoc               as P
-import qualified Text.Pandoc.Walk          as P
 
 main :: IO ()
 main = do
@@ -94,10 +95,17 @@ main = do
           entries <- map itemBody
                       <$> loadAllSnapshots ("copy/entries/*" .&&. hasNoVersion)
                                            "entry"
-          let sorted = sortBy (comparing entryPostTime)
+          let sorted = sortBy (flip $ comparing entryPostTime)
                      . filter (isJust . entryPostTime)
                      $ entries
-          makeItem . unlines $ map (T.unpack . entryTitle) entries
+          makeItem . unlines $ map (T.unpack . entryTitle) sorted
+
+      hist <- buildHistoryWith ymByField "copy/entries/*"
+                $ \y m -> case m of
+                            Nothing -> fromFilePath ("entries/in" </> show y)
+                            Just m' -> fromFilePath ("entries/in" </> show y </> show m')
+      historyRules hist $ \y m p -> do
+        return ()
 
       homePag <- buildPaginateWith
                    (mkHomePages (prefHomeEntries confBlogPrefs))
