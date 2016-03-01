@@ -66,10 +66,6 @@ main = do
           route   routeEntry
           compile $ do
             e <- saveSnapshot "entry" =<< compileEntry
-            -- forM_ (entryId (itemBody e)) $ \i -> do
-            --   unsafeCompiler . putStrLn $ "saving snapshot " ++ ("entry/id" </> show i)
-            --   void . saveSnapshot "entry" $
-            --     Item (fromFilePath ("entry/id" </> show i)) e
             pd <- renderPandocWith entryReaderOpts entryWriterOpts
                 . fmap (T.unpack . entryContents)
                 $ e
@@ -78,26 +74,30 @@ main = do
       match "copy/entries/*" . version "markdown" $ do
         route   $ routeEntry `composeRoutes` setExtension "md"
         compile entryMarkdownCompiler
-
       match "copy/entries/*" . version "latex" $ do
         route   $ routeEntry `composeRoutes` setExtension "tex"
         compile $ entryLaTeXCompiler lTempl
 
       match "copy/entries/*" . version "id" $ do
-        route . metadataRoute $ \m ->
-          case M.lookup "entry-id" m of
-            Just x  -> constRoute $ "entry/id" </> x
-            Nothing -> mempty
-        compile $ do
-          m <- getMetadata =<< getUnderlying
-          fp <- ("entry/ident"</>)
-              . takeBaseName
-              . toFilePath
-            <$> getUnderlying
-          let canonical = fromMaybe fp (entryCanonical m)
-          redirectCompiler $ \_ ->
-            renderUrl $ T.pack canonical
+        route   routeIdEntry
+        compile $ compileIdEntry ""
+      match "copy/entries/*" . version "id-markdown" $ do
+        route   $ routeIdEntry `composeRoutes` setExtension "md"
+        compile $ compileIdEntry "md"
+      match "copy/entries/*" . version "id-latex" $ do
+        route   $ routeIdEntry `composeRoutes` setExtension "tex"
+        compile $ compileIdEntry "tex"
 
+      create ["entries"] $ do
+        route idRoute
+        compile $ do
+          entries <- map itemBody
+                      <$> loadAllSnapshots ("copy/entries/*" .&&. hasNoVersion)
+                                           "entry"
+          let sorted = sortBy (comparing entryPostTime)
+                     . filter (isJust . entryPostTime)
+                     $ entries
+          makeItem . unlines $ map (T.unpack . entryTitle) entries
 
       homePag <- buildPaginateWith
                    (mkHomePages (prefHomeEntries confBlogPrefs))
@@ -136,6 +136,24 @@ main = do
                   )
               constRoute
           $ entryCanonical m
+    routeIdEntry :: Routes
+    routeIdEntry = metadataRoute $ \m ->
+        case M.lookup "entry-id" m of
+          Just x  -> constRoute $ "entry/id" </> x
+          Nothing -> mempty
+    compileIdEntry
+        :: (?config :: Config)
+        => String
+        -> Compiler (Item String)
+    compileIdEntry ext = do
+        m <- getMetadata =<< getUnderlying
+        fp <- ("entry/ident" </>)
+            . takeBaseName
+            . toFilePath
+          <$> getUnderlying
+        let canonical = fromMaybe fp (entryCanonical m) <.> ext
+        redirectCompiler $ \_ ->
+          renderUrl $ T.pack canonical
     entryCanonical :: Metadata -> Maybe FilePath
     entryCanonical m = asum [("entry"</>) <$> M.lookup "slug" m
                             ,("entry/ident"</>) <$> M.lookup "identifier" m
