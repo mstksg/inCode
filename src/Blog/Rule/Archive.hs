@@ -20,6 +20,8 @@ data Month = JAN | FEB | MAR | APR | MAY | JUN
            | JUL | AUG | SEP | OCT | NOV | DEC
   deriving (Show, Eq, Ord, Enum)
 
+mInt :: Month -> Int
+mInt = succ . fromEnum
 
 data History = History
     { historyMap        :: M.Map Year (M.Map Month [Identifier])

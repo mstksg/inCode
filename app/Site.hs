@@ -89,7 +89,7 @@ main = do
         route   $ routeIdEntry `composeRoutes` setExtension "tex"
         compile $ compileIdEntry "tex"
 
-      create ["entries"] $ do
+      create ["entries/index.html"] $ do
         route idRoute
         compile $ do
           entries <- map itemBody
@@ -100,16 +100,22 @@ main = do
                      $ entries
           makeItem . unlines $ map (T.unpack . entryTitle) sorted
 
-      hist <- buildHistoryWith ymByField "copy/entries/*"
+      hist <- buildHistoryWith ymByField ("copy/entries/*" .&&. hasNoVersion)
                 $ \y m -> case m of
-                            Nothing -> fromFilePath ("entries/in" </> show y)
-                            Just m' -> fromFilePath ("entries/in" </> show y </> show m')
+                            Nothing -> fromFilePath ("entries/in" </> show y </> "index.html")
+                            Just m' -> fromFilePath ("entries/in" </> show y </> show (mInt m'))
       historyRules hist $ \y m p -> do
-        return ()
+        route idRoute
+        compile $ do
+          entries <- map itemBody <$> loadAllSnapshots p "entry"
+          let sorted = sortBy (flip $ comparing entryPostTime)
+                     . filter (isJust . entryPostTime)
+                     $ entries
+          makeItem . unlines $ map (T.unpack . entryTitle) sorted
 
       homePag <- buildPaginateWith
                    (mkHomePages (prefHomeEntries confBlogPrefs))
-                   "copy/entries/*"
+                   ("copy/entries/*" .&&. hasNoVersion)
                    (\i -> fromFilePath ("home" </> show i))
       paginateRules homePag $ \i p -> do
         route idRoute
