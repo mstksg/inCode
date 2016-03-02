@@ -111,7 +111,49 @@ main = do
           let sorted = sortBy (flip $ comparing entryPostTime)
                      . filter (isJust . entryPostTime)
                      $ entries
+          makeItem . unlines . map (T.unpack . entryTitle)
+            $ sorted
+
+      tags <- buildTagsWith
+                  (tagsAt "tags")
+                  ("copy/entries/*" .&&. hasNoVersion)
+                  (\i -> fromFilePath ("entries/tagged"   </> genSlug' maxBound i))
+      cats <- buildTagsWith
+                  (tagsAt "categories")
+                  ("copy/entries/*" .&&. hasNoVersion)
+                  (\i -> fromFilePath ("entries/category" </> ('@':genSlug' maxBound i)))
+      sers <- buildTagsWith
+                  (tagsAt "series")
+                  ("copy/entries/*" .&&. hasNoVersion)
+                  (\i -> fromFilePath ("entries/series"   </> ('+':genSlug' maxBound i)))
+
+      tagsRules tags $ \tag p -> do
+        route idRoute
+        compile $ do
+          entries <- map itemBody <$> loadAllSnapshots p "entry"
+          let sorted = sortBy (flip $ comparing entryPostTime)
+                     . filter (isJust . entryPostTime)
+                     $ entries
           makeItem . unlines $ map (T.unpack . entryTitle) sorted
+
+      tagsRules cats $ \cat p -> do
+        route idRoute
+        compile $ do
+          entries <- map itemBody <$> loadAllSnapshots p "entry"
+          let sorted = sortBy (flip $ comparing entryPostTime)
+                     . filter (isJust . entryPostTime)
+                     $ entries
+          makeItem . unlines $ map (T.unpack . entryTitle) sorted
+
+      tagsRules sers $ \ser p -> do
+        route idRoute
+        compile $ do
+          entries <- map itemBody <$> loadAllSnapshots p "entry"
+          let sorted = sortBy (flip $ comparing entryPostTime)
+                     . filter (isJust . entryPostTime)
+                     $ entries
+          makeItem . unlines $ map (T.unpack . entryTitle) sorted
+
 
       homePag <- buildPaginateWith
                    (mkHomePages (prefHomeEntries confBlogPrefs))
@@ -142,6 +184,13 @@ main = do
         -- compile $ blazeCompiler (viewHome undefined)
 
   where
+    tagsAt f i = do
+        d <- (parseETime =<<) <$> getMetadataField i "date"
+        case d :: Maybe LocalTime of
+          Nothing -> return []
+          Just _  -> maybe [] (map trim . splitAll ",")
+                 <$> getMetadataField i f
+
     routeEntry :: Routes
     routeEntry = metadataRoute $ \m ->
         maybe (setExtension ""
