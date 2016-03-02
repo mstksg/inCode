@@ -1,12 +1,14 @@
-{-# LANGUAGE ImplicitParams #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ImplicitParams    #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE TupleSections     #-}
 
 module Blog.Compiler.Entry where
 
 import           Blog.Types
 import           Blog.Util
 import           Blog.View
+import           Data.Bifunctor
 import           Data.Default
 import           Data.Foldable
 import           Data.Maybe          (fromMaybe)
@@ -40,6 +42,9 @@ compileEntry = do
     eOldSlugs <- maybe [] (map (T.pack . trim) . splitAll ",")
                <$> getMetadataField i "old-slugs"
     eId       <- (readMaybe =<<) <$> getMetadataField i "entry-id"
+    tags      <- maybe [] splitTags <$> getMetadataField i "tags"
+    cats      <- maybe [] splitTags <$> getMetadataField i "categories"
+    sers      <- maybe [] splitTags <$> getMetadataField i "series"
 
     makeItem $ Entry { entryTitle      = eTitle
                      , entryContents   = eContents
@@ -53,6 +58,10 @@ compileEntry = do
                      , entryOldSlugs   = eOldSlugs
                      , entryId         = eId
                      , entryCanonical  = i
+                     , entryTags       = (map . second) T.pack
+                                       $ map (GeneralTag,)  tags
+                                      ++ map (CategoryTag,) cats
+                                      ++ map (SeriesTag,)   sers
                      }
   where
     validLede b = case b of
@@ -140,19 +149,6 @@ entryLaTeXCompiler templ = do
     opts = entryWriterOpts { P.writerStandalone = True
                            , P.writerTemplate   = templ
                            }
-
-entryReaderOpts :: P.ReaderOptions
-entryReaderOpts =
-    def { P.readerSmart = True }
-
-entryWriterOpts :: P.WriterOptions
-entryWriterOpts =
-    def { P.writerHtml5 = True
-        , P.writerHTMLMathMethod = P.WebTeX "http://chart.apis.google.com/chart?cht=tx&chf=bg,s,FFFFFF00&chl="
-        , P.writerHighlight = True
-        , P.writerVariables = [("geometry","margin=1in")
-                              ,("links-as-notes","true")]
-        }
 
 -- entryPath :: Entry -> FilePath
 -- entryPath Entry{..} =

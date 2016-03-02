@@ -14,7 +14,6 @@ import           Data.Time.LocalTime
 import           Data.Typeable
 import           GHC.Generics
 import           Hakyll
-import           Text.Pandoc
 import qualified Data.Aeson.Types    as A
 import qualified Data.Binary         as B
 import qualified Data.Text           as T
@@ -140,33 +139,39 @@ instance ToJSON BlogPrefs where
 
 
 data TagType = GeneralTag | CategoryTag | SeriesTag
-  deriving (Show, Read, Eq, Ord, Enum)
+  deriving (Show, Read, Eq, Ord, Enum, Generic, Typeable)
+
+instance B.Binary TagType
 
 data Entry = Entry
-    { entryTitle      :: T.Text
-    , entryContents   :: T.Text
-    , entryLede       :: T.Text
-    , entrySourceFile :: FilePath
-    , entryCreateTime :: Maybe LocalTime
-    , entryPostTime   :: Maybe LocalTime
-    , entryModifyTime :: Maybe LocalTime
-    , entryIdentifier :: Maybe T.Text
-    , entrySlug       :: Maybe T.Text
-    , entryOldSlugs   :: [T.Text]
-    , entryId         :: Maybe Int
-    , entryCanonical  :: Identifier
+    { entryTitle      :: !T.Text
+    , entryContents   :: !T.Text
+    , entryLede       :: !T.Text
+    , entrySourceFile :: !FilePath
+    , entryCreateTime :: !(Maybe LocalTime)
+    , entryPostTime   :: !(Maybe LocalTime)
+    , entryModifyTime :: !(Maybe LocalTime)
+    , entryIdentifier :: !(Maybe T.Text)
+    , entrySlug       :: !(Maybe T.Text)
+    , entryOldSlugs   :: ![T.Text]
+    , entryId         :: !(Maybe Int)
+    , entryCanonical  :: !Identifier
+    , entryTags       :: ![(TagType, T.Text)]
     }
   deriving (Show, Generic, Typeable)
 
 instance B.Binary Entry
 
 data Tag = Tag
-    { tagLabel       :: T.Text
-    , tagType        :: TagType
-    , tagDescription :: Maybe T.Text
-    , tagSlug        :: T.Text
+    { tagLabel       :: !T.Text
+    , tagType        :: !TagType
+    , tagDescription :: !(Maybe T.Text)
+    , tagSlug        :: !T.Text
+    , tagEntries     :: [Entry]
     }
-  deriving (Show)
+  deriving (Show, Generic, Typeable)
+
+instance B.Binary Tag
 
 tagTypePrefix :: TagType -> T.Text
 tagTypePrefix GeneralTag  = "#"

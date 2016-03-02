@@ -14,6 +14,7 @@
 -- import qualified Text.Pandoc            as P
 -- import qualified Text.Pandoc.Walk       as P
 import           Blog.Compiler.Entry
+import           Blog.Compiler.Tag
 import           Blog.Rule.Archive
 import           Blog.Types
 import           Blog.Util
@@ -62,6 +63,10 @@ main = do
       match "js/**" $ do
         route   idRoute
         compile compressJsCompiler
+
+      match "copy/tags/**" $ do
+        route   mempty
+        compile getResourceString
 
       match "copy/entries/*" $ do
           route   routeEntry
@@ -143,34 +148,15 @@ main = do
           makeItem . unlines . flip map (tagsMap sers) $ \(t,es) ->
             '+':t ++ " (" ++ show (length es) ++ ")"
 
-
-
       tagsRules tags $ \tag p -> do
-        route idRoute
-        compile $ do
-          entries <- map itemBody <$> loadAllSnapshots p "entry"
-          let sorted = sortBy (flip $ comparing entryPostTime)
-                     . filter (isJust . entryPostTime)
-                     $ entries
-          makeItem . unlines $ map (T.unpack . entryTitle) sorted
-
+        route   idRoute
+        compile $ tagCompiler GeneralTag  tag p
       tagsRules cats $ \cat p -> do
-        route idRoute
-        compile $ do
-          entries <- map itemBody <$> loadAllSnapshots p "entry"
-          let sorted = sortBy (flip $ comparing entryPostTime)
-                     . filter (isJust . entryPostTime)
-                     $ entries
-          makeItem . unlines $ map (T.unpack . entryTitle) sorted
-
+        route   idRoute
+        compile $ tagCompiler CategoryTag cat p
       tagsRules sers $ \ser p -> do
-        route idRoute
-        compile $ do
-          entries <- map itemBody <$> loadAllSnapshots p "entry"
-          let sorted = sortBy (flip $ comparing entryPostTime)
-                     . filter (isJust . entryPostTime)
-                     $ entries
-          makeItem . unlines $ map (T.unpack . entryTitle) sorted
+        route   idRoute
+        compile $ tagCompiler SeriesTag   ser p
 
 
       homePag <- buildPaginateWith
@@ -206,8 +192,7 @@ main = do
         d <- (parseETime =<<) <$> getMetadataField i "date"
         case d :: Maybe LocalTime of
           Nothing -> return []
-          Just _  -> maybe [] (map trim . splitAll ",")
-                 <$> getMetadataField i f
+          Just _  -> maybe [] splitTags <$> getMetadataField i f
 
     routeEntry :: Routes
     routeEntry = metadataRoute $ \m ->
@@ -251,6 +236,12 @@ main = do
                  $ withDates
       return $ paginateEvery n sorted
 
+-- feedConfig :: (?config :: Config) => FeedConfiguration
+-- feedConfig = FeedConfiguration
+--     { feedTitle       = T.unpack $ confTitle ?config <> " — Entries"
+--     , feedDescription = T.unpack $ confDesc ?config
+--     , feedAuthorName  = T.unpack $ conf
+--     }
 
 compressJsCompiler :: Compiler (Item String)
 compressJsCompiler = fmap f <$> getResourceString

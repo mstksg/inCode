@@ -1,0 +1,85 @@
+module Blog.View.Feed where
+
+import           Text.DublinCore.Types
+import           Text.RSS.Syntax
+import qualified Data.Text             as T
+import qualified Text.XML.Light.Types  as X
+
+-- -- feedRss :: [(D.Entity Entry, (T.Text, [Tag]))] -> UTCTime -> RSS
+-- feedRss :: [Entry] -> UTCTime -> RSS
+-- feedRss entries now = (nullRSS feedTitle feedLink)
+--   { rssChannel = channel
+--   , rssAttrs   = [dcSpec]
+--   }
+--   where
+--     channel = (nullChannel feedTitle feedLink)
+--       { rssDescription   = feedDescription
+--       , rssLanguage      = Just "en"
+--       , rssCopyright     = Just copyright
+--       , rssEditor        = Just feedAuthor
+--       , rssWebMaster     = Just feedAuthor
+--       , rssLastUpdate    = Just $ formatDateRfc feedBuildDate
+--       -- , rssCategories =
+--       , rssGenerator     = Just "feed-0.3.9.1 (Sigbjorn Finne)"
+--       , rssItems         = map rssItem entryInfos
+--       , rssChannelOther  = map dcItemToXml dcData
+--       , rssImage         = Just siteLogo
+--       }
+--     dcData =
+--       [ DCItem DC_Creator feedAuthorName
+--       , DCItem DC_Language "en"
+--       , DCItem DC_Rights copyright
+--       , DCItem DC_Date $ formatDateIso feedBuildDate
+--       , DCItem DC_Description feedDescription
+--       ]
+--     siteDataString r = T.unpack $ r siteData
+--     makeUrl          = T.unpack . renderUrl'
+--     formatDateRfc    =
+--       formatTime defaultTimeLocale rfc822DateFormat . fromJust
+--     formatDateIso d  =
+--       formatTime defaultTimeLocale (iso8601DateFormat Nothing) $ fromJust d
+--     feedTitle        = siteDataString siteDataTitle ++ " — Entries"
+--     feedLink         = makeUrl ""
+--     feedDescription  = siteDataString siteDataDescription
+--     feedBuildDate    = Just now
+--     feedAuthorEmail  = siteDataString (authorInfoEmail . siteDataAuthorInfo)
+--     feedAuthorName   = siteDataString (authorInfoName . siteDataAuthorInfo)
+--     feedAuthor       = concat [feedAuthorEmail, " (", feedAuthorName, ")"]
+--     copyright        = T.unpack $ T.append "Copyright " $ siteDataCopyright siteData
+--     rssItem (eEntity@(D.Entity _ entry), (entryUrl, tags)) =
+--       (nullItem $ T.unpack $ entryTitle entry)
+--         { rssItemLink        = Just $ makeUrl entryUrl
+--         , rssItemDescription = Just $ B.renderHtml $ entryHtml entry
+--         -- , rssItemAuthor   = Just feedAuthorName
+--         , rssItemCategories  = map rssCategory tags
+--         , rssItemGuid        = Just $ RSSGuid (Just True) [] $ makeUrl $ entryPermalink eEntity
+--         , rssItemPubDate     = Just $ formatDateRfc $ entryPostedAt entry
+--         , rssItemOther       = map dcItemToXml dcItemData
+--         }
+--       where
+--         dcItemData =
+--           [ DCItem DC_Creator feedAuthorName
+--           , DCItem DC_Date $ formatDateIso $ entryPostedAt entry
+--           , DCItem DC_Subject $ T.unpack $ T.intercalate ", " $ map tagLabel tags
+--           ]
+--     rssCategory tag = RSSCategory
+--       Nothing
+--       [] $
+--       T.unpack $ tagLabel tag
+--     dcSpec = X.Attr
+--       (X.QName "dc" Nothing (Just "xmlns"))
+--       "http://purl.org/dc/elements/1.1/"
+--     siteLogo =
+--       nullImage
+--         ( T.unpack . renderUrl'
+--         . T.append (hostConfigHost (siteDataHostConfig siteData))
+--         $ "/img/site_logo.jpg" )
+--         ( T.unpack $ siteDataTitle siteData )
+--         ( T.unpack . renderUrl' . hostConfigHost
+--         $ siteDataHostConfig siteData )
+
+-- dcItemToXml :: DCItem -> X.Element
+-- dcItemToXml dcItem = X.Element eName [] [item] Nothing
+--   where
+--     eName = X.QName (infoToTag $ dcElt dcItem) Nothing (Just "dc")
+--     item = X.Text $ X.CData X.CDataText (dcText dcItem) Nothing
