@@ -127,6 +127,24 @@ main = do
                   ("copy/entries/*" .&&. hasNoVersion)
                   (\i -> fromFilePath ("entries/series"   </> ('+':genSlug' maxBound i)))
 
+      create ["tags"] $ do
+        route idRoute
+        compile $ do
+          makeItem . unlines . flip map (tagsMap tags) $ \(t,es) ->
+            '#':t ++ " (" ++ show (length es) ++ ")"
+      create ["categories"] $ do
+        route idRoute
+        compile $ do
+          makeItem . unlines . flip map (tagsMap cats) $ \(t,es) ->
+            '@':t ++ " (" ++ show (length es) ++ ")"
+      create ["series"] $ do
+        route idRoute
+        compile $ do
+          makeItem . unlines . flip map (tagsMap sers) $ \(t,es) ->
+            '+':t ++ " (" ++ show (length es) ++ ")"
+
+
+
       tagsRules tags $ \tag p -> do
         route idRoute
         compile $ do
