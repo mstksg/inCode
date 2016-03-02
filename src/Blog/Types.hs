@@ -20,16 +20,16 @@ import qualified Data.Text           as T
 
 
 data Config = Config
-    { confTitle         :: T.Text
-    , confDesc          :: T.Text
-    , confAuthorInfo    :: AuthorInfo
-    , confCopyright     :: T.Text
-    , confBlobs         :: Maybe T.Text
-    , confInteractive   :: Maybe T.Text
-    , confHostInfo      :: HostInfo
-    , confDeveloperAPIs :: DeveloperAPIs
-    , confBlogPrefs     :: BlogPrefs
-    , confEnvType       :: EnvType
+    { confTitle         :: !T.Text
+    , confDesc          :: !T.Text
+    , confAuthorInfo    :: !AuthorInfo
+    , confCopyright     :: !T.Text
+    , confBlobs         :: !(Maybe T.Text)
+    , confInteractive   :: !(Maybe T.Text)
+    , confHostInfo      :: !HostInfo
+    , confDeveloperAPIs :: !DeveloperAPIs
+    , confBlogPrefs     :: !BlogPrefs
+    , confEnvType       :: !EnvType
     }
   deriving (Show)
 
@@ -146,6 +146,7 @@ instance B.Binary TagType
 data Entry = Entry
     { entryTitle      :: !T.Text
     , entryContents   :: !T.Text
+    , entryHTML       :: !T.Text
     , entryLede       :: !T.Text
     , entrySourceFile :: !FilePath
     , entryCreateTime :: !(Maybe LocalTime)

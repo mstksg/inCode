@@ -26,12 +26,13 @@ compileEntry = do
     i         <- getUnderlying
     eBody     <- getResourceBody
     ePandoc   <- readPandocWith entryReaderOpts eBody
-    let eContents  = T.pack . itemBody $ writePandocWith entryWriterOpts ePandoc
+    let eContents   = T.pack . P.writeMarkdown entryWriterOpts <$> ePandoc
         ePandocLede = flip fmap ePandoc $ \(P.Pandoc m bs) ->
                         P.Pandoc m
                           . take (prefLedeMax (confBlogPrefs ?config))
                           . takeWhile validLede
                           $ bs
+        eHtml       = T.pack <$> writePandocWith entryWriterOpts ePandoc
         eLede       = T.pack <$> writePandocWith entryWriterOpts ePandocLede
     eTitle    <- T.unwords . T.lines . T.pack <$> getMetadataField' i "title"
     eCreate   <- (parseETime =<<) <$> getMetadataField i "create-time"
@@ -47,7 +48,8 @@ compileEntry = do
     sers      <- maybe [] splitTags <$> getMetadataField i "series"
 
     makeItem $ Entry { entryTitle      = eTitle
-                     , entryContents   = eContents
+                     , entryContents   = itemBody eContents
+                     , entryHTML       = itemBody eHtml
                      , entryLede       = itemBody eLede
                      , entrySourceFile = toFilePath i
                      , entryCreateTime = eCreate
@@ -68,25 +70,6 @@ compileEntry = do
                     P.Header {}      -> False
                     P.HorizontalRule -> False
                     _                -> True
-    mkMarkdown :: T.Text -> P.Pandoc -> Maybe LocalTime -> T.Text
-    mkMarkdown title body time =
-        T.unlines [ title
-                  , T.map (const '=') title
-                  , T.empty
-                  , T.concat [ "(Originally posted by "
-                             , authorName (confAuthorInfo ?config)
-                             , " ["
-                             , renderUrl "/"
-                             , "]"
-                             , timeString
-                             , ")"
-                             ]
-                  , T.empty
-                  , T.pack (P.writeMarkdown entryWriterOpts body)
-                  ]
-      where
-        timeString = maybe T.empty ((" on " <>) . T.pack . renderShortFriendlyTime)
-                   $ time
 
 entryMarkdownCompiler :: (?config :: Config) => Compiler (Item String)
 entryMarkdownCompiler = do

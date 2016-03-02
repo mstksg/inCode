@@ -54,16 +54,6 @@ compileTag tt tLab p = do
                    }
 
 
--- data Tag = Tag
---     { tagLabel       :: !T.Text
---     , tagType        :: !TagType
---     , tagDescription :: !(Maybe T.Text)
---     , tagSlug        :: !T.Text
---     , tagEntries     :: [Entry]
---     }
---   deriving (Show, Generic, Typeable)
-
-
 tagTypeDescPath :: TagType -> String
 tagTypeDescPath GeneralTag  = "copy/tags/tags"
 tagTypeDescPath CategoryTag = "copy/tags/categories"

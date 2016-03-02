@@ -19,6 +19,7 @@ import           Blog.Rule.Archive
 import           Blog.Types
 import           Blog.Util
 import           Blog.View
+import           Blog.View.Feed
 import           Control.Exception
 import           Control.Monad
 import           Control.Monad.Trans.Maybe
@@ -27,6 +28,7 @@ import           Data.Foldable
 import           Data.List
 import           Data.Maybe
 import           Data.Ord
+import           Data.Time.Clock
 import           Data.Time.LocalTime
 import           Hakyll
 import           Hakyll.Web.Redirect
@@ -41,6 +43,9 @@ import qualified Data.Yaml                 as Y
 
 main :: IO ()
 main = do
+    now <- getCurrentTime
+    tz  <- getCurrentTimeZone
+
     c@Config{..} <- either throwIO return
                 =<< Y.decodeFileEither "config/site-data.yaml"
     let ?config = c
@@ -72,10 +77,7 @@ main = do
           route   routeEntry
           compile $ do
             e <- saveSnapshot "entry" =<< compileEntry
-            pd <- renderPandocWith entryReaderOpts entryWriterOpts
-                . fmap (T.unpack . entryContents)
-                $ e
-            return pd
+            return $ T.unpack . entryContents <$> e
 
       match "copy/entries/*" . version "markdown" $ do
         route   $ routeEntry `composeRoutes` setExtension "md"
@@ -184,8 +186,19 @@ main = do
         compile $ do
           home1 <- itemBody <$> loadSnapshot "home/1" "index"
           makeItem (home1 :: String)
-
         -- compile $ blazeCompiler (viewHome undefined)
+
+      create ["rss.raw"] $ do
+        route idRoute
+        compile $ do
+          entries <- map itemBody
+                 <$> loadAllSnapshots ("copy/entries/*" .&&. hasNoVersion)
+                                        "entry"
+          let sorted = take (prefFeedEntries confBlogPrefs)
+                     . sortBy (flip $ comparing entryPostTime)
+                     . filter (isJust . entryPostTime)
+                     $ entries
+          makeItem $ viewFeed sorted tz now
 
   where
     tagsAt f i = do
@@ -236,75 +249,9 @@ main = do
                  $ withDates
       return $ paginateEvery n sorted
 
--- feedConfig :: (?config :: Config) => FeedConfiguration
--- feedConfig = FeedConfiguration
---     { feedTitle       = T.unpack $ confTitle ?config <> " — Entries"
---     , feedDescription = T.unpack $ confDesc ?config
---     , feedAuthorName  = T.unpack $ conf
---     }
-
 compressJsCompiler :: Compiler (Item String)
 compressJsCompiler = fmap f <$> getResourceString
   where
     f :: String -> String
     f = TL.unpack . TL.decodeUtf8 . minify . TL.encodeUtf8 . TL.pack
 
-
--- entryTexFull :: Maybe String -> Entry -> T.Text
--- entryTexFull temp e = case temp of
---     Just t  -> let opts' = opts { P.writerStandalone = True
---                                 , P.writerTemplate   = t
---                                 }
---                in  T.pack . P.writeLaTeX opts' $ pd
---     Nothing -> T.pack . P.writeLaTeX opts $ pd
---   where
---     pd      = P.walk upgrade rawPd
---     rawPd   = entryPandoc (e { entryContent = mdHeader })
---     mdHeader = T.unlines [ T.append "% " eTitle
---                          , T.append "% " . authorInfoName . siteDataAuthorInfo $ siteData
---                          , eDate
---                          , T.empty
---                          , T.concat [ "*Originally posted on **"
---                                     , "["
---                                     , siteDataTitle siteData
---                                     , "]("
---                                     , renderUrl' "/"
---                                     , ")**.*"
---                                     ]
---                          , T.empty
---                          , entryContent e
---                          ]
---     eDate   = case entryPostedAt e of
---                 Just t  -> T.append "% " . T.pack . renderShortFriendlyTime $ t
---                 Nothing -> T.empty
---     eTitle  = T.unwords . T.lines $ entryTitle e
---     -- opts = pandocWriterOptions { P.writerNumberSections = True }
---     opts = pandocWriterOptions
---     upgrade (P.Header n t xs) | n > 1 = P.Header (n-1) t xs
---     upgrade (P.Div di@(_,is,_) xs) | "note" `elem` is = P.Div di (P.HorizontalRule : xs ++ [P.HorizontalRule])
---     upgrade x               = x
-
--- data Entry = Entry
---     { entryTitle      :: T.Text
---     , entryContent    :: T.Text
---     , entryPandoc     :: Pandoc
---     , entrySourceFile :: Maybe FilePath
---     , entryCreateTime :: Maybe LocalTime
---     , entryPostTime   :: Maybe LocalTime
---     , entryModifyTime :: Maybe LocalTime
---     , entryIdentifier :: Maybe T.Text
---     , entrySlug       :: Maybe T.Text
---     , entryOldSlugs   :: [T.Text]
---     }
---   deriving (Show)
-
-
--- pandocReaderOptions = (P.def P.ReaderOptions)
-
--- pandocReaderOptions :: P.ReaderOptions
--- pandocReaderOptions = (P.def P.ReaderOptions)
---                       { P.readerSmart = True
---                       }
-
--- dropEnd :: Int -> [a] -> [a]
--- dropEnd i xs = zipWith const xs (drop i xs)
