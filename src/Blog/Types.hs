@@ -24,6 +24,7 @@ data Config = Config
     , confDesc          :: !T.Text
     , confAuthorInfo    :: !AuthorInfo
     , confCopyright     :: !T.Text
+    , confFeed          :: !T.Text
     , confBlobs         :: !(Maybe T.Text)
     , confInteractive   :: !(Maybe T.Text)
     , confHostInfo      :: !HostInfo
@@ -39,6 +40,7 @@ instance FromJSON Config where
       confDesc         <- v .: "description"
       confAuthorInfo   <- v .: "author"
       confCopyright    <- v .: "copyright"
+      confFeed         <- v .: "feed"
       confBlobs        <- v .:? "public-blobs"
       confInteractive  <- v .:? "interactive-url"
       confHostInfo     <- v .: "host"

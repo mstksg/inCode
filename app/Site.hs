@@ -1,7 +1,7 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ImplicitParams    #-}
-{-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE ImplicitParams    #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 
 -- import           Blog.View.Home
 -- import           Control.Applicative
@@ -189,7 +189,7 @@ main = do
         -- compile $ blazeCompiler (viewHome undefined)
 
       create ["rss.raw"] $ do
-        route idRoute
+        route   idRoute
         compile $ do
           entries <- map itemBody
                  <$> loadAllSnapshots ("copy/entries/*" .&&. hasNoVersion)
@@ -199,6 +199,17 @@ main = do
                      . filter (isJust . entryPostTime)
                      $ entries
           makeItem $ viewFeed sorted tz now
+
+      create ["rss"] $ do
+        route   idRoute
+        compile . makeItem . T.unpack . T.unlines
+          $ [ "<redirect>"
+            , "<newLocation>"
+            , confFeed
+            , "</newLocation>"
+            , "</redirect>"
+            ]
+
 
   where
     tagsAt f i = do
