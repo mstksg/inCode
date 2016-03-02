@@ -4,6 +4,7 @@ development: yes
 description:
   Weblog of Justin Le, covering his various adventures in programming and
   explorations in the vast worlds of computation physics, and knowledge.
+feed: http://feeds.feedburner.com/justinleblogdevelopment
 copyright: 2016 Justin Le
 author:
   name: Justin Le
