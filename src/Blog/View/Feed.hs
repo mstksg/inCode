@@ -73,12 +73,12 @@ feedRss entries tz now = (nullRSS feedTitle feedLink)
     copyright        = T.unpack ("Copyright " <> confCopyright)
     rssItem Entry{..} =
       (nullItem (T.unpack entryTitle))
-        { rssItemLink        = Just (makeUrl (T.pack (toFilePath entryCanonical)))
+        { rssItemLink        = Just (makeUrl (T.pack entryCanonical))
         , rssItemDescription = Just (T.unpack entryHTML)
         , rssItemAuthor      = Just feedAuthorName
         , rssItemCategories  = map rssCategory categs
         , rssItemGuid        = Just . RSSGuid (Just True) []
-                                 $ makeUrl (T.pack (toFilePath entryCanonical))
+                                 $ makeUrl (T.pack entryCanonical)
         , rssItemPubDate     = formatDateRfc . localTimeToUTC tz <$> entryPostTime
         , rssItemOther       = map dcItemToXml dcItemData
         }

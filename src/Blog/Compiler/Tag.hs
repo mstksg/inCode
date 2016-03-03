@@ -4,7 +4,7 @@ module Blog.Compiler.Tag where
 
 import           Blog.Types
 import           Blog.Util
-import           Blog.View
+-- import           Blog.View
 import           Data.List
 import           Data.Maybe
 import           Data.Ord
@@ -41,7 +41,7 @@ compileTag tt tLab p = do
                     case itemBody pd of
                       P.Pandoc m (P.Header 1 _ _:bs)
                           -> P.Pandoc m bs
-                      p   -> p
+                      pd' -> pd'
         tDescMd = T.pack . P.writeMarkdown entryWriterOpts <$> tDescP'
 
     entries <- map itemBody <$> loadAllSnapshots p "entry"
@@ -49,12 +49,52 @@ compileTag tt tLab p = do
     makeItem $ Tag { tagLabel       = tLab'
                    , tagType        = tt
                    , tagDescription = tDescMd
-                   , tagSlug        = genSlug maxBound tLab'
                    , tagEntries     = entries
                    }
 
+tagSlug :: Tag -> T.Text
+tagSlug = genSlug maxBound . tagLabel
 
 tagTypeDescPath :: TagType -> String
 tagTypeDescPath GeneralTag  = "copy/tags/tags"
 tagTypeDescPath CategoryTag = "copy/tags/categories"
 tagTypeDescPath SeriesTag   = "copy/tags/series"
+
+mkTagUrl :: TagType -> String -> FilePath
+mkTagUrl tt i = "entries" </> dir </> (p ++ genSlug' maxBound i)
+  where
+    p   = case tt of
+            GeneralTag  -> ""
+            CategoryTag -> "@"
+            SeriesTag   -> "+"
+    dir = case tt of
+            GeneralTag  -> "tagged"
+            CategoryTag -> "category"
+            SeriesTag   -> "series"
+
+tagUrl :: Tag -> FilePath
+tagUrl t = mkTagUrl (tagType t) (T.unpack (tagSlug t))
+
+tagPrettyLabel :: Tag -> String
+tagPrettyLabel Tag{..} = c : T.unpack tagLabel
+  where
+    c = case tagType of
+          GeneralTag  -> '#'
+          CategoryTag -> '@'
+          SeriesTag   -> '+'
+
+
+plainDescription :: Tag -> Maybe String
+plainDescription t = do
+    desc         <- T.unpack <$> tagDescription t
+    P.Pandoc m b <- eToM $ P.readMarkdown entryReaderOpts desc
+    b0           <- listToMaybe b
+    return $ P.writePlain entryWriterOpts (P.Pandoc m [b0])
+  where
+    eToM = either (const Nothing) Just
+
+plainDescription' :: Tag -> String
+plainDescription' t = fromMaybe (tagPrettyLabel t) (plainDescription t)
+
+filterTags :: TagType -> [Tag] -> [Tag]
+filterTags tt = filter ((== tt) . tagType)

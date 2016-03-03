@@ -5,21 +5,21 @@
 
 module Blog.Compiler.Entry where
 
+-- import           Data.Default
+-- import           Data.Time.LocalTime
 import           Blog.Types
 import           Blog.Util
 import           Blog.View
 import           Data.Bifunctor
-import           Data.Default
 import           Data.Foldable
-import           Data.Maybe          (fromMaybe)
+import           Data.Maybe             (fromMaybe)
 import           Data.Monoid
-import           Data.Time.LocalTime
 import           Hakyll
 import           System.FilePath
-import           Text.Read           (readMaybe)
-import qualified Data.Text           as T
-import qualified Text.Pandoc         as P
-import qualified Text.Pandoc.Walk    as P
+import           Text.Read              (readMaybe)
+import qualified Data.Text              as T
+import qualified Text.Pandoc            as P
+import qualified Text.Pandoc.Walk       as P
 
 compileEntry :: (?config :: Config) => Compiler (Item Entry)
 compileEntry = do
@@ -59,7 +59,7 @@ compileEntry = do
                      , entrySlug       = eSlug
                      , entryOldSlugs   = eOldSlugs
                      , entryId         = eId
-                     , entryCanonical  = i
+                     , entryCanonical  = mkCanonical eSlug eIdent (toFilePath i)
                      , entryTags       = (map . second) T.pack
                                        $ map (GeneralTag,)  tags
                                       ++ map (CategoryTag,) cats
@@ -133,10 +133,14 @@ entryLaTeXCompiler templ = do
                            , P.writerTemplate   = templ
                            }
 
--- entryPath :: Entry -> FilePath
--- entryPath Entry{..} =
---       fromMaybe (entrySourceFile `replaceDirectory` "entry/ident")
---     . asum
---     $ [ ("entry" </>)       . T.unpack <$> entrySlug
---       , ("entry/ident" </>) . T.unpack <$> entryIdentifier
---       ]
+mkCanonical
+    :: Maybe T.Text
+    -> Maybe T.Text
+    -> FilePath
+    -> FilePath
+mkCanonical slug ident source =
+    fromMaybe (source `replaceDirectory` "entry/ident")
+  . asum
+  $ [ ("entry" </>)       . T.unpack <$> slug
+    , ("entry/ident" </>) . T.unpack <$> ident
+    ]

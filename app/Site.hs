@@ -124,15 +124,15 @@ main = do
       tags <- buildTagsWith
                   (tagsAt "tags")
                   ("copy/entries/*" .&&. hasNoVersion)
-                  (\i -> fromFilePath ("entries/tagged"   </> genSlug' maxBound i))
+                  (fromFilePath . mkTagUrl GeneralTag)
       cats <- buildTagsWith
                   (tagsAt "categories")
                   ("copy/entries/*" .&&. hasNoVersion)
-                  (\i -> fromFilePath ("entries/category" </> ('@':genSlug' maxBound i)))
+                  (fromFilePath . mkTagUrl CategoryTag)
       sers <- buildTagsWith
                   (tagsAt "series")
                   ("copy/entries/*" .&&. hasNoVersion)
-                  (\i -> fromFilePath ("entries/series"   </> ('+':genSlug' maxBound i)))
+                  (fromFilePath . mkTagUrl SeriesTag)
 
       create ["tags"] $ do
         route idRoute

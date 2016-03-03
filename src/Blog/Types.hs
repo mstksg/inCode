@@ -158,7 +158,7 @@ data Entry = Entry
     , entrySlug       :: !(Maybe T.Text)
     , entryOldSlugs   :: ![T.Text]
     , entryId         :: !(Maybe Int)
-    , entryCanonical  :: !Identifier
+    , entryCanonical  :: !FilePath
     , entryTags       :: ![(TagType, T.Text)]
     }
   deriving (Show, Generic, Typeable)
@@ -169,8 +169,7 @@ data Tag = Tag
     { tagLabel       :: !T.Text
     , tagType        :: !TagType
     , tagDescription :: !(Maybe T.Text)
-    , tagSlug        :: !T.Text
-    , tagEntries     :: [Entry]
+    , tagEntries     :: ![Entry]
     }
   deriving (Show, Generic, Typeable)
 

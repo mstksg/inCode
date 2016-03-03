@@ -21,6 +21,9 @@ renderUrl u | hasP      = u
   where
     hasP = length (T.splitOn "//" u) > 1
 
+renderUrl' :: (?config :: Config) => String -> String
+renderUrl' = T.unpack . renderUrl . T.pack
+
 urlBase :: Config -> T.Text
 urlBase (confHostInfo->HostInfo{..})
     = "http://"
