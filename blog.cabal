@@ -24,6 +24,7 @@ library
                        Blog.Types
                        Blog.Util
                        Blog.View
+                       Blog.View.Entry
                        Blog.View.Feed
                        Blog.View.Home
                        Blog.View.Social

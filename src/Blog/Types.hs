@@ -163,7 +163,8 @@ data Entry = Entry
     , entryCanonical  :: !FilePath
     , entryTags       :: ![(TagType, T.Text)]
     }
-  deriving (Show, Generic, Typeable)
+  deriving (Show, Generic, Typeable, Eq)
+-- TODO: entry image
 
 instance B.Binary Entry
 

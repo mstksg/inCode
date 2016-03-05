@@ -56,7 +56,7 @@ compileTag tt tLab p = do
                    }
 
 fetchTag :: TagType -> T.Text -> Compiler Tag
-fetchTag tt tl = itemBody <$> loadSnapshot (fromFilePath turl) "tag"
+fetchTag tt tl = loadSnapshotBody (fromFilePath turl) "tag"
   where
     turl = mkTagUrl tt $ T.unpack tl
 
@@ -123,3 +123,15 @@ tagLiClass t = H.textValue $
     GeneralTag  -> "tag-a-tag"
     CategoryTag -> "tag-a-category"
     SeriesTag   -> "tag-a-series"
+
+tagLink
+    :: (?config :: Config)
+    => (Tag -> String)
+    -> Tag
+    -> H.Html
+tagLink f t =
+  H.a
+    ! A.href (H.textValue $ renderUrl (T.pack (tagUrl t)))
+    ! A.title (fromString $ plainDescription' t)
+    $ H.toHtml (f t)
+

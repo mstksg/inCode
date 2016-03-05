@@ -5,14 +5,7 @@
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TupleSections     #-}
 
--- import           Control.Applicative
--- import           Data.Monoid
--- import           Data.Time.Format
--- import           Data.Traversable
--- import           Text.Read              (readMaybe)
--- import           Text.Sass
--- import qualified Text.Pandoc            as P
--- import qualified Text.Pandoc.Walk       as P
+-- import           Blog.View.Home
 import           Blog.Compiler.Entry
 import           Blog.Compiler.Home
 import           Blog.Compiler.Tag
@@ -21,7 +14,6 @@ import           Blog.Types
 import           Blog.Util
 import           Blog.View
 import           Blog.View.Feed
-import           Blog.View.Home
 import           Control.Exception
 import           Control.Monad
 import           Control.Monad.Trans.Maybe
@@ -30,10 +22,10 @@ import           Data.Foldable
 import           Data.List
 import           Data.Maybe
 import           Data.Ord
-import           Data.Time.Clock
+-- import           Data.Time.Clock
 import           Data.Time.LocalTime
 import           Hakyll
-import           Hakyll.Web.Blaze
+-- import           Hakyll.Web.Blaze
 import           Hakyll.Web.Redirect
 import           Hakyll.Web.Sass
 import           System.FilePath
@@ -46,8 +38,7 @@ import qualified Data.Yaml                 as Y
 
 main :: IO ()
 main = do
-    now <- getCurrentTime
-    tz  <- getCurrentTimeZone
+    znow@(ZonedTime now tz) <- getZonedTime
 
     c@Config{..} <- either throwIO return
                 =<< Y.decodeFileEither "config/site-data.yaml"
@@ -81,10 +72,10 @@ main = do
         compile getResourceString
 
       match "copy/entries/*" $ do
-          route   routeEntry
+          route   mempty
           compile $ do
-            e <- saveSnapshot "entry" =<< compileEntry
-            return $ T.unpack . entryContents <$> e
+            _ <- saveSnapshot "entry" =<< compileEntry
+            getResourceString
 
       match "copy/entries/*" . version "markdown" $ do
         route   $ routeEntry `composeRoutes` setExtension "md"
@@ -118,6 +109,11 @@ main = do
                 $ \y m -> case m of
                             Nothing -> fromFilePath ("entries/in" </> show y </> "index.html")
                             Just m' -> fromFilePath ("entries/in" </> show y </> show (mInt m'))
+      let entriesSorted = do
+            (y, mes) <- M.toList $ historyMap hist
+            (m, es)  <- M.toList mes
+            e        <- es
+            return ((y, m), e)
       historyRules hist $ \y m p -> do
         route idRoute
         compile $ do
@@ -170,6 +166,9 @@ main = do
         route   idRoute
         compile $ tagCompiler SeriesTag   ser p
 
+      match "copy/entries/*" . version "html" $ do
+          route   routeEntry
+          compile $ entryCompiler now entriesSorted allTags
 
       homePag <- buildPaginateWith
                    (mkHomePages (prefHomeEntries confBlogPrefs))
@@ -200,7 +199,7 @@ main = do
                      . sortBy (flip $ comparing entryPostTime)
                      . filter (isJust . entryPostTime)
                      $ entries
-          makeItem $ viewFeed sorted tz now
+          makeItem $ viewFeed sorted tz (zonedTimeToUTC znow)
 
       create ["rss"] $ do
         route   idRoute

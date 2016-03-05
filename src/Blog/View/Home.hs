@@ -137,10 +137,7 @@ viewTags tags =
           H.ul $
             forM_ (filterTags tt tags) $ \t ->
               H.li $ do
-                H.a
-                  ! A.href (H.textValue $ renderUrl (T.pack (tagUrl t)))
-                  ! A.title (H.textValue $ T.pack (plainDescription' t))
-                  $ H.toHtml (tagPrettyLabel t)
+                tagLink tagPrettyLabel t
                 H.preEscapedToHtml ("&nbsp;" :: T.Text)
                 H.span $ do
                   "(" :: H.Html

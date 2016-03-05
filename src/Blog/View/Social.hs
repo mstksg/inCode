@@ -5,8 +5,8 @@
 
 module Blog.View.Social where
 
+-- import           Blog.View
 import           Blog.Types
-import           Blog.View
 import           Text.Blaze.Html5            ((!))
 import qualified Data.Text                   as T
 import qualified Text.Blaze.Html5            as H

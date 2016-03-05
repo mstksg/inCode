@@ -5,23 +5,30 @@
 
 module Blog.Compiler.Entry where
 
--- import           Data.Default
--- import           Data.Time.LocalTime
+import           Blog.Compiler.Tag
+import           Blog.Rule.Archive
 import           Blog.Types
 import           Blog.Util
 import           Blog.View
+import           Blog.View.Entry
 import           Data.Bifunctor
+import           Data.Default
 import           Data.Foldable
-import           Data.Maybe             (fromMaybe)
+import           Data.Maybe
 import           Data.Monoid
+import           Data.Time.LocalTime
 import           Hakyll
+import           Hakyll.Web.Blaze
 import           System.FilePath
-import           Text.Read              (readMaybe)
-import qualified Data.Text              as T
-import qualified Text.Pandoc            as P
-import qualified Text.Pandoc.Walk       as P
+import           Text.Read           (readMaybe)
+import qualified Data.Text           as T
+import qualified Text.Pandoc         as P
+import qualified Text.Pandoc.Error   as P
+import qualified Text.Pandoc.Walk    as P
 
-compileEntry :: (?config :: Config) => Compiler (Item Entry)
+compileEntry
+    :: (?config :: Config)
+    => Compiler (Item Entry)
 compileEntry = do
     i         <- getUnderlying
     eBody     <- getResourceBody
@@ -69,10 +76,53 @@ compileEntry = do
                     P.HorizontalRule -> False
                     _                -> True
 
-entryMarkdownCompiler :: (?config :: Config) => Compiler (Item String)
+
+entryCompiler
+    :: (?config :: Config)
+    => LocalTime
+    -> [((Year, Month), Identifier)]
+    -> [(TagType, T.Text)]
+    -> Compiler (Item String)
+entryCompiler now histList allTags = do
+    i <- setVersion Nothing <$> getUnderlying
+    e@Entry{..} <- loadSnapshotBody i "entry"
+    let (befs,afts) = break ((/= i) . snd) histList
+        befId = listToMaybe (reverse befs)
+        aftId = listToMaybe (drop 1 afts)
+    eb <- mapM ((`loadSnapshotBody` "entry") . snd) befId
+    ea <- mapM ((`loadSnapshotBody` "entry") . snd) aftId
+    allTs <- mapM (uncurry fetchTag)
+           . filter (`elem` entryTags)
+           $ allTags
+    let ei = EI { eiEntry     = e
+                , eiTags      = allTs
+                , eiPrevEntry = eb
+                , eiNextEntry = ea
+                , eiNow       = now
+                }
+        pd = def { pageDataTitle   = Just entryTitle
+                 , pageDataType    = Just "article"
+                 , pageDataDesc    = Just $ entryLedeStripped e
+                 , pageDataCss     = [ "/css/page/entry.css"
+                                     , "/css/pygments.css"
+                                     ]
+                 , pageDataJs      = [ "/js/fay-runtime.min.js"
+                                     , "/js/page/entry.js"
+                                     , "/js/page/entry_toc.js"
+                                     , "/js/disqus.js"
+                                     , "/js/disqus_count.js"
+                                     , "/js/social.js"
+                                     , "/js/jquery/jquery.toc.js"
+                                     ]
+                 }
+    blazeCompiler pd (viewEntry ei)
+
+entryMarkdownCompiler
+    :: (?config :: Config)
+    => Compiler (Item String)
 entryMarkdownCompiler = do
     i <- setVersion Nothing <$> getUnderlying
-    Entry{..} <- itemBody <$> loadSnapshot i "entry"
+    Entry{..} <- loadSnapshotBody i "entry"
     let timeString = maybe T.empty ((" on " <>) . T.pack . renderShortFriendlyTime)
                    $ entryPostTime
     makeItem . T.unpack . T.unlines
@@ -91,10 +141,13 @@ entryMarkdownCompiler = do
         , entryContents
         ]
 
-entryLaTeXCompiler :: (?config :: Config) => String -> Compiler (Item String)
+entryLaTeXCompiler
+    :: (?config :: Config)
+    => String
+    -> Compiler (Item String)
 entryLaTeXCompiler templ = do
     i <- setVersion Nothing <$> getUnderlying
-    Entry{..} <- itemBody <$> loadSnapshot i "entry"
+    Entry{..} <- loadSnapshotBody i "entry"
     let eDate    = maybe T.empty (("% " <>) . T.pack . renderShortFriendlyTime)
                  $ entryPostTime
         mdHeader = T.unlines [ "% " <> entryTitle
@@ -130,6 +183,13 @@ entryLaTeXCompiler templ = do
     opts = entryWriterOpts { P.writerStandalone = True
                            , P.writerTemplate   = templ
                            }
+
+entryLedeStripped :: Entry -> T.Text
+entryLedeStripped = stripPandoc
+                  . P.handleError
+                  . P.readMarkdown entryReaderOpts
+                  . T.unpack
+                  . entryLede
 
 mkCanonical
     :: Maybe T.Text

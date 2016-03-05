@@ -4,9 +4,9 @@
 
 module Blog.Compiler.Home where
 
+-- import           Blog.Util
 import           Blog.Compiler.Tag
 import           Blog.Types
-import           Blog.Util
 import           Blog.View
 import           Blog.View.Home
 import           Data.Default
