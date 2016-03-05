@@ -1,25 +1,27 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE ImplicitParams    #-}
+{-# LANGUAGE MultiWayIf        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE TupleSections     #-}
 
--- import           Blog.View.Home
 -- import           Control.Applicative
 -- import           Data.Monoid
 -- import           Data.Time.Format
 -- import           Data.Traversable
--- import           Hakyll.Web.Blaze
 -- import           Text.Read              (readMaybe)
 -- import           Text.Sass
 -- import qualified Text.Pandoc            as P
 -- import qualified Text.Pandoc.Walk       as P
 import           Blog.Compiler.Entry
+import           Blog.Compiler.Home
 import           Blog.Compiler.Tag
 import           Blog.Rule.Archive
 import           Blog.Types
 import           Blog.Util
 import           Blog.View
 import           Blog.View.Feed
+import           Blog.View.Home
 import           Control.Exception
 import           Control.Monad
 import           Control.Monad.Trans.Maybe
@@ -31,6 +33,7 @@ import           Data.Ord
 import           Data.Time.Clock
 import           Data.Time.LocalTime
 import           Hakyll
+import           Hakyll.Web.Blaze
 import           Hakyll.Web.Redirect
 import           Hakyll.Web.Sass
 import           System.FilePath
@@ -70,6 +73,10 @@ main = do
         compile compressJsCompiler
 
       match "copy/tags/**" $ do
+        route   mempty
+        compile getResourceString
+
+      match "copy/static/**" $ do
         route   mempty
         compile getResourceString
 
@@ -133,6 +140,9 @@ main = do
                   (tagsAt "series")
                   ("copy/entries/*" .&&. hasNoVersion)
                   (fromFilePath . mkTagUrl SeriesTag)
+      let allTags = map ((GeneralTag ,) . T.pack . fst) (tagsMap tags)
+                 ++ map ((CategoryTag,) . T.pack . fst) (tagsMap cats)
+                 ++ map ((SeriesTag  ,) . T.pack . fst) (tagsMap sers)
 
       create ["tags"] $ do
         route idRoute
@@ -165,22 +175,14 @@ main = do
                    (mkHomePages (prefHomeEntries confBlogPrefs))
                    ("copy/entries/*" .&&. hasNoVersion)
                    (\i -> fromFilePath ("home" </> show i))
+      let allPages = M.keys $ paginateMap homePag
       paginateRules homePag $ \i p -> do
+        route   idRoute
+        compile $ homeCompiler allPages allTags i p
+
+      create ["home/index.html"] $ do
         route idRoute
-        compile $ do
-          contents <- map (fmap (T.unpack . entryLede))
-                        <$> loadAllSnapshots p "entry"
-          renders <- traverse (renderPandocWith entryReaderOpts entryWriterOpts)
-                       contents
-          render <- makeItem $ unlines (map itemBody renders)
-          if i == 1
-            then do
-              _ <- saveSnapshot "index" render
-              redirectCompiler (\_ -> renderUrl "/index.html")
-            else do
-              return render
-
-
+        compile $ redirectCompiler (\_ -> renderUrl "/index.html")
       create ["index.html"] $ do
         route idRoute
         compile $ do

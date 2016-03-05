@@ -5,18 +5,20 @@
 
 module Blog.Types where
 
+-- import           Hakyll
 import           Control.Applicative
 import           Control.Monad
 import           Data.Aeson
 import           Data.Binary.Orphans ()
 import           Data.Char
+import           Data.Default
 import           Data.Time.LocalTime
 import           Data.Typeable
 import           GHC.Generics
-import           Hakyll
 import qualified Data.Aeson.Types    as A
 import qualified Data.Binary         as B
 import qualified Data.Text           as T
+import qualified Text.Blaze.Html5    as H
 
 
 data Config = Config
@@ -68,6 +70,7 @@ data AuthorInfo = AuthorInfo
 data HostInfo = HostInfo
     { hostBase :: T.Text
     , hostPort :: Maybe Int
+    , hostRoot :: Maybe T.Text
     }
   deriving (Show, Generic)
 
@@ -148,7 +151,6 @@ instance B.Binary TagType
 data Entry = Entry
     { entryTitle      :: !T.Text
     , entryContents   :: !T.Text
-    , entryHTML       :: !T.Text
     , entryLede       :: !T.Text
     , entrySourceFile :: !FilePath
     , entryCreateTime :: !(Maybe LocalTime)
@@ -179,3 +181,25 @@ tagTypePrefix :: TagType -> T.Text
 tagTypePrefix GeneralTag  = "#"
 tagTypePrefix CategoryTag = "@"
 tagTypePrefix SeriesTag   = "+"
+
+data PageData = PD
+    { pageDataTitle     :: !(Maybe T.Text)
+    , pageDataDesc      :: !(Maybe T.Text)
+    , pageDataImage     :: !(Maybe FilePath)
+    , pageDataType      :: !(Maybe T.Text)
+    , pageDataCanonical :: !(Maybe FilePath)
+    , pageDataCss       :: ![T.Text]
+    , pageDataJs        :: ![T.Text]
+    , pageDataHeaders   :: ![H.Html]
+    }
+
+instance Default PageData where
+    def = PD { pageDataTitle     = Nothing
+             , pageDataDesc      = Nothing
+             , pageDataImage     = Nothing
+             , pageDataType      = Nothing
+             , pageDataCanonical = Nothing
+             , pageDataCss       = []
+             , pageDataJs        = []
+             , pageDataHeaders   = []
+             }

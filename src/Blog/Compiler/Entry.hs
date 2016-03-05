@@ -32,8 +32,7 @@ compileEntry = do
                           . take (prefLedeMax (confBlogPrefs ?config))
                           . takeWhile validLede
                           $ bs
-        eHtml       = T.pack <$> writePandocWith entryWriterOpts ePandoc
-        eLede       = T.pack <$> writePandocWith entryWriterOpts ePandocLede
+        eLede       = T.pack . P.writeMarkdown entryWriterOpts <$> ePandocLede
     eTitle    <- T.unwords . T.lines . T.pack <$> getMetadataField' i "title"
     eCreate   <- (parseETime =<<) <$> getMetadataField i "create-time"
     ePost     <- (parseETime =<<) <$> getMetadataField i "date"
@@ -49,7 +48,6 @@ compileEntry = do
 
     makeItem $ Entry { entryTitle      = eTitle
                      , entryContents   = itemBody eContents
-                     , entryHTML       = itemBody eHtml
                      , entryLede       = itemBody eLede
                      , entrySourceFile = toFilePath i
                      , entryCreateTime = eCreate

@@ -13,6 +13,13 @@ import qualified Text.Pandoc      as P
 renderShortFriendlyTime :: FormatTime t => t -> String
 renderShortFriendlyTime = formatTime defaultTimeLocale "%B %-e, %Y"
 
+renderFriendlyTime :: FormatTime t => t -> String
+renderFriendlyTime = formatTime defaultTimeLocale "%A %B %-e, %Y"
+
+renderDatetimeTime :: FormatTime t => t -> String
+renderDatetimeTime = formatTime defaultTimeLocale "%FT%XZ"
+
+
 parseETime :: ParseTime t => String -> Maybe t
 parseETime = parseTimeM True defaultTimeLocale "%Y/%m/%d %X"
 

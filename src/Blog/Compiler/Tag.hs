@@ -1,18 +1,23 @@
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ImplicitParams    #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 
 module Blog.Compiler.Tag where
 
 import           Blog.Types
 import           Blog.Util
--- import           Blog.View
+import           Blog.View
 import           Data.List
 import           Data.Maybe
 import           Data.Ord
 import           Data.String
 import           Hakyll
 import           System.FilePath
-import qualified Data.Text       as T
-import qualified Text.Pandoc     as P
+import           Text.Blaze.Html5            ((!))
+import qualified Data.Text                   as T
+import qualified Text.Blaze.Html5            as H
+import qualified Text.Blaze.Html5.Attributes as A
+import qualified Text.Pandoc                 as P
 
 tagCompiler :: TagType -> String -> Pattern -> Compiler (Item String)
 tagCompiler tt tLab p = do
@@ -32,8 +37,6 @@ compileTag tt tLab p = do
            . loadAll
            . fromString
            $ tagTypeDescPath tt </> genSlug' maxBound tLab <.> "md"
-    unsafeCompiler . putStrLn $ tagTypeDescPath tt </> genSlug' maxBound tLab <.> "md"
-    unsafeCompiler $ print tDesc
     tDescP <- mapM (readPandocWith entryReaderOpts) tDesc
 
     let tLab'   = T.pack tLab
@@ -51,6 +54,11 @@ compileTag tt tLab p = do
                    , tagDescription = tDescMd
                    , tagEntries     = entries
                    }
+
+fetchTag :: TagType -> T.Text -> Compiler Tag
+fetchTag tt tl = itemBody <$> loadSnapshot (fromFilePath turl) "tag"
+  where
+    turl = mkTagUrl tt $ T.unpack tl
 
 tagSlug :: Tag -> T.Text
 tagSlug = genSlug maxBound . tagLabel
@@ -98,3 +106,20 @@ plainDescription' t = fromMaybe (tagPrettyLabel t) (plainDescription t)
 
 filterTags :: TagType -> [Tag] -> [Tag]
 filterTags tt = filter ((== tt) . tagType)
+
+tagLi
+    :: (?config :: Config)
+    => Tag
+    -> H.Html
+tagLi t@Tag{..} = H.li $
+  H.a
+    ! A.href (fromString (renderUrl' (tagUrl t)))
+    ! A.class_ (tagLiClass t) $
+      H.toHtml $ tagPrettyLabel t
+
+tagLiClass :: Tag -> H.AttributeValue
+tagLiClass t = H.textValue $
+  case tagType t of
+    GeneralTag  -> "tag-a-tag"
+    CategoryTag -> "tag-a-category"
+    SeriesTag   -> "tag-a-series"

@@ -1,33 +1,40 @@
-{-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE ImplicitParams    #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 
 module Blog.View.Home where
 
+-- import qualified Text.Blaze.Internal      as H
 import           Blog.Compiler.Tag
 import           Blog.Types
+import           Blog.Util
 import           Blog.View
-import           Data.Foldable
+import           Blog.View.Social
+import           Control.Applicative
+import           Control.Monad
+import           Data.Monoid
+import           Data.String
 import           Text.Blaze.Html5            ((!))
 import qualified Data.Text                   as T
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
--- import qualified Text.Blaze.Internal         as H
 
 data HomeInfo = HI
-    { hiPageNum  :: Int
-    , hiPrevPage :: Maybe T.Text
-    , hiNextPage :: Maybe T.Text
-    , hiBanner   :: Maybe H.Html
-    , hiEntries  :: [HomeEntry]
-    , hiAllTags  :: [Tag]
+    { hiPageNum    :: Int
+    , hiPrevPage   :: Maybe FilePath
+    , hiNextPage   :: Maybe FilePath
+    , hiEntries    :: [HomeEntry]
+    , hiAllTags    :: [Tag]
+    , hiLinksCopy  :: String
+    , hiBannerCopy :: String
     }
+  deriving (Show)
 
 data HomeEntry = HE
     { heEntry :: Entry
-    , heLink  :: T.Text
     , heTags  :: [Tag]
     }
+  deriving (Show)
 
 viewHome :: (?config :: Config) => HomeInfo -> H.Html
 viewHome HI{..} =
@@ -37,7 +44,7 @@ viewHome HI{..} =
         H.section ! A.class_ "home-banner" $ do
           if hiPageNum == 1
             then
-              bannerCopy
+              copySection (confTitle ?config) (copyToHtml hiBannerCopy)
             else
               H.h1 ! A.class_ "home-banner-history" $
                 H.a ! A.href (H.textValue (renderUrl "/")) $
@@ -45,111 +52,90 @@ viewHome HI{..} =
 
           H.aside ! A.class_ "social-follows" $ do
             "Follow me on: " :: H.Html
-            socialFollowsHtml
+            viewSocialFollow
 
       H.div ! A.class_ "unit three-of-four" $
-        entryListHtml
+        entryList hiEntries hiPrevPage hiNextPage hiPageNum
 
       H.nav ! A.class_ "unit one-of-four home-sidebar" $ do
         H.div ! A.class_ "tile home-links" $
-          linksHtml
+          copyToHtml hiLinksCopy
         H.div ! A.class_ "tile home-tags" $
-          tagsHtml
-  where
-  -- bannerCopy <- viewCopyFile (siteDataTitle siteData) "copy/static/home-banner.md"
-    bannerCopy = mempty
-    socialFollowsHtml = mempty
-    entryListHtml = mempty
-    linksHtml = mempty
-    tagsHtml = mempty
-
-  -- pageDataMap' <- pageDataMap <$> ask
-  -- linksHtml <- viewLinks
-  -- tagsHtml <- viewTags
-  -- homeUrl <- renderUrl "/"
-  -- socialFollowsHtml <- viewSocialFollow
-  -- entryListHtml <- entryList eList pageDataMap' pageNum
+          viewTags hiAllTags
 
 
+entryList
+    :: (?config :: Config)
+    => [HomeEntry]
+    -> Maybe FilePath
+    -> Maybe FilePath
+    -> Int
+    -> H.Html
+entryList eList prevPage nextPage pageNum = do
+    H.div ! A.class_ "tile" $
+      H.h2 ! A.class_ "recent-header" $ do
+        "Recent Entries" :: H.Html
+        when (pageNum > 1) $ do
+          " (Page " :: H.Html
+          H.toHtml pageNum
+          ")" :: H.Html
 
+    H.ul $
+      forM_ eList $ \HE{..} -> do
+        let entryUrl   = T.pack $ renderUrl' (entryCanonical heEntry)
+            commentUrl = entryUrl <> "#disqus_thread"
+        H.li $
+          H.article ! A.class_ "tile" $ do
+            H.header $ do
+              forM_ (entryPostTime heEntry) $ \t ->
+                H.time
+                  ! A.datetime (H.textValue $ T.pack (renderDatetimeTime t))
+                  ! A.pubdate ""
+                  ! A.class_ "pubdate"
+                  $ H.toHtml (renderFriendlyTime t)
+              H.h3 $
+                H.a ! A.href (H.textValue entryUrl) $
+                  H.toHtml $ entryTitle heEntry
 
--- entryList :: [(KeyMapPair Entry,(T.Text,[Tag]))] -> PageDataMap -> Int -> SiteRender H.Html
--- entryList eList pageDataMap' pageNum = do
---   tz <- liftIO getCurrentTimeZone
+            H.div ! A.class_ "entry-lede copy-content" $ do
+              copyToHtml $ T.unpack (entryLede heEntry)
+              H.p $ do
+                H.a ! A.href (H.textValue entryUrl) ! A.class_ "link-readmore" $
+                  H.preEscapedToHtml
+                    ("Read more &hellip; " :: T.Text)
+                " " :: H.Html
+                H.a ! A.href (H.textValue commentUrl) ! A.class_ "link-comment" $
+                  "Comments"
 
---   return $ do
---     H.div ! A.class_ "tile" $
---       H.h2 ! A.class_ "recent-header" $ do
---         "Recent Entries" :: H.Html
---         when (pageNum > 1) $ do
---           " (Page " :: H.Html
---           H.toHtml pageNum
---           ")" :: H.Html
+            H.footer $
+              H.ul ! A.class_ "tag-list" $
+                mapM_ tagLi heTags
 
---     H.ul $
---       forM_ eList $ \((_,e),(u,ts)) -> do
---         let
---           commentUrl = T.append u "#disqus_thread"
---         H.li $
---           H.article ! A.class_ "tile" $ do
---             H.header $ do
---               Fo.forM_ (entryPostedAt e) $ \t ->
---                 H.time
---                   ! H.datetime (H.textValue $ T.pack $ renderDatetimeTime t)
---                   ! H.pubdate ""
---                   ! A.class_ "pubdate"
---                   $ H.toHtml $ renderFriendlyTime tz t
---               H.h3 $
---                 H.a ! A.href (H.textValue u) $
---                   H.toHtml $ entryTitle e
+    forM_ (prevPage <|> nextPage) $ \_ ->
+      H.footer ! A.class_ "tile home-footer" $
+        H.nav $ do
+          H.ul $ do
+            forM_ nextPage $ \nlink ->
+              H.li ! A.class_ "home-next" $
+                H.a ! A.href (fromString (renderUrl' nlink)) $
+                  H.preEscapedToHtml ("&larr; Older" :: T.Text)
 
---             H.div ! A.class_ "entry-lede copy-content" $ do
---               entryLedeHtml e
---               H.p $ do
---                 H.a ! A.href (H.textValue u) ! A.class_ "link-readmore" $
---                   H.preEscapedToHtml
---                     ("Read more &hellip; " :: T.Text)
---                 " " :: H.Html
---                 H.a ! A.href (H.textValue commentUrl) ! A.class_ "link-comment" $
---                   "Comments"
-
---             H.footer $
---               H.ul ! A.class_ "tag-list" $
---                 forM_ ts $ \t ->
---                   tagLi t
-
---     let
---       hasNextPrev = not $
---         null $ L.intersect ["nextPage","prevPage"] $ M.keys pageDataMap'
-
---     when hasNextPrev $
---       H.footer ! A.class_ "tile home-footer" $
---         H.nav $ do
---           H.ul $ do
---             Fo.forM_ (M.lookup "nextPage" pageDataMap') $ \nlink ->
---               H.li ! A.class_ "home-next" $
---                 H.a ! A.href (H.textValue nlink) $
---                   H.preEscapedToHtml ("&larr; Older" :: T.Text)
-
---             Fo.forM_ (M.lookup "prevPage" pageDataMap') $ \plink ->
---               H.li ! A.class_ "home-prev" $
---                 H.a ! A.href (H.textValue plink) $
---                   H.preEscapedToHtml ("Newer &rarr;" :: T.Text)
---           H.div ! A.class_ "clear" $ ""
-
--- viewLinks :: SiteRender H.Html
--- viewLinks = renderRawCopy "copy/static/home-links.md"
+            forM_ prevPage $ \plink ->
+              H.li ! A.class_ "home-prev" $
+                H.a ! A.href (fromString (renderUrl' plink)) $
+                  H.preEscapedToHtml ("Newer &rarr;" :: T.Text)
+          H.div ! A.class_ "clear" $ ""
 
 viewTags :: (?config :: Config) => [Tag] -> H.Html
 viewTags tags =
     H.ul $
-      forM_ tagLists $ \(heading,link,class_) ->
+      forM_ tagLists $ \(tt, heading,link,class_) ->
         H.li ! A.class_ class_ $ do
           H.h3 $
             H.a ! A.href (H.textValue $ renderUrl link) $
               heading
           H.ul $
-            forM_ tags $ \t ->
+            forM_ (filterTags tt tags) $ \t ->
               H.li $ do
                 H.a
                   ! A.href (H.textValue $ renderUrl (T.pack (tagUrl t)))
@@ -161,5 +147,5 @@ viewTags tags =
                   H.toHtml (show (length (tagEntries t)))
                   ")" :: H.Html
   where
-    tagLists = [("Topics", "/categories","home-category-list")
-               ,("Tags"  , "/tags"      ,"home-tags-list"    )]
+    tagLists = [(CategoryTag, "Topics", "/categories","home-category-list")
+               ,(GeneralTag , "Tags"  , "/tags"      ,"home-tags-list"    )]
