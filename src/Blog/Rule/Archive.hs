@@ -4,8 +4,6 @@
 
 module Blog.Rule.Archive where
 
--- import           Data.Foldable
--- import           Data.Traversable
 import           Blog.Types
 import           Blog.Util
 import           Control.Monad

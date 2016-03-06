@@ -7,6 +7,7 @@ module Blog.Compiler.Entry where
 
 import           Blog.Types
 import           Blog.Util
+import           Blog.Util.Preprocessor
 import           Blog.Util.Tag
 import           Blog.View
 import           Blog.View.Entry
@@ -21,18 +22,20 @@ import           Data.Time.LocalTime
 import           Hakyll
 import           Hakyll.Web.Blaze
 import           System.FilePath
-import           Text.Read           (readMaybe)
-import qualified Data.Text           as T
-import qualified Text.Pandoc         as P
-import qualified Text.Pandoc.Error   as P
-import qualified Text.Pandoc.Walk    as P
+import           Text.Read              (readMaybe)
+import qualified Data.Text              as T
+import qualified Text.Pandoc            as P
+import qualified Text.Pandoc.Error      as P
+import qualified Text.Pandoc.Walk       as P
 
 compileEntry
     :: (?config :: Config)
     => Compiler (Item Entry)
 compileEntry = do
     i         <- getUnderlying
-    eBody     <- getResourceBody
+    eRawBody  <- getResourceBody
+    eBody     <- fmap T.unpack
+             <$> traverse (preprocessEntry . T.pack) eRawBody
     ePandoc   <- readPandocWith entryReaderOpts eBody
     let eContents   = T.pack . P.writeMarkdown entryWriterOpts <$> ePandoc
         ePandocLede = flip fmap ePandoc $ \(P.Pandoc m bs) ->

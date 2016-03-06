@@ -26,6 +26,7 @@ library
                        Blog.Types
                        Blog.Util
                        Blog.Util.Tag
+                       Blog.Util.Preprocessor
                        Blog.View
                        Blog.View.Archive
                        Blog.View.Entry
@@ -50,6 +51,7 @@ library
                      , neat-interpolation
                      , pandoc
                      , pandoc-types
+                     , parsec
                      , text
                      , time
                      , xml

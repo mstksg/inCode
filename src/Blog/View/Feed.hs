@@ -4,7 +4,6 @@
 
 module Blog.View.Feed where
 
--- import           Hakyll
 import           Blog.Types
 import           Blog.View
 import           Data.Maybe

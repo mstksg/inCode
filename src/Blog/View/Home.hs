@@ -4,7 +4,6 @@
 
 module Blog.View.Home where
 
-import           Blog.Compiler.Tag
 import           Blog.Compiler.Entry
 import           Blog.Types
 import           Blog.Util

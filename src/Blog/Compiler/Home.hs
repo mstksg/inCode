@@ -4,9 +4,7 @@
 
 module Blog.Compiler.Home where
 
--- import           Data.Traversable
 import           Blog.Compiler.Entry
-import           Blog.Compiler.Tag
 import           Blog.Types
 import           Blog.Util.Tag
 import           Blog.View
@@ -15,7 +13,7 @@ import           Data.Default
 import           Hakyll
 import           Hakyll.Web.Blaze
 import           Hakyll.Web.Redirect
-import qualified Data.Text           as T
+import qualified Data.Text            as T
 
 homeCompiler
     :: (?config :: Config)

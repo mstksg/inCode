@@ -2,9 +2,6 @@
 
 module Blog.Util where
 
--- import           Blog.Types
--- import qualified Text.Blaze.Html5  as H
--- import qualified Text.Pandoc.Error as P
 import           Data.Char
 import           Data.Default
 import           Data.Time.Format

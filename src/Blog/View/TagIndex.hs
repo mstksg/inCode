@@ -4,24 +4,14 @@
 
 module Blog.View.TagIndex where
 
--- import           Blog.Compiler.Tag
--- import           Blog.View.Social
--- import           Control.Applicative
--- import           Control.Arrow            ((&&&))
--- import           Data.Foldable
--- import           Data.Function
 import           Blog.Types
 import           Blog.Util
 import           Blog.Util.Tag
 import           Blog.View
 import           Blog.View.Archive
 import           Control.Monad
-import           Data.List
-import           Data.Monoid
 import           Data.String
-import           System.FilePath
 import           Text.Blaze.Html5            ((!))
-import qualified Data.Map                    as M
 import qualified Data.Text                   as T
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
@@ -66,7 +56,7 @@ tagIndexLi
     -> Maybe Entry
     -> H.Html
 tagIndexLi tt t@Tag{..} recent =
-    H.li $
+    H.li ! A.class_ liClass $
       case tt of
         GeneralTag ->
           H.a ! A.href (H.textValue $ renderUrl (T.pack (tagUrl t)))
@@ -93,7 +83,7 @@ tagIndexLi tt t@Tag{..} recent =
             sequence_ (htmlDescription t)
 
           H.footer $
-            forM_ recent $ \e@Entry{..} -> do
+            forM_ recent $ \Entry{..} -> do
               H.div $ do
                 H.span ! A.class_ "recent-link" $ do
                   H.preEscapedToHtml ("Most recent &mdash; " :: T.Text)
