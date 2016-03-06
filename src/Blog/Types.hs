@@ -9,9 +9,6 @@
 
 module Blog.Types where
 
--- import           Hakyll
--- import qualified Text.Pandoc       as P
--- import qualified Text.Pandoc.Error as P
 import           Control.Applicative
 import           Control.Monad
 import           Data.Aeson
@@ -35,6 +32,7 @@ data Config = Config
     , confCopyright     :: !T.Text
     , confFeed          :: !T.Text
     , confBlobs         :: !(Maybe T.Text)
+    , confCodeSamples   :: !(Maybe T.Text)
     , confInteractive   :: !(Maybe T.Text)
     , confHostInfo      :: !HostInfo
     , confDeveloperAPIs :: !DeveloperAPIs
@@ -51,6 +49,7 @@ instance FromJSON Config where
       confCopyright    <- v .: "copyright"
       confFeed         <- v .: "feed"
       confBlobs        <- v .:? "public-blobs"
+      confCodeSamples  <- v .:? "code-samples"
       confInteractive  <- v .:? "interactive-url"
       confHostInfo     <- v .: "host"
       confDeveloperAPIs <- v .: "developer-apis"

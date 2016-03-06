@@ -5,9 +5,6 @@
 
 module Blog.View where
 
--- import           Data.Foldable
--- import           Data.String
--- import qualified Text.Blaze.Internal      as H
 import           Blog.Types
 import           Blog.Util
 import           Data.List

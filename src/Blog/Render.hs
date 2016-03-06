@@ -4,11 +4,6 @@
 
 module Blog.Render where
 
--- import           Blog.Util
--- import           System.FilePath
--- import qualified Text.Blaze.Internal      as H
--- import qualified Text.Pandoc              as P
--- import qualified Text.Pandoc.Error        as P
 import           Blog.Types
 import           Blog.View
 import           Blog.View.Social

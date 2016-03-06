@@ -8,20 +8,14 @@ import           Blog.Compiler.Archive
 import           Blog.Types
 import           Blog.Util
 import           Blog.Util.Tag
-import           Blog.View
-import           Data.Char
 import           Data.List
 import           Data.Maybe
 import           Data.Ord
 import           Data.String
 import           Hakyll
 import           System.FilePath
-import           Text.Blaze.Html5            ((!))
-import qualified Data.Text                   as T
-import qualified Text.Blaze.Html5            as H
-import qualified Text.Blaze.Html5.Attributes as A
-import qualified Text.Pandoc                 as P
-import qualified Text.Pandoc.Error           as P
+import qualified Data.Text                      as T
+import qualified Text.Pandoc                    as P
 
 tagCompiler
     :: (?config :: Config)

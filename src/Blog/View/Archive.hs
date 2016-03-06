@@ -5,11 +5,6 @@
 
 module Blog.View.Archive where
 
--- import           Blog.View.Social
--- import           Control.Applicative
--- import           Control.Arrow            ((&&&))
--- import           Data.Foldable
--- import           Data.Function
 import           Blog.Compiler.Entry
 import           Blog.Types
 import           Blog.Util
@@ -65,7 +60,7 @@ viewArchive AI{..} = do
     archiveList = case aiData of
                     ADAll        es -> viewArchiveByYears es
                     ADYear   y   es -> viewArchiveByMonths True y es
-                    ADMonth  y m es -> viewArchiveFlat True es
+                    ADMonth  _ _ es -> viewArchiveFlat True es
                     ADTagged t   es -> viewArchiveFlat True . flip map es $ \case
                                          TE e ts -> TE e . flip filter ts $ \t' ->
                                            not ( tagLabel t == tagLabel t'

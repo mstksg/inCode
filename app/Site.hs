@@ -5,9 +5,6 @@
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TupleSections     #-}
 
--- import           Blog.View.Home
--- import           Data.Time.Clock
--- import           Hakyll.Web.Blaze
 import           Blog.Compiler.Archive
 import           Blog.Compiler.Entry
 import           Blog.Compiler.Home
@@ -18,7 +15,6 @@ import           Blog.Types
 import           Blog.Util
 import           Blog.Util.Tag
 import           Blog.View
-import           Blog.View.Archive
 import           Blog.View.Feed
 import           Control.Exception
 import           Control.Monad
@@ -61,7 +57,7 @@ main = do
 
       match "scss/**" $ do
         route   $ gsubRoute "scss" (\_ -> "css")
-        compile $ sassCompilerWith def{ sassIncludePaths = Just ["scss"] }
+        compile $ sassCompilerWith def { sassIncludePaths = Just ["scss"] }
 
       match "js/**" $ do
         route   idRoute
@@ -74,6 +70,13 @@ main = do
       match "copy/static/**" $ do
         route   mempty
         compile getResourceString
+
+      forM_ confCodeSamples $ \samplesDir -> do
+        let pat = fromGlob $ T.unpack samplesDir </> "**"
+        match pat $ do
+          route   mempty
+          compile getResourceString
+
 
       match "copy/entries/*" $ do
         route   mempty
