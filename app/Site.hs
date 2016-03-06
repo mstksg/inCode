@@ -72,7 +72,7 @@ main = do
         compile getResourceString
 
       forM_ confCodeSamples $ \samplesDir -> do
-        let pat = fromGlob $ T.unpack samplesDir </> "**"
+        let pat = fromGlob $ T.unpack samplesDir </> "**.hs"
         match pat $ do
           route   mempty
           compile getResourceString
