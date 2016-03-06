@@ -44,8 +44,6 @@ main = do
                 =<< Y.decodeFileEither "config/site-data.yaml"
     let ?config = c
 
-    lTempl <- readFile "latex/templates/default.latex"
-
     hakyll $ do
       match "static/**" $ do
         route   $ gsubRoute "static/" (\_ -> "")
@@ -71,6 +69,10 @@ main = do
         route   mempty
         compile getResourceString
 
+      match "latex/templates/*" $ do
+        route   mempty
+        compile getResourceString
+
       forM_ confCodeSamples $ \samplesDir -> do
         let pat = fromGlob $ T.unpack samplesDir </> "**.hs"
         match pat $ do
@@ -89,7 +91,7 @@ main = do
         compile entryMarkdownCompiler
       match "copy/entries/*" . version "latex" $ do
         route   $ routeEntry `composeRoutes` setExtension "tex"
-        compile $ entryLaTeXCompiler lTempl
+        compile entryLaTeXCompiler
 
       match "copy/entries/*" . version "id-html" $ do
         route   routeIdEntry

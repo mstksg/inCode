@@ -147,9 +147,13 @@ entryMarkdownCompiler = do
 
 entryLaTeXCompiler
     :: (?config :: Config)
-    => String
-    -> Compiler (Item String)
-entryLaTeXCompiler templ = do
+    => Compiler (Item String)
+entryLaTeXCompiler = do
+    templ <- loadBody "latex/templates/default.latex"
+    let opts = entryWriterOpts { P.writerStandalone = True
+                               , P.writerTemplate   = templ
+                               }
+
     i <- setVersion Nothing <$> getUnderlying
     Entry{..} <- loadSnapshotBody i "entry"
     let eDate    = maybe T.empty (("% " <>) . T.pack . renderShortFriendlyTime)
@@ -169,12 +173,12 @@ entryLaTeXCompiler templ = do
                              , entryContents
                              ]
     body <- makeItem $ T.unpack mdHeader
-    fmap toTex <$> readPandocWith entryReaderOpts body
+    fmap (toTex opts) <$> readPandocWith entryReaderOpts body
   where
-    toTex :: P.Pandoc -> String
-    toTex = P.writeLaTeX opts
-          . P.walk upgrade
-          . P.bottomUp stripRules
+    toTex :: P.WriterOptions -> P.Pandoc -> String
+    toTex opts = P.writeLaTeX opts
+               . P.walk upgrade
+               . P.bottomUp stripRules
     stripRules P.HorizontalRule = P.Null
     stripRules other = other
     upgrade p = case p of
@@ -184,9 +188,6 @@ entryLaTeXCompiler templ = do
                       -> P.Div di (P.HorizontalRule : xs ++ [P.HorizontalRule])
                   _
                       -> p
-    opts = entryWriterOpts { P.writerStandalone = True
-                           , P.writerTemplate   = templ
-                           }
 
 entryLedeStripped :: Entry -> T.Text
 entryLedeStripped = stripPandoc

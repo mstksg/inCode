@@ -6,18 +6,15 @@
 module Blog.Util.Preprocessor where
 
 import           Blog.Types
-import           Control.Arrow     ((&&&))
+import           Control.Arrow    ((&&&))
 import           Control.Monad
-import           Data.Maybe        (fromMaybe, listToMaybe)
-import           Control.Monad.Error.Class
+import           Data.Maybe       (fromMaybe, listToMaybe)
 import           Hakyll
-import           System.FilePath   ((</>))
+import           System.FilePath  ((</>))
 import           System.IO.Error
 import           Text.Parsec
 import           Text.Parsec.Text
-import qualified Control.Exception as E
-import qualified Data.Text         as T
-import qualified Data.Text.IO      as T
+import qualified Data.Text        as T
 
 data SampleSpec = SampleSpec  { sFile      :: FilePath
                               , sLive      :: Maybe String
