@@ -1,22 +1,15 @@
-Practical Fun with Monads --- Introducing: MonadPlus!
-=====================================================
-
-Categories
-:   Haskell
-:   Ramblings
-Tags
-:   functional programming
-:   haskell
-:   monads
-Series
-:   MonadPlus: Success/Failure Monads
-:   Practical Monads
-CreateTime
-:   2013/12/04 21:43:34
-PostDate
-:   2013/12/09 10:09:26
-Identifier
-:   monad-plus-1
+---
+title: Practical Fun with Monads --- Introducing: MonadPlus!
+categories: Haskell, Ramblings
+tags: functional programming, haskell, monads
+series: MonadPlus: Success/Failure Monads, Practical Monads
+create-time: 2013/12/04 21:43:34
+date: 2013/12/09 10:09:26
+identifier: monad-plus-1
+slug: practical-fun-with-monads-introducing-monadplus
+old-slugs: practical-fun-with-monads-monadplus-the-success-failure-1
+entry-id: 12
+---
 
 Monads.  Haskell's famous for them, but they are one of the most
 ill-understood concepts to the public.  They are mostly shrouded in mystery

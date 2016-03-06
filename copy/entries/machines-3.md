@@ -1,22 +1,15 @@
-Effectful, Recursive, Real-World Autos: Intro to Machine/Auto Part 3
-====================================================================
-
-Categories
-:   Haskell
-:   Ramblings
-Tags
-:   arrows
-:   auto-machines
-:   haskell
-:   machines
-CreateTime
-:   2014/07/21 21:28:28
-PostDate
-:   2015/02/09 10:19:03
-Series
-:   Intro to Machines and Arrows
-Identifier
-:   machines-3
+---
+title: Effectful, Recursive, Real-World Autos: Intro to Machine/Auto Part 3
+categories: Haskell, Ramblings
+tags: arrows, auto-machines, haskell, machines
+create-time: 2014/07/21 21:28:28
+date: 2015/02/09 10:19:03
+series: Intro to Machines and Arrows
+identifier: machines-3
+slug: effectful-recursive-real-world-autos-intro-to-machine
+old-slugs: effectful-arrows-intro-to-machines-and-arrow-part, effectful-recursive-and-real-world-autos-intro-to, from-auto-to-wire-continuous-time-intro-to, going-kleisli-intro-to-machines-and-arrow-part
+entry-id: 28
+---
 
 Hi! I have to apologize a bit for the long delay; starting grad school and
 things like that have made me have to scramble to adjust to the new life.  But

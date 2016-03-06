@@ -1,18 +1,14 @@
-Looking forward: A Doctorate Program
-====================================
-
-Categories
-:   Personal
-Tags
-:   education
-:   chapman
-:   doctorate
-CreateTime
-:   2014/05/28 23:50:48
-PostDate
-:   2014/06/02 12:11:35
-Identifier
-:   chapman
+---
+title: Looking forward: A Doctorate Program
+categories: Personal
+tags: education, chapman, doctorate
+create-time: 2014/05/28 23:50:48
+date: 2014/06/02 12:11:35
+identifier: chapman
+slug: looking-forward-a-doctorate-program
+old-slugs: 
+entry-id: 26
+---
 
 So a bit of some personal news (which you can safely ignore if you're not
 interested in my personal life!) --- I'm excited to announce that I have

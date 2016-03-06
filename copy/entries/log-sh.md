@@ -1,20 +1,14 @@
-log.sh: Lightweight Command Line Note & Logging
-===============================================
-
-Categories
-:   Projects
-Tags
-:   shell scripting
-:   utilities
-:   unix
-:   bash
-:   command line
-CreateTime
-:   2013/10/11 23:50:30
-PostDate
-:   2013/10/15 10:53:48
-Identifier
-:   log-sh
+---
+title: log.sh: Lightweight Command Line Note & Logging
+categories: Projects
+tags: shell scripting, utilities, unix, bash, command line
+create-time: 2013/10/11 23:50:30
+date: 2013/10/15 10:53:48
+identifier: log-sh
+slug: log-sh-lightweight-command-line-note-logging
+old-slugs: lightweight-command-line-note-logging-script
+entry-id: 8
+---
 
 What do you use to send off quick one-off notes and logs about a project you
 are working on?  Found a nice link to a resource you'll want to look up

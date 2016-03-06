@@ -1,19 +1,15 @@
-The Hamster Hotel: An Introduction to Control Theory (Part 2)
-=============================================================
-
-Categories
-:   Engineering
-:   Ramblings
-Tags
-:   control theory
-Series
-:   Introduction to Control Theory
-CreateTime
-:   2013/09/17 15:35:42
-PostDate
-:   2013/10/01 11:47:41
-Identifier
-:   control-intro-2
+---
+title: The Hamster Hotel: An Introduction to Control Theory (Part 2)
+categories: Engineering, Ramblings
+tags: control theory
+series: Introduction to Control Theory
+create-time: 2013/09/17 15:35:42
+date: 2013/10/01 11:47:41
+identifier: control-intro-2
+slug: the-hamster-hotel-an-introduction-to-control-theory-2
+old-slugs: the-hamster-hotel-an-introduction-to-control-theory-1
+entry-id: 7
+---
 
 As we left it off in [part 1][part1], our elevator is still in trouble.  You
 have an elevator for your humble hotel that consists of a plate being pushed

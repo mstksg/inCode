@@ -1,22 +1,15 @@
-Auto as Category, Applicative & Arrow (Intro to Machines/Arrows Part 2)
-=======================================================================
-
-Categories
-:   Haskell
-:   Ramblings
-Tags
-:   arrows
-:   auto-machines
-:   haskell
-:   machines
-CreateTime
-:   2014/02/04 21:18:53
-PostDate
-:   2014/07/14 10:13:43
-Series
-:   Intro to Machines and Arrows
-Identifier
-:   machines-2
+---
+title: Auto as Category, Applicative & Arrow (Intro to Machines/Arrows Part 2)
+categories: Haskell, Ramblings
+tags: arrows, auto-machines, haskell, machines
+create-time: 2014/02/04 21:18:53
+date: 2014/07/14 10:13:43
+series: Intro to Machines and Arrows
+identifier: machines-2
+slug: auto-as-category-applicative-arrow-intro-to-machines
+old-slugs: intro-to-machines-arrows-category-and-arrow-typeclasses, intro-to-machines-arrows-the-category-typeclass-part
+entry-id: 20
+---
 
 Welcome back!  It's been a while since the last post, admittedly; sorry!  In
 this post we'll be continuing on from [the previous post][part1].  In

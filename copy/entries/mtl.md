@@ -1,20 +1,15 @@
-mtl is Not a Monad Transformer Library
-======================================
-
-Categories
-:   Haskell
-:   Ramblings
-Tags
-:   functional programming
-:   haskell
-Series
-:   Haskell Mythbusters
-CreateTime
-:   2014/10/19 03:50:57
-PostDate
-:   2015/05/18 10:07:36
-Identifier
-:   mtl
+---
+title: mtl is Not a Monad Transformer Library
+categories: Haskell, Ramblings
+tags: functional programming, haskell
+series: Haskell Mythbusters
+create-time: 2014/10/19 03:50:57
+date: 2015/05/18 10:07:36
+identifier: mtl
+slug: mtl-is-not-a-monad-transformer-library
+old-slugs: mtl-is-not-a-transformer-library
+entry-id: 29
+---
 
 *mtl* is not a monad transformer library --- contrary to popular conception.
 I believe that this commonly spread myth is due in part to some rather

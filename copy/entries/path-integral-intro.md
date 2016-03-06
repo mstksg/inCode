@@ -1,20 +1,15 @@
-A Brief Primer on Classical and Quantum Mechanics for Numerical Techniques
-==========================================================================
-
-Categories
-:   Physics
-:   Computation
-Tags
-:   physics
-:   numerical methods
-Series
-:   Path Integral Monte Carlo
-CreateTime
-:   2013/11/19 22:05:34
-PostDate
-:   2013/11/29 16:32:12
-Identifier
-:   path-integral-intro
+---
+title: A Brief Primer on Classical and Quantum Mechanics for Numerical Techniques
+categories: Physics, Computation
+tags: physics, numerical methods
+series: Path Integral Monte Carlo
+create-time: 2013/11/19 22:05:34
+date: 2013/11/29 16:32:12
+identifier: path-integral-intro
+slug: a-brief-primer-on-classical-and-quantum-mechanics
+old-slugs: numeric-techniques-quantum-mechanics-the-feynman-path-integral, numerical-techniques-a-brief-primer-on-path-integral, numerical-techniques-brief-primer-on-classical-and-quantum, the-numeric-quantum-mechanical-feynman-path-integral-problem, the-quantum-mechanical-feynman-path-integral-problem
+entry-id: 9
+---
 
 Okay!  In this series we will be going over many subjects in both physics and
 computational techniques, including the Lagrangian formulation of classical

@@ -1,21 +1,15 @@
-Pipes: Streaming Huffman Compression in Haskell (Part 3)
-========================================================
-
-Categories
-:   Haskell
-:   Tutorials
-Tags
-:   haskell
-:   pipes
-CreateTime
-:   2014/04/12 19:06:07
-PostDate
-:   2014/06/26 12:44:11
-Series
-:   Huffman Compression
-:   Beginner/Intermediate Haskell Projects
-Identifier
-:   huffman-3
+---
+title: Pipes: Streaming Huffman Compression in Haskell (Part 3)
+categories: Haskell, Tutorials
+tags: haskell, pipes
+create-time: 2014/04/12 19:06:07
+date: 2014/06/26 12:44:11
+series: Huffman Compression, Beginner/Intermediate Haskell Projects
+identifier: huffman-3
+slug: pipes-streaming-huffman-compression-in-haskell-part-3
+old-slugs: 
+entry-id: 24
+---
 
 Let's finally finish up our Streaming Huffman Compression project by actually
 implementing the "streaming" part :)  In [part 1][] we looked at the data

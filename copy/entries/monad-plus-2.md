@@ -1,22 +1,15 @@
-The List MonadPlus --- Practical Fun with Monads (Part 2 of 3)
-==============================================================
-
-Categories
-:   Haskell
-:   Ramblings
-Tags
-:   functional programming
-:   haskell
-:   monads
-Series
-:   MonadPlus: Success/Failure Monads
-:   Practical Monads
-CreateTime
-:   2013/12/11 21:29:37
-PostDate
-:   2013/12/18 11:08:38
-Identifier
-:   monad-plus-2
+---
+title: The List MonadPlus --- Practical Fun with Monads (Part 2 of 3)
+categories: Haskell, Ramblings
+tags: functional programming, haskell, monads
+series: MonadPlus: Success/Failure Monads, Practical Monads
+create-time: 2013/12/11 21:29:37
+date: 2013/12/18 11:08:38
+identifier: monad-plus-2
+slug: the-list-monadplus-practical-fun-with-monads-part
+old-slugs: practical-fun-with-monads-monadplus-the-success-failure, practical-fun-with-monads-the-list-monadplus, practical-fun-with-monads-the-list-monadplus-part
+entry-id: 11
+---
 
 Part two of an exploration of a very useful design pattern in Haskell known as
 MonadPlus, a part of an effort to make "practical" monads less of a mystery

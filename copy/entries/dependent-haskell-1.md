@@ -1,22 +1,11 @@
-Practical Dependent Types in Haskell: Type-Safe Neural Networks
-===============================================================
-
-Categories
-:   Haskell
-:   Ramblings
-Tags
-:   functional programming
-:   depedent types
-:   numerical
-:   haskell
-:   singletons
-:   types
-CreateTime
-:   2016/02/25 11:47:50
-PostDate
-:   Never
-Identifier
-:   dependent-haskell-1
+---
+title: Practical Dependent Types in Haskell: Type-Safe Neural Networks
+categories: Haskell, Ramblings
+tags: functional programming, depedent types, numerical, haskell, singletons, types
+create-time: 2016/02/25 11:47:50
+date: Never
+identifier: dependent-haskell-1
+---
 
 Whether you like it or not, programming with dependent types in Haskell moving
 slowly but steadily to the mainstream of Haskell programming.  In the current

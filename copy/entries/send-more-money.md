@@ -1,18 +1,14 @@
-Unique sample drawing & searches with List and StateT --- "Send more money"
-===========================================================================
-
-Categories
-:   Haskell
-:   Tutorials
-Tags
-:   haskell
-:   monads
-CreateTime
-:   2015/04/24 01:57:56
-PostDate
-:   2015/04/24 11:05:56
-Identifier
-:   send-more-money
+---
+title: Unique sample drawing & searches with List and StateT --- "Send more money"
+categories: Haskell, Tutorials
+tags: haskell, monads
+create-time: 2015/04/24 01:57:56
+date: 2015/04/24 11:05:56
+identifier: send-more-money
+slug: unique-sample-drawing-searches-with-list-and-statet
+old-slugs: 
+entry-id: 37
+---
 
 Nothing too crazy today, just a cute (basic/intermediate) haskell trick as a
 response to Mark Dominus's excellent [Universe of Discourse][] post on [Easy

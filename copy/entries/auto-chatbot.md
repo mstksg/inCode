@@ -1,22 +1,15 @@
-Auto: Building a Declarative Chatbot with Implicit Serialization
-================================================================
-
-Categories
-:   Haskell
-:   Auto
-:   Tutorials
-Tags
-:   auto
-:   haskell
-CreateTime
-:   2015/03/24 18:02:54
-PostDate
-:   2015/03/25 10:20:17
-Series
-:   All About Auto
-:   Beginner/Intermediate Haskell Projects
-Identifier
-:   auto-chatbot
+---
+title: Auto: Building a Declarative Chatbot with Implicit Serialization
+categories: Haskell, Auto, Tutorials
+tags: auto, haskell
+create-time: 2015/03/24 18:02:54
+date: 2015/03/25 10:20:17
+series: All About Auto, Beginner/Intermediate Haskell Projects
+identifier: auto-chatbot
+slug: auto-building-a-declarative-chatbot-with-implicit-serialization
+old-slugs: auto-building-a-declarative-chat-bot-with-implicit
+entry-id: 35
+---
 
 Today we're going to continue along with the [All About Auto][series]
 introduction series and look at building a declarative chatbot using the

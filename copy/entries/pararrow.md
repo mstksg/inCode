@@ -1,20 +1,14 @@
-A (Dead End?) Arrowized Dataflow Parallelism Interface Attempt
-==============================================================
-
-Categories
-:   Haskell
-:   Ramblings
-:   Projects
-Tags
-:   haskell
-:   parallelism
-:   arrows
-CreateTime
-:   2014/03/29 02:37:56
-PostDate
-:   2014/04/03 11:35:01
-Identifier
-:   pararrow
+---
+title: A (Dead End?) Arrowized Dataflow Parallelism Interface Attempt
+categories: Haskell, Ramblings, Projects
+tags: haskell, parallelism, arrows
+create-time: 2014/03/29 02:37:56
+date: 2014/04/03 11:35:01
+identifier: pararrow
+slug: a-dead-end-arrowized-dataflow-parallelism-interface-attempt
+old-slugs: a-dead-end-arrowized-dataflow-parallelism-interface, a-semi-dead-end-arrowized-dataflow-parallelism-interface, a-semi-failed-project-an-arrow-based-data, a-semi-failed-project-an-arrow-based-dataflow, an-semi-dead-end-arrowized-dataflow-parallelism-interface, an-semi-failed-arrow-based-dataflow-parallelism-interface
+entry-id: 22
+---
 
 So I've been having several 'dead end' projects in Haskell recently that I've
 sort of just scrapped and move from, but I decided that it might be nice to

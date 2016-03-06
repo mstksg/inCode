@@ -1,17 +1,14 @@
-Blog engine updates: Markdown Preprocessor & Fay Scripts
-========================================================
-
-Categories
-:   Meta
-Tags
-:   fay
-:   haskell
-CreateTime
-:   2014/01/27 11:12:21
-PostDate
-:   2014/01/27 01:03:38
-Identifier
-:   blog-pp-fay
+---
+title: Blog engine updates: Markdown Preprocessor & Fay Scripts
+categories: Meta
+tags: fay, haskell
+create-time: 2014/01/27 11:12:21
+date: 2014/01/27 01:03:38
+identifier: blog-pp-fay
+slug: blog-engine-updates-markdown-preprocessor-fay-scripts
+old-slugs: blog-engine-updates-a-markdown-preprocessor-and-simple
+entry-id: 19
+---
 
 I spent some time over the past week writing a preprocessor for the entry copy
 markdowns and getting Fay to deploy some simple scripts.

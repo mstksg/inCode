@@ -1,21 +1,15 @@
-Streaming Huffman Compression in Haskell (Part 1: Trees and State)
-==================================================================
-
-Categories
-:   Haskell
-:   Tutorials
-Tags
-:   haskell
-:   monads
-CreateTime
-:   2014/03/19 01:25:50
-PostDate
-:   2014/03/31 10:13:44
-Series
-:   Huffman Compression
-:   Beginner/Intermediate Haskell Projects
-Identifier
-:   huffman-1
+---
+title: Streaming Huffman Compression in Haskell (Part 1: Trees and State)
+categories: Haskell, Tutorials
+tags: haskell, monads
+create-time: 2014/03/19 01:25:50
+date: 2014/03/31 10:13:44
+series: Huffman Compression, Beginner/Intermediate Haskell Projects
+identifier: huffman-1
+slug: streaming-huffman-compression-in-haskell-part-1-trees
+old-slugs: implementing-huffman-compression-encoding-in-haskell, streaming-huffman-compression-in-haskell, streaming-huffman-compression-in-haskell-part-1
+entry-id: 21
+---
 
 So you're learning Haskell and are looking for some projects that aren't super
 trivial, are familiar enough that you can use what you already know, and are

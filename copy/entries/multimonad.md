@@ -1,20 +1,14 @@
-A Non-Unique Monad Instance
-===========================
-
-Categories
-:   Haskell
-:   Projects
-Tags
-:   haskell
-:   functional programming
-:   monads
-:   algebra
-CreateTime
-:   2015/01/18 20:29:30
-PostDate
-:   2015/01/28 10:36:34
-Identifier
-:   multimonad
+---
+title: A Non-Unique Monad Instance
+categories: Haskell, Projects
+tags: haskell, functional programming, monads, algebra
+create-time: 2015/01/18 20:29:30
+date: 2015/01/28 10:36:34
+identifier: multimonad
+slug: a-non-unique-monad-instance
+old-slugs: 
+entry-id: 30
+---
 
 Just stopping in for a short post before continuing with a long-overdue series
 or two :)  This post is a bit of a short fun one that describes a quest I had,

@@ -1,23 +1,15 @@
-Intro to Machines & Arrows (Part 1: Stream and Auto)
-====================================================
-
-Categories
-:   Haskell
-:   Ramblings
-Tags
-:   arrows
-:   auto-machines
-:   functional reactive programming
-:   haskell
-:   machines
-CreateTime
-:   2014/01/19 22:55:57
-PostDate
-:   2014/02/03 09:13:28
-Series
-:   Intro to Machines and Arrows
-Identifier
-:   machines-1
+---
+title: Intro to Machines & Arrows (Part 1: Stream and Auto)
+categories: Haskell, Ramblings
+tags: arrows, auto-machines, functional reactive programming, haskell, machines
+create-time: 2014/01/19 22:55:57
+date: 2014/02/03 09:13:28
+series: Intro to Machines and Arrows
+identifier: machines-1
+slug: intro-to-machines-arrows-part-1-stream-and
+old-slugs: intro-to-machines-arrows-part-1
+entry-id: 16
+---
 
 So I'm going to be running a series soon on computation and (physical)
 simulations using AFRP (Arrowized Functional Reactive Programming) principles.

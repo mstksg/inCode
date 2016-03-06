@@ -1,19 +1,14 @@
-First-Class "Statements"
-========================
-
-Categories
-:   Haskell
-:   Ramblings
-Tags
-:   functional programming
-:   haskell
-:   io
-CreateTime
-:   2014/07/26 14:06:00
-PostDate
-:   2014/07/28 11:20:36
-Identifier
-:   fc-statements
+---
+title: First-Class "Statements"
+categories: Haskell, Ramblings
+tags: functional programming, haskell, io
+create-time: 2014/07/26 14:06:00
+date: 2014/07/28 11:20:36
+identifier: fc-statements
+slug: first-class-statements
+old-slugs: 
+entry-id: 27
+---
 
 One thing I've really always appreciated about Haskell is that all
 "statements" in Haskell (or at least, what would be statements in other

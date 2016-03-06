@@ -1,14 +1,13 @@
-Introducing "in Code"!
-======================
-
-Categories
-:   Meta
-CreateTime
-:   2013/09/16 22:27:48
-PostDate
-:   2013/09/17 09:51:13
-Identifier
-:   firstpost
+---
+title: Introducing "in Code"!
+categories: Meta
+create-time: 2013/09/16 22:27:48
+date: 2013/09/17 09:51:13
+identifier: firstpost
+slug: introducing-in-code
+old-slugs: 
+entry-id: 3
+---
 
 Throughout my time programming and developing, I've noticed that there are few
 legitimately useful sources of practical and beneficial knowledge on the

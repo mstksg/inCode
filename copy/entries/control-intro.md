@@ -1,21 +1,16 @@
-The Hamster Hotel: An Introduction to Control Theory (Part 1)
-=============================================================
-
-Categories
-:   Engineering
-:   Ramblings
-Tags
-:   control theory
-Series
-:   Introduction to Control Theory
-CreateTime
-:   2013/09/17 15:35:42
-PostDate
-:   2013/09/26 14:05:13
-ModifiedTime
-:   2013/10/05 12:45:59
-Identifier
-:   control-intro
+---
+title: The Hamster Hotel: An Introduction to Control Theory (Part 1)
+categories: Engineering, Ramblings
+tags: control theory
+series: Introduction to Control Theory
+create-time: 2013/09/17 15:35:42
+date: 2013/09/26 14:05:13
+modified-time: 2013/10/05 12:45:59
+identifier: control-intro
+slug: the-hamster-hotel-an-introduction-to-control-theory
+old-slugs: an-introduction-to-control-theory, hamster-hotel-an-introduction-to-control-theory
+entry-id: 4
+---
 
 Over this summer my work has been in the field of control theory.  I must
 admit that I at first found it a little odd that the idea of "controlling

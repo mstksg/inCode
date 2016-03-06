@@ -1,20 +1,15 @@
-Streaming Huffman Compression in Haskell (Part 2: Binary and Searches)
-======================================================================
-
-Categories
-:   Haskell
-:   Tutorials
-Tags
-:   haskell
-CreateTime
-:   2014/04/03 01:53:53
-PostDate
-:   2014/04/11 09:30:29
-Series
-:   Huffman Compression
-:   Beginner/Intermediate Haskell Projects
-Identifier
-:   huffman-2
+---
+title: Streaming Huffman Compression in Haskell (Part 2: Binary and Searches)
+categories: Haskell, Tutorials
+tags: haskell
+create-time: 2014/04/03 01:53:53
+date: 2014/04/11 09:30:29
+series: Huffman Compression, Beginner/Intermediate Haskell Projects
+identifier: huffman-2
+slug: streaming-huffman-compression-in-haskell-part-2-binary
+old-slugs: 
+entry-id: 23
+---
 
 Continuing on this series of beginner/intermediate projects for newer Haskell
 users, let's look back at our Huffman encoding project.
