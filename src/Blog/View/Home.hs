@@ -4,10 +4,10 @@
 
 module Blog.View.Home where
 
--- import qualified Text.Blaze.Internal      as H
 import           Blog.Compiler.Tag
 import           Blog.Types
 import           Blog.Util
+import           Blog.Util.Tag
 import           Blog.View
 import           Blog.View.Social
 import           Control.Applicative
@@ -23,16 +23,10 @@ data HomeInfo = HI
     { hiPageNum    :: Int
     , hiPrevPage   :: Maybe FilePath
     , hiNextPage   :: Maybe FilePath
-    , hiEntries    :: [HomeEntry]
+    , hiEntries    :: [TaggedEntry]
     , hiAllTags    :: [Tag]
     , hiLinksCopy  :: String
     , hiBannerCopy :: String
-    }
-  deriving (Show)
-
-data HomeEntry = HE
-    { heEntry :: Entry
-    , heTags  :: [Tag]
     }
   deriving (Show)
 
@@ -66,7 +60,7 @@ viewHome HI{..} =
 
 entryList
     :: (?config :: Config)
-    => [HomeEntry]
+    => [TaggedEntry]
     -> Maybe FilePath
     -> Maybe FilePath
     -> Int
@@ -81,13 +75,13 @@ entryList eList prevPage nextPage pageNum = do
           ")" :: H.Html
 
     H.ul $
-      forM_ eList $ \HE{..} -> do
-        let entryUrl   = T.pack $ renderUrl' (entryCanonical heEntry)
+      forM_ eList $ \TE{..} -> do
+        let entryUrl   = T.pack $ renderUrl' (entryCanonical teEntry)
             commentUrl = entryUrl <> "#disqus_thread"
         H.li $
           H.article ! A.class_ "tile" $ do
             H.header $ do
-              forM_ (entryPostTime heEntry) $ \t ->
+              forM_ (entryPostTime teEntry) $ \t ->
                 H.time
                   ! A.datetime (H.textValue $ T.pack (renderDatetimeTime t))
                   ! A.pubdate ""
@@ -95,10 +89,10 @@ entryList eList prevPage nextPage pageNum = do
                   $ H.toHtml (renderFriendlyTime t)
               H.h3 $
                 H.a ! A.href (H.textValue entryUrl) $
-                  H.toHtml $ entryTitle heEntry
+                  H.toHtml $ entryTitle teEntry
 
             H.div ! A.class_ "entry-lede copy-content" $ do
-              copyToHtml $ T.unpack (entryLede heEntry)
+              copyToHtml $ T.unpack (entryLede teEntry)
               H.p $ do
                 H.a ! A.href (H.textValue entryUrl) ! A.class_ "link-readmore" $
                   H.preEscapedToHtml
@@ -109,7 +103,7 @@ entryList eList prevPage nextPage pageNum = do
 
             H.footer $
               H.ul ! A.class_ "tag-list" $
-                mapM_ tagLi heTags
+                mapM_ tagLi teTags
 
     forM_ (prevPage <|> nextPage) $ \_ ->
       H.footer ! A.class_ "tile home-footer" $

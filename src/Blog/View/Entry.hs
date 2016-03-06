@@ -4,9 +4,9 @@
 
 module Blog.View.Entry where
 
-import           Blog.Compiler.Tag
 import           Blog.Types
 import           Blog.Util
+import           Blog.Util.Tag
 import           Blog.View
 import           Blog.View.Social
 import           Control.Monad

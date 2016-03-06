@@ -1,24 +1,31 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE DeriveFoldable    #-}
+{-# LANGUAGE DeriveFunctor     #-}
 {-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module Blog.Types where
 
 -- import           Hakyll
+-- import qualified Text.Pandoc       as P
+-- import qualified Text.Pandoc.Error as P
 import           Control.Applicative
 import           Control.Monad
 import           Data.Aeson
-import           Data.Binary.Orphans ()
+import           Data.Binary.Orphans  ()
 import           Data.Char
 import           Data.Default
 import           Data.Time.LocalTime
 import           Data.Typeable
 import           GHC.Generics
-import qualified Data.Aeson.Types    as A
-import qualified Data.Binary         as B
-import qualified Data.Text           as T
-import qualified Text.Blaze.Html5    as H
+import qualified Data.Aeson.Types     as A
+import qualified Data.Binary          as B
+import qualified Data.Map             as M
+import qualified Data.Text            as T
+import qualified Text.Blaze.Html5     as H
 
 
 data Config = Config
@@ -84,10 +91,11 @@ data DeveloperAPIs = DeveloperAPIs
   deriving (Show, Generic)
 
 data BlogPrefs = BlogPrefs
-    { prefSlugLength  :: Int
-    , prefHomeEntries :: Int
-    , prefLedeMax     :: Int
-    , prefFeedEntries :: Int
+    { prefSlugLength     :: Int
+    , prefHomeEntries    :: Int
+    , prefLedeMax        :: Int
+    , prefFeedEntries    :: Int
+    , prefSidebarEntries :: Int
     }
   deriving (Show, Generic)
 
@@ -178,10 +186,13 @@ data Tag = Tag
 
 instance B.Binary Tag
 
-tagTypePrefix :: TagType -> T.Text
-tagTypePrefix GeneralTag  = "#"
-tagTypePrefix CategoryTag = "@"
-tagTypePrefix SeriesTag   = "+"
+data TaggedEntry = TE
+    { teEntry :: Entry
+    , teTags  :: [Tag]
+    }
+  deriving (Show, Generic, Typeable)
+
+instance B.Binary TaggedEntry
 
 data PageData = PD
     { pageDataTitle     :: !(Maybe T.Text)
@@ -204,3 +215,33 @@ instance Default PageData where
              , pageDataJs        = []
              , pageDataHeaders   = []
              }
+
+type Year = Integer
+data Month = JAN | FEB | MAR | APR | MAY | JUN
+           | JUL | AUG | SEP | OCT | NOV | DEC
+  deriving (Show, Eq, Ord, Enum)
+
+mInt :: Month -> Int
+mInt = succ . fromEnum
+
+showMonth :: Month -> String
+showMonth = \case
+              JAN -> "January"
+              FEB -> "February"
+              MAR -> "March"
+              APR -> "April"
+              MAY -> "May"
+              JUN -> "June"
+              JUL -> "July"
+              AUG -> "August"
+              SEP -> "September"
+              OCT -> "October"
+              NOV -> "November"
+              DEC -> "December"
+
+data ArchiveData a = ADAll               (M.Map Year (M.Map Month [a]))
+                   | ADYear   Year       (M.Map Month [a])
+                   | ADMonth  Year Month [a]
+                   | ADTagged Tag        [a]
+  deriving (Show, Foldable, Traversable, Functor)
+

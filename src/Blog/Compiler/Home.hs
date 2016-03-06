@@ -4,13 +4,14 @@
 
 module Blog.Compiler.Home where
 
--- import           Blog.Util
+-- import           Data.Traversable
+import           Blog.Compiler.Entry
 import           Blog.Compiler.Tag
 import           Blog.Types
+import           Blog.Util.Tag
 import           Blog.View
 import           Blog.View.Home
 import           Data.Default
-import           Data.Traversable
 import           Hakyll
 import           Hakyll.Web.Blaze
 import           Hakyll.Web.Redirect
@@ -25,9 +26,7 @@ homeCompiler
     -> Compiler (Item String)
 homeCompiler allPages allTags i p = do
     entries <- map itemBody <$> loadAllSnapshots p "entry"
-    homeEntries <- forM entries $ \e -> do
-      ts <- mapM (uncurry fetchTag) (entryTags e)
-      return $ HE e ts
+    homeEntries <- mapM compileTE entries
     allTs <- mapM (uncurry fetchTag) allTags
     linksCopy  <- loadBody "copy/static/home-links.md"
     bannerCopy <- loadBody "copy/static/home-banner.md"

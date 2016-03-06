@@ -5,10 +5,9 @@
 
 module Blog.Compiler.Entry where
 
-import           Blog.Compiler.Tag
-import           Blog.Rule.Archive
 import           Blog.Types
 import           Blog.Util
+import           Blog.Util.Tag
 import           Blog.View
 import           Blog.View.Entry
 import           Data.Bifunctor
@@ -202,3 +201,8 @@ mkCanonical slug ident source =
   $ [ ("entry" </>)       . T.unpack <$> slug
     , ("entry/ident" </>) . T.unpack <$> ident
     ]
+
+compileTE :: Entry -> Compiler TaggedEntry
+compileTE e = do
+    ts <- mapM (uncurry fetchTag) (entryTags e)
+    return $ TE e ts

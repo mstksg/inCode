@@ -1,27 +1,22 @@
-{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE LambdaCase      #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TupleSections   #-}
 
 module Blog.Rule.Archive where
 
+-- import           Data.Foldable
+-- import           Data.Traversable
+import           Blog.Types
 import           Blog.Util
-import           Data.Foldable
+import           Control.Monad
 import           Data.Function
 import           Data.List
 import           Data.Maybe
 import           Data.Time.Calendar
 import           Data.Time.LocalTime
-import           Data.Traversable
 import           Hakyll
 import qualified Data.Map.Strict     as M
 import qualified Data.Set            as S
-
-type Year = Integer
-data Month = JAN | FEB | MAR | APR | MAY | JUN
-           | JUL | AUG | SEP | OCT | NOV | DEC
-  deriving (Show, Eq, Ord, Enum)
-
-mInt :: Month -> Int
-mInt = succ . fromEnum
 
 data History = History
     { historyMap        :: M.Map Year (M.Map Month [Identifier])
@@ -53,18 +48,26 @@ buildHistoryWith f p r = do
 
 historyRules
     :: History
-    -> (Year -> Maybe Month -> Pattern -> Rules ())
+    -> (Either (Year, M.Map Month Pattern) ((Year, Month), Pattern) -> Rules ())
     -> Rules ()
-historyRules (History{..}) r = do
-    forM_ (M.toList historyMap) $ \(y, ms) -> do
+historyRules h f = historyRules' h $ \case
+                                       Left  (y , mp) -> f $ Left (y, fromList <$> mp)
+                                       Right (ym, is) -> f $ Right (ym, fromList is)
+
+historyRules'
+    :: History
+    -> (Either (Year, M.Map Month [Identifier]) ((Year, Month), [Identifier]) -> Rules ())
+    -> Rules ()
+historyRules' (History{..}) r = do
+    void . flip M.traverseWithKey historyMap $ \y ms -> do
       rulesExtraDependencies [historyDependency] $
         create [historyMakeId y Nothing] $
-          r y Nothing (fromList $ concat (M.elems ms))
+          r (Left (y, ms))
 
-      forM_ (M.toList ms) $ \(m, ids) -> do
+      void . flip M.traverseWithKey ms $ \m ids -> do
         rulesExtraDependencies [historyDependency] $
           create [historyMakeId y (Just m)] $
-            r y (Just m) (fromList ids)
+            r (Right ((y, m), ids))
 
 ymByField
     :: MonadMetadata m
