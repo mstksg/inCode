@@ -5,6 +5,7 @@
 module Blog.View.Home where
 
 import           Blog.Compiler.Tag
+import           Blog.Compiler.Entry
 import           Blog.Types
 import           Blog.Util
 import           Blog.Util.Tag
@@ -75,7 +76,7 @@ entryList eList prevPage nextPage pageNum = do
           ")" :: H.Html
 
     H.ul $
-      forM_ eList $ \TE{..} -> do
+      forM_ (sortTaggedEntries eList) $ \TE{..} -> do
         let entryUrl   = T.pack $ renderUrl' (entryCanonical teEntry)
             commentUrl = entryUrl <> "#disqus_thread"
         H.li $
@@ -129,7 +130,7 @@ viewTags tags =
             H.a ! A.href (H.textValue $ renderUrl link) $
               heading
           H.ul $
-            forM_ (filterTags tt tags) $ \t ->
+            forM_ (filterTags tt (sortTags tags)) $ \t ->
               H.li $ do
                 tagLink tagPrettyLabel t
                 H.preEscapedToHtml ("&nbsp;" :: T.Text)

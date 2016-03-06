@@ -5,12 +5,12 @@
 
 module Blog.View.Archive where
 
--- import           Blog.Compiler.Tag
 -- import           Blog.View.Social
 -- import           Control.Applicative
 -- import           Control.Arrow            ((&&&))
 -- import           Data.Foldable
 -- import           Data.Function
+import           Blog.Compiler.Entry
 import           Blog.Types
 import           Blog.Util
 import           Blog.Util.Tag
@@ -94,7 +94,7 @@ archiveTitle = \case
                  ADAll    _     -> "History"
                  ADYear   y _   -> show y
                  ADMonth  y m _ -> showMonth m ++ " " ++ show y
-                 ADTagged t _   -> tagHeader t
+                 ADTagged t _   -> tagPrettyLabel t
 
 data ArchiveIndex = AIndHistory
                   | AIndTagged TagType
@@ -136,7 +136,7 @@ viewArchiveFlat
     -> H.Html
 viewArchiveFlat tile entries =
     H.ul ! A.class_ ulClass $
-      forM_ entries $ \TE{..} -> do
+      forM_ (sortTaggedEntries entries) $ \TE{..} -> do
         let entryUrl   = T.pack $ renderUrl' (entryCanonical teEntry)
             commentUrl = entryUrl <> "#disqus_thread"
 
@@ -159,7 +159,7 @@ viewArchiveFlat tile entries =
             H.p ! A.class_ "inline-tag-list" $ do
               "in " :: H.Html
               sequence_ . intersperse ", "
-                $ map (tagLink tagPrettyLabel) teTags
+                $ map (tagLink tagPrettyLabelLower) teTags
   where
     ulClass | tile      = "tile entry-list"
             | otherwise = "entry-list"

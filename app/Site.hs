@@ -12,6 +12,7 @@ import           Blog.Compiler.Archive
 import           Blog.Compiler.Entry
 import           Blog.Compiler.Home
 import           Blog.Compiler.Tag
+import           Blog.Compiler.TagIndex
 import           Blog.Rule.Archive
 import           Blog.Types
 import           Blog.Util
@@ -140,19 +141,13 @@ main = do
 
       create ["tags"] $ do
         route idRoute
-        compile $ do
-          makeItem . unlines . flip map (tagsMap tags) $ \(t,es) ->
-            '#':t ++ " (" ++ show (length es) ++ ")"
+        compile $ tagIndexCompiler GeneralTag  (tagsMap tags) recentEntries
       create ["categories"] $ do
         route idRoute
-        compile $ do
-          makeItem . unlines . flip map (tagsMap cats) $ \(t,es) ->
-            '@':t ++ " (" ++ show (length es) ++ ")"
+        compile $ tagIndexCompiler CategoryTag (tagsMap cats) recentEntries
       create ["series"] $ do
         route idRoute
-        compile $ do
-          makeItem . unlines . flip map (tagsMap sers) $ \(t,es) ->
-            '+':t ++ " (" ++ show (length es) ++ ")"
+        compile $ tagIndexCompiler SeriesTag   (tagsMap sers) recentEntries
 
       tagsRules tags $ \tag p -> do
         route   idRoute
@@ -189,13 +184,10 @@ main = do
       create ["rss.raw"] $ do
         route   idRoute
         compile $ do
-          entries <- map itemBody
-                 <$> loadAllSnapshots ("copy/entries/*" .&&. hasNoVersion)
-                                      "entry"
-          let sorted = take (prefFeedEntries confBlogPrefs)
-                     . sortBy (flip $ comparing entryPostTime)
-                     . filter (isJust . entryPostTime)
-                     $ entries
+          sorted <- traverse (flip loadSnapshotBody "entry")
+                  . take (prefFeedEntries confBlogPrefs)
+                  . map snd
+                  $ entriesSorted
           makeItem $ viewFeed sorted tz (zonedTimeToUTC znow)
 
       create ["rss"] $ do

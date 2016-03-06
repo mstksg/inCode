@@ -20,6 +20,7 @@ library
                        Blog.Compiler.Entry
                        Blog.Compiler.Home
                        Blog.Compiler.Tag
+                       Blog.Compiler.TagIndex
                        Blog.Render
                        Blog.Rule.Archive
                        Blog.Types
@@ -31,6 +32,7 @@ library
                        Blog.View.Feed
                        Blog.View.Home
                        Blog.View.Social
+                       Blog.View.TagIndex
                        Hakyll.Web.Blaze
                        Hakyll.Web.Redirect
   build-depends:       base >= 4 && < 5

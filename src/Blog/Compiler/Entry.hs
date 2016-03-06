@@ -13,8 +13,10 @@ import           Blog.View.Entry
 import           Data.Bifunctor
 import           Data.Default
 import           Data.Foldable
+import           Data.List
 import           Data.Maybe
 import           Data.Monoid
+import           Data.Ord
 import           Data.Time.LocalTime
 import           Hakyll
 import           Hakyll.Web.Blaze
@@ -94,7 +96,7 @@ entryCompiler now histList allTags = do
            . filter (`elem` entryTags)
            $ allTags
     let ei = EI { eiEntry     = e
-                , eiTags      = allTs
+                , eiTags      = sortTags allTs
                 , eiPrevEntry = eb
                 , eiNextEntry = ea
                 , eiNow       = now
@@ -205,4 +207,12 @@ mkCanonical slug ident source =
 compileTE :: Entry -> Compiler TaggedEntry
 compileTE e = do
     ts <- mapM (uncurry fetchTag) (entryTags e)
-    return $ TE e ts
+    return $ TE e (sortTags ts)
+
+sortEntries :: [Entry] -> [Entry]
+sortEntries = sortBy (flip $ comparing entryPostTime)
+            . filter (isJust . entryPostTime)
+
+sortTaggedEntries :: [TaggedEntry] -> [TaggedEntry]
+sortTaggedEntries = sortBy (flip $ comparing (entryPostTime . teEntry))
+                  . filter (isJust . entryPostTime . teEntry)

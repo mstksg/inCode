@@ -4,13 +4,13 @@
 
 module Blog.Util.Tag where
 
--- import           Data.List
--- import           Data.Ord
 import           Blog.Types
 import           Blog.Util
 import           Blog.View
 import           Data.Char
+import           Data.List
 import           Data.Maybe
+import           Data.Ord
 import           Data.String
 import           Hakyll
 import           System.FilePath
@@ -31,17 +31,16 @@ htmlDescription = fmap ( P.writeHtml entryWriterOpts
                 . tagDescription
 
 
-tagHeader :: Tag -> String
-tagHeader t = f (tagPrettyLabel t)
+tagPrettyLabel :: Tag -> String
+tagPrettyLabel t = f (tagPrettyLabelLower t)
   where
     f = case tagType t of
           GeneralTag  -> id
           CategoryTag -> map toUpper
           SeriesTag   -> id
 
-
-tagPrettyLabel :: Tag -> String
-tagPrettyLabel Tag{..} = c : T.unpack tagLabel
+tagPrettyLabelLower :: Tag -> String
+tagPrettyLabelLower Tag{..} = c : T.unpack tagLabel
   where
     c = case tagType of
           GeneralTag  -> '#'
@@ -122,3 +121,6 @@ tagTypePrefix SeriesTag   = "+"
 
 filterTags :: TagType -> [Tag] -> [Tag]
 filterTags tt = filter ((== tt) . tagType)
+
+sortTags :: [Tag] -> [Tag]
+sortTags = sortBy (comparing tagPrettyLabelLower)
