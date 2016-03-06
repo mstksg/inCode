@@ -1,0 +1,40 @@
+---
+title: in Code
+development: yes
+description:
+  Weblog of Justin Le, covering his various adventures in programming and
+  explorations in the vast worlds of computation physics, and knowledge.
+feed: http://feeds.feedburner.com/incodeblog
+copyright: 2016 Justin Le
+author:
+  name: Justin Le
+  email: justin@jle.im
+  rel: https://plus.google.com/107705320197444500140
+  facebook: mstksg
+  twitter: mstk
+  gplus: +JustinLe
+  # twitter: 907281
+  # gplus: 107705320197444500140
+  github: mstksg
+  linkedin: lejustin
+public-blobs: https://github.com/mstksg/inCode/blob/develop/
+interactive-url: https://www.fpcomplete.com/user/jle/
+host:
+  base: mstksg.github.com
+  root: inCode
+  # port: 4288
+developer-apis:
+  analytics:
+    id: UA-443711-8
+    host: jle.im
+  disqus: incode
+  facebook: "641852699171929"
+  add-this: ra-5234d67a6b68dcd4
+  feedburner: incodeblog
+preferences:
+  slug-length: 8
+  home-entries: 8
+  lede-max: 6
+  feed-entries: 10
+  sidebar-entries: 5
+...
