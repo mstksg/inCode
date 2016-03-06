@@ -1,24 +1,24 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE ImplicitParams    #-}
+{-# LANGUAGE MultiWayIf        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE TupleSections     #-}
 
 -- import           Blog.View.Home
--- import           Control.Applicative
--- import           Data.Monoid
--- import           Data.Time.Format
--- import           Data.Traversable
+-- import           Data.Time.Clock
 -- import           Hakyll.Web.Blaze
--- import           Text.Read              (readMaybe)
--- import           Text.Sass
--- import qualified Text.Pandoc            as P
--- import qualified Text.Pandoc.Walk       as P
+import           Blog.Compiler.Archive
 import           Blog.Compiler.Entry
+import           Blog.Compiler.Home
 import           Blog.Compiler.Tag
+import           Blog.Compiler.TagIndex
 import           Blog.Rule.Archive
 import           Blog.Types
 import           Blog.Util
+import           Blog.Util.Tag
 import           Blog.View
+import           Blog.View.Archive
 import           Blog.View.Feed
 import           Control.Exception
 import           Control.Monad
@@ -28,7 +28,6 @@ import           Data.Foldable
 import           Data.List
 import           Data.Maybe
 import           Data.Ord
-import           Data.Time.Clock
 import           Data.Time.LocalTime
 import           Hakyll
 import           Hakyll.Web.Redirect
@@ -43,8 +42,7 @@ import qualified Data.Yaml                 as Y
 
 main :: IO ()
 main = do
-    now <- getCurrentTime
-    tz  <- getCurrentTimeZone
+    znow@(ZonedTime now tz) <- getZonedTime
 
     c@Config{..} <- either throwIO return
                 =<< Y.decodeFileEither "config/site-data.yaml"
@@ -73,11 +71,15 @@ main = do
         route   mempty
         compile getResourceString
 
+      match "copy/static/**" $ do
+        route   mempty
+        compile getResourceString
+
       match "copy/entries/*" $ do
-          route   routeEntry
-          compile $ do
-            e <- saveSnapshot "entry" =<< compileEntry
-            return $ T.unpack . entryContents <$> e
+        route   mempty
+        compile $ do
+          _ <- saveSnapshot "entry" =<< compileEntry
+          getResourceString
 
       match "copy/entries/*" . version "markdown" $ do
         route   $ routeEntry `composeRoutes` setExtension "md"
@@ -86,7 +88,7 @@ main = do
         route   $ routeEntry `composeRoutes` setExtension "tex"
         compile $ entryLaTeXCompiler lTempl
 
-      match "copy/entries/*" . version "id" $ do
+      match "copy/entries/*" . version "id-html" $ do
         route   routeIdEntry
         compile $ compileIdEntry ""
       match "copy/entries/*" . version "id-markdown" $ do
@@ -96,109 +98,97 @@ main = do
         route   $ routeIdEntry `composeRoutes` setExtension "tex"
         compile $ compileIdEntry "tex"
 
-      create ["entries/index.html"] $ do
-        route idRoute
-        compile $ do
-          entries <- map itemBody
-                      <$> loadAllSnapshots ("copy/entries/*" .&&. hasNoVersion)
-                                           "entry"
-          let sorted = sortBy (flip $ comparing entryPostTime)
-                     . filter (isJust . entryPostTime)
-                     $ entries
-          makeItem . unlines $ map (T.unpack . entryTitle) sorted
-
       hist <- buildHistoryWith ymByField ("copy/entries/*" .&&. hasNoVersion)
                 $ \y m -> case m of
                             Nothing -> fromFilePath ("entries/in" </> show y </> "index.html")
                             Just m' -> fromFilePath ("entries/in" </> show y </> show (mInt m'))
-      historyRules hist $ \y m p -> do
+      let entriesSorted = sortBy (flip $ comparing fst) $ do
+            (y, mes) <- M.toList $ historyMap hist
+            (m, es)  <- M.toList mes
+            e        <- es
+            return ((y, m), e)
+          recentEntries = map snd
+                        . take (prefSidebarEntries confBlogPrefs)
+                        $ entriesSorted
+      historyRules' hist $ \spec -> do
         route idRoute
         compile $ do
-          entries <- map itemBody <$> loadAllSnapshots p "entry"
-          let sorted = sortBy (flip $ comparing entryPostTime)
-                     . filter (isJust . entryPostTime)
-                     $ entries
-          makeItem . unlines . map (T.unpack . entryTitle)
-            $ sorted
+          case spec of
+            Left  (y     , mp) -> do
+              archiveCompiler (ADYear y mp) recentEntries
+            Right ((y, m), is) -> do
+              archiveCompiler (ADMonth y m is) recentEntries
+
+      create ["entries/index.html"] $ do
+        route   idRoute
+        compile $ archiveCompiler (ADAll (historyMap hist)) recentEntries
 
       tags <- buildTagsWith
                   (tagsAt "tags")
                   ("copy/entries/*" .&&. hasNoVersion)
-                  (\i -> fromFilePath ("entries/tagged"   </> genSlug' maxBound i))
+                  (fromFilePath . mkTagUrl GeneralTag)
       cats <- buildTagsWith
                   (tagsAt "categories")
                   ("copy/entries/*" .&&. hasNoVersion)
-                  (\i -> fromFilePath ("entries/category" </> ('@':genSlug' maxBound i)))
+                  (fromFilePath . mkTagUrl CategoryTag)
       sers <- buildTagsWith
                   (tagsAt "series")
                   ("copy/entries/*" .&&. hasNoVersion)
-                  (\i -> fromFilePath ("entries/series"   </> ('+':genSlug' maxBound i)))
+                  (fromFilePath . mkTagUrl SeriesTag)
+      let allTags = map ((GeneralTag ,) . T.pack . fst) (tagsMap tags)
+                 ++ map ((CategoryTag,) . T.pack . fst) (tagsMap cats)
+                 ++ map ((SeriesTag  ,) . T.pack . fst) (tagsMap sers)
 
       create ["tags"] $ do
         route idRoute
-        compile $ do
-          makeItem . unlines . flip map (tagsMap tags) $ \(t,es) ->
-            '#':t ++ " (" ++ show (length es) ++ ")"
+        compile $ tagIndexCompiler GeneralTag  (tagsMap tags) recentEntries
       create ["categories"] $ do
         route idRoute
-        compile $ do
-          makeItem . unlines . flip map (tagsMap cats) $ \(t,es) ->
-            '@':t ++ " (" ++ show (length es) ++ ")"
+        compile $ tagIndexCompiler CategoryTag (tagsMap cats) recentEntries
       create ["series"] $ do
         route idRoute
-        compile $ do
-          makeItem . unlines . flip map (tagsMap sers) $ \(t,es) ->
-            '+':t ++ " (" ++ show (length es) ++ ")"
+        compile $ tagIndexCompiler SeriesTag   (tagsMap sers) recentEntries
 
       tagsRules tags $ \tag p -> do
         route   idRoute
-        compile $ tagCompiler GeneralTag  tag p
+        compile $ tagCompiler GeneralTag  tag p recentEntries
       tagsRules cats $ \cat p -> do
         route   idRoute
-        compile $ tagCompiler CategoryTag cat p
+        compile $ tagCompiler CategoryTag cat p recentEntries
       tagsRules sers $ \ser p -> do
         route   idRoute
-        compile $ tagCompiler SeriesTag   ser p
+        compile $ tagCompiler SeriesTag   ser p recentEntries
 
+      match "copy/entries/*" . version "html" $ do
+          route   routeEntry
+          compile $ entryCompiler now entriesSorted allTags
 
       homePag <- buildPaginateWith
                    (mkHomePages (prefHomeEntries confBlogPrefs))
                    ("copy/entries/*" .&&. hasNoVersion)
                    (\i -> fromFilePath ("home" </> show i))
+      let allPages = M.keys $ paginateMap homePag
       paginateRules homePag $ \i p -> do
-        route idRoute
-        compile $ do
-          contents <- map (fmap (T.unpack . entryLede))
-                        <$> loadAllSnapshots p "entry"
-          renders <- traverse (renderPandocWith entryReaderOpts entryWriterOpts)
-                       contents
-          render <- makeItem $ unlines (map itemBody renders)
-          if i == 1
-            then do
-              _ <- saveSnapshot "index" render
-              redirectCompiler (\_ -> renderUrl "/index.html")
-            else do
-              return render
+        route   idRoute
+        compile $ homeCompiler allPages allTags i p
 
-
+      create ["home/index.html"] $ do
+        route   idRoute
+        compile $ redirectCompiler (\_ -> renderUrl "/index.html")
       create ["index.html"] $ do
         route idRoute
         compile $ do
           home1 <- itemBody <$> loadSnapshot "home/1" "index"
           makeItem (home1 :: String)
-        -- compile $ blazeCompiler (viewHome undefined)
 
       create ["rss.raw"] $ do
         route   idRoute
         compile $ do
-          entries <- map itemBody
-                 <$> loadAllSnapshots ("copy/entries/*" .&&. hasNoVersion)
-                                        "entry"
-          let sorted = take (prefFeedEntries confBlogPrefs)
-                     . sortBy (flip $ comparing entryPostTime)
-                     . filter (isJust . entryPostTime)
-                     $ entries
-          makeItem $ viewFeed sorted tz now
+          sorted <- traverse (flip loadSnapshotBody "entry")
+                  . take (prefFeedEntries confBlogPrefs)
+                  . map snd
+                  $ entriesSorted
+          makeItem $ viewFeed sorted tz (zonedTimeToUTC znow)
 
       create ["rss"] $ do
         route   idRoute

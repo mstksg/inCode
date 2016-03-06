@@ -16,15 +16,23 @@ cabal-version:       >=1.8
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Blog.Types
-                       -- Blog.View.Social
+  exposed-modules:     Blog.Compiler.Archive
                        Blog.Compiler.Entry
+                       Blog.Compiler.Home
                        Blog.Compiler.Tag
+                       Blog.Compiler.TagIndex
+                       Blog.Render
                        Blog.Rule.Archive
+                       Blog.Types
                        Blog.Util
+                       Blog.Util.Tag
                        Blog.View
+                       Blog.View.Archive
+                       Blog.View.Entry
                        Blog.View.Feed
                        Blog.View.Home
+                       Blog.View.Social
+                       Blog.View.TagIndex
                        Hakyll.Web.Blaze
                        Hakyll.Web.Redirect
   build-depends:       base >= 4 && < 5

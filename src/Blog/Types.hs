@@ -1,22 +1,31 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE DeriveFoldable    #-}
+{-# LANGUAGE DeriveFunctor     #-}
 {-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module Blog.Types where
 
+-- import           Hakyll
+-- import qualified Text.Pandoc       as P
+-- import qualified Text.Pandoc.Error as P
 import           Control.Applicative
 import           Control.Monad
 import           Data.Aeson
-import           Data.Binary.Orphans ()
+import           Data.Binary.Orphans  ()
 import           Data.Char
+import           Data.Default
 import           Data.Time.LocalTime
 import           Data.Typeable
 import           GHC.Generics
-import           Hakyll
-import qualified Data.Aeson.Types    as A
-import qualified Data.Binary         as B
-import qualified Data.Text           as T
+import qualified Data.Aeson.Types     as A
+import qualified Data.Binary          as B
+import qualified Data.Map             as M
+import qualified Data.Text            as T
+import qualified Text.Blaze.Html5     as H
 
 
 data Config = Config
@@ -68,6 +77,7 @@ data AuthorInfo = AuthorInfo
 data HostInfo = HostInfo
     { hostBase :: T.Text
     , hostPort :: Maybe Int
+    , hostRoot :: Maybe T.Text
     }
   deriving (Show, Generic)
 
@@ -81,10 +91,11 @@ data DeveloperAPIs = DeveloperAPIs
   deriving (Show, Generic)
 
 data BlogPrefs = BlogPrefs
-    { prefSlugLength  :: Int
-    , prefHomeEntries :: Int
-    , prefLedeMax     :: Int
-    , prefFeedEntries :: Int
+    { prefSlugLength     :: Int
+    , prefHomeEntries    :: Int
+    , prefLedeMax        :: Int
+    , prefFeedEntries    :: Int
+    , prefSidebarEntries :: Int
     }
   deriving (Show, Generic)
 
@@ -148,7 +159,6 @@ instance B.Binary TagType
 data Entry = Entry
     { entryTitle      :: !T.Text
     , entryContents   :: !T.Text
-    , entryHTML       :: !T.Text
     , entryLede       :: !T.Text
     , entrySourceFile :: !FilePath
     , entryCreateTime :: !(Maybe LocalTime)
@@ -158,10 +168,11 @@ data Entry = Entry
     , entrySlug       :: !(Maybe T.Text)
     , entryOldSlugs   :: ![T.Text]
     , entryId         :: !(Maybe Int)
-    , entryCanonical  :: !Identifier
+    , entryCanonical  :: !FilePath
     , entryTags       :: ![(TagType, T.Text)]
     }
-  deriving (Show, Generic, Typeable)
+  deriving (Show, Generic, Typeable, Eq)
+-- TODO: entry image
 
 instance B.Binary Entry
 
@@ -169,14 +180,68 @@ data Tag = Tag
     { tagLabel       :: !T.Text
     , tagType        :: !TagType
     , tagDescription :: !(Maybe T.Text)
-    , tagSlug        :: !T.Text
-    , tagEntries     :: [Entry]
+    , tagEntries     :: ![Entry]
     }
   deriving (Show, Generic, Typeable)
 
 instance B.Binary Tag
 
-tagTypePrefix :: TagType -> T.Text
-tagTypePrefix GeneralTag  = "#"
-tagTypePrefix CategoryTag = "@"
-tagTypePrefix SeriesTag   = "+"
+data TaggedEntry = TE
+    { teEntry :: Entry
+    , teTags  :: [Tag]
+    }
+  deriving (Show, Generic, Typeable)
+
+instance B.Binary TaggedEntry
+
+data PageData = PD
+    { pageDataTitle     :: !(Maybe T.Text)
+    , pageDataDesc      :: !(Maybe T.Text)
+    , pageDataImage     :: !(Maybe FilePath)
+    , pageDataType      :: !(Maybe T.Text)
+    , pageDataCanonical :: !(Maybe FilePath)
+    , pageDataCss       :: ![T.Text]
+    , pageDataJs        :: ![T.Text]
+    , pageDataHeaders   :: ![H.Html]
+    }
+
+instance Default PageData where
+    def = PD { pageDataTitle     = Nothing
+             , pageDataDesc      = Nothing
+             , pageDataImage     = Nothing
+             , pageDataType      = Nothing
+             , pageDataCanonical = Nothing
+             , pageDataCss       = []
+             , pageDataJs        = []
+             , pageDataHeaders   = []
+             }
+
+type Year = Integer
+data Month = JAN | FEB | MAR | APR | MAY | JUN
+           | JUL | AUG | SEP | OCT | NOV | DEC
+  deriving (Show, Eq, Ord, Enum)
+
+mInt :: Month -> Int
+mInt = succ . fromEnum
+
+showMonth :: Month -> String
+showMonth = \case
+              JAN -> "January"
+              FEB -> "February"
+              MAR -> "March"
+              APR -> "April"
+              MAY -> "May"
+              JUN -> "June"
+              JUL -> "July"
+              AUG -> "August"
+              SEP -> "September"
+              OCT -> "October"
+              NOV -> "November"
+              DEC -> "December"
+
+data ArchiveData a = ADAll               (M.Map Year (M.Map Month [a]))
+                   | ADYear   Year       (M.Map Month [a])
+                   | ADMonth  Year Month [a]
+                   | ADTagged Tag        [a]
+  deriving (Show, Foldable, Traversable, Functor)
+

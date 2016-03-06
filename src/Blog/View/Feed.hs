@@ -4,6 +4,7 @@
 
 module Blog.View.Feed where
 
+-- import           Hakyll
 import           Blog.Types
 import           Blog.View
 import           Data.Maybe
@@ -11,7 +12,6 @@ import           Data.Monoid
 import           Data.Time.Clock
 import           Data.Time.Format
 import           Data.Time.LocalTime
-import           Hakyll
 import           Text.DublinCore.Types
 import           Text.RSS.Export
 import           Text.RSS.Syntax
@@ -73,12 +73,12 @@ feedRss entries tz now = (nullRSS feedTitle feedLink)
     copyright        = T.unpack ("Copyright " <> confCopyright)
     rssItem Entry{..} =
       (nullItem (T.unpack entryTitle))
-        { rssItemLink        = Just (makeUrl (T.pack (toFilePath entryCanonical)))
-        , rssItemDescription = Just (T.unpack entryHTML)
+        { rssItemLink        = Just (makeUrl (T.pack entryCanonical))
+        , rssItemDescription = Just (copyToHtmlString (T.unpack entryContents))
         , rssItemAuthor      = Just feedAuthorName
         , rssItemCategories  = map rssCategory categs
         , rssItemGuid        = Just . RSSGuid (Just True) []
-                                 $ makeUrl (T.pack (toFilePath entryCanonical))
+                                 $ makeUrl (T.pack entryCanonical)
         , rssItemPubDate     = formatDateRfc . localTimeToUTC tz <$> entryPostTime
         , rssItemOther       = map dcItemToXml dcItemData
         }

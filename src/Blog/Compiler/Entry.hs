@@ -7,21 +7,29 @@ module Blog.Compiler.Entry where
 
 import           Blog.Types
 import           Blog.Util
+import           Blog.Util.Tag
 import           Blog.View
+import           Blog.View.Entry
 import           Data.Bifunctor
 import           Data.Default
 import           Data.Foldable
-import           Data.Maybe          (fromMaybe)
+import           Data.List
+import           Data.Maybe
 import           Data.Monoid
+import           Data.Ord
 import           Data.Time.LocalTime
 import           Hakyll
+import           Hakyll.Web.Blaze
 import           System.FilePath
 import           Text.Read           (readMaybe)
 import qualified Data.Text           as T
 import qualified Text.Pandoc         as P
+import qualified Text.Pandoc.Error   as P
 import qualified Text.Pandoc.Walk    as P
 
-compileEntry :: (?config :: Config) => Compiler (Item Entry)
+compileEntry
+    :: (?config :: Config)
+    => Compiler (Item Entry)
 compileEntry = do
     i         <- getUnderlying
     eBody     <- getResourceBody
@@ -32,8 +40,7 @@ compileEntry = do
                           . take (prefLedeMax (confBlogPrefs ?config))
                           . takeWhile validLede
                           $ bs
-        eHtml       = T.pack <$> writePandocWith entryWriterOpts ePandoc
-        eLede       = T.pack <$> writePandocWith entryWriterOpts ePandocLede
+        eLede       = T.pack . P.writeMarkdown entryWriterOpts <$> ePandocLede
     eTitle    <- T.unwords . T.lines . T.pack <$> getMetadataField' i "title"
     eCreate   <- (parseETime =<<) <$> getMetadataField i "create-time"
     ePost     <- (parseETime =<<) <$> getMetadataField i "date"
@@ -49,7 +56,6 @@ compileEntry = do
 
     makeItem $ Entry { entryTitle      = eTitle
                      , entryContents   = itemBody eContents
-                     , entryHTML       = itemBody eHtml
                      , entryLede       = itemBody eLede
                      , entrySourceFile = toFilePath i
                      , entryCreateTime = eCreate
@@ -59,7 +65,7 @@ compileEntry = do
                      , entrySlug       = eSlug
                      , entryOldSlugs   = eOldSlugs
                      , entryId         = eId
-                     , entryCanonical  = i
+                     , entryCanonical  = mkCanonical eSlug eIdent (toFilePath i)
                      , entryTags       = (map . second) T.pack
                                        $ map (GeneralTag,)  tags
                                       ++ map (CategoryTag,) cats
@@ -71,10 +77,53 @@ compileEntry = do
                     P.HorizontalRule -> False
                     _                -> True
 
-entryMarkdownCompiler :: (?config :: Config) => Compiler (Item String)
+
+entryCompiler
+    :: (?config :: Config)
+    => LocalTime
+    -> [((Year, Month), Identifier)]
+    -> [(TagType, T.Text)]
+    -> Compiler (Item String)
+entryCompiler now histList allTags = do
+    i <- setVersion Nothing <$> getUnderlying
+    e@Entry{..} <- loadSnapshotBody i "entry"
+    let (befs,afts) = break ((/= i) . snd) histList
+        befId = listToMaybe (reverse befs)
+        aftId = listToMaybe (drop 1 afts)
+    eb <- mapM ((`loadSnapshotBody` "entry") . snd) befId
+    ea <- mapM ((`loadSnapshotBody` "entry") . snd) aftId
+    allTs <- mapM (uncurry fetchTag)
+           . filter (`elem` entryTags)
+           $ allTags
+    let ei = EI { eiEntry     = e
+                , eiTags      = sortTags allTs
+                , eiPrevEntry = eb
+                , eiNextEntry = ea
+                , eiNow       = now
+                }
+        pd = def { pageDataTitle   = Just entryTitle
+                 , pageDataType    = Just "article"
+                 , pageDataDesc    = Just $ entryLedeStripped e
+                 , pageDataCss     = [ "/css/page/entry.css"
+                                     , "/css/pygments.css"
+                                     ]
+                 , pageDataJs      = [ "/js/fay-runtime.min.js"
+                                     , "/js/page/entry.js"
+                                     , "/js/page/entry_toc.js"
+                                     , "/js/disqus.js"
+                                     , "/js/disqus_count.js"
+                                     , "/js/social.js"
+                                     , "/js/jquery/jquery.toc.js"
+                                     ]
+                 }
+    blazeCompiler pd (viewEntry ei)
+
+entryMarkdownCompiler
+    :: (?config :: Config)
+    => Compiler (Item String)
 entryMarkdownCompiler = do
     i <- setVersion Nothing <$> getUnderlying
-    Entry{..} <- itemBody <$> loadSnapshot i "entry"
+    Entry{..} <- loadSnapshotBody i "entry"
     let timeString = maybe T.empty ((" on " <>) . T.pack . renderShortFriendlyTime)
                    $ entryPostTime
     makeItem . T.unpack . T.unlines
@@ -93,10 +142,13 @@ entryMarkdownCompiler = do
         , entryContents
         ]
 
-entryLaTeXCompiler :: (?config :: Config) => String -> Compiler (Item String)
+entryLaTeXCompiler
+    :: (?config :: Config)
+    => String
+    -> Compiler (Item String)
 entryLaTeXCompiler templ = do
     i <- setVersion Nothing <$> getUnderlying
-    Entry{..} <- itemBody <$> loadSnapshot i "entry"
+    Entry{..} <- loadSnapshotBody i "entry"
     let eDate    = maybe T.empty (("% " <>) . T.pack . renderShortFriendlyTime)
                  $ entryPostTime
         mdHeader = T.unlines [ "% " <> entryTitle
@@ -133,10 +185,34 @@ entryLaTeXCompiler templ = do
                            , P.writerTemplate   = templ
                            }
 
--- entryPath :: Entry -> FilePath
--- entryPath Entry{..} =
---       fromMaybe (entrySourceFile `replaceDirectory` "entry/ident")
---     . asum
---     $ [ ("entry" </>)       . T.unpack <$> entrySlug
---       , ("entry/ident" </>) . T.unpack <$> entryIdentifier
---       ]
+entryLedeStripped :: Entry -> T.Text
+entryLedeStripped = stripPandoc
+                  . P.handleError
+                  . P.readMarkdown entryReaderOpts
+                  . T.unpack
+                  . entryLede
+
+mkCanonical
+    :: Maybe T.Text
+    -> Maybe T.Text
+    -> FilePath
+    -> FilePath
+mkCanonical slug ident source =
+    fromMaybe (source `replaceDirectory` "entry/ident")
+  . asum
+  $ [ ("entry" </>)       . T.unpack <$> slug
+    , ("entry/ident" </>) . T.unpack <$> ident
+    ]
+
+compileTE :: Entry -> Compiler TaggedEntry
+compileTE e = do
+    ts <- mapM (uncurry fetchTag) (entryTags e)
+    return $ TE e (sortTags ts)
+
+sortEntries :: [Entry] -> [Entry]
+sortEntries = sortBy (flip $ comparing entryPostTime)
+            . filter (isJust . entryPostTime)
+
+sortTaggedEntries :: [TaggedEntry] -> [TaggedEntry]
+sortTaggedEntries = sortBy (flip $ comparing (entryPostTime . teEntry))
+                  . filter (isJust . entryPostTime . teEntry)

@@ -1,30 +1,44 @@
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ImplicitParams    #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 
 module Blog.Compiler.Tag where
 
+import           Blog.Compiler.Archive
 import           Blog.Types
 import           Blog.Util
+import           Blog.Util.Tag
 import           Blog.View
+import           Data.Char
 import           Data.List
 import           Data.Maybe
 import           Data.Ord
 import           Data.String
 import           Hakyll
 import           System.FilePath
-import qualified Data.Text       as T
-import qualified Text.Pandoc     as P
+import           Text.Blaze.Html5            ((!))
+import qualified Data.Text                   as T
+import qualified Text.Blaze.Html5            as H
+import qualified Text.Blaze.Html5.Attributes as A
+import qualified Text.Pandoc                 as P
+import qualified Text.Pandoc.Error           as P
 
-tagCompiler :: TagType -> String -> Pattern -> Compiler (Item String)
-tagCompiler tt tLab p = do
-    Tag{..} <- fmap itemBody . saveSnapshot "tag" =<< compileTag tt tLab p
+tagCompiler
+    :: (?config :: Config)
+    => TagType
+    -> String
+    -> Pattern
+    -> [Identifier]
+    -> Compiler (Item String)
+tagCompiler tt tLab p recents = do
+    t@Tag{..} <- fmap itemBody . saveSnapshot "tag" =<< compileTag tt tLab p
 
-    let sorted = sortBy (flip $ comparing entryPostTime)
+    let sorted = map (fromFilePath . entrySourceFile)
+               . sortBy (flip $ comparing entryPostTime)
                . filter (isJust . entryPostTime)
                $ tagEntries
 
-        d = T.unpack <$> maybeToList tagDescription
-
-    makeItem . unlines $ d ++ map (T.unpack . entryTitle) sorted
+    archiveCompiler (ADTagged t sorted) recents
 
 compileTag :: TagType -> String -> Pattern -> Compiler (Item Tag)
 compileTag tt tLab p = do
@@ -32,8 +46,6 @@ compileTag tt tLab p = do
            . loadAll
            . fromString
            $ tagTypeDescPath tt </> genSlug' maxBound tLab <.> "md"
-    unsafeCompiler . putStrLn $ tagTypeDescPath tt </> genSlug' maxBound tLab <.> "md"
-    unsafeCompiler $ print tDesc
     tDescP <- mapM (readPandocWith entryReaderOpts) tDesc
 
     let tLab'   = T.pack tLab
@@ -41,7 +53,7 @@ compileTag tt tLab p = do
                     case itemBody pd of
                       P.Pandoc m (P.Header 1 _ _:bs)
                           -> P.Pandoc m bs
-                      p   -> p
+                      pd' -> pd'
         tDescMd = T.pack . P.writeMarkdown entryWriterOpts <$> tDescP'
 
     entries <- map itemBody <$> loadAllSnapshots p "entry"
@@ -49,12 +61,6 @@ compileTag tt tLab p = do
     makeItem $ Tag { tagLabel       = tLab'
                    , tagType        = tt
                    , tagDescription = tDescMd
-                   , tagSlug        = genSlug maxBound tLab'
                    , tagEntries     = entries
                    }
 
-
-tagTypeDescPath :: TagType -> String
-tagTypeDescPath GeneralTag  = "copy/tags/tags"
-tagTypeDescPath CategoryTag = "copy/tags/categories"
-tagTypeDescPath SeriesTag   = "copy/tags/series"
