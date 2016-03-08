@@ -10,6 +10,7 @@ import           Control.Monad
 import           Data.Function
 import           Data.List
 import           Data.Maybe
+import           Data.Monoid
 import           Data.Time.Calendar
 import           Data.Time.LocalTime
 import           Hakyll
@@ -32,7 +33,7 @@ buildHistoryWith f p r = do
     ids <- getMatches p
     idDates <- fmap catMaybes . forM ids $ \i -> fmap (i,) <$> f i
     let idsSet = S.fromList ids
-        hMap   = M.fromList
+        hMap   = M.fromListWith (<>)
                . map (\xs@((_,(y,_)):_) ->
                        (y, M.fromListWith (++) (map (\(i,(_,m)) -> (m, [i])) xs))
                      )
