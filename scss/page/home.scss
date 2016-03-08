@@ -176,7 +176,7 @@ $photo: "/img/photo_square.jpg";
 }
 
 @mixin home-links-icons($title,$sprite) {
-  a[title="#{$title}"] {
+  a[title="#{$title}"]:before {
     background-position-y: sprite16-y($sprite);
   }
 }
