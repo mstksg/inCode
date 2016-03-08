@@ -55,6 +55,7 @@ tagLink
 tagLink f t =
   H.a
     ! A.href (H.textValue $ renderUrl (T.pack (tagUrl t)))
+    ! A.class_ (tagLiClass t)
     ! A.title (fromString $ plainDescription' t)
     $ H.toHtml (f t)
 
