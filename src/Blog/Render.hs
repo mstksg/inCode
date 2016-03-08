@@ -103,39 +103,12 @@ renderLayout pd@PD{..} body =
               , "//s7.addthis.com/js/300/addthis_widget.js#pubid=" <> devAddThis confDeveloperAPIs
               , "/js/common.js"
               ]
-    -- TODO: make url?
-    allCss = cssList ++ pageDataCss
-    allJs  = jsList ++ pageDataCss
+    allCss = map renderUrl $ cssList ++ pageDataCss
+    allJs  = map renderUrl $ jsList  ++ pageDataJs
     title = case pageDataTitle of
               Just t  -> t <> " · " <> confTitle
               Nothing -> confTitle
 
-    -- pageData' <- ask
-    -- bodyHtml <- body
-    -- navBarHtml <- navBar
-    -- title <- createTitle
-    -- socialFollowsHtml <- viewSocialFollow
-    -- openGraphMetas <- viewOpenGraphMetas
-    -- -- rssUrl <- renderUrl "/rss"
-
-    -- cssUrlList <- mapM renderUrl $ cssList ++ pageDataCss pageData'
-    -- jsUrlList <- mapM renderUrl $ jsList ++ pageDataJs pageData'
-
-
-
--- viewLayoutEmpty :: SiteRender H.Html
--- viewLayoutEmpty = viewLayout $ return mempty
-
--- createTitle :: SiteRender T.Text
--- createTitle = do
---   pageData' <- ask
---   let
---     siteTitle = siteDataTitle siteData
---     pageTitle = pageDataTitle pageData'
---     combined   = case pageTitle of
---       Just title -> T.concat [title," · ",siteTitle]
---       Nothing    -> siteTitle
---   return combined
 
 navBar :: (?config :: Config) => H.Html
 navBar = do

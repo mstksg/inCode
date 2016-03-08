@@ -44,8 +44,6 @@ main = do
                 =<< Y.decodeFileEither "config/site-data.yaml"
     let ?config = c
 
-    lTempl <- readFile "latex/templates/default.latex"
-
     hakyll $ do
       match "static/**" $ do
         route   $ gsubRoute "static/" (\_ -> "")
@@ -71,6 +69,10 @@ main = do
         route   mempty
         compile getResourceString
 
+      match "latex/templates/*" $ do
+        route   mempty
+        compile getResourceString
+
       forM_ confCodeSamples $ \samplesDir -> do
         let pat = fromGlob $ T.unpack samplesDir </> "**.hs"
         match pat $ do
@@ -89,10 +91,16 @@ main = do
         compile entryMarkdownCompiler
       match "copy/entries/*" . version "latex" $ do
         route   $ routeEntry `composeRoutes` setExtension "tex"
-        compile $ entryLaTeXCompiler lTempl
+        compile entryLaTeXCompiler
 
+
+      match "copy/entries/*" . version "id-index" $ do
+        route   $ routeIdEntry
+                    `composeRoutes` setExtension "html"
+                    `composeRoutes` gsubRoute ".html" (const "/index.html")
+        compile $ compileIdEntry ""
       match "copy/entries/*" . version "id-html" $ do
-        route   routeIdEntry
+        route   $ routeIdEntry `composeRoutes` setExtension "html"
         compile $ compileIdEntry ""
       match "copy/entries/*" . version "id-markdown" $ do
         route   $ routeIdEntry `composeRoutes` setExtension "md"
@@ -162,9 +170,14 @@ main = do
         route   idRoute
         compile $ tagCompiler SeriesTag   ser p recentEntries
 
+      match "copy/entries/*" . version "html-index" $ do
+        route   $ routeEntry
+                    `composeRoutes` setExtension "html"
+                    `composeRoutes` gsubRoute ".html" (const "/index.html")
+        compile $ entryCompiler now entriesSorted allTags
       match "copy/entries/*" . version "html" $ do
-          route   routeEntry
-          compile $ entryCompiler now entriesSorted allTags
+        route   $ routeEntry `composeRoutes` setExtension "html"
+        compile $ entryCompiler now entriesSorted allTags
 
       homePag <- buildPaginateWith
                    (mkHomePages (prefHomeEntries confBlogPrefs))
