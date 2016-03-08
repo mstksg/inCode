@@ -44,7 +44,12 @@ compileEntry = do
                           . takeWhile validLede
                           $ bs
         eLede       = T.pack . P.writeMarkdown entryWriterOpts <$> ePandocLede
-    eTitle    <- T.unwords . T.lines . T.pack <$> getMetadataField' i "title"
+    eTitle    <- T.pack
+               . P.writeMarkdown entryWriterOpts
+               . P.handleError
+               . P.readMarkdown entryReaderOpts
+               . T.unpack . T.unwords . T.lines . T.pack
+             <$> getMetadataField' i "title"
     eCreate   <- (parseETime =<<) <$> getMetadataField i "create-time"
     ePost     <- (parseETime =<<) <$> getMetadataField i "date"
     eModified <- (parseETime =<<) <$> getMetadataField i "modified-time"

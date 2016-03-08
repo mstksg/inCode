@@ -114,7 +114,6 @@ main = do
                 $ \y m -> case m of
                             Nothing -> fromFilePath ("entries/in" </> show y </> "index.html")
                             Just m' -> fromFilePath ("entries/in" </> show y </> show (mInt m') </> "index.html")
-      preprocess $ print (historyMap hist)
       let entriesSorted = sortBy (flip $ comparing (fst . fst) <> comparing (snd . fst)) $ do
             (y, mes) <- M.toList $ historyMap hist
             (m, es)  <- M.toList mes
