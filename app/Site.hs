@@ -24,6 +24,7 @@ import           Data.Foldable
 import           Data.List
 import           Data.Maybe
 import           Data.Ord
+import           Data.String
 import           Data.Time.LocalTime
 import           Hakyll
 import           Hakyll.Web.Redirect
@@ -99,9 +100,9 @@ main = do
                     `composeRoutes` setExtension "html"
                     `composeRoutes` gsubRoute ".html" (const "/index.html")
         compile $ compileIdEntry ""
-      match "copy/entries/*" . version "id-html" $ do
-        route   $ routeIdEntry `composeRoutes` setExtension "html"
-        compile $ compileIdEntry ""
+      -- match "copy/entries/*" . version "id-html" $ do
+      --   route   $ routeIdEntry `composeRoutes` setExtension "html"
+      --   compile $ compileIdEntry ""
       match "copy/entries/*" . version "id-markdown" $ do
         route   $ routeIdEntry `composeRoutes` setExtension "md"
         compile $ compileIdEntry "md"
@@ -112,7 +113,7 @@ main = do
       hist <- buildHistoryWith ymByField ("copy/entries/*" .&&. hasNoVersion)
                 $ \y m -> case m of
                             Nothing -> fromFilePath ("entries/in" </> show y </> "index.html")
-                            Just m' -> fromFilePath ("entries/in" </> show y </> show (mInt m'))
+                            Just m' -> fromFilePath ("entries/in" </> show y </> show (mInt m') </> "index.html")
       let entriesSorted = sortBy (flip $ comparing fst) $ do
             (y, mes) <- M.toList $ historyMap hist
             (m, es)  <- M.toList mes
@@ -150,39 +151,48 @@ main = do
                  ++ map ((CategoryTag,) . T.pack . fst) (tagsMap cats)
                  ++ map ((SeriesTag  ,) . T.pack . fst) (tagsMap sers)
 
-      create ["tags"] $ do
+      -- let genHtmlAndIndex i = fromString <$> [i <.> "html", i </> "index.html"]
+      create ["tags/index.html"] $ do
         route idRoute
         compile $ tagIndexCompiler GeneralTag  (tagsMap tags) recentEntries
-      create ["categories"] $ do
+      create ["categories/index.html"] $ do
         route idRoute
         compile $ tagIndexCompiler CategoryTag (tagsMap cats) recentEntries
-      create ["series"] $ do
+      create ["series/index.html"] $ do
         route idRoute
         compile $ tagIndexCompiler SeriesTag   (tagsMap sers) recentEntries
 
-      tagsRules tags $ \tag p -> do
-        route   idRoute
-        compile $ tagCompiler GeneralTag  tag p recentEntries
-      tagsRules cats $ \cat p -> do
-        route   idRoute
-        compile $ tagCompiler CategoryTag cat p recentEntries
-      tagsRules sers $ \ser p -> do
-        route   idRoute
-        compile $ tagCompiler SeriesTag   ser p recentEntries
+      forM_ [(GeneralTag, tags),(CategoryTag, cats),(SeriesTag, sers)]
+          $ \(tt,ts) -> do
+        tagsRules ts $ \t p -> do
+          route   $ idRoute
+                      `composeRoutes` setExtension "html"
+                      `composeRoutes` gsubRoute ".html" (const "/index.html")
+          compile $ tagCompiler tt  t p recentEntries
+
+      -- tagsRules tags $ \tag p -> do
+      --   route   idRoute
+      --   compile $ tagCompiler GeneralTag  tag p recentEntries
+      -- tagsRules cats $ \cat p -> do
+      --   route   idRoute
+      --   compile $ tagCompiler CategoryTag cat p recentEntries
+      -- tagsRules sers $ \ser p -> do
+      --   route   idRoute
+      --   compile $ tagCompiler SeriesTag   ser p recentEntries
 
       match "copy/entries/*" . version "html-index" $ do
         route   $ routeEntry
                     `composeRoutes` setExtension "html"
                     `composeRoutes` gsubRoute ".html" (const "/index.html")
         compile $ entryCompiler now entriesSorted allTags
-      match "copy/entries/*" . version "html" $ do
-        route   $ routeEntry `composeRoutes` setExtension "html"
-        compile $ entryCompiler now entriesSorted allTags
+      -- match "copy/entries/*" . version "html" $ do
+      --   route   $ routeEntry `composeRoutes` setExtension "html"
+      --   compile $ entryCompiler now entriesSorted allTags
 
       homePag <- buildPaginateWith
                    (mkHomePages (prefHomeEntries confBlogPrefs))
                    ("copy/entries/*" .&&. hasNoVersion)
-                   (\i -> fromFilePath ("home" </> show i))
+                   (\i -> fromFilePath ("home" </> show i </> "index.html"))
       let allPages = M.keys $ paginateMap homePag
       paginateRules homePag $ \i p -> do
         route   idRoute
@@ -194,7 +204,7 @@ main = do
       create ["index.html"] $ do
         route idRoute
         compile $ do
-          home1 <- itemBody <$> loadSnapshot "home/1" "index"
+          home1 <- itemBody <$> loadSnapshot "home/1/index.html" "index"
           makeItem (home1 :: String)
 
       create ["rss.raw"] $ do
