@@ -11,7 +11,6 @@ import           Control.Monad
 import           Data.Maybe       (fromMaybe, listToMaybe)
 import           Hakyll
 import           System.FilePath  ((</>))
-import           System.IO.Error
 import           Text.Parsec
 import           Text.Parsec.Text
 import qualified Data.Text        as T
