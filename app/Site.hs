@@ -24,7 +24,6 @@ import           Data.Foldable
 import           Data.List
 import           Data.Maybe
 import           Data.Ord
-import           Data.String
 import           Data.Time.LocalTime
 import           Hakyll
 import           Hakyll.Web.Redirect
