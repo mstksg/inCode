@@ -44,7 +44,12 @@ compileEntry = do
                           . takeWhile validLede
                           $ bs
         eLede       = T.pack . P.writeMarkdown entryWriterOpts <$> ePandocLede
-    eTitle    <- T.unwords . T.lines . T.pack <$> getMetadataField' i "title"
+    eTitle    <- T.pack
+               . P.writeMarkdown entryWriterOpts
+               . P.handleError
+               . P.readMarkdown entryReaderOpts
+               . T.unpack . T.unwords . T.lines . T.pack
+             <$> getMetadataField' i "title"
     eCreate   <- (parseETime =<<) <$> getMetadataField i "create-time"
     ePost     <- (parseETime =<<) <$> getMetadataField i "date"
     eModified <- (parseETime =<<) <$> getMetadataField i "modified-time"
@@ -220,3 +225,11 @@ sortEntries = sortBy (flip $ comparing entryPostTime)
 sortTaggedEntries :: [TaggedEntry] -> [TaggedEntry]
 sortTaggedEntries = sortBy (flip $ comparing (entryPostTime . teEntry))
                   . filter (isJust . entryPostTime . teEntry)
+
+getEntries :: Compiler [Entry]
+getEntries = map itemBody <$> loadAllSnapshots ("copy/entries/*" .&&. hasNoVersion) "entry"
+
+getRecentEntries :: (?config :: Config) => Compiler [Entry]
+getRecentEntries = take (prefSidebarEntries (confBlogPrefs ?config))
+                 . sortEntries
+               <$> getEntries

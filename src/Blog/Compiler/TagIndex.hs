@@ -21,19 +21,18 @@ tagIndexCompiler
     :: (?config :: Config)
     => TagType
     -> [(String, [Identifier])]
-    -> [Identifier]
     -> Compiler (Item String)
-tagIndexCompiler tt tmap recents = do
+tagIndexCompiler tt tmap = do
     tmap' <- forM tmap $ \(s, es) -> do
       t      <- fetchTag tt (T.pack s)
       recent <- listToMaybe . sortEntries
             <$> traverse (flip loadSnapshotBody "entry") es
       return (t, recent)
 
-    recents' <- traverse (flip loadSnapshotBody "entry") recents
+    recents <- getRecentEntries
 
     let tmapSort = sortBy f tmap'
-        tii = TII tt tmapSort recents'
+        tii = TII tt tmapSort recents
         title = case tt of
                   GeneralTag  -> "Tags"
                   CategoryTag -> "Categories"

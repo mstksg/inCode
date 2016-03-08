@@ -23,6 +23,7 @@ import           Data.Default
 import           Data.Foldable
 import           Data.List
 import           Data.Maybe
+import           Data.Monoid
 import           Data.Ord
 import           Data.Time.LocalTime
 import           Hakyll
@@ -113,27 +114,23 @@ main = do
                 $ \y m -> case m of
                             Nothing -> fromFilePath ("entries/in" </> show y </> "index.html")
                             Just m' -> fromFilePath ("entries/in" </> show y </> show (mInt m') </> "index.html")
-      preprocess $ print (historyMap hist)
-      let entriesSorted = sortBy (flip $ comparing fst) $ do
+      let entriesSorted = sortBy (flip $ comparing (fst . fst) <> comparing (snd . fst)) $ do
             (y, mes) <- M.toList $ historyMap hist
             (m, es)  <- M.toList mes
             e        <- es
             return ((y, m), e)
-          recentEntries = map snd
-                        . take (prefSidebarEntries confBlogPrefs)
-                        $ entriesSorted
       historyRules' hist $ \spec -> do
         route idRoute
         compile $ do
           case spec of
             Left  (y     , mp) -> do
-              archiveCompiler (ADYear y mp) recentEntries
+              archiveCompiler (ADYear y mp)
             Right ((y, m), is) -> do
-              archiveCompiler (ADMonth y m is) recentEntries
+              archiveCompiler (ADMonth y m is)
 
       create ["entries/index.html"] $ do
         route   idRoute
-        compile $ archiveCompiler (ADAll (historyMap hist)) recentEntries
+        compile $ archiveCompiler (ADAll (historyMap hist))
 
       tags <- buildTagsWith
                   (tagsAt "tags")
@@ -154,13 +151,13 @@ main = do
       -- let genHtmlAndIndex i = fromString <$> [i <.> "html", i </> "index.html"]
       create ["tags/index.html"] $ do
         route idRoute
-        compile $ tagIndexCompiler GeneralTag  (tagsMap tags) recentEntries
+        compile $ tagIndexCompiler GeneralTag  (tagsMap tags)
       create ["categories/index.html"] $ do
         route idRoute
-        compile $ tagIndexCompiler CategoryTag (tagsMap cats) recentEntries
+        compile $ tagIndexCompiler CategoryTag (tagsMap cats)
       create ["series/index.html"] $ do
         route idRoute
-        compile $ tagIndexCompiler SeriesTag   (tagsMap sers) recentEntries
+        compile $ tagIndexCompiler SeriesTag   (tagsMap sers)
 
       forM_ [(GeneralTag, tags),(CategoryTag, cats),(SeriesTag, sers)]
           $ \(tt,ts) -> do
@@ -168,7 +165,7 @@ main = do
           route   $ idRoute
                       `composeRoutes` setExtension "html"
                       `composeRoutes` gsubRoute ".html" (const "/index.html")
-          compile $ tagCompiler tt  t p recentEntries
+          compile $ tagCompiler tt  t p
 
       -- tagsRules tags $ \tag p -> do
       --   route   idRoute
