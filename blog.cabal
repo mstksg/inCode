@@ -16,7 +16,8 @@ cabal-version:       >=1.8
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Blog.Compiler.Archive
+  exposed-modules:     Blog.App
+                       Blog.Compiler.Archive
                        Blog.Compiler.Entry
                        Blog.Compiler.Home
                        Blog.Compiler.Tag
@@ -25,8 +26,8 @@ library
                        Blog.Rule.Archive
                        Blog.Types
                        Blog.Util
-                       Blog.Util.Tag
                        Blog.Util.Preprocessor
+                       Blog.Util.Tag
                        Blog.View
                        Blog.View.Archive
                        Blog.View.Entry
@@ -47,6 +48,8 @@ library
                      , feed
                      , filepath
                      , hakyll
+                     , hakyll-sass
+                     , hjsmin
                      , mtl
                      , neat-interpolation
                      , pandoc
@@ -54,12 +57,13 @@ library
                      , parsec
                      , text
                      , time
+                     , transformers
                      , xml
+                     , yaml
   ghc-options:         -Wall
 
 executable blog-build
-  main-is:             Site.hs
-  hs-source-dirs:      app
+  main-is:             app/Site.hs
   build-depends:       base >= 4 && < 5
                      , aeson
                      , binary
@@ -82,8 +86,7 @@ executable blog-build
   ghc-options:         -Wall
 
 executable blog-migrate-entries
-  main-is:             MigrateEntries.hs
-  hs-source-dirs:      app
+  main-is:             app/MigrateEntries.hs
   build-depends:       base >= 4 && < 5
                      , aeson
                      , blog
@@ -100,6 +103,14 @@ executable blog-migrate-entries
                      , transformers
                      , vector
   ghc-options:         -Wall
+
+-- executable blog-fay-test
+--   main-is:             app/FayTest.hs
+--   build-depends:       base >= 4  && < 5
+--                      , blog
+--                      , fay
+--                      , fay-base
+--                      , data-default
 
 -- executable blog-scripts-migrate
 --   main-is:             scripts/Migrate.hs
