@@ -220,3 +220,11 @@ sortEntries = sortBy (flip $ comparing entryPostTime)
 sortTaggedEntries :: [TaggedEntry] -> [TaggedEntry]
 sortTaggedEntries = sortBy (flip $ comparing (entryPostTime . teEntry))
                   . filter (isJust . entryPostTime . teEntry)
+
+getEntries :: Compiler [Entry]
+getEntries = map itemBody <$> loadAllSnapshots ("copy/entries/*" .&&. hasNoVersion) "entry"
+
+getRecentEntries :: (?config :: Config) => Compiler [Entry]
+getRecentEntries = take (prefSidebarEntries (confBlogPrefs ?config))
+                 . sortEntries
+               <$> getEntries

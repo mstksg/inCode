@@ -14,17 +14,16 @@ import           Data.Ord
 import           Data.String
 import           Hakyll
 import           System.FilePath
-import qualified Data.Text                      as T
-import qualified Text.Pandoc                    as P
+import qualified Data.Text             as T
+import qualified Text.Pandoc           as P
 
 tagCompiler
     :: (?config :: Config)
     => TagType
     -> String
     -> Pattern
-    -> [Identifier]
     -> Compiler (Item String)
-tagCompiler tt tLab p recents = do
+tagCompiler tt tLab p = do
     t@Tag{..} <- fmap itemBody . saveSnapshot "tag" =<< compileTag tt tLab p
 
     let sorted = map (fromFilePath . entrySourceFile)
@@ -32,7 +31,7 @@ tagCompiler tt tLab p recents = do
                . filter (isJust . entryPostTime)
                $ tagEntries
 
-    archiveCompiler (ADTagged t sorted) recents
+    archiveCompiler (ADTagged t sorted)
 
 compileTag :: TagType -> String -> Pattern -> Compiler (Item Tag)
 compileTag tt tLab p = do
