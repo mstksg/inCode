@@ -59,6 +59,10 @@ app znow@(ZonedTime now tz) = do
       route   idRoute
       compile compressJsCompiler
 
+    match "_ghcjs/**" $ do
+      route   $ gsubRoute "_ghcjs/" (const "ghcjs/")
+      compile copyFileCompiler
+
     match "copy/tags/**" $ do
       route   mempty
       compile getResourceString

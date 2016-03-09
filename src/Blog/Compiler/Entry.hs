@@ -115,9 +115,8 @@ entryCompiler now histList allTags = do
                  , pageDataCss     = [ "/css/page/entry.css"
                                      , "/css/pygments.css"
                                      ]
-                 , pageDataJs      = [ "/js/fay-runtime.min.js"
-                                     , "/js/page/entry.js"
-                                     , "/js/page/entry_toc.js"
+                 , pageDataJs      = [ "/js/page/entry_toc.js"
+                                     , ghcjsReq "blog-javascript-entry"
                                      , "/js/disqus.js"
                                      , "/js/disqus_count.js"
                                      , "/js/social.js"
