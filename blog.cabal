@@ -123,6 +123,8 @@ executable blog-javascript-entry
   if impl(ghcjs)
     buildable:           True
     build-depends:       base >= 4 && < 5
+                       , ghcjs-dom
+                       , transformers
   else
     buildable:           False
     build-depends:       base >= 4 && < 5
