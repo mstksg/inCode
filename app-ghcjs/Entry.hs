@@ -1,40 +1,53 @@
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 import           Control.Monad
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Maybe
+import           Control.Monad.Trans.State
 import           Data.Foldable
-import           Data.Functor
 import           Data.IORef
 import           Data.List
 import           Data.Maybe
 import           GHCJS.DOM
-import           GHCJS.DOM.Document          as JD
-import           GHCJS.DOM.Element           as JE
+import           GHCJS.DOM.Document           as JD
+import           GHCJS.DOM.Element            as JE
 import           GHCJS.DOM.EventM
 import           GHCJS.DOM.HTMLAnchorElement
-import           GHCJS.DOM.HTMLBodyElement
-import           GHCJS.DOM.HTMLElement
 import           GHCJS.DOM.Node
 import           GHCJS.DOM.NodeList
-import qualified GHCJS.DOM.DOMTokenList      as DTL
+import qualified GHCJS.DOM.DOMTokenList       as DTL
 
-fromNodeList :: NodeList -> IO [Node]
+fromNodeList :: MonadIO m => NodeList -> m [Node]
 fromNodeList nl = do
     l <- getLength nl
     catMaybes <$> mapM (nl `item`) [0 .. (l - 1)]
 
-fromNodeListIx :: NodeList -> IO [(Integer, Node)]
-fromNodeListIx nl = do
-    l <- getLength nl
-    catMaybes <$> mapM (\i -> fmap (fromIntegral i,) <$> nl `item` i)
-                       [0 .. (l - 1)]
+fromNodeList' :: MonadIO m => Word -> NodeList -> m [Node]
+fromNodeList' t nl = do
+    l  <- getLength nl
+    ns <- catMaybes <$> mapM (nl `item`) [0 .. (l - 1)]
+    filterM (fmap (== t) . getNodeType) ns
 
-
-mapMNodeList_ :: (Node -> IO ()) -> NodeList -> IO ()
+mapMNodeList_
+    :: MonadIO m
+    => (Node -> m ())
+    -> NodeList
+    -> m ()
 mapMNodeList_ f nl = do
     ns <- fromNodeList nl
     mapM_ f ns
+
+mapMNodeList_'
+    :: MonadIO m
+    => Word
+    -> (Node -> m ())
+    -> NodeList
+    -> m ()
+mapMNodeList_' t f nl = do
+    ns <- fromNodeList' t nl
+    mapM_ f ns
+
 
 withDTL
     :: MonadIO m
@@ -44,6 +57,16 @@ withDTL
 withDTL f e = do
     dtl <- getClassList e
     mapM_ f dtl
+
+to' :: Monad m
+    => (a -> m (Maybe b))
+    -> (b -> m ())
+    -> a
+    -> m ()
+to' f g x = do
+    y <- f x
+    traverse_ g y
+
 
 main :: IO ()
 main = do
@@ -88,6 +111,9 @@ appendTopLinks doc = do
 setupSourceLink :: Document -> IO ()
 setupSourceLink doc = void . runMaybeT $ do
     sourceInfo <- MaybeT $ doc `JD.querySelector` ".source-info"
+
+    liftIO $ withDTL (`DTL.add`    ["hide"]) sourceInfo
+
     sourceToggled <- liftIO $ newIORef False
     header <- MaybeT $ doc `JD.querySelector` ".article > header"
 
@@ -117,43 +143,38 @@ setupSourceLink doc = void . runMaybeT $ do
 processCodeBlocks :: IO ()
 processCodeBlocks = return ()
 
-
 setupAsides :: Document -> IO ()
 setupAsides doc = do
     asides <- doc `JD.querySelectorAll` ".main-content .note"
-    return ()
-    -- (mapM_ . mapMNodeList_) (flipAside True) asides
-  -- where
-    -- flipAside :: Bool -> Element -> IO ()
-    -- flipAside setup aside = do
-        
+    flip (mapM_ . mapMNodeList_ . to' getChildNodes) asides $ \blks -> do
+      let flipAll =
+            flip (withIndex (mapMNodeList_' ELEMENT_NODE)) blks $ \i blk -> do
+              when (i > 0) $ do
+                -- TODO: submit PR for toggle for ghcjs-dom
+                flip withDTL (castToElement blk) $ \l -> do
+                  hasHide <- l `DTL.contains` "hide"
+                  if hasHide
+                    then l `DTL.remove` ["hide"]
+                    else l `DTL.add`    ["hide"]
 
+      flip (withIndex (mapMNodeList_' ELEMENT_NODE)) blks $ \i blk -> do
+        let blkE = castToElement blk
+        when (i == 0) $ do
+          _ <- (blkE `on` JE.click) $ liftIO flipAll
+          withDTL (`DTL.add` ["clickable", "aside-header"]) blkE
+          clickMeMaybe <- doc `createElement` Just "span"
+          forM_ clickMeMaybe $ \clickMe -> do
+            withDTL (`DTL.add` ["clickme"]) clickMe
+            clickMe `setInnerHTML` Just "(Click me!)"
+            void $ blk `appendChild` Just (toNode clickMe)
 
-    
+withIndex
+    :: forall s t a b f. Applicative f
+    => ((a -> StateT Integer f b) -> (s -> StateT Integer f t))
+    -> (Integer -> a -> f b) -> (s -> f t)
+withIndex t f = fmap fst . flip runStateT 0 . t f'
+  where
+    f' :: a -> StateT Integer f b
+    f' y = StateT $ \i -> (, i+1) <$> f i y
 
---   asides <- select ".main-content .note"
---   flip each asides $ \_ el -> do
---     flipAside True =<< select el
---     return True
---   return ()
-
--- flipAside :: Bool -> JQuery -> Fay ()
--- flipAside setup aside = do
---     blks <- children aside
---     flip each blks $ \i el -> do
---       elJ <- select el
---       if i == 0
---         then do
---           when setup $ do
---             flip click elJ $ \_ -> flipAside False aside
---             addClass "clickable aside-header" elJ
---             J.append clickMe elJ
---           return ()
---         else do
---           toggle Fast elJ
---           return ()
---       return True
---     return ()
---   where
---     clickMe = " <span class='clickme'>(Click me!)</span>"
 

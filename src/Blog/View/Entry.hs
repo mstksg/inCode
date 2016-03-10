@@ -66,7 +66,7 @@ viewEntry EI{..} = do
 
           H.p $ do
 
-            H.span ! A.class_ "source-info hide" $ do
+            H.span ! A.class_ "source-info" $ do
               forM_ (renderBlobUrl (T.pack (entrySourceFile eiEntry))) $ \u -> do
                 H.a
                   ! A.class_ "source-link"
