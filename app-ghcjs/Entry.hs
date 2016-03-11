@@ -1,22 +1,27 @@
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE RecordWildCards #-}
 
+import           Control.Applicative
 import           Control.Monad
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Maybe
 import           Control.Monad.Trans.State
+import           Control.Monad.Trans.Writer
+import           Data.Char
 import           Data.Foldable
 import           Data.IORef
 import           Data.List
 import           Data.Maybe
 import           GHCJS.DOM
-import           GHCJS.DOM.Document           as JD
-import           GHCJS.DOM.Element            as JE
+import           GHCJS.DOM.Document          as DD
+import           GHCJS.DOM.Element           as DE
 import           GHCJS.DOM.EventM
 import           GHCJS.DOM.HTMLAnchorElement
+import           GHCJS.DOM.HTMLDivElement
 import           GHCJS.DOM.Node
 import           GHCJS.DOM.NodeList
-import qualified GHCJS.DOM.DOMTokenList       as DTL
+import qualified GHCJS.DOM.DOMTokenList      as DTL
 
 fromNodeList :: MonadIO m => NodeList -> m [Node]
 fromNodeList nl = do
@@ -70,23 +75,22 @@ to' f g x = do
 
 main :: IO ()
 main = do
-    print "Hello from the world of ghcjs!"
+    putStrLn "Hello from the world of ghcjs!"
 
     runWebGUI $ \webView -> do
       enableInspector webView
       Just doc <- webViewGetDomDocument webView
-      -- Just body <- fmap castToHTMLBodyElement <$> getBody doc
 
       appendTopLinks doc
       setupSourceLink doc
-      processCodeBlocks
+      processCodeBlocks doc
       setupAsides doc
 
-
+    putStrLn "Goodbye!"
 
 appendTopLinks :: Document -> IO ()
 appendTopLinks doc = do
-    hds <- doc `JD.querySelectorAll`
+    hds <- doc `DD.querySelectorAll`
              intercalate "," [".main-content h2"
                              ,".main-content h3"
                              ,".main-content h4"
@@ -96,12 +100,19 @@ appendTopLinks doc = do
       topLink' <- fmap castToHTMLAnchorElement
                     <$> doc `createElement` Just "a"
       forM_ topLink' $ \topLink -> do
-        topLink `setHref `"#title"
+        topLink `setHref` "#title"
         topLink `setClassName` "top-link"
         topLink `setInnerHTML` Just "top"
         void $ hd `appendChild` Just topLink
         -- TODO: animate.  would this require jquery?
 
+data SourceMode = SMHover
+                | SMOn
+  deriving (Show, Enum, Eq, Ord)
+
+data MouseEvt = MouseOn
+              | MouseOut
+  deriving (Show, Enum, Eq, Ord)
 
 -- setup source link visiblity behavior at the entry header.  When the
 --    header is clicked, it should toggle between mostly-off and always-on.
@@ -110,25 +121,25 @@ appendTopLinks doc = do
 --    binds/event handlers is kind of the same thing anyway.
 setupSourceLink :: Document -> IO ()
 setupSourceLink doc = void . runMaybeT $ do
-    sourceInfo <- MaybeT $ doc `JD.querySelector` ".source-info"
+    sourceInfo <- MaybeT $ doc `DD.querySelector` ".source-info"
 
     liftIO $ withDTL (`DTL.add`    ["hide"]) sourceInfo
 
     sourceToggled <- liftIO $ newIORef False
-    header <- MaybeT $ doc `JD.querySelector` ".article > header"
+    header <- MaybeT $ doc `DD.querySelector` ".article > header"
 
     void . liftIO $ do
-      _ <- (header `on` JE.mouseEnter) . liftIO $ do
+      _ <- (header `on` DE.mouseEnter) . liftIO $ do
         toggled <- readIORef sourceToggled
         unless toggled $
           withDTL (`DTL.remove` ["hide"]) sourceInfo
 
-      _ <- (header `on` JE.mouseLeave) . liftIO $ do
+      _ <- (header `on` DE.mouseLeave) . liftIO $ do
         toggled <- readIORef sourceToggled
         unless toggled $
           withDTL (`DTL.add`    ["hide"]) sourceInfo
 
-      (header `on` JE.click) . liftIO $ do
+      (header `on` DE.click) . liftIO $ do
         toggled <- readIORef sourceToggled
         if toggled
           then do
@@ -138,14 +149,106 @@ setupSourceLink doc = void . runMaybeT $ do
             withDTL (`DTL.remove` ["hide"]) sourceInfo
             writeIORef sourceToggled True
 
+data LinkSpec = LS { lsSource      :: Maybe String
+                   , lsInteractive :: Maybe String
+                   }
+  deriving (Show, Eq)
+
+instance Monoid LinkSpec where
+    mempty = LS Nothing Nothing
+    LS s1 i1 `mappend` LS s2 i2
+      = LS (s1 <|> s2) (i1 <|> i2)
 
 
-processCodeBlocks :: IO ()
-processCodeBlocks = return ()
+-- assumption: only one <code> per <pre>
+processCodeBlocks :: Document -> IO ()
+processCodeBlocks doc = do
+    blks <- doc `DD.querySelectorAll` ".main-content code.sourceCode"
+    flip (mapM_ . mapMNodeList_) blks $ \blk -> do
+      lSpec <- execWriterT
+             . (to' getChildNodes . mapMNodeList_' ELEMENT_NODE) (pullLinkSpec blk)
+             $ blk
+      chompWhitespace blk
+      blk `genLinkBox` lSpec
+      colorPrompt blk
+  where
+    pullLinkSpec :: Node -> Node -> WriterT LinkSpec IO ()
+    pullLinkSpec blk line = do
+      linec' <- getTextContent line
+      forM_ linec' $ \linec -> do
+        forM_ [("-- source: "     , Left )
+              ,("-- interactive: ", Right)
+              ] $ \(pref,handler) -> do
+          forM_ (pref `stripPrefix` linec) $ \stuff -> do
+            line `setNodeValue` ("" <$ Nothing)
+            _ <- blk `removeChild` Just line
+            case handler stuff of
+              Left s  -> tell $ LS (Just s) Nothing
+              Right s -> tell $ LS Nothing  (Just s)
+    chompWhitespace :: Node -> IO ()
+    chompWhitespace blk = go
+      where
+        go = do
+          fc' <- getFirstChild blk
+          forM_ fc' $ \fc -> do
+            t <- getTextContent fc
+            let isWhitespace = maybe True (all isSpace) (t :: Maybe String)
+            when isWhitespace $ do
+              _ <- blk `removeChild` Just fc
+              go
+    genLinkBox :: Node -> LinkSpec -> IO ()
+    genLinkBox blk LS{..} = void . runMaybeT $ do
+      _       <- maybe mzero return $ lsSource <|> lsInteractive
+      linkBox <- castToHTMLDivElement
+             <$> MaybeT (doc `createElement` Just "div")
+      pre     <- MaybeT (getParentNode blk)
+
+      liftIO $ do
+        linkBox `setClassName` "code-link-box"
+        _ <- pre `insertBefore` Just linkBox $ Just blk
+
+        forM_ [(lsSource     , "code-source-link"     , "View full source")
+              ,(lsInteractive, "code-interactive-link", "Interactive"     )
+              ] $ \(url', cls, txt) -> runMaybeT $ do
+          url  <- maybe mzero return $ url'
+          link <- castToHTMLAnchorElement
+              <$> MaybeT (doc `createElement` Just "a")
+          liftIO $ do
+            link `setHref` url
+            link `setClassName` cls
+            link `setTarget` "_blank"
+            link `setInnerHTML` Just txt
+            linkBox `appendChild` Just link
+
+        let preE     = castToElement pre
+            linkBoxE = toElement linkBox
+        withDTL (`DTL.add`    ["hide"]) linkBoxE
+
+        _ <- (preE `on` DE.mouseEnter) . liftIO $
+          withDTL (`DTL.remove` ["hide"]) linkBoxE
+
+        _ <- (preE `on` DE.mouseLeave) . liftIO $
+          withDTL (`DTL.add`    ["hide"]) linkBoxE
+
+        return ()
+    colorPrompt :: Node -> IO ()
+    colorPrompt blk = void . runMaybeT $ do
+      fc <- MaybeT $ getFirstChild  blk
+      tc <- MaybeT $ getTextContent fc
+      pr <- MaybeT $ getParentElement blk
+      let isPrompt = any (`isPrefixOf` tc) ["λ", "ghci"]
+      when isPrompt . liftIO $
+        withDTL (`DTL.add` ["code-block-prompt"]) pr
+      
+
+
+
+
+
 
 setupAsides :: Document -> IO ()
 setupAsides doc = do
-    asides <- doc `JD.querySelectorAll` ".main-content .note"
+    asides <- doc `DD.querySelectorAll` ".main-content .note"
     flip (mapM_ . mapMNodeList_ . to' getChildNodes) asides $ \blks -> do
       let flipAll =
             flip (withIndex (mapMNodeList_' ELEMENT_NODE)) blks $ \i blk -> do
@@ -160,13 +263,15 @@ setupAsides doc = do
       flip (withIndex (mapMNodeList_' ELEMENT_NODE)) blks $ \i blk -> do
         let blkE = castToElement blk
         when (i == 0) $ do
-          _ <- (blkE `on` JE.click) $ liftIO flipAll
+          _ <- (blkE `on` DE.click) $ liftIO flipAll
           withDTL (`DTL.add` ["clickable", "aside-header"]) blkE
           clickMeMaybe <- doc `createElement` Just "span"
           forM_ clickMeMaybe $ \clickMe -> do
             withDTL (`DTL.add` ["clickme"]) clickMe
             clickMe `setInnerHTML` Just "(Click me!)"
             void $ blk `appendChild` Just (toNode clickMe)
+
+      flipAll
 
 withIndex
     :: forall s t a b f. Applicative f
