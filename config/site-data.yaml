@@ -17,7 +17,7 @@ author:
   # gplus: 107705320197444500140
   github: mstksg
   linkedin: lejustin
-public-blobs: https://github.com/mstksg/blog/blob/develop/
+  public-blobs: https://github.com/mstksg/blog/tree/develop
 interactive-url: https://www.fpcomplete.com/user/jle/
 code-samples: code-samples
 host:
