@@ -13,8 +13,6 @@ extra-deps:
 
 # Override default flag values for local packages and extra-deps
 flags: {}
-  # hakyll-sass:
-  #   externallibsass: true
 
 # Extra package databases containing global packages
 extra-package-dbs: []

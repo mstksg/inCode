@@ -5,6 +5,7 @@ tags: functional programming, depedent types, numerical, haskell, singletons, ty
 create-time: 2016/02/25 11:47:50
 date: Never
 identifier: dependent-haskell-1
+slug: practical-dependent-types-in-haskell-1
 ---
 
 Whether you like it or not, programming with dependent types in Haskell moving
