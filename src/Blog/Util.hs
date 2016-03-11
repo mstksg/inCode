@@ -6,8 +6,9 @@ import           Data.Char
 import           Data.Default
 import           Data.Time.Format
 import           Hakyll
-import qualified Data.Text            as T
-import qualified Text.Pandoc          as P
+import           System.FilePath
+import qualified Data.Text        as T
+import qualified Text.Pandoc      as P
 
 
 renderShortFriendlyTime :: FormatTime t => t -> String
@@ -56,3 +57,5 @@ entryWriterOpts =
                               ,("links-as-notes","true")]
         }
 
+ghcjsReq :: String -> T.Text
+ghcjsReq f = T.pack $ "/ghcjs" </> (f <.> "jsexe") </> "all.js"

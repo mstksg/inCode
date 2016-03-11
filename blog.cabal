@@ -16,215 +16,117 @@ cabal-version:       >=1.8
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Blog.Compiler.Archive
-                       Blog.Compiler.Entry
-                       Blog.Compiler.Home
-                       Blog.Compiler.Tag
-                       Blog.Compiler.TagIndex
-                       Blog.Render
-                       Blog.Rule.Archive
-                       Blog.Types
-                       Blog.Util
-                       Blog.Util.Tag
-                       Blog.Util.Preprocessor
-                       Blog.View
-                       Blog.View.Archive
-                       Blog.View.Entry
-                       Blog.View.Feed
-                       Blog.View.Home
-                       Blog.View.Social
-                       Blog.View.TagIndex
-                       Hakyll.Web.Blaze
-                       Hakyll.Web.Redirect
-  build-depends:       base >= 4 && < 5
-                     , aeson
-                     , binary
-                     , binary-orphans
-                     , blaze-html
-                     , blaze-markup
-                     , containers
-                     , data-default
-                     , feed
-                     , filepath
-                     , hakyll
-                     , mtl
-                     , neat-interpolation
-                     , pandoc
-                     , pandoc-types
-                     , parsec
-                     , text
-                     , time
-                     , xml
+  if impl(ghcjs)
+    exposed-modules:     
+    build-depends:       base >= 4 && < 5
+  else
+    exposed-modules:     Blog.App
+                         Blog.Compiler.Archive
+                         Blog.Compiler.Entry
+                         Blog.Compiler.Home
+                         Blog.Compiler.Tag
+                         Blog.Compiler.TagIndex
+                         Blog.Render
+                         Blog.Rule.Archive
+                         Blog.Types
+                         Blog.Util
+                         Blog.Util.Preprocessor
+                         Blog.Util.Tag
+                         Blog.View
+                         Blog.View.Archive
+                         Blog.View.Entry
+                         Blog.View.Feed
+                         Blog.View.Home
+                         Blog.View.Social
+                         Blog.View.TagIndex
+                         Hakyll.Web.Blaze
+                         Hakyll.Web.Redirect
+    build-depends:       base >= 4 && < 5
+                       , aeson
+                       , binary
+                       , binary-orphans
+                       , blaze-html
+                       , blaze-markup
+                       , containers
+                       , data-default
+                       , feed
+                       , filepath
+                       , hakyll
+                       , hakyll-sass
+                       , hjsmin
+                       , mtl
+                       , neat-interpolation
+                       , pandoc
+                       , pandoc-types
+                       , parsec
+                       , text
+                       , time
+                       , transformers
+                       , xml
+                       , yaml
   ghc-options:         -Wall
 
 executable blog-build
-  main-is:             Site.hs
-  hs-source-dirs:      app
-  build-depends:       base >= 4 && < 5
-                     , aeson
-                     , binary
-                     , binary-orphans
-                     , blog
-                     , containers
-                     , data-default
-                     , filepath
-                     , hakyll
-                     , hakyll-sass
-                     , hjsmin
-                     , hsass
-                     , neat-interpolation
-                     , pandoc
-                     , pandoc-types
-                     , text
-                     , time
-                     , transformers
-                     , yaml
+  main-is:             app/Site.hs
+  if impl(ghcjs)
+    buildable:           False
+    build-depends:       base >= 4 && < 5
+  else
+    buildable:           True
+    build-depends:       base >= 4 && < 5
+                       , aeson
+                       , binary
+                       , binary-orphans
+                       , blog
+                       , containers
+                       , data-default
+                       , filepath
+                       , hakyll
+                       , hakyll-sass
+                       , hjsmin
+                       , hsass
+                       , neat-interpolation
+                       , pandoc
+                       , pandoc-types
+                       , text
+                       , time
+                       , transformers
+                       , yaml
   ghc-options:         -Wall
 
 executable blog-migrate-entries
-  main-is:             MigrateEntries.hs
-  hs-source-dirs:      app
-  build-depends:       base >= 4 && < 5
-                     , aeson
-                     , blog
-                     , bytestring
-                     , cases
-                     , containers
-                     , data-default
-                     , directory
-                     , filepath
-                     , optparse-applicative
-                     , pandoc
-                     , scientific
-                     , text
-                     , transformers
-                     , vector
+  main-is:             app/MigrateEntries.hs
+  if impl(ghcjs)
+    buildable:           False
+    build-depends:       base >= 4 && < 5
+  else
+    buildable:           True
+    build-depends:       base >= 4 && < 5
+                       , aeson
+                       , blog
+                       , bytestring
+                       , cases
+                       , containers
+                       , data-default
+                       , directory
+                       , filepath
+                       , optparse-applicative
+                       , pandoc
+                       , scientific
+                       , text
+                       , transformers
+                       , vector
   ghc-options:         -Wall
 
--- executable blog-scripts-migrate
---   main-is:             scripts/Migrate.hs
---   hs-source-dirs:      src
---   build-depends:       base >= 4 && < 5
---                      , aeson                 == 0.6.2.1
---                      , blaze-html            == 0.6.1.1
---                      , blaze-markup          == 0.5.1.5
---                      , bytestring            == 0.10.0.2
---                      , containers            >= 0.5.0.0 && < 0.6.0.0
---                      , directory             == 1.2.0.1
---                      , esqueleto             == 1.3.4.2
---                      , feed                  == 0.3.9.2
---                      , heroku                == 0.1
---                      , monad-loops           == 0.4.2
---                      , mtl                   == 2.1.2
---                      , old-locale            == 1.0.0.5
---                      , pandoc-types          == 1.12.3
---                      , parsec                == 3.1.4
---                      , persistent            == 1.2.3.0
---                      , persistent-postgresql == 1.2.1
---                      , persistent-template   == 1.2.0.4
---                      , process               == 1.1.0.2
---                      , scotty                == 0.4.6
---                      , text                  == 0.11.3.1
---                      , time                  == 1.4.0.1
---                      , transformers          == 0.3.0.0
---                      , utf8-string           == 0.3.7
---                      , vector                == 0.10.9.1
---                      , wai                   == 1.4.1
---   extensions:          OverloadedStrings
---                      , NoImplicitPrelude
---                      , PackageImports
+executable blog-javascript-entry
+  main-is:             app-ghcjs/Entry.hs
+  if impl(ghcjs)
+    buildable:           True
+    build-depends:       base >= 4 && < 5
+                       , ghcjs-dom
+                       , transformers
+  else
+    buildable:           False
+    build-depends:       base >= 4 && < 5
+  ghc-options:         -Wall
 
--- executable blog-scripts-seed
---   main-is:             scripts/Seed.hs
---   hs-source-dirs:      src
---   build-depends:       base >=3 && < 5
---                      , HTTP                  == 4000.2.9
---                      , MonadRandom           == 0.1.12
---                      , aeson                 == 0.6.2.1
---                      , blaze-html            == 0.6.1.1
---                      , blaze-markup          == 0.5.1.5
---                      , bytestring            == 0.10.0.2
---                      , containers            >= 0.5.0.0 && < 0.6.0.0
---                      , directory             == 1.2.0.1
---                      , esqueleto             == 1.3.4.2
---                      , feed                  == 0.3.9.2
---                      , filepath               == 1.3.0.1
---                      , heroku                == 0.1
---                      , monad-loops           == 0.4.2
---                      , mtl                   == 2.1.2
---                      , old-locale            == 1.0.0.5
---                      , pandoc                == 1.12.1
---                      , pandoc-types          == 1.12.3
---                      , parsec                == 3.1.4
---                      , persistent            == 1.2.3.0
---                      , persistent-postgresql == 1.2.1
---                      , persistent-template   == 1.2.0.4
---                      , process               == 1.1.0.2
---                      , random                == 1.0.1.1
---                      , scotty                == 0.4.6
---                      , split                 == 0.2.2
---                      , text                  == 0.11.3.1
---                      , time                  == 1.4.0.1
---                      , transformers          == 0.3.0.0
---                      , utf8-string           == 0.3.7
---                      , vector                == 0.10.9.1
---                      , wai                   == 1.4.1
---   extensions:          OverloadedStrings
---                      , NoImplicitPrelude
---                      , PackageImports
-
--- executable blog-scripts-load-entries
---   main-is:             scripts/LoadEntries.hs
---   hs-source-dirs:      src
---   build-depends:       base >=3 && < 5
---                      , aeson                 == 0.6.2.1
---                      , blaze-html            == 0.6.1.1
---                      , blaze-markup          == 0.5.1.5
---                      , containers            >= 0.5.0.0 && < 0.6.0.0
---                      , directory             == 1.2.0.1
---                      , esqueleto             == 1.3.4.2
---                      , filepath              == 1.3.0.1
---                      , heroku                == 0.1
---                      , monad-loops           == 0.4.2
---                      , mtl                   == 2.1.2
---                      , old-locale            == 1.0.0.5
---                      , pandoc                == 1.12.1
---                      , pandoc-types          == 1.12.3
---                      , parsec                == 3.1.4
---                      , persistent-postgresql == 1.2.1
---                      , persistent-template   == 1.2.0.4
---                      , scotty                == 0.4.6
---                      , text                  == 0.11.3.1
---                      , time                  == 1.4.0.1
---                      , transformers          == 0.3.0.0
---                      , utf8-string           == 0.3.7
---                      , vector                == 0.10.9.1
---                      , wai                   == 1.4.1
---   extensions:          OverloadedStrings
---                      , NoImplicitPrelude
---                      , PackageImports
-
--- executable blog-scripts-compile-fay
---   main-is:             scripts/CompileFay.hs
---   hs-source-dirs:      src
---   build-depends:       base >= 3 && < 5
---                      , aeson                 == 0.6.2.1
---                      , blaze-html            == 0.6.1.1
---                      , containers            >= 0.5.0.0 && < 0.6.0.0
---                      , data-default          == 0.5.3
---                      , directory             == 1.2.0.1
---                      , fay                   == 0.19.0.1
---                      , fay-base              == 0.19
---                      , fay-jquery            == 0.6.0.2
---                      , fay-ref               == 0.1.0.0
---                      , fay-text              == 0.3.0.1
---                      , filepath              == 1.3.0.1
---                      , mtl                   == 2.1.2
---                      , persistent-postgresql == 1.2.1
---                      , persistent-template   == 1.2.0.4
---                      , scotty                == 0.4.6
---                      , text                  == 0.11.3.1
---                      , time                  == 1.4.0.1
---   extensions:          OverloadedStrings
---                      , NoImplicitPrelude
---                      , PackageImports

@@ -231,6 +231,12 @@ hr {
   cursor: pointer;
 }
 
+.hide {
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important; 
+}
+
 @import "partial/copy-content.scss";
 @import "partial/navbar.scss";
 @import "partial/social.scss";
