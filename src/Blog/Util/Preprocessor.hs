@@ -68,11 +68,12 @@ processSample SampleSpec{..} rawSamp = processed
     sampCode  = T.unlines . map snd $ blocks
     toHeading key val = T.pack . concat $ ["-- ", key, ": ", val, "\n"]
     sourceUrl = do
-      blob <- T.unpack <$> confBlobs ?config
+      blob  <- T.unpack <$> confBlobs       ?config
+      samps <- T.unpack <$> confCodeSamples ?config
       let
         suffix  = concat ["#L",show startLine,"-",show endLine]
         suffix' = if null sKeywords then "" else suffix
-      return (blob </> sFile ++ suffix')
+      return (blob </> samps </> sFile ++ suffix')
     sourceHeading   = maybe "" (toHeading "source") sourceUrl
     interHeading =
       let maybeHeading = do
