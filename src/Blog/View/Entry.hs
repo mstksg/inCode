@@ -11,6 +11,7 @@ import           Blog.View
 import           Blog.View.Social
 import           Control.Monad
 import           Data.List
+import           Data.Maybe
 import           Data.Monoid
 import           Data.String
 import           Data.Time.LocalTime
@@ -26,7 +27,6 @@ data EntryInfo = EI
     , eiTags      :: [Tag]
     , eiPrevEntry :: Maybe Entry
     , eiNextEntry :: Maybe Entry
-    , eiNow       :: LocalTime
     }
   deriving (Show)
 
@@ -141,7 +141,8 @@ viewEntry EI{..} = do
                 "Disqus" :: H.Html
   where
     aboutUrl = renderUrl "/"
-    isPosted = maybe False (<= eiNow) (entryPostTime eiEntry)
+    -- isPosted = maybe False (<= eiNow) (entryPostTime eiEntry)
+    isPosted = isJust $ entryPostTime eiEntry
 
 
 nextPrevUrl

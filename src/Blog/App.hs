@@ -42,7 +42,7 @@ import qualified Data.Text.Lazy.Encoding   as TL
 app :: (?config :: Config)
     => ZonedTime
     -> Rules ()
-app znow@(ZonedTime now tz) = do
+app znow@(ZonedTime _ tz) = do
     match "static/**" $ do
       route   $ gsubRoute "static/" (\_ -> "")
       compile copyFileCompiler
@@ -168,7 +168,7 @@ app znow@(ZonedTime now tz) = do
       route   $ routeEntry
                   `composeRoutes` setExtension "html"
                   `composeRoutes` gsubRoute ".html" (const "/index.html")
-      compile $ entryCompiler now entriesSorted allTags
+      compile $ entryCompiler entriesSorted allTags
 
     homePag <- buildPaginateWith
                  (mkHomePages (prefHomeEntries confBlogPrefs))

@@ -88,11 +88,10 @@ compileEntry = do
 
 entryCompiler
     :: (?config :: Config)
-    => LocalTime
-    -> [((Year, Month), Identifier)]
+    => [((Year, Month), Identifier)]
     -> [(TagType, T.Text)]
     -> Compiler (Item String)
-entryCompiler now histList allTags = do
+entryCompiler histList allTags = do
     i <- setVersion Nothing <$> getUnderlying
     e@Entry{..} <- loadSnapshotBody i "entry"
     let (befs,afts) = break ((/= i) . snd) histList
@@ -107,7 +106,6 @@ entryCompiler now histList allTags = do
                 , eiTags      = sortTags allTs
                 , eiPrevEntry = eb
                 , eiNextEntry = ea
-                , eiNow       = now
                 }
         pd = def { pageDataTitle   = Just entryTitle
                  , pageDataType    = Just "article"
