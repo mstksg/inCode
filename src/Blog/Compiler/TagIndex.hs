@@ -31,7 +31,8 @@ tagIndexCompiler tt tmap = do
 
     recents <- getRecentEntries
 
-    let tmapSort = sortBy f tmap'
+    let sorter  = indexSorter tt
+        tmapSort = sortBy (tsCompare sorter) tmap'
         tii = TII tt tmapSort recents
         title = case tt of
                   GeneralTag  -> "Tags"
@@ -42,9 +43,23 @@ tagIndexCompiler tt tmap = do
                     }
 
     blazeCompiler pd (viewTagIndex tii)
-  where
-    f = case tt of
-          GeneralTag  -> flip $ comparing (length . tagEntries . fst)
-          CategoryTag -> comparing (tagLabel . fst)
-          SeriesTag   -> comparing (fmap entryPostTime . snd)
 
+
+data TagSortType = TSLabel
+                 | TSCount
+                 | TSRecent
+  deriving Show
+
+tsCompare
+    :: TagSortType
+    -> (Tag, Maybe Entry)
+    -> (Tag, Maybe Entry)
+    -> Ordering
+tsCompare TSLabel  =        comparing (tagLabel . fst)
+tsCompare TSCount  = flip $ comparing (length . tagEntries . fst)
+tsCompare TSRecent = flip $ comparing (fmap entryPostTime . snd)
+
+indexSorter :: TagType -> TagSortType
+indexSorter GeneralTag  = TSCount
+indexSorter CategoryTag = TSCount   -- should this be Label, Recent?
+indexSorter SeriesTag   = TSRecent
