@@ -1,7 +1,7 @@
-{-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE ImplicitParams    #-}
+{-# LANGUAGE MultiWayIf        #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE ImplicitParams #-}
+{-# LANGUAGE RecordWildCards   #-}
 
 module Blog.Util.Preprocessor where
 

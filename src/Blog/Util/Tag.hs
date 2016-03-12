@@ -10,6 +10,7 @@ import           Blog.View
 import           Data.Char
 import           Data.List
 import           Data.Maybe
+import           Data.Monoid
 import           Data.Ord
 import           Data.String
 import           Hakyll
@@ -124,4 +125,6 @@ filterTags :: TagType -> [Tag] -> [Tag]
 filterTags tt = filter ((== tt) . tagType)
 
 sortTags :: [Tag] -> [Tag]
-sortTags = sortBy (comparing tagPrettyLabelLower)
+sortTags = sortBy ( comparing tagType
+                 <> comparing (T.map toLower . tagLabel)
+                  )
