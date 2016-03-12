@@ -23,18 +23,43 @@ import qualified Text.Pandoc.Shared          as P
 mainSection :: H.Attribute
 mainSection = H.customAttribute "role" "main"
 
-renderUrl :: (?config :: Config) => T.Text -> T.Text
+renderUrl
+    :: (?config :: Config)
+    => T.Text
+    -> T.Text
 renderUrl u | hasP      = u
             | otherwise = urlBase </!> u
   where
     hasP = length (T.splitOn "//" u) > 1
 
-renderUrl' :: (?config :: Config) => String -> String
+renderUrl'
+    :: (?config :: Config)
+    => String -> String
 renderUrl' = T.unpack . renderUrl . T.pack
 
-renderBlobUrl :: (?config :: Config) => T.Text -> Maybe T.Text
+renderBlobUrl
+    :: (?config :: Config)
+    => T.Text
+    -> Maybe T.Text
 renderBlobUrl u = flip fmap (confBlobs ?config) $ \b ->
                     b </!> u
+
+renderRootUrl
+    :: (?config :: Config)
+    => T.Text
+    -> T.Text
+renderRootUrl u | hasP      = u
+                | otherwise = maybe mempty (T.cons '/') hostRoot
+                           </!> u
+  where
+    HostInfo{..} = confHostInfo ?config
+    hasP = length (T.splitOn "//" u) > 1
+
+renderRootUrl'
+    :: (?config :: Config)
+    => String
+    -> String
+renderRootUrl' = T.unpack . renderRootUrl . T.pack
 
 urlBase :: (?config :: Config) => T.Text
 urlBase = "http://"
@@ -43,7 +68,6 @@ urlBase = "http://"
        <> maybe mempty (T.cons '/') hostRoot
   where
     HostInfo{..} = confHostInfo ?config
-
 
 (</!>) :: T.Text -> T.Text -> T.Text
 b </!> f = let f' = fromMaybe f $ T.stripPrefix "/" f

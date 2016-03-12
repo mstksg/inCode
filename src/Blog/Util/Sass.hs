@@ -11,9 +11,5 @@ renderSassUrl
     => SassFunction
 renderSassUrl = SassFunction "render-url($x)" $ \v -> return $
     case v of
-      -- SassString s -> SassString (renderUrl' s)
-      -- SassString s -> SassString "hey"
-      -- _ -> SassString $ show v
-
-      SassList [SassString l] _ -> SassString $ "url(\"" ++ renderUrl' l ++ "\")"
+      SassList [SassString l] _ -> SassString $ "url(\"" ++ renderRootUrl' l ++ "\")"
       _            -> v
