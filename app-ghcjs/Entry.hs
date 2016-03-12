@@ -1,6 +1,6 @@
-{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TupleSections       #-}
 
 import           Control.Applicative
 import           Control.Monad
