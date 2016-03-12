@@ -20,4 +20,6 @@ main = do
                 =<< Y.decodeFileEither "config/site-data.yaml"
     let ?config = c
 
+    print c
+
     hakyll $ app znow
