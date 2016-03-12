@@ -23,7 +23,7 @@
     display: inline-block;
     height: 16px;
     width: 16px;
-    background-image: url($sprites16);
+    background-image: render-url($sprites16);
     text-indent: 100%;
     overflow: hidden;
     white-space: nowrap;
