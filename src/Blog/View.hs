@@ -5,11 +5,12 @@
 
 module Blog.View where
 
+-- import           System.FilePath
 import           Blog.Types
 import           Blog.Util
 import           Data.List
+import           Data.Maybe
 import           Data.Monoid
-import           System.FilePath
 import           Text.Blaze.Html5            ((!))
 import qualified Data.Text                   as T
 import qualified Text.Blaze.Html5            as H
@@ -24,8 +25,7 @@ mainSection = H.customAttribute "role" "main"
 
 renderUrl :: (?config :: Config) => T.Text -> T.Text
 renderUrl u | hasP      = u
-            | otherwise = T.pack $
-                            T.unpack urlBase </> T.unpack u
+            | otherwise = urlBase </!> u
   where
     hasP = length (T.splitOn "//" u) > 1
 
@@ -34,7 +34,7 @@ renderUrl' = T.unpack . renderUrl . T.pack
 
 renderBlobUrl :: (?config :: Config) => T.Text -> Maybe T.Text
 renderBlobUrl u = flip fmap (confBlobs ?config) $ \b ->
-                    T.pack $ T.unpack b </> T.unpack u
+                    b </!> u
 
 urlBase :: (?config :: Config) => T.Text
 urlBase = "http://"
@@ -45,7 +45,10 @@ urlBase = "http://"
     HostInfo{..} = confHostInfo ?config
 
 
-
+(</!>) :: T.Text -> T.Text -> T.Text
+b </!> f = let f' = fromMaybe f $ T.stripPrefix "/" f
+               b' = fromMaybe b $ T.stripSuffix "/" b
+           in  b' <> ('/' `T.cons` f')
 
 
 copyToHtml :: String -> H.Html

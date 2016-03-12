@@ -41,7 +41,7 @@ renderLayout pd@PD{..} body =
           ! A.rel "alternate"
           ! A.type_ "application/rss+xml"
           ! A.title (H.textValue (confTitle <> " (RSS Feed)"))
-          ! A.href (H.textValue (renderUrl "/"))
+          ! A.href (H.textValue confFeed)
 
         forM_ pageDataCanonical $ \url ->
           H.link
