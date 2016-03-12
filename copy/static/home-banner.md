@@ -5,10 +5,6 @@ Welcome!  My name is Justin Le.  I'm a PhD student at Chapman University in
 California, studying Computational Science & Applied Maths; I studied Physics
 and Computer Science at University of California, San Diego :)
 
-<!-- Welcome!  My name is **Justin Le**.  I'm a final-year undergraduate student at -->
-<!-- University of California, San Diego, studying Computational Physics and -->
-<!-- Computer Science. -->
-
 This is just my weblog covering my various adventures in programming and
 explorations in the vast worlds of computation, physics, engineering,
 mathematics, and knowledge. Expect a healthy curiosity and an only slightly
