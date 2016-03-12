@@ -30,6 +30,7 @@ library
                          Blog.Rule.Archive
                          Blog.Types
                          Blog.Util
+                         Blog.Util.Sass
                          Blog.Util.Preprocessor
                          Blog.Util.Tag
                          Blog.View
@@ -53,6 +54,7 @@ library
                        , filepath
                        , hakyll
                        , hakyll-sass
+                       , hsass
                        , hjsmin
                        , mtl
                        , neat-interpolation

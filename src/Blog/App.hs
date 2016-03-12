@@ -16,6 +16,7 @@ import           Blog.Compiler.TagIndex
 import           Blog.Rule.Archive
 import           Blog.Types
 import           Blog.Util
+import           Blog.Util.Sass
 import           Blog.Util.Tag
 import           Blog.View
 import           Blog.View.Feed
@@ -28,6 +29,7 @@ import           Data.Maybe
 import           Data.Monoid
 import           Data.Ord
 import           Data.Time.LocalTime
+import           Debug.Trace
 import           Hakyll
 import           Hakyll.Web.Redirect
 import           Hakyll.Web.Sass
@@ -53,7 +55,10 @@ app znow@(ZonedTime _ tz) = do
 
     match "scss/**" $ do
       route   $ gsubRoute "scss" (\_ -> "css")
-      compile $ sassCompilerWith def { sassIncludePaths = Just ["scss"] }
+      compile $ sassCompilerWith
+                  def { sassIncludePaths = Just ["scss"]
+                      , sassFunctions    = Just $ renderSassUrl : concat (sassFunctions def)
+                      }
 
     match "js/**" $ do
       route   idRoute
