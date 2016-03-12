@@ -49,7 +49,7 @@ renderLayout pd@PD{..} body =
             ! A.href (fromString (renderUrl' url))
 
         H.link
-          ! A.href "/favicon.ico"
+          ! A.href (H.textValue (renderUrl "/favicon.ico"))
           ! A.rel "shortcut icon"
 
         forM_ allCss $ \u ->
