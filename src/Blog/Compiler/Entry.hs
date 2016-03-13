@@ -93,7 +93,7 @@ entryCompiler
 entryCompiler histList allTags = do
     i <- setVersion Nothing <$> getUnderlying
     e@Entry{..} <- loadSnapshotBody i "entry"
-    let (afts,befs) = break ((/= i) . snd) histList
+    let (afts,befs) = break ((== i) . snd) histList
         aftId = listToMaybe (reverse afts)
         befId = listToMaybe (drop 1 befs)
     eb <- mapM ((`loadSnapshotBody` "entry") . snd) befId
