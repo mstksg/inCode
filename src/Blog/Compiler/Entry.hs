@@ -92,21 +92,20 @@ entryCompiler
     -> Compiler (Item String)
 entryCompiler histList allTags = do
     i <- setVersion Nothing <$> getUnderlying
-    e@Entry{..} <- loadSnapshotBody i "entry"
-    let (afts,befs) = break ((== i) . snd) histList
-        aftId = listToMaybe (reverse afts)
-        befId = listToMaybe (drop 1 befs)
-    eb <- mapM ((`loadSnapshotBody` "entry") . snd) befId
-    ea <- mapM ((`loadSnapshotBody` "entry") . snd) aftId
+    e <- loadSnapshotBody i "entry"
+    allEs <- sortEntries <$> mapM ((`loadSnapshotBody` "entry") . snd) histList
+    let (afts,befs) = break ((== entryPostTime e) . entryPostTime) allEs
+        aft = listToMaybe (reverse afts)
+        bef = listToMaybe (drop 1 befs)
     allTs <- mapM (uncurry fetchTag)
-           . filter (`elem` entryTags)
+           . filter (`elem` (entryTags e))
            $ allTags
     let ei = EI { eiEntry     = e
                 , eiTags      = sortTags allTs
-                , eiPrevEntry = eb
-                , eiNextEntry = ea
+                , eiPrevEntry = bef
+                , eiNextEntry = aft
                 }
-        pd = def { pageDataTitle   = Just entryTitle
+        pd = def { pageDataTitle   = Just $ entryTitle e
                  , pageDataType    = Just "article"
                  , pageDataDesc    = Just $ entryLedeStripped e
                  , pageDataCss     = [ "/css/page/entry.css"
