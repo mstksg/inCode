@@ -14,7 +14,6 @@ import           Data.List
 import           Data.Maybe
 import           Data.Monoid
 import           Data.String
-import           Data.Time.LocalTime
 import           System.FilePath
 import           Text.Blaze.Html5            ((!))
 import qualified Data.Text                   as T

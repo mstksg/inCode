@@ -29,7 +29,6 @@ import           Data.Maybe
 import           Data.Monoid
 import           Data.Ord
 import           Data.Time.LocalTime
-import           Debug.Trace
 import           Hakyll
 import           Hakyll.Web.Redirect
 import           Hakyll.Web.Sass
