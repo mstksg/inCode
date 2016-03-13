@@ -6,9 +6,7 @@ module Hakyll.Web.Blaze where
 import           Blog.Render
 import           Blog.Types
 import           Control.Applicative
-import           Data.Maybe
 import           Hakyll
-import           System.FilePath
 import qualified Data.Text                       as T
 import qualified Text.Blaze.Html.Renderer.String as H
 import qualified Text.Blaze.Html5                as H

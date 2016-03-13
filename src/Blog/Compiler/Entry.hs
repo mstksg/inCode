@@ -18,7 +18,6 @@ import           Data.List
 import           Data.Maybe
 import           Data.Monoid
 import           Data.Ord
-import           Data.Time.LocalTime
 import           Hakyll
 import           Hakyll.Web.Blaze
 import           System.FilePath

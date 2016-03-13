@@ -10,11 +10,10 @@ import           Blog.View.TagIndex
 import           Data.Default
 import           Data.List
 import           Data.Maybe
-import           Data.Ord
 import           Data.Traversable
 import           Hakyll
 import           Hakyll.Web.Blaze
-import qualified Data.Text              as T
+import qualified Data.Text           as T
 
 
 tagIndexCompiler
