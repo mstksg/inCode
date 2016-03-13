@@ -1,20 +1,14 @@
-Abstracting over Sequential Random Algorithms with Free
-=======================================================
-
-Categories
-:   Haskell
-:   Ramblings
-:   Projects
-Tags
-:   haskell
-:   monads
-:   free-monads
-CreateTime
-:   2015/02/24 02:02:55
-PostDate
-:   Never
-Identifier
-:   free-random
+---
+title: Abstracting over Sequential Random Algorithms with Free
+categories: Haskell, Ramblings, Projects
+tags: haskell, monads, free-monads
+create-time: 2015/02/24 02:02:55
+date: Never
+identifier: free-random
+slug: abstracting-over-sequential-random-algorithms-with-free
+old-slugs: 
+entry-id: 33
+---
 
 It's fair enough to say that I'm a little late to the free monad party, but
 I still think their power is greatly either misunderstood or underrated or

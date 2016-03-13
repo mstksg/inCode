@@ -1,21 +1,15 @@
-The Compromiseless Reconciliation of I/O and Purity
-===================================================
-
-Categories
-:   Haskell
-:   Ramblings
-Tags
-:   functional programming
-:   haskell
-:   io
-CreateTime
-:   2013/10/04 18:31:44
-PostDate
-:   2013/11/12 11:37:27
-ModifiedTime
-:   2014/01/15 05:13:36
-Identifier
-:   io-purity
+---
+title: The Compromiseless Reconciliation of I/O and Purity
+categories: Haskell, Ramblings
+tags: functional programming, haskell, io
+create-time: 2013/10/04 18:31:44
+date: 2013/11/12 11:37:27
+modified-time: 2014/01/15 05:13:36
+identifier: io-purity
+slug: the-compromiseless-reconciliation-of-i-o-and-purity
+old-slugs: the-compromise-less-reconciliation-of-i-o-and
+entry-id: 6
+---
 
 
 One of the crazy ideals of functional programming is the idea that your

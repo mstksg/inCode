@@ -1,18 +1,14 @@
-Entropy and Entropic Forces
-===========================
-
-Categories
-:   Physics
-:   Computation
-Tags
-:   numerical methods
-:   physics
-CreateTime
-:   2014/01/25 10:33:04
-PostDate
-:   Never
-Identifier
-:   entroy
+---
+title: Entropy and Entropic Forces
+categories: Physics, Computation
+tags: numerical methods, physics
+create-time: 2014/01/25 10:33:04
+date: Never
+identifier: entroy
+slug: entropy-and-entropic-forces
+old-slugs: 
+entry-id: 17
+---
 
 There's actually a bit of an air of mystery and misunderstanding around the
 idea of entropy.  Notoriously misrepresented in popular science as the concept

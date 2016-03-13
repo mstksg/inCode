@@ -1,17 +1,14 @@
-An open list of functions to compose functions in Haskell
-=========================================================
-
-Categories
-:   Haskell
-:   Lists
-Tags
-:   haskell
-CreateTime
-:   2015/01/24 16:00:38
-PostDate
-:   Never
-Identifier
-:   haskell-composes
+---
+title: An open list of functions to compose functions in Haskell
+categories: Haskell, Lists
+tags: haskell
+create-time: 2015/01/24 16:00:38
+date: Never
+identifier: haskell-composes
+slug: an-open-list-of-functions-to-compose-functions
+old-slugs: an-open-list-of-was-to-compose-functions, an-open-list-of-ways-to-compose-functions
+entry-id: 32
+---
 
 Hi all, just a fun post here :)  I've been telling myself for a long time to
 compile a list of all the ways you can compose two functions, `(a -> b)` and

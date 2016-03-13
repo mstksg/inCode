@@ -60,7 +60,7 @@ $.fn.toc = function(options) {
     headings.each(function(i, heading) {
       var $h = $(heading);
       headingOffsets.push($h.offset().top - opts.highlightOffset);
-      console.log($h);
+      // console.log($h);
       var anchorId = $h.attr('id');
 
       //add anchor

@@ -1,22 +1,15 @@
-Wolf, Goat, Cabbage: The List MonadPlus & Logic Problems
-========================================================
-
-Categories
-:   Haskell
-:   Ramblings
-Tags
-:   functional programming
-:   haskell
-:   monads
-Series
-:   MonadPlus: Success/Failure Monads
-:   Practical Monads
-CreateTime
-:   2013/12/17 13:16:07
-PostDate
-:   2013/12/26 11:43:50
-Identifier
-:   monad-plus-3
+---
+title: Wolf, Goat, Cabbage: The List MonadPlus & Logic Problems
+categories: Haskell, Ramblings
+tags: functional programming, haskell, monads
+series: MonadPlus: Success/Failure Monads, Practical Monads
+create-time: 2013/12/17 13:16:07
+date: 2013/12/26 11:43:50
+identifier: monad-plus-3
+slug: wolf-goat-cabbage-the-list-monadplus-logic-problems
+old-slugs: wolf-goat-cabbage-the-list-monadplus-and-logic
+entry-id: 13
+---
 
 Today we're going to learn to solve the classic and ageless logic problems
 without any data structures besides List's monadic properties as a MonadPlus!

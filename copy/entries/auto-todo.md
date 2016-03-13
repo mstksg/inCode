@@ -1,23 +1,15 @@
-Auto: A Todo GUI application with Auto (on GHCJS, etc.)
-=======================================================
-
-Categories
-:   Haskell
-:   Auto
-:   Tutorials
-Tags
-:   auto
-:   haskell
-:   ghcjs
-CreateTime
-:   2015/03/26 00:15:21
-PostDate
-:   2015/04/23 10:04:10
-Series
-:   All About Auto
-:   Beginner/Intermediate Haskell Projects
-Identifier
-:   auto-todo
+---
+title: Auto: A Todo GUI application with Auto (on GHCJS, etc.)
+categories: Haskell, Auto, Tutorials
+tags: auto, haskell, ghcjs
+create-time: 2015/03/26 00:15:21
+date: 2015/04/23 10:04:10
+series: All About Auto, Beginner/Intermediate Haskell Projects
+identifier: auto-todo
+slug: auto-a-todo-gui-application-with-auto-on
+old-slugs: auto-a-todo-gui-application-with-auto-and, auto-a-todo-gui-application-with-auto-w
+entry-id: 36
+---
 
 Continuing along with [All About Auto][series], let's look at another exciting
 and useful application of the *[auto][]* library: GUI's.  We're going to look

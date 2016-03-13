@@ -1,21 +1,15 @@
-Shake: Task Automation and Scripting in Haskell
-===============================================
-
-Categories
-:   Haskell
-:   Tutorials
-Tags
-:   shake
-:   scripting
-:   haskell
-CreateTime
-:   2013/08/24 19:31:22
-PostDate
-:   2013/09/17 16:23:11
-ModifiedTime
-:   2013/11/25 00:08:07
-Identifier
-:   shake1
+---
+title: Shake: Task Automation and Scripting in Haskell
+categories: Haskell, Tutorials
+tags: shake, scripting, haskell
+create-time: 2013/08/24 19:31:22
+date: 2013/09/17 16:23:11
+modified-time: 2013/11/25 00:08:07
+identifier: shake1
+slug: shake-task-automation-and-scripting-in-haskell
+old-slugs: shake-task-automation-and-shell-scripting-in-haskell
+entry-id: 2
+---
 
 As someone who comes from a background in ruby and *rake*, I'm used to
 powerful task management systems with expressive dependency. *Make* is a

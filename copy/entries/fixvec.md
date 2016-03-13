@@ -1,19 +1,14 @@
-Fixed-Length Vector Types in Haskell, 2015
-==========================================
-
-Categories
-:   Haskell
-:   Tutorials
-:   Reference
-Tags
-:   haskell
-:   types
-CreateTime
-:   2015/04/27 21:56:11
-PostDate
-:   2015/05/05 11:16:07
-Identifier
-:   fixvec
+---
+title: Fixed-Length Vector Types in Haskell, 2015
+categories: Haskell, Tutorials, Reference
+tags: haskell, types
+create-time: 2015/04/27 21:56:11
+date: 2015/05/05 11:16:07
+identifier: fixvec
+slug: fixed-length-vector-types-in-haskell-2015
+old-slugs: 
+entry-id: 38
+---
 
 Fixed-length vector types (vector types that indicate the length of the vector
 in the type itself) are one of the more straightforward applications of the

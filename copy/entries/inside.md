@@ -1,20 +1,14 @@
-Inside My World (Ode to Functor and Monad)
-==========================================
-
-Categories
-:   Haskell
-:   Ramblings
-Tags
-:   functional programming
-:   haskell
-:   monads
-:   io
-CreateTime
-:   2014/05/02 03:09:13
-PostDate
-:   2014/05/19 09:46:22
-Identifier
-:   inside
+---
+title: Inside My World (Ode to Functor and Monad)
+categories: Haskell, Ramblings
+tags: functional programming, haskell, monads, io
+create-time: 2014/05/02 03:09:13
+date: 2014/05/19 09:46:22
+identifier: inside
+slug: inside-my-world-ode-to-functor-and-monad
+old-slugs: inside-my-world, inside-my-world-or-why-i-love-functor
+entry-id: 25
+---
 
 I like Haskell because it lets me live inside my world.
 

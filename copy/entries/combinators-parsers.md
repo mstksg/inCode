@@ -1,17 +1,14 @@
-Functional Programming is Awesome: Parser Combinators
-=====================================================
-
-Categories
-:   Haskell
-:   Ramblings
-Tags
-:   functional programming
-CreateTime
-:   2013/11/30 22:56:45
-PostDate
-:   Never
-Identifier
-:   combinators-parsers
+---
+title: Functional Programming is Awesome: Parser Combinators
+categories: Haskell, Ramblings
+tags: functional programming
+create-time: 2013/11/30 22:56:45
+date: Never
+identifier: combinators-parsers
+slug: functional-programming-is-awesome-parser-combinators
+old-slugs: 
+entry-id: 10
+---
 
 If you've spent your entire life programming imperatively, you could not even
 begin to imagine the vast worlds of thinking that are inaccessible because of

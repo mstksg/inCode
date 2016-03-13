@@ -1,22 +1,15 @@
-Introducing: the Auto library!
-==============================
-
-Categories
-:   Haskell
-:   Ramblings
-:   Projects
-:   Auto
-Tags
-:   auto
-:   haskell
-CreateTime
-:   2015/03/24 01:02:06
-PostDate
-:   2015/03/24 10:30:57
-Series
-:   All About Auto
-Identifier
-:   auto-intro
+---
+title: Introducing: the Auto library!
+categories: Haskell, Ramblings, Projects, Auto
+tags: auto, haskell
+create-time: 2015/03/24 01:02:06
+date: 2015/03/24 10:30:57
+series: All About Auto
+identifier: auto-intro
+slug: introducing-the-auto-library
+old-slugs: 
+entry-id: 34
+---
 
 **Auto**: [README][] (with examples) / [hackage][auto] / [tutorial][] /
 [examples][auto-examples] / [github][autogh]

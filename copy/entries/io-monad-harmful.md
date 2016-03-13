@@ -1,23 +1,16 @@
-IO Monad Considered Harmful
-===========================
-
-Categories
-:   Haskell
-Tags
-:   haskell
-:   functional programming
-:   monads
-:   io
-Series
-:   Haskell Mythbusters
-CreateTime
-:   2015/01/20 22:08:11
-PostDate
-:   2015/01/22 10:01:17
-ModifiedTime
-:   2015/01/22 22:20:44
-Identifier
-:   io-monad-harmful
+---
+title: IO Monad Considered Harmful
+categories: Haskell
+tags: haskell, functional programming, monads, io
+series: Haskell Mythbusters
+create-time: 2015/01/20 22:08:11
+date: 2015/01/22 10:01:17
+modified-time: 2015/01/22 22:20:44
+identifier: io-monad-harmful
+slug: io-monad-considered-harmful
+old-slugs: 
+entry-id: 31
+---
 
 In the tradition of "considered harmful" posts, this post's title is
 intentionally misleading and designed to incite controversy --- or at least

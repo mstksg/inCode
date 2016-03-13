@@ -1,19 +1,14 @@
-Introducing the "Prompt" library
-================================
-
-Categories
-:   Haskell
-:   Projects
-Tags
-:   functional programming
-:   haskell
-:   monads
-CreateTime
-:   2015/06/29 12:40:01
-PostDate
-:   2015/06/30 09:42:11
-Identifier
-:   prompt
+---
+title: Introducing the "Prompt" library
+categories: Haskell, Projects
+tags: functional programming, haskell, monads
+create-time: 2015/06/29 12:40:01
+date: 2015/06/30 09:42:11
+identifier: prompt
+slug: introducing-the-prompt-library
+old-slugs: 
+entry-id: 39
+---
 
 **Prompt**: [README][] / [hackage][prompt] / [github][]
 
