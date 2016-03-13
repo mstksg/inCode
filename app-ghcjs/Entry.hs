@@ -74,17 +74,16 @@ to' f g x = do
 
 
 main :: IO ()
-main = do
+main = runWebGUI $ \webView -> do
     putStrLn "Hello from the world of ghcjs!"
 
-    runWebGUI $ \webView -> do
-      enableInspector webView
-      Just doc <- webViewGetDomDocument webView
+    enableInspector webView
+    Just doc <- webViewGetDomDocument webView
 
-      appendTopLinks doc
-      setupSourceLink doc
-      processCodeBlocks doc
-      setupAsides doc
+    appendTopLinks doc
+    setupSourceLink doc
+    processCodeBlocks doc
+    setupAsides doc
 
     putStrLn "Goodbye!"
 
@@ -239,11 +238,6 @@ processCodeBlocks doc = do
       let isPrompt = any (`isPrefixOf` tc) ["λ", "ghci"]
       when isPrompt . liftIO $
         withDTL (`DTL.add` ["code-block-prompt"]) pr
-      
-
-
-
-
 
 
 setupAsides :: Document -> IO ()
