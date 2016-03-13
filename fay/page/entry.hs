@@ -28,6 +28,9 @@ jLength = ffi "%1.length"
 sHide :: JQuery -> Fay JQuery
 sHide = ffi "%1['hide']()"
 
+sToggle :: JQuery -> Fay JQuery
+sToggle = ffi "%1['toggle']()"
+
 -- $(document).ready()
 main :: Fay ()
 main = ready $ do
@@ -36,6 +39,7 @@ main = ready $ do
   appendTopLinks
   setupSourceLink
   processCodeBlocks
+  setupAsides
 
   return ()
 
@@ -128,6 +132,8 @@ processCodeBlocks = do
       promptString <- contents cde >>= first >>= getText
       when ("λ:" `isPrefixOfT` promptString) $
         addClass "code-block-prompt" blk
+      when ("ghci" `isPrefixOfT` promptString) $
+        addClass "code-block-prompt" blk
 
     processForSource :: JQuery -> Fay JQuery
     processForSource blk = do
@@ -209,6 +215,34 @@ processCodeBlocks = do
           addClass "code-link-box" linkBox
           prepend linkBox blk
           return linkBox
+
+setupAsides :: Fay ()
+setupAsides = do
+  asides <- select ".main-content .note"
+  flip each asides $ \_ el -> do
+    flipAside True =<< select el
+    return True
+  return ()
+
+flipAside :: Bool -> JQuery -> Fay ()
+flipAside setup aside = do
+    blks <- children aside
+    flip each blks $ \i el -> do
+      elJ <- select el
+      if i == 0
+        then do
+          when setup $ do
+            flip click elJ $ \_ -> flipAside False aside
+            addClass "clickable aside-header" elJ
+            J.append clickMe elJ
+          return ()
+        else do
+          toggle Fast elJ
+          return ()
+      return True
+    return ()
+  where
+    clickMe = " <span class='clickme'>(Click me!)</span>"
 
 -- | Util functions
 

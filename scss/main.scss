@@ -8,7 +8,7 @@ $footer-center: "/img/footer_center.jpg";
 
 body {
   background: #f3f3f3;
-  background-image: url($background-image);
+  background-image: render-url($background-image);
   // background-attachment: fixed;
 }
 
@@ -83,7 +83,7 @@ h1, h2, h3, h4, h5, h6 {
 #header-container {
   height: 200px;
   background-color: #bbb;
-  background-image: url($banner-bg);
+  background-image: render-url($banner-bg);
   margin: 0 auto;
   width: 100%;
   background-position: center;
@@ -94,7 +94,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 #header-content {
-  background-image: url($banner-center);
+  background-image: render-url($banner-center);
   background-position: center;
   height: 100%;
   width: 100%;
@@ -122,7 +122,7 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: 3rem;
   margin-bottom: 0;
   width: 100%;
-  background-image: url($footer-bg);
+  background-image: render-url($footer-bg);
   height: 200px;
   overflow: hidden;
   background-position: center;
@@ -227,6 +227,17 @@ hr {
   font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
 }
 
+.clickable {
+  cursor: pointer;
+}
+
+.hide {
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important; 
+}
+
 @import "partial/copy-content.scss";
 @import "partial/navbar.scss";
 @import "partial/social.scss";
+@import "partial/print.scss";

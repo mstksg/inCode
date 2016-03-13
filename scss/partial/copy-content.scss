@@ -8,6 +8,10 @@
   p, ul, ol, dl, pre, blockquote, figure {
     margin: 0;
     margin-bottom: 1rem;
+
+    @media print {
+      margin-bottom: 0.3rem;
+    }
   }
 
   hr {
@@ -56,6 +60,9 @@
     border: 1px solid #ddd;
     border-radius: 1px;
     white-space: nowrap;
+    @media print {
+      font-size: 0.67rem;
+    }
   }
 
   pre {
@@ -74,6 +81,11 @@
     padding: 0.75rem 1rem;
     border-radius: 1px;
     margin: 2rem 0;
+
+    @media print {
+      overflow-x: visible;
+      font-size: 0.67rem;
+    }
   }
 
   pre.code-block-prompt {
@@ -97,7 +109,7 @@
     font-size: 110%;
   }
 
-  aside, p.note {
+  aside, p.note, div.note {
     margin: 0.5rem 0.5rem 1.5rem 0.5rem;
     padding: 1rem 1rem 0.5rem;
     border-left: 4px solid #383;
@@ -199,6 +211,17 @@
     }
   }
 
+  @media print {
+    p a[href]:after { content: " (" attr(href) ")"; }
+    abbr[title]:after { content: " (" attr(title) ")"; }
+    .ir a:after, a[href^="javascript:"]:after, a[href^="#"]:after { content: ""; }  /* Don't show links for images, or javascript/internal links */
 
+    font-size: 85%;
+    line-height: 150%;
 
+    p {
+      text-indent: 1.25rem;
+    }
+
+  }
 }

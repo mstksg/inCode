@@ -13,6 +13,9 @@
     padding: 0;
     height: 2.5rem;
   }
+  @media print {
+    position: relative;
+  }
 }
 
 #navbar-content {
