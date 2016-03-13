@@ -124,7 +124,7 @@ $photo: "/img/photo_square.jpg";
       text-indent: 100%;
       overflow: hidden;
       white-space: nowrap;
-      background-image: url($photo);
+      background-image: render-url($photo);
       background-size: cover;
       border-radius: 50%;
       border: 2px #ccc solid;
@@ -176,7 +176,7 @@ $photo: "/img/photo_square.jpg";
 }
 
 @mixin home-links-icons($title,$sprite) {
-  a[title=#{$title}]:before {
+  a[title="#{$title}"]:before {
     background-position-y: sprite16-y($sprite);
   }
 }
@@ -190,7 +190,7 @@ $photo: "/img/photo_square.jpg";
       height: 16px;
       width: 16px;
       content: "";
-      background-image: url($sprites16);
+      background-image: render-url($sprites16);
       margin: 0 0.2rem -0.1rem 0.1rem;
     }
   }

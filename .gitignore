@@ -8,8 +8,15 @@
 /static/img/test
 /tags
 /bin
+/.stack-work
+/_site
+/_cache
+/_build
+/_ghcjs
 
 /copy/entries
+/copy/entries-old
+/config/migrate
 /copy/tags
 /static/img/entries
 /code-samples
