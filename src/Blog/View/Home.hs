@@ -1,6 +1,7 @@
 {-# LANGUAGE ImplicitParams    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE TupleSections     #-}
 
 module Blog.View.Home where
 
@@ -12,6 +13,7 @@ import           Blog.View
 import           Blog.View.Social
 import           Control.Applicative
 import           Control.Monad
+import           Data.List
 import           Data.Monoid
 import           Data.String
 import           Text.Blaze.Html5            ((!))
@@ -123,13 +125,17 @@ entryList eList prevPage nextPage pageNum = do
 viewTags :: (?config :: Config) => [Tag] -> H.Html
 viewTags tags =
     H.ul $
-      forM_ tagLists $ \(tt, heading,link,class_) ->
+      forM_ tagLists $ \(tt, heading,link,class_, sorttype) ->
         H.li ! A.class_ class_ $ do
           H.h3 $
             H.a ! A.href (H.textValue $ renderUrl link) $
               heading
-          H.ul $
-            forM_ (filterTags tt (sortTags tags)) $ \t ->
+          H.ul $ do
+            let tList = filterTags tt
+                      . map fst
+                      . sortBy (tsCompare sorttype)
+                      $ ((,Nothing) <$> tags)
+            forM_ tList $ \t ->
               H.li $ do
                 tagLink tagPrettyLabelLower t
                 H.preEscapedToHtml ("&nbsp;" :: T.Text)
@@ -138,5 +144,8 @@ viewTags tags =
                   H.toHtml (show (length (tagEntries t)))
                   ")" :: H.Html
   where
-    tagLists = [(CategoryTag, "Topics", "/categories","home-category-list")
-               ,(GeneralTag , "Tags"  , "/tags"      ,"home-tags-list"    )]
+    tagLists = [(CategoryTag, "Topics", "/categories","home-category-list", TSLabel)
+               ,(GeneralTag , "Tags"  , "/tags"      ,"home-tags-list"    , TSCount)]
+
+--     let sorter  = indexSorter tt
+--         tmapSort = sortBy (tsCompare sorter) tmap'
