@@ -128,3 +128,21 @@ sortTags :: [Tag] -> [Tag]
 sortTags = sortBy ( comparing tagType
                  <> comparing (T.map toLower . tagLabel)
                   )
+
+data TagSortType = TSLabel
+                 | TSCount
+                 | TSRecent
+  deriving Show
+
+tsCompare
+    :: TagSortType
+    -> (Tag, Maybe Entry)
+    -> (Tag, Maybe Entry)
+    -> Ordering
+tsCompare tt = ttComparer <> comparing (tagLabel . fst)
+  where
+    ttComparer =
+      case tt of
+        TSLabel  -> \_ _ -> EQ
+        TSCount  -> flip $ comparing (length . tagEntries . fst)
+        TSRecent -> flip $ comparing (fmap entryPostTime . snd)

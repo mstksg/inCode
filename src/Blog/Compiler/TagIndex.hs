@@ -45,20 +45,6 @@ tagIndexCompiler tt tmap = do
     blazeCompiler pd (viewTagIndex tii)
 
 
-data TagSortType = TSLabel
-                 | TSCount
-                 | TSRecent
-  deriving Show
-
-tsCompare
-    :: TagSortType
-    -> (Tag, Maybe Entry)
-    -> (Tag, Maybe Entry)
-    -> Ordering
-tsCompare TSLabel  =        comparing (tagLabel . fst)
-tsCompare TSCount  = flip $ comparing (length . tagEntries . fst)
-tsCompare TSRecent = flip $ comparing (fmap entryPostTime . snd)
-
 indexSorter :: TagType -> TagSortType
 indexSorter GeneralTag  = TSCount
 indexSorter CategoryTag = TSCount   -- should this be Label, Recent?
