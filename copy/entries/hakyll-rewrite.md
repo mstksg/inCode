@@ -6,7 +6,6 @@ create-time: 2016/03/13 18:37:38
 date: never
 identifier: hakyll-rewrite
 slug: rewriting-my-blog-using-hakyll-ghcjs
-old-slugs:
 ---
 
 It's been almost a year since my last post!  Things have been a bit hectic with
