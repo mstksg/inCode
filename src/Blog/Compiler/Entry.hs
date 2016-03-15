@@ -116,7 +116,7 @@ entryCompiler histList allTags = do
                                      , "/js/disqus_count.js"
                                      , "/js/social.js"
                                      , "/js/jquery/jquery.toc.js"
-                                     , ghcjsReq "blog-javascript-entry"
+                                     -- , ghcjsReq "blog-javascript-entry"
                                      ]
                  }
     blazeCompiler pd (viewEntry ei)
