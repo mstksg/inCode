@@ -100,9 +100,11 @@ app znow@(ZonedTime _ tz) = do
       compile entryLaTeXCompiler
 
 
+    match "copy/entries/*" . version "id" $ do
+      route   $ routeIdEntry
+      compile $ compileIdEntry ""
     match "copy/entries/*" . version "id-index" $ do
       route   $ routeIdEntry
-                  `composeRoutes` setExtension "html"
                   `composeRoutes` gsubRoute ".html" (const "/index.html")
       compile $ compileIdEntry ""
     match "copy/entries/*" . version "id-markdown" $ do
@@ -114,8 +116,8 @@ app znow@(ZonedTime _ tz) = do
 
     hist <- buildHistoryWith ymByField ("copy/entries/*" .&&. hasNoVersion)
               $ \y m -> case m of
-                          Nothing -> fromFilePath ("entries/in" </> show y </> "index.html")
-                          Just m' -> fromFilePath ("entries/in" </> show y </> show (mInt m') </> "index.html")
+                          Nothing -> fromFilePath ("entries/in" </> show y <.> "html")
+                          Just m' -> fromFilePath ("entries/in" </> show y </> show (mInt m') <.> "html")
     let entriesSorted = sortBy (flip $ comparing (fst . fst) <> comparing (snd . fst)) $ do
           (y, mes) <- M.toList $ historyMap hist
           (m, es)  <- M.toList mes
@@ -129,10 +131,13 @@ app znow@(ZonedTime _ tz) = do
             archiveCompiler (ADYear y mp)
           Right ((y, m), is) -> do
             archiveCompiler (ADMonth y m is)
+    historyRules' hist $ \_ -> indexRules
 
-    create ["entries/index.html"] $ do
+
+    create ["entries.html"] $ do
       route   idRoute
       compile $ archiveCompiler (ADAll (historyMap hist))
+    create ["entries.html"] indexRules
 
     tags <- buildTagsWith
                 (tagsAt "tags")
@@ -150,46 +155,62 @@ app znow@(ZonedTime _ tz) = do
                ++ map ((CategoryTag,) . T.pack . fst) (tagsMap cats)
                ++ map ((SeriesTag  ,) . T.pack . fst) (tagsMap sers)
 
-    create ["tags/index.html"] $ do
+    create ["tags.html"] $ do
       route idRoute
       compile $ tagIndexCompiler GeneralTag  (tagsMap tags)
-    create ["categories/index.html"] $ do
+    create ["tags.html"] indexRules
+    create ["categories.html"] $ do
       route idRoute
       compile $ tagIndexCompiler CategoryTag (tagsMap cats)
-    create ["series/index.html"] $ do
+    create ["categories.html"] indexRules
+    create ["series.html"] $ do
       route idRoute
       compile $ tagIndexCompiler SeriesTag   (tagsMap sers)
+    create ["series.html"] indexRules
 
     forM_ [(GeneralTag, tags),(CategoryTag, cats),(SeriesTag, sers)]
         $ \(tt,ts) -> do
       tagsRules ts $ \t p -> do
-        route   $ idRoute
-                    `composeRoutes` setExtension "html"
-                    `composeRoutes` gsubRoute ".html" (const "/index.html")
+        route   idRoute
         compile $ tagCompiler tt  t p
+      tagsRules ts $ \_ _ -> indexRules
 
-    match "copy/entries/*" . version "html-index" $ do
+    match "copy/entries/*" . version "html" $ do
       route   $ routeEntry
-                  `composeRoutes` setExtension "html"
-                  `composeRoutes` gsubRoute ".html" (const "/index.html")
       compile $ entryCompiler entriesSorted allTags
+    match "copy/entries/*" . version "html-index" $ do
+      route   $ routeEntry 
+                  `composeRoutes` gsubRoute ".html" (const "/index.html")
+      compile $ do
+        i <- setVersion Nothing <$> getUnderlying
+        c <- entryCanonical <$> loadSnapshotBody i "entry"
+        redirectCompiler $ \_ -> renderUrl $ T.pack c
 
     homePag <- buildPaginateWith
                  (mkHomePages (prefHomeEntries confBlogPrefs))
                  ("copy/entries/*" .&&. hasNoVersion)
-                 (\i -> fromFilePath ("home" </> show i </> "index.html"))
+                 (\i -> fromFilePath ("home" </> show i <.> "html"))
     let allPages = M.keys $ paginateMap homePag
     paginateRules homePag $ \i p -> do
       route   idRoute
       compile $ homeCompiler allPages allTags i p
+    paginateRules homePag $ \i _ ->
+      if i == 1
+        then version "index" $ do
+          route   $ gsubRoute ".html" (const "/index.html")
+          compile $ redirectCompiler (\_ -> renderUrl "/index.html")
+        else indexRules
 
+    create ["home.html"] $ do
+      route   idRoute
+      compile $ redirectCompiler (\_ -> renderUrl "/index.html")
     create ["home/index.html"] $ do
       route   idRoute
       compile $ redirectCompiler (\_ -> renderUrl "/index.html")
     create ["index.html"] $ do
       route idRoute
       compile $ do
-        home1 <- itemBody <$> loadSnapshot "home/1/index.html" "index"
+        home1 <- itemBody <$> loadSnapshot "home/1.html" "index"
         makeItem (home1 :: String)
 
     create ["rss.raw"] $ do
@@ -222,16 +243,16 @@ app znow@(ZonedTime _ tz) = do
 
     routeEntry :: Routes
     routeEntry = metadataRoute $ \m ->
-        maybe (setExtension ""
+        maybe (setExtension "html"
                      `composeRoutes`
                      gsubRoute "copy/entries/" (\_ -> "entry/ident/")
                   )
               constRoute
-          $ entryCanonical m
+          $ entryCanonical' m
     routeIdEntry :: Routes
     routeIdEntry = metadataRoute $ \m ->
         case M.lookup "entry-id" m of
-          Just x  -> constRoute $ "entry/id" </> x
+          Just x  -> constRoute $ "entry/id" </> x <.> "html"
           Nothing -> mempty
     compileIdEntry
         :: (?config :: Config)
@@ -243,13 +264,13 @@ app znow@(ZonedTime _ tz) = do
             . takeBaseName
             . toFilePath
           <$> getUnderlying
-        let canonical = fromMaybe fp (entryCanonical m) <.> ext
+        let canonical = fromMaybe fp (entryCanonical' m) <.> ext
         redirectCompiler $ \_ ->
           renderUrl $ T.pack canonical
-    entryCanonical :: Metadata -> Maybe FilePath
-    entryCanonical m = asum [("entry"</>) <$> M.lookup "slug" m
-                            ,("entry/ident"</>) <$> M.lookup "identifier" m
-                            ]
+    entryCanonical' :: Metadata -> Maybe FilePath
+    entryCanonical' m = asum [(<.> "html") . ("entry"</>) <$> M.lookup "slug" m
+                             ,(<.> "html") . ("entry/ident"</>) <$> M.lookup "identifier" m
+                             ]
     mkHomePages :: MonadMetadata m => Int -> [Identifier] -> m [[Identifier]]
     mkHomePages n ids = do
       withDates <- fmap catMaybes
@@ -261,6 +282,10 @@ app znow@(ZonedTime _ tz) = do
                  . sortBy (flip $ comparing fst)
                  $ withDates
       return $ paginateEvery n sorted
+    indexRules = do
+      version "index" $ do
+        route   $ gsubRoute ".html" (const "/index.html")
+        compile $ redirectCompiler (renderUrl . T.pack . toFilePath)
 
 compressJsCompiler :: Compiler (Item String)
 compressJsCompiler = fmap f <$> getResourceString

@@ -204,8 +204,8 @@ mkCanonical
 mkCanonical slug ident source =
     fromMaybe (source `replaceDirectory` "entry/ident")
   . asum
-  $ [ ("entry" </>)       . T.unpack <$> slug
-    , ("entry/ident" </>) . T.unpack <$> ident
+  $ [ (<.> "html") . ("entry" </>)       . T.unpack <$> slug
+    , (<.> "html") . ("entry/ident" </>) . T.unpack <$> ident
     ]
 
 compileTE :: Entry -> Compiler TaggedEntry

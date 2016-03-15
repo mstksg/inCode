@@ -74,7 +74,7 @@ tagTypeDescPath CategoryTag = "copy/tags/categories"
 tagTypeDescPath SeriesTag   = "copy/tags/series"
 
 mkTagUrl :: TagType -> String -> FilePath
-mkTagUrl tt i = "entries" </> dir </> (p ++ genSlug' maxBound i)
+mkTagUrl tt i = "entries" </> dir </> (p ++ genSlug' maxBound i) <.> "html"
   where
     p   = case tt of
             GeneralTag  -> ""
