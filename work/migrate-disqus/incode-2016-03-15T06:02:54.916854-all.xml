@@ -1,0 +1,3572 @@
+<?xml version="1.0" encoding="utf-8"?>
+<disqus xmlns="http://disqus.com" xmlns:dsq="http://disqus.com/disqus-internals" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://disqus.com/api/schemas/1.0/disqus.xsd http://disqus.com/api/schemas/1.0/disqus-internals.xsd">
+<category dsq:id="2589474">
+<forum>incode</forum>
+<title>General</title>
+<isDefault>true</isDefault>
+</category>
+<thread dsq:id="1760507362">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/this-is-a-test</link>
+<title>in Code — This is a test</title>
+<message />
+<createdAt>2013-09-14T22:40:04Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>68.5.181.190</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="1767484252">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/this-a-test</link>
+<title>in Code — This a test</title>
+<message />
+<createdAt>2013-09-16T22:45:53Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>68.5.181.190</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="1768402986">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/shake-task-automation-and-scripting-in-haskell</link>
+<title>Shake: Task Automation and Shell Scripting in Haskell</title>
+<message />
+<createdAt>2013-09-17T05:16:05Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>68.5.181.190</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="1768496229">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/introducing-in-code</link>
+<title>Introducing "in Code"!</title>
+<message />
+<createdAt>2013-09-17T05:57:27Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>68.5.181.190</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="1772715607">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/the-hamster-hotel-an-introduction-to-control-theory</link>
+<title>Hamster Hotel: An Introduction to Control Theory</title>
+<message />
+<createdAt>2013-09-18T06:20:05Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>68.5.181.190</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="1800097979">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/deploying-medium-to-large-haskell-apps-to-heroku</link>
+<title>Deploying Medium/Large Haskell Apps to Heroku by Precompiling</title>
+<message />
+<createdAt>2013-09-26T21:03:58Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.211.6.144</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="1800176797">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/the-hamster-hotel-an-introduction-to-control-theory?fb_action_ids=10151870165891293&amp;fb_action_types=og.likes&amp;fb_ref=.UkSpJvPThwM.like&amp;fb_source=other_multiline&amp;action_object_map=%7B%2210151870165891293%22%3A729058203787152%7D&amp;action_type_map=%7B%2210151870165891293%22%3A%22og.likes%22%7D&amp;action_ref_map=%7B%2210151870165891293%22%3A%22.UkSpJvPThwM.like%22%7D</link>
+<title>The Hamster Hotel: An Introduction to Control Theory</title>
+<message />
+<createdAt>2013-09-26T21:41:05Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>128.54.71.67</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="1831447685">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity</link>
+<title>The Compromise-less Reconciliation of I/O and Purity</title>
+<message />
+<createdAt>2013-10-07T01:32:45Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.211.0.55</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="1831635571">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/the-hamster-hotel-an-introduction-to-control-theory-2</link>
+<title>The Hamster Hotel: An Introduction to Control Theory (Part 2)</title>
+<message />
+<createdAt>2013-10-07T03:18:00Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.211.0.55</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="1860708544">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/log-sh-lightweight-command-line-note-logging</link>
+<title>log.sh: Lightweight Command Line Note &amp; Logging</title>
+<message />
+<createdAt>2013-10-15T18:03:57Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>128.54.162.201</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="1960321716">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity?fb_action_ids=10151968585846293&amp;fb_action_types=og.likes&amp;fb_ref=.UoKDnNUJGCw.like&amp;fb_source=other_multiline&amp;action_object_map=%7B%2210151968585846293%22%3A1424536364441502%7D&amp;action_type_map=%7B%2210151968585846293%22%3A%22og.likes%22%7D&amp;action_ref_map=%7B%2210151968585846293%22%3A%22.UoKDnNUJGCw.like%22%7D</link>
+<title>The Compromiseless Reconciliation of I/O and Purity</title>
+<message />
+<createdAt>2013-11-12T19:49:11Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>128.135.11.13</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="1960323012">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity?fb_action_ids=10151968585846293&amp;fb_action_types=og.likes&amp;fb_ref=.UoKDnNUJGCw.like&amp;fb_source=other_multiline&amp;action_object_map=%5B1424536364441502%5D&amp;action_type_map=%5B%22og.likes%22%5D&amp;action_ref_map=%5B%22.UoKDnNUJGCw.like%22%5D</link>
+<title>The Compromiseless Reconciliation of I/O and Purity</title>
+<message />
+<createdAt>2013-11-12T19:49:39Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>169.228.147.45</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="1964209150">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://benproxie.appspot.com/blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity</link>
+<title>The Compromiseless Reconciliation of I/O and Purity</title>
+<message />
+<createdAt>2013-11-14T02:12:52Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>75.40.76.37</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="1967577396">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity?fb_action_ids=10151968585846293&amp;fb_action_types=og.likes&amp;fb_ref=.UoKDnNUJGCw.like&amp;fb_source=aggregation&amp;fb_aggregation_id=288381481237582</link>
+<title>The Compromiseless Reconciliation of I/O and Purity</title>
+<message />
+<createdAt>2013-11-15T06:42:23Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>98.173.193.74</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2011240613">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/a-brief-primer-on-classical-and-quantum-mechanics</link>
+<title>Numerical Techniques: Brief Primer on Classical and Quantum Mechanics</title>
+<message />
+<createdAt>2013-11-30T01:11:34Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>68.5.181.190</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2035064586">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/functional-programming-is-awesome-parser-combinators</link>
+<title>Functional Programming is Awesome: Parser Combinators</title>
+<message />
+<createdAt>2013-12-08T11:45:22Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>75.80.180.159</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2035108939">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/practical-fun-with-monads-introducing-monadplus</link>
+<title>Practical Fun with Monads: Introducing: MonadPlus!</title>
+<message />
+<createdAt>2013-12-08T12:11:02Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>75.80.180.159</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2056798962">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/the-list-monadplus-practical-fun-with-monads-part</link>
+<title>Practical Fun with Monads — The List MonadPlus (Part 2 of 3)</title>
+<message />
+<createdAt>2013-12-17T18:23:21Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>68.5.181.190</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2058229965">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/wolf-goat-cabbage-the-list-monadplus-logic-problems</link>
+<title>Wolf, Goat, Cabbage: The List MonadPlus and Logic Problems (Part 3 of 3)</title>
+<message />
+<createdAt>2013-12-18T10:52:41Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>68.5.181.190</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2086911921">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://webcache.googleusercontent.com/search?hl=en&amp;q=cache%3Ablog.jle.im%2Fentry%2Fwolf-goat-cabbage-the-list-monadplus-logic-problems</link>
+<title>Wolf, Goat, Cabbage: The List MonadPlus &amp; Logic Problems</title>
+<message />
+<createdAt>2014-01-02T10:03:05Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>121.244.49.42</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2096435326">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/code-2013</link>
+<title>Code 2013 · in Code</title>
+<message />
+<createdAt>2014-01-06T22:58:24Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>128.54.5.171</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2148259643">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/machines-part-1</link>
+<title>Machines (Part 1)</title>
+<message />
+<createdAt>2014-01-20T11:04:38Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>68.5.181.190</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2148344077">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/intro-to-machines-part-1</link>
+<title>Intro to Machines (Part 1)</title>
+<message />
+<createdAt>2014-01-20T11:28:42Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>132.199.98.150</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2151055500">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/intro-to-machines-arrows-part-1-stream-and</link>
+<title>Intro to Machines &amp; Arrows (Part 1)</title>
+<message />
+<createdAt>2014-01-21T01:13:48Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>68.5.181.190</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2182683824">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/blog-engine-updates-markdown-preprocessor-fay-scripts</link>
+<title>Blog engine updates: Markdown Preprocessor &amp; Fay Scripts</title>
+<message />
+<createdAt>2014-01-27T21:15:15Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>75.80.48.90</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2250047724">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/intro-to-machines-arrows-the-category-typeclass-part</link>
+<title>Intro to Machines &amp; Arrows: Category and Arrow Typeclasses (Part 2)</title>
+<message />
+<createdAt>2014-02-11T04:59:01Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>137.110.63.16</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2561762662">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-1-trees</link>
+<title>Streaming Huffman Compression in Haskell (Part 1)</title>
+<message />
+<createdAt>2014-03-31T09:26:54Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>128.54.164.86</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2581921099">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/a-dead-end-arrowized-dataflow-parallelism-interface-attempt</link>
+<title>A (Semi-dead end) Arrowized Dataflow Parallelism Interface</title>
+<message />
+<createdAt>2014-04-02T22:45:18Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>137.110.57.88</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2585331182">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-2-binary</link>
+<title>Streaming Huffman Compression in Haskell (Part 2: Binary and Pipes)</title>
+<message />
+<createdAt>2014-04-04T08:10:57Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>128.54.165.109</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2605323648">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-1</link>
+<title>Streaming Huffman Compression in Haskell (Part 1)</title>
+<message />
+<createdAt>2014-04-12T02:36:23Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>166.137.208.15</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2607828092">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/pipes-streaming-huffman-compression-in-haskell-part-3</link>
+<title>Pipes: Streaming Huffman Compression in Haskell (Part 3)</title>
+<message />
+<createdAt>2014-04-13T07:14:50Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>68.5.181.190</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2657408517">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/inside-my-world</link>
+<title>Inside My World · in Code</title>
+<message />
+<createdAt>2014-05-03T09:45:47Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>75.80.53.145</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2697119342">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/inside-my-world-ode-to-functor-and-monad</link>
+<title>Inside My World (Ode to Functor and Monad)</title>
+<message />
+<createdAt>2014-05-19T15:50:07Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>64.134.239.239</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2722885033">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/looking-forward-a-doctorate-program</link>
+<title>Looking forward: A Doctorate Program</title>
+<message />
+<createdAt>2014-05-30T03:50:27Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>128.54.6.226</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2731593016">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/looking-forward-a-doctorate-program?fb_action_ids=10204347346630134&amp;fb_action_types=og.likes&amp;fb_ref=.U4zoAqNQWIE.like</link>
+<title>Looking forward: A Doctorate Program</title>
+<message />
+<createdAt>2014-06-02T22:18:08Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>76.95.179.203</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2731783621">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/looking-forward-a-doctorate-program?fb_action_ids=10204347346630134&amp;fb_action_types=og.likes&amp;fb_ref=.U4zoAqNQWIE.like&amp;fb_source=other_multiline&amp;action_object_map=%5B747708498602226%5D&amp;action_type_map=%5B%22og.likes%22%5D&amp;action_ref_map=%5B%22.U4zoAqNQWIE.like%22%5D</link>
+<title>Looking forward: A Doctorate Program</title>
+<message />
+<createdAt>2014-06-03T00:32:30Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>208.54.39.138</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2762982721">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/looking-forward-a-doctorate-program?fb_action_ids=10204347346630134&amp;fb_action_types=og.likes&amp;fb_ref=.U4zoAqNQWIE.like&amp;fb_source=aggregation&amp;fb_aggregation_id=288381481237582</link>
+<title>Looking forward: A Doctorate Program</title>
+<message />
+<createdAt>2014-06-14T05:11:41Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.197.81.82</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2836841054">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/auto-as-category-applicative-arrow-intro-to-machines</link>
+<title>Auto as Category, Applicative, &amp; Arrow (Intro to Machines/Arrows Part 2)</title>
+<message />
+<createdAt>2014-07-12T02:27:46Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>68.5.181.190</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2875982504">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/first-class-statements</link>
+<title>First-Class Statements</title>
+<message />
+<createdAt>2014-07-26T22:57:40Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>68.5.181.190</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2876120613">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>https://translate.googleusercontent.com/translate_c?depth=1&amp;hl=fr&amp;prev=/search%3Fq%3Dhttps://github.com/bestpractical/data-plist/find/master%26safe%3Dactive%26client%3Dsafari%26hl%3Dfr&amp;rurl=translate.google.fr&amp;sl=en&amp;u=http://blog.jle.im/entry/pipes-streaming-huffman-compression-in-haskell-part-3&amp;usg=ALkJrhhMB7Yzi_8jYPjNMbBBcbefl54wHQ</link>
+<title> Pipes: Streaming Huffman Compression in Haskell (Part 3) Pipes: Streaming Huffman compression en Haskell (Partie 3) </title>
+<message />
+<createdAt>2014-07-27T00:40:22Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>77.192.1.27</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2876146425">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>https://translate.googleusercontent.com/translate_c?depth=1&amp;hl=fr&amp;prev=/search%3Fq%3Dhttps://github.com/bestpractical/data-plist/find/master%26safe%3Dactive%26client%3Dsafari%26hl%3Dfr&amp;rurl=translate.google.fr&amp;sl=en&amp;u=http://blog.jle.im/entry/the-hamster-hotel-an-introduction-to-control-theory&amp;usg=ALkJrhjNKdWGL8ZIQPLPYbzJl6tjyrRNRg</link>
+<title> The Hamster Hotel: An Introduction to Control Theory (Part 1) Le Hamster Hôtel: Une introduction à la théorie du contrôle (Partie 1) </title>
+<message />
+<createdAt>2014-07-27T01:00:36Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>77.192.1.27</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2876150076">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>https://translate.googleusercontent.com/translate_c?depth=1&amp;hl=fr&amp;prev=/search%3Fq%3Dhttps://github.com/bestpractical/data-plist/find/master%26safe%3Dactive%26client%3Dsafari%26hl%3Dfr&amp;rurl=translate.google.fr&amp;sl=en&amp;u=http://blog.jle.im/entry/the-hamster-hotel-an-introduction-to-control-theory-2&amp;usg=ALkJrhgvZGUJKdRrX2rH6OY2C_D8uVbEtg</link>
+<title> The Hamster Hotel: An Introduction to Control Theory (Part 2) Le Hamster Hôtel: Une introduction à la théorie du contrôle (Partie 2) </title>
+<message />
+<createdAt>2014-07-27T01:03:29Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>77.192.1.27</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2876160023">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>https://translate.googleusercontent.com/translate_c?depth=1&amp;hl=fr&amp;prev=/search%3Fq%3Dhttps://github.com/bestpractical/data-plist/find/master%26safe%3Dactive%26client%3Dsafari%26hl%3Dfr&amp;rurl=translate.google.fr&amp;sl=en&amp;u=http://blog.jle.im/entry/auto-as-category-applicative-arrow-intro-to-machines&amp;usg=ALkJrhgbbXk94fJ5ZfutrS7jZ1i60RMKaQ</link>
+<title> Auto as Category, Applicative &amp; Arrow (Intro to Machines/Arrows Part 2) Auto dans la catégorie, Applicative et catégorie (Introduction aux machines / Arrows Partie 2) </title>
+<message />
+<createdAt>2014-07-27T01:11:27Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>77.192.1.27</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2880766185">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/first-class-statements/</link>
+<title>First-Class “Statements”</title>
+<message />
+<createdAt>2014-07-28T21:07:16Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>84.44.36.11</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2944877457">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>https://blog.jle.im/entry/first-class-statements</link>
+<title>First-Class “Statements”</title>
+<message />
+<createdAt>2014-08-20T22:36:06Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>139.95.251.103</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2953427862">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/wolf-goat-cabbage-the-list-monadplus-logic-problems?tencent-mtt-http</link>
+<title>Wolf, Goat, Cabbage: The List MonadPlus &amp; Logic Problems</title>
+<message />
+<createdAt>2014-08-23T22:22:56Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>202.55.10.106</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="2976018085">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://mjwg6zy.njwgkltjnu.cmle.ru/entry/first-class-statements</link>
+<title>First-Class “Statements”</title>
+<message />
+<createdAt>2014-08-31T20:46:03Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>79.173.83.25</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3200984421">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/pipes-streaming-huffman-compression-in-haskell-part-3/</link>
+<title>Pipes: Streaming Huffman Compression in Haskell (Part 3)</title>
+<message />
+<createdAt>2014-11-07T09:51:54Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>173.255.112.208</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3424369809">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/going-kleisli-intro-to-machines-and-arrow-part</link>
+<title>Going Kleisli: Intro to Machines and Arrow Part 3</title>
+<message />
+<createdAt>2015-01-16T00:25:36Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3440920719">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/mtl-is-not-a-transformer-library</link>
+<title>mtl is Not a Transformer Library</title>
+<message />
+<createdAt>2015-01-21T10:57:13Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3440921220">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/a-non-unique-monad-instance</link>
+<title>A Non-Unique Monad Instance</title>
+<message />
+<createdAt>2015-01-21T10:57:27Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3443255643">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/io-monad-considered-harmful</link>
+<title>IO Monad Considered Harmful</title>
+<message />
+<createdAt>2015-01-21T22:39:42Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3443964152">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/entropy-and-entropic-forces</link>
+<title>Entropy and Entropic Forces</title>
+<message />
+<createdAt>2015-01-22T03:58:03Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3452652666">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/an-open-list-of-was-to-compose-functions</link>
+<title>An open list of was to compose functions in Haskell</title>
+<message />
+<createdAt>2015-01-25T00:16:37Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3452709797">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/an-open-list-of-ways-to-compose-functions</link>
+<title>An open list of ways to compose functions in Haskell</title>
+<message />
+<createdAt>2015-01-25T00:52:35Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3453017663">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/an-open-list-of-functions-to-compose-functions</link>
+<title>An open list of functions to compose functions in Haskell</title>
+<message />
+<createdAt>2015-01-25T04:28:41Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3471059631">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/effectful-arrows-intro-to-machines-and-arrow-part</link>
+<title>Effectful Arrows: Intro to Machines and Arrow Part 3</title>
+<message />
+<createdAt>2015-01-30T23:21:33Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>108.81.240.25</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3474485992">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/effectful-recursive-and-real-world-autos-intro-to</link>
+<title>Effectful, Recursive, and Real-World Autos: Intro to Machine/Auto Part 3</title>
+<message />
+<createdAt>2015-02-01T06:32:06Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3487790729">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/effectful-recursive-real-world-autos-intro-to-machine</link>
+<title>Effectful, Recursive, Real-World Autos: Intro to Machine/Auto Part 3</title>
+<message />
+<createdAt>2015-02-05T12:28:04Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3508227240">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-1-trees/</link>
+<title>Streaming Huffman Compression in Haskell (Part 1: Trees and State)</title>
+<message />
+<createdAt>2015-02-12T04:34:35Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>65.55.210.79</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3508240746">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/the-list-monadplus-practical-fun-with-monads-part/</link>
+<title>The List MonadPlus — Practical Fun with Monads (Part 2 of 3)</title>
+<message />
+<createdAt>2015-02-12T04:43:00Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>199.30.25.72</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3508260827">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/inside-my-world-ode-to-functor-and-monad/</link>
+<title>Inside My World (Ode to Functor and Monad)</title>
+<message />
+<createdAt>2015-02-12T04:54:43Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>199.30.24.4</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3508296677">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/wolf-goat-cabbage-the-list-monadplus-logic-problems/</link>
+<title>Wolf, Goat, Cabbage: The List MonadPlus &amp; Logic Problems</title>
+<message />
+<createdAt>2015-02-12T05:16:12Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>65.55.210.5</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3508301654">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/deploying-medium-to-large-haskell-apps-to-heroku/</link>
+<title>Deploying Medium to Large Haskell Apps to Heroku by Precompiling</title>
+<message />
+<createdAt>2015-02-12T05:19:17Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>199.30.25.143</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3508781215">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/practical-fun-with-monads-introducing-monadplus/</link>
+<title>Practical Fun with Monads — Introducing: MonadPlus!</title>
+<message />
+<createdAt>2015-02-12T09:48:11Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>65.55.210.130</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3621856495">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/introducing-the-auto-library</link>
+<title>Introducing: the Auto library!</title>
+<message />
+<createdAt>2015-03-24T08:42:32Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3624822220">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/auto-building-a-declarative-chat-bot-with-implicit</link>
+<title>Auto: Building a declarative chat bot with implicit serialization</title>
+<message />
+<createdAt>2015-03-25T09:06:02Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3624899538">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/auto-building-a-declarative-chatbot-with-implicit-serialization</link>
+<title>Auto: Building a Declarative Chatbot with Implicit Serialization</title>
+<message />
+<createdAt>2015-03-25T09:48:23Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3634516508">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>https://web.archive.org/web/20150202073419/http://blog.jle.im/entry/io-monad-considered-harmful</link>
+<title>IO Monad Considered Harmful</title>
+<message />
+<createdAt>2015-03-28T15:51:18Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>124.24.194.199</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3642066741">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>https://web.archive.org/web/20150123053413/http://blog.jle.im/entry/io-monad-considered-harmful</link>
+<title>IO Monad Considered Harmful</title>
+<message />
+<createdAt>2015-03-31T08:48:12Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>91.198.14.18</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3642067319">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>https://web.archive.org/web/20150123230109/http://blog.jle.im/entry/io-monad-considered-harmful</link>
+<title>IO Monad Considered Harmful</title>
+<message />
+<createdAt>2015-03-31T08:48:27Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>91.198.14.18</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3685994160">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/auto-a-todo-gui-application-with-auto-and</link>
+<title>Auto: A Todo GUI application with Auto and GHCJS + ghcjs-vdom</title>
+<message />
+<createdAt>2015-04-16T09:07:09Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3704550794">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/auto-a-todo-gui-application-with-auto-w</link>
+<title>Auto: A Todo GUI application with Auto (w/ GHCJS)</title>
+<message />
+<createdAt>2015-04-23T00:11:06Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>206.211.150.40</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3705595381">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/auto-a-todo-gui-application-with-auto-on</link>
+<title>Auto: A Todo GUI application with Auto (on GHCJS, etc.)</title>
+<message />
+<createdAt>2015-04-23T10:26:34Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3708536279">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/unique-sample-drawing-searches-with-list-and-statet</link>
+<title>Unique sample drawing/searches with List and StateT (“Send more money”)</title>
+<message />
+<createdAt>2015-04-24T10:26:32Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3722021277">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/fixed-length-vector-types-in-haskell-2015</link>
+<title>Fixed-Length Vector Types in Haskell, 2015</title>
+<message />
+<createdAt>2015-04-29T10:03:10Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3742509560">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/mtl-is-not-a-monad-transformer-library</link>
+<title>mtl is Not a Monad Transformer Library</title>
+<message />
+<createdAt>2015-05-06T22:04:45Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>108.81.240.25</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3772813665">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://xandros:8100/jMail/process?action=Msg&amp;msg=0</link>
+<title>First-Class “Statements”</title>
+<message />
+<createdAt>2015-05-18T03:49:42Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>75.72.244.165</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3805427404">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/first-class-statements?d96a349c52fc4f68eea46a47ccb3d360</link>
+<title>First-Class “Statements”</title>
+<message />
+<createdAt>2015-05-29T23:44:26Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>195.78.19.66</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3890277791">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/introducing-the-prompt-library</link>
+<title>Introducing the “Prompt” library</title>
+<message />
+<createdAt>2015-06-29T20:35:47Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="3941784236">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/abstracting-over-sequential-random-algorithms-with-free</link>
+<title>Abstracting over Sequential Random Algorithms with Free</title>
+<message />
+<createdAt>2015-07-17T01:19:28Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="4524075629">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity?fb_action_ids=10151968585846293&amp;fb_action_types=og.likes&amp;fb_ref=.UoKDnNUJGCw.like</link>
+<title>The Compromiseless Reconciliation of I/O and Purity</title>
+<message />
+<createdAt>2016-01-26T08:59:03Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>36.77.234.32</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="4643543599">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://192.168.0.12:4111/entry/introducing-the-prompt-library</link>
+<title>Introducing the "Prompt" library</title>
+<message />
+<createdAt>2016-03-08T04:29:44Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>23.242.34.237</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="4643582585">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://192.168.0.12:4111/entry/a-dead-end-arrowized-dataflow-parallelism-interface-attempt</link>
+<title>A (Dead End?) Arrowized Dataflow Parallelism Interface Attempt</title>
+<message />
+<createdAt>2016-03-08T04:57:06Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>23.242.34.237</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="4643583110">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://192.168.0.12:4111/entry/unique-sample-drawing-searches-with-list-and-statet</link>
+<title>Unique sample drawing &amp; searches with List and StateT --- "Send more money"</title>
+<message />
+<createdAt>2016-03-08T04:57:31Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>23.242.34.237</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="4643770148">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://192.168.0.12:4111/entry/a-non-unique-monad-instance</link>
+<title>A Non-Unique Monad Instance</title>
+<message />
+<createdAt>2016-03-08T07:02:13Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>23.242.34.237</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="4645990195">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://home.jle0.com:4111/entry/ident/dependent-haskell-1</link>
+<title>Practical Dependent Types in Haskell: Type-Safe Neural Networks</title>
+<message />
+<createdAt>2016-03-08T23:14:53Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>206.211.150.44</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="4646010496">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://home.jle0.com:4111/entry/practical-dependent-types-in-haskell-1</link>
+<title>Practical Dependent Types in Haskell: Type-Safe Neural Networks</title>
+<message />
+<createdAt>2016-03-08T23:26:39Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>206.211.150.44</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="4652745270">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://home.jle0.com:4111/entry/effectful-recursive-real-world-autos-intro-to-machine</link>
+<title>Effectful, Recursive, Real-World Autos: Intro to Machine/Auto Part 3</title>
+<message />
+<createdAt>2016-03-11T08:09:13Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>23.242.34.237</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="4655626788">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://mstksg.github.io/inCode/entry/introducing-the-prompt-library/</link>
+<title>Introducing the “Prompt” library</title>
+<message />
+<createdAt>2016-03-12T08:01:28Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>23.242.34.237</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="4655693299">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://mstksg.github.io/inCode/entry/fixed-length-vector-types-in-haskell-2015/</link>
+<title>Fixed-Length Vector Types in Haskell, 2015</title>
+<message />
+<createdAt>2016-03-12T08:39:57Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>23.242.34.237</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="4658107809">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/introducing-the-prompt-library/</link>
+<title>Introducing the “Prompt” library</title>
+<message />
+<createdAt>2016-03-13T06:57:53Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>23.242.34.237</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="4658206770">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/intro-to-machines-arrows-part-1-stream-and/</link>
+<title>Intro to Machines &amp; Arrows (Part 1: Stream and Auto)</title>
+<message />
+<createdAt>2016-03-13T08:04:24Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>80.215.135.143</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="4658214552">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/fixed-length-vector-types-in-haskell-2015/</link>
+<title>Fixed-Length Vector Types in Haskell, 2015</title>
+<message />
+<createdAt>2016-03-13T08:09:31Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>23.242.34.237</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="4658252123">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/mtl-is-not-a-monad-transformer-library/</link>
+<title>mtl is Not a Monad Transformer Library</title>
+<message />
+<createdAt>2016-03-13T08:33:34Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>23.242.34.237</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="4658254163">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/introducing-in-code/</link>
+<title>Introducing “in Code”!</title>
+<message />
+<createdAt>2016-03-13T08:34:49Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>23.242.34.237</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="4658260693">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/shake-task-automation-and-scripting-in-haskell/</link>
+<title>Shake: Task Automation and Scripting in Haskell</title>
+<message />
+<createdAt>2016-03-13T08:38:49Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>23.242.34.237</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="4658621587">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/io-monad-considered-harmful/</link>
+<title>IO Monad Considered Harmful</title>
+<message />
+<createdAt>2016-03-13T12:01:32Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>89.70.31.154</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="4659885194">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/a-non-unique-monad-instance/</link>
+<title>A Non-Unique Monad Instance</title>
+<message />
+<createdAt>2016-03-13T22:00:03Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>84.115.105.85</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="4660218743">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/blog-engine-updates-markdown-preprocessor-fay-scripts/</link>
+<title>Blog engine updates: Markdown Preprocessor &amp; Fay Scripts</title>
+<message />
+<createdAt>2016-03-14T01:34:10Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>23.242.34.237</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="4660433250">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity/</link>
+<title>The Compromiseless Reconciliation of I/O and Purity</title>
+<message />
+<createdAt>2016-03-14T04:04:31Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>191.177.186.116</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="4660616646">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/fixed-length-vector-types-in-haskell-2015/index.html</link>
+<title>Fixed-Length Vector Types in Haskell, 2015</title>
+<message />
+<createdAt>2016-03-14T06:14:25Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>23.242.34.237</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="4661170953">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/auto-as-category-applicative-arrow-intro-to-machines/</link>
+<title>Auto as Category, Applicative &amp; Arrow (Intro to Machines/Arrows Part 2)</title>
+<message />
+<createdAt>2016-03-14T11:07:54Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>84.232.152.230</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="4661172557">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/effectful-recursive-real-world-autos-intro-to-machine/</link>
+<title>Effectful, Recursive, Real-World Autos: Intro to Machine/Auto Part 3</title>
+<message />
+<createdAt>2016-03-14T11:08:39Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>84.232.152.230</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="4661173649">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-2-binary/</link>
+<title>Streaming Huffman Compression in Haskell (Part 2: Binary and Searches)</title>
+<message />
+<createdAt>2016-03-14T11:09:10Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>84.232.152.230</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="4661981439">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/auto-a-todo-gui-application-with-auto-on/</link>
+<title>Auto: A Todo GUI application with Auto (on GHCJS, etc.)</title>
+<message />
+<createdAt>2016-03-14T16:21:00Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>210.186.230.71</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="4662315548">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/a-brief-primer-on-classical-and-quantum-mechanics/</link>
+<title>A Brief Primer on Classical and Quantum Mechanics for NumericalTechniques</title>
+<message />
+<createdAt>2016-03-14T18:22:47Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>5.164.101.106</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="4662323347">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/unique-sample-drawing-searches-with-list-and-statet/</link>
+<title>Unique sample drawing &amp; searches with List and StateT — “Send moremoney”</title>
+<message />
+<createdAt>2016-03-14T18:25:30Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>192.31.106.40</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="4662379679">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/auto-building-a-declarative-chatbot-with-implicit-serialization/</link>
+<title>Auto: Building a Declarative Chatbot with Implicit Serialization</title>
+<message />
+<createdAt>2016-03-14T18:45:40Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>141.225.243.254</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="4663605883">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/introducing-the-prompt-library.html</link>
+<title>Introducing the “Prompt” library</title>
+<message />
+<createdAt>2016-03-15T05:34:34Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>23.242.34.237</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<thread dsq:id="4663639463">
+<id />
+<forum>incode</forum>
+<category dsq:id="2589474" />
+<link>http://blog.jle.im/entry/mtl-is-not-a-monad-transformer-library.html</link>
+<title>mtl is Not a Monad Transformer Library</title>
+<message />
+<createdAt>2016-03-15T05:57:49Z</createdAt>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>23.242.34.237</ipAddress>
+<isClosed>false</isClosed>
+<isDeleted>false</isDeleted>
+</thread>
+<post dsq:id="1089548181">
+<id />
+<message><![CDATA[<p>Can't wait to tune in to next week's episode to find the thrilling conclusion to this story!</p>]]></message>
+<createdAt>2013-10-20T10:36:00Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>kevitis117@gmail.com</email>
+<name>Kevin</name>
+<isAnonymous>false</isAnonymous>
+<username>disqus_aHaxSBkHnv</username>
+</author>
+<ipAddress>98.164.199.83</ipAddress>
+<thread dsq:id="1772715607" />
+</post>
+<post dsq:id="1089552707">
+<id />
+<message><![CDATA[<p>This is even better than my control systems class. Keep it up, can't weight(haha punny) for the next installment</p>]]></message>
+<createdAt>2013-10-20T10:47:17Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>kevitis117@gmail.com</email>
+<name>Kevin</name>
+<isAnonymous>false</isAnonymous>
+<username>disqus_aHaxSBkHnv</username>
+</author>
+<ipAddress>98.164.199.83</ipAddress>
+<thread dsq:id="1831635571" />
+</post>
+<post dsq:id="1122063696">
+<id />
+<message><![CDATA[<p> A big thanks for your enlightening explanation. Seeing IOs as computation representations converging into one by successive composition, that leave the pure world through Main backdoor (its return value), to then be executed by the runtime... Is eyes opening!</p>]]></message>
+<createdAt>2013-11-13T23:12:59Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>scaroo@gmail.com</email>
+<name>Alexandre Mazari</name>
+<isAnonymous>false</isAnonymous>
+<username>alexandremazari</username>
+</author>
+<ipAddress>82.232.32.140</ipAddress>
+<thread dsq:id="1831447685" />
+</post>
+<post dsq:id="1178276028">
+<id />
+<message><![CDATA[<p>Great stuff! Quick question - I figured the result of your first halveOrDouble function to be [3, 12]. Why is it that n * 2 is skipped, and instead just returns n in the second slot of the list? Thanks!</p>]]></message>
+<createdAt>2013-12-27T15:40:01Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mmiller.6@go.ccad.edu</email>
+<name>Michael Miller</name>
+<isAnonymous>false</isAnonymous>
+<username>disqus_dcJaspB8Sr</username>
+</author>
+<ipAddress>70.61.177.154</ipAddress>
+<thread dsq:id="2056798962" />
+</post>
+<post dsq:id="1179070172">
+<id />
+<message><![CDATA[<p>Thanks!  Nice catch -- it's a typo, it should be [3,12] :)</p>]]></message>
+<createdAt>2013-12-28T08:00:51Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>68.5.181.190</ipAddress>
+<thread dsq:id="2056798962" />
+<parent dsq:id="1178276028" />
+</post>
+<post dsq:id="1180100833">
+<id />
+<message><![CDATA[<p>This post is brilliant ! What a great way to introduce some fp concepts to people unfamiliar with fp.</p>]]></message>
+<createdAt>2013-12-29T11:55:08Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>miguel.negrao@friendlyvirus.org</email>
+<name>Miguel Negrão</name>
+<isAnonymous>false</isAnonymous>
+<username>miguelnegro</username>
+</author>
+<ipAddress>89.180.81.94</ipAddress>
+<thread dsq:id="2058229965" />
+</post>
+<post dsq:id="1193285546">
+<id />
+<message><![CDATA[<p>The link to the Wikipedia page on the halting problem in the "Purity challenged?" section seems a bit misleading. To me it implies that the halting problem is an example of a difference between pure and impure code, which it is not.</p>]]></message>
+<createdAt>2014-01-09T05:22:13Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>roboguy06@gmail.com</email>
+<name>Roboguy</name>
+<isAnonymous>false</isAnonymous>
+<username>roboguy</username>
+</author>
+<ipAddress>98.156.67.41</ipAddress>
+<thread dsq:id="1831447685" />
+</post>
+<post dsq:id="1193304109">
+<id />
+<message><![CDATA[<p>Thanks!  It was mostly the result of myself mixing up different flavors of non-determinancy.  I was specifically referring to non-determinant behavior due to the unpredictable state of the world, mixed it up with computational non-deternimancy (more accurately known as undecidability).  How embarrassing!</p>]]></message>
+<createdAt>2014-01-09T05:52:59Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>128.54.164.26</ipAddress>
+<thread dsq:id="1831447685" />
+<parent dsq:id="1193285546" />
+</post>
+<post dsq:id="1201396579">
+<id />
+<message><![CDATA[<p>Test</p>]]></message>
+<createdAt>2014-01-15T06:18:51Z</createdAt>
+<isDeleted>true</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>128.54.164.26</ipAddress>
+<thread dsq:id="2096435326" />
+</post>
+<post dsq:id="1201397784">
+<id />
+<message><![CDATA[<p>test</p>]]></message>
+<createdAt>2014-01-15T06:21:04Z</createdAt>
+<isDeleted>true</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>kevitis117@gmail.com</email>
+<name>Kevin</name>
+<isAnonymous>false</isAnonymous>
+<username>disqus_aHaxSBkHnv</username>
+</author>
+<ipAddress>98.164.212.45</ipAddress>
+<thread dsq:id="2096435326" />
+</post>
+<post dsq:id="1211367579">
+<id />
+<message><![CDATA[<p>Nice example of using the list monad for non-deterministic computation. I believe you have a typo in your definition of makeNMoves: where it says startingSol in the post, it should probably be startingPlan.</p>]]></message>
+<createdAt>2014-01-22T02:51:21Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>archimedes_siracusa@hotmail.com</email>
+<name>Andrei</name>
+<isAnonymous>false</isAnonymous>
+<username>disqus_BVPhB6EhgH</username>
+</author>
+<ipAddress>187.64.17.98</ipAddress>
+<thread dsq:id="2058229965" />
+</post>
+<post dsq:id="1212168902">
+<id />
+<message><![CDATA[<p>Thanks Andrei!  Yeah I really felt like the list monad was one of the more useful yet unused monads.  Actually, now that I think about it, I didn't really make too much of a case/give that great of an example for its usage in normal everyday code, as opposed to toy logic problems.  Admittedly, the Applicative instance ends up popping up as useful more often.  Anyways, thanks for helping me find the typo!</p>]]></message>
+<createdAt>2014-01-22T17:25:24Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>75.80.180.159</ipAddress>
+<thread dsq:id="2058229965" />
+<parent dsq:id="1211367579" />
+</post>
+<post dsq:id="1234106161">
+<id />
+<message><![CDATA[<p>Really enjoyed reading this. The onFor result needs an extra "False" inserted after position 5 or 6.</p>]]></message>
+<createdAt>2014-02-06T23:09:55Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>r.britten@auckland.ac.nz</email>
+<name>R Britten</name>
+<isAnonymous>false</isAnonymous>
+<username>rbritten</username>
+</author>
+<ipAddress>130.216.218.99</ipAddress>
+<thread dsq:id="2151055500" />
+</post>
+<post dsq:id="1234344161">
+<id />
+<message><![CDATA[<p>Thanks :) Happy I could entertain. And thanks for the tip!</p>]]></message>
+<createdAt>2014-02-07T06:24:39Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>128.54.164.166</ipAddress>
+<thread dsq:id="2151055500" />
+<parent dsq:id="1234106161" />
+</post>
+<post dsq:id="1237830850">
+<id />
+<message><![CDATA[<p>Wonderful, thank you!</p>]]></message>
+<createdAt>2014-02-10T06:40:17Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>cgenie@gmail.com</email>
+<name>P K</name>
+<isAnonymous>false</isAnonymous>
+<username>disqus_CWXRvSZyDP</username>
+</author>
+<ipAddress>193.52.24.1</ipAddress>
+<thread dsq:id="2151055500" />
+</post>
+<post dsq:id="1321442451">
+<id />
+<message><![CDATA[<p>Instead of using `collapse` to steamline a pipeline of `ParArrow a b`, you can have `ParArrow` optimize itself with a clever `Category` instance: <a href="https://gist.github.com/crdueck/10009991#file-par-hs-L22" rel="nofollow">https://gist.github.com/crduec...</a></p><p>I wish there was a way around the ugly tuples containing `undefined` in the par/par case.</p>]]></message>
+<createdAt>2014-04-06T18:48:43Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>cdueck93@gmail.com</email>
+<name>Christopher Dueck</name>
+<isAnonymous>false</isAnonymous>
+<username>christopherdueck</username>
+</author>
+<ipAddress>192.0.128.211</ipAddress>
+<thread dsq:id="2581921099" />
+</post>
+<post dsq:id="1322605528">
+<id />
+<message><![CDATA[<p>Very informative article! The good news is you can now beat the 15-minute build barrier with Heroku's Anvil addon and my updated buildpack without needing Vagrant. <a href="https://github.com/begriffs/heroku-buildpack-ghc" rel="nofollow">https://github.com/begriffs/he...</a></p>]]></message>
+<createdAt>2014-04-07T16:54:14Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>cred+disqus@begriffs.com</email>
+<name>Joe Nelson</name>
+<isAnonymous>false</isAnonymous>
+<username>begriffs</username>
+</author>
+<ipAddress>50.0.204.77</ipAddress>
+<thread dsq:id="1800097979" />
+</post>
+<post dsq:id="1328345576">
+<id />
+<message><![CDATA[<p>Thanks!  I think I originally did this bottom-up approach, but I moved everything onto its own because I thought there might be some advantages to doing it top-down as well.  But I appreciate this, it might make things a bit cleaner.</p><p>Also, I'm a bit unfamiliar with this in terms of style, but do you think GADT syntax makes this more readable?  I had it originally GADT as well, but I wasn't sure what was more clear.</p><p>And yeah, the undefined is a bad idea.  I was thinking of replacing it with an error, and upon receiving an error, having the two threads contact the "other side".  But I haven't been able to make any progress on this, and after a few more days I eventually dropped it for now.  If you ever have any ideals, feel free to drop another comment or contact me :)</p>]]></message>
+<createdAt>2014-04-10T04:56:42Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>75.80.53.145</ipAddress>
+<thread dsq:id="2581921099" />
+<parent dsq:id="1321442451" />
+</post>
+<post dsq:id="1328347364">
+<id />
+<message><![CDATA[<p>Thank you Joe, I'll probably be updating this post with that link!  And maybe moving things over too :)  I sort of wrote this post in hopes that it would one day be obsolete, so this is good to hear.</p>]]></message>
+<createdAt>2014-04-10T04:59:33Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>75.80.53.145</ipAddress>
+<thread dsq:id="1800097979" />
+<parent dsq:id="1322605528" />
+</post>
+<post dsq:id="1328349672">
+<id />
+<message><![CDATA[<p>oh kevin</p>]]></message>
+<createdAt>2014-04-10T05:03:46Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>75.80.53.145</ipAddress>
+<thread dsq:id="1831635571" />
+<parent dsq:id="1089552707" />
+</post>
+<post dsq:id="1387735169">
+<id />
+<message><![CDATA[<p>This was a great article. I think this is the clearest introduction to FRP I have yet seen. Every week or so I check back to see if you've followed up on it, but to no avail. Eagerly awaiting the continuation.</p>]]></message>
+<createdAt>2014-05-15T19:46:17Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>polypus74@gmail.com</email>
+<name>polypus74</name>
+<isAnonymous>false</isAnonymous>
+<username>polypus74</username>
+</author>
+<ipAddress>189.222.176.39</ipAddress>
+<thread dsq:id="2151055500" />
+</post>
+<post dsq:id="1394116552">
+<id />
+<message><![CDATA[<p>Thank you for the encouragement :)  Yes, this is always on my mind.  I've written and re-written several drafts of part 2, but it has proven tricker to compile something useful and meaningful than I had thought.  still, it is at the top of my list.  even more so because I am working on developing a framework/library that incorporates these concepts.  feel free to subscribe by rss or email at the bottom of the page, and I'll get this done asap :)</p>]]></message>
+<createdAt>2014-05-19T19:52:24Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>75.80.53.145</ipAddress>
+<thread dsq:id="2151055500" />
+<parent dsq:id="1387735169" />
+</post>
+<post dsq:id="1394773327">
+<id />
+<message><![CDATA[<p>That's very lucid and well presented and just about makes sense to me. I'm going to put it aside for a careful reread and go through it slowly this time and maybe - just maybe - the great logjam which is my internal model of Haskell will begin to break up.</p><p>One typo btw - you have "shrowded" instead of "shrouded".</p>]]></message>
+<createdAt>2014-05-20T01:20:32Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>taylorstephenmark@gmail.com</email>
+<name>Steve Taylor</name>
+<isAnonymous>false</isAnonymous>
+<username>disqus_xA3oELi0iv</username>
+</author>
+<ipAddress>134.178.63.3</ipAddress>
+<thread dsq:id="2697119342" />
+</post>
+<post dsq:id="1394930231">
+<id />
+<message><![CDATA[<p>'Shrouded' is correct; I have no idea where 'shrowded' comes from.</p>]]></message>
+<createdAt>2014-05-20T04:26:02Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>chbarts@gmail.com</email>
+<name>Chris Barts</name>
+<isAnonymous>false</isAnonymous>
+<username>chrisbarts</username>
+</author>
+<ipAddress>72.174.134.233</ipAddress>
+<thread dsq:id="2697119342" />
+<parent dsq:id="1394773327" />
+</post>
+<post dsq:id="1395043305">
+<id />
+<message><![CDATA[<p>Thank you!  Let me know if you have any further questions.  Haskell isn't supposed to be hard...just...different :)</p><p>And yes, thanks for that; I think I forgot my last spell check pass, as I found some other typos here and there just now as I was fixing that :)</p>]]></message>
+<createdAt>2014-05-20T07:36:02Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>128.54.165.102</ipAddress>
+<thread dsq:id="2697119342" />
+<parent dsq:id="1394773327" />
+</post>
+<post dsq:id="1402322810">
+<id />
+<message><![CDATA[<p>Great article!   In the section on the Reader monad, shouldn't 'This future Bool is useless' be 'This future Int is useless', i.e. the future Int that cannot be applied to (&lt; 5)?</p>]]></message>
+<createdAt>2014-05-24T13:48:49Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>noel.geoff@gmail.com</email>
+<name>Geoffrey Noel</name>
+<isAnonymous>false</isAnonymous>
+<username>geoffreynoel</username>
+</author>
+<ipAddress>68.173.51.204</ipAddress>
+<thread dsq:id="2697119342" />
+</post>
+<post dsq:id="1402450032">
+<id />
+<message><![CDATA[<p>Thank you! :)  And thanks, you are correct!</p>]]></message>
+<createdAt>2014-05-24T15:29:36Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>68.5.181.190</ipAddress>
+<thread dsq:id="2697119342" />
+<parent dsq:id="1402322810" />
+</post>
+<post dsq:id="1409937198">
+<id />
+<message><![CDATA[<p>Hello @justin,</p><p>I am pleased to let you know that this is not only one of the clearest posts I've read as far as programming posts go, but also the one that really got me understanding the topic at hand. I have sent this link around to many folks at my work and personal life. So, a great big thank you from me!!!</p>]]></message>
+<createdAt>2014-05-29T13:21:18Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>vincent.engelmann1@gmail.com</email>
+<name>Vincent Engelmann</name>
+<isAnonymous>false</isAnonymous>
+<username>vincentengelmann</username>
+</author>
+<ipAddress>69.112.37.50</ipAddress>
+<thread dsq:id="2697119342" />
+</post>
+<post dsq:id="1435826281">
+<id />
+<message><![CDATA[<p>Wanted to thank you, it's one of the best articles on the topic. Great job!</p>]]></message>
+<createdAt>2014-06-14T23:17:53Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>anton.logvinenko@gmail.com</email>
+<name>anton</name>
+<isAnonymous>false</isAnonymous>
+<username>disqus_WHw7jG05Pb</username>
+</author>
+<ipAddress>188.162.228.72</ipAddress>
+<thread dsq:id="2697119342" />
+</post>
+<post dsq:id="1438358736">
+<id />
+<message><![CDATA[<p>This post is incredibly clear. Everything makes sense to me now.</p><p>One thing - Could you provide an example of a Reader "future value" that is *not* immediately read? I could not imagine a case where I would find a Reader useful; a concrete example would really help. Thanks!</p>]]></message>
+<createdAt>2014-06-16T21:41:05Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>gilbertbgarza@gmail.com</email>
+<name>mindeavor</name>
+<isAnonymous>false</isAnonymous>
+<username>mindeavor</username>
+</author>
+<ipAddress>70.114.206.78</ipAddress>
+<thread dsq:id="2697119342" />
+</post>
+<post dsq:id="1440528525">
+<id />
+<message><![CDATA[<p>Thank you mindeavor!</p><p>Actually, in Haskell, Reader is commonly considered something not too practical or useful on its own and is in practice more commonly used as either a teaching tool or in combination with other types (i.e., in "monad transformers"); I mostly used it to "lead in" to talking about the more important type, IO.</p><p>In Haskell Reader is presented as something where you can chain things together that all "share" the original input; note that when we used (=&lt;&lt;) for Reader, all of the 'Reader' values get their input from the original thing inputted; I'll just refer you to a nice article that explains usages of Reader for this specific purpose: <a href="http://adit.io/posts/2013-06-10-three-useful-monads.html#the-reader-monad" rel="nofollow">http://adit.io/posts/2013-06-1...</a></p><p>In other languages without laziness, Reader might be useful if you want to "delay" an expensive computation for the future; if you want to describe building up a huge long computation, and then "applying functions" to the results of the computation.  Then you could pass it off to someone/something that can finally "run" or force it.  Using Reader with a Functor/Monad interface allows you to apply functions to those future results of expensive computations *now*, without actually running the computation.</p>]]></message>
+<createdAt>2014-06-18T03:59:00Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>68.5.181.190</ipAddress>
+<thread dsq:id="2697119342" />
+<parent dsq:id="1438358736" />
+</post>
+<post dsq:id="1460090447">
+<id />
+<message><![CDATA[<p>Having read lots of articles on the topic during the last couple of weeks, this is the only one that moves away from formalistic explanations and invests in developing one's intuition around monads. Thank you for this incredible post.</p>]]></message>
+<createdAt>2014-06-29T09:28:40Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>themhs@gmail.com</email>
+<name>Themis Savvidis</name>
+<isAnonymous>false</isAnonymous>
+<username>themissavvidis</username>
+</author>
+<ipAddress>79.166.76.181</ipAddress>
+<thread dsq:id="2697119342" />
+</post>
+<post dsq:id="1511535508">
+<id />
+<message><![CDATA[<p>Nice post! That's why many say that Haskell is the "best imperative language". On the footnote (1), it's interesting to realize that the type of (&gt;&gt;) is in fact even more general! (&gt;&gt;) :: Monad m =&gt; m a -&gt; m b -&gt; m b</p>]]></message>
+<createdAt>2014-07-30T07:15:18Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>rodrigosetti@gmail.com</email>
+<name>rodrigosetti</name>
+<isAnonymous>false</isAnonymous>
+<username>rodrigosetti</username>
+</author>
+<ipAddress>24.5.123.198</ipAddress>
+<thread dsq:id="2875982504" />
+</post>
+<post dsq:id="1513142268">
+<id />
+<message><![CDATA[<p>rodrigosetti thanks!  I've added the correction.  I like the "best imperative language" sentiment, but perhaps a more fundamental thing would be that it's the "best program construction" language :)</p>]]></message>
+<createdAt>2014-07-30T20:50:54Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>68.5.181.190</ipAddress>
+<thread dsq:id="2875982504" />
+<parent dsq:id="1511535508" />
+</post>
+<post dsq:id="1517080279">
+<id />
+<message><![CDATA[<p>By the way, if you were still interested, the next part is up :)</p>]]></message>
+<createdAt>2014-07-31T22:32:55Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.209.207.185</ipAddress>
+<thread dsq:id="2151055500" />
+<parent dsq:id="1387735169" />
+</post>
+<post dsq:id="1522837152">
+<id />
+<message><![CDATA[<p>Great post. You should write a book on Haskell. Really.</p>]]></message>
+<createdAt>2014-08-02T20:53:52Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>ehoekema@gmail.com</email>
+<name>eelcoh</name>
+<isAnonymous>false</isAnonymous>
+<username>eelcoh</username>
+</author>
+<ipAddress>83.163.248.248</ipAddress>
+<thread dsq:id="2697119342" />
+</post>
+<post dsq:id="1660127800">
+<id />
+<message><![CDATA[<p>Great post! Thank you!</p><p>will there be a next part?</p>]]></message>
+<createdAt>2014-10-29T22:06:19Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>sivaram1992@gmail.com</email>
+<name>sivteck</name>
+<isAnonymous>false</isAnonymous>
+<username>sivteck</username>
+</author>
+<ipAddress>117.221.238.233</ipAddress>
+<thread dsq:id="2836841054" />
+</post>
+<post dsq:id="1762114864">
+<id />
+<message><![CDATA[<p>I have been trying to learn more about arrows from papers which is hard. You've provided a very good resource. I'd like to know more about ArrowCircuit if you're planning another post.</p>]]></message>
+<createdAt>2014-12-28T19:33:10Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>415fox@gmail.com</email>
+<name>disqusfoxi</name>
+<isAnonymous>false</isAnonymous>
+<username>disqusfoxi</username>
+</author>
+<ipAddress>50.131.203.73</ipAddress>
+<thread dsq:id="2836841054" />
+</post>
+<post dsq:id="1811798484">
+<id />
+<message><![CDATA[<p>I'm about to start a Pittsburgh Haskell group <a href="http://PittsburghHaskell.org/" rel="nofollow">http://PittsburghHaskell.org/</a> and in the introductory workshop I plan to avoid using the term "IO monad". I agree the terminology misleads big time.</p>]]></message>
+<createdAt>2015-01-22T21:30:35Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>franklinchen@franklinchen.com</email>
+<name>Franklin Chen</name>
+<isAnonymous>false</isAnonymous>
+<username>franklinchen</username>
+</author>
+<ipAddress>128.2.71.226</ipAddress>
+<thread dsq:id="3443255643" />
+</post>
+<post dsq:id="1811827139">
+<id />
+<message><![CDATA[<p>There is something to it. So you would say that you do I/O by creating IO actions, where IO is a special type constructor built into Haskell. It's only when you need to sequence these actions that you need a monad. For instance, when you want to print "Hello ", and then you remember that you also wanted to print "World!"</p><p>I guess the difference between IO and list (or Maybe) is that there are many things you can do with lists that are not monadic, but there aren't many things you can do with IO actions that are not monadic (or at least functorial).</p>]]></message>
+<createdAt>2015-01-22T21:48:34Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>bartosz@relisoft.com</email>
+<name>Bartosz Milewski</name>
+<isAnonymous>false</isAnonymous>
+<username>bartosz_milewski</username>
+</author>
+<ipAddress>217.112.96.42</ipAddress>
+<thread dsq:id="3443255643" />
+</post>
+<post dsq:id="1811846719">
+<id />
+<message><![CDATA[<p>You only need the Applicative instance for that, btw :)  A lot of seemingly "monadic" things really aren't too monadic at all.  Emphasizing the monad part, especially in cases like the one you mention where it's irrelevant, really don't do any good, i feel :)  "IO Monad" really is just kind of silly.  And just because you can use the monadic interface to do something with IO, doesn't meant that that interface characterizes every single aspect of IO.</p><p>There are a whole bunch of things you can do with IO that don't involve monads at all.  In fact, much of my real-world Haskell code doesn't involve directly using any of the monadic interface of IO at all...and I do work with IO a lot :D  I don't think IO is any different from list and Maybe in this sense.</p>]]></message>
+<createdAt>2015-01-22T22:01:07Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<thread dsq:id="3443255643" />
+<parent dsq:id="1811827139" />
+</post>
+<post dsq:id="1811883106">
+<id />
+<message><![CDATA[<p>I kind of included applicative in "functorial," but anyway, explaining applicative to a newcomer is not much easier than explaining a monad. So what are the things you do with IO that are not monadic/functorial?</p>]]></message>
+<createdAt>2015-01-22T22:24:57Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>bartosz@relisoft.com</email>
+<name>Bartosz Milewski</name>
+<isAnonymous>false</isAnonymous>
+<username>bartosz_milewski</username>
+</author>
+<ipAddress>217.112.96.42</ipAddress>
+<thread dsq:id="3443255643" />
+<parent dsq:id="1811846719" />
+</post>
+<post dsq:id="1811895032">
+<id />
+<message><![CDATA[<p>You don't have to explain Functor or Applicative or Monad to be able to use the functor or monadic or applicative interface of IO.  You can use IO just fine without understanding Monad or Applicative or Functor as a concept, and just focus on what fmap, pure, bind, etc. do with respect to IO.  And understand that their uses are what they are, where they are.  And not mention that IO has the ability to be fmapped every time you talk about IO, even when you aren't using anything related to fmap :)  How do I print a string? --&gt; the IO Functor! :D</p><p>I use a lot of continuation based libraries like pipes, and in general just a lot of data types that let me construct IO actions without dealing with the sequencing of IO directly.  And I definitely just return plain ol' "primitive" IO actions all the time.  Plenty of fmapping, (*&gt;)-ing, etc. tho too.  But I'm not going to go around calling IO the IO Functor in cases when i'm not talking about its functorness :)</p>]]></message>
+<createdAt>2015-01-22T22:33:02Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<thread dsq:id="3443255643" />
+<parent dsq:id="1811883106" />
+</post>
+<post dsq:id="1811923549">
+<id />
+<message><![CDATA[<p>Exactly, the main point is just that to start using IO, it is not important to know the general concept of monad (or functor). Getting the foot in the door has been a problem for introducing Haskell to people. Once they are using IO already, then yes, eventually the next step is getting newcomers to stuff like</p><p>greet = mapM_ putStrLn ["hello", "world"]</p>]]></message>
+<createdAt>2015-01-22T22:52:15Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>franklinchen@franklinchen.com</email>
+<name>Franklin Chen</name>
+<isAnonymous>false</isAnonymous>
+<username>franklinchen</username>
+</author>
+<ipAddress>128.2.71.226</ipAddress>
+<thread dsq:id="3443255643" />
+<parent dsq:id="1811895032" />
+</post>
+<post dsq:id="1812029912">
+<id />
+<message><![CDATA[<p>The IO *type constructor*. IO is not a type.</p><p>Excellent points though.</p>]]></message>
+<createdAt>2015-01-23T00:09:54Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>tmorris@tmorris.net</email>
+<name>tonymorris</name>
+<isAnonymous>false</isAnonymous>
+<username>tonymorris</username>
+</author>
+<ipAddress>203.143.175.67</ipAddress>
+<thread dsq:id="3443255643" />
+</post>
+<post dsq:id="1812042503">
+<id />
+<message><![CDATA[<p>Yes, sorry, of course, "type constructor". I am careful to call List, Maybe, etc. type constructors. Actually, I'm not happy with that terminology either. I want to simply call type constructors "type-level functions" and teach them as such from the get-go.</p>]]></message>
+<createdAt>2015-01-23T00:20:29Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>franklinchen@franklinchen.com</email>
+<name>Franklin Chen</name>
+<isAnonymous>false</isAnonymous>
+<username>franklinchen</username>
+</author>
+<ipAddress>128.2.71.226</ipAddress>
+<thread dsq:id="3443255643" />
+<parent dsq:id="1812029912" />
+</post>
+<post dsq:id="1812042781">
+<id />
+<message><![CDATA[<p>Thanks :)</p><p>Point has been mentioned to me before, but the word type is pretty ambiguous even used in Haskell. Nobody bats an eye when you say things like "the list type", do they? Or the Map type, or something of a function type.  Usage of type this way is normal and "type" doesn't really have a strict meaning in Haskell like this anyway :)</p><p>(And as an unnecessary  technical justification, all of them have kinds that are of the sort "type" :)) </p>]]></message>
+<createdAt>2015-01-23T00:20:43Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>208.54.4.206</ipAddress>
+<thread dsq:id="3443255643" />
+<parent dsq:id="1812029912" />
+</post>
+<post dsq:id="1812046498">
+<id />
+<message><![CDATA[<p>I do, bat an eye, secretly, inside. Usually because I predict a impending mistake in understanding as a consequence.</p>]]></message>
+<createdAt>2015-01-23T00:23:47Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>tmorris@tmorris.net</email>
+<name>tonymorris</name>
+<isAnonymous>false</isAnonymous>
+<username>tonymorris</username>
+</author>
+<ipAddress>203.143.175.67</ipAddress>
+<thread dsq:id="3443255643" />
+<parent dsq:id="1812042781" />
+</post>
+<post dsq:id="1812052338">
+<id />
+<message><![CDATA[<p>I think it is worth making a distinction between the Maybe type constructor and the Maybe data type. The Map type consturctor as opposed to the map abstract data type.  Both are equally valid uses. In the case of this article, I am definitely referring not to the type constructor, but the data type. </p>]]></message>
+<createdAt>2015-01-23T00:28:44Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>208.54.4.206</ipAddress>
+<thread dsq:id="3443255643" />
+<parent dsq:id="1812046498" />
+</post>
+<post dsq:id="1812056777">
+<id />
+<message><![CDATA[<p>I could almost agree. The problem is, this imprecise or ambiguous terminology too often leads to a misunderstanding that is difficult to back out of.</p><p>Once we have a decent framework of terminology, where imprecision is perfectly fine and without risk, then by all means! I do this in private discourse where I can be sure that such mistakes won't occur, but in the public arena, whee all bets are off, I get a bit apprehensive.</p><p>Your post makes the point where we use "the IO monad" to refer to "nothing at all to do with a monad" -- how often do you see this terminology used, where there is a misunderstanding of this very fact? I see it a lot.</p><p>Anyway, the overall point is excellent.</p>]]></message>
+<createdAt>2015-01-23T00:32:03Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>tmorris@tmorris.net</email>
+<name>tonymorris</name>
+<isAnonymous>false</isAnonymous>
+<username>tonymorris</username>
+</author>
+<ipAddress>203.143.175.67</ipAddress>
+<thread dsq:id="3443255643" />
+<parent dsq:id="1812052338" />
+</post>
+<post dsq:id="1812103356">
+<id />
+<message><![CDATA[<p>I use "list" when talking about the intuitive (and usually poorly chosen) use of lists as data structures. When talking about the user of lists as a way of composing, and working with, nondeterministic functions, "list monad" is the term that comes to mind, because that's specifically what the kleisli fish does in "list". By that logic I guess it would be appropriate to talk about the "IO monad" when comparing it to Windows PowerShell's cmdlets that worked with typed pipes inbetween programs. Windows PowerShell was originally called Monad, so I imagine the resemblence is intentional.</p>]]></message>
+<createdAt>2015-01-23T01:11:43Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>barendventer@gmail.com</email>
+<name>Barend Venter</name>
+<isAnonymous>false</isAnonymous>
+<username>barendventer</username>
+</author>
+<ipAddress>73.11.13.223</ipAddress>
+<thread dsq:id="3443255643" />
+</post>
+<post dsq:id="1812569868">
+<id />
+<message><![CDATA[<p>So essentially you're saying: Don't use the word monad (at least not in the beginning) and don't point at commonalities between various data types that support monadic interface. Just show them how to use the do notation with IO.</p><p>I think Richard Bird in "Thinking Functionally with Haskell" starts this way.</p>]]></message>
+<createdAt>2015-01-23T08:54:46Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>bartosz@relisoft.com</email>
+<name>Bartosz Milewski</name>
+<isAnonymous>false</isAnonymous>
+<username>bartosz_milewski</username>
+</author>
+<ipAddress>217.112.96.42</ipAddress>
+<thread dsq:id="3443255643" />
+<parent dsq:id="1811895032" />
+</post>
+<post dsq:id="1812574468">
+<id />
+<message><![CDATA[<p>I'm not quite saying "don't say monad" like it's a bad word :)  more precisely, I'm saying, "Say monad when it is relevant, and don't say it when it is not relevant."</p>]]></message>
+<createdAt>2015-01-23T09:01:16Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<thread dsq:id="3443255643" />
+<parent dsq:id="1812569868" />
+</post>
+<post dsq:id="1813193702">
+<id />
+<message><![CDATA[<p>As soon as you want to rub two IO actions together you need a `do` block (or some other use of the monad interface), so this seems like it's only putting off the "monad" conversation by five minutes. To write nontrivial programs (heck, even trivial exercises) in Haskell you absolutely do have to understand that there is something special about the I/O functions and they need to be composed in a different way from the usual way of composing functions in most programming languages. I suspect the poor reputation of "monad" follows from this fact, rather than haskell being intimidating because it's called "monad".</p>]]></message>
+<createdAt>2015-01-23T17:13:41Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>md401@srcf.ucam.org</email>
+<name>lmm</name>
+<isAnonymous>false</isAnonymous>
+<username>michael_donaghy</username>
+</author>
+<ipAddress>213.133.156.134</ipAddress>
+<thread dsq:id="3443255643" />
+</post>
+<post dsq:id="1814357463">
+<id />
+<message><![CDATA[<p>If Haskellers had spoken about 'patterns' instead of 'monads', the world would not be in such a confusion.</p><p>What is a monad? A monad is a pattern that forces all its users to follow the constraints it defines.</p><p>How come this simple explanation has been missed by so many people?</p>]]></message>
+<createdAt>2015-01-24T08:26:25Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>axilmar@gmail.com</email>
+<name>Achilleas Margaritis</name>
+<isAnonymous>false</isAnonymous>
+<username>achilleasmargaritis</username>
+</author>
+<ipAddress>85.73.206.208</ipAddress>
+<thread dsq:id="3443255643" />
+</post>
+<post dsq:id="1815853620">
+<id />
+<message><![CDATA[<p>Brilliant! Just brilliant. </p>]]></message>
+<createdAt>2015-01-25T10:00:39Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>paul.szulc@gmail.com</email>
+<name>Paweł Szulc</name>
+<isAnonymous>false</isAnonymous>
+<username>paulszulc</username>
+</author>
+<ipAddress>5.172.252.30</ipAddress>
+<thread dsq:id="3443255643" />
+</post>
+<post dsq:id="1816161250">
+<id />
+<message><![CDATA[<p>I wanted to write a lot about this post, but then I realized that this pic says it all:</p>]]></message>
+<createdAt>2015-01-25T15:40:29Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>ivanovs.aleksejs@gmail.com</email>
+<name>Aleksejs Ivanovs</name>
+<isAnonymous>false</isAnonymous>
+<username>AleksejsIvanovs</username>
+</author>
+<ipAddress>87.110.19.120</ipAddress>
+<thread dsq:id="3443255643" />
+</post>
+<post dsq:id="1816169437">
+<id />
+<message><![CDATA[<p>More correct word would be "Unit", as it is literal translation of the term monad. It's not really a pattern.</p>]]></message>
+<createdAt>2015-01-25T15:47:07Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>ivanovs.aleksejs@gmail.com</email>
+<name>Aleksejs Ivanovs</name>
+<isAnonymous>false</isAnonymous>
+<username>AleksejsIvanovs</username>
+</author>
+<ipAddress>87.110.19.120</ipAddress>
+<thread dsq:id="3443255643" />
+<parent dsq:id="1814357463" />
+</post>
+<post dsq:id="1816196123">
+<id />
+<message><![CDATA[<p>&gt; Let’s say someone comes to you and asks you the question: “How does Haskell do things like print a string?”<br>&gt; The answer is: Definitely not with the IO monad.</p><p>Yes, the answer is IO action.</p><p>&gt; The idea that putStrLn "hello world" is monadic is as absurd as saying that [1,2,3] is monadic</p><p>It's like saying "Ohm's law is absurd, because I don't get it".</p><p>&gt; But having a list like [1,2,3] has nothing to do with monads.</p><p>It has anything to do with monads. Your problem is lack of understanding of "pure" functional paradigm (the "pure" is very bad buzzword, but I don't know any better). Once you understand these concepts, the reason why lists are monadic will be obvious for you.</p>]]></message>
+<createdAt>2015-01-25T16:07:08Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>ivanovs.aleksejs@gmail.com</email>
+<name>Aleksejs Ivanovs</name>
+<isAnonymous>false</isAnonymous>
+<username>AleksejsIvanovs</username>
+</author>
+<ipAddress>87.110.19.120</ipAddress>
+<thread dsq:id="3443255643" />
+<parent dsq:id="1816161250" />
+</post>
+<post dsq:id="1816433506">
+<id />
+<message><![CDATA[<p>I'm interested in your reasoning but I feel like you avoided mentioning your actual reasons to why you believe `putStrLn "hello world"` or `[1,2,3]` is something monadic in natute. If you want to have a discussion about it, it hinges on this :)  if you will not or cannot explain then there isn't really anything I can meaningfully reply to :) </p>]]></message>
+<createdAt>2015-01-25T18:59:12Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>172.56.17.229</ipAddress>
+<thread dsq:id="3443255643" />
+<parent dsq:id="1816196123" />
+</post>
+<post dsq:id="1816438722">
+<id />
+<message><![CDATA[<p>All you've said is that the monadic interface is practically important to the mainstream usage style of working with IO actions.  But that doesn't mean that saying "monad"  is appropriate in situations where nothing monadic are involved, and it doesn't mean that something like printing a string is monadic :) </p>]]></message>
+<createdAt>2015-01-25T19:02:56Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>172.56.17.229</ipAddress>
+<thread dsq:id="3443255643" />
+<parent dsq:id="1813193702" />
+</post>
+<post dsq:id="1816491845">
+<id />
+<message><![CDATA[<p>Well, if we consider primitive types and "safe" functions (no side effect) as "pure", it's clear that both lists (collection of values) and IO (non-safe action) don't fit in the "pure" picture. So, we need to somehow separate pure magical world of Hask from IO, non-primitives etc. When you need to collect several values of, for instance, Int type in one list, you unite them in [Int] list. When you need to make unsafe action on input (the simplest action is to get a data from input stream), you unite it under IO action. Both are not pure by definition. So, you have some abstractions that unite something unsafe and impure, and you want to apply some properties that would be common to both lists and IO (by describing basic rules of unit - bind and return), you use the keyword "unite" and you get monads <a href="https://translate.google.com/#el/en/%CE%BC%CE%BF%CE%BD%CE%AC%CE%B4%CE%B1" rel="nofollow">https://translate.google.com/#...</a> .<br>Again, it's not the only way to separate pure and impure worlds, but when you able to understand it, you will realize it is pretty valid way. For example, you can easily create or use monads like Maybe.</p>]]></message>
+<createdAt>2015-01-25T19:30:14Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>ivanovs.aleksejs@gmail.com</email>
+<name>Aleksejs Ivanovs</name>
+<isAnonymous>false</isAnonymous>
+<username>AleksejsIvanovs</username>
+</author>
+<ipAddress>87.110.19.120</ipAddress>
+<thread dsq:id="3443255643" />
+<parent dsq:id="1816433506" />
+</post>
+<post dsq:id="1816755143">
+<id />
+<message><![CDATA[<p>I'm not quite sure where your definition of "pure" comes from --- functions only involve primitive types and have no implicit side-effects?  I am not aware of this definition in any circle; traditionally, pure has meant that the same input produces the same results, and there are no implicit side-effects.</p><p>If you are considering all functions that return non-primitive types as pure, then about about functions that return things that very clearly are not Monads (in the mathematical or the Haskell sense) -- things that return `Map k a` (associative maps from any k to a), things that return `Const c a` (`data Const c a = Const c`), `(k, a)` (tuples on any type `k` in general), etc.?  You don't have to look hard, I can construct on the spot something that cannot be a Monad...and probably several others if you want.  I can do it all day :)  And this is Monad in the mathematical sense (an endofunctor with the two natural transformations), and also in the Haskell sense (can implement the typeclass with the two functions).</p><p>Again, I'm not really sure of any general acceptance of those types to be "impure" types.  You might be able to use them to represent impure computations, but, you can do the same thing with `Int`, `Bool`, and `Float` too.  In any case, none of these are monads in the mathematical or haskell sense.</p><p>But maybe your point is that monads can only "unify" *some* "impure" types?</p><p>Even in this sense, monads really don't have anything to do with "uniting" pure and impure worlds.  If you look at the mathematical definition of monads, and their definition in haskell, the word "unite" and word "unit" in mathematics are completely coincidental...the word `unit` comes from the fact that it is the identity of the monoidal binary operation on endofunctors...and "unit" in terms of monoids comes from the term in the study of groups...and in the study of groups the word "unit" (when it is used to refer to an identity element) usually comes from the fact that 1 is the identity element on one the integer group.</p><p>So the word "unit" as used in monads (in mathematics) is completely coincidental to "uniting" impure and pure worlds.</p><p>There is however, the *philosophical* concept of monads (<a href="http://en.wikipedia.org/wiki/Monad_(philosophy))" rel="nofollow">http://en.wikipedia.org/wiki/M...</a>, which does invove the idea of unifying things.  But the philosophical concept of monads is unrelated to the mathematical and haskell concept of monads; the two are unrelated in origin.</p><p>If you are speaking on the fact that [1,2,3] is inherently a representation of the philosophical monad, then you might run into some trouble.  Usually when we talk about haskell or mathematics, we refer to the mathematical and haskell concept of monads...so using something from a different domain with a different meaning with the same name might lead to confusion :)  In this case, qualification is probably helpful :)</p><p>In short, the mathematical and haskell concept of monads are not really inherently related to the idea of uniting pure and impure worlds, in the traditional sense of pure and impure.  And they aren't really related to the idea of uniting pure and impure worlds even in the definitions of pure and impure that you seem to be suggesting.  (They do give one framework for working with modeling impure algorithms.  But even in this case, when we talk about the algorithms, we really talk about the *algorithms*, and not the interface you used to build them.  When we talk about the interface you use to build them, then yeah, talk about the interface, like monads.  But the algorithms themselves exist in and of themselves.)</p><p>Furthermore, In the last couple of sentence, you say that monads are not the only way to do what you are suggesting they do.  If this is the case, and monads are not the only way to "look" at [1,2,3], then the original point stands that you really should only say [1,2,3] is monadic specifically in the situations where you are "looking at it" monadically.</p>]]></message>
+<createdAt>2015-01-25T22:47:08Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<thread dsq:id="3443255643" />
+<parent dsq:id="1816491845" />
+</post>
+<post dsq:id="1817299074">
+<id />
+<message><![CDATA[<p>Well, true, although monads certainly enforce patterns of usage, and the word 'unit' is usually associated with 'module'.</p>]]></message>
+<createdAt>2015-01-26T08:47:41Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>axilmar@gmail.com</email>
+<name>Achilleas Margaritis</name>
+<isAnonymous>false</isAnonymous>
+<username>achilleasmargaritis</username>
+</author>
+<ipAddress>5.172.204.3</ipAddress>
+<thread dsq:id="3443255643" />
+<parent dsq:id="1816169437" />
+</post>
+<post dsq:id="1817368046">
+<id />
+<message><![CDATA[<p>As I said before, I personally don't like the term "pure" as it is hazy.</p><p>First of all, allow me to slightly change your statement that CT monad is "an endofunctor with the two natural transformations". It's more like "an endofunctor AND two natural transformations" , the triple. At the same time, I see your statement that CT and haskell concepts of monads are different from philosophical. While it's true, the form of your statement leads to conclusion that CT monads and haskell monads are the same thing.</p><p>I agree, "unifying" can lead to pholosophical definition of monad. But if we take a look on the purpose of monads in functional programming (which is slightly different from monads in CT), we see that FP monads represent a sequence of operations chained (united) together. In other words, many concepts that don't fit in "purely functional" (pure, again :( ) programming paradigm (concepts like state, side effect, concurrency  etc), can be described as monadic structures, which allows these structures to be used in "that word again" way.</p><p>About lists: probably the easiest explanation is to compare [] with Maybe. It's obvious why Maybe is a monad (again, it's not like there's no other way to represent Maybe). But in the same time, you can somehow compare Maybe with a list of length zero or one: [] or [1]. With lists, we can return zero, one or as many values as you like. In this view, fmap f Nothing is similar to fmap f [].</p>]]></message>
+<createdAt>2015-01-26T10:33:45Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>ivanovs.aleksejs@gmail.com</email>
+<name>Aleksejs Ivanovs</name>
+<isAnonymous>false</isAnonymous>
+<username>AleksejsIvanovs</username>
+</author>
+<ipAddress>212.93.100.113</ipAddress>
+<thread dsq:id="3443255643" />
+<parent dsq:id="1816755143" />
+</post>
+<post dsq:id="1823297627">
+<id />
+<message><![CDATA[<p>In your first Applicative instance of Two you have a minor typo: "Two f &lt;*&gt; Two f"</p>]]></message>
+<createdAt>2015-01-29T11:52:35Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>0@psycoti.ca</email>
+<name>Christopher Vollick</name>
+<isAnonymous>false</isAnonymous>
+<username>christophervollick</username>
+</author>
+<ipAddress>67.55.41.201</ipAddress>
+<thread dsq:id="3440921220" />
+</post>
+<post dsq:id="1824947835">
+<id />
+<message><![CDATA[<p>You can now deploy Haskell apps to Heroku using my buildpack, <a href="https://haskellonheroku.com/" rel="nofollow">Haskell on Heroku</a>.  It includes a Vagrant-less and Anvil-less solution for the 15-minute build time limit.  It also supports the <a href="https://devcenter.heroku.com/articles/cedar" rel="nofollow">Cedar-14 stack</a> and a <a href="https://halcyon.sh/reference/#halcyon_ghc_version" rel="nofollow">whole lot of GHC versions</a>, including GHC 7.8.4.  Follow the <a href="https://haskellonheroku.com/tutorial/" rel="nofollow">Haskell on Heroku tutorial</a> to get started.</p>]]></message>
+<createdAt>2015-01-30T03:57:19Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mietek@bak.io</email>
+<name>Miëtek Bak</name>
+<isAnonymous>false</isAnonymous>
+<username>mietekbak</username>
+</author>
+<ipAddress>86.6.24.170</ipAddress>
+<thread dsq:id="1800097979" />
+</post>
+<post dsq:id="1825146088">
+<id />
+<message><![CDATA[<p>thanks! :)</p>]]></message>
+<createdAt>2015-01-30T08:20:18Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<thread dsq:id="3440921220" />
+<parent dsq:id="1823297627" />
+</post>
+<post dsq:id="1825622683">
+<id />
+<message><![CDATA[<p>atually, the stream monad instance can be adapted to lists - just cut the diagonal on the first time we get a nill.</p><p>instance Monad [] where<br>  [] &gt;&gt;= f = []<br>  (x:xs) &gt;&gt;= f = case f x of<br>    [] -&gt; []<br>    (y:_) -&gt; y:(xs &gt;&gt;= (tail.f))</p><p>  return = repeat</p>]]></message>
+<createdAt>2015-01-30T15:28:10Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>noam.tashma@yahoo.com</email>
+<name>Noam Tashma</name>
+<isAnonymous>false</isAnonymous>
+<username>noamtashma</username>
+</author>
+<ipAddress>79.176.192.49</ipAddress>
+<thread dsq:id="3440921220" />
+</post>
+<post dsq:id="1826417185">
+<id />
+<message><![CDATA[<p>Not quite :) I really dug into this road, but I posted a counter-example to this "instance"  in the first aside :) </p>]]></message>
+<createdAt>2015-01-30T22:49:45Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>108.81.240.25</ipAddress>
+<thread dsq:id="3440921220" />
+<parent dsq:id="1825622683" />
+</post>
+<post dsq:id="1932992008">
+<id />
+<message><![CDATA[<p>In "on State" you have "locally programs", which I assume should be "locally stateful programs"</p>]]></message>
+<createdAt>2015-03-28T13:53:34Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>0@psycoti.ca</email>
+<name>Christopher Vollick</name>
+<isAnonymous>false</isAnonymous>
+<username>christophervollick</username>
+</author>
+<ipAddress>69.171.144.155</ipAddress>
+<thread dsq:id="3621856495" />
+</post>
+<post dsq:id="1934110869">
+<id />
+<message><![CDATA[<p>you're right; thanks :)</p>]]></message>
+<createdAt>2015-03-29T05:45:35Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<thread dsq:id="3621856495" />
+<parent dsq:id="1932992008" />
+</post>
+<post dsq:id="1985546603">
+<id />
+<message><![CDATA[<p>There is an excellent article by David Overton from way back in 2008, which built upon this technique to handle multiple variables with finite domains.</p><p><a href="http://overtond.blogspot.com/2008/07/pre.html" rel="nofollow">http://overtond.blogspot.com/2...</a></p>]]></message>
+<createdAt>2015-04-24T18:48:58Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>ekmett@gmail.com</email>
+<name>edwardkmett</name>
+<isAnonymous>false</isAnonymous>
+<username>edwardkmett</username>
+</author>
+<ipAddress>198.45.18.20</ipAddress>
+<thread dsq:id="3708536279" />
+</post>
+<post dsq:id="1986898925">
+<id />
+<message><![CDATA[<p>Overall Layout section, first sentence: "[...] build and worth with [...]" s/worth/work/</p>]]></message>
+<createdAt>2015-04-25T15:32:43Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>0@psycoti.ca</email>
+<name>Christopher Vollick</name>
+<isAnonymous>false</isAnonymous>
+<username>christophervollick</username>
+</author>
+<ipAddress>199.119.233.208</ipAddress>
+<thread dsq:id="3705595381" />
+</post>
+<post dsq:id="1987376701">
+<id />
+<message><![CDATA[<p>Thanks Christopher :)</p>]]></message>
+<createdAt>2015-04-25T20:36:47Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<thread dsq:id="3705595381" />
+<parent dsq:id="1986898925" />
+</post>
+<post dsq:id="1995386685">
+<id />
+<message><![CDATA[<p>Not sure whether State Monad will truly simplify things here.</p><p>It can be easily done as follows without it:</p><p>buildTree :: PQueue (WeightedPT a) -&gt; Maybe (PreTree a)</p><p>buildTree pq =</p><p>  let (i1, pq') = popPQ pq</p><p>       (i2, pq'') = popPQ pq'</p><p>  in case (i1, i2) of</p><p>        (Nothing, _) -&gt; Nothing</p><p>        (Just l, Nothing) -&gt; Just (_wItem l)</p><p>        (Just l, Just l') -&gt; buildTree (insertPQ (mergeWPT l l') pq'')</p><p>runBuildTree :: Ord a =&gt; [a] -&gt; (Maybe (PreTree a))</p><p>runBuildTree = buildTree . listQueue . map makePT</p>]]></message>
+<createdAt>2015-04-30T05:15:13Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>ray.qiu@gmail.com</email>
+<name>Ray Qiu</name>
+<isAnonymous>false</isAnonymous>
+<username>rayqiu</username>
+</author>
+<ipAddress>24.5.231.224</ipAddress>
+<thread dsq:id="2561762662" />
+</post>
+<post dsq:id="1995794230">
+<id />
+<message><![CDATA[<p>Hi, this was pretty interesting post. One thing I'd like to note, though, is that there're two possible implementations of the State monad, so you could've found the answer without the Writer :) Namely, in State monad the actual state can be propagated in two directions: either from past to the future as in familiar State monad instance or from future to the past, which gives rise to the reverse state monad, cf <a href="https://lukepalmer.wordpress.com/2008/08/10/mindfuck-the-reverse-state-monad/" rel="nofollow">https://lukepalmer.wordpress.c...</a>.</p>]]></message>
+<createdAt>2015-04-30T12:50:16Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>serg.foo@gmail.com</email>
+<name>Sergey Vinokurov</name>
+<isAnonymous>false</isAnonymous>
+<username>disqus_KfzC50VK5x</username>
+</author>
+<ipAddress>176.38.140.13</ipAddress>
+<thread dsq:id="3440921220" />
+</post>
+<post dsq:id="2000596476">
+<id />
+<message><![CDATA[<p>Thanks!  Haha yeah, someone did mention this on reddit and I admit that it's something that I didn't even consider :)  Kind of ironic considering I even mentioned the reverse state *applicative*.  Maybe my journey could have taken a bunch of different paths :)</p>]]></message>
+<createdAt>2015-05-03T10:30:54Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<thread dsq:id="3440921220" />
+<parent dsq:id="1995794230" />
+</post>
+<post dsq:id="2007093030">
+<id />
+<message><![CDATA[<p>Excellent post! I wish you would elaborate more on the need for forall n m. It seems like it's needed only to provide a scope -- is that right? A little weird.</p><p>Maybe you should, for completeness, explain your use of MultiParamTypeClasses.</p><p>"The first case instance sense" Did you miss "makes"?</p>]]></message>
+<createdAt>2015-05-05T20:45:01Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>bartosz@relisoft.com</email>
+<name>Bartosz Milewski</name>
+<isAnonymous>false</isAnonymous>
+<username>bartosz_milewski</username>
+</author>
+<ipAddress>217.112.96.42</ipAddress>
+<thread dsq:id="3722021277" />
+</post>
+<post dsq:id="2007703730">
+<id />
+<message><![CDATA[<p>Great post! An explanation like that was lacking. I am curious, since the lenght is defined on the type, do you think it would be possible to have a Storable instance for Storable a =&gt; Vec n a?</p>]]></message>
+<createdAt>2015-05-05T23:59:21Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>juanrapha@gmail.com</email>
+<name>Juan Simões</name>
+<isAnonymous>false</isAnonymous>
+<username>juanrapha</username>
+</author>
+<ipAddress>89.227.37.90</ipAddress>
+<thread dsq:id="3722021277" />
+</post>
+<post dsq:id="2008479171">
+<id />
+<message><![CDATA[<p>Thanks!</p><p>Yes, this is the only reason the `forall` is there in these instances.  I've always been somewhat baffled by this...and also the fact that it's an all-or-nothing sort of thing (we need to forall the `m`, too), but it's basically the way that GHC has chosen to implement the ability to have scoped type variables.</p><p>Thank you for the corrections and suggestions.  I'll fix and leave a note :)</p>]]></message>
+<createdAt>2015-05-06T07:44:10Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<thread dsq:id="3722021277" />
+<parent dsq:id="2007093030" />
+</post>
+<post dsq:id="2008482204">
+<id />
+<message><![CDATA[<p>Thank you!</p><p>Actually, yes, you can.  The length is fixed, so you really can write `sizeOf`, etc, without any problem, using `SomeNat` or your own reification typeclass on your custom `Nat` type.</p><p>The `linear` package actually does do this: <a href="http://hackage.haskell.org/package/linear-1.18.0.1/docs/src/Linear-V.html#V" rel="nofollow">http://hackage.haskell.org/pac...</a></p>]]></message>
+<createdAt>2015-05-06T07:47:58Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<thread dsq:id="3722021277" />
+<parent dsq:id="2007703730" />
+</post>
+<post dsq:id="2030707495">
+<id />
+<message><![CDATA[<p>Sadly this is not true of ordinary functions. If you have a nice `IO Int` and then do `fmap (+ 1) myInt` then that's not first-class; you just have another `IO Int`. There's no way to "evaluate" this through a different "interpreter" where the effect of the `+ 1` might be different.</p>]]></message>
+<createdAt>2015-05-17T21:13:10Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>md401@srcf.ucam.org</email>
+<name>lmm</name>
+<isAnonymous>false</isAnonymous>
+<username>michael_donaghy</username>
+</author>
+<ipAddress>109.151.106.165</ipAddress>
+<thread dsq:id="2875982504" />
+</post>
+<post dsq:id="2030721962">
+<id />
+<message><![CDATA[<p>I'm not sure what you mean.  "fmap (+1) ioInt" is another IO Int, which is also a first-class statement --- it's a first class object that represents a computation that computes an Int, in exactly the same way that the original one was.</p><p>It's like if you had a function "getInt()" from stdin in another language, and also "getIntPlusOne()", another function that gets an int from stdin but returns one more than it.  They're both IO actions that represent doing things in IO to get things.  But in haskell, they're first class objects :)</p>]]></message>
+<createdAt>2015-05-17T21:25:00Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<thread dsq:id="2875982504" />
+<parent dsq:id="2030707495" />
+</post>
+<post dsq:id="2030726181">
+<id />
+<message><![CDATA[<p>But the transformation from one to the other isn't a first class object. "+ 1" is a value but only in a very weak sense - all you can do with it is execute it, you can't inspect it or even compare it for equality with another "+ 1".</p>]]></message>
+<createdAt>2015-05-17T21:28:29Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>md401@srcf.ucam.org</email>
+<name>lmm</name>
+<isAnonymous>false</isAnonymous>
+<username>michael_donaghy</username>
+</author>
+<ipAddress>109.151.106.165</ipAddress>
+<thread dsq:id="2875982504" />
+<parent dsq:id="2030721962" />
+</post>
+<post dsq:id="2030731452">
+<id />
+<message><![CDATA[<p>Are you referring to the function (+ 1) itself?  You can actually do a lot to manipulate it :)  There's a whole lot of functions that take (a -&gt; b)'s and return new (a -&gt; b)'s...or [a] -&gt; [b]'s...you can pass in an (a -&gt; b) to a whole wealth of functions in the base library *alone*, and get something that manipulates the function and returns a new function or a new object just from manipulation of that function...just like any other value...any Int, any String, etc.: they can be passed as values, manipulated, and used to return new modified versions or new things altogether</p>]]></message>
+<createdAt>2015-05-17T21:32:46Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<thread dsq:id="2875982504" />
+<parent dsq:id="2030726181" />
+</post>
+<post dsq:id="2031852789">
+<id />
+<message><![CDATA[<p>I'm not sure whether it's the (+ 1) or the fmap ... ioInt that I'm more bothered with.</p><p>I can indeed manipulate it, but anything I get out of those manipulations is just more opaque. It's like a nonstandard integer - I can add to it, I can multiply it, but I can never relate it to the familiar integers I know about.</p><p>What I'd like is some kind of free-monad-esque structure where (+ 1) exposes the fact that it's composed of + and 1, and I can provide my own interpreter for what that means. When I'm debugging an operation I've implemented with free monad + interpreter, I find that it's much easier to understand which "actions" are happening than what the pure function steps are doing, which is thoroughly backwards.</p>]]></message>
+<createdAt>2015-05-18T14:25:34Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>md401@srcf.ucam.org</email>
+<name>lmm</name>
+<isAnonymous>false</isAnonymous>
+<username>michael_donaghy</username>
+</author>
+<ipAddress>213.133.156.134</ipAddress>
+<thread dsq:id="2875982504" />
+<parent dsq:id="2030731452" />
+</post>
+<post dsq:id="2032225693">
+<id />
+<message><![CDATA[<p>Yeah, I'll admit that functions are indeed opaque with a limited API...but that doesn't make them not first-class.  I can make my own opaque data type:</p><p>newtype OpaqueInt = OpaqueInt Int</p><p>and export the type without constructors...and now people can't access the Int inside.  But an OpaqueInt is still a first-class object just like any other Int -- it can be passed in to functions and returned, etc...just with a very limited API :)</p><p>Also, function equivalence and reflection in general might be a tricky thing.  That being said in Haskell there are indeed ways to create AST's to represent operations, like you mentioned.  But I'm not sure if that's worth being the default for all functions.</p>]]></message>
+<createdAt>2015-05-18T18:09:05Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<thread dsq:id="2875982504" />
+<parent dsq:id="2031852789" />
+</post>
+<post dsq:id="2057510156">
+<id />
+<message><![CDATA[<p>After seeing this code, I set out to try out solving a problem with StateT, found Project Euler #59 (xor encryption cracking).</p><p>Thanks for the inspiration!</p><p><a href="http://lpaste.net/133747" rel="nofollow">http://lpaste.net/133747</a></p><p><a href="https://projecteuler.net/problem=59" rel="nofollow">https://projecteuler.net/probl...</a></p>]]></message>
+<createdAt>2015-06-02T05:01:04Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>daniel@enemyplanet.geek.nz</email>
+<name>aphocus</name>
+<isAnonymous>false</isAnonymous>
+<username>aphocus</username>
+</author>
+<ipAddress>111.69.167.201</ipAddress>
+<thread dsq:id="3708536279" />
+</post>
+<post dsq:id="2114419389">
+<id />
+<message><![CDATA[<p>Justin.  thanks for creating this item.  Its interesting to see how much quicker the solution is found if you include the constraint that m==1.  I did this with m &lt;- return 1 and changing the argument to evalStateT (0:[2..9]).  BTW I initially forget to change the argument and got three elements in the result because, of course, the code allowed two instances of "1"</p>]]></message>
+<createdAt>2015-07-03T12:35:43Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>diceone3@googlemail.com</email>
+<name>Dyson Wilkes</name>
+<isAnonymous>false</isAnonymous>
+<username>dysonwilkes</username>
+</author>
+<ipAddress>89.104.37.174</ipAddress>
+<thread dsq:id="3708536279" />
+</post>
+<post dsq:id="2124492204">
+<id />
+<message><![CDATA[<p>I really enjoyed your posts on autos and the auto library. However, I'm trying to decide whether I believe arrows and proc notation really do shine. I've noticed that there is some part of the haskell community that thinks arrows are not worth it and make it difficult for users to learn. Here I rewrote your motivating examples `dualCounter` and `dualCounterSkip` autos without proc or arrows, using standard applicative combinators. I think it achieves all of the same benefits, i.e local state as yours. btw I use the TupleSelections and MultiWayIf extensions just for convenience.</p><p>leftAuto :: a -&gt; Auto (Either a a) a<br>leftAuto x = ACons $ either (, leftAuto x) (const (x, leftAuto x))</p><p>rightAuto :: a -&gt; Auto (Either a a) a<br>rightAuto x = ACons $ either (const (x, rightAuto x)) (, rightAuto x)</p><p>dualCounter :: Auto (Either Int Int) (Int, Int)<br>dualCounter = (,) &lt;$&gt; summer . leftAuto 0 &lt;*&gt; summer . rightAuto 0</p><p>-- and</p><p>leftSkip :: a -&gt; Auto (Either a a) a<br>  leftSkip x = go x 1<br>    where<br>      go x n = ACons $ either<br>         (if | odd n     -&gt; (, go x (n+1))<br>             | otherwise -&gt; const (x, go x (n+1)))<br>         (const (x, go x n))</p><p>dualCounterSkip :: Auto (Either Int Int) (Int, Int)<br>dualCounterSkip = (,) &lt;$&gt; summer . leftSkip 0 &lt;*&gt; summer . rightAuto 0</p>]]></message>
+<createdAt>2015-07-08T18:25:41Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>jeffrey.rosenbluth@gmail.com</email>
+<name>Jeffrey Rosenbluth</name>
+<isAnonymous>false</isAnonymous>
+<username>jeffreyrosenbluth</username>
+</author>
+<ipAddress>74.108.27.107</ipAddress>
+<thread dsq:id="2836841054" />
+</post>
+<post dsq:id="2124642471">
+<id />
+<message><![CDATA[<p>You're right; since I wrote this article I've come to accept that Applicative formulations tend to be just as readable and more familiar than proc notation.  I think, however, that there's one major thing that proc notation has that applicative can't offer, that is described in the next article -- the ability to make easy recursive bindings.  Applicative can't do this very nicely, so that's why I've decided to maintain writing proc notation for `auto` stuff :)</p><p>I'm also not totally convinced that explicit recursion is the "way to go"...when explicit recursion can be avoided, everyone wins :D</p><p>`leftAuto x` there can be `id ||| pure x` and `rightAuto x` can be `pure x ||| id`, to sort of state the idea more clearly and not use explicit recursion?  both sides represent ways to "break down" the `Either`.</p><p>liftSkip x = (x,) ||| liftA2 decide (summer . pure 1) id</p><p>  where<br>    decide n i | odd n = (i, 0)<br>               | otherwise = (0, 0)</p><p>similarly, to use higher order combinators like "breakdown" ||| as opposed to proc notation</p>]]></message>
+<createdAt>2015-07-08T19:05:49Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>70.187.131.193</ipAddress>
+<thread dsq:id="2836841054" />
+<parent dsq:id="2124492204" />
+</post>
+<post dsq:id="2124694523">
+<id />
+<message><![CDATA[<p>Thanks for the quick reply. I'm not sure explicit recursion is always as bad as people make it out to be. Sometimes it's just more readable than relying on (possibly unfamiliar) operators. That said, I do like your implementations of `leftAuto` and `leftSkip`. Im' wondering whether or not the applicative do proposal will ease some of the pain of writing recursive bindings but, I have not had a chance to look into it yet.</p>]]></message>
+<createdAt>2015-07-08T19:19:29Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>jeffrey.rosenbluth@gmail.com</email>
+<name>Jeffrey Rosenbluth</name>
+<isAnonymous>false</isAnonymous>
+<username>jeffreyrosenbluth</username>
+</author>
+<ipAddress>74.108.27.107</ipAddress>
+<thread dsq:id="2836841054" />
+<parent dsq:id="2124642471" />
+</post>
+<post dsq:id="2190252358">
+<id />
+<message><![CDATA[<p>Hey I am working on GADT with Kind Signatures that you helped me out on. I am stuck on it. If I could use your help. Thanks</p>]]></message>
+<createdAt>2015-08-13T08:08:04Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>kaivan29@tamu.edu</email>
+<name>Kaivan Shah</name>
+<isAnonymous>false</isAnonymous>
+<username>disqus_hkmdG4g8wU</username>
+</author>
+<ipAddress>75.108.81.222</ipAddress>
+<thread dsq:id="3722021277" />
+</post>
+<post dsq:id="2242360026">
+<id />
+<message><![CDATA[<p>I don't see the Monad instance in your source files and I can't figure out how to do it myself. The end result needs to be the same length as the input Vector and the Vector output from f in m &gt;&gt;= f, so I see that you need to take the nth item out of the f-produced vector for the nth item in m, but putting it together seems impossible.</p>]]></message>
+<createdAt>2015-09-08T13:20:51Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>hsiu@mailinator.com</email>
+<name>Hsiu</name>
+<isAnonymous>false</isAnonymous>
+<username>disqus_AlvYtHdiGi</username>
+</author>
+<ipAddress>100.12.110.134</ipAddress>
+<thread dsq:id="3722021277" />
+</post>
+<post dsq:id="2242759397">
+<id />
+<message><![CDATA[<p>Hi Hsiu; I did intentionally leave off the Monad instance as an exercise.  The easiest/most conceptually simple way to me, like I mentioned in the post, is instead of defining &gt;&gt;= directly, defining an inductive `join`.  v &gt;&gt;= f = join (fmap f v).  For join, find a way to turn an NxN matrix into a an N vector by taking its diagonals.  For a hint, if you take the head of the head of the matrix, you get the first item in the diagonal...and when you fmap tail on the tail of the matrix, and you get an (N-1)x(N-1) matrix.  Induction takes care of the rest :)</p>]]></message>
+<createdAt>2015-09-08T17:13:20Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>206.211.150.57</ipAddress>
+<thread dsq:id="3722021277" />
+<parent dsq:id="2242360026" />
+</post>
+<post dsq:id="2243744666">
+<id />
+<message><![CDATA[<p>Yes, I figured it out right after I posted, thanks. Is there a way to do it without using join?</p><p>You said you left it off as an exercise but said it was in the source code, that's the only reason I posted it.</p>]]></message>
+<createdAt>2015-09-09T03:57:01Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>hsiu@mailinator.com</email>
+<name>Hsiu</name>
+<isAnonymous>false</isAnonymous>
+<username>disqus_AlvYtHdiGi</username>
+</author>
+<ipAddress>100.12.110.134</ipAddress>
+<thread dsq:id="3722021277" />
+<parent dsq:id="2242759397" />
+</post>
+<post dsq:id="2243855640">
+<id />
+<message><![CDATA[<p>Ah, I totally forgot that I had written that haha.  Thanks for pointing it out :)  I'll try to fix this by uploading it to the repo then.</p><p>Join is the simplest way conceptually; you can do it "without calling it join", kinda, by maybe using unfold.  if y = x &gt;&gt;= f, then y1 = f(x1)1, y2 = f(x2)2, y3 = f(x3)3, y4 = f(x4)4, etc....so I guess you could imagine it as an unfold and updating the accumulator accordingly at every step.  It'd have to be some polymorphic unfold defined inductively because the type of the accumulator changes every time...I'm not sure if this is possible or simple in Haskell.</p><p>But, hey, with previous way, you're "fmapping and taking the diagonal", which is easy enough to do and conceptually simple...you don't really have to call "taking the diagonal" "join" if that's what you're trying to avoid :)  You can just pretend that taking the diagonal is just some normal matrix manipulation.</p>]]></message>
+<createdAt>2015-09-09T06:17:06Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mstksg@gmail.com</email>
+<name>Justin Le</name>
+<isAnonymous>false</isAnonymous>
+<username>mstksg</username>
+</author>
+<ipAddress>68.5.21.152</ipAddress>
+<thread dsq:id="3722021277" />
+<parent dsq:id="2243744666" />
+</post>
+<post dsq:id="2303141674">
+<id />
+<message><![CDATA[<p>what is the counter example?</p><p>edit: Ah, I see</p>]]></message>
+<createdAt>2015-10-12T15:58:21Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>noam.tashma@yahoo.com</email>
+<name>Noam Tashma</name>
+<isAnonymous>false</isAnonymous>
+<username>noamtashma</username>
+</author>
+<ipAddress>149.78.239.30</ipAddress>
+<thread dsq:id="3440921220" />
+<parent dsq:id="1826417185" />
+</post>
+<post dsq:id="2494919850">
+<id />
+<message><![CDATA[<p>I finally understand it now. Thanks and big props!</p>]]></message>
+<createdAt>2016-02-04T01:16:20Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>false</isSpam>
+<author>
+<email>mail@profpatsch.de</email>
+<name>Profpatsch</name>
+<isAnonymous>false</isAnonymous>
+<username>profpatsch</username>
+</author>
+<ipAddress>178.27.158.121</ipAddress>
+<thread dsq:id="3742509560" />
+</post>
+<post dsq:id="2509157147">
+<id />
+<message><![CDATA[<p>Thanks for the great post!</p>]]></message>
+<createdAt>2016-02-12T01:22:05Z</createdAt>
+<isDeleted>false</isDeleted>
+<isSpam>true</isSpam>
+<author>
+<email>michael.beidler@gmail.com</email>
+<name>Michael Beidler</name>
+<isAnonymous>false</isAnonymous>
+<username>mbeidler</username>
+</author>
+<ipAddress>24.20.71.49</ipAddress>
+<thread dsq:id="3722021277" />
+</post>
+</disqus>
