@@ -119,10 +119,10 @@ viewArchiveSidebar recents isIndex = do
             H.a ! A.href (fromString (renderUrl' entryCanonical)) $
               H.toHtml entryTitle
   where
-    indexList =  [("History"   , "/entries"   , AIndHistory           )
-                 ,("Tags"      , "/tags"      , AIndTagged GeneralTag )
-                 ,("Categories", "/categories", AIndTagged CategoryTag)
-                 ,("Series"    , "/series"    , AIndTagged SeriesTag  )
+    indexList =  [("History"   , "/entries.html"   , AIndHistory           )
+                 ,("Tags"      , "/tags.html"      , AIndTagged GeneralTag )
+                 ,("Categories", "/categories.html", AIndTagged CategoryTag)
+                 ,("Series"    , "/series.html"    , AIndTagged SeriesTag  )
                  ]
 
 viewArchiveFlat
@@ -170,7 +170,7 @@ viewArchiveByMonths
 viewArchiveByMonths tile y entries =
     H.ul ! A.class_ ulClass $
       forM_ (reverse (M.toList entries)) $ \(m, tes) -> do
-        let monthPath = renderUrl' $ "/entries/in" </> show y </> show (mInt m)
+        let monthPath = renderUrl' $ "/entries/in" </> show y </> show (mInt m) <.> "html"
         H.li $ do
           H.h3 $
             H.a ! A.href (fromString monthPath)
@@ -188,7 +188,7 @@ viewArchiveByYears
 viewArchiveByYears entries =
     H.ul ! A.class_ "entry-list" $
       forM_ (reverse (M.toList entries)) $ \(y, tes) -> do
-        let yearPath = renderUrl' $ "/entries/in" </> show y
+        let yearPath = renderUrl' $ "/entries/in" </> show y <.> "html"
         H.li ! A.class_ "tile" $ do
           H.h2 $
             H.a ! A.href (fromString yearPath)

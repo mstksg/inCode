@@ -144,8 +144,5 @@ viewTags tags =
                   H.toHtml (show (length (tagEntries t)))
                   ")" :: H.Html
   where
-    tagLists = [(CategoryTag, "Topics", "/categories","home-category-list", TSLabel)
-               ,(GeneralTag , "Tags"  , "/tags"      ,"home-tags-list"    , TSCount)]
-
---     let sorter  = indexSorter tt
---         tmapSort = sortBy (tsCompare sorter) tmap'
+    tagLists = [(CategoryTag, "Topics", "/categories.html","home-category-list", TSLabel)
+               ,(GeneralTag , "Tags"  , "/tags.html"      ,"home-tags-list"    , TSCount)]
