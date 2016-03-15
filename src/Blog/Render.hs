@@ -125,7 +125,7 @@ navBar = do
           H.a ! A.href (H.textValue (renderUrl "/")) $
             "home"
         H.li $
-          H.a ! A.href (H.textValue (renderUrl "/entries")) $
+          H.a ! A.href (H.textValue (renderUrl "/entries.html")) $
             "archives"
 
         H.div ! A.class_ "clear" $
