@@ -35,30 +35,18 @@ main = do
       log "Hello from PureScript!"
       appendTopLinks doc
       log "Goodbye!"
-
-
-ready
-    :: forall e.
-       D.Document
-    -> Eff (dom :: D.DOM, ref :: REF | e) Unit
-    -> Eff (dom :: D.DOM, ref :: REF | e) Unit
-ready doc c = do
-    hasExecutedRef <- newRef false
-    D.addEventListener D.readystatechange
-                       (D.eventListener $ \_ -> do
-                           hasExecuted <- readRef hasExecutedRef
-                           unless hasExecuted $ do
-                               c
-                               writeRef hasExecutedRef true
-                       )
-                       true
-                       (D.documentToEventTarget doc)
+  where
+    ready doc a = do
+      a' <- doOnce a
+      onE (D.documentToEventTarget doc)
+           D.readystatechange
+          (D.eventListener $ \_ -> a')
 
 
 appendTopLinks
     :: forall e.
        D.Document
-    -> Eff (dom :: D.DOM, console :: CONSOLE | e) Unit
+    -> Eff (dom :: D.DOM | e) Unit
 appendTopLinks doc = do
     hs <- D.querySelectorAll headers (D.documentToParentNode doc)
     flip traverseNodeList_ hs $ \h -> do
@@ -80,17 +68,36 @@ appendTopLinks doc = do
 fromNodeList
     :: forall e.
        D.NodeList
-    -> Eff (dom :: D.DOM, console :: CONSOLE | e) (List (Nullable D.Node))
+    -> Eff (dom :: D.DOM | e) (List (Nullable D.Node))
 fromNodeList nl = do
     l <- D.length nl
     traverse (`D.item` nl) (0 .. (l - 1))
 
 traverseNodeList_
     :: forall e.
-       (Nullable D.Node -> Eff (dom :: D.DOM, console :: CONSOLE | e) Unit)
+       (Nullable D.Node -> Eff (dom :: D.DOM | e) Unit)
     -> D.NodeList
-    -> Eff (dom :: D.DOM, console :: CONSOLE | e) Unit
+    -> Eff (dom :: D.DOM | e) Unit
 traverseNodeList_ f nl = do
     ns <- fromNodeList nl
     traverse_ f ns
 
+
+doOnce
+    :: forall e.
+       Eff (ref :: REF | e) Unit
+    -> Eff (ref :: REF | e) (Eff (ref :: REF | e) Unit)
+doOnce a = do
+    doneRef <- newRef false
+    return $ do
+      done <- readRef doneRef
+      unless done $ do
+        a
+        writeRef doneRef true
+
+onE :: forall e.
+       D.EventTarget
+    -> D.EventType
+    -> D.EventListener (dom :: D.DOM | e)
+    -> Eff (dom :: D.DOM | e) Unit
+onE targ etype h = D.addEventListener etype h true targ
