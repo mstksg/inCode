@@ -112,11 +112,12 @@ entryCompiler histList allTags = do
                                      , "/css/pygments.css"
                                      ]
                  , pageDataJs      = [ "/js/page/entry_toc.js"
-                                     , ghcjsReq "blog-javascript-entry"
+                                     -- , ghcjsReq "blog-javascript-entry"
                                      , "/js/disqus.js"
                                      , "/js/disqus_count.js"
                                      , "/js/social.js"
                                      , "/js/jquery/jquery.toc.js"
+                                     , "/purescript/entry.js"
                                      ]
                  }
     blazeCompiler pd (viewEntry ei)

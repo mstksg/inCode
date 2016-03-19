@@ -67,6 +67,13 @@ app znow@(ZonedTime _ tz) = do
       route   $ gsubRoute "_ghcjs/" (const "ghcjs/")
       compile copyFileCompiler
 
+    match "_purescript/**" $ do
+      route   $ gsubRoute "_purescript/" (const "purescript/")
+      case confEnvType of
+        ETDevelopment -> compile copyFileCompiler
+        ETProduction  -> compile compressJsCompiler
+
+
     match "copy/tags/**" $ do
       route   mempty
       compile getResourceString

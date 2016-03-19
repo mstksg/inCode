@@ -1,0 +1,31 @@
+{
+  "name": "blog",
+  "authors": [
+    "Justin Le <justin@jle.im>"
+  ],
+  "description": "Client javascript for personal blog engine",
+  "moduleType": [
+    "node"
+  ],
+  "license": "BSD3",
+  "homepage": "https://github.com/mstksg/blog",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "purescript-console" : "0.1.1" ,
+    "purescript-control" : "0.3.2" ,
+    "purescript-dom"     : "0.2.15",
+    "purescript-eff"     : "0.1.2" ,
+    "purescript-lists"   : "0.7.9" ,
+    "purescript-nullable": "0.2.1" ,
+    "purescript-prelude" : "0.1.4" ,
+    "purescript-refs"    : "0.2.0" ,
+    "purescript-foldable-traversable": "0.4.2"
+  }
+}
