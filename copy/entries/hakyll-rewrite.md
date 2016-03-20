@@ -49,3 +49,28 @@ to be able to learn how to interface with databases in Haskell.
 
 Now that that learning process is behind me, I felt free to throw it all out
 the window and rewrite things to be a completely 100% static site!
+
+[Hakyll][hakyll] was great; it's basically like a very specialized *make*-like
+tool for building sites.  It takes a bit of time to get used to "thinking in
+Hakyll" --- generating standalone pages instead of just ones based off of
+files, getting used to the identifier/snapshot system --- but once you do,
+things go pretty smoothly.  I started thinking about snapshots as customized
+"object files" that you can leave behind in the process of creating pages that
+other pages can use. Hakyll manages all the dependencies for you, so pages that
+depend on the things left from other pages will be sequenced properly, and
+rebuilding your website only requires rebuilding pages that depend on files you
+changed.  Neat!
+
+Before, I had gotten the impression that Hakyll was mostly for generating
+"simple", pre-built blog layouts, but I was able to use Hakyll (without much
+friction, at all) to generate the complex, intricate, and arbitrary site map
+that I had designed on my first run.  I definitely recommend it for any static
+site generating needs, blogs or not.
+
+An unforeseen consequence of the static-site-hosted-by-github-pages approach,
+however, is that I don't have any control over MIME types anymore (or 301
+redirects), so I had to do some migrations to move pages over to ".html" and
+set up redirects and stuff, but those were made super simple with Hakyll.
+
+## Migrating Haskell
+
