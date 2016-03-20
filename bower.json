@@ -28,6 +28,7 @@
     "purescript-foldable-traversable": "=0.4.2",
     "purescript-generics": "=0.7.2",
     "purescript-unicode" : "=0.0.1",
+    "purescript-transformers": "=0.8.4",
     "purescript-dom"     : "git@github.com:mstksg/purescript-dom.git#79a8e387a199a2935e8ce638c2f126f68fe2c462"
   }
 }
