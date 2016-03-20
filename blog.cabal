@@ -16,117 +16,93 @@ cabal-version:       >=1.8
 
 library
   hs-source-dirs:      src
-  if impl(ghcjs)
-    exposed-modules:     
-    build-depends:       base >= 4 && < 5
-  else
-    exposed-modules:     Blog.App
-                         Blog.Compiler.Archive
-                         Blog.Compiler.Entry
-                         Blog.Compiler.Home
-                         Blog.Compiler.Tag
-                         Blog.Compiler.TagIndex
-                         Blog.Render
-                         Blog.Rule.Archive
-                         Blog.Types
-                         Blog.Util
-                         Blog.Util.Sass
-                         Blog.Util.Preprocessor
-                         Blog.Util.Tag
-                         Blog.View
-                         Blog.View.Archive
-                         Blog.View.Entry
-                         Blog.View.Feed
-                         Blog.View.Home
-                         Blog.View.Social
-                         Blog.View.TagIndex
-                         Hakyll.Web.Blaze
-                         Hakyll.Web.Redirect
-    build-depends:       base >= 4 && < 5
-                       , aeson
-                       , binary
-                       , binary-orphans
-                       , blaze-html
-                       , blaze-markup
-                       , containers
-                       , data-default
-                       , feed
-                       , filepath
-                       , hakyll
-                       , hakyll-sass
-                       , hsass
-                       , hjsmin
-                       , mtl
-                       , pandoc
-                       , pandoc-types
-                       , parsec
-                       , text
-                       , time
-                       , transformers
-                       , xml
-                       , yaml
+  exposed-modules:     Blog.App
+                       Blog.Compiler.Archive
+                       Blog.Compiler.Entry
+                       Blog.Compiler.Home
+                       Blog.Compiler.Tag
+                       Blog.Compiler.TagIndex
+                       Blog.Render
+                       Blog.Rule.Archive
+                       Blog.Types
+                       Blog.Util
+                       Blog.Util.Sass
+                       Blog.Util.Preprocessor
+                       Blog.Util.Tag
+                       Blog.View
+                       Blog.View.Archive
+                       Blog.View.Entry
+                       Blog.View.Feed
+                       Blog.View.Home
+                       Blog.View.Social
+                       Blog.View.TagIndex
+                       Hakyll.Web.Blaze
+                       Hakyll.Web.Redirect
+  build-depends:       base >= 4 && < 5
+                     , aeson
+                     , binary
+                     , binary-orphans
+                     , blaze-html
+                     , blaze-markup
+                     , containers
+                     , data-default
+                     , feed
+                     , filepath
+                     , hakyll
+                     , hakyll-sass
+                     , hsass
+                     , hjsmin
+                     , mtl
+                     , pandoc
+                     , pandoc-types
+                     , parsec
+                     , text
+                     , time
+                     , transformers
+                     , xml
+                     , yaml
   ghc-options:         -Wall
 
 executable blog-build
   main-is:             app/Site.hs
-  if impl(ghcjs)
-    buildable:           False
-    build-depends:       base >= 4 && < 5
-  else
-    buildable:           True
-    build-depends:       base >= 4 && < 5
-                       , aeson
-                       , binary
-                       , binary-orphans
-                       , blog
-                       , containers
-                       , data-default
-                       , filepath
-                       , hakyll
-                       , hakyll-sass
-                       , hjsmin
-                       , hsass
-                       , pandoc
-                       , pandoc-types
-                       , text
-                       , time
-                       , transformers
-                       , yaml
+  buildable:           True
+  build-depends:       base >= 4 && < 5
+                     , aeson
+                     , binary
+                     , binary-orphans
+                     , blog
+                     , containers
+                     , data-default
+                     , filepath
+                     , hakyll
+                     , hakyll-sass
+                     , hjsmin
+                     , hsass
+                     , pandoc
+                     , pandoc-types
+                     , text
+                     , time
+                     , transformers
+                     , yaml
   ghc-options:         -Wall
 
 executable blog-migrate-entries
   main-is:             app/MigrateEntries.hs
-  if impl(ghcjs)
-    buildable:           False
-    build-depends:       base >= 4 && < 5
-  else
-    buildable:           True
-    build-depends:       base >= 4 && < 5
-                       , aeson
-                       , blog
-                       , bytestring
-                       , cases
-                       , containers
-                       , data-default
-                       , directory
-                       , filepath
-                       , optparse-applicative
-                       , pandoc
-                       , scientific
-                       , text
-                       , transformers
-                       , vector
-  ghc-options:         -Wall
-
-executable blog-javascript-entry
-  main-is:             app-ghcjs/Entry.hs
-  if impl(ghcjs)
-    buildable:           True
-    build-depends:       base >= 4 && < 5
-                       , ghcjs-dom
-                       , transformers
-  else
-    buildable:           False
-    build-depends:       base >= 4 && < 5
+  buildable:           True
+  build-depends:       base >= 4 && < 5
+                     , aeson
+                     , blog
+                     , bytestring
+                     , cases
+                     , containers
+                     , data-default
+                     , directory
+                     , filepath
+                     , optparse-applicative
+                     , pandoc
+                     , scientific
+                     , text
+                     , transformers
+                     , vector
   ghc-options:         -Wall
 

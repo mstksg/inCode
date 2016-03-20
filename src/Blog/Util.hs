@@ -56,6 +56,3 @@ entryWriterOpts =
         , P.writerVariables = [("geometry","margin=1in")
                               ,("links-as-notes","true")]
         }
-
-ghcjsReq :: String -> T.Text
-ghcjsReq f = T.pack $ "/ghcjs" </> (f <.> "jsexe") </> "all.js"
