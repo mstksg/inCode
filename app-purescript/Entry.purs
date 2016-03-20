@@ -33,7 +33,6 @@ import Data.Char.Unicode
 import Data.Either
 import Data.Foldable
 import Data.Generic
-import Data.Lens.Getter
 import Data.List                        as L
 import Data.Maybe
 import Data.Monoid
