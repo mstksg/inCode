@@ -13,6 +13,11 @@
 /_cache
 /_build
 /_ghcjs
+/_purescript
+/.psci
+/.psci_modules
+/output
+/bower_components
 
 /copy/entries
 /copy/entries-old
