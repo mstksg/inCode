@@ -1,4 +1,5 @@
 import Control.Monad.IO.Class
+import Data.Char
 import Data.Foldable
 import Data.String
 import Development.Shake
@@ -10,9 +11,11 @@ opts = shakeOptions { shakeFiles     = "_build"
                     , shakeThreads   = 0
                     }
 
+psReq :: FilePath -> FilePath
+psReq f = "_purescript" </> (f <.> "js")
 
--- jsexeFiles :: [FilePath]
--- jsexeFiles = [ "runmain.js", "rts.js", "lib.js", "out.js", "all.js" ]
+psExes :: [String]
+psExes = ["entry"]
 
 ghcjsReq :: FilePath -> FilePath
 ghcjsReq f = "_ghcjs" </> (f <.> "jsexe") </> "all.js"
@@ -26,12 +29,23 @@ main = do
       want ["build"]
 
       "build" ~> do
-        need (ghcjsReq <$> ghcjsExes)
+        need (psReq <$> psExes)
         unit $ cmd "stack run -- blog-build" "build"
 
       "rebuild" ~> do
-        need (ghcjsReq <$> ghcjsExes)
+        need ["purescript"]
         unit $ cmd "stack run -- blog-build" "rebuild"
+
+      "purescript" ~>
+        need (psReq <$> psExes)
+      
+      "_purescript/*.js" %> \out -> do
+        let exName = capitalize $ takeBaseName out
+        need ["app-purescript" </> exName <.> "purs"]
+        unit $ cmd "pulp build"
+                   "--main" exName
+                   "--src-path" "app-purescript"
+                   "--to" out
 
       ghcjsReq "blog-javascript-entry" %> \out -> do
         need ["app-ghcjs/Entry.hs"]
@@ -43,5 +57,8 @@ main = do
       "clean" ~> do
         removeFilesAfter "_build" ["//*"]
         removeFilesAfter "_ghcjs" ["//*"]
+        removeFilesAfter "_purescript" ["//*"]
         unit $ cmd "stack run -- blog-build" "clean"
 
+capitalize [] = []
+capitalize (c:cs) = toUpper c : cs

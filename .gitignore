@@ -17,6 +17,11 @@
 /_cache
 /_build
 /_ghcjs
+/_purescript
+/.psci
+/.psci_modules
+/output
+/bower_components
 
 !/bin/blog
 !/.cabal-sandbox/share
