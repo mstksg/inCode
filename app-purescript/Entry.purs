@@ -191,7 +191,7 @@ processCodeBlocks doc = do
       chompWhitespace blkN
       genLinkBox lSpec blkN
       colorPrompt blkN
-  where 
+  where
     childNodes' = liftEff <<< D.childNodes
     pullLinkSpec
         :: D.Node
