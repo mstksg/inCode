@@ -16,6 +16,6 @@ me if you wish!
 Check out my most popular articles: [Inside My World (Ode to Functor and
 Monad)][inside] and ["IO Monad" Considered Harmful][conharm]!
 
-[inside]: http://blog.jle.im/entry/inside-my-world-ode-to-functor-and-monad
-[conharm]: http://blog.jle.im/entry/io-monad-considered-harmful
-[io]: http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity
+[inside]: http://blog.jle.im/entry/inside-my-world-ode-to-functor-and-monad.html
+[conharm]: http://blog.jle.im/entry/io-monad-considered-harmful.html
+[io]: http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity.html
