@@ -6,34 +6,32 @@ import Control.Monad
 import Control.Monad.Eff
 import Control.Monad.Eff.Class
 import Control.Monad.Eff.Console
-import Control.Monad.Eff.Console.Unsafe
 import Control.Monad.Eff.Ref
 import Control.Monad.Maybe.Trans
 import Control.Monad.State.Trans
 import Control.Monad.Writer.Trans
 import Control.Plus
-import DOM                              as D
-import DOM.Event.EventTarget            as D
-import DOM.Event.EventTypes             as D
-import DOM.Event.Types                  as D
-import DOM.HTML                         as D
-import DOM.HTML.Types                   as D
-import DOM.HTML.Window                  as D
-import DOM.Node.DOMTokenList            as DDTL
-import DOM.Node.Document                as D
-import DOM.Node.Element                 as D
-import DOM.Node.Node                    as D
-import DOM.Node.NodeList                as DNL
-import DOM.Node.NodeType                as D
-import DOM.Node.ParentNode              as D
-import DOM.Node.Types                   as D
-import Data.Array                       as A
-import Data.Bitraversable
+import DOM                        as D
+import DOM.Event.EventTarget      as D
+import DOM.Event.EventTypes       as D
+import DOM.Event.Types            as D
+import DOM.HTML                   as D
+import DOM.HTML.Types             as D
+import DOM.HTML.Window            as D
+import DOM.Node.DOMTokenList      as DDTL
+import DOM.Node.Document          as D
+import DOM.Node.Element           as D
+import DOM.Node.Node              as D
+import DOM.Node.NodeList          as DNL
+import DOM.Node.NodeType          as D
+import DOM.Node.ParentNode        as D
+import DOM.Node.Types             as D
+import Data.Array                 as A
 import Data.Char.Unicode
 import Data.Either
 import Data.Foldable
 import Data.Generic
-import Data.List                        as L
+import Data.List                  as L
 import Data.Maybe
 import Data.Monoid
 import Data.Nullable
@@ -41,7 +39,7 @@ import Data.String
 import Data.Traversable
 import Data.Tuple
 import Prelude
-import Unsafe.Coerce                    as U
+import Unsafe.Coerce              as U
 
 main
     :: forall e.
@@ -224,7 +222,6 @@ processCodeBlocks doc = do
       _   <- maybe empty return $ s.source <|> s.interactive
       pre <- nMaybeT $ D.parentNode blk
       liftEff $ do
-        logAny pre
         linkBox <- D.createElement "div" doc
         let linkBoxN = D.elementToNode linkBox
         D.setClassName "code-link-box" linkBox
@@ -249,7 +246,6 @@ processCodeBlocks doc = do
 
         let preET' = D.elementToEventTarget <$> nodeToElement pre
         for_ preET' \preET -> do
-          logAny preET
           onE D.mouseenter preET <<< D.eventListener $ \_ ->
             DDTL.remove ["hide"] cList
           onE D.mouseleave preET <<< D.eventListener $ \_ ->
