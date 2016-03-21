@@ -183,7 +183,6 @@ processCodeBlocks doc = do
               $ D.documentToParentNode doc
     flip traverseNodeList_ blks \blk -> do
       let blkN = D.elementToNode blk
-      lines <- D.childNodes blkN
       lSpec <- execWriterT
            <<< ((<=< childNodes') <<< traverseNodeList_) (pullLinkSpec blkN)
              $ blkN
@@ -220,11 +219,12 @@ processCodeBlocks doc = do
             when isWhitespace do
               D.removeChild fc blk
               go
-    genLinkBox :: forall e'. LinkSpec -> D.Node -> Eff (dom :: D.DOM | e') Unit
+    genLinkBox :: LinkSpec -> D.Node -> Eff (dom :: D.DOM, console :: CONSOLE | e) Unit
     genLinkBox (LS s) blk = void <<< runMaybeT $ do
       _   <- maybe empty return $ s.source <|> s.interactive
       pre <- nMaybeT $ D.parentNode blk
       liftEff $ do
+        logAny pre
         linkBox <- D.createElement "div" doc
         let linkBoxN = D.elementToNode linkBox
         D.setClassName "code-link-box" linkBox
@@ -249,6 +249,7 @@ processCodeBlocks doc = do
 
         let preET' = D.elementToEventTarget <$> nodeToElement pre
         for_ preET' \preET -> do
+          logAny preET
           onE D.mouseenter preET <<< D.eventListener $ \_ ->
             DDTL.remove ["hide"] cList
           onE D.mouseleave preET <<< D.eventListener $ \_ ->
@@ -304,7 +305,7 @@ onE :: forall e.
     -> D.EventTarget
     -> D.EventListener (dom :: D.DOM | e)
     -> Eff (dom :: D.DOM | e) Unit
-onE etype targ h = D.addEventListener etype h true targ
+onE etype targ h = D.addEventListener etype h false targ
 
 nMaybeT
     :: forall f a. Functor f
