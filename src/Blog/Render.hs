@@ -63,6 +63,8 @@ renderLayout pd@PD{..} body =
               -- , "var addthis_config = {'data_track_addressbar':true};"
               ]
 
+        googleAnalyticsJs
+
         forM_ allJs $ \u ->
           H.script ! A.type_ "text/javascript" ! A.src (H.textValue u) $
             mempty
@@ -72,7 +74,6 @@ renderLayout pd@PD{..} body =
 
       H.body $ do
 
-          googleAnalyticsJs
           H.div ! A.id "fb-root"
             $ facebookSdkJs
 
@@ -140,13 +141,10 @@ googleAnalyticsJs =
         , "(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),"
         , "m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)"
         , "})(window,document,'script','//www.google-analytics.com/analytics.js','ga');"
-        , T.concat
-          [ "ga('create', '"
-          , fst $ devAnalytics (confDeveloperAPIs ?config)
-          , "', '"
-          , snd $ devAnalytics (confDeveloperAPIs ?config)
-          , "');" ]
+        , "ga('create', '" <> aId <> "', '" <> aDomain <> "');"
         , "ga('send', 'pageview');" ]
+  where
+    (aId, aDomain) = devAnalytics (confDeveloperAPIs ?config)
 
 facebookSdkJs :: (?config :: Config) => H.Html
 facebookSdkJs =
@@ -154,15 +152,14 @@ facebookSdkJs =
     H.toHtml $
       T.unlines
         [ "(function(d, s, id) {"
-        , "  var js, fjs = d.getElementsByTagName(s)[0];"
-        , "  if (d.getElementById(id)) return;"
-        , "  js = d.createElement(s); js.id = id;"
-        , T.concat
-          [ "  js.src = \"//connect.facebook.net/en_US/all.js#xfbml=1&appId="
-          , devFacebook (confDeveloperAPIs ?config)
-          , "\";" ]
-        , "  fjs.parentNode.insertBefore(js, fjs);"
+        , " var js, fjs = d.getElementsByTagName(s)[0];"
+        , " if (d.getElementById(id)) return;"
+        , " js = d.createElement(s); js.id = id;"
+        , " js.src = \"//connect.facebook.net/en_US/all.js#xfbml=1&appId=" <> appId <> "\";"
+        , " fjs.parentNode.insertBefore(js, fjs);"
         , "}(document, 'script', 'facebook-jssdk'));"]
+  where
+    appId = devFacebook (confDeveloperAPIs ?config)
 
 viewOpenGraphMetas :: (?config :: Config) => PageData -> H.Html
 viewOpenGraphMetas PD{..} = do

@@ -22,6 +22,7 @@ library
                        Blog.Compiler.Home
                        Blog.Compiler.Tag
                        Blog.Compiler.TagIndex
+                       Blog.Compiler.Redirect
                        Blog.Render
                        Blog.Rule.Archive
                        Blog.Types
@@ -37,7 +38,6 @@ library
                        Blog.View.Social
                        Blog.View.TagIndex
                        Hakyll.Web.Blaze
-                       Hakyll.Web.Redirect
   build-depends:       base >= 4 && < 5
                      , aeson
                      , binary

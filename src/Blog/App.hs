@@ -8,9 +8,11 @@
 
 module Blog.App where
 
+-- import           Hakyll.Web.Redirect
 import           Blog.Compiler.Archive
 import           Blog.Compiler.Entry
 import           Blog.Compiler.Home
+import           Blog.Compiler.Redirect
 import           Blog.Compiler.Tag
 import           Blog.Compiler.TagIndex
 import           Blog.Rule.Archive
@@ -30,7 +32,6 @@ import           Data.Monoid
 import           Data.Ord
 import           Data.Time.LocalTime
 import           Hakyll
-import           Hakyll.Web.Redirect
 import           Hakyll.Web.Sass
 import           System.FilePath
 import           Text.Jasmine
