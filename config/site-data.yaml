@@ -25,7 +25,7 @@ host:
 developer-apis:
   analytics:
     id: UA-443711-8
-    host: jle.im
+    domain: jle.im
   disqus: incode
   facebook: "641852699171929"
   add-this: ra-5234d67a6b68dcd4

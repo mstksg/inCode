@@ -102,7 +102,7 @@ instance FromJSON DeveloperAPIs where
   parseJSON (Object v) = do
     anObj         <- v .: "analytics"
     devAnalytics  <- liftA2 (,) (anObj .: "id")
-                                (anObj .: "host")
+                                (anObj .: "domain")
     devDisqus     <- v .: "disqus"
     devFacebook   <- v .: "facebook"
     devAddThis    <- v .: "add-this"
