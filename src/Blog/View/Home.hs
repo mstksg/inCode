@@ -39,16 +39,16 @@ viewHome HI{..} =
       H.header ! A.class_ "tile unit span-grid" $
         H.section ! A.class_ "home-banner" $ do
           if hiPageNum == 1
-            then
+            then do
               copySection (confTitle ?config) (copyToHtml hiBannerCopy)
+
+              H.aside ! A.class_ "social-follows" $ do
+                "Follow or support me on: " :: H.Html
+                viewSocialFollow
             else
               H.h1 ! A.class_ "home-banner-history" $
                 H.a ! A.href (H.textValue (renderUrl "/")) $
                   H.toHtml (confTitle ?config)
-
-          H.aside ! A.class_ "social-follows" $ do
-            "Follow or support me on: " :: H.Html
-            viewSocialFollow
 
       H.div ! A.class_ "unit three-of-four" $
         entryList hiEntries hiPrevPage hiNextPage hiPageNum
