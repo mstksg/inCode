@@ -32,7 +32,7 @@ homeCompiler allPages allTags i p = do
                 , hiPrevPage   =
                     if | i <= 1    -> Nothing
                        | i == 2    -> Just "/"
-                       | otherwise -> Just $ "/home/" ++ show (i - 1)
+                       | otherwise -> Just $ "/home/" ++ show (i - 1) ++ ".html"
                 , hiNextPage   =
                     if | i >= maximum allPages -> Nothing
                        | otherwise             -> Just $ "/home/" ++ show (i + 1)
