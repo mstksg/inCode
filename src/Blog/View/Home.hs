@@ -47,7 +47,7 @@ viewHome HI{..} =
                   H.toHtml (confTitle ?config)
 
           H.aside ! A.class_ "social-follows" $ do
-            "Follow me on: " :: H.Html
+            "Follow or support me on: " :: H.Html
             viewSocialFollow
 
       H.div ! A.class_ "unit three-of-four" $

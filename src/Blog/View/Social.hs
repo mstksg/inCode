@@ -87,6 +87,18 @@ viewSocialFollow =
               ! A.title "Fork me on Github!"
               ! A.href (H.textValue githubUrl) $
               "Github"
+          H.li $
+            H.a
+              ! A.class_ "social-follow-keybase"
+              ! A.title "Track me on Keybase!"
+              ! A.href (H.textValue keybaseUrl) $
+              "Keybase"
+          H.li $
+            H.a
+              ! A.class_ "social-follow-bitcoin"
+              ! A.title "Donate via bitcoin!"
+              ! A.href (H.textValue coinbaseUrl) $
+              "Bitcoin"
       H.li $
         H.ul ! A.class_ "social-follows-list-site" $ do
           H.li $
@@ -115,6 +127,8 @@ viewSocialFollow =
     gPlusUrl = socialUrl "https://plus.google.com/" authorGPlus
     linkedInUrl = socialUrl "https://linkedin.com/in/" authorGithub
     githubUrl = socialUrl "https://github.com/" authorLinkedIn
+    keybaseUrl = socialUrl "https://keybase.io/" authorKeybase
+    coinbaseUrl = socialUrl "https://coinbase.com/" authorCoinbase
     emailUrl = T.append "https://feedburner.google.com/fb/a/mailverify?loc=en_US&uri="
              $ devFeedburner confDeveloperAPIs
     rssUrl = confFeed

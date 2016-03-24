@@ -70,6 +70,8 @@ data AuthorInfo = AuthorInfo
     , authorGPlus    :: T.Text
     , authorGithub   :: T.Text
     , authorLinkedIn :: T.Text
+    , authorKeybase  :: T.Text
+    , authorCoinbase :: T.Text
     }
   deriving (Show, Generic)
 
