@@ -202,6 +202,8 @@ $photo: "/img/photo_square.jpg";
   @include home-links-icons("Stack\ Overflow",$stackoverflow16);
   @include home-links-icons("Github",$github16);
   @include home-links-icons("Resume",$resume16);
+  @include home-links-icons("Keybase",$keybase16);
+  @include home-links-icons("Bitcoin",$bitcoin16);
   ul {
     ul {
       margin-left: 0.25rem;

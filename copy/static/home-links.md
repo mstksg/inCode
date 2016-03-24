@@ -4,6 +4,8 @@
     * [Resumé](http://cv.jle0.com "Resume")
     * [Stack Overflow](http://stackoverflow.com/users/292731/justin-l "Stack Overflow")
     * [LinkedIn](https://linkedin.com/in/lejustin "LinkedIn")
+    * [Keybase (PGP)](https://keybase.io/mstksg "Keybase")
+    * [Coinbase (BTC)](https://coinbase.com/mstksg "Bitcoin")
 
 - ### Social
     * [Google+](https://plus.google.com/107705320197444500140 "Google+")
