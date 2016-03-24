@@ -30,12 +30,17 @@ homeCompiler allPages allTags i p = do
     bannerCopy <- loadBody "copy/static/home-banner.md"
     let hi = HI { hiPageNum    = i
                 , hiPrevPage   =
-                    if | i <= 1    -> Nothing
-                       | i == 2    -> Just "/"
-                       | otherwise -> Just $ "/home/" ++ show (i - 1) ++ ".html"
+                    if | i <= 1 
+                           -> Nothing
+                       | i == 2
+                           -> Just "/"
+                       | otherwise
+                           -> Just $ "/home/" ++ show (i - 1) ++ ".html"
                 , hiNextPage   =
-                    if | i >= maximum allPages -> Nothing
-                       | otherwise             -> Just $ "/home/" ++ show (i + 1)
+                    if | i >= maximum allPages
+                           -> Nothing
+                       | otherwise
+                           -> Just $ "/home/" ++ show (i + 1) ++ ".html"
                 , hiEntries    = homeEntries
                 , hiAllTags    = allTs
                 , hiLinksCopy  = linksCopy
