@@ -113,7 +113,7 @@ build/get working/integrate in the way that GHCJS spoiled me to be accustomed
 to.  In the future, I might return ... but at this point in time, Fay seems as
 awkward in the ecosystem to me as haste did when I first started using it.
 GHCJS lets you use the full power of Haskell (including all of *base*'s
-concurrency mechanisms and almost library on hackage), at the expense of
+concurrency mechanisms and almost every library on hackage), at the expense of
 creating large and unreadable javascript blobs.
 
 [fay]: https://github.com/faylang/fay/wiki
@@ -148,6 +148,9 @@ decisions "done right", that we'd all change in Haskell if we could.  And
 extensible records being built into the language is quite refreshing; not
 having to deal with fancy GADT's in Haskell was a nice step back from the
 craziness that is type-level programming in Haskell.
+
+I often felt like writing in Purescript felt like writing in *the language that
+Haskell should have been*.
 
 But one of my favorite aspects about purescript ended up being the sheer beauty
 and conciseness of the generated javascript.  Look at how[^pshighlight]:
