@@ -3,7 +3,7 @@ title: Blog Rewrite with Hakyll and Purescript
 categories: Meta
 tags: haskell, hakyll, purescript
 create-time: 2016/03/13 18:37:38
-date: never
+date: 2016/03/25 08:59:18
 identifier: hakyll-rewrite
 slug: blog-rewrite-with-hakyll-and-purescript
 ---
