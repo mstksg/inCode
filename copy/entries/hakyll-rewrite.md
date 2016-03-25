@@ -1,11 +1,11 @@
 ---
-title: Rewriting my blog using Hakyll, GHCJS
+title: Rewriting my blog with Hakyll and Purescript
 categories: Meta
-tags: ghcjs, haskell, hakyll
+tags: haskell, hakyll, purescript
 create-time: 2016/03/13 18:37:38
 date: never
 identifier: hakyll-rewrite
-slug: rewriting-my-blog-using-hakyll-ghcjs
+slug: rewriting-my-blog-with-hakyll-and-purescript
 ---
 
 It's been almost a year since my last post!  Things have been a bit hectic with
@@ -31,11 +31,11 @@ in 2016, things would definitely be a bit different.  But, it's been long
 enough and the slight inconveniences have been building up enough that I
 thought it'd be time to sit down and finally migrate my "first large-ish
 Haskell project" and bring it into modern times, by using [hakyll][] and
-[ghcjs][].  Here are my thoughts and observations on how the migration went,
+[purescript][].  Here are my thoughts and observations on how the migration went,
 with insight on Haskell migrations in general!
 
 [hakyll]: https://jaspervdj.be/hakyll/
-[ghcjs]: https://github.com/ghcjs/ghcjs
+[purescript]: http://www.purescript.org/
 
 Hakyll
 ------
@@ -67,10 +67,155 @@ friction, at all) to generate the complex, intricate, and arbitrary site map
 that I had designed on my first run.  I definitely recommend it for any static
 site generating needs, blogs or not.
 
-An unforeseen consequence of the static-site-hosted-by-github-pages approach,
+An unexpected consequence of the static-site-hosted-by-github-pages approach,
 however, is that I don't have any control over MIME types anymore (or 301
 redirects), so I had to do some migrations to move pages over to ".html" and
 set up redirects and stuff, but those were made super simple with Hakyll.
 
-## Migrating Haskell
+Refactoring Haskell Code
+------------------------
+
+One thing that did not disappoint me was how *easy* and *painless* it is to
+refactor Haskell code.  This is something I always trumpet/brag about Haskell,
+and getting the opportunity to actually refactor a major-ish codebase.
+
+And, yes, I was not disappointed!  For the most part, I already had my html
+templates, CSS, static javascript, etc. in place.  All of the mechanisms were
+extremely modular and very easy to port.  The type system made sure everything
+fit together well at the boundaries.  They also instantly told me what did
+what, and ensured that sweeping changes in my code were safe.  The "if it
+compiles, it works" mantra served me greatly here.  I can't even begin to
+imagine migrating one of my old ruby projects in the same way.  With this, I
+was confident that my compiled code was correct and did what I wanted.  The
+types were a guide and also a avenue of insight into my 3-years-removed past
+self.
+
+Thanks to the types, I was able to pick up something I hadn't touched in 3
+years, figure out how all things fit together, and completely gut everything
+apart and use them for a new build system ... with compile-time assurances that
+I didn't do anything incorrectly!
+
+It's hard for me to really explain how amazing the feeling of refactoring
+Haskell code is.  I used to dread refactors and migrations, but now I look
+forward to them, and find any chance possible to do one!  :D  It's something
+that's difficult to convey the joy of until you actually try it, so I recommend
+trying it some day :)
+
+Purescript
+----------
+
+### on Fay
+
+I figured I'd move away from [fay][], because it was getting a bit clunky to
+build/get working/integrate in the way that GHCJS spoiled me to be accustomed
+to.  In the future, I might return ... but at this point in time, Fay seems as
+awkward in the ecosystem to me as haste did when I first started using it.
+GHCJS lets you use the full power of Haskell (including all of *base*'s
+concurrency mechanisms), at the expense of large and unreadable javascript
+blobs.  Fay seems like just a weaker GHCJS to me...it doesn't have all of the
+awesome GHC things that make modern Haskell what it is (not just the lack of
+base's identical API, but also ... no typeclasses?  Lens?), so almost all of my
+normal Haskell programming flow is thrown out the window.  It's a subset of
+Haskell, but lacks most of the tools people use to write *actual* Haskell like
+they'd write everyday.  The generated javascript blobs are still decently
+opaque.
+
+[fay]: https://github.com/faylang/fay/wiki
+
+So, if you're going to be spending your time writing something that is like
+Haskell, but forces you to write it in a way that is nothing like any actual
+Haskell code you'd write... why even bother keeping up with Haskell semantics
+and Haskell compatibility?  Why not break out and try something new and fresh,
+unbound by Haskell and compatibility issues?
+
+### on Purescript
+
+With that philosophy, I looked at *[purescript][]*, which is a language that's
+inspired by Haskell, with a lot of Haskell features we use every day, and
+throws in things we all wish we had in Haskell, like extensible records!
+
+(Fair note --- I did rewrite all of my fay in GHCJS at first.  This resulted in
+a javascript blob that was *1.4 MB* in size, for a bunch of small DOM
+manipulation scripts.  Definitely not practical, unfortunately!)
+
+I liked that purescript was able to throw away a lot of warts in the Haskell
+ecosystem, with a cleaner typeclass hierarchy and just a lot of design
+decisions "done right", that we'd all change in Haskell if we could.  And
+extensible records being built into the language is quite refreshing...not
+having to deal with fancy GADT's in Haskell was a nice step back from the
+craziness that is type-level programming in Haskell.
+
+But one of my favorite aspects about purescript ended up being the sheer beauty
+and conciseness of the generated javascript.  Look at how:
+
+~~~purescript
+appendTopLinks doc = do
+    hs <- querySelectorAll headers (documentToParentNode doc)
+    flip traverseNodeList_ hs \h -> do
+      topLink <- createElement "a" doc
+      let topLinkNode = elementToNode topLink
+      setAttribute "href" "#title" topLink
+      setClassName "top-link" topLink
+      setTextContent "top" topLinkNode
+      appendChild topLinkNode (elementToNode h)
+      return unit
+~~~
+
+gets translated to:
+
+~~~javascript
+function __do() {
+    var v = querySelectorAll(headers)(documentToParentNode(doc))();
+    return flip(traverseNodeList_(monadEffEff))(v)(function (h) {
+        return function __do() {
+            var v1 = createElement("a")(doc)();
+            var topLinkNode = elementToNode(v1);
+            setAttribute("href")("#title")(v1)();
+            setClassName("top-link")(v1)();
+            setTextContent("top")(topLinkNode)();
+            appendChild(topLinkNode)(elementToNode(h))();
+            return unit;
+        };
+    })();
+};
+~~~
+
+And it's not just the IO-based imperative code that looks nice, too.
+Everything gets compiled to clean, readable javascript that you'd be happy to
+import in your node or normal js project.
+
+The total exported javascript blob is only *88 kB*, even smaller than fay's
+*100 kB* output (but not significantly so), and much smaller than GHCJS's *100
+MB* output (which has to also contain the entire Haskell runtime, implementing
+haskell semantics, as well).
+
+Interestingly enough, the *original* raw javacript I wrote in 2013 came out to
+about the same filesize, about *80 kB*.  (Well, it is about *2 kB* of
+javascript, but it utilized all of *jquery*, which implements a lot of the
+functionality.)  Getting comparable filesizes to jquery scripts is something
+that's pretty impressive to me!
+
+I'd recommend purescript to anyone who has to write simple javascript *scripts*
+and wants to do it in a sane, beautiful language.  I still use *ghcjs* for
+actual *applications*, for now, because I still love Haskell and its ecosystem,
+along with the free data type sharing and code re-usage.  But for small scripts
+like these, purescript might just be the ideal and perfect solution!
+
+Conclusions
+-----------
+
+My main takeways ---
+
+1.  I will never be able to never work on a Haskell project/application without
+    stack again (how did we even survive before stack?)
+2.  Hakyll is a fun little library that is a great specialized *make* for
+    building static websites
+3.  Refactoring Haskell is a fun experience; would recommend to anyone to try
+    it out at least once
+4.  purescript is an amazing and beautiful technology that I had the pleasure of
+    learning during this process
+
+This reflection has been to help me organize my thoughts, but I hope they can
+be useful for those of you looking for new technologies to learn and ways to
+implement/approach your stack or next programming project, as well!
 
