@@ -1,16 +1,16 @@
 ---
-title: Rewriting my blog with Hakyll and Purescript
+title: Blog Rewrite with Hakyll and Purescript
 categories: Meta
 tags: haskell, hakyll, purescript
 create-time: 2016/03/13 18:37:38
 date: never
 identifier: hakyll-rewrite
-slug: rewriting-my-blog-with-hakyll-and-purescript
+slug: blog-rewrite-with-hakyll-and-purescript
 ---
 
 It's been almost a year since my last post!  Things have been a bit hectic with
-research and related things, and with the unrelenting publishing cycle, any
-time I can get to write or explore has been a great escape.
+research and related things, and with the unrelenting academia publishing
+cycle, any time I can get to write or explore has been a nice escape.
 
 Admittedly, I've also run into some friction updating my blog because it was a
 compiled web server with some delicate dependencies and required environment
@@ -27,12 +27,12 @@ machine just to compile and push changes!
 [heroku-post]: http://blog.jle.im/entry/deploying-medium-to-large-haskell-apps-to-heroku.html
 
 My blog was one of my first Haskell projects ever, and if I had started it now,
-in 2016, things would definitely be a bit different.  But, it's been long
-enough and the slight inconveniences have been building up enough that I
+in 2016, things would definitely be a bit different.  By this point, it's been
+long enough and the slight inconveniences have been building up enough that I
 thought it'd be time to sit down and finally migrate my "first large-ish
 Haskell project" and bring it into modern times, by using [hakyll][] and
-[purescript][].  Here are my thoughts and observations on how the migration went,
-with insight on Haskell migrations in general!
+[purescript][].  Here are my thoughts and observations on how the migration
+went, with insight on Haskell migrations in general!
 
 [hakyll]: https://jaspervdj.be/hakyll/
 [purescript]: http://www.purescript.org/
@@ -43,11 +43,12 @@ Hakyll
 To be fair, there was little actual practical reasons why my site wasn't static
 to begin with.  The main reason, feature-wise, was for me to be able to
 schedule blog posts and updates without requiring me to actually re-render and
-re-push every time I wanted to make a post.  But, the real underlying reason
-was that it was my first Haskell project, and I wanted to take the opportunity
-to be able to learn how to interface with databases in Haskell.
+re-push every time I wanted to make a post.  The real underlying reason,
+however, was that this blog was my first major Haskell project, and I wanted to
+take the opportunity to be able to learn how to interface with databases in
+Haskell.
 
-Now that that learning process is behind me, I felt free to throw it all out
+Now that that learning impetus is behind me, I felt free to throw it all out
 the window and rewrite things to be a completely 100% static site!
 
 [Hakyll][hakyll] was great; it's basically like a very specialized *make*-like
@@ -64,13 +65,14 @@ changed.  Neat!
 Before, I had gotten the impression that Hakyll was mostly for generating
 "simple", pre-built blog layouts, but I was able to use Hakyll (without much
 friction, at all) to generate the complex, intricate, and arbitrary site map
-that I had designed on my first run.  I definitely recommend it for any static
-site generating needs, blogs or not.
+that I had designed for my scotty-based blog.  I definitely recommend it for
+any static site generating needs, blogs or not.
 
 An unexpected consequence of the static-site-hosted-by-github-pages approach,
 however, is that I don't have any control over MIME types anymore (or 301
 redirects), so I had to do some migrations to move pages over to ".html" and
-set up redirects and stuff, but those were made super simple with Hakyll.
+set up redirects and stuff (and get redirects to work with google analytics),
+but those were made super simple with Hakyll.
 
 Refactoring Haskell Code
 ------------------------
@@ -97,40 +99,42 @@ I didn't do anything incorrectly!
 
 It's hard for me to really explain how amazing the feeling of refactoring
 Haskell code is.  I used to dread refactors and migrations, but now I look
-forward to them, and find any chance possible to do one!  :D  It's something
-that's difficult to convey the joy of until you actually try it, so I recommend
-trying it some day :)
+forward to them and find any opportunity to do one!  :D  It's something that's
+difficult to convey the sublime joy of until you actually try it, so I
+recommend trying it some day :)
 
 Purescript
 ----------
 
 ### on Fay
 
-I figured I'd move away from [fay][], because it was getting a bit clunky to
+I figured I'd move away from [fay][], because it was slightly clunky to
 build/get working/integrate in the way that GHCJS spoiled me to be accustomed
 to.  In the future, I might return ... but at this point in time, Fay seems as
 awkward in the ecosystem to me as haste did when I first started using it.
 GHCJS lets you use the full power of Haskell (including all of *base*'s
-concurrency mechanisms), at the expense of large and unreadable javascript
-blobs.  Fay seems like just a weaker GHCJS to me...it doesn't have all of the
-awesome GHC things that make modern Haskell what it is (not just the lack of
-base's identical API, but also ... no typeclasses?  Lens?), so almost all of my
-normal Haskell programming flow is thrown out the window.  It's a subset of
-Haskell, but lacks most of the tools people use to write *actual* Haskell like
-they'd write everyday.  The generated javascript blobs are still decently
-opaque.
+concurrency mechanisms and almost library on hackage), at the expense of
+creating large and unreadable javascript blobs.
 
 [fay]: https://github.com/faylang/fay/wiki
 
+Fay seemed like just a *weaker* GHCJS to me, but in all the ways that mattered.
+It doesn't have all of the awesome GHC things that make modern Haskell what it
+is (not just the lack of base's identical API, but also ... no typeclasses?
+Lens abstactions? Hackage libraries?), so almost all of my normal Haskell
+programming flow is thrown out the window.  It's a subset of Haskell, but lacks
+most of the tools people use to write *actual* Haskell like they'd write
+everyday.  The generated javascript blobs are still decently opaque.
+
 So, if you're going to be spending your time writing something that is like
 Haskell, but forces you to write it in a way that is nothing like any actual
-Haskell code you'd write... why even bother keeping up with Haskell semantics
-and Haskell compatibility?  Why not break out and try something new and fresh,
-unbound by Haskell and compatibility issues?
+Haskell code you'd normally write... why even bother keeping up with Haskell
+semantics and Haskell compatibility?  Why not break out and try something new
+and fresh, unbound by Haskell and compatibility issues?
 
 ### on Purescript
 
-With that philosophy, I looked at *[purescript][]*, which is a language that's
+With that mindset, I looked at *[purescript][]*, which is a language that's
 inspired by Haskell, with a lot of Haskell features we use every day, and
 throws in things we all wish we had in Haskell, like extensible records!
 
@@ -141,12 +145,12 @@ manipulation scripts.  Definitely not practical, unfortunately!)
 I liked that purescript was able to throw away a lot of warts in the Haskell
 ecosystem, with a cleaner typeclass hierarchy and just a lot of design
 decisions "done right", that we'd all change in Haskell if we could.  And
-extensible records being built into the language is quite refreshing...not
+extensible records being built into the language is quite refreshing; not
 having to deal with fancy GADT's in Haskell was a nice step back from the
 craziness that is type-level programming in Haskell.
 
 But one of my favorite aspects about purescript ended up being the sheer beauty
-and conciseness of the generated javascript.  Look at how:
+and conciseness of the generated javascript.  Look at how[^pshighlight]:
 
 ~~~purescript
 appendTopLinks doc = do
@@ -161,22 +165,29 @@ appendTopLinks doc = do
       return unit
 ~~~
 
+[^pshighlight]: Unfortunately, *[highlighting-kate][]* doesn't yet support purescript syntax
+highlighting?
+
+[highlighting-kate]: https://github.com/jgm/highlighting-kate
+
 gets translated to:
 
 ~~~javascript
-function __do() {
-    var v = querySelectorAll(headers)(documentToParentNode(doc))();
-    return flip(traverseNodeList_(monadEffEff))(v)(function (h) {
-        return function __do() {
-            var v1 = createElement("a")(doc)();
-            var topLinkNode = elementToNode(v1);
-            setAttribute("href")("#title")(v1)();
-            setClassName("top-link")(v1)();
-            setTextContent("top")(topLinkNode)();
-            appendChild(topLinkNode)(elementToNode(h))();
-            return unit;
-        };
-    })();
+var appendTopLinks = function (doc) {
+    return function __do() {
+        var v = querySelectorAll(headers)(documentToParentNode(doc))();
+        return flip(traverseNodeList_(monadEffEff))(v)(function (h) {
+            return function __do() {
+                var v1 = createElement("a")(doc)();
+                var topLinkNode = elementToNode(v1);
+                setAttribute("href")("#title")(v1)();
+                setClassName("top-link")(v1)();
+                setTextContent("top")(topLinkNode)();
+                appendChild(topLinkNode)(elementToNode(h))();
+                return unit;
+            };
+        })();
+    };
 };
 ~~~
 
@@ -190,9 +201,9 @@ MB* output (which has to also contain the entire Haskell runtime, implementing
 haskell semantics, as well).
 
 Interestingly enough, the *original* raw javacript I wrote in 2013 came out to
-about the same filesize, about *80 kB*.  (Well, it is about *2 kB* of
-javascript, but it utilized all of *jquery*, which implements a lot of the
-functionality.)  Getting comparable filesizes to jquery scripts is something
+about the same size, about *80 kB*.  (Well, it is about *2 kB* of
+actual script, but it utilized all of *jquery*, which implements a lot of the
+functionality.)  Getting comparable filesizes to jquery bundles is something
 that's pretty impressive to me!
 
 I'd recommend purescript to anyone who has to write simple javascript *scripts*
@@ -207,15 +218,16 @@ Conclusions
 My main takeways ---
 
 1.  I will never be able to never work on a Haskell project/application without
-    stack again (how did we even survive before stack?)
+    *stack* again (how did we even survive before *stack*?)
 2.  Hakyll is a fun little library that is a great specialized *make* for
     building static websites
-3.  Refactoring Haskell is a fun experience; would recommend to anyone to try
-    it out at least once
-4.  purescript is an amazing and beautiful technology that I had the pleasure of
-    learning during this process
+3.  Refactoring Haskell is an amazing experience; I would recommend it to
+    anyone to try it out at least once in their lives
+4.  *Purescript* is an amazing and beautiful technology that I had the pleasure of
+    learning during this process, and generates elegant, readable javascript
+    scripts.
 
-This reflection has been to help me organize my thoughts, but I hope they can
-be useful for those of you looking for new technologies to learn and ways to
-implement/approach your stack or next programming project, as well!
+This reflection post has been to help me organize my thoughts, but I hope they
+can be useful for those of you looking for new technologies to learn and ways
+to implement/approach your stack or next programming project, as well!
 
