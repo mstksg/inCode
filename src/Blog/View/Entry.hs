@@ -78,7 +78,7 @@ viewEntry EI{..} = do
 
               H.a
                 ! A.class_ "source-link"
-                ! A.href (fromString (renderUrl' (entryCanonical eiEntry <.> "md")))
+                ! A.href (fromString (renderUrl' (entryCanonical eiEntry -<.> "md")))
                 $ "Markdown"
 
               H.span ! A.class_ "info-separator" $
@@ -87,7 +87,7 @@ viewEntry EI{..} = do
 
               H.a
                 ! A.class_ "source-link"
-                ! A.href (fromString (renderUrl' (entryCanonical eiEntry <.> "tex")))
+                ! A.href (fromString (renderUrl' (entryCanonical eiEntry -<.> "tex")))
                 $ "LaTeX"
 
               H.span ! A.class_ "info-separator" $
