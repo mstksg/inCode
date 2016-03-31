@@ -23,14 +23,14 @@ viewSocialShare =
         --     $ mempty
         H.div ! A.class_ "custom-social-button" $
           H.a
-            ! A.href "http://www.reddit.com/submit"
+            ! A.href "https://www.reddit.com/submit"
             ! A.onclick (
               H.textValue $
                 T.concat
-                  [ "window.location = 'http://www.reddit.com/submit?url='"
+                  [ "window.location = 'https://www.reddit.com/submit?url='"
                   , "+ encodeURIComponent(window.location); return false"])
             $ H.img
-              ! A.src "http://www.reddit.com/static/spreddit7.gif"
+              ! A.src "https://www.reddit.com/static/spreddit7.gif"
               ! A.alt "submit to reddit"
 
 addThisLine :: H.Html
