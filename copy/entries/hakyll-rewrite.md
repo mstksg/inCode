@@ -212,7 +212,7 @@ var appendTopLinks = function (doc) {
 
 And it's not just the IO-based imperative code that looks nice, too.
 Everything gets compiled to clean, readable javascript that you'd be happy to
-import in your node or normal js project.
+import in your node or normal javascript project.
 
 The total exported javascript blob is only *88 kB*, even smaller than fay's
 *100 kB* output (but not significantly so), and much smaller than GHCJS's *1.4
