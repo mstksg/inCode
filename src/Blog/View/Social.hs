@@ -17,10 +17,10 @@ viewSocialShare =
     H.aside ! A.class_ "social-buttons" $ do
       addThisLine
       H.div ! A.class_ "custom-social-buttons" $ do
-        H.div ! A.class_ "custom-social-button" $
-          H.customParent (H.textTag "su:badge")
-            ! H.customAttribute "layout" "1"
-            $ mempty
+        -- H.div ! A.class_ "custom-social-button" $
+        --   H.customParent (H.textTag "su:badge")
+        --     ! H.customAttribute "layout" "1"
+        --     $ mempty
         H.div ! A.class_ "custom-social-button" $
           H.a
             ! A.href "http://www.reddit.com/submit"
