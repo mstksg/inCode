@@ -10,7 +10,6 @@ import           Text.Blaze.Html5            ((!))
 import qualified Data.Text                   as T
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
-import qualified Text.Blaze.Internal         as H
 
 viewSocialShare :: H.Html
 viewSocialShare =
@@ -125,8 +124,8 @@ viewSocialFollow =
     facebookUrl = socialUrl "https://facebook.com/" authorFacebook
     twitterUrl = socialUrl "https://twitter.com/intent/user?user_id=" authorTwitter
     gPlusUrl = socialUrl "https://plus.google.com/" authorGPlus
-    linkedInUrl = socialUrl "https://linkedin.com/in/" authorGithub
-    githubUrl = socialUrl "https://github.com/" authorLinkedIn
+    linkedInUrl = socialUrl "https://linkedin.com/in/" authorLinkedIn
+    githubUrl = socialUrl "https://github.com/" authorGithub
     keybaseUrl = socialUrl "https://keybase.io/" authorKeybase
     coinbaseUrl = socialUrl "https://coinbase.com/" authorCoinbase
     emailUrl = T.append "https://feedburner.google.com/fb/a/mailverify?loc=en_US&uri="
