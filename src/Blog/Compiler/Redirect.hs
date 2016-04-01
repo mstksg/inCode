@@ -5,7 +5,6 @@ module Blog.Compiler.Redirect where
 
 import Blog.Types
 import Hakyll
-import Data.Default
 import Data.Monoid
 import qualified Data.Text as T
 

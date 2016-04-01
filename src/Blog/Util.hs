@@ -6,7 +6,6 @@ import           Data.Char
 import           Data.Default
 import           Data.Time.Format
 import           Hakyll
-import           System.FilePath
 import qualified Data.Text        as T
 import qualified Text.Pandoc      as P
 
