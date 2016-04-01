@@ -51,11 +51,8 @@ entryReaderOpts =
 entryWriterOpts :: P.WriterOptions
 entryWriterOpts =
     def { P.writerHtml5 = True
-        , P.writerHTMLMathMethod = P.WebTeX "http://chart.apis.google.com/chart?cht=tx&chf=bg,s,FFFFFF00&chl="
-        -- https://www.mediawiki.org/wiki/LaTeX_on_a_shared_host
-        -- , P.writerHTMLMathMethod = P.WebTeX "https://www.forkosh.com/mathtex.cgi?"
-        -- http://www.wiris.com/editor/docs/servicesapis
-        -- , P.writerHTMLMathMethod = P.WebTeX "https://www.wiris.net/demo/editor/render?format=png&latex="
+        -- , P.writerHTMLMathMethod = P.WebTeX "http://chart.apis.google.com/chart?cht=tx&chf=bg,s,FFFFFF00&chl="
+        , P.writerHTMLMathMethod = P.WebTeX "https://latex.codecogs.com/gif.latex?"
         , P.writerHighlight = True
         , P.writerVariables = [("geometry","margin=1in")
                               ,("links-as-notes","true")]
