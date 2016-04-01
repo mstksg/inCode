@@ -32,7 +32,7 @@ main = do
 
       "purescript" ~>
         need (psReq <$> psExes)
-      
+
       "_purescript/*.js" %> \out -> do
         let exName = capitalize $ takeBaseName out
         need ["app-purescript" </> exName <.> "purs"]
