@@ -112,7 +112,6 @@ entryCompiler histList allTags = do
                                      , "/css/pygments.css"
                                      ]
                  , pageDataJs      = [ "/js/page/entry_toc.js"
-                                     , "/js/disqus.js"
                                      , "/js/disqus_count.js"
                                      , "/js/social.js"
                                      , "/js/jquery/jquery.toc.js"
