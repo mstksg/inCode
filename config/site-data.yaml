@@ -21,9 +21,8 @@ public-blobs: https://github.com/mstksg/inCode/tree/master
 interactive-url: https://www.fpcomplete.com/user/jle/
 code-samples: code-samples
 host:
+  secure: yes
   base: blog.jle.im
-  # root: inCode
-  # port: 4111
 developer-apis:
   analytics:
     id: UA-443711-8
