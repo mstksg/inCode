@@ -118,11 +118,10 @@ With my [last major blog update][fay-update], I ported all of my one-off
 javascript scripts to fay.  This time around, I figured I'd move away from
 [fay][], because it was slightly clunky to build/get working/integrate in the
 way that GHCJS spoiled me to be accustomed to.  In the future, I might return
-... but at this point in time, Fay seems as awkward in the ecosystem to me now
-as *haste* did when I first started using it. GHCJS lets you use the full power
-of Haskell (including all of *base*'s concurrency mechanisms and almost every
-library on hackage), at the expense of creating large and unreadable javascript
-blobs.
+... but at this point in time, Fay seems a bit awkward in the ecosystem. GHCJS
+lets you use the full power of Haskell (including all of *base*'s concurrency
+mechanisms and almost every library on hackage), at the expense of creating
+large and unreadable javascript blobs.
 
 [fay-update]: http://blog.jle.im/entry/blog-engine-updates-markdown-preprocessor-fay-scripts.html#fay
 [fay]: https://github.com/faylang/fay/wiki
@@ -139,11 +138,15 @@ So, if you're going to be spending your time writing something that is like
 Haskell, but forces you to write it in a way that is nothing like any actual
 Haskell code you'd normally write... why even bother keeping up with Haskell
 semantics and Haskell compatibility?  Why not break out and try something new
-and fresh, unbound by Haskell and compatibility issues?[^bash]
+and fresh, unbound by Haskell and compatibility issues?[^bash][^haste]
 
-[^bash]: I definitely don't mean to bash on *fay* or *haste* here!  Both
-definitely have their role and place in the ecosystem.  It's for my specific
-application that I was looking for an alternative with.
+[^bash]: I definitely don't mean to bash on *fay* here!  It definitely has its
+role and place in the ecosystem.  It's for my specific application that I was
+looking for an alternative with.
+
+[^haste]: There's another thing here that I skipped over slightly -- Haste.  I
+haven't had much experience myself, but for this purpose, I decided to jump
+into something not-Haskell and try out something new!
 
 
 ### on Purescript
