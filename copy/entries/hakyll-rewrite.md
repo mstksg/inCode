@@ -129,7 +129,7 @@ large and unreadable javascript blobs.
 Fay seemed like just a *weaker* GHCJS to me, but in all the ways that mattered.
 It doesn't have all of the awesome GHC things that make modern Haskell what it
 is (not just the lack of base's identical API, but also ... no typeclasses?
-Lens abstactions? Hackage libraries?), so almost all of my normal Haskell
+Lens abstractions? Hackage libraries?), so almost all of my normal Haskell
 programming flow is thrown out the window.  It's a subset of Haskell, but lacks
 most of the tools people use to write *actual* Haskell like they'd write
 everyday.  The generated javascript blobs are still decently opaque.
