@@ -128,6 +128,22 @@ viewEntry EI{..} = do
         H.div ! A.class_ "tile" $ do
           H.div ! A.id "disqus_thread" $ mempty
 
+          H.script ! A.type_ "text/javascript" $
+            H.toHtml $
+              T.unlines
+                [ "var disqus_config = function () {"
+                , "    this.page.url = " <> renderUrl (T.pack $ entryCanonical eiEntry) <> ";"
+                , flip foldMap (entryIdentifier eiEntry) $ \i ->
+                    "    this.page.identifier = " <> i <> ";"
+                , "};"
+                , "(function() {"
+                , "    var d = document, s = d.createElement('script');"
+                , "    s.src = '//" <> devDisqus (confDeveloperAPIs ?config) <> ".disqus.com/embed.js';"
+                , "    s.setAttribute('data-timestamp', +new Date());"
+                , "    (d.head || d.body).appendChild(s);"
+                , "})();"
+                ]
+
           H.noscript $ do
             "Please enable JavaScript to view the " :: H.Html
             H.a ! A.href "http://disqus.com/?ref_noscript" $
