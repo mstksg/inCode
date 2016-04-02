@@ -3,7 +3,7 @@
     * [Github](https://github.com/mstksg "Github")
     * [Keybase (PGP)](https://keybase.io/mstksg "Keybase")
     * [Resumé](http://cv.jle.im "Resume")
-    * [Stack Overflow](http://stackoverflow.com/users/292731/justin-l "Stack Overflow")
+    * [Stack Overflow](https://stackoverflow.com/users/292731/justin-l "Stack Overflow")
     * [LinkedIn](https://linkedin.com/in/lejustin "LinkedIn")
     * [Bitcoin](https://coinbase.com/mstksg "Bitcoin")
 
