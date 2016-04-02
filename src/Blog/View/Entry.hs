@@ -132,9 +132,9 @@ viewEntry EI{..} = do
             H.toHtml $
               T.unlines
                 [ "var disqus_config = function () {"
-                , "    this.page.url = " <> renderUrl (T.pack $ entryCanonical eiEntry) <> ";"
+                , "    this.page.url = '" <> renderUrl (T.pack $ entryCanonical eiEntry) <> "';"
                 , flip foldMap (entryIdentifier eiEntry) $ \i ->
-                    "    this.page.identifier = " <> i <> ";"
+                    "    this.page.identifier = '" <> i <> "';"
                 , "};"
                 , "(function() {"
                 , "    var d = document, s = d.createElement('script');"
