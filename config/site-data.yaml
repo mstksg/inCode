@@ -23,6 +23,7 @@ public-blobs: https://github.com/mstksg/blog/tree/develop
 interactive-url: https://www.fpcomplete.com/user/jle/
 code-samples: code-samples
 host:
+  secure: no
   base: home.jle0.com
   port: 4111
 developer-apis:

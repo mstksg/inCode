@@ -62,12 +62,15 @@ renderRootUrl'
 renderRootUrl' = T.unpack . renderRootUrl . T.pack
 
 urlBase :: (?config :: Config) => T.Text
-urlBase = "http://"
+urlBase = protocol
+       <> "://"
        <> hostBase
        <> maybe mempty (T.pack . (':':) . show) hostPort
        <> maybe mempty (T.cons '/') hostRoot
   where
     HostInfo{..} = confHostInfo ?config
+    protocol | hostSecure = "https"
+             | otherwise  = "http"
 
 (</!>) :: T.Text -> T.Text -> T.Text
 b </!> f = let f' = fromMaybe f $ T.stripPrefix "/" f

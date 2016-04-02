@@ -43,18 +43,18 @@ data Config = Config
 
 instance FromJSON Config where
     parseJSON (Object v) = do
-      confTitle        <- v .: "title"
-      confDesc         <- v .: "description"
-      confAuthorInfo   <- v .: "author"
-      confCopyright    <- v .: "copyright"
-      confFeed         <- v .: "feed"
-      confBlobs        <- v .:? "public-blobs"
-      confCodeSamples  <- v .:? "code-samples"
-      confInteractive  <- v .:? "interactive-url"
-      confHostInfo     <- v .: "host"
-      confDeveloperAPIs <- v .: "developer-apis"
-      confBlogPrefs     <- v .: "preferences"
-      confEnvType       <- v .: "development"
+      confTitle         <- v .:  "title"
+      confDesc          <- v .:  "description"
+      confAuthorInfo    <- v .:  "author"
+      confCopyright     <- v .:  "copyright"
+      confFeed          <- v .:  "feed"
+      confBlobs         <- v .:? "public-blobs"
+      confCodeSamples   <- v .:? "code-samples"
+      confInteractive   <- v .:? "interactive-url"
+      confHostInfo      <- v .:  "host"
+      confDeveloperAPIs <- v .:  "developer-apis"
+      confBlogPrefs     <- v .:  "preferences"
+      confEnvType       <- v .:  "development"
       return Config{..}
     parseJSON _ = mzero
 
@@ -76,9 +76,10 @@ data AuthorInfo = AuthorInfo
   deriving (Show, Generic)
 
 data HostInfo = HostInfo
-    { hostBase :: T.Text
-    , hostPort :: Maybe Int
-    , hostRoot :: Maybe T.Text
+    { hostSecure :: !Bool
+    , hostBase   :: T.Text
+    , hostPort   :: Maybe Int
+    , hostRoot   :: Maybe T.Text
     }
   deriving (Show, Generic)
 
