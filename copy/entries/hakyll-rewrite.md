@@ -144,9 +144,11 @@ and fresh, unbound by Haskell and compatibility issues?[^bash][^haste]
 role and place in the ecosystem.  It's for my specific application that I was
 looking for an alternative with.
 
-[^haste]: There's another thing here that I skipped over slightly -- Haste.  I
-haven't had much experience myself, but for this purpose, I decided to jump
-into something not-Haskell and try out something new!
+[^haste]: There's another thing here that I skipped over slightly -- [Haste][].
+I haven't had much experience with it myself, but for this purpose, I decided
+to jump into something not-Haskell and try out something new!
+
+[Haste]: http://haste-lang.org/
 
 
 ### on Purescript
