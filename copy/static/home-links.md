@@ -8,8 +8,8 @@
     * [Bitcoin](https://coinbase.com/mstksg "Bitcoin")
 
 - ### Social
-    * [Google+](https://plus.google.com/107705320197444500140 "Google+")
+    * [Twitter](https://twitter.com/mstk "Twitter")
+    * [Google+](https://plus.google.com/+JustinLe "Google+")
     * [Facebook](https://facebook.com/mstksg "Facebook")
     * [Youtube](https://youtube.com/justinlemusic "Youtube")
-    * [Twitter](https://twitter.com/mstk "Twitter")
 
