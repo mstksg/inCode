@@ -1,12 +1,12 @@
 ---
-title: Practical Dependent Types in Haskell: Type-Safe Linear Algebra
+title: Practical Dependent Types in Haskell: Type-Safe Neural Networks
 categories: Haskell, Ramblings
 series: Practical Dependent Types in Haskell
-tags: functional programming, depedent types, numerical, haskell, singletons, types, linear algebra
+tags: functional programming, dependent types, numerical, haskell, singletons, types, linear algebra, artificial neural networks
 create-time: 2016/02/25 11:47:50
 date: Never
 identifier: dependent-haskell-1
-slug: practical-dependent-types-in-haskell-linear-algebra
+slug: practical-dependent-types-in-haskell-1
 ---
 
 Whether you like it or not, programming with dependent types in Haskell moving
@@ -18,14 +18,20 @@ their ubiquitousness forces programming with dependent types to be an integral
 part of regular intermediate (or even beginner) Haskell education, as much as
 Traversable or Maps.
 
+However, I feel like most "dependent typing" tutorials I see around the
+internet focus on things like proofs and theorems, instead of directly jumping
+into how they can be used to help you in your current coding now.
+
 So, the point of this post is to show some practical examples of using
 dependent types in the real world, and to also walk through the "why" and
 high-level philosophy of the way you structure your Haskell programs.  It'll
 also hopefully instill an intuition of a dependently typed work flow of
 "exploring" how dependent types can help your current programs.
 
-The first project in this series will build up to type-safe artificial neural
-network implementations.  Hooray!
+The first project in this series will build up to type-safe **[artificial neural
+network][ann]** implementations.  Hooray!
+
+[ann]: https://en.wikipedia.org/wiki/Artificial_neural_network
 
 There are other great tutorials I'd recommend online if you want to explore
 dependent types in Haskell further, including [this great servant
@@ -34,91 +40,6 @@ currently exploring all of this as I'm going along too. It's a wild world out
 there.  Join me and let's be a part of the frontier!
 
 [servtut]: http://www.well-typed.com/blog/2015/11/implementing-a-minimal-version-of-haskell-servant/
-
-Toy Example: Linear Algebra
----------------------------
-
-We're going to build up to type-safe neural networks in Haskell, but to start
-off, let's go over a really really small example of dependent types in Haskell
-by applying it to the "hello world" of dependent types: linear algebra.
-
-We're going to do two simple linear algebra concepts, and see why it's super
-scary to program without dependent types (and wonder how we ever survived
-without them), and then add in a bit of dependent types to the rescue!
-
-For the most part, we'll be using the awesome *[hmatrix][]* library, which
-offers both "type-safe" and "non-type-safe" API's, so we can better compare the
-two approaches.
-
-[hmatrix]: http://hackage.haskell.org/package/hmatrix
-
-The Scary World of Unsafe Code
-------------------------------
-
-The first thing we're going to do is simple:
-
-1.  Read in two vectors from stdin
-2.  Print the dot product of the two
-
-~~~haskell
-readList :: IO [Double]
-readList = concat . readMaybe <$> getLine
-
-dotStdin :: IO ()
-dotStdin = do
-    v1 <- vector <$> readList
-    v2 <- vector <$> readList
-    print $ l1 <.> l2
-~~~
-
-Now, already you should be feeling sweaty.  The dot product, `<.>`, is actually
-*undefined* for two vectors of different lengths.  Our code here is...unsafe!
-Runtime errors can happen that are unchecked by the compiler.  To fix this in
-an unsafe language, we'd have to:
-
-1.  Be able to recognize by our own human reasoning that there is a potential
-    for a runtime error.
-2.  Restructure control flow to avoid situations where the runtime error would
-    occur.
-3.  Somehow prove to ourselves, as humans, that our new solution is safe.  Then
-    trust our human verification of our human proof.
-
-Now, (2) might be cumbersome in some cases, but at least it's usually a
-mechanical process.  It's (1) and (3) that are killer.  There is no way I trust
-myself to recognize *every* potential runtime error.  And, in the case that I
-*do* actually catch opportunities for runtime errors, I definitely don't always
-trust myself that my fix works.  If only the compiler could handle (1) and (3)
-for us!
-
-The second task we'll do is build up a chain of matrices, and then ask for a
-vector from stdin to multiply by each one successively.
-
-~~~haskell
-readChain :: IO [Matrix Double]
-readChain = do
-    l <- getLine
-    case fromLists <$> readMaybe l of
-      Just m  -> (m:) <$> readChain
-      Nothing -> return []
-    
-collapseChain :: Vector Double -> Matrix Double -> Vector Double
-collapseChain v []     = v
-collapseChain v (m:ms) = collapseChain (m #> v) ms
-
-chainMats :: IO ()
-chainMats = do
-    ms <- readChain
-    v  <- vector <$> readList
-    print $ collapseChain v ms
-~~~
-
-Now, this should be giving you heart attacks.  Matrix-vector multiplication is
-only defined when the number of columns the matrix has is the number of rows
-the vector has.  If *any* of the matrices along the chain is the wrong
-dimension, the entire thing will blow up.
-
-
-
 
 Neural Networks
 ---------------
@@ -158,6 +79,13 @@ these layer-by-layer, and the result of the final nodes is what is taken as the
 network's output.  The "goal" of designing/training a network is to somehow
 pick the right set of weights that will give the output that you want for the
 given input.
+
+A picture is worth a thousand words, so the following equation demonstrates
+things nicely:
+
+$$
+o_j = b_j + \sum_i x_i * w_ij
+$$
 
 While it's nice to think about neural networks in terms of their nodes, it
 makes more sense computationally to only identify a network by simply the

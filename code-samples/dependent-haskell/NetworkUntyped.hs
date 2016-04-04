@@ -35,11 +35,11 @@ runNet (w :&~ n') !v = let v' = logistic `cmap` runLayer w v
 
 randomWeights :: MonadRandom m => Int -> Int -> m Weights
 randomWeights i o = do
-  s1 <- getRandom
-  s2 <- getRandom
-  let wBiases  = randomVector s1 Uniform o * 2 - 1
-      wWeights = uniformSample s2 o (replicate i (-1, 1))
-  return W{..}
+    s1 <- getRandom
+    s2 <- getRandom
+    let wBiases  = randomVector s1 Uniform o * 2 - 1
+        wWeights = uniformSample s2 o (replicate i (-1, 1))
+    return W{..}
 
 randomNet :: MonadRandom m => Int -> [Int] -> Int -> m Network
 randomNet i [] o     =     O <$> randomWeights i o
