@@ -84,12 +84,24 @@ A picture is worth a thousand words, so the following equation demonstrates
 things nicely:
 
 $$
-y_j = b_j + \sum_i^m x_i * w_{ij}
+y_j = b_j + \sum_i^m w_{ij} x_i
+$$
+
+$$
 o_j = f(y_j)
 $$
 
-Which says that 
 
+Which says that the *j*-th result of the output vector comes from the *j_*-th
+bias term, and a sum of all of the outputs of the previous layer (the *x*-s).
+After adding the bias and previous layer's output, you apply the logistic
+function to the result.
+
+Stated as matrices and vectors, the formula for $\mathbf{y}$ looks like this:
+
+$$
+\mathbf{y} = \mathbf{b} + \hat{W} \mathbf{x}
+$$
 
 
 While it's nice to think about neural networks in terms of their nodes, it
