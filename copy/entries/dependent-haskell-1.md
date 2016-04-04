@@ -84,8 +84,13 @@ A picture is worth a thousand words, so the following equation demonstrates
 things nicely:
 
 $$
-o_j = b_j + \sum_i x_i * w_ij
+y_j = b_j + \sum_i^m x_i * w_{ij}
+o_j = f(y_j)
 $$
+
+Which says that 
+
+
 
 While it's nice to think about neural networks in terms of their nodes, it
 makes more sense computationally to only identify a network by simply the
