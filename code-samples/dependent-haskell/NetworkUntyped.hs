@@ -7,13 +7,8 @@ import Control.Monad.Random
 import Data.List
 import Numeric.LinearAlgebra
 
-data Weights = W { wBiases  :: !(Vector Double)
-                 , wWeights :: !(Matrix Double)
-                 }
-  deriving (Show, Eq)
-
-data Network = O !Weights
-             | !Weights :&~ !Network
+data Network = O !(Matrix Double)
+             | !(Matrix Double) :&~ !Network
   deriving (Show, Eq)
 infixr 5 :&~
 
@@ -25,21 +20,15 @@ logistic' x = logix * (1 - logix)
   where
     logix = logistic x
 
-runLayer :: Weights -> Vector Double -> Vector Double
-runLayer (W wB wW) v = wB + (wW #> v)
-
 runNet :: Network -> Vector Double -> Vector Double
-runNet (O w)      !v = logistic `cmap` runLayer w v
-runNet (w :&~ n') !v = let v' = logistic `cmap` runLayer w v
+runNet (O w)      !v = logistic `cmap` (w #> v)
+runNet (w :&~ n') !v = let v' = logistic `cmap` (w #> v)
                        in  runNet n' v'
 
-randomWeights :: MonadRandom m => Int -> Int -> m Weights
+randomWeights :: MonadRandom m => Int -> Int -> m (Matrix Double)
 randomWeights i o = do
-    s1 <- getRandom
-    s2 <- getRandom
-    let wBiases  = randomVector s1 Uniform o * 2 - 1
-        wWeights = uniformSample s2 o (replicate i (-1, 1))
-    return W{..}
+    s <- getRandom
+    return $ uniformSample s o (replicate i (-1, 1))
 
 randomNet :: MonadRandom m => Int -> [Int] -> Int -> m Network
 randomNet i [] o     =     O <$> randomWeights i o
@@ -49,23 +38,21 @@ train :: Double -> Vector Double -> Vector Double -> Network -> Network
 train rate x0 targ = snd . go x0
   where
     go :: Vector Double -> Network -> (Vector Double, Network)
-    go !x (O w@(W wB wW))
-        = let y     = runLayer w x
+    go !x (O w)
+        = let y     = w #> x
               o     = logistic  `cmap` y
               dEdy  = (logistic' `cmap` y) * (o - targ)
-              delWs = tr wW #> dEdy
-              wB'   = wB - scale rate dEdy
-              wW'   = wW - scale rate (dEdy `outer` x)
-          in  (delWs, O (W wB' wW'))
-    go !x (w@(W wB wW) :&~ n)
-        = let y            = runLayer w x
+              delWs = tr w #> dEdy
+              w'    = w - scale rate (dEdy `outer` x)
+          in  (delWs, O w')
+    go !x (w :&~ n)
+        = let y            = w #> x
               o            = logistic `cmap` y
               (delWs', n') = go o n
               dEdy         = (logistic' `cmap` y) * delWs'
-              delWs        = tr wW #> dEdy
-              wB'          = wB - scale rate dEdy
-              wW'          = wW - scale rate (dEdy `outer` x)
-          in  (delWs, W wB' wW' :&~ n')
+              delWs        = tr w #> dEdy
+              w'           = w - scale rate (dEdy `outer` x)
+          in  (delWs, w' :&~ n')
 
 netTest :: MonadRandom m => Int -> m String
 netTest n = do
