@@ -189,3 +189,4 @@ train i o = go i
     go :: Vector Double -> Network -> (Vector Double, Network)
     go = undefined
 ~~~
+
