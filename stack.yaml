@@ -7,6 +7,7 @@ resolver: lts-5.8
 # Local packages, usually specified by relative directory name
 packages:
 - '.'
+- '/home/justin/projects/haskell/jle-utils'
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
 extra-deps:
 - hakyll-sass-0.2.0

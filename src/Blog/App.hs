@@ -8,7 +8,6 @@
 
 module Blog.App where
 
--- import           Hakyll.Web.Redirect
 import           Blog.Compiler.Archive
 import           Blog.Compiler.Entry
 import           Blog.Compiler.Home
@@ -48,6 +47,10 @@ app znow@(ZonedTime _ tz) = do
     match "static/**" $ do
       route   $ gsubRoute "static/" (\_ -> "")
       compile copyFileCompiler
+
+    create ["CNAME"] $ do
+      route idRoute
+      compile . makeItem $ ("blog.jle.im" :: String)
 
     match "css/**" $ do
       route   idRoute
@@ -183,7 +186,7 @@ app znow@(ZonedTime _ tz) = do
       route   $ routeEntry
       compile $ entryCompiler entriesSorted allTags
     match "copy/entries/*" . version "html-index" $ do
-      route   $ routeEntry 
+      route   $ routeEntry
                   `composeRoutes` gsubRoute ".html" (const "/index.html")
       compile $ do
         i <- setVersion Nothing <$> getUnderlying
