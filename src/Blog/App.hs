@@ -50,7 +50,7 @@ app znow@(ZonedTime _ tz) = do
 
     create ["CNAME"] $ do
       route idRoute
-      compile . makeItem $ ("blog.jle.im" :: String)
+      compile . makeItem . T.unpack $ hostBase confHostInfo <> "\n"
 
     match "css/**" $ do
       route   idRoute
