@@ -49,6 +49,10 @@ app znow@(ZonedTime _ tz) = do
       route   $ gsubRoute "static/" (\_ -> "")
       compile copyFileCompiler
 
+    create ["CNAME"] $ do
+      route idRoute
+      compile . makeItem . T.unpack $ hostBase confHostInfo <> "\n"
+
     match "css/**" $ do
       route   idRoute
       compile compressCssCompiler
