@@ -6,6 +6,7 @@ resolver: lts-5.13
 
 # Local packages, usually specified by relative directory name
 packages:
+- '.'
 - location:
     git: git@github.com:mstksg/jle-utils.git
     commit: 51bdaa4b19c037cbb107dd43638a35289431d2d6
