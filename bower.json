@@ -23,7 +23,7 @@
     "purescript-eff"     : "=0.1.2" ,
     "purescript-lists"   : "=0.7.9" ,
     "purescript-nullable": "=0.2.1" ,
-    "purescript-prelude" : "=0.1.4" ,
+    "purescript-prelude" : "=0.1.5" ,
     "purescript-refs"    : "=0.2.0" ,
     "purescript-foldable-traversable": "=0.4.2",
     "purescript-generics": "=0.7.2",
