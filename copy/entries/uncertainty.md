@@ -15,7 +15,7 @@ data in surprisingly elegant and expressive ways.
 Here is one example --- from my work in experimental physics and statistics, we
 often deal with experimental/sampled values with inherent uncertainty.  If you
 ever measure something to be $12.4\,\mathrm{cm}$, that doesn't mean it's
-$12.400000\,\mathrm{cm}$, it means that it's somewhere between
+$12.400000\,\mathrm{cm}$ --- it means that it's somewhere between
 $12.3\,\mathrm{cm}$ and $12.5\,\mathrm{cm}$...and we don't know exactly.  We
 can write it as $12.4 \pm 0.1\,\mathrm{cm}$.
 
@@ -66,24 +66,24 @@ Certain Uncertainty
 -------------------
 
 First of all, let's think about why adding two "uncertain" values doesn't
-involve simply adding the uncertainties linearly.  If you don't care about the
-math and just want to get on to the Haskell, feel free to skip this section!
+involve simply adding the uncertainties linearly.  (If you don't care about the
+math and just want to get on to the Haskell, feel free to skip this section!)
 
-If I have a value $16 \pm 3$ (maybe I have a ruler whose ticks are 2 units
+If I have a value $16 \pm 3$ (maybe I have a ruler whose ticks are 3 units
 apart, or an instrument that produces measurements with 4 units of noise), it
 either means that it's a little below 16 or a little above 16.  If I have an
 independently sampled value $25 \pm 4$, it means that it's a little below 25 or
 a little above 25.
 
 What happens if I want to think about their sum?  Well, it's going to be
-somewhere around 41.  But, the uncertainty won't be $\pm 7$.  In order for that
-to be possible, the errors in the two values have to *always be aligned*.  Only
-when every "little bit above" 16 error lines up perfectly with a "little bit
-above" 25 error, and when every single "little bit below" 16 error lines up
-perfectly with a "little bit above" 25 error, would you really get something
-that is $\pm 7$.  But, because the two values are sampled independently, you
-shouldn't expect such alignment.  So, you'll get an uncertainty that's *less
-than* $\pm 7$.  In fact, it'll actually be around $\pm 5$.
+somewhere around 41.  But, the uncertainty won't be $\pm 7$.  It would only be
+$\pm 7$ if the errors in the two values are *always aligned*.  Only when every
+"little bit above" 16 error lines up perfectly with a "little bit above" 25
+error, and when every single "little bit below" 16 error lines up perfectly
+with a "little bit above" 25 error, would you really get something that is $\pm
+7$.  But, because the two values are sampled independently, you shouldn't
+expect such alignment.  So, you'll get an uncertainty that's *less than* $\pm
+7$.  In fact, it'll actually be around $\pm 5$.
 
 In general, we find that, for *independent* $X$ and $Y$:
 
@@ -110,6 +110,8 @@ $$
 f(x_0 + x, y_0 + y) \approx f_x(x_0, y_0) x + f_y(x_0, y_0) y + f(x_0, y_0)
 $$
 
+Where $f_x(x_0,y_0)$ is $\frac{\partial f}{\partial x}$ at $(x_0, y_0)$.
+
 Look familiar?  This is exactly the form that we used earlier to calculate
 "combined" variance!
 
@@ -125,12 +127,14 @@ $$
 \operatorname{E}[f(X,Y)] \approx
 f(\mu_X, \mu_Y) +
 \frac{1}{2} f_{xx}(\mu_X, \mu_Y) \sigma_X^2 +
-\frac{1}{2} f_{yy}(\mu_X, \mu_Y) \sigma_Y^2 +
+\frac{1}{2} f_{yy}(\mu_X, \mu_Y) \sigma_Y^2
 $$
+
+Where $f_{xx}(\mu_X, \mu_Y)$ is $\frac{\partial^2 f}{{\partial x}^2}$ at
+$(\mu_X, \mu_Y)$
 
 For our case of simple addition, $\operatorname{E}[X + Y] = \mu_X + \mu_Y$,
 because the second-order partials of $f(x,y) = x + y$ are 0.
-
 
 Uncertain Values in Haskell
 ---------------------------
@@ -214,7 +218,7 @@ instance Fractional a => Fractional (Uncert a) where
     recip (Un x vx)   = Un (recip x + vx/x^3) (vx / x^4)
 ~~~
 
-Yikes.  All that ugly and complicated numerical code that the typechecker
+Yikes.  All that ugly and complicated numerical code that the typechecker can't
 verify.  Those are runtime bugs just waiting to happen.  How do we even *know*
 that we calculated the right derivatives, and implemented the formula
 correctly?
@@ -226,7 +230,87 @@ compute derivatives for functions instead of computing them manually?
 Automatic Differentiation
 -------------------------
 
-Surprise!
+Automatic differentiation is honestly one of the coolest Haskell tricks you can
+show that any beginner can immediately understand.  Like our trick with
+`Uncert`, it is nice to use because of its overloaded `Num`/numeric
+typeclasses.
+
+~~~haskell
+ghci> diff (\x -> x^2) 10
+20
+ghci> diff (\x -> sin x) 0
+1.0
+ghci> diff (\x -> sin (x^3))
+0.47901729549851046
+~~~
+
+A very rough explanation about how forward-mode automatic differentiation works
+is that it uses a wrapper type (like ours) that defines `*`, `negate`, etc. so
+that they also compute the *derivative(s)* of the function, instead of just the
+*result*, like normal.
+
+### Single-variable functions
+
+And, now that we can automatically differentiate functions...we can use this
+knowledge directly in our implementations.  Let's define a universal "lifter"
+of single-variable functions.
+
+We use the function `diffs0` to get a "tower" of derivatives:
+
+~~~haskell
+ghci> diffs0 (\x -> x^2 - 2 x^3) 4
+[-112, -88, -46, -12, 0, 0, 0, 0...
+~~~
+
+The first value is actually $4^2 - 2 \times 4^3$.  The second is the derivative
+-- $2 x - 6x^2$ at 4, the third is the second derivative $2 - 12 x$ at 4, then
+the third derivative $-12$, then the fourth derivative $0$, etc.
+
+We only need the actual value and the first two derivatives, so we can pattern
+match them as `fx:dfx:ddfx:_ = diffs0 f x`, the derivatives and values of our
+function around the mean `x`.
+
+At that point, the equations just translate nicely:
+
+$$
+\operatorname{E}[f(X)] = f(\mu_X) + \frac{1}{2} f_{xx}(\mu_X) \sigma_X^2
+$$
+
+$$
+\operatorname{Var}[f(X)] = f_x(\mu_X)^2 \sigma_X^2
+$$
+
+And we call $\mu_X$ `x` and $\sigma_X^2$ `vx`, and this becomes:
+
+~~~haskell
+y  = fx + ddfx * vx / 2
+vy = dfx^2 * vx
+~~~
+
+Putting it all together:
+
+~~~haskell
+liftU
+    :: Fractional a
+    => (forall s. AD s (Tower a) -> AD s (Tower a))
+    -> Uncert a
+    -> Uncert a
+liftU f (Un x vx) = Un y vy
+  where
+    fx:dfx:ddfx:_ = diffs0 f x
+    y             = fx + ddfx * vx / 2
+    vy            = dfx^2 * vx
+~~~
+
+The type `forall s. AD s (Tower a) -> AD s (Tower a)` looks a little scary, but
+you can think of it as representing a function on `a` (like `negate`, `(*2)`,
+etc.) that the *ad* library can differentiate several times --- something you
+could use with `diff0` to get a "tower" of derivatives.
+
+And...that's it!
+
+
+### Multivariable functions
 
 
 
@@ -259,35 +343,6 @@ Surprise!
 <!-- 0.78 +/- 0.02 -->
 <!-- 83 +/- 6 -->
 <!-- ~~~ -->
-
-
-
-<!-- That's because more often than not, the errors in both -->
-<!-- values will "cancel each other out" -- it's relatively unlikely that they'll -->
-<!-- both error in the same direction, and so when you add two uncertain values -->
-<!-- together, their uncertainties tend to cancel each other out. -->
-
-<!-- One of my favorite Haskell magic tricks is "automatic differentiation", "ad", -->
-<!-- which is a surprising application of Haskell's overloaded numeric -->
-<!-- typeclasses/literals, simple algebraic data type manipulation, and universal -->
-<!-- quantification.  The magic happens when you think you're calculating normal -->
-<!-- numeric functions with `+` and `*` and `sin`, etc.,...but you're actually -->
-<!-- calculating their derivatives instead. -->
-
-<!-- ~~~haskell -->
-<!-- ghci> diff (\x -> x^2) 10 -->
-<!-- 20 -->
-<!-- ghci> diff (\x -> sin x) 0 -->
-<!-- 1.0 -->
-<!-- ghci> diff (\x -> sin (x^3)) -->
-<!-- 0.47901729549851046 -->
-<!-- ~~~ -->
-
-<!-- We define a new data type with a funky `Num` instance, so instead of defining -->
-<!-- $x^3$ as actual exponentiation, we define it to return $3x^2 \dot{x}$ instead, -->
-<!-- etc. It's a rather cute technique and something that's accessible to any -->
-<!-- Haskell beginner. -->
-
 
 
 
