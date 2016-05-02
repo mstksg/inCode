@@ -113,15 +113,34 @@ In general, we can attempt to approximate any well-behaving function as its
 tangent hyperplane:
 
 $$
-f(x_0 + x, y_0 + y) \approx f_x(x_0, y_0) x + f_y(x_0, y_0) y + f(x_0, y_0)
+f(x_0 + x, y_0 + y) \approx
+\left.\frac{\partial f}{\partial x}\right\vert_{x_0, y_0} x +
+\left.\frac{\partial f}{\partial y}\right\vert_{x_0, y_0} y +
+f(x_0, y_0)
 $$
 
 Look familiar?  This is exactly the form that we used earlier to calculate
 "combined" variance!
 
 $$
-\operatorname{Var}[f(X,Y)] \approx f_x(\mu_X, \mu_Y)^2 \sigma_X^2 + f_y(\mu_X, \mu_Y) \sigma_Y^2
+\operatorname{Var}[f(X,Y)] \approx
+\left.\frac{\partial f}{\partial x}\right\vert_{\mu_X, \mu_Y}^2 \sigma_X^2 +
+\left.\frac{\partial f}{\partial x}\right\vert_{\mu_X, \mu_Y}^2 \sigma_Y^2
 $$
+
+
+A similar analysis can be used to figure out how the expected value changes by
+taking the taylor expansion to the second degree:
+
+$$
+\operatorname{E}[f(X,Y)] \approx
+f(\mu_X, \mu_Y) +
+\frac{1}{2} \left.\frac{\partial^2 f}{{\partial x}^2}\right\vert_{\mu_X, \mu_Y} \sigma_X^2 +
+\frac{1}{2} \left.\frac{\partial^2 f}{{\partial y}^2}\right\vert_{\mu_X, \mu_Y} \sigma_Y^2
+$$
+
+
+
 
 <!-- Some people like to talk about probability and statistics as "inexact maths" or -->
 <!-- "non-deterministic math", but the exact opposite is true.  Probability and -->
