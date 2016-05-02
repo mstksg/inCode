@@ -22,20 +22,18 @@ can write it as $12.4 \pm 0.1\,\mathrm{cm}$.
 The interesting thing happens when we try to add, multiply, divide numbers with
 uncertainty.  What happens when you "add" $12 \pm 3$ and $19 \pm 6$?
 
-The initial guess might be $27 \pm 9$, because one is $\pm 3$ and the other
-is $\pm 6$.
-
-But!  If you actually do experiments like this several times, you'll see that
-this isn't the case.  If you tried this out experimentally and simulate several
-hundred trials, you'll see that the answer is actually something like $31 \pm
-7$.[^try]
+The initial guess might be $27 \pm 9$, because one is $\pm 3$ and the other is
+$\pm 6$.  But!  If you actually do experiments like this several times, you'll
+see that this isn't the case.  If you tried this out experimentally and
+simulate several hundred trials, you'll see that the answer is actually
+something like $31 \pm 7$.[^try]
 
 [^try]: If you don't believe me, stop reading this article now and try it
 yourself!  You can simulate noisy data by using uniform noise distributions,
 Gaussian distributions, or however manner you like.  Verify by checking the
-[variance][] of the sum.
+[standard deviation][] of the sums.
 
-[variance]: https://en.wikipedia.org/wiki/Variance
+[standard deviation]: https://en.wikipedia.org/wiki/Standard_deviation
 
 Let's write ourselves a Haskell data type that lets us work with "numbers with
 inherent uncertainty":
@@ -110,7 +108,8 @@ $$
 f(x_0 + x, y_0 + y) \approx f_x(x_0, y_0) x + f_y(x_0, y_0) y + f(x_0, y_0)
 $$
 
-Where $f_x(x_0,y_0)$ is $\frac{\partial f}{\partial x}$ at $(x_0, y_0)$.
+Where $f_x(x_0,y_0)$ is the first (partial) derivative with respect to $x$ at $(x_0,
+y_0)$.
 
 Look familiar?  This is exactly the form that we used earlier to calculate
 "combined" variance!
@@ -130,8 +129,8 @@ f(\mu_X, \mu_Y) +
 \frac{1}{2} f_{yy}(\mu_X, \mu_Y) \sigma_Y^2
 $$
 
-Where $f_{xx}(\mu_X, \mu_Y)$ is $\frac{\partial^2 f}{{\partial x}^2}$ at
-$(\mu_X, \mu_Y)$
+Where $f_{xx}(\mu_X, \mu_Y)$ is the second (partial) derivative with respect to
+$x$ twice at $(\mu_X, \mu_Y)$
 
 For our case of simple addition, $\operatorname{E}[X + Y] = \mu_X + \mu_Y$,
 because the second-order partials of $f(x,y) = x + y$ are 0.
@@ -194,7 +193,7 @@ instance Num a => Num (Uncert a) where
     fromIntegral      = exact . fromIntegral
     Un x vx + Un y vy = Un (x + y)    (vx + vy)
     Un x vx - Un y vy = Un (x - y)    (vx + vy)
-    Un x vx * Un y vy = Un (x * y)    (y*y * vx + x*x * vy)
+    Un x vx * Un y vy = Un (x * y)    (y^2 * vx + x^2 * vy)
     negate (Un x vx)  = Un (negate x) vx
     -- ...
 ~~~
@@ -206,10 +205,10 @@ Pretty anticlimactic, huh?
 
 ### The Problem
 
-But, wait...this method is definitely not ideal.  It's pretty repetitive, and
+But, wait --- this method is definitely not ideal.  It's pretty repetitive, and
 involves a but of copy-and-pasting code that is slightly different in ways the
 typechecker can't verify.  What if we didn't change something we were supposed
-to?  And...if you look at the `Fractional` instance...
+to?  And, if you look at the `Fractional` instance...
 
 ~~~haskell
 instance Fractional a => Fractional (Uncert a) where
@@ -223,9 +222,9 @@ verify.  Those are runtime bugs just waiting to happen.  How do we even *know*
 that we calculated the right derivatives, and implemented the formula
 correctly?
 
-What if we could reduce this boilerplate to things that the typechecker can
-enforce for us?  That'd be ideal, right?  What if we could somehow analytically
-compute derivatives for functions instead of computing them manually?
+What if we could reduce this boilerplate?  What if we could somehow
+analytically compute derivatives for functions instead of computing them
+manually?
 
 Automatic Differentiation
 -------------------------
@@ -251,7 +250,7 @@ that they also compute the *derivative(s)* of the function, instead of just the
 
 ### Single-variable functions
 
-And, now that we can automatically differentiate functions...we can use this
+And, now that we can automatically differentiate functions, we can use this
 knowledge directly in our implementations.  Let's define a universal "lifter"
 of single-variable functions.
 
@@ -263,14 +262,14 @@ ghci> diffs0 (\x -> x^2 - 2 x^3) 4
 ~~~
 
 The first value is actually $4^2 - 2 \times 4^3$.  The second is the derivative
--- $2 x - 6x^2$ at 4, the third is the second derivative $2 - 12 x$ at 4, then
+($2 x - 6x^2$) at 4, the third is the second derivative $2 - 12 x$ at 4, then
 the third derivative $-12$, then the fourth derivative $0$, etc.
 
 We only need the actual value and the first two derivatives, so we can pattern
-match them as `fx:dfx:ddfx:_ = diffs0 f x`, the derivatives and values of our
-function around the mean `x`.
+match them as `fx:dfx:ddfx:_ = diffs0 f x`, the derivatives and values of the
+function we lift, `f`, around the mean `x`.
 
-At that point, the equations just translate nicely:
+At that point, the equations we have from before just translate nicely:
 
 $$
 \operatorname{E}[f(X)] = f(\mu_X) + \frac{1}{2} f_{xx}(\mu_X) \sigma_X^2
@@ -307,34 +306,145 @@ you can think of it as representing a function on `a` (like `negate`, `(*2)`,
 etc.) that the *ad* library can differentiate several times --- something you
 could use with `diff0` to get a "tower" of derivatives.
 
-And...that's it!
+And ... that's it!  We can already define things like:
 
+~~~haskell
+negate = liftU negate
+recip  = liftU recip
+sqrt   = liftU sqrt
+sin    = liftU sin
+~~~
 
 ### Multivariable functions
 
+*ad* also lets you work multivariable functions, too.  To model multivariable
+functions, it takes a function from a `Traversable` of vales to a single value.
+We can use the `V2` type from the *[linear][]* package to pass in a
+two-variable function:
 
+[linear]: http://hackage.haskell.org/package/linear-1.20.4/docs/Linear-V2.html
 
+~~~haskell
+ghci> grad (\(V2 x y) -> x * y^2 + 3*x) (V2 3 1)
+V2 4 6
+~~~
 
+The gradient of $f(x, y) = x y^2 + 3x$ is $(y^2 + 3, 2xy)$, which, at $(3, 2)$,
+is indeed $(4, 6)$.
 
+The gradient gives us the first order partials, but we need the second order
+partials to calculate the new mean, so for that, we can use `hessian`:
 
+~~~haskell
+ghci> hessian (\(V2 x y) -> x * y^2 + 3*x) (V2 3 1)
+V2 (V2 0 2)
+   (V2 2 6)
+~~~
 
-<!-- Some people like to talk about probability and statistics as "inexact maths" or -->
-<!-- "non-deterministic math", but the exact opposite is true.  Probability and -->
-<!-- statistics is the *exact*, rigorous, and *deterministic* math of -->
-<!-- non-deterministic domains. -->
+The [hessian][] of a function is a symmetric matrix where the diagonals are the
+second-order repeated partial derivatives of each variable, and the
+off-diagonals are mixed partial derivatives.  In our case, we only care about
+the diagonal.  Indeed, the double-partial with respect to $x$ is $0$, and the
+double-partial with respect to $y$ is $2x$, which gives us a hessian with a
+diagonal $(0, 6)$ at $(3, 1)$.
 
-<!-- But first, let's think about why adding -->
+[hessian]: https://en.wikipedia.org/wiki/Hessian_matrix
 
-<!-- Quantum mechanics, after all, is one of the most -->
-<!-- exact and deterministic triumphs of mathematical physics -- despite what you -->
-<!-- might hear in physics popularisations.[^qm] -->
+The *ad* package generously gives us a function that lets us calculate the
+function's result, its gradient, and its hessian all in one pass:
 
-<!-- [^qm]: Quantum mechanics, the discipline, makes very precise, exact, and -->
-<!-- testable predictions about probability distributions and non-deterministic -->
-<!-- processes, and the predictions of quantum mechanics are some of the most -->
-<!-- precisely tested and verified predictions in the history of physics. -->
+~~~haskell
+ghci> hessian' (\(V2 x y) -> x * y^2 + 3*x) (V2 3 1)
+(12, V2 (4, V2 0 3)
+     V2 (6, V2 2 6)
+)
+~~~
 
+We can access the gradient by using `fmap fst` on the second component of the
+tuple and access the hessian by using `fmap snd`.
 
+We need a couple of helpers, first --- one to get the "diagonal" of our
+hessian, because we only care about the double partials:
+
+~~~haskell
+diag :: [[a]] -> [a]
+diag = \case []        -> []
+             []   :yss -> diag (drop1 <$> yss)
+             (x:_):yss -> x : diag (drop1 <$> yss)
+  where
+    drop1 []     = []
+    drop1 (_:zs) = zs
+~~~
+
+And then a "dot product", which sums two `Foldable`s component-wise and adds the
+results:
+
+~~~haskell
+dot :: (Foldable t, Num a) => t a -> t a -> a
+xs `dot` ys = sum (zipWith (*) (toList xs) (toList ys))
+~~~
+
+And now we can write our multi-variate function lifter:
+
+~~~haskell
+liftUF
+    :: (Traversable f, Fractional a)
+    => (forall s. f (AD s (Sparse a)) -> AD s (Sparse a))
+    -> f (Uncert a)
+    -> Uncert a
+liftUF f us = Un y vy
+  where
+    xs          = uMean <$> us
+    vxs         = uVar  <$> us
+    (fx, hgrad) = hessian' f xs
+    dfxs        = fst <$> hgrad
+    hess        = snd <$> hgrad
+    y           = fx + partials / 2
+      where
+        partials = dot vxsL . diag
+                 $ toList (fmap toList hess))
+    vy          = vxs `dot` ((^2) <$> dfxs)
+~~~
+
+(Again, don't mind the scary type `forall s. f (AD s (Sparse a)) -> AD s (Sparse a)`,
+it's just *ad*'s type for things you can use `hessian'` on)
+
+And we can write some nice helper functions so we can use them more easily:
+
+~~~haskell
+liftU2
+    :: Fractional a
+    => (forall s. AD s (Sparse a) -> AD s (Sparse a) -> AD s (Sparse a))
+    -> Uncert a
+    -> Uncert a
+    -> Uncert a
+liftU2 f x y = liftUF (\(V2 x' y') -> f x' y') (V2 x y)
+
+liftU3
+    :: Fractional a
+    => (forall s. AD s (Sparse a) -> AD s (Sparse a) -> AD s (Sparse a) -> AD s (Sparse a))
+    -> Uncert a
+    -> Uncert a
+    -> Uncert a
+    -> Uncert a
+liftU3 f x y z = liftUF (\(V3 x' y' z') -> f x' y' z') (V3 x y z)
+~~~
+
+At this point, we're officially done.  We can fill in the other two-argument
+functions:
+
+~~~haskell
+(+)     = liftU2 (+)
+(*)     = liftU2 (*)
+(/)     = liftU2 (/)
+(**)    = liftU2 (**)
+logBase = liftU2 logBase
+~~~
+
+Admittedly, there's still some slight boilerplate (that you can get rid of with
+some Template Haskell, maybe), but you have a *lot* less room for error, and a
+lot simpler to check over and read to make sure you didn't miss any bugs.  And
+at this point, we are done!
 
 <!-- ~~~haskell -->
 <!-- 46 +/- 2 -->
