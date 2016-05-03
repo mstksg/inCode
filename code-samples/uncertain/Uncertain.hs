@@ -46,11 +46,8 @@ liftU f (Un x vx) = Un y vy
 
 diag :: [[a]] -> [a]
 diag = \case []        -> []
-             []   :yss -> diag (drop1 <$> yss)
-             (x:_):yss -> x : diag (drop1 <$> yss)
-  where
-    drop1 []     = []
-    drop1 (_:zs) = zs
+             []   :yss -> diag (drop 1 <$> yss)
+             (x:_):yss -> x : diag (drop 1 <$> yss)
 
 dot :: Num a => [a] -> [a] -> a
 xs `dot` ys = sum (zipWith (*) xs ys)
