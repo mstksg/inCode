@@ -78,8 +78,8 @@ play with it.  This article was written under snapshot [lts-5.15][]!
 [linear]: http://hackage.haskell.org/package/linear
 [lts-5.15]: https://www.stackage.org/lts-5.15
 
-Certain Uncertainty
--------------------
+Dealing with Uncertainty Precisely
+----------------------------------
 
 First of all, let's think about why adding two "uncertain" values doesn't
 involve simply adding the uncertainties linearly.  (If you don't care about the
