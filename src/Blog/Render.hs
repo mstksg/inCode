@@ -102,7 +102,6 @@ renderLayout pd@PD{..} body =
               , "/css/main.css" ]
     jsList =  [ "//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"
               , "//s7.addthis.com/js/300/addthis_widget.js#pubid=" <> devAddThis confDeveloperAPIs
-              , "/js/common.js"
               ]
     allCss = map renderUrl $ cssList ++ pageDataCss
     allJs  = map renderUrl $ jsList  ++ pageDataJs
