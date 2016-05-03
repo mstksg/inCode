@@ -14,7 +14,7 @@
     }
 
     > br {
-      :first-child, :last-child {
+      &:first-child, &:last-child {
         display: none;
       }
     }
