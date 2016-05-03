@@ -144,9 +144,7 @@ Algebraic Data Type, of course! [^adt]
 [^adt]: What else were you expecting!
 
 ~~~haskell
-data Uncert a = Un { uMean :: !a
-                   , uVar  :: !a
-                   }
+!!!uncertain/Uncertain.hs "data Uncert"
 ~~~
 
 We'll keep track of the mean (the central point) and the *variance*, which is
@@ -157,8 +155,7 @@ straightforward.
 We can write a function to turn a "plus or minus" statement into an `Uncert`:
 
 ~~~haskell
-(+/-) :: Num a => a -> a -> Uncert a
-x +/- dx = Un x (dx*dx)
+!!!uncertain/Uncertain.hs "(+/-) ::"
 ~~~
 
 Give the `dx` (the standard deviation) and store `dx^2`, the variance.
@@ -166,8 +163,7 @@ Give the `dx` (the standard deviation) and store `dx^2`, the variance.
 Let's also throw in a handy helper function for "exact" values:
 
 ~~~haskell
-exact :: Num a => a -> Uncert a
-exact x = x +/- 0
+!!!uncertain/Uncertain.hs "exact ::"
 ~~~
 
 But, we can do better.  We can use pattern synonyms to basically "abstract"
@@ -175,10 +171,7 @@ away the data type itself, and let people "pattern match" on a mean and
 standard deviation:
 
 ~~~haskell
-pattern (:+/-) :: () => Floating a => a -> a -> Uncert a
-pattern x :+/- dx <- Un x (sqrt->dx)
-  where
-    x :+/- dx = Un x (dx*dx)
+!!!uncertain/Uncertain.hs "pattern (:+/-)"
 ~~~
 
 Now, people can pattern match on `x :+/- dx` and receive the mean and
@@ -289,16 +282,7 @@ vy = dfx^2 * vx
 Putting it all together:
 
 ~~~haskell
-liftU
-    :: Fractional a
-    => (forall s. AD s (Tower a) -> AD s (Tower a))
-    -> Uncert a
-    -> Uncert a
-liftU f (Un x vx) = Un y vy
-  where
-    fx:dfx:ddfx:_ = diffs0 f x
-    y             = fx + ddfx * vx / 2
-    vy            = dfx^2 * vx
+!!!uncertain/Uncertain.hs "liftU"
 ~~~
 
 The type `forall s. AD s (Tower a) -> AD s (Tower a)` looks a little scary, but
@@ -367,43 +351,20 @@ We need a couple of helpers, first --- one to get the "diagonal" of our
 hessian, because we only care about the double partials:
 
 ~~~haskell
-diag :: [[a]] -> [a]
-diag = \case []        -> []
-             []   :yss -> diag (drop1 <$> yss)
-             (x:_):yss -> x : diag (drop1 <$> yss)
-  where
-    drop1 []     = []
-    drop1 (_:zs) = zs
+!!!uncertain/Uncertain.hs "diag ::"
 ~~~
 
-And then a "dot product", which sums two `Foldable`s component-wise and adds the
+And then a "dot product", which sums two lists component-wise and adds the
 results:
 
 ~~~haskell
-dot :: (Foldable t, Num a) => t a -> t a -> a
-xs `dot` ys = sum (zipWith (*) (toList xs) (toList ys))
+!!!uncertain/Uncertain.hs "dot ::"
 ~~~
 
 And now we can write our multi-variate function lifter:
 
 ~~~haskell
-liftUF
-    :: (Traversable f, Fractional a)
-    => (forall s. f (AD s (Sparse a)) -> AD s (Sparse a))
-    -> f (Uncert a)
-    -> Uncert a
-liftUF f us = Un y vy
-  where
-    xs          = uMean <$> us
-    vxs         = uVar  <$> us
-    (fx, hgrad) = hessian' f xs
-    dfxs        = fst <$> hgrad
-    hess        = snd <$> hgrad
-    y           = fx + partials / 2
-      where
-        partials = dot vxsL . diag
-                 $ toList (fmap toList hess))
-    vy          = vxs `dot` ((^2) <$> dfxs)
+!!!uncertain/Uncertain.hs "liftUF"
 ~~~
 
 (Again, don't mind the scary type `forall s. f (AD s (Sparse a)) -> AD s (Sparse a)`,
@@ -412,22 +373,7 @@ it's just *ad*'s type for things you can use `hessian'` on)
 And we can write some nice helper functions so we can use them more easily:
 
 ~~~haskell
-liftU2
-    :: Fractional a
-    => (forall s. AD s (Sparse a) -> AD s (Sparse a) -> AD s (Sparse a))
-    -> Uncert a
-    -> Uncert a
-    -> Uncert a
-liftU2 f x y = liftUF (\(V2 x' y') -> f x' y') (V2 x y)
-
-liftU3
-    :: Fractional a
-    => (forall s. AD s (Sparse a) -> AD s (Sparse a) -> AD s (Sparse a) -> AD s (Sparse a))
-    -> Uncert a
-    -> Uncert a
-    -> Uncert a
-    -> Uncert a
-liftU3 f x y z = liftUF (\(V3 x' y' z') -> f x' y' z') (V3 x y z)
+!!!uncertain/Uncertain.hs "liftU2" "liftU3"
 ~~~
 
 At this point, we're officially done.  We can fill in the other two-argument
@@ -443,8 +389,10 @@ logBase = liftU2 logBase
 
 Admittedly, there's still some slight boilerplate (that you can get rid of with
 some Template Haskell, maybe), but you have a *lot* less room for error, and a
-lot simpler to check over and read to make sure you didn't miss any bugs.  And
-at this point, we are done!
+lot simpler to check over and read to make sure you didn't miss any bugs.
+
+Wrapping it up
+--------------
 
 <!-- ~~~haskell -->
 <!-- 46 +/- 2 -->
@@ -453,6 +401,5 @@ at this point, we are done!
 <!-- 0.78 +/- 0.02 -->
 <!-- 83 +/- 6 -->
 <!-- ~~~ -->
-
 
 
