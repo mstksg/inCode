@@ -60,6 +60,24 @@ their derivatives and gradients.
 
 [ad]: http://hackage.haskell.org/package/ad
 
+You can follow along with [the source code][source], which is actually a
+*[stack][]* executable!  If you download the source and you have *[stack][]*
+installed, you can run it as an executable:
+
+[stack]: http://haskellstack.org
+!!![source]:uncertain/Uncertain.hs
+
+~~~bash
+$ ./Uncertain.hs
+~~~
+
+Otherwise, you can run it directly with stack (using `runhaskell`) and the
+[linear][] and [ad][] packages installed.  This article was written under
+snapshot [lts-5.15][]!
+
+[linear]: http://hackage.haskell.org/package/linear
+[lts-5.15]: https://www.stackage.org/lts-5.15
+
 Certain Uncertainty
 -------------------
 
