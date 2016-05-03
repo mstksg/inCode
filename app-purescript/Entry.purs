@@ -175,7 +175,7 @@ instance monoidLS :: Monoid LinkSpec where
 processCodeBlocks
     :: forall e.
        D.Document
-    -> Eff (dom :: D.DOM, console :: CONSOLE | e) Unit
+    -> Eff (dom :: D.DOM | e) Unit
 processCodeBlocks doc = do
     blks <- D.querySelectorAll ".main-content code.sourceCode"
               $ D.documentToParentNode doc
@@ -192,7 +192,7 @@ processCodeBlocks doc = do
     pullLinkSpec
         :: D.Node
         -> D.Element
-        -> WriterT LinkSpec (Eff (dom :: D.DOM, console :: CONSOLE | e)) Unit
+        -> WriterT LinkSpec (Eff (dom :: D.DOM | e)) Unit
     pullLinkSpec blk line = do
       let lineN = D.elementToNode line
       linec <- liftEff $ D.textContent lineN
@@ -208,7 +208,9 @@ processCodeBlocks doc = do
                    , Tuple "-- interactive: " Right
                    ]
     chompWhitespace :: forall e'. D.Node -> Eff (dom :: D.DOM | e') Unit
-    chompWhitespace blk = go
+    chompWhitespace blk = do
+        go
+        chompLast
       where
         go = do
           fc' <- toMaybe <$> D.firstChild blk
@@ -217,7 +219,12 @@ processCodeBlocks doc = do
             when isWhitespace do
               D.removeChild fc blk
               go
-    genLinkBox :: LinkSpec -> D.Node -> Eff (dom :: D.DOM, console :: CONSOLE | e) Unit
+        chompLast = do
+          fc' <- toMaybe <$> D.firstChild blk
+          for_ fc' \fc -> do
+            tc <- dropWhile isSpace <$> D.textContent fc
+            D.setTextContent tc fc
+    genLinkBox :: LinkSpec -> D.Node -> Eff (dom :: D.DOM | e) Unit
     genLinkBox (LS s) blk = void <<< runMaybeT $ do
       _   <- maybe empty return $ s.source <|> s.interactive
       pre <- nMaybeT $ D.parentNode blk
@@ -250,13 +257,13 @@ processCodeBlocks doc = do
             DDTL.remove ["hide"] cList
           onE D.mouseleave preET <<< D.eventListener $ \_ ->
             DDTL.add ["hide"] cList
-    colorPrompt :: D.Node -> Eff (dom :: D.DOM, console :: CONSOLE | e) Unit
+    colorPrompt :: D.Node -> Eff (dom :: D.DOM | e) Unit
     colorPrompt blk = void <<< runMaybeT $ do
       fc   <- nMaybeT $ D.firstChild blk
       pr   <- nMaybeT $ D.parentElement blk
       liftEff $ do
         tc <- D.textContent fc
-        let isPrompt = A.mapMaybe (_ `stripPrefix` tc) ["λ", "ghci"]
+        let isPrompt = A.mapMaybe (_ `stripPrefix` tc) ["λ", "ghci", "$"]
         case L.toList isPrompt of
           L.Cons _ _ -> DDTL.add ["code-block-prompt"] =<< D.classList pr
           L.Nil      -> return unit
