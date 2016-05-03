@@ -103,9 +103,7 @@ expect such alignment.  So, you'll get an uncertainty that's *less than* $\pm
 
 In general, we find that for *independent* $X$ and $Y$:
 
-$$
-\operatorname{Var}[aX + bY + c] = a^2 \sigma_X^2 + b^2 \sigma_Y^2
-$$
+$$\operatorname{Var}[aX + bY + c] = a^2 \sigma_X^2 + b^2 \sigma_Y^2$$
 
 Where $\sigma_X^2$ is the variance in $X$.  We consider $\sigma_X$ to be the
 standard deviation of $X$, or the "plus or minus" part of our numbers.  In the
@@ -122,9 +120,7 @@ function as a linear approximation -- the [Taylor Expansion][]!
 In general, we can attempt to approximate any well-behaving function as its
 tangent hyperplane:
 
-$$
-f(x_0 + x, y_0 + y) \approx f_x(x_0, y_0) x + f_y(x_0, y_0) y + f(x_0, y_0)
-$$
+$$f(x_0 + x, y_0 + y) \approx f_x(x_0, y_0) x + f_y(x_0, y_0) y + f(x_0, y_0)$$
 
 Where $f_x(x_0,y_0)$ is the first (partial) derivative with respect to $x$ at $(x_0,
 y_0)$.
@@ -132,16 +128,13 @@ y_0)$.
 Look familiar?  This is exactly the form that we used earlier to calculate
 "combined" variance!
 
-$$
-\operatorname{Var}[f(X,Y)] \approx f_x(\mu_X, \mu_Y)^2 \sigma_X^2 + f_y(\mu_X,\mu_Y)^2 \sigma_Y^2
-$$
+$$\operatorname{Var}[f(X,Y)] \approx f_x(\mu_X, \mu_Y)^2 \sigma_X^2 + f_y(\mu_X,\mu_Y)^2 \sigma_Y^2$$
 
 
 A similar analysis can be used to figure out how the expected value changes by
 taking the taylor expansion to the *second* degree:
 
-$$
-\operatorname{E}[f(X,Y)] \approx
+$$\operatorname{E}[f(X,Y)] \approx
 f(\mu_X, \mu_Y) +
 \frac{1}{2} f_{xx}(\mu_X, \mu_Y) \sigma_X^2 +
 \frac{1}{2} f_{yy}(\mu_X, \mu_Y) \sigma_Y^2
@@ -282,13 +275,9 @@ function we lift, `f`, around the mean `x`.
 
 At that point, the equations we have from before just translate nicely:
 
-$$
-\operatorname{E}[f(X)] = f(\mu_X) + \frac{1}{2} f_{xx}(\mu_X) \sigma_X^2
-$$
+$$\operatorname{E}[f(X)] = f(\mu_X) + \frac{1}{2} f_{xx}(\mu_X) \sigma_X^2$$
 
-$$
-\operatorname{Var}[f(X)] = f_x(\mu_X)^2 \sigma_X^2
-$$
+$$\operatorname{Var}[f(X)] = f_x(\mu_X)^2 \sigma_X^2$$
 
 And we call $\mu_X$ `x` and $\sigma_X^2$ `vx`, and this becomes:
 
