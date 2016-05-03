@@ -101,7 +101,7 @@ with a "little bit above" 25 error, would you really get something that is $\pm
 expect such alignment.  So, you'll get an uncertainty that's *less than* $\pm
 7$.  In fact, it'll actually be around $\pm 5$.
 
-In general, we find that, for *independent* $X$ and $Y$:
+In general, we find that for *independent* $X$ and $Y$:
 
 $$
 \operatorname{Var}[aX + bY + c] = a^2 \sigma_X^2 + b^2 \sigma_Y^2
@@ -463,10 +463,10 @@ mentioned above, which is pretty straightforward to implement with the
 
 [mwc-random]: http://hackage.haskell.org/package/mwc-random
 
-However, the weirdest caveat here is that we never deal with what happened to
-terms that are correlated.  All of our math assumed uncorrelated samples.  But
-what happens if we have expressions that involve additions of correlated
-values?
+However, the most disturbing thing here that we never deal with is what happens
+correlated terms that are combined.  All of our math assumed uncorrelated
+samples.  But what happens if we have expressions that involve additions of
+correlated values?
 
 For example:
 
