@@ -9,7 +9,7 @@ packages:
 - '.'
 - location:
     git: git@github.com:mstksg/jle-utils.git
-    commit: 51bdaa4b19c037cbb107dd43638a35289431d2d6
+    commit: 6f44ee9fc3bae6a780d96a87ae239ea755bc4d53
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
 extra-deps:
 - hakyll-sass-0.2.0
