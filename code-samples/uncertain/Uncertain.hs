@@ -30,6 +30,9 @@ pattern x :+/- dx <- Un x (sqrt->dx)
   where
     x :+/- dx = Un x (dx*dx)
 
+uStdev :: Floating a => Uncert a -> a
+uStdev (_ :+/- dx) = dx
+
 liftU
     :: Fractional a
     => (forall s. AD s (Tower a) -> AD s (Tower a))

@@ -185,7 +185,7 @@ Let's also throw in a handy helper function for "exact" values:
 ~~~
 
 But, we can do better.  We can use pattern synonyms to basically "abstract"
-away the data type itself, and let people "pattern match" on a mean and
+away the data type itself, and let people pattern match on a mean and
 standard deviation:
 
 ~~~haskell
@@ -194,6 +194,10 @@ standard deviation:
 
 Now, people can pattern match on `x :+/- dx` and receive the mean and
 uncertainty directly.  Neat!
+
+~~~haskell
+!!!uncertain/Uncertain.hs "uStdev ::"
+~~~
 
 ### Making it Numeric
 
