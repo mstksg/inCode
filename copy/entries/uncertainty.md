@@ -370,7 +370,7 @@ We can access the gradient by using `fmap fst` on the second component of the
 tuple and access the hessian by using `fmap snd`.
 
 We need a couple of helpers, first --- one to get the "diagonal" of our
-hessian, because we only care about the double partials:
+hessian, because we only care about the repeated partials:
 
 ~~~haskell
 !!!uncertain/Uncertain.hs "diag ::"
@@ -422,12 +422,17 @@ loading it with `stack ghci`.  I've added a special *Show* instance that
 "rounds" your values to as many digits that your uncertainty suggests, to give
 more meaningful `show`s.
 
-All of what's in this post is actually up on my *[uncertain][]* package, on
-hackage, if you want to use it in your own projects, or see how I take this and
-make it more robust for real-world applications.  The package also has more
-features on top of the basic things shown here.
+All of what's in this post is actually up on my *[uncertain][]* project (with
+[documentation][uncertdocs] that I'm making, if you want to use it in your own
+projects, or see how I take this and make it more robust for real-world
+applications.  The project also has more features on top of the basic things
+shown here.  You can install it using *[stack][]* by adding the github
+repository along with its latest commit hash to whatever `stack.yaml` file you
+are using.  In the future, I'll revise this part to link to my actual package
+on Hackage!
 
-[uncertain]: http://hackage.haskell.org/package/uncertain
+[uncertain]: https://github.com/mstksg/uncertain
+[uncertdocs]: http://mstksg.github.io/uncertain
 
 ### Verification and Accuracy
 
@@ -493,5 +498,5 @@ why the uncertainty is greater in the `2*x` version.
 How can we account for correlated values that are combined in complex ways?
 Stay tuned for the next part![^spoilers]
 
-[^spoilers]: Or just look at my package on hackage :)
+[^spoilers]: Or just look at my [package][uncertain] :)
 
