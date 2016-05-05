@@ -58,13 +58,13 @@ library, a library used in implementing back-propagation and other optimization
 algorithms, to analyze numerical functions in a mathematical way and break down
 their derivatives and gradients.
 
-[ad]: http://hackage.haskell.org/package/ad
+[ad]: https://hackage.haskell.org/package/ad
 
 You can follow along with [the source code][source], which is actually a
 *[stack][]* executable!  If you download the source and you have *[stack][]*
 installed, you can run it (and run the tests above) as an executable:
 
-[stack]: http://haskellstack.org
+[stack]: http://www.haskellstack.org
 !!![source]:uncertain/Uncertain.hs
 
 ~~~bash
@@ -75,7 +75,7 @@ Otherwise, you can run it directly with stack (using `runhaskell`) and the
 [linear][] and [ad][] packages installed...or load it up with `stack ghci` to
 play with it.  This article was written under snapshot [lts-5.15][]!
 
-[linear]: http://hackage.haskell.org/package/linear
+[linear]: https://hackage.haskell.org/package/linear
 [lts-5.15]: https://www.stackage.org/lts-5.15
 
 Dealing with Uncertainty Precisely
@@ -184,9 +184,9 @@ Let's also throw in a handy helper function for "exact" values:
 !!!uncertain/Uncertain.hs "exact ::"
 ~~~
 
-But, we can do better.  We can use pattern synonyms to basically "abstract"
-away the data type itself, and let people pattern match on a mean and
-standard deviation:
+But, we can do better (if just for fun).  We can use pattern synonyms to
+basically "abstract" away the data type itself, and let people pattern match on
+a mean and standard deviation:
 
 ~~~haskell
 !!!uncertain/Uncertain.hs "pattern (:+/-)"
@@ -328,7 +328,7 @@ functions, it takes a function from a `Traversable` of vales to a single value.
 We can use the `V2` type from the *[linear][]* package to pass in a
 two-variable function:
 
-[linear]: http://hackage.haskell.org/package/linear-1.20.4/docs/Linear-V2.html
+[linear]: shttp://hackage.haskell.org/package/linear/docs/Linear-V2.html
 
 ~~~haskell
 ghci> grad (\(V2 x y) -> x * y^2 + 3*x) (V2 3 1)
@@ -422,17 +422,12 @@ loading it with `stack ghci`.  I've added a special *Show* instance that
 "rounds" your values to as many digits that your uncertainty suggests, to give
 more meaningful `show`s.
 
-All of what's in this post is actually up on my *[uncertain][]* project (with
-[documentation][uncertdocs] that I'm making, if you want to use it in your own
-projects, or see how I take this and make it more robust for real-world
-applications.  The project also has more features on top of the basic things
-shown here.  You can install it using *[stack][]* by adding the github
-repository along with its latest commit hash to whatever `stack.yaml` file you
-are using.  In the future, I'll revise this part to link to my actual package
-on Hackage!
+All of what's in this post is actually up on my *[uncertain][]* package on
+hackage, if you want to use it in your own projects, or see how I take this and
+make it more robust for real-world applications.  The project also has more
+features on top of the basic things shown here.
 
-[uncertain]: https://github.com/mstksg/uncertain
-[uncertdocs]: http://mstksg.github.io/uncertain
+[uncertain]: https://hackage.haskell.org/package/uncertain
 
 ### Verification and Accuracy
 
@@ -470,7 +465,7 @@ A simple extension of this would be to implement the monte carlo simulator I
 mentioned above, which is pretty straightforward to implement with the
 *[mwc-random][]* package.
 
-[mwc-random]: http://hackage.haskell.org/package/mwc-random
+[mwc-random]: https://hackage.haskell.org/package/mwc-random
 
 However, the most disturbing thing here that we never deal with is what happens
 correlated terms that are combined.  All of our math assumed uncorrelated
