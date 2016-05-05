@@ -60,6 +60,12 @@ their derivatives and gradients.
 
 [ad]: https://hackage.haskell.org/package/ad
 
+This post and series is actually a walk through of the implementation of my
+[uncertain][] library, now on hackage!  The functionality in this library is
+offered along with more features there.
+
+[uncertain]: https://hackage.haskell.org/package/uncertain
+
 You can follow along with [the source code][source], which is actually a
 *[stack][]* executable!  If you download the source and you have *[stack][]*
 installed, you can run it (and run the tests above) as an executable:
@@ -426,8 +432,6 @@ All of what's in this post is actually up on my *[uncertain][]* package on
 hackage, if you want to use it in your own projects, or see how I take this and
 make it more robust for real-world applications.  The project also has more
 features on top of the basic things shown here.
-
-[uncertain]: https://hackage.haskell.org/package/uncertain
 
 ### Verification and Accuracy
 
