@@ -2,11 +2,17 @@
 title: Automatic Propagation of Uncertainty with AD
 categories: Haskell, Tutorials
 tags: haskell, ad, numerical methods
+series: Uncertain
 create-time: 2016/04/25 16:04:25
 date: Nothing
 identifier: uncertain
 slug: automatic-propagation-of-uncertainty-with-ad
 ---
+
+> This post and [series][] is a walk-through of the implementation of my
+> *[uncertain][]* library, now on hackage!
+
+[uncertain]: https://hackage.haskell.org/package/uncertain
 
 Some of my favorite Haskell "tricks" involve working with exotic numeric types
 with custom "overloaded" numeric functions and literals that let us work with
@@ -59,12 +65,6 @@ algorithms, to analyze numerical functions in a mathematical way and break down
 their derivatives and gradients.
 
 [ad]: https://hackage.haskell.org/package/ad
-
-This post and series is actually a walk through of the implementation of my
-[uncertain][] library, now on hackage!  The functionality in this library is
-offered along with more features there.
-
-[uncertain]: https://hackage.haskell.org/package/uncertain
 
 You can follow along with [the source code][source], which is actually a
 *[stack][]* executable!  If you download the source and you have *[stack][]*
@@ -435,8 +435,8 @@ features on top of the basic things shown here.
 
 ### Verification and Accuracy
 
-My *[uncertain][]* package has a monte carlo module to propagate uncertainty
-through monte carlo simulations.  Let's see how the values compare!
+My *[uncertain][]* package has a Monte Carlo module to propagate uncertainty
+through Monte Carlo simulations.  Let's see how the values compare!
 
 ~~~haskell
 ghci> x + y         -- Monte Carlo Results:
@@ -452,7 +452,7 @@ ghci> log (x**y)
 ~~~
 
 So, it looks like the mathematical model of uncertainty propagation matched up
-well with the "actual" results we gain from monte carlo simulations!  The only
+well with the "actual" results we gain from Monte Carlo simulations!  The only
 one of our examples that was significantly wrong was the
 $\operatorname{log}(x^y)$ example, which heavily underestimated the uncertainty
 by about a factor of 20.  But, remember, the model was derived after dropping
@@ -465,7 +465,7 @@ bit off.
 
 ### What next?
 
-A simple extension of this would be to implement the monte carlo simulator I
+A simple extension of this would be to implement the Monte Carlo simulator I
 mentioned above, which is pretty straightforward to implement with the
 *[mwc-random][]* package.
 
@@ -495,7 +495,9 @@ you sample `x` and double it, any error in `x` will also be doubled.  That's
 why the uncertainty is greater in the `2*x` version.
 
 How can we account for correlated values that are combined in complex ways?
-Stay tuned for the next part![^spoilers]
+Stay tuned for the next part of the [series][]![^spoilers]
 
 [^spoilers]: Or just look at my [package][uncertain] :)
+
+[series]: https://blog.jle.im/entries/series/+haskell-mythbusters.html
 
