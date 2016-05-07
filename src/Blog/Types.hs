@@ -140,17 +140,17 @@ instance ToJSON AuthorInfo where
 
 instance FromJSON HostInfo where
   parseJSON = A.genericParseJSON $ A.defaultOptions
-                { A.fieldLabelModifier = A.camelTo '-' . drop 4 }
+                { A.fieldLabelModifier = A.camelTo2 '-' . drop 4 }
 instance ToJSON HostInfo where
   toJSON = A.genericToJSON $ A.defaultOptions
-             { A.fieldLabelModifier = A.camelTo '-' . drop 4 }
+             { A.fieldLabelModifier = A.camelTo2 '-' . drop 4 }
 
 instance FromJSON BlogPrefs where
   parseJSON = A.genericParseJSON $ A.defaultOptions
-                { A.fieldLabelModifier = A.camelTo '-' . drop 4 }
+                { A.fieldLabelModifier = A.camelTo2 '-' . drop 4 }
 instance ToJSON BlogPrefs where
   toJSON = A.genericToJSON $ A.defaultOptions
-             { A.fieldLabelModifier = A.camelTo '-' . drop 4 }
+             { A.fieldLabelModifier = A.camelTo2 '-' . drop 4 }
 
 
 data TagType = GeneralTag | CategoryTag | SeriesTag
