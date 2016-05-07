@@ -10,7 +10,7 @@ slug: automatic-propagation-of-uncertainty-with-ad
 ---
 
 > This post and [series][] is a walk-through of the implementation of my
-> *[uncertain][]* library, now on hackage!
+> ***[uncertain][]*** library, now on hackage!
 
 [uncertain]: https://hackage.haskell.org/package/uncertain
 
@@ -499,5 +499,5 @@ Stay tuned for the next part of the [series][]![^spoilers]
 
 [^spoilers]: Or just look at my [package][uncertain] :)
 
-[series]: https://blog.jle.im/entries/series/+haskell-mythbusters.html
+[series]: https://blog.jle.im/entries/series/+uncertain.html
 
