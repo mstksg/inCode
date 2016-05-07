@@ -48,10 +48,10 @@ library
                      , data-default
                      , feed
                      , filepath
-                     , hakyll
+                     , hakyll >= 4.8
                      , hakyll-sass
-                     , hsass
                      , hjsmin
+                     , hsass
                      , mtl
                      , pandoc
                      , pandoc-types
@@ -59,6 +59,7 @@ library
                      , text
                      , time
                      , transformers
+                     , unordered-containers
                      , xml
                      , yaml
   ghc-options:         -Wall
@@ -74,7 +75,7 @@ executable blog-build
                      , containers
                      , data-default
                      , filepath
-                     , hakyll
+                     , hakyll >= 4.8
                      , hakyll-sass
                      , hjsmin
                      , hsass

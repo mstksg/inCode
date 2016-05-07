@@ -8,7 +8,6 @@
 
 module Blog.App where
 
--- import           Hakyll.Web.Redirect
 import           Blog.Compiler.Archive
 import           Blog.Compiler.Entry
 import           Blog.Compiler.Home
@@ -35,6 +34,7 @@ import           Hakyll
 import           Hakyll.Web.Sass
 import           System.FilePath
 import           Text.Jasmine
+import qualified Data.HashMap.Strict       as HM
 import qualified Data.Map                  as M
 import qualified Data.Text                 as T
 import qualified Data.Text.Lazy            as TL
@@ -259,7 +259,7 @@ app znow@(ZonedTime _ tz) = do
           $ entryCanonical' m
     routeIdEntry :: Routes
     routeIdEntry = metadataRoute $ \m ->
-        case M.lookup "entry-id" m of
+        case lookupString "entry-id" m of
           Just x  -> constRoute $ "entry/id" </> x <.> "html"
           Nothing -> mempty
     compileIdEntry
@@ -276,8 +276,8 @@ app znow@(ZonedTime _ tz) = do
         redirectCompiler $ \_ ->
           renderUrl $ T.pack canonical
     entryCanonical' :: Metadata -> Maybe FilePath
-    entryCanonical' m = asum [(<.> "html") . ("entry"</>) <$> M.lookup "slug" m
-                             ,(<.> "html") . ("entry/ident"</>) <$> M.lookup "identifier" m
+    entryCanonical' m = asum [(<.> "html") . ("entry"</>) <$> lookupString "slug" m
+                             ,(<.> "html") . ("entry/ident"</>) <$> lookupString "identifier" m
                              ]
     mkHomePages :: MonadMetadata m => Int -> [Identifier] -> m [[Identifier]]
     mkHomePages n ids = do
