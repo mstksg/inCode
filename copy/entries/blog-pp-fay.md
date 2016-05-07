@@ -1,5 +1,5 @@
 ---
-title: Blog engine updates: Markdown Preprocessor & Fay Scripts
+title: "Blog engine updates: Markdown Preprocessor & Fay Scripts"
 categories: Meta
 tags: fay, haskell
 create-time: 2014/01/27 11:12:21

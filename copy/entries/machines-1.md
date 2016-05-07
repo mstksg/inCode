@@ -1,5 +1,5 @@
 ---
-title: Intro to Machines & Arrows (Part 1: Stream and Auto)
+title: "Intro to Machines & Arrows (Part 1: Stream and Auto)"
 categories: Haskell, Ramblings
 tags: arrows, auto-machines, functional reactive programming, haskell, machines
 create-time: 2014/01/19 22:55:57

@@ -1,5 +1,5 @@
 ---
-title: Pipes: Streaming Huffman Compression in Haskell (Part 3)
+title: "Pipes: Streaming Huffman Compression in Haskell (Part 3)"
 categories: Haskell, Tutorials
 tags: haskell, pipes
 create-time: 2014/04/12 19:06:07

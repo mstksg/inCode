@@ -1,5 +1,5 @@
 ---
-title: The Hamster Hotel: An Introduction to Control Theory (Part 1)
+title: "The Hamster Hotel: An Introduction to Control Theory (Part 1)"
 categories: Engineering, Ramblings
 tags: control theory
 series: Introduction to Control Theory

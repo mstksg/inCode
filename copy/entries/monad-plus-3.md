@@ -1,8 +1,8 @@
 ---
-title: Wolf, Goat, Cabbage: The List MonadPlus & Logic Problems
+title: "Wolf, Goat, Cabbage: The List MonadPlus & Logic Problems"
 categories: Haskell, Ramblings
 tags: functional programming, haskell, monads
-series: MonadPlus: Success/Failure Monads, Practical Monads
+series: "MonadPlus: Success/Failure Monads, Practical Monads"
 create-time: 2013/12/17 13:16:07
 date: 2013/12/26 11:43:50
 identifier: monad-plus-3

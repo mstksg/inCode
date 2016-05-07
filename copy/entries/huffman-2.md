@@ -1,5 +1,5 @@
 ---
-title: Streaming Huffman Compression in Haskell (Part 2: Binary and Searches)
+title: "Streaming Huffman Compression in Haskell (Part 2: Binary and Searches)"
 categories: Haskell, Tutorials
 tags: haskell
 create-time: 2014/04/03 01:53:53

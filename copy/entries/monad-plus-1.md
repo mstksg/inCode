@@ -1,8 +1,8 @@
 ---
-title: Practical Fun with Monads --- Introducing: MonadPlus!
+title: "Practical Fun with Monads --- Introducing: MonadPlus!"
 categories: Haskell, Ramblings
 tags: functional programming, haskell, monads
-series: MonadPlus: Success/Failure Monads, Practical Monads
+series: "MonadPlus: Success/Failure Monads, Practical Monads"
 create-time: 2013/12/04 21:43:34
 date: 2013/12/09 10:09:26
 identifier: monad-plus-1

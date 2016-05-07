@@ -1,5 +1,5 @@
 ---
-title: Functional Programming is Awesome: Parser Combinators
+title: "Functional Programming is Awesome: Parser Combinators"
 categories: Haskell, Ramblings
 tags: functional programming
 create-time: 2013/11/30 22:56:45

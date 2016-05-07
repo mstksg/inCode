@@ -1,5 +1,5 @@
 ---
-title: Looking forward: A Doctorate Program
+title: "Looking forward: A Doctorate Program"
 categories: Personal
 tags: education, chapman, doctorate
 create-time: 2014/05/28 23:50:48

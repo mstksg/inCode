@@ -1,5 +1,5 @@
 ---
-title: Introducing: the Auto library!
+title: "Introducing: the Auto library!"
 categories: Haskell, Ramblings, Projects, Auto
 tags: auto, haskell
 create-time: 2015/03/24 01:02:06

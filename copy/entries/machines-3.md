@@ -1,5 +1,5 @@
 ---
-title: Effectful, Recursive, Real-World Autos: Intro to Machine/Auto Part 3
+title: "Effectful, Recursive, Real-World Autos: Intro to Machine/Auto Part 3"
 categories: Haskell, Ramblings
 tags: arrows, auto-machines, haskell, machines
 create-time: 2014/07/21 21:28:28

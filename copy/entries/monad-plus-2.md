@@ -2,7 +2,7 @@
 title: The List MonadPlus --- Practical Fun with Monads (Part 2 of 3)
 categories: Haskell, Ramblings
 tags: functional programming, haskell, monads
-series: MonadPlus: Success/Failure Monads, Practical Monads
+series: "MonadPlus: Success/Failure Monads, Practical Monads"
 create-time: 2013/12/11 21:29:37
 date: 2013/12/18 11:08:38
 identifier: monad-plus-2

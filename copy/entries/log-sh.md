@@ -1,5 +1,5 @@
 ---
-title: log.sh: Lightweight Command Line Note & Logging
+title: "log.sh: Lightweight Command Line Note & Logging"
 categories: Projects
 tags: shell scripting, utilities, unix, bash, command line
 create-time: 2013/10/11 23:50:30

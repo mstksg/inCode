@@ -1,5 +1,5 @@
 ---
-title: Shake: Task Automation and Scripting in Haskell
+title: "Shake: Task Automation and Scripting in Haskell"
 categories: Haskell, Tutorials
 tags: shake, scripting, haskell
 create-time: 2013/08/24 19:31:22

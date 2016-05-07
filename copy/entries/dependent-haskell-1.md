@@ -1,5 +1,5 @@
 ---
-title: Practical Dependent Types in Haskell: Type-Safe Neural Networks
+title: "Practical Dependent Types in Haskell: Type-Safe Neural Networks"
 categories: Haskell, Ramblings
 series: Practical Dependent Types in Haskell
 tags: functional programming, dependent types, numerical, haskell, singletons, types, linear algebra, artificial neural networks

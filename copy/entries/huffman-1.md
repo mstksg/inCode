@@ -1,5 +1,5 @@
 ---
-title: Streaming Huffman Compression in Haskell (Part 1: Trees and State)
+title: "Streaming Huffman Compression in Haskell (Part 1: Trees and State)"
 categories: Haskell, Tutorials
 tags: haskell, monads
 create-time: 2014/03/19 01:25:50

@@ -1,5 +1,5 @@
 ---
-title: Auto: Building a Declarative Chatbot with Implicit Serialization
+title: "Auto: Building a Declarative Chatbot with Implicit Serialization"
 categories: Haskell, Auto, Tutorials
 tags: auto, haskell
 create-time: 2015/03/24 18:02:54

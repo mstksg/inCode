@@ -1,5 +1,5 @@
 ---
-title: Auto: A Todo GUI application with Auto (on GHCJS, etc.)
+title: "Auto: A Todo GUI application with Auto (on GHCJS, etc.)"
 categories: Haskell, Auto, Tutorials
 tags: auto, haskell, ghcjs
 create-time: 2015/03/26 00:15:21
