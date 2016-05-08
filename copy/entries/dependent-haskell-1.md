@@ -18,12 +18,7 @@ their ubiquitousness forces programming with dependent types to be an integral
 part of regular intermediate (or even beginner) Haskell education, as much as
 Traversable or Maps.
 
-However, I feel like most "dependent typing" tutorials I see around the
-internet focus on things like proofs and theorems, instead of directly jumping
-into how they can be used to help you in your current coding now and
-integrating it into your haskell design workflow.
-
-So, the point of this post is to show some practical examples of using
+he point of this post is to show some practical examples of using
 dependent types in the real world, and to also walk through the "why" and
 high-level philosophy of the way you structure your Haskell programs.  It'll
 also hopefully instill an intuition of a dependently typed work flow of
@@ -61,69 +56,68 @@ considered premature to start off with "as powerful types as you can".  So
 we'll walk through a simple implementation *without*, and see all of the red
 flags that hint that you might want to start considering stronger types.
 
-Vanilla Types
--------------
+Edwin Brady calls this process "type-driven development".  Start general,
+recognize the partial functions and red flags, and slowly add more powerful
+types.
+
+### The Network
 
 ![Feed-forward ANN architecture](/img/entries/dependent-haskell-1/ffneural.png "Feed-forward ANN architecture")
 
 We're going to be implementing a feed-forward neural network, with
-back-propagation training.  A feed-forward neural network consists structurally
-of layers of "nodes", each connected to the each of the nodes of the previous
-layer and each of the nodes of the next layer.  The most important feature of
-the network itself is the "strength" of these connections, called "weights". To
-make a prediction, each node takes, as an input, the weighted sum of all of the
-outputs of the previous layer, weighted by the connection weights (plus an
-additional "bias" shift).  It then outputs a function of this weighted sum,
-$f(x)$, to be used by all of the nodes of the next layer.  At the high-level,
-the user feeds in an input vector to the top-level nodes, the network processes
-these layer-by-layer, and the result of the final nodes is what is taken as the
-network's output.  The "goal" of designing/training a network is to somehow
-pick the right set of weights that will give the output that you want for the
-given input.
+back-propagation training.  These networks are layers of "nodes", each
+connected to the each of the nodes of the previous layer.
 
-A picture is worth a thousand words, so the following equation demonstrates
-things nicely:
+Input goes to the first layer, which feeds information to the next year, which
+feeds it to the next, etc., until the final layer, where we read it off as the
+"answer" that the network is giving us.  Layers between the input and output
+layers are called *hidden* layers.
+
+Every node "outputs" a weighted sum of all of the outputs of the *previous*
+layer, plus an always-on "bias" term (so that its result can be non-zero even
+when all of its inputs are zero).  Mathematically, it looks like:
 
 $$
 y_j = b_j + \sum_i^m w_{ij} x_i
 $$
 
-$$
-o_j = f(y_j)
-$$
-
-
-Which says that the *j*-th result of the output vector comes from the *j_*-th
-bias term, and a sum of all of the outputs of the previous layer (the *x*-s).
-After adding the bias and previous layer's output, you apply the logistic
-function to the result.
-
-Stated as matrices and vectors, the formula for $\mathbf{y}$ looks like this:
+Or, if we treat the output of a layer and the list of list of weights as a
+matrix, we can write it a little cleaner:
 
 $$
 \mathbf{y} = \mathbf{b} + \hat{W} \mathbf{x}
 $$
 
+To "scale" the result (and to give the system the magical powers of
+nonlinearity), we actually apply an "activation function" to the output before
+passing it down to the next step.  We'll be using the popular [logistic
+function][], $f(x) = 1 / (1 + e^{-x})$.
 
-While it's nice to think about neural networks in terms of their nodes, it
-makes more sense computationally to only identify a network by simply the
-matrices of weights alone --- let's imagine one "layer", which is actually a
-matrix of weights from one layer to another:
+[logistic function]: https://en.wikipedia.org/wiki/Logistic_function
+
+*Training* a network involves picking the right set of weights to get the
+network to answer the question you want.
+
+Vanilla Types
+-------------
+
+We can store a network by storing the matrix of of weights and biases between
+each layer:
 
 ~~~haskell
 !!!dependent-haskell/NetworkUntyped.hs "data Weights"
 ~~~
 
-Now, a `Weights` linking a layer of $n$ nodes to a layer of $m$ nodes will have
-a bias vector of size $m$ (the bias shift for each of the output nodes) and a
-weight matrix of size $m \times n$.
+Now, a `Weights` linking an *n*-node layer to an *m*-node layer has an
+*m*-dimensional bias vector (one component for each output) and an *m*-by-*n*
+node weight matrix (one column for each output, one row for each input).
 
-(We're using the `Matrix` type from the awesome *[hmatrix][]* library for linear
-algebra, implemented using blas/lapack under the hood)
+(We're using the `Matrix` type from the awesome *[hmatrix][]* library for
+performant linear algebra, implemented using blas/lapack under the hood)
 
 [hmatrix]: http://hackage.haskell.org/package/hmatrix
 
-Now let's represent a feed-forward network:
+A feed-forward neural network is then just a linked list of these weights:
 
 ~~~haskell
 !!!dependent-haskell/NetworkUntyped.hs "data Network"
@@ -133,34 +127,35 @@ So a network with one input layer, two inner layers, and one output layer would
 look like:
 
 ~~~haskell
-i2h :&~ h2h :&~ O h2o
+ih :&~ hh :&~ O ho
 ~~~
 
-Where the first component is the weights from the input to the first hidden
-layer, the second is the weights from the first hidden layer to the second, and
-the final is the weights from the second hidden layer to the outputs.
+The first component is the weights from the input to first inner layer, the
+second is the weights between the two hidden layers, and the last is the
+weights between the last hidden layer and the output layer.
 
-TODO: graphs using diagrams?
+<!-- TODO: graphs using diagrams? -->
 
 We can write simple procedures, like generating random networks:
 
 ~~~haskell
-!!!dependent-haskell/NetworkUntyped.hs "randomWeights" "randomNet"
+!!!dependent-haskell/NetworkUntyped.hs "randomWeights ::" "randomNet ::"
 ~~~
 
 (`randomVector` and `uniformSample` are from the *hmatrix* library, generating
 random vectors and matrices from a random `Int` seed.  We configure them to
 generate them with numbers between -1 and 1)
 
-And now a function to "run" our network on a given input vector:
+And now a function to "run" our network on a given input vector, following the
+matrix equation we wrote earlier:
 
 ~~~haskell
-!!!dependent-haskell/NetworkUntyped.hs "logistic" "runLayer" "runNet"
+!!!dependent-haskell/NetworkUntyped.hs "logistic ::" "runLayer ::" "runNet ::"
 ~~~
 
 (`#>` is matrix-vector multiplication)
 
-TODO: examples of running
+<!-- TODO: examples of running -->
 
 If you're a normal programmer, this might seem perfectly fine.  If you are a
 Haskell programmer, you should already be having heart attacks. Let's imagine
@@ -173,21 +168,18 @@ all of the bad things that could happen:
     bad network, and things will just explode at runtime.
 
 *   How do we know the size vector the network expects?  What stops you from
-    sending in a bad vector at run-time and having everything explode?
+    sending in a bad vector at run-time?
 
 *   How do we verify that we have implemented `runLayer` and `runNet` in a way
     that they won't suddenly fail at runtime?  We write `l #> v`, but how do we
-    know that it's even correct?  We can it prove ourselves, but the compiler
-    won't help us.
+    know that it's even correct...what if we forgot to multiply something, or
+    used something in the wrong places?  We can it prove ourselves, but the
+    compiler won't help us.
 
 
 Now, let's try implementing back-propagation:
 
 ~~~haskell
-train :: Vector Double -> Vector Double -> Network -> Network
-train i o = go i
-  where
-    go :: Vector Double -> Network -> (Vector Double, Network)
-    go = undefined
+!!!dependent-haskell/NetworkUntyped.hs "train ::"
 ~~~
 

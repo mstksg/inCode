@@ -1,4 +1,3 @@
-{-# LANGUAGE RecordWildCards  #-}
 {-# LANGUAGE BangPatterns     #-}
 {-# LANGUAGE FlexibleContexts #-}
 
@@ -18,6 +17,7 @@ data Weights = W { wBiases :: !(Vector Double)
 data Network = O !Weights
              | !Weights :&~ !Network
   deriving (Show, Eq)
+
 infixr 5 :&~
 
 logistic :: Double -> Double
@@ -40,9 +40,9 @@ randomWeights :: MonadRandom m => Int -> Int -> m Weights
 randomWeights i o = do
     s1 <- getRandom
     s2 <- getRandom
-    let wBiases = randomVector s1 Uniform o * 2 - 1
-        wNodes  = uniformSample s2 o (replicate i (-1, 1))
-    return W{..}
+    let wB = randomVector s1 Uniform o * 2 - 1
+        wN = uniformSample s2 o (replicate i (-1, 1))
+    return $ W wB wN
 
 randomNet :: MonadRandom m => Int -> [Int] -> Int -> m Network
 randomNet i [] o     =     O <$> randomWeights i o
