@@ -20,7 +20,8 @@ Traversable or Maps.
 
 However, I feel like most "dependent typing" tutorials I see around the
 internet focus on things like proofs and theorems, instead of directly jumping
-into how they can be used to help you in your current coding now.
+into how they can be used to help you in your current coding now and
+integrating it into your haskell design workflow.
 
 So, the point of this post is to show some practical examples of using
 dependent types in the real world, and to also walk through the "why" and
@@ -28,8 +29,8 @@ high-level philosophy of the way you structure your Haskell programs.  It'll
 also hopefully instill an intuition of a dependently typed work flow of
 "exploring" how dependent types can help your current programs.
 
-The first project in this series will build up to type-safe **[artificial neural
-network][ann]** implementations.  Hooray!
+The first project in this series will build up to type-safe **[artificial
+neural network][ann]** implementations.  Hooray!
 
 [ann]: https://en.wikipedia.org/wiki/Artificial_neural_network
 
