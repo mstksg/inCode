@@ -10,7 +10,10 @@ import           Blog.Types
 import           Control.Exception
 import           Data.Time.LocalTime
 import           Hakyll
-import qualified Data.Yaml                    as Y
+import qualified Data.Text.Encoding  as T
+import qualified Data.Text.IO        as T
+import qualified Data.Yaml           as Y
+import qualified Data.Yaml.Pretty    as Y
 
 main :: IO ()
 main = do
@@ -20,6 +23,6 @@ main = do
                 =<< Y.decodeFileEither "config/site-data.yaml"
     let ?config = c
 
-    print c
+    T.putStrLn $ T.decodeUtf8 (Y.encodePretty Y.defConfig c)
 
     hakyll $ app znow
