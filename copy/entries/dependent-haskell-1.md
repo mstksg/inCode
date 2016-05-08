@@ -177,6 +177,8 @@ all of the bad things that could happen:
     compiler won't help us.
 
 
+### Back-propagation
+
 Now, let's try implementing back-propagation:
 
 ~~~haskell
