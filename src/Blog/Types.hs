@@ -12,17 +12,18 @@ module Blog.Types where
 import           Control.Applicative
 import           Control.Monad
 import           Data.Aeson
-import           Data.Binary.Orphans  ()
+import           Data.Binary.Orphans ()
 import           Data.Char
 import           Data.Default
+import           Data.Monoid
 import           Data.Time.LocalTime
 import           Data.Typeable
 import           GHC.Generics
-import qualified Data.Aeson.Types     as A
-import qualified Data.Binary          as B
-import qualified Data.Map             as M
-import qualified Data.Text            as T
-import qualified Text.Blaze.Html5     as H
+import qualified Data.Aeson.Types    as A
+import qualified Data.Binary         as B
+import qualified Data.Map            as M
+import qualified Data.Text           as T
+import qualified Text.Blaze.Html5    as H
 
 
 data Config = Config
@@ -57,6 +58,23 @@ instance FromJSON Config where
       confEnvType       <- v .:  "development"
       return Config{..}
     parseJSON _ = mzero
+instance ToJSON Config where
+    toJSON Config{..} = object $ [ "title"           .=  confTitle
+                                 , "description"     .=  confDesc
+                                 , "author"          .=  confAuthorInfo
+                                 , "copyright"       .=  confCopyright
+                                 , "feed"            .=  confFeed
+                                 , "developer-apis"  .=  confDeveloperAPIs
+                                 , "preferences"     .=  confBlogPrefs
+                                 , "development"     .=  confEnvType
+                                 ]
+                      <> mconcat [ "public-blobs"    .=? confBlobs
+                                 , "code-samples"    .=? confCodeSamples
+                                 , "interactive-url" .=? confInteractive
+                                 ]
+      where
+        r .=? (Just v) = [r .= v]
+        r .=? Nothing  = []
 
 data EnvType = ETDevelopment | ETProduction
   deriving (Show, Eq, Ord, Enum)
