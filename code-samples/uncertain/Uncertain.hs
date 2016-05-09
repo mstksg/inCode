@@ -50,7 +50,7 @@ diag = \case []        -> []
              (x:_):yss -> x : diag (drop 1 <$> yss)
 
 dot :: Num a => [a] -> [a] -> a
-xs `dot` ys = sum (zipWith (*) xs ys)
+dot xs ys = sum (zipWith (*) xs ys)
 
 liftUF
     :: (Traversable f, Fractional a)
@@ -66,9 +66,11 @@ liftUF f us = Un y vy
     hess        = snd <$> hgrad
     y           = fx + partials / 2
       where
-        partials = (vxs `dot`) . diag
+        partials = dot vxs
+                 . diag
                  $ toList (fmap toList hess)
-    vy          = vxs `dot` toList ((^2) <$> dfxs)
+    vy          = dot vxs
+                $ toList ((^2) <$> dfxs)
 
 liftU2
     :: Fractional a
