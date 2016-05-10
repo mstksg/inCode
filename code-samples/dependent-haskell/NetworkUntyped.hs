@@ -7,6 +7,7 @@ import Data.List
 import Data.Maybe
 import Numeric.LinearAlgebra
 import System.Environment
+import Numeric.AD
 import Text.Read
 
 data Weights = W { wBiases :: !(Vector Double)

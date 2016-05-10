@@ -23,10 +23,9 @@ often deal with experimental/sampled values with inherent uncertainty.  If you
 ever measure something to be $12.4\,\mathrm{cm}$, that doesn't mean it's
 $12.400000\,\mathrm{cm}$ --- it means that it's somewhere between
 $12.3\,\mathrm{cm}$ and $12.5\,\mathrm{cm}$...and we don't know exactly.  We
-can write it as $12.4 \pm 0.1\,\mathrm{cm}$.
-
-The interesting thing happens when we try to add, multiply, divide numbers with
-uncertainty.  What happens when you "add" $12 \pm 3$ and $19 \pm 6$?
+can write it as $12.4 \pm 0.1\,\mathrm{cm}$.  The interesting thing happens
+when we try to add, multiply, divide numbers with uncertainty.  What happens
+when you "add" $12 \pm 3$ and $19 \pm 6$?
 
 The initial guess might be $27 \pm 9$, because one is $\pm 3$ and the other is
 $\pm 6$.  But!  If you actually do experiments like this several times, you'll

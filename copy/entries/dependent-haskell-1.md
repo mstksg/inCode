@@ -18,7 +18,7 @@ their ubiquitousness forces programming with dependent types to be an integral
 part of regular intermediate (or even beginner) Haskell education, as much as
 Traversable or Maps.
 
-he point of this post is to show some practical examples of using
+The point of this post is to show some practical examples of using
 dependent types in the real world, and to also walk through the "why" and
 high-level philosophy of the way you structure your Haskell programs.  It'll
 also hopefully instill an intuition of a dependently typed work flow of
@@ -179,7 +179,7 @@ all of the bad things that could happen:
 
 ### Back-propagation
 
-Now, let's try implementing back-propagation:
+Now, let's try implementing back-propagation!  It's a basic "gradient descent"
 
 ~~~haskell
 !!!dependent-haskell/NetworkUntyped.hs "train ::"
