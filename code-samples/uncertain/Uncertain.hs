@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --resolver lts-5.14 --install-ghc runghc --package linear --package ad
+-- stack --resolver lts-5.15 --install-ghc runghc --package linear --package ad
 
 {-# LANGUAGE LambdaCase      #-}
 {-# LANGUAGE PatternSynonyms #-}

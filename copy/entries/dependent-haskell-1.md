@@ -180,8 +180,101 @@ all of the bad things that could happen:
 ### Back-propagation
 
 Now, let's try implementing back-propagation!  It's a basic "gradient descent"
+algorithm.  There are [many explanations][backprop] on the internet; the basic
+idea is that you try to minimize the squared "error" of what the neural network
+outputs for a given input vs. the actual expected output.  You find the
+direction of change that minimizes the error, and move that direction.  The
+implementation of Feed-forward backpropagation is found in many sources online
+and in literature, so let's see the implementation in Haskell:
+
+[backprop]: https://en.wikipedia.org/wiki/Backpropagation
 
 ~~~haskell
-!!!dependent-haskell/NetworkUntyped.hs "train ::"
+!!!dependent-haskell/NetworkUntyped.hs "train"
 ~~~
+
+Where `logistic'` is the derivative of `logistic`.  The algorithm computes the
+*updated* network by recursively updating the layers, from the output layer all
+the way up to the input layer.  At every step it returns the updated
+layer/network, as well as a bundle of derivatives for the next layer to use to
+calculate its descent direction.  At the output layer, all it needs to
+calculate the direction of descent is just `o - targ`, the target.  At the
+inner layers, it has to use the `dWs` bundle to figure it out.
+
+Writing this is a bit of a struggle.  The type system doesn't help you like it
+normally does in Haskell, and you can't really use parametricity to help you
+write your code like normal Haskell.  Everything is monomorphic, and everything
+multiplies with everything else.  You don't have any hits about what to
+multiply with what at any point in time.  Seeing the implementation here
+basically amplifies and puts on displays all of the red flags/awfulness
+mentioned before.
+
+In short, you're leaving yourself open to many potential bugs...and the
+compiler doesn't help you write your code at all!  This is the nightmare of
+every Haskell programmer.  There must be a better way!
+
+
+#### Tests
+
+Pretty much the only way you can verify this code is to test it out on example
+cases.  In the [source file][NetworkUntyped] I have `main` test out the
+backprop, training a network on a 2D function that was "on" for two small
+circles and "off" everywhere else.  We basically train the network to be able
+to recognize the two-circle pattern.  I implemented a simple printing function
+and tested the trained network on a grid:
+
+!!![NetworkUntyped]:dependent-haskell/NetworkUntyped.hs
+
+~~~bash
+$ stack install hmatrix MonadRandom
+$ stack ghc -- -O2 ./NetworkUntyped.hs
+$ ./NetworkUntyped.hs
+# Training network...
+# 
+# 
+#            .=########=
+#          .##############.
+#          ################
+#          ################
+#          .##############-
+#            .###########
+#                 ...             ...
+#                             -##########.
+#                           -##############.
+#                           ################
+#                           ################
+#                            =############=
+#                              .#######=.
+# 
+# 
+~~~
+
+Not too bad!  But, I was basically forced to resort to unit testing to ensure
+my code was correct.  Let's see if we can do better.
+
+### The Call of Types
+
+Before we go on to the "typed" version of our program, let's take a step back
+and look at some big checks you might want to ask yourself after you write code
+in Haskell.
+
+1.  Are any of my functions partial, or implemented using partial functions?
+    (And, how am I sure they won't fail?)
+2.  How could I have written things that are *incorrect*, and yet still
+    type check?  (And, how am I sure that the way that *I* implemented it is
+    the correct one?)
+
+Both of these questions usually yield some truth about the code you write and
+the things you should worry about.  As a Haskeller, they should always be at
+the back of your mind!
+
+Looking back at our untyped implementation, we notice some things:
+
+1.  Literally every single function we wrote is partial.  If we had passed in
+    the incorrectly sized matrix/vector, or stored mismatched vectors in our
+    network, everything would fall apart.
+2.  There are literally billions of ways we could have implemented our
+    functions where they would still typechecked.  We could multiply mismatched
+    matrices, or forget to multiply a matrix by another, etc.
+
 
