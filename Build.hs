@@ -1,3 +1,6 @@
+#!/usr/bin/env stack
+-- stack --install-ghc runghc --package shake --package jle-utils --package lens
+
 import Control.Lens hiding        ((<.>))
 import Control.Lens.Cons
 import Control.Monad.IO.Class
