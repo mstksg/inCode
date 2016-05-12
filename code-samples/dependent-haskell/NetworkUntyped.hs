@@ -14,15 +14,16 @@ import Numeric.LinearAlgebra
 import System.Environment
 import Text.Read
 
-data Weights = W { wBiases :: !(Vector Double)
-                 , wNodes  :: !(Matrix Double)
-                 }
-  deriving (Show, Eq)
+data Weights = W { wBiases :: !(Vector Double)  -- m
+                 , wNodes  :: !(Matrix Double)  -- m x n
+                 }                              -- "n to m" layer
 
 data Network :: * where
-    O     :: !Weights -> Network
-    (:&~) :: !Weights -> !Network -> Network
-  deriving (Show, Eq)
+    O     :: !Weights
+          -> Network
+    (:&~) :: !Weights
+          -> !Network
+          -> Network
 infixr 5 :&~
 
 logistic :: Floating a => a -> a

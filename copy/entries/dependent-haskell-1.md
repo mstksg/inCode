@@ -29,20 +29,20 @@ neural network][ann]** implementations.  Hooray!
 
 [ann]: https://en.wikipedia.org/wiki/Artificial_neural_network
 
-There are other great tutorials I'd recommend online if you want to explore
-dependent types in Haskell further, including [this great servant
-"tutorial"][servtut].  Also, I should provide a disclaimer --- I'm also
-currently exploring all of this as I'm going along too. It's a wild world out
-there.  Join me and let's be a part of the frontier!
+<!-- There are other great tutorials I'd recommend online if you want to explore -->
+<!-- dependent types in Haskell further, including [this great servant -->
+<!-- "tutorial"][servtut].  Also, I should provide a disclaimer --- I'm also -->
+<!-- currently exploring all of this as I'm going along too. It's a wild world out -->
+<!-- there.  Join me and let's be a part of the frontier! -->
 
-[servtut]: http://www.well-typed.com/blog/2015/11/implementing-a-minimal-version-of-haskell-servant/
+<!-- [servtut]: http://www.well-typed.com/blog/2015/11/implementing-a-minimal-version-of-haskell-servant/ -->
 
 Neural Networks
 ---------------
 
 [Artificial neural networks][ann] have been somewhat of a hot topic in
 computing recently.  At their core they involve matrix multiplication and
-manipulation, so they do seem like a good candidate for a dependent types. Most
+manipulation, so they do seem like a good candidate for a dependent types.  Most
 importantly, implementations of training algorithms (like back-propagation) are
 tricky to implement correctly --- despite being simple, there are many
 locations where accidental bugs might pop up when multiplying the wrong
@@ -53,8 +53,8 @@ matrices, for example.
 However, it's not always easy to gauge before-the-fact what would or would not
 be a good candidate for adding dependent types to, and often times, it can be
 considered premature to start off with "as powerful types as you can".  So
-we'll walk through a simple implementation *without*, and see all of the red
-flags that hint that you might want to start considering stronger types.
+let's walk through programming things with as "dumb" types as possible, and see
+where types can help.
 
 Edwin Brady calls this process "type-driven development".  Start general,
 recognize the partial functions and red flags, and slowly add more powerful
@@ -71,11 +71,10 @@ connected to the each of the nodes of the previous layer.
 Input goes to the first layer, which feeds information to the next year, which
 feeds it to the next, etc., until the final layer, where we read it off as the
 "answer" that the network is giving us.  Layers between the input and output
-layers are called *hidden* layers.
-
-Every node "outputs" a weighted sum of all of the outputs of the *previous*
-layer, plus an always-on "bias" term (so that its result can be non-zero even
-when all of its inputs are zero).  Mathematically, it looks like:
+layers are called *hidden* layers.  Every node "outputs" a weighted sum of all
+of the outputs of the *previous* layer, plus an always-on "bias" term (so that
+its result can be non-zero even when all of its inputs are zero). Symbolically,
+it looks like:
 
 $$
 y_j = b_j + \sum_i^m w_{ij} x_i
@@ -85,7 +84,7 @@ Or, if we treat the output of a layer and the list of list of weights as a
 matrix, we can write it a little cleaner:
 
 $$
-\mathbf{y} = \mathbf{b} + \hat{W} \mathbf{x}
+\mathbf{y} = \mathbf{b} + W \mathbf{x}
 $$
 
 To "scale" the result (and to give the system the magical powers of
@@ -123,8 +122,11 @@ A feed-forward neural network is then just a linked list of these weights:
 !!!dependent-haskell/NetworkUntyped.hs "data Network"
 ~~~
 
-So a network with one input layer, two inner layers, and one output layer would
-look like:
+Note that we're using [GADT][] syntax here, which just lets us define `Network`
+by providing the type of its *constructors*, `O` and `(:&~)`.  A network with
+one input layer, two inner layers, and one output layer would look like:
+
+[GADT]: https://en.wikibooks.org/wiki/Haskell/GADT
 
 ~~~haskell
 ih :&~ hh :&~ O ho
@@ -219,9 +221,10 @@ every Haskell programmer.  There must be a better way!
 Pretty much the only way you can verify this code is to test it out on example
 cases.  In the [source file][NetworkUntyped] I have `main` test out the
 backprop, training a network on a 2D function that was "on" for two small
-circles and "off" everywhere else.  We basically train the network to be able
-to recognize the two-circle pattern.  I implemented a simple printing function
-and tested the trained network on a grid:
+circles and "off" everywhere else (A nice cute non-linearly-separable
+function to test our network on).  We basically train the network to be able to
+recognize the two-circle pattern.  I implemented a simple printing function and
+tested the trained network on a grid:
 
 !!![NetworkUntyped]:dependent-haskell/NetworkUntyped.hs
 
@@ -230,8 +233,8 @@ $ stack install hmatrix MonadRandom
 $ stack ghc -- -O2 ./NetworkUntyped.hs
 $ ./NetworkUntyped.hs
 # Training network...
-# 
-# 
+#
+#
 #            .=########=
 #          .##############.
 #          ################
@@ -245,8 +248,8 @@ $ ./NetworkUntyped.hs
 #                           ################
 #                            =############=
 #                              .#######=.
-# 
-# 
+#
+#
 ~~~
 
 Not too bad!  But, I was basically forced to resort to unit testing to ensure
@@ -259,10 +262,9 @@ and look at some big checks you might want to ask yourself after you write code
 in Haskell.
 
 1.  Are any of my functions partial, or implemented using partial functions?
-    (And, how am I sure they won't fail?)
 2.  How could I have written things that are *incorrect*, and yet still
-    type check?  (And, how am I sure that the way that *I* implemented it is
-    the correct one?)
+    type check?  Where does the compiler *not* help me by restricting my
+    choices?
 
 Both of these questions usually yield some truth about the code you write and
 the things you should worry about.  As a Haskeller, they should always be at
@@ -270,11 +272,101 @@ the back of your mind!
 
 Looking back at our untyped implementation, we notice some things:
 
-1.  Literally every single function we wrote is partial.  If we had passed in
+1.  Almost every single function we wrote is partial.  If we had passed in
     the incorrectly sized matrix/vector, or stored mismatched vectors in our
     network, everything would fall apart.
 2.  There are literally billions of ways we could have implemented our
     functions where they would still typechecked.  We could multiply mismatched
-    matrices, or forget to multiply a matrix by another, etc.
+    matrices, or forget to multiply a matrix, etc.
 
+With Static Types
+-----------------
 
+Gauging our potential problems, it seems like the first major class of bugs we
+can address is improperly sized and incompatible matrices.  If the compiler
+always made sure we used compatible matrices, we can avoid bugs at
+compile-time, and we also can get a friendly helper when we write programs.
+
+Let's write a `Weights` type that tells you the size of its output and the
+input it expects.  Let's have, say, a `Weights 10 5` be a set of weights that
+takes you from a layer of 10 nodes to a layer of 5 nodes.  `w : Weights 4 6`
+would take you from a layer of 4 nodes to a layer of 6 nodes:
+
+~~~haskell
+!!!dependent-haskell/NetworkTyped.hs "data Weights"
+~~~
+
+We're using the `Numeric.LinearAlgebra.Static` module from *[hmatrix][]*, which
+offers matrix and vector types with their size in their types: an `R 5` is a
+vector of Doubles with 5 elements, and a `L 3 6` is a 3x6 vector of Doubles.
+
+The `Static` module relies on the `KnownNat` mechanism that GHC offers.  A
+`KnownNat n` constraint is pretty much a way for you to "get" the value at
+runtime, so a `KnownNat n => R n` is basically a vector "packaged" with its
+size via `KnownNat n`.  Almost all operations in the library require a
+`KnownNat` constraint.
+
+A reasonable type for a network might be `Network 10 2`, taking 10 inputs and
+popping out 2 outputs.  This might be an ideal type to export, because it
+abstracts away the size of the hidden layers.  But it'd be nice for us to keep
+all of the hidden layers in the type for now --- we'll see how it can be
+useful, and we'll also talk about how to later hide/abstract it away when we
+export the type.
+
+Our network type can be something like `Network 10 '[7,5,3] 2`: Take 10 inputs,
+return 2 outputs.  And internally, have hidden layers of size 7, 5, and 3. (The
+`'[7,5,3]` is a type-level list of Nats; the optional `'` apostrophe is just
+for our own benefit to distinguish it from a value-level list of integers.)
+
+~~~haskell
+!!!dependent-haskell/NetworkTyped.hs "data Network"
+~~~
+
+We use GADT syntax here again, but let's go over the two constructors.
+
+*   The `O` constructor takes a `Weights i o` and returns a `Network i '[] o`.
+    That is, if your network is just weights from `i` inputs to `o` outputs,
+    your network itself just takes `i` inputs and returns `o` outputs.
+
+*   The `(:&~)` constructor takes a `Network h hs o` -- a network with `h`
+    inputs and `o` outputs -- and "conses" an extra input layer in front.  If
+    you give it a `Weights i h`, its outputs fit perfectly into the inputs of
+    the subnetwork, and you get a `Network i hs o`.
+
+    We add a `KnownNat` constraint on the `h`, so that whenever you pattern
+    match on `w :&~ net`, you automatically get a `KnownNat` constraint for the
+    input size of `net` that you can use.
+
+We can still construct them the same way:
+
+~~~haskell
+ho :: Weights  4 2
+hh :: Weights  7 4
+ih :: Weights 10 7
+
+O ho                    :: Network  4 '[] 2
+hh :&~ O ho             :: Network  7 '[4] 2
+ih :&~ hh :&~ O ho      :: Network 10 '[7,4] 2
+~~~
+
+Note that the shape of the constructors requires all of the weight vectors to
+"fit together"  Now if we ever pattern match on `:&~`, we know that the
+resulting matrices and vectors are compatible!
+
+Note that this approach is also self-documenting.  I don't need to specify what
+the dimensions are in the docs and trust the users to read it.  The types tell
+them!  And if they don't listen, they get a compiler error!
+
+Generating random weights and networks is even nicer now:
+
+~~~haskell
+!!!dependent-haskell/NetworkTyped.hs "randomWeights ::" "randomNet ::"
+~~~
+
+Notice that the `Static` versions of `randomVector` and `uniformSample` don't
+actually require the size of the vector/matrix you want as an input -- they
+just use type inference to figure out what size you want!  This is the same
+process that `read` uses to figure out what type of thing you want to return.
+You would use `randomVector s Uniform :: R 10`, and type inference would give
+you a 10-element vector the same way `read "hello" :: Int` would give you an
+`Int`.

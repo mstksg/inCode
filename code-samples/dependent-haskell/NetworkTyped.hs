@@ -22,7 +22,6 @@ import Text.Read
 data Weights i o = W { wBiases :: !(R o)
                      , wNodes  :: !(L o i)
                      }
-deriving instance (KnownNat i, KnownNat o) => Show (Weights i o)
 
 data Network :: Nat -> [Nat] -> Nat -> * where
     O     :: !(Weights i o)
