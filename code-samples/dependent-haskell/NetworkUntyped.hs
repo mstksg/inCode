@@ -3,6 +3,8 @@
 
 {-# LANGUAGE BangPatterns     #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs            #-}
+{-# LANGUAGE KindSignatures   #-}
 
 import Control.Monad
 import Control.Monad.Random
@@ -17,8 +19,9 @@ data Weights = W { wBiases :: !(Vector Double)
                  }
   deriving (Show, Eq)
 
-data Network = O !Weights
-             | !Weights :&~ !Network
+data Network :: * where
+    O     :: !Weights -> Network
+    (:&~) :: !Weights -> !Network -> Network
   deriving (Show, Eq)
 infixr 5 :&~
 
@@ -50,18 +53,13 @@ randomNet :: MonadRandom m => Int -> [Int] -> Int -> m Network
 randomNet i [] o     =     O <$> randomWeights i o
 randomNet i (h:hs) o = (:&~) <$> randomWeights i h <*> randomNet h hs o
 
-train
-    :: Double           -- ^ learning rate
-    -> Vector Double    -- ^ input vector
-    -> Vector Double    -- ^ target vector
-    -> Network          -- ^ network to train
-    -> Network
+train :: Double           -- ^ learning rate
+      -> Vector Double    -- ^ input vector
+      -> Vector Double    -- ^ target vector
+      -> Network          -- ^ network to train
+      -> Network
 train rate x0 target = fst . go x0
   where
-    -- | Recursively trains the network, starting from the outer layer and
-    -- building up to the input layer.  Returns the updated network as well
-    -- as the list of derivatives to use for calculating the gradient at
-    -- the next layer up.
     go  :: Vector Double    -- ^ input vector
         -> Network          -- ^ network to train
         -> (Network, Vector Double)
@@ -126,6 +124,4 @@ main = do
                             )
 
 (!!?) :: [a] -> Int -> Maybe a
-[]     !!? _ = Nothing
-(x:_ ) !!? 0 = Just x
-(x:xs) !!? n = xs !!? (n - 1)
+xs !!? i = listToMaybe (drop i xs)

@@ -190,7 +190,7 @@ and in literature, so let's see the implementation in Haskell:
 [backprop]: https://en.wikipedia.org/wiki/Backpropagation
 
 ~~~haskell
-!!!dependent-haskell/NetworkUntyped.hs "train"
+!!!dependent-haskell/NetworkUntyped.hs "train ::"
 ~~~
 
 Where `logistic'` is the derivative of `logistic`.  The algorithm computes the
