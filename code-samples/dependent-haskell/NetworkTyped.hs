@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --resolver lts-5.15 --install-ghc runghc --package hmatrix --package MonadRandom
+-- stack --resolver lts-5.15 --install-ghc runghc --package hmatrix --package MonadRandom --package typelits-witnesses
 
 {-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE DataKinds           #-}
@@ -84,21 +84,28 @@ train rate x0 target = fst . go x0
     go !x (O w@(W wB wN))
         = let y    = runLayer w x
               o    = logistic y
+              -- the gradient (how much y affects the error)
               dEdy = logistic' y * (o - target)
+              -- new bias weights and node weights
               wB'  = wB - konst rate * dEdy
               wN'  = wN - konst rate * (dEdy `outer` x)
               w'   = W wB' wN'
+              -- bundle of derivatives for next step
               dWs  = tr wN #> dEdy
           in  (O w', dWs)
     go !x (w@(W wB wN) :&~ n)
         = let y          = runLayer w x
               o          = logistic y
+              -- get dWs', bundle of derivatives from rest of the net
               (n', dWs') = go o n
+              -- the gradient (how much y affects the error)
               dEdy       = logistic' y * dWs'
-              wB'        = wB - konst rate * dEdy
-              wN'        = wN - konst rate * (dEdy `outer` x)
-              w'         = W wB' wN'
-              dWs        = tr wN #> dEdy
+              -- new bias weights and node weights
+              wB'  = wB - konst rate * dEdy
+              wN'  = wN - konst rate * (dEdy `outer` x)
+              w'   = W wB' wN'
+              -- bundle of derivatives for next step
+              dWs  = tr wN #> dEdy
           in  (w' :&~ n', dWs)
 
 netTest :: MonadRandom m => Double -> Int -> m String

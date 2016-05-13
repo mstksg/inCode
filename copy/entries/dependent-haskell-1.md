@@ -211,20 +211,21 @@ calculate its descent direction.  At the output layer, all it needs to
 calculate the direction of descent is just `o - targ`, the target.  At the
 inner layers, it has to use the `dWs` bundle to figure it out.
 
-Writing this is a bit of a struggle.  The type system doesn't help you like it
-normally does in Haskell, and you can't really use parametricity to help you
-write your code like normal Haskell.  Everything is monomorphic, and everything
-multiplies with everything else.  You don't have any hits about what to
-multiply with what at any point in time.  Seeing the implementation here
-basically amplifies and puts on displays all of the red flags/awfulness
-mentioned before.
+Writing this is a bit of a struggle.  Truth be told, I implemented this
+incorrectly several times before writing it now as you see here.  The type
+system doesn't help you like it normally does in Haskell, and you can't really
+use parametricity to help you write your code like normal Haskell.  Everything
+is monomorphic, and everything multiplies with everything else.  You don't have
+any hits about what to multiply with what at any point in time.  Seeing the
+implementation here basically amplifies and puts on displays all of the red
+flags/awfulness mentioned before.
 
 In short, you're leaving yourself open to many potential bugs...and the
 compiler doesn't help you write your code at all!  This is the nightmare of
 every Haskell programmer.  There must be a better way!
 
 
-#### Tests
+#### Putting it to the test
 
 Pretty much the only way you can verify this code is to test it out on example
 cases.  In the [source file][NetworkUntyped] I have `main` test out the
@@ -345,7 +346,10 @@ hidden layers, and output sizes).  Let's go over the two constructors.
 *   The `(:&~)` constructor takes a `Network h hs o` -- a network with `h`
     inputs and `o` outputs -- and "conses" an extra input layer in front.  If
     you give it a `Weights i h`, its outputs fit perfectly into the inputs of
-    the subnetwork, and you get a `Network i hs o`.
+    the subnetwork, and you get a `Network i (h ': hs) o`.  (`(':)`, or `(:)`,
+    is the same as normal `(:)`, but is for type-level lists.  The apostrophe
+    is optional here too, but it's just nice to be able to visually distinguish
+    the two)
 
     We add a `KnownNat` constraint on the `h`, so that whenever you pattern
     match on `w :&~ net`, you automatically get a `KnownNat` constraint for the
@@ -393,22 +397,22 @@ flipped the parameters?), or gave the wrong parameter to the vector generator.
 
 But here, you are guaranteed/forced to return the correctly sized vectors and
 matrices.  In fact, you *don't even have to worry* about it --- it's handled
-automatically by the magic of type inference! (take *that*,
-Idris![^idris-inference])  I consider this a very big victory.  One of the
-whole points of types is to give you less to "worry about", as a programmer.
-Here, we completely eliminate an *entire dimension* of programmer concern.
+automatically by the magic of type inference!  I consider this a very big
+victory.  One of the whole points of types is to give you less to "worry
+about", as a programmer. Here, we completely eliminate an *entire dimension* of
+programmer concern.
 
-[^idris-inference]: Just kidding :)
+### Singletons and Induction
 
-### Singletons and Induction detour
+The code for the updated `randomNet` takes a bit of background to understand,
+so let's take a quick detour through singletons and induction in data types.
 
-The code for the updated `randomNet` takes a bit of explaining.
-
-Let's say we want to construct a `Network 4 '[3,2] 1`.  In true Haskell fashion,
-we do this recursively ("inductively").   After all, we know how to make a
-`Network i '[] o` (just `O <$> randomWieights`), and we know how to create a
-`Network i (h ': hs) o` if we had a `Network h hs o`.  Now all we have to do is
-just "pattern match" on the type-level list, and...
+Let's say we want to construct a `Network 4 '[3,2] 1` by implementing an
+algorithm that can create any `Network i hs o`.  In true Haskell fashion, we do
+this recursively ("inductively").   After all, we know how to make a `Network i
+'[] o` (just `O <$> randomWieights`), and we know how to create a `Network i (h
+': hs) o` if we had a `Network h hs o`.  Now all we have to do is just "pattern
+match" on the type-level list, and...
 
 Oh wait.  We can't directly pattern match on lists like that in Haskell.  But
 what we *can* do is move the list from the type level to the value level using
@@ -417,7 +421,6 @@ for just this job.  If you have a type level list of nats, you get a `KnowNats
 ns` constraint.  This lets you create a `NatList`:
 
 [typelits-witnesses]: http://hackage.haskell.org/package/typelits-witnesses
-
 
 ~~~haskell
 data NatList :: [Nat] -> * where
@@ -445,8 +448,9 @@ Proxy :<# Proxy :<# Proxy :<# ØNL
 ~~~
 
 Now that we have an actual value-level *structure* (the list of `Proxy`s), we
-can now "pattern match" on `hs` --- if it's empty, we'll get the
-`ØNL` constructor, otherwise we'll get the `(:<#)` constructor, etc:
+can now essentially "pattern match" on `hs`, the type --- if it's empty, we'll
+get the `ØNL` constructor when we use `natList`, otherwise we'll get the
+`(:<#)` constructor, etc.
 
 ~~~haskell
 !!!dependent-haskell/NetworkTyped.hs "randomNet ::"
@@ -458,16 +462,17 @@ can say `NatList hs` in the function body.)
 The reason why `NatList` and `:<#` works for this is that its constructors
 *come with proofs* that the head's type has a `KnownNat` and the tail's type
 has a `KnownNats`.  It's a part of the GADT declaration.  If you ever pattern
-match on `p :<# ns`, you get a `KnownNat n` constraint for the `Proxy n` (that
-`randomWeights`) uses, and also a `KnownNats ns` constraint (that the recursive
-call to `randomNet` uses).
+match on `p :<# ns`, you get a `KnownNat n` constraint for the `p :: Proxy n`
+(that `randomWeights`) uses, and also a `KnownNats ns` constraint (that the
+recursive call to `randomNet` uses).  We just need the constraints, not the
+proxy/etc. themselves, so we can just match on `_ :<# _`.
 
 This is a common pattern in dependent Haskell: "building up" a value-level
-*structure* from a type (often implemented with typeclasses) and then
-inductively piggybacking on that structure's constructors to build the thing
-you *really* want (called "elimination").  Here, we use `KnownNats hs` to build
-our `NatList hs` structure, and use that structure to create our `Network i hs
-o`.
+*structure* from a type (often done through typeclasses like `KnownNats`) and
+then inductively piggybacking on that structure's constructors to build the
+thing you *really* want (called "elimination").  Here, we use `KnownNats hs` to
+build our `NatList hs` structure, and use/"eliminate" that structure to create
+our `Network i hs o`.
 
 Along the way, the singletons and the typeclasses and the types play an
 intricate dance.  `randomWeights` needed a `KnownNat` constraint.  Where did it
@@ -486,7 +491,9 @@ sometimes it helps to think of it in the way we just did --- the instance
 *itself* is actually a "thing" that gets passed around through typeclasses and
 GADT constructors/deconstructors.  The `KnownNat` *instance* gets put *into*
 `:<#` by `natList`, and is then taken *out* in the pattern match so that
-`randomWeights` can use it.
+`randomWeights` can use it.  (When we match on `_ :<# _`, we really are saying
+that we don't care about the normal contents --- we just want the typeclass
+instances that the constructor gives us!)
 
 At a high-level, you can see that this is really no different than just having
 a plain old `Integer` that you "put in" to the constructor (as an extra field),
@@ -502,12 +509,106 @@ of run-time checks.
 
 ### Running with it
 
-So now, you can use `randomNet :: IO (Network 5 '[4] 2)` to get a random
-network of the desired dimensions!  Much simpler than before, right?
+So now, you can use `randomNet :: IO (Network 5 '[4,3] 2)` to get a random
+network of the desired dimensions!
 
-The code for running the nets is more or less identical:
+Can we just pause right here to just appreciate how awesome it is that we can
+generate random networks of whatever size we want by *just requesting something
+by its type*?
+
+And also, our implementation is *guarunteed* to have the right sized
+matrices...no worrying about using the right size parameters for the right
+matrix in the right oder.  GHC does it for you automatically!
+
+The code for *running* the nets is actually literally identical:
 
 ~~~haskell
 !!!dependent-haskell/NetworkTyped.hs "runLayer ::" "runNet ::"
 ~~~
+
+But now, we get the assurance that the matrices and vectors all fit each-other,
+at compile-time.  GHC basically writes our code for us.
+
+Our back-prop algorithm is ported pretty nicely too:
+
+~~~haskell
+!!!dependent-haskell/NetworkTyped.hs "train ::"
+~~~
+
+It's pretty much an exact copy-and-paste, but now with GHC checking to make
+sure everything fits together in our implementation.
+
+One thing that's hard for me to convey here without walking through the
+implementation step-by-step is how much the types *help you* in writing this
+code.
+
+Before starting writing a back-prop implementation, I'd probably be a bit
+concerned.  I mentioned earlier that writing the untyped version was no fun at
+all.
+
+But, with the types, writing the implementation became a *joy* again.  And, you
+have the help of *hole driven development*, too.
+
+The basic thought process goes like this:
+
+1.  "I need an `R n`...how do I get it?"
+
+    "Oh!  I have an `L n m` and an `R m`, I can just multiply them!"
+
+2.  "I need something of *this* type...how can I make it?"
+
+    "Ah, there's only one possible way to get this."  Parametric polymorphism
+    to the rescue.
+
+3.  "I need to multiply this with *something*...but what?"
+
+    "Oh, if I just leave a `_` hole there, GHC will actually tell me
+    *everything in scope* that can fit there!"
+
+The more you can restrict the implementations of your functions with your
+types, the more of a joy programming in Haskell is.  Things fit together and
+fall together before your eyes...and the best part is that if they're wrong,
+the compiler will nudge you gently into the correct direction.
+
+The most stressful part of programming happens when you have to tenuously hold
+a complex and fragile network of ideas and constraint in your brain, and any
+slight distraction or break in focus causes everything to crash down in your
+mind.  Over time, people have began to associate this state with "good
+programming" and normalize it.  Don't believe this lie --- it's not!  A good
+programming experience involves maintaining as *little* in your head as
+possible, and letting the compiler handle remembering/checking the rest!
+
+#### The final test
+
+You can download the [typed network][NetworkTyped] source code and run it
+yourself.  Again, the `main` method is written identically to that of the other
+file, and tests the identical function.
+
+!!![NetworkTyped]:dependent-haskell/NetworkTyped.hs
+
+~~~bash
+$ stack install hmatrix MonadRandom typelits-witnesses
+$ stack ghc -- -O2 ./NetworkTyped.hs
+$ ./NetworkTyped
+# Training network...
+#
+#
+#             -#########-
+#           -#############=
+#          -###############-
+#          =###############=
+#           ##############=.
+#            .##########=.
+#                               .==#=-
+#                            -###########-
+#                           =##############.
+#                          .###############=
+#                           =##############-
+#                            =############-
+#                              -######=-.
+#
+#
+~~~
+
+
 
