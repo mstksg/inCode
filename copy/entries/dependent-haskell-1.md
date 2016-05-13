@@ -29,14 +29,6 @@ neural network][ann]** implementations.  Hooray!
 
 [ann]: https://en.wikipedia.org/wiki/Artificial_neural_network
 
-<!-- There are other great tutorials I'd recommend online if you want to explore -->
-<!-- dependent types in Haskell further, including [this great servant -->
-<!-- "tutorial"][servtut].  Also, I should provide a disclaimer --- I'm also -->
-<!-- currently exploring all of this as I'm going along too. It's a wild world out -->
-<!-- there.  Join me and let's be a part of the frontier! -->
-
-<!-- [servtut]: http://www.well-typed.com/blog/2015/11/implementing-a-minimal-version-of-haskell-servant/ -->
-
 Neural Networks
 ---------------
 
@@ -126,8 +118,9 @@ A feed-forward neural network is then just a linked list of these weights:
 ~~~
 
 Note that we're using [GADT][] syntax here, which just lets us define `Network`
-by providing the type of its *constructors*, `O` and `(:&~)`.  A network with
-one input layer, two inner layers, and one output layer would look like:
+(with a kind signature, `*`) by providing the type of its *constructors*, `O`
+and `(:&~)`.  A network with one input layer, two inner layers, and one output
+layer would look like:
 
 [GADT]: https://en.wikibooks.org/wiki/Haskell/GADT
 
@@ -173,12 +166,12 @@ imagine all of the bad things that could happen:
 
 *   How do we even know that each subsequent matrix in the network is
     "compatible"?   We want the outputs of one matrix to line up with the
-    inputs of the next, but there's no way to know unless we have "smart
-    constructors" to check while we add things.  But it's possible to build a
+    inputs of the next, but there's no way to know.  It's possible to build a
     bad network, and things will just explode at runtime.
 
-*   How do we know the size vector the network expects?  What stops you from
-    sending in a bad vector at run-time?
+*   How do we know the size of vector the network expects?  What stops you from
+    sending in a bad vector at run-time?  We might do runtime-checks, but the
+    compiler won't help us.
 
 *   How do we verify that we have implemented `runLayer` and `runNet` in a way
     that they won't suddenly fail at runtime?  We write `l #> v`, but how do we
@@ -189,13 +182,14 @@ imagine all of the bad things that could happen:
 
 ### Back-propagation
 
-Now, let's try implementing back-propagation!  It's a basic "gradient descent"
+Now, let's try implementing back-propagation!  It's a textbook gradient descent
 algorithm.  There are [many explanations][backprop] on the internet; the basic
 idea is that you try to minimize the squared "error" of what the neural network
 outputs for a given input vs. the actual expected output.  You find the
-direction of change that minimizes the error, and move that direction.  The
-implementation of Feed-forward backpropagation is found in many sources online
-and in literature, so let's see the implementation in Haskell:
+direction of change that minimizes the error (by finding the derivative), and
+move that direction.  The implementation of Feed-forward backpropagation is
+found in many sources online and in literature, so let's see the implementation
+in Haskell:
 
 [backprop]: https://en.wikipedia.org/wiki/Backpropagation
 
@@ -210,14 +204,13 @@ the next layer to use to calculate its descent direction.  At the output layer,
 all it needs to calculate the direction of descent is just `o - targ`, the
 target.  At the inner layers, it has to use the `dWs` bundle to figure it out.
 
-Writing this is a bit of a struggle.  Truth be told, I implemented this
-incorrectly several times before writing it now as you see here.  The type
-system doesn't help you like it normally does in Haskell, and you can't really
-use parametricity to help you write your code like normal Haskell.  Everything
-is monomorphic, and everything multiplies with everything else.  You don't have
-any hits about what to multiply with what at any point in time.  Seeing the
-implementation here basically amplifies and puts on displays all of the red
-flags/awfulness mentioned before.
+Writing this is a bit of a struggle.  I actually implemented this incorrectly
+several times before writing it as you see here.  The type system doesn't help
+you like it normally does in Haskell, and you can't really use parametricity to
+help you write your code like normal Haskell.  Everything is monomorphic, and
+everything multiplies with everything else.  You don't have any hits about what
+to multiply with what at any point in time.  It's like all of the bad things
+mentioned before, but amplified.
 
 In short, you're leaving yourself open to many potential bugs...and the
 compiler doesn't help you write your code at all!  This is the nightmare of
@@ -260,8 +253,9 @@ $ ./NetworkUntyped
 #
 ~~~
 
-Not too bad!  But, I was basically forced to resort to unit testing to ensure
-my code was correct.  Let's see if we can do better.
+Not too bad!  The network learned to recognize the circles.  But, I was
+basically forced to resort to unit testing to ensure my code was correct.
+Let's see if we can do better.
 
 ### The Call of Types
 
@@ -280,12 +274,13 @@ the back of your mind!
 
 Looking back at our untyped implementation, we notice some things:
 
-1.  Almost every single function we wrote is partial.  If we had passed in
-    the incorrectly sized matrix/vector, or stored mismatched vectors in our
-    network, everything would fall apart.
-2.  There are literally billions of ways we could have implemented our
-    functions where they would still typechecked.  We could multiply mismatched
-    matrices, or forget to multiply a matrix, etc.
+1.  Literally every single function we wrote is partial.  (Okay, maybe not
+    *literally* every, but almost every)  If we had passed in the incorrectly sized
+    matrix/vector, or stored mismatched vectors in our network, everything would
+    fall apart.
+2.  There are billions of ways we could have implemented our functions where
+    they would still typechecked.  We could multiply mismatched matrices, or
+    forget to multiply a matrix, etc.
 
 With Static Types
 -----------------
@@ -295,7 +290,8 @@ With Static Types
 Gauging our potential problems, it seems like the first major class of bugs we
 can address is improperly sized and incompatible matrices.  If the compiler
 always made sure we used compatible matrices, we can avoid bugs at
-compile-time, and we also can get a friendly helper when we write programs.
+compile-time, and we also can get a friendly helper when we write programs (by
+knowing what works with what, and what we need were)
 
 Let's write a `Weights` type that tells you the size of its output and the
 input it expects.  Let's have, say, a `Weights 10 5` be a set of weights that
@@ -313,16 +309,9 @@ vector of Doubles with 5 elements, and a `L 3 6` is a 3x6 vector of Doubles.
 The `Static` module relies on the `KnownNat` mechanism that GHC offers.  Almost
 all operations in the library require a `KnownNat` constraint on the type-level
 Nats --- for example, you can take the dot product of two vectors with `dot ::
-KnownNat n => R n -> R n`.  The `KnownNat` constraint allows the functions to
-*use* the information in the size parameter (the `Integer` it represents) at
-run-time.  (More on this later!)
-
-Following this, a reasonable type for a *network* might be `Network 10 2`,
-taking 10 inputs and popping out 2 outputs.  This might be an ideal type to
-export, because it abstracts away the size of the hidden layers.  But it'd be
-nice for us to keep all of the hidden layers in the type for now --- we'll see
-how it can be useful, and we'll also talk about how to later hide/abstract it
-away when we export the type.
+KnownNat n => R n -> R n -> Double`.  The `KnownNat` constraint allows the
+functions to *use* the information in the size parameter (the `Integer` it
+represents) at run-time.  (More on this later!)
 
 Our network type for this post will be something like `Network 10 '[7,5,3] 2`:
 Take 10 inputs, return 2 outputs --- and internally, have hidden layers of size
@@ -335,9 +324,9 @@ list of integers.)
 ~~~
 
 We use GADT syntax here again.  The *kind signature* of the type constructor
-means that the `Network` type constructor takes three inputs: a `Nat` (type
-level number, like `10` or `5`), list of `Nat`s, and another `Nat` (the input,
-hidden layers, and output sizes).  Let's go over the two constructors.
+means that the `Network` type constructor takes three inputs: a `Nat`
+(type-level numeral, like `10` or `5`), list of `Nat`s, and another `Nat` (the
+input, hidden layers, and output sizes).  Let's go over the two constructors.
 
 *   The `O` constructor takes a `Weights i o` and returns a `Network i '[] o`.
     That is, if your network is just weights from `i` inputs to `o` outputs,
@@ -371,12 +360,15 @@ ih :&~ hh :&~ O ho      :: Network 10 '[7,4] 2
 ~~~
 
 Note that the shape of the constructors requires all of the weight vectors to
-"fit together"  Now if we ever pattern match on `:&~`, we know that the
+"fit together".  `ih :&~ O ho` would be a type error (feeding a 7-output layer
+to a 4-input layer).  Now, if we ever pattern match on `:&~`, we know that the
 resulting matrices and vectors are compatible!
 
 One neat thing is that this approach is also self-documenting.  I don't need to
-specify what the dimensions are in the docs and trust the users to read it.
-The types tell them!  And if they don't listen, they get a compiler error!
+specify what the dimensions are in the docs and trust the users to read it and
+obey it. The types tell them!  And if they don't listen, they get a compiler
+error!  (You should, of course, still provide reasonable documentation.  But,
+in this case, the compiler actually enforces your documentation's statements!)
 
 Generating random weights and networks is even nicer now:
 
@@ -398,22 +390,26 @@ flipped the parameters?), or gave the wrong parameter to the vector generator.
 
 But here, you are guaranteed/forced to return the correctly sized vectors and
 matrices.  In fact, you *don't even have to worry* about it --- it's handled
-automatically by the magic of type inference!  I consider this a very big
+automatically by the magic of type inference[^hindley]!  I consider this a very big
 victory.  One of the whole points of types is to give you less to "worry
 about", as a programmer. Here, we completely eliminate an *entire dimension* of
 programmer concern.
 
+[^hindley]: Thank you based Hindley-Milner.
+
 ### Singletons and Induction
 
 The code for the updated `randomNet` takes a bit of background to understand,
-so let's take a quick detour through singletons and induction in data types.
+so let's take a quick detour through the concepts of singletons and induction
+on data types.
 
 Let's say we want to construct a `Network 4 '[3,2] 1` by implementing an
 algorithm that can create any `Network i hs o`.  In true Haskell fashion, we do
 this recursively ("inductively").   After all, we know how to make a `Network i
 '[] o` (just `O <$> randomWieights`), and we know how to create a `Network i (h
-': hs) o` if we had a `Network h hs o`.  Now all we have to do is just "pattern
-match" on the type-level list, and...
+': hs) o` if we had a `Network h hs o` (just use `(:&~)` with a
+`randomWeights`).  Now all we have to do is just "pattern match" on the
+type-level list, and...
 
 Oh wait.  We can't directly pattern match on lists like that in Haskell.  But
 what we *can* do is move the list from the type level to the value level using
@@ -458,14 +454,14 @@ get the `ØNL` constructor when we use `natList`, otherwise we'll get the
 ~~~
 
 (Note that we need `ScopedTypeVariables` and explicit `forall` so that
-can say `NatList hs` in the function body.)
+can say `NatList hs` in the body of the declaration.)
 
 The reason why `NatList` and `:<#` works for this is that its constructors
-*come with proofs* that the head's type has a `KnownNat` and the tail's type
-has a `KnownNats`.  It's a part of the GADT declaration.  If you ever pattern
-match on `p :<# ns`, you get a `KnownNat n` constraint (that `randomWeights`
-uses) for the `p :: Proxy n`, and also a `KnownNats ns` constraint (that the
-recursive call to `randomNet` uses).
+*come with "proofs"* that the head's type has a `KnownNat` constraint and the
+tail's type has a `KnownNats` one.  It's a part of the GADT declaration.  If
+you ever pattern match on `p :<# ns`, you get a `KnownNat n` constraint (that
+`randomWeights` uses) for the `p :: Proxy n`, and also a `KnownNats ns`
+constraint (that the recursive call to `randomNet` uses).
 
 This is a common pattern in dependent Haskell: "building up" a value-level
 singleton *structure* from a type that we want (often done through typeclasses
@@ -481,18 +477,18 @@ intricate dance.  `randomWeights` needed a `KnownNat` constraint.  Where did it
 #### On Typeclasses
 
 `natList` uses the `KnownNat n` to construct the `NatList ns` (because any time
-you use `(:<#)`, you need a `KnownNat`).  Then, when you pattern match on the
-`(:<#)` in `randomNet`, you "release" the `KnownNat n` that was stuffed in
-there by `natList`.
+you use `(:<#)`, you have/need a `KnownNat` instance in scope).  Then, when you
+pattern match on the `(:<#)` in `randomNet`, you "release" the `KnownNat n`
+that was stuffed in there by `natList`.
 
 People say that pattern matching on `(:<#)` gives you a "context" in that
 case-statement-branch where `KnownNat n` is in scope and satisfied.  But
 sometimes it helps to think of it in the way we just did --- the instance
-*itself* is actually a "thing" that gets passed around through typeclasses and
-GADT constructors/deconstructors.  The `KnownNat` *instance* gets put *into*
-`:<#` by `natList`, and is then taken *out* in the pattern match so that
+*itself* is actually a "thing" that gets passed around through GADT
+constructors/deconstructors.  The `KnownNat` *instance* gets put *into* `:<#`
+by `natList`, and is then taken *out* in the pattern match so that
 `randomWeights` can use it.  (When we match on `_ :<# _`, we really are saying
-that we don't care about the normal contents --- we just want the typeclass
+that we don't care about the "normal" contents --- we just want the typeclass
 instances that the constructor is hiding!)
 
 At a high-level, you can see that this is really no different than just having
@@ -501,7 +497,7 @@ and which you then take out if you pattern match on it.  Really, every time you
 see `KnownNat n => ..`, you can think of it as an `Integer -> ..` (because all
 the typeclass is is a way to get an `Integer` out of it with `natVal`).
 `(:<#)` requiring a `KnownNat n =>` put into it is really the same as requiring
-an `Integer` in it, which the pattern-matcher can then take out.
+an `Integer` in it, which the act of pattern-matching can then take out.
 
 The difference is that GHC and the compiler can now "track" these at
 compile-time to give you rudimentary checks on how your Nat's act together on
@@ -515,13 +511,11 @@ network of the desired dimensions!
 
 Can we just pause right here to just appreciate how awesome it is that we can
 generate random networks of whatever size we want by *just requesting something
-by its type*?
+by its type*?  Our implementation is also *guaranteed* to have the right sized
+matrices...no worrying about using the right size parameters for the right
+matrix in the right oder.  GHC does it for you automatically!
 
-Our implementation is also *guaranteed* to have the right sized matrices...no
-worrying about using the right size parameters for the right matrix in the
-right oder.  GHC does it for you automatically!
-
-The code for *running* the nets is actually literally identical:
+The code for *running* the nets is actually literally identical from before:
 
 ~~~haskell
 !!!dependent-haskell/NetworkTyped.hs "runLayer ::" "runNet ::"
@@ -529,7 +523,8 @@ The code for *running* the nets is actually literally identical:
 
 But now, we get the assurance that the matrices and vectors all fit each-other,
 at compile-time.  GHC basically writes our code for us.  The operations all
-demand vectors and matrices that "fit together":
+demand vectors and matrices that "fit together", so you can only ever multiply
+a matrix by a properly sized vector.
 
 ~~~haskell
 (+)  :: KnownNat n
@@ -541,7 +536,9 @@ logistic :: KnownNat n
          => R n -> R n
 ~~~
 
-So you can only ever multiply a matrix by a properly sized vector!
+The source code is the same from before, so there isn't any extra overhead in
+annotation.  The correctness proofs and guarantees basically come without any
+extra work --- they're free!
 
 Our back-prop algorithm is ported pretty nicely too:
 
@@ -549,8 +546,8 @@ Our back-prop algorithm is ported pretty nicely too:
 !!!dependent-haskell/NetworkTyped.hs "train ::"
 ~~~
 
-It's pretty much an exact copy-and-paste, but now with GHC checking to make
-sure everything fits together in our implementation.
+It's pretty much again an exact copy-and-paste, but now with GHC checking to
+make sure everything fits together in our implementation.
 
 One thing that's hard for me to convey here without walking through the
 implementation step-by-step is how much the types *help you* in writing this
@@ -558,10 +555,9 @@ code.
 
 Before starting writing a back-prop implementation without the help of types,
 I'd probably be a bit concerned.  I mentioned earlier that writing the untyped
-version was no fun at all.
-
-But, with the types, writing the implementation became a *joy* again.  And, you
-have the help of *hole driven development*, too.
+version was no fun at all.  But, with the types, writing the implementation
+became a *joy* again.  And, you have the help of *hole driven development*,
+too.
 
 The basic thought process goes like this:
 
@@ -571,8 +567,8 @@ The basic thought process goes like this:
 
 2.  "I need something of *this* type...how can I make it?"
 
-    "Ah, there's only one possible way to get this."  Parametric polymorphism
-    to the rescue.
+    "Ah, there's only one possible way to get this.  Parametric polymorphism
+    to the rescue."
 
 3.  "I need to multiply this with *something*...but what?"
 
@@ -623,6 +619,5 @@ $ ./NetworkTyped
 #
 #
 ~~~
-
 
 
