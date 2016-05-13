@@ -85,6 +85,7 @@ train rate x0 target = fst . go x0
         = let y    = runLayer w x
               o    = logistic y
               -- the gradient (how much y affects the error)
+              --   (logistic' is the derivative of logistic)
               dEdy = logistic' y * (o - target)
               -- new bias weights and node weights
               wB'  = wB - konst rate * dEdy
