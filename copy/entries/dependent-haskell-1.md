@@ -627,39 +627,26 @@ implementations*.
 
 We followed our well-tuned Haskell guts, listened to our hearts, and introduced
 extra power in our types to remove all partial functions, and eliminate *most*
-potential implementations (not all, yet).  And we found joy again in programming.
+potential implementations (not all, yet).  We removed entire swaths of
+programmer concern.  We found joy again in programming.
 
 In the process, however, we encountered some unexpected resistance from
 Haskell, the language.  We couldn't directly pattern match on our types, so we
 ended up playing games with singletons and GADT constructors to pass instances.
+
 In practice, using types as powerful and descriptive as these begin to require
-a whole new set of tools.
+a whole new set of tools.  For example, our `Network` types so far required you
+to specify their size in the program itself (`Network 2 '[16, 8] 1` in the
+example source code, for instance).  But what if we wanted to generate a
+network that has dynamic size (For example, getting the size from user input)?
+What if we wanted to load a pre-trained network whose size we don't know?  How
+can we manipulate our networks in a dynamic and generic way?
 
-For example, our `Network` types so far required you to specify their size in
-the program itself (`Network 2 '[16, 8] 1` in the example source code, for
-instance).  But what if we wanted to generate a network that has dynamic size
-(For example, getting the size from user input)?  What if we wanted to
-serialize a network...how are we going to load it if we don't know what
-size/shape it has?
+What we're looking at here is a world where *types* can depend on dynamic
+values ... and values can depend on types.  A world where types become as much
+of a manipulatable citizen of our world as values are.
 
-After all, Haskell is a "statically typed" language, right?  A lot of this
-stuff --- having the type change dynamically at runtime --- sounds like
-something for a dynamic language.  What safety does all of this add?
-
-Also, how can we edit our networks generically?  If we wanted to delete a
-specific layer or a specific node, how are we going to give proper type
-signatures if the layer we want to delete depends on runtime values?
-
-Still, there's a lot to gain from our first baby steps.  Entire swaths of
-programmer concern were essentially eliminated.  We managed to get the compiler
-to not only catch bugs for us, but also to give us nudges and hints for writing
-our programs --- and in some cases, even have it completely write our programs
-*for* us.
-
-What these types have basically given us is the ability to utilize *parametric
-polymorphism* --- one of a Haskeller's most powerful weapons --- to an entirely
-new dimension of usefulness.
-
-Next time, we'll see how to further harness parametric polymorphism in
-conjunction with dependent types, as well as how to resolve the problems/issues
-of types that depend on runtime that I just mentioned.
+The art of working with types like this is called *dependently typed
+programming*.  We're going to feel a bit of push back from Haskell at first,
+but after we hit our stride and tame the tools we need, we're going to open up
+a whole new world of potential!
