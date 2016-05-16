@@ -37,7 +37,6 @@ this to the `packages` field of your directory or global *stack.yaml*:
 
 ~~~yaml
 packages:
-- '.'
 - location:
     git: git@github.com:albertoruiz/hmatrix.git
     commit: 42a88fbcb6bd1d2c4dc18fae5e962bd34fb316a1
