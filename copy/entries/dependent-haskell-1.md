@@ -307,8 +307,8 @@ Looking back at our untyped implementation, we notice some things:
     they would still typechecked.  We could multiply mismatched matrices, or
     forget to multiply a matrix, etc.
 
-With Static Types
------------------
+With Static Size-Indexed Types
+------------------------------
 
 ### Networks
 
