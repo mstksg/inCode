@@ -30,7 +30,7 @@ neural network][ann]** implementations.  Hooray!
 
 #### Setup
 
-This post is written on *[stack][]* snapshot *lts-5.16*, but uses an unreleased
+This post is written on *[stack][]* snapshot *[lts-5.17][]*, but uses an unreleased
 version of *hmatrix*, *[hmatrix-0.18 (commit 42a88fb)][hmatrix head]*.  I
 [maintain my own documentaiton][hmatrix head docs] for reference.  You can add
 this to the `packages` field of your directory or global *stack.yaml*:
@@ -50,6 +50,7 @@ runghc` or `stack ghc`, etc. to build your files!
 [hmatrix head]: https://github.com/albertoruiz/hmatrix/tree/42a88fbcb6bd1d2c4dc18fae5e962bd34fb316a1
 [hmatrix head docs]: http://mstksg.github.io/hmatrix/
 [stack]: http://www.haskellstack.org
+[lts-5.17]: https://www.stackage.org/lts-5.17
 
 Neural Networks
 ---------------
@@ -161,7 +162,7 @@ We can write simple procedures, like generating random networks:
 !!!dependent-haskell/NetworkUntyped.hs "randomWeights ::" "randomNet ::"
 ~~~
 
-(`[randomVector][]` and `[uniformSample][]` are from the *[hmatrix][]* library, generating
+([`randomVector`][] and [`uniformSample`][] are from the *[hmatrix][]* library, generating
 random vectors and matrices from a random `Int` seed.  We configure them to
 generate them with numbers between -1 and 1)
 
@@ -412,7 +413,7 @@ Uniform :: R 10`, and type inference would give you a 10-element vector the
 same way `read "hello" :: Int` would give you an `Int`.
 
 [randomVector static]: http://mstksg.github.io/hmatrix/Numeric-LinearAlgebra-Static.html#v:randomVector
-[uniformVector static]: http://mstksg.github.io/hmatrix/Numeric-LinearAlgebra-Static.html#v:uniformSample
+[uniformSample static]: http://mstksg.github.io/hmatrix/Numeric-LinearAlgebra-Static.html#v:uniformSample
 
 Here's something important: note that it's much harder to implement this
 incorrectly. Before, you could give the matrix the wrong dimensions (maybe you
