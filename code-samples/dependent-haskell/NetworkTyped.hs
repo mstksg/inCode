@@ -57,8 +57,8 @@ runNet (w :&~ n') !v = let v' = logistic (runLayer w v)
 randomWeights :: (MonadRandom m, KnownNat i, KnownNat o)
               => m (Weights i o)
 randomWeights = do
-    s1 <- getRandom
-    s2 <- getRandom
+    s1 :: Int <- getRandom
+    s2 :: Int <- getRandom
     let wB = randomVector s1 Uniform * 2 - 1
         wN = uniformSample s2 (-1) 1
     return $ W wB wN

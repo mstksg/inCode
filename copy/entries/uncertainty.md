@@ -20,10 +20,10 @@ data in surprisingly elegant and expressive ways.
 
 Here is one example --- from my work in experimental physics and statistics, we
 often deal with experimental/sampled values with inherent uncertainty.  If you
-ever measure something to be $12.4\,\mathrm{cm}$, that doesn't mean it's
-$12.400000\,\mathrm{cm}$ --- it means that it's somewhere between
-$12.3\,\mathrm{cm}$ and $12.5\,\mathrm{cm}$...and we don't know exactly.  We
-can write it as $12.4 \pm 0.1\,\mathrm{cm}$.  The interesting thing happens
+ever measure something to be $12.3\,\mathrm{cm}$, that doesn't mean it's
+$12.300000\,\mathrm{cm}$ --- it means that it's somewhere between
+$12.2\,\mathrm{cm}$ and $12.4\,\mathrm{cm}$...and we don't know exactly.  We
+can write it as $12.3 \pm 0.1\,\mathrm{cm}$.  The interesting thing happens
 when we try to add, multiply, divide numbers with uncertainty.  What happens
 when you "add" $12 \pm 3$ and $19 \pm 6$?
 
@@ -118,7 +118,12 @@ $$
 Where $\sigma_X^2$ is the variance in $X$.  We consider $\sigma_X$ to be the
 standard deviation of $X$, or the "plus or minus" part of our numbers.  In the
 simple case of addition, we have $\operatorname{Var}[X + Y] = \sigma_X^2
-+ \sigma_Y^2$, so our new uncertainty is $\sqrt{\sigma_X^2 + \sigma_Y^2}$.
++ \sigma_Y^2$, so our new uncertainty is $\sqrt{\sigma_X^2 + \sigma_Y^2}$.[^var]
+
+[^var]: This law actually comes from the mathematical *definition* of variance,
+so does not assume anything about the underlying distribution of the sampling
+--- just that they are independent, and that they have defined variances.
+
 
 However, not all functions that combine $X$ and $Y$ can be expressed as simple
 linear combinations $aX + bY + c$.  But!  If you dig back to your days of high
@@ -221,7 +226,7 @@ instance Num a => Num (Uncert a) where
 ~~~
 
 And...that's it!  Do the same thing for every numeric typeclass, and you get
-automatic propagation of uncertainty woo hoo.
+automatic propagation of uncertainty.
 
 ### The Problem
 
@@ -238,9 +243,9 @@ instance Fractional a => Fractional (Uncert a) where
 ~~~
 
 Yikes.  All that ugly and complicated numerical code that the typechecker can't
-verify.  Those are runtime bugs just waiting to happen.  How do we even *know*
-that we calculated the right derivatives, and implemented the formula
-correctly?
+help us with (and, honestly, I'm not very confident in the results myself!).
+Those are runtime bugs just waiting to happen.  How do we even *know* that we
+calculated the right derivatives, and implemented the formula correctly?
 
 What if we could reduce this boilerplate?  What if we could somehow
 analytically compute derivatives for functions instead of computing them
@@ -313,7 +318,7 @@ vy = dfx^2 * vx
 Putting it all together:
 
 ~~~haskell
-!!!uncertain/Uncertain.hs "liftU"
+!!!uncertain/Uncertain.hs "liftU ::"
 ~~~
 
 The type `forall s. AD s (Tower a) -> AD s (Tower a)` looks a little scary, but
@@ -403,16 +408,16 @@ together component-by-component and sums the results:
 And now we can write our multi-variate function lifter:
 
 ~~~haskell
-!!!uncertain/Uncertain.hs "liftUF"
+!!!uncertain/Uncertain.hs "liftUF ::"
 ~~~
 
 (Again, don't mind the scary type `forall s. f (AD s (Sparse a)) -> AD s (Sparse a)`,
 it's just *ad*'s type for things you can use `hessian'` on)
 
-And we can write some nice helper functions so we can use them more easily:
+And we can write some nice helper functions so we can use them more naturally:
 
 ~~~haskell
-!!!uncertain/Uncertain.hs "liftU2" "liftU3"
+!!!uncertain/Uncertain.hs "liftU2 ::" "liftU3 ::"
 ~~~
 
 At this point, our code is pretty much complete.  We can fill in the other

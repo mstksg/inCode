@@ -33,11 +33,10 @@ pattern x :+/- dx <- Un x (sqrt->dx)
 uStdev :: Floating a => Uncert a -> a
 uStdev (_ :+/- dx) = dx
 
-liftU
-    :: Fractional a
-    => (forall s. AD s (Tower a) -> AD s (Tower a))
-    -> Uncert a
-    -> Uncert a
+liftU :: Fractional a
+      => (forall s. AD s (Tower a) -> AD s (Tower a))
+      -> Uncert a
+      -> Uncert a
 liftU f (Un x vx) = Un y vy
   where
     fx:dfx:ddfx:_ = diffs0 f x
@@ -52,15 +51,14 @@ diag = \case []        -> []
 dot :: Num a => [a] -> [a] -> a
 dot xs ys = sum (zipWith (*) xs ys)
 
-liftUF
-    :: (Traversable f, Fractional a)
-    => (forall s. f (AD s (Sparse a)) -> AD s (Sparse a))
-    -> f (Uncert a)
-    -> Uncert a
+liftUF :: (Traversable f, Fractional a)
+       => (forall s. f (AD s (Sparse a)) -> AD s (Sparse a))
+       -> f (Uncert a)
+       -> Uncert a
 liftUF f us = Un y vy
   where
-    xs          = uMean <$> us
-    vxs         = toList (uVar <$> us)
+    xs          =         uMean <$> us
+    vxs         = toList (uVar  <$> us)
     (fx, hgrad) = hessian' f xs
     dfxs        = fst <$> hgrad
     hess        = snd <$> hgrad
@@ -68,25 +66,23 @@ liftUF f us = Un y vy
       where
         partials = dot vxs
                  . diag
-                 $ toList (fmap toList hess)
+                 $ toList (fmap toList hess) -- from f (f a) to [[a]]
     vy          = dot vxs
                 $ toList ((^2) <$> dfxs)
 
-liftU2
-    :: Fractional a
-    => (forall s. AD s (Sparse a) -> AD s (Sparse a) -> AD s (Sparse a))
-    -> Uncert a
-    -> Uncert a
-    -> Uncert a
+liftU2 :: Fractional a
+       => (forall s. AD s (Sparse a) -> AD s (Sparse a) -> AD s (Sparse a))
+       -> Uncert a
+       -> Uncert a
+       -> Uncert a
 liftU2 f x y = liftUF (\(V2 x' y') -> f x' y') (V2 x y)
 
-liftU3
-    :: Fractional a
-    => (forall s. AD s (Sparse a) -> AD s (Sparse a) -> AD s (Sparse a) -> AD s (Sparse a))
-    -> Uncert a
-    -> Uncert a
-    -> Uncert a
-    -> Uncert a
+liftU3 :: Fractional a
+       => (forall s. AD s (Sparse a) -> AD s (Sparse a) -> AD s (Sparse a) -> AD s (Sparse a))
+       -> Uncert a
+       -> Uncert a
+       -> Uncert a
+       -> Uncert a
 liftU3 f x y z = liftUF (\(V3 x' y' z') -> f x' y' z') (V3 x y z)
 
 instance Fractional a => Num (Uncert a) where
@@ -158,10 +154,9 @@ instance RealFloat a => RealFloat (Uncert a) where
     significand     = liftU significand
     atan2           = liftU2 atan2
 
-uNormalize
-    :: (Floating a, RealFrac a)
-    => Uncert a
-    -> Uncert a
+uNormalize :: (Floating a, RealFrac a)
+           => Uncert a
+           -> Uncert a
 uNormalize u = x' :+/- dx'
   where
     x :+/- dx = u

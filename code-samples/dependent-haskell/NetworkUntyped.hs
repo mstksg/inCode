@@ -1,10 +1,11 @@
 #!/usr/bin/env stack
 -- stack --resolver lts-5.15 --install-ghc runghc --package hmatrix --package MonadRandom
 
-{-# LANGUAGE BangPatterns     #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE GADTs            #-}
-{-# LANGUAGE KindSignatures   #-}
+{-# LANGUAGE BangPatterns        #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE KindSignatures      #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 import Control.Monad
 import Control.Monad.Random
@@ -44,10 +45,10 @@ runNet (w :&~ n') !v = let v' = logistic (runLayer w v)
 
 randomWeights :: MonadRandom m => Int -> Int -> m Weights
 randomWeights i o = do
-    s1 <- getRandom
-    s2 <- getRandom
-    let wB = randomVector s1 Uniform o * 2 - 1
-        wN = uniformSample s2 o (replicate i (-1, 1))
+    seed1 :: Int <- getRandom
+    seed2 :: Int <- getRandom
+    let wB = randomVector seed1 Uniform o * 2 - 1
+        wN = uniformSample seed2 o (replicate i (-1, 1))
     return $ W wB wN
 
 randomNet :: MonadRandom m => Int -> [Int] -> Int -> m Network

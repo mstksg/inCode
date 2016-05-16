@@ -13,13 +13,12 @@ Whether you like it or not, programming with dependent types in Haskell moving
 slowly but steadily to the mainstream of Haskell programming.  In the current
 state of Haskell education, dependent types are often considered topics for
 "advanced" Haskell users.  However, I can definitely foresee a day where the
-ease of use of modern Haskell libraries relying on dependent types as well as
-their ubiquitousness forces programming with dependent types to be an integral
-part of regular intermediate (or even beginner) Haskell education, as much as
-Traversable or Maps.
+ease of use of modern Haskell libraries relying on dependent types forces
+programming with dependent types to be an integral part of regular intermediate
+(or even beginner) Haskell education, as much as Traversable or Maps.
 
-The point of this post is to show some practical examples of using
-dependent types in the real world, and to also walk through the "why" and
+The point of this post is to show some practical examples of using dependent
+types in guiding your programming, and to also walk through the "why" and
 high-level philosophy of the way you structure your Haskell programs.  It'll
 also hopefully instill an intuition of a dependently typed work flow of
 "exploring" how dependent types can help your current programs.
@@ -57,10 +56,9 @@ types.
 ![Feed-forward ANN architecture](/img/entries/dependent-haskell-1/ffneural.png "Feed-forward ANN architecture")
 
 Here's a quick run through on background for ANN's --- but remember, this isn't
-an article on ANN's, so we are going to be glossing over some of this :)  Feel
-free to explore this further too.
+an article on ANN's, so we are going to be glossing over some of this.
 
-We're going to be implementing a feed-forward neural network, with
+We're going to be implementing a feed-forward neural network with
 back-propagation training.  These networks are layers of "nodes", each
 connected to the each of the nodes of the previous layer.  Input goes to the
 first layer, which feeds information to the next year, which feeds it to the
@@ -184,7 +182,7 @@ imagine all of the bad things that could happen:
 
 Now, let's try implementing back-propagation!  It's a textbook gradient descent
 algorithm.  There are [many explanations][backprop] on the internet; the basic
-idea is that you try to minimize the squared "error" of what the neural network
+idea is that you try to minimize the squared error of what the neural network
 outputs for a given input vs. the actual expected output.  You find the
 direction of change that minimizes the error (by finding the derivative), and
 move that direction.  The implementation of Feed-forward backpropagation is
@@ -357,14 +355,14 @@ hh :: Weights  7 4
 ih :: Weights 10 7
 
 -- we have:
-              O ho      :: Network  4 '[] 2
-       hh :&~ O ho      :: Network  7 '[4] 2
-ih :&~ hh :&~ O ho      :: Network 10 '[7,4] 2
+              O ho :: Network  4 '[] 2
+       hh :&~ O ho :: Network  7 '[4] 2
+ih :&~ hh :&~ O ho :: Network 10 '[7,4] 2
 ~~~
 
 Note that the shape of the constructors requires all of the weight vectors to
 "fit together".  `ih :&~ O ho` would be a type error (feeding a 7-output layer
-to a 4-input layer).  Now, if we ever pattern match on `:&~`, we know that the
+to a 4-input layer).  Also, if we ever pattern match on `:&~`, we know that the
 resulting matrices and vectors are compatible!
 
 One neat thing is that this approach is also self-documenting.  I don't need to
@@ -416,11 +414,11 @@ type-level list, and...
 
 Oh wait.  We can't directly pattern match on lists like that in Haskell.  But
 what we *can* do is move the list from the type level to the value level using
-*singletons*.  Singletons (types which only have one value/constructor as
-members) aren't the only option, but they're the most generally useful and
-un-specialized solution.  The *[typelits-witnesses][]* library offers a handy
-singleton for just this job. If you have a type level list of nats, you get a
-`KnowNats ns` constraint. This lets you create a `NatList`:
+*singletons*.  Singletons are types (often, parameterized types) with only one
+valid constructor.  They aren't the only option, but they're the most generally
+useful and un-specialized solution. The *[typelits-witnesses][]* library offers
+a handy singleton for just this job. If you have a type level list of nats, you
+get a `KnowNats ns` constraint. This lets you create a `NatList`:
 
 [typelits-witnesses]: http://hackage.haskell.org/package/typelits-witnesses
 
@@ -437,7 +435,8 @@ Basically, a `NatList '[1,2,3]` is `p1 :<# p2 :<# p3 :<# ØNL`, where `p1 ::
 Proxy 1`, `p2 :: Proxy 2`, and `p3 :: Proxy 3`.  (Remember, `data Proxy a =
 Proxy`; `Proxy` is like `()` but with an extra phantom type parameter)  We use
 singletons like this by *pattern matching* on the general type (a `NatList ns`)
-and consequentially learning about `ns` (if it's `'[]` or `n ': ns`, etc.).
+and consequentially learning about the type parameter `ns` (if it's `'[]` or `n
+': ns`, etc.).
 
 We can spontaneously generate a `NatList` for any type-level Nat list with
 `natList :: KnownNats ns => NatList ns`:
@@ -452,7 +451,7 @@ Proxy :<# Proxy :<# Proxy :<# ØNL
 ~~~
 
 Now that we have an actual value-level *structure* (the list of `Proxy`s), we
-can now essentially "pattern match" on `hs`, the type --- if it's empty, we'll
+can now morally "pattern match" on `hs`, the type --- if it's empty, we'll
 get the `ØNL` constructor when we use `natList`, otherwise we'll get the
 `(:<#)` constructor, etc.
 
@@ -507,9 +506,9 @@ the typeclass is is a way to get an `Integer` out of it with `natVal`).
 an `Integer` in it, which the act of pattern-matching can then take out.
 
 The difference is that GHC and the compiler can now "track" these at
-compile-time to give you rudimentary checks on how your Nat's act together on
-the type level, allowing it to catch mismatches with compile-time checks instead
-of run-time checks.
+compile-time to give you checks on how your Nat's act together on the type
+level, allowing it to catch mismatches with compile-time checks instead of
+run-time checks.
 
 ### Running with it
 
