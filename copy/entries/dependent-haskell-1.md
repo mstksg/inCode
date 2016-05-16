@@ -28,6 +28,30 @@ neural network][ann]** implementations.  Hooray!
 
 [ann]: https://en.wikipedia.org/wiki/Artificial_neural_network
 
+#### Setup
+
+This post is written on *[stack][]* snapshot *lts-5.16*, but uses an unreleased
+version of *hmatrix*, *[hmatrix-0.18 (commit 42a88fb)][hmatrix head]*.  I
+[maintain my own documentaiton][hmatrix head docs] for reference.  You can add
+this to the `packages` field of your directory or global *stack.yaml*:
+
+~~~yaml
+packages:
+- '.'
+- location:
+    git: git@github.com:albertoruiz/hmatrix.git
+    commit: 42a88fbcb6bd1d2c4dc18fae5e962bd34fb316a1
+  subdirs:
+    - packages/base
+~~~
+
+and *stack* will know what version of *hmatrix* to use when you use `stack
+runghc` or `stack ghc`, etc. to build your files!
+
+[hmatrix head]: https://github.com/albertoruiz/hmatrix/tree/42a88fbcb6bd1d2c4dc18fae5e962bd34fb316a1
+[hmatrix head docs]: http://mstksg.github.io/hmatrix/
+[stack]: http://www.haskellstack.org
+
 Neural Networks
 ---------------
 
@@ -380,50 +404,16 @@ Generating random weights and networks is even nicer now:
 !!!dependent-haskell/NetworkTyped.hs "randomWeights ::"
 ~~~
 
-<div class=note>
-**Note**
+Notice that the `Static` versions of [`randomVector`][randomVector static] and
+[`uniformSample`][uniformSample static] don't actually require the size of the
+vector/matrix you want as an input -- they just use type inference to figure
+out what size you want!  This is the same process that `read` uses to figure
+out what type of thing you want to return. You would use `randomVector s
+Uniform :: R 10`, and type inference would give you a 10-element vector the
+same way `read "hello" :: Int` would give you an `Int`.
 
-If you're following along, `[randomVector][randomVector static]` and
-`[uniformSample][uniformSample static]` for the *Static* module is at the
-moment only in the yet unreleased *0.18* version of *hmatrix*. At the time of
-this article's writing, the current HEAD is at [commit 42a88fb][hmatrix head].
-I maintain my own [build of the documentation][hmatrix head docs] for
-reference.
-
-[hmatrix head]: https://github.com/albertoruiz/hmatrix/tree/42a88fbcb6bd1d2c4dc18fae5e962bd34fb316a1
-[hmatrix head docs]: http://mstksg.github.io/hmatrix/
 [randomVector static]: http://mstksg.github.io/hmatrix/Numeric-LinearAlgebra-Static.html#v:randomVector
 [uniformVector static]: http://mstksg.github.io/hmatrix/Numeric-LinearAlgebra-Static.html#v:uniformSample
-
-You can use *stack* to make sure that you're using the right version.  When you
-build these tests, put a proper *stack.yaml* in the directory, including this
-modification to the `packages` field:
-
-~~~yaml
-packages:
-- '.'
-- location:
-    git: git@github.com:albertoruiz/hmatrix.git
-    commit: 42a88fbcb6bd1d2c4dc18fae5e962bd34fb316a1
-  subdirs:
-    - packages/base
-~~~
-
-You can even add this to your global *stack.yaml* to make this (completely
-reversible) change system-wide.
-
-*stack* will then know (when you use *runghc* or *ghc* or *exec*) to use the
-updated *hmatrix* version instead of the one on hackage.
-
-</div>
-
-Notice that the `Static` versions of `randomVector` and `uniformSample` don't
-actually require the size of the vector/matrix you want as an input -- they
-just use type inference to figure out what size you want!  This is the same
-process that `read` uses to figure out what type of thing you want to return.
-You would use `randomVector s Uniform :: R 10`, and type inference would give
-you a 10-element vector the same way `read "hello" :: Int` would give you an
-`Int`.
 
 Here's something important: note that it's much harder to implement this
 incorrectly. Before, you could give the matrix the wrong dimensions (maybe you
