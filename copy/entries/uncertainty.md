@@ -27,7 +27,7 @@ can write it as $12.4 \pm 0.1\,\mathrm{cm}$.  The interesting thing happens
 when we try to add, multiply, divide numbers with uncertainty.  What happens
 when you "add" $12 \pm 3$ and $19 \pm 6$?
 
-The initial guess might be $27 \pm 9$, because one is $\pm 3$ and the other is
+The initial guess might be $31 \pm 9$, because one is $\pm 3$ and the other is
 $\pm 6$.  But!  If you actually do experiments like this several times, you'll
 see that this isn't the case.  If you tried this out experimentally and
 simulate several hundred trials, you'll see that the answer is actually
