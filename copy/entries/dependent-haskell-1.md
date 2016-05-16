@@ -138,9 +138,12 @@ We can write simple procedures, like generating random networks:
 !!!dependent-haskell/NetworkUntyped.hs "randomWeights ::" "randomNet ::"
 ~~~
 
-(`randomVector` and `uniformSample` are from the *hmatrix* library, generating
+(`[randomVector][]` and `[uniformSample][]` are from the *[hmatrix][]* library, generating
 random vectors and matrices from a random `Int` seed.  We configure them to
 generate them with numbers between -1 and 1)
+
+[randomVector]: http://hackage.haskell.org/package/hmatrix-0.17.0.1/docs/Numeric-LinearAlgebra.html#v:randomVector
+[uniformSample]: http://hackage.haskell.org/package/hmatrix-0.17.0.1/docs/Numeric-LinearAlgebra.html#v:uniformSample
 
 And now a function to "run" our network on a given input vector, following the
 matrix equation we wrote earlier:
@@ -377,6 +380,43 @@ Generating random weights and networks is even nicer now:
 !!!dependent-haskell/NetworkTyped.hs "randomWeights ::"
 ~~~
 
+<div class=note>
+**Note**
+
+If you're following along, `[randomVector][randomVector static]` and
+`[uniformSample][uniformSample static]` for the *Static* module is at the
+moment only in the yet unreleased *0.18* version of *hmatrix*. At the time of
+this article's writing, the current HEAD is at [commit 42a88fb][hmatrix head].
+I maintain my own [build of the documentation][hmatrix head docs] for
+reference.
+
+[hmatrix head]: https://github.com/albertoruiz/hmatrix/tree/42a88fbcb6bd1d2c4dc18fae5e962bd34fb316a1
+[hmatrix head docs]: http://mstksg.github.io/hmatrix/
+[randomVector static]: http://mstksg.github.io/hmatrix/Numeric-LinearAlgebra-Static.html#v:randomVector
+[uniformVector static]: http://mstksg.github.io/hmatrix/Numeric-LinearAlgebra-Static.html#v:uniformSample
+
+You can use *stack* to make sure that you're using the right version.  When you
+build these tests, put a proper *stack.yaml* in the directory, including this
+modification to the `packages` field:
+
+~~~yaml
+packages:
+- '.'
+- location:
+    git: git@github.com:albertoruiz/hmatrix.git
+    commit: 42a88fbcb6bd1d2c4dc18fae5e962bd34fb316a1
+  subdirs:
+    - packages/base
+~~~
+
+You can even add this to your global *stack.yaml* to make this (completely
+reversible) change system-wide.
+
+*stack* will then know (when you use *runghc* or *ghc* or *exec*) to use the
+updated *hmatrix* version instead of the one on hackage.
+
+</div>
+
 Notice that the `Static` versions of `randomVector` and `uniformSample` don't
 actually require the size of the vector/matrix you want as an input -- they
 just use type inference to figure out what size you want!  This is the same
@@ -552,8 +592,8 @@ Our back-prop algorithm is ported pretty nicely too:
 !!!dependent-haskell/NetworkTyped.hs "train ::"
 ~~~
 
-It's pretty much again an exact copy-and-paste, but now with GHC checking to
-make sure everything fits together in our implementation.
+It's pretty much again almost an exact copy-and-paste, but now with GHC
+checking to make sure everything fits together in our implementation.
 
 One thing that's hard for me to convey here without walking through the
 implementation step-by-step is how much the types *help you* in writing this
@@ -566,7 +606,9 @@ became a *joy* again.  And, you have the help of *hole driven development*,
 too.
 
 If you need, say, an `R n`, there might be only one way go get it --- only one
-function that returns it.  If you have something that you need to combine with
+function that returns it.
+
+If you have something that you need to combine with
 something you don't know about, you can use typed holes (`_`) and GHC will give
 you a list of all the values you have in scope that can fit there.  Your
 programs basically write themselves!
@@ -579,9 +621,9 @@ the compiler will nudge you gently into the correct direction.
 The most stressful part of programming happens when you have to tenuously hold
 a complex and fragile network of ideas and constraints in your brain, and any
 slight distraction or break in focus causes everything to crash down in your
-mind.  Over time, people have began to believe that this is "normal", and a
-sign of a good programmer.  Don't believe this lie --- it's not!  A good
-programming experience involves maintaining as *little* in your head as
+mind.  Over time, people have begun to believe that this is "normal", and a
+sign of a good programming experience.  Don't believe this lie --- it's not!  A
+good programming experience involves maintaining as *little* in your head as
 possible, and letting the compiler handle remembering/checking the rest!
 
 #### The final test
@@ -616,6 +658,7 @@ $ ./NetworkTyped
 #
 ~~~
 
+
 Finding Something to Depend on
 ------------------------------
 
@@ -625,25 +668,26 @@ Haskell for a while: *partial functions* and *multiple potential
 implementations*.
 
 We followed our well-tuned Haskell guts, listened to our hearts, and introduced
-extra power in our types to remove all partial functions, and eliminate *most*
+extra power in our types to remove all partial functions and eliminate *most*
 potential implementations (not all, yet).  We removed entire swaths of
 programmer concern.  We found joy again in programming.
 
-In the process, however, we encountered some unexpected resistance from
-Haskell, the language.  We couldn't directly pattern match on our types, so we
-ended up playing games with singletons and GADT constructors to pass instances.
+In the process, however, we encountered some unexpected resistance from Haskell
+(the language).  We couldn't directly pattern match on our types, so we ended
+up playing games with singletons and GADT constructors to pass instances.
 
 In practice, using types as powerful and descriptive as these begin to require
-a whole new set of tools.  For example, our `Network` types so far required you
-to specify their size in the program itself (`Network 2 '[16, 8] 1` in the
-example source code, for instance).  But what if we wanted to generate a
-network that has dynamic size (For example, getting the size from user input)?
-What if we wanted to load a pre-trained network whose size we don't know?  How
-can we manipulate our networks in a dynamic and generic way?
+a whole new set of tools once you get past the simplest use cases here.  For
+example, our `Network` types so far required you to specify their size in the
+program itself (`Network 2 '[16, 8] 1` in the example source code, for
+instance).  But what if we wanted to generate a network that has
+runtime-determined size (For example, getting the size from user input)?  What
+if we wanted to load a pre-trained network whose size we don't know?  How can
+we manipulate our networks in a "dynamic" and generic way?
 
-What we're looking at here is a world where *types* can depend on dynamic
+What we're looking at here is a world where *types* can depend on run-time
 values ... and values can depend on types.  A world where types become as much
-of a manipulatable citizen of our world as values are.
+of a manipulatable citizen of as values are.
 
 The art of working with types like this is called *dependently typed
 programming*.  We're going to feel a bit of push back from Haskell at first,
