@@ -5,7 +5,6 @@
 
 module Blog.View where
 
--- import           System.FilePath
 import           Blog.Types
 import           Blog.Util
 import           Data.List
@@ -37,12 +36,19 @@ renderUrl'
     => String -> String
 renderUrl' = T.unpack . renderUrl . T.pack
 
-renderBlobUrl
+renderSourceUrl
     :: (?config :: Config)
     => T.Text
     -> Maybe T.Text
-renderBlobUrl u = flip fmap (confBlobs ?config) $ \b ->
-                    b </!> u
+renderSourceUrl u = flip fmap (sourceBlobs ?config) $ \b ->
+                      b </!> u
+
+renderRenderUrl
+    :: (?config :: Config)
+    => T.Text
+    -> Maybe T.Text
+renderRenderUrl u = flip fmap (renderBlobs ?config) $ \b ->
+                      b </!> u
 
 renderRootUrl
     :: (?config :: Config)
@@ -71,11 +77,6 @@ urlBase = protocol
     HostInfo{..} = confHostInfo ?config
     protocol | hostSecure = "https"
              | otherwise  = "http"
-
-(</!>) :: T.Text -> T.Text -> T.Text
-b </!> f = let f' = fromMaybe f $ T.stripPrefix "/" f
-               b' = fromMaybe b $ T.stripSuffix "/" b
-           in  b' <> ('/' `T.cons` f')
 
 
 copyToHtml :: String -> H.Html

@@ -66,7 +66,7 @@ viewEntry EI{..} = do
           H.p $ do
 
             H.span ! A.class_ "source-info" $ do
-              forM_ (renderBlobUrl (T.pack (entrySourceFile eiEntry))) $ \u -> do
+              forM_ (renderSourceUrl (T.pack (entrySourceFile eiEntry))) $ \u -> do
                 H.a
                   ! A.class_ "source-link"
                   ! A.href (H.textValue u)
@@ -76,14 +76,17 @@ viewEntry EI{..} = do
                   H.preEscapedToHtml
                     (" &diams; " :: T.Text)
 
+              let entryMd   = entryCanonical eiEntry -<.> "md"
+                  defMdLink = renderRenderUrl $ T.pack     entryMd
+                  altMdLink = fromString      $ renderUrl' entryMd
               H.a
                 ! A.class_ "source-link"
-                ! A.href (fromString (renderUrl' (entryCanonical eiEntry -<.> "md")))
+                ! A.href (maybe altMdLink H.textValue defMdLink)
                 $ "Markdown"
 
               H.span ! A.class_ "info-separator" $
                 H.preEscapedToHtml
-                  (" &diams; " :: T.Text)
+                  (" &diams; " :: T.Text)   -- shining bright like a diams ~
 
               H.a
                 ! A.class_ "source-link"

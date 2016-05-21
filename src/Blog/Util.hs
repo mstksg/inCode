@@ -1,9 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 
 module Blog.Util where
 
+import           Blog.Types
+import           Control.Monad
 import           Data.Char
 import           Data.Default
+import           Data.Maybe
+import           Data.Monoid
 import           Data.Time.Format
 import           Hakyll
 import qualified Data.Text        as T
@@ -56,3 +61,23 @@ entryWriterOpts =
         , P.writerVariables = [("geometry","margin=1in")
                               ,("links-as-notes","true")]
         }
+
+sourceBlobs :: Config -> Maybe T.Text
+sourceBlobs = sourceBlobs' <=< confBlobs
+
+sourceBlobs' :: Blobs -> Maybe T.Text
+sourceBlobs' Blobs{..} = (blobsTree </!>) <$> blobsSourceBranch
+
+renderBlobs :: Config -> Maybe T.Text
+renderBlobs = renderBlobs' <=< confBlobs
+
+renderBlobs' :: Blobs -> Maybe T.Text
+renderBlobs' Blobs{..} = (blobsTree </!>) <$> blobsRenderBranch
+
+
+(</!>) :: T.Text -> T.Text -> T.Text
+b </!> f = let f' = fromMaybe f $ T.stripPrefix "/" f
+               b' = fromMaybe b $ T.stripSuffix "/" b
+           in  b' <> ('/' `T.cons` f')
+
+

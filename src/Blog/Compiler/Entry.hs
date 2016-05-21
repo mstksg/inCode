@@ -132,13 +132,18 @@ entryMarkdownCompiler = do
       $ [ entryTitle
         , T.map (const '=') entryTitle
         , T.empty
-        , T.concat [ "(Originally posted by "
-                   , authorName (confAuthorInfo ?config)
-                   , " ["
-                   , renderUrl "/"
-                   , "]"
-                   , timeString
+        , T.concat [ "[Read online!]("
+                   , renderUrl (T.pack entryCanonical)
                    , ")"
+                   ]
+        , T.empty
+        , T.concat [ "*Posted by ["
+                   , authorName (confAuthorInfo ?config)
+                   , "]("
+                   , renderUrl ""
+                   , ")"
+                   , timeString
+                   , "*"
                    ]
         , T.empty
         , entryContents
@@ -165,7 +170,7 @@ entryLaTeXCompiler = do
                                         , "["
                                         , confTitle ?config
                                         , "]("
-                                        , renderUrl "/"
+                                        , renderUrl (T.pack entryCanonical)
                                         , ")**.*"
                                         ]
                              , T.empty
