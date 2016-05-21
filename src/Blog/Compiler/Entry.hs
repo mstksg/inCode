@@ -170,7 +170,7 @@ entryLaTeXCompiler = do
                                         , "["
                                         , confTitle ?config
                                         , "]("
-                                        , renderUrl "/"
+                                        , renderUrl (T.pack entryCanonical)
                                         , ")**.*"
                                         ]
                              , T.empty
