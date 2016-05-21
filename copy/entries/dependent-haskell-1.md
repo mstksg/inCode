@@ -344,14 +344,19 @@ knowing what works with what, and what we need were, and helping us organize
 our logic)
 
 Let's write a `Weights` type that tells you the size of its output and the
-input it expects.  Let's have, say, a `Weights 10 5` (with numeric literals,
-representing *types* of kind `Nat`) be a set of weights that takes you from a
-layer of 10 nodes to a layer of 5 nodes.  `w :: Weights 4 6` would take you
-from a layer of 4 nodes to a layer of 6 nodes:
+input it expects.  Let's have, say, a `Weights 10 5` be a set of weights that
+takes you from a layer of 10 nodes to a layer of 5 nodes.  `w :: Weights 4 6`
+would take you from a layer of 4 nodes to a layer of 6 nodes:
 
 ~~~haskell
 !!!dependent-haskell/NetworkTyped.hs "data Weights"
 ~~~
+
+The type constructor `Weights` has the kind `Weights :: Nat -> Nat -> *` --- it
+takes two types of kind `Nat` (which the integer type literals give us with
+*[DataKinds][]* enabled) and returns a `*` --- a "normal type".
+
+[DataKinds]: https://www.schoolofhaskell.com/user/konn/prove-your-haskell-for-great-safety/dependent-types-in-haskell#type-level-naturals
 
 We're using the `Numeric.LinearAlgebra.Static` module from *[hmatrix][]*, which
 offers matrix and vector types with their size in their types: an `R 5` is a
@@ -364,7 +369,8 @@ The `Static` module in *hmatrix* relies on the `KnownNat` mechanism that GHC
 offers.  Almost all operations in the library require a `KnownNat` constraint
 on the type-level Nats --- for example, you can take the dot product of two
 vectors with `dot :: KnownNat n => R n -> R n -> Double`.  It lets the library
-use the information in the `n` at runtime as an `Integer`.  (More on this later!)
+use the information in the `n` at runtime as an `Integer`.  (More on this
+later!)
 
 Moving on, our network type for this post will be something like `Network 10
 '[7,5,3] 2`: Take 10 inputs, return 2 outputs --- and internally, have hidden
