@@ -65,6 +65,7 @@ train rate x0 target = fst . go x0
     go :: Vector Double    -- ^ input vector
        -> Network          -- ^ network to train
        -> (Network, Vector Double)
+    -- handle the output layer
     go !x (O w@(W wB wN))
         = let y    = runLayer w x
               o    = logistic y
@@ -78,6 +79,7 @@ train rate x0 target = fst . go x0
               -- bundle of derivatives for next step
               dWs  = tr wN #> dEdy
           in  (O w', dWs)
+    -- handle the inner layers
     go !x (w@(W wB wN) :&~ n)
         = let y          = runLayer w x
               o          = logistic y
