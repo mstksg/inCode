@@ -38,16 +38,15 @@ went, with insight on Haskell migrations in general!
 [purescript]: http://www.purescript.org/
 
 My blog engine is open-source, and the [source for this specific
-instance][source] is up on github, for those interesting in checking
-it out!
+instance][source] is up on github, for those interested in checking it out!
 
 [source]: https://github.com/mstksg/inCode
 
 Hakyll
 ------
 
-To be fair, there was little actual practical reasons why my site wasn't static
-to begin with.  The main reason, feature-wise, was for me to be able to
+To be honest, there was little actual practical reasons why my site wasn't
+static to begin with.  The main reason, feature-wise, was for me to be able to
 schedule blog posts and updates without requiring me to actually re-render and
 re-push every time I wanted to make a post.  The real underlying reason,
 however, was that this blog was my first major Haskell project, and I wanted to
@@ -71,8 +70,10 @@ changed.  Neat!
 Before, I had gotten the impression that Hakyll was mostly for generating
 "simple", pre-built blog layouts, but I was able to use Hakyll (without much
 friction, at all) to generate the complex, intricate, and arbitrary site map
-that I had designed for my scotty-based blog.  I definitely recommend it for
+that I had designed for my [scotty][]-based blog.  I definitely recommend it for
 any static site generating needs, blogs or not.
+
+[scotty]: http://hackage.haskell.org/package/scotty
 
 An unexpected consequence of the static-site-hosted-by-github-pages approach,
 however, is that I don't have any control over MIME types anymore (or 301
@@ -157,8 +158,8 @@ With that mindset, I looked at *[purescript][]*, which is a language that's
 inspired by Haskell, with a lot of Haskell features we use every day, and
 throws in things we all wish we had in Haskell, like extensible records!
 
-(Fair note --- I did rewrite all of my fay in GHCJS at first.  This resulted in
-a javascript blob that was *1.4 MB* in size, for a bunch of small DOM
+(Note --- I *did* rewrite all of my fay in GHCJS at first.  This resulted in
+a javascript blob that was *1.4 MB* in size for just a bunch of small DOM
 manipulation scripts.  Definitely not practical, unfortunately!)
 
 I liked that purescript was able to throw away a lot of warts in the Haskell
@@ -215,14 +216,14 @@ var appendTopLinks = function (doc) {
 };
 ~~~
 
-And it's not just the IO-based imperative code that looks nice, too.
+And it's not just the IO-based imperative code that looks nice, either.
 Everything gets compiled to clean, readable javascript that you'd be happy to
-import in your node or normal javascript project.
+import in your node/normal javascript project.
 
 The total exported javascript blob is only *88 kB*, even smaller than fay's
 *100 kB* output (but not significantly so), and much smaller than GHCJS's *1.4
-MB*[^140MB] output (which has to also contain the entire Haskell runtime, implementing
-Haskell semantics, as well).
+MB*[^140MB] output (which, to be fair, has to also contain the entire Haskell
+runtime, implementing Haskell semantics, as well).
 
 [^140MB]: A previous version of this post claimed that the javascript bundle
 was *140 MB*, instead of *1.4 MB*.  My bad!
