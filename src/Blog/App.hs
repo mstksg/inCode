@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE ImplicitParams    #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE MultiWayIf        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
@@ -111,17 +112,17 @@ app znow@(ZonedTime _ tz) = do
 
     match "copy/entries/*" . version "id" $ do
       route   $ routeIdEntry
-      compile $ compileIdEntry ""
+      compile $ compileIdEntry "html" Nothing
     match "copy/entries/*" . version "id-index" $ do
       route   $ routeIdEntry
                   `composeRoutes` gsubRoute ".html" (const "/index.html")
-      compile $ compileIdEntry ""
+      compile $ compileIdEntry "html" Nothing
     match "copy/entries/*" . version "id-markdown" $ do
       route   $ routeIdEntry `composeRoutes` setExtension "md"
-      compile $ compileIdEntry "md"
+      compile $ compileIdEntry "md" (Just "markdown")
     match "copy/entries/*" . version "id-latex" $ do
       route   $ routeIdEntry `composeRoutes` setExtension "tex"
-      compile $ compileIdEntry "tex"
+      compile $ compileIdEntry "tex" (Just "latex")
 
     hist <- buildHistoryWith ymByField ("copy/entries/*" .&&. hasNoVersion)
               $ \y m -> case m of
@@ -271,16 +272,22 @@ app znow@(ZonedTime _ tz) = do
     compileIdEntry
         :: (?config :: Config)
         => String
+        -> Maybe Snapshot
         -> Compiler (Item String)
-    compileIdEntry ext = do
+    compileIdEntry ext = \case
+      Nothing -> do
         m <- getMetadata =<< getUnderlying
         fp <- ("entry/ident" </>)
             . takeBaseName
             . toFilePath
           <$> getUnderlying
-        let canonical = fromMaybe fp (entryCanonical' m) <.> ext
+        let canonical = fromMaybe fp (entryCanonical' m) -<.> ext
         redirectCompiler $ \_ ->
           renderUrl $ T.pack canonical
+      Just v -> makeItem
+            =<< loadBody . setVersion (Just v)
+            =<< getUnderlying
+
     entryCanonical' :: Metadata -> Maybe FilePath
     entryCanonical' m = asum [(<.> "html") . ("entry"</>) <$> lookupString "slug" m
                              ,(<.> "html") . ("entry/ident"</>) <$> lookupString "identifier" m
