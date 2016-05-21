@@ -19,7 +19,10 @@ author:
   linkedin: lejustin
   keybase: mstksg
   coinbase: mstksg
-public-blobs: https://github.com/mstksg/blog/tree/develop
+blobs:
+  tree: https://github.com/mstksg/blog/tree
+  source-branch: develop
+  render-branch: gh-pages
 interactive-url: https://www.fpcomplete.com/user/jle/
 code-samples: code-samples
 host:

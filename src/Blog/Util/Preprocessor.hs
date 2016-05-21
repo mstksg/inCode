@@ -6,6 +6,7 @@
 module Blog.Util.Preprocessor where
 
 import           Blog.Types
+import           Blog.Util
 import           Control.Arrow    ((&&&))
 import           Control.Monad
 import           Data.Maybe       (fromMaybe, listToMaybe)
@@ -68,7 +69,7 @@ processSample SampleSpec{..} rawSamp = processed
     sampCode  = T.unlines . map snd $ blocks
     toHeading key val = T.pack . concat $ ["-- ", key, ": ", val, "\n"]
     sourceUrl = do
-      blob  <- T.unpack <$> confBlobs       ?config
+      blob  <- T.unpack <$> sourceBlobs     ?config
       samps <- T.unpack <$> confCodeSamples ?config
       let
         suffix  = concat ["#L",show startLine,"-",show endLine]

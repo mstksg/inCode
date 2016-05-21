@@ -3,6 +3,7 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TemplateHaskell   #-}
@@ -32,7 +33,7 @@ data Config = Config
     , confAuthorInfo    :: !AuthorInfo
     , confCopyright     :: !T.Text
     , confFeed          :: !T.Text
-    , confBlobs         :: !(Maybe T.Text)
+    , confBlobs         :: !(Maybe Blobs)
     , confCodeSamples   :: !(Maybe T.Text)
     , confInteractive   :: !(Maybe T.Text)
     , confHostInfo      :: !HostInfo
@@ -68,13 +69,13 @@ instance ToJSON Config where
                                  , "preferences"     .=  confBlogPrefs
                                  , "development"     .=  confEnvType
                                  ]
-                      <> mconcat [ "public-blobs"    .=? confBlobs
+                      <> mconcat [ "blobs"           .=? confBlobs
                                  , "code-samples"    .=? confCodeSamples
                                  , "interactive-url" .=? confInteractive
                                  ]
       where
-        r .=? (Just v) = [r .= v]
-        r .=? Nothing  = []
+        (.=?) r = \case Just v  -> [r .= v]
+                        Nothing -> []
 
 data EnvType = ETDevelopment | ETProduction
   deriving (Show, Eq, Ord, Enum)
@@ -107,6 +108,13 @@ data DeveloperAPIs = DeveloperAPIs
     , devFacebook   :: T.Text
     , devAddThis    :: T.Text
     , devFeedburner :: T.Text
+    }
+  deriving (Show, Generic)
+
+data Blobs = Blobs
+    { blobsTree         :: !T.Text
+    , blobsSourceBranch :: !(Maybe T.Text)
+    , blobsRenderBranch :: !(Maybe T.Text)
     }
   deriving (Show, Generic)
 
@@ -162,6 +170,13 @@ instance FromJSON HostInfo where
 instance ToJSON HostInfo where
   toJSON = A.genericToJSON $ A.defaultOptions
              { A.fieldLabelModifier = A.camelTo2 '-' . drop 4 }
+
+instance FromJSON Blobs where
+  parseJSON = A.genericParseJSON $ A.defaultOptions
+                { A.fieldLabelModifier = A.camelTo2 '-' . drop 5 }
+instance ToJSON Blobs where
+  toJSON = A.genericToJSON $ A.defaultOptions
+             { A.fieldLabelModifier = A.camelTo2 '-' . drop 5 }
 
 instance FromJSON BlogPrefs where
   parseJSON = A.genericParseJSON $ A.defaultOptions
