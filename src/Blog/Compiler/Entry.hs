@@ -137,7 +137,7 @@ entryMarkdownCompiler = do
                    , ")"
                    ]
         , T.empty
-        , T.concat [ "*Posted by ["
+        , T.concat [ "*Originally posted by ["
                    , authorName (confAuthorInfo ?config)
                    , "]("
                    , renderUrl ""
