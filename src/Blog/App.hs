@@ -34,6 +34,7 @@ import           Hakyll
 import           Hakyll.Web.Sass
 import           System.FilePath
 import           Text.Jasmine
+import           Text.Read                 (readMaybe)
 import qualified Data.HashMap.Strict       as HM
 import qualified Data.Map                  as M
 import qualified Data.Text                 as T
@@ -259,9 +260,14 @@ app znow@(ZonedTime _ tz) = do
           $ entryCanonical' m
     routeIdEntry :: Routes
     routeIdEntry = metadataRoute $ \m ->
-        case lookupString "entry-id" m of
-          Just x  -> constRoute $ "entry/id" </> x <.> "html"
+        case entryIdInt m of
+          Just x  -> constRoute $ "entry/id" </> show x <.> "html"
           Nothing -> mempty
+      where
+        entryIdInt m = do
+          eiString <- lookupString "entry-id" m
+          eiDouble <- readMaybe eiString :: Maybe Double
+          return (round eiDouble)
     compileIdEntry
         :: (?config :: Config)
         => String
