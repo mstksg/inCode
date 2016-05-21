@@ -48,7 +48,7 @@ homeCompiler allPages allTags i p = do
                 }
         pd = def { pageDataTitle = if i == 1
                                      then Nothing
-                                     else Just $ T.pack ("Home ("  ++ show i ++ ")")
+                                     else Just $ T.pack ("Home (Page "  ++ show i ++ ")")
                  , pageDataCanonical = if i == 1
                                          then Just $ renderUrl' "/"
                                          else Nothing
