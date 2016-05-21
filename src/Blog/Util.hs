@@ -60,6 +60,7 @@ entryWriterOpts =
         , P.writerHighlight = True
         , P.writerVariables = [("geometry","margin=1in")
                               ,("links-as-notes","true")]
+        , P.writerColumns   = 80
         }
 
 sourceBlobs :: Config -> Maybe T.Text
