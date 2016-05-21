@@ -47,7 +47,7 @@ randomWeights :: MonadRandom m => Int -> Int -> m Weights
 randomWeights i o = do
     seed1 :: Int <- getRandom
     seed2 :: Int <- getRandom
-    let wB = randomVector seed1 Uniform o * 2 - 1
+    let wB = randomVector  seed1 Uniform o * 2 - 1
         wN = uniformSample seed2 o (replicate i (-1, 1))
     return $ W wB wN
 

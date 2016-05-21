@@ -59,7 +59,7 @@ randomWeights :: (MonadRandom m, KnownNat i, KnownNat o)
 randomWeights = do
     s1 :: Int <- getRandom
     s2 :: Int <- getRandom
-    let wB = randomVector s1 Uniform * 2 - 1
+    let wB = randomVector  s1 Uniform * 2 - 1
         wN = uniformSample s2 (-1) 1
     return $ W wB wN
 
