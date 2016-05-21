@@ -68,6 +68,13 @@ sourceBlobs = sourceBlobs' <=< confBlobs
 sourceBlobs' :: Blobs -> Maybe T.Text
 sourceBlobs' Blobs{..} = (blobsTree </!>) <$> blobsSourceBranch
 
+renderBlobs :: Config -> Maybe T.Text
+renderBlobs = renderBlobs' <=< confBlobs
+
+renderBlobs' :: Blobs -> Maybe T.Text
+renderBlobs' Blobs{..} = (blobsTree </!>) <$> blobsRenderBranch
+
+
 (</!>) :: T.Text -> T.Text -> T.Text
 b </!> f = let f' = fromMaybe f $ T.stripPrefix "/" f
                b' = fromMaybe b $ T.stripSuffix "/" b

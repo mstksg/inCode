@@ -36,12 +36,19 @@ renderUrl'
     => String -> String
 renderUrl' = T.unpack . renderUrl . T.pack
 
-renderBlobUrl
+renderSourceUrl
     :: (?config :: Config)
     => T.Text
     -> Maybe T.Text
-renderBlobUrl u = flip fmap (sourceBlobs ?config) $ \b ->
-                    b </!> u
+renderSourceUrl u = flip fmap (sourceBlobs ?config) $ \b ->
+                      b </!> u
+
+renderRenderUrl
+    :: (?config :: Config)
+    => T.Text
+    -> Maybe T.Text
+renderRenderUrl u = flip fmap (renderBlobs ?config) $ \b ->
+                      b </!> u
 
 renderRootUrl
     :: (?config :: Config)

@@ -50,7 +50,7 @@ instance FromJSON Config where
       confAuthorInfo    <- v .:  "author"
       confCopyright     <- v .:  "copyright"
       confFeed          <- v .:  "feed"
-      confBlobs         <- v .:? "public-blobs"
+      confBlobs         <- v .:? "blobs"
       confCodeSamples   <- v .:? "code-samples"
       confInteractive   <- v .:? "interactive-url"
       confHostInfo      <- v .:  "host"
