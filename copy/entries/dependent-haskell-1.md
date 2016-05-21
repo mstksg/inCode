@@ -401,9 +401,9 @@ We can still construct them the same way:
 
 ~~~haskell
 -- given:
-ho :: Weights  4 2
-hh :: Weights  7 4
 ih :: Weights 10 7
+hh :: Weights  7 4
+ho :: Weights  4 2
 
 -- we have:
               O ho :: Network  4 '[] 2
