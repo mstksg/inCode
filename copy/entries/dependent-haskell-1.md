@@ -344,9 +344,10 @@ knowing what works with what, and what we need were, and helping us organize
 our logic)
 
 Let's write a `Weights` type that tells you the size of its output and the
-input it expects.  Let's have, say, a `Weights 10 5` be a set of weights that
-takes you from a layer of 10 nodes to a layer of 5 nodes.  `w :: Weights 4 6`
-would take you from a layer of 4 nodes to a layer of 6 nodes:
+input it expects.  Let's have, say, a `Weights 10 5` (with numeric literals,
+representing *types* of kind `Nat`) be a set of weights that takes you from a
+layer of 10 nodes to a layer of 5 nodes.  `w :: Weights 4 6` would take you
+from a layer of 4 nodes to a layer of 6 nodes:
 
 ~~~haskell
 !!!dependent-haskell/NetworkTyped.hs "data Weights"
