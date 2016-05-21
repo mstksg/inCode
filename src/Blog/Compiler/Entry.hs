@@ -138,6 +138,7 @@ entryMarkdownCompiler = do
                    , renderUrl ""
                    , ")"
                    , timeString
+                   , "."
                    ]
         , T.concat [ "> [Read online!]("
                    , renderUrl (T.pack entryCanonical)
