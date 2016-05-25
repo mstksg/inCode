@@ -536,11 +536,15 @@ can pattern match on it and do things with it.
 
 In Haskell, the popular way to deal with this is by using *singletons* ---
 (parameterized) types which only have valid constructor.  The
-*[typelits-witnesses][]* library offers a handy singleton for just this job. If
-you have a type level list of nats, you get a `KnownNats ns` constraint. This
-lets you create a `NatList`:
+*[typelits-witnesses][]* library[^nosingletons] offers a handy singleton for
+just this job. If you have a type level list of nats, you get a `KnownNats ns`
+constraint. This lets you create a `NatList`:
 
 [typelits-witnesses]: http://hackage.haskell.org/package/typelits-witnesses-0.2.2.0
+
+[^nosingletons]: [Why don't we use the canonical *singletons* library?][singwhynot]
+
+[singwhynot]: https://www.reddit.com/r/haskell/comments/4l199z/practical_dependent_types_in_haskell_type_safe/d3jkslv
 
 ~~~haskell
 data NatList :: [Nat] -> * where
