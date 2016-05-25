@@ -35,7 +35,7 @@ I'm still in the process of learning this all, myself :)
 [jozefg]: http://jozefg.bitbucket.org/posts/2014-08-25-dep-types-part-1.html
 
 The first project in this series will build up to a type-safe **[artificial
-neural network][ann]** implementation with back-propagation.
+neural network][ann]** implementation with back-propagation training.
 
 [ann]: https://en.wikipedia.org/wiki/Artificial_neural_network
 
