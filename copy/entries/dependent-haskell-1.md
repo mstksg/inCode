@@ -267,7 +267,7 @@ Writing this is a bit of a struggle.  I actually implemented this incorrectly
 several times before writing it as you see here.  The type system doesn't help
 you like it normally does in Haskell, and you can't really use parametricity to
 help you write your code like normal Haskell.  Everything is monomorphic, and
-everything multiplies with everything else.  You don't have any hits about what
+everything multiplies with everything else.  You don't have any hints about what
 to multiply with what at any point in time.  It's like all of the bad things
 mentioned before, but amplified.
 
@@ -524,7 +524,7 @@ pattern matching, and induction on dependent data types.
 Let's say we want to implement an algorithm that can create any `Network i hs
 o`, so that we can construct a `Network 4 '[3,2] 1` or something.  In true
 Haskell fashion, we want do this recursively ("inductively").   After all, we
-know how to make a `Network i '[] o` (just `O <$> randomWieights`), and we know
+know how to make a `Network i '[] o` (just `O <$> randomWeights`), and we know
 how to create a `Network i (h ': hs) o` if we had a `Network h hs o` (just use
 `(:&~)` with `randomWeights`).  Now all we have to do is just "pattern match"
 on the type-level list, and...
