@@ -762,13 +762,13 @@ implementations*.
 
 We followed our well-tuned Haskell guts, listened to our hearts, and introduced
 extra power in our types to remove all partial functions and eliminate *most*
-potential implementations (though not all, yet).
+potential implementations (though not all, yet --- there are more gains to be
+made from pulling in more parametric polymorphism).
 
 Though we might have been able to find the bugs we avoided "eventually", we
 were able to remove entire *dimensions* of programmer concern and also leverage
 parametric polymorphism to help write our programs for us.  We found joy again
 in programming.
-
 
 In the process, however, we encountered some unexpected resistance from Haskell
 (the language).  We couldn't directly pattern match on our types, so we ended
