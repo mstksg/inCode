@@ -786,7 +786,7 @@ instance).  But what if we wanted to generate a network that has
 runtime-determined size (For example, getting the size from user input)?  What
 if we wanted to load a pre-trained network whose size we don't know?  How can
 we manipulate our networks in a "dynamic" and generic way that still gives us
-all of the benefits of type-safe programming?
+all of the benefits of type-safe programming?  We'll found out next post!
 
 What we're looking at here is a world where *types* can depend on run-time
 values ... and values can depend on types.  A world where types can be returned
