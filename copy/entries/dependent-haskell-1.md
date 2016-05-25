@@ -524,7 +524,7 @@ pattern matching, and induction on dependent data types.
 Let's say we want to implement an algorithm that can create any `Network i hs
 o`, so that we can construct a `Network 4 '[3,2] 1` or something.  In true
 Haskell fashion, we want do this recursively ("inductively").   After all, we
-know how to make a `Network i '[] o` (just `O <$> randomWieights`), and we know
+know how to make a `Network i '[] o` (just `O <$> randomWeights`), and we know
 how to create a `Network i (h ': hs) o` if we had a `Network h hs o` (just use
 `(:&~)` with `randomWeights`).  Now all we have to do is just "pattern match"
 on the type-level list, and...
