@@ -2,9 +2,9 @@
 title: "Practical Dependent Types in Haskell: Type-Safe Neural Networks (Part 1)"
 categories: Haskell, Ramblings
 series: Practical Dependent Types in Haskell
-tags: functional programming, dependent types, numerical, haskell, singletons, types, linear algebra, artificial neural networks
+tags: functional programming, dependent types, numerical, haskell, singletons, types, linear algebra, artificial neural networks, machine learning
 create-time: 2016/02/25 11:47:50
-date: Never
+date: 2016/05/25 11:46:21
 identifier: dependent-haskell-1
 slug: practical-dependent-types-in-haskell-1
 ---
@@ -26,7 +26,8 @@ the way you structure your Haskell programs.  It'll also hopefully instill an
 intuition of a dependently typed work flow of "exploring" how dependent types
 can help your current programs.  The intended audience of this post is for
 intermediate Haskell programmers in general, with no required knowledge of
-dependently typed programming.
+dependently typed programming.  I should also point out that I'm no expert ---
+I'm still in the process of learning this all, myself :)
 
 [weirich]: https://www.youtube.com/watch?v=rhWMhTjQzsU
 [andres]: http://www.well-typed.com/blog/2015/11/implementing-a-minimal-version-of-haskell-servant/
@@ -633,7 +634,7 @@ the typeclass is is a way to get an `Integer` out of it with `natVal`). `(:<#)`
 requiring a `KnownNat n =>` put into it is really the same as requiring an
 `Integer` in it, which the act of pattern-matching can then take out.  A
 `NatList ns` is no different at run-time than an `[Integer]`, and `KnownNats
-=>` is no different than `[Integer] ->`.
+ns =>` is no different than `[Integer] ->`.
 
 The difference is that GHC and the compiler can now *track* these at
 compile-time to give you *checks* on how your Nat's act together on the type
