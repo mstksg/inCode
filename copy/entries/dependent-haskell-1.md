@@ -267,7 +267,7 @@ Writing this is a bit of a struggle.  I actually implemented this incorrectly
 several times before writing it as you see here.  The type system doesn't help
 you like it normally does in Haskell, and you can't really use parametricity to
 help you write your code like normal Haskell.  Everything is monomorphic, and
-everything multiplies with everything else.  You don't have any hits about what
+everything multiplies with everything else.  You don't have any hints about what
 to multiply with what at any point in time.  It's like all of the bad things
 mentioned before, but amplified.
 
