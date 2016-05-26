@@ -1,10 +1,11 @@
 #!/usr/bin/env stack
--- stack --resolver lts-5.15 --install-ghc runghc --package hmatrix --package MonadRandom --package typelits-witnesses
+-- stack --resolver nightly-2016-05-26 --install-ghc runghc --package hmatrix --package MonadRandom --package typelits-witnesses
 
 {-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE KindSignatures      #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving  #-}
 {-# LANGUAGE TypeOperators       #-}
@@ -13,8 +14,9 @@ import Control.Monad
 import Control.Monad.Random
 import Data.List
 import Data.Maybe
-import GHC.TypeLits
-import GHC.TypeLits.List
+import Data.Singletons
+import Data.Singletons.Prelude
+import Data.Singletons.TypeLits
 import Numeric.LinearAlgebra.Static
 import System.Environment
 import Text.Read
@@ -63,11 +65,12 @@ randomWeights = do
         wN = uniformSample s2 (-1) 1
     return $ W wB wN
 
-randomNet :: forall m i hs o. (MonadRandom m, KnownNat i, KnownNats hs, KnownNat o)
+randomNet :: forall m i hs o. (MonadRandom m, KnownNat i, SingI hs, KnownNat o)
           => m (Network i hs o)
-randomNet = case natsList :: NatList hs of
-              ØNL     -> O     <$> randomWeights
-              _ :<# _ -> (:&~) <$> randomWeights <*> randomNet
+randomNet = case sing :: Sing hs of
+              SNil          ->       O <$> randomWeights
+              SCons SNat hs -> withSingI hs $
+                                 (:&~) <$> randomWeights <*> randomNet
 
 train :: forall i hs o. (KnownNat i, KnownNat o)
       => Double           -- ^ learning rate
@@ -156,3 +159,4 @@ main = do
 
 (!!?) :: [a] -> Int -> Maybe a
 xs !!? i = listToMaybe (drop i xs)
+
