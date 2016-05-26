@@ -1,30 +1,39 @@
 #!/usr/bin/env stack
--- stack --resolver lts-5.15 --install-ghc runghc --package hmatrix --package MonadRandom
+-- stack --resolver nightly-2016-05-26 --install-ghc runghc --package hmatrix --package MonadRandom --package typelits-witnesses
 
 {-# LANGUAGE BangPatterns        #-}
-{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE KindSignatures      #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving  #-}
+{-# LANGUAGE TypeOperators       #-}
 
+-- import Data.Singletons.Prelude.Num
+-- import GHC.TypeLits
 import Control.Monad
 import Control.Monad.Random
 import Data.List
 import Data.Maybe
-import Numeric.LinearAlgebra
+import Data.Singletons
+import Data.Singletons.Prelude
+import Data.Singletons.TypeLits
+import Numeric.LinearAlgebra.Static
 import System.Environment
 import Text.Read
 
-data Weights = W { wBiases :: !(Vector Double)  -- n
-                 , wNodes  :: !(Matrix Double)  -- n x m
-                 }                              -- "m to n" layer
+data Weights i o = W { wBiases :: !(R o)
+                     , wNodes  :: !(L o i)
+                     }
 
-data Network :: * where
-    O     :: !Weights
-          -> Network
-    (:&~) :: !Weights
-          -> !Network
-          -> Network
+data Network :: Nat -> [Nat] -> Nat -> * where
+    O     :: !(Weights i o)
+          -> Network i '[] o
+    (:&~) :: KnownNat h
+          => !(Weights i h)
+          -> !(Network h hs o)
+          -> Network i (h ': hs) o
 infixr 5 :&~
 
 logistic :: Floating a => a -> a
@@ -35,36 +44,48 @@ logistic' x = logix * (1 - logix)
   where
     logix = logistic x
 
-runLayer :: Weights -> Vector Double -> Vector Double
+runLayer :: (KnownNat i, KnownNat o)
+         => Weights i o
+         -> R i
+         -> R o
 runLayer (W wB wN) v = wB + wN #> v
 
-runNet :: Network -> Vector Double -> Vector Double
+runNet :: (KnownNat i, KnownNat o)
+       => Network i hs o
+       -> R i
+       -> R o
 runNet (O w)      !v = logistic (runLayer w v)
 runNet (w :&~ n') !v = let v' = logistic (runLayer w v)
                        in  runNet n' v'
 
-randomWeights :: MonadRandom m => Int -> Int -> m Weights
-randomWeights i o = do
-    seed1 :: Int <- getRandom
-    seed2 :: Int <- getRandom
-    let wB = randomVector  seed1 Uniform o * 2 - 1
-        wN = uniformSample seed2 o (replicate i (-1, 1))
+randomWeights :: (MonadRandom m, KnownNat i, KnownNat o)
+              => m (Weights i o)
+randomWeights = do
+    s1 :: Int <- getRandom
+    s2 :: Int <- getRandom
+    let wB = randomVector  s1 Uniform * 2 - 1
+        wN = uniformSample s2 (-1) 1
     return $ W wB wN
 
-randomNet :: MonadRandom m => Int -> [Int] -> Int -> m Network
-randomNet i [] o     =     O <$> randomWeights i o
-randomNet i (h:hs) o = (:&~) <$> randomWeights i h <*> randomNet h hs o
+randomNet :: forall m i hs o. (MonadRandom m, KnownNat i, SingI hs, KnownNat o)
+          => m (Network i hs o)
+randomNet = case sing :: Sing hs of
+              SNil          ->       O <$> randomWeights
+              SCons SNat hs -> withSingI hs $
+                                 (:&~) <$> randomWeights <*> randomNet
 
-train :: Double           -- ^ learning rate
-      -> Vector Double    -- ^ input vector
-      -> Vector Double    -- ^ target vector
-      -> Network          -- ^ network to train
-      -> Network
+train :: forall i hs o. (KnownNat i, KnownNat o)
+      => Double           -- ^ learning rate
+      -> R i              -- ^ input vector
+      -> R o              -- ^ target vector
+      -> Network i hs o   -- ^ network to train
+      -> Network i hs o
 train rate x0 target = fst . go x0
   where
-    go :: Vector Double    -- ^ input vector
-       -> Network          -- ^ network to train
-       -> (Network, Vector Double)
+    go  :: forall j js. KnownNat j
+        => R j              -- ^ input vector
+        -> Network j js o   -- ^ network to train
+        -> (Network j js o, R j)
     -- handle the output layer
     go !x (O w@(W wB wN))
         = let y    = runLayer w x
@@ -73,8 +94,8 @@ train rate x0 target = fst . go x0
               --   (logistic' is the derivative of logistic)
               dEdy = logistic' y * (o - target)
               -- new bias weights and node weights
-              wB'  = wB - scale rate dEdy
-              wN'  = wN - scale rate (dEdy `outer` x)
+              wB'  = wB - konst rate * dEdy
+              wN'  = wN - konst rate * (dEdy `outer` x)
               w'   = W wB' wN'
               -- bundle of derivatives for next step
               dWs  = tr wN #> dEdy
@@ -88,8 +109,8 @@ train rate x0 target = fst . go x0
               -- the gradient (how much y affects the error)
               dEdy       = logistic' y * dWs'
               -- new bias weights and node weights
-              wB'  = wB - scale rate dEdy
-              wN'  = wN - scale rate (dEdy `outer` x)
+              wB'  = wB - konst rate * dEdy
+              wN'  = wN - konst rate * (dEdy `outer` x)
               w'   = W wB' wN'
               -- bundle of derivatives for next step
               dWs  = tr wN #> dEdy
@@ -99,16 +120,19 @@ netTest :: MonadRandom m => Double -> Int -> m String
 netTest rate n = do
     inps <- replicateM n $ do
       s <- getRandom
-      return $ randomVector s Uniform 2 * 2 - 1
+      return $ randomVector s Uniform * 2 - 1
     let outs = flip map inps $ \v ->
                  if v `inCircle` (fromRational 0.33, 0.33)
                       || v `inCircle` (fromRational (-0.33), 0.33)
                    then fromRational 1
                    else fromRational 0
-    net0 <- randomNet 2 [16,8] 1
+    net0 :: Network 2 '[16, 8] 1 <- randomNet
     let trained = foldl' trainEach net0 (zip inps outs)
           where
-            trainEach :: Network -> (Vector Double, Vector Double) -> Network
+            trainEach :: (KnownNat i, KnownNat o)
+                      => Network i hs o
+                      -> (R i, R o)
+                      -> Network i hs o
             trainEach nt (i, o) = train rate i o nt
 
         outMat = [ [ render (norm_2 (runNet trained (vector [x / 25 - 1,y / 10 - 1])))
@@ -122,7 +146,7 @@ netTest rate n = do
 
     return $ unlines outMat
   where
-    inCircle :: Vector Double -> (Vector Double, Double) -> Bool
+    inCircle :: KnownNat n => R n -> (R n, Double) -> Bool
     v `inCircle` (o, r) = norm_2 (v - o) <= r
 
 main :: IO ()
@@ -137,3 +161,4 @@ main = do
 
 (!!?) :: [a] -> Int -> Maybe a
 xs !!? i = listToMaybe (drop i xs)
+

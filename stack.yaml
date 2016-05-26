@@ -15,6 +15,9 @@ packages:
     commit: 42a88fbcb6bd1d2c4dc18fae5e962bd34fb316a1
   subdirs:
     - packages/base
+- location:
+    git: git@github.com:mstksg/singletons.git
+    commit: 779b9ceb3f4848ac1f07212af54dcba2a9ec2186
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
 extra-deps: []
 

@@ -133,10 +133,10 @@ netTest rate n = do
         outMat = [ [ render (norm_2 (runNet trained (vector [x / 25 - 1,y / 10 - 1])))
                    | x <- [0..50] ]
                  | y <- [0..20] ]
-        render n | n <= 0.2  = ' '
-                 | n <= 0.4  = '.'
-                 | n <= 0.6  = '-'
-                 | n <= 0.8  = '='
+        render r | r <= 0.2  = ' '
+                 | r <= 0.4  = '.'
+                 | r <= 0.6  = '-'
+                 | r <= 0.8  = '='
                  | otherwise = '#'
 
     return $ unlines outMat
