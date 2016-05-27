@@ -5,7 +5,6 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE KindSignatures      #-}
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving  #-}
 {-# LANGUAGE TypeOperators       #-}
@@ -67,10 +66,14 @@ randomWeights = do
 
 randomNet :: forall m i hs o. (MonadRandom m, KnownNat i, SingI hs, KnownNat o)
           => m (Network i hs o)
-randomNet = case sing :: Sing hs of
-              SNil          ->       O <$> randomWeights
-              SCons SNat hs -> withSingI hs $
-                                 (:&~) <$> randomWeights <*> randomNet
+randomNet = go sing
+  where
+    go :: forall h hs'. KnownNat h
+       => Sing hs'
+       -> m (Network h hs' o)
+    go hs = case hs of
+              SNil            ->     O <$> randomWeights
+              SNat `SCons` ss -> (:&~) <$> randomWeights <*> go ss
 
 train :: forall i hs o. (KnownNat i, KnownNat o)
       => Double           -- ^ learning rate

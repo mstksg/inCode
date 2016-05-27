@@ -17,7 +17,7 @@ packages:
     - packages/base
 - location:
     git: git@github.com:mstksg/singletons.git
-    commit: 779b9ceb3f4848ac1f07212af54dcba2a9ec2186
+    commit: v2.0.2
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
 extra-deps: []
 
