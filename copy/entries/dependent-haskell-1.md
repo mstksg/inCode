@@ -661,7 +661,12 @@ needs.  Note there, `sing :: Sing hs`, but this is inferred, because `go` is
 `Sing hs -> Network i hs o`, and it's being asked to return a `Network i hs o`,
 so it's safely inferable that we want `Sing hs`.
 
-This is a common pattern in dependent Haskell: "building up" a value-level
+When possible, we like to write functions like `go`, which take explicit
+singletons along with the types we care about.  In a lot of situations, we'll
+actually write our *logic* using explicit singletons, and only use `SingI` and
+implicit singletons at the external boundaries of our API (like `randomNet`).
+
+We've stumbled upon common pattern in dependent Haskell: "building up" a value-level
 singleton *structure* from a type that we want (either explicitly given as an
 argument, or provided through a typeclass like `SingI`) and then inductively
 piggybacking on that structure's constructors to build the thing you *really*
