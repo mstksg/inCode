@@ -586,7 +586,7 @@ case foo of
 ~~~
 
 *singletons* actually provides a whole bunch of singleton constructors for
-different types, like for `Bool`:
+different types and kinds, like for `Bool`:
 
 ~~~haskell
 STrue  :: Sing 'True
@@ -595,9 +595,9 @@ SFalse :: Sing 'False
 
 (That's the *type* `'True`, of *kind* `Bool`)
 
-So, if we ever are given a `Sing b` with some type-level `Bool` we don't know
-about, we can pattern match on it.  And in the branch that `STrue` matches on,
-`b` is `'True`, and in the branch that `SFalse` matches on, `b` is `False`.
+So, if we ever are given a `Sing b` with some type-level `Bool` we don't know,
+we can pattern match on it.  And in the branch that `STrue` matches on, `b` is
+`'True`, and in the branch that `SFalse` matches on, `b` is `False`.
 
 Singletons give us a way to pattern match on types by having an actual
 term-level value we can pattern match on.  So, we *could* implement:
@@ -609,11 +609,12 @@ randomNet :: (MonadRandom m, KnownNat i, KnownNat o)
 
 And `randomNet` gets to directly pattern match and deconstruct on `Sing hs`.
 
-However, for actual API's, it's usually much more convenient to *not* require
-the extra parameter, and have it be "inferred" in the way we've been doing it
-before.  So the *singletons* library offers a typeclass we can use to
-implicitly conjure up values of a singleton type -- `SingI`.  We can use
-`sing :: SingI s => Sing s` to generate the "inferred" singleton:
+However, for actual API's, it's often more convenient to *not* require the
+extra parameter, and have it be "inferred" in the way we've been doing it
+before.  That way the *user* doesn't have the burden of supplying it.  The
+*singletons* library offers a typeclass we can use to implicitly conjure up
+values of a singleton type -- `SingI`.  We can use `sing :: SingI s => Sing s`
+to generate the "inferred" singleton:
 
 ~~~haskell
 ghci> sing :: Sing '[]
@@ -623,6 +624,10 @@ STrue
 ghci> sing :: Sing '['True, 'False, 'True]
 STrue `SCons` SFalse `SCons` STrue `SCons` SNil
 ~~~
+
+So if you have a function `SingI hs => ...`, it's really no different than
+`Sing hs -> ...`.  The function itself gets to use a `Sing hs` either way ...
+but for the first, the argument is implicit.
 
 The final piece of the puzzle is the singleton for a type-level `Nat`.  It's a
 little different because when you pattern match on it, instead of directly
@@ -639,15 +644,12 @@ case foo of
 ~~~
 
 Essentially, the data constructor comes "packaged" with a `KnownNat n`
-instance.  In order to create a `SNat :: Sing n`, you need a `KnownNat n`
-instance in scope.  GHC packs up the evidence that that instance exists, and,
-when you pattern match on it, you also "pattern match" out that instance, too.
-
-Another way you can think of it is that the *creation* of `SNat :: Sing n`
-requires the presence of `KnownNat n`.  So if you ever pattern match on a
-validly created `SNat`, the fact that that `SNat` constructor even exists
-(instead of, say, being `undefined`) is a *witness* to that `KnownNat`
-instance, and the type system lets us use this.
+instance.  The *creation* of `SNat :: Sing n` requires the presence of
+`KnownNat n`.  So if you ever pattern match on a validly created `SNat`, the
+fact that that `SNat` constructor even exists (instead of, say, being
+`undefined`) is a *witness* to that very `KnownNat` instance, and the type
+system lets us use this.  It's as if you "pattern match" out the instance
+itself, like any other value the constructor might have.
 
 Now we have enough pieces of the puzzle:
 
@@ -663,9 +665,10 @@ needs.  Note there, `sing :: Sing hs`, but this is inferred, because `go` is
 so it's safely inferable that we want `Sing hs`.
 
 When possible, we like to write functions like `go` that take *explicit*
-singletons.  In a lot of situations, we'll actually write our *logic* itself
-using explicit singletons, and only use `SingI` and implicit singletons at the
-*external* boundaries of our API (like `randomNet`) for convenience.
+singletons.  In a lot of situations, we'll actually write our internal *logic*
+itself using explicit singletons, and only use `SingI` and implicit singletons
+at the *external* boundaries of our API (like `randomNet`) for convenience to
+the user.
 
 We've stumbled upon common pattern in dependent Haskell: "building up" a
 value-level singleton *structure* from a type that we want (either explicitly
@@ -695,18 +698,20 @@ So, the constructor:
 SNat :: KnownNat n => Sing n
 ~~~
 
-Is *really* kind of like:
+Is really *kind* of like:
 
 ~~~haskell
 SNat :: Integer -> Sing n
--- or
+-- or, in normal data type notation
 SNat Integer
+-- kinda!
 ~~~
 
 The GADT constructor for `SNat` requires a `KnownNat n` instance in scope to
-produce.  That instance is essentially stored inside the constructor, as if it
-were just an `Integer`.  Then, later, when you pattern match on it, you pattern
-match out the instance that was originally put in there, and you can use it!
+produce.  That instance is essentially stored inside the constructor (as if it
+were just an `Integer`).  Then, later, when you pattern match on it, you
+pattern match out the instance that was originally put in there, and you can
+use it!
 
 So what's the big deal, why not just ditch `KnownNat` and just pass around
 integers?  The difference is that GHC and the compiler can now *track* these at
