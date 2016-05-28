@@ -530,7 +530,17 @@ it's just a better style of defining functions/offering an API!
 
 The code for the updated `randomNet` takes a bit of background to understand,
 so let's take a quick detour through the concepts of singletons, dependent
-pattern matching, and induction on dependent data types.
+pattern matching, and induction on dependent data types.[^old]
+
+[^old]: This entire section was previously written to use the
+[typelits-witnesses][] library, but has now been re-written to use the
+canonical [singletons][] library after a [conversation][] with Andras Kovacs.
+The [old version][old-singletons] is still online at github, if you want to
+look at it or compare!
+
+[typelits-witnesses]: http://hackage.haskell.org/package/typelits-witnesses
+[conversation]: https://www.reddit.com/r/haskell/comments/4l199z/practical_dependent_types_in_haskell_type_safe/d3jkslv
+[old-singletons]: https://github.com/mstksg/inCode/blob/697c1f726b9ab9c3f9830ed5521bfeee6ec10727/entry/practical-dependent-types-in-haskell-1.md#singletons-and-induction
 
 Let's say we want to implement an algorithm that can create any `Network i hs
 o`, so that we can construct a `Network 4 '[3,2] 1` or something.  In true
@@ -540,10 +550,10 @@ how to create a `Network i (h ': hs) o` if we had a `Network h hs o` (just use
 `(:&~)` with `randomWeights`).  Now all we have to do is just "pattern match"
 on the type-level list, and...
 
-Oh wait.  We can't pattern match on types like that in Haskell.  This is due to
-one of Haskell's fundamental design decisions: types are **erased** at runtime.
-We need to have a way to "access" the type (at run-time) as a *value*, so we
-can pattern match on it and do things with it.
+Oh wait.  We can't pattern match on types like that in Haskell.  This is a
+consequence of one of Haskell's fundamental design decisions: types are
+**erased** at runtime.  We need to have a way to "access" the type (at
+run-time) as a *value* so we can pattern match on it and do things with it.
 
 In Haskell, the popular way to deal with this is by using *singletons* ---
 (parameterized) types which only have valid constructor.  The canonical method
@@ -562,11 +572,12 @@ SCons :: Sing a -> Sing as -> Sing (a ': as)
 ~~~
 
 This means that if we ever get value of type `Sing as` (and `as` is a
-type-level list), we can pattern match on it --- and if we match on the `SNil`
-constructor, we *know* it's a `Sing '[]`, and if we match on the `SCons`
-constructor, we *know* it's a `Sing (a ': as)` -- a non-empty list.  This is
-called *dependent pattern matching*.  Every "branch" of your case statement has
-a different inferred type of the arguments:
+type-level list), we can pattern match on it.  If we match on the `SNil`
+constructor, we *know* it's a `Sing '[]` in that branch, and if we match on the
+`SCons` constructor, we *know* it's a `Sing (a ': as)` -- a non-empty list.
+This is called *dependent pattern matching*.  Every "branch" of your case
+statement has a different inferred type of the arguments, depending on the
+constructor you match on.
 
 ~~~haskell
 case foo of
@@ -582,29 +593,35 @@ STrue  :: Sing 'True
 SFalse :: Sing 'False
 ~~~
 
+(That's the *type* `'True`, of *kind* `Bool`)
+
 So, if we ever are given a `Sing b` with some type-level `Bool` we don't know
 about, we can pattern match on it.  And in the branch that `STrue` matches on,
 `b` is `'True`, and in the branch that `SFalse` matches on, `b` is `False`.
 
 Singletons give us a way to pattern match on types by having an actual
-term-level value we can pattern match on.  So we can implement:
+term-level value we can pattern match on.  So, we *could* implement:
 
 ~~~haskell
 randomNet :: (MonadRandom m, KnownNat i, KnownNat o)
           => Sing hs -> m (Network i hs o)
 ~~~
 
-And `randomNet` can deconstruct `hs`.  However, for actual API's, it's usually
-much more convenient to not require the extra parameter, and have it be
-"inferred" in the way we've been doing it before.  So the *singletons* library
-offers a typeclass we can use to implicitly conjure up values of a singleton
-type -- `SingI`.  We can use `sing :: SingI s => Sing s` to generate the
-"inferred" singleton:
+And `randomNet` gets to directly pattern match and deconstruct on `Sing hs`.
+
+However, for actual API's, it's usually much more convenient to *not* require
+the extra parameter, and have it be "inferred" in the way we've been doing it
+before.  So the *singletons* library offers a typeclass we can use to
+implicitly conjure up values of a singleton type -- `SingI`.  We can use
+`sing :: SingI s => Sing s` to generate the "inferred" singleton:
 
 ~~~haskell
-ghci> sing :: Sing '['True, 'False]
-SCons STrue (SCons SFalse (SCons SNil))
--- STrue `SCons` SFalse `SCons` SNil
+ghci> sing :: Sing '[]
+SNil
+ghci> sing :: Sing 'True
+STrue
+ghci> sing :: Sing '['True, 'False, 'True]
+STrue `SCons` SFalse `SCons` STrue `SCons` SNil
 ~~~
 
 The final piece of the puzzle is the singleton for a type-level `Nat`.  It's a
@@ -621,17 +638,17 @@ case foo of
   SNat -> ...   -- in this branch, we have a `KnownNat n` instance
 ~~~
 
-The way this works is that the data constructor comes "packaged" with a
-`KnownNat n` instance.  In order to create a `SNat :: Sing n`, you need a
-`KnownNat n` instance in scope.  GHC packs up the evidence that that instance
-exists, and, when you pattern match on it, you also pattern match out that
-instance, too.
+Essentially, the data constructor comes "packaged" with a `KnownNat n`
+instance.  In order to create a `SNat :: Sing n`, you need a `KnownNat n`
+instance in scope.  GHC packs up the evidence that that instance exists, and,
+when you pattern match on it, you also "pattern match" out that instance, too.
 
-This is essentially the same thing we did with `Network`, above.  The second
-constructor, `(:&~) :: KnownNat h => Weights i h -> Network h hs o -> Network o
-(h ': hs) o` basically "packages up" the `KnownNat h` instance, and when we
-pattern match on `(:&~)`, we get it back so we can use it/give it to *hmatrix*
-functions.
+Another way you can think of it is that the *creation* of `SNat :: Sing n`
+requires the presence of `KnownNat n`.  So if you ever pattern match on a
+validly created `SNat`, that means that that instance has to exist, and we can
+use it!
+
+Now we have enough pieces of the puzzle:
 
 ~~~haskell
 !!!dependent-haskell/NetworkTyped.hs "randomNet ::"
@@ -651,7 +668,7 @@ piggybacking on that structure's constructors to build the thing you *really*
 want (called "elimination").  Here, we use `SingI hs` to build our `NatList hs`
 structure, and use/"eliminate" that structure to create our `Network i hs o`.
 
-#### On Typeclasses
+#### On Typeclasses and Dictionaries
 
 One of the more bizarre things here, to me, is that `SNat` somehow gave us a
 `KnownNat n` instance that we can use and pass off to `randomWeights`.
@@ -662,24 +679,25 @@ The only thing you can really do from a `KnownNat` is to get an `Integer` from
 it with `natVal`.  So really, `KnownNat n => ...` is more or less the same as
 `Integer -> ...`.  That's right --- at runtime, a `KnownNat n` constraint is
 more or less just an `Integer` that GHC passes around automatically for you, to
-save you the hassle of manually passing it in yourself.
+save you the hassle of manually passing it in yourself.  (We say that the
+"dictionary" of `KnownNat` is `Integer`.)
 
-So, what about the constructor:
+So, the constructor:
 
 ~~~haskell
 SNat :: KnownNat n => Sing n
 ~~~
 
-Which is really just:
+Is *really* kind of like:
 
 ~~~haskell
 SNat :: Integer -> Sing n
 ~~~
 
-The GADT constructor for `SNat` requires a `KnownNat n` instance in scope.  It
-*takes* that instance and stores it inside the constructor as an `Integer`.
-Then, later, when you pattern match on it, you pattern match out the instance
-that was originally put in there, and you can use it!
+The GADT constructor for `SNat` requires a `KnownNat n` instance in scope to
+produce.  That instance is essentially stored inside the constructor, as if it
+were just an `Integer`.  Then, later, when you pattern match on it, you pattern
+match out the instance that was originally put in there, and you can use it!
 
 So what's the big deal, why not just ditch `KnownNat` and just pass around
 integers?  The difference is that GHC and the compiler can now *track* these at
@@ -774,7 +792,7 @@ of the other file and tests the identical function.
 !!![mainTyped]:dependent-haskell/NetworkTyped.hs "main ::"
 
 ~~~bash
-$ stack install hmatrix MonadRandom typelits-witnesses
+$ stack install hmatrix MonadRandom singletons
 $ stack ghc -- -O2 ./NetworkTyped.hs
 $ ./NetworkTyped
 # Training network...
