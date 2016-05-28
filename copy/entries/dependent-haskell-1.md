@@ -664,6 +664,10 @@ needs.  Note there, `sing :: Sing hs`, but this is inferred, because `go` is
 `Sing hs -> Network i hs o`, and it's being asked to return a `Network i hs o`,
 so it's safely inferable that we want `Sing hs`.
 
+Remember that we can write `O <$> randomWeights` because `randomWeights`, like
+`read`, adapts to whatever type we want from it --- in this case, we ask for a
+`Weights h o`, and type inference is the real hero.
+
 When possible, we like to write functions like `go` that take *explicit*
 singletons.  In a lot of situations, we'll actually write our internal *logic*
 itself using explicit singletons, and only use `SingI` and implicit singletons
