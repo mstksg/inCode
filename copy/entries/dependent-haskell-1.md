@@ -645,8 +645,9 @@ when you pattern match on it, you also "pattern match" out that instance, too.
 
 Another way you can think of it is that the *creation* of `SNat :: Sing n`
 requires the presence of `KnownNat n`.  So if you ever pattern match on a
-validly created `SNat`, that means that that instance has to exist, and we can
-use it!
+validly created `SNat`, the fact that that `SNat` constructor even exists
+(instead of, say, being `undefined`) is a *witness* to that `KnownNat`
+instance, and the type system lets us use this.
 
 Now we have enough pieces of the puzzle:
 
@@ -661,17 +662,18 @@ needs.  Note there, `sing :: Sing hs`, but this is inferred, because `go` is
 `Sing hs -> Network i hs o`, and it's being asked to return a `Network i hs o`,
 so it's safely inferable that we want `Sing hs`.
 
-When possible, we like to write functions like `go`, which take explicit
-singletons along with the types we care about.  In a lot of situations, we'll
-actually write our *logic* using explicit singletons, and only use `SingI` and
-implicit singletons at the external boundaries of our API (like `randomNet`).
+When possible, we like to write functions like `go` that take *explicit*
+singletons.  In a lot of situations, we'll actually write our *logic* itself
+using explicit singletons, and only use `SingI` and implicit singletons at the
+*external* boundaries of our API (like `randomNet`) for convenience.
 
-We've stumbled upon common pattern in dependent Haskell: "building up" a value-level
-singleton *structure* from a type that we want (either explicitly given as an
-argument, or provided through a typeclass like `SingI`) and then inductively
-piggybacking on that structure's constructors to build the thing you *really*
-want (called "elimination").  Here, we use `SingI hs` to build our `NatList hs`
-structure, and use/"eliminate" that structure to create our `Network i hs o`.
+We've stumbled upon common pattern in dependent Haskell: "building up" a
+value-level singleton *structure* from a type that we want (either explicitly
+given as an argument, or provided through a typeclass like `SingI`) and then
+inductively piggybacking on that structure's constructors to build the thing
+you *really* want (called "elimination").  Here, we use `SingI hs` to build our
+`NatList hs` structure, and use/"eliminate" that structure to create our
+`Network i hs o`.
 
 #### On Typeclasses and Dictionaries
 
@@ -697,6 +699,8 @@ Is *really* kind of like:
 
 ~~~haskell
 SNat :: Integer -> Sing n
+-- or
+SNat Integer
 ~~~
 
 The GADT constructor for `SNat` requires a `KnownNat n` instance in scope to
