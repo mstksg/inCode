@@ -25,6 +25,13 @@ fundamental limitations to let us "pattern match" on the structure of types,
 and how to use typeclasses to generate singletons reflecting the structure of
 types we are dealing with.
 
+(If you read [Part 1][] *before* the singletons section was re-written to use
+the [singletons][] library, [here's a link to the section][new-section] in
+specific.  This tutorial will assume familiarity with what is discussed there!)
+
+[singletons]: https://hackage.haskell.org/package/singletons
+[new-section]: https://blog.jle.im/entry/practical-dependent-types-in-haskell-1.html#singletons-and-induction
+
 All of what we've dealt with so far has essentially been with types that are
 fixed at compile-time.  All the networks we've made have had "static" types,
 with their sizes in their types indicated directly in the source code.
@@ -32,6 +39,39 @@ with their sizes in their types indicated directly in the source code.
 Today, we're going to dive into the world of types that *depend* on factors
 unknown until runtime, and see how dependent types in a strongly typed language
 like Haskell helps us write safer, more correct, and more maintainable code.
-We'll also look at the gamut of techniques and design principles for dealing
-with them.
+Along the way, we'll encounter and learn first-hand about techniques and
+guiding high-level principles that we can apply to our other dependently typed
+coding endeavours.
 
+Serializing Networks
+--------------------
+
+To warm up, let's talk about serializing networks.
+
+Serializing networks of 
+
+
+
+<!-- At the Boundary -->
+<!-- --------------- -->
+
+<!-- There's a sort of mode of thinking that comes with --> 
+
+<!-- You can see in the last post a definite demarcation of two "worlds": the world -->
+<!-- of "untyped", non-dependently typed programming, and the world of typed, -->
+<!-- dependently typed programming. -->
+
+<!-- So far we've worked completely -->
+
+<!-- When I first heard about types that depend on runtime values, my mind -->
+<!-- immediately jumped to the idea of dynamic types ... which is, of course, the -->
+<!-- thing that all Haskellers are indoctrinated to hate from day 1.  But --> 
+
+
+
+
+
+
+
+
+<!-- sameNat and existentials -->
