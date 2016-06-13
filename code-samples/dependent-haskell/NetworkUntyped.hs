@@ -52,7 +52,7 @@ randomWeights i o = do
     return $ W wB wN
 
 randomNet :: MonadRandom m => Int -> [Int] -> Int -> m Network
-randomNet i [] o     =     O <$> randomWeights i o
+randomNet i []     o =     O <$> randomWeights i o
 randomNet i (h:hs) o = (:&~) <$> randomWeights i h <*> randomNet h hs o
 
 train :: Double           -- ^ learning rate

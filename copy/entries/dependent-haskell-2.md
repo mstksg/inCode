@@ -137,7 +137,7 @@ need for dynamically sized networks like we had to handle for lists.
 We'll write `getNet` the similarly to how wrote [`randomNet`][randomNet] from
 the last post:
 
-!!![randomNet]:dependent-haskell/NetworkUntyped.hs "randomNet ::"
+!!![randomNet]:dependent-haskell/NetworkTyped.hs "randomNet ::"
 
 ~~~haskell
 !!!dependent-haskell/NetworkTyped2.hs "getNet ::"
