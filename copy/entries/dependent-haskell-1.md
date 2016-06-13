@@ -435,7 +435,8 @@ input, hidden layers, and output sizes).  Let's go over the two constructors.
 
     We add a `KnownNat` constraint on the `h`, so that whenever you pattern
     match on `w :&~ net`, you automatically get a `KnownNat` constraint for the
-    input size of `net` that the *hmatrix* library can use.
+    input size of `net` (and the output of `w`) that the *hmatrix* library can
+    use.
 
 We can still construct them the same way:
 
@@ -657,12 +658,15 @@ Now we have enough pieces of the puzzle:
 !!!dependent-haskell/NetworkTyped.hs "randomNet ::"
 ~~~
 
-The real heavy lifting is done by `go`, which takes the singleton structure it
-needs and recursively calls it until it reaches the base case (`SNil`, an
-output layer).  We just call `go sing` to give it the initial structure it
-needs.  Note there, `sing :: Sing hs`, but this is inferred, because `go` is
-`Sing hs -> Network i hs o`, and it's being asked to return a `Network i hs o`,
-so it's safely inferable that we want `Sing hs`.
+The real heavy lifting is done by `go` (written with [LambdaCase][]), which
+takes the singleton structure it needs and recursively calls it until it
+reaches the base case (`SNil`, an output layer).  We just call `go sing` to
+give it the initial structure it needs.  Note there, `sing :: Sing hs`, but
+this is inferred, because `go` is `Sing hs -> Network i hs o`, and it's being
+asked to return a `Network i hs o`, so it's safely inferable that we want `Sing
+hs`.
+
+[LambdaCase]: https://www.schoolofhaskell.com/school/to-infinity-and-beyond/pick-of-the-week/guide-to-ghc-extensions/basic-syntax-extensions#lambdacase
 
 Remember that we can write `O <$> randomWeights` because `randomWeights`, like
 `read`, adapts to whatever type we want from it --- in this case, we ask for a

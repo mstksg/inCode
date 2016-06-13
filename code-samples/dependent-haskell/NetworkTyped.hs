@@ -71,9 +71,8 @@ randomNet = go sing
     go :: forall h hs'. KnownNat h
        => Sing hs'
        -> m (Network h hs' o)
-    go hs = case hs of
-              SNil            ->     O <$> randomWeights
-              SNat `SCons` ss -> (:&~) <$> randomWeights <*> go ss
+    go = \case SNil            ->     O <$> randomWeights
+               SNat `SCons` ss -> (:&~) <$> randomWeights <*> go ss
 
 train :: forall i hs o. (KnownNat i, KnownNat o)
       => Double           -- ^ learning rate
