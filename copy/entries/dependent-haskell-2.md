@@ -46,10 +46,10 @@ coding endeavours.
 Serializing Networks
 --------------------
 
-To warm up, let's talk about serializing networks: writing them to binary and
-re-reading them.
+Just to warm up, let's talk about serializing networks: writing them to binary
+and re-reading them.
 
-### Binary
+### Recap on the Binary Library
 
 Serializing networks of *known* size --- whose sizes are statically in their
 types --- is pretty straightforward.  I'm going to be using the *[binary][]*
@@ -189,36 +189,205 @@ hs` constraint, essentially doing the same thing:
 To go from "`SingI` world" to "`Sing` world", we use `sing` to generate the
 explicit `Sing hs` from `SingI hs =>`.
 
-We can go "backwards" too by using `withSingI :: Sing a -> (SingI a => r) -> r`:
+<!-- #### `Sing` to `SingI` -->
+
+<!-- As a quick aside, note that we can go "backwards" too by using `withSingI :: -->
+<!-- Sing a -> (SingI a => r) -> r`: -->
+
+<!-- ~~~haskell -->
+<!-- !!!dependent-haskell/NetworkTyped2.hs "sillyGetNet ::" -->
+<!-- ~~~ -->
+
+<!-- `withSingI` takes a `Sing a` and a "thing you can evaluate if only you had a -->
+<!-- `SingI a` instance available", and evaluates it.  We can only evaluate `get :: -->
+<!-- (KnownNat i, SingI hs, KnownNat o) => Get (Network i hs o)` if we have that -->
+<!-- `SingI` instance, so we can pass it into `withSingI` as the second argument, -->
+<!-- and, voilà --- we get that `Get (Network i hs o)` right out. -->
+
+Existential Crisis
+------------------
+
+Now, having the entire structure of your neural network in the type is nice and
+all for cool tricks like `randomNet`...but do you *really* want to work with
+this directly?  After all, from the user's perspective, the user really only
+ever needs to know `i` and `o`: What vectors the network *expects*, and what
+vectors the network *outputs*.  In the end, all a (feed-forward) Neural Network
+really is is an abstraction over a function `R i -> R o`.
+
+Remember, the main benefits of having the entire structure in the type was to
+help us *implement* our functions more safely, with the compiler's help, and
+also for cute return type polymorphism tricks like `randomNet` and `getNet`.
+The *first* type of benefit really doesn't benefit the *user* of the network.
+So let's talk about a way to "abstract" away the internal structure of hidden
+nodes from the type, and maybe even have it depend on runtime values!
+
+The big key to "hiding" parts of types and letting them depend on runtime
+values is called the *existential type*.  Existential types are sort of the
+"opposite" of the normal polymorphic (universally quantified) types you
+normally see in Haskell.
+
+For a function like
 
 ~~~haskell
-!!!dependent-haskell/NetworkTyped2.hs "sillyGetNet ::"
+map :: (a -> b) -> [a] -> [b]
 ~~~
 
-`withSingI` takes a `Sing a` and a "thing you can evaluate if only you had a
-`SingI a` instance available", and evaluates it.  We can only evaluate `get ::
-(KnownNat i, SingI hs, KnownNat o) => Get (Network i hs o)` if we have that
-`SingI` instance, so we can pass it into `withSingI` as the second argument,
-and, voilà --- we get that `Get (Network i hs o)` right out.
+`a` and `b` are universally quantified, which means that the person who *uses*
+`map` gets to *decide* what `a` and `b` are.  To be more explicit, that type
+signature can be written as:
 
+~~~haskell
+map :: forall a b. (a -> b) -> [a] -> [b]
+~~~
 
+For a universally quantified type, the *caller* gets to decide what is
+what...and the function has to *adapt* to handle it.
 
-<!-- At the Boundary -->
-<!-- --------------- -->
+For the *existentially* quantified type, the *function* gets to decide what is
+what, and the *caller* has to adapt to handle it.
 
-<!-- There's a sort of mode of thinking that comes with -->
+There are two main ways to work with existential types in Haskell, and we'll
+go over both of them now and talk about their relative strengths and weaknesses
+and what situations to use either of them in.  It pays to be aware of both!
 
-<!-- You can see in the last post a definite demarcation of two "worlds": the world -->
-<!-- of "untyped", non-dependently typed programming, and the world of typed, -->
-<!-- dependently typed programming. -->
+### Existential Data Type
 
-<!-- So far we've worked completely -->
+Arguably the more natural way in Haskell to work with existential types is to
+wrap them in a data type:
 
-<!-- When I first heard about types that depend on runtime values, my mind -->
-<!-- immediately jumped to the idea of dynamic types ... which is, of course, the -->
-<!-- thing that all Haskellers are indoctrinated to hate from day 1.  But -->
+~~~haskell
+!!!dependent-haskell/NetworkTyped2.hs "data OpaqueNet ::"
+~~~
 
+So, if you have `net :: Network 6 '[10,6,3] 2`, you can create
+`ONet sing net :: OpaqueNet 6 2`.  When you use the `ONet` constructor, the
+structure of the hidden layers disappears from the type!
 
+How do we use this type?  When we *pattern match* on `ONet`, we get the
+singleton and the net back!
+
+~~~haskell
+!!!dependent-haskell/NetworkTyped2.hs "numHiddens ::"
+~~~
+
+Note that it's important for us to stuff in the singleton in addition to the
+network itself, because of type erasure.  If we didn't pop the singleton in,
+there'd be no way for us to recover the original `hs`!  (Note that we could
+have had `ONet :: SingI hs => Network i hs o -> OpaqueNet i o`, which is
+essentially the same thing)
+
+<!-- Typically, for an existential type to be *useful*, we usually have to add a -->
+<!-- typeclass constraint or a singleton so that whoever pattern matches on the -->
+<!-- constructor has *something* to work with. -->
+
+Once you *do* pattern match on `ONet`, you have to handle the `hs` in a
+*completely polymorphic way*.  You're not allowed to assume anything about
+`hs`...you have to provide a completely parametrically polymorphic way of
+dealing with it!
+
+Note that this function is completely not ok:
+
+~~~haskell
+bad :: OpaqueNet i o -> Network i hs o
+bad = \case ONet _ n -> n
+~~~
+
+Why not?  Because a type signature like `OpaqueNet i o -> Network i hs o`
+means that the *caller* can decide what `hs` can be --- just like `read :: Read
+a => String -> a`, where the caller decides what `a` is.
+
+Of course, this *isn't* the case with the way we've written the function...the
+function only returns a *specific* `hs` that the *function* decides.  The
+*caller* has to accommodate whatever is inside `ONet`.
+
+#### Binary
+
+Now, let's find out a way to serialize this type!  Now, the structure of our
+network is *not* known in the type, so we do have to plant flags in our data
+somehow.  We need to store a witness to the structure of the network, as well.
+
+To do this, we can move `hs` from the type level to the value level.  In
+Haskell, this is called **reflection**.  The *singletons* library provides the
+`fromSing` function for this purpose:
+
+~~~haskell
+ghci> fromSing (sing :: Sing '[1,2,3])
+[1,2,3]
+ghci> fromSing (sing :: Sing '[True, False])
+[True, False]
+~~~
+
+And with that, we can write a serializer for `OpaqueNet`:
+
+~~~haskell
+!!!dependent-haskell/NetworkTyped2.hs "putONet ::"
+~~~
+
+Put the structure (as a flag), and then put the network itself.
+
+Now, to deserialize, we want to *load* the list of `Integer`s and move that
+*back* into the type level.  In Haskell, this is called **reification**, the
+dual of reflection.
+
+The *singletons* library provides the `toSing` function, which returns a
+`SomeSing` (an existentially quantified `Sing` wrapped in a constructor that we
+can pattern match on):
+
+~~~haskell
+!!!dependent-haskell/NetworkTyped2.hs "getONet ::"
+~~~
+
+We first `get` the `[Integer]`, then *reify* the list of integers into the type
+level by getting our `ss :: Sing hs`.  Then we `getNet ss`, remembering that
+`getNet` takes a singleton to figure out what structure to get.  Then we wrap
+it all up in the `ONet` constructor.
+
+Phew!  We load our flag, reify it, and once we're back in the typed land again,
+we can do our normal business!
+
+~~~haskell
+!!!dependent-haskell/NetworkTyped2.hs "instance (KnownNat i, KnownNat o) => Binary (OpaqueNet i o)"
+~~~
+
+#### The Boundary
+
+Did you notice what we just did there?  The *type* of `Sing hs` was
+*dynamically generated* based on the *value* of the `[Integer]` we load at
+runtime.  We just worked with types that *depended* on runtime values.
+
+With the power of existentially quantified types (like in `SomeSing`), we
+essentially gained the ability to work with types that depend on runtime
+results.
+
+In a way, you can consider the `toSing` and the `SomeSing` as our "boundary"
+between the "untyped world" and the "typed world".  This layer (and the process
+of reification) cleanly separates the two.
+
+This "boundary" can be thought of as a lot like the boundary we talk about
+between "pure" functions and values and "impure" (IO, etc.) ones.  We say to
+always write as much of your program as possible in the "pure" world, and
+to separate and pull out as much logic as you can to be pure logic.  That's
+sort of one of the first things you learn about as a Haskell programmer: how
+to separate logic that *can* be pure from logic that is "impure" (IO, etc.),
+and then "combine them" at the very end, as late as possible.
+
+Well, if the final program is going to be IO in the end anyway, why bother
+separating out pure and impure parts of your logic?  Separation of concerns,
+the increased ability to reason with your code and analyze what it does, the
+compiler's ability to check what you write, the limitation of implementations,
+and etc. are all reasons any Haskeller should be familiar with reciting.
+
+You can think of the general philosophy of working with typed/untyped worlds as
+being the same thing.  You can write as much of your program as possible in the
+"typed" world, like we did in Part 1.  Take advantage of the increased ability
+to reason with your code, parametric polymorphism helping you *write* your
+code, limit your implementations, nab you compiler help, etc.  All of those are
+benefits of working in the typed world.
+
+Then, write what you must in your "untyped" world, such as dealing with values
+that pop up at runtime like the `[Integer]` above.
+
+Finally, at the end, *unite* them at the boundary.
 
 
 

@@ -3,6 +3,8 @@
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE KindSignatures      #-}
 {-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE PolyKinds           #-}
+{-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeOperators       #-}
 
@@ -53,6 +55,13 @@ sillyGetNet ss = withSingI ss get
 data OpaqueNet :: Nat -> Nat -> * where
     ONet :: Sing hs -> Network i hs o -> OpaqueNet i o
 
+numHiddens :: OpaqueNet i o -> Int
+numHiddens = \case ONet ss _ -> lengthSing ss
+  where
+    lengthSing :: Sing (hs :: [Nat]) -> Int
+    lengthSing = \case SNil         -> 0
+                       _ `SCons` ss -> 1 + lengthSing ss
+
 putONet :: (KnownNat i, KnownNat o)
         => OpaqueNet i o
         -> Put
@@ -64,13 +73,32 @@ getONet :: (KnownNat i, KnownNat o)
         => Get (OpaqueNet i o)
 getONet = do
     hs <- get
-    withSomeSing (hs :: [Integer]) $ \ss -> do
-      n <- getNet ss
-      return (ONet ss n)
+    case toSing hs of
+      SomeSing ss -> do
+        n <- getNet ss
+        return (ONet ss n)
 
 instance (KnownNat i, KnownNat o) => Binary (OpaqueNet i o) where
     put = putONet
     get = getONet
+
+type OpaqueNet' i o r = (forall hs. Sing hs -> Network i hs o -> r) -> r
+
+putONet' :: (KnownNat i, KnownNat o)
+         => OpaqueNet' i o Put
+         -> Put
+putONet' oNet = oNet $ \ss net -> do
+                          put (fromSing ss)
+                          putNet net
+
+getONet' :: (KnownNat i, KnownNat o)
+         => (forall hs. Sing hs -> Network i hs o -> r)
+         -> Get r
+getONet' f = do
+    hs <- get
+    withSomeSing (hs :: [Integer]) $ \ss -> do
+      n <- getNet ss
+      return (f ss n)
 
 main :: IO ()
 main = return ()
