@@ -6,19 +6,21 @@
 {-# LANGUAGE PolyKinds           #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving  #-}
 {-# LANGUAGE TypeOperators       #-}
 
-import           Data.Singletons
-import           Data.Singletons.Prelude
-import           Data.Singletons.TypeLits
-import           GHC.Generics                 (Generic)
-import           Numeric.LinearAlgebra.Static
-import Data.Binary as B
+import Control.Monad.Random
+import Data.Binary                  as B
+import Data.Singletons
+import Data.Singletons.Prelude
+import Data.Singletons.TypeLits
+import GHC.Generics                 (Generic)
+import Numeric.LinearAlgebra.Static
 
 data Weights i o = W { wBiases :: !(R o)
                      , wNodes  :: !(L o i)
                      }
-  deriving (Generic)
+  deriving (Show, Generic)
 
 data Network :: Nat -> [Nat] -> Nat -> * where
     O     :: !(Weights i o)
@@ -29,7 +31,28 @@ data Network :: Nat -> [Nat] -> Nat -> * where
           -> Network i (h ': hs) o
 infixr 5 :&~
 
+deriving instance (KnownNat i, KnownNat o) => Show (Network i hs o)
+
 instance (KnownNat i, KnownNat o) => Binary (Weights i o)
+
+randomWeights :: (MonadRandom m, KnownNat i, KnownNat o)
+              => m (Weights i o)
+randomWeights = do
+    s1 :: Int <- getRandom
+    s2 :: Int <- getRandom
+    let wB = randomVector  s1 Uniform * 2 - 1
+        wN = uniformSample s2 (-1) 1
+    return $ W wB wN
+
+randomNet :: forall m i hs o. (MonadRandom m, KnownNat i, SingI hs, KnownNat o)
+          => m (Network i hs o)
+randomNet = go sing
+  where
+    go :: forall h hs'. KnownNat h
+       => Sing hs'
+       -> m (Network h hs' o)
+    go = \case SNil            ->     O <$> randomWeights
+               SNat `SCons` ss -> (:&~) <$> randomWeights <*> go ss
 
 putNet :: (KnownNat i, KnownNat o)
        => Network i hs o
@@ -46,11 +69,6 @@ getNet = \case SNil            ->     O <$> get
 instance (KnownNat i, SingI hs, KnownNat o) => Binary (Network i hs o) where
     put = putNet
     get = getNet sing
-
-sillyGetNet :: (KnownNat i, KnownNat o)
-            => Sing hs
-            -> Get (Network i hs o)
-sillyGetNet ss = withSingI ss get
 
 data OpaqueNet :: Nat -> Nat -> * where
     ONet :: Sing hs -> Network i hs o -> OpaqueNet i o
@@ -78,6 +96,14 @@ getONet = do
         n <- getNet ss
         return (ONet ss n)
 
+randomONet :: (MonadRandom m, KnownNat i, KnownNat o)
+           => [Integer]
+           -> m (OpaqueNet i o)
+randomONet hs = case toSing hs of
+                  SomeSing ss -> case singInstance ss of
+                    SingInstance ->
+                      ONet ss <$> randomNet
+
 instance (KnownNat i, KnownNat o) => Binary (OpaqueNet i o) where
     put = putONet
     get = getONet
@@ -102,12 +128,37 @@ putONet' oN = oN $ \ss net -> do
                       putNet net
 
 getONet' :: (KnownNat i, KnownNat o)
-         => OpaqueNet' i o (Get r)
+         => (forall hs. Sing hs -> Network i hs o -> Get r)
+         -> Get r
+--  aka, => OpaqueNet' i o (Get r)
 getONet' f = do
     hs <- get
     withSomeSing (hs :: [Integer]) $ \ss -> do
       n <- getNet ss
       f ss n
 
+withRandomONet' :: (MonadRandom m, KnownNat i, KnownNat o)
+                => [Integer]
+                -> (forall hs. Sing hs -> Network i hs o -> m r)
+                -> m r
+--         aka, => OpaqueNet' i o (m r)
+withRandomONet' hs f = withSomeSing hs $ \ss ->
+                       withSingI ss    $ do
+                         net <- randomNet
+                         f ss net
+
 main :: IO ()
-main = return ()
+main = do
+    putStrLn "What size random net?"
+    hs <- readLn
+    ONet ss (net :: Network 10 hs 3) <- randomONet hs
+    print net
+    -- blah blah stuff with our dynamically generated net
+
+main' :: IO ()
+main' = do
+    putStrLn "What size random net?"
+    hs <- readLn
+    withRandomONet' hs $ \ss (net :: Network 10 hs 3) -> do
+      print net
+      -- blah blah stuff with our dynamically generated net

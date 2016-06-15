@@ -276,10 +276,6 @@ there'd be no way for us to recover the original `hs`!  (Note that we could
 have had `ONet :: SingI hs => Network i hs o -> OpaqueNet i o`, which is
 essentially the same thing)
 
-<!-- Typically, for an existential type to be *useful*, we usually have to add a -->
-<!-- typeclass constraint or a singleton so that whoever pattern matches on the -->
-<!-- constructor has *something* to work with. -->
-
 Once you *do* pattern match on `ONet`, you have to handle the `hs` in a
 *completely polymorphic way*.  You're not allowed to assume anything about
 `hs`...you have to provide a completely parametrically polymorphic way of
@@ -387,7 +383,62 @@ benefits of working in the typed world.
 Then, write what you must in your "untyped" world, such as dealing with values
 that pop up at runtime like the `[Integer]` above.
 
-Finally, at the end, *unite* them at the boundary.
+Finally, at the end, *unite* them at the boundary.  Pass the control football
+from the untyped world to the typed world!
+
+#### Reifying for Fun and Profit
+
+Before we move on, let's see a more direct example of reification: creating
+networks with variable internal structure based on runtime input, like
+configuration files.
+
+Maybe you're reading the internal size from a configuration file, or maybe you
+want it to be determined by user input.  Our old `randomNet` won't work:
+
+~~~haskell
+randomNet :: (MonadRandom m, SingI hs)
+          => m (Network i hs o)
+~~~
+
+Because we need a static type signature to use it directly.  But, we can return
+an `OpaqueNet`!
+
+~~~haskell
+!!!dependent-haskell/NetworkTyped2.hs "randomONet ::"
+~~~
+
+Note that the implementation is slightly awkward because we had the lack of
+foresight to implement `randomNet` using `SingI hs =>` instead of `Sing hs ->`,
+so we have to "go from `Sing` to `SingI`".
+
+You go from the `SingI` style to the `Sing` style with `sing`, like we saw
+earlier, and you can go backwards with `singInstance`:
+
+~~~haskell
+singInstance :: Sing a -> SingInstance a
+~~~
+
+Where the data type `SingInstance` has a single constructor that's a lot like
+`SNat` from the last part:
+
+~~~haskell
+data SingInstance a where
+    SingInstance :: SingI a => SingInstance a
+~~~
+
+Basically, it's impossible to *use* the `SingInstance` constructor unless you
+have a `SingI a` instance in scope, so if you ever *pattern match* on it, it's
+a "proof" that `SingI a` exists.  It's the same as how, for the constructor
+`SNat :: KnownNat n => Sing n`, if you pattern match on `SNat` and see that
+it's not something silly like `undefined`/`error`/bottom, GHC knows that there
+is a `KnownNat n` instance.  It's sort of like pattern matching out the
+instance itself.
+
+Now you can get from your untyped world into the world of dependent types ---
+
+~~~haskell
+!!!dependent-haskell/NetworkTyped2.hs "main ::"
+~~~
 
 ### Continuation-Based Existentials
 
@@ -429,7 +480,7 @@ This "continuation transformation" is known as formally
 encounter working with dependent types in Haskell, and sometimes just knowing
 that you're "skolemizing" something makes you feel cooler.  Thank you [Thoralf
 Skolem][].  If you ever see a "rigid, skolem" error in GHC, you can thank him
-too!
+for that too!
 
 [Thoralf Skolem]: https://en.wikipedia.org/wiki/Thoralf_Skolem
 
@@ -458,8 +509,7 @@ withONet :: OpaqueNet i o
 Which you can sort of interpret as, "do *this function* on the existentially
 quantified contents of an `OpaqueNet`."
 
-
-#### Binary again
+#### Trying it out
 
 To sort of compare how the two methods look like in practice, we're going to
 Rosetta stone it up and re-implement serialization with the continuation-based
@@ -469,7 +519,61 @@ existentials:
 !!!dependent-haskell/NetworkTyped2.hs "putONet' ::" "getONet' ::"
 ~~~
 
-### A Tale of Two Existentials
+To be cute, I used the skolemized partners of `toSing` and `SomeSing`:
+
+~~~haskell
+withSomeSing :: [Integer]
+             -> (forall (hs :: [Nat]). Sing hs -> r)
+             -> r
+~~~
+
+Instead of returning a `SomeSing` like `toSing` does, `withSomeSing` returns
+the continuation-based existential.
+
+I expanded out the type signature of `getONet'`, because you'll see the
+explicit form more often.  It's:
+
+~~~haskell
+getONet' :: (forall hs. Sing hs -> Network i hs o -> Get r)
+         -> Get r
+~~~
+
+Which basically says "Give what you would do if you *had* a `Sing hs` and a
+`Network i hs o`", and I'll get them for you and give you the result."
+
+And let's also see how we'd return a random network with a continuation:
+
+~~~haskell
+!!!dependent-haskell/NetworkTyped2.hs "withRandomONet' :"
+~~~
+
+Again, to be cute, I used the continuation-based version of `singInstance`,
+`withSingI`:
+
+~~~haskell
+withSingI :: Sing a -> (SingI a => r) -> r
+~~~
+
+The signature, in English, is "give me a `Sing a` and a value that you could
+make *if only you had* a `SingI` instance, and I'll give you that value as if
+you had the instance, magically!"
+
+Of course, we know it's not magic:[^magic]
+
+~~~haskell
+withSingI :: Sing a -> (SingI a => r) -> r
+withSingI s x = case singInstance s of
+                  SingInstance -> x
+~~~
+
+[^magic]: Actually, it kind of *is* magic, because `singInstance` is implemented
+with `unsafeCoerce`.  But don't tell anyone ;)
+
+And we see another way we can "move past the untyped/typed boundary":
+
+~~~haskell
+!!!dependent-haskell/NetworkTyped2.hs "main' :"
+~~~
 
 
 
