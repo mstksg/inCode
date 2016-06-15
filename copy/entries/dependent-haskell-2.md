@@ -400,7 +400,7 @@ randomNet :: (MonadRandom m, SingI hs)
           => m (Network i hs o)
 ~~~
 
-Because we need a static type signature to use it directly.  But, we can return
+Because we need a static type signature to use it directly.  But we can return
 an `OpaqueNet`!
 
 ~~~haskell
@@ -450,8 +450,8 @@ with the values in the constructor in a parametrically polymorphic way.  For
 example, if we had:
 
 ~~~haskell
-toONet :: OpaqueNet i o -> Foo
-toONet = \case ONet s n -> f s n
+oNetToFoo :: OpaqueNet i o -> Foo
+oNetToFoo = \case ONet s n -> f s n
 ~~~
 
 What does the type of `f` have to be?  It has to take a `Sing hs` and a
@@ -473,8 +473,13 @@ it needs.
 !!!dependent-haskell/NetworkTyped2.hs "type OpaqueNet'"
 ~~~
 
+"Tell me how you would make an `r` if you had a `Sing hs` and a `Network i hs
+o`, and I'll make it for you!"
+
 This "continuation transformation" is known as formally
-**skolemization**.[^skolemization]
+**skolemization**.[^skolemization]  We can "wrap" a `Network i hs o` into an
+`OpaqueNet' i o r` pretty straightforwardly:
+
 
 [^skolemization]: Skolemization is probably one of the coolest words you'll
 encounter working with dependent types in Haskell, and sometimes just knowing
@@ -483,9 +488,6 @@ Skolem][].  If you ever see a "rigid, skolem" error in GHC, you can thank him
 for that too!
 
 [Thoralf Skolem]: https://en.wikipedia.org/wiki/Thoralf_Skolem
-
-We can "wrap" a `Network i hs o` into an `OpaqueNet' i o r` pretty
-straightforwardly:
 
 ~~~haskell
 !!!dependent-haskell/NetworkTyped2.hs "oNet' ::"
@@ -498,16 +500,9 @@ how they relate), we can write functions that convert back and forth from them:
 !!!dependent-haskell/NetworkTyped2.hs "withONet ::" "toONet ::"
 ~~~
 
-Note that `withONet` is *really*:
-
-~~~haskell
-withONet :: OpaqueNet i o
-         -> (forall hs. Sing hs -> Network i hs o -> r)
-         -> r
-~~~
-
-Which you can sort of interpret as, "do *this function* on the existentially
-quantified contents of an `OpaqueNet`."
+Note the expanded type signature of `withONet`, which you can sort of interpret
+as, "do *this function* on the existentially quantified contents of an
+`OpaqueNet`."
 
 #### Trying it out
 
@@ -530,18 +525,19 @@ withSomeSing :: [Integer]
 Instead of returning a `SomeSing` like `toSing` does, `withSomeSing` returns
 the continuation-based existential.
 
-I expanded out the type signature of `getONet'`, because you'll see the
-explicit form more often.  It's:
+<!-- I expanded out the type signature of `getONet'`, because you'll see the -->
+<!-- explicit form more often.  It's: -->
 
-~~~haskell
-getONet' :: (forall hs. Sing hs -> Network i hs o -> Get r)
-         -> Get r
-~~~
+<!-- ~~~haskell -->
+<!-- getONet' :: (forall hs. Sing hs -> Network i hs o -> Get r) -->
+<!--          -> Get r -->
+<!-- ~~~ -->
 
-Which basically says "Give what you would do if you *had* a `Sing hs` and a
-`Network i hs o`", and I'll get them for you and give you the result."
+The expanded type signature of `getONet'` can be read: "Give what you would do
+if you *had* a `Sing hs` and a `Network i hs o`", and I'll get them for you and
+give you the result."
 
-And let's also see how we'd return a random network with a continuation:
+Let's also see how we'd return a random network with a continuation:
 
 ~~~haskell
 !!!dependent-haskell/NetworkTyped2.hs "withRandomONet' :"
