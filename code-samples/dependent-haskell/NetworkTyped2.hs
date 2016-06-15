@@ -84,21 +84,30 @@ instance (KnownNat i, KnownNat o) => Binary (OpaqueNet i o) where
 
 type OpaqueNet' i o r = (forall hs. Sing hs -> Network i hs o -> r) -> r
 
+oNet' :: Sing hs -> Network i hs o -> OpaqueNet' i o r
+oNet' s n = \f -> f s n
+
+-- withONet :: OpaqueNet i o -> (forall hs. Sing hs -> Network i hs o -> r) -> r
+withONet :: OpaqueNet i o -> OpaqueNet' i o r
+withONet = \case ONet s n -> (\f -> f s n)
+
+toONet :: OpaqueNet' i o (OpaqueNet i o) -> OpaqueNet i o
+toONet oN' = oN' (\s n -> ONet s n)
+
 putONet' :: (KnownNat i, KnownNat o)
          => OpaqueNet' i o Put
          -> Put
-putONet' oNet = oNet $ \ss net -> do
-                          put (fromSing ss)
-                          putNet net
+putONet' oN = oN $ \ss net -> do
+                      put (fromSing ss)
+                      putNet net
 
 getONet' :: (KnownNat i, KnownNat o)
-         => (forall hs. Sing hs -> Network i hs o -> r)
-         -> Get r
+         => OpaqueNet' i o (Get r)
 getONet' f = do
     hs <- get
     withSomeSing (hs :: [Integer]) $ \ss -> do
       n <- getNet ss
-      return (f ss n)
+      f ss n
 
 main :: IO ()
 main = return ()
