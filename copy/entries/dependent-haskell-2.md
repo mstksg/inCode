@@ -107,21 +107,22 @@ instance Binary a => Binary [a] where
     get = getList
 ~~~
 
-In practice, we usually don't write our own instances from scratch, and use
-GHC's generics features to give us instances for free:
+In practice, we usually don't write our own instances from scratch.  Instead,
+we use GHC's generics features to give us instances for free:
 
 ~~~haskell
 !!!dependent-haskell/NetworkTyped2.hs "data Weights" "instance (KnownNat i, KnownNat o) => Binary (Weights i o)"
 ~~~
 
 For simple types like `Weights`, which simply "contain" serializable things,
-the *binary* is smart enough to write your instances automatically!
+the *binary* library is smart enough to write your instances automatically for
+you!
 
 ### `Binary` for `Network`
 
-Writing `putNet` and `getNet` is pretty nice because the entire structure is
-already known ahead of time, and we don't need to do any tricks with flags like
-for lists.
+Writing `putNet` and `getNet` to put/get `Network`s is pretty nice because the
+entire structure is already known ahead of time, and we don't need to do any
+tricks with flags like for lists.
 
 ~~~haskell
 !!!dependent-haskell/NetworkTyped2.hs "putNet ::"
@@ -134,8 +135,8 @@ layers to expect *just from the type*.  If we want to deserialize/load a
 `Network 5 '[10,6,3] 2`, we *know* we want three `(:&~)`'s and one `O` --- no
 need for dynamically sized networks like we had to handle for lists.
 
-We'll write `getNet` the similarly to how wrote [`randomNet`][randomNet] from
-the last post:
+We'll write `getNet` similarly to how wrote [`randomNet`][randomNet] from the
+last post:
 
 !!![randomNet]:dependent-haskell/NetworkTyped.hs "randomNet ::"
 
@@ -143,12 +144,10 @@ the last post:
 !!!dependent-haskell/NetworkTyped2.hs "getNet ::"
 ~~~
 
-Now would be a good time to refresh on the [singletons section][new-section] of
-my last post again.  To deserialize a `Network i hs o`, we have to "pattern
-match" on `hs` to see what constructor we are expecting to deserialize, and we
-do that by using singletons with constructors we *can* literally pattern match
-on (`SNil` and `SCons`), which tell GHC what type to expect through "dependent
-pattern matching".
+To deserialize a `Network i hs o`, we have to "pattern match" on `hs` to see
+what constructor we are expecting to deserialize.  We use singletons (with
+constructors we *can* literally pattern match on) to tell GHC what types we are
+handling, in a process called "dependent pattern matching".
 
 If you see a `SNil :: Sing '[]`, that means that `hs` is `'[]`, so expect a `O`
 constructor.  If you see `SCons s ss :: Sing (h ': hs)`, that means that `hs`
@@ -159,50 +158,35 @@ again for a more thorough description!)
 Note that here we decide to implement `getNet` by asking for an explicit
 singleton input (`Sing hs ->`) instead of an implicit one (`SingI hs =>`) like
 we did for `randomNet`.  Remember that the two methods are technically
-equivalent, really, and compile to the same thing at runtime.  We need one or
-the other because of type erasure --- so either we pass in `Sing hs`, or
-provide a `SingI hs` constraint so that we can use `sing :: Sing hs` to
-construct the `Sing hs`.
+equivalent, really, and compile to the same thing at runtime.  Because of type
+erasure in Haskell, we need one or the other, at least.  We either pass in
+`Sing hs`, or provide a `SingI hs` constraint so that we can use `sing :: Sing
+hs` to construct the `Sing hs`.
 
 There's a trade-off either way, and it can be a bit annoying because switching
 between different modes can potentially be diverse.  For the most part, always
 try to *take explicit singleton arguments* where you can, especially for
 internal functions.  The simple reason is because in Haskell, we like to really
 only do typeclass-level programming as a last, last resort.  Typeclasses in
-Haskell are very magical and not really first-class in a satisfying way.
-Normal values (like singletons) *are* first-class and easily passed.
+Haskell are very magical, but normal values (like singletons) *are* first-class
+and easily passed and manipulable.
 
-Explicit singleton arguments can sometimes pose a burden for the caller, so my
-personal approach is to *always* use explicit `Sing a` whenever possible for
-*internal functions*, and to expose a `SingI a =>` interface for *user-facing
-functions* (including for typeclass instances)
+Explicit singleton arguments can sometimes pose a burden for the caller,
+though, so my personal approach is to always use explicit `Sing a` whenever
+possible for *internal functions*, and to expose a `SingI a =>` interface for
+*user-facing functions* (including for typeclass instances)
 
-So, we're going to write our `Binary` instance for `Network`.  Of course, we
-can't have `put` or `get` take a `Sing hs` (that'd change the arity/type of the
-function), so what we can do is have their `Binary` instances require a `SingI
-hs` constraint, essentially doing the same thing:
+Let's write our `Binary` instance for `Network`.  Of course, we can't have
+`put` or `get` take a `Sing hs` (that'd change the arity/type of the function),
+so what we can do is have their `Binary` instances require a `SingI hs`
+constraint, essentially doing the same thing:
 
 ~~~haskell
 !!!dependent-haskell/NetworkTyped2.hs "instance (KnownNat i, SingI hs, KnownNat o) => Binary (Network i hs o) where"
 ~~~
 
-To go from "`SingI` world" to "`Sing` world", we use `sing` to generate the
+To go from "`SingI` style" to "`Sing` style", we use `sing` to generate the
 explicit `Sing hs` from `SingI hs =>`.
-
-<!-- #### `Sing` to `SingI` -->
-
-<!-- As a quick aside, note that we can go "backwards" too by using `withSingI :: -->
-<!-- Sing a -> (SingI a => r) -> r`: -->
-
-<!-- ~~~haskell -->
-<!-- !!!dependent-haskell/NetworkTyped2.hs "sillyGetNet ::" -->
-<!-- ~~~ -->
-
-<!-- `withSingI` takes a `Sing a` and a "thing you can evaluate if only you had a -->
-<!-- `SingI a` instance available", and evaluates it.  We can only evaluate `get :: -->
-<!-- (KnownNat i, SingI hs, KnownNat o) => Get (Network i hs o)` if we have that -->
-<!-- `SingI` instance, so we can pass it into `withSingI` as the second argument, -->
-<!-- and, voilà --- we get that `Get (Network i hs o)` right out. -->
 
 Existential Crisis
 ------------------
@@ -525,14 +509,6 @@ withSomeSing :: [Integer]
 Instead of returning a `SomeSing` like `toSing` does, `withSomeSing` returns
 the continuation-based existential.
 
-<!-- I expanded out the type signature of `getONet'`, because you'll see the -->
-<!-- explicit form more often.  It's: -->
-
-<!-- ~~~haskell -->
-<!-- getONet' :: (forall hs. Sing hs -> Network i hs o -> Get r) -->
-<!--          -> Get r -->
-<!-- ~~~ -->
-
 The expanded type signature of `getONet'` can be read: "Give what you would do
 if you *had* a `Sing hs` and a `Network i hs o`", and I'll get them for you and
 give you the result."
@@ -568,8 +544,13 @@ with `unsafeCoerce`.  But don't tell anyone ;)
 And we see another way we can "move past the untyped/typed boundary":
 
 ~~~haskell
-!!!dependent-haskell/NetworkTyped2.hs "main' :"
+!!!dependent-haskell/NetworkTyped2.hs "main' ::"
 ~~~
+
+A Tale of Two Styles
+--------------------
+
+
 
 
 
