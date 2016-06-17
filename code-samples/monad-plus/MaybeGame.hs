@@ -21,7 +21,7 @@ module MaybeGame where
 --
 -- http://blog.jle.im/entry/practical-fun-with-monads-introducing-monadplus#a-practical-use
 
-import Control.Monad (guard)
+import Control.Monad (guard, mzero)
 
 -- die or fail immediately
 die :: Maybe Int
