@@ -44,15 +44,14 @@ randomWeights = do
         wN = uniformSample s2 (-1) 1
     return $ W wB wN
 
+randomNet' :: forall m i hs o. (MonadRandom m, KnownNat i, KnownNat o)
+           => Sing hs -> m (Network i hs o)
+randomNet' = \case SNil            ->     O <$> randomWeights
+                   SNat `SCons` ss -> (:&~) <$> randomWeights <*> randomNet' ss
+
 randomNet :: forall m i hs o. (MonadRandom m, KnownNat i, SingI hs, KnownNat o)
           => m (Network i hs o)
-randomNet = go sing
-  where
-    go :: forall h hs'. KnownNat h
-       => Sing hs'
-       -> m (Network h hs' o)
-    go = \case SNil            ->     O <$> randomWeights
-               SNat `SCons` ss -> (:&~) <$> randomWeights <*> go ss
+randomNet = randomNet' sing
 
 putNet :: (KnownNat i, KnownNat o)
        => Network i hs o
@@ -150,15 +149,24 @@ withRandomONet' hs f = withSomeSing hs $ \ss ->
 main :: IO ()
 main = do
     putStrLn "What size random net?"
-    hs <- readLn
-    ONet ss (net :: Network 10 hs 3) <- randomONet hs
-    print net
-    -- blah blah stuff with our dynamically generated net
-
-main' :: IO ()
-main' = do
-    putStrLn "What size random net?"
-    hs <- readLn
-    withRandomONet' hs $ \ss (net :: Network 10 hs 3) -> do
+    xs <- readLn
+    withSomeSing xs $ \(ss :: Sing (hs :: [Nat])) -> do
+      net <- randomNet' ss :: IO (Network 10 hs 3)
       print net
       -- blah blah stuff with our dynamically generated net
+
+-- main :: IO ()
+-- main = do
+--     putStrLn "What size random net?"
+--     hs <- readLn
+--     ONet ss (net :: Network 10 hs 3) <- randomONet hs
+--     print net
+--     -- blah blah stuff with our dynamically generated net
+
+-- main' :: IO ()
+-- main' = do
+--     putStrLn "What size random net?"
+--     hs <- readLn
+--     withRandomONet' hs $ \ss (net :: Network 10 hs 3) -> do
+--       print net
+--       -- blah blah stuff with our dynamically generated net
