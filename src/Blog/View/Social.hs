@@ -57,12 +57,6 @@ viewSocialFollow =
         H.ul ! A.class_ "social-follows-list-social" $ do
           H.li $
             H.a
-              ! A.class_ "social-follow-facebook"
-              ! A.title "Friend me on Facebook!"
-              ! A.href (H.textValue facebookUrl) $
-              "Facebook"
-          H.li $
-            H.a
               ! A.class_ "social-follow-twitter"
               ! A.title "Follow me on Twitter!"
               ! A.href (H.textValue twitterUrl)
@@ -121,7 +115,6 @@ viewSocialFollow =
       , "  'width=550,height=520');"
       , "return false;" ]
     socialUrl base field = T.append base . field $ confAuthorInfo
-    facebookUrl = socialUrl "https://facebook.com/" authorFacebook
     twitterUrl = socialUrl "https://twitter.com/intent/user?user_id=" authorTwitter
     gPlusUrl = socialUrl "https://plus.google.com/" authorGPlus
     linkedInUrl = socialUrl "https://linkedin.com/in/" authorLinkedIn

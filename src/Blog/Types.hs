@@ -84,7 +84,6 @@ data AuthorInfo = AuthorInfo
     { authorName     :: T.Text
     , authorEmail    :: T.Text
     , authorRel      :: T.Text
-    , authorFacebook :: T.Text
     , authorTwitter  :: T.Text
     , authorGPlus    :: T.Text
     , authorGithub   :: T.Text
