@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --resolver nightly-2016-05-26 --install-ghc runghc --package hmatrix --package MonadRandom --package typelits-witnesses
+-- stack --resolver nightly-2016-05-26 --install-ghc runghc --package hmatrix --package MonadRandom --package singletons
 
 {-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE DataKinds           #-}
