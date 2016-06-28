@@ -86,120 +86,317 @@ You would *want* to put `hs` there where `???` is, but...`???` has to be a type
 that the *type* of our network depends on something we can't write down or
 decide until runtime.
 
-### A Story of Parametricity
+### An Existential Crisis
 
-Let's look at the type of `randomNet` again:
+There are a couple of ways to go about this, actually --- we'll go through
+them, and we'll also see at the end how they are all really fundamentally the
+same thing.
 
-~~~haskell
-randomNet :: m (Network i hs o)
-             -- plus some constraints yadda yadda
-~~~
+#### Types hiding behind constructors
 
-To get more insight onto what the type is really saying, let's see the same
-signature with the explicit forall's:
+Now, having the entire structure of your neural network in the type is nice and
+all for cool tricks like `randomNet`...but do you *really* want to work with
+this directly?  After all, from the user's perspective, the user really only
+ever needs to know `i` and `o`: What vectors the network *expects*, and what
+vectors the network *outputs*.  In the end, all a (feed-forward) Neural Network
+really is is an abstraction over a function `R i -> R o`.
 
-~~~haskell
-randomNet :: forall m i hs o. m (Network i hs o)
-             -- plus some constraints yadda yadda
-~~~
+Remember, the main benefits of having the entire structure in the type was to
+help us *implement* our functions more safely, with the compiler's help, and
+also for cute return type polymorphism tricks like `randomNet` and `getNet`.
+The first type of benefit really doesn't benefit the *user* of the network.
 
-In English, this means that `randomNet` lets you produce a `Network i hs o` for
-*any* `i` you want, for *any* `hs` you want, for *any* `o` you want.  It's
-implemented in a *parametrically polymorphic way*, meaning that it's
-implemented in a uniform way to handle *any* `i`, `hs`, or `o` the caller could
-possibly ask for. (Provided that they satisfy the typeclass constraints, of
-course)
-
-We have some other functions we defined in the last part, as well, that are
-defined in such a parametrically polymorphic way:
+Imagine that we had written a `Network` type that *didn't* have the internal
+structure in the type ---
 
 ~~~haskell
-runNet :: forall i hs o. (KnownNat i, KnownNat o)
-       => Network i hs o
-       -> R i
-       -> R o
-
-train  :: forall i hs o. (KnownNat i, KnownNat o)
-       => Double
-       -> R i
-       -> R o
-       -> Network i hs o
-       -> Network i hs o
+data OpaqueNet i o
 ~~~
 
-`runNet` is written a way that it can work for *any* `i` or *any* `hs` or *any*
-`o` you want or need (provided they satisfy the typeclass constraints).  It
-takes a `Network i hs o` for any `i`, `hs`, or `o`, and an `R i` for the same
-`i`, and returns an `R o` for the same `o`.  The way they are implemented does
-not depend on the specific structure of the network.
+Recall that our issue earlier was that we had to write `Network i ??? o`,
+but we had no idea what to put in for `???`.  But, what if we worked with an
+`OpaqueNet i o`, we wouldn't even care!  We wouldn't have to tell GHC what the
+internal structure is.
 
-Contrast this to:
+We can implement it as an "existential" wrapper over `Network`, actually:
 
 ~~~haskell
-foo :: Network 10 '[6,4] 3 -> R 3
+!!!dependent-haskell/NetworkTyped2.hs "data OpaqueNet ::"
 ~~~
 
-This is specifically implemented to *only* work on networks with 10 inputs, 6
-and 4-node hidden layers, and 3 outputs.  It *does* care about the structure of
-the network you put in.
+So, if you have `net :: Network 6 '[10,6,3] 2`, you can create
+`ONet sing net :: OpaqueNet 6 2`.  When you use the `ONet` constructor, the
+structure of the hidden layers disappears from the type!
 
-Now, the concept of "types that depend on run-time" seems to jive with this
-concept.  If we want to write functions that work on types that depend on
-run-time, it would make sense that they have to be able to anticipate and work
-for *any* type that the run-time processes might demand.
-
-And that's sort of the secret to working with "types that depend on run-time"
-in Haskell --- you have to deal with them in a way that adapts to any type that
-can come at you!
-
-### Reification
-
-So we know that `randomNet` is such a function that works with *any* `hs` you
-could possibly throw at it.  The last missing piece is a function can *run*
-`randomNet` with an `hs` that depends on run-time factors.
-
-Enter `withSomeSing`:
+But, how do we *use* this type?  When we *pattern match* on `ONet`, we get the
+singleton and the net back, so we can use it!
 
 ~~~haskell
-withSomeSing
-    :: [Integer]
-    -> (forall hs. Sing (hs :: [Nat]) -> r)
-    -> r
+!!!dependent-haskell/NetworkTyped2.hs "numHiddens ::"
 ~~~
 
-(I've specialized it there to work with `[Integer]` and `[Nat]`, but it works
-in general with any singleton and the values it represents)
+With the `ScopedTypeVariables` extension, we can even bring `hs` back into
+scope, as in `ONet (ss :: Sing hs) _ ->`.
 
-The type signature says "Give me an `[Integer]` and a function that is ready to
-take *any* `hs`, and I'll run it with the `hs` from the `[Integer]` for you".
+Note that it's important for us to stuff in the singleton in addition to the
+network itself, because of our best friend type erasure.  If we didn't pop the
+singleton in, there'd be no way for us to recover the original `hs`!  This
+pattern is known as the **dependent pair**.  Pair `hs` with some type `f hs`,
+and pattern match on the `Sing hs` to reveal both!
 
-For example, if we had `foo :: Sing hs -> Int`, and we pass it to `withSomeSing
-[1,2,3]`, it'll *run* `foo`, setting with `hs` to be `'[1,2,3]`.
-
-We can re-write `randomNet` to take a `Sing hs ->` instead of a `SingI hs =>`
-(remember, the two are just two ways of writing the same thing.  Re-read the
-[singletons section][new-section] for a review!) to make things more clear:
+Another way we could have counter-acted type erasure would be to have:
 
 ~~~haskell
-!!!dependent-haskell/NetworkTyped2.hs "randomNet' ::"
+data OpaqueNet :: * -> * where
+    ONet :: SingI hs => Network i hs o -> OpaqueNet i o
 ~~~
 
-And we can implement the concept we had before:
+And, like we learned last time, the `Sing hs ->` and `SingI hs =>` styles are
+just two ways of doing the same thing.
+
+Here's the key to making this all work: once you *do* pattern match on `ONet`,
+you have to handle the `hs` in a *completely polymorphic way*.  You're not
+allowed to assume anything about `hs`...you have to provide a completely
+parametrically polymorphic way of dealing with it!
+
+For example, this function is completely *not* ok:
 
 ~~~haskell
-!!!dependent-haskell/NetworkTyped2.hs "main ::"
+bad :: OpaqueNet i o -> Network i hs o
+bad = \case ONet _ n -> n
 ~~~
 
-`someSing xs :: (forall hs. Sing hs -> r) -> r` is a function that's waiting
-for a `Sing hs -> r` that works for *any* `hs`.  It'll "run" the function with
-the `hs` corresponding to `xs :: [Integer]`.
+Why not?  Because a type signature like `OpaqueNet i o -> Network i hs o`
+means that the *caller* can decide what `hs` can be --- just like `read :: Read
+a => String -> a`, where the caller decides what `a` is.
 
-In our case, we gave it a function `forall hs. Sing hs -> IO ()`, and it *runs*
-that function *with* the `hs` corresponding to list we give it.
+Of course, this *isn't* the case with the way we've written the function...the
+function only returns a *specific* `hs` that the *function* decides.  The
+*caller* has to accommodate whatever is inside `ONet`.
 
-So, if we gave `withSomeSing` the list `[6,3]`, I'll *run* our action as if it
-had `hs ~ '[6,3]`.  And remember --- because our function is parametrically
-polymorphic to work with any `hs`, it'll happily accept it!
+#### Universal vs. Existential
+
+We just brushed here on something at the heart of using existential types in
+Haskell: the issue of who has the power to decide what the types will be.
+
+Most functions you work with in Haskell are "universally qualified".  For
+example, for a function like
+
+~~~haskell
+map :: (a -> b) -> [a] -> [b]
+~~~
+
+`a` and `b` are universally quantified, which means that the person who *uses*
+`map` gets to *decide* what `a` and `b` are.  To be more explicit, that type
+signature can be written as:
+
+~~~haskell
+map :: forall a b. (a -> b) -> [a] -> [b]
+~~~
+
+This means that `map` is defined in a way that will work for *any* `a` and `b`
+that the *caller* wants.  As a caller, you can request:
+
+~~~haskell
+map :: (Int -> Bool)    -> [Int]    -> [Bool]
+map :: (Double -> Void) -> [Double] -> [Void]
+map :: (String -> (Bool -> Char)) -> [String] -> [Bool -> Char]
+~~~
+
+And the function has to be implemented in a way that will work for *any* `a`
+and `b`.  The function's implementation has the burden of being flexible enough
+to handle whatever the caller asks for.
+
+But, for a function like:
+
+~~~haskell
+foo :: [Int] -> OpaqueNet i o
+~~~
+
+While the caller can choose what `i` and `o` are, the *function* gets to
+choose what `hs` (in the hidden `Network i hs o`) is.
+
+If I want to *use* the thing that `foo` returns...then *I* have to be flexible.
+*I* have the burden of being flexible enough to handle whatever the *function*
+returns.
+
+In summary:
+
+*   For universally quantified types, the *caller* chooses the type being
+    instanced, and the *function's implementation* has to accommodate any
+    choice.
+
+*   For existentially quantified types, the *function's implementation* chooses
+    the type being instanced, and the *caller* has to accommodate any choice.
+
+Indeed, we saw earlier that if we ever wanted to *use* the `Network i hs o`
+inside the `OpaqueNet i o`, we were forced to deal with it in a parametrically
+polymorphic way.  We had to be able to handle *any* `hs` that the `ONet` could
+throw at us!
+
+#### A familiar friend
+
+I called `OpaqueNet i o` a "dependent pair" earlier, which existentially
+quantifies over `hs`.  But there's another common term for it: a **dependent
+sum**.
+
+People familiar with Haskell might recognize that "sum types" are `Either`-like
+types, that can be one thing or another.  Sum types are one of the first things
+you learn about in Haskell --- heck, even `Maybe a` is the sum of `a` and `()`.
+
+Dependent pairs/existential types actually are very similar to `Either`/sum
+types, in spirit, and it might help to see the parallel so that you can see
+that they're nothing scary, and that the fundamentals/intuition of working with
+existential types in Haskell is no different than working with `Either`!
+
+If I had:
+
+~~~haskell
+foo :: String -> Either Int Bool
+~~~
+
+I have to handle the result...but I have to handle it for both the case where I
+get an `Int` and the case where I get a `Bool`.  The *function* gets to pick
+what type I have to handle (`Int` or `Bool`), and *I* have to adapt to whatever
+it returns.  Sound familiar?
+
+In fact, you can even imagine that `OpaqueNet i o` is implemented like a fancy
+`Either`:
+
+~~~haskell
+type OpaqueNet i o = Either (Network i '[] o) (
+                       Either (Network i '[1] o) (
+                         Either (Network i '[1,1] o) (
+                           Either (Network i '[2] o) (
+                             Either (Network i '[2,1] o) (
+                               Either (Network i '[2,2] o) (
+                                 -- ..
+                               )
+                             )
+                           )
+                         )
+                       )
+                     )
+~~~
+
+In other words, an infinite sum of all of the different combinations of hidden
+layer structures!
+
+
+<!-- ### A Story of Parametricity -->
+
+<!-- Let's look at the type of `randomNet` again: -->
+
+<!-- ~~~haskell -->
+<!-- randomNet :: m (Network i hs o) -->
+<!--              -- plus some constraints yadda yadda -->
+<!-- ~~~ -->
+
+<!-- To get more insight onto what the type is really saying, let's see the same -->
+<!-- signature with the explicit forall's: -->
+
+<!-- ~~~haskell -->
+<!-- randomNet :: forall m i hs o. m (Network i hs o) -->
+<!--              -- plus some constraints yadda yadda -->
+<!-- ~~~ -->
+
+<!-- In English, this means that `randomNet` lets you produce a `Network i hs o` for -->
+<!-- *any* `i` you want, for *any* `hs` you want, for *any* `o` you want.  It's -->
+<!-- implemented in a *parametrically polymorphic way*, meaning that it's -->
+<!-- implemented in a uniform way to handle *any* `i`, `hs`, or `o` the caller could -->
+<!-- possibly ask for. (Provided that they satisfy the typeclass constraints, of -->
+<!-- course) -->
+
+<!-- We have some other functions we defined in the last part, as well, that are -->
+<!-- defined in such a parametrically polymorphic way: -->
+
+<!-- ~~~haskell -->
+<!-- runNet :: forall i hs o. (KnownNat i, KnownNat o) -->
+<!--        => Network i hs o -->
+<!--        -> R i -->
+<!--        -> R o -->
+
+<!-- train  :: forall i hs o. (KnownNat i, KnownNat o) -->
+<!--        => Double -->
+<!--        -> R i -->
+<!--        -> R o -->
+<!--        -> Network i hs o -->
+<!--        -> Network i hs o -->
+<!-- ~~~ -->
+
+<!-- `runNet` is written a way that it can work for *any* `i` or *any* `hs` or *any* -->
+<!-- `o` you want or need (provided they satisfy the typeclass constraints).  It -->
+<!-- takes a `Network i hs o` for any `i`, `hs`, or `o`, and an `R i` for the same -->
+<!-- `i`, and returns an `R o` for the same `o`.  The way they are implemented does -->
+<!-- not depend on the specific structure of the network. -->
+
+<!-- Contrast this to: -->
+
+<!-- ~~~haskell -->
+<!-- foo :: Network 10 '[6,4] 3 -> R 3 -->
+<!-- ~~~ -->
+
+<!-- This is specifically implemented to *only* work on networks with 10 inputs, 6 -->
+<!-- and 4-node hidden layers, and 3 outputs.  It *does* care about the structure of -->
+<!-- the network you put in. -->
+
+<!-- Now, the concept of "types that depend on run-time" seems to jive with this -->
+<!-- concept.  If we want to write functions that work on types that depend on -->
+<!-- run-time, it would make sense that they have to be able to anticipate and work -->
+<!-- for *any* type that the run-time processes might demand. -->
+
+<!-- And that's sort of the secret to working with "types that depend on run-time" -->
+<!-- in Haskell --- you have to deal with them in a way that adapts to any type that -->
+<!-- can come at you! -->
+
+<!-- ### Reification -->
+
+<!-- So we know that `randomNet` is such a function that works with *any* `hs` you -->
+<!-- could possibly throw at it.  The last missing piece is a function can *run* -->
+<!-- `randomNet` with an `hs` that depends on run-time factors. -->
+
+<!-- Enter `withSomeSing`: -->
+
+<!-- ~~~haskell -->
+<!-- withSomeSing -->
+<!--     :: [Integer] -->
+<!--     -> (forall hs. Sing (hs :: [Nat]) -> r) -->
+<!--     -> r -->
+<!-- ~~~ -->
+
+<!-- (I've specialized it there to work with `[Integer]` and `[Nat]`, but it works -->
+<!-- in general with any singleton and the values it represents) -->
+
+<!-- The type signature says "Give me an `[Integer]` and a function that is ready to -->
+<!-- take *any* `hs`, and I'll run it with the `hs` from the `[Integer]` for you". -->
+
+<!-- For example, if we had `foo :: Sing hs -> Int`, and we pass it to `withSomeSing -->
+<!-- [1,2,3]`, it'll *run* `foo`, setting with `hs` to be `'[1,2,3]`. -->
+
+<!-- We can re-write `randomNet` to take a `Sing hs ->` instead of a `SingI hs =>` -->
+<!-- (remember, the two are just two ways of writing the same thing.  Re-read the -->
+<!-- [singletons section][new-section] for a review!) to make things more clear: -->
+
+<!-- ~~~haskell -->
+<!-- !!!dependent-haskell/NetworkTyped2.hs "randomNet' ::" -->
+<!-- ~~~ -->
+
+<!-- And we can implement the concept we had before: -->
+
+<!-- ~~~haskell -->
+<!-- !!!dependent-haskell/NetworkTyped2.hs "main ::" -->
+<!-- ~~~ -->
+
+<!-- `someSing xs :: (forall hs. Sing hs -> r) -> r` is a function that's waiting -->
+<!-- for a `Sing hs -> r` that works for *any* `hs`.  It'll "run" the function with -->
+<!-- the `hs` corresponding to `xs :: [Integer]`. -->
+
+<!-- In our case, we gave it a function `forall hs. Sing hs -> IO ()`, and it *runs* -->
+<!-- that function *with* the `hs` corresponding to list we give it. -->
+
+<!-- So, if we gave `withSomeSing` the list `[6,3]`, I'll *run* our action as if it -->
+<!-- had `hs ~ '[6,3]`.  And remember --- because our function is parametrically -->
+<!-- polymorphic to work with any `hs`, it'll happily accept it! -->
 
 
 
