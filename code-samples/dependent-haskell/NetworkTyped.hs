@@ -1,10 +1,8 @@
-#!/usr/bin/env stack
--- stack --resolver nightly-2016-05-26 --install-ghc runghc --package hmatrix --package MonadRandom --package typelits-witnesses
-
 {-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE KindSignatures      #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving  #-}
 {-# LANGUAGE TypeOperators       #-}
