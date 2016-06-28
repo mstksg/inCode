@@ -73,7 +73,7 @@ data OpaqueNet :: Nat -> Nat -> * where
     ONet :: Sing hs -> Network i hs o -> OpaqueNet i o
 
 numHiddens :: OpaqueNet i o -> Int
-numHiddens = \case ONet (ss :: Sing hs) _ -> lengthSing ss
+numHiddens = \case ONet ss _ -> lengthSing ss
   where
     lengthSing :: Sing (hs :: [Nat]) -> Int
     lengthSing = \case SNil         -> 0
