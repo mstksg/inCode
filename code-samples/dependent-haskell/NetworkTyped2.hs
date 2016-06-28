@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE TypeInType          #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE KindSignatures      #-}
@@ -16,6 +17,7 @@ import Data.Singletons.Prelude
 import Data.Singletons.TypeLits
 import GHC.Generics                 (Generic)
 import Numeric.LinearAlgebra.Static
+import Data.Kind
 
 data Weights i o = W { wBiases :: !(R o)
                      , wNodes  :: !(L o i)
@@ -99,9 +101,7 @@ randomONet :: (MonadRandom m, KnownNat i, KnownNat o)
            => [Integer]
            -> m (OpaqueNet i o)
 randomONet hs = case toSing hs of
-                  SomeSing ss -> case singInstance ss of
-                    SingInstance ->
-                      ONet ss <$> randomNet
+                  SomeSing ss -> ONet ss <$> randomNet' ss
 
 instance (KnownNat i, KnownNat o) => Binary (OpaqueNet i o) where
     put = putONet
@@ -146,22 +146,22 @@ withRandomONet' hs f = withSomeSing hs $ \ss ->
                          net <- randomNet
                          f ss net
 
-main :: IO ()
-main = do
-    putStrLn "What size random net?"
-    xs <- readLn
-    withSomeSing xs $ \(ss :: Sing (hs :: [Nat])) -> do
-      net <- randomNet' ss :: IO (Network 10 hs 3)
-      print net
-      -- blah blah stuff with our dynamically generated net
-
 -- main :: IO ()
 -- main = do
 --     putStrLn "What size random net?"
---     hs <- readLn
---     ONet ss (net :: Network 10 hs 3) <- randomONet hs
---     print net
---     -- blah blah stuff with our dynamically generated net
+--     xs <- readLn
+--     withSomeSing xs $ \(ss :: Sing (hs :: [Nat])) -> do
+--       net <- randomNet' ss :: IO (Network 10 hs 3)
+--       print net
+--       -- blah blah stuff with our dynamically generated net
+
+main :: IO ()
+main = do
+    putStrLn "What size random net?"
+    hs <- readLn
+    ONet ss (net :: Network 10 hs 3) <- randomONet hs
+    print net
+    -- blah blah stuff with our dynamically generated net
 
 -- main' :: IO ()
 -- main' = do
@@ -170,3 +170,7 @@ main = do
 --     withRandomONet' hs $ \ss (net :: Network 10 hs 3) -> do
 --       print net
 --       -- blah blah stuff with our dynamically generated net
+
+data SomeS :: * -> * where
+    SomeS :: Sing (a :: k) -> SomeS k
+

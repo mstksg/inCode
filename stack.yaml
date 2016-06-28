@@ -2,7 +2,7 @@
 # For more information, see: http://docs.haskellstack.org/en/stable/yaml_configuration/
 
 # Specifies the GHC version and set of packages available (e.g., lts-3.5, nightly-2015-09-21, ghc-7.10.2)
-resolver: nightly-2016-05-21
+resolver: nightly-2016-06-26
 
 # Local packages, usually specified by relative directory name
 packages:
@@ -15,14 +15,15 @@ packages:
     commit: 42a88fbcb6bd1d2c4dc18fae5e962bd34fb316a1
   subdirs:
     - packages/base
-- location:
-    git: git@github.com:mstksg/singletons.git
-    commit: v2.0.2
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
-extra-deps: []
+extra-deps:
+- hakyll-4.8.3.2
+- hakyll-sass-0.2.0
 
 # Override default flag values for local packages and extra-deps
-flags: {}
+flags:
+  hakyll:
+    previewserver: false
 
 # Extra package databases containing global packages
 extra-package-dbs: []
