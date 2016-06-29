@@ -43,6 +43,14 @@ Along the way, we'll encounter and learn first-hand about techniques and
 guiding high-level principles that we can apply to our other dependently typed
 coding endeavours.
 
+This post was written for GHC 8 on stackage snapshot
+[nightly-2016-06-28][nightly], but should work with GHC 7.10 for the most part.
+All of the set-up instructions and caveats are the same as for [part 1's
+setup][setup 1].
+
+[nightly]: https://www.stackage.org/nightly-2016-06-28
+[setup 1]: https://blog.jle.im/entry/practical-dependent-types-in-haskell-1.html#setup
+
 Run-time Types
 --------------
 
@@ -642,11 +650,10 @@ the years.  This list is by no means exhaustive.
 
 [someNatVal]: http://hackage.haskell.org/package/base-4.9.0.0/docs/GHC-TypeLits.html#v:someNatVal
 
-
-These are just general principals, and they're not hard-fast rules.  This list
-isn't exhaustive, and reflects my current progress in my journey towards
-a dependently typed lifestyle and also the things I can think of as I'm
-writing.  If you come back in a month, you might see more things listed here!
+These are just general principals, not hard-fast rules.  This list reflects my
+current progress in my journey towards a dependently typed lifestyle and also
+the things come to mind as I write this blog post.  If you come back in a
+month, you might see more things listed here!
 
 All said, I do find myself very happy when I see that a library I'm using
 offers *both* styles for me to use.  And I've been known to submit PR's to a

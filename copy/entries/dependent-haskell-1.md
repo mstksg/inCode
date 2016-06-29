@@ -41,7 +41,7 @@ neural network][ann]** implementation with back-propagation training.
 
 #### Setup
 
-This post is written on *[stack][]* snapshot *[nightly-2016-06-26][]*, but uses
+This post is written on *[stack][]* snapshot *[nightly-2016-06-26][nightly]*, but uses
 an unreleased version of *hmatrix*, *[hmatrix-0.18 (commit 42a88fb)][hmatrix
 head]*.  I [maintain my own documentation][hmatrix head docs] for reference.
 
@@ -76,7 +76,7 @@ runghc` or `stack ghc`, etc. to build your files.
 [hmatrix head]: https://github.com/albertoruiz/hmatrix/tree/42a88fbcb6bd1d2c4dc18fae5e962bd34fb316a1
 [hmatrix head docs]: http://mstksg.github.io/hmatrix/
 [stack]: http://www.haskellstack.org
-[lts-5.17]: https://www.stackage.org/lts-5.17
+[nightly]: https://www.stackage.org/nightly-2016-06-28
 
 Neural Networks
 ---------------
