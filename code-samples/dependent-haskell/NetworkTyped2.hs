@@ -7,6 +7,7 @@
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving  #-}
+{-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 
 import Control.Monad.Random
@@ -75,13 +76,10 @@ hiddenSing = \case O _      -> SNil
                    _ :&~ n' -> SNat `SCons` hiddenSing n'
 
 hiddenStruct :: Network i hs o -> [Integer]
-hiddenStruct = \case O _      -> []
-                     _ :&~ n' -> netInp n' : hiddenStruct n'
-  where
-    netInp :: forall i hs o. KnownNat i
-           => Network i hs o
-           -> Integer
-    netInp _ = natVal (Proxy :: Proxy i)
+hiddenStruct = \case O _    -> []
+                     _ :&~ (n' :: Network h hs' o)
+                            -> natVal (Proxy @h)
+                             : hiddenStruct n'
 
 data OpaqueNet :: Nat -> Nat -> * where
     ONet :: Network i hs o -> OpaqueNet i o
@@ -111,10 +109,9 @@ getONet :: (KnownNat i, KnownNat o)
         => Get (OpaqueNet i o)
 getONet = do
     hs <- get
-    case toSing hs of
-      SomeSing ss -> do
-        n <- getNet ss
-        return (ONet n)
+    withSomeSing hs $ \ss ->
+      n <- getNet ss
+      return (ONet n)
 
 randomONet :: (MonadRandom m, KnownNat i, KnownNat o)
            => [Integer]
@@ -130,13 +127,6 @@ type OpaqueNet' i o r = (forall hs. Network i hs o -> r) -> r
 
 oNet' :: Network i hs o -> OpaqueNet' i o r
 oNet' n = \f -> f n
-
--- -- withONet :: OpaqueNet i o -> (forall hs. Network i hs o -> r) -> r
--- withONet :: OpaqueNet i o -> OpaqueNet' i o r
--- withONet = \case ONet n -> (\f -> f n)
-
--- toONet :: OpaqueNet' i o (OpaqueNet i o) -> OpaqueNet i o
--- toONet oN' = oN' (\n -> ONet n)
 
 putONet' :: (KnownNat i, KnownNat o)
          => OpaqueNet' i o Put

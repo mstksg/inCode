@@ -41,13 +41,14 @@ neural network][ann]** implementation with back-propagation training.
 
 #### Setup
 
-This post is written on *[stack][]* snapshot *[lts-5.17][]*, but uses an unreleased
-version of *hmatrix*, *[hmatrix-0.18 (commit 42a88fb)][hmatrix head]*.  I
-[maintain my own documentation][hmatrix head docs] for reference.
+This post is written on *[stack][]* snapshot *[nightly-2016-06-26][]*, but uses
+an unreleased version of *hmatrix*, *[hmatrix-0.18 (commit 42a88fb)][hmatrix
+head]*.  I [maintain my own documentation][hmatrix head docs] for reference.
 
-There is also a bug in *[singletons-2.0.1][]* package that's fixed in
-*[singletons-2.1][]*, but *2.1* is not available with GHC 7.10 -- I have a
-[github fork][snat-fork] that fixes the bug if you want to stay on GHC 7.10.
+If you're forced to use GHC 7.10 for some reason, there's also a bug in
+*[singletons-2.0.1][]* package that's fixed in *[singletons-2.1][]*, but *2.1*
+is not available with GHC 7.10 -- I have a [github fork][snat-fork] that fixes
+the bug if you want to stay on GHC 7.10.
 
 [singletons-2.0.1]: http://hackage.haskell.org/package/singletons-2.0.1
 [singletons-2.1]: http://hackage.haskell.org/package/singletons-2.1
@@ -62,9 +63,10 @@ packages:
     commit: 42a88fbcb6bd1d2c4dc18fae5e962bd34fb316a1
   subdirs:
     - packages/base
-- location:
-    git: git@github.com:mstksg/singletons.git
-    commit: v2.0.2
+# # If stuck on GHC 7.10:
+# - location:
+#     git: git@github.com:mstksg/singletons.git
+#     commit: v2.0.2
 ~~~
 
 to the `packages` field of your directory or global *stack.yaml* and *stack*
