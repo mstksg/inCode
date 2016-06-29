@@ -143,7 +143,8 @@ withRandomONet' :: (MonadRandom m, KnownNat i, KnownNat o)
                 => [Integer]
                 -> (forall hs. Sing hs -> Network i hs o -> m r)
                 -> m r
---         aka, => [Integer] -> OpaqueNet' i o (m r)
+--         aka, => [Integer]
+--              -> OpaqueNet' i o (m r)
 withRandomONet' hs f = withSomeSing hs $ \ss -> do
                          net <- randomNet' ss
                          f ss net
@@ -156,13 +157,13 @@ main = do
     print net
     -- blah blah stuff with our dynamically generated net
 
--- main' :: IO ()
--- main' = do
---     putStrLn "What size random net?"
---     hs <- readLn
---     withRandomONet' hs $ \ss (net :: Network 10 hs 3) -> do
---       print net
---       -- blah blah stuff with our dynamically generated net
+main' :: IO ()
+main' = do
+    putStrLn "What hidden layer structure do you want?"
+    hs <- readLn
+    withRandomONet' hs $ \ss (net :: Network 10 hs 3) -> do
+      print net
+      -- blah blah stuff with our dynamically generated net
 
 -- main :: IO ()
 -- main = do
