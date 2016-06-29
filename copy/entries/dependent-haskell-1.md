@@ -41,9 +41,10 @@ neural network][ann]** implementation with back-propagation training.
 
 #### Setup
 
-This post is written on *[stack][]* snapshot *[nightly-2016-06-26][nightly]*, but uses
-an unreleased version of *hmatrix*, *[hmatrix-0.18 (commit 42a88fb)][hmatrix
-head]*.  I [maintain my own documentation][hmatrix head docs] for reference.
+This post is written on *[stack][]* snapshot *[nightly-2016-06-26][nightly]*,
+with *singletons-2.2*, but uses an unreleased version of *hmatrix*,
+*[hmatrix-0.18 (commit 42a88fb)][hmatrix head]*.  I [maintain my own
+documentation][hmatrix head docs] for reference.
 
 If you're forced to use GHC 7.10 for some reason, there's also a bug in
 *[singletons-2.0.1][]* package that's fixed in *[singletons-2.1][]*, but *2.1*
