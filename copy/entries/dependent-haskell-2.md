@@ -492,7 +492,7 @@ But, hey, because we're skolemizing everything, let's do it with the skolemized
 version of `toSing`, `withSomeSing`:
 
 ~~~haskell
--- the skolemized `toSing`/`SomeSing`:
+-- a version of `toSing` that returns a skolemized `SomeSing`
 withSomeSing :: [Integer]
              -> (forall (hs :: [Nat]). Sing hs -> r)
              -> r
@@ -805,10 +805,10 @@ understanding!  Links are to the solutions.
     for `Nat`s, too!
 
 
-!!![putONet']: dependent-haskell/NetworkTyped2.hs "putONet' ::"
-!!![getONet']: dependent-haskell/NetworkTyped2.hs "getONet' ::"
-!!![randomSNet]: dependent-haskell/NetworkTyped2.hs "randomSNet ::"
-!!![Binary SomeNet]: dependent-haskell/NetworkTyped2.hs "instance Binary SomeNet"
+!!![putONet']:dependent-haskell/NetworkTyped2.hs "putONet' ::"
+!!![getONet']:dependent-haskell/NetworkTyped2.hs "getONet' ::"
+!!![randomSNet]:dependent-haskell/NetworkTyped2.hs "randomSNet ::"
+!!![Binary SomeNet]:dependent-haskell/NetworkTyped2.hs "instance Binary SomeNet"
 
 
 Dealing with Runtime Types
