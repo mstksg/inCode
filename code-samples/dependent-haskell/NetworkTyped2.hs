@@ -1,5 +1,4 @@
 {-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE TypeInType          #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE KindSignatures      #-}
@@ -170,7 +169,4 @@ main = do
 --     withRandomONet' hs $ \ss (net :: Network 10 hs 3) -> do
 --       print net
 --       -- blah blah stuff with our dynamically generated net
-
-data SomeS :: * -> * where
-    SomeS :: Sing (a :: k) -> SomeS k
 

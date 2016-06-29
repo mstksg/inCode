@@ -330,6 +330,35 @@ inside an existential data constructor.  `toSing` takes the term-level value
 (for us, a `[Nat]`).  When we pattern match on the `SomeSing` constructor, we
 get `a` in scope!
 
+In an ideal world, `SomeSing` would look like this:
+
+~~~haskell
+data SomeSing :: * -> * where
+    SomeSing :: Sing (a :: k) -> SomeSing k
+~~~
+
+And you can have
+
+~~~haskell
+foo :: SomeSing Bool
+foo = SomeSing STrue
+
+bar :: SomeSing Nat
+bar = SomeSing (SNat :: Sing 10)
+~~~
+
+But because *singletons* was implemented before the `TypeInType` extension in
+GHC 8, it has to be implemented with clunky "Kind Proxies".  In a future
+version of *singletons*, they'll be implemented this way.  But for now, the
+usage is more or less identical.  It's just right now, in the current system,
+`SomeSing STrue :: SomeSing (KProxy :: KProxy Bool)`, and `bar :: SomeSing
+(KProxy :: KProxy Nat)`.[^somesing]
+
+[^somesing]: Gross, right?  Hopefully some day this will be as far behind us as
+that whole Monad/Functor debacle is now!
+
+Pattern matching looks like:
+
 ~~~haskell
 main :: IO ()
 main = do
@@ -340,7 +369,9 @@ main = do
 ~~~
 
 Now, inside the case statement branch (the `...`), we have *type* `n :: Nat` in
-scope!  We now have enough to write our `randomONet`:
+scope!  And by pattern matching on the `SNat` constructor, we also have a
+`Knownnat n` instance (As discussed in [previous part][new-section)].  We now
+have enough to write our `randomONet`:
 
 ~~~haskell
 !!!dependent-haskell/NetworkTyped2.hs "randomONet ::"
@@ -351,7 +382,6 @@ And our original goal is finally within reach:
 ~~~haskell
 !!!dependent-haskell/NetworkTyped2.hs "main ::"
 ~~~
-
 
 
 
