@@ -140,7 +140,14 @@ scope, as in `ONet (ss :: Sing hs) _ ->`.
 
 Note that it's important for us to include the singleton in addition to the
 network itself, because of type erasure (our best friend).  If we didn't pop
-the singleton in, we'd have to do some work to recover the original `hs`.
+the singleton in, we'd have to do some work to recover the original
+`hs`.[^hiddenSing]
+
+[^hiddenSing]: A fun exercise would be to implement a `Network i hs o -> Sing
+hs`, to get `Sing hs` back.  There's a [solution][hiddenSing] in the source
+code!
+
+!!![hiddenSing]:dependent-haskell/NetworkTyped2.hs "hiddenSing ::"
 
 Another way we could have counter-acted type erasure would be to have:
 
@@ -468,26 +475,13 @@ encounter working with dependent types in Haskell, and sometimes just knowing
 that you're "skolemizing" something makes you feel cooler.  Thank you [Thoralf
 Skolem][].  If you ever see a "rigid, skolem" error in GHC, you can thank him
 for that too!  He also inspired me to decide to name my first son
-Thoralf.[^curry]
+Thoralf. (My second son's name will be Curry)
 
 [Thoralf Skolem]: https://en.wikipedia.org/wiki/Thoralf_Skolem
-
-[^curry]: My second son's name will be Curry.
 
 ~~~haskell
 !!!dependent-haskell/NetworkTyped2.hs "oNet' ::"
 ~~~
-
-<!-- To prove that the two `OpaqueNet`s are the same (and to help us see more about -->
-<!-- how they relate), we can write functions that convert back and forth from them: -->
-
-<!-- ~~~haskell -->
-<!-- !!!dependent-haskell/NetworkTyped2.hs "withONet ::" "toONet ::" -->
-<!-- ~~~ -->
-
-<!-- Note the expanded type signature of `withONet`, which you can sort of interpret -->
-<!-- as, "do *this function* on the existentially quantified contents of an -->
-<!-- `OpaqueNet`." -->
 
 <!-- #### Trying it out -->
 

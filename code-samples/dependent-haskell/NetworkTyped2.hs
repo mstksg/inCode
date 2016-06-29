@@ -70,6 +70,10 @@ instance (KnownNat i, SingI hs, KnownNat o) => Binary (Network i hs o) where
     put = putNet
     get = getNet sing
 
+hiddenSing :: Network i hs o -> Sing hs
+hiddenSing = \case O _      -> SNil
+                   _ :&~ n' -> SNat `SCons` hiddenSing n'
+
 data OpaqueNet :: Nat -> Nat -> * where
     ONet :: Sing hs -> Network i hs o -> OpaqueNet i o
 
@@ -139,10 +143,9 @@ withRandomONet' :: (MonadRandom m, KnownNat i, KnownNat o)
                 => [Integer]
                 -> (forall hs. Sing hs -> Network i hs o -> m r)
                 -> m r
---         aka, => OpaqueNet' i o (m r)
-withRandomONet' hs f = withSomeSing hs $ \ss ->
-                       withSingI ss    $ do
-                         net <- randomNet
+--         aka, => [Integer] -> OpaqueNet' i o (m r)
+withRandomONet' hs f = withSomeSing hs $ \ss -> do
+                         net <- randomNet' ss
                          f ss net
 
 main :: IO ()
