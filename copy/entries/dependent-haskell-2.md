@@ -811,7 +811,10 @@ understanding!  Links are to the solutions.
     (inputs and outputs, too):
 
     ~~~haskell
-    !!!dependent-haskell/NetworkTyped2.hs "data SomeNet"
+    data SomeNet where
+        SNet :: (KnownNat i, KnownNat o)
+             => Network i hs o
+             -> SomeNet
     ~~~
 
     (We need the `KnownNat` constraints because of type erasure, to recover

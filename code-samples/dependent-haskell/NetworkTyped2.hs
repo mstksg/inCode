@@ -173,7 +173,7 @@ main' = do
 -- * SomeNet
 --
 
-data SomeNet :: * where
+data SomeNet where
     SNet :: (KnownNat i, KnownNat o)
          => Network i hs o
          -> SomeNet
