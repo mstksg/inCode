@@ -377,12 +377,176 @@ have enough to write our `randomONet`:
 !!!dependent-haskell/NetworkTyped2.hs "randomONet ::"
 ~~~
 
-And our original goal is finally within reach:
+This process of bringing a term-level value into the type level is known in
+Haskell as **reification**.  Witht his, our original goal is (finally) within
+reach:
 
 ~~~haskell
 !!!dependent-haskell/NetworkTyped2.hs "main ::"
 ~~~
 
+#### The Boundary
+
+With the power of existentially quantified types (like in `SomeSing`), we
+essentially gained the ability to work with types that depend on runtime
+results.
+
+In a way, you can consider the `toSing` and the `SomeSing` as our "boundary"
+between the "untyped world" and the "typed world".  This layer (and the process
+of reification) cleanly separates the two.
+
+This "boundary" can be thought of as a lot like the boundary we talk about
+between "pure" functions and values and "impure" (IO, etc.) ones.  We say to
+always write as much of your program as possible in the "pure" world, and
+to separate and pull out as much logic as you can to be pure logic.  That's
+sort of one of the first things you learn about as a Haskell programmer: how
+to separate logic that *can* be pure from logic that is "impure" (IO, etc.),
+and then "combine them" at the very end, as late as possible.
+
+Well, if the final program is going to be IO in the end anyway, why bother
+separating out pure and impure parts of your logic?  You gain separation of
+concerns, the increased ability to reason with your code and analyze what it
+does, the compiler's ability to check what you write, the limitation of
+implementations, and etc. are all reasons any Haskeller should be familiar with
+reciting.
+
+You can think of the general philosophy of working with typed/untyped worlds as
+being the same thing.  You can write as much of your program as possible in the
+"typed" world, like we did in Part 1.  Take advantage of the increased ability
+to reason with your code, parametric polymorphism helping you *write* your
+code, limit your implementations, nab you compiler help, etc.  All of those are
+benefits of working in the typed world.
+
+Then, write what you must in your "untyped" world, such as dealing with values
+that pop up at runtime like the `[Integer]` above.
+
+Finally, at the end, *unite* them at the boundary.  Pass the control football
+from the untyped world to the typed world!
+
+### Continuation-Based Existentials
+
+There's another way in Haskell that we work with existential types that can be
+more natural and easy to work with in a lot of cases.
+
+Note that when we pattern match on an existential data type, you have to work
+with the values in the constructor in a parametrically polymorphic way.  For
+example, if we had:
+
+~~~haskell
+oNetToFoo :: OpaqueNet i o -> Foo
+oNetToFoo = \case ONet s n -> f s n
+~~~
+
+What does the type of `f` have to be?  It has to take a `Sing hs` and a
+`Network i hs o`, but deal with it in a way that works *for all* `hs`.  It has
+to be:
+
+~~~haskell
+f :: forall (hs :: [Nat]). Sing hs -> Network i hs o -> Foo
+~~~
+
+That is, it can't be written for *only* `Sing '[5]` or *only* `Sing
+'[6,3]`...it has to work for *any* `hs`.
+
+Well, we could really also just skip the data type together and represent an
+existential type as something *taking* the continuation `f` and giving it what
+it needs.
+
+~~~haskell
+!!!dependent-haskell/NetworkTyped2.hs "type OpaqueNet'"
+~~~
+
+"Tell me how you would make an `r` if you had a `Sing hs` and a `Network i hs
+o`, and I'll make it for you!"
+
+This "continuation transformation" is known as formally
+**skolemization**.[^skolemization]  We can "wrap" a `Network i hs o` into an
+`OpaqueNet' i o r` pretty straightforwardly:
+
+[^skolemization]: Skolemization is probably one of the coolest words you'll
+encounter working with dependent types in Haskell, and sometimes just knowing
+that you're "skolemizing" something makes you feel cooler.  Thank you [Thoralf
+Skolem][].  If you ever see a "rigid, skolem" error in GHC, you can thank him
+for that too!  He also inspired me to decide to name my first son
+Thoralf.[^curry]
+
+[Thoralf Skolem]: https://en.wikipedia.org/wiki/Thoralf_Skolem
+
+[^curry]: My second son's name will be Curry.
+
+~~~haskell
+!!!dependent-haskell/NetworkTyped2.hs "oNet' ::"
+~~~
+
+<!-- To prove that the two `OpaqueNet`s are the same (and to help us see more about -->
+<!-- how they relate), we can write functions that convert back and forth from them: -->
+
+<!-- ~~~haskell -->
+<!-- !!!dependent-haskell/NetworkTyped2.hs "withONet ::" "toONet ::" -->
+<!-- ~~~ -->
+
+<!-- Note the expanded type signature of `withONet`, which you can sort of interpret -->
+<!-- as, "do *this function* on the existentially quantified contents of an -->
+<!-- `OpaqueNet`." -->
+
+<!-- #### Trying it out -->
+
+<!-- To sort of compare how the two methods look like in practice, we're going to -->
+<!-- Rosetta stone it up and re-implement serialization with the continuation-based -->
+<!-- existentials: -->
+
+<!-- ~~~haskell -->
+<!-- !!!dependent-haskell/NetworkTyped2.hs "putONet' ::" "getONet' ::" -->
+<!-- ~~~ -->
+
+<!-- To be cute, I used the skolemized partners of `toSing` and `SomeSing`: -->
+
+<!-- ~~~haskell -->
+<!-- withSomeSing :: [Integer] -->
+<!--              -> (forall (hs :: [Nat]). Sing hs -> r) -->
+<!--              -> r -->
+<!-- ~~~ -->
+
+<!-- Instead of returning a `SomeSing` like `toSing` does, `withSomeSing` returns -->
+<!-- the continuation-based existential. -->
+
+<!-- The expanded type signature of `getONet'` can be read: "Give what you would do -->
+<!-- if you *had* a `Sing hs` and a `Network i hs o`", and I'll get them for you and -->
+<!-- give you the result." -->
+
+<!-- Let's also see how we'd return a random network with a continuation: -->
+
+<!-- ~~~haskell -->
+<!-- !!!dependent-haskell/NetworkTyped2.hs "withRandomONet' :" -->
+<!-- ~~~ -->
+
+<!-- Again, to be cute, I used the continuation-based version of `singInstance`, -->
+<!-- `withSingI`: -->
+
+<!-- ~~~haskell -->
+<!-- withSingI :: Sing a -> (SingI a => r) -> r -->
+<!-- ~~~ -->
+
+<!-- The signature, in English, is "give me a `Sing a` and a value that you could -->
+<!-- make *if only you had* a `SingI` instance, and I'll give you that value as if -->
+<!-- you had the instance, magically!" -->
+
+<!-- Of course, we know it's not magic:[^magic] -->
+
+<!-- ~~~haskell -->
+<!-- withSingI :: Sing a -> (SingI a => r) -> r -->
+<!-- withSingI s x = case singInstance s of -->
+<!--                   SingInstance -> x -->
+<!-- ~~~ -->
+
+<!-- [^magic]: Actually, it kind of *is* magic, because `singInstance` is implemented -->
+<!-- with `unsafeCoerce`.  But don't tell anyone ;) -->
+
+<!-- And we see another way we can "move past the untyped/typed boundary": -->
+
+<!-- ~~~haskell -->
+<!-- !!!dependent-haskell/NetworkTyped2.hs "main' ::" -->
+<!-- ~~~ -->
 
 
 

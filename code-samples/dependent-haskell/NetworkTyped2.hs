@@ -145,18 +145,9 @@ withRandomONet' hs f = withSomeSing hs $ \ss ->
                          net <- randomNet
                          f ss net
 
--- main :: IO ()
--- main = do
---     putStrLn "What size random net?"
---     xs <- readLn
---     withSomeSing xs $ \(ss :: Sing (hs :: [Nat])) -> do
---       net <- randomNet' ss :: IO (Network 10 hs 3)
---       print net
---       -- blah blah stuff with our dynamically generated net
-
 main :: IO ()
 main = do
-    putStrLn "What size random net?"
+    putStrLn "What hidden layer structure do you want?"
     hs <- readLn
     ONet ss (net :: Network 10 hs 3) <- randomONet hs
     print net
@@ -167,6 +158,15 @@ main = do
 --     putStrLn "What size random net?"
 --     hs <- readLn
 --     withRandomONet' hs $ \ss (net :: Network 10 hs 3) -> do
+--       print net
+--       -- blah blah stuff with our dynamically generated net
+
+-- main :: IO ()
+-- main = do
+--     putStrLn "What size random net?"
+--     xs <- readLn
+--     withSomeSing xs $ \(ss :: Sing (hs :: [Nat])) -> do
+--       net <- randomNet' ss :: IO (Network 10 hs 3)
 --       print net
 --       -- blah blah stuff with our dynamically generated net
 
