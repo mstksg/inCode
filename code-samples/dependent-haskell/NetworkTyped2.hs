@@ -93,6 +93,13 @@ numHiddens = \case ONet n -> go n
     go = \case O _      -> 0
                _ :&~ n' -> 1 + go n'
 
+numHiddens' :: OpaqueNet' i o Int -> Int
+numHiddens' oN = oN go
+  where
+    go :: Network i hs o -> Int
+    go = \case O _      -> 0
+               _ :&~ n' -> 1 + go n'
+
 putONet :: (KnownNat i, KnownNat o)
         => OpaqueNet i o
         -> Put
