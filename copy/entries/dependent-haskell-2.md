@@ -778,8 +778,41 @@ Our final instance:
 !!!dependent-haskell/NetworkTyped2.hs "instance (KnownNat i, KnownNat o) => Binary (OpaqueNet i o)"
 ~~~
 
-Living Life on the Run-Time Edge
---------------------------------
+#### Exercises
+
+Here are some fun exercises you can try, if you want to test your
+understanding!  Links are to the solutions.
+
+1.  Implement [`putONet'`][putONet'] and [`getONet'`][getONet'] using the
+    continuation-style existentials, instead.
+
+2.  Work with an existential wrapper over the *entire* network structure
+    (inputs and outputs, too):
+
+    ~~~haskell
+    !!!dependent-haskell/NetworkTyped2.hs "data SomeNet"
+    ~~~
+
+    (We need the `KnownNat` constraints because of type erasure, to recover
+    the original input/output dimensions back once we pattern match)
+
+    And write:
+
+    *   [`randomSNet`][randomSNet]
+    *   The [binary instance][Binary SomeNet] for `SomeNet`
+
+    Hint: Remember that `toSomeSing` also works for `Integer`s, to get `Sing`s
+    for `Nat`s, too!
+
+
+!!![putONet']: dependent-haskell/NetworkTyped2.hs "putONet' ::"
+!!![getONet']: dependent-haskell/NetworkTyped2.hs "getONet' ::"
+!!![randomSNet]: dependent-haskell/NetworkTyped2.hs "randomSNet ::"
+!!![Binary SomeNet]: dependent-haskell/NetworkTyped2.hs "instance Binary SomeNet"
+
+
+Dealing with Runtime Types
+--------------------------
 
 
 <!-- sameNat and existentials -->
