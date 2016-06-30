@@ -175,7 +175,7 @@ addNetWeights n1 n2
         (O w1      , O w2      ) ->
           O (addW w1 w2)
         (w1 :&~ n1', w2 :&~ n2') ->
-          addW w1 w2 :&~ addNets n1' n2'
+          addW w1 w2 :&~ addNetWeights n1' n2'
   where
     addW :: (KnownNat n, KnownNat m)
          => Weights n m
