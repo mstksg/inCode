@@ -41,7 +41,7 @@ neural network][ann]** implementation with back-propagation training.
 
 #### Setup
 
-This post is written on *[stack][]* snapshot *[nightly-2016-06-26][nightly]*,
+This post is written on *[stack][]* snapshot *[nightly-2016-06-28][nightly]*,
 with *singletons-2.2*, but uses an unreleased version of *hmatrix*,
 *[hmatrix-0.18 (commit 42a88fb)][hmatrix head]*.  I [maintain my own
 documentation][hmatrix head docs] for reference.

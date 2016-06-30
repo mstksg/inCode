@@ -2,9 +2,9 @@
 title: "Practical Dependent Types in Haskell: Existential Neural Networks and Types at Runtime"
 categories: Haskell, Ramblings
 series: Practical Dependent Types in Haskell
-tags: functional programming, dependent types, numerical, haskell, singletons, types, linear algebra, artificial neural networks, machine learning, existential types
+tags: functional programming, dependent types, numerical, haskell, singletons, types, artificial neural networks, machine learning, existential types
 create-time: 2016/05/27 22:20:42
-date: Never
+date: 2016/06/30 10:59:23
 identifier: dependent-haskell-2
 slug: practical-dependent-types-in-haskell-2
 ---
@@ -639,7 +639,7 @@ the years:
     The latter are known as *impredicative* types, which are a big no-no in GHC
     Haskell.  Don't even go there!  The constructor style is necessary in these
     situations.
-    
+
     If the type constructor is a Monad, you can get away with a ContT-style
     skolemization, like `(forall hs. Network i hs o -> [r]) -> [r]` and
     `(forall hs. Network i hs o -> IO r) -> IO r`.  But this doesn't work for
@@ -648,7 +648,7 @@ the years:
 
 *   When writing functions that *take* existentials as inputs, the
     constructor-style is arguably more natural.  But barely.
-    
+
     For example, we wrote a function to find the number of hidden layers in a
     network earlier:
 
@@ -833,7 +833,7 @@ And, of course, we used the constructor-style existential this whole time
 instead of the continuation-style one because we can't directly write typeclass
 instances for the latter.
 
-An Existance For All
+An Existence For All
 --------------------
 
 We've learned about how to "cross" from the untyped world to the typed world
@@ -847,9 +847,7 @@ well.  We also learned the advantages of *separating* the typed world from the
 untyped world and how the compiler helps us make the transition safely.
 
 But really, this is all just the *start* of dependently typed programming. This
-is where things *really* start to get fun.  (After all, for the most part, except for what
-is basically syntactic sugar, everything we learned in the first part is mostly
-standard, non-dependent Haskell.)
+is where things *really* start to get fun.
 
 Stepping into this new world can be disorienting at first.  There's a lot of
 unexpected things that come up when we start working more with these fancy new
