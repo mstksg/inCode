@@ -110,8 +110,8 @@ runOpaqueNet :: (KnownNat i, KnownNat o)
              => OpaqueNet i o
              -> R i
              -> R o
-runOpaqueNet n x = case n of
-                     ONet n' -> runNet n' x
+runOpaqueNet oN x = case oN of
+                      ONet n -> runNet n x
 
 numHiddens :: OpaqueNet i o -> Int
 numHiddens = \case ONet n -> go n
@@ -152,6 +152,19 @@ type OpaqueNet' i o r = (forall hs. Network i hs o -> r) -> r
 oNet' :: Network i hs o -> OpaqueNet' i o r
 oNet' n = \f -> f n
 
+runOpaqueNet' :: (KnownNat i, KnownNat o)
+              => OpaqueNet' i o (R o)
+              -> R i
+              -> R o
+runOpaqueNet' oN x = oN (\n -> runNet n x)
+
+numHiddens' :: OpaqueNet' i o Int -> Int
+numHiddens' oN = oN go
+  where
+    go :: Network i hs o -> Int
+    go = \case O _      -> 0
+               _ :&~ n' -> 1 + go n'
+
 withRandomONet' :: (MonadRandom m, KnownNat i, KnownNat o)
                 => [Integer]
                 -> (forall hs. Network i hs o -> m r)
@@ -183,9 +196,11 @@ main :: IO ()
 main = do
     putStrLn "What hidden layer structure do you want?"
     hs <- readLn
-    ONet (net :: Network 10 hs 3) <- randomONet hs
-    print net
-    -- blah blah stuff with our dynamically generated net
+    n  <- randomONet hs
+    case n of
+      ONet (net :: Network 10 hs 3) -> do
+        print net
+        -- blah blah stuff with our dynamically generated net
 
 main' :: IO ()
 main' = do
