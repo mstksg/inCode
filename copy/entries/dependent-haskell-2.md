@@ -856,7 +856,9 @@ understanding!  Links are to the solutions.
         the `OpaqueNet` with existentially quantified `i` and `o` in
         continuation-style.  (You can write a data type to return it in
         constructor-style, too, for funsies.)
-    *   [`randomSNet`][randomSNet]
+    *   [`randomSNet`][randomSNet], returning `m SomeNet`.
+    *   While you're at it, write it to return [a continuation-style `SomeNet`,
+        too!][withRandomSNet'].
     *   The [binary instance][Binary SomeNet] for `SomeNet`
 
     Hint: Remember that `toSomeSing` also works for `Integer`s, to get `Sing`s
@@ -867,5 +869,6 @@ understanding!  Links are to the solutions.
 !!![getONet']:dependent-haskell/NetworkTyped2.hs "getONet' ::"
 !!![withONet]:dependent-haskell/NetworkTyped2.hs "withONet ::"
 !!![randomSNet]:dependent-haskell/NetworkTyped2.hs "randomSNet ::"
+!!![withRandomSNet']:dependent-haskell/NetworkTyped2.hs "withRandomSNet' ::"
 !!![Binary SomeNet]:dependent-haskell/NetworkTyped2.hs "instance Binary SomeNet"
 

@@ -220,6 +220,19 @@ randomSNet i hs o =
     withSomeSing o  $ \(SNat :: Sing (o  :: Nat  )) ->
       SNet <$> (randomNet' ss :: m (Network i hs o))
 
+withRandomSNet' :: forall m r. MonadRandom m
+                => Integer
+                -> [Integer]
+                -> Integer
+                -> (forall i hs o. (KnownNat i, KnownNat o) => Network i hs o -> m r)
+                -> m r
+withRandomSNet' i hs o f =
+    withSomeSing i  $ \(SNat :: Sing (i  :: Nat  )) ->
+    withSomeSing hs $ \(ss   :: Sing (hs :: [Nat])) ->
+    withSomeSing o  $ \(SNat :: Sing (o  :: Nat  )) -> do
+      n <- randomNet' ss :: m (Network i hs o)
+      f n
+
 instance Binary SomeNet where
     put = \case SNet (net :: Network i hs o) -> do
                   put $ natVal (Proxy @i)
