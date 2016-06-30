@@ -857,9 +857,10 @@ understanding!  Links are to the solutions.
         continuation-style.  (You can write a data type to return it in
         constructor-style, too, for funsies.)
     *   [`randomSNet`][randomSNet], returning `m SomeNet`.
-    *   While you're at it, write it to return [a continuation-style `SomeNet`,
-        too!][withRandomSNet'].
-    *   The [binary instance][Binary SomeNet] for `SomeNet`
+    *   While you're at it, write it to return [a random continuation-style
+        `SomeNet`, too][withRandomSNet']!
+    *   The [binary instance][Binary SomeNet] for `SomeNet`.  Remember that you
+        can use `natVal :: KnownNat n => Proxy n -> Integer`.
 
     Hint: Remember that `toSomeSing` also works for `Integer`s, to get `Sing`s
     for `Nat`s, too!
