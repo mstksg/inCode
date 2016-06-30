@@ -858,9 +858,12 @@ understanding!  Links are to the solutions.
         constructor-style, too, for funsies.)
     *   [`randomSNet`][randomSNet], returning `m SomeNet`.
     *   While you're at it, write it to return [a random continuation-style
-        `SomeNet`, too][withRandomSNet']!
-    *   The [binary instance][Binary SomeNet] for `SomeNet`.  Remember that you
-        can use `natVal :: KnownNat n => Proxy n -> Integer`.
+        `SomeNet`, too][withRandomSNet']!  (See the type of
+        [`withRandomONet'`][withRandomONet'] for reference on how to write the
+        type)
+    *   The [binary instance][Binary SomeNet] for `SomeNet`.
+    
+        Hint: Remember `natVal :: KnownNat n => Proxy n -> Integer`!
 
     Hint: Remember that `toSomeSing` also works for `Integer`s, to get `Sing`s
     for `Nat`s, too!
@@ -871,5 +874,6 @@ understanding!  Links are to the solutions.
 !!![withONet]:dependent-haskell/NetworkTyped2.hs "withONet ::"
 !!![randomSNet]:dependent-haskell/NetworkTyped2.hs "randomSNet ::"
 !!![withRandomSNet']:dependent-haskell/NetworkTyped2.hs "withRandomSNet' ::"
+!!![withRandomONet']:dependent-haskell/NetworkTyped2.hs "withRandomONet' ::"
 !!![Binary SomeNet]:dependent-haskell/NetworkTyped2.hs "instance Binary SomeNet"
 
