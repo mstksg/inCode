@@ -8,7 +8,6 @@ module Blog.View where
 import           Blog.Types
 import           Blog.Util
 import           Data.List
-import           Data.Maybe
 import           Data.Monoid
 import           Text.Blaze.Html5            ((!))
 import qualified Data.Text                   as T
