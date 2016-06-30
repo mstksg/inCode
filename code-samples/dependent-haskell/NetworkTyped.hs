@@ -20,7 +20,7 @@ import Text.Read
 
 data Weights i o = W { wBiases :: !(R o)
                      , wNodes  :: !(L o i)
-                     }
+                     }                      -- an "o x i" layer
 
 data Network :: Nat -> [Nat] -> Nat -> * where
     O     :: !(Weights i o)
