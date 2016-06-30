@@ -160,3 +160,30 @@ main = do
 (!!?) :: [a] -> Int -> Maybe a
 xs !!? i = listToMaybe (drop i xs)
 
+-- * Exercises
+--
+
+popLayer :: Network i (h ': hs) o -> (Weights i h, Network h hs o)
+popLayer = \case w :&~ n' -> (w, n')
+
+addNetWeights :: (KnownNat i, KnownNat o)
+              => Network i hs o
+              -> Network i hs o
+              -> Network i hs o
+addNetWeights n1 n2
+    = case (n1, n2) of
+        (O w1      , O w2      ) ->
+          O (addW w1 w2)
+        (w1 :&~ n1', w2 :&~ n2') ->
+          addW w1 w2 :&~ addNets n1' n2'
+  where
+    addW :: (KnownNat n, KnownNat m)
+         => Weights n m
+         -> Weights n m
+         -> Weights n m
+    addW (W b1 w1) (W b2 w2) = W (b1 + b2) (w1 + w2)
+
+hiddenSing :: Network i hs o -> Sing hs
+hiddenSing = \case O _      -> SNil
+                   _ :&~ n' -> SNat `SCons` hiddenSing n'
+

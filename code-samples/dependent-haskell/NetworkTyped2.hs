@@ -209,24 +209,6 @@ withONet :: SomeNet
 withONet s f = case s of
                  SNet n -> f (ONet n)
 
-foo :: (KnownNat i, KnownNat o)
-    => SomeNet
-    -> R i
-    -> R o
-foo n x = case n of
-            SNet n' -> runNet n' x
-
-runSomeNet :: KnownNat i
-           => SomeNet
-           -> R i
-           -> (forall o. KnownNat o => R o -> r)
-           -> Maybe r
-runSomeNet n x f = case n of
-                     SNet n' ->
-                       case exactLength x of
-                         Just x' -> Just (f (runNet n' x'))
-                         Nothing -> Nothing
-
 randomSNet :: forall m. MonadRandom m
            => Integer
            -> [Integer]
