@@ -422,7 +422,8 @@ from the untyped world to the typed world!
 
 The great part about this all is that GHC and the type system is there at every
 step holding your hand, guiding you as you implement your programs and making
-sure everything is type-safe and fits together!
+sure everything is type-safe and fits together!  (This, after all, is what
+separates dependently typed programming from *dynamically* typed programming.)
 
 ### Continuation-Based Existentials
 
@@ -547,6 +548,11 @@ the years:
     writing uses/returns a *lot* of different existentially qualified types,
     all those extra dumb wrappers are a huge hassle.
 
+*   Continuation-style existentials are in general smoother to use than
+    constructor-style ones when functions *return* existentials.  Especially if
+    you intend to immediately use them, continuation-style basically saves you
+    an extraneous pattern match.
+
 *   When you have to use several existentials at once, continuation-style is
     much better because each nested existential doesn't force another level of
     indentation:
@@ -597,7 +603,6 @@ the years:
              hs <- readLn
              withRandomONet' hs $ \(n4 :: Network 10 hs 1) -> do
                -- ...
-
     ~~~
 
     A lot of libraries return existentials in `Maybe`'s ([base is
@@ -862,7 +867,7 @@ understanding!  Links are to the solutions.
         [`withRandomONet'`][withRandomONet'] for reference on how to write the
         type)
     *   The [binary instance][Binary SomeNet] for `SomeNet`.
-    
+
         Hint: Remember `natVal :: KnownNat n => Proxy n -> Integer`!
 
     Hint: Remember that `toSomeSing` also works for `Integer`s, to get `Sing`s
