@@ -1,6 +1,7 @@
 {-# LANGUAGE ImplicitParams    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE LambdaCase        #-}
 
 module Blog.Util.Tag where
 
@@ -146,3 +147,12 @@ tsCompare tt = ttComparer <> comparing (tagLabel . fst)
         TSLabel  -> \_ _ -> EQ
         TSCount  -> flip $ comparing (length . tagEntries . fst)
         TSRecent -> flip $ comparing (fmap entryPostTime . snd)
+
+teCompare
+    :: TagType
+    -> Entry
+    -> Entry
+    -> Ordering
+teCompare = \case GeneralTag  -> flip $ comparing entryPostTime
+                  CategoryTag -> flip $ comparing entryPostTime
+                  SeriesTag   ->        comparing entryPostTime

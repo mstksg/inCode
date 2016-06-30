@@ -10,7 +10,6 @@ import           Blog.Util
 import           Blog.Util.Tag
 import           Data.List
 import           Data.Maybe
-import           Data.Ord
 import           Data.String
 import           Hakyll
 import           System.FilePath
@@ -27,7 +26,7 @@ tagCompiler tt tLab p = do
     t@Tag{..} <- fmap itemBody . saveSnapshot "tag" =<< compileTag tt tLab p
 
     let sorted = map (fromFilePath . entrySourceFile)
-               . sortBy (flip $ comparing entryPostTime)
+               . sortBy (teCompare tt)
                . filter (isJust . entryPostTime)
                $ tagEntries
 

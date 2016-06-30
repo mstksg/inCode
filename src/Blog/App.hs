@@ -36,7 +36,6 @@ import           Hakyll.Web.Sass
 import           System.FilePath
 import           Text.Jasmine
 import           Text.Read                 (readMaybe)
-import qualified Data.HashMap.Strict       as HM
 import qualified Data.Map                  as M
 import qualified Data.Text                 as T
 import qualified Data.Text.Lazy            as TL
@@ -268,7 +267,7 @@ app znow@(ZonedTime _ tz) = do
         entryIdInt m = do
           eiString <- lookupString "entry-id" m
           eiDouble <- readMaybe eiString :: Maybe Double
-          return (round eiDouble)
+          return (round eiDouble :: Integer)
     compileIdEntry
         :: (?config :: Config)
         => String
