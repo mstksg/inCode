@@ -127,7 +127,7 @@ instance Applicative f => Applicative (Flipped f) where
     Flipped f <*> Flipped x = Flipped $ liftA2 (flip ($)) x f
 ~~~
 
-So cool.  Types that have `Functor` instances only have one.  Types that have
+Cool.  Types that have `Functor` instances only have one.  Types that have
 `Applicative` instances very often have more than one.
 
 So, the obvious next question is...what about `Monad`s?  Is a `Monad` instance
@@ -181,9 +181,9 @@ instance Monad Stream where
 ~~~
 
 The `Monad` instance itself is actually interesting enough to write about.  It
-all revolves `join`, where `join` takes a stream of streams and creates a
-stream *of the diagonals*.  So it takes the first element of the first stream,
-the second element of the second stream, the third element of the third
+all revolves around `join`, where `join` takes a stream of streams and creates
+a stream *of the diagonals*.  So it takes the first element of the first
+stream, the second element of the second stream, the third element of the third
 stream, etc.
 
 This is actually a special case of the `Monad` instance for all fixed-sized
