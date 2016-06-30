@@ -1,5 +1,5 @@
 ---
-title: "Practical Dependent Types in Haskell: Existential Neural Networks and Types at Runtime"
+title: "Practical Dependent Types in Haskell 2: Existential Neural Networks and Types at Runtime"
 categories: Haskell, Ramblings
 series: Practical Dependent Types in Haskell
 tags: functional programming, dependent types, numerical, haskell, singletons, types, artificial neural networks, machine learning, existential types
