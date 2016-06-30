@@ -10,11 +10,14 @@ packages:
 - location:
     git: git@github.com:mstksg/jle-utils.git
     commit: 6f44ee9fc3bae6a780d96a87ae239ea755bc4d53
+  extra-dep: true
 - location:
     git: git@github.com:albertoruiz/hmatrix.git
     commit: 42a88fbcb6bd1d2c4dc18fae5e962bd34fb316a1
   subdirs:
     - packages/base
+  extra-dep: true
+    
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
 extra-deps:
 - hakyll-4.8.3.2
