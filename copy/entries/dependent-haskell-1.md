@@ -918,8 +918,6 @@ some of the concepts!  The links are to the solutions in the source file.
     SNat `SCons` SNat `SCons` SNil
     ~~~
 
-
-
 !!![popLayer]:dependent-haskell/NetworkTyped.hs "popLayer ::"
 !!![addNetWeights]:dependent-haskell/NetworkTyped.hs "addNetWeights ::"
 !!![hiddenSing]:dependent-haskell/NetworkTyped.hs "hiddenSing ::"

@@ -186,4 +186,3 @@ addNetWeights n1 n2
 hiddenSing :: Network i hs o -> Sing hs
 hiddenSing = \case O _      -> SNil
                    _ :&~ n' -> SNat `SCons` hiddenSing n'
-
