@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE GADTs               #-}
@@ -37,6 +38,12 @@ randomWeights = do
         wN = uniformSample s2 (-1) 1
     return $ W wB wN
 
+runLayer :: (KnownNat i, KnownNat o)
+         => Weights i o
+         -> R i
+         -> R o
+runLayer (W wB wN) v = wB + wN #> v
+
 -- * Network
 --
 
@@ -50,6 +57,17 @@ data Network :: Nat -> [Nat] -> Nat -> * where
 infixr 5 :&~
 
 deriving instance (KnownNat i, KnownNat o) => Show (Network i hs o)
+
+logistic :: Floating a => a -> a
+logistic x = 1 / (1 + exp (-x))
+
+runNet :: (KnownNat i, KnownNat o)
+       => Network i hs o
+       -> R i
+       -> R o
+runNet (O w)      !v = logistic (runLayer w v)
+runNet (w :&~ n') !v = let v' = logistic (runLayer w v)
+                       in  runNet n' v'
 
 hiddenStruct :: Network i hs o -> [Integer]
 hiddenStruct = \case O _    -> []
@@ -87,6 +105,13 @@ instance (KnownNat i, SingI hs, KnownNat o) => Binary (Network i hs o) where
 
 data OpaqueNet :: Nat -> Nat -> * where
     ONet :: Network i hs o -> OpaqueNet i o
+
+runOpaqueNet :: (KnownNat i, KnownNat o)
+             => OpaqueNet i o
+             -> R i
+             -> R o
+runOpaqueNet n x = case n of
+                     ONet n' -> runNet n' x
 
 numHiddens :: OpaqueNet i o -> Int
 numHiddens = \case ONet n -> go n
@@ -177,6 +202,30 @@ data SomeNet where
     SNet :: (KnownNat i, KnownNat o)
          => Network i hs o
          -> SomeNet
+
+withONet :: SomeNet
+         -> (forall i o. (KnownNat i, KnownNat o) => OpaqueNet i o -> r)
+         -> r
+withONet s f = case s of
+                 SNet n -> f (ONet n)
+
+foo :: (KnownNat i, KnownNat o)
+    => SomeNet
+    -> R i
+    -> R o
+foo n x = case n of
+            SNet n' -> runNet n' x
+
+runSomeNet :: KnownNat i
+           => SomeNet
+           -> R i
+           -> (forall o. KnownNat o => R o -> r)
+           -> Maybe r
+runSomeNet n x f = case n of
+                     SNet n' ->
+                       case exactLength x of
+                         Just x' -> Just (f (runNet n' x'))
+                         Nothing -> Nothing
 
 randomSNet :: forall m. MonadRandom m
            => Integer

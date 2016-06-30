@@ -117,7 +117,7 @@ The first type of benefit really doesn't benefit the *user* of the network.
 Another downside of having the structure in the type is that we can't store all
 of them in the same list or data structure.  A `Network 10 '[5,3] 1` won't
 share a list with a `Network 10 '[5,2] 1`, despite having the same
-inputs/outputs.
+inputs/outputs.  You should
 
 Imagine that we had written a `Network` type that *didn't* have the internal
 structure in the type ---
@@ -131,7 +131,18 @@ but we had no idea what to put in for `???`.  But, what if we worked with an
 `OpaqueNet i o`, we wouldn't even care!  We wouldn't have to tell GHC what the
 internal structure is.
 
-We can implement it as an "existential" wrapper over `Network`, actually:
+In fact, I'd actually argue that `OpaqueNet` is the real type you should be
+offering to your users or using yourself, because it only exposes the types
+that are a part of its usage/API.  You can store them in a list or MVar ---
+`[OpaqueNet 10 3]` and `MVar (OpaqueNet 10 3)`, serialize/deserialize them
+without knowing their internal structure in advance (`loadNet :: FilePath -> IO
+(OpaqueNet 10 3)`), etc. (if you wanted to load a `Network`, you would need to
+know exactly what internal structure was stored, in advance).  Though `Network`
+is a much easier type when writing the *implementation*, `OpaqueNet` is a much
+more ideal type to *use*, in a lot of situations.
+
+We can implement our vision for `OpaqueNet` as an "existential" wrapper over
+`Network`, actually:
 
 ~~~haskell
 !!!dependent-haskell/NetworkTyped2.hs "data OpaqueNet ::"
@@ -145,7 +156,7 @@ How do we use this type?  We *pattern match* on `ONet` to get the net back, and
 we can use them:
 
 ~~~haskell
-!!!dependent-haskell/NetworkTyped2.hs "numHiddens ::"
+!!!dependent-haskell/NetworkTyped2.hs "runOpaqueNet ::" "numHiddens ::"
 ~~~
 
 With the *ScopedTypeVariables* extension, we can even bring `hs` back into
@@ -175,7 +186,7 @@ that the *caller* can decide what `hs` can be --- just like `read :: Read a =>
 String -> a`, where the caller decides what `a` is.
 
 Of course, this *isn't* the case with the way we've written the function...the
-function only returns a *specific* `hs` that the *function* decides.  The
+function only returns a *specific* `hs` that the `OpaqueNet` decides.  The
 *caller* has to accommodate whatever is inside `ONet`.
 
 #### The Universal and the Existential
@@ -396,14 +407,11 @@ one of the first things you learn about as a Haskell programmer: how
 to separate logic that *can* be pure from logic that is "impure" (IO, etc.),
 and then "combine them" at the very end, as late as possible.
 
-The common response to this is: "Well, if the final program is going to be IO
-in the end anyway, why bother separating out pure and impure parts of your
-logic?"
-
-But, of course, we know that we gain separation of concerns, the increased
+It's easy to think that just because the final program is going to "be in IO in
+the end anyway", there isn't any point in separating out pure and impure parts
+of your program logic.  But we know that we gain separation of concerns, the increased
 ability to reason with your code and analyze what it does, the compiler's
-ability to check what you write, the limitation of implementations, etc. ...
-all reasons any Haskeller should be familiar with reciting.
+ability to check what you write, the limitation of implementations, etc.
 
 You can think of the general philosophy of working with typed/untyped worlds as
 being the same thing.  You can write as much of your program as possible in the
@@ -417,6 +425,10 @@ that pop up at runtime like the `[Integer]` above.
 
 Finally, at the end, *unite* them at the boundary.  Pass the control football
 from the untyped world to the typed world!
+
+The great part about this all is that GHC and the type system is there at every
+step holding your hand, guiding you as you implement your programs and making
+sure everything is type-safe and fits together!
 
 ### Continuation-Based Existentials
 
@@ -702,7 +714,7 @@ For simple types like `Weights`, which simply contain serializable things,
 the *binary* library is smart enough to write your instances automatically for
 you!
 
-### Serializing `Network`
+#### Serializing `Network`
 
 Writing `putNet` and `getNet` to put/get `Network`s is pretty nice because the
 entire structure is already known ahead of time:
@@ -746,16 +758,15 @@ straightforward.  (We are doing it for `OpaqueNet`, the constructor-style
 existential, because we can't directly write instances for the
 continuation-style one)
 
-It's arguably more useful to serialize `OpaqueNet`s, because between different
-iterations, you might want to try out/store trained networks of different
-internal structures.  You can't even *load* a `Network` without knowing its
-internal structure.  You want all your networks to be mutually compatible and
-loadable...so it makes more sense to serialize/deserialize `OpaqueNet`s than
-`Network`s.  You can load them without knowing their internal structure, and
-you can keep them all in the same list.
+It's arguably much more useful to serialize/deserialize `OpaqueNet`s.  Between
+different iterations of your program, you might have the same inputs/outputs,
+but want to try out different internal structures.  You'd want to store them
+and access them uniformly, or send them over a network without requiring the
+receiver to know the internal structure beforehand.  Remember, you can't even
+*load* a `Network i hs o` without knowing its complete structure!
 
-But because the complete structure of the network is not in the type, to
-serialize, we have to encode it as a flag in the binary serialization.  We can
+Because the complete structure of the network is not in the type, to
+serialize them, we have to encode it as a flag in the binary serialization.  We can
 write a simple function to get the `[Integer]` of a network's structure:
 
 ~~~haskell
@@ -793,11 +804,41 @@ to the type level to know what type of network we're expecting to load:
 We load our flag, reify it, and once we're back in the typed land again, we can
 do our normal business.
 
+Isn't it nice that GHC is also there at every step to make sure we make the
+transition safely?
+
 Our final instance:
 
 ~~~haskell
 !!!dependent-haskell/NetworkTyped2.hs "instance (KnownNat i, KnownNat o) => Binary (OpaqueNet i o)"
 ~~~
+
+An Existance For All
+--------------------
+
+We've learned about how to "cross" from the untyped world to the typed world
+and bring about contexts involving types that can depend on runtime factors.
+To me, this is really where dependently typed programming starts --- when you
+start having to work with types that depend on run-time factors.
+
+We've already been able to reap a lot of benefits.  All of the type safety we
+discovered in the last part is now available to us in a fully dynamic world, as
+well.  We also learned the advantages of *separating* the typed world from the
+untyped world, and how the compiler helps us make the transition safely.
+
+But, notice that I said that this is the *start* of dependently typed
+programming.  This is where things *really* start to get fun.  For the most
+part, except for what is basically syntactic sugar, everything we learned in
+the first part is mostly standard, non-dependent Haskell.
+
+Stepping into this new world can be disorienting at first.  There's a lot of
+unexpected things that come up when we start working more with these fancy new
+types. We have to deal with types coming from multiple different sources,
+convincing the type system about relationships between them, and a whole bunch
+of other concerns that just don't happen when you program only at the value
+level.  But, like all things, it comes more naturally with practice.
+
+Until next time!
 
 #### Exercises
 
@@ -822,6 +863,10 @@ understanding!  Links are to the solutions.
 
     And write:
 
+    *   A function to [convert `SomeNet`s to `OpaqueNet`s][withONet].  Return
+        the `OpaqueNet` with existentially quantified `i` and `o` in
+        continuation-style.  (You can write a data type to return it in
+        constructor-style, too, for funsies.)
     *   [`randomSNet`][randomSNet]
     *   The [binary instance][Binary SomeNet] for `SomeNet`
 
@@ -831,12 +876,7 @@ understanding!  Links are to the solutions.
 
 !!![putONet']:dependent-haskell/NetworkTyped2.hs "putONet' ::"
 !!![getONet']:dependent-haskell/NetworkTyped2.hs "getONet' ::"
+!!![withONet]:dependent-haskell/NetworkTyped2.hs "withONet ::"
 !!![randomSNet]:dependent-haskell/NetworkTyped2.hs "randomSNet ::"
 !!![Binary SomeNet]:dependent-haskell/NetworkTyped2.hs "instance Binary SomeNet"
 
-
-Dealing with Runtime Types
---------------------------
-
-
-<!-- sameNat and existentials -->
