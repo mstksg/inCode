@@ -132,7 +132,7 @@ viewArchiveFlat
     -> H.Html
 viewArchiveFlat tile entries =
     H.ul ! A.class_ ulClass $
-      forM_ (sortTaggedEntries entries) $ \TE{..} -> do
+      forM_ entries $ \TE{..} -> do
         let entryUrl   = T.pack $ renderUrl' (entryCanonical teEntry)
             commentUrl = entryUrl <> "#disqus_thread"
 
