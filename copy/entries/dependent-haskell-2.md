@@ -284,7 +284,7 @@ I have to handle the result for both the case where I get an `Int` and the case
 where I get a `Bool`.  The *function* gets to pick what type I have to handle
 (`Int` or `Bool`), and *I* have to adapt to whatever it returns.  Sound
 familiar?  In fact, you can even imagine that `OpaqueNet i o` as being just a
-recursive *Either* over `'[]`, `'[1]`, `'[1,2]`, etc.[^eithers]
+infinite *Either* over `'[]`, `'[1]`, `'[1,2]`, etc.[^eithers]
 
 [^eithers]: A bit of a stretch, because the set of all `[Nat]`s is
 non-enumerable and uncountable, but hopefully you get the picture!
