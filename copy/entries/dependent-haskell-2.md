@@ -296,9 +296,13 @@ match.  But, once you do, all is revealed, and GHC lets you take advantage of
 knowing the type.
 
 For `OpaqueNet i o`, it's the same!  You don't know the actual type of the
-`Network i hs o` it contains until you *pattern match* on the network. Once you
+`Network i hs o` it contains until you *pattern match* on the network (This
+time, called also **dependent pattern matching**[^deppat]). Once you
 pattern match on it, all is revealed...and GHC lets you take advantage of
 knowing the type!
+
+[^deppat]: Yes, the people who thought of this weren't super creative with
+their naming choices.
 
 ### Reification
 
