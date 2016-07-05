@@ -136,7 +136,7 @@ data OpaqueNet i o
 ~~~
 
 Recall that our issue earlier was that we had to write `Network i ??? o`,
-but we had no idea what to put in for `???`.  But, what if we worked with an
+but we had no idea what to put in for `???`.  But, if we worked with an
 `OpaqueNet i o`, we wouldn't even care!  We wouldn't have to tell GHC what the
 internal structure is.
 
