@@ -25,7 +25,10 @@ x +/- dx = Un x (dx*dx)
 exact :: Num a => a -> Uncert a
 exact x = x +/- 0
 
-pattern (:+/-) :: () => Floating a => a -> a -> Uncert a
+-- [GHC 7.10:]
+-- pattern (:+/-) :: () => Floating a => a -> a -> Uncert a
+-- [GHC 8.0:]
+-- pattern (:+/-) :: Floating a => a -> a -> Uncert a
 pattern x :+/- dx <- Un x (sqrt->dx)
   where
     x :+/- dx = Un x (dx*dx)
@@ -44,9 +47,10 @@ liftU f (Un x vx) = Un y vy
     vy            = dfx^2 * vx
 
 diag :: [[a]] -> [a]
-diag = \case []        -> []
-             []   :yss -> diag (drop 1 <$> yss)
-             (x:_):yss -> x : diag (drop 1 <$> yss)
+diag = \case
+    []        -> []
+    []   :yss -> diag (drop 1 <$> yss)
+    (x:_):yss -> x : diag (drop 1 <$> yss)
 
 dot :: Num a => [a] -> [a] -> a
 dot xs ys = sum (zipWith (*) xs ys)

@@ -69,8 +69,9 @@ randomNet = go sing
     go :: forall h hs'. KnownNat h
        => Sing hs'
        -> m (Network h hs' o)
-    go = \case SNil            ->     O <$> randomWeights
-               SNat `SCons` ss -> (:&~) <$> randomWeights <*> go ss
+    go = \case
+        SNil            ->     O <$> randomWeights
+        SNat `SCons` ss -> (:&~) <$> randomWeights <*> go ss
 
 train :: forall i hs o. (KnownNat i, KnownNat o)
       => Double           -- ^ learning rate
@@ -164,18 +165,17 @@ xs !!? i = listToMaybe (drop i xs)
 --
 
 popLayer :: Network i (h ': hs) o -> (Weights i h, Network h hs o)
-popLayer = \case w :&~ n' -> (w, n')
+popLayer (w :&~ n) = (w, n)
 
 addNetWeights :: (KnownNat i, KnownNat o)
               => Network i hs o
               -> Network i hs o
               -> Network i hs o
-addNetWeights n1 n2
-    = case (n1, n2) of
-        (O w1      , O w2      ) ->
-          O (addW w1 w2)
-        (w1 :&~ n1', w2 :&~ n2') ->
-          addW w1 w2 :&~ addNetWeights n1' n2'
+addNetWeights = \case
+    O w1 -> \case
+      O w2      -> O (addW w1 w2)
+    w1 :&~ n1 -> \case
+      w2 :&~ n2 -> addW w1 w2 :&~ addNetWeights n1 n2
   where
     addW :: (KnownNat n, KnownNat m)
          => Weights n m
@@ -184,5 +184,6 @@ addNetWeights n1 n2
     addW (W b1 w1) (W b2 w2) = W (b1 + b2) (w1 + w2)
 
 hiddenSing :: Network i hs o -> Sing hs
-hiddenSing = \case O _      -> SNil
-                   _ :&~ n' -> SNat `SCons` hiddenSing n'
+hiddenSing = \case
+    O _      -> SNil
+    _ :&~ n' -> SNat `SCons` hiddenSing n'

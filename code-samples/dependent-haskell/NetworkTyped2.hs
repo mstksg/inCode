@@ -70,15 +70,17 @@ runNet (w :&~ n') !v = let v' = logistic (runLayer w v)
                        in  runNet n' v'
 
 hiddenStruct :: Network i hs o -> [Integer]
-hiddenStruct = \case O _    -> []
-                     _ :&~ (n' :: Network h hs' o)
-                            -> natVal (Proxy @h)
-                             : hiddenStruct n'
+hiddenStruct = \case
+    O _    -> []
+    _ :&~ (n' :: Network h hs' o)
+           -> natVal (Proxy @h)
+            : hiddenStruct n'
 
 randomNet' :: forall m i hs o. (MonadRandom m, KnownNat i, KnownNat o)
            => Sing hs -> m (Network i hs o)
-randomNet' = \case SNil            ->     O <$> randomWeights
-                   SNat `SCons` ss -> (:&~) <$> randomWeights <*> randomNet' ss
+randomNet' = \case
+    SNil            ->     O <$> randomWeights
+    SNat `SCons` ss -> (:&~) <$> randomWeights <*> randomNet' ss
 
 randomNet :: forall m i hs o. (MonadRandom m, KnownNat i, SingI hs, KnownNat o)
           => m (Network i hs o)
@@ -87,14 +89,16 @@ randomNet = randomNet' sing
 putNet :: (KnownNat i, KnownNat o)
        => Network i hs o
        -> Put
-putNet = \case O w     -> put w
-               w :&~ n -> put w *> putNet n
+putNet = \case
+    O w     -> put w
+    w :&~ n -> put w *> putNet n
 
 getNet :: forall i hs o. (KnownNat i, KnownNat o)
        => Sing hs
        -> Get (Network i hs o)
-getNet = \case SNil            ->     O <$> get
-               SNat `SCons` ss -> (:&~) <$> get <*> getNet ss
+getNet = \case
+    SNil            ->     O <$> get
+    SNat `SCons` ss -> (:&~) <$> get <*> getNet ss
 
 instance (KnownNat i, SingI hs, KnownNat o) => Binary (Network i hs o) where
     put = putNet
@@ -110,15 +114,15 @@ runOpaqueNet :: (KnownNat i, KnownNat o)
              => OpaqueNet i o
              -> R i
              -> R o
-runOpaqueNet oN x = case oN of
-                      ONet n -> runNet n x
+runOpaqueNet (ONet n) x = runNet n x
 
 numHiddens :: OpaqueNet i o -> Int
-numHiddens = \case ONet n -> go n
+numHiddens (ONet n) = go n
   where
     go :: Network i hs o -> Int
-    go = \case O _      -> 0
-               _ :&~ n' -> 1 + go n'
+    go = \case
+        O _      -> 0
+        _ :&~ n' -> 1 + go n'
 
 randomONet :: (MonadRandom m, KnownNat i, KnownNat o)
            => [Integer]
@@ -129,9 +133,9 @@ randomONet hs = case toSing hs of
 putONet :: (KnownNat i, KnownNat o)
         => OpaqueNet i o
         -> Put
-putONet = \case ONet net -> do
-                  put (hiddenStruct net)
-                  putNet net
+putONet (ONet net) = do
+    put (hiddenStruct net)
+    putNet net
 
 getONet :: (KnownNat i, KnownNat o)
         => Get (OpaqueNet i o)
@@ -162,8 +166,9 @@ numHiddens' :: OpaqueNet' i o Int -> Int
 numHiddens' oN = oN go
   where
     go :: Network i hs o -> Int
-    go = \case O _      -> 0
-               _ :&~ n' -> 1 + go n'
+    go = \case
+        O _      -> 0
+        _ :&~ n' -> 1 + go n'
 
 withRandomONet' :: (MonadRandom m, KnownNat i, KnownNat o)
                 => [Integer]
@@ -221,8 +226,7 @@ data SomeNet where
 withONet :: SomeNet
          -> (forall i o. (KnownNat i, KnownNat o) => OpaqueNet i o -> r)
          -> r
-withONet s f = case s of
-                 SNet n -> f (ONet n)
+withONet (SNet n) f = f (ONet n)
 
 randomSNet :: forall m. MonadRandom m
            => Integer
@@ -249,11 +253,11 @@ withRandomSNet' i hs o f =
       f n
 
 instance Binary SomeNet where
-    put = \case SNet (net :: Network i hs o) -> do
-                  put $ natVal (Proxy @i)
-                  put $ hiddenStruct net
-                  put $ natVal (Proxy @o)
-                  putNet net
+    put (SNet (net :: Network i hs o)) = do
+        put $ natVal (Proxy @i)
+        put $ hiddenStruct net
+        put $ natVal (Proxy @o)
+        putNet net
     get = do
         i  <- get :: Get Integer
         hs <- get :: Get [Integer]
