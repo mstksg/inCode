@@ -191,7 +191,7 @@ For example, this function is completely *not* ok:
 
 ~~~haskell
 bad :: OpaqueNet i o -> Network i hs o
-bad = \case ONet n -> n          -- nope, not ok at all.
+bad (ONet n) = n            -- nope, not ok at all.
 ~~~
 
 Why not?  Well, a type signature like `OpaqueNet i o -> Network i hs o` means
@@ -446,7 +446,7 @@ in a parametrically polymorphic way. For example, if we had:
 
 ~~~haskell
 oNetToFoo :: OpaqueNet i o -> Foo
-oNetToFoo = \case ONet n -> f n
+oNetToFoo (ONet n) = f n
 ~~~
 
 `f` has to take a `Network i hs o` but deal with it in a way that works *for
