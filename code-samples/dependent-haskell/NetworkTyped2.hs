@@ -161,6 +161,9 @@ runOpaqueNet' :: (KnownNat i, KnownNat o)
               -> R i
               -> R o
 runOpaqueNet' oN x = oN (\n -> runNet n x)
+--            :: ((forall hs. Network i hs o -> R o) -> R o)
+--            -> R i
+--            -> R o
 
 numHiddens' :: OpaqueNet' i o Int -> Int
 numHiddens' oN = oN go
@@ -169,6 +172,8 @@ numHiddens' oN = oN go
     go = \case
         O _      -> 0
         _ :&~ n' -> 1 + go n'
+--          :: ((forall hs. Network i hs o -> Int) -> Int)
+--          -> Int
 
 withRandomONet' :: (MonadRandom m, KnownNat i, KnownNat o)
                 => [Integer]
