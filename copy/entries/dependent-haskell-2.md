@@ -367,15 +367,18 @@ main = do
 
 Now, inside the case statement branch (the `...`), we have *type* `n :: Nat` in
 scope!  And by pattern matching on the `SNat` constructor, we also have a
-`KnownNat n` instance (As discussed in [previous part][new-section]).
+`KnownNat n` instance (As discussed in [previous part][singletons-induction]).
 
-`toSing` works using a simple typeclass mechanism with associated types whose
-job is to associate types of values with the kinds of their singletons.  It
+[singletons-induction]: https://blog.jle.im/entry/practical-dependent-types-in-haskell-1.html#on-typeclasses-and-dictionaries
+
+`toSing` works using a simple typeclass mechanism with an associated type whose
+job is to connect the types of values with the kinds of their singletons.  It
 associates `Bool` (the type) with `Bool` (the kind), `Integer` (the type) with
 `Nat` (the kind), `[Integer]` (the type) with `[Nat]` (the kind), etc., and it
-does it with simple applications of type families (here's a [nice
-tutorial on type families][type families] courtesy of Oliver Charles, as a
-refresher).
+does it with simple applications of type families (here's a [nice tutorial on
+type families][type families] courtesy of Oliver Charles, as a refresher).
+With it, we can convert any normal value `x` of type `a` to a singleton
+representing type `x` with kind `a`.
 
 [type families]: https://ocharles.org.uk/blog/posts/2014-12-12-type-families.html
 
