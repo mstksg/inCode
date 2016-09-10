@@ -93,7 +93,7 @@ main :: IO ()
 main = do
     putStrLn "What hidden layer structure do you want?"
     hs  <- readLn    :: IO [Integer]
-    net <- randomNet :: IO 10 ??? 3   -- what is ???
+    net <- randomNet :: IO (Network 10 ??? 3)   -- what is ???
     -- ...?
 ~~~
 
