@@ -113,7 +113,7 @@ an article on ANN's, so we are going to be glossing over some of the details.
 We're going to be implementing a *feed-forward neural network* with
 back-propagation training.  These networks are layers of "nodes", each
 connected to the each of the nodes of the previous layer.  Input goes to the
-first layer, which feeds information to the next year, which feeds it to the
+first layer, which feeds information to the next layer, which feeds it to the
 next, etc., until the final layer, where we read it off as the "answer" that
 the network is giving us.  Layers between the input and output layers are
 called *hidden* layers.  Every node "outputs" a weighted sum of all of the
