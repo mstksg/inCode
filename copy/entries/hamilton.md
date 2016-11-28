@@ -3,7 +3,7 @@ title: Introducing the Hamilton library
 categories: Haskell, Projects
 tags: functional programming, haskell, physics, numerical methods
 create-time: 2016/11/27 21:19:30
-date: Never
+date: 2016/11/28 09:28:32
 identifier: hamilton
 slug: introducing-the-hamilton-library
 ---
@@ -23,6 +23,10 @@ experiment to simulate motion on bezier curves, but it became usable enough and
 accurate enough (to my surprise, admittedly) that I finished up some final
 touches to make it complete and put it on hackage as a general-purpose physics
 simulator.
+
+The library is, in short, a way to simulate a physical system by stating
+nothing more than an arbitrary parameterization of a system (a "generalized
+coordinate") and a potential energy function.
 
 I was going to write a Haskell post on the implementation, which was what
 interested me at first.  I wanted to go over --
