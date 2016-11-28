@@ -119,6 +119,9 @@ $$
     - \cos (\theta_1) - \frac{1}{2} \cos (\theta_2) \right\rangle
 $$
 
+(Assuming that the first pendulum has length 1 and the second pendulum has
+length $\frac{1}{2}$)
+
 The inertias of $x_1$, $y_1$, $x_2$, and $y_2$ are the "masses" attached to
 them.  Let's pick that the first bob has mass $1$ and the second bob has mass
 $2$, so then our masses are $\langle 1, 1, 2, 2 \rangle$.
