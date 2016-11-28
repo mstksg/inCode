@@ -264,8 +264,8 @@ smaller (which is [Kepler's second law][second law]).
 
 [second law]: https://en.wikipedia.org/wiki/Kepler's_laws_of_planetary_motion#Second_law
 
-If we assume that the center of mass of the system is at
-$\langle 0, 0 \rangle$, then we can say that these coordinates as
+If we assume that the center of mass of the system is at $\langle 0, 0
+\rangle$, then we can state these coordinates as
 
 $$
 \langle x_1, y_1 \rangle = \langle r_1 \cos (\theta), r_1 \sin (\theta) \rangle
@@ -276,7 +276,12 @@ $$
 $$
 
 Where $r_1 = \frac{m_2}{m_1 + m_2}$ and $r_2 = - \frac{m_1}{m_1 + m_2}$
-(solving from the center of mass).
+(solving from the center of mass).[^com]
+
+[^com]: Alternatively, we could assume that the halfway point (or even the
+first body) is always at $\langle 0, 0 \rangle$, but this doesn't give us as
+pretty of plots.  The center of mass is a nice reference point because newton's
+third law implies that it remains stationary forever.
 
 Our potential energy function is Newton's famous [law of universal
 gravitation][loug]:
