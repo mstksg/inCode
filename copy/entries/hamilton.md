@@ -8,7 +8,7 @@ identifier: hamilton
 slug: introducing-the-hamilton-library
 ---
 
-[![My name is William Rowan Hamilton](http://i.imgur.com/Vaaa2EC.gif "My name is William Rowan Hamilton")][gifv]
+[![My name is William Rowan Hamilton](img/entries/hamilton/double-pendulum.gif "My name is William Rowan Hamilton")][gifv]
 
 [gifv]: http://i.imgur.com/Vaaa2EC.gifv
 
@@ -43,6 +43,10 @@ of this information is also found in the [readme][README].)
 
 ### Hamiltonian Mechanics
 
+*(This section goes briefly over some relevant part of the physics behind
+Hamiltonian dynamics, but feel free to skip it if you want to go straight to
+the Haskell)*
+
 Hamiltonian mechanics is a brilliant, radical, and beautiful re-imagination of
 the physics of mechanics and dynamics.  It was adapted for statistical
 mechanics and thermodynamics, and it was through the lens of Hamiltonian
@@ -58,6 +62,8 @@ Hamiltonian mechanics, in a classical sense, imagines that the state of the
 system exists as a point in *[phase space][]*, and that the system evolves
 based on geometric properties of the system's *Hamiltonian* over that phase
 space.
+
+![Phase space](/img/entries/hamilton/phase-space.gif "Animation of particles traveling in phase space (top) over time, from Wikipedia")
 
 [phase space]: https://en.wikipedia.org/wiki/Phase_space
 
@@ -103,11 +109,14 @@ We have two coordinates here ($\theta_1$ and $\theta_2$), which will be
 encoding the positions of the two pendulums:
 
 $$
-\langle x_1, y_1 \rangle = \langle \sin (\theta_1), - \cos (\theta_1) \rangle
+\langle x_1, y_1 \rangle =
+  \left\langle \sin (\theta_1), - \cos (\theta_1) \right\rangle
 $$
 
 $$
-\langle x_2, y_2 \rangle = \langle \sin (\theta_1) + \frac{1}{2} \sin (\theta_2), - \cos (\theta_1) - \frac{1}{2} \cos (\theta_2) \rangle
+\langle x_2, y_2 \rangle =
+  \left\langle \sin (\theta_1) + \frac{1}{2} \sin (\theta_2),
+    - \cos (\theta_1) - \frac{1}{2} \cos (\theta_2) \right\rangle
 $$
 
 The inertias of $x_1$, $y_1$, $x_2$, and $y_2$ are the "masses" attached to
@@ -126,10 +135,11 @@ Turns out that this is a complete enough description of our system to let
 
 ~~~haskell
 !!!hamilton/DoublePendulum.hs "doublePendulum ::"
-
--- some helper patterns to pattern match on sized vectors
-!!!hamilton/DoublePendulum.hs "pattern V2 ::" "pattern V4 ::"
 ~~~
+
+(with some [helper patterns][patterns] defined here)
+
+!!![patterns]:hamilton/DoublePendulum.hs "pattern V2 ::" "pattern V4 ::"
 
 Ta dah.  That's literally all we need.
 
@@ -185,7 +195,7 @@ And the position in the underlying cartesian space as:
 !!!hamilton/DoublePendulum.hs "positions ::"
 ~~~
 
-Where `underlingPos :: System m n -> Phase n -> R n`.
+Where `underlyingPos :: System m n -> Phase n -> R m`.
 
 And you can print out now the full progression of the system's positions:
 
@@ -261,10 +271,13 @@ $$
 Where $r_1 = \frac{m_2}{m_1 + m_2}$ and $r_2 = - \frac{m_1}{m_1 + m_2}$
 (solving from the center of mass).
 
-Our potential energy function is Newton's famous law of universal gravitation:
+Our potential energy function is Newton's famous [law of universal
+gravitation][loug]:
+
+[loug]: https://en.wikipedia.org/wiki/Newton's_law_of_universal_gravitation
 
 $$
-U(r, \theta) = - G \frac{m_1 m_2}{r}
+U(r, \theta) = - \frac{G m_1 m_2}{r}
 $$
 
 And, this should be enough to go for *hamilton*.
@@ -276,13 +289,17 @@ acceleration from the fact that $d \theta$ is non-uniform and depends on $r$?"
 Well, I'm glad you asked!  And the answer is, nope.  We don't have to account
 for any weird interplay from non-uniform coordinate systems because *hamilton*
 arrives at the proper solution simply from the geometry of the generalized
-coordinates.
+coordinates.  (And it does this using [ad][], but more on that for a later
+post!)
 
 Anyway, here we go:
 
 ~~~haskell
 !!!hamilton/TwoBody.hs "twoBody ::" "config0 ::"
 ~~~
+
+(we use `mkSystem` instead of `mkSystem'` because we want to state the
+potential energy in terms of our generalized coordinates $r$ and $\theta$)
 
 Let's take a peek:
 
@@ -325,7 +342,7 @@ Look at it go!
 
 Here's an animation of the same situation with some different masses:
 
-[![The two-body solution](http://i.imgur.com/TDEHTcb.gif)][gifv2]
+[![The two-body solution](img/entries/hamilton/two-body.gif)][gifv2]
 
 [gifv2]: http://i.imgur.com/TDEHTcb.gifv
 
@@ -338,7 +355,7 @@ constant-velocity motion along a bezier curve.  (In that case, the single
 coordinate is the non-uniform time parameter to the bezier curve.)
 
 I've included more examples in the [example app launcher][examples] included in
-the library, including:
+the library (which generated those animations you see above), including:
 
 [examples]: https://github.com/mstksg/hamilton#example-app-runner
 
