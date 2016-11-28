@@ -63,7 +63,7 @@ system exists as a point in *[phase space][]*, and that the system evolves
 based on geometric properties of the system's *Hamiltonian* over that phase
 space.
 
-![Phase space](/img/entries/hamilton/phase-space.gif "Animation of particles traveling in phase space (top) over time, from Wikipedia")
+![Animation of particles traveling in phase space (top) over time, from Wikipedia](/img/entries/hamilton/phase-space.gif)
 
 [phase space]: https://en.wikipedia.org/wiki/Phase_space
 
