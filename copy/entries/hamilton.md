@@ -54,13 +54,13 @@ the Haskell)*
 Hamiltonian mechanics is a brilliant, radical, and beautiful re-imagination of
 the physics of mechanics and dynamics.  It was adapted for statistical
 mechanics and thermodynamics, and it was through the lens of Hamiltonian
-mechanics that Schroedinger and Heisenberg to independently unlock the secrets
-of quantum mechanics.  While Newton's interpretation of mechanics (in terms of
-forces and accelerations) was cute, it simply didn't generalize to quantum
-mechanics. Hamiltonian's interpretation of mechanics *did*, and we have a
-century of physics revolutions to thank for it. Hamiltonian mechanics also
-generalize without any extra work to relativity -- another case where newtonian
-mechanics tends to fall apart.
+mechanics that Schroedinger and Heisenberg independently found insight that
+unlocked the secrets of quantum mechanics.  While Newton's interpretation of
+mechanics (in terms of forces and accelerations) was cute, it simply didn't
+generalize to quantum mechanics. Hamiltonian's interpretation of mechanics
+*did*, and we have a century of physics revolutions to thank for it.
+Hamiltonian mechanics also generalize without any extra work to relativity --
+another case where newtonian mechanics tends to fall apart.
 
 Hamiltonian mechanics, in a classical sense, imagines that the state of the
 system exists as a point in *[phase space][]*, and that the system evolves
