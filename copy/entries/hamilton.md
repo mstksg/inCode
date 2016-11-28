@@ -8,7 +8,7 @@ identifier: hamilton
 slug: introducing-the-hamilton-library
 ---
 
-[![My name is William Rowan Hamilton](img/entries/hamilton/double-pendulum.gif "My name is William Rowan Hamilton")][gifv]
+[![My name is William Rowan Hamilton](/img/entries/hamilton/double-pendulum.gif "My name is William Rowan Hamilton")][gifv]
 
 [gifv]: http://i.imgur.com/Vaaa2EC.gifv
 
@@ -342,7 +342,7 @@ Look at it go!
 
 Here's an animation of the same situation with some different masses:
 
-[![The two-body solution](img/entries/hamilton/two-body.gif)][gifv2]
+[![The two-body solution](/img/entries/hamilton/two-body.gif)][gifv2]
 
 [gifv2]: http://i.imgur.com/TDEHTcb.gifv
 
