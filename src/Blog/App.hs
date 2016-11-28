@@ -223,13 +223,15 @@ app znow@(ZonedTime _ tz) = do
         makeItem (home1 :: String)
 
     create ["rss.raw"] $ do
-      route   idRoute
-      compile $ do
-        sorted <- traverse (flip loadSnapshotBody "entry")
-                . take (prefFeedEntries confBlogPrefs)
-                . map snd
-                $ entriesSorted
-        makeItem $ viewFeed sorted tz (zonedTimeToUTC znow)
+      deps <- makePatternDependency "copy/entries/*"
+      rulesExtraDependencies [deps] $ do
+        route   idRoute
+        compile $ do
+          sorted <- traverse (flip loadSnapshotBody "entry")
+                  . take (prefFeedEntries confBlogPrefs)
+                  . map snd
+                  $ entriesSorted
+          makeItem $ viewFeed sorted tz (zonedTimeToUTC znow)
 
     create ["rss"] $ do
       route   idRoute
