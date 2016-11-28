@@ -9,7 +9,7 @@ packages:
 - '.'
 - location:
     git: git@github.com:mstksg/jle-utils.git
-    commit: 6f44ee9fc3bae6a780d96a87ae239ea755bc4d53
+    commit: 75ed7acaf74c6d00d581c0e7e147bb9afcf190df
   extra-dep: true
 
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)

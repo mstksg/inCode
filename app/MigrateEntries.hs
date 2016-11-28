@@ -9,6 +9,7 @@ import           Data.Default
 import           Data.Foldable
 import           Data.List
 import           Data.Maybe
+import           Data.Monoid
 import           Data.Scientific
 import           Options.Applicative
 import           System.Directory
