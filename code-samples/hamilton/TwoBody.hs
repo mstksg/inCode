@@ -25,7 +25,7 @@ twoBody = mkSystem masses coordinates potential
         :: Fractional a
         => V.Vector 2 a
         -> a
-    potential (V2 r _) = - 10 / r
+    potential (V2 r _) = - 10 / r       -- G = 1
 
 pattern V2 :: a -> a -> V.Vector 2 a
 pattern V2 x y <- (V.toList->[x,y])
