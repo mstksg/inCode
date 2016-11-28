@@ -4,9 +4,7 @@
     "Justin Le <justin@jle.im>"
   ],
   "description": "Client javascript for personal blog engine",
-  "moduleType": [
-    "node"
-  ],
+  "moduleType": [],
   "license": "BSD3",
   "homepage": "https://github.com/mstksg/blog",
   "private": true,

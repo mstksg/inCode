@@ -188,7 +188,7 @@ app znow@(ZonedTime _ tz) = do
       route   $ routeEntry
       compile $ entryCompiler entriesSorted allTags
     match "copy/entries/*" . version "html-index" $ do
-      route   $ routeEntry 
+      route   $ routeEntry
                   `composeRoutes` gsubRoute ".html" (const "/index.html")
       compile $ do
         i <- setVersion Nothing <$> getUnderlying
@@ -223,13 +223,15 @@ app znow@(ZonedTime _ tz) = do
         makeItem (home1 :: String)
 
     create ["rss.raw"] $ do
-      route   idRoute
-      compile $ do
-        sorted <- traverse (flip loadSnapshotBody "entry")
-                . take (prefFeedEntries confBlogPrefs)
-                . map snd
-                $ entriesSorted
-        makeItem $ viewFeed sorted tz (zonedTimeToUTC znow)
+      deps <- makePatternDependency "copy/entries/*"
+      rulesExtraDependencies [deps] $ do
+        route   idRoute
+        compile $ do
+          sorted <- traverse (flip loadSnapshotBody "entry")
+                  . take (prefFeedEntries confBlogPrefs)
+                  . map snd
+                  $ entriesSorted
+          makeItem $ viewFeed sorted tz (zonedTimeToUTC znow)
 
     create ["rss"] $ do
       route   idRoute

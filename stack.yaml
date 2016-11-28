@@ -2,20 +2,21 @@
 # For more information, see: http://docs.haskellstack.org/en/stable/yaml_configuration/
 
 # Specifies the GHC version and set of packages available (e.g., lts-3.5, nightly-2015-09-21, ghc-7.10.2)
-resolver: nightly-2016-06-28
+resolver: lts-7.10
 
 # Local packages, usually specified by relative directory name
 packages:
 - '.'
 - location:
     git: git@github.com:mstksg/jle-utils.git
-    commit: 6f44ee9fc3bae6a780d96a87ae239ea755bc4d53
-  extra-dep: true
-    
+    commit: 75ed7acaf74c6d00d581c0e7e147bb9afcf190df
+  extra-dep: false
+
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
 extra-deps:
 - hakyll-4.8.3.2
 - hakyll-sass-0.2.0
+- optparse-applicative-0.13.0.0
 
 # Override default flag values for local packages and extra-deps
 flags:

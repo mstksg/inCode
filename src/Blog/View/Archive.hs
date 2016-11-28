@@ -5,7 +5,6 @@
 
 module Blog.View.Archive where
 
-import           Blog.Compiler.Entry
 import           Blog.Types
 import           Blog.Util
 import           Blog.Util.Tag

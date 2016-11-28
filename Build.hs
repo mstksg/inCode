@@ -42,9 +42,9 @@ main = do
 
       "purescript" ~>
         need (psReq <$> psExes)
-      
+
       "_purescript/*.js" %> \out -> do
-        let exName = capitalize $ takeBaseName out
+        let exName = over _head toUpper $ takeBaseName out
         need ["app-purescript" </> exName <.> "purs"]
         unit $ cmd "pulp build"
                    "--main" exName
@@ -55,6 +55,3 @@ main = do
         removeFilesAfter "_build" ["//*"]
         removeFilesAfter "_purescript" ["//*"]
         unit $ cmd "stack run -- blog-build" "clean"
-
-capitalize [] = []
-capitalize (c:cs) = toUpper c : cs
