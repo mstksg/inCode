@@ -50,10 +50,10 @@ evolution = evolveHam' twoBody phase0 [0,0.1 .. 1]
 evolution' :: [Phase 2]
 evolution' = iterate (stepHam 0.1 twoBody) phase0
 
-positions :: [R 4]
+positions :: [R 2]
 positions = phsPositions <$> evolution'
 
-positions' :: [R 2]
+positions' :: [R 4]
 positions' = underlyingPos twoBody <$> positions
 
 main :: IO ()
