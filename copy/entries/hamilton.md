@@ -191,7 +191,7 @@ Or, if you want to run the system step-by-step:
 And you can get the position of the coordinates as:
 
 ~~~haskell
-!!!hamilton/DoublePendulum.hs "evolution' ::"
+!!!hamilton/DoublePendulum.hs "positions ::"
 ~~~
 
 With `phsPositions :: Phase n -> R n`
@@ -199,19 +199,21 @@ With `phsPositions :: Phase n -> R n`
 And the position in the underlying cartesian space as:
 
 ~~~haskell
-!!!hamilton/DoublePendulum.hs "positions ::"
+!!!hamilton/DoublePendulum.hs "positions' ::"
 ~~~
 
 Where `underlyingPos :: System m n -> Phase n -> R m`.
 
-And you can print out now the full progression of the system's positions:
+Let's ignore the underlying position for now, and print out now the full
+progression of the system's positions:
 
 ~~~haskell
 !!!hamilton/DoublePendulum.hs "main ::"
 ~~~
 
 (`withRows` is from *hmatrix*, which treats a list of vectors as a matrix with
-each vector as a row)
+each vector as a row, and `disp 5` from *hmatrix* pretty-prints our matrix with
+5 decimal places of precision)
 
 ~~~
 L 25 2
@@ -316,7 +318,7 @@ potential energy in terms of our generalized coordinates $r$ and $\theta$)
 Let's take a peek:
 
 ~~~haskell
-!!!hamilton/TwoBody.hs "main ::"
+!!!hamilton/TwoBody.hs "phase0 ::" "evolution' ::" "positions ::" "main ::"
 ~~~
 
 ~~~
