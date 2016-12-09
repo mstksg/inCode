@@ -50,6 +50,9 @@ evolution' = iterate (stepHam 0.1 doublePendulum) phase0
 positions :: [R 2]
 positions = phsPositions <$> evolution'
 
+positions' :: [R 4]
+positions' = underlyingPos doublePendulum <$> positions
+
 main :: IO ()
 main = withRows (take 25 positions) (disp 4)
 

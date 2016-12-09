@@ -15,16 +15,18 @@ implementing of the *[hamilton][]* library using *[ad][]* and dependent types.
 [hamilton]: http://hackage.haskell.org/package/hamilton
 [ad]: http://hackage.haskell.org/package/ad
 
-This post will be a bit heavy in some mathematics and Haskell concepts, so I'm
-just going to clarify the expected audience/prerequisites for making the most
-out of this post:
+This post will be a bit heavy in some mathematics and Haskell concepts.  The
+expected audience is intermediate Haskell programmers, and no previous
+knowledge of dependent types is expected.
 
-1.  Working intermediate Haskell knowledge.  No knowledge of dependent types is
-    assumed or required.
-2.  A familiarity with concepts of multivariable calculus (like partial and
-    total derivatives).
-3.  Familiarity with concepts of linear algebra (like dot products, matrix
-    multiplication, and matrix inverses)
-4.  No knowledge of physics should be required, but a basic familiarity with
-    first-year physics concepts would help your appreciation of this post!
+The mathematics and physics are "extra" flavor text and could potentially be
+skipped, but you'll get the most out of this article if you have basic
+familiarity with:
 
+1.  Basic concepts of multivariable calculus (like partial and total
+    derivatives).
+2.  Concepts of linear algebra (like dot products, matrix multiplication, and
+    matrix inverses)
+
+No physics knowledge is assumed, but knowing a little bit of first semester
+physics would help you gain a bit more of an appreciation for the end result!
