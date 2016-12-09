@@ -5,7 +5,7 @@ tags: functional programming, haskell, physics, numerical methods, dependent typ
 create-time: 2016/12/08 15:05:10
 date: never
 identifier: hamilton-1
-slug: Hamilton Dynamics in Haskell
+slug: hamilton-dynamics-in-haskell
 ---
 
 As promised in my [*hamilton* introduction post][intro], I'm going to go over
