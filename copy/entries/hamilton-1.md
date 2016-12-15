@@ -90,10 +90,11 @@ contour lines" on that Hamiltonian!
 
 ### Phase Space
 
-So far the only thing I've really said in detail is that if your system's state
-has $n$ parameters, then the corresponding phase space is $2n$-dimensional (and
-that Hamiltonian mechanics is somehow about systems moving around in phase
-space).  *Phase space* is a $2n$-dimensional space parameterized by:
+The only thing I've really said in detail about phase space is that if your
+system's state has $n$ parameters, then the corresponding phase space is
+$2n$-dimensional (and that Hamiltonian mechanics is somehow about systems
+moving around in phase space).  Let me clear it up now: *Phase space* is a
+$2n$-dimensional space parameterized by:
 
 1.  All of the current values of the $n$ parameters ("generalized coordinates")
 2.  All of the current "generalized momenta" of those $n$ parameters
@@ -121,7 +122,6 @@ of familiar coordinates yield things that we typically call "momenta":
     The momentum conjugate to the radial coordinate $r$ in polar coordinates is
     also just boring old linear momentum $p_r = m \dot{r}$.
 
-
 So, it's our normal momentum (for linear and polar coordinates) *generalized*
 to arbitrary coordinates.
 
@@ -138,7 +138,7 @@ But we want to move along the *contour lines*...and these are the lines
 *perpendicular* to the direction of steepest descent.  The vector perpendicular
 to $\langle x, y \rangle$ is $\langle y, -x \rangle$, so we just derived the
 actual Hamiltonian equations of motion: just move in the direction
-perpendicular to the steepest descent!
+perpendicular to the steepest ascent!
 
 $$
 \dot{q} = \frac{\partial}{\partial p_q} \mathcal{H}(\mathbf{q},\mathbf{p})
@@ -149,14 +149,16 @@ $$
 $$
 
 Which holds for every generalized coordinate $q$, where $p_q$ is the momentum
-conjugate to that coordinate.
+conjugate to that coordinate.  (For the rest of this post, $\mathbf{q}$ refers
+to the vector of coordinates, $q$ refers to a single specific coordinate,
+and $p_q$ refers to the momentum conjugate to that coordinate).
 
 Essentially, these give you "updating functions" for $q$ and $p_q$ -- given
 $\mathcal{H}(\mathbf{q},\mathbf{p})$, you have a way to "update" the particle's
 position in phase space.  Just take the partial derivatives of $\mathcal{H}$ at
 every step in time!  To update $q$, nudge it by $\frac{\partial}{\partial p_q}
 \mathcal{H}(\mathbf{q},\mathbf{p})$.  To update $p_q$, nudge it by
-$\frac{\partial}{\partial q} \mathcal{H}(\mathbf{q},\mathbf{p})$!
+$-\frac{\partial}{\partial q} \mathcal{H}(\mathbf{q},\mathbf{p})$!
 
 This picture is appealing to me in a visceral way because it sort of seems like
 the system is "surfing" along the Hamiltonian's contour lines.  It's being
@@ -171,7 +173,7 @@ Hamiltonian Dynamics and Physical Systems
 
 Earlier I mentioned that the two steps for applying Hamiltonian mechanics to
 your system was figuring out your system's conjugate momenta and the
-appropriate Hamiltonian.  Let's get onto that.  I'm going to make a couple of
+appropriate Hamiltonian.  To explain this, I'm going to make a couple of
 simplifying assumptions that make the job easier for the purposes of this
 article:
 
@@ -188,14 +190,14 @@ section as me presenting derived conclusions and skipping the derivations.
 
 ### Conjugate Momenta
 
-It can be shown that the momentum conjugate to coordinate $q$ as
+It can be shown that the momentum conjugate to coordinate $q$ is
 
 $$
 \frac{\partial}{\partial \dot{q}} KE(\mathbf{q}, \dot{\mathbf{q}})
 $$
 
-Where $KE(\dot{\mathbf{q}})$ is the kinetic energy of the system, which is a
-function on the coordinates $\mathbf{q}$ and their rates of change,
+Where $KE(\mathbf{q},\dot{\mathbf{q}})$ is the kinetic energy of the system,
+which is a function on the coordinates $\mathbf{q}$ and their rates of change,
 $\dot{\mathbf{q}}$. For example, for normal Cartesian coordinates in one
 dimension, $KE(x, \dot{x}) = \frac{1}{2} m \dot{x}^2$. So the momentum
 conjugate to $x$ is:
@@ -226,27 +228,29 @@ $$
 
 Where $\hat{M}$ is the [diagonal matrix][] whose entries are the masses of each
 coordinate, and $\dot{\mathbf{x}}$ is the column vector of all of the
-(Cartesian) coordinates, $\left[ \dot{x_1} \dot{x_2} \dot{x_3} \dots \right]^T$.
+(Cartesian) coordinates, $\left[ \dot{x_1}\, \dot{x_2}\, \dot{x_3}\, \dots \right]^T$.
 
 [diagonal matrix]: https://en.wikipedia.org/wiki/Diagonal_matrix
 
 Now!  How to generalize this to arbitrary coordinates?  Well, if we have $n$
 generalized coordinates $\mathbf{q}$ mapping to $m$-dimensional Cartesian
 coordinates, we can specify them as $\mathbf{x} = f(\mathbf{q})$, where
-$f : n \rightarrow m$, taking the vector of generalized coordinates and
-returning a vector for the position in Cartesian space. For example, for polar
-coordinates, $f(r, \theta) = \left \langle r \cos(\theta), r \sin(\theta) \right \rangle$.
+$f : \mathbb{R}^n \rightarrow \mathbb{R}^m$, taking the vector of generalized
+coordinates and returning a vector for the position in Cartesian space. For
+example, for polar coordinates,
+$f(r, \theta) = \left \langle r \cos(\theta), r \sin(\theta) \right \rangle$.
 
 So we can get $\mathbf{x}$ from $\mathbf{q}$ with $f$, but how can we get
 $\dot{\mathbf{x}}$, the vector of rate of changes?  Well, if $x_1 = f_1(q_1,
-q_2 \dots)$, then the $\dot{x_1}$ is the [total derivative][] of $x_1$ with
-respect to time:
+q_2, q_3 \dots)$, then the $\dot{x_1}$ is the [total derivative][] of $x_1$
+with respect to time:
 
 [total derivative]: https://en.wikipedia.org/wiki/Total_derivative
 
 $$
 \dot{x_1} = \frac{\partial f_1}{\partial q_1} \dot{q_1} +
-    \frac{\partial f_1}{\partial q_2} \dot{q_2} + \dots
+    \frac{\partial f_1}{\partial q_2} \dot{q_2} +
+    \frac{\partial f_1}{\partial q_3} \dot{q_3} + \dots
 $$
 
 Or, in short:
@@ -274,31 +278,33 @@ KE(\mathbf{q},\dot{\mathbf{q}}) = \frac{1}{2} \dot{\mathbf{q}}^T \hat{J}_f^T
     \hat{M} \hat{J}_f \dot{\mathbf{q}}
 $$
 
-And for the final step, we differentiate with respect to $\dot{\mathbf{q}}$ to
-get $\mathbf{p}$, the vector of conjugate momenta:
+And for the final step, we differentiate with respect to the
+$\dot{\mathbf{q}}$s (which is just the gradient) to get $\mathbf{p}$, the
+vector of conjugate momenta:
 
 $$
-\mathbf{p} = \frac{\partial}{\partial \dot{\mathbf{q}}} \left[
+\mathbf{p} = \nabla_{\dot{\mathbf{q}}} \left[
     \frac{1}{2} \dot{\mathbf{q}}^T \hat{J}_f^T \hat{M} \hat{J}_f \dot{\mathbf{q}}
   \right]
   = \hat{J}_f^T \hat{M} \hat{J}_f \dot{\mathbf{q}}
 $$
 
-That's it![^vectorderivative]  Writing it in matrix/vector form makes it easy
-for us to write programmatically, instead of doing indexing by hand -- there
-are plenty of libraries that give us vector and matrix multiplication.
-
-[^vectorderivative]: Oh hey, maybe you're upset because I just casually took a
-derivative with respect to a vector and didn't justify what I meant.  That's
-cool, I'd be miffed too.
+That's it!  Writing it in matrix/vector form makes it easy for us to write
+programmatically, instead of doing indexing by hand -- there are plenty of
+libraries that give us vector and matrix multiplication.
 
 We're going to be using $\hat{J}_f^T \hat{M} \hat{J}_f$ a lot, so let's give it
-a name, $\hat{P}$.  If the masses are all positive and $\hat{J}_f$ is
-full-rank, then $\hat{P}$ is a symmetric, positive-definite, invertible matrix
-(by construction).  It's important to also remember that it's an explicit
-function of $\mathbf{q}$, because $\hat{J}_f$ is a matrix of partial
-derivatives at a given $\mathbf{q}$.  We now have a simple expression for the
-vector of conjugate momenta, then: $\mathbf{p} = \hat{P} \dot{\mathbf{q}}$
+a name, $\hat{K}$.  If the masses are all positive and $\hat{J}_f$ is
+full-rank[^full-rank], then $\hat{K}$ is a symmetric, positive-definite,
+invertible matrix (by construction).  It's important to also remember that it's
+an explicit function of $\mathbf{q}$, because $\hat{J}_f$ is a matrix of
+partial derivatives at a given $\mathbf{q}$.  We now have a simple expression
+for the vector of conjugate momenta ($\mathbf{p} = \hat{K} \dot{\mathbf{q}}$),
+and also for kinetic energy ($KE = \frac{1}{2} \dot{\mathbf{q}}^T \hat{K} \dot{\mathbf{q}}$).
+
+[^full-rank]: hey $\hat{J_f}$ is full-rank (meaning $\hat{K}$ is invertible) if its
+rows are linearly independent.  This should be the case as you don't have any
+redundant or duplicate coordinates in your general coordinate system.
 
 Now, we're going to see that it's going to be important for us to also be able
 to go backwards (to get $\dot{\mathbf{q}}$ from $\mathbf{p}$).  Luckily,
@@ -306,7 +312,7 @@ because we wrote the whole thing as a matrix operation, going backwards is easy
 -- just take the matrix inverse, which we know exists!
 
 $$
-\dot{\mathbf{q}} = \hat{P}^{-1} \mathbf{p}
+\dot{\mathbf{q}} = \hat{K}^{-1} \mathbf{p}
 $$
 
 The power of linear algebra!
@@ -339,18 +345,62 @@ stays the same, as well!  Energy is conserved because the Hamiltonian stays the
 same!
 
 Anyway, we want to build our system's Hamiltonian from properties of the
-coordinate system, so plugging in our expression for $KE$:
-
-$$
-\mathcal{H}(\mathbf{q},\dot{\mathbf{q}}) = \frac{1}{2} \dot{\mathbf{q}}^T \hat{P} \dot{\mathbf{q}} + PE(\mathbf{q})
-$$
+coordinate system, so plugging in our expression for $KE$, we get
+$\mathcal{H}(\mathbf{q},\dot{\mathbf{q}}) = \frac{1}{2} \dot{\mathbf{q}}^T \hat{K} \dot{\mathbf{q}} + PE(\mathbf{q})$.
 
 Oh, but oops, the Hamiltonian has to be a function of $\mathbf{p}$, not of
-$\dot{\mathbf{q}}$.  Let's remember that $\dot{\mathbf{q}} = \hat{P}^{-1} \mathbf{p}$
+$\dot{\mathbf{q}}$.  Let's remember that $\dot{\mathbf{q}} = \hat{K}^{-1} \mathbf{p}$
 and find the final form of our Hamiltonian (after a bit of simplification,
 remembering that the inverse of a symmetric matrix is also symmetric):
 
 $$
-\mathcal{H}(\mathbf{q},\mathbf{p}) = \frac{1}{2} \mathbf{p}^T \hat{P}^{-1} \mathbf{p} + PE(\mathbf{q})
+\mathcal{H}(\mathbf{q},\mathbf{p}) = \frac{1}{2} \mathbf{p}^T \hat{K}^{-1} \mathbf{p} + PE(\mathbf{q})
 $$
+
+### Hamiltonian Equations
+
+We got our Hamiltonian!  Now just to find our updating functions (the partial
+derivatives of the Hamiltonian), and we're done with the math.
+
+Because we are assuming the case (with loss of generality) $PE$ doesn't depend
+on $\mathbf{p}$, the partial derivatives of $\mathcal{H}$ with respect to $\mathbf{p}$
+is:
+
+$$
+\nabla_{\mathbf{p}} \mathcal{H}(\mathbf{q},\mathbf{p}) = \hat{K}^{-1} \mathbf{p}
+$$
+
+Easy peasy.  But the partial derivatives with respect to $\mathbf{q}$ is a
+little trickier.  The gradient is a linear operator, so we can break that down
+to just finding the gradient of the $KE$ term $\frac{1}{2} \mathbf{p}^T
+\hat{K}^{-1} \mathbf{p}$.  Because $\mathbf{p}$ is an independent input to
+$\mathcal{H}$, we can just look at the gradient of $\hat{K}^{-1}$.  We can
+simplify that even more by realizing that
+$\frac{\partial}{\partial t} A^{-1} = - A^{-1} \left[ \frac{\partial}{\partial t} A \right] A^{-1}$,
+so now we just need to find the gradient of $\hat{K}$, or
+$\hat{J}_f^T \hat{M} \hat{J}_f}$.  $\hat{M}$ is a constant term, so, using the
+good ol' product rule over $\hat{J}_f^T$ and $\hat{J}_f$, we see that, after
+some simplification:
+
+$$
+\frac{\partial}{\partial q} \left[ \hat{J}_f^T \hat{M} \hat{J}_f \right] =
+    2 \hat{J}_f^T \hat{M} \left[ \frac{\partial}{\partial q} \hat{J}_f \right]
+$$
+
+$\frac{\partial}{\partial q} \hat{J}_f$ (an $m \times n$ matrix, like
+$\hat{J}_f$) represents the *second derivatives* of $f$ -- the derivative of
+the derivatives.  And with that, we have our final expression for
+$\nabla_{\mathbf{q}} \mathcal{H}(\mathbf{q},\mathbf{p})$:
+
+$$
+\frac{\partial}{\partial q} \mathcal{H}(\mathbf{q},\mathbf{p}) =
+    - \mathbf{p}^T \hat{K}^{-1} \hat{J}_f^T \hat{M}
+        \left[ \frac{\partial}{\partial q} \hat{J}_f \right] \hat{K}^{-1} \mathbf{p}
+    + \frac{\partial}{\partial q} PE(\mathbf{q})
+$$
+
+Where $\frac{\partial}{\partial q} PE(\mathbf{q})$ is just the components of
+the gradient of $PE$.
+
+That's it.  We're done.  Have a nice day, thanks for reading!
 
