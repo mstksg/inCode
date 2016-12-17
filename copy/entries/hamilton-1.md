@@ -74,7 +74,7 @@ given any "mountain range" on phase space, any "elevation map" or real-valued
 function on phase space, you can treat it as a description of the dynamics of
 some physical system.
 
-[smooth]: https://en.wikipedia.org/wiki/Smooth_jazz
+[smooth]: https://www.youtube.com/watch?v=izGwDsrQ1eQ
 
 The *trick*, then, to using Hamiltonian dynamics to model your system, is:
 
@@ -279,8 +279,8 @@ KE(\mathbf{q},\dot{\mathbf{q}}) = \frac{1}{2} \dot{\mathbf{q}}^T \hat{J}_f^T
 $$
 
 And for the final step, we differentiate with respect to the
-$\dot{\mathbf{q}}$s (which is just the gradient) to get $\mathbf{p}$, the
-vector of conjugate momenta:
+$\dot{q}$s (which is just the gradient $\nabla_{\dot{\mathbf{q}}}$) to
+get $\mathbf{p}$, the vector of conjugate momenta:
 
 $$
 \mathbf{p} = \nabla_{\dot{\mathbf{q}}} \left[
@@ -302,7 +302,7 @@ partial derivatives at a given $\mathbf{q}$.  We now have a simple expression
 for the vector of conjugate momenta ($\mathbf{p} = \hat{K} \dot{\mathbf{q}}$),
 and also for kinetic energy ($KE = \frac{1}{2} \dot{\mathbf{q}}^T \hat{K} \dot{\mathbf{q}}$).
 
-[^full-rank]: hey $\hat{J_f}$ is full-rank (meaning $\hat{K}$ is invertible) if its
+[^full-rank]: $\hat{J_f}$ is full-rank (meaning $\hat{K}$ is invertible) if its
 rows are linearly independent.  This should be the case as you don't have any
 redundant or duplicate coordinates in your general coordinate system.
 
@@ -370,14 +370,14 @@ $$
 \nabla_{\mathbf{p}} \mathcal{H}(\mathbf{q},\mathbf{p}) = \hat{K}^{-1} \mathbf{p}
 $$
 
-Easy peasy.  But the partial derivatives with respect to $\mathbf{q}$ is a
-little trickier.  The gradient is a linear operator, so we can break that down
-to just finding the gradient of the $KE$ term $\frac{1}{2} \mathbf{p}^T
+Easy peasy.  But finding the partial derivatives with respect to $\mathbf{q}$
+is a little trickier.  The gradient is a linear operator, so we can break that
+down to just finding the gradient of the $KE$ term $\frac{1}{2} \mathbf{p}^T
 \hat{K}^{-1} \mathbf{p}$.  Because $\mathbf{p}$ is an independent input to
 $\mathcal{H}$, we can just look at the gradient of $\hat{K}^{-1}$.  We can
 simplify that even more by realizing that
 $\frac{\partial}{\partial t} A^{-1} = - A^{-1} \left[ \frac{\partial}{\partial t} A \right] A^{-1}$,
-so now we just need to find the gradient of $\hat{K}$, or
+so now we just need to find the partials of $\hat{K}$, or
 $\hat{J}_f^T \hat{M} \hat{J}_f}$.  $\hat{M}$ is a constant term, so, using the
 good ol' product rule over $\hat{J}_f^T$ and $\hat{J}_f$, we see that, after
 some simplification:
