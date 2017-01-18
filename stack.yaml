@@ -8,7 +8,7 @@ resolver: lts-7.10
 packages:
 - '.'
 - location:
-    git: git@github.com:mstksg/jle-utils.git
+    git: https://github.com/mstksg/jle-utils.git
     commit: 75ed7acaf74c6d00d581c0e7e147bb9afcf190df
   extra-dep: false
 
