@@ -26,5 +26,5 @@ Commands:
 $ git clone https://github.com/mstksg/blog
 $ cd blog
 $ stack install
-$ stack run ./Build.hs
+$ ./Build.hs
 ~~~
