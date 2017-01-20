@@ -39,12 +39,19 @@ main = do
         unit $ cmd "stack run -- blog-build" "rebuild"
         liftIO $ updatePages "_site" Nothing
 
-      "purescript" ~>
+      "bower_components/.installed" %> \t -> do
+        need ["bower.json"]
+        unit $ cmd "bower" "install"
+        cmd "touch" t
+
+      "purescript" ~> do
         need (psReq <$> psExes)
 
       "_purescript/*.js" %> \out -> do
         let exName = over _head toUpper $ takeBaseName out
-        need ["app-purescript" </> exName <.> "purs"]
+        need [ "bower_components/.installed"
+             , "app-purescript" </> exName <.> "purs"
+             ]
         unit $ cmd "pulp build"
                    "--main" exName
                    "--src-path" "app-purescript"
@@ -52,5 +59,7 @@ main = do
 
       "clean" ~> do
         removeFilesAfter "_build" ["//*"]
+        unit $ cmd "bower cache" "clean"
+        removeFilesAfter "bower_components" ["//*"]
         removeFilesAfter "_purescript" ["//*"]
         unit $ cmd "stack run -- blog-build" "clean"
