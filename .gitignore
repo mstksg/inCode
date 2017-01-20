@@ -23,11 +23,11 @@
 /output
 /bower_components
 
-!/bin/blog
-!/.cabal-sandbox/share
-!/.cabal-sandbox/*.conf.d
+/copy/entries/*
+/copy/entries-old
+/config/migrate
+/copy/tags
+/static/img/entries
+/code-samples
 
-/code-samples/huffman/bin
-/code-samples/huffman/samples
-/code-samples/huffman/old
-/code-samples/misc/send-more-money
+/copy/entries/placeholder.md
