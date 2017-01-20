@@ -190,10 +190,11 @@ section as me presenting derived conclusions and skipping the derivations.
 
 ### Conjugate Momenta
 
-It can be shown that the momentum conjugate to coordinate $q$ is
+For systems with velocity-independent potential energies, it can be shown that
+the momentum conjugate to coordinate $q$ is
 
 $$
-\frac{\partial}{\partial \dot{q}} KE(\mathbf{q}, \dot{\mathbf{q}})
+p_q = \frac{\partial}{\partial \dot{q}} KE(\mathbf{q}, \dot{\mathbf{q}})
 $$
 
 Where $KE(\mathbf{q},\dot{\mathbf{q}})$ is the kinetic energy of the system,
@@ -289,27 +290,24 @@ $$
   = \hat{J}_f^T \hat{M} \hat{J}_f \dot{\mathbf{q}}
 $$
 
-That's it!  Writing it in matrix/vector form makes it easy for us to write
-programmatically, instead of doing indexing by hand -- there are plenty of
-libraries that give us vector and matrix multiplication.
-
-We're going to be using $\hat{J}_f^T \hat{M} \hat{J}_f$ a lot, so let's give it
-a name, $\hat{K}$.  If the masses are all positive and $\hat{J}_f$ is
+Now, we're going to be using $\hat{J}_f^T \hat{M} \hat{J}_f$ a lot, so let's
+give it a name, $\hat{K}$.  If the masses are all positive and $\hat{J}_f$ is
 full-rank[^full-rank], then $\hat{K}$ is a symmetric, positive-definite,
 invertible matrix (by construction).  It's important to also remember that it's
 an explicit function of $\mathbf{q}$, because $\hat{J}_f$ is a matrix of
 partial derivatives at a given $\mathbf{q}$.  We now have a simple expression
 for the vector of conjugate momenta ($\mathbf{p} = \hat{K} \dot{\mathbf{q}}$),
-and also for kinetic energy ($KE = \frac{1}{2} \dot{\mathbf{q}}^T \hat{K} \dot{\mathbf{q}}$).
+and also for kinetic energy ($KE = \frac{1}{2} \dot{\mathbf{q}}^T \hat{K}
+\dot{\mathbf{q}}$).
 
 [^full-rank]: $\hat{J_f}$ is full-rank (meaning $\hat{K}$ is invertible) if its
 rows are linearly independent.  This should be the case as you don't have any
 redundant or duplicate coordinates in your general coordinate system.
 
-Now, we're going to see that it's going to be important for us to also be able
-to go backwards (to get $\dot{\mathbf{q}}$ from $\mathbf{p}$).  Luckily,
-because we wrote the whole thing as a matrix operation, going backwards is easy
--- just take the matrix inverse, which we know exists!
+It's going to be important for us to also be able to go backwards (to get
+$\dot{\mathbf{q}}$ from $\mathbf{p}$).  Luckily, because we wrote the whole
+thing as a matrix operation, going backwards is easy -- just take the matrix
+inverse, which we know exists!
 
 $$
 \dot{\mathbf{q}} = \hat{K}^{-1} \mathbf{p}
@@ -403,4 +401,19 @@ Where $\frac{\partial}{\partial q} PE(\mathbf{q})$ is just the components of
 the gradient of $PE$.
 
 That's it.  We're done.  Have a nice day, thanks for reading!
+
+The Haskell
+-----------
+
+Just kidding, now it's time for the fun stuff :)
+
+We're going to be using the sized-typed vectors from the *[vector-sized][]*
+package, from the [Data.Vector.Sized][] module.  This package is really nice
+because it exports the same interface as the classic *vector* package,
+except with the size of the vector in the type.  A `Vector n a` is a vector of
+length `n` containing values of type `a`.
+
+[vector-sized]: http://hackage.haskell.org/package/vector-sized
+[Data.Vector.Sized]: http://hackage.haskell.org/package/vector-sized/docs/Data-Vector-Sized.html
+
 
