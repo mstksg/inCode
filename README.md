@@ -14,9 +14,11 @@ Requirements:
 
 1.  [stack][]
 2.  [bower][]
+3.  [pulp][]
 
 [stack]: https://docs.haskellstack.org/en/stable/README/
 [bower]: https://bower.io
+[pulp]: https://github.com/bodil/pulp
 
 Commands:
 
