@@ -1,0 +1,606 @@
+---
+title: Verified Typeclass Instances in Haskell using Singletons
+categories: Haskell
+tags: functional programming, dependent types, haskell, singletons, types, existential types, abominations
+create-time: 2016/11/27 21:19:30
+date: never
+identifier: verified-instances
+slug: verified-instances-in-haskell
+---
+
+One of the most common gripes people have when learning Haskell is the fact
+that typeclass "laws" are only laws by convention, and aren't enforced by the
+language and compiler.  When asked why, the typical response is "Haskell can't
+do that", followed by a well-intentioned redirection to quickcheck or some
+other fuzzing library.
+
+But, to any experienced Haskeller, "Haskell's type system can't express X" is
+always interpreted as a (personal) challenge.
+
+GHC Haskell's type system has been advanced enough to provide verified
+typeclasses for a long time, since the introduction of data kinds and
+associated types.  And with the *[singletons][]* library, it's now as easy as
+ever.
+
+[singletons]: http://hackage.haskell.org/package/singletons
+
+Semigroups
+----------
+
+Let's start simple -- everyone's favorite structural addition to magmas,
+[semigroups][].  A semigroup is a type with an associative binary operation,
+`(<>)`:
+
+[semigroups]: http://hackage.haskell.org/package/base-4.9.1.0/docs/Data-Semigroup.html
+
+```haskell
+class Semigroup a where
+    (<>) :: a -> a -> a
+```
+
+Its one law is associativity:
+
+```haskell
+(x <> y) <> z = x <> (y <> z)
+```
+
+But, this class stinks, because it's super easy to write bad instances:
+
+```haskell
+data List a = Nil | Cons a (List a)
+    deriving Show
+
+infixr 5 `Cons`
+
+instance Semigroup (List a) where
+    Nil       <> ys = ys
+    Cons x xs <> ys = Cons x (ys <> xs)
+```
+
+This instance isn't associative:
+
+```haskell
+ghci> ((1 `Cons` 2 `Cons` Nil) <> (3 `Cons` 4 `Cons` Nil)) <> (5 `Cons` 6 `Cons` Nil)
+1 `Cons` 5 `Cons` 3 `Cons` 6 `Cons` 2 `Cons` 4 `Cons` Nil
+ghci> (1 `Cons` 2 `Cons` Nil) <> ((3 `Cons` 4 `Cons` Nil) <> (5 `Cons` 6 `Cons` Nil))
+1 `Cons` 3 `Cons` 2 `Cons` 5 `Cons` 4 `Cons` 6 `Cons` Nil
+```
+
+But if you try to compile it, GHC doesn't complain at all.  Is this an error on
+the part of Haskell?  Not quite; it's an error on the part of the `Semigroup`
+typeclass not requiring proofs that the instance is indeed associative.
+
+Let's try again.
+
+Verify me, Captain
+------------------
+
+We will now define `Semigroup` on the *kind* `List`, using `-XDataKinds`,
+instead of the type.  But, technically, because of `TypeInType`, the `List`
+kind is also a `List` type so w/e
+
+```haskell
+class Semigroup a where
+    type (x :: a) <> (y :: a) :: a
+
+    (%<>) :: Sing (x :: a) -> Sing (y :: a) -> Sing (x <> y)
+
+    appendAssoc
+        :: Sing (x :: a)
+        -> Sing y
+        -> Sing z
+        -> ((x <> y) <> z) :~: (x <> (y <> z))
+```
+
+Now, `<>` exists not as a function on *values*, but as a function on
+*types*.  `%<>` is a function that lets us manipulate witnesses of those
+types at runtime and perform the `<>` at the value level, but written in a
+way that GHC can verify that the value-level function is identical to the
+type-level function (it's 100% boilerplate and should pretty much exactly match
+the `<>` type family).[^apdf]  And, `appendAssoc` is a proof that the type family
+`Append` is associative, using `:~:` (type equality witness) from
+`Data.Type.Equality`.
+
+[^apdf]: In full *singletons* style, this should actually be expressed in terms
+of the the *partially applied* (defunctionalized) `<>`.  However, I'm giving
+the non-defunctionalized versions here for clarity.
+
+This means that, if a type is an instance of `Semigroup`, it not only has to
+provide `<>`/`%<>`, but also a *proof that they are associative*.  You can't
+write the full instance without it!
+
+Using the `SingKind` typeclass from singletons, we can move back and forth from
+`Sing x` and `x`, and get our original `<>` back.  Let's call it `append`:
+
+```haskell
+append
+    :: forall m. (SingKind m, Semigroup m)
+    => DemoteRep m
+    -> DemoteRep m
+    -> DemoteRep m
+append x y = withSomeSing x $ \sX ->
+             withSomeSing y $ \sY ->
+               fromSing (sAppend @m sX sY)
+```
+
+Now, let's write the instance for `List`.  First, we need to define the
+singletons:
+
+```haskell
+data instance Sing (xs :: List a) where
+    SNil  :: Sing Nil
+    SCons :: Sing (x :: a) -> Sing xs -> Sing (Cons x xs)
+```
+
+Then, we can define the instance, using the traditional `(++)` appending that
+lists famously have:
+
+```haskell
+instance Semigroup (List a) where
+    type Nil       <> ys = ys
+    type Cons x xs <> ys = ys
+
+    SNil       %<> ys = ys
+    SCons x xs %<> ys = SCons x (xs %<> ys)
+
+    appendAssoc = \case
+      SNil       -> \_ _ -> Refl
+      SCons x xs -> \ys zs ->
+        case appendAssoc xs ys zs of
+          Refl -> Refl
+```
+
+Like I promised, `%<>` is a boilerplate re-implementation of `<>`, to
+manipulate value-level witnesses.  `appendAssoc` is the interesting bit: It's
+our proof.  It reads like this:
+
+1.  If `xs` is `Nil`:
+
+    ```haskell
+    -- left hand side
+    (Nil <> ys) <> zs
+      = ys <> zs        -- definition of `(Nil <>)`
+    -- right hand side
+    Nil <> (ys <> zs)
+      = ys <> zs        -- definition of `(Nil <>)`
+    ```
+
+    So, QED!  (Or, as we say in Haskell, `Refl`!)
+
+2.  If the first list is `Cons x xs`:
+
+    ```haskell
+    -- left hand side
+    (Cons x xs <> ys) <> zs
+      = (Cons x (xs <> ys)) <> zs   -- definition of `(Cons x xs <>)`
+      = Cons x ((xs <> ys) <> zs)   -- definition of `(Cons x xs <>)`
+    -- right hand side
+    Cons x xs <> (ys <> zs)
+      = Cons x (xs <> (ys <> zs))   -- definition of `(Cons x xs <>)`
+    ```
+
+    So, the problem reduces to proving that `(xs <> ys) <> zs` is
+    equal to `xs <> (ys <> zs)`.  If we can do that, then we can prove
+    that the whole things are equal.  We generate that proof using
+    `appendAssoc xs ys zs`, and, wit that proof in scope...QED!
+
+
+And, we're done!
+
+### Automatic Singletons
+
+Deriving `Sing` and `SingKind` and both versions of append is kind of tedious,
+so it's useful to use template haskell to do it all for us:
+
+```haskell
+$(singletons [d|
+  data List a = Nil | Cons a (List a)
+      deriving (Show)
+
+  infixr 5 `Cons`
+
+  appendList :: List a -> List a -> List a
+  appendList Nil         ys = ys
+  appendList (Cons x xs) ys = Cons x (appendList xs ys)
+  |])
+
+instance Semigroup (List a) where
+    type xs <> ys = AppendList xs ys
+    (%<>) = sAppendList
+
+    appendAssoc = \case
+      SNil       -> \_ _ -> Refl
+      SCons _ xs -> \ys zs ->
+        case appendAssoc xs ys zs of
+          Refl -> Refl
+```
+
+The boilerplate of re-defining `<>` as `%<>` goes away.
+
+And now, we we can do:
+
+```haskell
+ghci> print $ append @(List Nat) (1 `Cons` 2 `Cons` Nil) (3 `Cons` 4 `Cons` Nil)
+1 `Cons` 2 `Cons` 3 `Cons` 4 `Cons` Nil
+```
+
+Ta dah!
+
+Naturally, Maybe
+----------------
+
+Now, we stop there?  Let's implement some other famous semigroups:
+
+First, the inductive nats, `data N = Z | S N:`
+
+```haskell
+$(singletons [d|
+  data N = Z | S N
+    deriving (Show)
+
+  plus :: N -> N -> N
+  plus Z     y = y
+  plus (S x) y = S (plus x y)
+  |])
+
+instance Semigroup N where
+    type xs <> ys = Plus xs ys
+    (%<>) = sPlus
+
+    appendAssoc = \case
+      SZ -> \_ _ -> Refl
+      SS x -> \y z ->
+        case appendAssoc x y z of
+          Refl -> Refl
+```
+
+And everyone's favorite instance for `Maybe`, which lifts the underlying
+semigroup:
+
+```haskell
+$(singletons [d|
+  data Option a = None | Some a
+      deriving (Show)
+  |])
+
+instance Semigroup a => Semigroup (Option a) where
+    type None   <> y      = y
+    type x      <> None   = x
+    type Some x <> Some y = Some (x <> y)
+
+    SNone   %<> y       = y
+    x       %<> SNone   = x
+    SSome x %<> SSome y = SSome (x %<> y)
+
+    appendAssoc = \case
+        SNone   -> \_ _ -> Refl
+        SSome x -> \case
+          SNone -> \_ -> Refl
+          SSome y -> \case
+            SNone -> Refl
+            SSome z ->
+              case appendAssoc x y z of
+                Refl -> Refl
+```
+
+```haskell
+ghci> print $ append @N (S (S Z)) (S Z)
+S (S (S Z))
+ghci> print $ append @(Option N) (Some (S Z)) (Some (S (S (S Z))))
+Some (S (S (S (S Z))))
+```
+
+Going Monoidal
+==============
+
+Of course, we can now introduce the `Monoid` typeclass, which introduces a new
+element `empty`, along with the laws that appending with empty leaves things
+unchanged:
+
+```haskell
+class Semigroup a => Monoid a where
+    type Empty a :: a
+
+    sEmpty :: Sing (Empty a)
+
+    emptyIdentLeft
+        :: Sing x
+        -> (Empty a <> x) :~: x
+
+    emptyIdentRight
+        :: Sing x
+        -> (x <> Empty a) :~: x
+
+empty
+    :: forall m. (SingKind m, Monoid m)
+    => DemoteRep m
+empty = fromSing (sEmpty @m)
+```
+
+Because GHC has some issues with return-type polymorphism at the type level, we
+have `Empty` take the *kind* `a` as a parameter, instead of having it be
+inferred through kind inference like we did for `<>`.  That is, `Empty (List
+a)` is `Empty` for the *kind* `List a`.
+
+As usual in Haskell, the instances write themselves!
+
+```haskell
+instance Monoid (List a) where
+    type Empty (List a) = Nil
+
+    sEmpty = SNil
+    emptyIdentLeft _ = Refl
+    emptyIdentRight  = \case
+      SNil -> Refl
+      SCons _ xs ->
+        case emptyIdentRight xs of
+          Refl -> Refl
+
+instance Monoid N where
+    type Empty N = Z
+
+    sEmpty = SZ
+    emptyIdentLeft _ = Refl
+    emptyIdentRight  = \case
+      SZ -> Refl
+      SS x -> case emptyIdentRight x of
+        Refl -> Refl
+
+instance Semigroup a => Monoid (Option a) where
+    type Empty (Option a) = None
+
+    sEmpty = SNone
+    emptyIdentLeft  _ = Refl
+    emptyIdentRight _ = Refl
+```
+
+Play that Funcy Music
+=====================
+
+You knew we weren't going to stop there, right?  What's every Haskeller's
+favorite lawful typeclass?
+
+```haskell
+class Functor f where
+    type Fmap a b (g :: a ~> b) (x :: f a) :: f b
+
+    sFmap
+        :: Sing (g :: a ~> b)
+        -> Sing (x :: f a)
+        -> Sing (Fmap a b g x)
+
+    -- | fmap id x == x
+    fmapId
+        :: Sing (x :: f a)
+        -> Fmap a a IdSym0 x :~: x
+
+    -- | fmap f (fmap g x) = fmap (f . g) x
+    fmapCompose
+        :: Sing (g :: b ~> c)
+        -> Sing (h :: a ~> b)
+        -> Sing (x :: f a)
+        -> Fmap b c g (Fmap a b h x) :~: Fmap a c (((:.$) @@ g) @@ h) x
+```
+
+`Fmap a b g x` maps the *type-level function* `g :: a ~> b` over `x :: f a`,
+and returns a type of kind `f b`.  Like with `Empty`, to help with kind
+inference, we have `Fmap` explicitly requre the *kinds* of the input and
+results of `g` (`a` and `b`) so GHC doesn't have to struggle to infer it
+implicitly.
+
+And, of course, along with `sFmap` (the singleton mirror of `Fmap`), we have
+our laws: `fmap id x = x`, and `fmap g (fmap h) x = fmap (g . h) x`.
+
+But, what are `a ~> b`, `IdSym0`, `:.$`, and `@@`?  They're a part of the
+**defunctionalization** system that the singletons library uses.  A `g :: a ~>
+b` means that `g` represents a type-level function taking a type of kind `a` to
+a type of kind `b`, but, importantly, encodes it in a way that makes Haskell
+happy.  This hack is required because you can't partially apply type families
+in Haskell.  If `g` was a regular old `a -> b` type family, you wouldn't be
+able to pass just `g` into `Fmap a b g` (because it'd be partially applied, and type
+families always have to appear fully saturated).
+
+The singletons library provides `type Family Id a where Id a = a`, but we can't
+pass in `Id` directly into `Fmap`.  We have to pass in its "defunctionalized"
+encoding, `IdSym0 :: TyFun a a -> Type`.
+
+`@@` lets us "apply" the `a ~> b` on an `a` and a `b`.  So we use
+`(:.$)` (which is a defunctionalized type-level `.`) and apply it to `g` and
+`h` to get, essentially, `g :. h`, where `:.` is type-level function
+composition.
+
+Now we Haskell.
+
+
+```haskell
+$(singletons [d|
+  mapOption :: (a -> b) -> Option a -> Option b
+  mapOption _ None     = None
+  mapOption f (Some x) = Some (f x)
+
+  mapList :: (a -> b) -> List a -> List b
+  mapList _ Nil         = Nil
+  mapList f (Cons x xs) = Cons (f x) (mapList f xs)
+  |])
+
+instance Functor Option where
+    type Fmap a b g x = MapOption g x
+
+    sFmap = sMapOption
+    fmapId = \case
+      SNone   -> Refl
+      SSome _ -> Refl
+
+    fmapCompose _ _ = \case
+      SNone   -> Refl
+      SSome _ -> Refl
+
+instance Functor List where
+    type Fmap a b g x = MapList g x
+
+    sFmap = sMapList
+    fmapId = \case
+      SNil       -> Refl
+      SCons _ xs ->
+        case fmapId xs of
+          Refl -> Refl
+
+    fmapCompose g h = \case
+      SNil -> Refl
+      SCons _ xs ->
+        case fmapCompose g h xs of
+          Refl -> Refl
+```
+
+And there you have it.  A verified `Functor` typeclass, ensuring that all
+instances are lawful.  Never tell me that Haskell's type system can't do
+anything ever again!
+
+We're done here!
+
+# Not Done Yet
+
+Hah!  Of course we aren't done.  Of course, you could probably have seen that I
+was doing all of that to build up to the pièces de résistance: the crown jewel
+of every Haskell article, the Monad.
+
+```haskell
+class Functor f => Monad f where
+    type Return a (x :: a) :: f a
+    type Bind   a b (m :: f a) (g :: a ~> f b) :: f b
+
+    sReturn
+        :: Sing (x :: a)
+        -> Sing (Return a x :: f a)
+
+    sBind
+        :: Sing (m :: f a)
+        -> Sing (g :: a ~> f b)
+        -> Sing (Bind   a b m g)
+
+    -- | (return x >>= f) == f x
+    returnIdentLeft
+        :: Sing (x :: a)
+        -> Sing (g :: a ~> f b)
+        -> Bind a b (Return a x) g :~: (g @@ x)
+
+    -- | (m >>= return) == m
+    returnIdentRight
+        :: Sing (m :: f a)
+        -> Bind a a m ReturnSym0 :~: m
+
+    -- | m >>= (\x -> f x >>= h) == (m >>= f) >>= h
+    bindCompose
+        :: Sing (m :: f a)
+        -> Sing (g :: a ~> f b)
+        -> Sing (h :: b ~> f c)
+        -> Bind a c m (KCompSym2 a b c g h) :~: Bind b c (Bind a b m g) h
+
+data ReturnSym0 :: a ~> f a
+type instance Apply (ReturnSym0 :: a ~> f a) (x :: a) = Return a x
+
+type KComp a b c (g :: a ~> f b) (h :: b ~> f c) (x :: a) = Bind b c (g @@ x) h
+data KCompSym2 a b c g h :: (a ~> f c)
+type instance Apply (KCompSym2 a b c g h :: a ~> f c) (x :: a) = KComp a b c g h x
+```
+
+To help with kind inference, again, we provide explicit kind arguments for
+`Return` (the kind of the thing that is being lifted) and `Bind` (the original
+`a` and the resulting `b`).
+
+Some boilerplate exists there at the bottom --- it's the plumbing for the
+defunctionalization system.  `returnIdentRight` requires a defunctionalized
+version of `Return`, so we can provide that by defining `ReturnSym0`, and
+writing an `Apply` instance for it (which "applies" it the parameter `x`).
+
+We introduce `KComp` (kleisli composition) and its defunctionalized version in
+order to express the third law, because we don't yet have type-level lambdas in
+Haskell.  The actual function it is expressing is `\x -> f x >>= g`, and that
+definition is given on the `type KComp a b c ... = Bind ...` line.  `KCompSym2`
+is the defunctioanlized version, which is not a `a -> f c` but rather an `a ~>
+f c`, which allows it to be partially applied.  The rest (including the
+`Apply`) instance is how you hook it into the defunctionalization process.
+
+Without further ado, let's see some sample implementations.
+
+```haskell
+$(singletons [d|
+  bindOption :: Option a -> (a -> Option b) -> Option b
+  bindOption None     _ = None
+  bindOption (Some x) f = f x
+  |])
+
+
+  concatMapList :: (a -> List b) -> List a -> List b
+  concatMapList _ Nil         = Nil
+  concatMapList f (Cons x xs) = f x `appendList` concatMapList f xs
+
+instance Monad Option where
+    type Return a   x   = Some x
+    type Bind   a b m g = BindOption m g
+
+    sReturn = SSome
+    sBind   = sBindOption
+
+    returnIdentLeft _ _ = Refl
+    returnIdentRight = \case
+      SNone   -> Refl
+      SSome x -> case sReturn x of
+        SSome _ -> Refl
+    bindCompose = \case
+      SNone   -> \_ _ -> Refl
+      SSome _ -> \_ _ -> Refl
+
+instance Monad List where
+    type Return a   x   = PureList x
+    type Bind   a b m g = ConcatMapList g m
+
+    sReturn   = sPureList
+    sBind x f = sConcatMapList f x
+
+    returnIdentLeft x g = case sReturn x of
+      SCons y SNil -> case emptyIdentRight (unSingFun1 Proxy g y) of
+        Refl -> Refl
+
+    returnIdentRight = \case
+      SNil       -> Refl
+      SCons _ xs -> case returnIdentRight xs of
+        Refl -> Refl
+
+    bindCompose = \case
+      SNil       -> \_ _ -> Refl
+      SCons x xs -> \g h -> case bindCompose xs g h of
+        Refl -> case unSingFun1 Proxy g x of
+          SNil       -> Refl
+          SCons y ys ->
+            let gxs  = sConcatMapList g xs
+                hgxs = sConcatMapList h gxs
+                hy   = unSingFun1 Proxy h y
+                hys  = sConcatMapList h ys
+            in  case distribConcatMap h ys gxs of
+                  Refl -> case appendAssoc hy hys hgxs of
+                    Refl -> Refl
+
+-- | Proving that concatMap distributes over Append
+distribConcatMap
+    :: Sing (g :: a ~> List b)
+    -> Sing (xs :: List a)
+    -> Sing (ys :: List a)
+    -> ConcatMapList g (AppendList xs ys) :~: AppendList (ConcatMapList g xs) (ConcatMapList g ys)
+distribConcatMap g = \case
+    SNil -> \_ -> Refl
+    SCons x xs -> \ys ->
+      case distribConcatMap g xs ys of
+        Refl ->
+          let gx    = unSingFun1 Proxy g x
+              cmgxs = sConcatMapList g xs
+              cmgys = sConcatMapList g ys
+          in  case appendAssoc gx cmgxs cmgys of
+                Refl -> Refl
+```
+
+Disclaimer
+==========
+
+Don't do this in actual code please.
+
