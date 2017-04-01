@@ -674,6 +674,7 @@ Disclaimer
 Don't do this in actual code, please.  This post started off as an April Fools
 joke that accidentally compiled correctly for reasons which I cannot explain.
 
-Don't do this in actual code, but definitely do it for fun!  The code in this
-post is available [here][source] if you want to play around!
+While I don't recommend that you do this in actual code, but definitely do
+recommend that you do it for fun!  The code in this post is available
+[here][source] if you want to play around!
 
