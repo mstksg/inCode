@@ -1,5 +1,5 @@
 ---
-title: Verified Typeclass Instances in Haskell using Singletons
+title: Verify your Typeclass Instances in Haskell Today!
 categories: Haskell
 tags: functional programming, dependent types, haskell, singletons, types, existential types, abominations
 create-time: 2016/11/27 21:19:30
