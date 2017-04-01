@@ -66,8 +66,8 @@ class Semigroup a where
 
     appendAssoc
         :: Sing (x :: a)
-        -> Sing y
-        -> Sing z
+        -> Sing (y :: a)
+        -> Sing (z :: a)
         -> ((x <> y) <> z) :~: (x <> (y <> z))
 
 append
@@ -213,7 +213,7 @@ instance Functor List where
           Refl -> Refl
 
 class Functor f => Monad f where
-    type Return a (x :: a) :: f a
+    type Return a   (x :: a) :: f a
     type Bind   a b (m :: f a) (g :: a ~> f b) :: f b
 
     sReturn
@@ -305,10 +305,10 @@ instance Monad List where
                     Refl -> Refl
 
 distribConcatMap
-    :: Sing (g :: a ~> List b)
+    :: Sing (g  :: a ~> List b)
     -> Sing (xs :: List a)
     -> Sing (ys :: List a)
-    -> ConcatMapList g (AppendList xs ys) :~: AppendList (ConcatMapList g xs) (ConcatMapList g ys)
+    -> ConcatMapList g (xs <> ys) :~: (ConcatMapList g xs <> ConcatMapList g ys)
 distribConcatMap g = \case
     SNil -> \_ -> Refl
     SCons x xs -> \ys ->
@@ -325,3 +325,4 @@ main = do
     print $ append @(List Nat) (1 `Cons` 2 `Cons` Nil) (3 `Cons` 4 `Cons` Nil)
     print $ append @N (S (S Z)) (S Z)
     print $ append @(Option N) (Some (S Z)) (Some (S (S (S Z))))
+    print $ append @(Option N) None         (Some (S (S (S Z))))
