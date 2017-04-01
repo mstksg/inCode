@@ -24,6 +24,10 @@ ever.
 
 [singletons]: http://hackage.haskell.org/package/singletons
 
+The code for this post is available [here][source] if you want to follow along!
+
+!!![source]:verified-instances/VerifiedInstances.hs
+
 Semigroups
 ----------
 
@@ -72,8 +76,7 @@ typeclass not requiring proofs that the instance is indeed associative.
 
 Let's try again.
 
-Verify me, Captain
-------------------
+### Verify me, Captain
 
 We will now define `Semigroup` on the *kind* `List`, using `-XDataKinds`,
 instead of the type.  But, technically, because of `TypeInType`, the `List`
@@ -187,7 +190,7 @@ our proof.  It reads like this:
 
 And, we're done!
 
-### Automatic Singletons
+#### Automatic Singletons
 
 Deriving `Sing` and `SingKind` and both versions of append is kind of tedious,
 so it's useful to use template haskell to do it all for us:
@@ -226,8 +229,7 @@ ghci> print $ append @(List Nat) (1 `Cons` 2 `Cons` Nil) (3 `Cons` 4 `Cons` Nil)
 
 Ta dah!
 
-Naturally, Maybe
-----------------
+### Naturally, Maybe
 
 Now, we stop there?  Let's implement some other famous semigroups:
 
@@ -254,8 +256,7 @@ instance Semigroup N where
           Refl -> Refl
 ```
 
-And everyone's favorite instance for `Maybe`, which lifts the underlying
-semigroup:
+And the standard instance for `Maybe`, which lifts the underlying semigroup:
 
 ```haskell
 $(singletons [d|
@@ -291,7 +292,7 @@ Some (S (S (S (S Z))))
 ```
 
 Going Monoidal
-==============
+--------------
 
 Of course, we can now introduce the `Monoid` typeclass, which introduces a new
 element `empty`, along with the laws that appending with empty leaves things
@@ -355,10 +356,10 @@ instance Semigroup a => Monoid (Option a) where
 ```
 
 Play that Funcy Music
-=====================
+---------------------
 
-You knew we weren't going to stop there, right?  What's every Haskeller's
-favorite lawful typeclass?
+You knew we weren't going to stop there, right?  How about higher-kinded
+typeclasses?
 
 ```haskell
 class Functor f where
@@ -600,7 +601,10 @@ distribConcatMap g = \case
 ```
 
 Disclaimer
-==========
+----------
 
 Don't do this in actual code please.
 
+But definitely do it for fun!
+
+The code in this post is available [here][source] if you want to play around!
