@@ -249,7 +249,8 @@ Ta dah!
 
 ### Naturally, Maybe
 
-Now, we stop there?  Let's implement some other famous semigroups:
+Now that we have our basic infrastructure, let's implement some other famous
+semigroups:
 
 First, the inductive nats, `data N = Z | S N:`
 
