@@ -155,7 +155,7 @@ lists famously have:
 ```haskell
 instance Semigroup (List a) where
     type Nil       <> ys = ys
-    type Cons x xs <> ys = ys
+    type Cons x xs <> ys = Cons x (xs <> ys)
 
     SNil       %<> ys = ys
     SCons x xs %<> ys = SCons x (xs %<> ys)
@@ -423,7 +423,7 @@ type families always have to appear fully saturated).
 You can convert a `g :: a ~> b` back into a regular old `g :: a -> b` using
 `Apply`, or its convenient infix synonym `@@`, like `g @@ (x :: a) :: b`
 
-The singletons library provides `type Family Id a where Id a = a`, but we can't
+The singletons library provides `type family Id a where Id a = a`, but we can't
 pass in `Id` directly into `Fmap`.  We have to pass in its "defunctionalized"
 encoding, `IdSym0 :: TyFun a a -> Type`.
 
