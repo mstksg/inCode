@@ -168,9 +168,9 @@ class Functor f where
     type Fmap a b (g :: a ~> b) (x :: f a) :: f b
 
     sFmap
-        :: Sing (g :: a ~> b)
-        -> Sing (x :: f a)
-        -> Sing (Fmap a b g x)
+        :: Sing (g            :: a ~> b)
+        -> Sing (x            :: f a   )
+        -> Sing (Fmap a b g x :: f b   )
 
     -- | fmap id x == x
     fmapId
@@ -181,7 +181,7 @@ class Functor f where
     fmapCompose
         :: Sing (g :: b ~> c)
         -> Sing (h :: a ~> b)
-        -> Sing (x :: f a)
+        -> Sing (x :: f a   )
         -> Fmap b c g (Fmap a b h x) :~: Fmap a c (((:.$) @@ g) @@ h) x
 
 instance Functor Option where
@@ -217,13 +217,13 @@ class Functor f => Monad f where
     type Bind   a b (m :: f a) (g :: a ~> f b) :: f b
 
     sReturn
-        :: Sing (x :: a)
+        :: Sing (x          :: a  )
         -> Sing (Return a x :: f a)
 
     sBind
-        :: Sing (m :: f a)
-        -> Sing (g :: a ~> f b)
-        -> Sing (Bind   a b m g)
+        :: Sing (m            :: f a     )
+        -> Sing (g            :: a ~> f b)
+        -> Sing (Bind a b m g :: f b     )
 
     -- | (return x >>= f) == f x
     returnIdentLeft
