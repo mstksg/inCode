@@ -3,7 +3,7 @@ title: Verified Typeclass Instances in Haskell using Singletons
 categories: Haskell
 tags: functional programming, dependent types, haskell, singletons, types, existential types, abominations
 create-time: 2016/11/27 21:19:30
-date: never
+date: 2017/04/01 12:25:04
 identifier: verified-instances
 slug: verified-instances-in-haskell
 ---
@@ -24,9 +24,16 @@ ever.
 
 [singletons]: http://hackage.haskell.org/package/singletons
 
-The code for this post is available [here][source] if you want to follow along!
+(The code for this post is available [here][source] if you want to follow
+along!  Some of the examples here involving `Demote` and relying on its
+injectivity will only work with [singletons HEAD][], even though the necessary
+patches were made seven months ago[^shackage])
 
 !!![source]:verified-instances/VerifiedInstances.hs
+[singletons HEAD]: https://github.com/goldfirere/singletons
+
+[^shackage]: Not sure why it's not on hackage yet, but I will update when it
+    gets there!
 
 Semigroups
 ----------
@@ -79,8 +86,7 @@ Let's try again.
 ### Verify me, Captain
 
 We will now define `Semigroup` on the *kind* `List`, using `-XDataKinds`,
-instead of the type.  But, technically, because of `TypeInType`, the `List`
-kind is also a `List` type so w/e
+instead of the type.
 
 ```haskell
 class Semigroup a where
@@ -111,19 +117,28 @@ This means that, if a type is an instance of `Semigroup`, it not only has to
 provide `<>`/`%<>`, but also a *proof that they are associative*.  You can't
 write the full instance without it!
 
-Using the `SingKind` typeclass from singletons, we can move back and forth from
-`Sing x` and `x`, and get our original (value-level) `<>` back.  Let's call it `append`:
+`Semigroup` is be a "kind-class", because it is a bunch of methods and types
+associated with a certain kind.  Which `<>` is dispatched when you do something
+like `x <> y` depends on the *kind* of `x` and `y`.  GHC does "kind inference"
+and uses the `<>` corresponding to the kinds of `x` and `y`.
+
+Using the `SingKind` typeclass from the singletons library, we can move back
+and forth from `Sing x` and `x`, and get our original (value-level) `<>` back:
 
 ```haskell
-append
-    :: forall m. (SingKind m, Semigroup m)
-    => DemoteRep m
-    -> DemoteRep m
-    -> DemoteRep m
-append x y = withSomeSing x $ \sX ->
-             withSomeSing y $ \sY ->
-               fromSing (sAppend @m sX sY)
+(<>)
+    :: (SingKind m, Semigroup m)
+    => Demote m
+    -> Demote m
+    -> Demote m
+x <> y = withSomeSing x $ \sX ->
+           withSomeSing y $ \sY ->
+             fromSing (sX %<> sY)
 ```
+
+(This works best with singletons HEAD at the moment, because `Demote` is
+injective.  On 2.2 or lower, using this would require an explicit type
+application or annotation at any place you use `<>` or `%<>`)
 
 Now, let's write the instance for `List`.  First, we need to define the
 singletons:
@@ -226,7 +241,7 @@ The boilerplate of re-defining `<>` as `%<>` goes away!
 And now, we we can do:
 
 ```haskell
-ghci> print $ append @(List Nat) (1 `Cons` 2 `Cons` Nil) (3 `Cons` 4 `Cons` Nil)
+ghci> print $ ((1::Integer) `Cons` 2 `Cons` Nil) <> (3 `Cons` 4 `Cons` Nil)
 1 `Cons` 2 `Cons` 3 `Cons` 4 `Cons` Nil
 ```
 
@@ -288,11 +303,11 @@ instance Semigroup a => Semigroup (Option a) where
 ```
 
 ```haskell
-ghci> print $ append @N (S (S Z)) (S Z)
+ghci> print $ S (S Z) <> S Z
 S (S (S Z))
-ghci> print $ append @(Option N) (Some (S Z)) (Some (S (S (S Z))))
+ghci> print $ Some (S Z) <> Some (S (S (S Z)))
 Some (S (S (S (S Z))))
-ghci> print $ append @(Option N) None         (Some (S (S (S Z))))
+ghci> print $ None       <> Some (S (S (S Z)))
 Some (S (S (S Z)))
 ```
 
@@ -318,9 +333,9 @@ class Semigroup a => Monoid a where
         -> (x <> Empty a) :~: x
 
 empty
-    :: forall m. (SingKind m, Monoid m)
-    => DemoteRep m
-empty = fromSing (sEmpty @m)
+    :: (SingKind m, Monoid m)
+    => Demote m
+empty = fromSing sEmpty
 ```
 
 Because working implicitly return-type polymorphism at the type level can be
@@ -466,17 +481,23 @@ Note that any mistakes in implementation (like, for example, having `mapOption
 _ _ = None`) will cause a compile-time error now, because the proofs are
 impossible to provide.
 
-What an exciting journey and a wonderful conclusion.  I hope you enjoyed this
-and will begin using this in your normal day-to-day Haskell.  Goodbye, until
-next time!
+As a side note, I'm not quite sure how to implement the value-level `fmap` from
+this, since I can't figure out how to promote functions nicely.  Using `sFmap`
+is the only way to work with this at the value level that I can see, but it's
+probably because of my own lack of understanding.  If anyone knows how to do
+this, please let me know!
 
-Not Done Yet
-------------
+Anyway, what an exciting journey and a wonderful conclusion.  I hope you
+enjoyed this and will begin using this in your normal day-to-day Haskell.
+Goodbye, until next time!
 
-Hah!  Just kidding.  Of course we aren't done.  I wouldn't let you down like
-that.  I know that you probably saw that the entire last section's only purpose
-was to build up to the pièce de résistance: the crown jewel of every Haskell
-article, the Monad.
+Just Kidding!
+-------------
+
+Hah!  Of course we aren't done.  I wouldn't let you down like that.  I know
+that you probably saw that the entire last section's only purpose was to build
+up to the pièce de résistance: the crown jewel of every Haskell article, the
+Monad.
 
 ```haskell
 class Functor f => Monad f where
@@ -516,6 +537,13 @@ type instance Apply (ReturnSym0 :: a ~> f a) (x :: a) = Return a x
 type KComp a b c (g :: a ~> f b) (h :: b ~> f c) (x :: a) = Bind b c (g @@ x) h
 data KCompSym2 a b c g h :: (a ~> f c)
 type instance Apply (KCompSym2 a b c g h :: a ~> f c) (x :: a) = KComp a b c g h x
+
+return
+    :: (SingKind a, SingKind (f a), Monad f)
+    => Demote a
+    -> Demote (f a)
+return x = withSomeSing x $ \sX ->
+             fromSing (sReturn sX)
 ```
 
 To help with kind inference, again, we provide explicit kind arguments for
@@ -535,6 +563,9 @@ is the defunctioanlized version, which is not a `a -> f c` but rather an `a ~>
 f c`, which allows it to be partially applied (like we do for `composeBind`).
 And, finally, to hook all of this up into the defunctionalization system, we
 write an `Apply` instance yet again.
+
+And, again, if anyone knows how I can write a value-level `Bind`, I'd
+definitely appreciate hearing!
 
 Let's see some sample implementations.
 
@@ -639,7 +670,9 @@ manual proving on the part of the user.
 Disclaimer
 ----------
 
-Don't do this in actual code please.
+Don't do this in actual code, please.  This post started off as an April Fools
+joke that accidentally compiled correctly for reasons which I cannot explain.
 
-But definitely do it for fun!  The code in this post is available
-[here][source] if you want to play around!
+Don't do this in actual code, but definitely do it for fun!  The code in this
+post is available [here][source] if you want to play around!
+

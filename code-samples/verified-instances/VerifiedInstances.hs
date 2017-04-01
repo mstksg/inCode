@@ -1,5 +1,9 @@
+#!/usr/bin/env stack
+-- stack --resolver lts --install-ghc runghc --package singletons
+
 {-# LANGUAGE AllowAmbiguousTypes  #-}
 {-# LANGUAGE DataKinds            #-}
+{-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE GADTs                #-}
 {-# LANGUAGE KindSignatures       #-}
 {-# LANGUAGE LambdaCase           #-}
@@ -70,14 +74,18 @@ class Semigroup a where
         -> Sing (z :: a)
         -> ((x <> y) <> z) :~: (x <> (y <> z))
 
-append
-    :: forall m. (SingKind m, Semigroup m)
-    => DemoteRep m
-    -> DemoteRep m
-    -> DemoteRep m
-append x y = withSomeSing x $ \sX ->
-             withSomeSing y $ \sY ->
-               fromSing ((%<>) @m sX sY)
+infixr 6 <>
+(<>)
+    :: forall a. (SingKind a, Semigroup a)
+    -- with singleton HEAD, `DemoteRep` is `Demote`
+    => DemoteRep a
+    -> DemoteRep a
+    -> DemoteRep a
+x <> y = withSomeSing x $ \sX ->
+           withSomeSing y $ \sY ->
+             -- with singleton HEAD:
+             --   fromSing (sX %<> sY)
+             fromSing ((%<>) @a sX sY)
 
 instance Semigroup (List a) where
     type xs <> ys = AppendList xs ys
@@ -131,6 +139,15 @@ class Semigroup a => Monoid a where
         :: Sing x
         -> (x <> Empty a) :~: x
 
+empty
+    :: forall a. (SingKind a, Monoid a)
+    -- with singleton HEAD:
+    --   => Demote a
+    => DemoteRep a
+      -- with singleton HEAD:
+      --   fromSing sEmpty
+empty = fromSing (sEmpty @a)
+
 instance Monoid (List a) where
     type Empty (List a) = Nil
 
@@ -158,11 +175,6 @@ instance Semigroup a => Monoid (Option a) where
     sEmpty = SNone
     emptyIdentLeft  _ = Refl
     emptyIdentRight _ = Refl
-
-empty
-    :: forall m. (SingKind m, Monoid m)
-    => DemoteRep m
-empty = fromSing (sEmpty @m)
 
 class Functor f where
     type Fmap a b (g :: a ~> b) (x :: f a) :: f b
@@ -258,6 +270,15 @@ sKComp
     -> Sing (KCompSym2 a b c g h @@ x :: f c)
 sKComp g h x = sBind (unSingFun1 (Proxy @g) g x) h
 
+return
+    :: forall f a. (SingKind a, SingKind (f a), Monad f)
+    -- with singleton HEAD, `DemoteRep` is `Demote`
+    => DemoteRep a
+    -> DemoteRep (f a)
+         -- these annotations are not necessary with singletons HEAD
+return x = withSomeSing x $ \(sX :: Sing (x :: a)) ->
+             fromSing (sReturn @f @a sX)
+
 instance Monad Option where
     type Return a   x   = Some x
     type Bind   a b m g = BindOption m g
@@ -322,7 +343,12 @@ distribConcatMap g = \case
 
 main :: IO ()
 main = do
-    print $ append @(List Nat) (1 `Cons` 2 `Cons` Nil) (3 `Cons` 4 `Cons` Nil)
-    print $ append @N (S (S Z)) (S Z)
-    print $ append @(Option N) (Some (S Z)) (Some (S (S (S Z))))
-    print $ append @(Option N) None         (Some (S (S (S Z))))
+    -- using singletons HEAD:
+    --   print $ ((1::Integer) `Cons` 2 `Cons` Nil) <> (3 `Cons` 4 `Cons` Nil)
+    --   print $ S (S Z) <> S Z
+    --   print $ Some (S Z) <> Some (S (S (S Z)))
+    --   print $ None       <> Some (S (S (S Z)))
+    print $ (<>) @(List Nat) (1 `Cons` 2 `Cons` Nil) (3 `Cons` 4 `Cons` Nil)
+    print $ (<>) @N          (S (S Z)) (S Z)
+    print $ (<>) @(Option N) (Some (S Z)) (Some (S (S (S Z))))
+    print $ (<>) @(Option N) (None)       (Some (S (S (S Z))))
