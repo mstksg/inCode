@@ -492,7 +492,7 @@ Anyway, what an exciting journey and a wonderful conclusion.  I hope you
 enjoyed this and will begin using this in your normal day-to-day Haskell.
 Goodbye, until next time!
 
-Just Kidding!
+Just one more
 -------------
 
 Hah!  Of course we aren't done.  I wouldn't let you down like that.  I know
@@ -575,12 +575,11 @@ $(singletons [d|
   bindOption :: Option a -> (a -> Option b) -> Option b
   bindOption None     _ = None
   bindOption (Some x) f = f x
-  |])
-
 
   concatMapList :: (a -> List b) -> List a -> List b
   concatMapList _ Nil         = Nil
   concatMapList f (Cons x xs) = f x `appendList` concatMapList f xs
+  |])
 
 instance Monad Option where
     type Return a   x   = Some x
