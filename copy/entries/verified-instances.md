@@ -670,8 +670,10 @@ manual proving on the part of the user.
 Disclaimer
 ----------
 
-Don't do this in actual code, please.  This post started off as an April Fools
+Don't do this in actual code, please ([why?][]).  This post started off as an April Fools
 joke that accidentally compiled correctly for reasons which I cannot explain.
+
+[why?]: https://twitter.com/mstk/status/848677244478279680
 
 While I don't recommend that you do this in actual code, but definitely do
 recommend that you do it for fun!  The code in this post is available
