@@ -117,7 +117,7 @@ This means that, if a type is an instance of `Semigroup`, it not only has to
 provide `<>`/`%<>`, but also a *proof that they are associative*.  You can't
 write the full instance without it!
 
-`Semigroup` is be a "kind-class", because it is a bunch of methods and types
+`Semigroup` is a "kind-class", because it is a bunch of methods and types
 associated with a certain kind.  Which `<>` is dispatched when you do something
 like `x <> y` depends on the *kind* of `x` and `y`.  GHC does "kind inference"
 and uses the `<>` corresponding to the kinds of `x` and `y`.
@@ -426,7 +426,7 @@ You can convert a `g :: a ~> b` back into a regular old `g :: a -> b` using
 
 The singletons library provides `type family Id a where Id a = a`, but we can't
 pass in `Id` directly into `Fmap`.  We have to pass in its "defunctionalized"
-encoding, `IdSym0 :: TyFun a a -> Type`.
+encoding, `IdSym0 :: a ~> a`.
 
 For the composition law, we use `(:.$)` (which is a defunctionalized type-level
 `.`) and apply it to `g` and `h` to get, essentially, `g :. h`, where `:.` is
