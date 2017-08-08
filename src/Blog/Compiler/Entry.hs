@@ -24,7 +24,6 @@ import           System.FilePath
 import           Text.Read              (readMaybe)
 import qualified Data.Text              as T
 import qualified Text.Pandoc            as P
-import qualified Text.Pandoc.Error      as P
 import qualified Text.Pandoc.Walk       as P
 
 compileEntry
@@ -153,9 +152,7 @@ entryLaTeXCompiler
     => Compiler (Item String)
 entryLaTeXCompiler = do
     templ <- loadBody "latex/templates/default.latex"
-    let opts = entryWriterOpts { P.writerStandalone = True
-                               , P.writerTemplate   = templ
-                               }
+    let opts = entryWriterOpts { P.writerTemplate   = Just templ }
 
     i <- setVersion Nothing <$> getUnderlying
     Entry{..} <- loadSnapshotBody i "entry"
