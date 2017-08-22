@@ -97,7 +97,11 @@ DSL for a type-safe door:
 
 A couple things going on here:
 
-1.  We're using the `DataKinds` extension to create both the *type* `DoorState`
+1.  Our type we are going to be playing with is a `Door`, which contains a
+    single field describing, say, the material that the door is made out of.
+    (`UnsafeMkDoor "Oak"` would be an oak door)
+
+2.  We're using the `DataKinds` extension to create both the *type* `DoorState`
     as well as the *kind* `DoorState`.
 
     Normally, `data DoorState = Opened | Closed | Locked` in Haskell defines
@@ -119,7 +123,7 @@ A couple things going on here:
 style, at this point in Haskell, to use them whenever you can.  It'll prevent a
 lot of confusion, trust me!
 
-2.  We're defining the `Door` type with a *phantom parameter* `s`.  It's a
+3.  We're defining the `Door` type with a *phantom parameter* `s`.  It's a
     phantom type because we don't actually have any *values* of type `s` in our
     data type...the `s` is only just there as a dummy parameter for the type.
 
@@ -128,15 +132,16 @@ lot of confusion, trust me!
     `MkDoor` constructor would be hidden).
 
     ```haskell
-    ghci> :t UnsafeMkDoor :: Door 'Opened
+    ghci> :t UnsafeMkDoor "Birch" :: Door 'Opened
     Door 'Opened
-    ghci> :t UnsafeMkDoor :: Door 'Locked
+    ghci> :t UnsafeMkDoor "Iron" :: Door 'Locked
     Door 'Locked
     ```
 
 We'll take a `Door s` to mean the type of a door with that current status.  So
 a `Door 'Opened` is the type of an opened door, a `Door 'Closed` is the type of
-a closed (and unlocked) door, etc.
+a closed (and unlocked) door, etc.  The `String` that the `Door` contains
+represents its material (oak, birch, spruce, etc.).
 
 Alternatively, we can define `Door` using [*GADT* syntax][gadt] (which requires
 the `GADTs` extension).
@@ -145,7 +150,7 @@ the `GADTs` extension).
 
 ```haskell
 data Door :: DoorState -> Type where
-    UnsafeMkDoor :: Door s
+    UnsafeMkDoor :: String -> Door s
 ```
 
 This is defining the exact same type in the alternate "GADT syntax" style of
@@ -168,10 +173,10 @@ So, the `closeDoor` function will *only* take a `Door 'Opened` (an opened
 door).  And it will return a `Door 'Closed` (a closed door).
 
 ```haskell
-ghci> let myDoor = UnsafeMkDoor :: Door 'Opened
+ghci> let myDoor = UnsafeMkDoor "Spruce" :: Door 'Opened
 ghci> :t closeDoor myDoor
 Door 'Closed
-ghci> let yourDoor = UnsafeMkDoor :: Door 'Closed
+ghci> let yourDoor = UnsafeMkDoor "Acacia" :: Door 'Closed
 ghci> :t closeDoor yourDoor
 TYPE ERROR!  TYPE ERROR!
 ```
@@ -226,12 +231,12 @@ to implementation bugs)
 
 And, perhaps even more important, how can you create a `Door` with a given
 state that isn't known until runtime?  If we know the type of our doors at
-compile-time, we can just explicitly write `UnsafeMkDoor :: Door 'Opened`.  But
-what if we wanted to make a door based on a `DoorState` input?
+compile-time, we can just explicitly write `UnsafeMkDoor "Iron" :: Door 'Opened`.
+But what if we wanted to make a door based on a `DoorState` input?
 
 
 ```haskell
-mkDoor :: DoorState -> Door s
+mkDoor :: DoorState -> String -> Door s
 mkDoor Opened = -- ?
 mkDoor Closed = -- ?
 mkDoor Locked = -- ?
@@ -240,20 +245,22 @@ mkDoor Locked = -- ?
 Ah hah, you say.  That's easy!
 
 ```haskell
-mkDoor :: DoorState -> Door s
+mkDoor :: DoorState -> String -> Door s
 mkDoor Opened = UnsafeMkDoor
 mkDoor Closed = UnsafeMkDoor
 mkDoor Locked = UnsafeMkDoor
 ```
 
 Unfortunately, that's not how types work in Haskell.  Remember that for a
-polymorphic type `forall s. DoorState -> Door s`, the *caller* picks the type
-variable.
+polymorphic type `forall s. DoorState -> String -> Door s`, the *caller* picks
+the type variable.
 
 ```haskell
-ghci> :t mkDoor Opened :: Door 'Closed
+ghci> :t mkDoor Opened "Acacia" :: Door 'Closed
 Door 'Closed
 ```
+
+Oops!
 
 ### The Fundamental Issue in Haskell
 
@@ -409,9 +416,9 @@ We can write a nice version of `mkDoor` using singletons:
 So we can call it values of `SingDS`:
 
 ```haskell
-ghci> :t mkDoor SOpened
+ghci> :t mkDoor SOpened "Oak"
 Door 'Opened
-ghci> :t mkDoor SLocked
+ghci> :t mkDoor SLocked "Spruce"
 Door 'Locked
 ```
 
@@ -433,7 +440,7 @@ doesn't have the opened/closed status in its type, but rather as a runtime
 value:
 
 ```haskell
-data SomeDoor = UnsafeMkSomeDoor DoorState
+data SomeDoor = UnsafeMkSomeDoor DoorState String
 ```
 
 Now, we could have actually been using this type the entire time, if we didn't
@@ -445,9 +452,9 @@ We can "construct" this from a normal `Door`, using the smart constructor:
 
 ```haskell
 fromDoor :: SingDS s -> Door s -> SomeDoor
-fromDoor SOpened _ = UnsafeMkSomeDoor Opened
-formDoor SClosed _ = UnsafeMkSomeDoor Closed
-formDoor SLocked _ = UnsafeMkSomeDoor Locked
+fromDoor SOpened (UnsafeMkDoor m) = UnsafeMkSomeDoor Opened m
+formDoor SClosed (UnsafeMkDoor m) = UnsafeMkSomeDoor Closed m
+formDoor SLocked (UnsafeMkDoor m) = UnsafeMkSomeDoor Locked m
 ```
 
 ### SomeDoor to Door
@@ -458,9 +465,9 @@ different implementations.  For example:
 
 ```haskell
 closeSomeDoor :: SomeDoor -> Maybe SomeDoor
-closeSomeDoor (UnsafeMkSomeDoor Opened) = Just (UnsafeMkSomeDoor Closed)
-closeSomeDoor (UnsafeMkSomeDoor Closed) = Nothing
-closeSomeDoor (UnsafeMkSomeDoor Locked) = Nothing
+closeSomeDoor (UnsafeMkSomeDoor Opened m) = Just (UnsafeMkSomeDoor Closed m)
+closeSomeDoor (UnsafeMkSomeDoor Closed m) = Nothing
+closeSomeDoor (UnsafeMkSomeDoor Locked m) = Nothing
 ```
 
 Wouldn't it be nice if we can re-use our original `closeDoor`?  This is a toy
@@ -483,9 +490,9 @@ handle whatever `s` is given by the function:
 
 ```haskell
 withSomeDoor :: SomeDoor -> (forall s. SingDS s -> Door s -> r) -> r
-withSomeDoor (UnsafeMkSomeDoor Opened) f = f SOpened UnsafeMkDoor
-withSomeDoor (UnsafeMkSomeDoor Closed) f = f SClosed UnsafeMkDoor
-withSomeDoor (UnsafeMkSomeDoor Locked) f = f SLocked UnsafeMkDoor
+withSomeDoor (UnsafeMkSomeDoor Opened m) f = f SOpened (UnsafeMkDoor m)
+withSomeDoor (UnsafeMkSomeDoor Closed m) f = f SClosed (UnsafeMkDoor m)
+withSomeDoor (UnsafeMkSomeDoor Locked m) f = f SLocked (UnsafeMkDoor m)
 ```
 
 Notice the funky CPS-like type signature of `withSomeDoor`.  To use
@@ -587,7 +594,7 @@ door with the status unknown until runtime:
 ```
 
 ```haskell
-ghci> let mySomeDoor = mkSomeDoor Opened
+ghci> let mySomeDoor = mkSomeDoor Opened "Birch"
 ghci> :t mySomeDoor
 SomeDoor
 ghci> putStrLn $ case mySomeDoor of
@@ -795,7 +802,7 @@ file][singletons-door] for a comparison, if you are still unfamiliar.
     It should return a closed door in `Just` if the caller gives an odd number,
     or `Nothing` otherwise.
 
-2.  Write a function that can open any door, taking an optional password.
+2.  Write a function that can open any door, taking a password.
 
     ```haskell
     !!!singletons/DoorSingletons.hs "openAnyDoor ::"1

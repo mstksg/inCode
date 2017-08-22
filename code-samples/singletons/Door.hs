@@ -13,16 +13,16 @@ import Data.Kind
 data DoorState = Opened | Closed | Locked
   deriving (Show, Eq)
 
-data Door (s :: DoorState) = UnsafeMkDoor
+data Door (s :: DoorState) = UnsafeMkDoor String
 
 closeDoor :: Door 'Opened -> Door 'Closed
-closeDoor UnsafeMkDoor = UnsafeMkDoor
+closeDoor (UnsafeMkDoor m) = UnsafeMkDoor m
 
 lockDoor :: Door 'Closed -> Door 'Locked
-lockDoor UnsafeMkDoor = UnsafeMkDoor
+lockDoor (UnsafeMkDoor m) = UnsafeMkDoor m
 
 openDoor :: Door 'Closed -> Door 'Opened
-openDoor UnsafeMkDoor = UnsafeMkDoor
+openDoor (UnsafeMkDoor m) = (UnsafeMkDoor m)
 
 data SingDS :: DoorState -> Type where
     SOpened :: SingDS 'Opened
@@ -69,7 +69,7 @@ withSingDSI s x = case s of
 lockAnyDoor__ :: SingDS s -> Door s -> Door 'Locked
 lockAnyDoor__ s d = withSingDSI s (lockAnyDoor_ d)
 
-mkDoor :: SingDS s -> Door s
+mkDoor :: SingDS s -> String -> Door s
 mkDoor = \case
     SOpened -> UnsafeMkDoor
     SClosed -> UnsafeMkDoor
@@ -87,11 +87,11 @@ closeSomeDoor = \case
 lockAnySomeDoor :: SomeDoor -> Door 'Locked
 lockAnySomeDoor (MkSomeDoor s d) = lockAnyDoor s d
 
-mkSomeDoor :: DoorState -> SomeDoor
+mkSomeDoor :: DoorState -> String -> SomeDoor
 mkSomeDoor = \case
-    Opened -> MkSomeDoor SOpened (mkDoor SOpened)
-    Closed -> MkSomeDoor SClosed (mkDoor SClosed)
-    Locked -> MkSomeDoor SLocked (mkDoor SLocked)
+    Opened -> MkSomeDoor SOpened . mkDoor SOpened
+    Closed -> MkSomeDoor SClosed . mkDoor SClosed
+    Locked -> MkSomeDoor SLocked . mkDoor SLocked
 
 main :: IO ()
 main = return ()

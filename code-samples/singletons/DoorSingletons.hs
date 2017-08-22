@@ -20,16 +20,16 @@ $(singletons [d|
   |])
 
 data Door :: DoorState -> Type where
-    UnsafeMkDoor :: Door s
+    UnsafeMkDoor :: String -> Door s
 
 closeDoor :: Door 'Opened -> Door 'Closed
-closeDoor UnsafeMkDoor = UnsafeMkDoor
+closeDoor (UnsafeMkDoor m) = (UnsafeMkDoor m)
 
 lockDoor :: Door 'Closed -> Door 'Locked
-lockDoor UnsafeMkDoor = UnsafeMkDoor
+lockDoor (UnsafeMkDoor m) = (UnsafeMkDoor m)
 
 openDoor :: Door 'Closed -> Door 'Opened
-openDoor UnsafeMkDoor = UnsafeMkDoor
+openDoor (UnsafeMkDoor m) = UnsafeMkDoor m
 
 doorStatus :: Sing s -> Door s -> DoorState
 doorStatus = \case
@@ -52,7 +52,7 @@ doorStatus_ = doorStatus sing
 lockAnyDoor_ :: SingI s => Door s -> Door 'Locked
 lockAnyDoor_ = lockAnyDoor sing
 
-mkDoor :: Sing s -> Door s
+mkDoor :: Sing s -> String -> Door s
 mkDoor = \case
     SOpened -> UnsafeMkDoor
     SClosed -> UnsafeMkDoor
@@ -70,11 +70,11 @@ closeSomeDoor = \case
 lockAnySomeDoor :: SomeDoor -> SomeDoor
 lockAnySomeDoor (MkSomeDoor s d) = MkSomeDoor SLocked (lockAnyDoor s d)
 
-mkSomeDoor :: DoorState -> SomeDoor
+mkSomeDoor :: DoorState -> String -> SomeDoor
 mkSomeDoor = \case
-    Opened -> MkSomeDoor SOpened (mkDoor SOpened)
-    Closed -> MkSomeDoor SClosed (mkDoor SClosed)
-    Locked -> MkSomeDoor SLocked (mkDoor SLocked)
+    Opened -> MkSomeDoor SOpened . mkDoor SOpened
+    Closed -> MkSomeDoor SClosed . mkDoor SClosed
+    Locked -> MkSomeDoor SLocked . mkDoor SLocked
 
 main :: IO ()
 main = return ()
@@ -83,8 +83,9 @@ main = return ()
 -- Exercises
 
 unlockDoor :: Int -> Door 'Locked -> Maybe (Door 'Closed)
-unlockDoor n _ | n `mod` 2 == 1 = Just $ mkDoor SClosed
-               | otherwise      = Nothing
+unlockDoor n (UnsafeMkDoor m)
+    | n `mod` 2 == 1 = Just (UnsafeMkDoor m)
+    | otherwise      = Nothing
 
 openAnyDoor :: SingI s => Int -> Door s -> Maybe (Door 'Opened)
 openAnyDoor n = openAnyDoor_ sing
