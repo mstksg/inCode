@@ -1,10 +1,11 @@
 #!/usr/bin/env stack
--- stack --install-ghc runghc --resolver nightly-2017-07-31
+-- stack --install-ghc runghc --resolver nightly-2017-08-20
 
 {-# LANGUAGE DataKinds      #-}
 {-# LANGUAGE GADTs          #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE LambdaCase     #-}
+{-# LANGUAGE RankNTypes     #-}
 {-# LANGUAGE TypeInType     #-}
 
 import Data.Kind
@@ -59,6 +60,15 @@ doorStatus_ = doorStatus singDS
 lockAnyDoor_ :: SingDSI s => Door s -> Door 'Locked
 lockAnyDoor_ = lockAnyDoor singDS
 
+withSingDSI :: SingDS s -> (SingDSI s => r) -> r
+withSingDSI s x = case s of
+    SOpened -> x
+    SClosed -> x
+    SLocked -> x
+
+lockAnyDoor__ :: SingDS s -> Door s -> Door 'Locked
+lockAnyDoor__ s d = withSingDSI s (lockAnyDoor_ d)
+
 mkDoor :: SingDS s -> Door s
 mkDoor = \case
     SOpened -> UnsafeMkDoor
@@ -68,14 +78,14 @@ mkDoor = \case
 data SomeDoor :: Type where
     MkSomeDoor :: SingDS s -> Door s -> SomeDoor
 
-closeSomeDoor :: SomeDoor -> Maybe SomeDoor
+closeSomeDoor :: SomeDoor -> Maybe (Door 'Closed)
 closeSomeDoor = \case
-    MkSomeDoor SOpened d -> Just $ MkSomeDoor SClosed (closeDoor d)
+    MkSomeDoor SOpened d -> Just (closeDoor d)
     MkSomeDoor SClosed _ -> Nothing
     MkSomeDoor SLocked _ -> Nothing
 
-lockAnySomeDoor :: SomeDoor -> SomeDoor
-lockAnySomeDoor (MkSomeDoor s d) = MkSomeDoor SLocked (lockAnyDoor s d)
+lockAnySomeDoor :: SomeDoor -> Door 'Locked
+lockAnySomeDoor (MkSomeDoor s d) = lockAnyDoor s d
 
 mkSomeDoor :: DoorState -> SomeDoor
 mkSomeDoor = \case

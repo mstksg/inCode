@@ -35,12 +35,28 @@ These posts will assume no knowledge of dependent types, and, for now, only
 basic to intermediate Haskell knowledge. (Types, kinds, typeclasses, data
 types, functions)
 
-All code is built on *GHC 8.2.1* and with the *[nightly-2017-07-30][snapshot]*
+All code is built on *GHC 8.2.1* and with the *[nightly-2017-08-20][snapshot]*
 snapshot (so, singletons-2.3).  However, there are negligible changes in the
 GHC type system between GHC 8.0 and 8.2 (the only difference is in the
 libraries, more or less), so everything should work on GHC 8.0 as well!
 
-[snapshot]: https://www.stackage.org/nightly-2017-07-31
+[snapshot]: https://www.stackage.org/nightly-2017-08-20
+
+The content in the first section of this post, describing the singleton design
+pattern, uses the following extensions:
+
+*   DataKinds
+*   GADTs
+*   KindSignatures
+*   RankNTypes
+*   TypeInType
+
+And the second section, introducing the library itself, uses, on top of these:
+
+*   TypeFamilies
+*   TemplateHaskell
+
+These extension will be explained when they are used or become relevant.
 
 The Phantom of the Types
 ------------------------
@@ -343,9 +359,38 @@ Earlier, I disparaged the "ad-hoc typeclass" approach.  But, here, the
 typeclass isn't quite ad-hoc; it's basically exactly carrying around an
 implicit witness of `s` that we can grab at any time.
 
+So, it's important to remember that `doorStatus` and `doorStatus_` are the
+"same function", with the same power.  They are just written in different
+styles -- `doorStatus` is written in explicit style, and `doorStatus_` is
+written in implicit style.
+
+#### Going backwards
+
+Going from `SingDSI s =>` to `SingDS s ->` (implicit to explicit) is very easy
+-- just use `singDS` to get a `SingDS s` if you have a `SingDSI s` constraint
+available.
+
+Going from `SingDS s ->` to `SingDSI s =>` (explicit to implicit) in Haskell is
+actually a little trickier.  The typical way to do this is with a CPS-like
+utility function:
+
+```haskell
+!!!singletons/Door.hs "withSingDSI ::"
+```
+
+`withSingDSI` takes a `SingDS s`, and a value (of type `r`) that requires a
+`SingDSI s` instance to be created.  And it creates that value for you!
+
+So now we can run our implicit functions (like `lockAnyDoor_`) by giving them
+explicit inputs:
+
+```haskell
+!!!singletons/Door.hs "lockAnyDoor__ ::"
+```
+
 ### Fun with Witnesses
 
-We can write a nice version of `mkDoor` this way:
+We can write a nice version of `mkDoor` using singletons:
 
 ```haskell
 !!!singletons/Door.hs "mkDoor ::"
@@ -447,15 +492,15 @@ So we can implement `closeSomeDoor` (and even a `lockAnySomeDoor`) using this
 conversion function:
 
 ```haskell
-closeSomeDoor :: SomeDoor -> Maybe SomeDoor
+closeSomeDoor :: SomeDoor -> Maybe (Door 'Closed)
 closeSomeDoor sd = withSomeDoor sd $ \case
-    SOpened -> \d -> Just $ mkSomeDoor SClosed (closeDoor d)
+    SOpened -> \d -> Just $ closeDoor d
     SClosed -> \_ -> Nothing
     SLocked -> \_ -> Nothing
 
-lockAnySomeDoor :: SomeDoor -> SomeDoor
+lockAnySomeDoor :: SomeDoor -> Door 'Locked
 lockAnySomeDoor sd = withSomeDoor sd $ \s d ->
-    mkSomeDoor SLocked (lockAnyDoor s d)
+    lockAnyDoor s d
 ```
 
 #### The Existential Datatype
@@ -578,9 +623,9 @@ data Sing :: DoorState -> Type where
     SLocked :: Sing 'Locked
 ```
 
-`Sing` is a poly-kinded type constructor (family).  `STrue :: Sing 'True` is the
-singleton for `'True`, `SJust SOpened :: Sing ('Just 'Opened)` is the singleton
-for `'Just 'Opened`, etc.
+`Sing` is a poly-kinded type constructor (a "data family").  `STrue :: Sing
+'True` is the singleton for `'True`, `SJust SOpened :: Sing ('Just 'Opened)` is
+the singleton for `'Just 'Opened`, etc.
 
 It also generates us instances for `SingI`, a poly-kinded typeclass:
 
@@ -608,6 +653,9 @@ The great thing about the library is that these types and instances are
 generated, that they're correct (note that I could have implemented `SingDSI`
 incorrectly...using the library guarantees that I don't), and that they all
 work together.
+
+We also have `withSingI`, which is equivalent to our `withSingDSI` function
+earlier.
 
 Note that if you have singletons for a kind `k`, you also have instances for
 kind `Maybe k`, as well.  And also for `[k]`, even!
@@ -682,6 +730,9 @@ associating each type to the corresponding datakinds-generated kind.  The
 `SingKind` instance for `DoorState` links the type `DoorState` to the kind
 `DoorState`.
 
+The library also defines a neat type synonym, `type SDoorState = Sing`, so you
+can do `SDoorState 'Opened` instead of `Sing 'Opened`, if you wish!
+
 There are definitely more useful utility functions, but we will investigate
 these later on in the series!  For now, you can look at the [documentation][]
 for the library to see more interesting utility functions!
@@ -691,11 +742,10 @@ for the library to see more interesting utility functions!
 The Singularity
 ---------------
 
-In this post, we looked the opportunity for using the singleton pattern to give
-us more power when using phantom types, enabling us to do things that we
-normally couldn't do.  Then, we looked at how the *singletons* library makes
-using this pattern extremely easy and smooth to integrate into your existing
-code.
+In this post, at shortcomings in the usage of phantom types, and then saw how
+singletons could help us with these.  Then, we looked at how the *singletons*
+**library** makes using this pattern extremely easy and smooth to integrate
+into your existing code.
 
 You can see all of the "manual singletons" code in this post
 [here][manual-door], and then see the code re-implemented using the
@@ -704,17 +754,58 @@ You can see all of the "manual singletons" code in this post
 !!![manual-door]:singletons/Door.hs
 !!![singletons-door]:singletons/DoorSingletons.hs
 
-Today we almost exclusively looked at programming with phantom types.  However,
-you also might have heard about singletons enabling "type-level programming",
-as well, and providing tools for writing writing full programs at the type
-level.
-
-Be sure to come back as we go deeper into more advanced techniques for
-programming with singletons for phantom types, more sophisticated type-level
-constraints and logic, and then also into the wonderful world that is
-type-level programming!  And we'll see how the singletons library is a very
-clean unification of a lot of concepts.
+However, full expressively with phantom types is still out of our reach.  If we
+want to express more complicated relationships and to be able to treat phantom
+types (and *types*, in general) as first-class values, and delve into the
+frighteningly beautiful world of "type-level programming", we are going to have
+to dig a bit deeper.  Come back for the next post to see how!  Singletons will
+be our tool, and we'll also see how the singletons library is a very clean
+unification of a lot of concepts.
 
 As always, let me know in the comments if you have any questions!  You can also
 usually find me idling on the freenode `#haskell` channel, as well, as *jle\`*.
 Happy haskelling!
+
+Exercises
+---------
+
+Click on the links in the corner of the text boxes for solutions!
+
+1.  Write a function to unlock a door, but only if the user enters an odd
+    number (a password).
+
+    ```haskell
+    !!!singletons/DoorSingletons.hs "unlockDoor ::"1
+    ```
+
+    It should return a closed door in `Just` if the caller gives an odd number,
+    or `Nothing` otherwise.
+
+2.  Write a function that can open any door, taking an optional password.
+
+    ```haskell
+    !!!singletons/DoorSingletons.hs "openAnyDoor ::"1
+    ```
+
+    This should be written in terms of `unlockDoor` and `openDoor`.
+
+    If the door is already unlocked or opened, it should ignore the `Int`
+    input.
+
+3.  Implement `withSomeDoor` for our "new" existentially quantified `SomeDoor`
+    type.
+
+    ```haskell
+    !!!singletons/DoorSingletons.hs "withSomeDoor ::"1
+    ```
+
+4.  Implement `openAnySomeDoor`, which should work like `lockAnySomeDoor`, just
+    wrapping an application of `openAnyDoor` inside a `SomeDoor`.
+
+    ```haskell
+    !!!singletons/DoorSingletons.hs "openAnySomeDoor ::"1
+    ```
+
+    Note that because we wrote `openAnyDoor` in "implicit style", we might have
+    to convert between `SingI s =>` and `Sing s ->` style, using `withSingI`.
+

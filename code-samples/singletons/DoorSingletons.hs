@@ -1,10 +1,11 @@
 #!/usr/bin/env stack
--- stack --install-ghc runghc --resolver nightly-2017-07-31 --package singletons
+-- stack --install-ghc runghc --resolver nightly-2017-08-20 --package singletons
 
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE KindSignatures      #-}
 {-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeFamilies        #-}
@@ -78,3 +79,26 @@ mkSomeDoor = \case
 main :: IO ()
 main = return ()
 
+
+-- Exercises
+
+unlockDoor :: Int -> Door 'Locked -> Maybe (Door 'Closed)
+unlockDoor n _ | n `mod` 2 == 1 = Just $ mkDoor SClosed
+               | otherwise      = Nothing
+
+openAnyDoor :: SingI s => Int -> Door s -> Maybe (Door 'Opened)
+openAnyDoor n = openAnyDoor_ sing
+  where
+    openAnyDoor_ :: Sing s -> Door s -> Maybe (Door 'Opened)
+    openAnyDoor_ = \case
+      SOpened -> Just
+      SClosed -> Just . openDoor
+      SLocked -> fmap openDoor . unlockDoor n
+
+openAnySomeDoor :: Int -> SomeDoor -> Maybe (Door 'Opened)
+openAnySomeDoor n (MkSomeDoor s d) = withSingI s $
+    openAnyDoor n d
+
+withSomeDoor :: SomeDoor -> (forall s. Sing s -> Door s -> r) -> r
+withSomeDoor sd f = case sd of
+    MkSomeDoor s d -> f s d
