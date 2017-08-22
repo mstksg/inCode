@@ -771,6 +771,10 @@ Exercises
 
 Click on the links in the corner of the text boxes for solutions!
 
+These should be written in the singletons library style, with `Sing` instead of
+`SingDS` and `SingI` instead of `SingDSI`.  Review the [singletons
+file][singletons-door] for a comparison, if you are still unfamiliar.
+
 1.  Write a function to unlock a door, but only if the user enters an odd
     number (a password).
 
