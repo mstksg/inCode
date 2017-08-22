@@ -84,4 +84,4 @@ mkSomeDoor = \case
     Locked -> MkSomeDoor SLocked (mkDoor SLocked)
 
 main :: IO ()
-main = putStrLn "hi"
+main = return ()
