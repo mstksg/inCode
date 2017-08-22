@@ -23,11 +23,4 @@
 /output
 /bower_components
 
-/copy/entries/*
-/copy/entries-old
-/config/migrate
-/copy/tags
-/static/img/entries
-/code-samples
-
 /copy/entries/placeholder.md
