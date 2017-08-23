@@ -33,7 +33,11 @@ expand on it eventually.
 
 These posts will assume no knowledge of dependent types, and, for now, only
 basic to intermediate Haskell knowledge. (Types, kinds, typeclasses, data
-types, functions)
+types, functions)  The material in this post greatly *overlaps* with my
+[dependently typed neural networks][ann] series, but some of the concepts are
+introduced in different contexts.
+
+[ann]: https://blog.jle.im/entry/practical-dependent-types-in-haskell-1.html
 
 All code is built on *GHC 8.2.1* and with the *[nightly-2017-08-20][snapshot]*
 snapshot (so, singletons-2.3).  However, there are negligible changes in the
@@ -551,14 +555,14 @@ data type:
 ```
 
 It's important to remember that our original separate-implementation `SomeDoor`
-is, functionally, identical to the new reusing-`Door` `SomeDoor`.  The key?
-*Having an existentially quantified singleton is the same as having a value of
-the corresponding type.*  Having an existentially quantified `SingDS` is the
-same as having a value of type `DoorState`.
+is, functionally, identical to the new code-reusing `SomeDoor`.  The reason why
+they are the same is that *having an existentially quantified singleton is the
+same as having a value of the corresponding type.*  Having an existentially
+quantified `SingDS` is the same as having a value of type `DoorState`.
 
-If they're identical, why use a `SingDS`?  Why use the new `SomeDoor` at all?
-The main reason is that *using the singleton lets us recover the type*.
-Essentially, a `SingDS s` not only contains whether it is
+If they're identical, why use a `SingDS` or the new `SomeDoor` at all?  One
+main reason (besides allowing code-reuse) is that *using the singleton lets us
+recover the type*. Essentially, a `SingDS s` not only contains whether it is
 Opened/Closed/Locked...it contains it in a way that GHC can use to bring it all
 back to the type level.
 
