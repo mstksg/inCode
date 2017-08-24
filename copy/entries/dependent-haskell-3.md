@@ -66,8 +66,11 @@ programs.
 
 In the context of dependent types (in Haskell), a "proof" is general
 (non-rigorous, informal) term for a *runtime value* that GHC/Haskell can use
-for *type-level* shenanigans.  It's the critical *run-time* values that we use
-to power our *type-level* fun.  It's also commonly known as a "witness".
+for *type-level* shenanigans.  In other words, it's a *term-level* witness for
+a *type-level* truth.
+
+It's the critical *run-time* values that we use to power our *type-level* fun,
+and are also commonly known as "witnesses".
 
 I don't believe there is any rigorous definition, but the term comes up
 whenever we talk about generating or using run-time values that give us
