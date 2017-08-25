@@ -137,7 +137,7 @@ isLTE :: Sing n -> Sing m -> Decision (LTE n m)
 isLTE = \case
     SZ   -> \_ -> Proved LEZ
     SS n -> \case
-      SZ -> Disproved $ \case
+      SZ -> Disproved $ \case       -- EmptyCase
       SS m -> case isLTE n m of
         Proved l    -> Proved $ LES l
         Disproved p -> Disproved $ \case
