@@ -104,13 +104,18 @@ withVec = \case
     x:xs -> \f -> withVec xs $ \l ys ->
         f (SS l) (x :+ ys)
 
-exactLength_ :: Sing m -> Sing n -> Vec n a -> Maybe (Vec m a)
-exactLength_ sM sN v = case sM %~ sN of
-    Proved Refl -> Just v
-    Disproved _  -> Nothing
+vecLength :: Vec n a -> Sing n
+vecLength = \case
+    VNil    -> SZ
+    _ :+ xs -> SS (vecLength xs)
 
-exactLength :: (SingI m, SingI n) => Vec n a -> Maybe (Vec m a)
-exactLength = exactLength_ sing sing
+exactLength_ :: Sing m -> Vec n a -> Maybe (Vec m a)
+exactLength_ sM v = case sM %~ (vecLength v) of
+    Proved Refl -> Just v
+    Disproved _ -> Nothing
+
+exactLength :: SingI m => Vec n a -> Maybe (Vec m a)
+exactLength = exactLength_ sing
 
 exactLengthInductive_ :: Sing m -> Vec n a -> Maybe (Vec m a)
 exactLengthInductive_ = \case
@@ -138,13 +143,25 @@ isLTE = \case
         Disproved p -> Disproved $ \case
           LES l -> p l
 
-inRange_ :: Sing n -> Sing m -> Vec n a -> Maybe (LTE n m, Vec n a)
-inRange_ sN sM v = case isLTE sN sM of
+atLeast_ :: Sing n -> Vec m a -> Maybe (LTE n m, Vec m a)
+atLeast_ sN v = case isLTE sN (vecLength v) of
     Proved l    -> Just (l, v)
     Disproved _ -> Nothing
 
-inRange :: SingI n => Sing m -> Vec n a -> Maybe (LTE n m, Vec n a)
-inRange = inRange_ sing
+atLeast :: SingI n => Vec m a -> Maybe (LTE n m, Vec m a)
+atLeast = atLeast_ sing
+
+takeVec :: LTE n m -> Vec m a -> Vec n a
+takeVec = \case
+    LEZ   -> \_ -> VNil
+    LES l -> \case
+      x :+ xs -> x :+ takeVec l xs
+
+takeVecMaybe_ :: Sing n -> Vec m a -> Maybe (Vec n a)
+takeVecMaybe_ sN v = uncurry takeVec <$> atLeast_ sN v
+
+takeVecMaybe :: SingI n => Vec m a -> Maybe (Vec n a)
+takeVecMaybe v = uncurry takeVec <$> atLeast v
 
 main :: IO ()
 main = return ()

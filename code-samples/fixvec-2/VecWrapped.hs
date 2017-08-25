@@ -66,14 +66,14 @@ generate f = UnsafeMkVec $ V.generate l (f . fromIntegral)
     l = fromIntegral (natVal (Proxy @n))
 
 getThird :: V.Vector a -> Maybe a
-getThird v0 = withVec v0 $ \v -> fmap (v `index`) (packFinite 2)
+getThird v = withVec v $ \v' -> fmap (v' `index`) (packFinite 2)
 
 vectorToVector :: V.Vector a -> V.Vector a
 vectorToVector v = withVec v getVector
 
 withVec :: V.Vector a -> (forall n. KnownNat n => Vec n a -> r) -> r
-withVec v0 f = case someNatVal (fromIntegral (V.length v0)) of
-    SomeNat (Proxy :: Proxy m) -> f (UnsafeMkVec @m v0)
+withVec v f = case someNatVal (fromIntegral (V.length v)) of
+    SomeNat (Proxy :: Proxy m) -> f (UnsafeMkVec @m v)
 
 exactLength :: forall n m a. (KnownNat n, KnownNat m) => Vec n a -> Maybe (Vec m a)
 exactLength v = case sameNat (Proxy @n) (Proxy @m) of

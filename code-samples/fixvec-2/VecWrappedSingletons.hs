@@ -38,8 +38,8 @@ replicate :: KnownNat n => a -> Vec n a
 replicate = replicate_ sing
 
 withVec :: V.Vector a -> (forall n. Sing n -> Vec n a -> r) -> r
-withVec v0 f = case toSing (fromIntegral (V.length v0)) of
-    SomeSing s -> f s (UnsafeMkVec v0)
+withVec v f = case toSing (fromIntegral (V.length v)) of
+    SomeSing s -> f s (UnsafeMkVec v)
 
 exactLength_ :: Sing m -> Sing n -> Vec n a -> Maybe (Vec m a)
 exactLength_ sM sN v = case sM %~ sN of

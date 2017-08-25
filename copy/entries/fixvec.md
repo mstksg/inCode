@@ -10,6 +10,17 @@ old-slugs:
 entry-id: 38
 ---
 
+***Update***: This post was written by me when I was just starting to learn
+about type-level things in Haskell, and reflects my own inexperience at the
+time of writing it.  I have [released an update][update], which presents what I
+hope to be an introduction that is more grounded in modern Haskell and
+dependent type idioms.
+
+[update]: https://blog.jle.im/entry/fixed-length-vector-types-in-haskell.html
+
+Original Article (written in 2015)
+----------------------------------
+
 Fixed-length vector types (vector types that indicate the length of the vector
 in the type itself) are one of the more straightforward applications of the
 "super-Haskell" GHC type extensions.  There's a lot of magic you can do with
