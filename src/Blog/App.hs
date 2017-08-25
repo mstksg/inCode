@@ -63,6 +63,7 @@ app znow@(ZonedTime _ tz) = do
       compile $ sassCompilerWith
                   def { sassIncludePaths = Just ["scss"]
                       , sassFunctions    = Just $ renderSassUrl : concat (sassFunctions def)
+                      , sassOutputStyle  = SassStyleCompressed
                       }
 
     match "js/**" $ do

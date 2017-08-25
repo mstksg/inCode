@@ -11,21 +11,11 @@ packages:
     git: https://github.com/mstksg/jle-utils.git
     commit: 75ed7acaf74c6d00d581c0e7e147bb9afcf190df
   extra-dep: false
-# - location:
-#     git: https://github.com/goldfirere/singletons
-#     commit: f6516af95f2421f9509abfb992523d430e00b6ad
-#   extra-dep: true
-
 
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
 extra-deps:
 - hakyll-4.9.8.0
-- hakyll-sass-0.2.0
-- hmatrix-0.18.0.0
-- hmatrix-gsl-0.18.0.1
-- optparse-applicative-0.13.0.0
-- hamilton-0.1.0.0
-- vector-sized-0.4.1.0
+- hakyll-sass-0.2.3
 
 # Override default flag values for local packages and extra-deps
 flags:
