@@ -1034,6 +1034,10 @@ convert the tail `xs` into a vector (`ys`) and its corresponding
 length-singleton (`l`), and then we give `f` the "correct" length singleton of
 our complete vector (`SS l`) and the correct complete vector (`x :+ ys`)
 
+One nice property where (in contrast with our previous non-structural
+`withVec`) is that GHC ensures that the length of the vector we give to `f` is
+actually what we claim it is.
+
 ### Verifying properties
 
 We can create some corresponding example of `exactLength` using the exact same
@@ -1047,8 +1051,8 @@ the vector itself:
 ```
 
 The type of `vecLength :: Vec n a -> Sing n` says that it is possible, from the
-structure of the vector given, to get a witness to its length.  And, because
-the structure of the vector and the structure of the length type are so
+structure of the vector given alone, to get a witness to its length.  And,
+because the structure of the vector and the structure of the length type are so
 similar, this is possible! (Note that this is not possible for our
 non-structural "wrapped" `Vec`, without some unsafe operations)
 
@@ -1073,7 +1077,10 @@ want and the vector, so it might be fun to look at this version instead --
 This is another way you can take advantage of the *structure* of the length
 type.  Here, we explicitly take advantage of the inductive structure of the
 `Nat` type and how it matches with the structure of the `Vec` type, and do bold
-things with it!
+things with it![^eli]
+
+[^eli]: Note, however, that if you unroll the definition of `%~` for `Nat`, you
+pretty much get the exact same thing.
 
 But I digress.  Like in the last section, checking for a given length is
 literally the least interesting property you can check for.  But, again, the

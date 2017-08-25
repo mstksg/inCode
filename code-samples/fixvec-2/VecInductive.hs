@@ -110,7 +110,7 @@ vecLength = \case
     _ :+ xs -> SS (vecLength xs)
 
 exactLength_ :: Sing m -> Vec n a -> Maybe (Vec m a)
-exactLength_ sM v = case sM %~ (vecLength v) of
+exactLength_ sM v = case sM %~ vecLength v of
     Proved Refl -> Just v
     Disproved _ -> Nothing
 
