@@ -179,8 +179,11 @@ So, why bother?  For us, here, our fixed-length vector types basically act as
 ```haskell
 -- | Maps the function over the items in the vector, returning a vector of the
 -- same length
-mapVec :: V.Vector a -> V.Vector a -> V.Vector a
+V.map :: V.Vector a -> V.Vector a -> V.Vector a
 ```
+
+Which is the type signature we'd have to write for a map of an "unsized" vector
+(like from the *Data.Vector* module)
 
 We have to rely on the documentation to *tell* us what the length of the final
 resulting vector is, even though it can be known statically if you know the
