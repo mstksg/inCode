@@ -972,7 +972,7 @@ ecosystem remains inductive.
 Now, to write `replicate`:
 
 ```haskell
-!!!fixvec-2/VecInductive.hs "replicate_ ::"
+!!!fixvec-2/VecInductive.hs "replicate ::"
 ```
 
 And we can recover our original "implicit" style, with type-inference-driven
