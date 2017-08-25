@@ -41,6 +41,16 @@ zipVec = \case
     x :+ xs -> \case
       y :+ ys -> (x,y) :+ zipVec xs ys
 
+splitVec_ :: Sing n -> Vec (n + m) a -> (Vec n a, Vec m a)
+splitVec_ = \case
+    SZ   -> \xs -> (VNil, xs)
+    SS l -> \case
+      x :+ xs -> case splitVec_ l xs of
+        (ys, zs) -> (x :+ ys, zs)
+
+splitVec :: SingI n => Vec (n + m) a -> (Vec n a, Vec m a)
+splitVec = splitVec_ sing
+
 type family (n :: Nat) + (m :: Nat) :: Nat where
     'Z   + m = m
     'S n + m = 'S (n + m)

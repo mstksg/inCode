@@ -16,13 +16,16 @@ post was a way for me to push myself to learn more.
 [2015]: https://blog.jle.im/entry/fixed-length-vector-types-in-haskell-2015.html
 
 Immediately after it was posted, people taught me where I went wrong in the
-idioms I explained, and better and more idiomatic ways to do things.
-Unfortunately, I have noticed people referring to the post in a
-canonical/authoritative way...so the post became an immediate regret to me.  I
-tried correcting things with my [practical dependent types in
-haskell][deptypes] series the next year, which incorporated what I had learned.
-But I still saw my 2015 post being used as a reference, so I figured that
-writing a direct replacement/follow-up as the only way I would ever fix this!
+idioms I explained, and better and more idiomatic ways to do things.  And
+that's great!  Learning is awesome!
+
+Unfortunately, however, to my horror, I began noticing people referring to the
+post in a canonical/authoritative way...so the post became an immediate source
+of guilt to me.  I tried correcting things with my [practical dependent types
+in haskell][deptypes] series the next year, which incorporated what I had
+learned.  But I still saw my 2015 post being used as a reference even after
+that post, so I figured that writing a direct replacement/follow-up as the only
+way I would ever fix this!
 
 [deptypes]: https://blog.jle.im/entries/series/+practical-dependent-types-in-haskell.html
 
@@ -614,15 +617,31 @@ withKnownNat :: Sing n -> (KnownNat n => r) -> r
 !!!fixvec-2/VecWrappedSingletons.hs "generate ::"
 ```
 
+You can see most of our original code (with pure `KnownNat`) rewritten to work
+with singletons in [this file][VecWrappedSingletons].
+
+!!![VecWrappedSingletons]:fixvec-2/VecWrappedSingletons.hs
+
+#### Why Singletons?
+
 As you can see, singletons-style programming completely subsumes programming
 with `TypeNats` and `KnownNat`.  What we don't see here is that singletons
 style integrates very well with the rest of the singletons ecosystem...so you
 might just have to take my word for it :)
 
-You can see most of our original code (with pure `KnownNat`) rewritten to work
-with singletons in [this file][VecWrappedSingletons].
+What we have just witnessed is the bridge between the singletons ecosystem and
+the rest of the Haskell ecosystem's usage of `GHC.TypeNats`.  `KnownNat`,
+because it is provided by GHC itself, is universal.  However, I recommend any
+new projects or libraries you write that do *anything* more than the most
+trivial of usages of `KnownNat` should take a look at doing things
+singletons-style.
 
-!!![VecWrappedSingletons]:fixvec-2/VecWrappedSingletons.hs
+Working with just `GHC.TypeNats` and `KnownNat`, you run into limitations very
+quickly unless you stick to very basic things.  And, if you ever work with any
+other type-level stuff, *singletons* integrates very well and very smoothly
+with everything else type-level you do.  If you plan on doing other type-level
+things besides just the most basic, you will not regret starting
+singletons-style from the beginning.
 
 ### Real-World Examples
 
@@ -635,10 +654,9 @@ sized-vector needs.
 [vector-sized]: http://hackage.haskell.org/package/vector-sized
 
 It's also used to great benefit by the *[hmatrix][]* library, which I take
-advantage of in my [dependently typed neural networks][ann] tutorial series.
+advantage of in my [dependently typed neural networks][deptypes] tutorial series.
 
 [hmatrix]: http://hackage.haskell.org/package/hmatrix
-[ann]: https://blog.jle.im/entries/series/+practical-dependent-types-in-haskell.html
 
 It's also provided in the *[linear][]* library, which was one of the first
 major libraries to adopt this style.  However, it offers an incomplete API, and
@@ -785,6 +803,12 @@ speaking, of course.
 For examples where the function we write doesn't exactly match the structure as
 the type family we write, this won't work.  However, it works in these simple
 cases.  Conquering the trickier cases is a problem for another blog post!
+
+And because this is so fun, here is `splitVec`:
+
+```haskell
+!!!fixvec-2/VecInductive.hs "splitVec_ ::" "splitVec ::"
+```
 
 ### Indexing
 
