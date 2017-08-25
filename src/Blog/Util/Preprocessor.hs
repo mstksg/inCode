@@ -31,11 +31,11 @@ preprocessEntry
     :: (?config :: Config)
     => T.Text
     -> Compiler T.Text
-preprocessEntry t = fmap T.unlines . forM (T.lines t) $ \line ->
+preprocessEntry t = fmap (T.intercalate "\n") . forM (T.lines t) $ \line ->
     let (pref,line') = T.span isSpace line
         samp = insertSample . T.strip . T.dropWhile (== '!') $ line'
     in  if "!!!" `T.isPrefixOf` line'
-          then T.unlines . map (pref <>) . T.lines <$> samp
+          then T.intercalate "\n" . map (pref <>) . T.lines <$> samp
           else return line
 
 insertSample
@@ -57,19 +57,18 @@ insertSample sampline =
   where
     spec' = runP sampleSpec () (T.unpack sampline) sampline
 
-
 processSample :: (?config :: Config) => SampleSpec -> T.Text -> Either [String] T.Text
 processSample SampleSpec{..} rawSamp = do
     blocks <- if null sKeywords
       then Right [( (snd . head &&& snd . last) zipped
-                  , T.unlines (map fst zipped)        )
+                  , T.intercalate "\n" (map fst zipped)        )
                  ]
       else
         runErrors . for sKeywords $ \(k,l) ->
           maybe (failure [k]) pure $ grabBlock zipped k l
     let startLine = minimum . map (fst . fst) $ blocks
         endLine   = maximum . map (snd . fst) $ blocks
-        sampCode  = T.unlines . map snd $ blocks
+        sampCode  = T.intercalate "\n\n" . map snd $ blocks
         sourceUrl = do
           blob  <- T.unpack <$> sourceBlobs     ?config
           samps <- T.unpack <$> confCodeSamples ?config
@@ -115,7 +114,7 @@ grabBlock zipped key limit = do
         Nothing  -> zHead ++ zBlock'
     startLine     = snd <$> listToMaybe zAll
     endLine       = snd <$> listToMaybe (reverse zAll)
-    sampCode      = T.unlines . map fst $ zAll
+    sampCode      = T.intercalate "\n" . map fst $ zAll
 
 sampleSpec :: Parser SampleSpec
 sampleSpec = do

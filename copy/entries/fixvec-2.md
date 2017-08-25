@@ -191,17 +191,48 @@ catch errors in logic at compile-time instead of runtime!
 ```haskell
 -- the resulting vector's length is the sum of the input vectors' lengths
 !!!fixvec-2/VecWrapped.hs "(++) ::"
+
 -- you must zip two vectors of the same length
 !!!fixvec-2/VecWrapped.hs "zipVec ::"
-zipVec :: Vec n a -> Vec n b -> Vec n (a, b)
+
 -- type-level arithmetic to let us 'take'
 !!!fixvec-2/VecWrapped.hs "takeVec ::"
+
 -- splitAt, as well
 !!!fixvec-2/VecWrapped.hs "splitVec ::"
 ```
 
 Here, `(+)` comes from *[GHC.TypeNats][]*, which provides it as a type family (type-level
 function) we can use, with proper meaning and semantics.
+
+#### On the typechecker
+
+GHC's typechecker works very well with concrete, monomorphic `Nat`s.  For
+example, `5 + 3` will always typecheck as `8`, so you don't have to worry at
+all about `takeVec`, `(++)`, and `splitVec`'s usage of `(+)` if you work with
+monomorphic, specific `Nat`s.
+
+However, GHC treats `(+)` "opaquely" when using using it with polymorphic type
+variables.  That means that `n + (m + o)` is seen as a completely different
+type to GHC than `(n + m) + o` -- GHC doesn't reduce `+`, and to it, they both
+just look like different trees.  Remember that one is `(+) n ((+) m o)`, and
+the other is `(+) ((+) n m) o`.  Completely different structure!
+
+This comes up as an issue when you start doing non-trivial things, so it
+sometimes helps to augment GHC's typechecker.
+
+The *[ghc-typelits-natnormalise][gtn]* package provides such a plugin.  If we
+pass it as a flag to GHC (as `-fplugin GHC.TypeLits.NatNormalise`) or as a
+pragma:
+
+[gtn]: https://hackage.haskell.org/package/ghc-typelits-natnormalise
+
+```haskell
+{-# OPTIONS_GHC -fplugin GHC.TypeLits.Normalise #-}
+```
+
+Then GHC will be able to recognize the fact that `n + (m + o)` and `(n + m) +
+o` are the same, and will unify them during typechecking.
 
 ### Indexing
 
@@ -800,11 +831,22 @@ thing, return the second item as-is.  If the first item is a consy thing,
 return the second item consed with the rest of the first item.  Roughly
 speaking, of course.
 
-For examples where the function we write doesn't exactly match the structure as
-the type family we write, this won't work.  However, it works in these simple
-cases.  Conquering the trickier cases is a problem for another blog post!
+This is a part of what we mean when we say that we can take advantage of the
+*structure* of the length type.  Here, the structure of `Nat` aligns so well
+with the structure of `Vec` what we can prove structural properties about `Nat`
+and the `Vec` together by exploiting their shared inductive structure.
 
-And because this is so fun, here is `splitVec`:
+Unfortunately, for examples where the function we write doesn't exactly match
+the structure as the type family we write, this won't work.  And sometimes, the
+structural properties might get in the way of what we are trying to
+prove/produce.  An example here would be a `snoc` function (cons to the end of
+a list).  If you try writing it, you'll see that the structure of `Nat` and
+`Vec` fight back against you pretty hard.  So, exploiting structure isn't
+universally useful, but it definitely helps in many situations!  Handling
+tricky cases like this is a subject for a whole other blog post.
+
+Anyway, before we move on, because this is so fun, here is `splitVec`, an
+example where the structure of `Nat` and `Vec` work together beautifully:
 
 ```haskell
 !!!fixvec-2/VecInductive.hs "splitVec_ ::" "splitVec ::"
@@ -983,6 +1025,11 @@ want and the vector, so it might be fun to look at this version instead --
 !!!fixvec-2/VecInductive.hs "exactLengthInductive_ ::" "exactLengthInductive ::"
 ```
 
+This is another way you can take advantage of the *structure* of the length
+type.  Here, we explicitly take advantage of the inductive structure of the
+`Nat` type and how it matches with the structure of the `Vec` type, and do bold
+things with it!
+
 But I digress.  Like in the last section, checking for a given length is
 literally the least interesting property you can check for.  But, again, the
 same process is usable here: find a way to get your witness, and then pattern
@@ -1029,5 +1076,4 @@ freenode `#haskell` channel, as *jle\`*.  I always welcome feedback,
 suggestions, or questions!
 
 [twitter]: https://twitter.com/mstk
-
 

@@ -1,17 +1,13 @@
 #!/usr/bin/env stack
 -- stack --install-ghc runghc --resolver nightly-2017-08-20 --package finite-typelits --package singletons-2.3.1 -- -Wall
 
--- {-# LANGUAGE TypeOperators    #-}
 {-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE GADTs            #-}
+{-# LANGUAGE GADTs               #-}
 {-# LANGUAGE KindSignatures      #-}
-{-# LANGUAGE RankNTypes       #-}
+{-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 
--- import           Data.Proxy
--- import           GHC.TypeNats
--- import           Prelude hiding        ((++), replicate)
 import           Data.Finite
 import           Data.Singletons
 import           Data.Singletons.Decide
