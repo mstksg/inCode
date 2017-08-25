@@ -32,7 +32,11 @@ What's the "right" way to do fixed-length vectors in Haskell?
 We'll be looking at two methods here: The first one we will be looking at is a
 *performant* fixed-length vector that you will probably be using for any code
 that requires a fixed-length container --- especially for tight numeric code
-and situations where performance matters.
+and situations where performance matters.  We'll see how to implement them
+using the universal native `KnownNat` mechanisms, and also how we can implement
+them using *[singletons][]* to help us make things a bit smoother.
+
+[singletons]: http://hackage.haskell.org/package/singletons
 
 The second one we will be looking at is a *structural* fixed-length inductive
 vector.  It's...actually more like a fixed-length *list* (lazily linked list)
@@ -46,6 +50,11 @@ as an "introduction" to dependently typed programming with inductive proofs.
 
 The Non-Structural Way
 ----------------------
+
+(Code for this section (as well as exercise solutions) are [available
+here][VecWrapped])
+
+!!![VecWrapped]:fixvec-2/VecWrapped.hs
 
 In most situations, if you use vectors, you want some sort of constant-time
 indexed data structure.  The best way to do this in Haskell is to wrap the
@@ -285,10 +294,10 @@ We can be a little more fancy with `replicate`, to get what we normally call
 !!!fixvec-2/VecWrapped.hs "generate ::"
 ```
 
-#### A discussion on the advantages of type-safety
+#### A nuanced discussion on the advantages of type-safety
 
 I think it's an interesting point that we're using `Finite n` in a different
-sense here than in `index`, for different reasons.  In `index`, `Finite` is
+sense here than in `index`, and for different reasons.  In `index`, `Finite` is
 in the "negative" position --- it's something that the function "takes".  In
 `generate`, `Finite` is in the "positive" position --- it's something that the
 function "gives" (to the `f` in `generate f`).
@@ -313,10 +322,10 @@ For example, in `generate`, the fact that the user has to provide a `Finite n
 -> a` tells the user that they have to handle every number between 0 and n-1,
 and nothing else.
 
-### Between Sized and Unsized
+### Moving between Sized and Unsized
 
-One key part of our API is missing: how to convert seamlessly between
-"sized" and "unsized" vectors.
+One key part of our API is missing: how to convert between "sized" and
+"unsized" vectors.
 
 Converting from sized to unsized is easy, and we already have it:
 
@@ -473,7 +482,7 @@ unwraps, but let's pretend it is expensive to construct and re-construct).
 Now we can do:
 
 ```haskell
-zipVec :: Vec n a -> Vec n b -> Vec n (a, b)
+!!!fixvec-2/VecWrapped.hs "zipVec ::"1
 
 !!!fixvec-2/VecWrapped.hs "zipSame ::"
 ```
@@ -503,10 +512,8 @@ for the real world, let's re-implement these things using the *[singletons][]*
 library, which provides a unified interface for type-level programming in
 general.
 
-[singletons]: http://hackage.haskell.org/package/singletons
-
 Instead of `KnownNat`, `Proxy`, `natVal`, `SomeNat`, and `someNatVal`, we can
-use the singletons equivalents, `SingI` (or `Sing`), `fromSing`, `SomeSing`,
+use the singletons equivalents, `Sing`, `fromSing`, `SomeSing`,
 and `toSing`:
 
 ```haskell
@@ -514,7 +521,7 @@ and `toSing`:
 natVal :: KnownNat n => p n -> Natural
 
 -- Singletons style
-sing     :: SingI n => Sing n
+sing     :: KnownNat n => Sing n
 fromSing :: Sing n -> Natural       -- (for n :: Nat)
 
 -- TypeNats style
@@ -531,8 +538,9 @@ withSomeSing :: Natural -> (forall n. Sing n -> r) -> r
 exactLength :: (KnownNat n, KnownNat m) => Proxy n -> Proxy m -> Maybe (n :~: m)
 
 -- Singletons style
+-- from Data.Singletons.Decide
+-- for our purposes, Decision is basically a fancy Maybe
 data Decision a = Proved a | Disproved (a -> Void)
-            -- for our purposes, Decision is basically a fancy Maybe
 (%~) :: Sing n -> Sing m -> Decision (n :~: m)
 ```
 
@@ -541,6 +549,7 @@ two styles.  But here are some practical translations:
 
 ```haskell
 -- "explicit Sing" style
+!!!fixvec-2/VecWrappedSingletons.hs "mkVec_ ::"
 mkVec_ :: Sing n -> V.Vector a -> Maybe (Vec n a)
 mkVec_ s v | V.length v == l = Just (UnsafeMkVec v)
            | otherwise       = Nothing
@@ -548,50 +557,39 @@ mkVec_ s v | V.length v == l = Just (UnsafeMkVec v)
     l = fromIntegral (fromSing s)
 
 
--- "implicit SingI" style
-mkVec_ :: forall n a. SingI n => V.Vector a -> Maybe (Vec n a)
-mkVec_ v | V.length v == l = Just (UnsafeMkVec v)
-         | otherwise       = Nothing
-  where
-    l = fromIntegral (fromSing (sing :: Sing n))
+-- "implicit" style
+!!!fixvec-2/VecWrappedSingletons.hs "mkVec ::"
 
--- alternatively
-mkVec :: SingI n => V.Vector a -> Maybe (Vec n a)
+-- alternatively, re-using `mkVec_`
+mkVec :: KnownNat n => V.Vector a -> Maybe (Vec n a)
 mkVec = mkVec_ sing
 ```
 
 As you can see, in singletons, we have the luxury of defining our functions in
 "explicit" style (where the user passes in a `Sing` token which reveals what
 length they want) or "implicit" style (where the length is inferred from the
-return type, requiring a `SingI n =>` constraint), like we have been writing up
-to this point. `Sing n ->` and `SingI n =>` really have the same power.
+return type, requiring a `KnownNat n =>` constraint), like we have been writing up
+to this point. `Sing n ->` and `KnownNat n =>` really have the same power.  You
+can think of `Sing n` as a token that carries around `KnownNat n =>`, in a way.
 
 ```haskell
-replicate_ :: Sing n -> a -> Vec n a
-replicate_ s x = UnsafeMkVec $ V.replicate l x
-  where
-    l = fromIntegral (fromSing s)
+!!!fixvec-2/VecWrappedSingletons.hs "replicate_ ::" "replicate ::"
 
-replicate :: SingI n => a -> Vec n a
-replicate = replicate_ sing
-
-withVec :: V.Vector a -> (forall n. Sing n -> Vec n a -> r) -> r
-withVec v0 f = case toSing (fromIntegral (V.length v0)) of
-    SomeSing (s :: Sing m) -> f (UnsafeMkVec @m v0)
-
+!!!fixvec-2/VecWrappedSingletons.hs "withVec ::"
 -- alternatively, skipping `SomeSing` altogether:
 withVec :: V.Vector a -> (forall n. Sing n -> Vec n a -> r) -> r
-withVec v0 f = withSomeSing (fromIntegral (V.length v0) :: Natural) $ \(s :: Sing m) ->
-    f (UnsafeMkVec @m v0)
+withVec v0 f = withSomeSing (fromIntegral (V.length v0) :: Natural) $ \s ->
+    f s (UnsafeMkVec v0)
+-- note: this requires singletons > 2.3.  in singletons 2.3.1 and below, you'd
+-- need to do (fromIntegral (V.length v0) :: Integer)
 
-exactLength_ :: Sing m -> Sing n -> Vec n a -> Maybe (Vec m a)
-exactLength_ sM sN v = case sM %~ sN of
-    Proved Refl -> Just v
-    Disproved _  -> Nothing
+!!!fixvec-2/VecWrappedSingletons.hs "exactLength_ ::" "exactLength ::"
+```
 
-exactLength :: (SingI m, SingI n) => Vec n a -> Maybe (Vec m a)
-exactLength = exactLength_ sing sing
-````
+Note that you *aren't* required to implement both a `replicate_` and
+`replicate` --- I'm just including them here to show that both API's (implicit
+and explicit) are possible.  (You can always just directly use `sing` right away
+before getting started to get the `Sing n` that those functions use)
 
 One slight bit of friction comes when using libraries that work with
 `KnownNat`, like *finite-typelits* and the `Finite` type.  But we can convert
@@ -608,26 +606,23 @@ withKnownNat :: Sing n -> (KnownNat n => r) -> r
 ```
 
 ```haskell
-generate_ :: Sing n -> (Finite n -> a) -> Vec n a
-generate_ s f = withKnownNat s $
-    UnsafeMkVec $ V.generate l (f . finite)
-  where
-    l = fromIntegral $ natVal s
+!!!fixvec-2/VecWrappedSingletons.hs "generate_ ::"
 
 -- alternatively, via pattern matching:
-generate_ :: Sing n -> (Finite n -> a) -> Vec n a
-generate_ SNat f = UnsafeMkVec $ V.generate l (f . finite)
-  where
-    l = fromIntegral $ natVal s
+!!!fixvec-2/VecWrappedSingletons.hs "generate'_ ::"
 
-generate :: SingI n => (Finite n -> a) -> Vec n a
-generate = generate_ sing
+!!!fixvec-2/VecWrappedSingletons.hs "generate ::"
 ```
 
 As you can see, singletons-style programming completely subsumes programming
 with `TypeNats` and `KnownNat`.  What we don't see here is that singletons
 style integrates very well with the rest of the singletons ecosystem...so you
 might just have to take my word for it :)
+
+You can see most of our original code (with pure `KnownNat`) rewritten to work
+with singletons in [this file][VecWrappedSingletons].
+
+!!![VecWrappedSingletons]:fixvec-2/VecWrappedSingletons.hs
 
 ### Real-World Examples
 
@@ -847,11 +842,7 @@ in a `Fin 'Z`...but there is no such value with that type!
 
 Now, generating these is a bit tricky.  Recall that we needed to use a
 `KnownNat n` constraint to be able to *reflect* a `n` type down to the value
-level.  Alternatively, if we were super slick and used singletons, we could
-have just used `fromSing` from the beginning.
-
-Luckily, we don't have the baggage of `KnownNat` on our new `Nat`.  We can
-do things the right way from the start: using singletons!
+level.  We can do something similar using the *singletons* machinery!
 
 First, we need to get singletons for our `Nat`:
 
@@ -892,6 +883,12 @@ lengths, using `SingI` and `sing :: SingI n => Sing n`:
 !!!fixvec-2/VecInductive.hs "replicate_ ::"
 ```
 
+You can think of `SingI` as the "generic singletons" equivalent of `KnownNat`.
+`KnownNat` lets us reflect out a `GHC.TypeNats.Nat` to a `Sing`...`SingI` lets
+us reflect any type that has singletons defined to its corresponding `Sing`.
+Since our new `Nat` type has singletons, we basically get a free "`KnownNat`
+equivalent"!
+
 See how useful the whole singletons ecosystem is? :)
 
 #### Generating with indices
@@ -925,7 +922,12 @@ Our the API of converting unsized to sized vectors will be the same:
 ```
 
 But implementing it inductively is also an interesting challenge.  See my tip
-above about typed holes (`_`).  Ok, let's jump right into it!
+above about typed holes (`_`).  I recommend taking a break here to try to solve
+it yourself.
+
+Ready?
+
+Welcome back!  Hope you had a fun time :)  Here's the solution!
 
 ```haskell
 !!!fixvec-2/VecInductive.hs "withVec ::"
@@ -954,7 +956,7 @@ We can write `exactLength` in a cute way by inducting on the length we
 want and the vector, so it might be fun to look at this version instead --
 
 ```haskell
-!!!fixvec-2/VecInductive.hs "exactLengthInductive_ ::" "exactLengthInducive ::"
+!!!fixvec-2/VecInductive.hs "exactLengthInductive_ ::" "exactLengthInductive ::"
 ```
 
 But I digress.  Like in the last section, checking for a given length is
@@ -984,7 +986,7 @@ to* the length indicated by `sM`.  And it returns a proof that this is true!
 Conclusion
 ----------
 
-There's obviously much more to look at, and much more we can do with
+There's obviously more to look at, and much more we can do with
 fixed-length vectors and inductive types.  And, there will definitely be more
 issues that come up when you start working with these in the real world, with
 real applications.
