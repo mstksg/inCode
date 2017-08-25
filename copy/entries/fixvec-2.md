@@ -179,7 +179,7 @@ So, why bother?  For us, here, our fixed-length vector types basically act as
 ```haskell
 -- | Maps the function over the items in the vector, returning a vector of the
 -- same length
-V.map :: V.Vector a -> V.Vector a -> V.Vector a
+V.map :: (a -> b) -> V.Vector a -> V.Vector b
 ```
 
 Which is the type signature we'd have to write for a map of an "unsized" vector
