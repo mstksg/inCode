@@ -41,16 +41,22 @@ that requires a fixed-length container --- especially for tight numeric code
 and situations where performance matters.  We'll see how to implement them
 using the universal native `KnownNat` mechanisms, and also how we can implement
 them using *[singletons][]* to help us make things a bit smoother and more
-well-integrated.  For most people, this is all they actually need.
+well-integrated.  For most people, this is all they actually need.  (I claim
+the canonical haskell ecosystem source to be the *[vector-sized][]* library)
 
 [singletons]: http://hackage.haskell.org/package/singletons
+[vector-sized]: http://hackage.haskell.org/package/vector-sized
+
 
 The second method is a *structural* fixed-length inductive vector.
 It's...actually more like a fixed-length (lazily linked) *list* than a vector.
 The length of the list is enforced by the very structure of the data type. This
 type is more useful as a streaming data type, and also in situations where you
 want take advantage of the structural characteristics of lengths in the context
-of a dependently typed program.
+of a dependently typed program.  (I claim the canonical haskell ecosystem
+source to be the *[type-combinators][]* library)
+
+[type-combinators]: http://hackage.haskell.org/package/type-combinators
 
 The Non-Structural Way
 ----------------------
@@ -693,8 +699,6 @@ which more or less re-exports the entire *[vector][]* library, but with a
 statically-sized interface.  This is the library I use for all my my modern
 sized-vector needs.
 
-[vector-sized]: http://hackage.haskell.org/package/vector-sized
-
 It's also used to great benefit by the *[hmatrix][]* library, which I take
 advantage of in my [dependently typed neural networks][deptypes] tutorial series.
 
@@ -1010,7 +1014,14 @@ expects...these clues will help you get your bearings!
 
 ### Between Sized and Unsized
 
-Our the API of converting unsized to sized vectors will be the same:
+Converting from sized to unsized vectors (to lists) is something that is pretty
+straightforward, and can be done by just pattern matching on the vector and
+recursing on the tail.  I've [left it as an excercise][toList] to write `Vec n
+a -> [a]`.
+
+!!![toList]:fixvec-2/VecInductive.hs "toList ::"
+
+More interesting is the other way around; our the API of converting unsized to sized vectors will be the same:
 
 ```haskell
 !!!fixvec-2/VecInductive.hs "withVec ::"1
@@ -1127,6 +1138,26 @@ runtime and don't know them at compile-time.  If we *knew* `n` and `m` at
 compile-time, and knew that `n` was less than or equal to `m`, we could
 construct an `LTE n m` and call `takeVec` directly, and not return a `Maybe`.
 
+### In the Real World
+
+This type is more like a list than a vector, so it's in a bit of an awkward
+position, utility-wise.  You usually chose a list over a vector in Haskell when
+you want some sort of lazy streaming, but the cases where you want to lazily
+stream something *and* you know exactly how many items you want to stream are
+admittedly a bit rare.  GHC can't handle infinite `Vec`s, so there's that, too.
+For "containers", *vector* is great, so the non-structural `Vec` is seen a lot
+more.
+
+[idris]: https://www.idris-lang.org/
+
+However, if you are working with a lot of other inductive types, `Vec` works
+very naturally alongside it.  So it makes sense that a "canonical" package
+offering `Vec` is *[type-combinators][]*, an actively maintained library with
+loads of useful inductive types for type-level programming, exporting its own
+`Nat` and `Sing`s.  If I am doing the sort of type-level programming that `Vec`
+is useful for, chances are I already have *type-combinators* imported.  This is
+the library that I personally suggest if you want to use this `Vec` in the real
+world.
 
 Wrapping up
 -----------

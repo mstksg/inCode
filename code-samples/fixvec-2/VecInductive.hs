@@ -82,6 +82,11 @@ singSize = \case
     -- here, n is ('S ('S n))
     SS (SS _) -> "Wow, so big!"
 
+toList :: Vec n a -> [a]
+toList = \case
+    VNil    -> []
+    x :+ xs -> x : toList xs
+
 replicate_ :: Sing n -> a -> Vec n a
 replicate_ = \case
     SZ   -> \_ -> VNil
