@@ -1096,8 +1096,8 @@ We can write code to check for this property in our vectors:
 !!!fixvec-2/VecInductive.hs "atLeast_ ::" "atLeast ::"
 ```
 
-`atLeast_ sM` will only return our vector if its length is *at least* the
-length of the length indicated by `sM`.  Basically, we check if our vector is
+`atLeast_ sN` will only return our vector if its length is *at least* the
+length of the length indicated by `sN`.  Basically, we check if our vector is
 "at least" a certain length.
 
 We can write a function that can "take" an arbitrary amount from a vector,
