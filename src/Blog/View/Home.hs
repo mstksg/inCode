@@ -8,6 +8,7 @@ module Blog.View.Home where
 import           Blog.Compiler.Entry
 import           Blog.Types
 import           Blog.Util
+import           Blog.Util.Entry
 import           Blog.Util.Tag
 import           Blog.View
 import           Blog.View.Social
@@ -94,7 +95,7 @@ entryList eList prevPage nextPage pageNum = do
                   H.toHtml $ entryTitle teEntry
 
             H.div ! A.class_ "entry-lede copy-content" $ do
-              copyToHtml $ T.unpack (entryLede teEntry)
+              copyToHtml $ T.unpack (entryLedeText teEntry)
               H.p $ do
                 H.a ! A.href (H.textValue entryUrl) ! A.class_ "link-readmore" $
                   H.preEscapedToHtml

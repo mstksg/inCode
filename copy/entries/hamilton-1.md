@@ -106,10 +106,10 @@ What exactly *is* generalized momentum?  We'll go over calculating it
 eventually, but what does it represent...*physically*?
 
 I could give you some spiel here about the underlying Lie algebra of the Lie
-group associated with the generalized coordinates, but I don't think that it
-would be very intuitively appealing in a physical sense.  But what I *can* say
-is that the generalized momenta associated with ("conjugate to") certain sets
-of familiar coordinates yield things that we typically call "momenta":
+group associated with the generalized coordinates, but that would make this a
+completely different post.  What I *can* say is that the generalized momenta
+associated with ("conjugate to") certain sets of familiar coordinates yield
+things that we typically call "momenta":
 
 1.  The momentum conjugate to normal Cartesian coordinates is just our normal
     run-of-the-mill *linear momentum* (in the $\mathbf{p} = m \mathbf{v}$) from
@@ -119,7 +119,7 @@ of familiar coordinates yield things that we typically call "momenta":
     *angular momentum* ($\mathbf{L} = m \mathbf{r} \times \mathbf{v}$, or $L = m r^2 \dot{\theta}$)
     from first semester physics.
 
-    The momentum conjugate to the radial coordinate $r$ in polar coordinates is
+3.  The momentum conjugate to the radial coordinate $r$ in polar coordinates is
     also just boring old linear momentum $p_r = m \dot{r}$.
 
 So, it's our normal momentum (for linear and polar coordinates) *generalized*
@@ -136,9 +136,12 @@ direction of steepest ascent is $\left \langle \frac{\partial}{\partial \mathbf{
 
 But we want to move along the *contour lines*...and these are the lines
 *perpendicular* to the direction of steepest descent.  The vector perpendicular
-to $\langle x, y \rangle$ is $\langle y, -x \rangle$, so we just derived the
-actual Hamiltonian equations of motion: just move in the direction
+to $\langle x, y \rangle$ is $\langle y, -x \rangle$,[^perp] so we just derived
+the actual Hamiltonian equations of motion: just move in the direction
 perpendicular to the steepest ascent!
+
+[^perp]: There's also another perpendicular vector, $\langle -y, x \rangle$,
+but we do not speak of that.
 
 $$
 \dot{q} = \frac{\partial}{\partial p_q} \mathcal{H}(\mathbf{q},\mathbf{p})

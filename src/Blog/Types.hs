@@ -1,30 +1,32 @@
-{-# LANGUAGE DeriveFoldable    #-}
-{-# LANGUAGE DeriveFunctor     #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE DeriveTraversable #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE DeriveFoldable       #-}
+{-# LANGUAGE DeriveFunctor        #-}
+{-# LANGUAGE DeriveGeneric        #-}
+{-# LANGUAGE DeriveTraversable    #-}
+{-# LANGUAGE LambdaCase           #-}
+{-# LANGUAGE LambdaCase           #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE RecordWildCards      #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Blog.Types where
 
 import           Control.Applicative
 import           Control.Monad
 import           Data.Aeson
-import           Data.Binary.Orphans ()
+import           Data.Binary.Orphans    ()
 import           Data.Char
 import           Data.Default
 import           Data.Monoid
 import           Data.Time.LocalTime
 import           Data.Typeable
 import           GHC.Generics
-import qualified Data.Aeson.Types    as A
-import qualified Data.Binary         as B
-import qualified Data.Map            as M
-import qualified Data.Text           as T
-import qualified Text.Blaze.Html5    as H
+import qualified Data.Aeson.Types       as A
+import qualified Data.Binary            as B
+import qualified Data.Map               as M
+import qualified Data.Text              as T
+import qualified Text.Blaze.Html5       as H
+import qualified Text.Pandoc.Definition as P
 
 
 data Config = Config
@@ -192,8 +194,8 @@ instance B.Binary TagType
 
 data Entry = Entry
     { entryTitle      :: !T.Text
-    , entryContents   :: !T.Text
-    , entryLede       :: !T.Text
+    , entryContents   :: !P.Pandoc
+    , entryLede       :: !P.Pandoc
     , entrySourceFile :: !FilePath
     , entryCreateTime :: !(Maybe LocalTime)
     , entryPostTime   :: !(Maybe LocalTime)
@@ -279,3 +281,16 @@ data ArchiveData a = ADAll               (M.Map Year (M.Map Month [a]))
                    | ADTagged Tag        [a]
   deriving (Show, Foldable, Traversable, Functor)
 
+instance B.Binary P.Pandoc
+instance B.Binary P.Meta
+instance B.Binary P.Block
+instance B.Binary P.MetaValue
+instance B.Binary P.Inline
+instance B.Binary P.Format
+instance B.Binary P.ListNumberStyle
+instance B.Binary P.QuoteType
+instance B.Binary P.ListNumberDelim
+instance B.Binary P.Alignment
+instance B.Binary P.Citation
+instance B.Binary P.MathType
+instance B.Binary P.CitationMode

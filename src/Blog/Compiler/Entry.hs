@@ -35,13 +35,11 @@ compileEntry = do
     eBody     <- fmap T.unpack
              <$> traverse (preprocessEntry . T.pack) eRawBody
     ePandoc   <- readPandocWith entryReaderOpts eBody
-    let eContents   = T.pack . P.writeMarkdown entryWriterOpts <$> ePandoc
-        ePandocLede = flip fmap ePandoc $ \(P.Pandoc m bs) ->
+    let ePandocLede = flip fmap ePandoc $ \(P.Pandoc m bs) ->
                         P.Pandoc m
                           . take (prefLedeMax (confBlogPrefs ?config))
                           . takeWhile validLede
                           $ bs
-        eLede       = T.pack . P.writeMarkdown entryWriterOpts <$> ePandocLede
     eTitle    <- T.pack
                . P.writeMarkdown entryWriterOpts
                . P.handleError
@@ -61,8 +59,8 @@ compileEntry = do
     sers      <- maybe [] splitTags <$> getMetadataField i "series"
 
     makeItem $ Entry { entryTitle      = eTitle
-                     , entryContents   = itemBody eContents
-                     , entryLede       = itemBody eLede
+                     , entryContents   = itemBody ePandoc
+                     , entryLede       = itemBody ePandocLede
                      , entrySourceFile = toFilePath i
                      , entryCreateTime = eCreate
                      , entryPostTime   = ePost
@@ -82,7 +80,6 @@ compileEntry = do
                     P.Header {}      -> False
                     P.HorizontalRule -> False
                     _                -> True
-
 
 entryCompiler
     :: (?config :: Config)
@@ -106,7 +103,7 @@ entryCompiler histList allTags = do
                 }
         pd = def { pageDataTitle   = Just $ entryTitle e
                  , pageDataType    = Just "article"
-                 , pageDataDesc    = Just $ entryLedeStripped e
+                 , pageDataDesc    = Just . stripPandoc . entryLede $ e
                  , pageDataCss     = [ "/css/page/entry.css"
                                      , "/css/pygments.css"
                                      ]
@@ -144,7 +141,7 @@ entryMarkdownCompiler = do
                    , ")"
                    ]
         , T.empty
-        , entryContents
+        , T.pack . P.writeMarkdown entryWriterOpts $ entryContents
         ]
 
 entryLaTeXCompiler
@@ -170,7 +167,7 @@ entryLaTeXCompiler = do
                                         , ")**.*"
                                         ]
                              , T.empty
-                             , entryContents
+                             , T.pack . P.writeMarkdown entryWriterOpts $ entryContents
                              ]
     body <- makeItem $ T.unpack mdHeader
     fmap (toTex opts) <$> readPandocWith entryReaderOpts body
@@ -189,12 +186,12 @@ entryLaTeXCompiler = do
                   _
                       -> p
 
-entryLedeStripped :: Entry -> T.Text
-entryLedeStripped = stripPandoc
-                  . P.handleError
-                  . P.readMarkdown entryReaderOpts
-                  . T.unpack
-                  . entryLede
+-- entryLedeStripped :: Entry -> T.Text
+-- entryLedeStripped = stripPandoc
+--                   . P.handleError
+--                   . P.readMarkdown entryReaderOpts
+--                   . T.unpack
+--                   . entryLede
 
 mkCanonical
     :: Maybe T.Text

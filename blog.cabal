@@ -20,15 +20,16 @@ library
                        Blog.Compiler.Archive
                        Blog.Compiler.Entry
                        Blog.Compiler.Home
+                       Blog.Compiler.Redirect
                        Blog.Compiler.Tag
                        Blog.Compiler.TagIndex
-                       Blog.Compiler.Redirect
                        Blog.Render
                        Blog.Rule.Archive
                        Blog.Types
                        Blog.Util
-                       Blog.Util.Sass
+                       Blog.Util.Entry
                        Blog.Util.Preprocessor
+                       Blog.Util.Sass
                        Blog.Util.Tag
                        Blog.View
                        Blog.View.Archive

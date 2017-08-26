@@ -56,7 +56,8 @@ entryWriterOpts :: P.WriterOptions
 entryWriterOpts =
     def { P.writerHtml5 = True
         -- , P.writerHTMLMathMethod = P.WebTeX "http://chart.apis.google.com/chart?cht=tx&chf=bg,s,FFFFFF00&chl="
-        , P.writerHTMLMathMethod = P.WebTeX "https://latex.codecogs.com/gif.latex?"
+        -- , P.writerHTMLMathMethod = P.WebTeX "https://latex.codecogs.com/gif.latex?"
+        , P.writerHTMLMathMethod = P.WebTeX "https://latex.codecogs.com/png.latex?"
         , P.writerHighlight = True
         , P.writerVariables = [("geometry","margin=1in")
                               ,("links-as-notes","true")]
