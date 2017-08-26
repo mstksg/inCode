@@ -31,7 +31,7 @@ homeCompiler allPages allTags i p = do
     bannerCopy <- readPandocWith entryReaderOpts =<< load "copy/static/home-banner.md"
     let hi = HI { hiPageNum    = i
                 , hiPrevPage   =
-                    if | i <= 1 
+                    if | i <= 1
                            -> Nothing
                        | i == 2
                            -> Just "/"

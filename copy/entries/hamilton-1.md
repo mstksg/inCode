@@ -238,11 +238,12 @@ coordinate, and $\dot{\mathbf{x}}$ is the column vector of all of the
 
 Now!  How to generalize this to arbitrary coordinates?  Well, if we have $n$
 generalized coordinates $\mathbf{q}$ mapping to $m$-dimensional Cartesian
-coordinates, we can specify them as $\mathbf{x} = f(\mathbf{q})$, where
-$f : \mathbb{R}^n \rightarrow \mathbb{R}^m$, taking the vector of generalized
+coordinates, we can specify them as $\mathbf{x} = f(\mathbf{q})$, where $f :
+\mathbb{R}^n \rightarrow \mathbb{R}^m$, taking the vector of generalized
 coordinates and returning a vector for the position in Cartesian space. For
-example, for polar coordinates,
-$f(r, \theta) = \left \langle r \cos(\theta), r \sin(\theta) \right \rangle$.
+example, for polar coordinates, $f(r, \theta) = \left \langle r \cos(\theta), r
+\sin(\theta) \right \rangle$, because, for polar coordinates, $x = r
+\cos(\theta)$ and $y = r \sin(\theta)$.
 
 So we can get $\mathbf{x}$ from $\mathbf{q}$ with $f$, but how can we get
 $\dot{\mathbf{x}}$, the vector of rate of changes?  Well, if $x_1 = f_1(q_1,
@@ -376,9 +377,9 @@ is a little trickier.  The gradient is a linear operator, so we can break that
 down to just finding the gradient of the $KE$ term $\frac{1}{2} \mathbf{p}^T
 \hat{K}^{-1} \mathbf{p}$.  Because $\mathbf{p}$ is an independent input to
 $\mathcal{H}$, we can just look at the gradient of $\hat{K}^{-1}$.  We can
-simplify that even more by realizing that
+simplify that even more by realizing that for any invertible matrix $A$,
 $\frac{\partial}{\partial t} A^{-1} = - A^{-1} \left[ \frac{\partial}{\partial t} A \right] A^{-1}$,
-so now we just need to find the partials of $\hat{K}$, or
+so now we just need to find the partial derivatives of $\hat{K}$, or
 $\hat{J}_f^T \hat{M} \hat{J}_f}$.  $\hat{M}$ is a constant term, so, using the
 good ol' product rule over $\hat{J}_f^T$ and $\hat{J}_f$, we see that, after
 some simplification:
@@ -394,10 +395,10 @@ the derivatives.  And with that, we have our final expression for
 $\nabla_{\mathbf{q}} \mathcal{H}(\mathbf{q},\mathbf{p})$:
 
 $$
-\frac{\partial}{\partial q} \mathcal{H}(\mathbf{q},\mathbf{p}) =
+\frac{\partial}{\partial q_i} \mathcal{H}(\mathbf{q},\mathbf{p}) =
     - \mathbf{p}^T \hat{K}^{-1} \hat{J}_f^T \hat{M}
-        \left[ \frac{\partial}{\partial q} \hat{J}_f \right] \hat{K}^{-1} \mathbf{p}
-    + \frac{\partial}{\partial q} PE(\mathbf{q})
+        \left[ \frac{\partial}{\partial q_i} \hat{J}_f \right] \hat{K}^{-1} \mathbf{p}
+    + \frac{\partial}{\partial q_i} PE(\mathbf{q})
 $$
 
 Where $\frac{\partial}{\partial q} PE(\mathbf{q})$ is just the components of
