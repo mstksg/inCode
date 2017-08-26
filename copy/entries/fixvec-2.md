@@ -1069,7 +1069,7 @@ It's nice that this is exactly the same as before, and that's a testament to
 how useful the singletons library is at unifying all of these distinct
 type-level stuffs.
 
-We can write `exactLength` in a cute way by inducting on the length we
+We could also write `exactLength` in a cute way by inducting on the length we
 want and the vector, so it might be fun to look at this version instead --
 
 ```haskell
@@ -1142,13 +1142,13 @@ more.
 [idris]: https://www.idris-lang.org/
 
 However, if you are working with a lot of other inductive types, `Vec` works
-very naturally alongside it.  So it makes sense that a "canonical" package
-offering `Vec` is *[type-combinators][]*, an actively maintained library with
-loads of useful inductive types for type-level programming, exporting its own
-`Nat` and `Sing`s.  If I am doing the sort of type-level programming that `Vec`
-is useful for, chances are I already have *type-combinators* imported.  This is
-the library that I personally suggest if you want to use this `Vec` in the real
-world.
+very naturally alongside them.  It makes sense, then, that a "canonical"
+package offering `Vec` is *[type-combinators][]*, an actively maintained
+library with loads of useful inductive types for type-level programming,
+exporting its own `Nat` and `Sing`-equivalents.  If I am doing the sort of
+type-level programming that `Vec` is useful for, chances are I already have
+*type-combinators* imported.  This is the library that I personally suggest if
+you want to use this `Vec` in the real world.
 
 Wrapping up
 -----------

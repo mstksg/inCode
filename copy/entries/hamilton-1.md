@@ -420,4 +420,30 @@ length `n` containing values of type `a`.
 [vector-sized]: http://hackage.haskell.org/package/vector-sized
 [Data.Vector.Sized]: http://hackage.haskell.org/package/vector-sized/docs/Data-Vector-Sized.html
 
+Our final goal is to be able to simulate a *system of discrete particles*
+through *arbitrary generalized coordinates*.
+
+To simplify the math, we always assume that, whatever generalized coordinates
+you are using ($\mathbb{R}^n$), your system "actually" exists in some real flat
+Cartesian coordinate system ($\mathbb{R}^m$).  This allows us to take advantage
+of all of that math we derived in the previous section.
+
+So, in order to fully describe the system, we need:
+
+1.  Each of their masses (or inertias) in their underlying $m$ Cartesian
+    coordinates
+2.  A function $\mathbb{R}^n \rightarrow \mathbb{R}^m$ to convert the
+    generalized coordinates ($\mathbb{R^n}$) to Cartesian coordinates ($\mathbb{R}^m$)
+3.  The potential energy function $\mathbb{R}^n \rightarrow \mathbb{R}$ in the
+    generalized coordinates ($\mathbb{R^n}$)
+
+From these alone, we can derive the equations of motion for the particles in
+phase space as a system of first-order ODEs using the process described above.
+Then, given an initial phase space position, we can use any ol' first order ODE
+integrator (like the great ones from the [GNU Scientific Library][gsl]) to
+simulate our system's motion through phase space.  That is, to "surf the
+hamiltonian waves in phase space", so to speak.
+
+[gsl]: https://www.gnu.org/software/gsl/
+
 
