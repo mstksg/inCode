@@ -1,6 +1,8 @@
 inCode
 ======
 
+[![Join the chat at https://gitter.im/mstksg/inCode](https://badges.gitter.im/mstksg/inCode.svg)](https://gitter.im/mstksg/inCode?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Static site generator backend for [my blog][].  See [this post][hakyll-post]
 for more information.
 
