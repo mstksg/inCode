@@ -197,7 +197,7 @@ length of the input vectors.  The vectors have a *static relationship* in their
 length, but this isn't specified in a way that the compiler can take advantage
 of.
 
-By having our `mapVec :: (a -> b) -> Vec n a -> Vec m b`, the relationship
+By having our `mapVec :: (a -> b) -> Vec n a -> Vec n b`, the relationship
 between the input lengths and output length is right there in the types, when
 you *use* `mapVec`, GHC is aware of the relationships and can give you help in
 the form of typed hole suggestions and informative type errors.  You can even
