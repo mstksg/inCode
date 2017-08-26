@@ -144,11 +144,10 @@ perpendicular to the steepest ascent!
 but we do not speak of that.
 
 $$
-\dot{q} = \frac{\partial}{\partial p_q} \mathcal{H}(\mathbf{q},\mathbf{p})
-$$
-
-$$
-\dot{p_q} = - \frac{\partial}{\partial q} \mathcal{H}(\mathbf{q},\mathbf{p})
+\begin{aligned}
+\dot{q} & = \frac{\partial}{\partial p_q} \mathcal{H}(\mathbf{q},\mathbf{p}) \\
+\dot{p_q} & = - \frac{\partial}{\partial q} \mathcal{H}(\mathbf{q},\mathbf{p})
+\end{aligned}
 $$
 
 Which holds for every generalized coordinate $q$, where $p_q$ is the momentum
@@ -385,12 +384,13 @@ good ol' product rule over $\hat{J}_f^T$ and $\hat{J}_f$, we see that, after
 some simplification:
 
 $$
-\frac{\partial}{\partial q} \left[ \hat{J}_f^T \hat{M} \hat{J}_f \right] =
-    2 \hat{J}_f^T \hat{M} \left[ \frac{\partial}{\partial q} \hat{J}_f \right]
+\frac{\partial}{\partial q_i} \left[ \hat{J}_f^T \hat{M} \hat{J}_f \right] =
+    2 \hat{J}_f^T \hat{M} \left[ \frac{\partial}{\partial q_i} \hat{J}_f \right]
 $$
 
-$\frac{\partial}{\partial q} \hat{J}_f$ (an $m \times n$ matrix, like
-$\hat{J}_f$) represents the *second derivatives* of $f$ -- the derivative of
+$\frac{\partial}{\partial q_i} \hat{J}_f$ (an $m \times n$ matrix, like
+$\hat{J}_f$) represents the *second derivatives* of $f$ -- the derivative with
+respect to $q_i$ of
 the derivatives.  And with that, we have our final expression for
 $\nabla_{\mathbf{q}} \mathcal{H}(\mathbf{q},\mathbf{p})$:
 
@@ -403,6 +403,22 @@ $$
 
 Where $\frac{\partial}{\partial q_i} PE(\mathbf{q})$ is just the $i$th component
 of the gradient of $PE$.
+
+And, finally, we have everything we need --- we can now construct our equations
+of motion!  To progress through phase space ($\langle \mathbf{q},
+\mathbf{p}\rangle$):
+
+$$
+\begin{aligned}
+\dot{q} & = \frac{\partial}{\partial p_q} \mathcal{H}(\mathbf{q},\mathbf{p})
+  && = \hat{K}^{-1} \mathbf{p} \\
+\dot{p_{q_i}} & = - \frac{\partial}{\partial q_i} \mathcal{H}(\mathbf{q},\mathbf{p})
+  && = \mathbf{p}^T \hat{K}^{-1} \hat{J}_f^T \hat{M}
+        \left[ \frac{\partial}{\partial q_i} \hat{J}_f \right] \hat{K}^{-1} \mathbf{p}
+    - \frac{\partial}{\partial q_i} PE(\mathbf{q})
+\end{aligned}
+$$
+
 
 That's it.  We're done.  Have a nice day, thanks for reading!
 
