@@ -571,7 +571,11 @@ general.
 
 Instead of `KnownNat`, `Proxy`, `natVal`, `SomeNat`, and `someNatVal`, we can
 use the singletons equivalents, `Sing`, `fromSing`, `SomeSing`,
-and `toSing`:
+and `toSing`:[^singnat]
+
+[^singnat]: For singletons > 2.3 `fromSing` and `toSing` give and take
+`Natural` when going to `Nat`.  However, for 2.3.1 and below, they give/take
+`Integer` instead.
 
 ```haskell
 -- TypeNats style
@@ -587,7 +591,7 @@ someNatVal :: Natural -> SomeNat
 
 -- Singletons style
 data SomeSing Nat = forall n. SomeSing (Sing n)
-someSing :: Natural -> SomeSing Nat
+toSing :: Natural -> SomeSing Nat
 
 withSomeSing :: Natural -> (forall n. Sing n -> r) -> r
 
@@ -627,13 +631,7 @@ can think of `Sing n` as a token that carries around `KnownNat n =>`, in a way.
 !!!fixvec-2/VecWrappedSingletons.hs "replicate_ ::" "replicate ::" "withVec ::"
 
 -- alternatively, skipping `SomeSing` altogether:
-withVec :: V.Vector a -> (forall n. Sing n -> Vec n a -> r) -> r
-withVec v0 f = withSomeSing (fromIntegral (V.length v0) :: Natural) $ \s ->
-    f s (UnsafeMkVec v0)
--- note: this requires singletons > 2.3.  in singletons 2.3.1 and below, you'd
--- need to do (fromIntegral (V.length v0) :: Integer)
-
-!!!fixvec-2/VecWrappedSingletons.hs "exactLength_ ::" "exactLength ::"
+!!!fixvec-2/VecWrappedSingletons.hs "withVec' ::" "exactLength_ ::" "exactLength ::"
 ```
 
 Note that you *aren't* required to implement both a `replicate_` and

@@ -401,8 +401,8 @@ $$
     + \frac{\partial}{\partial q_i} PE(\mathbf{q})
 $$
 
-Where $\frac{\partial}{\partial q} PE(\mathbf{q})$ is just the components of
-the gradient of $PE$.
+Where $\frac{\partial}{\partial q_i} PE(\mathbf{q})$ is just the $i$th component
+of the gradient of $PE$.
 
 That's it.  We're done.  Have a nice day, thanks for reading!
 
