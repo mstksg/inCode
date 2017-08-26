@@ -863,13 +863,6 @@ a list).  If you try writing it, you'll see that the structure of `Nat` and
 universally useful, but it definitely helps in many situations!  Handling
 tricky cases like this is a subject for a whole other blog post.
 
-Anyway, before we move on, because this is so fun, here is `splitVec`, an
-example where the structure of `Nat` and `Vec` work together beautifully:
-
-```haskell
-!!!fixvec-2/VecInductive.hs "splitVec_ ::" "splitVec ::"
-```
-
 ### Indexing
 
 To index our previous type, we used some abstract `Finite` type, where `Finite
