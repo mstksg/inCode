@@ -8,7 +8,6 @@ module Blog.View.Home where
 import           Blog.Compiler.Entry
 import           Blog.Types
 import           Blog.Util
-import           Blog.Util.Entry
 import           Blog.Util.Tag
 import           Blog.View
 import           Blog.View.Social
@@ -21,6 +20,7 @@ import           Text.Blaze.Html5            ((!))
 import qualified Data.Text                   as T
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
+import qualified Text.Pandoc.Definition      as P
 
 data HomeInfo = HI
     { hiPageNum    :: Int
@@ -28,8 +28,8 @@ data HomeInfo = HI
     , hiNextPage   :: Maybe FilePath
     , hiEntries    :: [TaggedEntry]
     , hiAllTags    :: [Tag]
-    , hiLinksCopy  :: String
-    , hiBannerCopy :: String
+    , hiLinksCopy  :: P.Pandoc
+    , hiBannerCopy :: P.Pandoc
     }
   deriving (Show)
 
@@ -95,7 +95,7 @@ entryList eList prevPage nextPage pageNum = do
                   H.toHtml $ entryTitle teEntry
 
             H.div ! A.class_ "entry-lede copy-content" $ do
-              copyToHtml $ T.unpack (entryLedeText teEntry)
+              copyToHtml (entryLede teEntry)
               H.p $ do
                 H.a ! A.href (H.textValue entryUrl) ! A.class_ "link-readmore" $
                   H.preEscapedToHtml

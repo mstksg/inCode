@@ -27,7 +27,6 @@ library
                        Blog.Rule.Archive
                        Blog.Types
                        Blog.Util
-                       Blog.Util.Entry
                        Blog.Util.Preprocessor
                        Blog.Util.Sass
                        Blog.Util.Tag

@@ -77,11 +77,8 @@ urlBase = protocol
     protocol | hostSecure = "https"
              | otherwise  = "http"
 
-
-copyToHtml :: String -> H.Html
+copyToHtml :: P.Pandoc -> H.Html
 copyToHtml = P.writeHtml entryWriterOpts
-           . P.handleError
-           . P.readMarkdown entryReaderOpts
 
 copySection :: T.Text -> H.Html -> H.Html
 copySection title copy = do
@@ -94,10 +91,8 @@ copySection title copy = do
     H.div ! A.class_ "clear" $
       mempty
 
-copyToHtmlString :: String -> String
+copyToHtmlString :: P.Pandoc -> String
 copyToHtmlString = P.writeHtmlString entryWriterOpts
-                 . P.handleError
-                 . P.readMarkdown entryReaderOpts
 
 stripPandoc :: P.Pandoc -> T.Text
 stripPandoc (P.Pandoc _ bs) = T.pack $ P.stringify inls

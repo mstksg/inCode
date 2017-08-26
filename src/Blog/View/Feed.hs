@@ -5,7 +5,6 @@
 module Blog.View.Feed where
 
 import           Blog.Types
-import           Blog.Util.Entry
 import           Blog.View
 import           Data.Maybe
 import           Data.Monoid
@@ -74,7 +73,7 @@ feedRss entries tz now = (nullRSS feedTitle feedLink)
     rssItem e@Entry{..} =
       (nullItem (T.unpack entryTitle))
         { rssItemLink        = Just (makeUrl (T.pack entryCanonical))
-        , rssItemDescription = Just (copyToHtmlString (T.unpack (entryContentsText e)))
+        , rssItemDescription = Just (copyToHtmlString entryContents)
         , rssItemAuthor      = Just feedAuthorName
         , rssItemCategories  = map rssCategory categs
         , rssItemGuid        = Just . RSSGuid (Just True) []

@@ -6,7 +6,6 @@ module Blog.View.Entry where
 
 import           Blog.Types
 import           Blog.Util
-import           Blog.Util.Entry
 import           Blog.Util.Tag
 import           Blog.View
 import           Blog.View.Social
@@ -114,7 +113,7 @@ viewEntry EI{..} = do
           H.div ! A.id "toc" $ mempty
 
         H.div ! A.class_ "main-content copy-content" $
-          copyToHtml $ T.unpack (entryContentsText eiEntry)
+          copyToHtml (entryContents eiEntry)
 
         H.footer $ do
 

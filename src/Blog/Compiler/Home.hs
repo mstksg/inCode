@@ -7,6 +7,7 @@ module Blog.Compiler.Home where
 import           Blog.Compiler.Entry
 import           Blog.Compiler.Redirect
 import           Blog.Types
+import           Blog.Util
 import           Blog.Util.Tag
 import           Blog.View
 import           Blog.View.Home
@@ -26,8 +27,8 @@ homeCompiler allPages allTags i p = do
     entries <- map itemBody <$> loadAllSnapshots p "entry"
     homeEntries <- mapM compileTE entries
     allTs <- mapM (uncurry fetchTag) allTags
-    linksCopy  <- loadBody "copy/static/home-links.md"
-    bannerCopy <- loadBody "copy/static/home-banner.md"
+    linksCopy  <- readPandocWith entryReaderOpts =<< load "copy/static/home-links.md"
+    bannerCopy <- readPandocWith entryReaderOpts =<< load "copy/static/home-banner.md"
     let hi = HI { hiPageNum    = i
                 , hiPrevPage   =
                     if | i <= 1 
@@ -43,8 +44,8 @@ homeCompiler allPages allTags i p = do
                            -> Just $ "/home/" ++ show (i + 1) ++ ".html"
                 , hiEntries    = homeEntries
                 , hiAllTags    = allTs
-                , hiLinksCopy  = linksCopy
-                , hiBannerCopy = bannerCopy
+                , hiLinksCopy  = itemBody linksCopy
+                , hiBannerCopy = itemBody bannerCopy
                 }
         pd = def { pageDataTitle = if i == 1
                                      then Nothing
