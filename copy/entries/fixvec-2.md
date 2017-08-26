@@ -963,14 +963,14 @@ ecosystem remains inductive.
 Now, to write `replicate`:
 
 ```haskell
-!!!fixvec-2/VecInductive.hs "replicate ::"
+!!!fixvec-2/VecInductive.hs "replicate_ ::"
 ```
 
 And we can recover our original "implicit" style, with type-inference-driven
 lengths, using `SingI` and `sing :: SingI n => Sing n`:
 
 ```haskell
-!!!fixvec-2/VecInductive.hs "replicate_ ::"
+!!!fixvec-2/VecInductive.hs "replicate ::"
 ```
 
 You can think of `SingI` as the "generic singletons" equivalent of `KnownNat`.
