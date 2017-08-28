@@ -458,7 +458,7 @@ phase space as a system of first-order ODEs using the process described above.
 Then, given an initial phase space position, we can use any ol' first order ODE
 integrator (like the great ones from the [GNU Scientific Library][gsl]) to
 simulate our system's motion through phase space.  That is, to "surf the
-hamiltonian waves in phase space", so to speak.
+Hamiltonian waves in phase space", so to speak.
 
 [gsl]: https://www.gnu.org/software/gsl/
 

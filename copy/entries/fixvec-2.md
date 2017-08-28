@@ -281,7 +281,7 @@ getFinite  ::               Finite n -> Integer
 ```
 
 ```haskell
-ghci> map packFinite [0..3] :: [Finite 3]
+ghci> map packFinite [0..3] :: [Maybe (Finite 3)]
 [Just (finite 0), Just (finite 1), Just (finite 2), Nothing]
 ghci> getFinite (finite 2 :: Finite 5)
 2
