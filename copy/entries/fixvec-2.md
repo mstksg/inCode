@@ -411,7 +411,7 @@ withVec
     -> r
 ```
 
-(Note: this does require `RankNTyes`)
+(Note: this does require `RankNTypes`)
 
 People familiar with dependent types might recognize that `withVec` is a
 function that takes an unsized vector and returns an *existentially quantified*
