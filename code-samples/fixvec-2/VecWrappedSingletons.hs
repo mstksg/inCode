@@ -55,7 +55,7 @@ exactLength = exactLength_ sing sing
 
 generate_ :: Sing n -> (Finite n -> a) -> Vec n a
 generate_ s f = withKnownNat s $
-    UnsafeMkVec $ V.generate l (f . finite . fromIntegral)
+    UnsafeMkVec $ V.generate l (f . fromIntegral)
   where
     l = fromIntegral (fromSing s)
 
