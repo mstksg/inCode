@@ -319,10 +319,10 @@ UnsafeMkVec (V.fromList ['a','a','a','a','a'])
 Note that normally, `replicate` takes an `Int` argument so that the user can
 give how long the resulting vector needs to be.  However, with our new
 `replicate`, we don't need that `Int` argument --- the size of the vector we
-want can more often than not be inferred automatigically using type inference!
+want can more often than not be inferred auto-magically using type inference!
 
 With this new cleaner type signature, we can actually see that `replicate`'s
-type is something very similar.  Look at it carefuly:
+type is something very familiar.  Look at it carefully:
 
 ```haskell
 replicate :: KnownNat n => a -> Vec n a
