@@ -551,7 +551,7 @@ interesting property we can test about our vectors.  There are definitely more
 interesting properties we can test, like whether or not our lengths are even or
 odd, if they are greater than a certain number, etc.; for these, the process is
 essentially the same: find some way, *at runtime*, to get some sort of witness
-for the property you want.  In our course, our witness was `n :~: m`, which
+for the property you want.  In our case, our witness was `n :~: m`, which
 witnessed the fact that `n ~ m`.  Different libraries might provide different
 witnesses that might be useful.  But the general process is
 
