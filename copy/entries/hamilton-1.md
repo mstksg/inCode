@@ -132,7 +132,13 @@ I've explained Hamiltonian dynamics for time-independent Hamiltonians as
 course, you'll know that the line of "steepest ascent" is the gradient.  If we
 call the Hamiltonian $\mathcal{H}(\mathbf{q},\mathbf{p})$ (where $\mathbf{q}$
 is the vector of positions and $\mathbf{p}$ is the vector of momenta), then the
-direction of steepest ascent is $\left \langle \frac{\partial}{\partial \mathbf{q}} \mathcal{H}(\mathbf{q},\mathbf{p}), \frac{\partial}{\partial \mathbf{p}} \mathcal{H}(\mathbf{q},\mathbf{p}) \right \rangle$.
+direction of steepest ascent is
+
+$$
+\left \langle \frac{\partial}{\partial \mathbf{q}}
+\mathcal{H}(\mathbf{q},\mathbf{p}), \frac{\partial}{\partial \mathbf{p}}
+\mathcal{H}(\mathbf{q},\mathbf{p}) \right \rangle
+$$
 
 But we want to move along the *contour lines*...and these are the lines
 *perpendicular* to the direction of steepest descent.  The vector perpendicular
@@ -377,7 +383,7 @@ down to just finding the gradient of the $KE$ term $\frac{1}{2} \mathbf{p}^T
 \hat{K}^{-1} \mathbf{p}$.  Because $\mathbf{p}$ is an independent input to
 $\mathcal{H}$, we can just look at the gradient of $\hat{K}^{-1}$.  We can
 simplify that even more by realizing that for any invertible matrix $A$,
-$\frac{\partial}{\partial t} A^{-1} = - A^{-1} \left[ \frac{\partial}{\partial t} A \right] A^{-1}$,
+$\frac{\partial}{\partial q} A^{-1} = - A^{-1} \left[ \frac{\partial}{\partial q} A \right] A^{-1}$,
 so now we just need to find the partial derivatives of $\hat{K}$, or
 $\hat{J}_f^T \hat{M} \hat{J}_f}$.  $\hat{M}$ is a constant term, so, using the
 good ol' product rule over $\hat{J}_f^T$ and $\hat{J}_f$, we see that, after
@@ -388,21 +394,33 @@ $$
     2 \hat{J}_f^T \hat{M} \left[ \frac{\partial}{\partial q_i} \hat{J}_f \right]
 $$
 
+
 $\frac{\partial}{\partial q_i} \hat{J}_f$ (an $m \times n$ matrix, like
 $\hat{J}_f$) represents the *second derivatives* of $f$ -- the derivative with
 respect to $q_i$ of
-the derivatives.  And with that, we have our final expression for
+the derivatives.
+
+We can write this in a more general way (using the gradient operator $\nabla$)
+as:
+
+$$
+\nabla_{\mathbf{q}} \left[ \hat{J}_f^T \hat{M} \hat{J}_f \right] =
+    2 \hat{J}_f^T \hat{M} \left[ \nabla_{\mathbf{q}} \hat{J}_f \right]
+$$
+
+If we define $\nabla_{\mathbf{q}} \hat{J}_f$ as an $m \times n \times n$
+tensor, whose $n$ components are the each the $m \times n$ matrices
+corresponding to $\frac{\partial}{\partial q_i} \hat{J}_f$
+
+And with that, we have our final expression for
 $\nabla_{\mathbf{q}} \mathcal{H}(\mathbf{q},\mathbf{p})$:
 
 $$
-\frac{\partial}{\partial q_i} \mathcal{H}(\mathbf{q},\mathbf{p}) =
+\nabla_{\mathbf{q}} \mathcal{H}(\mathbf{q},\mathbf{p}) =
     - \mathbf{p}^T \hat{K}^{-1} \hat{J}_f^T \hat{M}
-        \left[ \frac{\partial}{\partial q_i} \hat{J}_f \right] \hat{K}^{-1} \mathbf{p}
-    + \frac{\partial}{\partial q_i} PE(\mathbf{q})
+        \left[ \natbla_{\mathbf{q}} \hat{J}_f \right] \hat{K}^{-1} \mathbf{p}
+    + \nabla_{\mathbf{q}} PE(\mathbf{q})
 $$
-
-Where $\frac{\partial}{\partial q_i} PE(\mathbf{q})$ is just the $i$th component
-of the gradient of $PE$.
 
 And, finally, we have everything we need --- we can now construct our equations
 of motion!  To progress through phase space ($\langle \mathbf{q},
@@ -410,11 +428,11 @@ of motion!  To progress through phase space ($\langle \mathbf{q},
 
 $$
 \begin{aligned}
-\dot{q} & = \frac{\partial}{\partial p_q} \mathcal{H}(\mathbf{q},\mathbf{p})
+\dot{q} & = \nabla_{\mathbf{p_q}} \mathcal{H}(\mathbf{q},\mathbf{p})
   && = \hat{K}^{-1} \mathbf{p} \\
-\dot{p_{q_i}} & = - \frac{\partial}{\partial q_i} \mathcal{H}(\mathbf{q},\mathbf{p})
+\dot{p_{q_i}} & = - \nabla_{\mathbf{q}} \mathcal{H}(\mathbf{q},\mathbf{p})
   && = \mathbf{p}^T \hat{K}^{-1} \hat{J}_f^T \hat{M}
-        \left[ \frac{\partial}{\partial q_i} \hat{J}_f \right] \hat{K}^{-1} \mathbf{p}
+        \left[ \nabla_{\mathbf{q}} \hat{J}_f \right] \hat{K}^{-1} \mathbf{p}
     - \frac{\partial}{\partial q_i} PE(\mathbf{q})
 \end{aligned}
 $$
@@ -447,11 +465,12 @@ of all of that math we derived in the previous section.
 So, in order to fully describe the system, we need:
 
 1.  Each of their masses (or inertias) in their underlying $m$ Cartesian
-    coordinates
-2.  A function $\mathbb{R}^n \rightarrow \mathbb{R}^m$ to convert the
-    generalized coordinates ($\mathbb{R^n}$) to Cartesian coordinates ($\mathbb{R}^m$)
-3.  The potential energy function $\mathbb{R}^n \rightarrow \mathbb{R}$ in the
-    generalized coordinates ($\mathbb{R^n}$)
+    coordinates, which we'll call $\mathbf{m}$.
+2.  A function $f : \mathbb{R}^n \rightarrow \mathbb{R}^m$ to convert the
+    generalized coordinates ($\mathbb{R^n}$) to Cartesian coordinates
+    ($\mathbb{R}^m$)
+3.  The potential energy function $U : \mathbb{R}^n \rightarrow \mathbb{R}$ in
+    the generalized coordinates ($\mathbb{R^n}$)
 
 From these alone, we can derive the equations of motion for the particles in
 phase space as a system of first-order ODEs using the process described above.
@@ -462,4 +481,13 @@ Hamiltonian waves in phase space", so to speak.
 
 [gsl]: https://www.gnu.org/software/gsl/
 
+But, to be explicit, we also are going to need some derivatives for these
+functions, too.  If you've been following along, the full enumeration of
+functions we need is:
 
+1.  $\mathbf{m} : \mathbb{R}^m$
+2.  $f : \mathbb{R}^n \rightarrow \mathbb{R}^m$
+3.  $\hat{J}_f : \mathbb{R}^n \rightarrow \mathbb{R}^{m \times n}$
+4.  $\nabla_{\mathbf{q}} \hat{J}_f : \mathbb{R}^n \rightarrow \mathbb{R}^{m \times n \times n}$
+5.  $U : \mathbb{R}^n \rightarrow \mathbb{R}$
+6.  $\nabla_{\mathbf{q}} U : \mathbb{R}^n \rightarrow \mathbb{R}^n$
