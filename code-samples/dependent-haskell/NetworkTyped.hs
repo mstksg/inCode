@@ -58,9 +58,9 @@ runNet' :: (KnownNat i, KnownNat o)
 runNet' = \case
     SNil -> \case
       O w -> \(!v) -> logistic (runLayer w v)
--- runNet' (O w)      !v = logistic (runLayer w v)
--- runNet' (w :&~ n') !v = let v' = logistic (runLayer w v)
---                         in  runNet n' v'
+    Snat `SCons` ss -> \case
+      (w :&~ n') -> \(!v) -> let v' = logistic (runLayer w v)
+                             in runNet' ss n' v'
 
 randomWeights :: (MonadRandom m, KnownNat i, KnownNat o)
               => m (Weights i o)
