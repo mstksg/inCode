@@ -430,7 +430,7 @@ $$
 \begin{aligned}
 \dot{q} & = \nabla_{\mathbf{p_q}} \mathcal{H}(\mathbf{q},\mathbf{p})
   && = \hat{K}^{-1} \mathbf{p} \\
-\dot{p_{q_i}} & = - \nabla_{\mathbf{q}} \mathcal{H}(\mathbf{q},\mathbf{p})
+\dot{p_q} & = - \nabla_{\mathbf{q}} \mathcal{H}(\mathbf{q},\mathbf{p})
   && = \mathbf{p}^T \hat{K}^{-1} \hat{J}_f^T \hat{M}
         \left[ \nabla_{\mathbf{q}} \hat{J}_f \right] \hat{K}^{-1} \mathbf{p}
     - \nabla_{\mathbf{q}} PE(\mathbf{q})
@@ -578,9 +578,9 @@ We can translate that directly into Haskell code:
 
 ```haskell
 momenta :: System m n -> Config n -> R n
-momenta s (Config _ v) = tr j #> mHat #> j #> v
+momenta s (Config q v) = tr j #> mHat #> j #> v
   where
-    j    = sysJacobian s
+    j    = sysJacobian s q
     mHat = diag (sysInertia s)
 ```
 
@@ -592,3 +592,43 @@ toPhase :: System m n -> Config n -> Phase n
 toPhase s c = Phase (confPositions c) (momenta s c)
 ```
 
+This function is important, because "configuration space" is how we actually
+directly observe our system -- in terms of positions and velocities, and not in
+terms of positions and momenta (and sometimes conjugate momenta might not even
+have a meaningful physical interpretation).  So, having `toPhase` lets us
+"initialize" our system in terms of direct observables, and then convert it to
+its phase space representation, which is something that Hamiltonian mechanics
+can work with.
+
+### Equations of Motion
+
+At this point, we're ready to write our final equations of motion, which we
+found to be given by:
+
+$$
+\begin{aligned}
+\dot{q} & = \hat{K}^{-1} \mathbf{p} \\
+\dot{p_q} & = \mathbf{p}^T \hat{K}^{-1} \hat{J}_f^T \hat{M}
+        \left[ \nabla_{\mathbf{q}} \hat{J}_f \right] \hat{K}^{-1} \mathbf{p}
+    - \nabla_{\mathbf{q}} PE(\mathbf{q})
+\end{aligned}
+$$
+
+This equation isn't particularly beautiful, but it's straightforward to
+translate it into Haskell (using $\hat{K} = \hat{J}_f^T \hat{M} \hat{J}_f$):
+
+```haskell
+hamilEqns
+    :: System m n
+    -> Phase n
+    -> (R n, R n)       -- dq/dt and dp/dt
+hamilEqns s (Phase q p) = (dqdt, dpdt)
+  where
+    j       = sysJacobian s q
+    trj     = tr j
+    mHat    = diag (sysInertia s)
+    kHat    = trj <> mHat <> j
+    kHatInv = inv kHat
+    dqdt    = kHatInv #> p
+    dpdt    = p #> kHatInv
+```
