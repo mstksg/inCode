@@ -25,7 +25,8 @@ data Weights i o = W { wBiases :: !(R o)
 data Network :: Nat -> [Nat] -> Nat -> * where
     O     :: !(Weights i o)
           -> Network i '[] o
-    (:&~) :: !(Weights i h)
+    (:&~) :: KnownNat h
+          => !(Weights i h)
           -> !(Network h hs o)
           -> Network i (h ': hs) o
 infixr 5 :&~
@@ -44,23 +45,14 @@ runLayer :: (KnownNat i, KnownNat o)
          -> R o
 runLayer (W wB wN) v = wB + wN #> v
 
-runNet :: (KnownNat i, SingI hs, KnownNat o)
+runNet :: (KnownNat i, KnownNat o)
        => Network i hs o
        -> R i
        -> R o
-runNet = runNet' sing
-
-runNet' :: (KnownNat i, KnownNat o)
-        => Sing hs
-        -> Network i hs o
-        -> R i
-        -> R o
-runNet' = \case
-    SNil -> \case
-      O w -> \(!v) -> logistic (runLayer w v)
-    Snat `SCons` ss -> \case
-      (w :&~ n') -> \(!v) -> let v' = logistic (runLayer w v)
-                             in runNet' ss n' v'
+runNet = \case
+   O w -> \(!v) -> logistic (runLayer w v)
+   (w :&~ n') -> \(!v) -> let v' = logistic (runLayer w v)
+                          in runNet n' v'
 
 randomWeights :: (MonadRandom m, KnownNat i, KnownNat o)
               => m (Weights i o)
@@ -82,33 +74,20 @@ randomNet = go sing
         SNil            ->     O <$> randomWeights
         SNat `SCons` ss -> (:&~) <$> randomWeights <*> go ss
 
-train :: forall i hs o. (KnownNat i, SingI hs, KnownNat o)
+train :: forall i hs o. (KnownNat i, KnownNat o)
       => Double           -- ^ learning rate
       -> R i              -- ^ input vector
       -> R o              -- ^ target vector
       -> Network i hs o   -- ^ network to train
       -> Network i hs o
-train rate x0 target = train' rate x0 target sing
-
-train' :: forall i hs o. (KnownNat i, KnownNat o)
-       => Double           -- ^ learning rate
-       -> R i              -- ^ input vector
-       -> R o              -- ^ target vector
-       -> Sing hs
-       -> Network i hs o   -- ^ network to train
-       -> Network i hs o
-train' rate x0 target s0 = fst . go x0 s0
+train rate x0 target = fst . go x0
   where
     go  :: forall j js. KnownNat j
         => R j              -- ^ input vector
-        -> Sing js
         -> Network j js o   -- ^ network to train
         -> (Network j js o, R j)
-    go !x = \case
-      -- handle the output layer
-      SNil -> \case
-        O w@(W wB wN) ->
-          let y    = runLayer w x
+    go !x (O w@(W wB wN))
+        = let y    = runLayer w x
               o    = logistic y
               -- the gradient (how much y affects the error)
               --   (logistic' is the derivative of logistic)
@@ -120,13 +99,12 @@ train' rate x0 target s0 = fst . go x0 s0
               -- bundle of derivatives for next step
               dWs  = tr wN #> dEdy
           in  (O w', dWs)
-      -- handle the inner layers
-      SNat `SCons` ss -> \case
-        w@(W wB wN) :&~ n ->
-          let y          = runLayer w x
+    -- handle the inner layers
+    go !x (w@(W wB wN) :&~ n)
+        = let y          = runLayer w x
               o          = logistic y
               -- get dWs', bundle of derivatives from rest of the net
-              (n', dWs') = go o ss n
+              (n', dWs') = go o n
               -- the gradient (how much y affects the error)
               dEdy       = logistic' y * dWs'
               -- new bias weights and node weights
@@ -136,34 +114,6 @@ train' rate x0 target s0 = fst . go x0 s0
               -- bundle of derivatives for next step
               dWs  = tr wN #> dEdy
           in  (w' :&~ n', dWs)
-    -- go !x (O w@(W wB wN))
-    --     = let y    = runLayer w x
-    --           o    = logistic y
-    --           -- the gradient (how much y affects the error)
-    --           --   (logistic' is the derivative of logistic)
-    --           dEdy = logistic' y * (o - target)
-    --           -- new bias weights and node weights
-    --           wB'  = wB - konst rate * dEdy
-    --           wN'  = wN - konst rate * (dEdy `outer` x)
-    --           w'   = W wB' wN'
-    --           -- bundle of derivatives for next step
-    --           dWs  = tr wN #> dEdy
-    --       in  (O w', dWs)
-    -- -- handle the inner layers
-    -- go !x (w@(W wB wN) :&~ n)
-    --     = let y          = runLayer w x
-    --           o          = logistic y
-    --           -- get dWs', bundle of derivatives from rest of the net
-    --           (n', dWs') = go o n
-    --           -- the gradient (how much y affects the error)
-    --           dEdy       = logistic' y * dWs'
-    --           -- new bias weights and node weights
-    --           wB'  = wB - konst rate * dEdy
-    --           wN'  = wN - konst rate * (dEdy `outer` x)
-    --           w'   = W wB' wN'
-    --           -- bundle of derivatives for next step
-    --           dWs  = tr wN #> dEdy
-    --       in  (w' :&~ n', dWs)
 
 netTest :: MonadRandom m => Double -> Int -> m String
 netTest rate n = do
@@ -236,7 +186,7 @@ addNetWeights = \case
          -> Weights n m
     addW (W b1 w1) (W b2 w2) = W (b1 + b2) (w1 + w2)
 
--- hiddenSing :: Network i hs o -> Sing hs
--- hiddenSing = \case
---     O _      -> SNil
---     _ :&~ n' -> SNat `SCons` hiddenSing n'
+hiddenSing :: Network i hs o -> Sing hs
+hiddenSing = \case
+    O _      -> SNil
+    _ :&~ n' -> SNat `SCons` hiddenSing n'
