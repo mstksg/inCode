@@ -474,12 +474,9 @@ So, in order to fully describe the system, we need:
 
 From these alone, we can derive the equations of motion for the particles in
 phase space as a system of first-order ODEs using the process described above.
-Then, given an initial phase space position, we can use any ol' first order ODE
-integrator (like the great ones from the [GNU Scientific Library][gsl]) to
-simulate our system's motion through phase space.  That is, to "surf the
-Hamiltonian waves in phase space", so to speak.
-
-[gsl]: https://www.gnu.org/software/gsl/
+Then, given an initial phase space position, we can do a straightforward
+first-order ODE integration to simulate our system's motion through phase
+space.  That is, to "surf the Hamiltonian waves in phase space", so to speak.
 
 But, to be explicit, we also are going to need some derivatives for these
 functions/vectors, too.  If you've been following along, the full enumeration of
@@ -515,6 +512,12 @@ data System m n = System
     , sysPotentialGrad :: R n -> R n                    -- ^ grad U
     }
 ```
+
+`R n` and `L m n` are from the *[hmatrix][]* library; an `R n` represents an
+n-vector (That is, an `R 4` is a 4-vector), and an `L m n` represents an `m x
+n` matrix (That is, an `L 5 3` is a 5x3 matrix).
+
+[hmatrix]: http://hackage.haskell.org/package/hmatrix
 
 A `System m n` will describe a system parameterized by `n` generalized
 coordinates, taking place in an underlying `m`-dimensional Cartesian space.
@@ -564,9 +567,8 @@ doing --- and also helps us implement it correctly.  If we have a `System` in
 then we would need to convert an `R n` (an n-dimensional vector of all of the
 positions) into an `R m` (a vector in the underlying Cartesian space).
 
-Okay, that was simple.  Let's maybe try to calculate something more
-complicated: the *momenta* of a system, given its positions and velocities
-(configuration).
+Simple enough, but let's maybe try to calculate something more complicated: the
+*momenta* of a system, given its positions and velocities (configuration).
 
 We remember that we have a nice formula for that, up above:
 
@@ -583,6 +585,12 @@ momenta s (Config q v) = tr j #> mHat #> j #> v
     j    = sysJacobian s q
     mHat = diag (sysInertia s)
 ```
+
+Note that, because our vectors have their size indexed in their type, this is
+pretty simple to write and ensure that the shapes "line up".  In fact, GHC can
+even help you write this function by telling you what values can go in what
+locations.  Being able to get rid of a large class of bugs and clean up your
+implementation space is nice, too!
 
 With this, we can write a function to convert any state in configuration space
 to its coordinates in phase space:
@@ -632,3 +640,7 @@ hamilEqns s (Phase q p) = (dqdt, dpdt)
     dqdt    = kHatInv #> p
     dpdt    = p #> kHatInv
 ```
+
+
+
+
