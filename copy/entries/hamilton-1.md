@@ -782,7 +782,7 @@ way to do it is quite a big field, so for this article we're going to be using
 the extremely extremely simple [Euler method][] to progress our system through
 time.
 
-[integraion]: https://en.wikipedia.org/wiki/Numerical_integration
+[integration]: https://en.wikipedia.org/wiki/Numerical_integration
 [Euler Method]: https://en.wikipedia.org/wiki/Euler_method
 
 Disclaimer -- The Euler method is typically a **very very bad** choice for
@@ -796,7 +796,7 @@ The basic idea is that you pick a time-step, $\Delta t$, and update each
 coordinate as:
 
 $$
-x(t + \Delta t) = x(t) + \dot{x} \Delta t
+x(t + \Delta t) = x(t) + \dot{x}(t) \Delta t
 $$
 
 Which makes sense visually if we imagine $\dot{x}$ as the "slope" of $x$ -- it
@@ -807,9 +807,10 @@ from the fact that small errors cause errors in the new calculations of
 $\dot{x}$, and so compound over time)
 
 You can understand this symbolically, as well, by remembering that the
-derivative can be approximated by $\dot{x} \approx \frac{x(t + \Delta t) -
+derivative can be approximated by $\dot{x}(t) \approx \frac{x(t + \Delta t) -
 x(t)}{\Delta t}$ for small $\Delta t$, and so we can do a little bit of
-symbolic manipulation to get $x(t + \Delta t) \approx \dot{x} \Delta t + x(t)$.
+symbolic manipulation to get $x(t + \Delta t) \approx \dot{x}(t) \Delta t +
+x(t)$.
 
 We can directly translate this into Haskell:
 
@@ -1671,9 +1672,9 @@ function, and the potential energy function:
 !!!hamilton1/Hamilton.hs "mkSystem"
 ```
 
-Now, I hesitate to call this "trivial"...but, it really is a straightforward
-direct translation of the definitions, minus some ugly conversions back and
-forth using `r2vec`, `vec2r`, and `vec2l`!
+Now, I hesitate to call this "trivial"...but, I think it really is a
+straightforward direct translation of the definitions, minus some ugly
+conversions back and forth using `r2vec`, `vec2r`, and `vec2l`!
 
 1.  The vector of masses is just `m`
 2.  The coordinate function is just `f`
@@ -1682,10 +1683,10 @@ forth using `r2vec`, `vec2r`, and `vec2l`!
 5.  The potential energy function is just `u`
 6.  The gradient of the potential energy function is just `grad u`
 
-Take a moment to marvel at the fact that the *ad* library automatically
-generated all of these for us and created a perfectly well-formed `System`
-with all of its gradients and Jacobians by giving only the coordinate function
-and the potential energy function, and in such a clean and concise way!
+The *ad* library automatically generated all of these for us and created a
+perfectly well-formed `System` with all of its gradients and Jacobians by
+giving only the coordinate function and the potential energy function, and in
+such a clean and concise way!
 
 ### Equations of Motion
 
@@ -1724,7 +1725,7 @@ way to do it is quite a big field, so for this article we're going to be using
 the extremely extremely simple [Euler method][] to progress our system through
 time.
 
-[integraion]: https://en.wikipedia.org/wiki/Numerical_integration
+[integration]: https://en.wikipedia.org/wiki/Numerical_integration
 [Euler Method]: https://en.wikipedia.org/wiki/Euler_method
 
 Disclaimer -- The Euler method is typically a **very very bad** choice for
@@ -1738,7 +1739,7 @@ The basic idea is that you pick a time-step, $\Delta t$, and update each
 coordinate as:
 
 $$
-x(t + \Delta t) = x(t) + \dot{x} \Delta t
+x(t + \Delta t) = x(t) + \dot{x}(t) \Delta t
 $$
 
 Which makes sense visually if we imagine $\dot{x}$ as the "slope" of $x$ -- it
@@ -1749,9 +1750,10 @@ from the fact that small errors cause errors in the new calculations of
 $\dot{x}$, and so compound over time)
 
 You can understand this symbolically, as well, by remembering that the
-derivative can be approximated by $\dot{x} \approx \frac{x(t + \Delta t) -
+derivative can be approximated by $\dot{x}(t) \approx \frac{x(t + \Delta t) -
 x(t)}{\Delta t}$ for small $\Delta t$, and so we can do a little bit of
-symbolic manipulation to get $x(t + \Delta t) \approx \dot{x} \Delta t + x(t)$.
+symbolic manipulation to get $x(t + \Delta t) \approx \dot{x}(t) \Delta t +
+x(t)$.
 
 We can directly translate this into Haskell:
 
