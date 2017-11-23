@@ -80,13 +80,14 @@ mkSystem
     -> (forall a. RealFloat a => V.Vector n a -> a)
     -> System m n
 mkSystem m f u = System
-    { sysInertia       =                        m
-    , sysCoords        =      vec2r .           f . r2vec
-    , sysJacobian      =      vec2l . jacobian  f . r2vec
+                  -- < convert from | actual thing | convert to >
+    { sysInertia       =                         m
+    , sysCoords        =      vec2r .            f . r2vec
+    , sysJacobian      =      vec2l .   jacobian f . r2vec
     , sysJacobian2     = rejacobi
-                       . fmap vec2l . jacobian2 f . r2vec
-    , sysPotential     =                        u . r2vec
-    , sysPotentialGrad =      vec2r .      grad u . r2vec
+                       . fmap vec2l .  jacobian2 f . r2vec
+    , sysPotential     =                         u . r2vec
+    , sysPotentialGrad =      vec2r .       grad u . r2vec
     }
 
 hamilEqns
@@ -129,16 +130,17 @@ runSystem s dt = go
     go p0 = p0 : go (stepEuler s dt p0)
 
 simpleSystem :: System 2 2
-simpleSystem = mkSystem (vec2 5 5) id pots
+simpleSystem = mkSystem (vec2 5 5) id pot
   where
     -- U(x,y) = 9.8 * y
-    pots :: RealFloat a => V.Vector 2 a -> a
-    pots xy = 9.8 * (xy `V.index` 1)
+    pot :: RealFloat a => V.Vector 2 a -> a
+    pot xy = 9.8 * (xy `V.index` 1)
 
 simpleConfig0 :: Config 2
-simpleConfig0 = Config { confPositions  = vec2 0 0
-                       , confVelocities = vec2 1 3
-                       }
+simpleConfig0 = Config
+    { confPositions  = vec2 0 0
+    , confVelocities = vec2 1 3
+    }
 
 simpleMain :: IO ()
 simpleMain =
@@ -148,7 +150,7 @@ simpleMain =
 
 
 pendulum :: System 2 1
-pendulum = mkSystem (vec2 5 5) coords pots      -- 5kg particle
+pendulum = mkSystem (vec2 5 5) coords pot      -- 5kg particle
   where
     -- <x,y> = <-0.5 sin(theta), -0.5 cos(theta)>
     -- pendulum of length 0.25
@@ -157,13 +159,14 @@ pendulum = mkSystem (vec2 5 5) coords pots      -- 5kg particle
                            . V.fromList
                            $ [- 0.25 * sin theta, - 0.25 * cos theta]
     -- U(x,y) = 9.8 * y
-    pots :: RealFloat a => V.Vector 1 a -> a
-    pots q = 9.8 * (coords q `V.index` 1)
+    pot :: RealFloat a => V.Vector 1 a -> a
+    pot q = 9.8 * (coords q `V.index` 1)
 
 pendulumConfig0 :: Config 1
-pendulumConfig0 = Config { confPositions  = 0
-                         , confVelocities = 0.1
-                         }
+pendulumConfig0 = Config
+    { confPositions  = 0
+    , confVelocities = 0.1
+    }
 
 pendulumMain :: IO ()
 pendulumMain =

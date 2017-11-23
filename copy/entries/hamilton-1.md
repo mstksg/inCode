@@ -72,7 +72,7 @@ is dictated by the geometry of the *Hamiltonian* of that phase space.
 
 The system's *Hamiltonian* is a $\mathbb{R}^{2n} \rightarrow \mathbb{R}$
 function on phase space (where $n$ is the number of coordinates parameterizing
-your system) to $\mathbb{R}$.  For a time-independent system, the picture of
+your system) to a scalar number.  For a time-independent system, the picture of
 the dynamics is pretty simple: the system moves along the *contour lines* of
 the *Hamiltonian* -- the lines of equal "height".
 
@@ -705,10 +705,10 @@ parameters, we can get type-safe conversions that preserve their size
 information!
 
 Also, even though *ad* gives our second-order Jacobian as an $m \times n \times
-n$ tensor, we really want it as a `n`-vector of $m \times n$ matrices -- that's
+n$ tensor, we really want it as a n-vector of $m \times n$ matrices -- that's
 how we interpreted it in our original math.  So we just need to write an
 function to convert what *ad* gives us to the form we expect.  It's mostly just
-fiddling around with the internals of *hmatrix*.
+fiddling around with the internals of *hmatrix* in a rather inelegant way.
 
 ```haskell
 !!!hamilton1/Hamilton.hs "rejacobi ::"
@@ -787,7 +787,7 @@ The result of `hamilEqns` gives the rate of change of the components of our
 `Phase n`.  The rest of the processes then is just to "step" `Phase n`.
 Gradually update it, following these rate of changes!
 
-This process is known as [Numerical Integration][integration], and the "best"
+This process is known as [numerical integration][integration], and the "best"
 way to do it is quite a big field, so for this article we're going to be using
 the extremely extremely simple [Euler method][] to progress our system through
 time.
@@ -953,15 +953,13 @@ ghci> pendulumMain
 
 We see our $\theta$ coordinate increasing, then turning around and
 decreasing, swinging the other way past equilibrium, and then turning around
-and heading back!
+and heading back![^phantom]
 
-Clearly our system is gaining some sort of phantom energy, since it rises up to
-0.045 on the left, and then all the way up to -0.69 on the right. Rest assured
-that this is simply from the inaccuracies in Euler's Method, which we used to
-integrate!
+[^phantom]: Clearly our system is gaining some sort of phantom energy, since it
+rises up to 0.045 on the left, and then all the way up to -0.69 on the right.
+Rest assured that this is simply from the inaccuracies in Euler's Method.
 
-But, conceptually, this is a success!  We *automatically generated equations
-of motion for a pendulum*.  Sweet!
+We *automatically generated equations of motion for a pendulum*.  Sweet!
 
 Wrap-Up
 -------
@@ -970,7 +968,8 @@ We traveled through the world of physics, math, Haskell, and back again to
 achieve something that would have initially seemed like a crazy thought
 experiment.  But, utilizing Hamiltonian mechanics, we have a system that can
 automatically generate equations of motion given your coordinate system and a
-potential energy function.
+potential energy function.  We also learned how to leverage typed vectors for
+more correct code and a smoother development process.
 
 See my [previous post][intro] for even crazier examples -- involving multiple
 objects, double pendulums, and more!   And check out my [hamilton][] library,
