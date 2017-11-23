@@ -55,7 +55,7 @@ the [Stackage LTS-9.14][lts] resolver.
 [lts]: https://www.stackage.org/lts-9.14
 
 Hamiltonian Mechanics
-=====================
+---------------------
 
 As mentioned in the previous post, Hamiltonian mechanics is a re-imagining of
 dynamics and mechanics (think "the world post-$F = m a$") that not only opened
@@ -1720,7 +1720,7 @@ The result of `hamilEqns` gives the rate of change of the components of our
 The rest of the processes then is just to "step" `Phase n`.  Gradually update
 it, following these rate of changes!
 
-## Numerical Integration
+### Numerical Integration
 
 This process is known as [Numerical Integration][integration], and the "best"
 way to do it is quite a big field, so for this article we're going to be using
@@ -1768,8 +1768,8 @@ And repeatedly evolve this system as a lazy list:
 !!!hamilton1/Hamilton.hs "runSystem"
 ```
 
-The Tests
-=========
+Running with it!
+----------------
 
 And...that's it!  Granted, in real life, we would be using a less naive
 integration method, but this is essentially the entire process!
@@ -1898,7 +1898,7 @@ But, conceptually, this is a success!  We *automatically generated equations
 of motion for a pendulum*.  Sweet!
 
 Wrap-Up
-=======
+-------
 
 We traveled through the world of physics, math, Haskell, and back again to
 achieve something that would have initially seemed like a crazy thought
