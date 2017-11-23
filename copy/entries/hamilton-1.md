@@ -675,7 +675,6 @@ a quick utility function that only gives us the second-order Jacobian:
 ```haskell
 -- import qualified Control.Comonad        as C
 -- import qualified Control.Comonad.Cofree as C
-
 !!!hamilton1/Hamilton.hs "jacobian2"
 ```
 
@@ -703,7 +702,6 @@ So some ugly things -- we need to write some functions to convert between
 
 ```haskell
 -- import qualified Data.Vector.Generic.Sized as VG
-
 !!!hamilton1/Hamilton.hs "vec2r" "r2vec" "vec2l"
 ```
 
@@ -1618,7 +1616,6 @@ a quick utility function that only gives us the second-order Jacobian:
 ```haskell
 -- import qualified Control.Comonad        as C
 -- import qualified Control.Comonad.Cofree as C
-
 !!!hamilton1/Hamilton.hs "jacobian2"
 ```
 
@@ -1646,7 +1643,6 @@ So some ugly things -- we need to write some functions to convert between
 
 ```haskell
 -- import qualified Data.Vector.Generic.Sized as VG
-
 !!!hamilton1/Hamilton.hs "vec2r" "r2vec" "vec2l"
 ```
 
@@ -1659,10 +1655,11 @@ information!
 Also, even though *ad* gives our second-order Jacobian as an $m \times n \times
 n$ tensor, we really want it as a `n`-vector of $m \times n$ matrices -- that's
 how we interpreted it in our original math.  So we just need to write an
-function to convert what *ad* gives us to the form we expect:
+function to convert what *ad* gives us to the form we expect.  It's mostly just
+fiddling around with the internals of *hmatrix*.
 
 ```haskell
-!!!hamilton1/Hamilton.hs "rejacobi ::"1
+!!!hamilton1/Hamilton.hs "rejacobi ::"
 ```
 
 #### Using AD to Auto-Derive Systems
