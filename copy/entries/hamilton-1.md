@@ -9,11 +9,19 @@ slug: hamiltonian-dynamics-in-haskell
 ---
 
 As promised in my [*hamilton* introduction post][intro], I'm going to go over
-implementing of the *[hamilton][]* library using *[ad][]* and dependent types.
+implementing of the *[hamilton][]* library using
+
+1.  `DataKinds` to enforce sizes of vectors and matrices and help guide us
+    write our code
+1.  Statically-sized linear algebra with *[hmatrix][]*
+2.  Automatic differentiation with *[ad][]*
+3.  Statically-sized vectors with *[vector-sized][]*
 
 [intro]: https://blog.jle.im/entry/introducing-the-hamilton-library.html
 [hamilton]: http://hackage.haskell.org/package/hamilton
+[hmatrix]: http://hackage.haskell.org/package/hmatrix
 [ad]: http://hackage.haskell.org/package/ad
+[vector-sized]: http://hackage.haskell.org/package/vector-sized
 
 This post will be a bit heavy in some mathematics and Haskell concepts.  The
 expected audience is intermediate Haskell programmers, and no previous
@@ -462,15 +470,6 @@ The Haskell
 
 Just kidding, now it's time for the fun stuff :)
 
-We're going to be using the sized-typed vectors from the *[vector-sized][]*
-package, from the [Data.Vector.Sized][] module.  This package is really nice
-because it exports the same interface as the classic *vector* package,
-except with the size of the vector in the type.  A `Vector n a` is a vector of
-length `n` containing values of type `a`.
-
-[vector-sized]: http://hackage.haskell.org/package/vector-sized
-[Data.Vector.Sized]: http://hackage.haskell.org/package/vector-sized/docs/Data-Vector-Sized.html
-
 Our final goal is to be able to simulate a *system of discrete particles*
 through *arbitrary generalized coordinates*.
 
@@ -493,7 +492,7 @@ From these alone, we can derive the equations of motion for the particles in
 phase space as a system of first-order ODEs using the process described above.
 Then, given an initial phase space position, we can do a straightforward
 first-order ODE integration to simulate our system's motion through phase
-space.  That is, to "surf the Hamiltonian waves in phase space", so to speak.
+space.  To "surf the Hamiltonian waves in phase space", so to speak.
 
 But, to be explicit, we also are going to need some derivatives for these
 functions/vectors, too.  If you've been following along, the full enumeration of
@@ -524,10 +523,8 @@ describes the physics of our systems (the "shape" of the Hamiltonian):
 ```
 
 `R n` and `L m n` are from the *[hmatrix][]* library; an `R n` represents an
-n-vector (That is, an `R 4` is a 4-vector), and an `L m n` represents an `m x
-n` matrix (That is, an `L 5 3` is a 5x3 matrix).
-
-[hmatrix]: http://hackage.haskell.org/package/hmatrix
+n-vector (For example, an `R 4` is a 4-vector), and an `L m n` represents an `m
+x n` matrix (For example, an `L 5 3` is a 5x3 matrix).
 
 A `System m n` will describe a system parameterized by `n` generalized
 coordinates, taking place in an underlying `m`-dimensional Cartesian space.
@@ -582,7 +579,7 @@ $$
 We can translate that directly into Haskell code:
 
 ```haskell
-!!!hamilton1/Hamilton.hs "underlyingPosition ::"
+!!!hamilton1/Hamilton.hs "momenta ::"
 ```
 
 Note that, because our vectors have their size indexed in their type, this is
@@ -640,9 +637,12 @@ grad myFunc :: RealFloat a => V.Vector n a -> V.Vector n a
 Where each of the components in the resulting vector corresponds to the rate of
 change of the output according to variations in that component.
 
-We're using **statically sized vector** type from the [vector-sized][] package,
-where `V.Vector n a` is a `n`-vector of `a`s -- that is, a `V.Vector 3 Double`
-is a vector of 3 `Double`s.
+We're using **statically sized vector** type from the [vector-sized][]
+package (in the [Data.Vector.Sized][] module),
+where `V.Vector n a` is a `n`-vector of `a`s -- for example, a `V.Vector 3
+Double` is a vector of 3 `Double`s.
+
+[Data.Vector.Sized]: http://hackage.haskell.org/package/vector-sized/docs/Data-Vector-Sized.html
 
 We have to use `Vector` (instead of `R`, from *hmatrix*) because automatic
 differentiation for gradients requires *some Functor* to work.  An `R 5` is
@@ -763,13 +763,29 @@ translate it into Haskell (using $\hat{K} = \hat{J}_f^T \hat{M} \hat{J}_f$):
 Of course, there is no way to get around the big ugly math term in $\dot{p}_q$,
 but at least it is a direct reading of the math!
 
-The result of `hamilEqns` gives the rate of change of the components of our
-`Phase n`.
+*But !!*  I'd much rather write this scary Haskell than that scary math,
+because *ghc typechecks our math*!  When writing out those equations, we really
+had no idea if we were writing it correctly, and if the matrix and vector and
+tensor dimensions line up.  If it even *made sense* to multiply and transpose
+the quantities we had.
 
-The rest of the processes then is just to "step" `Phase n`.  Gradually update
-it, following these rate of changes!
+But, when writing `hamilEqns`, we let GHC hold our hand for us.  If any of our
+math is wrong, GHC will verify it for us!  If any dimensions don't match up, or
+any transpositions don't make sense, we'll know!  And if we're ever lost, we
+can leave a *[typed hole][]* -- then GHC will tell you all of the values in
+scope that can *fit* in that hole!
+
+[typed hole]: https://wiki.haskell.org/GHC/Typed_holes
+
+It's admittedly difficult to convey how helpful these sized vector types are
+without working through trying to implement them yourself, so feel free to give
+it a try when you get the chance! :D
 
 ### Numerical Integration
+
+The result of `hamilEqns` gives the rate of change of the components of our
+`Phase n`.  The rest of the processes then is just to "step" `Phase n`.
+Gradually update it, following these rate of changes!
 
 This process is known as [Numerical Integration][integration], and the "best"
 way to do it is quite a big field, so for this article we're going to be using
@@ -818,8 +834,8 @@ And repeatedly evolve this system as a lazy list:
 !!!hamilton1/Hamilton.hs "runSystem"
 ```
 
-Running with it!
-----------------
+Running with it
+---------------
 
 And...that's it!  Granted, in real life, we would be using a less naive
 integration method, but this is essentially the entire process!
