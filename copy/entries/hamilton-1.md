@@ -77,12 +77,13 @@ space*, and that the system's dynamics is its motion through phase space that
 is dictated by the geometry of the *Hamiltonian* of that phase space.
 
 The system's *Hamiltonian* is a $\mathbb{R}^{2n} \rightarrow \mathbb{R}$
-function on phase space (where $n$ is the number of coordinates parameterizing
-your system) to a scalar number.  For a time-independent system, the picture of
-the dynamics is pretty simple: the system moves along the *contour lines* of
-the *Hamiltonian* -- the lines of equal "height".
+function from a point in $\mathbb{R}^{2n}$ phase space (where $n$ is the number
+of coordinates parameterizing your system) to a scalar in $\mathbb{R}$.  For a
+time-independent system, the picture of the dynamics is pretty simple: the
+system moves along the *contour lines* of the *Hamiltonian* -- the lines of
+equal "height".
 
-![Example of contour lines of a $\mathbb{R}^2 \rightarrow \mathbb{R}$ function -- the elevation of land.  From the [Ordinace Survey][] website.](/img/entries/hamilton/contour-lines.jpg "Contour lines")
+![Example of contour lines of a $\mathbb{R}^2 \rightarrow \mathbb{R}$ function -- the elevation of land, from the [Ordinace Survey][] website.](/img/entries/hamilton/contour-lines.jpg "Contour lines")
 
 [Ordinace Survey]: https://www.ordnancesurvey.co.uk/blog/2015/11/map-reading-skills-making-sense-of-contour-lines/
 
@@ -120,18 +121,19 @@ contour lines" on that Hamiltonian!
 
 ### Phase Space
 
-Hamiltonian dynamics are about systems moving around in phase space.  Phase
-space is the "room where it happens", so to speak, so let's dig deeper into
-what it is.  *Phase space* is a $2n$-dimensional space parameterized by:
+Hamiltonian dynamics are about systems moving around in phase space.  It seems
+that phase space is the "room where it happens", so to speak, so let's dig
+deeper into what it is.  *Phase space* is a $2n$-dimensional space
+parameterized by:
 
 1.  All of the current values of the $n$ parameters ("generalized coordinates")
 2.  All of the current "generalized momenta" of those $n$ parameters
 
 So if you were parameterizing your pendulum system by, say, the angle of the
-pendulum, the phase space would be the current angle of the pendulum along with
-the current "generalized momentum" associated with the angle of the pendulum.
-What exactly *is* generalized momentum?  We'll go over calculating it
-eventually, but what does it represent...*physically*?
+pendulum, then a point in phase space would be the current angle of the
+pendulum along with the current "generalized momentum" associated with the
+angle of the pendulum. What exactly *is* generalized momentum?  We'll go over
+calculating it eventually, but what does it represent...*physically*?
 
 The deeper answer involves the underlying Lie algebra of the Lie group
 associated with the generalized coordinates, but going into that would make
@@ -144,8 +146,7 @@ yield things that we typically call "momenta":
     first semester physics.
 
 2.  The momentum conjugate to the angle $\theta$ in polar coordinates is
-    *angular momentum* ($\mathbf{L} = m \mathbf{r} \times \mathbf{v}$, or $L = m r^2 \dot{\theta}$)
-    from first semester physics.
+    *angular momentum* ($L = m r^2 \dot{\theta}$) from first semester physics.
 
 3.  The momentum conjugate to the radial coordinate $r$ in polar coordinates is
     also just boring old linear momentum $p_r = m \dot{r}$, which makes sense
@@ -304,10 +305,10 @@ $$
 But, hey, this looks a lot like a matrix-vector multiplication!  If we make
 $\hat{J}_f$, an $m \times n$ matrix of partial derivatives of $f$
 ($\hat{J}_{fij} = \frac{\partial f_i}{\partial q_j}$) at a given point
-(typically called the [Jacobian matrix of f][], then we have a nice expression
+(typically called the [Jacobian matrix of f][Jacobian], then we have a nice expression
 for $\dot{\mathbf{x}}$:
 
-[Jacobian matrix]: https://en.wikipedia.org/wiki/Jacobian_matrix_and_determinant
+[Jacobian]: https://en.wikipedia.org/wiki/Jacobian_matrix_and_determinant
 
 $$
 \dot{\mathbf{x}} = \hat{J}_f \dot{\mathbf{q}}
@@ -443,7 +444,7 @@ $$
     2 \hat{J}_f^T \hat{M} \left[ \nabla_{\mathbf{q}} \hat{J}_f \right]
 $$
 
-If we define $\nabla_{\mathbf{q}} \hat{J}_f$ as an $n \times m \times n$
+if we define $\nabla_{\mathbf{q}} \hat{J}_f$ as an $n \times m \times n$
 tensor, whose $n$ components are the each the $m \times n$ matrices
 corresponding to $\frac{\partial}{\partial q_i} \hat{J}_f$
 
@@ -529,7 +530,7 @@ $$
 
 But, as we'll see, with libraries like *[ad][]* in Haskell, we can really just
 ask the user for $\mathbf{m}$, $f$, and $U$ -- all of the derivatives can be
-computed automatically!
+computed automatically.
 
 ### Our Data Structures
 
@@ -547,7 +548,7 @@ x n` matrix (For example, an `L 5 3` is a 5x3 matrix).
 A `System m n` will describe a system parameterized by `n` generalized
 coordinates, taking place in an underlying `m`-dimensional Cartesian space.
 
-It'll also be convenient to have a nice data type to describe the state of our
+It'll also be convenient to have a data type to describe the state of our
 system in terms of its generalized positions ($\mathbf{q}$) and generalized
 velocities (the rates of changes of these positions, $\dot{\mathbf{q}}$), which
 is sometimes called "configuration space":
@@ -632,7 +633,7 @@ your Jacobians and gradients.
 
 Here's where the magic comes in -- we can have Haskell generate our Jacobians
 and gradients *automatically*, using the amazing [ad][] library!  We can just
-use the appropriately named `grad` and `jacobian` functions!
+use the appropriately named `grad` and `jacobian` functions.
 
 #### Quick Intro to AD
 
@@ -648,6 +649,8 @@ If we have a function a function from a sized vector to a scalar, we can use
 `grad` to get its gradient:
 
 ```haskell
+-- import qualified Data.Vector.Sized as V
+
 myFunc      :: RealFloat a => V.Vector n a -> a
 grad myFunc :: RealFloat a => V.Vector n a -> V.Vector n a
 ```
@@ -692,7 +695,7 @@ a quick utility function that only gives us the second-order Jacobian:
 If you think of `Cofree` as an infinite linked list (of nested Functors),
 `jacobians` returns a linked list of derivative tensors.  The first item is the
 0th derivative (the actual function value), so we drop it with `C.unwrap` (like
-`tail`) for lists).  The second item is the 1st derivative, so we drop it again
+`tail` for lists).  The second item is the 1st derivative, so we drop it again
 using `C.unwrap`.  And finally, we only want the third item (the 2nd derivatives)
 so we `C.extract` it (like `head` for lists).
 
@@ -727,6 +730,7 @@ n$ tensor, we really want it as a n-vector of $m \times n$ matrices -- that's
 how we interpreted it in our original math.  So we just need to write an
 function to convert what *ad* gives us to the form we expect.  It's mostly just
 fiddling around with the internals of *hmatrix* in a rather inelegant way.
+(Again, unsafe to write, but safe to use once you do)
 
 ```haskell
 !!!hamilton1/Hamilton.hs "rejacobi ::"
@@ -767,12 +771,18 @@ $$
 \dot{\mathbf{q}} & = \hat{K}^{-1} \mathbf{p} \\
 \dot{\mathbf{p}} & = \mathbf{p}^T \hat{K}^{-1} \hat{J}_f^T \hat{M}
         \left[ \nabla_{\mathbf{q}} \hat{J}_f \right] \hat{K}^{-1} \mathbf{p}
+    - \nabla_{\mathbf{q}} PE(\mathbf{q}) \\
+\dot{p}_{q_i} & = \mathbf{p}^T \hat{K}^{-1} \hat{J}_f^T \hat{M}
+        \left[ \frac{\partial}{\partial q_i} \hat{J}_f \right] \hat{K}^{-1} \mathbf{p}
     - \nabla_{\mathbf{q}} PE(\mathbf{q})
 \end{aligned}
 $$
 
-This equation isn't particularly beautiful, but it's straightforward to
-translate it into Haskell (using $\hat{K} = \hat{J}_f^T \hat{M} \hat{J}_f$):
+(I've given the form of $\dot{\mathbf{p}}$ in both its abuse-of-notation form
+and its explicit component-wise form, which is more useful for implementation)
+
+These equations aren't particularly beautiful, but it's straightforward to
+translate them into Haskell (using $\hat{K} = \hat{J}_f^T \hat{M} \hat{J}_f$):
 
 ```haskell
 !!!hamilton1/Hamilton.hs "hamilEqns"
@@ -789,9 +799,11 @@ the quantities we had.
 
 However, when writing `hamilEqns`, we let GHC *hold our hand for us*.  If any
 of our math is wrong, GHC will verify it for us!  If any dimensions don't match
-up, or any transpositions don't make sense, we'll know!  And if we're ever
-lost, we can leave a *[typed hole][]* -- then GHC will tell you all of the
-values in scope that can *fit* in that hole!
+up, or any transpositions don't make sense, we'll know immediately.  And if
+we're ever lost, we can leave a *[typed hole][]* -- then GHC will tell you all
+of the values in scope that can *fit* in that hole!  Even if you don't
+completely understand the math, this helps you implement it in a somewhat
+confident way.
 
 [typed hole]: https://wiki.haskell.org/GHC/Typed_holes
 
@@ -920,13 +932,14 @@ ghci> simpleMain
 Exactly what we'd expect!  The `x` positions increase steadily, and the `y`
 positions increase, slow down, and start decreasing.
 
-We can try a slightly more complicated example that validates all of the work
-we've done -- let's simulate a simple pendulum.  The state of a pendulum is
-characterized by one coordinate $\theta$, which refers to the angular
-(clockwise) from the equilibrium "hanging straight down" position.  $\theta =
-0$ corresponds to 6 o' clock, $\theta = \pi/2$ corresponds to 9 o' clock,
-$\theta = - \pi / 2$ corresponds to 3 o' clock, etc.  For a pendulum of length
-$l$, we can translate that as $\langle x, y \rangle = \langle - l sin(\theta),
+We can try a slightly more complicated example that validates (and justifies)
+all of the work we've done -- let's simulate a simple pendulum.  The state of a
+pendulum is characterized by one coordinate $\theta$, which refers to the
+angular (clockwise) from the equilibrium "hanging straight down" position.
+$\theta = 0$ corresponds to 6 o' clock, $\theta = \pi/2$ corresponds to 9 o'
+clock, $\theta = - \pi / 2$ corresponds to 3 o' clock, etc.  For a pendulum of
+length $l$, we can translate that as $\langle x, y \rangle = \langle - l
+sin(\theta),
 - l cos(\theta) \rangle$.
 
 Let's set up that system!  We'll put it under normal gravity potential, again

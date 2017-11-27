@@ -120,8 +120,8 @@ mkSystem m f u = System
                        . fmap vec2l .  jacobian2 f . r2vec
     , sysPotential     =                         u . r2vec
     , sysPotentialGrad =      vec2r .       grad u . r2vec
-    }
                   -- < convert from | actual thing | convert to >
+    }
 
 -- | Equations of motion for a system at a given position in phase space
 hamilEqns
