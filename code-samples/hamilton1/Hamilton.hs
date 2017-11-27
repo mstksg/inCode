@@ -1,6 +1,9 @@
 #!/usr/bin/env stack
 -- stack runghc --resolver lts-9 --package ad --package hmatrix --package vector-sized
 
+-- | Source file accompanying
+-- https://blog.jle.im/entry/hamiltonian-dynamics-in-haskell.html
+
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -16,6 +19,9 @@ import qualified Control.Comonad.Cofree       as C
 import qualified Data.Vector.Generic.Sized    as VG
 import qualified Data.Vector.Sized            as V
 
+-- | A @'System' m n@ represents a system parameterized by @n@ generalized
+-- coordinates, moving in an "underlying" @m@-dimensional cartesian
+-- coordinate system.
 data System m n = System
     { sysInertia       :: R m                         -- ^ 'm' vector
     , sysCoords        :: R n -> R m                  -- ^ f
@@ -25,30 +31,50 @@ data System m n = System
     , sysPotentialGrad :: R n -> R n                  -- ^ grad U
     }
 
+-- | A system's position in configuration space
 data Config n = Config
     { confPositions  :: R n
     , confVelocities :: R n
     }
   deriving Show
 
+-- | A system's position in phase space
 data Phase n = Phase
     { phasePositions :: R n
     , phaseMomenta   :: R n
     }
   deriving Show
 
-underlyingPosition :: System m n -> R n -> R m
+-- | Given a position in @n@-dimensional generalized coordinates, return
+-- the position in the underlying @m@-dimensional cartesian coordinate
+-- system.
+underlyingPosition
+    :: System m n
+    -> R n
+    -> R m
 underlyingPosition = sysCoords
 
-momenta :: (KnownNat n, KnownNat m) => System m n -> Config n -> R n
+-- | Give the system's generalized momenum, given its position in
+-- configuration space.
+momenta
+    :: (KnownNat n, KnownNat m)
+    => System m n
+    -> Config n
+    -> R n
 momenta s (Config q v) = tr j #> mHat #> j #> v
   where
     j    = sysJacobian s q
     mHat = diag (sysInertia s)
 
-toPhase :: (KnownNat n, KnownNat m) => System m n -> Config n -> Phase n
+-- | Convert a position in configuration space to a position in phase space
+toPhase
+    :: (KnownNat n, KnownNat m)
+    => System m n
+    -> Config n
+    -> Phase n
 toPhase s c = Phase (confPositions c) (momenta s c)
 
+-- | Compute the 2nd-order jacobian using "Numeric.AD"
 jacobian2
     :: (Traversable f, Functor g, RealFloat a)
     => (forall b. RealFloat b => f b -> g b)
@@ -59,20 +85,26 @@ jacobian2 f = (fmap . fmap . fmap) C.extract  -- ^ take 2nd deriv
             . fmap C.unwrap                   -- ^ drop 0th deriv
             . jacobians f                     -- ^ create list of jacobians
 
+-- | Convert a sized-vector vector to an hmatrix vector
 vec2r :: KnownNat n => V.Vector n Double -> R n
 vec2r = fromJust . create . VG.fromSized . VG.convert
 
+-- | Convert an hmatrix vector to a sized-vector vector
 r2vec :: KnownNat n => R n -> V.Vector n Double
 r2vec = VG.convert . fromJust . VG.toSized . extract
 
+-- | Convert a sized-vector nested vector to an hmatrix matrix
 vec2l :: (KnownNat m, KnownNat n) => V.Vector m (V.Vector n Double) -> L m n
 vec2l = fromJust . (\rs -> withRows rs exactDims) . toList . fmap vec2r
 
+-- | Shift around the 2nd Order Jacobian into the shape expected
 rejacobi :: (KnownNat m, KnownNat n) => V.Vector m (L n n) -> V.Vector n (L m n)
 rejacobi = fmap (fromJust . (\rs -> withRows rs exactDims) . toList)
          . sequenceA
          . fmap (fromJust . V.fromList . toRows)
 
+-- | Make a system given its inertias, coordinate functions, and potential
+-- energy function
 mkSystem
     :: (KnownNat m, KnownNat n)
     => R m
@@ -89,7 +121,9 @@ mkSystem m f u = System
     , sysPotential     =                         u . r2vec
     , sysPotentialGrad =      vec2r .       grad u . r2vec
     }
+                  -- < convert from | actual thing | convert to >
 
+-- | Equations of motion for a system at a given position in phase space
 hamilEqns
     :: (KnownNat n, KnownNat m)
     => System m n
@@ -109,6 +143,7 @@ hamilEqns s (Phase q p) = (dqdt, dpdt)
           fmap (\j2 -> -p <.> kHatInv #> trj #> mHat #> j2 #> kHatInv #> p)
                (sysJacobian2 s q)
 
+-- | Step a system's position through phase space using Euler integration
 stepEuler
     :: (KnownNat n, KnownNat m)
     => System m n       -- ^ the system
@@ -119,6 +154,7 @@ stepEuler s dt ph@(Phase q p) = Phase (q + konst dt * dq) (p + konst dt * dp)
   where
     (dq, dp) = hamilEqns s ph
 
+-- | Iterate Euler's method to repeatedly step a system through phase space
 runSystem
     :: (KnownNat n, KnownNat m)
     => System m n       -- ^ the system
@@ -129,13 +165,17 @@ runSystem s dt = go
   where
     go p0 = p0 : go (stepEuler s dt p0)
 
+-- | A simple particle in 2D cartesian space under gravity
 simpleSystem :: System 2 2
 simpleSystem = mkSystem (vec2 5 5) id pot
   where
+    -- potential energy of a gravity field
     -- U(x,y) = 9.8 * y
     pot :: RealFloat a => V.Vector 2 a -> a
     pot xy = 9.8 * (xy `V.index` 1)
 
+-- | An initial position in configuration space, representing a particle
+-- at <0,0> with initial velocity <1,3>
 simpleConfig0 :: Config 2
 simpleConfig0 = Config
     { confPositions  = vec2 0 0
@@ -149,6 +189,8 @@ simpleMain =
   $ runSystem simpleSystem 0.1 (toPhase simpleSystem simpleConfig0)
 
 
+-- | A pendulum system, parameterized by its angle clockwise from
+-- equilibrium
 pendulum :: System 2 1
 pendulum = mkSystem (vec2 5 5) coords pot      -- 5kg particle
   where
@@ -158,10 +200,14 @@ pendulum = mkSystem (vec2 5 5) coords pot      -- 5kg particle
     coords (V.head->theta) = fromJust
                            . V.fromList
                            $ [- 0.25 * sin theta, - 0.25 * cos theta]
+    -- potential energy of gravity field
     -- U(x,y) = 9.8 * y
     pot :: RealFloat a => V.Vector 1 a -> a
     pot q = 9.8 * (coords q `V.index` 1)
 
+-- | An initial pendulum position in configuration space, representing
+-- a pendulum at equilibrium with initial angular velocity 0.1 rad/sec
+-- clockwise
 pendulumConfig0 :: Config 1
 pendulumConfig0 = Config
     { confPositions  = 0

@@ -3,7 +3,7 @@ title: Hamiltonian Dynamics in Haskell
 categories: Haskell
 tags: functional programming, haskell, physics, numerical methods, dependent types
 create-time: 2016/12/08 15:05:10
-date: never
+date: 2017/11/27 11:46:18
 identifier: hamilton-1
 slug: hamiltonian-dynamics-in-haskell
 ---
@@ -11,8 +11,8 @@ slug: hamiltonian-dynamics-in-haskell
 As promised in my [*hamilton* introduction post][intro], I'm going to go over
 implementing of the *[hamilton][]* library using
 
-1.  `DataKinds` to enforce sizes of vectors and matrices and help guide us
-    write our code
+1.  *DataKinds* (with *TypeLits*) to enforce sizes of vectors and matrices and
+help guide us write our code
 1.  Statically-sized linear algebra with *[hmatrix][]*
 2.  Automatic differentiation with *[ad][]*
 3.  Statically-sized vectors with *[vector-sized][]*
@@ -38,6 +38,10 @@ familiarity with:
 
 No physics knowledge is assumed, but knowing a little bit of first semester
 physics would help you gain a bit more of an appreciation for the end result!
+
+The [hamilton library introduction][intro] should be considered a "soft
+prerequisite" for this post, as it presents motivations, visual
+demonstrations, and general overviews of the methods presented here!
 
 The Goal
 --------
@@ -114,11 +118,9 @@ contour lines" on that Hamiltonian!
 
 ### Phase Space
 
-The only thing I've really said in detail about phase space is that if your
-system's state has $n$ parameters, then the corresponding phase space is
-$2n$-dimensional (and that Hamiltonian mechanics is somehow about systems
-moving around in phase space).  Let me clear it up now: *Phase space* is a
-$2n$-dimensional space parameterized by:
+Hamiltonian dynamics are about systems moving around in phase space.  Phase
+space is the "room where it happens", so to speak, so let's dig deeper into
+what it is.  *Phase space* is a $2n$-dimensional space parameterized by:
 
 1.  All of the current values of the $n$ parameters ("generalized coordinates")
 2.  All of the current "generalized momenta" of those $n$ parameters
@@ -129,11 +131,11 @@ the current "generalized momentum" associated with the angle of the pendulum.
 What exactly *is* generalized momentum?  We'll go over calculating it
 eventually, but what does it represent...*physically*?
 
-I could give you some spiel here about the underlying Lie algebra of the Lie
-group associated with the generalized coordinates, but that would make this a
-completely different post.  What I *can* say is that the generalized momenta
-associated with ("conjugate to") certain sets of familiar coordinates yield
-things that we typically call "momenta":
+The deeper answer involves the underlying Lie algebra of the Lie group
+associated with the generalized coordinates, but going into that would make
+this a completely different post.  What I *can* say is that the generalized
+momenta associated with ("conjugate to") certain sets of familiar coordinates
+yield things that we typically call "momenta":
 
 1.  The momentum conjugate to normal Cartesian coordinates is just our normal
     run-of-the-mill *linear momentum* (in the $\mathbf{p} = m \mathbf{v}$) from
@@ -144,7 +146,8 @@ things that we typically call "momenta":
     from first semester physics.
 
 3.  The momentum conjugate to the radial coordinate $r$ in polar coordinates is
-    also just boring old linear momentum $p_r = m \dot{r}$.
+    also just boring old linear momentum $p_r = m \dot{r}$, which makes sense
+    because purely radial motion is just linear motion.
 
 So, it's our normal momentum (for linear and polar coordinates) *generalized*
 to arbitrary coordinates.
@@ -168,10 +171,11 @@ But we want to move along the *contour lines*...and these are the lines
 *perpendicular* to the direction of steepest descent.  The vector perpendicular
 to $\langle x, y \rangle$ is $\langle y, -x \rangle$,[^perp] so we just derived
 the actual Hamiltonian equations of motion: just move in the direction
-perpendicular to the steepest ascent!
+perpendicular to the steepest ascent!  That is, to have things move on contour
+lines, $\dot{q}$ and $\dot{p}_q$ *should* be:
 
 [^perp]: There's also another perpendicular vector, $\langle -y, x \rangle$,
-but we do not speak of that.
+which actually gives motion *backwards* in time.
 
 $$
 \begin{aligned}
@@ -180,10 +184,12 @@ $$
 \end{aligned}
 $$
 
-Which holds for every generalized coordinate $q$, where $p_q$ is the momentum
-conjugate to that coordinate.  (For the rest of this post, $\mathbf{q}$ refers
-to the vector of coordinates, $q$ refers to a single specific coordinate,
-and $p_q$ refers to the momentum conjugate to that coordinate).
+This is a conclusion with one generalized coordinate $q$, but we can generalize
+this to systems with multiple coordinates as well, as long as this holds for
+*every* $q$ and the momentum conjugate to it ($p_q$).  (For the rest of this
+post, $\mathbf{q}$ refers to the vector of coordinates, $q$ refers to a single
+specific coordinate, and $p_q$ refers to the momentum conjugate to that
+coordinate).
 
 Essentially, these give you "updating functions" for $q$ and $p_q$ -- given
 $\mathcal{H}(\mathbf{q},\mathbf{p})$, you have a way to "update" the particle's
@@ -241,8 +247,8 @@ $$
 
 Just linear momentum, like I claimed before.
 
-Alright, now let's generalize this to arbitrary coordinates. In general, for
-*Cartesian* coordinates, the kinetic energy will always be
+Let's generalize this to arbitrary coordinates. In general, for *Cartesian*
+coordinates, the kinetic energy will always be
 
 $$
 KE(\mathbf{x}, \dot{\mathbf{x}}) = \frac{1}{2} \left[ m_1 \dot{x}_1^2 + m_2 \dot{x}_2^2 + m_3 \dot{x}_3^2 + \dots \right]
@@ -252,8 +258,8 @@ Where $m$ is the inertia associated with each coordinate...for example, if
 $\langle x_1, x_2 \rangle$ describes the location of an object of mass $m$,
 then $m_1 = m_2 = m$.
 
-To make things more convenient, we'll treat this as a quadratic form over an
-inertia matrix:
+To give us nice notation and make things more convenient, we'll write this as a
+quadratic form over an inertia matrix:
 
 $$
 KE(\dot{\mathbf{x}}) = \frac{1}{2} \dot{\mathbf{x}}^T \hat{M} \dot{\mathbf{x}}
@@ -293,10 +299,11 @@ $$
 \dot{x}_i = \sum_{j = 1}^n \frac{\partial f_i}{\partial q_j} \dot{q}_j
 $$
 
-But, hey, this looks a lot like a matrix multiplication.  If we call
-$\hat{J}_f$ the [Jacobian matrix][], the $m \times n$ matrix of partial
-derivatives of $f$ ($\hat{J}_{fij} = \frac{\partial f_i}{\partial q_j}$) at a
-given point, then we have a nice expression for $\dot{\mathbf{x}}$:
+But, hey, this looks a lot like a matrix-vector multiplication!  If we make
+$\hat{J}_f$, an $m \times n$ matrix of partial derivatives of $f$
+($\hat{J}_{fij} = \frac{\partial f_i}{\partial q_j}$) at a given point
+(typically called the [Jacobian matrix of f][], then we have a nice expression
+for $\dot{\mathbf{x}}$:
 
 [Jacobian matrix]: https://en.wikipedia.org/wiki/Jacobian_matrix_and_determinant
 
@@ -324,7 +331,8 @@ $$
 $$
 
 Now, we're going to be using $\hat{J}_f^T \hat{M} \hat{J}_f$ a lot, so let's
-give it a name, $\hat{K}$.  If the masses are all positive and $\hat{J}_f$ is
+give it a name, $\hat{K}$.  $\hat{K}$ represents some sort of coordinate-aware
+inertia term for our system.  If the masses are all positive and $\hat{J}_f$ is
 full-rank[^full-rank], then $\hat{K}$ is a symmetric, positive-definite,
 invertible matrix (by construction).  It's important to also remember that it's
 an explicit function of $\mathbf{q}$, because $\hat{J}_f$ is a matrix of
@@ -356,9 +364,9 @@ system?
 The *real* Hamiltonian is actually the [Poisson bracket][] of the system's
 [Lagrangian][], but I did some of the work for you for the case of
 time-independent coordinates where the potential energy depends *only* on
-positions (so, no friction, wind resistance, etc.), the Hamiltonian of a system
-is precisely the system's total [mechanical energy][], or its kinetic energy
-plus the potential energy:
+positions (so, no friction, wind resistance, time, etc.), the Hamiltonian of a
+system is precisely the system's total [mechanical energy][], or its kinetic
+energy plus the potential energy:
 
 [Poisson bracket]: https://en.wikipedia.org/wiki/Poisson_bracket
 [mechanical energy]: https://en.wikipedia.org/wiki/Mechanical_energy
@@ -425,20 +433,29 @@ $\hat{J}_f$) represents the *second derivatives* of $f$ -- the derivative with
 respect to $q_i$ of
 the derivatives.
 
-We can write this in a more general way (using the gradient operator $\nabla$)
-as:
+We can write this in a more general way by abusing notation (using the gradient
+operator $\nabla$) as:
 
 $$
 \nabla_{\mathbf{q}} \left[ \hat{J}_f^T \hat{M} \hat{J}_f \right] =
     2 \hat{J}_f^T \hat{M} \left[ \nabla_{\mathbf{q}} \hat{J}_f \right]
 $$
 
-If we define $\nabla_{\mathbf{q}} \hat{J}_f$ as an $m \times n \times n$
+If we define $\nabla_{\mathbf{q}} \hat{J}_f$ as an $n \times m \times n$
 tensor, whose $n$ components are the each the $m \times n$ matrices
 corresponding to $\frac{\partial}{\partial q_i} \hat{J}_f$
 
 And with that, we have our final expression for
 $\nabla_{\mathbf{q}} \mathcal{H}(\mathbf{q},\mathbf{p})$:
+
+$$
+\frac{\partial}{\partial q_i} \mathcal{H}(\mathbf{q},\mathbf{p}) =
+    - \mathbf{p}^T \hat{K}^{-1} \hat{J}_f^T \hat{M}
+        \left[ \frac{\partial}{\partial q_i} \hat{J}_f \right] \hat{K}^{-1} \mathbf{p}
+    + \nabla_{\mathbf{q}} PE(\mathbf{q})
+$$
+
+Or, to use our abuse of notation:
 
 $$
 \nabla_{\mathbf{q}} \mathcal{H}(\mathbf{q},\mathbf{p}) =
@@ -453,15 +470,14 @@ of motion!  To progress through phase space ($\langle \mathbf{q},
 
 $$
 \begin{aligned}
-\dot{q} & = \nabla_{\mathbf{p_q}} \mathcal{H}(\mathbf{q},\mathbf{p})
+\dot{\mathbf{q}} & = \nabla_{\mathbf{p_q}} \mathcal{H}(\mathbf{q},\mathbf{p})
   && = \hat{K}^{-1} \mathbf{p} \\
-\dot{p}_q & = - \nabla_{\mathbf{q}} \mathcal{H}(\mathbf{q},\mathbf{p})
+\dot{\mathbf{p}} & = - \nabla_{\mathbf{q}} \mathcal{H}(\mathbf{q},\mathbf{p})
   && = \mathbf{p}^T \hat{K}^{-1} \hat{J}_f^T \hat{M}
         \left[ \nabla_{\mathbf{q}} \hat{J}_f \right] \hat{K}^{-1} \mathbf{p}
     - \nabla_{\mathbf{q}} PE(\mathbf{q})
 \end{aligned}
 $$
-
 
 That's it.  We're done.  Have a nice day, thanks for reading!
 
@@ -673,10 +689,10 @@ a quick utility function that only gives us the second-order Jacobian:
 
 If you think of `Cofree` as an infinite linked list (of nested Functors),
 `jacobians` returns a linked list of derivative tensors.  The first item is the
-0th derivative (the actual function value), so we drop it with `unwrap` (like
+0th derivative (the actual function value), so we drop it with `C.unwrap` (like
 `tail`) for lists).  The second item is the 1st derivative, so we drop it again
-using `unwrap`.  And finally, we only want the third item (the 2nd derivatives)
-so we `extract` it (like `head` for lists).
+using `C.unwrap`.  And finally, we only want the third item (the 2nd derivatives)
+so we `C.extract` it (like `head` for lists).
 
 Finally, we can achieve our goal:
 
@@ -690,7 +706,8 @@ jacobian2 myFunc
 #### Conversion between vector-sized and hmatrix
 
 So some ugly things -- we need to write some functions to convert between
-*vector-sized* sized vectors and *hmatrix* vectors and matrices:
+*vector-sized* sized vectors and *hmatrix* vectors and matrices.  These are
+fundamentally unsafe to write (but safe to use, after written properly):
 
 
 ```haskell
@@ -698,11 +715,10 @@ So some ugly things -- we need to write some functions to convert between
 !!!hamilton1/Hamilton.hs "vec2r" "r2vec" "vec2l"
 ```
 
-Remember that it is necessary to switch because *ad* requires our vectors to be
-*Functors*, but `R` and `L` from *hmatrix* are not your typical Hask Functors.
-One nice thing is that because they both use TypeLits to get their sized
-parameters, we can get type-safe conversions that preserve their size
-information!
+These are necessary because *ad* requires our vectors to be *Functors*, but `R`
+and `L` from *hmatrix* are not your typical Hask Functors. One nice thing is
+that because they both use *TypeLits* to get their sized parameters, we can get
+type-safe conversions that preserve their size information!
 
 Also, even though *ad* gives our second-order Jacobian as an $m \times n \times
 n$ tensor, we really want it as a n-vector of $m \times n$ matrices -- that's
@@ -746,8 +762,8 @@ found to be given by:
 
 $$
 \begin{aligned}
-\dot{q} & = \hat{K}^{-1} \mathbf{p} \\
-\dot{p}_q & = \mathbf{p}^T \hat{K}^{-1} \hat{J}_f^T \hat{M}
+\dot{\mathbf{q}} & = \hat{K}^{-1} \mathbf{p} \\
+\dot{\mathbf{p}} & = \mathbf{p}^T \hat{K}^{-1} \hat{J}_f^T \hat{M}
         \left[ \nabla_{\mathbf{q}} \hat{J}_f \right] \hat{K}^{-1} \mathbf{p}
     - \nabla_{\mathbf{q}} PE(\mathbf{q})
 \end{aligned}
@@ -763,17 +779,17 @@ translate it into Haskell (using $\hat{K} = \hat{J}_f^T \hat{M} \hat{J}_f$):
 Of course, there is no way to get around the big ugly math term in $\dot{p}_q$,
 but at least it is a direct reading of the math!
 
-*But !!*  I'd much rather write this scary Haskell than that scary math,
+*But!!*  I'd much rather write this scary Haskell than that scary math,
 because *ghc typechecks our math*!  When writing out those equations, we really
 had no idea if we were writing it correctly, and if the matrix and vector and
 tensor dimensions line up.  If it even *made sense* to multiply and transpose
 the quantities we had.
 
-But, when writing `hamilEqns`, we let GHC hold our hand for us.  If any of our
-math is wrong, GHC will verify it for us!  If any dimensions don't match up, or
-any transpositions don't make sense, we'll know!  And if we're ever lost, we
-can leave a *[typed hole][]* -- then GHC will tell you all of the values in
-scope that can *fit* in that hole!
+However, when writing `hamilEqns`, we let GHC *hold our hand for us*.  If any
+of our math is wrong, GHC will verify it for us!  If any dimensions don't match
+up, or any transpositions don't make sense, we'll know!  And if we're ever
+lost, we can leave a *[typed hole][]* -- then GHC will tell you all of the
+values in scope that can *fit* in that hole!
 
 [typed hole]: https://wiki.haskell.org/GHC/Typed_holes
 
@@ -822,7 +838,9 @@ x(t)}{\Delta t}$ for small $\Delta t$, and so we can do a little bit of
 symbolic manipulation to get $x(t + \Delta t) \approx \dot{x}(t) \Delta t +
 x(t)$.
 
-We can directly translate this into Haskell:
+We can directly translate this into Haskell: (using `konst :: KnownNat n =>
+Double -> R n`, making a constant vector, and `*`, the component-wise product
+of two vectors)
 
 ```haskell
 !!!hamilton1/Hamilton.hs "stepEuler"
@@ -902,7 +920,7 @@ positions increase, slow down, and start decreasing.
 
 We can try a slightly more complicated example that validates all of the work
 we've done -- let's simulate a simple pendulum.  The state of a pendulum is
-characterized by one coordinate -- $\theta$, which refers to the angular
+characterized by one coordinate $\theta$, which refers to the angular
 (clockwise) from the equilibrium "hanging straight down" position.  $\theta =
 0$ corresponds to 6 o' clock, $\theta = \pi/2$ corresponds to 9 o' clock,
 $\theta = - \pi / 2$ corresponds to 3 o' clock, etc.  For a pendulum of length
@@ -972,9 +990,9 @@ potential energy function.  We also learned how to leverage typed vectors for
 more correct code and a smoother development process.
 
 See my [previous post][intro] for even crazier examples -- involving multiple
-objects, double pendulums, and more!   And check out my [hamilton][] library,
-which includes demos for exotic interesting systems, rendered graphically on
-your terminal.
+objects, double pendulums, and more.  And check out my [hamilton][] library on
+hackage, which includes demos for exotic interesting systems, rendered
+graphically on your terminal.
 
 I realize that this was a lot, so if you have any questions or suggestions for
 clarifications, feel free to leave a comment, drop me a [tweet][twitter], or
