@@ -574,7 +574,7 @@ position in generalized coordinates, and returns the position in the
 "underlying coordinate system":
 
 ```haskell
-!!!hamilton1/Hamilton.hs "underlyingPosition ::"
+!!!hamilton1/Hamilton.hs "underlyingPosition"
 ```
 
 Note that the types in our function helps us know exactly what the function is
@@ -595,7 +595,7 @@ $$
 We can translate that directly into Haskell code:
 
 ```haskell
-!!!hamilton1/Hamilton.hs "momenta ::"
+!!!hamilton1/Hamilton.hs "momenta"
 ```
 
 Note that, because our vectors have their size indexed in their type, this is
@@ -611,7 +611,7 @@ With this, we can write a function to convert any state in configuration space
 to its coordinates in phase space:
 
 ```haskell
-!!!hamilton1/Hamilton.hs "toPhase ::"
+!!!hamilton1/Hamilton.hs "toPhase"
 ```
 
 This function is important, because "configuration space" is how we actually
