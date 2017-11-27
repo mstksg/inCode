@@ -207,7 +207,7 @@ the system is "surfing" along the Hamiltonian's contour lines.  It's being
 shallow.  I can apply all my intuition as a surfer[^surfer] to Hamiltonian
 mechanics!
 
-[^surfer]: Disclaimer: I am not a surfer
+[^surfer]: Disclaimer: I am not a surfer.
 
 Hamiltonian Dynamics and Physical Systems
 -----------------------------------------
@@ -771,15 +771,9 @@ $$
 \dot{\mathbf{q}} & = \hat{K}^{-1} \mathbf{p} \\
 \dot{\mathbf{p}} & = \mathbf{p}^T \hat{K}^{-1} \hat{J}_f^T \hat{M}
         \left[ \nabla_{\mathbf{q}} \hat{J}_f \right] \hat{K}^{-1} \mathbf{p}
-    - \nabla_{\mathbf{q}} PE(\mathbf{q}) \\
-\dot{p}_{q_i} & = \mathbf{p}^T \hat{K}^{-1} \hat{J}_f^T \hat{M}
-        \left[ \frac{\partial}{\partial q_i} \hat{J}_f \right] \hat{K}^{-1} \mathbf{p}
     - \nabla_{\mathbf{q}} PE(\mathbf{q})
 \end{aligned}
 $$
-
-(I've given the form of $\dot{\mathbf{p}}$ in both its abuse-of-notation form
-and its explicit component-wise form, which is more useful for implementation)
 
 These equations aren't particularly beautiful, but it's straightforward to
 translate them into Haskell (using $\hat{K} = \hat{J}_f^T \hat{M} \hat{J}_f$):
