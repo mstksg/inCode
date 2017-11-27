@@ -8,14 +8,15 @@ identifier: hamilton-1
 slug: hamiltonian-dynamics-in-haskell
 ---
 
-As promised in my [*hamilton* introduction post][intro], I'm going to go over
-implementing of the *[hamilton][]* library using
+As promised in my [*hamilton* introduction post][intro] (published almost
+exactly one year ago!), I'm going to go over implementing of the *[hamilton][]*
+library using
 
 1.  *DataKinds* (with *TypeLits*) to enforce sizes of vectors and matrices and
 help guide us write our code
-1.  Statically-sized linear algebra with *[hmatrix][]*
-2.  Automatic differentiation with *[ad][]*
-3.  Statically-sized vectors with *[vector-sized][]*
+2.  Statically-sized linear algebra with *[hmatrix][]*
+3.  Automatic differentiation with *[ad][]*
+4.  Statically-sized vectors with *[vector-sized][]*
 
 [intro]: https://blog.jle.im/entry/introducing-the-hamilton-library.html
 [hamilton]: http://hackage.haskell.org/package/hamilton
@@ -24,8 +25,9 @@ help guide us write our code
 [vector-sized]: http://hackage.haskell.org/package/vector-sized
 
 This post will be a bit heavy in some mathematics and Haskell concepts.  The
-expected audience is intermediate Haskell programmers, and no previous
-knowledge of dependent types is expected.
+expected audience is intermediate Haskell programmers.  Note that this is *not*
+a post on dependent types, because dependent types (types that depend on
+runtime values) are not explicitly used.
 
 The mathematics and physics are "extra" flavor text and could potentially be
 skipped, but you'll get the most out of this article if you have basic
