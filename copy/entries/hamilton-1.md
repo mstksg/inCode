@@ -514,9 +514,9 @@ So, in order to fully describe the system, we need:
 
 From these alone, we can derive the equations of motion for the particles in
 phase space as a system of first-order ODEs using the process described above.
-Then, given an initial phase space position, we can do a straightforward
-first-order ODE integration to simulate our system's motion through phase
-space.  To "surf the Hamiltonian waves in phase space", so to speak.
+Then, given an initial phase space position, we can do numeric integration to
+simulate our system's motion through phase space.  To "surf the Hamiltonian
+waves in phase space", so to speak.
 
 But, to be explicit, we also are going to need some derivatives for these
 functions/vectors, too.  If you've been following along, the full enumeration of
