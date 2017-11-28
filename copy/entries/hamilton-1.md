@@ -119,7 +119,6 @@ The *trick*, then, to using Hamiltonian dynamics to model your system, is:
 And then Hamilton's dynamics will give you the rest!  All you do is "follow the
 contour lines" on that Hamiltonian!
 
-
 ### Phase Space
 
 Hamiltonian dynamics are about systems moving around in phase space.  It seems
@@ -431,16 +430,18 @@ $$
     2 \hat{J}_f^T \hat{M} \left[ \frac{\partial}{\partial q_i} \hat{J}_f \right]
 $$
 
-
 $\frac{\partial}{\partial q_i} \hat{J}_f$ (an $m \times n$ matrix, like
 $\hat{J}_f$) represents the *second derivatives* of $f$ -- the derivative (with
 respect to $q_i$) of the derivatives.
 
 The collection of "second-order derivatives of $f$" is known as the [Hessian
 Tensor][] (a vector-valued generalization of the Hessian matrix), which we will
-denote as $\hat{H}_f$, so we can write this in a nicer by abusing matrix
+denote as $\hat{H}_f$.[^edwardk]  We can write this in a nicer by abusing matrix
 multiplication notation as:
 
+[^edwardk]: Thanks to Edward Kmett for [pointing this out][hesscomment]!
+
+[hesscomment]: http://disq.us/p/1o4oyqh
 [Hessian Tensor]: https://en.wikipedia.org/wiki/Hessian_matrix#Vector-valued_functions
 
 $$
@@ -722,7 +723,7 @@ fiddling around with the internals of *hmatrix* in a rather inelegant way.
 (Again, unsafe to write, but safe to use once you do)
 
 ```haskell
-!!!hamilton1/Hamilton.hs "rejacobi ::"
+!!!hamilton1/Hamilton.hs "rehessian ::"
 ```
 
 #### Using AD to Auto-Derive Systems
