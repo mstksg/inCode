@@ -688,8 +688,8 @@ matrix is represented by a `m`-vector of `n`-vectors.
 
 Finally, we can get our Hessian Tensor by using `hessianF`:[^hessianf]
 
-[^hessianf]: `hessian` computes the Hessian Matrix for a $\mathbf{R}^n
-\rightarrow $\mathbf{R}$ (a scalar-valued function), but here, we have a
+[^hessianf]: `hessian` computes the Hessian Matrix for a $\mathbb{R}^n
+\rightarrow \mathbb{R}$ (a scalar-valued function), but here, we have a
 vector-valued function, so we need `hessianF`, the Hessian *Tensor*.
 
 ```haskell
