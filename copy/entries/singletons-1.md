@@ -39,12 +39,12 @@ introduced in different contexts.
 
 [ann]: https://blog.jle.im/entry/practical-dependent-types-in-haskell-1.html
 
-All code is built on *GHC 8.2.1* and with the *[nightly-2017-08-20][snapshot]*
-snapshot (so, singletons-2.3).  However, there are negligible changes in the
+All code is built on *GHC 8.2.1* and with the *[nightly-2017-11-27][snapshot]*
+snapshot (so, singletons-2.3.1).  However, there are negligible changes in the
 GHC type system between GHC 8.0 and 8.2 (the only difference is in the
 libraries, more or less), so everything should work on GHC 8.0 as well!
 
-[snapshot]: https://www.stackage.org/nightly-2017-08-20
+[snapshot]: https://www.stackage.org/nightly-2017-11-27
 
 The content in the first section of this post, describing the singleton design
 pattern, uses the following extensions:
@@ -53,6 +53,7 @@ pattern, uses the following extensions:
 *   GADTs
 *   KindSignatures
 *   RankNTypes
+*   TypeApplications
 *   TypeInType
 
 And the second section, introducing the library itself, uses, on top of these:
@@ -133,12 +134,22 @@ lot of confusion, trust me!
 
     We can use `UnsafeMkDoor` without ever using anything of type `s`.  In
     reality, a real `Door` type would be a bit more complicated (and the direct
-    `MkDoor` constructor would be hidden).
+    `UnsafeMkDoor` constructor would be hidden).
 
     ```haskell
     ghci> :t UnsafeMkDoor "Birch" :: Door 'Opened
     Door 'Opened
     ghci> :t UnsafeMkDoor "Iron" :: Door 'Locked
+    Door 'Locked
+    ```
+
+    We can also use the *TypeApplications* extension to write this in a bit
+    more convenient way --
+
+    ```haskell
+    ghci> :t UnsafeMkDoor @'Opened "Birch"
+    Door 'Opened
+    ghci> :t UnsafeMkDoor @'Locked "Iron"
     Door 'Locked
     ```
 
@@ -235,8 +246,9 @@ to implementation bugs)
 
 And, perhaps even more important, how can you create a `Door` with a given
 state that isn't known until runtime?  If we know the type of our doors at
-compile-time, we can just explicitly write `UnsafeMkDoor "Iron" :: Door 'Opened`.
-But what if we wanted to make a door based on a `DoorState` input?
+compile-time, we can just explicitly write `UnsafeMkDoor "Iron" :: Door
+'Opened` or `UnsafeMkDoor @'Opened "Iron"`.  But what if we wanted to make a
+door based on a `DoorState` input?
 
 
 ```haskell
@@ -311,7 +323,7 @@ essentially.
 !!!singletons/Door.hs "doorStatus ::"
 ```
 
-(using LambdaCase syntax)
+(using *LambdaCase* syntax)
 
 We can rewrite `doorStats` to take an additional `SingDS`, which we can use to
 figure out what `s` is.  When we pattern match on it, we reveal what `s` is.
@@ -393,11 +405,11 @@ utility function:
 `SingDSI s` instance to be created.  And it creates that value for you!
 
 It works because in each branch, `s` is now a *specific*, monomorphic,
-"conrete" `s`, and GHC knows that such an instance exists for every branch.  In
-the `SOpened` branch, `s ~ 'Opened`,[^eq] so GHC knows that there is a `SingDSI
-'Opened` instance, and gives it to you.  In the `SCloed` branch, `s ~ 'Closed`,
-so GHC knows that there is a `SingDSI 'Closed` instance, and gives *that* to
-you, etc.
+"concrete" `s`, and GHC knows that such an instance exists for every branch.
+In the `SOpened` branch, `s ~ 'Opened`,[^eq] so GHC knows that there is a
+`SingDSI 'Opened` instance, and gives it to you.  In the `SCloed` branch, `s ~
+'Closed`, so GHC knows that there is a `SingDSI 'Closed` instance, and gives
+*that* to you, etc.
 
 [^eq]: `~` here refers to "type equality", or the constraint that the types on
 both sides are equal.  `s ~ 'Opened` can be read as "`s` is `'Opened`".
@@ -484,8 +496,7 @@ so we can re-use our original `closeDoor`.
 #### Converting into an existential
 
 Going from `SomeDoor` to `Door s` is slightly trickier in Haskell than going
-the other way around.  One trick we often use is the *skolemized existential*,
-or a CPS-style existential type.
+the other way around.  One trick we often use is a CPS-style existential type.
 
 The essential concept is that normal Haskell type variables are universally
 qualified, meaning that the *caller* can pick how to instantiate `s`.  However,
@@ -558,7 +569,7 @@ It's important to remember that our original separate-implementation `SomeDoor`
 is, functionally, identical to the new code-reusing `SomeDoor`.  The reason why
 they are the same is that *having an existentially quantified singleton is the
 same as having a value of the corresponding type.*  Having an existentially
-quantified `SingDS` is the same as having a value of type `DoorState`.
+quantified `SingDS s` is *the same as* having a value of type `DoorState`.
 
 If they're identical, why use a `SingDS` or the new `SomeDoor` at all?  One
 main reason (besides allowing code-reuse) is that *using the singleton lets us
@@ -567,7 +578,9 @@ Opened/Closed/Locked...it contains it in a way that GHC can use to bring it all
 back to the type level.
 
 Basically, `SingDS` allows us to re-use our original `Door s` implementation,
-because we store both the `Door`...*and* the `s` at the type level.
+because we store both the `Door`...*and* the `s` at the type level.  It also
+lets GHC *check* our implementations, to help ensure that they are correct,
+because you maintain the `s` at the type level.
 
 #### Some Lingo
 
@@ -582,7 +595,8 @@ data SomeDoor = SDOpened (SingDS 'Opened) (Door 'Opened)
 
 A three-way sum between a `Door 'Opened`, a `Door 'Closed`, and a `Door
 'Locked`, essentially.  If you have a `SomeDoor`, it's *either* an opened door,
-a closed door, or a locked door.
+a closed door, or a locked door.  Try looking at this new `SomeDoor` until you
+realize that this type is the same type as the previous `SomeDoor`!
 
 You might also see `SomeDoor` called a **dependent pair**, because it's
 basically an existentially quantified tuple of the type (the `s`, witnessed by
@@ -672,14 +686,20 @@ SJust SOpened
 
 The great thing about the library is that these types and instances are
 generated, that they're correct (note that I could have implemented `SingDSI`
-incorrectly...using the library guarantees that I don't), and that they all
-work together.
+incorrectly earlier, bu using the library guarantees that I don't), and that
+they all work together smoothly.
 
 We also have `withSingI`, which is equivalent to our `withSingDSI` function
 earlier.
 
+```haskell
+withSingI :: Sing s -> (forall r. SingI s => r) -> r
+```
+
 Note that if you have singletons for a kind `k`, you also have instances for
-kind `Maybe k`, as well.  And also for `[k]`, even!
+kind `Maybe k`, as well.  And also for `[k]`, even!  This is a major advantage
+of using the *singletons* library to manage your singletons instead of writing
+them yourself.
 
 ```haskell
 ghci> :t SOpened `SCons` SClosed `SCons` SLocked `SCons` SNil
@@ -752,7 +772,7 @@ associating each type to the corresponding datakinds-generated kind.  The
 `DoorState`.
 
 The library also defines a neat type synonym, `type SDoorState = Sing`, so you
-can do `SDoorState 'Opened` instead of `Sing 'Opened`, if you wish!
+can do `SDoorState 'Opened` instead of `Sing 'Opened`, if you wish.
 
 There are definitely more useful utility functions, but we will investigate
 these later on in the series!  For now, you can look at the [documentation][]
@@ -785,7 +805,10 @@ unification of a lot of concepts.
 
 As always, let me know in the comments if you have any questions!  You can also
 usually find me idling on the freenode `#haskell` channel, as well, as *jle\`*.
+The *singletons* [issue tracker][singgh] is also very active.
 Happy haskelling!
+
+[singgh]: https://github.com/goldfirere/singletons/issues
 
 Exercises
 ---------
@@ -797,7 +820,7 @@ These should be written in the singletons library style, with `Sing` instead of
 file][singletons-door] for a comparison, if you are still unfamiliar.
 
 1.  Write a function to unlock a door, but only if the user enters an odd
-    number (a password).
+    number (as a password).
 
     ```haskell
     !!!singletons/DoorSingletons.hs "unlockDoor ::"1

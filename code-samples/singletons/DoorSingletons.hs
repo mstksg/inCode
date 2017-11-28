@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --install-ghc runghc --resolver nightly-2017-08-20 --package singletons
+-- stack --install-ghc runghc --resolver nightly-2017-11-27 --package singletons
 
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE GADTs               #-}
