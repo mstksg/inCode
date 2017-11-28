@@ -6,6 +6,7 @@ create-time: 2016/12/08 15:05:10
 date: 2017/11/27 11:46:18
 identifier: hamilton-1
 slug: hamiltonian-dynamics-in-haskell
+series: Hamilton
 ---
 
 As promised in my [*hamilton* introduction post][intro] (published almost

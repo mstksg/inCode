@@ -6,6 +6,7 @@ create-time: 2016/11/27 21:19:30
 date: 2016/11/28 09:28:32
 identifier: hamilton
 slug: introducing-the-hamilton-library
+series: Hamilton
 ---
 
 [![My name is William Rowan Hamilton](/img/entries/hamilton/double-pendulum.gif "My name is William Rowan Hamilton")][gifv]
