@@ -306,8 +306,8 @@ $$
 But, hey, this looks a lot like a matrix-vector multiplication!  If we make
 $\hat{J}_f$, an $m \times n$ matrix of partial derivatives of $f$
 ($\hat{J}_{fij} = \frac{\partial f_i}{\partial q_j}$) at a given point
-(typically called the [Jacobian matrix of f][Jacobian], then we have a nice expression
-for $\dot{\mathbf{x}}$:
+(typically called the [Jacobian matrix of f][Jacobian], then we have a nice
+expression for $\dot{\mathbf{x}}$:
 
 [Jacobian]: https://en.wikipedia.org/wiki/Jacobian_matrix_and_determinant
 
@@ -433,21 +433,24 @@ $$
 
 
 $\frac{\partial}{\partial q_i} \hat{J}_f$ (an $m \times n$ matrix, like
-$\hat{J}_f$) represents the *second derivatives* of $f$ -- the derivative with
-respect to $q_i$ of
-the derivatives.
+$\hat{J}_f$) represents the *second derivatives* of $f$ -- the derivative (with
+respect to $q_i$) of the derivatives.
 
-We can write this in a more general way by abusing notation (using the gradient
-operator $\nabla$) as:
+The collection of "second-order derivatives of $f$" is known as the [Hessian
+Tensor][] (a vector-valued generalization of the Hessian matrix), which we will
+denote as $\hat{H}_f$, so we can write this in a nicer by abusing matrix
+multiplication notation as:
+
+[Hessian Tensor]: https://en.wikipedia.org/wiki/Hessian_matrix#Vector-valued_functions
 
 $$
 \nabla_{\mathbf{q}} \left[ \hat{J}_f^T \hat{M} \hat{J}_f \right] =
-    2 \hat{J}_f^T \hat{M} \left[ \nabla_{\mathbf{q}} \hat{J}_f \right]
+    2 \hat{J}_f^T \hat{M} \hat{H}_f
 $$
 
-if we define $\nabla_{\mathbf{q}} \hat{J}_f$ as an $n \times m \times n$
-tensor, whose $n$ components are the each the $m \times n$ matrices
-corresponding to $\frac{\partial}{\partial q_i} \hat{J}_f$
+if we use $\hat{H}_f$ as an $n \times m \times n$ tensor, whose $n$ components
+are the each the $m \times n$ matrices corresponding to
+$\frac{\partial}{\partial q_i} \hat{J}_f$
 
 And with that, we have our final expression for
 $\nabla_{\mathbf{q}} \mathcal{H}(\mathbf{q},\mathbf{p})$:
@@ -464,11 +467,11 @@ Or, to use our abuse of notation:
 $$
 \nabla_{\mathbf{q}} \mathcal{H}(\mathbf{q},\mathbf{p}) =
     - \mathbf{p}^T \hat{K}^{-1} \hat{J}_f^T \hat{M}
-        \left[ \nabla_{\mathbf{q}} \hat{J}_f \right] \hat{K}^{-1} \mathbf{p}
+        \hat{H}_f\left[ \nabla_{\mathbf{q}} \hat{J}_f \righo \hat{K}^{-1} \mathbf{p}
     + \nabla_{\mathbf{q}} PE(\mathbf{q})
 $$
 
-And, finally, we have everything we need --- we can now construct our equations
+And, finally, we have everything we need -- we can now construct our equations
 of motion!  To progress through phase space ($\langle \mathbf{q},
 \mathbf{p}\rangle$):
 
@@ -478,7 +481,7 @@ $$
   && = \hat{K}^{-1} \mathbf{p} \\
 \dot{\mathbf{p}} & = - \nabla_{\mathbf{q}} \mathcal{H}(\mathbf{q},\mathbf{p})
   && = \mathbf{p}^T \hat{K}^{-1} \hat{J}_f^T \hat{M}
-        \left[ \nabla_{\mathbf{q}} \hat{J}_f \right] \hat{K}^{-1} \mathbf{p}
+        \hat{H}_f \hat{K}^{-1} \mathbf{p}
     - \nabla_{\mathbf{q}} PE(\mathbf{q})
 \end{aligned}
 $$
@@ -523,7 +526,7 @@ $$
 \mathbf{m} & : \mathbb{R}^m \\
 f & : \mathbb{R}^n \rightarrow \mathbb{R}^m \\
 \hat{J}_f & : \mathbb{R}^n \rightarrow \mathbb{R}^{m \times n} \\
-\nabla_{\mathbf{q}} \hat{J}_f & : \mathbb{R}^n \rightarrow \mathbb{R}^{m \times n \times n} \\
+\hat{H}_f & : \mathbb{R}^n \rightarrow \mathbb{R}^{n \times m \times n} \\
 U & : \mathbb{R}^n \rightarrow \mathbb{R} \\
 \nabla_{\mathbf{q}} U & : \mathbb{R}^n \rightarrow \mathbb{R}^n
 \end{aligned}
@@ -634,7 +637,7 @@ your Jacobians and gradients.
 
 Here's where the magic comes in -- we can have Haskell generate our Jacobians
 and gradients *automatically*, using the amazing [ad][] library!  We can just
-use the appropriately named `grad` and `jacobian` functions.
+use the appropriately named `grad`, `jacobian`, and `hessianF` functions.
 
 #### Quick Intro to AD
 
@@ -682,30 +685,16 @@ jacobian myFunc :: RealFloat a => V.Vector n a -> V.Vector m (V.Vector n a)
 Again note the usage of sized vector types, and the fact that our $m \times n$
 matrix is represented by a `m`-vector of `n`-vectors.
 
-Finally, we can get a "2nd-order Jacobian" by using `jacobians`, which gives
-you a lazily linked chain of successive order Jacobians (stored in successive
-cells of a `Cofree`).  We only need the second order jacobian, so let's define
-a quick utility function that only gives us the second-order Jacobian:
+Finally, we can get our Hessian Tensor by using `hessianF`:[^hessianf]
 
-```haskell
--- import qualified Control.Comonad        as C
--- import qualified Control.Comonad.Cofree as C
-!!!hamilton1/Hamilton.hs "jacobian2"
-```
-
-If you think of `Cofree` as an infinite linked list (of nested Functors),
-`jacobians` returns a linked list of derivative tensors.  The first item is the
-0th derivative (the actual function value), so we drop it with `C.unwrap` (like
-`tail` for lists).  The second item is the 1st derivative, so we drop it again
-using `C.unwrap`.  And finally, we only want the third item (the 2nd derivatives)
-so we `C.extract` it (like `head` for lists).
-
-Finally, we can achieve our goal:
+[^hessianf]: `hessian` computes the Hessian Matrix for a $\mathbf{R}^n
+\rightarrow $\mathbf{R}$ (a scalar-valued function), but here, we have a
+vector-valued function, so we need `hessianF`, the Hessian *Tensor*.
 
 ```haskell
 myFunc
     :: RealFloat a => V.Vector n a -> V.Vector m a
-jacobian2 myFunc
+hessianF myFunc
     :: RealFloat a => V.Vector n a -> V.Vector m (V.Vector n (V.Vector n a))
 ```
 
@@ -714,7 +703,6 @@ jacobian2 myFunc
 So some ugly things -- we need to write some functions to convert between
 *vector-sized* sized vectors and *hmatrix* vectors and matrices.  These are
 fundamentally unsafe to write (but safe to use, after written properly):
-
 
 ```haskell
 -- import qualified Data.Vector.Generic.Sized as VG
@@ -726,7 +714,7 @@ and `L` from *hmatrix* are not your typical Hask Functors. One nice thing is
 that because they both use *TypeLits* to get their sized parameters, we can get
 type-safe conversions that preserve their size information!
 
-Also, even though *ad* gives our second-order Jacobian as an $m \times n \times
+Also, even though *ad* gives our Hessian as an $m \times n \times
 n$ tensor, we really want it as a n-vector of $m \times n$ matrices -- that's
 how we interpreted it in our original math.  So we just need to write an
 function to convert what *ad* gives us to the form we expect.  It's mostly just
@@ -747,20 +735,20 @@ function, and the potential energy function:
 ```
 
 Now, I hesitate to call this "trivial"...but, I think it really is a
-straightforward direct translation of the definitions, minus some ugly
+straightforward direct translation of the definitions, minus some boilerplate
 conversions back and forth using `r2vec`, `vec2r`, and `vec2l`!
 
 1.  The vector of masses is just `m`
 2.  The coordinate function is just `f`
-3.  The jacobian of the coordinate function is just `jacobian f`
-4.  The second-order jacobian of the coordinate function is just `jacobian2 f`
+3.  The Jacobian of the coordinate function is just `jacobian f`
+4.  The Hessian Tensor of the coordinate function is just `hessianF f`
 5.  The potential energy function is just `u`
 6.  The gradient of the potential energy function is just `grad u`
 
 The *ad* library automatically generated all of these for us and created a
-perfectly well-formed `System` with all of its gradients and Jacobians by
-giving only the coordinate function and the potential energy function, and in
-such a clean and concise way!
+perfectly well-formed `System` with all of its gradients and Jacobians and
+Hessians by giving only the coordinate function and the potential energy
+function, and in such a clean and concise way!
 
 ### Equations of Motion
 

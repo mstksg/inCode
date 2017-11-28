@@ -26,7 +26,7 @@ data System m n = System
     { sysInertia       :: R m                         -- ^ 'm' vector
     , sysCoords        :: R n -> R m                  -- ^ f
     , sysJacobian      :: R n -> L m n                -- ^ J_f
-    , sysJacobian2     :: R n -> V.Vector n (L m n)   -- ^ grad (J_f)
+    , sysHessian       :: R n -> V.Vector n (L m n)   -- ^ H_f
     , sysPotential     :: R n -> Double               -- ^ U
     , sysPotentialGrad :: R n -> R n                  -- ^ grad U
     }
@@ -74,17 +74,6 @@ toPhase
     -> Phase n
 toPhase s c = Phase (confPositions c) (momenta s c)
 
--- | Compute the 2nd-order jacobian using "Numeric.AD"
-jacobian2
-    :: (Traversable f, Functor g, RealFloat a)
-    => (forall b. RealFloat b => f b -> g b)
-    -> f a
-    -> g (f (f a))
-jacobian2 f = (fmap . fmap . fmap) C.extract  -- ^ take 2nd deriv
-            . (fmap . fmap) C.unwrap          -- ^ drap 1st deriv
-            . fmap C.unwrap                   -- ^ drop 0th deriv
-            . jacobians f                     -- ^ create list of jacobians
-
 -- | Convert a sized-vector vector to an hmatrix vector
 vec2r :: KnownNat n => V.Vector n Double -> R n
 vec2r = fromJust . create . VG.fromSized . VG.convert
@@ -97,11 +86,11 @@ r2vec = VG.convert . fromJust . VG.toSized . extract
 vec2l :: (KnownNat m, KnownNat n) => V.Vector m (V.Vector n Double) -> L m n
 vec2l = fromJust . (\rs -> withRows rs exactDims) . toList . fmap vec2r
 
--- | Shift around the 2nd Order Jacobian into the shape expected
-rejacobi :: (KnownNat m, KnownNat n) => V.Vector m (L n n) -> V.Vector n (L m n)
-rejacobi = fmap (fromJust . (\rs -> withRows rs exactDims) . toList)
-         . sequenceA
-         . fmap (fromJust . V.fromList . toRows)
+-- | Shift around the Hessian into the shape expected
+rehessian :: (KnownNat m, KnownNat n) => V.Vector m (L n n) -> V.Vector n (L m n)
+rehessian = fmap (fromJust . (\rs -> withRows rs exactDims) . toList)
+          . sequenceA
+          . fmap (fromJust . V.fromList . toRows)
 
 -- | Make a system given its inertias, coordinate functions, and potential
 -- energy function
@@ -116,8 +105,8 @@ mkSystem m f u = System
     { sysInertia       =                         m
     , sysCoords        =      vec2r .            f . r2vec
     , sysJacobian      =      vec2l .   jacobian f . r2vec
-    , sysJacobian2     = rejacobi
-                       . fmap vec2l .  jacobian2 f . r2vec
+    , sysHessian       = rehessian
+                       . fmap vec2l .   hessianF f . r2vec
     , sysPotential     =                         u . r2vec
     , sysPotentialGrad =      vec2r .       grad u . r2vec
                   -- < convert from | actual thing | convert to >
@@ -141,7 +130,7 @@ hamilEqns s (Phase q p) = (dqdt, dpdt)
       where
         bigUglyThing =
           fmap (\j2 -> -p <.> kHatInv #> trj #> mHat #> j2 #> kHatInv #> p)
-               (sysJacobian2 s q)
+               (sysHessian s q)
 
 -- | Step a system's position through phase space using Euler integration
 stepEuler
