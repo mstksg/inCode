@@ -367,9 +367,9 @@ system?
 The *real* Hamiltonian is actually the [Poisson bracket][] of the system's
 [Lagrangian][], but I did some of the work for you for the case of
 time-independent coordinates where the potential energy depends *only* on
-positions (so, no friction, wind resistance, time, etc.), the Hamiltonian of a
-system is precisely the system's total [mechanical energy][], or its kinetic
-energy plus the potential energy:
+positions (so, no friction, wind resistance, time, etc.).  In such a case, the
+Hamiltonian of a system is precisely the system's total [mechanical energy][],
+or its kinetic energy plus the potential energy:
 
 [Poisson bracket]: https://en.wikipedia.org/wiki/Poisson_bracket
 [mechanical energy]: https://en.wikipedia.org/wiki/Mechanical_energy
@@ -436,8 +436,8 @@ respect to $q_i$) of the derivatives.
 
 The collection of "second-order derivatives of $f$" is known as the [Hessian
 Tensor][] (a vector-valued generalization of the Hessian matrix), which we will
-denote as $\hat{H}_f$.[^edwardk]  We can write this in a nicer by abusing matrix
-multiplication notation as:
+denote as $\hat{H}_f$.[^edwardk]  We can write this in a nicer way by abusing matrix
+multiplication notation to get
 
 [^edwardk]: Thanks to Edward Kmett for [pointing this out][hesscomment]!
 
@@ -468,7 +468,7 @@ Or, to use our abuse of notation:
 $$
 \nabla_{\mathbf{q}} \mathcal{H}(\mathbf{q},\mathbf{p}) =
     - \mathbf{p}^T \hat{K}^{-1} \hat{J}_f^T \hat{M}
-        \hat{H}_f\left[ \nabla_{\mathbf{q}} \hat{J}_f \righo \hat{K}^{-1} \mathbf{p}
+        \hat{H}_f \hat{K}^{-1} \mathbf{p}
     + \nabla_{\mathbf{q}} PE(\mathbf{q})
 $$
 
