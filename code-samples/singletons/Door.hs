@@ -13,7 +13,7 @@ import Data.Kind
 data DoorState = Opened | Closed | Locked
   deriving (Show, Eq)
 
-data Door (s :: DoorState) = UnsafeMkDoor String
+data Door (s :: DoorState) = UnsafeMkDoor { doorMaterial :: String }
 
 closeDoor :: Door 'Opened -> Door 'Closed
 closeDoor (UnsafeMkDoor m) = UnsafeMkDoor m
@@ -29,20 +29,20 @@ data SingDS :: DoorState -> Type where
     SClosed :: SingDS 'Closed
     SLocked :: SingDS 'Locked
 
-doorStatus :: SingDS s -> Door s -> DoorState
-doorStatus = \case
-    SOpened -> -- in this branch, `s` is `'Opened`
-        \_ -> Opened
-    SClosed -> -- in this branch, `s` is `'Closed`
-        \_ -> Closed
-    SLocked -> -- in this branch, `s` is `'Locked`
-        \_ -> Locked
-
 lockAnyDoor :: SingDS s -> (Door s -> Door 'Locked)
 lockAnyDoor = \case
-    SOpened -> lockDoor . closeDoor
-    SClosed -> lockDoor
-    SLocked -> id
+    SOpened -> lockDoor . closeDoor  -- in this branch, s is 'Opened
+    SClosed -> lockDoor              -- in this branch, s is 'Closed
+    SLocked -> id                    -- in this branch, s is 'Locked
+
+fromSingDS :: SingDS s -> DoorState
+fromSingDS = \case
+    SOpened -> Opened
+    SClosed -> Closed
+    SLocked -> Locked
+
+doorStatus :: SingDS s -> Door s -> DoorState
+doorStatus s _ = fromSingDS s
 
 class SingDSI s where
     singDS :: SingDS s
@@ -54,11 +54,11 @@ instance SingDSI 'Closed where
 instance SingDSI 'Locked where
     singDS = SLocked
 
-doorStatus_ :: SingDSI s => Door s -> DoorState
-doorStatus_ = doorStatus singDS
-
 lockAnyDoor_ :: SingDSI s => Door s -> Door 'Locked
 lockAnyDoor_ = lockAnyDoor singDS
+
+doorStatus_ :: SingDSI s => Door s -> DoorState
+doorStatus_ = doorStatus singDS
 
 withSingDSI :: SingDS s -> (SingDSI s => r) -> r
 withSingDSI s x = case s of
@@ -76,7 +76,10 @@ mkDoor = \case
     SLocked -> UnsafeMkDoor
 
 data SomeDoor :: Type where
-    MkSomeDoor :: SingDS s -> Door s -> SomeDoor
+    MkSomeDoor ::
+      { someDoorState :: SingDS s
+      , someDoorDoor  :: Door s
+      } -> SomeDoor
 
 closeSomeDoor :: SomeDoor -> Maybe (Door 'Closed)
 closeSomeDoor = \case

@@ -20,7 +20,7 @@ $(singletons [d|
   |])
 
 data Door :: DoorState -> Type where
-    UnsafeMkDoor :: String -> Door s
+    UnsafeMkDoor :: { doorMaterial :: String } -> Door s
 
 closeDoor :: Door 'Opened -> Door 'Closed
 closeDoor (UnsafeMkDoor m) = (UnsafeMkDoor m)
