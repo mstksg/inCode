@@ -377,7 +377,7 @@ make sure that the `s` in `SingDS s` is the same `s` in the `Door s`), we can
 This is known as a **dependent pattern match**.
 
 If `SingDS s`'s pattern match goes down the `SOpened ->` case, then we *know*
-that `s ~ 'Opened`[^eq] -- that is, `s` must be `'Opened`.  That's because
+that `s ~ 'Opened`[^eq].  We know that `s` must be `'Opened`, because
 `SOpened :: SingDS 'Opened`, so there really isn't anything else the `s` in
 `SingDS s` could be!
 
@@ -388,7 +388,7 @@ So, if we know that `s ~ 'Opened`, that means that the `Door s` is `Door
 'Opened`.  We have an open door, so we can close-it-then-lock-it, using
 `lockDoor . closeDoor :: Door 'Opened -> Door 'Locked`.
 
-We say that `SOpened` is a "runtime witness" to `s` being `'Opened`.
+We say that `SOpened` is a *runtime witness* to `s` being `'Opened`.
 
 Note that `lockDoor . closeDoor` will *only* compile if given a `Door 'Opened`,
 but because of our dependent pattern match, we *know* we have a `Door 'Opened`.
@@ -441,6 +441,9 @@ Which we can use to write a nicer `doorStatus`
 !!!singletons/Door.hs "doorStatus ::"
 ```
 
+This process -- of turning a type variable (like `s`) into a dynamic runtime
+value is known as **reflection**.
+
 ### Recovering Implicit Passing
 
 One downside is that we are required to manually pass in our witness.  Wouldn't
@@ -460,8 +463,8 @@ And so now we can do:
 Here, type inference will tell GHC that you want `singDS :: SingDS s`, and it
 will pull out the proper singleton for the door you want to check!
 
-(By the way, If you program Haskell regularly, it should slightly bug you that
-it's super easy to write a bad instance of `SingDSI`.  More about this later.)
+Note that *it's impossible* to write our `SingDSI` instances improperly!  GHC
+checks to make sure that this is *correct*.
 
 #### The Same Power
 
@@ -582,9 +585,9 @@ formDoor SLocked (UnsafeMkDoor m) = UnsafeMkSomeDoor Locked m
 
 ### SomeDoor to Door
 
-Now, `SomeDoor` is great.  But isn't it annoying that we might potentially have
-to write the same function for both `Door` and `SomeDoor`, because they have
-different implementations.  For example:
+Now, `SomeDoor` is great.  But because it's a completely different type, we
+potentially have to write the same function for both `Door` and `SomeDoor`,
+because they have different implementations.  For example:
 
 ```haskell
 closeSomeDoor :: SomeDoor -> Maybe SomeDoor
