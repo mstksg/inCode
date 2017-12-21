@@ -81,10 +81,10 @@ data SomeDoor :: Type where
       , someDoorDoor  :: Door s
       } -> SomeDoor
 
-closeSomeDoor :: SomeDoor -> Maybe (Door 'Closed)
-closeSomeDoor = \case
+closeSomeOpenedDoor :: SomeDoor -> Maybe (Door 'Closed)
+closeSomeOpenedDoor = \case
     MkSomeDoor SOpened d -> Just (closeDoor d)
-    MkSomeDoor SClosed _ -> Nothing
+    MkSomeDoor SClosed d -> Nothing
     MkSomeDoor SLocked _ -> Nothing
 
 lockAnySomeDoor :: SomeDoor -> Door 'Locked
