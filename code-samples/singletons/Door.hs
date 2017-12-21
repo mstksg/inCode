@@ -96,5 +96,11 @@ mkSomeDoor = \case
     Closed -> MkSomeDoor SClosed . mkDoor SClosed
     Locked -> MkSomeDoor SLocked . mkDoor SLocked
 
+withDoor :: DoorState -> String -> (forall s. SingDS s -> Door s -> r) -> r
+withDoor s m f = case s of
+    Opened -> f SOpened (UnsafeMkDoor m)
+    Closed -> f SClosed (UnsafeMkDoor m)
+    Locked -> f SLocked (UnsafeMkDoor m)
+
 main :: IO ()
 main = return ()
