@@ -325,3 +325,43 @@ slug: introduction-to-singletons-2
 <!-- be our tool, and we'll also see how the singletons library is a very clean -->
 <!-- unification of a lot of concepts. -->
 
+
+### A Reflection on Subtyping
+
+Without phantom types you might have imagined being able to do something like
+this:
+
+```hskell
+data DoorOpened = MkDoorOpened { doorMaterial :: String }
+data DoorClosed = MkDoorClosed { doorMaterial :: String }
+data DoorLocked = MkDoorLocked { doorMaterial :: String }
+```
+
+Which is even possible now with `-XDuplicateRecordFields`.  And, for the most
+part, you get a similar API:
+
+```haskell
+closeDoor :: DoorOpened -> DoorClosed
+lockDoor  :: DoorClosed -> DoorLocked
+```
+
+But what about writing things that take on "all" door types?
+
+The only real way (besides typeclass magic) would be to make some sum type
+like:
+
+```haskell
+data SomeDoor = DO DoorOpened | DC DoorClosed | DL DoorLocked
+
+lockAnyDoor :: SomeDoor -> DoorLocked
+```
+
+However, we see that if we parameterize a single `Door` type, we can have it
+stand in *both* for a "known status" `Door` *and* for a "polymorphic status"
+`Door`.
+
+This actually leverages Haskell's *subtyping* system.  We say that `forall s.
+Door s` (a `Door` that is polymorphic on all `s`) is a *subtype* of `Door
+'Opened`.  This means that a `forall s. Door s` can be used anywhere a function
+would expect a `Door 'Opened`...but not the other way around.
+
