@@ -4,7 +4,7 @@ categories: Haskell
 series: Practical Dependent Types in Haskell
 tags: functional programming, dependent types, haskell, singletons, types
 create-time: 2017/08/06 21:07:12
-date: never
+date: 2017/12/22 10:42:07
 identifier: singletons-1
 slug: introduction-to-singletons-1
 ---
@@ -20,20 +20,28 @@ This series of articles will be my attempt at giving you the story of the
 library, the problems it solves, the power that it gives to you, and how you
 can integrate it into your code today![^origin]  (Also, after [my previous
 April Fools post][april], people have been asking me for an actual non-joke
-singletons post.)
+singletons post)
 
 [april]: https://blog.jle.im/entry/verified-instances-in-haskell.html
 
 [^origin]: This series will be based on [a talk][lc] I gave over the summer,
 and will expand on it.
 
+This post (Part 1) will go over first using the singleton pattern for
+*reflection*, then introducing how the singletons library helps us.  Part 2
+will discuss using the library for *reification*, to get types that depend on
+values at runtime.  Part 3 will go into the basics singleton's
+*defunctionalization* system and how we can promote value-level functions to
+type-level functions, and Part 4 will delve into deeper applications of
+defunctionalization.
+
 [lc]: http://talks.jle.im/lambdaconf-2017/singletons/
 
 I definitely am writing this post with the hope that it will be obsolete in a
-year or two, and that when dependent types come to Haskell, singletons might be
-nothing more than a painful historical note.  But for now, singletons might be
-the best way to get your foot into the door and experience the thrill and
-benefits of dependently typed programming *today*!
+year or two.  When dependent types come to Haskell, singletons will be nothing
+more than a painful historical note.  But for now, singletons might be the best
+way to get your foot into the door and experience the thrill and benefits of
+dependently typed programming *today*!
 
 ### Prerequisites
 
@@ -59,7 +67,6 @@ pattern, uses the following extensions:
 *   GADTs
 *   KindSignatures
 *   RankNTypes
-*   TypeInType
 
 With some optional "convenience extensions"
 
@@ -76,6 +83,8 @@ These extension will be explained when they are used or become relevant.
 
 The Phantom of the Types
 ------------------------
+
+*(The code for this pre-singletons section is available [on github][manual-door])*
 
 Let's start with a very common Haskell trick that most learn early in
 their Haskelling journey: the [phantom type][].
@@ -228,7 +237,7 @@ TYPE ERROR!  TYPE ERROR!
 You can think of this as a nice way of catching *logic errors* at compile-time.
 If your door type did not have its status in the type, the `closeDoor` could
 have been given a closed or locked door, and you'd have to handle and reject it
-at runtime!
+at *runtime*.
 
 By adding the state of the door into its type, we can encode our pre-conditions
 and post-conditions directly into the type.  And any opportunity to move
@@ -245,7 +254,7 @@ TYPE ERROR!  TYPE ERROR!  TYPE ERROR!
 Do you see why?
 
 With a couple of state transitions, we can write compositions that are
-typechecked to all be legal:
+type-checked to all be legal:
 
 ```haskell
 !!!singletons/Door.hs "lockDoor ::" "openDoor ::"
@@ -333,7 +342,7 @@ Oops!
 ### The Fundamental Issue in Haskell
 
 We've hit upon a fundamental issue in Haskell's type system: **type erasure**.
-In Haskell, types only exist *at compiletime*, for help with typechecking.
+In Haskell, types only exist *at compile-time*, for help with type-checking.
 They are completely erased at runtime.
 
 This is usually what we want.  It's great for performance, and you can bypass
@@ -555,7 +564,8 @@ We can write a nice version of `mkDoor` using singletons:
 !!!singletons/Door.hs "mkDoor ::"
 ```
 
-So we can call it values of `SingDS`:
+We take advantage of the fact that `SingDS s` "locks in" the `s` type variable
+for `Door s`.  We can call it now with values of `SingDS`:
 
 ```haskell
 ghci> :t mkDoor SOpened "Oak"
@@ -566,269 +576,10 @@ Door 'Locked
 
 Now we can't do something silly like pass in `SLocked` to get a `Door 'Opened`.
 
-Ditching the Phantom
---------------------
-
-Now, sometimes we don't actually care about the state of the door in our type,
-and we don't *want* the state of the door in its type.  Our `lockAnyDoor`
-function earlier was an example.
-
-We have a couple of options here --- first, we can create a new type
-`SomeDoor`, that doesn't have the opened/closed status in its type, but rather
-as a runtime value:
-
-```haskell
-data SomeDoor = MkSomeDoor
-    { someDoorState    :: DoorState
-    , someDoorMaterial :: String
-    }
-
--- or, in GADT syntax
-data SomeDoor :: Type where
-    MkSomeDoor ::
-      { someDoorState    :: DoorState
-      , someDoorMaterial :: String
-      } -> SomeDoor
-```
-
-We could have actually been using this type the entire time, if we didn't care
-about type safety.  In the real world and in real applications, we might have
-actually written `SomeDoor` *before* we ever thought about `Door` with a
-phantom type.  It's definitely the more typical "standard" Haskell thing.
-
-It's possible to "construct" this from our original typed `Door`, using a smart
-constructor/conversion function:
-
-```haskell
-fromDoor :: SingDS s -> Door s -> SomeDoor
-fromDoor SOpened (UnsafeMkDoor m) = MkSomeDoor Opened m
-formDoor SClosed (UnsafeMkDoor m) = MkSomeDoor Closed m
-formDoor SLocked (UnsafeMkDoor m) = MkSomeDoor Locked m
-```
-
-### SomeDoor to Door
-
-Now, `SomeDoor` is great.  But because it's a completely different type, we
-potentially have to write the same function for both `Door` and `SomeDoor`,
-because they have different implementations.  For example:
-
-```haskell
-closeSomeOpenedDoor :: SomeDoor -> Maybe SomeDoor
-closeSomeOpenedDoor (MkSomeDoor Opened m) = Just (MkSomeDoor Closed m)
-closeSomeOpenedDoor (MkSomeDoor Closed m) = Nothing
-closeSomeOpenedDoor (MkSomeDoor Locked m) = Nothing
-```
-
-Wouldn't it be nice if we can *re-use* our original `closeDoor`?  This is a toy
-example, and in real life, closing a door might have some complicated runtime
-logic, and it'd be annoying to have to *re-implement* it for both `SomeDoor`
-and `Door`.
-
-#### Converting into an existential
-
-One thing we can do is write a function to convert a `SomeDoor` into a `Door`,
-so we can re-use our original `closeDoor`.  We'd convert our `SomeDoor` into a
-`Door` to re-use our `closeDoor :: Door 'Opened -> Door 'Closed` on it if
-possible!
-
-However, going from `SomeDoor` to `Door s` is slightly trickier in Haskell than
-going the other way around.  One trick we often use is a CPS-style existential
-type.
-
-The essential concept is that normal Haskell type variables are universally
-qualified, meaning that the *caller* can pick how to instantiate `s`.  However,
-we want a function where the *function* can pick the `s`, and the caller must
-handle whatever `s` is given by the function:
-
-```haskell
-withSomeDoor :: SomeDoor -> (forall s. SingDS s -> Door s -> r) -> r
-withSomeDoor (MkSomeDoor Opened m) f = f SOpened (UnsafeMkDoor m)
-withSomeDoor (MkSomeDoor Closed m) f = f SClosed (UnsafeMkDoor m)
-withSomeDoor (MkSomeDoor Locked m) f = f SLocked (UnsafeMkDoor m)
-```
-
-Notice the funky CPS-like type signature of `withSomeDoor`.  To use
-`withSomeDoor` and access the `Door`, you have to pass in a function to handle
-*any possible `s`*.  And, as you can see, the function passed in might be given
-an `SOpened`, an `SClosed`, or an `SLocked`.  It has to be able to handle all
-three!
-
-Here, we call `s` *existentially quantified*.  The `withSomeDoor` function gets
-to pick which `s` to give `f`.  So, the `s` type variable is directly chosen by
-the *function*, and not by the caller.
-
-So we can implement `closeSomeOpenedDoor` (and even a `lockAnySomeDoor`) using this
-conversion function:
-
-```haskell
-closeSomeOpenedDoor :: SomeDoor -> Maybe (Door 'Closed)
-closeSomeOpenedDoor sd = withSomeDoor sd $ \case
-    SOpened -> \d -> Just (closeDoor d)
-    SClosed -> \_ -> Nothing
-    SLocked -> \_ -> Nothing
-
-lockAnySomeDoor :: SomeDoor -> Door 'Locked
-lockAnySomeDoor sd = withSomeDoor sd $ \s d ->
-    lockAnyDoor s d
-```
-
-#### The Existential Datatype
-
-However, there's another path we can take.  With the power of singletons, we
-can actually implement `SomeDoor` *in terms of* `Door`, using an **existential
-data type**:
-
-```haskell
--- using existential constructor syntax
-data SomeDoor = forall s. MkSomeDoor (SingDS s) (Door s)
-
--- or, using GADT syntax (preferred)
-!!!singletons/Door.hs "data SomeDoor ::"
-```
-
-`MkSomeDoor` is a constructor for an existential data type, meaning that the
-data type "hides" a type variable `s`.
-
-Hopefully you can see the similarities between our original `SomeDoor` and this
-one.
-
-```haskell
--- Original type
-data SomeDoor where
-    MkSomeDoor :: DoorState -> String -> SomeDoor
--- New existential type
-data SomeDoor where
-    MkSomeDoor :: SingDS s  -> Door s -> SomeDoor
-```
-
-The key differences are:
-
-*   Our first `SomeDoor` contains a `DoorState`, and this new `SomeDoor`
-    contains a `SingDS` (a *singleton* for the `DoorState`):
-*   Our first `SomeDoor` contains essentially a re-implementation of the `Door`
-    type, but the new `SomeDoor` contains an actual `Door`, so we can re-use
-    functions on `Door`s.
-
-In Haskell, existential data types are pretty nice, syntactically, to work
-with.  For a comparison, let's re-implement our previous functions with our new
-data type:
-
-```haskell
-!!!singletons/Door.hs "closeSomeOpenedDoor ::" "lockAnySomeDoor ::"
-```
-
-Much more convenient, because *we already have a `Door`!*  And we don't have to
-re-implement one like we did for our original `SomeDoor` -- all of our original
-code works directly!
-
-It's important to remember that our original separate-implementation `SomeDoor`
-is, functionally, identical to the new code-reusing `Door`.  The reason why
-they are the same is that *having an existentially quantified singleton is the
-same as having a value of the corresponding type.*  Having an existentially
-quantified `SingDS s` is *the same as* having a value of type `DoorState`.
-
-If they're identical, why use a `SingDS` or the new `SomeDoor` at all?  One
-main reason (besides allowing code-reuse) is that *using the singleton lets us
-recover the type*.  Essentially, a `SingDS s` not only contains whether it is
-Opened/Closed/Locked...it contains it in a way that GHC can use to *bring it
-all back* to the type level.
-
-Basically, `SingDS` allows us to re-use our original `Door s` implementation,
-because we store both the `Door`...*and* the `s` at the type level.  You should
-read it as storing `s` and `Door s`, together, at runtime.  It also lets GHC
-*check* our implementations, to help ensure that they are correct, because you
-maintain the `s` at the type level.
-
-#### Some Lingo
-
-In the language of dependently typed programming, we call `SomeDoor` a
-**dependent sum**, because you can imagine it basically as:
-
-```haskell
-data SomeDoor = SDOpened (Door 'Opened)
-              | SDClosed (Door 'Closed)
-              | SDLocked (Door 'Locked)
-```
-
-A three-way sum between a `Door 'Opened`, a `Door 'Closed`, and a `Door
-'Locked`, essentially.  If you have a `SomeDoor`, it's *either* an opened door,
-a closed door, or a locked door.  Try looking at this new `SomeDoor` until you
-realize that this type is the same type as the previous `SomeDoor`!
-
-You might also see `SomeDoor` called a **dependent pair**, because it's
-basically an existentially quantified tuple of the type (the `s`, witnessed by
-the `SingDS s`) with a value (the `Door s`).
-
-### Types at Runtime
-
-With this last tool, we finally have enough to build a function to "make" a
-door with the status unknown until runtime:
-
-```haskell
-!!!singletons/Door.hs "mkSomeDoor ::"
-```
-
-```haskell
-ghci> let mySomeDoor = mkSomeDoor Opened "Birch"
-ghci> :t mySomeDoor
-SomeDoor
-ghci> putStrLn $ case mySomeDoor of
-        MkSomeDoor SOpened _ -> "mySomeDoor was opened!"
-        MkSomeDoor SClosed _ -> "mySomeDoor was closed!"
-        MkSomeDoor SLocked _ -> "mySomeDoor was locked!"
-mySomeDoor was opened!
-```
-
-Using `mkSomeDoor`, we can truly pass in a `DoorState` that we generate at
-runtime (from IO, or a user prompt, or a configuration file, maybe), and create
-a `Door` based on it.
-
-Take *that*, type erasure! :D
-
-We could even directly return a `Door` with an existentially quantified door
-status in CPS style:
-
-```haskell
-withDoor :: DoorState -> String -> (forall s. SingDS s -> Door s -> r) -> r
-withDoor s m f = case s of
-    Opened -> f SOpened (UnsafeMkDoor m)
-    Closed -> f SClosed (UnsafeMkDoor m)
-    Locked -> f SLocked (UnsafeMkDoor m)
-```
-
-```haskell
-ghci> withDoor Opened "Birch" $ \s d -> case s of
-         SOpened -> "Opened door!"
-         SClosed -> "Closed door!"
-         SLocked -> "Locked door!"
-Opened door!
-```
-
-This allows us to *truly* directly generate a `Door s` with an `s` that can
-vary at runtime.
-
-#### Reification
-
-The general pattern we are exploiting here is called **reification** -- we're
-taking a dynamic run-time value, and lifting it to the type level as a type
-(here, the type variable `s`).  You can think of reification as the opposite of
-reflection, and imagine the two as being the "gateway" between the type-safe
-and unsafe world.  In the dynamic world of a `DoorState` value, you have no
-type safety.  You live in the world of `SomeDoor`, `closeSomeOpenedDoor`,
-`lockAnySomeDoor`, etc.  But, you can *reify* your `DoorState` value to a *type*, and
-enter the type-safe world of `Door s`, `closeDoor`, `lockDoor`, and
-`lockAnyDoor`.
-
-It might be more meaningful then to write a direct reification function for our
-`DoorState`, in CPS style.  Then, we can actually write our `withDoor` in terms
-of it!
-
-```haskell
-!!!singletons/Door.hs "withDoorState ::" "withDoor ::"
-```
-
 The Singletons Library
 ----------------------
+
+*(The code for this post-singletons section is available [on github][singletons-door])*
 
 Now that we understand some of the benefits of singletons as they relate to
 phantom types, we can appreciate what the singletons *library* has to offer: a
@@ -899,6 +650,8 @@ singletons instead of writing them yourself.
 ```haskell
 ghci> :t SOpened `SCons` SClosed `SCons` SLocked `SCons` SNil
 Sing '[ 'Opened, 'Closed, 'Locked ]
+-- 'SCons is the singleton for `:` (cons),
+-- and 'SNil is the singleton for `[]` (nil)
 ```
 
 (Remember that, because of `DataKinds`, `Maybe` is a kind constructor, who has
@@ -931,42 +684,14 @@ Recall that `DoorState` has four different things associated with it now:
 
 Kind of confusing, and in the future, when we have real dependent types, we can
 combine all of these manifestations into the *one* thing.  But for now, we do
-have to deal with converting between them, and for that, we have, generated for
-us:
+have to deal with converting between them, and for that, *singletons* generates
+for us `fromSing :: Sing (s :: DoorState) -> DoorState`.  `fromSing` takes us
+from singletons to values (*reflection*):
 
-*   `fromSing :: Sing (s :: DoorState) -> DoorState` takes us from singletons
-    to values:
-
-    ```haskell
-    ghci> fromSing SOpened
-    Opened
-    ```
-
-*   `toSing :: DoorState -> SomeSing DoorState` takes us from values to their
-    (existentially quantified) singletons
-
-    ```haskell
-    ghci> let s = toSing Opened
-    ghci> :t s
-    s :: SomeSing DoorState
-    ghci> putStrLn $ case s of
-            SomeSing SOpened -> "Opened."
-            SomeSing SClosed -> "SClosed."
-            SomeSing SLocked -> "SLocked."
-    "Opened."
-    ```
-
-    `SomeSing` is like `SomeDoor` in that it is an existentially quantified
-    singleton:
-
-    ```haskell
-    data SomeSing DoorState :: Type where
-        SomeSing :: Sing s -> SomeSing DoorState
-
-    -- or, more accurately, since `SomeSing` is polykinded
-    data SomeSing :: k -> Type where
-        SomeSing :: Sing (a :: k) -> SomeSing k
-    ```
+```haskell
+ghci> fromSing SOpened
+Opened
+```
 
 It does this by defining a type class (actually, a "kind class"), `SingKind`,
 associating each type to the corresponding datakinds-generated kind.  The
@@ -997,13 +722,21 @@ You can see all of the "manual singletons" code in this post
 !!![manual-door]:singletons/Door.hs
 !!![singletons-door]:singletons/DoorSingletons.hs
 
-However, full expressively with phantom types is still out of our reach.  If we
-want to express more complicated relationships and to be able to treat phantom
-types (and *types*, in general) as first-class values, and delve into the
-frighteningly beautiful world of "type-level programming", we are going to have
-to dig a bit deeper.  Come back for the next post to see how!  Singletons will
-be our tool, and we'll also see how the singletons library is a very clean
-unification of a lot of concepts.
+However, remember the question that I asked earlier, about creating a `Door`
+with a given state that we don't know until runtime?  So far, we are only able
+to create `Door` and `SingDS` from types we *know* at compile-time.  There is
+no way we have yet to convert a `DoorState` from the value level to the type
+level -- so it seems that there is no way to "load" a `Door s` with an `s` that
+depends on, say, a file's contents, or user input.  The fundamental issue is
+still *type erasure*.
+
+In Part 2, we will delve into how to overcome this and break through from the
+barrier of the dynamic "unsafe" runtime to the world of safe, typed, verified
+code, and see how the *singletons* library gives us great tools for this.
+Afterwards, in Part 3, we will learn to express more complicated relationships
+with types and type-level functions using defunctionalization and the tools
+from the *singletons* library, and finally break into the world of actual
+"type-level programming".
 
 As always, let me know in the comments if you have any questions!  You can also
 usually find me idling on the freenode `#haskell` channel, as well, as *jle\`*.
@@ -1021,7 +754,8 @@ written with a different perspective and tone :)
 Exercises
 ---------
 
-Click on the links in the corner of the text boxes for solutions!
+Click on the links in the corner of the text boxes for solutions! (or just
+check out [the source file][singletons-door])
 
 These should be written in the singletons library style, with `Sing` instead of
 `SingDS` and `SingI` instead of `SingDSI`.  Review the [singletons
@@ -1037,31 +771,16 @@ file][singletons-door] for a comparison, if you are still unfamiliar.
     It should return a closed door in `Just` if the caller gives an odd number,
     or `Nothing` otherwise.
 
-2.  Write a function that can open any door, taking a password.
+2.  Write a function that can open any door, taking a password, in "implicit
+    Sing" style:
 
     ```haskell
     !!!singletons/DoorSingletons.hs "openAnyDoor ::"1
     ```
 
-    This should be written in terms of `unlockDoor` and `openDoor`.
+    This should be written in terms of `unlockDoor` and `openDoor` (see above)
+    -- that is, you **should not** use `UnsafeMkDoor` directly for
+    `openAnyDoor`.
 
     If the door is already unlocked or opened, it should ignore the `Int`
     input.
-
-3.  Implement `withSomeDoor` for our "new" existentially quantified `SomeDoor`
-    type.
-
-    ```haskell
-    !!!singletons/DoorSingletons.hs "withSomeDoor ::"1
-    ```
-
-4.  Implement `openAnySomeDoor`, which should work like `lockAnySomeDoor`, just
-    wrapping an application of `openAnyDoor` inside a `SomeDoor`.
-
-    ```haskell
-    !!!singletons/DoorSingletons.hs "openAnySomeDoor ::"1
-    ```
-
-    Note that because we wrote `openAnyDoor` in "implicit style", we might have
-    to convert between `SingI s =>` and `Sing s ->` style, using `withSingI`.
-

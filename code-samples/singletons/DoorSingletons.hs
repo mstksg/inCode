@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --install-ghc runghc --resolver nightly-2017-11-27 --package singletons
+-- stack --install-ghc runghc --resolver lts-10.0 --package singletons
 
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE GADTs               #-}
@@ -23,10 +23,10 @@ data Door :: DoorState -> Type where
     UnsafeMkDoor :: { doorMaterial :: String } -> Door s
 
 closeDoor :: Door 'Opened -> Door 'Closed
-closeDoor (UnsafeMkDoor m) = (UnsafeMkDoor m)
+closeDoor (UnsafeMkDoor m) = UnsafeMkDoor m
 
 lockDoor :: Door 'Closed -> Door 'Locked
-lockDoor (UnsafeMkDoor m) = (UnsafeMkDoor m)
+lockDoor (UnsafeMkDoor m) = UnsafeMkDoor m
 
 openDoor :: Door 'Closed -> Door 'Opened
 openDoor (UnsafeMkDoor m) = UnsafeMkDoor m
@@ -58,24 +58,6 @@ mkDoor = \case
     SClosed -> UnsafeMkDoor
     SLocked -> UnsafeMkDoor
 
-data SomeDoor :: Type where
-    MkSomeDoor :: Sing s -> Door s -> SomeDoor
-
-closeSomeDoor :: SomeDoor -> Maybe SomeDoor
-closeSomeDoor = \case
-    MkSomeDoor SOpened d -> Just $ MkSomeDoor SClosed (closeDoor d)
-    MkSomeDoor SClosed _ -> Nothing
-    MkSomeDoor SLocked _ -> Nothing
-
-lockAnySomeDoor :: SomeDoor -> SomeDoor
-lockAnySomeDoor (MkSomeDoor s d) = MkSomeDoor SLocked (lockAnyDoor s d)
-
-mkSomeDoor :: DoorState -> String -> SomeDoor
-mkSomeDoor = \case
-    Opened -> MkSomeDoor SOpened . mkDoor SOpened
-    Closed -> MkSomeDoor SClosed . mkDoor SClosed
-    Locked -> MkSomeDoor SLocked . mkDoor SLocked
-
 main :: IO ()
 main = return ()
 
@@ -95,11 +77,3 @@ openAnyDoor n = openAnyDoor_ sing
       SOpened -> Just
       SClosed -> Just . openDoor
       SLocked -> fmap openDoor . unlockDoor n
-
-openAnySomeDoor :: Int -> SomeDoor -> Maybe (Door 'Opened)
-openAnySomeDoor n (MkSomeDoor s d) = withSingI s $
-    openAnyDoor n d
-
-withSomeDoor :: SomeDoor -> (forall s. Sing s -> Door s -> r) -> r
-withSomeDoor sd f = case sd of
-    MkSomeDoor s d -> f s d
