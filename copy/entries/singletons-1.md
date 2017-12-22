@@ -103,8 +103,8 @@ Foo Monad
 
 One use case of phantom type parameters is to prohibit certain functions on
 different types of values and let you be more descriptive with how your
-functions work together (like in [safe-money][]).  A particularly common use
-case of phantom type parameters is to tag data as "sanitized" or "unsanitized"
+functions work together (like in [safe-money][]).  One "hello world" use case
+of phantom type parameters is to tag data as "sanitized" or "unsanitized"
 (`UserString 'Santitized` type vs. `UserString 'Unsanitized`) or paths as
 absolute or relative (`Path 'Absolute` vs. `Path 'Relative`).  For a simple
 example, let's check out a simple DSL for a type-safe door:
@@ -481,10 +481,6 @@ In Haskell, a constraint `SingDSI s =>` is essentially the same as passing in
 your function can use.  You can think of `SingDSI s =>` as passing it in
 *implicitly*, and `SingDS s ->` as passing it in *explicitly*.
 
-Earlier, I disparaged the "ad-hoc typeclass" approach.  But, here, the
-typeclass isn't quite ad-hoc; it's basically exactly carrying around an
-implicit witness of `s` that we can grab at any time.
-
 So, it's important to remember that `lockAnyDoor` and `lockAnyDoor_` are the
 "same function", with the same power.  They are just written in different
 styles -- `lockAnyDoor` is written in explicit style, and `lockAnyDoor_` is
@@ -770,7 +766,11 @@ We could even directly return a `Door` with an existentially quantified door
 status in CPS style:
 
 ```haskell
-!!!singletons/Door.hs "withDoor ::"
+withDoor :: DoorState -> String -> (forall s. SingDS s -> Door s -> r) -> r
+withDoor s m f = case s of
+    Opened -> f SOpened (UnsafeMkDoor m)
+    Closed -> f SClosed (UnsafeMkDoor m)
+    Locked -> f SLocked (UnsafeMkDoor m)
 ```
 
 ```haskell
@@ -783,6 +783,26 @@ Opened door!
 
 This allows us to *truly* directly generate a `Door s` with an `s` that can
 vary at runtime.
+
+#### Reification
+
+The general pattern we are exploiting here is called **reification** -- we're
+taking a dynamic run-time value, and lifting it to the type level as a type
+(here, the type variable `s`).  You can think of reification as the opposite of
+reflection, and imagine the two as being the "gateway" between the type-safe
+and unsafe world.  In the dynamic world of a `DoorState` value, you have no
+type safety.  You live in the world of `SomeDoor`, `closeSomeOpenedDoor`,
+`lockAnySomeDoor`, etc.  But, you can *reify* your `DoorState` value to a *type*, and
+enter the type-safe world of `Door s`, `closeDoor`, `lockDoor`, and
+`lockAnyDoor`.
+
+It might be more meaningful then to write a direct reification function for our
+`DoorState`, in CPS style.  Then, we can actually write our `withDoor` in terms
+of it!
+
+```haskell
+!!!singletons/Door.hs "withDoorState ::" "withDoor ::"
+```
 
 The Singletons Library
 ----------------------
@@ -876,13 +896,20 @@ Recall that `DoorState` has four different things associated with it now:
     and `Locked`.
 2.  The *kind* `DoorState`, whose type constructors are `'Opened`, `'Closed`,
     and `'Locked`
-3.  The singletons for `'Opened`, `'Closed`, and `'Locked`.
+3.  The singletons for `'Opened`, `'Closed`, and `'Locked`:
+
+    ```haskell
+    SOpened :: Sing 'Opened
+    SClosed :: Sing 'Closed
+    SLocked :: Sing 'Locked
+    ```
+
 4.  The `SingI` instances for `'Opened`, `'Closed`, and `'Locked'`
 
 Kind of confusing, and in the future, when we have real dependent types, we can
-hopefully combine all of these manifestations into the same thing.  But for
-now, we do have to deal with converting between them, and for that, we have,
-generated for us:
+combine all of these manifestations into the *one* thing.  But for now, we do
+have to deal with converting between them, and for that, we have, generated for
+us:
 
 *   `fromSing :: Sing (s :: DoorState) -> DoorState` takes us from singletons
     to values:
