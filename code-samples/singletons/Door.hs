@@ -28,17 +28,16 @@ data SingDS :: DoorState -> Type where
     SClosed :: SingDS 'Closed
     SLocked :: SingDS 'Locked
 
-lockAnyDoor :: SingDS s -> (Door s -> Door 'Locked)
-lockAnyDoor = \case
-    SOpened -> lockDoor . closeDoor  -- in this branch, s is 'Opened
-    SClosed -> lockDoor              -- in this branch, s is 'Closed
-    SLocked -> id                    -- in this branch, s is 'Locked
+lockAnyDoor :: SingDS s -> Door s -> Door 'Locked
+lockAnyDoor sng door = case sng of
+    SOpened -> lockDoor (closeDoor door) -- in this branch, s is 'Opened
+    SClosed -> lockDoor door             -- in this branch, s is 'Closed
+    SLocked -> door                      -- in this branch, s is 'Locked
 
 fromSingDS :: SingDS s -> DoorState
-fromSingDS = \case
-    SOpened -> Opened
-    SClosed -> Closed
-    SLocked -> Locked
+fromSingDS SOpened = Opened
+fromSingDS SClosed = Closed
+fromSingDS SLocked = Locked
 
 doorStatus :: SingDS s -> Door s -> DoorState
 doorStatus s _ = fromSingDS s
@@ -60,7 +59,7 @@ doorStatus_ :: SingDSI s => Door s -> DoorState
 doorStatus_ = doorStatus singDS
 
 withSingDSI :: SingDS s -> (SingDSI s => r) -> r
-withSingDSI s x = case s of
+withSingDSI sng x = case sng of
     SOpened -> x
     SClosed -> x
     SLocked -> x
@@ -69,10 +68,7 @@ lockAnyDoor__ :: SingDS s -> Door s -> Door 'Locked
 lockAnyDoor__ s d = withSingDSI s (lockAnyDoor_ d)
 
 mkDoor :: SingDS s -> String -> Door s
-mkDoor = \case
-    SOpened -> UnsafeMkDoor
-    SClosed -> UnsafeMkDoor
-    SLocked -> UnsafeMkDoor
+mkDoor _ = UnsafeMkDoor
 
 main :: IO ()
 main = return ()

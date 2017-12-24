@@ -32,13 +32,9 @@ openDoor :: Door 'Closed -> Door 'Opened
 openDoor (UnsafeMkDoor m) = UnsafeMkDoor m
 
 doorStatus :: Sing s -> Door s -> DoorState
-doorStatus = \case
-    SOpened -> -- in this branch, `s` is `'Opened`
-        \_ -> Opened
-    SClosed -> -- in this branch, `s` is `'Closed`
-        \_ -> Closed
-    SLocked -> -- in this branch, `s` is `'Locked`
-        \_ -> Locked
+doorStatus SOpened _ = Opened
+doorStatus SClosed _ = Closed
+doorStatus SLocked _ = Locked
 
 lockAnyDoor :: Sing s -> (Door s -> Door 'Locked)
 lockAnyDoor = \case
