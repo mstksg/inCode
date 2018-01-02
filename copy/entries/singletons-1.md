@@ -205,8 +205,9 @@ data type declaration -- here, we define types by giving the type of its
 constructors, `UnsafeMkDoor :: String -> Door s`.
 
 `Door` here is an **indexed data type**, which is sometimes called a "type
-family" in the dependently typed programming world (not to be confused with the
-`-XTypeFamily` language mechanic in GHC Haskell).
+family" in the dependently typed programming world (which is not to be confused
+with type families in *GHC Haskell*, `-XTypeFamilies`, which is a language
+mechanism that is related but definitely not the same).
 
 ### Phantoms in Action
 
@@ -585,6 +586,20 @@ explicit inputs:
 ```
 
 And the cycle begins anew.
+
+One interesting thing to point out -- note that the type of `withSingDSI` is
+very similar to the type of another common combinator:
+
+```haskell
+withSingDSI :: SingDS s -> (SingDSI s => r) -> r
+flip  ($)   ::        a -> (        a -> r) -> r
+```
+
+Which is a bit of a testament to what we said earlier about how a `SingDSI s =>
+..)` is the same as `SingDS s -> ..`.  `flip ($)` takes a value and a function
+and applies the function to that value.  `withSingDSI` takes a value and
+"something like a function" and applies the "something like a function" to that
+value.
 
 ### Fun with Witnesses
 
