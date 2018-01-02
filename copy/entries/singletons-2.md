@@ -379,11 +379,11 @@ The general pattern we are exploiting here is called **reification** -- we're
 taking a dynamic run-time value, and lifting it to the type level as a type
 (here, the type variable `s`).  You can think of reification as the opposite of
 *reflection*, and imagine the two as being the "gateway" between the type-safe
-and unsafe world.  In the dynamic world of a `DoorState` value, you have no
-type safety.  You live in the world of `SomeDoor`, `closeSomeOpenedDoor`,
-`lockAnySomeDoor`, etc.  But, you can *reify* your `DoorState` value to a
-*type*, and enter the type-safe world of `Door s`, `closeDoor`, `lockDoor`, and
-`lockAnyDoor`.
+and unsafe world.  In the dynamic world of a `DoorState` term-level value, you
+have no type safety.  You live in the world of `SomeDoor`,
+`closeSomeOpenedDoor`, `lockAnySomeDoor`, etc.  But, you can *reify* your
+`DoorState` value to a *type*, and enter the type-safe world of `Door s`,
+`closeDoor`, `lockDoor`, and `lockAnyDoor`.
 
 The *singletons* library automatically generates functions to directly reify
 `DoorState` values:
@@ -402,7 +402,160 @@ We can use these to write `mkSomeDoor` and `withDoor`:
 !!!singletons/Door2.hs "mkSomeDoor ::" "withDoor ::"
 ```
 
-<!-- ## Sing -->
+<!-- ## A Reflection on Subtyping -->
+
+<!-- Let's take a step back to look at the concept of "subtyping" in Haskell, and -->
+<!-- how it relates to what we've done here.  Without phantom types you might have -->
+<!-- imagined being able to do something like this: -->
+
+<!-- ```hskell -->
+<!-- data DoorOpened = MkDoorOpened String -->
+<!-- data DoorClosed = MkDoorClosed String -->
+<!-- data DoorLocked = MkDoorLocked String -->
+<!-- ``` -->
+
+<!-- And, for the most part, you get a similar API: -->
+
+<!-- ```haskell -->
+<!-- closeDoor :: DoorOpened -> DoorClosed -->
+<!-- lockDoor  :: DoorClosed -> DoorLocked -->
+<!-- ``` -->
+
+<!-- This is all stuff we can do in "normal Haskell", and get the same type-safety. -->
+
+<!-- The advantage of the *indexed type* ("type family", in dependent types -->
+<!-- lingo[^fam]) is that we can write functions that work on *any* door state: -->
+
+<!-- [^fam]: Again, not to be confused with GHC's Type Families language feature -->
+
+<!-- ```haskell -->
+<!-- doorMaterial :: Door s -> String -->
+<!-- lockAnyDoor  :: Door s -> Door 'Locked -->
+<!-- ``` -->
+
+<!-- Remember how I said earlier that our declaration of `Door` created three types? -->
+<!-- `Door 'Opened`, `Door 'Closed`, and `Door 'Locked`?  I lied -- it actually -->
+<!-- gives us a *fourth* type, `forall s. Door s` -- a type that can be instantiated -->
+<!-- as *any* status door.  This is the return type of `UnsafeMkDoor :: String -> -->
+<!-- (forall s. Door s)`. -->
+
+<!-- As a return type, `forall s. Door s` is what we call a **subtype** of `Door -->
+<!-- 'Opened`, `Door 'Closed`, and `Door 'Locked`.  In type theory, a subtype is -->
+<!-- something that can be used whenever something expects a value of its supertype, -->
+<!-- but not necessarily the other way around. -->
+
+## Zooming Out
+
+Alright!  We've spent two blog posts going over a lot of different things in
+the context of our humble `Door s` type.  Let's zoom out and take a large-scale
+look at how *singletons* (the design pattern, and the library) helps us in
+general.
+
+### Sing
+
+The crux of everything is the `Sing :: Type -> Type` indexed type.  If you see
+a value of type `Sing s`, you should really just think "a runtime witness for
+`s`".  If you see:
+
+```haskell
+lockAnyDoor :: Sing s -> Door s -> Door 'Locked
+MkSomeDoor  :: Sing s -> Door s -> SomeDoor
+```
+
+You should read it as (in pseudo-Haskell)
+
+```haskell
+lockAnyDoor :: { s } -> Door s -> Door 'Locked
+MkSomeDoor  :: { s } -> Door s -> SomeDoor
+```
+
+This is seen clearly if we look at the partially applied type signatures:
+
+```haskell
+lockAnyDoor SOpened :: Door 'Opened -> Door 'Locked
+MkSomeDoor  SLocked :: Door 'Locked -> SomeDoor
+```
+
+If you squint, this kinda looks like:
+
+```haskell
+lockAnyDoor 'Opened :: Door 'Opened -> Door 'Locked
+MkSomeDoor  'Locked :: Door 'Locked -> SomeDoor
+```
+
+And indeed, when we get real dependent types in Haskell, we will really be
+directly passing types (that act as their own runtime values) instead of
+singletons.
+
+It is important to remember that `Sing` is poly-kinded, so we can have `Sing
+'Opened`, but also `Sing 'True`, `Sing 5`, and `Sing '['Just 3, 'Nothing, 'Just
+0]` as well.  This is the real benefit of using the *singletons* library
+instead of writing our own singletons -- we get to work uniformly with
+singletons of all kinds.
+
+#### SingI
+
+`SingI` is a bit of typeclass trickery that lets us implicitly pass `Sing`s to
+functions:
+
+```haskell
+class SingI s where
+    sing :: Sing s
+```
+
+If you see:
+
+```haskell
+lockAnyDoor :: Sing  s -> Door s -> Door 'Locked
+MkSomeDoor  :: Sing  s -> Door s -> SomeDoor
+```
+
+These are *identical* to
+
+```haskell
+lockAnyDoor :: SingI s => Door s -> Door 'Locked
+MkSomeDoor  :: SingI s => Door s -> SomeDoor
+```
+
+Either way, you're passing in the ability to get a runtime witness on `s` --
+just in one way, it is asked for as an explicit argument, and the second way,
+it is passed in using a typeclass.
+
+We can *convert* from `SingI s ->` style to `SingI s =>` style using `sing`:
+
+```haskell
+!!!singletons/Door2.hs "lockAnyDoor_ ::" "fromDoor_ ::"
+```
+
+And we can convert from `SingI s =>` style to `SingI s ->` style using
+`withSingI`:
+
+```haskell
+lockAnyDoor :: Sing s -> Door s -> Door 'Locked
+lockAnyDoor s d = withSingI s (lockAnyDoor_ d)
+
+fromDoor :: Sing s -> Door s -> SomeDoor
+fromDoor s d = withSingI s (fromDoor_ d)
+```
+
+Again, the same function -- just two different styles of calling them.
+
+### Reflection and Reification
+
+Reflection is the process of bringing a type-level thing to a value at the term
+level ("losing" the type information in the process) and reification is the
+process of bringing a value-level Reification is the process of going from a
+value at the *term level* to the *type level*.
+
+One limitation in Haskell is that there is no actual link between the type
+`DoorState` and its *values* with the *kind* `DoorState` with its *types*.
+Sure, the constructors have the same names, but the language doesn't actually
+link them together for us.
+
+The *singletons* library handles this by using a typeclass with associated
+types to implement a generalized reflection and reification process.  It gives
+us the `SingKind` typeclass:
+
 
 <!-- *   `toSing :: DoorState -> SomeSing DoorState` takes us from values to their -->
 <!--     (existentially quantified) singletons -->
@@ -458,42 +611,42 @@ We can use these to write `mkSomeDoor` and `withDoor`:
 <!-- unification of a lot of concepts. -->
 
 
-### A Reflection on Subtyping
+<!-- ### A Reflection on Subtyping -->
 
-Without phantom types you might have imagined being able to do something like
-this:
+<!-- Without phantom types you might have imagined being able to do something like -->
+<!-- this: -->
 
-```hskell
-data DoorOpened = MkDoorOpened { doorMaterial :: String }
-data DoorClosed = MkDoorClosed { doorMaterial :: String }
-data DoorLocked = MkDoorLocked { doorMaterial :: String }
-```
+<!-- ```hskell -->
+<!-- data DoorOpened = MkDoorOpened { doorMaterial :: String } -->
+<!-- data DoorClosed = MkDoorClosed { doorMaterial :: String } -->
+<!-- data DoorLocked = MkDoorLocked { doorMaterial :: String } -->
+<!-- ``` -->
 
-Which is even possible now with `-XDuplicateRecordFields`.  And, for the most
-part, you get a similar API:
+<!-- Which is even possible now with `-XDuplicateRecordFields`.  And, for the most -->
+<!-- part, you get a similar API: -->
 
-```haskell
-closeDoor :: DoorOpened -> DoorClosed
-lockDoor  :: DoorClosed -> DoorLocked
-```
+<!-- ```haskell -->
+<!-- closeDoor :: DoorOpened -> DoorClosed -->
+<!-- lockDoor  :: DoorClosed -> DoorLocked -->
+<!-- ``` -->
 
-But what about writing things that take on "all" door types?
+<!-- But what about writing things that take on "all" door types? -->
 
-The only real way (besides typeclass magic) would be to make some sum type
-like:
+<!-- The only real way (besides typeclass magic) would be to make some sum type -->
+<!-- like: -->
 
-```haskell
-data SomeDoor = DO DoorOpened | DC DoorClosed | DL DoorLocked
+<!-- ```haskell -->
+<!-- data SomeDoor = DO DoorOpened | DC DoorClosed | DL DoorLocked -->
 
-lockAnyDoor :: SomeDoor -> DoorLocked
-```
+<!-- lockAnyDoor :: SomeDoor -> DoorLocked -->
+<!-- ``` -->
 
-However, we see that if we parameterize a single `Door` type, we can have it
-stand in *both* for a "known status" `Door` *and* for a "polymorphic status"
-`Door`.
+<!-- However, we see that if we parameterize a single `Door` type, we can have it -->
+<!-- stand in *both* for a "known status" `Door` *and* for a "polymorphic status" -->
+<!-- `Door`. -->
 
-This actually leverages Haskell's *subtyping* system.  We say that `forall s.
-Door s` (a `Door` that is polymorphic on all `s`) is a *subtype* of `Door
-'Opened`.  This means that a `forall s. Door s` can be used anywhere a function
-would expect a `Door 'Opened`...but not the other way around.
+<!-- This actually leverages Haskell's *subtyping* system.  We say that `forall s. -->
+<!-- Door s` (a `Door` that is polymorphic on all `s`) is a *subtype* of `Door -->
+<!-- 'Opened`.  This means that a `forall s. Door s` can be used anywhere a function -->
+<!-- would expect a `Door 'Opened`...but not the other way around. -->
 

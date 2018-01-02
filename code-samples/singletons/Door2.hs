@@ -106,4 +106,3 @@ openAnySomeDoor n (MkSomeDoor s d) = withSingI s $
 -- withSomeDoor :: SomeDoor -> (forall s. Sing s -> Door s -> r) -> r
 -- withSomeDoor sd f = case sd of
 --     MkSomeDoor s d -> f s d
-

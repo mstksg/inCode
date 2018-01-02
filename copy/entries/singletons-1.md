@@ -498,7 +498,8 @@ Which we can use to write a nicer `doorStatus`
 ```
 
 This process -- of turning a type variable (like `s`) into a dynamic runtime
-value is known as **reflection**.
+value is known as **reflection**.  We move a value from the *type level* to the
+*term level*.
 
 ### Recovering Implicit Passing
 
@@ -731,7 +732,7 @@ Kind of confusing, and in the future, when we have real dependent types, we can
 combine all of these manifestations into the *one* thing.  But for now, we do
 have to deal with converting between them, and for that, *singletons* generates
 for us `fromSing :: Sing (s :: DoorState) -> DoorState`.  `fromSing` takes us
-from singletons to values (*reflection*):
+from singletons to term-level values (*reflection*):
 
 ```haskell
 ghci> fromSing SOpened
