@@ -547,42 +547,163 @@ level ("losing" the type information in the process) and reification is the
 process of bringing a value-level Reification is the process of going from a
 value at the *term level* to the *type level*.
 
+You can think of reflection and reification as being the "gateways" between the
+untyped/unsafe world and the typed/safe world.  Reflection takes you from the
+typed world to the untyped world (from `Sing s` to `DoorState`) and reification
+takes you from the untyped world to the typed world (from `DoorState` to `Sing
+s`).
+
 One limitation in Haskell is that there is no actual link between the type
 `DoorState` and its *values* with the *kind* `DoorState` with its *types*.
 Sure, the constructors have the same names, but the language doesn't actually
 link them together for us.
 
+#### SingKind
+
 The *singletons* library handles this by using a typeclass with associated
 types to implement a generalized reflection and reification process.  It gives
-us the `SingKind` typeclass:
+us the `SingKind` "kindclass":
 
+```haskell
+class SingKind k where
+    -- | Associate a kind k with its reflected type
+    type Demote k = (r :: Type)
 
-<!-- *   `toSing :: DoorState -> SomeSing DoorState` takes us from values to their -->
-<!--     (existentially quantified) singletons -->
+    -- | Reflect a singleton to its term-level value
+    fromSing :: Sing (a :: k) -> Demote k
 
-<!--     ```haskell -->
-<!--     ghci> let s = toSing Opened -->
-<!--     ghci> :t s -->
-<!--     s :: SomeSing DoorState -->
-<!--     ghci> putStrLn $ case s of -->
-<!--             SomeSing SOpened -> "Opened." -->
-<!--             SomeSing SClosed -> "SClosed." -->
-<!--             SomeSing SLocked -> "SLocked." -->
-<!--     "Opened." -->
-<!--     ``` -->
+    -- | Reflect a singleton to its term-level value
+    toSing :: Demote k -> SomeSing k
+```
 
-<!--     `SomeSing` is like `SomeDoor` in that it is an existentially quantified -->
-<!--     singleton: -->
+Instances of `SingKind` are promoted kinds like `Bool`, `DoorState`, etc., and
+`Demote` is an associated type/type family that associates each instance with
+the *type* it is promoted from.
 
-<!--     ```haskell -->
-<!--     data SomeSing DoorState :: Type where -->
-<!--         SomeSing :: Sing s -> SomeSing DoorState -->
+For example, remember how `data DoorState = Opened | Closed | Locked` created
+the *type* `DoorState` (with value constructors `Opened`, `Closed`, and
+`Locked`), and also the *kind* `DoorState` (with *type* constructors `'Opened`,
+`'Closed`, and `'Locked`).  Our *kind* `DoorState` would be the instance of
+`SingKind`, and `Demote DoorState` would be the *type* `DoorState`.
 
-<!--     -- or, more accurately, since `SomeSing` is polykinded -->
-<!--     data SomeSing :: k -> Type where -->
-<!--         SomeSing :: Sing (a :: k) -> SomeSing k -->
-<!--     ``` -->
+The reason we need an explicit `Demote` associated type is, again, that GHC
+doesn't actually link the type and its promoted kind.  `Demote` lets us
+explicitly specify what type a `Kind` should expect its term-level reflected
+values to be.
 
+#### Examples
+
+To illustrate explicitly, here is the automatically generated instance of
+`SingKind` for the `DoorState` *kind*:
+
+```haskell
+instance SingKind DoorState where       -- the *kind* DoorState
+    type Demote DoorState = DoorState   -- the *type* DoorState
+
+    fromSing
+        :: Sing (s :: DoorState)        -- the *kind* DoorState
+        -> DoorState                    -- the *type* DoorState
+    fromSing = \case
+        SOpened -> Opened
+        SClosed -> Closed
+        SLocked -> Locked
+
+    toSing
+        :: DoorState                    -- the *type* DoorState
+        -> SomeSing DoorState           -- the *kind* DoorState
+    toSing = \case
+        Opened -> SomeSing SOpened
+        Closed -> SomeSing SClosed
+        Locked -> SomeSing SLocked
+```
+
+If you are unfamiliar with how associated types work, `type Demote DoorState =
+DoorState` means that wherever we see `Demote DoorState` (with `DoorState` the
+*kind*), we replace it with `DoorState` (the *type*).  That's why the type of
+our reflection function `fromSing :: Sing s -> Demote DoorState` can be
+simplified to `fromSing :: Sing s -> DoorState`.
+
+Let's take a look at the instance for `Bool`, to compare:
+
+```haskell
+-- Bool singletons have two constructors:
+SFalse :: Sing 'False
+STrue  :: Sing 'True
+
+instance SingKind Bool where    -- the *kind* Bool
+    type Demote Bool = Bool     -- the *type* Bool
+
+    fromSing
+        :: Sing (b :: Bool)        -- the *kind* Bool
+        -> Bool                    -- the *type* Bool
+    fromSing = \case
+        SFalse -> False
+        STrue  -> True
+
+    toSing
+        :: Bool                    -- the *type* Bool
+        -> SomeSing Bool           -- the *kind* Bool
+    toSing = \case
+        False -> SomeSing SFalse
+        True  -> SomeSing STrue
+```
+
+And a more sophisticated example, let's look at the instance for `Maybe`:
+
+```haskell
+-- Maybe singletons have two constructors:
+SNothing :: Sing 'Nothing
+SJust    :: Sing x -> Sing ('Just x)
+
+instance SingKind a => SingKind (Maybe a) where     -- the *kind* Maybe
+    type Demote (Maybe a) = Maybe (Demote a)        -- the *type* Maybe
+
+    fromSing
+        :: Sing (m :: Maybe a)        -- the *kind* Maybe
+        -> Maybe a                    -- the *type* Maybe
+    fromSing = \case
+        SNothing -> Nothing
+        SJust sx -> Just (fromSing sx)
+
+    toSing
+        :: Maybe (Demote a)             -- the *type* Maybe
+        -> SomeSing (Maybe a)           -- the *kind* Maybe
+    toSing = \case
+        Nothing -> SomeSing SNothing
+        Just x  -> case toSing x of
+          SomeSing sx -> SomeSing (SJust sx)
+```
+
+This definition, I think, is a real testament to the usefulness of having all
+of our singletons be unified under the same system.  Because of how `SingKind`
+works, `Demote (Maybe DoorState)` is evaluated to `Maybe (Demote DoorState)`,
+which is simplified to `Maybe DoorState`.  This means that if we have a way to
+reify `DoorState` values, we also have a way to reify `Maybe DoorState` values!
+And, if we have a way to reflect `DoorState` singletons, we also have a way to
+reflect `Maybe DoorState` singletons!
+
+#### SomeSing
+
+Throughout all of this, we utilize `SomeSing` as a generic poly-kinded
+existential wrapper:
+
+```haskell
+data SomeSing :: Type -> Type where
+    SomeSing :: Sing (x :: k) -> SomeSing k
+```
+
+Basically, this says that `SomeSing k` contains a `Sing x`, where `x` is of
+kind `k`.  This is why we had, earlier:
+
+```haskell
+SomeSing :: Sing (s :: DoorState) -> SomeSing DoorState
+```
+
+If we use `SomeSing` with, say, `SClosed`, we get `SomeSing :: Sing 'Closed ->
+SomeSing DoorState`  `SomeSing` is an indexed type that tells us the *kind* of
+the type variable we existentially quantifying over.  The value `SomeSing
+STrue` would have the type `SomeSing Bool`.  The value `SomeSing (SJust
+SClosed)` would have the type `SomeSing (Maybe DoorState)`.
 
 <!-- 3.  Implement `withSomeDoor` for the existentially quantified `SomeDoor` type. -->
 
