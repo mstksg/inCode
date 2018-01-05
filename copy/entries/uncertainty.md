@@ -118,7 +118,7 @@ $$
 Where $\sigma_X^2$ is the variance in $X$.  We consider $\sigma_X$ to be the
 standard deviation of $X$, or the "plus or minus" part of our numbers.  In the
 simple case of addition, we have $\operatorname{Var}[X + Y] = \sigma_X^2
-+ \sigma_Y^2$, so our new uncertainty is $\sqrt{\sigma_X^2 + \sigma_Y^2}$.[^var]
++ \sigma_Y^2$, so our new uncertainty[^var] is $\sqrt{\sigma_X^2 + \sigma_Y^2}$.
 
 [^var]: This law actually comes from the mathematical *definition* of variance,
 so does not assume anything about the underlying distribution of the sampling
