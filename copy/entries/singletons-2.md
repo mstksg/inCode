@@ -34,8 +34,15 @@ Let's return to our `Door` type:
 !!!singletons/Door2.hs "$(singletons " "data Door "
 ```
 
-`Door` is great!  It is an *indexed data type*, in that picking a different
-type variable gives a different "type" of Door:
+First, this derives the *type* `DoorState` with the values `Opened`, `Closed`,
+and `Locked`, and also the *kind* `DoorState` with the *types* `'Opened`,
+`'Closed`, and `'Locked`.  We then also derive the singletons (and
+implicit-style typeclass instances, reflectors, etc.) with the template
+haskell.
+
+Then, there's `Door`.  `Door` is great!  It is an *indexed data type* (indexed
+by a type of kind `DoorState`) in that picking a different type variable gives
+a different "type" of Door:
 
 *   `Door 'Opened` is a type that represents the type of an opened door
 *   `Door 'Closed` is a *different* type that represents the type of a *closed*
@@ -70,7 +77,7 @@ data from a serialization format, and you want to be able to parse *any* door
 
 More concretely, we've seen this in `lockAnyDoor`, as well -- `lockAnyDoor`
 doesn't care about the type of its input (it can be *any* `Door`).  It only
-cares about the type of its output (`Door 'Locked`)
+cares about the type of its output (`Door 'Locked`).
 
 To learn how to not care, we can describe a type for a door that does *not*
 have its status in its type.
@@ -163,6 +170,11 @@ Notice the funky CPS-like type signature of `withSomeDoor`.  To use
 an `SOpened`, an `SClosed`, or an `SLocked`.  It has to be able to handle all
 three!
 
+Essentially we're converting a `SomeDoor` into a `Sing s` and `Door s`.  We
+just can't know which `s`, a priori.  So, we must handle it with a `forall s.
+Sing s -> Door s -> r` (using *RankNTypes*) -- a function that can handle *any*
+`s` that it could possibly be.
+
 Here, we call `s` *existentially quantified*.  The `withSomeDoor` function gets
 to pick which `s` to give `f`.  So, the `s` type variable is directly chosen by
 the *function*, and not by the caller.
@@ -173,7 +185,7 @@ conversion function:
 ```haskell
 closeSomeOpenedDoor :: SomeDoor -> Maybe SomeDoor
 closeSomeOpenedDoor sd = withSomeDoor sd $ \case
-    SOpened -> \d -> Just . fromDoor_ . closeDoor $ d
+    SOpened -> \d -> Just . fromDoor_ $ closeDoor d
     SClosed -> \_ -> Nothing
     SLocked -> \_ -> Nothing
 
@@ -213,11 +225,9 @@ data SomeDoor where
     MkSomeDoor :: DoorState -> String -> SomeDoor
 
 -- | Re-using Door, as an existential type
-data Door :: DoorState -> DoorState where
-    UnsafeMkDoor :: String -> Door s
-
 data SomeDoor where
     MkSomeDoor  :: Sing s  -> Door s -> SomeDoor
+                            -- ^ data Door s = UnsafeMkDoor String
 ```
 
 Basically, our type before re-implements `Door`.  But the new one actually
@@ -236,6 +246,9 @@ data type:
 Much more convenient, because *we already have a `Door`!*  And we don't have to
 re-implement one like we did for our original `SomeDoor` -- all of our original
 code works directly!
+
+The secret ingredient here is the `Sing s` we store inside `MkSomeDoor` -- it
+gives our pattern matchers the ability to deduce the `s` type.
 
 ### The Link
 
@@ -276,9 +289,9 @@ If they're identical, why use a `Sing` or the new `SomeDoor` at all?  Why not
 just use a `DoorState` value?
 
 The main reason (besides allowing code-reuse) is that *using the singleton lets
-us directly recover the type*.  Essentially, a `SingDS s` not only contains whether it
-is Opened/Closed/Locked...it contains it in a way that GHC can use to *bring it
-all back* to the type level.
+us directly recover the type*.  Essentially, a `Sing s` not only contains
+whether it is Opened/Closed/Locked (like a `DoorState` would)...it contains it
+in a way that GHC can use to *bring it all back* to the type level.
 
 A `forall s. SomeDoor (Sing s) (Door s)` essentially contains `s` *with* `Door
 s`.  When you see this, you *should read this as* `forall s. SomeDoor s (Door
@@ -331,7 +344,6 @@ mkSomeDoor = \case
     Opened -> MkSomeDoor SOpened . mkDoor SOpened
     Closed -> MkSomeDoor SClosed . mkDoor SClosed
     Locked -> MkSomeDoor SLocked . mkDoor SLocked
-
 ```
 
 ```haskell
