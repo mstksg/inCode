@@ -51,7 +51,10 @@ a different "type" of Door:
     *locked* door.
 
 So, really, when we define `Door s`, we really are defining *three distinct*
-types (and also a not-so-obvious fourth one, which we will discuss later).
+types[^fourth].
+
+[^fourth]: And also a not-so-obvious fourth type, `forall s. Door s`, which is
+a subtype of all of those three!
 
 This is great and all, but isn't Haskell a language with static, compile-time
 types?  Doesn't that mean that we have to know if our doors are opened, closed,
@@ -132,8 +135,26 @@ data SomeDoor = forall s. MkSomeDoor (Sing s) (Door s)
 `MkSomeDoor` is a constructor for an existential data type, meaning that the
 data type "hides" a type variable `s`.  Note the type (`Sing s -> Door s ->
 SomeDoor`) and how the result type (`SomeDoor`) *forgets* the `s` and hides all
-traces of it.
+traces of it.[^positions]
 
+
+[^positions]: You might have noticed I was a bit sneaky by jumping straight
+    `SomeDoor` when we already had a perfectly good "I don't care" option.  We
+    used it last post!
+
+    ```haskell
+    lockAnyDoor :: Sing s -> Door s -> Door 'Locked
+    ```
+
+    This does work!  `lockAnyDoor` takes a `Door s` and doesn't "care" about
+    what `s` it gets (it's parametrically polymorphic).
+    
+    So, this normal "parametrically polymorphic" way is how we have, in the
+    past, treated functions that *can take* a `Door` with an `s` we don't want
+    the type system to care about.  However, the reason we need `SomeDoor` and
+    existentially quantified types is for the situation where we want to
+    *return* something that we want to the type system to not care about.
+    
 Note the similarities between our original `SomeDoor` and this one.
 
 ```haskell
@@ -421,7 +442,8 @@ We can use these to write `mkSomeDoor` and `withDoor`:
 !!!singletons/Door2.hs "mkSomeDoor ::" "withDoor ::"
 ```
 
-## Zooming Out
+Zooming Out
+-----------
 
 Alright!  We've spent two blog posts going over a lot of different things in
 the context of our humble `Door s` type.  Let's zoom out and take a large-scale
