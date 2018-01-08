@@ -72,6 +72,9 @@ closeSomeOpenedDoor (MkSomeDoor s d) = case s of
 lockAnySomeDoor :: SomeDoor -> SomeDoor
 lockAnySomeDoor (MkSomeDoor s d) = fromDoor_ $ lockAnyDoor s d
 
+-- exercise: fromDoor
+-- exercise: original to new
+
 mkSomeDoor :: DoorState -> String -> SomeDoor
 mkSomeDoor ds = case toSing ds of
     SomeSing s -> MkSomeDoor s . mkDoor s

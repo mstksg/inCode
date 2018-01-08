@@ -110,95 +110,10 @@ applications, we actually might have written `SomeDoor` *before* we ever
 thought about `Door` with a phantom type.  It's definitely the more typical
 "standard" Haskell thing.
 
-It's possible to "construct" this from our original typed `Door`, using a smart
-constructor/conversion function:
-
-```haskell
-fromDoor :: Sing s -> Door s -> SomeDoor
-fromDoor SOpened (UnsafeMkDoor m) = MkSomeDoor Opened m
-formDoor SClosed (UnsafeMkDoor m) = MkSomeDoor Closed m
-formDoor SLocked (UnsafeMkDoor m) = MkSomeDoor Locked m
-
-fromDoor_ :: SingI s => Door s -> SomeDoor
-fromDoor_ = fromDoor sing
-```
-
-We can now write functions on this type:
-
-```haskell
-closeSomeOpenedDoor :: SomeDoor -> Maybe SomeDoor
-closeSomeOpenedDoor (MkSomeDoor Opened m) = Just (MkSomeDoor Closed m)
-closeSomeOpenedDoor (MkSomeDoor Closed m) = Nothing
-closeSomeOpenedDoor (MkSomeDoor Locked m) = Nothing
-```
-
-### SomeDoor to Door
-
-`SomeDoor` is great.  But because it's a completely different type, we
-potentially have to write the same function for both `Door` and `SomeDoor`,
-because they have different implementations. Wouldn't it be nice if we can
-*re-use* our original `closeDoor`?  This is a toy example, and in real life,
-closing a door might have some complicated runtime logic, and it'd be annoying
-to have to *re-implement* it for both `SomeDoor` and `Door`.
-
-#### Converting into an existential
-
-One thing we can do is write a function to convert a `SomeDoor` into a `Door`,
-so we can re-use our original `closeDoor`.  We'd convert our `SomeDoor` into a
-`Door` to re-use our `closeDoor :: Door 'Opened -> Door 'Closed` on it if
-possible!
-
-However, going from `SomeDoor` to `Door s` is slightly trickier in Haskell than
-going the other way around.  The main thing stopping us is that normal Haskell
-type variables are universally qualified, meaning that the *caller* can pick
-how to instantiate `s` (and not the conversion function).  However, we want a
-function where the *function* can pick the `s`, and the caller must handle
-whatever `s` is given by the function:
-
-One trick we often use is a CPS-style existential type:
-
-```haskell
-withSomeDoor :: SomeDoor -> (forall s. Sing s -> Door s -> r) -> r
-withSomeDoor (MkSomeDoor Opened m) f = f SOpened (UnsafeMkDoor m)
-withSomeDoor (MkSomeDoor Closed m) f = f SClosed (UnsafeMkDoor m)
-withSomeDoor (MkSomeDoor Locked m) f = f SLocked (UnsafeMkDoor m)
-```
-
-Notice the funky CPS-like type signature of `withSomeDoor`.  To use
-`withSomeDoor` and access the `Door`, you have to pass in a function to handle
-*any possible `s`*.  And, as you can see, the function passed in might be given
-an `SOpened`, an `SClosed`, or an `SLocked`.  It has to be able to handle all
-three!
-
-Essentially we're converting a `SomeDoor` into a `Sing s` and `Door s`.  We
-just can't know which `s`, a priori.  So, we must handle it with a `forall s.
-Sing s -> Door s -> r` (using *RankNTypes*) -- a function that can handle *any*
-`s` that it could possibly be.
-
-Here, we call `s` *existentially quantified*.  The `withSomeDoor` function gets
-to pick which `s` to give `f`.  So, the `s` type variable is directly chosen by
-the *function*, and not by the caller.
-
-We can implement `closeSomeOpenedDoor` (and even a `lockAnySomeDoor`) using this
-conversion function:
-
-```haskell
-closeSomeOpenedDoor :: SomeDoor -> Maybe SomeDoor
-closeSomeOpenedDoor sd = withSomeDoor sd $ \case
-    SOpened -> \d -> Just . fromDoor_ $ closeDoor d
-    SClosed -> \_ -> Nothing
-    SLocked -> \_ -> Nothing
-
-lockAnySomeDoor :: SomeDoor -> SomeDoor
-lockAnySomeDoor sd = withSomeDoor sd $ \s d ->
-    fromDoor_ $ lockAnyDoor s d
-```
-
-Now, our goal is complete -- we can *re-use* our previous `closeDoor` and
-`lockAnyDoor`!  We *convert* our `SomeDoor` into a `Door s` (with an
-existentially quantified `s`), so we can use `closeDoor :: Door 'Opened -> Door
-'Closed` and `lockAnyDoor :: Door s -> Door 'Locked` on it.  Then we "convert
-it back" using `fromDoor`.
+`SomeDoor` is great.  But because it's a completely different type, we can't
+re-use any of our `Door` functions on this `SomeDoor`.  We potentially have to
+write the same function twice for both `Door` and `SomeDoor`, because they have
+different implementations.
 
 ### The Existential Datatype
 
@@ -215,7 +130,9 @@ data SomeDoor = forall s. MkSomeDoor (Sing s) (Door s)
 ```
 
 `MkSomeDoor` is a constructor for an existential data type, meaning that the
-data type "hides" a type variable `s`.
+data type "hides" a type variable `s`.  Note the type (`Sing s -> Door s ->
+SomeDoor`) and how the result type (`SomeDoor`) *forgets* the `s` and hides all
+traces of it.
 
 Note the similarities between our original `SomeDoor` and this one.
 
@@ -236,32 +153,61 @@ directly uses the original `Door s`.  This means we can *directly* re-use our
 implementations.
 
 In Haskell, existential data types are pretty nice, syntactically, to work
-with.  For a comparison, let's re-implement our previous functions with our new
-data type:
+with.  Let's write some basic functions to see.  First, a function to "make" a
+`SomeDoor` from a `Door`:
 
 ```haskell
-!!!singletons/Door2.hs "fromDoor ::" "fromDoor_ ::" "closeSomeOpenedDoor ::" "lockAnySomeDoor ::"
+!!!singletons/Door2.hs "fromDoor ::" "fromDoor_ ::"
 ```
 
-Much more convenient, because *we already have a `Door`!*  And we don't have to
-re-implement one like we did for our original `SomeDoor` -- all of our original
-code works directly!
+So that's how we *make* one...how do we *use* it?  Let's port our `Door`
+functions to `SomeDoor`, by re-using our pre-existing functions whenever we
+can:
 
-The secret ingredient here is the `Sing s` we store inside `MkSomeDoor` -- it
-gives our pattern matchers the ability to deduce the `s` type.
+```haskell
+!!!singletons/Door2.hs "closeSomeOpenedDoor ::" "lockAnySomeDoor ::"
+```
+
+Using an existential wrapper with a singleton makes this pretty simple -- just
+a simple unwrapping and re-wrapping!  Imagine having to re-implement all of
+these functions for a completely different type, and having to re-implement all
+of our previous `Door` functions!
+
+It's important to remember that the secret ingredient here is the `Sing s` we
+store inside `MkSomeDoor` -- it gives our pattern matchers the ability to
+deduce the `s` type.  Without it, the `s` would be lost forever.
+
+Imagine if `MkSomeDoor` did not have the `Sing`:
+
+```haskell
+data SomeDoor where
+    MkSomeDoor  :: Door s -> SomeDoor
+```
+
+It would then be impossible to write `closeSomeOpenedDoor`:
+
+```haskell
+closeSomeOpenedDoor :: SomeDoor -> Maybe SomeDoor
+closeSomeOpenedDoor (MkSomeDoor d) =
+            -- is the door opened, closed, or locked?
+            -- there's no awy to know!
+```
+
 
 ### The Link
 
 It's important to remember that our original separate-implementation `SomeDoor`
-is, functionally, identical to the new code-reusing `Door`.  The reason why
-they are the same is that *having an existentially quantified singleton is the
-same as having a value of the corresponding type.*  Having an existentially
-quantified `SingDS s` is *the same as* having a value of type `DoorState`.
+is, functionally, identical to the new code-reusing `Door`.  All of the
+contents are isomorphic with each other, and you could write a function
+converting one to the other.  The reason why they are the same is that *having
+an existentially quantified singleton is the same as having a value of the
+corresponding type.*  Having an existentially quantified `SingDS s` is *the
+same as* having a value of type `DoorState`.
 
 In fact, the *singletons* library gives us a direct existential wrapper:
 
 ```haskell
--- (not the actual definition)
+-- from singletons (not the actual definition)
 data SomeSing DoorState :: Type where
     SomeSing :: Sing s -> SomeSing DoorState
 ```
@@ -298,11 +244,11 @@ s`.  When you see this, you *should read this as* `forall s. SomeDoor s (Door
 s)` (and, indeed, this is similar to how it is written in dependently typed
 languages.)
 
-It's kind of like how, when you're used to reading Applicative style, when you
-see `f <$> x <*> y`, you should read `f x y`.  When you see `forall s. SomeDoor
-(Sing s) (Door s)`, you should read `forall s. SomeDoor s (Door s)`.  The role
-of `Sing s` there is, like in Part 1, simply to be a run-time stand-in for the
-type `s` itself.
+It's kind of like how, when you're used to reading Applicative style, you start
+seeing `f <$> x <*> y` and reading `f x y`.  When you see `forall s. SomeDoor
+(Sing s) (Door s)`, you should read (the pseudo-haskell) `forall s. SomeDoor s
+(Door s)`.  The role of `Sing s` there is, like in Part 1, simply to be a
+run-time stand-in for the type `s` itself.
 
 So, for our original `Door s` functions, we need to know `s` at runtime --
 storing the `Sing s` gives GHC exactly that.  Once you get the `Sing s` back,
@@ -312,7 +258,7 @@ back in type-safe land.
 ### Some Lingo
 
 In the language of dependently typed programming, we call `SomeDoor` a
-**dependent sum**, because you can imagine it basically as:
+**dependent sum**, because you can imagine it basically as a sum type:
 
 ```haskell
 data SomeDoor = SDOpened (Door 'Opened)
@@ -363,16 +309,75 @@ a `Door` based on it.
 
 Take *that*, type erasure! :D
 
-We could even directly return a `Door` with an existentially quantified door
-status in CPS style:
+### The Existential Type
+
+An *existentially quantified* type is one that is hidden to the user/consumer,
+but directly chosen by the producer.  The producer chooses the type, and the
+user has to handle any possible type that the producer gave.
+
+This is in direct contrast to the *universally quantified* type (which most
+Haskellers are used to seeing), where the type is directly chosen by the
+*user*.  The user chooses the type, and the producer has to handle any possible
+type that the user asks for.
+
+For example, a function like:
 
 ```haskell
-withDoor :: DoorState -> String -> (forall s. Sing s -> Door s -> r) -> r
-withDoor s m f = case s of
-    Opened -> f SOpened (UnsafeMkDoor m)
-    Closed -> f SClosed (UnsafeMkDoor m)
-    Locked -> f SLocked (UnsafeMkDoor m)
+read :: Read a => String -> a
 ```
+
+Is universally quantified over `a`: The *caller* of `read` gets to pick which
+type is given.  The implementor of `read` has to be able to handle whatever `a`
+the user picks.
+
+But, for a value like:
+
+```haskell
+myDoor :: SomeDoor
+```
+
+The type variable `s` is existentially quantified.  The person who *made*
+`myDoor` picked what `s` was.  And, if you *use* `myDoor`, you have to be ready
+to handle *any* `s` they could have chosen.
+
+In Haskell, there's another way to express an existentially quantified type:
+the CPS-style encoding.  To help us understand it, let's compare a basic
+function in both styles.  We saw earlier `mkSomeDoor`, which takes a
+`DoorState` and a `String` and returns an existentially quantified `Door` in
+the form of `SomeDoor`:
+
+```haskell
+mkSomeDoor
+    :: DoorState
+    -> String
+    -> SomeDoor
+mkSomeDoor s m = case s of
+    Opened -> MkSomeDoor SOpened (mkDoor SOpened m)
+    Closed -> MkSomeDoor SClosed (mkDoor SClosed m)
+    Locked -> MkSomeDoor SLocked (mkDoor SLocked m)
+```
+
+The caller of the function can then break open the `SomeDoor` and must handle
+whatever `s` they find inside.
+
+We can write the same function using a CPS-style existential instead:
+
+```haskell
+withDoor
+    :: DoorState
+    -> String
+    -> (forall s. Sing s -> Door s -> r) -> r
+withDoor s m f = case s of
+    Opened -> f SOpened (mkDoor SOpened m)
+    Closed -> f SClosed (mkDoor SClosed m)
+    Locked -> f SLocked (mkDoor SLocked m)
+```
+
+With a Rank-N Type, `withDoor` takes a `DoorState` and a `String` and a
+*function to handle one polymorphically*.  The caller of `withDoor` must
+provide a handler that can handle *any* `s`, in a uniform and parametrically
+polymorphic way.  It then gives the result of the handler function called on
+the resulting `Sing s` and `Door s`.
 
 ```haskell
 ghci> withDoor Opened "Birch" $ \s d -> case s of
@@ -381,9 +386,6 @@ ghci> withDoor Opened "Birch" $ \s d -> case s of
          SLocked -> "Locked door!"
 Opened door!
 ```
-
-This allows us to *directly* generate a `Door s` with an `s` that can
-vary at runtime.
 
 ### Reification
 
@@ -413,48 +415,6 @@ We can use these to write `mkSomeDoor` and `withDoor`:
 ```haskell
 !!!singletons/Door2.hs "mkSomeDoor ::" "withDoor ::"
 ```
-
-<!-- ## A Reflection on Subtyping -->
-
-<!-- Let's take a step back to look at the concept of "subtyping" in Haskell, and -->
-<!-- how it relates to what we've done here.  Without phantom types you might have -->
-<!-- imagined being able to do something like this: -->
-
-<!-- ```hskell -->
-<!-- data DoorOpened = MkDoorOpened String -->
-<!-- data DoorClosed = MkDoorClosed String -->
-<!-- data DoorLocked = MkDoorLocked String -->
-<!-- ``` -->
-
-<!-- And, for the most part, you get a similar API: -->
-
-<!-- ```haskell -->
-<!-- closeDoor :: DoorOpened -> DoorClosed -->
-<!-- lockDoor  :: DoorClosed -> DoorLocked -->
-<!-- ``` -->
-
-<!-- This is all stuff we can do in "normal Haskell", and get the same type-safety. -->
-
-<!-- The advantage of the *indexed type* ("type family", in dependent types -->
-<!-- lingo[^fam]) is that we can write functions that work on *any* door state: -->
-
-<!-- [^fam]: Again, not to be confused with GHC's Type Families language feature -->
-
-<!-- ```haskell -->
-<!-- doorMaterial :: Door s -> String -->
-<!-- lockAnyDoor  :: Door s -> Door 'Locked -->
-<!-- ``` -->
-
-<!-- Remember how I said earlier that our declaration of `Door` created three types? -->
-<!-- `Door 'Opened`, `Door 'Closed`, and `Door 'Locked`?  I lied -- it actually -->
-<!-- gives us a *fourth* type, `forall s. Door s` -- a type that can be instantiated -->
-<!-- as *any* status door.  This is the return type of `UnsafeMkDoor :: String -> -->
-<!-- (forall s. Door s)`. -->
-
-<!-- As a return type, `forall s. Door s` is what we call a **subtype** of `Door -->
-<!-- 'Opened`, `Door 'Closed`, and `Door 'Locked`.  In type theory, a subtype is -->
-<!-- something that can be used whenever something expects a value of its supertype, -->
-<!-- but not necessarily the other way around. -->
 
 ## Zooming Out
 
