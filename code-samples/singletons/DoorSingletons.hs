@@ -49,10 +49,7 @@ lockAnyDoor_ :: SingI s => Door s -> Door 'Locked
 lockAnyDoor_ = lockAnyDoor sing
 
 mkDoor :: Sing s -> String -> Door s
-mkDoor = \case
-    SOpened -> UnsafeMkDoor
-    SClosed -> UnsafeMkDoor
-    SLocked -> UnsafeMkDoor
+mkDoor _ = UnsafeMkDoor
 
 main :: IO ()
 main = return ()

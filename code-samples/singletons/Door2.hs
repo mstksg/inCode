@@ -49,10 +49,7 @@ lockAnyDoor_ :: SingI s => Door s -> Door 'Locked
 lockAnyDoor_ = lockAnyDoor sing
 
 mkDoor :: Sing s -> String -> Door s
-mkDoor = \case
-    SOpened -> UnsafeMkDoor
-    SClosed -> UnsafeMkDoor
-    SLocked -> UnsafeMkDoor
+mkDoor _ = UnsafeMkDoor
 
 data SomeDoor :: Type where
     MkSomeDoor :: Sing s -> Door s -> SomeDoor
@@ -72,9 +69,6 @@ closeSomeOpenedDoor (MkSomeDoor s d) = case s of
 lockAnySomeDoor :: SomeDoor -> SomeDoor
 lockAnySomeDoor (MkSomeDoor s d) = fromDoor_ $ lockAnyDoor s d
 
--- exercise: fromDoor
--- exercise: original to new
-
 mkSomeDoor :: DoorState -> String -> SomeDoor
 mkSomeDoor ds = case toSing ds of
     SomeSing s -> MkSomeDoor s . mkDoor s
@@ -87,10 +81,24 @@ main = return ()
 
 -- Exercises
 
+data OldSomeDoor :: Type where
+    OldMkSomeDoor :: DoorState -> String -> OldSomeDoor
+
+toOld :: SomeDoor -> OldSomeDoor
+toOld (MkSomeDoor s d) = OldMkSomeDoor (fromSing s) (doorMaterial d)
+
+fromOld :: OldSomeDoor -> SomeDoor
+fromOld (OldMkSomeDoor ds m) = mkSomeDoor ds m
+
 unlockDoor :: Int -> Door 'Locked -> Maybe (Door 'Closed)
 unlockDoor n (UnsafeMkDoor m)
     | n `mod` 2 == 1 = Just (UnsafeMkDoor m)
     | otherwise      = Nothing
+
+unlockDoor' :: Int -> Door 'Locked -> SomeDoor
+unlockDoor' n d = case unlockDoor n d of
+                    Nothing -> fromDoor_ d
+                    Just d' -> fromDoor_ d'
 
 openAnyDoor :: SingI s => Int -> Door s -> Maybe (Door 'Opened)
 openAnyDoor n = openAnyDoor_ sing
@@ -101,11 +109,8 @@ openAnyDoor n = openAnyDoor_ sing
       SClosed -> Just . openDoor
       SLocked -> fmap openDoor . unlockDoor n
 
-
-openAnySomeDoor :: Int -> SomeDoor -> Maybe (Door 'Opened)
-openAnySomeDoor n (MkSomeDoor s d) = withSingI s $
-    openAnyDoor n d
-
--- withSomeDoor :: SomeDoor -> (forall s. Sing s -> Door s -> r) -> r
--- withSomeDoor sd f = case sd of
---     MkSomeDoor s d -> f s d
+openAnyDoor' :: Int -> SomeDoor -> SomeDoor
+openAnyDoor' n sd@(MkSomeDoor s d) = withSingI s $
+    case openAnyDoor n d of
+      Nothing -> sd
+      Just d' -> fromDoor_ d'

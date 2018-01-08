@@ -763,73 +763,73 @@ very syntactically similar.  For now, I hope when you read and write the
 Haskell encodings, you can really "see" the true dependently typed versions
 that is really being written behind the syntax.
 
+Looking Forward
+---------------
 
+Between these first two parts, we explored a specific use case that would
+benefit from dependent types (simple phantom types for state transitions) and
+explored how the *singletons* and design pattern help us implement the
+functionality necessary to make things useful, and snuck in some concepts from
+dependently typed programming as well.
 
+The code is available [here][samples] for you to play around with yourself!
 
+!!![samples]:singletons/Door2.hs
 
-<!-- 3.  Implement `withSomeDoor` for the existentially quantified `SomeDoor` type. -->
+Now that the basics are out of the way, in Part 3 we'll jump deep into
+type-level programming and being able to lift our term-level functions on
+values up to become type-level functions, and how to use this to enhance our
+code!
 
-<!--     ```haskell -->
-<!--     !!!singletons/DoorSingletons.hs "data SomeDoor" "withSomeDoor ::"1 -->
-<!--     ``` -->
+Let me know in the comments if you have any questions!  I'm also usually idling
+on the freenode `#haskell` channel, as well, as *jle\`*.
 
-<!-- 4.  Implement `openAnySomeDoor`, which should work like `lockAnySomeDoor`, just -->
-<!--     wrapping an application of `openAnyDoor` inside a `SomeDoor`. -->
+Again, check out the [original singletons paper][paper] for a really nice
+technical overview of all of these techniques!
 
-<!--     ```haskell -->
-<!--     !!!singletons/DoorSingletons.hs "openAnySomeDoor ::"1 -->
-<!--     ``` -->
+[paper]: https://cs.brynmawr.edu/~rae/papers/2012/singletons/paper.pdf
 
-<!--     You **shouild not** use `UnsafeMkDoor` directly. -->
+### Exercise
 
-<!--     Note that because we wrote `openAnyDoor` in "implicit style", we might have -->
-<!--     to convert between `SingI s =>` and `Sing s ->` style, using `withSingI`. -->
+Check out the [sample code][samples] for solutions!
 
-<!-- However, full expressively with phantom types is still out of our reach.  If we -->
-<!-- want to express more complicated relationships and to be able to treat phantom -->
-<!-- types (and *types*, in general) as first-class values, and delve into the -->
-<!-- frighteningly beautiful world of "type-level programming", we are going to have -->
-<!-- to dig a bit deeper.  Come back for the next post to see how!  Singletons will -->
-<!-- be our tool, and we'll also see how the singletons library is a very clean -->
-<!-- unification of a lot of concepts. -->
+1.  Let's revisit our original redundant `SomeDoor`, compared to our final
+    `SomeDoor`:
+    
+    ```haskell
+    !!!singletons/Door2.hs "data OldSomeDoor ::" "data SomeDoor ::"
+    ```
 
+    To help convince yourself that the two are equal, write functions
+    converting between the two:
 
-<!-- ### A Reflection on Subtyping -->
+    ```haskell
+    !!!singletons/Door2.hs "toOld ::"1 "fromOld ::"1
+    ```
 
-<!-- Without phantom types you might have imagined being able to do something like -->
-<!-- this: -->
+    **Avoid directly pattern matching on the singletons or constructors**.
+    Instead, use *singletons* library tools like `toSing`, `withSomeSing`,
+    `fromSing`, etc.
 
-<!-- ```hskell -->
-<!-- data DoorOpened = MkDoorOpened { doorMaterial :: String } -->
-<!-- data DoorClosed = MkDoorClosed { doorMaterial :: String } -->
-<!-- data DoorLocked = MkDoorLocked { doorMaterial :: String } -->
-<!-- ``` -->
+2.  Previously, we had an `unlockDoor` function that took an `Int` (the
+    "password") with a `Door 'Locked` and returned a `Maybe (Door 'Closed)`.
+    It returns a `Door 'Closed` (unlocked door) in `Just` if an odd number was
+    given, and `Nothing` otherwise (a failed unlock)
 
-<!-- Which is even possible now with `-XDuplicateRecordFields`.  And, for the most -->
-<!-- part, you get a similar API: -->
+    Use this to implement a that would return a `SomeDoor`.  Re-use the
+    "password" logic from the original `unlockDoor`.  If the door is
+    successfully unlocked (with a `Just`), return the unlocked door in a
+    `SomeDoor`.  Otherwise, *return the original locked door* (in a
+    `SomeDoor`).
 
-<!-- ```haskell -->
-<!-- closeDoor :: DoorOpened -> DoorClosed -->
-<!-- lockDoor  :: DoorClosed -> DoorLocked -->
-<!-- ``` -->
+    ```haskell
+    !!!singletons/Door2.hs "unlockDoor ::" "unlockDoor' ::"1
+    ```
 
-<!-- But what about writing things that take on "all" door types? -->
+3.  Implement `openAnyDoor'` in the same style, with respect to `openAnyDoor`:
 
-<!-- The only real way (besides typeclass magic) would be to make some sum type -->
-<!-- like: -->
+    ```haskell
+    !!!singletons/Door2.hs "openAnyDoor ::" "openAnyDoor' ::"1
+    ```
 
-<!-- ```haskell -->
-<!-- data SomeDoor = DO DoorOpened | DC DoorClosed | DL DoorLocked -->
-
-<!-- lockAnyDoor :: SomeDoor -> DoorLocked -->
-<!-- ``` -->
-
-<!-- However, we see that if we parameterize a single `Door` type, we can have it -->
-<!-- stand in *both* for a "known status" `Door` *and* for a "polymorphic status" -->
-<!-- `Door`. -->
-
-<!-- This actually leverages Haskell's *subtyping* system.  We say that `forall s. -->
-<!-- Door s` (a `Door` that is polymorphic on all `s`) is a *subtype* of `Door -->
-<!-- 'Opened`.  This means that a `forall s. Door s` can be used anywhere a function -->
-<!-- would expect a `Door 'Opened`...but not the other way around. -->
-
+    Remember to re-use `openAnyDoor`.
