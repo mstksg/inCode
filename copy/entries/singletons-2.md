@@ -4,7 +4,7 @@ categories: Haskell
 series: Practical Dependent Types in Haskell
 tags: functional programming, dependent types, haskell, singletons, types
 create-time: 2017/12/22 10:33:03
-date: never
+date: 2018/01/09 10:54:27
 identifier: singletons-2
 slug: introduction-to-singletons-2
 ---
@@ -62,8 +62,8 @@ or locked at compile-time?
 
 This is something we can foresee being a big issue.  It's easy enough to create
 a `Door s` if you know `s` at compile-time by just typing in a type annotation
-(`UnsafeMkDoor "Oak" :: Door 'Opened`).  But what if we *don't* know `s` at
-compile-time?
+(`UnsafeMkDoor "Oak" :: Door 'Opened`) or by using a monomorphic constructor
+(`mkDoor @SOpened "Oak"`).  But what if we *don't* know `s` at compile-time?
 
 To learn how to do this, we first need to learn how to *not care*.
 
@@ -744,7 +744,7 @@ from the source itself.
 
 [paper]: https://cs.brynmawr.edu/~rae/papers/2012/singletons/paper.pdf
 
-### Exercise
+### Exercises
 
 Check out the [sample code][samples] for solutions!
 
