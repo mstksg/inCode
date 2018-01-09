@@ -63,7 +63,7 @@ feedRss entries tz now = (nullRSS feedTitle feedLink)
     formatDateRfc    = formatTime defaultTimeLocale rfc822DateFormat
     formatDateIso    :: UTCTime -> String
     formatDateIso    = formatTime defaultTimeLocale (iso8601DateFormat Nothing)
-    feedTitle        = T.unpack (confTitle <> " — Entries")
+    feedTitle        = confTitle <> " — Entries"
     feedLink         = makeUrl "/"
     feedDescription  = T.unpack confDesc
     feedAuthorEmail  = T.unpack (authorEmail confAuthorInfo)

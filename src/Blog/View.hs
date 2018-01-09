@@ -78,7 +78,9 @@ urlBase = protocol
              | otherwise  = "http"
 
 copyToHtml :: P.Pandoc -> H.Html
-copyToHtml = P.writeHtml entryWriterOpts
+copyToHtml = either (error . show) id
+           . P.runPure
+           . P.writeHtml5 entryWriterOpts
 
 copySection :: T.Text -> H.Html -> H.Html
 copySection title copy = do
@@ -92,7 +94,9 @@ copySection title copy = do
       mempty
 
 copyToHtmlString :: P.Pandoc -> String
-copyToHtmlString = P.writeHtmlString entryWriterOpts
+copyToHtmlString = either (error . show) T.unpack
+                 . P.runPure
+                 . P.writeHtml5String entryWriterOpts
 
 stripPandoc :: P.Pandoc -> T.Text
 stripPandoc (P.Pandoc _ bs) = T.pack $ P.stringify inls

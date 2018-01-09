@@ -8,6 +8,9 @@ module Blog.Util.Tag where
 import           Blog.Types
 import           Blog.Util
 import           Blog.View
+import           Control.Monad
+import           Control.Monad.Trans.Class
+import           Control.Monad.Trans.Maybe
 import           Data.Char
 import           Data.List
 import           Data.Maybe
@@ -21,14 +24,11 @@ import qualified Data.Text                   as T
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
 import qualified Text.Pandoc                 as P
-import qualified Text.Pandoc.Error           as P
 
 
 htmlDescription :: Tag -> Maybe H.Html
-htmlDescription = fmap ( P.writeHtml entryWriterOpts
-                       . P.handleError
-                       . P.readMarkdown entryReaderOpts
-                       . T.unpack
+htmlDescription = fmap ( either (error . show) id . P.runPure
+                       . (P.writeHtml5 entryWriterOpts <=< P.readMarkdown entryReaderOpts)
                        )
                 . tagDescription
 
@@ -90,11 +90,11 @@ tagUrl :: Tag -> FilePath
 tagUrl t = mkTagUrl (tagType t) (T.unpack (tagSlug t))
 
 plainDescription :: Tag -> Maybe String
-plainDescription t = do
-    desc         <- T.unpack <$> tagDescription t
-    let P.Pandoc m b = P.handleError $ P.readMarkdown entryReaderOpts desc
-    b0           <- listToMaybe b
-    return $ P.writePlain entryWriterOpts (P.Pandoc m [b0])
+plainDescription t = either (error . show) (fmap T.unpack) . P.runPure . runMaybeT $ do
+    Just desc    <- return $ tagDescription t
+    P.Pandoc m b <- lift $ P.readMarkdown entryReaderOpts desc
+    b0:_         <- return b
+    lift $ P.writePlain entryWriterOpts (P.Pandoc m [b0])
 
 plainDescription' :: Tag -> String
 plainDescription' t = fromMaybe (tagPrettyLabel t) (plainDescription t)
