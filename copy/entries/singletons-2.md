@@ -1,7 +1,7 @@
 ---
 title: "Introduction to Singletons (Part 2)"
 categories: Haskell
-series: Practical Dependent Types in Haskell
+series: Introduction to Singletons
 tags: functional programming, dependent types, haskell, singletons, types
 create-time: 2017/12/22 10:33:03
 date: 2018/01/09 10:54:27
