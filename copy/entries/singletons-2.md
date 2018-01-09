@@ -433,7 +433,7 @@ The *singletons* library automatically generates functions to directly reify
 
 ```haskell
 toSing       :: DoorState -> SomeSing DoorState
-withSomeSing :: DoorState -> (forall s. Sing s -> r) -> r
+withSomeSing :: DoorState -> (forall s. Sing s        -> r) -> r
 withSomeSing :: DoorState -> (forall s. SDoorState s  -> r) -> r
                                      -- ^ using the convenience type synonym
 ```
