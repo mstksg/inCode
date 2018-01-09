@@ -597,7 +597,8 @@ the *type* `DoorState` (with value constructors `Opened`, `Closed`, and
 The reason we need an explicit `Demote` associated type is, again, that GHC
 doesn't actually link the type and its promoted kind.  `Demote` lets us
 explicitly specify what type a `Kind` should expect its term-level reflected
-values to be.
+values to be. (And, like most things in this post, `Demote` will hopefully one
+day become obsolete, along with the rest of `SingKind`)
 
 #### Examples
 
