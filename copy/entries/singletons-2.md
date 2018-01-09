@@ -798,6 +798,13 @@ Check out the [sample code][samples] for solutions!
 
     ```haskell
     !!!singletons/Door2.hs "data List a" "data instance Sing (x :: List k)" "instance SingKind k => SingKind (List k)"1
+        type Demote (List k) = ???
+
+        fromSing :: Sing (xs :: List k) -> List (Demote k)
+        fromSing = ???
+
+        toSing :: List (Demote k) -> SomeSing (List k)
+        toSing = ???
     ```
 
     The singletons for `List` are:
