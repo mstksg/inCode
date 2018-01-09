@@ -60,7 +60,7 @@ fromDoor :: Sing s -> Door s -> SomeDoor
 fromDoor = MkSomeDoor
 
 fromDoor_ :: SingI s => Door s -> SomeDoor
-fromDoor_ = MkSomeDoor sing
+fromDoor_ = fromDoor sing
 
 closeSomeOpenedDoor :: SomeDoor -> Maybe SomeDoor
 closeSomeOpenedDoor (MkSomeDoor s d) = case s of
@@ -73,10 +73,10 @@ lockAnySomeDoor (MkSomeDoor s d) = fromDoor_ $ lockAnyDoor s d
 
 mkSomeDoor :: DoorState -> String -> SomeDoor
 mkSomeDoor ds = case toSing ds of
-    SomeSing s -> MkSomeDoor s . mkDoor s
+    SomeSing s -> fromDoor s . mkDoor s
 
 withDoor :: DoorState -> String -> (forall s. Sing s -> Door s -> r) -> r
-withDoor ds m f = withSomeSing ds $ \s -> f s (UnsafeMkDoor m)
+withDoor ds m f = withSomeSing ds $ \s -> f s (mkDoor s m)
 
 main :: IO ()
 main = return ()
@@ -97,10 +97,10 @@ unlockDoor n (UnsafeMkDoor m)
     | n `mod` 2 == 1 = Just (UnsafeMkDoor m)
     | otherwise      = Nothing
 
-unlockDoor' :: Int -> Door 'Locked -> SomeDoor
-unlockDoor' n d = case unlockDoor n d of
-                    Nothing -> fromDoor_ d
-                    Just d' -> fromDoor_ d'
+unlockSomeDoor :: Int -> Door 'Locked -> SomeDoor
+unlockSomeDoor n d = case unlockDoor n d of
+                       Nothing -> fromDoor_ d
+                       Just d' -> fromDoor_ d'
 
 openAnyDoor :: SingI s => Int -> Door s -> Maybe (Door 'Opened)
 openAnyDoor n = openAnyDoor_ sing
@@ -111,8 +111,8 @@ openAnyDoor n = openAnyDoor_ sing
       SClosed -> Just . openDoor
       SLocked -> fmap openDoor . unlockDoor n
 
-openAnyDoor' :: Int -> SomeDoor -> SomeDoor
-openAnyDoor' n sd@(MkSomeDoor s d) = withSingI s $
+openAnySomeDoor :: Int -> SomeDoor -> SomeDoor
+openAnySomeDoor n sd@(MkSomeDoor s d) = withSingI s $
     case openAnyDoor n d of
       Nothing -> sd
       Just d' -> fromDoor_ d'
