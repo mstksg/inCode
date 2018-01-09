@@ -3,12 +3,14 @@
 
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE GADTs               #-}
+{-# LANGUAGE InstanceSigs        #-}
 {-# LANGUAGE KindSignatures      #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE TypeInType          #-}
 
 import Data.Singletons
 import Data.Kind
@@ -114,3 +116,24 @@ openAnyDoor' n sd@(MkSomeDoor s d) = withSingI s $
     case openAnyDoor n d of
       Nothing -> sd
       Just d' -> fromDoor_ d'
+
+data List a = Nil | Cons a (List a)
+
+data instance Sing (x :: List k) where
+    SNil  :: Sing 'Nil
+    SCons :: Sing x -> Sing xs -> Sing ('Cons x xs)
+
+instance SingKind k => SingKind (List k) where
+    type Demote (List k) = List (Demote k)
+
+    fromSing :: Sing (xs :: List k) -> List (Demote k)
+    fromSing = \case
+      SNil         -> Nil
+      SCons sx sxs -> Cons (fromSing sx) (fromSing sxs)
+
+    toSing :: List (Demote k) -> SomeSing (List k)
+    toSing = \case
+      Nil       -> SomeSing SNil
+      Cons x xs -> withSomeSing x  $ \sx ->
+                   withSomeSing xs $ \sxs ->
+        SomeSing (SCons sx sxs)
