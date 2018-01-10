@@ -275,9 +275,9 @@ showMonth = \case
               NOV -> "November"
               DEC -> "December"
 
-data ArchiveData a = ADAll               (M.Map Year (M.Map Month [a]))
-                   | ADYear   Year       (M.Map Month [a])
-                   | ADMonth  Year Month [a]
+data ArchiveData a = ADAll               (M.Map Year (M.Map Month (M.Map LocalTime [a])))
+                   | ADYear   Year       (M.Map Month (M.Map LocalTime [a]))
+                   | ADMonth  Year Month (M.Map LocalTime [a])
                    | ADTagged Tag        [a]
   deriving (Show, Foldable, Traversable, Functor)
 

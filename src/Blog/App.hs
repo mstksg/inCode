@@ -128,11 +128,10 @@ app znow@(ZonedTime _ tz) = do
               $ \y m -> case m of
                           Nothing -> fromFilePath ("entries/in" </> show y <.> "html")
                           Just m' -> fromFilePath ("entries/in" </> show y </> show (mInt m') <.> "html")
-    let entriesSorted = sortBy (flip $ comparing (fst . fst) <> comparing (snd . fst)) $ do
-          (y, mes) <- M.toList $ historyMap hist
-          (m, es)  <- M.toList mes
-          e        <- es
-          return ((y, m), e)
+    let entriesSorted = fold
+                      . M.unionsWith (++)
+                      . foldMap toList
+                      $ historyMap hist
     historyRules' hist $ \spec -> do
       route idRoute
       compile $ do
@@ -230,7 +229,6 @@ app znow@(ZonedTime _ tz) = do
         compile $ do
           sorted <- traverse (flip loadSnapshotBody "entry")
                   . take (prefFeedEntries confBlogPrefs)
-                  . map snd
                   $ entriesSorted
           makeItem $ viewFeed sorted tz (zonedTimeToUTC znow)
 

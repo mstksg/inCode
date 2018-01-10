@@ -10,9 +10,11 @@ import           Blog.Util
 import           Blog.Util.Tag
 import           Blog.View
 import           Control.Monad
+import           Data.Foldable
 import           Data.List
 import           Data.Monoid
 import           Data.String
+import           Data.Time.LocalTime
 import           System.FilePath
 import           Text.Blaze.Html5            ((!))
 import qualified Data.Map                    as M
@@ -59,7 +61,7 @@ viewArchive AI{..} = do
     archiveList = case aiData of
                     ADAll        es -> viewArchiveByYears es
                     ADYear   y   es -> viewArchiveByMonths True y es
-                    ADMonth  _ _ es -> viewArchiveFlat True es
+                    ADMonth  _ _ es -> viewArchiveFlat True (reverse (fold es))
                     ADTagged t   es -> viewArchiveFlat True . flip map es $ \case
                                          TE e ts -> TE e . flip filter ts $ \t' ->
                                            not ( tagLabel t == tagLabel t'
@@ -164,7 +166,7 @@ viewArchiveByMonths
     :: (?config :: Config)
     => Bool
     -> Year
-    -> M.Map Month [TaggedEntry]
+    -> M.Map Month (M.Map LocalTime [TaggedEntry])
     -> H.Html
 viewArchiveByMonths tile y entries =
     H.ul ! A.class_ ulClass $
@@ -175,14 +177,14 @@ viewArchiveByMonths tile y entries =
             H.a ! A.href (fromString monthPath)
               $ H.toHtml (showMonth m)
 
-        viewArchiveFlat False tes
+        viewArchiveFlat False (reverse (fold tes))
   where
     ulClass | tile      = "tile entry-list"
             | otherwise = "entry-list"
 
 viewArchiveByYears
     :: (?config :: Config)
-    => M.Map Year (M.Map Month [TaggedEntry])
+    => M.Map Year (M.Map Month (M.Map LocalTime [TaggedEntry]))
     -> H.Html
 viewArchiveByYears entries =
     H.ul ! A.class_ "entry-list" $

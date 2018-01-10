@@ -8,6 +8,7 @@ import           Blog.Compiler.Archive
 import           Blog.Types
 import           Blog.Util
 import           Blog.Util.Tag
+import           Data.Foldable
 import           Data.List
 import           Data.Maybe
 import           Data.String

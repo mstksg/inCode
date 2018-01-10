@@ -83,13 +83,13 @@ compileEntry = do
 
 entryCompiler
     :: (?config :: Config)
-    => [((Year, Month), Identifier)]
+    => [Identifier]
     -> [(TagType, T.Text)]
     -> Compiler (Item String)
 entryCompiler histList allTags = do
     i <- setVersion Nothing <$> getUnderlying
     e <- loadSnapshotBody i "entry"
-    allEs <- sortEntries <$> mapM ((`loadSnapshotBody` "entry") . snd) histList
+    allEs <- sortEntries <$> mapM (`loadSnapshotBody` "entry") histList
     let (afts,befs) = break ((== entryPostTime e) . entryPostTime) allEs
         aft = listToMaybe (reverse afts)
         bef = listToMaybe (drop 1 befs)
