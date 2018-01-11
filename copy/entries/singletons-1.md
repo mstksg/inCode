@@ -110,7 +110,7 @@ ghci> :t MkFoo :: Foo Int
 Foo Int
 ghci> :t MkFoo :: Foo Bool
 Foo Bool
-ghci> :t MkFoo :: Foo Either      -- requires -XPolyKinds where 'Foo" is defined
+ghci> :t MkFoo :: Foo Either      -- requires -XPolyKinds where 'Foo' is defined
 Foo Either
 ghci> :t MkFoo :: Foo Monad       -- requires -XConstraintKinds
 Foo Monad
