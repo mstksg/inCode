@@ -2,7 +2,7 @@
 title: "Interpreters a la Carte (Advent of Code 2017 Duet)"
 categories: Haskell
 series: Beginner/Intermediate Haskell Projects
-tags: functional programming, haskell, types
+tags: functional programming, haskell, types, lens
 create-time: 2018/01/11 16:28:19
 date: none
 identifier: interpreters
@@ -30,10 +30,15 @@ types a la carte" technique in order to mix and match isolated components of
 virtual machine interpreters, and re-use code whenever possible in assembling
 our interpreters for our different machines!
 
+This blog post will not necessarily be a focused tutorial on this trick, but
+rather an explanation on my solution centered around this pattern, hopefully
+providing insight on how I approach and solve non-trivial Haskell problems.
+Along the way we'll also use mtl typeclasses and classy lenses.
+
 The Puzzle
 ----------
 
-The puzzle is [Advent of Code 2017 Day 18][day18]:
+The puzzle is [Advent of Code 2017 Day 18][day18], and Part 1 is:
 
 [day18]: http://adventofcode.com/2017/day/18
 
@@ -72,4 +77,110 @@ The puzzle is [Advent of Code 2017 Day 18][day18]:
 > which the *jump* jumped. After any other instruction, the program continues
 > with the next instruction. Continuing (or jumping) off either end of the
 > program terminates it.
+>
+> *What is the value of the recovered frequency* (the value of the most
+> recently played sound) the *first* time a `rcv` instruction is executed
+> with a non-zero value?
 
+Part 2, however, says:
+
+> As you congratulate yourself for a job well done, you notice that the
+> documentation has been on the back of the tablet this entire time. While you
+> actually got most of the instructions correct, there are a few key
+> differences. This assembly code isn't about sound at all - it's meant to be
+> run *twice at the same time*.
+>
+> Each running copy of the program has its own set of registers and
+> follows the code independently - in fact, the programs don\'t even
+> necessarily run at the same speed. To coordinate, they use the *send*
+> (`snd`) and *receive* (`rcv`) instructions:
+>
+> -   `snd X` *sends* the value of `X` to the other program. These values
+>     wait in a queue until that program is ready to receive them. Each
+>     program has its own message queue, so a program can never receive a
+>     message it sent.
+> -   `rcv X` *receives* the next value and stores it in register `X`. If
+>     no values are in the queue, the program *waits for a value to be
+>     sent to it*. Programs do not continue to the next instruction until
+>     they have received a value. Values are received in the order they
+>     are sent.
+>
+> Each program also has its own *program ID* (one `0` and the other `1`);
+> the register `p` should begin with this value.
+>
+> Once both of your programs have terminated (regardless of what caused
+> them to do so), *how many times did program `1` send a value*?
+
+Note that in each of these, "the program" is a program (written in the Duet
+assembly language), which is different for each user and given to us by the
+site.
+
+What's going on here is that both parts execute the same program in two
+different virtual machines -- one has "sound" and "recover", and the other has
+"send" and "receive".  We are supposed to run the same program in *both* of
+these machines.
+
+However, note that these two machines aren't *completely* different -- they
+both have the ability to manipulate memory and read/shift program data.  So
+really , we want to be able to create a "modular" spec and implementation of
+these machines, so that we may re-use this memory manipulation aspect when
+constructing our machine, without duplicating any code.
+
+Parsing Duet
+------------
+
+First, let's get the parsing of the actual input program out of the way.  We'll
+be parsing a program into a list of "ops" that we will read as our program.
+
+Our program will be interpreted as a list of `Op` values, a data type
+representing opcodes.  There are four categories: "snd", "rcv", "jgz", and the
+binary mathematical operations:
+
+```haskell
+type Addr = Either Char Int
+
+data Op = OSnd Addr
+        | ORcv Char
+        | OJgz Addr Addr
+        | OBin (Int -> Int -> Int) Char Addr
+```
+
+It's important to remember that "snd", "jgz", and the binary operations can all
+take either numbers or other registers.
+
+Now, parsing a single `Op` is just a matter of pattern matching on `words`:
+
+```haskell
+parseOp :: String -> Op
+parseOp inp = case words inp of
+    "snd":c    :_   -> OSnd (addr c)
+    "set":(x:_):y:_ -> OBin (const id) x (addr y)
+    "add":(x:_):y:_ -> OBin (+)        x (addr y)
+    "mul":(x:_):y:_ -> OBin (*)        x (addr y)
+    "mod":(x:_):y:_ -> OBin mod        x (addr y)
+    "rcv":(x:_):_   -> ORcv x
+    "jgz":x    :y:_ -> OJgz (addr x) (addr y)
+    _               -> error "Bad parse"
+  where
+    addr :: String -> Addr
+    addr [c] | isAlpha c = Left c
+    addr str = Right (read str)
+```
+
+We're going to store our program in a `PointedList` from the *[pointedlist][]*
+package, which is a non-empty list with a "focus" at a given index, which we
+use to represent the program counter/program head/current instruction.  Parsing
+our program is then just parsing each line in the program string, and
+collecting them into a `PointedList`.  We're ready to go!
+
+[pointedlist]: http://hackage.haskell.org/package/pointedlist
+
+```haskell
+parse :: String -> P.PointedList Op
+parse = fromJust . P.fromList . map parseOp . lines
+```
+
+Our Virtual Machine
+-------------------
+
+Hi
