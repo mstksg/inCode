@@ -3,7 +3,7 @@ title: "Interpreters a la Carte (Advent of Code 2017 Duet)"
 categories: Haskell
 series: Beginner/Intermediate Haskell Projects
 tags: functional programming, haskell, types, lens
-create-time: 2018/01/11 16:28:19
+create-time: 2018/01/11 16:28:18
 date: none
 identifier: interpreters
 slug: interpreters-a-la-carte
@@ -13,7 +13,7 @@ This post is just a fun one exploring a wide range of techniques that I applied
 to solve the Day 18 puzzles of this year's great [Advent of Code][aoc].  The
 puzzles involved interpreting an assembly language on an abstract machine.  The
 neat twist is that Part 1 gave you a description of one abstract machine, and
-Part 2 gave you a *different* abstract machine to interpret the same language
+Part 3 gave you a *different* abstract machine to interpret the same language
 in.  This twist (one language, but different interpreters/abstract machines) is
 basically one of the textbook applications of the *interpreter pattern* in
 Haskell and functional programming, so it was fun to implement my solution in
