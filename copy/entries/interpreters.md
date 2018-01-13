@@ -354,7 +354,86 @@ polymorphically:
 
 Using *[lens][]* with lenses (especially classy ones) is one of the only things
 that makes programming against `State` with non-trivial state bearable for me!
+We store the current program and program head with the `PointedList`, and also
+represent the register contents with a `Map Char Int`.
 
 [lens]: http://hackage.haskell.org/package/lens
 
-`makeClassy` gives us 
+`makeClassy` gives us a typeclass `HasProgState`, which is for things that
+"have" a `ProgState`, as well as lenses into the `psTape` and `psRegs`
+field for that type.  We can use these lenses with *lens* library machinery:
+
+```haskell
+-- | "get" based on a lens
+use   :: MonadState s m => Lens' s a -> m a
+
+-- | "set" through on a lens
+(.=)  :: MonadState s m => Lens' s a -> a -> m ()
+
+-- | "mappend" through on a lens
+(<>=) :: (Monoid a, MonadState s m) => Lens' s a -> a -> m ()
+
+-- | "lift" a State action through a lens
+zoom  :: Lens' s t -> State t a -> State s a
+```
+
+So, for example, we have:
+
+```haskell
+-- | "get" the registers
+use psRegs  :: (HasProgState s, MonadState s m) => m (M.Map Char Int)
+
+-- | "set" the PointedList
+(psTape .=) :: (HasProgState s, MonadState s m) => P.PointedList Op -> m ()
+```
+
+The nice thing about lenses is that they compose, so, for example, we have:
+
+```haskell
+at :: k -> Lens' (Map k    v  ) (Maybe v)
+
+at 'h'  :: Lens' (Map Char Int) (Maybe Int)
+```
+
+We can use `at 'c'` to give us a lens from our registers (`Map Char Int`) into
+the specific register `'c'` as a `Maybe Int` -- it's `Nothing` if the item is
+not in the `Map`, and `Just` if it is (with the value).
+
+However, we want to treat all registers as `0` by default, not as `Nothing`, so
+we can use `non`:
+
+```haskell
+non :: Eq a => a -> Lens' (Maybe a  ) a         -- actually `Iso'`, not `Lens'`
+non 0 ::            Lens' (Maybe Int) Int
+```
+
+`non 0` is a `Lens` (actually an `Iso`, but who's counting?) into a `Maybe Int`
+to treat `Nothing` as if it was `0`, and to treat `Just x` as if it was `x`.
+
+We can chain `at r` with `non 0` to get a lens into a `Map Char Int`, which we
+can use to edit a specific item, treating non-present-items as 0.
+
+```haskell
+         at 'h' . non 0 :: Lens' (Map Char Int) Int
+
+psRegs . at 'h' . non 0 :: HasProgState s => Lens' s Int
+```
+
+With these tools to make life simpler, we can write an interpreter for our
+`Mem` commands:
+
+```haskell
+!!!interpreters/Duet.hs "interpMem"
+```
+
+We use `MonadFail` to explicitly state that we rely on a failed pattern match
+for control flow.  `P.moveN :: Int -> P.PointedList -> Maybe P.PointedList`
+will "shift" a `PointedList` by a given amount, but will return `Nothing` if it
+goes out of bounds.  Our program is meant to terminate if we ever go out of
+bounds, so we can implement this by using a do block pattern match with
+`MonadFail`. For instances like `MaybeT`/`Maybe`, this means
+`empty`/`Nothing`/short-circuit.  So when we `P.move`, we do-block pattern
+match on `Just t'`.
+
+We also use `P.focus`, a lens that the *pointedlist* library provides to the
+current "focus" of the `PointedList`.
