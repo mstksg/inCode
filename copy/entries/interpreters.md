@@ -340,3 +340,21 @@ The Interpreters
 ----------------
 
 Now for the fun part!
+
+### Interpreting Memory Primitives
+
+To interpret our `Mem` primitives, we need to be in some sort of stateful monad
+that contains the program state.  First, let's make a type describing our
+relevant program state, along with classy lenses for operating on it
+polymorphically:
+
+```haskell
+!!!interpreters/Duet.hs "data ProgState ="
+```
+
+Using *[lens][]* with lenses (especially classy ones) is one of the only things
+that makes programming against `State` with non-trivial state bearable for me!
+
+[lens]: http://hackage.haskell.org/package/lens
+
+`makeClassy` gives us 
