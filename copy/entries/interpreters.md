@@ -714,3 +714,10 @@ get actual answers given some sample puzzle input:
 !!!interpreters/Duet.hs "main ::"
 ```
 
+And, as a stack script, we can run this and see my own puzzle's answers:
+
+```bash
+$ ./Duet.hs
+Just 7071
+8001
+```
