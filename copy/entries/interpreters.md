@@ -403,7 +403,7 @@ However, we want to treat all registers as `0` by default, not as `Nothing`, so
 we can use `non`:
 
 ```haskell
-non :: Eq a => a -> Lens' (Maybe a  ) a         -- actually `Iso'`, not `Lens'`
+non :: Eq a => a -> Lens' (Maybe a  ) a         -- actually `Iso'`
 non 0 ::            Lens' (Maybe Int) Int
 ```
 
@@ -427,13 +427,70 @@ With these tools to make life simpler, we can write an interpreter for our
 ```
 
 We use `MonadFail` to explicitly state that we rely on a failed pattern match
-for control flow.  `P.moveN :: Int -> P.PointedList -> Maybe P.PointedList`
-will "shift" a `PointedList` by a given amount, but will return `Nothing` if it
-goes out of bounds.  Our program is meant to terminate if we ever go out of
-bounds, so we can implement this by using a do block pattern match with
+for control flow.  `P.moveN :: Int -> P.PointedList a -> Maybe (P.PointedList
+a)` will "shift" a `PointedList` by a given amount, but will return `Nothing`
+if it goes out of bounds.  Our program is meant to terminate if we ever go out
+of bounds, so we can implement this by using a do block pattern match with
 `MonadFail`. For instances like `MaybeT`/`Maybe`, this means
 `empty`/`Nothing`/short-circuit.  So when we `P.move`, we do-block pattern
 match on `Just t'`.
 
-We also use `P.focus`, a lens that the *pointedlist* library provides to the
-current "focus" of the `PointedList`.
+We also use `P.focus :: Lens' (P.PointedList a) a`, a lens that the
+*pointedlist* library provides to the current "focus" of the `PointedList`.
+
+Note that most of this usage of lens with state is not exactly necessary (we
+can manually use `modify`, `gets`, etc. instead of lenses and operators), but
+it does make things a bit more convenient to write.
+
+### Interpreting Com for Part 1
+
+Now, Part 1 (which I'll call *Part A* from now on) requires an environment
+where:
+
+1.  `CSnd` "emits" items into the void, keeping track only of the *last*
+    emitted item
+2.  `CRcv` "catches" the last thing seen by `CSnd`, keeping track of only the
+    *first* caught item
+
+We can keep track of this using `MonadWriter (First Int)` to interpret `CRcv`
+(if there are two *rcv*'s, we only care about the first *rcv*'d thing), and
+`MonadAccum (Last Int)` to interpret `CSnd`.  A `MonadAccum` is just like
+`MonadWriter` (where you can "tell" things and accumulate things), but you also
+have the ability to read the accumulated log at any time.  We use `Last Int`
+because, if there are two *snd*'s, we only care about the last *snd*'d thing.
+
+
+```haskell
+!!!interpreters/Duet.hs "interpComA"
+```
+
+### Interpreting Com for Part 2
+
+Part 2 (which I'll call *Part B* from now on) requires an environment where:
+
+1.  `CSnd` "emits" items into into some accumulating log of items, and we need
+    to keep track of all of them.
+2.  `CRcv` "consumes" items from some external environment, and fails when
+    there are no more items to consume.
+
+We can interpret `CSnd`'s effects using `MonadWriter [Int]`, to collect all
+emitted `Int`s.  We can interpret `CRcv`'s effects using `MonadState s`, where
+`s` contains an `[Int]` acting as a source of `Int`s to consume.
+
+We're going to use a `Thread` type to keep track of all thread state.  We do
+this so we can merge the contexts of `interpMem` and `interpComB`, and really
+treat them (using type inference) as both working in the same interpretation
+context.
+
+```haskell
+!!!interpreters/Duet.hs "data Thread =" "instance HasProgState Thread"
+```
+
+And now, to interpret:
+
+```haskell
+!!!interpreters/Duet.hs "interpComB"
+```
+
+Note again the usage of do block pattern matches and `MonadFail`.
+

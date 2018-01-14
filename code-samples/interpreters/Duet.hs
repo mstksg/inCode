@@ -1,22 +1,32 @@
 #!/usr/bin/env stack
--- stack --install-ghc runghc --resolver lts-10.3 --package MonadPrompt --package pointedlist --package lens --package type-combinators
+-- stack --install-ghc runghc --resolver lts-10.3 --package MonadPrompt --package pointedlist --package lens --package type-combinators --package transformers-0.5.5.0
 
-{-# LANGUAGE GADTs           #-}
-{-# LANGUAGE KindSignatures  #-}
-{-# LANGUAGE LambdaCase      #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeOperators   #-}
+{-# LANGUAGE FlexibleContexts       #-}
+{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE GADTs                  #-}
+{-# LANGUAGE KindSignatures         #-}
+{-# LANGUAGE LambdaCase             #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE TemplateHaskell        #-}
+{-# LANGUAGE TypeOperators          #-}
+{-# LANGUAGE UndecidableInstances   #-}
 
+import           Control.Applicative
 import           Control.Lens
 import           Control.Monad.Fail
 import           Control.Monad.Prompt
 import           Control.Monad.State
+import           Control.Monad.Trans.Maybe
+import           Control.Monad.Writer
 import           Data.Char
 import           Data.Kind
 import           Data.Maybe
+import           Data.Monoid
 import           Data.Type.Disjunction
-import qualified Data.List.PointedList as P
-import qualified Data.Map              as M
+import qualified Control.Monad.Trans.Accum as A
+import qualified Data.List.PointedList     as P
+import qualified Data.Map                  as M
 
 type Addr = Either Char Int
 
@@ -113,5 +123,122 @@ interpMem = \case
       psTape .= t'
     MPk      -> use (psTape . P.focus)
 
+class (Monad m, Monoid w) => MonadAccum w m | m -> w where
+    add  :: w -> m ()
+    look :: m w
+
+interpComA
+    :: (MonadAccum (Last Int) m, MonadWriter (First Int) m)
+    => Com a
+    -> m a
+interpComA = \case
+    CSnd x ->
+      add (Last (Just x))
+    CRcv x -> do
+      when (x /= 0) $
+        tell . First . getLast =<< look
+      return x
+
+partA :: P.PointedList Op -> Maybe Int
+partA ops = getFirst
+          . flip A.evalAccum mempty
+          . execWriterT
+          . flip runStateT (PS ops M.empty)
+          . runMaybeT
+          . many
+          $ runPromptM (interpMem >|< interpComA) stepProg
+
+data Thread = T { _tState   :: ProgState
+                , _tBuffer  :: [Int]
+                }
+makeClassy ''Thread
+
+instance HasProgState Thread where
+    progState = tState
+
+interpComB
+    :: (MonadWriter [Int] m, MonadFail m, MonadState Thread m)
+    => Com a
+    -> m a
+interpComB = \case
+    CSnd x -> tell [x]
+    CRcv _ -> do
+      x:xs <- use tBuffer
+      tBuffer .= xs
+      return x
+
+-- | Single step through both threads.  Nothing = both threads terminate
+stepThreads :: MaybeT (State (Thread, Thread)) Int
+stepThreads = do
+    outA <- execWriterT $
+      zoom _1 . many $ runPromptM (interpMem >|< interpComB) stepProg
+    outB <- execWriterT $
+      zoom _2 . many $ runPromptM (interpMem >|< interpComB) stepProg
+    _1 . tBuffer <>= outB
+    _2 . tBuffer <>= outA
+    guard . not $ null outA && null outB
+    return $ length outB
+
 main :: IO ()
-main = putStrLn "hi"
+main = print $ partA (parseProgram testProg)
+
+testProg :: String
+testProg = unlines
+    [ "set i 31"
+    , "set a 1"
+    , "mul p 17"
+    , "jgz p p"
+    , "mul a 2"
+    , "add i -1"
+    , "jgz i -2"
+    , "add a -1"
+    , "set i 127"
+    , "set p 826"
+    , "mul p 8505"
+    , "mod p a"
+    , "mul p 129749"
+    , "add p 12345"
+    , "mod p a"
+    , "set b p"
+    , "mod b 10000"
+    , "snd b"
+    , "add i -1"
+    , "jgz i -9"
+    , "jgz a 3"
+    , "rcv b"
+    , "jgz b -1"
+    , "set f 0"
+    , "set i 126"
+    , "rcv a"
+    , "rcv b"
+    , "set p a"
+    , "mul p -1"
+    , "add p b"
+    , "jgz p 4"
+    , "snd a"
+    , "set a b"
+    , "jgz 1 3"
+    , "snd b"
+    , "set f 1"
+    , "add i -1"
+    , "jgz i -11"
+    , "snd a"
+    , "jgz f -16"
+    , "jgz a -19"
+    ]
+
+instance (Monoid w, Monad m) => MonadAccum w (A.AccumT w m) where
+    add = A.add
+    look = A.look
+
+instance MonadAccum w m => MonadAccum w (MaybeT m) where
+    add = lift . add
+    look = lift look
+
+instance MonadAccum w m => MonadAccum w (StateT s m) where
+    add = lift . add
+    look = lift look
+
+instance (Monoid v, MonadAccum w m) => MonadAccum w (WriterT v m) where
+    add = lift . add
+    look = lift look
