@@ -135,7 +135,7 @@ interpComA = \case
     CSnd x ->
       add (Last (Just x))
     CRcv x -> do
-      when (x /= 0) $
+      when (x /= 0) $         -- don't rcv if the register parameter is 0
         tell . First . getLast =<< look
       return x
 
