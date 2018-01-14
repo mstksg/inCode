@@ -72,7 +72,7 @@ processSample SampleSpec{..} rawSamp = do
         sourceUrl = do
           blob  <- T.unpack <$> sourceBlobs     ?config
           samps <- T.unpack <$> confCodeSamples ?config
-          let suffix  = concat ["#L",show startLine,"-",show endLine]
+          let suffix  = concat ["#L",show startLine,"-L",show endLine]
               suffix' = if null sKeywords then "" else suffix
           return (blob </> samps </> sFile ++ suffix')
         sourceHeading   = maybe "" (toHeading "source") sourceUrl
