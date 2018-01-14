@@ -407,31 +407,14 @@ This is known as a **dependent pattern match**.
     
     We say that `SOpened` is a *runtime witness* to `s` being `'Opened`.
 
-    <!-- Note that `lockDoor . closeDoor` will *only* compile if given a `Door -->
-    <!-- 'Opened`, but because of our dependent pattern match, we *know* we have a -->
-    <!-- `Door 'Opened`. -->
-
 *   Same for the `SClosed ->` branch -- since `SClosed :: SingDS 'Closed`, then
     `s ~ 'Closed`, so our `Door s` must be a `Door 'Closed`.  This allows us to
     simply take our `door :: Door 'Closed` and use `lockDoor` to get a `Door
     'Locked`
 
-    <!-- just write `SClosed -> lockDoor`. -->
-    
-    <!-- Again, `lockDoor :: Door 'Closed -> Door 'Locked`, so it would only work if -->
-    <!-- given a `Door 'Closed` -- which we know we have, because of the dependent -->
-    <!-- pattern match. -->
-
 *   For the `SLocked ->` branch, `SLocked :: SingDS 'Locked`, so `s ~ 'Locked`, so
     our `Door s` is a `Door 'Locked`.  Our door is "already" locked, so we can
     just use the `door :: Door 'Locked` that we got!
-
-    <!-- use `id :: Door 'Locked -> Door 'Locked`. -->
-    
-    <!-- Note that `id :: Door 'Locked -> Door 'Locked` would not work for any other -->
-    <!-- branch, and would be a compile-time error.  `id` only works if you know your -->
-    <!-- input is already `Door 'Locked`...which we know because of the dependent -->
-    <!-- pattern match. -->
 
 [^eq]: `~` here refers to "type equality", or the constraint that the types on
 both sides are equal.  `s ~ 'Opened` can be read as "`s` is `'Opened`".

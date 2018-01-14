@@ -208,9 +208,7 @@ processCodeBlocks doc = do
                    , Tuple "-- interactive: " Right
                    ]
     chompWhitespace :: forall e'. D.Node -> Eff (dom :: D.DOM | e') Unit
-    chompWhitespace blk = do
-        go
-        -- chompLast
+    chompWhitespace blk = go
       where
         go = do
           fc' <- toMaybe <$> D.firstChild blk
@@ -219,11 +217,6 @@ processCodeBlocks doc = do
             when isWhitespace do
               D.removeChild fc blk
               go
-        chompLast = do
-          fc' <- toMaybe <$> D.firstChild blk
-          for_ fc' \fc -> do
-            tc <- dropWhile isSpace <$> D.textContent fc
-            D.setTextContent tc fc
     genLinkBox :: LinkSpec -> D.Node -> Eff (dom :: D.DOM | e) Unit
     genLinkBox (LS s) blk = void <<< runMaybeT $ do
       _   <- maybe empty return $ s.source <|> s.interactive

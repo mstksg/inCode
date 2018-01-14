@@ -198,9 +198,14 @@ data StateCommand :: Type -> Type where
     Get :: StateCommand Int
 ```
 
-Which says that the two "primitive" commands of `State Int` are "putting" (which
-requires an `Int` and produces a `()` result) and "getting" (which requires no
-inputs, and produces an `Int` result).
+For those unfamiliar with GADT syntax, this is declaring a data type
+`StateCommand a` with two constructors -- `Put`, which takes an `Int` and
+creates a `StateCommand ()`, and `Get`, which takes no parameters and creates a
+`StateCommand Int`.
+
+Our GADT here says that the two "primitive" commands of `State Int` are
+"putting" (which requires an `Int` and produces a `()` result) and "getting"
+(which requires no inputs, and produces an `Int` result).
 
 You can then write `State Int` as:
 
