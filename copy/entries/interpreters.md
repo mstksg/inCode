@@ -38,7 +38,7 @@ Along the way we'll also use mtl typeclasses and classy lenses.
 The source code is [available online][Duet.hs] and is executable as a stack
 script.
 
-!!![Duet.hs]:singletons/Door.hs
+!!![Duet.hs]:interpreters/Duet.hs
 
 The Puzzle
 ----------
