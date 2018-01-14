@@ -227,8 +227,18 @@ runPromptM
     -> m a                                  -- resulting action in 'm'
 ```
 
-So, if we wanted to use `IO` and `IORefs` as the mechanism for interpreting our
-`IntState`:
+If you're unfamiliar with *-XRankNTypes*, `forall x. StateCommand x -> m x` is
+the type of a handler that can handle a `StateCommand` of *any* type, and
+return a value of `m x` (an action returning the *same type* as the
+`StateCommand`).  So, you can't give it something like `StateCommand Int -> m
+Bool`, or `StateCommand x -> m ()`...it has to be able to handle a
+`StateCommand a` of *any* type `a` and return an action in the interpreting
+context producing a result of the same type.  If given a `StateCommand Int`, it
+has to return an `m Int`, and if given a `StateCommand ()`, it has to return an
+`m ()`, etc. etc.
+
+Now, if we wanted to use `IO` and `IORefs` as the mechanism for interpreting
+our `IntState`:
 
 ```haskell
 interpretIO
@@ -248,6 +258,12 @@ runAsIO m s0 = do
 `interpretIO` is our interpreter, in `IO`.  `runPromptM` will interpret each
 primitive (`Put` and `Get`) using `interpretIO`, and generate the result for
 us.
+
+Note that the GADT property of `StateCommand` ensures us that the *result* of
+our `IO` action matches with the result that the GADT constructor implies, due
+to the magic of dependent pattern matching.  For the `Put x :: StateCommand ()`
+branch, the result has to be `IO ()`; for the `Get :: StateCommand Int` branch,
+the result has to be `IO Int`.
 
 We can also be boring and interpret it using `State Int`:
 
@@ -456,8 +472,8 @@ it does make things a bit more convenient to write.
 
 #### GADT Property
 
-The GADT-ness of `Mem` (and `Com`) works to enforce that the "results" that
-each primitive expects is the result that we give.
+Again, the GADT-ness of `Mem` (and `Com`) works to enforce that the "results"
+that each primitive expects is the result that we give.
 
 For example, `MGet 'c' :: Mem Int` requires us to return `m Int`.  This is what
 `use` gives us.  `MSet 'c' 3 :: Mem ()` requires us to return `m ()`, which is what `(.=)`
@@ -644,6 +660,10 @@ unwrapping *transformers* newtype wrappers.
 ```haskell
 !!!interpreters/Duet.hs "partA ::"
 ```
+
+A `Nothing` result means that the `Writer` log never received any outputs
+before `many` ends looping, which means that the tape goes out of bounds before
+a successful *rcv*.
 
 ### Part B
 
