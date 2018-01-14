@@ -139,14 +139,16 @@ interpComA = \case
         tell . First . getLast =<< look
       return x
 
+stepForever :: MaybeT (StateT ProgState (WriterT (First Int) (A.Accum (Last Int)))) ()
+stepForever = void . many $ runPromptM (interpMem >|< interpComA) stepProg
+
 partA :: P.PointedList Op -> Maybe Int
 partA ops = getFirst
           . flip A.evalAccum mempty
           . execWriterT
           . flip runStateT (PS ops M.empty)
           . runMaybeT
-          . many
-          $ runPromptM (interpMem >|< interpComA) stepProg
+          $ stepForever
 
 data Thread = T { _tState   :: ProgState
                 , _tBuffer  :: [Int]
@@ -167,7 +169,6 @@ interpComB = \case
       tBuffer .= xs
       return x
 
--- | Single step through both threads.  Nothing = both threads terminate
 stepThreads :: MaybeT (State (Thread, Thread)) Int
 stepThreads = do
     outA <- execWriterT $
@@ -179,8 +180,20 @@ stepThreads = do
     guard . not $ null outA && null outB
     return $ length outB
 
+partB :: P.PointedList Op -> Int
+partB ops = sum . concat
+          . flip evalState s0
+          . runMaybeT
+          $ many stepThreads
+  where
+    s0 = ( T (PS ops (M.singleton 'p' 0)) []
+         , T (PS ops (M.singleton 'p' 1)) []
+         )
+
 main :: IO ()
-main = print $ partA (parseProgram testProg)
+main = do
+    print $ partA (parseProgram testProg)
+    print $ partB (parseProgram testProg)
 
 testProg :: String
 testProg = unlines
