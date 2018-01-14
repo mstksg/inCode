@@ -61,6 +61,8 @@ library
                      , transformers
                      , unordered-containers
                      , xml
+                     , xml-conduit
+                     , xml-types
                      , yaml
   ghc-options:         -Wall
 
@@ -85,7 +87,7 @@ executable blog-build
                      , time
                      , transformers
                      , yaml
-  ghc-options:         -Wall
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall
 
 executable blog-migrate-entries
   main-is:             app/MigrateEntries.hs
@@ -105,5 +107,5 @@ executable blog-migrate-entries
                      , text
                      , transformers
                      , vector
-  ghc-options:         -Wall
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall
 

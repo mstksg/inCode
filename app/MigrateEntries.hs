@@ -105,17 +105,18 @@ main = do
                        modify (drop 1)
                        b <- intercalate "\n" <$> state (,[])
                        return $ EP t m b
-            metas = case readMarkdown opts epMeta of
+            metas = case runPure (readMarkdown opts (T.pack epMeta)) of
                       Right (Pandoc _ m) -> do
                         DefinitionList ds <- m
                         (kIs, vIss) <- ds
                         let k = kFilt
                               . T.unpack
                               . spinalize
-                              . T.pack
+                              . either (error . show) id . runPure
                               . writePlain def
                               $ Pandoc mempty [Plain kIs]
-                            v = map (writePlain def . Pandoc mempty) vIss
+                            v = either (error . show) T.unpack . runPure . writePlain def . Pandoc mempty
+                                  <$> vIss
                         return (k, v)
                       Left _ -> []
             slugs = fromMaybe [] $ do
@@ -152,7 +153,7 @@ main = do
             writeFile newFn out
 
   where
-    opts = def { readerExtensions = S.insert Ext_compact_definition_lists pandocExtensions }
+    opts = def { readerExtensions = enableExtension Ext_compact_definition_lists pandocExtensions }
     kFilt :: String -> String
     kFilt "post-date" = "date"
     kFilt s           = s

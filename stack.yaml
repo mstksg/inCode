@@ -2,7 +2,7 @@
 # For more information, see: http://docs.haskellstack.org/en/stable/yaml_configuration/
 
 # Specifies the GHC version and set of packages available (e.g., lts-3.5, nightly-2015-09-21, ghc-7.10.2)
-resolver: lts-9.0
+resolver: nightly-2018-01-09
 
 # Local packages, usually specified by relative directory name
 packages:
@@ -11,16 +11,20 @@ packages:
     git: https://github.com/mstksg/jle-utils.git
     commit: 75ed7acaf74c6d00d581c0e7e147bb9afcf190df
   extra-dep: false
+- location:
+    git: https://github.com/jaspervdj/Hakyll.git
+    commit: a88a91d06e57172840ef068f261c88e21eb60665
+  extra-dep: true
 
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
 extra-deps:
-- hakyll-4.9.8.0
+# - hakyll-4.9.8.0
 - hakyll-sass-0.2.3
 
 # Override default flag values for local packages and extra-deps
-flags:
-  hakyll:
-    previewserver: false
+flags: {}
+#   hakyll:
+#     previewserver: false
 
 # Extra package databases containing global packages
 extra-package-dbs: []

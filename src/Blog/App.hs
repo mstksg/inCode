@@ -230,7 +230,7 @@ app znow@(ZonedTime _ tz) = do
           sorted <- traverse (flip loadSnapshotBody "entry")
                   . take (prefFeedEntries confBlogPrefs)
                   $ entriesSorted
-          makeItem $ viewFeed sorted tz (zonedTimeToUTC znow)
+          makeItem . TL.unpack $ viewFeed sorted tz (zonedTimeToUTC znow)
 
     create ["rss"] $ do
       route   idRoute

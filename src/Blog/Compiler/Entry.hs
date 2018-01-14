@@ -11,6 +11,7 @@ import           Blog.Util.Preprocessor
 import           Blog.Util.Tag
 import           Blog.View
 import           Blog.View.Entry
+import           Control.Monad
 import           Data.Bifunctor
 import           Data.Default
 import           Data.Foldable
@@ -40,11 +41,9 @@ compileEntry = do
                           . take (prefLedeMax (confBlogPrefs ?config))
                           . takeWhile validLede
                           $ bs
-    eTitle    <- T.pack
-               . P.writeMarkdown entryWriterOpts
-               . P.handleError
-               . P.readMarkdown entryReaderOpts
-               . T.unpack . T.unwords . T.lines . T.pack
+    eTitle    <- either (error . show) id . P.runPure
+               . (P.writeMarkdown entryWriterOpts <=< P.readMarkdown entryReaderOpts)
+               . T.unwords . T.lines . T.pack
              <$> getMetadataField' i "title"
     eCreate   <- (parseETime =<<) <$> getMetadataField i "create-time"
     ePost     <- (parseETime =<<) <$> getMetadataField i "date"
@@ -141,7 +140,9 @@ entryMarkdownCompiler = do
                    , ")"
                    ]
         , T.empty
-        , T.pack . P.writeMarkdown entryWriterOpts $ entryContents
+        , either (error . show) id . P.runPure
+        . P.writeMarkdown entryWriterOpts
+        $ entryContents
         ]
 
 entryLaTeXCompiler
@@ -167,13 +168,17 @@ entryLaTeXCompiler = do
                                         , ")**.*"
                                         ]
                              , T.empty
-                             , T.pack . P.writeMarkdown entryWriterOpts $ entryContents
+                             , either (error . show) id . P.runPure
+                             . P.writeMarkdown entryWriterOpts
+                             $ entryContents
                              ]
     body <- makeItem $ T.unpack mdHeader
     fmap (toTex opts) <$> readPandocWith entryReaderOpts body
   where
     toTex :: P.WriterOptions -> P.Pandoc -> String
-    toTex opts = P.writeLaTeX opts
+    toTex opts = either (error . show) T.unpack
+               . P.runPure
+               . P.writeLaTeX opts
                . P.walk upgrade
                . P.bottomUp stripRules
     stripRules P.HorizontalRule = P.Null

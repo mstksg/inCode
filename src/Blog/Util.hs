@@ -11,8 +11,9 @@ import           Data.Maybe
 import           Data.Monoid
 import           Data.Time.Format
 import           Hakyll
-import qualified Data.Text        as T
-import qualified Text.Pandoc      as P
+import qualified Data.Text                as T
+import qualified Text.Pandoc              as P
+import qualified Text.Pandoc.Highlighting as P
 
 
 renderShortFriendlyTime :: FormatTime t => t -> String
@@ -49,16 +50,17 @@ genSlug' :: Int -> String -> String
 genSlug' w = T.unpack . genSlug w . T.pack
 
 entryReaderOpts :: P.ReaderOptions
-entryReaderOpts =
-    def { P.readerSmart = True }
+entryReaderOpts = def
+    -- def { P.readerSmart = True }
 
 entryWriterOpts :: P.WriterOptions
 entryWriterOpts =
-    def { P.writerHtml5 = True
+    def { 
+        -- P.writerHtml5 = True
         -- , P.writerHTMLMathMethod = P.WebTeX "http://chart.apis.google.com/chart?cht=tx&chf=bg,s,FFFFFF00&chl="
         -- , P.writerHTMLMathMethod = P.WebTeX "https://latex.codecogs.com/gif.latex?"
-        , P.writerHTMLMathMethod = P.WebTeX "https://latex.codecogs.com/png.latex?"
-        , P.writerHighlight = True
+          P.writerHTMLMathMethod = P.WebTeX "https://latex.codecogs.com/png.latex?"
+        , P.writerHighlightStyle = Just P.tango
         , P.writerVariables = [("geometry","margin=1in")
                               ,("links-as-notes","true")]
         , P.writerColumns   = 80
