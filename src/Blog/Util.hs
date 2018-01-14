@@ -50,20 +50,21 @@ genSlug' :: Int -> String -> String
 genSlug' w = T.unpack . genSlug w . T.pack
 
 entryReaderOpts :: P.ReaderOptions
-entryReaderOpts = def
+entryReaderOpts = def { P.readerStandalone = True
+                      , P.readerStripComments = True
+                      , P.readerExtensions = P.pandocExtensions
+                      }
     -- def { P.readerSmart = True }
 
 entryWriterOpts :: P.WriterOptions
 entryWriterOpts =
-    def { 
-        -- P.writerHtml5 = True
-        -- , P.writerHTMLMathMethod = P.WebTeX "http://chart.apis.google.com/chart?cht=tx&chf=bg,s,FFFFFF00&chl="
-        -- , P.writerHTMLMathMethod = P.WebTeX "https://latex.codecogs.com/gif.latex?"
-          P.writerHTMLMathMethod = P.WebTeX "https://latex.codecogs.com/png.latex?"
+    def { P.writerHTMLMathMethod = P.WebTeX "https://latex.codecogs.com/png.latex?"
         , P.writerHighlightStyle = Just P.tango
-        , P.writerVariables = [("geometry","margin=1in")
-                              ,("links-as-notes","true")]
-        , P.writerColumns   = 80
+        , P.writerVariables      = [("geometry","margin=1in")
+                                   ,("links-as-notes","true")]
+        , P.writerColumns        = 80
+        , P.writerExtensions     = P.pandocExtensions
+        -- P.writerHtml5 = True
         }
 
 sourceBlobs :: Config -> Maybe T.Text
