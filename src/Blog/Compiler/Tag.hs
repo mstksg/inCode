@@ -46,7 +46,8 @@ compileTag tt tLab p = do
                       P.Pandoc m (P.Header 1 _ _:bs)
                           -> P.Pandoc m bs
                       pd' -> pd'
-        tDescMd = T.pack . P.writeMarkdown entryWriterOpts <$> tDescP'
+        tDescMd = either (error . show) id . P.runPure
+                . P.writeMarkdown entryWriterOpts <$> tDescP'
 
     entries <- map itemBody <$> loadAllSnapshots p "entry"
 

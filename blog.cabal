@@ -61,6 +61,8 @@ library
                      , transformers
                      , unordered-containers
                      , xml
+                     , xml-conduit
+                     , xml-types
                      , yaml
   ghc-options:         -Wall
 
