@@ -301,7 +301,7 @@ For example, how could we write a function to get the state of a door?
 
 ```haskell
 doorStatus :: Door s -> DoorState
-doorStatos _ = -- ?
+doorStatus _ = -- ?
 ```
 
 (It can be done with an ad-hoc typeclass, but it's not simple, and it's prone
