@@ -664,11 +664,17 @@ SJust SOpened
 ```
 
 We also have `withSingI`, which is equivalent to our `withSingDSI` function
-earlier.
+earlier.[^withSingI]
 
 ```haskell
 withSingI :: Sing s -> (forall r. SingI s => r) -> r
 ```
+
+[^withSingI]: It is probably worth mentioning that, for practical reasons, the
+implementation of *singleton*'s `withSingI` is very different than the
+implementation we used for our `withSingDSI`.  However, understanding its
+implementation isn't really relevant understanding how to use the library, so
+we won't really go to deep into this.
 
 Note that if you have singletons for a kind `k`, you also have instances for
 kind `Maybe k`, as well.  And also for `[k]`, even!  The fact that we have a
