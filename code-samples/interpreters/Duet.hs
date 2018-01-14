@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --install-ghc runghc --resolver lts-10.3 --package MonadPrompt --package pointedlist --package lens --package type-combinators --package transformers-0.5.5.0
+-- stack --install-ghc runghc --resolver lts-10.3 --package MonadPrompt --package pointedlist --package lens --package type-combinators --package transformers-0.5.5.0 --package mtl --package containers
 
 {-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE FlexibleInstances      #-}
@@ -139,8 +139,8 @@ interpComA = \case
         tell . First . getLast =<< look
       return x
 
-stepForever :: MaybeT (StateT ProgState (WriterT (First Int) (A.Accum (Last Int)))) ()
-stepForever = void . many $ runPromptM (interpMem >|< interpComA) stepProg
+stepA :: MaybeT (StateT ProgState (WriterT (First Int) (A.Accum (Last Int)))) ()
+stepA = runPromptM (interpMem >|< interpComA) stepProg
 
 partA :: P.PointedList Op -> Maybe Int
 partA ops = getFirst
@@ -148,7 +148,7 @@ partA ops = getFirst
           . execWriterT
           . flip runStateT (PS ops M.empty)
           . runMaybeT
-          $ stepForever
+          $ many stepA
 
 data Thread = T { _tState   :: ProgState
                 , _tBuffer  :: [Int]
@@ -169,14 +169,14 @@ interpComB = \case
       tBuffer .= xs
       return x
 
-stepThreads :: MaybeT (State (Thread, Thread)) Int
-stepThreads = do
+stepB :: MaybeT (State (Thread, Thread)) Int
+stepB = do
     outA <- execWriterT $
       zoom _1 . many $ runPromptM (interpMem >|< interpComB) stepProg
     outB <- execWriterT $
       zoom _2 . many $ runPromptM (interpMem >|< interpComB) stepProg
-    _1 . tBuffer <>= outB
-    _2 . tBuffer <>= outA
+    _1 . tBuffer .= outB
+    _2 . tBuffer .= outA
     guard . not $ null outA && null outB
     return $ length outB
 
@@ -184,7 +184,7 @@ partB :: P.PointedList Op -> Int
 partB ops = sum . concat
           . flip evalState s0
           . runMaybeT
-          $ many stepThreads
+          $ many stepB
   where
     s0 = ( T (PS ops (M.singleton 'p' 0)) []
          , T (PS ops (M.singleton 'p' 1)) []

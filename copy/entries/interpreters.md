@@ -370,9 +370,6 @@ use   :: MonadState s m => Lens' s a -> m a
 -- | "set" through on a lens
 (.=)  :: MonadState s m => Lens' s a -> a -> m ()
 
--- | "mappend" through on a lens
-(<>=) :: (Monoid a, MonadState s m) => Lens' s a -> a -> m ()
-
 -- | "lift" a State action through a lens
 zoom  :: Lens' s t -> State t a -> State s a
 ```
@@ -494,7 +491,166 @@ And now, to interpret:
 
 Note again the usage of do block pattern matches and `MonadFail`.
 
+### Combining Interpreters
+
+To "combine" interpreters, we're going to be using, from *type-combinators*:
+
+```haskell
+(>|<) :: (f a -> r)
+      -> (g a -> r)
+      -> ((f :|: g) a -> r)
+```
+
+Basically, `>|<` lets us write a "handler" for a `:|:` by providing a handler
+for each side.  For example, with more concrete types:
+
+```haskell
+(>|<) :: (Mem a -> r)
+      -> (Com a -> r)
+      -> ((Mem :|: Com) a -> r)
+```
+
+We can use this to build an interpreter for `Duet`:
+
+```haskell
+runPromptM
+    :: Monad m
+    => (forall x. (Mem x :|: Com x) -> m x)
+    -> Duet a
+    -> m a
+```
+
+By using `>|<` to generate our compound interpreters.  This is how we can
+create interpreters on `Duet` by "combining", in a modular way, interpreters
+for `Mem` and `Com`.  This is the essence of the "data types a la carte"
+technique.
+
 Getting the Results
 -------------------
 
-These are the results.
+We just have to pick concrete monads now for us to interpret into.
+
+### Part A
+
+Our interpreter for Part A is `interpMem >|< interpComA` -- we interpret the
+`Mem` primitives the usual way, and interpret the `Com` primitives the Part A
+way.
+
+Let's check what capabilities our interpreter must have:
+
+```haskell
+ghci> :t interpMem >|< interpComA
+interpMem >|< interpComA
+    :: ( MonadWriter (First Int) m
+       , MonadAccum (Last Int) m
+       , MonadFail m
+       , MonadState s m
+       , HasProgState s
+       )
+    => (Mem :|: Com) a
+    -> m a
+```
+
+So it looks like we need to be `MonadWriter (First Int)`, `MonadAccum (Last
+Int)`, `MonadFail m`, and `MonadState s m`, where `HasProgState s`.
+
+Now, we can write such a Monad from scratch, or we can use the *transformers*
+library to generate a transformer with all of those instances for us.  For the
+sake of brevity and reducing duplicated code, let's go that route.  We can use:
+
+```haskell
+MaybeT (StateT ProgState (WriterT (First Int) (A.Accum (Last Int))))
+```
+
+And so we can write our final "step" function in that context:
+
+```haskell
+!!!interpreters/Duet.hs "stepA ::"
+```
+
+`stepA` will make a single step of the tape, according to the interpreters
+`interpMem` and `interpComA`.
+
+Our final answer is then just the result of *repeating* this over and over
+again until there's a failure.  We take advantage of the fact that `MaybeT`'s
+`Alternative` instance uses `empty` for `fail`, so we can use `many ::
+MaybeT m a -> MaybeT m [a]`, which repeats a `MaybeT` action several times
+until a failure is encountered.  In our case, "failure" is when the tape goes
+out of bounds.
+
+But, because of laziness, our computation terminates as soon as a valid `CRcv`
+is found and a `First Int` is logged to the `Writer`, so we don't actually need
+to run the computation until it goes out of bounds.
+
+Here is the entirety of Part A:
+
+```haskell
+!!!interpreters/Duet.hs "partA ::"
+```
+
+### Part B
+
+Our interpreter for Part B is a little simpler:
+
+```haskell
+ghci> :t interpMem >|< interpComB
+interpMem >|< interpComB
+    :: ( MonadWriter [Int] m
+       , MonadFail m
+       , MonadState Thread m
+       )
+    => (Mem :|: Com) a
+    -> m a
+```
+
+We can really just use:
+
+```haskell
+WriterT [Int] (MaybeT (State Thread))
+```
+
+Writing our concrete `stepB` is a little more involved, since we have to juggle
+the state of each thread separately.  We can do this using:
+
+```haskell
+zoom _1 :: MaybeT (State s) a -> MaybeT (State (s, t)) a
+zoom _2 :: MaybeT (State t) a -> MaybeT (State (s, t)) a
+```
+
+To "lift" our actions on one thread to be actions on a "tuple" of threads.  We
+have, in the end:
+
+```haskell
+!!!interpreters/Duet.hs "stepB ::"
+```
+
+Our final `stepB` really doesn't need a `WriterT [Int]` -- we just use that
+internally to collect *snd* outputs.  So we use `execWriter` after
+"interpreting" our actions (along with `many`, to repeat our thread steps until
+they block) to just get the resulting logs.
+
+We then reset the input buffers appropriately (by putting in the collected
+outputs of the previous threads).
+
+If both threads are blocking (they both have to external outputs to pass on),
+then we're done (using `guard`).
+
+We return the number of items that "Program 1" (the second thread) outputs,
+because that's what we need for our answer.
+
+This is one "single pass" of both of our threads.  As you can anticipate, we'll
+use `many` again to run these multiple times until both threads block.
+
+```haskell
+!!!interpreters/Duet.hs "partB ::"
+```
+
+### Examples
+
+In the same source code, I've included by own puzzle input provided to me from
+the advent of code website.  We can now get actual answers given some sample
+puzzle input:
+
+```haskell
+!!!interpreters/Duet.hs "main ::"
+```
