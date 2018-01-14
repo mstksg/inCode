@@ -511,7 +511,7 @@ For now, I've added `MonadAccum` and appropriate instances in the [sample
 source code][MonadAccum], but when the new version of *mtl* comes out, I'll be
 sure to update this post to take this into account!
 
-!!![MonadAccum]:interpreters/Duet.hs "class (Monad m, Monoid w) => MonadAccum w m" "instance (Monoid w, Monad m) => MonadAccum (A.AccumT w m)"
+!!![MonadAccum]:interpreters/Duet.hs "class (Monad m, Monoid w) => MonadAccum w m" "instance (Monoid w, Monad m) => MonadAccum w (A.AccumT w m)"
 
 ### Interpreting Com for Part B
 
