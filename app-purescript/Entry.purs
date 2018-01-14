@@ -210,7 +210,7 @@ processCodeBlocks doc = do
     chompWhitespace :: forall e'. D.Node -> Eff (dom :: D.DOM | e') Unit
     chompWhitespace blk = do
         go
-        chompLast
+        -- chompLast
       where
         go = do
           fc' <- toMaybe <$> D.firstChild blk

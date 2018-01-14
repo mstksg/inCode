@@ -78,19 +78,17 @@ processSample SampleSpec{..} rawSamp = do
         sourceHeading   = maybe "" (toHeading "source") sourceUrl
     return $ case sLink of
       Nothing ->
-        T.concat [sourceHeading, interHeading, sampCode]
+        T.concat [sourceHeading, interHeading, "\n", sampCode]
       Just l ->
         T.pack $ concat ["[",l,"]: ",fromMaybe "/not-found" sourceUrl]
   where
     rawLines = T.lines rawSamp
     zipped = zip rawLines [1..]
     toHeading key val = T.pack . concat $ ["-- ", key, ": ", val, "\n"]
-    interHeading =
-      let maybeHeading = do
-            inter <- T.unpack <$> confInteractive ?config
-            live <- sLive
-            return $ toHeading "interactive" (inter </> live)
-      in fromMaybe "" maybeHeading
+    interHeading = fromMaybe "" $ do
+      inter <- T.unpack <$> confInteractive ?config
+      live <- sLive
+      return $ toHeading "interactive" (inter </> live)
 
 
 grabBlock :: [(T.Text,Int)] -> String -> Maybe Int -> Maybe ((Int,Int), T.Text)

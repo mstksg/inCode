@@ -59,6 +59,11 @@
     border-bottom: 1px dotted #bbb;
   }
 
+  a.sourceLine {
+    border: none;
+    background: none;
+  }
+
   code {
     background: #eee;
     padding: 0;

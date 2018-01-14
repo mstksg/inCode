@@ -59,7 +59,7 @@ entryReaderOpts = def { P.readerStandalone = True
 entryWriterOpts :: P.WriterOptions
 entryWriterOpts =
     def { P.writerHTMLMathMethod = P.WebTeX "https://latex.codecogs.com/png.latex?"
-        , P.writerHighlightStyle = Just P.tango
+        , P.writerHighlightStyle = Just P.pygments
         , P.writerVariables      = [("geometry","margin=1in")
                                    ,("links-as-notes","true")]
         , P.writerColumns        = 80
