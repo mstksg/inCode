@@ -35,6 +35,11 @@ rather an explanation on my solution centered around this pattern, hopefully
 providing insight on how I approach and solve non-trivial Haskell problems.
 Along the way we'll also use mtl typeclasses and classy lenses.
 
+The source code is [available online][Duet.hs] and is executable as a stack
+script.
+
+!!![Duet.hs]:singletons/Door.hs
+
 The Puzzle
 ----------
 
@@ -166,15 +171,22 @@ Our Virtual Machine
 
 ### MonadPrompt
 
-We're going to be using the great *[MonadPrompt][]* library to build our
-representation of our interpreted language.  Another common choice is to use
-*[free][]*, and a lot of other tutorials go down this route.  However, *free*
-is a bit more power than you really need for the interpreter pattern, and I
-always felt like the implementation of interpreter pattern programs in *free*
-was a bit awkward.
+We're going to be using the great *[MonadPrompt][]* library[^mprompt] to build
+our representation of our interpreted language.  Another common choice is to
+use *[free][]*, and a lot of other tutorials go down this route.  However,
+*free* is a bit more power than you really need for the interpreter pattern,
+and I always felt like the implementation of interpreter pattern programs in
+*free* was a bit awkward.
 
 [MonadPrompt]: http://hackage.haskell.org/package/MonadPrompt
 [free]: http://hackage.haskell.org/package/free
+
+[^mprompt]: Not to be confused with the [prompt][] library, which is more or
+less unrelated!  The library is actually my own that I wrote a few years back
+before I knew about MonadPrompt, and this unfortunate naming collision is one
+of my greatest Haskell regrets.
+
+[prompt]: http://hackage.haskell.org/package/prompt
 
 *MonadPrompt* lets us construct a language (and a monad) using GADTs to
 represent command primitives.  For example, to implement something like `State
@@ -487,6 +499,20 @@ Note `add :: MonadAccum w m => w -> m ()` and `look :: MonadAccum w w`, the
 functions to "tell" to a `MonadAccum` and the function to "get"/"ask" from a
 `MonadAccum`.
 
+#### MonadAccum
+
+Small relevant note -- `MonadAccum` does not yet exist in *mtl*, though it
+probably will in the next version.  It's the classy version of `AccumT`, which
+is already in *[transformers-0.5.5.0][]*.
+
+[transformers-0.5.5.0]: https://hackage.haskell.org/package/transformers-0.5.5.0
+
+For now, I've added `MonadAccum` and appropriate instances in the [sample
+source code][MonadAccum], but when the new version of *mtl* comes out, I'll be
+sure to update this post to take this into account!
+
+!!![MonadAccum]:interpreters/Duet.hs "class (Monad m, Monoid w) => MonadAccum w m" "instance (Monoid w, Monad m) => MonadAccum (A.AccumT w m)"
+
 ### Interpreting Com for Part B
 
 Part B requires an environment where:
@@ -678,10 +704,13 @@ use `many` again to run these multiple times until both threads block.
 
 ### Examples
 
-In the same source code, I've included by own puzzle input provided to me from
-the advent of code website.  We can now get actual answers given some sample
-puzzle input:
+In the [sample source code][Duel.hs], I've included [my own puzzle
+input][testProg] provided to me from the advent of code website.  We can now
+get actual answers given some sample puzzle input:
+
+!!![testProg]:interpreters/Duet.hs "testProg ::"
 
 ```haskell
 !!!interpreters/Duet.hs "main ::"
 ```
+
