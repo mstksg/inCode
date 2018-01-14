@@ -704,7 +704,7 @@ use `many` again to run these multiple times until both threads block.
 
 ### Examples
 
-In the [sample source code][Duel.hs], I've included [my own puzzle
+In the [sample source code][Duet.hs], I've included [my own puzzle
 input][testProg] provided to me from the advent of code website.  We can now
 get actual answers given some sample puzzle input:
 
