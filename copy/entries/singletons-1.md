@@ -400,11 +400,11 @@ This is known as a **dependent pattern match**.
     *know* that `s ~ 'Opened`[^eq].  We know that `s` must be `'Opened`,
     because `SOpened :: SingDS 'Opened`, so there really isn't anything else
     the `s` in `SingDS s` could be!
-    
+
     So, if we know that `s ~ 'Opened`, that means that the `Door s` is `Door
     'Opened`.  So because `door :: Door' Opened`, we have to `closeDoor` it to
     get a `Door' Closed`, and then `lockDoor` it to get a `Door 'Locked`
-    
+
     We say that `SOpened` is a *runtime witness* to `s` being `'Opened`.
 
 *   Same for the `SClosed ->` branch -- since `SClosed :: SingDS 'Closed`, then
