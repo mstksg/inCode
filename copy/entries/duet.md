@@ -1,12 +1,12 @@
 ---
-title: "Interpreters a la Carte (Advent of Code 2017 Duet)"
+title: "Interpreters a la Carte in Advent of Code 2017 Duet"
 categories: Haskell
 series: Beginner/Intermediate Haskell Projects
 tags: functional programming, haskell, types, lens
 create-time: 2018/01/11 16:28:18
 date: none
-identifier: interpreters
-slug: interpreters-a-la-carte
+identifier: duet
+slug: interpreters-a-la-carte-duet
 ---
 
 This post is just a fun one exploring a wide range of techniques that I applied
@@ -38,7 +38,7 @@ Along the way we'll also use mtl typeclasses and classy lenses.
 The source code is [available online][Duet.hs] and is executable as a stack
 script.
 
-!!![Duet.hs]:interpreters/Duet.hs
+!!![Duet.hs]:duet/Duet.hs
 
 The Puzzle
 ----------
@@ -142,7 +142,7 @@ representing opcodes.  There are four categories: "snd", "rcv", "jgz", and the
 binary mathematical operations:
 
 ```haskell
-!!!interpreters/Duet.hs "type Addr" "data Op"
+!!!duet/Duet.hs "type Addr" "data Op"
 ```
 
 It's important to remember that "snd", "jgz", and the binary operations can all
@@ -151,7 +151,7 @@ take either numbers or other registers.
 Now, parsing a single `Op` is just a matter of pattern matching on `words`:
 
 ```haskell
-!!!interpreters/Duet.hs "parseOp ::"
+!!!duet/Duet.hs "parseOp ::"
 ```
 
 We're going to store our program in a `PointedList` from the *[pointedlist][]*
@@ -163,7 +163,7 @@ collecting them into a `PointedList`.  We're ready to go!
 [pointedlist]: http://hackage.haskell.org/package/pointedlist
 
 ```haskell
-!!!interpreters/Duet.hs "parseProgram ::"
+!!!duet/Duet.hs "parseProgram ::"
 ```
 
 Our Virtual Machine
@@ -299,13 +299,13 @@ For memory, we can access and modify register values, as well as jump around in
 the program tape and read the `Op` at the current program head:
 
 ```haskell
-!!!interpreters/Duet.hs "data Mem ::"
+!!!duet/Duet.hs "data Mem ::"
 ```
 
 For communication, we must be able to "snd" and "rcv".
 
 ```haskell
-!!!interpreters/Duet.hs "data Com ::"
+!!!duet/Duet.hs "data Com ::"
 ```
 
 Part A requires `CRcv` to take, as an argument, a number, since whether or not
@@ -343,14 +343,14 @@ Our final data type then -- a monad that encompasses *all* possible Duet
 primitive commands, is:
 
 ```haskell
-!!!interpreters/Duet.hs "type Duet ="
+!!!duet/Duet.hs "type Duet ="
 ```
 
 We can write some convenient utility primitives to make things easier for us in
 the long run:
 
 ```haskell
-!!!interpreters/Duet.hs "dGet ::" "dSet ::" "dJmp ::" "dPk ::" "dSnd ::" "dRcv ::"
+!!!duet/Duet.hs "dGet ::" "dSet ::" "dJmp ::" "dPk ::" "dSnd ::" "dRcv ::"
 ```
 
 ### Constructing Duet Programs
@@ -359,7 +359,7 @@ Armed with our `Duet` monad, we can now write a real-life `Duet` action to
 represent *one step* of our duet programs:
 
 ```haskell
-!!!interpreters/Duet.hs "stepProg ::"
+!!!duet/Duet.hs "stepProg ::"
 ```
 
 This is basically a straightforward interpretation of the "rules" of our
@@ -382,7 +382,7 @@ relevant program state, along with classy lenses for operating on it
 polymorphically:
 
 ```haskell
-!!!interpreters/Duet.hs "data ProgState ="
+!!!duet/Duet.hs "data ProgState ="
 ```
 
 #### Brief Aside on Lenses with State
@@ -456,7 +456,7 @@ With these tools to make life simpler, we can write an interpreter for our
 `Mem` commands:
 
 ```haskell
-!!!interpreters/Duet.hs "interpMem"
+!!!duet/Duet.hs "interpMem"
 ```
 
 We use `MonadFail` to explicitly state that we rely on a failed pattern match
@@ -513,7 +513,7 @@ have the ability to read the accumulated log at any time.  We use `Last Int`
 because, if there are two *snd*'s, we only care about the last *snd*'d thing.
 
 ```haskell
-!!!interpreters/Duet.hs "interpComA"
+!!!duet/Duet.hs "interpComA"
 ```
 
 Note `add :: MonadAccum w m => w -> m ()` and `look :: MonadAccum w w`, the
@@ -532,7 +532,7 @@ For now, I've added `MonadAccum` and appropriate instances in the [sample
 source code][MonadAccum], but when the new version of *mtl* comes out, I'll be
 sure to update this post to take this into account!
 
-!!![MonadAccum]:interpreters/Duet.hs "class (Monad m, Monoid w) => MonadAccum w m" "instance (Monoid w, Monad m) => MonadAccum w (A.AccumT w m)"
+!!![MonadAccum]:duet/Duet.hs "class (Monad m, Monoid w) => MonadAccum w m" "instance (Monoid w, Monad m) => MonadAccum w (A.AccumT w m)"
 
 ### Interpreting Com for Part B
 
@@ -553,7 +553,7 @@ treat them (using type inference) as both working in the same interpretation
 context.
 
 ```haskell
-!!!interpreters/Duet.hs "data Thread =" "instance HasProgState Thread"
+!!!duet/Duet.hs "data Thread =" "instance HasProgState Thread"
 ```
 
 (We write an instance for `HasProgState Thread`, so we can use `interpMem` in a
@@ -563,7 +563,7 @@ example, will refer to the `psRegs` inside the `ProgState` in the `Thread`)
 And now, to interpret:
 
 ```haskell
-!!!interpreters/Duet.hs "interpComB"
+!!!duet/Duet.hs "interpComB"
 ```
 
 Note again the usage of do block pattern matches and `MonadFail`.
@@ -642,7 +642,7 @@ MaybeT (StateT ProgState (WriterT (First Int) (A.Accum (Last Int))))
 And so we can write our final "step" function in that context:
 
 ```haskell
-!!!interpreters/Duet.hs "stepA ::"
+!!!duet/Duet.hs "stepA ::"
 ```
 
 `stepA` will make a single step of the tape, according to the interpreters
@@ -663,7 +663,7 @@ Here is the entirety of running Part A -- as you can see, it consists mostly of
 unwrapping *transformers* newtype wrappers.
 
 ```haskell
-!!!interpreters/Duet.hs "partA ::"
+!!!duet/Duet.hs "partA ::"
 ```
 
 A `Nothing` result means that the `Writer` log never received any outputs
@@ -703,7 +703,7 @@ To "lift" our actions on one thread to be actions on a "tuple" of threads.  We
 have, in the end:
 
 ```haskell
-!!!interpreters/Duet.hs "stepB ::"
+!!!duet/Duet.hs "stepB ::"
 ```
 
 Our final `stepB` really doesn't need a `WriterT [Int]` -- we just use that
@@ -724,7 +724,7 @@ This is one "single pass" of both of our threads.  As you can anticipate, we'll
 use `many` again to run these multiple times until both threads block.
 
 ```haskell
-!!!interpreters/Duet.hs "partB ::"
+!!!duet/Duet.hs "partB ::"
 ```
 
 ### Examples
@@ -733,10 +733,10 @@ In the [sample source code][Duet.hs], I've included [my own puzzle
 input][testProg] provided to me from the advent of code website.  We can now
 get actual answers given some sample puzzle input:
 
-!!![testProg]:interpreters/Duet.hs "testProg ::"
+!!![testProg]:duet/Duet.hs "testProg ::"
 
 ```haskell
-!!!interpreters/Duet.hs "main ::"
+!!!duet/Duet.hs "main ::"
 ```
 
 And, as a stack script, we can run this and see my own puzzle's answers:
