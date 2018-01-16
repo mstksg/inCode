@@ -11,6 +11,7 @@
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE UndecidableInstances   #-}
+{-# LANGUAGE ViewPatterns           #-}
 
 import           Control.Applicative
 import           Control.Lens
@@ -22,7 +23,7 @@ import           Control.Monad.Writer
 import           Data.Char
 import           Data.Kind
 import           Data.Maybe
-import           Data.Monoid
+import           Data.Type.Combinator
 import           Data.Type.Disjunction
 import qualified Control.Monad.Trans.Accum as A
 import qualified Data.List.PointedList     as P
@@ -240,6 +241,21 @@ testProg = unlines
     , "jgz f -16"
     , "jgz a -19"
     ]
+
+type PSL s = ALens' s ProgState
+
+interpMemPSL
+    :: (MonadState s m, MonadFail m)
+    => C (PSL s) a
+    -> Mem a
+    -> m a
+interpMemPSL (C (cloneLens->l)) = \case
+    MGet c   -> use (l . psRegs . at c . non 0)
+    MSet c x -> l . psRegs . at c . non 0 .= x
+    MJmp n   -> do
+      Just t' <- P.moveN n <$> use (l . psTape)
+      l . psTape .= t'
+    MPk      -> use (l . psTape . P.focus)
 
 instance (Monoid w, Monad m) => MonadAccum w (A.AccumT w m) where
     add = A.add

@@ -534,11 +534,13 @@ is already in *[transformers-0.5.5.0][]*.
 
 [transformers-0.5.5.0]: https://hackage.haskell.org/package/transformers-0.5.5.0
 
-For now, I've added `MonadAccum` and appropriate instances in the [sample
-source code][MonadAccum], but when the new version of *mtl* comes out, I'll be
-sure to update this post to take this into account!
+For now, [I've added `MonadAccum`][MonadAccum] and [appropriate
+instances][MonadAccumInstances] in the sample source code, but when the new
+version of *mtl* comes out, I'll be sure to update this post to take this into
+account!
 
-!!![MonadAccum]:duet/Duet.hs "class (Monad m, Monoid w) => MonadAccum w m" "instance (Monoid w, Monad m) => MonadAccum w (A.AccumT w m)"
+!!![MonadAccum]:duet/Duet.hs "class (Monad m, Monoid w) => MonadAccum w m"
+!!![MonadAccumInstances]:duet/Duet.hs "instance (Monoid w, Monad m) => MonadAccum w (A.AccumT w m)"
 
 ### Interpreting Com for Part B
 
@@ -780,6 +782,128 @@ including --
 The *type-combinators* library opens up a lot of doors to combining
 modular interpreters in more complex ways, as well!
 
+### Functor conjunctions
+
+We see that `:|:` (functor disjunction) can be used to merge sets of
+primitives.  We can also use `:&:` (functor conjunction), also known as `:*:`
+from *Generics.GHC* and `Product` from *Data.Functor.Product*!
+
+```haskell
+newtype (f :&: g) a = f a :&: g a
+```
+
+Used with GADTs representing primitives, `:&:` lets us "tag" our primitives
+with extra things.
+
+For example, we were pretty sneaky earlier by using `zoom` to manually lift our
+`Mem` interpreter to work on specific threads.  Instead, we can actually use
+`Const Int` to attach a thread ID to `Mem`s:
+
+```haskell
+-- | type-combinators exports its own version of 'Const'
+newtype C r a = C { getC :: r }
+
+-- | Peek into Thread 0
+C 0 :&: MPk         :: (C Int :&: Mem) Op
+
+-- | Get contents of register 'c' of Thread 1
+C 1 :&: MGet 'c'    :: (C Int :&: Mem) Int
+```
+
+And hey, we can even make things more type-safe by attaching a `Lens'`,
+instead:
+
+```haskell
+type PSL s = ALens' s ProgState
+
+-- | Peek into Thread 0
+C (_1 . tState) :&: MPk         :: (C (PSL (Thread, t)) :&: Mem) Op
+
+-- | Get register 'c' of Thread 1
+C (_2 . tState) :&: MGet 'c'    :: (C (PSL (t, Thread)) :&: Mem) Int
+```
+
+Something of type `(C (PSL (Thread, t)) :&: Mem) Op` is an action that gets an
+`Op`, tagged with a lens to access a `ProgState` in a state of type `(Thread,
+t)`.  So, instead of manually zooming ad-hoc, we can zoom based on a lens
+attached to a `Mem`.
+
+The advantage we gain by using these tags is that we now have an approach that
+can be generalized to multiple threads, as well.
+
+```haskell
+!!!duet/Duet.hs "interpMemPSL ::"
+```
+
+Note that since `PSL` is an `ALens'` (which is required, if we want to store a
+lens in a newtype), we have to use `cloneLens :: ALens' s a -> Lens s a` to
+convert it back to a normal `Lens`.
+
+We can then use the analogy of `>|<`, `uncurryFan`:
+
+```haskell
+uncurryFan
+    :: (forall x. f x -> g x -> r)
+    -> (f :&: g) a
+    -> r
+
+uncurryFan interpMemPSL
+    :: (MonadState s m, MonadFail m)
+    => (C (PSL s) :&: Mem) a
+    -> m a
+```
+
+We can build interpreters of combinations of `:|:` and `:&:` by using
+combinations of `>|<` and `uncurryFan`.
+
+```haskell
+interpMem >|< interpComB
+    :: ( MonadWriter [Int] m
+       , MonadFail m
+       , MonadState Thread m
+       )
+    => (Mem :|: Com) a
+    -> m a
+
+uncurryFan interpMemPSL >|< interpComB
+    :: ( MonadWriter [Int] m
+       , MonadFail m
+       , MonadState s m
+       )
+    => ((C (PSL s) :&: Mem) :|: Com) a
+    -> m a
+```
+
+### Manipulating Disjunctions and Conjunctions
+
+So, we have a `Mem :|: Conj`.  How could we "tag" our `Mem` after-the-fact, to
+add `C (PSL s)`?  We can manipulate the structure of conjunctions and
+disjunctions using the `Bifunctor1` from *Type.Class.Higher*, in
+*type-combinators*.
+
+`bimap1` can be used to modify either half of a `:|:` or `:&:`:
+
+```haskell
+bimap1
+    :: (forall x. f x -> h x)
+    -> (forall x. g x -> j x)
+    -> (f :|: g) a
+    -> (h :|: j) a
+
+bimap1
+    :: (forall x. f x -> h x)
+    -> (forall x. g x -> j x)
+    -> (f :&: g) a
+    -> (h :&: j) a
+```
+
+So we can "tag" the `Mem` in `Mem :|: Cmd` using:
+
+```haskell
+bimap1 (C (_1 . tState) :&:) id
+    :: (           Mem            :|: Com) a
+    -> ((PSL (Thread, t) :&: Mem) :|: Com) a
+```
 
 ### Many sets of primitives
 
@@ -796,5 +920,41 @@ finj :: Mem a -> FSum '[Mem, Com, Foo] a
 finj :: Com a -> FSum '[Mem, Com, Foo] a
 finj :: Foo a -> FSum '[Mem, Com, Foo] a
 
-prompt (finj MPk) :: Prompt (FSum '[Mem, Com, Foo]) Op
+prompt (finj (MGet 'c')) :: Prompt (FSum '[Mem, Com, Foo]) Int
 ```
+
+There isn't really a built-in way to handle these, but you can whip up a
+utility function with `Prod` (from *type-combinators*) and `ifoldMapFSum`.
+
+```haskell
+newtype Handle a r f = Handle { runHandle :: f a -> r }
+
+handleFSum :: Prod (Handle a r) fs -> FSum fs a -> r
+handleFSum hs = ifoldMapFSum $ \i -> runHandle $ index i hs
+```
+
+`Prod` lets you bunch up a bunch of handlers together, so you can build
+handlers like:
+
+```haskell
+handleMem :: Mem a -> m a
+handleCom :: Com a -> m a
+handleFoo :: Foo a -> m a
+
+handleFSum (Handle handleMem :< Handle handleCom :< Handle handleFoo :< Ø)
+    :: FSum '[Mem, Com, Foo] a -> m a
+
+runPromptM (handleFSum ( Handle handleMem
+                      :< Handle handleCom
+                      :< Handle handleFoo
+                      :< Ø)
+           )
+    :: Prompt (FSum '[Mem, Com, Foo]) a -> m a
+```
+
+
+### Endless Possibilities
+
+Hopefully this post inspires you a bit about this fun design pattern!  And,
+if anything, I hope after reading this, you learn to recognize situations where
+the interpreter pattern might be useful in your everyday programming.
