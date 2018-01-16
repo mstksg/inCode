@@ -242,21 +242,6 @@ testProg = unlines
     , "jgz a -19"
     ]
 
-type PSL s = ALens' s ProgState
-
-interpMemPSL
-    :: (MonadState s m, MonadFail m)
-    => C (PSL s) a
-    -> Mem a
-    -> m a
-interpMemPSL (C (cloneLens->l)) = \case
-    MGet c   -> use (l . psRegs . at c . non 0)
-    MSet c x -> l . psRegs . at c . non 0 .= x
-    MJmp n   -> do
-      Just t' <- P.moveN n <$> use (l . psTape)
-      l . psTape .= t'
-    MPk      -> use (l . psTape . P.focus)
-
 instance (Monoid w, Monad m) => MonadAccum w (A.AccumT w m) where
     add = A.add
     look = A.look
