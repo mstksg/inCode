@@ -466,13 +466,22 @@ Nothing too surprising here -- we just interpret every primitive in our monadic
 context.
 
 We use `MonadFail` to explicitly state that we rely on a failed pattern match
-for control flow.  `P.moveN :: Int -> P.PointedList a -> Maybe (P.PointedList
+for control flow.[^MonadFail]  `P.moveN :: Int -> P.PointedList a -> Maybe (P.PointedList
 a)` will "shift" a `PointedList` by a given amount, but will return `Nothing`
 if it goes out of bounds.  Our program is meant to terminate if we ever go out
 of bounds, so we can implement this by using a do block pattern match with
 `MonadFail`. For instances like `MaybeT`/`Maybe`, this means
 `empty`/`Nothing`/short-circuit.  So when we `P.move`, we do-block pattern
 match on `Just t'`.
+
+[^MonadFail]: Using `MonadFail` in situations were we would normally use
+`Alternative`/`MonadPlus`, to take advantage of pattern match syntax in do
+block and have it work with `Alternative` combinators like `many`, is
+[coming][mf]!  For good hygiene, remember to turn on the
+*-XMonadFailDesugaring* extension so that pattern match failures explicitly use
+`fail` from `MonadFail`, thus requiring the typeclass constraint.
+
+[mf]: https://wiki.haskell.org/MonadFail_Proposal
 
 We also use `P.focus :: Lens' (P.PointedList a) a`, a lens that the
 *pointedlist* library provides to the current "focus" of the `PointedList`.
