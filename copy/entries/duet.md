@@ -1,5 +1,5 @@
 ---
-title: "Interpreters a la Carte" in Advent of Code 2017 Duet
+title: "\"Interpreters a la Carte\" in Advent of Code 2017 Duet"
 categories: Haskell
 series: Beginner/Intermediate Haskell Projects
 tags: functional programming, haskell, types, lens
