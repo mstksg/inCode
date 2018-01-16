@@ -127,7 +127,7 @@ these machines.
 
 However, note that these two machines aren't *completely* different -- they
 both have the ability to manipulate memory and read/shift program data.  So
-really , we want to be able to create a "modular" spec and implementation of
+really, we want to be able to create a "modular" spec and implementation of
 these machines, so that we may re-use this memory manipulation aspect when
 constructing our machine, without duplicating any code.
 
@@ -190,7 +190,7 @@ of my greatest Haskell regrets.
 
 *MonadPrompt* lets us construct a language (and a monad) using GADTs to
 represent command primitives.  For example, to implement something like `State
-Int`, you might use this GADT:
+Int` (which we'll call `IntState`), you might use this GADT:
 
 ```haskell
 data StateCommand :: Type -> Type where
@@ -203,17 +203,19 @@ For those unfamiliar with GADT syntax, this is declaring a data type
 creates a `StateCommand ()`, and `Get`, which takes no parameters and creates a
 `StateCommand Int`.
 
-Our GADT here says that the two "primitive" commands of `State Int` are
+Our GADT here says that the two "primitive" commands of `IntState` are
 "putting" (which requires an `Int` and produces a `()` result) and "getting"
 (which requires no inputs, and produces an `Int` result).
 
-You can then write `State Int` as:
+You can then write `IntState` as:
 
 ```haskell
 type IntState = Prompt StateCommand
 ```
 
-And our primitives can be constructed using:
+Which is an appropriate Functor, Applicative, and Monad.
+
+And our primitives can be constructed using `prompt`:
 
 ```haskell
 prompt :: StateCommand a -> IntState a
@@ -385,18 +387,19 @@ polymorphically:
 !!!duet/Duet.hs "data ProgState ="
 ```
 
+We store the current program and program head with the `PointedList`, and also
+represent the register contents with a `Map Char Int`.
+
 #### Brief Aside on Lenses with State
 
 Using *[lens][]* with lenses (especially classy ones) is one of the only things
 that makes programming against `State` with non-trivial state bearable for me!
-We store the current program and program head with the `PointedList`, and also
-represent the register contents with a `Map Char Int`.
+`makeClassy` gives us a typeclass `HasProgState`, which is for things that
+"have" a `ProgState`, as well as lenses into the `psTape` and `psRegs` field
+for that type.  We can use these lenses with *lens* library machinery:
+
 
 [lens]: http://hackage.haskell.org/package/lens
-
-`makeClassy` gives us a typeclass `HasProgState`, which is for things that
-"have" a `ProgState`, as well as lenses into the `psTape` and `psRegs`
-field for that type.  We can use these lenses with *lens* library machinery:
 
 ```haskell
 -- | "get" based on a lens
@@ -452,12 +455,15 @@ psRegs . at 'h' . non 0 :: HasProgState s => Lens' s Int
 
 #### Interpreting Mem
 
-With these tools to make life simpler, we can write an interpreter for our
-`Mem` commands:
+With these tools to make life easier, we can write an interpreter for our `Mem`
+commands:
 
 ```haskell
 !!!duet/Duet.hs "interpMem"
 ```
+
+Nothing too surprising here -- we just interpret every primitive in our monadic
+context.
 
 We use `MonadFail` to explicitly state that we rely on a failed pattern match
 for control flow.  `P.moveN :: Int -> P.PointedList a -> Maybe (P.PointedList

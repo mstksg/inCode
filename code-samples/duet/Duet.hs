@@ -56,7 +56,7 @@ parseProgram = fromJust . P.fromList . map parseOp . lines
 data Mem :: Type -> Type where
     MGet :: Char -> Mem Int
     MSet :: Char -> Int -> Mem ()
-    MJmp :: Int -> Mem ()
+    MJmp :: Int  -> Mem ()
     MPk  :: Mem Op
 
 data Com :: Type -> Type where
@@ -135,8 +135,9 @@ interpComA = \case
     CSnd x ->
       add (Last (Just x))
     CRcv x -> do
-      when (x /= 0) $         -- don't rcv if the register parameter is 0
-        tell . First . getLast =<< look
+      when (x /= 0) $ do      -- don't rcv if the register parameter is 0
+        Last lastSent <- look
+        tell (First lastSent)
       return x
 
 stepA :: MaybeT (StateT ProgState (WriterT (First Int) (A.Accum (Last Int)))) ()
