@@ -1,5 +1,5 @@
 ---
-title: "Interpreters a la Carte in Advent of Code 2017 Duet"
+title: "Interpreters a la Carte" in Advent of Code 2017 Duet
 categories: Haskell
 series: Beginner/Intermediate Haskell Projects
 tags: functional programming, haskell, types, lens
@@ -762,8 +762,8 @@ Just 7071
 8001
 ```
 
-Wrap Up and Expansion
----------------------
+Wrap Up
+-------
 
 That's it!  Hope you enjoyed some of the techniques used in this post,
 including --
@@ -778,11 +778,12 @@ including --
 5.  Programming against polymorphic monadic contexts like `MonadState`,
     `MonadWriter`, `MonadAccum`, etc.
 
+### Pushing the Boundaries
 
 The *type-combinators* library opens up a lot of doors to combining
 modular interpreters in more complex ways, as well!
 
-### Functor conjunctions
+#### Functor conjunctions
 
 We see that `:|:` (functor disjunction) can be used to merge sets of
 primitives.  We can also use `:&:` (functor conjunction), also known as `:*:`
@@ -874,7 +875,7 @@ uncurryFan interpMemPSL >|< interpComB
     -> m a
 ```
 
-### Manipulating Disjunctions and Conjunctions
+#### Manipulating Disjunctions and Conjunctions
 
 So, we have a `Mem :|: Conj`.  How could we "tag" our `Mem` after-the-fact, to
 add `C (PSL s)`?  We can manipulate the structure of conjunctions and
@@ -900,9 +901,25 @@ bimap1
 So we can "tag" the `Mem` in `Mem :|: Cmd` using:
 
 ```haskell
+type MemAt s = C (PSL s) :&: Mem
+
 bimap1 (C (_1 . tState) :&:) id
-    :: (           Mem            :|: Com) a
-    -> ((PSL (Thread, t) :&: Mem) :|: Com) a
+    :: (       Mem       :|: Com) a
+    -> (MemAt (Tread, t) :|: Com) a
+```
+
+Which we can use to re-tag a `Prompt (Mem :|: Com)`, with the help of
+`runPromptM`:
+
+```haskell
+\f -> runPromptM (prompt . f)
+    :: (forall x. f x -> g x)
+    -> Prompt f a
+    -> Prompt g a
+
+runPromptM (prompt . bimap1 ((C _1 . tState) :&:) id)
+    :: Prompt (      Mem        :|: Com) a
+    -> Prompt (MemAt (Tread, t) :|: Com) a
 ```
 
 ### Many sets of primitives
@@ -953,7 +970,7 @@ runPromptM (handleFSum ( Handle handleMem
 ```
 
 
-### Endless Possibilities
+#### Endless Possibilities
 
 Hopefully this post inspires you a bit about this fun design pattern!  And,
 if anything, I hope after reading this, you learn to recognize situations where
