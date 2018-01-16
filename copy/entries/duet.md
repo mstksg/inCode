@@ -593,7 +593,8 @@ for each side.  For example, with more concrete types:
       -> ((Mem :|: Com) a -> r)
 ```
 
-We can use this to build an interpreter for `Duet`:
+We can use this to build an interpreter for `Duet`, which goes into
+`runPromptM`, by using `>|<` to generate our compound interpreters.
 
 ```haskell
 runPromptM
@@ -603,10 +604,9 @@ runPromptM
     -> m a
 ```
 
-By using `>|<` to generate our compound interpreters.  This is how we can
-create interpreters on `Duet` by "combining", in a modular way, interpreters
-for `Mem` and `Com`.  This is the essence of the "data types a la carte"
-technique.
+This is how we can create interpreters on `Duet` by "combining", in a modular
+way, interpreters for `Mem` and `Com`.  This is the essence of the "data types
+a la carte" technique.
 
 Getting the Results
 -------------------
@@ -661,9 +661,10 @@ MaybeT m a -> MaybeT m [a]`, which repeats a `MaybeT` action several times
 until a failure is encountered.  In our case, "failure" is when the tape goes
 out of bounds.
 
-But, because of laziness, our computation terminates as soon as a valid `CRcv`
-is found and a `First Int` is logged to the `Writer`, so we don't actually need
-to run the computation until it goes out of bounds.
+Note, however, that if we only want the value of the `First Int` in the
+`WriterT`, this will actually only repeat `stepA` until the first valid `CRcv`
+is used `tell`'d, thanks to laziness.  If we only ask for the `First Int`,
+it'll stop running the rest of the computation!
 
 Here is the entirety of running Part A -- as you can see, it consists mostly of
 unwrapping *transformers* newtype wrappers.
@@ -733,6 +734,12 @@ use `many` again to run these multiple times until both threads block.
 !!!duet/Duet.hs "partB ::"
 ```
 
+
+`many :: MaybeT s Int -> MaybeT s [Int]`, so `runMaybeT` gives us a `Maybe
+[Int]`, where each item in the resulting list is the number of items emitted by
+Program 1 at every iteration of `stepB`.  To get our final answer, we only need
+to sum.
+
 ### Examples
 
 In the [sample source code][Duet.hs], I've included [my own puzzle
@@ -751,4 +758,43 @@ And, as a stack script, we can run this and see my own puzzle's answers:
 $ ./Duet.hs
 Just 7071
 8001
+```
+
+Wrap Up and Expansion
+---------------------
+
+That's it!  Hope you enjoyed some of the techniques used in this post,
+including --
+
+1.  Leveraging the interpreter pattern to create a monad that can be
+    interpreted in multiple contexts with multiple different interpreters
+2.  Using functor disjunctions like `:|:` (or `:+:`, `Sum`, etc.) to combine
+    interpretable primitives
+3.  Writing modular interpreters for each set of primitives, then using
+    deconstructors like `>|<` to easily combine and swap out interpreters.
+4.  Lenses with State and classy lenses
+5.  Programming against polymorphic monadic contexts like `MonadState`,
+    `MonadWriter`, `MonadAccum`, etc.
+
+
+The *type-combinators* library opens up a lot of doors to combining
+modular interpreters in more complex ways, as well!
+
+
+### Many sets of primitives
+
+Instead of `f >|< g >|< h`, you can use `FSum '[f, g, h]` to combine
+multiple sets of primitives in a clean way.
+
+If there are no duplicates in your type-level list, you can even use `finj`
+to create your `FSum`s automatically:
+
+```haskell
+finj :: f ∈ fs => f a -> FSum fs a
+
+finj :: Mem a -> FSum '[Mem, Com, Foo] a
+finj :: Com a -> FSum '[Mem, Com, Foo] a
+finj :: Foo a -> FSum '[Mem, Com, Foo] a
+
+prompt (finj MPk) :: Prompt (FSum '[Mem, Com, Foo]) Op
 ```
