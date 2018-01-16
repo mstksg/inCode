@@ -832,7 +832,7 @@ The advantage we gain by using these tags is that we now have an approach that
 can be generalized to multiple threads, as well.
 
 ```haskell
-!!!duet/Duet.hs "interpMemPSL ::"
+!!!duet/Duet.hs "interpMemPSL"
 ```
 
 Note that since `PSL` is an `ALens'` (which is required, if we want to store a
