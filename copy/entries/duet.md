@@ -938,7 +938,7 @@ utility function with `Prod` (from *type-combinators*) and `ifoldMapFSum`.
 newtype Handle a r f = Handle { runHandle :: f a -> r }
 
 handleFSum :: Prod (Handle a r) fs -> FSum fs a -> r
-handleFSum hs = ifoldMapFSum $ \i -> runHandle $ index i hs
+handleFSum hs = ifoldMapFSum $ \i -> runHandle (index i hs)
 ```
 
 `Prod` lets you bunch up a bunch of handlers together, so you can build
