@@ -184,7 +184,7 @@ stepB = do
     return $ length outB
 
 partB :: P.PointedList Op -> Int
-partB ops = sum . concat
+partB ops = maybe (error "`many` cannot fail") sum
           . flip evalState s0
           . runMaybeT
           $ many stepB
