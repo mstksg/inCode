@@ -431,10 +431,10 @@ use psRegs  :: (HasProgState s, MonadState s m) => m (M.Map Char Int)
 (psTape .=) :: (HasProgState s, MonadState s m) => P.PointedList Op -> m ()
 ```
 
-The nice thing about lenses is that they compose, so, for example, we have:
+The nice thing about lenses is that they compose.  For example, we have:
 
 ```haskell
-at :: k -> Lens' (Map k    v  ) (Maybe v)
+at :: k -> Lens' (Map k    v  ) (Maybe v  )
 
 at 'h'  :: Lens' (Map Char Int) (Maybe Int)
 ```
@@ -495,9 +495,9 @@ block and have it work with `Alternative` combinators like `many`, is
 We also use `P.focus :: Lens' (P.PointedList a) a`, a lens that the
 *pointedlist* library provides to the current "focus" of the `PointedList`.
 
-Note that most of this usage of lens with state is not exactly necessary (we
-can manually use `modify`, `gets`, etc. instead of lenses and operators), but
-it does make things a bit more convenient to write.
+Again, this usage of lens with `MonadState` is not exactly necessary (we can
+manually use `modify`, `gets`, etc. instead of lenses and operators), but it
+does make things a bit more convenient to write.
 
 #### GADT Property
 
@@ -524,8 +524,8 @@ type while handling a given constructor/primitive.
 
 Now, Part A requires an environment where:
 
-1.  `CSnd` "emits" items into the void, keeping track only of the *last*
-    emitted item
+1.  `CSnd` "emits" items (as sounds), keeping track only of the *last* emitted
+    item
 2.  `CRcv` "catches" the last thing seen by `CSnd`, keeping track of only the
     *first* caught item
 
@@ -608,8 +608,8 @@ Basically, `>|<` lets us write a "handler" for a `:|:` by providing a handler
 for each side.  For example, with more concrete types:
 
 ```haskell
-(>|<) :: (Mem a -> r)
-      -> (Com a -> r)
+(>|<) :: (Mem a           -> r)
+      -> (Com a           -> r)
       -> ((Mem :|: Com) a -> r)
 ```
 
@@ -758,8 +758,8 @@ use `many` again to run these multiple times until both threads block.
 `many :: MaybeT s Int -> MaybeT s [Int]`, so `runMaybeT` gives us a `Maybe
 [Int]`, where each item in the resulting list is the number of items emitted by
 Program 1 at every iteration of `stepB`.  Note that `many` produces an action
-that *cannot fail*, so its result *must be `Just`*.  To get our final answer,
-we only need to sum.
+that is guaranteed to succeed, so its result *must be `Just`*.  To get our
+final answer, we only need to sum.
 
 ### Examples
 

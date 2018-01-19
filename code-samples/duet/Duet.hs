@@ -137,7 +137,7 @@ interpComA = \case
     CSnd x ->
       add (Last (Just x))
     CRcv x -> do
-      when (x /= 0) $ do      -- don't rcv if the register parameter is 0
+      unless (x == 0) $ do      -- don't rcv if the register parameter is 0
         Last lastSent <- look
         tell (First lastSent)
       return x
