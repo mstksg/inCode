@@ -10,16 +10,16 @@ slug: interpreters-a-la-carte-duet
 ---
 
 This post is just a fun one exploring a wide range of techniques that I applied
-to solve the Day 18 puzzles of this year's great [Advent of Code][aoc].  The
-puzzles involved interpreting an assembly language on an abstract machine.  The
-neat twist is that Part A gave you a description of one abstract machine, and
-Part B gave you a *different* abstract machine to interpret the same language
-in.  This twist (one language, but different interpreters/abstract machines) is
-basically one of the textbook applications of the *interpreter pattern* in
-Haskell and functional programming, so it was fun to implement my solution in
-that pattern -- the assembly language source was "compiled" to an abstract data
-type once, and the difference between Part A and Part B was just a different
-choice of interpreter.
+to solve the Day 18 puzzles of this past year's great [Advent of Code][aoc].
+The puzzles involved interpreting an assembly language on an abstract machine.
+The neat twist is that Part A gave you a description of *one abstract machine*,
+and Part B gave you a *different* abstract machine to interpret the *same
+language* in.  This twist (one language, but different interpreters/abstract
+machines) is basically one of the textbook applications of the *interpreter
+pattern* in Haskell and functional programming, so it was fun to implement my
+solution in that pattern --- the assembly language source was "compiled" to an
+abstract monad once, and the difference between Part A and Part B was just a
+different choice of interpreter.
 
 [aoc]: http://adventofcode.com/2017
 
@@ -116,16 +116,17 @@ Part B, however, says:
 > Once both of your programs have terminated (regardless of what caused
 > them to do so), *how many times did program `1` send a value*?
 
-Note that in each of these, "the program" is a program (written in the Duet
-assembly language), which is different for each user and given to us by the
-site.
+(In each of these, "the program" is a program (written in the Duet assembly
+language), which is different for each user and given to us by the site.  If
+you sign up and view the page, you will see a link to your own unique program
+to run.)
 
 What's going on here is that both parts execute the same program in two
-different virtual machines -- one has "sound" and "recover", and the other has
+different virtual machines --- one has "sound" and "recover", and the other has
 "send" and "receive".  We are supposed to run the same program in *both* of
 these machines.
 
-However, note that these two machines aren't *completely* different -- they
+However, note that these two machines aren't *completely* different --- they
 both have the ability to manipulate memory and read/shift program data.  So
 really, we want to be able to create a "modular" spec and implementation of
 these machines, so that we may re-use this memory manipulation aspect when
@@ -199,7 +200,7 @@ data StateCommand :: Type -> Type where
 ```
 
 For those unfamiliar with GADT syntax, this is declaring a data type
-`StateCommand a` with two constructors -- `Put`, which takes an `Int` and
+`StateCommand a` with two constructors --- `Put`, which takes an `Int` and
 creates a `StateCommand ()`, and `Get`, which takes no parameters and creates a
 `StateCommand Int`.
 
@@ -213,9 +214,10 @@ You can then write `IntState` as:
 type IntState = Prompt StateCommand
 ```
 
-Which is an appropriate Functor, Applicative, and Monad.
+which automatically has the appropriate Functor, Applicative, and Monad
+instances.
 
-And our primitives can be constructed using `prompt`:
+Our primitives can be constructed using `prompt`:
 
 ```haskell
 prompt :: StateCommand a -> IntState a
@@ -256,14 +258,14 @@ interpretIO r = \case           -- using -XLambdaCase
     Put x -> writeIORef r x
     Get   -> readIORef r
 
-runAsIO :: IntState a -> Int -> IO a
+runAsIO :: IntState a -> Int -> IO (a, Int)
 runAsIO m s0 = do
-    r <- newIORef s0
-    runPromptM (interpretIO r) m
+    ref <- newIORef s0
+    runPromptM (interpretIO ref) m
 ```
 
 `interpretIO` is our interpreter, in `IO`.  `runPromptM` will interpret each
-primitive (`Put` and `Get`) using `interpretIO`, and generate the result for
+primitive (`Put` and `Get`) using `interpretIO` and generate the result for
 us.
 
 Note that the GADT property of `StateCommand` ensures us that the *result* of
@@ -295,7 +297,8 @@ StateCommand x -> m x`, which interprets each individual primitive command.
 Now let's specify the "primitives" of our program.  It'll be useful to separate
 out the "memory-based" primitive commands from the "communication-based"
 primitive commands.  This is so that we can write interpreters that operate on
-each one individually.
+each one individually, and re-use our memory-based primitives and interpreters
+for both parts of the puzzle.
 
 For memory, we can access and modify register values, as well as jump around in
 the program tape and read the `Op` at the current program head:
@@ -323,7 +326,7 @@ data (f :|: g) a = L (f a)
                  | R (g a)
 ```
 
-`:|:` is a "functor disjunction" -- a value of type `(f :|: g) a` is either `f
+`:|:` is a "functor disjunction" --- a value of type `(f :|: g) a` is either `f
 a` or `g a`.  `:|:` is in *base* twice, as `:+:` in *GHC.Generics* and as `Sum`
 in *Data.Functor.Sum*.  However, the version in *type-combinators* has some
 nice utility combinators we will be using and is more fully-featured.
@@ -341,8 +344,8 @@ R (CSnd 5)   :: (Mem :|: Com) ()
 
 etc.
 
-Our final data type then -- a monad that encompasses *all* possible Duet
-primitive commands, is:
+Our final data type then --- a monad that encompasses *all* possible Duet
+primitive commands --- is:
 
 ```haskell
 !!!duet/Duet.hs "type Duet ="
@@ -431,7 +434,7 @@ at 'h'  :: Lens' (Map Char Int) (Maybe Int)
 ```
 
 We can use `at 'c'` to give us a lens from our registers (`Map Char Int`) into
-the specific register `'c'` as a `Maybe Int` -- it's `Nothing` if the item is
+the specific register `'c'` as a `Maybe Int` --- it's `Nothing` if the item is
 not in the `Map`, and `Just` if it is (with the value).
 
 However, we want to treat all registers as `0` by default, not as `Nothing`, so
@@ -462,7 +465,7 @@ commands:
 !!!duet/Duet.hs "interpMem"
 ```
 
-Nothing too surprising here -- we just interpret every primitive in our monadic
+Nothing too surprising here --- we just interpret every primitive in our monadic
 context.
 
 We use `MonadFail` to explicitly state that we rely on a failed pattern match
@@ -537,7 +540,7 @@ functions to "tell" to a `MonadAccum` and the function to "get"/"ask" from a
 
 #### MonadAccum
 
-Small relevant note -- `MonadAccum` does not yet exist in *mtl*, though it
+Small relevant note --- `MonadAccum` does not yet exist in *mtl*, though it
 probably will in the next version.  It's the classy version of `AccumT`, which
 is already in *[transformers-0.5.5.0][]*.
 
@@ -626,7 +629,7 @@ We now just have to pick concrete monads now for us to interpret into.
 
 ### Part A
 
-Our interpreter for Part A is `interpMem >|< interpComA` -- we interpret the
+Our interpreter for Part A is `interpMem >|< interpComA` --- we interpret the
 `Mem` primitives the usual way, and interpret the `Com` primitives the Part A
 way.
 
@@ -677,8 +680,8 @@ Note, however, that if we only want the value of the `First Int` in the
 is used `tell`'d, thanks to laziness.  If we only ask for the `First Int`,
 it'll stop running the rest of the computation!
 
-Here is the entirety of running Part A -- as you can see, it consists mostly of
-unwrapping *transformers* newtype wrappers.
+Here is the entirety of running Part A --- as you can see, it consists mostly
+of unwrapping *transformers* newtype wrappers.
 
 ```haskell
 !!!duet/Duet.hs "partA ::"
@@ -724,7 +727,7 @@ have, in the end:
 !!!duet/Duet.hs "stepB ::"
 ```
 
-Our final `stepB` really doesn't need a `WriterT [Int]` -- we just use that
+Our final `stepB` really doesn't need a `WriterT [Int]` --- we just use that
 internally to collect *snd* outputs.  So we use `execWriter` after
 "interpreting" our actions (along with `many`, to repeat our thread steps until
 they block) to just get the resulting logs.
