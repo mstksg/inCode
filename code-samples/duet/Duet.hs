@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --install-ghc runghc --resolver lts-10.3 --package MonadPrompt --package pointedlist --package lens --package type-combinators --package transformers-0.5.5.0 --package mtl --package containers -- -Wall
+-- stack --install-ghc runghc --resolver lts-10.3 --package operational --package pointedlist --package lens --package type-combinators --package transformers-0.5.5.0 --package mtl --package containers -- -Wall
 
 {-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE FlexibleInstances      #-}
@@ -17,7 +17,7 @@
 import           Control.Applicative
 import           Control.Lens
 import           Control.Monad.Fail
-import           Control.Monad.Prompt
+import           Control.Monad.Operational
 import           Control.Monad.State
 import           Control.Monad.Trans.Maybe
 import           Control.Monad.Writer
@@ -64,25 +64,25 @@ data Com :: Type -> Type where
     CSnd :: Int -> Com ()
     CRcv :: Int -> Com Int
 
-type Duet = Prompt (Mem :|: Com)
+type Duet = Program (Mem :|: Com)
 
 dGet :: Char -> Duet Int
-dGet = prompt . L . MGet
+dGet = singleton . L . MGet
 
 dSet :: Char -> Int -> Duet ()
-dSet r = prompt . L . MSet r
+dSet r = singleton . L . MSet r
 
 dJmp :: Int -> Duet ()
-dJmp = prompt . L . MJmp
+dJmp = singleton . L . MJmp
 
 dPk :: Duet Op
-dPk = prompt (L MPk)
+dPk = singleton (L MPk)
 
 dSnd :: Int -> Duet ()
-dSnd = prompt . R . CSnd
+dSnd = singleton . R . CSnd
 
 dRcv :: Int -> Duet Int
-dRcv = prompt . R . CRcv
+dRcv = singleton . R . CRcv
 
 stepProg :: Duet ()
 stepProg = dPk >>= \case
@@ -143,7 +143,7 @@ interpComA = \case
       return x
 
 stepA :: MaybeT (StateT ProgState (WriterT (First Int) (A.Accum (Last Int)))) ()
-stepA = runPromptM (interpMem >|< interpComA) stepProg
+stepA = interpretWithMonad (interpMem >|< interpComA) stepProg
 
 partA :: P.PointedList Op -> Maybe Int
 partA ops = getFirst
@@ -175,10 +175,10 @@ interpComB = \case
 
 stepB :: MaybeT (State (Thread, Thread)) Int
 stepB = do
-    outA <- execWriterT $
-      zoom _1 . many $ runPromptM (interpMem >|< interpComB) stepProg
-    outB <- execWriterT $
-      zoom _2 . many $ runPromptM (interpMem >|< interpComB) stepProg
+    outA <- execWriterT . zoom _1 $
+      many $ interpretWithMonad (interpMem >|< interpComB) stepProg
+    outB <- execWriterT . zoom _2 $
+      many $ interpretWithMonad (interpMem >|< interpComB) stepProg
     _1 . tBuffer .= outB
     _2 . tBuffer .= outA
     guard . not $ null outA && null outB

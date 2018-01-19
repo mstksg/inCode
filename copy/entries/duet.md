@@ -170,26 +170,28 @@ collecting them into a `PointedList`.  We're ready to go!
 Our Virtual Machine
 -------------------
 
-### MonadPrompt
+### Operational
 
-We're going to be using the great *[MonadPrompt][]* library[^mprompt] to build
+We're going to be using the great *[operational][]* library[^mprompt] to build
 our representation of our interpreted language.  Another common choice is to
 use *[free][]*, and a lot of other tutorials go down this route.  However,
 *free* is a bit more power than you really need for the interpreter pattern,
 and I always felt like the implementation of interpreter pattern programs in
 *free* was a bit awkward.
 
-[MonadPrompt]: http://hackage.haskell.org/package/MonadPrompt
+[operational]: http://hackage.haskell.org/package/operational
 [free]: http://hackage.haskell.org/package/free
 
-[^mprompt]: Not to be confused with the [prompt][] library, which is more or
-less unrelated!  The library is actually my own that I wrote a few years back
-before I knew about MonadPrompt, and this unfortunate naming collision is one
-of my greatest Haskell regrets.
+[^mprompt]: You could also use the more-or-less identical [MonadPrompt][]
+library.  However, this is not to be confused with the [prompt][] library,
+which is unrelated!  The library is actually my own that I wrote a few years
+back before I knew about MonadPrompt, and this unfortunate naming collision is
+one of my greatest Haskell regrets.
 
+[MonadPrompt]: http://hackage.haskell.org/package/operational
 [prompt]: http://hackage.haskell.org/package/prompt
 
-*MonadPrompt* lets us construct a language (and a monad) using GADTs to
+*operational* lets us construct a language (and a monad) using GADTs to
 represent command primitives.  For example, to implement something like `State
 Int` (which we'll call `IntState`), you might use this GADT:
 
@@ -211,7 +213,7 @@ Our GADT here says that the two "primitive" commands of `IntState` are
 You can then write `IntState` as:
 
 ```haskell
-type IntState = Prompt StateCommand
+type IntState = Program StateCommand
 ```
 
 which automatically has the appropriate Functor, Applicative, and Monad
@@ -226,10 +228,11 @@ prompt (Put 10) :: IntState ()
 prompt Get      :: IntState Int
 ```
 
-Now, we *interpret* an `IntState` in a monadic context using `runPromptM`:
+Now, we *interpret* an `IntState` in a monadic context using the appropriately
+named `interpretWithMonad`:
 
 ```haskell
-runPromptM
+interpretWithMonad
     :: Monad m                              -- m is the monad to interpret in
     => (forall x. StateCommand x -> m x)    -- a way to interpret each primitive in 'm'
     -> IntState a                           -- IntState to interpret
@@ -261,10 +264,10 @@ interpretIO r = \case           -- using -XLambdaCase
 runAsIO :: IntState a -> Int -> IO (a, Int)
 runAsIO m s0 = do
     ref <- newIORef s0
-    runPromptM (interpretIO ref) m
+    interpretWithMonad (interpretIO ref) m
 ```
 
-`interpretIO` is our interpreter, in `IO`.  `runPromptM` will interpret each
+`interpretIO` is our interpreter, in `IO`.  `interpretWithMonad` will interpret each
 primitive (`Put` and `Get`) using `interpretIO` and generate the result for
 us.
 
@@ -513,7 +516,7 @@ what `use (psTape . P.focus) :: (MonadState s m, HasProgState s) => m Op`
 gives.
 
 The fact that we can use GADTs to specify the "result type" of each of our
-primitives is a key part about how `Prompt` from *MonadPrompt* works, and how
+primitives is a key part about how `Program` from *operational* works, and how
 it implements the interpreter pattern.
 
 This is enforced in Haskell's type system (through the "dependent pattern
@@ -614,10 +617,10 @@ for each side.  For example, with more concrete types:
 ```
 
 We can use this to build an interpreter for `Duet`, which goes into
-`runPromptM`, by using `>|<` to generate our compound interpreters.
+`interpretWithMonad`, by using `>|<` to generate our compound interpreters.
 
 ```haskell
-runPromptM
+interpretWithMonad
     :: Monad m
     => (forall x. (Mem x :|: Com x) -> m x)
     -> Duet a
@@ -911,18 +914,18 @@ bimap1 (C 0 :&:) id
     -> ((C Int :&: Mem) :|: Com) a
 ```
 
-Which we can use to re-tag a `Prompt (Mem :|: Com)`, with the help of
-`runPromptM`:
+Which we can use to re-tag a `Program (Mem :|: Com)`, with the help of
+`interpretWithMonad`:
 
 ```haskell
-\f -> runPromptM (prompt . f)
+\f -> interpretWithMonad (prompt . f)
     :: (forall x. f x -> g x)
-    -> Prompt f a
-    -> Prompt g a
+    -> Program f a
+    -> Program g a
 
-runPromptM (prompt . bimap1 (C 0 :&:) id)
-    :: Prompt (      Mem       :|: Com) a
-    -> Prompt ((C Int :&: Mem) :|: Com) a
+interpretWithMonad (prompt . bimap1 (C 0 :&:) id)
+    :: Program (      Mem       :|: Com) a
+    -> Program ((C Int :&: Mem) :|: Com) a
 ```
 
 ### Combining many different sets of primitives
@@ -943,7 +946,7 @@ finj :: Mem a -> FSum '[Mem, Com, Foo] a
 finj :: Com a -> FSum '[Mem, Com, Foo] a
 finj :: Foo a -> FSum '[Mem, Com, Foo] a
 
-prompt (finj (MGet 'c')) :: Prompt (FSum '[Mem, Com, Foo]) Int
+prompt (finj (MGet 'c')) :: Program (FSum '[Mem, Com, Foo]) Int
 ```
 
 There isn't really a built-in way to handle these, but you can whip up a
@@ -967,12 +970,13 @@ handleFoo :: Foo a -> m a
 handleFSum (Handle handleMem :< Handle handleCom :< Handle handleFoo :< Ø)
     :: FSum '[Mem, Com, Foo] a -> m a
 
-runPromptM (handleFSum ( Handle handleMem
-                      :< Handle handleCom
-                      :< Handle handleFoo
-                      :< Ø)
-           )
-    :: Prompt (FSum '[Mem, Com, Foo]) a -> m a
+interpretWithMonad
+        (handleFSum ( Handle handleMem
+                   :< Handle handleCom
+                   :< Handle handleFoo
+                   :< Ø)
+        )
+    :: Program (FSum '[Mem, Com, Foo]) a -> m a
 ```
 
 
