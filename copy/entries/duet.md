@@ -919,10 +919,12 @@ runPromptM (prompt . bimap1 (C 0 :&:) id)
     -> Prompt ((C Int :&: Mem) :|: Com) a
 ```
 
-### Many sets of primitives
+### Combining many different sets of primitives
 
-Instead of `f >|< g >|< h`, you can use `FSum '[f, g, h]` to combine
-multiple sets of primitives in a clean way.
+If we had three sets of primitives we wanted to combine, we might be tempted to
+use `f :|: g :|: h` and `handleF >|< handleG >|< handleH`.  However, there's a
+better way!  Instead of `f :|: g :|: h`, you can use `FSum '[f, g, h]` to
+combine multiple sets of primitives in a clean way.
 
 If there are no duplicates in your type-level list, you can even use `finj`
 to create your `FSum`s automatically:
