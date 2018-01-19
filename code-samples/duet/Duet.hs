@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --install-ghc runghc --resolver lts-10.3 --package MonadPrompt --package pointedlist --package lens --package type-combinators --package transformers-0.5.5.0 --package mtl --package containers
+-- stack --install-ghc runghc --resolver lts-10.3 --package MonadPrompt --package pointedlist --package lens --package type-combinators --package transformers-0.5.5.0 --package mtl --package containers -- -Wall
 
 {-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE FlexibleInstances      #-}
@@ -24,7 +24,6 @@ import           Control.Monad.Writer
 import           Data.Char
 import           Data.Kind
 import           Data.Maybe
-import           Data.Type.Combinator
 import           Data.Type.Disjunction
 import qualified Control.Monad.Trans.Accum as A
 import qualified Data.List.PointedList     as P
@@ -108,9 +107,10 @@ stepProg = dPk >>= \case
     addrVal (Left r ) = dGet r
     addrVal (Right x) = return x
 
-data ProgState = PS { _psTape :: P.PointedList Op
-                    , _psRegs :: M.Map Char Int
-                    }
+data ProgState = PS
+    { _psTape :: P.PointedList Op
+    , _psRegs :: M.Map Char Int
+    }
 makeClassy ''ProgState
 
 interpMem
@@ -153,9 +153,10 @@ partA ops = getFirst
           . runMaybeT
           $ many stepA
 
-data Thread = T { _tState   :: ProgState
-                , _tBuffer  :: [Int]
-                }
+data Thread = T
+    { _tState   :: ProgState
+    , _tBuffer  :: [Int]
+    }
 makeClassy ''Thread
 
 instance HasProgState Thread where

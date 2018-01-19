@@ -395,8 +395,14 @@ represent the register contents with a `Map Char Int`.
 
 #### Brief Aside on Lenses with State
 
-Using *[lens][]* with lenses (especially classy ones) is one of the only things
-that makes programming against `State` with non-trivial state bearable for me!
+We're going to be implementing our interpreters using *lens* machinery.  Keep
+in mind that this isn't necessary --- this just makes things a little simpler
+for me.  Using *lens* with classy lenses is one of the things that make
+programming against `State` with non-trivial state bearable for me, personally!
+However, keep in mind that the lens machinery is more or less unrelated to the
+interpreter pattern and is not necessary for it.  We're just using it here to
+make `State` and `MonadState` a little nicer to work with!
+
 `makeClassy` gives us a typeclass `HasProgState`, which is for things that
 "have" a `ProgState`, as well as lenses into the `psTape` and `psRegs` field
 for that type.  We can use these lenses with *lens* library machinery:
@@ -930,6 +936,7 @@ If there are no duplicates in your type-level list, you can even use `finj`
 to create your `FSum`s automatically:
 
 ```haskell
+-- (∈) is a typeclass that has instances whenever f in the type-level list fs
 finj :: f ∈ fs => f a -> FSum fs a
 
 finj :: Mem a -> FSum '[Mem, Com, Foo] a
