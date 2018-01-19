@@ -33,7 +33,9 @@ our interpreters for our different machines!
 This blog post will not necessarily be a focused tutorial on this trick, but
 rather an explanation on my solution centered around this pattern, hopefully
 providing insight on how I approach and solve non-trivial Haskell problems.
-Along the way we'll also use mtl typeclasses and classy lenses.
+We'll be using the *[operational][]* package to implement our interpreter
+pattern program, and along the way we'll also use mtl typeclasses and classy
+lenses.
 
 The source code is [available online][Duet.hs] and is executable as a stack
 script.
@@ -790,8 +792,9 @@ Wrap Up
 That's it!  Hope you enjoyed some of the techniques used in this post,
 including --
 
-1.  Leveraging the interpreter pattern to create a monad that can be
-    interpreted in multiple contexts with multiple different interpreters
+1.  Leveraging the interpreter pattern (with *operational*) to create a monad
+    that can be interpreted in multiple contexts with multiple different
+    interpreters
 2.  Using functor disjunctions like `:|:` (or `:+:`, `Sum`, etc.) to combine
     interpretable primitives
 3.  Writing modular interpreters for each set of primitives, then using
