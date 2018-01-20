@@ -19,6 +19,7 @@ pattern" (although I personally prefer *[operational][]*, as I wrote about in a
 Applicatives are really a completely different type of thing, and the use cases
 for each are pretty disjoint.
 
+[operational]: https://hackage.haskell.org/package/operational
 [duet]: https://blog.jle.im/entry/interpreters-a-la-carte-duet.html
 
 If I had to make a general statement, I'll say that free monads are especially
