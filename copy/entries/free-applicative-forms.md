@@ -120,15 +120,23 @@ intForm = liftAlt intElem
 And now we get the ability to represent forms with multiple options with `<|>`:
 
 ```haskell
-eitherInt :: Form (Either Int Int)
-eitherInt = (Left <$> intForm) <|> (Right <$> intForm)
+boolForm :: Form Bool
+
+eitherInt :: Form (Either Int Bool)
+eitherInt = (Left <$> intForm) <|> (Right <$> boolForm)
 ```
 
 From multiple forms, with `choice`:
 
 ```haskell
-oneOfMany :: Form Int
-oneOfMany = choice [intForm1, intForm2, intForm3]
+stringForm :: Form String
+
+oneOfMany :: Form String
+oneOfMany = choice [ show <$> intForm
+                   , show <$> boolForm
+                   , stringForm
+                   , (++) <$> stringForm <*> stringForm
+                   ]
 ```
 
 And create "optional" entries:
