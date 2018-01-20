@@ -21,7 +21,7 @@ solution in that pattern --- the assembly language source was "compiled" to an
 abstract monad once, and the difference between Part A and Part B was just a
 different choice of interpreter.
 
-[aoc]: http://adventofcode.com/2017
+[aoc]: https://adventofcode.com/2017
 
 Even more interesting is that the two machines are only "half different" --
 there's one aspect of the virtual machines that are the same between the two
@@ -47,7 +47,7 @@ The Puzzle
 
 The puzzle is [Advent of Code 2017 Day 18][day18], and Part A is:
 
-[day18]: http://adventofcode.com/2017/day/18
+[day18]: https://adventofcode.com/2017/day/18
 
 > You discover a tablet containing some strange assembly code labeled simply
 > "Duet". Rather than bother the sound card with it, you decide to run the code
@@ -163,7 +163,7 @@ use to represent the program counter/program head/current instruction.  Parsing
 our program is then just parsing each line in the program string, and
 collecting them into a `PointedList`.  We're ready to go!
 
-[pointedlist]: http://hackage.haskell.org/package/pointedlist
+[pointedlist]: https://hackage.haskell.org/package/pointedlist
 
 ```haskell
 !!!duet/Duet.hs "parseProgram ::"
@@ -181,8 +181,8 @@ use *[free][]*, and a lot of other tutorials go down this route.  However,
 and I always felt like the implementation of interpreter pattern programs in
 *free* was a bit awkward.
 
-[operational]: http://hackage.haskell.org/package/operational
-[free]: http://hackage.haskell.org/package/free
+[operational]: https://hackage.haskell.org/package/operational
+[free]: https://hackage.haskell.org/package/free
 
 [^mprompt]: You could also use the more-or-less identical [MonadPrompt][]
 library.  However, this is not to be confused with the [prompt][] library,
@@ -190,8 +190,8 @@ which is unrelated!  The library is actually my own that I wrote a few years
 back before I knew about MonadPrompt, and this unfortunate naming collision is
 one of my greatest Haskell regrets.
 
-[MonadPrompt]: http://hackage.haskell.org/package/operational
-[prompt]: http://hackage.haskell.org/package/prompt
+[MonadPrompt]: https://hackage.haskell.org/package/operational
+[prompt]: https://hackage.haskell.org/package/prompt
 
 *operational* lets us construct a language (and a monad) using GADTs to
 represent command primitives.  For example, to implement something like `State
@@ -324,7 +324,7 @@ virtual machine.
 
 Now, we can leverage the `:|:` type from *[type-combinators][]*:
 
-[type-combinators]: http://hackage.haskell.org/package/type-combinators
+[type-combinators]: https://hackage.haskell.org/package/type-combinators
 
 ```haskell
 data (f :|: g) a = L (f a)
@@ -413,7 +413,7 @@ make `State` and `MonadState` a little nicer to work with!
 for that type.  We can use these lenses with *lens* library machinery:
 
 
-[lens]: http://hackage.haskell.org/package/lens
+[lens]: https://hackage.haskell.org/package/lens
 
 ```haskell
 -- | "get" based on a lens
