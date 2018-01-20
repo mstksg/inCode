@@ -40,18 +40,18 @@ JSON/YAML, PDF documents, and even on the browser using *ghcjs* and *[miso][]*.
 Overview
 --------
 
-The general approach to utilizing the Free Applicative is to start with some
-Functor `F` (`F a` represents the act of generating a value of type `a`).  Once
-you throw `F` into `Ap` to get `Ap F`, you now are able to *combine
-`F`s in parallel* with `<$>`, `<*>`, `liftA2`, `sequence`, `traverse`, etc.,
-even though `F` normally could not support such combinations.  Then, finally,
-you have the ability to provide a concrete generator function `forall a.
-Applicative f => F a -> f a` (given `F a`, return an actual generator of `a`s
-in some `Applicative`), and the magic of the Free Applicative will go in and
-actually run all of your combined `F` actions "in parallel".  The trick is
-that, with the same value of `Ap F a`, you can *run multiple different
-concrete generators* on it, so you can realize `Ap F` in multiple different
-contexts and situations, adapting it for whatever you need.
+The general approach to utilizing the Free Applicative for this type of
+application is to start with some Functor `F` (`F a` represents the act of
+generating a value of type `a`).  Once you throw `F` into `Ap` to get `Ap F`,
+you now are able to *combine `F`s in parallel* with `<$>`, `<*>`, `liftA2`,
+`sequence`, `traverse`, etc., even though `F` normally could not support such
+combinations.  Then, finally, you have the ability to provide a concrete
+generator function `forall a. Applicative f => F a -> f a` (given `F a`, return
+an actual generator of `a`s in some `Applicative`), and the magic of the Free
+Applicative will go in and actually run all of your combined `F` actions "in
+parallel".  The trick is that, with the same value of `Ap F a`, you can *run
+multiple different concrete generators* on it, so you can realize `Ap F` in
+multiple different contexts and situations, adapting it for whatever you need.
 
 So, in our case, we're going to be making a Functor representing a form element:
 
@@ -154,9 +154,15 @@ optionalInt = optional intForm
 ```
 
 We get all of these capabilities *for free*!  All we did was *define a single
-form element*.  Our form element type doesn't have have any concept of combining
-with other elements or of being able to choose between different elements or of
-having optional results.  Then, `Alt` gives us the ability to combine them with
-`<*>`/`<$>`, create optional form items with `optional`, and create multiple
-form options with `<|>`!
+form element*.  Our form element type doesn't have have any concept of
+combining with other elements or of being able to choose between different
+elements or of having optional results.  Then, `Alt` gives us the ability to
+combine them with `<*>`/`<$>`, create optional form items with `optional`, and
+create multiple form options with `<|>`!
+
+Form Element
+------------
+
+Our form elements will all have monomorphic base element paired with a
+"parser", default item, description, and id.
 
