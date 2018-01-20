@@ -122,6 +122,9 @@ And now we get the ability to represent forms with multiple options with `<|>`:
 ```haskell
 boolForm :: Form Bool
 
+-- | A form with two elements (one producing an 'Int' and one producing a
+-- 'Bool'), where the result is 'Either Int Bool' -- the 'Int' if it is entered
+-- correctly, or the 'Bool' otherwise.
 eitherInt :: Form (Either Int Bool)
 eitherInt = (Left <$> intForm) <|> (Right <$> boolForm)
 ```
@@ -131,6 +134,8 @@ From multiple forms, with `choice`:
 ```haskell
 stringForm :: Form String
 
+-- | A form with five elements -- an 'Int' element, a 'Bool' element, and three
+-- 'String' elements.  The result is the first of the four options to succeed.
 oneOfMany :: Form String
 oneOfMany = choice [ show <$> intForm
                    , show <$> boolForm
@@ -142,12 +147,16 @@ oneOfMany = choice [ show <$> intForm
 And create "optional" entries:
 
 ```haskell
+-- | A form with a single 'Int' element that returns a 'Maybe Int', because
+it's -- optional.
 optionalInt :: Form (Maybe Int)
 optionalInt = optional intForm
 ```
 
 We get all of these capabilities *for free*!  All we did was *define a single
-form element*, and `Alt` gives us the ability to combine them with `<*>`/`<$>`,
-create optional form items with `optional`, and create multiple form options
-with `<|>`!
+form element*.  Our form element type doesn't have have any concept of combining
+with other elements or of being able to choose between different elements or of
+having optional results.  Then, `Alt` gives us the ability to combine them with
+`<*>`/`<$>`, create optional form items with `optional`, and create multiple
+form options with `<|>`!
 
