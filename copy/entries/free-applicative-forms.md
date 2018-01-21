@@ -295,13 +295,13 @@ expecting floating-point values.
 A simple drop-down menu element that lets the user pick from a list of items:
 
 ```haskell
-!!!free-applicative-forms/Form.hs "selectInput ::"
+!!!free-applicative-forms/Form.hs "selectInput"
 ```
 
 And a simple check box, which outputs one of two items:
 
 ```haskell
-!!!free-applicative-forms/Form.hs "checkInput ::" "boolInput ::"
+!!!free-applicative-forms/Form.hs "checkInput" "boolInput"
 ```
 
 ## Sample Form
