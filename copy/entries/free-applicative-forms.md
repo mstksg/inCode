@@ -304,7 +304,7 @@ And a simple check box, which outputs one of two items:
 !!!free-applicative-forms/Form.hs "checkInput" "boolInput"
 ```
 
-## Sample Form
+### Sample Form
 
 To explore this type, let's make a sample form which we will be re-using for
 the rest of this post!
