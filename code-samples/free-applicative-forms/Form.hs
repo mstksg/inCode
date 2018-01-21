@@ -1,6 +1,3 @@
-#!/usr/bin/env stack
--- stack --install-ghc runghc --resolver lts-10.3 --package free -- -Wall
-
 {-# LANGUAGE ApplicativeDo      #-}
 {-# LANGUAGE DeriveFunctor      #-}
 {-# LANGUAGE GADTs              #-}
@@ -8,6 +5,8 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE TypeInType         #-}
+
+module Form where
 
 import           Control.Alternative.Free.Final
 import           Control.Applicative
@@ -17,14 +16,14 @@ import           Data.Scientific
 import           Text.Read
 
 data Elem :: Type -> Type where
-    -- | Text field, with initial contents
-    EText   :: String                -> Elem String
-    -- | Numberic field, with initial number
-    ENumber :: Maybe Scientific      -> Elem Scientific
-    -- | Select box, with initial selection and list of options to display
-    ESelect :: Maybe Int -> [String] -> Elem (Maybe Int)
+    -- | Text field
+    EText   :: Elem String
+    -- | Numberic field
+    ENumber :: Elem Scientific
+    -- | Select box, with list of options to display
+    ESelect :: [String] -> Elem (Maybe Int)
     -- | Check box, with the labels to attach to on/off states
-    ECheck  :: String    -> String   -> Elem Bool
+    ECheck  :: String -> String -> Elem Bool
 
 data FormElem :: Type -> Type where
     FE :: { feElem  :: Elem b
@@ -41,10 +40,9 @@ type Form = Alt FormElem
 stringInput
     :: String           -- ^ description
     -> String           -- ^ identifier
-    -> String           -- ^ initial
     -> Form String
-stringInput desc ident initial = liftAlt $
-    FE { feElem  = EText initial
+stringInput desc ident = liftAlt $
+    FE { feElem  = EText
        , feParse = Right
        , feDesc  = desc
        , feIdent = ident
@@ -54,10 +52,9 @@ readInput
     :: (Read a, Show a)
     => String           -- ^ description
     -> String           -- ^ identifier
-    -> Maybe a          -- ^ initial
     -> Form a
-readInput desc ident initial = liftAlt $
-    FE { feElem  = EText (maybe "" show initial)
+readInput desc ident = liftAlt $
+    FE { feElem  = EText
        , feParse = maybe (Left ("Could not parse " ++ ident)) Right
                  . readMaybe
        , feDesc  = desc
@@ -68,10 +65,9 @@ intInput
     :: Integral a
     => String     -- ^ description
     -> String     -- ^ identifier
-    -> Maybe a    -- ^ initial
     -> Form a
-intInput desc ident initial = liftAlt $
-    FE { feElem  = ENumber (fromIntegral <$> initial)
+intInput desc ident = liftAlt $
+    FE { feElem  = ENumber
        , feParse = either (\_ -> Left (ident ++ " should be integer")) Right
                  . floatingOrInteger @Double
        , feDesc  = desc
@@ -82,25 +78,22 @@ floatInput
     :: RealFloat a
     => String           -- ^ description
     -> String           -- ^ identifier
-    -> Maybe a          -- ^ initial
     -> Form a
-floatInput desc ident initial = liftAlt $
-    FE { feElem  = ENumber (realToFrac <$> initial)
+floatInput desc ident = liftAlt $
+    FE { feElem  = ENumber
        , feParse = Right . realToFrac
        , feDesc  = desc
        , feIdent = ident
        }
-  where
 
 selectInput
     :: Show a
     => String           -- ^ description
     -> String           -- ^ identifier
-    -> Maybe Int        -- ^ initial
     -> [a]              -- ^ options
     -> Form a
-selectInput desc ident initial opts = liftAlt $
-    FE (ESelect initial (show <$> opts)) p desc ident
+selectInput desc ident opts = liftAlt $
+    FE (ESelect (show <$> opts)) p desc ident
   where
     p = maybe (Left ("No selection for " ++ ident)) (Right . (opts !!))
 
@@ -126,8 +119,7 @@ data Color = Red | Blue | Orange | Yellow
     deriving Show
 
 data Account = Acc { accName     :: String
-                   , accCountry  :: Maybe String
-                   , accAge      :: Int
+                   , accAge      :: Maybe Int
                    , accFavColor :: Either Color String
                    , accPremium  :: AccountType
                    }
@@ -135,26 +127,21 @@ data Account = Acc { accName     :: String
 
 accountForm :: Form Account
 accountForm =
-    Acc <$> stringInput "Name" "name" ""
-        <*> optional (stringInput "Country" "country" "USA")
-        <*> intInput "Age" "age" Nothing
+    Acc <$> stringInput "Name" "name"
+        <*> intInput "Age" "age"
         <*> (Left <$> favColor <|> Right <$> customColor)
         <*> checkInput "Premium Account" "premium" Normal Premium 
   where
-    favColor    = selectInput "Favorite Color" "fav-color" Nothing
+    favColor    = selectInput "Favorite Color" "fav-color"
                     [Red, Blue, Orange, Yellow]
-    customColor = stringInput "Custom Color" "custum-color" ""
+    customColor = stringInput "Custom Color" "custum-color"
 
 accountFormAdo :: Form Account
 accountFormAdo = do
-    nam <- stringInput "Name" "name" ""
-    con <- optional $ stringInput "Country" "country" "USA"
-    age <- intInput "Age" "age" Nothing
-    col <- Left  <$> selectInput "Favorite Color" "fav-color" Nothing
+    nam <- stringInput "Name" "name"
+    age <- intInput "Age" "age"
+    col <- Left  <$> selectInput "Favorite Color" "fav-color"
                        [Red, Blue, Orange, Yellow]
-       <|> Right <$> stringInput "Custom Color" "custum-color" ""
+       <|> Right <$> stringInput "Custom Color" "custom-color"
     typ <- checkInput "Premium Account" "premium" Normal Premium 
-    pure (Acc nam con age col typ)
-
-main :: IO ()
-main = putStrLn "hi"
+    pure (Acc nam age col typ)
