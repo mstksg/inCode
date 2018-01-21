@@ -123,8 +123,8 @@ And now we get the ability to represent forms with multiple options with `<|>`:
 boolForm :: Form Bool
 
 -- | A form with two elements (one producing an 'Int' and one producing a
--- 'Bool'), where the result is 'Either Int Bool' -- the 'Int' if it is entered
--- correctly, or the 'Bool' otherwise.
+-- 'Bool'), where the result is 'Either Int Bool' -- a "the first or the
+-- second".
 eitherInt :: Form (Either Int Bool)
 eitherInt = (Left <$> intForm) <|> (Right <$> boolForm)
 ```
@@ -320,4 +320,13 @@ And we'll make the form using Applicative style:
 ```haskell
 !!!free-applicative-forms/Form.hs "accountForm ::"
 ```
+
+If you're feeling fancy, you can also make it using "Applicative Do" style,
+which makes it a little more flexible if you want to re-arrange the items in
+the form (put the "age" field before the "name" field, etc.)
+
+```haskell
+!!!free-applicative-forms/Form.hs "accountFormAdo ::"
+```
+
 

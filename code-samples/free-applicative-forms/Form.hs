@@ -1,6 +1,7 @@
 #!/usr/bin/env stack
 -- stack --install-ghc runghc --resolver lts-10.3 --package free -- -Wall
 
+{-# LANGUAGE ApplicativeDo      #-}
 {-# LANGUAGE DeriveFunctor      #-}
 {-# LANGUAGE GADTs              #-}
 {-# LANGUAGE KindSignatures     #-}
@@ -142,6 +143,17 @@ accountForm =
     favColor    = selectInput "Favorite Color" "fav-color" Nothing
                     [Red, Blue, Orange, Yellow]
     customColor = stringInput "Custom Color" "custum-color" ""
+
+accountFormAdo :: Form Account
+accountFormAdo = do
+    nam <- stringInput "Name" "name" ""
+    con <- optional $ stringInput "Country" "country" "USA"
+    age <- intInput "Age" "age" Nothing
+    col <- Left  <$> selectInput "Favorite Color" "fav-color" Nothing
+                       [Red, Blue, Orange, Yellow]
+       <|> Right <$> stringInput "Custom Color" "custum-color" ""
+    typ <- checkInput "Premium Account" "premium" Normal Premium 
+    pure (Acc nam con age col typ)
 
 main :: IO ()
 main = putStrLn "hi"
