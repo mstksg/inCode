@@ -10,6 +10,7 @@ module Form where
 
 import           Control.Alternative.Free.Final
 import           Control.Applicative
+import           Control.Monad
 import           Data.Bool
 import           Data.Kind
 import           Data.Scientific
@@ -43,7 +44,7 @@ stringInput
     -> Form String
 stringInput desc ident = liftAlt $
     FE { feElem  = EText
-       , feParse = Right
+       , feParse = mfilter (not . null) . Right
        , feDesc  = desc
        , feIdent = ident
        }
@@ -128,7 +129,7 @@ data Account = Acc { accName     :: String
 accountForm :: Form Account
 accountForm =
     Acc <$> stringInput "Name" "name"
-        <*> intInput "Age" "age"
+        <*> optional (intInput "Age" "age")
         <*> (Left <$> favColor <|> Right <$> customColor)
         <*> checkInput "Premium Account" "premium" Normal Premium 
   where
@@ -139,7 +140,7 @@ accountForm =
 accountFormAdo :: Form Account
 accountFormAdo = do
     nam <- stringInput "Name" "name"
-    age <- intInput "Age" "age"
+    age <- optional (intInput "Age" "age")
     col <- Left  <$> selectInput "Favorite Color" "fav-color"
                        [Red, Blue, Orange, Yellow]
        <|> Right <$> stringInput "Custom Color" "custom-color"

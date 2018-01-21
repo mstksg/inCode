@@ -166,7 +166,7 @@ Our Types
 ### Form Element
 
 Our form elements will all have monomorphic base element paired with a
-"parser", default item, description, and id.
+"parser", a description, and an identifier.
 
 To start off, we'll make a GADT representing a concrete element, as well as
 what is required to actually represent it for the user to interact with:
@@ -183,13 +183,10 @@ text input), an `Elem Bool` is an element that natively/naively outputs a
 Each native `Elem` contains the information necessary to render it -- so we
 have:
 
-*   `EText`, containing an initial or default value, natively outputting a
-    `String`
-*   `ENumber`, containing (maybe) an initial number, natively outputting a
-    number.
-*   `ESelect`, a drop-down menu, containing (maybe) an initial selected index
-    and a list of strings to show as items, natively outputting `Maybe Int`
-    ("maybe" a selected index)
+*   `EText`, natively outputting a `String`.
+*   `ENumber`, natively outputting a number (`Scientific`).
+*   `ESelect`, a drop-down menu, a list of strings to show as items, natively
+    outputting `Maybe Int` ("maybe" a selected index)
 *   `ECheck`, a check box containing labels for its on and off positions,
     natively outputting a `Bool`.
 
@@ -309,7 +306,13 @@ And a simple check box, which outputs one of two items:
 To explore this type, let's make a sample form which we will be re-using for
 the rest of this post!
 
-We will be making a registration form, a form producing an account:
+We will be making a registration form, a form producing an account, which
+contains:
+
+1.  A name
+2.  An optional age
+3.  A favorite color (from one of the pre-defined color, or a custom one)
+4.  An account type (normal account, or premium account?)
 
 ```haskell
 !!!free-applicative-forms/Form.hs "data AccountType" "data Color" "data Account ="
