@@ -121,6 +121,7 @@ boolInput desc ident = checkInput desc ident False True
 
 data AccountType = Normal | Premium
     deriving Show
+
 data Color = Red | Blue | Orange | Yellow
     deriving Show
 

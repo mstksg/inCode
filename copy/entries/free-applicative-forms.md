@@ -312,7 +312,7 @@ the rest of this post!
 We will be making a registration form, a form producing an account:
 
 ```haskell
-!!!free-applicative-forms/Form.hs "data AccountType" "data Color" "data Account"
+!!!free-applicative-forms/Form.hs "data AccountType" "data Color" "data Account ="
 ```
 
 And we'll make the form using Applicative style:
