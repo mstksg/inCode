@@ -78,7 +78,7 @@ For example, if we had `intElem :: FormElem Int`, then `liftAp intElem :: Form
 Int`, a single-item form that makes an `Int`:
 
 ```haskell
-intElem :: FormELem Int
+intElem :: FormElem Int
 
 intForm :: Form Int
 intForm = liftAp intElem
@@ -148,7 +148,7 @@ And create "optional" entries:
 
 ```haskell
 -- | A form with a single 'Int' element that returns a 'Maybe Int', because
-it's -- optional.
+-- it's optional.
 optionalInt :: Form (Maybe Int)
 optionalInt = optional intForm
 ```
@@ -160,9 +160,164 @@ elements or of having optional results.  Then, `Alt` gives us the ability to
 combine them with `<*>`/`<$>`, create optional form items with `optional`, and
 create multiple form options with `<|>`!
 
-Form Element
-------------
+Our Types
+---------
+
+### Form Element
 
 Our form elements will all have monomorphic base element paired with a
 "parser", default item, description, and id.
+
+To start off, we'll make a GADT representing a concrete element, as well as
+what is required to actually represent it for the user to interact with:
+
+```haskell
+!!!free-applicative-forms/Form.hs "data Elem ::"
+```
+
+We tag the `Elem` with a type representing the element's *native* output.  So
+an `Elem String` is an element that natively/naively outputs a `String` (like a
+text input), an `Elem Bool` is an element that natively/naively outputs a
+`Bool` (like check box), etc.
+
+Each native `Elem` contains the information necessary to render it -- so we
+have:
+
+*   `EText`, containing an initial or default value, natively outputting a
+    `String`
+*   `ENumber`, containing (maybe) an initial number, natively outputting a
+    number.
+*   `ESelect`, a drop-down menu, containing (maybe) an initial selected index
+    and a list of strings to show as items, natively outputting `Maybe Int`
+    ("maybe" a selected index)
+*   `ECheck`, a check box containing labels for its on and off positions,
+    natively outputting a `Bool`.
+
+And then we our representation of a generator for a single form element output:
+
+```haskell
+!!!free-applicative-forms/Form.hs "data FormElem ::"
+```
+
+A `FormElem a` will contain:
+
+*   The `Elem b` representing the actual native form element, with information
+    required to render it.
+*   A function `b -> Either String a`, which lets you *parse* the element's
+    native output into an `a` (what the `FormElem` outputs), with a potential
+    `String` error message
+*   A display name and identifier, which we will use to describe the element
+    and as a part of the JSON schema for our JSON backend.
+
+### Form
+
+We now have a functor, `FormElem`, that is a single form element and all of its
+decorations.  Now, for the magic --- to make a full `Form` type, it's just:
+
+
+```haskell
+!!!free-applicative-forms/Form.hs "type Form ="
+```
+
+Ta dah!
+
+And just like that, we now have functions like:
+
+```haskell
+-- | Map over the results of a Form
+fmap   :: (a -> b) -> Form a -> Form b
+
+-- | Combine two forms together, and merge their results with a combining
+-- function
+liftA2 :: (a -> b -> c) -> Form a -> Form b -> Form c
+
+-- | Combine all of the forms in a list to create a single form, whose result
+-- is the collection of all of their results
+sequence :: [Form a] -> Form [a]
+
+-- | Duplicate a form multiple times, creating a new form whose reuslt is a
+-- collection of all of their results
+replicateM :: Int -> Form a -> Form [a]
+
+-- | Combine two forms together to create a final form whose result picks from
+-- the two input forms
+(<|>) :: Form a -> Form a -> Form a
+
+-- | Combine several forms together to create a final form whose result picks
+from one of the several options
+choice :: [Form a] -> Form a
+
+-- | Turn a form into an optional form
+optional :: Form a -> Form (Maybe a)
+```
+
+All that for free.  Neat!
+
+Note -- it is very important to use `Alt` from
+*Control.Alternative.Free.Final*, and **not** the one from
+*Control.Alternative.Free*.  The *Control.Alternative.Free* `Alt` is broken for
+our use case, because it normalizes against [an extra Alternative
+law][leftdist] that forms do not obey.
+
+[leftdist]: https://stackoverflow.com/q/45647253/292731
+
+Making Real Forms
+-----------------
+
+### Primitive Forms
+
+Let's create a set of primitive `Form`s, which we will use to build up our more
+complex ones.
+
+First, a `Form String` with a single text box:
+
+```haskell
+!!!free-applicative-forms/Form.hs "stringInput"
+```
+
+Note that its `String -> Either String String` function is just `Right`, since
+it is always a "successful" parse.
+
+And maybe one that is based on a text box, but instead of just outputting the
+output `String`, it parses it into a Haskell value using `Read`:
+
+```haskell
+!!!free-applicative-forms/Form.hs "readInput"
+```
+
+Now two "numerical" inputs -- one expecting `Integral` values, and another
+expecting floating-point values.
+
+```haskell
+!!!free-applicative-forms/Form.hs "intInput" "floatInput"
+```
+
+A simple drop-down menu element that lets the user pick from a list of items:
+
+```haskell
+!!!free-applicative-forms/Form.hs "selectInput ::"
+```
+
+And a simple check box, which outputs one of two items:
+
+```haskell
+!!!free-applicative-forms/Form.hs "checkInput ::" "boolInput ::"
+```
+
+## Sample Form
+
+To explore this type, let's make a sample form which we will be re-using for
+the rest of this post!
+
+We will be making a registration form, a form producing an account:
+
+```haskell
+!!!free-applicative-forms/Form.hs "data AccountType" "data Color" "data Account"
+```
+
+And we'll make the form using Applicative style:
+
+```haskell
+!!!free-applicative-forms/Form.hs "accountForm ::"
+```
 

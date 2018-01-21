@@ -16,18 +16,22 @@ import           Data.Scientific
 import           Text.Read
 
 data Elem :: Type -> Type where
+    -- | Text field, with initial contents
     EText   :: String                -> Elem String
+    -- | Numberic field, with initial number
     ENumber :: Maybe Scientific      -> Elem Scientific
+    -- | Select box, with initial selection and list of options to display
     ESelect :: Maybe Int -> [String] -> Elem (Maybe Int)
+    -- | Check box, with the labels to attach to on/off states
     ECheck  :: String    -> String   -> Elem Bool
 
 data FormElem :: Type -> Type where
-    FE :: { feElem  :: Elem a
-          , feParse :: a -> Either String b
+    FE :: { feElem  :: Elem b
+          , feParse :: b -> Either String a
           , feDesc  :: String
           , feIdent :: String
           }
-        -> FormElem b
+        -> FormElem a
 
 deriving instance Functor FormElem
 
@@ -39,7 +43,11 @@ stringInput
     -> String           -- ^ initial
     -> Form String
 stringInput desc ident initial = liftAlt $
-    FE (EText initial) Right desc ident
+    FE { feElem  = EText initial
+       , feParse = Right
+       , feDesc  = desc
+       , feIdent = ident
+       }
 
 readInput
     :: (Read a, Show a)
@@ -48,10 +56,12 @@ readInput
     -> Maybe a          -- ^ initial
     -> Form a
 readInput desc ident initial = liftAlt $
-    FE (EText (maybe "" show initial)) p desc ident
-  where
-    p = maybe (Left ("Could not parse " ++ ident)) Right
-      . readMaybe
+    FE { feElem  = EText (maybe "" show initial)
+       , feParse = maybe (Left ("Could not parse " ++ ident)) Right
+                 . readMaybe
+       , feDesc  = desc
+       , feIdent = ident
+       }
 
 intInput
     :: Integral a
@@ -60,21 +70,26 @@ intInput
     -> Maybe a    -- ^ initial
     -> Form a
 intInput desc ident initial = liftAlt $
-    FE (ENumber (fromIntegral <$> initial)) p desc ident
-  where
-    p = either (\_ -> Left (ident ++ " should be integer")) Right
-      . floatingOrInteger @Double
+    FE { feElem  = ENumber (fromIntegral <$> initial)
+       , feParse = either (\_ -> Left (ident ++ " should be integer")) Right
+                 . floatingOrInteger @Double
+       , feDesc  = desc
+       , feIdent = ident
+       }
 
 floatInput
-    :: String           -- ^ description
+    :: RealFloat a
+    => String           -- ^ description
     -> String           -- ^ identifier
-    -> Maybe Double     -- ^ initial
-    -> Form Double
+    -> Maybe a          -- ^ initial
+    -> Form a
 floatInput desc ident initial = liftAlt $
-    FE (ENumber (realToFrac <$> initial)) p desc ident
+    FE { feElem  = ENumber (realToFrac <$> initial)
+       , feParse = Right . realToFrac
+       , feDesc  = desc
+       , feIdent = ident
+       }
   where
-    p = either Right (\_ -> Left (ident ++ " should be float"))
-      . floatingOrInteger @Double @Integer
 
 selectInput
     :: Show a
@@ -100,6 +115,9 @@ checkInput desc ident x y = liftAlt $
   where
     p = Right . bool x y
 
+boolInput :: String -> String -> Form Bool
+boolInput desc ident = checkInput desc ident False True
+
 data AccountType = Normal | Premium
     deriving Show
 data Color = Red | Blue | Orange | Yellow
@@ -118,7 +136,7 @@ accountForm =
     Acc <$> stringInput "Name" "name" ""
         <*> optional (stringInput "Country" "country" "USA")
         <*> intInput "Age" "age" Nothing
-        <*> ((Left <$> favColor) <|> (Right <$> customColor))
+        <*> (Left <$> favColor <|> Right <$> customColor)
         <*> checkInput "Premium Account" "premium" Normal Premium 
   where
     favColor    = selectInput "Favorite Color" "fav-color" Nothing
