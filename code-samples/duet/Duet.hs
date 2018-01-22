@@ -55,10 +55,10 @@ parseProgram :: String -> P.PointedList Op
 parseProgram = fromJust . P.fromList . map parseOp . lines
 
 data Mem :: Type -> Type where
-    MGet :: Char -> Mem Int
-    MSet :: Char -> Int -> Mem ()
-    MJmp :: Int  -> Mem ()
-    MPk  :: Mem Op
+    MGet  :: Char -> Mem Int
+    MSet  :: Char -> Int -> Mem ()
+    MJump :: Int  -> Mem ()
+    MPeek :: Mem Op
 
 data Com :: Type -> Type where
     CSnd :: Int -> Com ()
@@ -72,11 +72,11 @@ dGet = singleton . L . MGet
 dSet :: Char -> Int -> Duet ()
 dSet r = singleton . L . MSet r
 
-dJmp :: Int -> Duet ()
-dJmp = singleton . L . MJmp
+dJump :: Int -> Duet ()
+dJump = singleton . L . MJump
 
-dPk :: Duet Op
-dPk = singleton (L MPk)
+dPeek :: Duet Op
+dPeek = singleton (L MPeek)
 
 dSnd :: Int -> Duet ()
 dSnd = singleton . R . CSnd
@@ -85,30 +85,32 @@ dRcv :: Int -> Duet Int
 dRcv = singleton . R . CRcv
 
 stepProg :: Duet ()
-stepProg = dPk >>= \case
+stepProg = dPeek >>= \case
     OSnd x -> do
       dSnd =<< addrVal x
-      dJmp 1
+      dJump 1
     OBin f x y -> do
       yVal <- addrVal y
       xVal <- dGet    x
       dSet x $ f xVal yVal
-      dJmp 1
+      dJump 1
     ORcv x -> do
       y <- dRcv =<< dGet x
       dSet x y
-      dJmp 1
+      dJump 1
     OJgz x y -> do
       xVal <- addrVal x
-      dJmp =<< if xVal > 0
-                 then addrVal y
-                 else return 1
+      dJump =<< if xVal > 0
+        then addrVal y
+        else return 1
   where
+    -- | Addr is `Either Char Int` -- `Left` means a register (so we use
+    -- `dGet`) and `Right` means a direct integer value.
     addrVal (Left r ) = dGet r
     addrVal (Right x) = return x
 
 data ProgState = PS
-    { _psTape :: P.PointedList Op
+    { _psOps  :: P.PointedList Op
     , _psRegs :: M.Map Char Int
     }
 makeClassy ''ProgState
@@ -120,10 +122,10 @@ interpMem
 interpMem = \case
     MGet c   -> use (psRegs . at c . non 0)
     MSet c x -> psRegs . at c . non 0 .= x
-    MJmp n   -> do
-      Just t' <- P.moveN n <$> use psTape
-      psTape .= t'
-    MPk      -> use (psTape . P.focus)
+    MJump n  -> do
+      Just t' <- P.moveN n <$> use psOps
+      psOps .= t'
+    MPeek    -> use (psOps . P.focus)
 
 class (Monad m, Monoid w) => MonadAccum w m | m -> w where
     add  :: w -> m ()

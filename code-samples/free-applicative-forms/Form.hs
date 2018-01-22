@@ -140,7 +140,7 @@ accountForm =
 accountFormAdo :: Form Account
 accountFormAdo = do
     nam <- stringInput "Name" "name"
-    age <- optional (intInput "Age" "age")
+    age <- optional $ intInput "Age" "age"
     col <- Left  <$> selectInput "Favorite Color" "fav-color"
                        [Red, Blue, Orange, Yellow]
        <|> Right <$> stringInput "Custom Color" "custom-color"
