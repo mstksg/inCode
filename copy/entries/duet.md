@@ -309,7 +309,7 @@ interpretState = \case
     Get   -> get
 
 runAsState :: IntState a -> State Int a
-runAsState = runPormptM interpretState
+runAsState = runPromptM interpretState
 ```
 
 Basically, an `IntState a` is an abstract representation of a program (as a
