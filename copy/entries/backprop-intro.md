@@ -27,8 +27,8 @@ find something that I feel good about, with the help of a *[lens][]*-based API.
 [lens]: http://hackage.haskell.org/package/lens
 
 As a quick demonstration, this post will walk through the creation of a simple
-neural network implementation, inspired by the [Tensorflow Tutorial][tf-intro]
-for beginners, to learn handwritten digit recognition for the MNIST data set.
+neural network implementation (inspired by the [Tensorflow Tutorial][tf-intro]
+for beginners) to learn handwritten digit recognition for the MNIST data set.
 To help tell the story, we're going to be implementing it "normally", using the
 *[hmatrix][]* library API, and then re-write the same thing using
 *[backprop][]* and *[hmatrix-backprop][]* (a drop-in replacement for
