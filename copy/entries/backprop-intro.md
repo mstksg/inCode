@@ -206,13 +206,13 @@ We'll switch out our imports very slightly:
 First, we add `Numeric.Backprop`, the module where the magic happens.
 
 Second, we switch from `Numeric.LinearAlgebra.Static` to
-[`Numeric.LinearAlgebra.Static.Backprop`][] (from *[hmatrix-backprop][]*), which exports the exact
+[`Numeric.LinearAlgebra.Static.Backprop`][static-backprop] (from *[hmatrix-backprop][]*), which exports the exact
 same[^same] API as `Numeric.LinearAlgebra.Static`, except with numeric
 operations that are "lifted" to work with *backprop*.  It's meant to act as a
 drop-in replacement, and, because of this, most of our actual code will be more
 identical.
 
-[static]: https://hackage.haskell.org/package/hmatrix-backprop/docs/Numeric-LinearAlgebra-Static-Backprop.html
+[static-backprop]: https://hackage.haskell.org/package/hmatrix-backprop/docs/Numeric-LinearAlgebra-Static-Backprop.html
 
 [^same]: More or less.  See module documentation for more information.
 
