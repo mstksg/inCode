@@ -208,7 +208,7 @@ one of my greatest Haskell regrets.
 
 *operational* lets us construct a language (and a monad) using GADTs to
 represent command primitives.  For example, to implement something like `State
-Int` (which we'll call `IntState`), you might use this [GADT][^GADT]:
+Int` (which we'll call `IntState`), you might use this GADT:
 
 ```haskell
 data StateCommand :: Type -> Type where
