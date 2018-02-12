@@ -9,13 +9,17 @@ slug: introducing-the-backprop-library
 series: Backprop
 ---
 
+**backprop**: [hackage][backprop] / [github][]
+
+[backprop]: http://hackage.haskell.org/package/backprop
+[github]: https://github.com/mstksg/backprop
+
 I'm excited to announce the first official release of the *[backprop][]*
 library (currently at version 0.1.2.0 on hackage)!  This has been something
 I've been working on for a while (trying to find a good API for *heterogeneous*
 automatic differentiation), and I'm happy to finally find something that I feel
 good about, with the help of a *[lens][]*-based API.
 
-[backprop]: http://hackage.haskell.org/package/backprop
 [lens]: http://hackage.haskell.org/package/lens
 
 As a quick demonstration, this post will walk through the creation of a simple
@@ -461,7 +465,7 @@ sources: the building of the function call graph, and also potentially from the
 mechanical automatic differentiation process generating different operations
 than what you might write by hand.  See the [README][] for a deeper analysis.
 
-[README]: https://github.com/mstksg/backprop
+[README]: https://github.com/mstksg/backprop#readme
 
 You might have also noticed the RankN type signature (the `forall s. ...`) that
 I glossed over earlier.  This is here because *backprop* uses the RankN type
