@@ -15,13 +15,14 @@ series: Backprop
 [github]: https://github.com/mstksg/backprop
 
 I'm excited to announce the first official release of the *[backprop][]*
-library (currently at version 0.1.2.0 on hackage)!  This has been something
-I've been working on for a while (trying to find a good API for *heterogeneous*
-automatic differentiation), and I'm happy to finally find something that I feel
-good about, with the help of a *[lens][]*-based API.  *backprop* is a library
+library (currently at version 0.1.2.0 on hackage)!  *backprop* is a library
 that allows you write functions on your heterogeneous values like you would
 normally and takes them and (with reverse-mode automatic differentiation)
 automatically generate functions computing their gradients.
+
+This has been something I've been working on for a while (trying to find a good
+API for *heterogeneous* automatic differentiation), and I'm happy to finally
+find something that I feel good about, with the help of a *[lens][]*-based API.
 
 [lens]: http://hackage.haskell.org/package/lens
 
