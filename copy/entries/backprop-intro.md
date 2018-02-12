@@ -534,12 +534,12 @@ However, for our domain-specific operations (like matrix multiplication, norms,
 and dot products), we needed to somehow lift those operations into
 *backprop*-land, to work with `BVar`s.
 
-This isn't something that normal users should be expected to do -- ideally,
-this would be done by library maintainers and authors, so that users can use
-their types and operations with *backprop*.  However, writing them is not
-magical -- it just requires providing the result and the gradient with respect
-to a final total derivative.  For example, let's look at the implementation of
-the lifted `<.>`:
+This isn't something that end-users of the library should be expected to do --
+ideally, this would be done by library maintainers and authors, so that users
+can use their types and operations with *backprop*.  However, writing them is
+not magical -- it just requires providing the result and the gradient with
+respect to a final total derivative.  For example, let's look at the
+implementation of the lifted `<.>`:
 
 ```haskell
 import qualified Numeric.LinearAlgebra.Static as H
@@ -588,10 +588,11 @@ haskell][neural-backprop-lhs]).
 [neural-backprop-lhs]: https://github.com/mstksg/backprop/blob/master/samples/extensible-neural.lhs
 
 Really, though, the goal of backprop is to allow you to automatically
-differentiate things you have *already* written.  Over the next few weeks I'll
-be lifting operations from other libraries in the ecosystem.  Let me know if
-there are any that you might want me to look at first!  Be also on the lookout
-for some other posts I'll be writing on applying *backprop* to optimize things
+differentiate and optimize things you have *already* written (or plan to write,
+if only you had the ability to optimize them).  Over the next few weeks I'll be
+lifting operations from other libraries in the ecosystem. Let me know if there
+are any that you might want me to look at first!  Be also on the lookout for
+some other posts I'll be writing on applying *backprop* to optimize things
 other than neural networks.
 
 If you have any questions, feel free to leave a comment.  You can also give me
