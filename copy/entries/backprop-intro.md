@@ -159,7 +159,7 @@ problems; smaller cross-entropies indicate "better" predictions.
 !!!backprop/intro-normal.hs "crossEntropy" "netErr"
 ```
 
-Computing the cross entropy requires us to use `<.>` (the dot product) from
+Computing the cross entropy involves using `<.>` (the dot product) from
 *hmatrix*, but other than that we can just use `log` (from `Floating`) and
 negation (from `Num`).
 
@@ -170,17 +170,19 @@ error function. It's a function that computes the *direction of greatest
 change* of all of the components in our network, with respect to our error
 function.
 
-The gradient will take our `Net -> Double` error function and produce a `Net`
-whose components contain the derivative of each component with respect to the
-error. It tells us how to "nudge" each component to increase the error
-function. *Training* a neural network involves moving in the opposite direction
-of the gradient, which causes the error to go *down*.
+The gradient will take our `Net -> Double` error function and, given a current
+network, and produce a "gradient" `Net` whose components contain the derivative
+of each component with respect to the error. It tells us how to "nudge" each
+component to increase the error function. *Training* a neural network involves
+moving in the opposite direction of the gradient, which causes the error to go
+*down*.
 
 However, given `netErr`'s definition, it is not obvious how to compute our
-gradient function.  Doing so involves some careful multi-variable calculus
-based on our knowledge of the operations we used.  For simple situations we
-often do it by hand, but for more complicated situations, this becomes
-impractical.  That's where *automatic differentiation* comes into play.
+gradient function.  Doing so involves some careful multi-variable vector
+calculus and linear algebra based on our knowledge of the operations we used.
+For simple situations we often do it by hand, but for more complicated
+situations, this becomes impractical.  That's where *automatic differentiation*
+comes into play.
 
 We've gone as far as we can go now, so let's drop into the world of *backprop*
 and see what it can offer us!
@@ -200,14 +202,19 @@ We'll switch out our imports very slightly:
 First, we add `Numeric.Backprop`, the module where the magic happens.
 
 Second, we switch from `Numeric.LinearAlgebra.Static` to
-`Numeric.LinearAlgebra.Static.Backprop`, which exports the exact API as
-`Numeric.LinearAlgebra.Static`, except with numeric operations that are
-"lifted" to work with *backprop*.  It's meant to act as a drop-in replacement,
-and, because of this, most of our actual code will be more identical.
+[`Numeric.LinearAlgebra.Static.Backprop`][] (from *[hmatrix-backprop][]*), which exports the exact
+same[^same] API as `Numeric.LinearAlgebra.Static`, except with numeric
+operations that are "lifted" to work with *backprop*.  It's meant to act as a
+drop-in replacement, and, because of this, most of our actual code will be more
+identical.
+
+[static]: https://hackage.haskell.org/package/hmatrix-backprop/docs/Numeric-LinearAlgebra-Static-Backprop.html
+
+[^same]: More or less.  See module documentation for more information.
 
 ### Running
 
-Writing functions that can be used with *backprop* involves changing the types
+Writing functions that can be used with *backprop* involves tweaking the types
 slightly -- instead of working directly with values of type `a`, we work with
 `BVar`s (backpropagatable variables) *containing* `a`s: a `BVar s a`.
 
@@ -226,9 +233,9 @@ Instead of `R 10 -> R 10`, its type signature is now `BVar s (R 10) -> BVar s
 
 ```haskell
 -- normal
-konst ::        Double ->         R 10
+konst   ::        Double ->         R 10
 -- backprop
-konst :: BVar s Double -> BVar s (R 10)
+konst   :: BVar s Double -> BVar s (R 10)
 
 -- normal
 norm_1  ::         R 10  ->        Double
@@ -277,9 +284,9 @@ Some insight may be gleamed from a comparison of their type signatures:
 
 Using lenses like this gives us essentially frictionless usage of `BVar`s,
 allowing us to access items inside data types in a natural way.  We can also
-*set* items using `.~~`, instead of `.~`, and access constructors in sum types
-using `^^?` (which can implement pattern matching) and get matches for
-*multiple* targets using `^^..`:
+*set* items using `.~~` (to parallel `.~`), and access constructors in sum
+types using `^^?` (which can be used to implement pattern matching) and get
+matches for *multiple* targets using `^^..`:
 
 ```haskell
 (^..)  ::        a -> Traversal' a b -> [       b]
@@ -300,8 +307,8 @@ too surprising:
 
 Both of these implementations are are 100% lexicographically *identical* in
 implementation to our original ones -- the only difference is that `<.>` comes
-from `Numeric.LinearAlgebra.Static.Backprop`.  Other than that, we re-use `log`
-and negation.
+from `Numeric.LinearAlgebra.Static.Backprop`.  Other than that, we can simply
+re-use `log` and negation.
 
 ### Training
 
@@ -318,6 +325,9 @@ To break this down:
 1.  To train our network, we move in the opposite direction of our gradient.
     That means `net0 - 0.02 * gr` -- we subtract the gradient (scaled by 0.02,
     a learning rate, to ensure we don't overshoot our goal) from our network.
+
+    Recall that we implemented scaling and subtraction of `Net`s when we wrote
+    its `Num` and `Fractional` instances earlier.
 
 2.  To compute our gradient, we use `gradBP`:
 
@@ -367,7 +377,7 @@ To break this down:
 
 [one-liner-instances]: http://hackage.haskell.org/package/one-liner-instances
 
-And that's really the whole gradient computation and descent code!
+That's really the entire gradient computation and descent code!
 
 Kind of anti-climactic, isn't it?
 
@@ -462,9 +472,9 @@ gradBP   :: (Num a, Num b)
 your functions directly, so there's pretty much no harm in writing your entire
 application or library in `BVar`-based code.
 
-`gradBP`, however, carries a some measurable performance overhead over writing
-your gradient code "manually", but this heavily depends on exactly how complex
-the code you are backpropagating is.  The overhead comes from two potential
+`gradBP`, however, carries measurable performance overhead over writing your
+gradient code "manually", but this heavily depends on exactly how complex the
+code you are backpropagating is.  The overhead comes from two potential
 sources: the building of the function call graph, and also potentially from the
 mechanical automatic differentiation process generating different operations
 than what you might write by hand.  See the [README][] for a deeper analysis.
@@ -473,7 +483,7 @@ than what you might write by hand.  See the [README][] for a deeper analysis.
 
 You might have also noticed the RankN type signature (the `forall s. ...`) that
 I glossed over earlier.  This is here because *backprop* uses the RankN type
-trick from `Control.Monad.ST` and the *[ad][]* library, for two purposes:
+trick (from `Control.Monad.ST` and the *[ad][]* library) for two purposes:
 
 [ad]: http://hackage.haskell.org/package/ad
 
@@ -489,19 +499,20 @@ trick from `Control.Monad.ST` and the *[ad][]* library, for two purposes:
 
 ### Discussion on Num
 
-Note that at the moment, `backprop` and `gradBP` (and `(^^.)` and most
-`BVar`-based operations) all require a `Num` instance on the things being
-backpropagated.  This is an API decision that is a compromise between different
-options, and the [README][] has a deeper discussion on this.
+Note that at the moment, `backprop`, `gradBP`, `(^^.)`, and most `BVar`-based
+operations all require a `Num` instance on the things being backpropagated.
+This is an API decision that is a compromise between different options, and the
+[README][] has a deeper discussion on this.
 
-Writing a `Num` instance for your types is some manageable boilerplate if your
-type derives Generic (and we can use *[one-liner-instances][]*), like we saw
-above with the `Num` instance for `Net`.
+For the most part, writing a `Num` instance for your types is some easy and
+quick boilerplate if your type derives Generic (and we can use
+*[one-liner-instances][]*), like we saw above with the `Num` instance for
+`Net`.
 
-However, requiring a `Num` instance means you can't directly backpropagate
-tuples.  This can be an issue because of how pervasive tuples are used for
-currying/uncurrying, and also because automatically generated prisms use tuples
-for constructors with multiple fields.
+One potential drawback is that requiring a `Num` instance means you can't
+directly backpropagate tuples.  This can be an issue because of how pervasive
+tuples are used for currying/uncurrying, and also because automatically
+generated prisms use tuples for constructors with multiple fields.
 
 To mitigate this issue, the library exports some convenient
 tuples-with-Num-instances in `Numeric.Backprop.Tuple`.  If you are writing an
