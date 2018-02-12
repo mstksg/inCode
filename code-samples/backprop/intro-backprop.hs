@@ -85,13 +85,10 @@ netErr
     -> BVar s Double
 netErr x targ n = crossEntropy targ (runNet n x)
 
-stepNet
-    :: R 784
-    -> R 10
-    -> Net
-    -> Net
+stepNet :: R 784 -> R 10 -> Net -> Net
 stepNet x targ net0 = net0 - 0.02 * gr
   where
+    gr :: Net
     gr = gradBP (netErr (constVar x) (constVar targ)) net0
 
 main :: IO ()
