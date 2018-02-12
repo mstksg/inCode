@@ -33,6 +33,7 @@ import           GHC.Generics                    (Generic)
 import           GHC.TypeLits
 import           Numeric.OneLiner
 import           System.Environment
+import           System.FilePath hiding          ((<.>))
 import           Text.Printf
 import qualified Data.Vector                     as V
 import qualified Data.Vector.Generic             as VG
@@ -91,11 +92,17 @@ stepNet x targ net0 = net0 - 0.02 * gr
     gr :: Net
     gr = gradBP (netErr (constVar x) (constVar targ)) net0
 
+-- *********************************************
+-- Plumbing for running the network on real data
+-- *********************************************
+
 main :: IO ()
 main = MWC.withSystemRandom $ \g -> do
-    trIm:trLb:teIm:teLb:_ <- getArgs
-    Just train <- loadMNIST trIm trLb
-    Just test  <- loadMNIST teIm teLb
+    datadir:_ <- getArgs
+    Just train <- loadMNIST (datadir </> "train-images-idx3-ubyte")
+                            (datadir </> "train-labels-idx1-ubyte")
+    Just test  <- loadMNIST (datadir </> "t10k-images-idx3-ubyte")
+                            (datadir </> "t10k-labels-idx3-ubyte")
     putStrLn "Loaded data."
     net0 <- MWC.uniformR (-0.5, 0.5) g
     flip evalStateT net0 . forM_ [1..] $ \e -> do

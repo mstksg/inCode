@@ -5,14 +5,22 @@
 {-# LANGUAGE DeriveGeneric   #-}
 {-# LANGUAGE TemplateHaskell #-}
 
+-- Imports for network logic
+
 import           Control.Lens hiding          ((<.>))
 import           Numeric.LinearAlgebra.Static
+
+-- Imports for utility functions
+
+import           GHC.Generics (Generic)
+import           Numeric.OneLiner
 
 data Net = N { _weights1 :: L 250 784
              , _bias1    :: R 250
              , _weights2 :: L 10 250
              , _bias2    :: R 10
              }
+  deriving (Generic)
 makeLenses ''Net
 
 logistic :: Floating a => a -> a
@@ -49,3 +57,17 @@ netErr x targ n = crossEntropy targ (runNet n x)
 
 main :: IO ()
 main = return ()
+
+instance Num Net where
+    (+)         = gPlus
+    (-)         = gMinus
+    (*)         = gTimes
+    negate      = gNegate
+    abs         = gAbs
+    signum      = gSignum
+    fromInteger = gFromInteger
+
+instance Fractional Net where
+    (/)          = gDivide
+    recip        = gRecip
+    fromRational = gFromRational
