@@ -18,7 +18,11 @@ I'm excited to announce the first official release of the *[backprop][]*
 library (currently at version 0.1.2.0 on hackage)!  *backprop* is a library
 that allows you write functions on your heterogeneous values like you would
 normally and takes them and (with reverse-mode automatic differentiation)
-automatically generate functions computing their gradients.
+automatically generate functions computing their gradients.  *backprop* differs
+from the related *[ad][]* by working with functions using and transforming
+different types, instead of only one monomorphic scalar type.
+
+[ad]: http://hackage.haskell.org/package/ad
 
 This has been something I've been working on for a while (trying to find a good
 API for *heterogeneous* automatic differentiation), and I'm happy to finally
@@ -484,8 +488,6 @@ than what you might write by hand.  See the [README][] for a deeper analysis.
 You might have also noticed the RankN type signature (the `forall s. ...`) that
 I glossed over earlier.  This is here because *backprop* uses the RankN type
 trick (from `Control.Monad.ST` and the *[ad][]* library) for two purposes:
-
-[ad]: http://hackage.haskell.org/package/ad
 
 1.  The prevent leakage of variables from the function.  You can't use `evalBP`
     to get a `BVar` out in the end, just like you can't use `runST` to get an
