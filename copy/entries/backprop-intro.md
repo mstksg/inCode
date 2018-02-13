@@ -100,10 +100,10 @@ myNet ^. bias2    :: R  10      -- access the bias2 field in myNet
 ```
 
 I'm also going to define `Num` and `Fractional` instances for our network,
-which makes it really easy to write code to "gradient descend" our network (we
-can just add and scale our networks with each other).  To do this, I'm going
-to be using *[one-liner-instances][]* to make a `Num` instance automatically
-using GHC Generics:
+which makes it really easy to write code to "update" our network (we can just
+add and scale our networks with each other).  To do this, I'm going to be using
+*[one-liner-instances][]* to make a `Num` instance automatically using GHC
+Generics:
 
 ```haskell
 !!!backprop/intro-normal.hs "instance Num Net" "instance Fractional Net"
@@ -288,9 +288,9 @@ Some insight may be gleamed from a comparison of their type signatures:
 
 Using lenses like this gives us essentially frictionless usage of `BVar`s,
 allowing us to access items inside data types in a natural way.  We can also
-*set* items using `.~~` (to parallel `.~`), and access constructors in sum
-types using `^^?` (which can be used to implement pattern matching) and get
-matches for *multiple* targets using `^^..`:
+*set* items using `.~~` (to parallel `.~`), access constructors in sum types
+using `^^?` (which can be used to implement pattern matching) and get matches
+for *multiple* targets using `^^..`:
 
 ```haskell
 (^..)  ::        a -> Traversal' a b -> [       b]
@@ -309,10 +309,10 @@ too surprising:
 !!!backprop/intro-backprop.hs "crossEntropy" "netErr"
 ```
 
-Both of these implementations are are 100% lexicographically *identical* in
-implementation to our original ones -- the only difference is that `<.>` comes
-from `Numeric.LinearAlgebra.Static.Backprop`.  Other than that, we can simply
-re-use `log` and negation.
+Both of these implementations are are 100% lexicographically identical to our
+original ones -- the only difference is that `<.>` comes from
+`Numeric.LinearAlgebra.Static.Backprop`.  Other than that, we can simply re-use
+`log` and negation.
 
 ### Training
 
@@ -357,9 +357,9 @@ To break this down:
     Which "runs" the actual `a -> b` function that the `BVar s a -> BVar s b`
     encodes.
 
-3.  We want to use `gradBP` with our `Net -> Double` error function (or more
-    accurately our `BVar s Net -> BVar s Double` function).  That's exactly what
-    `netErr` gives us.
+3.  We want to use `gradBP` with our `Net -> Double` error function (or, more
+    accurately, our `BVar s Net -> BVar s Double` function).  That's exactly
+    what `netErr` gives us.
 
     We use `constVar` to lift `x` and `targ`:
 
@@ -518,7 +518,8 @@ generated prisms use tuples for constructors with multiple fields.
 
 To mitigate this issue, the library exports some convenient
 tuples-with-Num-instances in `Numeric.Backprop.Tuple`.  If you are writing an
-application, you can use the orphan instances in *[NumInstances][]*.
+application, you can consider also using the orphan instances in
+*[NumInstances][]*.
 
 [NumInstances]: https://hackage.haskell.org/package/NumInstances
 
