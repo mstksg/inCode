@@ -102,7 +102,7 @@ main = MWC.withSystemRandom $ \g -> do
     Just train <- loadMNIST (datadir </> "train-images-idx3-ubyte")
                             (datadir </> "train-labels-idx1-ubyte")
     Just test  <- loadMNIST (datadir </> "t10k-images-idx3-ubyte")
-                            (datadir </> "t10k-labels-idx3-ubyte")
+                            (datadir </> "t10k-labels-idx1-ubyte")
     putStrLn "Loaded data."
     net0 <- MWC.uniformR (-0.5, 0.5) g
     flip evalStateT net0 . forM_ [1..] $ \e -> do
