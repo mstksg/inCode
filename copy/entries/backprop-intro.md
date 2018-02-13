@@ -15,7 +15,7 @@ series: Backprop
 [github]: https://github.com/mstksg/backprop
 
 I'm excited to announce the first official release of the *[backprop][]*
-library (currently at version 0.1.2.0 on hackage)!  *backprop* is a library
+library (currently at version 0.1.3.0 on hackage)!  *backprop* is a library
 that allows you write functions on your heterogeneous values like you would
 normally and takes them and (with reverse-mode automatic differentiation)
 automatically generate functions computing their gradients.  *backprop* differs
