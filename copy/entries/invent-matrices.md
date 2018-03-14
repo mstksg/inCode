@@ -54,8 +54,8 @@ Some examples include:
 *   The set of all polynomials ($5 p^2 - 3 p + 2$, etc.) is an
     infinite-dimensional vector space, whose scalars are set of possible
     coefficients.  Polynomials can be scaled and added together.  One possible
-    basis is $1$, $p$, $p^2$, $p^3$, etc.; any polynomial can be made as a
-    weighted combination of these.
+    basis are the polynomials $1$, $p$, $p^2$, $p^3$, etc.; every other
+    polynomial can be made as a weighted combination of these polynomials.
 *   N-Tuples of $\mathbb{R}$ (ordered sequences of a given length) are a vector
     space, and they're one of the more common examples.  One possible basis for
     $\mathbb{R}^3$ is $(1,0,0)$, $(0,1,0)$, and $(0,0,1)$.  N-tuple of real
