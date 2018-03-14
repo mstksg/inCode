@@ -9,10 +9,10 @@ slug: you-could-have-invented-matrices
 
 You could have invented matrices!
 
-Let's talk about vectors.  A **vector** (denoted as $\mathbf{v}$, a lower-case
+Let's talk about vectors.  A **vector** (denoted as $\mathbf{x}$, a lower-case
 bold italicized letter) is an element in a **vector space**, which means that
-it can be "scaled", like $c \mathbf{v}$ (the $c$ is called a "scalar" ---
-creative name, right?) and added, like $\mathbf{v} + \mathbf{u}$.
+it can be "scaled", like $c \mathbf{x}$ (the $c$ is called a "scalar" ---
+creative name, right?) and added, like $\mathbf{x} + \mathbf{y}$.
 
 In order for vector spaces and their operations to be valid, they just have to
 obey some [common-sense rules][laws] (like associativity, commutativity,
@@ -24,17 +24,17 @@ Dimensionality
 --------------
 
 One neat thing about vector spaces is that, in *some* of them, you have the
-ability to "decompose" any vector in it as a *weighted sum* of some set of
-"basis" vectors.  If this is the case for your vector space, then the size of
+ability to "decompose" any vector in it as a weighted sum of some set of
+**basis vectors**.  If this is the case for your vector space, then the size of
 smallest possible set of basis vectors is known as the **dimension** of that
 vector space.
 
-For example, for a 3-dimensional vector space $V$, any vector $\mathbf{v}$ can
-be described as a weighted sum of three basis vectors $\mathbf{e}_1$,
-$\mathbf{e}_2$, $\mathbf{e}_3$:
+For example, for a 3-dimensional vector space $V$, any vector $\mathbf{x}$ can
+be described as a weighted sum of three basis vectors.  If we call them
+$\mathbf{v}_1$, $\mathbf{v}_2$, $\mathbf{v}_3$, then:
 
 $$
-\mathbf{v} = a \mathbf{e}_1 + b \mathbf{e}_2 + c \mathbf{e}_3
+\mathbf{x} = a \mathbf{v}_1 + b \mathbf{v}_2 + c \mathbf{v}_3
 $$
 
 Where $a$, $b$, and $c$ are scalars.
@@ -44,48 +44,60 @@ in that vector space into a useful set of bases.  For a 3-dimensional vector
 space, you can make a bases that can reproduce *any* vector in your space...but
 that's only possible with at least three vectors.
 
-In physics, we often treat reality as taking place in a three-dimensional
-vector space.  The basis vectors are often called $\hat{\mathbf{i}}$,
-$\hat{\mathbf{j}}$, and $\hat{\mathbf{k}}$, and so we say that we can describe
-our 3D physics vectors as $\mathbf{v} = v_x \hat{\mathbf{i}} + v_y
-\hat{\mathbf{j}} + v_x \hat{\mathbf{k}}$
+Some examples include:
+
+*   In physics, we often treat reality as taking place in a three-dimensional
+    vector space.  The basis vectors are often called $\hat{\mathbf{i}}$,
+    $\hat{\mathbf{j}}$, and $\hat{\mathbf{k}}$, and so we say that we can
+    describe our 3D physics vectors as $\mathbf{r} = r_x \hat{\mathbf{i}} + r_y
+    \hat{\mathbf{j}} + r_x \hat{\mathbf{k}}$.
+*   The set of all polynomials ($5 p^2 - 3 p + 2$, etc.) is an
+    infinite-dimensional vector space, whose scalars are set of possible
+    coefficients.  Polynomials can be scaled and added together.  One possible
+    basis is $1$, $p$, $p^2$, $p^3$, etc.; any polynomial can be made as a
+    weighted combination of these.
+*   N-Tuples of $\mathbb{R}$ (ordered sequences of a given length) are a vector
+    space, and they're one of the more common examples.  One possible basis for
+    $\mathbb{R}^3$ is $(1,0,0)$, $(0,1,0)$, and $(0,0,1)$.  N-tuple of real
+    numbers can be expressed as a weighted sum of these.
 
 ### Encoding
 
 One neat thing that physicists take advantage of all the time is that if we
 *agree* on a set of basis vectors and a specific ordering, we can actually
-*encode* any vector $\mathbf{v}$ in terms of those basis vectors.
+*encode* any vector $\mathbf{x}$ in terms of those basis vectors.
 
 So in physics, we can say "Let's encode vectors in terms of $\hat{\mathbf{i}}$,
 $\hat{\mathbf{j}}$, and $\hat{\mathbf{k}}$, in that order."  Then, we can
-*write* $\mathbf{v}$ as $\langle v_x, v_y, v_z \rangle$, and understand that we
-really mean$\mathbf{v} = v_x \hat{\mathbf{i}} + v_y \hat{\mathbf{j}} + v_x
+*write* $\mathbf{r}$ as $\langle r_x, r_y, r_z \rangle$, and understand that we
+really mean$\mathbf{r} = r_x \hat{\mathbf{i}} + r_y \hat{\mathbf{j}} + r_x
 \hat{\mathbf{k}}$.
 
-Note that $\langle v_x, v_y, v_z \rangle$ is **not** the same thing as the
-**vector** $\mathbf{v}$.  It is *an encoding* of that vector, that only makes
-sense once we choose to *agree* on a specific set of basis.
+Note that $\langle r_x, r_y, r_z \rangle$ is **not** the same thing as the
+**vector** $\mathbf{r}$.  It is *an encoding* of that vector, that only makes
+sense once we choose to *agree* on a specific set of basis.  If we chose a
+different basis, we'd have a different encoding.
 
 For an N-dimensional vector space, it means that, with a minimum of N items, we
 can represent any vector in that space.  And, if we agree on those N items, we
 can devise an encoding, such that:
 
 $$
-\langle v_1, v_2 \dots v_N \rangle
+\langle x_1, x_2 \dots x_N \rangle
 $$
 
 will *represent* the vector:
 
 $$
-v_1 \mathbf{e}_1 + v_2 \mathbf{e}_2 + \ldots + v_N \mathbf{e}_N
+x_1 \mathbf{v}_1 + x_2 \mathbf{v}_2 + \ldots + x_N \mathbf{v}_N
 $$
 
 Note that what this encoding represents is *completely dependent* on what
-$\mathbf{e}_1, \mathbf{e}_2 \ldots \mathbf{e}_N$ we pick, and in what order.
+$\mathbf{v}_1, \mathbf{v}_2 \ldots \mathbf{v}_N$ we pick, and in what order.
 The basis vectors we pick are arbitrary, and determine what our encoding looks
 like.
 
-To highlight this, note that the same vector $\mathbf{v}$ has many many
+To highlight this, note that the same vector $\mathbf{x}$ has many many
 different potential encodings --- all you have to do is pick a different set of
 basis vectors, or even just re-arrange or re-scale the ones you already have.
 However, all of those encodings correspond go the same vector $\mathbf{v}$.
@@ -138,7 +150,7 @@ can use).
 ### Studying linear transformations
 
 From first glance, a linear transformation's description doesn't look too
-useful or analyzable.  All you have is $f(\mathbf{v})$.  It could be anything!
+useful or analyzable.  All you have is $f(\mathbf{x})$.  It could be anything!
 Right?  Just a black box function?
 
 But, actually, we can exploit its linearity and the fact that we're in a vector
@@ -149,14 +161,14 @@ Let's say that $A(\mathbf{x})$ is a linear transformation from N-dimensional
 vector space $V$ to M-dimensional vector space $U$.  That is, $A : V
 \rightarrow U$.
 
-Because we know that, once we pick a set of basis vectors $\mathbf{e}_i$, any
-vector $\mathbf{v}$ in $V$ can be decomposed as $v_1 \mathbf{e}_1 + v_2
-\mathbf{e}_2 + \ldots v_n \mathbf{e}_N$, we really can just look at how a
+Because we know that, once we pick a set of basis vectors $\mathbf{v}_i$, any
+vector $\mathbf{x}$ in $V$ can be decomposed as $x_1 \mathbf{v}_1 + x_2
+\mathbf{v}_2 + \ldots x_n \mathbf{v}_N$, we really can just look at how a
 transformation $A$ acts on this decomposition.  For example, if $V$ is
 three-dimensional:
 
 $$
-A(\mathbf{v}) = A(v_1 \mathbf{e}_1 + v_2 \mathbf{e}_2 + v_3 \mathbf{e}_3)
+A(\mathbf{x}) = A(x_1 \mathbf{v}_1 + x_2 \mathbf{v}_2 + x_3 \mathbf{v}_3)
 $$
 
 Hm.  Doesn't seem very insightful, does it?
@@ -167,7 +179,7 @@ But!  We can exploit the linearity of $A$ (that it distributes and scales) to
 rewrite that as:
 
 $$
-A(\mathbf{v}) = v_1 A(\mathbf{e}_1) + v_2 A(\mathbf{e}_2) + v_3 A(\mathbf{e}_3)
+A(\mathbf{x}) = x_1 A(\mathbf{v}_1) + x_2 A(\mathbf{v}_2) + x_3 A(\mathbf{v}_3)
 $$
 
 Okay, take a moment to pause and take that all in.  This is actually a pretty
@@ -177,13 +189,13 @@ of our vector space, that's really "all there is" about $A$!  Not such a black
 box anymore!
 
 That is, if I were to ask you, "Hey, what is $A$ like?", *all you'd have to
-tell me* is the result of $A(\mathbf{e}_1)$, $A(\mathbf{e}_2$, and
-$A(\mathbf{e}_3)$.  Just give me those three *vectors*, and we *uniquely
+tell me* is the result of $A(\mathbf{v}_1)$, $A(\mathbf{v}_2$, and
+$A(\mathbf{v}_3)$.  Just give me those three *vectors*, and we *uniquely
 determine $A$*.
 
 To put in another way, *any linear transformation* from a three-dimensional
-vector space is uniquely characterized by *three vectors*: $A(\mathbf{e}_1)$,
-$A(\mathbf{e}_2)$, and $A(\mathbf{e}_3)$.
+vector space is uniquely characterized and determined by *three vectors*:
+$A(\mathbf{v}_1)$, $A(\mathbf{v}_2)$, and $A(\mathbf{v}_3)$.
 
 Those three vectors *completely define* $A$.
 
@@ -195,22 +207,22 @@ transformation on each of N basis vectors we choose.
 
 Okay, so how do we "give"/define/state those N vectors?
 
-Well, recall that the result of $A(\mathbf{v})$ and $A(\mathbf{e}_1)$, etc. are
+Well, recall that the result of $A(\mathbf{x})$ and $A(\mathbf{v}_1)$, etc. are
 *themselves* vectors, in M-dimensional vector space $U$.  Let's say that $U$ is
 2-dimensional, for now.
 
-This means that any vector $\mathbf{u}$ in $U$ can be represented as $u_1
-\mathbf{q}_1 + u_2 \mathbf{q}_2$, where $\mathbf{q}_1$ and $\mathbf{q}_2$ is an
+This means that any vector $\mathbf{y}$ in $U$ can be represented as $y_1
+\mathbf{u}_1 + y_2 \mathbf{u}_2$, where $\mathbf{u}_1$ and $\mathbf{u}_2$ is an
 arbitrary choice of basis vectors.
 
-This means that $A(\mathbf{e}_1)$ etc. can also all be represented in terms of
+This means that $A(\mathbf{v}_1)$ etc. can also all be represented in terms of
 these basis vectors.  So, laying it all out:
 
 $$
 \begin{aligned}
-A(\mathbf{e}_1) & = a_{11} \mathbf{q}_1 + a_{21} \mathbf{q}_2 \\
-A(\mathbf{e}_2) & = a_{12} \mathbf{q}_1 + a_{22} \mathbf{q}_2 \\
-A(\mathbf{e}_3) & = a_{13} \mathbf{q}_1 + a_{23} \mathbf{q}_2
+A(\mathbf{v}_1) & = a_{11} \mathbf{u}_1 + a_{21} \mathbf{u}_2 \\
+A(\mathbf{v}_2) & = a_{12} \mathbf{u}_1 + a_{22} \mathbf{u}_2 \\
+A(\mathbf{v}_3) & = a_{13} \mathbf{u}_1 + a_{23} \mathbf{u}_2
 \end{aligned}
 $$
 
@@ -218,9 +230,9 @@ Or, to use our bracket notation from before:
 
 $$
 \begin{aligned}
-A(\mathbf{e}_1) & = \langle a_{11}, a_{21} \rangle \\
-A(\mathbf{e}_2) & = \langle a_{12}, a_{22} \rangle \\
-A(\mathbf{e}_3) & = \langle a_{13}, a_{23} \rangle
+A(\mathbf{v}_1) & = \langle a_{11}, a_{21} \rangle \\
+A(\mathbf{v}_2) & = \langle a_{12}, a_{22} \rangle \\
+A(\mathbf{v}_3) & = \langle a_{13}, a_{23} \rangle
 \end{aligned}
 $$
 
@@ -231,7 +243,7 @@ So, we now see two facts:
 2.  Each of those N vectors can, themselves, be defined using M scalars each.
 
 Our final conclusion: *any* linear transformation from an N dimensional vector
-space to an M dimensional vector space can be defined using $N M$
+space to an M dimensional vector space can be completely defined using $N M$
 scalars.
 
 That's right -- *all* possible linear transformations from a 3-dimensional
@@ -253,13 +265,13 @@ If our linear transformation $A$ from a 3-dimensional vector space to a
 
 $$
 \begin{aligned}
-A(\mathbf{e}_1) & = a_{11} \mathbf{q}_1 + a_{21} \mathbf{q}_2 \\
-A(\mathbf{e}_2) & = a_{12} \mathbf{q}_1 + a_{22} \mathbf{q}_2 \\
-A(\mathbf{e}_3) & = a_{13} \mathbf{q}_1 + a_{23} \mathbf{q}_2
+A(\mathbf{v}_1) & = a_{11} \mathbf{u}_1 + a_{21} \mathbf{u}_2 \\
+A(\mathbf{v}_2) & = a_{12} \mathbf{u}_1 + a_{22} \mathbf{u}_2 \\
+A(\mathbf{v}_3) & = a_{13} \mathbf{u}_1 + a_{23} \mathbf{u}_2
 \end{aligned}
 $$
 
-(for arbitrary choice of bases $\mathbf{e}_i$ and $\mathbf{q}_i$)
+(for arbitrary choice of bases $\mathbf{v}_i$ and $\mathbf{u}_i$)
 
 We "encode" it as the matrix:
 
@@ -276,11 +288,6 @@ on a bases), a $M \times N$ matrix is a convenient way to represent and define
 a *linear transformation* from an N-dimensional vector space to a M-dimensional
 vector space (once we agree on the bases in both spaces).
 
-<!-- And, sometimes we just think of the $\langle x, y, z \rangle$ encoding as the -->
-<!-- vector itself, we often also talk about the $M \times N$ matrix as if it were -->
-<!-- the linear transformation itself.  The matrix "is" the linear transformation, -->
-<!-- informally. -->
-
 Matrix Operations
 -----------------
 
@@ -295,16 +302,16 @@ transformation that the matrix represents.
 Let's look at the $2 \times 3$ example.  Recall that we had:
 
 $$
-f(\mathbf{v}) = v_1 f(\mathbf{e}_1) + v_2 f(\mathbf{e}_2) + v_3 f(\mathbf{e}_3)
+f(\mathbf{x}) = x_1 f(\mathbf{v}_1) + x_2 f(\mathbf{v}_2) + x_3 f(\mathbf{v}_3)
 $$
 
 And we say that $A$ is completely defined by:
 
 $$
 \begin{aligned}
-f(\mathbf{e}_1) & = a_{11} \mathbf{q}_1 + a_{21} \mathbf{q}_2 \\
-f(\mathbf{e}_2) & = a_{12} \mathbf{q}_1 + a_{22} \mathbf{q}_2 \\
-f(\mathbf{e}_3) & = a_{13} \mathbf{q}_1 + a_{23} \mathbf{q}_2
+f(\mathbf{v}_1) & = a_{11} \mathbf{u}_1 + a_{21} \mathbf{u}_2 \\
+f(\mathbf{v}_2) & = a_{12} \mathbf{u}_1 + a_{22} \mathbf{u}_2 \\
+f(\mathbf{v}_3) & = a_{13} \mathbf{u}_1 + a_{23} \mathbf{u}_2
 \end{aligned}
 $$
 
@@ -312,20 +319,20 @@ This means that:
 
 $$
 \begin{aligned}
-f(\mathbf{v}) & = v_1 (a_{11} \mathbf{q}_1 + a_{21} \mathbf{q}_2) \\
-              & + v_2 (a_{12} \mathbf{q}_1 + a_{22} \mathbf{q}_2) \\
-              & + v_3 (a_{13} \mathbf{q}_1 + a_{23} \mathbf{q}_2)
+f(\mathbf{x}) & = x_1 (a_{11} \mathbf{u}_1 + a_{21} \mathbf{u}_2) \\
+              & + x_2 (a_{12} \mathbf{u}_1 + a_{22} \mathbf{u}_2) \\
+              & + x_3 (a_{13} \mathbf{u}_1 + a_{23} \mathbf{u}_2)
 \end{aligned}
 $$
 
 Which is itself a vector in $U$, so let's write this as a combination of its
-components $\mathbf{q}_1$ and $\mathbf{q}_2$, by distributing and rearranging
+components $\mathbf{u}_1$ and $\mathbf{u}_2$, by distributing and rearranging
 terms:
 
 $$
 \begin{aligned}
-f(\mathbf{v}) & = (v_1 a_{11} + v_2 a_{12} + v_3 a_{13}) \mathbf{q}_1 \\
-              & + (v_1 a_{21} + v_2 a_{22} + v_3 a_{23}) \mathbf{q}_2
+f(\mathbf{v}) & = (v_1 a_{11} + v_2 a_{12} + v_3 a_{13}) \mathbf{u}_1 \\
+              & + (v_1 a_{21} + v_2 a_{22} + v_3 a_{23}) \mathbf{u}_2
 \end{aligned}
 $$
 
@@ -337,14 +344,14 @@ a_{11} & a_{12} & a_{13} \\
 a_{21} & a_{22} & a_{23}
 \end{bmatrix}
 \begin{bmatrix}
-v_1 \\
-v_2 \\
-v_3
+x_1 \\
+x_2 \\
+x_3
 \end{bmatrix}
 =
 \begin{bmatrix}
-v_1 a_{11} + v_2 a_{12} + v_3 a_{13} \\
-v_2 a_{21} + v_2 a_{22} + v_3 a_{23}
+x_1 a_{11} + x_2 a_{12} + x_3 a_{13} \\
+x_2 a_{21} + x_2 a_{22} + x_3 a_{23}
 \end{bmatrix}
 $$
 
@@ -353,6 +360,9 @@ our vectors and our linear transformations.  Namely, we encode linear
 transformations as matrices, and vectors in their component encoding.  The
 reason we can do these is that we agree upon a set of bases for our source and
 target vector spaces, and express these encodings in terms of those.
+
+The magic we get out of this is that we can manipulate things in our "encoding
+world", which correspond to things in the "real world".
 
 ### Addition of linear transformations
 
@@ -388,10 +398,10 @@ respectively:
 
 $$
 \begin{aligned}
-f(\mathbf{v}) & = (v_1 a_{11} + v_2 a_{12} + v_3 a_{13}) \mathbf{q}_1 \\
-              & + (v_1 a_{21} + v_2 a_{22} + v_3 a_{23}) \mathbf{q}_2 \\
-g(\mathbf{v}) & = (v_1 b_{11} + v_2 b_{12} + v_3 b_{13}) \mathbf{q}_1 \\
-              & + (v_1 b_{21} + v_2 b_{22} + v_3 b_{23}) \mathbf{q}_2
+f(\mathbf{x}) & = (x_1 a_{11} + x_2 a_{12} + x_3 a_{13}) \mathbf{u}_1 \\
+              & + (x_1 a_{21} + x_2 a_{22} + x_3 a_{23}) \mathbf{u}_2 \\
+g(\mathbf{x}) & = (x_1 b_{11} + x_2 b_{12} + x_3 b_{13}) \mathbf{u}_1 \\
+              & + (x_1 b_{21} + x_2 b_{22} + x_3 b_{23}) \mathbf{u}_2
 \end{aligned}
 $$
 
@@ -399,12 +409,12 @@ Then the breakdown of $f + g$ is:
 
 $$
 \begin{aligned}
-(f + g)(\mathbf{v}) & = (v_1 a_{11} + v_2 a_{12} + v_3 a_{13}) \mathbf{q}_1 \\
-                    & + (v_1 a_{21} + v_2 a_{22} + v_3 a_{23}) \mathbf{q}_2 \\
-                    & + (v_1 b_{11} + v_2 b_{12} + v_3 b_{13}) \mathbf{q}_1 \\
-                    & + (v_1 b_{21} + v_2 b_{22} + v_3 b_{23}) \mathbf{q}_2 \\
-(f + g)(\mathbf{v}) & = (v_1 (a_{11} + b_{11}) + v_2 (a_{12} + b_{12}) + v_3 (a_{13} + b_{13})) \mathbf{q}_1 \\
-                    & + (v_1 (a_{21} + b_{21}) + v_2 (a_{22} + b_{22}) + v_3 (a_{23} + b_{23})) \mathbf{q}_2
+(f + g)(\mathbf{v}) & = (x_1 a_{11} + x_2 a_{12} + x_3 a_{13}) \mathbf{u}_1 \\
+                    & + (x_1 a_{21} + x_2 a_{22} + x_3 a_{23}) \mathbf{u}_2 \\
+                    & + (x_1 b_{11} + x_2 b_{12} + x_3 b_{13}) \mathbf{u}_1 \\
+                    & + (x_1 b_{21} + x_2 b_{22} + x_3 b_{23}) \mathbf{u}_2 \\
+(f + g)(\mathbf{v}) & = (x_1 [a_{11} + b_{11}] + x_2 [a_{12} + b_{12}] + x_3 [a_{13} + b_{13}]) \mathbf{u}_1 \\
+                    & + (x_1 [a_{21} + b_{21}] + x_2 [a_{22} + b_{22}] + x_3 [a_{23} + b_{23}]) \mathbf{u}_2
 \end{aligned}
 $$
 
@@ -413,8 +423,8 @@ components $c_{11}$, $c_{12}$, etc., then we can rewrite that as:
 
 $$
 \begin{aligned}
-(f + g)(\mathbf{v}) & = (v_1 c_{11} + v_2 c_{12} + v_3 c_{13}) \mathbf{q}_1 \\
-                    & + (v_1 c_{21} + v_2 c_{22} + v_3 c_{23}) \mathbf{q}_2
+(f + g)(\mathbf{x}) & = (x_1 c_{11} + x_2 c_{12} + x_3 c_{13}) \mathbf{u}_1 \\
+                    & + (x_1 c_{21} + x_2 c_{22} + x_3 c_{23}) \mathbf{u}_2
 \end{aligned}
 $$
 
@@ -430,6 +440,10 @@ addition of the linear transformation!
 
 What's happening here is we can represent manipulations of the functions
 themselves by manipulating *their encodings*.
+
+And, again, the magic here is that, by manipulating things in our "encoding
+world", we can make meaningful manipulations in the "real world" of linear
+transformations.
 
 $$
 \begin{bmatrix}
@@ -450,7 +464,7 @@ $$
 
 Symbolically, if we write function application as matrix-vector multiplication,
 we say that $\hat{A} + \hat{B}$ is defined so that
-$(\hat{A} + \hat{B})\mathbf{v} = \hat{A} \mathbf{V} + \hat{B} \mathbf{v}$.
+$(\hat{A} + \hat{B})\mathbf{x} = \hat{A} \mathbf{x} + \hat{B} \mathbf{x}$.
 
 ### Multiplication of linear transformations
 
@@ -537,6 +551,9 @@ Then:
 *   $\hat{C} = \hat{A}\hat{B}$ is a $O \times N$ matrix representing a linear
     transformation from an N-dimensional space to an O-dimensional space.
 
+Again -- manipulation of our *encodings* can manifest the manipulation in the
+*linear transformations* that we want.
+
 Symbolically, if we treat function application as matrix-vector multiplication,
 this means that $\hat{A}\hat{B}$ is defined such that
 $(\hat{A}\hat{B})\mathbf{x} = \hat{A}(\hat{B}\mathbf{x})$.
@@ -549,20 +566,15 @@ other is an *application* of an encoding of a linear transformation on encoding
 of a vector.
 
 If you're familiar with Haskell idioms, matrix-matrix multiplication is like
-`.`, and matrix-vector multiplication is like `$`.  One is a "higher order
-function": taking two functions (at least, the encodings of them) and returning
-a new function.  The other is an application of a function to its input.
+`.` (function composition), and matrix-vector multiplication is like `$`, or
+function application.  One is a "higher order function": taking two functions
+(at least, the encodings of them) and returning a new function.  The other is
+an application of a function to its input.
 
 And, like in Haskell:
 
 ```haskell
 (f . g) x = f (g x)
-```
-
-Or, with explicit function application:
-
-```haskell
-(f . g) $ x = f $ (g $ x)
 ```
 
 We won't go over the actual process of computing the matrix-matrix product, but
@@ -580,7 +592,7 @@ be defined/represented in a limited number of parameters
 
 Then, the breakthrough is that we look at useful higher-order functions and
 manipulations of those transformations.  Then, we see how we can implement
-those transformations by symbolically manipulating the encodings!
+those *transformations* by symbolically manipulating the *encodings*!
 
 This is actually a dance we do all the time in programming.  Instead of working
 with functions, we work with reified data that represent those functions.  And,
@@ -602,6 +614,6 @@ matrices!
 
 I hope this post serves to demystify matrices, matrix addition, and
 multiplication for you, and help you see why they are defined the way that they
-are.  Furthermore, I hope it gives some insight on why matrices are useful in
-linear algebra, and also how similar encodings can help you with manipulating
-other types of functions!
+are.  Furthermore, I hope that it gives some insight on why matrices are useful
+in linear algebra, and also how similar encodings can help you with
+manipulating other types of functions!
