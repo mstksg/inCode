@@ -15,25 +15,23 @@ it can be "scaled", like $c \mathbf{v}$ (the $c$ is called a "scalar" ---
 creative name, right?) and added, like $\mathbf{v} + \mathbf{u}$.
 
 In order for vector spaces and their operations to be valid, they just have to
-obey some common-sense rules (like associativity, commutativity,
-distributivity, etc.) that allow us to make meaningful conclusions.[^laws]
+obey some [common-sense rules][laws] (like associativity, commutativity,
+distributivity, etc.) that allow us to make meaningful conclusions.
 
-[^laws]: In short, vector spaces form an Abelian group (which is another way of
-just saying that addition is commutative, associative, has an identity, and an
-inverse), and scalars have to play nice with addition ($c(\mathbf{v} +
-\mathbf{u}) = c \mathbf{v} + c \mathbf{u}$, and $(c + d)\mathbf{v} = c
-\mathbf{v} + d \mathbf{v}$).  Also, scalars themselves form a field.
+[laws]: https://en.wikipedia.org/wiki/Vector_space#Definition
 
 Dimensionality
 --------------
 
-One neat thing about vector spaces is that *some* of them (if you're lucky)
-have a notion of **dimensionality**.  We say that a vector space is
-N-dimensional if there exists N "basis" vectors $\mathbf{e}_1, \mathbf{e}_2
-\ldots \mathbf{e}_N$ where *any* vector can be described as scaled sums of all
-of them, and that N is the lowest number of basis vectors needed.  For example,
-if a vector space is 3-dimensional, then it means that *any* vector
-$\mathbf{v}$ in that space can be broken down as:
+One neat thing about vector spaces is that, in *some* of them, you have the
+ability to "decompose" any vector in it as a *weighted sum* of some set of
+"basis" vectors.  If this is the case for your vector space, then the size of
+smallest possible set of basis vectors is known as the **dimension** of that
+vector space.
+
+For example, for a 3-dimensional vector space $V$, any vector $\mathbf{v}$ can
+be described as a weighted sum of three basis vectors $\mathbf{e}_1$,
+$\mathbf{e}_2$, $\mathbf{e}_3$:
 
 $$
 \mathbf{v} = a \mathbf{e}_1 + b \mathbf{e}_2 + c \mathbf{e}_3
@@ -43,8 +41,8 @@ Where $a$, $b$, and $c$ are scalars.
 
 Dimensionality is really a statement about being able to decompose any vector
 in that vector space into a useful set of bases.  For a 3-dimensional vector
-space, you need at least 3 vectors to make a bases that can reproduce *any*
-vector in your space.
+space, you can make a bases that can reproduce *any* vector in your space...but
+that's only possible with at least three vectors.
 
 In physics, we often treat reality as taking place in a three-dimensional
 vector space.  The basis vectors are often called $\hat{\mathbf{i}}$,
@@ -87,19 +85,19 @@ $\mathbf{e}_1, \mathbf{e}_2 \ldots \mathbf{e}_N$ we pick, and in what order.
 The basis vectors we pick are arbitrary, and determine what our encoding looks
 like.
 
-To highlight this, note that the same vector $\mathbf{v}$ has many different
-potential encodings --- all you have to do is pick a different set of basis
-vectors, or even just re-arrange the ones you already have.  However, all of
-those encodings correspond go the same vector $\mathbf{v}$.
+To highlight this, note that the same vector $\mathbf{v}$ has many many
+different potential encodings --- all you have to do is pick a different set of
+basis vectors, or even just re-arrange or re-scale the ones you already have.
+However, all of those encodings correspond go the same vector $\mathbf{v}$.
 
 One interesting consequence of this is that any N-dimensional vector space
 whose scalars are in $\mathbb{R}$ is actually isomorphic to $\mathbb{R}^N$ ---
 the vector space of N-tuples of real numbers.  This means that we can basically
 treat any N-dimensional vector space with $\mathbb{R}$ scalars as if it was
-$\mathbb{R}^N$, once we decide on the basis vectors.  Because of this, we often
-call *all* N-dimensional vector spaces (whose scalars are in $\mathbb{R}$) as
-$\mathbb{R}^N$.  You will often hear physicists saying that the
-three-dimensional vector spaces they use are $\mathbb{R}^3$.  However, what
+$\mathbb{R}^N$, *once we decide* on the basis vectors.  Because of this, we
+often call *all* N-dimensional vector spaces (whose scalars are in
+$\mathbb{R}$) as $\mathbb{R}^N$.  You will often hear physicists saying that
+the three-dimensional vector spaces they use are $\mathbb{R}^3$.  However, what
 they really mean is that their vector spaces is *isomorphic* to $\mathbb{R}^3$.
 
 Linear Transformations
@@ -108,7 +106,7 @@ Linear Transformations
 Now, one of the most interesting things in mathematics is the idea of the
 **linear transformation**.  Linear transformations are useful to study because:
 
-1.  They are ubiquitious.  They come up everywhere in engineering,
+1.  They are ubiquitous.  They come up everywhere in engineering,
     physics, mathematics, data science, economics, and pretty much any
     mathematical theory.  And there are even more situations which can be
     *approximated* by linear transformations.
@@ -289,7 +287,7 @@ Matrix Operations
 In this light, we can understand the definition of the common matrix
 operations.
 
-## Matrix-Vector Multiplication
+### Matrix-Vector Multiplication
 
 Matrix-vector multiplication is essentially the *decoding* of the linear
 transformation that the matrix represents.
@@ -297,16 +295,16 @@ transformation that the matrix represents.
 Let's look at the $2 \times 3$ example.  Recall that we had:
 
 $$
-A(\mathbf{v}) = v_1 A(\mathbf{e}_1) + v_2 A(\mathbf{e}_2) + v_3 A(\mathbf{e}_3)
+f(\mathbf{v}) = v_1 f(\mathbf{e}_1) + v_2 f(\mathbf{e}_2) + v_3 f(\mathbf{e}_3)
 $$
 
 And we say that $A$ is completely defined by:
 
 $$
 \begin{aligned}
-A(\mathbf{e}_1) & = a_{11} \mathbf{q}_1 + a_{21} \mathbf{q}_2 \\
-A(\mathbf{e}_2) & = a_{12} \mathbf{q}_1 + a_{22} \mathbf{q}_2 \\
-A(\mathbf{e}_3) & = a_{13} \mathbf{q}_1 + a_{23} \mathbf{q}_2
+f(\mathbf{e}_1) & = a_{11} \mathbf{q}_1 + a_{21} \mathbf{q}_2 \\
+f(\mathbf{e}_2) & = a_{12} \mathbf{q}_1 + a_{22} \mathbf{q}_2 \\
+f(\mathbf{e}_3) & = a_{13} \mathbf{q}_1 + a_{23} \mathbf{q}_2
 \end{aligned}
 $$
 
@@ -314,7 +312,7 @@ This means that:
 
 $$
 \begin{aligned}
-A(\mathbf{v}) & = v_1 (a_{11} \mathbf{q}_1 + a_{21} \mathbf{q}_2) \\
+f(\mathbf{v}) & = v_1 (a_{11} \mathbf{q}_1 + a_{21} \mathbf{q}_2) \\
               & + v_2 (a_{12} \mathbf{q}_1 + a_{22} \mathbf{q}_2) \\
               & + v_3 (a_{13} \mathbf{q}_1 + a_{23} \mathbf{q}_2)
 \end{aligned}
@@ -326,7 +324,7 @@ terms:
 
 $$
 \begin{aligned}
-A(\mathbf{v}) & = (v_1 a_{11} + v_2 a_{12} + v_3 a_{13}) \mathbf{q}_1
+f(\mathbf{v}) & = (v_1 a_{11} + v_2 a_{12} + v_3 a_{13}) \mathbf{q}_1 \\
               & + (v_1 a_{21} + v_2 a_{22} + v_3 a_{23}) \mathbf{q}_2
 \end{aligned}
 $$
@@ -338,18 +336,272 @@ $$
 a_{11} & a_{12} & a_{13} \\
 a_{21} & a_{22} & a_{23}
 \end{bmatrix}
-
 \begin{bmatrix}
 v_1 \\
 v_2 \\
 v_3
 \end{bmatrix}
-
 =
-
 \begin{bmatrix}
 v_1 a_{11} + v_2 a_{12} + v_3 a_{13} \\
 v_2 a_{21} + v_2 a_{22} + v_3 a_{23}
 \end{bmatrix}
 $$
 
+Again, remember that what we are doing is manipulating *specific encodings* of
+our vectors and our linear transformations.  Namely, we encode linear
+transformations as matrices, and vectors in their component encoding.  The
+reason we can do these is that we agree upon a set of bases for our source and
+target vector spaces, and express these encodings in terms of those.
+
+### Addition of linear transformations
+
+One neat thing about linear transformation is that they "add" well -- you can
+add them together by simply applying them both and adding the results.  The
+result is another linear transformation.
+
+$$
+(f + g)(\mathbf{x}) \equiv f(\mathbf{x}) + g(\mathbf{x})
+$$
+
+If $f : V \rightarrow U$ and $g : V \rightarrow U$ are linear transformations
+between the *same* vector spaces, then $f + g : V \rightarrow U$, as we defined
+it, is also one:
+
+$$
+\begin{aligned}
+(f + g)(c \mathbf{x}) & = f(c \mathbf{x}) + g(c \mathbf{x}) \\
+                      & = c f(\mathbf{x}) + c g(\mathbf{x}) \\
+                      & = c ( f(\mathbf{x}) + g(\mathbf{x}) ) \\
+(f + g)(c \mathbf{x}) & = c (f + g)(\mathbf{x})
+\end{aligned}
+$$
+
+(Showing that it respects addition is something you can look at if you want to
+have some fun!)
+
+So, if $f$ is encoded as matrix $\hat{A}$ for given bases, and $g$ is encoded
+as matrix $\hat{B}$, what is the encoding of $f + g$ ?
+
+Let's say that, if $V$ and $U$ are 3-dimensional and 2-dimensional,
+respectively:
+
+$$
+\begin{aligned}
+f(\mathbf{v}) & = (v_1 a_{11} + v_2 a_{12} + v_3 a_{13}) \mathbf{q}_1 \\
+              & + (v_1 a_{21} + v_2 a_{22} + v_3 a_{23}) \mathbf{q}_2 \\
+g(\mathbf{v}) & = (v_1 b_{11} + v_2 b_{12} + v_3 b_{13}) \mathbf{q}_1 \\
+              & + (v_1 b_{21} + v_2 b_{22} + v_3 b_{23}) \mathbf{q}_2
+\end{aligned}
+$$
+
+Then the breakdown of $f + g$ is:
+
+$$
+\begin{aligned}
+(f + g)(\mathbf{v}) & = (v_1 a_{11} + v_2 a_{12} + v_3 a_{13}) \mathbf{q}_1 \\
+                    & + (v_1 a_{21} + v_2 a_{22} + v_3 a_{23}) \mathbf{q}_2 \\
+                    & + (v_1 b_{11} + v_2 b_{12} + v_3 b_{13}) \mathbf{q}_1 \\
+                    & + (v_1 b_{21} + v_2 b_{22} + v_3 b_{23}) \mathbf{q}_2 \\
+(f + g)(\mathbf{v}) & = (v_1 (a_{11} + b_{11}) + v_2 (a_{12} + b_{12}) + v_3 (a_{13} + b_{13})) \mathbf{q}_1 \\
+                    & + (v_1 (a_{21} + b_{21}) + v_2 (a_{22} + b_{22}) + v_3 (a_{23} + b_{23})) \mathbf{q}_2
+\end{aligned}
+$$
+
+Note that if we say that $f + g$ is encoded as matrix $\hat{C}$, and call the
+components $c_{11}$, $c_{12}$, etc., then we can rewrite that as:
+
+$$
+\begin{aligned}
+(f + g)(\mathbf{v}) & = (v_1 c_{11} + v_2 c_{12} + v_3 c_{13}) \mathbf{q}_1 \\
+                    & + (v_1 c_{21} + v_2 c_{22} + v_3 c_{23}) \mathbf{q}_2
+\end{aligned}
+$$
+
+Where $c_{11} = a_{11} + b_{11}$, $c_{12} = a_{12} + b_{13}$, etc.
+
+So, if $\hat{A}$ and $\hat{B}$ encode linear transformations $f$ and $g$, then
+we can encode $f + g$ as matrix $\hat{C}$, where the components of $\hat{C}$
+are just the sum of their corresponding components in $\hat{A}$ and $\hat{B}$.
+
+And that's why we define $\hat{A} + \hat{B}$, matrix-matrix addition, as
+component-wise addition: component-wise addition perfectly "simulates" the
+addition of the linear transformation!
+
+What's happening here is we can represent manipulations of the functions
+themselves by manipulating *their encodings*.
+
+$$
+\begin{bmatrix}
+a_{11} & a_{12} & a_{13} \\
+a_{21} & a_{22} & a_{23}
+\end{bmatrix}
++
+\begin{bmatrix}
+b_{11} & b_{12} & b_{13} \\
+b_{21} & b_{22} & b_{23}
+\end{bmatrix}
+=
+\begin{bmatrix}
+c_{11} & c_{12} & c_{13} \\
+c_{21} & c_{22} & c_{23}
+\end{bmatrix}
+$$
+
+Symbolically, if we write function application as matrix-vector multiplication,
+we say that $\hat{A} + \hat{B}$ is defined so that
+$(\hat{A} + \hat{B})\mathbf{v} = \hat{A} \mathbf{V} + \hat{B} \mathbf{v}$.
+
+### Multiplication of linear transformations
+
+We might be tempted to define *multiplication* of linear transformations the
+same way.  However, this doesn't quite make sense.
+
+Remember that we talked about adding linear transformations as the addition of
+their results.  However, we can't talk about multiplying linear transformations
+as the multiplication of their results because the idea of a vector space
+doesn't come with any notion of multiplication.
+
+However, even if we talk specifically about linear transformations to
+*scalars*, this still doesn't quite work:
+
+$$
+\begin{aligned}
+(f * g)(c \mathbf{x}) & = f(c \mathbf{x}) * g(c \mathbf{x}) \\
+                      & = c f(\mathbf{x}) * c g(\mathbf{x}) \\
+                      & = c^2 ( f(\mathbf{x}) * g(\mathbf{x}) ) \\
+(f * g)(c \mathbf{x}) & = c^2 (f * g)(\mathbf{x})
+\end{aligned}
+$$
+
+That's right, $f * g$, defined point-wise, does not create a linear
+transformation.
+
+So, *there is no matrix* that could would even represent or encode $f * g$, as
+we defined it.  So, since $f * g$ isn't even representable as a matrix in our
+encoding scheme, it doesn't make sense to treat it as a matrix operation.
+
+### Composition of linear transformations
+
+Since linear transformations are functions, we can compose them:
+
+$$
+(f \circ g)(\mathbf{x}) \equiv f(g(\mathbf{x}))
+$$
+
+Is the composition of linear transformations also a linear transformation?
+
+$$
+\begin{aligned}
+(f \circ g)(c \mathbf{x}) & = f(g(c \mathbf{x})) \\
+                      & = f(c g(\mathbf{x})) \\
+                      & = c f(g(\mathbf{x})) \\
+(f \circ g)(c \mathbf{x}) & = c (f \circ g)(\mathbf{x})
+\end{aligned}
+$$
+
+Yes! (Well, once you prove that it respects addition.  I'll leave the fun to
+you!)
+
+Okay, so we know that $f \circ g$ is indeed a linear transformation.  That
+means that it can *also* be encoded as a matrix.
+
+So, let's say that $f : U \rightarrow W$, then $g : V \rightarrow U$.  $f$ is a
+linear transformation from $U$ to $W$, and $g$ is a linear transformation from
+$V$ to $U$.  That means that $f \circ g : V \rightarrow W$ is a linear
+transformation from $V$ to $W$.
+
+Let's say that $V$ is 3-dimensional, $U$ is 2-dimensional, and $W$ is
+4-dimensional.
+
+If $f$ is encoded by the $4 \times 2$ matrix $\hat{A}$, and $g$ is encoded by
+$2 \times 3$ matrix $\hat{B}$, then we can represent $f \circ g$ as the $4
+\times 3$ matrix $\hat{C}$.
+
+If you've taken a linear algebra class, you might recognize this pattern.
+Combining a $4 \times 2$ and a $2 \times 3$ to make a $4 \times 3$ ?
+
+We *can* compute $\hat{C}$ using only the encodings $\hat{A}$ and $\hat{B}$!
+We call this **matrix multiplication**.  It's typically denoted as $\hat{C} =
+\hat{A} \hat{B}$.
+
+That's exactly what *matrix multiplication* is defined as.  If:
+
+*   $\hat{A}$ is a $O \times M$ matrix representing a linear transformation
+    from a M-dimensional space to an O-dimensional space
+*   $\hat{B}$ is an $M \times N$ matrix representing a linear transformation from
+    an N-dimensional space to an M-dimensional space
+
+Then:
+
+*   $\hat{C} = \hat{A}\hat{B}$ is a $O \times N$ matrix representing a linear
+    transformation from an N-dimensional space to an O-dimensional space.
+
+Symbolically, if we treat function application as matrix-vector multiplication,
+this means that $\hat{A}\hat{B}$ is defined such that
+$(\hat{A}\hat{B})\mathbf{x} = \hat{A}(\hat{B}\mathbf{x})$.
+
+In that notation, it kinda looks like the associativity of multiplication,
+doesn't it?  Don't be fooled!  $\hat{A} \hat{B}$, matrix-matrix multiplication,
+is a completely different type of operation than $\hat{B}\mathbf{v}$.  One is
+the *symbolic manipulation* of an encoding of a linear transformation, and the
+other is an *application* of an encoding of a linear transformation on encoding
+of a vector.
+
+If you're familiar with Haskell idioms, matrix-matrix multiplication is like
+`.`, and matrix-vector multiplication is like `$`.  One is a "higher order
+function": taking two functions (at least, the encodings of them) and returning
+a new function.  The other is an application of a function to its input.
+
+And, like in Haskell:
+
+```haskell
+(f . g) x = f (g x)
+```
+
+Or, with explicit function application:
+
+```haskell
+(f . g) $ x = f $ (g $ x)
+```
+
+We won't go over the actual process of computing the matrix-matrix product, but
+it's something that you can work out just in terms of the definitions of the
+encodings.  Just manually apply out everything and group together common
+factors of the basis vectors of the destination space.
+
+The Big Picture
+---------------
+
+At the highest level here, what we're doing is taking a *function* and encoding
+it as *data* -- a parameterization of that function.  Essentially, we take the
+properties of the type of functions we are looking at and find out that it can
+be defined/represented in a limited number of parameters
+
+Then, the breakthrough is that we look at useful higher-order functions and
+manipulations of those transformations.  Then, we see how we can implement
+those transformations by symbolically manipulating the encodings!
+
+This is actually a dance we do all the time in programming.  Instead of working
+with functions, we work with reified data that represent those functions.  And,
+instead of direct higher order functions, we transform that data in a way that
+makes it encodes the function we want to produce.
+
+Matrices are exactly that.  Linear transformations are the functions we want to
+analyze, and we realize that we can completely specify/define any linear
+transformation with a matrix (against a choice of bases).
+
+Then, we realize that there are some nice manipulations we can do on linear
+transformations; we can combine them to create new linear transformations in
+useful ways.
+
+However, because those manipulations all produce *new* linear transformations,
+we know that their results can all be encoded in *new* matrices.  So, we see if
+we can just directly apply those manipulations by directly working on those
+matrices!
+
+I hope this post serves to demystify matrices, matrix addition, and
+multiplication for you, and help you see why they are defined the way that they
+are.  Furthermore, I hope it gives some insight on why matrices are useful in
+linear algebra, and also how similar encodings can help you with manipulating
+other types of functions!
