@@ -78,7 +78,7 @@ For example:
     \hat{\mathbf{i}} + r_y \hat{\mathbf{j}} + r_x \hat{\mathbf{k}}$.
 *   For polynomials, we can say "Let's encode polynomials in terms of $1$, $p$,
     $p^2$, etc., in that order."  Then, we can *write* $\mathbf{x}$ as
-    $\langle 2 {-3} 5 0 0 \ldots \rangle$, and understand that we really mean
+    $\langle 2\, -3\, 5\, 0\, 0 \, \ldots \rangle$, and understand that we really mean
     $5 p^2 - 3p + 2$.
 *   For $\mathbb{R}^3$, we can encode the n-tuples in terms of $(1,0,0)$,
     $(0,1,0)$, and $(0,0,1)$.  Then, we can *write* $\mathbf{x}$ as $\langle
