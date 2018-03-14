@@ -561,9 +561,9 @@ $(\hat{A}\hat{B})\mathbf{x} = \hat{A}(\hat{B}\mathbf{x})$.
 In that notation, it kinda looks like the associativity of multiplication,
 doesn't it?  Don't be fooled!  $\hat{A} \hat{B}$, matrix-matrix multiplication,
 is a completely different type of operation than $\hat{B}\mathbf{v}$.  One is
-the *symbolic manipulation* of an encoding of a linear transformation, and the
-other is an *application* of an encoding of a linear transformation on encoding
-of a vector.
+the symbolic manipulation on *two encodings* of of a linear transformation, and
+the other is an *application* of an encoding of a linear transformation on
+encoding of a vector.
 
 If you're familiar with Haskell idioms, matrix-matrix multiplication is like
 `.` (function composition), and matrix-vector multiplication is like `$`, or
