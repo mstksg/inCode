@@ -108,7 +108,7 @@ the vector space of N-tuples of real numbers.  This means that we can basically
 treat any N-dimensional vector space with $\mathbb{R}$ scalars as if it was
 $\mathbb{R}^N$, *once we decide* on the basis vectors.  Because of this, we
 often call *all* N-dimensional vector spaces (whose scalars are in
-$\mathbb{R}$) as $\mathbb{R}^N$.  You will often hear physicists saying that
+$\mathbb{R}$) $\mathbb{R}^N$.  You will often hear physicists saying that
 the three-dimensional vector spaces they use are $\mathbb{R}^3$.  However, what
 they really mean is that their vector spaces is *isomorphic* to $\mathbb{R}^3$.
 
@@ -146,6 +146,21 @@ and...hey, that's just exactly what vectors have!
 From now on, we'll talk about linear transformations specifically on
 *N-dimensional vector spaces* (vector spaces that have dimensions and bases we
 can use).
+
+Some common examples of linear transformations include:
+
+*   Simply scaling a vector is a linear transformation.  Scaling a scaled
+    vector is scaling the scaled vector; scaling a sum of vectors is the sum of
+    scaling vectors.
+*   Taking the derivative of a polynomial is a linear transformation: the
+    derivative of $5 p^2 - 3 p + 2$ w.r.t $p$ is $10 p - 3$.  Taking the
+    derivative of a scaled polynomial is the scaled derivative of the
+    polynomial; taking the derivative of the sum of two polynomials is the sum
+    of the derivatives of the two polynomials.
+*   For N-tuples, keeping and dropping certain components are linear
+    transformations.  For example, $f(x,y,z) = (x,y)$ is a linear
+    transformation from the vector space of 3-tuples to the vector space of
+    2-tuples.
 
 ### Studying linear transformations
 
@@ -202,6 +217,21 @@ Those three vectors *completely define* $A$.
 In general, we see that *any linear transformation* from an N-dimensional
 vector space can be *completely defined* by N vectors: the N results of that
 transformation on each of N basis vectors we choose.
+
+For our previous examples:
+
+*   How does one take the derivative of a polynomial?  It's completely defined
+    by what the derivatives of $1$, $p$, $p^2$, $p^3$, etc. are.  Once we
+    establish that, we can take the derivative of any polynomial.  This is the
+    essence of the [formal derivative][].
+*   For our drop-some-components linear transformation, we just need to see how
+    the transformation works on the bases.  For our previous example, we
+    see that $f(1,0,0) = (1,0)$, $f(0,1,0) = (0,1)$, and $f(0,0,0) = (0,0)$.
+    From that, we know everything we need to know about what the linear
+    transformation does.  Different type of "drop components" transformations
+    will give different results when you apply them to each basis vector.
+
+[formal derivative]: https://en.wikipedia.org/wiki/Formal_derivative
 
 ### Enter the Matrix
 
