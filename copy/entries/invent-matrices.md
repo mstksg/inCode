@@ -94,13 +94,19 @@ For example:
     encoding would not be so trivial!
 
     For example, if we choose $(2,0,0)$, $(1,2,1)$, and $(-1,0,1)$ as our basis
-    set, we could write $(-8,-6,-2)$ as $\langle -2, -3, 1\rangle$, because:
+    set, when we write $\langle x_1, x_2, x_3\rangle$, we really mean:
+
+    $$
+    x_1 (2,0,0) + x_2 (1,2,1) + x_3 (-1,0,1)
+    $$
+    
+    In this basis, we can write the tuple the $(-8,-6,-2)$ as $\langle -2, -3,
+    1\rangle$, because:
 
     $$
     (-8,-6,2) = - 2 (2,0,0) - 3 (1, 2, 1) + 1 (-1,0,1)
     $$
 
-    
 
 Note that $\langle r_x, r_y, r_z \rangle$ is **not** the same thing as the
 **vector** $\mathbf{r}$.  It is *an encoding* of that vector, that only makes
