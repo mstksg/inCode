@@ -86,10 +86,10 @@ For example:
     $(0,1,0)$, and $(0,0,1)$.  Then, we can *write* $\mathbf{x}$ as $\langle
     x_1, x_2, x_3 \rangle$, and understand that we really mean $(x_1, x_2,
     x_3)$.
-    
+
     This is a somewhat of a silly encoding, but it only looks so
     "trivial" because of our choice of bases.
-    
+
     If we chose a different set of basis vectors for $\mathbf{R}^3$, the
     encoding would not be so trivial!
 
@@ -99,7 +99,7 @@ For example:
     $$
     x_1 (2,0,0) + x_2 (1,2,1) + x_3 (-1,0,1)
     $$
-    
+
     In this basis, we can write the tuple the $(-8,-6,-2)$ as $\langle -2, -3,
     1\rangle$, because:
 
@@ -108,10 +108,10 @@ For example:
     $$
 
 
-Note that $\langle r_x, r_y, r_z \rangle$ is **not** the same thing as the
-**vector** $\mathbf{r}$.  It is *an encoding* of that vector, that only makes
-sense once we choose to *agree* on a specific set of basis.  If we chose a
-different basis, we'd have a different encoding.
+It should be made clear that $\langle x_1, x_2, x_3 \rangle$ is **not** the
+same thing as the *vector* $\mathbf{x}$.  It is *an encoding* of that vector,
+which only makes sense once we choose to *agree* on a specific set of basis.  If
+we chose a different basis, we'd have a different encoding.
 
 For an N-dimensional vector space, it means that, with a minimum of N items, we
 can represent any vector in that space.  And, if we agree on those N items, we
