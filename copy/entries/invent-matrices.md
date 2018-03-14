@@ -78,15 +78,15 @@ For example:
     \hat{\mathbf{i}} + r_y \hat{\mathbf{j}} + r_x \hat{\mathbf{k}}$.
 *   For polynomials, we can say "Let's encode polynomials in terms of $1$, $p$,
     $p^2$, etc., in that order."  Then, we can *write* $\mathbf{x}$ as
-    $\langle 2\, -3\, 5\, 0\, 0 \, \ldots \rangle$, and understand that we really mean
+    $\langle 2, -3, 5, 0, 0, \ldots \rangle$, and understand that we really mean
     $5 p^2 - 3p + 2$.
 *   For $\mathbb{R}^3$, we can encode the n-tuples in terms of $(1,0,0)$,
     $(0,1,0)$, and $(0,0,1)$.  Then, we can *write* $\mathbf{x}$ as $\langle
-    x_1 x_2 x_3 \rangle$, and understand that we really mean $(x_1, x_2, x_3)$.
-    This is a somewhat of a silly encoding, but it only looks so "trivial"
-    because of our choice of bases.  If we chose a different set of basis
-    vectors for $\mathbf{R}^3$ (like the one mentioned above), the encoding
-    would not be so trivial!
+    x_1, x_2, x_3 \rangle$, and understand that we really mean $(x_1, x_2,
+    x_3)$. This is a somewhat of a silly encoding, but it only looks so
+    "trivial" because of our choice of bases.  If we chose a different set of
+    basis vectors for $\mathbf{R}^3$ (like the one mentioned above), the
+    encoding would not be so trivial!
 
 Note that $\langle r_x, r_y, r_z \rangle$ is **not** the same thing as the
 **vector** $\mathbf{r}$.  It is *an encoding* of that vector, that only makes
