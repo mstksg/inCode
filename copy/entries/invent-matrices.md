@@ -363,6 +363,74 @@ on a bases), a $M \times N$ matrix is a convenient way to represent and define
 a *linear transformation* from an N-dimensional vector space to a M-dimensional
 vector space (once we agree on the bases in both spaces).
 
+### Example
+
+Let's look at the vector space of polynomials, which includes vectors like $5
+p^2 - 3 p + 2$, etc.; scaling a polynomial just means scaling the coefficients,
+and adding together polynomials is just normal polynomial addition.
+
+It's an infinite-dimensional vector space, and one popular basis for this
+vector space is the polynomials $1, p, p^2, p^3, \ldots$, etc.
+
+With this choice of basis, we can encode a polynomial like $5 p^2 - 3 p + 2$
+with the notation $\langle 2, -3, 5, 0, 0, \ldots \rangle$.
+
+One popular linear transformation on polynomials is the derivative,
+$\frac{d}{dp}$.  It takes $5 p^2 - 3 p + 2$ and returns $10 p - 3$.  In the
+basis we just mentioned, it takes $\langle 2, -3, 5, 0, \ldots \rangle$ and
+returns $\langle -3, 10, 0, 0, \ldots \rangle$.
+
+Now, if you don't know what a derivative was, or how to compute it -- you're in
+luck!  What we just found out was that if you want to completely understand a
+linear transformation, you just need to know *how it works on the basis*!
+
+All I need to do is tell you that $\frac{d}{dp} p^n = n p^{n - 1}$ (what it
+does to each basis -- the trusty [power rule][]), and now you know everything
+you need to know about derivatives on polynomials.  You can basically just skip
+all of calculus!
+
+Let's look at what this linear transformation does to each basis:
+
+$$
+\begin{aligned}
+\frac{d}{dp} 1   & = 0     & = 0 + 0 p + 0 p^2 + 0 p^3 + \ldots
+    & = \langle 0, 0, 0, 0 \ldots \rangle  \\
+\frac{d}{dp} p   & = 1     & = 1 + 0 p + 0 p^2 + 0 p^3 + \ldots
+    & = \langle 1, 0, 0, 0 \ldots \rangle  \\
+\frac{d}{dp} p^2 & = 2 p   & = 0 + 2 p + 0 p^2 + 0 p^3 + \ldots
+    & = \langle 0, 2, 0, 0 \ldots \rangle  \\
+\frac{d}{dp} p^3 & = 3 p^2 & = 0 + 0 p + 3 p^2 + 0 p^3 + \ldots
+    & = \langle 0, 0, 3, 0 \ldots \rangle  \\
+\frac{d}{dp} p^4 & = 4 p^3 & = 0 + 0 p + 0 p^2 + 4 p^3 + \ldots
+    & = \langle 0, 0, 0, 4 \ldots \rangle
+\end{aligned}
+$$
+
+And so, in that $1, p, p^2, p^3, \ldots$ basis, the derivative of a polynomial
+can be represented as the matrix:
+
+$$
+\frac{d}{dp}
+\sim
+\begin{bmatrix}
+0 & 1 & 0 & 0 & 0 & \ldots \\
+0 & 0 & 2 & 0 & 0 & \ldots \\
+0 & 0 & 0 & 3 & 0 & \ldots \\
+0 & 0 & 0 & 0 & 4 & \ldots \\
+0 & 0 & 0 & 0 & 0 & \ldots \\
+\vdots & \vdots & \vdots & \vdots & \vdots & \ddots
+\end{bmatrix}
+$$
+
+No calculus required!  (This is the core idea of the [formal derivative][] of a
+polynomial)
+
+[power rule]: https://en.wikipedia.org/wiki/Power_rule
+[formal derivative]: https://en.wikipedia.org/wiki/Formal_derivative
+
+
+
+
 <!-- ### Examples -->
 
 <!-- For our polynomial example, we said that the derivative $\frac{d}{dp}$ of a -->
