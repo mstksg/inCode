@@ -2,6 +2,7 @@
 title: You Could Have Invented Matrices!
 categories: Math
 tags: linear algebra
+date: 2018/03/15 10:15:54
 create-time: 2018/03/09 14:25:14
 identifier: invent-matrices
 slug: you-could-have-invented-matrices
@@ -228,7 +229,7 @@ vector space $V$ to M-dimensional vector space $U$.  That is, $f : V
 Because we know that, once we pick a set of basis vectors $\mathbf{v}_i$, any
 vector $\mathbf{x}$ in $V$ can be decomposed as $x_1 \mathbf{v}_1 + x_2
 \mathbf{v}_2 + \ldots x_n \mathbf{v}_N$, we really can just look at how a
-transformation $A$ acts on this decomposition.  For example, if $V$ is
+transformation $f$ acts on this decomposition.  For example, if $V$ is
 three-dimensional:
 
 $$
@@ -239,7 +240,7 @@ Hm.  Doesn't seem very insightful, does it?
 
 ### A simple definition
 
-But!  We can exploit the linearity of $A$ (that it distributes and scales) to
+But!  We can exploit the linearity of $f$ (that it distributes and scales) to
 rewrite that as:
 
 $$
@@ -333,7 +334,7 @@ their six defining coefficients.
 
 We group these things up in something called a *matrix*.
 
-If our linear transformation $A$ from a 3-dimensional vector space to a
+If our linear transformation $f$ from a 3-dimensional vector space to a
 2-dimensional vector space is defined by:
 
 $$
@@ -382,7 +383,10 @@ returns $\langle -3, 10, 0, 0, \ldots \rangle$.
 
 Now, if you don't know what a derivative was, or how to compute it -- you're in
 luck!  What we just found out was that if you want to completely understand a
-linear transformation, you just need to know *how it works on the basis*!
+linear transformation, you just need to know *how it works on the basis*!  You
+just need to know what $\frac{d}{dp} 1, \frac{d}{dp} p, \frac{d}{dp} p^2,
+\frac{d}{dp} p^3, \ldots$ etc. are, and you basically know everything about
+what the derivative does.
 
 All I need to do is tell you that $\frac{d}{dp} p^n = n p^{n - 1}$ (what it
 does to each basis -- the trusty [power rule][]), and now you know everything
