@@ -190,18 +190,29 @@ can use).
 Some common examples of linear transformations include:
 
 *   Simply scaling a vector is a linear transformation from vector space to the
-    same vector space.  Scaling a scaled vector is scaling the scaled vector;
-    scaling a sum of vectors is the sum of scaling vectors.
-*   Taking the derivative of a polynomial $\frac{d}{dp$ is a linear
+    same vector space.
+    
+    This is a linear transformation because scaling a
+    scaled vector is scaling the scaled vector; scaling a sum of vectors is the
+    sum of scaling vectors.
+
+*   Taking the derivative of a polynomial $\frac{d}{dp}$ is a linear
     transformation from the vector space of polynomials to itself: the
-    derivative of $5 p^2 - 3 p + 2$ w.r.t $p$ is $10 p - 3$.  Taking the
-    derivative of a scaled polynomial is the scaled derivative of the
-    polynomial; taking the derivative of the sum of two polynomials is the sum
-    of the derivatives of the two polynomials.
+    derivative of $5 p^2 - 3 p + 2$ with respect to *p* is $10 p - 3$.
+    
+    This is a linear transformation because taking the derivative of a scaled
+    polynomial is the scaled derivative of the polynomial; taking the
+    derivative of the sum of two polynomials is the sum of the derivatives of
+    the two polynomials.
+
 *   For N-tuples, keeping and dropping certain components are linear
     transformations.  For example, $f(x,y,z) = (x,y)$ is a linear
     transformation from the vector space of 3-tuples to the vector space of
     2-tuples.
+
+    This is a linear transformation because scaling the original tuple would
+    scale the reuslting tuple, and dropping the components of the sum of two
+    tuples is the same as summing the dropped components.
 
 ### Studying linear transformations
 
@@ -245,15 +256,14 @@ of our vector space, that's really "all there is" about $A$!  Not such a black
 box anymore!
 
 That is, if I were to ask you, "Hey, what is $f$ like?", *all you'd have to
-tell me* is the result of $f(\mathbf{v}_1)$, $f(\mathbf{v}_2$, and
+tell me* is the result of $f(\mathbf{v}_1)$, $f(\mathbf{v}_2)$, and
 $f(\mathbf{v}_3)$.  Just give me those three *vectors*, and we *uniquely
 determine $f$*.
 
 To put in another way, *any linear transformation* from a three-dimensional
 vector space is uniquely characterized and determined by *three vectors*:
-$f(\mathbf{v}_1)$, $f(\mathbf{v}_2)$, and $f(\mathbf{v}_3)$.
-
-Those three vectors *completely define* $f$.
+$f(\mathbf{v}_1)$, $f(\mathbf{v}_2)$, and $f(\mathbf{v}_3)$.  Those three
+vectors *completely define* $f$.
 
 In general, we see that *any linear transformation* from an N-dimensional
 vector space can be *completely defined* by N vectors: the N results of that
@@ -263,7 +273,7 @@ Looking at the previous example, how does one actually take the derivative of a
 polynomial?  Well, you really only need to look at the derivative of $1, p,
 p^2, p^3 \ldots$, etc.; if you know those, then you can compute the derivative
 of *any* polynomial.  If I told you that $\frac{d}{dp} p^n = n p^{n - 1}$ (the
-good ol' trusty [power rule][]), then you could compute the derivative of any
+good ol' trusty [power rule][]), then you could compute the derivative of *any*
 polynomial.  This is the essence of the *[formal derivative][]*.
 
 [power rule]: https://en.wikipedia.org/wiki/Power_rule
@@ -367,11 +377,11 @@ In that case, we have:
 
 $$
 \begin{aligned}
-\frac{d}{dp} 1 & = 0 + 0 p + 0 p^2 + 0 p^3 + \ldots \\
-\frac{d}{dp} p & = 1 + 0 p + 0 p^2 + 0 p^3 + \ldots \\
-\frac{d}{dp} p^2 & = 0 + 2 p + 0 p^2 + 0 p^3 + \ldots \\
-\frac{d}{dp} p^3 & = 0 + 0 p + 3 p^2 + 0 p^3 + \ldots \\
-\frac{d}{dp} p^4 & = 0 + 0 p + 0 p^2 + 4 p^3 + \ldots
+\frac{d}{dp} 1   & = 0 & = 0 + 0 p + 0 p^2 + 0 p^3 + \ldots \\
+\frac{d}{dp} p   & = 1 & = 1 + 0 p + 0 p^2 + 0 p^3 + \ldots \\
+\frac{d}{dp} p^2 & = 2 p & = 0 + 2 p + 0 p^2 + 0 p^3 + \ldots \\
+\frac{d}{dp} p^3 & = 3 p^2 & = 0 + 0 p + 3 p^2 + 0 p^3 + \ldots \\
+\frac{d}{dp} p^4 & = 4 p^3 & = 0 + 0 p + 0 p^2 + 4 p^3 + \ldots
 \end{aligned}
 $$
 
@@ -386,6 +396,7 @@ $$
 0 & 0 & 2 & 0 & 0 & \ldots \\
 0 & 0 & 0 & 3 & 0 & \ldots \\
 0 & 0 & 0 & 0 & 4 & \ldots \\
+0 & 0 & 0 & 0 & 0 & \ldots \\
 \vdots & \vdots & \vdots & \vdots & \vdots & \ddots
 \end{bmatrix}
 $$
@@ -396,9 +407,9 @@ source space and the $(1,0), (0,1)$ basis in the target space, and see that:
 
 $$
 \begin{aligned}
-f(1,0,0) = (1, 0) & = 1 (1,0) + 0 (0,1) \\
-f(0,1,0) = (0, 1) & = 0 (1,0) + 1 (0,1) \\
-f(0,0,1) = (0, 0) & = 0 (1,0) + 0 (0,1)
+f(1,0,0) & = (1, 0) & = 1 (1,0) + 0 (0,1) \\
+f(0,1,0) & = (0, 1) & = 0 (1,0) + 1 (0,1) \\
+f(0,0,1) & = (0, 0) & = 0 (1,0) + 0 (0,1)
 \end{aligned}
 $$
 
@@ -421,9 +432,9 @@ In that case, we need only look at:
 
 $$
 \begin{aligned}
-f( 2, 0, 0) = ( 2, 0) & = -\frac{1}{2} (-1,3) + \frac{3}{4} (2,2) \\
-f( 1, 2, 1) = ( 1, 2) & =  \frac{1}{4} (-1,3) + \frac{5}{8} (2,2) \\
-f(-1, 0,-1) = (-1, 0) & =  \frac{1}{4} (-1,3) - \frac{5}{8} (2,2)
+f( 2, 0, 0) & = ( 2, 0) & = -\frac{1}{2} (-1,3) & + \frac{3}{4} (2,2) \\
+f( 1, 2, 1) & = ( 1, 2) & =  \frac{1}{4} (-1,3) & + \frac{5}{8} (2,2) \\
+f(-1, 0,-1) & = (-1, 0) & =  \frac{1}{4} (-1,3) & - \frac{5}{8} (2,2)
 \end{aligned}
 $$
 
@@ -438,7 +449,7 @@ f
 \sim
 \begin{bmatrix}
 -\frac{1}{2} & \frac{1}{4} &  \frac{1}{4} \\
- \frac{3}{4} & \frac{5}{8} & -\frac{5}{8}0
+ \frac{3}{4} & \frac{5}{8} & -\frac{5}{8}
 \end{bmatrix}
 $$
 
