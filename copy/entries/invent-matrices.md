@@ -1,6 +1,6 @@
 ---
 title: You Could Have Invented Matrices!
-categories: Math, Rambling
+categories: Math
 tags: linear algebra
 create-time: 2018/03/09 14:25:14
 identifier: invent-matrices
@@ -37,31 +37,34 @@ $$
 \mathbf{x} = a \mathbf{v}_1 + b \mathbf{v}_2 + c \mathbf{v}_3
 $$
 
-Where $a$, $b$, and $c$ are scalars.
+Where $a$, $b$, and $c$ are scalars of $V$.
 
-Dimensionality is really a statement about being able to decompose any vector
-in that vector space into a useful set of bases.  For a 3-dimensional vector
-space, you can make a bases that can reproduce *any* vector in your space...but
-that's only possible with at least three vectors.
+Dimensionality is really a statement about being able to *decompose* any vector
+in that vector space into a combination of a set of basis vectors.  For a
+3-dimensional vector space, you can make a bases that can reproduce *any*
+vector in your space...but that's only possible with at least three vectors.
+a 4-dimensional vector space, you'd need at least four vectors.
 
-Some examples include:
+Some examples:
 
 *   In physics, we often treat reality as taking place in a three-dimensional
     vector space.  The basis vectors are often called $\hat{\mathbf{i}}$,
     $\hat{\mathbf{j}}$, and $\hat{\mathbf{k}}$, and so we say that we can
     describe our 3D physics vectors as $\mathbf{r} = r_x \hat{\mathbf{i}} + r_y
     \hat{\mathbf{j}} + r_x \hat{\mathbf{k}}$.
+
 *   The set of all polynomials ($5 p^2 - 3 p + 2$, etc.) is an
     infinite-dimensional vector space, whose scalars are set of possible
     coefficients.  Polynomials can be scaled and added together.  One possible
-    basis are the polynomials $1$, $p$, $p^2$, $p^3$, etc.; every other
+    basis are the polynomials $1, p, p^2, p^3 \ldots$, etc.; every other
     polynomial can be made as a weighted combination of these polynomials.
+
 *   N-Tuples of $\mathbb{R}$ (ordered sequences of real numbers of a given
     length) are a vector space (denoted as $\mathbb{R}^N$), and they're one of
-    the more common examples.  One possible basis for $\mathbb{R}^3$ is
-    $(1,0,0)$, $(0,1,0)$, and $(0,0,1)$.  Any N-tuple of real numbers can be
-    expressed as a weighted sum of these.  (There are many possible basis sets;
-    another is $(2,0,0)$, $(1,2,1)$, and $(-1,0,1)$)
+    the more common examples of a vector space with a basis.  One possible
+    basis for $\mathbb{R}^3$ is $(1,0,0), (0,1,0), (0,0,1)$.  Any
+    N-tuple of real numbers can be expressed as a weighted sum of these. (There
+    are many possible basis sets; another is $(2,0,0), (1,2,1), (-1,0,1)$)
 
 ### Encoding
 
@@ -71,21 +74,21 @@ One neat thing that physicists take advantage of all the time is that if we
 
 For example:
 
-*   In physics, we can say "Let's encode vectors in terms of
-    $\hat{\mathbf{i}}$, $\hat{\mathbf{j}}$, and $\hat{\mathbf{k}}$, in that
+*   In physics, we can say "Let's encode vectors in terms of sums of scalings
+    of $\hat{\mathbf{i}}$, $\hat{\mathbf{j}}$, and $\hat{\mathbf{k}}$, in that
     order."  Then, we can *write* $\mathbf{r}$ as $\langle r_x, r_y, r_z
     \rangle$, and understand that we really mean $\mathbf{r} = r_x
     \hat{\mathbf{i}} + r_y \hat{\mathbf{j}} + r_x \hat{\mathbf{k}}$.
 
-*   For polynomials, we can say "Let's encode polynomials in terms of $1$, $p$,
-    $p^2$, etc., in that order."  Then, we can *write* $\mathbf{x}$ as
-    $\langle 2, -3, 5, 0, 0, \ldots \rangle$, and understand that we really mean
-    $5 p^2 - 3p + 2$.
+*   For polynomials, we can say "Let's encode polynomials in terms of sums of
+    scalings of $1$, $p$, $p^2$, etc., in that order."  Then, we can *write*
+    $\mathbf{x}$ as $\langle 2, -3, 5, 0, 0, \ldots \rangle$, and understand
+    that we really mean $5 p^2 - 3p + 2$.
 
-*   For $\mathbb{R}^3$, we can encode the n-tuples in terms of $(1,0,0)$,
-    $(0,1,0)$, and $(0,0,1)$.  Then, we can *write* $\mathbf{x}$ as $\langle
-    x_1, x_2, x_3 \rangle$, and understand that we really mean $(x_1, x_2,
-    x_3)$.
+*   For $\mathbb{R}^3$, we can encode the n-tuples in terms of sums of scalings
+    of $(1,0,0)$, $(0,1,0)$, and $(0,0,1)$.  Then, we can *write* $\mathbf{x}$
+    as $\langle x_1, x_2, x_3 \rangle$, and understand that we really mean
+    $(x_1, x_2, x_3)$.
 
     This is a somewhat of a silly encoding, but it only looks so
     "trivial" because of our choice of bases.
@@ -93,14 +96,14 @@ For example:
     If we chose a different set of basis vectors for $\mathbf{R}^3$, the
     encoding would not be so trivial!
 
-    For example, if we choose $(2,0,0)$, $(1,2,1)$, and $(-1,0,1)$ as our basis
+    For example, if we choose $(2,0,0), (1,2,1), (-1,0,1)$ as our basis
     set, when we write $\langle x_1, x_2, x_3\rangle$, we really mean:
 
     $$
     x_1 (2,0,0) + x_2 (1,2,1) + x_3 (-1,0,1)
     $$
 
-    In this basis, we can write the tuple the $(-8,-6,-2)$ as $\langle -2, -3,
+    In this basis, we can write the tuple $(-8,-6,-2)$ as $\langle -2, -3,
     1\rangle$, because:
 
     $$
@@ -113,15 +116,15 @@ same thing as the *vector* $\mathbf{x}$.  It is *an encoding* of that vector,
 which only makes sense once we choose to *agree* on a specific set of basis.  If
 we chose a different basis, we'd have a different encoding.
 
-For an N-dimensional vector space, it means that, with a minimum of N items, we
-can represent any vector in that space.  And, if we agree on those N items, we
-can devise an encoding, such that:
+In the general case, for an N-dimensional vector space, this means that, with a
+minimum of N items, we can represent any vector in that space.  And, if we
+agree on those N items, we can devise an encoding, such that:
 
 $$
 \langle x_1, x_2 \dots x_N \rangle
 $$
 
-will *represent* the vector:
+will *encode* the vector:
 
 $$
 x_1 \mathbf{v}_1 + x_2 \mathbf{v}_2 + \ldots + x_N \mathbf{v}_N
@@ -132,19 +135,21 @@ $\mathbf{v}_1, \mathbf{v}_2 \ldots \mathbf{v}_N$ we pick, and in what order.
 The basis vectors we pick are arbitrary, and determine what our encoding looks
 like.
 
-To highlight this, note that the same vector $\mathbf{x}$ has many many
-different potential encodings --- all you have to do is pick a different set of
-basis vectors, or even just re-arrange or re-scale the ones you already have.
-However, all of those encodings correspond go the same vector $\mathbf{v}$.
+To highlight this, note that the same vector $\mathbf{x}$ has many different
+potential encodings --- all you have to do is pick a different set of basis
+vectors, or even just re-arrange or re-scale the ones you already have.
+However, all of those encodings correspond go the same vector $\mathbf{v}$. For
+instance, in the example earlier, we saw an $\mathbb{R}^3$ vector $(-8,-6,-2)$
+with two different encodings.
 
 One interesting consequence of this is that any N-dimensional vector space
-whose scalars are in $\mathbb{R}$ is actually isomorphic to $\mathbb{R}^N$ ---
-the vector space of N-tuples of real numbers.  This means that we can basically
+whose scalars are in $\mathbb{R}$ is actually isomorphic to $\mathbb{R}^N$ (the
+vector space of N-tuples of real numbers).  This means that we can basically
 treat any N-dimensional vector space with $\mathbb{R}$ scalars as if it was
 $\mathbb{R}^N$, *once we decide* on the basis vectors.  Because of this, we
 often call *all* N-dimensional vector spaces (whose scalars are in
-$\mathbb{R}$) $\mathbb{R}^N$.  You will often hear physicists saying that
-the three-dimensional vector spaces they use are $\mathbb{R}^3$.  However, what
+$\mathbb{R}$) $\mathbb{R}^N$.  You will often hear physicists saying that the
+three-dimensional vector spaces they use are $\mathbb{R}^3$.  However, what
 they really mean is that their vector spaces is *isomorphic* to $\mathbb{R}^3$.
 
 Linear Transformations
@@ -184,10 +189,11 @@ can use).
 
 Some common examples of linear transformations include:
 
-*   Simply scaling a vector is a linear transformation.  Scaling a scaled
-    vector is scaling the scaled vector; scaling a sum of vectors is the sum of
-    scaling vectors.
-*   Taking the derivative of a polynomial is a linear transformation: the
+*   Simply scaling a vector is a linear transformation from vector space to the
+    same vector space.  Scaling a scaled vector is scaling the scaled vector;
+    scaling a sum of vectors is the sum of scaling vectors.
+*   Taking the derivative of a polynomial $\frac{d}{dp$ is a linear
+    transformation from the vector space of polynomials to itself: the
     derivative of $5 p^2 - 3 p + 2$ w.r.t $p$ is $10 p - 3$.  Taking the
     derivative of a scaled polynomial is the scaled derivative of the
     polynomial; taking the derivative of the sum of two polynomials is the sum
@@ -207,8 +213,8 @@ But, actually, we can exploit its linearity and the fact that we're in a vector
 space with a basis to analyze the heck out of any linear transformation, and
 see that all of them actually have to follow some specific pattern.
 
-Let's say that $A(\mathbf{x})$ is a linear transformation from N-dimensional
-vector space $V$ to M-dimensional vector space $U$.  That is, $A : V
+Let's say that $f(\mathbf{x})$ is a linear transformation from N-dimensional
+vector space $V$ to M-dimensional vector space $U$.  That is, $f : V
 \rightarrow U$.
 
 Because we know that, once we pick a set of basis vectors $\mathbf{v}_i$, any
@@ -218,7 +224,7 @@ transformation $A$ acts on this decomposition.  For example, if $V$ is
 three-dimensional:
 
 $$
-A(\mathbf{x}) = A(x_1 \mathbf{v}_1 + x_2 \mathbf{v}_2 + x_3 \mathbf{v}_3)
+f(\mathbf{x}) = f(x_1 \mathbf{v}_1 + x_2 \mathbf{v}_2 + x_3 \mathbf{v}_3)
 $$
 
 Hm.  Doesn't seem very insightful, does it?
@@ -229,50 +235,45 @@ But!  We can exploit the linearity of $A$ (that it distributes and scales) to
 rewrite that as:
 
 $$
-A(\mathbf{x}) = x_1 A(\mathbf{v}_1) + x_2 A(\mathbf{v}_2) + x_3 A(\mathbf{v}_3)
+f(\mathbf{x}) = x_1 f(\mathbf{v}_1) + x_2 f(\mathbf{v}_2) + x_3 f(\mathbf{v}_3)
 $$
 
 Okay, take a moment to pause and take that all in.  This is actually a pretty
 big deal!  This just means that, to study $A$, **all you need to study** is how
-$A$ acts on our *basis vectors*.  If you know how $A$ acts on our basis vectors
+$f$ acts on our *basis vectors*.  If you know how $A$ acts on our basis vectors
 of our vector space, that's really "all there is" about $A$!  Not such a black
 box anymore!
 
-That is, if I were to ask you, "Hey, what is $A$ like?", *all you'd have to
-tell me* is the result of $A(\mathbf{v}_1)$, $A(\mathbf{v}_2$, and
-$A(\mathbf{v}_3)$.  Just give me those three *vectors*, and we *uniquely
-determine $A$*.
+That is, if I were to ask you, "Hey, what is $f$ like?", *all you'd have to
+tell me* is the result of $f(\mathbf{v}_1)$, $f(\mathbf{v}_2$, and
+$f(\mathbf{v}_3)$.  Just give me those three *vectors*, and we *uniquely
+determine $f$*.
 
 To put in another way, *any linear transformation* from a three-dimensional
 vector space is uniquely characterized and determined by *three vectors*:
-$A(\mathbf{v}_1)$, $A(\mathbf{v}_2)$, and $A(\mathbf{v}_3)$.
+$f(\mathbf{v}_1)$, $f(\mathbf{v}_2)$, and $f(\mathbf{v}_3)$.
 
-Those three vectors *completely define* $A$.
+Those three vectors *completely define* $f$.
 
 In general, we see that *any linear transformation* from an N-dimensional
 vector space can be *completely defined* by N vectors: the N results of that
 transformation on each of N basis vectors we choose.
 
-For our previous examples:
+Looking at the previous example, how does one actually take the derivative of a
+polynomial?  Well, you really only need to look at the derivative of $1, p,
+p^2, p^3 \ldots$, etc.; if you know those, then you can compute the derivative
+of *any* polynomial.  If I told you that $\frac{d}{dp} p^n = n p^{n - 1}$ (the
+good ol' trusty [power rule][]), then you could compute the derivative of any
+polynomial.  This is the essence of the *[formal derivative][]*.
 
-*   How does one take the derivative of a polynomial?  It's completely defined
-    by what the derivatives of $1$, $p$, $p^2$, $p^3$, etc. are.  Once we
-    establish that, we can take the derivative of any polynomial.  This is the
-    essence of the [formal derivative][].
-*   For our drop-some-components linear transformation, we just need to see how
-    the transformation works on the bases.  For our previous example, we
-    see that $f(1,0,0) = (1,0)$, $f(0,1,0) = (0,1)$, and $f(0,0,0) = (0,0)$.
-    From that, we know everything we need to know about what the linear
-    transformation does.  Different type of "drop components" transformations
-    will give different results when you apply them to each basis vector.
-
+[power rule]: https://en.wikipedia.org/wiki/Power_rule
 [formal derivative]: https://en.wikipedia.org/wiki/Formal_derivative
 
 ### Enter the Matrix
 
 Okay, so how do we "give"/define/state those N vectors?
 
-Well, recall that the result of $A(\mathbf{x})$ and $A(\mathbf{v}_1)$, etc. are
+Well, recall that the result of $f(\mathbf{x})$ and $f(\mathbf{v}_1)$, etc. are
 *themselves* vectors, in M-dimensional vector space $U$.  Let's say that $U$ is
 2-dimensional, for now.
 
@@ -280,14 +281,14 @@ This means that any vector $\mathbf{y}$ in $U$ can be represented as $y_1
 \mathbf{u}_1 + y_2 \mathbf{u}_2$, where $\mathbf{u}_1$ and $\mathbf{u}_2$ is an
 arbitrary choice of basis vectors.
 
-This means that $A(\mathbf{v}_1)$ etc. can also all be represented in terms of
+This means that $f(\mathbf{v}_1)$ etc. can also all be represented in terms of
 these basis vectors.  So, laying it all out:
 
 $$
 \begin{aligned}
-A(\mathbf{v}_1) & = a_{11} \mathbf{u}_1 + a_{21} \mathbf{u}_2 \\
-A(\mathbf{v}_2) & = a_{12} \mathbf{u}_1 + a_{22} \mathbf{u}_2 \\
-A(\mathbf{v}_3) & = a_{13} \mathbf{u}_1 + a_{23} \mathbf{u}_2
+f(\mathbf{v}_1) & = a_{11} \mathbf{u}_1 + a_{21} \mathbf{u}_2 \\
+f(\mathbf{v}_2) & = a_{12} \mathbf{u}_1 + a_{22} \mathbf{u}_2 \\
+f(\mathbf{v}_3) & = a_{13} \mathbf{u}_1 + a_{23} \mathbf{u}_2
 \end{aligned}
 $$
 
@@ -295,9 +296,9 @@ Or, to use our bracket notation from before:
 
 $$
 \begin{aligned}
-A(\mathbf{v}_1) & = \langle a_{11}, a_{21} \rangle \\
-A(\mathbf{v}_2) & = \langle a_{12}, a_{22} \rangle \\
-A(\mathbf{v}_3) & = \langle a_{13}, a_{23} \rangle
+f(\mathbf{v}_1) & = \langle a_{11}, a_{21} \rangle \\
+f(\mathbf{v}_2) & = \langle a_{12}, a_{22} \rangle \\
+f(\mathbf{v}_3) & = \langle a_{13}, a_{23} \rangle
 \end{aligned}
 $$
 
@@ -330,9 +331,9 @@ If our linear transformation $A$ from a 3-dimensional vector space to a
 
 $$
 \begin{aligned}
-A(\mathbf{v}_1) & = a_{11} \mathbf{u}_1 + a_{21} \mathbf{u}_2 \\
-A(\mathbf{v}_2) & = a_{12} \mathbf{u}_1 + a_{22} \mathbf{u}_2 \\
-A(\mathbf{v}_3) & = a_{13} \mathbf{u}_1 + a_{23} \mathbf{u}_2
+f(\mathbf{v}_1) & = a_{11} \mathbf{u}_1 + a_{21} \mathbf{u}_2 \\
+f(\mathbf{v}_2) & = a_{12} \mathbf{u}_1 + a_{22} \mathbf{u}_2 \\
+f(\mathbf{v}_3) & = a_{13} \mathbf{u}_1 + a_{23} \mathbf{u}_2
 \end{aligned}
 $$
 
@@ -341,6 +342,8 @@ $$
 We "encode" it as the matrix:
 
 $$
+f
+\sim
 \begin{bmatrix}
 a_{11} & a_{12} & a_{13} \\
 a_{21} & a_{22} & a_{23}
@@ -352,6 +355,96 @@ And that's why we use matrices in linear algebra -- like how $\langle x, y, z
 on a bases), a $M \times N$ matrix is a convenient way to represent and define
 a *linear transformation* from an N-dimensional vector space to a M-dimensional
 vector space (once we agree on the bases in both spaces).
+
+### Examples
+
+For our polynomial example, we said that the derivative $\frac{d}{dp}$ of a
+polynomial was a linear transformation.  Taking $1, p, p^2, p^3, \ldots$ as
+our basis, we were told that we can just look at $\frac{d}{dp} 1,
+\frac{d}{dp} p, \frac{d}{dp} p^2 \ldots$ etc.
+
+In that case, we have:
+
+$$
+\begin{aligned}
+\frac{d}{dp} 1 & = 0 + 0 p + 0 p^2 + 0 p^3 + \ldots \\
+\frac{d}{dp} p & = 1 + 0 p + 0 p^2 + 0 p^3 + \ldots \\
+\frac{d}{dp} p^2 & = 0 + 2 p + 0 p^2 + 0 p^3 + \ldots \\
+\frac{d}{dp} p^3 & = 0 + 0 p + 3 p^2 + 0 p^3 + \ldots \\
+\frac{d}{dp} p^4 & = 0 + 0 p + 0 p^2 + 4 p^3 + \ldots
+\end{aligned}
+$$
+
+And so, in that $1, p, p^2, p^3, \ldots$ basis, the derivative of a polynomial
+can be represented as the matrix:
+
+$$
+\frac{d}{dp}
+\sim
+\begin{bmatrix}
+0 & 1 & 0 & 0 & 0 & \ldots \\
+0 & 0 & 2 & 0 & 0 & \ldots \\
+0 & 0 & 0 & 3 & 0 & \ldots \\
+0 & 0 & 0 & 0 & 4 & \ldots \\
+\vdots & \vdots & \vdots & \vdots & \vdots & \ddots
+\end{bmatrix}
+$$
+
+For our "drop the last component" linear transformation, $f(x,y,z) =
+(x,y)$, we can interpret things in the $(1,0,0), (0,1,0), (0,0,1)$ basis in the
+source space and the $(1,0), (0,1)$ basis in the target space, and see that:
+
+$$
+\begin{aligned}
+f(1,0,0) & = (1, 0) & = 1 (1,0) + 0 (0,1) \\
+f(0,1,0) & = (0, 1) & = 0 (1,0) + 1 (0,1)
+f(0,0,1) & = (0, 0) & = 0 (1,0) + 0 (0,1)
+\end{aligned}
+$$
+
+So this is the matrix:
+
+$$
+f
+\sim
+\begin{bmatrix}
+1 & 0 & 0 \\
+0 & 1 & 0
+\end{bmatrix}
+$$
+
+To illustrate that the matrix encoding depends on the choice of basis, let's
+switch to the $(2,0,0), (1,2,1), (-1,0,1)$ in the source space, and the
+$(-1,3), (2,2)$ basis in the target space.
+
+In that case, we need only look at:
+
+$$
+\begin{aligned}
+f( 2, 0, 0) & = ( 2, 0) & = -\frac{1}{2} (-1,3) + \frac{3}{4} (2,2) \\
+f( 1, 2, 1) & = ( 1, 2) & =  \frac{1}{4} (-1,3) + \frac{5}{8} (2,2) \\
+f(-1, 0,-1) & = (-1, 0) & =  \frac{1}{4} (-1,3) - \frac{5}{8} (2,2)
+\end{aligned}
+$$
+
+Do verify that $-\frac{1}{2} (-1, 3) + \frac{3}{4} (2, 2)$ is indeed equal to
+$(2,0)$!
+
+Anyway, with these funky basis sets, we can encode the *same* "drop the last
+component" linear transformation as:
+
+$$
+f
+\sim
+\begin{bmatrix}
+-\frac{1}{2} & \frac{1}{4} &  \frac{1}{4} \\
+ \frac{3}{4} & \frac{5}{8} & -\frac{5}{8}0
+\end{bmatrix}
+$$
+
+
+It's a different numerical matrix, but it represents the same linear
+transformation!
 
 Matrix Operations
 -----------------
