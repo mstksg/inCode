@@ -308,7 +308,9 @@ And now we can swap out activation functions using simple function composition:
 !!!functional-models/model.hs "feedForwardLog'"
 ```
 
-Maybe even a softmax classifier!
+Maybe even a [softmax][] classifier!
+
+[softmax]: https://en.wikipedia.org/wiki/Softmax_function
 
 ```haskell
 !!!functional-models/model.hs "softMax" "feedForwardSoftMax"
@@ -318,7 +320,7 @@ We can even write a function to *compose* two models, keeping their two
 original parameters separate:
 
 ```haskell
-!!!functional-models/model.hs "(.<)"
+!!!functional-models/model.hs "(<~)"
 ```
 
 And now we have a way to chain models!  Maybe even make a multiple-layer neural
@@ -326,9 +328,19 @@ network?  Let's see if we can get a two-layer model to learn [XOR][]!
 
 [XOR]: https://en.wikipedia.org/wiki/Exclusive_or
 
+Our model is simple:
+
+```haskell
+ghci> twoLayer = feedForwardLog' @4 @1 <~ feedForwardLog' @2 @4
+```
+
+Note we use type application syntax to specify the input/output dimensions of
+`feedForwardLog'`.
+
+We can train it on sample points:
+
 ```haskell
 ghci> samps = [(H.vec2 0 0, 0), (H.vec2 1 0, 1), (H.vec2 0 1, 1), (H.vec2 1 1, 1)]
-ghci> twoLayer = feedForwardLog' @4 @1 .< feedForwardLog' @2 @4
 ghci> trained = trainModel twoLayer p0 (concat (replicate 10000 samps))
 ```
 
@@ -345,8 +357,22 @@ ghci> evalBP2 twoLayer trained (H.vec2 1 1)
 (3.6846467867668035e-2 :: R 1)
 ```
 
-Not bad!  We just built a working neural network using normal function
-composition and simple combinators.
+Not bad!
+
+We just built a working neural network using normal function composition and
+simple combinators.  No need for any objects or mutability or fancy explicit
+graphs.  Just pure, typed functions!  Why would you ever bring anything
+imperative into this?
+
+### Possibilities
+
+You can build a lot with just these tools alone.  By using primitive models and
+the various combinators, you can create autoencoders, nonlinear regressions,
+convolutional neural networks, multi-layered neural networks...you can create
+complex "graphs" of networks that fork and re-combine with themselves.
+
+The nice thing is that these are all just regular (Rank-2) functions, so...you
+have two models?  Just compose their functions like normal functions!
 
 
 

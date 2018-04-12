@@ -124,16 +124,16 @@ feedForwardSoftMax
     => Model (T2 (L o i) (R o)) (R i) (R o)
 feedForwardSoftMax wb = logistic . feedForward wb
 
-(.<)
+(<~)
     :: (Num p, Num q)
-    => Model p b c
-    -> Model q a b
+    => Model     p    b c
+    -> Model       q  a b
     -> Model (T2 p q) a c
-(f .< g) pq = f p . g q
+(f <~ g) pq = f p . g q
   where
     p = pq ^^. _1
     q = pq ^^. _2
-infixr 8 .<
+infixr 8 <~
 
 testTrainTwoLayer :: [R 1]
 testTrainTwoLayer = evalBP2 model trained <$> [ H.vec2 0 0
@@ -143,7 +143,7 @@ testTrainTwoLayer = evalBP2 model trained <$> [ H.vec2 0 0
                                               ]
   where
     model :: Model _ (R 2) (R 1)
-    model = feedForwardLog' @4 @1 .< feedForwardLog' @2 @4
+    model = feedForwardLog' @4 @1 <~ feedForwardLog' @2 @4
     p0 = T2 (T2 (H.gaussianSample 914232 0 (H.sym H.eye)) (H.randomVector 81232 H.Gaussian))
             (T2 (H.gaussianSample 742934 0 (H.sym H.eye)) (H.randomVector 37249 H.Gaussian))
     trained = trainModel model p0 (concat (replicate 10000 samps))
