@@ -433,8 +433,6 @@ polynomial)
 [formal derivative]: https://en.wikipedia.org/wiki/Formal_derivative
 
 
-
-
 <!-- ### Examples -->
 
 <!-- For our polynomial example, we said that the derivative $\frac{d}{dp}$ of a -->

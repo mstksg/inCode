@@ -65,7 +65,7 @@ crossEntropy
     :: Reifies s W
     => BVar s (R 10)
     -> BVar s (R 10)
-    -> BVar s (Double)
+    -> BVar s Double
 crossEntropy targ res = -(log res <.> targ)
 
 runNet
