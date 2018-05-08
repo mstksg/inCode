@@ -485,8 +485,19 @@ it's a **monoid isomorphism**:
 
 ```haskell
 getConst x <> getConst y = getConst (x <*> y)
-getConst (pure ())       = getConst (Const mempty)
+mempty                   = getConst (pure ())
 ```
+
+One incidental observation -- `sequenceA_` for `Const w` is:
+
+```haskell
+sequenceA_ :: Monoid w => [Const w a] -> Const w ()
+
+-- strip out newtype wrappers
+sequenceA_ :: Monoid w => [w] -> w
+```
+
+It's just `mconcat`!
 
 ### Monoid is the Key
 
@@ -502,5 +513,8 @@ forms a monoid isomorphism --- really helps hammer in the monoidal nature of
 
 All Applicative instances are monoidal in how they sequence their effects.
 Because `Const`'s effects are so simple ("accumulate a value"), this makes it
-an especially obvious demonstration of this.  Hopefully this helps shed some
-insight!
+an especially obvious demonstration of this.
+
+Hopefully this helps you gain some sense of appreciation between the link
+between `Applicative` and `Monoid`, and also why `Const`'s Applicative instance
+is defined the way it is!
