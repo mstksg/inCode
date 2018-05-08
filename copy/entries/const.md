@@ -536,6 +536,18 @@ sequenceA_ :: Monoid w => [w] -> w
 
 It's just `mconcat`!
 
+As an exercise, see if you can understand this definition of `mconcat` in terms
+of `Const` and `traverse`:
+
+```haskell
+mconcat :: Monoid w => [w] -> w
+mconcat = getConst . traverse_ Const
+```
+
+`traverse`, if you aren't familiar with it, an "effectful" function (in our
+case, `Const :: w -> Const w w`) over all values in a container, and sequences
+all of their effects.
+
 ### Monoid is the Key
 
 All of this actually witnesses the core of Applicative.  A lot of people
