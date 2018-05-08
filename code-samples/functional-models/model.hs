@@ -18,7 +18,6 @@
 {-# OPTIONS_GHC -fplugin GHC.TypeLits.KnownNat.Solver #-}
 {-# OPTIONS_GHC -fwarn-redundant-constraints          #-}
 
--- import           Control.Lens hiding                (Profunctor(..))
 import           Control.Monad.Primitive
 import           Control.Monad.Trans.State
 import           Data.Bifunctor
@@ -26,6 +25,7 @@ import           Data.Foldable
 import           Data.Kind
 import           Data.List
 import           Data.Semigroup
+import           Data.Tuple
 import           GHC.Generics                          (Generic)
 import           GHC.TypeNats
 import           Lens.Micro
@@ -38,10 +38,9 @@ import           Statistics.Distribution
 import qualified Data.Vector.Sized                     as SV
 import qualified Data.Vector.Storable.Sized            as SVS
 import qualified Numeric.LinearAlgebra.Static          as H
-import qualified System.Random.MWC                     as MWC
 
-type Model p a b = forall s. Reifies s W
-                 => BVar s p -> BVar s a -> BVar s b
+type Model p a b = forall z. Reifies z W
+                 => BVar z p -> BVar z a -> BVar z b
 
 linReg :: Model (T2 Double Double) Double Double
 linReg ab x = b * x + a
@@ -76,6 +75,14 @@ testTrainLinReg = trainModel linReg (T2 0 0) (concat (replicate 1000 samps))
 logistic :: Floating a => a -> a
 logistic x = 1 / (1 + exp (-x))
 
+feedForward
+    :: (KnownNat i, KnownNat o)
+    => Model (T2 (L o i) (R o)) (R i) (R o)
+feedForward wb x = w #> x + b
+  where
+    w = wb ^^. _1
+    b = wb ^^. _2
+
 feedForwardLog
     :: (KnownNat i, KnownNat o)
     => Model (T2 (L o i) (R o)) (R i) (R o)
@@ -101,20 +108,12 @@ testTrainPerceptron = evalBP2 feedForwardLog trained <$> [ H.vec2 0 0
 logReg :: Model (T2 Double Double) Double Double
 logReg ab = logistic . linReg ab
 
-feedForward
-    :: (KnownNat i, KnownNat o)
-    => Model (T2 (L o i) (R o)) (R i) (R o)
-feedForward wb x = w #> x + b
-  where
-    w = wb ^^. _1
-    b = wb ^^. _2
-
 feedForwardLog'
     :: (KnownNat i, KnownNat o)
     => Model (T2 (L o i) (R o)) (R i) (R o)
 feedForwardLog' wb = logistic . feedForward wb
 
-softMax :: (Reifies s W, KnownNat n) => BVar s (R n) -> BVar s (R n)
+softMax :: (Reifies z W, KnownNat n) => BVar z (R n) -> BVar z (R n)
 softMax x = konst (1 / sumElements expx) * expx
   where
     expx = exp x
@@ -153,6 +152,59 @@ testTrainTwoLayer = evalBP2 model trained <$> [ H.vec2 0 0
             , (H.vec2 1 1, 0)
             ]
 
+type ModelS p s a b = forall z. Reifies z W
+                   => BVar z p
+                   -> BVar z a
+                   -> BVar z s
+                   -> (BVar z b, BVar z s)
+
+unroll
+    :: Num a
+    => ModelS p s a b
+    -> ModelS p s (SV.Vector n a) b
+unroll f p xs s0 = foldl' (\(_, s) x -> f p x s)
+                     (undefined, s0)
+                     (sequenceVar xs)
+
+unrollTrace
+    :: (Num a, Num b, KnownNat n)
+    => ModelS p s a b
+    -> ModelS p s (SV.Vector n a) (SV.Vector n b)
+unrollTrace f p xs s0 = first collectVar
+                      . swap
+                      $ mapAccumL (\s x -> swap (f p x s))
+                          s0
+                          (sequenceVar xs)
+
+fixState
+    :: s
+    -> ModelS p s a b
+    -> Model p a b
+fixState s0 f p x = fst $ f p x (constVar s0)
+
+trainState
+    :: (Num p, Num s)
+    => ModelS p s a b
+    -> Model (T2 p s) a b
+trainState f ps x = fst $ f p x s
+  where
+    p = ps ^^. _1
+    s = ps ^^. _2
+
+(<&~)
+    :: (Num p, Num q, Num s, Num t)
+    => ModelS     p        s    b c
+    -> ModelS       q        t  a b
+    -> ModelS (T2 p q) (T2 s t) a c
+(f <&~ g) pq x st = let (y, t') = g q x t
+                        (z, s') = f p y s
+                    in  (z, reTup s' t')
+  where
+    p = pq ^^. _1
+    q = pq ^^. _2
+    s = st ^^. _1
+    t = st ^^. _2
+infixr 8 <&~
 
 main :: IO ()
 main = do
@@ -315,5 +367,5 @@ main = do
 -- instance Field2 (T2 a b) (T2 a b') b b' where
 --     _2 = t2_2
 
--- reTup :: (Num a, Num b) => Reifies s W => BVar s a -> BVar s b -> BVar s (T2 a b)
--- reTup = isoVar2 T2 t2Tup
+reTup :: (Num a, Num b) => Reifies z W => BVar z a -> BVar z b -> BVar z (T2 a b)
+reTup = isoVar2 T2 t2Tup

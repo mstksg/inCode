@@ -76,11 +76,17 @@ x$.
 [linreg]: https://en.wikipedia.org/wiki/Linear_regression
 
 As it so happens, a $f_p(x)$ is really just a "partially applied" $f(p,x)$.
-Imagining that function, it has type:
+Imagining that function, it has type:[^reader]
 
 $$
-f : P \cross A \rightarrow B
+f : P \times A \rightarrow B
 $$
+
+[^reader]: Those familiar with Haskell idioms might recognize this type as
+being isomorphic to `a -> Reader p b` (or `Kleisli (Reader p) a b`) which
+roughly represents the notion of "A function from `a` to `b` with an
+'environment' of type `p`".
+
 
 If we [curry][] this, we get the original model representation we talked about:
 
@@ -173,7 +179,7 @@ type Model p a b = p -> a -> b
 ```
 
 Not normally differentiable, but we can make it a differentiable function by
-having it work with `BVar s p` and `BVar s a` (`BVar`s containing those values)
+having it work with `BVar z p` and `BVar z a` (`BVar`s containing those values)
 instead:
 
 ```haskell
@@ -193,7 +199,10 @@ $$
 
 Here `T2 Double Double` is a tuple of two `Double`s, which contains the
 parameters (`a` and `b`).  We extract the first item using `^^. _1` and the
-second item with `^^. _2`, and then talk about the function 
+second item with `^^. _2`, and then talk about the actual function, whose
+result is `b * x + a`.  Note that, because `BVar`s have a `Num` instance, we
+can use all our normal numeric operators, and the results are still
+differentiable.
 
 We can *run* `linReg` using `evalBP2`:
 
@@ -206,7 +215,7 @@ But the neat thing is that we can also get the gradient of the parameters, too,
 if we identify a loss function:
 
 $$
-\nabla_p (f_x(p) - y_x)^2
+\nabla_p (f(p, x) - y_x)^2
 $$
 
 
@@ -214,7 +223,7 @@ $$
 !!!functional-models/model.hs "squaredErrorGrad"
 ```
 
-We use `constVar :: a -> BVar s a`, to lift a normal value to a `BVar` holding
+We use `constVar :: a -> BVar z a`, to lift a normal value to a `BVar` holding
 that value, since our model `f` takes `BVar`s.
 
 And finally, we can train it using stochastic gradient descent, with just a
@@ -359,12 +368,12 @@ ghci> evalBP2 twoLayer trained (H.vec2 1 1)
 
 Not bad!
 
+### Possibilities
+
 We just built a working neural network using normal function composition and
 simple combinators.  No need for any objects or mutability or fancy explicit
 graphs.  Just pure, typed functions!  Why would you ever bring anything
 imperative into this?
-
-### Possibilities
 
 You can build a lot with just these tools alone.  By using primitive models and
 the various combinators, you can create autoencoders, nonlinear regressions,
@@ -374,36 +383,110 @@ complex "graphs" of networks that fork and re-combine with themselves.
 The nice thing is that these are all just regular (Rank-2) functions, so...you
 have two models?  Just compose their functions like normal functions!
 
+Time Series Models
+------------------
 
+Not all models are "question and answer" models, however -- some models
+represent a time series.  This is usually notated as:
 
+As a generalization, we can talk about models that are intended to represent
+time series:
 
-<!-- ### Time series -->
+$$
+f_p(x,t) = y
+$$
 
-<!-- As a generalization, we can talk about models that are intended to represent -->
-<!-- time series: -->
+Which says, given an input and a time, return an output based on both.  The
+point of this is to let us have recurrent relationships, like for
+autoregressive models:
+
+$$
+\text{AR}_{\phi_1, \phi_2, \ldots}(x,t)
+  = \epsilon_t + \phi_1 \text{AR}_{\phi_1, \phi_2, \ldots}(x, t-1)
+  + \phi_2 \text{AR}_{\phi_1, \phi_2, \ldots}(x, t-2)
+  + \ldots
+$$
+
+However, this is a bad way to look at models on time serieses, because nothing
+is stopping the result of a model from depending on a future value (the value
+at time $t = 3$, for instance, might depend explicitly only the value at time $t
+= 5$).  Instead, we can imagine time series models as explicitly "stateful"
+models:
+
+$$
+f_p(x, s_{\text{old}}) = (y, s_{\text{new}})
+$$
+
+These have type:[^statet]
+
+$$
+f : P \times A \times S \rightarrow B \times S
+$$
+
+[^statet]: If you recognized our original stateless model type as `a -> Reader
+p b`, then you might see too that this is the common Haskell idiom `a -> StateT
+s (Reader p) b` (or `Kleisli (StateT s (Reader p)) a b`), which represents the
+notion of a "function from `a` to `b` with environment `p`, that takes and
+returns a modified version of some 'state' `s`".
+
+This makes it clear that the output of our model can only depend on current and
+*previously occurring* information, preserving causality.
+
+### Examples
+
+We can use this to implement a "rolling mean" model (different from the "Moving
+Average" model), who sees an input and outputs the weighted average of the
+input with the previous input:
+
+$$
+f_\lambda(x, s) = (\frac{x + \lambda s}{1 + \lambda}, x)
+$$
+
+This is a model parameterized by how much to weight the current input with the
+previous input.
+
+There's also the classic fully-connected recurrent neural network layer, whose
+output is a combination of the previous output and the current input:
+
+$$
+f_{W_x, W_s, \mathbf{b}}(\mathbf{x}, \mathbf{s}) =
+  ( W_x \mathbf{x} + W_s \mathbf{s} + \mathbf{b}
+  , \sigma(W_x \mathbf{x} + W_s \mathbf{s} + \mathbf{b})
+  )
+$$
+
+### The connection
+
+These stateful models seem to be at odds with our previous picture of models.
+
+1.  They aren't stated in the same way.  They require specifying a state of
+    some sort, and also a modified state
+2.  These can't be *trained* in the same way (using stochastic
+    gradient descent), and look like they require a different algorithm for
+    training.
+
+However, because we just have functions, it's easy to transform non-stateful
+models into stateful models, and stateful models to non-stateful models.
+That's just the point of 
+
+### Functional Stateful Models
+
+Alright, so what does this mean, and how does it help us?
+
+To help us, let's try implementing this in Haskell:
+
+```haskell
+!!!functional-models/model.hs "type ModelS"
+```
+
+<!-- We can also consider the AR(1) ("Autoregressive") model, whose output is a -->
+<!-- function of the *previous* output: -->
 
 <!-- $$ -->
-<!-- f_p(x,t) = y -->
+<!-- f_\phi(x, s) = (\frac{x + \lambda s}{1 + \lambda}, x) -->
 <!-- $$ -->
 
-<!-- Which says, given an input and a time, return an output based on both.  The -->
-<!-- point of this is to let us have recurrent relationships, like for -->
-<!-- autoregressive models: -->
 
-<!-- $$ -->
-<!-- \text{AR}_p(x,t) = \epsilon_t + \phi_1 \text{AR}_p(x, t-1) + \phi_2 \text{AR}_p(x, t-2) + \ldots \phi_p \text{AR}_p(x, t-p) -->
-<!-- $$ -->
-
-<!-- However, this is a bad way to look at models on time serieses, because nothing -->
-<!-- is stopping the result of a model from depending on a future value.  Instead, -->
-<!-- we can imagine time series models as explicitly "stateful" models: -->
-
-<!-- $$ -->
-<!-- f_p(x, s_0) = (y, s_1) -->
-<!-- $$ -->
-
-<!-- This makes it clear that the output of our model can only depend on current and -->
-<!-- *previously occurring* information, preserving causality. -->
 
 <!-- ### Gradient Descent -->
 
