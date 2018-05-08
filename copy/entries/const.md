@@ -161,7 +161,7 @@ And we can say with certainty that:
     no more, and no less.
 2.  `sequenceA_` of an empty list has no effects.
 
-This makes `sequenceA_` a **useful** combinator.  The fact that we can talk
+This makes `sequenceA_` a *useful* combinator.  The fact that we can talk
 about how `sequenceA_` behaves for all Applicative instances makes it something
 that is *worth* defining.  If you use `sequenceA_` for your type, you can do it
 knowing that it will behave in a well-defined way: it *must* execute every
@@ -535,14 +535,23 @@ It's just `mconcat`!
 All of this actually witnesses the core of Applicative.  A lot of people
 describe Applicative as a "lax monoidal functor".
 
-The idea is that `liftA2` and `<*>` are supposed to be "monoidal" in some way.
-This fact is hidden by the normal form of the Applicative laws, but I feel like
-seeing this play out in the `Applicative` instance for `Const` --- how `Monoid`
-is exactly the constraint necessary to implement the instance, and how `Const`
-forms a monoid isomorphism --- really helps hammer in the monoidal nature of
-*all* Applicative instances.
+In this post, I was really handwavey with how I talked about
+"effects" ("`f <*> x` must use the effects of `f` and `x` each once and only
+once", I claimed, without defining what an effect was).  The notion of what an
+"effect" is really comes from each individual Applicative, and each type really
+has its own conceptual picture of what counts as an effect.  The rigorous test
+of what is a meaningful way to have an effect that can be combined comes from
+those laws (`pure f <*> x = fmap f x`, etc.) and the overall sentiment that the
+combination of effects is *monoidal*.
 
-All Applicative instances are monoidal in how they sequence their effects.
+At its heart, Applicative enforces that `liftA2` and `<*>` are supposed to be
+"monoidal" in some way. This fact is hidden by the normal form of the
+Applicative laws, but I feel like seeing this play out in the `Applicative`
+instance for `Const` --- how `Monoid` is exactly the constraint necessary to
+implement the instance, and how `Const` forms a monoid isomorphism --- really
+helps hammer in the monoidal nature of *all* Applicative instances.
+
+Applicative instances must be monoidal in how they sequence their effects.
 Because `Const`'s effects are so simple ("accumulate a value"), this makes it
 an especially obvious demonstration of this.
 
