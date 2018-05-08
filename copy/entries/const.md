@@ -1,7 +1,7 @@
 ---
 title: The Const Applicative and Monoids
 categories: Haskell
-tags: functional programming, haskell, monoids
+tags: functional programming, haskell, monoids, applicatives
 create-time: 2018/05/07 16:19:29
 date: 2018/05/08 12:20:16
 identifier: const
