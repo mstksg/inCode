@@ -544,7 +544,7 @@ mconcat :: Monoid w => [w] -> w
 mconcat = getConst . traverse_ Const
 ```
 
-`traverse`, if you aren't familiar with it, an "effectful" function (in our
+`traverse_`, if you aren't familiar with it, an "effectful" function (in our
 case, `Const :: w -> Const w w`) over all values in a container, and sequences
 all of their effects.
 
