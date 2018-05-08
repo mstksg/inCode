@@ -19,7 +19,8 @@ about Applicative in terms of one of my favorites: `Const`.
 Const
 -----
 
-The `Const` data type is pretty simple:
+The `Const` data type from the standard libraries is relatively simple as far
+as newtypes go:
 
 ```haskell
 newtype Const w a = Const { getConst :: w }
