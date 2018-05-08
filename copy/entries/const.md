@@ -3,15 +3,15 @@ title: The Const Applicative and Monoids
 categories: Haskell
 tags: functional programming, haskell, monoids
 create-time: 2018/05/07 16:19:29
-date: Never
+date: 2018/05/08 12:20:16
 identifier: const
 slug: const-applicative-and-monoids
 ---
 
 The Applicative typeclass has a somewhat infamous reputation for having opaque
 laws.  There are a lot of great alternate rephrasing of these laws, from many
-different approaches.  For this post I want to talk about Applicative in terms
-of one of my favorites: `Const`.
+different approaches.  For this post, however, I want to talk about Applicative
+in terms of one of my favorites: `Const`.
 
 Const
 -----
@@ -65,7 +65,8 @@ pure  :: a -> IntConst a
 Now, remember that `IntConst`'s type parameter is phantom, so we don't have any
 actual values of type `a -> b`, `a`, or `b` involved.  An `IntConst a`, for any
 `a`, is really just an `Int`.  Essentially, once we strip out the newtype
-wrapper shenanigans, we just get:
+wrapper shenanigans (replacing `IntConst a` with its contents, `Int`), we just
+get:
 
 ```haskell
 pure  :: a -> Int
@@ -77,7 +78,7 @@ it works:
 
 ```haskell
 instance Applicative IntConst where
-    pure _ = IntConst 42
+    pure _                    = IntConst 42
     IntConst x <*> IntConst _ = IntConst x
 ```
 
@@ -188,13 +189,21 @@ properties about `pure`).
 
 We haven't defined what the "effects" of `IntConst` are yet, but let's at least
 look at if our `pure` behaves sensibly with `<*>`.  Namely, let's check `pure f
-<*> x = fmap f x`
+<*> x = fmap f x`.
 
-Let's check it with a simple example for `x`...say, `IntConst 5`.  On the left
-hand side, we have:
+Note that this is a meaningful starting point because `fmap`'s definition is
+*fixed*.  For any type, there is only one possible `fmap` that is legal and
+lawful --- and in Haskell, we only have to check that `fmap id` leaves all
+inputs unchanged.[^fmap]
+
+[^fmap]: There are other laws, but because of parametric polymorphism in
+Haskell, we know they must be true if and only if `fmap id = id`.
+
+With that out of the way, let's check our `pure f <*> x = fmap f x` law with a
+simple example for `x`...say, `IntConst 5`.  On the left hand side, we have:
 
 ```haskell
--- pure _ = IntConst 42
+-- pure _                     = IntConst 42
 -- IntConst x <*> InstConst _ = IntConst x
 pure f <*> IntConst 5 = IntConst 42 <*> IntConst 5
                       = IntConst 42
@@ -214,7 +223,7 @@ What if we defined:
 
 ```haskell
 instance Applicative IntConst where
-    pure _ = IntConst 42
+    pure _                    = IntConst 42
     IntConst _ <*> IntConst y = IntConst y
 ```
 
@@ -223,7 +232,7 @@ Is that any better?  Well, `pure f <*> IntConst 5` is now equal to `IntConst
 use `IntConst 3` as our `f`.  On the left hand side:
 
 ```haskell
--- pure _ = IntConst 42
+-- pure _                    = IntConst 42
 -- IntConst _ <*> IntConst y = IntConst y
 IntConst 3 <*> pure x = IntConst 3 <*> IntConst 42
                       = IntConst 42
@@ -241,13 +250,13 @@ Ah, that's wrong too, then.
 At this point it might seem like I am facetiously moving very slowly to an
 answer that has to use *both* inputs.  After all, my earlier statement claimed
 that `f <*> x` has to use both the effects of `f` and the effects of `x`, each
-exactly once.  But because we didn't really know what the "effects" of
-`IntConst` are, we don't know exactly "how" to combine them...but we can
-probably guess it has to use both `Int`s.  Let's try another one.
+exactly once.  Because we didn't really know what the "effects" of `IntConst`
+are, we don't know exactly "how" to combine them...but we can probably guess it
+has to use both `Int`s.  So, with that in mind, let's try another definition:
 
 ```haskell
 instance Applicative IntConst where
-    pure _ = IntConst 42
+    pure _                    = IntConst 42
     IntConst x <*> IntConst y = IntConst (x + y)
 ```
 
@@ -256,7 +265,7 @@ follows our expectations about `pure` -- if `pure f <*> x` is the same as `fmap
 f x`.  Using `IntConst 5` again as `x`:
 
 ```haskell
--- pure _ = IntConst 42
+-- pure _                     = IntConst 42
 -- IntConst x <*> InstConst y = IntConst (x + y)
 pure f <*> IntConst 5 = IntConst 42 <*> IntConst 5
                       = IntConst 47
@@ -276,11 +285,13 @@ returned by `pure f` has to leave any other `Int` unchanged when used with
 `<*>`.
 
 Thinking back, we remember that if our operation is `+`, we can use `0`, since
-`0 + x = x` and `x + 0 = x`, for all `x`.  Finally:
+`0 + x = x` and `x + 0 = x`, for all `x`.  Luckily, our operation `x + y` is
+one that even *has* an identity.  If we had chosen another operation (like `x +
+2 * y`), we wouldn't be so lucky.  Finally:
 
 ```haskell
 instance Applicative IntConst where
-    pure _ = IntConst 0
+    pure _                    = IntConst 0
     IntConst x <*> IntConst y = IntConst (x + y)
 ```
 
@@ -288,7 +299,7 @@ At last this feels like something that should make sense.  And, does it?
 Testing out, again, `pure f <*> x = fmap f x`:
 
 ```haskell
--- pure _ = IntConst 0
+-- pure _                     = IntConst 0
 -- IntConst x <*> InstConst y = IntConst (x + y)
 pure f <*> IntConst 5 = IntConst 0 <*> IntConst 5
                       = IntConst 5
@@ -302,7 +313,7 @@ fmap f (IntConst 5) = IntConst 5
 Perfect!  And, checking now `f <*> pure x = fmap ($ x) f`:
 
 ```haskell
--- pure _ = IntConst 0
+-- pure _                    = IntConst 0
 -- IntConst x <*> IntConst y = IntConst (x + y)
 IntConst 3 <*> pure x = IntConst 3 <*> IntConst 0
                       = IntConst 3
@@ -313,11 +324,16 @@ IntConst 3 <*> pure x = IntConst 3 <*> IntConst 0
 fmap ($ x) (IntConst 3) = IntConst 3
 ```
 
-This definition works for both!
+This definition works for both[^both]!
+
+[^both]: Note that in the real world we also have to verify that our definition
+combines effects in an *associative* way, but we won't go too deeply into this
+for this article.
 
 ### The Effect of Const
 
-And, so, what do we think `sequenceA_` does for `IntConst`?
+With our definition picked out, what do we think `sequenceA_` does for
+`IntConst`?
 
 ```haskell
 sequenceA_ :: [IntConst a] -> IntConst ()
@@ -327,7 +343,8 @@ Well, if each application of `<*>` adds together the `Int` in the `IntConst a`,
 and `sequenceA_` uses `<*>` once per every `IntConst a`...we can guess that
 `sequenceA_` for `IntConst` is just `sum`!
 
-This might be more clear if we strip away the newtype wrappers:
+This might be more clear if we strip away the newtype wrappers (replacing
+`IntConst a` with its contents, `Int`):
 
 ```haskell
 sequenceA_ :: [Int] -> Int
@@ -350,7 +367,7 @@ following instance is also valid:
 
 ```haskell
 instance Applicative IntConst where
-    pure _ = IntConst 1
+    pure _                    = IntConst 1
     IntConst x <*> IntConst y = IntConst (x * y)
 ```
 
@@ -359,7 +376,7 @@ _ = IntConst 1` works fine as an identity here, since `1 * x = x` and `x * 1 =
 x`, for all `x`.
 
 ```haskell
--- pure _ = IntConst 1
+-- pure _                     = IntConst 1
 -- IntConst x <*> InstConst y = IntConst (x * y)
 pure f <*> IntConst 5 = IntConst 1 <*> IntConst 5
                       = IntConst 5
@@ -412,23 +429,29 @@ instance Functor (Const w) where
     fmap _ (Const w) = Const w
 ```
 
-And we can actually write an `Applicative` instance for `Const w`...as long as
-provide a `Monoid` to use with `w`!
+This is the only definition that preserves `fmap id = id`.
+
+Now we can actually write an `Applicative` instance for `Const w`...as long as
+provide a `Monoid` to use with `w`[^op]!
+
+[^op]: Note that the Applicative laws are loose enough to allow a different
+definition, with the same `pure`, but with `Const x <*> Const y = Const (y <>
+x`).  But, this is just a different `Monoid` (`Const (Dual w)`).
 
 ```haskell
 instance Monoid w => Applicative (Const w) where
-    pure _ = Const mempty
+    pure _              = Const mempty
     Const x <*> Const y = Const (x <> y)
 ```
 
 Like how we said, as long as the "combining" function for `x` and `y` have the
 identity that is given by the result of `pure`, this is a valid Applicative.
 
-The "effects" of this Applicative instance are "accumulating log".  If this
-sounds familiar, this is because this is exactly the effect of the `Writer w`
-Applicative instance.  `Const w` and `Writer w` have the same effects
-("accumulate some accumulator"), and this can be seen clearly by comparing the
-two types:
+The "effects" of this Applicative instance are "accumulate to some
+accumulator".  If this sounds familiar, this is because this is exactly the
+effect of the `Writer w` Applicative instance.  `Const w` and `Writer w` have
+the same effects ("accumulate to some accumulator"), and this can be seen
+clearly by comparing the two types:
 
 ```haskell
 data Const  w a = Const  w
@@ -465,8 +488,9 @@ instance Monoid w where
     (<>)   :: w -> w ->w
 ```
 
-It seems like `Const` is nothing more than a `* -> (k -> *)`; it takes a
-`*`-kinded Monoid, and turns it into a `k -> *`-kinded Monoid:
+It seems like `Const` is nothing more than a function on a Monoid.  As an `* ->
+(k -> *)`, it takes a `*`-kinded Monoid and turns it into a `k -> *`-kinded
+Monoid:
 
 ```haskell
 instance Monoid (w :: *) => Applicative (Const w :: k -> *)
@@ -495,7 +519,7 @@ getConst x <> getConst y = getConst (x <*> y)
 mempty                   = getConst (pure ())
 ```
 
-One incidental observation -- `sequenceA_` for `Const w` is:
+One incidental observation -- `sequenceA_` for `Const w` might look familiar:
 
 ```haskell
 sequenceA_ :: Monoid w => [Const w a] -> Const w ()
