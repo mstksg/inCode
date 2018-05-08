@@ -128,29 +128,29 @@ To do this sensibly, we need also to talk about a "no-op" value:
 pure :: a -> F a
 ```
 
-That has "no effects".
+`pure x` is intended to be a no-op with "no effects".
 
-Then we can say something about the behavior of `<*>` or `fmap2` or `liftA2`.
-Namely:
+With this, we can say something about the behavior of `<*>` or `fmap2` or
+`liftA2`. Namely:
 
 1.  The effects of `f <*> x` must have the effects of `f` once *and* the
     effects of `x` once -- no more, and no less.
-2.  Combining effects must be associative.
-3.  `pure`'s results must have no "effects", and so if used with `<*>`,
+2.  `pure`'s results must have no "effects", and so if used with `<*>`,
     introduces no extra effects:
 
     ```haskell
-    pure f <$> x = fmap f x
+    pure f <*> x = fmap f x
     f <*> pure x = fmap ($ x) f
     ```
 
-    (Knowing that `fmap` is not allowed to affect effects in any way)
+    (Remember that `fmap` is not allowed to affect "effects" in any way)
+3.  Combining effects must be associative.
 
 With this guarantee, we can write `sequenceA_` in a polymorphic way:
 
 ```haskell
 sequenceA_ :: Applicative f => [f a] -> f ()
-sequenceA_ []     = pure []
+sequenceA_ []     = pure ()
 sequenceA_ (x:xs) = x *> sequenceA_ xs
 ```
 
@@ -166,6 +166,13 @@ that is *worth* defining.  If you use `sequenceA_` for your type, you can do it
 knowing that it will behave in a well-defined way: it *must* execute every
 action once (no more, and no less), and sequencing an empty list *must* have no
 effects.
+
+If it weren't for those Applicative laws and expectations, `sequenceA_` would
+be a pretty useless function.  It might completely ignore all effects, or it
+might perform some of the effects multiple times...who knows!  The fact that we
+have Applicative laws and expectations means we can look at the implementation
+of `sequenceA_` and know with certainty (and make bold claims about) how
+`sequenceA_` combines effects.
 
 
 Back to Const
@@ -231,12 +238,12 @@ fmap ($ x) (IntConst 3) = IntConst 3
 
 Ah, that's wrong too, then.
 
-At this point it seems like I am facetiously moving very slowly to an answer
-that has to use *both* inputs.  After all, my earlier statement claimed that `f
-<*> x` has to use both the effects of `f` and the effects of `x`, each exactly
-once.  But because we didn't really know what the "effects" of `IntConst` are,
-we don't know exactly "how" to combine them...but we can probably guess it has
-to use both `Int`s.  Let's try another one.
+At this point it might seem like I am facetiously moving very slowly to an
+answer that has to use *both* inputs.  After all, my earlier statement claimed
+that `f <*> x` has to use both the effects of `f` and the effects of `x`, each
+exactly once.  But because we didn't really know what the "effects" of
+`IntConst` are, we don't know exactly "how" to combine them...but we can
+probably guess it has to use both `Int`s.  Let's try another one.
 
 ```haskell
 instance Applicative IntConst where
