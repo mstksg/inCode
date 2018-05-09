@@ -486,7 +486,7 @@ without the newtype wrappers (and ignored arguments)
 ```haskell
 instance Monoid w => Applicative (Const w) where
     pure  :: w
-    (<*>) :: w -> w ->w
+    (<*>) :: w -> w -> w
 ```
 
 And let's look at the `Monoid` typeclass:
@@ -494,7 +494,7 @@ And let's look at the `Monoid` typeclass:
 ```haskell
 instance Monoid w where
     mempty :: w
-    (<>)   :: w -> w ->w
+    (<>)   :: w -> w -> w
 ```
 
 It seems like `Const` is nothing more than a (type-level) function on a Monoid.
