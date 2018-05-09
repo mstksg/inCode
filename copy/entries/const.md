@@ -517,16 +517,20 @@ Const (x <> y) = Const x <*> Const y
 Const mempty   = pure ()
 ```
 
-Meaning "mappend then Const and `<*>`" is the same as "Const and `<*>` the
-result", and "Const the mempty" is the same as `pure`.  Both things essentially
-convey the exact same monoid -- one with `<>` and `mempty`, and the other with
-`<*>` and `pure ()`.  In fact, it's a bit more than a monoid homomorphism --
-it's a **monoid isomorphism**:
+Meaning "`<>` then `Const`" is the same as "`Const` then `<*>`", and "`Const`
+the `mempty`" is the same as `pure ()`.  Both things essentially convey the
+exact same monoid -- one with `<>` and `mempty`, and the other with `<*>` and
+`pure ()`. In fact, it's a bit more than a monoid homomorphism -- it's a
+**monoid isomorphism**:
 
 ```haskell
 getConst x <> getConst y = getConst (x <*> y)
 mempty                   = getConst (pure ())
 ```
+
+Which means "`getConst` then `<>`" is the same as "`<*>` then `getConst`", and
+`mempty` is the same as `getConst (pure ())`.  `getConst` takes you from one
+monoid (with `<*>` and `pure ()`) to another (with `<>` and `mempty`).
 
 One incidental observation -- `sequenceA_` for `Const w` might look familiar:
 
