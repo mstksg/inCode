@@ -27,11 +27,14 @@ newtype Const w a = Const { getConst :: w }
 ```
 
 However, let's look at a less polymorphic version, `IntConst`, which is
-essentially `Const Int`:
+essentially `Const Int`:[^show]
 
 ```haskell
 newtype IntConst a = IntConst { getIntConst :: Int }
 ```
+
+[^show]: Note that if you want to play along in ghci, you should give this a
+`Show` instance by typing `deriving (Show)` after the data declaration
 
 For a `IntConst a`, the `a` is a *phantom* type parameter.  This means that
 there are not necessarily any values of type `a` in a value of type `IntConst
