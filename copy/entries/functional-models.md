@@ -156,7 +156,7 @@ We now have a nice way to "train" our model:
     $p$, which tells us a direction we can "nudge" $p$ in to make the loss
     smaller.
 4.  Nudge $p$ in that direction
-5.  Pick a new $(x, y_x)$ observation pair.
+5.  Repeat from #2 until satisfied
 
 With every new observation, we see how we can nudge the parameter to make the
 model more accurate, and then we perform that nudge.
@@ -194,12 +194,16 @@ $$
 
 
 ```haskell
-!!!functional-models/model.hs "linReg"
+!!!functional-models/model.hs "data a :& b" "linReg"
 ```
 
-Here `T2 Double Double` is a tuple of two `Double`s, which contains the
-parameters (`a` and `b`).  We extract the first item using `^^. _1` and the
-second item with `^^. _2`, and then talk about the actual function, whose
+(First we define a custom tuple data type; backprop works with normal tuples,
+but using a custom tuple with a `Num` instance will come in handy later for
+training models)
+
+Here `Double :& Double` is a tuple of two `Double`s, which contains the
+parameters (`a` and `b`).  We extract the first item using `^^. t1` and the
+second item with `^^. t2`, and then talk about the actual function, whose
 result is `b * x + a`.  Note that, because `BVar`s have a `Num` instance, we
 can use all our normal numeric operators, and the results are still
 differentiable.
@@ -207,7 +211,7 @@ differentiable.
 We can *run* `linReg` using `evalBP2`:
 
 ```haskell
-ghci> evalBP2 linReg (T2 0.3 (-0.1)) 5
+ghci> evalBP2 linReg (0.3 :& (-0.1)) 5
 -0.2        -- (-0.1) * 5 + 0.3
 ```
 
@@ -239,8 +243,8 @@ $\alpha = -1,\, \beta = 2$:
 
 ```haskell
 ghci> samps = [(1,1),(2,3),(3,5),(4,7),(5,9)]
-ghci> trainModel linReg (T2 0 0) (concat (replicate 1000 samps))
-T2 (-1.0000000000000024) 2.0000000000000036
+ghci> trainModel linReg (0 :& 0) (concat (replicate 1000 samps))
+(-1.0000000000000024) :& 2.0000000000000036
 ```
 
 Neat!  After going through all of those observations a thousand times, the
@@ -272,7 +276,7 @@ Let's try training a model to learn the simple [logical "AND"][and]:
 ```haskell
 ghci> import qualified Numeric.LinearAlgebra.Static as H
 ghci> samps = [(H.vec2 0 0, 0), (H.vec2 1 0, 0), (H.vec2 0 1, 0), (H.vec2 1 1, 1)]
-ghci> trained = trainModel feedForwardLog (T2 0 0) (concat (replicate 10000 samps))
+ghci> trained = trainModel feedForwardLog (0 :& 0) (concat (replicate 10000 samps))
 ```
 
 We have our trained parameters!  Let's see if they actually model "AND"?
@@ -467,7 +471,7 @@ These stateful models seem to be at odds with our previous picture of models.
 
 However, because we just have functions, it's easy to transform non-stateful
 models into stateful models, and stateful models to non-stateful models.
-That's just the point of 
+That's just the point of
 
 ### Functional Stateful Models
 

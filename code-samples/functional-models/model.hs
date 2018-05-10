@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --install-ghc runghc --resolver lts-11.3 --package backprop --package type-combinators --package mwc-random --package hmatrix-backprop --package statistics --package lens --package one-liner-instances --package ghc-typelits-knownnat --package hmatrix-vector-sized -- -Wall -O2
+-- stack --install-ghc runghc --resolver lts-11.8 --package backprop-0.2.1.0 --package random --package hmatrix-backprop-0.1.2.1 --package statistics --package lens --package one-liner-instances --package microlens-th -- -Wall -O2
 
 {-# LANGUAGE DataKinds                                #-}
 {-# LANGUAGE DeriveGeneric                            #-}
@@ -7,13 +7,16 @@
 {-# LANGUAGE FlexibleInstances                        #-}
 {-# LANGUAGE GADTs                                    #-}
 {-# LANGUAGE KindSignatures                           #-}
+{-# LANGUAGE LambdaCase                               #-}
 {-# LANGUAGE MultiParamTypeClasses                    #-}
 {-# LANGUAGE PartialTypeSignatures                    #-}
+{-# LANGUAGE PatternSynonyms                          #-}
 {-# LANGUAGE RankNTypes                               #-}
 {-# LANGUAGE TemplateHaskell                          #-}
 {-# LANGUAGE TypeApplications                         #-}
 {-# LANGUAGE TypeInType                               #-}
 {-# LANGUAGE TypeOperators                            #-}
+{-# LANGUAGE ViewPatterns                             #-}
 {-# OPTIONS_GHC -fno-warn-partial-type-signatures     #-}
 {-# OPTIONS_GHC -fplugin GHC.TypeLits.KnownNat.Solver #-}
 {-# OPTIONS_GHC -fwarn-redundant-constraints          #-}
@@ -29,27 +32,63 @@ import           Data.Tuple
 import           GHC.Generics                          (Generic)
 import           GHC.TypeNats
 import           Lens.Micro
+import           Lens.Micro.TH
 import           Numeric.Backprop
-import           Numeric.Backprop.Tuple
 import           Numeric.LinearAlgebra.Static.Backprop
 import           Numeric.LinearAlgebra.Static.Vector
 import           Numeric.OneLiner
 import           Statistics.Distribution
+import           System.Random
 import qualified Data.Vector.Sized                     as SV
 import qualified Data.Vector.Storable.Sized            as SVS
 import qualified Numeric.LinearAlgebra.Static          as H
 
-type Model p a b = forall z. Reifies z W
-                 => BVar z p -> BVar z a -> BVar z b
+data a :& b = !a :& !b
+  deriving (Show, Generic)
 
-linReg :: Model (T2 Double Double) Double Double
+t1 :: Lens (a :& b) (a' :& b) a a'
+t1 f (x :& y) = (:& y) <$> f x
+
+t2 :: Lens (a :& b) (a :& b') b b'
+t2 f (x :& y) = (x :&) <$> f y
+
+instance (Num a, Num b) => Num (a :& b) where
+    (+)         = gPlus
+    (-)         = gMinus
+    (*)         = gTimes
+    negate      = gNegate
+    abs         = gAbs
+    signum      = gSignum
+    fromInteger = gFromInteger
+
+instance (Fractional a, Fractional b) => Fractional (a :& b) where
+    (/) = gDivide
+    recip = gRecip
+    fromRational = gFromRational
+
+instance (Random a, Random b) => Random (a :& b) where
+    random g0 = (x :& y, g2)
+      where
+        (x, g1) = random g0
+        (y, g2) = random g1
+    randomR (x0 :& y0, x1 :& y1) g0 = (x :& y, g2)
+      where
+        (x, g1) = randomR (x0, x1) g0
+        (y, g2) = randomR (y0, y1) g1
+
+instance (Backprop a, Backprop b) => Backprop (a :& b)
+
+type Model p a b = forall z. Reifies z W
+                => BVar z p -> BVar z a -> BVar z b
+
+linReg :: Model (Double :& Double) Double Double
 linReg ab x = b * x + a
   where
-    a = ab ^^. _1
-    b = ab ^^. _2
+    a = ab ^^. t1
+    b = ab ^^. t2
 
 squaredErrorGrad
-    :: (Num p, Num b)
+    :: (Backprop p, Backprop b, Num b)
     => Model p a b      -- ^ Model
     -> a                -- ^ Observed input
     -> b                -- ^ Observed output
@@ -59,58 +98,63 @@ squaredErrorGrad f x targ = gradBP $ \p ->
     (f p (constVar x) - constVar targ) ^ 2
 
 trainModel
-    :: (Fractional p, Num b)
+    :: (Fractional p, Backprop p, Num b, Backprop b)
     => Model p a b      -- ^ model to train
     -> p                -- ^ initial parameter guess
     -> [(a,b)]          -- ^ list of observations
     -> p                -- ^ updated parameter guess
 trainModel f = foldl' $ \p (x,y) -> p - 0.1 * squaredErrorGrad f x y p
 
-testTrainLinReg :: T2 Double Double
-testTrainLinReg = trainModel linReg (T2 0 0) (concat (replicate 1000 samps))
+trainModelIO
+    :: (Fractional p, Backprop p, Num b, Backprop b, Random p)
+    => Model p a b      -- ^ model to train
+    -> [(a,b)]          -- ^ list of observations
+    -> IO p             -- ^ updated parameter guess
+trainModelIO m xs = do
+    p0 <- (/ 10) . subtract 0.5 <$> randomIO
+    return $ trainModel m p0 xs
+
+testTrainLinReg :: IO (Double :& Double)
+testTrainLinReg = trainModelIO linReg (concat (replicate 1000 samps))
   where
     samps = [(1,1),(2,3),(3,5),(4,7),(5,9)]
-
 
 logistic :: Floating a => a -> a
 logistic x = 1 / (1 + exp (-x))
 
 feedForward
     :: (KnownNat i, KnownNat o)
-    => Model (T2 (L o i) (R o)) (R i) (R o)
+    => Model (L o i :& R o) (R i) (R o)
 feedForward wb x = w #> x + b
   where
-    w = wb ^^. _1
-    b = wb ^^. _2
+    w = wb ^^. t1
+    b = wb ^^. t2
 
 feedForwardLog
     :: (KnownNat i, KnownNat o)
-    => Model (T2 (L o i) (R o)) (R i) (R o)
+    => Model (L o i :& R o) (R i) (R o)
 feedForwardLog wb x = logistic (w #> x + b)
   where
-    w = wb ^^. _1
-    b = wb ^^. _2
+    w = wb ^^. t1
+    b = wb ^^. t2
 
-testTrainPerceptron :: [R 1]
-testTrainPerceptron = evalBP2 feedForwardLog trained <$> [ H.vec2 0 0
-                                                         , H.vec2 1 0
-                                                         , H.vec2 0 1
-                                                         , H.vec2 1 1
-                                                         ]
+testTrainPerceptron :: IO [R 1]
+testTrainPerceptron = do
+    trained <- trainModelIO feedForwardLog $ take 10000 (cycle samps)
+    return [ evalBP2 feedForwardLog trained r | (r, _) <- samps ]
   where
-    trained = trainModel feedForwardLog (T2 0 0) (concat (replicate 10000 samps))
     samps = [ (H.vec2 0 0, 0)
             , (H.vec2 1 0, 0)
             , (H.vec2 0 1, 0)
             , (H.vec2 1 1, 1)
             ]
 
-logReg :: Model (T2 Double Double) Double Double
+logReg :: Model (Double :& Double) Double Double
 logReg ab = logistic . linReg ab
 
 feedForwardLog'
     :: (KnownNat i, KnownNat o)
-    => Model (T2 (L o i) (R o)) (R i) (R o)
+    => Model (L o i :& R o) (R i) (R o)
 feedForwardLog' wb = logistic . feedForward wb
 
 softMax :: (Reifies z W, KnownNat n) => BVar z (R n) -> BVar z (R n)
@@ -120,32 +164,27 @@ softMax x = konst (1 / sumElements expx) * expx
 
 feedForwardSoftMax
     :: (KnownNat i, KnownNat o)
-    => Model (T2 (L o i) (R o)) (R i) (R o)
+    => Model (L o i :& R o) (R i) (R o)
 feedForwardSoftMax wb = logistic . feedForward wb
 
 (<~)
-    :: (Num p, Num q)
+    :: (Backprop p, Backprop q)
     => Model     p    b c
     -> Model       q  a b
-    -> Model (T2 p q) a c
+    -> Model (p :& q) a c
 (f <~ g) pq = f p . g q
   where
-    p = pq ^^. _1
-    q = pq ^^. _2
+    p = pq ^^. t1
+    q = pq ^^. t2
 infixr 8 <~
 
-testTrainTwoLayer :: [R 1]
-testTrainTwoLayer = evalBP2 model trained <$> [ H.vec2 0 0
-                                              , H.vec2 1 0
-                                              , H.vec2 0 1
-                                              , H.vec2 1 1
-                                              ]
+testTrainTwoLayer :: IO [R 1]
+testTrainTwoLayer = do
+    trained <- trainModelIO model (take 50000 (cycle samps))
+    return [ evalBP2 model trained r | (r, _) <- samps ]
   where
     model :: Model _ (R 2) (R 1)
     model = feedForwardLog' @4 @1 <~ feedForwardLog' @2 @4
-    p0 = T2 (T2 (H.gaussianSample 914232 0 (H.sym H.eye)) (H.randomVector 81232 H.Gaussian))
-            (T2 (H.gaussianSample 742934 0 (H.sym H.eye)) (H.randomVector 37249 H.Gaussian))
-    trained = trainModel model p0 (concat (replicate 10000 samps))
     samps = [ (H.vec2 0 0, 0)
             , (H.vec2 1 0, 1)
             , (H.vec2 0 1, 1)
@@ -159,7 +198,7 @@ type ModelS p s a b = forall z. Reifies z W
                    -> (BVar z b, BVar z s)
 
 unroll
-    :: Num a
+    :: Backprop a
     => ModelS p s a b
     -> ModelS p s (SV.Vector n a) b
 unroll f p xs s0 = foldl' (\(_, s) x -> f p x s)
@@ -167,7 +206,7 @@ unroll f p xs s0 = foldl' (\(_, s) x -> f p x s)
                      (sequenceVar xs)
 
 unrollTrace
-    :: (Num a, Num b, KnownNat n)
+    :: (Backprop a, Backprop b)
     => ModelS p s a b
     -> ModelS p s (SV.Vector n a) (SV.Vector n b)
 unrollTrace f p xs s0 = first collectVar
@@ -183,37 +222,37 @@ fixState
 fixState s0 f p x = fst $ f p x (constVar s0)
 
 trainState
-    :: (Num p, Num s)
+    :: (Backprop p, Backprop s)
     => ModelS p s a b
-    -> Model (T2 p s) a b
+    -> Model (p :& s) a b
 trainState f ps x = fst $ f p x s
   where
-    p = ps ^^. _1
-    s = ps ^^. _2
+    p = ps ^^. t1
+    s = ps ^^. t2
 
 (<&~)
-    :: (Num p, Num q, Num s, Num t)
+    :: (Backprop p, Backprop q, Backprop s, Backprop t)
     => ModelS     p        s    b c
     -> ModelS       q        t  a b
-    -> ModelS (T2 p q) (T2 s t) a c
+    -> ModelS (p :& q) (s :& t) a c
 (f <&~ g) pq x st = let (y, t') = g q x t
                         (z, s') = f p y s
                     in  (z, reTup s' t')
   where
-    p = pq ^^. _1
-    q = pq ^^. _2
-    s = st ^^. _1
-    t = st ^^. _2
+    p = pq ^^. t1
+    q = pq ^^. t2
+    s = st ^^. t1
+    t = st ^^. t2
 infixr 8 <&~
 
 main :: IO ()
 main = do
     putStrLn "Linear regression"
-    print testTrainLinReg
+    print =<< testTrainLinReg
     putStrLn "Single layer perceptron learning AND"
-    mapM_ print testTrainPerceptron
+    mapM_ print =<< testTrainPerceptron
     putStrLn "Two-layer ANN learning XOR"
-    mapM_ print testTrainTwoLayer
+    mapM_ print =<< testTrainTwoLayer
 
 
 -- data Model state param a b = Model
@@ -283,12 +322,12 @@ main = do
 --     :: (Num p, Num q, Num s, Num t)
 --     => Model p s a b
 --     -> Model q t b c
---     -> Model (T2 p q) (T2 s t) a c
--- f .% g = Model { initParam = \gen -> T2 <$> initParam f gen
+--     -> Model (Tup p q) (Tup s t) a c
+-- f .% g = Model { initParam = \gen -> Tup <$> initParam f gen
 --                                         <*> initParam g gen
 --                , runModel  = \pq x st ->
---                    let (y, s) = runModel f (pq ^^. _1) x (st ^^. _1)
---                        (z, t) = runModel g (pq ^^. _2) y (st ^^. _2)
+--                    let (y, s) = runModel f (pq ^^. t1) x (st ^^. t1)
+--                        (z, t) = runModel g (pq ^^. t2) y (st ^^. t2)
 --                    in  (z, reTup s t)
 --                }
 
@@ -303,7 +342,7 @@ main = do
 -- neural
 --     :: (ContGen d, KnownNat i, KnownNat o)
 --     => d
---     -> Model _ (T2 (FCP i o) (FCP i o)) (R i) (R o)
+--     -> Model _ (Tup (FCP i o) (FCP i o)) (R i) (R o)
 -- neural d = rmap logistic (fullyConnected d)
 --         .% rmap softmax  (fullyConnected d)
 
@@ -334,11 +373,11 @@ main = do
 --     :: (Num state, Num param)
 --     => (forall m. MWC.Gen (PrimState m) -> m state)
 --     -> Model state param a b
---     -> Model NoState (T2 param state) a b
+--     -> Model NoState (Tup param state) a b
 -- trainState initState m = Model
---     { initParam = \g -> T2 <$> initParam m g
+--     { initParam = \g -> Tup <$> initParam m g
 --                            <*> initState g
---     , runModel  = \ps x n -> ( fst $ runModel m (ps ^^. _1) x (ps ^^. _2)
+--     , runModel  = \ps x n -> ( fst $ runModel m (ps ^^. t1) x (ps ^^. t2)
 --                              , n
 --                              )
 --     }
@@ -361,11 +400,26 @@ main = do
 --     signum      = gSignum
 --     fromInteger = gFromInteger
 
--- instance Field1 (T2 a b) (T2 a' b) a a' where
+-- instance Field1 (Tup a b) (Tup a' b) a a' where
 --     _1 = t2_1
 
--- instance Field2 (T2 a b) (T2 a b') b b' where
+-- instance Field2 (Tup a b) (Tup a b') b b' where
 --     _2 = t2_2
 
-reTup :: (Num a, Num b) => Reifies z W => BVar z a -> BVar z b -> BVar z (T2 a b)
-reTup = isoVar2 T2 t2Tup
+reTup :: (Backprop a, Backprop b) => Reifies z W => BVar z a -> BVar z b -> BVar z (a :& b)
+reTup = isoVar2 (:&) (\case x :& y -> (x, y))
+
+instance Backprop a => Backprop (SV.Vector n a) where
+    zero = fmap zero
+    add = SV.zipWith add
+    one = fmap one
+
+instance (KnownNat n, KnownNat m) => Random (L n m) where
+    random = runState . fmap vecL $ SVS.replicateM (state random)
+    randomR (xs,ys) = runState . fmap vecL $ SVS.zipWithM (curry (state . randomR))
+        (lVec xs) (lVec ys)
+
+instance (KnownNat n) => Random (R n) where
+    random = runState $ vecR <$> SVS.replicateM (state random)
+    randomR (xs,ys) = runState . fmap vecR $ SVS.zipWithM (curry (state . randomR))
+        (rVec xs) (rVec ys)
