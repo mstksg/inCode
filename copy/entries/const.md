@@ -199,8 +199,8 @@ look at if our `pure` behaves sensibly with `<*>`.  Namely, let's check `pure f
 <*> x = fmap f x`.
 
 Note that this is a meaningful starting point because `fmap`'s definition is
-*fixed*.  For any type, there is only one possible `fmap` that is legal and
-lawful --- and in Haskell, we only have to check that `fmap id` leaves all
+*fixed*.  For any type, there is *at most one* possible `fmap` that is legal
+and lawful --- and in Haskell, we only have to check that `fmap id` leaves all
 inputs unchanged.[^fmap]
 
 [^fmap]: There are other laws, but because of parametric polymorphism in
