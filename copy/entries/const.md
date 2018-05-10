@@ -441,7 +441,7 @@ instance Functor (Const w) where
 This is the only definition that preserves `fmap id = id`.
 
 Now we can actually write an `Applicative` instance for `Const w`...as long as
-provide a `Monoid` to use with `w`[^op]!
+we provide a `Monoid` to use with `w`[^op]!
 
 [^op]: Note that the Applicative laws are loose enough to allow a different
 definition, with the same `pure`, but with `Const x <*> Const y = Const (y <>
