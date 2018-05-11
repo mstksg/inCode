@@ -255,13 +255,15 @@ $\alpha = -1,\, \beta = 2$:
 ghci> samps = [(1,1),(2,3),(3,5),(4,7),(5,9)]
 ghci> trainModelIO linReg $ take 5000 (cycle samps)
 (-1.0000000000000024) :& 2.0000000000000036
+-- roughly:
+(-1.0) :& 2.0
 ```
 
 Neat!  After going through all of those observations a thousand times, the
 model nudges itself all the way to the right parameters to fit our model!
 
 The important takeaway is that all we specified was the *function* of the model
-itself.  The training part all follows automatically!
+itself.  The training part all follows automatically.
 
 ### Feed-forward Neural Network
 
@@ -293,13 +295,13 @@ We have our trained parameters!  Let's see if they actually model "AND"?
 
 ```haskell
 ghci> evalBP2 feedForwardLog trained (H.vec2 0 0)
-(7.468471910660985e-5 :: R 1)
+(7.468471910660985e-5 :: R 1)       -- 0.0
 ghci> evalBP2 feedForwardLog trained (H.vec2 1 0)
-(3.816205998697482e-2 :: R 1)
+(3.816205998697482e-2 :: R 1)       -- 0.0
 ghci> evalBP2 feedForwardLog trained (H.vec2 0 1)
-(3.817490115313559e-2 :: R 1)
+(3.817490115313559e-2 :: R 1)       -- 0.0
 ghci> evalBP2 feedForwardLog trained (H.vec2 1 1)
-(0.9547178031665701 :: R 1)
+(0.9547178031665701 :: R 1)         -- 1.0
 ```
 
 Close enough for me!
@@ -351,7 +353,8 @@ network?  Let's see if we can get a two-layer model to learn [XOR][]!
 
 [XOR]: https://en.wikipedia.org/wiki/Exclusive_or
 
-Our model is simple:
+Our model is two feed-forward layers with logistic activation functions, with 4
+hidden layer units:
 
 ```haskell
 ghci> twoLayer = feedForwardLog' @4 @1 <~ feedForwardLog' @2 @4
@@ -371,13 +374,13 @@ Trained.  Now, does it model "XOR"?
 
 ```haskell
 ghci> evalBP2 twoLayer trained (H.vec2 0 0)
-(3.0812844350410647e-2 :: R 1)
+(3.0812844350410647e-2 :: R 1)          -- 0.0
 ghci> evalBP2 twoLayer trained (H.vec2 1 0)
-(0.959153369985914 :: R 1)
+(0.959153369985914 :: R 1)              -- 1.0
 ghci> evalBP2 twoLayer trained (H.vec2 0 1)
-(0.9834757090696419 :: R 1)
+(0.9834757090696419 :: R 1)             -- 1.0
 ghci> evalBP2 twoLayer trained (H.vec2 1 1)
-(3.6846467867668035e-2 :: R 1)
+(3.6846467867668035e-2 :: R 1)          -- 0.0
 ```
 
 Not bad!
@@ -438,10 +441,10 @@ f : P \times A \times S \rightarrow B \times S
 $$
 
 [^statet]: If you recognized our original stateless model type as `a -> Reader
-p b`, then you might see too that this is the common Haskell idiom `a -> StateT
-s (Reader p) b` (or `Kleisli (StateT s (Reader p)) a b`), which represents the
-notion of a "function from `a` to `b` with environment `p`, that takes and
-returns a modified version of some 'state' `s`".
+p b`, then you might have also recognized that this is the Haskell idiom `a ->
+StateT s (Reader p) b` (or `Kleisli (StateT s (Reader p)) a b`), which
+represents the notion of a "function from `a` to `b` with environment `p`, that
+takes and returns a modified version of some 'state' `s`".
 
 This makes it clear that the output of our model can only depend on current and
 *previously occurring* information, preserving causality.
@@ -505,11 +508,12 @@ previous picture of models.
 However, because these are all *just functions*, we can really just manipulate
 them as normal functions and see that the two aren't too different at all.
 
-### Functional Stateful Models
+Functional Stateful Models
+--------------------------
 
 Alright, so what does this mean, and how does it help us?
 
-To help us, let's try implementing this in Haskell:
+To help us see, let's try implementing this in Haskell:
 
 ```haskell
 !!!functional-models/model.hs "type ModelS"
@@ -561,7 +565,7 @@ ghci> threeLayers = fcrnn @10 @5
                <*~* mapS logistic (fcrnn @40 @20)
 ```
 
-#### Let there be State
+### Let there be State
 
 Because these are all just normal functions, we can manipulate them just like
 any other function using higher order functions.
@@ -605,15 +609,15 @@ Everything is just your simple run-of-the-mill function composition and higher
 order functions that Haskellers use every day, so there are many ways to do
 these things --- just like there are many ways to manipulate normal functions.
 
-#### Unrolling in the Deep (Learning)
+### Unrolling in the Deep (Learning)
 
 There's something neat we can do with stateful functions --- we can
 "[unroll][]" them by explicitly propagating their state through several inputs.
 
 [unroll]: https://machinelearningmastery.com/rnn-unrolling/
 
-This is illustrated very well by [Christopher Olah's post][colah], who made a
-nice diagram:
+This is illustrated very well by [Christopher Olah][colah], who made a nice
+diagram:
 
 ![Christopher Olah's RNN Unrolling Diagram](/img/entries/functional-models/RNN-general.png "Unrolled RNN")
 
@@ -634,7 +638,8 @@ unroll :: Model p s a b -> Model p s [a] [b]
 In writing this out as a type, we also note that the `p` parameter is the same,
 and the `s` state type is the same.  If you're familiar with category theory,
 this looks a little bit like a sort of "fmap" under a `Model p s` category --
-it takes a `a -> b`, essentially, and turns it into an `[a] -> [b]`.
+it takes a (stateful and backpropagatable) `a -> b` and turns it into an `[a]
+-> [b]`.
 
 Olah's post suggests that this is a `mapAccum`, in functional programming
 parlance.  And, surely enough, we can actually write this as a `mapAccumL`:
@@ -665,7 +670,7 @@ unroll threeLayers     :: ModelS _ _ [R 40] [R 5]
 unrollLast threeLayers :: ModelS _ _ [R 40] (R 5)
 ```
 
-## State-be-gone
+### State-be-gone
 
 Did you enjoy the detour through stateful time series models?
 
@@ -687,7 +692,7 @@ initial state to be a zero vector.
 
 We use `constVar :: a -> BVar s a` again to introduce a `BVar` of our initial
 state, but to indicate that we don't expect to track its gradient.  `zeroState`
-is a nice utility combinator for a common design pattern.
+is a nice utility combinator for a common pattern.
 
 Another way is to *treat the initial state as a trainable parameter* (and also
 throw away the final state).  This is not done as often, but is still common
@@ -697,9 +702,9 @@ enough to be mentioned often.  And, it's just as straightforward!
 !!!functional-models/model.hs "trainState"
 ```
 
-Essentially we take a model with trainable parameter `p` and state `s`, and
-turn into a model with trainable parameter `p :& s`, where the `s` is the
-initial state.
+`trainState` will take a model with trainable parameter `p` and state `s`, and
+turn it into a model with trainable parameter `p :& s`, where the `s` is the
+(trainable) initial state.
 
 We can now *train* our recurrent/stateful models, by **unrolling and
 de-stating**:
@@ -718,7 +723,7 @@ history and an expected next output.
 Let's see this play out with our AR(2) model:
 
 ```haskell
-ar2                        :: ModelS _ _ Double   Double
+ar2                        :: ModelS _ _  Double  Double
 unrollLast ar2             :: ModelS _ _ [Double] Double
 zeroState (unrollLast ar2) :: Model  _   [Double] Double
 ```
@@ -739,7 +744,8 @@ sine wave of period 25.
 
 Let's define some helper functions to test our model.  First, a function
 `prime` that takes a stateful model and gives a "warmed-up" state by running it
-over a list of inputs.  This will give the model a sense of "where to start".
+over a list of inputs.  This serves to essentially initialize the memory of the
+model.
 
 ```haskell
 !!!functional-models/model.hs "prime"
@@ -753,7 +759,7 @@ again by feeding its previous output as its next input:
 ```
 
 Now let's prime our trained model over the first 19 items in our sine wave and
-start it running in feedback mode on the 20st item!
+start it running in feedback mode on the 20th item!
 
 ```haskell
 ghci> let primed = prime    ar2 trained 0      (take 19 series)
@@ -841,5 +847,5 @@ ghci> mapM_ print $ take 30 output
 
 Also looks nice!  Notice that on the second negative peak, the network just
 perfectly hits -1.00, which is exactly where it's supposed to turn around.
-Sounds like an "unreasonably effective" recurrent neural network!
+Sounds like an "unreasonably effective" recurrent neural network, doesn't it?
 

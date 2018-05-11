@@ -83,7 +83,7 @@ trainModelIO
     -> [(a,b)]          -- ^ list of observations
     -> IO p             -- ^ updated parameter guess
 trainModelIO m xs = do
-    p0 <- (/ 10) . subtract 0.5 <$> randomIO    -- Num instance for tuple
+    p0 <- (/ 10) . subtract 0.5 <$> randomIO
     return $ trainModel m p0 xs
 
 testTrainLinReg :: IO (Double :& Double)
@@ -141,7 +141,7 @@ feedForwardSoftMax wb = logistic . feedForward wb
 
 (<~)
     :: (Backprop p, Backprop q)
-    => Model     p    b c
+    => Model  p       b c
     -> Model       q  a b
     -> Model (p :& q) a c
 (f <~ g) pq = f p . g q
@@ -226,7 +226,7 @@ infixr 8 <*~
 
 unroll
     :: (Traversable t, Backprop a, Backprop b, Backprop (t b))
-    => ModelS p s a b
+    => ModelS p s    a     b
     -> ModelS p s (t a) (t b)
 unroll f p xs s0 = swap $ mapAccumL f' s0 xs
   where
@@ -236,7 +236,7 @@ unroll f p xs s0 = swap $ mapAccumL f' s0 xs
 
 unrollLast
     :: (Backprop a, Backprop b)
-    => ModelS p s a b
+    => ModelS p s  a  b
     -> ModelS p s [a] b
 unrollLast f = mapS (last . sequenceVar) (unroll f)
 -- TODO: switch to (last . toList)
@@ -273,21 +273,21 @@ prime f p = foldl' $ evalBP2 (\s x -> snd $ f (constVar p) x s)
 
 feedback
     :: (Backprop a, Backprop s)
-    => ModelS p s a a
-    -> p
-    -> s
-    -> a
-    -> [a]
-feedback f p s0 x0 = unfoldr go (s0, x0)
+    => ModelS p s a a     -- ^ model
+    -> p                  -- ^ parameterization
+    -> s                  -- ^ initial state
+    -> a                  -- ^ initial input
+    -> [a]                -- ^ inifinite feedback loop
+feedback f p s0 x0 = unfoldr go (x0, s0)
   where
-    go (s, x) = Just (x, (s', y))
+    go (x, s) = Just (x, (y, s'))
       where
         (y, s') = evalBP (uncurry T2 . f (constVar p) (constVar x)) s
 
 testAR2 :: IO [Double]
 testAR2 = do
     trained <- trainModelIO model $ take 10000 samps
-    let primed   = prime model0 trained 0 (take 19 series)
+    let primed = prime model0 trained 0 (take 19 series)
     return . take 50 $ feedback model0 trained primed (series !! 20)
   where
     -- sine wave with period 25
