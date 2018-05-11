@@ -408,7 +408,7 @@ feedForwardLog @4 @1 <~ feedForwardLog @2 @4
 
 and think of it as some sort of abstract, opaque data type with magic inside.
 After all, "layers" are "data", right?  But, at the end of the day, it's all
-just: 
+just:
 
 ```haskell
 \pq -> feedForwardLog @4 @1 (pq ^^. t1) . feedForwardLog @2 @4 (pq ^^. t2)
@@ -486,7 +486,7 @@ $$
 Or, in our explicit state form:
 
 $$
-f_{c, \phi_1, phi_2}(x, s) = (c + \phi_1 x + \phi_2 s, x) 
+f_{c, \phi_1, phi_2}(x, s) = (c + \phi_1 x + \phi_2 s, x)
 $$
 
 There's also the classic [fully-connected recurrent neural network
@@ -659,18 +659,58 @@ it takes a (stateful and backpropagatable) `a -> b` and turns it into an `[a]
 -> [b]`.
 
 Olah's post suggests that this is a `mapAccum`, in functional programming
-parlance.  And, surely enough, we can actually write this as a `mapAccumL`:
+parlance.  And, surely enough, we can actually write this as a `mapAccumL`.
+
+`mapAccumL` is sort of like a combination of a `foldl` and a `map`:
+
+```haskell
+mapAccumL
+    :: Traversable t
+    => (a -> b -> (a, c))
+    -> a
+    -> t b
+    -> (a, t c)
+```
+
+Compare to `foldl`:
+
+```haskell
+foldl
+    :: Foldable t
+    => (a -> b -> a)
+    -> a
+    -> t b
+    -> a
+```
+
+You can see that `mapAccumL` is just `foldl`, except the folding function emits
+an extra `c` for every item, so `mapAccumL` can return a new `t c` with all of
+the emitted `c`s.
+
+The *backprop* library has a "lifted" `mapAccumL` in in the
+*[Prelude.Backprop][prelude]* module that we can use:
+
+[prelude]: http://hackage.haskell.org/package/backprop/docs/Prelude-Backprop.html
+
+```haskell
+mapAccumL
+    :: Traversable t
+    => (BVar s a -> BVar s b -> (BVar s a, BVar s c))
+    -> BVar s a
+    -> BVar s (t b)
+    -> (BVar s a, BVar s (t c)))
+```
+
+It is lifted to work with `BVar`s of the items instead of directly on the
+items.  With that, we can write `unroll`, which is just a thin wrapper over
+`mapAccumL`:
 
 ```haskell
 !!!functional-models/model.hs "unroll"
 ```
 
-This is *exactly* the just the normal functional programming `mapAccumL` of a
-stateful function over a container.  And, `mapAccumL` is general enough to be
-definable for all `Traversable` containers (not just lists)!  (We use
-`mapAccumL` "lifted" for `BVar`s from the *[Prelude.Backprop][prelude]* module)
-
-[prelude]: http://hackage.haskell.org/package/backprop/docs/Prelude-Backprop.html
+This reveals that `unroll` from the machine learning is really *just*
+`mapAccumL` from functional programming.
 
 We can also tweak `unroll`'s result a bit to get a version of `unroll` that
 shows only the "final" result:
