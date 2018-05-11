@@ -764,44 +764,18 @@ start it running in feedback mode on the 20th item!
 ```haskell
 ghci> let primed = prime    ar2 trained 0      (take 19 series)
 ghci> let output = feedback ar2 trained primed (series !! 19)
-ghci> mapM_ print $ take 30 output
+ghci> mapM_ print $ take 200 output
 -0.9980267284282716
 -0.9510565162972417
 -0.8443279255081759
 -0.6845471059406962
 -0.48175367412103653
--0.24868988719256901
--3.673766846290505e-11
-0.24868988711894977
-0.4817536740469978
-0.6845471058659982
-0.8443279254326351
-0.9510565162207472
-0.9980267283507953
-0.9822872506502898
-0.9048270523889208
-0.7705132427021685
-0.5877852522243431
-0.3681245526237731
-0.12533323351198067
--0.1253332336071494
--0.36812455271766376
--0.5877852523157643
--0.7705132427900961
--0.9048270524725681
--0.9822872507291605
--0.9980267284247174
--0.9510565162898851
--0.844327925497479
--0.6845471059273313
--0.48175367410584324
+-- ...
 ```
 
-Looks like a beautiful sine wave!  It starts out at -0.998, gradually rolls back
-towards 0, cross over and peaks out at positive 0.998, then swings back around
-past zero and reaches a minimum at -0.998 before swinging back again.  Pretty
-much a perfect sine wave with period 25.  This is pretty much as good as it
-gets, so it seems like AR(2) works pretty well!
+We can plot the result and see that it all turns out pretty well:
+
+![AR(2) Sine Wave](/img/entries/functional-models/ar2sin.png "AR Sine Wave")
 
 For kicks, let's try it with a two-layer fully connected neural network with 30
 hidden units, where the first layer is fully recurrent:
@@ -819,36 +793,10 @@ ghci> mapM_ print $ take 30 output
 (-0.855333250123637 :: R 1)
 (-0.7138776465246676 :: R 1)
 (-0.5359655931506458 :: R 1)
-(-0.3276007378757607 :: R 1)
-(-9.49789925462907e-2 :: R 1)
-(0.15326329240850092 :: R 1)
-(0.4036006817890014 :: R 1)
-(0.6365988256374424 :: R 1)
-(0.8297644575358999 :: R 1)
-(0.9644601077595601 :: R 1)
-(1.0322337479560069 :: R 1)
-(1.0354328415838387 :: R 1)
-(0.98271304349553 :: R 1)
-(0.8838820861246679 :: R 1)
-(0.7469384572032421 :: R 1)
-(0.5774599954294803 :: R 1)
-(0.37953522246889254 :: R 1)
-(0.1576543900562724 :: R 1)
-(-8.079295377239147e-2 :: R 1)
-(-0.32316184922616614 :: R 1)
-(-0.5509792378000917 :: R 1)
-(-0.7428726769386842 :: R 1)
-(-0.8804772463971613 :: R 1)
-(-0.9537270792131795 :: R 1)
-(-0.9620288708442922 :: R 1)
-(-0.9114012854243098 :: R 1)
-(-0.8104104643872705 :: R 1)
-(-0.6672968115106706 :: R 1)
+-- ...
 ```
 
-Also nice, but not quite as perfect as AR(2).  It seems to overshoot the
-positive peak slightly (hitting 1.03) and undershoot the negative peak (only
-reaching -0.96)...but it still seems pretty nice considering that its memory
-units are all sigmoidally squashed, while AR(2) gets to have a continuous
-memory space.  At this point we're picking hairs of 1% difference, though!
-Sounds like these RNNs have proven to be quite "unreasonably effective", eh?
+![FCRNN Sine Wave](/img/entries/functional-models/rnnsin.png "FCRNN Sine Wave")
+
+Also nice!  Looks like these RNNs have proven to be quite "unreasonably
+effective", eh?

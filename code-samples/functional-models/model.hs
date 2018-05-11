@@ -43,6 +43,7 @@ import           System.Random
 import qualified Data.Traversable                      as T
 import qualified Data.Vector.Sized                     as SV
 import qualified Data.Vector.Storable.Sized            as SVS
+import qualified Numeric.LinearAlgebra                 as HU
 import qualified Numeric.LinearAlgebra.Static          as H
 import qualified Prelude.Backprop                      as B
 
@@ -289,7 +290,7 @@ testAR2 = do
     trained <- trainModelIO model $ take 10000 samps
     let primed = prime    model0 trained 0      (take 19 series)
         output = feedback model0 trained primed (series !! 19)
-    return $ take 50 output
+    return $ take 200 output
   where
     -- sine wave with period 25
     series :: [Double]
@@ -305,7 +306,7 @@ testRNN = do
     trained <- trainModelIO model $ take 10000 samps
     let primed = prime   model0  trained 0      (take 19 series)
         output = feedback model0 trained primed (series !! 19)
-    return $ take 50 output
+    return $ take 200 output
   where
     -- sine wave with period 25
     series :: [H.R 1]
@@ -329,10 +330,14 @@ main = do
     mapM_ print =<< testTrainTwoLayer
 
     putStrLn "Sine (AR2)"
-    mapM_ print =<< testAR2
+    ar2Test <- testAR2
+    mapM_ print (take 50 ar2Test)
+    writeFile "ar2sin.dat" $ unlines (show <$> ar2Test)
 
     putStrLn "Sine (RNN)"
-    mapM_ print =<< testRNN
+    rnnTest <- testRNN
+    mapM_ print (take 50 rnnTest)
+    writeFile "rnnsin.dat" $ unlines (show . HU.sumElements . H.extract <$> rnnTest)
 
 
 reTup
