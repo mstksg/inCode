@@ -734,7 +734,7 @@ We also would need to have a function converting a vector of vectors into a
 matrix:
 
 ```haskell
-!!!hamilton1/Hamilton.hs "vec2l ::"
+!!!hamilton1/Hamilton.hs "vec2l"
 ```
 
 

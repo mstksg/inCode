@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack runghc --resolver lts-11 --package ad --package hmatrix-vector-sized
+-- stack runghc --resolver nightly-2018-05-11 --package ad --package hmatrix-vector-sized --package vector-sized
 
 -- | Source file accompanying
 -- https://blog.jle.im/entry/hamiltonian-dynamics-in-haskell.html
@@ -122,7 +122,7 @@ hamilEqns s (Phase q p) = (dqdt, dpdt)
     j       = sysJacobian s q
     trj     = tr j
     mHat    = diag (sysInertia s)
-    kHat    = trj <> mHat <> j
+    kHat    = trj `mul` mHat `mul` j
     kHatInv = inv kHat
     dqdt    = kHatInv #> p
     dpdt    = vecR (VG.convert bigUglyThing) - sysPotentialGrad s q
@@ -185,9 +185,7 @@ pendulum = mkSystem (vec2 5 5) coords pot      -- 5kg particle
     -- <x,y> = <-0.5 sin(theta), -0.5 cos(theta)>
     -- pendulum of length 0.25
     coords :: RealFloat a => V.Vector 1 a -> V.Vector 2 a
-    coords (V.head->theta) = fromJust
-                           . V.fromList
-                           $ [- 0.25 * sin theta, - 0.25 * cos theta]
+    coords (V.head->theta) = V.fromTuple (- 0.25 * sin theta, - 0.25 * cos theta)
     -- potential energy of gravity field
     -- U(x,y) = 9.8 * y
     pot :: RealFloat a => V.Vector 1 a -> a
