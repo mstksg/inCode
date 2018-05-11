@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack runghc --resolver lts-9 --package ad --package hmatrix --package vector-sized
+-- stack runghc --resolver lts-11 --package ad --package hmatrix-vector-sized
 
 -- | Source file accompanying
 -- https://blog.jle.im/entry/hamiltonian-dynamics-in-haskell.html
@@ -14,10 +14,11 @@ import           Data.Maybe
 import           GHC.TypeLits
 import           Numeric.AD
 import           Numeric.LinearAlgebra.Static
-import qualified Control.Comonad              as C
-import qualified Control.Comonad.Cofree       as C
-import qualified Data.Vector.Generic.Sized    as VG
-import qualified Data.Vector.Sized            as V
+import           Numeric.LinearAlgebra.Static.Vector
+import qualified Control.Comonad                     as C
+import qualified Control.Comonad.Cofree              as C
+import qualified Data.Vector.Generic.Sized           as VG
+import qualified Data.Vector.Sized                   as V
 
 -- | A @'System' m n@ represents a system parameterized by @n@ generalized
 -- coordinates, moving in an "underlying" @m@-dimensional cartesian
@@ -74,23 +75,19 @@ toPhase
     -> Phase n
 toPhase s c = Phase (confPositions c) (momenta s c)
 
--- | Convert a sized-vector vector to an hmatrix vector
-vec2r :: KnownNat n => V.Vector n Double -> R n
-vec2r = fromJust . create . VG.fromSized . VG.convert
-
--- | Convert an hmatrix vector to a sized-vector vector
-r2vec :: KnownNat n => R n -> V.Vector n Double
-r2vec = VG.convert . fromJust . VG.toSized . extract
-
--- | Convert a sized-vector nested vector to an hmatrix matrix
-vec2l :: (KnownNat m, KnownNat n) => V.Vector m (V.Vector n Double) -> L m n
-vec2l = fromJust . (\rs -> withRows rs exactDims) . toList . fmap vec2r
-
 -- | Shift around the Hessian into the shape expected
-rehessian :: (KnownNat m, KnownNat n) => V.Vector m (L n n) -> V.Vector n (L m n)
-rehessian = fmap (fromJust . (\rs -> withRows rs exactDims) . toList)
-          . sequenceA
-          . fmap (fromJust . V.fromList . toRows)
+tr2 :: (KnownNat m, KnownNat n)
+    => V.Vector m (L n n)
+    -> V.Vector n (L m n)
+tr2 = fmap rowsL . traverse lRows
+{-# INLINE tr2 #-}
+
+-- | Vector of vectors to matrix
+vec2l
+    :: V.Vector m (V.Vector n Double)
+    -> L m n
+vec2l = rowsL . fmap (vecR . VG.convert)
+{-# INLINE vec2l #-}
 
 -- | Make a system given its inertias, coordinate functions, and potential
 -- energy function
@@ -101,16 +98,18 @@ mkSystem
     -> (forall a. RealFloat a => V.Vector n a -> a)
     -> System m n
 mkSystem m f u = System
-                  -- < convert from | actual thing | convert to >
-    { sysInertia       =                         m
-    , sysCoords        =      vec2r .            f . r2vec
-    , sysJacobian      =      vec2l .   jacobian f . r2vec
-    , sysHessian       = rehessian
-                       . fmap vec2l .   hessianF f . r2vec
-    , sysPotential     =                         u . r2vec
-    , sysPotentialGrad =      vec2r .       grad u . r2vec
-                  -- < convert from | actual thing | convert to >
+                    -- < convert from      | actual thing | convert to >
+    { sysInertia       =                     m
+    , sysCoords        = vecR . cFrom      . f            . cTo . rVec
+    , sysJacobian      = tr   . vec2l      . jacobianT f  . cTo . rVec
+    , sysHessian       = tr2  . fmap vec2l . hessianF f   . cTo . rVec
+    , sysPotential     =                     u            . cTo . rVec
+    , sysPotentialGrad = vecR . cFrom      . grad u       . cTo . rVec
     }
+  where
+    cTo   = VG.convert
+    cFrom = VG.convert
+
 
 -- | Equations of motion for a system at a given position in phase space
 hamilEqns
@@ -126,7 +125,7 @@ hamilEqns s (Phase q p) = (dqdt, dpdt)
     kHat    = trj <> mHat <> j
     kHatInv = inv kHat
     dqdt    = kHatInv #> p
-    dpdt    = vec2r bigUglyThing - sysPotentialGrad s q
+    dpdt    = vecR (VG.convert bigUglyThing) - sysPotentialGrad s q
       where
         bigUglyThing =
           fmap (\j2 -> -p <.> kHatInv #> trj #> mHat #> j2 #> kHatInv #> p)

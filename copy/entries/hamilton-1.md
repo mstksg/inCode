@@ -701,30 +701,42 @@ hessianF myFunc
 
 #### Conversion between vector-sized and hmatrix
 
-So some ugly things -- we need to write some functions to convert between
-*vector-sized* sized vectors and *hmatrix* vectors and matrices.  These are
-fundamentally unsafe to write (but safe to use, after written properly):
+Just a small hiccup --- the *ad* libraries requires our vectors to be
+*Functors*, but `R` and `L` from *hmatrix* are not your typical capital-F
+`Functor` instances in Haskell.  We just need to do some manual conversion
+using the *[hmatrix-vector-sized][]* library.
+
+[hmatrix-vector-sized]: http://hackage.haskell.org/package/hmatrix-vector-sized
+
+This gives functions like:
 
 ```haskell
--- import qualified Data.Vector.Generic.Sized as VG
-!!!hamilton1/Hamilton.hs "vec2r" "r2vec" "vec2l"
+-- import qualified Data.Vector.Sorable.Sized as VS
+vecR  :: VS.Vector n Double -> R n
+rVec  :: R n                -> VS.Vector n Double
+rowsL :: V.Vector m (R n)   -> L m n
+lRows :: L m n              -> V.Vector m (R n)
 ```
 
-These are necessary because *ad* requires our vectors to be *Functors*, but `R`
-and `L` from *hmatrix* are not your typical Hask Functors. One nice thing is
-that because they both use *TypeLits* to get their sized parameters, we can get
-type-safe conversions that preserve their size information!
+to allow us to convert back and forth.
 
 Also, even though *ad* gives our Hessian as an $m \times n \times
 n$ tensor, we really want it as a n-vector of $m \times n$ matrices -- that's
 how we interpreted it in our original math.  So we just need to write an
-function to convert what *ad* gives us to the form we expect.  It's mostly just
-fiddling around with the internals of *hmatrix* in a rather inelegant way.
-(Again, unsafe to write, but safe to use once you do)
+function to convert what *ad* gives us to the form we expect.  Just a minor
+reshuffling:
 
 ```haskell
-!!!hamilton1/Hamilton.hs "rehessian ::"
+!!!hamilton1/Hamilton.hs "tr2 ::"
 ```
+
+We also would need to have a function converting a vector of vectors into a
+matrix:
+
+```haskell
+!!!hamilton1/Hamilton.hs "vec2l ::"
+```
+
 
 #### Using AD to Auto-Derive Systems
 
@@ -737,7 +749,7 @@ function, and the potential energy function:
 
 Now, I hesitate to call this "trivial"...but, I think it really is a
 straightforward direct translation of the definitions, minus some boilerplate
-conversions back and forth using `r2vec`, `vec2r`, and `vec2l`!
+conversions back and forth between vector using `VG.convert`, `vecR`, etc.!
 
 1.  The vector of masses is just `m`
 2.  The coordinate function is just `f`
