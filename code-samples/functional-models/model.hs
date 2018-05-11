@@ -287,8 +287,9 @@ feedback f p s0 x0 = unfoldr go (x0, s0)
 testAR2 :: IO [Double]
 testAR2 = do
     trained <- trainModelIO model $ take 10000 samps
-    let primed = prime model0 trained 0 (take 19 series)
-    return . take 50 $ feedback model0 trained primed (series !! 20)
+    let primed = prime    model0 trained 0      (take 19 series)
+        output = feedback model0 trained primed (series !! 19)
+    return $ take 50 output
   where
     -- sine wave with period 25
     series :: [Double]
@@ -302,16 +303,17 @@ testAR2 = do
 testRNN :: IO [R 1]
 testRNN = do
     trained <- trainModelIO model $ take 10000 samps
-    let primed   = prime model0 trained 0 (take 19 series)
-    return . take 50 $ feedback model0 trained primed (series !! 20)
+    let primed = prime   model0  trained 0      (take 19 series)
+        output = feedback model0 trained primed (series !! 19)
+    return $ take 50 output
   where
     -- sine wave with period 25
     series :: [H.R 1]
     series = [ H.konst (sin (2 * pi * t / 25)) | t <- [0..]              ]
     samps  = [ (init c, last c)                | c <- chunksOf 19 series ]
     model0 :: ModelS _ _ (R 1) (R 1)
-    model0 = feedForward @20 @1
-         <*~ mapS logistic (fcrnn @1 @20)
+    model0 = feedForward @30 @1
+         <*~ mapS logistic (fcrnn @1 @30)
     model  :: Model  _   [R 1] (R 1)
     model  = zeroState $ unrollLast model0
 

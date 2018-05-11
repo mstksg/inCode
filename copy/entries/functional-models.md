@@ -763,89 +763,92 @@ start it running in feedback mode on the 20th item!
 
 ```haskell
 ghci> let primed = prime    ar2 trained 0      (take 19 series)
-ghci> let output = feedback ar2 trained primed (series !! 20)
+ghci> let output = feedback ar2 trained primed (series !! 19)
 ghci> mapM_ print $ take 30 output
--0.9510565162951536
--0.8600674032037106
--0.7150370920644853
--0.5250783707105848
--0.302127044224051
--6.019196440573038e-2
-0.18552519790433009
-0.41958512971360296
-0.627280984694227
-0.795562468425788
-0.9138558363893832
-0.9747282812232584
-0.9743549633453022
-0.9127593396907665
-0.7938116898267549
-0.6249859320531274
-0.41689000962856815
-0.18259935468235244
--6.316468927441621e-2
--0.3049598635029274
--0.5275932879458836
--0.7170760857570087
--0.861502355880794
--0.9517972646026605
--0.9822872507261515
--0.9510565162888059
--0.8600674031939511
--0.7150370920519272
--0.5250783706960173
--0.3021270442083892
+-0.9980267284282716
+-0.9510565162972417
+-0.8443279255081759
+-0.6845471059406962
+-0.48175367412103653
+-0.24868988719256901
+-3.673766846290505e-11
+0.24868988711894977
+0.4817536740469978
+0.6845471058659982
+0.8443279254326351
+0.9510565162207472
+0.9980267283507953
+0.9822872506502898
+0.9048270523889208
+0.7705132427021685
+0.5877852522243431
+0.3681245526237731
+0.12533323351198067
+-0.1253332336071494
+-0.36812455271766376
+-0.5877852523157643
+-0.7705132427900961
+-0.9048270524725681
+-0.9822872507291605
+-0.9980267284247174
+-0.9510565162898851
+-0.844327925497479
+-0.6845471059273313
+-0.48175367410584324
 ```
 
-Looks like a beautiful sine wave!  It starts out at -0.95, gradually rolls back
-towards 0, cross over and peaks out at positive 0.97, then swings back around
-past zero and reaches a minimum at -0.97 before swinging back again.  Pretty
-much a perfect sine wave with period 25.  AR(2) works pretty well!
+Looks like a beautiful sine wave!  It starts out at -0.998, gradually rolls back
+towards 0, cross over and peaks out at positive 0.998, then swings back around
+past zero and reaches a minimum at -0.998 before swinging back again.  Pretty
+much a perfect sine wave with period 25.  This is pretty much as good as it
+gets, so it seems like AR(2) works pretty well!
 
-For kicks, let's try it with a two-layer fully connected neural network with 20
+For kicks, let's try it with a two-layer fully connected neural network with 30
 hidden units, where the first layer is fully recurrent:
 
 ```haskell
--- first layer is RNN, second layer is normal ANN, 20 hidden units
+-- first layer is RNN, second layer is normal ANN, 30 hidden units
 ghci> let rnn :: ModelS _ _ (R 1) (R 1)
-          rnn = feedForward @20 @1 <*~ mapS logistic (fcrnn @1 @20)
+          rnn = feedForward @30 @1 <*~ mapS logistic (fcrnn @1 @30)
 ghci> trained <- trainModelIO (trainZero (unrollLast rnn)) $ take 10000 samps
 ghci> let primed = prime    rnn trained 0      (take 19 series)
-ghci> let output = feedback rnn trained primed (series !! 20)
+ghci> let output = feedback rnn trained primed (series !! 19)
 ghci> mapM_ print $ take 30 output
-(-0.9510565162951536 :: R 1)
-(-0.8513651168000752 :: R 1)
-(-0.7166599836716709 :: R 1)
-(-0.5482473595389897 :: R 1)
-(-0.34915724320186287 :: R 1)
-(-0.12410494333456273 :: R 1)
-(0.11796522261125514 :: R 1)
-(0.3617267605713303 :: R 1)
-(0.5859020418343457 :: R 1)
-(0.768017196984538 :: R 1)
-(0.8918483864333885 :: R 1)
-(0.9520895380310987 :: R 1)
-(0.9527522551095625 :: R 1)
-(0.9018819269836273 :: R 1)
-(0.8071298312549686 :: R 1)
-(0.6739841516649296 :: R 1)
-(0.5060989906080221 :: R 1)
-(0.3068094725343112 :: R 1)
-(8.132150399626142e-2 :: R 1)
-(-0.16084964907608051 :: R 1)
-(-0.404157125663194 :: R 1)
-(-0.6277521119177744 :: R 1)
-(-0.8099883239222189 :: R 1)
-(-0.9351261952804909 :: R 1)
-(-0.9975997729210249 :: R 1)
-(-1.000820693251437 :: R 1)
-(-0.9525015209823966 :: R 1)
-(-0.8603987544425211 :: R 1)
-(-0.7303128941490123 :: R 1)
-(-0.5660763612885787 :: R 1)
+(-0.9980267284282716 :: R 1)
+(-0.9530599469923343 :: R 1)
+(-0.855333250123637 :: R 1)
+(-0.7138776465246676 :: R 1)
+(-0.5359655931506458 :: R 1)
+(-0.3276007378757607 :: R 1)
+(-9.49789925462907e-2 :: R 1)
+(0.15326329240850092 :: R 1)
+(0.4036006817890014 :: R 1)
+(0.6365988256374424 :: R 1)
+(0.8297644575358999 :: R 1)
+(0.9644601077595601 :: R 1)
+(1.0322337479560069 :: R 1)
+(1.0354328415838387 :: R 1)
+(0.98271304349553 :: R 1)
+(0.8838820861246679 :: R 1)
+(0.7469384572032421 :: R 1)
+(0.5774599954294803 :: R 1)
+(0.37953522246889254 :: R 1)
+(0.1576543900562724 :: R 1)
+(-8.079295377239147e-2 :: R 1)
+(-0.32316184922616614 :: R 1)
+(-0.5509792378000917 :: R 1)
+(-0.7428726769386842 :: R 1)
+(-0.8804772463971613 :: R 1)
+(-0.9537270792131795 :: R 1)
+(-0.9620288708442922 :: R 1)
+(-0.9114012854243098 :: R 1)
+(-0.8104104643872705 :: R 1)
+(-0.6672968115106706 :: R 1)
 ```
 
-Also looks nice!  Notice that on the second negative peak, the network just
-perfectly hits -1.00, which is exactly where it's supposed to turn around.
-Sounds like an "unreasonably effective" recurrent neural network, doesn't it?
-
+Also nice, but not quite as perfect as AR(2).  It seems to overshoot the
+positive peak slightly (hitting 1.03) and undershoot the negative peak (only
+reaching -0.96)...but it still seems pretty nice considering that its memory
+units are all sigmoidally squashed, while AR(2) gets to have a continuous
+memory space.  At this point we're picking hairs of 1% difference, though!
+Sounds like these RNNs have proven to be quite "unreasonably effective", eh?
