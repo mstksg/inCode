@@ -68,7 +68,7 @@ squaredErrorGrad
     -> p                -- ^ Parameter guess
     -> p                -- ^ Gradient
 squaredErrorGrad f x targ = gradBP $ \p ->
-    (f p (constVar x) - constVar targ) ^ 2
+    (f p (auto x) - auto targ) ^ 2
 
 trainModel
     :: (Fractional p, Backprop p, Num b, Backprop b)
@@ -246,7 +246,7 @@ fixState
     :: s
     -> ModelS p s a b
     -> Model  p   a b
-fixState s0 f p x = fst $ f p x (constVar s0)
+fixState s0 f p x = fst $ f p x (auto s0)
 
 zeroState
     :: Num s
@@ -270,7 +270,7 @@ prime
     -> s                  -- ^ initial state
     -> t a                -- ^ priming input
     -> s                  -- ^ primed state
-prime f p = foldl' $ evalBP2 (\s x -> snd $ f (constVar p) x s)
+prime f p = foldl' $ evalBP2 (\s x -> snd $ f (auto p) x s)
 
 feedback
     :: (Backprop a, Backprop s)
@@ -283,7 +283,7 @@ feedback f p s0 x0 = unfoldr go (x0, s0)
   where
     go (x, s) = Just (x, (y, s'))
       where
-        (y, s') = evalBP (uncurry T2 . f (constVar p) (constVar x)) s
+        (y, s') = evalBP (uncurry T2 . f (auto p) (auto x)) s
 
 testAR2 :: IO [Double]
 testAR2 = do

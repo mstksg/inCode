@@ -227,7 +227,7 @@ $$
 !!!functional-models/model.hs "squaredErrorGrad"
 ```
 
-We use `constVar :: a -> BVar z a`, to lift a normal value to a `BVar` holding
+We use `auto :: a -> BVar z a`, to lift a normal value to a `BVar` holding
 that value, since our model `f` takes `BVar`s.
 
 And finally, we can train it using stochastic gradient descent, with just a
@@ -747,7 +747,7 @@ initial state to be a zero vector.
 !!!functional-models/model.hs "fixState" "zeroState"
 ```
 
-We use `constVar :: a -> BVar s a` again to introduce a `BVar` of our initial
+We use `auto :: a -> BVar s a` again to introduce a `BVar` of our initial
 state, but to indicate that we don't expect to track its gradient.  `zeroState`
 is a nice utility combinator for a common pattern.
 
