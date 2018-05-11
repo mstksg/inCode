@@ -400,6 +400,23 @@ complex "graphs" of networks that fork and re-combine with themselves.
 The nice thing is that these are all just regular (Rank-2) functions, so...you
 have two models?  Just compose their functions like normal functions!
 
+It is tempting to look at something like
+
+```haskell
+feedForwardLog @4 @1 <~ feedForwardLog @2 @4
+```
+
+and think of it as some sort of abstract, opaque data type with magic inside.
+After all, "layers" are "data", right?  But, at the end of the day, it's all
+just: 
+
+```haskell
+\pq -> feedForwardLog @4 @1 (pq ^^. t1) . feedForwardLog @2 @4 (pq ^^. t2)
+```
+
+Just normal function composition -- we're really just defining the *function*
+itself, and *backprop* turns that function into a trainable model.
+
 Time Series Models
 ------------------
 
@@ -787,7 +804,7 @@ ghci> let rnn :: ModelS _ _ (R 1) (R 1)
 ghci> trained <- trainModelIO (trainZero (unrollLast rnn)) $ take 10000 samps
 ghci> let primed = prime    rnn trained 0      (take 19 series)
 ghci> let output = feedback rnn trained primed (series !! 19)
-ghci> mapM_ print $ take 30 output
+ghci> mapM_ print $ take 200 output
 (-0.9980267284282716 :: R 1)
 (-0.9530599469923343 :: R 1)
 (-0.855333250123637 :: R 1)
@@ -800,3 +817,19 @@ ghci> mapM_ print $ take 30 output
 
 Also nice!  Looks like these RNNs have proven to be quite "unreasonably
 effective", eh?
+
+### Functions all the way down
+
+Again, it is very easy to look at something like
+
+```haskell
+feedForward @30 @1 <*~ mapS logistic (fcrnn @1 @30)
+```
+
+and write it off as some abstract API of opaque data types.  Some sort of
+object keeps track of state, and the object has some nice abstracted
+interface...right?
+
+But, nope, again, it is all just normal functions that we wrote using normal
+function composition.   We define our model as a *function*, and the backprop
+library turns that function into a trainable model.
