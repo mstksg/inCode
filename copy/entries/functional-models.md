@@ -469,8 +469,11 @@ $$
 f_{c, \phi_1, phi_2}(x, s) = (c + \phi_1 x + \phi_2 s, x) 
 $$
 
-There's also the classic fully-connected recurrent neural network layer, whose
-output is a combination of the previous output and the current input:
+There's also the classic [fully-connected recurrent neural network
+layer][fcrnn], whose output is a linear combination of the (logistic'd)
+previous output and the current input, plus a bias:
+
+[fcrnn]: http://karpathy.github.io/2015/05/21/rnn-effectiveness/
 
 $$
 \begin{aligned}
@@ -705,22 +708,26 @@ model.  It takes a list of inputs `R 40`s and produces the "final output" `R
 5`.  We can now train this by feeding it with `([R 40], R 5)` pairs: give a
 history and an expected next output.
 
-Let's see if we can use a two-layer RNN to a sine wave.
+Let's see this play out with our AR(2) model:
+
+```haskell
+ar2                        :: ModelS _ _ Double Double
+unrollLast ar2             :: ModelS _ _ [Double] Double
+zeroState (unrollLast ar2) :: Model  _   [Double] Double
+```
+
+`zeroState (unrollLast ar2)` is now a trainable stateless model.  Let's use it
+to learn a sine wave:
 
 ```haskell
 -- sine signal with period 25
 ghci> series = [ sin (2 * pi * t / 25) | t <- [0..]              ]
 -- chunks of runs and "next results"
 ghci> samps  = [ (init c, last c)      | c <- chunksOf 19 series ]
--- first layer is RNN, second layer is normal ANN, 20 hidden units
-ghci> let model0 :: ModelS _ _ (R 1) (R 1)
-          model0 = feedForward @20 @1 <*~ mapS logistic (fcrnn @1 @20)
-ghci> let model  :: Model  _   [R 1] (R 1)
-          model  = zeroState $ unrollLast model0
-ghci> trained <- trainModelIO model $ take 10000 samps
+ghci> trained <- trainModelIO (zeroState (unrollLast ar2)) $ take 10000 samps
 ```
 
-Trained!  `trained` is the parameterization of `model` that will simulate a
+Trained!  `trained` is the parameterization of `ar2` that will simulate a
 sine wave of period 25.
 
 Let's define some helper functions to test our model.  First, a function
@@ -742,8 +749,56 @@ Now let's prime our trained model over the first 19 items in our sine wave and
 start it running in feedback mode on the 20st item!
 
 ```haskell
-ghci> let primed = prime model0 trained 0 (take 19 series)
-ghci> let output = feedback model0 trained primed (series !! 20)
+ghci> let primed = prime    ar2 trained 0      (take 19 series)
+ghci> let output = feedback ar2 trained primed (series !! 20)
+ghci> mapM_ print $ take 30 output
+-0.9510565162951536
+-0.8600674032037106
+-0.7150370920644853
+-0.5250783707105848
+-0.302127044224051
+-6.019196440573038e-2
+0.18552519790433009
+0.41958512971360296
+0.627280984694227
+0.795562468425788
+0.9138558363893832
+0.9747282812232584
+0.9743549633453022
+0.9127593396907665
+0.7938116898267549
+0.6249859320531274
+0.41689000962856815
+0.18259935468235244
+-6.316468927441621e-2
+-0.3049598635029274
+-0.5275932879458836
+-0.7170760857570087
+-0.861502355880794
+-0.9517972646026605
+-0.9822872507261515
+-0.9510565162888059
+-0.8600674031939511
+-0.7150370920519272
+-0.5250783706960173
+-0.3021270442083892
+```
+
+Looks like a beautiful sine wave!  It starts out at -0.95, gradually rolls back
+towards 0, cross over and peaks out at positive 0.97, then swings back around
+past zero and reaches a minimum at -0.97 before swinging back again.  Pretty
+much a perfect sine wave with period 25.  AR(2) works pretty well!
+
+For kicks, let's try it with a two-layer fully connected neural network with 20
+hidden units, where the first layer is fully recurrent:
+
+```haskell
+-- first layer is RNN, second layer is normal ANN, 20 hidden units
+ghci> let rnn :: ModelS _ _ (R 1) (R 1)
+          rnn = feedForward @20 @1 <*~ mapS logistic (fcrnn @1 @20)
+ghci> trained <- trainModelIO (trainZero (unrollLast rnn)) $ take 10000 samps
+ghci> let primed = prime    rnn trained 0      (take 19 series)
+ghci> let output = feedback rnn trained primed (series !! 20)
 ghci> mapM_ print $ take 30 output
 (-0.9510565162951536 :: R 1)
 (-0.8513651168000752 :: R 1)
@@ -777,8 +832,7 @@ ghci> mapM_ print $ take 30 output
 (-0.5660763612885787 :: R 1)
 ```
 
-Looks like a beautiful sine wave!  It starts out at -0.95, sweeps back towards
-0, cross over and peaks out at positive 0.95, then swings back around past zero
-and reaches a minimum at -1.00 before swinging back again.  Pretty much a
-perfect sine wave with period 25.  Sounds like an unreasonably effective
-recurrent neural network!
+Also looks nice!  Notice that on the second negative peak, the network just
+perfectly hits -1.00, which is exactly where it's supposed to turn around.
+Sounds like an "unreasonably effective" recurrent neural network!
+

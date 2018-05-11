@@ -170,7 +170,7 @@ type ModelS p s a b = forall z. Reifies z W
                    -> (BVar z b, BVar z s)
 
 ar2 :: ModelS (Double :& (Double :& Double)) Double Double Double
-ar2 cφ yLast yLastLast = ( c + φ1 * yLast + φ2 + yLastLast, yLast )
+ar2 cφ yLast yLastLast = ( c + φ1 * yLast + φ2 * yLastLast, yLast )
   where
     c  = cφ ^^. t1
     φ  = cφ ^^. t2
@@ -271,8 +271,23 @@ prime
     -> s                  -- ^ primed state
 prime f p = foldl' $ evalBP2 (\s x -> snd $ f (constVar p) x s)
 
-testAR2 :: IO [R 1]
+testAR2 :: IO [Double]
 testAR2 = do
+    trained <- trainModelIO model $ take 10000 samps
+    let primed   = prime model0 trained 0 (take 19 series)
+    return . take 50 $ feedback model0 trained primed (series !! 20)
+  where
+    -- sine wave with period 25
+    series :: [Double]
+    series = [ sin (2 * pi * t / 25) | t <- [0..]              ]
+    samps  = [ (init c, last c)      | c <- chunksOf 19 series ]
+    model0 :: ModelS _ _ Double Double
+    model0 = ar2
+    model  :: Model  _   [Double] Double
+    model  = zeroState $ unrollLast model0
+
+testRNN :: IO [R 1]
+testRNN = do
     trained <- trainModelIO model $ take 10000 samps
     let primed   = prime model0 trained 0 (take 19 series)
     return . take 50 $ feedback model0 trained primed (series !! 20)
@@ -311,8 +326,11 @@ main = do
     putStrLn "Two-layer ANN learning XOR"
     mapM_ print =<< testTrainTwoLayer
 
-    putStrLn "Sine"
+    putStrLn "Sine (AR2)"
     mapM_ print =<< testAR2
+
+    putStrLn "Sine (RNN)"
+    mapM_ print =<< testRNN
 
 
 reTup
