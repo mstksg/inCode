@@ -577,8 +577,8 @@ This means we can make a hybrid "recurrent" and "non-recurrent" neural network:
 
 ```haskell
 ghci> hybrid = toS @_ @NoState (feedForwardLog' @20 @10)
-           <*~ mapS logistic (fcrnn @20 @10)
-           <*~ mapS logistic (fcrnn @40 @20)
+          <*~* mapS logistic (fcrnn @20 @10)
+          <*~* mapS logistic (fcrnn @40 @20)
 ```
 
 We made a dummy type `NoState` to use for our stateless model
@@ -593,6 +593,13 @@ compose a stateless model with a stateful one:
 ```haskell
 !!!functional-models/model.hs "(<*~)"
 ```
+
+```haskell
+ghci> hybrid = feedForwardLog' @20 @10
+          <*~  mapS logistic (fcrnn @20 @10)
+          <*~* mapS logistic (fcrnn @40 @20)
+```
+
 
 Everything is just your simple run-of-the-mill function composition and higher
 order functions that Haskellers use every day, so there are many ways to do
@@ -643,8 +650,8 @@ definable for all `Traversable` containers (not just lists)!  (We use
 
 [prelude]: http://hackage.haskell.org/package/backprop/docs/Prelude-Backprop.html
 
-And, as normal functions, we can also get a version that gets only the "final"
-result:
+We can also tweak `unroll`'s result a bit to get a version of `unroll` that
+shows only the "final" result:
 
 ```haskell
 !!!functional-models/model.hs "unrollLast"
@@ -662,8 +669,8 @@ unrollLast threeLayers :: ModelS _ _ [R 40] (R 5)
 
 Did you enjoy the detour through stateful time series models?
 
-Good!  Because the whole point of it was to talk about how we can get rid of
-state and bring us back to our original models!
+Good!  Because the whole point of it was to talk about how we can *get rid of
+state* and bring us back to our original models!
 
 You knew this had to come, because all of our methods for "training" these
 models and learn these parameters involves non-stateful models.  Let's see now
@@ -711,13 +718,13 @@ history and an expected next output.
 Let's see this play out with our AR(2) model:
 
 ```haskell
-ar2                        :: ModelS _ _ Double Double
+ar2                        :: ModelS _ _ Double   Double
 unrollLast ar2             :: ModelS _ _ [Double] Double
 zeroState (unrollLast ar2) :: Model  _   [Double] Double
 ```
 
-`zeroState (unrollLast ar2)` is now a trainable stateless model.  Let's use it
-to learn a sine wave:
+`zeroState (unrollLast ar2)` is now a trainable stateless model.  Let's see if
+we can use it to learn how to model a sine wave:
 
 ```haskell
 -- sine signal with period 25

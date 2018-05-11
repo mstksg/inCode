@@ -271,6 +271,19 @@ prime
     -> s                  -- ^ primed state
 prime f p = foldl' $ evalBP2 (\s x -> snd $ f (constVar p) x s)
 
+feedback
+    :: (Backprop a, Backprop s)
+    => ModelS p s a a
+    -> p
+    -> s
+    -> a
+    -> [a]
+feedback f p s0 x0 = unfoldr go (s0, x0)
+  where
+    go (s, x) = Just (x, (s', y))
+      where
+        (y, s') = evalBP (uncurry T2 . f (constVar p) (constVar x)) s
+
 testAR2 :: IO [Double]
 testAR2 = do
     trained <- trainModelIO model $ take 10000 samps
@@ -301,19 +314,6 @@ testRNN = do
          <*~ mapS logistic (fcrnn @1 @20)
     model  :: Model  _   [R 1] (R 1)
     model  = zeroState $ unrollLast model0
-
-feedback
-    :: (Backprop a, Backprop s)
-    => ModelS p s a a
-    -> p
-    -> s
-    -> a
-    -> [a]
-feedback f p s0 x0 = unfoldr go (s0, x0)
-  where
-    go (s, x) = Just (x, (s', y))
-      where
-        (y, s') = evalBP (uncurry T2 . f (constVar p) (constVar x)) s
 
 main :: IO ()
 main = do
