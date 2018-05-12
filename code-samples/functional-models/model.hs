@@ -82,7 +82,7 @@ trainModelIO
     :: (Fractional p, Backprop p, Num b, Backprop b, Random p)
     => Model p a b      -- ^ model to train
     -> [(a,b)]          -- ^ list of observations
-    -> IO p             -- ^ updated parameter guess
+    -> IO p             -- ^ parameter guess
 trainModelIO m xs = do
     p0 <- (/ 10) . subtract 0.5 <$> randomIO
     return $ trainModel m p0 xs
@@ -114,6 +114,7 @@ feedForwardLog wb x = logistic (w #> x + b)
 testTrainPerceptron :: IO [R 1]
 testTrainPerceptron = do
     trained <- trainModelIO feedForwardLog $ take 10000 (cycle samps)
+    print trained
     return [ evalBP2 feedForwardLog trained r | (r, _) <- samps ]
   where
     samps = [ (H.vec2 0 0, 0)
@@ -154,6 +155,7 @@ infixr 8 <~
 testTrainTwoLayer :: IO [R 1]
 testTrainTwoLayer = do
     trained <- trainModelIO model (take 10000 (cycle samps))
+    print trained
     return [ evalBP2 model trained r | (r, _) <- samps ]
   where
     model :: Model _ (R 2) (R 1)
@@ -290,6 +292,7 @@ testAR2 = do
     trained <- trainModelIO model $ take 10000 samps
     let primed = prime    model0 trained 0      (take 19 series)
         output = feedback model0 trained primed (series !! 19)
+    print trained
     return $ take 200 output
   where
     -- sine wave with period 25
@@ -331,12 +334,12 @@ main = do
 
     putStrLn "Sine (AR2)"
     ar2Test <- testAR2
-    mapM_ print (take 50 ar2Test)
+    mapM_ print (take 30 ar2Test)
     writeFile "ar2sin.dat" $ unlines (show <$> ar2Test)
 
     putStrLn "Sine (RNN)"
     rnnTest <- testRNN
-    mapM_ print (take 50 rnnTest)
+    mapM_ print (take 30 rnnTest)
     writeFile "rnnsin.dat" $ unlines (show . HU.sumElements . H.extract <$> rnnTest)
 
 
