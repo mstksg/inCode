@@ -767,6 +767,8 @@ unroll threeLayers     :: ModelS _ _ [R 40] [R 5]
 unrollLast threeLayers :: ModelS _ _ [R 40] (R 5)
 ```
 
+Aren't statically typed languages great?
+
 ### State-be-gone
 
 Did you enjoy the detour through stateful time series models?
@@ -1138,6 +1140,22 @@ A lot of things come together to make all of this work:
     and inputs of functions, how we can combine parameters, what values
     parameters contains, what parameters a given model contains, etc.; without
     this knowledge, it would be impossible to sanely write complex programs.
+
+    This forces us to be aware of what parameters we have, how they
+    combine, etc.; this is what makes combinators like `recurrent` and `unroll`
+    and `zeroState` reasonable: the *compiler* is able to trace how we move
+    around our parameter and state, so that we don't have to.  It lets us ask
+    questions like "what is the state, now?" if we needed, or "what is the
+    parameter now?".  Remember how we were able to trace out the unrolling and
+    zeroing process:
+
+    ```haskell
+    ar2                        :: ModelS _ _  Double  Double
+    unrollLast ar2             :: ModelS _ _ [Double] Double
+    zeroState (unrollLast ar2) :: Model  _   [Double] Double
+    ```
+
+    The fact that this all exists within our language is very powerful.
 
     We sometimes even gained insight simply from thinking, in advance, what the
     types of our combinators were.  And, if we can phrase our combinators in
