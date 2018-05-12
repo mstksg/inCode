@@ -733,7 +733,7 @@ The *backprop* library has a "lifted" `mapAccumL` in in the
 [prelude]: http://hackage.haskell.org/package/backprop/docs/Prelude-Backprop.html
 
 ```haskell
-mapAccumL
+Prelude.Backprop.mapAccumL
     :: Traversable t
     => (BVar z a -> BVar z b -> (BVar z a, BVar z c))
     -> BVar z a
@@ -1159,7 +1159,7 @@ At this point, we don't ever "need" a "neural network library" or a "neural
 network framework".  All we really need for a good differential programming
 based library is:
 
-*   A handful of small primitive models expressed as normal 
+*   A handful of small primitive models expressed as normal
     functions (like `linReg`, `fullyConnected`, `ar2`, `lstm`, `convulotion`,
     etc.)
 

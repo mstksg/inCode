@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --install-ghc runghc --resolver lts-11.8 --package backprop-0.2.1.0 --package random --package hmatrix-backprop-0.1.2.1 --package statistics --package lens --package one-liner-instances --package split -- -Wall -O2
+-- stack --install-ghc runghc --resolver lts-11.9 --package backprop-0.2.2.0 --package random --package hmatrix-backprop-0.1.2.1 --package statistics --package lens --package one-liner-instances --package split -- -Wall -O2
 
 {-# LANGUAGE DataKinds                                #-}
 {-# LANGUAGE DeriveGeneric                            #-}
@@ -20,12 +20,11 @@
 {-# OPTIONS_GHC -fplugin GHC.TypeLits.Normalise       #-}
 {-# OPTIONS_GHC -fwarn-redundant-constraints          #-}
 
--- import qualified Prelude.Backprop                   as B
 import           Control.Monad.Trans.State
 import           Data.Bifunctor
 import           Data.Foldable
-import           Data.List hiding                      (mapAccumL)
-import           Data.List.Split hiding                (split)
+import           Data.List
+import           Data.List.Split
 import           Data.Tuple
 import           Data.Type.Option
 import           GHC.Generics                          (Generic)
@@ -35,12 +34,13 @@ import           Numeric.Backprop
 import           Numeric.LinearAlgebra.Static.Backprop
 import           Numeric.LinearAlgebra.Static.Vector
 import           Numeric.OneLiner
-import           System.Random hiding                  (split)
+import           System.Random
 import qualified Data.Traversable                      as T
 import qualified Data.Vector.Sized                     as SV
 import qualified Data.Vector.Storable.Sized            as SVS
 import qualified Numeric.LinearAlgebra                 as HU
 import qualified Numeric.LinearAlgebra.Static          as H
+import qualified Prelude.Backprop                      as B
 
 data a :& b = !a :& !b
   deriving (Show, Generic)
@@ -226,18 +226,17 @@ unroll
     :: (Traversable t, Backprop a, Backprop b, Backprop (t b))
     => ModelS p s    a     b
     -> ModelS p s (t a) (t b)
-unroll f p xs s0 = swap $ mapAccumL f' s0 xs
+unroll f p xs s0 = swap $ B.mapAccumL f' s0 xs
   where
     -- we have to re-arrange the order of arguments and tuple a bit to
     -- match what `mapAccumL` expects
     f' s x = swap (f p x s)
 
 unrollLast
-    :: (Backprop a, Backprop b)
-    => ModelS p s  a  b
-    -> ModelS p s [a] b
-unrollLast f = mapS (last . sequenceVar) (unroll f)
--- TODO: switch to (last . toList)
+    :: (Traversable t, Backprop a, Backprop b, Backprop (t b))
+    => ModelS p s    a  b
+    -> ModelS p s (t a) b
+unrollLast f = mapS (last . B.toList) (unroll f)
 
 fixState
     :: s
@@ -405,16 +404,6 @@ instance (KnownNat n) => Random (R n) where
     random = runState $ vecR <$> SVS.replicateM (state random)
     randomR (xs,ys) = runState . fmap vecR $ SVS.zipWithM (curry (state . randomR))
         (rVec xs) (rVec ys)
-
-mapAccumL
-    :: (Traversable t, Backprop b, Backprop c, Backprop (t c), Reifies z W)
-    => (BVar z a -> BVar z b -> (BVar z a, BVar z c))
-    -> BVar z a
-    -> BVar z (t b)
-    -> (BVar z a, BVar z (t c))
-mapAccumL f s = second collectVar
-              . T.mapAccumL f s
-              . sequenceVar
 
 t1 :: Lens (a :& b) (a' :& b) a a'
 t1 f (x :& y) = (:& y) <$> f x
