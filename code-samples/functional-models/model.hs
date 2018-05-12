@@ -25,6 +25,7 @@ import           Data.Bifunctor
 import           Data.Foldable
 import           Data.List hiding                      (mapAccumL)
 import           Data.List.Split hiding                (split)
+import           Data.Type.Option
 import           Data.Tuple
 import           GHC.Generics                          (Generic)
 import           GHC.TypeNats
@@ -364,6 +365,13 @@ main = do
     rnnTest <- testRNN
     mapM_ print (take 30 rnnTest)
     writeFile "rnnsin.dat" $ unlines (show . HU.sumElements . H.extract <$> rnnTest)
+
+type Model' p s a b = forall z. Reifies z W
+                   => BVar z p
+                   -> BVar z a
+                   -> Option (BVar z) s
+                   -> (BVar z b, Option (BVar z) s)
+
 
 
 (#&)

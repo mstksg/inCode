@@ -13,9 +13,11 @@ other statistical models to artificial neural networks, feed-forward and
 recurrent (stateful).  I wanted to see to what extent we can really apply
 automatic differentiation and iterative gradient decent-based training to all
 of these different models.  Basically, I wanted to see how far we can take
-*differentiable programming* as a paradigm for writing trainable models.
+*differentiable programming* (a la [Yann LeCun][]) as a paradigm for writing
+trainable models.
 
 [backprop]: http://hackage.haskell.org/package/backprop
+[Yann LeCun]: https://www.facebook.com/yann.lecun/posts/10155003011462143
 
 I'm starting to see a picture unifying all of these models, painted in the
 language of purely typed functional programming.  I'm already applying these to
@@ -25,8 +27,8 @@ or useful.
 
 As a big picture, I really believe that a purely functional typed approach to
 differentiable programming is *the* way to move forward in the future for
-models like artificial neural networks -- and that one day, object-oriented and
-imperative approaches will seem quaint.
+models like artificial neural networks.  In this light, the drawbacks of
+object-oriented and imperative approaches becomes very apparent.
 
 I'm not the first person to attempt to build a conceptual framework for these
 types of models in a purely functional typed sense -- [Christopher Olah's
@@ -931,7 +933,8 @@ This toy situation appears to do much better than our RNN model, but we have to
 give the RNN a break --- all of the information has to be "squished" into
 essentially 30 bits, which might impact the model's accuracy.
 
-### Functions all the way down
+Functions all the way down
+--------------------------
 
 Again, it is very easy to look at something like
 
@@ -947,8 +950,7 @@ But, nope, again, it is all just normal functions that we wrote using normal
 function composition.   We define our model as a *function*, and the backprop
 library turns that function into a trainable model.
 
-Combinator Fun
---------------
+### Combinator Fun
 
 I really like how we have pretty much free reign over how we can combine and
 manipulate our models, since they are just functions.
@@ -1029,9 +1031,110 @@ fcrnn' = recurrentlyWith logistic ffOnSplit
 ```
 
 Basically just a recurrent version of `feedForward`!  If we abstract out some of
-the manual uncurrying and premapping, we get a nice functional definition:
+the manual uncurrying and pre-mapping, we get a nice functional definition:
 
 ```haskell
 !!!functional-models/model.hs "fcrnn'"
 ```
 
+There are many more such combinators possible!  Combinators like
+`recurrentlyWith` just scratch the surface.  Best of all, they help reveal to
+us that seemingly exotic things really are just simple applications of
+combinators from other basic things.
+
+### Unified Representation
+
+One ugly thing you might have noticed was that we had to give different "types"
+for both our `Model` and `ModelS`, so we cannot re-use useful functions on
+both.  For example, `mapS` only works on `ModelS`, but not `Model`.  `(<*~*)`
+only works on two `ModelS`s, and we had to define a different combinator
+`(<*~)`.
+
+This is not a fundamental limitation!  With *DataKinds* and dependent types we
+can unify these both under a common type.  If we had:
+
+```haskell
+type Model (p :: Type) (a :: Type) (b :: Type) =
+       forall z. Reifies z W
+    => BVar z p
+    -> BVar z a
+    -> BVar z b
+
+type ModelS (p :: Type) (s :: Type) (a :: Type) (b :: Type) =
+       forall z. Reifies z W
+    => BVar z p
+    -> BVar z a
+    -> BVar z s
+    -> (BVar z b, BVar z s)
+```
+
+We can unify them by making `s` be optional, a `Maybe Type`, and using the
+`Option` type from *[Data.Type.Option][]*, from the *[type-combinators][]*
+package:
+
+[Data.Type.Option]: https://hackage.haskell.org/package/type-combinators/docs/Data-Type-Option.html
+[type-combinators]: https://hackage.haskell.org/package/type-combinators
+
+```haskell
+type Model' (p :: Type) (s :: Maybe Type) (a :: Type) (b :: Type) =
+       forall z. Reifies z W
+    => BVar z p
+    -> BVar z a
+    -> Option (BVar z) s
+    -> (BVar z b, Option (BVar z) s)
+```
+
+`Option f a` contains a value if `a` is `'Just`, and does not if `a` is
+`'Nothing`.
+
+We can then re-define our previous types:
+
+```haskell
+type Model  p   = Model' p 'Nothing
+type ModelS p s = Model' p ('Just s)
+```
+
+And now that we have unified everything under the same type, we can write
+`mapS` that takes both stateful and non-stateful models, merge `<*~*` and
+`<*~`, etc., thanks to the power of dependent types.
+
+A Path Forward
+--------------
+
+Thank you for making it to the end!  I hope at this point you have been able to
+gain some appreciation for differential programming in a purely functional
+style, and see the sort of doors that this opens.
+
+A lot of things come together to make all of this work:
+
+1.  *Differentiable* programs, allowing us to write normal functions and have
+    them be automatically differentiable for gradient descent
+
+2.  *Functional programming*, allowing us to write higher-order functions and
+    combinators that take functions and return functions.  This lets us combine
+    and reshape models in arbitrary ways just by using normal function
+    composition and application, instead of being forced into a rigid
+    compositional model.
+
+3.  *Purely* functional programming.  If *any* of these functions were
+    side-effecting and impure functions, the correspondence between functions
+    and mathematical models completely falls apart.  This is something we often
+    take for granted when writing Haskell, but in other languages, without
+    purity, no model is sound.
+
+4.  A *strong expressive type system* makes this all reasonable to work with. A
+    strong type system tells us how we are allowed to combine outputs and
+    inputs of functions, how we can combine parameters, what values parameters
+    contains, what parameters a given model contains, etc.; without this
+    knowledge, it would be impossible to sanely write complex programs.
+    
+    We sometimes even gained insight simply from thinking, in advance, what the
+    types of our combinators were.  And, if we can phrase our combinators in
+    terms of our types, the compiler will often be able to write our entire
+    program for us.
+
+If you drop any one of these pieces, you are left with something very clumsy as
+a result.  In an imperative or object-oriented setting with inexpressive or
+dynamic type system would render this approach almost infeasible.  I really
+feel like, after working with these types and these sorts of models, we are
+peering into the future of machine learning's gradient-trainable models.
