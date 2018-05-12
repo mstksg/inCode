@@ -85,9 +85,9 @@ f : P \times A \rightarrow B
 $$
 
 [^reader]: Those familiar with Haskell idioms might recognize this type as
-being isomorphic to `a -> Reader p b` (or `Kleisli (Reader p) a b`) which
-roughly represents the notion of "A function from `a` to `b` with an
-'environment' of type `p`".
+being essentially `a -> Reader p b` (or `Kleisli (Reader p) a b`) which roughly
+represents the notion of "A function from `a` to `b` with an 'environment' of
+type `p`".
 
 
 If we [curry][] this, we get the original model representation we talked about:
@@ -1117,14 +1117,15 @@ style, and see the sort of doors that this opens.
 
 A lot of things come together to make all of this work:
 
-1.  *Differentiable* programs, allowing us to write normal functions and have
-    them be automatically differentiable for gradient descent
+1.  *Functional programming*, allowing us to write higher-order functions and
+    combinators that take functions and return functions.  This is the entire
+    crux of this approach, and lets us not only draw from mathematical models
+    directly, but also combine and reshape models in arbitrary ways just by
+    using normal function composition and application, instead of being forced
+    into a rigid compositional model.
 
-2.  *Functional programming*, allowing us to write higher-order functions and
-    combinators that take functions and return functions.  This lets us combine
-    and reshape models in arbitrary ways just by using normal function
-    composition and application, instead of being forced into a rigid
-    compositional model.
+2.  *Differentiable* programs, allowing us to write normal functions and have
+    them be automatically differentiable for gradient descent.
 
 3.  *Purely* functional programming.  If *any* of these functions were
     side-effecting and impure functions, the correspondence between functions
@@ -1132,16 +1133,16 @@ A lot of things come together to make all of this work:
     take for granted when writing Haskell, but in other languages, without
     purity, no model is sound.
 
-4.  A *strong expressive type system* makes this all reasonable to work with. A
-    strong type system tells us how we are allowed to combine outputs and
-    inputs of functions, how we can combine parameters, what values parameters
-    contains, what parameters a given model contains, etc.; without this
-    knowledge, it would be impossible to sanely write complex programs.
+4.  A *strong expressive static type system* makes this all reasonable to work
+    with. A strong type system tells us how we are allowed to combine outputs
+    and inputs of functions, how we can combine parameters, what values
+    parameters contains, what parameters a given model contains, etc.; without
+    this knowledge, it would be impossible to sanely write complex programs.
 
     We sometimes even gained insight simply from thinking, in advance, what the
     types of our combinators were.  And, if we can phrase our combinators in
     terms of our types, the compiler will often be able to write our entire
-    program for us.
+    program for us --- something only possible for statically typed languages.
 
 If you drop any one of these pieces, you are left with something very clumsy as
 a result.  In an imperative or object-oriented setting with inexpressive or
