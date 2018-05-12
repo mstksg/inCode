@@ -711,10 +711,10 @@ The *backprop* library has a "lifted" `mapAccumL` in in the
 ```haskell
 mapAccumL
     :: Traversable t
-    => (BVar s a -> BVar s b -> (BVar s a, BVar s c))
-    -> BVar s a
-    -> BVar s (t b)
-    -> (BVar s a, BVar s (t c))
+    => (BVar z a -> BVar z b -> (BVar z a, BVar z c))
+    -> BVar z a
+    -> BVar z (t b)
+    -> (BVar z a, BVar z (t c))
 ```
 
 It is lifted to work with `BVar`s of the items instead of directly on the
@@ -763,7 +763,7 @@ initial state to be a zero vector.
 !!!functional-models/model.hs "fixState" "zeroState"
 ```
 
-We use `auto :: a -> BVar s a` again to introduce a `BVar` of our initial
+We use `auto :: a -> BVar z a` again to introduce a `BVar` of our initial
 state, but to indicate that we don't expect to track its gradient.  `zeroState`
 is a nice utility combinator for a common pattern.
 
@@ -793,47 +793,30 @@ model.  It takes a list of inputs `R 40`s and produces the "final output" `R
 5`.  We can now train this by feeding it with `([R 40], R 5)` pairs: give a
 history and an expected next output.
 
-Let's see this play out with our AR(2) model:
-
-```haskell
-ar2                        :: ModelS _ _  Double  Double
-unrollLast ar2             :: ModelS _ _ [Double] Double
-zeroState (unrollLast ar2) :: Model  _   [Double] Double
-```
-
-`zeroState (unrollLast ar2)` is now a trainable stateless model.  Let's see if
-we can use it to learn how to model a sine wave:
+Let's see if we can train a two-layer fully connected neural network with 30
+hidden units, where the first layer is fully recurrent, to learn how to model
+a sine wave:
 
 ```haskell
 -- sine signal with period 25
 ghci> series = [ sin (2 * pi * t / 25) | t <- [0..]              ]
+
 -- chunks of runs and "next results"
 ghci> samps  = [ (init c, last c)      | c <- chunksOf 19 series ]
-ghci> trained <- trainModelIO (zeroState (unrollLast ar2)) $ take 10000 samps
+
+-- first layer is RNN, second layer is normal ANN, 30 hidden units
+ghci> let rnn :: ModelS _ _ (R 1) (R 1)
+          rnn = feedForward @30 @1 <*~ mapS logistic (fcrnn @1 @30)
+
+ghci> trained <- trainModelIO (zeroState (unrollLast rnn)) $ take 10000 samps
 ```
 
-Trained!  `trained` is the parameterization of `ar2` that will simulate a
-sine wave of period 25.
 
-```haskell
-ghci> trained
--2.4013298985824788e-12 :& (1.937166322256747 :& -0.9999999999997953)
--- approximately
-0.00 :& (1.94 :& -1.00)
-```
+Trained!  `trained` is now the weight and bias matrices and vectors that will
+simulate a sine wave of period 25.
 
-Meaning that the gradient descent has concluded that our AR(2) model is:
-
-$$
-y_t = 0 + 1.94 y_{t - 1} - y_{t - 2}
-$$
-
-It seems to guess that things are centered around zero, but I'm not familiar
-enough with the nuances of AR models to interpret what $\phi_1$ and $\phi_2$
-are supposed to mean.
-
-But!  We can simply run this model iteratively upon itself to test it, so we
-can visually inspect to see if it has learned things properly.
+We can run this model iteratively upon itself to test it; if we plot the
+results, we can visually inspect it to see if it has learned things properly.
 
 Let's define some helper functions to test our model.  First, a function
 `prime` that takes a stateful model and gives a "warmed-up" state by running it
@@ -855,29 +838,6 @@ Now let's prime our trained model over the first 19 items in our sine wave and
 start it running in feedback mode on the 20th item!
 
 ```haskell
-ghci> let primed = prime    ar2 trained 0      (take 19 series)
-ghci> let output = feedback ar2 trained primed (series !! 19)
-ghci> mapM_ print $ take 200 output
--0.9980267284282716
--0.9510565162972417
--0.8443279255081759
--0.6845471059406962
--0.48175367412103653
--- ...
-```
-
-We can plot the result and see that it all turns out pretty well:
-
-![AR(2) Sine Wave](/img/entries/functional-models/ar2sin.png "AR Sine Wave")
-
-For kicks, let's try it with a two-layer fully connected neural network with 30
-hidden units, where the first layer is fully recurrent:
-
-```haskell
--- first layer is RNN, second layer is normal ANN, 30 hidden units
-ghci> let rnn :: ModelS _ _ (R 1) (R 1)
-          rnn = feedForward @30 @1 <*~ mapS logistic (fcrnn @1 @30)
-ghci> trained <- trainModelIO (trainZero (unrollLast rnn)) $ take 10000 samps
 ghci> let primed = prime    rnn trained 0      (take 19 series)
 ghci> let output = feedback rnn trained primed (series !! 19)
 ghci> mapM_ print $ take 200 output
@@ -889,10 +849,63 @@ ghci> mapM_ print $ take 200 output
 -- ...
 ```
 
+Plotting the result against the "actual" sine wave of period 25, we see that it
+approximates the process decently well, with a consistent period:
+
 ![FCRNN Sine Wave](/img/entries/functional-models/rnnsin.png "FCRNN Sine Wave")
 
-Also nice!  Looks like these RNNs have proven to be quite "unreasonably
-effective", eh?
+Looks a bit "unreasonably effective", eh?
+
+For kicks, let's see if we can do any better with the simpler AR(2) model from
+before.  Applying all we just used to `ar2`, we see:
+
+```haskell
+ar2                        :: ModelS _ _  Double  Double
+unrollLast ar2             :: ModelS _ _ [Double] Double
+zeroState (unrollLast ar2) :: Model  _   [Double] Double
+```
+
+`zeroState (unrollLast ar2)` is now a trainable stateless model.  Will it model
+a sine wave?
+
+```haskell
+ghci> trained <- trainModelIO (zeroState (unrollLast ar2)) $ take 10000 samps
+ghci> let primed = prime    rnn trained 0      (take 19 series)
+ghci> let output = feedback rnn trained primed (series !! 19)
+ghci> mapM_ print $ take 200 output
+(-0.9980267284282716 :: R 1)
+(-0.9530599469923343 :: R 1)
+(-0.855333250123637 :: R 1)
+(-0.7138776465246676 :: R 1)
+(-0.5359655931506458 :: R 1)
+-- ...
+```
+
+We can plot the result and see that it more or less perfectly models the sine
+wave of period 25:
+
+![AR(2) Sine Wave](/img/entries/functional-models/ar2sin.png "AR Sine Wave")
+
+You can't even visually see the difference!
+
+We can peek inside the parameterization of our learned AR(2):
+
+```haskell
+ghci> trained
+-2.4013298985824788e-12 :& (1.937166322256747 :& -0.9999999999997953)
+-- approximately
+0.00 :& (1.94 :& -1.00)
+```
+
+Meaning that the gradient descent has concluded that our AR(2) model is:
+
+$$
+y_t = 0 + 1.94 y_{t - 1} - y_{t - 2}
+$$
+
+This toy situation appears to do much better than our RNN model, but we have to
+give the RNN a break --- all of the information has to be "squished" into
+essentially 30 bits, which might impact the model's accuracy.
 
 ### Functions all the way down
 

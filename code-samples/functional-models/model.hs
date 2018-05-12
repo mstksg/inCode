@@ -1,51 +1,43 @@
 #!/usr/bin/env stack
--- stack --install-ghc runghc --resolver lts-11.8 --package backprop-0.2.1.0 --package random --package hmatrix-backprop-0.1.2.1 --package statistics --package lens --package one-liner-instances --package microlens-th --package split -- -Wall -O2
+-- stack --install-ghc exec ghc --resolver lts-11.8 --package backprop-0.2.1.0 --package random --package hmatrix-backprop-0.1.2.1 --package statistics --package lens --package one-liner-instances --package microlens-th --package split -- -Wall -O2
 
 {-# LANGUAGE DataKinds                                #-}
 {-# LANGUAGE DeriveGeneric                            #-}
 {-# LANGUAGE FlexibleContexts                         #-}
 {-# LANGUAGE FlexibleInstances                        #-}
 {-# LANGUAGE GADTs                                    #-}
-{-# LANGUAGE KindSignatures                           #-}
 {-# LANGUAGE LambdaCase                               #-}
 {-# LANGUAGE MultiParamTypeClasses                    #-}
 {-# LANGUAGE PartialTypeSignatures                    #-}
 {-# LANGUAGE PatternSynonyms                          #-}
 {-# LANGUAGE RankNTypes                               #-}
-{-# LANGUAGE TemplateHaskell                          #-}
 {-# LANGUAGE TypeApplications                         #-}
 {-# LANGUAGE TypeInType                               #-}
 {-# LANGUAGE TypeOperators                            #-}
-{-# LANGUAGE ViewPatterns                             #-}
 {-# OPTIONS_GHC -fno-warn-partial-type-signatures     #-}
 {-# OPTIONS_GHC -fplugin GHC.TypeLits.KnownNat.Solver #-}
 {-# OPTIONS_GHC -fwarn-redundant-constraints          #-}
 
-import           Control.Monad.Primitive
+-- import qualified Prelude.Backprop                   as B
 import           Control.Monad.Trans.State
 import           Data.Bifunctor
 import           Data.Foldable
-import           Data.Kind
 import           Data.List hiding                      (mapAccumL)
 import           Data.List.Split
-import           Data.Semigroup
 import           Data.Tuple
 import           GHC.Generics                          (Generic)
 import           GHC.TypeNats
 import           Lens.Micro
-import           Lens.Micro.TH
 import           Numeric.Backprop
 import           Numeric.LinearAlgebra.Static.Backprop
 import           Numeric.LinearAlgebra.Static.Vector
 import           Numeric.OneLiner
-import           Statistics.Distribution
 import           System.Random
 import qualified Data.Traversable                      as T
 import qualified Data.Vector.Sized                     as SV
 import qualified Data.Vector.Storable.Sized            as SVS
 import qualified Numeric.LinearAlgebra                 as HU
 import qualified Numeric.LinearAlgebra.Static          as H
-import qualified Prelude.Backprop                      as B
 
 data a :& b = !a :& !b
   deriving (Show, Generic)
@@ -207,7 +199,7 @@ fcrnn wb x s = ( y, logistic y )
 infixr 8 <*~*
 
 mapS
-    :: (forall s. Reifies s W => BVar s b -> BVar s c)
+    :: (forall z. Reifies z W => BVar z b -> BVar z c)
     -> ModelS p s a b
     -> ModelS p s a c
 mapS f g p x = first f . g p x
@@ -306,7 +298,7 @@ testAR2 = do
 
 testRNN :: IO [R 1]
 testRNN = do
-    trained <- trainModelIO model $ take 10000 samps
+    trained <- trainModelIO model $ take 100000 samps
     let primed = prime   model0  trained 0      (take 19 series)
         output = feedback model0 trained primed (series !! 19)
     return $ take 200 output
