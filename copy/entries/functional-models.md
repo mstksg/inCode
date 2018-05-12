@@ -1126,6 +1126,9 @@ A lot of things come together to make all of this work:
     using normal function composition and application, instead of being forced
     into a rigid compositional model.
 
+    We were able to chain, fork, recombine models by just writing normal
+    higher-order functions.
+
 2.  *Differentiable* programs, allowing us to write normal functions and have
     them be automatically differentiable for gradient descent.
 
