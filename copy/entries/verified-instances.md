@@ -25,15 +25,9 @@ ever.
 [singletons]: http://hackage.haskell.org/package/singletons
 
 (The code for this post is available [here][source] if you want to follow
-along!  Some of the examples here involving `Demote` and relying on its
-injectivity will only work with [singletons HEAD][], even though the necessary
-patches were made seven months ago[^shackage])
+along!)
 
 !!![source]:verified-instances/VerifiedInstances.hs
-[singletons HEAD]: https://github.com/goldfirere/singletons
-
-[^shackage]: Not sure why it's not on hackage yet, but I will update when it
-    gets there!
 
 Semigroups
 ----------
@@ -135,10 +129,6 @@ x <> y = withSomeSing x $ \sX ->
            withSomeSing y $ \sY ->
              fromSing (sX %<> sY)
 ```
-
-(This works best with singletons HEAD at the moment, because `Demote` is
-injective.  On 2.2 or lower, using this would require an explicit type
-application or annotation at any place you use `<>` or `%<>`)
 
 Now, let's write the instance for `List`.  First, we need to define the
 singletons:
@@ -605,7 +595,7 @@ instance Monad List where
     sBind x f = sConcatMapList f x
 
     returnIdentLeft x g = case sReturn x of
-      SCons y SNil -> case emptyIdentRight (unSingFun1 Proxy g y) of
+      SCons y SNil -> case emptyIdentRight (unSingFun1 g y) of
         Refl -> Refl
 
     returnIdentRight = \case
@@ -616,12 +606,12 @@ instance Monad List where
     bindCompose = \case
       SNil       -> \_ _ -> Refl
       SCons x xs -> \g h -> case bindCompose xs g h of
-        Refl -> case unSingFun1 Proxy g x of
+        Refl -> case unSingFun1 g x of
           SNil       -> Refl
           SCons y ys ->
             let gxs  = sConcatMapList g xs
                 hgxs = sConcatMapList h gxs
-                hy   = unSingFun1 Proxy h y
+                hy   = unSingFun1 h y
                 hys  = sConcatMapList h ys
             in  case distribConcatMap h ys gxs of
                   Refl -> case appendAssoc hy hys hgxs of
@@ -638,7 +628,7 @@ distribConcatMap g = \case
     SCons x xs -> \ys ->
       case distribConcatMap g xs ys of
         Refl ->
-          let gx    = unSingFun1 Proxy g x
+          let gx    = unSingFun1 g x
               cmgxs = sConcatMapList g xs
               cmgys = sConcatMapList g ys
           in  case appendAssoc gx cmgxs cmgys of
@@ -650,14 +640,12 @@ into a value-level function on singletons:
 
 ```haskell
 unSingFun1
-    :: Proxy (f      :: a ~> b)
-    -> Sing  (f      :: a ~> b)
+    :: Sing  (f      :: a ~> b)
     -> Sing  (x      :: a)
     -> Sing  (f @@ x :: b)
 ```
 
-The `Proxy` argument only exists for historical reasons, I believe.  But, the
-crux is that, given a `Sing (f :: a ~> b)` and a `Sing (x :: a)`, we can
+The crux is that, given a `Sing (f :: a ~> b)` and a `Sing (x :: a)`, we can
 "apply" them to get `Sing (f @@ x :: b)`
 
 The proofs for the list instance is admittedly ugly to write, due to the fact

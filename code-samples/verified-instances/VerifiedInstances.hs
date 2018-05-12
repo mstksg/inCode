@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --resolver lts --install-ghc runghc --package singletons
+-- stack --resolver lts-11 --install-ghc runghc --package singletons
 
 {-# LANGUAGE AllowAmbiguousTypes  #-}
 {-# LANGUAGE DataKinds            #-}
@@ -9,7 +9,6 @@
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE TemplateHaskell      #-}
-{-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE TypeInType           #-}
 {-# LANGUAGE TypeOperators        #-}
@@ -77,15 +76,12 @@ class Semigroup a where
 infixr 6 <>
 (<>)
     :: forall a. (SingKind a, Semigroup a)
-    -- with singleton HEAD, `DemoteRep` is `Demote`
-    => DemoteRep a
-    -> DemoteRep a
-    -> DemoteRep a
+    => Demote a
+    -> Demote a
+    -> Demote a
 x <> y = withSomeSing x $ \sX ->
            withSomeSing y $ \sY ->
-             -- with singleton HEAD:
-             --   fromSing (sX %<> sY)
-             fromSing ((%<>) @a sX sY)
+             fromSing (sX %<> sY)
 
 instance Semigroup (List a) where
     type xs <> ys = AppendList xs ys
@@ -141,12 +137,8 @@ class Semigroup a => Monoid a where
 
 empty
     :: forall a. (SingKind a, Monoid a)
-    -- with singleton HEAD:
-    --   => Demote a
-    => DemoteRep a
-      -- with singleton HEAD:
-      --   fromSing sEmpty
-empty = fromSing (sEmpty @a)
+    => Demote a
+empty = fromSing sEmpty
 
 instance Monoid (List a) where
     type Empty (List a) = Nil
@@ -268,16 +260,13 @@ sKComp
     -> Sing (h :: b ~> f c)
     -> Sing (x :: a)
     -> Sing (KCompSym2 a b c g h @@ x :: f c)
-sKComp g h x = sBind (unSingFun1 (Proxy @g) g x) h
+sKComp g h x = sBind (unSingFun1 g x) h
 
 return
     :: forall f a. (SingKind a, SingKind (f a), Monad f)
-    -- with singleton HEAD, `DemoteRep` is `Demote`
-    => DemoteRep a
-    -> DemoteRep (f a)
-         -- these annotations are not necessary with singletons HEAD
-return x = withSomeSing x $ \(sX :: Sing (x :: a)) ->
-             fromSing (sReturn @f @a sX)
+    => Demote a
+    -> Demote (f a)
+return x = withSomeSing x $ \sX -> fromSing (sReturn sX)
 
 instance Monad Option where
     type Return a   x   = Some x
@@ -303,7 +292,7 @@ instance Monad List where
     sBind x f = sConcatMapList f x
 
     returnIdentLeft x g = case sReturn x of
-      SCons y SNil -> case emptyIdentRight (unSingFun1 Proxy g y) of
+      SCons y SNil -> case emptyIdentRight (unSingFun1 g y) of
         Refl -> Refl
 
     returnIdentRight = \case
@@ -314,12 +303,12 @@ instance Monad List where
     bindCompose = \case
       SNil       -> \_ _ -> Refl
       SCons x xs -> \g h -> case bindCompose xs g h of
-        Refl -> case unSingFun1 Proxy g x of
+        Refl -> case unSingFun1 g x of
           SNil       -> Refl
           SCons y ys ->
             let gxs  = sConcatMapList g xs
                 hgxs = sConcatMapList h gxs
-                hy   = unSingFun1 Proxy h y
+                hy   = unSingFun1 h y
                 hys  = sConcatMapList h ys
             in  case distribConcatMap h ys gxs of
                   Refl -> case appendAssoc hy hys hgxs of
@@ -335,7 +324,7 @@ distribConcatMap g = \case
     SCons x xs -> \ys ->
       case distribConcatMap g xs ys of
         Refl ->
-          let gx    = unSingFun1 Proxy g x
+          let gx    = unSingFun1 g x
               cmgxs = sConcatMapList g xs
               cmgys = sConcatMapList g ys
           in  case appendAssoc gx cmgxs cmgys of
@@ -343,12 +332,7 @@ distribConcatMap g = \case
 
 main :: IO ()
 main = do
-    -- using singletons HEAD:
-    --   print $ ((1::Integer) `Cons` 2 `Cons` Nil) <> (3 `Cons` 4 `Cons` Nil)
-    --   print $ S (S Z) <> S Z
-    --   print $ Some (S Z) <> Some (S (S (S Z)))
-    --   print $ None       <> Some (S (S (S Z)))
-    print $ (<>) @(List Nat) (1 `Cons` 2 `Cons` Nil) (3 `Cons` 4 `Cons` Nil)
-    print $ (<>) @N          (S (S Z)) (S Z)
-    print $ (<>) @(Option N) (Some (S Z)) (Some (S (S (S Z))))
-    print $ (<>) @(Option N) (None)       (Some (S (S (S Z))))
+    print $ ((1::Integer) `Cons` 2 `Cons` Nil) <> (3 `Cons` 4 `Cons` Nil)
+    print $ S (S Z) <> S Z
+    print $ Some (S Z) <> Some (S (S (S Z)))
+    print $ None       <> Some (S (S (S Z)))
