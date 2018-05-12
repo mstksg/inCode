@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --install-ghc exec ghc --resolver lts-11.8 --package backprop-0.2.1.0 --package random --package hmatrix-backprop-0.1.2.1 --package statistics --package lens --package one-liner-instances --package microlens-th --package split -- -Wall -O2
+-- stack --install-ghc runghc --resolver lts-11.8 --package backprop-0.2.1.0 --package random --package hmatrix-backprop-0.1.2.1 --package statistics --package lens --package one-liner-instances --package microlens-th --package split -- -Wall -O2
 
 {-# LANGUAGE DataKinds                                #-}
 {-# LANGUAGE DeriveGeneric                            #-}
@@ -11,6 +11,7 @@
 {-# LANGUAGE PartialTypeSignatures                    #-}
 {-# LANGUAGE PatternSynonyms                          #-}
 {-# LANGUAGE RankNTypes                               #-}
+{-# LANGUAGE ScopedTypeVariables                      #-}
 {-# LANGUAGE TypeApplications                         #-}
 {-# LANGUAGE TypeInType                               #-}
 {-# LANGUAGE TypeOperators                            #-}
@@ -23,7 +24,7 @@ import           Control.Monad.Trans.State
 import           Data.Bifunctor
 import           Data.Foldable
 import           Data.List hiding                      (mapAccumL)
-import           Data.List.Split
+import           Data.List.Split hiding                (split)
 import           Data.Tuple
 import           GHC.Generics                          (Generic)
 import           GHC.TypeNats
@@ -32,7 +33,7 @@ import           Numeric.Backprop
 import           Numeric.LinearAlgebra.Static.Backprop
 import           Numeric.LinearAlgebra.Static.Vector
 import           Numeric.OneLiner
-import           System.Random
+import           System.Random hiding                  (split)
 import qualified Data.Traversable                      as T
 import qualified Data.Vector.Sized                     as SV
 import qualified Data.Vector.Storable.Sized            as SVS
@@ -190,7 +191,7 @@ fcrnn wb x s = ( y, logistic y )
     -> ModelS (p :& q) (s :& t) a c
 (f <*~* g) pq x st = let (y, t') = g q x t
                          (z, s') = f p y s
-                     in  (z, reTup s' t')
+                     in  (z, s' #& t')
   where
     p = pq ^^. t1
     q = pq ^^. t2
@@ -313,6 +314,36 @@ testRNN = do
     model  :: Model  _   [R 1] (R 1)
     model  = zeroState $ unrollLast model0
 
+recurrently
+    :: (Backprop a, Backprop b)
+    => Model  p   (a :& b) b
+    -> ModelS p b  a       b
+recurrently f p x yLast = (y, y)
+  where
+    y = f p (x #& yLast)
+
+recurrentlyWith
+    :: (Backprop a, Backprop b)
+    => (forall z. Reifies z W => BVar z c -> BVar z b)
+    -> Model  p   (a :& b) c
+    -> ModelS p b  a       c
+recurrentlyWith store f p x yLast = (y, store y)
+  where
+    y = f p (x #& yLast)
+
+ffOnSplit
+    :: forall i o. (KnownNat i, KnownNat o)
+    => Model _ (R i :& R o) (R o)
+ffOnSplit p rIrO = feedForward @(i + o) p (rI # rO)
+  where
+    rI = rIrO ^^. t1
+    rO = rIrO ^^. t2
+
+fcrnn'
+    :: (KnownNat i, KnownNat o)
+    => ModelS _ (R o) (R i) (R o)
+fcrnn' = recurrentlyWith logistic (\p -> feedForward p . uncurryT (#))
+
 main :: IO ()
 main = do
     putStrLn "Linear regression"
@@ -335,12 +366,12 @@ main = do
     writeFile "rnnsin.dat" $ unlines (show . HU.sumElements . H.extract <$> rnnTest)
 
 
-reTup
+(#&)
     :: (Backprop a, Backprop b, Reifies z W)
     => BVar z a
     -> BVar z b
     -> BVar z (a :& b)
-reTup = isoVar2 (:&) (\case x :& y -> (x, y))
+(#&) = isoVar2 (:&) (\case x :& y -> (x, y))
 
 instance Backprop a => Backprop (SV.Vector n a) where
     zero = fmap zero
@@ -358,11 +389,11 @@ instance (KnownNat n) => Random (R n) where
         (rVec xs) (rVec ys)
 
 mapAccumL
-    :: (Traversable t, Backprop b, Backprop c, Backprop (t c), Reifies s W)
-    => (BVar s a -> BVar s b -> (BVar s a, BVar s c))
-    -> BVar s a
-    -> BVar s (t b)
-    -> (BVar s a, BVar s (t c))
+    :: (Traversable t, Backprop b, Backprop c, Backprop (t c), Reifies z W)
+    => (BVar z a -> BVar z b -> (BVar z a, BVar z c))
+    -> BVar z a
+    -> BVar z (t b)
+    -> (BVar z a, BVar z (t c))
 mapAccumL f s = second collectVar
               . T.mapAccumL f s
               . sequenceVar
@@ -422,3 +453,9 @@ instance Random NoState where
     random g = (NoState, g)
     randomR _ g = (NoState, g)
 
+uncurryT
+    :: (Backprop a, Backprop b, Reifies z W)
+    => (BVar z a -> BVar z b -> BVar z c)
+    -> BVar z (a :& b)
+    -> BVar z c
+uncurryT f x = f (x ^^. t1) (x ^^. t2)

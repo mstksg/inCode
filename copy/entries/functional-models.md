@@ -402,7 +402,7 @@ ghci> evalBP2 twoLayer trained (H.vec2 1 1)
 
 Not bad!
 
-### Possibilities
+### They're Just Functions
 
 We just built a working neural network using normal function composition and
 simple combinators.  No need for any objects or mutability or fancy explicit
@@ -433,6 +433,28 @@ just:
 
 Just normal function composition -- we're really just defining the *function*
 itself, and *backprop* turns that function into a trainable model.
+
+In the past I've talked about [layers as data][dephask], and neural network
+libraries like [grenade][] let you manipulate neural network layers in a
+composable way.  My previous attempts at neural networks like [tensor-ops][]
+also force a similar structure of composition of data types.  However, I feel
+this is a bit limiting.
+
+[dephask]: https://blog.jle.im/entry/practical-dependent-types-in-haskell-1.html
+[grenade]: http://hackage.haskell.org/package/grenade-0.1.0
+[tensor-ops]: https://github.com/mstksg/tensor-ops
+
+You are forced to "compose" your layers in only the ways that the API of the
+data type gives you.  You have to use the data type's "function composition"
+functions, or its special "mapping" functions...and for weird things like
+forking compositions like `\f g h x -> f (g x) (h x)` you have to learn how the
+data type offers such an API.
+
+However, such a crazy composition here is "trivial" -- it's all just normal
+functions, so you can just literally write out code like `\f g h x -> f (g x)
+(h x)` (or something very close).  You don't have to learn any rules of special
+"layer" data types.  At the heart of it all, your model is *just a function*.
+And, with differentiable programming, it's a *trainable function*.
 
 Time Series Models
 ------------------
@@ -572,7 +594,7 @@ composition function that combines both their parameters and their states:
 !!!functional-models/model.hs "(<*~*)"
 ```
 
-(`reTup` will take two `BVar`s of values and tuple them back up into a `BVar`
+(`(#&)` will take two `BVar`s of values and tuple them back up into a `BVar`
 of a tuple, essentially the inverse of `^^. t1` and `^^. t2`)
 
 And maybe even a utility function to map a function on the result of a
@@ -924,3 +946,92 @@ interface...right?
 But, nope, again, it is all just normal functions that we wrote using normal
 function composition.   We define our model as a *function*, and the backprop
 library turns that function into a trainable model.
+
+Combinator Fun
+--------------
+
+I really like how we have pretty much free reign over how we can combine and
+manipulate our models, since they are just functions.
+
+Here's one example of how the freedom that "normal functions" gives you can
+help reveal insight.  I stumbled upon an interesting way of defining recurrent
+neural networks --- a lot of times, a "recurrent neural network" really just
+means that some function of the *previous* output is used as an "extra input".
+
+This sounds like we can really write a recurrent model as a "normal" model, and
+then use a combinator to feed it back into itself.
+
+To say in types:
+
+```haskell
+recurrently
+    :: Model  p   (a :& b) b
+    -> ModelS p b  a       b
+```
+
+A "normal, non-stateful model" taking an `a :& b` and returning a `b` can
+really be turned into a stateful model with state `b` (the *previous output*)
+and only taking in an `a` input.
+
+This sort of combinator is a joy to write in Haskell because it's a "follow the
+types" kinda deal --- you set up the function, and the compiler pretty much
+writes it for you, because the types guide the entire implementation:
+
+```haskell
+!!!functional-models/model.hs "recurrently"
+```
+
+In general though, it'd be nice to have *some function* of the previous output
+be stored as the state.  We can write this combinator as well, taking the
+function that transforms the previous output into the stored state:
+
+```haskell
+!!!functional-models/model.hs "recurrentlyWith"
+```
+
+Again, once we figure out the *type* our combinator has...the function writes
+itself.  The joys of Haskell!
+
+`recurrentlyWith` takes a `c -> b` function and turns a pure model taking
+an `a :& b` into a stateful model with state `b` taking in an `a`.  The `c ->
+b` tells you how to turn the previous output into the new state.
+
+To me, `recurrentlyWith` captures the "essence" of what a recurrent model or
+recurrent neural network is --- the network is allowed to "see" its previous
+output.
+
+And the piece de resistance --- we can use this to define a fully connected
+recurrent neural network layer as simply a recurrent version of a normal fully
+connected feed-forward layer.
+
+We can redefine a pre-mapped version of `feedForward` which takes a tuple of
+two vectors and concatenates them before doing anything:
+
+```haskell
+-- | Concatenate two vectors
+(#)          :: BVar s (R i) -> BVar s (R o) -> BVar s (R (i + o))
+
+!!!functional-models/model.hs "ffOnSplit"
+```
+
+`ffOnSplit` is a feed-forward layer taking an `R (i + o)`, except we pre-map it
+to take a tuple `R i :& R o` instead.
+
+Now our fully connected recurrent layer is just `recurrentlyWith logistic
+ffOnSplit`:
+
+```haskell
+fcrnn'
+    :: (KnownNat i, KnownNat o)
+    => ModelS _ (R o) (R i) (R o)
+fcrnn' = recurrentlyWith logistic ffOnSplit
+
+```
+
+Basically just a recurrent version of `feedForward`!  If we abstract out some of
+the manual uncurrying and premapping, we get a nice functional definition:
+
+```haskell
+!!!functional-models/model.hs "fcrnn'"
+```
+
