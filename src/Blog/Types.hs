@@ -92,6 +92,7 @@ data AuthorInfo = AuthorInfo
     , authorLinkedIn :: T.Text
     , authorKeybase  :: T.Text
     , authorCoinbase :: T.Text
+    , authorBTC      :: T.Text
     }
   deriving (Show, Generic)
 

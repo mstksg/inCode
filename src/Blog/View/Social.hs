@@ -90,7 +90,7 @@ viewSocialFollow =
             H.a
               ! A.class_ "social-follow-bitcoin"
               ! A.title "Donate via bitcoin!"
-              ! A.href (H.textValue coinbaseUrl) $
+              ! A.href (H.textValue bitcoinUrl) $
               "Bitcoin"
       H.li $
         H.ul ! A.class_ "social-follows-list-site" $ do
@@ -120,7 +120,8 @@ viewSocialFollow =
     linkedInUrl = socialUrl "https://linkedin.com/in/" authorLinkedIn
     githubUrl = socialUrl "https://github.com/" authorGithub
     keybaseUrl = socialUrl "https://keybase.io/" authorKeybase
-    coinbaseUrl = socialUrl "https://coinbase.com/" authorCoinbase
+    bitcoinUrl = socialUrl "bitcoin:" authorBTC
+    -- coinbaseUrl = socialUrl "https://coinbase.com/" authorCoinbase
     emailUrl = T.append "https://feedburner.google.com/fb/a/mailverify?loc=en_US&uri="
              $ devFeedburner confDeveloperAPIs
     rssUrl = confFeed
