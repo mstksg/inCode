@@ -1046,6 +1046,9 @@ combinators from other basic things.
 <div class="note">
 **Aside: Unified Representation**
 
+This is a small aside for those familiar with Haskell techniques like DataKinds
+and dependent types!
+
 One ugly thing you might have noticed was that we had to give different "types"
 for both our `Model` and `ModelS`, so we cannot re-use useful functions on
 both.  For example, `mapS` only works on `ModelS`, but not `Model`.  `(<~)`
@@ -1134,7 +1137,7 @@ A lot of things come together to make all of this work:
     inputs of functions, how we can combine parameters, what values parameters
     contains, what parameters a given model contains, etc.; without this
     knowledge, it would be impossible to sanely write complex programs.
-    
+
     We sometimes even gained insight simply from thinking, in advance, what the
     types of our combinators were.  And, if we can phrase our combinators in
     terms of our types, the compiler will often be able to write our entire
