@@ -882,7 +882,7 @@ approximates the process decently well, with a consistent period:
 
 ![FCRNN Sine Wave](/img/entries/functional-models/rnnsin.png "FCRNN Sine Wave")
 
-Looks a bit "unreasonably effective", eh?
+Not perfect, but still looks a bit "unreasonably effective", eh?
 
 For kicks, let's see if we can do any better with the simpler AR(2) model from
 before.  Applying all we just used to `ar2`, we see:
@@ -931,9 +931,9 @@ $$
 y_t = 0 + 1.94 y_{t - 1} - y_{t - 2}
 $$
 
-This toy situation appears to do much better than our RNN model, but we have to
-give the RNN a break --- all of the information has to be "squished" into
-essentially 30 bits, which might impact the model's accuracy.
+In this toy situation, the AR(2) appears to do much better than our RNN model,
+but we have to give the RNN a break --- all of the information has to be
+"squished" into essentially 30 bits, which might impact the model's accuracy.
 
 Functions all the way down
 --------------------------
@@ -1029,7 +1029,6 @@ fcrnn'
     :: (KnownNat i, KnownNat o)
     => ModelS _ (R o) (R i) (R o)
 fcrnn' = recurrentlyWith logistic ffOnSplit
-
 ```
 
 Basically just a recurrent version of `feedForward`!  If we abstract out some of
@@ -1039,10 +1038,49 @@ the manual uncurrying and pre-mapping, we get a nice functional definition:
 !!!functional-models/model.hs "fcrnn'"
 ```
 
+Another interesting result -- we can write a "lagged" combinator that takes a
+model expecting a vector as an input, and turn it into a stateful model taking
+a *single* input, and feeding the original model that input and also a history
+of the `n` most recent inputs.
+
+If that sounds confusing, let's just try to state it out using types:
+
+```haskell
+lagged :: Model  p       (R (n + 1)) b
+       -> ModelS p (R n) Double      b
+```
+
+The result is a `ModelS p (R n) Double b`; the state is the `n` most recent
+inputs, and it feeds that in at every step and keeps it updated.  Let's write
+it using `headTail` and `&`, which splits a vector and adds an item to the end,
+respectively.
+
+```haskell
+!!!functional-models/model.hs "lagged"
+```
+
+What can we do with this?  Well... we can write a general autoregressive model
+AR(p) of *any* degree, simply by lagging a fully connected ANN layer:
+
+```haskell
+!!!functional-models/model.hs "ar ::"
+```
+
+And that's it!  Our original AR(2) `ar2` is just `ar @2` ... and we can write
+can write an AR(10) model by just using `ar @10`, and AR(20) model with `ar
+@20`, etc.
+
+```haskell
+!!!functional-models/model.hs "ar2' ::"
+```
+
+Who would have thought that an autoregressive model is just a fully connected
+neural network layer with lag?
+
 There are many more such combinators possible!  Combinators like
-`recurrentlyWith` just scratch the surface.  Best of all, they help reveal to
-us that seemingly exotic things really are just simple applications of
-combinators from other basic things.
+`recurrentlyWith` and `lagged` just scratch the surface.  Best of all, they
+help reveal to us that seemingly exotic things really are just simple
+applications of combinators from other basic things.
 
 
 <div class="note">
@@ -1117,6 +1155,38 @@ Thank you for making it to the end!  I hope at this point you have been able to
 gain some appreciation for differential programming in a purely functional
 style, and see the sort of doors that this opens.
 
+At this point, we don't ever "need" a "neural network library" or a "neural
+network framework".  All we really need for a good differential programming
+based library is:
+
+*   A handful of small primitive models expressed as normal 
+    functions (like `linReg`, `fullyConnected`, `ar2`, `lstm`, `convulotion`,
+    etc.)
+
+*   Some useful higher-order functions acting as utility combinators to
+    common patterns of function composition, like `map`, `<~`, etc., that are
+    never *required* but just convenient, since the functional API is already
+    fully featured as it is.
+
+    With these, models that seem seemingly very different can be defined in
+    terms of simple combinator applications of other models.
+
+*   A handy collection of (differentiable) *loss functions*; in this library we
+    only used squared error, but in other situations there might be other
+    useful ones like cross-entropy.
+
+    Loss functions can be combined with regularizing terms from parameters, if
+    the regularization functions themselves are differentiable.
+
+*   A handy collection of *optimizers*, allowing you to take a loss function, a
+    set of samples, and a model, and return the optimal parameters using
+    optimizers like stochastic gradient descent, momentum, adam, etc.
+
+That's really it, I feel!  Just the models *as functions*, the combinators, and
+methods to evaluate and train those functions.  No "objects" defining layers as
+data (they're not data, they're functions!); just the full freedom of
+expressing a model as any old function you want.
+
 A lot of things come together to make all of this work:
 
 1.  *Functional programming*, allowing us to write higher-order functions and
@@ -1148,17 +1218,8 @@ A lot of things come together to make all of this work:
     combine, etc.; this is what makes combinators like `recurrent` and `unroll`
     and `zeroState` reasonable: the *compiler* is able to trace how we move
     around our parameter and state, so that we don't have to.  It lets us ask
-    questions like "what is the state, now?" if we needed, or "what is the
-    parameter now?".  Remember how we were able to trace out the unrolling and
-    zeroing process:
-
-    ```haskell
-    ar2                        :: ModelS _ _  Double  Double
-    unrollLast ar2             :: ModelS _ _ [Double] Double
-    zeroState (unrollLast ar2) :: Model  _   [Double] Double
-    ```
-
-    The fact that this all exists within our language is very powerful.
+    *the compiler* questions like "what is the state, now?" if we needed, or
+    "what is the parameter now?".
 
     We sometimes even gained insight simply from thinking, in advance, what the
     types of our combinators were.  And, if we can phrase our combinators in
@@ -1170,3 +1231,4 @@ a result.  In an imperative or object-oriented setting with inexpressive or
 dynamic type system would render this approach almost infeasible.  I really
 feel like, after working with these types and these sorts of models, we are
 peering into the future of machine learning's gradient-trainable models.
+

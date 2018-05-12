@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --install-ghc runghc --resolver lts-11.8 --package backprop-0.2.1.0 --package random --package hmatrix-backprop-0.1.2.1 --package statistics --package lens --package one-liner-instances --package microlens-th --package split -- -Wall -O2
+-- stack --install-ghc runghc --resolver lts-11.8 --package backprop-0.2.1.0 --package random --package hmatrix-backprop-0.1.2.1 --package statistics --package lens --package one-liner-instances --package split -- -Wall -O2
 
 {-# LANGUAGE DataKinds                                #-}
 {-# LANGUAGE DeriveGeneric                            #-}
@@ -17,6 +17,7 @@
 {-# LANGUAGE TypeOperators                            #-}
 {-# OPTIONS_GHC -fno-warn-partial-type-signatures     #-}
 {-# OPTIONS_GHC -fplugin GHC.TypeLits.KnownNat.Solver #-}
+{-# OPTIONS_GHC -fplugin GHC.TypeLits.Normalise       #-}
 {-# OPTIONS_GHC -fwarn-redundant-constraints          #-}
 
 -- import qualified Prelude.Backprop                   as B
@@ -25,11 +26,11 @@ import           Data.Bifunctor
 import           Data.Foldable
 import           Data.List hiding                      (mapAccumL)
 import           Data.List.Split hiding                (split)
-import           Data.Type.Option
 import           Data.Tuple
+import           Data.Type.Option
 import           GHC.Generics                          (Generic)
 import           GHC.TypeNats
-import           Lens.Micro
+import           Lens.Micro hiding                     ((&))
 import           Numeric.Backprop
 import           Numeric.LinearAlgebra.Static.Backprop
 import           Numeric.LinearAlgebra.Static.Vector
@@ -345,6 +346,23 @@ fcrnn'
     => ModelS _ (R o) (R i) (R o)
 fcrnn' = recurrentlyWith logistic (\p -> feedForward p . uncurryT (#))
 
+lagged
+    :: (KnownNat n, 1 <= n)
+    => Model  p       (R (n + 1)) b
+    -> ModelS p (R n) Double      b
+lagged f p x xLasts = (y, xLasts')
+  where
+    fullLasts    = xLasts & x
+    y            = f p fullLasts
+    (_, xLasts') = headTail fullLasts
+
+ar :: (KnownNat n, 1 <= n)
+   => ModelS _ (R n) Double Double
+ar = lagged (\p -> fst . headTail @_ @1 . feedForward p)
+
+ar2' :: ModelS _ (R 2) Double Double
+ar2' = ar @2
+
 main :: IO ()
 main = do
     putStrLn "Linear regression"
@@ -365,14 +383,6 @@ main = do
     rnnTest <- testRNN
     mapM_ print (take 30 rnnTest)
     writeFile "rnnsin.dat" $ unlines (show . HU.sumElements . H.extract <$> rnnTest)
-
-type Model' p s a b = forall z. Reifies z W
-                   => BVar z p
-                   -> BVar z a
-                   -> Option (BVar z) s
-                   -> (BVar z b, Option (BVar z) s)
-
-
 
 (#&)
     :: (Backprop a, Backprop b, Reifies z W)
