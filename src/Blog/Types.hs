@@ -109,6 +109,7 @@ data DeveloperAPIs = DeveloperAPIs
     , devFacebook   :: T.Text
     , devAddThis    :: T.Text
     , devFeedburner :: T.Text
+    , devFlattr     :: T.Text
     }
   deriving (Show, Generic)
 
@@ -137,6 +138,7 @@ instance FromJSON DeveloperAPIs where
     devFacebook   <- v .: "facebook"
     devAddThis    <- v .: "add-this"
     devFeedburner <- v .: "feedburner"
+    devFlattr     <- v .: "flattr"
     return DeveloperAPIs{..}
   parseJSON _ = mzero
 instance ToJSON DeveloperAPIs where
@@ -148,6 +150,7 @@ instance ToJSON DeveloperAPIs where
              , "facebook"   .= devFacebook
              , "add-this"   .= devAddThis
              , "feedburner" .= devFeedburner
+             , "flattr"     .= devFlattr
              ]
 
 instance FromJSON EnvType where

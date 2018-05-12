@@ -698,7 +698,7 @@ mapAccumL
     => (BVar s a -> BVar s b -> (BVar s a, BVar s c))
     -> BVar s a
     -> BVar s (t b)
-    -> (BVar s a, BVar s (t c)))
+    -> (BVar s a, BVar s (t c))
 ```
 
 It is lifted to work with `BVar`s of the items instead of directly on the

@@ -31,6 +31,8 @@ renderLayout pd@PD{..} body =
         H.meta ! A.httpEquiv "Content-Type" ! A.content "text/html;charset=utf-8"
         H.meta ! A.name "viewport" ! A.content "width=device-width,initial-scale=1.0"
 
+        H.meta ! A.name "flattr:id" ! A.content (H.textValue (devFlattr confDeveloperAPIs))
+
         viewOpenGraphMetas pd
 
         H.link
