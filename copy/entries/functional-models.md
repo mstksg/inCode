@@ -1185,7 +1185,13 @@ based library is:
 That's really it, I feel!  Just the models *as functions*, the combinators, and
 methods to evaluate and train those functions.  No "objects" defining layers as
 data (they're not data, they're functions!); just the full freedom of
-expressing a model as any old function you want.
+expressing a model as any old function you want.[^libs]
+
+[^libs]: This is the basis behind my work-in-progress [opto][] and
+[backprop-learn][] libraries.
+
+[opto]: https://github.com/mstksg/opto
+[backprop-learn]: https://github.com/mstksg/backprop-learn
 
 A lot of things come together to make all of this work:
 
