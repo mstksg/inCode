@@ -52,40 +52,24 @@ library
                      , hakyll-sass
                      , hjsmin
                      , hsass
-                     , mtl
                      , pandoc
                      , pandoc-types
                      , parsec
                      , text
                      , time
                      , transformers
-                     , unordered-containers
-                     , xml
                      , xml-conduit
                      , xml-types
-                     , yaml
   ghc-options:         -Wall
 
 executable blog-build
   main-is:             app/Site.hs
   buildable:           True
   build-depends:       base >= 4 && < 5
-                     , aeson
-                     , binary
-                     , binary-orphans
                      , blog
-                     , containers
-                     , data-default
-                     , filepath
                      , hakyll >= 4.8
-                     , hakyll-sass
-                     , hjsmin
-                     , hsass
-                     , pandoc
-                     , pandoc-types
                      , text
                      , time
-                     , transformers
                      , yaml
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall
 
@@ -94,7 +78,6 @@ executable blog-migrate-entries
   buildable:           True
   build-depends:       base >= 4 && < 5
                      , aeson
-                     , blog
                      , bytestring
                      , cases
                      , containers
