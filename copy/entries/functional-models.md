@@ -793,6 +793,8 @@ model.  It takes a list of inputs `R 40`s and produces the "final output" `R
 5`.  We can now train this by feeding it with `([R 40], R 5)` pairs: give a
 history and an expected next output.
 
+### Show me a Sine
+
 Let's see if we can train a two-layer fully connected neural network with 30
 hidden units, where the first layer is fully recurrent, to learn how to model
 a sine wave:
