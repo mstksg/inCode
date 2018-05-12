@@ -1042,13 +1042,15 @@ There are many more such combinators possible!  Combinators like
 us that seemingly exotic things really are just simple applications of
 combinators from other basic things.
 
-### Unified Representation
+
+<div class="note">
+**Aside: Unified Representation**
 
 One ugly thing you might have noticed was that we had to give different "types"
 for both our `Model` and `ModelS`, so we cannot re-use useful functions on
-both.  For example, `mapS` only works on `ModelS`, but not `Model`.  `(<*~*)`
-only works on two `ModelS`s, and we had to define a different combinator
-`(<*~)`.
+both.  For example, `mapS` only works on `ModelS`, but not `Model`.  `(<~)`
+only works on `Model`s, `(<*~*)` only works on two `ModelS`s, and we had to
+define a different combinator `(<*~)`.
 
 This is not a fundamental limitation!  With *DataKinds* and dependent types we
 can unify these both under a common type.  If we had:
@@ -1095,8 +1097,13 @@ type ModelS p s = Model' p ('Just s)
 ```
 
 And now that we have unified everything under the same type, we can write
-`mapS` that takes both stateful and non-stateful models, merge `<*~*` and
-`<*~`, etc., thanks to the power of dependent types.
+`mapS` that takes both stateful and non-stateful models, merge `(<~)`, `(<*~*)`
+and `(<*~)`, etc., thanks to the power of dependent types.
+
+Note that dependent types and DataKind shenanigans aren't necessary for any of
+this to work --- it just has the possibility to make things even more seamless
+and unified!
+</div>
 
 A Path Forward
 --------------
