@@ -1120,35 +1120,48 @@ type ModelS (p :: Type) (s :: Type) (a :: Type) (b :: Type) =
     -> (BVar z b, BVar z s)
 ```
 
-We can unify them by making `s` be optional, a `Maybe Type`, and using the
-`Option` type from *[Data.Type.Option][]*, from the *[type-combinators][]*
-package:
+We can unify them by making either the `p` or `s` be optional, a `Maybe Type`,
+and using the `Option` type from *[Data.Type.Option][]*, from the
+*[type-combinators][]* package:
 
 [Data.Type.Option]: https://hackage.haskell.org/package/type-combinators/docs/Data-Type-Option.html
 [type-combinators]: https://hackage.haskell.org/package/type-combinators
 
 ```haskell
-type Model' (p :: Type) (s :: Maybe Type) (a :: Type) (b :: Type) =
+type Model' (p :: Maybe Type) (s :: Maybe Type) (a :: Type) (b :: Type) =
        forall z. Reifies z W
-    => BVar z p
+    => Option (BVar z) p
     -> BVar z a
     -> Option (BVar z) s
     -> (BVar z b, Option (BVar z) s)
 ```
 
 `Option f a` contains a value if `a` is `'Just`, and does not if `a` is
-`'Nothing`.
+`'Nothing`.  More precisely, if `a` is `'Just b`, it will contain an `f b`.  So
+if `p` is `'Just p'`, an `Option (BVar z) p` will contain a `BVar s p'`.
 
 We can then re-define our previous types:
 
 ```haskell
-type Model  p   = Model' p 'Nothing
-type ModelS p s = Model' p ('Just s)
+type Model  p   = Model' ('Just p) 'Nothing
+type ModelS p s = Model' ('Just p) ('Just s)
 ```
 
 And now that we have unified everything under the same type, we can write
 `mapS` that takes both stateful and non-stateful models, merge `(<~)`, `(<*~*)`
 and `(<*~)`, etc., thanks to the power of dependent types.
+
+As an added benefit, we also can unify parameterless functions too, which are
+often useful for composition:
+
+```haskell
+type Func a b = forall z. Reifies z W => BVar z a -> BVar z b
+-- or
+type Func     = Model' 'Nothing 'Nothing
+```
+
+and we can use this with our unified `(<~)` etc. to implement functions like
+`mapS` for free.
 
 Note that dependent types and DataKind shenanigans aren't necessary for any of
 this to work --- it just has the possibility to make things even more seamless
