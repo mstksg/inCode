@@ -437,29 +437,6 @@ instance (Random a, Random b) => Random (a :& b) where
 
 instance (Backprop a, Backprop b) => Backprop (a :& b)
 
-data NoState = NoState
-  deriving (Show, Generic)
-
-instance Num NoState where
-    (+)         = gPlus
-    (-)         = gMinus
-    (*)         = gTimes
-    negate      = gNegate
-    abs         = gAbs
-    signum      = gSignum
-    fromInteger = gFromInteger
-
-instance Fractional NoState where
-    (/) = gDivide
-    recip = gRecip
-    fromRational = gFromRational
-
-instance Backprop NoState
-
-instance Random NoState where
-    random g = (NoState, g)
-    randomR _ g = (NoState, g)
-
 uncurryT
     :: (Backprop a, Backprop b, Reifies z W)
     => (BVar z a -> BVar z b -> BVar z c)
