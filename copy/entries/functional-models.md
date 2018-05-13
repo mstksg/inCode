@@ -957,6 +957,8 @@ library turns that function into a trainable model.
 I really like how we have pretty much free reign over how we can combine and
 manipulate our models, since they are just functions.
 
+#### Recurrence is a Combinator
+
 Here's one example of how the freedom that "normal functions" gives you can
 help reveal insight.  I stumbled upon an interesting way of defining recurrent
 neural networks --- a lot of times, a "recurrent neural network" really just
@@ -1014,7 +1016,6 @@ two vectors and concatenates them before doing anything:
 ```haskell
 -- | Concatenate two vectors
 (#)          :: BVar s (R i) -> BVar s (R o) -> BVar s (R (i + o))
-
 !!!functional-models/model.hs "ffOnSplit"
 ```
 
@@ -1037,6 +1038,8 @@ the manual uncurrying and pre-mapping, we get a nice functional definition:
 ```haskell
 !!!functional-models/model.hs "fcrnn'"
 ```
+
+#### Lagging is a Combinator
 
 Another interesting result -- we can write a "lagged" combinator that takes a
 model expecting a vector as an input, and turn it into a stateful model taking
@@ -1066,6 +1069,8 @@ AR(p) of *any* degree, simply by lagging a fully connected ANN layer:
 !!!functional-models/model.hs "ar ::"
 ```
 
+(using `fst . headTail` to extract the first `Double` from an `R 1`)
+
 And that's it!  Our original AR(2) `ar2` is just `ar @2` ... and we can write
 can write an AR(10) model by just using `ar @10`, and AR(20) model with `ar
 @20`, etc.
@@ -1077,11 +1082,15 @@ can write an AR(10) model by just using `ar @10`, and AR(20) model with `ar
 Who would have thought that an autoregressive model is just a fully connected
 neural network layer with lag?
 
+
+Take a fully connected ANN layer and add recurrence --- you get a fully
+connected RNN layer.  Take a fully connected ANN layer and add lag --- you get
+an autoregressive model from statistics!
+
 There are many more such combinators possible!  Combinators like
 `recurrentlyWith` and `lagged` just scratch the surface.  Best of all, they
 help reveal to us that seemingly exotic things really are just simple
 applications of combinators from other basic things.
-
 
 <div class="note">
 **Aside: Unified Representation**
@@ -1169,7 +1178,10 @@ based library is:
     fully featured as it is.
 
     With these, models that seem seemingly very different can be defined in
-    terms of simple combinator applications of other models.
+    terms of simple combinator applications of other models, and that simple
+    base models can be used to derive other models in surprising ways (like how
+    a feed-forward layer can be turned into a recurrent layer or an
+    autoregressive model)
 
 *   A handy collection of (differentiable) *loss functions*; in this library we
     only used squared error, but in other situations there might be other
@@ -1204,6 +1216,9 @@ A lot of things come together to make all of this work:
 
     We were able to chain, fork, recombine models by just writing normal
     higher-order functions.
+
+    And, through normal higher-order functions, we can see that many models are
+    just "combinator-applied" versions of other simpler models!
 
 2.  *Differentiable* programs, allowing us to write normal functions and have
     them be automatically differentiable for gradient descent.
