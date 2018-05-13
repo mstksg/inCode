@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --install-ghc runghc --resolver lts-11.9 --package backprop-0.2.2.0 --package random --package hmatrix-backprop-0.1.2.1 --package statistics --package lens --package one-liner-instances --package split -- -Wall -O2
+-- stack --install-ghc runhaskell --resolver lts-11.9 --package backprop-0.2.2.0 --package random --package hmatrix-backprop-0.1.2.1 --package statistics --package lens --package one-liner-instances --package split -- -Wall -O2
 
 {-# LANGUAGE DataKinds                                #-}
 {-# LANGUAGE DeriveGeneric                            #-}
@@ -15,6 +15,7 @@
 {-# LANGUAGE TypeApplications                         #-}
 {-# LANGUAGE TypeInType                               #-}
 {-# LANGUAGE TypeOperators                            #-}
+{-# OPTIONS_GHC -fno-warn-orphans                     #-}
 {-# OPTIONS_GHC -fno-warn-partial-type-signatures     #-}
 {-# OPTIONS_GHC -fplugin GHC.TypeLits.KnownNat.Solver #-}
 {-# OPTIONS_GHC -fplugin GHC.TypeLits.Normalise       #-}
@@ -26,7 +27,6 @@ import           Data.Foldable
 import           Data.List
 import           Data.List.Split
 import           Data.Tuple
-import           Data.Type.Option
 import           GHC.Generics                          (Generic)
 import           GHC.TypeNats
 import           Lens.Micro hiding                     ((&))
@@ -35,8 +35,6 @@ import           Numeric.LinearAlgebra.Static.Backprop
 import           Numeric.LinearAlgebra.Static.Vector
 import           Numeric.OneLiner
 import           System.Random
-import qualified Data.Traversable                      as T
-import qualified Data.Vector.Sized                     as SV
 import qualified Data.Vector.Storable.Sized            as SVS
 import qualified Numeric.LinearAlgebra                 as HU
 import qualified Numeric.LinearAlgebra.Static          as H
@@ -340,11 +338,6 @@ ffOnSplit p rIrO = feedForward @(i + o) p (rI # rO)
     rI = rIrO ^^. t1
     rO = rIrO ^^. t2
 
-fcrnn'
-    :: (KnownNat i, KnownNat o)
-    => ModelS _ (R o) (R i) (R o)
-fcrnn' = recurrentlyWith logistic (\p -> feedForward p . uncurryT (#))
-
 lagged
     :: (KnownNat n, 1 <= n)
     => Model  p       (R (n + 1)) b
@@ -390,21 +383,6 @@ main = do
     -> BVar z (a :& b)
 (#&) = isoVar2 (:&) (\case x :& y -> (x, y))
 
-instance Backprop a => Backprop (SV.Vector n a) where
-    zero = fmap zero
-    add = SV.zipWith add
-    one = fmap one
-
-instance (KnownNat n, KnownNat m) => Random (L n m) where
-    random = runState . fmap vecL $ SVS.replicateM (state random)
-    randomR (xs,ys) = runState . fmap vecL $ SVS.zipWithM (curry (state . randomR))
-        (lVec xs) (lVec ys)
-
-instance (KnownNat n) => Random (R n) where
-    random = runState $ vecR <$> SVS.replicateM (state random)
-    randomR (xs,ys) = runState . fmap vecR $ SVS.zipWithM (curry (state . randomR))
-        (rVec xs) (rVec ys)
-
 t1 :: Lens (a :& b) (a' :& b) a a'
 t1 f (x :& y) = (:& y) <$> f x
 
@@ -437,9 +415,13 @@ instance (Random a, Random b) => Random (a :& b) where
 
 instance (Backprop a, Backprop b) => Backprop (a :& b)
 
-uncurryT
-    :: (Backprop a, Backprop b, Reifies z W)
-    => (BVar z a -> BVar z b -> BVar z c)
-    -> BVar z (a :& b)
-    -> BVar z c
-uncurryT f x = f (x ^^. t1) (x ^^. t2)
+instance (KnownNat n, KnownNat m) => Random (L n m) where
+    random = runState . fmap vecL $ SVS.replicateM (state random)
+    randomR (xs,ys) = runState . fmap vecL $ SVS.zipWithM (curry (state . randomR))
+        (lVec xs) (lVec ys)
+
+instance (KnownNat n) => Random (R n) where
+    random = runState $ vecR <$> SVS.replicateM (state random)
+    randomR (xs,ys) = runState . fmap vecR $ SVS.zipWithM (curry (state . randomR))
+        (rVec xs) (rVec ys)
+

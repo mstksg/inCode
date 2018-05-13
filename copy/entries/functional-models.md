@@ -218,7 +218,11 @@ ghci> evalBP2 linReg (0.3 :& (-0.1)) 5
 ```
 
 But the neat thing is that we can also get the gradient of the parameters, too,
-if we identify a loss function:
+if we identify a loss function:[^grad]
+
+[^grad]: Note that this is only sound as a loss function for a single "scalar
+value", like `Double` or a one-vector.  In general, we'd have this take a loss
+function as a parameter.
 
 $$
 \nabla_p (f(p, x) - y_x)^2
