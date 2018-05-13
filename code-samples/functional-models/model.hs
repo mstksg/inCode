@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --install-ghc runhaskell --resolver lts-11.9 --package backprop-0.2.2.0 --package random --package hmatrix-backprop-0.1.2.1 --package statistics --package lens --package one-liner-instances --package split -- -Wall -O2
+-- stack --install-ghc exec ghc --resolver lts-11.9 --package backprop-0.2.2.0 --package random --package hmatrix-backprop-0.1.2.1 --package statistics --package lens --package one-liner-instances --package split -- -Wall -O2
 
 {-# LANGUAGE DataKinds                                #-}
 {-# LANGUAGE DeriveGeneric                            #-}
@@ -27,6 +27,7 @@ import           Data.Foldable
 import           Data.List
 import           Data.List.Split
 import           Data.Tuple
+import           Data.Type.Option
 import           GHC.Generics                          (Generic)
 import           GHC.TypeNats
 import           Lens.Micro hiding                     ((&))
@@ -338,6 +339,11 @@ ffOnSplit p rIrO = feedForward @(i + o) p (rI # rO)
     rI = rIrO ^^. t1
     rO = rIrO ^^. t2
 
+fcrnn'
+    :: (KnownNat i, KnownNat o)
+    => ModelS _ (R o) (R i) (R o)
+fcrnn' = recurrentlyWith logistic (\p -> feedForward p . uncurryT (#))
+
 lagged
     :: (KnownNat n, 1 <= n)
     => Model  p       (R (n + 1)) b
@@ -414,6 +420,13 @@ instance (Random a, Random b) => Random (a :& b) where
         (y, g2) = randomR (y0, y1) g1
 
 instance (Backprop a, Backprop b) => Backprop (a :& b)
+
+uncurryT
+    :: (Backprop a, Backprop b, Reifies z W)
+    => (BVar z a -> BVar z b -> BVar z c)
+    -> BVar z (a :& b)
+    -> BVar z c
+uncurryT f x = f (x ^^. t1) (x ^^. t2)
 
 instance (KnownNat n, KnownNat m) => Random (L n m) where
     random = runState . fmap vecL $ SVS.replicateM (state random)
