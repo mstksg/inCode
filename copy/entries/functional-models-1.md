@@ -444,8 +444,9 @@ imperative into this?
 
 You can build a lot with just these tools alone.  By using primitive models and
 the various combinators, you can create autoencoders, nonlinear regressions,
-convolutional neural networks, multi-layered neural networks...you can create
-complex "graphs" of networks that fork and re-combine with themselves.
+convolutional neural networks, multi-layered neural networks, generative
+adversarial networks...you can create complex "graphs" of networks that fork
+and re-combine with themselves.
 
 The nice thing is that these are all just regular (Rank-2) functions, so...you
 have two models?  Just compose their functions like normal functions!
