@@ -3,7 +3,7 @@ title: A Purely Functional Typed Approach to Trainable Models (Part 3)
 categories: Haskell
 tags: machine learning, differentiable programming, deep learning, backprop, modeling
 create-time: 2018/05/13 16:22:14
-time: 2018/05/14 12:02:25
+date: 2018/05/14 12:16:34
 identifier: functional-models-3
 slug: purely-functional-typed-models-3
 series: Functional Models
@@ -331,7 +331,7 @@ the whole thing would become clumsy.
     take functions and return functions.  Again, this allows us to draw from
     mathematical models directly, but also gives us full control over how we
     reshape, redefine, manipulate our models.
-    
+
     We aren't forced to adhere to a limited API provided for our models; it all
     is just normal function application and higher-order functions ---
     something that functional programming is very, very good at dealing with.

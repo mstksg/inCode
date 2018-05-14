@@ -3,7 +3,7 @@ title: A Purely Functional Typed Approach to Trainable Models (Part 1)
 categories: Haskell
 tags: machine learning, differentiable programming, deep learning, backprop, modeling
 create-time: 2018/04/04 18:37:57
-time: 2018/05/14 12:01:59
+date: 2018/05/14 12:16:08
 identifier: functional-models-1
 slug: purely-functional-typed-models-1
 series: Functional Models
