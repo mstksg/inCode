@@ -398,6 +398,41 @@ the whole thing would become clumsy.
     will verify things like providing the right parameter to the right model,
     generating the correct parameter shape, etc.
 
+### Comparisons
+
+Almost all current neural network and deep learning frameworks implement the
+full features that are described here.  *tensorflow* and related libraries all
+provide a wrapper around essentially pure graph API.  You can get started with
+all of this right away in python with tools like [autograd][].
+
+What I'm really talking about isn't specifically about Haskell or *backprop*;
+it's more of a *functional approach* to these sorts of models.  Currently right
+now, imperative API's dominate the field.  Sometimes when talking to friends,
+they can't imagine how a functional or pure API would make sense.
+
+The point of this series is to show that a functional and pure API with static
+types isn't just possible, it's immensely beneficial:
+
+*   There is no need for an imperative API, even as a wrapper.  Even imperative
+    API's require an explicit assumption or promise of purity, anyway, that
+    cannot be enforced --- so what's the point?
+*   *Layers as objects* (or as data) is not necessary.  *Layers as functions*
+    is the more faithful and extensible way.
+*   A functional and statically typed interface helps you, as a developer,
+    *explore options* in ways that an imperative or untyped approach cannot.
+    Removing the barrier between the math and the code helps with your
+    thinking.  It also guides how you look at combinators and creating models
+    from others.  Functional approaches also mean you have to think of no
+    implicit state interactions behind the hood.
+
+One thing I excluded from discussion here is performance.  Performance is going
+to be up to the system you use for differentiable programming, and so is not
+something I can meaningfully talk about.  My posts here are simply about
+interface, and how they can help shape your thought when designing your own
+models.
+
+### Signing off
+
 In the end, this is all something that I'm still actively exploring.  In a year
 now, my opinions might be very different.  However, I've reached a point where
 I truly believe the future of differentiable programming and deep learning is
@@ -406,3 +441,4 @@ differentiable programming is *my present*.  Its contributions to my
 understanding of models and building new models is something that I take
 advantage of every day in my own modeling and research.  I hope it can be
 helpful to you, as well!
+

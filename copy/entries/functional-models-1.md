@@ -47,10 +47,12 @@ learning.  The code in these posts is written in Haskell, using the
 main themes and messages won't be *about* haskell, but rather about
 differentiable programming in a purely functional typed setting in general.
 This isn't a Haskell post as much as it is an exploration, using Haskell
-syntax/libraries to implement the points.
+syntax/libraries to implement the points.  The *backprop* library is roughly
+equivalent to [autograd][] in python, so all of the ideas apply there as well.
 
 [hmatrix]: http://hackage.haskell.org/package/hmatrix
 [hmatrix-backprop]: http://hackage.haskell.org/package/hmatrix-backprop
+[autograd]: https://github.com/HIPS/autograd
 
 Essence of a Model
 ------------------
