@@ -425,6 +425,11 @@ types isn't just possible, it's immensely beneficial:
     from others.  Functional approaches also mean you have to think of no
     implicit state interactions behind the hood.
 
+In short, other similar frameworks might have some mix of of differentiable and
+"functional" programming, and some even with purity by contract.  But it is
+specifically the combination of *all* of these (with static types) adds a lot
+of value in how you create and use and discover models.
+
 One thing I excluded from discussion here is performance.  Performance is going
 to be up to the system you use for differentiable programming, and so is not
 something I can meaningfully talk about.  My posts here are simply about
