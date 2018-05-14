@@ -250,6 +250,56 @@ Note that dependent types and DataKind shenanigans aren't necessary for any of
 this to work --- it just has the possibility to make things even more seamless
 and unified.
 
+Fun with explicit types
+-----------------------
+
+One of the advantages of the statically typed functional approach is that it
+forces you to keep track of parameter types as a part of your model
+manipulation.  You can explicitly keep track of them, or let the compiler do it
+for you (and have the information ready when you need it).  In what we have
+been doing so far, we have been letting the compiler have the fun.  But we can
+get some interesting results with explicit manipulation of types, as well.
+
+For example, an [autoencoder][] is a type of model that composes a function
+that "compresses" information with a function that "decompresses" it; training
+an autoencoder involves training the composition of those two functions to
+produce the identity function.
+
+[autoencoder]: https://en.wikipedia.org/wiki/Autoencoder
+
+We can represent a simple autoencoder:
+
+```haskell
+encoder :: Model q (R 100) (R 5)
+decoder :: Model p (R 5)   (R 100)
+
+autoencoder :: Model (p :& q) (R 100) (R 100)
+autoencoder = decoder <~ encoder
+```
+
+`autoencoder` now "encodes" a 100-dimensional space into a 5-dimensional one.
+
+We can train `autoencoder` on our data set, but keep the "trained parameters"
+separate:
+
+```haskell
+ghci> decParam :& encParam <- trainModelIO autoencoder $ map (\x -> (x,x)) samps
+```
+
+Now `decParam` and `encParam` make `autoencoder` an identity function.  But, we
+can just use `encParam` with `encoder` to *encode* data, and `decParam` with
+`decoder` to *decode* data!
+
+
+```haskell
+evalBP2 encoder encParam :: R 100 -> R 5        -- trained encoder
+evalBP2 decoder decParam :: R 5   -> R 100      -- trained decoder
+```
+
+The types help by keeping track of what goes with what, so you don't have to;
+the compiler helps you match up `encoder` with `encParam`, and can even "fill
+in the code" for you if you leave in a typed hole!
+
 A Practical Framework
 ---------------------
 
