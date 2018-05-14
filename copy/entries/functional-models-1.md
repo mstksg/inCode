@@ -486,8 +486,9 @@ type offers such an API.
 However, such a crazy composition here is "trivial" -- it's all just normal
 functions, so you can just literally write out code like `\x -> f (g x) (h x)`
 (or something very close).  You don't have to learn any rules of special
-"layer" data types.  At the heart of it all, your model is *just a function*.
-And, with differentiable programming, it's a *trainable function*.
+"layer" data types.  Layers aren't matrices or "data" --- they're functions.
+Not just abstractly, but literally.  All your models are!  And, with
+differentiable programming, they become *trainable functions*.
 
 ### What Makes It Tick
 
