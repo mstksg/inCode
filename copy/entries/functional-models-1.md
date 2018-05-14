@@ -554,6 +554,8 @@ things, I feel, have to come together seamlessly to make this all work.
     about how types interact.  This thought process itself often yields
     important insight.
 
-In the next post, we will explore how to reap the surprising benefits of this
-purely functional typed style when applying it to stateful and recurrent
-models.
+In the [next post][Part 2], we will explore how to reap the surprising benefits
+of this purely functional typed style when applying it to stateful and
+recurrent models.
+
+[Part 2]: https://blog.jle.im/entry/purely-functional-typed-models-2.html
