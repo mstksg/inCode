@@ -10,8 +10,8 @@ series: Functional Models
 
 Hi again!  Today we're going to jump straight into tying together the
 functional framework described in this series and see how it can give us some
-interesting insight, as well as talking about the scaffolding needed
-to turn this all into a working system you can apply today.
+interesting insight, as well as wrapping it up by talking about the scaffolding
+needed to turn this all into a working system you can apply today.
 
 The name of the game is a purely functional typed approach to writing
 trainable models using differentiable programming.  Be sure to check out [Part
@@ -325,16 +325,15 @@ the whole thing would become clumsy.
     take functions and return functions.  Again, this allows us to draw from
     mathematical models directly, but also full control over how we reshape,
     redefine, manipulate our models.
-
+    
     We aren't forced to adhere to a limited API provided for our models; it all
     is just normal function application and higher-order functions ---
     something that functional programming is very, very good at dealing with.
+    In addition, writing our models as "just functions" means we can re-use
+    functional programming staples like `foldl` (left folds) and `mapAccumL`.
 
     Combinators are powerful --- we saw how many models were just
     "combinator-applied" versions of simpler models.
-
-    In addition, writing our models as "just functions" means we can re-use
-    functional programming staples like `foldl` (left folds) and `mapAccumL`.
 
     Functional programming also forces us to consider state *explicitly*,
     instead of being an implicit part of the runtime.  This makes combinators
@@ -361,11 +360,10 @@ the whole thing would become clumsy.
     results.
 
     In impure languages, this is something that we have to always explicitly
-    state as a property of our models.  And I really believe here that purity
-    is a *benefit*, especially when reasoning with stateful models.  Tying the
-    state of our models with the implicit state functionality of a programming
-    language's runtime system?  Definitely a recipe for confusion and
-    disaster.
+    state as a property of our models.  Purity is a *benefit*, especially when
+    reasoning with stateful models.  Tying the state of our models with the
+    implicit state functionality of a programming language's runtime system?
+    Definitely a recipe for confusion and disaster.
 
 4.  **Strong expressive static type system** with type inference makes this all
     possible to work with at the practical level.
