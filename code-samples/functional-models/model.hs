@@ -46,7 +46,9 @@ data a :& b = !a :& !b
 infixr 2 :&
 
 type Model p a b = forall z. Reifies z W
-                => BVar z p -> BVar z a -> BVar z b
+                => BVar z p
+                -> BVar z a
+                -> BVar z b
 
 linReg :: Model (Double :& Double) Double Double
 linReg ab x = b * x + a
@@ -222,9 +224,9 @@ toS f p x s = (f p x, s)
 infixr 8 <*~
 
 unroll
-    :: (Traversable t, Backprop a, Backprop b, Backprop (t b))
-    => ModelS p s    a     b
-    -> ModelS p s (t a) (t b)
+    :: (Backprop a, Backprop b)
+    => ModelS p s  a   b
+    -> ModelS p s [a] [b]
 unroll f p xs s0 = swap $ B.mapAccumL f' s0 xs
   where
     -- we have to re-arrange the order of arguments and tuple a bit to
@@ -232,10 +234,19 @@ unroll f p xs s0 = swap $ B.mapAccumL f' s0 xs
     f' s x = swap (f p x s)
 
 unrollLast
-    :: (Traversable t, Backprop a, Backprop b, Backprop (t b))
-    => ModelS p s    a  b
-    -> ModelS p s (t a) b
-unrollLast f = mapS (last . B.toList) (unroll f)
+    :: (Backprop a, Backprop b)
+    => ModelS p s  a  b
+    -> ModelS p s [a] b
+unrollLast f = mapS (last . sequenceVar) (unroll f)
+
+unrollLast'
+    :: (Backprop a, Backprop b)
+    => ModelS p s  a  b
+    -> ModelS p s [a] b
+unrollLast' f p xs s0 = foldl' go (undefined, s0) (sequenceVar xs)
+  where
+    go (_, s) x = f p x s
+
 
 fixState
     :: s
