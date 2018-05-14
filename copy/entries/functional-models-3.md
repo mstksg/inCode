@@ -23,8 +23,10 @@ trainable models using differentiable programming.  Be sure to check out [Part
 My favorite part about this system really is how we have pretty much free reign
 over how we can combine and manipulate our models, since they are just
 functions.  Combinators --- a word I'm going to be using to mean higher-order
-functions that return functions --- tie everything together so well.  And the
-best part is that they're never *necessary*; just *helpful*.
+functions that return functions --- tie everything together so well.  Some
+models we might have thought were standalone entities might just be derivable
+from other models using basic functional combinators.  And the best part is
+that they're never *necessary*; just *helpful*.
 
 Combinator Fun
 --------------
@@ -90,12 +92,14 @@ two vectors and concatenates them before doing anything:
 
 ```haskell
 -- | Concatenate two vectors
-(#) :: BVar s (R i) -> BVar s (R o) -> BVar s (R (i + o))
+(#) :: BVar z (R i) -> BVar z (R o) -> BVar z (R (i + o))
 !!!functional-models/model.hs "ffOnSplit"
 ```
 
 `ffOnSplit` is a feed-forward layer taking an `R (i + o)`, except we pre-map it
-to take a tuple `R i :& R o` instead.
+to take a tuple `R i :& R o` instead.  This isn't anything special, just some
+plumbing.  (Note that the internal `feedForward` takes an input of `R (i + o)`
+here.)
 
 Now our fully connected recurrent layer is just `recurrentlyWith logistic
 ffOnSplit`:
@@ -166,17 +170,19 @@ There are many more such combinators possible!  Combinators like
 help reveal to us that seemingly exotic things really are just simple
 applications of combinators from other basic things.
 
-<div class="note">
-**Aside: Unified Representation**
+A Unified Representation
+------------------------
 
-This is a small aside for those familiar with Haskell techniques like DataKinds
-and dependent types!
+This section now is a small aside for those familiar with more advanced Haskell
+techniques like DataKinds and dependent types; if you aren't too comfortable
+with these, feel free to skip to the next section!  This stuff won't come up
+again later.
 
-One ugly thing you might have noticed was that we had to give different "types"
-for both our `Model` and `ModelS`, so we cannot re-use useful functions on
-both.  For example, `mapS` only works on `ModelS`, but not `Model`.  `(<~)`
-only works on `Model`s, `(<*~*)` only works on two `ModelS`s, and we had to
-define a different combinator `(<*~)`.
+If you're still reading, one ugly thing you might have noticed was that we had
+to give different "types" for both our `Model` and `ModelS`, so we cannot
+re-use useful functions on both.  For example, `mapS` only works on `ModelS`,
+but not `Model`.  `(<~)` only works on `Model`s, `(<*~*)` only works on two
+`ModelS`s, and we had to define a different combinator `(<*~)`.
 
 This is not a fundamental limitation!  With *DataKinds* and dependent types we
 can unify these both under a common type.  If we had:
@@ -214,7 +220,7 @@ type Model' (p :: Maybe Type) (s :: Maybe Type) (a :: Type) (b :: Type) =
 
 `Option f a` contains a value if `a` is `'Just`, and does not if `a` is
 `'Nothing`.  More precisely, if `a` is `'Just b`, it will contain an `f b`.  So
-if `p` is `'Just p'`, an `Option (BVar z) p` will contain a `BVar s p'`.
+if `p` is `'Just p'`, an `Option (BVar z) p` will contain a `BVar z p'`.
 
 We can then re-define our previous types:
 
@@ -241,8 +247,7 @@ and we can use this with our unified `(<~)` etc. to implement functions like
 
 Note that dependent types and DataKind shenanigans aren't necessary for any of
 this to work --- it just has the possibility to make things even more seamless
-and unified!
-</div>
+and unified.
 
 A Practical Framework
 ---------------------
@@ -323,8 +328,8 @@ the whole thing would become clumsy.
 
 1.  **Functional Programming**.  Higher-order functions and combinators that
     take functions and return functions.  Again, this allows us to draw from
-    mathematical models directly, but also full control over how we reshape,
-    redefine, manipulate our models.
+    mathematical models directly, but also gives us full control over how we
+    reshape, redefine, manipulate our models.
     
     We aren't forced to adhere to a limited API provided for our models; it all
     is just normal function application and higher-order functions ---
@@ -373,8 +378,10 @@ the whole thing would become clumsy.
     state types of functions, many of them manipulate parameter types, and
     almost all of them manipulate input and output types.  Having a compiler
     that keeps track of this for you and lets you ask questions about them is
-    essential.  The compiler also *helps you write your code* --- it tells you
-    what combinators are available to use for what models you have.
+    essential.  The compiler also *helps you write your code* --- if you leave a
+    "typed hole" in your code, the compiler will tell you all of the
+    combinators or values available that can fit inside that hole, and it
+    usually is exactly the one you need.
 
     And if you can state your desired model in terms of its types, sometimes
     the combinator applications and functions write themselves.  They all act

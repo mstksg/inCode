@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --install-ghc exec ghc --resolver lts-11.9 --package backprop-0.2.2.0 --package random --package hmatrix-backprop-0.1.2.1 --package statistics --package lens --package one-liner-instances --package split -- -Wall -O2
+-- stack --install-ghc runghc --resolver lts-11.9 --package backprop-0.2.2.0 --package random --package hmatrix-backprop-0.1.2.1 --package statistics --package lens --package one-liner-instances --package split -- -Wall -O2
 
 {-# LANGUAGE DataKinds                                #-}
 {-# LANGUAGE DeriveGeneric                            #-}
@@ -15,6 +15,7 @@
 {-# LANGUAGE TypeApplications                         #-}
 {-# LANGUAGE TypeInType                               #-}
 {-# LANGUAGE TypeOperators                            #-}
+{-# LANGUAGE ViewPatterns                             #-}
 {-# OPTIONS_GHC -fno-warn-orphans                     #-}
 {-# OPTIONS_GHC -fno-warn-partial-type-signatures     #-}
 {-# OPTIONS_GHC -fplugin GHC.TypeLits.KnownNat.Solver #-}
@@ -51,10 +52,7 @@ type Model p a b = forall z. Reifies z W
                 -> BVar z b
 
 linReg :: Model (Double :& Double) Double Double
-linReg ab x = b * x + a
-  where
-    a = ab ^^. t1
-    b = ab ^^. t2
+linReg (a :&& b) x = b * x + a
 
 squaredErrorGrad
     :: (Backprop p, Backprop b, Num b)
@@ -94,18 +92,12 @@ logistic x = 1 / (1 + exp (-x))
 feedForward
     :: (KnownNat i, KnownNat o)
     => Model (L o i :& R o) (R i) (R o)
-feedForward wb x = w #> x + b
-  where
-    w = wb ^^. t1
-    b = wb ^^. t2
+feedForward (w :&& b) x = w #> x + b
 
 feedForwardLog
     :: (KnownNat i, KnownNat o)
     => Model (L o i :& R o) (R i) (R o)
-feedForwardLog wb x = logistic (w #> x + b)
-  where
-    w = wb ^^. t1
-    b = wb ^^. t2
+feedForwardLog (w :&& b) x = logistic (w #> x + b)
 
 testTrainPerceptron :: IO [R 1]
 testTrainPerceptron = do
@@ -142,10 +134,7 @@ feedForwardSoftMax wb = logistic . feedForward wb
     => Model  p       b c
     -> Model       q  a b
     -> Model (p :& q) a c
-(f <~ g) pq = f p . g q
-  where
-    p = pq ^^. t1
-    q = pq ^^. t2
+(f <~ g) (p :&& q) = f p . g q
 infixr 8 <~
 
 testTrainTwoLayer :: IO [R 1]
@@ -169,37 +158,25 @@ type ModelS p s a b = forall z. Reifies z W
                    -> (BVar z b, BVar z s)
 
 ar2 :: ModelS (Double :& (Double :& Double)) Double Double Double
-ar2 cφ yLast yLastLast = ( c + φ1 * yLast + φ2 * yLastLast, yLast )
-  where
-    c  = cφ ^^. t1
-    φ  = cφ ^^. t2
-    φ1 = φ  ^^. t1
-    φ2 = φ  ^^. t2
+ar2 (c :&& (φ1 :&& φ2)) yLast yLastLast =
+    ( c + φ1 * yLast + φ2 * yLastLast, yLast )
 
 fcrnn
     :: (KnownNat i, KnownNat o)
     => ModelS ((L o i :& L o o) :& R o) (R o) (R i) (R o)
-fcrnn wb x s = ( y, logistic y )
+fcrnn ((wX :&& wS) :&& b) x s = ( y, logistic y )
   where
     y  = (wX #> x) + (wS #> s) + b
-    w  = wb ^^. t1
-    b  = wb ^^. t2
-    wX = w  ^^. t1
-    wS = w  ^^. t2
 
 (<*~*)
   :: (Backprop p, Backprop q, Backprop s, Backprop t)
     => ModelS  p        s       b c
     -> ModelS       q        t  a b
     -> ModelS (p :& q) (s :& t) a c
-(f <*~* g) pq x st = let (y, t') = g q x t
-                         (z, s') = f p y s
-                     in  (z, s' #& t')
+(f <*~* g) (p :&& q) x (s :&& t) = (z, s' :&& t')
   where
-    p = pq ^^. t1
-    q = pq ^^. t2
-    s = st ^^. t1
-    t = st ^^. t2
+    (y, t') = g q x t
+    (z, s') = f p y s
 infixr 8 <*~*
 
 mapS
@@ -217,10 +194,7 @@ toS f p x s = (f p x, s)
     => Model   p         b c
     -> ModelS       q  s a b
     -> ModelS (p :& q) s a c
-(f <*~ g) pq x = first (f p) . g q x
-  where
-    p = pq ^^. t1
-    q = pq ^^. t2
+(f <*~ g) (p :&& q) x = first (f p) . g q x
 infixr 8 <*~
 
 unroll
@@ -240,7 +214,7 @@ unrollLast
 unrollLast f = mapS (last . sequenceVar) (unroll f)
 
 unrollLast'
-    :: (Backprop a, Backprop b)
+    :: Backprop a
     => ModelS p s  a  b
     -> ModelS p s [a] b
 unrollLast' f p xs s0 = foldl' go (undefined, s0) (sequenceVar xs)
@@ -264,10 +238,7 @@ trainState
     :: (Backprop p, Backprop s)
     => ModelS  p    s  a b
     -> Model  (p :& s) a b
-trainState f ps x = fst $ f p x s
-  where
-    p = ps ^^. t1
-    s = ps ^^. t2
+trainState f (p :&& s) x = fst $ f p x s
 
 prime
     :: Foldable t
@@ -345,10 +316,7 @@ recurrentlyWith store f p x yLast = (y, store y)
 ffOnSplit
     :: forall i o. (KnownNat i, KnownNat o)
     => Model _ (R i :& R o) (R o)
-ffOnSplit p rIrO = feedForward @(i + o) p (rI # rO)
-  where
-    rI = rIrO ^^. t1
-    rO = rIrO ^^. t2
+ffOnSplit p (rI :&& rO) = feedForward p (rI # rO)
 
 fcrnn'
     :: (KnownNat i, KnownNat o)
@@ -367,7 +335,7 @@ lagged f p x xLasts = (y, xLasts')
 
 ar :: (KnownNat n, 1 <= n)
    => ModelS _ (R n) Double Double
-ar = lagged (\p -> fst . headTail @_ @1 . feedForward p)
+ar = lagged (\p -> fst . headTail . feedForward @_ @1 p)
 
 ar2' :: ModelS _ (R 2) Double Double
 ar2' = ar @2
@@ -399,6 +367,19 @@ main = do
     -> BVar z b
     -> BVar z (a :& b)
 (#&) = isoVar2 (:&) (\case x :& y -> (x, y))
+
+pattern (:&&)
+    :: ( Backprop a
+       , Backprop b
+       , Reifies z W
+       )
+    => BVar z a
+    -> BVar z b
+    -> BVar z (a :& b)
+pattern x :&& y <- (\xy -> (xy ^^. t1, xy ^^. t2)->(x, y))
+  where
+    (:&&) = isoVar2 (:&) (\case x :& y -> (x, y))
+{-# COMPLETE (:&&) #-}
 
 t1 :: Lens (a :& b) (a' :& b) a a'
 t1 f (x :& y) = (:& y) <$> f x

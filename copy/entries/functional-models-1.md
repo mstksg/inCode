@@ -112,7 +112,7 @@ parameter, and see what type of outputs we get for the same output while we
 vary the parameter?
 
 If we have an "expected output" for our input, then one thing we can do is look
-at $f_p(x)$ and see when the result is close to $y_x$ (the expected output of
+at $f_x(p)$ and see when the result is close to $y_x$ (the expected output of
 our model when given $x$).
 
 In fact, we can turn this into an optimization problem by trying to pick $p$
@@ -150,13 +150,9 @@ That is, we can always calculate the *gradient* of the loss function with
 respect to our parameters.  This gives us the direction we can "nudge" our
 parameters to make the loss bigger or smaller.
 
-That is, if we get the gradient of the loss with respect to $p$:
-
-$$
-\nabla_p \text{loss}(f_x(p), y_x)
-$$
-
-We now have a nice way to "train" our model:
+That is, if we get the *gradient* of the loss with respect to $p$ ($\nabla_p
+\text{loss}(f_x(p), y_x)$), we now have a nice iterative way to "train" our
+model:
 
 1.  Start with an initial guess at the parameter
 2.  Look at a random $(x, y_x)$ observation pair.
@@ -167,19 +163,22 @@ We now have a nice way to "train" our model:
 5.  Repeat from #2 until satisfied
 
 With every new observation, we see how we can nudge the parameter to make the
-model more accurate, and then we perform that nudge.
+model more accurate, and then we perform that nudge.  At the end of it all, we
+wind up just the right `p` to model the relationship between our observation
+pairs.
 
 Functional Implementation
 -------------------------
 
-This naturally lends itself well to a functional implementation.  That's
-because, in this light, a model is nothing more than a function.  And a model
-that is trainable using SGD is simply a differentiable function.
+What I described naturally lends to a functional implementation.  That's
+because, in this light, a model is nothing more than a curried function (a
+function returning a function).  A model that is trainable using SGD is simply
+a differentiable function.
 
-Using the *[backprop][]* library, we can easily write functions to be
-differentiable.
+Using the *[backprop][]* library, we can write these differentiable functions
+as normal functions.
 
-Let's write the type of our models.  A model from type `a` to type `b` with
+Let's pick a type for our models.  A model from type `a` to type `b` with
 parameter `p` can be written as the type synonym
 
 ```haskell
@@ -206,19 +205,25 @@ $$
 
 
 ```haskell
-!!!functional-models/model.hs "data a :& b"1 "linReg"
+!!!functional-models/model.hs "data a :& b"1 "pattern (:&&)"1 "linReg"
 ```
 
-(First we define a custom tuple data type `:&`; backprop works with normal
-tuples, but using a custom tuple with a `Num` instance will come in handy later
-for training models)
+A couple things going on here to help us do things smoothly:
 
-Here `Double :& Double` is a tuple of two `Double`s, which contains the
-parameters (`a` and `b`).  We extract the first item using `^^. t1` and the
-second item with `^^. t2` (`t1` and `t2` being lenses defined for the tuple
-fields), and then talk about the actual function, whose result is `b * x + a`.
-Note that, because `BVar`s have a `Num` instance, we can use all our normal
-numeric operators, and the results are still differentiable.
+*   We define a custom tuple data type `:&`; backprop works with normal
+    tuples, but using a custom tuple with a `Num` instance will come in handy
+    later for training models.
+
+*   We define a pattern synonym `:&&` that lets us "pattern match out" `BVar`s
+    of that tuple type.  So if we have a `BVar z (a :& b)` (a `BVar`
+    containing a tuple), then matching on `(x :&& y)` will give us `x :: BVar z
+    a` and `y :: BVar z b`.
+
+*   With that, we define `linReg`, whose parameters are a `Double :& Double`, a
+    tuple the two parameters `a` and `b`.  After pattern matching out the
+    contents, we just write the linear regression formula --- `b * x + a`.  We
+    can use normal numeric operations like `*` and `+` because `BVar`s have a
+    `Num` instance.
 
 We can *run* `linReg` using `evalBP2`:
 
@@ -275,7 +280,7 @@ ghci> trainModelIO linReg $ take 5000 (cycle samps)
 (-1.0) :& 2.0
 ```
 
-Neat!  After going through all of those observations a thousand times, the
+Neat --- after going through all of those observations a thousand times, the
 model nudges itself all the way to the right parameters to fit our model!
 
 The important takeaway is that all we specified was the *function* of the model
@@ -283,7 +288,7 @@ itself.  The training part all follows automatically.
 
 ### Feed-forward Neural Network
 
-Here's another example: a feed-forward neural network.
+Here's another example: a fully-connected feed-forward neural network layer.
 
 We can start with a single layer.  The model here will also take two parameters
 (a weight matrix and a bias vector), take in a vector, and output a vector.
@@ -322,8 +327,8 @@ ghci> evalBP2 feedForwardLog trained (H.vec2 1 1)
 
 Close enough for me!
 
-If we inspect the arrived-at parameters, we can see what makes the network
-tick:
+If we inspect the arrived-at parameters, we can peek into the neural network's
+brain:
 
 ```haskell
 ghci> trained
@@ -353,6 +358,9 @@ function to create a *[logistic regression][logit]* model.
 ```haskell
 !!!functional-models/model.hs "logReg"
 ```
+
+Here, we use function composition `(.)`, one of the most common combinators in
+Haskell, saying that `(f . g) x = f (g x)`.
 
 We could have even written our `feedForwardLog` without its activation function:
 
@@ -442,7 +450,7 @@ have two models?  Just compose their functions like normal functions!
 It is tempting to look at something like
 
 ```haskell
-feedForwardLog @4 @1 <~ feedForwardLog @2 @4
+feedForwardLog @4 <~ feedForwardLog
 ```
 
 and think of it as some sort of abstract, opaque data type with magic inside.
@@ -450,7 +458,7 @@ After all, "layers" are "data", right?  But, at the end of the day, it's all
 just:
 
 ```haskell
-\pq -> feedForwardLog @4 @1 (pq ^^. t1) . feedForwardLog @2 @4 (pq ^^. t2)
+\(p :&& q) -> feedForwardLog @4 p . feedForwardLog q
 ```
 
 Just normal function composition -- we're really just defining the *function*
@@ -486,14 +494,17 @@ things, I feel, have to come together seamlessly to make this all work.
 
 1.  *Functional programming*, allowing us to write higher-order functions and
     combinators that take functions and return functions.
-    
+
     This is the entire crux of this approach, and lets us not only draw from
     mathematical models directly, but also combine and reshape models in
     arbitrary ways just by using normal function composition and application,
     instead of being forced into a rigid compositional model.
 
     We were able to chain, fork, recombine simple model primitives to make
-    *new* models by just writing normal higher-order functions.
+    *new* models by just writing normal higher-order functions.  In fact, as we
+    will see in the upcoming posts, we can actually re-use higher order
+    functions like `foldl` and `map` that are already commonly used in
+    functional programming.
 
     In the upcoming posts, we will take this principle to the extreme.  We'll
     define more combinators like `(<~)` and see how many models we think are
