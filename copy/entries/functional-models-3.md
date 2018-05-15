@@ -99,8 +99,7 @@ two vectors and concatenates them before doing anything:
 
 `ffOnSplit` is a feed-forward layer taking an `R (i + o)`, except we pre-map it
 to take a tuple `R i :& R o` instead.  This isn't anything special, just some
-plumbing.  (Note that the internal `feedForward` takes an input of `R (i + o)`
-here.)
+plumbing.
 
 Now our fully connected recurrent layer is just `recurrentlyWith logistic
 ffOnSplit`:
