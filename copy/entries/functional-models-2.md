@@ -120,8 +120,8 @@ previous output and the current input, plus a bias:
 
 $$
 \begin{aligned}
-s_t & = W_x \mathbf{x}_t + W_s \mathbf{s}_{t-1} + \mathbf{b} \\
-y_t & = \sigma(s_t)
+s_t & = \sigma(y_t) \\
+y_t & = W_x \mathbf{x}_t + W_s \mathbf{s}_{t-1} + \mathbf{b}
 \end{aligned}
 $$
 
