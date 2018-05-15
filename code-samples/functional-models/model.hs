@@ -127,7 +127,7 @@ softMax x = konst (1 / sumElements expx) * expx
 feedForwardSoftMax
     :: (KnownNat i, KnownNat o)
     => Model (L o i :& R o) (R i) (R o)
-feedForwardSoftMax wb = logistic . feedForward wb
+feedForwardSoftMax wb = softMax . feedForward wb
 
 (<~)
     :: (Backprop p, Backprop q)

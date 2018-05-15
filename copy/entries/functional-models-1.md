@@ -54,6 +54,11 @@ equivalent to [autograd][] in python, so all of the ideas apply there as well.
 [hmatrix-backprop]: http://hackage.haskell.org/package/hmatrix-backprop
 [autograd]: https://github.com/HIPS/autograd
 
+The source code for the written code in this module is available [on
+github][source], if you want to follow along!
+
+!!![source]:functional-models/model.hs
+
 Essence of a Model
 ------------------
 

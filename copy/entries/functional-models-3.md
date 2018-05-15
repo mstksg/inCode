@@ -28,6 +28,11 @@ functions that return functions --- tie everything together so well.  Some
 models we might have thought were standalone entities might just be derivable
 from other models using basic functional combinators.  And the best part is
 that they're never *necessary*; just *helpful*.
+ 
+Again, if you want to follow along, the source code for the written code in
+this module is available [on github][source].
+
+!!![source]:functional-models/model.hs
 
 Combinator Fun
 --------------
@@ -494,4 +499,3 @@ differentiable programming is *my present*.  Its contributions to my
 understanding of models and building new models is something that I take
 advantage of every day in my own modeling and research.  I hope it can be
 helpful to you, as well!
-
