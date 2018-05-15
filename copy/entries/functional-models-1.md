@@ -213,7 +213,7 @@ $$
 
 
 ```haskell
-!!!functional-models/model.hs "data a :& b"1 "pattern (:&&)"1 "linReg"
+!!!functional-models/model.hs "data a :& b"1 "pattern (:&&)"2 "linReg"
 ```
 
 A couple things going on here to help us do things smoothly:

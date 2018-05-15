@@ -362,14 +362,8 @@ main = do
     mapM_ print (take 30 rnnTest)
     writeFile "rnnsin.dat" $ unlines (show . HU.sumElements . H.extract <$> rnnTest)
 
-pattern (:&&)
-    :: ( Backprop a
-       , Backprop b
-       , Reifies z W
-       )
-    => BVar z a
-    -> BVar z b
-    -> BVar z (a :& b)
+pattern (:&&) :: (Backprop a, Backprop b, Reifies z W)
+              => BVar z a -> BVar z b -> BVar z (a :& b)
 pattern x :&& y <- (\xy -> (xy ^^. t1, xy ^^. t2)->(x, y))
   where
     (:&&) = isoVar2 (:&) (\case x :& y -> (x, y))
