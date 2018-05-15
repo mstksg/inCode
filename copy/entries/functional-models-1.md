@@ -393,7 +393,7 @@ original parameters separate:
 ```
 
 And now we have a way to chain models!  Maybe even make a multiple-layer neural
-network?  Let's see if we can get a two-layer model to learn [XOR][]!
+network?  Let's see if we can get a two-layer model to learn [XOR][] ...
 
 [XOR]: https://en.wikipedia.org/wiki/Exclusive_or
 

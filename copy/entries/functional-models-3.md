@@ -211,7 +211,6 @@ Now `decParam` and `encParam` make `autoencoder` an identity function.  But, we
 can just use `encParam` with `encoder` to *encode* data, and `decParam` with
 `decoder` to *decode* data!
 
-
 ```haskell
 evalBP2 encoder encParam :: R 100 -> R 5        -- trained encoder
 evalBP2 decoder decParam :: R 5   -> R 100      -- trained decoder
