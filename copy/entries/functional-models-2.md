@@ -448,7 +448,7 @@ ghci> samps  = [ (init c, last c)      | c <- chunksOf 19 series ]
 
 -- first layer is RNN, second layer is normal ANN, 30 hidden units
 ghci> let rnn :: ModelS _ _ (R 1) (R 1)
-          rnn = feedForward @30 @1 <*~ mapS logistic (fcrnn @1 @30)
+          rnn = feedForward @30 <*~ mapS logistic fcrnn
 
 ghci> trained <- trainModelIO (zeroState (unrollLast rnn)) $ take 10000 samps
 ```
