@@ -260,6 +260,7 @@ feedback f p s0 x0 = unfoldr go (x0, s0)
   where
     go (x, s) = Just (x, (y, s'))
       where
+        -- 'T2' tuples up a pair of 'BVar's into a 'BVar' of a tuple
         (y, s') = evalBP (uncurry T2 . f (auto p) (auto x)) s
 
 testAR2 :: IO [Double]
