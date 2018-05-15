@@ -302,7 +302,7 @@ recurrently
     -> ModelS p b  a       b
 recurrently f p x yLast = (y, y)
   where
-    y = f p (x #& yLast)
+    y = f p (x :&& yLast)
 
 recurrentlyWith
     :: (Backprop a, Backprop b)
@@ -311,7 +311,7 @@ recurrentlyWith
     -> ModelS p b  a       c
 recurrentlyWith store f p x yLast = (y, store y)
   where
-    y = f p (x #& yLast)
+    y = f p (x :&& yLast)
 
 ffOnSplit
     :: forall i o. (KnownNat i, KnownNat o)
@@ -360,13 +360,6 @@ main = do
     rnnTest <- testRNN
     mapM_ print (take 30 rnnTest)
     writeFile "rnnsin.dat" $ unlines (show . HU.sumElements . H.extract <$> rnnTest)
-
-(#&)
-    :: (Backprop a, Backprop b, Reifies z W)
-    => BVar z a
-    -> BVar z b
-    -> BVar z (a :& b)
-(#&) = isoVar2 (:&) (\case x :& y -> (x, y))
 
 pattern (:&&)
     :: ( Backprop a
