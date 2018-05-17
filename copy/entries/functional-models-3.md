@@ -28,7 +28,7 @@ functions that return functions --- tie everything together so well.  Some
 models we might have thought were standalone entities might just be derivable
 from other models using basic functional combinators.  And the best part is
 that they're never *necessary*; just *helpful*.
- 
+
 Again, if you want to follow along, the source code for the written code in
 this module is available [on github][source].
 
@@ -457,6 +457,8 @@ Almost all current neural network and deep learning frameworks implement the
 full features that are described here.  *tensorflow* and related libraries all
 provide a wrapper around essentially pure graph API.  You can get started with
 all of this right away in python with tools like [autograd][].
+
+[autograd]: https://github.com/HIPS/autograd
 
 What I'm really talking about isn't specifically about Haskell or *backprop*;
 it's more of a *functional approach* to these sorts of models.  Currently right
