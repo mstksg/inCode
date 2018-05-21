@@ -495,7 +495,7 @@ types isn't just possible, it's immensely beneficial:
 
     ```haskell
     overList :: Model p a b -> Model p [a] [b]
-    overList = fmap
+    overList f p = fmap (f p)
     ```
 
     There is some minor boilerplate to make the types line up (so it's actually
