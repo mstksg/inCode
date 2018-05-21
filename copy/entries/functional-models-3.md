@@ -475,6 +475,34 @@ types isn't just possible, it's immensely beneficial:
     is the more faithful and extensible way.  Almost all frameworks (like
     *[tensorflow][]*, *[caffe][]*, *[grenade][]*) fall into the this
     [layer-as-data][layer as data] mentality.
+
+    For example, what if we wanted to turn a model `a -> b` (predicting b's from
+    a's) into a model `[a] -> [b]` (predicting the contents of a list of b's
+    from the contents of a list of a's)?
+
+    In libraries like *tensorflow* and *caffe* and *grenade*, you might have
+    to:
+
+    1.  Create a new data structure
+    2.  Use the API of the layer data structure to implement a bunch of methods
+        for your data structure
+    3.  Write a "forward" mode
+    4.  Write a "backwards" mode
+    5.  Define initializers for your data structure
+    6.  Write trainers/nudgers for your data structure
+
+    But in this system where layers are functions, this is just:
+
+    ```haskell
+    overList :: Model p a b -> Model p [a] [b]
+    overList = fmap
+    ```
+
+    There is some minor boilerplate to make the types line up (so it's actually
+    `\f -> collectVars . map f . sequenceVar`), but that's essentially what it
+    is.  No special data structure, no abstract API to work with...just normal
+    functions.
+
 *   A functional and statically typed interface helps you, as a developer,
     *explore options* in ways that an imperative or untyped approach cannot.
     Removing the barrier between the math and the code helps with your
@@ -486,6 +514,7 @@ types isn't just possible, it's immensely beneficial:
 [grenade]: http://hackage.haskell.org/package/grenade-0.1.0
 [layer as data]: https://docs.google.com/presentation/d/1UeKXVgRvvxg9OUdh_UiC5G71UMscNPlvArsWER41PsU/edit#slide=id.gc2fcdcce7_216_264
 [caffe]: http://caffe.berkeleyvision.org/
+
 
 In short, other similar frameworks might have some mix of of differentiable and
 "functional" programming, and some even with purity by contract.  But it is
