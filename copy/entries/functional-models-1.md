@@ -476,12 +476,16 @@ itself, and *backprop* turns that function into a trainable model.
 In the past I've talked about [layers as data][dephask], and neural network
 libraries like [grenade][] let you manipulate neural network layers in a
 composable way.  My previous attempts at neural networks like [tensor-ops][]
-also force a similar structure of composition of data types.  However, I feel
-this is a bit limiting.
+also force a similar structure of composition of data types.  Frameworks like
+*[tensorflow][]* and *[caffe][]* also treat [layer as data][caffe-layers].
+However, I feel this is a bit limiting.
 
+[tensorflow]: https://www.tensorflow.org/
 [dephask]: https://blog.jle.im/entry/practical-dependent-types-in-haskell-1.html
 [grenade]: http://hackage.haskell.org/package/grenade-0.1.0
 [tensor-ops]: https://github.com/mstksg/tensor-ops
+[layer as data]: https://docs.google.com/presentation/d/1UeKXVgRvvxg9OUdh_UiC5G71UMscNPlvArsWER41PsU/edit#slide=id.gc2fcdcce7_216_264
+[caffe]: http://caffe.berkeleyvision.org/
 
 You are forced to "compose" your layers in only the ways that the API of the
 data type gives you.  You have to use the data type's "function composition"

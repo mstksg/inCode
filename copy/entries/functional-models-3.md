@@ -472,13 +472,20 @@ types isn't just possible, it's immensely beneficial:
     API's require an explicit assumption or promise of purity, anyway, that
     cannot be enforced --- so what's the point?
 *   *Layers as objects* (or as data) is not necessary.  *Layers as functions*
-    is the more faithful and extensible way.
+    is the more faithful and extensible way.  Almost all frameworks (like
+    *[tensorflow][]*, *[caffe][]*, *[grenade][]*) fall into the this
+    [layer-as-data][layer as data] mentality.
 *   A functional and statically typed interface helps you, as a developer,
     *explore options* in ways that an imperative or untyped approach cannot.
     Removing the barrier between the math and the code helps with your
     thinking.  It also guides how you look at combinators and creating models
     from others.  Functional approaches also mean you have to think of no
     implicit state interactions behind the hood.
+
+[tensorflow]: https://www.tensorflow.org/
+[grenade]: http://hackage.haskell.org/package/grenade-0.1.0
+[layer as data]: https://docs.google.com/presentation/d/1UeKXVgRvvxg9OUdh_UiC5G71UMscNPlvArsWER41PsU/edit#slide=id.gc2fcdcce7_216_264
+[caffe]: http://caffe.berkeleyvision.org/
 
 In short, other similar frameworks might have some mix of of differentiable and
 "functional" programming, and some even with purity by contract.  But it is
