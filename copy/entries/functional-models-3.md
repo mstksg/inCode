@@ -498,10 +498,9 @@ types isn't just possible, it's immensely beneficial:
     overList f p = fmap (f p)
     ```
 
-    There is some minor boilerplate to make the types line up (so it's actually
-    `\f -> collectVars . map f . sequenceVar`), but that's essentially what it
-    is.  No special data structure, no abstract API to work with...just normal
-    functions.
+    There is some minor boilerplate to make the types line up, but that's
+    essentially what it is.  No special data structure, no abstract API to work
+    with...just normal functions.
 
 *   A functional and statically typed interface helps you, as a developer,
     *explore options* in ways that an imperative or untyped approach cannot.
