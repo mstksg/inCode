@@ -9,7 +9,7 @@ slug: in-memory-of-ertugrul-soylemez
 ---
 
 I was heartbroken to [find out recently][byorgey] that [Ertugrul
-Solemez][ertes] has passed away suddenly.  Many have come forward to express
+Söylemez][ertes] has passed away suddenly.  Many have come forward to express
 their sadness about this passing and how much this has impacted the Haskell
 community, and how much of a loss it is for functional programming at large.
 
