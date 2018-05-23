@@ -77,4 +77,4 @@ Haskell and Functional programming lost a great innovator and educator, but I
 know a lot of people will say that they, like me, have lost a great friend and
 mentor.
 
-Rest in peace, friend.
+Thank you.
