@@ -59,10 +59,9 @@ I've come along way since those times.  I now have fifteen packages published
 on Hackage, and a few more in the pipeline.  I've given [many more research
 talks][talks] all over the world, as far as Ukraine.  I'm no longer a fresh PhD
 student new to research; I'm a PhD candidate getting ready to defend my
-dissertation four years in the making in the upcoming months.  I'm still
-learning Haskell, but inspired by an example of a helpful Haskell attitude, I
-maintain a Haskell blog year after year that I hope people have, too, found
-helpful.
+dissertation in the upcoming months.  I'm still learning Haskell, but inspired
+by an example of a helpful Haskell attitude, I maintain a Haskell blog year
+after year that I hope people have, too, found helpful.
 
 [talks]: http://talks.jle.im/
 
