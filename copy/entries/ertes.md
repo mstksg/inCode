@@ -1,13 +1,14 @@
 ---
-title: In Memory of Ertugrul Söylemez (1985 -- 2018)
+title: In Memory of Ertugrul Söylemez (1985 - 2018)
 categories: Personal
 tags: reflection
 create-time: 2018/05/21 22:36:00
+date: 2018/05/22 22:22:55
 identifier: ertes
 slug: in-memory-of-ertugrul-soylemez
 ---
 
-I found out [come to my attention][byorgey] recently that [Ertugrul
+I was heartbroken to [find out recently][byorgey] that [Ertugrul
 Solemez][ertes] has passed away suddenly.  Many have come forward to express
 their sadness about this passing and how much this has impacted the Haskell
 community, and how much of a loss it is for functional programming at large.
@@ -31,12 +32,12 @@ When I was a new Haskeller, a lot of things confused me.  But the passion of
 people like Ertugrul to help me understand concepts that I found interesting
 late into the night was one of the things that really made it worth it.
 
-One of these lead to the creation of my first ever Haskell library --
-*[auto][]*.  *auto* is basically literally a direct translation of one of our
-conversations (and somewhat of a derivative of his own library *[netwire][]*),
-and throughout the entire implementation process he was open to the many
-questions I had.  And some of the features of the library (including implicit
-serialization) were directly his innovations put into practice.
+One of these lead to the creation of my first ever Haskell library, *[auto][]*.
+*auto* is basically literally a direct translation of one of our conversations
+(and somewhat of a derivative of his own library *[netwire][]*), and throughout
+the entire implementation process he was open to the many questions I had.  And
+some of the features of the library (including implicit serialization) were
+directly his innovations put into practice.
 
 [auto]: https://hackage.haskell.org/package/auto
 [netwire]: https://hackage.haskell.org/package/netwire
@@ -73,5 +74,7 @@ was the mentor I was blessed to have, and I know anyone who has worked with him
 or talked to him feels the same way.
 
 Haskell and Functional programming lost a great innovator and educator, but I
-know a lot of people will say that they, like me, have lost a great mentor and
-friend.
+know a lot of people will say that they, like me, have lost a great friend and
+mentor.
+
+Rest in peace, friend.
