@@ -14,7 +14,6 @@ import           Control.Monad.Trans.Maybe
 import           Data.Char
 import           Data.List
 import           Data.Maybe
-import           Data.Monoid
 import           Data.Ord
 import           Data.String
 import           Hakyll

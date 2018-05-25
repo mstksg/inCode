@@ -28,7 +28,6 @@ import           Data.Default
 import           Data.Foldable
 import           Data.List
 import           Data.Maybe
-import           Data.Monoid
 import           Data.Ord
 import           Data.Time.LocalTime
 import           Hakyll
@@ -47,7 +46,7 @@ app :: (?config :: Config)
     -> Rules ()
 app znow@(ZonedTime _ tz) = do
     match "static/**" $ do
-      route   $ gsubRoute "static/" (\_ -> "")
+      route   $ gsubRoute "static/" (const "")
       compile copyFileCompiler
 
     create ["CNAME"] $ do
@@ -59,7 +58,7 @@ app znow@(ZonedTime _ tz) = do
       compile compressCssCompiler
 
     match "scss/**" $ do
-      route   $ gsubRoute "scss" (\_ -> "css")
+      route   $ gsubRoute "scss" (const "css")
       compile $ sassCompilerWith
                   def { sassIncludePaths = Just ["scss"]
                       , sassFunctions    = Just $ renderSassUrl : concat (sassFunctions def)
@@ -111,7 +110,7 @@ app znow@(ZonedTime _ tz) = do
 
 
     match "copy/entries/*" . version "id" $ do
-      route   $ routeIdEntry
+      route     routeIdEntry
       compile $ compileIdEntry "html" Nothing
     match "copy/entries/*" . version "id-index" $ do
       route   $ routeIdEntry
@@ -134,13 +133,10 @@ app znow@(ZonedTime _ tz) = do
                       $ historyMap hist
     historyRules' hist $ \spec -> do
       route idRoute
-      compile $ do
-        case spec of
-          Left  (y     , mp) -> do
-            archiveCompiler (ADYear y mp)
-          Right ((y, m), is) -> do
-            archiveCompiler (ADMonth y m is)
-    historyRules' hist $ \_ -> indexRules
+      compile $ case spec of
+        Left  (y     , mp) -> archiveCompiler (ADYear y mp)
+        Right ((y, m), is) -> archiveCompiler (ADMonth y m is)
+    historyRules' hist $ const indexRules
 
 
     create ["entries.html"] $ do
@@ -185,7 +181,7 @@ app znow@(ZonedTime _ tz) = do
       tagsRules ts $ \_ _ -> indexRules
 
     match "copy/entries/*" . version "html" $ do
-      route   $ routeEntry
+      route     routeEntry
       compile $ entryCompiler entriesSorted allTags
     match "copy/entries/*" . version "html-index" $ do
       route   $ routeEntry
@@ -227,7 +223,7 @@ app znow@(ZonedTime _ tz) = do
       rulesExtraDependencies [deps] $ do
         route   idRoute
         compile $ do
-          sorted <- traverse (flip loadSnapshotBody "entry")
+          sorted <- traverse (`loadSnapshotBody` "entry")
                   . take (prefFeedEntries confBlogPrefs)
                   $ entriesSorted
           makeItem . TL.unpack $ viewFeed sorted tz (zonedTimeToUTC znow)
@@ -255,7 +251,7 @@ app znow@(ZonedTime _ tz) = do
     routeEntry = metadataRoute $ \m ->
         maybe (setExtension "html"
                      `composeRoutes`
-                     gsubRoute "copy/entries/" (\_ -> "entry/ident/")
+                     gsubRoute "copy/entries/" (const "entry/ident/")
                   )
               constRoute
           $ entryCanonical' m
@@ -303,10 +299,9 @@ app znow@(ZonedTime _ tz) = do
                  . sortBy (flip $ comparing fst)
                  $ withDates
       return $ paginateEvery n sorted
-    indexRules = do
-      version "index" $ do
-        route   $ gsubRoute ".html" (const "/index.html")
-        compile $ redirectCompiler (renderUrl . T.pack . toFilePath)
+    indexRules = version "index" $ do
+      route   $ gsubRoute ".html" (const "/index.html")
+      compile $ redirectCompiler (renderUrl . T.pack . toFilePath)
 
 compressJsCompiler :: Compiler (Item String)
 compressJsCompiler = fmap f <$> getResourceString

@@ -1,0 +1,62 @@
+name:             blog
+version:          0.1.2.0
+synopsis:         Personal blog web system
+category:         Web
+author:           Justin Le
+maintainer:       justin@jle.im
+license:          BSD3
+
+ghc-options:
+- -Wall
+
+dependencies:
+- base >=4 && <5
+- aeson
+- containers
+- data-default
+- filepath
+- hakyll >=4.8
+- pandoc
+- text
+- time
+- transformers
+
+library:
+  source-dirs: src
+  dependencies:
+  - binary
+  - binary-orphans
+  - blaze-html
+  - blaze-markup
+  - feed
+  - hakyll-sass
+  - hjsmin
+  - hsass
+  - pandoc-types
+  - parsec
+  - xml-conduit
+  - xml-types
+
+executables:
+  blog-migrate-entries:
+    main: app/migrate-entries.hs
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - bytestring
+    - cases
+    - directory
+    - optparse-applicative
+    - scientific
+    - vector
+  blog-build:
+    main: app/site.hs
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - blog
+    - yaml

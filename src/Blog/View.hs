@@ -1,5 +1,4 @@
 {-# LANGUAGE ImplicitParams    #-}
-{-# LANGUAGE ViewPatterns      #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 
@@ -8,7 +7,6 @@ module Blog.View where
 import           Blog.Types
 import           Blog.Util
 import           Data.List
-import           Data.Monoid
 import           Text.Blaze.Html5            ((!))
 import qualified Data.Text                   as T
 import qualified Text.Blaze.Html5            as H
@@ -120,8 +118,8 @@ stripPandoc (P.Pandoc _ bs) = T.pack $ P.stringify inls
             , P.toList $ P.text ": "
             , concatMap (concatMap grabInls) bss
             ]
-    grabInls (P.Header _ _ inls') = inls'
-    grabInls (P.HorizontalRule) = P.toList $ P.text "---"
+    grabInls (P.Header _ _ inls')  = inls'
+    grabInls P.HorizontalRule      = P.toList $ P.text "---"
     grabInls (P.Table cap _ _ _ _) = cap
     grabInls _ = []
 

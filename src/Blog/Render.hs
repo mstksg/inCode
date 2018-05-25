@@ -9,7 +9,6 @@ import           Blog.View
 import           Blog.View.Social
 import           Data.Foldable
 import           Data.Maybe
-import           Data.Monoid
 import           Data.String
 import           Text.Blaze.Html5            ((!))
 import qualified Data.Text                   as T
@@ -113,25 +112,24 @@ renderLayout pd@PD{..} body =
 
 
 navBar :: (?config :: Config) => H.Html
-navBar = do
-    H.nav ! A.id "navbar-content" $ do
-      H.div ! A.class_ "nav-info" $ do
-        H.h1 ! A.class_ "site-title" $
-          H.a ! A.href (H.textValue (renderUrl "/")) ! A.class_ "nav-title" $
-            H.toHtml $ confTitle ?config
-        H.span ! A.class_ "nav-author" $
-          H.toHtml $ authorName (confAuthorInfo ?config)
+navBar = H.nav ! A.id "navbar-content" $ do
+    H.div ! A.class_ "nav-info" $ do
+      H.h1 ! A.class_ "site-title" $
+        H.a ! A.href (H.textValue (renderUrl "/")) ! A.class_ "nav-title" $
+          H.toHtml $ confTitle ?config
+      H.span ! A.class_ "nav-author" $
+        H.toHtml $ authorName (confAuthorInfo ?config)
 
-      H.ul ! A.class_ "nav-links" $ do
-        H.li $
-          H.a ! A.href (H.textValue (renderUrl "/")) $
-            "home"
-        H.li $
-          H.a ! A.href (H.textValue (renderUrl "/entries.html")) $
-            "archives"
+    H.ul ! A.class_ "nav-links" $ do
+      H.li $
+        H.a ! A.href (H.textValue (renderUrl "/")) $
+          "home"
+      H.li $
+        H.a ! A.href (H.textValue (renderUrl "/entries.html")) $
+          "archives"
 
-        H.div ! A.class_ "clear" $
-          mempty
+      H.div ! A.class_ "clear" $
+        mempty
 
 googleAnalyticsJs :: (?config :: Config) => H.Html
 googleAnalyticsJs =

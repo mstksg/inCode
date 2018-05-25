@@ -17,7 +17,6 @@ import           Data.Default
 import           Data.Foldable
 import           Data.List
 import           Data.Maybe
-import           Data.Monoid
 import           Data.Ord
 import           Hakyll
 import           Hakyll.Web.Blaze
@@ -57,23 +56,23 @@ compileEntry = do
     cats      <- maybe [] splitTags <$> getMetadataField i "categories"
     sers      <- maybe [] splitTags <$> getMetadataField i "series"
 
-    makeItem $ Entry { entryTitle      = eTitle
-                     , entryContents   = itemBody ePandoc
-                     , entryLede       = itemBody ePandocLede
-                     , entrySourceFile = toFilePath i
-                     , entryCreateTime = eCreate
-                     , entryPostTime   = ePost
-                     , entryModifyTime = eModified
-                     , entryIdentifier = eIdent
-                     , entrySlug       = eSlug
-                     , entryOldSlugs   = eOldSlugs
-                     , entryId         = eId
-                     , entryCanonical  = mkCanonical eSlug eIdent (toFilePath i)
-                     , entryTags       = (map . second) T.pack
-                                       $ map (GeneralTag,)  tags
-                                      ++ map (CategoryTag,) cats
-                                      ++ map (SeriesTag,)   sers
-                     }
+    makeItem Entry { entryTitle      = eTitle
+                   , entryContents   = itemBody ePandoc
+                   , entryLede       = itemBody ePandocLede
+                   , entrySourceFile = toFilePath i
+                   , entryCreateTime = eCreate
+                   , entryPostTime   = ePost
+                   , entryModifyTime = eModified
+                   , entryIdentifier = eIdent
+                   , entrySlug       = eSlug
+                   , entryOldSlugs   = eOldSlugs
+                   , entryId         = eId
+                   , entryCanonical  = mkCanonical eSlug eIdent (toFilePath i)
+                   , entryTags       = (map . second) T.pack
+                                     $ map (GeneralTag,)  tags
+                                    ++ map (CategoryTag,) cats
+                                    ++ map (SeriesTag,)   sers
+                   }
   where
     validLede b = case b of
                     P.Header {}      -> False

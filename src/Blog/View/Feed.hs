@@ -4,24 +4,20 @@
 
 module Blog.View.Feed where
 
--- import           Text.XML.Light.Output
--- import qualified Text.XML.Light.Types   as X
--- import qualified Text.XML.Stream.Render as X
 import           Blog.Types
 import           Blog.View
 import           Data.Default
 import           Data.Maybe
-import           Data.Monoid
 import           Data.Time.Clock
 import           Data.Time.Format
 import           Data.Time.LocalTime
 import           Text.DublinCore.Types
 import           Text.RSS.Export
 import           Text.RSS.Syntax
-import qualified Data.Text                 as T
-import qualified Data.Text.Lazy            as TL
-import qualified Data.XML.Types            as XT
-import qualified Text.XML                  as X
+import qualified Data.Text             as T
+import qualified Data.Text.Lazy        as TL
+import qualified Data.XML.Types        as XT
+import qualified Text.XML              as X
 
 viewFeed
     :: (?config :: Config)

@@ -12,7 +12,6 @@ import           Blog.View
 import           Control.Monad
 import           Data.Foldable
 import           Data.List
-import           Data.Monoid
 import           Data.String
 import           Data.Time.LocalTime
 import           System.FilePath
@@ -80,9 +79,9 @@ viewArchive AI{..} = do
                    SeriesTag   -> Just "/series"
     descr :: Maybe H.Html
     descr = case aiData of
-              ADAll    _     -> Nothing
-              ADYear   _ _   -> Nothing
-              ADMonth  _ _ _ -> Nothing
+              ADAll    {}    -> Nothing
+              ADYear   {}    -> Nothing
+              ADMonth  {}    -> Nothing
               ADTagged t _   -> htmlDescription t
 
 archiveTitle :: ArchiveData a -> String
@@ -108,7 +107,7 @@ viewArchiveSidebar recents isIndex = do
         "Entries"
       H.ul $
         forM_ indexList $ \(t,u,i) ->
-          if maybe True (/= i) isIndex
+          if isIndex /= Just i
             then H.li $
                    H.a ! A.href (H.textValue (renderUrl u)) $ t
             else H.li ! A.class_ "curr-index" $ t
@@ -172,7 +171,7 @@ viewArchiveByMonths tile y entries =
     H.ul ! A.class_ ulClass $
       forM_ (reverse (M.toList entries)) $ \(m, tes) -> do
         let monthPath = renderUrl' $ "/entries/in" </> show y </> show (mInt m) <.> "html"
-        H.li $ do
+        H.li $
           H.h3 $
             H.a ! A.href (fromString monthPath)
               $ H.toHtml (showMonth m)

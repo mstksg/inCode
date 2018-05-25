@@ -122,7 +122,7 @@ main = do
             slugs = fromMaybe [] $ do
               [ident]   <- lookup "identifier" metas
               Slugs{..} <- M.lookup ident slugMap
-              let currSlug = (("slug",) . (:[])) <$> slugsCurr
+              let currSlug = ("slug",) . (:[]) <$> slugsCurr
                   oldSlugs = ("old-slugs",) . S.toList  $ slugsOld
               return $ toList currSlug <> [oldSlugs]
             entryId = maybeToList $ do
@@ -163,10 +163,8 @@ data Slugs = Slugs { slugsCurr :: Maybe String
                    }
   deriving (Show)
 
-instance Monoid Slugs where
-    mempty = Slugs Nothing S.empty
-    mappend s1 s2 =
-      case slugsCurr s2 of
+instance Semigroup Slugs where
+    s1 <> s2 = case slugsCurr s2 of
         Just c2 ->
           Slugs (Just c2) $
             case slugsCurr s1 of
@@ -176,6 +174,10 @@ instance Monoid Slugs where
           Slugs (slugsCurr s1) olds
       where
         olds = slugsOld s1 <> slugsOld s2
+
+instance Monoid Slugs where
+    mempty  = Slugs Nothing S.empty
+    mappend = (<>)
 
 parseSlugs :: V.Vector A.Array -> M.Map String Slugs
 parseSlugs = M.fromListWith (<>)
@@ -187,9 +189,8 @@ parseSlugs = M.fromListWith (<>)
       A.String ident <- v V.!? 0
       A.String slug  <- v V.!? 1
       let curr = case v V.!? 2 of
-                   Just (A.Bool c) -> c
-                   _              -> False
-
+            Just (A.Bool c) -> c
+            _              -> False
       let slugStr = T.unpack slug
       return . (T.unpack ident,) $
         if curr
@@ -208,7 +209,7 @@ parseIds = M.fromList
       i'             <- toMaybe (floatingOrInteger i)
       return (T.unpack ident, i')
     toMaybe :: Either Double Integer -> Maybe Integer
-    toMaybe = either (\_ -> Nothing) Just
+    toMaybe = either (const Nothing) Just
 
 
 -- | SQL for getting the right format:

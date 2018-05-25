@@ -14,7 +14,6 @@ import           Blog.View.Social
 import           Control.Applicative
 import           Control.Monad
 import           Data.List
-import           Data.Monoid
 import           Data.String
 import           Text.Blaze.Html5            ((!))
 import qualified Data.Text                   as T
@@ -38,7 +37,7 @@ viewHome HI{..} =
     H.section ! A.class_ "home-section" ! mainSection $ do
 
       H.header ! A.class_ "tile unit span-grid" $
-        H.section ! A.class_ "home-banner" $ do
+        H.section ! A.class_ "home-banner" $
           if hiPageNum == 1
             then do
               copySection (confTitle ?config) (copyToHtml hiBannerCopy)

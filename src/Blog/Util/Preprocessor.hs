@@ -13,7 +13,6 @@ import           Control.Monad
 import           Data.Char
 import           Data.List
 import           Data.Maybe               (fromMaybe, listToMaybe)
-import           Data.Monoid
 import           Data.Traversable
 import           Hakyll
 import           System.FilePath          ((</>))

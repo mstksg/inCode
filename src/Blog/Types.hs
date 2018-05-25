@@ -3,10 +3,8 @@
 {-# LANGUAGE DeriveGeneric        #-}
 {-# LANGUAGE DeriveTraversable    #-}
 {-# LANGUAGE LambdaCase           #-}
-{-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE RecordWildCards      #-}
-{-# LANGUAGE TemplateHaskell      #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Blog.Types where
@@ -17,7 +15,6 @@ import           Data.Aeson
 import           Data.Binary.Orphans    ()
 import           Data.Char
 import           Data.Default
-import           Data.Monoid
 import           Data.Time.LocalTime
 import           Data.Typeable
 import           GHC.Generics
@@ -262,7 +259,8 @@ data Month = JAN | FEB | MAR | APR | MAY | JUN
   deriving (Show, Eq, Ord, Enum)
 
 mInt :: Month -> Int
-mInt = succ . fromEnum
+mInt = (+ 1) . fromEnum
+-- if this is succ . fromEnum, there is ghc bug in 8.4 for some reason heh
 
 showMonth :: Month -> String
 showMonth = \case

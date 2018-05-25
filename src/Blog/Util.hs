@@ -8,7 +8,6 @@ import           Control.Monad
 import           Data.Char
 import           Data.Default
 import           Data.Maybe
-import           Data.Monoid
 import           Data.Time.Format
 import           Hakyll
 import qualified Data.Text                as T

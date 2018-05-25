@@ -3,9 +3,8 @@
 
 module Blog.Compiler.Redirect where
 
-import Blog.Types
-import Hakyll
-import Data.Monoid
+import           Blog.Types
+import           Hakyll
 import qualified Data.Text as T
 
 redirectCompiler
