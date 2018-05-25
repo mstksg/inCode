@@ -26,11 +26,6 @@ packages:
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
 extra-deps:
 - hakyll-sass-0.2.3
-# - lucid-extras-0.1.0.1
-# - plotlyhs-0.2
-# - gitlib-3.1.1
-# - gitlib-libgit2-3.1.1
-# - inliterate-0.1.0
 
 # Override default flag values for local packages and extra-deps
 flags: {}

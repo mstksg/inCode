@@ -36,6 +36,7 @@ library:
   - parsec
   - xml-conduit
   - xml-types
+  - inliterate
 
 executables:
   blog-migrate-entries:
