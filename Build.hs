@@ -32,12 +32,12 @@ main = shakeArgs opts $ do
     "build" ~> do
       need (psReq <$> psExes)
       unit $ cmd "stack run -- blog-build" "build"
-      liftIO $ updatePages "_site" Nothing (Just (T.pack "blog.jle.im"))
+      liftIO $ updatePages "_site" Nothing Nothing
 
     "rebuild" ~> do
       need ["purescript"]
       unit $ cmd "stack run -- blog-build" "rebuild"
-      liftIO $ updatePages "_site" Nothing (Just (T.pack "blog.jle.im"))
+      liftIO $ updatePages "_site" Nothing Nothing
 
     "bower_components/.installed" %> \t -> do
       need ["bower.json"]
