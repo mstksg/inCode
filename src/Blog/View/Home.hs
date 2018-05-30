@@ -40,7 +40,7 @@ viewHome HI{..} =
         H.section ! A.class_ "home-banner" $
           if hiPageNum == 1
             then do
-              copySection (confTitle ?config) (copyToHtml hiBannerCopy)
+              copySection (Just (confTitle ?config)) (copyToHtml hiBannerCopy)
 
               H.aside ! A.class_ "social-follows" $ do
                 "Follow or support me on: " :: H.Html

@@ -25,6 +25,7 @@
 /.psci_modules
 /output
 /bower_components
+/TAGS
 
 /copy/entries/placeholder.md
 *.dat

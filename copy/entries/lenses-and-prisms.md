@@ -44,11 +44,32 @@ It's easy to recognize `(Int, Double)` as a product between `Int` and
 `Bool`.  However, did you know that some types are secretly product types in
 disguise?
 
-Here's an easy one!
+For example, here's a classic example of a lensable data type
 
-```haskell top
-foo = 10
+```haskell
+data Person = P { _pName :: String
+                , _pAge  :: Int
+                }
 ```
+
+`Person` is an algebraic data type --- so-called because it is actually a
+*product* between a `String` and `Int`.  `Person` is isomorphic to 
+
+<!-- Here's an easy one! -->
+
+<!-- ```haskell -->
+<!-- data MyType = MyType Double Int -->
+<!-- ``` -->
+
+<!-- `MyType` is a product between `Double` and `Int`.  It's isomorphic to `(Double, -->
+<!-- Int)`.  By isomorphic, I mean that there are functions `f :: MyType -> (Double, -->
+<!-- Int)` and `g :: (Double, Int) -> MyType` such that `f . g = id` and `g . f = -->
+<!-- id`. -->
+
+<!-- We have another one: the *non-empty list* type, `NonEmpty a`, is actually a -->
+<!-- product between a `a` (the head/first item) and an `[a]` (the tail/rest of the -->
+<!-- items).  So, `NonEmpty a` is isomorphic to `(a, [a])`.  It's a product in -->
+<!-- disguise! -->
 
 <!-- It's easy enough to recognize `Either String Bool` as a sum between -->
 <!-- `String` and `Bool`, but did you know that some types are secretly sum types in -->

@@ -31,6 +31,8 @@ data Config = Config
     , confDesc          :: !T.Text
     , confAuthorInfo    :: !AuthorInfo
     , confCopyright     :: !T.Text
+    , confLicense       :: !T.Text
+    , confLicenseLink   :: !T.Text
     , confFeed          :: !T.Text
     , confBlobs         :: !(Maybe Blobs)
     , confCodeSamples   :: !(Maybe T.Text)
@@ -48,6 +50,8 @@ instance FromJSON Config where
       confDesc          <- v .:  "description"
       confAuthorInfo    <- v .:  "author"
       confCopyright     <- v .:  "copyright"
+      confLicense       <- v .:  "license"
+      confLicenseLink   <- v .:  "license-link"
       confFeed          <- v .:  "feed"
       confBlobs         <- v .:? "blobs"
       confCodeSamples   <- v .:? "code-samples"
@@ -63,6 +67,8 @@ instance ToJSON Config where
                                  , "description"     .=  confDesc
                                  , "author"          .=  confAuthorInfo
                                  , "copyright"       .=  confCopyright
+                                 , "license"         .=  confLicense
+                                 , "license-link"    .=  confLicenseLink
                                  , "feed"            .=  confFeed
                                  , "developer-apis"  .=  confDeveloperAPIs
                                  , "preferences"     .=  confBlogPrefs
@@ -207,6 +213,7 @@ data Entry = Entry
     , entryId         :: !(Maybe Int)
     , entryCanonical  :: !FilePath
     , entryTags       :: ![(TagType, T.Text)]
+    , entryNoSignoff  :: !Bool
     }
   deriving (Show, Generic, Typeable, Eq)
 -- TODO: entry image

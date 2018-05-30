@@ -18,13 +18,15 @@ import           Text.Blaze.Html5            ((!))
 import qualified Data.Text                   as T
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
+import qualified Text.Pandoc.Definition      as P
 
 
 data EntryInfo = EI
-    { eiEntry     :: Entry
-    , eiTags      :: [Tag]
-    , eiPrevEntry :: Maybe Entry
-    , eiNextEntry :: Maybe Entry
+    { eiEntry     :: !Entry
+    , eiTags      :: ![Tag]
+    , eiPrevEntry :: !(Maybe Entry)
+    , eiNextEntry :: !(Maybe Entry)
+    , eiSignoff   :: !P.Pandoc
     }
   deriving (Show)
 
@@ -114,6 +116,10 @@ viewEntry EI{..} = H.div ! A.class_ "entry-section unit span-grid" ! mainSection
         copyToHtml (entryContents eiEntry)
 
       H.footer $ do
+
+        unless (entryNoSignoff eiEntry) $ do
+          H.hr
+          copySection Nothing (copyToHtml eiSignoff)
 
         H.ul ! A.class_ "entry-series" $
           mapM_ seriesLi (filterTags SeriesTag eiTags)

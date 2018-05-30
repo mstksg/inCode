@@ -6,6 +6,7 @@ create-time: 2018/05/21 22:36:00
 date: 2018/05/22 22:22:55
 identifier: ertes
 slug: in-memory-of-ertugrul-soylemez
+no-signoff: true
 ---
 
 I was heartbroken to [find out recently][byorgey] that [Ertugrul

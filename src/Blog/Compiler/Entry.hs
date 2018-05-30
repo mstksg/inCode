@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TupleSections     #-}
+{-# LANGUAGE ViewPatterns      #-}
 
 module Blog.Compiler.Entry where
 
@@ -40,7 +41,7 @@ compileEntry = do
                           . take (prefLedeMax (confBlogPrefs ?config))
                           . takeWhile validLede
                           $ bs
-    eTitle    <- either (error . show) id . P.runPure
+    eTitle    <- either (error . show) id . P.runPure       -- TODO: abstract
                . (P.writeMarkdown entryWriterOpts <=< P.readMarkdown entryReaderOpts)
                . T.unwords . T.lines . T.pack
              <$> getMetadataField' i "title"
@@ -55,6 +56,9 @@ compileEntry = do
     tags      <- maybe [] splitTags <$> getMetadataField i "tags"
     cats      <- maybe [] splitTags <$> getMetadataField i "categories"
     sers      <- maybe [] splitTags <$> getMetadataField i "series"
+    noSignoff <- maybe (fail "Could not parse field no-signoff") pure
+               . maybe (Just False) parseSignoff
+             =<< getMetadataField i "no-signoff"
 
     makeItem Entry { entryTitle      = eTitle
                    , entryContents   = itemBody ePandoc
@@ -72,12 +76,23 @@ compileEntry = do
                                      $ map (GeneralTag,)  tags
                                     ++ map (CategoryTag,) cats
                                     ++ map (SeriesTag,)   sers
+                   , entryNoSignoff  = noSignoff
                    }
   where
     validLede b = case b of
                     P.Header {}      -> False
                     P.HorizontalRule -> False
                     _                -> True
+    parseSignoff (T.toLower.T.strip.T.pack->str) = case str of
+        "false" -> Just False
+        "true"  -> Just True
+        "off"   -> Just False
+        "on"    -> Just True
+        "no"    -> Just False
+        "yes"   -> Just True
+        "n"     -> Just False
+        "y"     -> Just True
+        _       -> Nothing
 
 entryCompiler
     :: (?config :: Config)
@@ -92,12 +107,14 @@ entryCompiler histList allTags = do
         aft = listToMaybe (reverse afts)
         bef = listToMaybe (drop 1 befs)
     allTs <- mapM (uncurry fetchTag)
-           . filter (`elem` (entryTags e))
+           . filter (`elem` entryTags e)
            $ allTags
+    signoffCopy <- readPandocWith entryReaderOpts =<< load "copy/static/signoff.md"
     let ei = EI { eiEntry     = e
                 , eiTags      = sortTags allTs
                 , eiPrevEntry = bef
                 , eiNextEntry = aft
+                , eiSignoff   = itemBody signoffCopy
                 }
         pd = def { pageDataTitle   = Just $ entryTitle e
                  , pageDataType    = Just "article"
@@ -121,7 +138,7 @@ entryMarkdownCompiler = do
     i <- setVersion Nothing <$> getUnderlying
     Entry{..} <- loadSnapshotBody i "entry"
     let timeString = maybe T.empty ((" on " <>) . T.pack . renderShortFriendlyTime)
-                   $ entryPostTime
+                           entryPostTime
     makeItem . T.unpack . T.unlines
       $ [ entryTitle
         , T.map (const '=') entryTitle
@@ -154,7 +171,7 @@ entryLaTeXCompiler = do
     i <- setVersion Nothing <$> getUnderlying
     Entry{..} <- loadSnapshotBody i "entry"
     let eDate    = maybe T.empty (("% " <>) . T.pack . renderShortFriendlyTime)
-                 $ entryPostTime
+                         entryPostTime
         mdHeader = T.unlines [ "% " <> entryTitle
                              , "% " <> authorName (confAuthorInfo ?config)
                              , eDate
@@ -210,9 +227,7 @@ mkCanonical slug ident source =
     ]
 
 compileTE :: Entry -> Compiler TaggedEntry
-compileTE e = do
-    ts <- mapM (uncurry fetchTag) (entryTags e)
-    return $ TE e (sortTags ts)
+compileTE e = TE e <$> mapM (uncurry fetchTag) (entryTags e)
 
 sortEntries :: [Entry] -> [Entry]
 sortEntries = sortBy (flip $ comparing entryPostTime)

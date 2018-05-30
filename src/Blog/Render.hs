@@ -91,9 +91,15 @@ renderLayout pd@PD{..} body =
           H.div ! A.id "footer-container" $
             H.div ! A.id "footer-content" $
               H.div ! A.class_ "tile" $ do
-                H.div ! A.class_ "footer-copyright" $
+                H.div ! A.class_ "footer-copyright" $ do
                   H.preEscapedToHtml $
                     "&copy; " <> confCopyright
+                  " "
+                  H.span ! A.class_ "license-link" $ do
+                    "("
+                    H.a ! A.href (H.textValue confLicenseLink) ! A.class_ "license" $
+                      H.toHtml confLicense
+                    ")"
                 H.div ! A.class_ "footer-follow social-follows" $
                   viewSocialFollow
   where

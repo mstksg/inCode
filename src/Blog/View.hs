@@ -6,6 +6,7 @@ module Blog.View where
 
 import           Blog.Types
 import           Blog.Util
+import           Data.Foldable
 import           Data.List
 import           Text.Blaze.Html5            ((!))
 import qualified Data.Text                   as T
@@ -79,12 +80,13 @@ copyToHtml = either (error . show) id
            . P.runPure
            . P.writeHtml5 entryWriterOpts
 
-copySection :: T.Text -> H.Html -> H.Html
+copySection :: Maybe T.Text -> H.Html -> H.Html
 copySection title copy = do
-    H.header $
-      H.h1 $
-        H.toHtml title
-    H.hr
+    forM_ title $ \t -> do
+      H.header $
+        H.h1 $
+          H.toHtml t
+      H.hr
     H.div ! A.class_ "copy-content" $
       copy
     H.div ! A.class_ "clear" $
