@@ -64,28 +64,40 @@ viewSocialFollow =
               "Twitter"
           H.li $
             H.a
-              ! A.class_ "social-follow-gplus"
-              ! A.title "Add me on Google+!"
-              ! A.href (H.textValue gPlusUrl) $
-              "Google+"
-          H.li $
-            H.a
-              ! A.class_ "social-follow-linkedin"
-              ! A.title "Connect with me on LinkedIn!"
-              ! A.href (H.textValue linkedInUrl) $
-              "LinkedIn"
-          H.li $
-            H.a
               ! A.class_ "social-follow-github"
               ! A.title "Fork me on Github!"
               ! A.href (H.textValue githubUrl) $
               "Github"
           H.li $
             H.a
+              ! A.class_ "social-follow-twitch"
+              ! A.title "Watch me on Twitch!"
+              ! A.href (H.textValue twitchUrl) $
+              "Twitch"
+          H.li $
+            H.a
+              ! A.class_ "social-follow-patreon"
+              ! A.title "Support me on Patreon!"
+              ! A.href (H.textValue patreonUrl) $
+              "Patreon"
+          H.li $
+            H.a
+              ! A.class_ "social-follow-gplus"
+              ! A.title "Add me on Google+!"
+              ! A.href (H.textValue gPlusUrl) $
+              "Google+"
+          H.li $
+            H.a
               ! A.class_ "social-follow-keybase"
               ! A.title "Track me on Keybase!"
               ! A.href (H.textValue keybaseUrl) $
               "Keybase"
+          H.li $
+            H.a
+              ! A.class_ "social-follow-linkedin"
+              ! A.title "Connect with me on LinkedIn!"
+              ! A.href (H.textValue linkedInUrl) $
+              "LinkedIn"
           H.li $
             H.a
               ! A.class_ "social-follow-bitcoin"
@@ -121,6 +133,8 @@ viewSocialFollow =
     githubUrl = socialUrl "https://github.com/" authorGithub
     keybaseUrl = socialUrl "https://keybase.io/" authorKeybase
     bitcoinUrl = socialUrl "bitcoin:" authorBTC
+    patreonUrl = socialUrl "https://www.patreon.com/" authorPatreon
+    twitchUrl = socialUrl "https://www.twitch.tv/" authorTwitch
     -- coinbaseUrl = socialUrl "https://coinbase.com/" authorCoinbase
     emailUrl = T.append "https://feedburner.google.com/fb/a/mailverify?loc=en_US&uri="
              $ devFeedburner confDeveloperAPIs
