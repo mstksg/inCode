@@ -1,3 +1,4 @@
+{-# LANGUAGE ApplicativeDo     #-}
 {-# LANGUAGE ImplicitParams    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
@@ -136,6 +137,7 @@ entryMarkdownCompiler
     => Compiler (Item String)
 entryMarkdownCompiler = do
     i <- setVersion Nothing <$> getUnderlying
+    signoffCopy <- readPandocWith entryReaderOpts =<< load "copy/static/signoff.md"
     Entry{..} <- loadSnapshotBody i "entry"
     let timeString = maybe T.empty ((" on " <>) . T.pack . renderShortFriendlyTime)
                            entryPostTime
@@ -159,36 +161,54 @@ entryMarkdownCompiler = do
         , either (error . show) id . P.runPure
         . P.writeMarkdown entryWriterOpts
         $ entryContents
-        ]
+        ] ++ if entryNoSignoff
+               then []
+               else [ T.empty
+                    , "---------"
+                    , T.empty
+                    , either (error . show) id . P.runPure
+                    . P.writeMarkdown entryWriterOpts
+                    $ itemBody signoffCopy
+                    ]
 
 entryLaTeXCompiler
     :: (?config :: Config)
     => Compiler (Item String)
 entryLaTeXCompiler = do
     templ <- loadBody "latex/templates/default.latex"
+    signoffCopy <- readPandocWith entryReaderOpts =<< load "copy/static/signoff.md"
     let opts = entryWriterOpts { P.writerTemplate   = Just templ }
 
     i <- setVersion Nothing <$> getUnderlying
     Entry{..} <- loadSnapshotBody i "entry"
-    let eDate    = maybe T.empty (("% " <>) . T.pack . renderShortFriendlyTime)
-                         entryPostTime
-        mdHeader = T.unlines [ "% " <> entryTitle
-                             , "% " <> authorName (confAuthorInfo ?config)
-                             , eDate
-                             , T.empty
-                             , T.concat [ "*Originally posted on **"
-                                        , "["
-                                        , confTitle ?config
-                                        , "]("
-                                        , renderUrl (T.pack entryCanonical)
-                                        , ")**.*"
-                                        ]
-                             , T.empty
-                             , either (error . show) id . P.runPure
-                             . P.writeMarkdown entryWriterOpts
-                             $ entryContents
-                             ]
-    body <- makeItem $ T.unpack mdHeader
+    let eDate  = maybe T.empty (("% " <>) . T.pack . renderShortFriendlyTime)
+                       entryPostTime
+        fullMd = T.unlines $
+            [ "% " <> entryTitle
+            , "% " <> authorName (confAuthorInfo ?config)
+            , eDate
+            , T.empty
+            , T.concat [ "*Originally posted on **"
+                       , "["
+                       , confTitle ?config
+                       , "]("
+                       , renderUrl (T.pack entryCanonical)
+                       , ")**.*"
+                       ]
+            , T.empty
+            , either (error . show) id . P.runPure
+            . P.writeMarkdown entryWriterOpts
+            $ entryContents
+            ] ++ if entryNoSignoff
+                   then []
+                   else [ T.empty
+                        , "---------"
+                        , T.empty
+                        , either (error . show) id . P.runPure
+                        . P.writeMarkdown entryWriterOpts
+                        $ itemBody signoffCopy
+                        ]
+    body <- makeItem $ T.unpack fullMd
     fmap (toTex opts) <$> readPandocWith entryReaderOpts body
   where
     toTex :: P.WriterOptions -> P.Pandoc -> String
