@@ -8,8 +8,7 @@ welcome and encouraged at [the source repository][repo].
 [repo]: https://github.com/mstksg/inCode
 
 If you feel inclined, or this post was particularly helpful for you, why not
-consider [supporting me on Patreon][patreon], or a BTC donation at
-*[3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU][btc]*? :)
+consider [supporting me on Patreon][patreon], or a [BTC donation][btc]? :)
 
 [patreon]: https://www.patreon.com/justinle
 [btc]: bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU
