@@ -13,9 +13,12 @@ me if you wish!
 
 [about]: / "It's a picture of me! :D"
 
-Check out my most popular articles: [Inside My World (Ode to Functor and
-Monad)][inside] and ["IO Monad" Considered Harmful][conharm]!
+Check out some of my most popular articles: [First-Class Statements][fcs], ["IO
+Monad" Considered Harmful][conharm], and [Purely Functional Typed
+Models][pftm]!
 
+[fcs]: https://blog.jle.im/entry/first-class-statements.html
 [inside]: http://blog.jle.im/entry/inside-my-world-ode-to-functor-and-monad.html
 [conharm]: http://blog.jle.im/entry/io-monad-considered-harmful.html
 [io]: http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity.html
+[pftm]: https://blog.jle.im/entry/purely-functional-typed-models-1.html
