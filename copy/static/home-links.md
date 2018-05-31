@@ -13,3 +13,7 @@
     * [Bitcoin](bitcoin://3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU "Bitcoin"){.home-link}
 
 [![](/img/assets/patreon.png)](https://www.patreon.com/justinle "Become a Patron"){.patreon-button}
+
+Special thanks to my supporters on Patreon!
+
+*   [Domen Kožar](https://twitter.com/iElectric)

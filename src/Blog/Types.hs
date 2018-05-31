@@ -82,6 +82,18 @@ instance ToJSON Config where
         (.=?) r = \case Just v  -> [r .= v]
                         Nothing -> []
 
+data Patron = Patron
+    { patronName    :: !T.Text
+    , patronTwitter :: !(Maybe T.Text)
+    }
+  deriving (Show, Eq, Ord, Generic)
+
+data PatronList = PatronList
+    { patronListSupport :: ![Patron]
+    , patronListAmazing :: ![Patron]
+    }
+  deriving (Show, Eq, Ord, Generic)
+
 data EnvType = ETDevelopment | ETProduction
   deriving (Show, Eq, Ord, Enum)
 
@@ -158,6 +170,21 @@ instance ToJSON DeveloperAPIs where
              , "feedburner" .= devFeedburner
              , "flattr"     .= devFlattr
              ]
+
+
+instance FromJSON Patron where
+  parseJSON = A.genericParseJSON $ A.defaultOptions
+                { A.fieldLabelModifier = A.camelTo2 '-' . drop 6 }
+instance ToJSON Patron where
+  toJSON = A.genericToJSON $ A.defaultOptions
+             { A.fieldLabelModifier = A.camelTo2 '-' . drop 6 }
+
+instance FromJSON PatronList where
+  parseJSON = A.genericParseJSON $ A.defaultOptions
+                { A.fieldLabelModifier = A.camelTo2 '-' . drop 10 }
+instance ToJSON PatronList where
+  toJSON = A.genericToJSON $ A.defaultOptions
+             { A.fieldLabelModifier = A.camelTo2 '-' . drop 10 }
 
 instance FromJSON EnvType where
   parseJSON j = case j of

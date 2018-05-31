@@ -212,6 +212,9 @@ $photo: "/img/photo_square.jpg";
       width: 8em;
     }
     border-bottom: none;
+    &:hover {
+      background-color: transparent;
+    }
   }
   ul {
     ul {

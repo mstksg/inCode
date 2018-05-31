@@ -5,6 +5,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TupleSections     #-}
+{-# LANGUAGE TypeApplications  #-}
 
 
 module Blog.App where
@@ -30,15 +31,18 @@ import           Data.List
 import           Data.Maybe
 import           Data.Ord
 import           Data.Time.LocalTime
+import           Data.Traversable
 import           Hakyll
 import           Hakyll.Web.Sass
 import           System.FilePath
 import           Text.Jasmine
 import           Text.Read                 (readMaybe)
+import qualified Data.ByteString.Lazy      as BSL
 import qualified Data.Map                  as M
 import qualified Data.Text                 as T
 import qualified Data.Text.Lazy            as TL
 import qualified Data.Text.Lazy.Encoding   as TL
+import qualified Data.Yaml                 as Y
 
 
 app :: (?config :: Config)
@@ -48,6 +52,15 @@ app znow@(ZonedTime _ tz) = do
     match "static/**" $ do
       route   $ gsubRoute "static/" (const "")
       compile copyFileCompiler
+
+    -- note: not currently used
+    match "config/*" $ do
+      route mempty
+      compile $ do
+        contents <- fmap BSL.toStrict <$> getResourceLBS
+        for contents $ \cbs -> case Y.decodeEither @Y.Value cbs of
+          Right c -> pure c
+          Left  e -> fail e
 
     create ["CNAME"] $ do
       route idRoute
@@ -309,3 +322,5 @@ compressJsCompiler = fmap f <$> getResourceString
     f :: String -> String
     f = TL.unpack . TL.decodeUtf8 . minify . TL.encodeUtf8 . TL.pack
 
+instance Writable Y.Value where
+    write fp = traverse_ (Y.encodeFile fp)

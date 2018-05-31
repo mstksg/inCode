@@ -20,6 +20,8 @@ dependencies:
 - text
 - time
 - transformers
+- yaml
+- bytestring
 
 library:
   source-dirs: src
@@ -46,7 +48,6 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - bytestring
     - cases
     - directory
     - optparse-applicative
@@ -60,4 +61,3 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - blog
-    - yaml
