@@ -207,7 +207,13 @@ $photo: "/img/photo_square.jpg";
   @include home-links-icons("Patreon",$patreon16);
   @include home-links-icons("Twitch",$twitch16);
   .patreon-button {
-    max-width: 100%;
+    img {
+      max-width: 100%;
+      width: 8em;
+    }
+    a {
+      text-decoration: none;
+    }
   }
   ul {
     ul {

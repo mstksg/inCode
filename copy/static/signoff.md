@@ -7,7 +7,9 @@ welcome and encouraged at [the source repository][repo].
 [license]: https://creativecommons.org/licenses/by-nc-nd/3.0/
 [repo]: https://github.com/mstksg/inCode
 
-If you would like to donate, I am currently accepting bitcoin donations at
-*[3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU][btc]*!
+If you feel inclined, or this post was particularly helpful for you, why not
+consider [supporting me on Patreon][patreon], or a BTC donation at
+*[3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU][btc]*? :)
 
+[patreon]: https://www.patreon.com/justinle
 [btc]: bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU
