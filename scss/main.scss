@@ -39,7 +39,7 @@ html {
 
 h1, h2, h3, h4, h5, h6 {
   font-family: $sans;
-  color: #000;
+  color: #400;
 }
 
 a {
@@ -238,7 +238,7 @@ hr {
 .hide {
   position: absolute !important;
   top: -9999px !important;
-  left: -9999px !important; 
+  left: -9999px !important;
 }
 
 @import "partial/copy-content.scss";
