@@ -10,7 +10,7 @@ no-signoff: true
 ---
 
 *Short version:* I've [started a Patreon page][patreon] for those who want to
-help support my writing in my post-doctoral life! :D
+help me sustain my writing in my post-doctoral life! :D
 
 *Long version:* Hi all!  Hope you can excuse the two non-technical and personal
 posts in a row :)  To give some context on this announcement, here's some news
