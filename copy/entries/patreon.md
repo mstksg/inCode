@@ -1,15 +1,20 @@
 ---
 title: Starting a Patreon
 categories: Meta
+tags: personal, life
 create-time: 2018/05/30 16:21:24
+date: 2018/05/30 17:22:58
 identifier: patreon
 slug: starting-a-patreon
 no-signoff: true
 ---
 
-Hi all!  Hope you can excuse the two non-technical and personal posts in a
-row :)  To give some context on this announcement, here's some news --- I
-graduated*!
+*Short version:* I've [started a Patreon page][patreon] for those who want to
+help support my writing in my post-doctoral life! :D
+
+*Long version:* Hi all!  Hope you can excuse the two non-technical and personal
+posts in a row :)  To give some context on this announcement, here's some news
+--- I graduated*!
 
 ![Graduating* from a Doctoral Program at Chapman
 University](/img/entries/patreon/graduation.jpg "I graduated!")
@@ -73,5 +78,3 @@ Thank you so much for joining me on this journey --- whether you support me
 monetarily, or just through kind words.  I am grateful for your encouragement
 and support in all forms, and I am genuinely looking forward to this next
 chapter of my life!
-
-[![](/img/assets/patreon.png)](https://www.patreon.com/justinle "Become a Patron"){.patreon-button}
