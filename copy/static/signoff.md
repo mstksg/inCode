@@ -10,5 +10,5 @@ welcome and encouraged at [the source repository][repo].
 If you feel inclined, or this post was particularly helpful for you, why not
 consider [supporting me on Patreon][patreon], or a [BTC donation][btc]? :)
 
-[patreon]: https://www.patreon.com/justinle
+[patreon]: https://www.patreon.com/justinle/overview
 [btc]: bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU

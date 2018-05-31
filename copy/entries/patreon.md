@@ -52,7 +52,7 @@ seriously :)
 In this light, I'm excited to announce that I am starting a **[Patreon
 page][patreon]**!
 
-[patreon]: https://www.patreon.com/justinle
+[patreon]: https://www.patreon.com/justinle/overview
 
 Patreon is a service that allows people to support their favorite content
 producers.  Users can choose to "become patrons" of content creators by

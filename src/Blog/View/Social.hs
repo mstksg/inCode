@@ -133,7 +133,7 @@ viewSocialFollow =
     githubUrl = socialUrl "https://github.com/" authorGithub
     keybaseUrl = socialUrl "https://keybase.io/" authorKeybase
     bitcoinUrl = socialUrl "bitcoin:" authorBTC
-    patreonUrl = socialUrl "https://www.patreon.com/" authorPatreon
+    patreonUrl = socialUrl "https://www.patreon.com/" authorPatreon <> "/overview"
     twitchUrl = socialUrl "https://www.twitch.tv/" authorTwitch
     -- coinbaseUrl = socialUrl "https://coinbase.com/" authorCoinbase
     emailUrl = T.append "https://feedburner.google.com/fb/a/mailverify?loc=en_US&uri="
