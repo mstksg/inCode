@@ -73,3 +73,5 @@ Thank you so much for joining me on this journey --- whether you support me
 monetarily, or just through kind words.  I am grateful for your encouragement
 and support in all forms, and I am genuinely looking forward to this next
 chapter of my life!
+
+[![](/img/assets/patreon.png)](https://www.patreon.com/justinle "Become a Patron"){.patreon-button}
