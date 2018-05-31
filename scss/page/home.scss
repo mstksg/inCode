@@ -183,7 +183,7 @@ $photo: "/img/photo_square.jpg";
 
 
 .home-links {
-  a {
+  a.home-link {
     &:before {
       display: inline-block;
       // background-color: #aaa;
@@ -206,14 +206,12 @@ $photo: "/img/photo_square.jpg";
   @include home-links-icons("Bitcoin",$bitcoin16);
   @include home-links-icons("Patreon",$patreon16);
   @include home-links-icons("Twitch",$twitch16);
-  .patreon-button {
+  a.patreon-button {
     img {
       max-width: 100%;
       width: 8em;
     }
-    a {
-      text-decoration: none;
-    }
+    text-decoration: none;
   }
   ul {
     ul {
