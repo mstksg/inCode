@@ -272,8 +272,8 @@ pAge = Lens' { split   = \(P n a) -> (a, n)
              }
 ```
 
-These are actually the typical lenses associated with record!  You get exactly
-these lenses if you use `makeLenses` from the *lens* package!
+These are actually the typical lenses associated with records!  You get exactly
+these lenses if you use `makeLenses` from the *lens* package.
 
 The inverse is true too.  **Every lens witnesses a product**.  The fact that we
 have a lawful `pName :: Lens' Person String` means that a `Person` *must* be a
@@ -418,27 +418,27 @@ inject (Right v) = case v of
 Again, if you don't believe me, verify that `inject . match = id` and `match .
 inject = id`!
 
-One last example -- one of my favorite sums from math is the fact that the
-natural numbers are a sum between ... themselves and themselves.  `Natural <~>
-Either Natural Natural`.  Sometimes you might hear this stated as $2 \mathbb{N}
-\equiv \mathbb{N}$ (where $2 \mathbb{N}$ can be thought of as a fancy way of
-writing $\mathbb{N} + \mathbb{N}$).  So, the sum of the naturals with
-themselves is...exactly the naturals?
+<!-- One last example -- one of my favorite sums from math is the fact that the -->
+<!-- natural numbers are a sum between ... themselves and themselves.  `Natural <~> -->
+<!-- Either Natural Natural`.  Sometimes you might hear this stated as $2 \mathbb{N} -->
+<!-- \equiv \mathbb{N}$ (where $2 \mathbb{N}$ can be thought of as a fancy way of -->
+<!-- writing $\mathbb{N} + \mathbb{N}$).  So, the sum of the naturals with -->
+<!-- themselves is...exactly the naturals? -->
 
-```haskell
--- Natural <~> Either Natural Natural
+<!-- ```haskell -->
+<!-- -- Natural <~> Either Natural Natural -->
 
-match :: Natural -> Either Natural Natural
-match n = case n `divMod` 2 of
-    (q, 0) -> Left  q       -- even number
-    (q, 1) -> Right 1       -- odd number
+<!-- match :: Natural -> Either Natural Natural -->
+<!-- match n = case n `divMod` 2 of -->
+<!--     (q, 0) -> Left  q       -- even number -->
+<!--     (q, 1) -> Right 1       -- odd number -->
 
-inject :: Either Natural Natural -> Natural
-inject (Left  q) = 2 * q
-inject (Right q) = 2 * q + 1
-```
+<!-- inject :: Either Natural Natural -> Natural -->
+<!-- inject (Left  q) = 2 * q -->
+<!-- inject (Right q) = 2 * q + 1 -->
+<!-- ``` -->
 
-Go figure!
+<!-- Go figure! -->
 
 ### Through the Looking-Prism
 
@@ -503,15 +503,13 @@ Like for lenses, prisms also admit a particularly elegant formulation for
 
 ```haskell
 over :: Lens' s a  -> (a -> a) -> (s -> s)
-over Lens'{..}  = inject . first . match
+over Lens'{..}  f = inject . first f . match    -- instance Bifunctor (,)
 
 over :: Prism' s a -> (a -> a) -> (s -> s)
-over Prism'{..} = inject . first . match
+over Prism'{..} f = inject . first f . match    -- instance Bifunctor Either
 ```
 
-Neat, they're actually exactly identical!  Who would have thought?  (For lenses
-we use the `(,)` instance for `Bifunctor` with `first`, and for prisms we use
-the `Either` instance.)
+Neat, they're actually exactly identical!  Who would have thought?
 
 So, again, **every sum yields prisms**, and **every prism witnesses one side of
 a sum**.
@@ -555,6 +553,37 @@ _RegPoly = Prism' { match  = \case Circle  r    -> Right r
 
 And these are actually the typical prisms associated with an ADT.  You actually
 get exactly these if you use `makePrisms` from the *lens* package.
+
+What can we get out of our decomposition of `[a]` as a sum between `()` and
+`(a, [a])`?  Let's look at them:
+
+```haskell
+_Nil :: Prism' [a] ()
+_Nil = Prism' { match  = \case []            -> Left ()
+                               x:xs          -> Right (x, xs)
+              , inject = \case Left _        -> []
+                               Right (x, xs) -> x:xs
+              }
+
+_Cons :: Prism' [a] (a, [a])
+_Cons = Prism' { match  = \case []            -> Right ()
+                                x:xs          -> Left (x, xs)
+               , inject = \case Left  (x, xs) -> x:xs
+                                Right _       -> []
+               }
+```
+
+We see a sort of pattern here.  And, if we look deeper, we will see that *all
+prisms* correspond to some sort of "constructor".
+
+After all, what do constructors give you?  Two things:
+
+1.  The ability to "create" a value.  This corresponds to `review`, or `inject`
+2.  The ability to do "case-analysis" or check if a value was created using
+    that constructor.  This corresponds to `preview`, or `match`.
+
+
+<!-- After all, what do constructors allow you --> 
 
 
 <!-- ### Type-Changing Lenses -->
