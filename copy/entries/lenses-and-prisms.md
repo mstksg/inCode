@@ -421,9 +421,9 @@ inject = id`!
 One last example -- one of my favorite sums from math is the fact that the
 natural numbers are a sum between ... themselves and themselves.  `Natural <~>
 Either Natural Natural`.  Sometimes you might hear this stated as $2 \mathbb{N}
-~ \mathbb{N}$ (where $2 \mathbb{N}$ can be thought of as a fancy way of writing
-$\mathbb{N} + \mathbb{N}$).  So, the sum of the naturals with themselves
-is...exactly the naturals?
+\equiv \mathbb{N}$ (where $2 \mathbb{N}$ can be thought of as a fancy way of
+writing $\mathbb{N} + \mathbb{N}$).  So, the sum of the naturals with
+themselves is...exactly the naturals?
 
 ```haskell
 -- Natural <~> Either Natural Natural
@@ -513,10 +513,6 @@ Neat, they're actually exactly identical!  Who would have thought?  (For lenses
 we use the `(,)` instance for `Bifunctor` with `first`, and for prisms we use
 the `Either` instance.)
 
-The fact that these are identical actually hint that we can unify the
-representation of `Lens'` and `Prism'` to be one single data type.  But that is
-a topic for a different day!
-
 So, again, **every sum yields prisms**, and **every prism witnesses one side of
 a sum**.
 
@@ -543,15 +539,15 @@ prisms*:
 
 ```haskell
 _Circle :: Prism' Shape Natural
-_Circle = Prism' { match  = \case Circle  r   -> Left r
-                                  RegPoly n s -> Right (n, s)
+_Circle = Prism' { match  = \case Circle  r    -> Left r
+                                  RegPoly n s  -> Right (n, s)
                  , inject = \case Left   r     -> Circle r
                                   Right (n, s) -> RegPoly n s
                  }
 
 _RegPoly :: Prism' Shape (Natural, Double)
-_RegPoly = Prism' { match  = \case Circle  r   -> Right r
-                                   RegPoly n s -> Left (n, s)
+_RegPoly = Prism' { match  = \case Circle  r    -> Right r
+                                   RegPoly n s  -> Left (n, s)
                   , inject = \case Left  (n, s) -> RegPoly n s
                                    Right  r     -> Circle r
                   }
