@@ -220,9 +220,8 @@ view :: Lens' s a -> (s -> a)
 view Lens'{..} = fst . split
 
 set :: Lens' s a -> (a -> s -> s)
-set Lens'{..} newVal x = unsplit (newVal, q)      -- "replace" the `a`
-  where
-    (_, q) = split x
+set Lens'{..} newVal x = case split x of
+    (_, q) -> unsplit (newVal, q)      -- "replace" the `a`
 ```
 
 (Using the *-XRecordWildcards* extension, where `Lens'{..}` binds `split` and
@@ -375,7 +374,8 @@ is a sum in disguise.
 
 Another interesting "hidden sum" is the fact that `[a]` in Haskell is actually
 a sum between `()` and `(a, [a])`.  That's right --- it's a sum between `()`
-and...itself?
+and...itself?  We can interpret this as `()` being one possibility, and `(a,
+[a])` (head consed with another list) as the other:
 
 ```haskell
 -- [a] <~> Either () (a, [a])
@@ -392,7 +392,36 @@ inject (Right (x, xs)) = x:xs
 If you don't believe me, just verify that `inject . match = id` and `match .
 inject = id` :)
 
-And, if we consider the "empty data type" `Void`, the type with no inhabitants:
+
+Actually, however, there is another way to deconstruct `[a]` as a sum in
+Haskell.  You can treat it as a sum between `()` and `([a], a)` --- where the
+`()` represents the empty list and the `([a], a)` represents an "all but the
+last item" list and "the last item":
+
+```haskell
+-- [a] <~> Either () ([a], a)
+
+match  :: [a] -> Either () ([a], a)
+match xs
+  | null xs   = Left  ()
+  | otherwise = Right (init xs, last xs)
+
+inject :: Either () (a, [a]) -> [a]
+inject (Left   _     ) = []
+inject (Right (xs, x)) = xs ++ [x]
+```
+
+I just think it's interesting that the same type can be "decomposed" into a sum
+of two different types in multiple ways.
+
+(Fun haskell challenge: the version of `match` I wrote there is conceptually
+simple, but very inefficient.  It traverses the input list three times, uses
+two partial functions, and uses a `Bool`.  Can you write a `match` that does
+the same thing while traversing the input list only once and using no partial
+functions or `Bool`s?)
+
+One final curious sum: if we consider the "empty data type" `Void`, the type
+with no inhabitants:
 
 ```haskell
 data Void           -- no constructors, no valid inhabitants
@@ -582,8 +611,11 @@ After all, what do constructors give you?  Two things:
 2.  The ability to do "case-analysis" or check if a value was created using
     that constructor.  This corresponds to `preview`, or `match`.
 
+The API of a "constructor" is pretty much exactly the Prism API.  In fact, we
+often use Prisms to simulate "abstract" constructors.
 
-<!-- After all, what do constructors allow you --> 
+
+<!-- After all, what do constructors allow you -->
 
 
 <!-- ### Type-Changing Lenses -->
