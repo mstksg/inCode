@@ -186,10 +186,10 @@ that "break the laws".  This representation is, to use the technical term, "too
 big".  It allows more more values than are actual lenses.
 
 So, here's the secret: A `Lens' s a` means that *`s` is a product between
-`a` and some type `x`*.
+`a` and some type `q`*.
 
 That means that if it is possible to represent `s` as some `(a, q)` (that is,
-`s <~> (a, q)`), *then you have a lens*! Lenses are nothing more than
+`s <~> (a, q)`), *then you have two lenses*! Lenses are nothing more than
 **descriptions of products**!
 
 In other words, a `Lens' s a` is nothing more than a witness for an `exists q.
@@ -208,7 +208,7 @@ data Lens' s a = forall q.
 Now, if `split` and `join` form an isomorphism, *this can only represent valid
 lenses*![^big]
 
-This type is technically also "too big" (you can write a value where `split`
+[^big]: This type is technically also "too big" (you can write a value where `split`
 and `unsplit` do not form an isomorphism), but I think, to me, "`split` and
 `join` must form an isomorphism" is a much clearer and natural law than
 get-put/put-get/put-put.
@@ -237,8 +237,8 @@ over Lens'{..} f = unsplit . first f . split
 ```
 
 The surprising result of this perspective is that **every product yields
-lenses** (one for every item in the product), and **every lens witnesses a
-product**.
+lenses** (one for every item in the product), and **every lens witnesses one
+side of a product**.
 
 ### Insights Gleamed
 
@@ -271,6 +271,9 @@ pAge = Lens' { split   = \(P n a) -> (a, n)
              , unsplit = \(a, n)  -> P n a
              }
 ```
+
+These are actually the typical lenses associated with record!  You get exactly
+these lenses if you use `makeLenses` from the *lens* package!
 
 The inverse is true too.  **Every lens witnesses a product**.  The fact that we
 have a lawful `pName :: Lens' Person String` means that a `Person` *must* be a
@@ -439,7 +442,123 @@ Go figure!
 
 ### Through the Looking-Prism
 
+Now let's bring prisms into the picture.  A `Prism' s a` also refers to some
+`a` "inside" an `s`, with the following API: `preview` and `review`[^invent]
 
+[^invent]: I didn't invent these names :)
+
+```haskell
+preview :: Prism' s a -> (s -> Maybe a)   -- get the 'a' in the 's' if it exists
+review  :: Prism' s a -> (a -> s)         -- reconstruct the 's' from an 'a'
+```
+
+Naively you might implement a prism like this:
+
+```haskell
+data Prism' s a = Prism' { preview :: s -> Maybe a
+                         , review  :: a -> s
+                         }
+```
+
+But, again, this implementation space is too big.  There are way too many
+values of this type that aren't *actual* "lawful" prisms.  And the laws are
+kind of muddled here.
+
+You might be able to guess where I'm going at this point.  Whereas a `Lens' s
+a` is nothing more than a witness to the fact that `s` is a *product* `(a,
+q)` ... a `Prism' s a` is nothing more than a witness to the fact that `s` is a
+*sum* `Either a q`.  If it is possible to represent `s` as some `Either a
+q`...then you have two prisms!  Prisms are nothing more than **descriptions of
+products**!
+
+A `Prism' s a` is nothing more than a witness for an `exists q. s <~> Either a
+q` isomorphism.
+
+Under this interpretation, we can write a nice representation of `Prism'`:
+
+```haskell
+data Prism' s a = forall q.
+                  Prism' { match  :: s -> Either a q
+                         , inject :: Either a q -> s
+                         }
+```
+
+Now, if `match` and `inject` form an isomorphism, *this can only represent
+valid prisms*!
+
+We can now implement the prism API:
+
+```haskell
+preview :: Prism' s a -> (s -> Maybe a)
+preview Prism'{..} x = case match x of
+    Left _  -> Nothing
+    Right y -> Just y
+
+review  :: Prism' s a -> (a -> s)
+review Prism'{..} = inject . Left
+```
+
+Like for lenses, prisms also admit a particularly elegant formulation for
+`over`:
+
+```haskell
+over :: Lens' s a  -> (a -> a) -> (s -> s)
+over Lens'{..}  = inject . first . match
+
+over :: Prism' s a -> (a -> a) -> (s -> s)
+over Prism'{..} = inject . first . match
+```
+
+Neat, they're actually exactly identical!  Who would have thought?  (For lenses
+we use the `(,)` instance for `Bifunctor` with `first`, and for prisms we use
+the `Either` instance.)
+
+The fact that these are identical actually hint that we can unify the
+representation of `Lens'` and `Prism'` to be one single data type.  But that is
+a topic for a different day!
+
+So, again, **every sum yields prisms**, and **every prism witnesses one side of
+a sum**.
+
+### Prism Tour
+
+Let's go back at our example prisms and see what sort of insight we can gain
+from this perspective.
+
+```haskell
+data Shape = Circle  Double
+           | RegPoly Natural Double
+
+match :: Shape -> Either Double (Natural, Double)
+match (Circle  r  ) = Left r
+match (RegPoly n s) = Right (n, s)
+
+inject :: Either Double (Natural, Double) -> Shape
+inject (Left   r    ) = Circle  r
+inject (Right (n, s)) = RegPoly n s
+```
+
+Because `Shape` is a sum between `Double` and `(Natural, Double)`, we get *two
+prisms*:
+
+```haskell
+_Circle :: Prism' Shape Natural
+_Circle = Prism' { match  = \case Circle  r   -> Left r
+                                  RegPoly n s -> Right (n, s)
+                 , inject = \case Left   r     -> Circle r
+                                  Right (n, s) -> RegPoly n s
+                 }
+
+_RegPoly :: Prism' Shape (Natural, Double)
+_RegPoly = Prism' { match  = \case Circle  r   -> Right r
+                                   RegPoly n s -> Left (n, s)
+                  , inject = \case Left  (n, s) -> RegPoly n s
+                                   Right  r     -> Circle r
+                  }
+```
+
+And these are actually the typical prisms associated with an ADT.  You actually
+get exactly these if you use `makePrisms` from the *lens* package.
 
 
 <!-- ### Type-Changing Lenses -->
