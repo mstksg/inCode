@@ -15,6 +15,7 @@ import           Data.Default
 import           Hakyll
 import           Hakyll.Web.Blaze
 import qualified Data.Text              as T
+import qualified Data.Yaml              as Y
 
 homeCompiler
     :: (?config :: Config)
@@ -29,6 +30,9 @@ homeCompiler allPages allTags i p = do
     allTs <- mapM (uncurry fetchTag) allTags
     linksCopy  <- readPandocWith entryReaderOpts =<< load "copy/static/home-links.md"
     bannerCopy <- readPandocWith entryReaderOpts =<< load "copy/static/home-banner.md"
+    patronList <- either fail pure
+                . Y.decodeEither
+              =<< loadBody "config/patrons.yaml"
     let hi = HI { hiPageNum    = i
                 , hiPrevPage   =
                     if | i <= 1
@@ -46,6 +50,7 @@ homeCompiler allPages allTags i p = do
                 , hiAllTags    = allTs
                 , hiLinksCopy  = itemBody linksCopy
                 , hiBannerCopy = itemBody bannerCopy
+                , hiPatrons    = patronListSupport patronList
                 }
         pd = def { pageDataTitle = if i == 1
                                      then Nothing
@@ -63,6 +68,6 @@ homeCompiler allPages allTags i p = do
       then do
         _ <- saveSnapshot "index" render
         redirectCompiler (\_ -> renderUrl "/index.html")
-      else do
+      else
         return render
 

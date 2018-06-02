@@ -5,7 +5,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TupleSections     #-}
-{-# LANGUAGE TypeApplications  #-}
 
 
 module Blog.App where
@@ -56,11 +55,7 @@ app znow@(ZonedTime _ tz) = do
     -- note: not currently used
     match "config/*" $ do
       route mempty
-      compile $ do
-        contents <- fmap BSL.toStrict <$> getResourceLBS
-        for contents $ \cbs -> case Y.decodeEither @Y.Value cbs of
-          Right c -> pure c
-          Left  e -> fail e
+      compile $ fmap BSL.toStrict <$> getResourceLBS
 
     create ["CNAME"] $ do
       route idRoute
@@ -321,6 +316,3 @@ compressJsCompiler = fmap f <$> getResourceString
   where
     f :: String -> String
     f = TL.unpack . TL.decodeUtf8 . minify . TL.encodeUtf8 . TL.pack
-
-instance Writable Y.Value where
-    write fp = traverse_ (Y.encodeFile fp)

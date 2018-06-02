@@ -181,6 +181,20 @@ $photo: "/img/photo_square.jpg";
   }
 }
 
+.home-patrons {
+  ul {
+    list-style-type: disc;
+  }
+  li {
+    margin-left: 1em;
+  }
+  p {
+    margin-bottom: 0.5rem;
+  }
+
+  font-style: italic;
+  font-size: 90%;
+}
 
 .home-links {
   a.home-link {

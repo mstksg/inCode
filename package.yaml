@@ -8,6 +8,7 @@ license:          BSD3
 
 ghc-options:
 - -Wall
+- -fwarn-redundant-constraints
 
 dependencies:
 - base >=4 && <5
