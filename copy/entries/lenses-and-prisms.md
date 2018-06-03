@@ -14,16 +14,15 @@ famous (and my favorite) [lenses over tea][tea] series.
 
 [tea]: https://artyom.me/lens-over-tea-1
 
-This post won't be a "lens tutorial", but rather a dive into a (what I believe
-is an) insightful perspective on lenses and prisms that I've heard repeated
-many times, but not yet all gathered together into a single place.  In
-particular, I'm going to talk about the perspective of lenses and prisms as
-embodying the essences of products and sums (respectively), and how that
-observation can help you with a more "practical" understanding of lenses and
-prisms.
+This post won't be a "lens tutorial", but rather a dive into an insightful
+perspective on lenses and prisms that I've heard repeated many times, but not
+yet all compiled into a single place.  In particular, I'm going to talk about
+the perspective of lenses and prisms as embodying the essences of products and
+sums (respectively), and how that observation can help you with a more
+"practical" understanding of lenses and prisms.
 
-Products and Sums
------------------
+An Algebraic Recap
+------------------
 
 In Haskell, "products and sums" can roughly be said to correspond to "tuples
 and `Either`".  If I have two types `A` and `B`, `(A, B)` is their "product"
@@ -47,7 +46,7 @@ It's easy to recognize `(Int, Double)` as a product between `Int` and
 `Bool`.  However, did you know that some types are secretly product types in
 disguise?
 
-For example, here's a classic example of a lensable data type
+For example, here's a classic example of a data type often used with *lens*:
 
 ```haskell
 data Person = P { _pName :: String
@@ -59,10 +58,10 @@ data Person = P { _pName :: String
 *product* between a `String` and `Int`.  `Person` is *isomorphic* to `(String,
 Int)`.  I will be writing this as `Person <~> (String, Int)`.
 
-By *isomorphic*, I mean that there are functions `split :: Person -> (String, Int)`
-and `unsplit :: (String, Int) -> Person` where `unsplit . split = id` and `split .
-unsplit = id`.  You can think of this property as stating formally that you
-should be able to go from one type to the other without "losing any
+By *isomorphic*, I mean that there are functions `split :: Person -> (String,
+Int)` and `unsplit :: (String, Int) -> Person` where `unsplit . split = id` and
+`split . unsplit = id`.  You can think of this property as stating formally
+that you should be able to go from one type to the other without "losing any
 information".
 
 In our case, we have:
@@ -189,11 +188,17 @@ So, here's the secret: A `Lens' s a` means that *`s` is a product between
 `a` and some type `q`*.
 
 That means that if it is possible to represent `s` as some `(a, q)` (that is,
-`s <~> (a, q)`), *then you have two lenses*! Lenses are nothing more than
+`s <~> (a, q)`), *then you have two lenses*!  Lenses are nothing more than
 **descriptions of products**!
 
 In other words, a `Lens' s a` is nothing more than a witness for an `exists q.
-s <~> (a, q)` isomorphism.
+s <~> (a, q)` isomorphism.[^exists]
+
+[^exists]: The `exists q. s <~> (a, q)` is a way of saying that `Lens' s a`
+witnesses an isomorphism between `s` and the product of `a` and some "hidden"
+type `q`.  A `Lens' s a` is a statement that some `q` *exists* in the first
+place.  If no such type exists, no lens is possible.  And, for many lenses, `q`
+might be an abstract type.
 
 With that in mind, let's re-visit a saner definition of lenses based on the
 idea that lenses embody descriptions of products:
@@ -204,6 +209,9 @@ data Lens' s a = forall q.
                        , unsplit :: (a, q) -> s
                        }    -- ^ s <~> (a, q)
 ```
+
+(the `forall q.` is the *-XExistentialQuantification* extension, and allows us
+to hide type variables in consructors)
 
 Now, if `split` and `join` form an isomorphism, *this can only represent valid
 lenses*![^big]
@@ -260,12 +268,14 @@ a `Lens' Person String` and `Lens' Person Int`.  *Every product* gives us a
 lens for every item in the product.
 
 ```haskell
+-- Person <~> (String, Int)
+
 pName :: Lens' Person String
 pName = Lens' { split   = \(P n a) -> (n, a)
               , unsplit = \(n, a)  -> P n a
               }
 
-pAge :: Lens' Person String
+pAge :: Lens' Person Int
 pAge = Lens' { split   = \(P n a) -> (a, n)
              , unsplit = \(a, n)  -> P n a
              }
@@ -290,20 +300,22 @@ we always have an "identity" lens `Lens' a a`, and a "unit" lens `Lens' a ()`,
 for any `a`:
 
 ```haskell
+-- a <~> (a, ())
+
 identity :: Lens' a a
 identity = Lens' { split   = \x      -> (x, ())
                  , unsplit = \(x, _) -> x
                  }
 
-unital :: Lens' a ()
-unital = Lens' { split   = \x       -> ((), x)
+united :: Lens' a ()
+united = Lens' { split   = \x       -> ((), x)
                , unsplit = \((), x) -> x
                }
 ```
 
 In the language of lens, `identity :: Lens' a a` tells us that all `a`s have an
 `a` "inside" them.  However, in the language of products, this just tells us
-that `a` can be represented as `(a, ())`.  In the language of lens, `unital ::
+that `a` can be represented as `(a, ())`.  In the language of lens, `united ::
 Lens' a ()` tells us that all `a`s have a `()` "inside" them.  In the language
 of products, this just tells us that `a <~> (a, ())`.
 
@@ -334,8 +346,8 @@ embodiment of the fact that `s` can be represented as a product between `a` and
 something else --- that `s <~> (a, q)`.  All of the lens laws just boil down to
 this.  **Lenses embody products**.
 
-There's Sum-thing about This...
--------------------------------
+\"Sum-thing\" Interesting
+-------------------------
 
 It's easy to recognize `Either Int Bool` as a sum between `Int` and `Bool`.
 However, did you know that some types are secretly sums in disguise?
@@ -406,6 +418,9 @@ match xs
   | null xs   = Left  ()
   | otherwise = Right (init xs, last xs)
 
+-- init gives you all but the last item:
+-- > init [1,2,3] = [1,2]
+
 inject :: Either () (a, [a]) -> [a]
 inject (Left   _     ) = []
 inject (Right (xs, x)) = xs ++ [x]
@@ -414,14 +429,8 @@ inject (Right (xs, x)) = xs ++ [x]
 I just think it's interesting that the same type can be "decomposed" into a sum
 of two different types in multiple ways.
 
-(Fun haskell challenge: the version of `match` I wrote there is conceptually
-simple, but very inefficient.  It traverses the input list three times, uses
-two partial functions, and uses a `Bool`.  Can you write a `match` that does
-the same thing while traversing the input list only once and using no partial
-functions or `Bool`s?)
-
-One final curious sum: if we consider the "empty data type" `Void`, the type
-with no inhabitants:
+Another curious sum: if we consider the "empty data type" `Void`, the type with
+no inhabitants:
 
 ```haskell
 data Void           -- no constructors, no valid inhabitants
@@ -433,15 +442,18 @@ then we have a curious sum: every type `a` is a sum between *itself* and
 ```haskell
 -- a <~> Either a Void
 
+-- a useful helper function when working with `Void`
+absurd :: Void -> a
+absurd = \case -- empty case statement because we have
+               -- no constructors of 'Void' we need to
+               -- match on
+
 match :: a -> Either a Void
 match x = Left x
 
 inject :: Either a Void -> a
 inject (Left  x) = x
-inject (Right v) = case v of
-                    {}  -- empty case statement because we have
-                        -- no constructors of 'v' we need to
-                        -- match on
+inject (Right v) = absurd v
 ```
 
 Again, if you don't believe me, verify that `inject . match = id` and `match .
@@ -540,8 +552,8 @@ over Prism'{..} f = inject . first f . match    -- instance Bifunctor Either
 
 Neat, they're actually exactly identical!  Who would have thought?
 
-So, again, **every sum yields prisms**, and **every prism witnesses one side of
-a sum**.
+So we see now, similar to lenses, **every sum yields prisms**, and **every
+prism witnesses one side of a sum**.
 
 ### Prism Tour
 
@@ -565,6 +577,8 @@ Because `Shape` is a sum between `Double` and `(Natural, Double)`, we get *two
 prisms*:
 
 ```haskell
+-- Shape <~> Either Natural (Natural, Double)
+
 _Circle :: Prism' Shape Natural
 _Circle = Prism' { match  = \case Circle  r    -> Left r
                                   RegPoly n s  -> Right (n, s)
@@ -587,6 +601,8 @@ What can we get out of our decomposition of `[a]` as a sum between `()` and
 `(a, [a])`?  Let's look at them:
 
 ```haskell
+-- [a] <~> Either () (a, [a])
+
 _Nil :: Prism' [a] ()
 _Nil = Prism' { match  = \case []            -> Left ()
                                x:xs          -> Right (x, xs)
@@ -613,6 +629,102 @@ After all, what do constructors give you?  Two things:
 
 The API of a "constructor" is pretty much exactly the Prism API.  In fact, we
 often use Prisms to simulate "abstract" constructors.
+
+An *abstract constructor* is exactly what our *other* `[a]` sum decomposition
+gives us!  If we look at that isomorphism `[a] <~> Either () ([a], a)` and
+write out the prisms, we see that they correspond to the abstract constructors
+`_Nil` and `_Snoc`:
+
+```haskell
+-- [a] <~> Either () ([a], a)
+
+_Nil :: Prism' [a] ()
+_Nil = Prism' { match  = \xs -> if null xs
+                                  then Left  ()
+                                  else Right (init xs, last xs)
+              , inject = \case Left _        -> []
+                               Right (xs, x) -> xs ++ [x]
+              }
+
+_Snoc :: Prism' [a] ([a], a)
+_Snoc = Prism' { match  = \xs -> if null xs
+                                   then Right ()
+                                   else Left  (init xs, last xs)
+               , inject = \case Left  (xs, x) -> xs ++ [x]
+                                Right _       -> []
+               }
+```
+
+`_Snoc` (`mysteryPrism2`) is an abstract constructor for a list that lets us:
+
+1.  "Construct" an `[a]` given an original list `[a]` and an item to add to the
+    end, `a`
+2.  "Deconstruct" an `[a]` into an initial run `[a]` and its last element `a`
+    (as a pattern match that might "fail").
+
+And, our final sum, `a <~> Either a Void`...what does that decomposition give
+us, conceptually?
+
+```haskell
+-- a <~> Either a Void
+
+identity :: Prism' a a
+identity = Prism' { match = Left
+                  , inject = \case
+                      Left  x -> x
+                      Right v -> absurd v
+                  }
+
+
+_Void :: Prism' a Void
+_Void = Prism' { match = Right
+               , inject = \case
+                   Left  v -> absurd v
+                   Right x -> x
+               }
+```
+
+In lens-speak, `identity :: Prism' a a` tells us that all `a`s have an `a`
+"inside" them (since `match` always matches) and that you can construct an `a`
+with only an `a` (whoa).  In our "sum" perspective, however, it just witnesses
+that an `a <~> Either a Void` sum.
+
+In lens-speak, `_Void :: Prism' a Void` tells us that you can pattern match a
+`Void` out of any `a`...but that that pattern match will never fail.
+Furthermore, it tells us that if you have a value of type `Void`, you can use
+the `_Void` "constructor" to make a value of any type `a`!  That is, `review ::
+Prism' a Void -> (Void -> a)`!
+
+However, in our "sum" perspective, it is nothing more than the witness of the
+fact that `a` is the sum of `a` and `Void`.
+
+### Prism or Not
+
+To me, however, one of the most useful things about this prism perspective is
+that it helps me see what *isn't* a prism.
+
+For example, is it possible to have a prism into the *head* of a list?  That
+is, is the following prism possible?
+
+```haskell
+_head :: Prism' [a] a           -- get the head of a list
+```
+
+If you think of a prism as just "a lens that might fail" (as it's often
+taught), you might think yes.  If you think of a prism as just "a constructor
+and deconstructor", you might also think yes, since you can construct an `[a]`
+with only a single `a`.[^headconst]
+
+[^headconst]: Although, upon further thought, you might realize that
+the constructor and deconstructor don't match
+
+However, if you think of it as witnessing a sum, you might see that this prism
+isn't possible.  There is no possible type `q` where `[a]` is a sum of `a` and
+`q`.  The isomorphism `[a] <~> Either a q` cannot be made for *any* type `q`.
+There is no way to express `[a]` as the sum of `a` and some other type.  Try
+thinking of a type `q` --- it's just not possible!
+
+
 
 
 <!-- After all, what do constructors allow you -->
@@ -837,4 +949,15 @@ often use Prisms to simulate "abstract" constructors.
 <!--     -> p s s -->
 <!-- fromLens' (Lens' spl uns) p = rmap split (lmap unsplit (first p)) -->
 <!-- ``` -->
+
+excercises:
+
+1.  Is (a, Void) a decomp
+2.  what does the (Bool, a) <~> Either a a sum give us
+
+(Fun haskell challenge: the version of `match` I wrote there is conceptually
+simple, but very inefficient.  It traverses the input list three times, uses
+two partial functions, and uses a `Bool`.  Can you write a `match` that does
+the same thing while traversing the input list only once and using no partial
+functions or `Bool`s?)
 
