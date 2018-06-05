@@ -437,46 +437,32 @@ is a sum in disguise.
 
 Another interesting "hidden sum" is the fact that `[a]` in Haskell is actually
 a sum between `()` and `(a, [a])`.  That's right --- it's a sum between `()`
-and...itself?  Indeed it is pretty bizarre.  However, we can interpret this as
-`()` being one possibility (the empty list), and `(a, [a])` (head consed with
-another list) as the other:
+and...itself?  Indeed it is pretty bizarre.
 
-```haskell
--- [a] <~> Either () (a, [a])
+However, if we think of `()` as the possibility of an empty list, and `(a, [a])`
+as the possibility of `NonEmpty a` (the "head" of a list consed with the rest of
+the list), then saying that `[a]` is a sum between `()` and `NonEmpty a` is
+saying that `[a]` is "either an empty list or a non-empty list".  Whoa.  Take
+*that*, [LEM denialists][lem-denialists].
 
-match :: [a] -> Either () (a, [a])
-match []     = Left  ()
-match (x:xs) = Right (x, xs)
-
-inject :: Either () (a, [a]) -> [a]
-inject (Left   _     ) = []
-inject (Right (x, xs)) = x:xs
-```
-
-If you don't believe me, just verify that `inject . match = id` and `match .
-inject = id` :)
-
-Another way of looking at this decomposition is by saying that `[a]` is the sum
-between `()` and `NonEmpty a`:
+[lem-denialists]: https://en.wikipedia.org/wiki/Constructivism_(mathematics)
 
 ```haskell
 -- [a] <~> Either () (NonEmpty a)
 
-match :: [a] -> Either () (a, [a])
+match :: [a] -> Either () (NonEmpty a)
 match []     = Left  ()
 match (x:xs) = Right (x :| xs)
 
-inject :: Either () (a, [a]) -> [a]
+inject :: Either () (NonEmpty a) -> [a]
 inject (Left   _       ) = []
 inject (Right (x :| xs)) = x:xs
 ```
 
-which says that `[a]` is "either an empty list, or a non-empty list".  Whoa.
-
-Actually, there is another way to deconstruct `[a]` as a sum in
-Haskell.  You can treat it as a sum between `()` and `([a], a)` --- where the
-`()` represents the empty list and the `([a], a)` represents an "all but the
-last item" list and "the last item":
+And, actually, there is another way to deconstruct `[a]` as a sum in Haskell.
+You can treat it as a sum between `()` and `([a], a)` --- where the `()`
+represents the empty list and the `([a], a)` represents an "all but the last
+item" list and "the last item":
 
 ```haskell
 -- [a] <~> Either () ([a], a)
@@ -527,6 +513,63 @@ inject (Right v) = absurd v
 
 Again, if you don't believe me, verify that `inject . match = id` and `match .
 inject = id`!
+
+One final example: earlier, we said that every type can be decomposed as a
+*product* involving `()`.  Algebraically, finding that mystery type is easy ---
+we solve $x = 1 * y$ for $y$ (since `()` is 1), and we see $y = x$.  This tells
+us that every type is a product between `()` and itself (`a <~> ((), a)`).
+
+However, can every type be decomposed as a *sum* involving `()`?
+
+Algebraically, we need to find this mystery type by solving $x = 1 + y$ for
+$y$, and the result is $y = x - 1$.  We can interpret $x - 1$ as "`a`, minus
+one potential element".
+
+This type isn't expressible in general in Haskell, so *no*, not *every* type
+can be decomposed as a sum involving `()`.  The necessary and sufficient
+condition is that there must exist some type that is the same as your original
+type but with one missing element.
+
+Oh, hey!  Remember our `[a] <~> Either () (NonEmpty a)` decomposition?  That's
+exactly this!  We can `NonEmpty a` is our mystery type: it's exactly a list
+`[a]` minus one potential element (the empty list).
+
+There's another way to go about this: we can talk about $x - 1$ by specifying
+one single "forbidden element".  This isn't explicitly possible in Haskell, but
+we can simulate this by using an abstract type.  We have this ability using
+"refinement types".  For example, using the [refined][] library, a `Refined
+(NotEqualTo 4) Int` is a type that is the same as `Int`, except the `4` value
+is forbidden.
+
+[refined]: http://hackage.haskell.org/package/refined
+
+We can use it to implement a `Int <~> Either () (Refined (NotEqualTo 4) Int)`
+witness:
+
+```haskell
+-- | Like `Int`, but cannot be constructed if it is 4
+type Not4 = Refined (NotEqualTo 4) Int
+
+-- | Provided by the 'refined' library that lets us refine and unrefine a type
+refineFail :: Int  -> Maybe Not4
+unrefine   :: Not4 -> Int
+
+
+-- | The "safe constructor"
+match :: Int -> Either () Not4
+match n = case refineFail n of
+    Nothing -> Left ()          -- the value was 4, so we return `Left`
+    Just x  -> Right x          -- value was succesfully refined
+
+-- | The "safe extractor"
+inject :: Either () Not4 -> Int
+inject (Left  _) = 4
+inject (Right x) = unrefine x
+```
+
+In fact, if we can parameterize an isomorphism on a specific value, *all* types
+with at least one value can be expressed as a sum involving `()`!  It's always
+`()` plus the type itself minus that given specific value.
 
 ### Through the Looking-Prism
 
@@ -741,11 +784,69 @@ that an `a <~> Either a Void` sum.
 In lens-speak, `_Void :: Prism' a Void` tells us that you can pattern match a
 `Void` out of any `a`...but that that pattern match will never fail.
 Furthermore, it tells us that if you have a value of type `Void`, you can use
-the `_Void` "constructor" to make a value of any type `a`!  That is, `review ::
-Prism' a Void -> (Void -> a)`!
+the `_Void` "constructor" to make a value of any type `a`!  We have `review
+_Void :: Void -> a`!
 
 However, in our "sum" perspective, it is nothing more than the witness of the
 fact that `a` is the sum of `a` and `Void`.
+
+And finally, let's look at our deconstruction of `Int` and `Reinfed (NotEqualTo
+4) Int`.  What prisms does this yield, and what insight do we get?
+
+```haskell
+only4 :: Prism' Int ()
+only4 = Prism'
+    { match  = \n -> case refineFail n of
+                       Nothing -> Left ()
+                       Just x  -> Right x
+    , inject = \case Left  _ -> 4
+                     Right x -> unrefine x
+    }
+
+refined4 :: Prism' Int Not4
+refined4 = Prism'
+    { match  = \n -> case refineFail n of
+                       Nothing -> Right ()
+                       Just x  -> Left x
+    , inject = \case Left  x -> unrefine x
+                     Right _ -> 4
+    }
+```
+
+The first prism, `only4`, is a prism that basically "only matches" on the `Int`
+if it is `4`.  We can use it to implement "is equal to four", and "get a 4"
+
+```haskell
+-- | Checks if a value is 4
+isEqualTo4 :: Int -> Bool
+isEqualTo4 = isJust . preview only4
+
+-- | Just is '4'
+four :: Int
+four = review ()
+```
+
+The name `only4` is inspired by the `only` combinator from the *lens* library,
+which lets you provide a value you want to "restrict".
+
+```haskell
+-- | From the lens library; lets you provide the value you want to "restrict"
+only :: Eq a => a -> Prism' a ()
+
+only4 :: Prism' Int ()
+only4 = only 4
+```
+
+The second prism, `refined4`, basically acts like a "smart constructor" for
+`Not4`, essentially `refineFail` and `unrefine`:
+
+```haskell
+makeNot4 :: Int -> Maybe Not4
+makeNot4 = preview refined4
+
+fromNot4 :: Not4 -> Int
+fromNot4 = review refined4
+```
 
 ### Prism or Not
 
@@ -762,7 +863,9 @@ _head :: Prism' [a] a           -- get the head of a list
 If you think of a prism as just "a lens that might fail" (as it's often
 taught), you might think yes.  If you think of a prism as just "a constructor
 and deconstructor", you might also think yes, since you can construct an `[a]`
-with only a single `a`, so `review :: a -> [a]` is possible.[^headconst]
+with only a single `a`.  You can definitely "implement" this prism using our
+"too big" representation, in terms of `preview` and `review`.  These viewpoints
+of prisms will fail you and lead you astray.
 
 [^headconst]: Although, upon further thought, you might realize that
 the constructor and deconstructor don't match
@@ -773,19 +876,12 @@ isn't possible.  There is no possible type `q` where `[a]` is a sum of `a` and
 There is no way to express `[a]` as the sum of `a` and some other type.  Try
 thinking of a type `q` --- it's just not possible!
 
-Another example of a non-prism: we have a `Lens' a ()`, but why not a `Prism' a
-()`?
+<!-- Generalizations -->
+<!-- --------------- -->
 
-Well, it's because you can't find any `q` *in general* that can be used to
-represent `a` as `Either () q`.  You can do this for *some specific* `a` (like
-we did for `_Nil`), but not for all `a` in general.  Try to see if you can!
-
-Algebraically, a `Prism' a ()` can be thought of as solving $x = 1 + y$ for
-$y$.  If you try, you get $y = x - 1$...or, "`a`, minus one possible element".
-And so we can only have a `Prism' a ()` in situations where "`a` minus one
-possible element" is a type that exists.  In the case of `_Nil :: Prism' [a]
-()`.  In this case, "`[a]` minus one possible element" *does* exist: it's the
-non-empty list! (`[a]` minus the possiblity of being empty)
+<!-- So, this is great and all, but it doesn't exactly match the actual -->
+<!-- implementation of these things in the lens library.  There are two main -->
+<!-- differences that I want to address. -->
 
 <!-- ### Type-Changing Lenses -->
 
@@ -1007,10 +1103,13 @@ non-empty list! (`[a]` minus the possiblity of being empty)
 <!-- fromLens' (Lens' spl uns) p = rmap split (lmap unsplit (first p)) -->
 <!-- ``` -->
 
-excercises:
+Exercises
+---------
+
 
 1.  Is (a, Void) a decomp
 2.  what does the (Bool, a) <~> Either a a sum give us
+3.  Write a lens composition
 
 (Fun haskell challenge: the version of `match` I wrote there is conceptually
 simple, but very inefficient.  It traverses the input list three times, uses
