@@ -47,9 +47,7 @@ disguise?
 For example, here's a classic example of a data type often used with *lens*:
 
 ```haskell
-data Person = P { _pName :: String
-                , _pAge  :: Int
-                }
+!!!misc/lenses-and-prisms.hs "data Person"
 ```
 
 `Person` is an algebraic data type --- so-called because it is actually a
@@ -60,7 +58,8 @@ By *isomorphic*, I mean that there are functions `split :: Person -> (String,
 Int)` and `unsplit :: (String, Int) -> Person` where `unsplit . split = id` and
 `split . unsplit = id`.  You can think of this property as stating formally
 that you should be able to go from one type to the other without "losing any
-information".
+information".  Every single item in one type gets paired to a specific item in
+the other, and vice versa, and neither type is "too big" or "too small".
 
 In our case, we have:
 
@@ -198,10 +197,8 @@ With that in mind, let's re-visit a saner definition of lenses based on the
 idea that lenses embody descriptions of products:
 
 ```haskell
-data Lens' s a = forall q. Lens'
-    { split   :: s -> (a, q)
-    , unsplit :: (a, q) -> s
-    }    -- ^ s <~> (a, q)
+-- | s <~> (a, q)
+!!!misc/lenses-and-prisms.hs "data Lens'"
 ```
 
 (The `forall q.` is the *-XExistentialQuantification* extension, and allows us
@@ -220,12 +217,7 @@ get-put/put-get/put-put.
 We can implement our necessary lens API as so:
 
 ```haskell
-view :: Lens' s a -> (s -> a)
-view Lens'{..} = fst . split
-
-set :: Lens' s a -> (a -> s -> s)
-set Lens'{..} newVal x = case split x of
-    (_, q) -> unsplit (newVal, q)      -- "replace" the `a`
+!!!misc/lenses-and-prisms.hs "view ::" "set ::"
 ```
 
 (Using the *-XRecordWildcards* extension, where `Lens'{..}` binds `split` and
@@ -235,8 +227,7 @@ The implementation of the helper function `over` (which modifies the `a` with a
 function) is also particularly elegant:
 
 ```haskell
-over :: Lens' s a -> (a -> a) -> (s -> s)
-over Lens'{..} f = unsplit . first f . split
+!!!misc/lenses-and-prisms.hs "overL"
 ```
 
 The surprising result of this perspective is that **every product yields
@@ -248,9 +239,7 @@ side of a product**.
 Let's take a look at our first product we talked about:
 
 ```haskell
-data Person = P { _pName :: String
-                , _pAge  :: Int
-                }
+!!!misc/lenses-and-prisms.hs "data Person"
 ```
 
 Because `Person` is a product between `String` and `Int`, we get *two lenses*:
@@ -259,16 +248,7 @@ lens for every item in the product.
 
 ```haskell
 -- Person <~> (String, Int)
-
-pName :: Lens' Person String
-pName = Lens' { split   = \(P n a) -> (n, a)
-              , unsplit = \(n, a)  -> P n a
-              }
-
-pAge :: Lens' Person Int
-pAge = Lens' { split   = \(P n a) -> (a, n)
-             , unsplit = \(a, n)  -> P n a
-             }
+!!!misc/lenses-and-prisms.hs "pName" "pAge"
 ```
 
 These are actually the typical lenses associated with records!  You get exactly
@@ -291,20 +271,11 @@ for any `a`:
 
 ```haskell
 -- a <~> (a, ())
-
-identity :: Lens' a a
-identity = Lens' { split   = \x      -> (x, ())
-                 , unsplit = \(x, _) -> x
-                 }
-
-united :: Lens' a ()
-united = Lens' { split   = \x       -> ((), x)
-               , unsplit = \((), x) -> x
-               }
+!!!misc/lenses-and-prisms.hs "identityL" "united"
 ```
 
-In the language of lens, `identity :: Lens' a a` tells us that all `a`s have an
-`a` "inside" them.  However, in the language of products, this just tells us
+In the language of lens, `identityL :: Lens' a a` tells us that all `a`s have
+an `a` "inside" them.  However, in the language of products, this just tells us
 that `a` can be represented as `(a, ())`.  In the language of lens, `united ::
 Lens' a ()` tells us that all `a`s have a `()` "inside" them.  In the language
 of products, this just tells us that `a <~> (a, ())`.
@@ -313,8 +284,7 @@ What insight does our `Either a a <~> (Bool, a)` product perspective give us?
 Well, let's write out their types and see what it might suggest:
 
 ```haskell
-mysteryLens1 :: Lens' (Either a a) Bool
-mysteryLens2 :: Lens' (Either a a) a
+!!!misc/lenses-and-prisms.hs "mysteryLens1"1 "mysteryLens2"1
 ```
 
 Looking at `mysteryLens1 :: Lens' (Either a a) Bool`, we are saying that every
@@ -325,11 +295,7 @@ and flipping the `Bool` "inside" is really just swapping from `Left` to
 `Right`.
 
 ```haskell
-flipEither :: Either a a -> Either a a
-flipEither = over mysteryLens1 not
-
-isLeft :: Either a a -> Bool
-isLeft = view mysteryLens1
+!!!misc/lenses-and-prisms.hs "flipEither" "isRight"
 ```
 
 ```haskell
@@ -337,10 +303,10 @@ ghci> flipEither (Left 'a')
 Right 'a'
 ghci> flipEither (Right 'a')
 Left 'a'
-ghci> isLeft (Left 'a')
-True
-ghci> isLeft (Right 'a')
+ghci> isRight (Left 'a')
 False
+ghci> isRight (Right 'a')
+True
 ```
 
 Note that if we look at lenses as embodying "record fields" (things that give
@@ -360,11 +326,7 @@ leftness/rightness, and re-setting the `a` inside is modifying the contained
 value but preserving leftness/rightness.
 
 ```haskell
-fromEither :: Either a a -> a
-fromEither = view mysteryLens2
-
-mapEither :: (a -> a) -> Either a a -> Either a a
-mapEither = over mysteryLens2
+!!!misc/lenses-and-prisms.hs "fromEither" "mapEither"
 ```
 
 ```haskell
@@ -386,10 +348,17 @@ For example, is it possible to make a lens that gives you the first item in a
 list?
 
 No, there isn't, because there isn't any type `q` that you could factor out
-`[a]` into as `(a, q)`.  That would imply that `[a]` is always "an `a` with
-something else"...but this isn't true with `[]`.
+`[a]` into as `(a, q)`.
 
-TODO: try writing it
+After all, even if such a `q` existed, how would you implement `split`?
+
+```haskell
+split :: [a] -> (a, MysteryType)
+split [] = ( ????, mysteryValue )
+```
+
+There would be no `a` to put into the first item in the tuple, no matter what
+choice of `q` you have
 
 \"Sum-thing\" Interesting
 -------------------------
@@ -401,8 +370,7 @@ For example, here's a data type you might encounter out there in the real
 world:
 
 ```haskell
-data Shape = Circle  Double           -- radius
-           | RegPoly Natural Double   -- number of sides, length of sides
+!!!misc/lenses-and-prisms.hs "data Shape"
 ```
 
 `Circle 2.9` represents a circle with radius 2.9, and `RegPoly 8 4.6`
@@ -498,7 +466,7 @@ Another curious sum: if we consider the "empty data type" `Void`, the type with
 no inhabitants:
 
 ```haskell
-data Void           -- no constructors, no valid inhabitants
+!!!misc/lenses-and-prisms.hs "data Void" "absurd"
 ```
 
 then we have a curious sum: every type `a` is a sum between *itself* and
@@ -507,12 +475,6 @@ from the algebraic property $x + 0 = x$):
 
 ```haskell
 -- a <~> Either a Void
-
--- | A useful helper function when working with `Void`
-absurd :: Void -> a
-absurd = \case -- empty case statement because we have
-               -- no constructors of 'Void' we need to
-               -- match on
 
 match :: a -> Either a Void
 match x = Left x
@@ -523,7 +485,11 @@ inject (Right v) = absurd v
 ```
 
 Again, if you don't believe me, verify that `inject . match = id` and `match .
-inject = id`!
+inject = id`![^void]
+
+[^void]: If you're verifying that `match . inject = id` for the `Either a Void`
+decomposition, here's a hint: no values exist that are constructed using
+`Right`, so you don't ever have to handle the second case of `inject`.
 
 One final example: earlier, we said that every type can be decomposed as a
 *product* involving `()`.  Algebraically, finding that mystery type is easy ---
@@ -559,7 +525,7 @@ witness:
 
 ```haskell
 -- | Like `Int`, but cannot be constructed if it is 4
-type Not4 = Refined (NotEqualTo 4) Int
+!!!misc/lenses-and-prisms.hs "type Not4"
 
 -- | Provided by the 'refined' library that lets us refine and unrefine a type
 refineFail :: Int  -> Maybe Not4
@@ -621,10 +587,8 @@ q` isomorphism.
 Under this interpretation, we can write a nice representation of `Prism'`:
 
 ```haskell
-data Prism' s a = forall q. Prism'
-    { match  :: s -> Either a q
-    , inject :: Either a q -> s
-    }    -- ^ s <~> Either a q
+-- | s <~> Either a q
+!!!misc/lenses-and-prisms.hs "data Prism'"
 ```
 
 If `match` and `inject` form an isomorphism, *this can only represent valid
@@ -633,24 +597,14 @@ prisms*!
 We can now implement the prism API:
 
 ```haskell
-preview :: Prism' s a -> (s -> Maybe a)
-preview Prism'{..} x = case match x of
-    Left _  -> Nothing
-    Right y -> Just y
-
-review  :: Prism' s a -> (a -> s)
-review Prism'{..} = inject . Left
+!!!misc/lenses-and-prisms.hs "preview" "review"
 ```
 
 Like for lenses, prisms also admit a particularly elegant formulation for
 `over`, which maps a function over the `a` in the `s` if it exists:
 
 ```haskell
-over :: Lens' s a  -> (a -> a) -> (s -> s)
-over Lens'{..}  f = inject . first f . match    -- instance Bifunctor (,)
-
-over :: Prism' s a -> (a -> a) -> (s -> s)
-over Prism'{..} f = inject . first f . match    -- instance Bifunctor Either
+!!!misc/lenses-and-prisms.hs "overL" "overP"
 ```
 
 Neat, they're actually exactly identical!  Who would have thought?
@@ -664,8 +618,7 @@ Let's go back at our example prisms and see what sort of insight we can gain
 from this perspective.
 
 ```haskell
-data Shape = Circle  Double
-           | RegPoly Natural Double
+!!!misc/lenses-and-prisms.hs "data Shape"
 ```
 
 Because `Shape` is a sum between `Double` and `(Natural, Double)`, we get *two
@@ -673,20 +626,7 @@ prisms*:
 
 ```haskell
 -- Shape <~> Either Natural (Natural, Double)
-
-_Circle :: Prism' Shape Natural
-_Circle = Prism' { match  = \case Circle  r    -> Left r
-                                  RegPoly n s  -> Right (n, s)
-                 , inject = \case Left   r     -> Circle r
-                                  Right (n, s) -> RegPoly n s
-                 }
-
-_RegPoly :: Prism' Shape (Natural, Double)
-_RegPoly = Prism' { match  = \case Circle  r    -> Right r
-                                   RegPoly n s  -> Left (n, s)
-                  , inject = \case Left  (n, s) -> RegPoly n s
-                                   Right  r     -> Circle r
-                  }
+!!!misc/lenses-and-prisms.hs "_Circle" "_RegPoly"
 ```
 
 And these are actually the typical prisms associated with an ADT.  You actually
@@ -708,22 +648,7 @@ What can we get out of our decomposition of `[a]` as a sum between `()` and
 
 ```haskell
 -- [a] <~> Either () (NonEmpty a)
-
-_Nil :: Prism' [a] ()
-_Nil = Prism'
-    { match  = \case []              -> Left ()
-                     x:xs            -> Right (x :| xs)
-    , inject = \case Left _          -> []
-                     Right (x :| xs) -> x:xs
-    }
-
-_Cons :: Prism' [a] (NonEmpty a)
-_Cons = Prism'
-    { match  = \case []              -> Right ()
-                     x:xs            -> Left (x :| xs)
-    , inject = \case Left  (x :| xs) -> x:xs
-                     Right _         -> []
-    }
+!!!misc/lenses-and-prisms.hs "_Nil" "_Cons"
 ```
 
 To clarify, we can look at `preview` and `review` for all of these:
@@ -760,22 +685,7 @@ correspond to the abstract constructors `_Nil` and `_Snoc`:
 
 ```haskell
 -- [a] <~> Either () ([a], a)
-
-_Nil :: Prism' [a] ()
-_Nil = Prism' { match  = \xs -> if null xs
-                                  then Left  ()
-                                  else Right (init xs, last xs)
-              , inject = \case Left _        -> []
-                               Right (xs, x) -> xs ++ [x]
-              }
-
-_Snoc :: Prism' [a] ([a], a)
-_Snoc = Prism' { match  = \xs -> if null xs
-                                   then Right ()
-                                   else Left  (init xs, last xs)
-               , inject = \case Left  (xs, x) -> xs ++ [x]
-                                Right _       -> []
-               }
+!!!misc/lenses-and-prisms.hs "_Nil'" "_Snoc"
 ```
 
 `_Snoc` is an "abstract constructor" for a list that lets us:
@@ -790,24 +700,10 @@ conceptually?
 
 ```haskell
 -- a <~> Either a Void
-
-identity :: Prism' a a
-identity = Prism' { match = Left
-                  , inject = \case
-                      Left  x -> x
-                      Right v -> absurd v
-                  }
-
-
-_Void :: Prism' a Void
-_Void = Prism' { match = Right
-               , inject = \case
-                   Left  v -> absurd v
-                   Right x -> x
-               }
+!!!misc/lenses-and-prisms.hs "identityP" "_Void"
 ```
 
-In lens-speak, `identity :: Prism' a a` tells us that all `a`s have an `a`
+In lens-speak, `identityP :: Prism' a a` tells us that all `a`s have an `a`
 "inside" them (since `match` always matches) and that you can construct an `a`
 with only an `a` (whoa).  In our "sum" perspective, however, it just witnesses
 that an `a <~> Either a Void` sum.
@@ -825,36 +721,14 @@ And finally, let's look at our deconstruction of `Int` and `Reinfed (NotEqualTo
 4) Int`.  What prisms does this yield, and what insight do we get?
 
 ```haskell
-only4 :: Prism' Int ()
-only4 = Prism'
-    { match  = \n -> case refineFail n of
-                       Nothing -> Left ()
-                       Just x  -> Right x
-    , inject = \case Left  _ -> 4
-                     Right x -> unrefine x
-    }
-
-refined4 :: Prism' Int Not4
-refined4 = Prism'
-    { match  = \n -> case refineFail n of
-                       Nothing -> Right ()
-                       Just x  -> Left x
-    , inject = \case Left  x -> unrefine x
-                     Right _ -> 4
-    }
+!!!misc/lenses-and-prisms.hs "only4" "refined4"
 ```
 
 The first prism, `only4`, is a prism that basically "only matches" on the `Int`
 if it is `4`.  We can use it to implement "is equal to four", and "get a 4"
 
 ```haskell
--- | Checks if a value is 4
-isEqualTo4 :: Int -> Bool
-isEqualTo4 = isJust . preview only4
-
--- | Just is '4'
-four :: Int
-four = review ()
+!!!misc/lenses-and-prisms.hs "isEqualTo4" "four"
 ```
 
 The name `only4` is inspired by the `only` combinator from the *lens* library,
@@ -872,11 +746,7 @@ The second prism, `refined4`, basically acts like a "abstract (smart)
 constructor" for `Not4`, essentially `refineFail` and `unrefine`:
 
 ```haskell
-makeNot4 :: Int -> Maybe Not4
-makeNot4 = preview refined4
-
-fromNot4 :: Not4 -> Int
-fromNot4 = review refined4
+!!!misc/lenses-and-prisms.hs "makeNot4" "fromNot4"
 ```
 
 ### Prism or Not
@@ -907,7 +777,19 @@ isn't possible.  There is no possible type `q` where `[a]` is a sum of `a` and
 There is no way to express `[a]` as the sum of `a` and some other type.  Try
 thinking of a type `q` --- it's just not possible!
 
-TODO: try
+```haskell
+match :: [a] -> Either a MysteryType
+match []     = Right mysteryValue
+match (x:xs) = Left x                       -- will we lose `xs`?
+
+inject :: Either a MysteryType -> [a]
+inject (Left x)  = x:????                   -- yes, we lost `xs`
+inject (Right v) = []
+```
+
+From this attempt, we see that no matter what `q` we pick, we will "lose `xs`".
+There's no way to "store" the tail of the list in `match` in order to recover
+it later in `inject`.
 
 The Path to Profunctors
 -----------------------
@@ -1251,7 +1133,42 @@ actually implemented in practice:
     This passes `inject . match = id`, but not `match . inject = id` if we pass
     in the "illegal" value `Right 'a'`.
 
-    TODO: at for sets or maps
+    For an example of a lens where this abstract type perspective is useful,
+    there is the `contains 'a'` lens for sets:
+
+    ```haskell
+    -- import qualified Data.Set as S
+
+    contains 'a' :: Lens'(S.Set Char) Bool
+
+    -- check if a set contains an element
+    view (contains 'a') :: S.Set Char -> Bool
+
+    -- force a set to contain or not contain 'a'
+    set (contains 'a') :: Bool -> S.Set Char -> S.Set Char
+
+    -- toggle membership in a set
+    over (contains 'a') not :: S.Set Char -> S.Set Char
+    ```
+
+    `contains 'a'` is a lens into a `Bool` from a `S.Set`, where the `Bool`
+    indicates if the set "contains" `a` or not.  What product does this
+    represent?
+
+    Well, essentially, `Set Char <~> (Bool, Set CharButNotA)`.  It's an
+    abstract product betweein "the set contains `'a'` or not" and a set that
+    could not possibly contain `'a'`:
+
+    ```haskell
+    split :: S.Set Char -> (Bool, S.Set CharButNotA)
+    split s = ('a' `S.member` s, S.delete 'a' s)
+
+    unsplit :: (Bool, S.Set CharButNotA) -> S.Set Char
+    unsplit (False, s) = s
+    unsplit (True , s) = S.insert a s
+    ```
+
+    Again, only `unsplit . split = id` is technically true.
 
 ### Exercises
 
@@ -1323,3 +1240,5 @@ writing these posts.  Very special thanks to my supporter at the "Amazing"
 level, Sam Stites! :)
 
 [patreon]: https://www.patreon.com/justinle/overview
+
+TODO: move all lenses and prisms to file
