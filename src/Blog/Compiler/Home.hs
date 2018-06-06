@@ -30,8 +30,8 @@ homeCompiler allPages allTags i p = do
     allTs <- mapM (uncurry fetchTag) allTags
     linksCopy  <- readPandocWith entryReaderOpts =<< load "copy/static/home-links.md"
     bannerCopy <- readPandocWith entryReaderOpts =<< load "copy/static/home-banner.md"
-    patronList <- either fail pure
-                . Y.decodeEither
+    patronList <- either (fail . show) pure
+                . parsePatronList PLSupport
               =<< loadBody "config/patrons.yaml"
     let hi = HI { hiPageNum    = i
                 , hiPrevPage   =
@@ -50,7 +50,7 @@ homeCompiler allPages allTags i p = do
                 , hiAllTags    = allTs
                 , hiLinksCopy  = itemBody linksCopy
                 , hiBannerCopy = itemBody bannerCopy
-                , hiPatrons    = patronListSupport patronList
+                , hiPatrons    = patronList
                 }
         pd = def { pageDataTitle = if i == 1
                                      then Nothing

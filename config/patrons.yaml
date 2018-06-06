@@ -1,4 +1,5 @@
-support:
-  - name: Domen Kožar
-    twitter: iElectric
-amazing: []
+- name: Domen Kožar
+  twitter: iElectric
+  level: support
+- name: Sam Stites
+  level: amazing

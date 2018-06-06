@@ -12,11 +12,12 @@ touched in too much detail is the topic of lenses and optics.  A big part of
 this is because there are already so many great resources on lenses.
 
 This post won't be a "lens tutorial", but rather a dive into an insightful
-perspective on lenses and prisms that I've heard repeated many times, but not
-yet all compiled into a single place.  In particular, I'm going to talk about
-the perspective of lenses and prisms as embodying the essences of products and
-sums (respectively), and how that observation can help you with a more
-"practical" understanding of lenses and prisms.
+perspective on lenses and prisms that I've heard repeated many times (and
+always credited to Edward Kmett), but not yet all compiled into a single place.
+In particular, I'm going to talk about the perspective of lenses and prisms as
+embodying the essences of products and sums (respectively), and how that
+observation can help you with a more "practical" understanding of lenses and
+prisms.
 
 An Algebraic Recap
 ------------------
@@ -1040,6 +1041,9 @@ a) s s`, which is a newtype wrapper over an `s -> a`!  Note that you can't give
 this to a prism, since it is not possible to write a `Choice` instance for
 `View a`.
 
+For a more detailed look on implementing the entire lens and prism API in terms
+of profunctors, check out Oleg Grenrus's amazing [Glassery][]!
+
 To me, this perspective makes it really clear to see "why" profunctor lenses
 and profunctor prisms are implemented the way they are.  They are just
 *profunctor transformers* that *transform along the decomposition* that the
@@ -1059,7 +1063,14 @@ left'  :: p a a -> p (Either a q) (Either a q)
 Closing out
 -----------
 
-
+Hopefully this perspective --- that products yield lenses and sums yield prisms
+--- helps you navigate how you discover lenses and prisms, and how you
+interpret them when you see them.  I know for me, it has helped me understand
+the odd lenses and prisms I often see, and also it helps me reason about when
+it *doesn't* make sense to have a lens or prism.  It has also distilled the
+lens and prism laws into something trivial that can be stated succinctly ("it
+must be an isomorphism"), and also made the profunctor optics form seem
+extremely natural.
 
 
 <!-- For example, implementing `view`, a lens gives us: -->
