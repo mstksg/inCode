@@ -10,10 +10,12 @@ import           Data.List      (foldl')
 -- Challenge: write a `match` for the "init and last" sum decomposition
 -- using only one fold and no partial functions or booleans.
 
+-- | Difference list
 type Diff a = [a] -> [a]
 
 matchInitLast :: [a] -> Either () ([a], a)
-matchInitLast = (fmap . first) ($[]) . foldl' go (Left ())
+matchInitLast = (fmap . first) ($[])    -- "extract" the difference list
+              . foldl' go (Left ())
   where
     go  :: Either () (Diff a, a)
         -> a
