@@ -1246,7 +1246,9 @@ exercises!
 Special Thanks
 --------------
 
-This post is made possible by the support of my patrons on [patreon][],
-especially Sam Stites :)
+I am very humbled to be supported by an amazing community on
+[Patreon][patreon], who make it possible for me to devote time to research and
+writing these posts.  Very special thanks to my supporter at the "Amazing"
+level, Sam Stites! :)
 
 [patreon]: https://www.patreon.com/justinle/overview
