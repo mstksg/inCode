@@ -464,7 +464,7 @@ inject (Right (x :| xs)) = x:xs
 And, actually, there is another way to deconstruct `[a]` as a sum in Haskell.
 You can treat it as a sum between `()` and `([a], a)` --- where the `()`
 represents the empty list and the `([a], a)` represents an "all but the last
-item" list and "the last item":
+item" list and "the last item":[^challenge]
 
 ```haskell
 -- [a] <~> Either () ([a], a)
@@ -484,6 +484,12 @@ inject (Right (xs, x)) = xs ++ [x]
 
 I just think it's interesting that the same type can be "decomposed" into a sum
 of two different types in multiple ways.
+
+[^challenge]: Fun haskell challenge: the version of `match` for the `[a] <~>
+Either () ([a], a)` isomorphism I wrote there is conceptually simple, but very
+inefficient.  It traverses the input list three times, uses two partial
+functions, and uses a `Bool`.  Can you write a `match` that does the same thing
+using only a single fold and no partial functions or `Bool`s?
 
 Another curious sum: if we consider the "empty data type" `Void`, the type with
 no inhabitants:
@@ -1166,7 +1172,7 @@ actually implemented in practice:
         { split   :: s -> (a, q)        -- before (with s and a)
         , unsplit :: (b, q) -> t        -- after  (with t and b)
         }
-    
+
     view :: Lens s t a b -> (s -> a)
     set  :: Lens s t a b -> (b -> s -> t)
 
@@ -1174,8 +1180,8 @@ actually implemented in practice:
         { match  :: s -> Either a q     -- before (with s and a)
         , inject :: Either b q -> t     -- after  (with t and b)
         }
-    
-    
+
+
     matching :: Prism s t a b -> (s -> Either t a)
     review   :: Prism s t a b -> (b -> t)
     ```
@@ -1204,13 +1210,43 @@ actually implemented in practice:
     enforces just the spirit of the hidden abstract type.
 
 
-Exercises
----------
+### Exercises
 
-To help solidify your 
+To help solidify your understanding on this perspective, here are some
+exercises!
 
+*   We discussed the conditions where a type `a` can be expressed as a sum
+    involving `()` and you can have a `Prism' a ()`.
 
-1.  Is (a, Void) a decomp
-2.  what does the (Bool, a) <~> Either a a sum give us
-3.  Write a lens composition
+    Under what conditions can you express a type `a` is a *product* involving
+    `Void`, and you can have a `Lens' a Void`?
 
+*   We found that by interpreting `Either a a` as a product `(Bool, a)` gives
+    us two interesting lenses:
+
+    ```haskell
+    leftOrRight :: Lens' (Either a a) Bool
+    theContents :: Lens' (Either a a) a
+    ```
+
+    We concluded that the first lens lets us flip between `Left` and `Right` or
+    check if a value was `Left` or `Right`, and that the second lens gets into
+    the contents regardless of leftness or rightness.
+
+    However, there's a flip side, as well.  `(Bool, a)` can be expressed as a
+    *sum* between `a` and itself, `Either a a`.  This gives us two prisms:
+
+    ```haskell
+    mysteryPrism1 :: Lens' (Bool, a) a
+    mysteryPrism2 :: Lens' (Bool, a) a
+    ```
+
+    What do these prisms do?  What is `preview` and `review` for them?
+
+Special Thanks
+--------------
+
+This post is made possible by the support of my patrons on [patreon][],
+especially Sam Stites :)
+
+[patreon]: https://www.patreon.com/justinle/overview
