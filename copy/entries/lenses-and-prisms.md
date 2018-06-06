@@ -870,147 +870,6 @@ isn't possible.  There is no possible type `q` where `[a]` is a sum of `a` and
 There is no way to express `[a]` as the sum of `a` and some other type.  Try
 thinking of a type `q` --- it's just not possible!
 
-Lens Families
--------------
-
-At this point, those unfamiliar with lens might be wondering about the
-apostrophes in `Lens'` and `Prism'`, and those familiar with lens might be
-wondering why we only talk about "non-polymorphic" lenses.
-
-So, to aid in future discussion, let's rephrase our type variables and
-terminology.  When using lenses and prisms, there are two essential types
-involved: the "outer" type and the "inner" type.  Lenses and prisms essentially
-let you talk about the outer type in relation to the inner type.  We say that
-a `Lens' outer inner` is a witness to the fact that there exists some `q` such
-that `outer <~> (inner, q)` --- you can "split" an `outer` in terms of an
-`inner` and a `q`.  Similarly, a `Prism' outer inner` is a witnesses to the
-fact that there exists some `q` such that `outer <~> Either inner q`.
-
-Working with lenses and prisms are basically navigating back and forth along
-these isomorphisms:
-
-```
-Lens' outer inner
-=================
- outer ---> (inner, q)
-               |
-               |
-               v
- outer <--- (inner, q)
-
-Prism' outer inner
-=================
- outer ---> Either inner q
-                     |
-                     |
-                     v
- outer <--- Eitner inner q
-```
-
-However, Haskell is all about that *parametric polymorphism*, which means that
-if you pick different type variables for things whenever possible (instead of
-using the same one), it allows you to view things on a more fundamental or
-deeper level.  Let's see if we can try that trick here.
-
-We're not going to change anything --- we're just going to *relabel* all of the
-moving pieces involved and give them all unique names, just so we can *talk*
-about them more clearly and take advantage of parametric polymorphism:
-
-```
-Lens s t a b
-============
-   s   ---> (  a  , q)
-               |
-               |
-               v
-   t   ---> (  b  , q)
-
-Prism s t a b
-=============
-   s   ---> Either   a   q
-                     |
-                     |
-                     v
-   t   ---> Either   b   q
-```
-
-All we did was *re-label* our type variables.  We call the "source `outer`"
-`s` and the "target `outer`" `t`.  We call the "source `inner`" `a` and the
-"target inner" `b`.  All we are doing is re-labeling `outer` and `inner` so
-that we can talk more explicitly and clearly about all of the moving parts.
-
-For example, before, with `Lens' outer inner`, if I say "the `outer`", you
-won't know if I mean the `outer` "before" we use the lens, or the `outer`
-*after* we use the lens.  However, with `Lens s t a b`, if I say "the `s`", you
-know that I just mean "the `outer` *before* we use the lens", and if I say "the
-`t`", you know that I mean "the `outer` *after* we use the lens".
-
-`Lens s t a b` (which is a version of `Lens' outer inner` where we relabel the
-type variables of the inputs and outputs) is called a [lens
-family][lens-family].  Be careful to never call it a "polymorphic lens".  It
-**not** a polymorphic lens.  It is just a normal lens where we re-label the
-type variables of all of the involved pieces to aid in our discourse.
-
-[lens-family]: http://comonad.com/reader/2012/mirrored-lenses/
-
-Our functions we talked about now have slightly different types.  First our
-lens types and lens API:
-
-```haskell
-data Lens s t a b = forall q.
-                    Lens { split   :: s -> (a, q)
-                         , unsplit :: (b, q) -> t
-                         }
-
-view :: Lens s t a b -> (s -> a)
-set  :: Lens s t a b -> (b -> s -> t)
-```
-
-And now our prism type and prism API:
-
-```haskell
-data Prism s t a b = forall q.
-                     Prism { match  :: s -> Either b q
-                           , inject :: Either b q -> t
-                           }
-
-
-matching :: Prism s t a b -> (s -> Either t a)
-review   :: Prism s t a b -> (b -> t)
-```
-
-Note that we can take advantage of this relabeling to replace `preview ::
-Prism' s a -> (s -> Maybe a)` with the more interesting `matching :: Prism s t
-a b -> (s -> Either t a)`. (Seeing the type `s -> Either t a` should tell us
-what would happen if there is no pattern match: we take an "outer" type as an
-input `s` and get the same "outer" type as a *result* `t`)
-
-Remember, we still require `unsplit . split = id`, `split . unsplit = id`,
-`inject . match = id`, and `match . inject = id`.  They're all still
-*isomorphisms*.  We're just *relabeling our type variables* here to let us be
-more expressive with how we talk about all of the moving parts.
-
-These aren't "polymorphic isomorphism" --- they're the same old isomorphisms we
-have been working with this entire time, and if we compose them, they should
-yield `id` when the type variables match up.  These are just isomorphisms where
-we re-label the type variables to help us talk about what goes in and what goes
-out.
-
-As an example for what this gives us, compare the original and new type
-signature of `over` for lenses:
-
-```haskell
-over :: Lens' outer inner -> (inner -> inner) -> (outer -> outer)
-over :: Lens  s t   a b   -> (  a   ->   b  ) -> (  s   ->   t  )
-```
-
-Isn't it nicer how we can track the progression of how the data moves through
-the type variables, instead of just having `inner -> inner`?
-
-Remember, however, that in the end, a `Lens s t a b` fundamentally describes
-the *same* isomorphism and concept as `Lens' outer inner`.  You should read `s`
-and `t` as if they were `outer`, and `a` and `b` as if they were `inner`.
-
 The Path to Profunctors
 -----------------------
 
@@ -1035,67 +894,54 @@ If type `s` is isomorphic to type `a` (`s <~> a`), then we can the function
 ```haskell
 -- s <~> a
 
-iso :: Profunctor p
-    => (s -> a)         -- ^ one half of the isomorphism
-    -> (a -> s)         -- ^ the other half of the isomorphism
-    -> p a a
-    -> p s s
+-- | The real `iso` is actually a little more polymorphic
+class Profunctor p where
+    iso :: Profunctor p
+        => (s -> a)         -- ^ one half of the isomorphism
+        -> (a -> s)         -- ^ the other half of the isomorphism
+        -> p a a
+        -> p s s
 ```
 
 Given the `s -> a` and `a -> s` functions that witness `s <~> a`, the
 `Profunctor` typeclass lets us transform a `p a a` into a `p s s` (a
 relationship on `a`s to be a relationship on `s`).
 
-Or, pulling the same "re-label all the parts" trick:
-
-```haskell
-iso :: Profunctor p
-    => (s -> a)         -- ^ one half of the isomorphism
-    -> (b -> t)         -- ^ the other half of the isomorphism
-    -> p a b
-    -> p s t
-```
-
-Remember, `a` and `b` are what we have been calling the "inner" type (just
-re-labeled so we can distinguish the input and output) and `s` and `t` are what
-we have been calling the "outer" type.
-
 (The `Profunctor` typeclass actually just provides `dimap`, but I am using the
 common alias `iso = dimap` to enforce the connection)
 
 ### Profunctor Lens
 
-A profunctor lens (one way of implementing) `Lens s t a b` is a function:
+A profunctor lens (one way of implementing) `Lens' s a` is a function:
 
 ```haskell
-Lens  s t a b = p a b -> p s t
-
--- or
--- Lens' inner outer = p inner inner -> p outer outer
+p a a -> p s s
 ```
 
-You can think of it as taking a "relationship on the `inner` type" and turning
-it into a "relationship on `outer` type".
+You can think of it as taking a "relationship on `a`s" and turning it
+into a "relationship on `s`s".
 
-With a lens, we are saying that `outer` is isomorphic to `(inner, q)`.  That
-means that we have, at our disposal:
+With a lens, we are saying that `s` is isomorphic to `(a, q)`.  That means that
+we have, at our disposal:
 
 ```haskell
 iso split unsplit
     :: Profunctor p
-    => p (a, q) (b, q) -> p s t
+    => p (a, q) (a, q) -> p s s
 ```
-
-Basically, `iso split unsplit`
 
 In order to get a `p a a -> p s s`, we need a way to turn a `p a a` into a `p
 (a, q) (a, q)`.  This says "take a relationship on `a`s and turn it into a
 relationship on `(a, q)`, *ignoring* the `q`".
 
-The typeclass `Strong` gives us just that:
+The typeclass `Strong` gives us just that!
 
 ```haskell
-first' :: Strong p => p a a -> p (a, q) (a, q)
+-- | The real `first'` is actually a little more polymorphic
+class Profunctor p => Strong p where
+    first'
+        :: p a a                -- ^ relationship on part
+        -> p (a, q) (a, q)      -- ^ relationship on whole
 ```
 
 And so we now have a definition of a profunctor lens:
@@ -1111,9 +957,11 @@ makeLens split unsplit = iso split unsplit  -- ^ p (a, q) (a, q) -> p s s
                        . first'             -- ^ p a a -> p (a, q) (a, q)
 ```
 
-Essentially, `iso split unsplit . first'` promotes a `p a a` to a `p s s`.  And
-since `s <~> (a, q)`, it promotes a relationship on a "part" to be a
-relationship on a "whole".  A lens!
+Essentially, `iso split unsplit . first'` promotes a `p a a` to a `p s s`.  It
+uses `first'` to turn the `p a a` into a `p (a, q) (a, q)`, turning a
+relationship on the part to be a relationship on the whole.  Then we just apply
+the essential `s <~> (a, q)` isomorphism that defines a lens.  And so `p a a ->
+p s s`, going through the `s <~> (a, q)` isomorphism, is a lens!
 
 ### Profunctor Prisms
 
@@ -1143,7 +991,11 @@ into a relationship on `Either a q`, *ignoring* the `q`".
 The typeclass `Choice` gives us just that:
 
 ```haskell
-left :: Choice p => p a a -> p (Either a q) (Either a q)
+-- | The real `left'` is actually a little more polymorphic
+class Profunctor p => Choice p where
+    left'
+        :: p a a                        -- ^ relationship on branch
+        -> p (Either a q) (Either a q)  -- ^ relationship on all possibilities
 ```
 
 And so we now have a definition of a profunctor prism:
@@ -1160,26 +1012,228 @@ makePrism match inject =
   . left'              -- ^ p a a -> p (Either a q) (Either a q)
 ```
 
-Essentially, `iso match inject . left'` promotes a `p a a` to a `p s s`. And
-since `s <~> Either a q`, it promotes a relationship on a "potential branch" to
-be a relationship on a "whole".  A prism!
+Essentially, `iso match inject . left'` promotes a `p a a` to a `p s s`. It
+uses `left'` to turn the `p a a` into a `p (Either a q) (Either a q)`, turning
+a relationship on the part to be a relationship on the whole.  Then we just
+apply the essential `s <~> Either a q` isomorphism that defines a prism.  And
+so `p a a -> p s s`, going through the `s <~> Either a q` isomorphism, is a
+lens!
 
 ### Recovering the Original Functionality
 
 We can recover the original functionality by just picking specific values of
 `p` that, when transformed, give us the operations we want.
 
-For example, implementing `view`, a lens gives us:
+For example, we want `view :: Lens' s a -> (s -> a)`, so we just make a
+profunctor `p` where `p s s` contains an `s -> a`.
 
 ```haskell
-p a a -> p s s
+-- | `(View a) s s` is just an `s -> a`
+newtype View a s r = View { runView :: s -> a }
+
+instance Profunctor (View a)
+instance Strong (View a)
 ```
 
-We want to create a `s -> a`, so that means that `p s s` should be `s -> a`.
+And when you give this to a lens (a "profunctor transformer"), you get a `(View
+a) s s`, which is a newtype wrapper over an `s -> a`!  Note that you can't give
+this to a prism, since it is not possible to write a `Choice` instance for
+`View a`.
+
+To me, this perspective makes it really clear to see "why" profunctor lenses
+and profunctor prisms are implemented the way they are.  They are just
+*profunctor transformers* that *transform along the decomposition* that the
+lenses and prisms represent.  For profunctor lenses, the profunctors get
+transformed to "parts of a whole" profunctors, using `Strong`.  For profunctor
+prisms, the profunctors get transformed to "branches of a possibility"
+profunctors, using `Choice`.  Even their types clearly show what is going on:
 
 ```haskell
-newtype View a s t = View { runView :: s -> a }
+-- [Lens]  s <~> (a, q)
+first' :: p a a -> p (a, q) (a, q)
+
+-- [Prism] s <~> Either a q
+left'  :: p a a -> p (Either a q) (Either a q)
 ```
+
+Closing out
+-----------
+
+
+
+
+<!-- For example, implementing `view`, a lens gives us: -->
+
+<!-- ```haskell -->
+<!-- p a a -> p s s -->
+<!-- ``` -->
+
+<!-- We want to create a `s -> a`, so that means that `p s s` should be `s -> a`. -->
+
+<!-- ```haskell -->
+<!-- newtype View a s r = View { runView :: s -> a }     -- r is ignored -->
+
+<!-- instance Profunctor (View a) -->
+<!-- instance Strong (View a) -->
+<!-- ``` -->
+
+<!-- ```haskell -->
+<!-- type PLens' p s a = p a a -> p s s -->
+
+<!-- view :: PLens' (View a) s a -> (s -> a) -->
+<!-- view l = runView (l (View id)) -->
+<!-- ``` -->
+
+<!-- To understand this, what does our lens `p a a -> p s s` do to `View`?  It -->
+<!-- becomes: -->
+
+<!-- ```haskell -->
+<!-- p      a a -> p      s s -->
+<!-- View a a a -> View a s s -->
+<!-- ``` -->
+
+<!-- Unwrapping the newtype wrapper -->
+
+
+<!-- Lens Families -->
+<!-- ------------- -->
+
+<!-- At this point, those unfamiliar with lens might be wondering about the -->
+<!-- apostrophes in `Lens'` and `Prism'`, and those familiar with lens might be -->
+<!-- wondering why we only talk about "non-polymorphic" lenses. -->
+
+<!-- So, to aid in future discussion, let's rephrase our type variables and -->
+<!-- terminology.  When using lenses and prisms, there are two essential types -->
+<!-- involved: the "outer" type and the "inner" type.  Lenses and prisms essentially -->
+<!-- let you talk about the outer type in relation to the inner type.  We say that -->
+<!-- a `Lens' outer inner` is a witness to the fact that there exists some `q` such -->
+<!-- that `outer <~> (inner, q)` --- you can "split" an `outer` in terms of an -->
+<!-- `inner` and a `q`.  Similarly, a `Prism' outer inner` is a witnesses to the -->
+<!-- fact that there exists some `q` such that `outer <~> Either inner q`. -->
+
+<!-- Working with lenses and prisms are basically navigating back and forth along -->
+<!-- these isomorphisms: -->
+
+<!-- ``` -->
+<!-- Lens' outer inner -->
+<!-- ================= -->
+<!--  outer ---> (inner, q) -->
+<!--                | -->
+<!--                | -->
+<!--                v -->
+<!--  outer <--- (inner, q) -->
+
+<!-- Prism' outer inner -->
+<!-- ================= -->
+<!--  outer ---> Either inner q -->
+<!--                      | -->
+<!--                      | -->
+<!--                      v -->
+<!--  outer <--- Eitner inner q -->
+<!-- ``` -->
+
+<!-- However, Haskell is all about that *parametric polymorphism*, which means that -->
+<!-- if you pick different type variables for things whenever possible (instead of -->
+<!-- using the same one), it allows you to view things on a more fundamental or -->
+<!-- deeper level.  Let's see if we can try that trick here. -->
+
+<!-- We're not going to change anything --- we're just going to *relabel* all of the -->
+<!-- moving pieces involved and give them all unique names, just so we can *talk* -->
+<!-- about them more clearly and take advantage of parametric polymorphism: -->
+
+<!-- ``` -->
+<!-- Lens s t a b -->
+<!-- ============ -->
+<!--    s   ---> (  a  , q) -->
+<!--                | -->
+<!--                | -->
+<!--                v -->
+<!--    t   ---> (  b  , q) -->
+
+<!-- Prism s t a b -->
+<!-- ============= -->
+<!--    s   ---> Either   a   q -->
+<!--                      | -->
+<!--                      | -->
+<!--                      v -->
+<!--    t   ---> Either   b   q -->
+<!-- ``` -->
+
+<!-- All we did was *re-label* our type variables.  We call the "source `outer`" -->
+<!-- `s` and the "target `outer`" `t`.  We call the "source `inner`" `a` and the -->
+<!-- "target inner" `b`.  All we are doing is re-labeling `outer` and `inner` so -->
+<!-- that we can talk more explicitly and clearly about all of the moving parts. -->
+
+<!-- For example, before, with `Lens' outer inner`, if I say "the `outer`", you -->
+<!-- won't know if I mean the `outer` "before" we use the lens, or the `outer` -->
+<!-- *after* we use the lens.  However, with `Lens s t a b`, if I say "the `s`", you -->
+<!-- know that I just mean "the `outer` *before* we use the lens", and if I say "the -->
+<!-- `t`", you know that I mean "the `outer` *after* we use the lens". -->
+
+<!-- `Lens s t a b` (which is a version of `Lens' outer inner` where we relabel the -->
+<!-- type variables of the inputs and outputs) is called a [lens -->
+<!-- family][lens-family].  Be careful to never call it a "polymorphic lens".  It -->
+<!-- **not** a polymorphic lens.  It is just a normal lens where we re-label the -->
+<!-- type variables of all of the involved pieces to aid in our discourse. -->
+
+<!-- [lens-family]: http://comonad.com/reader/2012/mirrored-lenses/ -->
+
+<!-- Our functions we talked about now have slightly different types.  First our -->
+<!-- lens types and lens API: -->
+
+<!-- ```haskell -->
+<!-- data Lens s t a b = forall q. -->
+<!--                     Lens { split   :: s -> (a, q) -->
+<!--                          , unsplit :: (b, q) -> t -->
+<!--                          } -->
+
+<!-- view :: Lens s t a b -> (s -> a) -->
+<!-- set  :: Lens s t a b -> (b -> s -> t) -->
+<!-- ``` -->
+
+<!-- And now our prism type and prism API: -->
+
+<!-- ```haskell -->
+<!-- data Prism s t a b = forall q. -->
+<!--                      Prism { match  :: s -> Either b q -->
+<!--                            , inject :: Either b q -> t -->
+<!--                            } -->
+
+
+<!-- matching :: Prism s t a b -> (s -> Either t a) -->
+<!-- review   :: Prism s t a b -> (b -> t) -->
+<!-- ``` -->
+
+<!-- Note that we can take advantage of this relabeling to replace `preview :: -->
+<!-- Prism' s a -> (s -> Maybe a)` with the more interesting `matching :: Prism s t -->
+<!-- a b -> (s -> Either t a)`. (Seeing the type `s -> Either t a` should tell us -->
+<!-- what would happen if there is no pattern match: we take an "outer" type as an -->
+<!-- input `s` and get the same "outer" type as a *result* `t`) -->
+
+<!-- Remember, we still require `unsplit . split = id`, `split . unsplit = id`, -->
+<!-- `inject . match = id`, and `match . inject = id`.  They're all still -->
+<!-- *isomorphisms*.  We're just *relabeling our type variables* here to let us be -->
+<!-- more expressive with how we talk about all of the moving parts. -->
+
+<!-- These aren't "polymorphic isomorphism" --- they're the same old isomorphisms we -->
+<!-- have been working with this entire time, and if we compose them, they should -->
+<!-- yield `id` when the type variables match up.  These are just isomorphisms where -->
+<!-- we re-label the type variables to help us talk about what goes in and what goes -->
+<!-- out. -->
+
+<!-- As an example for what this gives us, compare the original and new type -->
+<!-- signature of `over` for lenses: -->
+
+<!-- ```haskell -->
+<!-- over :: Lens' outer inner -> (inner -> inner) -> (outer -> outer) -->
+<!-- over :: Lens  s t   a b   -> (  a   ->   b  ) -> (  s   ->   t  ) -->
+<!-- ``` -->
+
+<!-- Isn't it nicer how we can track the progression of how the data moves through -->
+<!-- the type variables, instead of just having `inner -> inner`? -->
+
+<!-- Remember, however, that in the end, a `Lens s t a b` fundamentally describes -->
+<!-- the *same* isomorphism and concept as `Lens' outer inner`. -->
 
 <!-- Then we can write `view`: -->
 
