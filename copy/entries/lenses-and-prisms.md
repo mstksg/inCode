@@ -1215,6 +1215,22 @@ actually implemented in practice:
     the round-trip of `unsplit . split = id` and `inject . match = id`, this
     enforces just the spirit of the hidden abstract type.
 
+    For example, our "`only 'a'`" can be witnessed by:
+
+    ```haskell
+    type CharButNotA = Char
+
+    match :: Char -> Either () CharButNotA
+    match 'a' = Left ()
+    match x   = Right x
+
+    inject :: Either () CharButNotA -> Char
+    inject (Left  _) = 'a'
+    inject (Right x) = x
+    ```
+
+    This passes `inject . match = id`, but not `match . inject = id` if we pass
+    in the "illegal" value `Right 'a'`.
 
 ### Exercises
 
