@@ -17,6 +17,7 @@ import           Data.Foldable
 import           Data.List
 import           Data.String
 import           Text.Blaze.Html5            ((!))
+import qualified Data.Map                    as M
 import qualified Data.Text                   as T
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
@@ -30,7 +31,7 @@ data HomeInfo = HI
     , hiAllTags    :: ![Tag]
     , hiLinksCopy  :: !P.Pandoc
     , hiBannerCopy :: !P.Pandoc
-    , hiPatrons    :: ![Patron]
+    , hiPatrons    :: !PatronList
     }
   deriving (Show)
 
@@ -61,14 +62,13 @@ viewHome HI{..} =
             copyToHtml hiLinksCopy
           H.div ! A.class_ "home-patrons" $ do
             H.p "Special thanks to my supporters on Patreon!"
-            H.ul . forM_ hiPatrons $ \Patron{..} -> do
-              let ptext = H.toHtml patronName
+            H.ul . forM_ (M.toList hiPatrons) $ \(pName, PatronInfo{..}) ->
               H.li $ case patronTwitter of
-                Nothing -> H.toHtml patronName
-                Just u  -> do
-                  let turl = "https://twitter.com/" <> u
+                Nothing -> H.toHtml pName
+                Just pt -> do
+                  let turl = "https://twitter.com/" <> pt
                   H.a ! A.href (H.textValue turl) $
-                    H.toHtml patronName
+                    H.toHtml pName
         H.div ! A.class_ "tile home-tags" $
           viewTags hiAllTags
 

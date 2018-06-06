@@ -12,6 +12,7 @@ import           Data.Maybe
 import           Data.Time.Format
 import           Hakyll
 import qualified Data.ByteString          as BS
+import qualified Data.Map                 as M
 import qualified Data.Text                as T
 import qualified Data.Yaml                as Y
 import qualified Text.Pandoc              as P
@@ -87,12 +88,10 @@ b </!> f = let f' = fromMaybe f $ T.stripPrefix "/" f
                b' = fromMaybe b $ T.stripSuffix "/" b
            in  b' <> ('/' `T.cons` f')
 
--- | Parse, filter, and sort yaml file
+-- | Parse and filter yaml file
 parsePatronList
     :: PatronLevel          -- ^ minimum level
     -> BS.ByteString
-    -> Either Y.ParseException [Patron]
-parsePatronList lv = fmap process . Y.decodeEither'
-  where
-    process = sortOn patronName
-            . filter ((>= lv) . patronLevel)
+    -> Either Y.ParseException PatronList
+parsePatronList lv = fmap (M.filter ((>= lv) . patronLevel))
+                   . Y.decodeEither'

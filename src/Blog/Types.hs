@@ -86,12 +86,13 @@ data PatronLevel = PLSupport
                  | PLAmazing
   deriving (Show, Eq, Ord, Generic)
 
-data Patron = Patron
-    { patronName    :: !T.Text
-    , patronTwitter :: !(Maybe T.Text)
+data PatronInfo = PatronInfo
+    { patronTwitter :: !(Maybe T.Text)
     , patronLevel   :: !PatronLevel
     }
   deriving (Show, Eq, Ord, Generic)
+
+type PatronList = M.Map T.Text PatronInfo
 
 data EnvType = ETDevelopment | ETProduction
   deriving (Show, Eq, Ord, Enum)
@@ -181,10 +182,10 @@ instance ToJSON PatronLevel where
              , A.constructorTagModifier = A.camelTo2 '-' . drop 2
              }
 
-instance FromJSON Patron where
+instance FromJSON PatronInfo where
   parseJSON = A.genericParseJSON $ A.defaultOptions
                 { A.fieldLabelModifier = A.camelTo2 '-' . drop 6 }
-instance ToJSON Patron where
+instance ToJSON PatronInfo where
   toJSON = A.genericToJSON $ A.defaultOptions
              { A.fieldLabelModifier = A.camelTo2 '-' . drop 6 }
 

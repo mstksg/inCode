@@ -5,6 +5,7 @@ tags: lenses, profunctors
 create-time: 2018/05/22 23:29:16
 identifier: lenses-and-prisms
 slug: lenses-products-prisms-sums
+patrons: Sam Stites
 ---
 
 I've written about a variety of topics on this blog, but one thing I haven't
@@ -1091,7 +1092,7 @@ actually implemented in practice:
                    |
                    v
      outer <--- (inner, q)
-    
+
     Prism' outer inner
     =================
      outer ---> Either inner q
@@ -1112,7 +1113,7 @@ actually implemented in practice:
                    |
                    v
        t   ---> (  b  , q)
-    
+
     Prism s t a b
     =============
        s   ---> Either   a   q
@@ -1137,7 +1138,7 @@ actually implemented in practice:
     family][lens-family].  Be careful to never call it a "polymorphic lens".
     It **not** a polymorphic lens.  It is just a normal lens where we re-label
     the type variables of all of the involved pieces to aid in our discourse.
-    
+
     [lens-family]: http://comonad.com/reader/2012/mirrored-lenses/
 
     We still require `unsplit . split = id`, `split . unsplit = id`, `inject .
