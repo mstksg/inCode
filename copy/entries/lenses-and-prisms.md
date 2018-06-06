@@ -5,7 +5,6 @@ tags: lenses, profunctors
 create-time: 2018/05/22 23:29:16
 identifier: lenses-and-prisms
 slug: lenses-products-prisms-sums
-patrons: Sam Stites
 ---
 
 I've written about a variety of topics on this blog, but one thing I haven't
@@ -486,10 +485,14 @@ I just think it's interesting that the same type can be "decomposed" into a sum
 of two different types in multiple ways.
 
 [^challenge]: Fun haskell challenge: the version of `match` for the `[a] <~>
-Either () ([a], a)` isomorphism I wrote there is conceptually simple, but very
-inefficient.  It traverses the input list three times, uses two partial
-functions, and uses a `Bool`.  Can you write a `match` that does the same thing
-using only a single fold and no partial functions or `Bool`s?
+    Either () ([a], a)` isomorphism I wrote there is conceptually simple, but very
+    inefficient.  It traverses the input list three times, uses two partial
+    functions, and uses a `Bool`.  Can you write a `match` that does the same thing
+    using only a single fold and no partial functions or `Bool`s?
+
+    I managed to write one [using a difference list][matchlast]!
+
+[matchlast]: https://gist.github.com/mstksg/89fcb48f4b5c5b64f981c4cd3b0f37e4
 
 Another curious sum: if we consider the "empty data type" `Void`, the type with
 no inhabitants:
@@ -584,7 +587,7 @@ with at least one value can be expressed as a sum involving `()`!  It's always
 Now let's bring prisms into the picture.  A `Prism' s a` also refers to some
 `a` "inside" an `s`, with the following API: `preview` and `review`[^invent]
 
-[^invent]: I didn't invent these names
+[^invent]: I didn't invent these names :)
 
 ```haskell
 preview :: Prism' s a -> (s -> Maybe a)   -- get the 'a' in the 's' if it exists
