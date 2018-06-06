@@ -1072,6 +1072,87 @@ lens and prism laws into something trivial that can be stated succinctly ("it
 must be an isomorphism"), and also made the profunctor optics form seem
 extremely natural.
 
+Some small notes need to be made to bridge this view with the way they are
+actually implemented in practice:
+
+1.  We have been dealing with `Lens' outer inner` and `Prism' outer inner`,
+    which are known as "simple" optics.  In practice, this can be generalized
+    by giving the "input" outer/inner values and "output" outer/inner values
+    different type variables.
+
+    For example, so far all our operations have basically been navigating
+    between the isomorphisms that lenses and prisms represent:
+
+    ```
+    Lens' outer inner
+    =================
+     outer ---> (inner, q)
+                   |
+                   |
+                   v
+     outer <--- (inner, q)
+    
+    Prism' outer inner
+    =================
+     outer ---> Either inner q
+                         |
+                         |
+                         v
+     outer <--- Eitner inner q
+    ```
+
+    We can simply *re-label* the inputs and outputs to have different types,
+    like so:
+
+    ```
+    Lens s t a b
+    ============
+       s   ---> (  a  , q)
+                   |
+                   |
+                   v
+       t   ---> (  b  , q)
+    
+    Prism s t a b
+    =============
+       s   ---> Either   a   q
+                         |
+                         |
+                         v
+       t   ---> Either   b   q
+    ```
+
+    Essentially, we're just deciding to give the inputs and outputs different
+    type variables.  The main thing this helps is with is giving us the ability
+    to distinguish inputs from outputs when we talk about these things.
+
+    For example, before, with `Lens' outer inner`, if I say "the `outer`", you
+    won't know if I mean the `outer` "before" we use the lens, or the `outer`
+    *after* we use the lens.  However, with `Lens s t a b`, if I say "the `s`",
+    you know that I just mean "the `outer` *before* we use the lens", and if I
+    say "the `t`", you know that I mean "the `outer` *after* we use the lens".
+
+    `Lens s t a b` (which is a version of `Lens' outer inner` where we relabel
+    the type variables of the inputs and outputs) is called a [lens
+    family][lens-family].  Be careful to never call it a "polymorphic lens".
+    It **not** a polymorphic lens.  It is just a normal lens where we re-label
+    the type variables of all of the involved pieces to aid in our discourse.
+    
+    [lens-family]: http://comonad.com/reader/2012/mirrored-lenses/
+
+    We still require `unsplit . split = id`, `split . unsplit = id`, `inject .
+    match = id`, and `match . inject = id`.  They're all still *isomorphisms*.
+    We're just *relabeling our type variables* here to let us be more
+    expressive with how we talk about all of the moving parts.
+
+    These aren't "polymorphic isomorphism" --- they're the same old
+    isomorphisms we have been working with this entire time, and if we compose
+    them, they should yield `id` when the type variables match up.  These are
+    just isomorphisms where we re-label the type variables to help us talk
+    about what goes in and what goes out.
+
+2.  In practice, it is very inconvenient to actually declare an actual type `q`
+
 
 <!-- For example, implementing `view`, a lens gives us: -->
 
