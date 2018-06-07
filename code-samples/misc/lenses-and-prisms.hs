@@ -83,12 +83,11 @@ data Prism' s a = forall q. Prism'
       -> Prism' b c
       -> Prism' a c
 Prism' matchX injectX .|. Prism' matchY injectY = Prism'
-    { match  = \x ->
-        case matchX x of
-          Left y  -> case matchY y of
-            Left z  -> Left z
-            Right r -> Right (Right r)
-          Right q -> Right (Left q)
+    { match  = \x -> case matchX x of
+        Left y  -> case matchY y of
+          Left z  -> Left z
+          Right r -> Right (Right r)
+        Right q -> Right (Left q)
     , inject = \case
         Left z          -> injectX (Left (injectY (Left z )))
         Right (Left  q) -> injectX (Right q)

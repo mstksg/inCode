@@ -1192,9 +1192,7 @@ exercises!
     !!!misc/lenses-and-prisms.hs "mysteryPrism1"1 "mysteryPrism2"1
     ```
 
-    What do these prisms do?  What is `preview` and `review` for them?  And, if
-    prisms represent abstract constructors, what "constructors" do these
-    correspond to?
+    What do these prisms do?  What is `preview` and `review` for them?
 
 *   Can you write combinators to "compose" lenses and prisms?  Is it even
     possible?
