@@ -1231,5 +1231,3 @@ writing these posts.  Very special thanks to my supporter at the "Amazing"
 level, Sam Stites! :)
 
 [patreon]: https://www.patreon.com/justinle/overview
-
-TODO: move all lenses and prisms to file
