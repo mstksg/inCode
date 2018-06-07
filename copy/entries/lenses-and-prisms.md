@@ -1171,7 +1171,7 @@ exercises!
     involving `()` and you can have a `Prism' a ()`.
 
     Under what conditions can you express a type `a` is a *product* involving
-    `Void`, and you can have a `Lens' a Void`?
+    `Void`, and you can have a `Lens' a Void`? (Hint: use the algebra!)
 
 *   We found that by interpreting `Either a a` as a product `(Bool, a)` gives
     us two interesting lenses:
@@ -1189,11 +1189,12 @@ exercises!
     *sum* between `a` and itself, `Either a a`.  This gives us two prisms:
 
     ```haskell
-    mysteryPrism1 :: Lens' (Bool, a) a
-    mysteryPrism2 :: Lens' (Bool, a) a
+    !!!misc/lenses-and-prisms.hs "mysteryPrism1"1 "mysteryPrism2"1
     ```
 
-    What do these prisms do?  What is `preview` and `review` for them?
+    What do these prisms do?  What is `preview` and `review` for them?  And, if
+    prisms represent abstract constructors, what "constructors" do these
+    correspond to?
 
 *   Can you write combinators to "compose" lenses and prisms?  Is it even
     possible?

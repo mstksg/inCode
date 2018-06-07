@@ -31,6 +31,28 @@ matchInitLast = (fmap . first) ($[])    -- "extract" the difference list
     go (Left  _      ) x = Right (id       , x)
     go (Right (ys, y)) x = Right (ys . (y:), x)
 
+-- Challenge: mysteryPrisms
+
+mysteryPrism1 :: Prism' (Bool, a) a
+mysteryPrism1 = Prism'
+    { match  = \case
+        (False, x) -> Left  x
+        (True , x) -> Right x
+    , inject = \case
+        Left  x -> (False, x)
+        Right x -> (True , x)
+    }
+
+mysteryPrism2 :: Prism' (Bool, a) a
+mysteryPrism2 = Prism'
+    { match  = \case
+        (False, x) -> Right x
+        (True , x) -> Left  x
+    , inject = \case
+        Left  x -> (True , x)
+        Right x -> (False, x)
+    }
+
 -- Challenge: compose prisms and lenses
 
 data Lens' s a = forall q. Lens'
