@@ -13,6 +13,7 @@ import           Data.List.NonEmpty (NonEmpty(..))
 import           Data.Maybe
 import           Numeric.Natural
 import           Refined hiding     (NonEmpty)
+import qualified Data.Set           as S
 
 -- Challenge: write a `match` for the "init and last" sum decomposition
 -- using only one fold and no partial functions or booleans.
@@ -158,6 +159,19 @@ fromEither = view mysteryLens2
 mapEither :: (a -> a) -> Either a a -> Either a a
 mapEither = overL mysteryLens2
 
+type CharButNotA = Char
+
+containsA :: Lens' (S.Set Char) Bool
+containsA = Lens'
+    { split   = \s ->
+        ( 'a' `S.member` s
+        , 'a' `S.delete` s      :: S.Set CharButNotA
+        )
+    , unsplit = \case
+        (False, s) -> s
+        (True , s) -> 'a' `S.insert` (s :: S.Set CharButNotA)
+    }
+
 -- Miscellaneous prisms
 
 data Shape = Circle  Double           -- radius
@@ -280,6 +294,16 @@ makeNot4 = preview refined4
 
 fromNot4 :: Not4 -> Int
 fromNot4 = review refined4
+
+onlyA :: Prism' Char ()
+onlyA = Prism'
+    { match  = \case
+        'a' -> Left ()
+        x   -> Right (x :: CharButNotA)
+    , inject = \case
+        Left  _ -> 'a'
+        Right x -> x        -- Right contains a CharButNotA
+    }
 
 main :: IO ()
 main = return ()

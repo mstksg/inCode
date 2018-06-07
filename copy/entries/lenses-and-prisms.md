@@ -1107,27 +1107,24 @@ actually implemented in practice:
 2.  In practice, the `q` to factor out your type into (in the `s <~> (a, q)`
     and `s <~> Either a q`) might not be an actual literal type.  In most
     cases, it's alright to treat it as a theoretical "abstract" type that
-    follows the behavior you want given a restricted interface.  For example,
-    the `only 'a' :: Prism' Char ()` prism matches only on `'a'`, and it is the
-    sum of `Char` and a theoretical abstract `Char` type that excludes `'a'`.
+    follows the behavior you want given a restricted interface.  This is "safe"
+    because, if you notice, none of the methods in the lens or prism APIs
+    (`view`, `set`, `preview`, `review`) ever let an external user directly
+    manipulate a value of type `q`.
+
+    For example, the `only 'a' :: Prism' Char ()` prism matches only on `'a'`,
+    and it is the sum of `Char` and a theoretical abstract `Char` type that
+    excludes `'a'`.
 
     To formalize this, sometimes we can say that only "one direction" of the
     isomorphism has to be strictly true in practice.  If we only enforce that
     the round-trip of `unsplit . split = id` and `inject . match = id`, this
-    enforces just the spirit of the hidden abstract type.
+    enforces just the spirit of the hidden abstract type.  This is ""
 
     For example, our "`only 'a'`" can be witnessed by:
 
     ```haskell
-    type CharButNotA = Char
-
-    match :: Char -> Either () CharButNotA
-    match 'a' = Left ()
-    match x   = Right x
-
-    inject :: Either () CharButNotA -> Char
-    inject (Left  _) = 'a'
-    inject (Right x) = x
+    !!!misc/lenses-and-prisms.hs "type CharButNotA" "onlyA"
     ```
 
     This passes `inject . match = id`, but not `match . inject = id` if we pass
@@ -1139,7 +1136,7 @@ actually implemented in practice:
     ```haskell
     -- import qualified Data.Set as S
 
-    contains 'a' :: Lens'(S.Set Char) Bool
+    contains 'a' :: Lens' (S.Set Char) Bool
 
     -- check if a set contains an element
     view (contains 'a') :: S.Set Char -> Bool
@@ -1160,12 +1157,7 @@ actually implemented in practice:
     could not possibly contain `'a'`:
 
     ```haskell
-    split :: S.Set Char -> (Bool, S.Set CharButNotA)
-    split s = ('a' `S.member` s, S.delete 'a' s)
-
-    unsplit :: (Bool, S.Set CharButNotA) -> S.Set Char
-    unsplit (False, s) = s
-    unsplit (True , s) = S.insert a s
+    !!!misc/lenses-and-prisms.hs "type CharButNotA" "containsA"
     ```
 
     Again, only `unsplit . split = id` is technically true.
