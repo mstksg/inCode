@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --install-ghc runghc --package profunctors --package refined-0.2.3.0 --resolver nightly-2018-06-06 -- -Wall -O2
+-- stack --install-ghc ghci --package profunctors --package refined-0.2.3.0 --package containers --resolver nightly-2018-06-06
 
 {-# LANGUAGE DataKinds                 #-}
 {-# LANGUAGE EmptyCase                 #-}
@@ -15,6 +15,12 @@ import           Data.Profunctor
 import           Numeric.Natural
 import           Refined hiding     (NonEmpty)
 import qualified Data.Set           as S
+
+-- This file can be "executed"!
+--
+-- $ ./lenses-and-prisms.hs
+--
+-- This will load up a ghci session with all of the bindings here
 
 -- Challenge: write a `match` for the "init and last" sum decomposition
 -- using only one fold and no partial functions or booleans.
