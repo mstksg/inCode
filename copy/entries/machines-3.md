@@ -219,7 +219,7 @@ lets you abstract over functions and function composition with `Category`,
 Haskell lets you abstract over values and function application with `Monad`,
 `Applicative`, and `Functor`.
 
-<div class="note">
+::::: {.note}
 **Aside**
 
 If you look at the instances we wrote out, you might see that for some of
@@ -236,7 +236,7 @@ right?
 If you try, how much can we "generalize" our other instances to?  Which ones
 can be generalized to `Functor`, which ones `Applicative`...and which ones
 can't?
-</div>
+:::::
 
 By the way, it might be worth noting that our original `Auto` type is
 identical to `AutoM Identity` --- all of the instances do the exact same
@@ -610,20 +610,21 @@ from the outside.
 every time you "step" the `Auto`, and observe how it changes --- also another
 useful use case.
 
-<div class="note">
+::::: {.note}
 **Aside**
 
 We can even pull this trick to turn any `AutoM (StateT s m)` into an `AutoM
 m`.  See if you can write it :)
 
-~~~haskell
+```haskell
 sealStateAutoM :: AutoM (StateT s m) a b -> s -> AutoM m a b
 sealStateAutoM = ...
 
 runStateAutoM :: AutoM (StateT s m) a b -> AutoM m (a, s) (b, s)
 runStateAutoM = ...
-~~~
-</div>
+```
+
+:::::
 
 In both of these methods, what is the real win?  The big deal is that you can
 now chose to "work only in the world of non-global-state", combining
@@ -862,7 +863,7 @@ give this to us.
 
 In the following aside, I detail the exact mechanics of how this works :)
 
-<div class="note">
+::::: {.note}
 **Aside**
 
 Ah, so you're curious?  Or maybe you are just one of those people who really
@@ -915,10 +916,11 @@ By the way, this trick works with `ArrowM` too --- provided that the `Monad`
 is an instance of `MonadFix`, which is basically a generalization of the
 recursive `let` bindings we used above:
 
-~~~haskell
+```haskell
 !!!machines/Auto3.hs "instance MonadFix m => ArrowLoop (AutoM m)"
-~~~
-</div>
+```
+
+:::::
 
 
 Going Kleisli
@@ -961,7 +963,7 @@ instance![^autoonnt]
 [^autoonnt]: Another exercise you can do if you wanted is to write the exact
 same instances, but for `newtype AutoOn a b = AutoOn (Auto a (Maybe b))` :)
 
-<div class="note">
+::::: {.note}
 **Aside**
 
 This aside contains category-theoretic justification for what we just did. You
@@ -1052,7 +1054,7 @@ FRP libraries!  It's "inhibit, with a *value*".  As an exercise, see if you
 can write its `FunctorA` instance, or re-write the `AutoOn` in this section to
 work with `Either e` (you might need to impose a typeclass constraint on the
 `e`) instaed of `Maybe`!
-</div>
+:::::
 
 
 I'm not going to spend too much time on this, other than saying that it is
@@ -1163,7 +1165,7 @@ ghci> testAuto_ (fromAutoOn stages) [1..15]
 Note that the stages continually "loop around", as our recursive definition
 seems to imply.  Neat!
 
-<div class="note">
+::::: {.note}
 **Aside**
 
 You might note that sometimes, to model on/off behavior, it might be nice to
@@ -1195,7 +1197,7 @@ You can of course translate all of your `AutoOn`s into this new type:
 ~~~
 
 Or you can use the smart constructor method detailed immediately following.
-</div>
+:::::
 
 
 Working all together

@@ -137,7 +137,7 @@ data Position = West | East                     -- 5
     river.  Everyone starts out on the west bank, and we want them all to end
     up on the east bank.
 
-<div class="note">
+::::: {.note}
 **Welcome to Haskell!**
 
 Hi!  These "Welcome to Haskell" asides are for people unfamiliar with Haskell,
@@ -181,7 +181,7 @@ declaring new types.
 
 5.  `Position`: same deal as `Character`.
 
-</div>
+:::::
 
 Implementation
 --------------
@@ -221,7 +221,7 @@ Hm.  Sounds good!  We're done!
 
 So now we only need to implement `makeNMoves` and `isSolution`!
 
-<div class="note">
+::::: {.note}
 **Welcome to Haskell!**
 
 Haskell is a functional language...but that "do" block sure looks very
@@ -238,7 +238,8 @@ findSolutions =
 
 And `>>=` is just the (hopefully) familiar bind.  Again, look at [Part 1][] or
 [adit's][adit] tutorial for a fuller explanation.
-</div>
+
+:::::
 
 ### makeNMoves
 
@@ -300,7 +301,7 @@ makeNMoves n = iterate (>>= makeMove) (return startingPlan) !! n
 We say "apply `(>>= makeMove)` `n` times, starting the single starting
 plan".
 
-<div class="note">
+::::: {.note}
 **Welcome to Haskell!**
 
 Remember that `return x >>= f` is the same as `f x`.  You can see this here:
@@ -318,7 +319,7 @@ Where `return x` says "succeed with the value `x`", and `y <-` says "set `y`
 to the value of that success".  Of course, `y` is just going to be `x`,
 because we had just said "succeed with the value of `x`.  That means that `f
 y` is the same as `f x`.
-</div>
+:::::
 
 Even though the syntax is not the cleanest, it is important to remember here
 that what we are doing is simply defining the journey `makeNMoves` as the
@@ -368,7 +369,7 @@ filter (== MoveThe c) p
 This will return a new Plan, but with only the moves involving the
 character `c`.  We can then use the length of *that*.
 
-<div class="note">
+::::: {.note}
 **Welcome to Haskell!**
 
 `filter :: (a -> Bool) -> [a] -> [a]` is a common function that takes a
@@ -377,7 +378,7 @@ for which the predicate returns true.
 
 `(== MoveThe c)` is a function that returns true if the move is equal to
 `MoveThe c`.
-</div>
+:::::
 
 Putting it all together:
 
@@ -391,7 +392,7 @@ positionOf p c = case c of
                             | othherwise  = East
 ~~~
 
-<div class="note">
+::::: {.note}
 **Welcome to Haskell!**
 
 What is `positionFromCount . length $ p`?
@@ -413,7 +414,7 @@ In the same way, `positionFromCount . length $ filter (== MoveThe c) p` is
 of the filtered list, then turn that length into a position.  We use `$`
 mostly because we don't like writing parentheses everywhere when we don't have
 to.
-</div>
+:::::
 
 Does this actually work?  Let's try out some examples.
 
@@ -465,7 +466,7 @@ isSolution p = all (== East) positions
         positions = map (positionOf p) [Farmer ..]
 ~~~
 
-<div class="note">
+::::: {.note}
 **Welcome to Haskell!**
 
 `map` is probably the most ubiquitous concept in functional programming --- it
@@ -475,23 +476,24 @@ to every item.
 For example, `map f [x,y,z]` = `[f x, f y, f z]`.  If we wanted to find the
 lengths of a list of strings, we'd do:
 
-~~~haskell
+```haskell
 map length ["alice","bob"]
 = [length "alice", length "bob"]
 = [5,3]
-~~~
+```
 
 So in our case:
 
-~~~haskell
+```haskell
 map (positionOf p) [Farmer, Wolf, Goat, Cabbage]
 = [ positionOf p Farmer         -- Position of the farmer
   , positionOf p Wolf           -- Position of the wolf
   , positionOf p Goat           -- Position of the goat
   , positionOf p Cabbage        -- Position of the cabbage
   ]
-~~~
-</div>
+```
+
+:::::
 
 We use `[Farmer ..]` as shorthand for `[Farmer, Wolf, Goat, Cabbage]`
 --- this is because `Character` is an Enum, so it can be enumerated using
@@ -554,7 +556,7 @@ makeMove p = do
 5.  We insta-fail unless the new plan is safe.
 6.  If we haven't failed yet, then we succeed with the new plan as the result.
 
-<div class="note">
+::::: {.note}
 **Welcome to Haskell!**
 
 Okay, so I was slightly hand-wavey with `<$>`.  But it is true that something
@@ -615,7 +617,7 @@ next <- [MoveThe Farmer, MoveThe Wolf, MoveThe Goat, MoveThe Cabbage]
 But still, it sometimes is cool to think of it as "Get the item inside,
 and then apply this function to it before you bind it to your variable", if
 only for funsies.
-</div>
+:::::
 
 #### Thought experiment
 

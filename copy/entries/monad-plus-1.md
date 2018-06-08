@@ -37,7 +37,7 @@ Let us enter a brave new world!
 
 ### A quick review of monads
 
-<div class="note">
+::::: {.note}
 **Note**
 
 This article is written for both beginners --- people who have a fuzzy idea of
@@ -64,7 +64,7 @@ love to answer your questions or hear your responses!
 This first post will cover the basics of MonadPlus with the simplest MonadPlus
 of all; the second part will explore the List MonadPlus, and the third will
 finally tackle the Wolf/Goat/Cabbage puzzle with our combined knowledge.
-</div>
+:::::
 
 Okay, so as a Haskell blogger, I'm actually not allowed to write any monad
 tutorials.  Luckily for you, however, I don't need too --- there are a wealth
@@ -89,7 +89,7 @@ Let's look at the most obvious container -- a `Maybe a`.  A `Maybe a` is a
 container that can either be `Just x` (representing a successful result `x` of
 type `a`) or a `Nothing` (representing a failed result).
 
-<div class="note">
+::::: {.note}
 **Welcome to Haskell!**
 
 Hi!  These "Welcome to Haskell" asides are going to be for you readers that
@@ -101,7 +101,7 @@ able to think of `Maybe a` as an abstract/virtual superclass with
 templates/generics --- `Maybe<a>`, kinda.  And that superclass has two
 subclasses: `Just<a>`, which has one public instance variable `x` of type `a`,
 and `Nothing`, which contains no instance variables.
-</div>
+:::::
 
 Often times you'll have functions that fail, and you want to chain them.  The
 easiest way is that any function that is chained onto a failed value will
@@ -116,7 +116,7 @@ halve x | even x    = Just (x `div` 2)          -- 2
         | otherwise = Nothing                   -- 3
 ~~~
 
-<div class="note">
+::::: {.note}
 **Welcome to Haskell!**
 
 Hi again!  There are some quick syntax features here.
@@ -129,7 +129,7 @@ Hi again!  There are some quick syntax features here.
     already.
 3.  Otherwise, return `Nothing` --- a failure.
 
-</div>
+:::::
 
 Because Maybe comes built-in as a monad, we can now chain `halve`s on results
 of other `halves`, and have any failures automatically propagate to the end
@@ -160,12 +160,12 @@ You can play with this yourself by [loading up the function yourself][halve].
 
 [halve]: https://github.com/mstksg/inCode/blob/master/code-samples/monad-plus/Halve.hs
 
-<div class="note">
+::::: {.note}
 **Welcome to Haskell!**
 
 In this article, code that begins with `ghci> ` represents commands to be entered
 at the interactive prompt, ghci.  Code that doesn't is actual source code.
-</div>
+:::::
 
 Remember, `>>=` means "use the results of the last thing to calculate this
 next thing" --- it "chains" the functions.
@@ -312,7 +312,7 @@ whatever your failure is.
 That means that for Maybe, `return x` is the same as `Just x`, and `mzero` is
 an alias for `Nothing`.
 
-<div class="note">
+::::: {.note}
 **Welcome to Haskell!**
 
 If you are familiar with object oriented languages like Java, MonadPlus is
@@ -328,7 +328,7 @@ In Haskell, the term we use (instead of "interface") is "**typeclass**". There
 are some subtle differences --- typeclasses are in general more powerful of a
 tool than interfaces --- but the two concepts provide similar roles in their
 respective languages.
-</div>
+:::::
 
 As a small note, the term/command "return"/`return` is shared by all monads.
 However, monads don't ascribe any (general) conceptual "meaning" or "purpose"
@@ -369,7 +369,7 @@ would be the value returned if you just exited at that step.
     long time ago.  So sad!
 
 
-<div class="note">
+::::: {.note}
 **Diversion**
 
 A small diversion.
@@ -395,7 +395,7 @@ Nothing
 If you already know a few other common library monad functions (like
 `replicateM`, `forM`, etc.), try reasoning about how they would work on
 Maybe's and MonadPlus's in general --- they aren't just for IO!
-</div>
+:::::
 
 ### Guards
 
@@ -412,7 +412,7 @@ guard True  = return ()
 guard False = mzero
 ~~~
 
-<div class="note">
+::::: {.note}
 **Welcome to Haskell!**
 
 1.  This is a type signature, like before.  We say that `guard` is a function
@@ -422,7 +422,7 @@ guard False = mzero
     For example, if we applied this to Maybe, the concrete signature would
     be `guard :: Bool -> Maybe ()`
 
-</div>
+:::::
 
 So `guard` will make sure a condition is met, or else it fails the entire
 thing.  If the condition is met, then it succeeds and places a `()` in the
@@ -438,12 +438,12 @@ halve n = do                -- <halve 8>   <halve 7>
     return $ n `div` 2      -- Just 4       (skip)
 ~~~
 
-<div class="note">
+::::: {.note}
 **Welcome to Haskell!**
 
 `guard $ even n` seems confusing, but it is just shorthand for `guard (even
 n)`. We just don't like writing all those parentheses out.
-</div>
+:::::
 
 So, first, `halve` is `Just ()` (succeeds with a blank value `()`) if `n` is
 even, or  else `Nothing` (fails automatically) otherwise.  Finally, if it has

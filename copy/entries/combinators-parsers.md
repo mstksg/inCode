@@ -6,7 +6,7 @@ create-time: 2013/11/30 22:56:45
 date: Never
 identifier: combinators-parsers
 slug: functional-programming-is-awesome-parser-combinators
-old-slugs: 
+old-slugs:
 entry-id: 10
 ---
 
@@ -84,7 +84,7 @@ which reads "The type `Parser a` is an object that you specify by saying
 '`P f`', where `f` is a function that takes in a string and returns an `a`
 with another string.
 
-<div class="note">
+::::: {.note}
 **Aside**
 
 Hi!  These asides are for people unfamiliar with Haskell syntax.  Feel
@@ -94,7 +94,7 @@ If you've ever used an object-oriented language like Java or C++, `Parser
 a` is a template, or generic, and would be written in those languages as
 the class `Parser<a>`, with only one instance variable: a function taking
 a string and returning something of type `a` with a leftover string.
-</div>
+:::::
 
 And we write a function `parse` that will take any `Parser a` object and any
 string, and return the parsed string:
@@ -104,7 +104,7 @@ parse :: Parser a -> String -> (a, String)              -- 1
 parse (P f) str = f str                                 -- 2
 ~~~
 
-<div class="note">
+::::: {.note}
 **Aside**
 
 A bunch of Haskell syntax features here!
@@ -118,7 +118,7 @@ A bunch of Haskell syntax features here!
     you specify a `Parser a`; the `f` is the function inside the object.  We
     then call `f` with `str`, and that's what we want.
 
-</div>
+:::::
 
 Let's say we had a parser `integerParser` pre-made, that parses a string into
 an integer.  Here is how we would use it in the interactive [repl][] prompt:
@@ -136,7 +136,7 @@ integerParser :: Parser Int
 ??????                      -- ??????
 ~~~
 
-<div class="note">
+::::: {.note}
 **Aside**
 
 In this article, code that begins with `λ: ` means stuff entered at the
@@ -144,7 +144,7 @@ interactive prompt, ghci.  You enter an expression, and it is evaluated, its
 result printed.
 
 `:type` is a ghci command that returns the type of the thing in question.
-</div>
+:::::
 
 Hm.  There's a problem.  Sometimes, the parse will fail.  How can we indicate
 that a parse is failable?
@@ -159,14 +159,14 @@ In Haskell, we have an object of type `Maybe a`, which can either be `Just a`
 Let's change our function so that it will return `Just a` if our parse
 succeeds and `Nothing` if it fails.
 
-<div class="note">
+::::: {.note}
 **Aside**
 
 Again keeping with the analogies to Object-Oriented Programming, you can think
 of `Maybe a` as a superclass, `Maybe<a>`, with two subclasses: `Just a` and
 `Nothing`. `Just a` contains one instance variable of type `a`, and `Nothing`
 contains...nothing.
-</div>
+:::::
 
 ~~~haskell
 data Parser a = P (String -> Maybe (a, String))
@@ -207,7 +207,7 @@ Nothing
 Nothing
 ~~~
 
-<div class="note">
+::::: {.note}
 **Aside**
 
 1. Remember, we specify/construct parsers as `P f`, where `f` is the
@@ -215,7 +215,7 @@ Nothing
 2. `_` is a wildcard in Haskell; `returnNothing` is a function that takes
     *anything* and returns `Nothing`.
 
-</div>
+:::::
 
 Easy enough.  How about some parsers that always succeeds with a pre-defined
 answer, and does not consume any of the string?
@@ -289,7 +289,7 @@ anyChar = P getFirst
         getFirst []     = Nothing               -- 2
 ~~~
 
-<div class="note">
+::::: {.note}
 **Aside**
 
 1.  If you call `getFirst` on a non-empty list, it will set the `x` to the
@@ -298,7 +298,7 @@ anyChar = P getFirst
     will return `Just ('h', "ello")`.
 2.  If you call `getFirst` on an empty list, it fails.
 
-</div>
+:::::
 
 Let's see it at work.
 
@@ -370,13 +370,13 @@ lowercase :: Parser Char
 lowercase = satisfies isLower
 ~~~
 
-<div class="note">
+::::: {.note}
 **Aside**
 
 Similar in structure to `(*2)`, `(== 'z')` is a function that returns true if
 the input is equal to `'z'` and false otherwise.  That is, `(== 'z') 'a'` is
 false, while `(== 'z') 'z'` is true.
-</div>
+:::::
 
 Remember, just like in the case with `succesful`: `satisfies p` returns a
 `Parser Char` that fails unless the first character satisfies the given
@@ -452,7 +452,7 @@ in any language is the list, `[]`; another neat one is `Maybe`.
 Just 6
 ~~~
 
-<div class="note">
+::::: {.note}
 **Aside**
 
 First of all, to clarify, `(*2)` is a function that doubles whatever is passed
@@ -483,7 +483,9 @@ As you can see, `<$>` is the "container" version of `$`.  It is like `$`, but
 For more information, refer to adit's [amazing article][adit] on the topic.
 
 [adit]: http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html
-</div>
+
+
+:::::
 
 You can probably see where I'm going with this.
 
@@ -614,7 +616,7 @@ instance Functor Parser where                                       -- 1
                     Nothing             -> Nothing                  -- 6
 ~~~
 
-<div class="note">
+::::: {.note}
 **Aside**
 
 1.  This line is syntax for "we are declaring that `Parser` is a functor!", so
@@ -631,7 +633,7 @@ instance Functor Parser where                                       -- 1
 6.  If `unmapped_result` is `Nothing`...well, you can't apply anything to the
     result if the result is a failure (a `Nothing`).  Pass on the failure.
 
-</div>
+:::::
 
 And now we can use our `Parser a` as a functor; all of our use cases above
 will now work.
@@ -663,20 +665,21 @@ keyword :: Parser String
 keyword = (!! keywords) <$> digitInt
 ~~~
 
-<div class="note">
+::::: {.note}
 **Aside**
 
 `(!! keywords)` is a function that looks up the given index in the given list.
 In our case, `(!! keywords) 2` would return what in other languages is
 `keywords[2]`, which is the string "warning".
-</div>
 
-~~~haskell
+:::::
+
+```haskell
 λ: parse keyword "1"
 Just ("normal", "")
 λ: parse keyword "hello"
 Nothing
-~~~
+```
 
 <!-- ~~~haskell -->
 <!-- λ: parse keyword "1" -->

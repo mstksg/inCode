@@ -663,7 +663,7 @@ a big win --- in lack of potential bugs, in more concise code, and in
 leveraging higher order functions.  In any case, this is also a good exposure
 to `(>~)`!
 
-<div class="note">
+::::: {.note}
 **Aside**
 
 `(>~)` is a pretty useful thing.  Basically, when you say
@@ -726,7 +726,7 @@ this to use *pipes* :)
 
 Admittedly, my description isn't too great, so if anyone has a better one, I'd
 be happy to use it here!
-</div>
+:::::
 
 
 #### The Rest
@@ -792,7 +792,7 @@ next part is not scheduled any ime soon and might not come for a while, as I'll
 be pursuing some other things in the near future --- I apologize for any
 disappointment/inconvenience this may cause.
 
-<div class="note">
+::::: {.note}
 
 **Bonus Round: *Full Lens***
 
@@ -872,5 +872,5 @@ Neat!
 
 Okay now, good bye, for reals!
 
-</div>
+:::::
 

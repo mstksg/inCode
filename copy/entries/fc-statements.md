@@ -68,7 +68,7 @@ Not really. It's still just an `Int`.
 (through some abstract representation that isn't really important) the act of
 a *computer* printing the string `"hello world"` to stdout.
 
-<div class="note">
+::::: {.note}
 **Aside**
 
 The type `IO ()` means "an object/abstracted data structure that represents
@@ -90,7 +90,7 @@ computation/IO-based computation that produces an `Int`.
 
 For the sake of this discussion, we'll only be considering `IO ()`s...but in
 real life, these other types pop up just as often.
-</div>
+:::::
 
 Haskell gives you a bunch of *combinators*/functions to *work* with these `IO
 ()`'s (and `IO a`'s in general).  To manipulate then, merge them, sequence
@@ -221,7 +221,7 @@ sequence_ :: [IO ()] -> IO ()
 Which says, "give me a list of `IO ()`s, and I'll give you a new `IO ()` that
 represents executing all of those `IO ()`s one-after-another".
 
-<div class="note">
+::::: {.note}
 **Aside**
 
 If you are curious, here is the definition of `sequence` using a fold:
@@ -234,13 +234,14 @@ sequence_ xs = foldr (>>) (return ()) xs
 If you're familiar with folds/reduces, `return ()` is the "base value", and
 `(>>)` is the "accumulating function".
 
-~~~haskell
+```haskell
 sequence_ [putStrLn "hello", putStrLn "world", putStrLn "goodbye!"]
 
 -- evaluates to:
 putStrLn "hello" >> (putStrLn "world" >> (putStrLn "goodbye!" >> return ()))
-~~~
-</div>
+```
+
+:::::
 
 Note that all of these functions take anything of type `IO ()`...so I could
 really be passing in named `IO ()`'s, or the result of combinators, or...
@@ -294,7 +295,7 @@ Compare this to other languages, where the syntax for sequencing statements
 parallel actions is noticeably different.  In Haskell, "sequencing" isn't a
 part of the syntax (the semicolon) --- it's just *a regular ol' function*!
 
-<div class="note">
+::::: {.note}
 **Aside**
 
 `sequencePar`'s implementation is pretty much identical to `sequence`'s, but
@@ -306,7 +307,7 @@ sequencePar xs = foldr bothPar (return ()) xs
 ~~~
 
 By the way, `bothPar` isn't defined by default, but we'll define it really soon.
-</div>
+:::::
 
 There are an entire wealth of combinators by which to compose and sequence and
 manipulate `IO ()`s together.  And many of them you can even write yourself,
@@ -368,7 +369,7 @@ Again --- no execution is being done.  We're simply taking an object
 representing an IO action, and returning a new, modified one representing a
 slightly different IO action.
 
-<div class="note">
+::::: {.note}
 **Aside**
 
 This is a pretty aside-y aside, and you can definitely skip it if you want!
@@ -422,7 +423,7 @@ of programs you can construct using various `IO a`'s opens up in crazy ways.
 Just imagine bash with no pipes, and only semicolons!  If you ever decide to
 implement some system of first-class statements, and it might be tricky to
 state/model imperative computations without `(>>=)`.
-</div>
+:::::
 
 ### Much More
 

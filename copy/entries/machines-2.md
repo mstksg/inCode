@@ -28,7 +28,7 @@ more!
 
 As always, feel free to leave a comment if you have any questions, or try to
 find me on [twitter][], or drop by the #haskell Freenode IRC channel!  (I go
-by *jle`*)
+by *jle\`*)
 
 [twitter]: https://twitter.com/mstk "Twitter"
 
@@ -174,18 +174,19 @@ ghci> (*3) . id $ 7
 21
 ~~~
 
-<div class="note">
+::::: {.note}
 **Aside**
 
 I mean it, you can prove it yourself if you are bored some time :)  I'll start
 you off with one of the identity laws:
 
-~~~haskell
+```haskell
 g . id = \x -> g (id x)     -- definition of (.)
        = \x -> g x          -- definition of id
        = g                  -- eta reduction
-~~~
-</div>
+```
+
+:::::
 
 So cool...this intuition applies to our actual idea of functions, so we are on
 a sane track!
@@ -420,7 +421,7 @@ Functor, check!
 
 What's next?
 
-<div class="note">
+::::: {.note}
 **Aside**
 
 If you ever have time, try doing some research on the [Contravariant][]
@@ -430,7 +431,7 @@ those?  Which ones?  If not all of them, why not?
 [Contravariant]: https://ocharles.org.uk/blog/guest-posts/2013-12-21-24-days-of-hackage-contravariant.html
 [Profunctors]: https://ocharles.org.uk/blog/guest-posts/2013-12-22-24-days-of-hackage-profunctors.html
 
-</div>
+:::::
 
 ### Applicative
 
@@ -551,7 +552,7 @@ Writing the instance is straightforward enough:
 !!!machines/Auto2.hs "instance Arrow Auto" machines
 ~~~
 
-<div class="note">
+::::: {.note}
 **Aside**
 
 We can also just take a shortcut and implement these in terms of combinators
@@ -591,7 +592,7 @@ What does this show?  Well, that `Arrow` really isn't anything too
 special...it's really just what we already had --- a `Category` with
 `Applicative`.  But we are able to define more efficient instances, and also
 sort of look at the problem in a "different way".
-</div>
+:::::
 
 What we have here isn't really anything too mystical.  It's just some basic
 combinators.  And like the aside says, we didn't introduce any "new power" ---

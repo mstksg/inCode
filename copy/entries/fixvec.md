@@ -566,7 +566,7 @@ It's an error, but remember, it's a *compiler* error, that happens before any
 code is ever even run!  No more indexing errors at runtime!  Kiss your days of
 hunting segfault errors in C goodbye!
 
-<div class="note">
+::::: {.note}
 **Aside**
 
 This is something I haven't really been able to find a good answer too.  But
@@ -589,7 +589,7 @@ or specify anything by the return type, like we could in the other examples.
 In the other examples, we sort of restricted the implementation by choosing
 our return type carefully...but for here, it's just `a`.  I'd love to hear if
 anyone has any thoughts on this.
-</div>
+:::::
 
 You might notice that it's a bit of a plain to write `S (S (S (S Z)))`, etc.,
 especially for large numbers.  And I wouldn't even think about writing it for

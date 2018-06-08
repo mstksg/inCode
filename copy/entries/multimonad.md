@@ -194,7 +194,7 @@ and `join` with grabbing the diagonal of the 5-vector of 5-vectors.
 This was a promising lead, but, it doesn't take *too* much thought to see that
 neither lists nor `Stream` are appropriate for *both* instances.
 
-<div class="note">
+::::: {.note}
 **Aside**
 
 In case you were wondering, here is an elaboration :D
@@ -247,7 +247,7 @@ In case you were wondering, here is an elaboration :D
 
     So, dead end here.
 
-</div>
+:::::
 
 So I didn't really have any leads at that point; I tried a couple of other
 paths but nothing really panned out.  So I shelved it for a while.
@@ -344,7 +344,7 @@ Which represents the monoid formed by `(/=)` (or "XOR") with `False`.
 And there you go.  One type, two possible unique, non-isomorphic `Monad`
 instances.
 
-<div class="note">
+::::: {.note}
 **Aside**
 
 One interesting thing to note is that the Monad instance for `(->) a`
@@ -361,5 +361,5 @@ Is there some duality at play here?
 The answer is, apparently, yes!  But according to Edward Kmett, it is one that
 is pretty hard to arrive at and a big headache and overall not worth the time
 to dig into.  So you're going to have to take my second-hand word for it.
-</div>
+:::::
 

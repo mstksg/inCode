@@ -200,7 +200,7 @@ compile it (and especially with optimizations on).  The difference is pretty
 striking...and I don't really know what's going on here, to be honest.  If
 anyone does know a good explanation, I'd love to hear it :)
 
-<div class="note">
+::::: {.note}
 **Aside**
 
 We can make things a little bit more efficient with minimal cost in
@@ -221,7 +221,7 @@ before having to pick any more things.  `mfilter` can be thought of as
 "killing the fork immediately" if the action doesn't satisfy the predicate.
 If the `s` picked doesn't match `(/= 0)`, then the entire branch/fork is
 immediately ruled invalid.
-</div>
+:::::
 
 By the way, isn't it neat that it does all of this in "constant space"?  It
 just keeps track of the output list, but the actual search processes is in

@@ -87,7 +87,7 @@ something important.  **It's not.**
 
 **IO in Haskell has nothing to do with monads.**
 
-<div class="note">
+::::: {.note}
 **Aside**
 
 Okay, so the truth is a *little* more complicated than this.
@@ -105,7 +105,7 @@ to do IO.  But that isn't as nice of a one-liner/sound byte now, is it?
 Special thanks to Chris Allen and Kevin Hammond for this important
 clarification.
 
-</div>
+:::::
 
 You could take away monads and even the entire monadic interface from Haskell
 and Haskell could *still* do IO *with the same IO type*.

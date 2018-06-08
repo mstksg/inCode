@@ -144,7 +144,7 @@ That's what `MonadIO` is for --- it allows you to write functions and say,
 that can embed IO can sequence my function/type".  The generic "embedding"
 action is `liftIO :: MonadIO m => IO a -> m a`.
 
-<div class="note">
+::::: {.note}
 **Aside**
 
 You know...ideally, all of these typeclasses would have laws, so we could make
@@ -163,7 +163,7 @@ capability of analyzing generic programs is rough heuristins/feelings about
 what "should" be right.
 
 A bit un-ideal, but...in practice, this ends up working not-so-badly :)
-</div>
+:::::
 
 Not a Monad Transformer Library
 -------------------------------
