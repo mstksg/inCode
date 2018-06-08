@@ -484,8 +484,8 @@ However, I feel this is a bit limiting.
 [dephask]: https://blog.jle.im/entry/practical-dependent-types-in-haskell-1.html
 [grenade]: http://hackage.haskell.org/package/grenade-0.1.0
 [tensor-ops]: https://github.com/mstksg/tensor-ops
-[layer as data]: https://docs.google.com/presentation/d/1UeKXVgRvvxg9OUdh_UiC5G71UMscNPlvArsWER41PsU/edit#slide=id.gc2fcdcce7_216_264
 [caffe]: http://caffe.berkeleyvision.org/
+[caffe-layers]: https://docs.google.com/presentation/d/1UeKXVgRvvxg9OUdh_UiC5G71UMscNPlvArsWER41PsU/edit#slide=id.gc2fcdcce7_216_264
 
 You are forced to "compose" your layers in only the ways that the API of the
 data type gives you.  You have to use the data type's "function composition"
