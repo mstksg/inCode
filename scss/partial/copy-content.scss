@@ -222,6 +222,11 @@
       z-index: 100;
       font-size: 85%;
     }
+
+    pre.sourceCode {
+      font-size: 83%;
+      line-height: 150%;
+    }
   }
 
   @media print {
