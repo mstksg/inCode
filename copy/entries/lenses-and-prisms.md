@@ -1152,7 +1152,8 @@ actually implemented in practice:
     !!!misc/lenses-and-prisms.hs "type CharButNotA" "containsA"
     ```
 
-    Again, only `unsplit . split = id` is technically true.
+    Again, only `unsplit . split = id` is technically true.  `split . unsplit =
+    id` will fail if the input set contains `'a'`.`
 
 ### Exercises
 
