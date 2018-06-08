@@ -19,6 +19,12 @@ embodying the essences of products and sums (respectively), and how that
 observation can help you with a more "practical" understanding of lenses and
 prisms.
 
+The "final code" in this post is [available online][code] as a "stack
+executable" that, when run, will pop you into a *ghci* session with all of the
+final definitions in scope, so you can play around with them :)
+
+!!![code]:misc/lenses-and-prisms.hs
+
 An Algebraic Recap
 ------------------
 
@@ -1227,9 +1233,8 @@ exercises!  Most of them are conceptual and open-ended.
 Special Thanks
 --------------
 
-I am very humbled to be supported by an amazing community on
-[Patreon][patreon], who make it possible for me to devote time to research and
-writing these posts.  Very special thanks to my supporter at the "Amazing"
-level, Sam Stites! :)
+I am very humbled to be supported by an amazing community, who make it possible
+for me to devote time to research and writing these posts.  Very special thanks
+to my supporter at the "Amazing" level on [patron][], Sam Stites! :)
 
 [patreon]: https://www.patreon.com/justinle/overview
