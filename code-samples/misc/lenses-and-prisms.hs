@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --install-ghc runghc --package refined-0.2.3.0 --resolver nightly-2018-06-06 -- -Wall -O2
+-- stack --install-ghc runghc --package profunctors --package refined-0.2.3.0 --resolver nightly-2018-06-06 -- -Wall -O2
 
 {-# LANGUAGE DataKinds                 #-}
 {-# LANGUAGE EmptyCase                 #-}
@@ -11,6 +11,7 @@ import           Data.Bifunctor     (first)
 import           Data.List          (foldl')
 import           Data.List.NonEmpty (NonEmpty(..))
 import           Data.Maybe
+import           Data.Profunctor
 import           Numeric.Natural
 import           Refined hiding     (NonEmpty)
 import qualified Data.Set           as S
@@ -325,6 +326,35 @@ onlyA = Prism'
         Left  _ -> 'a'
         Right x -> x        -- Right contains a CharButNotA
     }
+
+-- Profunctor Optics
+
+iso :: Profunctor p
+    => (s -> a)
+    -> (a -> s)
+    -> p a a
+    -> p s s
+iso = dimap
+
+makeLens
+    :: Strong p
+    => (s -> (a, q))        -- ^ split
+    -> ((a, q) -> s)        -- ^ unsplit
+    -> p a a                -- ^ relationship on a
+    -> p s s                -- ^ relationship on s
+makeLens split unsplit =
+    iso split unsplit  -- ^ p (a, q) (a, q) -> p s s
+  . first'             -- ^ p a a -> p (a, q) (a, q)
+
+makePrism
+    :: Choice p
+    => (s -> Either a q)    -- ^ match
+    -> (Either a q -> s)    -- ^ inject
+    -> p a a                -- ^ relationship on a
+    -> p s s                -- ^ relationship on s
+makePrism match inject =
+    iso match inject   -- ^ p (Either a q) (Either a q) -> p s s
+  . left'              -- ^ p a a -> p (Either a q) (Either a q)
 
 main :: IO ()
 main = return ()
