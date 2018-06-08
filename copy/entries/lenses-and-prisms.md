@@ -680,17 +680,16 @@ constructing a non-empty list.[^absconst]
     An *abstract constructor* is exactly what our *other* `[a]` sum decomposition
     gives us!  If we look at that isomorphism `[a] <~> Either () ([a], a)` (the
     "tail-and-last" breakdown) and write out the prisms, we see that they
-    correspond to the abstract constructors `_Nil` and `_Snoc`:
-
-    ~~~haskell
-    -- [a] <~> Either () ([a], a)
-    !!!misc/lenses-and-prisms.hs "_Nil'" "_Snoc"
-    ~~~
+    correspond to the abstract constructors [`_Nil`][inil] and
+    [`_Snoc`][isnoc].
 
     `_Snoc` is an "abstract constructor" for a list that lets us "construct" an
     `[a]` given an original list and an item to add to the end, and also
     "deconstruct" an `[a]` into an initial run and its last element (as a
     pattern match that might "fail").
+
+!!![inil]:misc/lenses-and-prisms.hs "_Nil'"
+!!![isnoc]:misc/lenses-and-prisms.hs "_Snoc"
 
 And, looking at `a <~> Either a Void`...what does that decomposition give us,
 conceptually?
