@@ -298,7 +298,7 @@ Looking at `mysteryLens1 :: Lens' (Either a a) Bool`, we are saying that every
 product, we know that this `Bool` is really a *flag* for left-ness or
 right-ness.  Getting the `Bool` is finding out if we're in `Left` or `Right`,
 and flipping the `Bool` "inside" is really just swapping from `Left` to
-`Right`.[^absrec]
+`Right`.
 
 ```haskell
 !!!misc/lenses-and-prisms.hs "flipEither" "isRight"
@@ -315,14 +315,19 @@ ghci> isRight (Right 'a')
 True
 ```
 
-[^absrec]: Note that if we look at lenses as embodying "record fields" (things
-that give you the ability to "get" a field, and "modify" a field ---
-corresponding with `view` and `set`), we can think of `mysteryLens1` as an
-*abstract record field* into the Leftness/Rightness of a value.  Thinking of
-lenses as defining abstract record fields is a [common tool for backwards
+::::: {.note}
+**Aside**
+
+Note that if we look at lenses as embodying "record fields" (things that give
+you the ability to "get" a field, and "modify" a field --- corresponding with
+`view` and `set`), we can think of `mysteryLens1` as an *abstract record field*
+into the Leftness/Rightness of a value.  Thinking of lenses as defining
+abstract record fields is a [common tool for backwards
 compatiblity][lens-records].
 
 [lens-records]: http://blog.ezyang.com/2016/12/a-tale-of-backwards-compatibility-in-asts/
+
+:::::
 
 Looking at `mysteryLens2 :: Lens' (Either a a) a`, we are saying that every
 `Either a a` has some `a` "inside" it.  From what we know about the underlying
@@ -411,13 +416,15 @@ However, if we think of `()` as the possibility of an empty list, and `(a, [a])`
 as the possibility of `NonEmpty a` (the "head" of a list consed with the rest of
 the list), then saying that `[a]` is a sum between `()` and `NonEmpty a` is
 saying that `[a]` is "either an empty list or a non-empty list".  Whoa.  Take
-*that*, [LEM denialists][lem-denialists].[^lem][^initlast]
+*that*, [LEM denialists][lem-denialists].[^lem]
 
 [lem-denialists]: https://en.wikipedia.org/wiki/Constructivism_(mathematics)
 
 [^lem]: Technically, LEM denialists and constructivists are somewhat vindicated
 here, because it is not strictly true in Haskell that a list is either an empty
-list or a non-empty list.  It can actually [be neither][bottom].
+list or a non-empty list.  It can actually [be neither][bottom].  Being able to
+say that a list is either an empty list or a non-empty list is exactly the same
+as assuming the law of the excluded middle in Haskell.
 
 [bottom]: https://wiki.haskell.org/Bottom
 
@@ -433,39 +440,44 @@ inject (Left   _       ) = []
 inject (Right (x :| xs)) = x:xs
 ```
 
-[^initlast]: And, actually, there is another way to deconstruct `[a]` as a sum
-    in Haskell. You can treat it as a sum between `()` and `([a], a)` --- where
-    the `()` represents the empty list and the `([a], a)` represents an "all
-    but the last item" list and "the last item":
+::::: {.note}
+**Aside**
 
-    ~~~haskell
-    -- [a] <~> Either () ([a], a)
+And, actually, there is another way to deconstruct `[a]` as a sum
+in Haskell. You can treat it as a sum between `()` and `([a], a)` --- where
+the `()` represents the empty list and the `([a], a)` represents an "all
+but the last item" list and "the last item":
 
-    match  :: [a] -> Either () ([a], a)
-    match xs
-      | null xs   = Left  ()
-      | otherwise = Right (init xs, last xs)
+~~~haskell
+-- [a] <~> Either () ([a], a)
 
-    -- init gives you all but the last item:
-    -- > init [1,2,3] = [1,2]
+match  :: [a] -> Either () ([a], a)
+match xs
+  | null xs   = Left  ()
+  | otherwise = Right (init xs, last xs)
 
-    inject :: Either () (a, [a]) -> [a]
-    inject (Left   _     ) = []
-    inject (Right (xs, x)) = xs ++ [x]
-    ~~~
+-- init gives you all but the last item:
+-- > init [1,2,3] = [1,2]
 
-    I just think it's interesting that the same type can be "decomposed" into a
-    sum of two different types in multiple ways.
+inject :: Either () (a, [a]) -> [a]
+inject (Left   _     ) = []
+inject (Right (xs, x)) = xs ++ [x]
+~~~
 
-    Fun haskell challenge: the version of `match` for the `[a] <~> Either ()
-    ([a], a)` isomorphism I wrote there is conceptually simple, but very
-    inefficient.  It traverses the input list three times, uses two partial
-    functions, and uses a `Bool`.  Can you write a `match` that does the same
-    thing using only a single fold and no partial functions or `Bool`s?
+I just think it's interesting that the same type can be "decomposed" into a
+sum of two different types in multiple ways.
 
-    I managed to write one [using a difference list][matchlast]!
+Fun haskell challenge: the version of `match` for the `[a] <~> Either ()
+([a], a)` isomorphism I wrote there is conceptually simple, but very
+inefficient.  It traverses the input list three times, uses two partial
+functions, and uses a `Bool`.  Can you write a `match` that does the same
+thing using only a single fold and no partial functions or `Bool`s?
+
+I managed to write one [using a difference list][matchlast]!
 
 !!![matchlast]:misc/lenses-and-prisms.hs "matchInitLast"
+
+:::::
 
 Another curious sum: if we consider the "empty data type" `Void`, the type with
 no inhabitants:
@@ -670,32 +682,37 @@ It looks like the `()` branch's `preview` corresponds to a prism that matches
 on an empty list, and the `NonEmpty a` branch corresponds to a prism that
 matches on a non-empty list.  And the `()` branch's `review` corresponds to
 constructing an empty list, and the `NonEmpty a` branch corresponds to
-constructing a non-empty list.[^absconst]
+constructing a non-empty list.
 
-[^absconst]: We see a sort of pattern here.  And, if we look deeper, we will
-    see that *all prisms* correspond to some sort of "constructor".
+::::: {.note}
+**Aside**
 
-    After all, what do constructors give you?  Two things: the ability to
-    "construct" a value, and the ability to do "case-analysis" or "pattern
-    match" a value.
+We see a sort of pattern here.  And, if we look deeper, we will
+see that *all prisms* correspond to some sort of "constructor".
 
-    The API of a "constructor" is pretty much exactly the Prism API, where
-    `preview` is "matching" and `review` is "constructing".  In fact, we
-    often use Prisms to simulate "abstract" constructors.
+After all, what do constructors give you?  Two things: the ability to
+"construct" a value, and the ability to do "case-analysis" or "pattern
+match" a value.
 
-    An *abstract constructor* is exactly what our *other* `[a]` sum decomposition
-    gives us!  If we look at that isomorphism `[a] <~> Either () ([a], a)` (the
-    "tail-and-last" breakdown) and write out the prisms, we see that they
-    correspond to the abstract constructors [`_Nil`][inil] and
-    [`_Snoc`][isnoc].
+The API of a "constructor" is pretty much exactly the Prism API, where
+`preview` is "matching" and `review` is "constructing".  In fact, we
+often use Prisms to simulate "abstract" constructors.
 
-    `_Snoc` is an "abstract constructor" for a list that lets us "construct" an
-    `[a]` given an original list and an item to add to the end, and also
-    "deconstruct" an `[a]` into an initial run and its last element (as a
-    pattern match that might "fail").
+An *abstract constructor* is exactly what our *other* `[a]` sum decomposition
+gives us!  If we look at that isomorphism `[a] <~> Either () ([a], a)` (the
+"tail-and-last" breakdown) and write out the prisms, we see that they
+correspond to the abstract constructors `_Nil` and `_Snoc`:
 
-!!![inil]:misc/lenses-and-prisms.hs "_Nil'"
-!!![isnoc]:misc/lenses-and-prisms.hs "_Snoc"
+```haskell
+!!!misc/lenses-and-prisms.hs "_Nil'" "_Snoc"
+```
+
+`_Snoc` is an "abstract constructor" for a list that lets us "construct" an
+`[a]` given an original list and an item to add to the end, and also
+"deconstruct" an `[a]` into an initial run and its last element (as a
+pattern match that might "fail").
+
+:::::
 
 And, looking at `a <~> Either a Void`...what does that decomposition give us,
 conceptually?
@@ -1043,9 +1060,10 @@ profunctor optics version of lens becomes `Lens s t a b = p a b -> p s t`.
 
 `Lens s t a b` (which is a version of `Lens' outer inner` where we relabel the
 type variables of the inputs and outputs) is called a [lens
-family][lens-family].  Be careful to never call it a "polymorphic lens". It
-**not** a polymorphic lens.  It is just a normal lens where we re-label the
-type variables of all of the involved pieces to aid in our discourse.
+family][lens-family].  Be careful to never call it a "polymorphic lens".  It is
+just a normal lens where we re-label the type variables of all of the involved
+pieces to aid in our discourse.  It is often also called a "type-changing
+lens".
 
 [lens-family]: http://comonad.com/reader/2012/mirrored-lenses/
 
