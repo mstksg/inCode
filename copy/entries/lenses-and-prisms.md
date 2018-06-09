@@ -1005,161 +1005,161 @@ must be an isomorphism"), and also made the profunctor optics form seem
 uncannily natural.
 
 Some small notes need to be made to bridge this view with the way they are
-actually implemented in practice:
+actually implemented in practice.
 
-1.  We have been dealing with `Lens' outer inner` and `Prism' outer inner`,
-    which are known as "simple" optics.  In practice, this can be generalized
-    by giving the "input" outer/inner values and "output" outer/inner values
-    different type variables.
+### Lens Families
 
-    For example, so far all our operations have basically been navigating
-    between the isomorphisms that lenses and prisms represent:
+We have been dealing with `Lens' outer inner` and `Prism' outer inner`, which
+are known as "simple" optics.  In practice, this can be generalized by giving
+the "input" outer/inner values and "output" outer/inner values different type
+variables.
 
-    ```
-    Lens' outer inner
-    =================
-     outer ---> (inner, q)
-                   |
-                   v
-     outer <--- (inner, q)
+For example, so far all our operations have basically been navigating between
+the isomorphisms that lenses and prisms represent:
 
-    Prism' outer inner
-    =================
-     outer ---> Either inner q
-                         |
-                         v
-     outer <--- Either inner q
-    ```
+```
+Lens' outer inner
+=================
+ outer ---> (inner, q)
+               |
+               v
+ outer <--- (inner, q)
 
-    We can simply *re-label* the inputs and outputs to have different types,
-    like so:
+Prism' outer inner
+=================
+ outer ---> Either inner q
+                     |
+                     v
+ outer <--- Either inner q
+```
 
-    ```
-    Lens s t a b
-    ============
-       s   ---> (  a  , q)
-                   |
-                   |
-                   v
-       t   ---> (  b  , q)
+We can simply *re-label* the inputs and outputs to have different types, like
+so:
 
-    Prism s t a b
-    =============
-       s   ---> Either   a   q
-                         |
-                         |
-                         v
-       t   ---> Either   b   q
-    ```
+```
+Lens s t a b
+============
+   s   ---> (  a  , q)
+               |
+               |
+               v
+   t   ---> (  b  , q)
 
-    Essentially, we're just deciding to give the inputs and outputs different
-    type variables.  The main thing this helps is with is giving us the ability
-    to distinguish inputs from outputs when we talk about these things.
+Prism s t a b
+=============
+   s   ---> Either   a   q
+                     |
+                     |
+                     v
+   t   ---> Either   b   q
+```
 
-    For example, before, with `Lens' outer inner`, if I say "the `outer`", you
-    won't know if I mean the `outer` "before" we use the lens, or the `outer`
-    *after* we use the lens.  However, with `Lens s t a b`, if I say "the `s`",
-    you know that I just mean "the `outer` *before* we use the lens", and if I
-    say "the `t`", you know that I mean "the `outer` *after* we use the lens".
-    The profunctor optics version of lens becomes `Lens s t a b = p a b -> p s
-    t`.
+Essentially, we're just deciding to give the inputs and outputs different type
+variables.  The main thing this helps is with is giving us the ability to
+distinguish inputs from outputs when we talk about these things.
 
-    `Lens s t a b` (which is a version of `Lens' outer inner` where we relabel
-    the type variables of the inputs and outputs) is called a [lens
-    family][lens-family].  Be careful to never call it a "polymorphic lens".
-    It **not** a polymorphic lens.  It is just a normal lens where we re-label
-    the type variables of all of the involved pieces to aid in our discourse.
+For example, before, with `Lens' outer inner`, if I say "the `outer`", you
+won't know if I mean the `outer` "before" we use the lens, or the `outer`
+*after* we use the lens.  However, with `Lens s t a b`, if I say "the `s`", you
+know that I just mean "the `outer` *before* we use the lens", and if I say "the
+`t`", you know that I mean "the `outer` *after* we use the lens". The
+profunctor optics version of lens becomes `Lens s t a b = p a b -> p s t`.
 
-    [lens-family]: http://comonad.com/reader/2012/mirrored-lenses/
+`Lens s t a b` (which is a version of `Lens' outer inner` where we relabel the
+type variables of the inputs and outputs) is called a [lens
+family][lens-family].  Be careful to never call it a "polymorphic lens". It
+**not** a polymorphic lens.  It is just a normal lens where we re-label the
+type variables of all of the involved pieces to aid in our discourse.
 
-    ```haskell
-    data Lens s t a b = forall q. Lens
-        { split   :: s -> (a, q)        -- before (with s and a)
-        , unsplit :: (b, q) -> t        -- after  (with t and b)
-        }
+[lens-family]: http://comonad.com/reader/2012/mirrored-lenses/
 
-    view :: Lens s t a b -> (s -> a)
-    set  :: Lens s t a b -> (b -> s -> t)
+```haskell
+data Lens s t a b = forall q. Lens
+    { split   :: s -> (a, q)        -- before (with s and a)
+    , unsplit :: (b, q) -> t        -- after  (with t and b)
+    }
 
-    data Prism s t a b = forall q. Prism
-        { match  :: s -> Either a q     -- before (with s and a)
-        , inject :: Either b q -> t     -- after  (with t and b)
-        }
+view :: Lens s t a b -> (s -> a)
+set  :: Lens s t a b -> (b -> s -> t)
+
+data Prism s t a b = forall q. Prism
+    { match  :: s -> Either a q     -- before (with s and a)
+    , inject :: Either b q -> t     -- after  (with t and b)
+    }
 
 
-    matching :: Prism s t a b -> (s -> Either t a)
-    review   :: Prism s t a b -> (b -> t)
-    ```
+matching :: Prism s t a b -> (s -> Either t a)
+review   :: Prism s t a b -> (b -> t)
+```
 
-    We still require `unsplit . split = id`, `split . unsplit = id`, `inject .
-    match = id`, and `match . inject = id`.  They're all still *isomorphisms*.
-    We're just *relabeling our type variables* here to let us be more
-    expressive with how we talk about all of the moving parts.
+We still require `unsplit . split = id`, `split . unsplit = id`, `inject .
+match = id`, and `match . inject = id`.  They're all still *isomorphisms*.
+We're just *relabeling our type variables* here to let us be more expressive
+with how we talk about all of the moving parts.
 
-    Lens families can be used to implement "type changing lenses" where
-    tweaking the inner type can cause the outer type to also change
-    appropriately.  However, in this case, `unsplit . split = id` and `inject .
-    match = id` should always still be enforced in the situation where the
-    types do not change.
+Lens families can be used to implement "type changing lenses" where tweaking
+the inner type can cause the outer type to also change appropriately.  However,
+in this case, `unsplit . split = id` and `inject . match = id` should always
+still be enforced in the situation where the types do not change.
 
-2.  In practice, the `q` to factor out your type into (in the `s <~> (a, q)`
-    and `s <~> Either a q`) might not be an actual "concrete" type.  In most
-    cases, it's alright to treat it as a theoretical "abstract" type that
-    follows the behavior you want given a restricted interface.  This is "safe"
-    because, if you notice, none of the methods in the lens or prism APIs
-    (`view`, `set`, `preview`, `review`) ever let an external user directly
-    manipulate a value of type `q`.
+### Abstract Factors and Addends
 
-    For example, the `only 'a' :: Prism' Char ()` prism matches only on `'a'`,
-    and it is the sum of `Char` and a theoretical abstract `Char` type that
-    excludes `'a'`.
+In practice, the `q` to factor out your type into (in the `s <~> (a, q)` and `s
+<~> Either a q`) might not be an actual "concrete" type.  In most cases, it's
+alright to treat it as a theoretical "abstract" type that follows the behavior
+you want given a restricted interface.  This is "safe" because, if you notice,
+none of the methods in the lens or prism APIs (`view`, `set`, `preview`,
+`review`) ever let an external user directly manipulate a value of type `q`.
 
-    To formalize this, sometimes we can say that only "one direction" of the
-    isomorphism has to be strictly true in practice.  If we only enforce that
-    the round-trip of `unsplit . split = id` and `inject . match = id`, this
-    enforces just the spirit of the hidden abstract type.  This is ""
+For example, the `only 'a' :: Prism' Char ()` prism matches only on `'a'`, and
+it is the sum of `Char` and a theoretical abstract `Char` type that excludes
+`'a'`.
 
-    For example, our "`only 'a'`" can be witnessed by:
+To formalize this, sometimes we can say that only "one direction" of the
+isomorphism has to be strictly true in practice.  If we only enforce that the
+round-trip of `unsplit . split = id` and `inject . match = id`, this enforces
+just the spirit of the hidden abstract type.  This is ""
 
-    ```haskell
-    !!!misc/lenses-and-prisms.hs "type CharButNotA" "onlyA"
-    ```
+For example, our "`only 'a'`" can be witnessed by:
 
-    This passes `inject . match = id`, but not `match . inject = id` if we pass
-    in the "illegal" value `Right 'a'`.
+```haskell
+!!!misc/lenses-and-prisms.hs "type CharButNotA" "onlyA"
+```
 
-    For an example of a lens where this abstract type perspective is useful,
-    there is the `contains 'a'` lens for sets:
+This passes `inject . match = id`, but not `match . inject = id` if we pass in
+the "illegal" value `Right 'a'`.
 
-    ```haskell
-    -- import qualified Data.Set as S
+For an example of a lens where this abstract type perspective is useful, there
+is the `contains 'a'` lens for sets:
 
-    contains 'a' :: Lens' (S.Set Char) Bool
+```haskell
+-- import qualified Data.Set as S
 
-    -- check if a set contains an element
-    view (contains 'a') :: S.Set Char -> Bool
+contains 'a' :: Lens' (S.Set Char) Bool
 
-    -- force a set to contain or not contain 'a'
-    set (contains 'a') :: Bool -> S.Set Char -> S.Set Char
+-- check if a set contains an element
+view (contains 'a') :: S.Set Char -> Bool
 
-    -- toggle membership in a set
-    over (contains 'a') not :: S.Set Char -> S.Set Char
-    ```
+-- force a set to contain or not contain 'a'
+set (contains 'a') :: Bool -> S.Set Char -> S.Set Char
 
-    `contains 'a'` is a lens into a `Bool` from a `S.Set`, where the `Bool`
-    indicates if the set "contains" `a` or not.  What product does this
-    represent?
+-- toggle membership in a set
+over (contains 'a') not :: S.Set Char -> S.Set Char
+```
 
-    Well, essentially, `Set Char <~> (Bool, Set CharButNotA)`.  It's an
-    abstract product betweein "the set contains `'a'` or not" and a set that
-    could not possibly contain `'a'`:
+`contains 'a'` is a lens into a `Bool` from a `S.Set`, where the `Bool`
+indicates if the set "contains" `a` or not.  What product does this represent?
 
-    ```haskell
-    !!!misc/lenses-and-prisms.hs "type CharButNotA" "containsA"
-    ```
+Well, essentially, `Set Char <~> (Bool, Set CharButNotA)`.  It's an abstract
+product betweein "the set contains `'a'` or not" and a set that could not
+possibly contain `'a'`:
 
-    Again, only `unsplit . split = id` is technically true.  `split . unsplit =
-    id` will fail if the input set contains `'a'`.`
+```haskell
+!!!misc/lenses-and-prisms.hs "type CharButNotA" "containsA"
+```
+
+Again, only `unsplit . split = id` is technically true.  `split . unsplit = id`
+will fail if the input set contains `'a'`.
 
 ### Exercises
 
