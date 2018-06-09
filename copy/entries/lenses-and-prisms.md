@@ -32,8 +32,8 @@ In Haskell, "products and sums" can roughly be said to correspond to "tuples
 and `Either`".  If I have two types `A` and `B`, `(A, B)` is their "product"
 type.  It's often called an "anonymous product", because we can make one
 without having to give it a fancy name.  It's called a product type because `A`
-has $n$ possible values and `B` has $m$ possible values, then `(A, B)` has
-$n \times m$ possible values[^bottom].  And, `Either A B` is their (anonymous)
+has $n$ possible values and `B` has $m$ possible values, then `(A, B)` has $n
+\times m$ possible values[^bottom].  And, `Either A B` is their (anonymous)
 "sum" type.  It's called a sum type because `Either A B` has $n + m$ possible
 values.  I won't go much deeper into this, but there are [many useful summaries
 already online][adts] on this topic!
@@ -952,8 +952,10 @@ instance Profunctor (View a)
 instance Strong (View a)
 ```
 
-And when you give this to a lens (a "profunctor transformer"), you get a `(View
-a) s s`, which is a newtype wrapper over an `s -> a`!
+And when you give this to a lens (a "profunctor transformer" `p a a -> p s s`),
+you get a `(View a) s s`, which is a newtype wrapper over an `s -> a`!  You've
+tricked the profunctor transformer into giving you the `s -> a` you always
+wanted.
 
 Note that you can't give this to a prism, since it is not possible to write a
 `Choice` instance for `View a`.  Thus we naturally limit `view` to work only
@@ -1017,42 +1019,16 @@ variables.
 For example, so far all our operations have basically been navigating between
 the isomorphisms that lenses and prisms represent:
 
-```
-Lens' outer inner
-=================
- outer ---> (inner, q)
-               |
-               v
- outer <--- (inner, q)
+![`Lens' inner outer` and `Prism' inner outer` isomorphisms][lio]
 
-Prism' outer inner
-=================
- outer ---> Either inner q
-                     |
-                     v
- outer <--- Either inner q
-```
+[lio]: /img/entries/lenses-and-prisms/lensprism1.png "Lens' inner outer"
 
 We can simply *re-label* the inputs and outputs to have different types, like
 so:
 
-```
-Lens s t a b
-============
-   s   ---> (  a  , q)
-               |
-               |
-               v
-   t   ---> (  b  , q)
+![`Lens' inner outer` and `Prism' inner outer` isomorphisms][lstab]
 
-Prism s t a b
-=============
-   s   ---> Either   a   q
-                     |
-                     |
-                     v
-   t   ---> Either   b   q
-```
+[lstab]: /img/entries/lenses-and-prisms/lensprism2.png "Lens s t a b"
 
 Essentially, we're just deciding to give the inputs and outputs different type
 variables.  The main thing this helps is with is giving us the ability to
@@ -1086,7 +1062,6 @@ data Prism s t a b = forall q. Prism
     { match  :: s -> Either a q     -- before (with s and a)
     , inject :: Either b q -> t     -- after  (with t and b)
     }
-
 
 matching :: Prism s t a b -> (s -> Either t a)
 review   :: Prism s t a b -> (b -> t)
