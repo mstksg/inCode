@@ -339,6 +339,8 @@ value but preserving leftness/rightness.
 ```haskell
 ghci> fromEither (Left 'a')
 'a'
+ghci> mapEither negate (Left 3)
+Left (-3)
 ghci> mapEither negate (Right 4)
 Right (-4)
 ```
