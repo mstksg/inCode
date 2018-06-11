@@ -793,9 +793,17 @@ Both of these viewpoints of prisms will fail you and lead you astray.
 
 However, if you think of it as witnessing a sum, you might see that this prism
 isn't possible.  There is no possible type `q` where `[a]` is a sum of `a` and
-`q`.  The isomorphism `[a] <~> Either a q` cannot be made for *any* type `q`.
-There is no way to express `[a]` as the sum of `a` and some other type.  Try
-thinking of a type `q` --- it's just not possible!
+`q`, where the `a` matches the head of the list.  No `q` works.
+There is no way to express `[a]` as the sum of `a` and some other type (where
+the `a` represents the head of a list).  Try thinking of a type `q` --- it's
+just not possible![^singleton]
+
+[^singleton]: As [Sam Derbyshire][sam] points out, it is definitely possible to
+decompose `[a]` into a sum between `a` and another type, but that `a` will not
+represent the head of the list.  It represents only item in a list in the case
+that the list is a one-item list.
+
+[sam]: https://twitter.com/samderbyshire/status/1006290478395019265
 
 ```haskell
 match :: [a] -> Either a MysteryType
