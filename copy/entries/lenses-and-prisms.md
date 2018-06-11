@@ -209,12 +209,12 @@ idea that lenses embody descriptions of products:
 !!!misc/lenses-and-prisms.hs "data Lens'"
 ```
 
-Now, if `split` and `join` form an isomorphism, *this can only represent valid
-lenses*![^big]
+Now, if `split` and `unsplit` form an isomorphism, *this can only represent
+valid lenses*![^big]
 
 [^big]: This type is technically also "too big" (you can write a value where `split`
 and `unsplit` do not form an isomorphism), but I think, to me, "`split` and
-`join` must form an isomorphism" is a much clearer and natural law than
+`unsplit` must form an isomorphism" is a much clearer and natural law than
 get-put/put-get/put-put.
 
 (The `forall q.` is the *-XExistentialQuantification* extension, and allows us
