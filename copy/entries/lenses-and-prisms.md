@@ -903,7 +903,8 @@ And so we now have a definition of a profunctor lens:
 !!!misc/lenses-and-prisms.hs "makeLens"
 ```
 
-`makeLens split unsplit :: Strong p => p a a -> p s s` is a profunctor lens!
+`makeLens split unsplit :: Strong p => p a a -> p s s` is a profunctor lens (a
+"profunctor transformer")!
 
 Essentially, `iso split unsplit . first'` promotes a `p a a` to a `p s s`.  It
 uses `first'` to turn the `p a a` into a `p (a, q) (a, q)`, turning a
@@ -954,7 +955,8 @@ And so we now have a definition of a profunctor prism:
 !!!misc/lenses-and-prisms.hs "makePrism"
 ```
 
-`makeLens match inject :: Choice p => p a a -> p s s` is a profunctor prism!
+`makeLens match inject :: Choice p => p a a -> p s s` is a profunctor prism (a
+"profunctor transformer")!
 
 
 Essentially, `iso match inject . left'` promotes a `p a a` to a `p s s`. It
