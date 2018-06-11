@@ -186,7 +186,8 @@ data Lens' s a = Lens'
 
 But this is bad bad bad.  That's because you can use this to represent lenses
 that "break the laws".  This representation is, to use the technical term, "too
-big".  It allows more more values than are actual lenses.
+big".  It allows more more values than are actual lenses.  It breaks the "make
+illegal things unrepresentable" principle by a pretty big margin.
 
 So, here's the secret: A `Lens' s a` is nothing more than a way of saying that
 *`s` is a product between `a` and some type `q`*.
