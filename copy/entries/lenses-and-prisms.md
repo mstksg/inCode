@@ -3,6 +3,7 @@ title: Lenses embody Products, Prisms embody Sums
 categories: Haskell
 tags: lenses, profunctors
 create-time: 2018/05/22 23:29:16
+date: 2018/06/11 13:20:17
 identifier: lenses-and-prisms
 slug: lenses-products-prisms-sums
 ---
@@ -11,13 +12,13 @@ I've written about a variety of topics on this blog, but one thing I haven't
 touched in too much detail is the topic of lenses and optics.  A big part of
 this is because there are already so many great resources on lenses.
 
-This post won't be a "lens tutorial", but rather a dive into an insightful
-perspective on lenses and prisms that I've heard repeated many times (and
-always credited to Edward Kmett), but not yet all compiled into a single place.
-In particular, I'm going to talk about the perspective of lenses and prisms as
-embodying the essences of products and sums (respectively), and how that
-observation can help you with a more "practical" understanding of lenses and
-prisms.
+This post won't be a "lens tutorial", but rather a dive into an perspective on
+lenses and prisms that I've heard repeated many times (and always credited to
+Edward Kmett) but never quite expanded on in-depth.  In particular, I'm going
+to talk about the perspective of lenses and prisms as embodying the essences of
+products and sums (respectively), the insights that perspective brings, how
+well it flows into the "profunctor optics" formulation, and how you can apply
+these observations to practical usage of lenses and prisms.
 
 The "final code" in this post is [available online][code] as a "stack
 executable" that, when run, will pop you into a *ghci* session with all of the
@@ -115,8 +116,8 @@ One final interesting "product in disguise" is `Either a a`.  "But wait," you
 say.  "That's a sum...right??"
 
 Well, yeah.  But in addition, any `Either a a` is the product between `Bool`
-and `a`.  In other words, `Either a a` is isomorphic to `(Bool, a)`.  The
-`Bool` tells you "left or right?" and the `a` is the contents!
+and `a`.  We can say that `Either a a` is isomorphic to `(Bool, a)`!  The
+`Bool` tells you "left or right?" and the `a` is the contents:
 
 ```haskell
 -- Either a a <~> (Bool, a)
@@ -159,7 +160,7 @@ And `split . unsplit = id` is again left as an exercise.
 So, how do lenses come into the picture?
 
 Let's review a bit.  A `Lens' s a` is a way to "access" an `a` "inside" an `s`,
-respecting some laws.
+*respecting some laws*.
 
 A `Lens' s a` is a data type with the following API:
 
@@ -168,9 +169,9 @@ view :: Lens' s a -> (s -> a)                -- get the 'a' from an 's'
 set  :: Lens' s a -> (a -> s -> s)           -- set the 'a' inside an 's'
 ```
 
-respecting [some laws][lenslaws] --- get-put, put-get, and put-put.  Abstract
-mathematical laws are great and all, but I'm going to tell you a secret that
-subsumes those laws.
+respecting [the lens laws][lenslaws] --- get-put, put-get, and put-put.
+Abstract mathematical laws are great and all, but I'm going to tell you a
+secret that subsumes those laws.
 
 [lenslaws]: https://www.schoolofhaskell.com/school/to-infinity-and-beyond/pick-of-the-week/a-little-lens-starter-tutorial#the-lens-laws-
 
@@ -187,11 +188,11 @@ But this is bad bad bad.  That's because you can use this to represent lenses
 that "break the laws".  This representation is, to use the technical term, "too
 big".  It allows more more values than are actual lenses.
 
-So, here's the secret: A `Lens' s a` means that *`s` is a product between
-`a` and some type `q`*.
+So, here's the secret: A `Lens' s a` is nothing more than a way of saying that
+*`s` is a product between `a` and some type `q`*.
 
-That means that if it is possible to represent `s` as some `(a, q)` (or, `s <~>
-(a, q)`), *then you have two lenses*!  Lenses are nothing more than
+That means that if it is possible to represent `s` as some `(v, w)` (or, `s <~>
+(v, w)`), *then you have two lenses*!  Lenses are nothing more than
 *descriptions of products*!  Another way to think of this is that if you are
 able to "split" a type into two parts without losing any information, then each
 part represents a lens.
@@ -207,11 +208,6 @@ idea that lenses embody descriptions of products:
 !!!misc/lenses-and-prisms.hs "data Lens'"
 ```
 
-(The `forall q.` is the *-XExistentialQuantification* extension, and allows us
-to hide type variables in constructors.  Note that this disallows us from using
-`split` and `unsplit` as record accessors functions, so we have to pattern
-match to get the contents)
-
 Now, if `split` and `join` form an isomorphism, *this can only represent valid
 lenses*![^big]
 
@@ -219,6 +215,11 @@ lenses*![^big]
 and `unsplit` do not form an isomorphism), but I think, to me, "`split` and
 `join` must form an isomorphism" is a much clearer and natural law than
 get-put/put-get/put-put.
+
+(The `forall q.` is the *-XExistentialQuantification* extension, and allows us
+to hide type variables in constructors.  Note that this disallows us from using
+`split` and `unsplit` as record accessors functions, so we have to pattern
+match to get the contents)
 
 We can implement our necessary lens API as so:
 
@@ -315,19 +316,13 @@ ghci> isRight (Right 'a')
 True
 ```
 
-::::: {.note}
-**Aside**
-
-Note that if we look at lenses as embodying "record fields" (things that give
-you the ability to "get" a field, and "modify" a field --- corresponding with
-`view` and `set`), we can think of `mysteryLens1` as an *abstract record field*
-into the Leftness/Rightness of a value.  Thinking of lenses as defining
-abstract record fields is a [common tool for backwards
-compatiblity][lens-records].
+If we think about lenses as embodying "record fields" (things that give you the
+ability to "get" a field, and "modify" a field --- corresponding with `view`
+and `set`), we can think of `mysteryLens1` as an *abstract record field* into
+the Leftness/Rightness of a value.  Thinking of lenses as defining abstract
+record fields is a [common tool for backwards compatiblity][lens-records].
 
 [lens-records]: http://blog.ezyang.com/2016/12/a-tale-of-backwards-compatibility-in-asts/
-
-:::::
 
 Looking at `mysteryLens2 :: Lens' (Either a a) a`, we are saying that every
 `Either a a` has some `a` "inside" it.  From what we know about the underlying
@@ -352,24 +347,24 @@ embodiment of the fact that `s` can be represented as a product between `a` and
 something else --- that `s <~> (a, q)`.  All of the lens laws just boil down to
 this.  **Lenses embody products**.
 
-### What Isn't a Lens?
+<!-- ### What Isn't a Lens? -->
 
-This perspective also gives you some insight into when things *aren't* lenses.
-For example, is it possible to make a lens that gives you the first item in a
-list?
+<!-- This perspective also gives you some insight into when things *aren't* lenses. -->
+<!-- For example, is it possible to make a lens that gives you the first item in a -->
+<!-- list? -->
 
-No, there isn't, because there isn't any type `q` that you could factor out
-`[a]` into as `(a, q)`.
+<!-- No, there isn't, because there isn't any type `q` that you could factor out -->
+<!-- `[a]` into as `(a, q)`. -->
 
-After all, even if such a `q` existed, how would you implement `split`?
+<!-- After all, even if such a `q` existed, how would you implement `split`? -->
 
-```haskell
-split :: [a] -> (a, MysteryType)
-split [] = ( ????, mysteryValue )
-```
+<!-- ```haskell -->
+<!-- split :: [a] -> (a, MysteryType) -->
+<!-- split [] = ( ????, mysteryValue ) -->
+<!-- ``` -->
 
-There would be no `a` to put into the first item in the tuple, no matter what
-choice of `q` you have
+<!-- There would be no `a` to put into the first item in the tuple, no matter what -->
+<!-- choice of `q` you have -->
 
 \"Sum-thing\" Interesting
 -------------------------
@@ -410,7 +405,7 @@ is a sum in disguise.
 
 Another interesting "hidden sum" is the fact that `[a]` in Haskell is actually
 a sum between `()` and `(a, [a])`.  That's right --- it's a sum between `()`
-and...itself?  Indeed it is pretty bizarre.
+and...itself with a value?  Indeed it is pretty bizarre.
 
 However, if we think of `()` as the possibility of an empty list, and `(a, [a])`
 as the possibility of `NonEmpty a` (the "head" of a list consed with the rest of
@@ -542,7 +537,7 @@ witness:
 
 ```haskell
 -- | Like `Int`, but cannot be constructed if it is 4
-!!!misc/lenses-and-prisms.hs "type Not4"
+type Not4 = Refined (NotEqualTo 4) Int
 
 -- | Provided by the 'refined' library that lets us refine and unrefine a type
 refineFail :: Int  -> Maybe Not4
@@ -569,7 +564,8 @@ is only possible to represent in Haskell if we can test for equality)
 ### Through the Looking-Prism
 
 Now let's bring prisms into the picture.  A `Prism' s a` also refers to some
-`a` "inside" an `s`, with the following API: `preview` and `review`[^invent]
+`a` "possibly inside" an `s`, with the following API: `preview` and
+`review`[^invent]
 
 [^invent]: I didn't invent these names :)
 
@@ -577,6 +573,9 @@ Now let's bring prisms into the picture.  A `Prism' s a` also refers to some
 preview :: Prism' s a -> (s -> Maybe a)   -- get the 'a' in the 's' if it exists
 review  :: Prism' s a -> (a -> s)         -- reconstruct the 's' from an 'a'
 ```
+
+If you think of a prism as representing an abstract constructor, the `preview`
+is the "pattern match", and the `review` is the "constructing".
 
 Naively you might implement a prism like this:
 
@@ -709,8 +708,8 @@ correspond to the abstract constructors `_Nil` and `_Snoc`:
 
 `_Snoc` is an "abstract constructor" for a list that lets us "construct" an
 `[a]` given an original list and an item to add to the end, and also
-"deconstruct" an `[a]` into an initial run and its last element (as a
-pattern match that might "fail").
+"deconstruct" an `[a]` into an initial run and its last element (as a pattern
+match that might "fail").
 
 :::::
 
@@ -728,19 +727,19 @@ with only an `a` (whoa).  In our "sum" perspective, however, it just witnesses
 that an `a <~> Either a Void` sum.
 
 In lens-speak, `_Void :: Prism' a Void` tells us that you can pattern match a
-`Void` out of any `a`...but that that pattern match will never match.
-Furthermore, it tells us that if you have a value of type `Void`, you can use
-the `_Void` "constructor" to make a value of any type `a`!  We have `review
-_Void :: Void -> a`!
+`Void` out of any `a` (and that match will always fail). Furthermore, it tells
+us that if you have a value of type `Void`, you can use the `_Void`
+"constructor" to make a value of any type `a`!  We have `review _Void :: Void
+-> a`!
 
 However, in our "sum" perspective, it is nothing more than the witness of the
 fact that `a` is the sum of `a` and `Void`.
 
-And finally, let's look at our deconstruction of `Int` and `Reinfed (NotEqualTo
+And finally, let's look at our deconstruction of `Int` and `Refined (NotEqualTo
 4) Int`.  What prisms does this yield, and what insight do we get?
 
 ```haskell
-!!!misc/lenses-and-prisms.hs "only4" "refined4"
+!!!misc/lenses-and-prisms.hs "type Not4" "only4" "refined4"
 ```
 
 The first prism, `only4`, is a prism that basically "only matches" on the `Int`
@@ -783,13 +782,14 @@ _head :: Prism' [a] a           -- get the head of a list
 If you think of a prism as just "a lens that might fail" (as it's often
 taught), you might think yes.  If you think of a prism as just "a constructor
 and deconstructor", you might also think yes, since you can construct an `[a]`
-with only a single `a`.  You can definitely "implement" this prism incorrectly
-using our "too big" representation, in terms of `preview` and `review`, and it
-will still typecheck.  Both of these viewpoints of prisms will fail you and
-lead you astray.
+with only a single `a`.[^headconst]  You can definitely "implement" this prism
+incorrectly naively, in terms of `preview` and `review`, and it would still
+typecheck.
 
 [^headconst]: Although, upon further inspection, you might realize that
 the constructor and deconstructor don't match
+
+Both of these viewpoints of prisms will fail you and lead you astray.
 
 However, if you think of it as witnessing a sum, you might see that this prism
 isn't possible.  There is no possible type `q` where `[a]` is a sum of `a` and
@@ -851,7 +851,8 @@ relationship on `a`s to be a relationship on `s`).
 
 ### Profunctor Lens
 
-A profunctor lens (one way of implementing) `Lens' s a` is a function:
+A "profunctor lens" (which is a specific way of implementing lenses) `Lens' s
+a` is a function:
 
 ```haskell
 p a a -> p s s
@@ -890,19 +891,13 @@ And so we now have a definition of a profunctor lens:
 !!!misc/lenses-and-prisms.hs "makeLens"
 ```
 
+`makeLens split unsplit :: Strong p => p a a -> p s s` is a profunctor lens!
+
 Essentially, `iso split unsplit . first'` promotes a `p a a` to a `p s s`.  It
 uses `first'` to turn the `p a a` into a `p (a, q) (a, q)`, turning a
 relationship on the part to be a relationship on the whole.  Then we just apply
 the essential `s <~> (a, q)` isomorphism that defines a lens.  And so `p a a ->
 p s s`, going through the `s <~> (a, q)` isomorphism, is a lens!
-
-```haskell
--- | The "forall p" means that that the `Lens` is defined to work for all
--- possible profunctors as long as it has an instance of `Strong`
-type Lens' s a = forall p. Strong p
-              => p a a
-              -> p s s
-```
 
 ### Profunctor Prisms
 
@@ -930,7 +925,8 @@ turn a `p a a` into a `p (Either a q) (Either a q)`.  This says "take a
 relationship on `a`s and turn it into a relationship on `Either a q`, doing
 nothing if the `q` pops up".
 
-Luckily, there happens to be a typeclass called `Choice` that gives us just!
+Luckily, there happens to be a typeclass called `Choice` that gives us
+*exactly* that!
 
 ```haskell
 -- | The "operate on a branch of a possibility" typeclass
@@ -946,6 +942,9 @@ And so we now have a definition of a profunctor prism:
 !!!misc/lenses-and-prisms.hs "makePrism"
 ```
 
+`makeLens match inject :: Choice p => p a a -> p s s` is a profunctor prism!
+
+
 Essentially, `iso match inject . left'` promotes a `p a a` to a `p s s`. It
 uses `left'` to turn the `p a a` into a `p (Either a q) (Either a q)`, turning
 a relationship on the part to be a relationship on the whole.  Then we just
@@ -953,10 +952,11 @@ apply the essential `s <~> Either a q` isomorphism that defines a prism.  And
 so `p a a -> p s s`, going through the `s <~> Either a q` isomorphism, is a
 prism!
 
-### Recovering the Functionality
+::::: {.note}
+**Aside**
 
-We can recover the original functionality by just picking specific values of
-`p` that, when transformed, give us the operations we want.
+We can recover the original functionality of lenses and prisms by just picking
+specific values of `p` that, when transformed, give us the operations we want.
 
 For example, we want `view :: Lens' s a -> (s -> a)`, so we just make a
 profunctor `p` where `p s s` contains an `s -> a`.
@@ -974,15 +974,19 @@ you get a `(View a) s s`, which is a newtype wrapper over an `s -> a`!  You've
 tricked the profunctor transformer into giving you the `s -> a` you always
 wanted.
 
-Note that you can't give this to a prism, since it is not possible to write a
-`Choice` instance for `View a`.  Thus we naturally limit `view` to work only
-for lenses (because they have `Strong`) and not for prisms (because prisms
-require `Choice` to work).
+Note that you can't give a `(View a) s s` to a prism, since it is not possible
+to write a `Choice` instance for `View a`.  Thus we naturally limit `view` to
+work only for lenses (because they have `Strong`) and not for prisms (because
+prisms require `Choice` to work).
 
 For a more detailed look on implementing the entire lens and prism API in terms
 of profunctors, check out Oleg Grenrus's amazing [Glassery][]!
 
 [Glassery]: http://oleg.fi/gists/posts/2017-04-18-glassery.html
+
+:::::
+
+### Motivation
 
 To me, this perspective makes it really clear to see "why" profunctor lenses
 and profunctor prisms are implemented the way they are.  At first, the
@@ -1023,8 +1027,11 @@ lens and prism laws into something trivial that can be stated succinctly ("it
 must be an isomorphism"), and also made the profunctor optics form seem
 uncannily natural.
 
-Some small notes need to be made to bridge this view with the way they are
-actually implemented in practice.
+The rest of this post describes small notes that bridge this view to the way
+lenses and prisms are actually implemented in real life, by clarifying what
+lens families (and "type-changing lenses") are in this view, and also how we
+sometimes get away with using an abstract `q` type.  At the end, there are also
+exercises and questions (mostly conceptual) to test your understanding!
 
 ### Lens Families
 
@@ -1040,10 +1047,15 @@ the isomorphisms that lenses and prisms represent:
 
 [lio]: /img/entries/lenses-and-prisms/lensprism1.png "Lens' inner outer"
 
-We can simply *re-label* the inputs and outputs to have different types, like
-so:
+Note how it is kind of complicated to talk about specific parts.  If I say "the
+value of type `inner`", do I mean the value "before" we use the lens, or
+"after" we use the lens?  There are two `inner`-typed values in our picture.
 
-![`Lens' inner outer` and `Prism' inner outer` isomorphisms][lstab]
+A "Lens family" is a trick we can do to make talking about things easier.  We
+use the same lenses, but we *re-label* the "before" and "after" (input and
+output) with different type variables, like so:
+
+![`Lens s t a b` and `Prism s t a b` isomorphisms, as a lens family][lstab]
 
 [lstab]: /img/entries/lenses-and-prisms/lensprism2.png "Lens s t a b"
 
@@ -1090,10 +1102,10 @@ match = id`, and `match . inject = id`.  They're all still *isomorphisms*.
 We're just *relabeling our type variables* here to let us be more expressive
 with how we talk about all of the moving parts.
 
-Lens families can be used to implement "type changing lenses" where tweaking
-the inner type can cause the outer type to also change appropriately.  However,
-in this case, `unsplit . split = id` and `inject . match = id` should always
-still be enforced in the situation where the types do not change.
+Lens families can also be used to implement "type changing lenses" where
+tweaking the inner type can cause the outer type to also change appropriately.
+But `s`, `t`, `a`, and `b` can't just be whatever you want.  They have to be
+picked so that `unsplit . split` and `inject . match` can typecheck.
 
 ### Abstract Factors and Addends
 
@@ -1111,7 +1123,7 @@ it is the sum of `Char` and a theoretical abstract `Char` type that excludes
 To formalize this, sometimes we can say that only "one direction" of the
 isomorphism has to be strictly true in practice.  If we only enforce that the
 round-trip of `unsplit . split = id` and `inject . match = id`, this enforces
-just the spirit of the hidden abstract type.  This is ""
+the "spirit" of the hidden abstract type.
 
 For example, our "`only 'a'`" can be witnessed by:
 
@@ -1227,7 +1239,7 @@ Special Thanks
 --------------
 
 I am very humbled to be supported by an amazing community, who make it possible
-for me to devote time to research and writing these posts.  Very special thanks
-to my supporter at the "Amazing" level on [patreon][], Sam Stites! :)
+for me to devote time to researching and writing these posts.  Very special
+thanks to my supporter at the "Amazing" level on [patreon][], Sam Stites! :)
 
 [patreon]: https://www.patreon.com/justinle/overview
