@@ -26,6 +26,7 @@ import           System.FilePath
 import           Text.Read              (readMaybe)
 import qualified Data.Text              as T
 import qualified Text.Pandoc            as P
+import qualified Text.Pandoc.Builder    as P
 import qualified Text.Pandoc.Walk       as P
 
 compileEntry
@@ -159,17 +160,12 @@ entryMarkdownCompiler = do
                    ]
         , T.empty
         , either (error . show) id . P.runPure
-        . P.writeMarkdown entryWriterOpts
-        $ entryContents
-        ] ++ if entryNoSignoff
-               then []
-               else [ T.empty
-                    , "---------"
-                    , T.empty
-                    , either (error . show) id . P.runPure
-                    . P.writeMarkdown entryWriterOpts
-                    $ itemBody signoffCopy
-                    ]
+          . P.writeMarkdown entryWriterOpts
+          $ entryContents
+              <> if entryNoSignoff
+                   then mempty
+                   else P.doc P.horizontalRule <> itemBody signoffCopy
+        ]
 
 entryLaTeXCompiler
     :: (?config :: Config)
@@ -197,17 +193,13 @@ entryLaTeXCompiler = do
                        ]
             , T.empty
             , either (error . show) id . P.runPure
-            . P.writeMarkdown entryWriterOpts
-            $ entryContents
-            ] ++ if entryNoSignoff
-                   then []
-                   else [ T.empty
-                        , "---------"
-                        , T.empty
-                        , either (error . show) id . P.runPure
-                        . P.writeMarkdown entryWriterOpts
-                        $ itemBody signoffCopy
-                        ]
+              . P.writeMarkdown entryWriterOpts
+              $ entryContents
+                  <> if entryNoSignoff
+                       then mempty
+                       else P.doc (P.header 1 (P.text "Signoff"))
+                              <> itemBody signoffCopy
+            ]
     body <- makeItem $ T.unpack fullMd
     fmap (toTex opts) <$> readPandocWith entryReaderOpts body
   where
