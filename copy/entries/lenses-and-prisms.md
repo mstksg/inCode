@@ -1033,7 +1033,9 @@ The rest of this post describes small notes that bridge this view to the way
 lenses and prisms are actually implemented in real life, by clarifying what
 lens families (and "type-changing lenses") are in this view, and also how we
 sometimes get away with using an abstract `q` type.  At the end, there are also
-exercises and questions (mostly conceptual) to test your understanding!
+[exercises and questions][exercises] (mostly conceptual) to test your understanding!
+
+[exercises]: https://blog.jle.im/entry/lenses-products-prisms-sums.html#exercises
 
 ### Lens Families
 
