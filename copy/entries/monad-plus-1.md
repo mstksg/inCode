@@ -492,11 +492,11 @@ is, swap the flag to be dead and ignore all other updates.
 
 But let's try doing this instead with the Maybe monad:
 
-~~~haskell
-!!!monad-plus/MaybeGame.hs "die or fail" "if not dead" "damage the player" "an alternative" "increase"
-~~~
+```haskell
+!!!monad-plus/MaybeGame.hs "-- die or fail" "-- if not dead" "-- damage the player" "-- an alternative" "-- increase"
+```
 
-~~~haskell
+```haskell
 ghci> setHealth 2 >>= hit >>= powerup >>= hit >>= powerup >>= powerup
 Just 3
 ghci> setHealth 2 >>= hit >>= powerup >>= hit >>= hit >>= powerup
@@ -512,7 +512,7 @@ ghci> do  h0 <- setHealth 2        -- Just 2
     |     h6 <- powerup h5         -- (skip)
     |     return h6                -- (skip)
 Nothing
-~~~
+```
 
 And voilà!  [Fire it up yourself][maybegame] if you want to test it out in
 person!

@@ -66,7 +66,7 @@ And we looked at [a simple auto][simpleauto] which acted like a constantly
 incrementing stream, but where you could reset the counter by passing in a
 `Just`.
 
-!!![simpleauto]:machines/Auto.hs "settableAuto:"
+!!![simpleauto]:machines/Auto.hs "-- settableAuto:"
 
 Then we took another approach to looking at this --- we thought about Autos as
 functions "with state".  As in, `Auto a b` was like a function `a -> b`, but
@@ -75,7 +75,7 @@ which had an internal state that updated every time it was called.
 We saw this in an auto that [returns the sum][summer] of everything you have
 given it.
 
-!!![summer]:machines/Auto.hs "summer:"
+!!![summer]:machines/Auto.hs "-- summer:"
 
 Autos are "function-like things"...they map or "morph" things of type `a` to
 things of type `b` in some form, just like functions.  It looks like we

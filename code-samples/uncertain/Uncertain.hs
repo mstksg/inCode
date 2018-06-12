@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --resolver lts-5.15 --install-ghc runghc --package linear --package ad
+-- stack --resolver lts-11.9 --install-ghc runghc --package linear --package ad
 
 {-# LANGUAGE LambdaCase      #-}
 {-# LANGUAGE PatternSynonyms #-}
@@ -25,10 +25,7 @@ x +/- dx = Un x (dx*dx)
 exact :: Num a => a -> Uncert a
 exact x = x +/- 0
 
--- [GHC 7.10:]
--- pattern (:+/-) :: () => Floating a => a -> a -> Uncert a
--- [GHC 8.0:]
--- pattern (:+/-) :: Floating a => a -> a -> Uncert a
+pattern (:+/-) :: Floating a => a -> a -> Uncert a
 pattern x :+/- dx <- Un x (sqrt->dx)
   where
     x :+/- dx = Un x (dx*dx)

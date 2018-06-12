@@ -720,7 +720,7 @@ online][fewexamplesfp] so you can try it out and see how different ones work.
 Don't get too attached to them, because we will later be re-implementing them
 as compositions of smaller, simpler building blocks.
 
-!!![fewexamples]:machines/Auto.hs "rollingAverage:" "onFor:" "Command:" "autoMap:"
+!!![fewexamples]:machines/Auto.hs "-- rollingAverage:" "-- onFor:" "-- Command:" "-- autoMap:"
 
 [fewexamplesfp]: https://www.fpcomplete.com/user/jle/machines
 
@@ -780,10 +780,10 @@ ghci> testAuto_ (autoMap 3)
 , Just 19, Nothing, Just 7  ]
 ~~~
 
-!!![rollingAverage]:machines/Auto.hs "rollingAverage:"
-!!![onFor]:machines/Auto.hs "onFor:"
-!!![autoMap]:machines/Auto.hs "Command:" "autoMap:"
-!!![Command]:machines/Auto.hs "Command:"
+!!![rollingAverage]:machines/Auto.hs "-- rollingAverage:"
+!!![onFor]:machines/Auto.hs "-- onFor:"
+!!![autoMap]:machines/Auto.hs "-- Command:" "-- autoMap:"
+!!![Command]:machines/Auto.hs "-- Command:"
 [Map]: http://hackage.haskell.org/package/containers-0.5.4.0/docs/Data-Map.html
 
 ## "Function Things"

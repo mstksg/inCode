@@ -97,7 +97,7 @@ grabBlock zipped key limit = do
     return ((strtl, endl), sampCode)
   where
     zDropped =
-      dropWhile (not . (T.pack key `T.isInfixOf`) . fst) zipped
+      dropWhile (not . (T.pack key `T.isPrefixOf`) . T.strip . fst) zipped
     -- initialIndent = T.length . T.takeWhile isSpace . fst . head $ zDropped
     (zHead,zRest) =
       span (\(l,_) -> not (T.null l)) zDropped
