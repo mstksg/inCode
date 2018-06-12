@@ -242,7 +242,7 @@ The surprising result of this perspective is that **every product yields
 lenses** (one for every item in the product), and **every lens witnesses one
 side of a product**.
 
-### Insights Gleamed
+### Insights Gleaned
 
 Let's take a look at our first product we talked about:
 
