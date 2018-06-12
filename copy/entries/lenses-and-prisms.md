@@ -1047,7 +1047,8 @@ The rest of this post describes small notes that bridge this view to the way
 lenses and prisms are actually implemented in real life, by clarifying what
 lens families (and "type-changing lenses") are in this view, and also how we
 sometimes get away with using an abstract `q` type.  At the end, there are also
-[exercises and questions][exercises] (mostly conceptual) to test your understanding!
+[exercises and questions][exercises] (mostly conceptual) to test your
+understanding!
 
 [exercises]: https://blog.jle.im/entry/lenses-products-prisms-sums.html#exercises
 
@@ -1194,15 +1195,15 @@ exercises!  Most of them are conceptual and open-ended.
 
     Under what conditions can you express a type `a` as a *product* involving
     `Void`, and you can have a `Lens' a Void`? (Hint: use the algebra!)  What
-    would this lens do (what are `view` and `set`)?
+    would this lens do (what are `view`, `set`, and `over`)?
 
 *   We discussed the conditions where a type `a` can be expressed as a product
     involving `()` and you can have `Lens' a ()`.
 
     Under what conditions can you express a type `a` as a product involving
     `Bool` (`a <~> (Bool, q)`), and you can have a `Lens' a Bool`? (Hint: use
-    the algebra!)  What would this lens do (what are `view` and `set`)?  And
-    what about the `Lens' a q`?
+    the algebra!)  What would this lens do (what are `view`, `set`, and
+    `over`)?  And what about the `Lens' a q`?
 
 *   We found that by interpreting `Either a a` as a product `(Bool, a)` gives
     us two interesting lenses:
@@ -1223,14 +1224,14 @@ exercises!  Most of them are conceptual and open-ended.
     !!!misc/lenses-and-prisms.hs "mysteryPrism1"1 "mysteryPrism2"1
     ```
 
-    What do these prisms do?  What is `preview` and `review` for them?
+    What do these prisms do?  What is `preview`, `review`, `over` for them?
 
 *   Alright, now time to write code.  Another "interesting" product is the fact
     that `Bool -> a` is isomorphic to `(a, a)`.  That is, `Bool -> a` is a
     product between `a` and itself.
 
     Can you write the corresponding two `Lens' (Bool -> a) a`s?  And, what do
-    they mean? (what are `view`, `set` for those lenses?)  [Solutions
+    they mean? (what are `view`, `set`, `over` for those lenses?)  [Solutions
     online][boolfunc]
 
 *   Can you write combinators to "compose" lenses and prisms?  Is it even
