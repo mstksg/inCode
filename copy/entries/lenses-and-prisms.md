@@ -838,28 +838,25 @@ and return a new profunctor.
 A profunctor `p` has values of type `p a b`, and you can roughly think of `p a
 b` as "a relationship between `a` and `b`".
 
-The `Profunctor` typeclass `p` gives us a function called `iso` that lets us
-transform a profunctor in terms of an isomorphism.
+The `Profunctor` typeclass `p` gives us a few functions.  We can use them to
+create a function that transforms a profunctor in terms of an isomorphism.
 
 If type `s` is isomorphic to type `a` (`s <~> a`), then we can the function
-`iso`, that the `Profunctor` class gives us:
+`iso`, that the `Profunctor` class gives us:[^iso]
 
 ```haskell
--- s <~> a
-
--- | The real `iso` is actually a little more polymorphic.  It's also normally
--- called `dimap`, but `iso` is its common alias.
-class Profunctor p where
-    iso :: Profunctor p
-        => (s -> a)         -- ^ one half of the isomorphism
-        -> (a -> s)         -- ^ the other half of the isomorphism
-        -> p a a
-        -> p s s
+iso :: Profunctor p
+    => (s -> a)         -- ^ one half of the isomorphism
+    -> (a -> s)         -- ^ the other half of the isomorphism
+    -> p a a
+    -> p s s
+iso = dimap         -- `dimap` comes from the `Profunctor` typeclass
 ```
 
-Given the `s -> a` and `a -> s` functions that witness `s <~> a`, the
-`Profunctor` typeclass lets us transform a `p a a` into a `p s s` (a
-relationship on `a`s to be a relationship on `s`).
+Given the `s -> a` and `a -> s` functions that witness `s <~> a`, we can use
+`iso` (defined using `Profunctor` typeclass methods) to transform a `p a a`
+into a `p s s` (a relationship on `a`s to be a relationship on `s`) according
+to an isomorphism.
 
 ### Profunctor Lens
 
