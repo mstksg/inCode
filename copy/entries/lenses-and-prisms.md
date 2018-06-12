@@ -418,12 +418,11 @@ saying that `[a]` is "either an empty list or a non-empty list".  Whoa.  Take
 
 [lem-denialists]: https://en.wikipedia.org/wiki/Constructivism_(mathematics)
 
-[^lem]: Technically, LEM denialists and constructivists are somewhat vindicated
+[^lem]: Technically, [LEM][lemlem] denialists and constructivists are somewhat vindicated
 here, because it is not strictly true in Haskell that a list is either an empty
-list or a non-empty list.  It can actually [be neither][bottom].  Being able to
-say that a list is either an empty list or a non-empty list is exactly the same
-as assuming the law of the excluded middle in Haskell.
+list or a non-empty list.  It can actually [be neither][bottom].
 
+[lemlem]: https://en.wikipedia.org/wiki/Law_of_excluded_middle
 [bottom]: https://wiki.haskell.org/Bottom
 
 ```haskell
@@ -596,9 +595,10 @@ kind of muddled here.
 You might be able to guess where I'm going at this point.  Whereas a `Lens' s
 a` is nothing more than a witness to the fact that `s` is a *product* `(a,
 q)` ... a `Prism' s a` is nothing more than a witness to the fact that `s` is a
-*sum* `Either a q`.  If it is possible to represent `s` as some `Either a
-q`...then you have two prisms!  Prisms are nothing more than *descriptions of
-sums*!
+*sum* `Either a q`.  If it is possible to represent `s` as some `Either v
+w`...then you have *two prisms*!  Prisms are nothing more than *descriptions of
+sums*!  If you are able to "split" a type into one of two possibilities, then
+each possibility represents a prism.
 
 A `Prism' s a` is nothing more than saying that there exists some type `q` that can
 be used to witness a `s <~> Either a q` isomorphism.
@@ -831,18 +831,19 @@ to products and prisms are witnesses to sum) make their implementation in terms
 of "profunctor optics" very natural.
 
 First, some background -- a "profunctor optic" is a way of expressing things
-like lenses and prisms in terms of "profunctor transformers".  Lenses, prisms,
-etc. would not be record types, but rather functions that takes a profunctor
-and return a new profunctor.
+like lenses and prisms in terms of "profunctor value transformers".  Lenses,
+prisms, etc. would not be record types, but rather functions that takes a
+profunctor value and return a new profunctor value.
 
 A profunctor `p` has values of type `p a b`, and you can roughly think of `p a
-b` as "a relationship between `a` and `b`".
+b` (a profunctor value) as "a relationship between `a` and `b`".
 
 The `Profunctor` typeclass `p` gives us a few functions.  We can use them to
-create a function that transforms a profunctor in terms of an isomorphism.
+create a function that transforms a profunctor value in terms of an
+isomorphism.
 
 If type `s` is isomorphic to type `a` (`s <~> a`), then we can the function
-`iso`, that the `Profunctor` class gives us:[^iso]
+`iso`, that the `Profunctor` class gives us:
 
 ```haskell
 iso :: Profunctor p
@@ -901,7 +902,7 @@ And so we now have a definition of a profunctor lens:
 ```
 
 `makeLens split unsplit :: Strong p => p a a -> p s s` is a profunctor lens (a
-"profunctor transformer")!
+"profunctor value transformer")!
 
 Essentially, `iso split unsplit . first'` promotes a `p a a` to a `p s s`.  It
 uses `first'` to turn the `p a a` into a `p (a, q) (a, q)`, turning a
@@ -953,8 +954,7 @@ And so we now have a definition of a profunctor prism:
 ```
 
 `makeLens match inject :: Choice p => p a a -> p s s` is a profunctor prism (a
-"profunctor transformer")!
-
+"profunctor value transformer")!
 
 Essentially, `iso match inject . left'` promotes a `p a a` to a `p s s`. It
 uses `left'` to turn the `p a a` into a `p (Either a q) (Either a q)`, turning
@@ -984,7 +984,7 @@ instance Strong (View a)
 
 And when you give this to a lens (a "profunctor transformer" `p a a -> p s s`),
 you get a `(View a) s s`, which is a newtype wrapper over an `s -> a`!  You've
-tricked the profunctor transformer into giving you the `s -> a` you always
+tricked the profunctor value transformer into giving you the `s -> a` you always
 wanted.
 
 Note that you can't give a `(View a) s s` to a prism, since it is not possible
@@ -1006,12 +1006,13 @@ and profunctor prisms are implemented the way they are.  At first, the
 profunctor optics definitions seemed really opaque and arbitrary to me, and I
 had no idea why `Strong` and `Choice` corresponded to lenses and prisms.
 
-But now, I know that lenses are prisms can be seen as just *profunctor
+But now, I know that lenses are prisms can be seen as just *profunctor value
 transformers* that *transform along the decomposition* that the lenses and
-prisms represent.  For profunctor lenses, the profunctors get transformed to
-"parts of a whole" profunctors, using `Strong`.  For profunctor prisms, the
-profunctors get transformed to "branches of a possibility" profunctors, using
-`Choice`.  Even their types clearly show what is going on:
+prisms represent.  For profunctor lenses, the profunctor values get transformed
+to "parts of a whole" profunctor values, using `Strong`.  For profunctor
+prisms, the profunctor values get transformed to "branches of a possibility"
+profunctor values, using `Choice`.  Even their types clearly show what is going
+on:
 
 ```haskell
 -- [Lens]  s <~> (a, q)
