@@ -20,7 +20,7 @@ import qualified Data.Set           as S
 --
 -- $ ./lenses-and-prisms.hs
 --
--- This will load up a ghci session with all of the bindings here
+-- T
 
 -- Challenge: write a `match` for the "init and last" sum decomposition
 -- using only one fold and no partial functions or booleans.
@@ -37,6 +37,22 @@ matchInitLast = (fmap . first) ($[])    -- "extract" the difference list
         -> Either () (Diff a, a)
     go (Left  _      ) x = Right (id       , x)
     go (Right (ys, y)) x = Right (ys . (y:), x)
+
+-- Challenge: (Bool -> a) is (a, a)
+
+boolFunction1 :: Lens' (Bool -> a) a
+boolFunction1 = Lens'
+    { split   = \f      -> (f False, f True )
+    , unsplit = \(x, y) -> \case False -> x
+                                 True  -> y
+    }
+
+boolFunction2 :: Lens' (Bool -> a) a
+boolFunction2 = Lens'
+    { split   = \f      -> (f True , f False)
+    , unsplit = \(x, y) -> \case False -> y
+                                 True  -> x
+    }
 
 -- Challenge: mysteryPrisms
 

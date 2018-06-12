@@ -1225,6 +1225,14 @@ exercises!  Most of them are conceptual and open-ended.
 
     What do these prisms do?  What is `preview` and `review` for them?
 
+*   Alright, now time to write code.  Another "interesting" product is the fact
+    that `Bool -> a` is isomorphic to `(a, a)`.  That is, `Bool -> a` is a
+    product between `a` and itself.
+
+    Can you write the corresponding two `Lens' (Bool -> a) a`s?  And, what do
+    they mean? (what are `view`, `set` for those lenses?)  [Solutions
+    online][boolfunc]
+
 *   Can you write combinators to "compose" lenses and prisms?  Is it even
     possible?
 
@@ -1251,6 +1259,7 @@ exercises!  Most of them are conceptual and open-ended.
     Using `(.)` from `Prelude`.  Definitely much simpler! (And it's one main
     reason why they're among the most popular representation)
 
+!!![boolfunc]:misc/lenses-and-prisms.hs "boolFunction1 ::" "boolFunction2 ::"
 !!![comp]:misc/lenses-and-prisms.hs "data Lens'" "(.&.)" "data Prism'" "(.|.)"
 
 Special Thanks
