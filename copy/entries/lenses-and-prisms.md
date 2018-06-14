@@ -97,6 +97,9 @@ There are some other interesting products in Haskell, too.  One such example is
 `NonEmpty a` (the type of a non-empty list) being a product between `a` (the
 head/first item) and `[a]` (the tail/rest of the items).  This means that
 `NonEmpty a` is isomorphic to `(a, [a])` --- we have `NonEmpty a <~> (a, [a])`!
+This is witnessed by functions `split :: NonEmpty a -> (a, [a])` and
+`unsplit :: (a, [a]) -> NonEmpty a` where `unsplit . split = id` and `split .
+unsplit = id`.  See if you can write these!
 
 Another curious product is the fact that every type `a` is a product between
 *itself* and unit, `()`.  Every type `a` is isomorphic to `(a, ())`
