@@ -182,6 +182,24 @@ have Applicative laws and expectations means we can look at the implementation
 of `sequenceA_` and know with certainty (and make bold claims about) how
 `sequenceA_` combines effects.
 
+For example, we can always make the program substitution:
+
+```haskell
+sequenceA_ xs *> sequenceA_ ys
+-- can be substituted with
+sequenceA_ (xs ++ ys)
+```
+
+If `sequenceA_` combines all the effects in `xs` once, and `sequenceA_`
+combines all the effects in `ys` once, and `*>` combines the effects of either
+side once, then this is a *legal substitution* that doesn't change what your
+program does.
+
+However, if the `Applicative` instance doesn't have any rules, we can't do
+this.  For example, the original form uses `pure ()` *twice* (once for each
+list's `[]` end), and the second form uses `pure ()` *once* (since there's only
+one list).  If `pure ()` was allowed to have effects...then the first version
+would have more effects than the second.
 
 Back to Const
 -------------
