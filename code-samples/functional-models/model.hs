@@ -1,5 +1,9 @@
 #!/usr/bin/env stack
--- stack --install-ghc runghc --resolver lts-11.9 --package backprop-0.2.2.0 --package random --package hmatrix-backprop-0.1.2.1 --package statistics --package lens --package one-liner-instances --package split -- -Wall -O2
+-- stack --install-ghc runghc --resolver lts-11.9 --package backprop-0.2.2.0 --package random --package hmatrix-backprop-0.1.2.1 --package statistics --package lens --package one-liner-instances --package split --package ghc-typelits-natnormalise --package ghc-typelits-knownnat --package hmatrix --package hmatrix-vector-sized --package microlens --package vector-sized --package transformers --package type-combinators -- -O2
+
+-- | Replace the second line with this one to have "./model.hs" open a ghci session
+-- stack --install-ghc ghci --resolver lts-11.9 --package backprop-0.2.2.0 --package random --package hmatrix-backprop-0.1.2.1 --package statistics --package lens --package one-liner-instances --package split --package ghc-typelits-natnormalise --package ghc-typelits-knownnat --package hmatrix --package hmatrix-vector-sized --package microlens --package vector-sized --package transformers --package type-combinators
+
 
 {-# LANGUAGE DataKinds                                #-}
 {-# LANGUAGE DeriveGeneric                            #-}
