@@ -36,7 +36,7 @@ import           Data.Type.Option
 import           GHC.Generics                          (Generic)
 import           GHC.TypeNats
 import           Lens.Micro hiding                     ((&))
-import           Numeric.Backprop
+import           Numeric.Backprop hiding ((:&))
 import           Numeric.LinearAlgebra.Static.Backprop
 import           Numeric.LinearAlgebra.Static.Vector
 import           Numeric.OneLiner
