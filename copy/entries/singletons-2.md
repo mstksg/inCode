@@ -390,7 +390,8 @@ We can write the same function using a *CPS-style* existential instead:
 withDoor
     :: DoorState
     -> String
-    -> (forall s. Sing s -> Door s -> r) -> r
+    -> (forall s. Sing s -> Door s -> r)
+    -> r
 withDoor s m f = case s of
     Opened -> f SOpened (mkDoor SOpened m)
     Closed -> f SClosed (mkDoor SClosed m)
@@ -404,7 +405,7 @@ polymorphic way.  The function then gives the result of the handler function
 called on the resulting `Sing s` and `Door s`.
 
 ```haskell
-ghci> withDoor Opened "Birch" $ \s d -> case s of
+ghci> withDoor Opened "Birch" $ \s _ -> case s of
          SOpened -> "Opened door!"
          SClosed -> "Closed door!"
          SLocked -> "Locked door!"
@@ -420,10 +421,10 @@ existentially quantified.
 
 The general pattern we are exploring here is called **reification** -- we're
 taking a dynamic run-time value, and lifting it to the type level as a type
-(here, the type variable `s`).  You can think of reification as the opposite of
-reflection, and imagine the two as being the "gateway" between the type-safe
-and unsafe world.  In the dynamic world of a `DoorState` term-level value, you
-have no type safety.  You live in the world of `SomeDoor`,
+(here, the type variable `s`).  Reification is often considered as the opposite
+of reflection, and we can imagine the two as being the "gateway" between the
+type-safe and unsafe world.  In the dynamic world of a `DoorState` term-level
+value, you have no type safety.  You live in the world of `SomeDoor`,
 `closeSomeOpenedDoor`, `lockAnySomeDoor`, etc.  But, you can *reify* your
 `DoorState` value to a *type*, and enter the type-safe world of `Door s`,
 `closeDoor`, `lockDoor`, and `lockAnyDoor`.
@@ -545,6 +546,25 @@ fromDoor s d = withSingI s (fromDoor_ d)
 ```
 
 Again, the same function -- just two different styles of calling them.
+
+Here's a nice trick to make this a little more clean:  *singletons-2.4* offers
+a nice pattern synonym `Sing` to reflect this symmetry. The pattern `Sing ::
+SingI a => Sing a` acts both as a constructor and a witness for `SingI` and
+`Sing`:
+
+```haskell
+doorStatus_ :: SingI s => Door s -> DoorState
+doorStatus_ = doorStatus Sing           -- using Sing constructs the Sing s
+
+lockAnyDoor_ :: SingI s => Door s -> Door 'Locked
+lockAnyDoor_ = lockAnyDoor Sing         -- using Sing constructs the Sing s
+
+lockAnyDoor :: Sing s -> Door s -> Door 'Locked
+lockAnyDoor Sing d = lockAnyDoor_ d     -- matching on Sing introduces SingI s
+
+fromDoor :: Sing s -> Door s -> SomeDoor
+fromDoor Sing d = fromDoor_ d           -- matching on Sing introduces SingI s
+```
 
 ### Reflection and Reification
 
@@ -715,6 +735,25 @@ SomeSing DoorState`.  `SomeSing` is an indexed type that tells us the *kind* of
 the type variable we existentially quantifying over.  The value `SomeSing
 STrue` would have the type `SomeSing Bool`.  The value `SomeSing (SJust
 SClosed)` would have the type `SomeSing (Maybe DoorState)`.
+
+And, like for `SomeDoor`, it is important to remember that `SomeSing a`, for
+kind `a`, is *isomorphic* to the type `a`.  This isomorphism is witnessed by
+`fromSing` and `toSing`, but here's, visually, how things match up for
+`DoorState`:
+
+```haskell
+Opened   <~>    SomeSing SOpened
+Closed   <~>    SomeSing SClosed
+Locked   <~>    SomeSing SLocked
+```
+
+And how they match up for `Maybe Bool`:
+
+```haskell
+Nothing      <~>  SomeSing SNothing
+Just False   <~>  SomeSing (SJust SFalse)
+Just True    <~>  SomeSing (SJust STrue)
+```
 
 Looking Forward
 ---------------
