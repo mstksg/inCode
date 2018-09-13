@@ -13,6 +13,7 @@ data DoorState = Opened | Closed | Locked
   deriving (Show, Eq)
 
 data Door (s :: DoorState) = UnsafeMkDoor { doorMaterial :: String }
+                  -- requires -XDataKinds
 
 closeDoor :: Door 'Opened -> Door 'Closed
 closeDoor (UnsafeMkDoor m) = UnsafeMkDoor m
