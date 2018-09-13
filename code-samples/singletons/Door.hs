@@ -1,10 +1,9 @@
 #!/usr/bin/env stack
--- stack --install-ghc runghc --resolver lts-10.0
+-- stack --install-ghc runghc --resolver lts-12.9
 
 {-# LANGUAGE DataKinds      #-}
 {-# LANGUAGE GADTs          #-}
 {-# LANGUAGE KindSignatures #-}
-{-# LANGUAGE LambdaCase     #-}
 {-# LANGUAGE RankNTypes     #-}
 
 import Data.Kind
@@ -22,7 +21,7 @@ lockDoor :: Door 'Closed -> Door 'Locked
 lockDoor (UnsafeMkDoor m) = UnsafeMkDoor m
 
 openDoor :: Door 'Closed -> Door 'Opened
-openDoor (UnsafeMkDoor m) = (UnsafeMkDoor m)
+openDoor (UnsafeMkDoor m) = UnsafeMkDoor m
 
 data SingDS :: DoorState -> Type where
     SOpened :: SingDS 'Opened

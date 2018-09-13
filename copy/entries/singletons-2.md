@@ -20,10 +20,10 @@ taking some time to to through the exercises if you haven't already!
 
 [Part 1]: https://blog.jle.im/entry/introduction-to-singletons-1.html
 
-Again, code is built on *GHC 8.2.2* with the *[lts-10.0][snapshot]*
-snapshot (so, singletons-2.3.1).
+Again, code is built on *GHC 8.4.3* with the *[lts-12.9][snapshot]*
+snapshot (so, singletons-2.4.1).
 
-[snapshot]: https://www.stackage.org/lts-10.0
+[snapshot]: https://www.stackage.org/lts-12.9
 
 Review
 ------

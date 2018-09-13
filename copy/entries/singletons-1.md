@@ -53,12 +53,10 @@ contexts.
 
 [ann]: https://blog.jle.im/entry/practical-dependent-types-in-haskell-1.html
 
-All code is built on *GHC 8.2.2* and with the *[lts-10.0][snapshot]*
-snapshot (so, singletons-2.3.1).  However, there are negligible changes in the
-GHC type system between GHC 8.0 and 8.2 (the only difference is in the
-libraries, more or less), so everything should work on GHC 8.0 as well!
+All code is built on *GHC 8.4.3* and with the *[lts-12.9][snapshot]*
+snapshot (so, singletons-2.4.1).
 
-[snapshot]: https://www.stackage.org/lts-10.0
+[snapshot]: https://www.stackage.org/lts-12.9
 
 The content in the first section of this post, describing the singleton design
 pattern, uses the following extensions:
