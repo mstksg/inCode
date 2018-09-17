@@ -30,10 +30,11 @@ and will expand on it.
 This post (Part 1) will go over first using the singleton pattern for
 *reflection*, then introducing how the singletons library helps us.  Part 2
 will discuss using the library for *reification*, to get types that depend on
-values at runtime.  Part 3 will go into the basics singleton's
-*defunctionalization* system and how we can promote value-level functions to
-type-level functions, and Part 4 will delve into deeper applications of
-defunctionalization.
+values at runtime.  Part 3 will go into the basics of promoting *functions*
+values to become functions on types in a usable, and Part 4 will go deeper into
+the lifting of functions, using singleton's *defunctionalization* scheme to
+utilize the higher-order functions we love at the type level.
+Part 3 will go into the basics singleton's
 
 [lc]: http://talks.jle.im/lambdaconf-2017/singletons/
 
