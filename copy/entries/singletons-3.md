@@ -123,3 +123,276 @@ Finally, we talked a bit about the "unified" singleton system that the
 pass singletons, and the `SingKind` kind-class that associates types with their
 lifted kinds and lets you reify and reflect with functions like `withSomeSing`
 and `fromSing`.
+
+Expressive Relationships
+------------------------
+
+Let's write a function that "knocks" on a door in IO:
+
+```haskell
+knock :: Door s -> IO ()
+knock d = putStrLn $ "Knock knock on " ++ doorMaterial d ++ " door!"
+```
+
+Hm.  This doesn't seem right.  We can't knock on an opened door..can we?  We
+could try enforcing this by writing:
+
+```haskell
+knockClosed :: Door 'Closed -> IO ()
+knockClosed d = putStrLn $ "Knock knock on " ++ doorMaterial d ++ " door!"
+
+knockLocked :: Door 'Locked -> IO ()
+knockLocked d = putStrLn $ "Knock knock on " ++ doorMaterial d ++ " door!"
+```
+
+But, that means that the user must pick between one of two functions to open
+their door.  This isn't quite what we wanted...we want the function to work
+only for closed or locked doors, and not opened doors.
+
+There are a couple of ways of doing this --- we're going to look at two
+possible ways involving singletons and the *singletons* library.  Both of these
+methods allow us to write dependently typed functions that are "type-safe" in
+more expressive ways than before.
+
+### Dependently Typed Proofs
+
+The first way to do this is with a dependently-typed "proof" that an operation
+is legal.
+
+*Proofs* (in the dependently typed and Curry-Howard sense) are witnesses to some
+type-level predicate or proposition.
+
+A value-level predicate in Haskell is (generally) a function of type `a ->
+Bool`.  Given a value of type `a`, if the function returns `True`, then the
+predicate is satisfied.  If it returns `False`, it is not.
+
+A type-level predicate is (generally) a type constructor of kind `k -> Type`.
+Given a type of kind `k`, if *a value exists of that type*, then the predicate
+is satisfied.  If no value exists, it is not.  A value that "proves" a
+predicate is called a *witness* or a *proof*.
+
+We can define a predicate `Knockable :: DoorState -> Type` as a GADT that only
+has values if given `'Closed` and `'Locked`, but not `'Opened`:
+
+```haskell
+data Knockable :: DoorState -> Type where
+    KnockClosed :: Knockable 'Closed
+    KnockLocked :: Knockable 'Locked
+```
+
+Now, we have a value of type `Knockable 'Closed` and `Knockable 'Locked`
+(`KnockClosed` and `KnockLocked`, respectively), but no value of type
+`Knockable 'Opened`.  How can we use this?
+
+Well, we can make a version of `knock` that requires a proof that `s` is
+`Knockable`:
+
+```haskell
+knock :: Knockable s -> Door s -> IO ()
+knock _ d = putStrLn $ "Knock knock on " ++ doorMaterial d ++ " door!"
+```
+
+`knock` can now only be called with `Closed` and `Locked` doors --- do you see
+why?  There is no way to call `knock` with `s ~ 'Opened`...because there is no
+way to pass a value of `Knockable 'Opened`.  No such value exists!  There's no
+compiler error because it's "not even wrong"!
+
+This works well if we want to do things at compile-time
+
+```haskell
+ghci> knock KnockClosed (UnsafeMkDoor @'Closed "Birch")
+Knock knock on Birch door!
+```
+
+#### Let the compiler prove it for you
+
+We can even make it more seamless to use by auto-generating proofs at
+compile-time, with a general class like `Auto`:
+
+```haskell
+class Provable p a where
+    auto :: p a
+
+instance Provable Knockable 'Closed where
+    auto = KnockClosed
+
+instance Provable Knockable 'Locked where
+    auto = KnockLocked
+```
+
+```haskell
+ghci> knock auto (UnsafeMkDoor @'Closed "Acacia")
+Knock knock on Acacia door!
+
+ghci> knock auto (UnsafeMkDoor @'Opened "Jungle")
+COMPILER ERROR!! COMPILER ERROR!!
+```
+
+Such a typeclass exists in libraries like *[type-combinators][]* (called
+`Known`), and in dependently typed languages like Idris `auto` is actually a
+built-in language keyword that does this automatically!
+
+[type-combinators]: http://hackage.haskell.org/package/type-combinators
+
+<!-- TODO: exercise for `Sing` as predicate `-->
+
+#### Decidable Preducates
+
+However, all of this only works if you know what `s` is at compile-time.  What
+if you don't?  What if you are retrieving `s` at runtime (like from a
+`SomeDoor` or `withSomeSing`), or you are forced to handle all possible `s`s?
+
+There's a property of some predicates called "decidability".  We say that a
+predicate is *decidable* if, for any input type, we can say whether or not the
+predicate is satisfiable.
+
+We say that a predicate `p` in Haskell is decidable if we can write:
+
+```haskell
+decidePred
+    :: Sing a               -- ^ given a type
+    -> Decision (p a)       -- ^ return a decision
+```
+
+Where:
+
+```haskell
+data Decision a = Proved a                  -- ^ a value of a exists
+                | Disproved (Refuted a)     -- ^ a value of a cannot exist
+
+
+-- | The data type with no values
+data Void
+
+-- | 'a' cannot exist
+type Refuted a = a -> Void
+```
+
+(These types are all from the *base* and *singletons* library, mostly in the
+*Data.Singletons.Decide* module)
+
+`Decision a` is kinda like a `Maybe a`, except instead of `Nothing`, we include
+a proof that the predicate is *not* true.
+
+For those unfamiliar with the `a -> Void` idiom, `a -> Void` is a type we use
+in Haskell to represent the fact that it is impossible to construct a value of
+type `a`.  That's because if you could, then you could give it to an `a ->
+Void` to get a value of type `Void`, which is impossible to have.
+
+It's a lot to handle up-front, so let's look at an example.  Is `Knockable` a
+decidable predicate?  Yes!
+
+```haskell
+isKnockable :: Sing s -> Decision (Knockable s)
+isKnockable = \case
+    SOpened -> Disproved $ \case            -- s ~ 'Opened
+    SClosed -> Proved KnockClosed           -- s ~ 'Closed
+    SLocked -> Proved KnockLocked           -- s ~ 'Locked
+
+```
+
+This definition should seem pretty straightforward for the `SClosed` and
+`SLocked` branches.  `isKnockable SClosed :: Decision (Knockable 'Closed)`, we
+give `Proved KnockClosed`, which gives us just that!
+
+However, `isKnockable SOpened :: Decision (Knockable 'Opened)`.  We can't use
+`Proved :: a -> Decision a`, because no such value of type `Knockable 'Opened`
+exists.  So, we have to say that we *disprove* it: we have to prove to GHC that
+no such type could possibly exist.  We do this by providing a function of type
+`Refuted (Knockable 'Opened)`, or type `Knockable 'Opened -> Void`.
+
+We can write it like this:
+
+```haskell
+disproveOpened :: Knockable 'Opened -> Void
+disproveOpened = \case
+```
+
+And we're good to go!
+
+How does this work?
+
+Well, remember, we have to pattern match on the possible inputs.  However, we
+can't use any of the "legal" patterns:
+
+```haskell
+disproveOpened :: Knockable 'Opened -> Void
+disproveOpened = \case
+    KnockClosed -> ...    -- not a valid pattern, since it's `Knockable 'Closed`
+    KnockLocked -> ...    -- not a valid pattern, since it's `Knockable 'Locked`
+```
+
+If you include either of those patterns, GHC will complain.  So, there is no
+valid pattern to match on... so `disproveOpened = \case` is enough to write the
+function `Knockable 'Opened -> Void`.
+
+We can use this decision function, finally, to handle an arbitrary `Door` whose
+status we not know until runtime:
+
+```haskell
+knockSomeDoor :: SomeDoor -> IO ()
+knockSomeDoor (MkSomeDoor s d) = case isKnockable s of
+    Proved k    -> knock k d
+    Disproved _ -> putStrLn "No knocking allowed!"
+```
+
+
+
+
+
+
+<!-- There are a couple of ways to do this --- we're going to explore three -->
+<!-- different ones, moving from a "classic" haskell approach to a type-level -->
+<!-- programming-based approach. -->
+
+<!-- ### Trusty ol' typeclasses -->
+
+<!-- To ground all of this before we take off to dizzying heights, let's see how we -->
+<!-- might implement this using an ad-hoc typeclass in "classic Haskell". -->
+
+<!-- Remember that we can essentially imagine `Door 'Opened`, `Door 'Closed` and -->
+<!-- `Door 'Locked` as three distinct types.  We're trying to write a function that -->
+<!-- works only on two different types, and give them both the same name. -->
+
+<!-- Sounds exactly like the basis of the humble typeclass! -->
+
+<!-- ```haskell -->
+<!-- class Knockable s -->
+
+<!-- instance Knockable 'Closed -->
+<!-- instance Knockable 'Locked -->
+
+<!-- knock :: Kockable s => Door s -> IO () -->
+<!-- knock d = putStrLn $ "Knock knock on " ++ doorMaterial d ++ " door!" -->
+<!-- ``` -->
+
+<!-- We write instances for `'Closed` and `'Locked`.  So now, if we try to call -->
+<!-- `knock` on a `Door 'Opened`, we'll have a compile-time error because there is -->
+<!-- no instance for `Knockable 'Opened`. -->
+
+<!-- Simple enough, right? -->
+
+<!-- ### Dependently Typed Proofs -->
+
+<!-- The next strategy we'll look at is the --> 
+
+
+<!-- So far, we've used phantom types to restrict our functions in a very simple -->
+<!-- way.  What about some more complex predicates? -->
+
+<!-- For a simple example, we can assign labels to our door states.  A `Pass` type -->
+<!-- that is `Obstruct` when the door is opened, and `Allow` otherwise? -->
+
+<!-- ```haskell -->
+<!-- data Pass = Obstruct | Allow -->
+
+<!-- passState :: DoorState -> Pass -->
+<!-- passState Opened = Allow -->
+<!-- passState Closed = Obstruct -->
+<!-- passState Locked = Obstruct -->
+<!-- ``` -->
+
+<!-- Bear with me here; `Pass` is a bit of a simple data type, but in practice it -->
+<!-- could be more complicated, representing more possibilities! -->
+
+<!-- Let's write a function that "knocks" on a door in IO -->
