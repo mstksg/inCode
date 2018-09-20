@@ -124,8 +124,8 @@ pass singletons, and the `SingKind` kind-class that associates types with their
 lifted kinds and lets you reify and reflect with functions like `withSomeSing`
 and `fromSing`.
 
-Expressive Relationships
-------------------------
+Path to Expressive Relationships
+--------------------------------
 
 Let's write a function that "knocks" on a door in IO:
 
@@ -154,7 +154,8 @@ possible ways involving singletons and the *singletons* library.  Both of these
 methods allow us to write dependently typed functions that are "type-safe" in
 more expressive ways than before.
 
-### Dependently Typed Proofs
+Dependently Typed Proofs
+------------------------
 
 The first way to do this is with a dependently-typed "proof" that an operation
 is legal.
@@ -204,7 +205,7 @@ ghci> knock KnockClosed (UnsafeMkDoor @'Closed "Birch")
 Knock knock on Birch door!
 ```
 
-#### Let the compiler prove it for you
+### Let the compiler prove it for you
 
 We can even make it more seamless to use by auto-generating proofs at
 compile-time, with a general class like `Auto`:
@@ -236,7 +237,7 @@ built-in language keyword that does this automatically!
 
 <!-- TODO: exercise for `Sing` as predicate `-->
 
-#### Decidable Preducates
+### Decidable Preducates
 
 However, all of this only works if you know what `s` is at compile-time.  What
 if you don't?  What if you are retrieving `s` at runtime (like from a
@@ -264,7 +265,7 @@ data Decision a = Proved a                  -- ^ a value of a exists
 -- | The data type with no values
 data Void
 
--- | 'a' cannot exist
+-- | 'a' cannot exist.  Commonly also called `Not`
 type Refuted a = a -> Void
 ```
 
@@ -274,10 +275,11 @@ type Refuted a = a -> Void
 `Decision a` is kinda like a `Maybe a`, except instead of `Nothing`, we include
 a proof that the predicate is *not* true.
 
-For those unfamiliar with the `a -> Void` idiom, `a -> Void` is a type we use
-in Haskell to represent the fact that it is impossible to construct a value of
-type `a`.  That's because if you could, then you could give it to an `a ->
-Void` to get a value of type `Void`, which is impossible to have.
+For those unfamiliar with the `a -> Void` idiom (often called `Not a`, or
+`Refuted a`), `a -> Void` is a type we use in Haskell to represent the fact
+that it is impossible to construct a value of type `a`.  That's because if you
+could, then you could give it to an `a -> Void` to get a value of type `Void`,
+which is impossible to have.
 
 It's a lot to handle up-front, so let's look at an example.  Is `Knockable` a
 decidable predicate?  Yes!
@@ -330,16 +332,139 @@ We can use this decision function, finally, to handle an arbitrary `Door` whose
 status we not know until runtime:
 
 ```haskell
-knockSomeDoor :: SomeDoor -> IO ()
+knockSomeDoor
+    :: SomeDoor     -- ^ status not known until you pattern match at runtime
+    -> IO ()
 knockSomeDoor (MkSomeDoor s d) = case isKnockable s of
     Proved k    -> knock k d
     Disproved _ -> putStrLn "No knocking allowed!"
 ```
 
+### Perspective on Proofs
 
+We briefly touched on a very simple version of a dependently typed proof, and
+how to "prove" properties.
 
+If you have heard things about dependently typed programming before, you might
+have heard that a lot of it involves "proving properties about your programs"
+and "forcing you to provide proofs for all of your actions".  The idea of a
+"proof" might seem a bit scary and "mathematical" to those coming from a
+software development world.
 
+However, as we just saw, working with proofs and decisions of proofs can be as
+simple as a couple lines of GADTs and dependent pattern matches:
 
+```haskell
+data Knockable :: DoorState -> Type where
+    KnockClosed :: Knockable 'Closed
+    KnockLocked :: Knockable 'Locked
+
+isKnockable :: Sing s -> Decision (Knockable s)
+isKnockable = \case
+    SOpened -> Disproved $ \case
+    SClosed -> Proved KnockClosed
+    SLocked -> Proved KnockLocked
+```
+
+`Knockable` is our *predicate*, values of type `Knockable s` are our *proofs*
+(or witnesses), and `isKnockable` is our *decision function*.  So, when we see
+a function like:
+
+```haskell
+knock :: Knockable s -> Door s -> IO ()
+```
+
+We can read the type signature as: "Knocking requires both a `Door s` and a
+*proof* that the door's status is `Knockable`".  It makes it impossible for us
+to run `knock` on a status that is not `Knockable`, like, say, `'Opened`.
+
+In this light, the role of a proof is like a "key" that a type (like `'Closed`)
+must provide to "unlock" functions like `knock`.[^metaphor]  A *decision
+function* is a function to generate these proofs (or prove that they are
+impossible) for given types.
+
+[^metaphor]: Sorry to mix up similar metaphors like this!  Definitely not
+intentional :)
+
+A lot of people think of proofs as "compiler tricks", or things that exist only
+to appease the compiler.  And, in a sense, this is true.  Compilers of
+languages that encourage heavy usage of proofs (like Agda, Coq, Idris) actually
+implement something called *proof erasure*.  That is, values like `KnockClosed`
+and `KnockLocked` might never exist at runtime, since they never actually *do*
+anything at runtime.  They only exist as ways to limit or enable specific
+programs from compiling, and serve no purpose after compilation.  GHC Haskell
+does not implement proof erasure at the time of this post (Current GHC version
+8.4), but if proofs like this become commonplace, you might be reading this
+during a time where GHC Haskell erases proofs like `Knockable` witnesses :)
+
+### Singletons and Proofs
+
+Proofs might not play a role at run-time, but generating them with types
+requires being able to pattern match and work with *types* at run-time.
+Because of this, singletons play an important role in working with proofs in
+Haskell.
+
+After all, remember the type of our decision function:
+
+```haskell
+isKnockable :: Sing a -> Decision (Knockable a)
+```
+
+Decision functions should be able to fully exploit the structure of any types
+they are scrutinizing in order to make their decision.
+
+In this light, the *singletons* library provides many tools for working with
+proofs and decisions.  In fact, the entire *Data.Singletons.Decide* module is
+dedicated to working with proofs and decisions.  It provides the `Decision` 
+data type and `Refuted` type synonym, both featured above.
+
+It also re-exports a particularly useful predicate from *base*, *propositional
+equality*:
+
+```haskell
+data (:~:) :: k -> k -> Type where
+    Refl :: a :~: a
+```
+
+Like how `Knockable` is a predicate that a given status is "knockable",
+`'Blah :~:` is a predicate that a given type is *equal to* `'Blah`.  A value of
+type `Knockable s` is a proof that `s` is knockable, and a value of type
+`'Blah :~: a` is a proof that `a` is *equal to* `'Blah`.
+
+If you are having trouble seeing how, note the constructors that it allows.
+Remember that we limit `Knockable s` to only having "knockable" `s` by only
+allowing two constructors, so we can only construct valid values.  The same
+thing happens here -- `'Blah :~:` only has *one single constructor*: `Refl ::
+'Blah :~: 'Blah`.  The only valid constructor is one where the left hand side
+is equal to the right hand side.
+
+It also offers the "kindclass" `SDecide`, which provides *decision functions*
+for the `a :~:` predicate:
+
+```haskell
+class SDecide k where
+    (%~) :: Sing (a :: k) -> Sing (b :: k) -> Decision (Sing (a :~: b))
+```
+
+For example, `Bool` is an instance of `SDecide`, so we have a function:
+
+```haskell
+(STrue %~) :: Sing b -> Decision ('True :~: b)
+```
+
+Which is a decision function to check if `b` is equal to `'True`.
+
+<!-- TODO: Should we mention Sigma? -->
+
+Type Level Functions
+--------------------
+
+Hi
+
+<!-- Because we are proving properties about *types*, the ability to pattern match -->
+<!-- on types and work with *types* at run-time is essential[^runtime]. -->
+
+<!-- [^runtime]: --> 
 
 <!-- There are a couple of ways to do this --- we're going to explore three -->
 <!-- different ones, moving from a "classic" haskell approach to a type-level -->
