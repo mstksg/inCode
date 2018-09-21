@@ -54,13 +54,13 @@ This scheme gives us a few super-powers:
 
 *   The fact that these are three *distinct* types allows us to enforce
     type-safety by prohibiting operations on certain types of doors.
-    
+
     We saw this in the types of functions like `openDoor :: Door 'Opened ->
     Door 'Closed`, which can only work on non-locked and closed doors.
 
 *   Because the types are distinct, this allows our functions to be more
     expressive by stating how they change door states, programmatically.
-    
+
     We saw this to a certain extent in functions like `openDoor`, `closeDoor`,
     and `lockDoor`, where the function type signatures tell the user how the
     input and output doors are related.  However, we will be taking this to a
@@ -230,14 +230,14 @@ COMPILER ERROR!! COMPILER ERROR!!
 ```
 
 Such a typeclass exists in libraries like *[type-combinators][]* (called
-`Known`), and in dependently typed languages like Idris `auto` is actually a
+`Known`), and in dependently typed languages like Idris, `auto` is actually a
 built-in language keyword that does this automatically!
 
 [type-combinators]: http://hackage.haskell.org/package/type-combinators
 
 <!-- TODO: exercise for `Sing` as predicate `-->
 
-### Decidable Preducates
+### Decidable Predicates
 
 However, all of this only works if you know what `s` is at compile-time.  What
 if you don't?  What if you are retrieving `s` at runtime (like from a
@@ -415,7 +415,7 @@ they are scrutinizing in order to make their decision.
 
 In this light, the *singletons* library provides many tools for working with
 proofs and decisions.  In fact, the entire *Data.Singletons.Decide* module is
-dedicated to working with proofs and decisions.  It provides the `Decision` 
+dedicated to working with proofs and decisions.  It provides the `Decision`
 data type and `Refuted` type synonym, both featured above.
 
 It also re-exports a particularly useful predicate from *base*, *propositional
@@ -459,12 +459,136 @@ Which is a decision function to check if `b` is equal to `'True`.
 Type Level Functions
 --------------------
 
-Hi
+Dependently typed proofs are nice because they exploit the "structure" of data
+types you create.  Essentially, we create a data type (predicate) in a way so
+that it is impossible to create an "invalid" data type.  And, often, if we
+write our proofs in a clever enough way, we can actually use and combine proofs
+to generate new proofs.
+
+Personally I find this to be the source of a lot of the "fun" of dependently
+typed programming --- our proofs become first class values, and if we define
+them in a nice enough way, we can use manipulate them to create new proofs.
+That's because they're just first-class values!
+
+However, a full exploration of this is well beyond the scope of this post.
+This type of stuff is covered in introductions to dependently typed programming
+proper.  However, this is a singletons post, so I'm just here to give a taste
+of it to the extent that it is related to singletons :)
+
+We're going to now look at a method that is less "structural".  In practice,
+carefully constructing predicates and proofs provides some up-front cost in
+thinking about how to best express your predicate, and is sometimes not
+straightforward.  Here is another way to express a similar `knock` that is
+slightly more mechanical.
+
+Something we can do is define a type that expresses knockable-or-not-knockable,
+as a value:
+
+```haskell
+$(singletons [d|
+  data Pass = Obstruct | Allow
+  |])
+```
+
+And we can write a *type-level function* (implemented as *type family*) from
+`DoorState` to a `Pass`:
+
+```haskell
+type family PassState (s :: DoorState) :: Pass where
+    PassState 'Opened = 'Obstruct
+    PassState 'Closed = 'Allow
+    PassState 'Locked = 'Allow
+```
+
+We've briefly touched on type families before (in talking about `SingKind`),
+but as a quick review, type families act a bit like type-level functions.  They
+take types as input arguments and return types in return.
+
+Like type synonyms, type families can't be partially applied.  They only ever
+make sense in "fully applied" form, with all arguments given syntactically.
+
+We can inspect how type families are applied by using the `:kind!` command in
+ghci:
+
+```haskell
+ghci> :kind! PassState 'Opened
+'Obstruct
+ghci> :kind! PassState 'Closed
+'Allow
+```
+
+Armed with this type family, we can write a new version of `knock`:
+
+```haskell
+knock :: (PassState s ~ 'Allow) => Door s -> IO ()
+knock d = putStrLn $ "Knock knock on " ++ doorMaterial d ++ " door!"
+```
+
+`a ~ b` is a constraint for *type equality*.  This constraint means that
+calling `knock` requires that `PassState s` being *equal* to `'Allow`.  So, if
+attempt to call `knock` with a `'Locked` door, `PassState 'Locked` is
+`'Allow`, so the constraint is satisfied and everyone is happy.  If we attempt
+to call `knock` with an `'Opened` door, `PassState 'Opened` is `'Obstruct`, so
+the constraint is not satisfied and everyone is sad.
+
+```haskell
+ghci> let door1 = UnsafeMkDoor @'Closed "Oak"
+ghci> let door2 = UnsafeMkDoor @'Opened "Spruce"
+ghci> knock door1
+Knock knock on Oak door!
+ghci> knock door2
+COMPILE ERROR!
+--     • Couldn't match type ‘'Allow’ with ‘'Obstruct’
+--             arising from a use of ‘knock’
+```
+
+(Note that we could have just used `Bool` instead of defining a `Pass` type,
+and defining something like a `Knockable` type family, and test on
+`Knockable s ~ 'True`.  We're just going through a new type for the sake of
+example, and it can be useful because a type like `Pass` might potentially have
+even more constructors!)
+
+### Deciding at Runtime
+
+One nice thing about this way is that the compiler will provide the proof for
+us.  However, how can we run into the same issue as before --- what happens if
+we don't know `s` until runtime?  How do we prove to the compiler that
+`Passable s` is `'Allow`?
+
+Remember that type families take *types* as inputs, so we can't write:
+
+```haskell
+knockSomeDoor :: SomeDoor -> IO ()
+knockSomeDoor (MkSomeDoor s d) = case PassState s of
+                                  -- ...
+```
+
+because `s`, a value, can't be given to `PassState`.
+
+What we really want to do is pass `s`, the singleton representing a type, to
+`PassState`, the type family.
+
+The trick we have to do when working with singletons is
+
+
+
+
+
+<!-- We can write a type-level function that maps a `DoorState` to a `Bool`, -->
+<!-- expressed as a *type family*. -->
+
+<!-- ```haskell -->
+<!-- type family Knockable (s :: DoorState) :: Bool where -->
+<!--     Knockable 'Opened = 'False -->
+<!--     Knockable 'Closed = 'True -->
+<!--     Knockable 'Locked = 'True -->
+<!-- ``` -->
+
 
 <!-- Because we are proving properties about *types*, the ability to pattern match -->
 <!-- on types and work with *types* at run-time is essential[^runtime]. -->
 
-<!-- [^runtime]: --> 
+<!-- [^runtime]: -->
 
 <!-- There are a couple of ways to do this --- we're going to explore three -->
 <!-- different ones, moving from a "classic" haskell approach to a type-level -->
@@ -499,7 +623,7 @@ Hi
 
 <!-- ### Dependently Typed Proofs -->
 
-<!-- The next strategy we'll look at is the --> 
+<!-- The next strategy we'll look at is the -->
 
 
 <!-- So far, we've used phantom types to restrict our functions in a very simple -->
