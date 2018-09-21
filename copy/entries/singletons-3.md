@@ -566,82 +566,45 @@ knockSomeDoor (MkSomeDoor s d) = case PassState s of
 because `s`, a value, can't be given to `PassState`.
 
 What we really want to do is pass `s`, the singleton representing a type, to
-`PassState`, the type family.
+`PassState`, the type family.  And then, we want to match on the *resulting
+type*, so we can decide what to do based on the result.
 
-The trick we have to do when working with singletons is
+If you think about this predicament long enough, you might begin to see a
+solution.  Essentially, we want a function that takes a *singleton* of `s`, and
+return a *singleton* of `PassState s`.
 
+In practice, we need to *mirror* the type-level function *at the value level*.
+We need to write a function of type `Sing s -> Sing (PassState s)`: given a
+singleton of a type, return a singleton of the type family applied to the type.
 
+```haskell
+type family PassState (s :: DoorState) :: Pass where
+    PassState 'Opened = 'Obstruct
+    PassState 'Closed = 'Allow
+    PassState 'Locked = 'Allow
 
+sPassState :: Sing s -> Sing (PassState s)
+sPassState = \case
+    SOpened -> SObstruct
+    SClosed -> SAllow
+    SLocked -> SAllw
+```
 
+We have to be very careful with how we define `sPassState`, because GHC isn't
+too smart.  It'll reject any definition that isn't structurally identical to
+the type family it's mirroring.
 
-<!-- We can write a type-level function that maps a `DoorState` to a `Bool`, -->
-<!-- expressed as a *type family*. -->
+With our new tool, we can now write:
 
-<!-- ```haskell -->
-<!-- type family Knockable (s :: DoorState) :: Bool where -->
-<!--     Knockable 'Opened = 'False -->
-<!--     Knockable 'Closed = 'True -->
-<!--     Knockable 'Locked = 'True -->
-<!-- ``` -->
+```haskell
+knockSomeDoor
+    :: SomeDoor     -- ^ status not known until you pattern match at runtime
+    -> IO ()
+knockSomeDoor (MkSomeDoor s d) = case sPassState s of
+    SAllow -> knock d                           -- ^ `PassState s ~ 'Allow`
+    _      -> putStrLn "No knocking allowed!"   -- ^ `PassState s ~ 'Obstruct`
+```
 
-
-<!-- Because we are proving properties about *types*, the ability to pattern match -->
-<!-- on types and work with *types* at run-time is essential[^runtime]. -->
-
-<!-- [^runtime]: -->
-
-<!-- There are a couple of ways to do this --- we're going to explore three -->
-<!-- different ones, moving from a "classic" haskell approach to a type-level -->
-<!-- programming-based approach. -->
-
-<!-- ### Trusty ol' typeclasses -->
-
-<!-- To ground all of this before we take off to dizzying heights, let's see how we -->
-<!-- might implement this using an ad-hoc typeclass in "classic Haskell". -->
-
-<!-- Remember that we can essentially imagine `Door 'Opened`, `Door 'Closed` and -->
-<!-- `Door 'Locked` as three distinct types.  We're trying to write a function that -->
-<!-- works only on two different types, and give them both the same name. -->
-
-<!-- Sounds exactly like the basis of the humble typeclass! -->
-
-<!-- ```haskell -->
-<!-- class Knockable s -->
-
-<!-- instance Knockable 'Closed -->
-<!-- instance Knockable 'Locked -->
-
-<!-- knock :: Kockable s => Door s -> IO () -->
-<!-- knock d = putStrLn $ "Knock knock on " ++ doorMaterial d ++ " door!" -->
-<!-- ``` -->
-
-<!-- We write instances for `'Closed` and `'Locked`.  So now, if we try to call -->
-<!-- `knock` on a `Door 'Opened`, we'll have a compile-time error because there is -->
-<!-- no instance for `Knockable 'Opened`. -->
-
-<!-- Simple enough, right? -->
-
-<!-- ### Dependently Typed Proofs -->
-
-<!-- The next strategy we'll look at is the -->
-
-
-<!-- So far, we've used phantom types to restrict our functions in a very simple -->
-<!-- way.  What about some more complex predicates? -->
-
-<!-- For a simple example, we can assign labels to our door states.  A `Pass` type -->
-<!-- that is `Obstruct` when the door is opened, and `Allow` otherwise? -->
-
-<!-- ```haskell -->
-<!-- data Pass = Obstruct | Allow -->
-
-<!-- passState :: DoorState -> Pass -->
-<!-- passState Opened = Allow -->
-<!-- passState Closed = Obstruct -->
-<!-- passState Locked = Obstruct -->
-<!-- ``` -->
-
-<!-- Bear with me here; `Pass` is a bit of a simple data type, but in practice it -->
-<!-- could be more complicated, representing more possibilities! -->
-
-<!-- Let's write a function that "knocks" on a door in IO -->
+First we use `sPassState s` to check the "pass state" of the `s`.  Then, we
+match on the `Pass`: if it's `Allow`, like the type signature of `knock`
+requires, we can run `knock`.  If not, then we cannot!
