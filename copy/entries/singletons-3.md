@@ -124,8 +124,8 @@ pass singletons, and the `SingKind` kind-class that associates types with their
 lifted kinds and lets you reify and reflect with functions like `withSomeSing`
 and `fromSing`.
 
-Path to Expressive Relationships
---------------------------------
+More Expressive Restrictions
+----------------------------
 
 Let's write a function that "knocks" on a door in IO:
 
@@ -154,8 +154,7 @@ possible ways involving singletons and the *singletons* library.  Both of these
 methods allow us to write dependently typed functions that are "type-safe" in
 more expressive ways than before.
 
-Dependently Typed Proofs
-------------------------
+### Dependently Typed Proofs
 
 The first way to do this is with a dependently-typed "proof" that an operation
 is legal.
@@ -205,7 +204,7 @@ ghci> knock KnockClosed (UnsafeMkDoor @'Closed "Birch")
 Knock knock on Birch door!
 ```
 
-### Let the compiler prove it for you
+#### Let the compiler prove it for you
 
 We can even make it more seamless to use by auto-generating proofs at
 compile-time, with a general class like `Auto`:
@@ -237,15 +236,15 @@ built-in language keyword that does this automatically!
 
 <!-- TODO: exercise for `Sing` as predicate `-->
 
-### Decidable Predicates
+#### Decidable Predicates
 
 However, all of this only works if you know what `s` is at compile-time.  What
 if you don't?  What if you are retrieving `s` at runtime (like from a
 `SomeDoor` or `withSomeSing`), or you are forced to handle all possible `s`s?
 
-There's a property of some predicates called "decidability".  We say that a
-predicate is *decidable* if, for any input type, we can say whether or not the
-predicate is satisfiable.
+To do this, we're going to take advantage of a property of some predicates
+called "decidability".  We say that a predicate is *decidable* if, for any
+input type, we can say whether or not the predicate is satisfiable.
 
 We say that a predicate `p` in Haskell is decidable if we can write:
 
@@ -261,16 +260,12 @@ Where:
 data Decision a = Proved a                  -- ^ a value of a exists
                 | Disproved (Refuted a)     -- ^ a value of a cannot exist
 
-
 -- | The data type with no values
 data Void
 
 -- | 'a' cannot exist.  Commonly also called `Not`
 type Refuted a = a -> Void
 ```
-
-(These types are all from the *base* and *singletons* library, mostly in the
-*Data.Singletons.Decide* module)
 
 `Decision a` is kinda like a `Maybe a`, except instead of `Nothing`, we include
 a proof that the predicate is *not* true.
@@ -281,8 +276,20 @@ that it is impossible to construct a value of type `a`.  That's because if you
 could, then you could give it to an `a -> Void` to get a value of type `Void`,
 which is impossible to have.
 
-It's a lot to handle up-front, so let's look at an example.  Is `Knockable` a
-decidable predicate?  Yes!
+It's a lot to handle all at once, so let's look at an example.  Is `Knockable`
+a decidable predicate?  Yes!
+
+We need to write a function:
+
+```haskell
+isKnockable :: Sing s -> Decision (Knockable s)
+```
+
+I recommend taking a moment and trying to implement this yourself.  Remember to
+enable `-Wall` to make sure you're handling all potential pattern matching
+cases.
+
+Are you ready?  Here's a solution:
 
 ```haskell
 isKnockable :: Sing s -> Decision (Knockable s)
@@ -290,7 +297,6 @@ isKnockable = \case
     SOpened -> Disproved $ \case            -- s ~ 'Opened
     SClosed -> Proved KnockClosed           -- s ~ 'Closed
     SLocked -> Proved KnockLocked           -- s ~ 'Locked
-
 ```
 
 This definition should seem pretty straightforward for the `SClosed` and
@@ -307,7 +313,7 @@ We can write it like this:
 
 ```haskell
 disproveOpened :: Knockable 'Opened -> Void
-disproveOpened = \case
+disproveOpened k = case k of {}             -- empty pattern match
 ```
 
 And we're good to go!
@@ -319,7 +325,7 @@ can't use any of the "legal" patterns:
 
 ```haskell
 disproveOpened :: Knockable 'Opened -> Void
-disproveOpened = \case
+disproveOpened k = case k of
     KnockClosed -> ...    -- not a valid pattern, since it's `Knockable 'Closed`
     KnockLocked -> ...    -- not a valid pattern, since it's `Knockable 'Locked`
 ```
@@ -340,7 +346,7 @@ knockSomeDoor (MkSomeDoor s d) = case isKnockable s of
     Disproved _ -> putStrLn "No knocking allowed!"
 ```
 
-### Perspective on Proofs
+#### Perspective on Proofs
 
 We briefly touched on a very simple version of a dependently typed proof, and
 how to "prove" properties.
@@ -386,23 +392,23 @@ impossible) for given types.
 [^metaphor]: Sorry to mix up similar metaphors like this!  Definitely not
 intentional :)
 
-A lot of people think of proofs as "compiler tricks", or things that exist only
-to appease the compiler.  And, in a sense, this is true.  Compilers of
-languages that encourage heavy usage of proofs (like Agda, Coq, Idris) actually
-implement something called *proof erasure*.  That is, values like `KnockClosed`
-and `KnockLocked` might never exist at runtime, since they never actually *do*
-anything at runtime.  They only exist as ways to limit or enable specific
-programs from compiling, and serve no purpose after compilation.  GHC Haskell
-does not implement proof erasure at the time of this post (Current GHC version
-8.4), but if proofs like this become commonplace, you might be reading this
-during a time where GHC Haskell erases proofs like `Knockable` witnesses :)
+Proofs are often thought of as "compiler tricks", or things that exist only to
+appease the compiler.  Compilers of languages that encourage heavy usage of
+proofs (like Agda, Coq, Idris) actually implement something called *proof
+erasure*.  That is, values like `KnockClosed` and `KnockLocked` might never
+exist at runtime, since they never actually *do* anything at runtime.  They
+only exist as ways to limit or enable specific programs from compiling, and
+serve no purpose after compilation.  GHC Haskell does not implement proof
+erasure at the time of this post (current GHC version 8.6), but if proofs like
+this become commonplace, you might be reading this during a time where GHC
+Haskell erases proofs like `Knockable` witnesses :)
 
-### Singletons and Proofs
+#### The Role of Singletons
 
-Proofs might not play a role at run-time, but generating them with types
-requires being able to pattern match and work with *types* at run-time.
-Because of this, singletons play an important role in working with proofs in
-Haskell.
+Proofs themselves might not play a role at run-time, but generating/deciding
+them with types requires being able to pattern match and work with *types* at
+run-time.  Because of this, singletons play an important practical role in
+working with proofs in Haskell.
 
 After all, remember the type of our decision function:
 
@@ -410,8 +416,8 @@ After all, remember the type of our decision function:
 isKnockable :: Sing a -> Decision (Knockable a)
 ```
 
-Decision functions should be able to fully exploit the structure of any types
-they are scrutinizing in order to make their decision.
+The `Sing` allows `isKnockable` to pattern match and inspect the *type* `a` to
+create your proof.
 
 In this light, the *singletons* library provides many tools for working with
 proofs and decisions.  In fact, the entire *Data.Singletons.Decide* module is
@@ -443,7 +449,9 @@ for the `a :~:` predicate:
 
 ```haskell
 class SDecide k where
-    (%~) :: Sing (a :: k) -> Sing (b :: k) -> Decision (Sing (a :~: b))
+    (%~) :: Sing (a :: k)
+         -> Sing (b :: k)
+         -> Decision (a :~: b)
 ```
 
 For example, `Bool` is an instance of `SDecide`, so we have a function:
@@ -452,18 +460,16 @@ For example, `Bool` is an instance of `SDecide`, so we have a function:
 (STrue %~) :: Sing b -> Decision ('True :~: b)
 ```
 
-Which is a decision function to check if `b` is equal to `'True`.
+which is a decision function to check if `b` is equal to `'True`.  You can sort
+of imagine `SDecide` as a type-level `Eq` typeclass, but for "type equality".
 
-<!-- TODO: Should we mention Sigma? -->
+### Type Level Functions
 
-Type Level Functions
---------------------
-
-Dependently typed proofs are nice because they exploit the "structure" of data
-types you create.  Essentially, we create a data type (predicate) in a way so
-that it is impossible to create an "invalid" data type.  And, often, if we
-write our proofs in a clever enough way, we can actually use and combine proofs
-to generate new proofs.
+Dependently typed proofs are useful because they are constructed to exploit the
+"structure" of the types you create.  Essentially, we create a data type
+(predicate) in a way so that it is impossible to create an "invalid" proof.
+And, often, if we write our proofs in a clever enough way, we can actually use
+and combine proofs to generate new proofs.
 
 Personally I find this to be the source of a lot of the "fun" of dependently
 typed programming --- our proofs become first class values, and if we define
@@ -475,11 +481,11 @@ This type of stuff is covered in introductions to dependently typed programming
 proper.  However, this is a singletons post, so I'm just here to give a taste
 of it to the extent that it is related to singletons :)
 
-We're going to now look at a method that is less "structural".  In practice,
-carefully constructing predicates and proofs provides some up-front cost in
-thinking about how to best express your predicate, and is sometimes not
-straightforward.  Here is another way to express a similar `knock` that is
-slightly more mechanical.
+We're now going to look at a method that is less "structural".  In practice,
+carefully constructing predicates and proofs (ones more complicated than the
+one we just looked at) requires some up-front cost in thinking about how to
+best express your predicate, and is sometimes not straightforward.  Here is
+another way to express a similar `knock` that is slightly more mechanical.
 
 Something we can do is define a type that expresses knockable-or-not-knockable,
 as a value:
@@ -548,7 +554,7 @@ and defining something like a `Knockable` type family, and test on
 example, and it can be useful because a type like `Pass` might potentially have
 even more constructors!)
 
-### Deciding at Runtime
+#### Deciding at Runtime
 
 One nice thing about this way is that the compiler will provide the proof for
 us.  However, how can we run into the same issue as before --- what happens if
@@ -608,3 +614,18 @@ knockSomeDoor (MkSomeDoor s d) = case sPassState s of
 First we use `sPassState s` to check the "pass state" of the `s`.  Then, we
 match on the `Pass`: if it's `Allow`, like the type signature of `knock`
 requires, we can run `knock`.  If not, then we cannot!
+
+### A Comparison
+
+Type-Level Functions as Relationships
+-------------------------------------
+
+### Let's Fold
+
+### The Problem with Higher Order Functions
+
+Next Steps
+----------
+
+
+
