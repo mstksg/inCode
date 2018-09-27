@@ -119,9 +119,16 @@ Bool`.  Given a value of type `a`, if the function returns `True`, then the
 predicate is satisfied.  If it returns `False`, it is not.
 
 A **type-level predicate** is (generally) a type constructor of kind `k ->
-Type`. Given a type of kind `k`, if *a value exists of that type*, then the
-predicate is satisfied.  If no value exists, it is not.  That value, if it
-exists, is called a *witness* or a *proof*.
+Type`. Given a type of kind `k`, if *a value exists of that type* (or, if a
+value can be constructed), then the predicate is satisfied.  If no value
+exists, it is not.  That value, if it exists, is called a *witness* or a
+*proof*.[^bottom]
+
+[^bottom]: All of this is ignoring the "bottom" value that is an occupant of
+every type in Haskell.  We can use bottom to subvert pretty much all proofs in
+Haskell, unfortunately, so the discussion from this point forward assumes we
+are talking about a subset of haskell where all values are non-bottom and all
+functions are total.
 
 We can define a predicate `Knockable :: DoorState -> Type` as a GADT that only
 has values if given `'Closed` and `'Locked`, but not `'Opened`:
