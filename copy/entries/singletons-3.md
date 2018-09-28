@@ -16,7 +16,7 @@ design pattern*, and the great *[singletons][]* library!
 This post will be a continuation of [Part 1][] and [Part 2][], so if you
 haven't read those first, now would be a good time to pause and do so and also
 work on some of the exercises.  Today we will be expanding on the ideas in
-those posts by working with more complex ways to restrict functions based on
+those posts by working with more complex ways to *restrict functions* based on
 types.  Like the previous posts, we will start by writing things "by hand", and
 then jumping into the singletons library and seeing how the framework gives you
 tools to work with these ideas in a smoother way.
@@ -77,8 +77,8 @@ pass singletons, and the `SingKind` kind-class that associates types with their
 lifted kinds and lets you reify and reflect with functions like `withSomeSing`
 and `fromSing`.
 
-More Expressive Restrictions
-----------------------------
+A Need for More Expressive Restrictions
+---------------------------------------
 
 Let's write a function that "knocks" on a door in IO:
 
@@ -87,28 +87,22 @@ knock :: Door s -> IO ()
 knock d = putStrLn $ "Knock knock on " ++ doorMaterial d ++ " door!"
 ```
 
-Hm.  This doesn't feel right.  We can't knock on an opened door..can we?  We
-could try enforcing this by writing:
-
-```haskell
-knockClosed :: Door 'Closed -> IO ()
-knockClosed d = putStrLn $ "Knock knock on " ++ doorMaterial d ++ " door!"
-
-knockLocked :: Door 'Locked -> IO ()
-knockLocked d = putStrLn $ "Knock knock on " ++ doorMaterial d ++ " door!"
-```
-
-But, that means that the user must pick between one of two functions to open
-their door.  This isn't quite what we wanted...we want the function to work
-only for closed or locked doors, and not opened doors.  We want to restrict how
-our functions can be called.
+Hm.  This doesn't feel right.  We can't knock on an opened door..can we?  Is
+there a way we can restrict this function to only work on *opened* doors?  Or,
+more generally, is there a way to be more expressive in the manner in which we
+can restrict functions?
 
 There are a couple of ways of doing this --- we're going to look at two
 possible ways involving singletons and the *singletons* library.  Both of these
 methods allow us to write dependently typed functions that are "type-safe" in
 more expressive ways than before.
 
-### Dependently Typed Proofs
+Note that we'll be exploring ways that are "generalizable" --- to different
+types of restrictions that might be more complicated than just "cannot be
+`'Opened`".
+
+Dependently Typed Proofs
+------------------------
 
 One way to do this is with a dependently-typed "proof" that an operation is
 legal.  *Proofs* (in the dependently typed/constructivist/Curry-Howard sense)
@@ -163,7 +157,7 @@ ghci> knock KnockClosed (UnsafeMkDoor @'Closed "Birch")
 Knock knock on Birch door!
 ```
 
-#### Let the compiler prove it for you
+### Let the compiler prove it for you
 
 We can even make it more seamless to use by auto-generating proofs at
 compile-time, with a general class like `Auto`:
@@ -193,9 +187,7 @@ built-in language keyword that does this automatically!
 
 [type-combinators]: http://hackage.haskell.org/package/type-combinators
 
-<!-- TODO: exercise for `Sing` as predicate `-->
-
-#### Decidable Predicates
+### Decidable Predicates
 
 However, all of this only works if you know what `s` is at compile-time.  What
 if you don't?  What if you are retrieving `s` at runtime (like from a
@@ -205,7 +197,7 @@ To do this, we're going to take advantage of a property of some predicates
 called "decidability".  We say that a predicate is *decidable* if, for any
 input type, we can say whether or not the predicate is satisfiable.
 
-We say that a predicate `p` in Haskell is decidable if we can write:
+We say that a predicate `p` in Haskell is *decidable* if we can write:
 
 ```haskell
 decidePred
@@ -305,10 +297,10 @@ knockSomeDoor (MkSomeDoor s d) = case isKnockable s of
     Disproved _ -> putStrLn "No knocking allowed!"
 ```
 
-#### Perspective on Proofs
+### Perspective on Proofs
 
-We briefly touched on a very simple version of a dependently typed proof, and
-how to "prove" properties.
+We just briefly touched on a very simple version of a dependently typed proof,
+and how to "prove" properties.
 
 If you have heard things about dependently typed programming before, you might
 have heard that a lot of it involves "proving properties about your programs"
@@ -317,23 +309,9 @@ and "forcing you to provide proofs for all of your actions".  The idea of a
 software development world.
 
 However, as we just saw, working with proofs and decisions of proofs can be as
-simple as a couple lines of GADTs and dependent pattern matches:
+simple as a couple lines of GADTs and dependent pattern matches.
 
-```haskell
-data Knockable :: DoorState -> Type where
-    KnockClosed :: Knockable 'Closed
-    KnockLocked :: Knockable 'Locked
-
-isKnockable :: Sing s -> Decision (Knockable s)
-isKnockable = \case
-    SOpened -> Disproved $ \case
-    SClosed -> Proved KnockClosed
-    SLocked -> Proved KnockLocked
-```
-
-`Knockable` is our *predicate*, values of type `Knockable s` are our *proofs*
-(or witnesses), and `isKnockable` is our *decision function*.  So, when we see
-a function like:
+So, when we see a function like:
 
 ```haskell
 knock :: Knockable s -> Door s -> IO ()
@@ -362,7 +340,7 @@ Haskell does not implement proof erasure at the time of this post (current GHC
 version 8.6), but if proofs like this become commonplace, you might be reading
 this during a time where GHC Haskell erases proofs like `Knockable` witnesses!
 
-#### The Role of Singletons
+### The Role of Singletons
 
 Proofs themselves might not play a role at run-time, but generating/deciding
 them with types requires being able to pattern match and work with *types* at
@@ -422,7 +400,8 @@ For example, `Bool` is an instance of `SDecide`, so we have a function:
 which is a decision function to check if `b` is equal to `'True`.  You can sort
 of imagine `SDecide` as a type-level `Eq` typeclass, but for "type equality".
 
-### Type Level Functions
+Type Level Functions
+--------------------
 
 We're now going to look at a different method useful for restricting how we can
 call functions.  Something we can do is define a type that expresses
@@ -444,17 +423,14 @@ And we can write a *type-level function* (implemented as *type family*) from
 
 ```haskell
 type family StatePass (s :: DoorState) :: Pass where
-    StatePass 'Opened = 'Obstruct
-    StatePass 'Closed = 'Allow
-    StatePass 'Locked = 'Allow
+    StatePass 'Opened = 'Allow
+    StatePass 'Closed = 'Obstruct
+    StatePass 'Locked = 'Obstruct
 ```
 
 We've briefly touched on type families before (in talking about `SingKind`),
-but as a quick review, type families act a bit like type-level functions.  They
-take types as input arguments and return types in return.
-
-Like type synonyms, type families can't be partially applied.  They only ever
-make sense in "fully applied" form, with all arguments given syntactically.
+but, for a quick review, type families act a bit like type-level functions.
+They take types as input arguments and return types in return.
 
 We can inspect how type families are applied by using the `:kind!` command in
 ghci:
@@ -466,10 +442,13 @@ ghci> :kind! StatePass 'Closed
 'Allow
 ```
 
+Like type synonyms, type families can't be partially applied.  They only ever
+make sense in "fully applied" form, with all arguments given syntactically.
+
 Armed with this type family, we can write a new version of `knock`:
 
 ```haskell
-knock :: (StatePass s ~ 'Allow) => Door s -> IO ()
+knock :: (StatePass s ~ 'Obstruct) => Door s -> IO ()
 knock d = putStrLn $ "Knock knock on " ++ doorMaterial d ++ " door!"
 ```
 
@@ -491,7 +470,7 @@ COMPILE ERROR!
 --             arising from a use of ‘knock’
 ```
 
-#### Deciding at Runtime
+### Deciding at Runtime
 
 One nice thing is that, if we know `s` at compile-time, we can call this
 function without having to pass any manual proofs.  However, how can we run
@@ -523,15 +502,15 @@ to the type.
 
 ```haskell
 type family StatePass (s :: DoorState) :: Pass where
-    StatePass 'Opened = 'Obstruct
-    StatePass 'Closed = 'Allow
-    StatePass 'Locked = 'Allow
+    StatePass 'Opened = 'Allow
+    StatePass 'Closed = 'Obstruct
+    StatePass 'Locked = 'Obstruct
 
 sStatePass :: Sing s -> Sing (StatePass s)
 sStatePass = \case
-    SOpened -> SObstruct
-    SClosed -> SAllow
-    SLocked -> SAllow
+    SOpened -> SAllow
+    SClosed -> SObstruct
+    SLocked -> SObstruct
 ```
 
 We have to be very careful with how we define `sStatePass`, because GHC isn't
@@ -545,15 +524,15 @@ knockSomeDoor
     :: SomeDoor     -- ^ status not known until you pattern match at runtime
     -> IO ()
 knockSomeDoor (MkSomeDoor s d) = case sStatePass s of
-    SAllow    -> knock d                         -- ^ `StatePass s ~ 'Allow`
-    SObstruct -> putStrLn "No knocking allowed!" -- ^ `StatePass s ~ 'Obstruct`
+    SObstruct -> knock d                         -- ^ `StatePass s ~ 'Obstruct`
+    SAllow    -> putStrLn "No knocking allowed!" -- ^ `StatePass s ~ 'Allow`
 ```
 
 First we use `sStatePass s` to check the "pass" of the `s`.  Then, we match on
-the `Pass`: if it's `Allow`, like the type signature of `knock` requires, we
+the `Pass`: if it's `'Obstruct`, like the type signature of `knock` requires, we
 can run `knock`.  If not, then we cannot!
 
-#### Singletons Library to the Rescue
+### Singletons Library to the Rescue
 
 At the high level, we defined a "function" on types (`StatePass`), using type
 families.
@@ -571,8 +550,6 @@ associated singleton functions:
 
 ```haskell
 $(singletons [d|
-  data Pass = Obstruct | Allow
-
   statePass :: DoorState -> Pass
   statePass Opened = Allow
   statePass Closed = Obstruct
@@ -580,24 +557,14 @@ $(singletons [d|
   |])
 ```
 
-The above declaration would normally declare the following things:
-
-1.  The *type* `Pass` with the data constructors `Obstruct :: Pass` and `Allow
-    :: Pass`
-2.  The *kind* `Pass` with the type constructors `'Obstruct :: Pass` and
-    `'Allow :: Pass`.
-3.  The value-level function `statePass` with the type `DoorSate -> Pass`.
+The above declaration would normally declare only the value-level function
+`statePass` with the type `DoorSate -> Pass`.
 
 However, with singleton's template haskell, this also generates:[^gen]
 
-1.  The *singleton family* for `Pass`, with data constructors `SObstruct ::
-    Sing 'Obstruct` and `SAllow :: Sing 'Allow` (or, using the generated
-    `SPass` type synonym, `SObstruct :: SPass 'Obstruct` and `SAllow :: SPass
-    'Allow`)
-2.  The relevant `SingKind`, `SingI` instances, etc. for `Pass`'s singletons.
-3.  The *type family* `StatePass (s :: DoorState) :: Pass`, like we defined above
-4.  The *singleton function* `sStatePass :: Sing s -> Sing (StatePass s)`, like
-    we defined above.
+*   The *type family* `StatePass (s :: DoorState) :: Pass`, like we defined above
+*   The *singleton function* `sStatePass`, with the type `Sing s -> Sing
+    (StatePass s)`, like we defined above.
 
 [^gen]: In the spirit of full disclosure, the Template Haskell also generates
 some other things (known as *defunctionalization symbols*), which we will be
@@ -615,7 +582,8 @@ name) and the singleton function `%++`.[^oper]
 versions, `++` would generate the type family `:++` and the singleton function
 `%:++`.
 
-### A Comparison
+A Comparison
+------------
 
 We went over two methods of using phantom types with the singleton library and
 dependent types to restrict how certain functions can be called, on a more
@@ -638,16 +606,17 @@ complicated than the one we just looked at) requires some up-front cost in
 thinking about how to best express your predicate, and is sometimes not
 straightforward.
 
-I consider our second method, using type-level functions, to be the more
+I consider the second method, using type-level functions, to be the more
 "mechanical" way, with less upfront cost in thinking time.  For the most part,
-if you can write a value-level function, you can write a type-level function.
-This is even made simpler with singletons --- you can just write your
-value-level relationship as a normal function, and you can now just directly
-use your function at the type level.
+if you can write a normal value-level function (something that most Haskell
+programmers are comfortable doing), you can write a type-level function. This
+is even made simpler with singletons --- you can just write your value-level
+relationship as a normal function, and you can now just directly use your
+function at the type level.
 
-In fact, consider if there were more than two "pass states" --- allow,
+In fact, consider if there were more than two `Pass` --- for example, allow,
 obstruct, or partial.  In that case, we can restrict a function based on the
-pass state being equal to any of the three or more.  Using the dependently
+`Pass` being equal to any of the three or more.  Using the dependently
 typed proof version, we would have to create a new GADT for each one.
 
 In a way, type-level functions deliver on the promise of blurring the line
@@ -660,20 +629,21 @@ That's because in the end, who is going to prove your functions are "correct"?
 Who is going to verify that you implemented your value-level and type-level
 functions correctly?  If you write normal value-level functions and promote
 them using singletons, GHC doesn't necessarily do much to prevent any logic
-errors you might have introduced.
+errors you might have introduced.  Basically, writing type-level functions
+(unsurprisingly) brings all of the error-proneness of writing value-level
+functions.  It's the same old problem, just manifested at the type level.
 
 In contrast, if you use dependently typed proofs correctly, these proofs can
 *compose*, and GHC can check that *these proofs compose correctly*, or that the
 compositions of your proofs are also valid proofs.  That's because this is
-enforced at the *structural level*.  GHC can't do that directly with functions;
+enforced at the *structural level*.  (We'll look at some examples in the
+exercises)  GHC can't do that directly with functions;
 it can't check that the composition of functions gives correct answers.
 
 These two approaches aren't necessarily mutually exclusive, and you often might
-mix the two. (And, in fact, the constraint `StatePass s ~ 'Allow` could just be
-replaced with asking for the proof of the predicate `StatePass s :~: 'Allow`).
-It's good to understand the trade-offs in up-front cost, expressiveness, and
-correctness!  But, however way you play, the *singletons* library is here to
-make our life easier.
+mix the two.  It's good to understand the trade-offs in up-front cost,
+expressiveness, and correctness!  But, however way you play, the *singletons*
+library is here to make our life easier.
 
 Singleton Library Functions
 ---------------------------
@@ -736,7 +706,7 @@ template haskell splices we've been using this entire time, too) as:
 
 ```haskell
 class PEq a where
-    type (x :: a) == (y :: a) :: Bool
+    type (x :: a) == (y :: a) :: Bool       -- ^ associated type / type family
     type (x :: a) /= (y :: a) :: Bool
 
 class SEq a where
@@ -747,7 +717,24 @@ class SEq a where
 The naming convention is to just add `P` for the "promoted" type family
 functions, and `S` for the singleton functions.
 
-#### Automatically Promoting Instances
+In fact, you can even promote your own custom typeclasses:
+
+```haskell
+$(singletons [d|
+  class MyClass a where
+    myFunc :: a -> a
+  |])
+```
+
+This would create:
+
+1.  The *typeclass* `MyClass` with method `myFunc :: MyClass a => a -> a`
+2.  The *promoted typeclass* `PMyClass` with associated type/type family
+    `MyFunc (x :: a) :: a`
+3.  The *singletonized* typeclass `SMyClass` with method `sMyFunc :: Sing x ->
+    Sing (MyFunc x)`.
+
+### Automatically Promoting Instances
 
 The *singletons* library is smart enough to automatically promote instances, as
 well, including derived ones!
@@ -797,15 +784,222 @@ SAllow
 ```
 
 
-<!-- Type-Level Functions as Relationships -->
-<!-- ------------------------------------- -->
+Next Steps
+----------
 
-<!-- ### Let's Fold -->
+In this article we tackled the problem of more expressive ways to *restrict*
+the ways users can manipulate our data types.  We talked about "dependently
+typed proofs" (a staple tool of dependently typed programming) and about
+"type level functions" (a familiar friend in a new context), their
+trade-offs, and how the *singletons* library provides tools to make working
+with both easier.
 
-<!-- ### The Problem with Higher Order Functions -->
+When we first looked at the idea of phantom type parameters, using them to
+*restrict* how functions are called was definitely one of the promises I made.
+I think, at this point, we've gone over a good portion of how this promise is
+fulfilled in practice.
 
-<!-- Next Steps -->
-<!-- ---------- -->
+However, the *other* promise we made about the usefulness of phantom type
+parameters is that we can use them be more expressive in what our functions do.
+One huge benefit of using phantom types in this way is that we can express how
+our input values relate to our output values in ways that we couldn't before.
+(as a simple example, we had previously written `closeDoor :: Door 'Opened ->
+Door 'Closed`, which we know closes a door just by looking at its type)
+
+This goes beyond simple restrictions, and we will begin discussing this in the
+next post!  We'll explore using type-level functions to express more
+non-trivial and complex relationships, and also talk about code re-use using
+higher-order functions via singleton's defunctionalization system.
+
+That's it for now --- check out the exercises, and feel free to ask any
+questions in the comments, or in freenode `#haskell`, where I idle as *jle\`*!
+
+Exercises
+---------
+
+1.  We talk about predicates as type constructors with type `k -> Type`.  This
+    fits a lot of things we've seen before (all instances of `Functor`, for
+    example), but some predicates are more interesting than others.
+
+    What is the interpretation of `SDoorState` as a predicate? (remember,
+    `SDoorState s` is the type synonym for `Sing (s :: DoorState)`)  What
+    "classical (`a -> Bool`)" predicate does it correspond to?
+
+    What is the type of its *decision function*?  Can you implement it?
+
+2.  (This next one is a little hard, and is only tangentially related to
+    singletons, so feel free to skip it!)
+    
+    Type-level predicates are logical constructs, so we should be able to
+    define concepts like "and" and "or" with them.
+
+    a.  Define a predicate constructor `And` that takes two predicates and
+        returns a new predicate.  This new predicate is true (aka, has an
+        inhabitant) if and only if the two original predicates are true (aka,
+        have inhabitants)
+
+        ```haskell
+        data And :: (k -> Type) -> (k -> Type) -> (k -> Type) where
+            -- ???
+        ```
+
+    b.  Define a predicate constructor `Or` that takes two predicates and
+        returns a new predicate.  This new predicate is true (aka, has an
+        inhabitant) if and only if at least one of the two original predicates
+        are true (aka, have inhabitants)
+
+        ```haskell
+        data Or :: (k -> Type) -> (k -> Type) -> (k -> Type) where
+            -- ???
+        ```
+
+        There are potentially multiple non-trivial variations of this type.
 
 
+    Do these data types look similar to any types you might have encountered in
+    the past?  Maybe, perhaps, similiar to types that are a part of basic
+    beginner Haskell concepts?
 
+3.  `And p q` and `Or p q` are decidable if `p` and `q` are.  Can we write the
+    decision functions?
+
+    ```haskell
+    decideAnd
+        :: (forall x. Sing x -> Decide (p x)
+        -> (forall x. Sing x -> Decide (q x)
+        -> Sing a
+        -> Decide (And p q a)
+
+    decideOr
+        :: (forall x. Sing x -> Decide (p x)
+        -> (forall x. Sing x -> Decide (q x)
+        -> Sing a
+        -> Decide (Or p q a)
+    ```
+
+    This question requires definitions for `And` and `Or`.  If you skipped the
+    previous question, check out the definitions I have included in the
+    solutions!
+
+4.  Instead of creating an entire `Knocked` type, we could have just said "as
+    long as the door is not `'Opened`, you can knock".  This means we could
+    write `knock` as:
+
+    
+    ```haskell
+    knock :: Refuted (s :~: 'Opened) -> Door s -> IO ()
+    ```
+
+    Which we must pass a proof that `s` is not equal to `'Opened` in order to
+    open our door.
+
+    Is this really the same function?
+
+    Try writing the following functions to prove (hah!) that `Refuted (s :~:
+    'Opened)` is the same as `Knockable`:
+
+    ```haskell
+    to   :: SingI s => Knockable s             -> Refuted (s :~: 'Opened)
+    to   = -- ???
+
+    from :: SingI s => Refuted (s :~: 'Opened) -> Knockable s
+    from = -- ???
+    ```
+
+5.  On our type level function version of `knock`, we wrote, with a constraint:
+
+
+    ```haskell
+    knock :: (StatePass s ~ 'Obstruct) => Door s -> IO ()
+    knock d = putStrLn $ "Knock knock on " ++ doorMaterial d ++ " door!"
+    ```
+
+    We can muddy the waters a bit, for fun, by having this take a proof of the
+    constraint instead:
+
+    ```haskell
+    knockRefl :: (StatePass s :~: 'Obstruct) -> Door s -> IO ()
+    knockRefl d = putStrLn $ "Knock knock on " ++ doorMaterial d ++ " door!"
+    ```
+
+    Rewrite a version of `knockSomeDoor` in terms of `knockRefl`, called
+    `knockSomeDoorRefl`:
+
+    ````haskell
+    knockSomeDoorRefl
+        :: SomeDoor
+        -> IO ()
+    knockSomeDoorRefl = -- ??
+    ````
+
+    Remember not to use `knock`.
+
+    Assume that `DoorState` has an instance of `SDecide`.  This should be
+    derived automatically as long as you derive `Eq`:
+
+    ```haskell
+    $(singletons [d|
+      data DoorState = Opened | Closed | Locked
+        deriving (Show, Eq)
+      |])
+    ```
+
+7.  With the function that inverts `Pass`:
+
+    ```haskell
+    invertPass :: Pass -> Pass
+    invertPass Obstruct = Allow
+    invertPass Allow    = Obstruct
+    ```
+
+    Implement `knock` in a way that lets you knock if `invertPass` is `Allow`:
+
+    ```haskell
+    knockInv :: (InvertPass (StatePass s) ~ 'Allow) => Door s -> IO ()
+    knockInv d = putStrLn $ "Knock knock on " ++ doorMaterial d ++ " door!"
+    ```
+
+    And write `knockSomeDoor` in terms of it:
+
+    ````haskell
+    knockSomeDoorInv
+        :: SomeDoor
+        -> IO ()
+    knockSomeDoorInv = -- ??
+    ````
+
+8.  Let's work with a toy typeclass called `Cycle`, based on `Enum`
+
+    ```haskell
+    $(singletons [d|
+      class Cycle a where
+        next :: a -> a
+        prev :: a -> a
+      |])
+    ```
+
+    `next` is like `succ`, but loops over to the first item after the last
+    constructor.  `prev` is like `pred`, but loops over to the last item if
+    pred-ing the first item
+
+    ```haskell
+    instance Cycle DoorState where
+        next Opened = Closed
+        next Closed = Locked
+        next Locked = Opened
+
+        prev Opened = Locked
+        prev Closed = Opened
+        prev Locked = Closed
+    ```
+
+    Manually promote this instance for `DoorState` to the type level:
+
+
+    ````haskell
+    instance PCycle DoorState where
+        -- ??
+
+    instance SCycle DoorState where
+        -- ??
+    ```

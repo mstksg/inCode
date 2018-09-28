@@ -25,6 +25,10 @@ import Data.Singletons.TH
 $(singletons [d|
   data DoorState = Opened | Closed | Locked
     deriving (Show, Eq)
+
+  class MyEnum a where
+    mySucc :: a -> a
+    myPred :: a -> a
   |])
 
 data Door :: DoorState -> Type where

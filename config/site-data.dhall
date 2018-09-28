@@ -1,11 +1,11 @@
-{ confTitle = "inCode"
+{ title = "inCode"
 -- , confDevelopment = False
-, confDesc =
+, desc =
     ''
     Weblog of Justin Le, covering his various adventures in programming and
     explorations in the vast worlds of computation physics, and knowledge.
     ''
-, confAuthorInfo =
+, authorInfo =
     { authorName     = "Justin Le"
     , authorEmail    = "justin@jle.im"
     , authorRel      = "https://plus.google.com/107705320197444500140"
@@ -19,14 +19,14 @@
     , authorPatreon  = "justinle"
     , authorTwitch   = "justin_l"
     }
-, confCopyright      = "2018 Justin Le"
-, confLicense        = "CC-BY-NC-ND 3.0"
-, confLicenseLink    = "https://creativecommons.org/licenses/by-nc-nd/3.0/"
-, confFeed           = "http://feeds.feedburner.com/incodeblog"
-, confBlobs          =
-    { blobsTree         = "https://github.com/mstksg/inCode/tree"
-    , blobsSourceBranch = (["master"]   : Optional Text)
-    , blobsRenderBranch = (["gh-pages"] : Optional Text)
+, copyright      = "2018 Justin Le"
+, license        = "CC-BY-NC-ND 3.0"
+, licenseLink    = "https://creativecommons.org/licenses/by-nc-nd/3.0/"
+, feed           = "http://feeds.feedburner.com/incodeblog"
+, blobs          =
+    { tree         = "https://github.com/mstksg/inCode/tree"
+    , sourceBranch = (["master"]   : Optional Text)
+    , renderBranch = (["gh-pages"] : Optional Text)
     }
 }
 
