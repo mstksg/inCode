@@ -36,13 +36,7 @@ In the first post we looked at the `Door` type, indexed with a phantom type of
 kind `DoorState`.
 
 ```haskell
-$(singletons [d|
-  data DoorState = Opened | Closed | Locked
-    deriving (Show, Eq)
-  |])
-
-data Door :: DoorState -> Type where
-    UnsafeMkDoor :: { doorMaterial :: String } -> Door s
+!!!singletons/Door3.hs "$(singletons" "data Door"
 ```
 
 This gives us (at least) three distinct types `Door 'Opened`, `Door 'Closed`,
@@ -58,14 +52,7 @@ going through many "analogous" and equivalent type, we arrived at the
 existential wrapper `SomeDoor`:
 
 ```haskell
-data SomeDoor :: Type where
-    MkSomeDoor :: Sing s -> Door s -> SomeDoor
-```
-
-```haskell
-mkSomeDoor :: DoorState -> String -> SomeDoor
-mkSomeDoor ds mat = withSomeSing ds $ \dsSing ->
-    MkSomeDoor dsSing mat
+!!!singletons/Door3.hs "data SomeDoor" "mkSomeDoor"
 ```
 
 (We must be careful to pack the `Sing s` with the `Door s`, so that we can
@@ -128,9 +115,7 @@ We can define a predicate `Knockable :: DoorState -> Type` as a GADT that only
 has values if given `'Closed` and `'Locked`, but not `'Opened`:
 
 ```haskell
-data Knockable :: DoorState -> Type where
-    KnockClosed :: Knockable 'Closed
-    KnockLocked :: Knockable 'Locked
+!!!singletons/Door3.hs "data Knockable"
 ```
 
 Now, we have a value of type `Knockable 'Closed` and `Knockable 'Locked`
@@ -141,8 +126,7 @@ Well, we can make a version of `knock` that requires a proof that `s` is
 `Knockable`:
 
 ```haskell
-knock :: Knockable s -> Door s -> IO ()
-knock _ d = putStrLn $ "Knock knock on " ++ doorMaterial d ++ " door!"
+!!!singletons/Door3.hs "knock"
 ```
 
 `knock` can now only be called with `Closed` and `Locked` doors --- do you see
@@ -163,14 +147,7 @@ We can even make it more seamless to use by auto-generating proofs at
 compile-time, with a general class like `Auto`:
 
 ```haskell
-class Provable p a where
-    auto :: p a
-
-instance Provable Knockable 'Closed where
-    auto = KnockClosed
-
-instance Provable Knockable 'Locked where
-    auto = KnockLocked
+!!!singletons/Door3.hs "class Provable" "instance Provable Knockable 'Closed" "instance Provable Knockable 'Locked"
 ```
 
 ```haskell
@@ -197,12 +174,12 @@ To do this, we're going to take advantage of a property of some predicates
 called "decidability".  We say that a predicate is *decidable* if, for any
 input type, we can say whether or not the predicate is satisfiable.
 
-We say that a predicate `p` in Haskell is *decidable* if we can write:
+We say that a predicate `P` in Haskell is *decidable* if we can write:
 
 ```haskell
 decidePred
-    :: Sing a               -- ^ given a type
-    -> Decision (p a)       -- ^ return a decision
+    :: Sing x               -- ^ given a type
+    -> Decision (P x)       -- ^ return a decision
 ```
 
 Where:
@@ -243,11 +220,7 @@ cases.
 Are you ready?  Here's a solution:
 
 ```haskell
-isKnockable :: Sing s -> Decision (Knockable s)
-isKnockable = \case
-    SOpened -> Disproved $ \case            -- s ~ 'Opened
-    SClosed -> Proved KnockClosed           -- s ~ 'Closed
-    SLocked -> Proved KnockLocked           -- s ~ 'Locked
+!!!singletons/Door3.hs "isKnockabke"
 ```
 
 This definition should seem pretty straightforward for the `SClosed` and
@@ -263,8 +236,7 @@ no such type could possibly exist.  We do this by providing a function of type
 We can write it like this:
 
 ```haskell
-disproveOpened :: Knockable 'Opened -> Void
-disproveOpened k = case k of {}             -- empty pattern match
+!!!singletons/Door3.hs "disproveOpened"
 ```
 
 And we're good to go!
@@ -289,12 +261,7 @@ We can use this decision function, finally, to handle an arbitrary `Door` whose
 status we not know until runtime:
 
 ```haskell
-knockSomeDoor
-    :: SomeDoor     -- ^ status not known until you pattern match at runtime
-    -> IO ()
-knockSomeDoor (MkSomeDoor s d) = case isKnockable s of
-    Proved k    -> knock k d
-    Disproved _ -> putStrLn "No knocking allowed!"
+!!!singletons/Door3.hs "knockSomeDoor"
 ```
 
 ### Perspective on Proofs
@@ -437,9 +404,9 @@ ghci:
 
 ```haskell
 ghci> :kind! StatePass 'Opened
-'Obstruct
-ghci> :kind! StatePass 'Closed
 'Allow
+ghci> :kind! StatePass 'Closed
+'Obstruct
 ```
 
 Like type synonyms, type families can't be partially applied.  They only ever
@@ -448,8 +415,7 @@ make sense in "fully applied" form, with all arguments given syntactically.
 Armed with this type family, we can write a new version of `knock`:
 
 ```haskell
-knock :: (StatePass s ~ 'Obstruct) => Door s -> IO ()
-knock d = putStrLn $ "Knock knock on " ++ doorMaterial d ++ " door!"
+!!!singletons/Door3.hs "knockP"
 ```
 
 `a ~ b` is a constraint for *type equality*.  This constraint means that
@@ -520,12 +486,7 @@ the type family it's mirroring.
 With our new tool, we can now write:
 
 ```haskell
-knockSomeDoor
-    :: SomeDoor     -- ^ status not known until you pattern match at runtime
-    -> IO ()
-knockSomeDoor (MkSomeDoor s d) = case sStatePass s of
-    SObstruct -> knock d                         -- ^ `StatePass s ~ 'Obstruct`
-    SAllow    -> putStrLn "No knocking allowed!" -- ^ `StatePass s ~ 'Allow`
+!!!singletons/Door3.hs "knockSomeDoorP"
 ```
 
 First we use `sStatePass s` to check the "pass" of the `s`.  Then, we match on
@@ -817,15 +778,24 @@ questions in the comments, or in freenode `#haskell`, where I idle as *jle\`*!
 Exercises
 ---------
 
+!!![solution1]:singletons/Door3.hs "-- | 1."
+!!![solution2]:singletons/Door3.hs "data And" "data Or" "decideAnd" "decideOr"
+!!![solution3]:singletons/Door3.hs "knockedRefute" "knockedRefute"
+!!![solution4]:singletons/Door3.hs "knockRefl" "knockSomeDoorRefl"
+!!![solution5]:singletons/Door3.hs "knockInv" "knockSomeDoorInv"
+!!![solution6]:singletons/Door3.hs "instance Cycle DoorState" "instance PCycle DoorState" "instance SCycle DoorState"
+
 1.  We talk about predicates as type constructors with type `k -> Type`.  This
     fits a lot of things we've seen before (all instances of `Functor`, for
     example), but some predicates are more interesting than others.
 
     What is the interpretation of `SDoorState` as a predicate? (remember,
     `SDoorState s` is the type synonym for `Sing (s :: DoorState)`)  What
-    "classical (`a -> Bool`)" predicate does it correspond to?
+    "traditional" (that is, `a -> Bool`) predicate does it correspond to?
 
     What is the type of its *decision function*?  Can you implement it?
+
+    Solution available [here][solution1].
 
 2.  (This next one is a little hard, and is only tangentially related to
     singletons, so feel free to skip it!)
@@ -839,8 +809,7 @@ Exercises
         have inhabitants)
 
         ```haskell
-        data And :: (k -> Type) -> (k -> Type) -> (k -> Type) where
-            -- ???
+        !!!singletons/Door3.hs "And"1
         ```
 
     b.  Define a predicate constructor `Or` that takes two predicates and
@@ -849,39 +818,25 @@ Exercises
         are true (aka, have inhabitants)
 
         ```haskell
-        data Or :: (k -> Type) -> (k -> Type) -> (k -> Type) where
-            -- ???
+        !!!singletons/Door3.hs "Or"1
         ```
 
         There are potentially multiple non-trivial variations of this type.
 
+        Do `And` and `Or` look similar to any types you might have encountered
+        in the past?  Maybe, perhaps, similiar to types that are a part of
+        basic beginner Haskell concepts?
 
-    Do these data types look similar to any types you might have encountered in
-    the past?  Maybe, perhaps, similiar to types that are a part of basic
-    beginner Haskell concepts?
+    c.  Maybe surprisingly, `And p q` and `Or p q` are decidable if `p` and `q`
+        are.  Can we write the decision functions?
 
-3.  `And p q` and `Or p q` are decidable if `p` and `q` are.  Can we write the
-    decision functions?
+        ```haskell
+        !!!singletons/Door3.hs "decideAnd"5 "decideOr"5
+        ```
 
-    ```haskell
-    decideAnd
-        :: (forall x. Sing x -> Decide (p x)
-        -> (forall x. Sing x -> Decide (q x)
-        -> Sing a
-        -> Decide (And p q a)
+    Solutions available [here][solution2].
 
-    decideOr
-        :: (forall x. Sing x -> Decide (p x)
-        -> (forall x. Sing x -> Decide (q x)
-        -> Sing a
-        -> Decide (Or p q a)
-    ```
-
-    This question requires definitions for `And` and `Or`.  If you skipped the
-    previous question, check out the definitions I have included in the
-    solutions!
-
-4.  Instead of creating an entire `Knocked` type, we could have just said "as
+3.  Instead of creating an entire `Knocked` type, we could have just said "as
     long as the door is not `'Opened`, you can knock".  This means we could
     write `knock` as:
 
@@ -895,19 +850,31 @@ Exercises
 
     Is this really the same function?
 
-    Try writing the following functions to prove (hah!) that `Refuted (s :~:
-    'Opened)` is the same as `Knockable`:
+    Try writing the following functions to prove that `Refuted (s :~: 'Opened)`
+    is the same as `Knockable`:
 
     ```haskell
-    to   :: SingI s => Knockable s             -> Refuted (s :~: 'Opened)
-    to   = -- ???
-
-    from :: SingI s => Refuted (s :~: 'Opened) -> Knockable s
-    from = -- ???
+    !!!singletons/Door3.hs "knockedRefute"4 "knockedRefute"4
     ```
 
-5.  On our type level function version of `knock`, we wrote, with a constraint:
+    Solution available [here][solution3].
 
+    *Note:* `knockedRefute` is fairly straightforward, but `knockedRefute` is
+    definitely trickier, so don't be discouraged!
+
+    *Hint:* You might find `absurd` (from *Data.Void*) helpful:
+
+    ```haskell
+    absurd :: forall a. Void -> a
+    ```
+
+    If you have a `Void`, you can make a value of any type![^explosion]
+
+    [^explosion]: It's the good ol' [Principle of Explosion][poe]
+
+    [poe]: https://en.wikipedia.org/wiki/Principle_of_explosion
+
+4.  On our type level function version of `knock`, we wrote, with a constraint:
 
     ```haskell
     knock :: (StatePass s ~ 'Obstruct) => Door s -> IO ()
@@ -918,24 +885,22 @@ Exercises
     constraint instead:
 
     ```haskell
-    knockRefl :: (StatePass s :~: 'Obstruct) -> Door s -> IO ()
-    knockRefl d = putStrLn $ "Knock knock on " ++ doorMaterial d ++ " door!"
+    !!!singletons/Door3.hs "knockRefl"
     ```
 
     Rewrite a version of `knockSomeDoor` in terms of `knockRefl`, called
     `knockSomeDoorRefl`:
 
     ````haskell
-    knockSomeDoorRefl
-        :: SomeDoor
-        -> IO ()
-    knockSomeDoorRefl = -- ??
+    !!!singletons/Door3.hs "knockSomeDoorRefl"4
     ````
 
-    Remember not to use `knock`.
+    Remember not to use `knock`!
 
-    Assume that `DoorState` has an instance of `SDecide`.  This should be
-    derived automatically as long as you derive `Eq`:
+    Solution available [here][solution4].
+
+    Assume that `DoorState` has an instance of `SDecide`, so you can use
+    `(%~)`.  This should be derived automatically as long as you derive `Eq`:
 
     ```haskell
     $(singletons [d|
@@ -944,31 +909,35 @@ Exercises
       |])
     ```
 
-7.  With the function that inverts `Pass`:
+    Solution available [here][solution4].
+
+5.  With the function that inverts `Pass`:
 
     ```haskell
-    invertPass :: Pass -> Pass
-    invertPass Obstruct = Allow
-    invertPass Allow    = Obstruct
+    $(singletons [d|
+      invertPass :: Pass -> Pass
+      invertPass Obstruct = Allow
+      invertPass Allow    = Obstruct
+    |])
     ```
 
     Implement `knock` in a way that lets you knock if `invertPass` is `Allow`:
 
     ```haskell
-    knockInv :: (InvertPass (StatePass s) ~ 'Allow) => Door s -> IO ()
-    knockInv d = putStrLn $ "Knock knock on " ++ doorMaterial d ++ " door!"
+    !!!singletons/Door3.hs "knockInv"
     ```
 
     And write `knockSomeDoor` in terms of it:
 
     ````haskell
-    knockSomeDoorInv
-        :: SomeDoor
-        -> IO ()
-    knockSomeDoorInv = -- ??
+    !!!singletons/Door3.hs "knockSomeDoorInv"4
     ````
 
-8.  Let's work with a toy typeclass called `Cycle`, based on `Enum`
+    Again, implement it in terms of `knockInv`, not `knock`.
+
+    Solution available [here][solution5].
+
+6.  Let's work with a toy typeclass called `Cycle`, based on `Enum`
 
     ```haskell
     $(singletons [d|
@@ -983,23 +952,11 @@ Exercises
     pred-ing the first item
 
     ```haskell
-    instance Cycle DoorState where
-        next Opened = Closed
-        next Closed = Locked
-        next Locked = Opened
-
-        prev Opened = Locked
-        prev Closed = Opened
-        prev Locked = Closed
+    !!!singletons/Door3.hs "instance Cycle DoorState"
     ```
 
-    Manually promote this instance for `DoorState` to the type level:
-
+    Try to manually promote this instance for `DoorState` to the type level:
 
     ````haskell
-    instance PCycle DoorState where
-        -- ??
-
-    instance SCycle DoorState where
-        -- ??
+    !!!singletons/Door3.hs "instance PCycle DoorState"1 "instance SCycle DoorState"1
     ```
