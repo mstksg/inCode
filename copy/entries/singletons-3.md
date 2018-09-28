@@ -21,6 +21,13 @@ types.  Like the previous posts, we will start by writing things "by hand", and
 then jumping into the singletons library and seeing how the framework gives you
 tools to work with these ideas in a smoother way.
 
+The first half of today's post doesn't deal *directly* with the *singletons*
+library and the singleton design pattern, but, like usage of phantom types, is
+a design pattern that the usage of singletons greatly enhances.  The second
+part of today's post deals directly with the lifting of functions to the type
+level, which is made practical by the usage of singletons and the *singletons*
+library.
+
 [Part 1]: https://blog.jle.im/entry/introduction-to-singletons-1.html
 [Part 2]: https://blog.jle.im/entry/introduction-to-singletons-2.html
 
@@ -785,6 +792,11 @@ questions in the comments, or in freenode `#haskell`, where I idle as *jle\`*!
 
 Exercises
 ---------
+
+Here are some exercises to help cement your understanding of the concepts here!
+Feel free to start from [the sample source code][source]; it contains all of
+the solutions, but you can delete everything after the comment `-- Exercises`
+if you wish to start on your own!
 
 !!![solution1]:singletons/Door3.hs "-- | 1."
 !!![solution2]:singletons/Door3.hs "data And" "data Or" "decideAnd" "decideOr"
