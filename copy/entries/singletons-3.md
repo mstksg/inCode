@@ -25,9 +25,16 @@ tools to work with these ideas in a smoother way.
 [Part 2]: https://blog.jle.im/entry/introduction-to-singletons-2.html
 
 Code in this post is built on *GHC 8.4.3* with the *[lts-12.9][snapshot]*
-snapshot (so, singletons-2.4.1).
+snapshot (so, singletons-2.4.1).  Again, you can download the source for this
+file [here][source], and, if *stack* is installed, you can drop into a ghci
+session with all of the bindings in scope executing it:
 
 [snapshot]: https://www.stackage.org/lts-12.9
+!!![source]:singletons/Door3.hs
+
+```bash
+$ ./Door3.hs
+```
 
 Review
 ------
@@ -36,7 +43,7 @@ In the first post we looked at the `Door` type, indexed with a phantom type of
 kind `DoorState`.
 
 ```haskell
-!!!singletons/Door3.hs "$(singletons" "data Door"
+!!!singletons/Door3.hs "$(singletons " "data Door "
 ```
 
 This gives us (at least) three distinct types `Door 'Opened`, `Door 'Closed`,
@@ -447,8 +454,9 @@ Remember that type families take *types* as inputs, so we can't write:
 
 ```haskell
 knockSomeDoor :: SomeDoor -> IO ()
-knockSomeDoor (MkSomeDoor s d) = case StatePass s of
-                                  -- ...
+knockSomeDoor (MkSomeDoor s d) =
+    case StatePass s of
+      -- ...
 ```
 
 because `s`, a value, can't be given to `StatePass`.
@@ -955,7 +963,7 @@ Exercises
     !!!singletons/Door3.hs "instance Cycle DoorState"
     ```
 
-    Try to manually promote this instance for `DoorState` to the type level:
+    Can you manually promote this instance for `DoorState` to the type level?
 
     ```haskell
     !!!singletons/Door3.hs "instance PCycle DoorState"1 "instance SCycle DoorState"1

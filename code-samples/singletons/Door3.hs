@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --install-ghc runghc --resolver lts-12.9 --package singletons
+-- stack --install-ghc ghci --resolver lts-12.9 --package singletons
 
 {-# LANGUAGE AllowAmbiguousTypes   #-}
 {-# LANGUAGE DataKinds             #-}
@@ -19,11 +19,11 @@
 {-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wall              #-}
 
-import Data.Kind
-import Data.Singletons
-import Data.Singletons.Prelude hiding (And, Or)
-import Data.Singletons.TH
-import Data.Void
+import           Data.Kind
+import           Data.Singletons
+import           Data.Singletons.Prelude hiding (And, Or)
+import           Data.Singletons.TH
+import           Data.Void
 
 $(singletons [d|
   data DoorState = Opened | Closed | Locked

@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --install-ghc runghc --resolver lts-12.9 --package singletons
+-- stack --install-ghc ghci --resolver lts-12.9 --package singletons
 
 {-# LANGUAGE DataKinds            #-}
 {-# LANGUAGE EmptyCase            #-}
@@ -13,9 +13,9 @@
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-import Data.Singletons
-import Data.Kind
-import Data.Singletons.TH
+import           Data.Kind
+import           Data.Singletons
+import           Data.Singletons.TH
 
 $(singletons [d|
   data DoorState = Opened | Closed | Locked

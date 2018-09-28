@@ -756,6 +756,13 @@ You can see all of the "manual singletons" code in this post
 !!![manual-door]:singletons/Door.hs
 !!![singletons-door]:singletons/DoorSingletons.hs
 
+You can actually drop into a ghci session with all of the bindings in scope by
+executing the files:
+
+```bash
+$ ./Door.hs
+```
+
 However, remember the question that I asked earlier, about creating a `Door`
 with a given state that we don't know until runtime?  So far, we are only able
 to create `Door` and `SingDS` from types we *know* at compile-time.  There is

@@ -1,12 +1,12 @@
 #!/usr/bin/env stack
--- stack --install-ghc runghc --resolver lts-12.9
+-- stack --install-ghc ghci --resolver lts-12.9 --package singletons
 
 {-# LANGUAGE DataKinds      #-}
 {-# LANGUAGE GADTs          #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE RankNTypes     #-}
 
-import Data.Kind
+import           Data.Kind
 
 data DoorState = Opened | Closed | Locked
   deriving (Show, Eq)
