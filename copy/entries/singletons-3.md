@@ -220,7 +220,7 @@ cases.
 Are you ready?  Here's a solution:
 
 ```haskell
-!!!singletons/Door3.hs "isKnockabke"
+!!!singletons/Door3.hs "isKnockable"
 ```
 
 This definition should seem pretty straightforward for the `SClosed` and
@@ -795,7 +795,7 @@ Exercises
 
     What is the type of its *decision function*?  Can you implement it?
 
-    Solution available [here][solution1].
+    Solution available [here][solution1]!
 
 2.  (This next one is a little hard, and is only tangentially related to
     singletons, so feel free to skip it!)
@@ -834,7 +834,7 @@ Exercises
         !!!singletons/Door3.hs "decideAnd"5 "decideOr"5
         ```
 
-    Solutions available [here][solution2].
+    Solutions available [here][solution2]!
 
 3.  Instead of creating an entire `Knocked` type, we could have just said "as
     long as the door is not `'Opened`, you can knock".  This means we could
@@ -857,7 +857,7 @@ Exercises
     !!!singletons/Door3.hs "knockedRefute"4 "knockedRefute"4
     ```
 
-    Solution available [here][solution3].
+    Solution available [here][solution3]!
 
     *Note:* `knockedRefute` is fairly straightforward, but `knockedRefute` is
     definitely trickier, so don't be discouraged!
@@ -909,7 +909,7 @@ Exercises
       |])
     ```
 
-    Solution available [here][solution4].
+    Solution available [here][solution4]!
 
 5.  With the function that inverts `Pass`:
 
@@ -935,7 +935,7 @@ Exercises
 
     Again, implement it in terms of `knockInv`, not `knock`.
 
-    Solution available [here][solution5].
+    Solution available [here][solution5]!
 
 6.  Let's work with a toy typeclass called `Cycle`, based on `Enum`
 
@@ -957,6 +957,8 @@ Exercises
 
     Try to manually promote this instance for `DoorState` to the type level:
 
-    ````haskell
+    ```haskell
     !!!singletons/Door3.hs "instance PCycle DoorState"1 "instance SCycle DoorState"1
     ```
+
+    Solution available [here][solution6]!

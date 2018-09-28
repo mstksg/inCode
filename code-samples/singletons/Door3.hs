@@ -194,3 +194,23 @@ instance Cycle DoorState where
     prev Opened = Locked
     prev Closed = Opened
     prev Locked = Closed
+
+instance PCycle DoorState where
+    type Next 'Opened = 'Closed
+    type Next 'Closed = 'Locked
+    type Next 'Locked = 'Opened
+
+    type Prev 'Opened = 'Locked
+    type Prev 'Closed = 'Opened
+    type Prev 'Locked = 'Closed
+
+instance SCycle DoorState where
+    sNext = \case
+      SOpened -> SClosed
+      SClosed -> SLocked
+      SLocked -> SOpened
+
+    sPrev = \case
+      SOpened -> SLocked
+      SClosed -> SOpened
+      SLocked -> SClosed
