@@ -21,11 +21,10 @@ types.  Like the previous posts, we will start by writing things "by hand", and
 then jumping into the singletons library and seeing how the framework gives you
 tools to work with these ideas in a smoother way.
 
-The first half of today's post doesn't deal *directly* with the *singletons*
-library and the singleton design pattern, but, like usage of phantom types, is
-a design pattern that the usage of singletons greatly enhances.  The second
-part of today's post deals directly with the lifting of functions to the type
-level, which is made practical by the usage of singletons and the *singletons*
+The first half of today's post will introduce a new application and design
+pattern that the usage of singletons greatly enhances.  The second part of
+today's post deals directly with the lifting of functions to the type level,
+which is made practical by the usage of singletons and the *singletons*
 library.
 
 [Part 1]: https://blog.jle.im/entry/introduction-to-singletons-1.html
@@ -105,9 +104,13 @@ types of restrictions that might be more complicated than just "cannot be
 Dependently Typed Proofs
 ------------------------
 
-One way to do this is with a dependently-typed "proof" that an operation is
-legal.  *Proofs* (in the dependently typed/constructivist/Curry-Howard sense)
-are witnesses to some type-level predicate or proposition.
+To look at our first way of tackling this restriction problem, we're going to
+explore a very fun *new application* of singletons and DataKinds.  Hooray!
+
+This new application is the usage of the dependently-typed "proof" to prove
+that an operation is legal.  *Proofs* (in the dependently
+typed/constructivist/Curry-Howard sense) are witnesses to some type-level
+predicate or proposition.
 
 A **value-level predicate** in Haskell is (generally) a function of type `a ->
 Bool`.  Given a value of type `a`, if the function returns `True`, then the
@@ -212,11 +215,12 @@ type Refuted a = a -> Void
 `Decision a` is like a `Maybe a`, except instead of `Nothing`, we include a
 proof that the predicate is *not* true.
 
-For those unfamiliar with the `a -> Void` idiom (often called `Not a`, or
-`Refuted a`), `a -> Void` is a type we use in Haskell to represent the fact
-that it is impossible to construct a value of type `a`.  That's because if you
-could, then you could give it to an `a -> Void` to get a value of type `Void`,
-which is impossible to have.
+The `a -> Void` idiom (often called `Not a`, or `Refuted a`) is type we use in
+Haskell and other languages to represent the fact that it is impossible to
+construct a value of type `a`.  That's because if you could, then you could
+give it to an `a -> Void` to get a value of type `Void`, which is impossible to
+have.  So, if a possible function `a -> Void` exists, it necessarily means that
+a value of type `a` cannot exist.
 
 It's a lot to handle all at once, so let's look at an example.  Is `Knockable`
 a decidable predicate?  Yes!
@@ -565,12 +569,12 @@ We went over two methods of using phantom types with the singleton library and
 dependent types to restrict how certain functions can be called, on a more
 non-trivial level.
 
-Our first method was using "dependently typed proofs".  These are useful
-because they are constructed to exploit the "structure" of the types you
-create.  Essentially, we create a data type (predicate) in a way so that it is
-impossible to create an "invalid" proof. And, often, if we write our proofs in
-a clever enough way, we can actually use and combine proofs to generate new
-proofs.
+Our first method was using a new application of singletons and DataKinds,
+"dependently typed proofs".  These are useful because they are constructed to
+exploit the "structure" of the types you create.  Essentially, we create a data
+type (predicate) in a way so that it is impossible to create an "invalid"
+proof. And, often, if we write our proofs in a clever enough way, we can
+actually use and combine proofs to generate new proofs.
 
 Personally, I find this to be the source of a lot of the "fun" of dependently
 typed programming --- our proofs become first class values, and if we define
@@ -765,10 +769,9 @@ Next Steps
 
 In this article we tackled the problem of more expressive ways to *restrict*
 the ways users can manipulate our data types.  We talked about "dependently
-typed proofs" (a staple tool of dependently typed programming) and about
-"type level functions" (a familiar friend in a new context), their
-trade-offs, and how the *singletons* library provides tools to make working
-with both easier.
+typed proofs" (a staple tool of dependently typed programming) and about "type
+level functions" (a familiar friend in a new context), their trade-offs, and
+how the *singletons* library provides tools to make working with both easier.
 
 When we first looked at the idea of phantom type parameters, using them to
 *restrict* how functions are called was definitely one of the promises I made.
