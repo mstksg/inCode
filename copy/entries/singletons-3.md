@@ -30,12 +30,13 @@ library.
 [Part 1]: https://blog.jle.im/entry/introduction-to-singletons-1.html
 [Part 2]: https://blog.jle.im/entry/introduction-to-singletons-2.html
 
-Code in this post is built on *GHC 8.4.3* with the *[lts-12.9][snapshot]*
-snapshot (so, singletons-2.4.1).  Again, you can download the source for this
-file [here][source], and, if *stack* is installed, you can drop into a ghci
-session with all of the bindings in scope executing it:
+Code in this post is built on *GHC 8.6.1* with the
+*[nightly-2018-09-29][snapshot]* snapshot (so, singletons-2.5).  Again, you
+can download the source for this file [here][source], and, if *stack* is
+installed, you can drop into a ghci session with all of the bindings in scope
+executing it:
 
-[snapshot]: https://www.stackage.org/lts-12.9
+[snapshot]: https://www.stackage.org/nightly-2018-09-29
 !!![source]:singletons/Door3.hs
 
 ```bash

@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --install-ghc ghci --resolver lts-12.9 --package singletons
+-- stack --install-ghc ghci --resolver nightly-2018-09-29 --package singletons
 
 {-# LANGUAGE AllowAmbiguousTypes   #-}
 {-# LANGUAGE DataKinds             #-}
@@ -11,6 +11,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE StandaloneDeriving    #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
@@ -147,7 +148,7 @@ refuteKnocked
     :: forall s. SingI s
     => Refuted (s :~: 'Opened)
     -> Knockable s
-refuteKnocked v = case sing @_ @s of  -- will be `sing @s` in singletons-2.5
+refuteKnocked v = case sing @s of   -- sing @_ @s for singletons-2.4.1 and earlier
     SOpened -> absurd (v Refl)
     SClosed -> KnockClosed
     SLocked -> KnockLocked
