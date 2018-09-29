@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --install-ghc ghci --resolver lts-12.9 --package singletons
+-- stack --install-ghc ghci --resolver nightly-2018-09-29 --package singletons
 
 {-# LANGUAGE AllowAmbiguousTypes  #-}
 {-# LANGUAGE DataKinds            #-}
@@ -10,6 +10,7 @@
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE RankNTypes           #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
+{-# LANGUAGE StandaloneDeriving   #-}
 {-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE TypeFamilies         #-}
@@ -17,10 +18,10 @@
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-import Data.Kind
-import Data.Singletons
-import Data.Singletons.Prelude
-import Data.Singletons.TH
+import           Data.Kind
+import           Data.Singletons
+import           Data.Singletons.Prelude
+import           Data.Singletons.TH
 
 $(singletons [d|
   data DoorState = Opened | Closed | Locked
@@ -51,9 +52,9 @@ $(singletons [d|
   mergeState Closed Locked = Locked
   mergeState Locked _      = Locked
 
-  foldr' :: (a -> b -> b) -> b -> [a] -> b
-  foldr' _ z []     = z
-  foldr' f z (x:xs) = f x (foldr' f z xs)
+  myFoldr :: (a -> b -> b) -> b -> [a] -> b
+  myFoldr _ z []     = z
+  myFoldr f z (x:xs) = f x (myFoldr f z xs)
   |])
 
 knock :: (PassState s ~ 'Obstruct) => Door s -> IO ()
@@ -83,7 +84,7 @@ mergeHallway = \case
       HCons d ds -> case mergeHallway ss ds of
         MkSomeDoor ss ds' -> MkSomeDoor (sMergeState s ss) (mergeDoor d ds')
 
-mergeHallway' :: Hallway ss -> Door (Foldr' MergeStateSym0 'Opened ss)
+mergeHallway' :: Hallway ss -> Door (MyFoldr MergeStateSym0 'Opened ss)
 mergeHallway' = \case
     HEnd       -> UnsafeMkDoor @Opened "End"
     HCons d ds -> mergeDoor d (mergeHallway' ds)
