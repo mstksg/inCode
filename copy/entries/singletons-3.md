@@ -356,19 +356,19 @@ data (:~:) :: k -> k -> Type where
 ```
 
 Like how `Knockable` is a predicate that a given status is "knockable",
-`'Blah :~:` is a predicate that a given type is *equal to* `'Blah`.  A value of
+`('Blah :~:)` is a predicate that a given type is *equal to* `'Blah`.  A value of
 type `Knockable s` is a proof that `s` is knockable, and a value of type
 `'Blah :~: a` is a proof that `a` is *equal to* `'Blah`.
 
 To see how, note the constructors that it allows. Remember that we limit
 `Knockable s` to only having "knockable" `s` by only allowing two constructors,
 so we can only construct valid values.  The same thing happens here --
-`'Blah :~:` only has *one single constructor*: `Refl :: 'Blah :~: 'Blah`.  The
+`('Blah :~:)` only has *one single constructor*: `Refl :: 'Blah :~: 'Blah`.  The
 only valid constructor is one where the left hand side is equal to the right
 hand side.
 
 It also offers the "kindclass" `SDecide`, which provides *decision functions*
-for the `a :~:` predicate:
+for the `(a :~:)` predicate:
 
 ```haskell
 class SDecide k where
