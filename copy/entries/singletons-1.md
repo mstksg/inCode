@@ -55,7 +55,8 @@ contexts.
 [ann]: https://blog.jle.im/entry/practical-dependent-types-in-haskell-1.html
 
 All code is built on *GHC 8.6.1* and with the *[nightly-2018-09-29][snapshot]*
-snapshot (so, singletons-2.5).
+snapshot (so, *singletons-2.5*).  However, unless noted, all of the code should
+still work with *GHC 8.4* and *singletons-2.4*.
 
 [snapshot]: https://www.stackage.org/nightly-2018-09-29
 

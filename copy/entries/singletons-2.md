@@ -21,9 +21,10 @@ taking some time to to through the exercises if you haven't already!
 [Part 1]: https://blog.jle.im/entry/introduction-to-singletons-1.html
 
 Again, code is built on *GHC 8.6.1* with the *[nightly-2018-09-29][snapshot]*
-snapshot (so, singletons-2.5).  All of the code is also available
-[here][source], and you can drop into a ghci session with all of the bindings
-in scope by executing the file:
+snapshot (so, *singletons-2.5*). However, unless noted, all of the code should
+still work with *GHC 8.4* and *singletons-2.4*. All of the code is also
+available [here][source], and you can drop into a ghci session with all of the
+bindings in scope by executing the file:
 
 [snapshot]: https://www.stackage.org/nightly-2018-09-29
 !!![source]:singletons/Door2.hs

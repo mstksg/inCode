@@ -147,6 +147,23 @@ decideOr dP dQ x = case dP x of
         OrLeft  pP -> vP pP
         OrRight pQ -> vQ pQ
 
+knockableNotOpened
+    :: forall s. SingI s
+    => Refuted (And Knockable ((:~:) 'Opened) s)
+knockableNotOpened (And k o) =
+    case k of
+      KnockClosed -> case o of {} -- no constructor of type ('Opened :~: 'Closed)
+      KnockLocked -> case o of {} -- no constructor of type ('Opened :~: 'Locked)
+
+knockableOrOpened
+    :: forall s. SingI s
+    => Or Knockable ((:~:) 'Opened) s
+knockableOrOpened =
+    case sing @s of
+      SOpened -> OrRight Refl
+      SClosed -> OrLeft KnockClosed
+      SLocked -> OrLeft KnockLocked
+
 -- | 4.
 knockedRefute
     :: forall s. SingI s
