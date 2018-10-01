@@ -644,9 +644,9 @@ straightforward.
 
 I consider the second method, using type-level functions, to be the more
 "mechanical" way, with less upfront cost in thinking time.  For the most part,
-if you can write a normal value-level function (something that most Haskell
+if you can write a normal term-level function (something that most Haskell
 programmers are comfortable doing), you can write a type-level function. This
-is even made simpler with singletons --- you can just write your value-level
+is even made simpler with singletons --- you can just write your term-level
 relationship as a normal function, and you can now just directly use your
 function at the type level.
 
@@ -656,18 +656,16 @@ obstruct, or partial.  In that case, we can restrict a function based on the
 typed proof version, we would have to create a new GADT for each one.
 
 In a way, type-level functions deliver on the promise of blurring the line
-between type and value.  Our value-level functions are now type-level
-functions!  We just need to remember to switch our capitalizations!  However,
-in Haskell, they really fall short of a full dependently typed programming
-experience.
+between type and value.  Our term-level functions are now type-level
+functions!  We just need to remember to switch our capitalizations!
 
-That's because in the end, who is going to prove your functions are "correct"?
-Who is going to verify that you implemented your value-level and type-level
-functions correctly?  If you write normal value-level functions and promote
-them using singletons, GHC doesn't necessarily do much to prevent any logic
-errors you might have introduced.  Basically, writing type-level functions
-(unsurprisingly) brings all of the error-proneness of writing value-level
-functions.  It's the same old problem, just manifested at the type level.
+But this strength is also its weakness.  Remember that the problem of normal
+term-level functions was that they are potentially "incorrect", and not
+directly verifiable.  So, if you just lift your potentially incorrect
+term-level functions to the type level...what you get is potentially incorrect
+type-level functions!  You get the *same* logic errors.  Really, writing
+type-level functions (unsurprisingly) brings all of the error-proneness of
+writing at the term-level.
 
 In contrast, if you use dependently typed proofs correctly, these proofs can
 *compose*, and GHC can check that *these proofs compose correctly*, or that the
