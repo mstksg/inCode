@@ -59,7 +59,7 @@ instance Provable Knockable 'Locked where
 
 isKnockable :: Sing s -> Decision (Knockable s)
 isKnockable = \case
-    SOpened -> Disproved $ \case            -- s ~ 'Opened
+    SOpened -> Disproved $ \case {}         -- s ~ 'Opened
     SClosed -> Proved KnockClosed           -- s ~ 'Closed
     SLocked -> Proved KnockLocked           -- s ~ 'Locked
 
@@ -105,6 +105,17 @@ main = return ()
 decideDoorState :: Sing s -> Decision (SDoorState s)
 decideDoorState = Proved
 
+-- | 2.
+refuteRefuteKnockable
+    :: forall s. SingI s
+    => Refuted (Refuted (Knockable s))
+    -> Knockable s
+refuteRefuteKnockable rrK =
+    case isKnockable (sing @s) of   -- sing @_ @s for singletons-2.4.1 and earlier
+      Proved    k  -> k
+      Disproved rK -> absurd (rrK rK)
+
+-- | 3.
 data And :: (k -> Type) -> (k -> Type) -> (k -> Type) where
     And :: p a -> q a -> And p q a
 
@@ -136,13 +147,14 @@ decideOr dP dQ x = case dP x of
         OrLeft  pP -> vP pP
         OrRight pQ -> vQ pQ
 
+-- | 4.
 knockedRefute
     :: forall s. SingI s
     => Knockable s
     -> Refuted (s :~: 'Opened)
 knockedRefute = \case
-    KnockClosed -> \case
-    KnockLocked -> \case
+    KnockClosed -> \case {}
+    KnockLocked -> \case {}
 
 refuteKnocked
     :: forall s. SingI s
@@ -153,6 +165,7 @@ refuteKnocked v = case sing @s of   -- sing @_ @s for singletons-2.4.1 and earli
     SClosed -> KnockClosed
     SLocked -> KnockLocked
 
+-- | 5.
 knockRefl :: (StatePass s :~: 'Obstruct) -> Door s -> IO ()
 knockRefl _ d = putStrLn $ "Knock knock on " ++ doorMaterial d ++ " door!"
 
@@ -164,6 +177,7 @@ knockSomeDoorRefl (MkSomeDoor s d) =
       Proved r    -> knockRefl r d
       Disproved _ -> putStrLn "No knocking allowed!"
 
+-- | 6.
 $(singletons [d|
   invertPass :: Pass -> Pass
   invertPass Obstruct = Allow
@@ -181,6 +195,7 @@ knockSomeDoorInv (MkSomeDoor s d) =
       SObstruct -> putStrLn "No knocking allowed!"
       SAllow    -> knockInv d
 
+-- | 7.
 $(singletons [d|
   class Cycle a where
     next :: a -> a

@@ -126,7 +126,7 @@ exists, it is not.  That value, if it exists, is called a *witness* or a
 [^bottom]: All of this is ignoring the "bottom" value that is an occupant of
 every type in Haskell.  We can use bottom to subvert pretty much all proofs in
 Haskell, unfortunately, so the discussion from this point forward assumes we
-are talking about a subset of haskell where all values are non-bottom and all
+are talking about a subset of Haskell where all values are non-bottom and all
 functions are total.
 
 We can define a predicate `Knockable :: DoorState -> Type` as a GADT that only
@@ -282,6 +282,61 @@ status we not know until runtime:
 ```haskell
 !!!singletons/Door3.hs "knockSomeDoor"
 ```
+
+### Decision
+
+The definition of the `Decision` data type might be surprising if you're first
+seeing it.  You want to prove something...so why would you care about the case
+where it's "not true"?  Why not just have something like `Maybe`, where you
+have `data Decision a = Proved a | Disproved`?
+
+In other words, why do we care about proving both true or false, when it looks
+like we only ever use the true situation?  After all, we ignore the `Refuted
+(Knockable s)` in our implementation of `knockSomeDoor`.
+
+One answer is that, we *do* use the contents of `Disproved` in practice.  In
+`knockSomeDoor`, we matched on `Disproved _` and threw away the
+counter-proof...however, as we see later in the exercises, there are situations
+where the contents of `Disproved` are used.
+
+However, the deeper answer to me is that it keeps the author of the function
+accountable.  You can't just say "this predicate isn't true"...you have to
+*earn* it.  And often, the act of trying to earn your disproof (or not being
+able to) helps you iron out bad assumptions you've made.
+
+For example, if we used `Maybe` instead of `Decision`, we could write:
+
+```haskell
+isKnockable :: Sing s -> Maybe s
+isKnockable = \case
+    SOpened -> Nothing
+    SClosed -> Nothing
+    SLocked -> Just KnockLocked
+```
+
+We might falsely claim that `SClosed` is not knockable.  So, if the user of our
+bad `isKnockable` gets `Nothing`, they don't know if their input is not
+knockable or knockable...they know *nothing* about the knockability status of
+`'Opened` or `'Closed`.
+
+However, we can't write this bad implementation with `Decision`:
+
+```haskell
+isKnockable :: Sing s -> Decision s
+isKnockable = \case
+    SOpened -> Disproved $ \case {}
+    SClosed -> Disproved $ -- ????
+    SLocked -> Proved KnockLocked
+```
+
+There is no valid thing you can put in the `????`!  That's because you need to
+write a function of type `Knocked 'Closed -> Void`...but no such (total or
+non-partial) function exists.  We can't write `\case {}`, because that's an
+incomplete pattern match --- it's missing a match on the `KnockClosed` pattern.
+
+Note also that this is why it's very important to always have `-Wall` (Warn
+all) on when writing dependently typed proofs, to ensure that GHC warns you
+when your pattern matches are incomplete and you know your proof is invalid.
 
 ### Perspective on Proofs
 
@@ -802,12 +857,16 @@ Feel free to start from [the sample source code][source]; it contains all of
 the solutions, but you can delete everything after the comment `-- Exercises`
 if you wish to start on your own!
 
+**Remember to enable -Wall** to ensure that all of your functions are total!
+None of these implementations should require any incomplete pattern matches!
+
 !!![solution1]:singletons/Door3.hs "-- | 1."
-!!![solution2]:singletons/Door3.hs "data And" "data Or" "decideAnd" "decideOr"
-!!![solution3]:singletons/Door3.hs "knockedRefute" "knockedRefute"
-!!![solution4]:singletons/Door3.hs "knockRefl" "knockSomeDoorRefl"
-!!![solution5]:singletons/Door3.hs "knockInv" "knockSomeDoorInv"
-!!![solution6]:singletons/Door3.hs "instance Cycle DoorState" "instance PCycle DoorState" "instance SCycle DoorState"
+!!![solution2]:singletons/Door3.hs "refuteRefute"
+!!![solution3]:singletons/Door3.hs "data And" "data Or" "decideAnd" "decideOr"
+!!![solution4]:singletons/Door3.hs "knockedRefute" "knockedRefute"
+!!![solution5]:singletons/Door3.hs "knockRefl" "knockSomeDoorRefl"
+!!![solution6]:singletons/Door3.hs "knockInv" "knockSomeDoorInv"
+!!![solution7]:singletons/Door3.hs "instance Cycle DoorState" "instance PCycle DoorState" "instance SCycle DoorState"
 
 1.  We talk about predicates as type constructors with type `k -> Type`.  This
     fits a lot of things we've seen before (all instances of `Functor`, for
@@ -821,7 +880,40 @@ if you wish to start on your own!
 
     Solution available [here][solution1]!
 
-2.  (This next one is a little hard, and is only tangentially related to
+2.  Now let's practice working with predicates, singletons, and negation via
+    `Refuted` together.
+
+    You may have heard of the principle of "double negation", where *not (not
+    p)* implies *p*.  So, we should be able to say that `Refuted (Refuted
+    (Knockable s))` implies `Knockable s`.  If something is not "not
+    knockable", then it must be knockable, right?
+
+    Try writing `refuteRefuteKnockable` to verify this principle --- at least
+    for the `Knockable` predicate.
+
+    ```haskell
+    !!!singletons/Door3.hs "refuteRefuteKnockable"4
+    ```
+
+    Solution available [here][solution2]!
+
+    *Note:* While not required, I recommend using `isKnockable` and writing
+    your implementation in terms of it!  Use `sing` to give `isKnockable` the
+    singleton it needs.
+
+    *Hint:* You might find `absurd` (from *Data.Void*) helpful:
+
+    ```haskell
+    absurd :: forall a. Void -> a
+    ```
+
+    If you have a `Void`, you can make a value of any type![^explosion]
+
+    [^explosion]: It's the good ol' [Principle of Explosion][poe]
+
+    [poe]: https://en.wikipedia.org/wiki/Principle_of_explosion
+
+3.  (This next one is a little hard, and is only tangentially related to
     singletons, so feel free to skip it!)
     
     Type-level predicates are logical constructs, so we should be able to
@@ -858,9 +950,9 @@ if you wish to start on your own!
         !!!singletons/Door3.hs "decideAnd"5 "decideOr"5
         ```
 
-    Solutions available [here][solution2]!
+    Solutions available [here][solution3]!
 
-3.  Instead of creating an entire `Knocked` type, we could have just said "as
+4.  Instead of creating an entire `Knocked` type, we could have just said "as
     long as the door is not `'Opened`, you can knock".  This means we could
     write `knock` as:
 
@@ -881,24 +973,14 @@ if you wish to start on your own!
     !!!singletons/Door3.hs "knockedRefute"4 "knockedRefute"4
     ```
 
-    Solution available [here][solution3]!
+    Solution available [here][solution4]!
 
     *Note:* `knockedRefute` is fairly straightforward, but `knockedRefute` is
     definitely trickier, so don't be discouraged!
 
-    *Hint:* You might find `absurd` (from *Data.Void*) helpful:
+    *Hint:* See the note about `absurd` from Exercise 2!
 
-    ```haskell
-    absurd :: forall a. Void -> a
-    ```
-
-    If you have a `Void`, you can make a value of any type![^explosion]
-
-    [^explosion]: It's the good ol' [Principle of Explosion][poe]
-
-    [poe]: https://en.wikipedia.org/wiki/Principle_of_explosion
-
-4.  On our type level function version of `knock`, we wrote, with a constraint:
+5.  On our type level function version of `knock`, we wrote, with a constraint:
 
     ```haskell
     knock :: (StatePass s ~ 'Obstruct) => Door s -> IO ()
@@ -921,7 +1003,7 @@ if you wish to start on your own!
 
     Remember not to use `knock`!
 
-    Solution available [here][solution4].
+    Solution available [here][solution5].
 
     Assume that `DoorState` has an instance of `SDecide`, so you can use
     `(%~)`.  This should be derived automatically as long as you derive `Eq`:
@@ -933,9 +1015,7 @@ if you wish to start on your own!
       |])
     ```
 
-    Solution available [here][solution4]!
-
-5.  With the function that inverts `Pass`:
+6.  With the function that inverts `Pass`:
 
     ```haskell
     $(singletons [d|
@@ -959,9 +1039,9 @@ if you wish to start on your own!
 
     Again, implement it in terms of `knockInv`, not `knock`.
 
-    Solution available [here][solution5]!
+    Solution available [here][solution6]!
 
-6.  Let's work with a toy typeclass called `Cycle`, based on `Enum`
+7.  Let's work with a toy typeclass called `Cycle`, based on `Enum`
 
     ```haskell
     $(singletons [d|
@@ -985,4 +1065,4 @@ if you wish to start on your own!
     !!!singletons/Door3.hs "instance PCycle DoorState"1 "instance SCycle DoorState"1
     ```
 
-    Solution available [here][solution6]!
+    Solution available [here][solution7]!
