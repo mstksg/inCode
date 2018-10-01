@@ -4,6 +4,7 @@ categories: Haskell
 series: Introduction to Singletons
 tags: functional programming, dependent types, haskell, singletons, types
 create-time: 2018/09/16 20:22:40
+date: 2018/10/01 13:56:55
 identifier: singletons-3
 slug: introduction-to-singletons-3
 ---
