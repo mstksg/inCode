@@ -861,7 +861,7 @@ None of these implementations should require any incomplete pattern matches!
 !!![solution1]:singletons/Door3.hs "-- | 1."
 !!![solution2]:singletons/Door3.hs "refuteRefute"
 !!![solution3]:singletons/Door3.hs "data And" "data Or" "decideAnd" "decideOr"
-!!![solution4]:singletons/Door3.hs "knockedRefute" "knockedRefute"
+!!![solution4]:singletons/Door3.hs "knockedRefute" "refuteKnocked"
 !!![solution5]:singletons/Door3.hs "knockRefl" "knockSomeDoorRefl"
 !!![solution6]:singletons/Door3.hs "knockInv" "knockSomeDoorInv"
 !!![solution7]:singletons/Door3.hs "instance Cycle DoorState" "instance PCycle DoorState" "instance SCycle DoorState"
@@ -968,12 +968,12 @@ None of these implementations should require any incomplete pattern matches!
     is the same as `Knockable`:
 
     ```haskell
-    !!!singletons/Door3.hs "knockedRefute"4 "knockedRefute"4
+    !!!singletons/Door3.hs "knockedRefute"4 "refuteKnocked"4
     ```
 
     Solution available [here][solution4]!
 
-    *Note:* `knockedRefute` is fairly straightforward, but `knockedRefute` is
+    *Note:* `knockedRefute` is fairly straightforward, but `refuteKnocked` is
     definitely trickier, so don't be discouraged!
 
     *Hint:* See the note about `absurd` from Exercise 2!
