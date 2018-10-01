@@ -962,10 +962,12 @@ None of these implementations should require any incomplete pattern matches!
     Which we must pass a proof that `s` is not equal to `'Opened` in order to
     open our door.
 
-    Is this really the same function?
+    Is this really the same thing?  Is `Refuted (s :~: 'Opened)` the same
+    thing as `Knockable s`?
 
-    Try writing the following functions to prove that `Refuted (s :~: 'Opened)`
-    is the same as `Knockable`:
+    Let's try to say that the two things are the same!  Write the following
+    functions to show that `Refuted (s :~: 'Opened)` is the same logical
+    predicate as `Knockable s`!
 
     ```haskell
     !!!singletons/Door3.hs "knockedRefute"4 "refuteKnocked"4
