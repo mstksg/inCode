@@ -23,7 +23,7 @@ dependencies:
 - transformers
 - yaml
 - bytestring
-- dhall
+- dhall >= 1.15
 - lens
 
 library:
@@ -64,3 +64,5 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - blog
+    - prettyprinter
+    - prettyprinter-ansi-terminal

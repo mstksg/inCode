@@ -15,7 +15,6 @@ import           Data.Default
 import           Hakyll
 import           Hakyll.Web.Blaze
 import qualified Data.Text              as T
-import qualified Data.Yaml              as Y
 
 homeCompiler
     :: (?config :: Config)

@@ -30,7 +30,6 @@ import           Data.List
 import           Data.Maybe
 import           Data.Ord
 import           Data.Time.LocalTime
-import           Data.Traversable
 import           Hakyll
 import           Hakyll.Web.Sass
 import           Numeric.Natural
@@ -42,7 +41,6 @@ import qualified Data.Map                  as M
 import qualified Data.Text                 as T
 import qualified Data.Text.Lazy            as TL
 import qualified Data.Text.Lazy.Encoding   as TL
-import qualified Data.Yaml                 as Y
 
 
 app :: (?config :: Config)

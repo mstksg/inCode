@@ -7,7 +7,6 @@ import           Blog.Types
 import           Control.Monad
 import           Data.Char
 import           Data.Default
-import           Data.List
 import           Data.Maybe
 import           Data.Time.Format
 import           Hakyll

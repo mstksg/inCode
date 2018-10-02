@@ -4,14 +4,11 @@
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
 {-# OPTIONS_GHC -Wno-orphans   #-}
 
 module Blog.Types where
 
-import           Control.Applicative
-import           Control.Lens hiding    ((.=))
-import           Control.Monad
+import           Control.Lens
 import           Data.Aeson
 import           Data.Binary.Orphans    ()
 import           Data.Char
@@ -19,15 +16,12 @@ import           Data.Default
 import           Data.Time.LocalTime
 import           Data.Typeable
 import           Dhall
-import           GHC.Generics
 import qualified Data.Aeson.Types       as A
 import qualified Data.Binary            as B
 import qualified Data.Map               as M
 import qualified Data.Text              as T
-import qualified Data.Text.Lazy         as TL
 import qualified Text.Blaze.Html5       as H
 import qualified Text.Pandoc.Definition as P
-
 
 data Config = Config
     { confTitle         :: !T.Text
@@ -47,52 +41,15 @@ data Config = Config
     }
   deriving (Show, Eq, Generic)
 
-instance FromJSON Config where
-    parseJSON (Object v) = do
-      confTitle         <- v .:  "title"
-      confDesc          <- v .:  "description"
-      confAuthorInfo    <- v .:  "author"
-      confCopyright     <- v .:  "copyright"
-      confLicense       <- v .:  "license"
-      confLicenseLink   <- v .:  "license-link"
-      confFeed          <- v .:  "feed"
-      confBlobs         <- v .:? "blobs"
-      confCodeSamples   <- v .:? "code-samples"
-      confInteractive   <- v .:? "interactive-url"
-      confHostInfo      <- v .:  "host"
-      confDeveloperAPIs <- v .:  "developer-apis"
-      confBlogPrefs     <- v .:  "preferences"
-      confEnvType       <- v .:  "development"
-      return Config{..}
-    parseJSON _ = mzero
-instance ToJSON Config where
-    toJSON Config{..} = object $ [ "title"           .=  confTitle
-                                 , "description"     .=  confDesc
-                                 , "author"          .=  confAuthorInfo
-                                 , "copyright"       .=  confCopyright
-                                 , "license"         .=  confLicense
-                                 , "license-link"    .=  confLicenseLink
-                                 , "feed"            .=  confFeed
-                                 , "developer-apis"  .=  confDeveloperAPIs
-                                 , "preferences"     .=  confBlogPrefs
-                                 , "development"     .=  confEnvType
-                                 ]
-                      <> mconcat [ "blobs"           .=? confBlobs
-                                 , "code-samples"    .=? confCodeSamples
-                                 , "interactive-url" .=? confInteractive
-                                 ]
-      where
-        (.=?) r = \case Just v  -> [r .= v]
-                        Nothing -> []
 instance Interpret Config
 
 interpretConfig :: Type Config
 interpretConfig = autoWith InterpretOptions
     { fieldModifier       = over _head toLower
-                          . TL.dropWhile isLower
+                          . T.dropWhile isLower
     , constructorModifier = \c ->
-        let (pre,post) = TL.span isUpper c
-        in  TL.last pre `TL.cons` post
+        let (pr,po) = T.span isUpper c
+        in  T.last pr `T.cons` po
     }
 
 data PatronLevel = PLSupport
@@ -161,29 +118,6 @@ data BlogPrefs = BlogPrefs
     }
   deriving (Show, Eq, Generic)
 
-instance FromJSON DeveloperAPIs where
-  parseJSON (Object v) = do
-    anObj         <- v .: "analytics"
-    devAnalytics  <- liftA2 (,) (anObj .: "id")
-                                (anObj .: "domain")
-    devDisqus     <- v .: "disqus"
-    devFacebook   <- v .: "facebook"
-    devAddThis    <- v .: "add-this"
-    devFeedburner <- v .: "feedburner"
-    devFlattr     <- v .: "flattr"
-    return DeveloperAPIs{..}
-  parseJSON _ = mzero
-instance ToJSON DeveloperAPIs where
-  toJSON DeveloperAPIs{..} =
-      object [ "analytics"  .= object [ "id"   .= fst devAnalytics
-                                      , "host" .= snd devAnalytics
-                                      ]
-             , "disqus"     .= devDisqus
-             , "facebook"   .= devFacebook
-             , "add-this"   .= devAddThis
-             , "feedburner" .= devFeedburner
-             , "flattr"     .= devFlattr
-             ]
 instance Interpret DeveloperAPIs
 
 instance FromJSON PatronLevel where
@@ -204,46 +138,10 @@ instance ToJSON PatronInfo where
   toJSON = A.genericToJSON $ A.defaultOptions
              { A.fieldLabelModifier = A.camelTo2 '-' . drop 6 }
 
-instance FromJSON EnvType where
-  parseJSON j = case j of
-                  Bool False -> return ETProduction
-                  _          -> return ETDevelopment
-instance ToJSON EnvType where
-    toJSON ETDevelopment = Bool True
-    toJSON ETProduction  = Bool False
-
-instance FromJSON AuthorInfo where
-  parseJSON = A.genericParseJSON $ A.defaultOptions
-                { A.fieldLabelModifier = map toLower . drop 6 }
-instance ToJSON AuthorInfo where
-  toJSON = A.genericToJSON $ A.defaultOptions
-             { A.fieldLabelModifier = map toLower . drop 6 }
 instance Interpret AuthorInfo
-
-instance FromJSON HostInfo where
-  parseJSON = A.genericParseJSON $ A.defaultOptions
-                { A.fieldLabelModifier = A.camelTo2 '-' . drop 4 }
-instance ToJSON HostInfo where
-  toJSON = A.genericToJSON $ A.defaultOptions
-             { A.fieldLabelModifier = A.camelTo2 '-' . drop 4 }
 instance Interpret HostInfo
-
-instance FromJSON Blobs where
-  parseJSON = A.genericParseJSON $ A.defaultOptions
-                { A.fieldLabelModifier = A.camelTo2 '-' . drop 5 }
-instance ToJSON Blobs where
-  toJSON = A.genericToJSON $ A.defaultOptions
-             { A.fieldLabelModifier = A.camelTo2 '-' . drop 5 }
 instance Interpret Blobs
-
-instance FromJSON BlogPrefs where
-  parseJSON = A.genericParseJSON $ A.defaultOptions
-                { A.fieldLabelModifier = A.camelTo2 '-' . drop 4 }
-instance ToJSON BlogPrefs where
-  toJSON = A.genericToJSON $ A.defaultOptions
-             { A.fieldLabelModifier = A.camelTo2 '-' . drop 4 }
 instance Interpret BlogPrefs
-
 
 data TagType = GeneralTag | CategoryTag | SeriesTag
   deriving (Show, Read, Eq, Ord, Enum, Generic, Typeable)
