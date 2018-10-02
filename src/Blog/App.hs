@@ -33,6 +33,7 @@ import           Data.Time.LocalTime
 import           Data.Traversable
 import           Hakyll
 import           Hakyll.Web.Sass
+import           Numeric.Natural
 import           System.FilePath
 import           Text.Jasmine
 import           Text.Read                 (readMaybe)
@@ -232,7 +233,7 @@ app znow@(ZonedTime _ tz) = do
         route   idRoute
         compile $ do
           sorted <- traverse (`loadSnapshotBody` "entry")
-                  . take (prefFeedEntries confBlogPrefs)
+                  . take (fromIntegral (prefFeedEntries confBlogPrefs))
                   $ entriesSorted
           makeItem . TL.unpack $ viewFeed sorted tz (zonedTimeToUTC znow)
 
@@ -296,7 +297,7 @@ app znow@(ZonedTime _ tz) = do
     entryCanonical' m = asum [(<.> "html") . ("entry"</>) <$> lookupString "slug" m
                              ,(<.> "html") . ("entry/ident"</>) <$> lookupString "identifier" m
                              ]
-    mkHomePages :: MonadMetadata m => Int -> [Identifier] -> m [[Identifier]]
+    mkHomePages :: MonadMetadata m => Natural -> [Identifier] -> m [[Identifier]]
     mkHomePages n ids = do
       withDates <- fmap catMaybes
                  . forM ids $ \i -> runMaybeT $ do
@@ -306,7 +307,7 @@ app znow@(ZonedTime _ tz) = do
       let sorted = map snd
                  . sortBy (flip $ comparing fst)
                  $ withDates
-      return $ paginateEvery n sorted
+      return $ paginateEvery (fromIntegral n) sorted
     indexRules = version "index" $ do
       route   $ gsubRoute ".html" (const "/index.html")
       compile $ redirectCompiler (renderUrl . T.pack . toFilePath)

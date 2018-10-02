@@ -1,9 +1,6 @@
-{ title = "inCode"
-, desc =
-    ''
-    Weblog of Justin Le, covering his various adventures in programming and
-    explorations in the vast worlds of computation physics, and knowledge.
-    ''
+{ title = "in Code"
+, desc = "Weblog of Justin Le, covering his various adventures in programming "
+      ++ "and explorations in the vast worlds of computation physics, and knowledge."
 , authorInfo =
     { name     = "Justin Le"
     , email    = "justin@jle.im"
@@ -33,14 +30,16 @@
          }] : Optional Blobs
 , codeSamples    = ["code-samples"] : Optional Text
 , interactive    = ["https://www.fpcomplete.com/user/jle/"] : Optional Text
-, host           =
+, hostInfo       =
     { secure = True
     , base   = "blog.jle.im"
+    , port   = [] : Optional Natural
+    , root   = [] : Optional Text
     }
 , developerAPIs  =
     { analytics  =
-        { id     = "UA-443711-8"
-        , domain = "jle.im"
+        { _1 = "UA-443711-8"
+        , _2 = "jle.im"
         }
     , disqus     = "incode"
     , facebook   = "641852699171929"
@@ -52,11 +51,11 @@
     { slugLength     = 8
     , homeEntries    = 8
     , ledeMax        = 6
-    , feed-entries   = 10
+    , feedEntries    = 10
     , sidebarEntries = 5
     }
 , envType        =
     let EnvType = constructors < Development : {} | Production : {} >
-    in  EnvType.Development {=}
+    in  EnvType.Production {=}
 }
 

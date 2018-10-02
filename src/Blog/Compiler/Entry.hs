@@ -40,7 +40,7 @@ compileEntry = do
     ePandoc   <- readPandocWith entryReaderOpts eBody
     let ePandocLede = flip fmap ePandoc $ \(P.Pandoc m bs) ->
                         P.Pandoc m
-                          . take (prefLedeMax (confBlogPrefs ?config))
+                          . take (fromIntegral (prefLedeMax (confBlogPrefs ?config)))
                           . takeWhile validLede
                           $ bs
     eTitle    <- either (error . show) id . P.runPure       -- TODO: abstract
@@ -253,6 +253,6 @@ getEntries :: Compiler [Entry]
 getEntries = map itemBody <$> loadAllSnapshots ("copy/entries/*" .&&. hasNoVersion) "entry"
 
 getRecentEntries :: (?config :: Config) => Compiler [Entry]
-getRecentEntries = take (prefSidebarEntries (confBlogPrefs ?config))
+getRecentEntries = take (fromIntegral (prefSidebarEntries (confBlogPrefs ?config)))
                  . sortEntries
                <$> getEntries

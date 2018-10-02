@@ -10,6 +10,7 @@
 module Blog.Types where
 
 import           Control.Applicative
+import           Control.Lens hiding    ((.=))
 import           Control.Monad
 import           Data.Aeson
 import           Data.Binary.Orphans    ()
@@ -17,11 +18,13 @@ import           Data.Char
 import           Data.Default
 import           Data.Time.LocalTime
 import           Data.Typeable
+import           Dhall
 import           GHC.Generics
 import qualified Data.Aeson.Types       as A
 import qualified Data.Binary            as B
 import qualified Data.Map               as M
 import qualified Data.Text              as T
+import qualified Data.Text.Lazy         as TL
 import qualified Text.Blaze.Html5       as H
 import qualified Text.Pandoc.Definition as P
 
@@ -42,7 +45,7 @@ data Config = Config
     , confBlogPrefs     :: !BlogPrefs
     , confEnvType       :: !EnvType
     }
-  deriving (Show)
+  deriving (Show, Eq, Generic)
 
 instance FromJSON Config where
     parseJSON (Object v) = do
@@ -81,6 +84,16 @@ instance ToJSON Config where
       where
         (.=?) r = \case Just v  -> [r .= v]
                         Nothing -> []
+instance Interpret Config
+
+interpretConfig :: Type Config
+interpretConfig = autoWith InterpretOptions
+    { fieldModifier       = over _head toLower
+                          . TL.dropWhile isLower
+    , constructorModifier = \c ->
+        let (pre,post) = TL.span isUpper c
+        in  TL.last pre `TL.cons` post
+    }
 
 data PatronLevel = PLSupport
                  | PLAmazing
@@ -95,7 +108,8 @@ data PatronInfo = PatronInfo
 type PatronList = M.Map T.Text PatronInfo
 
 data EnvType = ETDevelopment | ETProduction
-  deriving (Show, Eq, Ord, Enum)
+  deriving (Show, Eq, Ord, Enum, Generic)
+instance Interpret EnvType
 
 data AuthorInfo = AuthorInfo
     { authorName     :: T.Text
@@ -107,19 +121,19 @@ data AuthorInfo = AuthorInfo
     , authorLinkedIn :: T.Text
     , authorKeybase  :: T.Text
     , authorCoinbase :: T.Text
-    , authorBTC      :: T.Text
+    , authorBitcoin  :: T.Text
     , authorPatreon  :: T.Text
     , authorTwitch   :: T.Text
     }
-  deriving (Show, Generic)
+  deriving (Show, Eq, Generic)
 
 data HostInfo = HostInfo
     { hostSecure :: !Bool
     , hostBase   :: T.Text
-    , hostPort   :: Maybe Int
+    , hostPort   :: Maybe Natural
     , hostRoot   :: Maybe T.Text
     }
-  deriving (Show, Generic)
+  deriving (Show, Eq, Generic)
 
 data DeveloperAPIs = DeveloperAPIs
     { devAnalytics  :: (T.Text, T.Text)
@@ -129,23 +143,23 @@ data DeveloperAPIs = DeveloperAPIs
     , devFeedburner :: T.Text
     , devFlattr     :: T.Text
     }
-  deriving (Show, Generic)
+  deriving (Show, Eq, Generic)
 
 data Blobs = Blobs
     { blobsTree         :: !T.Text
     , blobsSourceBranch :: !(Maybe T.Text)
     , blobsRenderBranch :: !(Maybe T.Text)
     }
-  deriving (Show, Generic)
+  deriving (Show, Eq, Generic)
 
 data BlogPrefs = BlogPrefs
-    { prefSlugLength     :: Int
-    , prefHomeEntries    :: Int
-    , prefLedeMax        :: Int
-    , prefFeedEntries    :: Int
-    , prefSidebarEntries :: Int
+    { prefSlugLength     :: Natural
+    , prefHomeEntries    :: Natural
+    , prefLedeMax        :: Natural
+    , prefFeedEntries    :: Natural
+    , prefSidebarEntries :: Natural
     }
-  deriving (Show, Generic)
+  deriving (Show, Eq, Generic)
 
 instance FromJSON DeveloperAPIs where
   parseJSON (Object v) = do
@@ -170,6 +184,7 @@ instance ToJSON DeveloperAPIs where
              , "feedburner" .= devFeedburner
              , "flattr"     .= devFlattr
              ]
+instance Interpret DeveloperAPIs
 
 instance FromJSON PatronLevel where
   parseJSON = A.genericParseJSON $ A.defaultOptions
@@ -203,6 +218,7 @@ instance FromJSON AuthorInfo where
 instance ToJSON AuthorInfo where
   toJSON = A.genericToJSON $ A.defaultOptions
              { A.fieldLabelModifier = map toLower . drop 6 }
+instance Interpret AuthorInfo
 
 instance FromJSON HostInfo where
   parseJSON = A.genericParseJSON $ A.defaultOptions
@@ -210,6 +226,7 @@ instance FromJSON HostInfo where
 instance ToJSON HostInfo where
   toJSON = A.genericToJSON $ A.defaultOptions
              { A.fieldLabelModifier = A.camelTo2 '-' . drop 4 }
+instance Interpret HostInfo
 
 instance FromJSON Blobs where
   parseJSON = A.genericParseJSON $ A.defaultOptions
@@ -217,6 +234,7 @@ instance FromJSON Blobs where
 instance ToJSON Blobs where
   toJSON = A.genericToJSON $ A.defaultOptions
              { A.fieldLabelModifier = A.camelTo2 '-' . drop 5 }
+instance Interpret Blobs
 
 instance FromJSON BlogPrefs where
   parseJSON = A.genericParseJSON $ A.defaultOptions
@@ -224,6 +242,7 @@ instance FromJSON BlogPrefs where
 instance ToJSON BlogPrefs where
   toJSON = A.genericToJSON $ A.defaultOptions
              { A.fieldLabelModifier = A.camelTo2 '-' . drop 4 }
+instance Interpret BlogPrefs
 
 
 data TagType = GeneralTag | CategoryTag | SeriesTag
