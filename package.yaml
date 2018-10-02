@@ -40,6 +40,7 @@ library:
   - xml-conduit
   - xml-types
   - inliterate
+  - dhall
 
 executables:
   blog-migrate-entries:

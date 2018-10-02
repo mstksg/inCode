@@ -1119,3 +1119,13 @@ None of these implementations should require any incomplete pattern matches!
     ```
 
     Solution available [here][solution7]!
+
+Special Thanks
+--------------
+
+I am very humbled to be supported by an amazing community, who make it possible
+for me to devote time to researching and writing these posts.  Very special
+thanks to my two supporters at the "Amazing" level on [patreon][], Sam Stites
+and Josh Vera! :)
+
+[patreon]: https://www.patreon.com/justinle/overview
