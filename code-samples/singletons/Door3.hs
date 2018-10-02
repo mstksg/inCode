@@ -60,9 +60,9 @@ instance Provable Knockable 'Locked where
 
 isKnockable :: Sing s -> Decision (Knockable s)
 isKnockable = \case
-    SOpened -> Disproved $ \case {}         -- s ~ 'Opened
-    SClosed -> Proved KnockClosed           -- s ~ 'Closed
-    SLocked -> Proved KnockLocked           -- s ~ 'Locked
+    SOpened -> Disproved $ \case {}    -- s ~ 'Opened
+    SClosed -> Proved KnockClosed      -- s ~ 'Closed
+    SLocked -> Proved KnockLocked      -- s ~ 'Locked
 
 disproveOpened :: Knockable 'Opened -> Void
 disproveOpened k = case k of {}             -- empty pattern match
@@ -169,8 +169,8 @@ knockedRefute
     => Knockable s
     -> Refuted (s :~: 'Opened)
 knockedRefute = \case
-    KnockClosed -> \case {}
-    KnockLocked -> \case {}
+    KnockClosed -> \case {}     -- no constructors of type ('Opened' :~: 'Closed)
+    KnockLocked -> \case {}     -- no constructors of type ('Opened :~: 'Locked)
 
 refuteKnocked
     :: forall s. SingI s
