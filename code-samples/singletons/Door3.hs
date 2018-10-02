@@ -1,24 +1,25 @@
 #!/usr/bin/env stack
 -- stack --install-ghc ghci --resolver nightly-2018-09-29 --package singletons
 
-{-# LANGUAGE AllowAmbiguousTypes   #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE EmptyCase             #-}
-{-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE InstanceSigs          #-}
-{-# LANGUAGE KindSignatures        #-}
-{-# LANGUAGE LambdaCase            #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE StandaloneDeriving    #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeInType            #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE UndecidableInstances  #-}
-{-# OPTIONS_GHC -Wall              #-}
+{-# LANGUAGE AllowAmbiguousTypes            #-}
+{-# LANGUAGE DataKinds                      #-}
+{-# LANGUAGE EmptyCase                      #-}
+{-# LANGUAGE GADTs                          #-}
+{-# LANGUAGE InstanceSigs                   #-}
+{-# LANGUAGE KindSignatures                 #-}
+{-# LANGUAGE LambdaCase                     #-}
+{-# LANGUAGE MultiParamTypeClasses          #-}
+{-# LANGUAGE RankNTypes                     #-}
+{-# LANGUAGE ScopedTypeVariables            #-}
+{-# LANGUAGE StandaloneDeriving             #-}
+{-# LANGUAGE TemplateHaskell                #-}
+{-# LANGUAGE TypeApplications               #-}
+{-# LANGUAGE TypeFamilies                   #-}
+{-# LANGUAGE TypeInType                     #-}
+{-# LANGUAGE TypeOperators                  #-}
+{-# LANGUAGE UndecidableInstances           #-}
+{-# OPTIONS_GHC -Wall                       #-}
+{-# OPTIONS_GHC -Werror=incomplete-patterns #-}
 
 import           Data.Kind
 import           Data.Singletons
@@ -178,7 +179,7 @@ refuteKnocked
 refuteKnocked v = case sing @s of   -- sing @_ @s for singletons-2.4.1 and earlier
     SOpened -> absurd (v Refl)
     SClosed -> KnockClosed
-    SLocked -> KnockLocked
+    -- SLocked -> KnockLocked
 
 -- | 5.
 knockRefl :: (StatePass s :~: 'Obstruct) -> Door s -> IO ()

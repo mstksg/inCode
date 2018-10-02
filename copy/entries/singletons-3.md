@@ -238,8 +238,12 @@ isKnockable :: Sing s -> Decision (Knockable s)
 ```
 
 I recommend taking a moment and trying to implement this yourself.  Remember to
-enable `-Wall` to make sure you're handling all potential pattern matching
-cases.
+enable `-Werror=incomplete-patterns`[^wip] (or at least `-Wall`) to make sure
+you're handling all potential pattern matching cases.
+
+[^wip]: Thanks to [Darwin226 on reddit][darwin226] for this tip!
+
+[darwin226]: https://www.reddit.com/r/haskell/comments/9kkbci/introduction_to_singletons_part_3_dependently/e70nc7k/
 
 Are you ready?  Here's a solution:
 
@@ -340,9 +344,10 @@ write a function of type `Knocked 'Closed -> Void`...but no such (total or
 non-partial) function exists.  We can't write `\case {}`, because that's an
 incomplete pattern match --- it's missing a match on the `KnockClosed` pattern.
 
-Note also that this is why it's very important to always have `-Wall` (Warn
-all) on when writing dependently typed proofs, to ensure that GHC warns you
-when your pattern matches are incomplete and you know your proof is invalid.
+Note also that this is why it's very important to always have
+`-Werror=incomplete-patterns` (or at least `-Wall` --- warn all) on when
+writing dependently typed proofs, to ensure that GHC warns you when your
+pattern matches are incomplete and you know your proof is invalid.
 
 In the examples, we see two more non-trivial examples of decision functions
 (`and p q` and `or p q`) that are impossible to implement incorrectly, due to
@@ -876,8 +881,9 @@ Feel free to start from [the sample source code][source]; it contains all of
 the solutions, but you can delete everything after the comment `-- Exercises`
 if you wish to start on your own!
 
-**Remember to enable -Wall** to ensure that all of your functions are total!
-None of these implementations should require any incomplete pattern matches!
+**Remember to enable `-Werror=incomplete-patterns` or `-Wall`** to ensure that
+all of your functions are total! None of these implementations should require
+any incomplete pattern matches!
 
 !!![solution1]:singletons/Door3.hs "-- | 1."
 !!![solution2]:singletons/Door3.hs "refuteRefute"
