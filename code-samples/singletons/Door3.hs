@@ -179,7 +179,7 @@ refuteKnocked
 refuteKnocked v = case sing @s of   -- sing @_ @s for singletons-2.4.1 and earlier
     SOpened -> absurd (v Refl)
     SClosed -> KnockClosed
-    -- SLocked -> KnockLocked
+    SLocked -> KnockLocked
 
 -- | 5.
 knockRefl :: (StatePass s :~: 'Obstruct) -> Door s -> IO ()
