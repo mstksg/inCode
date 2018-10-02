@@ -1135,3 +1135,7 @@ thanks to my two supporters at the "Amazing" level on [patreon][], Sam Stites
 and Josh Vera! :)
 
 [patreon]: https://www.patreon.com/justinle/overview
+
+Thanks also to [Koz Ross][koz_] for helping proofread this post!
+
+[koz_]: https://twitter.com/KozRoss
