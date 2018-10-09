@@ -28,7 +28,7 @@ packages:
 extra-deps:
 - cborg-0.2.0.0
 - dhall-1.17.0
-- hakyll-dhall-0.2.0.0
+- hakyll-dhall-0.2.1.0
 - hakyll-sass-0.2.3
 - serialise-0.2.0.0
 - github: jwiegley/gitlib

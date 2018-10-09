@@ -42,7 +42,7 @@ library:
   - xml-conduit
   - xml-types
   - inliterate
-  - hakyll-dhall >= 0.2
+  - hakyll-dhall >= 0.2.1
 
 executables:
   blog-migrate-entries:
