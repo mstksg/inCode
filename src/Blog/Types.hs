@@ -1,3 +1,4 @@
+{-# LANGUAGE ApplicativeDo     #-}
 {-# LANGUAGE DeriveFoldable    #-}
 {-# LANGUAGE DeriveFunctor     #-}
 {-# LANGUAGE DeriveGeneric     #-}
@@ -40,29 +41,29 @@ data Config = Config
     , confEnvType       :: !EnvType
     }
   deriving (Show, Eq, Generic)
-
 instance Interpret Config
 
 interpretConfig :: Type Config
-interpretConfig = autoWith InterpretOptions
-    { fieldModifier       = over _head toLower
-                          . T.dropWhile isLower
-    , constructorModifier = \c ->
-        let (pr,po) = T.span isUpper c
-        in  T.last pr `T.cons` po
-    }
+interpretConfig = autoWith basicInterpretOptions
 
 data PatronLevel = PLSupport
                  | PLAmazing
   deriving (Show, Eq, Ord, Generic)
+instance Interpret PatronLevel
 
 data PatronInfo = PatronInfo
     { patronTwitter :: !(Maybe T.Text)
     , patronLevel   :: !PatronLevel
     }
   deriving (Show, Eq, Ord, Generic)
+instance Interpret PatronInfo
 
 type PatronList = M.Map T.Text PatronInfo
+
+interpretPatronList :: Type PatronList
+interpretPatronList = fmap M.fromList . list . record $
+    (,) <$> field "name" strictText
+        <*> field "info" (autoWith basicInterpretOptions)
 
 data EnvType = ETDevelopment | ETProduction
   deriving (Show, Eq, Ord, Enum, Generic)
@@ -120,23 +121,23 @@ data BlogPrefs = BlogPrefs
 
 instance Interpret DeveloperAPIs
 
-instance FromJSON PatronLevel where
-  parseJSON = A.genericParseJSON $ A.defaultOptions
-                { A.allNullaryToStringTag  = True
-                , A.constructorTagModifier = A.camelTo2 '-' . drop 2
-                }
-instance ToJSON PatronLevel where
-  toJSON = A.genericToJSON $ A.defaultOptions
-             { A.allNullaryToStringTag  = True
-             , A.constructorTagModifier = A.camelTo2 '-' . drop 2
-             }
+-- instance FromJSON PatronLevel where
+--   parseJSON = A.genericParseJSON $ A.defaultOptions
+--                 { A.allNullaryToStringTag  = True
+--                 , A.constructorTagModifier = A.camelTo2 '-' . drop 2
+--                 }
+-- instance ToJSON PatronLevel where
+--   toJSON = A.genericToJSON $ A.defaultOptions
+--              { A.allNullaryToStringTag  = True
+--              , A.constructorTagModifier = A.camelTo2 '-' . drop 2
+--              }
 
-instance FromJSON PatronInfo where
-  parseJSON = A.genericParseJSON $ A.defaultOptions
-                { A.fieldLabelModifier = A.camelTo2 '-' . drop 6 }
-instance ToJSON PatronInfo where
-  toJSON = A.genericToJSON $ A.defaultOptions
-             { A.fieldLabelModifier = A.camelTo2 '-' . drop 6 }
+-- instance FromJSON PatronInfo where
+--   parseJSON = A.genericParseJSON $ A.defaultOptions
+--                 { A.fieldLabelModifier = A.camelTo2 '-' . drop 6 }
+-- instance ToJSON PatronInfo where
+--   toJSON = A.genericToJSON $ A.defaultOptions
+--              { A.fieldLabelModifier = A.camelTo2 '-' . drop 6 }
 
 instance Interpret AuthorInfo
 instance Interpret HostInfo
@@ -252,3 +253,12 @@ instance B.Binary P.Alignment
 instance B.Binary P.Citation
 instance B.Binary P.MathType
 instance B.Binary P.CitationMode
+
+basicInterpretOptions :: InterpretOptions
+basicInterpretOptions = InterpretOptions
+    { fieldModifier       = over _head toLower
+                          . T.dropWhile isLower
+    , constructorModifier = \c ->
+        let (pr,po) = T.span isUpper c
+        in  T.last pr `T.cons` po
+    }

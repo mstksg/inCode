@@ -5,7 +5,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TupleSections     #-}
-
+{-# LANGUAGE TypeApplications  #-}
 
 module Blog.App where
 
@@ -30,7 +30,9 @@ import           Data.List
 import           Data.Maybe
 import           Data.Ord
 import           Data.Time.LocalTime
+import           Dhall.TypeCheck
 import           Hakyll
+import           Hakyll.Web.Dhall
 import           Hakyll.Web.Sass
 import           Numeric.Natural
 import           System.FilePath
@@ -51,10 +53,9 @@ app znow@(ZonedTime _ tz) = do
       route   $ gsubRoute "static/" (const "")
       compile copyFileCompiler
 
-    -- note: not currently used
-    match "config/*" $ do
-      route mempty
-      compile $ fmap BSL.toStrict <$> getResourceLBS
+    match "config/**.dhall" $ do
+      route idRoute
+      compile $ dExprCompiler @X
 
     create ["CNAME"] $ do
       route idRoute

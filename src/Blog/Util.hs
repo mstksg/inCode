@@ -10,6 +10,7 @@ import           Data.Default
 import           Data.Maybe
 import           Data.Time.Format
 import           Hakyll
+import           Hakyll.Web.Dhall
 import qualified Data.ByteString          as BS
 import qualified Data.Map                 as M
 import qualified Data.Text                as T
@@ -87,10 +88,20 @@ b </!> f = let f' = fromMaybe f $ T.stripPrefix "/" f
                b' = fromMaybe b $ T.stripSuffix "/" b
            in  b' <> ('/' `T.cons` f')
 
--- | Parse and filter yaml file
-parsePatronList
+loadPatronList
     :: PatronLevel          -- ^ minimum level
-    -> BS.ByteString
-    -> Either Y.ParseException PatronList
-parsePatronList lv = fmap (M.filter ((>= lv) . patronLevel))
-                   . Y.decodeEither'
+    -> Compiler (Item PatronList)
+loadPatronList lv = fmap (M.filter ((>= lv) . patronLevel))
+                <$> loadDhall interpretPatronList "config/patrons.dhall"
+
+    -- -> Either Y.ParseException PatronList
+-- parsePatronList lv = fmap (M.filter ((>= lv) . patronLevel))
+    --                . Y.decodeEither'
+
+-- -- | Parse and filter yaml file
+-- parsePatronList
+--     :: PatronLevel          -- ^ minimum level
+--     -> BS.ByteString
+--     -> Either Y.ParseException PatronList
+-- parsePatronList lv = fmap (M.filter ((>= lv) . patronLevel))
+--                    . Y.decodeEither'

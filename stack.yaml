@@ -6,11 +6,19 @@ resolver: nightly-2018-05-25
 
 # Local packages, usually specified by relative directory name
 packages:
-- '.'
+- .
 - location:
     git: https://github.com/mstksg/jle-utils.git
     commit: ffed769e1ddfc0d8d305a6d05572cdaee7a5c4b0
   extra-dep: false
+# - location:
+#     github: mstksg/jle-utils
+#     commit: ffed769e1ddfc0d8d305a6d05572cdaee7a5c4b0
+#   extra-dep: false
+# - location:
+#     git: https://github.com/mstksg/jle-utils.git
+#     commit: ffed769e1ddfc0d8d305a6d05572cdaee7a5c4b0
+#   extra-dep: false
 # - location:
 #     git: https://github.com/jaspervdj/Hakyll.git
 #     commit: a88a91d06e57172840ef068f261c88e21eb60665
@@ -18,11 +26,12 @@ packages:
 
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
 extra-deps:
-- hakyll-sass-0.2.3
-- dhall-1.17.0
 - cborg-0.2.0.0
+- dhall-1.17.0
+- hakyll-dhall-0.2.0.0
+- hakyll-sass-0.2.3
 - serialise-0.2.0.0
-- git: git@github.com:jwiegley/gitlib.git
+- github: jwiegley/gitlib
   commit: 7084c2ad0d7e14f27bef17397145ec676d2062a3
   subdirs:
   - gitlib

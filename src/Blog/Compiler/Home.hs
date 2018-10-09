@@ -29,9 +29,7 @@ homeCompiler allPages allTags i p = do
     allTs <- mapM (uncurry fetchTag) allTags
     linksCopy  <- readPandocWith entryReaderOpts =<< load "copy/static/home-links.md"
     bannerCopy <- readPandocWith entryReaderOpts =<< load "copy/static/home-banner.md"
-    patronList <- either (fail . show) pure
-                . parsePatronList PLSupport
-              =<< loadBody "config/patrons.yaml"
+    patronList <- itemBody <$> loadPatronList PLSupport
     let hi = HI { hiPageNum    = i
                 , hiPrevPage   =
                     if | i <= 1
