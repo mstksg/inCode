@@ -180,10 +180,12 @@ COMPILER ERROR!! COMPILER ERROR!!
 ```
 
 Such a typeclass exists in libraries like *[type-combinators][]* (called
-`Known`), and in dependently typed languages like Idris, `auto` is actually a
-built-in language keyword that does this automatically!
+`Known`) and *[decidable][]* (called `Provable`), and in dependently typed
+languages like Idris, `auto` is actually a built-in language keyword that does
+this automatically!
 
 [type-combinators]: http://hackage.haskell.org/package/type-combinators
+[decidable]: http://hackage.haskell.org/package/decidable
 
 ### Decidable Predicates
 
@@ -293,6 +295,10 @@ status we not know until runtime:
 ```haskell
 !!!singletons/Door3.hs "knockSomeDoor"
 ```
+
+While arguably less useful than one provable predicates, a typeclass for
+decidable predicates is also possible; the aptly-named [decidable][] package
+offers such a typeclass, called `Decidable`!
 
 ### Decision
 

@@ -192,7 +192,7 @@ directly stuffed `s` or `t` into `MkSomeDoor`, things would fall apart and not
 typecheck.
 
 <!-- TODO: exercise where Knockable s -> Knockable t -> Knockable (MergeState s
-t) --> 
+t) -->
 
 And so now we have full expressiveness in determining input and output
 relationships!  Once we unlock the power of type-level functions with
