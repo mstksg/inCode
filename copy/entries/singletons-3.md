@@ -180,12 +180,10 @@ COMPILER ERROR!! COMPILER ERROR!!
 ```
 
 Such a typeclass exists in libraries like *[type-combinators][]* (called
-`Known`) and *[decidable][]* (called `Provable`), and in dependently typed
-languages like Idris, `auto` is actually a built-in language keyword that does
-this automatically!
+`Known`).  In dependently typed languages like Idris, `auto` is actually a
+built-in language keyword that does this automatically!
 
 [type-combinators]: http://hackage.haskell.org/package/type-combinators
-[decidable]: http://hackage.haskell.org/package/decidable
 
 ### Decidable Predicates
 
@@ -299,6 +297,8 @@ status we not know until runtime:
 While arguably less useful than one provable predicates, a typeclass for
 decidable predicates is also possible; the aptly-named [decidable][] package
 offers such a typeclass, called `Decidable`!
+
+[decidable]: http://hackage.haskell.org/package/decidable
 
 ### Decision
 
@@ -954,7 +954,7 @@ any incomplete pattern matches!
 
 3.  (This next one is fairly difficult compared to the others, and is only
     tangentially related to singletons, so feel free to skip it!)
-    
+
     Type-level predicates are logical constructs, so we should be able to
     define concepts like "and" and "or" with them.
 
@@ -1020,7 +1020,7 @@ any incomplete pattern matches!
     long as the door is not `'Opened`, you can knock".  This means we could
     write `knock` as:
 
-    
+
     ```haskell
     knock :: Refuted (s :~: 'Opened) -> Door s -> IO ()
     ```
