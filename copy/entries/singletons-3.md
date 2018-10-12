@@ -168,7 +168,7 @@ We can even make it more seamless to use by auto-generating proofs at
 compile-time, with a general class like `Auto`:
 
 ```haskell
-!!!singletons/Door3.hs "class Provable" "instance Provable Knockable 'Closed" "instance Provable Knockable 'Locked"
+!!!singletons/Door3.hs "class Proved" "instance Proved Knockable 'Closed" "instance Proved Knockable 'Locked"
 ```
 
 ```haskell
@@ -180,8 +180,9 @@ COMPILER ERROR!! COMPILER ERROR!!
 ```
 
 Such a typeclass exists in libraries like *[type-combinators][]* (called
-`Known`).  In dependently typed languages like Idris, `auto` is actually a
-built-in language keyword that does this automatically!
+`Known`) and [decidable][] (called `Auto`).  In dependently typed languages
+like Idris, `auto` is actually a built-in language keyword that does this
+automatically!
 
 [type-combinators]: http://hackage.haskell.org/package/type-combinators
 

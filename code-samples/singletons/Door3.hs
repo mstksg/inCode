@@ -49,13 +49,13 @@ data Knockable :: DoorState -> Type where
 knock :: Knockable s -> Door s -> IO ()
 knock _ d = putStrLn $ "Knock knock on " ++ doorMaterial d ++ " door!"
 
-class Provable p a where
+class Proved p a where
     auto :: p a
 
-instance Provable Knockable 'Closed where
+instance Proved Knockable 'Closed where
     auto = KnockClosed
 
-instance Provable Knockable 'Locked where
+instance Proved Knockable 'Locked where
     auto = KnockLocked
 
 isKnockable :: Sing s -> Decision (Knockable s)
