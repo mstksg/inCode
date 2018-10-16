@@ -79,8 +79,10 @@ type family Foldr (f :: j ~> k ~> k) (z :: k) (xs :: [j]) :: k where
     Foldr f z '[]       = z
     Foldr f z (x ': xs) = (f @@ x) @@ Foldr f z xs
 
-type family MergeStates (ss :: [DoorState]) :: DoorState where
-    MergeStates ss = Foldr MergeStateSym0 'Opened ss
+
+type MergeStates ss = Foldr MergeStateSym0 'Opened ss
+-- type family MergeStates (ss :: [DoorState]) :: DoorState where
+--     MergeStates ss = Foldr MergeStateSym0 'Opened ss
 
 type family MergeState (s :: DoorState) (t :: DoorState) :: DoorState where
     MergeState s t = s
@@ -90,6 +92,11 @@ type instance Apply MergeStateSym0 s = MergeStateSym1 s
 
 data MergeStateSym1 :: DoorState -> DoorState ~> DoorState
 type instance Apply (MergeStateSym1 s) t = MergeState s t
+
+data family Sing (a :: k)
+
+data Sigma k :: (k ~> Type) -> Type where
+    (:&:) :: Sing x -> (f @@ x) -> Sigma k f
 
 main :: IO ()
 main = return ()

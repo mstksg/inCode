@@ -334,8 +334,7 @@ So far so good right?  So we should expect to be able to write `MergeStateList`
 using `Foldr`, `MergeState`, and `'Opened`
 
 ```haskell
-type family MergeStateList (ss :: [DoorState]) :: DoorState where
-    MergeStateList ss = Foldr MergeState 'Opened ss
+type MergeStateList ss = Foldr MergeState 'Opened ss
 ```
 
 Ah, but the compiler is here to tell you this isn't allowed in Haskell:
@@ -432,14 +431,14 @@ normally open in Haskell.
 Let's tell `Apply` how to interpret `Id`:
 
 ```haskell
-type insatnce Apply Id x = x
+type instance Apply Id x = x
 ```
 
 The above is the actual function definition, like writing `id x = x`.  We can
 now *call* `Id` to get an actual type in return:
 
 ```haskell
-ghci> kind! Apply Id 'True
+ghci> :kind! Apply Id 'True
 'True
 ```
 
@@ -595,32 +594,32 @@ A note to remember: `AndSym1 'True` is the defunctionalization symbol, and
 `AndSym1 'True` has kind `Bool ~> Bool` --- the kind of a defunctionalization
 symbol.
 
-<!-- One extra interesting defunctionalization symbol we can write: we turn lift any -->
-<!-- type constructor into a "free" defunctionalization symbol: -->
+One extra interesting defunctionalization symbol we can write: we turn lift any
+type constructor into a "free" defunctionalization symbol:
 
-<!-- ```haskell -->
-<!-- data TyCon1 -->
-<!--         :: (j -> k)     -- ^ take a type constructor -->
-<!--         -> (j ~> k)     -- ^ return a defunctionalization symbol -->
+```haskell
+data TyCon1
+        :: (j -> k)     -- ^ take a type constructor
+        -> (j ~> k)     -- ^ return a defunctionalization symbol
 
-<!-- -- alternatively -->
-<!-- data TyCon1 (t :: j -> k) :: j ~> k -->
+-- alternatively
+data TyCon1 (t :: j -> k) :: j ~> k
 
-<!-- type instance Apply (TyCon1 t) a = t a -->
-<!-- ``` -->
+type instance Apply (TyCon1 t) a = t a
+```
 
-<!-- Basically the `Apply` instance just applies the type constructor `t` to its -->
-<!-- input `a`. -->
+Basically the `Apply` instance just applies the type constructor `t` to its
+input `a`.
 
-<!-- ```haskell -->
-<!-- ghci> :kind! TyCon1 Maybe @@ Int -->
-<!-- Maybe Int -->
-<!-- ghci> :kind! TyCon1 'Right @@ 'False -->
-<!-- 'Right 'False -->
-<!-- ``` -->
+```haskell
+ghci> :kind! TyCon1 Maybe @@ Int
+Maybe Int
+ghci> :kind! TyCon1 'Right @@ 'False
+'Right 'False
+```
 
-<!-- We can use this to give a normal `j -> k` type constructor to a function that -->
-<!-- expects a `j ~> k` defunctionalization symbol. -->
+We can use this to give a normal `j -> k` type constructor to a function that
+expects a `j ~> k` defunctionalization symbol.
 
 Bring Me a Higher Order
 -----------------------
@@ -640,6 +639,8 @@ type family Foldr (f :: j ~> k ~> k) (z :: k) (xs :: [j]) :: k where
     Foldr f z '[]       = z
     Foldr f z (x ': xs) = (f @@ x) @@ Foldr f z xs
 ```
+
+<!-- TODO: note on new foldr -->
 
 The difference is that instead of taking a type family or type constructor `f :: j
 -> k -> k`, we have it take the *defunctionalization symbol* `f :: j ~> (k ~>
@@ -666,15 +667,17 @@ type MergeStateSym2 s t = MergeState s t
 And now we can write `MergeStateList`!
 
 ```haskell
-type family MergeStateList (ss :: [DoorState]) :: DoorState where
-    MergeStateList ss = Foldr MergeStateSym0 'Opened ss
+type MergeStateList ss = Foldr MergeStateSym0 'Opened ss
 ```
+
+(If you "see" `MergeStateSym0`, you should *read* it was `MergeState`, but
+partially applied)
 
 This compiles!
 
 ```haskell
 ghci> :kind! MergeStateList '[ 'Closed, 'Opened, 'Locked ]
-'Closed
+'Locked
 ghci> :kind! MergeStateList '[ 'Closed, 'Opened ]
 'Closed
 ```
@@ -685,7 +688,7 @@ collapseHallway HEnd       = UnsafeMkDoor "End of Hallway"
 collapseHallway (d :<# ds) = d `mergeDoor` collapseHallway ds
 ```
 
-### Singletons to the Rescue
+### Singletons to to make things nicer
 
 Admittedly this is all a huge mess of boilerplate.  The code we had to write
 more than tripled, and we also have an unsightly number of defunctionalization
@@ -720,3 +723,251 @@ singletons handle the composition of functions for you.  However, it's still
 important to know what the *singletons* library generates, because sometimes
 it's still useful to manually create defunctionalization symbols and work with
 them.
+
+Thoughts on Symbols
+-------------------
+
+Defunctionalization symbols may feel like a bit of a mess, and the naming
+convention is arguably less than aesthetically satisfying.  But, as you work
+with them more and more, you start to appreciate them on a deeper level.
+
+At the end of the day, you can compare defunctionalization as turning
+"functions" into just constructors you can *match* on, just like any other data
+or type consturctor.  That's because they *are* just type constructors!
+
+In a sense, defining defunctionalization symbols is a lot like working with
+*pattern synonyms* of your functions, instead of directly passing the functions
+themselves.  At the type family and type class level, you can "pattern match"
+on these functions.
+
+[matchable]: https://github.com/ghc-proposals/ghc-proposals/pull/52#issuecomment-300485400
+
+For a comparison at the value level -- you can't pattern match on `(+)`, `(-)`,
+`(*)`, and `(/)`:
+
+```haskell
+-- Doesn't work like you think it does
+invertOperation :: (Double -> Dobule -> Double) -> (Double -> Double -> Double)
+invertOperation (+) = (-)
+invertOperation (-) = (+)
+invertOperation (*) = (/)
+invertOperation (/) = (*)
+```
+
+You can't quite match on the equality of functions to some list of patterns.
+But, what you *can* do is create constructors representing your functions, and
+match on those.
+
+This essentially fixes the "type lambda problem" of type inference and
+typeclass resolution.  You can't match on arbitrary lambdas, but you *can*
+match on dummy constructors representing type functions.
+
+And a bit of the magic here, also, is the fact that you don't always need to
+make our own defunctionalization symbols from scratch --- you can create them
+based on other ones in a compositional way.
+
+For example, suppose we wanted to build defunctionalization symbols for
+`MergeStateList`.  We can actually build them directly from defunctionalization
+symbols for `Foldr`!
+
+Check out the defunctionalization symbols for `Foldr`:
+
+```haskell
+data FoldrSym0 :: (j ~> k ~> k) ~> k ~> [j] ~> k
+
+data FoldrSym1 :: (j ~> k ~> k) -> k ~> [j] ~> k
+
+data FoldrSym2 :: (j ~> k ~> k) -> k -> [j] ~> k
+```
+
+We can actually use these to *define* our `MergeStateList` defunctionalization
+symbols, since *defunctionalization symbols are first-class*:
+
+```haskell
+type MergeStateListSym0 = FoldrSym2 MergeStateSym0 'Opened
+```
+
+And you can just write `collapseHallway` as:
+
+```haskell
+collapseHallway :: Hallway ss -> Door (MergeStateListSym0 @@ ss)
+-- or
+collapseHallway :: Hallway ss -> Door (FoldrSym2 MergeStateSym0 'Opened @@ ss)
+```
+
+You never have to actually define `MergeStateList` as a function or type
+family!
+
+The whole time, we're just building defunctionalization symbols in terms of
+other defunctionalization symbols.  And, at the end, when we finally want to
+interpret the complex function we construct, we use `Apply`, or `@@`.
+
+You can think of `FoldrSym1` and `FoldrSym2` as *defunctionalization
+symbol constructors* -- they're combinators that take in defunctionalization
+symbols (like `MergeStateSym0`) and *return new ones*.
+
+### Sigma
+
+Let's look at a nice tool that is made possible using defunctionalization
+symbols: *dependent pairs*.  I talk a bit about dependent pairs (or dependent
+sums) in [part 2][] of this series, and also in my [dependent types in
+Haskell][dth] series.
+
+[part 2]: https://blog.jle.im/entry/introduction-to-singletons-2.html
+[dependent types in Haskell]: https://blog.jle.im/entry/practical-dependent-types-in-haskell-2.html
+
+Essentially, a dependent pair is a tuple where the *type* of the second
+field depends on the *value* of the first one.  This is basically what
+`SomeDoor` was:
+
+```haskell
+data SomeDoor :: Type where
+    MkSomeDoor :: Sing x -> Door x -> SomeDoor
+```
+
+The *type* of the `Door x` depends on the *value* of the `Sing x`, which you
+can read as essentially storing the `x`.
+
+We made `SomeDoor` pretty ad-hoc.  But what if we wanted to make some other
+predicate?  Well, we can make a *generic* dependent pair by *parameterizing it
+on  he dependence* between the first and second field.
+
+```haskell
+data Sigma k :: (k ~> Type) -> Type where
+    (:&:) :: Sing x -> (f @@ x) -> Sigma k f
+```
+
+If you squint carefully, you can see that `Sigma k` is just `SomeDoor`,
+but *parameterized over `Door`*.  Instead of always holding `Door x`, we can have
+it parameterized on an arbitrary function `f` and have it hold an `f @@ x`.
+
+We can actually define `SomeDoor` in terms of `Sigma`:
+
+```haskell
+type SomeDoor = Sigma DoorState (TyCon1 Door)
+```
+
+(Remember `TyCon1` is the defunctionalization symbol constructor that turns any
+normal type constructor `j -> k` into a defunctionalization symbol `j ~> k`)
+
+That's because a `Sigma DoorState (TyCon1 Door)` contains a `Sing (x ::
+DoorState)` and a `TyCon1 Door @@ x`, or a `Door x`.
+
+This is a simple relationship, but one can imagine a `Sigma` parameterized on
+an even more complex type-level function.  We'll explore more of these in the
+exercises!
+
+### Singletons of Functions
+
+One last thing to tie it all together -- let's write `collapseHallway` in a way
+that we don't know the types of the doors.
+
+Luckily, we now have a `SomeHallway` type for free:
+
+```haskell
+type SomeHallway = Sigma [DoorState] (TyCon1 Hallway)
+```
+
+The easy way would be to just use `sMergeStateList` that we defned:
+
+```haskell
+collapseSomeHallway :: SomeHallway -> SomeDoor
+collapseSomeHallway (ss :&: d) = sMergeStateList ss
+                             :&: collapseHallway d
+```
+
+But what if we didn't write `sMergeStateList`, and we constructed our
+defunctionalization symbols from scratch?
+
+```haskell
+collapseHallway
+    :: Hallway ss
+    -> Door (FoldrSym2 MergeStateSym0 'Opened @@ ss)
+
+collapseSomeHallway :: SomeHallway -> SomeDoor
+collapseSomeHallway (ss :&: d) = ???    -- what goes here?
+                             :&: collapseHallway d
+```
+
+This will be our final defunctionalization lesson.  How do we turn a singleton
+of `ss` into a singleton of `FoldrSym2 MergeStateSym0 'Opened @@ s` ?
+
+First -- we have `Foldr` at the value level, as `sFoldr`.  We glossed over this
+earlier, but *singletons* generates the following function for us:
+
+```haskell
+type family Foldr (f :: j ~> k ~> k) (z :: k) (xs :: [j]) :: k where
+    Foldr f z '[]       = z
+    Foldr f z (x ': xs) = (f @@ x) @@ Foldr f z xs
+
+sFoldr
+    :: Sing (f :: j ~> k ~> k)
+    -> Sing (z :: k)
+    -> Sing (xs :: [j])
+    -> Sing (Foldr f z xs :: k)
+sFoldr f z SNil           = z
+sFoldr f z (x `SCons` xs) = (f @@ x) @@ sFoldr f z xs
+```
+
+Where `(@@) :: Sing f -> Sing x -> Sing (f @@ x)` (or `applySing`) is the
+singleton/value-level counterpart of `Apply` or `(@@)`.
+
+So we can write:
+
+```haskell
+collapseSomeHallway :: SomeHallway -> SomeDoor
+collapseSomeHallway (ss :&: d) = sFoldr ???? SOpened ss
+                             :&: collapseHallway d
+```
+
+But how do we get a `Sing MergeStateSym0`?
+
+We can use the `singFun` family of functions:
+
+```haskell
+singFun2 @MergeStateSym0 :: Sing MergeStateSym0
+```
+
+And finally, we get our answer:
+
+```haskell
+collapseSomeHallway :: SomeHallway -> SomeDoor
+collapseSomeHallway (ss :&: d) = sFoldr (singFun2 @MergeStateSym0) SOpened ss
+                             :&: collapseHallway d
+```
+
+Closing Up
+----------
+
+
+<!-- For example, there is only one inhabitant of the type `Sigma DoorState -->
+<!-- (MergeStateSym1 'Locked)`.  What is it? -->
+
+<!-- TODO: make hallway form somedoors -->
+
+<!-- For --> 
+
+<!-- We can then even create our own --> 
+
+<!-- TODO: Exercise, store proof of evenness -->
+
+<!-- But that's just a simple example.  Here's an example that stores a proof that -->
+<!-- the number `n` is even: -->
+
+<!-- ```haskell -->
+<!-- data IsDoubleOf n :: Nat ~> Nat -->
+<!-- type instance Apply (IsDoubleOf n) m = n :~: (m * 2)  -- * is provided in GHC.TypeNats -->
+
+<!-- type IsEven n = Sigma Nat (IsDoubleOf n) -->
+<!-- ``` -->
+
+<!-- And in fact, you never even have to fully write `MergeStateList` at all -- you -->
+<!-- can just directly -->
+
+<!-- /* You can do this all within the */ -->
+<!-- /* world */ -->
+
+
+<!-- /* TODO: sigma */ -->
+
+<!-- /* TODO: SingI instance for functions */ -->
