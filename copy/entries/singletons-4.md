@@ -200,8 +200,7 @@ relationships!  Once we unlock the power of type-level functions with
 value-level ones.  If you can write a value-level function, you can write a
 type-level function!
 
-Kicking it up a notch
----------------------
+### Kicking it up a notch
 
 Alright, so let's see how far we can really take this!
 
@@ -263,13 +262,13 @@ $(singletons [d|
   |])
 ```
 
-Again, remember that this also defines the type family `MergeStates` and the
-singleton function `sMergeStates :: Sing ss -> Sing (MergeStates ss)`.
+Again, remember that this also defines the type family `MergeStateList` and the
+singleton function `sMergeStateList :: Sing ss -> Sing (MergeStateList ss)`.
 
 With this, we can write `collapseHallway`:
 
 ```haskell
-collapseHallway :: Hallway ss -> Door (MergeStates ss)
+collapseHallway :: Hallway ss -> Door (MergeStateList ss)
 collapseHallway HEnd       = UnsafeMkDoor "End of Hallway"
 collapseHallway (d :<# ds) = d `mergeDoor` collapseHallway ds
 ```
@@ -282,3 +281,442 @@ ghci> collapseHallway (door1 :<# door2 :<# door3 :<# HEnd)
 UnsafeMkDoor "Oak and Spruce and Acacia and End of Hallway"
     :: Door 'Locked
 ```
+
+Note one nice benefit -- the door state of
+`collapseHallway (door1 :<# door2 :<# door3 :<# HEnd)` is known at compile-time
+to be `Door 'Locked`, if the types of all of the component doors are also known!
+
+Functional Programming
+----------------------
+
+We went over that all a bit fast, but some of you might have noticed that the
+definition of `mergeStates` bears a really strong resemblance to a very common
+Haskell list processing pattern:
+ 
+```haskell
+mergeStates :: [DoorState] -> DoorState
+mergeStates []     = Opened               -- ^ the identity of mergeState
+mergeStates (s:ss) = s `mergeState` mergeStates ss
+```
+
+We replace all `[]` with `Opened`, and all `(:)` with `mergeState`.  Yup ---
+this is exactly a `foldr`!
+
+```haskell
+mergeStates :: [DoorState] -> DoorState
+mergeState = foldr mergeState Opened
+```
+
+In Haskell, we are always encouraged to use higher-order functions whenever
+possible instead of explicit recursion, both because explicit recursion opens
+you up to a lot of potential bugs, and also because using established
+higher-order functions make your code more readable.
+
+So, as Haskellers, let us hold ourselves to a higher standard and not be
+satisfied with a `MergeState` written using explicit recursion.  Let us instead
+go *full fold*!  ONWARD HO!
+
+### The Problem
+
+Initial attempts to write a higher-order type-level function as a type family,
+however, serve to temper our enthusiasm.
+
+```haskell
+type family MergeState (s :: DoorState) (t :: DoorState) :: DoorState where
+    MergeState s t = Max s t
+
+type family Foldr (f :: j -> k -> k) (z :: k) (xs :: [j]) :: k where
+    Foldr f z '[]       = z
+    Foldr f z (x ': xs) = f x (Foldr f z xs)
+```
+
+So far so good right?  So we should expect to be able to write `MergeStateList`
+using `Foldr`, `MergeState`, and `'Opened`
+
+```haskell
+type family MergeStateList (ss :: [DoorState]) :: DoorState where
+    MergeStateList ss = Foldr MergeState 'Opened ss
+```
+
+Ah, but the compiler is here to tell you this isn't allowed in Haskell:
+
+```
+    • The type family ‘MergeState’ should have 2 arguments, but has been given none
+    • In the equations for closed type family ‘MergeStateList’
+      In the type family declaration for ‘MergeStateList’
+```
+
+What happened?  To figure out, we have to remember that pesky restriction on
+type synonyms and type families: they *cannot* be partially applied, and must
+always be fully applied.  For the most part, only *type constructors* (like
+`Maybe`, `Either`, `IO`) and lifted DataKinds data constructors (like `'Just`,
+`'(:)`) in Haskell can ever be partially applied at the type level.  We
+therefore can't use `MergeState` as an argument to `Foldr`, because
+`MergeState` must always be fully applied.
+
+Unfortunately for us, this makes our `Foldr` effectively useless.  That's
+because we're always going to want to pass in type families (like
+`MergeState`), so there's pretty much literally no way to ever actually call
+`Foldr` except with type constructors or lifted DataKinds data constructors.
+
+So...back to the drawing board?
+
+Defunctionalization
+-------------------
+
+I like to mentally think of the *singletons* library as having two parts: the
+first is linking lifted DataKinds types with run-time values to allow us to
+manipulate types at runtime as first-class values.  The second is a system for
+effective *functional programming* at the type level.
+
+To make a working `Foldr`, we're going to have to jump into that second half:
+*[defunctionalization][]*.
+
+[defunctionalization]: https://en.wikipedia.org/wiki/Defunctionalization
+
+Defunctionalization is a technique invented in the early 70's to convert
+higher-order functions into first-order functions.  The main idea is:
+
+*   Instead of working with *functions*, work with *symbols representing
+    functions*.
+*   Build your final functions and values by composing and combining these
+    symbols.
+*   At the end of it all, have a single `Apply` function interpret all of your
+    symbols and produce the value you want.
+
+In *singletons* these symbols are implemented as "dummy" empty data
+constructors, and `Apply` is a type family.
+
+To help us understand singleton's defunctionalization system better, let's
+build our own defunctionalization system from scratch.
+
+First, a little trick to make things easier to read:
+
+```haskell
+data TyFun a b
+type a ~> b = TyFun a b -> Type
+
+infixr 0 ~>
+```
+
+### Our First Symbols
+
+Now we can define a dummy data type like `Id`, which represents the identity
+function `id`:
+
+```haskell
+data Id :: a ~> a
+```
+
+
+Don't worry too much about `TyFun`, it's all just a type-level tag that makes
+it convenient to write `Id :: a ~> a`.  The actual kind of `Id` is `Id :: TyFun
+a a -> Type`; you can imagine `TyFun a a` as a phantom parameter that signifies
+that `Id` represents a function from `a` to `a`.
+
+Now, `Id` is not a function...it's a *dummy type constructor* that *represents*
+a function `a -> a`.  A type constructor of kind `a ~> a` represents a
+*defunctionalization symbol* -- a type constructor that represents a function
+from `a` to `a`.
+
+To interpret it, we need to write our global interpreter function:
+
+```haskell
+type family Apply (f :: a ~> b) (x :: a) :: b
+```
+
+That's the syntax for the definition of an *open* type family in Haskell:
+users are free to add their own instances, just like how type classes are
+normally open in Haskell.
+
+Let's tell `Apply` how to interpret `Id`:
+
+```haskell
+type insatnce Apply Id x = x
+```
+
+The above is the actual function definition, like writing `id x = x`.  We can
+now *call* `Id` to get an actual type in return:
+
+```haskell
+ghci> kind! Apply Id 'True
+'True
+```
+
+Let's define another one!  We'll implement `Not`:
+
+```haskell
+data Not :: Bool ~> Bool
+type instance Apply Not 'False = 'True
+type instance Apply Not 'True  = 'False
+```
+
+We can try it out:
+
+```haskell
+ghci> :kind! Apply Not 'True
+'False
+ghci> :kind! Apply Not 'False
+'True
+```
+
+It can be convenient to define an infix synonym for `Apply`:
+
+```haskell
+type f @@ a = Apply f a
+
+infixl 9 @@
+```
+
+Then we can wrote:
+
+```haskell
+ghci> :kind! Not @@ 'False
+'True
+ghci> :kind! Id @@ 'True
+'True
+```
+
+Remember, `Id` and `Not` are not actual functions --- they're just dummy data
+types ("defunctionalization symbols"), and we define the functions they
+represent through the global `Apply` type function.
+
+### A Bit of Principle
+
+So we've got the basics of defunctionalization --- instead of using functions
+directly, use dummy symbols that encode your functions that are interpreted
+using `Apply`.  Let's add a bit of principle to make this all a bit more
+scalable.
+
+The singletons library adopts a few conventions for linking all of these
+together.  Using the `Not` function as an example, if we wanted to lift the
+function:
+
+```haskell
+not :: Bool -> Bool
+not False = True
+not True  = Flse
+```
+
+We already know about the type family and singleton function this would
+produce:
+
+```haskell
+type family Not (x :: Bool) :: Bool where
+    Not 'False = 'True
+    Not 'True  = 'False
+
+sNot :: Sing x -> Sing (Not x)
+sNot SFalse = STrue
+sNot STrue  = SFalse
+```
+
+But the singletons library also produces the following *defunctionalization
+symbols*, according to a naming convention:
+
+```haskell
+data NotSym0 :: Bool ~> Bool
+type instance Apply NotSym0 x = Not x
+
+-- also generated for consistency
+type NotSym1 x = Not x
+```
+
+`NotSym0` is the *defunctionalization symbol* associated with the `Not` type
+family, defined so that `NotSym0 @@ x = Not x`.  Its purpose is to allow us to
+*pass in* `Not` as an *un-applied function*.  The `Sym0` suffix is a naming
+convention, and the 0 stands for "expects 0 arguments".  Similarly for
+`NotSym1` -- the 1 stands for "expects 1 argument".
+
+Let's look at a slightly more complicated example -- a two-argument function.
+Let's define the boolean "and":
+
+```haskell
+$(singletons [d|
+  and :: Bool -> (Bool -> Bool)
+  and False _ = False
+  and True  x = x
+  ])
+```
+
+this will generate:
+
+```haskell
+type family And (x :: Bool) (y :: Bool) :: Bool where
+    And 'False x = 'False
+    And 'True  x = x
+
+sAnd :: Sing x -> Sing y -> Sing (And x y)
+sAnd SFalse x = SFalse
+sAnd STrue  x = x
+```
+
+And the defunctionalization symbols:
+
+```haskell
+data AndSym0 :: Bool ~> (Bool ~> Bool)
+type instance Apply AndSym0 x = AndSym1 x
+
+data AndSym1 (x :: Bool) :: (Bool ~> Bool)
+-- or
+data AndSym1 :: Bool -> (Bool ~> Bool)
+type instance Apply (AndSym1 x) y = And x y
+
+type AndSym2 x y = And x y
+```
+
+`AndSym0` is a defunctionalization symbol representing a "fully unapplied"
+version of `And`. `AndSym1 x` is a defunctionalization symbol representing a
+"partially applied" version of `And` --- partially applied to `x` (its kind is
+`AndSym1 :: Bool -> (Bool ~> Bool)`).
+
+The application of `AndSym0` to `x` gives you `AndSym1 x`:
+
+```haskell
+ghci> :kind! AndSym0 @@ 'False
+AndSym1 'False
+```
+
+Remember its kind `AndSym0 :: Bool ~> (Bool ~> Bool)`
+(or just `AndSym0 :: Bool ~> Bool ~> Bool`): it takes a `Bool`, and returns a
+`Bool ~> Bool` defunctionalization symbol.
+
+The application of `AndSym1 x` to `y` gives you `And x y`:
+
+```haskell
+ghci> :kind! AndSym1 'False @@ 'True
+'False
+ghci> :kind! AndSym1 'True  @@ 'True
+'True
+```
+
+A note to remember: `AndSym1 'True` is the defunctionalization symbol, and
+*not* `AndSym1` itself.  `AndSym1` has kind `Bool -> (Bool ~> Bool)`, but
+`AndSym1 'True` has kind `Bool ~> Bool` --- the kind of a defunctionalization
+symbol.
+
+<!-- One extra interesting defunctionalization symbol we can write: we turn lift any -->
+<!-- type constructor into a "free" defunctionalization symbol: -->
+
+<!-- ```haskell -->
+<!-- data TyCon1 -->
+<!--         :: (j -> k)     -- ^ take a type constructor -->
+<!--         -> (j ~> k)     -- ^ return a defunctionalization symbol -->
+
+<!-- -- alternatively -->
+<!-- data TyCon1 (t :: j -> k) :: j ~> k -->
+
+<!-- type instance Apply (TyCon1 t) a = t a -->
+<!-- ``` -->
+
+<!-- Basically the `Apply` instance just applies the type constructor `t` to its -->
+<!-- input `a`. -->
+
+<!-- ```haskell -->
+<!-- ghci> :kind! TyCon1 Maybe @@ Int -->
+<!-- Maybe Int -->
+<!-- ghci> :kind! TyCon1 'Right @@ 'False -->
+<!-- 'Right 'False -->
+<!-- ``` -->
+
+<!-- We can use this to give a normal `j -> k` type constructor to a function that -->
+<!-- expects a `j ~> k` defunctionalization symbol. -->
+
+Bring Me a Higher Order
+-----------------------
+
+Okay, so now we have these tokens that represent "unapplied" versions of
+functions.  So what?
+
+Well, remember the problem with our implementation of `Foldr`?  We couldn't
+pass in a type family, since type families must be passed fully applied.  So,
+instead of having `Foldr` expect a type family...we can make it expect a
+*defunctionalization symbol* instead!  Remember, defunctionalization symbols
+represent the "unapplied" versions of type families, so they are exactly the
+tools we need!
+
+```haskell
+type family Foldr (f :: j ~> k ~> k) (z :: k) (xs :: [j]) :: k where
+    Foldr f z '[]       = z
+    Foldr f z (x ': xs) = (f @@ x) @@ Foldr f z xs
+```
+
+The difference is that instead of taking a type family or type constructor `f :: j
+-> k -> k`, we have it take the *defunctionalization symbol* `f :: j ~> (k ~>
+k)`.
+
+Instead of taking a type family or type constructor, we take that dummy type
+constructor.
+
+Now we just need to have our defunctionalization symbols for `MergeStateList`:
+
+```haskell
+type family MergeState (s :: DoorState) (t :: DoorState) :: DoorState where
+    MergeState s t = s
+
+data MergeStateSym0 :: DoorState ~> DoorState ~> DoorState
+type instance Apply MergeStateSym0 s = MergeStateSym1 s
+
+data MergeStateSym1 :: DoorState -> DoorState ~> DoorState
+type instance Apply (MergeStateSym1 s) t = MergeState s t
+
+type MergeStateSym2 s t = MergeState s t
+```
+
+And now we can write `MergeStateList`!
+
+```haskell
+type family MergeStateList (ss :: [DoorState]) :: DoorState where
+    MergeStateList ss = Foldr MergeStateSym0 'Opened ss
+```
+
+This compiles!
+
+```haskell
+ghci> :kind! MergeStateList '[ 'Closed, 'Opened, 'Locked ]
+'Closed
+ghci> :kind! MergeStateList '[ 'Closed, 'Opened ]
+'Closed
+```
+
+```haskell
+collapseHallway :: Hallway ss -> Door (MergeStateList ss)
+collapseHallway HEnd       = UnsafeMkDoor "End of Hallway"
+collapseHallway (d :<# ds) = d `mergeDoor` collapseHallway ds
+```
+
+### Singletons to the Rescue
+
+Admittedly this is all a huge mess of boilerplate.  The code we had to write
+more than tripled, and we also have an unsightly number of defunctionalization
+symbols and `Apply` instance boilerplate for every function.
+
+Luckily, the *singletons* library is here to help.  You can just write:
+
+```haskell
+$(singletons [d|
+  data DoorState = Opened | Closed | Locked
+    deriving (Show, Eq, Ord)
+
+  mergeState :: DoorState -> DoorState -> DoorState
+  mergeState = max
+
+  foldr :: (a -> b -> b) -> b -> [a] -> b
+  foldr _ z []     = z
+  foldr f z (x:xs) = f x (foldr f z xs)
+
+  mergeStateList :: [DoorState] -> DoorState
+  mergeStateList = foldr mergeState Opened
+  |])
+```
+
+And all of these defunctionalization symbols are generated for you;
+*singletons* is also able to recognize that `foldr` is a higher-order function
+and translate its lifted version to take a defunctionalization
+symbol `a ~> b ~> b`.
+
+It's okay to stay "in the world of singletons" for the most part, and let
+singletons handle the composition of functions for you.  However, it's still
+important to know what the *singletons* library generates, because sometimes
+it's still useful to manually create defunctionalization symbols and work with
+them.
