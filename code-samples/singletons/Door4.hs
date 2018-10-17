@@ -98,5 +98,8 @@ data family Sing (a :: k)
 data Sigma k :: (k ~> Type) -> Type where
     (:&:) :: Sing x -> (f @@ x) -> Sigma k f
 
+foo :: Sing MergeStateSym0
+foo = sing
+
 main :: IO ()
 main = return ()

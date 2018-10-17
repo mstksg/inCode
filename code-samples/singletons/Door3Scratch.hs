@@ -89,5 +89,8 @@ mergeHallway' = \case
     HEnd       -> UnsafeMkDoor @Opened "End"
     HCons d ds -> mergeDoor d (mergeHallway' ds)
 
+foo :: Sing MergeStateSym0
+foo = sing
+
 main :: IO ()
 main = return ()

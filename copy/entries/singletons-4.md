@@ -191,9 +191,6 @@ to apply them to each other, and everything typechecks.  However, if, say, we
 directly stuffed `s` or `t` into `MkSomeDoor`, things would fall apart and not
 typecheck.
 
-<!-- TODO: exercise where Knockable s -> Knockable t -> Knockable (MergeState s
-t) -->
-
 And so now we have full expressiveness in determining input and output
 relationships!  Once we unlock the power of type-level functions with
 *singletons*, writing type-level relationships become as simple as writing
@@ -235,8 +232,6 @@ Hallway '[ 'Closed, 'Opened, 'Locked ]
 
 That is, a `Hallway '[ s, t, u ]` is a hallway consisting of a `Door s`, a
 `Door t`, and a `Door u`, constructed like a linked list in Haskell.
-
-<!-- TODO: append halls as exerise -->
 
 Now, let's write a function to *collapse all doors in a hallway down to a
 single door*:
@@ -292,7 +287,7 @@ Functional Programming
 We went over that all a bit fast, but some of you might have noticed that the
 definition of `mergeStates` bears a really strong resemblance to a very common
 Haskell list processing pattern:
- 
+
 ```haskell
 mergeStates :: [DoorState] -> DoorState
 mergeStates []     = Opened               -- ^ the identity of mergeState
@@ -640,8 +635,6 @@ type family Foldr (f :: j ~> k ~> k) (z :: k) (xs :: [j]) :: k where
     Foldr f z (x ': xs) = (f @@ x) @@ Foldr f z xs
 ```
 
-<!-- TODO: note on new foldr -->
-
 The difference is that instead of taking a type family or type constructor `f :: j
 -> k -> k`, we have it take the *defunctionalization symbol* `f :: j ~> (k ~>
 k)`.
@@ -688,6 +681,16 @@ collapseHallway HEnd       = UnsafeMkDoor "End of Hallway"
 collapseHallway (d :<# ds) = d `mergeDoor` collapseHallway ds
 ```
 
+(Note: Unfortunately, we do have to use our our own `Foldr` here, instead of
+using the one that comes with *singletons*, because of some [outstanding
+issues][foldr] with how the singletons TH processes alternative implementations
+of `foldr` from Prelude.  In general, the issue is that we should only expect
+type families to work with singletons if the definition of the type family
+perfectly matches the structure of how we implement our value-level functions
+like `collapseHallway`)
+
+[foldr]: https://github.com/goldfirere/singletons/issues/339
+
 ### Singletons to to make things nicer
 
 Admittedly this is all a huge mess of boilerplate.  The code we had to write
@@ -724,6 +727,19 @@ important to know what the *singletons* library generates, because sometimes
 it's still useful to manually create defunctionalization symbols and work with
 them.
 
+The naming convention for non-symbolic names (non-operators) like `myFunction`
+are just to call them `MyFunctionSym0` for the completely unapplied
+defunctionalization symbol, `MyFunctionSym1` for the type constructor that
+expects one argument before returning a defunctionalization symbol,
+`MyFunctionSym2` for the type constructor that expects two arguments before
+returning a defunctionalization symbol, etc.
+
+For operator names like `++`, the naming convention is to have `++@#@$` be the
+completely unapplied defunctionalization symbol, `++@#@$$` be the type
+constructor that expects one argument before returning a defunctionalization
+symbol, `++@#@$$$` be the type constructor that takes two arguments before
+returning a defunctionalization symbol, etc.
+
 Thoughts on Symbols
 -------------------
 
@@ -733,7 +749,7 @@ with them more and more, you start to appreciate them on a deeper level.
 
 At the end of the day, you can compare defunctionalization as turning
 "functions" into just constructors you can *match* on, just like any other data
-or type consturctor.  That's because they *are* just type constructors!
+or type constructor.  That's because they *are* just type constructors!
 
 In a sense, defining defunctionalization symbols is a lot like working with
 *pattern synonyms* of your functions, instead of directly passing the functions
@@ -764,7 +780,10 @@ match on dummy constructors representing type functions.
 
 And a bit of the magic here, also, is the fact that you don't always need to
 make our own defunctionalization symbols from scratch --- you can create them
-based on other ones in a compositional way.
+based on other ones in a compositional way.  This is the basis of libraries
+like *[decidable][]*.
+
+[decidable]: http://hackage.haskell.org/package/decidable
 
 For example, suppose we wanted to build defunctionalization symbols for
 `MergeStateList`.  We can actually build them directly from defunctionalization
@@ -830,7 +849,8 @@ can read as essentially storing the `x`.
 
 We made `SomeDoor` pretty ad-hoc.  But what if we wanted to make some other
 predicate?  Well, we can make a *generic* dependent pair by *parameterizing it
-on  he dependence* between the first and second field.
+on  he dependence* between the first and second field.  Singletons provides the
+`Sigma` type, in the *Data.Singletons.Sigma* module:
 
 ```haskell
 data Sigma k :: (k ~> Type) -> Type where
@@ -857,7 +877,11 @@ This is a simple relationship, but one can imagine a `Sigma` parameterized on
 an even more complex type-level function.  We'll explore more of these in the
 exercises!
 
-### Singletons of Functions
+`Sigma` is an interesting data type that is ubiquitous in dependently typed
+programming.  It shows up everywhere, and is also very useful in the statement
+of dependently typed proofs.
+
+### Singletons of Defunctionalization Symboles
 
 One last thing to tie it all together -- let's write `collapseHallway` in a way
 that we don't know the types of the doors.
@@ -910,7 +934,11 @@ sFoldr f z (x `SCons` xs) = (f @@ x) @@ sFoldr f z xs
 ```
 
 Where `(@@) :: Sing f -> Sing x -> Sing (f @@ x)` (or `applySing`) is the
-singleton/value-level counterpart of `Apply` or `(@@)`.
+singleton/value-level counterpart of `Apply` or `(@@)`.[^slamda]
+
+[^slamdba]: `(@@)` (and as we see shortly, the `singFun` functions) are all
+implemented in terms of `SLambda`, the "singleton" for functions. Understanding
+the details of the implementation of `SLambda` aren't particularly important.
 
 So we can write:
 
@@ -928,6 +956,15 @@ We can use the `singFun` family of functions:
 singFun2 @MergeStateSym0 :: Sing MergeStateSym0
 ```
 
+But, also, we have a `SingI` instance for `MergeStateSym0`:
+
+```haskell
+sing :: Sing MergeStateSym0
+-- or
+sing @_ @MergeStateSym0         -- singletons 2.4
+sing @MergeStateSym0            -- singletons 2.5
+```
+
 And finally, we get our answer:
 
 ```haskell
@@ -939,35 +976,181 @@ collapseSomeHallway (ss :&: d) = sFoldr (singFun2 @MergeStateSym0) SOpened ss
 Closing Up
 ----------
 
+Woo!  Congratulations, you've made it to the end of the this Introduction to
+Singletons tetralogy!  This last and final part understandably ramps things up
+pretty quickly, so don't be afraid to re-read it a few times until it all sinks
+in before jumping into the exercises.
 
-<!-- For example, there is only one inhabitant of the type `Sigma DoorState -->
-<!-- (MergeStateSym1 'Locked)`.  What is it? -->
+I hope you enjoyed this journey deep into the motivation, philosophy,
+mechanics, and usage of this great library.  Hopefully these toy examples have
+been able to show you a lot of ways that type-level programming can help your
+programs today, both in type safety and in writing more expressive programs.
+And also, I hope that you can also see now how to leverage the full power of
+the *singletons* library to make those gains a reality.
 
-<!-- TODO: make hallway form somedoors -->
+There are a few corners of the library we haven't gone over (like
+the TypeLits- and TypeRep-based singletons), but I'd like to hope as well that
+this series has equipped you to be able to dive into the library documentation
+and decipher what it holds, armed with the knowledge you now have.
 
-<!-- For --> 
+As always, please try out the exercises, which are designed to help solidify
+the concepts we went over here!  And if you ever have any future questions,
+feel free to leave a comment
 
-<!-- We can then even create our own --> 
+That's it for now --- check out the exercises, and feel free to ask any
+questions in the comments or find me on [twitter][] or in freenode `#haskell`,
+where I idle as *jle\`*!
 
-<!-- TODO: Exercise, store proof of evenness -->
-
-<!-- But that's just a simple example.  Here's an example that stores a proof that -->
-<!-- the number `n` is even: -->
-
-<!-- ```haskell -->
-<!-- data IsDoubleOf n :: Nat ~> Nat -->
-<!-- type instance Apply (IsDoubleOf n) m = n :~: (m * 2)  -- * is provided in GHC.TypeNats -->
-
-<!-- type IsEven n = Sigma Nat (IsDoubleOf n) -->
-<!-- ``` -->
-
-<!-- And in fact, you never even have to fully write `MergeStateList` at all -- you -->
-<!-- can just directly -->
-
-<!-- /* You can do this all within the */ -->
-<!-- /* world */ -->
+[twitter]: https://twitter.com/mstk "Twitter"
 
 
-<!-- /* TODO: sigma */ -->
+Happy Haskelling!
 
-<!-- /* TODO: SingI instance for functions */ -->
+Exercises
+---------
+
+1.  Let's try combining type families with proofs!  In doing so, hopefully we
+    can also see the value of using dependent proofs to show how we can
+    manipulate proofs as first-class values that the compiler can verify.
+
+    Remember `Knockable` from Part 3?
+
+    ```haskell
+    !!!singletons/Door3.hs "data Knockable"
+    ```
+
+    Closed and Locked doors are knockable.  But, if you merge two knockable
+    doors...is the result *also* always knockable?
+
+    I say yes, but don't take my word for it.  Prove it using `Knockable`!
+
+    ```haskell
+    mergedIsKnockable
+        :: Knockable s
+        -> Knockable t
+        -> Knockable (MergeState s t)
+    ```
+
+    `mergeIsKnockable` is only implementable if the merging of two DoorStates
+    that are knockable is also knockable.  See if you can write the
+    implementation!
+
+2.  Write a function to append two hallways together.
+
+    ```haskell
+    appendHallways
+        :: Hallway ss
+        -> Hallway ts
+        -> Hallway ????
+    ```
+
+    Try to figure out what `???` should be.  Try not to use any type families
+    from *singletons* --- implement any type families you might need from
+    scratch!
+
+    Remember the important principle that your type family must mirror the
+    implementation of the functions that use it.
+
+3.  Can you use `Sigma` to define a door that must be knockable?
+
+    To do this, try directly defining the defunctionalization symbol
+    `KnockableDoor :: DoorState ~> Type` (or use singletons to generate it for
+    you) so that:
+
+    ```haskell
+    type SomeKnockableDoor = Sigma DoorState KnockableDoor
+    ```
+
+    will contain a `Door` that must be knockable.
+
+    Try doing it for both (a) the "dependent proof" version (with the `Knockable`
+    data type) and for (b) the type family version (with the `StatePass` type
+    family).
+
+    *Hint:* Look at the definition of `SomeDoor` in terms of `Sigma`:
+
+    ```haskell
+    type SomeDoor = Sigma DoorState (TyCon1 Door)
+    ```
+
+    *Hint*: Try having `KnockableDoor` return a tuple.
+
+4.  Take a look at the API of the *[Data.Singletons.TypeLits][]* module, based on
+    the API exposed in *[GHC.TypeNats][]* module from *base*.
+
+    [Data.Singletons.TypeLits]: http://hackage.haskell.org/package/singletons-2.5/docs/Data-Singletons-TypeLits.html
+    [GHC.TypeNats]: http://hackage.haskell.org/package/base-4.12.0.0/docs/GHC-TypeNats.html
+
+    Using this, you can use `Sigma` to create a predicate that a given `Nat`
+    number is even:
+
+    ```haskell
+    data IsHalfOf :: Nat -> Nat ~> Type
+    type instance Apply (IsHalfOf n) m = n :~: (m * 2)
+
+    type IsEven n = Sigma Nat (IsHalfOf n)
+    ```
+
+    `(*)` is multiplication from the *[Data.Singletons.Prelude.Num][]* module.
+    (You must have the *-XNoStarIsType* extension on for this to work in
+    GHC 8.6+), and `:~:` is the predicate of equality from Part 3.
+
+    [Data.Singletons.Prelude.Num]: http://hackage.haskell.org/package/singletons-2.5/docs/Data-Singletons-Prelude-Num.html
+
+    The only way to construct an `IsEven n` is to provide a number `m` where
+    `m * 2` is `n`:
+
+    ```haskell
+    tenIsEven :: IsEven 10
+    tenIsEven = 5 :&: Refl      -- Refl is the constructor of type n :~: (m * 2)
+
+    -- won't compile
+    sevenIsEven :: IsEven 10
+    sevenIsEven = 4 :&: Refl
+        -- won't compile, because we need something of type `(4 * 2) :~: 7`,
+        -- but Refl must have type `a :~: a`; `8 :~: 7` is not constructable
+        -- using `Refl`.
+    ```
+
+    Write a similar type `IsOdd n` that can only be constructed if `n` is
+    *odd*.
+
+    ```haskell
+    type IsOdd n = Sigma Nat (???? n)
+    ```
+
+5.  A common beginner Haskeller exercise is to implement `map` in terms of
+    `foldr`:
+
+    ```haskell
+    map :: (a -> b) -> [a] _> [b]
+    map f = foldr ((:) . f) []
+    ```
+
+    Let's do the same thing at the type level, manually.
+
+    Directly implement a type-level `Map`, with kind `(j ~> k) -> [j] -> [k]`,
+    in terms of `Foldr`:
+
+    ```haskell
+    type Map f xs = Foldr ???? ???? xs
+    ```
+
+    Try to mirror the value-level definition, passing in `(:) . f`.
+
+6.  Make a `SomeHallway` from a list of `SomeDoor`:
+
+    ```haskell
+    type SomeDoor    = Sigma DoorState   (TyCon1 Door)
+    type SomeHallway = Sigma [DoorState] (TyCon1 Hallway)
+
+    mkSomeHallway :: [SomeDoor] -> SomeHallway
+    ```
+
+Special Thanks
+--------------
+
+I am very humbled to be supported by an amazing community, who make it possible
+for me to devote time to researching and writing these posts.  Very special
+thanks to my two supporters at the "Amazing" level on [patreon][], Sam Stites
+and Josh Vera! :)
