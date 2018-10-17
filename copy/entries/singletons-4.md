@@ -740,6 +740,9 @@ constructor that expects one argument before returning a defunctionalization
 symbol, `++@#@$$$` be the type constructor that takes two arguments before
 returning a defunctionalization symbol, etc.
 
+Note also that the template haskell also generates `SingI` instances for all of
+your defunctionalization symbols, too --- more on that in a bit!
+
 Thoughts on Symbols
 -------------------
 
@@ -956,7 +959,9 @@ We can use the `singFun` family of functions:
 singFun2 @MergeStateSym0 :: Sing MergeStateSym0
 ```
 
-But, also, we have a `SingI` instance for `MergeStateSym0`:
+But, also, conveniently, the *singletons* library generates a `SingI` instance
+for `MergeStateSym0`, if you defined `mergeState` using the *singletons*
+template haskell:
 
 ```haskell
 sing :: Sing MergeStateSym0
