@@ -1036,7 +1036,7 @@ Exercises
         -> Knockable (MergeState s t)
     ```
 
-    `mergeIsKnockable` is only implementable if the merging of two DoorStates
+    `mergedIsKnockable` is only implementable if the merging of two DoorStates
     that are knockable is also knockable.  See if you can write the
     implementation!
 
@@ -1055,6 +1055,17 @@ Exercises
 
     Remember the important principle that your type family must mirror the
     implementation of the functions that use it.
+
+    And, for fun, use `appendHallways` to implement `appendSomeHallways`:
+
+    ```haskell
+    type SomeHallway = Sigma [DoorState] (TyCon1 Hallway)
+
+    appendSomeHallways
+        :: SomeHallway
+        -> SomeHallway
+        -> SomeHallway
+    ```
 
 3.  Can you use `Sigma` to define a door that must be knockable?
 
