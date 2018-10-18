@@ -10,14 +10,12 @@
 module Blog.Types where
 
 import           Control.Lens
-import           Data.Aeson
 import           Data.Binary.Orphans    ()
 import           Data.Char
 import           Data.Default
 import           Data.Time.LocalTime
 import           Data.Typeable
 import           Dhall
-import qualified Data.Aeson.Types       as A
 import qualified Data.Binary            as B
 import qualified Data.Map               as M
 import qualified Data.Text              as T

@@ -26,16 +26,24 @@ packages:
 
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
 extra-deps:
+- cassava-megaparsec-2.0.0
 - cborg-0.2.0.0
-- dhall-1.17.0
-- hakyll-dhall-0.2.1.3
+- dhall-1.18.0
+- hakyll-dhall-0.2.2.1
 - hakyll-sass-0.2.3
+- hashtables-1.2.3.1
+- megaparsec-7.0.1
+- repline-0.2.0.0
 - serialise-0.2.0.0
 - github: jwiegley/gitlib
   commit: 7084c2ad0d7e14f27bef17397145ec676d2062a3
   subdirs:
   - gitlib
   - gitlib-libgit2
+- git: https://github.com/simonmichael/hledger.git
+  commit: a6a73e36e34e5ba34dd34b1f81b09a00bfe65850
+  subdirs:
+  - hledger-lib
 
 # Override default flag values for local packages and extra-deps
 flags: {}

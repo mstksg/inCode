@@ -12,21 +12,21 @@ in  let mkPatron = \(name    : Text                         ) ->
                       , info = { twitter = twitter, level = level }
                       } : Patron
 in  [ mkPatron "Domen Kožar"
-               (["iElectric"] : Optional Text)
+               (Some "iElectric")
                (Level.Support {=})
     , mkPatron "Sam Stites"
-               ([] : Optional Text)
+               (None Text)
                (Level.Amazing {=})
     , mkPatron "Finpan Halpenny"
-               ([] : Optional Text)
+               (None Text)
                (Level.Support {=})
     , mkPatron "Josh Miller"
-               ([] : Optional Text)
+               (None Text)
                (Level.Support {=})
     , mkPatron "Josh Vera"
-               ([] : Optional Text)
+               (None Text)
                (Level.Amazing {=})
     , mkPatron "Shae Erisson"
-               ([] : Optional Text)
+               (None Text)
                (Level.Support {=})
     ] : List Patron

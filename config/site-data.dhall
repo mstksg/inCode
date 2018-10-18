@@ -6,22 +6,18 @@
 , license        = "CC-BY-NC-ND 3.0"
 , licenseLink    = "https://creativecommons.org/licenses/by-nc-nd/3.0/"
 , feed           = "http://feeds.feedburner.com/incodeblog"
-, blobs          =
-    let Blobs = { tree : Text
-                , sourceBranch : Optional Text
-                , renderBranch : Optional Text
-                }
-    in  [{ tree         = "https://github.com/mstksg/inCode/tree"
-         , sourceBranch = (["master"]   : Optional Text)
-         , renderBranch = (["gh-pages"] : Optional Text)
-         }] : Optional Blobs
-, codeSamples    = ["code-samples"] : Optional Text
-, interactive    = ["https://www.fpcomplete.com/user/jle/"] : Optional Text
+, blobs          = Some
+    { tree         = "https://github.com/mstksg/inCode/tree"
+    , sourceBranch = Some "master"
+    , renderBranch = Some "gh-pages"
+    }
+, codeSamples    = Some "code-samples"
+, interactive    = Some "https://www.fpcomplete.com/user/jle/"
 , hostInfo       =
     { secure = True
     , base   = "blog.jle.im"
-    , port   = [] : Optional Natural
-    , root   = [] : Optional Text
+    , port   = None Natural
+    , root   = None Text
     }
 , developerAPIs  = ./site-data/developer-apis.dhall
 , blogPrefs      = ./site-data/blog-prefs.dhall
