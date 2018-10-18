@@ -23,9 +23,9 @@
 
 import           Data.Kind
 import           Data.Singletons
-import           Data.Singletons.Prelude hiding (And, Or)
-import           Data.Singletons.TH
-import           Data.Void
+import           Data.Singletons.Prelude hiding (And, Or, sFoldr, FoldrSym0, FoldrSym1, FoldrSym2, FoldrSym3, Foldr)
+import           Data.Singletons.Sigma
+import           Data.Singletons.TH hiding (sFoldr, FoldrSym0, FoldrSym1, FoldrSym2, FoldrSym3, Foldr)
 
 $(singletons [d|
   data DoorState = Opened | Closed | Locked
@@ -34,9 +34,6 @@ $(singletons [d|
 
 data Door :: DoorState -> Type where
     UnsafeMkDoor :: { doorMaterial :: String } -> Door s
-
-data SomeDoor :: Type where
-    MkSomeDoor :: Sing s -> Door s -> SomeDoor
 
 $(singletons [d|
   mergeState :: DoorState -> DoorState -> DoorState
@@ -49,9 +46,15 @@ mergeDoor
     -> Door (MergeState s t)
 mergeDoor d e = UnsafeMkDoor $ doorMaterial d ++ " and " ++ doorMaterial e
 
+type SomeDoor = Sigma DoorState (TyCon1 Door)
+
+mkSomeDoor :: DoorState -> String -> SomeDoor
+mkSomeDoor ds mat = withSomeSing ds $ \dsSing ->
+    dsSing :&: UnsafeMkDoor mat
+
 mergeSomeDoor :: SomeDoor -> SomeDoor -> SomeDoor
-mergeSomeDoor (MkSomeDoor s d) (MkSomeDoor t e) =
-    MkSomeDoor (sMergeState s t) (mergeDoor d e)
+mergeSomeDoor (s :&: d) (t :&: e) =
+    sMergeState s t :&: mergeDoor d e
 
 data Hallway :: [DoorState] -> Type where
     HEnd  :: Hallway '[]        -- ^ end of the hallway, a stretch with no
@@ -72,3 +75,29 @@ $(singletons [d|
 collapseHallway :: Hallway ss -> Door (MergeStateList ss)
 collapseHallway HEnd       = UnsafeMkDoor "End of Hallway"
 collapseHallway (d :<# ds) = d `mergeDoor` collapseHallway ds
+
+type SomeHallway = Sigma [DoorState] (TyCon1 Hallway)
+
+collapseSomeHallway :: SomeHallway -> SomeDoor
+collapseSomeHallway (ss :&: d) = sMergeStateList ss
+                             :&: collapseHallway d
+
+$(singletons [d|
+  foldr :: (a -> b -> b) -> b -> [a] -> b
+  foldr _ z []     = z
+  foldr f z (x:xs) = f x (foldr f z xs)
+  |])
+
+collapseHallway'
+    :: Hallway ss
+    -> Door (FoldrSym2 MergeStateSym0 'Opened @@ ss)
+collapseHallway' HEnd       = UnsafeMkDoor "End of Hallway"
+collapseHallway' (d :<# ds) = d `mergeDoor` collapseHallway' ds
+
+collapseSomeHallway' :: SomeHallway -> SomeDoor
+collapseSomeHallway' (ss :&: d) =
+        sFoldr (singFun2 @MergeStateSym0 sMergeState) SOpened ss
+     -- or
+     -- sFoldr (sing @MergeStateSym0) SOpened ss
+    :&: collapseHallway' d
+
