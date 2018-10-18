@@ -177,6 +177,8 @@ refuteKnocked
     -> Knockable s
 refuteKnocked v = case sing @s of   -- sing @_ @s for singletons-2.4.1 and earlier
     SOpened -> absurd $ v (Refl @'Opened)
+        -- in this branch, we have `s ~ 'Opened`, so we can use `v` with
+        -- `'Opened :~: 'Opened`.
     SClosed -> KnockClosed
     SLocked -> KnockLocked
 
