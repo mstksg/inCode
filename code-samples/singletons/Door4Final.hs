@@ -194,7 +194,7 @@ type instance Apply (AlmostHalfOf n) m = n :~: (m * 2 + 1)
 type IsOdd n = Sigma Nat (AlmostHalfOf n)
 
 sevenIsOdd :: IsOdd 7
-sevenIsOdd = SNat @3 :&: Refl
+sevenIsOdd = SNat @3 :&: Refl @7
  
 -- | 5.
 type Map f xs = Foldr (TyCon2 (:) .@#@$$$ f) '[] xs

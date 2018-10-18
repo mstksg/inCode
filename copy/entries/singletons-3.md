@@ -448,7 +448,8 @@ To see how, note the constructors that it allows. Remember that we limit
 so we can only construct valid values.  The same thing happens here --
 `('Blah :~:)` only has *one single constructor*: `Refl :: 'Blah :~: 'Blah`.  The
 only valid constructor is one where the left hand side is equal to the right
-hand side.
+hand side.  I like to use `Refl` with type application syntax, like `Refl
+@'Blah`, so it's always clear exactly what we are saying is the same.
 
 It also offers the "kindclass" `SDecide`, which provides *decision functions*
 for the `(a :~:)` predicate:

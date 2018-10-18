@@ -1114,9 +1114,20 @@ functions are total!
 
     `(*)` is multiplication from the *[Data.Singletons.Prelude.Num][]* module.
     (**You must have the *-XNoStarIsType* extension on** for this to work in
-    GHC 8.6+), and `:~:` is the predicate of equality from Part 3.
+    GHC 8.6+), and `:~:` is the predicate of equality from Part 3:
 
     [Data.Singletons.Prelude.Num]: http://hackage.haskell.org/package/singletons-2.5/docs/Data-Singletons-Prelude-Num.html
+
+    ```haskell
+    data (:~:) :: k -> k -> Type where
+        Refl :: a :~: a
+    ```
+
+    (It's only possible to make a value of type `a :~: b` using `Refl :: a :~:
+    a`, so it's only possible to make a value of that type when `a` and `b` are
+    equal.  I like to use `Refl` with type application syntax, like `Refl @a`,
+    so it's clear what we are saying is the same on both sides; `Refl @a :: a
+    :~: a`)
 
     The only way to construct an `IsEven n` is to provide a number `m` where
     `m * 2` is `n`.  We can do this by using `SNat @m`, which is the singleton
@@ -1125,14 +1136,16 @@ functions are total!
 
     ```haskell
     tenIsEven :: IsEven 10
-    tenIsEven = SNat @5 :&: Refl      -- Refl is the constructor of type n :~: (m * 2)
+    tenIsEven = SNat @5 :&: Refl @10
+        -- Refl is the constructor of type n :~: (m * 2)
+        -- here, we use it as Refl @10 :: 10 :~: 10
 
     -- won't compile
     sevenIsEven :: IsEven 10
     sevenIsEven = SNat @4 :&: Refl
         -- won't compile, because we need something of type `(4 * 2) :~: 7`,
         -- but Refl must have type `a :~: a`; `8 :~: 7` is not constructable
-        -- using `Refl`.
+        -- using `Refl`.  Neither `Refl @8` nor `Refl @7` will work.
     ```
 
     Write a similar type `IsOdd n` that can only be constructed if `n` is

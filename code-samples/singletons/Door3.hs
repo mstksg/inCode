@@ -158,7 +158,7 @@ knockableOrOpened
     :: forall s. SingI s
     => Or Knockable ((:~:) 'Opened) s
 knockableOrOpened = case sing @s of
-    SOpened -> OrRight Refl
+    SOpened -> OrRight $ Refl @'Opened
     SClosed -> OrLeft KnockClosed
     SLocked -> OrLeft KnockLocked
 
@@ -176,7 +176,7 @@ refuteKnocked
     => Refuted (s :~: 'Opened)
     -> Knockable s
 refuteKnocked v = case sing @s of   -- sing @_ @s for singletons-2.4.1 and earlier
-    SOpened -> absurd (v Refl)
+    SOpened -> absurd $ v (Refl @'Opened)
     SClosed -> KnockClosed
     SLocked -> KnockLocked
 
