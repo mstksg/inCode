@@ -1164,8 +1164,8 @@ functions are total!
     [Solution here!][solution4]
 
     On a sad note, one exercise I'd like to be able to add is to ask you to
-    write decision functions and proofs of not-even or not-odd, but
-    unfortunately, `Nat` is not rich enough to support this out of the box
+    write decision functions and proofs for `IsEven` and `IsOdd`.
+    Unfortunately, `Nat` is not rich enough to support this out of the box
     without a lot of extra tooling!
 
 5.  A common beginner Haskeller exercise is to implement `map` in terms of
