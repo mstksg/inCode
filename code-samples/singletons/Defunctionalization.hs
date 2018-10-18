@@ -1,19 +1,7 @@
 #!/usr/bin/env stack
 -- stack --install-ghc ghci --resolver nightly-2018-09-29
 
-{-# LANGUAGE AllowAmbiguousTypes            #-}
-{-# LANGUAGE DataKinds                      #-}
-{-# LANGUAGE EmptyCase                      #-}
 {-# LANGUAGE GADTs                          #-}
-{-# LANGUAGE InstanceSigs                   #-}
-{-# LANGUAGE KindSignatures                 #-}
-{-# LANGUAGE LambdaCase                     #-}
-{-# LANGUAGE MultiParamTypeClasses          #-}
-{-# LANGUAGE RankNTypes                     #-}
-{-# LANGUAGE ScopedTypeVariables            #-}
-{-# LANGUAGE StandaloneDeriving             #-}
-{-# LANGUAGE TemplateHaskell                #-}
-{-# LANGUAGE TypeApplications               #-}
 {-# LANGUAGE TypeFamilies                   #-}
 {-# LANGUAGE TypeInType                     #-}
 {-# LANGUAGE TypeOperators                  #-}
@@ -22,7 +10,6 @@
 {-# OPTIONS_GHC -Werror=incomplete-patterns #-}
 
 import           Data.Kind
--- import           Data.Void
 
 data TyFun a b
 type a ~> b = TyFun a b -> Type

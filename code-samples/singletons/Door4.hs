@@ -1,21 +1,15 @@
 #!/usr/bin/env stack
 -- stack --install-ghc ghci --resolver nightly-2018-09-29 --package singletons
 
-{-# LANGUAGE AllowAmbiguousTypes            #-}
 {-# LANGUAGE DataKinds                      #-}
 {-# LANGUAGE EmptyCase                      #-}
 {-# LANGUAGE GADTs                          #-}
 {-# LANGUAGE InstanceSigs                   #-}
 {-# LANGUAGE KindSignatures                 #-}
-{-# LANGUAGE LambdaCase                     #-}
-{-# LANGUAGE MultiParamTypeClasses          #-}
-{-# LANGUAGE RankNTypes                     #-}
 {-# LANGUAGE ScopedTypeVariables            #-}
 {-# LANGUAGE StandaloneDeriving             #-}
 {-# LANGUAGE TemplateHaskell                #-}
-{-# LANGUAGE TypeApplications               #-}
 {-# LANGUAGE TypeFamilies                   #-}
-{-# LANGUAGE TypeInType                     #-}
 {-# LANGUAGE TypeOperators                  #-}
 {-# LANGUAGE UndecidableInstances           #-}
 {-# OPTIONS_GHC -Wall                       #-}
@@ -25,7 +19,6 @@ import           Data.Kind
 import           Data.Singletons
 import           Data.Singletons.Prelude hiding (And, Or)
 import           Data.Singletons.TH
-import           Data.Void
 
 $(singletons [d|
   data DoorState = Opened | Closed | Locked

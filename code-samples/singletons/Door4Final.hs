@@ -101,3 +101,92 @@ collapseSomeHallway' (ss :&: d) =
      -- sFoldr (sing @MergeStateSym0) SOpened ss
     :&: collapseHallway' d
 
+-- Exercises
+
+-- | 1.
+data Knockable :: DoorState -> Type where
+    KnockClosed :: Knockable 'Closed
+    KnockLocked :: Knockable 'Locked
+
+mergedIsKnockable
+    :: Knockable s
+    -> Knockable t
+    -> Knockable (MergeState s t)
+mergedIsKnockable = \case
+    KnockClosed -> \case
+      KnockClosed -> KnockClosed
+      KnockLocked -> KnockLocked    -- GHC makes sure we use KnockLocked!
+    KnockLocked -> \case
+      KnockClosed -> KnockLocked
+      KnockLocked -> KnockLocked
+    -- and -Werror=incomplete-patterns makes sure we handle all cases
+
+-- | 2.
+$(singletons [d|
+  append :: [a] -> [a] -> [a]
+  append []     ys = ys
+  append (x:xs) ys = x : append xs ys
+  |])
+
+appendHallways
+    :: Hallway ss
+    -> Hallway ts
+    -> Hallway (Append ss ts)
+appendHallways = \case
+    HEnd     -> id
+    d :<# ds -> \es -> d :<# appendHallways ds es
+
+appendSomeHallways
+    :: SomeHallway
+    -> SomeHallway
+    -> SomeHallway
+appendSomeHallways (ss :&: ds) (ts :&: es)
+      = sAppend ss ts
+    :&: appendHallways ds es
+
+-- | 3.
+
+-- Auto-promotion, Knockable
+$(singletons [d|
+  type KnockableDoor1 s = (Knockable s, Door s)
+  |])
+
+type SomeKnockableDoor1 = Sigma DoorState KnockableDoor1Sym0
+
+-- Manual family, Knockable
+data KnockableDoor2 :: DoorState ~> Type
+type instance Apply KnockableDoor2 s = (Knockable s, Door s)
+
+type SomeKnockableDoor2 = Sigma DoorState KnockableDoor2
+
+-- Auto-promotion, via Pass
+$(singletons [d|
+  data Pass = Obstruct | Allow
+    deriving (Show, Eq, Ord)
+
+  statePass :: DoorState -> Pass
+  statePass Opened = Allow
+  statePass Closed = Obstruct
+  statePass Locked = Obstruct
+  |])
+
+$(singletons [d|
+  type KnockableDoor3 s = (StatePass s :~: 'Obstruct, Door s)
+  |])
+
+type SomeKnockableDoor3 = Sigma DoorState KnockableDoor3Sym0
+
+-- Manual family, via Pass
+data KnockableDoor4 :: DoorState ~> Type
+type instance Apply KnockableDoor4 s = (StatePass s :~: 'Obstruct, Door s)
+
+type SomeKnockableDoor4 = Sigma DoorState KnockableDoor4
+ 
+-- | 5.
+type Map f xs = Foldr (TyCon2 (:) .@#@$$$ f) '[] xs
+
+-- | 6.
+mkSomeHallway :: [SomeDoor] -> SomeHallway
+mkSomeHallway []               = SNil :&: HEnd
+mkSomeHallway ((s :&: d) : ds) = case mkSomeHallway ds of
+    ss :&: hw -> (s `SCons` ss) :&: (d :<# hw)

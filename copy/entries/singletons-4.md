@@ -603,7 +603,7 @@ constructor.
 Now we just need to have our defunctionalization symbols for `MergeStateList`:
 
 ```haskell
-!!!singletons/Defunctionalization.hs "data MergeStateSym0" "data MergeStateSym1" "data MergeStateSym2"
+!!!singletons/Defunctionalization.hs "data MergeStateSym0" "data MergeStateSym1" "type MergeStateSym2"
 ```
 
 And now we can write `MergeStateList`!
@@ -668,6 +668,9 @@ And all of these defunctionalization symbols are generated for you;
 and translate its lifted version to take a defunctionalization
 symbol `a ~> b ~> b`.
 
+That the template haskell also generates `SingI` instances for all of your
+defunctionalization symbols, too --- more on that in a bit!
+
 It's okay to stay "in the world of singletons" for the most part, and let
 singletons handle the composition of functions for you.  However, it's still
 important to know what the *singletons* library generates, because sometimes
@@ -687,8 +690,43 @@ constructor that expects one argument before returning a defunctionalization
 symbol, `++@#@$$$` be the type constructor that takes two arguments before
 returning a defunctionalization symbol, etc.
 
-Note also that the template haskell also generates `SingI` instances for all of
-your defunctionalization symbols, too --- more on that in a bit!
+Another helpful thing that *singletons* does is that it also generates
+defunctionalization symbols for type families and type synonyms you define in the Template
+Haskell, as well --- so if you write
+
+```haskell
+$(singletons [d|
+  type MyTypeFamily (b :: Bool) :: Type where
+    MyTypeFamily 'False = Int
+    MyTypeFamily 'True  = String
+  |])
+```
+
+and
+
+```haskell
+$(singletons [d|
+  type MyTypeSynonym a = (a, [a])
+  |])
+```
+
+*singletons* will generate:
+
+```haskell
+data MyTypeFamilySym0 :: Bool ~> Type
+type instance Apply MyTypeFamilySym0 b = MyTypeFamily b
+
+type MyTypeFamilySym1 b = MyTypeFamily b
+```
+
+and
+
+```haskell
+data MyTypeSynonymSym0 :: Type ~> Type
+type instance Apply MyTypeSynonym b = MyTypeSynonym a
+
+type MyTypeSynonymSym1 a = MyTypeSynonym a
+```
 
 Thoughts on Symbols
 -------------------
@@ -949,7 +987,6 @@ where I idle as *jle\`*!
 
 [twitter]: https://twitter.com/mstk "Twitter"
 
-
 Happy Haskelling!
 
 Exercises
@@ -962,7 +999,7 @@ Exercises
     Remember `Knockable` from Part 3?
 
     ```haskell
-    !!!singletons/Door3.hs "data Knockable"
+    !!!singletons/Door4Final.hs "data Knockable"
     ```
 
     Closed and Locked doors are knockable.  But, if you merge two knockable
@@ -971,10 +1008,7 @@ Exercises
     I say yes, but don't take my word for it.  Prove it using `Knockable`!
 
     ```haskell
-    mergedIsKnockable
-        :: Knockable s
-        -> Knockable t
-        -> Knockable (MergeState s t)
+    !!!singletons/Door4Final.hs "mergedIsKnockable"4
     ```
 
     `mergedIsKnockable` is only implementable if the merging of two DoorStates
@@ -997,22 +1031,17 @@ Exercises
     Remember the important principle that your type family must mirror the
     implementation of the functions that use it.
 
-    And, for fun, use `appendHallways` to implement `appendSomeHallways`:
+    Next, for fun, use `appendHallways` to implement `appendSomeHallways`:
 
     ```haskell
-    type SomeHallway = Sigma [DoorState] (TyCon1 Hallway)
-
-    appendSomeHallways
-        :: SomeHallway
-        -> SomeHallway
-        -> SomeHallway
+    !!!singletons/Door4Final.hs "type SomeHallway" "appendSomeHallways"4
     ```
 
 3.  Can you use `Sigma` to define a door that must be knockable?
 
     To do this, try directly defining the defunctionalization symbol
     `KnockableDoor :: DoorState ~> Type` (or use singletons to generate it for
-    you) so that:
+    you --- remember that *singletons* can also promote type families) so that:
 
     ```haskell
     type SomeKnockableDoor = Sigma DoorState KnockableDoor
@@ -1093,16 +1122,20 @@ Exercises
     type Map f xs = Foldr ???? ???? xs
     ```
 
-    Try to mirror the value-level definition, passing in `(:) . f`.
+    Try to mirror the value-level definition, passing in `(:) . f`, and use the
+    promoted version of `(.)` from the *singletons* library, in
+    *[Data.Singletons.Prelude][]*.  You might find `TyCon2` helpful!
+
+    [Data.Singletons.Prelude]: http://hackage.haskell.org/package/singletons-2.5/docs/Data-Singletons-Prelude.html
 
 6.  Make a `SomeHallway` from a list of `SomeDoor`:
 
     ```haskell
-    type SomeDoor    = Sigma DoorState   (TyCon1 Door)
-    type SomeHallway = Sigma [DoorState] (TyCon1 Hallway)
-
-    mkSomeHallway :: [SomeDoor] -> SomeHallway
+    !!!singletons/Door4Final.hs "type SomeDoor" "type SomeHallway" "mkSomeHallway"1
     ```
+
+    Remember that the singleton constructors for list are `SNil` (for `[]`) and
+    `SCons` (for `(:)`)!
 
 Special Thanks
 --------------

@@ -1,7 +1,6 @@
 #!/usr/bin/env stack
 -- stack --install-ghc ghci --resolver nightly-2018-09-29 --package singletons
 
-{-# LANGUAGE AllowAmbiguousTypes            #-}
 {-# LANGUAGE DataKinds                      #-}
 {-# LANGUAGE EmptyCase                      #-}
 {-# LANGUAGE GADTs                          #-}
