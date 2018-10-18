@@ -977,20 +977,47 @@ the TypeLits- and TypeRep-based singletons), but I'd like to hope as well that
 this series has equipped you to be able to dive into the library documentation
 and decipher what it holds, armed with the knowledge you now have.
 
+You can download the source code here --- [Door4Final.hs][source-final]
+contains the final versions of all our definitions, and
+[Defunctionalization.hs][] contains all of our defunctionalization-from-scratch
+work.  These are designed as stack scripts that you can load into ghci.  Just
+execute the scripts:
+
+```bash
+$ ./Door4Final.hs
+ghci>
+```
+
+And you'll be dropped into a ghci session with all of the definitions in
+scope!
+
 As always, please try out the exercises, which are designed to help solidify
 the concepts we went over here!  And if you ever have any future questions,
-feel free to leave a comment
-
-That's it for now --- check out the exercises, and feel free to ask any
-questions in the comments or find me on [twitter][] or in freenode `#haskell`,
-where I idle as *jle\`*!
+feel free to leave a comment or find me on [twitter][] or in freenode
+`#haskell`, where I idle as *jle\`*!
 
 [twitter]: https://twitter.com/mstk "Twitter"
 
-Happy Haskelling!
+Until next time, Happy Haskelling!
 
 Exercises
 ---------
+
+Here are your final exercises for this series!  Start from [this sample source
+code][source-final], which has all of the definitions that the exercises and
+their solutions require.  Just make sure to delete all of the parts after the
+`-- Exercise` comment if you don't want to be spoiled!  Remember again to
+enable `-Werror=incomplete-patterns` or `-Wall` to ensure that all of your
+functions are total!
+
+!!![source-final]:singletons/Door4Final.hs
+
+!!![solution1]:singletons/Door3.hs "-- | 1."1
+!!![solution2]:singletons/Door3.hs "-- | 2."1
+!!![solution3]:singletons/Door3.hs "-- | 3."1
+!!![solution4]:singletons/Door3.hs "-- | 4."1
+!!![solution5]:singletons/Door3.hs "-- | 5."1
+!!![solution6]:singletons/Door3.hs "-- | 6."1
 
 1.  Let's try combining type families with proofs!  In doing so, hopefully we
     can also see the value of using dependent proofs to show how we can
@@ -1015,6 +1042,8 @@ Exercises
     that are knockable is also knockable.  See if you can write the
     implementation!
 
+    [Solution here!][solution1]
+
 2.  Write a function to append two hallways together.
 
     ```haskell
@@ -1037,6 +1066,8 @@ Exercises
     !!!singletons/Door4Final.hs "type SomeHallway" "appendSomeHallways"4
     ```
 
+    [Solution here!][solution2]
+
 3.  Can you use `Sigma` to define a door that must be knockable?
 
     To do this, try directly defining the defunctionalization symbol
@@ -1052,6 +1083,10 @@ Exercises
     Try doing it for both (a) the "dependent proof" version (with the `Knockable`
     data type) and for (b) the type family version (with the `StatePass` type
     family).
+
+    [Solutions here!][solution3]  I gave four different ways of doing it, for a
+    full range of manual vs. auto-promoted defunctionalization symbols and
+    `Knockable` vs. `Pass`-based methods.
 
     *Hint:* Look at the definition of `SomeDoor` in terms of `Sigma`:
 
@@ -1078,21 +1113,23 @@ Exercises
     ```
 
     `(*)` is multiplication from the *[Data.Singletons.Prelude.Num][]* module.
-    (You must have the *-XNoStarIsType* extension on for this to work in
+    (**You must have the *-XNoStarIsType* extension on** for this to work in
     GHC 8.6+), and `:~:` is the predicate of equality from Part 3.
 
     [Data.Singletons.Prelude.Num]: http://hackage.haskell.org/package/singletons-2.5/docs/Data-Singletons-Prelude-Num.html
 
     The only way to construct an `IsEven n` is to provide a number `m` where
-    `m * 2` is `n`:
+    `m * 2` is `n`.  We can do this by using `SNat @m`, which is the singleton
+    constructor for the `Nat` kind (just like how `STrue` and `SFalse` are the
+    singleton constructors for the `Bool` kind):
 
     ```haskell
     tenIsEven :: IsEven 10
-    tenIsEven = 5 :&: Refl      -- Refl is the constructor of type n :~: (m * 2)
+    tenIsEven = SNat @5 :&: Refl      -- Refl is the constructor of type n :~: (m * 2)
 
     -- won't compile
     sevenIsEven :: IsEven 10
-    sevenIsEven = 4 :&: Refl
+    sevenIsEven = SNat @4 :&: Refl
         -- won't compile, because we need something of type `(4 * 2) :~: 7`,
         -- but Refl must have type `a :~: a`; `8 :~: 7` is not constructable
         -- using `Refl`.
@@ -1104,6 +1141,19 @@ Exercises
     ```haskell
     type IsOdd n = Sigma Nat (???? n)
     ```
+
+    And construct a proof that `7` is odd:
+
+    ```haskell
+    !!!singletons/Door4Final.hs "sevenIsOdd"1
+    ```
+
+    [Solution here!][solution4]
+
+    On a sad note, one exercise I'd like to be able to add is to ask you to
+    write decision functions and proofs of not-even or not-odd, but
+    unfortunately, `Nat` is not rich enough to support this out of the box
+    without a lot of extra tooling!
 
 5.  A common beginner Haskeller exercise is to implement `map` in terms of
     `foldr`:
@@ -1128,6 +1178,8 @@ Exercises
 
     [Data.Singletons.Prelude]: http://hackage.haskell.org/package/singletons-2.5/docs/Data-Singletons-Prelude.html
 
+    [Solution here!][solution5]
+
 6.  Make a `SomeHallway` from a list of `SomeDoor`:
 
     ```haskell
@@ -1136,6 +1188,8 @@ Exercises
 
     Remember that the singleton constructors for list are `SNil` (for `[]`) and
     `SCons` (for `(:)`)!
+
+    [Solution here!][solution5]
 
 Special Thanks
 --------------

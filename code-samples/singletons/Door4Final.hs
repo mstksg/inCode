@@ -9,6 +9,7 @@
 {-# LANGUAGE KindSignatures                 #-}
 {-# LANGUAGE LambdaCase                     #-}
 {-# LANGUAGE MultiParamTypeClasses          #-}
+{-# LANGUAGE NoStarIsType                   #-}
 {-# LANGUAGE RankNTypes                     #-}
 {-# LANGUAGE ScopedTypeVariables            #-}
 {-# LANGUAGE StandaloneDeriving             #-}
@@ -25,7 +26,8 @@ import           Data.Kind
 import           Data.Singletons
 import           Data.Singletons.Prelude hiding (And, Or, sFoldr, FoldrSym0, FoldrSym1, FoldrSym2, FoldrSym3, Foldr)
 import           Data.Singletons.Sigma
-import           Data.Singletons.TH hiding (sFoldr, FoldrSym0, FoldrSym1, FoldrSym2, FoldrSym3, Foldr)
+import           Data.Singletons.TH hiding      (sFoldr, FoldrSym0, FoldrSym1, FoldrSym2, FoldrSym3, Foldr)
+import           Data.Singletons.TypeLits
 
 $(singletons [d|
   data DoorState = Opened | Closed | Locked
@@ -103,10 +105,23 @@ collapseSomeHallway' (ss :&: d) =
 
 -- Exercises
 
--- | 1.
+-- | Supplementary definitions
 data Knockable :: DoorState -> Type where
     KnockClosed :: Knockable 'Closed
     KnockLocked :: Knockable 'Locked
+
+$(singletons [d|
+  data Pass = Obstruct | Allow
+    deriving (Show, Eq, Ord)
+
+  statePass :: DoorState -> Pass
+  statePass Opened = Allow
+  statePass Closed = Obstruct
+  statePass Locked = Obstruct
+  |])
+
+
+-- | 1.
 
 mergedIsKnockable
     :: Knockable s
@@ -161,16 +176,6 @@ type SomeKnockableDoor2 = Sigma DoorState KnockableDoor2
 
 -- Auto-promotion, via Pass
 $(singletons [d|
-  data Pass = Obstruct | Allow
-    deriving (Show, Eq, Ord)
-
-  statePass :: DoorState -> Pass
-  statePass Opened = Allow
-  statePass Closed = Obstruct
-  statePass Locked = Obstruct
-  |])
-
-$(singletons [d|
   type KnockableDoor3 s = (StatePass s :~: 'Obstruct, Door s)
   |])
 
@@ -181,6 +186,15 @@ data KnockableDoor4 :: DoorState ~> Type
 type instance Apply KnockableDoor4 s = (StatePass s :~: 'Obstruct, Door s)
 
 type SomeKnockableDoor4 = Sigma DoorState KnockableDoor4
+
+-- | 4.
+data AlmostHalfOf :: Nat -> Nat ~> Type
+type instance Apply (AlmostHalfOf n) m = n :~: (m * 2 + 1)
+
+type IsOdd n = Sigma Nat (AlmostHalfOf n)
+
+sevenIsOdd :: IsOdd 7
+sevenIsOdd = SNat @3 :&: Refl
  
 -- | 5.
 type Map f xs = Foldr (TyCon2 (:) .@#@$$$ f) '[] xs
