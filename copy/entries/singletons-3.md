@@ -966,7 +966,7 @@ any incomplete pattern matches!
         have inhabitants)
 
         ```haskell
-        !!!singletons/Door3.hs "And"1
+        !!!singletons/Door3.hs "data And"1
         ```
 
     b.  Define a predicate constructor `Or` that takes two predicates and
@@ -975,7 +975,7 @@ any incomplete pattern matches!
         are true (aka, have inhabitants)
 
         ```haskell
-        !!!singletons/Door3.hs "Or"1
+        !!!singletons/Door3.hs "data Or"1
         ```
 
         There are potentially multiple non-trivial variations of this type.
