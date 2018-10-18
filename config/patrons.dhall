@@ -1,16 +1,10 @@
     let Level  = constructors < Support : {} | Amazing : {} >
-in  let Patron = { name : Text
-                 , info :
-                     { twitter: Optional Text
-                     , level: < Support : {} | Amazing : {} >
-                     }
-                 }
 in  let mkPatron = \(name    : Text                         ) ->
                    \(twitter : Optional Text                ) ->
                    \(level   : <Support : {} | Amazing : {}>) ->
                       { name = name
                       , info = { twitter = twitter, level = level }
-                      } : Patron
+                      }
 in  [ mkPatron "Domen Kožar"
                (Some "iElectric")
                (Level.Support {=})
@@ -29,4 +23,4 @@ in  [ mkPatron "Domen Kožar"
     , mkPatron "Shae Erisson"
                (None Text)
                (Level.Support {=})
-    ] : List Patron
+    ]
