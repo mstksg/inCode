@@ -490,7 +490,7 @@ no inhabitants:
 !!!misc/lenses-and-prisms.hs "data Void" "absurd"
 ```
 
-then we have a curious sum: every type `a` is a sum between *itself* and
+then we have an interesting sum: every type `a` is a sum between *itself* and
 `Void`.  In other words, `a` is isomorphic to `Either a Void` (which follows
 from the algebraic property $x + 0 = x$):
 

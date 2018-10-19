@@ -316,7 +316,7 @@ Ah, but the compiler is here to tell you this isn't allowed in Haskell:
 ```
 
 What happened?  To figure out, we have to remember that pesky restriction on
-type synonyms and type families: they *cannot* be partially applied, and must
+type synonyms and type families: they can *not* be partially applied, and must
 always be fully applied.  For the most part, only *type constructors* (like
 `Maybe`, `Either`, `IO`) and lifted DataKinds data constructors (like `'Just`,
 `'(:)`) in Haskell can ever be partially applied at the type level.  We
@@ -374,15 +374,15 @@ function `id`:
 !!!singletons/Defunctionalization.hs "data Id"1
 ```
 
-Don't worry too much about `TyFun`, it's all just a type-level tag that makes
-it convenient to write `Id :: a ~> a`.  The actual kind of `Id` is `Id :: TyFun
-a a -> Type`; you can imagine `TyFun a a` as a phantom parameter that signifies
-that `Id` represents a function from `a` to `a`.
+The "actual" kind of `Id` is `Id :: TyFun a a -> Type`; you can imagine `TyFun
+a a` as a phantom parameter that signifies that `Id` represents a function from
+`a` to `a`.  It's essentially a nice trick to allow you to write `Id :: a ~> a`
+as a kind signature.
 
-Now, `Id` is not a function...it's a *dummy type constructor* that *represents*
-a function `a -> a`.  A type constructor of kind `a ~> a` represents a
-*defunctionalization symbol* -- a type constructor that represents a function
-from `a` to `a`.
+Now, `Id` is *not* a function...it's a *dummy type constructor* that
+*represents* a function `a -> a`.  A type constructor of kind `a ~> a`
+represents a *defunctionalization symbol* -- a type constructor that represents
+a function from `a` to `a`.
 
 To interpret it, we need to write our global interpreter function:
 
@@ -489,6 +489,8 @@ family, defined so that `NotSym0 @@ x = Not x`.  Its purpose is to allow us to
 convention, and the 0 stands for "expects 0 arguments".  Similarly for
 `NotSym1` -- the 1 stands for "expects 1 argument".
 
+#### Two-Argument Functions
+
 Let's look at a slightly more complicated example -- a two-argument function.
 Let's define the boolean "and":
 
@@ -555,6 +557,8 @@ A note to remember: `AndSym1 'True` is the defunctionalization symbol, and
 *not* `AndSym1` itself.  `AndSym1` has kind `Bool -> (Bool ~> Bool)`, but
 `AndSym1 'True` has kind `Bool ~> Bool` --- the kind of a defunctionalization
 symbol.
+
+#### Symbols for type constructors
 
 One extra interesting defunctionalization symbol we can write: we turn lift any
 type constructor into a "free" defunctionalization symbol:
