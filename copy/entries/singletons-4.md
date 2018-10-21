@@ -197,6 +197,13 @@ all door states as a type-level list as a type parameter:
 !!!singletons/Door4.hs "data Hallway"
 ```
 
+(If you need a refresher on type-level lists, check out [the quick introduction
+in Part 1][listp1] and [Exercise 4 in Part 2][listp2])
+
+[listp1]: https://blog.jle.im/entry/introduction-to-singletons-1.html#the-singletons-library
+[listp2]: https://blog.jle.im/entry/introduction-to-singletons-2.html#exercises
+
+
 So we might have:
 
 ```haskell
@@ -316,12 +323,12 @@ Ah, but the compiler is here to tell you this isn't allowed in Haskell:
 ```
 
 What happened?  To figure out, we have to remember that pesky restriction on
-type synonyms and type families: they can *not* be partially applied, and must
-always be fully applied.  For the most part, only *type constructors* (like
-`Maybe`, `Either`, `IO`) and lifted DataKinds data constructors (like `'Just`,
-`'(:)`) in Haskell can ever be partially applied at the type level.  We
-therefore can't use `MergeState` as an argument to `Foldr`, because
-`MergeState` must always be fully applied.
+type synonyms and type families: they can *not* be used partially applied
+("unsaturated"), and must always be fully applied ("saturated").  For the most
+part, only *type constructors* (like `Maybe`, `Either`, `IO`) and lifted
+DataKinds data constructors (like `'Just`, `'(:)`) in Haskell can ever be
+partially applied at the type level.  We therefore can't use `MergeState` as an
+argument to `Foldr`, because `MergeState` must always be fully applied.
 
 Unfortunately for us, this makes our `Foldr` effectively useless.  That's
 because we're always going to want to pass in type families (like
@@ -343,8 +350,9 @@ To make a working `Foldr`, we're going to have to jump into that second half:
 
 [defunctionalization]: https://en.wikipedia.org/wiki/Defunctionalization
 
-Defunctionalization is a technique invented in the early 70's to convert
-higher-order functions into first-order functions.  The main idea is:
+Defunctionalization is a technique invented in the early 70's as a way of
+compiling higher-order functions into first-order functions in target
+languages.  The main idea is:
 
 *   Instead of working with *functions*, work with *symbols representing
     functions*.
@@ -529,9 +537,9 @@ type AndSym2 x y = And x y
 ```
 
 `AndSym0` is a defunctionalization symbol representing a "fully unapplied"
-version of `And`. `AndSym1 x` is a defunctionalization symbol representing a
-"partially applied" version of `And` --- partially applied to `x` (its kind is
-`AndSym1 :: Bool -> (Bool ~> Bool)`).
+("completely unsaturated") version of `And`. `AndSym1 x` is a
+defunctionalization symbol representing a "partially applied" version of `And`
+--- partially applied to `x` (its kind is `AndSym1 :: Bool -> (Bool ~> Bool)`).
 
 The application of `AndSym0` to `x` gives you `AndSym1 x`:
 
@@ -732,6 +740,44 @@ type instance Apply MyTypeSynonym b = MyTypeSynonym a
 type MyTypeSynonymSym1 a = MyTypeSynonym a
 ```
 
+#### Bringing it All Together
+
+Just to show off the library, remember that *singletons* also promotes
+typeclasses?
+
+Because `DoorState` is a monoid with respect to merging, we can actually write
+and promote a `Monoid` instance:
+
+```haskell
+$(singletons [d|
+  instance Semigroup DoorState where
+      (<>) = mergeState
+  instance Monoid DoorState where
+      mempty  = Opened
+      mappend = (<>)
+  |])
+```
+
+We can promote `fold`:
+
+```haskell
+$(singletons [d|
+  fold :: Monoid b => [b] -> b
+  fold []     = mempty
+  fold (x:xs) = x <> fold xs
+  |])
+```
+
+And we can write `collapseHallway` in terms of those instead :)
+
+```haskell
+!!!singletons/Door4Final.hs "collapseHallway'" "collapseSomeHallway'"
+```
+
+(Note again unfortunately that we have to define our own `fold` instead of
+using the one from *singletons* and the `SFoldable` typeclass, because of
+[issue #339][foldr])
+
 Thoughts on Symbols
 -------------------
 
@@ -868,11 +914,10 @@ This is a simple relationship, but one can imagine a `Sigma` parameterized on
 an even more complex type-level function.  We'll explore more of these in the
 exercises!
 
-`Sigma` is an interesting data type that is ubiquitous in dependently typed
-programming.  It shows up everywhere, and is also very useful in the statement
-of dependently typed proofs.
+For some context, `Sigma` is an interesting data type (the "dependent sum")
+that is ubiquitous in dependently typed programming.
 
-### Singletons of Defunctionalization Symboles
+### Singletons of Defunctionalization Symbols
 
 One last thing to tie it all together -- let's write `collapseHallway` in a way
 that we don't know the types of the doors.
@@ -883,7 +928,7 @@ Luckily, we now have a `SomeHallway` type for free:
 !!!singletons/Door4Final.hs "type SomeHallway"
 ```
 
-The easy way would be to just use `sMergeStateList` that we defned:
+The easy way would be to just use `sMergeStateList` that we defined:
 
 ```haskell
 !!!singletons/Door4Final.hs "collapseSomeHallway"
@@ -893,11 +938,11 @@ But what if we didn't write `sMergeStateList`, and we constructed our
 defunctionalization symbols from scratch?
 
 ```haskell
-!!!singletons/Door4Final.hs "collapseHallway'"
+!!!singletons/Door4Final.hs "collapseHallway''"
 
-collapseSomeHallway' :: SomeHallway -> SomeDoor
-collapseSomeHallway' (ss :&: d) = ???    -- what goes here?
-                              :&: collapseHallway' d
+collapseSomeHallway'' :: SomeHallway -> SomeDoor
+collapseSomeHallway'' (ss :&: d) = ???    -- what goes here?
+                               :&: collapseHallway'' d
 ```
 
 This will be our final defunctionalization lesson.  How do we turn a singleton
@@ -930,9 +975,9 @@ the details of the implementation of `SLambda` aren't particularly important.
 So we can write:
 
 ```haskell
-collapseSomeHallway' :: SomeHallway -> SomeDoor
-collapseSomeHallway' (ss :&: d) = sFoldr ???? SOpened ss
-                              :&: collapseHallway d
+collapseSomeHallway'' :: SomeHallway -> SomeDoor
+collapseSomeHallway'' (ss :&: d) = sFoldr ???? SOpened ss
+                               :&: collapseHallwa''y d
 ```
 
 But how do we get a `Sing MergeStateSym0`?
@@ -958,8 +1003,9 @@ sing @MergeStateSym0            -- singletons 2.5
 And finally, we get our answer:
 
 ```haskell
-!!!singletons/Door4Final.hs "collapseSomeHallway'"
+!!!singletons/Door4Final.hs "collapseSomeHallway''"
 ```
+
 
 Closing Up
 ----------
@@ -1002,7 +1048,41 @@ feel free to leave a comment or find me on [twitter][] or in freenode
 
 [twitter]: https://twitter.com/mstk "Twitter"
 
-Until next time, Happy Haskelling!
+### Looking Forward
+
+Some final things to note before truly embracing singletons: remember that, as
+a library, *singletons* was always meant to become obsolete.  It's a library
+that only exists because Haskell doesn't have real dependent types yet.
+
+[Dependent Haskell][] is coming some day!  It's mostly driven by one solo man,
+Richard Eisenberg, but every year buzz does get bigger.  In a [recent progress
+report][progress], we do know that we realistically won't have dependent types
+before 2020.  That means that this tutorial will still remain relevant for at
+least another two years :)
+
+[Dependent Haskell]: https://ghc.haskell.org/trac/ghc/wiki/DependentHaskell
+[progress]: https://typesandkinds.wordpress.com/2016/07/24/dependent-types-in-haskell-progress-report/#comment-13327
+
+How will things be different in a world of Haskell with real dependent types?
+Well, for a good guess, take a look at [Richard Eisenberg's
+Dissertation][diss]!
+
+[diss]: https://github.com/goldfirere/thesis
+
+One day, hopefully, we won't need singletons to work with types at the
+value-level; we would just be able to directly pattern match and manipulate the
+types within the language.  And some day, I hope we won't need any more dances
+with defunctionalization symbols to write higher-order functions at the type
+level --- maybe we'll have a nicer way to work with partially applied type-level
+functions (maybe they'll just be normal functions?), and we don't need to think
+any different about higher-order or first-order functions.
+
+So, as a final word --- Happy Haskelling, everyone!  May you leverage
+*singletons* to its full potential, and may we also all dream of a day where
+*singletons* becomes obsolete.  But may we all enjoy the wonderful journey
+along the way.
+
+Until next time!
 
 Exercises
 ---------

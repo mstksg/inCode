@@ -24,9 +24,9 @@
 
 import           Data.Kind
 import           Data.Singletons
-import           Data.Singletons.Prelude hiding (And, Or, sFoldr, FoldrSym0, FoldrSym1, FoldrSym2, FoldrSym3, Foldr)
+import           Data.Singletons.Prelude hiding    (And, Or, sFoldr, FoldrSym0, FoldrSym1, FoldrSym2, FoldrSym3, Foldr)
 import           Data.Singletons.Sigma
-import           Data.Singletons.TH hiding      (sFoldr, FoldrSym0, FoldrSym1, FoldrSym2, FoldrSym3, Foldr)
+import           Data.Singletons.TH hiding         (sFoldr, FoldrSym0, FoldrSym1, FoldrSym2, FoldrSym3, Foldr, sFold, Fold)
 import           Data.Singletons.TypeLits
 
 $(singletons [d|
@@ -90,18 +90,42 @@ $(singletons [d|
   foldr f z (x:xs) = f x (foldr f z xs)
   |])
 
+$(singletons [d|
+  fold :: Monoid b => [b] -> b
+  fold []     = mempty
+  fold (x:xs) = x <> fold xs
+
+  instance Semigroup DoorState where
+      (<>) = mergeState
+  instance Monoid DoorState where
+      mempty  = Opened
+      mappend = (<>)
+  |])
+
 collapseHallway'
     :: Hallway ss
-    -> Door (FoldrSym2 MergeStateSym0 'Opened @@ ss)
+    -> Door (Fold ss)
 collapseHallway' HEnd       = UnsafeMkDoor "End of Hallway"
 collapseHallway' (d :<# ds) = d `mergeDoor` collapseHallway' ds
 
 collapseSomeHallway' :: SomeHallway -> SomeDoor
 collapseSomeHallway' (ss :&: d) =
+        sFold ss
+    :&: collapseHallway' d
+
+collapseHallway''
+    :: Hallway ss
+    -> Door (FoldrSym2 MergeStateSym0 'Opened @@ ss)
+collapseHallway'' HEnd       = UnsafeMkDoor "End of Hallway"
+collapseHallway'' (d :<# ds) = d `mergeDoor` collapseHallway'' ds
+
+collapseSomeHallway'' :: SomeHallway -> SomeDoor
+collapseSomeHallway'' (ss :&: d) =
         sFoldr (singFun2 @MergeStateSym0 sMergeState) SOpened ss
      -- or
      -- sFoldr (sing @MergeStateSym0) SOpened ss
-    :&: collapseHallway' d
+    :&: collapseHallway'' d
+
 
 -- Exercises
 
@@ -195,7 +219,7 @@ type IsOdd n = Sigma Nat (AlmostHalfOf n)
 
 sevenIsOdd :: IsOdd 7
 sevenIsOdd = SNat @3 :&: Refl @7
- 
+
 -- | 5.
 type Map f xs = Foldr (TyCon2 (:) .@#@$$$ f) '[] xs
 

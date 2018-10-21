@@ -512,8 +512,9 @@ ghci> :kind! StatePass 'Closed
 'Obstruct
 ```
 
-Like type synonyms, type families can't be partially applied.  They only ever
-make sense in "fully applied" form, with all arguments given syntactically.
+Like type synonyms, type families can't be partially applied ("unsaturated").
+They only ever make sense in "fully applied" (or "saturated") form, with all
+arguments given syntactically.
 
 Armed with this type family, we can write a new version of `knock`:
 
