@@ -90,6 +90,7 @@ $(singletons [d|
   foldr f z (x:xs) = f x (foldr f z xs)
   |])
 
+-- | COMMENT THIS OUT IF YOU WANT TO RUN ON SINGLETONS < 2.5 OR GHC 8.4
 $(singletons [d|
   fold :: Monoid b => [b] -> b
   fold []     = mempty
@@ -112,6 +113,8 @@ collapseSomeHallway' :: SomeHallway -> SomeDoor
 collapseSomeHallway' (ss :&: d) =
         sFold ss
     :&: collapseHallway' d
+
+-- | END OF SINGLETONS-2.5 ONLY SECTON
 
 collapseHallway''
     :: Hallway ss

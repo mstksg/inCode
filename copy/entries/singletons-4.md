@@ -23,6 +23,13 @@ the concepts in those posts in a pretty heavy way.
 Today we're going to jump straight into *functional programming* at the type
 level!
 
+Code in this post is built on *GHC 8.6.1* with the
+*[nightly-2018-09-29][snapshot]* snapshot (so, *singletons-2.5*).  However,
+unless noted, all of the code should still work with *GHC 8.4* and
+*singletons-2.4*.
+
+[snapshot]: https://www.stackage.org/nightly-2018-09-29
+
 Review
 ------
 
@@ -746,7 +753,7 @@ Just to show off the library, remember that *singletons* also promotes
 typeclasses?
 
 Because `DoorState` is a monoid with respect to merging, we can actually write
-and promote a `Monoid` instance:
+and promote a `Monoid` instance: (requires *singletons-2.5* or higher)
 
 ```haskell
 $(singletons [d|
