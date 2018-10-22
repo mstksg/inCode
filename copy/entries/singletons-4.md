@@ -4,6 +4,7 @@ categories: Haskell
 series: Introduction to Singletons
 tags: functional programming, dependent types, haskell, singletons, types
 create-time: 2018/09/28 22:02:02
+date: 2018/10/22 01:03:55
 identifier: singletons-4
 slug: introduction-to-singletons-4
 ---
@@ -1078,9 +1079,10 @@ Dissertation][diss]!
 
 One day, hopefully, we won't need singletons to work with types at the
 value-level; we would just be able to directly pattern match and manipulate the
-types within the language.  And some day, I hope we won't need any more dances
-with defunctionalization symbols to write higher-order functions at the type
-level --- maybe we'll have a nicer way to work with partially applied type-level
+types within the language and use them as first-class values, with a nice story
+for dependent sums.  And some day, I hope we won't need any more dances with
+defunctionalization symbols to write higher-order functions at the type level
+--- maybe we'll have a nicer way to work with partially applied type-level
 functions (maybe they'll just be normal functions?), and we don't need to think
 any different about higher-order or first-order functions.
 
@@ -1097,7 +1099,7 @@ Exercises
 Here are your final exercises for this series!  Start from [this sample source
 code][source-final], which has all of the definitions that the exercises and
 their solutions require.  Just make sure to delete all of the parts after the
-`-- Exercise` comment if you don't want to be spoiled!  Remember again to
+`-- Exercises` comment if you don't want to be spoiled!  Remember again to
 enable `-Werror=incomplete-patterns` or `-Wall` to ensure that all of your
 functions are total!
 
@@ -1305,3 +1307,6 @@ and Josh Vera! :)
 
 [patreon]: https://www.patreon.com/justinle/overview
 
+Thanks also to [Koz Ross][koz_] for helping proofread this post!
+
+[koz_]: https://twitter.com/KozRoss
