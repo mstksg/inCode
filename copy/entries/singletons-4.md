@@ -9,8 +9,9 @@ identifier: singletons-4
 slug: introduction-to-singletons-4
 ---
 
-Hi again!  Welcome back; let's jump right into part 4 of our journey through
-the *singleton design pattern* and the great *[singletons][]* library!
+Hi again!  Welcome back; let's jump right into the fourth and final part of our
+journey through the *singleton design pattern* and the great *[singletons][]*
+library!
 
 [singletons]: http://hackage.haskell.org/package/singletons
 
