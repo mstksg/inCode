@@ -975,9 +975,9 @@ sFoldr f z (x `SCons` xs) = (f @@ x) @@ sFoldr f z xs
 ```
 
 Where `(@@) :: Sing f -> Sing x -> Sing (f @@ x)` (or `applySing`) is the
-singleton/value-level counterpart of `Apply` or `(@@)`.[^slamda]
+singleton/value-level counterpart of `Apply` or `(@@)`.[^slambda]
 
-[^slamdba]: `(@@)` (and as we see shortly, the `singFun` functions) are all
+[^slambda]: `(@@)` (and as we see shortly, the `singFun` functions) are all
 implemented in terms of `SLambda`, the "singleton" for functions. Understanding
 the details of the implementation of `SLambda` aren't particularly important.
 
