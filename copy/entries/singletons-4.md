@@ -571,7 +571,7 @@ ghci> :kind! AndSym1 'True  @@ 'True
 A note to remember: `AndSym1 'True` is the defunctionalization symbol, and
 *not* `AndSym1` itself.  `AndSym1` has kind `Bool -> (Bool ~> Bool)`, but
 `AndSym1 'True` has kind `Bool ~> Bool` --- the kind of a defunctionalization
-symbol.
+symbol.  `AndSym1` is a sort of "defunctionalization symbol constructor".
 
 #### Symbols for type constructors
 
