@@ -444,7 +444,7 @@ It can be convenient to define an infix synonym for `Apply`:
 !!!singletons/Defunctionalization.hs "type f @@ a" "infixl 9 @@"
 ```
 
-Then we can wrote:
+Then we can write:
 
 ```haskell
 ghci> :kind! Not @@ 'False
