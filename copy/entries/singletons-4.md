@@ -1109,12 +1109,12 @@ functions are total.
 
 !!![source-final]:singletons/Door4Final.hs
 
-!!![solution1]:singletons/Door3.hs "-- | 1."1
-!!![solution2]:singletons/Door3.hs "-- | 2."1
-!!![solution3]:singletons/Door3.hs "-- | 3."1
-!!![solution4]:singletons/Door3.hs "-- | 4."1
-!!![solution5]:singletons/Door3.hs "-- | 5."1
-!!![solution6]:singletons/Door3.hs "-- | 6."1
+!!![solution1]:singletons/Door4Final.hs "-- | 1."1
+!!![solution2]:singletons/Door4Final.hs "-- | 2."1
+!!![solution3]:singletons/Door4Final.hs "-- | 3."1
+!!![solution4]:singletons/Door4Final.hs "-- | 4."1
+!!![solution5]:singletons/Door4Final.hs "-- | 5."1
+!!![solution6]:singletons/Door4Final.hs "-- | 6."1
 
 1.  Let's try combining type families with proofs!  In doing so, hopefully we
     can also see the value of using dependent proofs to show how we can
