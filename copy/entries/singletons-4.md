@@ -11,7 +11,7 @@ slug: introduction-to-singletons-4
 
 Hi again!  Welcome back; let's jump right into the fourth and final part of our
 journey through the *singleton design pattern* and the great *[singletons][]*
-library!
+library.
 
 [singletons]: http://hackage.haskell.org/package/singletons
 
@@ -23,9 +23,7 @@ the concepts in those posts in a pretty heavy way.
 [series]: https://blog.jle.im/entries/series/+introduction-to-singletons.html
 
 Today we're going to jump straight into *functional programming* at the type
-level!
-
-Code in this post is built on *GHC 8.6.1* with the
+level.  Code in this post is built on *GHC 8.6.1* with the
 *[nightly-2018-09-29][snapshot]* snapshot (so, *singletons-2.5*).  However,
 unless noted, all of the code should still work with *GHC 8.4* and
 *singletons-2.4*.
@@ -159,7 +157,7 @@ $(singletons [d|
   |])
 ```
 
-This makes writing `mergeDoor`'s type fairly straightforward!
+This makes writing `mergeDoor`'s type clean to read:
 
 ```haskell
 !!!singletons/Door4.hs "mergeDoor"
@@ -191,11 +189,11 @@ And so now we have full expressiveness in determining input and output
 relationships!  Once we unlock the power of type-level functions with
 *singletons*, writing type-level relationships become as simple as writing
 value-level ones.  If you can write a value-level function, you can write a
-type-level function!
+*type-level* function.
 
 ### Kicking it up a notch
 
-Alright, so let's see how far we can really take this!
+How far we can really take this?
 
 Let's make a data type that represents a *series of hallways*, each linked by a
 door.  A hallway is either an empty stretch with no door, or two hallways
@@ -256,7 +254,7 @@ singleton function `sMergeStateList :: Sing ss -> Sing (MergeStateList ss)`.
 With this, we can write `collapseHallway`:
 
 ```haskell
-!!!singletons/Door4.hs "data Hallway"
+!!!singletons/Door4.hs "collapseHallway"
 ```
 
 Now, because the structure of `collapseHallway` perfectly mirrors the structure
@@ -303,7 +301,7 @@ higher-order functions make your code more readable.
 
 So, as Haskellers, let us hold ourselves to a higher standard and not be
 satisfied with a `MergeState` written using explicit recursion.  Let us instead
-go *full fold*!  ONWARD HO!
+go *full fold* --- ONWARD HO!
 
 ### The Problem
 
@@ -606,7 +604,7 @@ functions.  So what?
 Well, remember the problem with our implementation of `Foldr`?  We couldn't
 pass in a type family, since type families must be passed fully applied.  So,
 instead of having `Foldr` expect a type family...we can make it expect a
-*defunctionalization symbol* instead!  Remember, defunctionalization symbols
+*defunctionalization symbol* instead.  Remember, defunctionalization symbols
 represent the "unapplied" versions of type families, so they are exactly the
 tools we need!
 
@@ -627,7 +625,7 @@ Now we just need to have our defunctionalization symbols for `MergeStateList`:
 !!!singletons/Defunctionalization.hs "data MergeStateSym0" "data MergeStateSym1" "type MergeStateSym2"
 ```
 
-And now we can write `MergeStateList`!
+And now we can write `MergeStateList`:
 
 ```haskell
 !!!singletons/Defunctionalization.hs "type MergeStateList"
@@ -690,7 +688,7 @@ and translate its lifted version to take a defunctionalization
 symbol `a ~> b ~> b`.
 
 That the template haskell also generates `SingI` instances for all of your
-defunctionalization symbols, too --- more on that in a bit!
+defunctionalization symbols, too (more on that in a bit).
 
 It's okay to stay "in the world of singletons" for the most part, and let
 singletons handle the composition of functions for you.  However, it's still
@@ -834,7 +832,7 @@ like *[decidable][]*.
 
 For example, suppose we wanted to build defunctionalization symbols for
 `MergeStateList`.  We can actually build them directly from defunctionalization
-symbols for `Foldr`!
+symbols for `Foldr`.
 
 Check out the defunctionalization symbols for `Foldr`:
 
@@ -921,7 +919,7 @@ DoorState)` and a `TyCon1 Door @@ x`, or a `Door x`.
 
 This is a simple relationship, but one can imagine a `Sigma` parameterized on
 an even more complex type-level function.  We'll explore more of these in the
-exercises!
+exercises.
 
 For some context, `Sigma` is an interesting data type (the "dependent sum")
 that is ubiquitous in dependently typed programming.
@@ -1051,12 +1049,12 @@ ghci>
 ```
 
 And you'll be dropped into a ghci session with all of the definitions in
-scope!
+scope.
 
 As always, please try out the exercises, which are designed to help solidify
 the concepts we went over here!  And if you ever have any future questions,
 feel free to leave a comment or find me on [twitter][] or in freenode
-`#haskell`, where I idle as *jle\`*!
+`#haskell`, where I idle as *jle\`*.
 
 [twitter]: https://twitter.com/mstk "Twitter"
 
@@ -1103,9 +1101,9 @@ Exercises
 Here are your final exercises for this series!  Start from [this sample source
 code][source-final], which has all of the definitions that the exercises and
 their solutions require.  Just make sure to delete all of the parts after the
-`-- Exercises` comment if you don't want to be spoiled!  Remember again to
+`-- Exercises` comment if you don't want to be spoiled.  Remember again to
 enable `-Werror=incomplete-patterns` or `-Wall` to ensure that all of your
-functions are total!
+functions are total.
 
 !!![source-final]:singletons/Door4Final.hs
 
@@ -1150,7 +1148,6 @@ functions are total!
         -> Hallway ????
     ```
 
-    Try to figure out what `???` should be.  Try not to use any type families
     from *singletons* --- implement any type families you might need from
     scratch!
 
