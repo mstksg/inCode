@@ -874,7 +874,7 @@ sums) in [part 2][] of this series, and also in my [dependent types in
 Haskell][dth] series.
 
 [part 2]: https://blog.jle.im/entry/introduction-to-singletons-2.html
-[dependent types in Haskell]: https://blog.jle.im/entry/practical-dependent-types-in-haskell-2.html
+[dth]: https://blog.jle.im/entry/practical-dependent-types-in-haskell-2.html
 
 Essentially, a dependent pair is a tuple where the *type* of the second
 field depends on the *value* of the first one.  This is basically what
