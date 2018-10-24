@@ -28,6 +28,9 @@ $(singletons [d|
 data Door :: DoorState -> Type where
     UnsafeMkDoor :: { doorMaterial :: String } -> Door s
 
+mkDoor :: Sing s -> String -> Door s
+mkDoor _ = UnsafeMkDoor
+
 data SomeDoor :: Type where
     MkSomeDoor :: Sing s -> Door s -> SomeDoor
 
@@ -63,5 +66,5 @@ $(singletons [d|
   |])
 
 collapseHallway :: Hallway ss -> Door (MergeStateList ss)
-collapseHallway HEnd       = UnsafeMkDoor "End of Hallway"
+collapseHallway HEnd       = mkDoor SOpened "End of Hallway"
 collapseHallway (d :<# ds) = d `mergeDoor` collapseHallway ds

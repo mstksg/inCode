@@ -71,7 +71,7 @@ or locked at compile-time?
 This is something we can foresee being a big issue.  It's easy enough to create
 a `Door s` if you know `s` at compile-time by just typing in a type annotation
 (`UnsafeMkDoor "Oak" :: Door 'Opened`) or by using a monomorphic constructor
-(`mkDoor @SOpened "Oak"`).  But what if we *don't* know `s` at compile-time?
+(`mkDoor SOpened "Oak"`).  But what if we *don't* know `s` at compile-time?
 
 To learn how to do this, we first need to learn how to *not care*.
 

@@ -52,7 +52,7 @@ In the first post we looked at the `Door` type, indexed with a phantom type of
 kind `DoorState`.
 
 ```haskell
-!!!singletons/Door3.hs "$(singletons " "data Door "
+!!!singletons/Door3.hs "$(singletons " "data Door " "mkDoor"
 ```
 
 This gives us (at least) three distinct types `Door 'Opened`, `Door 'Closed`,
@@ -156,7 +156,7 @@ way to pass a value of `Knockable 'Opened`.  No such value exists!  There's no
 compiler error because it's "not even wrong"!
 
 ```haskell
-ghci> knock KnockClosed (UnsafeMkDoor @'Closed "Birch")
+ghci> knock KnockClosed (mkDoor SClosed "Birch")
 Knock knock on Birch door!
 ```
 
@@ -172,10 +172,10 @@ compile-time, with a general class like `Auto`:
 ```
 
 ```haskell
-ghci> knock auto (UnsafeMkDoor @'Closed "Acacia")
+ghci> knock auto (mkDoor SClosed "Acacia")
 Knock knock on Acacia door!
 
-ghci> knock auto (UnsafeMkDoor @'Opened "Jungle")
+ghci> knock auto (mkDoor SOpened "Jungle")
 COMPILER ERROR!! COMPILER ERROR!!
 ```
 
@@ -531,8 +531,8 @@ everyone is happy.  If we attempt to call `knock` with an `'Opened` door,
 everyone is sad.
 
 ```haskell
-ghci> let door1 = UnsafeMkDoor @'Closed "Oak"
-ghci> let door2 = UnsafeMkDoor @'Opened "Spruce"
+ghci> let door1 = mkDoor SClosed "Oak"
+ghci> let door2 = mkDoor SOpened "Spruce"
 ghci> knock door1
 -- Knock knock on Oak door!
 ghci> knock door2

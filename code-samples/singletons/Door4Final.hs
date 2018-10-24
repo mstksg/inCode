@@ -37,6 +37,9 @@ $(singletons [d|
 data Door :: DoorState -> Type where
     UnsafeMkDoor :: { doorMaterial :: String } -> Door s
 
+mkDoor :: Sing s -> String -> Door s
+mkDoor _ = UnsafeMkDoor
+
 $(singletons [d|
   mergeState :: DoorState -> DoorState -> DoorState
   mergeState = max
@@ -52,7 +55,7 @@ type SomeDoor = Sigma DoorState (TyCon1 Door)
 
 mkSomeDoor :: DoorState -> String -> SomeDoor
 mkSomeDoor ds mat = withSomeSing ds $ \dsSing ->
-    dsSing :&: UnsafeMkDoor mat
+    dsSing :&: mkDoor dsSing mat
 
 mergeSomeDoor :: SomeDoor -> SomeDoor -> SomeDoor
 mergeSomeDoor (s :&: d) (t :&: e) =
@@ -75,7 +78,7 @@ $(singletons [d|
   |])
 
 collapseHallway :: Hallway ss -> Door (MergeStateList ss)
-collapseHallway HEnd       = UnsafeMkDoor "End of Hallway"
+collapseHallway HEnd       = mkDoor SOpened "End of Hallway"
 collapseHallway (d :<# ds) = d `mergeDoor` collapseHallway ds
 
 type SomeHallway = Sigma [DoorState] (TyCon1 Hallway)

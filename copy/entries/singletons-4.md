@@ -37,7 +37,7 @@ Just as a quick review, this entire series we have been working with a `Door`
 type:
 
 ```haskell
-!!!singletons/Door4.hs "$(singletons " "data Door "
+!!!singletons/Door4.hs "$(singletons " "data Door " "mkDoor"
 ```
 
 And we talked about using `Sing s`, or `SDoorState s`, to represent the state
@@ -51,7 +51,7 @@ data SomeDoor :: Type where
 
 mkSomeDoor :: DoorState -> String -> SomeDoor
 mkSomeDoor ds mat = withSomeSing ds $ \dsSing ->
-    MkSomeDoor dsSing (UnsafeMkDoor mat)
+    MkSomeDoor dsSing (mkDoor dsSing mat)
 ```
 
 In Part 3 we talked about a `Pass` data type that we used to talk about whether
@@ -214,9 +214,9 @@ in Part 1][listp1] and [Exercise 4 in Part 2][listp2])
 So we might have:
 
 ```haskell
-ghci> let door1 = UnsafeMkDoor @'Closed "Oak"
-ghci> let door2 = UnsafeMkDoor @'Opened "Spruce"
-ghci> let door3 = UnsafeMkDoor @'Locked "Acacia"
+ghci> let door1 = mkDoor SClosed "Oak"
+ghci> let door2 = mkDoor SOpened "Spruce"
+ghci> let door3 = mkDoor SLocked "Acacia"
 ghci> :t door1 :<# door2 :<# door3 :<# HEnd
 Hallway '[ 'Closed, 'Opened, 'Locked ]
 ```

@@ -34,12 +34,15 @@ $(singletons [d|
 data Door :: DoorState -> Type where
     UnsafeMkDoor :: { doorMaterial :: String } -> Door s
 
+mkDoor :: Sing s -> String -> Door s
+mkDoor _ = UnsafeMkDoor
+
 data SomeDoor :: Type where
     MkSomeDoor :: Sing s -> Door s -> SomeDoor
 
 mkSomeDoor :: DoorState -> String -> SomeDoor
 mkSomeDoor ds mat = withSomeSing ds $ \dsSing ->
-    MkSomeDoor dsSing (UnsafeMkDoor mat)
+    MkSomeDoor dsSing (mkDoor dsSing mat)
 
 data Knockable :: DoorState -> Type where
     KnockClosed :: Knockable 'Closed
