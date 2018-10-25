@@ -979,7 +979,8 @@ singleton/value-level counterpart of `Apply` or `(@@)`.[^slambda]
 
 [^slambda]: `(@@)` (and as we see shortly, the `singFun` functions) are all
 implemented in terms of `SLambda`, the "singleton" for functions. Understanding
-the details of the implementation of `SLambda` aren't particularly important.
+the details of the implementation of `SLambda` aren't particularly important
+for the purposes of this introduction.
 
 So we can write:
 
