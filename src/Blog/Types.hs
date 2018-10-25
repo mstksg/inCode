@@ -44,7 +44,8 @@ instance Interpret Config
 interpretConfig :: Type Config
 interpretConfig = autoWith basicInterpretOptions
 
-data PatronLevel = PLSupport
+data PatronLevel = PLInactive
+                 | PLSupport
                  | PLAmazing
   deriving (Show, Eq, Ord, Generic)
 instance Interpret PatronLevel

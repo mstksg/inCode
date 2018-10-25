@@ -1,13 +1,13 @@
-    let Level  = constructors < Support : {} | Amazing : {} >
+    let Level  = constructors < Inactive : {} | Support : {} | Amazing : {} >
 in  let mkPatron = \(name    : Text                         ) ->
                    \(twitter : Optional Text                ) ->
-                   \(level   : <Support : {} | Amazing : {}>) ->
+                   \(level   : <Inactive : {} | Support : {} | Amazing : {}>) ->
                       { name = name
                       , info = { twitter = twitter, level = level }
                       }
 in  [ mkPatron "Domen Kožar"
                (Some "iElectric")
-               (Level.Support {=})
+               (Level.Inactive {=})
     , mkPatron "Sam Stites"
                (None Text)
                (Level.Amazing {=})
@@ -21,6 +21,9 @@ in  [ mkPatron "Domen Kožar"
                (None Text)
                (Level.Amazing {=})
     , mkPatron "Shae Erisson"
+               (None Text)
+               (Level.Support {=})
+    , mkPatron "Heneli Kailahi"
                (None Text)
                (Level.Support {=})
     ]
