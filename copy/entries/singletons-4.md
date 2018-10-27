@@ -1032,11 +1032,14 @@ programs today, both in type safety and in writing more expressive programs.
 And also, I hope that you can also see now how to leverage the full power of
 the *singletons* library to make those gains a reality.
 
-There are a few corners of the library we haven't gone over (like
-the TypeLits- and TypeRep-based singletons), but I'd like to hope as well that
-this series has equipped you to be able to dive into the library documentation
-and decipher what it holds, armed with the knowledge you now have. (We also
-look at TypeLits briefly in the exercises)
+There are a few corners of the library we haven't gone over (like the TypeLits-
+and TypeRep-based singletons -- if you're interested, check out [this
+post][sized-vectors] where I talk a lot about them), but I'd like to hope as
+well that this series has equipped you to be able to dive into the library
+documentation and decipher what it holds, armed with the knowledge you now
+have. (We also look at TypeLits briefly in the exercises)
+
+[sized-vectors]: https://blog.jle.im/entry/fixed-length-vector-types-in-haskell.html
 
 You can download the source code here --- [Door4Final.hs][source-final]
 contains the final versions of all our definitions, and
