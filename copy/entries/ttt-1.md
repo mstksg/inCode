@@ -5,7 +5,7 @@ series: Type-safe Tic Tac Toe
 tags: functional programming, dependent types, haskell, singletons, types, decidable
 create-time: 2018/10/29 16:48:33
 identifier: ttt-1
-slug: type-safe-tic-tac-toe-1
+slug: typesafe-tic-tac-toe-1
 ---
 
 One problem with adoption of dependent types in everyday programming, I think,
@@ -86,7 +86,10 @@ First, we'll define the types we need to specify our state:
 
 ```haskell
 $(singletons [d|
-!!!ttt/Part1.hs "data Piece" "type Board"
+  data Piece = PX | PO
+    deriving (Eq, Ord)
+  
+  type Board = [[Maybe Piece]]
   |])
 ```
 
@@ -100,7 +103,15 @@ transformations:
 
 ```haskell
 $(singletons [d|
-!!!ttt/Part1.hs "emptyBoard ::" "altP ::"
+  emptyBoard :: Board
+  emptyBoard = [ [Nothing, Nothing, Nothing]
+               , [Nothing, Nothing, Nothing]
+               , [Nothing, Nothing, Nothing]
+               ]
+
+  altP :: Piece -> Piece
+  altP PX = PO
+  altP PO = PX
   |])
 ```
 
@@ -115,7 +126,7 @@ with two helper types that we will implement later.  First, we'll use the
 [decidable][] library to talk about the kind of a *type-level predicate*.
 
 ```haskell
-data InPlay :: Predicate Board
+!!!ttt/Part1.hs "data InPlay"1
 ```
 
 `InPlay` is a predicate that a given board is in-play; a value of type `InPlay
@@ -125,7 +136,7 @@ We also need to define a type for a valid update by a given player onto a given
 board:
 
 ```haskell
-data Update :: Piece -> Board -> Board -> Type
+!!!ttt/Part1.hs "data Update"1
 ```
 
 A value of type `Update p b1 b2` will represent a valid update to board `b1` by
@@ -134,18 +145,7 @@ player `p` to create a board `b2`.
 And finally, our valid state constructor:
 
 ```haskell
-data GameState :: Piece -> Board -> Type where
-    -- | The empty board is a valid state
-    GSStart
-        :: GameState 'PX EmptyBoard
-    -- | We can also construct a valid game state if we have:
-    GSUpdate
-        :: forall p b1 b2. ()
-        => InPlay          @@ b1     -- ^ a proof that b1 is in play
-        -> Update    p        b1 b2  -- ^ a valid update
-        -> GameState p        b1     -- ^ a proof that p, b1 are a valid state
-        -- ---------------------------- then
-        -> GameState (AltP p)    b2  -- ^ AltP p, b2 is a valid satte
+!!!ttt/Part1.hs "data GameState"
 ```
 
 And that's it --- a verified-correct representation of a game state, directly
@@ -166,7 +166,7 @@ Let's go about what thinking about what defines a valid update.   Remember, the
 kind we wanted was:
 
 ```haskell
-data Update :: Piece -> Board -> Board -> Type
+!!!ttt/Part1.hs "data Update"1
 ```
 
 An `Update p b1 b2` will be a valid update of `b1` by player `p` to produce
@@ -208,7 +208,7 @@ For that, we'll introduce a common helper type to say *what* the piece at spot
 *(i, j)* is:
 
 ```haskell
-data Coord :: (N, N) -> [[k]] -> k -> Type
+!!!ttt/Part1.hs "data Coord"1
 ````
 
 A `Coord '(i, j) xss x` is a data type that specifies that the jth item in the
@@ -218,10 +218,7 @@ And we require `Update` to only be constructable if the spot at *(i, j)* is
 `Nothing`:
 
 ```haskell
-data Update :: Piece -> Board -> Board -> Type where
-    MkUpdate :: forall i j p b. ()
-             => Coord '(i, j) b 'Nothing
-             -> Update p b (PlaceBoard i j p b)
+!!!ttt/Part1.hs "data Update"
 ```
 
 `Update` is now defined so that, for `Update p b1 b2`, `b2` is the update via
@@ -236,7 +233,7 @@ Now we need to define `Coord`.  We're going to do that in terms of a simpler
 type that is essentially the same for normal lists --- a type:
 
 ```haskell
-data Sel :: N -> [k] -> k -> Type
+!!!ttt/Part1.hs "data Sel"1
 ```
 
 A value of type `Sel n xs x` says that the nth item in `xs` is `x`.
@@ -251,9 +248,7 @@ data type.  We can mention our induction rules:
     list `b ': as`.
 
 ```haskell
-data Sel :: N -> [k] -> k -> Type where
-    SelZ :: Sel 'Z (a ': as) a
-    SelS :: Sel n  as        a -> Sel ('S n) (b ': bs) a
+!!!ttt/Part1.hs "data Sel"
 ```
 
 For example, for the type-level list `'[10,5,2,8]`, we can make values:
@@ -269,17 +264,11 @@ etc.
 We can then use this to define `Coord`:
 
 ```haskell
-data Coord :: (N, N) -> [[k]] -> k -> Type where
-    (:$:) :: forall i j rows row piece. ()
-          => Sel i rows row
-          -> Sel j row  piece
-          -> Coord '(i, j) rows piece
+!!!ttt/Part1.hs "data Coord"
 ```
 
 A `Coord '(i, j) rows piece` contains a selection into the ith list in `rows`,
 to get `row`, and a selection into the jth item in `row`, to get `piece`.
-
-
 
 ### Trying it out
 
