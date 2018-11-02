@@ -26,12 +26,12 @@
 
 import           Data.Kind
 import           Data.Singletons
-import           Data.Singletons.Prelude
+import           Data.Singletons.Prelude hiding (Not)
 import           Data.Singletons.Sigma
 import           Data.Singletons.TH
-import           Data.Singletons.TypeLits
 import           Data.Type.Lens
 import           Data.Type.Predicate
+import           Data.Type.Predicate.Param
 
 $(singletons [d|
   data Piece = PX | PO
@@ -73,22 +73,73 @@ data GameState :: Piece -> Board -> Type where
         -> Update    p        b1 b2  -- ^ a valid update
         -> GameState p        b1     -- ^ a proof that p, b1 are a valid state
         -- ---------------------------- then
-        -> GameState (AltP p)    b2  -- ^ AltP p, b2 is a valid satte
+        -> GameState (AltP p)    b2  -- ^ `AltP p`, b2 is a valid satte
+
+data Update :: Piece -> Board -> Board -> Type where
+    MkUpdate
+        :: forall i j p b. ()
+        => Coord '(i, j) b 'Nothing         -- ^ If the item at (i, j) in b is Nothing
+        -- ------------------------------------- then
+        -> Update p b (PlaceBoard i j p b)  -- ^ Placing `Just p` at i, j is a valid update
 
 data Sel :: N -> [k] -> k -> Type where
     -- | The first item in a list is at index ''Z'
     SelZ :: Sel 'Z (a ': as) a
-    SelS :: Sel n  as        a      -- ^ If item @a@ is at index @n@ in list @as@
+    SelS :: Sel     n        as  a  -- ^ If item `a` is at index `n` in list `as`
          -- ---------------------------- then
-         -> Sel ('S n) (b ': bs) a  -- ^ Item @a@ is at index @''S' n@ in list @b ': bs@
+         -> Sel ('S n) (b ': as) a  -- ^ Item `a` is at index `S n` in list `b : as`
 
 data Coord :: (N, N) -> [[k]] -> k -> Type where
     (:$:) :: forall i j rows row p. ()
-          => Sel i rows row
-          -> Sel j row  p
-          -> Coord '(i, j) rows p
+          => Sel i rows row         -- ^ If the ith list in `rows` is `row`
+          -> Sel j row  p           -- ^ And the jth item in `row` is `p`
+          -- --------------------------- then
+          -> Coord '(i, j) rows p   -- ^ The item at (i, j) is `p`
 
-data Update :: Piece -> Board -> Board -> Type where
-    MkUpdate :: forall i j p b. ()
-             => Coord '(i, j) b 'Nothing
-             -> Update p b (PlaceBoard i j p b)
+type InBounds    n = Found (TyPP (Sel n))
+
+type OutOfBounds n = Not (InBounds n)
+
+-- | A view of a coordinate and a board.  Either:
+data Pick :: (N, N, Board) -> Type where
+    -- | We are out of bounds in x
+    PickOoBX   :: OutOfBounds i @@ b                         -> Pick '(i, j, b)
+    -- | We are in-bounds in x, but out of bounds in y
+    PickOoBY   :: Sel i b row        -> OutOfBounds j @@ row -> Pick '(i, j, b)
+    -- | We are in-bounds in x, in-bounds in y, but spot is taken by `p`.
+    -- We include `Sing p` in this constructor to potentially provide
+    -- feedback to the user on what piece is already in the spot.
+    PickPlayed :: Coord '(i, j) b ('Just p) -> Sing p        -> Pick '(i, j, b)
+    -- | We are in-bounds in x, in-bounds in y, and spot is clear
+    PickValid  :: Coord '(i, j) b 'Nothing                   -> Pick '(i, j, b)
+
+inBounds :: Sing n -> Sing xs -> Decision (InBounds n @@ xs)
+inBounds = \case
+    SZ -> \case
+      SNil         -> inBounds_znil
+      x `SCons` xs -> inBounds_zcons x xs
+    SS n -> \case
+      SNil         -> inBounds_snil n
+      x `SCons` xs -> inBounds_scons n x xs
+
+inBounds_znil  :: Decision (InBounds 'Z @@ '[])
+inBounds_znil = Disproved $ \(_ :&: s) -> case s of {}
+
+inBounds_zcons :: Sing x -> Sing xs
+               -> Decision (InBounds 'Z @@ (x ': xs))
+inBounds_zcons x _ = Proved (x :&: SelZ)
+
+inBounds_snil  :: Sing n
+               -> Decision (InBounds ('S n) @@ '[])
+inBounds_snil _ = Disproved $ \(_ :&: s) -> case s of {}
+
+inBounds_scons :: Sing n -> Sing x -> Sing xs
+               -> Decision (InBounds ('S n) @@ (x ': xs))
+inBounds_scons n _ xs = case inBounds n xs of
+    Proved (y :&: s) -> Proved (y :&: SelS s)
+    -- v is a disproof that an item is in n spot in xs
+    Disproved v      -> Disproved $
+      \(y :&: s) ->      -- suppose we had item y in (S n) spot in (x : xs)
+        case s of
+          SelS s' ->     -- this would mean that item y is in n spot in xs
+            v (y :&: s') -- however, v disproves this.
