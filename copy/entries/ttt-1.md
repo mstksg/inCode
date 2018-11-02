@@ -480,7 +480,7 @@ In our case, writing a view function would look like this:
 
 ```haskell
 instance Provable (TyPred Pick) where
-    prove :: Sing '(i, j, b) -> Pick '(i, j, b)
+    prove :: Sing ijb -> Pick ijb
     prove (STuple3 sI sJ sB) = undefined
         -- ^ STuple3 is the singleton for three-tuples
 ```
@@ -718,7 +718,7 @@ Again, for learning's sake, ket's split these branches into four helper
 functions --- one for each case.
 
 ```haskell
-!!!ttt/Part1.hs "inBounds"
+!!!ttt/Part1.hs "inBounds" "inBounds_znil"2 "inBounds_zcons"4 "inBounds_snil"3 "inBounds_scons"5
 
 inBounds_znil  :: Decision (InBounds 'Z @@ '[])
 
@@ -791,3 +791,16 @@ inBounds_scons :: Sing n -> Sing x -> Sing xs
     holes in GHC, or trying to guess what types everything has in the
     implementation above, until you can figure out what is happening when.
 
+Finally, we can wrap everything up by providing our first ever `Decidable`
+instance:
+
+````haskell
+!!!ttt/Part1.hs "instance SingI n => Decidable (InBounds n)"
+````
+
+### Proving Pick
+
+Now that we can decide `InBounds`, let's finally prove `Pick`.
+
+Again, for learning purposes, we'll define `pick` as its own function and then
+write an instance for `Provable`.

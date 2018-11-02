@@ -11,6 +11,7 @@
 {-# LANGUAGE LambdaCase                     #-}
 {-# LANGUAGE MultiParamTypeClasses          #-}
 {-# LANGUAGE NoStarIsType                   #-}
+{-# LANGUAGE PolyKinds                      #-}
 {-# LANGUAGE RankNTypes                     #-}
 {-# LANGUAGE ScopedTypeVariables            #-}
 {-# LANGUAGE StandaloneDeriving             #-}
@@ -113,6 +114,9 @@ data Pick :: (N, N, Board) -> Type where
     -- | We are in-bounds in x, in-bounds in y, and spot is clear
     PickValid  :: Coord '(i, j) b 'Nothing                   -> Pick '(i, j, b)
 
+instance SingI n => Decidable (InBounds n) where
+    decide = inBounds sing
+
 inBounds :: Sing n -> Sing xs -> Decision (InBounds n @@ xs)
 inBounds = \case
     SZ -> \case
@@ -122,19 +126,26 @@ inBounds = \case
       SNil         -> inBounds_snil n
       x `SCons` xs -> inBounds_scons n x xs
 
-inBounds_znil  :: Decision (InBounds 'Z @@ '[])
+inBounds_znil
+    :: Decision (InBounds 'Z @@ '[])
 inBounds_znil = Disproved $ \(_ :&: s) -> case s of {}
 
-inBounds_zcons :: Sing x -> Sing xs
-               -> Decision (InBounds 'Z @@ (x ': xs))
+inBounds_zcons
+    :: Sing x
+    -> Sing xs
+    -> Decision (InBounds 'Z @@ (x ': xs))
 inBounds_zcons x _ = Proved (x :&: SelZ)
 
-inBounds_snil  :: Sing n
-               -> Decision (InBounds ('S n) @@ '[])
+inBounds_snil
+    :: Sing n
+    -> Decision (InBounds ('S n) @@ '[])
 inBounds_snil _ = Disproved $ \(_ :&: s) -> case s of {}
 
-inBounds_scons :: Sing n -> Sing x -> Sing xs
-               -> Decision (InBounds ('S n) @@ (x ': xs))
+inBounds_scons
+    :: Sing n
+    -> Sing x
+    -> Sing xs
+    -> Decision (InBounds ('S n) @@ (x ': xs))
 inBounds_scons n _ xs = case inBounds n xs of
     Proved (y :&: s) ->       -- if xs has y in its n spot
       Proved (y :&: SelS s)   -- then (x : xs) has y in its (S n) spot
@@ -144,3 +155,17 @@ inBounds_scons n _ xs = case inBounds n xs of
         case s of
           SelS s' ->     -- this would mean that item y is in n spot in xs
             v (y :&: s') -- however, v disproves this.
+
+pick
+    :: Sing ijb
+    -> Pick ijb
+pick (STuple3 (Sing :: Sing i) (Sing :: Sing j) b) = case decide @(InBounds i) b of
+    Proved (row :&: selX) -> case decide @(InBounds j) row of
+      Proved (p :&: selY) -> case p of
+        SNothing -> PickValid   (selX :$: selY)
+        SJust p' -> PickPlayed  (selX :$: selY) p'
+      Disproved vY -> PickOoBY selX vY
+    Disproved vX -> PickOoBX vX
+
+instance Provable (TyPred Pick) where
+    prove = pick
