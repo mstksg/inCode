@@ -97,6 +97,14 @@ data Coord :: (N, N) -> [[k]] -> k -> Type where
           -- --------------------------- then
           -> Coord '(i, j) rows p   -- ^ The item at (i, j) is `p`
 
+play
+    :: forall i j p b. ()
+    => InPlay @@ b
+    -> Coord '(i, j) b 'Nothing
+    -> GameState p b
+    -> GameState (AltP p) (PlaceBoard i j p b)
+play r c = GSUpdate r (MkUpdate c)
+
 type InBounds    n = Found (TyPP (Sel n))
 
 type OutOfBounds n = Not (InBounds n)
@@ -115,6 +123,7 @@ data Pick :: (N, N, Board) -> Type where
     PickValid  :: Coord '(i, j) b 'Nothing                   -> Pick '(i, j, b)
 
 instance SingI n => Decidable (InBounds n) where
+    decide :: Sing xs -> Decision (InBounds n @@ xs)
     decide = inBounds sing
 
 inBounds :: Sing n -> Sing xs -> Decision (InBounds n @@ xs)
@@ -157,15 +166,25 @@ inBounds_scons n _ xs = case inBounds n xs of
             v (y :&: s') -- however, v disproves this.
 
 pick
-    :: Sing ijb
-    -> Pick ijb
-pick (STuple3 (Sing :: Sing i) (Sing :: Sing j) b) = case decide @(InBounds i) b of
+    :: forall i j b. ()
+    => Sing i
+    -> Sing j
+    -> Sing b
+    -> Pick '(i, j, b)
+pick Sing Sing b = case decide @(InBounds i) b of
     Proved (row :&: selX) -> case decide @(InBounds j) row of
-      Proved (p :&: selY) -> case p of
-        SNothing -> PickValid   (selX :$: selY)
-        SJust p' -> PickPlayed  (selX :$: selY) p'
-      Disproved vY -> PickOoBY selX vY
-    Disproved vX -> PickOoBX vX
+      Proved (p :&: selY) ->
+        let c = selX :$: selY
+        in  case p of
+              SNothing -> PickValid   c
+              SJust p' -> PickPlayed  c p'
+      Disproved vY -> PickOoBY selX vY    -- vY :: InBounds j @@ row -> Void
+                                          -- vY :: Not (InBounds j) @@ row
+                                          -- vY :: OutOfBounds j @@ row
+    Disproved vX -> PickOoBX vX   -- vX :: InBounds i @@ b   -> Void
+                                  -- vX :: Not (InBounds i) @@ b
+                                  -- vX :: OutOfBounds i @@ b
 
 instance Provable (TyPred Pick) where
-    prove = pick
+    prove :: Sing ijb -> Pick ijb
+    prove (STuple3 i j b) = pick i j b

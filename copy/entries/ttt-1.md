@@ -88,7 +88,7 @@ First, we'll define the types we need to specify our state:
 $(singletons [d|
   data Piece = PX | PO
     deriving (Eq, Ord)
-  
+
   type Board = [[Maybe Piece]]
   |])
 ```
@@ -159,8 +159,7 @@ Now we just need to talk about `InPlay` and `Update`.  In particular, we need:
     `b` is `InPlay`.  This is something that the appropriately named
     *[decidable][]* library will help us with.
 
-Update
-------
+### Update
 
 Let's go about what thinking about what defines a valid update.   Remember, the
 kind we wanted was:
@@ -227,7 +226,7 @@ overwrite a previous piece.  Note that our `MkUpdate` constructor only has four
 "free" variables, `i`, `j`, `p`, and `b`.  If we use `MkUpdate`, it means that
 the "final board" is fully determined from only `i`, `j`, `p`, and `b`.
 
-### Coord
+#### Coord
 
 Now we need to define `Coord`.  We're going to do that in terms of a simpler
 type that is essentially the same for normal lists --- a type:
@@ -313,55 +312,76 @@ Right!  That's because `SelS SelZ :&: SelS SellZ`, applied to `NewBoard`, gives
 `MkUpdate`, the final field has to be `'Nothing`, not `'Just 'PX`.  So, type
 error.
 
-We can also use this with `GameState`, using `undefined` as a placeholder for
-our `InPlay` witness, since we haven't defined it yet:
+### Type-safe Play
+
+At the end of this all, we finally have enough to write a truly type-safe
+`play` function that allows us to play a round of our game!
 
 ```haskell
-ghci> :t GSStart
-GameState
-    'PX
-    '[ '[ 'Nothing, 'Nothing, 'Nothing]
-     , '[ 'Nothing, 'Nothing, 'Nothing]
-     , '[ 'Nothing, 'Nothing, 'Nothing]
-     ]
+!!!ttt/Part1.hs "play"
+```
 
-ghci> let s1 = GSUpdate undefined (MkUpdate (SelS SelZ :$: SelS SelZ))
-             $ GSStart
-ghci> :t s1
-GameState
-    'PO         -- Player switches correclty!
+`play` is basically the entirety of our game engine! (Minus defining `InPlay`,
+which we will take care of later).  It'll take our new move and a proof that
+the game is still in play, and return a updated new game state.  Our entire
+game is done, and type-safe! It's impossible to play a game in an incorrect
+way! (once we define `InPlay`).
+
+Let's try out a few rounds in ghci, using `undefined` instead
+of a proper `InPlay` for now:
+
+```haskell
+ghci> g1 = play undefined (SelS SelZ :$: SelS SelZ) GSStart   -- X plays (1,1)
+ghci> :t g1
+GameState 'PO
     '[ '[ 'Nothing, 'Nothing , 'Nothing]
      , '[ 'Nothing, 'Just 'PX, 'Nothing]
      , '[ 'Nothing, 'Nothing , 'Nothing]
      ]
 
-ghci> let s2 = GSUpdate undefined (MkUpdate (SelZ :$: SelZ))
-             $ s1
-ghci> :t s2
-GameState
-    'PX
-    '[ '[ 'Just 'PO, 'Nothing , 'Nothing]
-     , '[ 'Nothing , 'Just 'PX, 'Nothing]
+ghci> g2 = play undefined (SelZ :$: SelS SelZ) g1   -- O plays (0,1)
+ghci> :t g2
+GameState 'PX
+    '[ '[ 'Nothing, 'Just 'PO, 'Nothing]
+     , '[ 'Nothing, 'Just 'PX, 'Nothing]
+     , '[ 'Nothing, 'Nothing , 'Nothing]
+     ]
+
+ghci> g3 = play undefined (SelZ :$: SelS SelZ) g2   -- X plays (1,0)
+ghci> :t g3
+GameState 'PO
+    '[ '[ 'Nothing , 'Just 'PO, 'Nothing]
+     , '[ 'Just 'PX, 'Just 'PX, 'Nothing]
      , '[ 'Nothing , 'Nothing , 'Nothing]
      ]
-ghci> let s3 = GSUpdate undefined (MkUpdate (SelZ :$: SelZ))
-             $ s2
-    • Couldn't match type ‘'Nothing’ with ‘'Just 'PO’
+
+ghci> g4 = play undefined (SelS SelZ :$: SelS SelZ) g3   -- O plays (1,1)
+    • Couldn't match type ‘'Just 'PX’ with ‘'Nothing’
+
+ghci> g4 = play undefined (SelS (SelS (SelS SelZ)) :$: SelZ) g3  -- O plays (3,0)
+    • Couldn't match type ‘'[]’ with ‘'Nothing ': as’
 ```
 
-We see that `GSUpdate` appropriately alternates the player each turn, keeps
-track of our updated boards, and also cannot be constructed if we give an
-illegal move (that is, if we try to place a piece where a piece has already
-been placed).  Note that type inference allows us to not have to manually
-specify the board at each point in time.
+`play` enforces:
+
+1.  Turns are always alternating X, then O
+2.  We cannot place a piece in a previously-played spot
+3.  We cannot place a piece out-of-bounds.
 
 Decision Functions and Views
 ----------------------------
 
-Now for an important part of any "type-safe" application: *decision functions*
-and dependent *views*.  *Decision functions* let you slowly refine your more
-general values (types) into more specific valid types.  *Views* let you sort
-out your our values into more "useful" perspectives.
+This seems nice, but we're forgetting an important part.  `play` requires us to
+only give valid inputs, and enforces that the inputs are valid.  However, how
+do we *create* valid inputs, in a way that satisfies `play`?
+
+As we'll see, this is one of the core problems that dependently typed
+programming gives us tools to solve.
+
+At this point, we've reached the important part of any "type-safe" application:
+*decision functions* and dependent *views*.  *Decision functions* let you
+slowly refine your more general values (types) into more specific valid types.
+*Views* let you sort out your our values into more "useful" perspectives.
 
 We're going to allow for users to pick to move at any natural number pair
 (`(N, N)`), but only *some* of those natural numbers can become valid updates.
@@ -481,7 +501,7 @@ In our case, writing a view function would look like this:
 ```haskell
 instance Provable (TyPred Pick) where
     prove :: Sing ijb -> Pick ijb
-    prove (STuple3 sI sJ sB) = undefined
+    prove (STuple3 i j b) = undefined
         -- ^ STuple3 is the singleton for three-tuples
 ```
 
@@ -634,8 +654,7 @@ To do this, we could either look at the documentation for `Found` (because
 just ask GHC what this looks like for a given input, using `:kind!`:
 
 ```haskell
--- what is the type of the witness for `InBounds 'Z1 ?
-ghci> :kind! InBounds 'Z @@ '[1,2,3]
+ghci> :kind! InBounds 'Z @@ '[1,2,3]  -- what is the type of the witness for `InBounds 'Z1 ?
 Σ Nat (TyPP (Sel 'Z '[1,2,3]))
 ```
 
@@ -792,7 +811,8 @@ inBounds_scons :: Sing n -> Sing x -> Sing xs
     implementation above, until you can figure out what is happening when.
 
 Finally, we can wrap everything up by providing our first ever `Decidable`
-instance:
+instance.  We need to give `inBounds` a `Sing n`, so we can do that using
+`sing :: Sing n`, provided that the instance has a `SingI n` constraint.
 
 ````haskell
 !!!ttt/Part1.hs "instance SingI n => Decidable (InBounds n)"
@@ -804,3 +824,143 @@ Now that we can decide `InBounds`, let's finally prove `Pick`.
 
 Again, for learning purposes, we'll define `pick` as its own function and then
 write an instance for `Provable`.
+
+```haskell
+pick
+    :: forall i j b. ()
+    => Sing i
+    -> Sing j
+    -> Sing b
+    -> Pick '(i, j, b)
+pick Sing Sing b =
+````
+
+We'll match with the `Sing` constructor for `Sing i` and `Sing j`; the `Sing`
+constructor is a pattern synonym that, if matched on, brings `SingI i` and
+`SingI j` instances into scope.
+
+Remember, the goal is to try to prove we have a valid pick.  We want to create
+something with the `PickValid` constructor if we can:
+
+```haskell
+PickValid  :: Coord '(i, j) b 'Nothing -> Pick '(i, j, b)
+
+(:$:) :: Sel i rows row
+      -> Sel j row  p
+      -> Coord '(i, j) rows p
+```
+
+So we need a `Coord '(i, j) b 'Nothing`, which means we need a `Sel i b row`
+and a `Sel j row 'Nothing`.  Let's use our decision functions we wrote to get
+these!  In particular, we can use `decide @(InBounds i) b` to get our `Sel i b
+row`, and then use `decide @(InBounds j) row` to get our `Sel j row piece`!
+
+```haskell
+pick
+    :: forall i j b. ()
+    => Sing i
+    -> Sing j
+    -> Sing b
+    -> Pick '(i, j, b)
+pick Sing Sing b = case decide @(InBounds i) b of
+    Proved (row :&: selX) -> case decide @(InBounds j) row of
+      Proved (p :&: selY) ->
+        let c = selX :$: selY
+        in  -- success???
+```
+
+Just to clarify what's going on, let's give types to the names above:
+
+```haskell
+b    :: Sing (b   :: board        )
+row  :: Sing (row :: [Maybe Piece])
+selX :: Sel i b row
+p    :: Sing (p   :: Maybe Piece  )
+selY :: Sel j row p
+c    :: Coord '(i, j) b p
+```
+
+`row` above is the `Sing` that comes attached with all `Σ` constructors, which
+is why we can give it to `decide @(InBounds j)`, which expects a singleton of
+the list.
+
+So, now we have `Coord '(i, j) b p`.  We know that `i` and `j` are in-bounds.
+But, we need to know that `p` is `'Nothing` before we can use it with
+`PickValid`.  To do that, we can pattern match on `p`, because it's the
+singleton that comes with the `Σ` constructor:
+
+```haskell
+pick
+    :: forall i j b. ()
+    => Sing i
+    -> Sing j
+    -> Sing b
+    -> Pick '(i, j, b)
+pick Sing Sing b = case decide @(InBounds i) b of
+    Proved (row :&: selX) -> case decide @(InBounds j) row of
+      Proved (p :&: selY) ->
+        let c = selX :$: selY
+        in  case p of
+              SNothing -> PickValid   c
+              SJust p' -> PickPlayed  c p'
+```
+
+Finally, knowing that `p` is `'Nothing`, we can create `PickValid`!
+
+As a bonus, if we know that `p` is `'Just p'`, we can create `PickPlayed`,
+which is the constructor for an in-bounds pick but pointing to a spot that is
+already occupied by piece `p'`.
+
+```haskell
+PickPlayed :: Coord '(i, j) b ('Just p)
+           -> Sing p
+           -> Pick '(i, j, b)
+```
+
+We now have to deal with the situations where things are out of bounds.
+
+```haskell
+PickOoBX :: OutOfBounds i @@ b
+         -> Pick '(i, j, b)
+PickOoBY :: Sel i b row
+         -> OutOfBounds j @@ row
+         -> Pick '(i, j, b)
+```
+
+However, thanks to the *[decidable][]* library, things work out nicely.  That's
+because `OutOfBounds n` we defined as:
+
+```haskell
+!!!ttt/Part1.hs "type OutOfBounds"
+```
+
+and `Not`, the predicate combinator, is defined as:
+
+```haskell
+data Not :: Predicate k -> Predicate k
+
+type instance Apply (Not p) x = (p @@ x) -> Void
+```
+
+That is, a witness of `Not p @@ x` is `p @@ x -> Void`.  That means that
+`PickOoBX` expects an `InBounds i @@ b -> Void`, and `PickOoBY` expects an
+`InBounds j @@ row -> Void`.  And that's *exactly* what the `Disproved`
+branches give!
+
+```haskell
+!!!ttt/Part1.hs "pick"
+```
+
+And that's it!
+
+Now to just tie it all together with a `Provable` instance, using the `STuple3`
+singletons constructor:
+
+```haskell
+!!!ttt/Part1.hs "instance Provable (TyPred Pick)"
+```
+
+Play Ball
+---------
+
+Bringing it all together, we can write our function
