@@ -86,10 +86,7 @@ First, we'll define the types we need to specify our state:
 
 ```haskell
 $(singletons [d|
-  data Piece = PX | PO
-    deriving (Eq, Ord)
-  
-  type Board = [[Maybe Piece]]
+!!!ttt/Part1.hs "data Piece" "type Board"
   |])
 ```
 
@@ -103,24 +100,14 @@ transformations:
 
 ```haskell
 $(singletons [d|
-  emptyBoard :: Board
-  emptyBoard = [ [Nothing, Nothing, Nothing]
-               , [Nothing, Nothing, Nothing]
-               , [Nothing, Nothing, Nothing]
-               ]
-
-  altP :: Piece -> Piece
-  altP PX = PO
-  altP PO = PX
+!!!ttt/Part1.hs "emptyBoard ::" "altP ::"
   |])
 ```
 
 Let's just throw in a quick proof as a sanity check:
 
 ```haskell
-altP_cyclic :: Sing p -> AltP (AltP p) :~: p
-altP_cyclic SPX = Refl @'PX
-altP_cyclic SPO = Refl @'PO
+!!!ttt/Part1.hs "altP_cyclic"
 ```
 
 With that in mind, we can write our valid state constructor.  We'll do that
