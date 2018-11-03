@@ -518,7 +518,7 @@ and take a `j :: N` and turn it into a `Sel j row p`.  We need to "convert" a
 
 ### ParamPred
 
-Another useful type synonym that *decidable* gives is in
+Another useful kind synonym that *decidable* gives is in
 *Data.Type.Predicate.Param*, the "parameterized predicate":
 
 ```haskell
@@ -536,7 +536,7 @@ Found :: ParamPred k v -> Predicate k
 ```
 
 `Found MyPP` is a predicate that, for any `x :: k`, we can find *some* `y :: v`
-that satisfies `MyPP x y`.
+that satisfies `MyPP x @@ y`.
 
 Again, the library is constructed so that you shouldn't need to define
 a `ParamPred` by hand; you can just use combinators and constructors.
@@ -604,7 +604,7 @@ Now, is `InBounds n` going to be `Provable`?  No, not quite.  That's because a
 given list `xs` might be actually out of bounds.  For example, `InBounds 'Z @@
 '[1,2,3]` is satisfiable, but `InBounds ('S 'Z) '[]` is not.
 
-To implement our view of `Pic`, we would like a function that can *decide*
+To implement our view of `Pick`, we would like a function that can *decide*
 whether or not `InBounds n` is satisfied by a given list `xs`.  What we want is
 a *decision function*:
 
@@ -655,7 +655,7 @@ just ask GHC what this looks like for a given input, using `:kind!`:
 
 ```haskell
 ghci> :kind! InBounds 'Z @@ '[1,2,3]  -- what is the type of the witness for `InBounds 'Z1 ?
-Σ Nat (TyPP (Sel 'Z '[1,2,3]))
+Σ Nat (TyPP (Sel 'Z) '[1,2,3])
 ```
 
 In general, the witness for `Found (p :: ParamPred k v)` is:
@@ -738,17 +738,6 @@ functions --- one for each case.
 
 ```haskell
 !!!ttt/Part1.hs "inBounds" "inBounds_znil"2 "inBounds_zcons"4 "inBounds_snil"3 "inBounds_scons"5
-
-inBounds_znil  :: Decision (InBounds 'Z @@ '[])
-
-inBounds_zcons :: Sing x -> Sing xs
-               -> Decision (InBounds 'Z @@ (x ': xs))
-
-inBounds_snil  :: Sing n
-               -> Decision (InBounds ('S n) @@ '[])
-
-inBounds_scons :: Sing n -> Sing x -> Sing xs
-               -> Decision (InBounds ('S n) @@ (x ': xs))
 ```
 
 1.  For the first branch, we have `'Z` and `'[]`.  This should be
@@ -965,3 +954,5 @@ Play Ball
 
 Bringing it all together, we can write a simple function to take user input and
 *play* it.
+
+<!-- TODO: maybe withhold Decidable until very end -->

@@ -160,8 +160,7 @@ inBounds_scons
 inBounds_scons n _ xs = case inBounds n xs of
     Proved (y :&: s) ->       -- if xs has y in its n spot
       Proved (y :&: SelS s)   -- then (x : xs) has y in its (S n) spot
-    -- v is a disproof that an item is in n spot in xs
-    Disproved v      -> Disproved $
+    Disproved v      -> Disproved $ -- v is a disproof that an item is in n spot in xs
       \(y :&: s) ->      -- suppose we had item y in (S n) spot in (x : xs)
         case s of
           SelS s' ->     -- this would mean that item y is in n spot in xs
