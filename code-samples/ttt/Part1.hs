@@ -177,8 +177,8 @@ pick Sing Sing b = case decide @(InBounds i) b of
       Proved (p :&: selY) ->
         let c = selX :$: selY
         in  case p of
-              SNothing -> PickValid   c
-              SJust p' -> PickPlayed  c p'
+              SNothing -> PickValid   c     -- p is 'Nothing
+              SJust q  -> PickPlayed  c q   -- p is 'Just q
       Disproved vY -> PickOoBY selX vY    -- vY :: InBounds j @@ row -> Void
                                           -- vY :: Not (InBounds j) @@ row
                                           -- vY :: OutOfBounds j @@ row
