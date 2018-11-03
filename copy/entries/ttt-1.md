@@ -907,7 +907,7 @@ pick Sing Sing b = case decide @(InBounds i) b of
 
 Finally, knowing that `p` is `'Nothing`, we can create `PickValid`!
 
-As a bonus, if we know that `p` is `'Just p'`, we can create `PickPlayed`,
+As a bonus, if we know that `p` is `'Just p`, we can create `PickPlayed`,
 which is the constructor for an in-bounds pick but pointing to a spot that is
 already occupied by piece `p'`.
 
@@ -963,4 +963,5 @@ singletons constructor:
 Play Ball
 ---------
 
-Bringing it all together, we can write our function
+Bringing it all together, we can write a simple function to take user input and
+*play* it.
