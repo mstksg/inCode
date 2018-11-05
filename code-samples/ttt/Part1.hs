@@ -128,6 +128,14 @@ instance SingI n => Decidable (InBounds n) where
     decide :: Sing xs -> Decision (InBounds n @@ xs)
     decide = inBounds sing
 
+sel :: forall (i :: N) (xs :: [k]). ()
+    => Sing i
+    -> Sing xs
+    -> Σ k (TyPred (Sel i xs))
+sel = \case
+    SZ -> \case
+      SNil -> _ :&: _
+
 inBounds :: Sing n -> Sing xs -> Decision (InBounds n @@ xs)
 inBounds = \case
     SZ -> \case
