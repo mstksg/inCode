@@ -931,10 +931,10 @@ data Not :: Predicate k -> Predicate k
 type instance Apply (Not p) x = (p @@ x) -> Void
 ```
 
-That is, a witness of `Not p @@ x` is `p @@ x -> Void`.  That means that
-`PickOoBX` expects an `InBounds i @@ b -> Void`, and `PickOoBY` expects an
-`InBounds j @@ row -> Void`.  And that's *exactly* what the `Disproved`
-branches give!
+That is, a witness of `Not p @@ x` is a function of type `p @@ x -> Void`.
+That means that `PickOoBX` expects an `InBounds i @@ b -> Void`, and `PickOoBY`
+expects an `InBounds j @@ row -> Void`.  And that's *exactly* what the
+`Disproved` branches give!
 
 ```haskell
 !!!ttt/Part1.hs "pick"
