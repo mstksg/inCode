@@ -423,6 +423,8 @@ ghci> :kind! Apply Id 'True
 'True
 ```
 
+(Remember, `:kind!` is the ghci command to evaluate a type family)
+
 Let's define another one!  We'll implement `Not`:
 
 ```haskell

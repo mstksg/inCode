@@ -512,6 +512,10 @@ ghci> :kind! StatePass 'Closed
 'Obstruct
 ```
 
+(Note that `:kind!` is different from `:kind`: `:kind` is the ghci command to
+report the kind of a type expression, and `:kind!` is the ghci command to
+evaluate type families in type expressions.)
+
 Like type synonyms, type families can't be partially applied ("unsaturated").
 They only ever make sense in "fully applied" (or "saturated") form, with all
 arguments given syntactically.
