@@ -1,7 +1,7 @@
 [Justin Le][about]
 ------------------
 
-Welcome!  My name is Justin Le.  I'm a PhD student at Chapman University in
+Welcome!  My name is Justin Le.  I'm a PhD candidate at Chapman University in
 California, studying Computational Science & Applied Maths; I studied Physics
 and Computer Science at University of California, San Diego :)
 
