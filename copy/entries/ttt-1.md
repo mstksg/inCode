@@ -24,9 +24,10 @@ will:
 
 This series will also be a mini-tutorial on the *[decidable][]* package that I
 just recently released :)  We will also be heavily using the *[singletons][]*
-library.  Where relevant, I will explain singletons concepts in brief.  If you
-want a more in-depth introduction to the *singletons* library, however, check
-out my [Introduction to Singletons][] series!
+library.  I strongly strongly recommend reading my [Introduction to
+Singletons][] series (and doing the exercises), if you are new to the
+singletons library.  However, I will do my best to explain singletons concepts
+in brief as they come up.
 
 [decidable]: https://hackage.haskell.org/package/decidable
 [singletons]: https://hackage.haskell.org/package/singletons
@@ -624,14 +625,14 @@ data Void
 
 A decision function means that, for any `x`, we can say that either `P @@ x`
 can be proven true or can be proven false.  See [this
-section][singletons-decide] for a deeper discussion on why `Decision` has both
+section][singletons-decision] for a deeper discussion on why `Decision` has both
 the `Proved` and `Disproved` branch.  Essentially, it prevents us from just
 returning "disproved" without proving it (so we can be sure that our decision
 function is "correct" and not just cheating), and, in the long term, we keep
 track of "provably false" because we can use it later to build other useful
 decision functions and proving functions.
 
-[singletons-decidable]: https://blog.jle.im/entry/introduction-to-singletons-3.html#decision
+[singletons-decision]: https://blog.jle.im/entry/introduction-to-singletons-3.html#decision
 
 We use decision functions when we want to "conditionally prove" something ---
 it might be true, or it might not be (but definitely one or the other).  It
