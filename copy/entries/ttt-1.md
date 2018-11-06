@@ -31,6 +31,7 @@ out my [Introduction to Singletons][] series!
 [decidable]: https://hackage.haskell.org/package/decidable
 [singletons]: https://hackage.haskell.org/package/singletons
 [Introduction to Singletons]: https://blog.jle.im/entries/series/+introduction-to-singletons.html
+!!![Part1.hs]:ttt/Part1.hs
 
 Type-Safety
 -----------
@@ -411,15 +412,14 @@ We'll call these potential "views" out of `(N, N)` with respect to some board
 
 ```haskell
 -- | Placeholder predicate if a given number `n` is out of bounds for a given
--- list
+-- list.  Predicate is from the 'decidable' library
 data OutOfBounds n :: Predicate [k]
-
 !!!ttt/Part1.hs "data Pick"
 ```
 
 (A value of type `OutOfBounds n @@ xs` is a witness that `xs` satisfies the
 `OutOfBounds n` --- that is, `n` is out of bounds of `xs`.  More on this
-later!)
+later when we talk about the *decidable* library!)
 
 So, if we have an `(N, N, Board)`, we should be able to categorize it into one
 of each of these potential views.
@@ -441,12 +441,11 @@ perspectives/classifications), without exception.
 This can be considered the boundary between the unsafe and the safe world.
 And, to me, this is the "hard part" about dependently typed programming :)
 
-If we want to take any `i`, `j`, and `b`, and turn it into a valid `Pick`,
-remember that a valid `Pick '(i, j, b)` contains a `Coord '(i, j) b 'Nothing`,
-which contains a `Sel i b row` and a `Sel j row 'Nothing`.  So we need to
-"convert" some `i`, `j` into a `Sel i b row` and `Sel j row 'Nothing`.
-
-### Existential return types
+Now, let's write `pick`.  If we want to take any `i`, `j`, and `b`, and turn it
+into a valid `Pick`, remember that a valid `Pick '(i, j, b)` contains a `Coord
+'(i, j) b 'Nothing`, which contains a `Sel i b row` and a `Sel j row 'Nothing`.
+So we need to "convert" some `i`, `j` into a `Sel i b row` and `Sel j row
+'Nothing`.
 
 Essentially, we want a function:
 
@@ -459,6 +458,8 @@ sel :: Sing i
 where `????` is whatever value is in `xs` at index `i`.  It's something we
 might not know directly from the input types, necessarily, because it might not
 even exist (the list might be too short).
+
+### Existential return types and Dependent Pairs
 
 This pattern --- where we don't know the type of something until after we
 receive the function inputs --- is something you might recognize as an
@@ -475,15 +476,23 @@ data Sigma k :: Predicate k -> Type where
 type Σ k = Sigma k
 ```
 
-A value of type `Sigma k p` contains an `p @@ x` (a witness that `x` satisfies
-`x`), existentially *hiding* the `x`, and also `x` itself (as `Sing x`;
+A value of type `Sigma k p` contains an `p @@ x` (a witness that `p` satisfies
+`x`), existentially *hiding* the `x :: k`, and also `x` itself (as `Sing x`;
 remember that `Sing x` is essentially a value-level representation of type
 `x`).
 
-We can use this to return a `Sel n xs ????`, *hiding* the `???`.  We can't
-directly give `Sel n xs` to `Sigma` (because it expects a `Predicate k`, not a `k
--> Type`), but we can turn a type constructor into a `Predicate` using
-`TyPred`, a convenient combinator from the *decidable* library:
+You can think of `Sigma k p` as a proof that `p` is satisfied for *some*
+`x :: k`, but we can't know which `x` it is until you pattern match.  If you pattern
+match, you'll get both `Sing x` (to find out the `x`), and the `p @@ x` (the
+witness that `p` is satisfied by `x`).
+
+We can use this to return a `Sel n xs ????`, *hiding* the `???`.
+
+
+Now for some plumbing: We can't directly give `Sel n xs` to `Sigma` (because it
+expects a `Predicate k`, not a `k -> Type`), but we can turn a type constructor
+into a `Predicate` using `TyPred`, a convenient combinator from the *decidable*
+library:
 
 ```haskell
 TyPred :: (k -> Type) -> Predicate k
@@ -507,8 +516,8 @@ Let's make sure this type works like we expect it to.  We want a `Σ k (TyPred
 (Sel n xs))` to contain the `x` at position `n` in `xs`, *and* the `Sel` into
 that position.
 
-First, to make things a little less verbose, let's define a type synonym for
-`Σ k (TyPred (Sel n xs))`, `SelFound n xs`:
+To make things a little less verbose, let's define a type synonym for `Σ k
+(TyPred (Sel n xs))`, `SelFound n xs`:
 
 ```haskell
 !!!ttt/Part1.hs "type SelFound"
@@ -533,11 +542,13 @@ well, by giving the value of the list at index 1, `'False`:
 !!!ttt/Part1.hs "selFoundTest2"
 ```
 
-Before moving on, I recommend trying to write some values of type `SelFound n
-xs` for different `n :: N` and `xs :: [a]`, to see what type-checks and what
-doesn't.  It'll help you get a feel of the types we are working with, which
-might be more advanced than types you might encounter in everyday Haskell
-programming.
+Before moving on, I strongly recommend trying to write some values of type
+`SelFound n xs` for different `n :: N` and `xs :: [a]`, to see what type-checks
+and what doesn't.  It'll help you get a feel of the types we are working with,
+which might be more advanced than types you might encounter in everyday Haskell
+programming.  Remember that you can load up all of the definitions in this post
+into a ghci session by downloading [the source code][Part1.hs] and executing it
+on the command line, `./Part1.hs`.
 
 Now, we now have enough tools to write the type of the function we would like:
 
@@ -571,7 +582,8 @@ constructors `SNil` and `SCons`.
 
 If you ask ghc what goes in the typed holes, it'll say that we need a `Sing x`
 and a `Sel 'Z '[] x` (which is because matching on `SZ` tells us we are in
-`'Z`, and matching on `SNil` tells us we are in `'[]`).
+`'Z`, and matching on `SNil` tells us we are in `'[]`).   And this...is a
+problem.
 
 Remember that the `x` is supposed to be the `n`th item in `xs`.  Here, in this
 pattern match branch, we want the zeroth (first) item in `[]`.  This doesn't
@@ -613,9 +625,11 @@ data Void
 A decision function means that, for any `x`, we can say that either `P @@ x`
 can be proven true or can be proven false.  See [this
 section][singletons-decide] for a deeper discussion on why `Decision` has both
-the `Proved` and `Disproved` branch.  Essentially, we keep track of "provably
-false" because we can use it later to build other useful decision functions and
-proving functions.
+the `Proved` and `Disproved` branch.  Essentially, it prevents us from just
+returning "disproved" without proving it (so we can be sure that our decision
+function is "correct" and not just cheating), and, in the long term, we keep
+track of "provably false" because we can use it later to build other useful
+decision functions and proving functions.
 
 [singletons-decidable]: https://blog.jle.im/entry/introduction-to-singletons-3.html#decision
 
@@ -643,83 +657,84 @@ selFound
     -> Decision (SelFound n xs)
 selFound = \case
     SZ -> \case
-      SNil         -> _
-      x `SCons` xs -> _
+      SNil         -> _   -- n is 'Z, xs is '[]
+      x `SCons` xs -> _   -- n is 'Z, xs is (x ': xs)
     SS n -> \case
-      SNil         -> _
-      x `SCons` xs -> _
+      SNil         -> _   -- n is ('S n), xs is '[]
+      x `SCons` xs -> _   -- n is ('S n), xs is (x ': xs)
 ```
 
-<!-- ```haskell -->
-<!-- !!!ttt/Part1.hs "inBounds" "inBounds_znil"2 "inBounds_zcons"4 "inBounds_snil"3 "inBounds_scons"5 -->
-<!-- ``` -->
+Okay, four cases.  Initially daunting, but we can just handle this one by one.
+Normally we can just fill in the blanks with the "right" responses, but, for
+learning's sake, let's split these branches into four helper functions --- one
+for each case.
 
-<!-- 1.  For the first branch, we have `'Z` and `'[]`.  This should be -->
-<!--     false, because there is no item in the zeroth position in `[]`.  But, -->
-<!--     also, there is no way to construct the `Sel` necessary for the witness, -->
-<!--     since there is no constructor for `Sel` that gives `'[]`. -->
+```haskell
+!!!ttt/Part1.hs "selFound" "selFound_znil"2 "selFound_zcons"4 "selFound_snil"3 "selFound_scons"5
+```
 
-<!--     So we can write this as `Disproved`, which takes a `InBounds 'Z @@ '[] -> -->
-<!--     Void`: -->
+1.  For the first branch, we have `'Z` and `'[]`.  This should be
+    false, because there is no item in the zeroth position in `[]`.  But,
+    also, there is no way to construct the `Sel` necessary for the witness,
+    since there is no constructor for `Sel` that gives `'[]`.
 
-<!--     ```haskell -->
-<!--     !!!ttt/Part1.hs "inBounds_znil" -->
-<!--     ``` -->
+    So we can write this as `Disproved`, which takes a `SelFound 'Z '[] ->
+    Void`:
 
-<!--     We can satisfy that `InBounds 'Z @@ '[] -> Void` by pattern matching on the -->
-<!--     `Sel` it *would* contain.  Because there is no `Sel` for an empty list, the -->
-<!--     empty pattern match is safe. -->
+    ```haskell
+    !!!ttt/Part1.hs "selFound_znil"
+    ```
 
-<!--     Remember to enable *-Werror=incomplete-patterns* to be sure! -->
+    We can satisfy that `SelFound 'Z '[] -> Void` by pattern matching on the
+    `Sel` it *would* contain.  Because there is no `Sel` for an empty list, the
+    empty pattern match is safe.
 
-<!-- 2.  For the second branch, we have `'Z` and `(x ': xs)`.  We want to -->
-<!--     prove that there exists an item at position `'Z` in the list `x ': xs`. -->
-<!--     The answer is *yes*, there does, and that item is `x`, and the `Sel` is -->
-<!--     `SelZ`! -->
+    Remember to enable *-Werror=incomplete-patterns* to be sure!
 
-<!--     ```haskell -->
-<!--     !!!ttt/Part1.hs "inBounds_zcons" -->
-<!--     ``` -->
+2.  For the second branch, we have `'Z` and `(x ': xs)`.  We want to
+    prove that there exists an item at position `'Z` in the list `x ': xs`.
+    The answer is *yes*, there does, and that item is `x`, and the `Sel` is
+    `SelZ`!
 
-<!-- 3.  For the third branch, we have `'S n` and `'[]`.  Again, this should be -->
-<!--     false, because there is no item in the `'S n` position in `'[]`.  We should -->
-<!--     be able to use the same strategy for the first branch: -->
+    ```haskell
+    !!!ttt/Part1.hs "selFound_zcons"
+    ```
 
-<!--     ```haskell -->
-<!--     !!!ttt/Part1.hs "inBounds_snil" -->
-<!--     ``` -->
+3.  For the third branch, we have `'S n` and `'[]`.  Again, this should be
+    false, because there is no item in the `'S n` position in `'[]`.  We should
+    be able to use the same strategy for the first branch:
 
-<!-- 4.  The fourth branch is the most interesting one.  We have `'S n` and `(x ': -->
-<!--     xs)`.  How do we know if the list `x ': xs` has an item in the `'S n` spot? -->
+    ```haskell
+    !!!ttt/Part1.hs "selFound_snil"
+    ```
 
-<!--     Well, we can check if the list `xs` has an item in its `n` spot. -->
+4.  The fourth branch is the most interesting one.  We have `'S n` and `(x ':
+    xs)`.  How do we know if the list `x ': xs` has an item in the `'S n` spot?
 
-<!--     *   If it does, then call that item `y`, and we know that `x ': xs` has `y` -->
-<!--         in its `'S n` spot. -->
+    Well, we can check if the list `xs` has an item in its `n` spot.
 
-<!--     *   If it doesn't, then we can't have an item at `'S n` spot in `x ': xs` -->
-<!--         either!  To show why, we can do a proof by contradiction. -->
+    *   If it does, then call that item `y`, and we know that `x ': xs` has `y`
+        in its `'S n` spot.
 
-<!--         Suppose there *was* an item `y` at the `'S n` spot in `x ': xs`.  If -->
-<!--         so, then that means that there would be an item `y` in the `n` spot in -->
-<!--         `xs`.  However, this was found to be false.  Therefore, we cannot have -->
-<!--         an item in the `'S n` spot in `x ': xs`. -->
+    *   If it doesn't, then we can't have an item at `'S n` spot in `x ': xs`
+        either!  To show why, we can do a proof by contradiction.
 
-<!--     ```haskell -->
-<!--     !!!ttt/Part1.hs "inBounds_scons" -->
-<!--     ``` -->
+        Suppose there *was* an item `y` at the `'S n` spot in `x ': xs`.  If
+        so, then that means that there would be an item `y` in the `n` spot in
+        `xs`.  However, this was found to be false.  Therefore, we cannot have
+        an item in the `'S n` spot in `x ': xs`.
 
-<!--     If you have problems understanding this, try playing around with typed -->
-<!--     holes in GHC, or trying to guess what types everything has in the -->
-<!--     implementation above, until you can figure out what is happening when. -->
+        This is a situation where having a disproof in the `Disproved` branch
+        is useful --- we use them to build more complex disproofs from simple
+        ones.
 
+    ```haskell
+    !!!ttt/Part1.hs "selFound_scons"
+    ```
 
-<!-- <1!-- , it'll say that it needs a `Σ k --1> -->
-<!-- (TyPred (Sel 'Z '[]))` -->
-
-
-<!-- This means that we have to put the first item in `'[]` -->
-
+    If you have problems understanding this, try playing around with typed
+    holes in GHC, or trying to guess what types everything has in the
+    implementation above, until you can figure out what is happening when.
 
 
 <!-- PickValid  :: Coord '(i, j) b 'Nothing -> Pick '(i, j, b) -->
