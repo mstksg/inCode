@@ -136,20 +136,21 @@ data Pick :: (N, N, Board) -> Type where
 --     SZ -> \case
 --       SNil -> _ :&: _
 
-type SelFound n (xs :: [k]) = Σ k (TyPred (Sel n xs))
+data SelFound :: N -> Predicate [k]
+type instance Apply (SelFound n) (xs :: [k]) = Σ k (TyPred (Sel n xs))
 
-selFoundTest1 :: SelFound 'Z '[ 'True, 'False ]
+selFoundTest1 :: SelFound 'Z @@ '[ 'True, 'False ]
 selFoundTest1 = STrue :&: SelZ
                        -- ^ Sel 'Z '[ 'True, 'False ] 'True
 
-selFoundTest2 :: SelFound ('S 'Z) '[ 'True, 'False ]
+selFoundTest2 :: SelFound ('S 'Z) @@ '[ 'True, 'False ]
 selFoundTest2 = SFalse :&: SelS SelZ
                         -- ^ Sel ('S 'Z) '[ 'True, 'False ] 'False
 
 selFound
     :: Sing n
     -> Sing xs
-    -> Decision (SelFound n xs)
+    -> Decision (SelFound n @@ xs)
 selFound = \case
     SZ -> \case
       SNil         -> selFound_znil
@@ -158,26 +159,29 @@ selFound = \case
       SNil         -> selFound_snil n
       x `SCons` xs -> selFound_scons n x xs
 
+noEmptySel :: Sel n '[] a -> Void
+noEmptySel = \case {}
+
 selFound_znil
-    :: Decision (SelFound 'Z '[])
-selFound_znil = Disproved $ \(_ :&: s) -> case s of {}
+    :: Decision (SelFound 'Z @@ '[])
+selFound_znil = Disproved $ \(_ :&: s) -> noEmptySel s
 
 selFound_zcons
     :: Sing x
     -> Sing xs
-    -> Decision (SelFound 'Z (x ': xs))
+    -> Decision (SelFound 'Z @@ (x ': xs))
 selFound_zcons x _ = Proved (x :&: SelZ)
 
 selFound_snil
     :: Sing n
-    -> Decision (SelFound ('S n) '[])
-selFound_snil _ = Disproved $ \(_ :&: s) -> case s of {}
+    -> Decision (SelFound ('S n) @@ '[])
+selFound_snil _ = Disproved $ \(_ :&: s) -> noEmptySel s
 
 selFound_scons
     :: Sing n
     -> Sing x
     -> Sing xs
-    -> Decision (SelFound ('S n) (x ': xs))
+    -> Decision (SelFound ('S n) @@ (x ': xs))
 selFound_scons n _ xs = case selFound n xs of
     Proved (y :&: s) ->       -- if xs has y in its n spot
       Proved (y :&: SelS s)   -- then (x : xs) has y in its (S n) spot

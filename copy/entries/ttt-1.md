@@ -489,7 +489,6 @@ witness that `p` is satisfied by `x`).
 
 We can use this to return a `Sel n xs ????`, *hiding* the `???`.
 
-
 Now for some plumbing: We can't directly give `Sel n xs` to `Sigma` (because it
 expects a `Predicate k`, not a `k -> Type`), but we can turn a type constructor
 into a `Predicate` using `TyPred`, a convenient combinator from the *decidable*
@@ -517,15 +516,26 @@ Let's make sure this type works like we expect it to.  We want a `Σ k (TyPred
 (Sel n xs))` to contain the `x` at position `n` in `xs`, *and* the `Sel` into
 that position.
 
-To make things a little less verbose, let's define a type synonym for `Σ k
+To make things a little less verbose, we can define a type synonym for `Σ k
 (TyPred (Sel n xs))`, `SelFound n xs`:
 
 ```haskell
-!!!ttt/Part1.hs "type SelFound"
+type SelFound n (xs :: [k]) = Σ k (TyPred (Sel n xs))
 ```
 
-And making some sample witnesses to ensure we are thinking about things
-correctly:
+Or, as practice, maybe we can treat `SelFound n` as a predicate on a list?  The
+predicate `SelFound n` will be satisfied if list `xs` has some item `x` at
+index `n`!
+
+```haskell
+!!!ttt/Part1.hs "data SelFound"
+```
+
+We can check to make sure this works, by checking the type of witnesses of
+`SelFound 'Z @@ '[ 'True, 'False ]`:
+
+Now let's make some sample witnesses of predicate `SelFound n` to ensure we are
+thinking about things correctly:
 
 ```haskell
 !!!ttt/Part1.hs "selFoundTest1"
@@ -536,7 +546,7 @@ Note that `SFalse :&: SelZ` would be a type error, because the second half
 0th item in the list), so we have to have the first half match `'True`, with
 `STrue`.
 
-We can write a witness for `SelFound ('S 'Z) '[ 'True, 'False ]`, as
+We can write a witness for `SelFound ('S 'Z) @@ '[ 'True, 'False ]`, as
 well, by giving the value of the list at index 1, `'False`:
 
 ```haskell
@@ -544,7 +554,7 @@ well, by giving the value of the list at index 1, `'False`:
 ```
 
 Before moving on, I strongly recommend trying to write some values of type
-`SelFound n xs` for different `n :: N` and `xs :: [a]`, to see what type-checks
+`SelFound n @@ xs` for different `n :: N` and `xs :: [a]`, to see what type-checks
 and what doesn't.  It'll help you get a feel of the types we are working with,
 which might be more advanced than types you might encounter in everyday Haskell
 programming.  Remember that you can load up all of the definitions in this post
@@ -556,10 +566,10 @@ Now, we now have enough tools to write the type of the function we would like:
 ```haskell
 sel :: Sing n
     -> Sing xs
-    -> SelFound n xs
+    -> SelFound n @@ xs
 ```
 
-Remember, a `SelFound n xs` contains both a `Sel n xs x` *and* a `Sing x`: a
+Remember, a `SelFound n @@ xs` contains both a `Sel n xs x` *and* a `Sing x`: a
 selection into the `i`th item in `xs` (the `Sel n xs x`), and also the item
 itself (the `Sing x`).
 
@@ -570,7 +580,7 @@ help you realize when you're trying to do something that doesn't make sense.
 ```haskell
 sel :: Sing n
     -> Sing xs
-    -> SelFound n xs
+    -> SelFound n @@ xs
 sel = \case
     SZ -> \case
       SNil -> _ :&: _
@@ -655,7 +665,7 @@ looking at every possible constructor of `N` and `[a]`:
 selFound
     :: Sing n
     -> Sing xs
-    -> Decision (SelFound n xs)
+    -> Decision (SelFound n @@ xs)
 selFound = \case
     SZ -> \case
       SNil         -> _   -- n is 'Z, xs is '[]
@@ -679,18 +689,39 @@ for each case.
     also, there is no way to construct the `Sel` necessary for the witness,
     since there is no constructor for `Sel` that gives `'[]`.
 
-    So we can write this as `Disproved`, which takes a `SelFound 'Z '[] ->
+    We can witness this by using a *total* helper function, `noEmptySel :: Sel
+    n '[] a -> Void`, which is a "disproof" of the fact that an empty `Sel` can
+    exist. It's a disproof because, if we *had* such a `Sel`, we could produce
+    `Void` with it...but `Void` has no constructors.  So no such `Sel` must
+    exist!
+
+    We implement it by pattern matching on all potential patterns (using the
+    *-XLambdaCase* extension):
+
+    ```haskell
+    !!!ttt/Part1.hs "noEmptySel"
+    ```
+
+    `noEmptySel` succesfuly implements `Sel n '[] as` by succesfully matching
+    on every legal constructor that could produce `Sel n '[] as`.  But, because
+    there are no constructors for `Sel` that produce `Sel n '[] as` (we just
+    have `SelZ` and `SelS`, which both produce non-empty `Sel`s), that means we
+    have to handle all *zero* legal constructors.  Once we handle all zero
+    legal constructors, we're done!  (Remember to enable
+    *-Werror=incomplete-patterns* to be sure!  GHC will then reject the program
+    if there is a pattern we do not handle)
+
+    So we can write this as `Disproved`, which takes a `SelFound 'Z @@ '[] ->
     Void`:
 
     ```haskell
     !!!ttt/Part1.hs "selFound_znil"
     ```
 
-    We can satisfy that `SelFound 'Z '[] -> Void` by pattern matching on the
-    `Sel` it *would* contain.  Because there is no `Sel` for an empty list, the
-    empty pattern match is safe.
-
-    Remember to enable *-Werror=incomplete-patterns* to be sure!
+    Armed with the `Sel 'Z '[] as` that is inside the `SelFound 'Z @@ '[]`, we
+    can use `noEmptySel` to produce the `Void`.  We succefully disprove the
+    fact that there is any item that can be found in `'[]`, by providing a
+    function `SelFound 'Z @@ '[] -> Void`.
 
 2.  For the second branch, we have `'Z` and `(x ': xs)`.  We want to
     prove that there exists an item at position `'Z` in the list `x ': xs`.
@@ -703,7 +734,8 @@ for each case.
 
 3.  For the third branch, we have `'S n` and `'[]`.  Again, this should be
     false, because there is no item in the `'S n` position in `'[]`.  We should
-    be able to use the same strategy for the first branch:
+    be able to use the same strategy for the first branch, by re-using our
+    helper function `noEmptySel`:
 
     ```haskell
     !!!ttt/Part1.hs "selFound_snil"
