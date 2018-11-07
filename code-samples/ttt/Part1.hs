@@ -107,9 +107,10 @@ play
     -> GameState (AltP p) (PlaceBoard i j p b)
 play r c = GSUpdate r (MkUpdate c)
 
-type InBounds    n = Found (TyPP (Sel n))
+data SelFound :: N -> Predicate [k]
+type instance Apply (SelFound n) (xs :: [k]) = Σ k (TyPred (Sel n xs))
 
-type OutOfBounds n = Not (InBounds n)
+type OutOfBounds n = Not (SelFound n)
 
 -- | A view of a coordinate and a board.  Either:
 data Pick :: (N, N, Board) -> Type where
@@ -136,9 +137,6 @@ data Pick :: (N, N, Board) -> Type where
 --     SZ -> \case
 --       SNil -> _ :&: _
 
-data SelFound :: N -> Predicate [k]
-type instance Apply (SelFound n) (xs :: [k]) = Σ k (TyPred (Sel n xs))
-
 selFoundTest1 :: SelFound 'Z @@ '[ 'True, 'False ]
 selFoundTest1 = STrue :&: SelZ
                        -- ^ Sel 'Z '[ 'True, 'False ] 'True
@@ -161,6 +159,7 @@ selFound = \case
 
 noEmptySel :: Sel n '[] a -> Void
 noEmptySel = \case {}
+            -- ^ we handle all 0 of the valid patterns for Sel n '[] a
 
 selFound_znil
     :: Decision (SelFound 'Z @@ '[])
@@ -191,25 +190,25 @@ selFound_scons n _ xs = case selFound n xs of
           SelS s' ->     -- this would mean that item y is in n spot in xs
             v (y :&: s') -- however, v disproves this.
 
--- pick
---     :: forall i j b. ()
---     => Sing i
---     -> Sing j
---     -> Sing b
---     -> Pick '(i, j, b)
--- pick Sing Sing b = case decide @(InBounds i) b of
---     Proved (row :&: selX) -> case decide @(InBounds j) row of
---       Proved (p :&: selY) ->
---         let c = selX :$: selY
---         in  case p of
---               SNothing -> PickValid   c     -- p is 'Nothing
---               SJust q  -> PickPlayed  c q   -- p is 'Just q
---       Disproved vY -> PickOoBY selX vY    -- vY :: InBounds j @@ row -> Void
---                                           -- vY :: Not (InBounds j) @@ row
---                                           -- vY :: OutOfBounds j @@ row
---     Disproved vX -> PickOoBX vX   -- vX :: InBounds i @@ b   -> Void
---                                   -- vX :: Not (InBounds i) @@ b
---                                   -- vX :: OutOfBounds i @@ b
+pick
+    :: forall i j b. ()
+    => Sing i
+    -> Sing j
+    -> Sing b
+    -> Pick '(i, j, b)
+pick i j b = case selFound i b of
+    Proved (row :&: selX) -> case selFound j row of
+      Proved (p :&: selY) ->
+        let c = selX :$: selY
+        in  case p of
+              SNothing -> PickValid   c     -- p is 'Nothing
+              SJust q  -> PickPlayed  c q   -- p is 'Just q
+      Disproved vY -> PickOoBY selX vY    -- vY :: InBounds j @@ row -> Void
+                                          -- vY :: Not (InBounds j) @@ row
+                                          -- vY :: OutOfBounds j @@ row
+    Disproved vX -> PickOoBX vX   -- vX :: InBounds i @@ b   -> Void
+                                  -- vX :: Not (InBounds i) @@ b
+                                  -- vX :: OutOfBounds i @@ b
 
 -- instance Provable (TyPred Pick) where
 --     prove :: Sing ijb -> Pick ijb
@@ -224,33 +223,33 @@ intToN n = case compare n 0 of
 readN :: String -> Maybe N
 readN = intToN <=< readMaybe
 
--- simplePlayIO'
---     :: Sing p
---     -> Sing b
---     -> GameState p b
---     -> IO ()
--- simplePlayIO' p b gs = do
---     print (fromSing b)
---     Just i <- readN <$> getLine
---     Just j <- readN <$> getLine
---     withSomeSing i $ \sI ->
---       withSomeSing j $ \sJ ->
---         case prove @(TyPred Pick) (STuple3 sI sJ b) of
---           PickOoBX _ -> do
---             putStrLn "Out of bounds in x.  Try again."
---             simplePlayIO' p b gs
---           PickOoBY _ _ -> do
---             putStrLn "Out of bounds in y.  Try again."
---             simplePlayIO' p b gs
---           PickPlayed _ q -> do
---             putStrLn $ "Already played by " ++ show (fromSing q) ++ ". Try again."
---             simplePlayIO' p b gs
---           PickValid c -> do
---             putStrLn "Success!"
---             let p'  = sAltP p
---                 b'  = sPlaceBoard sI sJ p b
---                 gs' = play undefined c gs
---             simplePlayIO' p' b' gs'
+simplePlayIO'
+    :: Sing p
+    -> Sing b
+    -> GameState p b
+    -> IO ()
+simplePlayIO' p b gs = do
+    print (fromSing b)
+    Just i <- readN <$> getLine
+    Just j <- readN <$> getLine
+    withSomeSing i $ \sI ->
+      withSomeSing j $ \sJ ->
+        case pick sI sJ b of
+          PickOoBX _ -> do
+            putStrLn "Out of bounds in x.  Try again."
+            simplePlayIO' p b gs
+          PickOoBY _ _ -> do
+            putStrLn "Out of bounds in y.  Try again."
+            simplePlayIO' p b gs
+          PickPlayed _ q -> do
+            putStrLn $ "Already played by " ++ show (fromSing q) ++ ". Try again."
+            simplePlayIO' p b gs
+          PickValid c -> do
+            putStrLn "Success!"
+            let p'  = sAltP p
+                b'  = sPlaceBoard sI sJ p b
+                gs' = play undefined c gs
+            simplePlayIO' p' b' gs'
 
--- simplePlayIO :: IO ()
--- simplePlayIO = simplePlayIO' SPX sEmptyBoard GSStart
+simplePlayIO :: IO ()
+simplePlayIO = simplePlayIO' SPX sEmptyBoard GSStart

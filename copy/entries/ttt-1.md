@@ -769,574 +769,194 @@ for each case.
     holes in GHC, or trying to guess what types everything has in the
     implementation above, until you can figure out what is happening when.
 
-
-<!-- PickValid  :: Coord '(i, j) b 'Nothing -> Pick '(i, j, b) -->
-
-<!-- Well, remember that a *succesful* `Pick` contains a `Sel i b row` and a `Sel j -->
-<!-- row p`.  We need to somehow take an `i :: N` and turn it into a `Sel i b row`, -->
-<!-- and take a `j :: N` and turn it into a `Sel j row p`.  We need to "convert" a -->
-<!-- `N` into some `Sel`, in a way that could potentially fail. -->
-
-<!-- We can write this by scratch, by hand, but we're going to look at a couple of -->
-<!-- useful tools from the *decidable* library to help us. -->
-
-<!-- ## The Decidable Library -->
-
-<!-- The *[decidable][]* library offers a couple of conceptual tools to work with -->
-<!-- views and predicates.  Here's a quick run-down: -->
-
-<!-- The main type that the library works with is `Predicate`: -->
-
-<!-- ```haskell -->
-<!-- type Predicate k = k ~> Type -->
-<!-- ``` -->
-
-<!-- `k ~> Type` is the kind of a *defunctionalization symbol* --- it's a dummy data -->
-<!-- type that can be passed around, and represents a function `k ~> Type` that can -->
-<!-- be "applied" using `Apply` or `@@`.  We say that, for predicate `MyPred`, we define: -->
-
-<!-- ```haskell -->
-<!-- type instance Apply MyPred x = MyWitness -->
-<!-- ``` -->
-
-<!-- Where `MyWitness` is the witness for the type-level predicate `MyPred`. -->
-<!-- We can define a predicate from scratch by declaring the above type family -->
-<!-- instance, but the library is defined so that you rarely ever have to define a -->
-<!-- `Predicate` by hand.  Usually, we can use predicate "combinators", to construct -->
-<!-- predicates from simpler pieces. -->
-
-<!-- For example, we have the `TyPred` combinator: -->
-
-<!-- ```haskell -->
-<!-- TyPred :: (k -> Type) -> Predicate k -->
-<!-- ``` -->
-
-<!-- It turns a normal `k -> Type` type constructor into a `Predicate k`.  So, we -->
-<!-- can use `Pick :: (N, N, Board) -> Type` -->
-
-<!-- ```haskell -->
-<!-- ghci> :k TyPred Pick -->
-<!-- Predicate (N, N, Board) -->
-<!-- ``` -->
-
-<!-- `TyPred Pick` is a predicate that, given a coordinate and a board, we can -->
-<!-- create a valid `Pick` using one of the `Pick` constructors.  The *witness* of -->
-<!-- the `TyPred` predicate is the type constructor itself: -->
-
-<!-- ```haskell -->
-<!-- type instance Apply (TyPred t) a = t a -->
-<!-- ``` -->
-
-<!-- So the witness for `TyPred Pick @@ a` is just `Pick a`: -->
-
-<!-- ```haskell -->
-<!-- ghci> :kind! TyPred Pick @@ '( 'Z, 'Z, EmptyBoard ) -->
-<!-- Pick '( 'Z, 'Z, [ [Nothing,Nothing.Nothing] -->
-<!--                 , [Nothing,Nothing,Nothing] -->
-<!--                 , [Nothing,Nothing,Nothing] -->
-<!--                 ] -->
-<!--       ) -->
-
-<!-- ghci> :kind! forall a. TyPred Pick @@ a -->
-<!-- Pick a      -- the witness for `TyPred Pick @@ a` is just `Pick a` -->
-<!-- ``` -->
-
-<!-- ### Provable -->
-
-<!-- We can say that a type-level predicate (or view) `P` is *provable* if we can -->
-<!-- always create a value of `P @@ x`, for any `x`.  If `P` is a view, it means -->
-<!-- that we can always view any `x` from the "perspective" of one of the -->
-<!-- constructors of `P`. -->
-
-<!-- Essentially, it means we can write a function -->
-
-<!-- ```haskell -->
-<!-- prove :: Sing x       -- ^ for any x -->
-<!--       -> P @@ x       -- ^ P @@ x can be generated; you can view from -->
-<!--                       --   perspective of a constructor of P -->
-<!-- ``` -->
-
-<!-- Our viewing function for predicate `TyPred Pick` would look like this: -->
-
-<!-- ```haskell -->
-<!-- pick :: Sing '(i, j, b) -->
-<!--      -> TyPred Pick @@ '(i, j, b) -->
-<!-- ``` -->
-
-
-
-<!-- *decidable* makes this a little nicer to work with by providing a typeclass for -->
-<!-- predicates with "canonical" viewing functions, called `Provable`: -->
-
-<!-- ```haskell -->
-<!-- -- | Class providing a canonical proving function or view for predicate `p`. -->
-<!-- class Provable p where -->
-<!--     -- | Given any `x`, produce the witness `p @@ x`. -->
-<!--     prove :: forall x. Sing x -> (p @@ x) -->
-<!-- ``` -->
-
-<!-- The benefit of using a typeclass is that we can associate a canonical -->
-<!-- proving/viewing function with a consistent name, and also so that higher-order -->
-<!-- predicate combinators can build proving functions based on proving functions of -->
-<!-- the predicates they are parameterized on. -->
-
-<!-- In our case, writing a view function would look like this: -->
-
-<!-- ```haskell -->
-<!-- instance Provable (TyPred Pick) where -->
-<!--     prove :: Sing ijb -> Pick ijb -->
-<!--     prove (STuple3 i j b) = undefined -->
-<!--         -- ^ STuple3 is the singleton for three-tuples -->
-<!-- ``` -->
-
-<!-- Then, given any `(i, j, b)` combination, we can classify it into one of the -->
-<!-- constructors of `Pick` by just using `prove @(TyPred Pick) sIJB`. -->
-
-<!-- Now that we've restated things in the context of *decidable*...how do we -->
-<!-- actually write `prove @(TyPred Pick)`? -->
-
-<!-- Well, remember that a *succesful* `Pick` contains a `Sel i b row` and a `Sel j -->
-<!-- row p`.  We need to somehow take an `i :: N` and turn it into a `Sel i b row`, -->
-<!-- and take a `j :: N` and turn it into a `Sel j row p`.  We need to "convert" a -->
-<!-- `N` into some `Sel`, in a way that could potentially fail. -->
-
-<!-- ### ParamPred -->
-
-<!-- Another useful kind synonym that *decidable* gives is in -->
-<!-- *Data.Type.Predicate.Param*, the "parameterized predicate": -->
-
-<!-- ```haskell -->
-<!-- type ParamPred k v = k -> Predicate v -->
-<!-- ``` -->
-
-<!-- If `MyPP :: ParamPred k v` is a parameterized predicate, then `MyPP x` is a -->
-<!-- `Predicate v`. -->
-
-<!-- The main usage of parameterized predicate is for usage with the `Found` -->
-<!-- predicate combinator: -->
-
-<!-- ```haskell -->
-<!-- Found :: ParamPred k v -> Predicate k -->
-<!-- ``` -->
-
-<!-- `Found MyPP` is a predicate that, for any `x :: k`, we can find *some* `y :: v` -->
-<!-- that satisfies `MyPP x @@ y`. -->
-
-<!-- Again, the library is constructed so that you shouldn't need to define -->
-<!-- a `ParamPred` by hand; you can just use combinators and constructors. -->
-
-<!-- For example, we have `TyPP`: -->
-
-<!-- ```haskell -->
-<!-- TyPP :: (k -> v -> Type) -> ParamPred k v -->
-<!-- ``` -->
-
-<!-- Which turns any normal type constructor into a `ParamPred`. -->
-<!-- For example, let's look at `Sel 'Z`: -->
-
-<!-- ```haskell -->
-<!-- ghci> :k TyPP (Sel 'Z) -->
-<!-- ParamPred [k] k -->
-<!-- ``` -->
-
-<!-- `TyPP (Sel 'Z)` is the parameterized predicate that, given a list `xs :: -->
-<!-- [k]`, we can produce an `x :: k` that is at index `'Z`.  That's because its -->
-<!-- witness is `Sel 'Z xs x` (the witness that `x` is at position `'Z` in `xs`). -->
-
-<!-- What is `Found (TyPP (Sel 'Z))`? -->
-
-<!-- ```haskell -->
-<!-- ghci> :k Found (TyPP (Sel 'Z)) -->
-<!-- Predicate [k] -->
-<!-- ``` -->
-
-<!-- Judging from the type, it is some predicate on a type level list.  And knowing -->
-<!-- what we know about `Found`, we can conclude what it is: It is a predicate that, -->
-<!-- given some list `xs`, there *is some value `x`* at position `'Z`.  It's -->
-<!-- essentially a predicate that the list *has* something at position `'Z`. -->
-
-<!-- We can generalize it further; `Found (TyPP (Sel ('S 'Z)))` must be the -->
-<!-- predicate that some given list `xs` has a value `x` at position `'S 'Z`.  It -->
-<!-- says that there must be *some* value at `'S 'Z`. -->
-
-<!-- Really, `Found (TyPP (Sel n))` is a predicate that some list `xs` is *at least* -->
-<!-- `n + 1` items long.  That's because we know that the list has to have some item -->
-<!-- at position `n`. -->
-
-<!-- There's a better name for this --- we'll call it `InBounds` -->
-
-<!-- ```haskell -->
-<!-- !!!ttt/Part1.hs "type InBounds" -->
-<!-- ``` -->
-
-<!-- `InBounds n :: Predicate [k]` is the predicate that, given some list `xs`, `n` -->
-<!-- is "in bounds" of `xs`. -->
-
-<!-- And *decidable* is nice because it offers a predicate combinator `Not`, which -->
-<!-- gives the negation of any predicate: -->
-
-<!-- ```haskell -->
-<!-- !!!ttt/Part1.hs "type OutOfBounds" -->
-<!-- ``` -->
-
-<!-- `OutOfBounds n :: Predicate [k]` is the predicate that, given some list `xs`, `n` -->
-<!-- is *not* in bounds of `xs`, and that it is actually *out* of bounds. -->
-
-<!-- ### Decidable -->
-
-<!-- Now, is `InBounds n` going to be `Provable`?  No, not quite.  That's because a -->
-<!-- given list `xs` might be actually out of bounds.  For example, `InBounds 'Z @@ -->
-<!-- '[1,2,3]` is satisfiable, but `InBounds ('S 'Z) '[]` is not. -->
-
-<!-- To implement our view of `Pick`, we would like a function that can *decide* -->
-<!-- whether or not `InBounds n` is satisfied by a given list `xs`.  What we want is -->
-<!-- a *decision function*: -->
-
-<!-- ```haskell -->
-<!-- inBounds :: forall n xs. () -->
-<!--          => Sing xs -->
-<!--          -> Decision (InBounds n @@ xs) -->
-<!-- ``` -->
-
-<!-- Remember that `Decision` is a data type that is kind of like `Maybe`, but with -->
-<!-- a "disproof" if the input is disprovable: -->
-
-<!-- ```haskell -->
-<!-- data Decision a -->
-<!--     = Proved     a                -- ^ `a` is provably true -->
-<!--     | Disproved (a -> Void)       -- ^ `a` is provably false -->
-
-<!-- -- | The type with no constructors.  If we have a function `a -> Void`, it must -->
-<!-- -- mean that no value of type `a` exists. -->
-<!-- data Void -->
-<!-- ``` -->
-
-<!-- The *decidable* library offers a typeclass for a *canonical* decision function -->
-<!-- for any `Predicate`: -->
-
-<!-- ```haskell -->
-<!-- -- | Class providing a canonical decision function for predicate `p`. -->
-<!-- class Decidable p where -->
-<!--     -- | Given any `x`, either prove or disprove the witness `p @@ x`. -->
-<!--     decide :: forall x. Sing x -> Decision (p @@ x) -->
-<!-- ``` -->
-
-<!-- Of course, we could always just write our decision function `inBounds` from -->
-<!-- scratch, but it's convenient to pull everything into a typeclass instead for -->
-<!-- the reasons discussed earlier. -->
-
-<!-- ### Deciding InBounds -->
-
-<!-- Alright, time to write our first bona-fide decision function for `InBounds`, -->
-<!-- which we will use to write our view function for `Pick`. -->
-
-<!-- The decision function requires us to produce a witness for `InBounds n @@ -->
-<!-- xs`...so we need to know what that witness looks like. -->
-
-<!-- To do this, we could either look at the documentation for `Found` (because -->
-<!-- `InBounds n = Found (TyPP (Sel n))`) to find its `Apply` instance, or we could -->
-<!-- just ask GHC what this looks like for a given input, using `:kind!`: -->
-
-<!-- ```haskell -->
-<!-- ghci> :kind! InBounds 'Z @@ '[1,2,3]  -- what is the type of the witness for `InBounds 'Z1 ? -->
-<!-- Σ Nat (TyPP (Sel 'Z) '[1,2,3]) -->
-<!-- ``` -->
-
-<!-- In general, the witness for `Found (p :: ParamPred k v)` is: -->
-
-<!-- ```haskell -->
-<!-- type instance Apply (Found p) x = Σ v (p x) -->
-<!-- ``` -->
-
-<!-- `Σ` might seem a little scary, but remember that it's a type synonym for -->
-<!-- the dependent pair `Sigma` type, from *Data.Singletons.Sigma*: -->
-
-<!-- ```haskell -->
-<!-- data Sigma k :: (k ~> Type) -> Type where -->
-<!--     (:&:) :: Sing x -> (f @@ x) -> Sigma k f -->
-
-<!-- type Σ k = Sigma k -->
-<!-- ``` -->
-
-<!-- I wrote a small mini-tutorial on `Sigma` [here][sigma], if you need a -->
-<!-- refresher.  Basically, if we had `f :: k ~> Type`, then `Sigma k f` contains an -->
-<!-- `f @@ x`, for some `x`, along with `Sing x` (to help us recover what `x` was, -->
-<!-- once we pattern match).  It's a *dependent pair* or *dependent sum* type.  You -->
-<!-- can think of it as `Sigma k f` existentially *wrapping* `x :: k`, to show that -->
-<!-- there is at least some `x` somewhere out there such that `f @@ x` exists. -->
-
-<!-- [sigma]: https://blog.jle.im/entry/introduction-to-singletons-4.html#sigma -->
-
-<!-- This makes a lot of sense as a witness to `Found p`.  `Found p @@ x` says that -->
-<!-- there is some `y` such that `p x @@ y` is satisfied.  So, what is the witness -->
-<!-- of that statement?  The `y` itself! (wrapped in a `Σ`) -->
-
-<!-- So, the witness for `InBounds 'Z @@ '[ 'True, 'False ]` is the -->
-<!-- item in the list `'[1,2,3]` at position `'Z` --- `'True`.  Let's see this in -->
-<!-- action: -->
-
-<!-- ```haskell -->
-<!-- inBoundsTest1 :: InBounds 'Z @@ '[ 'True, 'False ] -->
-<!-- inBoundsTest1 = STrue :&: SelZ -->
-<!--                        -- ^ Sel 'Z '[ 'True, 'False ] 'True -->
-<!-- ``` -->
-
-<!-- Note that we can't put `SFalse` in `inBoundsTest1`, because the second half -->
-<!-- `SelZ` would be `Sel :: 'Z '[ 'True, 'False ] 'True` (because `'True` is the -->
-<!-- 0th item in the list), so we have to have the first half match `'True`. -->
-
-<!-- And we can write a witness for `InBounds ('S 'Z) @@ '[ 'True, 'False ]`, as -->
-<!-- well, by giving the value of the list at index 1, `'False`: -->
-
-<!-- ```haskell -->
-<!-- inBoundsTest2 :: InBounds ('S 'Z) @@ '[ 'True, 'False ] -->
-<!-- inBoundsTest2 = SFalse :&: SelS SelZ -->
-<!--                         -- ^ Sel ('S 'Z) '[ 'True, 'False ] 'False -->
-<!-- ``` -->
-
-<!-- With that in mind, let's write our decision function for `InBounds n`.  It's -->
-<!-- going to be our actual first dependently typed function! -->
-
-<!-- For the sake of learning, we're going to write it as a standalone function -->
-<!-- `inBounds`.  It's going to take `Sing n` (the index) and `Sing xs` (the -->
-<!-- list) and produce a decision on `InBounds n @@ xs`.  Like for any Haskell -->
-<!-- function on ADTs, we'll start out by just writing all of our case statement -->
-<!-- branches (using *-XLambdaCase* for conciseness).  An `N` can either be `Z` or -->
-<!-- `S n`, so we match on singletons `SZ` and `SS`.  A `[a]` can either be `[]` or -->
-<!-- `x : xs`, so we match on singletons `SNil` and ``x `SCons` xs`` -->
-
-<!-- ```haskell -->
-<!-- inBounds :: Sing n -> Sing xs -> Decision (InBounds n @@ xs) -->
-<!-- inBounds = \case -->
-<!--     SZ -> \case -->
-<!--       SNil         -> _ -->
-<!--       x `SCons` xs -> _ -->
-<!--     SS n -> \case -->
-<!--       SNil         -> _ -->
-<!--       x `SCons` xs -> _ -->
-<!-- ``` -->
-
-<!-- Okay, four cases.  Initially daunting, but we can just handle this one by one. -->
-<!-- Again, for learning's sake, ket's split these branches into four helper -->
-<!-- functions --- one for each case. -->
-
-<!-- ```haskell -->
-<!-- !!!ttt/Part1.hs "inBounds" "inBounds_znil"2 "inBounds_zcons"4 "inBounds_snil"3 "inBounds_scons"5 -->
-<!-- ``` -->
-
-<!-- 1.  For the first branch, we have `'Z` and `'[]`.  This should be -->
-<!--     false, because there is no item in the zeroth position in `[]`.  But, -->
-<!--     also, there is no way to construct the `Sel` necessary for the witness, -->
-<!--     since there is no constructor for `Sel` that gives `'[]`. -->
-
-<!--     So we can write this as `Disproved`, which takes a `InBounds 'Z @@ '[] -> -->
-<!--     Void`: -->
-
-<!--     ```haskell -->
-<!--     !!!ttt/Part1.hs "inBounds_znil" -->
-<!--     ``` -->
-
-<!--     We can satisfy that `InBounds 'Z @@ '[] -> Void` by pattern matching on the -->
-<!--     `Sel` it *would* contain.  Because there is no `Sel` for an empty list, the -->
-<!--     empty pattern match is safe. -->
-
-<!--     Remember to enable *-Werror=incomplete-patterns* to be sure! -->
-
-<!-- 2.  For the second branch, we have `'Z` and `(x ': xs)`.  We want to -->
-<!--     prove that there exists an item at position `'Z` in the list `x ': xs`. -->
-<!--     The answer is *yes*, there does, and that item is `x`, and the `Sel` is -->
-<!--     `SelZ`! -->
-
-<!--     ```haskell -->
-<!--     !!!ttt/Part1.hs "inBounds_zcons" -->
-<!--     ``` -->
-
-<!-- 3.  For the third branch, we have `'S n` and `'[]`.  Again, this should be -->
-<!--     false, because there is no item in the `'S n` position in `'[]`.  We should -->
-<!--     be able to use the same strategy for the first branch: -->
-
-<!--     ```haskell -->
-<!--     !!!ttt/Part1.hs "inBounds_snil" -->
-<!--     ``` -->
-
-<!-- 4.  The fourth branch is the most interesting one.  We have `'S n` and `(x ': -->
-<!--     xs)`.  How do we know if the list `x ': xs` has an item in the `'S n` spot? -->
-
-<!--     Well, we can check if the list `xs` has an item in its `n` spot. -->
-
-<!--     *   If it does, then call that item `y`, and we know that `x ': xs` has `y` -->
-<!--         in its `'S n` spot. -->
-
-<!--     *   If it doesn't, then we can't have an item at `'S n` spot in `x ': xs` -->
-<!--         either!  To show why, we can do a proof by contradiction. -->
-
-<!--         Suppose there *was* an item `y` at the `'S n` spot in `x ': xs`.  If -->
-<!--         so, then that means that there would be an item `y` in the `n` spot in -->
-<!--         `xs`.  However, this was found to be false.  Therefore, we cannot have -->
-<!--         an item in the `'S n` spot in `x ': xs`. -->
-
-<!--     ```haskell -->
-<!--     !!!ttt/Part1.hs "inBounds_scons" -->
-<!--     ``` -->
-
-<!--     If you have problems understanding this, try playing around with typed -->
-<!--     holes in GHC, or trying to guess what types everything has in the -->
-<!--     implementation above, until you can figure out what is happening when. -->
-
-<!-- Finally, we can wrap everything up by providing our first ever `Decidable` -->
-<!-- instance.  We need to give `inBounds` a `Sing n`, so we can do that using -->
-<!-- `sing :: Sing n`, provided that the instance has a `SingI n` constraint. -->
-
-<!-- ````haskell -->
-<!-- !!!ttt/Part1.hs "instance SingI n => Decidable (InBounds n)" -->
-<!-- ```` -->
-
-<!-- ### Proving Pick -->
-
-<!-- Now that we can decide `InBounds`, let's finally prove `Pick`. -->
-
-<!-- Again, for learning purposes, we'll define `pick` as its own function and then -->
-<!-- write an instance for `Provable`. -->
-
-<!-- ```haskell -->
-<!-- pick -->
-<!--     :: forall i j b. () -->
-<!--     => Sing i -->
-<!--     -> Sing j -->
-<!--     -> Sing b -->
-<!--     -> Pick '(i, j, b) -->
-<!-- pick Sing Sing b = -->
-<!-- ```` -->
-
-<!-- We'll match with the `Sing` constructor for `Sing i` and `Sing j`; the `Sing` -->
-<!-- constructor is a pattern synonym that, if matched on, brings `SingI i` and -->
-<!-- `SingI j` instances into scope. -->
-
-<!-- Remember, the goal is to try to prove we have a valid pick.  We want to create -->
-<!-- something with the `PickValid` constructor if we can: -->
-
-<!-- ```haskell -->
-<!-- PickValid  :: Coord '(i, j) b 'Nothing -> Pick '(i, j, b) -->
-
-<!-- (:$:) :: Sel i rows row -->
-<!--       -> Sel j row  p -->
-<!--       -> Coord '(i, j) rows p -->
-<!-- ``` -->
-
-<!-- So we need a `Coord '(i, j) b 'Nothing`, which means we need a `Sel i b row` -->
-<!-- and a `Sel j row 'Nothing`.  Let's use our decision functions we wrote to get -->
-<!-- these!  In particular, we can use `decide @(InBounds i) b` to get our `Sel i b -->
-<!-- row`, and then use `decide @(InBounds j) row` to get our `Sel j row piece`! -->
-
-<!-- ```haskell -->
-<!-- pick -->
-<!--     :: forall i j b. () -->
-<!--     => Sing i -->
-<!--     -> Sing j -->
-<!--     -> Sing b -->
-<!--     -> Pick '(i, j, b) -->
-<!-- pick Sing Sing b = case decide @(InBounds i) b of -->
-<!--     Proved (row :&: selX) -> case decide @(InBounds j) row of -->
-<!--       Proved (p :&: selY) -> -->
-<!--         let c = selX :$: selY -->
-<!--         in  -- success??? -->
-<!-- ``` -->
-
-<!-- Just to clarify what's going on, let's give types to the names above: -->
-
-<!-- ```haskell -->
-<!-- b    :: Sing (b   :: [[Maybe Piece]]) -->
-<!-- row  :: Sing (row ::  [Maybe Piece] ) -->
-<!-- selX :: Sel i b row -->
-<!-- p    :: Sing (p   ::   Maybe Piece  ) -->
-<!-- selY :: Sel j row p -->
-<!-- c    :: Coord '(i, j) b p -->
-<!-- ``` -->
-
-<!-- `row` above is the `Sing` that comes attached with all `Σ` constructors, which -->
-<!-- is why we can give it to `decide @(InBounds j)`, which expects a singleton of -->
-<!-- the list. -->
-
-<!-- So, now we have `Coord '(i, j) b p`.  We know that `i` and `j` are in-bounds. -->
-<!-- But, we need to know that `p` is `'Nothing` before we can use it with -->
-<!-- `PickValid`.  To do that, we can pattern match on `p`, because it's the -->
-<!-- singleton that comes with the `Σ` constructor: -->
-
-<!-- ```haskell -->
-<!-- pick -->
-<!--     :: forall i j b. () -->
-<!--     => Sing i -->
-<!--     -> Sing j -->
-<!--     -> Sing b -->
-<!--     -> Pick '(i, j, b) -->
-<!-- pick Sing Sing b = case decide @(InBounds i) b of -->
-<!--     Proved (row :&: selX) -> case decide @(InBounds j) row of -->
-<!--       Proved (p :&: selY) -> -->
-<!--         let c = selX :$: selY -->
-<!--         in  case p of -->
-<!--               SNothing -> PickValid   c     -- p is 'Nothing -->
-<!--               SJust q  -> PickPlayed  c q   -- p is 'Just q -->
-<!-- ``` -->
-
-<!-- Finally, knowing that `p` is `'Nothing`, we can create `PickValid`! -->
-
-<!-- As a bonus, if we know that `p` is `'Just p`, we can create `PickPlayed`, -->
-<!-- which is the constructor for an in-bounds pick but pointing to a spot that is -->
-<!-- already occupied by piece `p'`. -->
-
-<!-- ```haskell -->
-<!-- PickPlayed :: Coord '(i, j) b ('Just p) -->
-<!--            -> Sing p -->
-<!--            -> Pick '(i, j, b) -->
-<!-- ``` -->
-
-<!-- We now have to deal with the situations where things are out of bounds. -->
-
-<!-- ```haskell -->
-<!-- PickOoBX :: OutOfBounds i @@ b -->
-<!--          -> Pick '(i, j, b) -->
-<!-- PickOoBY :: Sel i b row -->
-<!--          -> OutOfBounds j @@ row -->
-<!--          -> Pick '(i, j, b) -->
-<!-- ``` -->
-
-<!-- However, thanks to the *[decidable][]* library, things work out nicely.  That's -->
-<!-- because `OutOfBounds n` we defined as: -->
-
-<!-- ```haskell -->
-<!-- !!!ttt/Part1.hs "type OutOfBounds" -->
-<!-- ``` -->
-
-<!-- and `Not`, the predicate combinator, is defined as: -->
-
-<!-- ```haskell -->
-<!-- data Not :: Predicate k -> Predicate k -->
-
-<!-- type instance Apply (Not p) x = (p @@ x) -> Void -->
-<!-- ``` -->
-
-<!-- That is, a witness of `Not p @@ x` is a function of type `p @@ x -> Void`. -->
-<!-- That means that `PickOoBX` expects an `InBounds i @@ b -> Void`, and `PickOoBY` -->
-<!-- expects an `InBounds j @@ row -> Void`.  And that's *exactly* what the -->
-<!-- `Disproved` branches give! -->
-
-<!-- ```haskell -->
-<!-- !!!ttt/Part1.hs "pick" -->
-<!-- ``` -->
-
-<!-- And that's it! -->
-
-<!-- Now to just tie it all together with a `Provable` instance, using the `STuple3` -->
-<!-- singletons constructor: -->
-
-<!-- ```haskell -->
-<!-- !!!ttt/Part1.hs "instance Provable (TyPred Pick)" -->
-<!-- ``` -->
-
-<!-- Play Ball -->
-<!-- --------- -->
-
-<!-- Bringing it all together, we can write a simple function to take user input and -->
-<!-- *play* it. -->
-
-<!-- <1!-- TODO: maybe withhold Decidable until very end --1> -->
+### Proving Pick
+
+Now that we can decide `SelFound`, let's finally prove `Pick`.
+
+```haskell
+pick
+    :: forall i j b. ()
+    => Sing i
+    -> Sing j
+    -> Sing b
+    -> Pick '(i, j, b)
+pick i j b =
+````
+
+Remember, the goal is to try to prove we have a valid pick.  We want to create
+something with the `PickValid` constructor if we can:
+
+```haskell
+PickValid  :: Coord '(i, j) b 'Nothing -> Pick '(i, j, b)
+
+(:$:) :: Sel i rows row
+      -> Sel j row  p
+      -> Coord '(i, j) rows p
+```
+
+So we need a `Coord '(i, j) b 'Nothing`, which means we need a `Sel i b row`
+and a `Sel j row 'Nothing`.  Let's use our decision functions we wrote to get
+these!  In particular, we can use `selFound i b` to get our `Sel i b row` and
+`row`, and then use `selFound j row` to get our `Sel j row piece` and `piece`!
+
+Note that we also might need to handle the cases where the picks are
+out-of-bounds, which requires an `OuOfBounds n` predicate.
+
+```haskell
+PickOoBX   :: OutOfBounds i @@ b -> Pick '(i, j, b)
+```
+
+We never defined `OutOfBounds n`, so let's do it now.  We know that `SelFound
+n` is the predicate where `SelFound n @@ xs` is satisfied when index `n` is "in
+bounds" of `xs`.  So, `OutOfBounds n` is the predicate that we *can't* produce
+`SelFound n`; a witness of `OutOfBounds n @@ xs` is a proof that we can't make
+`SelFound n @@ xs`:
+
+```haskell
+data OutOfBounds :: N -> Predicate [k]
+type instance Apply (OutOfBounds n) xs = SelFound n @@ xs -> Void
+```
+
+Remember that `a -> Void` is a witness that `a` cannot exist, since if it could
+exist, we could create a value of type `Void`, but no such value exists.  So if
+we had a `SelFound n @@ xs -> Void`, it means that no such `SelFound n @@ xs`
+could exist.  It means that `n` must *not* be in bounds of `xs`.
+
+Actually, we could take advantage of some of the combinators that the
+*decidable* library provides to define `OutOfBounds` in a cleaner way:
+
+```haskell
+-- | Provided by decidable; it's the negation of a predicate
+data Not :: Predicate k -> Predicate k
+type instance Apply (Not p) x = p @@ x -> Void
+!!!ttt/Part1.hs "type OutOfBounds"
+```
+
+Alright, now that everything is defined, let's start writing our viewing
+function for `Pick`.  Recall again the definition of `Pick`:
+
+```haskell
+!!!ttt/Part1.hs "data Pick"
+```
+
+And let's start writing.  First, we'll use our decision functions `selFound` to
+*try* to produce the `Sel`s necessary for the `PickValid` branch:
+
+```haskell
+pick
+    :: forall i j b. ()
+    => Sing i
+    -> Sing j
+    -> Sing b
+    -> Pick '(i, j, b)
+pick i j b = case selFound i b of
+    Proved (row :&: selX) -> case selFound j row of
+      Proved (p :&: selY) ->
+        let c = selX :$: selY
+        in  ????
+```
+
+In the case where both `i` and `j` are in-bounds, what do we do?  Well, we can
+create the `Coord` from the `selX` and `selY`.  Can't we just give this to
+`PickValid`?
+
+```haskell
+pick
+    :: forall i j b. ()
+    => Sing i
+    -> Sing j
+    -> Sing b
+    -> Pick '(i, j, b)
+pick i j b = case selFound i b of
+    Proved (row :&: selX) -> case selFound j row of
+      Proved (p :&: selY) ->
+        let c = selX :$: selY
+        in  PickValid c
+```
+
+Ah, but this is a compiler error.  It's hard to see why without a trusty
+compiler to help us.  But that's the best part about using dependent types ---
+the compilers are here to help us write our programs!
+
+The compiler basically tells us that `c` is supposed to point to
+`'Nothing`...but right now it's pointing to some type variable that we don't
+know is `'Nothing` or `'Just`.  So `c` doesn't *necessarily* work, because it
+*might* be pointing to `'Just`, and not `'Nothing`.  We haven't satisfied
+`PickValid` yet, because we have to be certain that it is `'Nothing` and not
+`'Just`
+
+Just to clarify what's going on, let's give types to the names above:
+
+```haskell
+b    :: Sing (b   :: [[Maybe Piece]])
+row  :: Sing (row ::  [Maybe Piece] )
+selX :: Sel i b row
+p    :: Sing (p   ::   Maybe Piece  )
+selY :: Sel j row p
+c    :: Coord '(i, j) b p
+```
+
+`row` above is the `Sing` that comes attached with all `Σ` constructors, which
+is why we can give it to `selFound j`, which expects a singleton of
+the list.
+
+So, now we have `Coord '(i, j) b p`.  We know that `i` and `j` are in-bounds.
+But, we need to know that `p` is `'Nothing` before we can use it with
+`PickValid`.  To do that, we can pattern match on `p`, because it's the
+singleton that comes with the `Σ` constructor:
+
+```haskell
+pick
+    :: forall i j b. ()
+    => Sing i
+    -> Sing j
+    -> Sing b
+    -> Pick '(i, j, b)
+pick i j b = case selFound i b of
+    Proved (row :&: selX) -> case selFound j row of
+      Proved (p :&: selY) ->
+        let c = selX :$: selY
+        in  case p of
+              SNothing -> PickValid   c     -- p is 'Nothing
+              SJust q  -> PickPlayed  c q   -- p is 'Just q
+```
+
+Finally, knowing that `p` is `'Nothing`, we can create `PickValid`!
+
+As a bonus, if we know that `p` is `'Just p`, we can create `PickPlayed`,
+which is the constructor for an in-bounds pick but pointing to a spot that is
+already occupied by piece `p'`.
+
+```haskell
+PickPlayed :: Coord '(i, j) b ('Just p)
+           -> Sing p
+           -> Pick '(i, j, b)
+```
+
+We now have to deal with the situations where things are out of bounds.
+
+```haskell
+PickOoBX :: OutOfBounds i @@ b
+         -> Pick '(i, j, b)
+PickOoBY :: Sel i b row
+         -> OutOfBounds j @@ row
+         -> Pick '(i, j, b)
+```
+
+`PickOoBX` requires an `OutOfBounds i @@ b`, which we defined as `SelFound i @@
+b -> Void`.   Well, that's *exactly* what the `Disproved` constructor contains,
+that `selFound i b` returns!  And `PickOoBY` requires an `OutOfBounds j @@
+row`, which we defined as `SelFound j @@ row -> Void`.  And that's *exactly*
+what the `Disproved` constructor of `selFound j row` returns.
+
+```haskell
+!!!ttt/Part1.hs "pick"
+```
+
+And that's it!
+
+Play Ball
+---------
+
+Bringing it all together, we can write a simple function to take user input and
+*play* it.
