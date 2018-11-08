@@ -189,6 +189,8 @@ $(singletonsOnly [d|
   |])
 ```
 
+<!-- TODO: make note that this could be a GADT instead of a type family -->
+
 This is just lenses --- `set l x` is a function that sets the field specified
 by `l` to `x`.  Here, we set the jth item of the ith list to be `Just p`.  That
 means we can now produce `b2` from `b1` -- it's just `PlaceBoard i j p b1`.
@@ -533,6 +535,11 @@ index `n`!
 
 We can check to make sure this works, by checking the type of witnesses of
 `SelFound 'Z @@ '[ 'True, 'False ]`:
+
+```haskell
+ghci> :kind! SelFound 'Z @@ '[ 'True, 'False ]
+Σ Bool (TyPred Sel ('Z '[ 'True, 'False ]))
+```
 
 Now let's make some sample witnesses of predicate `SelFound n` to ensure we are
 thinking about things correctly:
