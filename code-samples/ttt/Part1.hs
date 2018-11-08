@@ -25,7 +25,6 @@
 {-# OPTIONS_GHC -Wall                       #-}
 {-# OPTIONS_GHC -Werror=incomplete-patterns #-}
 
-import           Control.Monad
 import           Data.Kind
 import           Data.List
 import           Data.Singletons
@@ -34,7 +33,6 @@ import           Data.Singletons.Sigma
 import           Data.Singletons.TH
 import           Data.Type.Lens
 import           Data.Type.Predicate
-import           Data.Type.Predicate.Param
 import           Text.Read
 
 $(singletons [d|
@@ -207,7 +205,7 @@ intToN n = case compare n 0 of
 
 getN :: String -> IO N
 getN prompt = do
-    putStrLn $ "Enter non-negative integer " ++ prompt ++ ":"
+    putStrLn $ "Enter non-negative integer for " ++ prompt ++ ":"
     res <- getLine
     case intToN =<< readMaybe res of
       Nothing -> putStrLn "Bad." >> getN prompt
@@ -232,8 +230,8 @@ simplePlayIO'
     -> IO ()
 simplePlayIO' p b gs = do
     printBoard $ FromSing b
-    FromSing i <- getN "for row"
-    FromSing j <- getN "for column"
+    FromSing i <- getN "row"
+    FromSing j <- getN "column"
     case pick i j b of
       PickOoBX _ -> do
         putStrLn "Out of bounds in rows.  Try again."
