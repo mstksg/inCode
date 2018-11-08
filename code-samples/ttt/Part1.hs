@@ -222,6 +222,8 @@ printBoard = mapM_ $ putStrLn . intercalate "|" . map showPiece
 
 simplePlayIO :: IO ()
 simplePlayIO = simplePlayIO' SPX sEmptyBoard GSStart
+-- alternatively
+-- simplePlayIO = simplePlayIO' sing sing GSStart
 
 simplePlayIO'
     :: Sing p
