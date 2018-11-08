@@ -843,6 +843,13 @@ type instance Apply (Not p) x = p @@ x -> Void
 !!!ttt/Part1.hs "type OutOfBounds"
 ```
 
+`Not` is a *predicate combinator*; it takes a predicate and returns new
+predicate.  `Not p @@ x` is true whenever `p @@ x` is false, or `p @@ x ->
+Void` is inhabited.  Note that combinators like `Not` are one of the reasons
+why it's useful to think of predicates in terms of defunctionalization symbols
+(`k ~> Type`), instead of as type families or type constructor: `Not` expects a
+"partially applied" predicate (`Not` takes `p`, not `p @@ x`).
+
 Alright, now that everything is defined, let's start writing our viewing
 function for `Pick`.  Recall again the definition of `Pick`:
 
