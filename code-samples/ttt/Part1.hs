@@ -220,6 +220,9 @@ printBoard = mapM_ $ putStrLn . intercalate "|" . map showPiece
     showPiece (Just PX) = " X "
     showPiece (Just PO) = " O "
 
+simplePlayIO :: IO ()
+simplePlayIO = simplePlayIO' SPX sEmptyBoard GSStart
+
 simplePlayIO'
     :: Sing p
     -> Sing b
@@ -245,6 +248,3 @@ simplePlayIO' p b gs = do
             b'  = sPlaceBoard i j p b     -- update board  (enforced by `play`)
             gs' = play undefined c gs     -- update game state
         simplePlayIO' p' b' gs'
-
-simplePlayIO :: IO ()
-simplePlayIO = simplePlayIO' SPX sEmptyBoard GSStart
