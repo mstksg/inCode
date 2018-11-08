@@ -216,7 +216,7 @@ getN prompt = do
 printBoard :: Board -> IO ()
 printBoard = mapM_ $ putStrLn . intercalate "|" . map showPiece
   where
-    showPiece Nothing   = "   "
+    showPiece Nothing   = " _ "
     showPiece (Just PX) = " X "
     showPiece (Just PO) = " O "
 
