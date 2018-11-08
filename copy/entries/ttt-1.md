@@ -571,7 +571,8 @@ on the command line, `./Part1.hs`.
 Now, we now have enough tools to write the type of the function we would like:
 
 ```haskell
-sel :: Sing n
+selFound
+    :: Sing n
     -> Sing xs
     -> SelFound n @@ xs
 ```
@@ -585,10 +586,11 @@ into problems.  And that's one of the best things about type systems!   They
 help you realize when you're trying to do something that doesn't make sense.
 
 ```haskell
-sel :: Sing n
+selFound
+    :: Sing n
     -> Sing xs
     -> SelFound n @@ xs
-sel = \case
+selFound = \case
     SZ -> \case
       SNil -> _ :&: _
 ```
@@ -606,9 +608,11 @@ problem.
 Remember that the `x` is supposed to be the `n`th item in `xs`.  Here, in this
 pattern match branch, we want the zeroth (first) item in `[]`.  This doesn't
 exist! That's because there is no item in `[]`, so there is nothing we can put
-for the `Sing x`...there's also nothing we could put for the `Sel`, since there
-is no constructor of `Sel` that returns a `Sel n '[]` (the constructors of
-`Sel` all return `x ': xs`, never `Nil`).
+for the `Sing x`.
+
+There's also nothing we could put for the `Sel` (the right hand side of `:&:`),
+since there is no constructor of `Sel` that returns a `Sel n '[]` (the
+constructors of `Sel` all return `x ': xs`, never `Nil`).
 
 So, this branch is impossible to fulfil.  We know now that we made a large
 conceptual error (aren't types great?)
@@ -656,8 +660,8 @@ it might be true, or it might not be (but definitely one or the other).  It
 might exist, or it might not.  We can construct the view, or we can't.
 Whatever the perspective, it's always one or the other.
 
-`sel` fits this category: for a `Sel n xs ????`, either `n` is "in bounds" of
-`as` (and we can prove this with the item `x` in `xs`), or `n` is "out of
+`selFound` fits this category: for a `Sel n xs ????`, either `n` is "in bounds"
+of `xs` (and we can prove this with the item `x` in `xs`), or `n` is "out of
 bounds".  Either we get the `x` out of `xs` at slot `n`, or we prove that no
 possible `x` exists in `xs` at slot `n`.
 
