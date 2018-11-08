@@ -27,6 +27,7 @@
 
 import           Control.Monad
 import           Data.Kind
+import           Data.List
 import           Data.Singletons
 import           Data.Singletons.Prelude hiding (Not)
 import           Data.Singletons.Sigma
@@ -125,18 +126,6 @@ data Pick :: (N, N, Board) -> Type where
     -- | We are in-bounds in x, in-bounds in y, and spot is clear
     PickValid  :: Coord '(i, j) b 'Nothing                   -> Pick '(i, j, b)
 
--- instance SingI n => Decidable (InBounds n) where
---     decide :: Sing xs -> Decision (InBounds n @@ xs)
---     decide = sel sing
-
--- sel :: forall (i :: N) (xs :: [k]). ()
---     => Sing i
---     -> Sing xs
---     -> Σ k (TyPred (Sel i xs))
--- sel = \case
---     SZ -> \case
---       SNil -> _ :&: _
-
 selFound
     :: Sing n
     -> Sing xs
@@ -203,16 +192,12 @@ pick i j b = case selFound i b of
         in  case p of
               SNothing -> PickValid   c     -- p is 'Nothing
               SJust q  -> PickPlayed  c q   -- p is 'Just q
-      Disproved vY -> PickOoBY selX vY    -- vY :: InBounds j @@ row -> Void
-                                          -- vY :: Not (InBounds j) @@ row
+      Disproved vY -> PickOoBY selX vY    -- vY :: SelFound j @@ row -> Void
+                                          -- vY :: Not (SelFound j) @@ row
                                           -- vY :: OutOfBounds j @@ row
-    Disproved vX -> PickOoBX vX   -- vX :: InBounds i @@ b   -> Void
-                                  -- vX :: Not (InBounds i) @@ b
+    Disproved vX -> PickOoBX vX   -- vX :: SelFound i @@ b   -> Void
+                                  -- vX :: Not (SelFound i) @@ b
                                   -- vX :: OutOfBounds i @@ b
-
--- instance Provable (TyPred Pick) where
---     prove :: Sing ijb -> Pick ijb
---     prove (STuple3 i j b) = pick i j b
 
 intToN :: Int -> Maybe N
 intToN n = case compare n 0 of
@@ -220,8 +205,20 @@ intToN n = case compare n 0 of
     EQ -> Just Z
     GT -> S <$> intToN (n - 1)
 
-readN :: String -> Maybe N
-readN = intToN <=< readMaybe
+getN :: String -> IO N
+getN prompt = do
+    putStrLn $ "Enter non-negative integer " ++ prompt ++ ":"
+    res <- getLine
+    case intToN =<< readMaybe res of
+      Nothing -> putStrLn "Bad." >> getN prompt
+      Just n  -> pure n
+
+printBoard :: Board -> IO ()
+printBoard = mapM_ $ putStrLn . intercalate "|" . map showPiece
+  where
+    showPiece Nothing   = "   "
+    showPiece (Just PX) = " X "
+    showPiece (Just PO) = " O "
 
 simplePlayIO'
     :: Sing p
@@ -229,27 +226,25 @@ simplePlayIO'
     -> GameState p b
     -> IO ()
 simplePlayIO' p b gs = do
-    print (fromSing b)
-    Just i <- readN <$> getLine
-    Just j <- readN <$> getLine
-    withSomeSing i $ \sI ->
-      withSomeSing j $ \sJ ->
-        case pick sI sJ b of
-          PickOoBX _ -> do
-            putStrLn "Out of bounds in x.  Try again."
-            simplePlayIO' p b gs
-          PickOoBY _ _ -> do
-            putStrLn "Out of bounds in y.  Try again."
-            simplePlayIO' p b gs
-          PickPlayed _ q -> do
-            putStrLn $ "Already played by " ++ show (fromSing q) ++ ". Try again."
-            simplePlayIO' p b gs
-          PickValid c -> do
-            putStrLn "Success!"
-            let p'  = sAltP p
-                b'  = sPlaceBoard sI sJ p b
-                gs' = play undefined c gs
-            simplePlayIO' p' b' gs'
+    printBoard $ FromSing b
+    FromSing i <- getN "for row"
+    FromSing j <- getN "for column"
+    case pick i j b of
+      PickOoBX _ -> do
+        putStrLn "Out of bounds in rows.  Try again."
+        simplePlayIO' p b gs
+      PickOoBY _ _ -> do
+        putStrLn "Out of bounds in cols.  Try again."
+        simplePlayIO' p b gs
+      PickPlayed _ q -> do
+        putStrLn $ "Already played by " ++ show (fromSing q) ++ ". Try again."
+        simplePlayIO' p b gs
+      PickValid c -> do
+        putStrLn "Success!"
+        let p'  = sAltP p                 -- update player (enforced by `play`)
+            b'  = sPlaceBoard i j p b     -- update board  (enforced by `play`)
+            gs' = play undefined c gs     -- update game state
+        simplePlayIO' p' b' gs'
 
 simplePlayIO :: IO ()
 simplePlayIO = simplePlayIO' SPX sEmptyBoard GSStart

@@ -971,3 +971,85 @@ Play Ball
 
 Bringing it all together, we can write a simple function to take user input and
 *play* it.
+
+First, some utility functions to get user input and print out boards:
+
+```haskell
+!!!ttt/Part1.hs "intToN" "getN" "printBoard"
+```
+
+And here is the logic for getting user input, viewing it using `pick`, and
+updating the `GameState`:
+
+```haskell
+!!!ttt/Part1.hs "simplePlayIO'"
+```
+
+We use the `FromSing :: Sing (x :: a) -> a` pattern synonym here to jump
+between the value-level and type-level with our values.  First we use it as a
+`Sing (b :: Board) -> Board` to give us the `Board` that `printBoard` demands.
+Then we use it as a constructor to "get" a `Sing (i :: N)` from the value-level
+`N` that `getN` returns.  If `FromSing x :: a`, then `x` is the singleton of
+`FromSing x`.  That is, `True == FromSing STrue`, and `S Z == FromSing (SS
+SZ)`.
+
+Note that the type of `play` enforces that we modify `p` and `b` according to
+nothing other than exactly what the type of a new board game demands.
+
+And to start it off, we give `simplePlayIO'` an initial state:
+
+```haskell
+!!!ttt/Part1.hs "simplePlayIO"
+```
+
+This isn't too bad!  A type-safe tic-tac-toe that enforces that:
+
+1.  Players alternate
+2.  You can't place a piece not on the board
+3.  You can't place a piece over an existing piece
+
+```
+ghci> simplePlayIO
+   |   |
+   |   |
+   |   |
+Enter non-negative integer for row:
+10
+Enter non-negative integer for column:
+100
+Out of bounds in rows.  Try again.
+   |   |
+   |   |
+   |   |
+Enter non-negative integer for row:
+0
+Enter non-negative integer for column:
+0
+Success!
+ X |   |
+   |   |
+   |   |
+Enter non-negative integer for row:
+1
+Enter non-negative integer for column:
+1
+Success!
+ X |   |
+   | O |
+   |   |
+Enter non-negative integer for row:
+1
+Enter non-negative integer for column:
+1
+Already played by PO. Try again.
+ X |   |
+   | O |
+   |   |
+Enter non-negative integer for row:
+^C
+```
+
+However, this still lets you play on *after* a game has already won.  To
+prevent this, we must finally start implementing `InPlay`.
+
+<!-- TODO: Note on how this is "incremental" development -->
