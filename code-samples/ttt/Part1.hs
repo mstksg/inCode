@@ -137,14 +137,6 @@ data Pick :: (N, N, Board) -> Type where
 --     SZ -> \case
 --       SNil -> _ :&: _
 
-selFoundTest1 :: SelFound 'Z @@ '[ 'True, 'False ]
-selFoundTest1 = STrue :&: SelZ
-                       -- ^ Sel 'Z '[ 'True, 'False ] 'True
-
-selFoundTest2 :: SelFound ('S 'Z) @@ '[ 'True, 'False ]
-selFoundTest2 = SFalse :&: SelS SelZ
-                        -- ^ Sel ('S 'Z) '[ 'True, 'False ] 'False
-
 selFound
     :: Sing n
     -> Sing xs
@@ -189,6 +181,14 @@ selFound_scons n _ xs = case selFound n xs of
         case s of
           SelS s' ->     -- this would mean that item y is in n spot in xs
             v (y :&: s') -- however, v disproves this.
+
+selFoundTest1 :: SelFound 'Z @@ '[ 'True, 'False ]
+selFoundTest1 = STrue :&: SelZ
+                       -- ^ Sel 'Z '[ 'True, 'False ] 'True
+
+selFoundTest2 :: SelFound ('S 'Z) @@ '[ 'True, 'False ]
+selFoundTest2 = SFalse :&: SelS SelZ
+                        -- ^ Sel ('S 'Z) '[ 'True, 'False ] 'False
 
 pick
     :: forall i j b. ()
