@@ -742,6 +742,9 @@ for each case.
     fact that there is any item that can be found in `'[]`, by providing a
     function `SelFound 'Z @@ '[] -> Void`.
 
+    Note that with the *-XBlockArguments* extension, we don't need the `$`
+    after `Disproved`.
+
 2.  For the second branch, we have `'Z` and `(x ': xs)`.  We want to
     prove that there exists an item at position `'Z` in the list `x ': xs`.
     The answer is *yes*, there does, and that item is `x`, and the `Sel` is
@@ -784,6 +787,9 @@ for each case.
     !!!ttt/Part1.hs "selFound_scons"
     ```
 
+    Note again the usage of *-XBlockArguments*, allowing us to not need the `$`
+    after `Disproved`.
+
     If you have problems understanding this, try playing around with typed
     holes in GHC, or trying to guess what types everything has in the
     implementation above, until you can figure out what is happening when.
@@ -794,8 +800,7 @@ Now that we can decide `SelFound`, let's finally prove `Pick`.
 
 ```haskell
 pick
-    :: forall i j b. ()
-    => Sing i
+    :: Sing i
     -> Sing j
     -> Sing b
     -> Pick '(i, j, b)
@@ -870,8 +875,7 @@ And let's start writing.  First, we'll use our decision functions `selFound` to
 
 ```haskell
 pick
-    :: forall i j b. ()
-    => Sing i
+    :: Sing i
     -> Sing j
     -> Sing b
     -> Pick '(i, j, b)
@@ -888,8 +892,7 @@ create the `Coord` from the `selX` and `selY`.  Can't we just give this to
 
 ```haskell
 pick
-    :: forall i j b. ()
-    => Sing i
+    :: Sing i
     -> Sing j
     -> Sing b
     -> Pick '(i, j, b)
@@ -933,8 +936,7 @@ singleton that comes with the `Σ` constructor:
 
 ```haskell
 pick
-    :: forall i j b. ()
-    => Sing i
+    :: Sing i
     -> Sing j
     -> Sing b
     -> Pick '(i, j, b)

@@ -3,10 +3,13 @@
 
 {-# LANGUAGE BlockArguments                 #-}
 {-# LANGUAGE EmptyCase                      #-}
+{-# LANGUAGE FlexibleInstances              #-}
 {-# LANGUAGE GADTs                          #-}
 {-# LANGUAGE InstanceSigs                   #-}
 {-# LANGUAGE KindSignatures                 #-}
 {-# LANGUAGE LambdaCase                     #-}
+{-# LANGUAGE QuantifiedConstraints          #-}
+{-# LANGUAGE RankNTypes                     #-}
 {-# LANGUAGE ScopedTypeVariables            #-}
 {-# LANGUAGE StandaloneDeriving             #-}
 {-# LANGUAGE TemplateHaskell                #-}
@@ -14,6 +17,7 @@
 {-# LANGUAGE TypeFamilies                   #-}
 {-# LANGUAGE TypeInType                     #-}
 {-# LANGUAGE TypeOperators                  #-}
+{-# LANGUAGE TypeSynonymInstances           #-}
 {-# LANGUAGE UndecidableInstances           #-}
 {-# OPTIONS_GHC -Wall                       #-}
 {-# OPTIONS_GHC -Werror=incomplete-patterns #-}
@@ -21,18 +25,35 @@
 import           Data.Kind
 import           Data.List
 import           Data.Singletons
-import           Data.Singletons.Prelude hiding (Not)
+import           Data.Singletons.Prelude hiding      (Not, All)
+import           Data.Singletons.Prelude.List hiding (All, Any, Null)
 import           Data.Singletons.Sigma
 import           Data.Singletons.TH
 import           Data.Type.Lens
 import           Data.Type.Predicate
+import           Data.Type.Predicate.Param
+import           Data.Type.Universe
 import           Text.Read
 
 $(singletons [d|
   data Piece = PX | PO
     deriving (Eq, Ord, Show)
+
+  data Result = ResCats
+              | ResWin Piece
+    deriving (Show, Eq)
   
   type Board = [[Maybe Piece]]
+
+  diagonal :: [[a]] -> [a]
+  diagonal []          = []
+  diagonal ((x:_):xss) = x : diagonal (map (drop 1) xss)
+
+  lines :: [[a]] -> [[a]]
+  lines xs = concat [ xs
+                    , transpose xs
+                    , [diagonal xs, diagonal (reverse xs)]
+                    ]
 
   emptyBoard :: Board
   emptyBoard = [[Nothing, Nothing, Nothing]
@@ -55,7 +76,27 @@ altP_cyclic :: Sing p -> AltP (AltP p) :~: p
 altP_cyclic SPX = Refl @'PX
 altP_cyclic SPO = Refl @'PO
 
-data InPlay :: Predicate Board
+data VicWit :: [Maybe Piece] -> Piece -> Type where
+    VicWit :: All [] (EqualTo ('Just p)) @@ as
+           -> VicWit ('Just p ': as) p
+
+type Victory = TyPP VicWit
+
+type Winner = LinesSym0 `PPMap` AnyMatch [] Victory
+
+type Cats = All [] (All [] IsJust)
+
+data GameOverWit :: Board -> Result -> Type where
+    GOVictory :: Winner b @@ p
+              -> GameOverWit b ('ResWin p)
+    GOCats    :: Not (Found Winner) @@ b
+              -> Cats @@ b
+              -> GameOverWit b 'ResCats
+
+type GameOver = TyPP GameOverWit
+
+-- | A predicate that a game is still in play
+type InPlay = Not (Found GameOver)
 
 data GameState :: Piece -> Board -> Type where
     -- | The empty board is a valid state
@@ -99,10 +140,8 @@ play
     -> GameState (AltP p) (PlaceBoard i j p b)
 play r c = GSUpdate r (MkUpdate c)
 
-data SelFound :: N -> Predicate [k]
-type instance Apply (SelFound n) (xs :: [k]) = Σ k (TyPred (Sel n xs))
-
-type OutOfBounds n = Not (SelFound n)
+type SelFound    n = (Found (TyPP (Sel n)) :: Predicate [k])
+type OutOfBounds n = (Not (SelFound n)     :: Predicate [k])
 
 -- | A view of a coordinate and a board.  Either:
 data Pick :: (N, N, Board) -> Type where
@@ -117,77 +156,53 @@ data Pick :: (N, N, Board) -> Type where
     -- | We are in-bounds in x, in-bounds in y, and spot is clear
     PickValid  :: Coord '(i, j) b 'Nothing                   -> Pick '(i, j, b)
 
-selFound
-    :: Sing n
-    -> Sing xs
-    -> Decision (SelFound n @@ xs)
-selFound = \case
-    SZ -> \case
-      SNil         -> selFound_znil
-      x `SCons` xs -> selFound_zcons x xs
-    SS n -> \case
-      SNil         -> selFound_snil n
-      x `SCons` xs -> selFound_scons n x xs
-
 noEmptySel :: Sel n '[] a -> Void
 noEmptySel = \case {}
             -- ^ we handle all 0 of the valid patterns for Sel n '[] a
 
-selFound_znil
-    :: Decision (SelFound 'Z @@ '[])
-selFound_znil = Disproved \(_ :&: s) -> noEmptySel s
+instance SingI n => Decidable (SelFound n) where
+    decide = go sing
+      where
+        go  :: Sing m
+            -> Decide (SelFound m)
+        go = \case
+          SZ -> \case
+            SNil         -> Disproved $ \(_ :&: s) -> noEmptySel s
+            x `SCons` _  -> Proved (x :&: SelZ)
+          SS n -> \case
+            SNil         -> Disproved $ \(_ :&: s) -> noEmptySel s
+            _ `SCons` xs -> case go n xs of
+              Proved (y :&: s) -> Proved (y :&: SelS s)
+              Disproved v -> Disproved $ \(y :&: SelS s) -> v (y :&: s)
 
-selFound_zcons
-    :: Sing x
-    -> Sing xs
-    -> Decision (SelFound 'Z @@ (x ': xs))
-selFound_zcons x _ = Proved (x :&: SelZ)
+instance Provable (TyPred Pick) where
+    prove (STuple3 i0 j0 b0) = go i0 j0 b0
+      where
+        go  :: forall i j b. ()
+            => Sing i
+            -> Sing j
+            -> Sing b
+            -> Pick '(i, j, b)
+        go Sing Sing b = case decide @(SelFound i) b of
+            Proved (row :&: selX) -> case decide @(SelFound j) row of
+              Proved (p :&: selY) ->
+                let c = selX :$: selY
+                in  case p of
+                      SNothing -> PickValid   c
+                      SJust q  -> PickPlayed  c q
+              Disproved vY -> PickOoBY selX vY
+            Disproved vX -> PickOoBX vX
 
-selFound_snil
-    :: Sing n
-    -> Decision (SelFound ('S n) @@ '[])
-selFound_snil _ = Disproved \(_ :&: s) -> noEmptySel s
-
-selFound_scons
-    :: Sing n
-    -> Sing x
-    -> Sing xs
-    -> Decision (SelFound ('S n) @@ (x ': xs))
-selFound_scons n _ xs = case selFound n xs of
-    Proved (y :&: s) ->       -- if xs has y in its n spot
-      Proved (y :&: SelS s)   -- then (x : xs) has y in its (S n) spot
-    Disproved v      -> Disproved -- v is a disproof that an item is in n spot in xs
-      \(y :&: s) ->      -- suppose we had item y in (S n) spot in (x : xs)
-        case s of
-          SelS s' ->     -- this would mean that item 'y' is in 'n' spot in xs
-            v (y :&: s') -- however, v disproves this.
-
-selFoundTest1 :: SelFound 'Z @@ '[ 'True, 'False ]
-selFoundTest1 = STrue :&: SelZ
-                       -- ^ Sel 'Z '[ 'True, 'False ] 'True
-
-selFoundTest2 :: SelFound ('S 'Z) @@ '[ 'True, 'False ]
-selFoundTest2 = SFalse :&: SelS SelZ
-                        -- ^ Sel ('S 'Z) '[ 'True, 'False ] 'False
-
-pick
-    :: Sing i
-    -> Sing j
-    -> Sing b
-    -> Pick '(i, j, b)
-pick i j b = case selFound i b of
-    Proved (row :&: selX) -> case selFound j row of
-      Proved (p :&: selY) ->
-        let c = selX :$: selY
-        in  case p of
-              SNothing -> PickValid   c     -- p is 'Nothing
-              SJust q  -> PickPlayed  c q   -- p is 'Just q
-      Disproved vY -> PickOoBY selX vY    -- vY :: SelFound j @@ row -> Void
-                                          -- vY :: Not (SelFound j) @@ row
-                                          -- vY :: OutOfBounds j @@ row
-    Disproved vX -> PickOoBX vX   -- vX :: SelFound i @@ b   -> Void
-                                  -- vX :: Not (SelFound i) @@ b
-                                  -- vX :: OutOfBounds i @@ b
+instance Decidable (Found Victory) where
+    decide = \case
+      SNil -> Disproved \case
+        _ :&: v -> case v of {}
+      SNothing `SCons` _ -> Disproved \case
+        _ :&: v -> case v of {}
+      SJust (x@Sing :: Sing p) `SCons` xs -> case decide @(All [] (EqualTo ('Just p))) xs of
+        Proved p    -> Proved $ x :&: VicWit p
+        Disproved r -> Disproved \case
+          _ :&: VicWit a -> r a
 
 intToN :: Int -> Maybe N
 intToN n = case compare n 0 of
@@ -212,8 +227,6 @@ printBoard = mapM_ $ putStrLn . intercalate "|" . map showPiece
 
 simplePlayIO :: IO ()
 simplePlayIO = simplePlayIO' SPX sEmptyBoard GSStart
--- alternatively
--- simplePlayIO = simplePlayIO' sing sing GSStart
 
 simplePlayIO'
     :: Sing p
@@ -224,7 +237,7 @@ simplePlayIO' p b gs = do
     printBoard $ FromSing b
     FromSing i <- getN "row"
     FromSing j <- getN "column"
-    case pick i j b of
+    case prove @(TyPred Pick) (STuple3 i j b) of
       PickOoBX _ -> do
         putStrLn "Out of bounds in rows.  Try again."
         simplePlayIO' p b gs
@@ -240,3 +253,4 @@ simplePlayIO' p b gs = do
             b'  = sPlaceBoard i j p b     -- update board  (enforced by `play`)
             gs' = play undefined c gs     -- update game state
         simplePlayIO' p' b' gs'
+
