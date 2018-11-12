@@ -565,7 +565,7 @@ The application of `AndSym1 x` to `y` gives you `And x y`:
 
 ```haskell
 ghci> :kind! AndSym1 'False @@ 'True
-'False
+'False              -- or FalseSym0, which is a synonym for 'False
 ghci> :kind! AndSym1 'True  @@ 'True
 'True
 ```
@@ -574,6 +574,17 @@ A note to remember: `AndSym1 'True` is the defunctionalization symbol, and
 *not* `AndSym1` itself.  `AndSym1` has kind `Bool -> (Bool ~> Bool)`, but
 `AndSym1 'True` has kind `Bool ~> Bool` --- the kind of a defunctionalization
 symbol.  `AndSym1` is a sort of "defunctionalization symbol constructor".
+
+Also note here that we encounter the fact that singletons also provides
+"defunctionalization symbols" for "nullary" type functions like `False` and
+`True`, where:
+
+```haskell
+type FalseSym0 = 'False
+type TrueSym0  = 'True
+```
+
+Just like how it defines `AndSym0` for consistency, as well.
 
 #### Symbols for type constructors
 
@@ -649,13 +660,13 @@ ghci> :kind! MergeStateList '[ 'Closed, 'Opened ]
 !!!singletons/Defunctionalization.hs "collapseHallway"
 ```
 
-(Note: Unfortunately, we do have to use our our own `Foldr` here, instead of
-using the one that comes with *singletons*, because of some [outstanding
-issues][foldr] with how the singletons TH processes alternative implementations
-of `foldr` from Prelude.  In general, the issue is that we should only expect
-type families to work with singletons if the definition of the type family
-perfectly matches the structure of how we implement our value-level functions
-like `collapseHallway`)
+(Note: Unfortunately, we do have to use our our *own* `Foldr` here, that we
+just defined, instead of using the one that comes with *singletons*, because of
+some [outstanding issues][foldr] with how the singletons TH processes
+alternative implementations of `foldr` from Prelude.  In general, the issue is
+that we should only expect type families to work with singletons if the
+definition of the type family perfectly matches the structure of how we
+implement our value-level functions like `collapseHallway`)
 
 [foldr]: https://github.com/goldfirere/singletons/issues/339
 
