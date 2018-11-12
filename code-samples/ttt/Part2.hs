@@ -8,6 +8,7 @@
 {-# LANGUAGE InstanceSigs                   #-}
 {-# LANGUAGE KindSignatures                 #-}
 {-# LANGUAGE LambdaCase                     #-}
+{-# LANGUAGE MultiParamTypeClasses          #-}
 {-# LANGUAGE QuantifiedConstraints          #-}
 {-# LANGUAGE RankNTypes                     #-}
 {-# LANGUAGE ScopedTypeVariables            #-}
@@ -31,6 +32,7 @@ import           Data.Singletons.Sigma
 import           Data.Singletons.TH
 import           Data.Type.Lens
 import           Data.Type.Predicate
+import           Data.Type.Predicate.Auto
 import           Data.Type.Predicate.Param
 import           Data.Type.Universe
 import           Text.Read
@@ -167,13 +169,13 @@ instance SingI n => Decidable (SelFound n) where
             -> Decide (SelFound m)
         go = \case
           SZ -> \case
-            SNil         -> Disproved $ \(_ :&: s) -> noEmptySel s
+            SNil         -> Disproved \(_ :&: s) -> noEmptySel s
             x `SCons` _  -> Proved (x :&: SelZ)
           SS n -> \case
-            SNil         -> Disproved $ \(_ :&: s) -> noEmptySel s
+            SNil         -> Disproved \(_ :&: s) -> noEmptySel s
             _ `SCons` xs -> case go n xs of
               Proved (y :&: s) -> Proved (y :&: SelS s)
-              Disproved v -> Disproved $ \(y :&: SelS s) -> v (y :&: s)
+              Disproved v -> Disproved \(y :&: SelS s) -> v (y :&: s)
 
 instance Provable (TyPred Pick) where
     prove (STuple3 i0 j0 b0) = go i0 j0 b0
@@ -204,6 +206,30 @@ instance Decidable (Found Victory) where
         Disproved r -> Disproved \case
           _ :&: VicWit a -> r a
 
+instance Auto (Not (Found Victory)) ('Nothing ': as) where
+    auto (_ :&: w) = case w of {}
+
+instance Decidable (Found GameOver) where
+    decide b = case search @Winner b of
+      Proved (p :&: v) -> Proved $ SResWin p :&: GOVictory v
+      Disproved r      -> case decide @Cats b of
+        Proved c     -> Proved $ SResCats :&: GOCats r c
+        Disproved r' -> Disproved \case
+          SResWin p :&: GOVictory v -> r $ p :&: v
+          SResCats  :&: GOCats _ c  -> r' c
+
+-- | The empty board is in-play.
+startInPlay :: InPlay @@ EmptyBoard
+startInPlay = \case
+    SResWin p :&: GOVictory v -> noVictor (p :&: v)
+    SResCats  :&: GOCats _ c  -> noCats   c
+  where
+    noVictor :: Not (Found Winner) @@ EmptyBoard
+    noVictor = autoNot @_ @(Found Winner)  @EmptyBoard
+    noCats   :: Not Cats @@ EmptyBoard
+    noCats   = mapRefuted allComp
+                $ autoNotAll @IsJust $ IZ :? IZ
+
 intToN :: Int -> Maybe N
 intToN n = case compare n 0 of
     LT -> Nothing
@@ -226,31 +252,39 @@ printBoard = mapM_ $ putStrLn . intercalate "|" . map showPiece
     showPiece (Just PO) = " O "
 
 simplePlayIO :: IO ()
-simplePlayIO = simplePlayIO' SPX sEmptyBoard GSStart
+simplePlayIO = simplePlayIO' SPX sEmptyBoard startInPlay GSStart
 
 simplePlayIO'
     :: Sing p
     -> Sing b
+    -> InPlay @@ b
     -> GameState p b
     -> IO ()
-simplePlayIO' p b gs = do
+simplePlayIO' p b ip gs = do
     printBoard $ FromSing b
     FromSing i <- getN "row"
     FromSing j <- getN "column"
     case prove @(TyPred Pick) (STuple3 i j b) of
       PickOoBX _ -> do
         putStrLn "Out of bounds in rows.  Try again."
-        simplePlayIO' p b gs
+        simplePlayIO' p b ip gs
       PickOoBY _ _ -> do
         putStrLn "Out of bounds in cols.  Try again."
-        simplePlayIO' p b gs
+        simplePlayIO' p b ip gs
       PickPlayed _ q -> do
         putStrLn $ "Already played by " ++ show (fromSing q) ++ ". Try again."
-        simplePlayIO' p b gs
+        simplePlayIO' p b ip gs
       PickValid c -> do
         putStrLn "Success!"
         let p'  = sAltP p                 -- update player (enforced by `play`)
             b'  = sPlaceBoard i j p b     -- update board  (enforced by `play`)
-            gs' = play undefined c gs     -- update game state
-        simplePlayIO' p' b' gs'
-
+            gs' = play ip c gs            -- update game state
+        case decide @(Found GameOver) b' of
+            Proved (r :&: _) -> do
+              printBoard $ FromSing b'
+              putStrLn $ case r of
+                SResCats    -> "Cat's game!"
+                SResWin SPX -> "X wins!"
+                SResWin SPO -> "O wins!"
+            Disproved ip'    -> do
+              simplePlayIO' p' b' ip' gs'
