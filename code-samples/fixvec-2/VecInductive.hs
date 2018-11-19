@@ -61,8 +61,9 @@ type family (n :: Nat) + (m :: Nat) :: Nat where
     x :+ xs -> \ys -> x :+ (xs ++ ys)
 
 data Fin :: Nat -> Type where
-    FZ :: Fin ('S n)
-    FS :: Fin n -> Fin ('S n)
+    FZ :: Fin ('S n)  -- ^ we can create a 0th index if Vec n is non-empty
+    FS :: Fin n       -- ^ if we have an ith index into a vector of size n
+       -> Fin ('S n)  -- ... then we have an i+1th index into a vector of size ('S n)
 
 deriving instance Show (Fin n)
 

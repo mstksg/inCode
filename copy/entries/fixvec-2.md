@@ -867,15 +867,23 @@ tricky cases like this is a subject for a whole other blog post.
 
 To index our previous type, we used some abstract `Finite` type, where `Finite
 n` conveniently represented the type of all possible indices to a `Vec n a`.
-We can do something similar, inductively, as well:
+We can do something similar, inductively, as well.
+
+Let's think about this inductively.  How would we construct a valid index into
+a vector of size `n`?  Well, there are two ways:
+
+1.  We can always make a "zeroth" index for a vector of size `'S n`, to get the
+    first item.
+2.  If we have an index into the ith item of a vector of size `n`, then we have
+    an index into the i+1th item of a vector of size `'S n`.
+
+We can write this out as a GADT:
 
 ```haskell
 !!!fixvec-2/VecInductive.hs "data Fin ::" "deriving instance Show (Fin n)"
 ```
 
-I always thought of this inductive definition of `Fin` as a cute trick, because
-I don't think there was any way I could have thought of it on my own.  But if
-you play around it enough, you might be able to convince yourself that there
+If you play around it enough, you might be able to convince yourself that there
 are exactly `n` inhabitants of `Fin n`.
 
 For example, for `Fin ('S 'Z)` (indices for a one-item vector), there should be
