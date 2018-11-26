@@ -7,7 +7,7 @@ in  let mkPatron = \(name    : Text                         ) ->
                       }
 in  [ mkPatron "Domen Kožar"
                (Some "iElectric")
-               (Level.Inactive {=})
+               (Level.Support {=})
     , mkPatron "Sam Stites"
                (None Text)
                (Level.Amazing {=})
