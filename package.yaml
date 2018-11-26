@@ -23,7 +23,7 @@ dependencies:
 - transformers
 - yaml
 - bytestring
-- dhall >= 1.15
+- dhall >= 1.19
 - lens
 
 library:
@@ -42,7 +42,7 @@ library:
   - xml-conduit
   - xml-types
   - inliterate
-  - hakyll-dhall >= 0.2
+  - hakyll-dhall >= 0.2.2.2
 
 executables:
   blog-migrate-entries:

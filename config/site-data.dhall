@@ -22,6 +22,6 @@
 , developerAPIs  = ./site-data/developer-apis.dhall
 , blogPrefs      = ./site-data/blog-prefs.dhall
 , envType        =
-    let EnvType = constructors < Development : {} | Production : {} >
+    let EnvType = < Development : {} | Production : {} >
     in  EnvType.Production {=}
 }

@@ -1,7 +1,7 @@
-    let Level  = constructors < Inactive : {} | Support : {} | Amazing : {} >
+    let Level  = < Inactive : {} | Support : {} | Amazing : {} >
 in  let mkPatron = \(name    : Text                         ) ->
                    \(twitter : Optional Text                ) ->
-                   \(level   : <Inactive : {} | Support : {} | Amazing : {}>) ->
+                   \(level   : Level                        ) ->
                       { name = name
                       , info = { twitter = twitter, level = level }
                       }
