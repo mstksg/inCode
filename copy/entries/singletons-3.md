@@ -1,6 +1,6 @@
 ---
 title: "Introduction to Singletons (Part 3)"
-categories: Haskell
+categories: Haskell, Tutorials
 series: Introduction to Singletons
 tags: functional programming, dependent types, haskell, singletons, types
 create-time: 2018/09/16 20:22:40
