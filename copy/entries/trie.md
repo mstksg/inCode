@@ -1,11 +1,11 @@
 ---
-title: Tries using Recursion Schemes
+title: Tries with Recursion Schemes
 categories: Haskell, Tutorials
 tags: haskell, recursion schemes
 create-time: 2018/11/29 17:45:04
 series: Beginner/Intermediate Haskell Projects
 identifier: trie
-slug: tries-using-recursion-schemes
+slug: tries-with-recursion-schemes
 ---
 
 Not too long ago, I was browsing the [prequel memes subreddit][r/prequelmemes]
@@ -33,12 +33,12 @@ throughout the Haskell ecosystem: an extremely "theoretically beautiful"
 abstraction that also happens to be extremely useful for writing industrially
 rigorous code.
 
-Tries are a common intermediate-level data type, and recursion-schemes is a
-common intermediate-level library.  So, as a fun intermediate-level Haskell
-project, let's build a trie data type in Haskell based on recursion-schemes, to
-see what it has to offer!  The resulting data type will definitely not be a
-"toy" --- it'll be something you can actually use to build meme diagrams of
-your own!
+Tries are a common intermediate-level recursive data type, and
+recursion-schemes is a common intermediate-level library.  So, as a fun
+intermediate-level Haskell project, let's build a trie data type in Haskell
+based on recursion-schemes, to see what it has to offer!  The resulting data
+type will definitely not be a "toy" --- it'll be something you can actually use
+to build meme diagrams of your own!
 
 Trie
 ----
@@ -48,3 +48,8 @@ type most people encounter in school (I remember being introduced to it through
 a project implementing a boggle solver).
 
 [trie]: https://en.wikipedia.org/wiki/Trie
+
+Wikipedia has a nice picture:
+
+![Sample Trie from Wikipedia, indexing lists of Char to Ints](/img/entries/trie/wiki-trie.png "An example Trie")
+
