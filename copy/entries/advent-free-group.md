@@ -10,8 +10,8 @@ slug: alchemical-groups
 ---
 
 Hi all!  If you don't already know, *[Advent of Code][aoc2018]* is in full
-swing this year!  If you're participating, you're welcome to join us at
-[glguy][]'s semi-official [Haskell Leaderboard][lb] (join code
+swing this year!  If you're participating and using Haskell, you're welcome to
+join us at [glguy][]'s semi-official [Haskell Leaderboard][lb] (join code
 `43100-84040706`)!  There are also Haskellers on freenode ##adventofcode, and
 also #adventofcode on the Functional Programming slack.
 
