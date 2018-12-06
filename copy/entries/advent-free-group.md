@@ -219,8 +219,9 @@ clean c = foldMapFree $ \d ->
 And so that's part 2! We just need `clean` and this next function:
 
 ```haskell
-day05b (foldMap inject -> xs) =
-    = minimum [ length $ FG.toList (clean c xs)
+day05b :: String -> Int
+day05b (foldMap inject -> polymer) =
+    = minimum [ length $ FG.toList (clean c polymer)
               | c <- ['a' .. 'z']
               ]
 ```
