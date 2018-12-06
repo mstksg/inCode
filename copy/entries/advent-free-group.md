@@ -123,8 +123,9 @@ inject c
     | otherwise              = mempty       -- group identity element
 ```
 
-We can now use the "length" property of the free group (accessed by `length .
-FG.toList`) to solve Part 1:
+The question is essentially asking for the length of the Tietze list
+representation of the final result.  We can get this using `FG.toList`, and so
+our entire part 1 is just:
 
 ```haskell
 day05a :: [Char] -> Int
