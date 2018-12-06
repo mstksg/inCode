@@ -104,7 +104,7 @@ request][fapr] fixing this, to give us reasonable times for this challenge!
 import qualified Data.Group.Free as FG
 
 interpret :: [Char] -> FG.FreeGroupL Char
-interpret = foldMap inject
+interpret = foldMap inject          -- that's `foldMap` from Data.Foldable
 ```
 
 where `inject :: Char -> FreeGroupL Char` takes a `Char` and turns it into the
