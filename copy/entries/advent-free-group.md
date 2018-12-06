@@ -232,10 +232,13 @@ And so that's part 2! We just need `clean` and this next function:
 
 ```haskell
 day05b :: String -> Int
-day05b (foldMap inject -> polymer) =
-    = minimum [ length $ FG.toList (clean c polymer)
-              | c <- ['a' .. 'z']
-              ]
+day05b rawInput = minimum
+    [ length . FG.toList $ clean c polymer
+    | c <- ['a' .. 'z']
+    ]
+  where
+    polymer :: FreeGroupL Char
+    polymer = foldMap inject rawInput
 ```
 
 Basically, we find the minimum of all of the possible "cleaned" lengths.
