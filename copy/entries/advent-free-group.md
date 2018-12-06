@@ -89,7 +89,7 @@ the string `dabAcCaCBAcCcaDA` as `d <> a <> b <> A <> c <> C <> a <> C <> B <>
 etc.`, where `<>` is the group action ("mappend", in Haskell-speak) and `A`
 stands for "`a` inverse".
 
-We can use *[Data.Group.Free][]* from the *[free-algebras][]* library[^pref],
+We can use *[Data.Group.Free][]* from the *[free-algebras][]* library[^perf],
 which offers a free group type `FreeGroupL`, to let us write:
 
 [^perf]: Note that the current version of *free-algebras* on haddocks actually
