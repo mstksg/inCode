@@ -184,7 +184,8 @@ talks about functions that map $F(26)$ (the free group on the 26 letters of the
 alphabet) to $F(25)$ (the free group on the letters of the alphabet excluding
 some cleaned letter).
 
-Luckily, the free group $F(S)$ comes equipped with a free group homomorphism:
+Luckily, the free group $F(S)$ comes equipped with a handy function create
+group homomorphisms "for free":
 
 ```haskell
 foldMapFree
@@ -193,10 +194,10 @@ foldMapFree
     -> (FreeGroupL a -> b)     -- the group homomorphism
 ```
 
-That is, given any `a -> b` for a group `b`, we get a group homormohpsim from
-`FreeGroupL a` to `b`.  We can write a function from the *generators* of our
-group (in this case, `Char`), and it'll give us a group homomorphism on the
-*free group* on our generators.
+That is, given any `a -> b` for a group `b`, we get a *guaranteed* group
+homormohpsim from `FreeGroupL a` to `b`.  We can write a function from the
+*generators* of our group (in this case, `Char`), and it'll give us a group
+homomorphism on the *free group* on our generators.
 
 We can use this to write our $F(26) \rightarrow F(25)$ group homomorphism
 
