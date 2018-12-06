@@ -89,11 +89,16 @@ the string `dabAcCaCBAcCcaDA` as `d <> a <> b <> A <> c <> C <> a <> C <> B <>
 etc.`, where `<>` is the group action ("mappend", in Haskell-speak) and `A`
 stands for "`a` inverse".
 
-We can use *[Data.Group.Free][]* from the *[free-algebras][]* library, which
-offers a free group type `FreeGroupL`, to let us write:
+We can use *[Data.Group.Free][]* from the *[free-algebras][]* library[^pref],
+which offers a free group type `FreeGroupL`, to let us write:
+
+[^perf]: Note that the current version of *free-algebras* on haddocks actually
+has a performance bug that makes appends $O(n^2)$.  I've made a [pull
+request][fapr] fixing this, to give us reasonable times for this challenge!
 
 [free-algebras]: https://hackage.haskell.org/package/free-algebras
 [Data.Group.Free]: https://hackage.haskell.org/package/free-algebras/docs/Data-Group-Free.html
+[fapr]: https://github.com/coot/free-algebras/pull/4
 
 ```haskell
 import qualified Data.Group.Free as FG
