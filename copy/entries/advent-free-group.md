@@ -13,11 +13,14 @@ Hi all!  If you don't already know, *[Advent of Code][aoc2018]* is in full
 swing this year!  If you're participating and using Haskell, you're welcome to
 join us at [glguy][]'s semi-official [Haskell Leaderboard][lb] (join code
 `43100-84040706`)!  There are also Haskellers on freenode ##adventofcode, and
-also #adventofcode on the Functional Programming slack.
+also #adventofcode on the Functional Programming slack.  I also wrote a
+[haskell library to the API][api], if you're looking to streamline your
+process!
 
 [glguy]: https://twitter.com/glguy
 [lb]: https://adventofcode.com/2017/leaderboard/private
 [aoc2018]: https://adventofcode.com/2018
+[api]: https://hackage.haskell.org/package/advent-of-code-api
 
 My [daily reflections][reflections] are online, where I talk about how I
 approach each problem and what insight purely typed Functional Programming
