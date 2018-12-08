@@ -290,7 +290,8 @@ centuries collecting.
 ### Epilogue: A Note on Cleaning
 
 Since I have posted this, I have gotten a few comments on different platforms
-debating "clean then aggregate" is the same as "aggregate then clean".
+debating whether or not "clean then aggregate" is truly same as "aggregate then
+clean".
 
 Just to clarify, `clean c` here does *not* mean "remove `c`".  It means
 "re-interpret our group element with the new property that `c` is the identity
