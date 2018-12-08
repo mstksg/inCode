@@ -262,14 +262,60 @@ f x <> f y == f (x <> y)
 This means that we are free to either "clean first, then aggregate", or
 "aggregate first, then clean".
 
+### A Note on Representation
+
+I have gotten a few comments on different platforms debating "clean then
+aggregate" is the same as "aggregate then clean".
+
+Just to clarify, `clean c` here does *not* mean "remove `c`".  It means
+"re-interpret our group element with the new property that `c` is the identity
+element".  Clean is like a "re-reaction".  To draw the chemical analogy, it can
+be thought of as a redox reaction that doesn't "remove" atoms, but rather
+"rewrites the rules of the polymer".  The identity is that "aggregate the
+polymer, and then rewrite its roles" is the same as "rewrite the rules, then
+aggregate the polymer".
+
+Clean is not a "removal".  It's a re-interpretation.
+
+To be more clear, if we have a function `cleanB` which cleans out the letter
+`b`, we can take `abAcdD` as an example and *aggregate* it to get:
+
+```haskell
+a <> b <> A <> c <> D
+```
+
+Now, we can clean that aggregation to get:
+
+```haskell
+cleanB (a <> b <> A <> c <> D)
+```
+
+That's our "aggregate, then clean".  Our "clean, then aggregate" would be:
+
+```haskell
+cleanB a <> cleanB b <> cleanB A <> cleanB c <> cleanB D
+```
+
+The library *free-algebras* gives us `foldMapFree`, which creates group
+homomorphisms *by construction*.  That means that whatever function we get out
+of `foldMapFree`, it is *mathematically proven* that:
+
+```haskell
+cleanB (a <> b <> A <> c <> D)
+ == cleanB a <> cleanB b <> cleanB A <> cleanB c <> cleanB D
+```
+
+Or, that "aggregate then clean" is the same as "clean then aggregate".
+
 What's in a Group?
 ------------------
 
-Now, I don't know about you, but I definitely feel that this choice we have is
-*definitely not obvious* just from reading the problem immediately.  Indeed, it
-seems like the problem might be written to obscure this choice from us: it's
-implying that "cleaning, then reacting" is the only correct way, and "reacing,
-then cleaning" is not something that is even mentioned.
+Now, I don't know about you, but I definitely feel that this choice (clean,
+aggregate vs. aggregate, clean) we have is *definitely not obvious* just from
+reading the problem immediately.  Indeed, it seems like the problem might be
+written to obscure this choice from us: it's implying that "cleaning, then
+reacting" is the only correct way, and "reacing, then cleaning" is not
+something that is even mentioned.
 
 But, thanks to group theory, we know that these are equivalent, so we can
 substitute which ever version is more efficient!
