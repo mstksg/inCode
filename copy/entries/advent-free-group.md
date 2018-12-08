@@ -301,7 +301,7 @@ be thought of as a redox reaction that doesn't "remove" atoms, but rather
 polymer, and then rewrite its roles" is the same as "rewrite the rules, then
 aggregate the polymer".
 
-Clean is not a "removal".  It's a re-interpretation.
+Clean is not a "removal".  It's "re-interpretation".
 
 To be more clear, if we have a function `cleanB` which cleans out the letter
 `b`, we can take `abAcdD` as an example and *aggregate* it to get:
