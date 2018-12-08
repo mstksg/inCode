@@ -262,10 +262,35 @@ f x <> f y == f (x <> y)
 This means that we are free to either "clean first, then aggregate", or
 "aggregate first, then clean".
 
-### A Note on Representation
+What's in a Group?
+------------------
 
-I have gotten a few comments on different platforms debating "clean then
-aggregate" is the same as "aggregate then clean".
+Now, I don't know about you, but I definitely feel that this choice (clean,
+aggregate vs. aggregate, clean) we have is *definitely not obvious* just from
+reading the problem immediately.  Indeed, it seems like the problem might be
+written to obscure this choice from us: it's implying that "cleaning, then
+reacting" is the only correct way, and "reacing, then cleaning" is not
+something that is even mentioned.
+
+But, thanks to group theory, we know that these are equivalent, so we can
+substitute which ever version is more efficient!
+
+This is, I believe, at the heart of what people say is the advantage of "using
+monoids", "using monads", "using functors", etc. in Haskell.  That's because if
+we state our programs in terms of monoids, monads, groups, functors, etc., then
+we get *the entire body of group theory* (or monad theory, or functor theory,
+etc.) to help us make program reductions that aren't immediately obviously
+legal but that have already been proven to be equivalent by mathematicians.  We
+hijack their work!
+
+We get program optimizations and reductions and substitutions for free, by
+"stealing" from the large body of such things that mathematicians have spent
+centuries collecting.
+
+### Epilogue: A Note on Cleaning
+
+Since I have posted this, I have gotten a few comments on different platforms
+debating "clean then aggregate" is the same as "aggregate then clean".
 
 Just to clarify, `clean c` here does *not* mean "remove `c`".  It means
 "re-interpret our group element with the new property that `c` is the identity
@@ -307,27 +332,3 @@ cleanB (a <> b <> A <> c <> D)
 
 Or, that "aggregate then clean" is the same as "clean then aggregate".
 
-What's in a Group?
-------------------
-
-Now, I don't know about you, but I definitely feel that this choice (clean,
-aggregate vs. aggregate, clean) we have is *definitely not obvious* just from
-reading the problem immediately.  Indeed, it seems like the problem might be
-written to obscure this choice from us: it's implying that "cleaning, then
-reacting" is the only correct way, and "reacing, then cleaning" is not
-something that is even mentioned.
-
-But, thanks to group theory, we know that these are equivalent, so we can
-substitute which ever version is more efficient!
-
-This is, I believe, at the heart of what people say is the advantage of "using
-monoids", "using monads", "using functors", etc. in Haskell.  That's because if
-we state our programs in terms of monoids, monads, groups, functors, etc., then
-we get *the entire body of group theory* (or monad theory, or functor theory,
-etc.) to help us make program reductions that aren't immediately obviously
-legal but that have already been proven to be equivalent by mathematicians.  We
-hijack their work!
-
-We get program optimizations and reductions and substitutions for free, by
-"stealing" from the large body of such things that mathematicians have spent
-centuries collecting.
