@@ -333,3 +333,8 @@ cleanB (a <> b <> A <> c <> D)
 
 Or, that "aggregate then clean" is the same as "clean then aggregate".
 
+This is because the implementation of `foldMapFree` (and therefore `cleanB`) is
+not to simply "remove" `b`, but rather to move us into a *new* group where `b`
+is the identity.  This completely re-interprets the structure of the polymer,
+and the implementation is careful to do this properly so that it *does*
+commute.
