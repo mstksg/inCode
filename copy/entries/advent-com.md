@@ -3,6 +3,7 @@ title: "Shifting the Stars: Advent of Code with Galilean Optimization"
 categories: Math
 tags: advent of code, linear algebra, physics
 create-time: 2018/12/10 15:19:03
+date: 2018/12/10 16:34:37
 series: Advent of Code
 identifier: advent-com
 slug: shifting-the-stars
@@ -218,9 +219,9 @@ $$
 $$
 V =
 \begin{bmatrix}
-v_x0 & v_y0 \\
-v_x1 & v_y1 \\
-v_x2 & v_y2 \\
+v_{x0} & v_{y0} \\
+v_{x1} & v_{y1} \\
+v_{x2} & v_{y2} \\
 \vdots & \vdots
 \end{bmatrix}
 $$
