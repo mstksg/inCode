@@ -206,23 +206,23 @@ about $R$ as the $n \times 2$ matrix of initial positions, and $V$ as the $n
 \times 2$ matrix of initial velocities:
 
 $$
-R
-\sim
+\begin{aligned}
+R & =
+
 \begin{bmatrix}
 x_0 & y_0 \\
 x_1 & y_1 \\
 x_2 & y_2 \\
 \vdots & \vdots
-\end{bmatrix}
-
-V
-\sim
+\end{bmatrix} \\
+V & =
 \begin{bmatrix}
 v_x0 & v_y0 \\
 v_x1 & v_y1 \\
 v_x2 & v_y2 \\
 \vdots & \vdots
 \end{bmatrix}
+\end{aligned}
 $$
 
 Then we can say that the state of the total system at time $t$ is given by $R +
@@ -388,7 +388,9 @@ we borrow from a common tool used in classical mechanics that allows us not
 only to *fix the mean* over the entire time span, but also *set it to the
 origin*, so we don't even have to worry about it ever coming up at any point in
 time.  This made our symbolic manipulation easy enough to do on a few lines of
-notebook paper.
+notebook paper.  And isn't it cute that we use the *Galilean* transformed,
+named after someone who is famous for having studied the motion of astronomical
+bodies?  Maybe that was a subtle hint from the author of the challenges ;)
 
 Anyway, I thought this was a fun twist on the typical Advent of Code
 challenges.  It's always fun when something that you might think can only be
