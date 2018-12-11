@@ -18,7 +18,7 @@ also #adventofcode on the Functional Programming slack.  I also wrote a
 process!
 
 [glguy]: https://twitter.com/glguy
-[lb]: https://adventofcode.com/2017/leaderboard/private
+[lb]: https://adventofcode.com/2018/leaderboard/private
 [aoc2018]: https://adventofcode.com/2018
 [api]: https://hackage.haskell.org/package/advent-of-code-api
 
