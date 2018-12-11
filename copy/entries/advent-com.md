@@ -203,7 +203,7 @@ time $t$ is $\mathbf{r}_i  + \mathbf{v}_i t$, where $\mathbf{r}_i$ is the
 *initial position* vector, and $\mathbf{v}_i$ is the *velocity* vector.
 
 More generally, we can express this in terms of matrices.  If we talk talk
-about $R$ as the $n \times 2$ matrix of initial positions, and $V$ as the $n
+about $R$ as the $N \times 2$ matrix of initial positions, and $V$ as the $N
 \times 2$ matrix of initial velocities:
 
 $$
