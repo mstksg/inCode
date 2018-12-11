@@ -287,7 +287,7 @@ Because we now know that center of mass *is always zero*, we can compute the
 sum of variance as:
 
 $$
-\lvert \Sigma(t) \rvert = \mathrm{Tr} \left( \hat{R} + \hat{V} t \right)^T \left( \hat{R} + \hat{V} t \right)
+\lvert \Sigma(t) \rvert = \mathrm{Tr} \left( \left( \hat{R} + \hat{V} t \right)^T \left( \hat{R} + \hat{V} t \right) \right)
 $$
 
 We can do some simplification, remembering that the trace distributes over
