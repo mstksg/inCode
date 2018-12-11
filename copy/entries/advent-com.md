@@ -291,8 +291,8 @@ $$
 $$
 
 We can do some simplification, remembering that the trace distributes over
-addition, and that $\mathrm{Tr} \left( X^T Y \right) = \mathrm{Tr} \left (Y^T
-\right)$:
+addition, and that $\mathrm{Tr} \left( X^T Y \right) = \mathrm{Tr} \left
+(Y^T X \right)$:
 
 $$
 \lvert \Sigma(t) \rvert = \mathrm{Tr} (\hat{R}^T \hat{R})
@@ -359,8 +359,8 @@ findWord (centralize->vs) (centralize->xs) = (final, t)
     final = zipWith (\v x -> x + t L.*^ v) vs xs
 ```
 
-To answer the actual problem, we do need to `round` the final points to display
-them on the screen.
+We don't even need to round the answer --- we can directly make a scatter plot
+of these points and read off what they look like :)
 
 Part 2
 ------
@@ -372,8 +372,8 @@ Part 2
 > *exactly how many seconds would they have needed to wait for that message to
 > appear?*
 
-This one is just $t$, which we solved for in the last part!  Again, we need to
-remember to `round` it before we submit.
+This one is just $t$, which we solved for in the last part!  This time, we do
+need to remember to `round` it before we submit.
 
 Message in the Stars
 --------------------
@@ -397,9 +397,9 @@ To do this in a clean way we:
     span, and *set to zero*.  This made the final solution simple enough to
     work out on a small sheet of notebook paper.
 
-And isn't it cute that we use the *Galilean* transformed, named after someone
-who is famous for having studied the motion of astronomical bodies?  Maybe that
-was a subtle hint from the author of the challenges ;)
+And isn't it cute that we use the *Galilean* transform, named after someone who
+is famous for having studied the motion of astronomical bodies?  Maybe that was
+a subtle hint from the author of the challenges ;)
 
 Anyway, I thought this was a fun twist on the typical Advent of Code
 challenges.  It's always fun when something that you might think can only be
