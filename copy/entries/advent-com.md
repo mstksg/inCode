@@ -206,24 +206,25 @@ about $R$ as the $n \times 2$ matrix of initial positions, and $V$ as the $n
 \times 2$ matrix of initial velocities:
 
 $$
-\begin{aligned}
-R & =
-
+R =
 \begin{bmatrix}
 x_0 & y_0 \\
 x_1 & y_1 \\
 x_2 & y_2 \\
 \vdots & \vdots
-\end{bmatrix} \\
-V & =
+\end{bmatrix}
+$$
+
+$$
+V =
 \begin{bmatrix}
 v_x0 & v_y0 \\
 v_x1 & v_y1 \\
 v_x2 & v_y2 \\
 \vdots & \vdots
 \end{bmatrix}
-\end{aligned}
 $$
+
 
 Then we can say that the state of the total system at time $t$ is given by $R +
 V t$
@@ -381,18 +382,21 @@ this system shows all of the signs of being well-behaved: the thing we are
 minimizing is quadratic on our variable, so the first derivative will be linear
 on our variable, making "solving for zero" very simple.
 
-The first step was looking at our system as a matrix formula in the first
-place.  This gave us key insights from linear algebra that we could exploit.
-However, even though things are quadratic, they might have been mentally
-complex because we have to re-evaluate the mean of all of the points at all
-points in time in order to compute the sum of variances.  To get around this,
-we borrow from a common tool used in classical mechanics that allows us not
-only to *fix the mean* over the entire time span, but also *set it to the
-origin*, so we don't even have to worry about it ever coming up at any point in
-time.  This made our symbolic manipulation easy enough to do on a few lines of
-notebook paper.  And isn't it cute that we use the *Galilean* transformed,
-named after someone who is famous for having studied the motion of astronomical
-bodies?  Maybe that was a subtle hint from the author of the challenges ;)
+To do this in a clean way we:
+
+1.  Represented our system as a matrix formula, giving us key linear algebra
+    insights we could exploit.
+2.  Saw that our problem is feasible, because our thing we are minimizing is
+    quadratic in our variable, meaning the derivative is linear in our
+    variable.
+3.  Made this feasible by using a Galilean transform to shift things into the
+    center-of-mass frame, so that the mean is *fixed* over the entire time
+    span, and *set to zero*.  This made the final solution simple enough to
+    work out on a small sheet of notebook paper.
+
+And isn't it cute that we use the *Galilean* transformed, named after someone
+who is famous for having studied the motion of astronomical bodies?  Maybe that
+was a subtle hint from the author of the challenges ;)
 
 Anyway, I thought this was a fun twist on the typical Advent of Code
 challenges.  It's always fun when something that you might think can only be
