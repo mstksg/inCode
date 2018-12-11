@@ -240,13 +240,10 @@ get clustered, they will also get un-clustered right away, because of the
 randomness of the directions of motion.
 
 This gives us a clue: if we can find the $t$ that will give us the $R + V t$
-with the *least variance*, we are good to go!
-
-All of a sudden, this is now an [optimization][] problem.  Find the $t$ that
-minimizes the variance of x plus the variance of y.  This can be done by using
-some calculus: we can compute the function producing the sum of variances as a
-function of time, take the first derivative with respect to time, and solve for
-$t$ that makes the first derivative zero.
+with the *least variance*, we are good to go!  All of a sudden, this is now an
+[optimization][] problem.  Find the $t$ that minimizes the variance of x plus
+the variance of y.  We can find this by finding the formula for the sum of
+variances, taking the first derivative, and setting it to zero.
 
 [optimization]: https://en.wikipedia.org/wiki/Mathematical_optimization
 
@@ -261,7 +258,7 @@ positions at every point, and things will get messy before they get clean.
 
 Conceptually, however, we have a powerful tool: the [Center of Mass
 frame][com].  Essentially, because our system has no external forces (and no
-net acceleration), we can *perform a Galilean transform* into a frame of
+net acceleration), we can *perform a [Galilean transform][]* into a frame of
 reference where the center of mass is *fixed at the origin*, and *never
 changes*.  If we can do this, then we only need to compute $\mathrm{Tr}
 \left(M^T M \right)$ (since we guarantee that the mean of $M$ is 0), which is
@@ -271,6 +268,7 @@ transformations leave time unchanged (unlike Lorentz transforms and other
 similar coordinate transformations).
 
 [com]: https://en.wikipedia.org/wiki/Center-of-momentum_frame
+[Galilean transform]: https://en.wikipedia.org/wiki/Galilean_transformation
 
 Because our system has points of all equal "mass", we can shift $R$ into
 $\hat{R}$ ($R$ shifted into the center of mass frame) and $V$ into $\hat{V}$ by
