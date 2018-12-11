@@ -317,8 +317,9 @@ multiplication is the sum of the dot product of the rows.  That means we can
 write:
 
 $$
-t_f = - \frac{\Sigma_i \hat{\mathbf{r}}_i \cdot \hat{\mathbf{v}}_i}{\Sigma_i \hat{\mathbf{v}}_i \cdot \hat{\mathbf{v}}_i}
+t_f = - \frac{\sum_i \hat{\mathbf{r}}_i \cdot \hat{\mathbf{v}}_i}{\sum_i \hat{\mathbf{v}}_i \cdot \hat{\mathbf{v}}_i}
 $$
+
 
 Once we find this, we can plug into our original form, to find that our
 final points are, in our un-shifted coordinates, $R + V t$.  This is because
@@ -403,7 +404,7 @@ solved by simulation turns out to have a closed-form solution...but even more
 fun when the closed-form solution turns out to just be simple linear algebra:
 
 $$
-t_f = - \frac{\Sigma_i \hat{\mathbf{r}}_i \cdot \hat{\mathbf{v}}_i}{\Sigma_i \hat{\mathbf{v}}_i \cdot \hat{\mathbf{v}}_i}
+t_f = - \frac{\sum_i \hat{\mathbf{r}}_i \cdot \hat{\mathbf{v}}_i}{\sum_i \hat{\mathbf{v}}_i \cdot \hat{\mathbf{v}}_i}
 $$
 
 "It's just dot products all the way down."
