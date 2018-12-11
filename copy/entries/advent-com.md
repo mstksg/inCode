@@ -209,20 +209,20 @@ about $R$ as the $N \times 2$ matrix of initial positions, and $V$ as the $N
 $$
 R =
 \begin{bmatrix}
-x_0 & y_0 \\
 x_1 & y_1 \\
 x_2 & y_2 \\
-\vdots & \vdots
+\vdots & \vdots \\
+x_N & y_N
 \end{bmatrix}
 $$
 
 $$
 V =
 \begin{bmatrix}
-v_{x0} & v_{y0} \\
 v_{x1} & v_{y1} \\
 v_{x2} & v_{y2} \\
-\vdots & \vdots
+\vdots & \vdots \\
+v_{xN} & v_{yN}
 \end{bmatrix}
 $$
 
