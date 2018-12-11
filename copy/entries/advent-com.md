@@ -9,6 +9,9 @@ identifier: advent-com
 slug: shifting-the-stars
 ---
 
+(TL;DR: scroll down to the very bottom for a summary and the closed form
+solution)
+
 Another short Advent of Code post!  [Advent of Code 2018][aoc2018] is in full
 swing; we're 40% of the way through.  Every once in a while, if I find a fun
 way to solve a problem, I'll make a short post about it.  You can check out my
