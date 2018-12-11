@@ -1,7 +1,7 @@
 ---
 title: "Alchemical Groups: Advent of Code with Free Groups and Group Homomorphisms"
-categories: Haskell
-tags: haskell, advent of code, algebra
+categories: Haskell, Math
+tags: haskell, advent of code, abstract algebra, group theory
 create-time: 2018/12/05 19:14:28
 date: 2018/12/05 19:20:51
 series: Advent of Code
