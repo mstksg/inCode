@@ -250,10 +250,13 @@ $t$ that makes the first derivative zero.
 [optimization]: https://en.wikipedia.org/wiki/Mathematical_optimization
 
 The typical formula for finding the sum of variances of a matrix $M$ is to take
-$\mathrm{Tr} \left( \left(M - \mu_M \right)^T \left(M - \mu_M \right) \right)$,
-but in this form it's not too fun to work with.  That's because we have to
-re-compute the mean of of the positions at every point, and things will get
-messy before they get clean.
+the [trace][] of the [covariance matrix][], $\mathrm{Tr} \left( \left(M - \mu_M
+\right)^T \left(M - \mu_M \right) \right)$. However, in this form, it's not too
+fun to work with.  That's because we have to re-compute the mean of of the
+positions at every point, and things will get messy before they get clean.
+
+[trace]: https://en.wikipedia.org/wiki/Trace_(linear_algebra)
+[covariance matrix]: https://en.wikipedia.org/wiki/Covariance_matrix
 
 Conceptually, however, we have a powerful tool: the [Center of Mass
 frame][com].  Essentially, because our system has no external forces (and no
@@ -288,15 +291,13 @@ $$
 $$
 
 We can do some simplification, remembering that the trace distributes over
-addition, and that $\mathrm{Tr \left( X^T Y \right) = \mathrm{Tr} \left (Y^T
+addition, and that $\mathrm{Tr} \left( X^T Y \right) = \mathrm{Tr} \left (Y^T
 \right)$:
 
 $$
-\begin{aligned}
-\lvert \Sigma(t) \rvert & = \mathrm{Tr} (\hat{R}^T \hat{R}) \\
-                   & + 2 \mathrm{Tr} (\hat{R}^T \hat{V}) t \\
-                   & + \mathrm{Tr} (\hat{V}^T \hat{V}) t^2
-\end{aligned}
+\lvert \Sigma(t) \rvert = \mathrm{Tr} (\hat{R}^T \hat{R})
+                   + 2 \mathrm{Tr} (\hat{R}^T \hat{V}) t
+                   + \mathrm{Tr} (\hat{V}^T \hat{V}) t^2
 $$
 
 Now, we want to minimize the sum of variances.  So to do that, we can take the
@@ -308,7 +309,7 @@ $$
 \frac{d}{d t} \lvert \Sigma(t) \rvert & = 2 \mathrm{Tr} (\hat{R}^T \hat{V})
                                   + 2 \mathrm{Tr} (\hat{V}^T \hat{V}) t \\
 0 & = 2 \mathrm{Tr} (\hat{R}^T \hat{V}) + 2 \mathrm{Tr} (\hat{V}^T \hat{V}) t_f \\
-t_f & = - \frac{\mathrm{Tr} (\hat{R}^T \hat{V}^T)}{\mathrm{Tr}(\hat{V}^T \hat{V})}
+t_f & = - \frac{\mathrm{Tr} (\hat{R}^T \hat{V})}{\mathrm{Tr}(\hat{V}^T \hat{V})}
 \end{aligned}
 $$
 
@@ -319,7 +320,7 @@ multiplication is the sum of the dot product of the rows.  That means we can
 write:
 
 $$
-t_f = - \frac{\Sigma_i \hat{r} \cdot \hat{v}}{\Sigma_i \hat{v} \cdot \hat{v}}
+t_f = - \frac{\Sigma_i \hat{\mathbf{r}}_i \cdot \hat{\mathbf{v}}_i}{\Sigma_i \hat{\mathbf{v}}_i \cdot \hat{\mathbf{v}}_i}
 $$
 
 Once we find this, we can plug into our original form, to find that our
@@ -345,17 +346,17 @@ sumOfDots :: [Point] -> [Point] -> Double
 sumOfDots xs ys = sum $ zipWith L.dot xs ys
 
 findWord
-    :: [V2 Double]                  -- ^ velocities
-    -> [V2 Double]                  -- ^ initial positions
+    :: [V2 Double]              -- ^ velocities
+    -> [V2 Double]              -- ^ initial positions
     -> ([V2 Double], Double)    -- ^ points in word, and final time t
 findWord (centralize->vs) (centralize->xs) = (final, t)
   where
-    t     = negate $ sumOfDots xs vs / sumOfDots vs vs
+    t     = negate (sumOfDots xs vs / sumOfDots vs vs)
     final = zipWith (\v x -> x + t L.*^ v) vs xs
 ```
 
-To answer the actual problem, we do need to `round` the time (and the final
-points) to display them on the screen.
+To answer the actual problem, we do need to `round` the final points to display
+them on the screen.
 
 Part 2
 ------
@@ -367,7 +368,8 @@ Part 2
 > *exactly how many seconds would they have needed to wait for that message to
 > appear?*
 
-This one is just $t$, which we solved for in the last part!
+This one is just $t$, which we solved for in the last part!  Again, we need to
+remember to `round` it before we submit.
 
 Message in the Stars
 --------------------
@@ -398,7 +400,7 @@ solved by simulation turns out to have a closed-form solution...but even more
 fun when the closed-form solution turns out to just be simple linear algebra:
 
 $$
-t_f = - \frac{\Sigma_i \hat{r} \cdot \hat{v}}{\Sigma_i \hat{v} \cdot \hat{v}}
+t_f = - \frac{\Sigma_i \hat{\mathbf{r}}_i \cdot \hat{\mathbf{v}}_i}{\Sigma_i \hat{\mathbf{v}}_i \cdot \hat{\mathbf{v}}_i}
 $$
 
 "It's just dot products all the way down."
