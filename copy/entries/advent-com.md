@@ -263,10 +263,7 @@ net acceleration), we can *perform a [Galilean transform][]* into a frame of
 reference where the center of mass is *fixed at the origin*, and *never
 changes*.  If we can do this, then we only need to compute $\mathrm{Tr}
 \left(M^T M \right)$ (since we guarantee that the mean of $M$ is 0), which is
-relatively easy peasy.  If we find the minimizing time in the CoM frame, then
-we can also use that same time in our original frame, because Galilean
-transformations leave time unchanged (unlike Lorentz transforms and other
-similar coordinate transformations).
+relatively easy peasy.
 
 [com]: https://en.wikipedia.org/wiki/Center-of-momentum_frame
 [Galilean transform]: https://en.wikipedia.org/wiki/Galilean_transformation
@@ -324,8 +321,11 @@ t_f = - \frac{\Sigma_i \hat{\mathbf{r}}_i \cdot \hat{\mathbf{v}}_i}{\Sigma_i \ha
 $$
 
 Once we find this, we can plug into our original form, to find that our
-final points are, in our un-shifted coordinates, $R + V t$ (we can also use the
-shifted coordinates as well).
+final points are, in our un-shifted coordinates, $R + V t$.  This is because
+Galilean transformations leave time unchanged, unlike other frame transformations,
+like the Lorentz transform.  However, we have a simpler option: we could just
+leave our answer in shifted coordinates as well, since we only care about the
+shape of the result, and not the absolute position.
 
 We can write this as a Haskell function, assuming we take in a list of `V2
 Double` for velocities and `V2 Double` for positions, from the *[linear][]*
