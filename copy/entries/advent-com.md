@@ -252,8 +252,8 @@ variances, taking the first derivative, and setting it to zero.
 [optimization]: https://en.wikipedia.org/wiki/Mathematical_optimization
 
 The typical formula for finding the sum of variances of a matrix $M$ is to take
-the [trace][] of the [covariance matrix][], $\mathrm{Tr} \left( \left(M - \mu_M
-\right)^T \left(M - \mu_M \right) \right)$. However, in this form, it's not too
+the [trace][] of the [covariance matrix][], $\mathrm{Tr} \left[ \left(M - \mu_M
+\right)^T \left(M - \mu_M \right) \right]$. However, in this form, it's not too
 fun to work with.  That's because we have to re-compute the mean of of the
 positions at every point, and things will get messy before they get clean.
 
@@ -287,7 +287,7 @@ Because we now know that center of mass *is always zero*, we can compute the
 sum of variance as:
 
 $$
-\lvert \Sigma(t) \rvert = \mathrm{Tr} \left( \left( \hat{R} + \hat{V} t \right)^T \left( \hat{R} + \hat{V} t \right) \right)
+\lvert \Sigma(t) \rvert = \mathrm{Tr} \left[ \left( \hat{R} + \hat{V} t \right)^T \left( \hat{R} + \hat{V} t \right) \right]
 $$
 
 We can do some simplification, remembering that the trace distributes over
