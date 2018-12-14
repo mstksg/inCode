@@ -36,9 +36,9 @@ An Algebraic Recap
 In Haskell, "products and sums" can roughly be said to correspond to "tuples
 and `Either`".  If I have two types `A` and `B`, `(A, B)` is their "product"
 type.  It's often called an "anonymous product", because we can make one
-without having to give it a fancy name.  It's called a product type because `A`
-has $n$ possible values and `B` has $m$ possible values, then `(A, B)` has $n
-\times m$ possible values[^bottom].  And, `Either A B` is their (anonymous)
+without having to give it a fancy name.  It's called a product type because if
+`A` has $n$ possible values and `B` has $m$ possible values, then `(A, B)` has
+$n \times m$ possible values[^bottom].  And, `Either A B` is their (anonymous)
 "sum" type.  It's called a sum type because `Either A B` has $n + m$ possible
 values.  I won't go much deeper into this, but there are [many useful summaries
 already online][adts] on this topic!
