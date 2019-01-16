@@ -60,6 +60,9 @@ testTrie = MkT Nothing $ M.fromList [
       )
     ]
 
+count :: Trie k v -> Int
+count = cata countAlg
+
 countAlg :: TrieF k v Int -> Int
 countAlg (MkTF v subtrieCounts)
     | isJust v  = 1 + subtrieTotal
@@ -67,14 +70,18 @@ countAlg (MkTF v subtrieCounts)
   where
     subtrieTotal = sum subtrieCounts
 
-count :: Trie k v -> Int
-count = cata countAlg
+trieSum :: Num a => Trie k a -> a
+trieSum = cata trieSumAlg
 
 trieSumAlg :: Num a => TrieF k a a -> a
 trieSumAlg (MkTF v subtrieSums) = fromMaybe 0 v + sum subtrieSums
 
-trieSum :: Num a => Trie k a -> a
-trieSum = cata trieSumAlg
+lookup
+    :: Ord k
+    => [k]
+    -> Trie k v
+    -> Maybe v
+lookup ks t = cata lookupperAlg t ks
 
 lookupperAlg
     :: Ord k
@@ -85,13 +92,9 @@ lookupperAlg (MkTF v lookuppers) ks = case ks of
     j:js -> case M.lookup j lookuppers of
       Nothing        -> Nothing
       Just lookupper -> lookupper js
-    
-lookup
-    :: Ord k
-    => [k]
-    -> Trie k v
-    -> Maybe v
-lookup ks t = cata lookupperAlg t ks
+
+singleton :: [k] -> v -> Trie k v
+singleton k v = ana (mkSingletonCoalg v) k
 
 mkSingletonCoalg :: v -> ([k] -> TrieF k v [k])
 mkSingletonCoalg v = singletonCoalg
@@ -99,8 +102,11 @@ mkSingletonCoalg v = singletonCoalg
     singletonCoalg []     = MkTF (Just v) M.empty
     singletonCoalg (k:ks) = MkTF Nothing  (M.singleton k ks)
 
-singleton :: [k] -> v -> Trie k v
-singleton k v = ana (mkSingletonCoalg v) k
+fromMap
+    :: Ord k
+    => Map [k] v
+    -> Trie k v
+fromMap = ana fromMapCoalg
 
 fromMapCoalg
     :: Ord k
@@ -112,11 +118,11 @@ fromMapCoalg = uncurry rebuild . M.foldMapWithKey splitOut
     splitOut []     v  = (Just (First v), mempty                 )
     splitOut (k:ks) v  = (mempty        , [(k, M.singleton ks v)])
 
-fromMap
+toMap
     :: Ord k
-    => Map [k] v
-    -> Trie k v
-fromMap = ana fromMapCoalg
+    => Trie k v
+    -> Map [k] v
+toMap = cata toMapAlg
 
 toMapAlg
     :: Ord k
@@ -127,12 +133,6 @@ toMapAlg (MkTF v mp) = M.foldMapWithKey rejoin mp
   where
     rejoin :: k -> Map [k] v -> Map [k] v
     rejoin x = M.mapKeysMonotonic (x:)
-
-toMap
-    :: Ord k
-    => Trie k v
-    -> Map [k] v
-toMap = cata toMapAlg
 
 fresh :: MonadState Int m => m Int
 fresh = state $ \i -> (i, i+1)
