@@ -295,7 +295,7 @@ then we just return the current leaf (if it exists).  Otherwise, if it's
 `j:js`, we can *run the lookupper of the subtrie at key `j`*.
 
 ```haskell
-!!!trie/trie.hs "lookuperAlg" "lookupper"
+!!!trie/trie.hs "lookupperAlg" "lookupper"
 ```
 
 ```haskell
@@ -307,7 +307,9 @@ ghci> lookup "tone" testTrie
 Nothing
 ```
 
-
+Note that because `Map`s have lazy keys by default, we only ever generate
+"lookuppers" for subtries under keys that we eventually descend on; any other
+subtries will be ignored (and no lookuppers are ever generated for them).
 
 
 

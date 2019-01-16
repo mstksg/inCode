@@ -71,6 +71,12 @@ countAlg (MkTF v subtrieCounts)
 count :: Trie k v -> Int
 count = cata countAlg
 
+trieSumAlg :: Num a => TrieF k a a -> a
+trieSumAlg (MkTF v subtrieSums) = fromMaybe 0 v + sum subtrieSums
+
+trieSum :: Num a => Trie k a -> a
+trieSum = cata trieSumAlg
+
 lookupperAlg
     :: Ord k
     => TrieF k v ([k] -> Maybe v)
@@ -87,14 +93,6 @@ lookup
     -> Trie k v
     -> Maybe v
 lookup ks t = cata lookupperAlg t ks
-
-
-
-trieSumAlg :: Num a => TrieF k a a -> a
-trieSumAlg (MkTF v subtrieSums) = fromMaybe 0 v + sum subtrieSums
-
-trieSum :: Num a => Trie k a -> a
-trieSum = cata trieSumAlg
 
 singletonCoalg :: v -> [k] -> TrieF k v [k]
 singletonCoalg v []     = MkTF (Just v) M.empty
