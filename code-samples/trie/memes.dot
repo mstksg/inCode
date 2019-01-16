@@ -1,0 +1,35 @@
+digraph {
+    0 [label=<<TABLE><TR><TD>I DON'T THINK SO</TD></TR>
+                     <TR><TD><IMG SRC="img/idts.jpg"/></TD></TR></TABLE>>
+      ,shape=plaintext];
+    1 [label=<<TABLE><TR><TD>I DON'T THINK THE SYSTEM WORKS</TD></TR>
+                     <TR><TD><IMG SRC="img/idttsw.jpg"/></TD></TR></TABLE>>
+      ,shape=plaintext];
+    2 [shape=point];
+    3 [label=<<TABLE><TR><TD>I HAVE A BAD FEELING ABOUT THIS</TD></TR>
+                     <TR><TD><IMG SRC="img/ihabfat.jpg"/></TD></TR></TABLE>>
+      ,shape=plaintext];
+    4 [label=<<TABLE><TR><TD>I HAVE BEEN LOOKING FORWARD TO THIS</TD></TR>
+                     <TR><TD><IMG SRC="img/iblftt.jpg"/></TD></TR></TABLE>>
+      ,shape=plaintext];
+    5 [shape=point];
+    6 [label=<<TABLE><TR><TD>IT'S OUTRAGEOUS IT'S UNFAIR</TD></TR>
+                     <TR><TD><IMG SRC="img/tioiu.jpg"/></TD></TR></TABLE>>
+      ,shape=plaintext];
+    7 [label=<<TABLE><TR><TD>IT'S TREASON THEN</TD></TR>
+                     <TR><TD><IMG SRC="img/itt.jpg"/></TD></TR></TABLE>>
+      ,shape=plaintext];
+    8 [shape=point];
+    9 [shape=point];
+    10 [shape=point];
+    2 -> 0 [label="[SO]"];
+    2 -> 1 [label="[THESYSTEMWORKS]"];
+    5 -> 3 [label="[ABADFEELINGABOUTTHIS]"];
+    5 -> 4 [label="[BEENLOOKINGFORWARDTOTHIS]"];
+    8 -> 6 [label="[OUTRAGEOUSIT'SUNFAIR]"];
+    8 -> 7 [label="[TREASONTHEN]"];
+    9 -> 2 [label="[DON'TTHINK]"];
+    9 -> 5 [label="[HAVE]"];
+    9 -> 8 [label="[T'S]"];
+    10 -> 9 [label="[I]"];
+}

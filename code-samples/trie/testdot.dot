@@ -1,0 +1,17 @@
+digraph {
+    0 [label=5.0,shape=box];
+    1 [label=6.0,shape=box];
+    2 [label=2.0,shape=box];
+    3 [label="",shape=ellipse];
+    4 [label=3.0,shape=box];
+    5 [label=9.0,shape=box];
+    6 [label="",shape=ellipse];
+    7 [label="",shape=ellipse];
+    3 -> 1 [label=n];
+    3 -> 2 [label=xes];
+    5 -> 4 [label=n];
+    6 -> 3 [label=a];
+    6 -> 5 [label=o];
+    7 -> 0 [label=at];
+    7 -> 6 [label=t];
+}
