@@ -297,7 +297,7 @@ then we just return the current leaf (if it exists).  Otherwise, if it's
 `j:js`, we can *run the lookupper of the subtrie at key `j`*.
 
 ```haskell
-!!!trie/trie.hs "lookupperAlg" "lookupper"
+!!!trie/trie.hs "lookupperAlg" "lookup"
 ```
 
 ```haskell
