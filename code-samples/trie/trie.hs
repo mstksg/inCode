@@ -45,6 +45,57 @@ instance Corecursive (Trie k v) where
     embed :: TrieF k v (Trie k v) -> Trie k v
     embed (MkTF v xs) = MkT v xs
 
+testTrie :: Trie Char Int
+testTrie = MkT Nothing $ M.fromList [
+      ('t', MkT Nothing $ M.fromList [
+          ('o', MkT (Just 9) $ M.fromList [
+              ( 'n', MkT (Just 3) M.empty )
+
+            ]
+          )
+        , ('a', MkT Nothing $ M.fromList [
+              ( 'x', MkT (Just 2) M.empty )
+            ]
+          )
+        ]
+      )
+    ]
+
+countAlg :: TrieF k v Int -> Int
+countAlg (MkTF v subtrieCounts)
+    | isJust v  = 1 + subtrieTotal
+    | otherwise = subtrieTotal
+  where
+    subtrieTotal = sum subtrieCounts
+
+count :: Trie k v -> Int
+count = cata countAlg
+
+lookupperAlg
+    :: Ord k
+    => TrieF k v ([k] -> Maybe v)
+    -> ([k] -> Maybe v)
+lookupperAlg (MkTF v lookuppers) ks = case ks of
+    []   -> v
+    j:js -> case M.lookup j lookuppers of
+      Nothing        -> Nothing
+      Just lookupper -> lookupper js
+    
+lookup
+    :: Ord k
+    => [k]
+    -> Trie k v
+    -> Maybe v
+lookup ks t = cata lookupperAlg t ks
+
+
+
+trieSumAlg :: Num a => TrieF k a a -> a
+trieSumAlg (MkTF v subtrieSums) = fromMaybe 0 v + sum subtrieSums
+
+trieSum :: Num a => Trie k a -> a
+trieSum = cata trieSumAlg
+
 singletonCoalg :: v -> [k] -> TrieF k v [k]
 singletonCoalg v []     = MkTF (Just v) M.empty
 singletonCoalg _ (k:ks) = MkTF Nothing  (M.singleton k ks)

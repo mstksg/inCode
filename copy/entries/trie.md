@@ -77,7 +77,7 @@ We can represent this in Haskell by representing each layer as a `Map` of a toke
 to the next "level" of the trie:
 
 ```haskell
-!!!misc/trie.hs "data Trie k v"
+!!!trie/trie.hs "data Trie k v"
 ```
 
 A `Trie k v` will have keys of type `[k]`, where `k` is the key token type, and
@@ -87,24 +87,7 @@ out to each new layer.
 We could write the trie storing `(to, 9)`, `(ton, 3)`, and `(tax, 2)` as:
 
 ```haskell
-import qualified Data.Map          as M
-import qualified Data.Map.NonEmpty as NEM
-
-myTrie :: Trie Char Int
-myTrie = MkT Nothing $ M.fromList [
-      ('t', MkT Nothing $ M.fromList [
-          ('o', MkT (Just 9) $ M.fromList [
-              ( 'n', MkT (Just 3) M.empty )
-
-            ]
-          )
-        , ('a', MkT Nothing $ M.fromList [
-              ( 'x', MkT (Just 2) M.empty )
-            ]
-          )
-        ]
-      )
-    ]
+!!!trie/trie.hs "testTrie ::"
 ```
 
 Note that this implementation isn't particularly structurally sound, since it's
@@ -130,8 +113,10 @@ The trick is to replace the recursive occurrence of `Trie a` (in the `Cons`
 constructor) with a "placeholder" variable:
 
 ```haskell
-!!!misc/trie.hs "data TrieF k v"
+!!!trie/trie.hs "data TrieF k v"
 ```
+
+`TrieF` now represents, essentially, "one layer" of a `Trie`.
 
 There are now two paths we can go down: we can re-implement `Trie` in terms of
 `TrieF` (something that most tutorials and introductions do), or we can think
@@ -164,7 +149,7 @@ Linking them requires some boilerplate, which is basically converting back and
 forth from `Trie` to `TrieF`.
 
 ```haskell
-!!!misc/trie.hs "type instance Base" "instance Recursive (Trie k v)" "instance Corecursive (Trie k v)"
+!!!trie/trie.hs "type instance Base" "instance Recursive (Trie k v)" "instance Corecursive (Trie k v)"
 ```
 
 Basically we just link the constructors and fields of `MkT` and `MkTF`
@@ -183,6 +168,161 @@ makeBaseFunctor ''Trie
 This will define `TrieF`, the `Base` type family instance, and the `Recursive`
 and `Corecursive` instances (in possibly a more efficient way than the way we
 wrote by hand, too).
+
+## Exploring the Zoo
+
+Time to explore the zoo a bit!
+
+Whenever you get a new recursive type and base functor, a good "first thing" to
+try out is testing out `cata` and `ana` (catamorphisms and anamorphisms), the
+basic "folder" and "unfolder".
+
+### Hakuna My Cata
+
+Catamorphisms are functions that "combine" or "fold" every layer of our
+recursive type into a single value.  If we want to write a function of type
+`Trie k v -> A`, we can reach first for a catamorphism.
+
+Catamorphisms work by folding layer-by-layer, from the bottom up.  We can write
+one by defining "what to do with each layer".  This description comes in the
+form of an "algebra" in terms of the base functor:
+
+```haskell
+myAlg :: TrieF k v A -> A
+```
+
+If we think of `TrieF k v a` as "one layer" of a `Trie k v`, then `TrieF k v A
+-> A` describes how to fold up one layer of our `Trie k v` into our final
+result value (here, of type `A`).  Remember that a `TrieF k v A` contains a
+`Maybe v` and a `Map k A`.  The `A` (the values of the map) contains the result
+of folding up all of the original subtries along each key; it's the "results so
+far".
+
+And then we can use `cata` to "fold" our type along the algebra:
+
+```haskell
+cata myAlg :: Trie k v -> A
+```
+
+`cata` starts from the bottom-most layer, runs `myAlg` on that, then goes up a
+layer, running `myAlg` on the results, then goes up another layer, running
+`myAlg` on those results, etc., until it reaches the top layer and runs `myAlg`
+again to produce the final result.
+
+For example, we'll write a catamorphism that counts how many values/leaves we have in
+our Trie into an `Int`.
+
+```haskell
+countAlg :: TrieF k v Int -> Int
+```
+
+This is the basic structure of an algebra: our final result becomes the
+parameter of `TrieF k v`, and also the result of our algebra.
+
+Remember that a `Trie k v` contains a `Maybe v` and a `Map k (Trie k v)`, and a
+`TrieF k v Int` contains a `Maybe v` and a `Map k Int`.  The `Map`, then,
+represents the number of values inside all of the original subtries along each
+key.
+
+Knowing this, we can write `countAlg`:
+
+```haskell
+!!!trie/trie.hs "countAlg"
+```
+
+If `v` is indeed a leaf (it's `Just`), then it's one plus the total counts of
+all of the subtees (remember, the `Map k Int` contains the counts of all of the
+original subtries, under each key).  Otherwise, it's just the total counts of
+all of the original subtries.
+
+Our final `count` is therefore just:
+
+```haskell
+!!!trie/trie.hs "count"
+```
+
+```haskell
+ghci> count testTrie
+3
+```
+
+We can do something similar by writing a summer, as well:
+
+```haskell
+!!!trie/trie.hs "trieSumAlg" "trieSum"
+```
+
+```haskell
+ghci> trieSum testTrie
+14
+```
+
+In the algebra, the `Map k a` contains the sum of all of the subtries.  The
+algebra therefore just adds up all of the subtrie sums with the value at that
+layer.
+
+#### Outside-In
+
+Catamorphisms are naturally "inside-out", or "bottom-up".  However, some
+operations are more naturally "outside-in", or "top-down".  One immediate
+example is `lookup :: [k] -> Trie k v -> Maybe v`, which is clearly "top-down":
+it first descends down the first item in the `[k]`, then the second, then the
+third, etc. until you reach the end, and return the `Maybe v` at that layer.
+
+In this case, it helps to invert control: instead of folding into a `Maybe v`
+directly, fold into a "looker upper", a `[k] -> Maybe v`.  We generate a
+"lookup function" from the bottom-up, and then run that all in the end on the
+key we want to look up.
+
+Our algebra will therefore have type:
+
+```haskell
+lookupperAlg
+    :: Ord k
+    => TrieF k v ([k] -> Maybe v)
+    -> ([k] -> Maybe v)
+```
+
+A `TrieF k v ([k] -> Maybe v)` contains a `Maybe v` and a `Map k ([k] -> Maybe
+v)`, or a map of "lookuppers".  Indexed at each key is function of how to look
+up a given key in the original subtrie.
+
+So, we are tasked with "how to implement a lookupper, given a map of
+sub-lookuppers".
+
+To do this, we can pattern match on the key we are looking up.  If it's `[]`,
+then we just return the current leaf (if it exists).  Otherwise, if it's
+`j:js`, we can *run the lookupper of the subtrie at key `j`*.
+
+```haskell
+!!!trie/trie.hs "lookuperAlg" "lookupper"
+```
+
+```haskell
+ghci> lookup "to" testTrie
+Just 9
+ghci> lookup "ton" testTrie
+Just 3
+ghci> lookup "tone" testTrie
+Nothing
+```
+
+
+
+
+
+
+<!-- The classic example of a catamorphism is writing a summer.  We'll do that by -->
+<!-- writing a `sum` algebra; it'll run on a `Trie k Int` and return the sum of all -->
+<!-- of the `Int` values: -->
+
+<!-- ```haskell -->
+<!-- treeSumAlg :: TrieF k Int Int -> Int -->
+<!-- treeSumAlg (MkT Nothing  vs) = sum vs -->
+<!-- treeSUmAlg (MkT (Just x) vs) = sum vs -->
+<!-- ``` -->
+
+
 
 
 
