@@ -50,7 +50,6 @@ testTrie = MkT Nothing $ M.fromList [
       ('t', MkT Nothing $ M.fromList [
           ('o', MkT (Just 9) $ M.fromList [
               ( 'n', MkT (Just 3) M.empty )
-
             ]
           )
         , ('a', MkT Nothing $ M.fromList [
@@ -94,12 +93,14 @@ lookup
     -> Maybe v
 lookup ks t = cata lookupperAlg t ks
 
-singletonCoalg :: v -> [k] -> TrieF k v [k]
-singletonCoalg v []     = MkTF (Just v) M.empty
-singletonCoalg _ (k:ks) = MkTF Nothing  (M.singleton k ks)
+mkSingletonCoalg :: v -> ([k] -> TrieF k v [k])
+mkSingletonCoalg v = singletonCoalg
+  where
+    singletonCoalg []     = MkTF (Just v) M.empty
+    singletonCoalg (k:ks) = MkTF Nothing  (M.singleton k ks)
 
 singleton :: [k] -> v -> Trie k v
-singleton k v = ana (singletonCoalg v) k
+singleton k v = ana (mkSingletonCoalg v) k
 
 fromMapCoalg
     :: Ord k

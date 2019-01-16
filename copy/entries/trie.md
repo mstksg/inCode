@@ -198,7 +198,7 @@ result value (here, of type `A`).  Remember that a `TrieF k v A` contains a
 of folding up all of the original subtries along each key; it's the "results so
 far".
 
-And then we can use `cata` to "fold" our type along the algebra:
+And then we can use `cata` to "fold" our value along the algebra:
 
 ```haskell
 cata myAlg :: Trie k v -> A
@@ -224,7 +224,9 @@ Remember that a `Trie k v` contains a `Maybe v` and a `Map k (Trie k v)`, and a
 represents the number of values inside all of the original subtries along each
 key.
 
-Knowing this, we can write `countAlg`:
+Basically, our task is "How to find a count, given a map of sub-counts".
+
+With this in mind, we can write `countAlg`:
 
 ```haskell
 !!!trie/trie.hs "countAlg"
@@ -259,7 +261,7 @@ ghci> trieSum testTrie
 
 In the algebra, the `Map k a` contains the sum of all of the subtries.  The
 algebra therefore just adds up all of the subtrie sums with the value at that
-layer.
+layer. "How to find a sum, given a map of sub-sums".
 
 #### Outside-In
 
@@ -311,91 +313,84 @@ Note that because `Map`s have lazy keys by default, we only ever generate
 "lookuppers" for subtries under keys that we eventually descend on; any other
 subtries will be ignored (and no lookuppers are ever generated for them).
 
+### Ana Montana
 
+Anamorphisms are functions that "generate" or "unfold" a value of a recursive
+type, layer-by-layer.  If we want to write a function of type `A -> Trie k v`,
+we can reach first for an anamorphism.
 
+Anamorphisms work by unfolding "layer-by-layer", from the top down.  We can
+write one by defining "how to generate the next layer".  This description comes
+in the form of a "coalgebra" (pronounced like "co-algebra", and not like coal
+energy "coal-gebra"), in terms of the base functor:
 
-<!-- The classic example of a catamorphism is writing a summer.  We'll do that by -->
-<!-- writing a `sum` algebra; it'll run on a `Trie k Int` and return the sum of all -->
-<!-- of the `Int` values: -->
+```haskell
+myCoalg :: A -> TrieF k v A
+```
 
-<!-- ```haskell -->
-<!-- treeSumAlg :: TrieF k Int Int -> Int -->
-<!-- treeSumAlg (MkT Nothing  vs) = sum vs -->
-<!-- treeSUmAlg (MkT (Just x) vs) = sum vs -->
-<!-- ``` -->
+If we think of `TrieF k v a` as "one layer" of a `Trie k v`, then `A -> TrieF k
+v A` describes how to generate a new nested layer of our `Trie k v` from our
+initial "seed" (here, of type `A`).  Remember that a `TrieF k v A` contains a
+`Maybe v` and a `Map k A`.  The `A` (the values of the map) are then used to
+seed the *new* subtries.  The `A` is the "continue expanding with..." value.
 
+And then we can use `cata` to "unfold" our value along the coalgebra:
 
+```haskell
+ana myCoalg :: A -> Trie k v
+```
 
+`ana` starts from the an initial seed `A`, runs `myCoalg` on that, and then
+goes down a layer, running `myCoalg` on each value in the map to create new
+layers, etc., forever and ever.  In practice, it usually stops when we return a
+`TrieF` with an empty map, since there are no more seeds to expand down.
+However, it's nice to remember we don't have to special-case this behavior: it
+arises naturally from the structure of maps.
 
+I don't think there's really too many canonical or classical anamorphisms that
+are as generally applicable as summing and counting leaves, but the general
+idea is that if you want to create a value by repeatedly "expanding leaves",
+an anamorphism is a perfect fit.
 
-<!-- data Trie k v = TNow   v (Map   k (Trie k v)) -->
-<!--               | TLater   (NEMap k (Trie k v)) -->
+An example here that fits will with the nature of a trie is to produce a
+"singleton trie": a trie that has only a single value at a single trie.
 
-<!-- We can define what we call an "algebra" on `sum` -->
+```haskell
+!!!trie/trie.hs "mkSingletonCoalg"
+```
 
+Given a `v` value, we'll make a coalgebra `[k] -> TrieF k v [k]`.  Our "seed"
+will be the `[k]` key we want to insert, and we'll generate our singleton key
+by making sub-maps with sub-keys.
 
+Our coalgebra ("layer generating function") goes like this:
 
-<!-- Now let's think of what happens when we put `ListF a` back "into" `x`: -->
+1.  If our key-to-insert is empty `[]`, then we're here!  We're at *the layer*
+    where we want to insert the value at, so `MkTF (Just v) M.empty`.
 
-<!-- 1.  If we "close off" the placeholder, we get `ListF a ()`, which is -->
-<!--     essentially a list with at most 1 item (`NilF`, or `ConsF theVal ()`) -->
+2   If our key-to-insert is *not* empty, then we're not here!  We return `MkTF
+    Nothing`...but we know we leave a singleton map `M.singleton k ks :: Map k [k]`
+    leaving a single seed.  When we run our coalgebra with `ana`, `ana` will go
+    down and expand out that single seed (with our coalgebra) into an entire new
+    sub-trie, with `ks` as its seed.
 
-<!-- 2.  If we put `ListF a` back into the placeholder, we get `ListF a (ListF a -->
-<!--     ())`, which is a list with at most 2 items: -->
+So, we have `singleton`:
 
-<!--     ```haskell -->
-<!--     zeroItems :: ListF Int (ListF Int ()) -->
-<!--     zeroItems = NilF -->
+```haskell
+!!!trie/trie.hs "singleton"
+```
 
-<!--     oneItem   :: ListF Int (ListF Int ()) -->
-<!--     oneItem   = ConsF 1 NilF -->
+We run the coalgebra on our initial seed (the key), and ana will run
+`singletonCoalg` repeatedly, expanding out all of the seeds we deposit, forever
+and ever (or at least until there are no more values of the seed type left,
+which happens if we return an empty map).
 
-<!--     twoItems  :: ListF Int (ListF Int ()) -->
-<!--     twoItems  = ConsF 1 (ConsF 2 ()) -->
-<!--     ``` -->
-
-<!-- 3.  If we put `ListF a (ListF ())` into the placeholder, we get `ListF a (ListF -->
-<!--     a (ListF a ()))`, which is a list with at most 3 items: -->
-
-<!--     ```haskell -->
-<!--     zeroItems  :: ListF Int (ListF Int (ListF Int ())) -->
-<!--     zeroItems  = NilF -->
-
-<!--     oneItem    :: ListF Int (ListF Int (ListF Int ())) -->
-<!--     oneItem    = ConsF 1 NilF -->
-
-<!--     twoItems   :: ListF Int (ListF Int (ListF Int ())) -->
-<!--     twoItems   = ConsF 1 (ConsF 2 NilF) -->
-
-<!--     threeItems :: ListF Int (ListF Int (ListF Int ())) -->
-<!--     threeItems = ConsF 1 (ConsF 2 (ConsF ())) -->
-<!--     ``` -->
-
-<!-- From this process, we can see that if we repeat this "forever", we get `ListF a -->
-<!-- (ListF a (ListF a ...))`; if we have "infinite nesting", we get potentially -->
-<!-- infinitely long lists, and we get back the original data type. -->
-
-<!-- In Haskell, we can express "infinitely re-nested" using a data type, `Fix`: -->
-
-<!-- ```haskell -->
-<!-- newtype Fix f = Fix (f (Fix f)) -->
-<!-- ``` -->
-
-<!-- We can say that "`List` is just an infinitely re-nested `ListF`" by writing: -->
-
-<!-- ```haskell -->
-<!-- type List a = Fix (ListF a) -->
-<!-- ``` -->
-
-<!-- This is the same as our original `List`!  This is because a `Fix (ListF a)` -->
-<!-- is either `Fix NilF`, or `Fix (ConsF theVal theRest)`, where `theRest` has type -->
-<!-- `Fix (ListF a)`, or just `List a`.  And that's exactly the original `List` -->
-<!-- type! -->
-
-<!-- ```haskell -->
-<!-- zeroItems :: List Int -->
-<!-- zeroItems = Fix NilF -->
-
-<!-- oneItem   :: List Int -->
-<!-- oneItem   = Fix (ConsF ) -->
-<!-- ``` -->
+```haskell
+ghci> singleton "hi" 7
+MkT Nothing $ M.fromList [
+    ('h', MkT Nothing $ M.fromList [
+        ('i', MkT (Just 7) M.empty )
+      ]
+    )
+  ]
+```
