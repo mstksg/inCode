@@ -76,6 +76,14 @@ trieSum = cata trieSumAlg
 trieSumAlg :: Num a => TrieF k a a -> a
 trieSumAlg (MkTF v subtrieSums) = fromMaybe 0 v + sum subtrieSums
 
+trieSumExplicit :: Num a => Trie k a -> a
+trieSumExplicit (MkT v subtries) =
+    fromMaybe 0 v + sum (fmap trieSumExplicit subtries)
+
+trieSumCata :: Num a => Trie k a -> a
+trieSumCata = cata $ \(MkTF v subtrieSums) ->
+    fromMaybe 0 v + sum subtrieSums
+
 lookup
     :: Ord k
     => [k]
@@ -93,16 +101,8 @@ lookupperAlg (MkTF v lookuppers) = \case
       Nothing        -> Nothing
       Just lookupper -> lookupper ks
 
-lookupExplicit
-    :: Ord k
-    => [k]
-    -> Trie k v
-    -> Maybe v
-lookupExplicit = flip $ \(MkT v subs) -> \case
-    []   -> v
-    k:ks -> case M.lookup k subs of
-      Nothing      -> Nothing
-      Just subtrie -> lookupExplicit ks subtrie
+cata' :: (TrieF k v a -> a) -> Trie k v -> a
+cata' alg = alg . fmap (cata' alg) . project
 
 singleton :: [k] -> v -> Trie k v
 singleton k v = ana (mkSingletonCoalg v) k
