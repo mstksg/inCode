@@ -327,13 +327,13 @@ what was the point, again?  What do we gain over writing explicit versions to
 query Trie?  Why couldn't we just write:
 
 ```haskell
-!!!trie/trie.hs "sumTrieExplicit"
+!!!trie/trie.hs "trieSumExplicit"
 ```
 
 instead of
 
 ```haskell
-!!!trie/trie.hs "sumTrieCata"
+!!!trie/trie.hs "trieSumCata"
 ```
 
 
@@ -347,7 +347,7 @@ are often much easier to read, because as soon as you see "while" or "for", it
 gives you a hint at programmer intent in ways that an explicit GOTO might not.
 
 Another major reason is to allow you to separate concerns.  Writing
-`sumTrieExplicit` forces you to think "how to fold this entire trie".  Writing
+`trieSumExplicit` forces you to think "how to fold this entire trie".  Writing
 `trieSumAlg` allows us to just focus on "how to fold *this immediate* layer".
 You only need to ever focus on the immediate layer you are trying to sum ---
 and never the entire trie.  `cata` takes your "how to fold this immediate
