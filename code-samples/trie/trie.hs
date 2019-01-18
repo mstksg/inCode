@@ -87,11 +87,22 @@ lookupperAlg
     :: Ord k
     => TrieF k v ([k] -> Maybe v)
     -> ([k] -> Maybe v)
-lookupperAlg (MkTF v lookuppers) ks = case ks of
+lookupperAlg (MkTF v lookuppers) = \case
     []   -> v
-    j:js -> case M.lookup j lookuppers of
+    k:ks -> case M.lookup k lookuppers of
       Nothing        -> Nothing
-      Just lookupper -> lookupper js
+      Just lookupper -> lookupper ks
+
+lookupExplicit
+    :: Ord k
+    => [k]
+    -> Trie k v
+    -> Maybe v
+lookupExplicit = flip $ \(MkT v subs) -> \case
+    []   -> v
+    k:ks -> case M.lookup k subs of
+      Nothing      -> Nothing
+      Just subtrie -> lookupExplicit ks subtrie
 
 singleton :: [k] -> v -> Trie k v
 singleton k v = ana (mkSingletonCoalg v) k

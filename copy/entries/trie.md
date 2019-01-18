@@ -294,11 +294,13 @@ sub-lookuppers".
 
 To do this, we can pattern match on the key we are looking up.  If it's `[]`,
 then we just return the current leaf (if it exists).  Otherwise, if it's
-`j:js`, we can *run the lookupper of the subtrie at key `j`*.
+`k:ks`, we can *run the lookupper of the subtrie at key `k`*.
 
 ```haskell
 !!!trie/trie.hs "lookupperAlg" "lookup"
 ```
+
+(Written using the -XLambdaCase extension, allowing for `\case` syntax)
 
 ```haskell
 ghci> lookup "to" testTrie
@@ -312,6 +314,24 @@ Nothing
 Note that because `Map`s have lazy keys by default, we only ever generate
 "lookuppers" for subtries under keys that we eventually descend on; any other
 subtries will be ignored (and no lookuppers are ever generated for them).
+
+In the end, this version has all of the same performance characteristics as the
+explicitly recursive one; we're assembling a "lookupper" that stops as soon as
+it sees either a failed lookup (so it doesn't cause any more evaluation later
+on), or stops when it reaches the end of its list.
+
+#### I Think the System Works
+
+We've now written a couple of non-recursive functions to "query" `Trie`.  But
+what was the point, again?  What do we gain over writing explicit versions to
+query Trie?  Why couldn't we just write:
+
+```haskell
+!!!trie/trie.hs "lookupExplicit"
+```
+
+(I wrote this in a way to mirror the implementation of `lookuperAlg` above)
+
 
 ### Ana Montana
 
@@ -395,6 +415,33 @@ MkT Nothing $ M.fromList [
   ]
 ```
 
+### Trie from Map
+
+This 
+
+```haskell
+fromMapCoalg
+    :: Ord k
+    => Map [k] v
+    -> TrieF k v (Map [k] v)
+fromMapCoalg = uncurry rebuild . M.foldMapWithKey splitOut
+  where
+    rebuild  v      xs = MkTF (getFirst <$> v) (M.fromListWith M.union xs)
+    splitOut []     v  = (Just (First v), mempty                 )
+    splitOut (k:ks) v  = (mempty        , [(k, M.singleton ks v)])
+
+fromMap
+    :: Ord k
+    => Map [k] v
+    -> Trie k v
+fromMap = ana fromMapCoalg
+
+```
+
+## Down to Business
+
+So those are some examples to get our feet wet; now it's time to build our
+prequel meme trie!
 
 
 
