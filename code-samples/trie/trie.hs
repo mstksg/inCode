@@ -22,7 +22,6 @@ import           Data.Graph.Inductive.PatriciaTree (Gr)
 import           Data.GraphViz                     (GraphvizParams(..))
 import           Data.Map                          (Map)
 import           Data.Maybe
-import           Data.Semigroup
 import qualified Data.Graph.Inductive.Graph        as G
 import qualified Data.GraphViz                     as GV
 import qualified Data.GraphViz.Printing            as GV
@@ -123,11 +122,11 @@ fromMapCoalg
     :: Ord k
     => Map [k] v
     -> TrieF k v (Map [k] v)
-fromMapCoalg = uncurry rebuild . M.foldMapWithKey splitOut
+fromMapCoalg mp = MkTF (M.lookup [] mp)
+                       (M.unionsWith M.union (M.mapMaybeWithKey descend mp))
   where
-    rebuild  v      xs = MkTF (getFirst <$> v) (M.fromListWith M.union xs)
-    splitOut []     v  = (Just (First v), mempty                 )
-    splitOut (k:ks) v  = (mempty        , [(k, M.singleton ks v)])
+    descend []     _ = Nothing
+    descend (k:ks) v = Just $ M.singleton k (M.singleton ks v)
 
 toMap
     :: Ord k

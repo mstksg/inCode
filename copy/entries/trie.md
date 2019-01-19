@@ -456,31 +456,63 @@ MkT Nothing $ M.fromList [
 
 ### Trie from Map
 
-This 
+Now that we've got the basics, let's look at a more interesting anamorphism,
+where we leave multiple "seeds" along many different keys in the map, to
+generate many different subtries from our root.
+
+Let's write a function to generate a `Trie k v` from a `Map [k] v`: Given a map
+of keys (as token strings), generate a prefix trie containing every key-value
+pair in the map.
+
+This might sound complicated, but let's remember the philosophy and approach of
+writing an anamorphism: "How do I generate *one layer*"?
+
+Our `fromMapCoalg` will take a `Map [k] v` and generate `TrieF k v (Map [k]
+v)`: *one single layer* of our new Trie (in particular, the *top layer*).  And
+the values in each of the resultant maps will be later then watered and
+expanded into their own fully mature subtries.
+
+So, how do we generate the *top layer* of a prefix trie from a map?  Well,
+remember, to make a `TrieF k v (Map [k] v)`, we need a `Maybe v` (the value at
+this layer) and a `Map k (Map [k] v)` (the map of seeds that will each expand
+into full subtries).
+
+*   If the map contains `[]` (the empty string), then there *is a value* at
+    this layer.  We will return `Just`.
+*   In the `Map k (Map [k] v)`, the value at key `k` will contain all of the
+    key-value pairs in the original map that *start with k*, not including the
+    `k`.
+
+For a concrete example, if we start with `M.fromList [("to", 9), ("ton", 3),
+("tax", 2)]`, then we want `fromMapCoalg` to produce:
 
 ```haskell
-fromMapCoalg
-    :: Ord k
-    => Map [k] v
-    -> TrieF k v (Map [k] v)
-fromMapCoalg = uncurry rebuild . M.foldMapWithKey splitOut
-  where
-    rebuild  v      xs = MkTF (getFirst <$> v) (M.fromListWith M.union xs)
-    splitOut []     v  = (Just (First v), mempty                 )
-    splitOut (k:ks) v  = (mempty        , [(k, M.singleton ks v)])
+fromMap (M.fromList [("to", 9), ("ton", 3), ("tax", 2)])
+    = MkTF Nothing (
+          M.fromList [
+            ('t', M.fromList [
+                ("o" , 9)
+              , ("on", 3)
+              , ("ax", 2)
+              ]
+            )
+          ]
+        )
+```
 
-fromMap
-    :: Ord k
-    => Map [k] v
-    -> Trie k v
-fromMap = ana fromMapCoalg
+The value is `Nothing` because we don't have the empty string, and the map at
+`t` contains all of the original key-value pairs that began with `t`.
 
+Now that we have the concept, we can implement it using `Data.Map` combinators
+like `M.lookup`, `M.mapMaybeWithKey`, and `M.unionsWith M.union`:
+
+```haskell
+!!!trie/trie.hs "fromMapCoalg" "fromMap"
 ```
 
 ## Down to Business
 
 So those are some examples to get our feet wet; now it's time to build our
 prequel meme trie!
-
 
 
