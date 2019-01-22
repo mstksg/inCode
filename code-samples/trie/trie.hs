@@ -6,20 +6,16 @@
 {-# LANGUAGE InstanceSigs                   #-}
 {-# LANGUAGE LambdaCase                     #-}
 {-# LANGUAGE PatternSynonyms                #-}
-{-# LANGUAGE TupleSections                  #-}
+{-# LANGUAGE ScopedTypeVariables            #-}
 {-# LANGUAGE TypeFamilies                   #-}
-{-# LANGUAGE ViewPatterns                   #-}
 {-# OPTIONS_GHC -Wall                       #-}
 {-# OPTIONS_GHC -Werror=incomplete-patterns #-}
 
-import           Control.Monad.State
-import           Control.Monad.Writer hiding       (First(..))
-import           Data.Bifunctor
-import           Data.Either
+import           Control.Monad.State               (State, state, evalState)
 import           Data.Functor.Foldable
-import           Data.Graph.Inductive.Graph        (LNode, LEdge)
 import           Data.Graph.Inductive.PatriciaTree (Gr)
 import           Data.GraphViz                     (GraphvizParams(..))
+import           Data.List
 import           Data.Map                          (Map)
 import           Data.Maybe
 import qualified Data.Graph.Inductive.Graph        as G
@@ -128,6 +124,9 @@ fromMapCoalg mp = MkTF (M.lookup [] mp)
     descend []     _ = Nothing
     descend (k:ks) v = Just $ M.singleton k (M.singleton ks v)
 
+ana' :: (a -> TrieF k v a) -> a -> Trie k v
+ana' coalg = embed . fmap (ana' coalg) . coalg
+
 toMap
     :: Ord k
     => Trie k v
@@ -144,42 +143,33 @@ toMapAlg (MkTF v mp) = M.foldMapWithKey rejoin mp
     rejoin :: k -> Map [k] v -> Map [k] v
     rejoin x = M.mapKeysMonotonic (x:)
 
-fresh :: MonadState Int m => m Int
+fresh :: State Int Int
 fresh = state $ \i -> (i, i+1)
 
-singletonMap :: Map k a -> Maybe (k, a)
-singletonMap m = do
-    (kv, m') <- M.minViewWithKey m
-    kv <$ guard (M.null m')
+trieGraph
+    :: Trie k v
+    -> Gr (Maybe v) k
+trieGraph = flip evalState 0 . cata trieGraphAlg
 
-graphAlg
-    :: (MonadState Int m, MonadWriter [Either (LNode (Maybe v)) (LEdge [k])] m)
-    => TrieF k v (m (Int, [k]))
-    -> m (Int, [k])
-graphAlg (MkTF v xs) = do
-    gs <- sequenceA xs
-    case guard (isNothing v) *> singletonMap gs of
-      Nothing -> do
-        n <- fresh
-        tell [Left (n, v)]
-        _ <- flip M.traverseWithKey gs $ \k (top, ks) ->
-          tell [Right (n, top, k:ks)]
-        pure (n, [])
-      Just (k, (top, ks)) -> pure (top, k:ks)
+trieGraphAlg
+    :: forall k v. ()
+    => TrieF k v (State Int (Gr (Maybe v) k))
+    -> State Int (Gr (Maybe v) k)
+trieGraphAlg (MkTF v xs) = do
+    n  <- fresh
+    gs <- sequence xs
+    let subroots :: [(k, Int)]
+        subroots = M.toList . fmap (fst . G.nodeRange) $ gs
+    pure $ G.insEdges ((\(k,i) -> (n,i,k)) <$> subroots)   -- insert root-to-subroots
+         . G.insNode (n, v)                     -- insert new root
+         . M.foldr (G.ufold (G.&)) G.empty      -- merge all subgraphs
+         $ gs
 
-runGraph
-    :: StateT Int (Writer [Either (LNode (Maybe v)) (LEdge [k])]) (Int, [k])
-    -> Gr (Maybe v) [k]
-runGraph = uncurry G.mkGraph
-         . uncurry topOut
-         . second partitionEithers
-         . runWriter
-         . flip evalStateT 0
-  where
-    topOut (top, ks) (ns, es)
-      | null ks   = (ns, es)
-      | otherwise = ((top + 1, Nothing):ns, (top + 1, top, ks):es)
-
+mapToGraph
+    :: Ord k
+    => Map [k] v
+    -> Gr (Maybe v) k
+mapToGraph = flip evalState 0 . hylo trieGraphAlg fromMapCoalg
 
 graphDot
     :: GV.Labellable v
@@ -194,14 +184,22 @@ graphDot = GV.printIt . GV.graphToDot params
       , fmtEdge = \(_,_,l) -> [GV.toLabel (concat ["[", l, "]"])]
       }
 
-toGraph
-    :: Ord k
-    => Map [k] v
-    -> Gr (Maybe v) [k]
-toGraph = runGraph . hylo graphAlg fromMapCoalg
-
 toDot
     :: GV.Labellable v
     => Map String v
     -> T.Text
-toDot = graphDot . toGraph
+toDot = graphDot . compactify . G.emap (:[]) . mapToGraph
+
+compactify
+    :: Gr (Maybe v) [k]
+    -> Gr (Maybe v) [k]
+compactify g0 = foldl' go g0 (G.labNodes g0)
+  where
+    go g (i, v) = case (G.inn g i, G.out g i) of
+      ([(j, _, lj)], [(_, k, lk)])
+        | isNothing v -> G.insEdge (j, k, lj ++ lk)
+                       . G.delNode i
+                       . G.delEdges [(j,i),(i,k)]
+                       $ g
+      _               -> g
+

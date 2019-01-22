@@ -510,9 +510,164 @@ like `M.lookup`, `M.mapMaybeWithKey`, and `M.unionsWith M.union`:
 !!!trie/trie.hs "fromMapCoalg" "fromMap"
 ```
 
-## Down to Business
+And just like that, we have a way to turn a `Map [k]` into a `Trie k`...all
+just from describing how to make *the top-most layer*.  `ana` extrapolates the
+rest!
+
+Again, we can ask what the point of this is: why couldn't we just write it
+directly recursively?
+
+The answers again are the same: first, to avoid potential bugs from explicit
+recursion.  Second, to separate concerns: instead of thinking about how to
+generate an entire trie, we only need to be think about how to generate a
+single layer.  `ana` reads our mind here, and extrapolates out the entire trie.
+
+::::: {.note}
+**Aside**
+
+Again, let's take some time to reassure ourselves that `ana` is not a magic
+function.  You might have been able to guess how it's implemented: it runs the
+coalgebra, and then fmaps re-expansion recursively.
+
+```haskell
+!!!trie/trie.hs "ana'"
+```
+
+First, we run the `coalg :: a -> TrieF k v a`, then we fmap our entire `ana
+coalg :: a -> Trie k v`, then we `embed :: TrieF k v (Trie k v) -> Trie k v`
+back into our recursive type.
+:::::
+
+
+## This is where the fun begins
 
 So those are some examples to get our feet wet; now it's time to build our
 prequel meme trie!
 
+To render our tree, we're going to be using the *[graphviz][]* library, which
+generates a *[DOT file][]* which the graphviz application can render.  The
+*graphviz* library directly renders a value  of the graph data type from
+*[fgl][]*, the functional graph library that is the de-facto fully fleshed-out
+graph manipulation library of the Haskell ecosystem.
 
+[graphviz]: https://hackage.haskell.org/package/graphviz
+[DOT file]: https://en.wikipedia.org/wiki/DOT_(graph_description_language)
+[fgl]: https://hackage.haskell.org/package/fgl
+
+So, the roadmap seems simple:
+
+1.  Load our prequel memes into a `Map String PrequelMeme`, a map of quotes to
+    their associated macro images
+2   Use `ana` to turn a `Map String PrequelMeme` into a `Trie Char PrequelMeme`
+3.  Use `cata` to turn a `Trie Char PrequelMeme` into a graph of nodes linked
+    by letters, with prequel meme leaves
+4.  Use the *graphviz* library to turn that graph into a DOT file, to be
+    rendered by the external graphviz application.
+
+1 and 4 are mainly fumbling around with IO and interfacing with libraries, so 2
+and 3 are the interesting steps in our case.  We actually already wrote 2 (in
+the previous section --- surprise!), so that just leaves 3 to investigate.
+
+### Generating the Graph
+
+*fgl* provides a two (interchangeable) graph types; for the sake of this
+article, we're going to be using `Gr` from the
+*Data.Graph.Inductive.PatriciaTree* module.
+
+The type `Gr a b` represents a graph of vertices with labels of type `a`, and
+edges with labels of type `b`.  In our case, for a `Trie k v`, we'll have a
+graph with nodes of type `Maybe v` (the leaves, if they exist) and edges of
+type `k` (the token linking one node to the next).
+
+Our end goal, then, is to write a function `Trie k v -> Gr (Maybe v) k`.
+Knowing this, we can jump directly into writing an algebra:
+
+```haskell
+trieGraphAlg
+    :: TrieF k v (Gr (Maybe v) k)
+    -> Gr (Maybe v) k
+```
+
+and then using `cata trieGraphAlg :: Trie k v -> Gr (Maybe v) k`.
+
+This isn't a bad way to go about it, and you won't have *too* many problems.
+However, this might be a good learning opportunity to try writing "monadic"
+catamorphisms.
+
+That's because to create a graph using *fgl*, you need to manage Node ID's,
+which are represented as `Int`s.  To add a node, you need to generate a fresh
+Node ID.  *fgl* has some nice tools for managing this, but we can have some
+(completely unnecessary) fun by taking care of it ourselves.
+
+We can use `State Int` as a way to generate "fresh" node ID's on-demand, with
+the action `fresh`:
+
+```haskell
+!!!trie/trie.hs "fresh"
+```
+
+`fresh` will return the current counter state to produce a new node ID, and
+then increment the counter so that the next invocation will return a new node
+ID.
+
+In this light, our big picture is to write a `Trie k v -> State Int (Gr (Maybe
+v) k)`: turn a `Trie k v` into a state action to generate a graph.
+
+To write this, we lay out our algebra:
+
+```haskell
+trieGraphAlg
+    :: TrieF k v (State Int (Gr (Maybe v) k))
+    -> State Int (Gr (Maybe v) k)
+```
+
+We have to write a function "how to make a state action creating a graph, given
+a map of state actions creating sub-graphs".
+
+One interesting thing to note is that we have a lot to gain from using
+"first-class effects": `State Int (Gr (Maybe v) k)` is just a normal, inert
+Haskell value that we can manipulate and sequence however we want.  State is
+not only explicit, but the sequencing of actions (as first-class values) is
+also explicit.
+
+We can write this using *fgl* combinators:
+
+```haskell
+!!!trie/trie.hs "trieGraphAlg"
+```
+
+1.  First, generate a fresh node label
+
+2.  Then, sequence all of the state actions inside the map of sub-graph
+    generators.  Remember, a `TrieF k v (State Int (Gr (Maybe v) k))` contains
+    a `Maybe v` and a `Map k (State Int (Gr (Maybe v) k))`.  The map contains
+    State actions to create the sub-graphs, and we use:
+
+    ```haskell
+    sequence
+        :: Map k (State Int (Gr (Maybe v) k))
+        -> State Int (Map k (Gr (Maybe v) k))
+    ```
+
+    To turn a map of subgraph-producing actions into an action producing a map
+    of subgraphs.
+
+3.  Next, it's useful to collect all of the subroots, `subroots :: [(k, Int)]`.
+    These are all of the node id's of the roots of each of the subtrees, paired
+    with the token leading to that subtree.
+
+4.  Now to generate our result:
+
+    a.  First we merge all subgraphs (using `G.ufold (G.&)` to merge together
+        two graphs)
+    b.  Then, we insert the new root, with our fresh node ID and the new `Maybe
+        v` label.
+    c.  Then, we insert all of the edges connecting our new root to the root of
+        all our subgraphs (in `subroots`).
+
+We can then write our graph generating function using this algebra, and then
+running the resulting `State Int (Gr (Maybe v) k)` action:
+
+```haskell
+!!!trie/trie.hs "trieGraph"
+```
