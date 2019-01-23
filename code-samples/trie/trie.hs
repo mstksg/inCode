@@ -210,7 +210,11 @@ graphDot = GV.printIt . GV.graphToDot params
 memeDot
     :: String
     -> T.Text
-memeDot = graphDot . compactify . mapToGraph . memeMap
+memeDot = graphDot
+        . compactify
+        . flip evalState 0
+        . hylo trieGraphAlg fromMapCoalg
+        . memeMap
 
 compactify
     :: Gr (Maybe v) k

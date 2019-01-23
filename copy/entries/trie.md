@@ -766,6 +766,13 @@ structure), *not* `Trie`. Being able to use `hylo` lets us see that the
 original recursive data type was nothing more than a distraction.  Through it,
 we see the light.
 
+Our final map-to-graph function can therefore be expressed as:
+
+```haskell
+!!!trie/trie.hs "mapToGraph"
+```
+
+
 ### The Full Package
 
 Now time to wrap things up.  I made a text file storing all of the prequel
@@ -814,4 +821,15 @@ Giving us our final result: ([full size here][fullsize])
 ![Our rendered dotfile, using graphviz](/img/entries/trie/meme-trie.png "Our final result")
 
 There are definitely some things we can tweak with respect to formatting and
-position and font sizes and label layouts, but I think this is fairly faithful!
+position and font sizes and label layouts, but I think this is fairly faithful
+to the original structure!
+
+## Digging Deeper
+
+There's a lot more we can do with tries, and fleshing out a full interface
+allows us to explore a lot of other useful recursion schemes and combinators.
+
+Now that we've familiarized ourselves with a simple tangible example, we're now
+free to dive deep.  Achieving hylomorphism helps us see past the recursive data
+type and directly into the underlying structure of what's going on.  Let's see
+what other viewpoints *recursion-schemes* has to offer for us!
