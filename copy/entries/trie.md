@@ -549,7 +549,9 @@ back into our recursive type.
 So those are some examples to get our feet wet; now it's time to build our
 prequel meme trie!
 
-We're going to try to re-create this reference trie:
+We're going to try to re-create this reference trie: ([full size here][fullsize-ref])
+
+[fullsize-ref]: /img/entries/trie/reference-trie.png
 
 ![Reference trie (credit to [u/Uninventive_Username][meme])](/img/entries/trie/reference-trie.png "Reference trie")
 
@@ -805,6 +807,8 @@ And finally, to wrap it all together, the entire pipeline:
 !!!trie/trie.hs "memeDot"
 ```
 
-Giving us our final result:
+Giving us our final result: ([full size here][fullsize])
+
+[fullsize]: /img/entries/trie/meme-trie.png
 
 ![Our rendered dotfile, using graphviz](/img/entries/trie/meme-trie.png "Our final result")
