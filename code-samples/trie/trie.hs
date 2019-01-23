@@ -186,7 +186,10 @@ hylo' consume build = consume
 memeMap :: String -> Map String HTML.Label
 memeMap = M.fromList . map (uncurry processLine . span (/= ',')) . lines
   where
-    processLine qt (drop 1->img) = (filter (not . isSpace) qt, HTML.Table (HTML.HTable Nothing [] [r1,r2]))
+    processLine qt (drop 1->img) = (
+          filter (not . isSpace) qt
+        , HTML.Table (HTML.HTable Nothing [] [r1,r2])
+        )
       where
         r1 = HTML.Cells [HTML.LabelCell [] (HTML.Text [HTML.Str (T.pack qt)])]
         r2 = HTML.Cells [HTML.ImgCell   [] (HTML.Img [HTML.Src img])]

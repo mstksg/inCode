@@ -783,16 +783,16 @@ final image.
 !!!trie/trie.hs "memeMap"
 ```
 
-A small utility function to clean up our final graph; it deletes nodes that
-only have one child and compacts them into the node above.  It's just to
-"compress" together strings of nodes that don't have any forks.
+We can also write a small utility function to clean up our final graph; it
+deletes nodes that only have one child and compacts them into the node above.
+It's just to "compress" together strings of nodes that don't have any forks.
 
 ```haskell
 !!!trie/trie.hs "compactify"
 ```
 
-We can directly output a compacted graph from `graphAlg`, but for the sake of
-this post it's a bit cleaner to separate out these concerns.
+We could have directly outputted a compacted graph from `graphAlg`, but for the
+sake of this post it's a bit cleaner to separate out these concerns.
 
 We'll write a function to turn a `Gr (Maybe v) [Char]` into a dot file, using
 *graphviz* to do most of the work:
