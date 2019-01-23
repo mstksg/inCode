@@ -551,7 +551,7 @@ prequel meme trie!
 
 We're going to try to re-create this reference trie:
 
-![Reference trie (credit to [u/Uninventive_Username][meme])](/img/entries/trie/meme-trie.png "Reference trie")
+![Reference trie (credit to [u/Uninventive_Username][meme])](/img/entries/trie/reference-trie.png "Reference trie")
 
 
 To render our tree, we're going to be using the *[graphviz][]* library, which
