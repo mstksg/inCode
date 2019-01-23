@@ -761,9 +761,45 @@ we see the light.
 
 ### The Full Package
 
-Now time to wrap things up.
-
+Now time to wrap things up.  I made a text file storing all of the prequel
+quotes in the original reference trie, along with images stored on my drive:
 
 ```
 !!!trie/quotes.txt
 ```
+
+We can write a quick parser and aggregator into a `Map [Char] Label`, where
+`Label` is from the *graphviz* library, a renderable object to display on the
+final image.
+
+```haskell
+!!!trie/trie.hs "memeMap"
+```
+
+A small utility function to clean up our final graph; it deletes nodes that
+only have one child and compacts them into the node above.  It's just to
+"compress" together strings of nodes that don't have any forks.
+
+```haskell
+!!!trie/trie.hs "compactify"
+```
+
+We can directly output a compacted graph from `graphAlg`, but for the sake of
+this post it's a bit cleaner to separate out these concerns.
+
+We'll write a function to turn a `Gr (Maybe v) [Char]` into a dot file, using
+*graphviz* to do most of the work:
+
+```haskell
+!!!trie/trie.hs "graphDot"
+```
+
+And finally, to wrap it all together, the entire pipeline:
+
+```haskell
+!!!trie/trie.hs "memeDot"
+```
+
+Giving us our final result:
+
+![Our rendered dotfile, using graphviz](/img/entries/trie/meme-trie.png "Our final result")

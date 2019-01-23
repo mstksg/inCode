@@ -96,9 +96,8 @@ app znow@(ZonedTime _ tz) = do
       compile getResourceString
 
     forM_ confCodeSamples $ \samplesDir -> do
-      let pat = foldMap fromGlob [ T.unpack samplesDir </> "**.hs"
-                                 , T.unpack samplesDir </> "**.txt"
-                                 ]
+      let pat = fromGlob (T.unpack samplesDir </> "**.hs")
+           .||. fromGlob (T.unpack samplesDir </> "**.txt")
       match pat $ do
         route   mempty
         compile getResourceString

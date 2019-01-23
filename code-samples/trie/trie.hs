@@ -183,8 +183,8 @@ hylo' consume build = consume
                     . fmap (hylo' consume build)
                     . build
 
-prequelMemes :: String -> Map String HTML.Label
-prequelMemes = M.fromList . map (uncurry processLine . span (/= ',')) . lines
+memeMap :: String -> Map String HTML.Label
+memeMap = M.fromList . map (uncurry processLine . span (/= ',')) . lines
   where
     processLine qt (drop 1->img) = (filter (not . isSpace) qt, HTML.Table (HTML.HTable Nothing [] [r1,r2]))
       where
@@ -204,16 +204,15 @@ graphDot = GV.printIt . GV.graphToDot params
       , fmtEdge = \(_,_,l) -> [GV.toLabel (concat ["[", l, "]"])]
       }
 
-toDot
-    :: GV.Labellable v
-    => Map String v
+memeDot
+    :: String
     -> T.Text
-toDot = graphDot . compactify . G.emap (:[]) . mapToGraph
+memeDot = graphDot . compactify . mapToGraph . memeMap
 
 compactify
-    :: Gr (Maybe v) [k]
+    :: Gr (Maybe v) k
     -> Gr (Maybe v) [k]
-compactify g0 = foldl' go g0 (G.labNodes g0)
+compactify g0 = foldl' go (G.emap (:[]) g0) (G.labNodes g0)
   where
     go g (i, v) = case (G.inn g i, G.out g i) of
       ([(j, _, lj)], [(_, k, lk)])
