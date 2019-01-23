@@ -8,18 +8,21 @@
 {-# LANGUAGE PatternSynonyms                #-}
 {-# LANGUAGE ScopedTypeVariables            #-}
 {-# LANGUAGE TypeFamilies                   #-}
+{-# LANGUAGE ViewPatterns                   #-}
 {-# OPTIONS_GHC -Wall                       #-}
 {-# OPTIONS_GHC -Werror=incomplete-patterns #-}
 
 import           Control.Monad.State               (State, state, evalState)
+import           Data.Char                         (isSpace)
 import           Data.Functor.Foldable
 import           Data.Graph.Inductive.PatriciaTree (Gr)
 import           Data.GraphViz                     (GraphvizParams(..))
-import           Data.List
+import           Data.List                         (foldl')
 import           Data.Map                          (Map)
-import           Data.Maybe
+import           Data.Maybe                        (fromMaybe, isJust, isNothing)
 import qualified Data.Graph.Inductive.Graph        as G
 import qualified Data.GraphViz                     as GV
+import qualified Data.GraphViz.Attributes.HTML     as HTML
 import qualified Data.GraphViz.Printing            as GV
 import qualified Data.Map                          as M
 import qualified Data.Text.Lazy                    as T
@@ -119,10 +122,10 @@ fromMapCoalg
     => Map [k] v
     -> TrieF k v (Map [k] v)
 fromMapCoalg mp = MkTF (M.lookup [] mp)
-                       (M.unionsWith M.union (M.mapMaybeWithKey descend mp))
+                       (M.fromListWith M.union (M.foldMapWithKey descend mp))
   where
-    descend []     _ = Nothing
-    descend (k:ks) v = Just $ M.singleton k (M.singleton ks v)
+    descend []     _ = []
+    descend (k:ks) v = [(k, M.singleton ks v)]
 
 ana' :: (a -> TrieF k v a) -> a -> Trie k v
 ana' coalg = embed . fmap (ana' coalg) . coalg
@@ -156,20 +159,37 @@ trieGraphAlg
     => TrieF k v (State Int (Gr (Maybe v) k))
     -> State Int (Gr (Maybe v) k)
 trieGraphAlg (MkTF v xs) = do
-    n  <- fresh
-    gs <- sequence xs
+    n         <- fresh
+    subgraphs <- sequence xs
     let subroots :: [(k, Int)]
-        subroots = M.toList . fmap (fst . G.nodeRange) $ gs
+        subroots = M.toList . fmap (fst . G.nodeRange) $ subgraphs
     pure $ G.insEdges ((\(k,i) -> (n,i,k)) <$> subroots)   -- insert root-to-subroots
          . G.insNode (n, v)                     -- insert new root
          . M.foldr (G.ufold (G.&)) G.empty      -- merge all subgraphs
-         $ gs
+         $ subgraphs
 
 mapToGraph
     :: Ord k
     => Map [k] v
     -> Gr (Maybe v) k
 mapToGraph = flip evalState 0 . hylo trieGraphAlg fromMapCoalg
+
+hylo'
+    :: (TrieF k v b -> b)   -- ^ an algebra
+    -> (a -> TrieF k v a)   -- ^ a coalgebra
+    -> a
+    -> b
+hylo' consume build = consume
+                    . fmap (hylo' consume build)
+                    . build
+
+prequelMemes :: String -> Map String HTML.Label
+prequelMemes = M.fromList . map (uncurry processLine . span (/= ',')) . lines
+  where
+    processLine qt (drop 1->img) = (filter (not . isSpace) qt, HTML.Table (HTML.HTable Nothing [] [r1,r2]))
+      where
+        r1 = HTML.Cells [HTML.LabelCell [] (HTML.Text [HTML.Str (T.pack qt)])]
+        r2 = HTML.Cells [HTML.ImgCell   [] (HTML.Img [HTML.Src img])]
 
 graphDot
     :: GV.Labellable v
@@ -202,4 +222,3 @@ compactify g0 = foldl' go g0 (G.labNodes g0)
                        . G.delEdges [(j,i),(i,k)]
                        $ g
       _               -> g
-
