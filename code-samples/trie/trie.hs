@@ -27,10 +27,10 @@ import qualified Data.GraphViz.Printing            as GV
 import qualified Data.Map                          as M
 import qualified Data.Text.Lazy                    as T
 
-data Trie k v = MkT (Maybe v) (Map k (Trie k v))
+data Trie  k v   = MkT  (Maybe v) (Map k (Trie k v))
   deriving Show
 
-data TrieF k v x = MkTF (Maybe v) (Map k x)
+data TrieF k v x = MkTF (Maybe v) (Map k x         )
   deriving (Functor, Show)
 
 type instance Base (Trie k v) = TrieF k v
