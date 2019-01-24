@@ -122,29 +122,14 @@ fromMapCoalg
     => Map [k] v
     -> TrieF k v (Map [k] v)
 fromMapCoalg mp = MkTF (M.lookup [] mp)
-                       (M.fromListWith M.union (M.foldMapWithKey descend mp))
-  where
-    descend []     _ = []
-    descend (k:ks) v = [(k, M.singleton ks v)]
+                       (M.fromListWith M.union
+                          [ (k   , M.singleton ks v)
+                          | (k:ks, v) <- M.toList mp
+                          ]
+                       )
 
 ana' :: (a -> TrieF k v a) -> a -> Trie k v
 ana' coalg = embed . fmap (ana' coalg) . coalg
-
-toMap
-    :: Ord k
-    => Trie k v
-    -> Map [k] v
-toMap = cata toMapAlg
-
-toMapAlg
-    :: Ord k
-    => TrieF k v (Map [k] v)
-    -> Map [k] v
-toMapAlg (MkTF v mp) = M.foldMapWithKey rejoin mp
-                    <> foldMap (M.singleton []) v
-  where
-    rejoin :: k -> Map [k] v -> Map [k] v
-    rejoin x = M.mapKeysMonotonic (x:)
 
 fresh :: State Int Int
 fresh = state $ \i -> (i, i+1)
@@ -195,8 +180,7 @@ memeMap = M.fromList . map (uncurry processLine . span (/= ',')) . lines
         r2 = HTML.Cells [HTML.ImgCell   [] (HTML.Img [HTML.Src img])]
 
 graphDot
-    :: GV.Labellable v
-    => Gr (Maybe v) String
+    :: Gr (Maybe HTML.Label) String
     -> T.Text
 graphDot = GV.printIt . GV.graphToDot params
   where
@@ -224,7 +208,6 @@ compactify g0 = foldl' go (G.emap (:[]) g0) (G.labNodes g0)
     go g (i, v) = case (G.inn g i, G.out g i) of
       ([(j, _, lj)], [(_, k, lk)])
         | isNothing v -> G.insEdge (j, k, lj ++ lk)
-                       . G.delNode i
-                       . G.delEdges [(j,i),(i,k)]
+                       . G.delNode i . G.delEdges [(j,i),(i,k)]
                        $ g
       _               -> g
