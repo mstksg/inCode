@@ -38,7 +38,7 @@ rigorous code.
 
 Is it possible to learn this power?  Yes!  As a fun intermediate-level Haskell
 project, let's build a trie data type in Haskell based on *recursion-schemes*
-to see what it has to offer! 
+to see what it has to offer!
 
 It's Trie, Then
 ---------------
@@ -140,7 +140,7 @@ one does the job in your situation.
 That's the high-level view --- let's dive into writing out the API of our
 `Trie`!
 
-### Boilerplate: Coarse and Gets everywhere
+### Boilerplate: coarse and gets everywhere
 
 One thing we need to do before we can start: we need to tell
 *recursion-schemes* to link `TrieF` with `Trie`.  In the nomenclature of
@@ -595,7 +595,7 @@ libraries, so 2 and 3 are the interesting steps in our case.  We actually
 already wrote 2 (in the previous section --- surprise!), so that just leaves 3
 to investigate.
 
-### Generating Graphs is our speciality
+### Generating graphs is our speciality
 
 *fgl* provides a two (interchangeable) graph types; for the sake of this
 article, we're going to be using `Gr` from the
@@ -849,7 +849,7 @@ There are definitely some things we can tweak with respect to formatting and
 position and font sizes and label layouts, but I think this is fairly faithful
 to the original structure!
 
-## Another Happy Landing
+## Another happy landing
 
 There's a lot more we can do with tries, and fleshing out a full interface
 allows us to explore a lot of other useful recursion schemes and combinators.
