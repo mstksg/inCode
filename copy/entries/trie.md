@@ -118,18 +118,19 @@ constructor) with a "placeholder" variable:
 
 `TrieF` now represents, essentially, "one layer" of a `Trie`.
 
-There are now two paths we can go down: we can re-implement `Trie` in terms of
-`TrieF` (something that most tutorials and introductions do, using something
-like `Trie k v = Fix (TrieF k v)`), or we can think
-of `TrieF` as a "non-recursive view" into `Trie`.  It's a way of *working* with
-`Trie a` *as if* it were a non-recursive data type.  Specifically, in our case,
-it's a non-recursive view of a "single layer" of a `Trie`.
+`TrieF` contains all of the *structure* of a single layer of a `Trie`: it
+contains all of the "guts" of what makes a trie a trie, *except the
+recursion*.  It allows us to work with a single layer of a trie,
+encapsulating the essential structure.  Later on, we'll see that this means we
+sometimes don't even need the original (recursive) `Trie` at all, if we just
+care about the structure.
 
-We can do this because *recursion-schemes* gives combinators (called "recursion
-schemes") to abstract over common explicit recursion patterns.  The key to
-using *recursion-schemes* is to recognize which combinators abstracts over the
-type of recursion you're using. You then give that combinator an algebra or a
-coalgebra (more on this later), and you're done!
+For now, we'll use `TrieF` as a non-recursive "view" into a single layer of a
+`Trie`.  We can do this because *recursion-schemes* gives combinators (called
+"recursion schemes") to abstract over common explicit recursion patterns.  The
+key to using *recursion-schemes* is to recognize which combinators abstracts
+over the type of recursion you're using. You then give that combinator an
+algebra or a coalgebra (more on this later), and you're done!
 
 Learning how to use *recursion-schemes* effectively is basically picking the
 right recursion scheme that abstracts over the type of function you want to
@@ -179,7 +180,7 @@ Whenever you get a new recursive type and base functor, a good "first thing" to
 try out is testing out `cata` and `ana` (catamorphisms and anamorphisms), the
 basic "folder" and "unfolder".
 
-### Hakuna My Cata
+### I'll try folding, that's a good trick!
 
 Catamorphisms are functions that "combine" or "fold" every layer of our
 recursive type into a single value.  If we want to write a function of type
@@ -375,7 +376,7 @@ fmap-collapse-then-collapse.
 
 :::::
 
-### Ana Montana
+### Expanding the Universe
 
 *Anamorphisms*, the dual of catamorphisms, are functions that "generate" or
 "unfold" a value of a recursive type, layer-by-layer.  If we want to write a
@@ -459,7 +460,7 @@ MkT Nothing $ M.fromList [
   ]
 ```
 
-### Trie from Map
+### A Pathway to Many Subtries
 
 Now that we've got the basics, let's look at a more interesting anamorphism,
 where we leave multiple "seeds" along many different keys in the map, to
