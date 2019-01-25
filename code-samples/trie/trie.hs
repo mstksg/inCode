@@ -2,10 +2,12 @@
 -- stack --install-ghc ghci --package recursion-schemes --package containers --package fgl --package mtl --package graphviz --package text --resolver nightly-2019-01-03
 
 {-# LANGUAGE DeriveFunctor                  #-}
+{-# LANGUAGE ExistentialQuantification      #-}
 {-# LANGUAGE FlexibleContexts               #-}
 {-# LANGUAGE InstanceSigs                   #-}
 {-# LANGUAGE LambdaCase                     #-}
 {-# LANGUAGE PatternSynonyms                #-}
+{-# LANGUAGE RankNTypes                     #-}
 {-# LANGUAGE ScopedTypeVariables            #-}
 {-# LANGUAGE TypeFamilies                   #-}
 {-# LANGUAGE ViewPatterns                   #-}
@@ -102,6 +104,17 @@ lookupperAlg (MkTF v lookuppers) = \case
 cata' :: (TrieF k v a -> a) -> Trie k v -> a
 cata' alg = alg . fmap (cata' alg) . project
 
+newtype MuTrie k v = MkMT (forall a. (TrieF k v a -> a) -> a)
+
+cataMuTrie :: (TrieF k v a -> a) -> MuTrie k v -> a
+cataMuTrie alg (MkMT f) = f alg
+
+trieMuTrie :: Trie k v -> MuTrie k v
+trieMuTrie t = MkMT $ flip cata t
+
+muTrieTrie :: MuTrie k v -> Trie k v
+muTrieTrie (MkMT f) = f embed
+
 singleton :: [k] -> v -> Trie k v
 singleton k v = ana (mkSingletonCoalg v) k
 
@@ -131,6 +144,17 @@ fromMapCoalg mp = MkTF (M.lookup [] mp)
 ana' :: (a -> TrieF k v a) -> a -> Trie k v
 ana' coalg = embed . fmap (ana' coalg) . coalg
 
+data NuTrie k v = forall a. MkNT (a -> TrieF k v a) a
+
+anaNuTrie :: (a -> TrieF k v a) -> a -> NuTrie k v 
+anaNuTrie = MkNT
+
+trieNuTrie :: Trie k v -> NuTrie k v
+trieNuTrie = MkNT project
+
+nuTrieTrie :: NuTrie k v -> Trie k v
+nuTrieTrie (MkNT f x) = ana f x
+
 fresh :: State Int Int
 fresh = state $ \i -> (i, i+1)
 
@@ -140,14 +164,13 @@ trieGraph
 trieGraph = flip evalState 0 . cata trieGraphAlg
 
 trieGraphAlg
-    :: forall k v. ()
-    => TrieF k v (State Int (Gr (Maybe v) k))
+    :: TrieF k v (State Int (Gr (Maybe v) k))
     -> State Int (Gr (Maybe v) k)
 trieGraphAlg (MkTF v xs) = do
     n         <- fresh
     subgraphs <- sequence xs
-    let subroots :: [(k, Int)]
-        subroots = M.toList . fmap (fst . G.nodeRange) $ subgraphs
+    --  subbroots :: [(k, Int)]
+    let subroots = M.toList . fmap (fst . G.nodeRange) $ subgraphs
     pure $ G.insEdges ((\(k,i) -> (n,i,k)) <$> subroots)   -- insert root-to-subroots
          . G.insNode (n, v)                     -- insert new root
          . M.foldr (G.ufold (G.&)) G.empty      -- merge all subgraphs
