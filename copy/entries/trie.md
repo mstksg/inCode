@@ -1,5 +1,5 @@
 ---
-title: Prequel Meme Tries with Recursion Schemes
+title: Prequel Meme Prefix Tries with Recursion Schemes
 categories: Haskell, Tutorials
 tags: haskell, recursion schemes
 create-time: 2018/11/29 17:45:04
