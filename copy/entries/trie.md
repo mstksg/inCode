@@ -3,7 +3,7 @@ title: Prequel Meme Tries with Recursion Schemes
 categories: Haskell, Tutorials
 tags: haskell, recursion schemes
 create-time: 2018/11/29 17:45:04
-time: 2019/01/25 13:30:18
+date: 2019/01/25 13:34:18
 series: Beginner/Intermediate Haskell Projects
 identifier: trie
 slug: tries-with-recursion-schemes
