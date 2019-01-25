@@ -639,7 +639,13 @@ to investigate.
 
 *fgl* provides a two (interchangeable) graph types; for the sake of this
 article, we're going to be using `Gr` from the
-*Data.Graph.Inductive.PatriciaTree* module.
+*Data.Graph.Inductive.PatriciaTree* module[^patricia].
+
+[^patricia]: Funny story, a [patricia tree][] is actually itself a variation of
+a trie.  In a sense, we are converting a trie into a graph represented
+internally as a trie.
+
+[patricia tree]: https://en.wikipedia.org/wiki/Radix_tree
 
 The type `Gr a b` represents a graph of vertices with labels of type `a`, and
 edges with labels of type `b`.  In our case, for a `Trie k v`, we'll have a
