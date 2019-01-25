@@ -1,8 +1,9 @@
 ---
-title: Tries with Recursion Schemes
+title: Prequel Meme Tries with Recursion Schemes
 categories: Haskell, Tutorials
 tags: haskell, recursion schemes
 create-time: 2018/11/29 17:45:04
+time: 2019/01/25 13:30:18
 series: Beginner/Intermediate Haskell Projects
 identifier: trie
 slug: tries-with-recursion-schemes
@@ -10,11 +11,13 @@ slug: tries-with-recursion-schemes
 
 Not too long ago, I was browsing the [prequel memes subreddit][r/prequelmemes]
 --- a community built around creative ways of remixing and re-contextualizing
-quotes from the cinematic corpus of the three Star Wars prequel movies --- when
-I noticed that a fad was in progress [constructing tries based on quotes as
-keys][meme] indexing stills from the movie corresponding to those quotes.
+quotes from the cinematic corpus of the three [Star Wars "prequel"
+movies][prequels] --- when I noticed that a fad was in progress [constructing
+tries based on quotes as keys][meme] indexing stills from the movie
+corresponding to those quotes.
 
 [r/prequelmemes]: https://www.reddit.com/r/PrequelMemes
+[prequels]: https://en.wikipedia.org/wiki/Star_Wars_prequel_trilogy
 [meme]: https://www.reddit.com/r/PrequelMemes/comments/9w59t4/i_expanded_it/
 
 This inspired me to try playing around with some tries myself, and it gave me
@@ -55,23 +58,23 @@ Wikipedia has a nice picture:
 
 API-wise, it is very similar to an *associative map*, like the `Map` type from
 *[containers][Data.Map]*.  It stores "keys" to "values", and you can insert a
-value at a given key, lookup the value stored at a given key, or delete the value
-at a given key.  However, it is designed to be easy to (iteratively) find keys
-matching a given *prefix*.  It's also really fast to check if a given key is
-*not* in the trie, since it can return `False` as soon as a prefix is not found
-anywhere in the trie.
+value at a given key, lookup or check for a value stored at a given key, or
+delete the value at a given key.  However, it is designed to be easy to
+(iteratively) find keys matching a given *prefix*.  It's also really fast to
+check if a given key is *not* in the trie, since it can return `False` as soon
+as a prefix is not found anywhere in the trie.
 
 [Data.Map]: https://hackage.haskell.org/package/containers/docs/Data-Map-Lazy.html
 
 The main difference is in implementation: the keys are *strings of tokens*, and
-it is internally represented as a multi-level tree: if your keys are words,
-then the first level is the first letter, the second level is the letter, etc.
-In the example above, the trie stores the keys `to`, `tea`, `ted`, `ten`, `A`,
-`i`, `in`, and `inn` to the values 7, 3, 4, 12, 15, 11, 5, and 9, respectively.
-As we see, it is possible for one key to completely overlap another (like `in`
-storing 5, and `inn` storing 9).  We can also have *partial* overlaps (like
-`tea`, storing 3, and `ted` storing 4), whose common prefix (`te`) has no value
-stored under it.
+it is internally represented as a multi-level tree: if your keys are strings,
+then the first level branches on the first letter, the second level is the
+letter, etc. In the example above, the trie stores the keys `to`, `tea`, `ted`,
+`ten`, `A`, `i`, `in`, and `inn` to the values 7, 3, 4, 12, 15, 11, 5, and 9,
+respectively. As we see, it is possible for one key to completely overlap
+another (like `in` storing 5, and `inn` storing 9).  We can also have *partial*
+overlaps (like `tea`, storing 3, and `ted` storing 4), whose common prefix
+(`te`) has no value stored under it.
 
 Haskell Tries
 -------------
@@ -94,8 +97,8 @@ We could write the trie storing `(to, 9)`, `(ton, 3)`, and `(tax, 2)` as:
 ```
 
 Note that this construction isn't particularly sound, since it's possible to
-represent invalid keys that have branches that lead to nothing. This mostly
-becomes troublesome when we implement `delete`, but we won't be worrying about
+represent invalid keys that have branches that lead to nothing. This becomes
+troublesome mostly when we implement `delete`, but we won't be worrying about
 that for now.  In Haskell, we have the choice to be as safe or unsafe as we
 want for a given situation.  However, a "correct-by-construction" trie is in
 the next part of this series :)
@@ -103,13 +106,14 @@ the next part of this series :)
 ### Recursion Schemes: An Elegant Weapon
 
 Now, `Trie` as written up there is an *explicitly recursive* data type.  This
-is common practice, but it's not a particularly ideal situation.  The problem
-with explicitly recursive data types is that to work with them, you often rely
-on explicitly recursive functions.
+might be common practice, but it's not a particularly ideal situation.  The
+problem with explicitly recursive data types is that to work with them, you
+often rely on explicitly recursive functions.
 
-Explicitly recursive functions are notoriously difficult to write, understand,
-and maintain.  It's extremely easy to accidentally write an infinite loop, and
-explicit recursion is often called "the GOTO of functional programming".
+Within the functional programming community, explicitly recursive functions are
+notoriously difficult to write, understand, and maintain.  It's extremely easy
+to accidentally write an infinite loop, and explicit recursion is often called
+"the GOTO of functional programming".
 
 However, There's a trick we can use to "factor out" the recursion in our data type.
 The trick is to replace the recursive occurrence of `Trie a` (in the `Cons`
@@ -120,19 +124,19 @@ constructor) with a "placeholder" variable:
 ```
 
 `TrieF` represents, essentially, "one layer" of a `Trie`.  It contains all of
-the *structure* of a single layer of a `Trie`: it contains all of the "guts" of
-what makes a trie a trie, *except the recursion*.  It allows us to work with a
-single layer of a trie, encapsulating the essential structure.  Later on, we'll
-see that this means we sometimes don't even need the original (recursive)
+the *structure* of a *single* layer of a `Trie`: it contains all of the "guts"
+of what makes a trie a trie, *except the recursion*.  It allows us to work with
+a single layer of a trie, encapsulating the essential structure.  Later on,
+we'll see that this means we sometimes don't even need the original (recursive)
 `Trie` at all, if all we just care about is the structure.
 
-We'll use `TrieF` as a non-recursive "view" into a single layer of a `Trie`.
-We can do this because *recursion-schemes* gives combinators (known as
-"recursion schemes") to abstract over common explicit recursion patterns.  The
-key to using *recursion-schemes* is recognizing which combinators abstracts
-over the type of recursion you're using.  It's all about becoming familiar with
-the "zoo" of (colorfully named) recursion schemes you can pick from, and
-identifying which one does the job in your situation.
+For the rest of our journey, we'll use `TrieF` as a non-recursive "view" into a
+single layer of a `Trie`. We can do this because *recursion-schemes* gives
+combinators (known as "recursion schemes") to abstract over common explicit
+recursion patterns.  The key to using *recursion-schemes* is recognizing which
+combinators abstracts over the type of recursion you're using.  It's all about
+becoming familiar with the "zoo" of (colorfully named) recursion schemes you
+can pick from, and identifying which one does the job in your situation.
 
 That's the high-level view --- let's dive into writing out the API of our
 `Trie`!
@@ -144,20 +148,20 @@ One thing we need to do before we can start: we need to tell
 *recursion-schemes*, `TrieF` is known as the "base type", and `Trie` is called
 "the fixed-point".
 
-Linking them requires some boilerplate, which is basically converting back and
-forth from `Trie` to `TrieF`.
+Linking them requires some boilerplate, which is basically telling
+*recursion-schemes* how to convert back and forth between `Trie` and `TrieF`.
 
 ```haskell
 !!!trie/trie.hs "type instance Base" "instance Recursive (Trie k v)" "instance Corecursive (Trie k v)"
 ```
 
-Basically we just link the constructors and fields of `MkT` and `MkTF`
+Basically, we are linking the constructors and fields of `MkT` and `MkTF`
 together.
 
 Like the adolescent Anakin Skywalker, we usually don't like boilerplate.  It's
 coarse and rough and irritating, and it gets everywhere.  As with all
 boilerplate, it is sometimes useful to clean it up a bit using Template
-Haskell.  The *recursion-schemes* library offers such splice:
+Haskell.  The *recursion-schemes* library offers such a splice:
 
 ```haskell
 data Trie k v = MkT (Maybe v) (Map k (Trie k v))
@@ -198,7 +202,7 @@ If we think of `TrieF k v a` as "one layer" of a `Trie k v`, then `TrieF k v A
 result value (here, of type `A`).  Remember that a `TrieF k v A` contains a
 `Maybe v` and a `Map k A`.  The `A` we are given (as the values of the given
 map) are the results of folding up all of the original subtries along each key;
-it's the "results so far".  The leaves of the map become the very thing we
+it's the "results so far".  The values in the map become the very things we
 swore to create.
 
 Then, we use `cata` to "fold" our value along the algebra:
@@ -268,8 +272,8 @@ ghci> trieSum testTrie
 ```
 
 In the algebra, the `subtrieSums :: Map k a` contains the sum of all of the
-subtries.  The algebra therefore just adds up all of the subtrie sums with the
-value at that layer. "Given a map of sub-sums, how do we find a total sum?"
+subtries.  The algebra, therefore, just adds up all of the subtrie sums with
+the value at that layer. "Given a map of sub-sums, how do we find a total sum?"
 
 #### Down from the High Ground
 
@@ -390,8 +394,8 @@ save other functions from explicit recursion, but not itself.
 
 Or, can it?  The reason `cata'` is necessarily recursive here is that our
 `Trie` data type is recursive.  However, we can actually encode `Trie` using an
-alternative representation, and it's possible to write `cata'` in a
-non-recursive way:
+alternative representation (in terms of `TrieF`), and it's possible to write
+`cata'` in a non-recursive way:
 
 ```haskell
 !!!trie/trie.hs "newtype MuTrie k v" "cataMuTrie"
@@ -468,10 +472,10 @@ Our coalgebra ("layer generating function") goes like this:
     are no new seeds to expand into subtries.
 
 2.  If our key-to-insert is *not* empty, then we're *not* here!  We return
-    `MkTF Nothing`...but we know we leave a singleton map `M.singleton k ks ::
-    Map k [k]` leaving a single seed.  When we run our coalgebra with `ana`,
-    `ana` will go down and expand out that single seed (with our coalgebra)
-    into an entire new sub-trie, with `ks` as its seed.
+    `MkTF Nothing`...but we leave a singleton map `M.singleton k ks :: Map k
+    [k]` leaving a single seed.  When we run our coalgebra with `ana`, `ana`
+    will go down and expand out that single seed (with our coalgebra) into an
+    entire new sub-trie, with `ks` as its seed.
 
 So, we have `singleton`:
 
@@ -577,9 +581,9 @@ First, we run the `coalg :: a -> TrieF k v a`, then we fmap our entire `ana
 coalg :: a -> Trie k v`, then we `embed :: TrieF k v (Trie k v) -> Trie k v`
 back into our recursive type.
 
-And again, because `Trie` is a recursive data type, `ana` is also necessarily one.
-However, like for `cata`, we can represent `Trie` in a way that allows us to
-write `ana` in a non-recursive way:
+And again, because `Trie` is a recursive data type, `ana` is also necessarily
+one. However, like for `cata`, we can represent `Trie` in a way (in terms of
+`TrieF`) that allows us to write `ana` in a non-recursive way:
 
 ```haskell
 !!!trie/trie.hs "data NuTrie k v" "anaNuTrie"
@@ -625,8 +629,8 @@ The roadmap seems straightforward:
     their associated macro images (as a `Label`, which the *graphviz* library
     can render)
 2.  Use `ana` to turn a `Map String Label` into a `Trie Char Label`
-3.  Use `cata` to turn a `Trie Char Label` into a graph of nodes linked
-    by letters, with prequel meme leaves
+3.  Use `cata` to turn a `Trie Char Label` into a `Gr (Maybe Label) Char` graph
+    of nodes linked by letters, with prequel meme leaves
 4.  Use the *graphviz* library to turn that graph into a DOT file, to be
     rendered by the external graphviz application.
 
@@ -635,7 +639,7 @@ libraries, so 2 and 3 are the interesting steps in our case.  We actually
 already wrote 2 (in the previous section --- surprise!), so that just leaves 3
 to investigate.
 
-### Generating graphs is our speciality
+### Monadic catamorphisms and fgl
 
 *fgl* provides a two (interchangeable) graph types; for the sake of this
 article, we're going to be using `Gr` from the
@@ -663,9 +667,9 @@ trieGraphAlg
 
 and then using `cata trieGraphAlg :: Trie k v -> Gr (Maybe v) k`.
 
-This isn't a bad way to go about it, and you won't have *too* many problems.
-However, this might be a good learning opportunity to try writing "monadic"
-catamorphisms.
+This isn't a particularly bad way to go about it, and you won't have *too* many
+problems. However, this might be a good learning opportunity to practice
+writing "monadic" catamorphisms.
 
 That's because to create a graph using *fgl*, you need to manage Node ID's,
 which are represented as `Int`s.  To add a node, you need to generate a fresh
@@ -709,7 +713,7 @@ We can write this using *fgl* combinators:
 !!!trie/trie.hs "trieGraphAlg"
 ```
 
-1.  First, generate a fresh node label
+1.  First, generate and reserve a fresh node label
 
 2.  Then, sequence all of the state actions inside the map of sub-graph
     generators.  Remember, a `TrieF k v (State Int (Gr (Maybe v) k))` contains
@@ -735,7 +739,7 @@ We can write this using *fgl* combinators:
     These are all of the node id's of the roots of each of the subtries, paired
     with the token leading to that subtrie.
 
-4.  Now to generate our result:
+4.  Now to produce our result:
 
     a.  First we merge all subgraphs (using `G.ufold (G.&)` to merge together
         two graphs)
@@ -767,23 +771,23 @@ mapToGraph = flip evalState 0
 
 Actually, writing things out as `mapToGraph` gives us some interesting insight:
 our function takes a `Map [k] v`, and returns a `Gr (Maybe v) k`.  Notice that
-`Trie k v` isn't anywhere in the type signature.  This means that, to, the
-external user, `Trie`'s role is completely "internal".
+`Trie k v` isn't anywhere in the type signature.  This means that, to the
+external user, `Trie`'s role is completely internal.
 
-In other words, `Trie` itself doesn't seem to matter at all.  We really want a
-`Map [k] v -> Graph (Maybe v) k`, and we're just using `Trie` as an *intermediate
-data structure*. We are exploiting its structure to do write our full function,
-and we don't care about it outside of that.  We build it up with `ana` and then
-immediately tear it down with `cata`, and it is completely invisible to the
-outside world.
+In other words, `Trie` *itself* doesn't seem to matter at all.  We really want
+a `Map [k] v -> Graph (Maybe v) k`, and we're just using `Trie` as an
+*intermediate data structure*.  We are exploiting its internal structure to
+write our full function, and we don't care about it outside of that.  We build
+it up with `ana` and then immediately tear it down with `cata`, and it is
+completely invisible to the outside world.
 
 One neat thing about *recursion-schemes* is that it lets us capture this "the
 actual fixed-point is only intermediate and is not directly consequential to
 the outside world" pattern.  First, we walk ourselves through the following
 reasoning steps:
 
-*   We don't care about `Trie` itself as a result our input.  We only care
-    about it because we exploit its internal structure.
+*   We don't care about `Trie` itself as a result or input.  We only care about
+    it because we exploit its internal structure.
 *   `TrieF` *already* expresses the internal structure of `Trie`
 *   Therefore, if we only want to take advantage of the structure, we really
     only ever need `TrieF`.  We can completely bypass `Trie`.
@@ -819,12 +823,12 @@ immediately consume" property:
 
 Note that the implementation of `hylo` given above works for any `Functor`
 instance: we build and consume along *any* `Functor`, taking advantage of the
-specific functor's structure.
+specific functor's structure.  The fixed-point never comes into the picture.
 
 To me, being able to implement a function in terms of `hylo` (or any other
 refolder, like its cousin `chrono`, the chronomorphism) represents the ultimate
 "victory" in using *recursion-schemes* to refactor out your functions.  That's
-because it helps us realize that we never really *cared* about having a
+because it helps us realize that we never really cared about having a
 recursive data type in the first place.  `Trie` was never the actual thing we
 wanted: we really just wanted its layer-by-layer structure.  This whole time,
 we just cared about the structure of `TrieF`, *not* `Trie`. Being able to use
@@ -873,8 +877,8 @@ It's just to "compress" together strings of nodes that don't have any forks.
 !!!trie/trie.hs "compactify"
 ```
 
-We could have directly outputted a compacted graph from `graphAlg`, but for the
-sake of this post it's a bit cleaner to separate out these concerns.
+We could have directly outputted a compacted graph from `trieGraphAlg`, but for
+the sake of this post it's a bit cleaner to separate out these concerns.
 
 We'll write a function to turn a `Gr (Maybe HTML.Label) [Char]` into a dot
 file, using *graphviz* to do most of the work:
@@ -913,3 +917,17 @@ it, we got a pretty helpful meme trie we can show off to our friends.
 
 In the next parts of the series, we'll find out what other viewpoints
 *recursion-schemes* has to offer for us!
+
+In the mean time, why not check out these other nice recursion-schemes
+tutorials?
+
+*   [Bartosz Milewski][link1] also talks about using tries with
+    *recursion-schemes*, and achieves hylomorphism as well.
+*   [This classic tutorial][link2] was how I originally learned recursion
+    schemes.
+*   [This github repo][link3] accumulates a lot of amazing articles, tutorials,
+    and other resources.
+
+[link1]: https://bartoszmilewski.com/2018/12/20/open-season-on-hylomorphisms/
+[link2]: https://blog.sumtypeofway.com/an-introduction-to-recursion-schemes/
+[link3]: https://github.com/passy/awesome-recursion-schemes
