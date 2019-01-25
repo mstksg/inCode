@@ -581,7 +581,7 @@ However, like for `cata`, we can represent `Trie` in a way that allows us to
 write `ana` in a non-recursive way:
 
 ```haskell
-!!!trie/trie.hs "newtype NuTrie k v" "anaNuTrie"
+!!!trie/trie.hs "data NuTrie k v" "anaNuTrie"
 ```
 
 `NuTrie k v` here is `Nu (TrieF k v)`, from *recursion-schemes*.  `NuTrie` is
