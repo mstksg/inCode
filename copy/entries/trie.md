@@ -591,7 +591,7 @@ the same type.  We can also use it to represent recursive data types in a
 non-recursive language (like [dhall][dada-nu]).
 
 !!![nuiso]:trie/trie.hs "trieNuTrie" "nuTrieTrie"
-[data-nu]: https://github.com/sellout/dada/blob/master/Nu/Type
+[dada-nu]: https://github.com/sellout/dada/blob/master/Nu/Type
 
 :::::
 
@@ -642,10 +642,10 @@ article, we're going to be using `Gr` from the
 *Data.Graph.Inductive.PatriciaTree* module[^patricia].
 
 [^patricia]: Funny story, a [patricia tree][] is actually itself a variation of
-a trie.  In a sense, we are converting a trie into a graph represented
-internally as a trie.
+trie.  In a sense, we are converting a trie into a graph represented internally
+as a trie.
 
-[patricia tree]: https://en.wikipedia.org/wiki/Radix_tree
+[patricia tree]: http://www.drdobbs.com/architecture-and-design/patricia-tries/208800854
 
 The type `Gr a b` represents a graph of vertices with labels of type `a`, and
 edges with labels of type `b`.  In our case, for a `Trie k v`, we'll have a
