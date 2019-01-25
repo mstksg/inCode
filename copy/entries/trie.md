@@ -641,9 +641,9 @@ to investigate.
 article, we're going to be using `Gr` from the
 *Data.Graph.Inductive.PatriciaTree* module[^patricia].
 
-[^patricia]: Funny story, a [patricia tree][] is actually itself a variation of
-trie.  In a sense, we are converting a trie into a graph represented internally
-as a trie.
+[^patricia]: Funny story, a [patricia tree][] is actually itself a trie
+variation.  This means that we are essentially converting a trie representing a
+graph into a graph representation implemented using a trie.
 
 [patricia tree]: http://www.drdobbs.com/architecture-and-design/patricia-tries/208800854
 
