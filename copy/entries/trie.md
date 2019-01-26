@@ -271,9 +271,10 @@ ghci> trieSum testTrie
 14
 ```
 
-In the algebra, the `subtrieSums :: Map k a` contains the sum of all of the
-subtries.  The algebra, therefore, just adds up all of the subtrie sums with
-the value at that layer. "Given a map of sub-sums, how do we find a total sum?"
+In the algebra, the `subtrieSums :: Map k a` contains the sums of all of the
+subtries.  Under key `k`, we have the sum of the subtrie that was originally at
+kie `k`.  The algebra, therefore, just adds up all of the subtrie sums with the
+value at that layer. "Given a map of sub-sums, how do we find a total sum?"
 
 #### Down from the High Ground
 
