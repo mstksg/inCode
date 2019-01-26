@@ -115,9 +115,9 @@ notoriously difficult to write, understand, and maintain.  It's extremely easy
 to accidentally write an infinite loop, and explicit recursion is often called
 "the GOTO of functional programming".
 
-However, There's a trick we can use to "factor out" the recursion in our data type.
-The trick is to replace the recursive occurrence of `Trie a` (in the `Cons`
-constructor) with a "placeholder" variable:
+However, There's a trick we can use to "factor out" the recursion in our data
+type. The trick is to replace the recursive occurrence of `Trie k v` (in the
+`Map` constructor) with a "placeholder" variable:
 
 ```haskell
 !!!trie/trie.hs "data Trie  k v" "data TrieF k v"
