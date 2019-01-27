@@ -776,7 +776,7 @@ our function takes a `Map [k] v`, and returns a `Gr (Maybe v) k`.  Notice that
 external user, `Trie`'s role is completely internal.
 
 In other words, `Trie` *itself* doesn't seem to matter at all.  We really want
-a `Map [k] v -> Graph (Maybe v) k`, and we're just using `Trie` as an
+a `Map [k] v -> Gr (Maybe v) k`, and we're just using `Trie` as an
 *intermediate data structure*.  We are exploiting its internal structure to
 write our full function, and we don't care about it outside of that.  We build
 it up with `ana` and then immediately tear it down with `cata`, and it is
