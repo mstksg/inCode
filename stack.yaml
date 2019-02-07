@@ -2,48 +2,22 @@
 # For more information, see: http://docs.haskellstack.org/en/stable/yaml_configuration/
 
 # Specifies the GHC version and set of packages available (e.g., lts-3.5, nightly-2015-09-21, ghc-7.10.2)
-resolver: nightly-2018-05-25
+resolver: nightly-2019-02-07
 
 # Local packages, usually specified by relative directory name
 packages:
 - .
 - location:
     git: https://github.com/mstksg/jle-utils.git
-    commit: ffed769e1ddfc0d8d305a6d05572cdaee7a5c4b0
+    commit: 6d3f85e0e0c3f5e453cd50ab842251b3c8a4d31f
   extra-dep: false
-# - location:
-#     github: mstksg/jle-utils
-#     commit: ffed769e1ddfc0d8d305a6d05572cdaee7a5c4b0
-#   extra-dep: false
-# - location:
-#     git: https://github.com/mstksg/jle-utils.git
-#     commit: ffed769e1ddfc0d8d305a6d05572cdaee7a5c4b0
-#   extra-dep: false
-# - location:
-#     git: https://github.com/jaspervdj/Hakyll.git
-#     commit: a88a91d06e57172840ef068f261c88e21eb60665
-#   extra-dep: true
 
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
 extra-deps:
-- cassava-megaparsec-2.0.0
-- cborg-0.2.0.0
-- dhall-1.19.0
+- gitlib-3.1.2
+- gitlib-libgit2-3.1.2.1
 - hakyll-dhall-0.2.2.2
-- hakyll-sass-0.2.3
-- hashtables-1.2.3.1
-- megaparsec-7.0.1
-- repline-0.2.0.0
-- serialise-0.2.0.0
-- github: jwiegley/gitlib
-  commit: 7084c2ad0d7e14f27bef17397145ec676d2062a3
-  subdirs:
-  - gitlib
-  - gitlib-libgit2
-- git: https://github.com/simonmichael/hledger.git
-  commit: a6a73e36e34e5ba34dd34b1f81b09a00bfe65850
-  subdirs:
-  - hledger-lib
+- hakyll-sass-0.2.4
 
 # Override default flag values for local packages and extra-deps
 flags: {}
