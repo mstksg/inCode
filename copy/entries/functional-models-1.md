@@ -422,7 +422,7 @@ We can train it on sample points:
 ```haskell
 ghci> let samps :: [(R 2, R 1)]
           samps = [(H.vec2 0 0, 0), (H.vec2 1 0, 1), (H.vec2 0 1, 1), (H.vec2 1 1, 0)]
-ghci> trained <- trainModelIO twoLayer $ take 10000 (cycle samps)
+ghci> trained <- trainModelIO twoLayer $ take 50000 (cycle samps)
 ```
 
 Trained.  Now, does it model "XOR"?
