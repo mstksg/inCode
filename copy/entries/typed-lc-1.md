@@ -224,3 +224,173 @@ other constructs:
     `List` on the type level, `Natural/show` at the value level). However, in
     Dhall, this doesn't happen, so we're going to address this as essentially
     paired with function abstraction.
+
+#### Type levels
+
+If a level is a "type" of another (type, kind, sort), they also have a
+*function type* construct, which is the *type* of lambda abstractions on the level below.
+
+For example, a term-level lambda abstraction of type `\(x : Natural) -> x + 2`
+has the type `Natural -> Natural`, which lives on the type level.  Again, this
+is specifically for functions on the "same level".
+
+This construct might also classify primitives on the level above.  For example,
+the `Natural/isEven` primitive in Dhall has type `Natural -> Bool`.
+
+#### Type-of-type levels
+
+If a level is the "type" of a level that is a "type" of another type, it must
+also have a "constant" to tie the levels below together.  That is, there is a
+kind `Type`, that is the kind of all types that categorize terms.  We also have
+the sort `Kind`, that is the sort of all kinds that categorize types.
+
+#### Recap
+
+That's a lot of constructs, and a lot of conditions.  So just to recap, here's
+a list of all constructors on each of the levels that we have gone over so far:
+
+Term
+  ~ Primitives
+  ~ Function abstraction
+  ~ Function application
+
+Type
+  ~ Primitives
+  ~ Function abstraction
+  ~ Function application
+  ~ Function type
+
+Kind
+  ~ Primitives
+  ~ Function abstraction
+  ~ Function application
+  ~ Function type
+  ~ Constant (`Type`)
+
+Sort
+  ~ Primitives
+  ~ Function type
+  ~ Constant (`Kind`)
+
+All of these constructs are things that are "within the same level".
+
+### Inter-Level
+
+Finally, we have three inter-level constructs: *type abstraction*, *type
+application*, and *type abstraction type*.  I like to call them *polymorphism*,
+*instantiation*, and *forall*, as they are realized in Haskell.
+
+**Type abstraction** (polymorphism) lets us parameterize a value based on
+something of a type above.  A common example is the identity function in
+Haskell, which has type `forall a. a -> a`.  In Haskell, type abstractions are
+always implicit; we don't ever explicitly write them out, and instead the
+Haskell compiler implicitly creates it for us with no syntactic overhead.  In
+Dhall, type abstractions are always explicit: the polymorphic identity function
+is written as `\(a : Type) -> \(x : a) -> x`.
+
+In Dhall, there are three type abstractions allowed:
+
+1.  Terms parameterized on types (polymorphic terms)
+2.  Terms parameterized on kinds (kind-polymorphic terms)
+3.  Types parameterized on kinds (kind-polymorphic types)
+
+I believe this is a fundamental limit of disallowing sort variables.  If we
+allowed sort-variables, then we'd also have terms parameterized on sorts, types
+parameterized on sorts, and kinds parameterized on sorts, adding three new type
+abstractions.
+
+**Type application** (instantiation) lets us *apply* a type abstraction to some
+input of the appropriate level, or to "instantiate a type variable", in
+Haskell-speak.
+
+Finally, the **type abstraction type** is the meta-level "type* of a type
+abstraction, just like how a function type is the "type" of a function
+abstraction.  Again, there are three in Dhall:
+
+1.  The type of terms parameterized on types
+2.  The type of terms parameterized on kinds
+3.  The kind of types parameterized on kinds
+
+Note that although these are the types of type abstractions, *primitives* can
+also have these types.  For example, the `None` term primitive in Dhall has
+type `forall (a : Type). Optional a`.  Its type is #1 on the list above: `None`
+is a term parameterized on a type, and its type is the type of terms
+parameterized on types.
+
+### Final Summary
+
+To summarize, here's all of the constructs in Dhall:
+
+Term
+  ~ Primitives
+  ~ Function abstraction
+  ~ Function application
+  ~ Type abstraction (parameterized on types)
+  ~ Type application (parameterized on types)
+  ~ Type abstraction (parameterized on kinds)
+  ~ Type application (parameterized on kinds)
+
+Type
+  ~ Primitives
+  ~ Function abstraction
+  ~ Function application
+  ~ Type abstraction (parameterized on kinds)
+  ~ Type application (parameterized on kinds)
+  ~ Function type
+  ~ Type abstraction type (terms parameterized on types)
+  ~ Type abstraction type (terms parameterized on kinds)
+
+Kind
+  ~ Primitives
+  ~ Function abstraction
+  ~ Function application
+  ~ Function type
+  ~ Type abstraction type (types parameterized on kinds)
+  ~ Constant (`Type`)
+
+Sort
+  ~ Primitives
+  ~ Function type
+  ~ Constant (`Kind`)
+
+Note that Dhall also has `let .. in ..` constructs, for mostly quality of life
+purposes.  They don't really affect the semantics, but we can essentially treat
+them like function abstractions or type applications that are immediately
+applied. So, `let x = Natural in blah` is `(\(x : Type) -> blah) Natural`.
+However, this does restrict us to only have `let .. in ..`s that correspond to
+an appropriate function or type abstraction --- so we can't, say, do `let x = 1
+in Kind`, since there is no abstraction that takes a term and returns a sort.
+
+### Normalization and Typing Rules
+
+Of course, listing these constructs is one story.  Getting the type of them
+(and the type of their components) is a different one.  For example, we know
+that applying a function of type `Natural -> Bool` to a term of type `Natural`
+gives us a term of type `Bool`.  However, we'll gloss over this for now as we
+continue on this high-level overview.
+
+### How does Dhall do it?
+
+In the typical Haskell way, the system is implemented as an ADT, where each
+construct is (surprise) a constructor.
+
+However, the untyped Dhall AST squishes all of the distinction between all of
+the levels.  Half of my journey was actually in re-separating each of these
+levels!
+
+The untyped Dhall AST has the following constructors:
+
+*   A constructor for each primitive (on all levels)
+*   A constructor for each constant
+*   A single constructor for all function abstractions *and* type abstractions
+    (that is, a single constructor for all levels).
+*   A single constructor for all function applications *and* type applications
+    (again, one constructor for all levels).
+*   A single constructor for all function types *and* type application (of all
+    levels).
+
+(And also the `let .. in ..` constructor)
+
+So at this point, the plan seems clear: simply distinguish each of the
+"squished" abstractions into the four different levels ("unsquish" them), and
+make them a GADT parameterized on on the types with the right inductive rules.
