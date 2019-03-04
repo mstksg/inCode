@@ -22,6 +22,13 @@ Keep in mind that the struggles contained in this post are:
 *   More likely than not to be very trivial in a language with actual dependent
     types, like Idris.
 
+
+Furthermore, this post isn't exactly "beginner friendly" :)  It contains
+mention of a lot of type-level tools, including GADTs, type-level lists,
+singletons, etc.  I'll try to explain the more out-there things, but just be
+aware that this isn't as hands-holding as most of my posts!  That's because
+this is less of a tutorial and more of a journal of my current struggles.
+
 The motivation
 --------------
 
@@ -252,17 +259,20 @@ a list of all constructors on each of the levels that we have gone over so far:
 Term
   ~ Primitives
   ~ Function abstraction
+  ~ Term variables
   ~ Function application
 
 Type
   ~ Primitives
   ~ Function abstraction
+  ~ Type variables
   ~ Function application
   ~ Function type
 
 Kind
   ~ Primitives
   ~ Function abstraction
+  ~ Kind variables
   ~ Function application
   ~ Function type
   ~ Constant (`Type`)
@@ -324,6 +334,7 @@ To summarize, here's all of the constructs in Dhall:
 Term
   ~ Primitives
   ~ Function abstraction
+  ~ Term variables
   ~ Function application
   ~ Type abstraction (parameterized on types)
   ~ Type application (parameterized on types)
@@ -333,6 +344,7 @@ Term
 Type
   ~ Primitives
   ~ Function abstraction
+  ~ Type variables
   ~ Function application
   ~ Type abstraction (parameterized on kinds)
   ~ Type application (parameterized on kinds)
@@ -343,6 +355,7 @@ Type
 Kind
   ~ Primitives
   ~ Function abstraction
+  ~ Kind variables
   ~ Function application
   ~ Function type
   ~ Type abstraction type (types parameterized on kinds)
@@ -394,3 +407,115 @@ The untyped Dhall AST has the following constructors:
 So at this point, the plan seems clear: simply distinguish each of the
 "squished" abstractions into the four different levels ("unsquish" them), and
 make them a GADT parameterized on on the types with the right inductive rules.
+
+Let's Do It
+-----------
+
+Alright, let's do it!  Note that the way we described it, each level only ever
+refers to levels above it --- so we get no circular dependencies.
+
+### Sorts
+
+First, sorts.  Remember, sorts contain primitives, function types, and `Kind`.
+For the sake of simplicity, we're going to ignore Dhall's sort-level primitives:
+record and union sorts (the sort of kind-level records).
+
+```haskell
+data DSort = Kind
+           | DSort :*> DSort
+```
+
+That's it!
+
+### Kinds
+
+Second, kinds.  Kinds have sorts, so we're going to make them a GADT
+parameterized by the sort of the constructor.  However, we also need a
+constructor for a kind variable.  However, kind variables can all have
+different sorts.  We're going to implement this using `Index`, a GADT that lets
+us specify a specific item from a type-level list:
+
+```haskell
+data Index :: [k] -> k -> Type where
+    IZ :: Index (a ': as) a
+    IS :: Index as b -> Index (a ': as) b
+```
+
+This type comes up pretty often in type-level programming.  I won't go too deep
+into it, but you can think of a value of type `Index as a` as a witness that
+`a` exists in the type-level list `as` --- and that the witness tells you what
+the index of that item is:
+
+```haskell
+IZ         :: Index '[1,2,3] 1
+IS IZ      :: Index '[1,2,3] 2
+IS (IS IZ) :: Index '[1,2,3] 3
+```
+
+This essentially gives us a way to specify the kind of free variables.  An
+`Index` will tell us "which free variable".  Here we go!
+
+We'll have a type `DKind ts a`, where `ts` is the sort of each free variable,
+and `a` is the *sort* of the kind.  For example:
+
+```haskell
+DKind '[ 'Kind, 'Kind ':*> 'Kind ] 'Kind
+```
+
+will be a kind of sort `Kind`, with free variables of sort `Kind` and `Kind ->
+Kind`.  A `DKind '[] a` is a kind of sort `a` with no free variables.
+
+Let's make the data type, then!  As we mentioned earlier, kinds have:
+
+*   Primitives
+*   Function abstraction
+*   Kind variables
+*   Function application
+*   Function type
+*   Type abstraction type (types parameterized on kinds)
+*   Constant (`Type`)
+
+Again, we're going to ignore the kind-level primitives for simplicity.  This
+means no record and union kinds (the kind of type-level records and unions) or
+kind records or kind unions.
+
+```haskell
+data DKind :: [DSort] -> DSort -> Type where
+    -- | Function abstraction
+    KLam  :: DKind (t ': ts) a -> DKind ts (t ':*> a)
+    -- | Kind variables
+    KVar  :: Index ts a -> DKind ts a
+    -- | Function application
+    KApp  :: DKind ts (a ':*> b) -> DKind ts a -> DKind ts b
+    -- | Funcion type
+    (:~>) :: DKind ts 'Kind -> DKind ts 'Kind -> DKind ts 'Kind
+    -- | Type abstraction type
+    KPi   :: Sing t -> DKind (t ': ts) a -> DKind ts a
+    -- | Constant
+    Type  :: DKind ts 'Kind
+```
+
+Note the nice property of GADTs that allow us to encode the typing rules
+directly into our constructors.  For example, it lets us specify that applying
+a kind of sort `a :*> b` to a kind of sort `a` will give us a kind of sort `b`.
+It lets us say that `KLam` (function abstraction) "removes" a free variable,
+turning it into a bound variable, producing something of kind `t :*> a`.
+
+One final thing of note: `KPi` includes a *singleton* of the sort `t`, since
+`t` is a hidden existential type that isn't visible from the outside.
+
+### Types
+
+Okay, this is where things get interesting.  The type level contains the most
+constructs:
+
+*   Primitives
+*   Function abstraction
+*   Type variables
+*   Function application
+*   Type abstraction (parameterized on kinds)
+*   Type application (parameterized on kinds)
+*   Function type
+*   Type abstraction type (terms parameterized on types)
+*   Type abstraction type (terms parameterized on kinds)
+
