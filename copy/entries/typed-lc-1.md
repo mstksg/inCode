@@ -25,9 +25,9 @@ Keep in mind that the struggles contained in this post are:
 
 Furthermore, this post isn't exactly "beginner friendly" :)  It contains
 mention of a lot of type-level tools, including GADTs, type-level lists,
-singletons, etc.  I'll try to explain the more out-there things, but just be
-aware that this isn't as hands-holding as most of my posts!  That's because
-this is less of a tutorial and more of a journal of my current struggles.
+singletons, etc.  I'll try to explain the more out-there things when I can, but
+I won't go into *too* much detail on any single thing.  That's because this is
+less of a tutorial and more of a journal of my current struggles.
 
 The motivation
 --------------
@@ -315,15 +315,23 @@ Haskell-speak.
 
 Finally, the **type abstraction type** is the meta-level "type* of a type
 abstraction, just like how a function type is the "type" of a function
-abstraction.  Again, there are three in Dhall:
+abstraction.  We have three corresponding to the above:
 
 1.  The type of terms parameterized on types
 2.  The type of terms parameterized on kinds
-3.  The kind of types parameterized on kinds
+3.  The kind of types parameterized on kinds[^kpi]
+
+[^kpi]: Actually, it should be noted that in Dhall, kind-polymorphic types are
+actually *kinds*, for some reason.  This means that the "type" of types
+parameterized on kinds is actually a sort, not a kind.  I actually don't fully
+understand why this is the case, as it seems a little internally inconsistent.
+If anyone does have a reason, please let me know!  For the rest of this post,
+the types parameterized on kinds will be thought of as kinds, and they will
+have a kind, not a sort.
 
 Note that although these are the types of type abstractions, *primitives* can
 also have these types.  For example, the `None` term primitive in Dhall has
-type `forall (a : Type). Optional a`.  Its type is #1 on the list above: `None`
+type `forall (a : Type). Optional a`.  Its #1 on first the list above: `None`
 is a term parameterized on a type, and its type is the type of terms
 parameterized on types.
 
@@ -482,7 +490,7 @@ kind records or kind unions.
 ```haskell
 data DKind :: [DSort] -> DSort -> Type where
     -- | Function abstraction
-    KLam  :: DKind (t ': ts) a -> DKind ts (t ':*> a)
+    KLam  :: Sing t -> DKind (t ': ts) a -> DKind ts (t ':*> a)
     -- | Kind variables
     KVar  :: Index ts a -> DKind ts a
     -- | Function application
@@ -490,7 +498,7 @@ data DKind :: [DSort] -> DSort -> Type where
     -- | Funcion type
     (:~>) :: DKind ts 'Kind -> DKind ts 'Kind -> DKind ts 'Kind
     -- | Type abstraction type
-    KPi   :: Sing t -> DKind (t ': ts) a -> DKind ts a
+    KPi   :: Sing t -> DKind (t ': ts) 'Kind -> DKind ts 'Kind
     -- | Constant
     Type  :: DKind ts 'Kind
 ```
@@ -501,13 +509,38 @@ a kind of sort `a :*> b` to a kind of sort `a` will give us a kind of sort `b`.
 It lets us say that `KLam` (function abstraction) "removes" a free variable,
 turning it into a bound variable, producing something of kind `t :*> a`.
 
-One final thing of note: `KPi` includes a *singleton* of the sort `t`, since
-`t` is a hidden existential type that isn't visible from the outside.
+Note that `KLam` and `KPi` require a singleton of sort `t`.  This is basically
+indicating the "type" of the argument, mirroring `\(x : Kind) -> ...`.
+
+Some examples of values and their translations:
+
+```
+Type -> Type
+    ==> Type :~> Type
+          :: DKind ts 'Kind
+
+\(x : Kind) -> x
+    ==> KLam SKind (KVar IZ)
+          :: DKind ts ('Kind ':*> 'Kind)
+
+\(f : Kind -> Kind) -> f (Type -> Type)
+    ==> KLam (SKind :%*> SKind) $
+            KVar IZ `KApp` (Type :~> Type)
+          :: DKind ts (('Kind ':*> 'Kind) ':*> 'Kind)
+
+forall (k : Kind) -> Type
+    ==> KPi SKind Type
+          :: DKind ts 'Kind
+```
+
+Note that according to the footnote above, we are considering kind-polymorphic
+types as types (not kinds), and so they have pi-kinds.  This differs from
+dhall-proper, but is more internally consistent.
 
 ### Types
 
 Okay, this is where things get interesting.  The type level contains the most
-constructs:
+constructs of any level:
 
 *   Primitives
 *   Function abstraction
@@ -519,3 +552,78 @@ constructs:
 *   Type abstraction type (terms parameterized on types)
 *   Type abstraction type (terms parameterized on kinds)
 
+We basically add two things: *type abstraction* and *type application*.
+
+At this point, the decisions become a little less straightforward.  I'm going
+to describe the path I am currently on, after a lot of dead-ends and
+backtracking.
+
+The final GADT I came up with was:
+
+```haskell
+data DType ts :: [DKind ts 'Type] -> DKind ts 'Type -> Type where
+    -- | Type variables
+    TVar  :: Index us a -> DType ts us a
+    -- | Function application
+    TApp  :: DType ts us (a ':*> b) -> DType ts us a -> DType ts us b
+    -- | Funcion type
+    (:->) :: DType ts us 'Type -> DType ts us 'Type -> DType ts us 'Type
+    -- | Primitives
+    Bool  :: DType ts us 'Type
+    List  :: DType ts us ('Type '~> 'Type)
+```
+
+That's the first half, containing the uncontroversial constructors once we pick
+a basic overall schema.
+
+The choice here was to make `DType ts us a` parameterized on both kind
+variables *and* type variables, and that all of the type variables must have
+the same number of kind variables.  So a value of type
+
+```haskell
+DType '[ 'Kind, 'Kind ~> 'Kind    ]
+      '[ 'Type, 'KPi 'SKind 'Type ]
+      ('Type ':~> 'Type)
+```
+
+is a type of kind `Type -> Type` with unbound kind variables of sorts `Kind`
+and `Kind -> Kind` and unbound type variables of kinds `Type` and `forall (k :
+Kind) -> Type`.
+
+So far, so good.  It's pretty easy to bring in some simple type primitives,
+like `Bool : Type` and `List : Type -> Type`.
+
+Now, note that I excluded function abstraction and type abstraction type.
+These need some care.  Naively, we'd want to write:
+
+```haskell
+TLam :: Sing u -> DType ts (u ': us) a -> DType t us (u ':~> a)
+TPi  :: Sing u -> DType ts (u ': us) a -> DType t us a
+```
+
+Which mirrors `KLam`.  However, there is a major problem with this, that we'll
+also run into when we implement the term-level lambda: consider
+these two identical dhall expression ---
+
+```haskell
+\(a : Type) -> Natural
+
+\(a : ((\(x : Kind) -> x) Type)) -> Natural
+```
+
+The *kind* of `a` in both cases is `Type`, but it's not as clear in the second
+case.  But if we normalize `(\(x : Kind) -> x) Type`, we get `Type` (it's just
+the identity function applied to `Type`).
+
+-- TODO: talk about equality rules
+
+The issue here arises when we ask about the *type* of both expressions.  In the
+first case, it's `Type -> Type` (the input is a `Type`, and so is the output).
+In the second case, we can either say it's `((\(x: Kind) -> x) Type) -> Type`,
+or also `Type -> Type`.
+
+If we pick the latter, then we need to normalize the kind before putting it
+into the type of our GADT.  If we pick the former, then we need to make sure we
+can later *apply* the function to something like `Bool : Type`.  So either we
+normalize at the function abstraction stage, or normalize at the function
+application stage.
