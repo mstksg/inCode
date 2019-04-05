@@ -89,7 +89,7 @@ One only needs to check the first words of the Wikipedia articles and compare
 the difference to see:
 
 *   **[Centrifugal Force][]**: *The centrifugal force is...*
-*   [Centripetal Force][]: *A centripetal force is...*
+*   **[Centripetal Force][]**: *A centripetal force is...*
 
 [Centrifugal Force]: https://en.wikipedia.org/wiki/Centrifugal_force
 [Centripetal Force]: https://en.wikipedia.org/wiki/Centripetal_force
@@ -97,8 +97,8 @@ the difference to see:
 Huh.  One says "the".  The other says "a".  What's the difference?
 
 The difference is that "centripetal" is a *role* that a force plays.  It is an
-adjective, like dampening, supporting, big, small, little, weak, strong,
-upwards-pointing.  There is no such thing as "*the* centripetal force", in the
+adjective, like "dampening", "supporting", big, small, little, weak, strong,
+upwards-pointing, etc.  There is no such thing as "*the* centripetal force", in the
 sense that we have "the gravitational force".  There are only forces that are
 acting in a centripetal way, or play a centripetal role in our current context.
 
@@ -109,5 +109,10 @@ There is no such thing as "the centripetal force".  There are only forces that
 are playing a centripetal role in our system.  There might be many, there might
 be none, or there might be just one.
 
+Ironically, it's "centrifugal" that is "not a real force", but rather just a
+mask that other forces can don and wear.
+
 ### Centrifugal Roots
+
+So, what is *the* centrifugal force?
 
