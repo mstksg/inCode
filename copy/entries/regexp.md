@@ -93,8 +93,8 @@ Let's write this out.  Our character primitive will be:
 ```
 
 Note that because we're working with functors, applicatives, alternatives,
-etc., all of our regular expressions must have an associated "result".  The
-value `Prim 'a' 1 :: Prim Int` will represent a primitive matches on the
+etc., all of our regular expressions can have an associated "result".  The
+value `Prim 'a' 1 :: Prim Int` will represent a primitive that matches on the
 character `a`, interpreting it with a result of `1`.
 
 And now...we give it `Alternative` structure using the *Free Alternative*, from
@@ -133,7 +133,7 @@ these operations and the primitive.  No more, no less.
 After adding some convenient wrappers...we're done here!
 
 ```haskell
-!!!misc/regexp.hs "-- | charAs" "-- | char" "-- | string"
+!!!misc/regexp.hs "-- | charAs:" "-- | char:" "-- | string:"
 ```
 
 ### Examples
