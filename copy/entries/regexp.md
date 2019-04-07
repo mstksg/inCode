@@ -395,6 +395,9 @@ different `r` for each item.  `Ap` is cons (`:`), containing the `f r`, and
 It's like a list (`Alt` list) of lists (`AltF` chains), which take turn
 alternating between alternative lists and application sequences.
 
+You can think of `Alt f` as a "normalized" form of successive or nested `<*>` and
+`<|>`s, similar to how `[a]` is a "normalized" form of successive `<>`s.
+
 Ultimately we want to write a `RegExp a -> String -> Maybe a`, which parses a
 string based on a `RegExp`.  TO do this, we can simply pattern match and handle
 the cases.
@@ -450,8 +453,8 @@ write this.  Sure, it's nice to understand what `Ap`, `Pure`, `AltF`, etc.
 really "mean". But, we don't have to --- the types take care of all of it for
 you :)
 
-`matchAlts` will match the *prefix* of the string, so we need to try all
-successive prefixes on an input string until we get a match.
+<!-- `matchAlts` will match the *prefix* of the string, so we need to try all -->
+<!-- successive prefixes on an input string until we get a match. -->
 
 <!-- ```haskell -->
 <!-- !!!misc/regexp.hs "match2 ::" -->
