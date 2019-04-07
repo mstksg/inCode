@@ -44,6 +44,11 @@ And the following operations:
 2. Alternation: `R|S`, one or the other.  A set union.
 3. Kleene Star: `R*`, the repetition of `R` one or more times.
 
+And that's *all* that's in a regular expression.  Nothing more, nothing less.
+From these basic tools, you can derive the rest of the regexp operations ---
+for example, `a+` can be expressed as `aa*`, and categories like `\w` can be
+expressed as alternations of valid characters.
+
 Alternative
 -----------
 
@@ -89,8 +94,8 @@ Let's write this out.  Our character primitive will be:
 
 Note that because we're working with functors, applicatives, alternatives,
 etc., all of our regular expressions must have an associated "result".  The
-value `Prim 'a' 1 :: Prim Int` will represent a primitive character that, when
-parsed, will give a result of `1`.
+value `Prim 'a' 1 :: Prim Int` will represent a primitive matches on the
+character `a`, interpreting it with a result of `1`.
 
 And now...we give it `Alternative` structure using the *Free Alternative*, from
 the *[free][]* package:
@@ -120,9 +125,10 @@ All of these (except for the primitive) come "for free"!
 
 Essentially, what a free structure gives us is the structure of the abstraction
 (`Alternative`, here) automatically for our base type, and *nothing else*.
-There's no structure or properties at *all* about `RegExp`...other that it
-contains `Prim` and the minimal structure/scaffolding to be an `Alternative`
-instance.
+
+Remember that regular expressions have these operations, *and nothing else* ---
+no more, no less.  That's exactly what the free Alternative gives us: these
+these operations and the primitive.  No more, no less.
 
 After adding some convenient wrappers...we're done here!
 
@@ -163,7 +169,212 @@ matching, concatenation, alternation, and starring.  Big whoop.  What we really
 want to do is use it to parse things, right?  How does the Free Alternative
 help us with *that*?
 
-Well, a lot, actually.  Let's look at the definition of the free alternative:
+Well, a lot, actually.  Let's look at two ways of doing this!
+
+### Offloading to another Alternative
+
+#### What is Freeness?
+
+The "canonical" way of using a free structure is by using the "folding"
+homomorphism into a concrete structure with the proper instances.  For example,
+`foldMap` will turn a free monoid a value of any monoid instance:
+
+```haskell
+foldMap :: Monoid m => (a -> m) -> ([a] -> m)
+```
+
+`foldMap` lifts an `a -> m` into a `[a] -> m` (for, `FreeMonoid a -> m`), with
+a concrete monoid `m`.  The general idea is that using a free structure can
+"defer" the concretization from between the time of construction to the time of
+use.
+
+For example, we can construct value in the free monoid made from integers:
+
+```haskell
+-- | Lift the "primitive" `Int` into a value in the free monoid on `Int`.
+liftFM :: Int -> [Int]
+liftFM x = [x]
+
+myMon :: [Int]
+myMon = liftFM 1 <> liftFM 2 <> liftFM 3 <> liftFM 4
+```
+
+And now we can decide how we want to interpret `<>` --- should it be `+`?
+
+```haskell
+ghci> foldMap Sum myMon
+Sum 10
+```
+
+Or should it be `*`?
+
+```haskell
+ghci> foldMap Product myMon
+Product 24
+```
+
+The idea is that we can "defer" the choice of concrete `Monoid` that `<>` is
+interpreted under by first pushing 1, 2, 3, and 4 into their free monoid.  The
+free monoid on `Int` gives *exactly enough structure* to `Int` to do this job:
+no more, no less.
+
+To use `foldMap`, we say "how to handle the base type", and it lets us handle
+the free structure in its entirety.
+
+#### Interpreting in State
+
+In this case, we're in luck.  There's a concrete `Alternative` instance that
+works just the way we want: `StateT String Maybe`:
+
+*   Its `<*>` works by sequencing changes in state; in this case, we'll
+    consider the state as "characters yet to be parsed".
+*   Its `<|>` works by backtracking and trying again if it runs into a failure.
+    It saves the state of the last successful point and resets to it on
+    failure.
+
+The "folding" homomorphism of the free alternative is called `runAlt`:
+
+```haskell
+runAlt :: Alternative f
+       => (forall b. p b -> f b)
+       -> Alt p a
+       -> f a
+```
+
+And in the case of `RegExp`, we have:
+
+```haskell
+runAlt :: Alternative f
+       => (forall b. Prim b -> f b)
+       -> RegExp a
+       -> f a
+```
+
+If you're unfamiliar with the RankN type (the `forall b.` stuff), there's a
+[nice introduction here][rankn].  But basically, you just need to provide
+`runAlt` with a function that can handle a `Prim b` for *any* `b` (and not just
+a specific one like `Int` or `Bool`).
+
+[rankn]: https://ocharles.org.uk/guest-posts/2014-12-18-rank-n-types.html
+
+So, like `foldMap`, we need to say "how to handle our base type".  How do we
+handle `Prim`?
+
+```haskell
+!!!misc/regexp.hs "processPrim ::"
+```
+
+This lets us interpret a `Prim` as a `StateT String Maybe` action where the
+state is the "string left to be be processed".  Remember, a `Prim a` contains
+the character we want to match on, and the `a` value we want it to be
+interpreted as.  To process a `Prim`, we:
+
+1.  Get the state's head and tail, using `get`.  If this match fails,
+    backtrack. (This is implemented using a pattern match in a do block)
+2.  If the head doesn't match what the `Prim` expects, backtrack.
+3.  Set the state to be the original tail, using `put`.
+4.  The result is what the `Prim` returns.
+
+We can use this to write a function that matches the `RegExp` on a prefix.  We
+need to run the state action (using `evalStateT`) on the string we want to
+parse:
+
+```haskell
+!!!misc/regexp.hs "matchPrefix ::"
+```
+
+And that's it!  Our first solution:
+
+<!-- `matchPrefix` will match the *prefix* of the string, so we need to try all -->
+<!-- successive prefixes on an input string until we get a match.  Here, `asum :: -->
+<!-- [Maybe a] -> Maybe a` finds the first `Just` (success) in a list of attempts, -->
+<!-- and `tails :: [a] -> [[a]]` is the list of prefixes of a string. -->
+
+```haskell
+ghci> matchPrefix testRegexp_ "acdcdcde"
+Just ()
+ghci> matchPrefix testRegexp_ "acdcdcdx"
+Nothing
+ghci> matchPrefix testRegexp "acdcdcde"
+Just 3
+ghci> matchPrefix testRegexp "acdcdcdcdcdcdcde"
+Just 7
+```
+
+#### What just happened?
+
+Okay, so that might have happened a little quicker than you expected.  One
+minute we were writing our primitive, and the next we had already finished.
+Here's the entirety of the code, in a few lines of Haskell:
+
+```haskell
+type RegExp = Alt Prim
+
+matchPrefix :: RegExp a -> String -> Maybe a
+matchPrefix re = evalStateT (runAlt processPrim re)
+  where
+    processPrim (Prim c x) = do
+      d:ds <- get
+      guard (c == d)
+      put ds
+      pure x
+```
+
+And now we have a fully functioning regexp parser?  What happened?
+
+From a high-level view, remember that `Alt Prim` has, in its structure, `pure`,
+`empty`, `Prim`, `<*>`, `<|>`, and `many`[^many].
+
+[^many]: A caveat exists here.  More on this later!
+
+Essentially, what `runAlt` does is that it uses a given concrete `Alternative`
+(here, `StateT String Maybe`) to get the behavior of `pure`, `empty`, `<*>`, `<|>`, and
+`many`.  But!  `StateT` doesn't have a built-in behavior for `Prim`.  And so,
+that's where `processPrim` comes in.  For `Prim`, `runAlt` uses `processPrim`.
+for `pure`, `empty`, `<*>`, `<|>`, and `many`, `runAlt` uses `StateT String
+Maybe`'s `Alternative` instance.
+
+So, really, 83% of the work was done for us by `StateT`'s `Alternative`
+instance, and the other 17% is in `processPrim`.
+
+Admittedly, this *does* feel a little disappointing, or at least anticlimactic.
+This makes us wonder: why even use `Alt` in the first place?  Why not just have
+`type RegExp = StateT String Maybe` and write an appropriate `char :: Char ->
+StateT String Maybe Char`?  If `StateT` does all of the work anyway, why even
+bother with `Alt`, the free Alternative?
+
+One major advantage we get from using `Alt` is that `StateT` is...pretty
+powerful.  It's actually *stupid* powerful...it can represent a lot of things.
+Especially things that *are not regular expressions*.  For example, something
+as simple as `put "hello"` does not correspond to *any* regular expression.
+
+So, while we can say that `Alt Prim` corresponds to "regular expressions,
+nothing less and nothing more", we *cannot* say the same about `StateT String
+Maybe`.
+
+`Alt Prim` contains a "perfect fit" representation of a regular expression data
+type.  Everything it can express is a regular expression, and there is nothing
+it can express that *isn't* a regular expression.[^perfect]
+
+[^perfect]: Note that there are some caveats that should be noted here, due to
+laziness in Haskell.  We will go deeper into this later.
+
+Here, we can think of `StateT` is the context that we use to *interpret* a
+`RegExp` as a *parser*.  But, there might be *other* ways we want to work with
+a `RegExp`.  For example, we might want to inspect it and "print" it out for
+inspection.  This is something we can't do with `StateT`.
+
+We can't say that `StateT String Maybe` *is* a regular expression --- only that
+it can represent a parser based on a regular expression.  But we *can* say that
+about `Alt Prim`.
+
+### Using the Free structure directly
+
+Alright, that's great and all.  But what if we didn't want to offload 83% of
+the behavior to a type that has already been written for us.  Is there a way we
+can directly use the structure of `Alt` itself to write our parser?
+
+I'm glad you asked!  Let's look at the definition of the free alternative:
 
 ```haskell
 newtype Alt f a = Alt { alternatives :: [AltF f a] }
@@ -189,12 +400,14 @@ string based on a `RegExp`.  TO do this, we can simply pattern match and handle
 the cases.
 
 First, the top-level `Alt` case.  When faced with a list of chains, we can try
-to parse each one.  The result is the first success.  `asum :: [Maybe a] ->
-Maybe a` finds the first `Just` (success) in a list of attempts.
+to parse each one.  The result is the first success.
 
 ```haskell
 !!!misc/regexp.hs "matchAlts ::"
 ```
+
+Here, `asum :: [Maybe a] -> Maybe a` finds the first `Just` (success) in a list
+of attempts.
 
 Now, we need to handle the chain case.  To do this, we can pattern match on
 each constructor, and handle each case.
@@ -240,7 +453,12 @@ you :)
 `matchAlts` will match the *prefix* of the string, so we need to try all
 successive prefixes on an input string until we get a match.
 
-```haskell
-!!!misc/regexp.hs "match2 ::"
-```
+<!-- ```haskell -->
+<!-- !!!misc/regexp.hs "match2 ::" -->
+<!-- ``` -->
+
+<!-- `matchPrefix` will match the *prefix* of the string, so we need to try all -->
+<!-- successive prefixes on an input string until we get a match.  Here, `asum :: -->
+<!-- [Maybe a] -> Maybe a` finds the first `Just` (success) in a list of attempts, -->
+<!-- and `tails :: [a] -> [[a]]` is the list of prefixes of a string. -->
 

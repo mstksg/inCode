@@ -39,15 +39,15 @@ testRegExp = (char 'a' <|> char 'b')
           *> (length <$> many (string "cd"))
           <* char 'e'
 
+processPrim :: Prim a -> StateT String Maybe a
+processPrim (Prim c x) = do
+    d:ds <- get
+    guard (c == d)
+    put ds
+    pure x
+
 matchPrefix :: RegExp a -> String -> Maybe a
-matchPrefix re = evalStateT (runAlt go re)
-  where
-    go :: Prim b -> StateT String Maybe b
-    go (Prim c x) = do
-      d:ds <- get
-      put ds
-      guard (c == d)
-      pure x
+matchPrefix re = evalStateT (runAlt processPrim re)
 
 match1 :: RegExp a -> String -> Maybe a
 match1 l xs = asum [ matchPrefix l ys | ys <- tails xs ]
