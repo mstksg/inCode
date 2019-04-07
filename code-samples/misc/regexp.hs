@@ -20,7 +20,8 @@ type RegExp = Alt Prim
 -- | charAs: Parse a given character as a given constant result.
 charAs :: Char -> a -> RegExp a
 charAs c x = liftAlt (Prim c x)     -- liftAlt lets us use the underlying
-                                    -- functor Prim in RegExp
+                                    -- functor Prim in RegExp, analogous
+                                    -- to liftFM from earlier
 
 -- | char: Parse a given character as itself.
 char :: Char -> RegExp Char

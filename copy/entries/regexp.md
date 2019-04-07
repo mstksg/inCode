@@ -176,21 +176,21 @@ matching, concatenation, alternation, and starring.  Big whoop.  What we really
 want to do is use it to parse things, right?  How does the Free Alternative
 help us with *that*?
 
-Well, a lot, actually.  Let's look at two ways of doing this!
+Well, it does a lot, actually.  Let's look at two ways of doing this!
 
 ### Offloading to another Alternative
 
 #### What is Freeness?
 
-The "canonical" way of using a free structure is by using the "folding"
-homomorphism into a concrete structure with the proper instances.  For example,
-`foldMap` will turn a free monoid a value of any monoid instance:
+The "canonical" way of using a free structure is by using its "folding"
+operation into a concrete structure with the proper instances.  For example,
+`foldMap` will turn a free monoid into a value of any monoid instance:
 
 ```haskell
 foldMap :: Monoid m => (a -> m) -> ([a] -> m)
 ```
 
-`foldMap` lifts an `a -> m` into a `[a] -> m` (for, `FreeMonoid a -> m`), with
+`foldMap` lifts an `a -> m` into a `[a] -> m` (or, `FreeMonoid a -> m`), with
 a concrete monoid `m`.  The general idea is that using a free structure can
 "defer" the concretization from between the time of construction to the time of
 use.
@@ -210,18 +210,18 @@ And now we can decide how we want to interpret `<>` --- should it be `+`?
 
 ```haskell
 ghci> foldMap Sum myMon
-Sum 10
+Sum 10              -- 1 + 2 + 3 + 4
 ```
 
 Or should it be `*`?
 
 ```haskell
 ghci> foldMap Product myMon
-Product 24
+Product 24          -- 1 * 2 * 3 * 4
 ```
 
 The idea is that we can "defer" the choice of concrete `Monoid` that `<>` is
-interpreted under by first pushing 1, 2, 3, and 4 into their free monoid.  The
+interpreted under by first pushing 1, 2, 3, and 4 into a free monoid value. The
 free monoid on `Int` gives *exactly enough structure* to `Int` to do this job:
 no more, no less.
 
@@ -234,12 +234,13 @@ In this case, we're in luck.  There's a concrete `Alternative` instance that
 works just the way we want: `StateT String Maybe`:
 
 *   Its `<*>` works by sequencing changes in state; in this case, we'll
-    consider the state as "characters yet to be parsed".
+    consider the state as "characters yet to be parsed", so sequential parsing
+    fits perfectly with `<*>`.
 *   Its `<|>` works by backtracking and trying again if it runs into a failure.
     It saves the state of the last successful point and resets to it on
     failure.
 
-The "folding" homomorphism of the free alternative is called `runAlt`:
+The "folding" operation of the free alternative is called `runAlt`:
 
 ```haskell
 runAlt :: Alternative f
@@ -277,10 +278,11 @@ the character we want to match on, and the `a` value we want it to be
 interpreted as.  To process a `Prim`, we:
 
 1.  Get the state's head and tail, using `get`.  If this match fails,
-    backtrack. (This is implemented using a pattern match in a do block)
-2.  If the head doesn't match what the `Prim` expects, backtrack.
+    backtrack.
+2.  If the head doesn't match what the `Prim` expects, backtrack.  Implemented
+    using `guard`.
 3.  Set the state to be the original tail, using `put`.
-4.  The result is what the `Prim` returns.
+4.  The result is what the `Prim` says it should be.
 
 We can use this to write a function that matches the `RegExp` on a prefix.  We
 need to run the state action (using `evalStateT`) on the string we want to
@@ -332,14 +334,17 @@ And now we have a fully functioning regexp parser?  What happened?
 From a high-level view, remember that `Alt Prim` has, in its structure, `pure`,
 `empty`, `Prim`, `<*>`, `<|>`, and `many`[^many].
 
-[^many]: A caveat exists here.  More on this later!
+[^many]: A caveat exists here for `many`.  More on this later!
 
 Essentially, what `runAlt` does is that it uses a given concrete `Alternative`
-(here, `StateT String Maybe`) to get the behavior of `pure`, `empty`, `<*>`, `<|>`, and
-`many`.  But!  `StateT` doesn't have a built-in behavior for `Prim`.  And so,
-that's where `processPrim` comes in.  For `Prim`, `runAlt` uses `processPrim`.
-for `pure`, `empty`, `<*>`, `<|>`, and `many`, `runAlt` uses `StateT String
-Maybe`'s `Alternative` instance.
+(here, `StateT String Maybe`) to get the behavior of `pure`, `empty`, `<*>`,
+`<|>`, and `many`.  But!  As we can see from that list, `StateT` does *not*
+have a built-in behavior for `Prim`.  And so, that's where `processPrim` comes
+in.
+
+*   For `Prim`, `runAlt` uses `processPrim`.
+*   For `pure`, `empty`, `<*>`, `<|>`, and `many`, `runAlt` uses `StateT String
+    Maybe`'s `Alternative` instance.
 
 So, really, 83% of the work was done for us by `StateT`'s `Alternative`
 instance, and the other 17% is in `processPrim`.
@@ -351,9 +356,10 @@ StateT String Maybe Char`?  If `StateT` does all of the work anyway, why even
 bother with `Alt`, the free Alternative?
 
 One major advantage we get from using `Alt` is that `StateT` is...pretty
-powerful.  It's actually *stupid* powerful...it can represent a lot of things.
-Especially things that *are not regular expressions*.  For example, something
-as simple as `put "hello"` does not correspond to *any* regular expression.
+powerful.  It's actually *stupid* powerful.  It can represent a lot of
+things...most troubling, it can represent things that *are not regular
+expressions*.  For example, something as simple as `put "hello"` does not
+correspond to *any* regular expression.
 
 So, while we can say that `Alt Prim` corresponds to "regular expressions,
 nothing less and nothing more", we *cannot* say the same about `StateT String
@@ -406,8 +412,8 @@ You can think of `Alt f` as a "normalized" form of successive or nested `<*>` an
 `<|>`s, similar to how `[a]` is a "normalized" form of successive `<>`s.
 
 Ultimately we want to write a `RegExp a -> String -> Maybe a`, which parses a
-string based on a `RegExp`.  TO do this, we can simply pattern match and handle
-the cases.
+string based on a `RegExp`.  To do this, we can pattern match and handle the
+cases.
 
 First, the top-level `Alt` case.  When faced with a list of chains, we can try
 to parse each one.  The result is the first success.
@@ -455,10 +461,24 @@ In the end of the very mechanical process, we get:
 2.  If it's `Pure x` (like nil, `[]`), it means we're at the end of the chain.
     We return the result in `Just`.
 
-In the end though, you don't really need to understand any of this in order to
-write this.  Sure, it's nice to understand what `Ap`, `Pure`, `AltF`, etc.
-really "mean". But, we don't have to --- the types take care of all of it for
-you :)
+In the end though, you don't really need to understand any of this *too* deeply
+in order to write this.  Sure, it's nice to understand what `Ap`, `Pure`,
+`AltF`, etc. really "mean". But, we don't have to --- the types take care of
+all of it for you :)
+
+That should be good enough to implement another prefix parser:
+
+```haskell
+ghci> matchAlts testRegexp_ "acdcdcde"
+Just ()
+ghci> matchAlts testRegexp_ "acdcdcdx"
+Nothing
+ghci> matchAlts testRegexp "acdcdcde"
+Just 3
+ghci> matchAlts testRegexp "acdcdcdcdcdcdcde"
+Just 7
+```
+
 
 <!-- `matchAlts` will match the *prefix* of the string, so we need to try all -->
 <!-- successive prefixes on an input string until we get a match. -->
