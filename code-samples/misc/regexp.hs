@@ -1,6 +1,7 @@
 #!/usr/bin/env stack
 -- stack --install-ghc ghci --package free --package transformers
 
+{-# LANGUAGE ApplicativeDo #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE LambdaCase    #-}
 
@@ -38,6 +39,13 @@ testRegExp :: RegExp Int
 testRegExp = (char 'a' <|> char 'b')
           *> (length <$> many (string "cd"))
           <* char 'e'
+
+testRegExpDo :: RegExp Int
+testRegExpDo = do
+    char 'a' <|> char 'b'
+    cds <- many (string "cd")
+    char 'e'
+    pure (length cds)
 
 processPrim :: Prim a -> StateT String Maybe a
 processPrim (Prim c x) = do

@@ -161,6 +161,13 @@ point towards which result to "keep".  And since `many (string "cd") :: RegExp
 [String]` (it returns a list, with an item for each repetition), we can `fmap
 length` to get the `Int` result of "how many repetitions".
 
+However, we can also turn on *-XApplicativeDo* and write it using do notation,
+which requires a little less thought:
+
+```haskell
+!!!misc/regexp.hs "testRegExpDo ::"
+```
+
 Parsing
 -------
 
