@@ -11,6 +11,7 @@ import           Control.Monad
 import           Control.Monad.Trans.State
 import           Data.Foldable
 import           Data.List
+import           Data.Maybe
 
 data Prim a = Prim Char a
   deriving Functor
@@ -57,9 +58,6 @@ processPrim (Prim c x) = do
 matchPrefix :: RegExp a -> String -> Maybe a
 matchPrefix re = evalStateT (runAlt processPrim re)
 
-match1 :: RegExp a -> String -> Maybe a
-match1 l xs = asum [ matchPrefix l ys | ys <- tails xs ]
-
 matchAlts :: RegExp a -> String -> Maybe a
 matchAlts (Alt ls) xs = asum [ matchChain l xs | l <- ls  ]
 
@@ -70,5 +68,5 @@ matchChain (Ap (Prim c x) next) cs = case cs of
          | otherwise -> Nothing
 matchChain (Pure x)             _      = Just x
 
-match2 :: RegExp a -> String -> Maybe a
-match2 l xs = asum [ matchAlts l ys | ys <- tails xs ]
+matches :: RegExp a -> String -> [a]
+matches l = mapMaybe (matchPrefix l) . tails
