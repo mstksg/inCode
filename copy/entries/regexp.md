@@ -655,6 +655,11 @@ alternative above implements `many`.  `a*` is implemented as
 *relies* on laziness and infinite recursion to do its job.  If you look at the
 contents of `many (char 'a')`, you will see an infinite list.
 
+"Haskell without recursion" is fine with `Alt` for a "[star-free
+language][sfl]", but it won't cut it for a regular one.
+
+[sfl]: https://en.wikipedia.org/wiki/Star-free_language
+
 For the purposes we talked about in this post, this doesn't matter.  However,
 this does create serious issues if we want to write a [non-deterministic finite
 automata based parser][NFA] (NFA), which is the de facto standard for
@@ -740,6 +745,19 @@ data Prim a =
 so we can support a lot of the basic character classes that many
 implementations of regular expressions support.  Try this out in the [sample
 code][code] as an exercise!
+
+Another interesting direction we can take, along the lines of [build systems a
+la carte][bsalc], is experimenting with different free structures to give rise
+to different types of languages/expressions.  For example, if we use the free
+*Applicative*, we get a language that has only concatenation and empty strings
+and primitives, and no alternations.  It's like regular expressions with no
+`|`, or basically only straight up matches.  If we use the free *Monad*, we get
+a context-sensitive language with no backtracking.  If we use the free
+*MonadPlus*, we get a context-sensitive language with backtracking.   It's nice
+that we get this sort of "a la carte" scaling system by our choice of free
+structure.
+
+[bsalc]: https://www.microsoft.com/en-us/research/publication/build-systems-la-carte/
 
 I hope that after working through this example, you will begin to start
 recognizing opportunities for using free structures everywhere you look!  Once
