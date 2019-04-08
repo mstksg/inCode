@@ -144,7 +144,7 @@ Essentially, what a free structure gives us is the structure of the abstraction
 
 Remember that regular expressions have these operations, *and nothing else* ---
 no more, no less.  That's exactly what the free Alternative gives us: these
-these operations and the primitive.  No more, no less.
+operations and the primitive.  No more, no less.
 
 After adding some convenient wrappers...we're done here!
 
@@ -465,7 +465,7 @@ data AltF f a = forall r. Ap (f r) (Alt f (r -> a))
 It's a mutually recursive type, so it might be a little confusing.  One way to
 understand `Alt` is that `Alt xs` contains a *list of alternatives*, or a list
 of `<|>`s.  And each of those alternatives is an `AltF`, which is a *sequence
-of `f a`s* (as a chain of function applications).
+of `f a`s* chained by `<*>` (as a chain of function applications).
 
 You can essentially think of `AltF f a` as a linked list `[f r]`, except with a
 different `r` for each item.  `Ap` is cons (`:`), containing the `f r`, and
@@ -738,6 +738,7 @@ code][code].  One easy addition would be to add other types of primitives:
 data Prim a =
     Only Char a                 -- ^ match a char with a given result
   | Letter a                    -- ^ match any letter with the same result
+  | Digit    (Int  -> a)        -- ^ match any digit, with a result computed from it
   | Wildcard (Char -> a)        -- ^ match any char, with a computed result
   | Satisfy (Char -> Maybe a)   -- ^ match potentially any char, based on a function
 ```
