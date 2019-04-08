@@ -713,9 +713,10 @@ Where can we go from here?  First, try playing around with the [sample
 code][code].  One easy addition would be to add other types of primitives:
 
 ```haskell
-data Prim a = Prim Char a
-            | Letter a
-            | Wildcard a
+data Prim a =
+    Only Char a                 -- ^ match a char with a given result
+  | Letter a                    -- ^ match any letter with the same result
+  | Wildcard (Char -> Maybe a)  -- ^ match any char, with a computed result
 ```
 
 so we can support a lot of the basic character classes that many
