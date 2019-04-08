@@ -256,7 +256,7 @@ processCodeBlocks doc = do
       pr   <- nMaybeT $ D.parentElement blk
       liftEff $ do
         tc <- D.textContent fc
-        let isPrompt = A.mapMaybe (_ `stripPrefix` tc) ["λ", "ghci", "$"]
+        let isPrompt = A.mapMaybe (_ `stripPrefix` tc) ["λ", "ghci", "$", "irb", ">>>"]
         case L.toList isPrompt of
           L.Cons _ _ -> DDTL.add ["code-block-prompt"] =<< D.classList pr
           L.Nil      -> return unit

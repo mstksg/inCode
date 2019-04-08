@@ -49,11 +49,10 @@ From these basic tools, you can derive the rest of the regexp operations ---
 for example, `a+` can be expressed as `aa*`, and categories like `\w` can be
 expressed as alternations of valid characters.
 
-Alternative
------------
+### Alternative
 
 Looking at this, does this look a little familiar?  It reminds me a lot of
-the `Alternative` hierarchy.  If a functor `f` has an `Alternative` instance,
+the `Alternative` typeclass.  If a functor `f` has an `Alternative` instance,
 it means that it has:
 
 1.  `empty`, the failing operation
@@ -79,8 +78,7 @@ interface, plus a character primitive".  *But!*  There's another way of looking
 at this, that leads us directly to free structures.
 
 Instead of seeing things as "`Alternative` with a character primitive", we can
-look at it as *a character primitive enriched with an blank-slate Alternative
-instance*.
+look at it as *a character primitive enriched with a Alternative instance*.
 
 Free
 ----
@@ -93,9 +91,15 @@ Let's write this out.  Our character primitive will be:
 ```
 
 Note that because we're working with functors, applicatives, alternatives,
-etc., all of our regular expressions can have an associated "result".  The
-value `Prim 'a' 1 :: Prim Int` will represent a primitive that matches on the
-character `a`, interpreting it with a result of `1`.
+etc., all of our regular expressions can have an associated "result".  This is
+because our regexp values will have a type parameter (which is required for
+`Functor`, `Applicative`, and `Alternative`).  We can choose to ignore this
+type parameter, of course, but we can also have some fun by using it to
+represent a "result" that a regexp match will be interpreted as.  This is
+similar to the idea of "capturing" in industrial regexp applications.
+
+Here, the value `Prim 'a' 1 :: Prim Int` will represent a primitive that
+matches on the character `a`, interpreting it with a result of `1`.
 
 And now...we give it `Alternative` structure using the *Free Alternative*, from
 the *[free][]* package:
@@ -121,7 +125,7 @@ Alternative (Alt f)`.  We now have:
 5.  The alternating operation, from `<|>`, from `Alternative`.
 6.  The kleene star, from `many`, from `Alternative`.
 
-All of these (except for the primitive) come "for free"!
+All of these additions to our primitive come "for free"!
 
 Essentially, what a free structure gives us is the structure of the abstraction
 (`Alternative`, here) automatically for our base type, and *nothing else*.
@@ -150,7 +154,7 @@ matches or not.  But we use `<|>` and `*>` and `many` exactly how we'd expect
 to concatenate and alternate things with `Applicative` and `Alternative`.
 
 Or maybe more interesting (but slightly more complicated), let's match on the
-same one and return how many `cd`s are repeated
+same pattern and return how many `cd`s are repeated
 
 ```haskell
 !!!misc/regexp.hs "testRegExp ::"
@@ -167,6 +171,17 @@ which requires a little less thought:
 ```haskell
 !!!misc/regexp.hs "testRegExpDo ::"
 ```
+
+It's all a little bit like how we often use "captures" in regular expressions
+to access a *specific part* of a match.  Here's an example in ruby:
+
+```ruby
+irb> /(a|b)((cd)*)e/.match("acdcdcdcde")[2]
+=> "cdcdcdcd"
+```
+
+except we also include a "post-processing" to get the length of the number of
+repetitions.
 
 Parsing
 -------
@@ -199,6 +214,8 @@ For example, we can construct value in the free monoid made from integers:
 
 ```haskell
 -- | Lift the "primitive" `Int` into a value in the free monoid on `Int`.
+--
+-- Analogous to `liftAlt` from earlier.
 liftFM :: Int -> [Int]
 liftFM x = [x]
 
@@ -226,19 +243,23 @@ free monoid on `Int` gives *exactly enough structure* to `Int` to do this job:
 no more, no less.
 
 To use `foldMap`, we say "how to handle the base type", and it lets us handle
-the free structure in its entirety.
+the free structure in its entirety by offloading the behavior of `<>` to the
+concrete monoid.
 
 #### Interpreting in State
 
+In practice, getting a result from a free structure is often about finding (or
+creating) the right concrete `Alternative` that gives us the behavior we want.
 In this case, we're in luck.  There's a concrete `Alternative` instance that
 works just the way we want: `StateT String Maybe`:
 
 *   Its `<*>` works by sequencing changes in state; in this case, we'll
     consider the state as "characters yet to be parsed", so sequential parsing
-    fits perfectly with `<*>`.
+    fits perfectly with `<*>`.  That's because combining regexps sequentially
+    can be thought of as statefully chomping down on a string.
 *   Its `<|>` works by backtracking and trying again if it runs into a failure.
     It saves the state of the last successful point and resets to it on
-    failure.
+    failure.  This is exactly how we want regexp alternation `R|S` to behave.
 
 The "folding" operation of the free alternative is called `runAlt`:
 
@@ -265,8 +286,8 @@ a specific one like `Int` or `Bool`).
 
 [rankn]: https://ocharles.org.uk/guest-posts/2014-12-18-rank-n-types.html
 
-So, like `foldMap`, we need to say "how to handle our base type".  How do we
-handle `Prim`?
+So, like `foldMap`, we need to say "how to handle our base type".  Here, we
+have to answer "How do we handle `Prim`?"
 
 ```haskell
 !!!misc/regexp.hs "processPrim ::"
@@ -277,11 +298,12 @@ state is the "string left to be be processed".  Remember, a `Prim a` contains
 the character we want to match on, and the `a` value we want it to be
 interpreted as.  To process a `Prim`, we:
 
-1.  Get the state's head and tail, using `get`.  If this match fails,
-    backtrack.
-2.  If the head doesn't match what the `Prim` expects, backtrack.  Implemented
-    using `guard`.
-3.  Set the state to be the original tail, using `put`.
+1.  Get the state's (the string left to be parsed) head and tail, using `get`.
+    If this match fails, backtrack.
+2.  Using `guard`, backtrack unless the head matches what the `Prim` expects.
+3.  Set the state to be the original tail, using `put`.  This is because we
+    parsed the head already, so now the "string left to be parsed" is just the
+    original tail.
 4.  The result is what the `Prim` says it should be.
 
 We can use this to write a function that matches the `RegExp` on a prefix.  We
@@ -306,7 +328,7 @@ ghci> matchPrefix testRegexp_ "acdcdcdx"
 Nothing
 ghci> matchPrefix testRegexp "acdcdcde"
 Just 3
-ghci> matchPrefix testRegexp "acdcdcdcdcdcdcde"
+ghci> matchPrefix testRegexp "bcdcdcdcdcdcdcde"
 Just 7
 ```
 
@@ -358,8 +380,8 @@ bother with `Alt`, the free Alternative?
 One major advantage we get from using `Alt` is that `StateT` is...pretty
 powerful.  It's actually *stupid* powerful.  It can represent a lot of
 things...most troubling, it can represent things that *are not regular
-expressions*.  For example, something as simple as `put "hello"` does not
-correspond to *any* regular expression.
+expressions*.  For example, something as simple as `put "hello" :: StateT
+String Maybe ()` does not correspond to *any* regular expression.
 
 So, while we can say that `Alt Prim` corresponds to "regular expressions,
 nothing less and nothing more", we *cannot* say the same about `StateT String
@@ -372,12 +394,12 @@ it can express that *isn't* a regular expression.[^perfect]
 [^perfect]: Note that there are some caveats that should be noted here, due to
 laziness in Haskell.  We will go deeper into this later.
 
-Here, we can think of `StateT` is the context that we use to *interpret* a
+Here, we can think of `StateT` as the context that we use to *interpret* a
 `RegExp` as a *parser*.  But, there might be *other* ways we want to work with
 a `RegExp`.  For example, we might want to inspect it and "print" it out for
 inspection.  This is something we can't do with `StateT`.
 
-We can't say that `StateT String Maybe` *is* a regular expression --- only that
+We can't say that `StateT String Maybe` "is" a regular expression --- only that
 it can represent a parser based on a regular expression.  But we *can* say that
 about `Alt Prim`.
 
@@ -386,6 +408,11 @@ about `Alt Prim`.
 Alright, that's great and all.  But what if we didn't want to offload 83% of
 the behavior to a type that has already been written for us.  Is there a way we
 can directly use the structure of `Alt` itself to write our parser?
+
+This is analogous to asking, what if we wanted to actually write a function on
+a list (by pattern matching on `:` and `[]`) instead of always using `foldMap`?
+Can we directly operate on the structure of the list instead of using `foldMap`
+with some concrete monoid?
 
 I'm glad you asked!  Let's look at the definition of the free alternative:
 
@@ -403,17 +430,22 @@ of `f a`s* (as a chain of function applications).
 
 You can essentially think of `AltF f a` as a linked list `[f r]`, except with a
 different `r` for each item.  `Ap` is cons (`:`), containing the `f r`, and
-`Pure` is nil (`[]`).
+`Pure` is nil (`[]`).  The `forall r.` here is *-XExistentialQuantification*,
+and is what lets us have a different intermediate type for each item in our
+chain.
 
-It's like a list (`Alt` list) of lists (`AltF` chains), which take turn
-alternating between alternative lists and application sequences.
+All in all, `Alt f` is like a list (`Alt` list) of lists (`AltF` chains), which
+take turn alternating between alternative lists and application sequences.
+A list of chains of lists of chains of lists of chains ...
 
-You can think of `Alt f` as a "normalized" form of successive or nested `<*>` and
-`<|>`s, similar to how `[a]` is a "normalized" form of successive `<>`s.
+In the big picture, you can think of `Alt f` as a "normalized" form of
+successive or nested `<*>` and `<|>`s, similar to how `[a]` is a "normalized"
+form of successive `<>`s.
 
 Ultimately we want to write a `RegExp a -> String -> Maybe a`, which parses a
-string based on a `RegExp`.  To do this, we can pattern match and handle the
-cases.
+string based on a `RegExp`.  We can do this using the most basic of all Haskell
+function-writing techniques: pattern matching on each case, and handling each
+case.
 
 First, the top-level `Alt` case.  When faced with a list of chains, we can try
 to parse each one.  The result is the first success.
@@ -430,12 +462,8 @@ each constructor, and handle each case.
 
 ```haskell
 matchChain :: AltF Prim a -> String -> Maybe a
-matchChain (Ap (Prim c x) next) []     = _
-matchChain (Ap (Prim c x) next) (d:ds)
-    | c == d    = _             -- succesful match
-    | otherwise = _             -- bad match
-matchChain (Pure x)             []     = _
-matchChain (Pure x)             (d:ds) = _
+matchChain (Ap (Prim c x) next) cs = _
+matchChain (Pure x)             cs = _
 ```
 
 From here, it's mostly "type tetris"!  We just continually ask GHC what goes in
@@ -475,7 +503,7 @@ ghci> matchAlts testRegexp_ "acdcdcdx"
 Nothing
 ghci> matchAlts testRegexp "acdcdcde"
 Just 3
-ghci> matchAlts testRegexp "acdcdcdcdcdcdcde"
+ghci> matchAlts testRegexp "bcdcdcdcdcdcdcde"
 Just 7
 ```
 
