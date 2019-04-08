@@ -716,7 +716,8 @@ code][code].  One easy addition would be to add other types of primitives:
 data Prim a =
     Only Char a                 -- ^ match a char with a given result
   | Letter a                    -- ^ match any letter with the same result
-  | Wildcard (Char -> Maybe a)  -- ^ match any char, with a computed result
+  | Wildcard (Char -> a)        -- ^ match any char, with a computed result
+  | Satisfy (Char -> Maybe a)   -- ^ match potentially any char, based on a function
 ```
 
 so we can support a lot of the basic character classes that many
