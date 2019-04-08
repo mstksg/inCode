@@ -740,3 +740,13 @@ code][code] as an exercise!
 I hope that after working through this example, you will begin to start
 recognizing opportunities for using free structures everywhere you look!  Once
 you start, it's hard to stop :)
+
+Special Thanks
+--------------
+
+I am very humbled to be supported by an amazing community, who make it possible
+for me to devote time to researching and writing these posts.  Very special
+thanks to my supporters at the "Amazing" level on [patreon][], Sam Stites and
+Josh Vera! :)
+
+[patreon]: https://www.patreon.com/justinle/overview

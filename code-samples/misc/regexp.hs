@@ -66,7 +66,7 @@ matchPrefix :: RegExp a -> String -> Maybe a
 matchPrefix re = evalStateT (runAlt processPrim re)
 
 matchAlts :: RegExp a -> String -> Maybe a
-matchAlts (Alt res) xs = asum [ matchChain re xs | re <- res  ]
+matchAlts (Alt res) xs = asum [ matchChain re xs | re <- res ]
 
 matchChain :: AltF Prim a -> String -> Maybe a
 matchChain (Ap (Prim c x) next) cs = case cs of

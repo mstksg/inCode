@@ -932,3 +932,13 @@ tutorials?
 [link1]: https://bartoszmilewski.com/2018/12/20/open-season-on-hylomorphisms/
 [link2]: https://blog.sumtypeofway.com/an-introduction-to-recursion-schemes/
 [link3]: https://github.com/passy/awesome-recursion-schemes
+
+Special Thanks
+--------------
+
+I am very humbled to be supported by an amazing community, who make it possible
+for me to devote time to researching and writing these posts.  Very special
+thanks to my supporters at the "Amazing" level on [patreon][], Sam Stites and
+Josh Vera! :)
+
+[patreon]: https://www.patreon.com/justinle/overview
