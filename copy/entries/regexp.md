@@ -197,6 +197,9 @@ result is the digit `Int` itself:
 !!!misc/regexp.hs "digit ::"
 ```
 
+Here, `asum [x,y,z] = x <|> y <|> z`: it represents a choice between the items
+in a list.
+
 We can again do some fancy things with it, like make a regexp `\[\d\]` that
 matches on a digit inside `[` / `]` brackets:
 

@@ -50,7 +50,7 @@ testRegExpDo = do
     pure (length cds)
 
 digit :: RegExp Int
-digit = asum [ i <$ char (intToDigit i) | i <- [0..9] ]
+digit = asum [ charAs (intToDigit i) i | i <- [0..9] ]
 
 bracketDigit :: RegExp Int
 bracketDigit = char '[' *> digit <* char ']'
