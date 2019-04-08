@@ -367,6 +367,8 @@ ghci> matchPrefix bracketDigit "[2]"
 Just 2
 ghci> matchPrefix (many bracketDigit) "[2][3][4][5]"
 Just [2,3,4,5]
+ghci> matchPrefix (sum <$> many bracketDigit) "[2][3][4][5]"
+Just 14
 ```
 
 #### Wait, what just happened?
@@ -548,6 +550,8 @@ ghci> matchAlts bracketDigit "[2]"
 Just 2
 ghci> matchAlts (many bracketDigit) "[2][3][4][5]"
 Just [2,3,4,5]
+ghci> matchAlts (sum <$> many bracketDigit) "[2][3][4][5]"
+Just 14
 ```
 
 ### What did we do?
