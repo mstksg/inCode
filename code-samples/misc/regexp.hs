@@ -9,6 +9,7 @@ import           Control.Alternative.Free
 import           Control.Applicative
 import           Control.Monad
 import           Control.Monad.Trans.State
+import           Data.Char
 import           Data.Foldable
 import           Data.List
 import           Data.Maybe
@@ -47,6 +48,12 @@ testRegExpDo = do
     cds <- many (string "cd")
     char 'e'
     pure (length cds)
+
+digit :: RegExp Int
+digit = asum [ i <$ char (intToDigit i) | i <- [0..9] ]
+
+bracketDigit :: RegExp Int
+bracketDigit = char '[' *> digit <* char ']'
 
 processPrim :: Prim a -> StateT String Maybe a
 processPrim (Prim c x) = do

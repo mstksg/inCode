@@ -190,6 +190,20 @@ irb> /(a|b)((cd)*)e/.match("acdcdcdcde")[2]
 except we also include a "post-processing" to get the length of the number of
 repetitions.
 
+Here's another handy regexp that matches on a digit between 0 to 9, and the
+result is the digit `Int` itself:
+
+```haskell
+!!!misc/regexp.hs "digit ::"
+```
+
+We can again do some fancy things with it, like make a regexp `\[\d\]` that
+matches on a digit inside `[` / `]` brackets:
+
+```haskell
+!!!misc/regexp.hs "bracketDigit ::"
+```
+
 Parsing
 -------
 
@@ -332,6 +346,12 @@ ghci> matchPrefix testRegexp "acdcdcde"
 Just 3
 ghci> matchPrefix testRegexp "bcdcdcdcdcdcdcde"
 Just 7
+ghci> matchPrefix digit "9"
+Just 9
+ghci> matchPrefix bracketDigit "[2]"
+Just 2
+ghci> matchPrefix (many bracketDigit) "[2][3][4][5]"
+Just [2,3,4,5]
 ```
 
 #### Wait, what just happened?
@@ -507,6 +527,12 @@ ghci> matchAlts testRegexp "acdcdcde"
 Just 3
 ghci> matchAlts testRegexp "bcdcdcdcdcdcdcde"
 Just 7
+ghci> matchAlts digit "9"
+Just 9
+ghci> matchAlts bracketDigit "[2]"
+Just 2
+ghci> matchAlts (many bracketDigit) "[2][3][4][5]"
+Just [2,3,4,5]
 ```
 
 ### What did we do?
@@ -630,7 +656,9 @@ non-recursive.[^final-many]
 Using the final encoding means we loose the "pattern match" method, and can
 only use the `runAlt` method.  However, we can off-load to `Alternative`
 instances that have non-recursive `many` (like the `RE` type from
-*regex-applicative*) that allows us to generate an NFA parser.
+*regex-applicative*) that allows us to generate an NFA parser.  While this
+still has issues because Haskell allows general recursion, at least `many` in
+specific is no longer dependent on infinite structures.
 
 There's another interesting point to be made, however, regarding compatibility
 with NFAs. Even though this recursive encoding doesn't allow us to create an
