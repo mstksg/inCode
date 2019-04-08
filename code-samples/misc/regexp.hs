@@ -59,7 +59,7 @@ matchPrefix :: RegExp a -> String -> Maybe a
 matchPrefix re = evalStateT (runAlt processPrim re)
 
 matchAlts :: RegExp a -> String -> Maybe a
-matchAlts (Alt ls) xs = asum [ matchChain l xs | l <- ls  ]
+matchAlts (Alt res) xs = asum [ matchChain re xs | re <- res  ]
 
 matchChain :: AltF Prim a -> String -> Maybe a
 matchChain (Ap (Prim c x) next) cs = case cs of
@@ -69,4 +69,7 @@ matchChain (Ap (Prim c x) next) cs = case cs of
 matchChain (Pure x)             _      = Just x
 
 matches :: RegExp a -> String -> [a]
-matches l = mapMaybe (matchPrefix l) . tails
+matches re = mapMaybe (matchPrefix re) . tails
+
+firstMatch :: RegExp a -> String -> Maybe a
+firstMatch re = listToMaybe . matches re
