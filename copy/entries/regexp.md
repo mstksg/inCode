@@ -747,6 +747,10 @@ so we can support a lot of the basic character classes that many
 implementations of regular expressions support.  Try this out in the [sample
 code][code] as an exercise!
 
+One fun thing you can do also is to use our regexp type to generate a string
+that it would match on.  Try doing this both in the `runAlt`-based method and
+also the explicit pattern matching method!
+
 Another interesting direction we can take, along the lines of [build systems a
 la carte][bsalc], is experimenting with different free structures to give rise
 to different types of languages/expressions.  For example, if we use the free
