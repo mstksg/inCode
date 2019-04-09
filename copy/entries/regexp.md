@@ -71,7 +71,7 @@ it means that it has:
 2.  `pure x`, the always-succeeding operation (from the `Applicative` class)
 3.  `<*>`, the sequencing operation (from the `Applicative` class)
 4.  `<|>`, the alternating operation
-5.  `many`, the "one or more" operation.
+5.  `many`, the "zero or more" operation.
 
 This...looks a lot like the construction of a regular language, doesn't it?
 It's almost as if `Alternative` has almost *exactly* what we need.  The only
