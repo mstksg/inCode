@@ -53,7 +53,8 @@ primitives, and seeing the effect that each one has on our primitives.
 [free]: https://hackage.haskell.org/package/free
 [base]: https://hackage.haskell.org/package/base
 
-# Setting the Playing Field
+Setting the Playing Field
+-------------------------
 
 First, let's set up our base primitive functors that we will be playing around
 with and seeing how all of these primitives are affected by our combinators.
@@ -131,13 +132,17 @@ ghci> testParser (argParser (map toUpper <$> nameArg)) "carol"
 ```
 
 
-# Sums
+Sums
+----
 
-# Products
+Products
+--------
 
-# Convolutions
+Convolutions
+------------
 
-# Compositions
+Compositions
+------------
 
 <!-- # Single Functor Transformers -->
 
