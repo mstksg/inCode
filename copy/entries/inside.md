@@ -297,7 +297,7 @@ instance you define is useful and sensible, and follow what sort of meaning
     function composition operator)
 2.  `fmap id thing` should leave `thing` unchanged.
 
-::::: {.note}
+:::::
 
 
 Some notes before we move on!

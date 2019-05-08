@@ -272,7 +272,7 @@ ghci> testParser (optParser ageOpt) "--help"
 ghci> testParser (optParser ageOpt) "--age 25"
 -- 25
 ghci> testParser (optParser ((*2) <$> ageOpt)) "--age 25"
--- 25
+-- 50
 ```
 
 Now that we laid out our basic schemas, let's now think about how we might
