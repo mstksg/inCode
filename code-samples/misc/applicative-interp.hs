@@ -11,7 +11,6 @@
 {-# LANGUAGE TypeInType         #-}
 {-# LANGUAGE TypeOperators      #-}
 
-import           Control.Monad.Morph
 import           Data.Functor.Coyoneda
 import           Data.Functor.Day
 import           Data.Functor.Identity
@@ -23,6 +22,8 @@ import           Data.Proxy
 import           GHC.Generics
 import           Options.Applicative
 
+type Summary = Const [String]
+
 data Arg a = Arg
     { argName  :: String
     , argHelp  :: String
@@ -31,16 +32,16 @@ data Arg a = Arg
   deriving Functor
 
 data OptType :: Type -> Type where
-    OTRequired :: ReadM a -> OptType a
-    OTOptional :: ReadM a -> Maybe (a -> String, a) -> OptType (Maybe a)
+    -- ^ Contains a "name" for the argument, and a reader
+    OTRequired :: String -> ReadM a -> OptType a
+    -- ^ Contains a "name" for the argument, and a reader
+    OTOptional :: String -> ReadM a -> OptType (Maybe a)
     OTSwitch   :: OptType Bool
 
 data Opt a = Opt
-    { optLong  :: String
-    , optShort :: Maybe Char
-    , optMeta  :: String
+    { optFlag  :: String
     , optHelp  :: String
-    , optType  :: Coyoneda OptType a
+    , optType  :: Coyoneda OptType a    -- ^ Coyoneda so we can be a Functor
     }
   deriving Functor
 
@@ -49,30 +50,59 @@ argParser Arg{..} = argument argRead $
         help    argHelp
      <> metavar argName
 
+argSummary :: Arg a -> Summary a
+argSummary Arg{..} = Const [ argName ++ ": " ++ argHelp ]
+
+otRequired :: String -> ReadM a -> Coyoneda OptType a
+otRequired n = liftCoyoneda . OTRequired n
+
+otOptional :: String -> ReadM a -> Coyoneda OptType (Maybe a)
+otOptional n = liftCoyoneda . OTOptional n
+
+otSwitch :: Coyoneda OptType Bool
+otSwitch = liftCoyoneda OTSwitch
+
+optSummary :: forall a. Opt a -> Summary a
+optSummary Opt{..} = lowerCoyoneda $ hoistCoyoneda go optType
+  where
+    go :: OptType x -> Summary x
+    go = \case
+      OTRequired n _ -> Const
+        [ "--" ++ optFlag ++ " " ++ n ++ ": " ++ optHelp ]
+      OTOptional n _ -> Const
+        [ "[--" ++ optFlag ++ " " ++ n ++ "]: " ++ optHelp ]
+      OTSwitch -> Const
+        [ "[--" ++ optFlag ++ "]: " ++ optHelp ]
 
 optParser :: Opt a -> Parser a
 optParser Opt{..} = lowerCoyoneda $ hoistCoyoneda go optType
   where
     go :: OptType x -> Parser x
     go = \case
-      OTRequired r   -> option r mods
-      OTOptional r d -> optional $ option r $
-            mods
-         <> foldMap (\(f,x) -> value x <> showDefaultWith f) d
-      OTSwitch       -> switch $ long optLong
-                              <> foldMap short optShort
-                              <> help optHelp
-    mods :: Mod OptionFields x
-    mods = long optLong
-        <> foldMap short optShort
+      OTRequired n r -> option r $
+           long optFlag
         <> help optHelp
-        <> metavar optMeta
+        <> metavar n
+      OTOptional n r -> optional $ option r $
+           long optFlag
+        <> help optHelp
+        <> metavar n
+      OTSwitch       -> switch $
+           long optFlag
+        <> help optHelp
 
 nameArg :: Arg String
 nameArg = Arg
     { argName = "<name>"
     , argHelp = "A person's name"
     , argRead = str
+    }
+
+ageOpt :: Opt Int
+ageOpt = Opt
+    { optFlag = "age"
+    , optHelp = "A person's age"
+    , optType = otRequired "<int>" auto
     }
 
 testParser :: Parser a -> String -> IO a
