@@ -227,7 +227,7 @@ Here's a sample `Opt` getting a person's age, to demonstrate how things fit
 together.
 
 ```haskell
-!!!misc/applicative-interp.hs "optAge ::"
+!!!misc/applicative-interp.hs "ageOpt ::"
 ```
 
 Interpreting `Coyoneda` is a two-step process:
