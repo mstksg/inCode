@@ -31,65 +31,47 @@ data Arg a = Arg
     }
   deriving Functor
 
-data OptType :: Type -> Type where
-    -- ^ Contains a "name" for the argument, and a reader
-    OTRequired :: String -> ReadM a -> OptType a
-    -- ^ Contains a "name" for the argument, and a reader
-    OTOptional :: String -> ReadM a -> OptType (Maybe a)
-    OTSwitch   :: OptType Bool
-
 data Opt a = Opt
     { optFlag  :: String
     , optHelp  :: String
-    , optType  :: Coyoneda OptType a    -- ^ Coyoneda so we can be a Functor
+    , optMeta  :: String
+    , optRead  :: ReadM a
     }
   deriving Functor
 
-argParser :: Arg a -> Parser a
-argParser Arg{..} = argument argRead $
-        help    argHelp
-     <> metavar argName
+data Switch :: Type -> Type where
+    Switch
+      :: { switchFlag :: String
+         , switchHelp :: String
+         }
+      -> Switch Bool
 
 argSummary :: Arg a -> Summary a
 argSummary Arg{..} = Const [ argName ++ ": " ++ argHelp ]
 
-otRequired :: String -> ReadM a -> Coyoneda OptType a
-otRequired n = liftCoyoneda . OTRequired n
+argParser :: Arg a -> Parser a
+argParser Arg{..} = argument argRead $
+       help    argHelp
+    <> metavar argName
 
-otOptional :: String -> ReadM a -> Coyoneda OptType (Maybe a)
-otOptional n = liftCoyoneda . OTOptional n
-
-otSwitch :: Coyoneda OptType Bool
-otSwitch = liftCoyoneda OTSwitch
-
-optSummary :: forall a. Opt a -> Summary a
-optSummary Opt{..} = lowerCoyoneda $ hoistCoyoneda go optType
-  where
-    go :: OptType x -> Summary x
-    go = \case
-      OTRequired n _ -> Const
-        [ "--" ++ optFlag ++ " " ++ n ++ ": " ++ optHelp ]
-      OTOptional n _ -> Const
-        [ "[--" ++ optFlag ++ " " ++ n ++ "]: " ++ optHelp ]
-      OTSwitch -> Const
-        [ "[--" ++ optFlag ++ "]: " ++ optHelp ]
+optSummary :: Opt a -> Summary a
+optSummary Opt{..} = Const
+    [ "--" ++ optFlag ++ " " ++ optMeta ++ ": " ++ optHelp ]
 
 optParser :: Opt a -> Parser a
-optParser Opt{..} = lowerCoyoneda $ hoistCoyoneda go optType
-  where
-    go :: OptType x -> Parser x
-    go = \case
-      OTRequired n r -> option r $
-           long optFlag
-        <> help optHelp
-        <> metavar n
-      OTOptional n r -> optional $ option r $
-           long optFlag
-        <> help optHelp
-        <> metavar n
-      OTSwitch       -> switch $
-           long optFlag
-        <> help optHelp
+optParser Opt{..} = option optRead $
+       long optFlag
+    <> help optHelp
+    <> metavar optMeta
+
+switchSummary :: Switch a -> Summary a
+switchSummary Switch{..} = Const
+    [ "--" ++ switchFlag ++ ": " ++ switchHelp ]
+
+switchParser :: Switch a -> Parser a
+switchParser Switch{..} = switch $
+       long switchFlag
+    <> help switchHelp
 
 nameArg :: Arg String
 nameArg = Arg
@@ -102,7 +84,14 @@ ageOpt :: Opt Int
 ageOpt = Opt
     { optFlag = "age"
     , optHelp = "A person's age"
-    , optType = otRequired "<int>" auto
+    , optMeta = "<int>"
+    , optRead = auto
+    }
+
+petsSwitch :: Switch Bool
+petsSwitch = Switch
+    { switchFlag = "pets"
+    , switchHelp = "Has pets"
     }
 
 testParser :: Parser a -> String -> IO a
