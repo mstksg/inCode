@@ -257,8 +257,8 @@ dependently typed languages.)
 
 It's kind of like how, when you're used to reading Applicative style, you start
 seeing `f <$> x <*> y` and reading it like `f x y`.  When you see `forall s.
-SomeDoor (Sing s) (Door s)`, you should read (the pseudo-haskell) `forall s.
-SomeDoor s (Door s)`.  The role of `Sing s` there is, like in Part 1, simply to
+MkSomeDoor (Sing s) (Door s)`, you should read (the pseudo-haskell) `forall s.
+MkSomeDoor s (Door s)`.  The role of `Sing s` there is, like in Part 1, simply to
 be a run-time stand-in for the type `s` itself.
 
 So, for our original `Door s` functions, we need to know `s` at runtime --
