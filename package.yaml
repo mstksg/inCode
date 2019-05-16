@@ -23,26 +23,27 @@ dependencies:
 - transformers
 - yaml
 - bytestring
-- dhall >= 1.20
+- dhall >= 1.23
 - lens
 
 library:
   source-dirs: src
   dependencies:
   - binary
+  - binary-instances
   - binary-orphans
   - blaze-html
   - blaze-markup
   - feed
+  - hakyll-dhall >= 0.2.3
   - hakyll-sass
   - hjsmin
   - hsass
+  - inliterate
   - pandoc-types
   - parsec
   - xml-conduit
   - xml-types
-  - inliterate
-  - hakyll-dhall >= 0.2.2.2
 
 executables:
   blog-migrate-entries:

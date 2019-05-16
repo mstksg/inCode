@@ -10,6 +10,7 @@
 module Blog.Types where
 
 import           Control.Lens
+import           Data.Binary.Instances  ()
 import           Data.Binary.Orphans    ()
 import           Data.Char
 import           Data.Default

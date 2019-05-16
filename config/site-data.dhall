@@ -42,7 +42,7 @@
 , blogPrefs =
     ./site-data/blog-prefs.dhall
 , envType =
-    let EnvType = < Development : {} | Production : {} >
+    let EnvType = < Development | Production >
 
-    in  EnvType.Production {=}
+    in  EnvType.Production
 }
