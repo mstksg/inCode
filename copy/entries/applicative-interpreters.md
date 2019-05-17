@@ -127,7 +127,7 @@ Let's run it:
 
 ```haskell
 ghci> argSummary nameArg
--- Const ["<name>: A person's name"]
+Const ["<name>: A person's name"]
 ```
 
 Okay, that's a simple one.  How about a slightly more complicated one?  We can
@@ -198,7 +198,7 @@ Here's a sample `Opt` getting a person's age:
 
 ```haskell
 ghci> optSummary ageOpt
--- Const ["--age <int>: A pesron's age"]
+Const ["--age <int>: A pesron's age"]
 ghci> testParser (optParser ageOpt) "--help"
 -- Usage: <interactive> --age <int>
 --
@@ -249,18 +249,27 @@ Here is an example of a flag indicating whether or not a person has pets:
 
 ```haskell
 ghci> flagSummary petsFlag
--- Const ["--pets: Has pets"]
-ghci> testParser (optParser ageOpt) "--help"
--- Usage: <interactive> --age <int>
---
+Const ["--pets: Has pets"]
+λ: testParser (flagParser petsFlag) "--help"
+-- Usage: <interactive> [--pets]
+-- 
 -- Available options:
---   --age <int>              A person's age
+--   --pets                   Has pets
 --   -h,--help                Show this help text
-ghci> testParser (optParser ageOpt) "--age 25"
--- 25
-ghci> testParser (optParser ((*2) <$> ageOpt)) "--age 25"
--- 50
+-- *** Exception: ExitSuccess
+λ: testParser (flagParser petsFlag) "--pets"
+True
+λ: testParser (flagParser petsFlag) ""
+False
 ```
+
+Note that unlike `Arg` and `Opt`, `Flag` cannot be a `Functor`.  That's because
+fundamentally, a `Functor` must be able to support any type argument...but you
+can only ever produce a `Flag Bool`, and never a `Flag Int` or `Flag String`.
+There are no possible constructors!  But we'll soon see a way to deal with this
+and make `Flag` effectively a `Functor`.
+
+### Imagining the Combinations
 
 Now that we laid out our basic schemas, let's now think about how we might
 want to *combine* them into richer schemas.  How about:
