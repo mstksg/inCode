@@ -83,6 +83,10 @@ First, a Functor to represent a schema for a positional argument:
 !!!misc/applicative-interp.hs "data Arg a"
 ```
 
+An `Arg a` will be a schema describing an argument that parses a value of type
+`a`.  So, an `Arg Int` would be an `Int` argument retrieved from the command
+line.
+
 A schema describing an argument that parses a value of type `a` contains a
 name, a help message, and a `ReadM a`, which is *optparse-applicative*'s string
 parser data type (it contains information on how to parse a `String` into an
@@ -177,6 +181,9 @@ command line interface.   We can do this pretty much the same way:
 !!!misc/applicative-interp.hs "data Opt"
 ```
 
+An `Opt a` is a schema describing an option "flag" that expects a value of type
+`a`.
+
 Again, we'll lay out our interpreters:
 
 ```haskell
@@ -190,6 +197,8 @@ Here's a sample `Opt` getting a person's age:
 ```
 
 ```haskell
+ghci> optSummary ageOpt
+-- Const ["--age <int>: A pesron's age"]
 ghci> testParser (optParser ageOpt) "--help"
 -- Usage: <interactive> --age <int>
 --
@@ -202,114 +211,64 @@ ghci> testParser (optParser ((*2) <$> ageOpt)) "--age 25"
 -- 50
 ```
 
+### Flag
 
-<!-- We *could* define `Opt` in the same way as `Arg`, but just for fun, and -->
-<!-- to look at more subtle aspects of schema functor design, let's make it a little -->
-<!-- more complicated. -->
+One final special interpreter, representing flags that can either be "on"
+(`True`) or "off" (`False`).  We're going to be implementing this using a GADT,
+which means it can't directly be a `Functor`, for demonstrative purposes:
 
-<!-- Namely, let's add the ability to define three *types* of options: required -->
-<!-- options, optional options, and boolean switches.  Each of these have different -->
-<!-- "result types".  A *required* option produces an `a` (depending on the -->
-<!-- `ReadM`), an *optional* option produces a `Maybe a` (depending on the `ReadM`), -->
-<!-- and a *switch* produces a `Bool`.  Here, we use a GADT to associate the result -->
-<!-- types with the type of option, where an `OptType a` is an option type that -->
-<!-- generates a value of type `a`. -->
+```haskell
+!!!misc/applicative-interp.hs "data Flag"
+```
 
-<!-- ```haskell -->
-<!-- !!!misc/applicative-interp.hs "data OptType" -->
-<!-- ``` -->
+A `Flag a` is a schema describing a command line "flag" (an option that is
+either "on" or "off").
 
-<!-- If you're unfamiliar with `GADT` syntax, it's an alternative syntax to -->
-<!-- declaring a new data type, but instead of specifying what's "in" a constructor -->
-<!-- (like `data Maybe a = Nothing | Just a`), we specify the *types* of our -->
-<!-- constructors as functions (like `data Maybe a where Nothing :: Maybe a; Just :: -->
-<!-- a -> Maybe a`). -->
+If you aren't familiar with GADT syntax, here it's being used to say that if
+you use the `Flag` constructor, it'll return a `Flag Bool` --- specifically
+`Bool`, and not any other type.  Here we use a GADT to fix a type with a
+constructor.   If you use the `Flag` constructor, you will get a `Flag Bool`: a
+schema describing a command line flag producing a `Bool`.
 
-<!-- Now notice that `OptType` has kind `Type -> Type`, so it is, itself, an -->
-<!-- interpreter schema.  However, it's not a `Functor` --- do you see why?  You -->
-<!-- can't really `fmap show` an `OTSwitch`, since it would need to change its type. -->
+Our interpreters look straightforward again:
 
-<!-- So close, yet so far, right?  *But*, we can actually use it as if it was a -->
-<!-- `Functor` by giving it to `Coyoneda`, the "free functor". -->
+```haskell
+!!!misc/applicative-interp.hs "flagSummary ::" "flagParser ::"
+```
 
-<!-- ```haskell -->
-<!-- data Coyoneda -->
-<!--     :: (Type -> Type)       -- ^ given a correctly kinded type -->
-<!--     -> (Type -> Type)       -- ^ produce a Functor -->
+Note that the type `Flag a -> Parser a` means that whatever the `a` is, you
+haver to parse a value of that type.  So, if we pattern match on the `Flag`
+constructor, we know that `a` must be `Bool`, so we can return a `Parser Bool`
+(which is what `switch`, from *optparse-applicative*, returns).
 
-<!-- instance Functor (Coyoneda f) -->
-<!-- ``` -->
+Here is an example of a flag indicating whether or not a person has pets:
 
-<!-- We can embed an `f` into a `Coyoneda f` by using `liftCoyoneda`: -->
+```haskell
+!!!misc/applicative-interp.hs "petsFlag ::"
+```
 
-<!-- ```haskell -->
-<!-- !!!misc/applicative-interp.hs "otRequired ::" "otOptional ::" "otSwitch ::" -->
-<!-- ``` -->
-
-<!-- Now we can write our `Opt` schema, using `Coyoneda OptType` to let our type be -->
-<!-- a `Functor`: -->
-
-<!-- ```haskell -->
-<!-- !!!misc/applicative-interp.hs "data Opt" -->
-<!-- ``` -->
-
-<!-- Here's a sample `Opt` getting a person's age, to demonstrate how things fit -->
-<!-- together. -->
-
-<!-- ```haskell -->
-<!-- !!!misc/applicative-interp.hs "ageOpt ::" -->
-<!-- ``` -->
-
-<!-- Interpreting `Coyoneda` is a two-step process: -->
-
-<!-- 1.  First, use `hoistCoyoneda` to *interpret* the schema inside, to our target -->
-<!--     action type -->
-<!-- 2.  Then, use `lowerCoyoneda :: Functor f => Coyoneda f a -> f a` to *extract* -->
-<!--     our target action. -->
-
-<!-- This pattern ("interpret within the combinator, then extract from the -->
-<!-- combinator") is a common one we will be using to interface with *all* of our -->
-<!-- combinators. -->
-
-<!-- Interpreting into `Summary`: -->
-
-<!-- ```haskell -->
-<!-- !!!misc/applicative-interp.hs "optSummary ::" -->
-<!-- ``` -->
-
-<!-- Here we *interpret* our `Coyoneda OptType a` into a `Summary a` using `go`. -->
-<!-- `hoistCoyoneda go optType :: Coyoneda Summary a`, and `lowerCoyoneda :: -->
-<!-- Coyoneda Summary a -> Summary a` *extracts* it. -->
-
-<!-- ```haskell -->
-<!-- ghci> optSummary ageOpt -->
-<!-- -- Const ["--age <int>: A person's age"] -->
-<!-- ``` -->
-
-<!-- Next, into `Parser`, using *optparse-applicative*.  Again, interpret then extract: -->
-
-<!-- ```haskell -->
-<!-- !!!misc/applicative-interp.hs "optParser ::" -->
-<!-- ``` -->
-
-<!-- ```haskell -->
-<!-- ghci> testParser (optParser ageOpt) "--help" -->
-<!-- -- Usage: <interactive> --age <int> -->
-<!-- -- -->
-<!-- -- Available options: -->
-<!-- --   --age <int>              A person's age -->
-<!-- --   -h,--help                Show this help text -->
-<!-- ghci> testParser (optParser ageOpt) "--age 25" -->
-<!-- -- 25 -->
-<!-- ghci> testParser (optParser ((*2) <$> ageOpt)) "--age 25" -->
-<!-- -- 50 -->
-<!-- ``` -->
+```haskell
+ghci> flagSummary petsFlag
+-- Const ["--pets: Has pets"]
+ghci> testParser (optParser ageOpt) "--help"
+-- Usage: <interactive> --age <int>
+--
+-- Available options:
+--   --age <int>              A person's age
+--   -h,--help                Show this help text
+ghci> testParser (optParser ageOpt) "--age 25"
+-- 25
+ghci> testParser (optParser ((*2) <$> ageOpt)) "--age 25"
+-- 50
+```
 
 Now that we laid out our basic schemas, let's now think about how we might
 want to *combine* them into richer schemas.  How about:
 
 *   A schema that can have multiple `Arg`s
 *   A schema that can have multiple `Opt`s
+*   A schema that can take a single *optional* `Opt`.
+*   A schema that can have multiple `Flag`s
 *   A schema that can have a single `Arg`, and multiple `Opt`s (or vice versa)
 *   A schema that has different `Opt`s and `Arg`s according to different
     subcommands
@@ -320,13 +279,8 @@ want to *combine* them into richer schemas.  How about:
     interpreting function *must* present both to the user.
 
 Think about all of the interesting schemas you could build using a combination
-of `Arg` and `Opt`.  Now, let's see what tools we have at our disposal!
-
-
-
-
-
-
+of `Arg` and `Opt` and `Flag`.  Now, let's see what tools we have at our
+disposal!
 
 Sums
 ----

@@ -32,19 +32,19 @@ data Arg a = Arg
   deriving Functor
 
 data Opt a = Opt
-    { optFlag  :: String
-    , optHelp  :: String
-    , optMeta  :: String
-    , optRead  :: ReadM a
+    { optString :: String
+    , optHelp   :: String
+    , optMeta   :: String
+    , optRead   :: ReadM a
     }
   deriving Functor
 
-data Switch :: Type -> Type where
-    Switch
-      :: { switchFlag :: String
-         , switchHelp :: String
+data Flag :: Type -> Type where
+    Flag
+      :: { flagString :: String
+         , flagHelp   :: String
          }
-      -> Switch Bool
+      -> Flag Bool
 
 argSummary :: Arg a -> Summary a
 argSummary Arg{..} = Const [ argName ++ ": " ++ argHelp ]
@@ -56,22 +56,22 @@ argParser Arg{..} = argument argRead $
 
 optSummary :: Opt a -> Summary a
 optSummary Opt{..} = Const
-    [ "--" ++ optFlag ++ " " ++ optMeta ++ ": " ++ optHelp ]
+    [ "--" ++ optString ++ " " ++ optMeta ++ ": " ++ optHelp ]
 
 optParser :: Opt a -> Parser a
 optParser Opt{..} = option optRead $
-       long optFlag
+       long optString
     <> help optHelp
     <> metavar optMeta
 
-switchSummary :: Switch a -> Summary a
-switchSummary Switch{..} = Const
-    [ "--" ++ switchFlag ++ ": " ++ switchHelp ]
+flagSummary :: Flag a -> Summary a
+flagSummary Flag{..} = Const
+    [ "--" ++ flagString ++ ": " ++ flagHelp ]
 
-switchParser :: Switch a -> Parser a
-switchParser Switch{..} = switch $
-       long switchFlag
-    <> help switchHelp
+flagParser :: Flag a -> Parser a
+flagParser Flag{..} = switch $
+       long flagString
+    <> help flagHelp
 
 nameArg :: Arg String
 nameArg = Arg
@@ -82,16 +82,16 @@ nameArg = Arg
 
 ageOpt :: Opt Int
 ageOpt = Opt
-    { optFlag = "age"
-    , optHelp = "A person's age"
-    , optMeta = "<int>"
-    , optRead = auto
+    { optString = "age"
+    , optHelp   = "A person's age"
+    , optMeta   = "<int>"
+    , optRead   = auto
     }
 
-petsSwitch :: Switch Bool
-petsSwitch = Switch
-    { switchFlag = "pets"
-    , switchHelp = "Has pets"
+petsFlag :: Flag Bool
+petsFlag = Flag
+    { flagString = "pets"
+    , flagHelp   = "Has pets"
     }
 
 testParser :: Parser a -> String -> IO a
