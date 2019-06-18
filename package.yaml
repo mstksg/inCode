@@ -9,6 +9,8 @@ license:          BSD3
 ghc-options:
 - -Wall
 - -fwarn-redundant-constraints
+- -Werror=incomplete-patterns
+- -Wcompat
 
 dependencies:
 - base >=4 && <5
