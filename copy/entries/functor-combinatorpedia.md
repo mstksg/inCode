@@ -57,6 +57,11 @@ run-down of all the popular free structures in Haskell :)
 [fs3]: https://blog.jle.im/entry/const-applicative-and-monoids.html
 [fs4]: https://blog.jle.im/entry/free-alternative-regexp.html
 
+Please refer to the [table of contents][toc] if you are using this as a
+reference!
+
+[toc]: https://blog.jle.im/entry/functor-combinatorpedia.html#title
+
 Prologue: What is a functor combinator?
 ---------------------------------------
 
@@ -1420,6 +1425,11 @@ intact: functor combinators only ever *add* structure.
 
     The actual structure of your `FormElem` is deferred until you provide the
     `HostName`.
+
+    Note that, unlike `ReaderT`, most monad transformers from *transformers*
+    are actually valid functor combinators under our perspective here, because
+    most of them are not *natural* on `f`: they require `Functor f`, at least,
+    to implement `inject` or `hmap`.
 
 *   **Constraint**
 
