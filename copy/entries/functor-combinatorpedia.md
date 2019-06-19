@@ -7,6 +7,11 @@ identifier: functor-combinatorpedia
 slug: functor-combinatorpedia
 ---
 
+**functor-combinators**: [hackage][functor-combinators] / [github][]
+
+[functor-combinators]: https://hackage.haskell.org/package/functor-combinators
+[github]: https://github.com/mstksg/functor-combinators
+
 Recently I've been very productive what I have been calling the
 "Functor Combinator" design pattern.  It is heavily influenced by ideas like
 [Data types a la Carte][dtalc] and [unified free monoidal functors][ufmf], but
@@ -46,11 +51,9 @@ an overview of the *[functor-combinators][]* library, which mostly pulls them
 all together and provides a unified interface for working with them.  Most of
 these types and typeclasses are exported by *[Data.Functor.Combinator]*.
 
-[functor-combinators]: https://hackage.haskell.org/package/functor-combinators
-
 For concrete examples on *using* these, see my previous [articles][fs1]
 [on][fs2] [free][fs3] [structures][fs4]).  In a way, this post also serves as a
-run-down of all the popular free structures in Haskell :)
+reference for all the popular free structures in Haskell, and more :)
 
 [fs1]: https://blog.jle.im/entry/alchemical-groups.html
 [fs2]: https://blog.jle.im/entry/interpreters-a-la-carte-duet.html
@@ -62,8 +65,8 @@ reference!
 
 [toc]: https://blog.jle.im/entry/functor-combinatorpedia.html#title
 
-Prologue: What is a functor combinator?
----------------------------------------
+Preface: What is a functor combinator?
+--------------------------------------
 
 A functor combinator takes "functors" (or other indexed types) and returns a
 new functor, enhances or mixes them together in some way.  That is, they take
@@ -91,10 +94,10 @@ allow you to construct your final functor by combining simpler "primitive"
 functors, and take advantage of common functionality.
 
 For example, if you were making a data type/EDSL to describe a command line
-parser, you might have two primitives: `data Arg a`, for positional arguments
-parsing `a`, and `data Option a`, for `--flag` non-positional options parsing
-`a`.  From there, you can *choose* what structure of command line arguments you
-want to be able to express.
+argument parser, you might have two primitives: `data Arg a`, for positional
+arguments parsing `a`, and `data Option a`, for `--flag` non-positional options
+parsing `a`.  From there, you can *choose* what structure of command line
+arguments you want to be able to express.
 
 For instance, a structure that can support multiple arguments and optionally a
 single `Option` would be:
@@ -103,7 +106,8 @@ single `Option` would be:
 type CommandArgs = Ap Arg :*: Lift Option
 ```
 
-And a structure that supports *multiple commands* on top of that would be:
+And a structure that supports *multiple named commands* on top of that would
+be:
 
 ```haskell
 type CommandArgs = MapF String (Ap Arg :*: Lift Option)
@@ -163,11 +167,12 @@ class HBifunctor t where
 ```
 
 What does it mean exactly when we say that `hmap` and `hbimap` "preserve the
-enhanced structure"?  Well, for example, `ListF f a` is essentially a list of
-`f a`s.  `hmap` will swap out and replace each `f a`, but it must *preserve the
-relative order* between each of the original `f a`s.  And it must preserve the
-length of the list.  It's a complete "in-place swap".  This is formalizing by
-requiring `hmap id == id` and `hbimap id id == id`.
+enhanced structure"?  Well, for example, the type `newtype ListF f a = ListF [f
+a]` is essentially a list of `f a`s.  `hmap` will swap out and replace each `f
+a`, but it must *preserve the relative order* between each of the original `f
+a`s.  And it must preserve the length of the list.  It's a complete "in-place
+swap".  This is formalizing by requiring `hmap id == id` and `hbimap id id ==
+id`.
 
 You can also always "lift" a functor value into its transformed type.  We
 abstract over this by using `inject` (for single-argument functors) and `inL`
@@ -201,6 +206,8 @@ class Interpret t where
         -> t f ~> g
 
 class Semigroupoidal t where
+    type CS t :: (Type -> Type) -> Constraint
+
     -- | Interpret binary functor combinator
     binterpret
         :: CS t h
@@ -213,7 +220,14 @@ Each functor combinator defines a constraint (`C` for unary functor
 combinators, and `CS` and `CM` for binary functor combinators) that allows you
 to "exit", or "run" the functor combinator.
 
-For some concrete examples:
+One nice consequence of this approach is that for many such schemas/functors
+you build, there might be many *useful* target functors.  For example, if you
+build a command line argument parser schema, you might want to run it in `Const
+String` to build up a "help message", or you might want to run it in `Parser`
+to parse the actual arguments or run pure tests, or you might want to run it in
+`IO` to do interactive parsing.
+
+For some concrete examples of these functor combinators and their constraints:
 
 ```haskell
 type C Free = Monad
@@ -296,25 +310,31 @@ These constraints all depend on the extra structure that the specific functor
 combinator imbues.
 
 As it turns out, `CS` and `CM` generalize the "has an identity" property of
-many typeclasses --- for example, for `Comp` (functor composition), `CS` is
-`Bind` ("`Monad` without `pure`"), and `CM` is `Monad`.
+many typeclasses --- for example, for `Comp` (functor composition), `type CS
+Comp = Bind` ("`Monad` without `pure`"), and `type CM Comp = Monad`.
 
 Most of these also have an identity functor, `I t`, where applying `t f (I t)`
 leaves `f` unchanged (`t f (I t)` is isomorphic to `f`) and `t (I t) f` is also
-just `f`.  This is represented by the associated type `I t` (examples will be
-provided below).
+just `f`.  This is represented by the associated type `I t`.  For example,
+`type I Comp = Identity`, because `Comp f Identity` (composing any functor with
+`Identity`, `f (Identity a)`) is just the same as `f` (the original functor).
 
 One interesting property of these is that for a lot of these, if we have a
 binary functor combinator `*`, we can represent a type `f | f * f | f * f * f |
 f * f * f * f | ...` ("repeatedly apply to something multiple times"), which
 essentially forms a linked list along that functor combinator.  We call this
 the "induced monoidal functor combinator", given by `MF t`.  We can also make a
-"non-empty variant", `SF t`, the "induced semigroupoidal functor combinator",
-which contains "at least one `f`" (examples provided below).
+"non-empty variant", `SF t`, which contains "at least one `f`".
 
-They all support functions for "converting" back and forth,
-like `toMF :: t f f ~> MF f` (provided by *functor-combinators* in the
-`Monoidal` typeclass).
+For example, the type that is either `a`, `f a`, `f (f a)`, `f (f (f a))`, etc.
+is `Free f`, so that `type MF Comp = Free`.  The type that is either `f a`, `f
+(f a)`, `f (f (f a))`, etc. (at least one layer of `f`) is `Free1`, so `type SF
+Comp = Free1`.
+
+*functor-combinators* provides functions like `toMF :: t f f ~> MF f` to
+abstract over "converting" back and forth between `t f f a` and the induced
+monoidal functor combinator `MF t f a` (for example, between `Comp f f a` and
+`Free f a`).
 
 This is all a bit abstract, but let's dive into some actual examples, which
 will make these all clearer.
@@ -708,9 +728,17 @@ will make these all clearer.
     See the information later on `Free` alone (in the single-argument functor
     combinator section) for more information on usage and utility.
 
-
 [Control.Monad.Freer.Church]: https://hackage.haskell.org/package/functor-combinators/docs/Control-Monad-Freer-Church.html
 [Data.Functor.Compose]: https://hackage.haskell.org/package/base/docs/Data-Functor-Compose.html
+
+Let us pause for a brief aside to compare and contrast the hierarchy of the
+above functor combinators, as there is an interesting progression we can draw
+from them.
+
+1.  `:+:`: Provide either, be ready for both.
+2.  `:*:`: Provide both, be ready for either.
+3.  `Day`: Provide both, be ready for both.
+4.  `Comp`: Provide both (in order), be ready for both (in order).
 
 ### These1
 
@@ -1346,7 +1374,7 @@ intact: functor combinators only ever *add* structure.
     ```
 
     We can immediately promote it to be a functor representing *multiple
-    possible* commands, each at a given string:
+    possible* named commands, each at a given string:
 
     ```haskell
     type Commands = MapF String Command
@@ -1831,3 +1859,183 @@ intact: functor combinators only ever *add* structure.
     Interpreting out of these requires an impossible constraint.
 
 [Data.HFunctor]: https://hackage.haskell.org/package/base/docs/Data-HFunctor.html
+
+Combinator Combinators
+----------------------
+
+There exist higher-order functor combinator combinators that take functor
+combinators and return new ones, too.  We can talk about a uniform interface
+for them, but they aren't very common, so it is probably not worth the extra
+abstraction.
+
+### ComposeT
+
+
+*   **Origin**: *[Control.Monad.Trans.Compose][]*
+
+*   **Enhancement**: Compose enhancements from two different functor
+    combinators
+
+    ```haskell
+    newtype ComposeT s t f a = ComposeT { getComposeT :: s (t f) a }
+    ```
+
+    Can be useful if you want to layer or nest functor combinators to get both
+    enhancements as a *single* functor combinator*.
+
+    Usually really only useful in the context of other abstractions that expect
+    functor combinators, since this is the best way to turn two functor
+    combinators into a third one.
+
+*   **Constraint**
+
+    ```haskell
+    type C (ComposeT s t) = AndC (C s) (C t)
+
+    interpret @(ComposeT s t)
+        :: (C s g, C t g)
+        => f ~> g
+        -> ComposeT s t f ~> g
+    ```
+
+    Interpreting out of these requires the constraints on *both* layers.
+
+[Control.Monad.Trans.Compose]: https://hackage.haskell.org/package/mmorph/docs/Control-Monad-Trans-Compose.html
+
+### HLift
+
+*   **Origin**: *[Data.HFunctor][]*
+
+*   **Enhancement**: `HLift t f` lets `f` exist either unchanged, or with the
+    structure of `t`.
+
+    ```haskell
+    data HLift t f a
+        = HPure  (f a)
+        | HOther (t f a)
+    ```
+
+    Can be useful if you want to "conditionally enhance" `f`.  Either `f` can
+    be enhanced by `t`, or it can exist in its pure "newly-injected" form.
+
+    If `t` is `Identity`, we get `EnvT Any`, or `f :+: f`: the "pure or impure"
+    combinator.
+
+*   **Constraint**
+
+    ```haskell
+    type C (HLift t) = C t
+
+    interpret @(HLift t)
+        :: C t g
+        => f ~> g
+        -> HLift t f ~> g
+    ```
+
+    Interpreting out of these requires the constraint on `t`, to handle the
+    `HOther` case.
+
+### HFree
+
+*   **Origin**: *[Data.HFunctor][]*
+
+*   **Enhancement**: `HFree t f` lets `f` exist either unchanged, or with
+    multiple nested enhancements by `t`.
+
+    ```haskell
+    data HFree t f a
+        = HReturn (f a)
+        | HJoin   (t (HFree t f) a)
+    ```
+
+    It is related to `HLift`, but lets you lift over arbitrary many
+    compositions of `t`, enhancing `f` multiple times.  This essentially
+    creates a "tree" of `t` branches.
+
+    One particularly useful functor combinator to use is `MapF`.  In our
+    earlier examples, if we have
+
+    ```haskell
+    data Command a
+    ```
+
+    to represent the structure of a single command line argument parser, we can
+    use
+
+    ```haskell
+    type Commands = MapF String Command
+    ```
+
+    to represent *multiple* potential named commands, each under a different
+    `String` argument.  With `HFree`, we can also use:
+
+    ```haskell
+    type CommandTree = HFree (MapF String) Command
+    ```
+
+    to represent *nested* named commands, where each nested sub-command is
+    descended on by a `String` key.
+
+    For another example, `HFree IdentityT` is essentially `Step`.
+
+*   **Constraint**
+
+    ```haskell
+    type C (HFree t) = C t
+
+    interpret @(HFree t)
+        :: C t g
+        => f ~> g
+        -> HFree t f ~> g
+    ```
+
+    Interpreting out of these requires the constraint on `t`, to handle the
+    `HJoin` case.
+
+    However, it is probably usually more useful to directly pattern match on
+    `HReturn` and `HJoin` and handle the recursion explicitly.
+
+    Alternatively, we can also define a recursive folding function (provided in
+    *[Data.HFunctor][]*) to recursively fold down each branch:
+
+    ```haskell
+    foldHFree
+        :: HFunctor t
+        => (f ~> g)
+        -> (t g ~> g)
+        -> HFree t f ~> g
+    ```
+
+    This can be useful because it allows you to distinguish between the
+    different branches, and also requires no constraint on `g`.
+
+    Applied to the `CommandTree` example, this becomes:
+
+    ```haskell
+    foldHFree @(MapF String) @Command
+        :: Command ~> g
+        -> MapF String ~> g
+        -> CommandTree ~> g
+    ```
+
+Closing Comments
+----------------
+
+As I discover more interesting or useful functor combinators (or as the
+abstractions in *functor-combinators* change), I will continue to update this
+post.  And, in the upcoming weeks and months I plan to present specific
+programs I have written (and simple examples of usage) that will help show this
+design pattern in use within a real program.
+
+For now, I hope you can appreciate this as a reference to help guide your
+exploration of unique "a la carte" (yet not fixed-point-centric) approach to
+building your programs!  You can jump right into using these tools to build
+your program *today* by importing *[Data.Functor.Combinator][]* or wherever
+they can be found.
+
+I'd be excited to hear about what programs you are able to write, so please do
+let me know!  You can leave a comment, find me on [twitter at @mstk][], or find
+me on freenode irc idling on *#haskell* as *jle\`* if you want to share, or
+have any questions.
+
+[twitter]: https://twitter.com/mstk "Twitter"
