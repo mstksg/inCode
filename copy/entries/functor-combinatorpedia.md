@@ -78,6 +78,10 @@ planned in the future going through projects using this unified interface.  In
 a way, this post also serves as the "introduction to free structures" that I
 always wanted to write :)
 
+[ialc]: https://blog.jle.im/entry/interpreters-a-la-carte-duet.html
+[are]: https://blog.jle.im/entry/free-alternative-regexp.html
+
+
 Please refer to the [table of contents][toc] if you are using this as a
 reference!
 
