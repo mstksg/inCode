@@ -1435,12 +1435,19 @@ intact: functor combinators only ever *add* structure.
     When using `inject :: Monoid e => f a -> EnvT e f a`, it uses `mempty` as
     the initial `e` value.
 
-    This can be thought of as `Const e :*: f`.
+    One of my personal favorite uses of `EnvT` is the *[flare][]* purescript
+    library, which uses the `e` as the observed HTML of a form, and the `f a`
+    as an active way to get information from a form interactively.  `inject` is
+    used to insert an active form element without caring about its HTML
+    representation, and `interpret` would "run" the active elements to get the
+    results.
 
     This type exists specialized a few times here, as well:
 
     *   `Step` is `EnvT (Sum Natural)`
     *   `Flagged` is `EnvT Any`
+
+[flare]: https://github.com/sharkdp/purescript-flare
 
 *   **Constraint**
 
