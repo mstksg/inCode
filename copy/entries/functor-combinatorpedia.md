@@ -204,10 +204,10 @@ abstract over this by using `inject` (for single-argument functors) and `inL`
 and `inR` (for two-argument functors):
 
 ```haskell
-class Inject t where
-    -- | Lift `f` into `t f`
-    inject :: f ~> t f
+-- single argument functor combinators
+inject :: f ~> t f
 
+-- two-argument functor combinators
 inL :: (Monoidal t, CM t g)     -- more on the `CM t` later
     => f ~> t f g
 
