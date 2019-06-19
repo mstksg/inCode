@@ -19,7 +19,8 @@ a la Carte][dtalc] and [unified free monoidal functors][ufmf], but the end goal
 is slightly different in spirit.  The goal is to represent schemas, DSL's, and
 computations (things like parsers, things to execute, things to consume or
 produce data) by assembling "self-evident" basic primitives and subjecting them
-to many *different* successive transformations and combiners.  The process of
+to many *different* successive transformations and combiners (through
+combinators, free structures, tensors, and other options).  The process of
 doing so:
 
 
@@ -94,7 +95,8 @@ A functor combinator takes "functors" (or any other indexed type, `k -> Type`)
 and returns a new functor, enhances or mixes them together in some way.  That
 is, they take things of kind `k -> Type` and themselves return a `j -> Type`.
 This lets us build complex functors/indexed types out of simpler "primitive"
-ones.
+ones.  This includes many some monad transformers, free structures, and
+tensors.
 
 For example, `ReaderT r` is a famous one that takes a functor `f` and enhances
 it with "access to an `r` environment" functionality.  Another famous one is
