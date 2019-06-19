@@ -39,10 +39,28 @@ successive transformations and combiners.  The process of doing so:
 
 Like "data types a la carte" and free monad/applicative/alternative designs,
 these techniques allow you to separate the assembly and inspection of your
-programs from the "running" of them.  However, the main difference is that here
-we focus not just on products and sums, but many different varied and
-multi-purpose combinators --- a bona fide "zoo" of combinators.  The fixed
-point is not "the end goal".
+programs from the "running" of them.[^comparisons]  However, the main
+difference is that here we focus not just on products and sums, but many
+different varied and multi-purpose combinators --- a bona fide "zoo" of
+combinators.  The fixed point is not "the end goal".
+
+[^comparisons]: On the surface, this functor combinator design pattern might
+    look like it fills a similar space to effects systems and libraries like
+    *[mtl][]*, *[polysemy][]*, *[freer-simple][]*, or *[fused-effects][]*.
+    However, this design pattern actually exists on a different level.
+
+    Functor combinator design patterns can be used to help build the
+    *structure* of the *data types* and schemas that define your program/DSL.
+    Once you build these nice structures, you then *interpret* them into some
+    target context. This "target context" is the realm that libraries like
+    *mtl* and *polysemy* can fill; functor combinators serve to help you define
+    a structure for your program *before* you interpret it into whatever
+    Applicative or Monad or effects system you end up using.
+
+[mtl]: https://hackage.haskell.org/package/mtl
+[polysemy]: https://hackage.haskell.org/package/polysemy
+[freer-simple]: https://hackage.haskell.org/package/freer-simple
+[fused-effects]: https://hackage.haskell.org/package/fused-effects
 
 This post is a run-down on the wide variety of such "functor combinators"
 across the Haskell ecosystem --- a functor combinator "zoo" of sorts.  To speak
