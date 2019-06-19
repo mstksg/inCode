@@ -3,6 +3,7 @@ title: The Functor Combinatorpedia
 categories: Haskell
 tags: functional programming, free, haskell, interpreters
 create-time: 2019/06/17 21:43:36
+date: 2019/06/19 10:41:46
 identifier: functor-combinatorpedia
 slug: functor-combinatorpedia
 ---
@@ -2080,3 +2081,12 @@ me on freenode irc idling on *#haskell* as *jle\`* if you want to share, or
 have any questions.
 
 [twitter]: https://twitter.com/mstk "Twitter"
+
+Special Thanks
+--------------
+
+I am very humbled to be supported by an amazing community, who make it possible
+for me to devote time to researching and writing these posts.  Very special
+thanks to my supporter at the "Amazing" level on [patreon][], Josh Vera! :)
+
+[patreon]: https://www.patreon.com/justinle/overview
