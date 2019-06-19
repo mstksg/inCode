@@ -44,7 +44,8 @@ these techniques allow you to separate the assembly and inspection of your
 programs from the "running" of them.[^comparisons]  However, the main
 difference is that here we focus not just on products and sums, but many
 different varied and multi-purpose combinators --- a "zoo" of combinators.  The
-fixed point is *not* the end goal.
+fixed point is *not* the end goal.  The actual ADT data types *themselves* are
+the goal.
 
 [^comparisons]: On the surface, this functor combinator design pattern might
     look like it fills a similar space to effects systems and libraries like
@@ -70,7 +71,10 @@ them all with the same language and vocabulary, this post also serves as an
 overview of the *[functor-combinators][]* library, which doesn't really define
 these functor combinators, but rather pulls them all together and provides a
 unified interface for working with them.  Most of these types and typeclasses
-are exported by *[Data.Functor.Combinator]*.
+are exported by *[Data.Functor.Combinator]*.  Of course, the end-goal is to
+work with these data types *themselves* directly, so not *everything* is meant
+to be doable with these typeclasses; they only serve to unite some common
+aspects.
 
 Right now I already have some posts about this general design pattern,
 ["Interpreters a la Carte" in Advent of Code 2017 Duet][ialc] and [Applicative
@@ -384,6 +388,9 @@ monoidal functor combinator `MF t f a` (for example, between `Comp f f a` and
     type CM t = C (MF t)
     ```
 
+    In fact, in the library, `binterpret` and `pureT` are actually defined *in
+    terms of* `SF` and `MF`, respectively.
+
 ### :+: / Sum
 
 *   **Origin**: *[GHC.Generics][]* (for `:+:`) / *[Data.Functor.Sum][]* (for
@@ -617,6 +624,23 @@ monoidal functor combinator `MF t f a` (for example, between `Comp f f a` and
     Unlike for `:*:`, you always have to interpret *both* functor values in
     order to interpret a `Day`.  It's a "full mixing".
 
+    The mechanism for this is interesting in and of itself.  Looking at the
+    definition of the data type:
+
+    ``haskell
+    data Day f g a = forall x y. Day (f x) (g y) (x -> y -> a)
+    ```
+
+    We see that because `x` and `y` are "hidden" from the external world, we
+    can't directly use them without applying the "joining" function `x -> y ->
+    a`.  Due to how existential types work, we can't get anything out of it
+    that "contains" `x` or `y`.  Because of this, *using* the joining function
+    requires *both* `f x` and `g y`.  If we only use `f x`, we can only get, at
+    best,`f (y -> a)`; if we only use `g y`, we can only get, at best, `g (x ->
+    a)`.  In order to fully eliminate *both* existential variables, we need to
+    get the `x` and `y` from *both* `f x` and `g y`, as if the two values held
+    separate halves of the key.
+
 *   **Identity**
 
     ```haskell
@@ -831,10 +855,10 @@ from them.
 *   **Identity**
 
     ```haskell
-    type I These1 = Void
+    type I These1 = Void1
     ```
 
-    `These1 f Void` is equivalent to just `f`, because it means the `That1` and
+    `These1 f Void1` is equivalent to just `f`, because it means the `That1` and
     `These1` branches will be impossible to construct, and you are left with
     only the `This1` branch.
 
@@ -867,7 +891,7 @@ from them.
     ```
 
     `Steps`, the induced monoidal functor combinator, is the result of an
-    infinite application of `These1 to the same value:
+    infinite application of `These1` to the same value:
 
     ```haskell
     type Steps f = f `These1` f `These1` f `These1` f `These1` ... etc.
@@ -1039,9 +1063,9 @@ intact: functor combinators only ever *add* structure.
     `Functor`.  Usually, the context is an `Applicative` or `Monad`, so this
     is typically always satisfied.
 
-    For example, if we want to "run" a `Coyoneda FormElem` into `IO`, this
-    would be `interpret :: (forall x. FormElem x -> IO x) -> Coyoneda FormElem
-    a -> IO a`.
+    For example, if we want to "run" a `Coyoneda FormElem` in `IO` (maybe as an
+    interactive CLI form), this would be `interpret :: (forall x. FormElem x ->
+    IO x) -> Coyoneda FormElem a -> IO a`.
 
 [Data.Functor.Coyoneda]: https://hackage.haskell.org/package/kan-extensions/docs/Data-Functor-Coyoneda.html
 
@@ -1104,9 +1128,9 @@ intact: functor combinators only ever *add* structure.
 
     Interpreting out of a `ListF f` requires the target context to be
     `Plus`, and interpreting out of a `NonEmptyF f` requires `Alt` (because you
-    will never have the empty case).  However, you can directly pattern match
-    on the list and pick an item you want directly, which requires no
-    constraint.
+    will never have the empty case).  However, you always have the option to
+    directly pattern match on the list and pick an item you want directly,
+    which requires no constraint.
 
 [Control.Applicative.ListF]: https://hackage.haskell.org/package/functor-combinators/docs/Control-Applicative-ListF.html
 
@@ -1139,6 +1163,27 @@ intact: functor combinators only ever *add* structure.
     `Ap` has some utility over `Free` in that you can pattern match on the
     constructors directly and look at each individual sequenced `f a`, for
     static analysis, before anything is ever run or interpreted.
+
+    *Structurally*, `Ap` is built like a linked list of `f x`s, which each link
+    being existentailly bound together:
+
+    ```haskell
+    data Ap :: (Type -> Type) -> Type -> Type where
+        Pure :: a   -> Ap f a
+        Ap   :: f a -> Ap f (a -> b) -> Ap f b
+    ```
+
+    `Pure` is like "nil", and `Ap` is like "cons":
+
+    ```haskell
+    data List :: Type -> Type where
+        Nil  :: List a
+        Cons :: a -> List a -> List a
+    ```
+
+    The existential type in the `Ap` branch plays the same role that it does in
+    the definition of `Day` (see the description of `Day` for more
+    information).
 
     `Ap1` is a variety of `Ap` where you always have to have "at least one
     `f`".  Can be useful if you want to ensure, for example, that your form has
@@ -2117,3 +2162,8 @@ for me to devote time to researching and writing these posts.  Very special
 thanks to my supporter at the "Amazing" level on [patreon][], Josh Vera! :)
 
 [patreon]: https://www.patreon.com/justinle/overview
+
+Also a special thanks to [Koz Ross][koz], who helped proofread this post as a
+draft.
+
+[koz]: https://twitter.com/KozRoss
