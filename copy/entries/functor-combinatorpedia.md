@@ -195,9 +195,9 @@ What does it mean exactly when we say that `hmap` and `hbimap` "preserve the
 enhanced structure"?  Well, for example, the type `newtype ListF f a = ListF [f
 a]` is essentially a list of `f a`s.  `hmap` will swap out and replace each `f
 a`, but it must *preserve the relative order* between each of the original `f
-a`s.  And it must preserve the length of the list.  It's a complete "in-place
-swap".  This is formalizing by requiring `hmap id == id` and `hbimap id id ==
-id`.
+a`s.  It must also preserve the *length* of the list.  It's a complete
+"in-place swap".  This is formalizing by requiring `hmap id == id` and `hbimap
+id id == id`.
 
 You can also always "lift" a functor value into its transformed type.  We
 abstract over this by using `inject` (for single-argument functors) and `inL`
