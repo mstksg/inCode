@@ -170,7 +170,7 @@ class HBifunctor t where
         :: (forall x. f x -> h x)
         -> (forall x. g x -> j x)
         -> t f g a
-        -> t g j a
+        -> t h j a
 ```
 
 However, for this post, the concept of a "natural transformation" between `f`
@@ -528,7 +528,7 @@ monoidal functor combinator `MF t f a` (for example, between `Comp f f a` and
     data Proxy a = Proxy
     ```
 
-    `f :+: Proxy` is equivalent to just `f`, because the left hand side doesn't
+    `f :*: Proxy` is equivalent to just `f`, because the left hand side doesn't
     add anything extra to the pair.
 
 *   **Constraints**
