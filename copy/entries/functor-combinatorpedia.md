@@ -629,7 +629,7 @@ monoidal functor combinator `MF t f a` (for example, between `Comp f f a` and
     The mechanism for this is interesting in and of itself.  Looking at the
     definition of the data type:
 
-    ``haskell
+    ```haskell
     data Day f g a = forall x y. Day (f x) (g y) (x -> y -> a)
     ```
 
