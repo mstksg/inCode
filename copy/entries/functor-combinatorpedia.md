@@ -1283,7 +1283,7 @@ intact: functor combinators only ever *add* structure.
     We can then construct a type for a wizard:
 
     ```haskell
-    type Wizard = Free Diloag
+    type Wizard = Free Dialog
     ```
 
     `Wizard` is now an ordered sequence of dialog boxes, where the choice of
@@ -1484,7 +1484,7 @@ intact: functor combinators only ever *add* structure.
 
     In usage, like for `ListF`, the *definer* provides multiple "labeled" `f
     a`s, and the *interpreter* can choose to interpret some or all of them,
-    with accews to each labeled.
+    with access to each labeled.
 
     `inject` creates a singleton `Map` at key `mempty`.
 
@@ -2004,7 +2004,7 @@ intact: functor combinators only ever *add* structure.
 
     Interpreting out of these requires an impossible constraint.
 
-[Data.HFunctor]: https://hackage.haskell.org/package/base/docs/Data-HFunctor.html
+[Data.HFunctor]: https://hackage.haskell.org/package/functor-combinators/docs/Data-HFunctor.html
 
 Combinator Combinators
 ----------------------
