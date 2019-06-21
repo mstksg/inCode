@@ -188,7 +188,8 @@ Then the type signatures of `hmap` and `hbimap` become:
 ```haskell
 class HFunctor t where
     hmap
-        :: t f ~> t g
+        :: f ~> g
+        -> t f ~> t g
 
 class HBifunctor t where
     hbimap
