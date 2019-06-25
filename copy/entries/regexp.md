@@ -674,12 +674,7 @@ question.
 
 Not all hope is lost, however.  We can actually use the "final encoding" of
 `Alt`, from *Control.Alternative.Free.Final*, to gain a `many` that is
-non-recursive.[^final-many]
-
-[^final-many]: As of now, this actually doesn't work.  But it will when my
-[pull request][free-pr] goes through :)
-
-[free-pr]: https://github.com/ekmett/free/pull/188
+non-recursive.
 
 Using the final encoding means we lose the "pattern match" method, and can
 only use the `runAlt` method.  However, we can off-load to `Alternative`
