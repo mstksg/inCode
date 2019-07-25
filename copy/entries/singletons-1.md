@@ -667,7 +667,7 @@ We also have `withSingI`, which is equivalent to our `withSingDSI` function
 earlier.[^withSingI]
 
 ```haskell
-withSingI :: Sing s -> (forall r. SingI s => r) -> r
+withSingI :: Sing s -> (SingI s => r) -> r
 ```
 
 [^withSingI]: It is probably worth mentioning that, for practical reasons, the
