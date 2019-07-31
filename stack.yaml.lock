@@ -5,10 +5,10 @@
 
 packages:
 - completed:
-    hackage: binary-instances-1@sha256:e7768b92f34bc40cc5cabecc5c143dee6ab4bcb5eb441d58e15a0b000d64940b,2591
+    hackage: binary-instances-1@sha256:cdef50410f2797de38f021d328d38c32b2f4abeaab86bfaf78e0657150863090,2613
     pantry-tree:
       size: 1035
-      sha256: e0425d75675a23270bdf570faee30edb28d3f19ba45e166b4ce1725a7b778043
+      sha256: b58b9e7a482f158b33d87d807cd91bf99e6cd998593f4d9b11d96e978559a690
   original:
     hackage: binary-instances-1
 - completed:
@@ -51,7 +51,7 @@ packages:
     url: https://github.com/mstksg/jle-utils/archive/6d3f85e0e0c3f5e453cd50ab842251b3c8a4d31f.tar.gz
     cabal-file:
       size: 2738
-      sha256: d9737831d866b79d0a9e6f20726756d9c074173565584efaefbae3de8e1cb72c
+      sha256: 076f8a7266982982f41e478f2d3dcf5db86ad592eb21481666a9f753e05bb2fd
     name: jle-utils
     version: 0.1.1.0
     sha256: eedc9aac902df91bb0063e66ff25b776dd97c9ebbcd6d642547707b7e6901c68
