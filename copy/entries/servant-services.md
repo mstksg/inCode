@@ -36,15 +36,16 @@ how straightforward the process is!
 To goal of this article is to take service/program that you already have
 planned out, and *easily provide* it with a networked API that can be used over
 any TCP/IP connection (even locally, if you are into that sort of thing).  We
-aren't going to teach you *how* to write a todo app, but rather how to hook up
-a todo app over a TCP/IP connection quickly.  This post can also serve as a
-stepping-stone to a "microservices architecture", if you intend to build
-towards one (this is explored deeper by [k-bx][owlcloud])...but really it's
-more focused for standalone user-facing applications.  How you apply these
-techniques is up to you :)
+aren't going to teach you *how* to write a todo app, but rather how to *hook
+up* a todo app over a TCP/IP connection quickly --- and in such a simple way
+that you wouldn't give a second thought based on complexity issues.
 
-[owlclod]: https://github.com/k-bx/owlcloud
+This post can also serve as a stepping-stone to a "microservices architecture",
+if you intend to build towards one (this is explored deeper by
+[k-bx][owlcloud])...but really it's more focused for standalone user-facing
+applications.  How you apply these techniques is up to you :)
 
+[owlcloud]: https://github.com/k-bx/owlcloud
 
 This article is written for the late beginner to intermediate haskeller, who
 knows how to "do" what they want the server to do, but only just needs a simple
