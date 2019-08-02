@@ -3,6 +3,8 @@
 
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeInType        #-}
+{-# OPTIONS_GHC -Wall          #-}
+{-# OPTIONS_GHC -Wno-orphans   #-}
 
 import           Api
 import           Control.Exception
@@ -25,19 +27,20 @@ instance ToParam (QueryFlag "filtered") where
 instance ToParam (QueryParam' '[Required] "desc" Text) where
     toParam _ = DocQueryParam "desc" [] "Task description" Normal
 instance ToParam (QueryParam "completed" Bool) where
-    toParam _ = DocQueryParam "completed" ["True","False"] "Set status to" Normal
+    toParam _ = DocQueryParam "completed" ["True","False"] "Set status to (leave out for toggle)" Normal
 instance ToCapture (Capture "id" Int) where
     toCapture _ = DocCapture "id" "ID number of task"
 
 main :: IO ()
 main = do
     c <- parseHandleClient todoApi (Proxy :: Proxy ClientM)
-        ( header "todo" <> progDesc "Todo TCP/IP service client" ) $
-            displayList
-       :<|> printf "Added with ID %d"
-       :<|> const "Set!"
-       :<|> const "Deleted!"
-       :<|> (\ts -> "Cleared items: " ++ intercalate ", " (map show (IS.toList ts)))
+        ( header "todo" <> progDesc "Todo TCP/IP service client" )
+        ( displayList
+     :<|> (\i -> "Added with ID " ++ show i)
+     :<|> const "Set!"
+     :<|> const "Deleted!"
+     :<|> (\ts -> "Cleared items: " ++ intercalate ", " (map show (IS.toList ts)))
+        )
 
     manager' <- newManager defaultManagerSettings
     res      <- runClientM c $

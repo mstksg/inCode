@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TypeInType    #-}
 {-# LANGUAGE TypeOperators #-}
+{-# OPTIONS_GHC -Wall      #-}
 
 module Api where
 

@@ -1,6 +1,8 @@
 #!/usr/bin/env stack
 -- stack --install-ghc runghc --package servant --package servant-server --package containers --package text --package warp --package aeson --resolver nightly-2019-07-31
 
+{-# OPTIONS_GHC -Wall          #-}
+
 import           Api
 import           Control.Monad.IO.Class
 import           Data.IORef
