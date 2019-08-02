@@ -28,17 +28,20 @@ serveTodoApi taskRef = serveList
     serveAdd t = liftIO $ atomicModifyIORef' taskRef $ \ts ->
       let newKey = maybe 0 ((+ 1) . fst) (IM.lookupMax ts)
       in  ( IM.insert newKey (Task False t) ts, newKey )
-    serveSet :: Int -> Bool -> Handler ()
-    serveSet t s = liftIO $ atomicModifyIORef' taskRef $ \ts ->
-      ( IM.adjust (\x -> x { taskStatus = s }) t ts, () )
+    serveSet :: Int -> Maybe Bool -> Handler ()
+    serveSet tid s = liftIO $ atomicModifyIORef' taskRef $ \ts ->
+        ( IM.adjust adjuster tid ts, () )
+      where
+        adjuster (Task c d) = case s of
+          Nothing -> Task (not c) d
+          Just c' -> Task c'      d
     serveDelete :: Int -> Handler ()
-    serveDelete t = liftIO $ atomicModifyIORef' taskRef $ \ts ->
-      ( IM.delete t ts, () )
+    serveDelete tid = liftIO $ atomicModifyIORef' taskRef $ \ts ->
+      ( IM.delete tid ts, () )
     servePrune :: Handler IntSet
     servePrune = liftIO $ atomicModifyIORef' taskRef $ \ts ->
       let (compl,incompl) = IM.partition taskStatus ts
       in  (incompl, IM.keysSet compl)
-
 
 main :: IO ()
 main = do

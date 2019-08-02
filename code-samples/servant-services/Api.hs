@@ -20,12 +20,16 @@ data Task = Task
 instance ToJSON   Task
 instance FromJSON Task
 
-type TodoApi =
-      "list"   :> QueryFlag "filtered"                      :> Get  '[JSON] (IntMap Task)
- :<|> "add"    :> QueryParam' '[Required] "desc" Text       :> Post '[JSON] Int
- :<|> "set"    :> Capture "id" Int :> Capture "status" Bool :> Post '[JSON] ()
- :<|> "delete" :> Capture "id" Int                          :> Post '[JSON] ()
- :<|> "prune"                                               :> Post '[JSON] IntSet
+type TodoApi = "list"   :> QueryFlag "filtered"
+                        :> Get  '[JSON] (IntMap Task)
+          :<|> "add"    :> QueryParam' '[Required] "desc" Text
+                        :> Post '[JSON] Int
+          :<|> "set"    :> Capture "id" Int
+                        :> QueryParam "completed" Bool
+                        :> Post '[JSON] ()
+          :<|> "delete" :> Capture "id" Int
+                        :> Post '[JSON] ()
+          :<|> "prune"  :> Post '[JSON] IntSet
 
 todoApi :: Proxy TodoApi
 todoApi = Proxy

@@ -20,14 +20,14 @@ import qualified Data.IntMap as IM
 import qualified Data.IntSet as IS
 import qualified Data.Text as T
 
-instance ToParam (QueryParam' '[Required] "desc" Text) where
-    toParam _ = DocQueryParam "desc" [] "Task description" Normal
 instance ToParam (QueryFlag "filtered") where
     toParam _ = DocQueryParam "filtered" [] "Whether or not to filter completed items" Flag
+instance ToParam (QueryParam' '[Required] "desc" Text) where
+    toParam _ = DocQueryParam "desc" [] "Task description" Normal
+instance ToParam (QueryParam "completed" Bool) where
+    toParam _ = DocQueryParam "completed" ["True","False"] "Set status to" Normal
 instance ToCapture (Capture "id" Int) where
     toCapture _ = DocCapture "id" "ID number of task"
-instance ToCapture (Capture "status" Bool) where
-    toCapture _ = DocCapture "status" "Set task to completed (True) or not (False)"
 
 main :: IO ()
 main = do
