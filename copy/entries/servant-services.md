@@ -391,6 +391,13 @@ entry"/mental startup cost, and I've started writing little services and
 clients like this as a first-step in a lot of cases, instead of as something I
 dread and only end up adding to a few programs.
 
+Also, fair disclosure: the author of *servant-cli* is me!  I'm not *super*
+happy with the user experience story at the moment, but it has been usable for me
+so far.  If you have any suggestions or ideas for improving *servant-cli*, I'd
+[love to hear][scgh] (and look at any PRs!)
+
+[scgh]: https://github.com/mstksg/servant-cli
+
 Special Thanks
 --------------
 
