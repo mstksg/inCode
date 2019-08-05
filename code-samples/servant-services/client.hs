@@ -42,9 +42,9 @@ main = do
      :<|> (\ts -> "Cleared items: " ++ intercalate ", " (map show (IS.toList ts)))
         )
 
-    manager' <- newManager defaultManagerSettings
-    res      <- runClientM c $
-      mkClientEnv manager' (BaseUrl Http "localhost" 3434 "")
+    res <- newManager defaultManagerSettings >>= \mgr ->
+      runClientM c $
+        mkClientEnv mgr (BaseUrl Http "localhost" 3434 "")
 
     case res of
       Left  e -> throwIO e
