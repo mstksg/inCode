@@ -21,9 +21,9 @@ This process was fun (and informative) the first few times I did it, but
 spinning it up from scratch again every time discouraged me from doing it very
 often.  However, thankfully, with the *[servant][]* haskell library (and
 *[servant-cli][]*, for command line clients), writing a TCP server/client pair
-for a TCP service becomes dead-simple --- the barrier for creating one fades
-away that designing/writing a service becomes a tool that I reach for
-immediately in a lot of cases without second thought.
+for a TCP service (using HTTP under the hood) becomes dead-simple --- the
+barrier for creating one fades away that designing/writing a service becomes a
+tool that I reach for immediately in a lot of cases without second thought.
 
 [servant]: https://hackage.haskell.org/package/servant
 
