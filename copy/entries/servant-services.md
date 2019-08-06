@@ -34,10 +34,10 @@ see how straightforward the process is!
 
 To goal of this article is to take service/program that you already have
 planned out, and *easily provide* it with a networked API that can be used over
-any TCP/IP connection (and even locally).  This won't teach you *how* to write
-a todo app, but rather how to *hook up* a todo app over a TCP/IP connection
-quickly, with a command line client --- and in such a simple way that you
-wouldn't give a second thought based on complexity issues.
+any TCP/IP connection (over the internet, or even locally).  This won't teach
+you *how* to write a todo app, but rather how to *hook up* a todo app over a
+TCP/IP connection quickly, with a command line client --- and in such a simple
+way that you wouldn't give a second thought based on complexity issues.
 
 This post can also serve as a stepping-stone to a "microservices architecture",
 if you intend to build towards one (this is explored deeper by
