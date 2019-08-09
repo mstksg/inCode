@@ -721,7 +721,7 @@ so all lines have to be `Pipe a b m r` for different `r`'s --- the `a`'s and
 yield type be whatever it needs to be to match with the rest of the `do`
 block.
 
-Don't worry if this is a bit complicated; you don't need to really undersatnd
+Don't worry if this is a bit complicated; you don't need to really understand
 this to use *pipes* :)
 
 Admittedly, my description isn't too great, so if anyone has a better one, I'd

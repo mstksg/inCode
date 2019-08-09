@@ -299,7 +299,7 @@ Heroku?
     $ git push heroku master
     ~~~
 
-    If you have done everything right, this should be succesful.  Hooray!
+    If you have done everything right, this should be successful.  Hooray!
 
 5.  Make sure your `web` process is running properly.  You can do this by
     going to <https://dashboard.heroku.com/apps>, clicking on your app, and

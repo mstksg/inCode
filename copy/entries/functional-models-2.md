@@ -71,7 +71,7 @@ $$
   + \ldots
 $$
 
-However, this is a bad way of *implenting* models on time serieses, because
+However, this is a bad way of *implementing* models on time series, because
 nothing is stopping the result of a model from depending on a future value (the
 value at time $t = 3$, for instance, might depend explicitly only the value at
 time $t = 5$).  Instead, we can imagine time series models as explicitly

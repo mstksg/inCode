@@ -180,10 +180,10 @@ parse (P f) str = f str
 
 ~~~haskell
 λ: parse integerParser "12"
-Just (12, "")               -- succesfully returns the integer 12, inside a
+Just (12, "")               -- successfully returns the integer 12, inside a
                             -- Maybe object
 λ: parse integerParser "-82 zero"
-Just (-82, " zero")         -- succesfully returns the integer -82
+Just (-82, " zero")         -- successfully returns the integer -82
 λ: parse integerParser "hello"
 Nothing                     -- fails
 ~~~
@@ -229,16 +229,16 @@ successfulTrue = P returnTrue
     where
         returnTrue str = Just (True, str)
 
-succesfulZero :: Parser Int
-succesfulZero = P returnZero
+successfulZero :: Parser Int
+successfulZero = P returnZero
     where
         returnZero str = Just (0, str)
 ~~~
 
 ~~~haskell
-λ: parse succesfulTrue "12"
+λ: parse successfulTrue "12"
 Just (True, "12")
-λ: parse succesfulZero "anything"
+λ: parse successfulZero "anything"
 Just (0, "anything")
 ~~~
 
@@ -253,11 +253,11 @@ successful val = P returnVal
     where
         returnVal str = Just (val, str)
 
-succesfulTrue :: Parser Bool
-succesfulTrue = succesful True
+successfulTrue :: Parser Bool
+successfulTrue = successful True
 
-succesfulZero :: Parser Int
-succesfulZero = succesful 0
+successfulZero :: Parser Int
+successfulZero = successful 0
 ~~~
 
 So `successful val` is a function that takes any value and gives us a
@@ -271,11 +271,11 @@ Just (5, "hello")
 λ: parse (successful 8.26) "hello"
 Just (8.26, "hello")
 λ: :type (successful True)
-succesful True :: Parser Bool
+successful True :: Parser Bool
 ~~~
 
-Note that the type of `succesful True` is exactly the same type as our
-`succesfulTrue` function.  Which is what we would expect.  Our `succesful val`
+Note that the type of `successful True` is exactly the same type as our
+`successfulTrue` function.  Which is what we would expect.  Our `successful val`
 function takes a value and returns a parser that parses anything into that
 given value.  So if we pass in `True`, it will return a parser/function that
 parses anything into `True`.
@@ -353,7 +353,7 @@ Nothing
 Just ('a', "")
 ~~~
 
-But wait!  Like in the case for `succesful`, we notice a definite
+But wait!  Like in the case for `successful`, we notice a definite
 pattern...and we can abstract this out.
 
 ~~~haskell
@@ -381,7 +381,7 @@ the input is equal to `'z'` and false otherwise.  That is, `(== 'z') 'a'` is
 false, while `(== 'z') 'z'` is true.
 </div>
 
-Remember, just like in the case with `succesful`: `satisfies p` returns a
+Remember, just like in the case with `successful`: `satisfies p` returns a
 `Parser Char` that fails unless the first character satisfies the given
 predicate `p`; `p` has to be a function from `Char` to `Bool` --- a
 predicate on `Char`s.  So then `satisfies isLower` returns a new parser with
@@ -516,19 +516,19 @@ is yes!
 
 Huh.  This is kinda cool, isn't it?  So let's say that when we apply a
 function "inside" our Parser...it means that we apply a function to the
-finished result of a succesful parse.
+finished result of a successful parse.
 
 Basically, we want something like this:
 
 ~~~haskell
-λ: let succesfulSix = (*2) <$> (succesful 3)
-λ: :type succesfulSix
-succesfulSix :: Parser Int
-λ: parse succesfulSix "something"
+λ: let successfulSix = (*2) <$> (successful 3)
+λ: :type successfulSix
+successfulSix :: Parser Int
+λ: parse successfulSix "something"
 Just 6
 ~~~
 
-Okay, cool.  So instead of `succesful 3` always succeeding with a 3, it
+Okay, cool.  So instead of `successful 3` always succeeding with a 3, it
 succeeds with `(*2) 3`, which is 6.  Still kinda boring but w/e.
 
 Let's try something else...we're going to take advantage of the `Data.Char`
@@ -568,7 +568,7 @@ What just happened here?
 
 1.  `digit` is a parser that succeeds only on digit characters.
 2.  `digitToInt <$> digit` is the result of applying `digitToInt` on the value
-    of a succesful parse.  Basically, `digitToInt <$> digit` is a *new parser*
+    of a successful parse.  Basically, `digitToInt <$> digit` is a *new parser*
     that succeeds on digit characters, returning an integer.
 3.  `(*2) <$> (digitToInt <$> digit)` is the result of applying `(*2)` (the
     doubling function) to `digitToInt <$> digit`, the return-digit-as-int

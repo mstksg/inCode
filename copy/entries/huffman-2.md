@@ -67,7 +67,7 @@ binary".  `Get` is a monad, and `Put` is a wrapped `PutM`, which is a writer
 monad.  (To be more specific, `Put` is `PutM ()`, because the final action has
 no result and only "writes")
 
-So `Binary` things are things that you can serialize (with the intructions in
+So `Binary` things are things that you can serialize (with the instructions in
 `put`) and deserialize (with the instructions in `get`).
 
 Luckily, because of Haskell's great composition tools, assembling these
@@ -259,7 +259,7 @@ Its inefficiency lies in many things --- chiefly of those being the fact that
 Huffman trees don't give you any real help as a search tree, and nothing short
 of a full depth-first traversal would work.  Also, you probably don't want
 to do this every time you want to encode something; you'd want to have some
-sort of memoing and cacheing, ideally.
+sort of memoizing and caching, ideally.
 
 ### Pre-searching
 
@@ -516,7 +516,7 @@ responsibility.  Now, whoever uses `decodeAll'` (like our eventual encoding
 interface) is *forced to handle the error* (by handing the `Nothing` case). In
 this way, *the type system enforces safety*.  Had we always used the unsafe
 `decodeAll`, then whoever uses it eventually has to "manually remember" to
-handle the unterminating case, by carefuly reading documentation or something.
+handle the unterminating case, by carefully reading documentation or something.
 In this case, the type system is a big, explicit reminder saying "hey, deal
 with the unterminating case."
 

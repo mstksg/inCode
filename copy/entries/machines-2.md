@@ -570,7 +570,7 @@ instance Arrow Auto where
 Remember, `id` is the identity Auto... and `fmap f` applies `f` "after" the
 identity.  So this makes sense.
 
-`first` is a little tricker; we are using `liftA2 (,)` on two Autos, kind of
+`first` is a little trickier; we are using `liftA2 (,)` on two Autos, kind of
 like we used before.  `liftA2` says "run these two Autos in parallel on the
 same input, and then at the end, `(,)`-up their results."
 

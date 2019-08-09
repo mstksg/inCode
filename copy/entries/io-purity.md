@@ -278,7 +278,7 @@ writing SQL queries and parsing rules from scratch, is because they become
 exactly, either.  In this way, you can build complex SQL queries without ever
 touching a query string by composing simple queries.  You can create very
 complex and intricate parsing rules without every having to "worry" about
-actually writing the parser: you just compose simple, smaler parsers.
+actually writing the parser: you just compose simple, smaller parsers.
 
 And this is really what Haskell "does best" (and possibly what Haskell was
 really made for): assembling and composing these possibly complex instruction
@@ -389,7 +389,7 @@ The computation that it represents is not necessarily deterministic.
 This distinction between **evaluation** and **execution** is what sets apart
 this I/O model that permits its purity.
 
-`main` is a pure value.  The instruction data structure `main` represesents
+`main` is a pure value.  The instruction data structure `main` represents
 impure instructions.
 
 And *that* is how we can deal with I/O in Haskell while remaining a pure
@@ -450,7 +450,7 @@ sense when you think of things as mathematical functions.
 
 While there is no "first" or "second", there is a `main`, which is the
 function the compiler/interpreter passes to the runtime environment as the
-computation we agree to run.  "Order" arrives at this point.  We explicity
+computation we agree to run.  "Order" arrives at this point.  We explicitly
 "create" an IO data structure and specify the ordering implicitly with `>>=`.
 More specifically, `print` requires the result of `getStringFromStdin`, so
 there arises the first semblances of "ordering": in the explicit composition

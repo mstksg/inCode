@@ -68,7 +68,7 @@ booleans.
 
 [fcs]: http://blog.jle.im/entry/first-class-statements
 
-The answer to this is that you use something of an IO action -- somethign of
+The answer to this is that you use something of an IO action -- something of
 an `IO` type.
 
 You use an *IO action* (of the *IO type*)

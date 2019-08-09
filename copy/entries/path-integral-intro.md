@@ -14,7 +14,7 @@ entry-id: 9
 Okay!  In this series we will be going over many subjects in both physics and
 computational techniques, including the Lagrangian formulation of classical
 mechanics, basic principles of quantum mechanics, the Path Integral
-formatulion of quantum mechanics, the Metropolis-Hastings Monte Carlo method,
+formulation of quantum mechanics, the Metropolis-Hastings Monte Carlo method,
 dealing with entropy and randomness in a pure language, and general principles
 in numerical computation!  Fun stuff, right?
 
@@ -130,7 +130,7 @@ slightly tricky).  We also have a formulation that works fine under Special
 Relativity in all frames of reference with almost no tweaks.  And yes, if you
 actually do find the path of lowest action, the path will somehow magically
 always follow the state-updating equations $F = m a$.  It's just now we have a
-much more insighftul and meaningful way to look at the universe:
+much more insightful and meaningful way to look at the universe:
 
 Paths **always attempt to minimize their action**.
 
@@ -208,7 +208,7 @@ mechanics opened up totally new worlds that the previous "state updating
 formula" approach could have never dreamed of.
 
 [^naming]: Why is it called the "Path Integral" formulation?  When we add up
-something at every single point on a path, we are mathematically perfoming a
+something at every single point on a path, we are mathematically performing a
 "Path Integral".  So Path Integral Formulation means "physics based on the
 adding up stuff for every point on a path".
 

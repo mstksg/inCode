@@ -187,7 +187,7 @@ it represent?
 How about we look at it this way: `[3, 5]` represents two separate *paths* to
 success.  When we look at a `Just 5`, we see a computation that succeeded with
 a 5.  When we see a `[3, 5]`, we may interpret it as a computation that had
-two possible succesful paths: one succeeding with a 3 and another with a 5.
+two possible successful paths: one succeeding with a 3 and another with a 5.
 
 You can also say that it represents a computation that *could have chosen* to
 succeed in a 3, or a 5.  In this way, the list monad is often referred to as

@@ -4,7 +4,7 @@ categories: Physics, Computation
 tags: numerical methods, physics
 create-time: 2014/01/25 10:33:04
 date: Never
-identifier: entroy
+identifier: entropy
 slug: entropy-and-entropic-forces
 old-slugs: 
 entry-id: 17

@@ -227,7 +227,7 @@ other constructs:
     ```
 
     *Technically*, we can actually have function application on levels without
-    function applications, of that level has the apropriate primitives (like
+    function applications, of that level has the appropriate primitives (like
     `List` on the type level, `Natural/show` at the value level). However, in
     Dhall, this doesn't happen, so we're going to address this as essentially
     paired with function abstraction.

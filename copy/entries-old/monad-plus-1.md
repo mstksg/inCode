@@ -387,7 +387,7 @@ This is a little nicety, but there is the common library monad function
 containing a list.
 
 In the context of MonadPlus, it would be turning a list of Success/Failures
-into a succesful or failed list.  It builds a succesful/failed list.
+into a successful or failed list.  It builds a successful/failed list.
 
 From what we have learned, if any part of that building process is a failure,
 the entire thing is necessarily a failure.  This is reflected in `sequence`:

@@ -31,7 +31,7 @@ parts, and aspect that is different.  This means that we can apply the "data
 types a la carte" technique in order to mix and match isolated components of
 virtual machine interpreters, and re-use code whenever possible in assembling
 our interpreters for our different machines!  This can be considered an
-extension of the traditional interpreter pattern: the *modular* interpeter
+extension of the traditional interpreter pattern: the *modular* interpreter
 pattern.
 
 This blog post will not necessarily be a focused tutorial on this
