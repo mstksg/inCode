@@ -12,7 +12,7 @@ CreateTime
 PostDate
 :   Never
 Identifier
-:   entroy
+:   entropy
 
 There's actually a bit of an air of mystery and misunderstanding around the
 idea of entropy.  Notoriously misrepresented in popular science as the concept

@@ -256,7 +256,7 @@ some proxies specifying the API and client type):
     The handler is run and is returned as the value in `Right` when used with
     `runClientM`.
 
-Again, a nice way to "write" our `parseHandleCleint` function with its handlers
+Again, a nice way to "write" our `parseHandleClient` function with its handlers
 is by writing a skeleton definition and letting GHC tell us what goes in each
 hole:
 
@@ -375,9 +375,9 @@ binary protocol like TCP/IP are abstracted away, and you only ever deal with
 we use types to guide us: in writing our server, we first used "blanks" to ask
 GHC what the type of each of the handlers needs to be, which helps us plan our
 server implementation and ensures that it handles everything properly.  In
-writing our client, we also used "blanks" to ask GHC the type of each of our
+writing our client, we also used "blanks" to ask GHC what the type of each of our
 response handlers needs to be, which allows us to quickly and effectively drill
-down every option.  These are things that *all* servant-based projects get to
+down every option. These are things that *all* servant-based projects get to
 benefit from.
 
 Hopefully this post serves as a good introduction to the *servant*,

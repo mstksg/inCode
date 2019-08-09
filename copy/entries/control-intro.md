@@ -77,7 +77,7 @@ might try to change the table to account for one hamster.  But what if your
 guest takes along also the missus as well?  Should we keep two tables -- one
 for a one-hamster car, and one for a two-hamster car?
 
-But we musn't stereotype --- hamsters all have different weights.  And what if
+But we mustn't stereotype --- hamsters all have different weights.  And what if
 the guests had luggage?  Maybe we can measure the luggage, and create a new
 table for every possible total weight combination?
 

@@ -28,7 +28,7 @@ claims dates back to the 9th century:
 
 We're going to assume a somewhat basic familiarity with functional programming
 concepts and a basic understanding of monads (if you don't know that much,
-check out [adit's][adit] great concice guide).  If you aren't familiar with
+check out [adit's][adit] great concise guide).  If you aren't familiar with
 MonadPlus/Alternative (and how they work as monads) check out [Part 1][] and
 [Part 2][], which should provide all the background and most of the syntax.
 Most Haskell syntax is either be explained here as we get to it or in the

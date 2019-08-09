@@ -1015,7 +1015,7 @@ expects...these clues will help you get your bearings!
 
 Converting from sized to unsized vectors (to lists) is something that is pretty
 straightforward, and can be done by just pattern matching on the vector and
-recursing on the tail.  I've [left it as an excercise][toList] to write `Vec n
+recursing on the tail.  I've [left it as an exercise][toList] to write `Vec n
 a -> [a]`.
 
 !!![toList]:fixvec-2/VecInductive.hs "toList ::"

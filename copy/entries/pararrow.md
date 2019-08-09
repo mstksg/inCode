@@ -49,10 +49,10 @@ this would: one by one step over `xs` and apply `f` to each one, building a
 new list as you go along one at a time.
 
 But note that there are some easy places to parallelize this --- because none
-of the results the mapped list depend on eachother, you can apply `f` to every
+of the results the mapped list depend on each other, you can apply `f` to every
 element in parallel, and re-collect everything back at the end.  And this is a
 big deal if `f` takes a long time.  This is an example of something commonly
-refered to as "embarassingly parallel".
+referred to as "embarrassingly parallel".
 
 ### Arrows
 
@@ -125,7 +125,7 @@ entire `a`-`c`-`e` chain and the `b`-`d`-`f` chain, and perform both chains in
 parallel and re-collect things at the end.  That is, a `(a,b) -> (c,d)` and a
 `(c,d) -> (e,f)` should meaningfully compose into a `(a,b) -> (e,f)`, where
 the left and right sides (the `a -> e` and the `b -> f`) are performed "in
-parallel" from eachother.
+parallel" from each other.
 
 With that in mind, we could even do something like `parMap`:
 
@@ -143,7 +143,7 @@ parMap f = proc input -> do
 
 And because "what depends on what" is so *obviously clear* from proc/do
 notation --- you know exactly what depends on what, and the graph is already
-laid out there for you --- and because `f` is actaully a "smart" function,
+laid out there for you --- and because `f` is actually a "smart" function,
 with "smart" semantics which can do things like fork threads to solve
 itself...this should be great way to structure programs and take advantage of
 implicit data parallelism.
@@ -164,7 +164,7 @@ map' f = proc input -> do
           returnA        -< y:ys
 ~~~
 
-We can now use `map'` as *both* a normal, sequentual function *and* a
+We can now use `map'` as *both* a normal, sequential function *and* a
 parallel, forked computation!
 
 ~~~haskell
@@ -200,12 +200,12 @@ not loose too much by just returning a `b` instead of an `IO b` with
     in a fork when necessary.
 
 *   `Seq f g` sequences a `ParArrow a z` and a `ParArrow z b` into a big
-    `ParArrow a b`.  It reprensents composing two forkable functions into one
+    `ParArrow a b`.  It represents composing two forkable functions into one
     big forkable function, sequentially.
 
 *   `Par l f g r` takes two `ParArrow`s `f` and `g` of different types and
     represents the idea of performing them in parallel.  Of forking them off
-    from eachother and computing them independently, and collecting it all
+    from each other and computing them independently, and collecting it all
     together.
 
     `l` and `r` are supposed to be functions that turn the tupled
@@ -382,7 +382,7 @@ What! :/
 What went wrong
 ---------------
 
-Let's dig into actual desguaring.  According to the proc notation specs:
+Let's dig into actual desugaring.  According to the proc notation specs:
 
 ~~~haskell
 test3 = proc x -> do
@@ -428,7 +428,7 @@ As long as this is true, this will work.
 
 However, we see in the desugaring of `test3` that `f` is not always that.  `f`
 can be *any* function, actually, and we can't really control what happens to
-it.  In `test3`, we actaully use `f = \(x,y) -> (y,x)`...definitely not a
+it.  In `test3`, we actually use `f = \(x,y) -> (y,x)`...definitely not a
 "parallel" function!
 
 Actually, this doesn't even make any sense in terms of our parallel
@@ -482,7 +482,7 @@ P
 ~~~
 
 And the trace shows that it is "forking" two times.  The structural analysis
-would actaully suggest that we forked three times, but...I'm not totally sure
+would actually suggest that we forked three times, but...I'm not totally sure
 what's going on here heh.  Still two is much more than what should ideally be
 required (one).
 
@@ -493,10 +493,10 @@ So now we can no longer fully "collapse" the two parallel forks, and it
 involves forking twice.  Which makes complete sense, because we have to swap
 in the middle.
 
-And without the collapsing...there are a lot of unecessary
+And without the collapsing...there are a lot of unnecessary
 reforks/recominbations that would basically kill any useful parallelization
 unless you pre-compose all of your forks...which kind of defeats the purpose
-of the implicit dataflow parallization in the first place.
+of the implicit dataflow parallelization in the first place.
 
 Anyways, this is all rather annoying, because the analogous manual `(&&&)` /
 `(***)` / `second`-based `test1` should not ever fail, because we never fork.

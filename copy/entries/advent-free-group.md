@@ -269,7 +269,7 @@ Now, I don't know about you, but I definitely feel that this choice (clean,
 aggregate vs. aggregate, clean) we have is *definitely not obvious* just from
 reading the problem immediately.  Indeed, it seems like the problem might be
 written to obscure this choice from us: it's implying that "cleaning, then
-reacting" is the only correct way, and "reacing, then cleaning" is not
+reacting" is the only correct way, and "reacting, then cleaning" is not
 something that is even mentioned.
 
 But, thanks to group theory, we know that these are equivalent, so we can

@@ -34,7 +34,7 @@ of a specific type `e`, and "catch" them.  It offers two methods:
 `throwError :: e -> m a`, and `catchError :: m a -> (e -> m a) -> m a`, which
 does what you'd expect from an error monad.
 
-Now, we have a generic interface to work on *all specfic type error-throwing
+Now, we have a generic interface to work on *all specific type error-throwing
 Monads*.  The `Either` type comes to mind as an obvious candidate:
 
 ~~~haskell
@@ -62,7 +62,7 @@ specific-type error things!
 If we're clever enough, we can actually imbue any arbitrary Monad `m` with
 rudimentary, basic, "dumb" error handling by using the `ExceptT` type.  An
 `ExceptT e m` behaves *just* like our original Monad `m` in every way...except
-now, we have access to rudmentary implementations of side-channels of
+now, we have access to rudimentary implementations of side-channels of
 `throwError` and `catchError`.
 
 This is pretty useful...to be able to add short-circuiting error behavior to
@@ -129,7 +129,7 @@ fixed when things start up.  You could access the command line arguments with
 
 ### MonadIO
 
-This one is actaully from *transformers*, but it gives a nice picture.  Any
+This one is actually from *transformers*, but it gives a nice picture.  Any
 `MonadIO m` is a `Monad` that allows you to embed and sequence in any
 arbitrary IO action.  This is pretty useful!  In the *[persistent][]* database
 library, for example --- the main "database access type monad" can sequence

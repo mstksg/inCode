@@ -328,7 +328,7 @@ If we think about lenses as embodying "record fields" (things that give you the
 ability to "get" a field, and "modify" a field --- corresponding with `view`
 and `set`), we can think of `mysteryLens1` as an *abstract record field* into
 the Leftness/Rightness of a value.  Thinking of lenses as defining abstract
-record fields is a [common tool for backwards compatiblity][lens-records].
+record fields is a [common tool for backwards compatibility][lens-records].
 
 [lens-records]: http://blog.ezyang.com/2016/12/a-tale-of-backwards-compatibility-in-asts/
 
@@ -557,7 +557,7 @@ unrefine   :: Not4 -> Int
 match :: Int -> Either () Not4
 match n = case refineFail n of
     Nothing -> Left ()          -- the value was 4, so we return `Left`
-    Just x  -> Right x          -- value was succesfully refined
+    Just x  -> Right x          -- value was successfully refined
 
 -- | The "safe extractor"
 inject :: Either () Not4 -> Int
@@ -833,7 +833,7 @@ it later in `inject`.
 The Path to Profunctors
 -----------------------
 
-As a finale, I'd like to show how these dual perspectives (lenses are witneses
+As a finale, I'd like to show how these dual perspectives (lenses are witnesses
 to products and prisms are witnesses to sum) make their implementation in terms
 of "profunctor optics" very natural.
 

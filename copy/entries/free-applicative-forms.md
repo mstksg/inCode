@@ -27,7 +27,7 @@ good at representing the idea of abstract *sequential* generators (sequences
 that are chained dependently one after the other), and that
 free applicatives are especially good at representing the idea of abstract
 *parallel* generators (things operating in parallel without any interconnected
-data dependences).
+data dependencies).
 
 For this post, I'll be talking about using the Free Applicative `Ap` (and the
 Free Alternative, `Alt`) with an abstract representation of a form element in

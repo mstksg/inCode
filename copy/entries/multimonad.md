@@ -212,7 +212,7 @@ In case you were wondering, here is an elaboration :D
     infinite lists, "joining"/concatenating them back will just give you an
     infinite list of the first item in `m`.
 
-    To put succincently, for `Stream`, `concat == head`.
+    To put succinctly, for `Stream`, `concat == head`.
 
 *   Lists can have the `Applicative` instance fine, but not the `Monad`
     instance.  Here we assume that zipping and "getting the diagonal" go only

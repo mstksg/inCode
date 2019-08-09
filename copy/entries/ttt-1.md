@@ -721,7 +721,7 @@ for each case.
     !!!ttt/Part1.hs "noEmptySel"
     ```
 
-    `noEmptySel` succesfuly implements `Sel n '[] as` by succesfully matching
+    `noEmptySel` successfully implements `Sel n '[] as` by successfully matching
     on every legal constructor that could produce `Sel n '[] as`.  But, because
     there are no constructors for `Sel` that produce `Sel n '[] as` (we just
     have `SelZ` and `SelS`, which both produce non-empty `Sel`s), that means we
@@ -738,7 +738,7 @@ for each case.
     ```
 
     Armed with the `Sel 'Z '[] as` that is inside the `SelFound 'Z @@ '[]`, we
-    can use `noEmptySel` to produce the `Void`.  We succefully disprove the
+    can use `noEmptySel` to produce the `Void`.  We successfully disprove the
     fact that there is any item that can be found in `'[]`, by providing a
     function `SelFound 'Z @@ '[] -> Void`.
 

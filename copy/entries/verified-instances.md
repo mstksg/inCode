@@ -395,7 +395,7 @@ class Functor f where
 
 `Fmap a b g x` maps the *type-level function* `g :: a ~> b` over `x :: f a`,
 and returns a type of kind `f b`.  Like with `Empty`, to help with kind
-inference, we have `Fmap` explicitly requre the *kinds* of the input and
+inference, we have `Fmap` explicitly require the *kinds* of the input and
 results of `g` (`a` and `b`) so GHC doesn't have to struggle to infer it
 implicitly.
 
