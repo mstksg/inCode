@@ -187,10 +187,10 @@ Part 2
 > all units of exactly one type and fully reacting the result?
 
 Even though the problem again seems to be written to obscure this fact, we can
-see that Part 2 is basically describing a *group homomorphism*.  That is, it
-talks about functions that map $F(26)$ (the free group on the 26 letters of the
-alphabet) to $F(25)$ (the free group on the letters of the alphabet excluding
-some cleaned letter).
+see that Part 2 is describing a *group homomorphism*.  That is, it talks about
+functions that map $F(26)$ (the free group on the 26 letters of the alphabet)
+to $F(25)$ (the free group on the letters of the alphabet excluding some
+cleaned letter).
 
 Luckily, the free group $F(S)$ comes equipped with a handy function create
 group homomorphisms "for free":
