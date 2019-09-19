@@ -24,7 +24,7 @@ as consisting of photons, where its color is the frequency of its constituent
 photons and its *amplitude*/brightness as corresponding roughly to the "number
 of photons" emitted.  If we do the math, then the average commercial hand-held
 laser, operating at a power of around 1 mW and emitting 700nm red light, would
-appear to have a cross-sectional flux of roughly $3.5 \times 10^15$ (three and
+appear to have a cross-sectional flux of roughly $3.5 \times 10^{15}$ (three and
 a half quadrillion) photons per second.  So, in this picture, a handheld laser
 would be like a hose spraying a quadrillion little balls out of its end per
 second at the speed of light.
@@ -86,14 +86,17 @@ This "minimal increment" of energy --- this abstract concept of a minimal
 $\Delta E$ --- is known as a *photon*.
 
 *That* is a photon.  Not a little point-particle ball you shoot out of a canon,
-but rather an abstract *name* we give you the minimal amount a wave energy
+but rather an abstract *name* we give to the minimal amount a wave energy
 in the electromagnetic field is allowed to change.  The *concept* of that
 minimal $\Delta E$ is what we call a photon.
 
-Now, the EM field is neat because it allows for superposition --- two waves can
-exist independently "on top" of each other, and their contributions to the EM
-field will add together linearly.  So, in this sense, we can think of a 10.62eV
-laser beam as *six identical 1.77eV beams* all existing "on top of each
+A Quadrillion Giant Photons
+---------------------------
+
+Now, the EM field is neat because it allows for *superposition* --- two waves
+can exist independently "on top" of each other, and their contributions to the
+EM field will add together linearly.  So, in this sense, we can think of a
+10.62eV laser beam as *six identical 1.77eV beams* all existing "on top of each
 other".
 
 In the same sense, we can think of a commercial 1mW 700nm laser as consisting
@@ -101,8 +104,28 @@ of about 3.5 quadrillion *identical* 1.77ev beams, all stacked *on top* of each
 other.  Each of these beams have identical frequency, phase, position ... but
 also they also all have the same full width of the laser beam.
 
+Note, this isn't necessarily what is "actually" there-- rather, it's a possible
+interpretation of a 1mW wave.  We can conceptually imagine a coherent 1mW wave
+as over a quadrillion *identical* 1.77ev waves super-imposed on top of each
+other.
+
 So, a laser beam doesn't consist of three and a half quadrillion little balls
 all flying out side-by-side: a 1mW laser beam can be thought of as being a sum
 (superposition) of 3.5 quadrillion *identical* weaker (1.77eV) equally wide
-laser beams.  And each of these *hypothetical* weaker beams is known as a
-photon.
+laser beams, all *overlapping each other*.  And each of these *hypothetical*
+weaker beams is known as a photon.
+
+A typical commercial laser beam has a diameter around the order of a few
+millimeters.  And because we can think of it as the sum of over a quadrillion
+individual photons, it means that each of those photons, individually, is also
+a few millimeters wide!
+
+The photons we're looking at aren't a bunch of tiny balls flying out ---
+they're a bunch of identical big thicc bois flying out perfectly overlapping
+each other.  A quadrillion *giant* photons.
+
+Back to the Discrete
+--------------------
+
+These photons are all super-imposed perfectly, and perfectly identical.  But is
+there any way we can count single photons?

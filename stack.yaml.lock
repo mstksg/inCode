@@ -5,10 +5,10 @@
 
 packages:
 - completed:
-    hackage: binary-instances-1@sha256:cdef50410f2797de38f021d328d38c32b2f4abeaab86bfaf78e0657150863090,2613
+    hackage: binary-instances-1@sha256:b17565598b8df3241f9b46fa8e3a3368ecc8e3f2eb175d7c28f319042a6f5c79,2613
     pantry-tree:
       size: 1035
-      sha256: b58b9e7a482f158b33d87d807cd91bf99e6cd998593f4d9b11d96e978559a690
+      sha256: 938ffc6990cac12681c657f7afa93737eecf335e6f0212d8c0b7c1ea3e0f40f4
   original:
     hackage: binary-instances-1
 - completed:
