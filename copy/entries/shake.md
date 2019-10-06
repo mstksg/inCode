@@ -340,17 +340,14 @@ main = shakeArgs opts $ do
 ~~~
 
 
-If you are comfortable with applicative style, you can make it all happen on
+If you are comfortable with monadic operators, you can make it all happen on
 one line:
 
 ~~~haskell
 "out/report.doc" *> \f -> do
-    need <$> srcFiles
+    need =<< srcFiles
+    cmd "pandoc" [ "src/report.md", "-o", f ]
 ~~~
-
-(You'll need to import `<$>` from `Control.Applicative`, and GHC will complain
-about the discarded value unless you use `void` or enable
-`-fno-warn-wrong-do-bind`)
 
 Phony Rules
 -----------
