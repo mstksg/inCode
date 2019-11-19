@@ -33,10 +33,10 @@ packages:
   original:
     hackage: hakyll-4.12.5.2
 - completed:
-    hackage: hakyll-dhall-0.2.3.0@sha256:eecf0c549aae7147f8f8569b2d5e6cdb5f1cbb2d346a3c7df18ef683fd80b3bd,2181
+    hackage: hakyll-dhall-0.2.3.0@sha256:c157055ae6e7c755a34438100d5a5e66a039d427faa69517a4e90d0692265be4,2284
     pantry-tree:
       size: 689
-      sha256: a8130d71e840444c2bc3a53309f6124a81b3e4a42cffc0d09da82304db251afd
+      sha256: ed5df5e5ca46871130284163828c31ece1a8fc344c317f77b449868947b8bc75
   original:
     hackage: hakyll-dhall-0.2.3.0
 - completed:

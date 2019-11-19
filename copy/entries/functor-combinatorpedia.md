@@ -13,6 +13,12 @@ slug: functor-combinatorpedia
 [functor-combinators]: https://hackage.haskell.org/package/functor-combinators
 [github]: https://github.com/mstksg/functor-combinators
 
+(*Note:* This post has been heavily revised to reflect the
+functor-combinators-0.2 refactoring, as of November 2019.  For reference, [the
+original post][original] is available on github.)
+
+[original]: https://github.com/mstksg/inCode/blob/ceee9f33492bb703380d877477728feb4fe60a6a/entry/functor-combinatorpedia.md
+
 Recently I've been very productive what I have been calling the "Functor
 Combinator" design pattern.  It is heavily influenced by ideas like [Data types
 a la Carte][dtalc] and [unified free monoidal functors][ufmf], but the end goal
@@ -215,10 +221,10 @@ and `inR` (for two-argument functors):
 inject :: f ~> t f
 
 -- two-argument functor combinators
-inL :: (Monoidal t, CM t g)     -- more on the `CM t` later
+inL :: MonoidIn t i f
     => f ~> t f g
 
-inR :: (Monoidal t, CM t f)     -- more on the `CM t` later
+inR :: MonoidIn t i g
     => g ~> t f g
 ```
 
@@ -228,29 +234,22 @@ constraints on the target context.  We abstract over this using `interpret` and
 `binterpret`:
 
 ```haskell
-class Interpret t where
-    type C t :: (Type -> Type) -> Constraint
-
+class Interpret t f where
     -- | Interpret unary functor combinator
     interpret
-        :: C t g
-        => f ~> g             -- ^ interpreting function
-        -> t f ~> g
+        :: g ~> f             -- ^ interpreting function
+        -> t g ~> f
 
-class Semigroupoidal t where
-    type CS t :: (Type -> Type) -> Constraint
-
+class SemigroupIn t i f where
     -- | Interpret binary functor combinator
     binterpret
-        :: CS t h
-        => f ~> h             -- ^ interpreting function on f
-        => g ~> h             -- ^ interpreting function on g
-        -> t f g ~> h
+        :: g ~> f             -- ^ interpreting function on g
+        -> h ~> f             -- ^ interpreting function on h
+        -> t g h ~> f
 ```
 
-Each functor combinator defines a constraint (`C` for unary functor
-combinators, and `CS` and `CM` for binary functor combinators) that allows you
-to "exit", or "run" the functor combinator.
+Having the typeclass `Interpret` (and `SemigroupIn`) take both `t` and `f`
+means that there are certain limits on what sort of `f` you can interpret into.
 
 One nice consequence of this approach is that for many such schemas/functors
 you build, there might be many *useful* target functors.  For example, if you
@@ -262,26 +261,26 @@ to parse the actual arguments or run pure tests, or you might want to run it in
 For some concrete examples of these functor combinators and their constraints:
 
 ```haskell
-type C Free = Monad
+instance Monad f => Interpret Free f
 
 interpret @Free
     :: Monad g
-    => (f ~> g)
-    -> Free f a
-    -> g a
+    => (g ~> f)
+    -> Free g a
+    -> f a
 
-type CM (:+:) = Unconstrained   -- no constraints on exiting
+instance SemigroupIn (:+:) V1 f
 
 binterpret @(:+:)
-    :: (f ~> h)
-    -> (g ~> h)
-    -> (f :+: g) a
-    -> h a
+    :: (g ~> f)
+    -> (h ~> f)
+    -> (g :+: h) a
+    -> f a
 ```
 
-We see that `interpret` lets you "run" a `Free` in any monad `g`, and
-`binterpret` lets you "run" a function over both *branches* of an `f :+: g` to
-produce an `h`.
+We see that `interpret` lets you "run" a `Free` in any monad `f`, and
+`binterpret` lets you "run" a function over both *branches* of an `g :+: h` to
+produce an `f`.
 
 From these, we can also build a lot of useful utility functions (like
 `retract`, `biretract`, `getI`, `biget`, etc.) for convenience in actually
@@ -298,101 +297,74 @@ different ways.
 We can finally *interpret* (or "run") these into some target context (like
 `Parser`, or `IO`), provided the target satisfies some constraints.
 
-It can be useful to separate the functionality associated with each binary
-functor combinator into two typeclasses: `Semigroupoidal` and `Monoidal`.
-`Semigroupoidal` deals with the "interpreting" and "collapsing" of the mixed
-functors, and `Monoidal` deals with the "introduction" and "creation" of them.
-A more detailed run-down is available in the docs for
-*[Data.Functor.Combinator][]*.
+For the most part, binary functor combinators `t` are instances of both
+`Associative t` and `Tensor t i`.  Every `t` is associated with `i`, which is
+the "identity" functor that leaves `f` unchanged: `t f i` is the same as `f`,
+and `t i f` is the same as `f` as well.
+
+For example, we have `Comp`, which is functor composition:
+
+```haskell
+newtype Comp f g a = Comp (f (g a))
+```
+
+We have an instance `Associative Comp` and `Tensor Comp Identity`, because
+`Comp f Identity` (composing any functor with `Identity`, `f (Identity a)`) is
+just the same as `f a` (the original functor); also, `Comp Identity f` (or
+`Identity (f a)`) is the same as `f a`.
+
+From there, some functors support being "merged" (interpreted, or collapsed)
+from a binary functor combinator, or being able to be injected "into" a binary
+functor combinator.  Those functors `f` have instances `SemigroupIn t f` and
+`MonoidIn t i f`.  If a functor `f` is `SemigroupIn t f`, we can `interpret`
+out of it:
+
+```haskell
+binterpret
+    :: SemigroupIn t f
+    => (g ~> f)
+    -> (h ~> f)
+    -> (t g h ~> f)
+
+biretract
+    :: SemigroupIn t f
+    => t f f ~> f
+```
+
+And if a functor `f` is `MonoidIn t i f`, we can "inject" into it:
+
+```haskell
+pureT
+    :: MonoidIn t i f
+    => i ~> f
+
+inL :: MonoidIn t i g
+    => f ~> t f g
+
+inR :: MonoidIn t i f
+    => g ~> t f g
+```
+
+A more detailed run-down is available in the docs for *[Data.Functor.Combinator][]*.
 
 [Data.Functor.Combinator]: https://hackage.haskell.org/package/functor-combinators/docs/Data-Functor-Combinator.html
-
-From each, we can identify two associated constraints, `CS t` (for
-`Semigroupoidal`) and `CM t` (for `Monoidal`):[^cscm]
-
-*   `CS t` is what we will call the constraint on where you can *interpret* or
-    *run* values of the enhanced type:
-
-    ```haskell
-    binterpret
-        :: (Semigroupoidal t, CS t h)
-        => (f ~> h)
-        => (g ~> h)
-        -> (t f g ~> h)
-    ```
-
-    For example, for `Comp` (functor composition):
-
-    ```haskell
-    data Comp f g a = Comp (f (g a))
-    ```
-
-    we have `type CS Comp = Bind` ("`Monad` without pure").
-
-*   `CM t` is the constraint on where you can *create* values of the enhanced
-    type (`pureT`, `inL`, `inR`)
-
-    ```haskell
-    pureT
-        :: (Monoidal t, CM t f)
-        => I t ~> f
-
-    inL :: (Monoidal t, CM t g)
-        => f ~> t f g
-
-    inR :: (Monoidal t, CM t f)
-        => g ~> t f g
-    ```
-
-    For example, for `Comp`, `type CS Free = Monad`.
-
-    It should always be a subclass of `CS`.
-
-These constraints all depend on the extra structure that the specific functor
-combinator imbues.
-
-[^cscm]: As it turns out, `CS` and `CM` seem to generalize the "has an
-    identity" property of many typeclasses --- the example used illustrates
-    that `Comp` gives us `type CS Comp = Bind` and `type CM Comp = Monad`,
-    which is "monad without pure" and "monad".  We will see other examples
-    later.
-
-Most of these (the ones that are "tensors") also have an identity functor, `I
-t`, where applying `t f (I t)` leaves `f` unchanged (`t f (I t)` is isomorphic
-to `f`) and `t (I t) f` is also just `f`.  This is represented by the
-associated type `I t`.  For example, `type I Comp = Identity`, because `Comp f
-Identity` (composing any functor with `Identity`, `f (Identity a)`) is just the
-same as `f a` (the original functor); also, `Comp Identity f` (or `Identity (f
-a)`) is the same as `f a`.
 
 One interesting property of these is that for tensors, if we have a binary
 functor combinator `*`, we can represent a type `f | f * f | f * f * f | f * f
 * f * f | ...` ("repeatedly apply to something multiple times"), which
-essentially forms a linked list along that functor combinator.  We call this
-the "induced monoidal functor combinator", given by `MF t`.  We can also make a
-"non-empty variant", `SF t`, which contains "at least one `f`".
+essentially forms a linked list along that functor combinator.  This is like
+a linked list with `t` as the "cons" operation, so we call this `ListBy t`.
+We can also make a "non-empty variant", `NonEmptyBy t`, which contains "at
+least one `f`".
 
 For example, the type that is either `a`, `f a`, `f (f a)`, `f (f (f a))`, etc.
-is `Free f a`, so that `type MF Comp = Free`.  The type that is either `f a`, `f
-(f a)`, `f (f (f a))`, etc. (at least one layer of `f`) is `Free1 f a`, so `type SF
-Comp = Free1`.
+is `Free f a`, so that `type ListBy Comp = Free`.  The type that is either `f
+a`, `f (f a)`, `f (f (f a))`, etc. (at least one layer of `f`) is `Free1 f a`,
+so `type NonEmptyBy Comp = Free1`.
 
-*functor-combinators* provides functions like `toMF :: t f f ~> MF f` to
-abstract over "converting" back and forth between `t f f a` and the induced
-monoidal functor combinator `MF t f a` (for example, between `Comp f f a` and
-`Free f a`).[^mflink]
-
-[^mflink]: In fact, the link between the binary functor combinator and its induced
-    monoidal/semigroupoidal functor combinators is very deep.  In
-    *functor-combinators*, it's actually used in the definition of `CS` and `CM`:
-
-    ```haskell
-    type CS t = C (SF t)
-    type CM t = C (MF t)
-    ```
-
-    In fact, in the library, `binterpret` and `pureT` are actually defined *in
-    terms of* `SF` and `MF`, respectively.
+*functor-combinators* provides functions like `toListBy :: t f f ~> ListBy t f` to
+abstract over "converting" back and forth between `t f f a` and linked list
+version `ListBy t f a` (for example, between `Comp f f a` and `Free f a`).
 
 ### :+: / Sum
 
@@ -424,10 +396,10 @@ monoidal functor combinator `MF t f a` (for example, between `Comp f f a` and
 
     ```haskell
     binterpret @(:+:)
-        :: (f ~> h)
-        -> (g ~> h)
-        -> (f :+: g) a
-        -> h a
+        :: (g ~> f)
+        -> (h ~> f)
+        -> (g :+: h) a
+        -> f a
     ```
 
     `binterpret` becomes analogous to `either` from *[Data.Either][]*
@@ -435,48 +407,55 @@ monoidal functor combinator `MF t f a` (for example, between `Comp f f a` and
 *   **Identity**
 
     ```haskell
-    type I (:+:) = Void1
+    instance Tensor (:+:) V1
 
     -- | Data type with no inhabitants
-    data Void1 a
+    data V1 a
     ```
 
-    `f :+: Void1` is equivalent to just `f`, because you can never have a value
+    `f :+: V1` is equivalent to just `f`, because you can never have a value
     of the right branch.
 
-*   **Constraints**
+*   **Monoids**
 
     ```haskell
-    type CS (:+:) = Unconstrained
-    type CM (:+:) = Unconstrained
+    instance SemigroupIn (:+:) f
+    instance MonoidIn    (:+:) V1 f
 
     binterpret @(:+:)
-        :: f ~> h
-        -> g ~> h
-        -> (f :+: g) ~> h
+        :: (g ~> f)
+        -> (h ~> f)
+        -> (g :+: h) a
+        -> f a
 
     inL   @(:+:) :: f     ~> f :+: g
     inR   @(:+:) :: g     ~> f :+: g
-    pureT @(:+:) :: Void1 ~> h
+    pureT @(:+:) :: V1 ~> h
     ```
 
-    You don't need any constraint in order to use `binterpret`, `inL`, `inR`,
-    etc.
+    *All* haskell functors are monoids in `:+:`.  You can call `binterpret`,
+    `inL`, `inR`, etc. with anything.
 
     However, note that `pureT` is effectively impossible to call, because no
-    values of type `Void1 a` exist.
+    values of type `V1 a` exist.
 
-*   **Induced Monoid**
+*   **List type**
 
     ```haskell
-    type SF (:+:) = Step
-    type MF (:+:) = Step
+    type NonEmptyBy (:+:) = Step
+    type ListBy     (:+:) = Step
     ```
 
     `Step` is the result of an infinite application of `:+:` to the same value:
 
     ```haskell
     type Step f = f :+: f :+: f :+: f :+: f :+: f :+: ... etc.
+
+    -- actual implementation
+    data Step f a = Step
+      { stepPos :: Natural
+      , stepVal :: f a
+      }
     ```
 
     The correspondence is:
@@ -525,7 +504,7 @@ monoidal functor combinator `MF t f a` (for example, between `Comp f f a` and
 *   **Identity**
 
     ```haskell
-    type I (:*:) = Proxy
+    instance Tensor (:*:) Proxy
 
     -- | Data type with only a single constructor and no information
     data Proxy a = Proxy
@@ -534,17 +513,17 @@ monoidal functor combinator `MF t f a` (for example, between `Comp f f a` and
     `f :*: Proxy` is equivalent to just `f`, because the left hand side doesn't
     add anything extra to the pair.
 
-*   **Constraints**
+*   **Monoids**
 
     ```haskell
-    type CS (:*:) = Alt
-    type CM (:*:) = Plus
+    instance Alt  f => SemigroupIn (:*:) f
+    instance Plus f => MonoidIn    (:*:) Proxy f
 
     binterpret @(:*:)
-        :: Alt h
-        => f ~> h
-        -> g ~> h
-        -> (f :*: g) ~> h
+        :: Alt f
+        => g ~> f
+        -> h ~> f
+        -> (g :*: h) ~> f
 
     inL   @(:*:) :: Plus g => f     ~> f :*: g
     inR   @(:*:) :: Plus f => g     ~> f :*: g
@@ -571,11 +550,11 @@ monoidal functor combinator `MF t f a` (for example, between `Comp f f a` and
         zero :: f a
     ```
 
-*   **Induced Monoid**
+*   **List type**
 
     ```haskell
-    type SF (:*:) = NonEmptyF
-    type MF (:*:) = ListF
+    type NonEmptyBy (:*:) = NonEmptyF
+    type ListBy     (:*:) = ListF
     ```
 
     `ListF f a` is a "list of `f a`s".  It represents the possibility of having
@@ -618,10 +597,10 @@ monoidal functor combinator `MF t f a` (for example, between `Comp f f a` and
 
     ```haskell
     binterpret @Day
-        :: Apply h          -- superclass of Applicative
-        => (f ~> h)
-        -> (g ~> h)
-        -> Day f g ~> h
+        :: Apply f          -- superclass of Applicative
+        => (g ~> f)
+        -> (h ~> f)
+        -> Day g h ~> f
     ```
 
     Unlike for `:*:`, you always have to interpret *both* functor values in
@@ -639,31 +618,31 @@ monoidal functor combinator `MF t f a` (for example, between `Comp f f a` and
     a`.  Due to how existential types work, we can't get anything out of it
     that "contains" `x` or `y`.  Because of this, *using* the joining function
     requires *both* `f x` and `g y`.  If we only use `f x`, we can only get, at
-    best,`f (y -> a)`; if we only use `g y`, we can only get, at best, `g (x ->
-    a)`.  In order to fully eliminate *both* existential variables, we need to
-    get the `x` and `y` from *both* `f x` and `g y`, as if the two values held
-    separate halves of the key.
+    best,`f (y -> a)`; if we only use `g y`, we can only get, at
+    best, `g (x -> a)`.  In order to fully eliminate *both* existential
+    variables, we need to get the `x` and `y` from *both* `f x` and `g y`, as
+    if the two values held separate halves of the key.
 
 *   **Identity**
 
     ```haskell
-    type I Day = Identity
+    instance Tensor Day Identity
     ```
 
     `Day f Identity` is equivalent to just `f`, because `Identity` adds no
     extra effects or structure.
 
-*   **Constraints**
+*   **Monoids**
 
     ```haskell
-    type CS Day = Apply
-    type CM Day = Applicative
+    instance Apply       f => SemigroupIn Day f
+    instance Applicative f => MonoidIn    Day Identity f
 
     binterpret @Day
-        :: Apply h
-        => f ~> h
-        -> g ~> h
-        -> Day f g ~> h
+        :: Apply f
+        => (g ~> f)
+        -> (h ~> f)
+        -> Day g h ~> f
 
     inL   @Day :: Applicative g => f        ~> Day f g
     inR   @Day :: Applicative f => g        ~> Day f g
@@ -675,11 +654,11 @@ monoidal functor combinator `MF t f a` (for example, between `Comp f f a` and
 
     `pureT` is essentially `pure :: Applicative h => a -> h a`.
 
-*   **Induced Monoid**
+*   **List type**
 
     ```haskell
-    type SF Day = Ap1
-    type MF Day = Ap
+    type NonEmptyBy Day = Ap1
+    type ListBy     Day = Ap
     ```
 
     `Ap f a` is a bunch of `f x`s `Day`d with each other.  It is either:
@@ -716,7 +695,7 @@ monoidal functor combinator `MF t f a` (for example, between `Comp f f a` and
     *both* functors; the user must *use* both, and *in order*.
 
     ```haskell
-    data Comp f g a = Comp (f (g a))
+    newtype Comp f g a = Comp (f (g a))
     ```
 
     It can be useful for situations where your schema/functor must be specified
@@ -725,11 +704,11 @@ monoidal functor combinator `MF t f a` (for example, between `Comp f f a` and
     interpret `f` *before* they interpret `g`.
 
     ```haskell
-    binterpret @Day
-        :: Bind h          -- superclass of Monad
-        => (f ~> h)
-        -> (g ~> h)
-        -> Comp f g ~> h
+    binterpret @Comp
+        :: Bind f          -- superclass of Monad
+        => (g ~> f)
+        -> (h ~> f)
+        -> Comp g h ~> f
     ```
 
     Unlike for `:*:`, you always have to interpret *both* functor values.  And,
@@ -738,23 +717,23 @@ monoidal functor combinator `MF t f a` (for example, between `Comp f f a` and
 *   **Identity**
 
     ```haskell
-    type I Comp = Identity
+    instance Tensor Comp Identity
     ```
 
     `Comp f Identity` is equivalent to just `f`, because `Identity` adds no
     extra effects or structure.
 
-*   **Constraints**
+*   **Monoids**
 
     ```haskell
-    type CS Comp = Bind
-    type CM Comp = Monad
+    instance Bind  f => SemigroupIn Comp f
+    instance Monad f => MonoidIn    Comp Identity f
 
     binterpret @Comp
-        :: Bind h
-        => f ~> h
-        -> g ~> h
-        -> Comp f g ~> h
+        :: Bind f
+        => (g ~> f)
+        -> (h ~> f)
+        -> Comp g h ~> f
 
     inL   @Comp :: Monad g => f        ~> Comp f g
     inR   @Comp :: Monad f => g        ~> Comp f g
@@ -764,16 +743,29 @@ monoidal functor combinator `MF t f a` (for example, between `Comp f f a` and
     `Bind`, from *[Data.Functor.Bind][]* in *semigroupoids*, is "`Monad`
     without `return`"; it only has `>>=` (called `>>-`).
 
-    Somewhat serendipitously, the `CM` constraint associated with `Comp` is the
-    famous `Monad`.  Hopefully this insight also gives you some insight on the
+    Somewhat serendipitously, the constraint associated with monoids in `Comp`
+    is none other than the infamous `Monad`.
+
+    This might sound familiar to your ears --- it's the realization of the joke
+    that "monads are monoids in the category of (endo)functors".  The idea is
+    that we can make a tensor like `Comp` over functors, and that "monoids in"
+    that tensor correspond exactly to `Monad` instances.  A part of the joke
+    that we can now also see is that monads aren't the *only* monoids in the
+    category of endofunctors: they're just the ones that you get when you
+    tensor over `Comp`.  But we see now that if you use `Day` as your tensor,
+    then "monoids in the category of functors over `Day`" are actually
+    `Applicative` instances!  And that the monoids over `:*:` are `Alt`
+    instances, etc.
+    
+    Theory aside, hopefully this insight also gives you some insight on the
     nature of `Monad` as an abstraction: it's a way to "interpret" in and out
     of `Comp`, which enforces an ordering in interpretation :)
 
-*   **Induced Monoid**
+*   **List type**
 
     ```haskell
-    type SF Day = Free1
-    type MF Day = Free
+    type NonEmptyBy Day = Free1
+    type LIstBy     Day = Free
     ```
 
     `Free f a` is a bunch of `f x`s composed with each other.  It is either:
@@ -845,11 +837,11 @@ from them.
 
     ```haskell
     binterpret @These
-        :: Alt h
-        => (f ~> h)
-        -> (g ~> h)
-        -> These f g a
-        -> h a
+        :: Alt f
+        => (g ~> f)
+        -> (h ~> f)
+        -> These g h a
+        -> f a
     ```
 
     You can also pattern match on the `These1` directly to be more explicit
@@ -858,28 +850,28 @@ from them.
 *   **Identity**
 
     ```haskell
-    type I These1 = Void1
+    instance Tensor These V1
     ```
 
-    `These1 f Void1` is equivalent to just `f`, because it means the `That1` and
+    `These1 f V1` is equivalent to just `f`, because it means the `That1` and
     `These1` branches will be impossible to construct, and you are left with
     only the `This1` branch.
 
-*   **Constraints**
+*   **Monoids**
 
     ```haskell
-    type CS These1 = Alt
-    type CM These1 = Alt
+    instance Alt f => SemigroupIn These1 f
+    instance Alt f => MonoidIn    These1 V1 f
 
-    binterpret @These1
-        :: Alt h
-        => f ~> h
-        -> g ~> h
-        -> These1 f g ~> h
+    binterpret @These
+        :: Alt f
+        => (g ~> f)
+        -> (h ~> f)
+        -> These g h ~> f
 
-    inL   @These1 :: Alt g => f     ~> Comp f g
-    inR   @These1 :: Alt f => g     ~> Comp f g
-    pureT @These1 :: Alt h => Void1 ~> h
+    inL   @These1 :: Alt g => f  ~> Comp f g
+    inR   @These1 :: Alt f => g  ~> Comp f g
+    pureT @These1 :: Alt h => V1 ~> h
     ```
 
     You need at least `Alt` to be able to interpret out of a `These1`, because
@@ -887,17 +879,21 @@ from them.
     and need to combine the result.  However, you never need a full `Plus`
     because we always have at least one value to use.
 
-*   **Induced Monoid**
+*   **List type**
 
     ```haskell
-    type MF These1 = Steps
+    type ListBy These1 = Steps
     ```
 
-    `Steps`, the induced monoidal functor combinator, is the result of an
-    infinite application of `These1` to the same value:
+    `Steps`, the list type, is the result of an infinite application of
+    `These1` to the same value:
 
     ```haskell
     type Steps f = f `These1` f `These1` f `These1` f `These1` ... etc.
+
+    -- actual implementation
+    newtype Steps f a = Steps (NEMap Natural (f a))
+                    -- NEMap is a non-empty Map
     ```
 
     It essentially represents an infinite *sparse* array of `f a`s, where an `f a` might
@@ -908,10 +904,9 @@ from them.
     where you want a giant infinite sparse array of `f a`s, each at a given
     position, with many gaps between them.
 
-    I've skipped over the the induced semigroupoidal functor, which is
-    `ComposeT Flagged Steps`; it requires an extra boolean "flag" because of
-    some of the quirks of nonemptiness.  I feel it is even less useful than
-    `Steps`.
+    I've skipped over the the "non-empty" version, which is `ComposeT Flagged
+    Steps`; it requires an extra boolean "flag" because of some of the quirks
+    of nonemptiness.  I feel it is even less useful than `Steps`.
 
 [Data.Functor.These]: https://hackage.haskell.org/package/these/docs/Data-Functor-These.html
 
@@ -942,38 +937,38 @@ from them.
 *   **Identity**
 
     Unlike the previous functor combinators, these three are only
-    `Semigroupoidal`, not `Monoidal`: this is because there is no functor `i` such
+    `Associative`, not `Tensor`: this is because there is no functor `i` such
     that `LeftF i g` is equal to `g`, for all `g`, and no functor `i` such that
     `RightF f i` is equal to `f`, for all `f`.
 
 *   **Constraints**
 
     ```haskell
-    type CS LeftF  = Unconstrained
-    type CS RightF = Unconstrained
+    instance SemigroupIn LeftF  f
+    instance SemigroupIn RightF f
     ```
 
     Interpreting out of either of these is unconstrained, and can be done in
     any context.
 
-*   **Induced Semigroup**
+*   **List type**
 
     ```haskell
-    type SF LeftF = Flagged
+    type NonEmptyBy LeftF = Flagged
     ```
 
-    For `LeftF`, the induced semigroup is `Flagged`, which is the `f a ` tupled
-    with a `Bool`.  See the information on `Flagged` for more details.
+    For `LeftF`, the non-empty list type is `Flagged`, which is the `f a `
+    tupled with a `Bool`.  See the information on `Flagged` for more details.
     This can be useful as a type that marks if an `f` is made with
     `inject`/`pure` and is "pure" (`False`), or "tainted" (`True`).  The
     *provider* of a `Flagged` can specify "pure or tainted", and the
     *interpreter* can make a decision based on that tag.
 
     ```haskell
-    type SF RightF = Step
+    type NonEmptyBy RightF = Step
     ```
 
-    For `RightF`, the induced semigroup is `Step`.  See `Step` and the
+    For `RightF`, the non-empty list type is `Step`.  See `Step` and the
     information on `:+:` for more details.  This can be useful for having a
     value of `f a` at "some point", indexed by a `Natural`.
 
@@ -998,21 +993,15 @@ class HFunctor t => Inject t where
 `f`, and must work universally the same.  `MonadTrans`, in contrast, requires
 `Monad f`.
 
-Each one has an associated constraint, `C t`, which is the constraint on where
-you can *interpret* or *run* values of the enhanced type:
+Each one can also be "interpreted to" certain functors `f`:
 
 ```haskell
-class Inject t => Interpret t where
-    type C t :: (Type -> Type) -> Constraint
-
+class Inject t => Interpret t f where
     interpret
-        :: C t g
-        => f ~> g
-        -> t f ~> g
+        :: g ~> f
+        -> t g ~> f
 ```
 
-The constraint depends on the structure that the specific functor combinator
-imbues.
 
 An important law is that:
 
@@ -1051,15 +1040,15 @@ intact: functor combinators only ever *add* structure.
     Coyoneda FormElem a -> Coyoneda FormElem b` takes a form element whose
     result is an `a` and returns a form element whose result is a `b`.
 
-*   **Constraint**
+*   **Interpret**
 
     ```haskell
-    type C Coyoneda = Functor
+    instance Functor f => Interpret Coyoneda f
 
     interpret @Coyoneda
-        :: Functor g
-        => f ~> g
-        -> Coyoneda f ~> g
+        :: Functor f
+        => g ~> f
+        -> Coyoneda g ~> f
     ```
 
     Interpreting out of a `Coyoneda f` requires the target context to itself be
@@ -1103,8 +1092,8 @@ intact: functor combinators only ever *add* structure.
     `NonEmptyF Name a` will always have at least *one* name schema.
 
     This is essentially `f` `:*:`d with itself multiple times; `ListF` is the
-    monoidal functor combinator induced by `:*:`, and `NonEmptyF` is the
-    semigroupoidal functor combinator induced by `:*:`.
+    linked list list made by `:*:`, and `NonEmptyF` is the non-empty linked
+    list made by `:*:`.
 
     ```haskell
     x             <=> ListF [x]     <=> NonEmptyF (x :| [])
@@ -1112,21 +1101,21 @@ intact: functor combinators only ever *add* structure.
     x :*: y :*: z <=> ListF [x,y,z] <=> NonEmptyF (x :| [y,z])
     ```
 
-*   **Constraint**
+*   **Interpret**
 
     ```haskell
-    type C ListF     = Plus
-    type C NonEmptyF = Alt
+    instance Plus f => Interpret ListF     f
+    instance Alt  f => Interpret NonEmptyF f
 
     interpret @ListF
-        :: Plus g
-        => f ~> g
-        -> ListF f ~> g
+        :: Plus f
+        => g ~> f
+        -> ListF g ~> f
 
     interpret @NonEmptyF
-        :: Alt g
-        => f ~> g
-        -> NonEmptyF f ~> g
+        :: Alt f
+        => g ~> f
+        -> NonEmptyF g ~> f
     ```
 
     Interpreting out of a `ListF f` requires the target context to be
@@ -1193,24 +1182,24 @@ intact: functor combinators only ever *add* structure.
     at least one element.
 
     Note that this is essentially `f` `Day`d with itself multiple times; `Ap`
-    is the monoidal functor combinator induced by `Day` and `Ap1` is the
-    semigroupoidal functor combinator induced by `Day`.
+    is the linked list made by `Day` and `Ap1` is the non-empty linked list
+    made by `Day`.
 
-*   **Constraint**
+*   **Interpret**
 
     ```haskell
-    type C Ap  = Applicative
-    type C Ap1 = Apply
+    instance Applicative f => Interpret Ap  f
+    instance Apply       f => Interpret Ap1 f
 
     interpret @Ap
-        :: Applicative g
-        => f ~> g
-        -> Ap f ~> g
+        :: Applicative f
+        => g ~> f
+        -> Ap g ~> f
 
     interpret @Ap1
-        :: Apply g
-        => f ~> g
-        -> Ap1 f ~> g
+        :: Apply f
+        => g ~> f
+        -> Ap1 g ~> f
     ```
 
     Interpreting out of an `Ap f` requires the target context to be
@@ -1243,15 +1232,15 @@ intact: functor combinators only ever *add* structure.
     entire article][are] on the usage of this combinator alone to implement a
     version of regular expressions.
 
-*   **Constraint**
+*   **Interpret**
 
     ```haskell
-    type C Alt = Alternative
+    instance Alternative f => Interpret Alt f
 
     interpret @Alt
-        :: Alternative g
-        => f ~> g
-        -> Alt f ~> g
+        :: Alternative f
+        => g ~> f
+        -> Alt g ~> f
     ```
 
     Interpreting out of an `Alt f` requires the target context to be
@@ -1309,24 +1298,24 @@ intact: functor combinators only ever *add* structure.
     ```
 
     Note that this is essentially `f` `Comp`d with itself multiple times;
-    `Free` is the monoidal functor combinator induced by `Comp` and
-    `Free1` is the semigroupoidal functor combinator induced by `Comp`.
+    `Free` is the linked list made by `Comp` and `Free1` is the non-empty
+    linked list made by `Comp`.
 
-*   **Constraint**
+*   **Interpret**
 
     ```haskell
-    type C Free  = Monad
-    type C Free1 = Bind
+    instance Monad f => Interpret Free  f
+    instance Bind  f => Interpret Free1 f
 
     interpret @Free
-        :: Monad g
-        => f ~> g
-        -> Free f ~> g
+        :: Monad f
+        => g ~> f
+        -> Free g ~> f
 
     interpret @Free1
-        :: Bind g
-        => f ~> g
-        -> Free1 f ~> g
+        :: Bind f
+        => g ~> f
+        -> Free1 g ~> f
     ```
 
     Interpreting out of a `Free f` requires the target context to be `Monad`,
@@ -1365,15 +1354,15 @@ intact: functor combinators only ever *add* structure.
 
     This can be thought of as `Identity :+: f`.
 
-*   **Constraint**
+*   **Interpret**
 
     ```haskell
-    type C Lift = Pointed
+    instance Pointed f => Interpret Lift f
 
     interpret @Lift
-        :: Pointed g
-        => f ~> g
-        -> Lift f ~> g
+        :: Pointed f
+        => g ~> f
+        -> Lift g ~> f
     ```
 
     Interpreting out of a `Lift f` requires the target context to be `Pointed`,
@@ -1402,15 +1391,15 @@ intact: functor combinators only ever *add* structure.
     Contrast this to `Lift`, which is an "optional" `f` that the consumer may
     continue on from.
 
-*   **Constraint**
+*   **Interpret**
 
     ```haskell
-    type C MaybeF = Plus
+    instance Plus f => Interpret MaybeF f
 
     interpret @MaybeF
-        :: Plus g
-        => f ~> g
-        -> MaybeF f ~> g
+        :: Plus f
+        => g ~> f
+        -> MaybeF g ~> f
     ```
 
     Interpreting out of a `Lift f` requires the target context to be
@@ -1452,14 +1441,14 @@ intact: functor combinators only ever *add* structure.
 
 [flare]: https://github.com/sharkdp/purescript-flare
 
-*   **Constraint**
+*   **Interpret**
 
     ```haskell
-    type C (EnvT e) = Unconstrained
+    instance Interpret (EnvT e) f
 
     interpret @(EnvT e)
-        :: f ~> g
-        -> EnvT e f ~> g
+        :: g ~> f
+        -> EnvT e g ~> f
     ```
 
     Interpreting out of `EnvT e` requires no constraints.
@@ -1522,27 +1511,27 @@ intact: functor combinators only ever *add* structure.
     This type exists specialized as `Steps`, which is `NEMapF (Sum
     Natural)`.
 
-*   **Constraint**
+*   **Interpret**
 
     ```haskell
-    type C (MapF k  ) = Plus
-    type C (NEMapF k) = Alt
+    instance Plus f => Interpret (MapF  k) f
+    instance Alt  f => Interpret (NEMap k) f
 
     interpret @(MapF k)
-        :: Plus g
-        => f ~> g
-        -> MapF f ~> g
+        :: Plus f
+        => g ~> f
+        -> MapF g ~> f
 
     interpret @(NEMapF k)
-        :: Alt g
-        => f ~> g
-        -> NEMapF f ~> g
+        :: Alt f
+        => g ~> f
+        -> NEMapF g ~> f
     ```
 
-    Interpreting out of a `MapF f` requires the target context to be `Plus`,
-    and interpreting out of a `NEMapF f` requires `Alt` (because you will never
-    have the empty case).  However, you can directly *look up* into the `Map`
-    and pick an item you want directly, which requires no constraint.
+    Interpreting out of a `MapF k f` requires the target context to be `Plus`,
+    and interpreting out of a `NEMapF k f` requires `Alt` (because you will
+    never have the empty case).  However, you can directly *look up* into the
+    `Map` and pick an item you want directly, which requires no constraint.
 
 ### ReaderT
 
@@ -1583,20 +1572,22 @@ intact: functor combinators only ever *add* structure.
     because most of them are not *natural* on `f`: they require `Functor f`, at
     least, to implement `inject` or `hmap`.
 
-*   **Constraint**
+*   **Interpret**
 
     ```haskell
-    type C (ReaderT r) = MonadReader r
+    instance MonadReader r f => Interpret (ReaderT r) f
 
     interpret @(ReaderT r)
-        :: MonadReader r g
-        => f ~> g
-        -> ReaderT r f ~> g
+        :: MonadReader r f
+        => g ~> f
+        -> ReaderT r g ~> f
     ```
 
     Interpreting out of a `ReaderT r` requires requires the target context to
     be `MonadReader r`, which means it must have access to `ask :: MonadReader
     r f => f r`.
+
+    In a way, `ReaderT r` is the "free" instance of `MonadReader r`.
 
 [dependency injection]: https://en.wikipedia.org/wiki/Dependency_injection
 [Control.Monad.Trans.Reader]: https://hackage.haskell.org/package/transformers/docs/Control-Monad-Trans-Reader.html
@@ -1620,14 +1611,14 @@ intact: functor combinators only ever *add* structure.
     chain; it will increment and decrement the index relatively to make this
     work properly.
 
-*   **Constraint**
+*   **Interpret**
 
     ```haskell
-    type C Step = Unconstrained
+    instance Interpret Step f
 
     interpret @Step
-        :: f ~> g
-        -> Step f ~> g
+        :: g ~> f
+        -> Step g ~> f
     ```
 
     Interpreting out of `Step` requires no constraints; we just drop the
@@ -1665,15 +1656,15 @@ intact: functor combinators only ever *add* structure.
     *[Control.Applicative.Step]* analogous to `stepUp` and `stepDown` to treat
     a `Steps` in this manner.
 
-*   **Constraint**
+*   **Interpret**
 
     ```haskell
-    type C Steps = Alt
+    instance Alt f => Interpret Steps f
 
     interpret @Steps
-        :: Alt g
-        => f ~> g
-        -> Steps f ~> g
+        :: Alt f
+        => g ~> f
+        -> Steps g ~> f
     ```
 
     Interpreting out of `Steps` requires an `Alt` to combine different
@@ -1698,14 +1689,14 @@ intact: functor combinators only ever *add* structure.
     like `inject` or `pure`, or an "impure" method (any other method, including
     direct construction).
 
-*   **Constraint**
+*   **Interpret**
 
     ```haskell
-    type C Flagged = Unconstrained
+    instance Interpret Flagged f
 
     interpret @Flagged
-        :: f ~> g
-        -> Flagged f ~> g
+        :: g ~> f
+        -> Flagged g ~> f
     ```
 
     Interpreting out of `Flagged` requires no constraints; we just drop the
@@ -1741,8 +1732,8 @@ intact: functor combinators only ever *add* structure.
     All of these are connections are witnessed by instances of the typeclass
     `FreeOf` in *[Data.HFunctor.Final][]*.
 
-    In fact, `Final c` is often more performant than the actual concrete free
-    structures.
+    In fact, `Final c` is often more performant for many operations than the
+    actual concrete free structures.
 
     The main downside is that you cannot directly pattern match on the
     structure of a `Final c` the same way you can pattern match on, say, `Ap`
@@ -1764,12 +1755,12 @@ intact: functor combinators only ever *add* structure.
 *   **Constraint**
 
     ```haskell
-    type C (Final c) = c
+    instance c f => Interpret (Final c) f
 
     interpret @(Final c)
-        :: c g
-        => f ~> g
-        -> Final c f ~> g
+        :: c f
+        => g ~> f
+        -> Final c g ~> f
     ```
 
     Interpreting out of a `Final c` requires `c`, since that is the extra
@@ -1799,7 +1790,7 @@ intact: functor combinators only ever *add* structure.
     -- etc.
     ```
 
-    For `:+:`, `Chain (:+:) Void1 f` is equivalent to one of:
+    For `:+:`, `Chain (:+:) V1 f` is equivalent to one of:
 
     ```haskell
     L1 x           <=> More (L1 x)                         <=> Step 0 x
@@ -1809,7 +1800,7 @@ intact: functor combinators only ever *add* structure.
     ```
 
     This is useful because it provides a nice uniform way to work with all
-    "induced Monoidal functors".  That's because the following types are all
+    "linked list over tensors".  That's because the following types are all
     isomorphic:
 
     ```haskell
@@ -1827,7 +1818,8 @@ intact: functor combinators only ever *add* structure.
     `Monoidal`, using `interpret id`.  In fact, this ability could be used as a
     fundamental property of monoidal nature.
 
-    We also have a "non-empty" version, `Chain1`, for induced semigroupoids:
+    We also have a "non-empty" version, `Chain1`, for non-empty linked lists
+    over tensors:
 
     ```haskell
     data Chain1 t f a = Done1 (f a)
@@ -1860,65 +1852,63 @@ intact: functor combinators only ever *add* structure.
 
     ```haskell
     appendChain
-        :: Monoidal t
-        => t (Chain t (I t) f) (Chain t (I t) f) ~> Chain t (I t) f
+        :: Tensor t i
+        => t (Chain t i f) (Chain t i f) ~> Chain t i f
 
     appendChain1
-        :: Semigroupoidal t
+        :: Associative t
         => t (Chain1 t f) (Chain1 t f) ~> Chain1 t f
     ```
 
     These operations are associative, and this property is gained from the
-    semigroupoidal/monoidal nature of `t`.
+    tensor nature of `t`.
 
     The construction of `Chain` is inspired by [Oleg Grenrus's blog
     post][ufmf], and the construction of `Chain1` is inspired by
     implementations of finite automata and iteratees.
 
-*   **Constraint**
+*   **Interpret**
 
     ```haskell
-    type C (Chain  t (I t)) = CM t
-    type C (Chain1 t      ) = CS t
+    instance MonoidIn    t i f => Interpret (Chain  t i) f
+    instance SemigroupIn t   f => Interpret (Chain1 t  ) f
 
-    interpret @(Chain t (I t))
-        :: CM t g
-        => f ~> g
-        -> Chain t (I t) f ~> g
+    interpret @(Chain t i)
+        :: MonoidIn t i f
+        => g ~> f
+        -> Chain t i g ~> f
 
     interpret @(Chain1 t)
-        :: CS t g
-        => f ~> g
-        -> Chain1 t f ~> g
+        :: SemigroupIn t f
+        => g ~> f
+        -> Chain1 t g ~> f
     ```
 
-    Interpreting out of a `Chain` requires the monoidal constraint on `t`,
-    since we have to "squish" all of the layers of `t` together with a
-    potential empty case.  Interpreting out of a `Chain1` requires the
-    semigroupoidal constraint on `t`, since we have to squish all of the layers
-    of `t` together, but we don't have to worry about the empty case.
+    Interpreting out of a `Chain` requires only that `f` is a monoid in `t`.
+    Interpreting out of a `Chain1` requires only that `f` is a semigroup in
+    `t`.
 
     For example, we have:
 
     ```haskell
-    type C (Chain  (:*:) Proxy) = Plus
-    type C (Chain1 (:*:)      ) = Alt
+    instance Plus f => Interpret (Chain  (:*:) Proxy) f
+    instance Alt  f => Interpret (Chain1 (:*:)      ) f
 
     interpret @(Chain (:*:) Proxy)
-        :: Plus g
-        => f ~> g
-        -> Chain (:*:) Proxy f ~> g
+        :: Plus f
+        => g ~> f
+        -> Chain (:*:) Proxy g ~> f
 
     interpret @(Chain1 (:*:))
-        :: Alt g
-        => f ~> g
-        -> Chain1 (:*:) f ~> g
+        :: Alt f
+        => g ~> f
+        -> Chain1 (:*:) f ~> f
 
-    type C (Chain  Day Identity) = Applicative
-    type C (Chain1 Day         ) = Apply
+    instance Applicative f => Interpret (Chain  Day Identity) f
+    instance Apply       f => Interpret (Chain1 Day         ) f
 
-    type C (Chain  Comp Identity) = Monad
-    type C (Chain1 Comp         ) = Bind
+    instance Monad f => Interpret (Chain  Comp Identity) f
+    instance Bind  f => Interpret (Chain1 Comp         ) f
     ```
 
 [Data.HFunctor.Chain]: https://hackage.haskell.org/package/functor-combinators/docs/Data-HFunctor-Chain.html
@@ -1946,11 +1936,11 @@ intact: functor combinators only ever *add* structure.
 *   **Constraint**
 
     ```haskell
-    type C IdentityT = Unconstrained
+    instance Interpret IdentityT f
 
     interpret @IdentityT
-        :: f ~> g
-        -> IdentityT f ~> g
+        :: g ~> f
+        -> IdentityT g ~> f
     ```
 
     Interpreting out of `IdentityT` requires no constraints --- it basically
@@ -1986,24 +1976,10 @@ intact: functor combinators only ever *add* structure.
     useful in the context of swapping out and combining or manipulating with
     other functor combinators or using with functor combinator combinators.
 
-*   **Constraint**
+*   **Interpret**
 
-    ```haskell
-    type C ProxyF     = Impossible
-    type C (ConstF e) = Impossible
-
-    interpret @ProxyF
-        :: Impossible g
-        => f ~> g
-        -> ProxyF f ~> g
-
-    interpret @(ConstF e)
-        :: Impossible g
-        => f ~> g
-        -> ConstF e f ~> g
-    ```
-
-    Interpreting out of these requires an impossible constraint.
+    You're not going to have any luck here --- you cannot interpret out of
+    these, unfortunately!
 
 [Data.HFunctor]: https://hackage.haskell.org/package/functor-combinators/docs/Data-HFunctor.html
 
@@ -2034,15 +2010,15 @@ abstraction.
     functor combinators, since this is the best way to turn two functor
     combinators into a third one.
 
-*   **Constraint**
+*   **Interpret**
 
     ```haskell
-    type C (ComposeT s t) = AndC (C s) (C t)
+    instance (Interpret s f, Interpret t f) => Interpret (ComposeT s t) f
 
     interpret @(ComposeT s t)
-        :: (C s g, C t g)
-        => f ~> g
-        -> ComposeT s t f ~> g
+        :: (Interpret s f, Interpret t f)
+        => g ~> f
+        -> ComposeT s t g ~> f
     ```
 
     Interpreting out of these requires the constraints on *both* layers.
@@ -2068,15 +2044,15 @@ abstraction.
     If `t` is `Identity`, we get `EnvT Any`, or `f :+: f`: the "pure or impure"
     combinator.
 
-*   **Constraint**
+*   **Interpret**
 
     ```haskell
-    type C (HLift t) = C t
+    instance Interpret t f => Interpret (HLift t) f
 
     interpret @(HLift t)
-        :: C t g
-        => f ~> g
-        -> HLift t f ~> g
+        :: Interpret t f
+        => g ~> f
+        -> HLift t g ~> f
     ```
 
     Interpreting out of these requires the constraint on `t`, to handle the
@@ -2125,15 +2101,15 @@ abstraction.
 
     For another example, `HFree IdentityT` is essentially `Step`.
 
-*   **Constraint**
+*   **Interpret**
 
     ```haskell
-    type C (HFree t) = C t
+    instance Interpret t f => Interpret (HFree t) f
 
     interpret @(HFree t)
-        :: C t g
-        => f ~> g
-        -> HFree t f ~> g
+        :: Interpre t f
+        => g ~> f
+        -> HFree t g ~> f
     ```
 
     Interpreting out of these requires the constraint on `t`, to handle the
@@ -2148,9 +2124,9 @@ abstraction.
     ```haskell
     foldHFree
         :: HFunctor t
-        => (f ~> g)
-        -> (t g ~> g)
-        -> HFree t f ~> g
+        => (g ~> f)
+        -> (t g ~> f)
+        -> HFree t g ~> f
     ```
 
     This can be useful because it allows you to distinguish between the
@@ -2160,9 +2136,9 @@ abstraction.
 
     ```haskell
     foldHFree @(MapF String) @Command
-        :: Command ~> g
-        -> MapF String ~> g
-        -> CommandTree ~> g
+        :: Command ~> f
+        -> MapF String ~> f
+        -> CommandTree ~> f
     ```
 
 Closing Comments
