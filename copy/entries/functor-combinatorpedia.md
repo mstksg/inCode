@@ -1811,8 +1811,8 @@ intact: functor combinators only ever *add* structure.
     Steps ~ Chain These1 Void
     ```
 
-    This isomorphism is witnessed by `unrollMF` (turn into the `Chain`) and
-    `rerollMF` (convert back from the `Chain`) in *[Data.HFunctor.Chain][]*.
+    This isomorphism is witnessed by `unroll` (turn into the `Chain`) and
+    `reroll` (convert back from the `Chain`) in *[Data.HFunctor.Chain][]*.
 
     We can "fold down" a `Chain t (I t) f a` into an `f a`, if `t` is
     `Monoidal`, using `interpret id`.  In fact, this ability could be used as a
