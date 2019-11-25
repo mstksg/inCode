@@ -236,7 +236,7 @@ And so that's part 2! We just need `clean` and this next function:
 ```haskell
 day05b :: String -> Int
 day05b rawInput = minimum
-    [ length . FG.toList $ clean c polymer
+    [ length (FG.toList (clean c polymer))
     | c <- ['a' .. 'z']
     ]
   where
