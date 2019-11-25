@@ -127,9 +127,11 @@ import           Data.Group
 inject :: Char -> FG.FreeGroupL Char
 inject c
     | isAlpha c && isLower c = returnFree c
-    | isAlpha c && isUpper c = invert $ returnFree (toLower c)
+    | isAlpha c && isUpper c = invert (returnFree (toLower c))
     | otherwise              = mempty       -- group identity element
 ```
+
+`returnFree` returns a "singleton" in the free group.
 
 The question is essentially asking for the length of the Tietze list
 representation of the final result.  We can get this using `FG.toList`, and so
