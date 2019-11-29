@@ -225,6 +225,9 @@ app znow@(ZonedTime _ tz) = do
       compile $ do
         home1 <- itemBody <$> loadSnapshot "home/1.html" "index"
         makeItem (home1 :: String)
+    -- create ["cv.html"] $ do
+    --   route   idRoute
+    --   compile $ archiveCompiler (ADAll (historyMap hist))
 
     create ["rss.raw"] $ do
       deps <- makePatternDependency "copy/entries/*"

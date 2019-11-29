@@ -339,15 +339,15 @@ library:
 
 ```haskell
 -- | Shift so that centroid is at zero
-centralize :: [Point] -> [Point]
+centralize :: [V2 Double] -> [V2 Double]
 centralize ps = map (subtract mean) ps
   where
-    (Sum tot, Sum len) = foldMap (\x -> (Sum x, Sum 1)) ps
-    mean               = tot L.^/ len
+    mean = sum ps L.^/ fromIntegral (length ps)
+                -- ^ component-wise division
 
 -- | Sum of dot products
-sumOfDots :: [Point] -> [Point] -> Double
-sumOfDots xs ys = sum $ zipWith L.dot xs ys
+sumOfDots :: [V2 Double] -> [V2 Double] -> Double
+sumOfDots xs ys = sum (zipWith L.dot xs ys)
 
 findWord
     :: [V2 Double]              -- ^ velocities
