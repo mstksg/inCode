@@ -133,6 +133,9 @@ navBar = H.nav ! A.id "navbar-content" $ do
       H.li $
         H.a ! A.href (H.textValue (renderUrl "/entries.html")) $
           "archives"
+      H.li $
+        H.a ! A.href (H.textValue (renderUrl "https://cv.jle.im")) $
+          "cv"
 
       H.div ! A.class_ "clear" $
         mempty
