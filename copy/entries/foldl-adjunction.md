@@ -79,6 +79,8 @@ going "out of" `F a` to `b` are the same as all the ways of going "into" `G b`
 from `a`.  Ways of going out can be encoded as ways of going in, and vice
 versa.  They represent opposite ideas.
 
+### Examples
+
 For example, one of the more famous adjunctions in Haskell is the adjunction
 between `(,) r` and `(->) r`.  "Tupling" represents some sort of "opposite"
 idea to "parameterizing".
@@ -102,12 +104,14 @@ recognize them as "opposite" ideas --- one is "or", and the other is "and"
 We can formalize this idea of opposites using adjunctions: Going "out of"
 `Either a a` into `b` can be encoded as going "into" `(b, b)` from `a`,m and
 vice versa: `Either a a -> b` can be encoded as `a -> (b, b)` (and vice versa)
---- the two types are isomorphic
+--- the two types are isomorphic.  This is because to go out of `Either a a`,
+you have to handle the situation of getting a `Left` and the situation of
+getting a `Right`.  To go into `(b, b)`, you have to able to ask what goes in
+the first field, and what goes in the right field.  Both `Either a a -> b` and
+`a -> (b, b)` have to answer the same questions. (A fun exercise would be to
+write the functions to convert between the two)
 
-Conceptually this makes sense: to go out of `Either a a`, you have to handle
-the situation of getting a `Left` and the situation of getting a `Right`.  To
-go into `(b, b)`, you have to able to ask what goes in the first field, and
-what goes in the right field.
+### Big Picture
 
 Aside from being an interesting curiosity (formalizing the idea of "opposite
 idea" is pretty neat), hunting for adjunctions can be useful in figuring out
@@ -130,6 +134,8 @@ be adjoint to a given functor of interest.  There are no hard and fast rules,
 and the adjoint might not always exist --- it usually doesn't.  But when it
 does, it can be a pleasant surprise.
 
+### Patterns to look for
+
 Now, on to the hunting.  Let's say we have functor `Q` and we want to identify
 any adjoints.  We want to spot functions that use both `Q a` and `a` with some
 other value, in [opposite positions][polarity].
@@ -138,7 +144,7 @@ other value, in [opposite positions][polarity].
 
 (Of course, this is only the case if we are using a functor that comes from a
 library.  If we are writing our own functor from scratch, and want to hunt for
-adjunctions there, we have to instead *think* of ways to use `F a` and `a`)
+adjunctions there, we have to instead *think* of ways to use `Q a` and `a`)
 
 One common pattern is functions for "converting between" the going-in and
 going-out functions. In [Data.Functor.Adjunctions][adjunctions], these are
@@ -170,13 +176,15 @@ These also come in pairs!  And it's possible to write the other pair
 finding one is finding the other.
 
 `indexAdjunction` means: if it's possible to "extract" from `u b` to `b` using
-only an `f ()` as extra information, then `u` is right-adjoint to `f`.
+only an `f ()` as extra information, then `u` might be right-adjoint to `f`.
 
 `tabulateAdjunction` means: if it's possible to "generate" a `u b` based on a
-function that "builds" a `b` from `f ()`, then `u` is right-adjoint to `f`.
+function that "builds" a `b` from `f ()`, then `u` might right-adjoint to `f`.
 
-In the case of `Fold`, there is actually only one takes a `Fold r a` and
-returns an `a`:
+### Adjoints to `Fold`
+
+In the case of `Fold`, there is actually only one function that takes a `Fold r
+a` and returns an `a`:
 
 ```haskell
 fold :: Fold r b -> [r] -> b
@@ -212,8 +220,8 @@ indexFold :: Fold r b -> EnvList r () -> b
 indexFold fld (EnvList rs _) = fold f rs
 ```
 
-So to "seal the deal", let's find its pair, `tabulateAdjunction`.  That means
-we are looking for:
+To seal the deal, let's find its pair, `tabulateAdjunction`.  That means we are
+looking for:
 
 ```haskell
 tabulateFold :: (EnvList r () -> b) -> Fold r b
@@ -232,6 +240,14 @@ that this actually looks a lot like `foldMap` from the library:
 ```haskell
 import qualified Control.Foldl as F
 
+F.foldMap
+    :: Monoid w
+    => (r -> w)
+    -> (w -> b)
+    -> Fold r b
+
+-- or
+
 F.foldMap (\r -> [r])
     :: ([r] -> b)
     -> Fold r b
@@ -248,7 +264,7 @@ And...that gives us a pretty strong footing to claim that `EnvList r` is
 the left-adjoint of `Fold r`.
 
 Note that if we had missed `fold` during our adjunction hunt, we might have
-also lucked out by noticing `F.foldMap (:[])` fitting the criteria for a
+also lucked out by noticing `F.foldMap (\r -> [r])` fitting the criteria for a
 candidate for `tabulateAdjunction`, instead.
 
 Opposite Concepts
@@ -357,7 +373,7 @@ zipR :: Fold r a -> Fold r b -> Fold r (a, b)
     leftAdjunct' :: ([r] -> b) -> Fold r b
     ```
 
-    which is just `tabulateAdjunction`, or `F.foldMap (:[])`!  It encodes our
+    which is just `tabulateAdjunction`, or `F.foldMap (\r -> [r])`!  It encodes our
     list processor `[r] -> b` into a `Fold r b.`
 
 4.  `rightAdjunct :: (a -> Fold r b) -> ([r] -> a -> b)` -- if we again rewrite
@@ -375,7 +391,7 @@ zipR :: Fold r a -> Fold r b -> Fold r (a, b)
     because of how `EnvList r a` is shaped.
 
 5.  `tabulateAdjunction` and `indexAdjunction` we went over earlier, seeing
-    them as `F.foldMap (:[])` and `fold`
+    them as `F.foldMap (\r -> [r])` and `fold`
 
 6.  `zipR :: Fold r a -> Fold r b -> Fold r (a, b)` takes two `Fold r`s and
     combines them into a single fold.  This is exactly the "combining fold"
