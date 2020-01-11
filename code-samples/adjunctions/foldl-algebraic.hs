@@ -60,7 +60,7 @@ instance Adjunction (EL r) (Fold r) where
                   (EL $ \nil _ -> nil x)
                   id
 
-    counit el = extract @(Fold r) $ runEL el id $ \(Fold step x extr) r ->
+    counit el = extract $ runEL el id $ \(Fold step x extr) r ->
         Fold step (step x r) extr
 
     leftAdjunct f x = Fold (\el r -> EL $ \nil snoc -> runEL el nil snoc `snoc` r)
