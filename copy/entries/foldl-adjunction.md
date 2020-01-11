@@ -18,7 +18,9 @@ This post mainly goes through my thought process in finding this out --- it's
 very much a "how I think through this" sort of thing --- in the end, the goal
 is to show how much this example made me further appreciate the conceptual idea
 of adjunctions and how they can pop up in interesting places in practical
-libraries.
+libraries.  Unlike most of my other posts, it's not about necessarily about how
+practically useful an abstraction is, but rather what insight it gives us to
+understanding its instances.
 
 The audience of this post is Haskellers with an understanding/appreciation of
 abstractions like `Applicative`, but be aware that the final section is
@@ -346,9 +348,9 @@ The Helper Functions
 --------------------
 
 Let's take a look at some of the useful helper functions that an instance of
-`Adjunction` gives us for `Fold r`.  For all of these, I'm going to write them
-first as `EnvList r a`, and then also as `([r], a)`, to help make things
-clearer.
+`Adjunction` gives us for `Fold r`, to see how their existence can better help
+us understand `Fold`.  For all of these, I'm going to write them first as
+`EnvList r a`, and then also as `([r], a)`, to help make things clearer.
 
 ```haskell
 unit :: a -> Fold r (EnvList r a)
@@ -608,9 +610,15 @@ newtype EL r a = EL {
 The new `EL` is actually isomorphic to the `EnvList` one we wrote earlier (as
 long as the list is finite), meaning that one can encode the other, and they
 have identical structure.  Writing functions to convert between the two can be
-fun; [here is one solution][exercise].
+fun; [here is one solution][exercise], and there's a [bonus
+solution][exercisebonus] if you can write it using only the [*new*
+instance][elinstance] for `Adjunction (EL r) (Fold r)` and
+`F.foldMap`, since it can be shown that all adjuncts are unique up to
+isomorphism.
 
 !!![exercise]:adjunctions/foldl-algebraic.hs "toOld ::" "fromOld ::"
+!!![exercisebonus]:adjunctions/foldl-algebraic.hs "toOldAdj ::" "fromOldAdj ::"
+!!![repinstance]:adjunctions/foldl-algebraic.hs "instance Representable"
 
 
 And...this looks pretty neat, I think.  In the end we discover that these two
@@ -621,7 +629,7 @@ types are adjoints to each other:[^eladjoint]
 !!![elinstance]:adjunctions/foldl-algebraic.hs "instance Adjunction"
 
 ```haskell
-data Fold r a = forall x. Fold            (x -> a)    (x -> r -> x)    x 
+data Fold r a = forall x. Fold            (x -> a)    (x -> r -> x)    x
 data EL   r a =           EL   (forall x. (a -> x) -> (x -> r -> x) -> x)
 ```
 
@@ -644,132 +652,3 @@ And this is, maybe, the real treasure all along.
 [^tabulate]: Implementing a `tabulate` equivalent is left as an exercise --- [solution here][tabex]
 
 !!![tabex]:adjunctions/foldl-algebraic.hs "tabulateEL ::"
-
-
-
-
-<!-- There are a few nice practical advantages that come from identifying -->
-<!-- mathematical abstractions in Haskell. -->
-
-<!-- *   Once you do, you often get a nice set of "helper functions" to go -->
-<!--     with it, written over all instances of that abstraction. -->
-<!-- *   You can leverage mathematical identities and equivalences to simplify, -->
-<!--     refactor, or speed up your code -->
-<!-- *   You gain some new insight to the fundamental structure of your data -->
-<!--     structures that you might not have known before. -->
-
-<!-- These three advantages aren't necessarily always found in equal amounts in -->
-<!-- every mathematical abstraction --- some are weighted more heavily in one than -->
-<!-- the other. -->
-
-<!-- ### Trial Run -->
-
-<!-- Let's try out our hunting chops on one we already know about.  Let's say we -->
-<!-- want to find a functor that is adjoint to `SameTuple`.  What sort of functions -->
-<!-- can we write on `SameTuple`? -->
-
-<!-- Well, one thing we can do is extract `SameTuple a -> a` based on which field to -->
-<!-- extract -->
-
-<!-- ```haskell -->
-<!-- extractTuple :: Bool -> SameTuple a -> a -->
-<!-- extractTuple False (ST (x, _)) = x -->
-<!-- extractTuple True  (ST (_, y)) = y -->
-<!-- ``` -->
-
-<!-- This seems to fit in with `indexAdjunction` ... it suggests that `SameTuple` is -->
-<!-- right-adjoint to some `f` where `f ()` is `Bool`.  So... something like... -->
-
-<!-- ```haskell -->
-<!-- data EnvBool a = EnvBool Bool a -->
-<!-- ``` -->
-
-
-
-
-<!-- Now, on to the hunting.  Let's say we have functor `Q` and we want to identify -->
-<!-- any adjoints.  We want to spot functions that use both `Q a` and `a`, in -->
-<!-- [opposite positions][polarity].  Common patterns functions for "converting -->
-<!-- between" the going-in and going-out functions. In -->
-<!-- [Data.Functor.Adjunctions][adjunctions], these are called `leftAdjunct` and -->
-<!-- `rightAdjunct`: -->
-
-<!-- ```haskell -->
-<!-- leftAdjunct  :: Adjunction f u => (f a -> b) -> (a -> u b) -->
-<!-- rightAdjunct :: Adjunction f u => (a -> u b) -> (f a -> b) -->
-<!-- ``` -->
-
-<!-- These functions are significant because they are essentially the adjunctions -->
-<!-- "in practice":  Sure, an `(r, a) -> b` is useful, but "using" the adjunction -->
-<!-- means that you can convert between `(r, a) -> b` (`uncurry`) and backwards. -->
-
-<!-- Another very common pattern is an "indexing" function and a tabulating -->
-<!-- function: -->
-
-<!-- ```haskell -->
-<!-- indexAdjunction    :: Adjunction f u => u b -> f () -> b -->
-<!-- tabulateAdjunction :: Adjunction f u => (EnvList r () -> b) -> Fold r b -->
-<!-- ``` -->
-
-<!-- If `f ()` can be used as an "index" to get a `b` out of a `u b`, then -->
-
-<!-- Namely, we are hunting for functions that involve both a `Fold r a` and an `a`, -->
-<!-- in [opposite positions][polarity], as well as some other value. -->
-
-
-
-
-
-
-<!-- We can write the instance based on this.  The two functions in `Adjunction` -->
-
-<!-- ```haskell -->
-<!-- import           Control.Foldl (Fold) -->
-<!-- import qualified Control.Foldl as F -->
-
-<!-- instance Adjunction (EnvList r) (Fold r) where -->
-<!--     rightAdjunct :: (a -> Fold r b) -> (EnvList r a -> b) -->
-<!--     rightAdjunct f (EnvList rs x) = F.fold (f x) rs -->
-
-<!--     leftAdjunct :: (EnvList r a -> b) -> (a -> Fold r b) -->
-<!--     leftAdjunct = ??? -->
-<!-- ``` -->
-
-
-<!-- What would `leftAdjunct` be?  We can simplify out the type by splitting out -->
-<!-- `[r]` and `a`, to help us see what is going on: -->
-
-<!-- ```haskell -->
-<!-- leftAdjunct :: ([r] -> a -> b) -> (a -> Fold r b) -->
-<!-- ``` -->
-
-<!-- And, it seems that when `a ~ ()`, we get something that more closely matches -->
-<!-- the spirit of how `Fold r` is used.  Let's make that substitution to help -->
-<!-- de-clutter the type signature: -->
-
-<!-- ```haskell -->
-<!-- leftAdjunct :: ([r] -> b) -> Fold r b -->
-<!-- ``` -->
-
-<!-- This just tells us that, given any list processor, we can write a fold -->
-<!-- representing that list processor.  We can use `foldMap` from the library to -->
-<!-- write this: -->
-
-<!-- ```haskell -->
-<!-- F.foldMap (:[]) -->
-<!--     :: ([r] -> b) -->
-<!--     -> Fold r b -->
-<!-- ``` -->
-
-<!-- And so we can complete our instance: -->
-
-
-<!-- ```haskell -->
-<!-- instance Adjunction (EnvList r) (Fold r) where -->
-<!--     rightAdjunct :: (a -> Fold r b) -> (EnvList r a -> b) -->
-<!--     rightAdjunct f (EnvList rs x) = F.fold (f x) rs -->
-
-<!--     leftAdjunct :: (EnvList r a -> b) -> (a -> Fold r b) -->
-<!--     leftAdjunct f x = F.foldMap (:[]) (f (EnvList rs x)) -->
-<!-- ``` -->
-

@@ -69,3 +69,11 @@ instance Adjunction (EL r) (Fold r) where
 
     rightAdjunct f el = extract @(Fold r) $ runEL el f $ \(Fold step x extr) r ->
         Fold step (step x r) extr
+
+toOldAdj :: EL r a -> EnvList r a
+toOldAdj el = EnvList (indexAdjunction (F.foldMap (:[]) id) i) x
+  where
+    (x, i) = splitL el
+
+fromOldAdj :: EnvList r a -> EL r a
+fromOldAdj (EnvList rs x) = index (unit x) rs
