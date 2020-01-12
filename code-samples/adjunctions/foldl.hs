@@ -49,6 +49,13 @@ instance Representable SameTuple where
       False -> x
       True  -> y
 
+seST :: (Either a a -> b) -> (a -> (b, b))
+seST f x = (f (Left x), f (Right x))
+
+stSE :: (a -> (b, b)) -> (Either a a -> b)
+stSE f (Left  x) = fst (f x)
+stSE f (Right y) = snd (f y)
+
 instance Adjunction SameEither SameTuple where
     leftAdjunct f x = ST (f (SE (Left x)), f (SE (Right x)))
     rightAdjunct f = \case

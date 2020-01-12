@@ -77,8 +77,9 @@ Adjunctions
 
 The second concept is the idea of *[adjoint functors][]* (see also [Bartosz
 Milewski's introduction][bartosz] and [nlab][]'s description), represented in
-Haskell by the *[adjunctions][]* library and typeclass ([Chris Penner][] has a
-nice article with an example of using the typeclass).
+Haskell by the *[adjunctions library and typeclass][adjunctions]* ([Chris
+Penner][] has a nice article with an example of using the typeclass's utility
+functions to simplify programs).
 
 [adjoint functors]: https://en.wikipedia.org/wiki/Adjoint_functors
 [Chris Penner]: https://chrispenner.ca/posts/adjunction-battleship
@@ -109,8 +110,7 @@ are the "same" (isomorphic) --- any `(a, b) -> c` can be re-written as `a -> (b 
 Another common pair is with same-typed either and tuple:
 
 ```haskell
-newtype SameEither a = SE (Either a a)
-newtype SameTuple  a = ST (a, a)
+!!!adjunctions/foldl.hs "newtype SameEither"1 "newtype SameTuple"1
 ```
 
 People familiar with `Either` (sums) and `(,)` (products) in Haskell will
@@ -125,7 +125,10 @@ you have to handle the situation of getting a `Left` and the situation of
 getting a `Right`.  To go into `(b, b)`, you have to able to ask what goes in
 the first field, and what goes in the right field.  Both `Either a a -> b` and
 `a -> (b, b)` have to answer the same questions. (A fun exercise would be to
-write the functions to convert between the two)
+write the functions to convert between the two --- [one solution is
+here][eitherex])
+
+!!![eitherex]:adjunctions/foldl.hs "seST ::"
 
 ### Big Picture
 
