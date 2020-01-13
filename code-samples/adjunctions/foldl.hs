@@ -21,9 +21,9 @@ import qualified Control.Foldl           as F
 
 variance :: Fractional a => Fold a a
 variance = do
-    m  <- F.mean
-    m2 <- lmap (^2) F.mean     -- the mean of squared items
-    pure (m2 - m*m)
+    x  <- F.mean
+    x2 <- lmap (^2) F.mean     -- the mean of squared items
+    pure (x2 - x*x)
 
 varianceTooBig :: (Fractional a, Ord a) => Fold a Bool
 varianceTooBig = (> 3) <$> variance
