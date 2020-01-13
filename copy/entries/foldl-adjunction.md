@@ -12,7 +12,9 @@ slug: foldl-adjunction
 I recently made a few connections that linked some different concepts in
 Haskell that I hadn't realized before.  They deal with one of my favorite
 "practical" libraries in Haskell, and also one of the more "profound" category
-theory-inspired abstractions in Haskell.
+theory-inspired abstractions in Haskell.  In the process, it made the library a
+bit more useful to me, and also made the concept a bit more concrete and
+understandable to me.
 
 This post mainly goes through my thought process in finding this out --- it's
 very much a "how I think through this" sort of thing --- in the end, the goal
@@ -601,6 +603,9 @@ formalize what we mean by "opposite concepts".  The process of identifying
 a functor's "opposite concept" (if it exists) will only help is better
 understand the functor we're thinking about, in terms of how it works and how
 it is used.
+
+Hopefully this blog post helps you appreciate both `Fold` in a new way, and
+also the fundamental "idea" of adjunctions in Haskell.
 
 The Algebraic Way
 -----------------
