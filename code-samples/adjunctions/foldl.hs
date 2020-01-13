@@ -6,11 +6,14 @@
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE ViewPatterns          #-}
 
 import           Control.Comonad
 import           Control.Foldl           (Fold(..))
+import           Control.Monad
 import           Data.Bifunctor
 import           Data.Distributive
+import           Data.Functor
 import           Data.Functor.Adjunction
 import           Data.Functor.Rep
 import           Data.Profunctor
@@ -83,7 +86,27 @@ instance Representable (Fold r) where
 
 instance Adjunction (EnvList r) (Fold r) where
     unit x = F.foldMap (:[]) (`EnvList` x)
-    counit (EnvList rs f) = F.fold f rs
+    counit (EnvList rs fld) = F.fold fld rs
 
     leftAdjunct f x = F.foldMap (:[]) (\rs -> f (EnvList rs x))
     rightAdjunct f (EnvList rs x) = F.fold (f x) rs
+
+newtype FoldEnv r a = FE { getFE :: Fold r (EnvList r a) }
+  deriving Functor
+
+instance Applicative (FoldEnv r) where
+    pure  = return
+    (<*>) = ap
+
+instance Monad (FoldEnv r) where
+    return x = FE $ F.foldMap (:[]) (`EnvList` x)
+    FE x >>= f = FE $
+      x <&> \(EnvList rs y) -> F.fold (getFE (f y)) rs
+
+newtype EnvFold r a = EF { getEF :: EnvList r (Fold r a) }
+  deriving Functor
+
+instance Comonad (EnvFold r) where
+    extract (EF (EnvList rs fld)) = F.fold fld rs
+    extend f (EF (EnvList rs fld)) = EF $
+      EnvList rs $ F.foldMap (:[]) (f . EF . (`EnvList` fld))

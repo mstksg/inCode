@@ -70,13 +70,16 @@ so you can map over and combine the results of different folds.
 To me, *foldl* is one of the shining examples of how well Haskell works for
 data and stream processing, and a library I often show to people when they ask
 what the big deal is about Haskell abstractions like `Applicative`, purity, and
-lists.
+lists --- this technique is often described as "[beautiful folds][beautiful]".
+
+[beautiful]: https://www.google.com/search?q=beautiful+folds
 
 Adjunctions
 -----------
 
 The second concept is the idea of *[adjoint functors][]* (see also [Bartosz
-Milewski's introduction][bartosz] and [nlab][]'s description), represented in
+Milewski's introduction][bartosz] and [nlab][]'s description, as well as
+[Tai-Dinae Bradley's motivation][tdb]), represented in
 Haskell by the *[adjunctions library and typeclass][adjunctions]* ([Chris
 Penner][] has a nice article with an example of using the typeclass's utility
 functions to simplify programs).
@@ -86,15 +89,42 @@ functions to simplify programs).
 [bartosz]: https://bartoszmilewski.com/2016/04/18/adjunctions/
 [nlab]: https://ncatlab.org/nlab/show/adjoint+functor
 [adjunctions]: https://hackage.haskell.org/package/adjunctions/docs/Data-Functor-Adjunction.html
+[tdb]: https://www.math3ma.com/blog/what-is-an-adjunction-part-1
 
 The idea is that, for some functors, we can think of a "conceptual inverse".
 We can ask "I have a nice functor `F`.   Conceptually, what functor represents
 the opposite idea/spirit of `F`?"  The concept of an adjunction is one way to
-formalize what this means.  The high-level idea is that if `F -| G` (`F` is
-left adjoint to `G`, and `G` is right adjoint to `F`), then all the ways of
-going "out of" `F a` to `b` are the same as all the ways of going "into" `G b`
+formalize what this means.
+
+In Haskell, with the `Adjunctions` typeclass (specifically, `Functor`
+functors), this manifests as this: if `F -| U` (`F` is
+left adjoint to `U`, and `U` is right adjoint to `F`), then all the ways of
+going "out of" `F a` to `b` are the same as all the ways of going "into" `U b`
 from `a`.  Ways of going out can be encoded as ways of going in, and vice
 versa.  They represent opposite ideas.
+
+```haskell
+-- | The class saying you can always convert between:
+--
+-- * `f a -> b` (the ways to go out of `f`)
+-- * `a -> u b` (the ways to go into `g`)
+instance Adjunction f u where
+    leftAdjunct
+        :: (f a -> b)       -- ^ the ways of going "out of" `f`
+        -> (a -> u b)       -- ^ the ways of going "into" `u`
+
+    rightAdjunct
+        :: (a -> u b)       -- ^ the ways of going "into" u
+        -> (f a -> b)       -- ^ the ways of going "out of" f
+```
+
+Incidentally, adjunctions are also often described as one of the most
+"beautiful" concepts that Category Theory has introduced to the world.
+
+Note that the intuition we are going to be going into is specifically for
+adjunctions between `Functor` functors --- functors that the `Functor`
+typeclass models (aka, endofunctors in Hask).  For a more general view of
+adjunctions in general, see the links above.
 
 ### Examples
 
@@ -118,15 +148,15 @@ recognize them as "opposite" ideas --- one is "or", and the other is "and"
 (depending on if you are talking about using them or making them).
 
 We can formalize this idea of opposites using adjunctions: Going "out of"
-`Either a a` into `b` can be encoded as going "into" `(b, b)` from `a`,m and
-vice versa: `Either a a -> b` can be encoded as `a -> (b, b)` (and vice versa)
---- the two types are isomorphic.  This is because to go out of `Either a a`,
-you have to handle the situation of getting a `Left` and the situation of
-getting a `Right`.  To go into `(b, b)`, you have to able to ask what goes in
-the first field, and what goes in the right field.  Both `Either a a -> b` and
-`a -> (b, b)` have to answer the same questions. (A fun exercise would be to
-write the functions to convert between the two --- [one solution is
-here][eitherex])
+`Either a a` into `b` can be encoded as going "into" `(b, b)` from `a`, and
+vice versa: `Either a a -> b` can be encoded as `a -> (b, b)`, which can be
+encoded as `Either a a -> b` --- the two types are isomorphic.  This is because
+to go out of `Either a a`, you have to handle the situation of getting a `Left`
+and the situation of getting a `Right`.  To go into `(b, b)`, you have to able
+to ask what goes in the first field, and what goes in the right field.  Both
+`Either a a -> b` and `a -> (b, b)` have to answer the same questions. (A fun
+exercise would be to write the functions to convert between the two --- [one
+solution is here][eitherex])
 
 !!![eitherex]:adjunctions/foldl.hs "seST ::"
 
@@ -191,15 +221,16 @@ indexAdjunction    :: Adjunction f u => u b -> f () -> b
 tabulateAdjunction :: Adjunction f u => (f () -> b) -> u b
 ```
 
-These also come in pairs!  And they are equivalent in power --- you can
-implement `rightAdjunct` in terms of `indexAdjunction` and `leftAdjunct` in
-terms of `tabulateAdjunction` and vice versa.
-
 `indexAdjunction` means: if it's possible to "extract" from `u b` to `b` using
 only an `f ()` as extra information, then `u` might be right-adjoint to `f`.
 
 `tabulateAdjunction` means: if it's possible to "generate" a `u b` based on a
 function that "builds" a `b` from `f ()`, then `u` might right-adjoint to `f`.
+
+This pair is equivalent in power --- you can implement `rightAdjunct` in terms
+of `indexAdjunction` and `leftAdjunct` in terms of `tabulateAdjunction` and
+vice versa.  This comes from the fact that all Adjunctions in Haskell `Functor`s
+arise from some idea of "indexability" and "representability".
 
 ### Adjoints to `Fold`
 
@@ -288,7 +319,7 @@ So:
 ```
 
 And...that gives us a pretty strong footing to claim that `EnvList r` is
-the left-adjoint of `Fold r`.
+the left-adjoint of `Fold r`.  A proof by hunch, for now!
 
 Note that if we had missed `fold` during our adjunction hunt, we might have
 also lucked out by noticing `F.foldMap (\r -> [r])` fitting the criteria for a
@@ -334,10 +365,10 @@ intimately related to `Fold r`: they are the yin and yang, peanut butter and
 jelly, night and day.  Their fates are intertwined from their very inception.
 You cannot have one without the other.
 
-In addition, `F.foldMap` is arguably a fundamental (although inefficient) way
-to *specify* a `Fold r`.  A `Fold r` is, fundamentally, a list processor ---
-which is what `EnvList r a -> b` literally is (an `[r] -> b`).  `Fold r` and
-`EnvList r` --- [dyads in the force][dyad].  Or, well...I guess literally
+In addition, `F.foldMap` is arguably a fundamental (although maybe inefficient)
+way to *specify* a `Fold r`.  A `Fold r` is, fundamentally, a list processor
+--- which is what `EnvList r a -> b` literally is (an `[r] -> b`).  `Fold r`
+and `EnvList r` --- [dyads in the force][dyad].  Or, well...I guess literally
 monads, since [all adjunctions give rise to monads][monads]...and comonads too.
 
 [dyad]: https://starwars.fandom.com/wiki/Dyad_in_the_Force
@@ -440,13 +471,84 @@ to conceptualize, for me, but the other pair isn't much tricker to write.
 !!!adjunctions/foldl.hs "instance Adjunction (EnvList r)"
 ```
 
+### Induced Monad and Comonad
+
+Another interesting thing we might want to look at is the monad and comonad
+that our adjunction defines.  [All adjunctions define a monad][adjmonad], so
+what does our new knowledge of the `Fold r` adjunction give us?
+
+[adjmonad]: https://bartoszmilewski.com/2016/12/27/monads-categorically/
+
+#### Induced Monad
+
+If we have `F -| U`, then `U . F` is a monad.  In this case, we have `FoldEnv`:
+
+```haskell
+!!!adjunctions/foldl.hs "newtype FoldEnv"
+
+-- or
+type FoldEnv r = Fold r ([r], a)
+```
+
+As it turns out, this is essentially the famous [State Monad][state]!  More
+specifically, it's the [*Representable* State Monad][repstate].
+
+[state]: https://hackage.haskell.org/package/transformers/docs/Control-Monad-Trans-State-Lazy.html
+[repstate]: https://hackage.haskell.org/package/adjunctions/docs/Control-Monad-Representable-State.html
+
+```haskell
+type FoldEnv r = State [r] a
+
+-- or, from Control.Monad.Representable.State
+type FoldEnv r = State (Fold r)
+```
+
+So the induced monad from the adjunction we just found is essentially the same
+as the `State` monad over a list --- except with some potentially different
+performance characteristics.
+
+#### Induced Comonad
+
+If we have `F -| U`, then `F . U` is a comonad.  In this case, we have
+`EnvFold`:
+
+```haskell
+!!!adjunctions/foldl.hs "newtype EnvFold"
+
+-- or
+type EnvFold r = ([r], Fold r a)
+```
+
+As it turns out, this is equivalent to the [Representable Store
+Comonad][repstore].  It's essentially the normal [`Store` comonad][store]:
+
+[repstore]: https://hackage.haskell.org/package/adjunctions/docs/Control-Comonad-Representable-Store.html
+[store]: https://hackage.haskell.org/package/comonad/docs/Control-Comonad-Store.html
+
+```haskell
+type EnvFold r a = Store [r] a
+
+-- or, from Control.Comonad.Representable.Store
+type EnvFold r = Store (Fold r)
+```
+
+This comonad "stores" an `[r]` as well as a way to produce an `a` from an
+`[r]`.  All of the utility of this induced comonad basically is the same as the
+utility of `Store`, except with potentially different performance profiles.
+
 Conclusion
 ----------
+
+In the end, in a "practical" sense, we got some nice helper functions, as well
+as a new way to compose computations dealing with `Fold` (via
+the representable state monad and the representable store comonad).
 
 Admittedly, the selection of helper functions that `Adjunction` gives us pales
 in comparison to abstractions like `Monoid`, `Applicative`, `Traversable`,
 `Monad`, etc., which makes `Adjunction` (in my opinion) nowhere as practical
-when compared to them.
+when compared to them.  A lot of these helper functions (like the induced state
+monad and store comonad) actually also just exist if we only talk about
+`Representable`
 
 However, to me (and, according to how I've seen other people use it),
 `Adjunction` is most useful as a conceptual tool in Haskell.  The idea of
@@ -461,7 +563,6 @@ formalize what we mean by "opposite concepts".  The process of identifying
 a functor's "opposite concept" (if it exists) will only help is better
 understand the functor we're thinking about, in terms of how it works and how
 it is used.
-
 
 The Algebraic Way
 -----------------
