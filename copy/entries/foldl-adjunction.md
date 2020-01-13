@@ -3,7 +3,7 @@ title: "Adjunctions in the wild: foldl"
 categories: Haskell, Math
 tags: haskell, category theory
 create-time: 2020/01/08 04:10:21
-date: never
+date: 2020/01/13 13:04:16
 series: Advent of Code
 identifier: advent-shuffle
 slug: foldl-adjunction
@@ -387,6 +387,8 @@ bound together by destiny in a close and fundamental way.
 
 :::::: {.note}
 
+**A Note on Representable**
+
 Note that in this case, a lot of what we are concluding simply stems from the
 fact that we can "index" a `Fold r a` using an `[r]`.  This actually is more
 fundamentally associated with the concept of a [Representable Functor][Rep].
@@ -399,8 +401,8 @@ As it turns out, in Haskell, a functor being representable is *equivalent* to
 it having a left adjoint.  So thinking of `Fold r` as a representable functor
 and thinking of it as a right adjoint are equivalent ideas.  This article
 chooses to analyze it from the adjunctions perspective because we get to
-imagine the adjoint `Functor`, which can sometimes shed a little more light
-than just looking at some index *value*.
+imagine the adjoint `Functor`, which can sometimes reveal some extra insight
+over just looking at some index *value*.
 
 ::::::
 
@@ -600,10 +602,12 @@ a functor's "opposite concept" (if it exists) will only help is better
 understand the functor we're thinking about, in terms of how it works and how
 it is used.
 
-<!-- The Algebraic Way -->
-<!-- ----------------- -->
+The Algebraic Way
+-----------------
 
-:::::: {.note}
+<!-- :::::: {.note} -->
+
+<!-- **The Algebraic Way** -->
 
 This article is done!  Our first guess for an adjunction seems to be morally
 correct.  But as an aside ... let's see if we can take this idea further.
@@ -795,4 +799,11 @@ inefficient this is.
 
 !!![tabex]:adjunctions/foldl-algebraic.hs "tabulateEL ::"
 
-::::::
+Special Thanks
+--------------
+
+I am very humbled to be supported by an amazing community, who make it possible
+for me to devote time to researching and writing these posts.  Very special
+thanks to my supporter at the "Amazing" level on [patreon][], Josh Vera! :)
+
+[patreon]: https://www.patreon.com/justinle/overview
