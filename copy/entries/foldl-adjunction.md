@@ -753,6 +753,9 @@ operation of `Fold` (that is, `fold`) becomes really clean:[^tabulate]
 
 And this is, maybe, the real treasure all along.
 
-[^tabulate]: Implementing a `tabulate` equivalent is left as an exercise --- [solution here][tabex]
+[^tabulate]: Implementing a `tabulate` equivalent ([solution here][tabex])
+reveals that this refactoring is only really useful for `index` (to "consume" a
+`Fold`) ... using `tabulate` or `leftAdjunct` to "produce" a `Fold` reveals how
+inefficient this is.
 
 !!![tabex]:adjunctions/foldl-algebraic.hs "tabulateEL ::"
