@@ -60,6 +60,11 @@ stSE f (Left  x) = fst (f x)
 stSE f (Right y) = snd (f y)
 
 instance Adjunction SameEither SameTuple where
+    unit x = ST (SE (Left x), SE (Right x))
+    counit = \case
+        SE (Left  (ST (x, _))) -> x
+        SE (Right (ST (_, y))) -> y
+
     leftAdjunct f x = ST (f (SE (Left x)), f (SE (Right x)))
     rightAdjunct f = \case
         SE (Left  x) -> case f x of ST (a, _) -> a
