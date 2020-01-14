@@ -268,8 +268,13 @@ a)`:
 !!!adjunctions/foldl.hs "data EnvList"
 ```
 
-`EnvList r` adds a *list* of `r`s to a type.  It is now also our suspect for a
+`EnvList r`[^envlist] adds a *list* of `r`s to a type.  It is now also our suspect for a
 potential left-adjoint to `Fold r`: a "conceptual opposite".
+
+[^envlist]: The name here is inspired by the [`Env` comonad][env] --- `EnvList
+r` is `Env [r]`.
+
+[env]: https://hackage.haskell.org/package/comonad/docs/Control-Comonad-Trans-Env.html
 
 ```haskell
 !!!adjunctions/foldl.hs "indexFold ::"
@@ -707,7 +712,7 @@ the jackpot!  That's because `Cofree f` has an instance of `Adjunction`!
 
 [^moore]: Some might recognize `Cofree ((->) r)` as a common way of
 implementing a [Moore machine][] in Haskell.  In fact, our derivation here is
-basically a backwards version of [the process described here][mooreless].
+basically a backwards version of [the process described here by Edward Kmett][mooreless].
 
 [Moore machine]: https://en.wikipedia.org/wiki/Moore_machine
 [mooreless]: https://www.schoolofhaskell.com/user/edwardk/moore/for-less
