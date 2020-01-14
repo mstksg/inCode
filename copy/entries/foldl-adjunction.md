@@ -225,7 +225,8 @@ function that "builds" a `b` from `f ()`, then `u` might right-adjoint to `f`.
 This pair is equivalent in power --- you can implement `rightAdjunct` in terms
 of `indexAdjunction` and `leftAdjunct` in terms of `tabulateAdjunction` and
 vice versa.  This comes from the fact that all Adjunctions in Haskell `Functor`s
-arise from some idea of "indexability" and "representability".
+arise from some idea of "indexability".  We'll go into more detail later, but
+this is the general intuition.
 
 ### Adjoints to `Fold`
 
