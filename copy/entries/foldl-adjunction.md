@@ -111,7 +111,7 @@ versa.  They represent opposite ideas.
 --
 -- * `f a -> b` (the ways to go out of `f`)
 -- * `a -> u b` (the ways to go into `g`)
-instance Adjunction f u where
+class Adjunction f u where
     leftAdjunct
         :: (f a -> b)       -- ^ the ways of going "out of" `f`
         -> (a -> u b)       -- ^ the ways of going "into" `u`
