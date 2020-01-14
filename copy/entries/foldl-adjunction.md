@@ -354,7 +354,7 @@ Let's think about this from the beginning: What is the conceptual opposite of
 Well, what other thing is more naturally an opposite than "a list to be
 folded"!
 
-*   `EnvList r`: Tuples a list of `r`
+*   `EnvList r`: A list of `r`
 *   `Fold r`: Consumes a list of `r`
 
 Or, in terms of the result of the functor application:
@@ -384,8 +384,8 @@ You cannot have one without the other.
 In addition, `F.foldMap` is arguably a fundamental (although maybe inefficient)
 way to *specify* a `Fold r`.  A `Fold r` is, fundamentally, a list processor
 --- which is what `EnvList r a -> b` literally is (an `[r] -> b`).  `Fold r`
-and `EnvList r` --- [dyads in the force][dyad].  Or, well...literally
-*monads*, since all adjunctions give rise to monads, as we will see later.
+and `EnvList r` --- [dyads in the force][dyad].  (Or, well...literally
+*monads*, since all adjunctions give rise to monads, as we will see later.)
 
 [dyad]: https://starwars.fandom.com/wiki/Dyad_in_the_Force
 
