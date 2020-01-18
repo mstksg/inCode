@@ -7,7 +7,7 @@
 , authorInfo =
     ./site-data/author-info.dhall
 , copyright =
-    "2018 Justin Le"
+    "2020 Justin Le"
 , license =
     "CC-BY-NC-ND 3.0"
 , licenseLink =
@@ -42,7 +42,5 @@
 , blogPrefs =
     ./site-data/blog-prefs.dhall
 , envType =
-    let EnvType = < Development | Production >
-
-    in  EnvType.Production
+    let EnvType = < Development | Production > in EnvType.Production
 }

@@ -40,34 +40,34 @@ data Config = Config
     , confEnvType       :: !EnvType
     }
   deriving (Show, Eq, Generic)
-instance Interpret Config
+instance FromDhall Config
 
-interpretConfig :: Type Config
+interpretConfig :: Decoder Config
 interpretConfig = autoWith basicInterpretOptions
 
 data PatronLevel = PLInactive
                  | PLSupport
                  | PLAmazing
   deriving (Show, Eq, Ord, Generic)
-instance Interpret PatronLevel
+instance FromDhall PatronLevel
 
 data PatronInfo = PatronInfo
     { patronTwitter :: !(Maybe T.Text)
     , patronLevel   :: !PatronLevel
     }
   deriving (Show, Eq, Ord, Generic)
-instance Interpret PatronInfo
+instance FromDhall PatronInfo
 
 type PatronList = M.Map T.Text PatronInfo
 
-interpretPatronList :: Type PatronList
+interpretPatronList :: Decoder PatronList
 interpretPatronList = fmap M.fromList . list . record $
     (,) <$> field "name" strictText
         <*> field "info" (autoWith basicInterpretOptions)
 
 data EnvType = ETDevelopment | ETProduction
   deriving (Show, Eq, Ord, Enum, Generic)
-instance Interpret EnvType
+instance FromDhall EnvType
 
 data AuthorInfo = AuthorInfo
     { authorName     :: T.Text
@@ -119,7 +119,7 @@ data BlogPrefs = BlogPrefs
     }
   deriving (Show, Eq, Generic)
 
-instance Interpret DeveloperAPIs
+instance FromDhall DeveloperAPIs
 
 -- instance FromJSON PatronLevel where
 --   parseJSON = A.genericParseJSON $ A.defaultOptions
@@ -139,10 +139,10 @@ instance Interpret DeveloperAPIs
 --   toJSON = A.genericToJSON $ A.defaultOptions
 --              { A.fieldLabelModifier = A.camelTo2 '-' . drop 6 }
 
-instance Interpret AuthorInfo
-instance Interpret HostInfo
-instance Interpret Blobs
-instance Interpret BlogPrefs
+instance FromDhall AuthorInfo
+instance FromDhall HostInfo
+instance FromDhall Blobs
+instance FromDhall BlogPrefs
 
 data TagType = GeneralTag | CategoryTag | SeriesTag
   deriving (Show, Read, Eq, Ord, Enum, Generic, Typeable)
@@ -255,7 +255,7 @@ instance B.Binary P.MathType
 instance B.Binary P.CitationMode
 
 basicInterpretOptions :: InterpretOptions
-basicInterpretOptions = InterpretOptions
+basicInterpretOptions = defaultInterpretOptions
     { fieldModifier       = over _head toLower
                           . T.dropWhile isLower
     , constructorModifier = \c ->

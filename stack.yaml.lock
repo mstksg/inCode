@@ -26,19 +26,19 @@ packages:
   original:
     hackage: gitlib-libgit2-3.1.2.1
 - completed:
-    hackage: hakyll-4.12.5.2@sha256:435eec729639a4bf0d58f3c7c71929600f4130f10241275d5e7df856cc8aae90,8677
+    hackage: hakyll-4.13.0.1@sha256:0f27d74feaedc96648ec5377ecec2b35dd677516c9667d179462a350f2075628,8817
     pantry-tree:
-      size: 7631
-      sha256: bd0cbe9051fae2b109d4b8955fd55a710b61c5dfd8b132d444c72c8f9e65c855
+      size: 7841
+      sha256: 4a4409d287ee3daabb0141e3ebd3d2e88ead7382ba5cc582733907b4a938c4a8
   original:
-    hackage: hakyll-4.12.5.2
+    hackage: hakyll-4.13.0.1
 - completed:
-    hackage: hakyll-dhall-0.2.3.0@sha256:c157055ae6e7c755a34438100d5a5e66a039d427faa69517a4e90d0692265be4,2284
+    hackage: dhall-1.29.0@sha256:2bb41a7c354a155f6e62b61dfee7474b7bb8c3b474c689e56c6a1f7af37881b9,32058
     pantry-tree:
-      size: 689
-      sha256: ed5df5e5ca46871130284163828c31ece1a8fc344c317f77b449868947b8bc75
+      size: 244291
+      sha256: 974a3764c28f7fe86fbd4117292ca4ba8da685e894656e683989fc4df0106d06
   original:
-    hackage: hakyll-dhall-0.2.3.0
+    hackage: dhall-1.29.0
 - completed:
     hackage: hakyll-sass-0.2.4@sha256:4d2fbd8b63f5ef15483fc6dda09e10eefd63b4f873ad38dec2a3607eb504a8ba,939
     pantry-tree:
@@ -60,9 +60,23 @@ packages:
       sha256: 5ee5aaa4d7447b258552e4b4acb5915aabac1e69e29cefd0898ec27fdb9f3d38
   original:
     url: https://github.com/mstksg/jle-utils/archive/6d3f85e0e0c3f5e453cd50ab842251b3c8a4d31f.tar.gz
+- completed:
+    size: 12496
+    url: https://github.com/mstksg/hakyll-dhall/archive/728b73908551c58a40f9d020c418ea1a8b4c95f5.tar.gz
+    cabal-file:
+      size: 2172
+      sha256: 995db1edd2f12d4b9533f189f34fdd95ac4f135f2d92a19ccfac3790603b43a8
+    name: hakyll-dhall
+    version: 0.2.3.0
+    sha256: ea4778a096babac264e8913c8465a45e9261ae07b06c3f09c07e0aa423b68e9f
+    pantry-tree:
+      size: 890
+      sha256: a9a19e6c4b52d65447287e8ba2735927c0ffe370b2d37b7f2c9b0dcaa906d653
+  original:
+    url: https://github.com/mstksg/hakyll-dhall/archive/728b73908551c58a40f9d020c418ea1a8b4c95f5.tar.gz
 snapshots:
 - completed:
-    size: 514362
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2019/6/17.yaml
-    sha256: a54b8d98b34b46e0a7f9c096f976b084fe2734c72d166fdef21fbb9d874d8430
-  original: nightly-2019-06-17
+    size: 524154
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/14/20.yaml
+    sha256: 2f5099f69ddb6abfe64400fe1e6a604e8e628f55e6837211cd70a81eb0a8fa4d
+  original: lts-14.20

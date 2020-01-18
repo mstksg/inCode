@@ -30,7 +30,7 @@ import           Data.List
 import           Data.Maybe
 import           Data.Ord
 import           Data.Time.LocalTime
-import           Dhall.TypeCheck
+import           Data.Void
 import           Hakyll
 import           Hakyll.Web.Dhall
 import           Hakyll.Web.Sass
@@ -54,7 +54,7 @@ app znow@(ZonedTime _ tz) = do
 
     match "config/**.dhall" $ do
       route idRoute
-      compile $ dExprCompiler @X
+      compile $ dExprCompiler @Void
 
     create ["CNAME"] $ do
       route idRoute

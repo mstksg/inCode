@@ -25,7 +25,7 @@ dependencies:
 - transformers
 - yaml
 - bytestring
-- dhall >= 1.23
+- dhall >= 1.29
 - lens
 
 library:
