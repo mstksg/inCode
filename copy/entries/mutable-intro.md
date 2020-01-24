@@ -3,7 +3,7 @@ title: Introducing the mutable library
 categories: Haskell
 tags: functional programming, numerical
 create-time: 2020/01/23 17:12:23
-date: never
+date: 2020/01/23 18:16:52
 identifier: mutable-intro
 slug: introducing-the-mutable-library
 ---
@@ -287,7 +287,7 @@ pattern, then `MyType f` doubles as both the pure type *and* the mutable
 type, just by choice of `f`.  `MyTypeF Identity` would be the pure version, and
 `MyTypeF (RefFor m)` would be the mutable version.
 
-```haskell top
+```haskell
 data MyTypeF f = MTF
     { mtfInt    :: HKD f Int
     , mtfDouble :: HKD f Double
@@ -299,7 +299,7 @@ type MyType' = MyTypeF Identity
 
 instance PrimMonad m => Mutable m MyType' where
     type Ref m MyType' = MyTypeF (RefFor m)
-````
+```
 
 We can directly use it like a normal data type:
 
