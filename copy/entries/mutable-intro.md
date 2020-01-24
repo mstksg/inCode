@@ -45,7 +45,7 @@ Models][functional-models] framework to efficient Haskell code.
 [backprop-learn]: https://github.com/mstksg/backprop-learn
 [functional-models]: https://blog.jle.im/entries/series/+functional-models.html
 
-To properly use Artificial Neural Networks with Haskell, you need to do a lot
+To properly train Artificial Neural Networks with Haskell, you need to do a lot
 of independent piecewise mutations to matrices and vectors.  This becomes
 inefficient, quickly, because you have to do a lot of copying in the process
 for pure vectors and neural network weights.  This problem also comes up for
