@@ -15,12 +15,10 @@ extra-deps:
 - gitlib-libgit2-3.1.2.1
 - hakyll-4.13.0.1
 - dhall-1.29.0
-# - hakyll-dhall-0.2.3.0
+- hakyll-dhall-0.2.4.0
 - hakyll-sass-0.2.4
 - github: mstksg/jle-utils
   commit: 6d3f85e0e0c3f5e453cd50ab842251b3c8a4d31f
-- github: mstksg/hakyll-dhall
-  commit: 728b73908551c58a40f9d020c418ea1a8b4c95f5
 
 allow-newer: true
 

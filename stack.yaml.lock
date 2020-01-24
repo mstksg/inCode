@@ -33,12 +33,19 @@ packages:
   original:
     hackage: hakyll-4.13.0.1
 - completed:
-    hackage: dhall-1.29.0@sha256:2bb41a7c354a155f6e62b61dfee7474b7bb8c3b474c689e56c6a1f7af37881b9,32058
+    hackage: dhall-1.29.0@sha256:ca96ca294b7e642407524b09b5e2baf572c6b13be166bdceb66cccb957a108ba,32755
     pantry-tree:
       size: 244291
-      sha256: 974a3764c28f7fe86fbd4117292ca4ba8da685e894656e683989fc4df0106d06
+      sha256: ef036b14977551a84bbfa6bf88263faa6fe0daf808a2837fbc88d558ab89dda2
   original:
     hackage: dhall-1.29.0
+- completed:
+    hackage: hakyll-dhall-0.2.4.0@sha256:8d2eb610474e965e5c38911befd2fab045fd03331bee609381d0dc3a891ba075,2172
+    pantry-tree:
+      size: 689
+      sha256: 4a7a973ff4e024061ce636b2b125ba0cdcdc1e2ed63839fc373f95c785df88d6
+  original:
+    hackage: hakyll-dhall-0.2.4.0
 - completed:
     hackage: hakyll-sass-0.2.4@sha256:4d2fbd8b63f5ef15483fc6dda09e10eefd63b4f873ad38dec2a3607eb504a8ba,939
     pantry-tree:
@@ -60,20 +67,6 @@ packages:
       sha256: 5ee5aaa4d7447b258552e4b4acb5915aabac1e69e29cefd0898ec27fdb9f3d38
   original:
     url: https://github.com/mstksg/jle-utils/archive/6d3f85e0e0c3f5e453cd50ab842251b3c8a4d31f.tar.gz
-- completed:
-    size: 12496
-    url: https://github.com/mstksg/hakyll-dhall/archive/728b73908551c58a40f9d020c418ea1a8b4c95f5.tar.gz
-    cabal-file:
-      size: 2172
-      sha256: 995db1edd2f12d4b9533f189f34fdd95ac4f135f2d92a19ccfac3790603b43a8
-    name: hakyll-dhall
-    version: 0.2.3.0
-    sha256: ea4778a096babac264e8913c8465a45e9261ae07b06c3f09c07e0aa423b68e9f
-    pantry-tree:
-      size: 890
-      sha256: a9a19e6c4b52d65447287e8ba2735927c0ffe370b2d37b7f2c9b0dcaa906d653
-  original:
-    url: https://github.com/mstksg/hakyll-dhall/archive/728b73908551c58a40f9d020c418ea1a8b4c95f5.tar.gz
 snapshots:
 - completed:
     size: 524154

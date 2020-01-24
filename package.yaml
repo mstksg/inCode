@@ -37,7 +37,7 @@ library:
   - blaze-html
   - blaze-markup
   - feed
-  - hakyll-dhall >= 0.2.3
+  - hakyll-dhall >= 0.2.4
   - hakyll-sass
   - hjsmin
   - hsass
