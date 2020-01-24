@@ -356,7 +356,7 @@ have in Hasekll-the-language for writing typesafe abstractions and eliminating
 all the boilerplate.
 
 The structure of the `GRef` data type is completely determined by using the
-*GHC.Generics* `Rep` of an abstract data type with a `Generic` instance.  It
+*GHC.Generics* `Rep` of an algebraic data type with a `Generic` instance.  It
 breaks apart the products and sums and turns them into the mutable references
 you *would* normally write by hand.
 
