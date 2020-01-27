@@ -4,7 +4,6 @@ categories: Haskell, Math
 tags: haskell, category theory
 create-time: 2020/01/08 04:10:21
 date: 2020/01/13 13:04:16
-series: Advent of Code
 identifier: advent-shuffle
 slug: foldl-adjunction
 ---
