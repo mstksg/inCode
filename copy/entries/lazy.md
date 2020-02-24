@@ -39,10 +39,10 @@ case undefined of
 
 What will either of these return, when you try to run it?
 
-Here we are using `undefined` as a way to directly observe evaluation in
-Haskell.  This is a common trick people use when discussing evaluation in
-Haskell --- it works because `undefined :: a` can take on any type, and any
-attempt to evaluate `undefined` can be immediately detected:
+Small note --- here, we are using `undefined` as a way to directly observe
+evaluation in Haskell.  This is a common trick people use when discussing
+evaluation in Haskell --- it works because `undefined :: a` can take on any
+type, and any attempt to evaluate `undefined` can be immediately detected:
 
 ```haskell
 ghci> sum [1,2,undefined,100]
@@ -53,8 +53,8 @@ ghci> sum (take 2 [1,2,undefined,100])
 
 Think of it like laying a mine for poor old GHC to encounter.  GHC tries to
 evaluate things, but when it tries to evaluate `undefined`, it immediately
-explodes and tells you that it has a boo-boo.  Our investigation now becomes
-"is this mine ever tripped, or not?"
+explodes and tells you that it has a boo-boo.  Our investigation becomes
+reframed as "is this mine ever tripped, or not?"
 
 :::::: {.note}
 
@@ -86,7 +86,7 @@ program locking up if a value is evaluated.
 
 ::::::
 
-Let's try our let vs case situation out in ghci:
+With that in mind, let's find the answer to our previous question:
 
 ```haskell
 ghci> let (x,y) = undefined in True
@@ -124,13 +124,18 @@ this pattern?", and so never needs to investigate it and so doesn't explode.
 
 ### Option One of One
 
-One potential confusion here is that answering "does this value match this
-pattern" seems silly for a tuple, since "all" tuples match that pattern, right?
+To someone new to Haskell (or unfamiliar with its semantics), it kind of seems
+silly that `case` would "have" to check *which* constructor is being
+used...since there is really only one option, `,`.  Why can't `case` just know
+that it *has* to be `,` and move on, without checking?  Surely that would be
+more sensible.
 
 For example, let's look at a situation that is uncontroversial
 
-```gaskell
-ghci> case undefined of Left x -> False; Right y -> True
+```haskell
+ghci> case undefined of
+        Left x -> False
+        Right y -> True
 *** Exception: Prelude.undefined
 ```
 
@@ -138,6 +143,106 @@ Of *course* that one has to explode, because it has to check if the `Either` is
 `Left` or `Right`.  But in the case of `(x, y)`, it's always going to be `,`,
 so why can't it just "know" you are `(x, y)` since there isn't any other
 situation?
+
+```haskell
+ghci> case undefined of
+        (x, y) -> False
+*** Exception: Prelude.undefined
+```
+
+We know the answer will be `False` no matter what, so why bother checking?  Why
+can't we just have it skip the check and return `False`?
+
+There are a couple of ways to approach this answer...and I think all approaches
+illustrate something important about the philosophy of writing Haskell.
+
+1.  If you shift your question from "which constructor is it?" to "which
+    constructor was it *made* with?", then it starts to make sense.
+
+    Pattern matching isn't about asking "which constructor does this value
+    match?", but rather "which constructor was this value *made* with?"
+
+    So, it would be unwise to just have GHC skip the check.  When we are doing
+
+    ```haskell
+    case blahblah of
+      (x, y) -> -- ...
+    ```
+
+    We don't *really* care "what is `blahblah`"?  We care "how was `blahblah`
+    made?"
+
+    Under this light, we see that there actually are many ways to make a tuple
+    value *without* ever using `(,)`:
+
+    ```haskell
+    tup1 :: (Int, Bool)
+    tup1 = undefined
+
+    tup2 :: (Int, Bool)
+    tup2 = go 0
+      where
+        go n = go (n + 1)
+
+    tup3 :: (Int, Bool)
+    tup3
+      | even (sum [1..]) = (3, True)
+      | otherwise        = undefined
+    ```
+
+    We can see here three perfectly valid values of type `(Int, Bool)` that are
+    *not* constructed with `(,)`, or at least where the question is ambiguous
+    and up in the air.  So *skipping* checking the constructor here is skipping
+    the real question -- not "what pattern does it match", but "what was it
+    made with".
+
+2.  Haskell `data` declarations with boxed fields all follow the same general
+    schema in memory:
+
+    ```haskell
+    data MyType = A Int Bool
+                | B String Double
+    ```
+
+    ```
+    +--------+------------------------+-------------------------+
+    | A or B | pointer to first field | pointer to second field |
+    +--------+------------------------+-------------------------+
+    ```
+
+    So, for example, a value like `A 3 True` would look like:
+
+    ```haskell
+        +---+---+---+
+    --> | A | o | o |
+        +---+-|-+-|-+
+          |   |
+          v   v
+          3   True
+    ```
+
+    For a type with a single constructor, that initial "which constructor"
+    field is still there.  This just makes things a little more consistent ---
+    there is no special-case for a single-constructor situation.
+
+    When considering sematics, there is no fundamental difference between a
+    single-constructor type and a multi-constructor type.  A single-constructor
+    type is just an n-constructor type where n = 1.  This means that a type
+    like:
+
+    ```haskell
+    data MyType = A Int Bool
+    ```
+
+    will still have the constructor byte at the front:
+
+    ```
+    +---+------------------------+-------------------------+
+    | A | pointer to first field | pointer to second field |
+    +---+------------------------+-------------------------+
+    ```
+
+
 
 To me, the underlying reason is *consistency*.  A lot of beginners, when
 starting Haskell, come to the impression that Haskell is *magical*: it just
