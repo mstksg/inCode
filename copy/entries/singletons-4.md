@@ -175,7 +175,7 @@ To see why this typechecks properly, compare the types of `sMergeState` and
 
 ```haskell
 sMergeState :: Sing s -> Sing t -> Sing (MergeState s t)
-mergeDoor   :: Door s -> Door t -> Sing (MergeState s t)
+mergeDoor   :: Door s -> Door t -> Door (MergeState s t)
 
 MkSomeDoor  :: Sing (MergeState s t) -> Door (MergeState s t) -> SomeDoor
 ```
