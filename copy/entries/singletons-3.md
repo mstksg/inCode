@@ -528,10 +528,10 @@ Armed with this type family, we can write a new version of `knock`:
 
 `a ~ b` is a constraint for *type equality*.  This constraint means that
 calling `knock` requires that `StatePass s` is *equal to* (or unifies with)
-`'Allow`.  So, if we attempt to call `knock` with a `'Locked` door, then
-because `StatePass 'Locked` is `'Allow`, the constraint is satisfied and
+`'Obstruct`.  So, if we attempt to call `knock` with a `'Locked` door, then
+because `StatePass 'Locked` is `'Obstruct`, the constraint is satisfied and
 everyone is happy.  If we attempt to call `knock` with an `'Opened` door,
-`StatePass 'Opened` is `'Obstruct`, so the constraint is not satisfied and
+`StatePass 'Opened` is `'Allow`, so the constraint is not satisfied and
 everyone is sad.
 
 ```haskell
