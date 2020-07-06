@@ -14,7 +14,13 @@ slug: introducing-the-mutable-library
 [haddock]: http://hackage.haskell.org/package/mutable
 [github]: https://github.com/mstksg/mutable
 
-I'm excited to announce the first release of the *[mutable][]* library!
+(*Note:* This post has been heavily revised to reflect
+*mutable-0.2.0.0*, as of July 2020.  For reference, [the
+original post][original] is available on github.)
+
+[original]: https://github.com/mstksg/inCode/blob/7c25dd3798955e8287d31774da6fe34015256b5a/entry/introducing-the-mutable-library.md
+
+I'm excited to announce the release of the *[mutable][]* library!
 
 The library offers what I call *beautiful mutable values*[^beautiful] ---
 automatic, composable piecewise-mutable references for your data types.  Sort
@@ -84,6 +90,9 @@ addFirst xs = runST $ do
     V.freeze v
 ```
 
+(this action is run in `ST`, the monad for mutable actions that is provided by
+GHC)
+
 This is because all of the other items in the vector are kept the same and not
 copied-over over the course of one million updates.  It is $O(n+l)$ in memory
 updates.  It is very good even for long vectors or large matrices.
@@ -123,10 +132,10 @@ million times, and be efficient with it.
 We'd have to write functions to "thaw" and "freeze"
 
 ```haskell
-thawTwoVec :: (s ~ PrimState m) => TwoVec -> m (TwoVecRef s)
+thawTwoVec :: TwoVec -> ST s (TwoVecRef s)
 thawTwoVec (TV x y) = TVR <$> V.thaw x <*> V.thaw y
 
-freezeTwoVec :: (s ~ PrimState m) => TwoVecRef s -> m TwoVec
+freezeTwoVec :: TwoVecRef s -> ST s TwoVec
 freezeTwoVec (TVR u v) = TV <$> V.freeze u <*> V.freze v
 ```
 
@@ -135,21 +144,21 @@ version of every data type.
 
 ### Solution
 
-The library provides the `Mutable` typeclass and the `GRef` type, where `GRef m
+The library provides the `Mutable` typeclass and the `GRef` type, where `GRef s
 X` is the automatically derived piecewise-mutable version of `X`.
 
 ```haskell
-instance PrimMonad m => Mutable m TwoVec where
-    type Ref m TwoVec = GRef m TwoVec
+instance Mutable s TwoVec where
+    type Ref s TwoVec = GRef s TwoVec
 ```
 
-The type `GRef m TwoVec` is *exactly* the `TwoVecRef` that we defined earlier:
+The type `GRef s TwoVec` is *exactly* the `TwoVecRef` that we defined earlier:
 it is a tuple of two `MVector`s.  It can do this because `Vector` itself has a
-`Mutable` instance, where its mutable version is `MVector`.  `GRef m TwoVec` is
+`Mutable` instance, where its mutable version is `MVector`.  `GRef s TwoVec` is
 essentially the "MVector" of `TwoVec`.
 
-This now gives us `thawRef :: TwoVec -> m (GRef m TwoVec)` and `freezeRef ::
-GRef m TwoVec -> m TwoVec`, for free, so we can write:
+This now gives us `thawRef :: TwoVec -> ST s (GRef s TwoVec)` and `freezeRef ::
+GRef s TwoVec -> ST s TwoVec`, for free, so we can write:
 
 ```haskell
 addFirst :: TwoVec -> TwoVec
@@ -167,7 +176,7 @@ gives you a version of `TwoVec`  that you can modify in-place piecewise.  You
 can compose two functions that each work piecewise on `TwoVec`:
 
 ```haskell
-mut1 :: PrimMonad m => Ref m TwoVec -> m ()
+mut1 :: Ref s TwoVec -> ST s ()
 mut1 v = do
     withField #tv1 v $ \u ->
       MV.modify u 0 (+ 1)
@@ -176,7 +185,7 @@ mut1 v = do
       MV.modify u 2 (+ 3)
       MV.modify u 3 (+ 4)
 
-mut2 :: PrimMonad m => Ref m TwoVec -> m ()
+mut2 :: Ref s TwoVec -> ST s ()
 mut2 v = do
     withField #tv1 v $ \u ->
       MV.modify u 4 (+ 1)
@@ -222,8 +231,8 @@ data List a = Nil | Cons a (List a)
   deriving (Show, Generic)
 infixr 5 `Cons`
 
-instance (Mutable m a, PrimMonad m) => Mutable m (List a) where
-    type Ref m (List a) = GRef m (List a)
+instance Mutable s a => Mutable m (List a) where
+    type Ref s (List a) = GRef s (List a)
 ```
 
 Here we are re-implementing the `List` data structure from scratch just to show
@@ -236,9 +245,9 @@ list.  For example, a function to check if a linked list is empty:
 ```haskell
 -- | Check if a mutable linked list is currently empty
 isEmpty
-    :: (PrimMonad m, Mutable m a)
-    => Ref m (List a)
-    -> m Bool
+    :: Mutable s a
+    => Ref s (List a)
+    -> ST s Bool
 isEmpty = hasBranch (constrMB #_Nil)
 ```
 
@@ -247,9 +256,9 @@ and shifting the rest of the list up.
 
 ```haskell
 popStack
-    :: (PrimMonad m, Mutable m a)
-    => Ref m (List a)
-    -> m (Maybe a)
+    :: Mutable s a
+    => Ref s (List a)
+    -> ST s (Maybe a)
 popStack xs = do
     c <- projectBranch (constrMB #_Cons) xs
     forM c $ \(y, ys) -> do
@@ -262,10 +271,10 @@ And a function to concatenate a second linked list to the end of a first one:
 
 ```haskell
 concatLists
-    :: (PrimMonad m, Mutable m a)
-    => Ref m (List a)
-    -> Ref m (List a)
-    -> m ()
+    :: Mutable s a
+    => Ref s (List a)
+    -> Ref s (List a)
+    -> ST s ()
 concatLists l1 l2 = do
     c <- projectBranch consBranch l1
     case c of
@@ -297,8 +306,8 @@ data MyTypeF f = MTF
 
 type MyType' = MyTypeF Identity
 
-instance PrimMonad m => Mutable m MyType' where
-    type Ref m MyType' = MyTypeF (RefFor m)
+instance Mutable s MyType' where
+    type Ref s MyType' = MyTypeF (RefFor s)
 ```
 
 We can directly use it like a normal data type:
@@ -308,20 +317,19 @@ MTF 3 4.5 (V.fromList [1..100])
     :: MyType'
 ```
 
-But now, `MyTypeF (RefFor m)` literally has mutable references as its fields.
+But now, `MyTypeF (RefFor s)` literally has mutable references as its fields.
 You can pattern match to get `rI :: MutVar s Int`, `rD :: MutVar s Double`, and
 `rV :: MVector s Double`
 
 ```haskell
-MTF rI rD rV :: MyTypeF (RefFor m)
+MTF rI rD rV :: MyTypeF (RefFor s)
 ```
 
 and the accessors work as well:
 
 ```haskell
 mtfVec
-    :: (s ~ PrimState m)
-    -> MyTypeF (RefFor m)
+    :: MyTypeF (RefFor s)
     -> MVector s Double
 ```
 
@@ -346,6 +354,18 @@ runST $ do
 
 The "mutable version" of a type literally *is* the ADT, if you use the
 higher-kinded data pattern!
+
+### A Polymorphic Picture
+
+One important thing to note when looking at the actual library --- the examples
+in this post show the provided actions in `ST`, the mutable actions monad
+provided by GHC.  However, the library provides these actions polymorphic for
+all `PrimMonad m`, an abstraction provided by the *[primitive][]* library to
+generalize for all "mutable monads" (like `IO` and monad transformers applied
+to `IO` and `ST`), as long as `PrimState m ~ s`, so you can run them in
+whatever useful mutable monads you'd like.
+
+[primitive]: https://hackage.haskell.org/package/primitive
 
 Reflections on Generic
 ----------------------
