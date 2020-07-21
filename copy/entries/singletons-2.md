@@ -136,6 +136,11 @@ data SomeDoor = forall s. MkSomeDoor (Sing s) (Door s)
 !!!singletons/Door2.hs "data SomeDoor ::"
 ```
 
+(Remember that `Sing s`, when `s` is a `DoorState`, is a type "synonym" for our
+favorite door singleton `SDoorState s`.  We're going to switch to using `Sing s`
+instead of `SDoorState s` for the rest of this series just to move into a more
+universal style where we treat the `Sing` as basically syntactical noise)
+
 `MkSomeDoor` is a constructor for an existential data type, meaning that the
 data type "hides" a type variable `s`.  Note the type (`Sing s -> Door s ->
 SomeDoor`) and how the result type (`SomeDoor`) *forgets* the `s` and hides all
@@ -469,9 +474,9 @@ general.
 
 ### Sing
 
-The crux of everything is the `Sing :: Type -> Type` indexed type.  If you see
-a value of type `Sing s`, you should really just think "a runtime witness for
-`s`".  If you see:
+The crux of everything is the `Sing :: k -> Type` kind-indexed injective type
+family.  If you see a value of type `Sing s`, you should really just think "a
+runtime witness for `s`".  If you see:
 
 ```haskell
 lockAnyDoor :: Sing s -> Door s -> Door 'Locked
@@ -505,9 +510,10 @@ singletons.
 
 It is important to remember that `Sing` is poly-kinded, so we can have `Sing
 'Opened`, but also `Sing 'True`, `Sing 5`, and `Sing '['Just 3, 'Nothing, 'Just
-0]` as well.  This is the real benefit of using the *singletons* library
-instead of writing our own singletons -- we get to work uniformly with
-singletons of all kinds.
+0]` as well.  `Sing x` is an "synonym" for `SDoorState x` when `x` is a
+`DoorState`, but `Sing x` is a "synonym" for `SBool x` is a `Bool`.  This is
+the real benefit of using the *singletons* library instead of writing our own
+singletons -- we get to work uniformly with singletons of all kinds.
 
 #### SingI
 
@@ -690,8 +696,12 @@ And a more sophisticated example, let's look at the instance for `Maybe`:
 
 ```haskell
 -- Maybe singletons have two constructors:
-SNothing :: Sing 'Nothing
-SJust    :: Sing x -> Sing ('Just x)
+data SMaybe :: Maybe k -> Type where
+    SNothing :: SMaybe 'Nothing
+    SJust    :: Sing x -> SMaybe ('Just x)
+
+-- The syntax for declaring an instance for the kind-indexed type family
+type instance Sing = SMaybe
 
 instance SingKind k => SingKind (Maybe k) where     -- the *kind* Maybe
     type Demote (Maybe k) = Maybe (Demote k)        -- the *type* Maybe
@@ -845,7 +855,7 @@ Check out the [sample code][samples] for solutions!
 
 
     ```haskell
-    !!!singletons/Door2.hs "data List a" "data instance Sing (x :: List k)" "instance SingKind k => SingKind (List k)"1
+    !!!singletons/Door2.hs "data List a" "data SList" "type instance Sing = SList" "instance SingKind k => SingKind (List k)"1
         type Demote (List k) = ???
 
         fromSing :: Sing (xs :: List k) -> List (Demote k)
@@ -853,13 +863,6 @@ Check out the [sample code][samples] for solutions!
 
         toSing :: List (Demote k) -> SomeSing (List k)
         toSing = ???
-    ```
-
-    The singletons for `List` are:
-
-    ```haskell
-    SNil  :: Sing 'Nil
-    SCons :: Sing x -> Sing xs -> Sing ('Cons x xs)
     ```
 
     Note that the built-in singletons for the list type also uses these same

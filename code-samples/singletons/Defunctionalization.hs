@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --install-ghc ghci --resolver nightly-2018-09-29
+-- stack --install-ghc ghci --resolver lts-16
 
 {-# LANGUAGE GADTs                          #-}
 {-# LANGUAGE TypeFamilies                   #-}

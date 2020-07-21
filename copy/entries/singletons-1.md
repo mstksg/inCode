@@ -14,6 +14,9 @@ great *[singletons][]* library :)
 
 [singletons]: http://hackage.haskell.org/package/singletons
 
+(*Note:* This post series has been written and updated to follow
+*singletons-2.6*.)
+
 If you've ever run into dependently typed programming in Haskell, you've
 probably encountered mentions of singletons (and the *singletons* library).
 This series of articles will be my attempt at giving you the story of the
@@ -363,19 +366,19 @@ gives a type with exactly one inhabitant.  It is written so that pattern
 matching on the *constructor* of that value reveals the unique type parameter.
 
 ```haskell
-!!!singletons/Door.hs "data SingDS ::"
+!!!singletons/Door.hs "data SDoorState ::"
 ```
 
 Here we're using *GADT syntax* again (but to make an actual GADT).  (Also note
 that `Type` is a synonym for the `*` kind, exported from the *Data.Kind*
-module)  So, if we use `SOpened`, we will get a `SingDS 'Opened`.  And if we
-have a `SingDS 'Opened`, we know that it was constructed using `SOpened`.
+module)  So, if we use `SOpened`, we will get a `SDoorState 'Opened`.  And if we
+have a `SDoorState 'Opened`, we know that it was constructed using `SOpened`.
 Essentially, this gives us three values:
 
 ```haskell
-SOpened :: SingDS 'Opened
-SClosed :: SingDS 'Closed
-SLocked :: SingDS 'Locked
+SOpened :: SDoorState 'Opened
+SClosed :: SDoorState 'Closed
+SLocked :: SDoorState 'Locked
 ```
 
 ### The Power of the Pattern Match
@@ -391,15 +394,15 @@ essentially.
 any `s`) and *lock* it using a composition of `lockDoor` or `closeDoor` as
 necessary.
 
-If we have `lockAnyDoor` take a `SingDS s` as its input (and, importantly,
-make sure that the `s` in `SingDS s` is the same `s` in the `Door s`), we can
-*pattern match* on the `SingDS s` to *reveal* what `s` is, to the type checker.
+If we have `lockAnyDoor` take a `SDoorState s` as its input (and, importantly,
+make sure that the `s` in `SDoorState s` is the same `s` in the `Door s`), we can
+*pattern match* on the `SDoorState s` to *reveal* what `s` is, to the type checker.
 This is known as a **dependent pattern match**.
 
-*   If `SingDS s`'s pattern match goes down the `SOpened ->` case, then we
+*   If `SDoorState s`'s pattern match goes down the `SOpened ->` case, then we
     *know* that `s ~ 'Opened`[^eq].  We know that `s` must be `'Opened`,
-    because `SOpened :: SingDS 'Opened`, so there really isn't anything else
-    the `s` in `SingDS s` could be!
+    because `SOpened :: SDoorState 'Opened`, so there really isn't anything else
+    the `s` in `SDoorState s` could be!
 
     So, if we know that `s ~ 'Opened`, that means that the `Door s` is `Door
     'Opened`.  So because `door :: Door' Opened`, we have to `closeDoor` it to
@@ -407,12 +410,12 @@ This is known as a **dependent pattern match**.
 
     We say that `SOpened` is a *runtime witness* to `s` being `'Opened`.
 
-*   Same for the `SClosed ->` branch -- since `SClosed :: SingDS 'Closed`, then
+*   Same for the `SClosed ->` branch -- since `SClosed :: SDoorState 'Closed`, then
     `s ~ 'Closed`, so our `Door s` must be a `Door 'Closed`.  This allows us to
     simply take our `door :: Door 'Closed` and use `lockDoor` to get a `Door
     'Locked`
 
-*   For the `SLocked ->` branch, `SLocked :: SingDS 'Locked`, so `s ~ 'Locked`, so
+*   For the `SLocked ->` branch, `SLocked :: SDoorState 'Locked`, so `s ~ 'Locked`, so
     our `Door s` is a `Door 'Locked`.  Our door is "already" locked, so we can
     just use the `door :: Door 'Locked` that we got!
 
@@ -428,7 +431,7 @@ Note that we can also write `lockAnyDoor` using the *LambdaCase* extension
 syntactic sugar, which I think offers a lot of extra insight:
 
 ```haskell
-lockAnyDoor :: SingDS s -> (Door s -> Door 'Locked)
+lockAnyDoor :: SDoorState s -> (Door s -> Door 'Locked)
 lockAnyDoor = \case
     SOpened -> lockDoor . closeDoor  -- in this branch, s is 'Opened
     SClosed -> lockDoor              -- in this branch, s is 'Closed
@@ -436,9 +439,9 @@ lockAnyDoor = \case
 ```
 
 Here, we can see `lockAnyDoor sng` as a partially applied function that returns
-a `Door s -> Door 'Locked`  For any `SingDS s` you give to `lockAnyDoor`,
+a `Door s -> Door 'Locked`  For any `SDoorState s` you give to `lockAnyDoor`,
 `lockAnyDoor` returns a "locker function" (`Door s -> Door 'Locked`) that is
-custom-made for your `SingDS`:
+custom-made for your `SDoorState`:
 
 *   `lockAnyDoor SOpened` will return a `Door 'Opened -> Door 'Locked`.  Here,
     it has to give `lockDoor . closeDoor :: Door 'Opened -> Door 'Locked`.
@@ -458,20 +461,20 @@ fit in.  If we gave `lockDoor` for the `SOpened` branch, or `id` for the
 Writing `doorStatus` is now pretty simple --
 
 ```haskell
-doorStatus :: SingDS s -> Door s -> DoorState
+doorStatus :: SDoorState s -> Door s -> DoorState
 doorStatus SOpened _ = Opened
 doorStatus SClosed _ = Closed
 doorStatus SLocked _ = Locked
 ```
 
-The benefit of the singleton again relies on the fact that the `s` in `SingDS
-s` is the same as the `s` in `Door s`, so if the user gives a `SingDS s`, it
+The benefit of the singleton again relies on the fact that the `s` in `SDoorState
+s` is the same as the `s` in `Door s`, so if the user gives a `SDoorState s`, it
 *has* to match the `s` in the `Door s` they give.
 
 Since we don't even care about the `door`, we could also just write:
 
 ```haskell
-!!!singletons/Door.hs "fromSingDS ::"
+!!!singletons/Door.hs "fromSDoorState ::"
 ```
 
 Which we can use to write a nicer `doorStatus`
@@ -503,7 +506,7 @@ And so now we can do:
 !!!singletons/Door.hs "lockAnyDoor_ ::" "doorStatus_ ::"
 ```
 
-Here, type inference will tell GHC that you want `singDS :: SingDS s`, and it
+Here, type inference will tell GHC that you want `singDS :: SDoorState s`, and it
 will pull out the proper singleton for the door you want to check!
 
 Now, we can call `lockAnyDoor_` *without passing in* a singleton, explicitly!
@@ -522,9 +525,9 @@ Door 'Locked
 #### The Same Power
 
 In Haskell, a constraint `SingDSI s =>` is essentially the same as passing in
-`SingDS s` explicitly.  Either way, you are passing in a runtime witness that
+`SDoorState s` explicitly.  Either way, you are passing in a runtime witness that
 your function can use.  You can think of `SingDSI s =>` as passing it in
-*implicitly*, and `SingDS s ->` as passing it in *explicitly*.
+*implicitly*, and `SDoorState s ->` as passing it in *explicitly*.
 
 So, it's important to remember that `lockAnyDoor` and `lockAnyDoor_` are the
 "same function", with the same power.  They are just written in different
@@ -533,11 +536,11 @@ written in implicit style.
 
 #### Going backwards
 
-Going from `SingDSI s =>` to `SingDS s ->` (implicit to explicit) is very easy
--- just use `singDS` to get a `SingDS s` if you have a `SingDSI s` constraint
+Going from `SingDSI s =>` to `SDoorState s ->` (implicit to explicit) is very easy
+-- just use `singDS` to get a `SDoorState s` if you have a `SingDSI s` constraint
 available.  This is what we did for `lockAnyDoor_` and `doorStatus_`.
 
-Going from `SingDS s ->` to `SingDSI s =>` (explicit to implicit) in Haskell is
+Going from `SDoorState s ->` to `SingDSI s =>` (explicit to implicit) in Haskell is
 actually a little trickier.  The typical way to do this is with a CPS-like
 utility function:
 
@@ -545,7 +548,7 @@ utility function:
 !!!singletons/Door.hs "withSingDSI ::"
 ```
 
-`withSingDSI` takes a `SingDS s`, and a value (of type `r`) that requires a
+`withSingDSI` takes a `SDoorState s`, and a value (of type `r`) that requires a
 `SingDSI s` instance to be created.  And it creates that value for you!
 
 To use `x`, you must have a `SingDSI s` instance available.  This all works
@@ -575,12 +578,12 @@ One interesting thing to point out -- note that the type of `withSingDSI` is
 very similar to the type of another common combinator:
 
 ```haskell
-withSingDSI :: SingDS s -> (SingDSI s => r) -> r
-flip  ($)   ::        a -> (        a -> r) -> r
+withSingDSI :: SDoorState s -> (SingDSI s => r) -> r
+flip  ($)   ::            a -> (        a -> r) -> r
 ```
 
 Which is a bit of a testament to what we said earlier about how a `SingDSI s =>
-..)` is the same as `SingDS s -> ..`.  `flip ($)` takes a value and a function
+..)` is the same as `SDoorState s -> ..`.  `flip ($)` takes a value and a function
 and applies the function to that value.  `withSingDSI` takes a value and
 "something like a function" and applies the "something like a function" to that
 value.
@@ -593,8 +596,8 @@ We can write a nice version of `mkDoor` using singletons:
 !!!singletons/Door.hs "mkDoor ::"
 ```
 
-We take advantage of the fact that `SingDS s` "locks in" the `s` type variable
-for `Door s`.  We can call it now with values of `SingDS`:
+We take advantage of the fact that `SDoorState s` "locks in" the `s` type variable
+for `Door s`.  We can call it now with values of `SDoorState`:
 
 ```haskell
 ghci> :t mkDoor SOpened "Oak"
@@ -631,10 +634,13 @@ This generates, for us:
 
 ```haskell
 -- not the actual code, but essentially what happens
-data Sing :: DoorState -> Type where
+data SDoorState :: DoorState -> Type where
     SOpened :: Sing 'Opened
     SClosed :: Sing 'Closed
     SLocked :: Sing 'Locked
+
+-- Sing x becomes a "type synonym" for SDoorState x when x is a DoorState
+type instance Sing = SDoorState
 ```
 
 `Sing` is a poly-kinded type constructor (a "data family").  `STrue :: Sing
@@ -657,6 +663,7 @@ singletons of all kinds! (heh)  There's a `SingI` instance for `'True`, a
 `SingI` instance for `10`, a `SingI` instance for `'Just 'Opened`, etc.:
 
 ```haskell
+-- Sing x becomes a "type synonym" for SBool x when x is a Boolean
 ghci> sing :: Sing 'True
 STrue
 ghci> sing :: Sing ('Just 'Opened)
@@ -710,9 +717,9 @@ Recall that `DoorState` has four different things associated with it now:
 3.  The singletons for `'Opened`, `'Closed`, and `'Locked`:
 
     ```haskell
-    SOpened :: Sing 'Opened
-    SClosed :: Sing 'Closed
-    SLocked :: Sing 'Locked
+    SOpened :: Sing 'Opened             -- a "synonym" for SDoorState 'Opened
+    SClosed :: Sing 'Closed             -- a "synonym" for SDoorState 'Closed
+    SLocked :: Sing 'Locked             -- a "synonym" for SDoorState 'Locked
     ```
 
 4.  The `SingI` instances for `'Opened`, `'Closed`, and `'Locked'`
@@ -732,9 +739,6 @@ It does this by defining a type class (actually, a "kind class"), `SingKind`,
 associating each type to the corresponding datakinds-generated kind.  The
 `SingKind` instance for `DoorState` links the *type* `DoorState` to the *kind*
 `DoorState`.
-
-The library also defines a neat type synonym, `type SDoorState = Sing`, so you
-can do `SDoorState 'Opened` instead of `Sing 'Opened`, if you wish.
 
 There are definitely more useful utility functions, but we will investigate
 these later on in the series!  For now, you can look at the [documentation][]
@@ -766,7 +770,7 @@ $ ./Door.hs
 
 However, remember the question that I asked earlier, about creating a `Door`
 with a given state that we don't know until runtime?  So far, we are only able
-to create `Door` and `SingDS` from types we *know* at compile-time.  There is
+to create `Door` and `SDoorState` from types we *know* at compile-time.  There is
 no way we have yet to convert a `DoorState` from the value level to the type
 level -- so it seems that there is no way to "load" a `Door s` with an `s` that
 depends on, say, a file's contents, or user input.  The fundamental issue is
@@ -800,7 +804,7 @@ Click on the links in the corner of the text boxes for solutions! (or just
 check out [the source file][singletons-door])
 
 These should be written in the singletons library style, with `Sing` instead of
-`SingDS` and `SingI` instead of `SingDSI`.  Review the [singletons
+`SDoorState` and `SingI` instead of `SingDSI`.  Review the [singletons
 file][singletons-door] for a comparison, if you are still unfamiliar.
 
 1.  Write a function to unlock a door, but only if the user enters an odd

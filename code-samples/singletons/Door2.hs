@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --install-ghc ghci --resolver nightly-2018-09-29 --package singletons
+-- stack --install-ghc ghci --resolver lts-16 --package singletons
 
 {-# LANGUAGE DataKinds            #-}
 {-# LANGUAGE EmptyCase            #-}
@@ -11,6 +11,7 @@
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE StandaloneDeriving   #-}
 {-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE TypeInType           #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -122,9 +123,11 @@ openAnySomeDoor n sd@(MkSomeDoor s d) = withSingI s $
 
 data List a = Nil | Cons a (List a)
 
-data instance Sing (x :: List k) where
-    SNil  :: Sing 'Nil
-    SCons :: Sing x -> Sing xs -> Sing ('Cons x xs)
+data SList :: List a -> Type where
+    SNil  :: SList 'Nil
+    SCons :: Sing x -> SList xs -> SList ('Cons x xs)
+
+type instance Sing = SList
 
 instance SingKind k => SingKind (List k) where
     type Demote (List k) = List (Demote k)

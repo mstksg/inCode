@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --install-ghc ghci --resolver nightly-2018-09-29 --package singletons
+-- stack --install-ghc ghci --resolver lts-16 --package singletons
 
 {-# LANGUAGE DataKinds            #-}
 {-# LANGUAGE EmptyCase            #-}
@@ -11,6 +11,7 @@
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE StandaloneDeriving   #-}
 {-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
 
