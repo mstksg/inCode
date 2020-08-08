@@ -53,7 +53,7 @@ Let's start with the simplest level of describing our schema: a plain ol'
 AST describing the possibilities our schema can take.
 
 ```haskell
-!!!functor-structures/doc.hs "data Schema" "data Choice" "data Field" "data Primitive"
+!!!functor-structures/doc.hs "data Schema" "data Field" "data Choice" "data Primitive"
 ```
 
 Our schema will either represent a record of many different fields, a sum of
@@ -86,7 +86,7 @@ PCustomer { cpName = "Sam", cpAge = 40 }
 might be represented by a json value like
 
 ```json
-{ "tag": "Customer", 
+{ "tag": "Customer",
   "contents":
     { "Name": "Sam"
     , "Age": 40.0
@@ -106,17 +106,17 @@ printing concerns for us.
 
 [prettyprinter]: https://hackage.haskell.org/package/prettyprinter
 
-The structure of this will match the structure of our future schema processors
---- you'll find they all look like this in some form or another!
+Let's build things up by defining documentation generators for our individual
+types, so they'll be easier to assemble.
 
 ```haskell
-!!!functor-structures/doc.hs "schemaDoc"
+!!!functor-structures/doc.hs "schemaDoc"4 "fieldDoc ::"1 "choiceDoc ::"1 "primDoc ::"1
 ```
 
 So `schemaDoc` will take the name of our type and a schema, and generate a
 `PP.Doc x`, the type of a text document in the *prettyprinter* library.[^xvar]
-Nothing too fancy here other than simply matching on what type of schema we're
-dealing with, and dispatching a different function for each type.
+And `fieldDoc`, `choiceDoc`, and `primDoc` just generate the documentation for
+each individual field or constructor.
 
 [^xvar]: I'm using `x` as the name of the type variable (instead of something
 more traditional like `a`) to indicate that it isn't meant to be referenced or
@@ -124,38 +124,35 @@ used anywhere in any consistent way.  Just remember it doesn't mean anything
 special syntactically!
 
 ```haskell
-!!!functor-structures/doc.hs "recordDoc"
+!!!functor-structures/doc.hs "fieldDoc ::" "choiceDoc ::" "primDoc ::"
 ```
 
-First, the `RecordType` handler uses `PP.vsep`, which takes a list of docs and
-concatenates them together vertically.  The first doc is the title around
-curly braces, and the second doc is a `*`'d list of `fieldDoc` for each `fs`,
-concatenated vertically and indented two spaces.
+Nothing too fancy here --- since `Field` and `Choice` just have a name and a
+sub-schema, we can have them call `schemaDoc`.  `primDoc` requires making our
+leaf documentation, so we can just print what type they have.
 
-`fieldDoc` itself is then going to recursively call `schemaDoc` with the field
-name as the title and the field value as the sub-schema.
+We tie it all together with `schemaDoc`:
 
 ```haskell
-!!!functor-structures/doc.hs "sumDoc"
+!!!functor-structures/doc.hs "schemaDoc"
 ```
 
-The `SumType` handler is going to be doing more or less the same thing, except
-surrounding the title in `(` `)` parentheses.  There's another line `Choice
-of:`, followed by the list of each choice, vertically concatenated and indented
-twice.
-
-```haskell
-!!!functor-structures/doc.hs "leafDoc"
-```
-
-Finally, the `leafDoc` handler prints out the schema of a single list: it gives
-the name of the leaf and then either `"string"`, `"number"`, or `"bool"`.
+Here we use `PP.vsep`, which takes a list of docs and concatenates them
+vertically, `PP.<+>` which concatenates two docs horizontally, and `PP.indent`
+which indents things before going down a level.  We appropriately call
+`fieldDoc`, `choiceDoc`, and `primDoc` when we actually need to print one of
+them.
 
 Hopefully that wasn't too bad!  There were a lot of moving parts because we
 have a recursive data type, but in the end hopefully each specific branch was
-self-contained enough to understand on their own.  We can test it out on
-`customerSchema`, taking advantage of the fact that `PP.Doc`'s `Show` instance
-will render the document:
+self-contained enough to understand on their own.  In the end the important
+thing to take away isn't the mechanics of document generation, but rather how
+the data flows.  Make sure you at least understand how the functions call each
+other, and how --- this pattern is going to be very consistent across all the
+schema processors we write!
+
+We can test out our function on `customerSchema`, taking
+advantage of the fact that `PP.Doc`'s `Show` instance will render the document:
 
 ```
 ghci> schemaDoc "Customer" customerSchema
@@ -197,19 +194,31 @@ like:
 ```
 
 To do this, we now have to include information on "how to parse an `a`" in our
-schema.  Remember that our actual json format is pretty fixed/structured, so we
-don't need to address things like how to encode sum types within our `Schema`
-type itself.  The only variation that our `Schema` can express can be isolated
-to one place: the `Primitive` type.
+schema.  Remember that our actual json format is pretty fixed/structured, so
+all our `Schema` has to express are variations within that structure. The only
+variation that our `Schema` can express are how sums/products are structured,
+and also how to parse primitive types.  And so, the main thing we need to
+modify is just `Primitive`:
 
 ```haskell
-!!!functor-structures/parse.hs "data Primitive" "pString ::" "pInt ::" "pBool ::"
+!!!functor-structures/parse.hs "data Primitive"
 ```
 
-And that's it!  Different data types will parse these primitive values in
-different ways, but other than that, everything is sort of already
-pre-determined.  Remember, our `Schema` type is only meant to express the
-different ways our rigidly defined structure can vary.
+A `Primitive a` will be a way to parse a json primitive --- it can be `PString`,
+`PNumber`, or `PBool`.  To create a "String Parser", you need to use `PString`
+with a function on "what to do with the string you get".  To create a "Bool
+parser", you need `PBool` with a function on what to do with the bool you get.
+
+We can write some helper primitives:
+
+```haskell
+!!!functor-structures/parse.hs "pString ::" "pInt ::" "pBool ::"
+```
+
+`pString :: Primitive String` is the most basic way to parse a primitive json
+string: just return the `String` itself.  `pInt` needs to reject any
+non-integer numbers, so `toBoundedInteger :: Scientific -> Maybe Int` works
+well.
 
 ### Finding Ap
 
@@ -224,8 +233,7 @@ data Schema a =
     | SumType     [Choice a]
     | SchemaLeaf  (Primitive a)
   deriving Functor
-
-!!!functor-structures/parse.hs "data Field" "data Choice"
+!!!functor-structures/parse.hs "data Field"1 "data Choice"1
 ```
 
 But there's a problem here: `RecordType` is a combination of `Field`s,
@@ -249,7 +257,7 @@ to give `Field` some sort of `Applicative` structure.  And so we can reach for
 "the type that gives something an `Applicative` structure", the [free
 applicative][].
 
-[free applicative]: https://hackage.haskell.org/package/free/docs/Control-Applicative-Free.html 
+[free applicative]: https://hackage.haskell.org/package/free/docs/Control-Applicative-Free.html
 
 Another way is to think about it as an enhancement along a functor combinator
 described in the [functor combinatorpedia][fpedia].  Here we know we want to
@@ -259,10 +267,10 @@ combinators until there is one that we need.  And scrolling down, we see:
 > [**Ap / Ap1 **](https://blog.jle.im/entry/functor-combinatorpedia.html#ap-ap1)
 >
 > **Origin**: *[Control.Applicative.Free][]* / *[Data.Functor.Apply.Free][]*
-> 
+>
 > **Enhancement**: The ability to provide multiple `f`s that the interpreter
 > *must* consume *all* of. (...)
-> 
+>
 > While `ListF` may be considered "multiple options *offered*", `Ap` can be
 > considered "multiple actions all *required*".  The interpreter must
 > consume/interpret *all* of the multiple `f`s in order to interpret an `Ap`.
@@ -273,7 +281,7 @@ combinators until there is one that we need.  And scrolling down, we see:
 > where ordering is enforced.
 >
 > ...
-> 
+>
 > Because this has an `Applicative` instance, you can use `(<*>) :: Ap f (a
 > -> b) -> Ap f a -> Ap f b` to sequence multiple `Ap f`s together, and `pure
 > :: a -> Ap f a` to produce a "no-op" `Ap` without any `f`s.
@@ -299,7 +307,7 @@ aggregate type.  We can express this in Haskell with something like:
 
 ```haskell
 data TwoFields = forall x y. TwoFields (Field x) (Field y) (x -> y -> a)
-``` 
+```
 
 In existential syntax, this says that `TwoFields a` consists of `Field x`
 and `Field y` of a "hidden" `x` and `y`, as well as a function to combine the
@@ -309,24 +317,24 @@ We can look up what type of tensor this is in the functor combinatorpedia.
 Scrolling down, we see:
 
 > [**Day**](https://blog.jle.im/entry/functor-combinatorpedia.html#day)
-> 
+>
 > **Origin**: *[Data.Functor.Day][]*
-> 
+>
 > **Mixing Strategy**: "Both, together forever": provide values from *both*
 > functors, and the user *must* also *use* both.
 >
 > ...
-> 
+>
 > Unlike for `:*:`, you always have to interpret *both* functor values in
 > order to interpret a `Day`.  It's a "full mixing".
-> 
+>
 > The mechanism for this is interesting in and of itself.  Looking at the
 > definition of the data type:
-> 
+>
 > ~~~haskell
 > data Day f g a = forall x y. Day (f x) (g y) (x -> y -> a)
 > ~~~
-> 
+>
 > We see that because `x` and `y` are "hidden" from the external world, we
 > can't directly use them without applying the "joining" function `x -> y ->
 > a`.  Due to how existential types work, we can't get anything out of it
@@ -342,14 +350,171 @@ Scrolling down, we see:
 It seems as if our `TwoFields` is exactly `Day Field Field`, so we're on the
 right track.
 
-Reading further on in the `Day` section, we see that a list of "`f`s dayed with
-each other multiple times" is precisely `Ap f`.
+Reading further on in the `Day` section, we see:
 
-### Using Ap
+> **List type**
+>
+> ... `Ap f a` is a bunch of `f x`s `Day`d with each other.
 
-With this let's write our final `Schema` type:
+All three different ways you might have arrived at the conclusion of using
+`Ap`!
+
+### Interpreting Parsers
+
+With this, we can write our final `Schema` type.
 
 ```haskell
-!!!functor-structures/parse.hs "data Schema"
+!!!functor-structures/parse.hs "data Schema" "data Field" "data Choice" "data Primitive"
 ```
 
+Note that I switched from `[Choice a]` to `ListF Choice a` --- the two are the
+same, but the latter has the Functor instance we want (`fmap :: (a -> b) ->
+ListF Choice a -> ListF Choice b`), and is an instance of useful functor
+combinator typeclasses.  Furthermore, it illustrates the duality between sum
+types, since `Ap` and `ListF` are contrasting types: `Ap` represents a product
+between many required fields, and `ListF` represents a sum between many
+possible choices.  It's more clear how product types and list types are
+"opposites" in a nice clean way.
+
+Now, the typical way to "run" an applied functor combinator is with
+interpreting functions, like:
+
+```haskell
+interpret :: Applicative g => (forall x. f x -> g x) => Ap f a    -> g a
+interpret :: Plus g        => (forall x. f x -> g x) => ListF f a -> g a
+```
+
+You can interpret an `Ap f a` into any `Applicative g`, and you can interpret a
+`ListF f a` into any `Plus g` (`Plus` is basically `Alternative` without an
+`Applicative` requirement).  Basically, you write a function to interpret any
+`f` you find, and `interpret` will accumulate them all together for you.
+
+In our case, if we decided to use `interpret`, we could write:
+
+```haskell
+interpret :: (forall x. Field  x -> Parse ErrType x) -> Ap    Field  a -> Parse ErrType x
+interpret :: (forall x. Choice x -> Parse ErrType x) -> ListF Choice a -> Parse ErrType x
+```
+
+Basically, if we have a way to parse each `Field`, then we have a way to parse
+an `Ap Field a`.  If we have a way to parse each `Choice`, then we have a way
+to parse a `ListF Choice a`.
+
+Let's write those individual parsers for each smaller type:
+
+```haskell
+!!!functor-structures/parse.hs "fieldParser ::"
+```
+
+Here we use *aeson-better-errors*'s `key :: Text -> Parser a -> Parser a`,
+which takes a key and a parser, and runs that parser on whatever is under that
+key.  For `fieldParser`, we run the schema parser for our sub-schema under that
+key.
+
+```haskell
+!!!functor-structures/parse.hs "choiceParser ::"
+```
+
+Our sum type encoding is a bit more involved, because json doesn't have any
+native sum type construct.  So we're going to parse whatever is in the key
+`"tag"`, and if that tag matches our current choice's constructor, we parse the
+schema parser for our sub-schema under that key.  Otherwise, this choice isn't
+what is currently in our json value.
+
+```haskell
+!!!functor-structures/parse.hs "primParser ::"
+```
+
+Our primitive parser is just going to use *aeson-better-error*'s primitive
+value parsers with the function in them --- nothing too fancy, just some
+plumbing.
+
+Finally, to wrap bring it all together, we use the `interpret` functions we
+talked about:
+
+```haskell
+!!!functor-structures/parse.hs "schemaParser ::"
+```
+
+And that's it!
+
+Ah well, not exactly so fast.  Even though they could support it,
+*aeson-better-errors* doesn't provide and `Plus` instances for `Parse`.
+We can write them as orphans here just because this is a fun learning
+experience (but we usually do like to avoid defining instances for types or
+typeclasses that aren't ours).
+
+```haskell
+!!!functor-structures/parse.hs "instance Monad f =>"
+```
+
+And...that should work!
+
+```haskell
+ghci> :set -XOverloadedStrings
+ghci> parseSchema customerSchema  "{ \"tag\": \"Person\", \"contents\": { \"Name\": \"Same\", \"Age\": 40 } }"
+Right (CPerson {cpName = "Same", cpAge = 30})
+ghci> parseSchema customerSchema  "{ \"tag\": \"Business\", \"contents\": { \"Employees\": 3 } }"
+Right (CBusiness {cbEmployees = 3})
+```
+
+We were able to generate a fully functional parser from our schema, by only
+providing parsers for the smaller, more specific types we had (`Field` and
+`Choice`), and having them all fit together in a way directed by their
+`Apply` and `Alt` typeclass instances.
+
+### Direct Structural Inspection
+
+However, sometimes the typeclass instances aren't really the best way to handle
+things.  It gives us a nice principled shortcut --- for example, to interpret
+out of an `Ap`, GHC needs a way to know "how to sequence `Parse`s", and so
+`interpret` uses the `Applicative` instance for that.  But we know there are
+usually different ways to sequence or combine actions --- famously in IO, we
+have the option to sequence IO actions in series or in parallel.  So,
+offloading our logic to a typeclass can be a convenient route, but it's not
+necessarily the most pragmatic way.
+
+In our case, the `Plus` instance actually combines failed fallback behavior in
+an undesirable way: our errors become not too useful, because `<!>` always
+picks the right side's errors, and we eventually run into `A.throwCustomError
+"No options were validated"`.
+
+```haskell
+ghci> parseSchema customerSchema  "{ \"tag\": \"Business\", \"contents\": { \"Employees\": \"Mustard\" } }"
+Left (BadSchema [] (CustomError "No options were validated"))
+ghci> parseSchema customerSchema  "{ \"tag\": \"Grape\", \"contents\": { \"Color\": \"purple\" } }"
+Left (BadSchema [] (CustomError "No options were validated"))
+```
+
+Since `Plus`'s `zero` definition always falls back to the same error, this is
+not very useful!
+
+So `interpret` for `ListF`, while convenient, isn't necessarily the best way to
+tear down a `ListF`.  Luckily, most functor combinators are just ADTs that we
+can pattern match and break down and access the structures manually.  In the
+case of `ListF`, the structure is pretty simple:
+
+```haskell
+data ListF f a = ListF { runListF :: [f a] }
+```
+
+So our `ListF Choice a` is just `[Choice a]`.  This is something we can work
+with!  Let's write a better `ListF Choice a` processor by working with the list
+itself.
+
+```haskell
+!!!functor-structures/parse.hs "schemaParser2 ::"
+```
+
+We can use the structure of `ListF` to generate a `Map` associating any tags
+with the schemas they are meant to encode.  We then parse the tag, look up what
+schema it represents (if any) and then use that schema under the contents key.
+
+```haskell
+λ: parseSchema2 customerSchema  "{ \"tag\": \"Business\", \"contents\": { \"Employees\": \"Mustard\" } }"
+Left (BadSchema [ObjectKey "contents",ObjectKey "Employees"] (WrongType TyNumber (String "Mustard")))
+λ: parseSchema2 customerSchema  "{ \"tag\": \"Grape\", \"contents\": { \"Color\": \"purple\" } }"
+Left (BadSchema [] (CustomError "tag Grape not recognized: Expected one of Business, Person"))
+```
+
+Much better messages!

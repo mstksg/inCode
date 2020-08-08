@@ -57,40 +57,31 @@ schemaDoc
     -> Schema       -- ^ schema
     -> PP.Doc x
 schemaDoc title = \case
-    RecordType fs -> recordDoc title fs
-    SumType cs    -> sumDoc title cs
-    SchemaLeaf p  -> leafDoc title p
+    RecordType fs -> PP.vsep [
+        PP.pretty ("{" <> title <> "}")
+      , PP.indent 2 . PP.vsep $
+          map (\fld -> "*" PP.<+> PP.indent 2 (fieldDoc fld)) fs
+      ]
+    SumType cs    -> PP.vsep [
+        PP.pretty ("(" <> title <> ")")
+      , "Choice of:"
+      , PP.indent 2 . PP.vsep $
+          map choiceDoc cs
+      ]
+    SchemaLeaf p  -> PP.pretty (title <> ":")
+              PP.<+> primDoc p
 
-recordDoc :: String -> [Field] -> PP.Doc x
-recordDoc title fs = PP.vsep [
-      PP.pretty ("{" <> title <> "}")
-    , PP.indent 2 . PP.vsep $
-        map (\fld -> "*" PP.<+> PP.indent 2 (fieldDoc fld)) fs
-    ]
-  where
-    fieldDoc :: Field -> PP.Doc x
-    fieldDoc Field{..} = schemaDoc fieldName fieldValue
+fieldDoc :: Field -> PP.Doc x
+fieldDoc Field{..} = schemaDoc fieldName fieldValue
 
-sumDoc :: String -> [Choice] -> PP.Doc x
-sumDoc title cs = PP.vsep [
-      PP.pretty ("(" <> title <> ")")
-    , "Choice of:"
-    , PP.indent 2 . PP.vsep $
-        map choiceDoc cs
-    ]
-  where
-    choiceDoc :: Choice -> PP.Doc x
-    choiceDoc Choice{..} = schemaDoc choiceName choiceValue
+choiceDoc :: Choice -> PP.Doc x
+choiceDoc Choice{..} = schemaDoc choiceName choiceValue
 
-leafDoc :: String -> Primitive -> PP.Doc x
-leafDoc title p = PP.pretty (title <> ":")
-           PP.<+> primDoc p
-  where
-    primDoc :: Primitive -> PP.Doc x
-    primDoc = \case
-      PString -> "string"
-      PNumber -> "number"
-      PBool   -> "bool"
+primDoc :: Primitive -> PP.Doc x
+primDoc = \case
+  PString -> "string"
+  PNumber -> "number"
+  PBool   -> "bool"
 
 main :: IO ()
 main = pure ()
