@@ -220,7 +220,7 @@ string: just return the `String` itself.  `pInt` needs to reject any
 non-integer numbers, so `toBoundedInteger :: Scientific -> Maybe Int` works
 well.
 
-### Finding Ap
+### Deducing Ap
 
 However, this small change (and adding the type parameter) leaves in a
 predicament.  What should `Schema` look like?
@@ -359,7 +359,7 @@ Reading further on in the `Day` section, we see:
 All three different ways you might have arrived at the conclusion of using
 `Ap`!
 
-### Interpreting Parsers
+### Building Ap
 
 With this, we can write our final `Schema` type.
 
@@ -370,11 +370,40 @@ With this, we can write our final `Schema` type.
 Note that I switched from `[Choice a]` to `ListF Choice a` --- the two are the
 same, but the latter has the Functor instance we want (`fmap :: (a -> b) ->
 ListF Choice a -> ListF Choice b`), and is an instance of useful functor
-combinator typeclasses.  Furthermore, it illustrates the duality between sum
+combinator typeclasses.  Furthermore, it illustrates the symmetry between sum
 types, since `Ap` and `ListF` are contrasting types: `Ap` represents a product
 between many required fields, and `ListF` represents a sum between many
 possible choices.  It's more clear how product types and list types are
 "opposites" in a nice clean way.
+
+We can now make our `Customer` schema:
+
+```haskell
+!!!functor-structures/parse.hs "customerSchema ::"
+customerSchema :: Schema Customer
+customerSchema = SumType $
+      inject Choice
+        { choiceName  = "Person"
+        , choiceValue = RecordType $
+            CPerson
+              <$> liftAp Field { fieldName = "Name", fieldValue = SchemaLeaf pString }
+              <*> liftAp Field { fieldName = "Age" , fieldValue = SchemaLeaf pInt    }
+        }
+  <!> inject Choice
+        { choiceName  = "Business"
+        , choiceValue = RecordType $
+            CBusiness
+              <$> liftAp Field { fieldName = "Employees", fieldValue = SchemaLeaf pInt }
+        }
+```
+
+The main new thing is using `inject :: Choice a -> ListF Choice a`
+and `inject :: Field a -> Ap Field a` to lift our base types into their
+appropriate combinators.  Then after that, we just use `Ap`'s `Applicative`
+instance and `ListF`'s `Plus` instance to combine them together.  Overall it
+should look very similar to the schema we wrote for the documentation section.
+
+### Interpreting Ap
 
 Now, the typical way to "run" an applied functor combinator is with
 interpreting functions, like:
@@ -439,7 +468,7 @@ talked about:
 And that's it!
 
 Ah well, not exactly so fast.  Even though they could support it,
-*aeson-better-errors* doesn't provide and `Plus` instances for `Parse`.
+*aeson-better-errors* doesn't provide `Plus` a for `Parse`.
 We can write them as orphans here just because this is a fun learning
 experience (but we usually do like to avoid defining instances for types or
 typeclasses that aren't ours).
@@ -498,7 +527,7 @@ case of `ListF`, the structure is pretty simple:
 data ListF f a = ListF { runListF :: [f a] }
 ```
 
-So our `ListF Choice a` is just `[Choice a]`.  This is something we can work
+Our `ListF Choice a` is just `[Choice a]`.  This is something we can work
 with!  Let's write a better `ListF Choice a` processor by working with the list
 itself.
 
@@ -518,3 +547,54 @@ Left (BadSchema [] (CustomError "tag Grape not recognized: Expected one of Busin
 ```
 
 Much better messages!
+
+<!-- Note that, due to the mathematics behind `Plus` and other related abstractions, -->
+<!-- any function that consumes `ListF f` or `Ap f`, etc., can be written in terms -->
+<!-- of `interpret` over an appropriate `Plus` or `Applicative` instance and -->
+<!-- extraction function.  The thing that using `Ap`/`ListF` guarantees is that -->
+<!-- however way we construct our `Schema` type, the end result will be "normalized" -->
+<!-- towards a canonical structure.  So if we `inject x <!> (inject y <!> inject -->
+<!-- z)`, it has to be the same overall schema as `(inject x <!> inject y) <!> -->
+<!-- inject z`. -->
+
+### Backporting documentation
+
+Remember that the whole point of this exercise was to *add* functionality to
+our schema.  That means we also have to upgrade our documentation function as
+well.
+
+Hopefully it is clear from the structure of our data type that we haven't
+*lost* any information.  Updating our documentation generator should
+be just a matter of changing how to we get the items from our `ListF` and `Ap`.
+
+Yes, we could manually pattern match and take advantage of the structure, or
+use an interpretation function directly, etc., but if we just want to get a
+list of monomorphic items from a functor combinator, there's a convenient
+function in *functor-combinators* called `icollect`.
+
+```haskell
+icollect :: (forall x. f x -> b) -> ListF f a -> [b]
+icollect :: (forall x. f x -> b) -> Ap    f a -> [b]
+```
+
+Give it a function to "get" a `b` out of every `f`, it collects the `b` from
+every `f` inside the structure.  Note that this type is very similar to the
+`map` we used earlier:
+
+```haskell
+-- what we used before
+map      :: (          Field   -> b) -> [Field]    -> [b]
+-- what we can use now
+icollect :: (forall x. Field x -> b) -> Ap Field a -> [b]
+```
+
+So it looks like `icollect` should work as a drop-in replacement for `map` ...
+
+```haskell
+!!!functor-structures/parse.hs "schemaDoc"
+```
+
+Neat, we just had to replace `map (\fld -> ..) fs` with `icollect (\fld -> ...)
+fs`, and `map choiceDoc cs` with `icollect choiceDoc cs`.  We were able to
+re-use the exact same logic --- we lose no power and upgrading was a
+straightforward mechanical transformation.

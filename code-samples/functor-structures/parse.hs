@@ -1,13 +1,14 @@
 #!/usr/bin/env stack
 -- stack --install-ghc ghci --resolver lts-16 --package aeson-better-errors --package prettyprinter --package semigroupoids --package scientific --package text --package functor-combinators-0.3.1.0 --package vinyl --package invariant --package contravariant --package free --package assoc --package bytestring --package dlist-1.0 --package containers
 
-{-# LANGUAGE DeriveFunctor        #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE LambdaCase           #-}
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE RecordWildCards      #-}
-{-# LANGUAGE ScopedTypeVariables  #-}
-{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE DeriveFunctor              #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE LambdaCase                 #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE RecordWildCards            #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE TypeSynonymInstances       #-}
 
 import           Control.Applicative
 import           Control.Applicative.Free
@@ -84,24 +85,24 @@ schemaDoc
     -> Schema x     -- ^ schema
     -> PP.Doc a
 schemaDoc title = \case
-    SumType cs -> PP.vsep [
-        PP.pretty ("(" <> title <> ")")
-      , "Choice of:"
-      , PP.indent 2 . PP.vsep . map choiceDoc . runListF $ cs
-      ]
     RecordType fs -> PP.vsep [
         PP.pretty ("{" <> title <> "}")
-      , PP.indent 2 . PP.vsep . getConst $
-            runAp (Const . (:[]) . ("*" PP.<+>) . PP.indent 2 . fieldDoc) fs
+      , PP.indent 2 . PP.vsep $
+          icollect (\fld -> "*" PP.<+> PP.indent 2 (fieldDoc fld)) fs
       ]
-    SchemaLeaf p ->
-              PP.pretty (title <> ":")
-        PP.<+> primDoc p
+    SumType cs    -> PP.vsep [
+        PP.pretty ("(" <> title <> ")")
+      , "Choice of:"
+      , PP.indent 2 . PP.vsep $
+          icollect choiceDoc cs
+      ]
+    SchemaLeaf p  -> PP.pretty (title <> ":")
+              PP.<+> primDoc p
   where
-    choiceDoc :: Choice x -> PP.Doc a
-    choiceDoc Choice{..} = schemaDoc choiceName choiceValue
     fieldDoc :: Field x -> PP.Doc a
     fieldDoc Field{..} = schemaDoc fieldName fieldValue
+    choiceDoc :: Choice x -> PP.Doc a
+    choiceDoc Choice{..} = schemaDoc choiceName choiceValue
     primDoc :: Primitive x -> PP.Doc a
     primDoc = \case
       PString _ -> "string"
