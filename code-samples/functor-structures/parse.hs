@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --install-ghc ghci --resolver lts-16 --package aeson-better-errors --package prettyprinter --package semigroupoids --package scientific --package text --package functor-combinators-0.3.1.0 --package vinyl --package invariant --package contravariant --package free --package assoc --package bytestring --package dlist-1.0 --package containers
+-- stack --install-ghc ghci --resolver lts-16 --package prettyprinter --package functor-combinators-0.3.2.0 --package aeson-better-errors --package vinyl-0.13.0 --package containers --package scientific --package text --package semigroupoids --package bytestring --package free
 
 {-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE FlexibleInstances          #-}
@@ -9,13 +9,12 @@
 {-# LANGUAGE RecordWildCards            #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE TypeSynonymInstances       #-}
+{-# OPTIONS_GHC -Wall                   #-}
 
-import           Control.Applicative
 import           Control.Applicative.Free
 import           Control.Applicative.ListF
 import           Control.Monad
 import           Data.ByteString.Lazy      (ByteString)
-import           Data.Functor.Compose
 import           Data.Functor.Plus
 import           Data.HFunctor
 import           Data.HFunctor.Interpret
@@ -70,14 +69,14 @@ customerSchema = SumType $
         { choiceName  = "Person"
         , choiceValue = RecordType $
             CPerson
-              <$> liftAp Field { fieldName = "Name", fieldValue = SchemaLeaf pString }
-              <*> liftAp Field { fieldName = "Age" , fieldValue = SchemaLeaf pInt    }
+              <$> inject Field { fieldName = "Name", fieldValue = SchemaLeaf pString }
+              <*> inject Field { fieldName = "Age" , fieldValue = SchemaLeaf pInt    }
         }
   <!> inject Choice
         { choiceName  = "Business"
         , choiceValue = RecordType $
             CBusiness
-              <$> liftAp Field { fieldName = "Employees", fieldValue = SchemaLeaf pInt }
+              <$> inject Field { fieldName = "Employees", fieldValue = SchemaLeaf pInt }
         }
 
 schemaDoc

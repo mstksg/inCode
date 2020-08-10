@@ -1983,6 +1983,278 @@ intact: functor combinators only ever *add* structure.
 
 [Data.HFunctor]: https://hackage.haskell.org/package/functor-combinators/docs/Data-HFunctor.html
 
+Contravariant Functor Combinators
+---------------------------------
+
+Most of the above functor combinators have been "covariant" ones: an `t f a`
+represents some "producer" or "generator" of `a`s.  Many of them require a
+`Functor` constraint on `f` interpret out of.  However, there exist many
+useful *contravariant* ones too, where `t f a` represents a "consumer" of `a`s;
+many of these require a `Contravariant` constraint on `f` to interpret out of.
+These can be useful as the building blocks of consumers like serializers.
+
+I've included them all in a separate section because you to either be looking
+for one or the other, and also because there are much less contravariant
+combinators than covariant ones in the Haskell ecosystem.
+
+Also note that many of the functor combinators in the previous sections are
+compatible with both covariant *and* contravariant functors, like:
+
+*   `:+:`/`Sum`
+*   `LeftF`/`RightF`
+*   `EnvT`
+*   `Step`
+*   `Flagged`
+*   `Final`
+*   `Chain`
+*   `IdentityT`
+
+The following functor combinators in the previous section are also compatible
+with both, but their instances in *functor-combinator* are designed around
+covariant usage.  However, some of them have contravariant twins that are
+otherwise identical except for the fact that their instances are instead
+designed around contravariant usage.
+
+*   `:*:`/`Product` (contravariant version: the contravariant `Day`)
+*   `These1`
+*   `ListF`/`NonEmptyF` (contravariant versions: `Div` and `Div1`)
+*   `MaybeF` 
+
+### Contravariant Day
+
+*   **Origin**: *[Data.Functor.Contravariant.Day][]*
+
+*   **Mixing Strategy**: "Both, together": provide two consumers that are
+    each meant to consume one part of the input.
+
+    ```haskell
+    data Day f g a = forall x y. Day (f x) (g y) (a -> (x, y))
+    ```
+
+    This type is essentially equivalent to `:*:`/`Product` if `f` is
+    `Contravariant`, so it is useful in every situation where `:*:` would be
+    useful.  It can be thought of as simply a version of `:*:` that signals to
+    the reader that it is meant to be used contravariantly (as a consumer) and
+    not covariantly (as a producer).
+
+    Like for `:*:`, it has the distinguishing property (if `f` is
+    `Contravariant`) of allowing you to use either the `f` or the `g`, as you
+    please.
+
+    ```haskell
+    dayOutL :: Contravariant f => Day f g ~> f
+    dayOutL (Day x _ f) = contramap (fst . f) x
+
+    dayOutR :: Contravariant g => Day f g ~> g
+    dayOutR (Day _ y f) = contramap (snd . f) y
+    ```
+
+    In practice, however, I like to think of it as storing an `f` and a `g` that
+    can each handle a separate "part" of an `a`.  For example, the illustrative
+    helper function
+
+    ```haskell
+    day :: f a -> g b -> Day f g (a, b)
+    day x y = Day x y id
+    ```
+
+    allows you to couple an `f a` consumer of `a` with a `g b` consumer of `b`
+    to produce a consumer of `(a, b)` that does its job by handing the `a` to
+    `x`, and the `b` to `y`.
+
+*   **Identity**
+
+    ```haskell
+    instance Tensor Day Proxy
+    ```
+
+    Since this type is essentially `(:*:)`, it has the same identity.
+
+    ```haskell
+    day Proxy :: g b -> Day Proxy g (a, b)
+    ```
+
+    is the `Day` that would "ignore" the `a` part and simply pass the `b` to
+    `g`.
+
+*   **Monoids**
+
+    ```haskell
+    instance Divise    f => SemigroupIn Day f
+    instance Divisible f => MonoidIn    Day Proxy f
+
+    binterpret @Day
+        :: Divise f
+        => g ~> f
+        -> h ~> f
+        -> Day g h ~> f
+
+    inL   @(:*:) :: Divisible g => f     ~> Day f g
+    inR   @(:*:) :: Divisible f => g     ~> Day f g
+    pureT @(:*:) :: Divisible h => Proxy ~> h
+    ```
+
+    `Divise` from *[Data.Functor.Contravariant.Divise][]* can be thought
+    of some version the "contravariant `Alt`": it gives you a way to merge two
+    `f a`s into a single one in a way that represents having both the items
+    consume the input as they choose.  The usual way of doing this is by
+    providing a splitting function to choose to give some part of the input to
+    one argument, and some part to another:
+
+    ```haskell
+    class Contravariant f => Divise f where
+        divise :: (a -> (b, c)) -> f b -> f c -> f a
+                      -- ^ what to give to the 'f b'
+                         -- ^ what to give to the 'f c'
+    ```
+
+    `Divisible` from *[Data.Functor.Contravariant.Divisible][]*, adds an
+    identity that will ignore anything it is given: `conquer.`
+
+    ```haskell
+    class Divise f => Divisible f where
+        conquer :: f a
+    ```
+
+    (note: like with `Applicative` and `Apply`, the actual version requires
+    only `Contravariant f`; `Divise` isn't an actual superclass, even though it
+    should be.)
+
+*   **List type**
+
+    ```haskell
+    type NonEmptyBy Day = Div1
+    type ListBy     Day = Div
+    ```
+
+    `Div1 f` and `Div f` are equivalent to `NonEmptyF f` and `ListF f`,
+    respectively, as long as `f` is `Contravariant`.  However, due to quirks of
+    the the definition of `Day`, essential functions like appends, merges, etc.
+    on `ListF` require `Contravariant f`.  `Div` doesn't require such
+    instances, and so can be more useful as a free structure.  Also,
+    `Div1`/`Div` are constructed in a way that is more well-suited for common
+    usage patterns of `Divisible` methods.
+    
+    Like for `Day`, it's something that can be used instead of `:*:` to
+    mentally signify how the type is meant to be used.  You can think of `Div f
+    a` as a chain of `f`s, where the `a` is distributed over each `f`, but the
+    intent of its usage is that each `f` is meant to consume a different part
+    of that `a`.
+
+    See the information later on `Div` alone for more information on usage and utility.
+
+    `Div` is the possibly-empty version, and `Div1` is the nonempty version.
+
+[Data.Functor.Contravariant.Day][]: https://hackage.haskell.org/package/kan-extensions/docs/Data-Functor-Contravariant-Day.html
+[Data.Functor.Contravariant.Divisible][]: https://hackage.haskell.org/package/contravariant/docs/Data-Functor-Contravariant-Divisible.html
+[Data.Functor.Contravariant.Divise][]: https://hackage.haskell.org/package/functor-combinators/docs/Data-Functor-Contravariant-Divise.html
+
+### Night
+
+*   **Origin**: *[Data.Functor.Contravariant.Night][]*
+
+*   **Mixing Strategy**: "One or the other, but chosen at consumption-time":
+    provide two consumers to handle input, but the choice of which consumer to
+    use is made at consumption time.
+
+    ```haskell
+    data Night f g a = forall x y. Night (f x) (g y) (a -> Either x y)
+    ```
+
+    This one represents *delegation*: `Night f g a` contains `f` and `g` that
+    could process some form of the `a`, but which of the two is chosen to
+    depends on the value of `a` itself.
+
+    This can be thought of as representing [sharding][] between `f` and `g`.
+    Some discriminator determins which of `f` or `g` is better suited to
+    consume the input, and picks which single one to use based on that.
+    
+    The illustrative helper function can make this clear:
+
+    ```haskell
+    night :: f a -> g b -> Night f g (Either a b)
+    night x y = Night x y id
+    ```
+
+    allows you to couple an `f a` consumer of `a` with a `g b` consumer of `b`
+    to produce a consumer of `Either a b` that does its job by using the `f` if
+    given a `Left` input, and using the `g` if given a `b` input.
+
+    This is technically still a day convolution (mathematically), but it uses
+    `Either` instead of the typical `(,)` we use in Haskell.  So it's like the
+    opposite of a usual Haskell `Day` --- it's `Night` :)
+
+*   **Identity**
+
+    ```haskell
+    instance Tensor Night Not
+
+    -- | Data type that proves @a@ cannot exist
+    newtype Not a = Not { refute :: a -> Void }
+    ```
+
+    If `Night f g` assigns input to either `f` or `g`, then a functor that
+    "cannot be chosen"/"cannot be used" would force the choice to the other side.
+
+    That is, `Night f Not` must necessarily pass its input to `f`, as you
+    cannot pass anything to a `Not`, since it only accepts passing in
+    uninhabited types.
+
+*   **Monoids**
+
+    ```haskell
+    instance Decide   f => SemigroupIn Night f
+    instance Conclude f => MonoidIn    Night Not f
+
+    binterpret @Night
+        :: Decide f
+        => g ~> f
+        -> h ~> f
+        -> Night g h ~> f
+
+    inL   @Night :: Conclude g => f   ~> Night f g
+    inR   @Night :: Conclude f => g   ~> Night f g
+    pureT @Night :: Conclude h => Not ~> h
+    ```
+
+    `Decide` from *[Data.Functor.Contravariant.Decide][]* can be thought of
+    as a deterministic sharding typeclass: You can combine two consumers along
+    with a decision function on which consumer to use.
+
+    ```haskell
+    class Contravariant f => Decide f where
+        decide :: (a -> Either b c) -> f b -> f c -> f a
+                            -- ^ use the f b
+                              -- ^ use the f c
+    ```
+
+    `Conclude` from *[Data.Functor.Contravariant.Conclude][]*, adds support for
+    specifying an `f` that cannot be chosen by the decision function
+    when used with `decide`.
+
+    ```haskell
+    class Decide f => Conclude f where
+        conclude :: (a -> Void) -> f a
+    ```
+
+*   **List type**
+
+    ```haskell
+    type NonEmptyBy Night = Dec1
+    type ListBy     Night = Dec
+    ```
+
+    `Dec f` and `Dec1 f` represent a bunch of `f`s `Night`'d with each other
+    --- you can think of `Dec f` was the sharding over many different `f`s (or
+    even none), and `Dec1 f` as the sharding over at least one `f`.
+
+    See the later section on `Dec` for more information.
+
+[Data.Functor.Contravariant.Night][]: https://hackage.haskell.org/package/functor-combinators/docs/Data-Functor-Contravariant-Night.html
+[sharding]: https://en.wikipedia.org/wiki/Shard_(database_architecture)
+[Data.Functor.Contravariant.Decide][]: https://hackage.haskell.org/package/contravariant/docs/Data-Functor-Contravariant-Decide.html
+[Data.Functor.Contravariant.Conclude][]: https://hackage.haskell.org/package/functor-combinators/docs/Data-Functor-Contravariant-Conclude.html
+
 Combinator Combinators
 ----------------------
 

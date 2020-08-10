@@ -380,21 +380,6 @@ We can now make our `Customer` schema:
 
 ```haskell
 !!!functor-structures/parse.hs "customerSchema ::"
-customerSchema :: Schema Customer
-customerSchema = SumType $
-      inject Choice
-        { choiceName  = "Person"
-        , choiceValue = RecordType $
-            CPerson
-              <$> liftAp Field { fieldName = "Name", fieldValue = SchemaLeaf pString }
-              <*> liftAp Field { fieldName = "Age" , fieldValue = SchemaLeaf pInt    }
-        }
-  <!> inject Choice
-        { choiceName  = "Business"
-        , choiceValue = RecordType $
-            CBusiness
-              <$> liftAp Field { fieldName = "Employees", fieldValue = SchemaLeaf pInt }
-        }
 ```
 
 The main new thing is using `inject :: Choice a -> ListF Choice a`
@@ -570,16 +555,24 @@ be just a matter of changing how to we get the items from our `ListF` and `Ap`.
 Yes, we could manually pattern match and take advantage of the structure, or
 use an interpretation function directly, etc., but if we just want to get a
 list of monomorphic items from a functor combinator, there's a convenient
-function in *functor-combinators* called `icollect`.
+function in *functor-combinators* called `icollect`:[^icollect]
 
 ```haskell
 icollect :: (forall x. f x -> b) -> ListF f a -> [b]
 icollect :: (forall x. f x -> b) -> Ap    f a -> [b]
 ```
 
+[^icollect]: `icollect` function is nothing magical --- it's essentially
+    `interpret` wrapped with `Const`.
+
+    ~~~haskell
+    -- essentially
+    icollect f = getConst . interpret (\x -> Const [f x])
+    ~~~
+
 Give it a function to "get" a `b` out of every `f`, it collects the `b` from
-every `f` inside the structure.  Note that this type is very similar to the
-`map` we used earlier:
+every `f` inside the structure and puts it in a list for us.  Note that this
+type is very similar to the `map` we used earlier:
 
 ```haskell
 -- what we used before
@@ -598,3 +591,111 @@ Neat, we just had to replace `map (\fld -> ..) fs` with `icollect (\fld -> ...)
 fs`, and `map choiceDoc cs` with `icollect choiceDoc cs`.  We were able to
 re-use the exact same logic --- we lose no power and upgrading was a
 straightforward mechanical transformation.
+
+Contravariant Consumption
+-------------------------
+
+Now, let's consider instead the situation where we would want to *serialize*
+an `a` with a schema.  We'll make a type `Schema a` that represents something
+that can encode an `a` as a json value; we'll write a function:
+
+```haskell
+schemaToValue :: Schema a -> a -> Aeson.Value
+```
+
+To keep things simple, let's forget all the parsing stuff for now; we'll add it
+back in later.  Let's just create a type that can *only* serialize by enhancing
+our documentation schema.
+
+Again, for the same reasons as before, we can get away with the only
+fundamental change being at the leaves/primitives.  Our structure is very
+limited, and our schema type only expresses only variations within that limit,
+and the only variations (aside from sum/record structure) are how each leaf can
+be serialized.
+
+```haskell
+!!!functor-structures/serialize.hs "data Primitive"
+```
+
+A `Primitive a` will be a way to *serialize* a json primitive --- it can be
+`PString`, `PNumber`, or `PBool`.  To create a "String Serializer", you need to
+use `PString` with a function on "how to turn it into a `String`".  To
+create a "Bool parser", you need `PBool` with a function on what how to turn
+the value into a `String`.
+
+Again, it can be useful to add some helper primitives:
+
+```haskell
+!!!functor-structures/serialize.hs "pString ::" "pInt ::" "pBool ::"
+```
+
+`pString :: Primitive String` is the most basic way to serialize a primitive
+json string: just return the `String` itself.  `pInt` needs to serialize the
+`Int` into a `Scientific` (the numeric type of the aeson library).
+
+
+### Covariance vs Contravariance
+
+Before we go further, let's take a moment to pause and discuss the difference
+between covariant and contravariant functors, and the usefulness of those
+concepts.  "Covariant" functors (or capital-F `Functor`s in Haskell) are
+functors `f` where you can consider `f a` as a "producer" of `a` --- for
+example, `Schema a` from our parsing section is a thing you can use to
+parse/produce an `a` out of a bytestring.  These are things where it makes
+sense to `fmap :: (a -> b) -> f a -> f b`: if you have a producer of `a`s, you
+can always "post-filter" the result with an `a -> b` to get a producer of `b`s.
+
+"Contravariant" functors (`Contravariant` in Haskell) are functors `f` where
+you can consider `f a` as a "consumer" of `a`.  For example, `Primtive a` (and
+the `Schema a` we want to make) from our serializing section is something that
+consums `a`s and produces json values.  These are things where it makes sense
+to `contramap`:
+
+```haskell
+class Contravariant f where
+    contramap :: (a -> b) -> f b -> f a
+```
+
+which says: if you have a consumer of `b`s, you can always "pre-filter" the
+input with an `a -> b` to get a consumer of `a`s.
+
+### Finding Div
+
+Now, back on to building our `Schema` type.  Again, we might want to write
+something like
+
+```haskell
+data Schema a =
+      RecordType  [Field a]
+    | SumType     [Choice a]
+    | SchemaLeaf  (Primitive a)
+  deriving Functor
+!!!functor-structures/schema.hs "data Field"1 "data Choice"1
+```
+
+However, this has the same problems as before.  `RecordType` is a combination
+of `Field`s, and each `Field` is (again) a different type!  We also have a
+unique situation in this case where each `Choice` has to consume a specific
+type (the sub-type of our `Sum`) if we want each one to not be a partial
+consumer.  For example, for the `CBusiness` branch, we'd want it to have a
+`Choice Int` (the `cbEmployees` field), not `Choice Customer` --- `Customer` is
+too general of a type, since we want that specific branch to consume only
+`Int`s.
+
+So again we have the challenge of "mixing" together the types of our individual
+components somehow.
+
+*   For `RecordType`, we need something that can combine multiple `Field x`s
+    into a `Schema a` by distributing the `a` input and sharing it across all
+    the `Field x`s.
+*   For `SumType`, we need something that can combine multiple `Choice x`s into
+    a `Schema a` by *redirecting* the `a` input into the appropriate `Choice`
+    that is meant to handle it.
+
+These ones are a little trickier because contravariant abstractions like these
+are a little less commonly used than the covariant ones we talked about
+earlier.
+
+
+
+
