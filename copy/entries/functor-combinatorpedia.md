@@ -19,6 +19,10 @@ original post][original] is available on github.)
 
 [original]: https://github.com/mstksg/inCode/blob/ceee9f33492bb703380d877477728feb4fe60a6a/entry/functor-combinatorpedia.md
 
+(*Note 2:* The section on contravariant functor combinators was added following
+the release of *functor-combinators-0.3* in August 2020, which added support
+for contravariant and invariant functor combinators.)
+
 Recently I've been very productive what I have been calling the "Functor
 Combinator" design pattern.  It is heavily influenced by ideas like [Data types
 a la Carte][dtalc] and [unified free monoidal functors][ufmf], but the end goal

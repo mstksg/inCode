@@ -670,7 +670,7 @@ data Schema a =
     | SumType     [Choice a]
     | SchemaLeaf  (Primitive a)
   deriving Functor
-!!!functor-structures/schema.hs "data Field"1 "data Choice"1
+!!!functor-structures/serialize.hs "data Field"1 "data Choice"1
 ```
 
 However, this has the same problems as before.  `RecordType` is a combination
