@@ -2140,9 +2140,7 @@ which added in support for contravariant and invariant functor combinators.
     respectively, as long as `f` is `Contravariant`.  However, due to quirks of
     the the definition of `Day`, essential functions like appends, merges, etc.
     on `ListF` require `Contravariant f`.  `Div` doesn't require such
-    instances, and so can be more useful as a free structure.  Also,
-    `Div1`/`Div` are constructed in a way that is more well-suited for common
-    usage patterns of `Divisible` methods.
+    instances, and so can be more useful as a free structure.
 
     Like for `Day`, it's something that can be used instead of `:*:` to
     mentally signify how the type is meant to be used.  You can think of `Div f
@@ -2331,17 +2329,20 @@ which added in support for contravariant and invariant functor combinators.
     Another common usage is to combine serializers by assigning each serializer
     `f` to one part of an overall input.
 
-    *Structurally*, `Div` is built like a linked list of `f x`s, which each link
-    being existentially bound together:
+    *Structurally*, `Div` and `Div1` are basically lists of contravariant coyonedas:
 
     ```haskell
-    data Div :: (Type -> Type) -> Type -> Type where
-        Conquer :: Div f a
-        Divide  :: f x -> Div f y -> (a -> (x, y)) -> Div f a
+    newtype Div  f a = Div  { unDiv  :: [Coyoneda f a]          }
+    newtype Div1 f a = Div1 { unDiv1 :: NonEmpty (Coyoneda f a) }
     ```
 
-    This is more or less the same construction as for `Ap`: see information on
-    `Ap` for a deeper explanation on how or why this works.
+    This could be implemented as simply a normal `[f a]` and `NonEmpty (f a)`
+    (and so making them identical to `ListF`).  For the most part, you could
+    use the two interchangely, except in the case where you need to `Interpret`
+    out of them: `ListF` requires a `Plus` constraint, and `Div` requires a
+    `Divisible` constraint.  The `Coyoneda` is also necessary for compatibility
+    with the version of the contravariant `Day` convolution provided by
+    *kan-extensions*.
 
     `Div1` is a variety of `Div` where you always have to have "at least one
     `f`".  Can be useful if you want to ensure, for example, that *at least one
