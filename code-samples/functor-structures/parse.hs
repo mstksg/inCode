@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --install-ghc ghci --resolver lts-16 --package prettyprinter --package functor-combinators-0.3.2.0 --package aeson-better-errors --package vinyl-0.13.0 --package containers --package scientific --package text --package semigroupoids --package bytestring --package free
+-- stack --install-ghc ghci --resolver lts-16 --package prettyprinter --package functor-combinators-0.3.3.0 --package aeson-better-errors --package vinyl-0.13.0 --package containers --package scientific --package text --package semigroupoids --package bytestring --package free
 
 {-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE FlexibleInstances          #-}

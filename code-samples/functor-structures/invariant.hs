@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --install-ghc ghci --resolver lts-16 --package aeson-better-errors --package prettyprinter --package semigroupoids --package scientific --package text --package functor-combinators --package vinyl --package invariant --package contravariant --package free --package aeson --package assoc --package natural-transformation
+-- stack --install-ghc ghci --resolver lts-16 --package prettyprinter --package functor-combinators-0.3.3.0 --package aeson --package vinyl-0.13.0 --package contravariant --package scientific --package text --package semigroupoids --package free --package invariant --package aeson-better-errors
 
 {-# LANGUAGE DeriveFunctor            #-}
 {-# LANGUAGE DeriveGeneric            #-}
@@ -11,37 +11,25 @@
 {-# LANGUAGE RecordWildCards          #-}
 {-# LANGUAGE TemplateHaskell          #-}
 {-# LANGUAGE TypeSynonymInstances     #-}
+{-# OPTIONS_GHC -Wall                 #-}
 {-# OPTIONS_GHC -Wincomplete-patterns #-}
 
--- import           Sequences
-import           Control.Applicative
-import           Control.Applicative.Free
-import           Control.Applicative.ListF
 import           Control.Monad
-import           Data.Functor.Compose
 import           Data.Functor.Contravariant
-import           Data.Functor.Contravariant.Divisible
-import           Data.Functor.Identity
-import           Data.Functor.Invariant
 import           Data.Functor.Invariant.TH
 import           Data.Functor.Plus
 import           Data.HFunctor
 import           Data.HFunctor.Chain
 import           Data.HFunctor.Interpret
-import           Data.Proxy
 import           Data.Scientific
-import           Data.Void
 import           GHC.Generics
-import qualified Data.Aeson                           as Aeson
-import qualified Data.Aeson.BetterErrors              as A
-import qualified Data.Aeson.Types                     as Aeson
-import qualified Data.Functor.Invariant.Day           as ID
-import qualified Data.Functor.Invariant.Night         as IN
-import qualified Data.Text                            as T
-import qualified Data.Text.Prettyprint.Doc            as PP
-
-instance Invariant IN.Not where
-    invmap _ g (IN.Not x) = IN.Not (x . g)
+import qualified Data.Aeson                              as Aeson
+import qualified Data.Aeson.BetterErrors                 as A
+import qualified Data.Aeson.Types                        as Aeson
+import qualified Data.Functor.Invariant.Day              as ID
+import qualified Data.Functor.Invariant.Night            as IN
+import qualified Data.Text                               as T
+import qualified Data.Text.Prettyprint.Doc               as PP
 
 data Choice a = Choice
     { choiceName  :: String
@@ -85,51 +73,67 @@ data Customer =
 
 mySchema :: Schema Customer
 mySchema = SumType $
-    chainPair $ IN.Night
-        (Choice
+    swerve (\case CPerson x y -> Left (x,y); CBusiness x -> Right x) (uncurry CPerson) CBusiness
+        (inject Choice
           { choiceName  = "Person"
-          , choiceValue = RecordType $ chainPair $ ID.day
-              (Field { fieldName = "Name", fieldValue = SchemaLeaf pString })
-              (Field { fieldName = "Age" , fieldValue = SchemaLeaf pInt    })
+          , choiceValue = RecordType $ gathered
+              (inject Field { fieldName = "Name", fieldValue = SchemaLeaf pString })
+              (inject Field { fieldName = "Age" , fieldValue = SchemaLeaf pInt    })
           }
         )
-        (Choice
+        (inject Choice
           { choiceName  = "Business"
           , choiceValue = RecordType $
               inject Field { fieldName = "Age" , fieldValue = SchemaLeaf pInt }
           }
         )
-        (\case CPerson x y -> Left (x,y); CBusiness x -> Right x)
-        (uncurry CPerson)
-        CBusiness
+
+swerve
+    :: (a -> Either b c)
+    -> (b -> a)
+    -> (c -> a)
+    -> IN.NightChain f b
+    -> IN.NightChain f c
+    -> IN.NightChain f a
+swerve f g h x y = appendChain (IN.Night x y f g h)
+
+gather
+    :: (a -> (b, c))
+    -> (b -> c -> a)
+    -> ID.DayChain f b
+    -> ID.DayChain f c
+    -> ID.DayChain f a
+gather f g x y = appendChain (ID.Day x y f g)
+
+gathered
+    :: ID.DayChain f a
+    -> ID.DayChain f b
+    -> ID.DayChain f (a, b)
+gathered = gather id (,)
 
 schemaDoc
     :: String       -- ^ name
     -> Schema x     -- ^ schema
     -> PP.Doc a
 schemaDoc title = \case
-    SumType cs -> PP.vsep [
-        PP.pretty ("(" <> title <> ")")
-      , "Choice of:"
-      , PP.indent 2 . PP.vsep $ sumDocs cs
-      ]
     RecordType fs -> PP.vsep [
         PP.pretty ("{" <> title <> "}")
-      , PP.indent 2 . PP.vsep . getConst $
-          ID.runCoDayChain (\fld -> Const ["*" PP.<+> PP.indent 2 (fieldDoc fld)]) fs
+      , PP.indent 2 . PP.vsep $
+          icollect (\fld -> "*" PP.<+> PP.indent 2 (fieldDoc fld)) (ID.chainAp fs)
       ]
-    SchemaLeaf p ->
-              PP.pretty (title <> ":")
-        PP.<+> primDoc p
+    SumType cs    -> PP.vsep [
+        PP.pretty ("(" <> title <> ")")
+      , "Choice of:"
+      , PP.indent 2 . PP.vsep $
+          icollect choiceDoc (IN.chainDec cs)
+      ]
+    SchemaLeaf p  -> PP.pretty (title <> ":")
+              PP.<+> primDoc p
   where
-    sumDocs :: IN.NightChain Choice x -> [PP.Doc a]
-    sumDocs = \case
-      IN.Reject _         -> []
-      IN.Share _ _ _ x xs ->  choiceDoc x : sumDocs xs
-    choiceDoc :: Choice x -> PP.Doc a
-    choiceDoc Choice{..} = schemaDoc choiceName choiceValue
     fieldDoc :: Field x -> PP.Doc a
     fieldDoc Field{..} = schemaDoc fieldName fieldValue
+    choiceDoc :: Choice x -> PP.Doc a
+    choiceDoc Choice{..} = schemaDoc choiceName choiceValue
     primDoc :: Primitive x -> PP.Doc a
     primDoc = \case
       PString _ _ -> "string"
@@ -185,11 +189,11 @@ parseSchema = \case
       PBool _ f -> A.withBool $
         maybe (Left "error validating bool") Right . f
 
-testParse
+testRoundTrip
     :: Schema a
     -> a
     -> Either (A.ParseError String) a
-testParse sch = A.parseValue (parseSchema sch) . schemaToValue sch
+testRoundTrip sch = A.parseValue (parseSchema sch) . schemaToValue sch
 
 main :: IO ()
 main = pure ()

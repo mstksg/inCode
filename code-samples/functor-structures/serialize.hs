@@ -12,16 +12,10 @@
 {-# OPTIONS_GHC -Wall                 #-}
 {-# OPTIONS_GHC -Wincomplete-patterns #-}
 
-import           Control.Applicative
-import           Control.Applicative.Free
-import           Control.Applicative.ListF
-import           Control.Monad
-import           Data.Functor.Compose
 import           Data.Functor.Contravariant
+import           Data.Functor.Contravariant.Decide
 import           Data.Functor.Contravariant.Divisible
 import           Data.Functor.Contravariant.Divisible.Free
-import           Data.Functor.Contravariant.Decide
-import           Data.Functor.Plus
 import           Data.HFunctor
 import           Data.HFunctor.Interpret
 import           Data.Scientific
