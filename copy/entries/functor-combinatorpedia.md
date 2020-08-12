@@ -2131,16 +2131,23 @@ which added in support for contravariant and invariant functor combinators.
 
 *   **List type**
 
+    Basically,
+
+    ```haskell
+    type NonEmptyBy Day = NonEmptyF
+    type ListBy     Day = ListF
+    ```
+
+    Because the contravariant `Day` is equivalent to `:*:` for contravariant
+    inputs, they have the exact same "list type".  However, in the
+    *functor-combinators* library, each list type can only have a single
+    `Interpret` instance, so instead the list types are defined to be a
+    separate (identical) type with a different name:
+
     ```haskell
     type NonEmptyBy Day = Div1
     type ListBy     Day = Div
     ```
-
-    `Div1 f` and `Div f` are equivalent to `NonEmptyF f` and `ListF f`,
-    respectively, as long as `f` is `Contravariant`.  However, due to quirks of
-    the the definition of `Day`, essential functions like appends, merges, etc.
-    on `ListF` require `Contravariant f`.  `Div` doesn't require such
-    instances, and so can be more useful as a free structure.
 
     Like for `Day`, it's something that can be used instead of `:*:` to
     mentally signify how the type is meant to be used.  You can think of `Div f
@@ -2152,9 +2159,9 @@ which added in support for contravariant and invariant functor combinators.
 
     `Div` is the possibly-empty version, and `Div1` is the nonempty version.
 
-[Data.Functor.Contravariant.Day][]: https://hackage.haskell.org/package/kan-extensions/docs/Data-Functor-Contravariant-Day.html
-[Data.Functor.Contravariant.Divisible][]: https://hackage.haskell.org/package/contravariant/docs/Data-Functor-Contravariant-Divisible.html
-[Data.Functor.Contravariant.Divise][]: https://hackage.haskell.org/package/functor-combinators/docs/Data-Functor-Contravariant-Divise.html
+[Data.Functor.Contravariant.Day]: https://hackage.haskell.org/package/kan-extensions/docs/Data-Functor-Contravariant-Day.html
+[Data.Functor.Contravariant.Divisible]: https://hackage.haskell.org/package/contravariant/docs/Data-Functor-Contravariant-Divisible.html
+[Data.Functor.Contravariant.Divise]: https://hackage.haskell.org/package/functor-combinators/docs/Data-Functor-Contravariant-Divise.html
 
 ### Night
 
@@ -2257,10 +2264,10 @@ which added in support for contravariant and invariant functor combinators.
 
     See the later section on `Dec` for more information.
 
-[Data.Functor.Contravariant.Night][]: https://hackage.haskell.org/package/functor-combinators/docs/Data-Functor-Contravariant-Night.html
+[Data.Functor.Contravariant.Night]: https://hackage.haskell.org/package/functor-combinators/docs/Data-Functor-Contravariant-Night.html
 [sharding]: https://en.wikipedia.org/wiki/Shard_(database_architecture)
-[Data.Functor.Contravariant.Decide][]: https://hackage.haskell.org/package/contravariant/docs/Data-Functor-Contravariant-Decide.html
-[Data.Functor.Contravariant.Conclude][]: https://hackage.haskell.org/package/functor-combinators/docs/Data-Functor-Contravariant-Conclude.html
+[Data.Functor.Contravariant.Decide]: https://hackage.haskell.org/package/contravariant/docs/Data-Functor-Contravariant-Decide.html
+[Data.Functor.Contravariant.Conclude]: https://hackage.haskell.org/package/functor-combinators/docs/Data-Functor-Contravariant-Conclude.html
 
 ### Contravariant Coyoneda
 

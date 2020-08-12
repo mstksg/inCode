@@ -220,6 +220,25 @@ string: just return the `String` itself.  `pInt` needs to reject any
 non-integer numbers, so `toBoundedInteger :: Scientific -> Maybe Int` works
 well.
 
+We can now start writing our parsers for each branch of `Schema`.  The
+`SchemaLeaf` branch should be the simplest.  We can use *aeson-better-error*'s
+primitive value parsers:
+
+```haskell
+-- | Parse successfuly only if the current value is a String, running the
+-- validation function
+withString     :: (String     -> Either ErrType a) -> Parse ErrType a
+
+withScientific :: (Scientific -> Either ErrType a) -> Parse ErrType a
+withBool       :: (Bool       -> Either ErrType a) -> Parse ErrType a
+```
+
+```haskell
+!!!functor-structures/parse.hs "primParser ::"
+```
+
+Nothing too fancy, mostly plumbing.
+
 ### Deducing Ap
 
 However, this small change (and adding the type parameter) leaves in a
@@ -298,67 +317,6 @@ The description here also gives a clue for what we might want to use for
 `SumType` (`ListF` sounds like a good companion for the behavior we want sum
 type parsers to have)
 
-Another way to come to this conclusion is to think about it in terms of
-tensoring functors: "how do we want to tensor together *two* `Field`s"?
-
-Well, earlier we said that we want to combine fields of different types, while
-also providing a way of combining the two types together to create a final
-aggregate type.  We can express this in Haskell with something like:
-
-```haskell
-data TwoFields = forall x y. TwoFields (Field x) (Field y) (x -> y -> a)
-```
-
-In existential syntax, this says that `TwoFields a` consists of `Field x`
-and `Field y` of a "hidden" `x` and `y`, as well as a function to combine the
-`x` and `y` to make an `a`.
-
-We can look up what type of tensor this is in the functor combinatorpedia.
-Scrolling down, we see:
-
-> [**Day**](https://blog.jle.im/entry/functor-combinatorpedia.html#day)
->
-> **Origin**: *[Data.Functor.Day][]*
->
-> **Mixing Strategy**: "Both, together forever": provide values from *both*
-> functors, and the user *must* also *use* both.
->
-> ...
->
-> Unlike for `:*:`, you always have to interpret *both* functor values in
-> order to interpret a `Day`.  It's a "full mixing".
->
-> The mechanism for this is interesting in and of itself.  Looking at the
-> definition of the data type:
->
-> ~~~haskell
-> data Day f g a = forall x y. Day (f x) (g y) (x -> y -> a)
-> ~~~
->
-> We see that because `x` and `y` are "hidden" from the external world, we
-> can't directly use them without applying the "joining" function `x -> y ->
-> a`.  Due to how existential types work, we can't get anything out of it
-> that "contains" `x` or `y`.  Because of this, *using* the joining function
-> requires *both* `f x` and `g y`.  If we only use `f x`, we can only get, at
-> best,`f (y -> a)`; if we only use `g y`, we can only get, at
-> best, `g (x -> a)`.  In order to fully eliminate *both* existential
-> variables, we need to get the `x` and `y` from *both* `f x` and `g y`, as
-> if the two values held separate halves of the key.
-
-[Data.Functor.Day]: https://hackage.haskell.org/package/kan-extensions/docs/Data-Functor-Day.html
-
-It seems as if our `TwoFields` is exactly `Day Field Field`, so we're on the
-right track.
-
-Reading further on in the `Day` section, we see:
-
-> **List type**
->
-> ... `Ap f a` is a bunch of `f x`s `Day`d with each other.
-
-All three different ways you might have arrived at the conclusion of using
-`Ap`!
-
 ### Building Ap
 
 With this, we can write our final `Schema` type.
@@ -368,12 +326,12 @@ With this, we can write our final `Schema` type.
 ```
 
 Note that I switched from `[Choice a]` to `ListF Choice a` --- the two are the
-same, but the latter has the Functor instance we want (`fmap :: (a -> b) ->
+same, but the latter has the `Functor` instance we want (`fmap :: (a -> b) ->
 ListF Choice a -> ListF Choice b`), and is an instance of useful functor
 combinator typeclasses.  Furthermore, it illustrates the symmetry between sum
-types, since `Ap` and `ListF` are contrasting types: `Ap` represents a product
-between many required fields, and `ListF` represents a sum between many
-possible choices.  It's more clear how product types and list types are
+types and record, since `Ap` and `ListF` are contrasting types: `Ap` represents
+a product between many required fields, and `ListF` represents a sum between
+many possible choices.  It's more clear how product types and sum types are
 "opposites" in a nice clean way.
 
 We can now make our `Customer` schema:
@@ -394,8 +352,8 @@ Now, the typical way to "run" an applied functor combinator is with
 interpreting functions, like:
 
 ```haskell
-interpret :: Applicative g => (forall x. f x -> g x) => Ap f a    -> g a
-interpret :: Plus g        => (forall x. f x -> g x) => ListF f a -> g a
+interpret :: Applicative g => (forall x. f x -> g x) -> Ap f a    -> g a
+interpret :: Plus g        => (forall x. f x -> g x) -> ListF f a -> g a
 ```
 
 You can interpret an `Ap f a` into any `Applicative g`, and you can interpret a
@@ -434,14 +392,6 @@ native sum type construct.  So we're going to parse whatever is in the key
 `"tag"`, and if that tag matches our current choice's constructor, we parse the
 schema parser for our sub-schema under that key.  Otherwise, this choice isn't
 what is currently in our json value.
-
-```haskell
-!!!functor-structures/parse.hs "primParser ::"
-```
-
-Our primitive parser is just going to use *aeson-better-error*'s primitive
-value parsers with the function in them --- nothing too fancy, just some
-plumbing.
 
 Finally, to wrap bring it all together, we use the `interpret` functions we
 talked about:
@@ -532,15 +482,6 @@ Left (BadSchema [] (CustomError "tag Grape not recognized: Expected one of Busin
 ```
 
 Much better messages!
-
-<!-- Note that, due to the mathematics behind `Plus` and other related abstractions, -->
-<!-- any function that consumes `ListF f` or `Ap f`, etc., can be written in terms -->
-<!-- of `interpret` over an appropriate `Plus` or `Applicative` instance and -->
-<!-- extraction function.  The thing that using `Ap`/`ListF` guarantees is that -->
-<!-- however way we construct our `Schema` type, the end result will be "normalized" -->
-<!-- towards a canonical structure.  So if we `inject x <!> (inject y <!> inject -->
-<!-- z)`, it has to be the same overall schema as `(inject x <!> inject y) <!> -->
-<!-- inject z`. -->
 
 ### Backporting documentation
 
@@ -633,6 +574,15 @@ Again, it can be useful to add some helper primitives:
 json string: just return the `String` itself.  `pInt` needs to serialize the
 `Int` into a `Scientific` (the numeric type of the aeson library).
 
+We can start off by writing the serializer for `Primitive` just go get a feel
+for how our serializer will work:
+
+```haskell
+!!!functor-structures/serialize.hs "primToValue ::"
+```
+
+Again, nothing too fancy --- mostly plumbing along the *aeson* library's primitive
+constructors.
 
 ### Covariance vs Contravariance
 
@@ -659,7 +609,7 @@ class Contravariant f where
 which says: if you have a consumer of `b`s, you can always "pre-filter" the
 input with an `a -> b` to get a consumer of `a`s.
 
-### Finding Div
+### Deducing Dec
 
 Now, back on to building our `Schema` type.  Again, we might want to write
 something like
@@ -673,29 +623,252 @@ data Schema a =
 !!!functor-structures/serialize.hs "data Field"1 "data Choice"1
 ```
 
-However, this has the same problems as before.  `RecordType` is a combination
-of `Field`s, and each `Field` is (again) a different type!  We also have a
-unique situation in this case where each `Choice` has to consume a specific
-type (the sub-type of our `Sum`) if we want each one to not be a partial
-consumer.  For example, for the `CBusiness` branch, we'd want it to have a
-`Choice Int` (the `cbEmployees` field), not `Choice Customer` --- `Customer` is
-too general of a type, since we want that specific branch to consume only
-`Int`s.
+However, we have a problem here --- and it's the opposite of the problem we had
+in the previous case.  `Choice a` doesn't quite make sense as the sum type
+consumer for `Schema a`, because each `Choice` is only meant to handle the
+types in a *specific* branch.  For example, in our `Customer` example, for the
+`CPerson` branch we need a `Choice (String, Int)` to consume its contents, and
+in the `CBusiness` branch we need a `Choice Int` to consume its contents.
 
-So again we have the challenge of "mixing" together the types of our individual
-components somehow.
+What we need is a way to express a hetereogenous collection/sequence of
+`Choice a`, coupled with a way of "choosing" exactly one of them to handle one
+form that our input `a` can take.  A type that says "use exactly one of a bunch
+of `Choice`s of different `x`s, and choose one to dispatch depending on what
+`a` we get".
 
-*   For `RecordType`, we need something that can combine multiple `Field x`s
-    into a `Schema a` by distributing the `a` input and sharing it across all
-    the `Field x`s.
-*   For `SumType`, we need something that can combine multiple `Choice x`s into
-    a `Schema a` by *redirecting* the `a` input into the appropriate `Choice`
-    that is meant to handle it.
+This one is a little bit trickier to grasp "intuitively", I feel, because
+contravariant abstractions and manipulations are much less common/ubiquitous in
+Haskell than the covariant ones.  So how do we find the tool we need?
 
-These ones are a little trickier because contravariant abstractions like these
-are a little less commonly used than the covariant ones we talked about
-earlier.
+*If* you are already familiar with contravariant abstractions (but who is?) you
+might recognize this as the essence of the [Decidable][] typeclass, from the
+*[contravariant][]* library (or more accurately, [Conclude][]): a `Conclude f`
+allows you to combine two `f` values, and one will be picked to use based on
+inspection of the input value (I like to think of this one as the "sharding"
+abstraction).  Then, like in the case with the parsers, we want to find a way
+to give `Choice` some `Conclude` interface, we could look for the "type that
+gives us a free `Conclude` structure"; we can look that up and see that it is
+[`Dec`][Dec], and so we use `Dec Choice a` for our sum type consumer.
+
+[Decidable]: https://hackage.haskell.org/package/contravariant/docs/Data-Functor-Contravariant-Divisible.html#g:6
+<!-- [Decide]: https://hackage.haskell.org/package/functor-combinators/docs/Data-Functor-Contravariant-Decide.html -->
+[Conclude]: https://hackage.haskell.org/package/functor-combinators/docs/Data-Functor-Contravariant-Conclude.html
+[Dec]: https://hackage.haskell.org/package/functor-combinators/docs/Data-Functor-Contravariant-Divisible-Free.html
+[contravariant]: https://hackage.haskell.org/package/contravariant
+[sharding]: https://en.wikipedia.org/wiki/Shard_(database_architecture)
+
+But let's say you're like the vast majority of Haskell users and have never had
+any reason to look at the contravariant abstraction hierarchy.  How would you
+think of this?
+
+Like before, we can also look through the [functor combinatorpedia][fpedia] (in
+specific, the contravariant section) and find:
+
+> [**Dec / Dec1**](https://blog.jle.im/entry/functor-combinatorpedia.html#dec-dec1)
+>
+> **Enhancement**: The ability to provide multiple `f`s, one of which will be
+> chosen to consume the overall input.
+>
+> If `f x` is a consumer of `x`s, then `Dec f a` is a consumer of `a`s that
+> does its job by choosing a single one of those `f`s to handle that
+> consumption, based on what `a` is received.
+>
+> For example, let's say you had a type `Socket a` which represents some IO
+> channel or socket that is expecting to receive `a`s.  A `Dec Socket b`
+> would be a collection of sockets that expects a single `b` overall, and
+> will pick exactly one of those `f`s to handle that `b`.
+
+Sounds like exactly what we need!
+
+### Building Dec
+
+With this, we can write our final `Schema` type.
+
+```haskell
+!!!functor-structures/serialize.hs "data Schema" "data Field" "data Choice" "data Primitive"
+```
+
+Note that I switched from `[Field a]` to `Div Field a` --- the two are the
+same, but the latter has the `Contravariant` instance we want (`contramap :: (a -> b) ->
+Div Field b -> Div Field a`), and has useful functor combinator typeclass
+instances (like `ListF` before).  And, again, I feel like it illustrates the
+symmetry between sum types and record types; `Div` and `Dec` are opposite
+types, as `Dec` represents a contravariant choice between different choices, and
+`Div` represents a contravariant merger between different consumers.  It makes
+more clear the duality between product types and sum types.
+
+We can assemble our `Customer` schema, in a way that looks a lot like our
+parser schema:
+
+```haskell
+!!!functor-structures/serialize.hs "customerSchema ::"
+```
+
+Here we use a few contravariant combinators to combine and merge contravariant
+functors (like `Div Field` and `Dec Choice`):
+
+`decide` works like:
+
+```haskell
+decide
+    :: Decide f
+    => (a -> Either b c)    -- ^ break into branches
+    -> f b                  -- ^ handle first branch
+    -> f c                  -- ^ handle second branch
+    -> f a                  -- ^ overall handler
+
+decide
+    :: (Customer -> Either (String, Int) Int)   -- ^ break into branches
+    -> Dec Choice (String, Int)                 -- ^ handle CPerson branch
+    -> Dec Choice Int                           -- ^ handle CBusiness branch
+    -> Dec Choice Customer
+```
+
+And `divised` works like:
+
+```haskell
+divised
+    :: Divise f
+    => f a          -- ^ first handler
+    -> f b          -- ^ second handler
+    -> f (a, b)     -- ^ merged handler
+
+divised
+    :: Divise f
+    => Div Field String          -- ^ handle the cpName field
+    -> Div Field Int             -- ^ handle the cpAge field
+    -> Div Field (String, Int)   -- ^ handle both together
+```
 
 
+### Interpreting Dec
 
+Now to write our schema serializers, we can use `interpret` again:
 
+```haskell
+interpret :: Divisible g => (forall x. Field  x -> g x) -> Div Field  a -> g a
+interpret :: Conclude g  => (forall x. Choice x -> g x) -> Dec Choice a -> g a
+```
+
+But, what should we choose as our choice of `g`?
+
+```haskell
+choiceToValue :: Choice a -> g a
+```
+
+Well, how do we want to "use" a `Choice a`?  Remember that `Schema a` encodes a
+way to serialize an `a` to an json value, a `Primitive a` is a way to serialize an
+`a` to a json value...a `Choice a` would be a way to serialize an `a` into a
+json value.  We want to turn a `Choice a` into an `a -> Aeson.Value`, using the
+`Value` type from the popular *aeson* library.
+
+```haskell
+choiceToValue :: Choice a -> (a -> Aeson.Value)
+
+-- is supposed to match up with
+choiceToValue :: Choice a -> g a
+```
+
+So we need to pick some `g` where `g a` is `a -> Aeson.Value`.  This is exactly
+`Op` from *[Data.Functor.Contravariant][]*, in *base*:
+
+```haskell
+data Op r a = Op { getOp :: a -> r }
+```
+
+[Data.Functor.Contravariant]: https://hackage.haskell.org/package/base/docs/Data-Functor-Contravariant.html
+
+So, if we write
+
+```haskell
+choiceToValue :: Choice a -> Op Aeson.Value a
+
+-- a newtype wrapper away from
+choiceToValue :: Choice a -> a -> Aeson.Value
+```
+
+then we have
+
+```haskell
+interpret choiceToValue :: Dec Choice a -> Op Aeson.Value a
+
+-- a newtype wrapper away from
+interpret choiceToValue :: Dec Choice a -> a -> Aeson.Value
+```
+
+Let's write it!
+
+```haskell
+!!!functor-structures/serialize.hs "choiceToValue ::"
+```
+
+For the `RecordType`'s `Div Field a`, we want to build an object using
+`Aeson.object :: [Aeson.Pair] -> Aeson.Value`, so we want to write some
+underlying interface
+
+```haskell
+fieldToValue :: Field a -> a -> [Aeson.Pair]
+```
+
+This looks like we can just use `Op [Aeson.Pair]` as our context, so:
+
+```haskell
+fieldToValue :: Field a -> Op [Aeson.Pair] a
+
+interpret fieldToValue :: Div Field a -> Op [Aeson.Pair] a
+
+-- a newtype wrapper away from
+interpret fieldToValue :: Div Field a -> a -> [Aeson.Pair]
+```
+
+We can go ahead and write it out actually:
+
+```haskell
+!!!functor-structures/serialize.hs "fieldToValue ::"
+```
+
+Note that this behavior relies on the fact that the `interpret` instance for
+`Div` (using the `Divise` instance for `Op r`) will combine the `[Aeson.Pair]`
+list monoidally, concatenating the results of calling `fieldToValue` on every
+`Field` in the `Div Field a`.
+
+And now we should have enough to write our entire serializer:
+
+```haskell
+!!!functor-structures/serialize.hs "schemaToValue ::"
+```
+
+Note that this contravariant interpretation pattern (wrapping in `Op` and then
+unwrapping it again to run it) is so common that *functor-combinators* has a
+helper function to make things a bit neater:
+
+```haskell
+iapply  :: (forall x. f x -> x -> b) -> Dec f a -> a -> b
+ifanout :: (forall x. f x -> x -> b) -> Div f a -> a -> [b]
+```
+
+With these we could write `choiceToValue` as simply `Choice a -> a ->
+Aeson.Value` and `fieldToValue` as simply `Field a -> a -> Aeson.Pair`, and
+then use `iapply choiceToValue cs` and `ifanout fieldToValue fs` instead of `getOp
+(interpret choiceToValue cs)` and `getOp (interpret fieldToValie fs)`.
+
+Running our `schemaToValue` on a sample `Person` gives the json value we
+expect:
+
+```
+ghci> Aeson.encode (schemaToValue customerSchema (CPerson "Sam" 40))
+{"tag":"Person","contents":{"Age":40,"Name":"Sam"}}
+```
+
+### Backporting documentation
+
+Because our new structure is pretty much the same as before (data types wrapped
+by functor combinators), and `Div`/`Dec` support `icollect` just like
+`Ap`/`ListF` did before, the implementation of `schemaDoc` is pretty much
+word-for-word identical as it was for our parser schema:
+
+```haskell
+!!!functor-structures/serialize.hs "schemaDoc"
+```
+
+Neat!

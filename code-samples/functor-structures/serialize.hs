@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --install-ghc ghci --resolver lts-16 --package prettyprinter --package functor-combinators-0.3.2.0 --package aeson --package vinyl-0.13.0 --package contravariant --package scientific --package text --package semigroupoids --package free
+-- stack --install-ghc ghci --resolver lts-16 --package prettyprinter --package functor-combinators-0.3.3.0 --package aeson --package vinyl-0.13.0 --package contravariant --package scientific --package text --package semigroupoids --package free
 
 {-# LANGUAGE DeriveFunctor            #-}
 {-# LANGUAGE DeriveGeneric            #-}
@@ -53,22 +53,22 @@ data Primitive a =
     | PNumber (a -> Scientific)
     | PBool   (a -> Bool)
 
--- instance Contravariant Choice where
---     contramap f ch = ch
---       { choiceValue = contramap f (choiceValue ch) }
--- instance Contravariant Field where
---     contramap f fld = fld
---       { fieldValue = contramap f (fieldValue fld) }
--- instance Contravariant Schema where
---     contramap f = \case
---       SumType    x -> SumType    (contramap f x)
---       RecordType x -> RecordType (contramap f x)
---       SchemaLeaf x -> SchemaLeaf (contramap f x)
--- instance Contravariant Primitive where
---     contramap f = \case
---       PString g -> PString (g . f)
---       PNumber g -> PNumber (g . f)
---       PBool   g -> PBool   (g . f)
+instance Contravariant Choice where
+    contramap f ch = ch
+      { choiceValue = contramap f (choiceValue ch) }
+instance Contravariant Field where
+    contramap f fld = fld
+      { fieldValue = contramap f (fieldValue fld) }
+instance Contravariant Schema where
+    contramap f = \case
+      SumType    x -> SumType    (contramap f x)
+      RecordType x -> RecordType (contramap f x)
+      SchemaLeaf x -> SchemaLeaf (contramap f x)
+instance Contravariant Primitive where
+    contramap f = \case
+      PString g -> PString (g . f)
+      PNumber g -> PNumber (g . f)
+      PBool   g -> PBool   (g . f)
 
 pString :: Primitive String
 pString = PString id
@@ -84,8 +84,8 @@ data Customer =
     | CBusiness { cbEmployees :: Int }
   deriving Show
 
-mySchema :: Schema Customer
-mySchema = SumType $
+customerSchema :: Schema Customer
+customerSchema = SumType $
     decide (\case CPerson x y -> Left (x, y); CBusiness x -> Right x)
       (inject Choice
         { choiceName = "Person"
@@ -137,23 +137,24 @@ schemaToValue
     -> Aeson.Value
 schemaToValue = \case
     SumType    cs -> getOp (runDec choiceToValue cs)
-    RecordType fs -> Aeson.object
-                   . getOp (runDiv fieldToValue fs)
-    SchemaLeaf p  -> primitiveToValue p
-  where
-    choiceToValue :: Choice x -> Op Aeson.Value x
-    choiceToValue Choice{..} = Op $ \x -> Aeson.object
-      [ "tag"      Aeson..= T.pack choiceName
-      , "contents" Aeson..= schemaToValue choiceValue x
-      ]
-    fieldToValue :: Field x -> Op [Aeson.Pair] x
-    fieldToValue Field{..} = Op $ \x ->
-        [T.pack fieldName Aeson..= schemaToValue fieldValue x]
-    primitiveToValue :: Primitive x -> x -> Aeson.Value
-    primitiveToValue = \case
-      PString f -> Aeson.String . T.pack . f
-      PNumber f -> Aeson.Number . f
-      PBool   f -> Aeson.Bool . f
+    RecordType fs -> Aeson.object . getOp (runDiv fieldToValue fs)
+    SchemaLeaf p  -> primToValue p
+
+choiceToValue :: Choice a -> Op Aeson.Value a
+choiceToValue Choice{..} = Op $ \x -> Aeson.object
+    [ "tag"      Aeson..= T.pack choiceName
+    , "contents" Aeson..= schemaToValue choiceValue x
+    ]
+
+fieldToValue :: Field a -> Op [Aeson.Pair] a
+fieldToValue Field{..} = Op $ \x ->
+    [T.pack fieldName Aeson..= schemaToValue fieldValue x]
+
+primToValue :: Primitive a -> a -> Aeson.Value
+primToValue = \case
+  PString f -> \x -> Aeson.String (T.pack (f x))
+  PNumber f -> \x -> Aeson.Number (f x)
+  PBool   f -> \x -> Aeson.Bool   (f x)
 
 main :: IO ()
 main = pure ()
