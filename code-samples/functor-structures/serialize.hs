@@ -9,7 +9,6 @@
 {-# LANGUAGE OverloadedStrings        #-}
 {-# LANGUAGE RecordWildCards          #-}
 {-# LANGUAGE TypeSynonymInstances     #-}
-{-# OPTIONS_GHC -Wall                 #-}
 {-# OPTIONS_GHC -Wincomplete-patterns #-}
 
 import           Data.Functor.Contravariant
@@ -130,8 +129,8 @@ schemaToValue
     -> a
     -> Aeson.Value
 schemaToValue = \case
-    SumType    cs -> getOp (runDec choiceToValue cs)
-    RecordType fs -> Aeson.object . getOp (runDiv fieldToValue fs)
+    SumType    cs -> getOp (interpret choiceToValue cs)
+    RecordType fs -> Aeson.object . getOp (interpret fieldToValue fs)
     SchemaLeaf p  -> primToValue p
 
 choiceToValue :: Choice a -> Op Aeson.Value a

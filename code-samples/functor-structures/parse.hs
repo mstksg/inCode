@@ -9,7 +9,6 @@
 {-# LANGUAGE RecordWildCards            #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE TypeSynonymInstances       #-}
-{-# OPTIONS_GHC -Wall                   #-}
 
 import           Control.Applicative.Free
 import           Control.Applicative.ListF
@@ -117,12 +116,9 @@ type ErrType = String
 
 schemaParser :: Schema a -> A.Parse ErrType a
 schemaParser = \case
-    RecordType fs -> interpret fieldParser fs
     SumType    cs -> interpret choiceParser cs
+    RecordType fs -> interpret fieldParser fs
     SchemaLeaf p  -> primParser p
-
-fieldParser :: Field a -> A.Parse String a
-fieldParser Field{..} = A.key (T.pack fieldName) (schemaParser fieldValue)
 
 choiceParser :: Choice a -> A.Parse String a
 choiceParser Choice{..} = do
@@ -130,6 +126,9 @@ choiceParser Choice{..} = do
   unless (tag == choiceName) $
     A.throwCustomError "Tag does not match"
   A.key "contents" $ schemaParser choiceValue
+
+fieldParser :: Field a -> A.Parse String a
+fieldParser Field{..} = A.key (T.pack fieldName) (schemaParser fieldValue)
 
 primParser :: Primitive a -> A.Parse String a
 primParser = \case

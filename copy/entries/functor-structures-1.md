@@ -15,11 +15,7 @@ designed pattern.  This is the interest that culminated in my [Functor
 Combinatorpedia][fpedia] post last year and the [functor-combinators][]
 library.  In the blog post I called this style the "functor combinator" style
 because it involved building these functor structures out of small, simple
-pieces.  This is just one way to build functor structures --- you could always
-just make them directly from scratch, but they can get rather messy and it's
-often times easier to use pre-made structures that have all the helper
-functions already defined for you.  But I never really talked about *how* you
-would build them from scratch, and also never really explored the more exotic
+pieces.  But I've never really explored the more exotic
 types of lowercase-f functors in Hask --- contravariant functors and invariant
 functors.
 
@@ -32,10 +28,6 @@ enhancing it piece by piece.  This process reflects a lot of the way I
 personally work through these things --- I normally don't get the whole
 powerful structure all the way; instead I incrementally add things as I see how
 things fit together.
-
-<!-- We'll be using both a combinator-style approach and also -->
-<!-- exploring building some things from scratch --- which may help make them feel -->
-<!-- less magical, and also shed some light on the relative drawbacks and advantages. -->
 
 We're going build the tools to describe a *json schema*, in the form of an
 algebraic data type -- sums and products.  We'll start off just building things
@@ -881,3 +873,128 @@ word-for-word identical as it was for our parser schema:
 ```
 
 Neat!
+
+Parsing and Serializing Invariantly
+-----------------------------------
+
+At this point, we have:
+
+1.  Started with a simple ADT representing the structure we want to be able to
+    express
+2.  Enhanced that simple ADT with Covariant Functor capabilities, in order to
+    interpret it as a parser
+3.  Enhanced that original simple ADT with Contravariant Functor, in order to
+    interpret it as a serializer.
+
+
+From this, it seems the next logical step would be to add *both* enhancements
+to the same structure!
+
+There are some clear benefits to this --- for example, we can now ensure that
+our "serialization" and "parsing" functions are always "in sync".  If we
+defined a separate process/type for serializing and a separate process/type
+for parsing, then it's possible we might accidentally make errors in keeping
+them in sync...one might use a different tag, or we might make changes to one
+but not the other during refactoring.
+
+Like before, the main thing we need to change at the fundamental level is
+`Primitive`:
+
+```haskell
+!!!functor-structures/invariant.hs "data Primitive"
+```
+
+We're just basically combining the additions we made to enable parsing with the
+additions we made to enable serialization.  Our new `Primitive` type gives us
+the capability to do both!
+
+We call this new `Primitive` an ["Invariant" Functor][invariant]: these are
+functors that give you "both" capabilities: interpreting covariantly *and*
+contravariantly.
+
+[invariant]: https://hackage.haskell.org/package/invariant/docs/Data-Functor-Invariant.html
+
+### DivAp and DecAlt
+
+By now, we know the drill.  We also need to change our `RecordType` and
+`SumType` constructors to get the right type of container.
+
+```haskell
+-- Covariant Schema
+!!!functor-structures/parse.hs "data Schema"
+
+-- Contravariant Schema
+!!!functor-structures/serialize.hs "data Schema"
+```
+
+
+
+For the covariant `RecordType`, we used `Ap Field a`.  For the contravariant
+`RecordType`, we used `Div Field a`.  Is there a type that combines *both* `Ap`
+and `Div`?
+
+Ah, we're in luck!  We have *[DivAp][]* from the *functor-combinatotrs*
+library...which is named to invoke the idea of having both `Ap` and `Div`
+capabilities, combined together.
+
+[DivAp]: https://hackage.haskell.org/package/functor-combinators/docs/Data-Functor-Invariant-DivAp.html
+
+For the covariant `SumType`, we used `ListF Choice a`.  For the contravariant
+`SumType`, we used `Dec Choice a`.  Is there a type that combines *both*
+`ListF` and `Dec`?
+
+Ah hah, if we look nearby `DivAp`, we see the answer: *[DecAlt][]*!  It
+combines both `ListF` and `Dec`.
+
+[DecAlt]: https://hackage.haskell.org/package/functor-combinators/docs/Data-Functor-Invariant-DecAlt.html
+
+Now let's wire it up:
+
+```haskell
+!!!functor-structures/invariant.hs "data Schema" "data Field" "data Choice" "data Primitive"
+```
+
+Writing a schema using this type is going to be very similar to writing the contravariant
+version.  The main difference is, while `decide` expects the `a -> Either b c`
+splitting function, `swerve` (the invariant `DecAlt` equivalent) expects also the `Either
+b c -> a` recombiner.  We also note that the invariant version of `divided` is
+`gathered`.
+
+```haskell
+!!!functor-structures/invariant.hs "customerSchema ::"
+```
+
+It looks like we mostly did all the work already.  Writing `schemaDoc`,
+`schemaParser`, and `schemaToValue`, we can re-use pretty much all of our code!
+The main (unfortunate) difference is that instead of using `interpret` in every
+case, we can use `runCoDivAp` to run our `DivAp` in a covariant setting, and
+`runContraDivAp` to run our `DivAp` in a contravariant setting (similarly for
+`runCoDecAlt` and `runContraDecAlt`).  Another small difference is that
+`icollect` doesn't quite work properly on `DivAp`/`DecAlt`, so we have to
+convert them to `Ap` and `Dec` first.[^divap]
+
+[^divap]: These are unfortunate consequences of the fact that there is no
+general typeclass that contains both `Applicative` and `Divisible` together, or
+no typeclass that contains both `Plus` and `Conclude` together.  If these
+existed, we could just use `interpret` for all four of those functions, and
+`icollect` would work fine as well.
+
+```haskell
+!!!functor-structures/invariant.hs "schemaDoc" "schemaParser" "schemaToValue"
+```
+
+And there we have it --- a fully functional bidirectional parser schema type
+that we assembled step-by-step, adding each piece incrementally and exploring
+the space until we found something useful for us.
+
+A cute function we could write to tie things together would be one that does a
+round-trip, serializing and then parsing, to make sure things worked properly.
+
+```haskell
+!!!functor-structures/invariant.hs "testRoundTrip"
+```
+
+```haskell
+ghci> testRoundTrip customerSchema (CPerson "Sam" 40)
+Right (CPerson {cpName = "Sam", cpAge = 40})
+```
