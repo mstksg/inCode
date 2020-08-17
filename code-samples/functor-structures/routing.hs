@@ -44,10 +44,10 @@ import qualified Data.Functor.Day                          as D
 import qualified Data.Text                                 as T
 import qualified Data.Text.Prettyprint.Doc                 as PP
 
-data Choice a = Choice
-    { choiceName  :: String
-    , choiceValue :: Schema a
-    }
+data Schema a =
+      RecordType  (PreT  Ap  Field  a)
+    | SumType     (PostT Dec Choice a)
+    | SchemaLeaf  (Primitive a)
   deriving Generic
 
 data Field a = Field
@@ -56,10 +56,10 @@ data Field a = Field
     }
   deriving Generic
 
-data Schema a =
-      RecordType  (PreT  Ap  Field  a)
-    | SumType     (PostT Dec Choice a)
-    | SchemaLeaf  (Primitive a)
+data Choice a = Choice
+    { choiceName  :: String
+    , choiceValue :: Schema a
+    }
   deriving Generic
 
 data Primitive a =
