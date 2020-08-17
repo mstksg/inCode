@@ -2396,7 +2396,7 @@ which added in support for contravariant and invariant functor combinators.
     For example, let's say you had a type `Socket a` which represents some IO
     channel or socket that is expecting to receive `a`s.  A `Dec Socket b`
     would be a collection of sockets that expects a single `b` overall, and
-    will pick exactly one of those `f`s to handle that `b`.
+    will pick exactly one of those `Socket`s to handle that `b`.
 
     In this sense, you can sort of think of `Dec` as a "sharding" of `f`s: each
     `f` handles a different possible categorization of the input.

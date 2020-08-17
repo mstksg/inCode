@@ -13,9 +13,7 @@ A style of Haskell programming that I've been pretty excited about with over
 the past year or so is something that I can maybe call a "functor structure"
 designed pattern.  This is the interest that culminated in my [Functor
 Combinatorpedia][fpedia] post last year and the *[functor-combinators][]*
-library.  In the blog post I called this style the "functor combinator" style
-because it involved building these functor structures out of small, simple
-pieces.  But I've never really explored the more exotic
+library.  But I've never really explored the more exotic
 types of lowercase-f functors in Hask --- contravariant functors and invariant
 functors.
 
@@ -91,7 +89,7 @@ Documentation
 -------------
 
 Using our schema type, let's make a documentation generator.  It'll take a
-`Schema` and nicely formatted documentation describing what the schema itself.
+`Schema` and nicely formatted documentation describing the schema itself.
 
 To make our lives easier, we'll be using the *[prettyprinter][]* library, which
 will handle indentation, horizontal and vertical concatenation, and other
@@ -333,9 +331,10 @@ Note that I switched from `[Choice a]` to `ListF Choice a` as hinted earlier
 (`fmap :: (a -> b) -> ListF Choice a -> ListF Choice b`), and is an instance of
 useful functor combinator typeclasses.  Furthermore, it illustrates the
 symmetry between sum types and record, since `Ap` and `ListF` are contrasting
-types: `Ap` represents a product between many required fields, and `ListF`
-represents a sum between many possible choices.  It's more clear how product
-types and sum types are "opposites" in a nice clean way.
+types: `Ap` can be used to a represent the "product" between many required
+fields, and `ListF` can be used to the option between many possible choices.
+It's more clear how product types and sum types are "opposites" in a nice clean
+way.
 
 We can now make our `Customer` schema:
 
@@ -437,7 +436,8 @@ things.  It gives us a nice principled shortcut --- for example, to interpret
 out of an `Ap`, GHC needs a way to know "how to sequence `Parse`s", and so
 `interpret` uses the `Applicative` instance for that.  But we know there are
 usually different ways to sequence or combine actions --- famously in IO, we
-have the option to sequence IO actions in series or in parallel.  So,
+have the option to "sequence" IO actions in series or in parallel, with the
+default `Applicative` instance being series/blocking sequencing.  So,
 offloading our logic to a typeclass can be a convenient route, but it's not
 necessarily the most pragmatic way.
 
@@ -453,8 +453,9 @@ ghci> parseSchema customerSchema  "{ \"tag\": \"Grape\", \"contents\": { \"Color
 Left (BadSchema [] (CustomError "No options were validated"))
 ```
 
-Since the definition of `zero` (which was our fault because we wrote it here
---- oops!) always falls back to the same error, this is not very useful!
+Since the definition of `zero` (which was our fault because we wrote it here as
+an orphan instance --- oops!) always falls back to the same error, this is not
+very useful!
 
 So `interpret` for `ListF`, while convenient, isn't necessarily the best way to
 tear down a `ListF`.  Luckily, most functor combinators are just ADTs that we
@@ -679,7 +680,7 @@ specific, the contravariant section) and find:
 > For example, let's say you had a type `Socket a` which represents some IO
 > channel or socket that is expecting to receive `a`s.  A `Dec Socket b`
 > would be a collection of sockets that expects a single `b` overall, and
-> will pick exactly one of those `f`s to handle that `b`.
+> will pick exactly one of those `Socket`s to handle that `b`.
 
 Sounds like exactly what we need!  It also gives us a nice hint of what we
 might want to use for `RecordType`.
@@ -712,7 +713,7 @@ parser schema:
 ```
 
 Here we use a few contravariant combinators to combine and merge contravariant
-functors (like `Div Field` and `Dec Choice`):
+functors values (like `Div Field a` and `Dec Choice a`):
 
 `decide` works like:
 
