@@ -33,13 +33,11 @@ data Field a = Field
     { fieldName  :: String
     , fieldValue :: Schema a
     }
-  deriving Generic
 
 data Choice a = Choice
     { choiceName  :: String
     , choiceValue :: Schema a
     }
-  deriving (Generic, Generic1)
 
 data Primitive a =
       PString (a -> String)

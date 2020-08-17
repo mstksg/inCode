@@ -63,8 +63,8 @@ We're just basically combining the additions we made to enable parsing with the
 additions we made to enable serialization.  Our new `Primitive` type gives us
 the capability to do both!
 
-We call this new `Primitive` an ["Invariant" Functor][invariant]: these are
-functors that give you "both" capabilities: interpreting covariantly *and*
+We can say this new `Primitive` is an ["Invariant" Functor][invariant]: these
+are functors that give you "both" capabilities: interpreting covariantly *and*
 contravariantly.
 
 [invariant]: https://hackage.haskell.org/package/invariant/docs/Data-Functor-Invariant.html
@@ -167,12 +167,12 @@ divided
 
 ### Using Invariant Schema
 
-Now to write our interpreters.  Luckily, we already did all the work in the
+Now to write our interpreters.  Luckily, we already did most of the work in the
 previous post.  Writing `schemaDoc`, `schemaParser`, and `schemaToValue`, we
 can re-use pretty much all of our code!
 
 The main (unfortunate) difference is that instead of using `interpret` in every
-case, we can use `runCoDivAp` to run our `DivAp` in a covariant setting, and
+case, we must use `runCoDivAp` to run our `DivAp` in a covariant setting, and
 `runContraDivAp` to run our `DivAp` in a contravariant setting (similarly for
 `runCoDecAlt` and `runContraDecAlt`). Another small difference is that
 `icollect` doesn't quite work properly on `DivAp`/`DecAlt`, so we have to
@@ -190,7 +190,9 @@ existed, we could just use `interpret` for all four of those functions, and
 
 And there we have it --- a fully functional bidirectional parser schema type
 that we assembled step-by-step, adding each piece incrementally and exploring
-the space until we found something useful for us.
+the space until we found something useful for us.  We have a single schema that
+can represent documentation, parsing, and serialization in a way that they are
+all kept in sync, after writing things only once!
 
 A cute function we could write to tie things together would be one that does a
 round-trip, serializing and then parsing, to make sure things worked properly.
@@ -204,9 +206,7 @@ ghci> testRoundTrip customerSchema (CPerson "Sam" 40)
 Right (CPerson {cpName = "Sam", cpAge = 40})
 ```
 
-Looks solid to me.  We now have a single schema that can represent
-documentation, parsing, and serialization in a way that they are all kept in
-sync, after writing things only once!
+Looks solid to me!
 
 An Alternative Invariant Strategy
 ---------------------------------
@@ -327,6 +327,12 @@ preDivisibleT
     => (forall x. f x -> g x)
     -> PreT Ap f a
     -> g a
+
+-- | We can also use icollect like before
+icollect
+    :: (forall x. f x -> b)
+    -> PreT Ap f a
+    -> [b]
 ```
 
 We see that `interpret` for `PreT Ap f a` works just like `interpret` for
@@ -340,8 +346,8 @@ exactly what we did when we wrote our serializers.
 
 So using `Pre` and `PreT`, we get to *assemble* it using our favorite
 `Applicative` combinators...then when we wrap it in `PreT`, we get to
-*interpret* it in whatever way we want by choosing different interpreters.
-It's the best of both worlds!
+*interpret* it in whatever way we want by choosing different interpreters. It's
+the best of both worlds!  We even get the useful `icollect` function back!
 
 We can do the opposite thing with `Dec` as well: we can use [`Post`][Post] to
 embed covariant capabilities in `Dec`.
@@ -415,12 +421,19 @@ postPlusT
     => (forall x. f x -> g x)
     -> PostT Choice f a
     -> g a
+
+-- | We can also use icollect like before
+icollect
+    :: (forall x. f x -> b)
+    -> PostT Choice f a
+    -> [b]
 ```
 
 We get the same benefits as for `PreT`: if we want to interpret into a
 `Conclude` (like we did for our serializers), we can use `interpret`.  If we
 want to interpret into a `Plus` (like we did for our parser generation), we can
-use `postPlusT`.
+use `postPlusT`.  We also get direct access to the convenient `icollect`
+function from before.
 
 With these new tools, we can imagine a different invariant `Schema` type:
 

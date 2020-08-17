@@ -48,25 +48,21 @@ data Schema a =
       RecordType  (PreT  Ap  Field  a)
     | SumType     (PostT Dec Choice a)
     | SchemaLeaf  (Primitive a)
-  deriving Generic
 
 data Field a = Field
     { fieldName  :: String
     , fieldValue :: Schema a
     }
-  deriving Generic
 
 data Choice a = Choice
     { choiceName  :: String
     , choiceValue :: Schema a
     }
-  deriving Generic
 
 data Primitive a =
       PString (a -> String)     (String     -> Maybe a)
     | PNumber (a -> Scientific) (Scientific -> Maybe a)
     | PBool   (a -> Bool)       (Bool       -> Maybe a)
-  deriving Generic
 
 pString :: Primitive String
 pString = PString id Just

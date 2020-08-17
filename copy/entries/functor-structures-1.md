@@ -204,7 +204,9 @@ A `Primitive a` now encodes a way to *parse* an `a` if given the appropriate
 json primitive.  It can be `PString`, `PNumber`, or `PBool`.  To create a
 "String Parser", you need to use `PString` with a function on "what to do with
 the string you get".  To create a "Bool parser", you need `PBool` with a
-function on what to do with the bool you get.
+function on what to do with the bool you get.  Note that the `PNumber` parser
+takes a `Scientific`, which is the type *aeson* (the underlying json library)
+uses to represent valid JSON numbers (it's basically `Either Integer Double`).
 
 We can write some helper primitives:
 
@@ -426,7 +428,7 @@ Right (CBusiness {cbEmployees = 3})
 We were able to generate a fully functional parser from our schema, by only
 providing parsers for the smaller, more specific types we had (`Field` and
 `Choice`), and having them all fit together in a way directed by their
-`Apply` and `Alt` typeclass instances.
+`Applicative` and `Plus` typeclass instances.
 
 ### Direct Structural Inspection
 
@@ -451,8 +453,8 @@ ghci> parseSchema customerSchema  "{ \"tag\": \"Grape\", \"contents\": { \"Color
 Left (BadSchema [] (CustomError "No options were validated"))
 ```
 
-Since `Plus`'s `zero` definition always falls back to the same error, this is
-not very useful!
+Since the definition of `zero` (which was our fault because we wrote it here
+--- oops!) always falls back to the same error, this is not very useful!
 
 So `interpret` for `ListF`, while convenient, isn't necessarily the best way to
 tear down a `ListF`.  Luckily, most functor combinators are just ADTs that we
@@ -631,28 +633,24 @@ types in a *specific* branch.  For example, in our `Customer` example, for the
 `CPerson` branch we need a `Choice (String, Int)` to consume its contents, and
 in the `CBusiness` branch we need a `Choice Int` to consume its contents.
 
-What we need is a way to express a hetereogenous collection/sequence of
-`Choice a`, coupled with a way of "choosing" exactly one of them to handle one
-form that our input `a` can take.  A type that says "use exactly one of a bunch
-of `Choice`s of different `x`s, and choose one to dispatch depending on what
-`a` we get".
-
-This one is a little bit trickier to grasp "intuitively", I feel, because
-contravariant abstractions and manipulations are much less common/ubiquitous in
-Haskell than the covariant ones.  So how do we find the tool we need?
+What we need is a way to express a hetereogenous collection/sequence of `Choice
+a`, coupled with a way of "choosing" exactly one of them to handle one form
+that our input `a` can take.  A type that says "use exactly one of a bunch of
+`Choice`s of different `x`s, and choose one to dispatch depending on what `a`
+we get".  So how do we find the tool we need?
 
 *If* you are already familiar with contravariant abstractions (but who is?) you
 might recognize this as the essence of the [Decidable][] typeclass, from the
-*[contravariant][]* library (or more accurately, [Conclude][]): a `Conclude f`
-allows you to combine two `f` values, and one will be picked to use based on
-inspection of the input value (I like to think of this one as the "sharding"
-abstraction).  Then, like in the case with the parsers, we want to find a way
-to give `Choice` some `Conclude` interface, we could look for the "type that
-gives us a free `Conclude` structure"; we can look that up and see that it is
-[`Dec`][Dec], and so we use `Dec Choice a` for our sum type consumer.
+*[contravariant][]* library...or more accurately, "Decidable without a
+Divisible constraint", which is [Conclude][]. A `Conclude f` allows you to
+combine two `f` values, and one will be picked to use based on inspection of
+the input value (I like to think of this one as the "sharding" abstraction).
+Then, like in the case with the parsers, we want to find a way to give `Choice`
+some `Conclude` interface, we could look for the "type that gives us a free
+`Conclude` structure"; we can look that up and see that it is [`Dec`][Dec], and
+so we use `Dec Choice a` for our sum type consumer.
 
 [Decidable]: https://hackage.haskell.org/package/contravariant/docs/Data-Functor-Contravariant-Divisible.html#g:6
-<!-- [Decide]: https://hackage.haskell.org/package/functor-combinators/docs/Data-Functor-Contravariant-Decide.html -->
 [Conclude]: https://hackage.haskell.org/package/functor-combinators/docs/Data-Functor-Contravariant-Conclude.html
 [Dec]: https://hackage.haskell.org/package/functor-combinators/docs/Data-Functor-Contravariant-Divisible-Free.html
 [contravariant]: https://hackage.haskell.org/package/contravariant
@@ -674,12 +672,17 @@ specific, the contravariant section) and find:
 > does its job by choosing a single one of those `f`s to handle that
 > consumption, based on what `a` is received.
 >
+> Contrast this with `Div`, where the multiple `f` actions are *all* used to consume
+> the input.  `Dec` only uses *one single* `f` action to consume the input,
+> chosen at consumption time.
+>
 > For example, let's say you had a type `Socket a` which represents some IO
 > channel or socket that is expecting to receive `a`s.  A `Dec Socket b`
 > would be a collection of sockets that expects a single `b` overall, and
 > will pick exactly one of those `f`s to handle that `b`.
 
-Sounds like exactly what we need!
+Sounds like exactly what we need!  It also gives us a nice hint of what we
+might want to use for `RecordType`.
 
 ### Building Dec
 
@@ -691,13 +694,15 @@ With this, we can write our final `Schema` type.
 
 Note that I switched from `[Field a]` to `Div Field a` --- the two are the same
 (`Div Field a` is essentially a newtype wrapper over `[Field a]`), but the
-latter has the `Contravariant` instance we want (`contramap :: (a -> b) -> Div
-Field b -> Div Field a`), and has useful functor combinator typeclass instances
-(like `ListF` before).  And, again, I feel like it illustrates the symmetry
+latter has useful functor combinator typeclass instance methods like `interpret`
+(like `ListF` before)[^contramap].  And, again, I feel like it illustrates the symmetry
 between sum types and record types; `Div` and `Dec` are opposite types, as
 `Dec` represents a contravariant choice between different choices, and `Div`
 represents a contravariant merger between different consumers.  It makes more
 clear the duality between product types and sum types.
+
+[^contramap]: And, if we want it, it has the more useful `Contravariant`
+    instance: `contramap :: (a -> b) -> Div Field b -> Div Field a`.
 
 We can assemble our `Customer` schema, in a way that looks a lot like our
 parser schema:
@@ -761,7 +766,7 @@ Well, how do we want to "use" a `Choice a`?  Remember that `Schema a` encodes a
 way to serialize an `a` to an json value, a `Primitive a` is a way to serialize an
 `a` to a json value...a `Choice a` would be a way to serialize an `a` into a
 json value.  We want to turn a `Choice a` into an `a -> Aeson.Value`, using the
-`Value` type from the popular *aeson* library.
+`Value` type from the underlying *aeson* library we are using:
 
 ```haskell
 choiceToValue :: Choice a -> (a -> Aeson.Value)
@@ -831,7 +836,7 @@ We can go ahead and write it out actually:
 Note that this behavior relies on the fact that the `interpret` instance for
 `Div` (using the `Divise` instance for `Op r`) will combine the `[Aeson.Pair]`
 list monoidally, concatenating the results of calling `fieldToValue` on every
-`Field` in the `Div Field a`.[^iapply]
+`Field` in the `Div Field a`.
 
 And now we should have enough to write our entire serializer:
 
