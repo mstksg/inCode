@@ -3,8 +3,6 @@
 
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
-{-# OPTIONS_GHC -Wall          #-}
 
 import qualified Data.Text.Prettyprint.Doc as PP
 
@@ -73,10 +71,10 @@ schemaDoc title = \case
               PP.<+> primDoc p
 
 fieldDoc :: Field -> PP.Doc x
-fieldDoc Field{..} = schemaDoc fieldName fieldValue
+fieldDoc (Field name val) = schemaDoc name val
 
 choiceDoc :: Choice -> PP.Doc x
-choiceDoc Choice{..} = schemaDoc choiceName choiceValue
+choiceDoc (Choice name val) = schemaDoc name val
 
 primDoc :: Primitive -> PP.Doc x
 primDoc = \case

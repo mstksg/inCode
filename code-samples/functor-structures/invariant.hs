@@ -1,17 +1,10 @@
 #!/usr/bin/env stack
 -- stack --install-ghc ghci --resolver lts-16 --package prettyprinter --package functor-combinators-0.3.5.1 --package aeson --package vinyl-0.13.0 --package contravariant --package scientific --package text --package semigroupoids --package free --package invariant --package aeson-better-errors --package kan-extensions
 
-{-# LANGUAGE DeriveFunctor            #-}
-{-# LANGUAGE DeriveGeneric            #-}
-{-# LANGUAGE EmptyCase                #-}
-{-# LANGUAGE FlexibleContexts         #-}
-{-# LANGUAGE FlexibleInstances        #-}
-{-# LANGUAGE LambdaCase               #-}
-{-# LANGUAGE OverloadedStrings        #-}
-{-# LANGUAGE RecordWildCards          #-}
-{-# LANGUAGE TemplateHaskell          #-}
-{-# LANGUAGE TypeSynonymInstances     #-}
-{-# OPTIONS_GHC -Wincomplete-patterns #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE LambdaCase           #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 
 import           Control.Monad
 import           Data.Functor.Contravariant
@@ -95,9 +88,9 @@ schemaDoc title = \case
               PP.<+> primDoc p
   where
     fieldDoc :: Field x -> PP.Doc a
-    fieldDoc Field{..} = schemaDoc fieldName fieldValue
+    fieldDoc (Field name val) = schemaDoc name val
     choiceDoc :: Choice x -> PP.Doc a
-    choiceDoc Choice{..} = schemaDoc choiceName choiceValue
+    choiceDoc (Choice name val) = schemaDoc name val
     primDoc :: Primitive x -> PP.Doc a
     primDoc = \case
       PString _ _ -> "string"
@@ -115,13 +108,13 @@ schemaToValue = \case
     SchemaLeaf p  -> primToValue p
   where
     choiceToValue :: Choice x -> Op Aeson.Value x
-    choiceToValue Choice{..} = Op $ \x -> Aeson.object
-      [ "tag"      Aeson..= T.pack choiceName
-      , "contents" Aeson..= schemaToValue choiceValue x
+    choiceToValue (Choice name val) = Op $ \x -> Aeson.object
+      [ "tag"      Aeson..= T.pack name
+      , "contents" Aeson..= schemaToValue val x
       ]
     fieldToValue :: Field x -> Op [Aeson.Pair] x
-    fieldToValue Field{..} = Op $ \x ->
-        [T.pack fieldName Aeson..= schemaToValue fieldValue x]
+    fieldToValue (Field name val) = Op $ \x ->
+        [T.pack name Aeson..= schemaToValue val x]
     primToValue :: Primitive x -> x -> Aeson.Value
     primToValue = \case
       PString f _ -> Aeson.String . T.pack . f
@@ -137,13 +130,13 @@ schemaParser = \case
     SchemaLeaf p  -> primParser p
   where
     choiceParser :: Choice b -> A.Parse String b
-    choiceParser Choice{..} = do
+    choiceParser (Choice name val) = do
       tag <- A.key "tag" A.asString
-      unless (tag == choiceName) $
+      unless (tag == name) $
         A.throwCustomError "Tag does not match"
-      A.key "contents" $ schemaParser choiceValue
+      A.key "contents" $ schemaParser val
     fieldParser :: Field b -> A.Parse String b
-    fieldParser Field{..} = A.key (T.pack fieldName) (schemaParser fieldValue)
+    fieldParser (Field name val) = A.key (T.pack name) (schemaParser val)
     primParser :: Primitive b -> A.Parse String b
     primParser = \case
       PString _ f -> A.withString $

@@ -1,14 +1,11 @@
 #!/usr/bin/env stack
 -- stack --install-ghc ghci --resolver lts-16 --package prettyprinter --package functor-combinators-0.3.5.1 --package aeson-better-errors --package vinyl-0.13.0 --package containers --package scientific --package text --package semigroupoids --package bytestring --package free
 
-{-# LANGUAGE DeriveFunctor              #-}
-{-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE LambdaCase                 #-}
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE RecordWildCards            #-}
-{-# LANGUAGE ScopedTypeVariables        #-}
-{-# LANGUAGE TypeSynonymInstances       #-}
+{-# LANGUAGE DeriveFunctor        #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE LambdaCase           #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 
 import           Control.Applicative.Free
 import           Control.Applicative.ListF
@@ -98,9 +95,9 @@ schemaDoc title = \case
               PP.<+> primDoc p
   where
     fieldDoc :: Field x -> PP.Doc a
-    fieldDoc Field{..} = schemaDoc fieldName fieldValue
+    fieldDoc (Field name val) = schemaDoc name val
     choiceDoc :: Choice x -> PP.Doc a
-    choiceDoc Choice{..} = schemaDoc choiceName choiceValue
+    choiceDoc (Choice name val) = schemaDoc name val
     primDoc :: Primitive x -> PP.Doc a
     primDoc = \case
       PString _ -> "string"
@@ -121,14 +118,14 @@ schemaParser = \case
     SchemaLeaf p  -> primParser p
 
 choiceParser :: Choice a -> A.Parse String a
-choiceParser Choice{..} = do
+choiceParser (Choice name val) = do
   tag <- A.key "tag" A.asString
-  unless (tag == choiceName) $
+  unless (tag == name) $
     A.throwCustomError "Tag does not match"
-  A.key "contents" $ schemaParser choiceValue
+  A.key "contents" $ schemaParser val
 
 fieldParser :: Field a -> A.Parse String a
-fieldParser Field{..} = A.key (T.pack fieldName) (schemaParser fieldValue)
+fieldParser (Field name val) = A.key (T.pack name) (schemaParser val)
 
 primParser :: Primitive a -> A.Parse String a
 primParser = \case
@@ -139,12 +136,12 @@ primParser = \case
   PBool f -> A.withBool $
     maybe (Left "error validating bool") Right . f
 
-schemaParser2 :: forall a. Schema a -> A.Parse ErrType a
+schemaParser2 :: Schema a -> A.Parse ErrType a
 schemaParser2 = \case
     RecordType fs -> interpret fieldParser fs
     SumType    cs -> do
-      let schemaMap :: M.Map String (Schema a)
-          schemaMap = M.fromList [ (choiceName, choiceValue) | Choice{..} <- runListF cs ]
+      let schemaMap = M.fromList 
+            [ (nm, vl) | Choice nm vl <- runListF cs ]
       tag <- A.key "tag" A.asString
       case M.lookup tag schemaMap of
         Nothing -> A.throwCustomError $

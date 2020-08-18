@@ -13,9 +13,8 @@ A style of Haskell programming that I've been pretty excited about with over
 the past year or so is something that I can maybe call a "functor structure"
 designed pattern.  This is the interest that culminated in my [Functor
 Combinatorpedia][fpedia] post last year and the *[functor-combinators][]*
-library.  But I've never really explored the more exotic
-types of lowercase-f functors in Hask --- contravariant functors and invariant
-functors.
+library.  But I've never really explored the less commonly used lowercase-f
+functor abstractions in Hask --- contravariant functors and invariant functors.
 
 [fpedia]: https://blog.jle.im/entry/functor-combinatorpedia.html
 [functor-combinators]: https://hackage.haskell.org/package/functor-combinators
@@ -113,6 +112,10 @@ each individual field or constructor.
 more traditional like `a`) to indicate that it isn't meant to be referenced or
 used anywhere in any consistent way.  Just remember it doesn't mean anything
 special syntactically!
+
+The `\case` syntax is known as *LambdaCase syntax*, and `\case blah -> blah` is just sugar
+for `\x -> case x of blah -> blah`; we use it extensively here to save us from
+having to think of a throwaway variable name.
 
 ```haskell
 !!!functor-structures/doc.hs "fieldDoc ::" "choiceDoc ::" "primDoc ::"

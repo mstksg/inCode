@@ -447,8 +447,9 @@ And all of our running functions look pretty much the same as well:
 !!!functor-structures/routing.hs "schemaDoc" "schemaParser" "schemaToValue"
 ```
 
-Just two separate styles for you to consider if we want to go into combining
-*both* covariant production *and* contravariant consumption!
+Using `DivAp`/`DecAlt` and `PreT Ap`/`PostT Dec` are just two separate styles
+for you to consider if we want to go into combining *both* covariant production
+*and* contravariant consumption!
 
 Concluding Thoughts
 -------------------

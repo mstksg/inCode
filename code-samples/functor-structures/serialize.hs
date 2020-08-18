@@ -1,15 +1,8 @@
 #!/usr/bin/env stack
 -- stack --install-ghc ghci --resolver lts-16 --package prettyprinter --package functor-combinators-0.3.5.1 --package aeson --package vinyl-0.13.0 --package contravariant --package scientific --package text --package semigroupoids --package free
 
-{-# LANGUAGE DeriveFunctor            #-}
-{-# LANGUAGE DeriveGeneric            #-}
-{-# LANGUAGE EmptyCase                #-}
-{-# LANGUAGE FlexibleInstances        #-}
-{-# LANGUAGE LambdaCase               #-}
-{-# LANGUAGE OverloadedStrings        #-}
-{-# LANGUAGE RecordWildCards          #-}
-{-# LANGUAGE TypeSynonymInstances     #-}
-{-# OPTIONS_GHC -Wincomplete-patterns #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 import           Data.Functor.Contravariant
 import           Data.Functor.Contravariant.Decide
@@ -112,9 +105,9 @@ schemaDoc title = \case
               PP.<+> primDoc p
   where
     fieldDoc :: Field x -> PP.Doc a
-    fieldDoc Field{..} = schemaDoc fieldName fieldValue
+    fieldDoc (Field name val) = schemaDoc name val
     choiceDoc :: Choice x -> PP.Doc a
-    choiceDoc Choice{..} = schemaDoc choiceName choiceValue
+    choiceDoc (Choice name val) = schemaDoc name val
     primDoc :: Primitive x -> PP.Doc a
     primDoc = \case
       PString _ -> "string"
@@ -132,14 +125,14 @@ schemaToValue = \case
     SchemaLeaf p  -> primToValue p
 
 choiceToValue :: Choice a -> Op Aeson.Value a
-choiceToValue Choice{..} = Op $ \x -> Aeson.object
-    [ "tag"      Aeson..= T.pack choiceName
-    , "contents" Aeson..= schemaToValue choiceValue x
+choiceToValue (Choice name val) = Op $ \x -> Aeson.object
+    [ "tag"      Aeson..= T.pack name
+    , "contents" Aeson..= schemaToValue val x
     ]
 
 fieldToValue :: Field a -> Op [Aeson.Pair] a
-fieldToValue Field{..} = Op $ \x ->
-    [T.pack fieldName Aeson..= schemaToValue fieldValue x]
+fieldToValue (Field name val) = Op $ \x ->
+    [T.pack name Aeson..= schemaToValue val x]
 
 primToValue :: Primitive a -> a -> Aeson.Value
 primToValue = \case
