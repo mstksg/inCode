@@ -11,7 +11,7 @@ slug: enhancing-functor-structures-step-by-step-1
 
 A style of Haskell programming that I've been pretty excited about with over
 the past year or so is something that I can maybe call a "functor structure"
-designed pattern.  This is the interest that culminated in my [Functor
+design pattern.  This is the interest that culminated in my [Functor
 Combinatorpedia][fpedia] post last year and the *[functor-combinators][]*
 library.  But personally I had never really explored the less commonly used
 lowercase-f functor abstractions in Hask --- contravariant functors and
