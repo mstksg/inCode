@@ -4,7 +4,7 @@ categories: Haskell
 tags: functional programming, free, haskell, interpreters, invariant functors, functor combinators
 series: Enhancing Functor Structures
 create-time: 2020/08/15 23:12:53
-date: never
+date: 2020/08/18 08:45:11
 identifier: functor-structures-2
 slug: enhancing-functor-structures-step-by-step-2
 ---
@@ -526,7 +526,7 @@ more easy to grasp.
 [fpedia]: https://blog.jle.im/entry/functor-combinatorpedia.html
 [functor-combinators]: https://hackage.haskell.org/package/functor-combinators
 
-Until next time, happy Haskelling! :)
+Until next time, happy Haskelling!
 
 Special Thanks
 --------------
