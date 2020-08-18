@@ -22,7 +22,7 @@ import qualified Data.Text                 as T
 import qualified Data.Text.Prettyprint.Doc as PP
 
 data Schema a =
-      RecordType  (Ap Field a)
+      RecordType  (Ap    Field  a)
     | SumType     (ListF Choice a)
     | SchemaLeaf  (Primitive a)
   deriving Functor
@@ -40,9 +40,9 @@ data Choice a = Choice
   deriving Functor
 
 data Primitive a =
-      PString (String -> Maybe a)
+      PString (String     -> Maybe a)
     | PNumber (Scientific -> Maybe a)
-    | PBool   (Bool -> Maybe a)
+    | PBool   (Bool       -> Maybe a)
   deriving Functor
 
 pString :: Primitive String

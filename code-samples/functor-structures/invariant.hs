@@ -21,7 +21,7 @@ import qualified Data.Text                     as T
 import qualified Data.Text.Prettyprint.Doc     as PP
 
 data Schema a =
-      RecordType  (DivAp   Field  a)
+      RecordType  (DivAp  Field  a)
     | SumType     (DecAlt Choice a)
     | SchemaLeaf  (Primitive a)
 
@@ -53,7 +53,9 @@ data Customer =
 
 customerSchema :: Schema Customer
 customerSchema = SumType $
-    swerve (\case CPerson x y -> Left (x,y); CBusiness x -> Right x) (uncurry CPerson) CBusiness
+    swerve (\case CPerson x y -> Left (x,y); CBusiness x -> Right x)
+           (uncurry CPerson)
+           CBusiness
         (inject Choice
           { choiceName  = "Person"
           , choiceValue = RecordType $ gathered
@@ -103,7 +105,7 @@ schemaToValue
     -> Aeson.Value
 schemaToValue = \case
     RecordType fs -> Aeson.object
-                   . getOp (runContraDivAp fieldToValue fs)
+                   . getOp (runContraDivAp  fieldToValue  fs)
     SumType    cs -> getOp (runContraDecAlt choiceToValue cs)
     SchemaLeaf p  -> primToValue p
   where
@@ -125,7 +127,7 @@ schemaParser
     :: Schema a
     -> A.Parse String a
 schemaParser = \case
-    RecordType fs -> runCoDivAp fieldParser fs
+    RecordType fs -> runCoDivAp  fieldParser  fs
     SumType    cs -> runCoDecAlt choiceParser cs
     SchemaLeaf p  -> primParser p
   where

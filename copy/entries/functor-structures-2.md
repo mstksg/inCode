@@ -69,6 +69,15 @@ contravariantly.
 
 [invariant]: https://hackage.haskell.org/package/invariant/docs/Data-Functor-Invariant.html
 
+Because we must be able to eventually *use* either covariant or contravariant
+interpretation on an invariant functor, the corresponding mapping function
+takes functions in both ways in order to support both on consumption-time.
+
+```haskell
+class Invariant f where
+    invmap :: (a -> b) -> (b -> a) -> f a -> f b
+```
+
 ### DivAp and DecAlt
 
 By now, we know the drill.  We also need to change our `RecordType` and
@@ -77,7 +86,9 @@ By now, we know the drill.  We also need to change our `RecordType` and
 ```haskell
 -- Covariant Schema
 !!!functor-structures/parse.hs "data Schema"
+```
 
+```haskell
 -- Contravariant Schema
 !!!functor-structures/serialize.hs "data Schema"
 ```
@@ -86,9 +97,9 @@ For the covariant `RecordType`, we used `Ap Field a`.  For the contravariant
 `RecordType`, we used `Div Field a`.  Is there a type that combines *both* `Ap`
 and `Div`?
 
-Ah, we're in luck!  We have *[DivAp][]* from the *functor-combinatotrs*
-library...which is named to invoke the idea of having both `Ap` and `Div`
-capabilities, combined together.
+If we browse around, we see that we have *[DivAp][]* from the
+*functor-combinatotrs* library...which appears to be named to in a way to
+invoke the idea of having both `Ap` and `Div` capabilities, combined together.
 
 [DivAp]: https://hackage.haskell.org/package/functor-combinators/docs/Data-Functor-Invariant-DivAp.html
 
@@ -96,21 +107,21 @@ For the covariant `SumType`, we used `ListF Choice a`.  For the contravariant
 `SumType`, we used `Dec Choice a`.  Is there a type that combines *both*
 `ListF` and `Dec`?
 
-Ah hah, if we look nearby `DivAp`, we see the answer: *[DecAlt][]*!  It
-combines both `ListF` and `Dec`.
+If we look nearby `DivAp`, we see the answer: *[DecAlt][]*!  It combines both
+`ListF` and `Dec`.
 
 [DecAlt]: https://hackage.haskell.org/package/functor-combinators/docs/Data-Functor-Invariant-DecAlt.html
 
 ### Building an Invariant Schema
 
-Now let's wire it up:
+Let's wire it up:
 
 ```haskell
 !!!functor-structures/invariant.hs "data Schema" "data Field" "data Choice" "data Primitive"
 ```
 
-Writing a schema using this type is going to be very similar to writing the contravariant
-version.
+Writing a schema using this type is going to be very similar to writing one for
+our other schema types:
 
 ```haskell
 !!!functor-structures/invariant.hs "customerSchema ::"
@@ -167,9 +178,9 @@ divided
 
 ### Using Invariant Schema
 
-Now to write our interpreters.  Luckily, we already did most of the work in the
-previous post.  Writing `schemaDoc`, `schemaParser`, and `schemaToValue`, we
-can re-use pretty much all of our code!
+Let's look into writing our interpreters.  Luckily, we already did most of the
+work in the previous post.  Writing `schemaDoc`, `schemaParser`, and
+`schemaToValue`, we can re-use pretty much all of our code!
 
 The main (unfortunate) difference is that instead of using `interpret` in every
 case, we must use `runCoDivAp` to run our `DivAp` in a covariant setting, and
@@ -217,8 +228,8 @@ downside in using `DivAp` and `DecAlt` that make their ergonomics not so great
 when building them up.
 
 A major part about what makes `Ap` and `ListF` (and, to an extent, `Div` and
-`Dec`) so nice to use is that are instances of popular Haskell typeclasses like
-`Applicative` and `Alternative` (or `Plus`) and using `Applicative` and
+`Dec`) so nice to use is that they are instances of popular Haskell typeclasses
+like `Applicative` and `Alternative` (or `Plus`) and using `Applicative` and
 `Alternative` interfaces are pretty common in Haskell. Because of this, they
 are pretty comfortable for most Haskellers to use.
 
@@ -252,7 +263,8 @@ directly into `Ap` itself, using [`Pre`][Pre].  This is a trick I first saw
 used in the *[unjson][]* library.
 
 Recall that `Ap Field a` is a collection that contains a bunch of `Field x`s of
-different `x`s, and can be used to covariantly *produce* an `a`.
+different `x`s, and can be used to covariantly *produce* an `a` by combining
+all of the `x`s back together.
 
 Now, a value of type:
 
@@ -267,8 +279,8 @@ will "produce" `a`s covariantly...but will "consume" `r`s contravariantly.  You
 can think of the `Pre r` as adding an "tunnel" to guide the `r` to each `Field`
 in the `Ap`.
 
-This means we can now use normal Applicative combinators to combine our fake
-invariant type:
+Because `Ap` is `Ap` (famous for its `Applicative` instance), we can use normal
+Applicative combinators to combine our fake invariant type:
 
 ```haskell
 pure :: a -> Ap (Pre r Field) a
@@ -336,7 +348,7 @@ icollect
 ```
 
 We see that `interpret` for `PreT Ap f a` works just like `interpret` for
-`Ap f a`...so we don't lose any power, it's the same as always if we wanted to
+`Ap f a`; we don't lose any power, it's the same as always if we wanted to
 just use `Ap f a` covariantly to interpret into a parser.  Exactly what we did
 when we wrote our parser generation.
 
@@ -353,7 +365,8 @@ We can do the opposite thing with `Dec` as well: we can use [`Post`][Post] to
 embed covariant capabilities in `Dec`.
 
 Recall that `Div Choice a` is a collection that contains a bunch of `Choice x`s of
-different `x`s, and can be used to contravariantly *consume* an `a`.
+different `x`s, and can be used to contravariantly *consume* an `a` (by sending
+the `a` to one of the different `Choice x`s).
 
 [Post]: https://hackage.haskell.org/package/functor-combinators/docs/Data-HFunctor-Route.html#t:Post
 
@@ -367,7 +380,7 @@ will "consume" `a`s contravariantly (like a normal `Dec`), but will also
 produce `r`s covariantly.  You can think of the `Post r` as adding an "tunnel"
 allowing the output of each `Choice` to exit out of the `Dec`.
 
-This means we can now use normal Decide contravariant typeclass-based
+This means we can now use normal `Conclude` contravariant typeclass-based
 combinators to combine our fake invariant type:
 
 ```haskell
@@ -378,9 +391,8 @@ decide
     -> Dec (Post r Choice) a    -- ^ overall handler
 ```
 
-We see that `decide` combinators will recombine our "input" contravariant
-types appropriately, but will keep the "output" covariant type
-constant[^listf]
+We see that `decide` will recombine our "input" contravariant types
+appropriately, but will keep the "output" covariant type constant[^listf].
 
 [^listf]: This works out because each of the `Choice`s inside could be
 embedded into the same output type.  Remember that we used `List f a ~ [f a]`
@@ -441,7 +453,12 @@ With these new tools, we can imagine a different invariant `Schema` type:
 !!!functor-structures/routing.hs "data Schema" "data Field" "data Choice" "data Primitive" "customerSchema ::"
 ```
 
-And all of our running functions look pretty much the same as well:
+Note that to build up `choiceValue` for `Person`, we can use our normal
+favorite `Appliciative` combinators, like `<$>` and `<*>`!  And at the top
+level, we use `decide` like we did before with our general contravariant
+combinators.
+
+All of our running functions look pretty much the same as well:
 
 ```haskell
 !!!functor-structures/routing.hs "schemaDoc" "schemaParser" "schemaToValue"
@@ -460,12 +477,12 @@ The thought process described in this series was pretty much my actual thought
 process when writing something similar.  I needed to provide documentation, a
 json parser, and a json serializer for a collection of data formats that I had.
 At first I had written three separate systems, and wrote all three separately
-for each format.  But I struggled with keeping all of them in sync, and
-everything clicked when I realized I could combine the documentation generator
-and the parser generation.  I looked at my serializer system with regret on how
-it had to be a separate thing.  But then I stared really really hard at it, and
-all of a sudden the idea of uniting all three of them became something I
-realized was worthwhile.
+for each format.  I struggled with keeping all of them in sync, but everything
+clicked when I realized I could combine the documentation generator and the
+parser generation.  I looked at my serializer system with regret on how it had
+to be a separate thing.  But then I stared really really hard at it, and all of
+a sudden the idea of uniting all three of them became something I realized was
+worthwhile.
 
 It really was a truly "step-by-step" process...and I think it's pretty rare
 that these fully formed united abstractions just pop out of your brain without
@@ -488,21 +505,23 @@ makeOutSocket :: Schema a -> IO (OutSocket a)
 makeInSocket :: Schema a -> IO (InSocket a)
 ```
 
-Here `Schema a` represents a data protocol; now you have the assurance that
-the protocol of sending a data type over a channel is always going to be the
-same as the protocol for receiving data, no matter what changes you make to
-your type.  And you only have to write the code once, not twice.
+Here `Schema a` could represent a data protocol; under this system, you have
+the assurance that the protocol of sending a data type over a channel is always
+going to be the same as the protocol for receiving data, no matter what changes
+you make to your type.  And you only have to write the code once, not twice!
 
 Try to investigate situations in your life where "structures" could be more
 useful as "functor structures"...and then maybe see if there's even more value
 you could add by enhancing them with more functor-ness!
 
-And hopefully *[functor-combinators][]* and the *[functor combinatorpedia][]*
+Hopefully *[functor-combinators][]* and the *[functor combinatorpedia][]*
 may be a useful guide along the way!  You don't have to build things "functor
 combinator style" like in this post (you could make everything from scratch
 without using `Ap`/`Dec`, etc.), but I have found that thinking in this style
 helps guide your search to solutions that already exist (like how we found
 `ListF` by reading about `Ap`), instead of reinventing the wheel every time.
+If anything, it can help you reframe the problem in a way that might make it
+more easy to grasp.
 
 [fpedia]: https://blog.jle.im/entry/functor-combinatorpedia.html
 [functor-combinators]: https://hackage.haskell.org/package/functor-combinators

@@ -13,8 +13,9 @@ A style of Haskell programming that I've been pretty excited about with over
 the past year or so is something that I can maybe call a "functor structure"
 designed pattern.  This is the interest that culminated in my [Functor
 Combinatorpedia][fpedia] post last year and the *[functor-combinators][]*
-library.  But I've never really explored the less commonly used lowercase-f
-functor abstractions in Hask --- contravariant functors and invariant functors.
+library.  But personally I had never really explored the less commonly used
+lowercase-f functor abstractions in Hask --- contravariant functors and
+invariant functors.
 
 [fpedia]: https://blog.jle.im/entry/functor-combinatorpedia.html
 [functor-combinators]: https://hackage.haskell.org/package/functor-combinators
@@ -73,7 +74,7 @@ PCustomer { cpName = "Sam", cpAge = 40 }
 ```
 
 
-might be represented by a json value like
+might be represented by a json value using our schema like
 
 ```json
 { "tag": "Customer",
@@ -108,10 +109,10 @@ So `schemaDoc` will take the name of our type and a schema, and generate a
 And `fieldDoc`, `choiceDoc`, and `primDoc` just generate the documentation for
 each individual field or constructor.
 
-[^xvar]: I'm using `x` as the name of the type variable (instead of something
+(I'm using `x` as the name of the type variable (instead of something
 more traditional like `a`) to indicate that it isn't meant to be referenced or
 used anywhere in any consistent way.  Just remember it doesn't mean anything
-special syntactically!
+special syntactically!)
 
 The `\case` syntax is known as *LambdaCase syntax*, and `\case blah -> blah` is just sugar
 for `\x -> case x of blah -> blah`; we use it extensively here to save us from
@@ -357,14 +358,19 @@ Now, the typical way to "run" an applied functor combinator is with
 interpreting functions, like:
 
 ```haskell
-interpret :: Applicative g => (forall x. f x -> g x) -> Ap f a    -> g a
+interpret :: Applicative g => (forall x. f x -> g x) -> Ap    f a -> g a
 interpret :: Plus g        => (forall x. f x -> g x) -> ListF f a -> g a
 ```
 
 You can interpret an `Ap f a` into any `Applicative g`, and you can interpret a
-`ListF f a` into any `Plus g` (`Plus` is basically `Alternative` without an
-`Applicative` requirement).  Basically, you write a function to interpret any
-`f` you find, and `interpret` will accumulate them all together for you.
+`ListF f a` into any [`Plus g`][Plus] (`Plus` is basically `Alternative`
+without an `Applicative` requirement, supporting `(<!>) :: f a -> f a -> f a`).
+
+Basically, the strategy for using `interpret` is that you write a function to
+interpret any individual `f` you might find in the structure, and `interpret`
+will accumulate them all together for you.
+
+[Plus]: https://hackage.haskell.org/package/semigroupoids-5.3.4/docs/Data-Functor-Plus.html
 
 In our case, if we decided to use `interpret`, we could write:
 
@@ -392,11 +398,12 @@ key.
 !!!functor-structures/parse.hs "choiceParser ::"
 ```
 
-Our sum type encoding is a bit more involved, because json doesn't have any
-native sum type construct.  So we're going to parse whatever is in the key
-`"tag"`, and if that tag matches our current choice's constructor, we parse the
-schema parser for our sub-schema under that key.  Otherwise, this choice isn't
-what is currently in our json value.
+Our sum type encoding has to be a bit more involved, because json doesn't have
+any native sum type construct.  The one we're going to use for this post is the
+`{"tag": <tag>, "contents": <contents>}"` form.  We're going to parse whatever
+is in the key `"tag"`, and if that tag matches our current choice's
+constructor, we parse the schema parser for our sub-schema under that key.
+Otherwise, this choice isn't what is currently in our json value.
 
 Finally, to wrap bring it all together, we use the `interpret` functions we
 talked about:
@@ -412,6 +419,9 @@ Ah well, not exactly so fast.  Even though they could support it,
 We can write them as orphans here just because this is a fun learning
 experience (but we usually do like to avoid defining instances for types or
 typeclasses that aren't ours).
+
+`Alt` and `Plus` represent fallback choices: `x <!> y` will try `x` first, then
+if `x` fails, try `y`.
 
 ```haskell
 !!!functor-structures/parse.hs "instance Monad f =>"
@@ -440,9 +450,9 @@ out of an `Ap`, GHC needs a way to know "how to sequence `Parse`s", and so
 `interpret` uses the `Applicative` instance for that.  But we know there are
 usually different ways to sequence or combine actions --- famously in IO, we
 have the option to "sequence" IO actions in series or in parallel, with the
-default `Applicative` instance being series/blocking sequencing.  So,
+default `Applicative` instance being series sequencing.  So,
 offloading our logic to a typeclass can be a convenient route, but it's not
-necessarily the most pragmatic way.
+necessarily the behavior we want.
 
 In our case, the `Plus` instance actually combines failed fallback behavior in
 an undesirable way: our errors become not too useful, because `<!>` always
@@ -460,10 +470,10 @@ Since the definition of `zero` (which was our fault because we wrote it here as
 an orphan instance --- oops!) always falls back to the same error, this is not
 very useful!
 
-So `interpret` for `ListF`, while convenient, isn't necessarily the best way to
-tear down a `ListF`.  Luckily, most functor combinators are just ADTs that we
-can pattern match and break down and access the structures manually.  In the
-case of `ListF`, the structure is pretty simple:
+As we see, `interpret` for `ListF`, while convenient, isn't necessarily the
+best way to tear down a `ListF`.  Luckily, most functor combinators are just
+ADTs that we can pattern match and break down and access the structures
+manually.  In the case of `ListF`, the structure is pretty simple:
 
 ```haskell
 data ListF f a = ListF { runListF :: [f a] }
@@ -500,10 +510,10 @@ Hopefully it is clear from the structure of our data type that we haven't
 *lost* any information.  Updating our documentation generator should
 be just a matter of changing how to we get the items from our `ListF` and `Ap`.
 
-Yes, we could manually pattern match and take advantage of the structure, or
-use an interpretation function directly, etc., but if we just want to get a
-list of monomorphic items from a functor combinator, there's a convenient
-function in *functor-combinators* called `icollect`:[^icollect]
+Following what we just learned, one way to do this would be to use `interpret`
+or manually pattern match and take advantage of the structure.  However, if we
+just want to get a list of monomorphic items from a functor combinator, there's
+a convenient function in *functor-combinators* called `icollect`:[^icollect]
 
 ```haskell
 icollect :: (forall x. f x -> b) -> ListF f a -> [b]
@@ -551,6 +561,8 @@ type would be:
 ```haskell
 schemaToValue :: Schema a -> a -> Aeson.Value
 ```
+
+(`Aeson.Value` being the json representation from the *aeson* library)
 
 To keep things simple, let's forget all the parsing stuff for now; we'll add it
 back in later.  Let's just create a type that can *only* serialize by enhancing
@@ -648,17 +660,15 @@ might recognize this as the essence of the [Decidable][] typeclass, from the
 *[contravariant][]* library...or more accurately, "Decidable without a
 Divisible constraint", which is [Conclude][]. A `Conclude f` allows you to
 combine two `f` values, and one will be picked to use based on inspection of
-the input value (I like to think of this one as the "sharding" abstraction).
-Then, like in the case with the parsers, we want to find a way to give `Choice`
-some `Conclude` interface, we could look for the "type that gives us a free
-`Conclude` structure"; we can look that up and see that it is [`Dec`][Dec], and
-so we use `Dec Choice a` for our sum type consumer.
+the input value. Upon recognizing this, we look for find a way
+to give `Choice` some `Conclude` interface and search up "the type that gives
+us a free `Conclude` structure". Following that search, we arrive at
+[`Dec`][Dec], and so we use `Dec Choice a` for our sum type consumer.
 
 [Decidable]: https://hackage.haskell.org/package/contravariant/docs/Data-Functor-Contravariant-Divisible.html#g:6
 [Conclude]: https://hackage.haskell.org/package/functor-combinators/docs/Data-Functor-Contravariant-Conclude.html
 [Dec]: https://hackage.haskell.org/package/functor-combinators/docs/Data-Functor-Contravariant-Divisible-Free.html
 [contravariant]: https://hackage.haskell.org/package/contravariant
-[sharding]: https://en.wikipedia.org/wiki/Shard_(database_architecture)
 
 But let's say you're like the vast majority of Haskell users and have never had
 any reason to look at the contravariant abstraction hierarchy.  How would you
@@ -722,7 +732,7 @@ functors values (like `Div Field a` and `Dec Choice a`):
 
 ```haskell
 decide
-    :: Decide f
+    :: Conclude f
     => (a -> Either b c)    -- ^ break into branches
     -> f b                  -- ^ handle first branch
     -> f c                  -- ^ handle second branch
@@ -753,7 +763,7 @@ divided
 
 ### Interpreting Dec
 
-Now to write our schema serializers, we can use `interpret` again:
+To write our schema serializers, we can use `interpret` again:
 
 ```haskell
 interpret :: Divisible g => (forall x. Field  x -> g x) -> Div Field  a -> g a
@@ -767,10 +777,9 @@ choiceToValue :: Choice a -> g a
 ```
 
 Well, how do we want to "use" a `Choice a`?  Remember that `Schema a` encodes a
-way to serialize an `a` to an json value, a `Primitive a` is a way to serialize an
-`a` to a json value...a `Choice a` would be a way to serialize an `a` into a
-json value.  We want to turn a `Choice a` into an `a -> Aeson.Value`, using the
-`Value` type from the underlying *aeson* library we are using:
+way to serialize an `a` to an json value.  A `Choice a` would encode a way to
+serialize an `a` into a json value.  We want to turn a `Choice a` into an `a ->
+Aeson.Value`:
 
 ```haskell
 choiceToValue :: Choice a -> (a -> Aeson.Value)
@@ -779,7 +788,7 @@ choiceToValue :: Choice a -> (a -> Aeson.Value)
 choiceToValue :: Choice a -> g a
 ```
 
-So we need to pick some `g` where `g a` is `a -> Aeson.Value`.  This is exactly
+So, we need to pick some `g` where `g a` is `a -> Aeson.Value`.  This is exactly
 `Op` from *[Data.Functor.Contravariant][]*, in *base*:
 
 ```haskell
@@ -812,15 +821,16 @@ Let's write it!
 !!!functor-structures/serialize.hs "choiceToValue ::"
 ```
 
-For the `RecordType`'s `Div Field a`, we want to build an object using
-`Aeson.object :: [Aeson.Pair] -> Aeson.Value`, so we want to write some
-underlying interface
+Now onto `RecordType`'s `Div Field `. Here, we want to build an object using
+`Aeson.object :: [Aeson.Pair] -> Aeson.Value` (one way that the *aeson* library
+allows us to build objects). Therefore, our type for `fieldToValue` should be:
 
 ```haskell
 fieldToValue :: Field a -> a -> [Aeson.Pair]
 ```
 
-This looks like we can just use `Op [Aeson.Pair]` as our context, so:
+This looks familiar; it's the same thing as before, but with `Op [Aeson.Pair]`
+instead of `Op Aeson.Value`.
 
 ```haskell
 fieldToValue :: Field a -> Op [Aeson.Pair] a
@@ -831,18 +841,18 @@ interpret fieldToValue :: Div Field a -> Op [Aeson.Pair] a
 interpret fieldToValue :: Div Field a -> a -> [Aeson.Pair]
 ```
 
-We can go ahead and write it out actually:
+We can go ahead and write it out, actually:
 
 ```haskell
 !!!functor-structures/serialize.hs "fieldToValue ::"
 ```
 
-Note that this behavior relies on the fact that the `interpret` instance for
-`Div` (using the `Divise` instance for `Op r`) will combine the `[Aeson.Pair]`
+(Note that this behavior relies on the fact that the `interpret` instance for
+`Div` --- using the `Divise` instance for `Op r` --- will combine the `[Aeson.Pair]`
 list monoidally, concatenating the results of calling `fieldToValue` on every
-`Field` in the `Div Field a`.
+`Field` in the `Div Field a`.)
 
-And now we should have enough to write our entire serializer:
+We should now have enough to write our entire serializer:
 
 ```haskell
 !!!functor-structures/serialize.hs "schemaToValue"
@@ -871,7 +881,7 @@ With these we could write
 
 ```haskell
 choiceToValue :: Choice a -> a -> Aeson.Value
-fieldToValue  :: Field a  -> a -> [Aeson.Pair]
+fieldToValue  :: Field a  -> a -> Aeson.Pair
 ```
 
 And then:

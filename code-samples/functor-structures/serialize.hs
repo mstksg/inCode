@@ -18,7 +18,7 @@ import qualified Data.Text                                 as T
 import qualified Data.Text.Prettyprint.Doc                 as PP
 
 data Schema a =
-      RecordType  (Div Field a)
+      RecordType  (Div Field  a)
     | SumType     (Dec Choice a)
     | SchemaLeaf  (Primitive a)
 
