@@ -11,27 +11,27 @@ slug: enhancing-functor-structures-step-by-step-1
 
 A style of Haskell programming that I've been pretty excited about with over
 the past year or so is something that I can maybe call a "functor structure"
-design pattern.  This is the interest that culminated in my [Functor
-Combinatorpedia][fpedia] post last year and the *[functor-combinators][]*
-library.  But personally I had never really explored the less commonly used
-lowercase-f functor abstractions in Hask --- contravariant functors and
-invariant functors.
-
-[fpedia]: https://blog.jle.im/entry/functor-combinatorpedia.html
-[functor-combinators]: https://hackage.haskell.org/package/functor-combinators
-
-In this post we're going to be exploring these different types of functor
-structures step-by-step, by starting with a simple useful structure and
-enhancing it piece by piece.  This process reflects a lot of the way I
-personally work through these things --- I normally don't get the whole
-powerful structure all the way; instead I incrementally add things as I see how
-things fit together.
+design pattern.  In this post we're going to be exploring the idea of enhancing
+normal data types with different types of functor structures step-by-step, by
+starting with a simple useful structure and enhancing it piece by piece.  This
+process reflects a lot of the way I personally work through these things --- I
+normally don't get the whole powerful structure all the way; instead I
+incrementally add things as I see how things fit together.
 
 We're going build the tools to describe a *data type schema*, which can
 represent algebraic data types --- sums and products.  We'll start off just
 building things we can use to *describe* the schema (by printing out
 documentation), and by the end of the journey we'll also be able to use our
 schema to generate parsers and serializers through json.
+
+This interest in functor structures culminated in my [Functor
+Combinatorpedia][fpedia] post last year and the *[functor-combinators][]*
+library.  But personally I had never really explored the less commonly used
+lowercase-f functor abstractions in Hask --- contravariant functors and
+invariant functors until recently.
+
+[fpedia]: https://blog.jle.im/entry/functor-combinatorpedia.html
+[functor-combinators]: https://hackage.haskell.org/package/functor-combinators
 
 This series is designed for an intermediate Haskeller with familiarity in
 things like product/sum types, using `Applicative`/`Alternative`, and monadic
