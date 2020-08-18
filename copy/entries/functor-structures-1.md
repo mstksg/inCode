@@ -13,10 +13,11 @@ A style of Haskell programming that I've been pretty excited about with over
 the past year or so is something that I can maybe call a "functor structure"
 design pattern.  In this post we're going to be exploring the idea of enhancing
 normal data types with different types of functor structures step-by-step, by
-starting with a simple useful structure and enhancing it piece by piece.  This
-process reflects a lot of the way I personally work through these things --- I
-normally don't get the whole powerful structure all the way; instead I
-incrementally add things as I see how things fit together.
+starting with a simple useful structure and enhancing it piece by piece in
+order to reap incremental benefits.  This process reflects a lot of the way I
+personally work through these things --- I normally don't get the whole
+powerful structure all the way; instead I incrementally add things as I see how
+things fit together.
 
 We're going build the tools to describe a *data type schema*, which can
 represent algebraic data types --- sums and products.  We'll start off just
