@@ -406,8 +406,8 @@ is in the key `"tag"`, and if that tag matches our current choice's
 constructor, we parse the schema parser for our sub-schema under that key.
 Otherwise, this choice isn't what is currently in our json value.
 
-Finally, to wrap bring it all together, we use the `interpret` functions we
-talked about:
+Finally, to bring it all together, we use the `interpret` functions we talked
+about:
 
 ```haskell
 !!!functor-structures/parse.hs "schemaParser ::"
