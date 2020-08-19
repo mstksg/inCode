@@ -106,7 +106,7 @@ types, so they'll be easier to assemble.
 ```
 
 So `schemaDoc` will take the name of our type and a schema, and generate a
-`PP.Doc x`, the type of a text document in the *prettyprinter* library.[^xvar]
+`PP.Doc x`, the type of a text document in the *prettyprinter* library.
 And `fieldDoc`, `choiceDoc`, and `primDoc` just generate the documentation for
 each individual field or constructor.
 
