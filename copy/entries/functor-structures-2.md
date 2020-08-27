@@ -185,15 +185,12 @@ work in the previous post.  Writing `schemaDoc`, `schemaParser`, and
 The main (unfortunate) difference is that instead of using `interpret` in every
 case, we must use `runCoDivAp` to run our `DivAp` in a covariant setting, and
 `runContraDivAp` to run our `DivAp` in a contravariant setting (similarly for
-`runCoDecAlt` and `runContraDecAlt`). Another small difference is that
-`icollect` doesn't quite work properly on `DivAp`/`DecAlt`, so we have to
-convert them to `Ap` and `Dec` first.[^divap]
+`runCoDecAlt` and `runContraDecAlt`).[^divap]
 
 [^divap]: These are unfortunate consequences of the fact that there is no
 general typeclass that contains both `Applicative` and `Divisible` together, or
 no typeclass that contains both `Plus` and `Conclude` together.  If these
-existed, we could just use `interpret` for all four of those functions, and
-`icollect` would work fine as well.
+existed, we could just use `interpret` for all four of those functions.
 
 ```haskell
 !!!functor-structures/invariant.hs "schemaDoc" "schemaParser" "schemaToValue"
@@ -340,8 +337,8 @@ preDivisibleT
     -> PreT Ap f a
     -> g a
 
--- | We can also use icollect like before
-icollect
+-- | We can also use htoList like before
+htoList
     :: (forall x. f x -> b)
     -> PreT Ap f a
     -> [b]
@@ -359,7 +356,7 @@ exactly what we did when we wrote our serializers.
 So using `Pre` and `PreT`, we get to *assemble* it using our favorite
 `Applicative` combinators...then when we wrap it in `PreT`, we get to
 *interpret* it in whatever way we want by choosing different interpreters. It's
-the best of both worlds!  We even get the useful `icollect` function back!
+the best of both worlds!
 
 We can do the opposite thing with `Dec` as well: we can use [`Post`][Post] to
 embed covariant capabilities in `Dec`.
@@ -434,8 +431,8 @@ postPlusT
     -> PostT Choice f a
     -> g a
 
--- | We can also use icollect like before
-icollect
+-- | We can also use htoList like before
+htoList
     :: (forall x. f x -> b)
     -> PostT Choice f a
     -> [b]
@@ -444,8 +441,7 @@ icollect
 We get the same benefits as for `PreT`: if we want to interpret into a
 `Conclude` (like we did for our serializers), we can use `interpret`.  If we
 want to interpret into a `Plus` (like we did for our parser generation), we can
-use `postPlusT`.  We also get direct access to the convenient `icollect`
-function from before.
+use `postPlusT`.
 
 With these new tools, we can imagine a different invariant `Schema` type:
 

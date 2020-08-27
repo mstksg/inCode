@@ -36,7 +36,7 @@ invariant functors until recently.
 
 This series is designed for an intermediate Haskeller with familiarity in
 things like product/sum types, using `Applicative`/`Alternative`, and monadic
-parser combinators, and is written in sync with *functor-combinators-0.3.5.1*.
+parser combinators, and is written in sync with *functor-combinators-0.3.6.0*.
 
 The Schema
 ----------
@@ -514,20 +514,13 @@ be just a matter of changing how to we get the items from our `ListF` and `Ap`.
 Following what we just learned, one way to do this would be to use `interpret`
 or manually pattern match and take advantage of the structure.  However, if we
 just want to get a list of monomorphic items from a functor combinator, there's
-a convenient function in *functor-combinators* called `icollect`:[^icollect]
+an abstraction in *functor-combinators* that gives you a "higher-order" version
+of `toList` called `htoList`:
 
 ```haskell
-icollect :: (forall x. f x -> b) -> ListF f a -> [b]
-icollect :: (forall x. f x -> b) -> Ap    f a -> [b]
+htoList :: (forall x. f x -> b) -> ListF f a -> [b]
+htoList :: (forall x. f x -> b) -> Ap    f a -> [b]
 ```
-
-[^icollect]: `icollect` function is nothing magical --- it's essentially
-    `interpret` wrapped with `Const`.
-
-    ~~~haskell
-    -- essentially
-    icollect f = getConst . interpret (\x -> Const [f x])
-    ~~~
 
 Give it a function to "get" a `b` out of every `f`, it collects the `b` from
 every `f` inside the structure and puts it in a list for us.  Note that this
@@ -535,19 +528,19 @@ type is very similar to the `map` we used earlier:
 
 ```haskell
 -- what we used before
-map      :: (          Field   -> b) -> [Field]    -> [b]
+map     :: (          Field   -> b) -> [Field]    -> [b]
 -- what we can use now
-icollect :: (forall x. Field x -> b) -> Ap Field a -> [b]
+htoList :: (forall x. Field x -> b) -> Ap Field a -> [b]
 ```
 
-So it looks like `icollect` should work as a drop-in replacement for `map` ...
+So it looks like `htoList` should work as a drop-in replacement for `map` ...
 
 ```haskell
 !!!functor-structures/parse.hs "schemaDoc"
 ```
 
-Neat, we just had to replace `map (\fld -> ..) fs` with `icollect (\fld -> ...)
-fs`, and `map choiceDoc cs` with `icollect choiceDoc cs`.  We were able to
+Neat, we just had to replace `map (\fld -> ..) fs` with `htoList (\fld -> ...)
+fs`, and `map choiceDoc cs` with `htoList choiceDoc cs`.  We were able to
 re-use the exact same logic --- we lose no power and upgrading was a
 straightforward mechanical transformation.
 
@@ -895,7 +888,7 @@ ifanout fieldToValue :: Div Field  a -> a -> [Aeson.Pair]
 ### Backporting documentation
 
 Because our new structure is pretty much the same as before (data types wrapped
-by functor combinators), and `Div`/`Dec` support `icollect` just like
+by functor combinators), and `Div`/`Dec` support `htoList` just like
 `Ap`/`ListF` did before, the implementation of `schemaDoc` is pretty much
 word-for-word identical as it was for our parser schema:
 

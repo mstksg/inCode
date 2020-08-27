@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --install-ghc ghci --resolver lts-16 --package prettyprinter --package functor-combinators-0.3.5.1 --package aeson-better-errors --package vinyl-0.13.0 --package containers --package scientific --package text --package semigroupoids --package bytestring --package free
+-- stack --install-ghc ghci --resolver lts-16 --package prettyprinter --package functor-combinators-0.3.6.0 --package aeson-better-errors --package vinyl-0.13.0 --package containers --package scientific --package text --package semigroupoids --package bytestring --package free
 
 {-# LANGUAGE DeriveFunctor        #-}
 {-# LANGUAGE FlexibleInstances    #-}
@@ -10,16 +10,17 @@
 import           Control.Applicative.Free
 import           Control.Applicative.ListF
 import           Control.Monad
-import           Data.ByteString.Lazy      (ByteString)
+import           Data.ByteString.Lazy       (ByteString)
 import           Data.Functor.Plus
 import           Data.HFunctor
+import           Data.HFunctor.HTraversable
 import           Data.HFunctor.Interpret
 import           Data.List
 import           Data.Scientific
-import qualified Data.Aeson.BetterErrors   as A
-import qualified Data.Map                  as M
-import qualified Data.Text                 as T
-import qualified Data.Text.Prettyprint.Doc as PP
+import qualified Data.Aeson.BetterErrors    as A
+import qualified Data.Map                   as M
+import qualified Data.Text                  as T
+import qualified Data.Text.Prettyprint.Doc  as PP
 
 data Schema a =
       RecordType  (Ap    Field  a)
@@ -83,13 +84,13 @@ schemaDoc title = \case
     RecordType fs -> PP.vsep [
         PP.pretty ("{" <> title <> "}")
       , PP.indent 2 . PP.vsep $
-          icollect (\fld -> "*" PP.<+> PP.indent 2 (fieldDoc fld)) fs
+          htoList (\fld -> "*" PP.<+> PP.indent 2 (fieldDoc fld)) fs
       ]
     SumType cs    -> PP.vsep [
         PP.pretty ("(" <> title <> ")")
       , "Choice of:"
       , PP.indent 2 . PP.vsep $
-          icollect choiceDoc cs
+          htoList choiceDoc cs
       ]
     SchemaLeaf p  -> PP.pretty (title <> ":")
               PP.<+> primDoc p

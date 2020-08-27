@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --install-ghc ghci --resolver lts-16 --package prettyprinter --package functor-combinators-0.3.5.1 --package aeson --package vinyl-0.13.0 --package contravariant --package scientific --package text --package semigroupoids --package free --package invariant --package aeson-better-errors --package kan-extensions
+-- stack --install-ghc ghci --resolver lts-16 --package prettyprinter --package functor-combinators-0.3.6.0 --package aeson --package vinyl-0.13.0 --package contravariant --package scientific --package text --package semigroupoids --package free --package invariant --package aeson-better-errors --package kan-extensions
 
 {-# LANGUAGE DeriveFunctor            #-}
 {-# LANGUAGE DeriveGeneric            #-}
@@ -16,31 +16,20 @@
 {-# LANGUAGE TypeSynonymInstances     #-}
 {-# OPTIONS_GHC -Wincomplete-patterns #-}
 
-import           Control.Applicative
 import           Control.Applicative.Free
-import           Control.Applicative.ListF
 import           Control.Monad
-import           Data.Bifunctor
 import           Data.Functor.Contravariant
 import           Data.Functor.Contravariant.Decide
-import           Data.Functor.Contravariant.Divise
-import           Data.Functor.Contravariant.Divisible
 import           Data.Functor.Contravariant.Divisible.Free
-import           Data.Functor.Invariant
 import           Data.Functor.Plus
-import           Data.HBifunctor.Tensor
 import           Data.HFunctor
-import           Data.HFunctor.Chain
+import           Data.HFunctor.HTraversable
 import           Data.HFunctor.Interpret
 import           Data.HFunctor.Route
 import           Data.Scientific
-import           Data.Void
-import           GHC.Generics
 import qualified Data.Aeson                                as Aeson
 import qualified Data.Aeson.BetterErrors                   as A
 import qualified Data.Aeson.Types                          as Aeson
-import qualified Data.Functor.Contravariant.Coyoneda       as CCY
-import qualified Data.Functor.Day                          as D
 import qualified Data.Text                                 as T
 import qualified Data.Text.Prettyprint.Doc                 as PP
 
@@ -103,13 +92,13 @@ schemaDoc title = \case
     RecordType fs -> PP.vsep [
         PP.pretty ("{" <> title <> "}")
       , PP.indent 2 . PP.vsep $
-          icollect (\fld -> "*" PP.<+> PP.indent 2 (fieldDoc fld)) fs
+          htoList (\fld -> "*" PP.<+> PP.indent 2 (fieldDoc fld)) fs
       ]
     SumType cs    -> PP.vsep [
         PP.pretty ("(" <> title <> ")")
       , "Choice of:"
       , PP.indent 2 . PP.vsep $
-          icollect choiceDoc cs
+          htoList choiceDoc cs
       ]
     SchemaLeaf p  -> PP.pretty (title <> ":")
               PP.<+> primDoc p

@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --install-ghc ghci --resolver lts-16 --package prettyprinter --package functor-combinators-0.3.5.1 --package aeson --package vinyl-0.13.0 --package contravariant --package scientific --package text --package semigroupoids --package free
+-- stack --install-ghc ghci --resolver lts-16 --package prettyprinter --package functor-combinators-0.3.6.0 --package aeson --package vinyl-0.13.0 --package contravariant --package scientific --package text --package semigroupoids --package free
 
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -9,6 +9,7 @@ import           Data.Functor.Contravariant.Decide
 import           Data.Functor.Contravariant.Divisible
 import           Data.Functor.Contravariant.Divisible.Free
 import           Data.HFunctor
+import           Data.HFunctor.HTraversable
 import           Data.HFunctor.Interpret
 import           Data.Scientific
 import           GHC.Generics
@@ -93,13 +94,13 @@ schemaDoc title = \case
     RecordType fs -> PP.vsep [
         PP.pretty ("{" <> title <> "}")
       , PP.indent 2 . PP.vsep $
-          icollect (\fld -> "*" PP.<+> PP.indent 2 (fieldDoc fld)) fs
+          htoList (\fld -> "*" PP.<+> PP.indent 2 (fieldDoc fld)) fs
       ]
     SumType cs    -> PP.vsep [
         PP.pretty ("(" <> title <> ")")
       , "Choice of:"
       , PP.indent 2 . PP.vsep $
-          icollect choiceDoc cs
+          htoList choiceDoc cs
       ]
     SchemaLeaf p  -> PP.pretty (title <> ":")
               PP.<+> primDoc p
