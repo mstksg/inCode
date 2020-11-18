@@ -18,8 +18,8 @@ data Affine n = Aff
     , aShift :: Finite n
     }
 
-(@$) :: KnownNat n => Affine n -> Finite n -> Finite n
-Aff a b @$ x = a * x + b
+runPerm :: KnownNat n => Affine n -> Finite n -> Finite n
+runPerm (Aff a b) x = a * x + b
 
 parseAffine :: KnownNat n => String -> Affine n
 parseAffine str = case words str of
@@ -42,13 +42,13 @@ instance KnownNat n => Group (Affine n) where
 
 -- | Part 1: Given a permutation list, find the place where 2019 ends up
 part1 :: [Affine 10007] -> Finite 10007
-part1 perms = bigPerm @$ 2019
+part1 perms = runPerm bigPerm 2019
   where
     bigPerm = mconcat perms
 
 -- | Part 2: Given a permutation list, find the index that will end up at 2020
 part2 :: [Affine 119315717514047] -> Finite 119315717514047
-part2 perms = invert biiigPerm @$ 2020
+part2 perms = runPerm (invert biiigPerm) 2020
   where
     bigPerm   = mconcat perms
     biiigPerm = stimes 101741582076661 bigPerm
