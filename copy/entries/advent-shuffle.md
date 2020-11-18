@@ -156,11 +156,11 @@ stimes :: Semigroup m => Int -> m -> m
 ```
 
 which lets us compose `x` with itself (`stimes 5 x == x <> x <> x <> x <> x`),
-but can do it in *log(n)* time using [repeated squaring][].  It's extremely
+but can do it in *log(n)* time using [repeated squaring][rsq].  It's extremely
 efficient in a lot of circumstances (more on that later) --- more so than the
 naive compose-it-n-times implementation.
 
-[repeated squaring]: https://en.wikipedia.org/wiki/Exponentiation_by_squaring
+[rsq]: https://en.wikipedia.org/wiki/Exponentiation_by_squaring
 
 Our Gameplan
 ------------
@@ -218,7 +218,7 @@ part2 perms = invert biiigPerm @$ 2020
 
 Part 2, I think, is where the group theory really shines.
 
-1.  We take advantage of `stimes`, which uses [repeated squaring][].  That means
+1.  We take advantage of `stimes`, which uses [repeated squaring][rsq].  That means
     that to compute `stimes 8 x`, instead of using
     
     ```
@@ -293,7 +293,8 @@ modulo :: KnownNat n => Integer -> Finite n
 ```
 
 which "reads" an `Integer` into a `Finite n`, making sure to wrap it in a
-cyclic way if it is negative or too high.
+cyclic way if it is negative or too high.  `maxBound` also gives us the highest
+index (the highest `Finite n`).
 
 ```haskell
 ghci> modulo 3 :: Finite 10
@@ -310,9 +311,9 @@ what quotient to modulo into.
 This implementation *seems* to work, except for one apparent major problem: how
 do we write `invert`??? Also, `stimes` doesn't help us *too* much here, because
 repeated squaring of function composition is...still a lot of function
-compositions in the end. That's because, while composition is cheap,
-application is expensive (and `stimes` works best when composition is expensive
-and application is cheap). So, back to the drawing board.
+compositions in the end. That's because, while composition with `<>` is cheap,
+application with `@$` is expensive (and `stimes` works best when composition is
+expensive and application is cheap). So, back to the drawing board.
 
 A Second Implementation Attempt: Lookin' Affine Today
 -----------------------------------------------------
@@ -366,12 +367,12 @@ So composing `a' x + b'` after `a x + b` is is `a' a x + a' b + b'`:
 !!!misc/advent-shuffle.hs "instance KnownNat n => Semigroup (Affine n)"
 ```
 
-Neat!  We can now compose *and* run `Affine`s very efficiently!  And the `Num`
-instance (which requires `KnownNat n`) for `Finite n` takes care of
-automatically doing modular arithmetic for us.
+Neat!  We can now compose *and* run `Affine`s efficiently, which makes `stimes`
+useful!  And the `Num` instance (which requires `KnownNat n`) for `Finite n`
+takes care of automatically doing modular arithmetic for us.
 
 To define a `Monoid` instance, we need an identity permutation.  This would
-just leave x alone, so it makes sense that it's $f(x) = 1 x + 0$, or `1 x + 0`:
+just leave x alone, so it makes sense that it's $f(x) = 1 x + 0$, `1 x + 0`:
 
 ```haskell
 !!!misc/advent-shuffle.hs "instance KnownNat n => Monoid (Affine n)"
@@ -391,14 +392,14 @@ instance KnownNat n => Group (Affine n) where
 we want to find `a'` and `b'` such that:
 
 ```haskell
-       Aff a' b' <> Aff a b = Aff 1 0
+      Aff a' b' <> Aff a b = Aff 1 0
 ```
 
 From our definition of `<>` earlier, that means we have to find `a'` and `b'`
 where:
 
 ```haskell
- Aff (a' * a) (a' * b + b') = Aff 1 0
+Aff (a' * a) (a' * b + b') = Aff 1 0
 ```
 
 So we need `a' * a = 1`, and `a' * b + b' = 0`.
