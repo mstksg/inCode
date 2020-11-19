@@ -319,12 +319,20 @@ The `KnownNat` instance is a constraint that `modulo` needs in order to know
 what quotient to modulo into.
 
 This implementation *seems* to work, except for one apparent major problem: how
-do we write `invert`??? Also, `stimes` doesn't help us *too* much here, because
+do we write `invert`? Also, `stimes` doesn't help us *too* much here, because
 repeated squaring of function composition is...still a lot of function
-compositions in the end. That's because, while composition with `<>` is cheap,
+compositions in the end.[^functions]  So, while composition with `<>` is cheap,
 application with `runPerm` is expensive (and `stimes` works best when
-composition is expensive and application is cheap). So, back to the drawing
+composition is expensive and application is cheap).  So, back to the drawing
 board.
+
+[^functions]: We only allocate a few function pointers (once for each `<>`,
+where both sides themselves point to the same function pointer[^pointer]), so it's
+very efficient in space as well, but to actually "run" that final function, we
+need to still traverse all of those nested pointers the full number of times.
+
+[^pointer]: https://www.reddit.com/r/haskell/comments/jwl93i/shuffling_things_up_solving_advent_of_code_with/gcudwg4?utm_source=share&utm_medium=web2x&context=3
+
 
 A Second Implementation Attempt: Lookin' Affine Today
 -----------------------------------------------------
