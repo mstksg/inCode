@@ -432,12 +432,21 @@ the entire space at `a^size` to arrive back at `a`)  So:
 ```
 
 From this we can see that if `a' * a = 1`, then `a'` must be `a^(n-2)` for
-prime `n`.[^euclid]
+prime `n`.[^euclid][^prime]
 
 [^euclid]: You can also use the [Extended Euclidean Algorithm][EEA] to find the
-multiplicative inverse here as well if you are a (cool) nerd.
+multiplicative inverse here as well if you are a (cool) nerd.  But I wanted to
+show a way to do this without requiring knowledge of any ring theory.
 
 [EEA]: https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm
+
+[^prime]: As [pointed out by rogercaptain on reddit][rogercaptain], this also
+"works" in the case where `n` is not prime too: only *some*
+(and not all) `Affine n`s represent permutations when `n` is not prime, and for
+those specific `Affine n`s (namely, where `a` is coprime to `n`), this
+technique does work.
+
+[rogercaptain]: https://www.reddit.com/r/haskell/comments/jwl93i/shuffling_things_up_solving_advent_of_code_with/gct4ihy/?context=3
 
 The second case is a little simpler: we can just shuffle around `a' * b + b' =
 0` to get `b' = -(a' * b)`.
