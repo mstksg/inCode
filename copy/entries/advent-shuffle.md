@@ -184,7 +184,7 @@ We'll write our functions first and then fill in the interface later!
 -- | Represents a permutation of n cards
 data Perm n = ....
 
--- | Given a permutation list, find the place where a given index ends up.
+-- | Given a permutation, find the place where a given index ends up.
 runPerm :: Perm n -> Finite n -> Finite n
 
 -- | Parse a string line into the permutation it represents
@@ -196,6 +196,9 @@ part1 perms = runPerm bigPerm 2019
   where
     bigPerm = mconcat perms
 ```
+
+(`mconcat perms` composes all of the permutations one after another: `mconcat
+[x,y,z] = x <> y <> z`)
 
 And...that's it!  For the actual "logic" of our part 1!  All we need to do is
 implement `runPerm` and `parsePerm`.
