@@ -90,7 +90,7 @@ permutation.
 
 I've talked about [using group theory][group theory] principles before in this
 blog to help guide us towards solutions and optimizations --- the main
-principal is that if we express our program in terms of group operations, then
+principle is that if we express our program in terms of group operations, then
 we can take advantage of the large body of knowledge built up over centuries to
 understand, analyze, and potentially optimize our program.
 
@@ -490,7 +490,10 @@ The Big Picture
 Every time I make a post about how Haskell lets you "use" math, there's a lot
 of room for confusion and misunderstanding.  A common misconception is that you
 need to know math to use Haskell, or that writing a Haskell program is like
-solving a math equation.
+solving a math equation.[^equation]
+
+[^equation]: Admittedly, we did do that a few times here.  But that's not *all*
+we do :)
 
 Instead, when we say we "use" math in Haskell, it means that Haskell naturally
 nudges us to phrase our problems in a way that can help illuminate connections
