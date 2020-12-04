@@ -1,0 +1,5 @@
+hello
+world
+STOP
+okay
+goodbye

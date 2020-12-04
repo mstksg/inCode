@@ -375,7 +375,7 @@ work with that data instead.
 
 So far so good!  Now to think about how to define composition.
 
-If we want to do $f(x) = a' x + b$ after $g(x) = a x + b$, it's:
+If we want to do $f(x) = a' x + b'$ after $g(x) = a x + b$, it's:
 
 $$
 \begin{aligned}

@@ -236,6 +236,7 @@ app znow@(ZonedTime _ tz) = do
         compile $ do
           sorted <- traverse (`loadSnapshotBody` "entry")
                   . take (fromIntegral (prefFeedEntries confBlogPrefs))
+                  . reverse
                   $ entriesSorted
           makeItem . TL.unpack $ viewFeed sorted tz (zonedTimeToUTC znow)
 
