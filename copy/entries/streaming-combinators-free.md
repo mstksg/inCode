@@ -99,7 +99,7 @@ subtypes:
 4.  If `i` is `()` and `o` is `Void` (or they are both universally quantified),
     then the pipe doesn't expect any sort of information upstream, and also
     won't ever yield anything downstream... a `Pipe () Void m a` is just an `m
-    a`!
+    a`!  In the biz, we often call this an "effect".
 3.  If `a` is `Void` (or universally quantified) --- a `Pipe i o m Void` --- it
     means that the pipe will never terminate, since `Void` has no inhabitants
     that could it could possibly produce upon termination.
@@ -192,7 +192,7 @@ to read from a file and output its contents to stdout, until it sees a STOP
 line:
 
 ```haskell
-!!!misc/streaming-combinators-free.hs "sampleProgram ::"
+!!!misc/streaming-combinators-free.hs "samplePipe ::"
 ```
 
 
@@ -384,12 +384,12 @@ holes)!  Remember our plan: for `f .| g`, *start unrolling `g`* until it needs
 anything, and then ask `f` when it does.
 
 ```haskell
-comp
+(.|)
     :: Monad m
     => Pipe a b m x         -- ^ pipe from a -> b
     -> Pipe b c m y         -- ^ pipe from b -> c
     -> Pipe a c m y         -- ^ pipe from a -> c
-comp pf pg = do
+pf .| pg = do
     gRes <- lift $ runFreeT pg          -- 1
     case gRes of
       Pure x            -> pure x       -- 2
@@ -429,6 +429,38 @@ Here are some numbered notes and comments:
     pipe that awaits it and feeds it to `f` when it gets it, give it to `f`,
     and then compose `f i :: Pipe a b m x` with `pg`'s result (wrapping up
     `gRes` back into a `FreeT`/`Pipe` so the types match up).
+
+Admittedly (!) this is the "ugly" part of this derivation: sometimes
+we just can't get everything for free.  But getting the Monad, Applicative,
+Functor, MonadTrans, etc. instances is probably nice enough to justify this
+inconvenience :)  And who knows, there might be a free structure that I don't
+know about that gives us all of these *plus* piping for free.
+
+
+### Putting it all together
+
+Let's see if it runs!
+
+
+```haskell
+!!!misc/streaming-combinators-free.hs "sampleProgram ::"
+```
+
+```
+$ cat testpipefile.txt
+hello
+world
+STOP
+okay
+goodbye
+```
+
+```haskell
+ghci> withFile "testpipefile.txt" ReadMode $ \handle ->
+        runPipe (sampleProgram handle)
+-- HELLO
+-- WORLD
+```
 
 <!-- Cozy up with a hot chocolate, it's time for a tale of Haskell times of olde! -->
 <!-- It's kind of surreal to look back to ancient times and remember the hubbub -->

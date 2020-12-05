@@ -101,8 +101,8 @@ untilSTOP = do
             yield x
             untilSTOP
 
-sampleProgram :: Handle -> Pipe i o IO ()
-sampleProgram handle =
+samplePipe :: Handle -> Pipe i o IO ()
+samplePipe handle =
        sourceHandle handle
     .| untilSTOP
     .| toUpperPipe
