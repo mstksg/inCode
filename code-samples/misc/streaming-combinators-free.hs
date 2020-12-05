@@ -110,6 +110,6 @@ samplePipe handle =
 
 main :: IO ()
 main = withFile "testpipefile.txt" ReadMode $ \handle ->
-    runPipe $ sampleProgram handle
+    runPipe $ samplePipe handle
 
 

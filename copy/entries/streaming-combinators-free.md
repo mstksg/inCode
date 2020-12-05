@@ -441,9 +441,8 @@ know about that gives us all of these *plus* piping for free.
 
 Let's see if it runs!
 
-
 ```haskell
-!!!misc/streaming-combinators-free.hs "sampleProgram ::"
+!!!misc/streaming-combinators-free.hs "samplePipe ::"
 ```
 
 ```
@@ -457,7 +456,7 @@ goodbye
 
 ```haskell
 ghci> withFile "testpipefile.txt" ReadMode $ \handle ->
-        runPipe (sampleProgram handle)
+        runPipe (samplePipe handle)
 -- HELLO
 -- WORLD
 ```
