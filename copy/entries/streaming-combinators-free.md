@@ -581,7 +581,7 @@ check out [the source file][codesource])
 3.  We mentioned earlier that a "source" could have type
 
     ```haskell
-    type Source o = Pipe () o
+    type Source = Pipe ()
     ```
 
     And a `Source o m a` would be something that keeps on pumping out
