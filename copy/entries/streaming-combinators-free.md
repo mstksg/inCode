@@ -1,5 +1,5 @@
 ---
-title: "Advent of Haskell: Roll your own Holly Jolly streaming combinator library with Free"
+title: "Roll your own Holly Jolly streaming combinators with Free"
 categories: Haskell
 tags: haskell, functor combinators
 create-time: 2020/11/26 00:33:46
@@ -20,12 +20,16 @@ the doors that functional programming can open.
 [aoh]: https://adventofhaskell.com/
 [hackage]: https://ocharles.org.uk/pages/2012-12-01-24-days-of-hackage.html
 
-In this post I hope to showcase a typical application of a technique I have
-apparently become somewhat known for and have written a lot about in the past:
-a "functor combinator style" where you identify the interface you want,
-associate it with a common Haskell typeclass, pick your primitives, and
-automatically get the ability to imbue your primitives with the structure you
-need.  I've talked about this previously with:
+All of the posts this year have been great --- they range from insightful
+reflections on the nature of Haskell and programming in Haskell, or also on
+specific language features.  This post is going to be one of the
+"project-based" ones, where we walk through and introduce a solidly
+*intermediate* Haskell technique as it applies to building a useful general
+toolset.  I'm going to be exploring the "functor combinator style" where you
+identify the interface you want, associate it with a common Haskell typeclass,
+pick your primitives, and automatically get the ability to imbue your
+primitives with the structure you need.  I've talked about this previously
+with:
 
 1.  [Applicative regular expressions][regexp]
 2.  [The functor combinatorpedia][fpedia]
@@ -52,9 +56,15 @@ streaming libraries were at the forefront of practical innovation.  The dust
 has settled on that a bit, but it every time I think about composable streaming
 combinators, I do get a bit nostalgic :)
 
-This post is written for an intermediate Haskell audience, and will assume you
-have a familiarity with monads and monadic interfaces, and also a little bit of
-experience with monad transformers.
+This post is written for an *intermediate* Haskell audience, and will assume
+you have a familiarity with monads and monadic interfaces, and also a little
+bit of experience with monad transformers.  Note --- there are many ways to
+arrive at the same result, but this post is more of a demonstration of a
+certain style and approach that has benefited my greatly in the past.
+
+All of the code in this page [can be found online at github][codesource]!
+
+!!![codesource]:misc/streaming-combinators-free.hs
 
 An effectful picture
 --------------------
@@ -147,16 +157,21 @@ lift :: m a -> Pipe i o m a
 runPipe :: Pipe () Void m a -> m a
 ```
 
+This looks like a complicated list...but actually most of these come from
+ubiquitous Haskell typeclasses like `Monad` and `Applicative`.  We'll see how
+this comes into play later, when we learn how to get these instances for our
+types for free.  This makes the actual "work" we have to do very small.
+
 So, these are going to be implementing "conduit-style" streaming combinators,
 where streaming actions are monadic, and monadic sequencing represents "do this
-after this one is done."  Because of this property, they seem to also be
+after this one is done."  Because of this property, they work well as
 *pull-based* pipes, yields will block until a corresponding await can accept
 what is yielded.
 
 ### Dress for the interface you want
 
-"Dress for the interface you want", they all told me.  So let's pretend we
-already implemented this interface...what could we do with it?
+"Dress for the interface you want, not the one you have", they all told me.  So
+let's pretend we already implemented this interface...what could we do with it?
 
 Well, can write simple sources like "yield the contents from a file
 line-by-line":
@@ -207,7 +222,8 @@ Implementing the interface you want
 -----------------------------------
 
 Step 2 of our plan was to identify the primitive actions we want.  Looking at
-our interface, it seems like we can narrow things down to two:
+our interface, it seems like the few things that let us "create" a `Pipe` from
+scratch (instead of combining existing ones) are:
 
 ```haskell
 yield  :: o -> Pipe i o m ()
@@ -216,8 +232,8 @@ lift   :: m a -> Pipe i o m a
 return :: a   -> Pipe i o m a
 ```
 
-However, we can note that `lift` and `return` can be gained just from having a `Monad` and
-`MonadTrans` instance.  So let's assume we have those instances.
+However, we can note that `lift` and `return` can be gained just from having a
+`Monad` and `MonadTrans` instance.  So let's assume we have those instances.
 
 ```haskell
 class Monad m where
@@ -257,8 +273,8 @@ For example:
     is `Maybe i -> a` since you need to specify how to handle the `Maybe i`
     result.
 
-This is specifically the structure that *[free][]* expects, but this principle
-can be ported to any algebraic effects system.
+(This is specifically the structure that *[free][]* expects, but this principle
+can be ported to any algebraic effects system.)
 
 And now...we're done!  We can use the `FreeT` type from
 *[Control.Monad.Trans.Free][]*, and now we have our pipe interface, with a
@@ -333,7 +349,7 @@ And so we get our full `runPipe`:
 !!!misc/streaming-combinators-free.hs "runPipe ::"
 ```
 
-I think this exemplifies most of the major beats when working with free
+I think this process exemplifies most of the major beats when working with free
 structures:
 
 1.  Define the base functor
@@ -411,7 +427,6 @@ pf .| pg = do
           Free (AwaitF f  ) -> do                           -- 7
             i <- await
             f i `comp` FreeT (pure gRes)
-
 ```
 
 Here are some numbered notes and comments:
@@ -468,11 +483,148 @@ ghci> withFile "testpipefile.txt" ReadMode $ \handle ->
 -- WORLD
 ```
 
-<!-- Cozy up with a hot chocolate, it's time for a tale of Haskell times of olde! -->
-<!-- It's kind of surreal to look back to ancient times and remember the hubbub -->
-<!-- about competing effectful streaming combinator libraries like conduit and -->
-<!-- pipes. These days, modern Haskell techniques allow for a very intuitive -->
-<!-- implementation using effects systems like Free. Let's kick back and learn some -->
-<!-- of the basic ideas behind streaming combinators and effects systems by -->
-<!-- implementing our own streaming library with the cozy comfort of healthy -->
-<!-- hindsight.  We can make sure Santa can check his list twice, in constant-space! -->
+Smooth as silk :D
+
+# Takeways
+
+Most of this was thought up when I needed[^emdnote] a tool that was *sort of* like
+conduit, *sort of* like pipes, *sort of* like the other libraries...and I
+thought I had to read up on the theory of pipes and iteratees and trampolines
+and fancy pants math stuff to be able to make anything useful in this space.  I
+remember being very discouraged when I read about this stuff as a wee new
+Haskeller, because the techniques seemed so foreign and out of the range of my
+normal Haskell experience.
+
+[^emdnote]: This came about when I was developing my numerical *[emd][]*
+library.
+
+[emd]: https://hackage.haskell.org/package/emd
+
+However, with a level head, I just thought --- "ok, I just need a monad (trans)
+with two primitive actions: await, and yield.  Why don't I just make an await
+and yield and get automatic `Monad` and `MonadTrans` instances with the
+appropriate free structure?"
+
+As we can see...this works just fine!  We only needed to implement one extra
+thing (`.|`) to get the interface of our dreams.
+
+The next time you need to make some monad that might seem exotic, try this out
+and see if it works for you :)
+
+Happy holidays, and merry Christmas!
+
+## Exercises
+
+Click on the links in the corner of the text boxes for solutions! (or just
+check out [the source file][codesource])
+
+1.  An `Pipe i o m a` "takes" `i` and "produces" `o`, so it should make sense
+    to make pre-map and post-map functions:
+
+    ```haskell
+    !!!misc/streaming-combinators-free.hs "postMap ::"1 "preMap ::"1
+    ```
+
+    That pre-maps all inputs the pipe would receive, and post-maps all of the
+    values it yields.
+
+    Hint: This actually is made a lot simpler to write with the handy
+    `transFreeT` combinator, which lets you swap out/change the base functor:
+
+    ```haskell
+    transFreeT
+        :: (forall a. f a -> g a)     -- ^ polymorphic function to edit the base functor
+        -> FreeT f m b
+        -> FreeT g m b
+
+    transFreeT
+        :: (forall a. PipeF i o a -> PipeF i' o' a)  -- ^ polymorphic function to edit the base functor
+        -> Pipe i  o  m a
+        -> Pipe i' o' m a
+    ```
+
+    We could then write pre-map and post-map function on `PipeF` and translate
+    them to `Pipe` using `transFreeT`:
+
+    ```haskell
+    !!!misc/streaming-combinators-free.hs "postMapF ::"1 "preMapF ::"1 "postMap ::" "preMap ::"
+    ```
+
+
+2.  Let's say we modified our `PipeF` slightly to take another parameter `u`,
+    the result type of the upstream pipe.
+
+    ```haskell
+    data PipeF i o u a =
+        YieldF o a
+      | AwaitF (Either u i -> a)
+
+    type Pipe i o u = FreeT (PipeF i o u)
+
+    await :: Pipe i o m (Either u i)
+    await = liftF $ AwaitF id
+    ```
+
+    So now `await` would be fed `i` things yielded from upstream, but sometimes
+    you'd get a `Left` indicating that the upstream pipe has terminated.
+
+    What would be the implications if `u` is `Void`?
+
+    ```haskell
+    type CertainPipe i o = Pipe i o Void
+    ```
+
+    What could you do in a `CertainPipe i o m a` that you couldn't normally do
+    with our `Pipe i o m a`?
+
+3.  We mentioned earlier that a "source" could have type
+
+    ```haskell
+    type Source o = Pipe () o
+    ```
+
+    And a `Source o m a` would be something that keeps on pumping out
+    `o`s as much as we need, without requiring any upstream input.
+
+    This is actually the essential behavior of the (true) list monad
+    transformer, as esposed by the *[list-transformer][]* package.
+
+    In that package, `ListT` is defined as:
+
+    ```haskell
+    newtype ListT m a = ListT { next :: m (Step m a) }
+
+    data Step m a = Cons a (ListT m a) | Nil
+    ```
+
+    And it's a type that can yield out new `a`s on-demand, until exhausted.
+
+    In fact, `Source o m ()` is equivalent to `ListT m o`.  Write the functions
+    to convert between them! :D
+
+    ```haskell
+    !!!misc/streaming-combinators-free.hs "toListT ::"1 "fromListT ::"1
+    ```
+
+    Unfortunately we cannot use `iterT` because the last type parameter of each
+    is different.  But manual pattern matching (like how we wrote `(.|)`) isn't
+    too bad!
+
+    The semantics of `ListT` api is that `x <|> y` will "do" (and emit the
+    result) `x` before moving on to what `y` would emit.  And `empty` is the
+    `ListT` that signals it is done producing.  `<|>` and `pure` and `empty`
+    for `ListT` are roughly analogous to `>>` and `yield` and `return` for
+    `Source`, respectively.
+
+
+[list-transformer]: https://hackage.haskell.org/package/list-transformer
+
+
+Special Thanks
+--------------
+
+I am very humbled to be supported by an amazing community, who make it possible
+for me to devote time to researching and writing these posts.  Very special
+thanks to my supporter at the "Amazing" level on [patreon][], Josh Vera! :)
+
+[patreon]: https://www.patreon.com/justinle/overview

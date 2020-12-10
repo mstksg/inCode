@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --install-ghc ghci --resolver lts-16 --package free --package mtl
+-- stack --install-ghc ghci --resolver lts-16 --package free --package mtl --package list-transformer
 
 {-# LANGUAGE DeriveFunctor    #-}
 {-# LANGUAGE GADTs #-}
@@ -16,6 +16,7 @@ import           Data.Char
 import           Data.Void
 import           System.IO
 import           System.IO.Error
+import qualified List.Transformer         as L
 
 data PipeF i o a =
     YieldF o a
@@ -112,4 +113,36 @@ main :: IO ()
 main = withFile "testpipefile.txt" ReadMode $ \handle ->
     runPipe $ samplePipe handle
 
+-- | Exercise 1: premap and postmap
+postMapF :: (o -> o') -> PipeF i o a -> PipeF i o' a
+postMapF f (YieldF x n) = YieldF (f x) n
+postMapF _ (AwaitF g  ) = AwaitF g
 
+preMapF :: (i' -> i) -> PipeF i o a -> PipeF i' o a
+preMapF _ (YieldF x n) = YieldF x n
+preMapF f (AwaitF g  ) = AwaitF (g . fmap f)
+
+postMap :: Monad m => (o -> o') -> Pipe i o m a -> Pipe i o' m a
+postMap f = transFreeT (postMapF f)
+
+preMap :: Monad m => (i' -> i) -> Pipe i o m a -> Pipe i' o m a
+preMap f = transFreeT (preMapF f)
+
+-- | Exercise 3: ListT
+
+toListT :: Monad m => Pipe () o m a -> L.ListT m o
+toListT p = do
+    pRes <- lift $ runFreeT p
+    case pRes of
+      Pure x             -> L.empty
+      Free (YieldF o xs) -> pure o L.<|> toListT xs
+      Free (AwaitF g   ) -> toListT $ g (Just ())
+
+fromListT :: Monad m => L.ListT m o -> Pipe i o m ()
+fromListT lt = do
+    ltRes <- lift $ L.next lt
+    case ltRes of
+      L.Cons x xs -> do
+        yield x
+        fromListT xs
+      L.Nil       -> pure ()
