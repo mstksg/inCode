@@ -3,7 +3,7 @@ title: "Roll your own Holly Jolly streaming combinators with Free"
 categories: Haskell
 tags: haskell, functor combinators
 create-time: 2020/11/26 00:33:46
-date: never
+date: 2020/12/12 16:00:00
 identifier: streaming-combinators-free
 slug: holly-jolly-streaming-combinators
 ---
