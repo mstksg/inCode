@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --install-ghc ghci --resolver lts-16 --package free --package mtl --package list-transformer
+-- stack --install-ghc ghci --resolver lts-16 --package free --package mtl --package list-transformer --package resourcet
 
 {-# LANGUAGE DeriveFunctor    #-}
 {-# LANGUAGE GADTs #-}
@@ -12,11 +12,12 @@ import           Control.Monad
 import           Control.Monad.Free.TH
 import           Control.Monad.Trans
 import           Control.Monad.Trans.Free
+import           Control.Monad.Trans.Resource
 import           Data.Char
 import           Data.Void
 import           System.IO
 import           System.IO.Error
-import qualified List.Transformer         as L
+import qualified List.Transformer             as L
 
 data PipeF i o a =
     YieldF o a
@@ -31,29 +32,26 @@ yield x = liftF $ YieldF x ()
 await :: Monad m => Pipe i o m (Maybe i)
 await = liftF $ AwaitF id
 
-comp
+(.|)
     :: Monad m
     => Pipe a b m x
     -> Pipe b c m y
     -> Pipe a c m y
-comp pf pg = do
+pf .| pg = do
     gRes <- lift $ runFreeT pg
     case gRes of
       Pure x            -> pure x
       Free (YieldF o x) -> do
         yield o
-        pf `comp` x
+        pf .| x
       Free (AwaitF g  ) -> do
         fRes <- lift $ runFreeT pf
         case fRes of
-          Pure _            -> pure () `comp` g Nothing
-          Free (YieldF o y) -> y       `comp` g (Just o)
+          Pure _            -> pure () .| g Nothing
+          Free (YieldF o y) -> y       .| g (Just o)
           Free (AwaitF f  ) -> do
             i <- await
-            f i `comp` FreeT (pure gRes)
-
-(.|) :: Monad m => Pipe a b m x -> Pipe b c m y -> Pipe a c m y
-(.|) = comp
+            f i .| FreeT (pure gRes)
 infixl 1 .|
 
 handlePipeF :: PipeF () Void (m a) -> m a
@@ -64,8 +62,8 @@ handlePipeF = \case
 runPipe :: Monad m => Pipe () Void m a -> m a
 runPipe = iterT handlePipeF
 
-sourceHandle :: Handle -> Pipe i String IO ()
-sourceHandle handle = do
+sourceHandleIO :: Handle -> Pipe i String IO ()
+sourceHandleIO handle = do
     res <- lift $ tryJust (guard . isEOFError) (hGetLine handle)
     case res of
       Left  _   -> return ()
@@ -73,13 +71,31 @@ sourceHandle handle = do
         yield out
         sourceHandle handle
 
-sinkStdout :: Pipe String o IO ()
-sinkStdout = do
+sourceHandle :: MonadIO m => Handle -> Pipe i String m ()
+sourceHandle handle = do
+    res <- liftIO $ tryJust (guard . isEOFError) (hGetLine handle)
+    case res of
+      Left  _   -> return ()
+      Right out -> do
+        yield out
+        sourceHandle handle
+
+sinkStdoutIO :: Pipe String o IO ()
+sinkStdoutIO = do
     inp <- await
     case inp of
       Nothing -> pure ()
       Just x  -> do
         lift $ putStrLn x
+        sinkStdout
+
+sinkStdout :: MonadIO m => Pipe String o m ()
+sinkStdout = do
+    inp <- await
+    case inp of
+      Nothing -> pure ()
+      Just x  -> do
+        liftIO $ putStrLn x
         sinkStdout
 
 toUpperPipe :: Monad m => Pipe String String m ()
@@ -101,6 +117,13 @@ untilSTOP = do
         | otherwise   -> do
             yield x
             untilSTOP
+
+samplePipeIO :: Handle -> Pipe i o IO ()
+samplePipeIO handle =
+       sourceHandleIO handle
+    .| untilSTOP
+    .| toUpperPipe
+    .| sinkStdoutIO
 
 samplePipe :: Handle -> Pipe i o IO ()
 samplePipe handle =
@@ -128,8 +151,23 @@ postMap f = transFreeT (postMapF f)
 preMap :: Monad m => (i' -> i) -> Pipe i o m a -> Pipe i' o m a
 preMap f = transFreeT (preMapF f)
 
--- | Exercise 3: ListT
+-- | Exercise 2: ResourceT
+sourceFile :: MonadIO m => FilePath -> Pipe i String (ResourceT m) ()
+sourceFile fp = do
+    (_, handle) <- lift $ allocate (openFile fp ReadMode) hClose
+    sourceHandle handle
 
+samplePipe2 :: FilePath -> Pipe i o (ResourceT IO) ()
+samplePipe2 fp =
+       sourceFile fp
+    .| untilSTOP
+    .| toUpperPipe
+    .| hoistFreeT lift sinkStdout
+
+main2 :: IO ()
+main2 = runResourceT . runPipe $ samplePipe2 "testpipefile.txt"
+
+-- | Exercise 4: ListT
 toListT :: Monad m => Pipe () o m a -> L.ListT m o
 toListT p = do
     pRes <- lift $ runFreeT p
