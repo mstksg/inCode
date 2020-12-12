@@ -1,7 +1,7 @@
 ---
 title: Applicative Regular Expressions using the Free Alternative
 categories: Haskell, Math
-tags: haskell, parsers
+tags: haskell, parsers, functor combinators
 create-time: 2019/04/04 18:20:32
 date: 2019/04/08 11:42:09
 identifier: regexp

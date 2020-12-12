@@ -1,7 +1,7 @@
 ---
 title: The Functor Combinatorpedia
 categories: Haskell
-tags: functional programming, free, haskell, interpreters
+tags: functional programming, free, haskell, interpreters, functor combinators
 create-time: 2019/06/17 21:43:36
 date: 2019/06/19 10:41:46
 identifier: functor-combinatorpedia
