@@ -1,52 +1,40 @@
 module Entry where
 
-import Control.Alt
-import Control.Bind
-import Control.Monad
-import Control.Monad.Eff
-import Control.Monad.Eff.Class
-import Control.Monad.Eff.Console
-import Control.Monad.Eff.Ref
-import Control.Monad.Maybe.Trans
-import Control.Monad.State.Trans
-import Control.Monad.Writer.Trans
-import Control.Plus
-import DOM                        as D
-import DOM.Event.EventTarget      as D
-import DOM.Event.EventTypes       as D
-import DOM.Event.Types            as D
-import DOM.HTML                   as D
-import DOM.HTML.Types             as D
-import DOM.HTML.Window            as D
-import DOM.Node.DOMTokenList      as DDTL
-import DOM.Node.Document          as D
-import DOM.Node.Element           as D
-import DOM.Node.Node              as D
-import DOM.Node.NodeList          as DNL
-import DOM.Node.NodeType          as D
-import DOM.Node.ParentNode        as D
-import DOM.Node.Types             as D
-import Data.Array                 as A
-import Data.Char.Unicode
-import Data.Either
-import Data.Foldable
-import Data.Generic
-import Data.List                  as L
-import Data.Maybe
-import Data.Monoid
-import Data.Nullable
-import Data.String
-import Data.Traversable
-import Data.Tuple
+import Control.Monad.Maybe.Trans         (MaybeT(..), runMaybeT)
+import Control.Monad.State.Trans         (StateT(..), evalStateT)
+import Control.Monad.Writer.Trans        (WriterT, execWriterT, tell)
+import Control.Plus                      (empty, (<|>))
+import Data.Array                        as A
+import Data.Char.Unicode                 (isSpace)
+import Data.Either                       (Either(..))
+import Data.Maybe                        (Maybe(..), maybe)
+import Data.String                       (Pattern(..))
+import Data.String.CodeUnits             (stripPrefix, toCharArray)
+import Data.Traversable                  (all, for_, intercalate, traverse_)
+import Data.Tuple                        (Tuple(..))
+import Effect                            (Effect)
+import Effect.Class                      (class MonadEffect, liftEffect)
+import Effect.Class.Console              (log)
+import Effect.Ref                        as Ref
 import Prelude
-import Unsafe.Coerce              as U
+import Web.DOM.DOMTokenList              as DOMTokenList
+import Web.DOM.Document                  as Document
+import Web.DOM.Element                   as Element
+import Web.DOM.Node                      as Node
+import Web.DOM.NodeList                  as NodeList
+import Web.DOM.ParentNode                as ParentNode
+import Web.Event.Event                   (Event, EventType)
+import Web.Event.EventTarget             (EventTarget, addEventListener, eventListener)
+import Web.HTML                          as Web
+import Web.HTML.Event.EventTypes         (readystatechange)
+import Web.HTML.HTMLDocument             as HTMLDocument
+import Web.HTML.Window                   as Window
+import Web.HTML.Window                   as Window
+import Web.UIEvent.MouseEvent.EventTypes as EventTypes
 
-main
-    :: forall e.
-       Eff (console :: CONSOLE, dom :: D.DOM, ref :: REF | e) Unit
+main :: Effect Unit
 main = do
-    wind <- D.window
-    doc  <- D.htmlDocumentToDocument <$> D.document wind
+    doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
 
     ready doc do
       log "Hello from PureScript!"
@@ -59,25 +47,23 @@ main = do
   where
     ready doc a = do
       a' <- doOnce a
-      onE D.readystatechange
-          (D.documentToEventTarget doc)
-          (D.eventListener \_ -> a')
+      onE readystatechange
+          (Document.toEventTarget doc)
+          (\_ -> a')
 
 
-appendTopLinks
-    :: forall e.
-       D.Document
-    -> Eff (dom :: D.DOM | e) Unit
+appendTopLinks :: Document.Document -> Effect Unit
 appendTopLinks doc = do
-    hs <- D.querySelectorAll headers $ D.documentToParentNode doc
+    hs <- ParentNode.querySelectorAll
+            (ParentNode.QuerySelector headers)
+            (Document.toParentNode doc)
     flip traverseNodeList_ hs \h -> do
-      topLink <- D.createElement "a" doc
-      let topLinkNode = D.elementToNode topLink
-      D.setAttribute "href" "#title" topLink
-      D.setClassName "top-link" topLink
-      D.setTextContent "top" topLinkNode
-      D.appendChild topLinkNode (D.elementToNode h)
-      return unit
+      topLink <- Document.createElement "a" doc
+      let topLinkNode = Element.toNode topLink
+      Element.setAttribute "href" "#title" topLink
+      Element.setClassName "top-link" topLink
+      Node.setTextContent "top" topLinkNode
+      void $ Node.appendChild topLinkNode (Element.toNode h)
   where
     headers = intercalate ", " [ ".main-content h2"
                                , ".main-content h3"
@@ -89,78 +75,73 @@ appendTopLinks doc = do
 data SourceMode = SMHover
                 | SMOn
 
-setupSourceLink
-    :: forall e.
-       D.Document
-    -> Eff (dom :: D.DOM, ref :: REF | e) Unit
+setupSourceLink :: Document.Document -> Effect Unit
 setupSourceLink doc = void <<< runMaybeT $ do
-    sourceInfo <- nMaybeT $ D.querySelector ".source-info" docPN
-    header     <- nMaybeT $ D.querySelector ".article > header" docPN
-    let headerET = D.elementToEventTarget header
-    liftEff do
-      cList    <- D.classList sourceInfo
-      DDTL.add ["hide"] cList
-      modeRef  <- newRef SMHover
+    sourceInfo <- MaybeT $ ParentNode.querySelector
+      (ParentNode.QuerySelector ".source-info") docPN
+    header     <- MaybeT $ ParentNode.querySelector
+      (ParentNode.QuerySelector ".article > header") docPN
+    let headerET = Element.toEventTarget header
+    liftEffect do
+      cList    <- Element.classList sourceInfo
+      DOMTokenList.add cList "hide"
+      modeRef  <- Ref.new SMHover
 
-      onE D.mouseenter headerET <<< D.eventListener $ \_ -> do
-        mode <- readRef modeRef
+      onE EventTypes.mouseenter headerET \_ -> do
+        mode <- Ref.read modeRef
         case mode of
-          SMHover -> DDTL.remove ["hide"] cList
-          SMOn    -> return unit
+          SMHover -> DOMTokenList.remove cList "hide"
+          SMOn    -> pure unit
 
-      onE D.mouseleave headerET <<< D.eventListener $ \_ -> do
-        mode <- readRef modeRef
+      onE EventTypes.mouseleave headerET \_ -> do
+        mode <- Ref.read modeRef
         case mode of
-          SMHover -> DDTL.add ["hide"] cList
-          SMOn    -> return unit
+          SMHover -> DOMTokenList.add cList "hide"
+          SMOn    -> pure unit
 
-      onE D.click headerET <<< D.eventListener $ \_ -> do
-        mode <- readRef modeRef
+      onE EventTypes.click headerET \_ -> do
+        mode <- Ref.read modeRef
         case mode of
           SMHover -> do
-            DDTL.remove ["hide"] cList
-            writeRef modeRef SMOn
+            DOMTokenList.remove cList "hide"
+            Ref.write SMOn modeRef
           SMOn    -> do
-            DDTL.add ["hide"] cList
-            writeRef modeRef SMHover
+            DOMTokenList.add cList "hide"
+            Ref.write SMHover modeRef
   where
-    docPN = D.documentToParentNode doc
+    docPN = Document.toParentNode doc
 
 
-setupAsides
-    :: forall e.
-       D.Document
-    -> Eff (dom :: D.DOM | e) Unit
+setupAsides :: Document.Document -> Effect Unit
 setupAsides doc = do
-    asides <- D.querySelectorAll ".main-content .note" $ D.documentToParentNode doc
+    asides <- ParentNode.querySelectorAll
+      (ParentNode.QuerySelector ".main-content .note")
+      (Document.toParentNode doc)
     flip traverseNodeList_ asides \aside -> do
-      blks <- D.childNodes (D.elementToNode aside)
+      blks <- Node.childNodes (Element.toNode aside)
       let toggleAll =
-            flip (withIndex traverseNodeList_) blks $ \i blk ->
-              when (i > 0) $
-                void $ DDTL.toggle "hide" =<< D.classList blk
+            flip (withIndex traverseNodeList_) blks \i blk ->
+              when (i > 0) $ do
+                cList <- Element.classList blk
+                void $ DOMTokenList.toggle cList "hide"
       flip (withIndex traverseNodeList_) blks \i blk -> do
         when (i == 0) do
-          onE D.click (D.elementToEventTarget blk) <<< D.eventListener $ \_ ->
+          cList <- Element.classList blk
+          onE EventTypes.click (Element.toEventTarget blk) \_ ->
             toggleAll
-          DDTL.add ["clickable", "aside-header"] =<< D.classList blk
-          clickMe <- D.createElement "span" doc
-          let clickMeNode = D.elementToNode clickMe
-          DDTL.add ["clickme"] =<< D.classList clickMe
-          D.setTextContent "(Click me!)" clickMeNode
-          D.appendChild clickMeNode (D.elementToNode blk)
-          return unit
-
+          DOMTokenList.add cList "clickable"
+          DOMTokenList.add cList "aside-header"
+          clickMe <- Document.createElement "span" doc
+          let clickMeNode = Element.toNode clickMe
+          cmList <- Element.classList clickMe
+          DOMTokenList.add cmList "clickme"
+          Node.setTextContent "(Click me!)" clickMeNode
+          void $ Node.appendChild clickMeNode (Element.toNode blk)
       toggleAll
 
 data LinkSpec = LS { source      :: Maybe String
                    , interactive :: Maybe String
                    }
-
-derive instance genericLS :: Generic LinkSpec
-
-instance showLS :: Show LinkSpec where
-  show = gShow
 
 instance semigroupLS :: Semigroup LinkSpec where
   append (LS s1) (LS s2)
@@ -172,60 +153,59 @@ instance monoidLS :: Monoid LinkSpec where
   mempty = LS { source: Nothing, interactive: Nothing }
 
 -- assumption: only one <code> per <pre>
-processCodeBlocks
-    :: forall e.
-       D.Document
-    -> Eff (dom :: D.DOM | e) Unit
+processCodeBlocks :: Document.Document -> Effect Unit
 processCodeBlocks doc = do
-    blks <- D.querySelectorAll ".main-content code.sourceCode"
-              $ D.documentToParentNode doc
+    blks <- ParentNode.querySelectorAll
+      (ParentNode.QuerySelector ".main-content code.sourceCode")
+      (Document.toParentNode doc)
     flip traverseNodeList_ blks \blk -> do
-      let blkN = D.elementToNode blk
+      let blkN = Element.toNode blk
       lSpec <- execWriterT
-           <<< ((<=< childNodes') <<< traverseNodeList_) (pullLinkSpec blkN)
+           <<< ((_ <=< childNodes') <<< traverseNodeList_) (pullLinkSpec blkN)
              $ blkN
+      pure unit
       chompWhitespace blkN
       genLinkBox lSpec blkN
       colorPrompt blkN
   where
-    childNodes' = liftEff <<< D.childNodes
+    childNodes' = liftEffect <<< Node.childNodes
     pullLinkSpec
-        :: D.Node
-        -> D.Element
-        -> WriterT LinkSpec (Eff (dom :: D.DOM | e)) Unit
+        :: Node.Node
+        -> Element.Element
+        -> WriterT LinkSpec Effect Unit
     pullLinkSpec blk line = do
-      let lineN = D.elementToNode line
-      linec <- liftEff $ D.textContent lineN
-      for_ prefHandlers $ \(Tuple pref handler) -> do
-        for_ (pref `stripPrefix` linec) $ \stuff -> do
-          liftEff $ do
-            D.setNodeValue "" lineN
-            D.removeChild lineN blk
+      let lineN = Element.toNode line
+      linec <- liftEffect $ Node.textContent lineN
+      for_ prefHandlers \(Tuple pref handler) -> do
+        for_ (Pattern pref `stripPrefix` linec) $ \stuff -> do
+          void $ liftEffect do
+            Node.setNodeValue "" lineN
+            Node.removeChild lineN blk
           case handler stuff of
             Left s  -> tell $ LS { source: Just s , interactive: Nothing }
             Right s -> tell $ LS { source: Nothing, interactive: Just s  }
     prefHandlers = [ Tuple "-- source: "      Left
                    , Tuple "-- interactive: " Right
                    ]
-    chompWhitespace :: forall e'. D.Node -> Eff (dom :: D.DOM | e') Unit
+    chompWhitespace :: Node.Node -> Effect Unit
     chompWhitespace blk = go
       where
         go = do
-          fc' <- toMaybe <$> D.firstChild blk
+          fc' <- Node.firstChild blk
           for_ fc' \fc -> do
-            isWhitespace <- all isSpace <<< toCharArray <$> D.textContent fc
+            isWhitespace <- all isSpace <<< toCharArray <$> Node.textContent fc
             when isWhitespace do
-              D.removeChild fc blk
+              void $ Node.removeChild fc blk
               go
-    genLinkBox :: LinkSpec -> D.Node -> Eff (dom :: D.DOM | e) Unit
+    genLinkBox :: LinkSpec -> Node.Node -> Effect Unit
     genLinkBox (LS s) blk = void <<< runMaybeT $ do
-      _   <- maybe empty return $ s.source <|> s.interactive
-      pre <- nMaybeT $ D.parentNode blk
-      liftEff $ do
-        linkBox <- D.createElement "div" doc
-        let linkBoxN = D.elementToNode linkBox
-        D.setClassName "code-link-box" linkBox
-        D.insertBefore linkBoxN blk pre
+      _   <- maybe empty pure $ s.source <|> s.interactive
+      pre <- MaybeT $ Node.parentNode blk
+      liftEffect $ do
+        linkBox <- Document.createElement "div" doc
+        let linkBoxN = Element.toNode linkBox
+        Element.setClassName "code-link-box" linkBox
+        void $ Node.insertBefore linkBoxN blk pre
         let boxes = A.mapMaybe (\(Tuple u i) -> (_ `Tuple` i) <$> u)
                   $ [ Tuple s.source
                             (Tuple "code-source-link"      "View full source")
@@ -233,81 +213,66 @@ processCodeBlocks doc = do
                             (Tuple "code-interactive-link" "Interactive"     )
                     ]
         for_ boxes \(Tuple u (Tuple cls txt)) -> do
-          link <- D.createElement "a" doc
-          let linkN = D.elementToNode link
-          D.setAttribute "href" u link
-          D.setClassName cls link
-          D.setTextContent txt linkN
-          D.appendChild linkN linkBoxN
-          return unit
+          link <- Document.createElement "a" doc
+          let linkN = Element.toNode link
+          Element.setAttribute "href" u link
+          Element.setClassName cls link
+          Node.setTextContent txt linkN
+          void $ Node.appendChild linkN linkBoxN
 
-        cList <- D.classList linkBox
-        DDTL.add ["hide"] cList
+        cList <- Element.classList linkBox
+        DOMTokenList.add cList "hide"
 
-        let preET' = D.elementToEventTarget <$> nodeToElement pre
+        let preET' = Element.toEventTarget <$> Element.fromNode pre
         for_ preET' \preET -> do
-          onE D.mouseenter preET <<< D.eventListener $ \_ ->
-            DDTL.remove ["hide"] cList
-          onE D.mouseleave preET <<< D.eventListener $ \_ ->
-            DDTL.add ["hide"] cList
-    colorPrompt :: D.Node -> Eff (dom :: D.DOM | e) Unit
+          onE EventTypes.mouseenter preET \_ ->
+            DOMTokenList.remove cList "hide"
+          onE EventTypes.mouseleave preET \_ ->
+            DOMTokenList.add cList "hide"
+    colorPrompt :: Node.Node -> Effect Unit
     colorPrompt blk = void <<< runMaybeT $ do
-      fc   <- nMaybeT $ D.firstChild blk
-      pr   <- nMaybeT $ D.parentElement blk
-      liftEff $ do
-        tc <- D.textContent fc
-        let isPrompt = A.mapMaybe (_ `stripPrefix` tc) ["λ", "ghci", "$", "irb", ">>>"]
-        case L.toList isPrompt of
-          L.Cons _ _ -> DDTL.add ["code-block-prompt"] =<< D.classList pr
-          L.Nil      -> return unit
+      fc   <- MaybeT $ Node.firstChild blk
+      pr   <- MaybeT $ Node.parentElement blk
+      liftEffect $ do
+        tc <- Node.textContent fc
+        cList <- Element.classList pr
+        let isPrompt = A.mapMaybe (\p -> Pattern p `stripPrefix` tc)
+                        ["λ", "ghci", "$", "irb", ">>>"]
+        when (A.length isPrompt > 0) $
+          DOMTokenList.add cList "code-block-prompt"
 
 
 
--- | Helpers
-
-fromNodeList
-    :: forall e.
-       D.NodeList
-    -> Eff (dom :: D.DOM | e) (L.List D.Element)
-fromNodeList nl = do
-    l <- DNL.length nl
-    ns <- traverse (_ `DNL.item` nl) (0 L... (l - 1))
-    return $ L.mapMaybe (nodeToElement <=< toMaybe) ns
+-- -- | Helpers
 
 traverseNodeList_
-    :: forall e m. MonadEff (dom :: D.DOM | e) m
-    => (D.Element -> m Unit)
-    -> D.NodeList
+    :: forall m. MonadEffect m
+    => (Element.Element -> m Unit)
+    -> NodeList.NodeList
     -> m Unit
 traverseNodeList_ f nl = do
-    ns <- liftEff $ fromNodeList nl
-    traverse_ f ns
+    ns <- liftEffect $ NodeList.toArray nl
+    traverse_ f (A.mapMaybe Element.fromNode ns)
 
 
 doOnce
-    :: forall e.
-       Eff (ref :: REF | e) Unit
-    -> Eff (ref :: REF | e) (Eff (ref :: REF | e) Unit)
+    :: Effect Unit
+    -> Effect (Effect Unit)
 doOnce a = do
-    doneRef <- newRef false
-    return do
-      done <- readRef doneRef
+    doneRef <- Ref.new false
+    pure do
+      done <- Ref.read doneRef
       unless done do
         a
-        writeRef doneRef true
+        Ref.write true doneRef
 
-onE :: forall e.
-       D.EventType
-    -> D.EventTarget
-    -> D.EventListener (dom :: D.DOM | e)
-    -> Eff (dom :: D.DOM | e) Unit
-onE etype targ h = D.addEventListener etype h false targ
-
-nMaybeT
-    :: forall f a. Functor f
-    => f (Nullable a)
-    -> MaybeT f a
-nMaybeT = MaybeT <<< map toMaybe
+onE :: EventType
+    -> EventTarget
+    -> (Event -> Effect Unit)
+    -> Effect Unit
+onE etype targ h = do
+  listener <- eventListener h
+  addEventListener etype listener false targ
 
 withIndex
     :: forall s t a b f. Applicative f
@@ -316,11 +281,5 @@ withIndex
 withIndex t f = flip evalStateT 0 <<< t f'
   where
     f' :: a -> StateT Int f b
-    f' y = StateT $ \i -> (_ `Tuple` i+1) <$> f i y
-
-nodeToElement :: D.Node -> Maybe D.Element
-nodeToElement n =
-    case D.nodeType n of
-      D.ElementNode -> Just (U.unsafeCoerce n)
-      _             -> Nothing
+    f' y = StateT \i -> (\z -> Tuple z (i+1)) <$> f i y
 

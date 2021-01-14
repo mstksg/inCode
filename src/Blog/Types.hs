@@ -163,6 +163,7 @@ data Entry = Entry
     , entryId         :: !(Maybe Int)
     , entryCanonical  :: !FilePath
     , entryTags       :: ![(TagType, T.Text)]
+    , entryJS         :: ![T.Text]
     , entryNoSignoff  :: !Bool
     }
   deriving (Show, Generic, Typeable, Eq)

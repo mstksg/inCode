@@ -5,7 +5,16 @@
 {-# LANGUAGE TupleSections     #-}
 {-# LANGUAGE ViewPatterns      #-}
 
-module Blog.Compiler.Entry where
+module Blog.Compiler.Entry (
+    sortTaggedEntries
+  , sortEntries
+  , compileTE
+  , getRecentEntries
+  , compileEntry
+  , entryCompiler
+  , entryLaTeXCompiler
+  , entryMarkdownCompiler
+  ) where
 
 import           Blog.Types
 import           Blog.Util
@@ -58,6 +67,8 @@ compileEntry = do
     tags      <- maybe [] splitTags <$> getMetadataField i "tags"
     cats      <- maybe [] splitTags <$> getMetadataField i "categories"
     sers      <- maybe [] splitTags <$> getMetadataField i "series"
+    eJs       <- maybe [] (map (T.pack . trim) . splitAll ",")
+               <$> getMetadataField i "script"
     noSignoff <- maybe (fail "Could not parse field no-signoff") pure
                . maybe (Just False) parseSignoff
              =<< getMetadataField i "no-signoff"
@@ -78,6 +89,7 @@ compileEntry = do
                                      $ map (GeneralTag,)  tags
                                     ++ map (CategoryTag,) cats
                                     ++ map (SeriesTag,)   sers
+                   , entryJS         = eJs
                    , entryNoSignoff  = noSignoff
                    }
   where
@@ -106,8 +118,8 @@ entryCompiler histList allTags = do
     e <- loadSnapshotBody i "entry"
     allEs <- sortEntries <$> mapM (`loadSnapshotBody` "entry") histList
     let (afts,befs) = break ((== entryPostTime e) . entryPostTime) allEs
-        aft = listToMaybe (reverse afts)
-        bef = listToMaybe (drop 1 befs)
+        aft         = listToMaybe (reverse afts)
+        bef         = listToMaybe (drop 1 befs)
     allTs <- mapM (uncurry fetchTag)
            . filter (`elem` entryTags e)
            $ allTags

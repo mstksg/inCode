@@ -16,17 +16,19 @@
     "tests"
   ],
   "dependencies": {
-    "purescript-console" : "=0.1.1" ,
-    "purescript-control" : "=0.3.2" ,
-    "purescript-eff"     : "=0.1.2" ,
-    "purescript-lists"   : "=0.7.9" ,
-    "purescript-nullable": "=0.2.1" ,
-    "purescript-prelude" : "=0.1.5" ,
-    "purescript-refs"    : "=0.2.0" ,
-    "purescript-foldable-traversable": "=0.4.2",
-    "purescript-generics": "=0.7.2",
-    "purescript-unicode" : "=0.0.1",
-    "purescript-transformers": "=0.8.4",
-    "purescript-dom"     : "git@github.com:mstksg/purescript-dom.git#79a8e387a199a2935e8ce638c2f126f68fe2c462"
+    "purescript-console" : "=4.4.0" ,
+    "purescript-control" : "=4.2.0" ,
+    "purescript-lists"   : "=5.4.1" ,
+    "purescript-nullable": "=4.1.1" ,
+    "purescript-prelude" : "=4.1.1" ,
+    "purescript-refs"    : "=4.1.0" ,
+    "purescript-foldable-traversable": "=4.1.1",
+    "purescript-unicode" : "=4.0.1",
+    "purescript-transformers": "=4.2.0",
+    "purescript-bifunctors": "=4.0.0",
+    "purescript-psci-support": "=4.0.0",
+    "purescript-web-html": "=2.3.0",
+    "purescript-effect": "=2.3.0",
+    "purescript-web-uievents": "=2.0.0"
   }
 }

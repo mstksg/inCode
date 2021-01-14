@@ -6,6 +6,7 @@ create-time: 2021/01/07 21:32:49
 series: Advent of Code
 identifier: advent-gol
 slug: degenerate-hyper-dimensional-game-of-life
+script: https://cdn.jsdelivr.net/npm/d3@6.3.1
 ---
 
 tldr: By exploiting multiple mathematical properties of a "degenerate"
