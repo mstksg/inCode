@@ -141,7 +141,7 @@ entryCompiler histList allTags = do
                                      , "/js/social.js"
                                      , "/js/jquery/jquery.toc.js"
                                      , "/purescript/entry.js"
-                                     ]
+                                     ] ++ entryJS e
                  }
     blazeCompiler pd (viewEntry ei)
 

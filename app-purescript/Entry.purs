@@ -243,7 +243,7 @@ processCodeBlocks doc = do
 
 
 
--- -- | Helpers
+-- | Helpers
 
 traverseNodeList_
     :: forall m. MonadEffect m
