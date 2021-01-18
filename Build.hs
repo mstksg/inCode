@@ -23,7 +23,7 @@ psReq :: FilePath -> FilePath
 psReq f = "_purescript" </> (f <.> "js")
 
 psExes :: [String]
-psExes = ["entry"]
+psExes = ["entry","gol"]
 
 main :: IO ()
 main = shakeArgs opts $ do

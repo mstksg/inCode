@@ -6,7 +6,7 @@ create-time: 2021/01/07 21:32:49
 series: Advent of Code
 identifier: advent-gol
 slug: degenerate-hyper-dimensional-game-of-life
-script: https://cdn.jsdelivr.net/npm/d3@6.3.1
+script: https://cdn.jsdelivr.net/npm/d3@6.3.1, /purescript/gol.js
 ---
 
 tldr: By exploiting multiple mathematical properties of a "degenerate"
@@ -98,7 +98,7 @@ into any particular degenerate starting conditions of a hyper-dimensional game
 of life :D
 
 The Baseline
-============
+------------
 
 So let's start at the very beginning: how do you solve everything without
 anything too fancy?
@@ -130,10 +130,14 @@ stepper ps = stayAlive <> comeAlive
                   neighborCounts `M.withoutKeys`  ps
 ```
 
+::::: {#gol1}
+hi
+:::::
 
 
+```
 sim642  I wanted to ask this before but forgot: did anyone try to take advantage of the symmetry, e.g. in z axis in part 1?
 sim642  Should halve the amount of calculations you have to do
 sim642  Only some extra work at the end to differentiate z=0 and z>0 positions to know which to count twice
 sim642  And in part 2 I feel like you could also exploit the symmetry in w axis simultaneously
-
+```

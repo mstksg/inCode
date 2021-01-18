@@ -29,7 +29,6 @@ import Web.HTML                          as Web
 import Web.HTML.Event.EventTypes         (readystatechange)
 import Web.HTML.HTMLDocument             as HTMLDocument
 import Web.HTML.Window                   as Window
-import Web.HTML.Window                   as Window
 import Web.UIEvent.MouseEvent.EventTypes as EventTypes
 
 main :: Effect Unit

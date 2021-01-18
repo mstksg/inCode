@@ -27,6 +27,9 @@
     "purescript-transformers": "=4.2.0",
     "purescript-bifunctors": "=4.0.0",
     "purescript-psci-support": "=4.0.0",
-    "purescript-web-uievents": "=2.0.0"
+    "purescript-web-uievents": "=2.0.0",
+    "purescript-aff": "=5.1.2",
+    "purescript-queue": "=8.0.1",
+    "purescript-promises": "=3.0.0"
   }
 }
