@@ -2,9 +2,12 @@ module Gol where
 
 import Data.Array                as A
 import Data.Foldable
+import Data.Int as Int
+import Control.MonadZero as MonadZero
 import Data.Newtype as Newtype
 import Data.Function.Uncurried
 import Data.List.Lazy            (List)
+import Effect.Exception.Unsafe
 import Data.List.Lazy            as List
 import Data.List.Lazy.NonEmpty   as NEList
 import Data.Map                  (Map)
@@ -28,6 +31,7 @@ import Web.Event.EventTarget     (EventTarget, addEventListener, eventListener)
 import Web.HTML                  as Web
 import Web.HTML.Event.EventTypes (readystatechange)
 import Web.HTML.HTMLDocument     as HTMLDocument
+import Data.Lazy
 import Web.HTML.Window           as Window
 import Data.DateTime as Date
 import Data.DateTime.Instant as Instant
@@ -45,7 +49,7 @@ main = do
 
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 5
+      logMe 6
       g1 <- initGol1
       Aff.launchAff_ $
         runSteps
@@ -120,6 +124,21 @@ data LCount = LOne
             | LTwo
             | LThree
 
+instance showLCount :: Show LCount where
+    show = case _ of
+      LOne   -> "One"
+      LTwo   -> "Two"
+      LThree -> "Three"
+
+newtype NCount = NCount (Maybe LCount)
+
+instance showNCount :: Show NCount where
+    show = case _ of
+      NCount (Just LOne) -> "One"
+      NCount (Just LTwo) -> "Two"
+      NCount (Just LThree) -> "Three"
+      NCount Nothing -> "Many"
+
 data Neighbs = Dead LCount
              | LiveAlone
              | Live LCount
@@ -135,6 +154,10 @@ addLCount f x = case _ of
       LOne -> f LThree
       _    -> x
     LThree -> const x
+
+instance sgNCount :: Semigroup NCount where
+    append (NCount (Just x)) (NCount (Just y)) = NCount (addLCount Just Nothing x y)
+    append _ _ = NCount Nothing
 
 instance sgNieghbs :: Semigroup Neighbs where
     append = case _ of
@@ -172,13 +195,81 @@ stepper = Map.keys
            <<< neighbsSet
 
 neighbsSet :: Point -> List Point
-neighbsSet = traverse (\x -> List.fromFoldable [x,x-1,x+1])
+neighbsSet = traverse (\x -> x List.: (x-1) List.: (x+1) List.: List.nil)
 
--- neighbsSet :: Point -> List Point
--- neighbsSet = traverse (\x ->
---                NEList.appendFoldable (NEList.singleton x) [x-1, x+1]
---              )
+genVecRunIxPascal
+    :: Int      -- ^ dimension
+    -> Int      -- ^ maximum
+    -> Int      -- ^ number
+    -> List Int
+genVecRunIxPascal n mx x = go x mx n
+  where
+    go :: Int -> Int -> Int -> List Int
+    go q m k =
+      let Tuple (Tuple j r) k' = chompPascal q m k
+      in  if m == 1 then j List.: k' List.: List.nil
+                    else j List.: go r (m-1) k'
 
+mulNCount :: NCount -> NCount -> NCount
+mulNCount (NCount (Just LOne)) y = y
+mulNCount x (NCount (Just LOne)) = x
+mulNCount _ _                    = NCount Nothing
+
+toNCount :: Int -> NCount
+toNCount 0 = unsafeThrow "0 ncount"
+toNCount 1 = NCount (Just LOne)
+toNCount 2 = NCount (Just LTwo)
+toNCount 3 = NCount (Just LThree)
+toNCount _ = NCount Nothing
+
+-- | Streaming/constant space enumerate all neighbor and multiplicities
+vecRunNeighbs
+    :: Int      -- ^ dimension
+    -> Int      -- ^ maximum
+    -> Int
+    -> List (Tuple Int NCount)
+vecRunNeighbs n mx orig = case List.step gens of
+    List.Nil       -> List.nil
+    List.Cons x xs -> go mx n 0 x true (NCount (Just LOne)) 0 x xs
+  where
+    gens = genVecRunIxPascal n mx orig
+    go  :: Int          -- ^ pascal i
+        -> Int          -- ^ pascal j
+        -> Int          -- ^ running total
+        -> Int          -- ^ origina item
+        -> Boolean      -- ^ currently all the same?
+        -> NCount       -- ^ multiplicity
+        -> Int          -- ^ item to the right
+        -> Int          -- ^ current item
+        -> List Int     -- ^ leftover items (right to left)
+        -> List (Tuple Int NCount)
+    go i j tot x0 allSame p r x ls0 = case List.step ls0 of
+      List.Nil ->
+        let res = r + x
+            p'  = p `mulNCount` toNCount
+                    ( (factorial res * (2 `Int.pow` r)) `div` factorial x )
+            tot' = tot
+        in  Tuple tot' p' <$ MonadZero.guard (not (allSame && x == x0))
+      List.Cons l ls -> do
+        xlContrib <- safeRange 0 (x+l)
+        xContrib  <- safeRange (max 0 (xlContrib - l)) (min x xlContrib)
+        let lContrib = xlContrib - xContrib
+            res      = r + xlContrib
+            l'       = l - lContrib
+            x'       = x - xContrib
+            p'       = p `mulNCount` toNCount
+                        ( factorial res
+                    `div` (factorial r * factorial xContrib * factorial lContrib)
+                        )
+            tot'     = tot + sum (map (\k -> binom (i+j-k) (i-1)) (safeRange 1 res))
+            i'       = i - 1
+            j'       = j - res
+        go i' j' tot' l (allSame && xContrib == x0) p' x' l' ls
+
+safeRange :: Int -> Int -> List Int
+safeRange x y
+    | y >= x    = List.range x y
+    | otherwise = List.nil
 
 foreign import logMe :: forall a. a -> Effect Unit
 
@@ -196,6 +287,18 @@ drawGol1
     -> Array {x :: Int, y :: Int, val :: Int}
     -> Effect Unit
 drawGol1 = runFn3 _drawGol1
+
+foreign import _binom :: Fn2 Int Int Int
+
+binom :: Int -> Int -> Int
+binom = runFn2 _binom
+
+foreign import _chompPascal :: forall a. Fn4 Int Int Int (Int -> Int -> Int -> a) a
+
+chompPascal :: Int -> Int -> Int -> Tuple (Tuple Int Int) Int
+chompPascal q n k = runFn4 _chompPascal q n k \i' q' k' -> Tuple (Tuple i' q') k'
+
+foreign import factorial :: Int -> Int
 
 onE :: EventType
     -> EventTarget

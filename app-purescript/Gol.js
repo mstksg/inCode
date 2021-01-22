@@ -10,6 +10,45 @@ exports.logMe = function(x) {
 const window_size = { height: 200, width: 200 }
 const margin = { top: 5, bottom: 5, left: 5, right: 5 }
 
+const binom = function(n,k) {
+    let x=1;
+    let i=1;
+    while (i <= k) {
+        x = x * (n+1-i) / i;
+        i = i + 1;
+    }
+    return x;
+}
+
+exports._binom = binom;
+
+exports.factorial = function(n) {
+    let i = 2;
+    let x = 1;
+    while (i <= n) {
+        x = x * i;
+        i = i + 1;
+    }
+    return x;
+}
+
+exports._chompPascal = function(q0,n,k0,f) {
+    let i = 0;
+    let q = q0;
+    let k = k0;
+    while (k > 0) {
+        const x = binom(n+k-1,n-1);
+        if (q >= x) {
+            i = i+1;
+            q = q-x;
+            k = k-1;
+        } else {
+            break;
+        }
+    }
+    return f(i)(q)(k);
+}
+
 exports.initGol1 = function() {
     d3.select("#gol1").selectAll("p").remove();
     const svg = d3.select("#gol1")
