@@ -49,6 +49,71 @@ exports._chompPascal = function(q0,n,k0,f) {
     return f(i)(q)(k);
 }
 
+exports._maxBinom = function(n,lim) {
+    let i = 0;
+    while (true) {
+        if (binom(n+i, i) > lim) {
+            return i;
+        }
+        i = i+1;
+    }
+}
+
+
+exports.memoInt = function(f) {
+    let table = [];
+    return function(x) {
+        // console.log(table);
+        if (x in table) {
+            // console.log("cache hit on " + x);
+            return table[x];
+        } else {
+            // console.log("cache miss on " + x);
+            const res = f(x);
+            table[x] = res;
+            return res;
+        }
+
+    }
+}
+
+// type Bazaar f a = forall r. (a -> f r) -> f Unit
+// type StopBazaar f a = (a -> f Boolean) -> f Unit
+exports.testPrint = function(f) {
+    let i = 0;
+    return f(x => function() {
+        if (i > 10) {
+            return false;
+        } else {
+            console.log(x);
+            i = i+1;
+            return true;
+        }
+      });
+}
+
+// extractor :: c -> (a -> b -> Effect r) -> Effect r
+// merger :: r -> r -> r
+// bazaar :: (c -> Effect r) -> Effect r
+exports._mergeMaps = function(extractor, merger, bazaar) {
+    let res = [];
+    bazaar(x => function() {
+        extractor(x)(i => y => function () {
+          if (i in res) {
+            res[i] = merger(res[i])(y);
+          } else {
+            res[i] = y;
+          }
+        })();
+    })();
+    return [];
+}
+
+exports.trace = function (x) {
+    console.log(x);
+    return x;
+}
+
 exports.initGol1 = function() {
     d3.select("#gol1").selectAll("p").remove();
     const svg = d3.select("#gol1")

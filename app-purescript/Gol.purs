@@ -5,6 +5,8 @@ import Data.Foldable
 import Data.Int as Int
 import Control.MonadZero as MonadZero
 import Data.Newtype as Newtype
+import Data.Set.NonEmpty as NESet
+import Data.Set.NonEmpty (NonEmptySet)
 import Data.Function.Uncurried
 import Data.List.Lazy            (List)
 import Effect.Exception.Unsafe
@@ -49,22 +51,22 @@ main = do
 
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 6
+      logMe 17
       g1 <- initGol1
       Aff.launchAff_ $
         runSteps
-        (Aff.Milliseconds 250.0)
-        100000
-        stepper
-        (drawGol1 g1 { height: 20, width: 20 }
-            <<< map (\pt -> let x = ixOrZero pt 0 `mod` 20
-                                y = ixOrZero pt 1 `mod` 20
-                            in  { x, y, val: 1 }
-                    )
-            <<< Set.toUnfoldable
+        (Aff.Milliseconds 1000.0)
+        (List.cycle <<< List.take 6 $
+             drawGol1 g1 {height:20, width:20} <<< drawer <$> runner 2 initialPoints
         )
-        initialPoints
   where
+    drawer = map (\(Tuple (Tuple x y) pts) ->
+                        { x: (x+10) `mod` 20
+                        , y: (y+10) `mod` 20
+                        , val: NESet.size pts
+                        }
+                 )
+         <<< Map.toUnfoldableUnordered
     ready doc a = do
       a' <- doOnce a
       onE readystatechange
@@ -72,28 +74,24 @@ main = do
           (\_ -> a')
 
 runSteps
-    :: forall a.
-       Aff.Milliseconds         -- ^ time per step
-    -> Int                      -- ^ number of times
-    -> (a -> a)                 -- ^ stepper
-    -> (a -> Effect Unit)       -- ^ drawer
-    -> a
+    :: Aff.Milliseconds         -- ^ time per step
+    -> List (Effect Unit)
     -> Aff Unit
-runSteps (Aff.Milliseconds dt) n f drawer = go 0
+runSteps (Aff.Milliseconds dt) = go
   where
-    go i x
-      | i < n = do
-          liftEffect $ drawer x
-          t0 <- liftEffect Now.now
-          let y = f x
+    go xs = do
+      t0 <- liftEffect Now.now
+      case List.step xs of
+        List.Nil       -> pure unit
+        List.Cons x ys -> do
+          liftEffect x
           t1 <- liftEffect Now.now
           let fdt      = Newtype.unwrap (Instant.unInstant t1) - Newtype.unwrap (Instant.unInstant t0)
               leftover = dt - fdt
           liftEffect $ log (show leftover)
           when (leftover > 0.0) $
             Aff.delay (Aff.Milliseconds leftover)
-          go (i+1) y
-      | otherwise = liftEffect $ drawer x
+          go ys
 
 forIterate
     :: forall m a. Monad m
@@ -117,8 +115,8 @@ ixOrZero xs i = case A.index xs i of
 
 type Point = Array Int
 
-initialPoints :: Set Point
-initialPoints = Set.fromFoldable [ [0,2],[1,0],[1,2],[2,1],[2,2] ]
+initialPoints :: Set Point2
+initialPoints = Set.fromFoldable [ Tuple 0 2, Tuple 1 0, Tuple 1 2, Tuple 2 1, Tuple 2 2]
 
 data LCount = LOne
             | LTwo
@@ -143,6 +141,13 @@ data Neighbs = Dead LCount
              | LiveAlone
              | Live LCount
              | Overload
+
+instance showNeighbs :: Show Neighbs where
+    show = case _ of
+      Dead c -> "(Dead " <> show c <> ")"
+      LiveAlone -> "LiveAlone"
+      Live c -> "(Live " <> show c <> ")"
+      Overload -> "Overload"
 
 addLCount :: forall a. (LCount -> a) -> a -> LCount -> LCount -> a
 addLCount f x = case _ of
@@ -194,6 +199,64 @@ stepper = Map.keys
     populate = List.zipWith (flip Tuple) (LiveAlone List.: List.repeat (Dead LOne))
            <<< neighbsSet
 
+neighbs2d :: Int -> Int -> List Int
+neighbs2d n i = do
+    dx <- 0 List.: (-1) List.: 1 List.: List.nil
+    dy <- 0 List.: (-1) List.: 1 List.: List.nil
+    pure (i + dx + n*dy)
+
+type Point2 = Tuple Int Int
+
+stepper2
+    :: forall a. Ord a => Show a
+    => (a -> List a)
+    -> (Int -> Map Int Neighbs)
+    -> Map a (NonEmptySet Int)
+    -> Map a (NonEmptySet Int)
+stepper2 expand syms cs = Map.mapMaybe (NESet.fromSet <<< Map.keys <<< Map.filter validLiveCount) $
+    foldl (\res (Tuple gIx ds) ->
+          case Map.lookup ds prebaked of
+            Nothing                 -> res
+            Just (Tuple here there) -> Map.unionWith (Map.unionWith append) res <<< Map.fromFoldable $
+              List.zip (expand gIx) (here List.: List.repeat there)
+        )
+      Map.empty
+      (Map.toUnfoldableUnordered cs :: List (Tuple a (NonEmptySet Int)))
+  where
+    uniqueGroups :: Set (NonEmptySet Int)
+    uniqueGroups = Set.fromFoldable cs
+    prebaked :: Map (NonEmptySet Int) (Tuple (Map Int Neighbs) (Map Int Neighbs))
+    prebaked = Map.fromFoldable (map (\gr -> Tuple gr (prebake gr)) (List.fromFoldable uniqueGroups))
+    prebake :: NonEmptySet Int -> Tuple (Map Int Neighbs) (Map Int Neighbs)
+    prebake = foldl (\(Tuple here there) pIx ->
+              let pNeighbs = syms pIx
+                  here'  = Map.insertWith append pIx LiveAlone   pNeighbs
+                  there' = Map.insertWith append pIx (Dead LOne) pNeighbs
+              in  Tuple (Map.unionWith append here here') (Map.unionWith append there there')
+          )
+      (Tuple mempty mempty)
+
+runner
+    :: Int                          -- ^ extra dimensions
+    -> Set Point2                   -- ^ points
+    -> List (Map Point2 (NonEmptySet Int))  -- ^ steps
+runner d = List.iterate (stepper2 lowNeighbs highNeighbs)
+       <<< Map.fromFoldable
+       <<< map (\x -> Tuple x (NESet.singleton 0))
+       <<< List.fromFoldable
+  where
+    highNeighbs = memoInt (map toDead <<< Map.fromFoldableWith append <<< vecRunNeighbs d)
+
+lowNeighbs :: Point2 -> List Point2
+lowNeighbs (Tuple x y) = do
+  x' <- x List.: (x-1) List.: (x+1) List.: List.nil
+  y' <- y List.: (y-1) List.: (y+1) List.: List.nil
+  pure (Tuple x' y')
+
+toDead :: NCount -> Neighbs
+toDead (NCount (Just l)) = Dead l
+toDead (NCount Nothing ) = Overload
+
 neighbsSet :: Point -> List Point
 neighbsSet = traverse (\x -> x List.: (x-1) List.: (x+1) List.: List.nil)
 
@@ -225,13 +288,13 @@ toNCount _ = NCount Nothing
 -- | Streaming/constant space enumerate all neighbor and multiplicities
 vecRunNeighbs
     :: Int      -- ^ dimension
-    -> Int      -- ^ maximum
-    -> Int
+    -> Int      -- ^ pascal index
     -> List (Tuple Int NCount)
-vecRunNeighbs n mx orig = case List.step gens of
+vecRunNeighbs n orig = case List.step gens of
     List.Nil       -> List.nil
     List.Cons x xs -> go mx n 0 x true (NCount (Just LOne)) 0 x xs
   where
+    mx   = maxBinom n orig + 1
     gens = genVecRunIxPascal n mx orig
     go  :: Int          -- ^ pascal i
         -> Int          -- ^ pascal j
@@ -271,7 +334,43 @@ safeRange x y
     | y >= x    = List.range x y
     | otherwise = List.nil
 
+type Bazaar f a = forall r. (a -> f r) -> f Unit
+
+type StopBazaar f a = (a -> f Boolean) -> f Unit
+
+-- toStopBazaar :: forall f a. Monad f => List a -> StopBazaar f a
+-- toStopBazaar xs0 f = go xs0
+--   where
+--     go xs = case List.step xs of
+--       List.Nil -> pure unit
+--       List.Cons x ys -> do
+--         r <- f x
+--         if r
+--           then go ys
+--           else pure unit
+
+-- toFold :: forall f a. Foldable f => f a -> Fold a
+-- toFold xs f r = foldr f r xs
+
+-- foreign import testPrint :: forall a. StopBazaar Effect a -> Effect Unit
+
+-- // extractor :: c -> (a -> b -> r) -> r
+-- // merger :: r -> r -> r
+-- // bazaar :: (c -> f r) -> f r
+-- exports._mergeMaps = function(extractor, merger, bazaar) {
+
+foreign import _mergeMaps :: forall b c r. Fn3 (c -> (Int -> b -> Effect r) -> Effect r) (r -> r -> r) (Bazaar Effect c) (Array r)
+
+mergeMaps :: forall f a. Foldable f => Semigroup a => f (Tuple Int a) -> Array a
+mergeMaps xs = runFn3 _mergeMaps (\(Tuple x y) f -> f x y) append (for_ xs)
+
+    -- forall a. StopBazaar Effect a -> Effect Unit
+
 foreign import logMe :: forall a. a -> Effect Unit
+foreign import trace :: forall a. a -> a
+
+traceShow :: forall a. Show a => a -> a
+traceShow x = let y = trace (show x) in x
 
 foreign import data SVG :: Type
 foreign import initGol1 :: Effect SVG
@@ -293,12 +392,19 @@ foreign import _binom :: Fn2 Int Int Int
 binom :: Int -> Int -> Int
 binom = runFn2 _binom
 
+foreign import _maxBinom :: Fn2 Int Int Int
+
+-- use one less than mx
+maxBinom :: Int -> Int -> Int
+maxBinom = runFn2 _maxBinom
+
 foreign import _chompPascal :: forall a. Fn4 Int Int Int (Int -> Int -> Int -> a) a
 
 chompPascal :: Int -> Int -> Int -> Tuple (Tuple Int Int) Int
 chompPascal q n k = runFn4 _chompPascal q n k \i' q' k' -> Tuple (Tuple i' q') k'
 
 foreign import factorial :: Int -> Int
+foreign import memoInt :: forall a. (Int -> a) -> Int -> a
 
 onE :: EventType
     -> EventTarget
