@@ -8,7 +8,7 @@ exports.logMe = function(x) {
 }
 
 const window_size = { height: 200, width: 200 }
-const margin = { top: 5, bottom: 5, left: 5, right: 5 }
+const margin = { top: 10, bottom: 10, left: 10, right: 10, slider: 50 }
 
 const binom = function(n,k) {
     let x=1;
@@ -167,5 +167,85 @@ exports._drawGol1 = function(svg, size, cells) {
                     .attr("x1",margin.left)
                     .attr("y2",d=>d*cell_size.height + margin.top)
                     .attr("x2",window_size.width-margin.right);
+    }
+}
+
+exports.initGol2 = function() {
+    d3.select("#gol1").selectAll("p").remove();
+    const svg = d3.select("#gol1")
+        .append("svg")
+        .attr("viewBox", [0,0,window_size.width, window_size.height+margin.slider])
+        .attr("height","15em")
+        .style("margin","auto")
+        .style("display","block");
+    console.log(svg)
+    return svg;
+}
+
+
+// size : { height: Int, width : Int }
+// aliveCells : [Thunk [{ x: Int, y: Int, val: Int }]]
+exports._drawGol2 = function(svg, size, snapshots) {
+    return function() {
+        svg.selectAll("*")
+            .remove();
+        // console.log(cells)
+        const cell_size = { height: (window_size.height-margin.top-margin.bottom) / size.height
+                          , width: (window_size.width-margin.left-margin.right) / size.width
+                          }
+        const boxes = svg.append("g");
+        const drawBoxes = function(cellThunk) {
+            const cells = cellThunk();
+            const max   = d3.max(cells, d=>d.val);
+            const color = d3.scaleSequential(d3.interpolateGreens).domain([0,max]);
+            boxes.selectAll("*").remove();
+            boxes.selectAll("rect")
+              .data(cells)
+              .join("rect")
+              .attr("width", cell_size.width)
+              .attr("height", cell_size.height)
+              .attr("x", d => d.x*cell_size.width + margin.left)
+              .attr("y", d => d.y*cell_size.height + margin.top)
+              .attr("fill",d=>color(d.val))
+              .style("opacity",0.8);
+
+        }
+        const xlines = svg.append("g").selectAll("line")
+                    .data(d3.range(size.width+1))
+                    .join("line")
+                    .attr("stroke-opacity",0.3)
+                    .attr("stroke","black")
+                    .attr("stroke-width",0.5)
+                    .attr("x1",d=>d*cell_size.width + margin.left)
+                    .attr("y1",margin.top)
+                    .attr("x2",d=>d*cell_size.width + margin.left)
+                    .attr("y2",window_size.height-margin.bottom);
+        const ylines = svg.append("g").selectAll("line")
+                    .data(d3.range(size.height+1))
+                    .join("line")
+                    .attr("stroke-opacity",0.3)
+                    .attr("stroke","black")
+                    .attr("stroke-width",0.5)
+                    .attr("y1",d=>d*cell_size.height + margin.top)
+                    .attr("x1",margin.left)
+                    .attr("y2",d=>d*cell_size.height + margin.top)
+                    .attr("x2",window_size.width-margin.right);
+        const tAxis = function(g) {
+            const sliderino = d3.sliderBottom()
+                            .min(0)
+                            .max(snapshots.length-1)
+                            .step(1)
+                            .width(window_size.width - margin.left - margin.left - margin.right - margin.right)
+                            .ticks(snapshots.length)
+                            .tickFormat(d3.format("d"))
+                            .displayFormat(d3.format("d"));
+            g.attr("transform", `translate(${margin.left + margin.left},${window_size.height})`)
+                .call(sliderino);
+            return sliderino;
+        }
+        const subslider = svg.append("g");
+        const sliderino = tAxis(subslider.append("g"))
+                .on('onchange', v => drawBoxes(snapshots[v]));
+        drawBoxes(snapshots[0]);
     }
 }

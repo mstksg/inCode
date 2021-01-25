@@ -1,29 +1,34 @@
 module Gol where
 
+import Control.MonadZero         as MonadZero
 import Data.Array                as A
+import Data.DateTime             as Date
+import Data.DateTime.Instant     as Instant
 import Data.Foldable
-import Data.Int as Int
-import Control.MonadZero as MonadZero
-import Data.Newtype as Newtype
-import Data.Set.NonEmpty as NESet
-import Data.Set.NonEmpty (NonEmptySet)
 import Data.Function.Uncurried
+import Data.Int                  as Int
+import Data.Lazy
 import Data.List.Lazy            (List)
-import Effect.Exception.Unsafe
 import Data.List.Lazy            as List
 import Data.List.Lazy.NonEmpty   as NEList
 import Data.Map                  (Map)
 import Data.Map                  as Map
 import Data.Maybe
+import Data.Newtype              as Newtype
 import Data.Set                  (Set)
 import Data.Set                  as Set
+import Data.Set.NonEmpty         (NonEmptySet)
+import Data.Set.NonEmpty         as NESet
 import Data.Traversable
 import Data.Tuple
+import Data.Unfoldable
 import Effect                    (Effect, forE)
 import Effect.Aff                (Aff)
 import Effect.Aff                as Aff
 import Effect.Class              (class MonadEffect, liftEffect)
 import Effect.Class.Console      (log)
+import Effect.Exception.Unsafe
+import Effect.Now                as Now
 import Effect.Ref                as Ref
 import Prelude
 import Queue.One                 as Queue
@@ -33,11 +38,7 @@ import Web.Event.EventTarget     (EventTarget, addEventListener, eventListener)
 import Web.HTML                  as Web
 import Web.HTML.Event.EventTypes (readystatechange)
 import Web.HTML.HTMLDocument     as HTMLDocument
-import Data.Lazy
 import Web.HTML.Window           as Window
-import Data.DateTime as Date
-import Data.DateTime.Instant as Instant
-import Effect.Now as Now
 
 main :: Effect Unit
 main = do
@@ -51,14 +52,18 @@ main = do
 
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 17
-      g1 <- initGol1
-      Aff.launchAff_ $
-        runSteps
-        (Aff.Milliseconds 1000.0)
-        (List.cycle <<< List.take 6 $
-             drawGol1 g1 {height:20, width:20} <<< drawer <$> runner 4 initialPoints
-        )
+      logMe 2
+      g2 <- initGol2
+      drawGol2 g2 {height:20, width:20}
+        <<< A.fromFoldable <<< List.take 7 $
+            (map <<< map) drawer (runner 3 initialPoints)
+    -- -> Array {x :: Int, y :: Int, val :: Int}
+      -- Aff.launchAff_ $
+      --   runSteps
+      --   (Aff.Milliseconds 1000.0)
+      --   (List.cycle <<< List.take 6 $
+      --        drawGol2 g2 {height:20, width:20} <<< drawer <$> runner 4 initialPoints
+      --   )
   where
     drawer = map (\(Tuple (Tuple x y) pts) ->
                         { x: (x+8) `mod` 20
@@ -239,8 +244,10 @@ stepper2 expand syms cs = Map.mapMaybe (NESet.fromSet <<< Map.keys <<< Map.filte
 runner
     :: Int                          -- ^ extra dimensions
     -> Set Point2                   -- ^ points
-    -> List (Map Point2 (NonEmptySet Int))  -- ^ steps
-runner d = List.iterate (stepper2 lowNeighbs highNeighbs)
+    -> List (Lazy (Map Point2 (NonEmptySet Int)))  -- ^ steps
+runner d = List.iterate ((pure <<< stepper2 lowNeighbs highNeighbs) =<< _)
+-- runner d = List.iterate (defer <<< stepper2 lowNeighbs highNeighbs)
+       <<< pure
        <<< Map.fromFoldable
        <<< map (\x -> Tuple x (NESet.singleton 0))
        <<< List.fromFoldable
@@ -373,19 +380,20 @@ traceShow :: forall a. Show a => a -> a
 traceShow x = let y = trace (show x) in x
 
 foreign import data SVG :: Type
-foreign import initGol1 :: Effect SVG
-foreign import _drawGol1 :: Fn3
+foreign import initGol2 :: Effect SVG
+foreign import _drawGol2 :: Fn3
     SVG
     {height::Int,width::Int}
-    (Array {x :: Int, y :: Int, val :: Int })
+    -- (Array {x :: Int, y :: Int, val :: Int })
+    (Array (Lazy (Array {x :: Int, y :: Int, val :: Int})))
     (Effect Unit)
 
-drawGol1
+drawGol2
     :: SVG
     -> {height :: Int, width :: Int}
-    -> Array {x :: Int, y :: Int, val :: Int}
+    -> Array (Lazy (Array {x :: Int, y :: Int, val :: Int}))
     -> Effect Unit
-drawGol1 = runFn3 _drawGol1
+drawGol2 = runFn3 _drawGol2
 
 foreign import _binom :: Fn2 Int Int Int
 
@@ -424,4 +432,17 @@ doOnce a = do
       unless done do
         a
         Ref.write true doneRef
+
+-- testThunky :: Effect Unit
+-- testThunky = do
+--     log "ok"
+--     log <<< show $ xs A.!! 0
+--     log "what"
+--     log <<< show $ xs A.!! 8
+--     log <<< show $ xs A.!! 8
+--     log <<< show $ xs A.!! 8
+--     -- log <<< show $ xs A.!! 8
+--   where
+--     xs :: Array (Lazy (Map (Tuple Int Int) (NonEmptySet Int)))
+--     xs = A.fromFoldable $ List.take 25 $ runner 6 initialPoints
 
