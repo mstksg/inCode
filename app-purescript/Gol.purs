@@ -57,12 +57,12 @@ main = do
         runSteps
         (Aff.Milliseconds 1000.0)
         (List.cycle <<< List.take 6 $
-             drawGol1 g1 {height:20, width:20} <<< drawer <$> runner 2 initialPoints
+             drawGol1 g1 {height:20, width:20} <<< drawer <$> runner 4 initialPoints
         )
   where
     drawer = map (\(Tuple (Tuple x y) pts) ->
-                        { x: (x+10) `mod` 20
-                        , y: (y+10) `mod` 20
+                        { x: (x+8) `mod` 20
+                        , y: (y+8) `mod` 20
                         , val: NESet.size pts
                         }
                  )
