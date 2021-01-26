@@ -52,7 +52,7 @@ main = do
 
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 19
+      logMe 42
       g2 <- initGol1
       drawGol1 g2 {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
             (map <<< map) drawer (runner 3 initialPoints)
@@ -343,20 +343,6 @@ safeRange x y
 type Bazaar f a = forall r. (a -> f r) -> f Unit
 
 type StopBazaar f a = (a -> f Boolean) -> f Unit
-
--- toStopBazaar :: forall f a. Monad f => List a -> StopBazaar f a
--- toStopBazaar xs0 f = go xs0
---   where
---     go xs = case List.step xs of
---       List.Nil -> pure unit
---       List.Cons x ys -> do
---         r <- f x
---         if r
---           then go ys
---           else pure unit
-
--- toFold :: forall f a. Foldable f => f a -> Fold a
--- toFold xs f r = foldr f r xs
 
 -- foreign import testPrint :: forall a. StopBazaar Effect a -> Effect Unit
 

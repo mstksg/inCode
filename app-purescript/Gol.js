@@ -137,105 +137,125 @@ exports._drawGol1 = function(svg, size, snapshots) {
         const cell_size = { height: (window_size.height-margin.top-margin.bottom) / size.height
                           , width: (window_size.width-margin.left-margin.right) / size.width
                           }
-        const boxes = svg.append("g");
+        const grid = svg.append("g")
+                .attr("transform",`translate(${margin.left},${margin.top})`);
         const drawBoxes = function(cellThunk) {
-            const cells = cellThunk();
-            const max   = d3.max(cells, d=>d.val);
-            const color = d3.scaleSequential(d3.interpolateGreens).domain([0,max]);
-            boxes.selectAll("*").remove();
-            boxes.selectAll("rect")
-              .data(cells)
-              .join("rect")
-              .attr("width", cell_size.width)
-              .attr("height", cell_size.height)
-              .attr("x", d => d.x*cell_size.width + margin.left)
-              .attr("y", d => d.y*cell_size.height + margin.top)
-              .attr("fill",d=>color(d.val))
-              .style("opacity",0.8);
-
+            grid.selectAll("*").remove();
+            drawGrid(grid,size.width,size.height
+                    ,window_size.width-margin.left-margin.right
+                    ,window_size.height-margin.top-margin.bottom
+                    ,cellThunk()
+                    );
         }
-        const xlines = svg.append("g").selectAll("line")
-                    .data(d3.range(size.width+1))
-                    .join("line")
-                    .attr("stroke-opacity",0.3)
-                    .attr("stroke","black")
-                    .attr("stroke-width",0.5)
-                    .attr("x1",d=>d*cell_size.width + margin.left)
-                    .attr("y1",margin.top)
-                    .attr("x2",d=>d*cell_size.width + margin.left)
-                    .attr("y2",window_size.height-margin.bottom);
-        const ylines = svg.append("g").selectAll("line")
-                    .data(d3.range(size.height+1))
-                    .join("line")
-                    .attr("stroke-opacity",0.3)
-                    .attr("stroke","black")
-                    .attr("stroke-width",0.5)
-                    .attr("y1",d=>d*cell_size.height + margin.top)
-                    .attr("x1",margin.left)
-                    .attr("y2",d=>d*cell_size.height + margin.top)
-                    .attr("x2",window_size.width-margin.right);
-        const tAxis = function(g) {
-            const sliderino = d3.sliderBottom()
-                            .min(0)
-                            .max(snapshots.length-1)
-                            .step(1)
-                            .width(window_size.width - margin.left - margin.left - margin.right - margin.right)
-                            .ticks(snapshots.length)
-                            .tickFormat(v => "")
-                            .displayFormat(v => "");
-            g.attr("transform", `translate(${margin.left + margin.left},${window_size.height})`)
-                .call(sliderino);
-            return sliderino;
-        }
-        let timer = null;
-
-        const subslider = svg.append("g");
-        const sliderino = tAxis(subslider.append("g"))
-                .on('onchange', v => drawBoxes(snapshots[v]));
-        drawBoxes(snapshots[sliderino.value()]);
-
-        const button = svg.append("g");
-        const drawButton = function(g,playing,callback) {
-            g.select("*").remove();
-            g.append("rect")
-                .attr("width",50)
-                .attr("height",18)
-                .attr("rx",2)
-                .style("fill","#eee")
-                .attr("stroke","#aaa")
-                .attr("stroke-width",0.5)
-                 .style("margin", 0)
-                 .style("padding", 0)
-                 .attr("transform", `translate(${window_size.width/2-25},${window_size.height+margin.slider-30})`);
-            g.append("text")
-                .attr("fill","#555")
-                .style("text-anchor","middle")
-                .attr("pointer-events", "none")
-                .attr("font-size", 10)
-                .attr("transform", `translate(${window_size.width/2},${window_size.height+margin.slider-18})`)
-                .text(playing ? "Pause" : "Play");
-            g.on("click",null)
-                .on("click",callback);
-        }
-
-        const play_start = function () {
-            button.call(drawButton,true,play_stop);
-            play_tick();
-            timer = setInterval(play_tick,1000);
-        }
-        const play_stop = function () {
-            button.call(drawButton,false,play_start);
-            clearInterval(timer);
-            timer = null;
-        }
-        const play_tick = function () {
-            const currval = sliderino.value();
-            const nextval = (currval + 1) % snapshots.length;
-            sliderino.value(nextval);
-        }
-
-        play_stop();
-
-
+        const controller =
+            setupTimer(svg
+                      ,snapshots.length
+                      ,window_size.width - margin.left - margin.right
+                      ,i => drawBoxes(snapshots[i])
+                      )
+              .attr("transform", `translate(${margin.left},${window_size.height})`);
     }
+}
+
+const drawGrid = function(svg,numx,numy,width,height,cells) {
+    const cell_width  = width  / numx;
+    const cell_height = height / numy;
+    const grid = svg.append("g");
+    const max   = d3.max(cells, d=>d.val);
+    const color = d3.scaleSequential(d3.interpolateGreens).domain([0,max]);
+    const boxes = grid.append("g").selectAll("rect")
+      .data(cells)
+      .join("rect")
+      .attr("width", cell_width)
+      .attr("height", cell_height)
+      .attr("x", d => d.x*cell_width)
+      .attr("y", d => d.y*cell_height)
+      .attr("fill",d=>color(d.val))
+      .style("opacity",0.8);
+    const xlines = grid.append("g").selectAll("line")
+                .data(d3.range(numx+1))
+                .join("line")
+                .attr("stroke-opacity",0.3)
+                .attr("stroke","black")
+                .attr("stroke-width",0.5)
+                .attr("x1",d=>d*cell_width)
+                .attr("y1",0)
+                .attr("x2",d=>d*cell_width)
+                .attr("y2",height);
+    const ylines = grid.append("g").selectAll("line")
+                .data(d3.range(numy+1))
+                .join("line")
+                .attr("stroke-opacity",0.3)
+                .attr("stroke","black")
+                .attr("stroke-width",0.5)
+                .attr("y1",d=>d*cell_height)
+                .attr("x1",0)
+                .attr("y2",d=>d*cell_height)
+                .attr("x2",width);
+    return grid;
+}
+
+const setupTimer = function(svg,size,width,callback) {
+    const tAxis = function(g) {
+        const sliderino = d3.sliderBottom()
+                        .min(0)
+                        .max(size-1)
+                        .step(1)
+                        .width(width-30)
+                        .ticks(size)
+                        .tickFormat(v => "")
+                        .displayFormat(v => "");
+        g.call(sliderino);
+        return sliderino;
+    }
+    let timer = null;
+
+    const subslider = svg.append("g")
+    const slidercont = subslider.append("g")
+            .attr("transform","translate(15,0)");
+    const sliderino = tAxis(slidercont.append("g"))
+            .on('onchange', callback);
+    callback(sliderino.value());
+    const button = subslider.append("g");
+    const drawButton = function(g,playing,callback) {
+        g.select("*").remove();
+        g.append("rect")
+            .attr("width",50)
+            .attr("height",18)
+            .attr("rx",2)
+            .style("fill","#eee")
+            .attr("stroke","#aaa")
+            .attr("stroke-width",0.5)
+             .style("margin", 0)
+             .style("padding", 0)
+             .attr("transform", `translate(${width/2-25},20)`);
+        const txt = g.append("text")
+            .attr("fill","#555")
+            .style("text-anchor","middle")
+            .attr("pointer-events", "none")
+            .attr("font-size", 10)
+            .text(playing ? "Pause" : "Play");
+        const tbb = txt.node().getBBox();
+        txt.attr("transform", `translate(${width/2},${20+18/2+tbb.height/2-2})`);
+        g.on("click",null)
+            .on("click",callback);
+    }
+
+    const play_start = function () {
+        button.call(drawButton,true,play_stop);
+        play_tick();
+        timer = setInterval(play_tick,1000);
+    }
+    const play_stop = function () {
+        button.call(drawButton,false,play_start);
+        clearInterval(timer);
+        timer = null;
+    }
+    const play_tick = function () {
+        const currval = sliderino.value();
+        const nextval = (currval + 1) % size;
+        sliderino.value(nextval);
+    }
+    play_stop();
+    return subslider;
 }
