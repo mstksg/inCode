@@ -52,17 +52,16 @@ main = do
 
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 2
-      g2 <- initGol2
-      drawGol2 g2 {height:20, width:20}
-        <<< A.fromFoldable <<< List.take 7 $
+      logMe 19
+      g2 <- initGol1
+      drawGol1 g2 {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
             (map <<< map) drawer (runner 3 initialPoints)
     -- -> Array {x :: Int, y :: Int, val :: Int}
       -- Aff.launchAff_ $
       --   runSteps
       --   (Aff.Milliseconds 1000.0)
       --   (List.cycle <<< List.take 6 $
-      --        drawGol2 g2 {height:20, width:20} <<< drawer <$> runner 4 initialPoints
+      --        drawGol1 g2 {height:20, width:20} <<< drawer <$> runner 4 initialPoints
       --   )
   where
     drawer = map (\(Tuple (Tuple x y) pts) ->
@@ -380,20 +379,20 @@ traceShow :: forall a. Show a => a -> a
 traceShow x = let y = trace (show x) in x
 
 foreign import data SVG :: Type
-foreign import initGol2 :: Effect SVG
-foreign import _drawGol2 :: Fn3
+foreign import initGol1 :: Effect SVG
+foreign import _drawGol1 :: Fn3
     SVG
     {height::Int,width::Int}
     -- (Array {x :: Int, y :: Int, val :: Int })
     (Array (Lazy (Array {x :: Int, y :: Int, val :: Int})))
     (Effect Unit)
 
-drawGol2
+drawGol1
     :: SVG
     -> {height :: Int, width :: Int}
     -> Array (Lazy (Array {x :: Int, y :: Int, val :: Int}))
     -> Effect Unit
-drawGol2 = runFn3 _drawGol2
+drawGol1 = runFn3 _drawGol1
 
 foreign import _binom :: Fn2 Int Int Int
 

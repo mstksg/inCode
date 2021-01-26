@@ -118,64 +118,8 @@ exports.initGol1 = function() {
     d3.select("#gol1").selectAll("p").remove();
     const svg = d3.select("#gol1")
         .append("svg")
-        .attr("viewBox", [0,0,window_size.width, window_size.height])
-        .attr("height","15em")
-        .style("margin","auto")
-        .style("display","block");
-    console.log(svg)
-    return svg;
-}
-
-// aliveCells : [{ x: Int, y: Int, val: Int }]
-// size : { height: Int, width : Int }
-exports._drawGol1 = function(svg, size, cells) {
-    return function() {
-        svg.selectAll("*")
-            .remove();
-        console.log(cells)
-        const cell_size = { height: (window_size.height-margin.top-margin.bottom) / size.height
-                          , width: (window_size.width-margin.left-margin.right) / size.width
-                          }
-        const max   = d3.max(cells, d=>d.val);
-        const color = d3.scaleSequential(d3.interpolateGreens).domain([0,max]);
-        const boxes = svg.append("g").selectAll("rect")
-            .data(cells)
-            .join("rect")
-            .attr("width", cell_size.width)
-            .attr("height", cell_size.height)
-            .attr("x", d => d.x*cell_size.width + margin.left)
-            .attr("y", d => d.y*cell_size.height + margin.top)
-            .attr("fill",d=>color(d.val))
-            .style("opacity",0.8);
-        const xlines = svg.append("g").selectAll("line")
-                    .data(d3.range(size.width+1))
-                    .join("line")
-                    .attr("stroke-opacity",0.3)
-                    .attr("stroke","black")
-                    .attr("stroke-width",0.5)
-                    .attr("x1",d=>d*cell_size.width + margin.left)
-                    .attr("y1",margin.top)
-                    .attr("x2",d=>d*cell_size.width + margin.left)
-                    .attr("y2",window_size.height-margin.bottom);
-        const ylines = svg.append("g").selectAll("line")
-                    .data(d3.range(size.height+1))
-                    .join("line")
-                    .attr("stroke-opacity",0.3)
-                    .attr("stroke","black")
-                    .attr("stroke-width",0.5)
-                    .attr("y1",d=>d*cell_size.height + margin.top)
-                    .attr("x1",margin.left)
-                    .attr("y2",d=>d*cell_size.height + margin.top)
-                    .attr("x2",window_size.width-margin.right);
-    }
-}
-
-exports.initGol2 = function() {
-    d3.select("#gol1").selectAll("p").remove();
-    const svg = d3.select("#gol1")
-        .append("svg")
         .attr("viewBox", [0,0,window_size.width, window_size.height+margin.slider])
-        .attr("height","15em")
+        .attr("width","15em")
         .style("margin","auto")
         .style("display","block");
     console.log(svg)
@@ -185,7 +129,7 @@ exports.initGol2 = function() {
 
 // size : { height: Int, width : Int }
 // aliveCells : [Thunk [{ x: Int, y: Int, val: Int }]]
-exports._drawGol2 = function(svg, size, snapshots) {
+exports._drawGol1 = function(svg, size, snapshots) {
     return function() {
         svg.selectAll("*")
             .remove();
@@ -237,15 +181,61 @@ exports._drawGol2 = function(svg, size, snapshots) {
                             .step(1)
                             .width(window_size.width - margin.left - margin.left - margin.right - margin.right)
                             .ticks(snapshots.length)
-                            .tickFormat(d3.format("d"))
-                            .displayFormat(d3.format("d"));
+                            .tickFormat(v => "")
+                            .displayFormat(v => "");
             g.attr("transform", `translate(${margin.left + margin.left},${window_size.height})`)
                 .call(sliderino);
             return sliderino;
         }
+        let timer = null;
+
         const subslider = svg.append("g");
         const sliderino = tAxis(subslider.append("g"))
                 .on('onchange', v => drawBoxes(snapshots[v]));
-        drawBoxes(snapshots[0]);
+        drawBoxes(snapshots[sliderino.value()]);
+
+        const button = svg.append("g");
+        const drawButton = function(g,playing,callback) {
+            g.select("*").remove();
+            g.append("rect")
+                .attr("width",50)
+                .attr("height",18)
+                .attr("rx",2)
+                .style("fill","#eee")
+                .attr("stroke","#aaa")
+                .attr("stroke-width",0.5)
+                 .style("margin", 0)
+                 .style("padding", 0)
+                 .attr("transform", `translate(${window_size.width/2-25},${window_size.height+margin.slider-30})`);
+            g.append("text")
+                .attr("fill","#555")
+                .style("text-anchor","middle")
+                .attr("pointer-events", "none")
+                .attr("font-size", 10)
+                .attr("transform", `translate(${window_size.width/2},${window_size.height+margin.slider-18})`)
+                .text(playing ? "Pause" : "Play");
+            g.on("click",null)
+                .on("click",callback);
+        }
+
+        const play_start = function () {
+            button.call(drawButton,true,play_stop);
+            play_tick();
+            timer = setInterval(play_tick,1000);
+        }
+        const play_stop = function () {
+            button.call(drawButton,false,play_start);
+            clearInterval(timer);
+            timer = null;
+        }
+        const play_tick = function () {
+            const currval = sliderino.value();
+            const nextval = (currval + 1) % snapshots.length;
+            sliderino.value(nextval);
+        }
+
+        play_stop();
+
+
     }
 }
