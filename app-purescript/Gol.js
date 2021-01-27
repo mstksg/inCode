@@ -46,6 +46,39 @@ exports._chompPascal = function(q0,n,k0,f) {
     return f(i)(q)(k);
 }
 
+const ixChomper = function(n,x,f) {
+    let k = 0;
+    let z = 0;
+    while (true) {
+        const z2 = binom(n+k,n);
+        if (z2 >x) {
+            return f(x-z)(k);
+        } else {
+            k = k+1;
+            z = z2;
+        }
+    }
+}
+
+const ixPascal = function(n,x) {
+    let y = x;
+    let i = 0;
+    let res = [];
+    while (true) {
+        if (i<n) {
+            ixChomper(n-i,y,y2 => function(s) {
+                y = y2;
+                i = i+1;
+                res.unshift(s);
+            });
+        } else {
+            return res;
+        }
+    }
+}
+
+exports._ixPascal = ixPascal;
+
 exports._maxBinom = function(n,lim) {
     let i = 0;
     while (true) {
@@ -55,7 +88,6 @@ exports._maxBinom = function(n,lim) {
         i = i+1;
     }
 }
-
 
 exports.memoInt = function(f) {
     let table = [];
@@ -163,7 +195,6 @@ exports.initGol3D = function(sel) {
         const window_size = { height: 200, width: 200 }
         const maxZ = 6;
         const margin = { top: 10, bottom: 10, left: 10, right: 10, slider: 50 }
-
         d3.select(sel).selectAll("p").remove();
         const svg = d3.select(sel)
             .append("svg")
@@ -171,7 +202,6 @@ exports.initGol3D = function(sel) {
             .attr("width","100%")
             .style("margin","auto")
             .style("display","block");
-
         return { svg, window_size, margin, maxZ } ;
     }
 }
@@ -230,6 +260,97 @@ exports._drawGol3D = function({svg, window_size, margin, maxZ}, size, snapshots)
     }
 }
 
+exports.initGol4D = function(sel) {
+    return function () {
+        const window_size = { height: 200, width: 200 }
+        const maxZW = 6;
+        const margin = { top: 10, bottom: 10, left: 10, right: 10, slider: 50 }
+        d3.select(sel).selectAll("p").remove();
+        const svg = d3.select(sel)
+            .append("svg")
+            .attr("viewBox", [0,0,window_size.width*(maxZW*2+1), window_size.height*(maxZW*2+1)+margin.slider])
+            .attr("width","100%")
+            .style("margin","auto")
+            .style("display","block");
+        return { svg, window_size, margin, maxZW } ;
+    }
+}
+
+// size : { height: Int, width : Int }
+// aliveCells : [Thunk [{ x: Int, y: Int, zws: [Int}] }]]
+exports._drawGol4D = function({svg, window_size, margin, maxZW}, size, snapshots) {
+    const maxPascal = binom(2+maxZW,maxZW);
+    const symmetries = d3.range(0,maxPascal).map(function(i) {
+        const zw = ixPascal(2,i);
+        const z0 = zw[0];
+        const w0 = zw[1];
+        let pos = [{z:z0,w:w0}];
+        if (z0 != w0) {
+            pos.push({z:w0,w:z0});
+        }
+        pos.forEach(function({z,w}) {
+            if (z > 0) {
+                pos.push({z:-z,w:w});
+            }
+            if (w > 0) {
+                pos.push({z:z,w:-w});
+            }
+            if (z > 0 && w > 0) {
+                pos.push({z:-z,w:-w});
+            }
+        });
+        console.log(i,zw,pos);
+        return pos;
+    });
+    return function() {
+        svg.selectAll("*")
+            .remove();
+        const cell_size = { height: (window_size.height-margin.top-margin.bottom) / size.height
+                          , width: (window_size.width-margin.left-margin.right) / size.width
+                          }
+        const grid = svg.append("g")
+                .attr("transform",`translate(${margin.left},${margin.top})`);
+        let splitCache = [];
+        const drawBoxes = function(j) {
+            grid.selectAll("*").remove();
+            let splitCells = [];
+            if (j in splitCache) {
+                splitCells = splitCache[j];
+            } else {
+                const cells = snapshots[j]();
+                cells.map(function({x,y,zws}) {
+                    zws.map(function (zw) {
+                        if (zw in splitCells) {
+                            splitCells[zw].push({x,y,val:1});
+                        } else {
+                            splitCells[zw] = [{x,y,val:1}];
+                        }
+                    });
+                });
+                splitCache[j] = splitCells;
+            }
+            symmetries.forEach(function(pos,i) {
+                const subgrid = drawGrid(grid,size.width,size.height
+                        ,window_size.width-margin.left-margin.right
+                        ,window_size.height-margin.top-margin.bottom
+                        ,(i in splitCells) ? splitCells[i] : []
+                        );
+                pos.forEach(function({z,w}) {
+                    subgrid.clone(true)
+                        .attr("transform",`translate(${(maxZW+z)*window_size.width},${(maxZW+w)*window_size.height})`);
+                });
+                subgrid.remove();
+            });
+        }
+        const controller =
+            setupTimer(svg
+                      ,snapshots.length
+                      ,window_size.width*3
+                      ,drawBoxes
+                      )
+              .attr("transform", `translate(${window_size.width*(maxZW-1)},${window_size.height*(maxZW*2+1)})`);
+    }
+}
 
 
 const drawGrid = function(svg,numx,numy,width,height,cells) {

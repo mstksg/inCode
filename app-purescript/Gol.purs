@@ -52,14 +52,14 @@ main = do
 
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 24
+      logMe 33
       -- g2 <- initGol1 "#gol1"
       -- drawGol1 g2 {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
       --       (map <<< map) drawer (runner 3 initialPoints)
 
-      g3D <- initGol3D "#gol1"
-      drawGol3D g3D {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
-            (map <<< map) drawer3D (runner 1 initialPoints)
+      g4D <- initGol4D "#gol1"
+      drawGol4D g4D {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
+            (map <<< map) drawer4D (runner 2 initialPoints)
     -- -> Array {x :: Int, y :: Int, val :: Int}
       -- Aff.launchAff_ $
       --   runSteps
@@ -75,10 +75,17 @@ main = do
     --                     }
     --              )
     --      <<< Map.toUnfoldableUnordered
-    drawer3D = map (\(Tuple (Tuple x y) pts) ->
+    -- drawer3D = map (\(Tuple (Tuple x y) pts) ->
+    --                     { x: (x+8) `mod` 20
+    --                     , y: (y+8) `mod` 20
+    --                     , zs: A.fromFoldable pts
+    --                     }
+    --              )
+    --      <<< Map.toUnfoldableUnordered
+    drawer4D = map (\(Tuple (Tuple x y) pts) ->
                         { x: (x+8) `mod` 20
                         , y: (y+8) `mod` 20
-                        , zs: A.fromFoldable pts
+                        , zws: A.fromFoldable pts
                         }
                  )
          <<< Map.toUnfoldableUnordered
@@ -406,6 +413,21 @@ drawGol3D
     -> Effect Unit
 drawGol3D = runFn3 _drawGol3D
 
+foreign import data SVG4D :: Type
+foreign import initGol4D :: String -> Effect SVG4D
+foreign import _drawGol4D :: Fn3
+    SVG4D
+    {height::Int,width::Int}
+    (Array (Lazy (Array {x :: Int, y :: Int, zws :: Array Int})))
+    (Effect Unit)
+
+drawGol4D
+    :: SVG4D
+    -> {height :: Int, width :: Int}
+    -> Array (Lazy (Array {x :: Int, y :: Int, zws :: Array Int}))
+    -> Effect Unit
+drawGol4D = runFn3 _drawGol4D
+
 foreign import _binom :: Fn2 Int Int Int
 
 binom :: Int -> Int -> Int
@@ -416,6 +438,10 @@ foreign import _maxBinom :: Fn2 Int Int Int
 -- use one less than mx
 maxBinom :: Int -> Int -> Int
 maxBinom = runFn2 _maxBinom
+
+foreign import _ixPascal :: Fn2 Int Int (Array Int)
+ixPascal :: Int -> Int -> Array Int
+ixPascal = runFn2 _ixPascal
 
 foreign import _chompPascal :: forall a. Fn4 Int Int Int (Int -> Int -> Int -> a) a
 
@@ -443,17 +469,4 @@ doOnce a = do
       unless done do
         a
         Ref.write true doneRef
-
--- testThunky :: Effect Unit
--- testThunky = do
---     log "ok"
---     log <<< show $ xs A.!! 0
---     log "what"
---     log <<< show $ xs A.!! 8
---     log <<< show $ xs A.!! 8
---     log <<< show $ xs A.!! 8
---     -- log <<< show $ xs A.!! 8
---   where
---     xs :: Array (Lazy (Map (Tuple Int Int) (NonEmptySet Int)))
---     xs = A.fromFoldable $ List.take 25 $ runner 6 initialPoints
 
