@@ -7,9 +7,6 @@ exports.logMe = function(x) {
     }
 }
 
-const window_size = { height: 200, width: 200 }
-const margin = { top: 10, bottom: 10, left: 10, right: 10, slider: 50 }
-
 const binom = function(n,k) {
     let x=1;
     let i=1;
@@ -114,23 +111,27 @@ exports.trace = function (x) {
     return x;
 }
 
-exports.initGol1 = function() {
-    d3.select("#gol1").selectAll("p").remove();
-    const svg = d3.select("#gol1")
-        .append("svg")
-        .attr("viewBox", [0,0,window_size.width, window_size.height+margin.slider])
-        .attr("width","15em")
-        .style("margin","auto")
-        .style("display","block");
-    console.log(svg)
-    return svg;
+exports.initGol1 = function(sel) {
+    return function () {
+        const window_size = { height: 200, width: 200 }
+        const margin = { top: 10, bottom: 10, left: 10, right: 10, slider: 50 }
+        d3.select(sel).selectAll("p").remove();
+        const svg = d3.select(sel)
+            .append("svg")
+            .attr("viewBox", [0,0,window_size.width, window_size.height+margin.slider])
+            .attr("width","15em")
+            .style("margin","auto")
+            .style("display","block");
+        console.log(svg)
+        return { svg, window_size, margin } ;
+    }
 }
-
 
 // size : { height: Int, width : Int }
 // aliveCells : [Thunk [{ x: Int, y: Int, val: Int }]]
-exports._drawGol1 = function(svg, size, snapshots) {
+exports._drawGol1 = function({svg, window_size, margin}, size, snapshots) {
     return function() {
+
         svg.selectAll("*")
             .remove();
         // console.log(cells)
@@ -156,6 +157,80 @@ exports._drawGol1 = function(svg, size, snapshots) {
               .attr("transform", `translate(${margin.left},${window_size.height})`);
     }
 }
+
+exports.initGol3D = function(sel) {
+    return function () {
+        const window_size = { height: 200, width: 200 }
+        const maxZ = 6;
+        const margin = { top: 10, bottom: 10, left: 10, right: 10, slider: 50 }
+
+        d3.select(sel).selectAll("p").remove();
+        const svg = d3.select(sel)
+            .append("svg")
+            .attr("viewBox", [0,0,window_size.width*(maxZ*2+1), window_size.height+margin.slider])
+            .attr("width","100%")
+            .style("margin","auto")
+            .style("display","block");
+
+        return { svg, window_size, margin, maxZ } ;
+    }
+}
+
+// size : { height: Int, width : Int }
+// aliveCells : [Thunk [{ x: Int, y: Int, zs: [Int] }]]
+exports._drawGol3D = function({svg, window_size, margin, maxZ}, size, snapshots) {
+    return function() {
+        svg.selectAll("*")
+            .remove();
+        // console.log(cells)
+        const cell_size = { height: (window_size.height-margin.top-margin.bottom) / size.height
+                          , width: (window_size.width-margin.left-margin.right) / size.width
+                          }
+        const grid = svg.append("g")
+                .attr("transform",`translate(${margin.left},${margin.top})`);
+        let splitCache = [];
+        const drawBoxes = function(j) {
+            grid.selectAll("*").remove();
+            let splitCells = [];
+            if (j in splitCache) {
+                splitCells = splitCache[j];
+            } else {
+                const cells = snapshots[j]();
+                cells.map(function({x,y,zs}) {
+                    zs.map(function (z) {
+                        if (z in splitCells) {
+                            splitCells[z].push({x,y,val:1});
+                        } else {
+                            splitCells[z] = [{x,y,val:1}];
+                        }
+                    });
+                });
+                splitCache[j] = splitCells;
+            }
+            d3.range(0,maxZ+1).map(function(i) {
+                const subgrid = drawGrid(grid,size.width,size.height
+                        ,window_size.width-margin.left-margin.right
+                        ,window_size.height-margin.top-margin.bottom
+                        ,(i in splitCells) ? splitCells[i] : []
+                        )
+                    .attr("transform",`translate(${(maxZ+i)*window_size.width},0)`);
+                if (i > 0) {
+                    subgrid.clone(true)
+                      .attr("transform",`translate(${(maxZ-i)*window_size.width},0)`);
+                }
+            });
+        }
+        const controller =
+            setupTimer(svg
+                      ,snapshots.length
+                      ,window_size.width*3
+                      ,drawBoxes
+                      )
+              .attr("transform", `translate(${window_size.width*(maxZ-1)},${window_size.height})`);
+    }
+}
+
+
 
 const drawGrid = function(svg,numx,numy,width,height,cells) {
     const cell_width  = width  / numx;

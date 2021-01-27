@@ -52,10 +52,14 @@ main = do
 
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 42
-      g2 <- initGol1
-      drawGol1 g2 {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
-            (map <<< map) drawer (runner 3 initialPoints)
+      logMe 24
+      -- g2 <- initGol1 "#gol1"
+      -- drawGol1 g2 {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
+      --       (map <<< map) drawer (runner 3 initialPoints)
+
+      g3D <- initGol3D "#gol1"
+      drawGol3D g3D {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
+            (map <<< map) drawer3D (runner 1 initialPoints)
     -- -> Array {x :: Int, y :: Int, val :: Int}
       -- Aff.launchAff_ $
       --   runSteps
@@ -64,10 +68,17 @@ main = do
       --        drawGol1 g2 {height:20, width:20} <<< drawer <$> runner 4 initialPoints
       --   )
   where
-    drawer = map (\(Tuple (Tuple x y) pts) ->
+    -- drawer = map (\(Tuple (Tuple x y) pts) ->
+    --                     { x: (x+8) `mod` 20
+    --                     , y: (y+8) `mod` 20
+    --                     , val: NESet.size pts
+    --                     }
+    --              )
+    --      <<< Map.toUnfoldableUnordered
+    drawer3D = map (\(Tuple (Tuple x y) pts) ->
                         { x: (x+8) `mod` 20
                         , y: (y+8) `mod` 20
-                        , val: NESet.size pts
+                        , zs: A.fromFoldable pts
                         }
                  )
          <<< Map.toUnfoldableUnordered
@@ -365,7 +376,7 @@ traceShow :: forall a. Show a => a -> a
 traceShow x = let y = trace (show x) in x
 
 foreign import data SVG :: Type
-foreign import initGol1 :: Effect SVG
+foreign import initGol1 :: String -> Effect SVG
 foreign import _drawGol1 :: Fn3
     SVG
     {height::Int,width::Int}
@@ -379,6 +390,21 @@ drawGol1
     -> Array (Lazy (Array {x :: Int, y :: Int, val :: Int}))
     -> Effect Unit
 drawGol1 = runFn3 _drawGol1
+
+foreign import data SVG3D :: Type
+foreign import initGol3D :: String -> Effect SVG3D
+foreign import _drawGol3D :: Fn3
+    SVG3D
+    {height::Int,width::Int}
+    (Array (Lazy (Array {x :: Int, y :: Int, zs :: Array Int})))
+    (Effect Unit)
+
+drawGol3D
+    :: SVG3D
+    -> {height :: Int, width :: Int}
+    -> Array (Lazy (Array {x :: Int, y :: Int, zs :: Array Int}))
+    -> Effect Unit
+drawGol3D = runFn3 _drawGol3D
 
 foreign import _binom :: Fn2 Int Int Int
 
