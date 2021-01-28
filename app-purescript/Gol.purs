@@ -52,12 +52,12 @@ main = do
 
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 33
-      -- g2 <- initGol1 "#gol1"
-      -- drawGol1 g2 {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
+      logMe 8
+      -- g2 <- initGolFlat "#gol1"
+      -- drawGolFlat g2 {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
       --       (map <<< map) drawer (runner 3 initialPoints)
 
-      g4D <- initGol4D "#gol1"
+      gFlat <- initGol4D "#gol1"
       drawGol4D g4D {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
             (map <<< map) drawer4D (runner 2 initialPoints)
     -- -> Array {x :: Int, y :: Int, val :: Int}
@@ -65,7 +65,7 @@ main = do
       --   runSteps
       --   (Aff.Milliseconds 1000.0)
       --   (List.cycle <<< List.take 6 $
-      --        drawGol1 g2 {height:20, width:20} <<< drawer <$> runner 4 initialPoints
+      --        drawGolFlat g2 {height:20, width:20} <<< drawer <$> runner 4 initialPoints
       --   )
   where
     -- drawer = map (\(Tuple (Tuple x y) pts) ->
@@ -382,21 +382,21 @@ foreign import trace :: forall a. a -> a
 traceShow :: forall a. Show a => a -> a
 traceShow x = let y = trace (show x) in x
 
-foreign import data SVG :: Type
-foreign import initGol1 :: String -> Effect SVG
-foreign import _drawGol1 :: Fn3
+foreign import data SVGFlat :: Type
+foreign import initGolFlat :: String -> Effect SVGFlat
+foreign import _drawGolFlat :: Fn3
     SVG
     {height::Int,width::Int}
     -- (Array {x :: Int, y :: Int, val :: Int })
     (Array (Lazy (Array {x :: Int, y :: Int, val :: Int})))
     (Effect Unit)
 
-drawGol1
+drawGolFlat
     :: SVG
     -> {height :: Int, width :: Int}
     -> Array (Lazy (Array {x :: Int, y :: Int, val :: Int}))
     -> Effect Unit
-drawGol1 = runFn3 _drawGol1
+drawGolFlat = runFn3 _drawGolFlat
 
 foreign import data SVG3D :: Type
 foreign import initGol3D :: String -> Effect SVG3D

@@ -143,7 +143,9 @@ exports.trace = function (x) {
     return x;
 }
 
-exports.initGol1 = function(sel) {
+const slider_size = { height: 50, width: 200 }
+
+exports.initGolFlat = function(sel) {
     return function () {
         const window_size = { height: 200, width: 200 }
         const margin = { top: 10, bottom: 10, left: 10, right: 10, slider: 50 }
@@ -161,7 +163,7 @@ exports.initGol1 = function(sel) {
 
 // size : { height: Int, width : Int }
 // aliveCells : [Thunk [{ x: Int, y: Int, val: Int }]]
-exports._drawGol1 = function({svg, window_size, margin}, size, snapshots) {
+exports._drawGolFlat = function({svg, window_size, margin}, size, snapshots) {
     return function() {
 
         svg.selectAll("*")
@@ -272,13 +274,20 @@ exports.initGol4D = function(sel) {
             .attr("width","100%")
             .style("margin","auto")
             .style("display","block");
-        return { svg, window_size, margin, maxZW } ;
+        const slidersvg = d3.select(sel)
+                .append("svg")
+                .attr("viewBox", [0,0, slider_size.width, slider_size.height])
+                .attr("width","15em")
+                .style("margin","1em auto 1em auto")
+                .style("display","block")
+                .style("overflow","visible");
+        return { svg, slidersvg, window_size, margin, maxZW } ;
     }
 }
 
 // size : { height: Int, width : Int }
 // aliveCells : [Thunk [{ x: Int, y: Int, zws: [Int}] }]]
-exports._drawGol4D = function({svg, window_size, margin, maxZW}, size, snapshots) {
+exports._drawGol4D = function({svg, slidersvg, window_size, margin, maxZW}, size, snapshots) {
     const maxPascal = binom(2+maxZW,maxZW);
     const symmetries = d3.range(0,maxPascal).map(function(i) {
         const zw = ixPascal(2,i);
@@ -299,7 +308,6 @@ exports._drawGol4D = function({svg, window_size, margin, maxZW}, size, snapshots
                 pos.push({z:-z,w:-w});
             }
         });
-        console.log(i,zw,pos);
         return pos;
     });
     return function() {
@@ -310,9 +318,24 @@ exports._drawGol4D = function({svg, window_size, margin, maxZW}, size, snapshots
                           }
         const grid = svg.append("g")
                 .attr("transform",`translate(${margin.left},${margin.top})`);
+        const grids = symmetries.map(function(pos,i) {
+            return pos.map(function({z,w}) {
+                const res = setupGrid(grid,size.width,size.height
+                        ,window_size.width-margin.left-margin.right
+                        ,window_size.height-margin.top-margin.bottom
+                        ,true
+                        );
+                res.grid
+                  .attr("transform",`translate(${(maxZW+z)*window_size.width},${(maxZW+w)*window_size.height})`);
+                return {drawer: res.drawer, eraser: res.eraser};
+            });
+        });
+
         let splitCache = [];
+        let refresh = [];
         const drawBoxes = function(j) {
-            grid.selectAll("*").remove();
+            refresh.forEach(eraser => eraser(););
+            refresh = [];
             let splitCells = [];
             if (j in splitCache) {
                 splitCells = splitCache[j];
@@ -329,26 +352,19 @@ exports._drawGol4D = function({svg, window_size, margin, maxZW}, size, snapshots
                 });
                 splitCache[j] = splitCells;
             }
-            symmetries.forEach(function(pos,i) {
-                const subgrid = drawGrid(grid,size.width,size.height
-                        ,window_size.width-margin.left-margin.right
-                        ,window_size.height-margin.top-margin.bottom
-                        ,(i in splitCells) ? splitCells[i] : []
-                        );
-                pos.forEach(function({z,w}) {
-                    subgrid.clone(true)
-                        .attr("transform",`translate(${(maxZW+z)*window_size.width},${(maxZW+w)*window_size.height})`);
+            splitCells.forEach(function(ps, zw) {
+                grids[zw].forEach(function ({drawer,eraser}) {
+                    drawer(ps);
+                    refresh.push(eraser);
                 });
-                subgrid.remove();
             });
         }
         const controller =
-            setupTimer(svg
+            setupTimer(slidersvg
                       ,snapshots.length
-                      ,window_size.width*3
+                      ,slider_size.width
                       ,drawBoxes
-                      )
-              .attr("transform", `translate(${window_size.width*(maxZW-1)},${window_size.height*(maxZW*2+1)})`);
+                      );
     }
 }
 
@@ -389,6 +405,60 @@ const drawGrid = function(svg,numx,numy,width,height,cells) {
                 .attr("y2",d=>d*cell_height)
                 .attr("x2",width);
     return grid;
+}
+
+const setupGrid = function(svg,numx,numy,width,height,gridlines) {
+    const cell_width  = width  / numx;
+    const cell_height = height / numy;
+    const grid = svg.append("g");
+    const boxes = grid.append("g");
+    const outline = grid.append("rect")
+            .attr("width",width)
+            .attr("height",height)
+            .attr("fill","none")
+            .attr("stroke","black")
+            .attr("stroke-width",2)
+            .attr("stroke-opacity",0.75);
+    if (gridlines) {
+        const xlines = grid.append("g").selectAll("line")
+                    .data(d3.range(numx-1))
+                    .join("line")
+                    .attr("stroke-opacity",0.3)
+                    .attr("stroke","black")
+                    .attr("stroke-width",0.5)
+                    .attr("x1",d=>(d+1)*cell_width)
+                    .attr("y1",0)
+                    .attr("x2",d=>(d+1)*cell_width)
+                    .attr("y2",height);
+        const ylines = grid.append("g").selectAll("line")
+                    .data(d3.range(numy-1))
+                    .join("line")
+                    .attr("stroke-opacity",0.3)
+                    .attr("stroke","black")
+                    .attr("stroke-width",0.5)
+                    .attr("y1",d=>(d+1)*cell_height)
+                    .attr("x1",0)
+                    .attr("y2",d=>(d+1)*cell_height)
+                    .attr("x2",width);
+    }
+    const eraser = function() {
+        boxes.selectAll("*").remove();
+    }
+    const drawer = function(cells) {
+        const max   = d3.max(cells, d=>d.val);
+        const color = d3.scaleSequential(d3.interpolateGreens).domain([0,max]);
+        eraser();
+        boxes.selectAll("rect")
+          .data(cells)
+          .join("rect")
+          .attr("width", cell_width)
+          .attr("height", cell_height)
+          .attr("x", d => d.x*cell_width)
+          .attr("y", d => d.y*cell_height)
+          .attr("fill",d=>color(d.val))
+          .style("opacity",0.8);
+    }
+    return {grid, drawer, eraser};
 }
 
 const setupTimer = function(svg,size,width,callback) {
