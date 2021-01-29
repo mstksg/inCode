@@ -52,36 +52,31 @@ main = do
 
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 8
-      -- g2 <- initGolFlat "#gol1"
-      -- drawGolFlat g2 {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
-      --       (map <<< map) drawer (runner 3 initialPoints)
-
-      gFlat <- initGol4D "#gol1"
-      drawGol4D g4D {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
+      logMe 44
+      g3D <- initGol3D "#gol3D"
+      drawGol3D g3D {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
+            (map <<< map) drawer3D (runner 1 initialPoints)
+      g4D <- initGol4D "#gol4D"
+      drawGol4D g4D {height:20, width:20} neighbs4D <<< A.fromFoldable <<< List.take 7 $
             (map <<< map) drawer4D (runner 2 initialPoints)
-    -- -> Array {x :: Int, y :: Int, val :: Int}
-      -- Aff.launchAff_ $
-      --   runSteps
-      --   (Aff.Milliseconds 1000.0)
-      --   (List.cycle <<< List.take 6 $
-      --        drawGolFlat g2 {height:20, width:20} <<< drawer <$> runner 4 initialPoints
-      --   )
+      gFlat <- initGolFlat "#golFlat"
+      drawGolFlat gFlat {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
+            (map <<< map) drawerFlat (runner 3 initialPoints)
   where
-    -- drawer = map (\(Tuple (Tuple x y) pts) ->
-    --                     { x: (x+8) `mod` 20
-    --                     , y: (y+8) `mod` 20
-    --                     , val: NESet.size pts
-    --                     }
-    --              )
-    --      <<< Map.toUnfoldableUnordered
-    -- drawer3D = map (\(Tuple (Tuple x y) pts) ->
-    --                     { x: (x+8) `mod` 20
-    --                     , y: (y+8) `mod` 20
-    --                     , zs: A.fromFoldable pts
-    --                     }
-    --              )
-    --      <<< Map.toUnfoldableUnordered
+    drawerFlat = map (\(Tuple (Tuple x y) pts) ->
+                        { x: (x+8) `mod` 20
+                        , y: (y+8) `mod` 20
+                        , val: NESet.size pts
+                        }
+                 )
+         <<< Map.toUnfoldableUnordered
+    drawer3D = map (\(Tuple (Tuple x y) pts) ->
+                        { x: (x+8) `mod` 20
+                        , y: (y+8) `mod` 20
+                        , zs: A.fromFoldable pts
+                        }
+                 )
+         <<< Map.toUnfoldableUnordered
     drawer4D = map (\(Tuple (Tuple x y) pts) ->
                         { x: (x+8) `mod` 20
                         , y: (y+8) `mod` 20
@@ -89,6 +84,10 @@ main = do
                         }
                  )
          <<< Map.toUnfoldableUnordered
+    neighbs4D = memoInt $ A.fromFoldable
+                      <<< Set.fromFoldable
+                      <<< map (\(Tuple x _) -> x)
+                      <<< vecRunNeighbs 2
     ready doc a = do
       a' <- doOnce a
       onE readystatechange
@@ -385,14 +384,14 @@ traceShow x = let y = trace (show x) in x
 foreign import data SVGFlat :: Type
 foreign import initGolFlat :: String -> Effect SVGFlat
 foreign import _drawGolFlat :: Fn3
-    SVG
+    SVGFlat
     {height::Int,width::Int}
     -- (Array {x :: Int, y :: Int, val :: Int })
     (Array (Lazy (Array {x :: Int, y :: Int, val :: Int})))
     (Effect Unit)
 
 drawGolFlat
-    :: SVG
+    :: SVGFlat
     -> {height :: Int, width :: Int}
     -> Array (Lazy (Array {x :: Int, y :: Int, val :: Int}))
     -> Effect Unit
@@ -415,18 +414,20 @@ drawGol3D = runFn3 _drawGol3D
 
 foreign import data SVG4D :: Type
 foreign import initGol4D :: String -> Effect SVG4D
-foreign import _drawGol4D :: Fn3
+foreign import _drawGol4D :: Fn4
     SVG4D
     {height::Int,width::Int}
+    (Int -> Array Int)
     (Array (Lazy (Array {x :: Int, y :: Int, zws :: Array Int})))
     (Effect Unit)
 
 drawGol4D
     :: SVG4D
     -> {height :: Int, width :: Int}
+    -> (Int -> Array Int)
     -> Array (Lazy (Array {x :: Int, y :: Int, zws :: Array Int}))
     -> Effect Unit
-drawGol4D = runFn3 _drawGol4D
+drawGol4D = runFn4 _drawGol4D
 
 foreign import _binom :: Fn2 Int Int Int
 

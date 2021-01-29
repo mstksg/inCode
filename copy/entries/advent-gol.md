@@ -6,7 +6,7 @@ create-time: 2021/01/07 21:32:49
 series: Advent of Code
 identifier: advent-gol
 slug: degenerate-hyper-dimensional-game-of-life
-script: https://cdn.jsdelivr.net/npm/d3@6.3.1, /purescript/gol.js, https://cdn.jsdelivr.net/npm/d3-simple-slider@1.10.3
+script: https://cdn.jsdelivr.net/npm/d3@6.5.0, /purescript/gol.js, https://cdn.jsdelivr.net/npm/d3-simple-slider@1.10.3
 ---
 
 tldr: By exploiting multiple mathematical properties of a "degenerate"
@@ -130,9 +130,18 @@ stepper ps = stayAlive <> comeAlive
                   neighborCounts `M.withoutKeys`  ps
 ```
 
-::::: {#gol1}
-hi
+::::: {#gol3D}
+Please enable Javascript
 :::::
+
+::::: {#gol4D}
+Please enable Javascript
+:::::
+
+::::: {#golFlat}
+Please enable Javascript
+:::::
+
 
 
 ```
