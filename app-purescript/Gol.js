@@ -508,7 +508,7 @@ const setupGrid = function(svg,numx,numy,width,height, handlers) {
             .attr("height",height)
             .attr("fill","white")
             .attr("opacity",0);
-    capture.on("mousemove", function (e) {
+    const mover = function(e) {
         e.preventDefault();
         const [mx,my] = d3.pointer(e,this);
         const x = Math.floor(mx/cell_width);
@@ -518,12 +518,21 @@ const setupGrid = function(svg,numx,numy,width,height, handlers) {
             handlers.onmove(x,y);
           }
         }
-    });
-    capture.on("mouseleave", function (e) {
+    }
+    const leaver = function(e) {
         if ("onleave" in handlers) {
             handlers.onleave();
         }
-    });
+    }
+    if ("ontouchstart" in document) {
+        capture.style("-webkit-tap-highlight-color", "transparent")
+              .on("touchmove", mover)
+              .on("touchend", leaver);
+
+    } else {
+        capture.on("mousemove", mover)
+               .on("mouseleave", leaver);
+    }
     const mkDrawer = function(s, col, o) {
         return function(cells) {
             const max   = d3.max(cells, d=>d.val);
