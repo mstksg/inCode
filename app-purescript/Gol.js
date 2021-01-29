@@ -181,6 +181,7 @@ exports._drawGolFlat = function({svg, slidersvg, window_size, margin}, size, sna
         const gridSetup = setupGrid(grid,size.width,size.height
             ,window_size.width-margin.left-margin.right
             ,window_size.height-margin.top-margin.bottom
+            ,{}
             );
         const drawBoxes = function(i) {
             gridSetup.drawer(snapshots[i]());
@@ -229,15 +230,49 @@ exports._drawGol3D = function({svg, slidersvg, window_size, margin, maxZ}, size,
             .remove();
         const grid = svg.append("g")
                 .attr("transform",`translate(${margin.left},${margin.top})`);
-        const grids = symmetries.map(function(pos,i) {
+        let fullGrid = []
+        let clearHighlights = [];
+        let grids = [];
+        const clearAllHighlights = function() {
+            clearHighlights.forEach(highlighter => highlighter());
+            clearHighlights = [];
+        }
+        const highlightNeighbs = function(x,y,z,i) {
+            clearAllHighlights();
+            [-1,0,1].forEach(function (dz) {
+                if (inRange(-maxZ,maxZ+1,z+dz)) {
+                    const hltr = fullGrid[z+dz+maxZ].highlighter
+                    const baseNeighbs = (dz == 0)
+                                      ? neighbs2d.slice(1)
+                                      : neighbs2d;
+                    hltr(
+                        baseNeighbs
+                            .map(dxy => ({x:x+dxy.x,y:y+dxy.y,val:1}))
+                            .filter(xy => (inRange(0,size.width,xy.x) && inRange(0,size.height,xy.y)))
+                    );
+                    clearHighlights.push(() => hltr([]));
+                }
+            });
+            grids[i].forEach(function (g) {
+                g.underlighter(0.25);
+                clearHighlights.push(() => g.underlighter(0));
+            });
+        }
+        grids = symmetries.map(function(pos,i) {
             return pos.map(function(z) {
                 const res = setupGrid(grid,size.width,size.height
                         ,window_size.width-margin.left-margin.right
                         ,window_size.height-margin.top-margin.bottom
+                        , { onmove: function(x,y) {
+                              highlightNeighbs(x,y,z,i);
+                            }
+                          , onleave: clearAllHighlights
+                          }
                         );
                 res.grid
                   .attr("transform",`translate(${(maxZ+z)*window_size.width},0)`);
-                return {drawer: res.drawer};
+                fullGrid[z+maxZ] = {drawer: res.drawer, highlighter: res.highlighter, underlighter: res.underlighter};
+                return {drawer: res.drawer, highlighter: res.highlighter, underlighter: res.underlighter};
             });
         });
         let splitCache = [];
@@ -306,8 +341,6 @@ const neighbs2d =
     ,{x:1,y:0},{x:1,y:-1},{x:1,y:1}
     ]
 
-const neighbs4d = d3.cross([0,-1,1],[0,-1,1],[0,-1,1],[0,-1,1], function(x,y,z,w) { return {x,y,z,w}; });
-
 const inRange = function(mn,mx,x) {
     return (x >= mn && x < mx);
 }
@@ -349,11 +382,12 @@ exports._drawGol4D = function({svg, slidersvg, window_size, margin, maxZW}, size
 
         let fullGrid = d3.range(2*maxZW+1).map(c => []);
         let clearHighlights = [];
+        let grids = [];
         const clearAllHighlights = function() {
-            clearHighlights.forEach(highlighter => highlighter([]));
+            clearHighlights.forEach(highlighter => highlighter());
             clearHighlights = [];
         }
-        const highlightNeighbs = function({x,y,z,w}) {
+        const highlightNeighbs = function(x,y,z,w,i) {
             clearAllHighlights();
             neighbs2d.forEach(function (dzw) {
                 if (inRange(-maxZW,maxZW+1,z+dzw.x) && inRange(-maxZW,maxZW+1,w+dzw.y)) {
@@ -367,25 +401,29 @@ exports._drawGol4D = function({svg, slidersvg, window_size, margin, maxZW}, size
                             .map(dxy => ({x:x+dxy.x,y:y+dxy.y,val:1}))
                             .filter(xy => (inRange(0,size.width,xy.x) && inRange(0,size.height,xy.y)))
                     );
-                    clearHighlights.push(hltr);
+                    clearHighlights.push(() => hltr([]));
                 }
             });
+            grids[i].forEach(function (g) {
+                g.underlighter(0.25);
+                clearHighlights.push(() => g.underlighter(0));
+            });
         }
-        const grids = symmetries.map(function(pos,i) {
+        grids = symmetries.map(function(pos,i) {
             return pos.map(function({z,w}) {
                 const res = setupGrid(grid,size.width,size.height
                         ,window_size.width-margin.left-margin.right
                         ,window_size.height-margin.top-margin.bottom
-                        , { onmove: function({x,y}) {
-                              highlightNeighbs({x,y,z,w});
+                        , { onmove: function(x,y) {
+                              highlightNeighbs(x,y,z,w,i);
                             }
                           , onleave: clearAllHighlights
                           }
                         );
                 res.grid
                   .attr("transform",`translate(${(maxZW+z)*window_size.width},${(maxZW+w)*window_size.height})`);
-                fullGrid[z+maxZW][w+maxZW] = {drawer: res.drawer, highlighter: res.highlighter};
-                return {drawer: res.drawer, highlighter: res.highlighter};
+                fullGrid[z+maxZW][w+maxZW] = {drawer: res.drawer, highlighter: res.highlighter, underlighter: res.underlighter};
+                return {drawer: res.drawer, highlighter: res.highlighter, underlighter: res.underlighter};
             });
         });
 
@@ -430,6 +468,11 @@ const setupGrid = function(svg,numx,numy,width,height, handlers) {
     const cell_width  = width  / numx;
     const cell_height = height / numy;
     const grid = svg.append("g");
+    const underlight = grid.append("rect")
+            .attr("width",width)
+            .attr("height",height)
+            .attr("fill","yellow")
+            .attr("opacity",0);
     const outline = grid.append("rect")
             .attr("width",width)
             .attr("height",height)
@@ -472,13 +515,15 @@ const setupGrid = function(svg,numx,numy,width,height, handlers) {
         const y = Math.floor(my/cell_height);
         if (x >= 0 && x < numx && y >= 0 && y < numy) {
           if ("onmove" in handlers) {
-            handlers.onmove({x,y});
+            handlers.onmove(x,y);
           }
         }
     });
     capture.on("mouseleave", function (e) {
-        handlers.onleave();
-    })
+        if ("onleave" in handlers) {
+            handlers.onleave();
+        }
+    });
     const mkDrawer = function(s, col, o) {
         return function(cells) {
             const max   = d3.max(cells, d=>d.val);
@@ -498,7 +543,9 @@ const setupGrid = function(svg,numx,numy,width,height, handlers) {
     return { grid
            , drawer: mkDrawer(boxes,d3.interpolateGreens,0.8)
            , highlighter: mkDrawer(highlights,d3.interpolateBlues,0.3)
-           , highlighter2: mkDrawer(highlights2,d3.interpolateOranges,0.3)
+           , underlighter: function(o) {
+               underlight.attr("opacity", o);
+             }
            };
 }
 
