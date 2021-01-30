@@ -160,7 +160,7 @@ exports.initGolFlat = function(sel) {
                 .append("svg")
                 .attr("viewBox", [0,0, slider_size.width, slider_size.height])
                 .attr("width","15em")
-                .style("margin","0.5em auto")
+                .style("margin","1em auto")
                 .style("display","block")
                 .style("overflow","visible");
         return { svg, slidersvg, window_size, margin } ;
@@ -211,7 +211,7 @@ exports.initGol3D = function(sel) {
                 .append("svg")
                 .attr("viewBox", [0,0, slider_size.width, slider_size.height])
                 .attr("width","15em")
-                .style("margin","0.5em auto")
+                .style("margin","1em auto")
                 .style("display","block")
                 .style("overflow","visible");
         return { svg, slidersvg, window_size, margin, maxZ } ;
@@ -320,7 +320,7 @@ exports.initGol4D = function(sel) {
         d3.select(sel).selectAll("p").remove();
         const svg = d3.select(sel)
             .append("svg")
-            .attr("viewBox", [0,0,window_size.width*(maxZW*2+1), window_size.height*(maxZW*2+1)+margin.slider])
+            .attr("viewBox", [0,0,window_size.width*(maxZW*2+1), window_size.height*(maxZW*2+1)])
             .attr("width","100%")
             .style("margin","auto")
             .style("display","block");
@@ -328,7 +328,7 @@ exports.initGol4D = function(sel) {
                 .append("svg")
                 .attr("viewBox", [0,0, slider_size.width, slider_size.height])
                 .attr("width","15em")
-                .style("margin","0.5em auto")
+                .style("margin","1em auto")
                 .style("display","block")
                 .style("overflow","visible");
         return { svg, slidersvg, window_size, margin, maxZW } ;
@@ -347,8 +347,7 @@ const inRange = function(mn,mx,x) {
 
 // size : { height: Int, width : Int }
 // aliveCells : [Thunk [{ x: Int, y: Int, zws: [Int}] }]]
-// neighbs : Int -> [Int]
-exports._drawGol4D = function({svg, slidersvg, window_size, margin, maxZW}, size, neighbs, snapshots) {
+exports._drawGol4D = function({svg, slidersvg, window_size, margin, maxZW}, size, snapshots) {
     const maxPascal = binom(2+maxZW,maxZW);
     const symmetries = d3.range(0,maxPascal).map(function(i) {
         const zw = ixPascal(2,i);
@@ -464,6 +463,144 @@ exports._drawGol4D = function({svg, slidersvg, window_size, margin, maxZW}, size
     }
 }
 
+// getNeighbs :: Int -> [{x: Int, weight: Int}]
+exports._drawGolSyms = function(sel,getNeighbs) {
+    const window_size = { height: 200, width: 200 }
+    const maxZW = 6;
+    const margin = { top: 10, bottom: 10, left: 10, right: 10 }
+
+    const maxPascal = binom(2+maxZW,maxZW);
+
+    let revNeighbs = d3.range(0,maxPascal).map( () => [] );
+    const neighbs = d3.range(0,maxPascal).map(function (i) {
+        let res = []
+        getNeighbs(i).forEach(function ({x,weight}) {
+            if (x < maxPascal) {
+                res[x] = weight;
+                revNeighbs[x][i] = weight;
+            }
+        });
+        return res;
+    });
+
+
+    return function () {
+        d3.select(sel).selectAll("p").remove();
+        const svg = d3.select(sel)
+                .append("svg")
+                .attr("viewBox", [0,0,window_size.width*(maxZW+1), window_size.height*(maxZW+1)])
+                .attr("width","30em")
+                .style("margin","auto")
+                .style("display","block");
+
+        const setupBox = function(g,txt,boxsize,handlers) {
+            const box = g.append("g");
+            const outline = box.append("rect")
+                    .attr("width",boxsize)
+                    .attr("height",boxsize)
+                    .attr("fill","none")
+                    .attr("stroke","black")
+                    .attr("stroke-width",2)
+                    .attr("stroke-opacity",0.75);
+            const mover = function(e) {
+                e.preventDefault();
+                if ("onmove" in handlers) {
+                  handlers.onmove();
+                }
+            }
+            const leaver = function(e) {
+                if ("onleave" in handlers) {
+                    handlers.onleave();
+                }
+            }
+            const botlab = box.append("text")
+                .attr("fill","#333")
+                .style("text-anchor","middle")
+                .attr("pointer-events","none")
+                .attr("font-size",33)
+                .attr("transform", `translate(${boxsize/2},${boxsize*5/6})`)
+                .text(txt);
+            const mkCircle = function (col) {
+                const circcont = box.append("g");
+                const circ = circcont.append("circle")
+                    .attr("fill",col)
+                    .attr("r",0)
+                    .attr("transform", `translate(0,${boxsize/2})`)
+                    .attr("opacity",0.75)
+                    .style("transition", "r 500ms ease");
+                const lab = circcont.append("text")
+                    .attr("fill","#333")
+                    .style("text-anchor","middle")
+                    .attr("pointer-events","none")
+                    .attr("font-size",50)
+                    .attr("transform", `translate(0,${boxsize/4})`);
+                const circfunc = function setCirc (d,l) {
+                    circ.attr("r",Math.sqrt(d)*boxsize/4);
+                    lab.text(l);
+                }
+                // d should be between 0 and 1
+                return { box, circcont, circfunc }
+            }
+            const circ1 = mkCircle("red");
+            circ1.circcont.attr("transform",`translate(${boxsize/4},0)`);
+            const circ2 = mkCircle("blue");
+            circ2.circcont.attr("transform",`translate(${boxsize*3/4},0)`);
+            const capture = box.append("rect")
+                    .attr("width",boxsize)
+                    .attr("height",boxsize)
+                    .attr("fill","white")
+                    .attr("opacity",0);
+            capture
+                  .on("touchstart", mover)
+                  .on("touchend", leaver)
+                  .on("mouseenter", mover)
+                  .on("mouseleave", leaver);
+            return { box, circ1func: circ1.circfunc, circ2func: circ2.circfunc };
+        }
+
+        const allboxes = svg.append("g");
+        let boxes = [];
+        let clearHighlights = [];
+        const clearNeighbs = function () {
+            clearHighlights.forEach(clr => clr());
+            clearHighlights = [];
+        }
+        const highlightNeighbs = function (i) {
+            clearNeighbs();
+            const to = revNeighbs[i];
+            const from = neighbs[i];
+            to.forEach(function (weight, x) {
+                if (x in boxes) {
+                    boxes[x].circ1func(weight/4, weight+"");
+                    clearHighlights.push( () => boxes[x].circ1func(0,"") );
+                }
+            });
+            from.forEach(function (weight, x) {
+                if (x in boxes) {
+                    boxes[x].circ2func(weight/4, weight+"");
+                    clearHighlights.push( () => boxes[x].circ2func(0,"") );
+                }
+            });
+        }
+        boxes = d3.range(0,maxPascal).map(function (i) {
+            const zw = ixPascal(2,i);
+            const z0 = zw[0];
+            const w0 = zw[1];
+            const boxfuncs =
+                setupBox( allboxes
+                        , z0 + ", " + w0
+                        , window_size.width-margin.left-margin.right
+                        , { onmove: (() => highlightNeighbs(i)) , onleave: (() => clearNeighbs()) }
+                        );
+            boxfuncs.box
+                .attr("transform",`translate(${window_size.width*z0+margin.left},${window_size.height*(maxZW-w0)+margin.top})`);
+            return boxfuncs;
+        });
+
+        return svg;
+    }
+}
+
 const setupGrid = function(svg,numx,numy,width,height, handlers) {
     const cell_width  = width  / numx;
     const cell_height = height / numy;
@@ -524,15 +661,14 @@ const setupGrid = function(svg,numx,numy,width,height, handlers) {
             handlers.onleave();
         }
     }
-    if ("ontouchstart" in document) {
-        capture.style("-webkit-tap-highlight-color", "transparent")
-              .on("touchmove", mover)
-              .on("touchend", leaver);
-
-    } else {
-        capture.on("mousemove", mover)
-               .on("mouseleave", leaver);
-    }
+    // capture.style("-webkit-tap-highlight-color", "transparent")
+    capture
+          .on("touchmove", mover)
+          .on("touchstart", mover)
+          .on("touchend", leaver)
+          .on("mousemove", mover)
+          .on("mouseenter", mover)
+          .on("mouseleave", leaver);
     const mkDrawer = function(s, col, o) {
         return function(cells) {
             const max   = d3.max(cells, d=>d.val);

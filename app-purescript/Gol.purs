@@ -52,16 +52,25 @@ main = do
 
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 7
+      logMe 31
       g3D <- initGol3D "#gol3D"
       drawGol3D g3D {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
             (map <<< map) drawer3D (runner 1 initialPoints)
       g4D <- initGol4D "#gol4D"
-      drawGol4D g4D {height:20, width:20} neighbs4D <<< A.fromFoldable <<< List.take 7 $
+      drawGol4D g4D {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
             (map <<< map) drawer4D (runner 2 initialPoints)
       gFlat <- initGolFlat "#golFlat"
       drawGolFlat gFlat {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
             (map <<< map) drawerFlat (runner 3 initialPoints)
+
+      drawGolSyms "#golSyms" $ map (\(Tuple x w) -> {x, weight: nCountInt w})
+                           <<< Map.toUnfoldableUnordered
+                           <<< Map.fromFoldableWith append
+                           <<< vecRunNeighbs 2
+
+
+      -- {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
+      --       (map <<< map) drawerFlat (runner 3 initialPoints)
   where
     drawerFlat = map (\(Tuple (Tuple x y) pts) ->
                         { x: (x+8) `mod` 20
@@ -84,10 +93,10 @@ main = do
                         }
                  )
          <<< Map.toUnfoldableUnordered
-    neighbs4D = memoInt $ A.fromFoldable
-                      <<< Set.fromFoldable
-                      <<< map (\(Tuple x _) -> x)
-                      <<< vecRunNeighbs 2
+    -- neighbs4D = memoInt $ A.fromFoldable
+    --                   <<< Set.fromFoldable
+    --                   <<< map (\(Tuple x _) -> x)
+    --                   <<< vecRunNeighbs 2
     ready doc a = do
       a' <- doOnce a
       onE readystatechange
@@ -157,6 +166,13 @@ instance showNCount :: Show NCount where
       NCount (Just LTwo) -> "Two"
       NCount (Just LThree) -> "Three"
       NCount Nothing -> "Many"
+
+nCountInt :: NCount -> Int
+nCountInt = case _ of
+  NCount (Just LOne) -> 1
+  NCount (Just LTwo) -> 2
+  NCount (Just LThree) -> 3
+  NCount Nothing -> 4
 
 data Neighbs = Dead LCount
              | LiveAlone
@@ -414,20 +430,26 @@ drawGol3D = runFn3 _drawGol3D
 
 foreign import data SVG4D :: Type
 foreign import initGol4D :: String -> Effect SVG4D
-foreign import _drawGol4D :: Fn4
+foreign import _drawGol4D :: Fn3
     SVG4D
     {height::Int,width::Int}
-    (Int -> Array Int)
     (Array (Lazy (Array {x :: Int, y :: Int, zws :: Array Int})))
     (Effect Unit)
 
 drawGol4D
     :: SVG4D
     -> {height :: Int, width :: Int}
-    -> (Int -> Array Int)
     -> Array (Lazy (Array {x :: Int, y :: Int, zws :: Array Int}))
     -> Effect Unit
-drawGol4D = runFn4 _drawGol4D
+drawGol4D = runFn3 _drawGol4D
+
+foreign import _drawGolSyms :: Fn2
+    String
+    (Int -> Array { x :: Int, weight :: Int })
+    (Effect Unit)
+
+drawGolSyms :: String -> (Int -> Array { x :: Int, weight :: Int }) -> Effect Unit
+drawGolSyms = runFn2 _drawGolSyms
 
 foreign import _binom :: Fn2 Int Int Int
 
