@@ -247,14 +247,31 @@ exports._drawGolFlat = function({svg, slidersvg, dimslidersvg, ptsdisp, window_s
             .remove();
         let currTime = 0;
         let currDim = 0;
+        let currSel = undefined;
+        let locked = false;
         let ptcache = [];
         const grid = svg.append("g")
                 .attr("transform",`translate(${margin.left},${margin.top})`);
         let gridSetup = {};
-        gridSetup = setupGrid(grid,"",size.width,size.height
-            ,window_size.width-margin.left-margin.right
-            ,window_size.height-margin.top-margin.bottom
-            , { onmove: function(x,y) {
+        const drawBoxes = function(t,d,sel_) {
+            const newCells = t != currTime || d != currDim
+            const sel = locked ? currSel : sel_;
+            if (newCells) {
+                ptcache = [];
+                const cells = snapshots[currTime][currDim]().map(function({x,y,pts}) {
+                    if (x in ptcache) {
+                        ptcache[x][y] = pts;
+                    } else {
+                        ptcache[x] = [];
+                        ptcache[x][y] = pts;
+                    }
+                    return {x,y,val:pts.length};
+                });
+                gridSetup.drawer(cells);
+            }
+            if (sel != currSel || newCells) {
+                if (sel) {
+                    const {x,y} = sel;
                     const pts = (x in ptcache) ? ((y in ptcache[x]) ? ptcache[x][y] : []) : [];
                     if (currDim > 0) {
                         const ptsstring = (pts.length == 0)
@@ -266,23 +283,25 @@ exports._drawGolFlat = function({svg, slidersvg, dimslidersvg, ptsdisp, window_s
                           .style("font-style", "italic");
                     }
                     gridSetup.highlighter([{x,y,val:1}]);
+                } else {
+                    gridSetup.highlighter([]);
+                    ptsdisp.text("Hover to view points")
+                        .style("font-style","italic");
                 }
-              , onleave: function() { ptsdisp.text(""); gridSetup.highlighter([]); }
+            }
+            currTime = t;
+            currDim = d;
+            currSel = sel;
+        }
+        gridSetup = setupGrid(grid,"",size.width,size.height
+            ,window_size.width-margin.left-margin.right
+            ,window_size.height-margin.top-margin.bottom
+            , { onmove: ((x,y) => drawBoxes(currTime,currDim,{x,y}))
+              , onleave: (() => drawBoxes(currTime,currDim,undefined))
               }
             );
-        const drawBoxes = function() {
-            ptcache = [];
-            const cells = snapshots[currTime][currDim]().map(function({x,y,pts}) {
-                if (x in ptcache) {
-                    ptcache[x][y] = pts;
-                } else {
-                    ptcache[x] = [];
-                    ptcache[x][y] = pts;
-                }
-                return {x,y,val:pts.length};
-            });
-            gridSetup.drawer(cells);
-        }
+        gridSetup.grid
+            .on("click", function(e) { e.preventDefault(); locked = !locked; })
         const dimselbox = dimslidersvg.append("g")
                         .attr("transform","translate(15,0)");
         const dimslider = d3.sliderBottom()
@@ -293,7 +312,7 @@ exports._drawGolFlat = function({svg, slidersvg, dimslidersvg, ptsdisp, window_s
             .ticks(snapshots[0].length)
             .tickFormat(v => (v+2)+"")
             .displayFormat(v => "d="+(v+2))
-            .on("onchange", function(d) { currDim = d; drawBoxes() });
+            .on("onchange", d => drawBoxes(currTime,d,currSel));
         dimselbox.call(dimslider);
         dimslider.value(3)
 
@@ -301,7 +320,7 @@ exports._drawGolFlat = function({svg, slidersvg, dimslidersvg, ptsdisp, window_s
             setupTimer(slidersvg
                       ,snapshots.length
                       ,slider_size.width
-                      ,function(i) { currTime = i; drawBoxes() }
+                      , i => drawBoxes(i,currDim,currSel)
                       );
     }
 }
