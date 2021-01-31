@@ -45,7 +45,7 @@ main :: Effect Unit
 main = do
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 47
+      logMe 12
 
       g3D <- initGol3D "#gol3D"
       drawGol3D g3D {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
@@ -66,7 +66,7 @@ main = do
     drawerFlat = map (\(Tuple (Tuple x y) pts) ->
                         { x: (x+8) `mod` 20
                         , y: (y+8) `mod` 20
-                        , val: NESet.size pts
+                        , pts: A.fromFoldable pts
                         }
                  )
          <<< Map.toUnfoldableUnordered
@@ -397,13 +397,13 @@ foreign import initGolFlat :: String -> Effect SVGFlat
 foreign import _drawGolFlat :: Fn3
     SVGFlat
     {height::Int,width::Int}
-    (Array (Array (Lazy (Array {x :: Int, y :: Int, val :: Int}))))
+    (Array (Array (Lazy (Array {x :: Int, y :: Int, pts :: Array Int}))))
     (Effect Unit)
 
 drawGolFlat
     :: SVGFlat
     -> {height :: Int, width :: Int}
-    -> Array (Array (Lazy (Array {x :: Int, y :: Int, val :: Int})))
+    -> Array (Array (Lazy (Array {x :: Int, y :: Int, pts :: Array Int})))
     -> Effect Unit
 drawGolFlat = runFn3 _drawGolFlat
 

@@ -200,7 +200,7 @@ const slider_size = { height: 40, width: 200 }
 exports.initGolFlat = function(sel) {
     return function () {
         const window_size = { height: 200, width: 200 }
-        const margin = { top: 10, bottom: 10, left: 10, right: 10, slider: 50 }
+        const margin = { top: 10, bottom: 10, left: 10, right: 10 }
         d3.select(sel).selectAll("p").remove();
         const svg = d3.select(sel)
             .append("svg")
@@ -222,30 +222,66 @@ exports.initGolFlat = function(sel) {
                 .style("margin","1em auto 0 auto")
                 .style("display","block")
                 .style("overflow","visible");
-        return { svg, slidersvg, dimslidersvg, window_size, margin } ;
+        const ptsdisp = d3.select(sel)
+                .append("div")
+                .style("width","20em")
+                .style("height","10em")
+                .style("margin","1em auto 0 auto")
+                .style("display","block")
+                .append("p")
+                .style("text-align","center")
+                .style("font-size","90%")
+                .style("line-height","125%");
+        return { svg, slidersvg, dimslidersvg, ptsdisp, window_size, margin } ;
     }
 }
 
 // size : { height: Int, width : Int }
-// snapshots : [[Thunk [{ x: Int, y: Int, val: Int }]]]     -- top level: time, second level, dim
-exports._drawGolFlat = function({svg, slidersvg, dimslidersvg, window_size, margin}, size, snapshots) {
+// snapshots : [[Thunk [{ x: Int, y: Int, pts: [Int] }]]]     -- top level: time, second level, dim
+exports._drawGolFlat = function({svg, slidersvg, dimslidersvg, ptsdisp, window_size, margin}, size, snapshots) {
     const cell_size = { height: (window_size.height-margin.top-margin.bottom) / size.height
                       , width: (window_size.width-margin.left-margin.right) / size.width
                       }
     return function() {
         svg.selectAll("*")
             .remove();
-        const grid = svg.append("g")
-                .attr("transform",`translate(${margin.left},${margin.top})`);
-        const gridSetup = setupGrid(grid,"",size.width,size.height
-            ,window_size.width-margin.left-margin.right
-            ,window_size.height-margin.top-margin.bottom
-            ,{}
-            );
         let currTime = 0;
         let currDim = 0;
+        let ptcache = [];
+        const grid = svg.append("g")
+                .attr("transform",`translate(${margin.left},${margin.top})`);
+        let gridSetup = {};
+        gridSetup = setupGrid(grid,"",size.width,size.height
+            ,window_size.width-margin.left-margin.right
+            ,window_size.height-margin.top-margin.bottom
+            , { onmove: function(x,y) {
+                    const pts = (x in ptcache) ? ((y in ptcache[x]) ? ptcache[x][y] : []) : [];
+                    if (currDim > 0) {
+                        const ptsstring = (pts.length == 0)
+                                        ? "(no points)"
+                                        : pts.map(pt => "<" + ixPascal(currDim,pt).join(",") + ">").join(", ");
+                        ptsdisp.text(ptsstring).style("font-style", (pts.length == 0) ? "italic" : "normal");
+                    } else {
+                        ptsdisp.text((pts.length == 0) ? "(no point)" : "(single point)")
+                          .style("font-style", "italic");
+                    }
+                    gridSetup.highlighter([{x,y,val:1}]);
+                }
+              , onleave: function() { ptsdisp.text(""); gridSetup.highlighter([]); }
+              }
+            );
         const drawBoxes = function() {
-            gridSetup.drawer(snapshots[currTime][currDim]());
+            ptcache = [];
+            const cells = snapshots[currTime][currDim]().map(function({x,y,pts}) {
+                if (x in ptcache) {
+                    ptcache[x][y] = pts;
+                } else {
+                    ptcache[x] = [];
+                    ptcache[x][y] = pts;
+                }
+                return {x,y,val:pts.length};
+            });
+            gridSetup.drawer(cells);
         }
         const dimselbox = dimslidersvg.append("g")
                         .attr("transform","translate(15,0)");
@@ -274,7 +310,7 @@ exports.initGol3D = function(sel) {
     return function () {
         const window_size = { height: 200, width: 200 }
         const maxZ = 6;
-        const margin = { top: 10, bottom: 10, left: 10, right: 10, slider: 50 }
+        const margin = { top: 10, bottom: 10, left: 10, right: 10 }
         d3.select(sel).selectAll("p").remove();
         const svg = d3.select(sel)
             .append("svg")
@@ -391,7 +427,7 @@ exports.initGol4D = function(sel) {
     return function () {
         const window_size = { height: 200, width: 200 }
         const maxZW = 6;
-        const margin = { top: 10, bottom: 10, left: 10, right: 10, slider: 50 }
+        const margin = { top: 10, bottom: 10, left: 10, right: 10 }
         d3.select(sel).selectAll("p").remove();
         const svg = d3.select(sel)
             .append("svg")
