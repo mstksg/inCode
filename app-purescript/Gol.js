@@ -170,6 +170,13 @@ exports.initGolFlat = function(sel) {
             .attr("width","15em")
             .style("margin","auto")
             .style("display","block");
+        const dimslidersvg = d3.select(sel)
+                .append("svg")
+                .attr("viewBox", [0,0, slider_size.width, slider_size.height])
+                .attr("width","15em")
+                .style("margin","1em auto")
+                .style("display","block")
+                .style("overflow","visible");
         const slidersvg = d3.select(sel)
                 .append("svg")
                 .attr("viewBox", [0,0, slider_size.width, slider_size.height])
@@ -177,13 +184,13 @@ exports.initGolFlat = function(sel) {
                 .style("margin","1em auto")
                 .style("display","block")
                 .style("overflow","visible");
-        return { svg, slidersvg, window_size, margin } ;
+        return { svg, slidersvg, dimslidersvg, window_size, margin } ;
     }
 }
 
 // size : { height: Int, width : Int }
-// aliveCells : [Thunk [{ x: Int, y: Int, val: Int }]]
-exports._drawGolFlat = function({svg, slidersvg, window_size, margin}, size, snapshots) {
+// snapshots : [[Thunk [{ x: Int, y: Int, val: Int }]]]     -- top level: time, second level, dim
+exports._drawGolFlat = function({svg, slidersvg, dimslidersvg, window_size, margin}, size, snapshots) {
     const cell_size = { height: (window_size.height-margin.top-margin.bottom) / size.height
                       , width: (window_size.width-margin.left-margin.right) / size.width
                       }
@@ -574,12 +581,20 @@ exports._drawGolSyms = function(sel, reversed) {
             // console.log(neighbs[i]);
             neighbs[i].neighbBox.forEach(function(ps, j) {
                 boxes[j].drawer(ps);
+                boxes[j].settext(ps.length + "");
+                boxes[j].underlighter(ps.length/8);
                 clearHighlights.push(() => boxes[j].drawer([]));
+                clearHighlights.push(() => boxes[j].settext(""));
+                clearHighlights.push(() => boxes[j].underlighter(0));
             });
             neighbs[i].neighbHighlight.forEach(function(ps,j) {
-                boxes[j].highlighter(ps)
+                boxes[j].highlighter(ps);
                 clearHighlights.push(() => boxes[j].highlighter([]));
             });
+            if (!(i in neighbs[i].neighbBox)) {
+                boxes[i].settext("0");
+                clearHighlights.push(() => boxes[i].settext(""));
+            }
         }
         boxes = d3.range(0,maxPascal).map(function (i) {
             const zw = ixPascal(2,i);
@@ -599,7 +614,11 @@ exports._drawGolSyms = function(sel, reversed) {
                          );
             res.grid
               .attr("transform",`translate(${window_size.width*z0+margin.left},${window_size.height*(maxZW-w0)+margin.top})`);
-            return {drawer: res.drawer, highlighter: res.highlighter, underlighter: res.underlighter};
+            return { drawer: res.drawer
+                   , highlighter: res.highlighter
+                   , settext: res.settext
+                   , underlighter: res.underlighter
+                   };
         });
 
         return svg;
@@ -650,9 +669,18 @@ const setupGrid = function(svg,label,numx,numy,width,height,handlers) {
             .attr("pointer-events","none")
             .attr("font-size",(width+height)/10)
             .attr("font-family",sansSerif)
-            .attr("transform", `translate(${width/2},${height*6/7})`)
+            .attr("transform", `translate(${width/2},${height*9/10})`)
             .attr("opacity",0.85)
             .text(label);
+    const hightext = grid.append("text")
+            .attr("fill","#333")
+            .style("text-anchor","middle")
+            .attr("pointer-events","none")
+            .attr("font-size",(width+height)/6)
+            .attr("font-family",sansSerif)
+            .attr("transform", `translate(${width/2},${height*(2/3-1/20)})`)
+            .attr("opacity",0.85)
+            .text("");
     const capture = grid.append("rect")
             .attr("width",width)
             .attr("height",height)
@@ -703,6 +731,9 @@ const setupGrid = function(svg,label,numx,numy,width,height,handlers) {
            , highlighter: mkDrawer(highlights,d3.interpolateBlues,0.3)
            , underlighter: function(o) {
                underlight.attr("opacity", o);
+             }
+           , settext: function (t) {
+               hightext.text(t);
              }
            };
 }

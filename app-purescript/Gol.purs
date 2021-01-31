@@ -52,7 +52,7 @@ main = do
 
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 22
+      logMe 38
       g3D <- initGol3D "#gol3D"
       drawGol3D g3D {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
             (map <<< map) drawer3D (runner 1 initialPoints)
@@ -65,14 +65,6 @@ main = do
 
       drawGolSyms "#golSymsForward" false
       drawGolSyms "#golSymsReverse" true
-      -- $ map (\(Tuple x w) -> {x, weight: nCountInt w})
-      --                      <<< Map.toUnfoldableUnordered
-      --                      <<< Map.fromFoldableWith append
-      --                      <<< vecRunNeighbs 2
-
-
-      -- {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
-      --       (map <<< map) drawerFlat (runner 3 initialPoints)
   where
     drawerFlat = map (\(Tuple (Tuple x y) pts) ->
                         { x: (x+8) `mod` 20
