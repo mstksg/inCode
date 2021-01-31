@@ -157,7 +157,7 @@ exports.trace = function (x) {
     return x;
 }
 
-const slider_size = { height: 50, width: 200 }
+const slider_size = { height: 40, width: 200 }
 
 exports.initGolFlat = function(sel) {
     return function () {
@@ -174,14 +174,14 @@ exports.initGolFlat = function(sel) {
                 .append("svg")
                 .attr("viewBox", [0,0, slider_size.width, slider_size.height])
                 .attr("width","15em")
-                .style("margin","1em auto")
+                .style("margin","1em auto 0 auto")
                 .style("display","block")
                 .style("overflow","visible");
         const slidersvg = d3.select(sel)
                 .append("svg")
                 .attr("viewBox", [0,0, slider_size.width, slider_size.height])
                 .attr("width","15em")
-                .style("margin","1em auto")
+                .style("margin","1em auto 0 auto")
                 .style("display","block")
                 .style("overflow","visible");
         return { svg, slidersvg, dimslidersvg, window_size, margin } ;
@@ -204,14 +204,30 @@ exports._drawGolFlat = function({svg, slidersvg, dimslidersvg, window_size, marg
             ,window_size.height-margin.top-margin.bottom
             ,{}
             );
-        const drawBoxes = function(i) {
-            gridSetup.drawer(snapshots[i]());
+        let currTime = 0;
+        let currDim = 0;
+        const drawBoxes = function() {
+            gridSetup.drawer(snapshots[currTime][currDim]());
         }
+        const dimselbox = dimslidersvg.append("g")
+                        .attr("transform","translate(15,0)");
+        const dimslider = d3.sliderBottom()
+            .min(0)
+            .max(snapshots[0].length-1)
+            .step(1)
+            .width(slider_size.width-30)
+            .ticks(snapshots[0].length)
+            .tickFormat(v => (v+2)+"")
+            .displayFormat(v => "d="+(v+2))
+            .on("onchange", function(d) { currDim = d; drawBoxes() });
+        dimselbox.call(dimslider);
+        dimslider.value(3)
+
         const controller =
             setupTimer(slidersvg
                       ,snapshots.length
                       ,slider_size.width
-                      ,drawBoxes
+                      ,function(i) { currTime = i; drawBoxes() }
                       );
     }
 }
@@ -567,6 +583,7 @@ exports._drawGolSyms = function(sel, reversed) {
                 .attr("viewBox", [0,0,window_size.width*(maxZW+1), window_size.height*(maxZW+1)])
                 .attr("width","20em")
                 .style("margin","auto")
+                .style("overflow","visible")
                 .style("display","block");
 
         const allBoxes = svg.append("g");
@@ -578,7 +595,6 @@ exports._drawGolSyms = function(sel, reversed) {
         }
         const highlightNeighbs = function (i) {
             clearAllHighlights();
-            // console.log(neighbs[i]);
             neighbs[i].neighbBox.forEach(function(ps, j) {
                 boxes[j].drawer(ps);
                 boxes[j].settext(ps.length + "");

@@ -52,16 +52,20 @@ main = do
 
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 38
+      logMe 47
+
       g3D <- initGol3D "#gol3D"
       drawGol3D g3D {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
             (map <<< map) drawer3D (runner 1 initialPoints)
+
       g4D <- initGol4D "#gol4D"
       drawGol4D g4D {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
             (map <<< map) drawer4D (runner 2 initialPoints)
+
       gFlat <- initGolFlat "#golFlat"
-      drawGolFlat gFlat {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
-            (map <<< map) drawerFlat (runner 3 initialPoints)
+      drawGolFlat gFlat {height:20, width:20} <<< A.fromFoldable <<< map A.fromFoldable $
+        List.transpose <<< flip map (List.range 0 8) $ \d ->
+           map (map drawerFlat) (List.take 7 (runner d initialPoints))
 
       drawGolSyms "#golSymsForward" false
       drawGolSyms "#golSymsReverse" true
@@ -396,14 +400,13 @@ foreign import initGolFlat :: String -> Effect SVGFlat
 foreign import _drawGolFlat :: Fn3
     SVGFlat
     {height::Int,width::Int}
-    -- (Array {x :: Int, y :: Int, val :: Int })
-    (Array (Lazy (Array {x :: Int, y :: Int, val :: Int})))
+    (Array (Array (Lazy (Array {x :: Int, y :: Int, val :: Int}))))
     (Effect Unit)
 
 drawGolFlat
     :: SVGFlat
     -> {height :: Int, width :: Int}
-    -> Array (Lazy (Array {x :: Int, y :: Int, val :: Int}))
+    -> Array (Array (Lazy (Array {x :: Int, y :: Int, val :: Int})))
     -> Effect Unit
 drawGolFlat = runFn3 _drawGolFlat
 
