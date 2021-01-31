@@ -138,7 +138,7 @@ exports.testPrint = function(f) {
 // extractor :: c -> (a -> b -> Effect r) -> Effect r
 // merger :: r -> r -> r
 // bazaar :: (c -> Effect r) -> Effect r
-exports._mergeMaps = function(extractor, merger, bazaar) {
+exports._toIntMap = function(extractor, merger, bazaar) {
     let res = [];
     bazaar(x => function() {
         extractor(x)(i => y => function () {
@@ -149,7 +149,45 @@ exports._mergeMaps = function(extractor, merger, bazaar) {
           }
         })();
     })();
-    return [];
+    return res;
+}
+
+// merger :: r -> r -> r
+// bazaar :: (IntMap r -> Effect r) -> Effect r
+exports._unionsIntMap = function(merger, bazaar) {
+    let res = [];
+    bazaar(xs => function () {
+        xs.forEach(function (x, i) {
+            if (i in res) {
+                res[i] = merger(res[i])(x);
+            } else {
+                res[i] = x;
+            }
+        });
+    })();
+    return res;
+}
+
+exports._filterIntMap = function (f, xs) {
+    let res = [];
+    xs.forEach(function (x, i) {
+        if (f(x)) {
+            res[i] = x;
+        } 
+    });
+    return res;
+}
+
+exports.intMapKeys = function (xs) {
+    let res = []
+    xs.forEach((x, i) => res.push(i));
+    return res;
+}
+
+exports._singletonIntMap = function(i, x) {
+    let res = [];
+    res[i] = x;
+    return res;
 }
 
 exports.trace = function (x) {
@@ -818,3 +856,5 @@ const setupTimer = function(svg,size,width,callback) {
     play_stop();
     return subslider;
 }
+
+exports.undefined = 0;

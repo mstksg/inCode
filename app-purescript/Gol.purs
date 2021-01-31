@@ -2,6 +2,7 @@ module Gol where
 
 import Control.MonadZero         as MonadZero
 import Data.Array                as A
+import Data.Bifunctor
 import Data.DateTime             as Date
 import Data.DateTime.Instant     as Instant
 import Data.Foldable
@@ -42,14 +43,6 @@ import Web.HTML.Window           as Window
 
 main :: Effect Unit
 main = do
-    -- Aff.launchAff_ $
-    --     runSteps
-    --     (Aff.Milliseconds 1000.0)
-    --     6
-    --     stepper
-    --     (log <<< show)
-    --     initialPoints
-
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
       logMe 47
@@ -91,10 +84,6 @@ main = do
                         }
                  )
          <<< Map.toUnfoldableUnordered
-    -- neighbs4D = memoInt $ A.fromFoldable
-    --                   <<< Set.fromFoldable
-    --                   <<< map (\(Tuple x _) -> x)
-    --                   <<< vecRunNeighbs 2
     ready doc a = do
       a' <- doOnce a
       onE readystatechange
@@ -225,15 +214,6 @@ validLiveCount = case _ of
     Live LThree -> true
     _           -> false
 
-stepper :: Set Point -> Set Point
-stepper = Map.keys
-      <<< Map.filter validLiveCount
-      <<< Map.fromFoldableWith append
-      <<< foldMap populate
-  where
-    populate = List.zipWith (flip Tuple) (LiveAlone List.: List.repeat (Dead LOne))
-           <<< neighbsSet
-
 neighbs2d :: Int -> Int -> List Int
 neighbs2d n i = do
     dx <- 0 List.: (-1) List.: 1 List.: List.nil
@@ -242,32 +222,36 @@ neighbs2d n i = do
 
 type Point2 = Tuple Int Int
 
-stepper2
+stepper
     :: forall a. Ord a => Show a
     => (a -> List a)
-    -> (Int -> Map Int Neighbs)
+    -> (Int -> IntMap Neighbs)
     -> Map a (NonEmptySet Int)
     -> Map a (NonEmptySet Int)
-stepper2 expand syms cs = Map.mapMaybe (NESet.fromSet <<< Map.keys <<< Map.filter validLiveCount) $
+stepper expand syms cs = Map.mapMaybe (NESet.fromFoldable <<< intMapKeys <<< filterIntMap validLiveCount <<< unionsIntMap) $
     foldl (\res (Tuple gIx ds) ->
           case Map.lookup ds prebaked of
             Nothing                 -> res
-            Just (Tuple here there) -> Map.unionWith (Map.unionWith append) res <<< Map.fromFoldable $
-              List.zip (expand gIx) (here List.: List.repeat there)
+            Just (Tuple here there) -> flip (Map.unionWith append) res <<< Map.fromFoldable $
+              List.zip (expand gIx) (List.singleton here List.: List.repeat (List.singleton there))
         )
-      Map.empty
+      (Map.empty :: Map a (List (IntMap Neighbs)))
       (Map.toUnfoldableUnordered cs :: List (Tuple a (NonEmptySet Int)))
   where
     uniqueGroups :: Set (NonEmptySet Int)
     uniqueGroups = Set.fromFoldable cs
-    prebaked :: Map (NonEmptySet Int) (Tuple (Map Int Neighbs) (Map Int Neighbs))
+    prebaked :: Map (NonEmptySet Int) (Tuple (IntMap Neighbs) (IntMap Neighbs))
     prebaked = Map.fromFoldable (map (\gr -> Tuple gr (prebake gr)) (List.fromFoldable uniqueGroups))
-    prebake :: NonEmptySet Int -> Tuple (Map Int Neighbs) (Map Int Neighbs)
-    prebake = foldl (\(Tuple here there) pIx ->
+    prebake :: NonEmptySet Int -> Tuple (IntMap Neighbs) (IntMap Neighbs)
+    prebake = bimap unionsIntMap unionsIntMap <<< foldr (\pIx (Tuple here there) ->
               let pNeighbs = syms pIx
-                  here'  = Map.insertWith append pIx LiveAlone   pNeighbs
-                  there' = Map.insertWith append pIx (Dead LOne) pNeighbs
-              in  Tuple (Map.unionWith append here here') (Map.unionWith append there there')
+                  here'  = singletonIntMap pIx LiveAlone
+                    List.: pNeighbs
+                    List.: here
+                  there' = singletonIntMap pIx (Dead LOne)
+                    List.: pNeighbs
+                    List.: there
+              in  Tuple here' there'
           )
       (Tuple mempty mempty)
 
@@ -275,14 +259,14 @@ runner
     :: Int                          -- ^ extra dimensions
     -> Set Point2                   -- ^ points
     -> List (Lazy (Map Point2 (NonEmptySet Int)))  -- ^ steps
-runner d = List.iterate ((pure <<< stepper2 lowNeighbs highNeighbs) =<< _)
--- runner d = List.iterate (defer <<< stepper2 lowNeighbs highNeighbs)
+runner d = List.iterate ((pure <<< stepper lowNeighbs highNeighbs) =<< _)
        <<< pure
        <<< Map.fromFoldable
        <<< map (\x -> Tuple x (NESet.singleton 0))
        <<< List.fromFoldable
   where
-    highNeighbs = memoInt (map toDead <<< Map.fromFoldableWith append <<< vecRunNeighbs d)
+    highNeighbs = memoInt (toIntMap <<< map (map toDead) <<< vecRunNeighbs d)
+    -- highNeighbs = memoInt (map toDead <<< Map.fromFoldableWith append <<< vecRunNeighbs d)
 
 lowNeighbs :: Point2 -> List Point2
 lowNeighbs (Tuple x y) = do
@@ -382,12 +366,25 @@ type StopBazaar f a = (a -> f Boolean) -> f Unit
 -- // bazaar :: (c -> f r) -> f r
 -- exports._mergeMaps = function(extractor, merger, bazaar) {
 
-foreign import _mergeMaps :: forall b c r. Fn3 (c -> (Int -> b -> Effect r) -> Effect r) (r -> r -> r) (Bazaar Effect c) (Array r)
+foreign import data IntMap :: Type -> Type
+foreign import _toIntMap :: forall b c r. Fn3 (c -> (Int -> b -> Effect r) -> Effect r) (r -> r -> r) (Bazaar Effect c) (IntMap r)
 
-mergeMaps :: forall f a. Foldable f => Semigroup a => f (Tuple Int a) -> Array a
-mergeMaps xs = runFn3 _mergeMaps (\(Tuple x y) f -> f x y) append (for_ xs)
+toIntMap :: forall f a. Foldable f => Semigroup a => f (Tuple Int a) -> IntMap a
+toIntMap xs = runFn3 _toIntMap (\(Tuple x y) f -> f x y) append (for_ xs)
 
-    -- forall a. StopBazaar Effect a -> Effect Unit
+foreign import _unionsIntMap :: forall b c r. Fn2 (r -> r -> r) (Bazaar Effect (IntMap r)) (IntMap r)
+unionsIntMap :: forall f a. Foldable f => Semigroup a => f (IntMap a) -> IntMap a
+unionsIntMap xs = runFn2 _unionsIntMap append (for_ xs)
+
+foreign import _filterIntMap :: forall a. Fn2 (a -> Boolean) (IntMap a) (IntMap a)
+filterIntMap :: forall a. (a -> Boolean) -> IntMap a -> IntMap a
+filterIntMap = runFn2 _filterIntMap
+
+foreign import intMapKeys :: forall a. IntMap a -> Array Int
+
+foreign import _singletonIntMap :: forall a. Fn2 Int a (IntMap a)
+singletonIntMap :: forall a. Int -> a -> IntMap a
+singletonIntMap = runFn2 _singletonIntMap
 
 foreign import logMe :: forall a. a -> Effect Unit
 foreign import trace :: forall a. a -> a
@@ -488,3 +485,4 @@ doOnce a = do
         a
         Ref.write true doneRef
 
+foreign import undefined :: forall a. a
