@@ -142,10 +142,13 @@ Please enable Javascript
 Please enable Javascript
 :::::
 
-::::: {#golSyms}
+::::: {#golSymsForward}
 Please enable Javascript
 :::::
 
+::::: {#golSymsReverse}
+Please enable Javascript
+:::::
 
 
 

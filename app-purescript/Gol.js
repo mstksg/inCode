@@ -1,6 +1,8 @@
 
 "use strict";
 
+const sansSerif = "Helvetica Neue,Helvetica,Arial,sans-serif"
+
 exports.logMe = function(x) {
     return function() {
         console.log(x);
@@ -78,6 +80,18 @@ const ixPascal = function(n,x) {
 }
 
 exports._ixPascal = ixPascal;
+
+const pascalIx = function(ps) {
+    let res = 0;
+    ps.forEach(function (p, i) {
+        if (p > 0) {
+            res += binom(p+i,p-1);
+        }
+    });
+    return res;
+}
+
+exports.pascalIx = pascalIx;
 
 exports._maxBinom = function(n,lim) {
     let i = 0;
@@ -178,7 +192,7 @@ exports._drawGolFlat = function({svg, slidersvg, window_size, margin}, size, sna
             .remove();
         const grid = svg.append("g")
                 .attr("transform",`translate(${margin.left},${margin.top})`);
-        const gridSetup = setupGrid(grid,size.width,size.height
+        const gridSetup = setupGrid(grid,"",size.width,size.height
             ,window_size.width-margin.left-margin.right
             ,window_size.height-margin.top-margin.bottom
             ,{}
@@ -234,7 +248,7 @@ exports._drawGol3D = function({svg, slidersvg, window_size, margin, maxZ}, size,
         let clearHighlights = [];
         let grids = [];
         const clearAllHighlights = function() {
-            clearHighlights.forEach(highlighter => highlighter());
+            clearHighlights.forEach(highlighter => highlighter([]));
             clearHighlights = [];
         }
         const highlightNeighbs = function(x,y,z,i) {
@@ -260,7 +274,7 @@ exports._drawGol3D = function({svg, slidersvg, window_size, margin, maxZ}, size,
         }
         grids = symmetries.map(function(pos,i) {
             return pos.map(function(z) {
-                const res = setupGrid(grid,size.width,size.height
+                const res = setupGrid(grid,"z = " + z,size.width,size.height
                         ,window_size.width-margin.left-margin.right
                         ,window_size.height-margin.top-margin.bottom
                         , { onmove: function(x,y) {
@@ -278,7 +292,7 @@ exports._drawGol3D = function({svg, slidersvg, window_size, margin, maxZ}, size,
         let splitCache = [];
         let refresh = [];
         const drawBoxes = function(j) {
-            refresh.forEach(drawer => drawer([]););
+            refresh.forEach(drawer => drawer([]));
             refresh = [];
             let splitCells = [];
             if (j in splitCache) {
@@ -383,7 +397,7 @@ exports._drawGol4D = function({svg, slidersvg, window_size, margin, maxZW}, size
         let clearHighlights = [];
         let grids = [];
         const clearAllHighlights = function() {
-            clearHighlights.forEach(highlighter => highlighter());
+            clearHighlights.forEach(highlighter => highlighter([]));
             clearHighlights = [];
         }
         const highlightNeighbs = function(x,y,z,w,i) {
@@ -410,7 +424,8 @@ exports._drawGol4D = function({svg, slidersvg, window_size, margin, maxZW}, size
         }
         grids = symmetries.map(function(pos,i) {
             return pos.map(function({z,w}) {
-                const res = setupGrid(grid,size.width,size.height
+                const res = setupGrid(grid,"",size.width,size.height
+                // const res = setupGrid(grid,z + ", " + w,size.width,size.height
                         ,window_size.width-margin.left-margin.right
                         ,window_size.height-margin.top-margin.bottom
                         , { onmove: function(x,y) {
@@ -429,7 +444,7 @@ exports._drawGol4D = function({svg, slidersvg, window_size, margin, maxZW}, size
         let splitCache = [];
         let refresh = [];
         const drawBoxes = function(j) {
-            refresh.forEach(drawer => drawer([]););
+            refresh.forEach(drawer => drawer([]));
             refresh = [];
             let splitCells = [];
             if (j in splitCache) {
@@ -463,145 +478,135 @@ exports._drawGol4D = function({svg, slidersvg, window_size, margin, maxZW}, size
     }
 }
 
+const normalize4d = function({x,y}) {
+    const x_ = Math.abs(x);
+    const y_ = Math.abs(y);
+    return (x_ > y_) ? {x: y_, y: x_} : {x : x_, y : y_};
+}
+
+const pascalIx2d = ({x,y}) => pascalIx([x,y]);
+
+const pushOrAdd = function (xs, i, x) {
+    if (i in xs) {
+        xs[i].push(x);
+    } else {
+        xs[i] = [x];
+    }
+}
+
+const compressVals = function(ps) {
+    let xs = [];
+    ps.forEach(function({x,y,val}) {
+        if (x in xs) {
+            if (!(y in xs[x])) {
+                xs[x][y] = 0;
+            }
+        } else {
+            xs[x] = [];
+            xs[x][y] = 0;
+        }
+        xs[x][y] += val;
+    });
+    let out = [];
+    xs.forEach(function(ys, x) {
+        ys.forEach(function(val, y) {
+            out.push({x,y,val});
+        });
+    });
+    return out;
+}
+
+const neighbsArray = function(maxZW, reversed) {
+    const maxPascal = binom(2+maxZW,maxZW);
+    let res = d3.range(0,maxPascal).map( () => ({ neighbBox: [], neighbHighlight: [] }) );
+    d3.range(0,maxPascal).forEach(function(i) {
+        const pos = ixPascal(2, i);
+        neighbs2d.slice(1).forEach(function(dp) {
+            const npos = {x: pos[0]+dp.x, y: pos[1]+dp.y};
+            const j = pascalIx2d(normalize4d(npos));
+            const newPt = {x:dp.x+1, y:(-dp.y)+1, val:1};
+            if (j < maxPascal) {
+                if (reversed) {
+                    pushOrAdd(res[j].neighbHighlight, j, newPt);
+                    pushOrAdd(res[j].neighbBox, i, newPt);
+                } else {
+                    pushOrAdd(res[i].neighbBox, j, newPt);
+                    pushOrAdd(res[i].neighbHighlight, i, newPt);
+                }
+            }
+        });
+    });
+    return res.map(({neighbBox, neighbHighlight}) =>
+                        ({ neighbBox: neighbBox.map(compressVals)
+                        , neighbHighlight: neighbHighlight.map(compressVals)
+                        })
+                    );
+}
+
 // getNeighbs :: Int -> [{x: Int, weight: Int}]
-exports._drawGolSyms = function(sel,getNeighbs) {
+exports._drawGolSyms = function(sel, reversed) {
     const window_size = { height: 200, width: 200 }
     const maxZW = 6;
-    const margin = { top: 10, bottom: 10, left: 10, right: 10 }
+    const margin = { top: 10, bottom: 10, left: 10, right: 10 };
 
     const maxPascal = binom(2+maxZW,maxZW);
 
-    let revNeighbs = d3.range(0,maxPascal).map( () => [] );
-    const neighbs = d3.range(0,maxPascal).map(function (i) {
-        let res = []
-        getNeighbs(i).forEach(function ({x,weight}) {
-            if (x < maxPascal) {
-                res[x] = weight;
-                revNeighbs[x][i] = weight;
-            }
-        });
-        return res;
-    });
-
+    const neighbs = neighbsArray(maxZW, reversed);
 
     return function () {
         d3.select(sel).selectAll("p").remove();
         const svg = d3.select(sel)
                 .append("svg")
                 .attr("viewBox", [0,0,window_size.width*(maxZW+1), window_size.height*(maxZW+1)])
-                .attr("width","30em")
+                .attr("width","20em")
                 .style("margin","auto")
                 .style("display","block");
 
-        const setupBox = function(g,txt,boxsize,handlers) {
-            const box = g.append("g");
-            const outline = box.append("rect")
-                    .attr("width",boxsize)
-                    .attr("height",boxsize)
-                    .attr("fill","none")
-                    .attr("stroke","black")
-                    .attr("stroke-width",2)
-                    .attr("stroke-opacity",0.75);
-            const mover = function(e) {
-                e.preventDefault();
-                if ("onmove" in handlers) {
-                  handlers.onmove();
-                }
-            }
-            const leaver = function(e) {
-                if ("onleave" in handlers) {
-                    handlers.onleave();
-                }
-            }
-            const botlab = box.append("text")
-                .attr("fill","#333")
-                .style("text-anchor","middle")
-                .attr("pointer-events","none")
-                .attr("font-size",33)
-                .attr("transform", `translate(${boxsize/2},${boxsize*5/6})`)
-                .text(txt);
-            const mkCircle = function (col) {
-                const circcont = box.append("g");
-                const circ = circcont.append("circle")
-                    .attr("fill",col)
-                    .attr("r",0)
-                    .attr("transform", `translate(0,${boxsize/2})`)
-                    .attr("opacity",0.75)
-                    .style("transition", "r 500ms ease");
-                const lab = circcont.append("text")
-                    .attr("fill","#333")
-                    .style("text-anchor","middle")
-                    .attr("pointer-events","none")
-                    .attr("font-size",50)
-                    .attr("transform", `translate(0,${boxsize/4})`);
-                const circfunc = function setCirc (d,l) {
-                    circ.attr("r",Math.sqrt(d)*boxsize/4);
-                    lab.text(l);
-                }
-                // d should be between 0 and 1
-                return { box, circcont, circfunc }
-            }
-            const circ1 = mkCircle("red");
-            circ1.circcont.attr("transform",`translate(${boxsize/4},0)`);
-            const circ2 = mkCircle("blue");
-            circ2.circcont.attr("transform",`translate(${boxsize*3/4},0)`);
-            const capture = box.append("rect")
-                    .attr("width",boxsize)
-                    .attr("height",boxsize)
-                    .attr("fill","white")
-                    .attr("opacity",0);
-            capture
-                  .on("touchstart", mover)
-                  .on("touchend", leaver)
-                  .on("mouseenter", mover)
-                  .on("mouseleave", leaver);
-            return { box, circ1func: circ1.circfunc, circ2func: circ2.circfunc };
-        }
-
-        const allboxes = svg.append("g");
+        const allBoxes = svg.append("g");
         let boxes = [];
         let clearHighlights = [];
-        const clearNeighbs = function () {
+        const clearAllHighlights = function () {
             clearHighlights.forEach(clr => clr());
             clearHighlights = [];
         }
         const highlightNeighbs = function (i) {
-            clearNeighbs();
-            const to = revNeighbs[i];
-            const from = neighbs[i];
-            to.forEach(function (weight, x) {
-                if (x in boxes) {
-                    boxes[x].circ1func(weight/4, weight+"");
-                    clearHighlights.push( () => boxes[x].circ1func(0,"") );
-                }
+            clearAllHighlights();
+            // console.log(neighbs[i]);
+            neighbs[i].neighbBox.forEach(function(ps, j) {
+                boxes[j].drawer(ps);
+                clearHighlights.push(() => boxes[j].drawer([]));
             });
-            from.forEach(function (weight, x) {
-                if (x in boxes) {
-                    boxes[x].circ2func(weight/4, weight+"");
-                    clearHighlights.push( () => boxes[x].circ2func(0,"") );
-                }
+            neighbs[i].neighbHighlight.forEach(function(ps,j) {
+                boxes[j].highlighter(ps)
+                clearHighlights.push(() => boxes[j].highlighter([]));
             });
         }
         boxes = d3.range(0,maxPascal).map(function (i) {
             const zw = ixPascal(2,i);
             const z0 = zw[0];
             const w0 = zw[1];
-            const boxfuncs =
-                setupBox( allboxes
-                        , z0 + ", " + w0
-                        , window_size.width-margin.left-margin.right
-                        , { onmove: (() => highlightNeighbs(i)) , onleave: (() => clearNeighbs()) }
-                        );
-            boxfuncs.box
-                .attr("transform",`translate(${window_size.width*z0+margin.left},${window_size.height*(maxZW-w0)+margin.top})`);
-            return boxfuncs;
+            const res =
+                setupGrid( allBoxes
+                         , z0 + ", " + w0
+                         , 3, 3
+                         , window_size.width-margin.left-margin.right
+                         , window_size.height-margin.top-margin.bottom
+                         , { onmove: function() {
+                               highlightNeighbs(i);
+                             }
+                           , onleave: clearAllHighlights
+                           }
+                         );
+            res.grid
+              .attr("transform",`translate(${window_size.width*z0+margin.left},${window_size.height*(maxZW-w0)+margin.top})`);
+            return {drawer: res.drawer, highlighter: res.highlighter, underlighter: res.underlighter};
         });
 
         return svg;
     }
 }
 
-const setupGrid = function(svg,numx,numy,width,height, handlers) {
+const setupGrid = function(svg,label,numx,numy,width,height,handlers) {
     const cell_width  = width  / numx;
     const cell_height = height / numy;
     const grid = svg.append("g");
@@ -639,7 +644,15 @@ const setupGrid = function(svg,numx,numy,width,height, handlers) {
                 .attr("y2",d=>(d+1)*cell_height)
                 .attr("x2",width);
     const highlights = grid.append("g");
-    const highlights2 = grid.append("g");
+    const lab = grid.append("text")
+            .attr("fill","#333")
+            .style("text-anchor","middle")
+            .attr("pointer-events","none")
+            .attr("font-size",(width+height)/10)
+            .attr("font-family",sansSerif)
+            .attr("transform", `translate(${width/2},${height*6/7})`)
+            .attr("opacity",0.85)
+            .text(label);
     const capture = grid.append("rect")
             .attr("width",width)
             .attr("height",height)
@@ -757,22 +770,4 @@ const setupTimer = function(svg,size,width,callback) {
     }
     play_stop();
     return subslider;
-}
-
-// returns [{ a: Int, b : Int }], number inside number, single item, empty if
-// nothing
-const getSquareIx = function(width,margin,cells,x) {
-    const a = Math.floor(x/width);
-    const cellWidth = (width - 2 * margin) / cells;
-    const y = (x % width) - margin;
-    if (y < 0) {
-        return [];
-    } else {
-        const b = y % cellWidth;
-        if (b < cells) {
-            return [{a, b}];
-        } else {
-            return [];
-        }
-    }
 }

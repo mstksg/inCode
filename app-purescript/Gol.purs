@@ -52,7 +52,7 @@ main = do
 
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 31
+      logMe 22
       g3D <- initGol3D "#gol3D"
       drawGol3D g3D {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
             (map <<< map) drawer3D (runner 1 initialPoints)
@@ -63,10 +63,12 @@ main = do
       drawGolFlat gFlat {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
             (map <<< map) drawerFlat (runner 3 initialPoints)
 
-      drawGolSyms "#golSyms" $ map (\(Tuple x w) -> {x, weight: nCountInt w})
-                           <<< Map.toUnfoldableUnordered
-                           <<< Map.fromFoldableWith append
-                           <<< vecRunNeighbs 2
+      drawGolSyms "#golSymsForward" false
+      drawGolSyms "#golSymsReverse" true
+      -- $ map (\(Tuple x w) -> {x, weight: nCountInt w})
+      --                      <<< Map.toUnfoldableUnordered
+      --                      <<< Map.fromFoldableWith append
+      --                      <<< vecRunNeighbs 2
 
 
       -- {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
@@ -443,12 +445,8 @@ drawGol4D
     -> Effect Unit
 drawGol4D = runFn3 _drawGol4D
 
-foreign import _drawGolSyms :: Fn2
-    String
-    (Int -> Array { x :: Int, weight :: Int })
-    (Effect Unit)
-
-drawGolSyms :: String -> (Int -> Array { x :: Int, weight :: Int }) -> Effect Unit
+foreign import _drawGolSyms :: Fn2 String Boolean (Effect Unit)
+drawGolSyms :: String -> Boolean -> Effect Unit
 drawGolSyms = runFn2 _drawGolSyms
 
 foreign import _binom :: Fn2 Int Int Int
@@ -465,6 +463,8 @@ maxBinom = runFn2 _maxBinom
 foreign import _ixPascal :: Fn2 Int Int (Array Int)
 ixPascal :: Int -> Int -> Array Int
 ixPascal = runFn2 _ixPascal
+
+foreign import pascalIx :: Array Int -> Int
 
 foreign import _chompPascal :: forall a. Fn4 Int Int Int (Int -> Int -> Int -> a) a
 
