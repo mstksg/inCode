@@ -190,9 +190,11 @@ exports._singletonIntMap = function(i, x) {
     return res;
 }
 
-exports.trace = function (x) {
-    console.log(x);
-    return x;
+exports.trace = function (tr) {
+    return function (x) {
+        console.log(tr)
+        return x;
+    }
 }
 
 const slider_size = { height: 40, width: 200 }
@@ -934,22 +936,22 @@ exports._buildHierarchy = function (x,f) {
 
 const expandRun = r => r.flatMap((d, i) => d3.range(d).map(() => i))
 
+// type Mult = { total :: Int, here :: String }
 // type Contrib = { left :: Maybe Int
 //                , here :: Maybe Int
 //                , chosen :: Array Int
 //                , leftovers :: Array Int
-//                , multP :: Int
-//                , multPHere :: Int
-//                , multQ :: Int
+//                , multP :: Lazy Mult
+//                , multQ :: Lazy Mult
 //                , allSame :: Boolean
 //                }
 //
 // forward :: Boolean
-// getContrib :: Node -> Thunk Contrib
+// getContrib :: Node -> Lazy Contrib
 // vecRun :: Int -> Int -> [Int]
 // mkHier :: Int -> Int -> Hierarchy
 exports._drawTree = function(sel,forward,vecRun,mkHier,getContrib) {
-    const margin = { top: 10, bottom: 10, left: 30, right: 25 };
+    const margin = { top: 10, bottom: 10, left: 30, right: 42 };
     const maxZ = 3;
 
     return function () {
@@ -1046,7 +1048,7 @@ exports._drawTree = function(sel,forward,vecRun,mkHier,getContrib) {
 
             node.append("text")
                 .attr("text-anchor", "end")
-                .attr("dy",-1)
+                .attr("dy",-1.5)
                 .attr("font-family",sansSerif)
                 .style("font-size",6)
                 .attr("x",-4)
@@ -1057,7 +1059,7 @@ exports._drawTree = function(sel,forward,vecRun,mkHier,getContrib) {
 
             node.append("text")
                 .attr("text-anchor", "end")
-                .attr("dy",5)
+                .attr("dy",4.5)
                 .attr("font-family",sansSerif)
                 .style("font-size",6)
                 .attr("x",-4)
@@ -1076,17 +1078,18 @@ exports._drawTree = function(sel,forward,vecRun,mkHier,getContrib) {
 
             node.append("text")
                 .attr("text-anchor", "start")
-                .attr("dy",2)
+                .attr("dy",1.5)
                 .attr("font-family",sansSerif)
                 .style("font-size",6)
-                .attr("x",4)
+                .attr("x",3)
                 .text(function (d) {
                         const c = getContrib(d.data)();
+                        const m = forward ? c.multQ() : c.multP();
                         if ("children" in d) {
-                            return forward ? c.multQ : c.multPHere;
+                            return m.here;
                         } else {
-                            const endMult = c.allSame ? 0 : (forward ? c.multQ : c.multP);
-                            return forward ? endMult : (c.multPHere + " → " + endMult);
+                            const endMult = c.allSame ? 0 : m.total;
+                            return m.here + " → " + endMult;
                         }
 
                     })

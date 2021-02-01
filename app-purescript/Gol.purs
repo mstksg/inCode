@@ -51,7 +51,7 @@ main :: Effect Unit
 main = do
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 2
+      logMe 6
 
       g3D <- initGol3D "#gol3D"
       drawGol3D g3D {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
@@ -379,13 +379,14 @@ instance showVecTree :: (Functor f, Foldable f, Show a) => Show (VecTree f a) wh
         let xshow = "[" <> intercalate "," xs <> "]"
         in  "(Node " <> show x <> " " <> xshow <> ")"
 
+type Mult = { total :: Int, here :: String }
+
 type Contrib = { left :: Maybe Int
                , here :: Maybe Int
                , chosen :: Array Int
                , leftovers :: Array Int
-               , multP :: Int
-               , multPHere :: Int
-               , multQ :: Int
+               , multP :: Lazy Mult
+               , multQ :: Lazy Mult
                , allSame :: Boolean
                }
 
@@ -395,8 +396,8 @@ type VRState =
     , out :: List Int
     , x0 :: Int
     , allSame :: Boolean
-    , p :: Int
-    , q :: Int
+    , p :: Lazy Int
+    , q :: Lazy Int
     , r :: Int
     , x :: Int
     , ls0 :: List Int
@@ -418,16 +419,15 @@ vecRunNeighbsTree n orig = case List.step gens of
     List.Cons x xs -> Rec.ana go $
       Tuple (Just { i: mx, j: n
                   , out: List.nil, x0: x, allSame: true
-                  , p: 1, q: initQ, r: 0, x: x, ls0: xs
+                  , p: defer \_ -> 1, q: initQ, r: 0, x: x, ls0: xs
                   }
             )
             (defer \_ ->
                   { left: Nothing
                   , here: Nothing
                   , chosen: []
-                  , multP: 1
-                  , multPHere: 1
-                  , multQ: initQ
+                  , multP: defer \_ -> { total: 1, here: "=1" }
+                  , multQ: flip map initQ \q -> { total: q, here: "=" <> show q }
                   , leftovers: A.fromFoldable (List.reverse gens)
                   , allSame: true
                   }
@@ -435,7 +435,7 @@ vecRunNeighbsTree n orig = case List.step gens of
   where
     mx   = maxBinom n orig + 1
     gens = genVecRunIxPascal n mx orig
-    initQ = product (map factorial gens)
+    initQ = defer \_ -> product (map factorial gens)
     go :: Tuple (Maybe VRState) (Lazy Contrib) -> VecTreeF List (Lazy Contrib) (Tuple (Maybe VRState) (Lazy Contrib))
     go (Tuple vrst lastContrib) = NodeF lastContrib case vrst of
       Nothing -> List.nil
@@ -443,17 +443,28 @@ vecRunNeighbsTree n orig = case List.step gens of
         List.Nil ->
           let contrib = defer \_ ->
                 let res = r + x
-                    mulfact = factorial x * factorial r
-                    pHere = (factorial res * (2 `Int.pow` r)) `div` mulfact
-                    p'  = p * pHere
-                    q'  = (q * (2 `Int.pow` (x0 - x))) `div` mulfact
+                    mulfact = defer \_ -> factorial x * factorial r
+                    multP = do
+                      p_ <- p
+                      m_ <- mulfact
+                      let pPow = 2 `Int.pow` r
+                          here = factorial res `div` m_
+                      pure { total: p_ * here * pPow
+                           , here: "×" <> show here <> "×" <> show pPow
+                           }
+                    multQ = do
+                      q_ <- q
+                      m_ <- mulfact
+                      let qPow = 2 `Int.pow` (x0 - x)
+                      pure { total: (q_ * qPow) `div` m_
+                           , here: "÷" <> show m_ <> "×" <> show qPow
+                           }
                     out' = res List.: out
                     allSame' = allSame && (x == x0)
                 in  { left: Just 0, here: Just x
                     , chosen: A.fromFoldable out'
-                    , multP: p'
-                    , multPHere: pHere
-                    , multQ: q'
+                    , multP
+                    , multQ
                     , allSame: allSame'
                     , leftovers: A.replicate (mx+1) 0
                     }
@@ -465,10 +476,20 @@ vecRunNeighbsTree n orig = case List.step gens of
               res      = r + xlContrib
               l'       = l - lContrib
               x'       = x - xContrib
-              mulfact  = factorial r * factorial xContrib * factorial lContrib
-              pHere    = factorial res `div` mulfact
-              p'       = p * pHere
-              q'       = q `div` mulfact
+              mulfact  = defer \_ -> factorial r * factorial xContrib * factorial lContrib
+              multP = do
+                 p_ <- p
+                 m_ <- mulfact
+                 let here = factorial res `div` m_
+                 pure { total: p_ * here
+                      , here: "×" <> show here
+                      }
+              multQ = do
+                 q_ <- q
+                 m_ <- mulfact
+                 pure { total: q_ `div` m_
+                      , here: "÷" <> show m_
+                      }
               out'     = res List.: out
               i'       = i - 1
               j'       = j - res
@@ -477,9 +498,8 @@ vecRunNeighbsTree n orig = case List.step gens of
                   { left: Just lContrib
                   , here: Just xContrib
                   , chosen: A.fromFoldable out'
-                  , multP: p'
-                  , multPHere: pHere
-                  , multQ: q'
+                  , multP
+                  , multQ
                   , allSame: allSame'
                   , leftovers: A.fromFoldable <<< List.take (mx + 1) <<< (_ <> List.repeat 0) <<< List.reverse $
                       x' List.: l' List.: List.drop 2 (dropAlong out gens)
@@ -490,8 +510,8 @@ vecRunNeighbsTree n orig = case List.step gens of
                         , out: out'
                         , x0: l
                         , allSame: allSame'
-                        , p: p'
-                        , q: q'
+                        , p: (_.total) <$> multP
+                        , q: (_.total) <$> multQ
                         , r: x'
                         , x: l'
                         , ls0: ls
@@ -539,10 +559,10 @@ buildHierarchy :: forall a. a -> (a -> Array a) -> Hierarchy a
 buildHierarchy = runFn2 _buildHierarchy
 
 foreign import logMe :: forall a. a -> Effect Unit
-foreign import trace :: forall a. a -> a
+foreign import trace :: forall a b. a -> b -> b
 
-traceShow :: forall a. Show a => a -> a
-traceShow x = let y = trace (show x) in x
+-- traceShow :: forall a. Show a => a -> a
+-- traceShow x = let y = trace (show x) in x
 
 foreign import data SVGFlat :: Type
 foreign import initGolFlat :: String -> Effect SVGFlat
