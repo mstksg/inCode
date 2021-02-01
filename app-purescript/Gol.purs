@@ -1,14 +1,16 @@
 module Gol where
 
 import Control.Monad.Free        as Free
+import Control.Monad.State
 import Control.MonadZero         as MonadZero
 import Data.Array                as A
-import Control.Monad.State
 import Data.Bifunctor
 import Data.DateTime             as Date
 import Data.DateTime.Instant     as Instant
 import Data.Foldable
 import Data.Function.Uncurried
+import Data.Generic.Rep          as Generic
+import Data.Generic.Rep.Show
 import Data.Int                  as Int
 import Data.Lazy
 import Data.List.Lazy            (List)
@@ -18,6 +20,7 @@ import Data.Map                  (Map)
 import Data.Map                  as Map
 import Data.Maybe
 import Data.Newtype              as Newtype
+import Data.NonEmpty             as NE
 import Data.Set                  (Set)
 import Data.Set                  as Set
 import Data.Set.NonEmpty         (NonEmptySet)
@@ -29,8 +32,6 @@ import Effect                    (Effect, forE)
 import Effect.Aff                (Aff)
 import Effect.Aff                as Aff
 import Effect.Class              (class MonadEffect, liftEffect)
-import Data.Generic.Rep as Generic
-import Data.Generic.Rep.Show
 import Effect.Class.Console      (log)
 import Effect.Exception.Unsafe
 import Effect.Now                as Now
@@ -50,7 +51,7 @@ main :: Effect Unit
 main = do
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 31
+      logMe 33
 
       g3D <- initGol3D "#gol3D"
       drawGol3D g3D {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
@@ -68,7 +69,7 @@ main = do
       drawGolSyms "#golSymsForward" false
       drawGolSyms "#golSymsReverse" true
 
-      assignWindow "hierarchy" $ vecTreeHierarchy (vecRunNeighbsTree 4 12)
+      -- assignWindow "hierarchy" $ vecTreeHierarchy (vecRunNeighbsTree 4 12)
   where
     drawerFlat = map (\(Tuple (Tuple x y) pts) ->
                         { x: (x+8) `mod` 20
@@ -397,38 +398,67 @@ instance showVecTree :: (Functor f, Foldable f, Show a, Show b) => Show (VecTree
       LeafF x y -> "(Leaf " <> show x <> " " <> show y <> ")"
 
 type VRState =
-    { allSame :: Boolean
-    , i :: Int
+    { i :: Int
     , j :: Int
-    , ls0 :: List Int
+    , out :: List Int
+    , x0 :: Int
+    , allSame :: Boolean
     , p :: Int
     , r :: Int
-    , tot :: Int
     , x :: Int
-    , x0 :: Int
+    , ls0 :: List Int
     }
 
-type Contrib = { left :: Int, here :: Int }
+
+-- consNE :: forall a. a -> NEList.NonEmptyList a -> NEList.NonEmptyList a
+-- consNE x (NEList.NonEmptyList xs) = NEList.NonEmptyList $
+--     flip map xs $ case _ of
+--       y NE.:| ys -> x NE.:| (y List.: ys)
+
+-- mkNE :: forall a. a -> List a -> NEList.NonEmptyList a
+-- mkNE x xs = NEList.NonEmptyList $ pure (x NE.:| xs)
+
+
+type Contrib = { left :: Int, here :: Int, chosen :: Array Int, leftovers :: Array Int }
+-- type TreeRes = { mult :: Int, res :: Array Int }
+
+-- addLastTwo :: List Int -> List Int
+-- addLastTwo xs = case List.step xs of
+--     List.Nil -> List.nil
+--     List.Cons y ys -> case List.step ys of
+--       List.Nil -> List.singleton y
+--       List.Cons z zs -> case List.step zs of
+--         List.Nil -> List.singleton (y+z)
+--         List.Cons a as -> y List.: addLastTwo ys
+
+dropAlong :: forall a b. List a -> List b -> List b
+dropAlong xs ys = case List.step xs of
+    List.Nil -> ys
+    List.Cons _ xs' -> case List.step ys of
+      List.Nil -> List.nil
+      List.Cons _ ys' -> dropAlong xs' ys'
 
 vecRunNeighbsTree
     :: Int      -- ^ dimension
     -> Int      -- ^ pascal index
-    -> VecTree List Contrib { res :: Int, multiplicity :: Int }
+    -> VecTree List Contrib Int
 vecRunNeighbsTree n orig = case List.step gens of
     List.Nil       -> undefined
     List.Cons x xs -> Rec.ana go
-      { i: mx, j: n, tot: 0, x0: x, allSame: true, p: 1, r: 0, x: x, ls0: xs}
+      { i: mx, j: n, out: List.nil, x0: x, allSame: true, p: 1, r: 0, x: x, ls0: xs}
   where
     mx   = maxBinom n orig + 1
     gens = genVecRunIxPascal n mx orig
-    go :: VRState -> VecTreeF List Contrib { res :: Int, multiplicity :: Int } VRState
-    go {i,j,tot,x0,allSame,p,r,x,ls0} = case List.step ls0 of
+    revGens = List.reverse gens
+    go :: VRState -> VecTreeF List Contrib Int VRState
+    go {i,j,out,x0,allSame,p,r,x,ls0} = case List.step ls0 of
       List.Nil ->
         let res = r + x
             p'  = p *
                     ( (factorial res * (2 `Int.pow` r)) `div` factorial x )
-            tot' = tot
-        in  LeafF { left: 0, here: x } { res: tot', multiplicity: p'}
+            out' = res List.: out
+            leftovers = A.replicate (mx+1) 0
+         in  LeafF { left: 0, here: x, chosen: A.fromFoldable out', leftovers } p'
       List.Cons l ls -> NodeF do
         xlContrib <- safeRange 0 (x+l)
         xContrib  <- safeRange (max 0 (xlContrib - l)) (min x xlContrib)
@@ -440,13 +470,15 @@ vecRunNeighbsTree n orig = case List.step gens of
                         ( factorial res
                     `div` (factorial r * factorial xContrib * factorial lContrib)
                         )
-            tot'     = tot + sum (map (\k -> binom (i+j-k) (i-1)) (safeRange 1 res))
+            out'     = res List.: out
             i'       = i - 1
             j'       = j - res
-        pure { val: { left: lContrib, here: xContrib }
+            leftovers = A.fromFoldable <<< List.take (mx + 1) <<< (_ <> List.repeat 0) <<< List.reverse $
+                            x' List.: l' List.: List.drop 2 (dropAlong out gens)
+        pure { val: { left: lContrib, here: xContrib, chosen: A.fromFoldable out', leftovers }
              , rest: { i: i'
                      , j: j'
-                     , tot: tot'
+                     , out: out'
                      , x0: l
                      , allSame: allSame && xContrib == x0
                      , p: p'
