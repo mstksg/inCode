@@ -1,7 +1,9 @@
 module Gol where
 
+import Control.Monad.Free        as Free
 import Control.MonadZero         as MonadZero
 import Data.Array                as A
+import Control.Monad.State
 import Data.Bifunctor
 import Data.DateTime             as Date
 import Data.DateTime.Instant     as Instant
@@ -27,10 +29,13 @@ import Effect                    (Effect, forE)
 import Effect.Aff                (Aff)
 import Effect.Aff                as Aff
 import Effect.Class              (class MonadEffect, liftEffect)
+import Data.Generic.Rep as Generic
+import Data.Generic.Rep.Show
 import Effect.Class.Console      (log)
 import Effect.Exception.Unsafe
 import Effect.Now                as Now
 import Effect.Ref                as Ref
+import Matryoshka                as Rec
 import Prelude
 import Queue.One                 as Queue
 import Web.DOM.Document          as Document
@@ -45,7 +50,7 @@ main :: Effect Unit
 main = do
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 16
+      logMe 31
 
       g3D <- initGol3D "#gol3D"
       drawGol3D g3D {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
@@ -62,6 +67,8 @@ main = do
 
       drawGolSyms "#golSymsForward" false
       drawGolSyms "#golSymsReverse" true
+
+      assignWindow "hierarchy" $ vecTreeHierarchy (vecRunNeighbsTree 4 12)
   where
     drawerFlat = map (\(Tuple (Tuple x y) pts) ->
                         { x: (x+8) `mod` 20
@@ -355,6 +362,105 @@ safeRange x y
     | y >= x    = List.range x y
     | otherwise = List.nil
 
+data VecTree f a b = Node (f { val :: a, rest :: VecTree f a b })
+                   | Leaf a b
+data VecTreeF f a b r = NodeF (f { val :: a, rest :: r})
+                      | LeafF a b
+derive instance functorVecTreeF :: Functor f => Functor (VecTreeF f a b)
+instance foldableVecTreeF :: Foldable f => Foldable (VecTreeF f a b) where
+    foldr = foldrDefault
+    foldl = foldlDefault
+    foldMap f = case _ of
+      NodeF xs -> foldMap (\{rest} -> f rest) xs
+      LeafF _ _ -> mempty
+instance traversableVecTreeF :: Traversable f => Traversable (VecTreeF f a b) where
+    sequence = sequenceDefault
+    traverse f = case _ of
+      NodeF xs  -> NodeF <$> traverse (\{val,rest} -> (\r -> { val, rest: r }) <$> f rest) xs
+      LeafF x y -> pure (LeafF x y)
+
+derive instance genericVecTree :: Generic.Generic (VecTree f a b) _
+
+instance vecTreeCorec :: Functor f => Rec.Corecursive (VecTree f a b) (VecTreeF f a b) where
+    embed (NodeF xs) = Node xs
+    embed (LeafF x y) = Leaf x y
+instance vecTreeRec :: Functor f => Rec.Recursive (VecTree f a b) (VecTreeF f a b) where
+    project (Node xs) = NodeF xs
+    project (Leaf x y) = LeafF x y
+
+instance showVecTree :: (Functor f, Foldable f, Show a, Show b) => Show (VecTree f a b) where
+    show = Rec.cata $ case _ of
+      NodeF xs ->
+        let rshow {val,rest} = "{val: " <> show val <> ", rest: " <> rest <> "}"
+            xshow = "[" <> intercalate "," (map rshow xs) <> "]"
+        in  "(NodeF " <> xshow <> ")"
+      LeafF x y -> "(Leaf " <> show x <> " " <> show y <> ")"
+
+type VRState =
+    { allSame :: Boolean
+    , i :: Int
+    , j :: Int
+    , ls0 :: List Int
+    , p :: Int
+    , r :: Int
+    , tot :: Int
+    , x :: Int
+    , x0 :: Int
+    }
+
+type Contrib = { left :: Int, here :: Int }
+
+vecRunNeighbsTree
+    :: Int      -- ^ dimension
+    -> Int      -- ^ pascal index
+    -> VecTree List Contrib { res :: Int, multiplicity :: Int }
+vecRunNeighbsTree n orig = case List.step gens of
+    List.Nil       -> undefined
+    List.Cons x xs -> Rec.ana go
+      { i: mx, j: n, tot: 0, x0: x, allSame: true, p: 1, r: 0, x: x, ls0: xs}
+  where
+    mx   = maxBinom n orig + 1
+    gens = genVecRunIxPascal n mx orig
+    go :: VRState -> VecTreeF List Contrib { res :: Int, multiplicity :: Int } VRState
+    go {i,j,tot,x0,allSame,p,r,x,ls0} = case List.step ls0 of
+      List.Nil ->
+        let res = r + x
+            p'  = p *
+                    ( (factorial res * (2 `Int.pow` r)) `div` factorial x )
+            tot' = tot
+        in  LeafF { left: 0, here: x } { res: tot', multiplicity: p'}
+      List.Cons l ls -> NodeF do
+        xlContrib <- safeRange 0 (x+l)
+        xContrib  <- safeRange (max 0 (xlContrib - l)) (min x xlContrib)
+        let lContrib = xlContrib - xContrib
+            res      = r + xlContrib
+            l'       = l - lContrib
+            x'       = x - xContrib
+            p'       = p *
+                        ( factorial res
+                    `div` (factorial r * factorial xContrib * factorial lContrib)
+                        )
+            tot'     = tot + sum (map (\k -> binom (i+j-k) (i-1)) (safeRange 1 res))
+            i'       = i - 1
+            j'       = j - res
+        pure { val: { left: lContrib, here: xContrib }
+             , rest: { i: i'
+                     , j: j'
+                     , tot: tot'
+                     , x0: l
+                     , allSame: allSame && xContrib == x0
+                     , p: p'
+                     , r: x'
+                     , x: l'
+                     , ls0: ls
+                     }
+             }
+
+vecTreeHierarchy :: forall f a b. Foldable f => VecTree f a b -> Hierarchy (VecTree f a b)
+vecTreeHierarchy xs = buildHierarchy xs $ case _ of
+    Node xs  -> A.fromFoldable (foldMap (List.singleton <<< (_.rest)) xs)
+    Leaf x y -> []
+
 type Bazaar f a = forall r. (a -> f r) -> f Unit
 
 type StopBazaar f a = (a -> f Boolean) -> f Unit
@@ -385,6 +491,11 @@ foreign import intMapKeys :: forall a. IntMap a -> Array Int
 foreign import _singletonIntMap :: forall a. Fn2 Int a (IntMap a)
 singletonIntMap :: forall a. Int -> a -> IntMap a
 singletonIntMap = runFn2 _singletonIntMap
+
+foreign import data Hierarchy :: Type -> Type
+foreign import _buildHierarchy :: forall a. Fn2 a (a -> Array a) (Hierarchy a)
+buildHierarchy :: forall a. a -> (a -> Array a) -> Hierarchy a
+buildHierarchy = runFn2 _buildHierarchy
 
 foreign import logMe :: forall a. a -> Effect Unit
 foreign import trace :: forall a. a -> a
@@ -486,3 +597,6 @@ doOnce a = do
         Ref.write true doneRef
 
 foreign import undefined :: forall a. a
+foreign import _assignWindow :: forall a. Fn2 String a (Effect Unit)
+assignWindow :: forall a. String -> a -> Effect Unit
+assignWindow = runFn2 _assignWindow

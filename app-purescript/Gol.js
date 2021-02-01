@@ -173,7 +173,7 @@ exports._filterIntMap = function (f, xs) {
     xs.forEach(function (x, i) {
         if (f(x)) {
             res[i] = x;
-        } 
+        }
     });
     return res;
 }
@@ -254,11 +254,11 @@ exports._drawGolFlat = function({svg, slidersvg, dimslidersvg, ptsdisp, window_s
                 .attr("transform",`translate(${margin.left},${margin.top})`);
         let gridSetup = {};
         const drawBoxes = function(t,d,sel_) {
-            const newCells = t != currTime || d != currDim
+            const newCells = (t != currTime) || (d != currDim);
             const sel = locked ? currSel : sel_;
             if (newCells) {
                 ptcache = [];
-                const cells = snapshots[currTime][currDim]().map(function({x,y,pts}) {
+                const cells = snapshots[t][d]().map(function({x,y,pts}) {
                     if (x in ptcache) {
                         ptcache[x][y] = pts;
                     } else {
@@ -273,16 +273,24 @@ exports._drawGolFlat = function({svg, slidersvg, dimslidersvg, ptsdisp, window_s
                 if (sel) {
                     const {x,y} = sel;
                     const pts = (x in ptcache) ? ((y in ptcache[x]) ? ptcache[x][y] : []) : [];
-                    if (currDim > 0) {
+                    if (d > 0) {
                         const ptsstring = (pts.length == 0)
                                         ? "(no points)"
-                                        : pts.map(pt => "<" + ixPascal(currDim,pt).join(",") + ">").join(", ");
+                                        : pts.map(pt => "<" + ixPascal(d,pt).join(",") + ">").join(", ");
                         ptsdisp.text(ptsstring).style("font-style", (pts.length == 0) ? "italic" : "normal");
                     } else {
                         ptsdisp.text((pts.length == 0) ? "(no point)" : "(single point)")
                           .style("font-style", "italic");
                     }
-                    gridSetup.highlighter([{x,y,val:1}]);
+                    const ptsstring = pts.join(",");
+                    const equivGroup = snapshots[t][d]().flatMap(function(testpt) {
+                        if (testpt.pts.join(",") == ptsstring) {   // heh
+                            return [{x: testpt.x, y: testpt.y, val:1}];
+                        } else {
+                            return [];
+                        }
+                    });
+                    gridSetup.highlighter(equivGroup);
                 } else {
                     gridSetup.highlighter([]);
                     ptsdisp.text("Hover to view points")
@@ -300,8 +308,15 @@ exports._drawGolFlat = function({svg, slidersvg, dimslidersvg, ptsdisp, window_s
               , onleave: (() => drawBoxes(currTime,currDim,undefined))
               }
             );
-        gridSetup.grid
-            .on("click", function(e) { e.preventDefault(); locked = !locked; })
+        gridSetup.grid.on("click", function(e) {
+            e.preventDefault();
+            locked = !locked;
+            if (locked) {
+                gridSetup.underlighter(0.05);
+            } else {
+                gridSetup.underlighter(0);
+            }
+        });
         const dimselbox = dimslidersvg.append("g")
                         .attr("transform","translate(15,0)");
         const dimslider = d3.sliderBottom()
@@ -912,4 +927,14 @@ const setupTimer = function(svg,size,width,callback) {
     return subslider;
 }
 
+// f :: a -> [a]
+exports._buildHierarchy = function (x,f) {
+    if ("d3" in window) {
+        return d3.hierarchy(x,f);
+    } else {
+        return 0;
+    }
+}
+
 exports.undefined = 0;
+exports._assignWindow = function(p,x) { return function () { window[p] = x; } }

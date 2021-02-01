@@ -30,6 +30,9 @@
     "purescript-web-uievents": "=2.0.0",
     "purescript-aff": "=5.1.2",
     "purescript-queue": "=8.0.1",
-    "purescript-promises": "=3.0.0"
+    "purescript-promises": "=3.0.0",
+    "purescript-free": "=5.2.0",
+    "purescript-matryoshka": "=0.4.0",
+    "purescript-generics-rep": "=6.1.1"
   }
 }
