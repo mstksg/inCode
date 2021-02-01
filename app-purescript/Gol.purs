@@ -51,7 +51,7 @@ main :: Effect Unit
 main = do
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 34
+      logMe 2
 
       g3D <- initGol3D "#gol3D"
       drawGol3D g3D {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
@@ -69,7 +69,8 @@ main = do
       drawGolSyms "#golSymsForward" false
       drawGolSyms "#golSymsReverse" true
 
-      drawTree "#golTree"
+      drawTree "#golTreeForward" true
+      drawTree "#golTreeReverse" false
       assignWindow "testtree" $ vecTreeHierarchy (vecRunNeighbsTree 4 22)
   where
     drawerFlat = map (\(Tuple (Tuple x y) pts) ->
@@ -340,7 +341,7 @@ vecRunNeighbs n orig = case List.step gens of
       List.Nil ->
         let res = r + x
             p'  = p `mulNCount` toNCount
-                    ( (factorial res * (2 `Int.pow` r)) `div` factorial x )
+                    ( (factorial res * (2 `Int.pow` r)) `div` (factorial x * factorial r) )
             tot' = tot
         in  Tuple tot' p' <$ MonadZero.guard (not (allSame && x == x0))
       List.Cons l ls -> do
@@ -367,26 +368,11 @@ safeRange x y
 data VecTree f a = Node a (f (VecTree f a))
 data VecTreeF f a r = NodeF a (f r)
 derive instance functorVecTreeF :: Functor f => Functor (VecTreeF f a)
--- instance foldableVecTreeF :: Foldable f => Foldable (VecTreeF f a b) where
---     foldr = foldrDefault
---     foldl = foldlDefault
---     foldMap f = case _ of
---       NodeF xs -> foldMap (\{rest} -> f rest) xs
---       LeafF _ _ -> mempty
--- instance traversableVecTreeF :: Traversable f => Traversable (VecTreeF f a b) where
---     sequence = sequenceDefault
---     traverse f = case _ of
---       NodeF xs  -> NodeF <$> traverse (\{val,rest} -> (\r -> { val, rest: r }) <$> f rest) xs
---       LeafF x y -> pure (LeafF x y)
-
--- derive instance genericVecTree :: Generic.Generic (VecTree f a b) _
 
 instance vecTreeCorec :: Functor f => Rec.Corecursive (VecTree f a) (VecTreeF f a) where
     embed (NodeF x ys) = Node x ys
-    -- embed (LeafF x ) = Leaf x
 instance vecTreeRec :: Functor f => Rec.Recursive (VecTree f a) (VecTreeF f a) where
     project (Node x ys) = NodeF x ys
-    -- project (Leaf x   ) = LeafF x
 
 instance showVecTree :: (Functor f, Foldable f, Show a) => Show (VecTree f a) where
     show = Rec.cata $ \(NodeF x xs) ->
@@ -397,8 +383,9 @@ type Contrib = { left :: Maybe Int
                , here :: Maybe Int
                , chosen :: Array Int
                , leftovers :: Array Int
-               , mult :: Int
-               , multHere :: Int
+               , multP :: Int
+               , multPHere :: Int
+               , multQ :: Int
                , allSame :: Boolean
                }
 
@@ -409,6 +396,7 @@ type VRState =
     , x0 :: Int
     , allSame :: Boolean
     , p :: Int
+    , q :: Int
     , r :: Int
     , x :: Int
     , ls0 :: List Int
@@ -424,46 +412,52 @@ dropAlong xs ys = case List.step xs of
 vecRunNeighbsTree
     :: Int      -- ^ dimension
     -> Int      -- ^ pascal index
-    -> VecTree List Contrib
+    -> VecTree List (Lazy Contrib)
 vecRunNeighbsTree n orig = case List.step gens of
     List.Nil       -> undefined
     List.Cons x xs -> Rec.ana go $
       Tuple (Just { i: mx, j: n
                   , out: List.nil, x0: x, allSame: true
-                  , p: 1, r: 0, x: x, ls0: xs
+                  , p: 1, q: initQ, r: 0, x: x, ls0: xs
                   }
             )
-            { left: Nothing
-            , here: Nothing
-            , chosen: []
-            , mult: 1
-            , multHere: 1
-            , leftovers: A.fromFoldable (List.reverse gens)
-            , allSame: true
-            }
+            (defer \_ ->
+                  { left: Nothing
+                  , here: Nothing
+                  , chosen: []
+                  , multP: 1
+                  , multPHere: 1
+                  , multQ: initQ
+                  , leftovers: A.fromFoldable (List.reverse gens)
+                  , allSame: true
+                  }
+            )
   where
     mx   = maxBinom n orig + 1
     gens = genVecRunIxPascal n mx orig
-    go :: Tuple (Maybe VRState) Contrib -> VecTreeF List Contrib (Tuple (Maybe VRState) Contrib)
+    initQ = product (map factorial gens)
+    go :: Tuple (Maybe VRState) (Lazy Contrib) -> VecTreeF List (Lazy Contrib) (Tuple (Maybe VRState) (Lazy Contrib))
     go (Tuple vrst lastContrib) = NodeF lastContrib case vrst of
       Nothing -> List.nil
-      Just {i,j,out,x0,allSame,p,r,x,ls0} -> case List.step ls0 of
+      Just {i,j,out,x0,allSame,p,q,r,x,ls0} -> case List.step ls0 of
         List.Nil ->
-          let res = r + x
-              pHere = (factorial res * (2 `Int.pow` r)) `div` factorial x
-              p'  = p * pHere
-              out' = res List.: out
-              allSame' = allSame && (x == x0)
-              leftovers = A.replicate (mx+1) 0
-          in  List.singleton $
-                Tuple Nothing
-                      { left: Just 0, here: Just x
-                      , chosen: A.fromFoldable out'
-                      , mult: p'
-                      , multHere: pHere
-                      , allSame: allSame'
-                      , leftovers
-                      }
+          let contrib = defer \_ ->
+                let res = r + x
+                    mulfact = factorial x * factorial r
+                    pHere = (factorial res * (2 `Int.pow` r)) `div` mulfact
+                    p'  = p * pHere
+                    q'  = (q * (2 `Int.pow` (x0 - x))) `div` mulfact
+                    out' = res List.: out
+                    allSame' = allSame && (x == x0)
+                in  { left: Just 0, here: Just x
+                    , chosen: A.fromFoldable out'
+                    , multP: p'
+                    , multPHere: pHere
+                    , multQ: q'
+                    , allSame: allSame'
+                    , leftovers: A.replicate (mx+1) 0
+                    }
+          in  List.singleton (Tuple Nothing contrib)
         List.Cons l ls -> do
           xlContrib <- safeRange 0 (x+l)
           xContrib  <- safeRange (max 0 (xlContrib - l)) (min x xlContrib)
@@ -471,15 +465,25 @@ vecRunNeighbsTree n orig = case List.step gens of
               res      = r + xlContrib
               l'       = l - lContrib
               x'       = x - xContrib
-              pHere    = factorial res
-                   `div` (factorial r * factorial xContrib * factorial lContrib)
+              mulfact  = factorial r * factorial xContrib * factorial lContrib
+              pHere    = factorial res `div` mulfact
               p'       = p * pHere
+              q'       = q `div` mulfact
               out'     = res List.: out
               i'       = i - 1
               j'       = j - res
               allSame' = allSame && xContrib == x0
-              leftovers = A.fromFoldable <<< List.take (mx + 1) <<< (_ <> List.repeat 0) <<< List.reverse $
-                              x' List.: l' List.: List.drop 2 (dropAlong out gens)
+              contrib = defer \_ ->
+                  { left: Just lContrib
+                  , here: Just xContrib
+                  , chosen: A.fromFoldable out'
+                  , multP: p'
+                  , multPHere: pHere
+                  , multQ: q'
+                  , allSame: allSame'
+                  , leftovers: A.fromFoldable <<< List.take (mx + 1) <<< (_ <> List.repeat 0) <<< List.reverse $
+                      x' List.: l' List.: List.drop 2 (dropAlong out gens)
+                  }
           pure $
             Tuple (Just { i: i'
                         , j: j'
@@ -487,19 +491,13 @@ vecRunNeighbsTree n orig = case List.step gens of
                         , x0: l
                         , allSame: allSame'
                         , p: p'
+                        , q: q'
                         , r: x'
                         , x: l'
                         , ls0: ls
                         }
                   )
-                  { left: Just lContrib
-                  , here: Just xContrib
-                  , chosen: A.fromFoldable out'
-                  , mult: p'
-                  , multHere: pHere
-                  , allSame: allSame'
-                  , leftovers
-                  }
+                  contrib
 
 vecTreeHierarchy :: forall f a. Foldable f => VecTree f a -> Hierarchy (VecTree f a)
 vecTreeHierarchy xs = buildHierarchy xs $ \(Node _ ys) -> A.fromFoldable ys
@@ -597,14 +595,15 @@ drawGolSyms = runFn2 _drawGolSyms
 
 foreign import data TreeNode :: Type
 foreign import _drawTree :: forall f.
-      Fn4 String
+      Fn5 String
+          Boolean
           (Int -> Int -> Array Int)
-          (Int -> Int -> Hierarchy (VecTree f Contrib))
+          (Int -> Int -> Hierarchy (VecTree f (Lazy Contrib)))
           (forall a. VecTree f a -> a)
           (Effect Unit)
 drawTree
-    :: forall f. String -> Effect Unit
-drawTree sel = runFn4 _drawTree sel vecRun mkHier (\(Node x _) -> x)
+    :: forall f. String -> Boolean -> Effect Unit
+drawTree sel fwd = runFn5 _drawTree sel fwd vecRun mkHier (\(Node x _) -> x)
   where
     vecRun d n = A.fromFoldable (List.reverse gens)
       where

@@ -938,36 +938,36 @@ const expandRun = r => r.flatMap((d, i) => d3.range(d).map(() => i))
 //                , here :: Maybe Int
 //                , chosen :: Array Int
 //                , leftovers :: Array Int
-//                , mult :: Int
+//                , multP :: Int
+//                , multPHere :: Int
+//                , multQ :: Int
+//                , allSame :: Boolean
 //                }
 //
-// getContrib :: Node -> Contrib
+// forward :: Boolean
+// getContrib :: Node -> Thunk Contrib
 // vecRun :: Int -> Int -> [Int]
 // mkHier :: Int -> Int -> Hierarchy
-exports._drawTree = function(sel,vecRun,mkHier,getContrib) {
-    // let window_size = { height: 400, width: 400 }
+exports._drawTree = function(sel,forward,vecRun,mkHier,getContrib) {
     const margin = { top: 10, bottom: 10, left: 30, right: 25 };
     const maxZ = 3;
-    const dim  = 4;
-
-    const numOpts = binom(dim+maxZ, maxZ);
-    const ptOpts = d3.range(numOpts).map(d => ({ pt: d, run: vecRun(dim)(d) }));
 
     return function () {
         d3.select(sel).selectAll("p").remove();
+        const dimslidersvg = d3.select(sel)
+                .append("svg")
+                .attr("viewBox", [0,0, slider_size.width, slider_size.height])
+                .attr("width","15em")
+                .style("margin","0.25em auto 0 auto")
+                .style("display","block")
+                .style("overflow","visible");
         const selbox = d3.select(sel)
                         .append("form")
                         .style("width","15em")
-                        .style("margin","1em auto 0 auto")
+                        .style("margin","0 auto 0 auto")
                         .style("display","block")
                         .append("select")
                         .style("width","100%");
-        const optbox = selbox.selectAll("option")
-                        .data(ptOpts)
-                        .join("option")
-                        .attr("value", d => d.pt)
-                        .text(d => d.run.slice(0,-1).join(","));
-                        // .text(d => d.run.slice(0,-1).join(",") + " (" + expandRun(d.run).join(",") + ")");
         const svg = d3.select(sel)
                 .append("svg")
                 .attr("width","100%")
@@ -975,12 +975,39 @@ exports._drawTree = function(sel,vecRun,mkHier,getContrib) {
                 .style("overflow","visible")
                 .style("display","block");
 
+        const setupSelect = function(dim) {
+            selbox.selectAll("*").remove();
+            const numOpts = binom(dim+maxZ, maxZ);
+            const ptOpts = d3.range(numOpts).map(d => ({ pt: d, run: vecRun(dim)(d) }));
+
+            selbox.selectAll("option")
+                  .data(ptOpts)
+                  .join("option")
+                  .attr("value", d => d.pt)
+                  .text(d => d.run.slice(0,-1).join(","));
+        }
+
+        const dimselbox = dimslidersvg.append("g")
+                        .attr("transform","translate(15,0)");
+        const dimslider = d3.sliderBottom()
+            .min(0)
+            .max(5)
+            .step(1)
+            .width(slider_size.width-30)
+            .ticks(6)
+            .tickFormat(v => (v+2)+"")
+            .displayFormat(v => "d="+(v+2));
+        dimselbox.call(dimslider);
+
         const drawTree = function(pt) {
             svg.selectAll("*")
                 .remove();
+            const dim = dimslider.value()
             const hier = mkHier(dim)(pt);
             const numchild = hier.leaves().length;
-            const window_size = { height: numchild*16, width: 400 }
+            // console.log(numchild);
+            // window["testhier"] = hier;
+            const window_size = { height: numchild*15+margin.top+margin.bottom, width: 400 }
             const tree = d3.tree()
                 .size([ window_size.height-margin.top-margin.bottom
                       , window_size.width-margin.left-margin.right
@@ -1023,10 +1050,10 @@ exports._drawTree = function(sel,vecRun,mkHier,getContrib) {
                 .attr("font-family",sansSerif)
                 .style("font-size",6)
                 .attr("x",-4)
-                .text(d => getContrib(d.data).leftovers.join(","))
-                .attr("opacity",0.9)
-               .clone(true).lower()
-               .attr("stroke", "white");
+                .text(d => getContrib(d.data)().leftovers.join(","))
+                .attr("opacity",0.9);
+                // .append("title")
+                // .text(d => ("parent" in d) ? undefined : expandRun(getContrib(d.data).leftovers).join(","));
 
             node.append("text")
                 .attr("text-anchor", "end")
@@ -1035,7 +1062,7 @@ exports._drawTree = function(sel,vecRun,mkHier,getContrib) {
                 .style("font-size",6)
                 .attr("x",-4)
                 .text(function (d) {
-                        const c = getContrib(d.data);
+                        const c = getContrib(d.data)();
                         const contlen = c.leftovers.length;
                         const choselen = c.chosen.length;
                         const pad = d3.range(contlen-choselen).map(() => "_");
@@ -1043,9 +1070,9 @@ exports._drawTree = function(sel,vecRun,mkHier,getContrib) {
                      })
                 .attr("opacity",0.9)
                 .style("font-weight", d => ("children" in d) ? "normal" : "bold")
-                .style("text-decoration", d => ("children" in d) ? "none" : (getContrib(d.data).allSame ? "line-through" : "none"))
-               .clone(true).lower()
-               .attr("stroke", "white");
+                .style("text-decoration", d => ("children" in d) ? "none" : (getContrib(d.data)().allSame ? "line-through" : "none"));
+                // .append("title")
+                // .text(d => ("children" in d) ? undefined : expandRun(getContrib(d.data).chosen).join(","));
 
             node.append("text")
                 .attr("text-anchor", "start")
@@ -1054,20 +1081,26 @@ exports._drawTree = function(sel,vecRun,mkHier,getContrib) {
                 .style("font-size",6)
                 .attr("x",4)
                 .text(function (d) {
-                        const c = getContrib(d.data);
+                        const c = getContrib(d.data)();
                         if ("children" in d) {
-                            return c.multHere;
+                            return forward ? c.multQ : c.multPHere;
                         } else {
-                            return c.multHere + " → " + c.mult;
+                            const endMult = c.allSame ? 0 : (forward ? c.multQ : c.multP);
+                            return forward ? endMult : (c.multPHere + " → " + endMult);
                         }
 
                     })
-                .attr("opacity",0.9)
+                .attr("opacity",0.9);
+
+            node.selectAll("text")
                .clone(true).lower()
                .attr("stroke", "white");
+            
         }
 
+        dimslider.on("onchange", d => { setupSelect(d); drawTree(0); } );
         selbox.on("change", d => drawTree(d.srcElement.value));
+        dimslider.value(4);
         drawTree(22);
 
         return svg;
