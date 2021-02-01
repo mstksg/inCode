@@ -929,12 +929,151 @@ const setupTimer = function(svg,size,width,callback) {
 
 // f :: a -> [a]
 exports._buildHierarchy = function (x,f) {
-    if ("d3" in window) {
-        return d3.hierarchy(x,f);
-    } else {
-        return 0;
+    return d3.hierarchy(x,f);
+}
+
+const expandRun = r => r.flatMap((d, i) => d3.range(d).map(() => i))
+
+// type Contrib = { left :: Maybe Int
+//                , here :: Maybe Int
+//                , chosen :: Array Int
+//                , leftovers :: Array Int
+//                , mult :: Int
+//                }
+//
+// getContrib :: Node -> Contrib
+// vecRun :: Int -> Int -> [Int]
+// mkHier :: Int -> Int -> Hierarchy
+exports._drawTree = function(sel,vecRun,mkHier,getContrib) {
+    // let window_size = { height: 400, width: 400 }
+    const margin = { top: 10, bottom: 10, left: 30, right: 25 };
+    const maxZ = 3;
+    const dim  = 4;
+
+    const numOpts = binom(dim+maxZ, maxZ);
+    const ptOpts = d3.range(numOpts).map(d => ({ pt: d, run: vecRun(dim)(d) }));
+
+    return function () {
+        d3.select(sel).selectAll("p").remove();
+        const selbox = d3.select(sel)
+                        .append("form")
+                        .style("width","15em")
+                        .style("margin","1em auto 0 auto")
+                        .style("display","block")
+                        .append("select")
+                        .style("width","100%");
+        const optbox = selbox.selectAll("option")
+                        .data(ptOpts)
+                        .join("option")
+                        .attr("value", d => d.pt)
+                        .text(d => d.run.slice(0,-1).join(","));
+                        // .text(d => d.run.slice(0,-1).join(",") + " (" + expandRun(d.run).join(",") + ")");
+        const svg = d3.select(sel)
+                .append("svg")
+                .attr("width","100%")
+                .style("margin","auto")
+                .style("overflow","visible")
+                .style("display","block");
+
+        const drawTree = function(pt) {
+            svg.selectAll("*")
+                .remove();
+            const hier = mkHier(dim)(pt);
+            const numchild = hier.leaves().length;
+            const window_size = { height: numchild*16, width: 400 }
+            const tree = d3.tree()
+                .size([ window_size.height-margin.top-margin.bottom
+                      , window_size.width-margin.left-margin.right
+                      ])(hier);
+            svg.attr("viewBox", [0,0,window_size.width,window_size.height]);
+            selbox.property("value",pt);
+
+            const treecont = svg.append("g")
+                     .attr("transform",`translate(${margin.left},${margin.top})`);
+
+            const link = treecont.append("g")
+                    .attr("fill","none")
+                    .attr("stroke","#555")
+                    .attr("stroke-opacity",0.4)
+                    .attr("stroke-width",1)
+                    .selectAll("path")
+                    .data(tree.links())
+                    .join("path")
+                    .attr("d", d3.linkHorizontal()
+                                    .x(d => d.y)
+                                    .y(d => d.x)
+                         );
+
+            const node = treecont.append("g")
+                    .attr("stroke-linejoin", "round")
+                    .attr("stroke-width", 3)
+                    .selectAll("g")
+                    .data(tree.descendants())
+                    .join("g")
+                    .attr("transform", d => `translate(${d.y},${d.x})`);
+
+            node.append("circle")
+                    .attr("fill","#333")
+                    .attr("r",1.5)
+                    .attr("opacity",0.75);
+
+            node.append("text")
+                .attr("text-anchor", "end")
+                .attr("dy",-1)
+                .attr("font-family",sansSerif)
+                .style("font-size",6)
+                .attr("x",-4)
+                .text(d => getContrib(d.data).leftovers.join(","))
+                .attr("opacity",0.9)
+               .clone(true).lower()
+               .attr("stroke", "white");
+
+            node.append("text")
+                .attr("text-anchor", "end")
+                .attr("dy",5)
+                .attr("font-family",sansSerif)
+                .style("font-size",6)
+                .attr("x",-4)
+                .text(function (d) {
+                        const c = getContrib(d.data);
+                        const contlen = c.leftovers.length;
+                        const choselen = c.chosen.length;
+                        const pad = d3.range(contlen-choselen).map(() => "_");
+                        return pad.concat(c.chosen).join(",");
+                     })
+                .attr("opacity",0.9)
+                .style("font-weight", d => ("children" in d) ? "normal" : "bold")
+                .style("text-decoration", d => ("children" in d) ? "none" : (getContrib(d.data).allSame ? "line-through" : "none"))
+               .clone(true).lower()
+               .attr("stroke", "white");
+
+            node.append("text")
+                .attr("text-anchor", "start")
+                .attr("dy",2)
+                .attr("font-family",sansSerif)
+                .style("font-size",6)
+                .attr("x",4)
+                .text(function (d) {
+                        const c = getContrib(d.data);
+                        if ("children" in d) {
+                            return c.multHere;
+                        } else {
+                            return c.multHere + " → " + c.mult;
+                        }
+
+                    })
+                .attr("opacity",0.9)
+               .clone(true).lower()
+               .attr("stroke", "white");
+        }
+
+        selbox.on("change", d => drawTree(d.srcElement.value));
+        drawTree(22);
+
+        return svg;
     }
 }
+
 
 exports.undefined = 0;
 exports._assignWindow = function(p,x) { return function () { window[p] = x; } }
