@@ -1010,7 +1010,7 @@ exports._drawTree = function(sel,forward,vecRun,mkHier,getContrib) {
                 const vr = vecRun(dim)(d).slice(0,-1);
                 const pt = ixPascal(dim,d);
                 return { pt: d
-                       , disp: "<" + pt.join(",") + ">: " + vr.join("-")
+                       , disp: "<" + pt.join(",") + "> (" + vr.join("-") + ")"
                        }
 
             });
@@ -1135,19 +1135,23 @@ exports._drawTree = function(sel,forward,vecRun,mkHier,getContrib) {
             node.append("circle")
                     .attr("opacity",0.75)
                     .on("mouseenter", (e,d) => highlightNodes(d))
-                    .on("mouseleave", () => clearNodes());
+                    .on("touchstart", (e,d) => highlightNodes(d))
+                    .on("mouseleave", () => clearNodes())
+                    .on("touchend", () => clearNodes());
             clearNodes();
 
             node.append("text")
                 .attr("text-anchor", "end")
                 .attr("dy",-1.5)
                 .attr("x",-4)
+                .attr("opacity", d => ("children" in d) ? 0.9 : 0.6)
                 .text(d => getContrib(d.data)().leftovers.join("-"));
 
             node.append("text")
                 .attr("text-anchor", "end")
                 .attr("dy",4.5)
                 .attr("x",-4)
+                .attr("opacity", d => (d.parent) ? 0.9 : 0.6)
                 .text(function (d) {
                         const c = getContrib(d.data)();
                         const contlen = c.leftovers.length;
@@ -1162,6 +1166,7 @@ exports._drawTree = function(sel,forward,vecRun,mkHier,getContrib) {
                 .attr("text-anchor", "start")
                 .attr("dy",2)
                 .attr("x",3)
+                .attr("opacity",0.9)
                 .text(function (d) {
                         const c = getContrib(d.data)();
                         const m = forward ? c.multQ() : c.multP();
@@ -1176,7 +1181,6 @@ exports._drawTree = function(sel,forward,vecRun,mkHier,getContrib) {
                 .style("text-decoration", d => ("children" in d) ? "none" : (getContrib(d.data)().allSame ? "line-through" : "none"));
 
             node.selectAll("text")
-                .attr("opacity",0.9)
                 .attr("font-family",sansSerif)
                 .style("font-size",6)
                .clone(true).lower()
