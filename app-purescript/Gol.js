@@ -977,7 +977,7 @@ exports._drawTree = function(sel,forward,vecRun,mkHier,getContrib) {
         const prefix = (expandLeft.length > 0) ? ("[" + expandLeft.join(",") + "]") : "";
         const suffix = expandRun(fullchose).join(",");
         const infix = (prefix.length > 0 && suffix.length > 0) ? "," : "";
-        return prefix + infix + suffix;
+        return "<" + prefix + infix + suffix + ">";
     }
 
     return function () {
@@ -1006,23 +1006,30 @@ exports._drawTree = function(sel,forward,vecRun,mkHier,getContrib) {
         const setupSelect = function(dim) {
             selbox.selectAll("*").remove();
             const numOpts = binom(dim+maxZ, maxZ);
-            const ptOpts = d3.range(numOpts).map(d => ({ pt: d, run: vecRun(dim)(d) }));
+            const ptOpts = d3.range(numOpts).map(function (d) {
+                const vr = vecRun(dim)(d).slice(0,-1);
+                const pt = ixPascal(dim,d);
+                return { pt: d
+                       , disp: "<" + pt.join(",") + ">: " + vr.join("-")
+                       }
+
+            });
 
             selbox.selectAll("option")
                   .data(ptOpts)
                   .join("option")
                   .attr("value", d => d.pt)
-                  .text(d => d.run.slice(0,-1).join(","));
+                  .text(d => d.disp);
         }
 
         const dimselbox = dimslidersvg.append("g")
                         .attr("transform","translate(15,0)");
         const dimslider = d3.sliderBottom()
-            .min(0)
+            .min(1)
             .max(5)
             .step(1)
             .width(slider_size.width-30)
-            .ticks(6)
+            .ticks(5)
             .tickFormat(v => (v+2)+"")
             .displayFormat(v => "d="+(v+2));
         dimselbox.call(dimslider);
@@ -1135,7 +1142,7 @@ exports._drawTree = function(sel,forward,vecRun,mkHier,getContrib) {
                 .attr("text-anchor", "end")
                 .attr("dy",-1.5)
                 .attr("x",-4)
-                .text(d => getContrib(d.data)().leftovers.join(","));
+                .text(d => getContrib(d.data)().leftovers.join("-"));
 
             node.append("text")
                 .attr("text-anchor", "end")
@@ -1146,7 +1153,7 @@ exports._drawTree = function(sel,forward,vecRun,mkHier,getContrib) {
                         const contlen = c.leftovers.length;
                         const choselen = c.chosen.length;
                         const pad = d3.range(contlen-choselen).map(() => "_");
-                        return pad.concat(c.chosen).join(",");
+                        return pad.concat(c.chosen).join("-");
                      })
                 .style("font-weight", d => ("children" in d) ? "normal" : "bold")
                 .style("text-decoration", d => ("children" in d) ? "none" : (getContrib(d.data)().allSame ? "line-through" : "none"));
