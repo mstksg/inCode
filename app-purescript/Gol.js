@@ -3,6 +3,21 @@
 
 const sansSerif = "Helvetica Neue,Helvetica,Arial,sans-serif"
 
+const sameArray = function(xs,ys) {
+    const lx = xs.length;
+    const ly = ys.length;
+    if (lx == ly) {
+        for (const i of d3.range(lx)) {
+            if (xs[i] != ys[i]) {
+                return false;
+            }
+        }
+        return true;
+    } else {
+        return false;
+    }
+}
+
 exports.logMe = function(x) {
     return function() {
         console.log(x);
@@ -284,9 +299,8 @@ exports._drawGolFlat = function({svg, slidersvg, dimslidersvg, ptsdisp, window_s
                         ptsdisp.text((pts.length == 0) ? "(no point)" : "(single point)")
                           .style("font-style", "italic");
                     }
-                    const ptsstring = pts.join(",");
                     const equivGroup = snapshots[t][d]().flatMap(function(testpt) {
-                        if (testpt.pts.join(",") == ptsstring) {   // heh
+                        if (sameArray(testpt.pts, pts)) {
                             return [{x: testpt.x, y: testpt.y, val:1}];
                         } else {
                             return [];
@@ -954,6 +968,18 @@ exports._drawTree = function(sel,forward,vecRun,mkHier,getContrib) {
     const margin = { top: 10, bottom: 10, left: 30, right: 42 };
     const maxZ = 3;
 
+    const expandChosens = function(c) {
+        const contlen = c.leftovers.length;
+        const choselen = c.chosen.length;
+        const pad = d3.range(contlen-choselen).map(() => 0);
+        const fullchose = pad.concat(c.chosen);
+        const expandLeft = expandRun(c.leftovers);
+        const prefix = (expandLeft.length > 0) ? ("[" + expandLeft.join(",") + "]") : "";
+        const suffix = expandRun(fullchose).join(",");
+        const infix = (prefix.length > 0 && suffix.length > 0) ? "," : "";
+        return prefix + infix + suffix;
+    }
+
     return function () {
         d3.select(sel).selectAll("p").remove();
         const dimslidersvg = d3.select(sel)
@@ -1020,14 +1046,14 @@ exports._drawTree = function(sel,forward,vecRun,mkHier,getContrib) {
             const treecont = svg.append("g")
                      .attr("transform",`translate(${margin.left},${margin.top})`);
 
-            const link = treecont.append("g")
+            const link = treecont.append("g");
+            link.selectAll("path")
+                    .data(tree.links())
+                    .join("path")
                     .attr("fill","none")
                     .attr("stroke","#555")
                     .attr("stroke-opacity",0.4)
                     .attr("stroke-width",1)
-                    .selectAll("path")
-                    .data(tree.links())
-                    .join("path")
                     .attr("d", d3.linkHorizontal()
                                     .x(d => d.y)
                                     .y(d => d.x)
@@ -1041,27 +1067,79 @@ exports._drawTree = function(sel,forward,vecRun,mkHier,getContrib) {
                     .join("g")
                     .attr("transform", d => `translate(${d.y},${d.x})`);
 
+            const tooltip = treecont.append("g")
+                               .style("opacity",0.95)
+                               .attr("display","none");
+
+            tooltip.append("rect")
+                .attr("width",40)
+                .attr("height",12)
+                .attr("x",-20)
+                .attr("y",6)
+                .style("fill","#fff")
+                .style("stroke","#666")
+                .style("stroke-width","0.5px");
+
+            const tttext = tooltip.append("text")
+                .attr("text-anchor", "middle")
+                .style("font-size",6.5)
+                .attr("font-family",sansSerif)
+                .attr("x",0)
+                .attr("y",14);
+
+            const highlightNodes = function(d) {
+                const c = getContrib(d.data)();
+                const targChosen = c.chosen;
+                node.selectAll("circle")
+                    .filter(d => sameArray(targChosen,getContrib(d.data)().chosen))
+                    .attr("r",4)
+                    .attr("fill","blue")
+                    .attr("opacity","0.5");
+
+                const ancs = d.ancestors();
+                const checkAnc = function(q) {
+                    for (const a of ancs) {
+                        if (a == q) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+
+                link.selectAll("path")
+                    .filter(d => checkAnc(d.target))
+                    .attr("stroke-opacity",0.9);
+
+                tooltip.attr("display",null)
+                        .attr("transform",`translate(${d.y},${d.x})`);
+                tttext.text(expandChosens(c));
+            }
+            const clearNodes = function() {
+                node.selectAll("circle")
+                    .attr("r",d => (("children" in d) && d.parent) ? 1.5 : 2)
+                    .attr("fill",d => (("children" in d) && d.parent) ? "#333" : "red")
+                    .attr("opacity","0.75");
+                link.selectAll("path")
+                    .attr("stroke-opacity",0.4);
+
+                tooltip.attr("display","none");
+            }
+
             node.append("circle")
-                    .attr("fill","#333")
-                    .attr("r",1.5)
-                    .attr("opacity",0.75);
+                    .attr("opacity",0.75)
+                    .on("mouseenter", (e,d) => highlightNodes(d))
+                    .on("mouseleave", () => clearNodes());
+            clearNodes();
 
             node.append("text")
                 .attr("text-anchor", "end")
                 .attr("dy",-1.5)
-                .attr("font-family",sansSerif)
-                .style("font-size",6)
                 .attr("x",-4)
-                .text(d => getContrib(d.data)().leftovers.join(","))
-                .attr("opacity",0.9);
-                // .append("title")
-                // .text(d => ("parent" in d) ? undefined : expandRun(getContrib(d.data).leftovers).join(","));
+                .text(d => getContrib(d.data)().leftovers.join(","));
 
             node.append("text")
                 .attr("text-anchor", "end")
                 .attr("dy",4.5)
-                .attr("font-family",sansSerif)
-                .style("font-size",6)
                 .attr("x",-4)
                 .text(function (d) {
                         const c = getContrib(d.data)();
@@ -1070,17 +1148,12 @@ exports._drawTree = function(sel,forward,vecRun,mkHier,getContrib) {
                         const pad = d3.range(contlen-choselen).map(() => "_");
                         return pad.concat(c.chosen).join(",");
                      })
-                .attr("opacity",0.9)
                 .style("font-weight", d => ("children" in d) ? "normal" : "bold")
                 .style("text-decoration", d => ("children" in d) ? "none" : (getContrib(d.data)().allSame ? "line-through" : "none"));
-                // .append("title")
-                // .text(d => ("children" in d) ? undefined : expandRun(getContrib(d.data).chosen).join(","));
 
             node.append("text")
                 .attr("text-anchor", "start")
-                .attr("dy",1.5)
-                .attr("font-family",sansSerif)
-                .style("font-size",6)
+                .attr("dy",2)
                 .attr("x",3)
                 .text(function (d) {
                         const c = getContrib(d.data)();
@@ -1093,12 +1166,15 @@ exports._drawTree = function(sel,forward,vecRun,mkHier,getContrib) {
                         }
 
                     })
-                .attr("opacity",0.9);
+                .style("text-decoration", d => ("children" in d) ? "none" : (getContrib(d.data)().allSame ? "line-through" : "none"));
 
             node.selectAll("text")
+                .attr("opacity",0.9)
+                .attr("font-family",sansSerif)
+                .style("font-size",6)
                .clone(true).lower()
                .attr("stroke", "white");
-            
+
         }
 
         dimslider.on("onchange", d => { setupSelect(d); drawTree(0); } );

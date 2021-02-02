@@ -21,6 +21,7 @@ import Data.Map                  as Map
 import Data.Maybe
 import Data.Newtype              as Newtype
 import Data.NonEmpty             as NE
+import Data.Nullable             as Nullable
 import Data.Set                  (Set)
 import Data.Set                  as Set
 import Data.Set.NonEmpty         (NonEmptySet)
@@ -51,7 +52,7 @@ main :: Effect Unit
 main = do
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 6
+      logMe 35
 
       g3D <- initGol3D "#gol3D"
       drawGol3D g3D {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
@@ -367,6 +368,7 @@ safeRange x y
 
 data VecTree f a = Node a (f (VecTree f a))
 data VecTreeF f a r = NodeF a (f r)
+derive instance functorVecTree :: Functor f => Functor (VecTree f)
 derive instance functorVecTreeF :: Functor f => Functor (VecTreeF f a)
 
 instance vecTreeCorec :: Functor f => Rec.Corecursive (VecTree f a) (VecTreeF f a) where
@@ -378,12 +380,17 @@ instance showVecTree :: (Functor f, Foldable f, Show a) => Show (VecTree f a) wh
     show = Rec.cata $ \(NodeF x xs) ->
         let xshow = "[" <> intercalate "," xs <> "]"
         in  "(Node " <> show x <> " " <> xshow <> ")"
+instance foldableVecTree :: Foldable f => Foldable (VecTree f) where
+    foldr = foldrDefault
+    foldl = foldlDefault
+    foldMap f (Node x xs) = f x <> foldMap (foldMap f) xs
+instance traversableVecTree :: Traversable f => Traversable (VecTree f) where
+    traverse f (Node x ys) = Node <$> f x <*> traverse (traverse f) ys
+    sequence = sequenceDefault
 
 type Mult = { total :: Int, here :: String }
 
-type Contrib = { left :: Maybe Int
-               , here :: Maybe Int
-               , chosen :: Array Int
+type Contrib = { chosen :: Array Int
                , leftovers :: Array Int
                , multP :: Lazy Mult
                , multQ :: Lazy Mult
@@ -423,14 +430,13 @@ vecRunNeighbsTree n orig = case List.step gens of
                   }
             )
             (defer \_ ->
-                  { left: Nothing
-                  , here: Nothing
-                  , chosen: []
-                  , multP: defer \_ -> { total: 1, here: "=1" }
-                  , multQ: flip map initQ \q -> { total: q, here: "=" <> show q }
-                  , leftovers: A.fromFoldable (List.reverse gens)
-                  , allSame: true
-                  }
+                let leftovers = A.fromFoldable (List.reverse gens)
+                in  { chosen: []
+                    , multP: defer \_ -> { total: 1, here: "=1" }
+                    , multQ: flip map initQ \q -> { total: q, here: "=" <> show q }
+                    , leftovers: A.fromFoldable (List.reverse gens)
+                    , allSame: true
+                    }
             )
   where
     mx   = maxBinom n orig + 1
@@ -461,8 +467,8 @@ vecRunNeighbsTree n orig = case List.step gens of
                            }
                     out' = res List.: out
                     allSame' = allSame && (x == x0)
-                in  { left: Just 0, here: Just x
-                    , chosen: A.fromFoldable out'
+                    chosen = A.fromFoldable out'
+                in  { chosen
                     , multP
                     , multQ
                     , allSame: allSame'
@@ -495,9 +501,7 @@ vecRunNeighbsTree n orig = case List.step gens of
               j'       = j - res
               allSame' = allSame && xContrib == x0
               contrib = defer \_ ->
-                  { left: Just lContrib
-                  , here: Just xContrib
-                  , chosen: A.fromFoldable out'
+                  { chosen: A.fromFoldable out'
                   , multP
                   , multQ
                   , allSame: allSame'
