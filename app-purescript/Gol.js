@@ -235,13 +235,16 @@ exports._setupDrawer = function(sel, size, callback) {
         let curry = null;
         let grid = {};
 
-        const drawGrid = function() {
-            const output = activePts.flatMap((ys,x) =>
+        const mkOutput = function() {
+            return activePts.flatMap((ys,x) =>
                 ys.flatMap((b, y) =>
                   ((b) ? [{x,y,val:1}] : [])
               ));
-            grid.drawer(output);
-            callback(output.map(({x,y}) => ({x,y})))();
+        }
+
+        const drawGrid = function() {
+            grid.drawer(mkOutput());
+            // callback(output.map(({x,y}) => ({x,y})))();
         }
 
         const setGrid = function(xs) {
@@ -297,6 +300,7 @@ exports._setupDrawer = function(sel, size, callback) {
         const clickoff = function(e) {
             e.preventDefault();
             mode = MODE.OFF;
+            callback(mkOutput().map(({x,y}) => ({x,y})))();
         }
         grid.grid.on("mousedown",clickon)
            .on("touchstart",clickon)
@@ -304,7 +308,12 @@ exports._setupDrawer = function(sel, size, callback) {
            .on("touchend",clickoff);
         setGrid([]);
 
-        return ((xs) => (() => setGrid(xs)));
+        return function (xs) {
+            return function () {
+                setGrid(xs);
+                callback(mkOutput().map(({x,y}) => ({x,y})))();
+            }
+        }
     }
 }
 
@@ -458,10 +467,13 @@ exports._drawGolFlat = function({svg, slidersvg, dimslidersvg, ptsdisp, window_s
     }
 }
 
-exports.initGol3D = function(sel) {
+exports.initGol3D = undefined;
+
+// size : { height: Int, width : Int, maxZ :: Int }
+// aliveCells : [Thunk [{ x: Int, y: Int, zs: [Int] }]]
+exports._setupGol3D = function(sel,{height,width,maxZ}) {
     return function () {
         const window_size = { height: 200, width: 200 }
-        const maxZ = 6;
         const margin = { top: 10, bottom: 10, left: 10, right: 10 }
         d3.select(sel).selectAll("p").remove();
         const svg = d3.select(sel)
@@ -477,22 +489,11 @@ exports.initGol3D = function(sel) {
                 .style("margin","1em auto")
                 .style("display","block")
                 .style("overflow","visible");
-        return { svg, slidersvg, window_size, margin, maxZ } ;
-    }
-}
+        const symmetries = d3.range(0,maxZ+1).map(z => (z > 0) ? [-z,z] : [z]);
+        const cell_size = { height: (window_size.height-margin.top-margin.bottom) / height
+                          , width: (window_size.width-margin.left-margin.right) / width
+                          }
 
-// size : { height: Int, width : Int }
-// aliveCells : [Thunk [{ x: Int, y: Int, zs: [Int] }]]
-exports._drawGol3D = function({svg, slidersvg, window_size, margin, maxZ}, size, snapshots) {
-    const symmetries = d3.range(0,maxZ+1).map(z => (z > 0) ? [-z,z] : [z]);
-    const cell_size = { height: (window_size.height-margin.top-margin.bottom) / size.height
-                      , width: (window_size.width-margin.left-margin.right) / size.width
-                      }
-    return function() {
-        svg.selectAll("*")
-            .remove();
-        slidersvg.selectAll("*")
-            .remove();
         const grid = svg.append("g")
                 .attr("transform",`translate(${margin.left},${margin.top})`);
         let fullGrid = []
@@ -513,7 +514,7 @@ exports._drawGol3D = function({svg, slidersvg, window_size, margin, maxZ}, size,
                     hltr(
                         baseNeighbs
                             .map(dxy => ({x:x+dxy.x,y:y+dxy.y,val:1}))
-                            .filter(xy => (inRange(0,size.width,xy.x) && inRange(0,size.height,xy.y)))
+                            .filter(xy => (inRange(0,width,xy.x) && inRange(0,height,xy.y)))
                     );
                     clearHighlights.push(() => hltr([]));
                 }
@@ -525,7 +526,7 @@ exports._drawGol3D = function({svg, slidersvg, window_size, margin, maxZ}, size,
         }
         grids = symmetries.map(function(pos,i) {
             return pos.map(function(z) {
-                const res = setupGrid(grid,"z = " + z,size.width,size.height
+                const res = setupGrid(grid,"z = " + z,width,height
                         ,window_size.width-margin.left-margin.right
                         ,window_size.height-margin.top-margin.bottom
                         , { onmove: function(x,y) {
@@ -542,6 +543,7 @@ exports._drawGol3D = function({svg, slidersvg, window_size, margin, maxZ}, size,
         });
         let splitCache = [];
         let refresh = [];
+        let snapshots = d3.range(maxZ).map(() => (() => []));
         const drawBoxes = function(j) {
             refresh.forEach(drawer => drawer([]));
             refresh = [];
@@ -570,12 +572,117 @@ exports._drawGol3D = function({svg, slidersvg, window_size, margin, maxZ}, size,
         }
         const controller =
             setupTimer(slidersvg
-                      ,snapshots.length
+                      ,maxZ
                       ,slider_size.width
                       ,drawBoxes
                       );
+
+        return function(newsnaps) {
+            return function () {
+                snapshots = newsnaps;
+                splitCache = [];
+                controller.value(0);
+                drawBoxes(0);
+            }
+        }
     }
 }
+
+// size : { height: Int, width : Int }
+// aliveCells : [Thunk [{ x: Int, y: Int, zs: [Int] }]]
+// exports._drawGol3D = function({svg, slidersvg, window_size, margin, maxZ}, size, snapshots) {
+//     // const symmetries = d3.range(0,maxZ+1).map(z => (z > 0) ? [-z,z] : [z]);
+//     // const cell_size = { height: (window_size.height-margin.top-margin.bottom) / size.height
+//     //                   , width: (window_size.width-margin.left-margin.right) / size.width
+//     //                   }
+//     return function() {
+//         svg.selectAll("*")
+//             .remove();
+//         slidersvg.selectAll("*")
+//             .remove();
+//         // const grid = svg.append("g")
+//         //         .attr("transform",`translate(${margin.left},${margin.top})`);
+//         let fullGrid = []
+//         let clearHighlights = [];
+//         let grids = [];
+//         const clearAllHighlights = function() {
+//             clearHighlights.forEach(highlighter => highlighter([]));
+//             clearHighlights = [];
+//         }
+//         const highlightNeighbs = function(x,y,z,i) {
+//             clearAllHighlights();
+//             [-1,0,1].forEach(function (dz) {
+//                 if (inRange(-maxZ,maxZ+1,z+dz)) {
+//                     const hltr = fullGrid[z+dz+maxZ].highlighter
+//                     const baseNeighbs = (dz == 0)
+//                                       ? neighbs2d.slice(1)
+//                                       : neighbs2d;
+//                     hltr(
+//                         baseNeighbs
+//                             .map(dxy => ({x:x+dxy.x,y:y+dxy.y,val:1}))
+//                             .filter(xy => (inRange(0,size.width,xy.x) && inRange(0,size.height,xy.y)))
+//                     );
+//                     clearHighlights.push(() => hltr([]));
+//                 }
+//             });
+//             grids[i].forEach(function (g) {
+//                 g.underlighter(0.25);
+//                 clearHighlights.push(() => g.underlighter(0));
+//             });
+//         }
+//         grids = symmetries.map(function(pos,i) {
+//             return pos.map(function(z) {
+//                 const res = setupGrid(grid,"z = " + z,size.width,size.height
+//                         ,window_size.width-margin.left-margin.right
+//                         ,window_size.height-margin.top-margin.bottom
+//                         , { onmove: function(x,y) {
+//                               highlightNeighbs(x,y,z,i);
+//                             }
+//                           , onleave: clearAllHighlights
+//                           }
+//                         );
+//                 res.grid
+//                   .attr("transform",`translate(${(maxZ+z)*window_size.width},0)`);
+//                 fullGrid[z+maxZ] = {drawer: res.drawer, highlighter: res.highlighter, underlighter: res.underlighter};
+//                 return {drawer: res.drawer, highlighter: res.highlighter, underlighter: res.underlighter};
+//             });
+//         });
+//         let splitCache = [];
+//         let refresh = [];
+//         const drawBoxes = function(j) {
+//             refresh.forEach(drawer => drawer([]));
+//             refresh = [];
+//             let splitCells = [];
+//             if (j in splitCache) {
+//                 splitCells = splitCache[j];
+//             } else {
+//                 const cells = snapshots[j]();
+//                 cells.map(function({x,y,zs}) {
+//                     zs.map(function (z) {
+//                         if (z in splitCells) {
+//                             splitCells[z].push({x,y,val:1});
+//                         } else {
+//                             splitCells[z] = [{x,y,val:1}];
+//                         }
+//                     });
+//                 });
+//                 splitCache[j] = splitCells;
+//             }
+//             splitCells.forEach(function(ps, z) {
+//                 grids[z].forEach(function ({drawer}) {
+//                     drawer(ps);
+//                     refresh.push(drawer);
+//                 });
+//             });
+//         }
+//         const controller =
+//             setupTimer(slidersvg
+//                       ,snapshots.length
+//                       ,slider_size.width
+//                       ,drawBoxes
+//                       );
+//     }
+// }
 
 exports.initGol4D = function(sel) {
     return function () {
@@ -1206,7 +1313,7 @@ const setupTimer = function(svg,size,width,callback) {
         sliderino.value(nextval);
     }
     play_stop();
-    return subslider;
+    return sliderino;
 }
 
 // f :: a -> [a]

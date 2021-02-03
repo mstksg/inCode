@@ -55,13 +55,12 @@ main :: Effect Unit
 main = do
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 3
+      logMe 11
 
-      g3D <- initGol3D "#gol3D"
+      draw3D <- setupGol3D "#gol3D" {height:20, width:20, maxZ: 6}
+      -- g4D <- initGol4D "#gol4D"
+      -- gFlat <- initGolFlat "#golFlat"
 
-      g4D <- initGol4D "#gol4D"
-
-      gFlat <- initGolFlat "#golFlat"
       drawGolSyms4D "#golSymsForward" false
       drawGolSyms4D "#golSymsReverse" true
 
@@ -76,9 +75,10 @@ main = do
         log $ show bumped
         -- let bumped' = initialPoints'
 
-        drawGol3D g3D {height:20, width:20} 7 bumped
-        drawGol4D g4D {height:20, width:20} 7 bumped
-        drawGolFlat gFlat {height:20, width:20} 8 7 bumped
+        draw3D bumped
+        -- drawGol3D g3D {height:20, width:20} 7 bumped
+        -- drawGol4D g4D {height:20, width:20} 7 bumped
+        -- drawGolFlat gFlat {height:20, width:20} 8 7 bumped
 
       drawer $ map (bump 2) initialPoints
 
@@ -580,24 +580,22 @@ drawGolFlat sel size dim n pts = runFn3 _drawGolFlat sel size $
              )
          <<< Map.toUnfoldableUnordered
 
-foreign import data SVG3D :: Type
-foreign import initGol3D :: String -> Effect SVG3D
-foreign import _drawGol3D :: Fn3
-    SVG3D
-    {height::Int,width::Int}
-    (Array (Lazy (Array {x :: Int, y :: Int, zs :: Array Int})))
-    (Effect Unit)
+-- // size : { height: Int, width : Int, maxZ :: Int }
+-- // aliveCells : [Thunk [{ x: Int, y: Int, zs: [Int] }]]
+-- exports._setupGol3D = function(sel,{height,width,maxZ}) {
+type Gol3DCallback = Array (Lazy (Array {x :: Int, y :: Int, zs :: Array Int})) -> Effect Unit
+foreign import _setupGol3D :: Fn2
+    String
+    {height::Int,width::Int,maxZ::Int}
+    (Effect Gol3DCallback)
 
-drawGol3D
-    :: SVG3D
-    -> {height :: Int, width :: Int}
-    -> Int
-    -> Set Point2
-    -> Effect Unit
-drawGol3D sel size n pts = runFn3 _drawGol3D sel size $
-      A.fromFoldable <<< List.take n $
-        map (map drawer) (runner 1 pts)
+setupGol3D
+    :: String
+    -> {height :: Int, width :: Int, maxZ :: Int}
+    -> Effect (Set Point2 -> Effect Unit)
+setupGol3D sel size = (_ <<< preRun) <$> runFn2 _setupGol3D sel size
   where
+    preRun = A.fromFoldable <<< List.take (size.maxZ +1) <<< map (map drawer) <<< runner 1
     drawer = map (\(Tuple {x, y} pts) ->
                       { x: x `mod` size.width
                       , y: y `mod` size.height
