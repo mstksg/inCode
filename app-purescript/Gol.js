@@ -319,6 +319,17 @@ exports._setupDrawer = function(sel, size, callback) {
 
 const slider_size = { height: 40, width: 200 }
 
+const neighbs2d =
+    [{x:0,y:0},{x:0,y:-1},{x:0,y:1}
+    ,{x:-1,y:0},{x:-1,y:-1},{x:-1,y:1}
+    ,{x:1,y:0},{x:1,y:-1},{x:1,y:1}
+    ]
+
+const inRange = function(mn,mx,x) {
+    return (x >= mn && x < mx);
+}
+
+
 // // snapshots : [[Thunk [{ x: Int, y: Int, pts: [Int] }]]]     -- top level: time, second level, dim
 exports._setupGolFlat = function(sel,{height,width,maxT,maxDim}) {
     const window_size = { height: 200, width: 200 }
@@ -463,7 +474,6 @@ exports._setupGolFlat = function(sel,{height,width,maxT,maxDim}) {
     }
 }
 
-// size : { height: Int, width : Int, maxT :: Int }
 // aliveCells : [Thunk [{ x: Int, y: Int, zs: [Int] }]]
 exports._setupGol3D = function(sel,{height,width,maxT}) {
     return function () {
@@ -582,139 +592,11 @@ exports._setupGol3D = function(sel,{height,width,maxT}) {
     }
 }
 
-// size : { height: Int, width : Int }
-// aliveCells : [Thunk [{ x: Int, y: Int, zs: [Int] }]]
-// exports._drawGol3D = function({svg, slidersvg, window_size, margin, maxZ}, size, snapshots) {
-//     // const symmetries = d3.range(0,maxZ+1).map(z => (z > 0) ? [-z,z] : [z]);
-//     // const cell_size = { height: (window_size.height-margin.top-margin.bottom) / size.height
-//     //                   , width: (window_size.width-margin.left-margin.right) / size.width
-//     //                   }
-//     return function() {
-//         svg.selectAll("*")
-//             .remove();
-//         slidersvg.selectAll("*")
-//             .remove();
-//         // const grid = svg.append("g")
-//         //         .attr("transform",`translate(${margin.left},${margin.top})`);
-//         let fullGrid = []
-//         let clearHighlights = [];
-//         let grids = [];
-//         const clearAllHighlights = function() {
-//             clearHighlights.forEach(highlighter => highlighter([]));
-//             clearHighlights = [];
-//         }
-//         const highlightNeighbs = function(x,y,z,i) {
-//             clearAllHighlights();
-//             [-1,0,1].forEach(function (dz) {
-//                 if (inRange(-maxZ,maxZ+1,z+dz)) {
-//                     const hltr = fullGrid[z+dz+maxZ].highlighter
-//                     const baseNeighbs = (dz == 0)
-//                                       ? neighbs2d.slice(1)
-//                                       : neighbs2d;
-//                     hltr(
-//                         baseNeighbs
-//                             .map(dxy => ({x:x+dxy.x,y:y+dxy.y,val:1}))
-//                             .filter(xy => (inRange(0,size.width,xy.x) && inRange(0,size.height,xy.y)))
-//                     );
-//                     clearHighlights.push(() => hltr([]));
-//                 }
-//             });
-//             grids[i].forEach(function (g) {
-//                 g.underlighter(0.25);
-//                 clearHighlights.push(() => g.underlighter(0));
-//             });
-//         }
-//         grids = symmetries.map(function(pos,i) {
-//             return pos.map(function(z) {
-//                 const res = setupGrid(grid,"z = " + z,size.width,size.height
-//                         ,window_size.width-margin.left-margin.right
-//                         ,window_size.height-margin.top-margin.bottom
-//                         , { onmove: function(x,y) {
-//                               highlightNeighbs(x,y,z,i);
-//                             }
-//                           , onleave: clearAllHighlights
-//                           }
-//                         );
-//                 res.grid
-//                   .attr("transform",`translate(${(maxZ+z)*window_size.width},0)`);
-//                 fullGrid[z+maxZ] = {drawer: res.drawer, highlighter: res.highlighter, underlighter: res.underlighter};
-//                 return {drawer: res.drawer, highlighter: res.highlighter, underlighter: res.underlighter};
-//             });
-//         });
-//         let splitCache = [];
-//         let refresh = [];
-//         const drawBoxes = function(j) {
-//             refresh.forEach(drawer => drawer([]));
-//             refresh = [];
-//             let splitCells = [];
-//             if (j in splitCache) {
-//                 splitCells = splitCache[j];
-//             } else {
-//                 const cells = snapshots[j]();
-//                 cells.map(function({x,y,zs}) {
-//                     zs.map(function (z) {
-//                         if (z in splitCells) {
-//                             splitCells[z].push({x,y,val:1});
-//                         } else {
-//                             splitCells[z] = [{x,y,val:1}];
-//                         }
-//                     });
-//                 });
-//                 splitCache[j] = splitCells;
-//             }
-//             splitCells.forEach(function(ps, z) {
-//                 grids[z].forEach(function ({drawer}) {
-//                     drawer(ps);
-//                     refresh.push(drawer);
-//                 });
-//             });
-//         }
-//         const controller =
-//             setupTimer(slidersvg
-//                       ,snapshots.length
-//                       ,slider_size.width
-//                       ,drawBoxes
-//                       );
-//     }
-// }
-
-exports.initGol4D = function(sel) {
-    return function () {
-        const window_size = { height: 200, width: 200 }
-        const maxZW = 6;
-        const margin = { top: 10, bottom: 10, left: 10, right: 10 }
-        d3.select(sel).selectAll("p").remove();
-        const svg = d3.select(sel)
-            .append("svg")
-            .attr("viewBox", [0,0,window_size.width*(maxZW*2+1), window_size.height*(maxZW*2+1)])
-            .attr("width","100%")
-            .style("margin","auto")
-            .style("display","block");
-        const slidersvg = d3.select(sel)
-                .append("svg")
-                .attr("viewBox", [0,0, slider_size.width, slider_size.height])
-                .attr("width","15em")
-                .style("margin","1em auto")
-                .style("display","block")
-                .style("overflow","visible");
-        return { svg, slidersvg, window_size, margin, maxZW } ;
-    }
-}
-
-const neighbs2d =
-    [{x:0,y:0},{x:0,y:-1},{x:0,y:1}
-    ,{x:-1,y:0},{x:-1,y:-1},{x:-1,y:1}
-    ,{x:1,y:0},{x:1,y:-1},{x:1,y:1}
-    ]
-
-const inRange = function(mn,mx,x) {
-    return (x >= mn && x < mx);
-}
-
-// size : { height: Int, width : Int }
-// aliveCells : [Thunk [{ x: Int, y: Int, zws: [Int}] }]]
-exports._drawGol4D = function({svg, slidersvg, window_size, margin, maxZW}, size, snapshots) {
-    const maxPascal = binom(2+maxZW,maxZW);
+// aliveCells : [Thunk [{ x: Int, y: Int, zws: [Int] }]]
+exports._setupGol4D = function(sel,{height,width,maxT}) {
+    const window_size = { height: 200, width: 200 }
+    const margin = { top: 10, bottom: 10, left: 10, right: 10 }
+    const maxPascal = binom(2+maxT,maxT);
     const symmetries = d3.range(0,maxPascal).map(function(i) {
         const zw = ixPascal(2,i);
         const z0 = zw[0];
@@ -736,18 +618,29 @@ exports._drawGol4D = function({svg, slidersvg, window_size, margin, maxZW}, size
         });
         return pos;
     });
-    const cell_size = { height: (window_size.height-margin.top-margin.bottom) / size.height
-                      , width: (window_size.width-margin.left-margin.right) / size.width
+    const cell_size = { height: (window_size.height-margin.top-margin.bottom) / height
+                      , width: (window_size.width-margin.left-margin.right) / width
                       }
-    return function() {
-        svg.selectAll("*")
-            .remove();
-        slidersvg.selectAll("*")
-            .remove();
+    return function () {
+        d3.select(sel).selectAll("p").remove();
+        const svg = d3.select(sel)
+            .append("svg")
+            .attr("viewBox", [0,0,window_size.width*(maxT*2+1), window_size.height*(maxT*2+1)])
+            .attr("width","100%")
+            .style("margin","auto")
+            .style("display","block");
+        const slidersvg = d3.select(sel)
+                .append("svg")
+                .attr("viewBox", [0,0, slider_size.width, slider_size.height])
+                .attr("width","15em")
+                .style("margin","1em auto")
+                .style("display","block")
+                .style("overflow","visible");
+
         const grid = svg.append("g")
                 .attr("transform",`translate(${margin.left},${margin.top})`);
 
-        let fullGrid = d3.range(2*maxZW+1).map(c => []);
+        let fullGrid = d3.range(2*maxT+1).map(c => []);
         let clearHighlights = [];
         let grids = [];
         const clearAllHighlights = function() {
@@ -757,8 +650,8 @@ exports._drawGol4D = function({svg, slidersvg, window_size, margin, maxZW}, size
         const highlightNeighbs = function(x,y,z,w,i) {
             clearAllHighlights();
             neighbs2d.forEach(function (dzw) {
-                if (inRange(-maxZW,maxZW+1,z+dzw.x) && inRange(-maxZW,maxZW+1,w+dzw.y)) {
-                    const hltr = fullGrid[z+dzw.x+maxZW][w+dzw.y+maxZW].highlighter
+                if (inRange(-maxT,maxT+1,z+dzw.x) && inRange(-maxT,maxT+1,w+dzw.y)) {
+                    const hltr = fullGrid[z+dzw.x+maxT][w+dzw.y+maxT].highlighter
                     // hltr([{x,y,val:1}])
                     const baseNeighbs = (dzw.x == 0 && dzw.y == 0)
                                       ? neighbs2d.slice(1)
@@ -766,7 +659,7 @@ exports._drawGol4D = function({svg, slidersvg, window_size, margin, maxZW}, size
                     hltr(
                         baseNeighbs
                             .map(dxy => ({x:x+dxy.x,y:y+dxy.y,val:1}))
-                            .filter(xy => (inRange(0,size.width,xy.x) && inRange(0,size.height,xy.y)))
+                            .filter(xy => (inRange(0,width,xy.x) && inRange(0,height,xy.y)))
                     );
                     clearHighlights.push(() => hltr([]));
                 }
@@ -778,8 +671,7 @@ exports._drawGol4D = function({svg, slidersvg, window_size, margin, maxZW}, size
         }
         grids = symmetries.map(function(pos,i) {
             return pos.map(function({z,w}) {
-                const res = setupGrid(grid,"",size.width,size.height
-                // const res = setupGrid(grid,z + ", " + w,size.width,size.height
+                const res = setupGrid(grid,"",width,height
                         ,window_size.width-margin.left-margin.right
                         ,window_size.height-margin.top-margin.bottom
                         , { onmove: function(x,y) {
@@ -789,12 +681,13 @@ exports._drawGol4D = function({svg, slidersvg, window_size, margin, maxZW}, size
                           }
                         );
                 res.grid
-                  .attr("transform",`translate(${(maxZW+z)*window_size.width},${(maxZW+w)*window_size.height})`);
-                fullGrid[z+maxZW][w+maxZW] = {drawer: res.drawer, highlighter: res.highlighter, underlighter: res.underlighter};
+                  .attr("transform",`translate(${(maxT+z)*window_size.width},${(maxT+w)*window_size.height})`);
+                fullGrid[z+maxT][w+maxT] = {drawer: res.drawer, highlighter: res.highlighter, underlighter: res.underlighter};
                 return {drawer: res.drawer, highlighter: res.highlighter, underlighter: res.underlighter};
             });
         });
 
+        let snapshots = d3.range(maxT+1).map(() => (() => []));
         let splitCache = [];
         let refresh = [];
         const drawBoxes = function(j) {
@@ -825,10 +718,19 @@ exports._drawGol4D = function({svg, slidersvg, window_size, margin, maxZW}, size
         }
         const controller =
             setupTimer(slidersvg
-                      ,snapshots.length
+                      ,maxT+1
                       ,slider_size.width
                       ,drawBoxes
                       );
+
+        return function(newsnaps) {
+            return function () {
+                snapshots = newsnaps;
+                splitCache = [];
+                controller.value(0);
+                drawBoxes(0);
+            }
+        }
     }
 }
 

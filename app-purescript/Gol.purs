@@ -55,11 +55,11 @@ main :: Effect Unit
 main = do
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 13
+      logMe 15
 
       draw3D <- setupGol3D "#gol3D" {height:20, width:20, maxT: 6}
+      draw4D <- setupGol4D "#gol4D" {height:20, width:20, maxT: 6}
       drawFlat <- setupGolFlat "#golFlat" {height:20, width:20, maxT: 6, maxDim: 8}
-      -- g4D <- initGol4D "#gol4D"
 
       drawGolSyms4D "#golSymsForward" false
       drawGolSyms4D "#golSymsReverse" true
@@ -72,14 +72,9 @@ main = do
 
       drawer <- setupDrawer "#golDrawer" {height:8, width:8} $ \pts -> do
         let bumped = Set.fromFoldable (map (bump 6) pts)
-        -- log $ show bumped
-        -- let bumped' = initialPoints'
-
         draw3D bumped
+        draw4D bumped
         drawFlat bumped
-        -- drawGol3D g3D {height:20, width:20} 7 bumped
-        -- drawGol4D g4D {height:20, width:20} 7 bumped
-        -- drawGolFlat gFlat {height:20, width:20} 8 7 bumped
 
       drawer $ map (bump 2) initialPoints
 
@@ -503,11 +498,6 @@ type StopBazaar f a = (a -> f Boolean) -> f Unit
 
 -- foreign import testPrint :: forall a. StopBazaar Effect a -> Effect Unit
 
--- // extractor :: c -> (a -> b -> r) -> r
--- // merger :: r -> r -> r
--- // bazaar :: (c -> f r) -> f r
--- exports._mergeMaps = function(extractor, merger, bazaar) {
-
 foreign import data IntMap :: Type -> Type
 foreign import _toIntMap :: forall b c r. Fn3 (c -> (Int -> b -> Effect r) -> Effect r) (r -> r -> r) (Bazaar Effect c) (IntMap r)
 
@@ -597,25 +587,19 @@ setupGol3D sel size = (_ <<< preRun) <$> runFn2 _setupGol3D sel size
                )
        <<< Map.toUnfoldableUnordered
 
+type Gol4DCallback = Array (Lazy (Array {x :: Int, y :: Int, zws :: Array Int})) -> Effect Unit
+foreign import _setupGol4D :: Fn2
+    String
+    {height::Int,width::Int,maxT::Int}
+    (Effect Gol4DCallback)
 
-foreign import data SVG4D :: Type
-foreign import initGol4D :: String -> Effect SVG4D
-foreign import _drawGol4D :: Fn3
-    SVG4D
-    {height::Int,width::Int}
-    (Array (Lazy (Array {x :: Int, y :: Int, zws :: Array Int})))
-    (Effect Unit)
-
-drawGol4D
-    :: SVG4D
-    -> {height :: Int, width :: Int}
-    -> Int
-    -> Set Point2
-    -> Effect Unit
-drawGol4D sel size n pts = runFn3 _drawGol4D sel size $
-      A.fromFoldable <<< List.take n $
-        map (map drawer) (runner 2 pts)
+setupGol4D
+    :: String
+    -> {height :: Int, width :: Int, maxT :: Int}
+    -> Effect (Set Point2 -> Effect Unit)
+setupGol4D sel size = (_ <<< preRun) <$> runFn2 _setupGol4D sel size
   where
+    preRun = A.fromFoldable <<< List.take (size.maxT +1) <<< map (map drawer) <<< runner 2
     drawer = map (\(Tuple {x, y} pts) ->
                       { x: x `mod` size.width
                       , y: y `mod` size.height
