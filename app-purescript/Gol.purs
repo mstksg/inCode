@@ -55,11 +55,11 @@ main :: Effect Unit
 main = do
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 11
+      logMe 13
 
-      draw3D <- setupGol3D "#gol3D" {height:20, width:20, maxZ: 6}
+      draw3D <- setupGol3D "#gol3D" {height:20, width:20, maxT: 6}
+      drawFlat <- setupGolFlat "#golFlat" {height:20, width:20, maxT: 6, maxDim: 8}
       -- g4D <- initGol4D "#gol4D"
-      -- gFlat <- initGolFlat "#golFlat"
 
       drawGolSyms4D "#golSymsForward" false
       drawGolSyms4D "#golSymsReverse" true
@@ -72,10 +72,11 @@ main = do
 
       drawer <- setupDrawer "#golDrawer" {height:8, width:8} $ \pts -> do
         let bumped = Set.fromFoldable (map (bump 6) pts)
-        log $ show bumped
+        -- log $ show bumped
         -- let bumped' = initialPoints'
 
         draw3D bumped
+        drawFlat bumped
         -- drawGol3D g3D {height:20, width:20} 7 bumped
         -- drawGol4D g4D {height:20, width:20} 7 bumped
         -- drawGolFlat gFlat {height:20, width:20} 8 7 bumped
@@ -551,27 +552,22 @@ setupDrawer
     -> Effect Drawer
 setupDrawer = runFn3 _setupDrawer
 
+type GolFlatCallback = Array (Array (Lazy (Array {x :: Int, y :: Int, pts :: Array Int}))) -> Effect Unit
+foreign import _setupGolFlat :: Fn2
+    String
+    {height::Int,width::Int,maxT::Int,maxDim::Int}
+    (Effect GolFlatCallback)
 
-foreign import data SVGFlat :: Type
-foreign import initGolFlat :: String -> Effect SVGFlat
-foreign import _drawGolFlat :: Fn3
-    SVGFlat
-    {height::Int,width::Int}
-    (Array (Array (Lazy (Array {x :: Int, y :: Int, pts :: Array Int}))))
-    (Effect Unit)
-
-drawGolFlat
-    :: SVGFlat
-    -> {height :: Int, width :: Int}
-    -> Int    -- ^ max dimension
-    -> Int    -- ^ num setps
-    -> Set Point2
-    -> Effect Unit
-drawGolFlat sel size dim n pts = runFn3 _drawGolFlat sel size $
-    A.fromFoldable <<< map A.fromFoldable
-      <<< List.transpose <<< flip map (List.range 0 dim) $ \d ->
-            map (map drawer) (List.take n (runner d pts))
+setupGolFlat
+    :: String
+    -> {height :: Int, width :: Int, maxT :: Int, maxDim :: Int}
+    -> Effect (Set Point2 -> Effect Unit)
+setupGolFlat sel size = (_ <<< preRun) <$> runFn2 _setupGolFlat sel size
   where
+    -- preRun pts = A.fromFoldable <<< List.take (size.maxZ +1) <<< map (map drawer) <<< runner 1
+    preRun pts = A.fromFoldable <<< map A.fromFoldable
+      <<< List.transpose <<< flip map (List.range 0 size.maxDim) $ \d ->
+            map (map drawer) (List.take (size.maxT+1) (runner d pts))
     drawer = map (\(Tuple {x, y} pts) ->
                     { x: x `mod` size.width
                     , y: y `mod` size.height
@@ -580,22 +576,19 @@ drawGolFlat sel size dim n pts = runFn3 _drawGolFlat sel size $
              )
          <<< Map.toUnfoldableUnordered
 
--- // size : { height: Int, width : Int, maxZ :: Int }
--- // aliveCells : [Thunk [{ x: Int, y: Int, zs: [Int] }]]
--- exports._setupGol3D = function(sel,{height,width,maxZ}) {
 type Gol3DCallback = Array (Lazy (Array {x :: Int, y :: Int, zs :: Array Int})) -> Effect Unit
 foreign import _setupGol3D :: Fn2
     String
-    {height::Int,width::Int,maxZ::Int}
+    {height::Int,width::Int,maxT::Int}
     (Effect Gol3DCallback)
 
 setupGol3D
     :: String
-    -> {height :: Int, width :: Int, maxZ :: Int}
+    -> {height :: Int, width :: Int, maxT :: Int}
     -> Effect (Set Point2 -> Effect Unit)
 setupGol3D sel size = (_ <<< preRun) <$> runFn2 _setupGol3D sel size
   where
-    preRun = A.fromFoldable <<< List.take (size.maxZ +1) <<< map (map drawer) <<< runner 1
+    preRun = A.fromFoldable <<< List.take (size.maxT +1) <<< map (map drawer) <<< runner 1
     drawer = map (\(Tuple {x, y} pts) ->
                       { x: x `mod` size.width
                       , y: y `mod` size.height

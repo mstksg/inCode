@@ -319,10 +319,14 @@ exports._setupDrawer = function(sel, size, callback) {
 
 const slider_size = { height: 40, width: 200 }
 
-exports.initGolFlat = function(sel) {
+// // snapshots : [[Thunk [{ x: Int, y: Int, pts: [Int] }]]]     -- top level: time, second level, dim
+exports._setupGolFlat = function(sel,{height,width,maxT,maxDim}) {
+    const window_size = { height: 200, width: 200 }
+    const margin = { top: 10, bottom: 10, left: 10, right: 10 }
+    const cell_size = { height: (window_size.height-margin.top-margin.bottom) / height
+                      , width: (window_size.width-margin.left-margin.right) / width
+                      }
     return function () {
-        const window_size = { height: 200, width: 200 }
-        const margin = { top: 10, bottom: 10, left: 10, right: 10 }
         d3.select(sel).selectAll("p").remove();
         const svg = d3.select(sel)
             .append("svg")
@@ -354,35 +358,18 @@ exports.initGolFlat = function(sel) {
                 .style("text-align","center")
                 .style("font-size","90%")
                 .style("line-height","125%");
-        return { svg, slidersvg, dimslidersvg, ptsdisp, window_size, margin } ;
-    }
-}
-
-// size : { height: Int, width : Int }
-// snapshots : [[Thunk [{ x: Int, y: Int, pts: [Int] }]]]     -- top level: time, second level, dim
-exports._drawGolFlat = function({svg, slidersvg, dimslidersvg, ptsdisp, window_size, margin}, size, snapshots) {
-    const cell_size = { height: (window_size.height-margin.top-margin.bottom) / size.height
-                      , width: (window_size.width-margin.left-margin.right) / size.width
-                      }
-    return function() {
-        svg.selectAll("*")
-            .remove();
-        slidersvg.selectAll("*")
-            .remove();
-        dimslidersvg.selectAll("*")
-            .remove();
-        ptsdisp.selectAll("*")
-            .remove();
         let currTime = 0;
         let currDim = 0;
         let currSel = undefined;
         let locked = false;
         let ptcache = [];
+        let snapshots = d3.range(maxDim+1).map(() => d3.range(maxT+1).map(() => (() => [])));
+
         const grid = svg.append("g")
                 .attr("transform",`translate(${margin.left},${margin.top})`);
         let gridSetup = {};
-        const drawBoxes = function(t,d,sel_) {
-            const newCells = (t != currTime) || (d != currDim);
+        const drawBoxes = function(t,d,sel_,forceNew) {
+            const newCells = forceNew || (t != currTime) || (d != currDim);
             const sel = locked ? currSel : sel_;
             if (newCells) {
                 ptcache = [];
@@ -428,11 +415,11 @@ exports._drawGolFlat = function({svg, slidersvg, dimslidersvg, ptsdisp, window_s
             currDim = d;
             currSel = sel;
         }
-        gridSetup = setupGrid(grid,"",size.width,size.height
+        gridSetup = setupGrid(grid,"",width,height
             ,window_size.width-margin.left-margin.right
             ,window_size.height-margin.top-margin.bottom
-            , { onmove: ((x,y) => drawBoxes(currTime,currDim,{x,y}))
-              , onleave: (() => drawBoxes(currTime,currDim,undefined))
+            , { onmove: ((x,y) => drawBoxes(currTime,currDim,{x,y},false))
+              , onleave: (() => drawBoxes(currTime,currDim,undefined,false))
               }
             );
         gridSetup.grid.on("click", function(e) {
@@ -448,37 +435,44 @@ exports._drawGolFlat = function({svg, slidersvg, dimslidersvg, ptsdisp, window_s
                         .attr("transform","translate(15,0)");
         const dimslider = d3.sliderBottom()
             .min(0)
-            .max(snapshots[0].length-1)
+            .max(maxDim)
             .step(1)
             .width(slider_size.width-30)
-            .ticks(snapshots[0].length)
+            .ticks(maxDim+1)
             .tickFormat(v => (v+2)+"")
             .displayFormat(v => "d="+(v+2))
-            .on("onchange", d => drawBoxes(currTime,d,currSel));
+            .on("onchange", d => drawBoxes(currTime,d,currSel,false));
         dimselbox.call(dimslider);
         dimslider.value(3)
 
         const controller =
             setupTimer(slidersvg
-                      ,snapshots.length
+                      ,maxT+1
                       ,slider_size.width
-                      , i => drawBoxes(i,currDim,currSel)
+                      , i => drawBoxes(i,currDim,currSel,false)
                       );
+
+        return function(newsnaps) {
+            return function () {
+                snapshots = newsnaps;
+                locked = false;
+                controller.value(0);
+                drawBoxes(0,currDim,undefined,true);
+            }
+        }
     }
 }
 
-exports.initGol3D = undefined;
-
-// size : { height: Int, width : Int, maxZ :: Int }
+// size : { height: Int, width : Int, maxT :: Int }
 // aliveCells : [Thunk [{ x: Int, y: Int, zs: [Int] }]]
-exports._setupGol3D = function(sel,{height,width,maxZ}) {
+exports._setupGol3D = function(sel,{height,width,maxT}) {
     return function () {
         const window_size = { height: 200, width: 200 }
         const margin = { top: 10, bottom: 10, left: 10, right: 10 }
         d3.select(sel).selectAll("p").remove();
         const svg = d3.select(sel)
             .append("svg")
-            .attr("viewBox", [0,0,window_size.width*(maxZ*2+1), window_size.height])
+            .attr("viewBox", [0,0,window_size.width*(maxT*2+1), window_size.height])
             .attr("width","100%")
             .style("margin","auto")
             .style("display","block");
@@ -489,7 +483,7 @@ exports._setupGol3D = function(sel,{height,width,maxZ}) {
                 .style("margin","1em auto")
                 .style("display","block")
                 .style("overflow","visible");
-        const symmetries = d3.range(0,maxZ+1).map(z => (z > 0) ? [-z,z] : [z]);
+        const symmetries = d3.range(0,maxT+1).map(z => (z > 0) ? [-z,z] : [z]);
         const cell_size = { height: (window_size.height-margin.top-margin.bottom) / height
                           , width: (window_size.width-margin.left-margin.right) / width
                           }
@@ -506,8 +500,8 @@ exports._setupGol3D = function(sel,{height,width,maxZ}) {
         const highlightNeighbs = function(x,y,z,i) {
             clearAllHighlights();
             [-1,0,1].forEach(function (dz) {
-                if (inRange(-maxZ,maxZ+1,z+dz)) {
-                    const hltr = fullGrid[z+dz+maxZ].highlighter
+                if (inRange(-maxT,maxT+1,z+dz)) {
+                    const hltr = fullGrid[z+dz+maxT].highlighter
                     const baseNeighbs = (dz == 0)
                                       ? neighbs2d.slice(1)
                                       : neighbs2d;
@@ -536,14 +530,14 @@ exports._setupGol3D = function(sel,{height,width,maxZ}) {
                           }
                         );
                 res.grid
-                  .attr("transform",`translate(${(maxZ+z)*window_size.width},0)`);
-                fullGrid[z+maxZ] = {drawer: res.drawer, highlighter: res.highlighter, underlighter: res.underlighter};
+                  .attr("transform",`translate(${(maxT+z)*window_size.width},0)`);
+                fullGrid[z+maxT] = {drawer: res.drawer, highlighter: res.highlighter, underlighter: res.underlighter};
                 return {drawer: res.drawer, highlighter: res.highlighter, underlighter: res.underlighter};
             });
         });
         let splitCache = [];
         let refresh = [];
-        let snapshots = d3.range(maxZ).map(() => (() => []));
+        let snapshots = d3.range(maxT+1).map(() => (() => []));
         const drawBoxes = function(j) {
             refresh.forEach(drawer => drawer([]));
             refresh = [];
@@ -572,7 +566,7 @@ exports._setupGol3D = function(sel,{height,width,maxZ}) {
         }
         const controller =
             setupTimer(slidersvg
-                      ,maxZ
+                      ,maxT+1
                       ,slider_size.width
                       ,drawBoxes
                       );
@@ -1143,13 +1137,6 @@ const setupGrid = function(svg,label,numx,numy,width,height,handlers) {
             .attr("height",height)
             .attr("fill","yellow")
             .attr("opacity",0);
-    const outline = grid.append("rect")
-            .attr("width",width)
-            .attr("height",height)
-            .attr("fill","none")
-            .attr("stroke","black")
-            .attr("stroke-width",2)
-            .attr("stroke-opacity",0.75);
     const boxes = grid.append("g");
     const xlines = grid.append("g").selectAll("line")
                 .data(d3.range(numx-1))
@@ -1190,6 +1177,13 @@ const setupGrid = function(svg,label,numx,numy,width,height,handlers) {
             .attr("transform", `translate(${width/2},${height*(2/3-1/20)})`)
             .attr("opacity",0.85)
             .text("");
+    const outline = grid.append("rect")
+            .attr("width",width)
+            .attr("height",height)
+            .attr("fill","none")
+            .attr("stroke","black")
+            .attr("stroke-width",2)
+            .attr("stroke-opacity",0.75);
     const capture = grid.append("rect")
             .attr("width",width)
             .attr("height",height)
