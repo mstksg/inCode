@@ -214,6 +214,100 @@ exports.trace = function (tr) {
     }
 }
 
+const MODE = { OFF: 0, CLEAR: 1, SET: 2 }
+
+// callback :: (Array [{x:Int, y:Int}] -> Effect Unit)
+exports._setupDrawer = function(sel, size, callback) {
+    const window_size = { height: 200, width: 200 }
+    const margin = { top: 10, bottom: 10, left: 10, right: 10 }
+    return function() {
+        d3.select(sel).selectAll("p").remove();
+        const svg = d3.select(sel)
+            .append("svg")
+            .attr("viewBox", [0,0,window_size.width, window_size.height])
+            .attr("width","15em")
+            .style("margin","auto")
+            .style("display","block");
+
+        let activePts = []
+
+        let currx = null;
+        let curry = null;
+        let grid = {};
+
+        const drawGrid = function() {
+            const output = activePts.flatMap((ys,x) =>
+                ys.flatMap((b, y) =>
+                  ((b) ? [{x,y,val:1}] : [])
+              ));
+            grid.drawer(output);
+            callback(output.map(({x,y}) => ({x,y})))();
+        }
+
+        const setGrid = function(xs) {
+            activePts =
+                d3.range(size.width)
+                  .map( () => d3.range(size.height).map( () => false) );
+            if (xs) {
+                xs.forEach(function({x,y}) {
+                    activePts[x][y] = true;
+                });
+            }
+            drawGrid();
+        }
+
+        let mode = MODE.OFF;
+        const drawer = function (x,y) {
+            currx = x;
+            curry = y;
+            if (mode > MODE.OFF) {
+                if (!(x == null || y == null)) {
+                    const oldset = activePts[x][y];
+                    const newset = (mode == MODE.SET);
+                    activePts[x][y] = newset;
+
+                    if (oldset != newset) {
+                        drawGrid();
+                    }
+                }
+            }
+        }
+
+        const gridbox = svg.append("g")
+                .attr("transform",`translate(${margin.left},${margin.top})`);
+        grid = setupGrid(gridbox,"",size.width,size.height
+            ,window_size.width-margin.left-margin.right
+            ,window_size.height-margin.top-margin.bottom
+            , { onmove: ((x,y) => drawer(x,y))
+              , onleave: (function () { mode = MODE.OFF; })
+              }
+            );
+        const clickon = function(e) {
+            e.preventDefault();
+            // console.log(currx,curry);
+            if (!(currx == null || curry == null)) {
+                mode = (activePts[currx][curry]) ? MODE.CLEAR : MODE.SET;
+                // console.log(activePts[currx][curry],mode);
+            } else {
+                // console.log(e);
+                mode = MODE.SET;
+            }
+            drawer(currx,curry);
+        }
+        const clickoff = function(e) {
+            e.preventDefault();
+            mode = MODE.OFF;
+        }
+        grid.grid.on("mousedown",clickon)
+           .on("touchstart",clickon)
+           .on("mouseup",clickoff)
+           .on("touchend",clickoff);
+        setGrid([]);
+
+        return ((xs) => (() => setGrid(xs)));
+    }
+}
+
 const slider_size = { height: 40, width: 200 }
 
 exports.initGolFlat = function(sel) {
@@ -263,6 +357,12 @@ exports._drawGolFlat = function({svg, slidersvg, dimslidersvg, ptsdisp, window_s
                       }
     return function() {
         svg.selectAll("*")
+            .remove();
+        slidersvg.selectAll("*")
+            .remove();
+        dimslidersvg.selectAll("*")
+            .remove();
+        ptsdisp.selectAll("*")
             .remove();
         let currTime = 0;
         let currDim = 0;
@@ -390,6 +490,8 @@ exports._drawGol3D = function({svg, slidersvg, window_size, margin, maxZ}, size,
                       }
     return function() {
         svg.selectAll("*")
+            .remove();
+        slidersvg.selectAll("*")
             .remove();
         const grid = svg.append("g")
                 .attr("transform",`translate(${margin.left},${margin.top})`);
@@ -538,6 +640,8 @@ exports._drawGol4D = function({svg, slidersvg, window_size, margin, maxZW}, size
                       }
     return function() {
         svg.selectAll("*")
+            .remove();
+        slidersvg.selectAll("*")
             .remove();
         const grid = svg.append("g")
                 .attr("transform",`translate(${margin.left},${margin.top})`);
@@ -990,9 +1094,7 @@ const setupGrid = function(svg,label,numx,numy,width,height,handlers) {
         const x = Math.floor(mx/cell_width);
         const y = Math.floor(my/cell_height);
         if (x >= 0 && x < numx && y >= 0 && y < numy) {
-          if ("onmove" in handlers) {
             handlers.onmove(x,y);
-          }
         }
     }
     const leaver = function(e) {
@@ -1001,13 +1103,19 @@ const setupGrid = function(svg,label,numx,numy,width,height,handlers) {
         }
     }
     // capture.style("-webkit-tap-highlight-color", "transparent")
-    capture
-          .on("touchmove", mover)
-          .on("touchstart", mover)
-          .on("touchend", leaver)
-          .on("mousemove", mover)
-          .on("mouseenter", mover)
-          .on("mouseleave", leaver);
+    if ("onmove" in handlers) {
+        capture
+              .on("touchmove", mover)
+              .on("touchstart", mover)
+              .on("mousemove", mover)
+              .on("mouseenter", mover);
+    }
+    if ("onleave" in handlers) {
+        capture
+              .on("touchend", () => handlers.onleave())
+              .on("mouseleave", () => handlers.onleave());
+
+    }
     const mkDrawer = function(s, col, o) {
         return function(cells) {
             const max   = d3.max(cells, d=>d.val);

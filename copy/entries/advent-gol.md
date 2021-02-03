@@ -130,6 +130,10 @@ stepper ps = stayAlive <> comeAlive
                   neighborCounts `M.withoutKeys`  ps
 ```
 
+::::: {#golDrawer}
+Please enable Javascript
+:::::
+
 ::::: {#gol3D}
 Please enable Javascript
 :::::

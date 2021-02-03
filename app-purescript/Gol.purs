@@ -55,17 +55,13 @@ main :: Effect Unit
 main = do
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 24
+      logMe 3
 
       g3D <- initGol3D "#gol3D"
-      drawGol3D g3D {height:20, width:20} 7 initialPoints
 
       g4D <- initGol4D "#gol4D"
-      drawGol4D g4D {height:20, width:20} 7 initialPoints
 
       gFlat <- initGolFlat "#golFlat"
-      drawGolFlat gFlat {height:20, width:20} 8 7 initialPoints
-
       drawGolSyms4D "#golSymsForward" false
       drawGolSyms4D "#golSymsReverse" true
 
@@ -74,57 +70,37 @@ main = do
       -- assignWindow "testtree" $ vecTreeHierarchy (vecRunNeighbsTree 4 22)
 
       drawGolSyms5D "#golSyms5D"
+
+      drawer <- setupDrawer "#golDrawer" {height:8, width:8} $ \pts -> do
+        let bumped = Set.fromFoldable (map (bump 6) pts)
+        log $ show bumped
+        -- let bumped' = initialPoints'
+
+        drawGol3D g3D {height:20, width:20} 7 bumped
+        drawGol4D g4D {height:20, width:20} 7 bumped
+        drawGolFlat gFlat {height:20, width:20} 8 7 bumped
+
+      drawer $ map (bump 2) initialPoints
+
   where
     ready doc a = do
       a' <- doOnce a
       onE readystatechange
           (Document.toEventTarget doc)
           (\_ -> a')
-
-runSteps
-    :: Aff.Milliseconds         -- ^ time per step
-    -> List (Effect Unit)
-    -> Aff Unit
-runSteps (Aff.Milliseconds dt) = go
-  where
-    go xs = do
-      t0 <- liftEffect Now.now
-      case List.step xs of
-        List.Nil       -> pure unit
-        List.Cons x ys -> do
-          liftEffect x
-          t1 <- liftEffect Now.now
-          let fdt      = Newtype.unwrap (Instant.unInstant t1) - Newtype.unwrap (Instant.unInstant t0)
-              leftover = dt - fdt
-          liftEffect $ log (show leftover)
-          when (leftover > 0.0) $
-            Aff.delay (Aff.Milliseconds leftover)
-          go ys
-
-forIterate
-    :: forall m a. Monad m
-    => Int      -- ^ number of times
-    -> (a -> a)
-    -> (a -> m Unit)
-    -> a
-    -> m Unit
-forIterate n f g = go 0
-  where
-    go i x | i < n = do
-      g x
-      go (i+1) (f x)
-    go _ _ = pure unit
-
-
-ixOrZero :: Array Int -> Int -> Int
-ixOrZero xs i = case A.index xs i of
-    Nothing -> 0
-    Just x  -> x
+    bump n {x,y} = {x:x+n, y:y+n}
+    initialPoints' = Set.fromFoldable (map (bump 8) initialPoints)
 
 type Point = Array Int
 
-initialPoints :: Set Point2
-initialPoints = Set.fromFoldable [ Tuple 0 2, Tuple 1 0, Tuple 1 2, Tuple 2 1, Tuple 2 2]
+initialPoints :: Array Point2
+initialPoints = [
+      { x: 0, y: 2 }
+    , { x: 1, y: 0 }
+    , { x: 1, y: 2 }
+    , { x: 2, y: 1 }
+    , { x: 2, y: 2 }
+    ]
 
 data LCount = LOne
             | LTwo
@@ -211,7 +187,7 @@ neighbs2d n i = do
     dy <- 0 List.: (-1) List.: 1 List.: List.nil
     pure (i + dx + n*dy)
 
-type Point2 = Tuple Int Int
+type Point2 = { x :: Int, y :: Int }
 
 stepper
     :: forall a. Ord a => Show a
@@ -262,10 +238,10 @@ runner d = List.iterate ((pure <<< stepper lowNeighbs highNeighbs) =<< _)
         <<< vecRunNeighbs (\n -> mulNCount n <<< toNCount) (NCount (Just LOne)) d
 
 lowNeighbs :: Point2 -> List Point2
-lowNeighbs (Tuple x y) = do
+lowNeighbs {x, y} = do
   x' <- x List.: (x-1) List.: (x+1) List.: List.nil
   y' <- y List.: (y-1) List.: (y+1) List.: List.nil
-  pure (Tuple x' y')
+  pure {x:x', y:y'}
 
 toDead :: NCount -> Neighbs
 toDead (NCount (Just l)) = Dead l
@@ -562,6 +538,20 @@ foreign import trace :: forall a b. a -> b -> b
 -- traceShow :: forall a. Show a => a -> a
 -- traceShow x = let y = trace (show x) in x
 
+type Drawer = Array Point2 -> Effect Unit
+foreign import _setupDrawer
+    :: Fn3 String
+           {height :: Int, width :: Int}
+           (Array Point2 -> Effect Unit)
+           (Effect Drawer)
+setupDrawer
+    :: String
+    -> {height :: Int, width :: Int}
+    -> (Array Point2 -> Effect Unit)
+    -> Effect Drawer
+setupDrawer = runFn3 _setupDrawer
+
+
 foreign import data SVGFlat :: Type
 foreign import initGolFlat :: String -> Effect SVGFlat
 foreign import _drawGolFlat :: Fn3
@@ -580,11 +570,11 @@ drawGolFlat
 drawGolFlat sel size dim n pts = runFn3 _drawGolFlat sel size $
     A.fromFoldable <<< map A.fromFoldable
       <<< List.transpose <<< flip map (List.range 0 dim) $ \d ->
-            map (map drawer) (List.take n (runner d initialPoints))
+            map (map drawer) (List.take n (runner d pts))
   where
-    drawer = map (\(Tuple (Tuple x y) pts) ->
-                    { x: (x+8) `mod` 20
-                    , y: (y+8) `mod` 20
+    drawer = map (\(Tuple {x, y} pts) ->
+                    { x: x `mod` size.width
+                    , y: y `mod` size.height
                     , pts: A.fromFoldable pts
                     }
              )
@@ -608,9 +598,9 @@ drawGol3D sel size n pts = runFn3 _drawGol3D sel size $
       A.fromFoldable <<< List.take n $
         map (map drawer) (runner 1 pts)
   where
-    drawer = map (\(Tuple (Tuple x y) pts) ->
-                      { x: (x+8) `mod` 20
-                      , y: (y+8) `mod` 20
+    drawer = map (\(Tuple {x, y} pts) ->
+                      { x: x `mod` size.width
+                      , y: y `mod` size.height
                       , zs: A.fromFoldable pts
                       }
                )
@@ -635,9 +625,9 @@ drawGol4D sel size n pts = runFn3 _drawGol4D sel size $
       A.fromFoldable <<< List.take n $
         map (map drawer) (runner 2 pts)
   where
-    drawer = map (\(Tuple (Tuple x y) pts) ->
-                      { x: (x+8) `mod` 20
-                      , y: (y+8) `mod` 20
+    drawer = map (\(Tuple {x, y} pts) ->
+                      { x: x `mod` size.width
+                      , y: y `mod` size.height
                       , zws: A.fromFoldable pts
                       }
                )
