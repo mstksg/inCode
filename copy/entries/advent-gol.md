@@ -158,6 +158,9 @@ Please enable Javascript
 Please enable Javascript
 :::::
 
+::::: {#golSyms5D}
+Please enable Javascript
+:::::
 
 ```
 sim642  I wanted to ask this before but forgot: did anyone try to take advantage of the symmetry, e.g. in z axis in part 1?

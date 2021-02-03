@@ -19,8 +19,10 @@ import Data.List.Lazy.NonEmpty   as NEList
 import Data.Map                  (Map)
 import Data.Map                  as Map
 import Data.Maybe
+import Data.Monoid.Additive
 import Data.Newtype              as Newtype
 import Data.NonEmpty             as NE
+import Data.Nullable             (Nullable)
 import Data.Nullable             as Nullable
 import Data.Set                  (Set)
 import Data.Set                  as Set
@@ -28,7 +30,7 @@ import Data.Set.NonEmpty         (NonEmptySet)
 import Data.Set.NonEmpty         as NESet
 import Data.Traversable
 import Data.Tuple
-import Data.Unfoldable
+import Data.Unfoldable hiding    (fromMaybe)
 import Effect                    (Effect, forE)
 import Effect.Aff                (Aff)
 import Effect.Aff                as Aff
@@ -40,6 +42,7 @@ import Effect.Ref                as Ref
 import Matryoshka                as Rec
 import Prelude
 import Queue.One                 as Queue
+import Unsafe.Coerce             as Unsafe
 import Web.DOM.Document          as Document
 import Web.Event.Event           (Event, EventType)
 import Web.Event.EventTarget     (EventTarget, addEventListener, eventListener)
@@ -52,49 +55,26 @@ main :: Effect Unit
 main = do
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 48
+      logMe 18
 
       g3D <- initGol3D "#gol3D"
-      drawGol3D g3D {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
-            (map <<< map) drawer3D (runner 1 initialPoints)
+      drawGol3D g3D {height:20, width:20} 7 initialPoints
 
       g4D <- initGol4D "#gol4D"
-      drawGol4D g4D {height:20, width:20} <<< A.fromFoldable <<< List.take 7 $
-            (map <<< map) drawer4D (runner 2 initialPoints)
+      drawGol4D g4D {height:20, width:20} 7 initialPoints
 
       gFlat <- initGolFlat "#golFlat"
-      drawGolFlat gFlat {height:20, width:20} <<< A.fromFoldable <<< map A.fromFoldable $
-        List.transpose <<< flip map (List.range 0 8) $ \d ->
-           map (map drawerFlat) (List.take 7 (runner d initialPoints))
+      drawGolFlat gFlat {height:20, width:20} 8 7 initialPoints
 
-      drawGolSyms "#golSymsForward" false
-      drawGolSyms "#golSymsReverse" true
+      drawGolSyms4D "#golSymsForward" false
+      drawGolSyms4D "#golSymsReverse" true
 
       drawTree "#golTreeForward" true
       drawTree "#golTreeReverse" false
-      assignWindow "testtree" $ vecTreeHierarchy (vecRunNeighbsTree 4 22)
+      -- assignWindow "testtree" $ vecTreeHierarchy (vecRunNeighbsTree 4 22)
+
+      drawGolSyms5D "#golSyms5D"
   where
-    drawerFlat = map (\(Tuple (Tuple x y) pts) ->
-                        { x: (x+8) `mod` 20
-                        , y: (y+8) `mod` 20
-                        , pts: A.fromFoldable pts
-                        }
-                 )
-         <<< Map.toUnfoldableUnordered
-    drawer3D = map (\(Tuple (Tuple x y) pts) ->
-                        { x: (x+8) `mod` 20
-                        , y: (y+8) `mod` 20
-                        , zs: A.fromFoldable pts
-                        }
-                 )
-         <<< Map.toUnfoldableUnordered
-    drawer4D = map (\(Tuple (Tuple x y) pts) ->
-                        { x: (x+8) `mod` 20
-                        , y: (y+8) `mod` 20
-                        , zws: A.fromFoldable pts
-                        }
-                 )
-         <<< Map.toUnfoldableUnordered
     ready doc a = do
       a' <- doOnce a
       onE readystatechange
@@ -276,8 +256,10 @@ runner d = List.iterate ((pure <<< stepper lowNeighbs highNeighbs) =<< _)
        <<< map (\x -> Tuple x (NESet.singleton 0))
        <<< List.fromFoldable
   where
-    highNeighbs = memoInt (toIntMap <<< map (map toDead) <<< vecRunNeighbs d)
-    -- highNeighbs = memoInt (map toDead <<< Map.fromFoldableWith append <<< vecRunNeighbs d)
+    highNeighbs = memoInt $
+            toIntMap
+        <<< map (map toDead)
+        <<< vecRunNeighbs (\n -> mulNCount n <<< toNCount) (NCount (Just LOne)) d
 
 lowNeighbs :: Point2 -> List Point2
 lowNeighbs (Tuple x y) = do
@@ -319,12 +301,15 @@ toNCount _ = NCount Nothing
 
 -- | Streaming/constant space enumerate all neighbor and multiplicities
 vecRunNeighbs
-    :: Int      -- ^ dimension
-    -> Int      -- ^ pascal index
-    -> List (Tuple Int NCount)
-vecRunNeighbs n orig = case List.step gens of
+    :: forall a.
+       (a -> Int -> a)  -- ^ multiply with int
+    -> a                -- ^ initial
+    -> Int         -- ^ dimension
+    -> Int         -- ^ pascal index
+    -> List (Tuple Int a)
+vecRunNeighbs update p0 n orig = case List.step gens of
     List.Nil       -> List.nil
-    List.Cons x xs -> go mx n 0 x true (NCount (Just LOne)) 0 x xs
+    List.Cons x xs -> go mx n 0 x true p0 0 x xs
   where
     mx   = maxBinom n orig + 1
     gens = genVecRunIxPascal n mx orig
@@ -333,26 +318,26 @@ vecRunNeighbs n orig = case List.step gens of
         -> Int          -- ^ running total
         -> Int          -- ^ origina item
         -> Boolean      -- ^ currently all the same?
-        -> NCount       -- ^ multiplicity
+        -> a            -- ^ multiplicity
         -> Int          -- ^ item to the right
         -> Int          -- ^ current item
         -> List Int     -- ^ leftover items (right to left)
-        -> List (Tuple Int NCount)
+        -> List (Tuple Int a)
     go i j tot x0 allSame p r x ls0 = case List.step ls0 of
       List.Nil ->
         let res = r + x
-            p'  = p `mulNCount` toNCount
-                    ( (factorial res * (2 `Int.pow` r)) `div` (factorial x * factorial r) )
+            p'  = update p $
+                    (factorial res * (2 `Int.pow` r)) `div` (factorial x * factorial r)
             tot' = tot
         in  Tuple tot' p' <$ MonadZero.guard (not (allSame && x == x0))
       List.Cons l ls -> do
         xlContrib <- safeRange 0 (x+l)
-        xContrib  <- safeRange (max 0 (xlContrib - l)) (min x xlContrib)
-        let lContrib = xlContrib - xContrib
+        lContrib  <- safeRange (max 0 (xlContrib - x)) (min l xlContrib)
+        let xContrib = xlContrib - lContrib
             res      = r + xlContrib
             l'       = l - lContrib
             x'       = x - xContrib
-            p'       = p `mulNCount` toNCount
+            p'       = update p $
                         ( factorial res
                     `div` (factorial r * factorial xContrib * factorial lContrib)
                         )
@@ -395,6 +380,7 @@ type Contrib = { chosen :: Array Int
                , multP :: Lazy Mult
                , multQ :: Lazy Mult
                , allSame :: Boolean
+               , parts :: { left :: Nullable Int, here :: Nullable Int, right :: Nullable Int }
                }
 
 type VRState =
@@ -405,7 +391,7 @@ type VRState =
     , allSame :: Boolean
     , p :: Lazy Int
     , q :: Lazy Int
-    , r :: Int
+    , r :: Maybe Int
     , x :: Int
     , ls0 :: List Int
     }
@@ -426,7 +412,7 @@ vecRunNeighbsTree n orig = case List.step gens of
     List.Cons x xs -> Rec.ana go $
       Tuple (Just { i: mx, j: n
                   , out: List.nil, x0: x, allSame: true
-                  , p: defer \_ -> 1, q: initQ, r: 0, x: x, ls0: xs
+                  , p: defer \_ -> 1, q: initQ, r: Nothing, x: x, ls0: xs
                   }
             )
             (defer \_ ->
@@ -436,6 +422,7 @@ vecRunNeighbsTree n orig = case List.step gens of
                     , multQ: flip map initQ \q -> { total: q, here: "=" <> show q }
                     , leftovers: A.fromFoldable (List.reverse gens)
                     , allSame: true
+                    , parts: { left: Nullable.null, here: Nullable.null, right: Nullable.null }
                     }
             )
   where
@@ -448,12 +435,13 @@ vecRunNeighbsTree n orig = case List.step gens of
       Just {i,j,out,x0,allSame,p,q,r,x,ls0} -> case List.step ls0 of
         List.Nil ->
           let contrib = defer \_ ->
-                let res = r + x
-                    mulfact = defer \_ -> factorial x * factorial r
+                let r' = fromMaybe 0 r
+                    res = r' + x
+                    mulfact = defer \_ -> factorial x * factorial r'
                     multP = do
                       p_ <- p
                       m_ <- mulfact
-                      let pPow = 2 `Int.pow` r
+                      let pPow = 2 `Int.pow` r'
                           here = factorial res `div` m_
                       pure { total: p_ * here * pPow
                            , here: "×" <> show here <> "×" <> show pPow
@@ -473,16 +461,18 @@ vecRunNeighbsTree n orig = case List.step gens of
                     , multQ
                     , allSame: allSame'
                     , leftovers: A.replicate (mx+1) 0
+                    , parts: { left: Nullable.null, here: Nullable.notNull x, right: Nullable.toNullable r }
                     }
           in  List.singleton (Tuple Nothing contrib)
         List.Cons l ls -> do
           xlContrib <- safeRange 0 (x+l)
-          xContrib  <- safeRange (max 0 (xlContrib - l)) (min x xlContrib)
-          let lContrib = xlContrib - xContrib
-              res      = r + xlContrib
+          lContrib  <- safeRange (max 0 (xlContrib - x)) (min l xlContrib)
+          let r'       = fromMaybe 0 r
+              xContrib = xlContrib - lContrib
+              res      = r' + xlContrib
               l'       = l - lContrib
               x'       = x - xContrib
-              mulfact  = defer \_ -> factorial r * factorial xContrib * factorial lContrib
+              mulfact  = defer \_ -> factorial r' * factorial xContrib * factorial lContrib
               multP = do
                  p_ <- p
                  m_ <- mulfact
@@ -507,6 +497,10 @@ vecRunNeighbsTree n orig = case List.step gens of
                   , allSame: allSame'
                   , leftovers: A.fromFoldable <<< List.take (mx + 1) <<< (_ <> List.repeat 0) <<< List.reverse $
                       x' List.: l' List.: List.drop 2 (dropAlong out gens)
+                  , parts: { left: Nullable.notNull lContrib
+                           , here: Nullable.notNull xContrib
+                           , right: Nullable.toNullable r
+                           }
                   }
           pure $
             Tuple (Just { i: i'
@@ -516,7 +510,7 @@ vecRunNeighbsTree n orig = case List.step gens of
                         , allSame: allSame'
                         , p: (_.total) <$> multP
                         , q: (_.total) <$> multQ
-                        , r: x'
+                        , r: Just x'
                         , x: l'
                         , ls0: ls
                         }
@@ -579,9 +573,22 @@ foreign import _drawGolFlat :: Fn3
 drawGolFlat
     :: SVGFlat
     -> {height :: Int, width :: Int}
-    -> Array (Array (Lazy (Array {x :: Int, y :: Int, pts :: Array Int})))
+    -> Int    -- ^ max dimension
+    -> Int    -- ^ num setps
+    -> Set Point2
     -> Effect Unit
-drawGolFlat = runFn3 _drawGolFlat
+drawGolFlat sel size dim n pts = runFn3 _drawGolFlat sel size $
+    A.fromFoldable <<< map A.fromFoldable
+      <<< List.transpose <<< flip map (List.range 0 dim) $ \d ->
+            map (map drawer) (List.take n (runner d initialPoints))
+  where
+    drawer = map (\(Tuple (Tuple x y) pts) ->
+                    { x: (x+8) `mod` 20
+                    , y: (y+8) `mod` 20
+                    , pts: A.fromFoldable pts
+                    }
+             )
+         <<< Map.toUnfoldableUnordered
 
 foreign import data SVG3D :: Type
 foreign import initGol3D :: String -> Effect SVG3D
@@ -594,9 +601,21 @@ foreign import _drawGol3D :: Fn3
 drawGol3D
     :: SVG3D
     -> {height :: Int, width :: Int}
-    -> Array (Lazy (Array {x :: Int, y :: Int, zs :: Array Int}))
+    -> Int
+    -> Set Point2
     -> Effect Unit
-drawGol3D = runFn3 _drawGol3D
+drawGol3D sel size n pts = runFn3 _drawGol3D sel size $
+      A.fromFoldable <<< List.take n $
+        map (map drawer) (runner 1 pts)
+  where
+    drawer = map (\(Tuple (Tuple x y) pts) ->
+                      { x: (x+8) `mod` 20
+                      , y: (y+8) `mod` 20
+                      , zs: A.fromFoldable pts
+                      }
+               )
+       <<< Map.toUnfoldableUnordered
+
 
 foreign import data SVG4D :: Type
 foreign import initGol4D :: String -> Effect SVG4D
@@ -609,13 +628,35 @@ foreign import _drawGol4D :: Fn3
 drawGol4D
     :: SVG4D
     -> {height :: Int, width :: Int}
-    -> Array (Lazy (Array {x :: Int, y :: Int, zws :: Array Int}))
+    -> Int
+    -> Set Point2
     -> Effect Unit
-drawGol4D = runFn3 _drawGol4D
+drawGol4D sel size n pts = runFn3 _drawGol4D sel size $
+      A.fromFoldable <<< List.take n $
+        map (map drawer) (runner 2 pts)
+  where
+    drawer = map (\(Tuple (Tuple x y) pts) ->
+                      { x: (x+8) `mod` 20
+                      , y: (y+8) `mod` 20
+                      , zws: A.fromFoldable pts
+                      }
+               )
+       <<< Map.toUnfoldableUnordered
 
-foreign import _drawGolSyms :: Fn2 String Boolean (Effect Unit)
-drawGolSyms :: String -> Boolean -> Effect Unit
-drawGolSyms = runFn2 _drawGolSyms
+foreign import _drawGolSyms4D :: Fn2 String Boolean (Effect Unit)
+drawGolSyms4D :: String -> Boolean -> Effect Unit
+drawGolSyms4D = runFn2 _drawGolSyms4D
+
+foreign import _drawGolSyms5D
+    :: Fn2 String (Int -> IntMap Int) (Effect Unit)
+drawGolSyms5D
+    :: String
+    -> Effect Unit
+drawGolSyms5D sel = runFn2 _drawGolSyms5D sel $
+        Unsafe.unsafeCoerce
+    <<< toIntMap
+    <<< map (map Additive)
+    <<< vecRunNeighbs (*) 1 3
 
 foreign import data TreeNode :: Type
 foreign import _drawTree :: forall f.

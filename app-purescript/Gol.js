@@ -691,7 +691,7 @@ const neighbsArray = function(maxZW, reversed) {
 }
 
 // getNeighbs :: Int -> [{x: Int, weight: Int}]
-exports._drawGolSyms = function(sel, reversed) {
+exports._drawGolSyms4D = function(sel, reversed) {
     const window_size = { height: 200, width: 200 }
     const maxZW = 6;
     const margin = { top: 10, bottom: 10, left: 10, right: 10 };
@@ -759,6 +759,152 @@ exports._drawGolSyms = function(sel, reversed) {
                    , settext: res.settext
                    , underlighter: res.underlighter
                    };
+        });
+
+        return svg;
+    }
+}
+
+// getNeighbs :: Int -> IntMap Int
+exports._drawGolSyms5D = function(sel, getNeighbs) {
+    const window_size = { height: 200, width: 200 }
+    const maxZWQ = 5;
+    const margin = { top: 0, bottom: 0, left: 0, right: 0, inter: 30 };
+
+    const maxPascal = binom(3+maxZWQ,maxZWQ);
+    // how many squares to offset for a given Q
+    const windowOffset = i => (i == 0) ? 0 : binom(1+i,i-1);
+    // how many pixels to offset for a given Q
+    const qOffset = i => window_size.width*windowOffset(i) + margin.inter*i;
+
+    let neighbs = [];
+    const revNeighbs = d3.range(maxPascal).map(function (i) {
+        const ns = getNeighbs(i);
+        ns.forEach(function(wt, j) {
+            if (!(j in neighbs)) {
+                neighbs[j] = [];
+            }
+            neighbs[j][i] = wt;
+        });
+        return ns;
+    });
+
+    return function () {
+        d3.select(sel).selectAll("p").remove();
+        const svg = d3.select(sel)
+                .append("svg")
+                .attr("viewBox", [0,0,qOffset(maxZWQ+1), window_size.height*(maxZWQ+1)])
+                .attr("width","100%")
+                .style("margin","auto")
+                .style("overflow","visible")
+                .style("display","block");
+
+        const setupBox = function(g,txt,boxsize,handlers) {
+            const box = g.append("g");
+            const outline = box.append("rect")
+                    .attr("width",boxsize)
+                    .attr("height",boxsize)
+                    .attr("fill","none")
+                    .attr("stroke","black")
+                    .attr("stroke-width",2)
+                    .attr("stroke-opacity",0.75);
+            const mover = function(e) {
+                e.preventDefault();
+                if ("onmove" in handlers) {
+                  handlers.onmove();
+                }
+            }
+            const leaver = function(e) {
+                if ("onleave" in handlers) {
+                    handlers.onleave();
+                }
+            }
+            const botlab = box.append("text")
+                .attr("fill","#333")
+                .style("text-anchor","middle")
+                .attr("pointer-events","none")
+                .attr("font-size",40)
+                .attr("font-family",sansSerif)
+                .attr("transform", `translate(${boxsize/2},${boxsize*7/8})`)
+                .text(txt);
+            const mkCircle = function (col) {
+                const circcont = box.append("g");
+                const circ = circcont.append("circle")
+                    .attr("fill",col)
+                    .attr("r",0)
+                    .attr("transform", `translate(0,${boxsize/2})`)
+                    .attr("opacity",0.75)
+                    .style("transition", "r 500ms ease");
+                const lab = circcont.append("text")
+                    .attr("fill","#333")
+                    .style("text-anchor","middle")
+                    .attr("pointer-events","none")
+                    .attr("font-size",50)
+                    .attr("font-family",sansSerif)
+                    .attr("font-weight","bold")
+                    .attr("transform", `translate(0,${boxsize*(3/10)})`);
+                const circfunc = function setCirc (d,l) {
+                    circ.attr("r",Math.sqrt(d)*boxsize/4);
+                    lab.text(l);
+                }
+                // d should be between 0 and 1
+                return { box, circcont, circfunc }
+            }
+            const circ1 = mkCircle("red");
+            circ1.circcont.attr("transform",`translate(${boxsize/4},0)`);
+            const circ2 = mkCircle("blue");
+            circ2.circcont.attr("transform",`translate(${boxsize*3/4},0)`);
+            const capture = box.append("rect")
+                    .attr("width",boxsize)
+                    .attr("height",boxsize)
+                    .attr("fill","white")
+                    .attr("opacity",0);
+            capture
+                  .on("touchstart", mover)
+                  .on("touchend", leaver)
+                  .on("mouseenter", mover)
+                  .on("mouseleave", leaver);
+            return { box, circ1func: circ1.circfunc, circ2func: circ2.circfunc };
+        }
+
+        const allboxes = svg.append("g");
+        let boxes = [];
+        let clearHighlights = [];
+        const clearNeighbs = function () {
+            clearHighlights.forEach(clr => clr());
+            clearHighlights = [];
+        }
+        const highlightNeighbs = function (i) {
+            clearNeighbs();
+            const to = neighbs[i];
+            const from = revNeighbs[i];
+            to.forEach(function (weight, x) {
+                if (x in boxes) {
+                    boxes[x].circ1func(weight/8, weight+"");
+                    clearHighlights.push( () => boxes[x].circ1func(0,"") );
+                }
+            });
+            from.forEach(function (weight, x) {
+                if (x in boxes) {
+                    boxes[x].circ2func(weight/8, weight+"");
+                    clearHighlights.push( () => boxes[x].circ2func(0,"") );
+                }
+            });
+        }
+        boxes = d3.range(0,maxPascal).map(function (i) {
+            const zwq = ixPascal(3,i);
+            const z0 = zwq[0];
+            const w0 = zwq[1];
+            const q0 = zwq[2];
+            const boxfuncs =
+                setupBox( allboxes
+                        , zwq.join(", ")
+                        , window_size.width-margin.left-margin.right
+                        , { onmove: (() => highlightNeighbs(i)) , onleave: (() => clearNeighbs()) }
+                        );
+            boxfuncs.box
+                .attr("transform",`translate(${qOffset(q0)+window_size.width*z0+margin.left},${window_size.height*(maxZWQ-w0)+margin.top})`);
+            return boxfuncs;
         });
 
         return svg;
@@ -951,13 +1097,12 @@ exports._buildHierarchy = function (x,f) {
 const expandRun = r => r.flatMap((d, i) => d3.range(d).map(() => i))
 
 // type Mult = { total :: Int, here :: String }
-// type Contrib = { left :: Maybe Int
-//                , here :: Maybe Int
-//                , chosen :: Array Int
+// type Contrib = { chosen :: Array Int
 //                , leftovers :: Array Int
 //                , multP :: Lazy Mult
 //                , multQ :: Lazy Mult
 //                , allSame :: Boolean
+//                , parts :: { left :: Int, here :: Int, right :: Int }
 //                }
 //
 // forward :: Boolean
@@ -978,6 +1123,11 @@ exports._drawTree = function(sel,forward,vecRun,mkHier,getContrib) {
         const suffix = expandRun(fullchose).join(",");
         const infix = (prefix.length > 0 && suffix.length > 0) ? "," : "";
         return "<" + prefix + infix + suffix + ">";
+    }
+
+    const expandParts = function(c) {
+        const parts = c.parts;
+        return [parts.left, parts.here, parts.right].filter(x => !(x === null)).join("+");
     }
 
     return function () {
@@ -1080,78 +1230,42 @@ exports._drawTree = function(sel,forward,vecRun,mkHier,getContrib) {
 
             tooltip.append("rect")
                 .attr("width",40)
-                .attr("height",12)
+                .attr("height",19)
                 .attr("x",-20)
                 .attr("y",6)
                 .style("fill","#fff")
                 .style("stroke","#666")
                 .style("stroke-width","0.5px");
 
-            const tttext = tooltip.append("text")
+            const tttext1 = tooltip.append("text")
                 .attr("text-anchor", "middle")
                 .style("font-size",6.5)
                 .attr("font-family",sansSerif)
                 .attr("x",0)
                 .attr("y",14);
+            const tttext2 = tooltip.append("text")
+                .attr("text-anchor", "middle")
+                .style("font-size",6)
+                .style("font-style","italic")
+                .attr("font-family",sansSerif)
+                .attr("x",0)
+                .attr("y",21);
 
-            const highlightNodes = function(d) {
-                const c = getContrib(d.data)();
-                const targChosen = c.chosen;
-                node.selectAll("circle")
-                    .filter(d => sameArray(targChosen,getContrib(d.data)().chosen))
-                    .attr("r",4)
-                    .attr("fill","blue")
-                    .attr("opacity","0.5");
-
-                const ancs = d.ancestors();
-                const checkAnc = function(q) {
-                    for (const a of ancs) {
-                        if (a == q) {
-                            return true;
-                        }
-                    }
-                    return false;
-                }
-
-                link.selectAll("path")
-                    .filter(d => checkAnc(d.target))
-                    .attr("stroke-opacity",0.9);
-
-                tooltip.attr("display",null)
-                        .attr("transform",`translate(${d.y},${d.x})`);
-                tttext.text(expandChosens(c));
-            }
-            const clearNodes = function() {
-                node.selectAll("circle")
-                    .attr("r",d => (("children" in d) && d.parent) ? 1.5 : 2)
-                    .attr("fill",d => (("children" in d) && d.parent) ? "#333" : "red")
-                    .attr("opacity","0.75");
-                link.selectAll("path")
-                    .attr("stroke-opacity",0.4);
-
-                tooltip.attr("display","none");
-            }
-
-            node.append("circle")
-                    .attr("opacity",0.75)
-                    .on("mouseenter", (e,d) => highlightNodes(d))
-                    .on("touchstart", (e,d) => highlightNodes(d))
-                    .on("mouseleave", () => clearNodes())
-                    .on("touchend", () => clearNodes());
-            clearNodes();
+            const dots = node.append("circle")
+                    .attr("opacity",0.75);
 
             node.append("text")
                 .attr("text-anchor", "end")
                 .attr("dy",-1.5)
                 .attr("x",-4)
-                .attr("opacity", d => ("children" in d) ? 0.9 : 0.6)
+                .attr("opacity", d => ("children" in d) ? 0.9 : 0.5)
                 .text(d => getContrib(d.data)().leftovers.join("-"));
 
             node.append("text")
                 .attr("text-anchor", "end")
                 .attr("dy",4.5)
                 .attr("x",-4)
-                .attr("opacity", d => (d.parent) ? 0.9 : 0.6)
+                .attr("opacity", d => (d.parent) ? 0.9 : 0.5)
                 .text(function (d) {
                         const c = getContrib(d.data)();
                         const contlen = c.leftovers.length;
@@ -1185,6 +1299,54 @@ exports._drawTree = function(sel,forward,vecRun,mkHier,getContrib) {
                 .style("font-size",6)
                .clone(true).lower()
                .attr("stroke", "white");
+
+            const highlightNodes = function(d) {
+                const c = getContrib(d.data)();
+                const targChosen = c.chosen;
+                dots.filter(d => sameArray(targChosen,getContrib(d.data)().chosen))
+                    .attr("r",4)
+                    .attr("fill","blue")
+                    .attr("opacity","0.5");
+
+                const ancs = d.ancestors();
+                const checkAnc = function(q) {
+                    for (const a of ancs) {
+                        if (a == q) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+
+                link.selectAll("path")
+                    .filter(d => checkAnc(d.target))
+                    .attr("stroke-opacity",0.9);
+
+                tooltip.attr("display",null)
+                        .attr("transform",`translate(${d.y},${d.x})`);
+                tttext1.text(expandChosens(c));
+                tttext2.text(expandParts(c));
+            }
+            const clearNodes = function() {
+                dots.attr("r",d => (("children" in d) && d.parent) ? 1.5 : 2)
+                    .attr("fill",d => (("children" in d) && d.parent) ? "#333" : "red")
+                    .attr("opacity","0.75");
+                link.selectAll("path")
+                    .attr("stroke-opacity",0.4);
+
+                tooltip.attr("display","none");
+            }
+
+            // capture
+            node.append("circle")
+                .attr("r",8)
+                .attr("opacity",0)
+                .on("mouseenter", (e,d) => highlightNodes(d))
+                .on("touchstart", (e,d) => highlightNodes(d))
+                .on("mouseleave", () => clearNodes())
+                .on("touchend", () => clearNodes());
+            clearNodes();
+
 
         }
 
