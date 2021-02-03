@@ -55,7 +55,7 @@ main :: Effect Unit
 main = do
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 18
+      logMe 24
 
       g3D <- initGol3D "#gol3D"
       drawGol3D g3D {height:20, width:20} 7 initialPoints

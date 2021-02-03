@@ -108,7 +108,7 @@ const pascalIx = function(ps) {
 
 exports.pascalIx = pascalIx;
 
-exports._maxBinom = function(n,lim) {
+const maxBinom = function(n,lim) {
     let i = 0;
     while (true) {
         if (binom(n+i, i) > lim) {
@@ -116,7 +116,9 @@ exports._maxBinom = function(n,lim) {
         }
         i = i+1;
     }
-}
+};
+
+exports._maxBinom = maxBinom;
 
 exports.memoInt = function(f) {
     let table = [];
@@ -801,6 +803,11 @@ exports._drawGolSyms5D = function(sel, getNeighbs) {
 
         const setupBox = function(g,txt,boxsize,handlers) {
             const box = g.append("g");
+            const underlight = box.append("rect")
+                    .attr("width",boxsize)
+                    .attr("height",boxsize)
+                    .attr("fill","yellow")
+                    .attr("opacity",0);
             const outline = box.append("rect")
                     .attr("width",boxsize)
                     .attr("height",boxsize)
@@ -864,7 +871,10 @@ exports._drawGolSyms5D = function(sel, getNeighbs) {
                   .on("touchend", leaver)
                   .on("mouseenter", mover)
                   .on("mouseleave", leaver);
-            return { box, circ1func: circ1.circfunc, circ2func: circ2.circfunc };
+            const underlighter = function(o) {
+               underlight.attr("opacity", o);
+            }
+            return { box, circ1func: circ1.circfunc, circ2func: circ2.circfunc, underlighter };
         }
 
         const allboxes = svg.append("g");
@@ -881,13 +891,15 @@ exports._drawGolSyms5D = function(sel, getNeighbs) {
             to.forEach(function (weight, x) {
                 if (x in boxes) {
                     boxes[x].circ1func(weight/8, weight+"");
-                    clearHighlights.push( () => boxes[x].circ1func(0,"") );
+                    boxes[x].underlighter(0.2);
+                    clearHighlights.push( () => { boxes[x].circ1func(0,""); boxes[x].underlighter(0); } );
                 }
             });
             from.forEach(function (weight, x) {
                 if (x in boxes) {
                     boxes[x].circ2func(weight/8, weight+"");
-                    clearHighlights.push( () => boxes[x].circ2func(0,"") );
+                    boxes[x].underlighter(0.2);
+                    clearHighlights.push( () => { boxes[x].circ2func(0,""); boxes[x].underlighter(0); } );
                 }
             });
         }
@@ -1111,7 +1123,8 @@ const expandRun = r => r.flatMap((d, i) => d3.range(d).map(() => i))
 // mkHier :: Int -> Int -> Hierarchy
 exports._drawTree = function(sel,forward,vecRun,mkHier,getContrib) {
     const margin = { top: 10, bottom: 10, left: 30, right: 42 };
-    const maxZ = 3;
+    const optSizeLim = 70;
+    const maxZLim = 5;
 
     const expandChosens = function(c) {
         const contlen = c.leftovers.length;
@@ -1155,6 +1168,7 @@ exports._drawTree = function(sel,forward,vecRun,mkHier,getContrib) {
 
         const setupSelect = function(dim) {
             selbox.selectAll("*").remove();
+            const maxZ = Math.min(maxBinom(dim,optSizeLim) - 1, maxZLim);
             const numOpts = binom(dim+maxZ, maxZ);
             const ptOpts = d3.range(numOpts).map(function (d) {
                 const vr = vecRun(dim)(d).slice(0,-1);
