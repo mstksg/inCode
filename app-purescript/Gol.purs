@@ -55,14 +55,16 @@ main :: Effect Unit
 main = do
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 15
+      logMe 22
 
       draw3D <- setupGol3D "#gol3D" {height:20, width:20, maxT: 6}
       draw4D <- setupGol4D "#gol4D" {height:20, width:20, maxT: 6}
       drawFlat <- setupGolFlat "#golFlat" {height:20, width:20, maxT: 6, maxDim: 8}
 
-      drawGolSyms4D "#golSymsForward" false
-      drawGolSyms4D "#golSymsReverse" true
+      drawGolSyms3D "#golSyms3DForward" 6 false
+      drawGolSyms3D "#golSyms3DReverse" 6 true
+      drawGolSyms4D "#golSyms4DForward" 6 false
+      drawGolSyms4D "#golSyms4DReverse" 6 true
 
       drawTree "#golTreeForward" true
       drawTree "#golTreeReverse" false
@@ -380,7 +382,7 @@ vecRunNeighbsTree
     -> Int      -- ^ pascal index
     -> VecTree List (Lazy Contrib)
 vecRunNeighbsTree n orig = case List.step gens of
-    List.Nil       -> undefined
+    List.Nil       -> unsafeThrow "vecRunNeighbsTree step gens"
     List.Cons x xs -> Rec.ana go $
       Tuple (Just { i: mx, j: n
                   , out: List.nil, x0: x, allSame: true
@@ -608,9 +610,33 @@ setupGol4D sel size = (_ <<< preRun) <$> runFn2 _setupGol4D sel size
                )
        <<< Map.toUnfoldableUnordered
 
-foreign import _drawGolSyms4D :: Fn2 String Boolean (Effect Unit)
-drawGolSyms4D :: String -> Boolean -> Effect Unit
-drawGolSyms4D = runFn2 _drawGolSyms4D
+type SymInfo = { dim :: Int
+               , gridSize :: { width :: Int, height :: Int }
+               , ptPos :: Array Int -> {x :: Int, y :: Int}
+               }
+foreign import _drawGolSyms
+    :: Fn4 String
+           Int
+           SymInfo
+           Boolean
+           (Effect Unit)
+
+drawGolSyms3D :: String -> Int -> Boolean -> Effect Unit
+drawGolSyms3D sel maxZ = runFn4 _drawGolSyms sel maxZ
+        { dim: 1
+        , gridSize: {width: 3, height: 1}
+        , ptPos: case _ of
+            [x] -> {x, y: 0}
+            _   -> unsafeThrow "drawGolSyms3D ptPos"
+        }
+drawGolSyms4D :: String -> Int -> Boolean -> Effect Unit
+drawGolSyms4D sel maxZ = runFn4 _drawGolSyms sel maxZ
+        { dim: 2
+        , gridSize: {width: 3, height: 3}
+        , ptPos: case _ of
+            [x,y] -> {x, y}
+            _     -> unsafeThrow "drawGolSyms4D ptPos"
+        }
 
 foreign import _drawGolSyms5D
     :: Fn2 String (Int -> IntMap Int) (Effect Unit)

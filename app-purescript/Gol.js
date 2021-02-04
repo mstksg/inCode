@@ -772,15 +772,17 @@ const compressVals = function(ps) {
     return out;
 }
 
-const neighbsArray = function(maxZW, reversed) {
-    const maxPascal = binom(2+maxZW,maxZW);
+const neighbsArray = function(dim,maxZW,mkPt,reversed) {
+    const maxPascal = binom(dim+maxZW,maxZW);
+    const neighbDeltas = d3.cross(...d3.range(dim).map(() => [0,-1,1])).slice(1);
     let res = d3.range(0,maxPascal).map( () => ({ neighbBox: [], neighbHighlight: [] }) );
     d3.range(0,maxPascal).forEach(function(i) {
-        const pos = ixPascal(2, i);
-        neighbs2d.slice(1).forEach(function(dp) {
-            const npos = {x: pos[0]+dp.x, y: pos[1]+dp.y};
-            const j = pascalIx2d(normalize4d(npos));
-            const newPt = {x:dp.x+1, y:(-dp.y)+1, val:1};
+        const pos = ixPascal(dim, i);
+        neighbDeltas.forEach(function(dp) {
+            const npos = d3.zip(pos,dp).map(([p,dp]) => Math.abs(p+dp));
+            npos.sort();
+            const j = pascalIx(npos);
+            const newPt = mkPt(dp);
             if (j < maxPascal) {
                 if (reversed) {
                     pushOrAdd(res[j].neighbHighlight, j, newPt);
@@ -799,21 +801,32 @@ const neighbsArray = function(maxZW, reversed) {
                     );
 }
 
-// getNeighbs :: Int -> [{x: Int, weight: Int}]
-exports._drawGolSyms4D = function(sel, reversed) {
+// ptPos :: Array Int -> { x: Int, y: Int }         -- [0..maxZW]
+exports._drawGolSyms = function(sel, maxZ, {dim, gridSize, ptPos}, reversed) {
     const window_size = { height: 200, width: 200 }
-    const maxZW = 6;
     const margin = { top: 10, bottom: 10, left: 10, right: 10 };
 
-    const maxPascal = binom(2+maxZW,maxZW);
+    const maxPascal = binom(dim+maxZ,maxZ);
 
-    const neighbs = neighbsArray(maxZW, reversed);
+    const neighbs = neighbsArray
+            ( dim
+            , maxZ
+            , (function (x) {
+                    const p = ptPos(x.map((y) => y+1));
+                    return { x: p.x, y: gridSize.height-1-p.y, val: 1 };
+              })
+            , reversed
+            );
+    const topBorder = ptPos(ixPascal(dim,maxPascal-1));
+    console.log(topBorder);
 
     return function () {
         d3.select(sel).selectAll("p").remove();
         const svg = d3.select(sel)
                 .append("svg")
-                .attr("viewBox", [0,0,window_size.width*(maxZW+1), window_size.height*(maxZW+1)])
+                // here
+                .attr("viewBox", [0,0,window_size.width*(topBorder.x+1), window_size.height*(topBorder.y+1)])
+              // .attr("transform",`translate(${window_size.width*z0+margin.left},${window_size.height*(maxZ-w0)+margin.top})`);
                 .attr("width","20em")
                 .style("margin","auto")
                 .style("overflow","visible")
@@ -846,13 +859,13 @@ exports._drawGolSyms4D = function(sel, reversed) {
             }
         }
         boxes = d3.range(0,maxPascal).map(function (i) {
-            const zw = ixPascal(2,i);
-            const z0 = zw[0];
-            const w0 = zw[1];
+            const zw = ixPascal(dim,i);
+            const pos = ptPos(zw);
             const res =
+                // here
                 setupGrid( allBoxes
-                         , z0 + ", " + w0
-                         , 3, 3
+                         , zw.join(", ")
+                         , gridSize.width, gridSize.height
                          , window_size.width-margin.left-margin.right
                          , window_size.height-margin.top-margin.bottom
                          , { onmove: function() {
@@ -862,7 +875,7 @@ exports._drawGolSyms4D = function(sel, reversed) {
                            }
                          );
             res.grid
-              .attr("transform",`translate(${window_size.width*z0+margin.left},${window_size.height*(maxZW-w0)+margin.top})`);
+              .attr("transform",`translate(${window_size.width*pos.x+margin.left},${window_size.height*(topBorder.y-pos.y)+margin.top})`);
             return { drawer: res.drawer
                    , highlighter: res.highlighter
                    , settext: res.settext

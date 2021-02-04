@@ -146,11 +146,19 @@ Please enable Javascript
 Please enable Javascript
 :::::
 
-::::: {#golSymsForward}
+::::: {#golSyms3DForward}
 Please enable Javascript
 :::::
 
-::::: {#golSymsReverse}
+::::: {#golSyms3DReverse}
+Please enable Javascript
+:::::
+
+::::: {#golSyms4DForward}
+Please enable Javascript
+:::::
+
+::::: {#golSyms4DReverse}
 Please enable Javascript
 :::::
 
