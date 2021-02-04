@@ -55,11 +55,12 @@ main :: Effect Unit
 main = do
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 22
+      logMe 23
 
+      draw2D <- setupGolFlat "#gol2D" {height:20, width:20, maxT: 6, maxDim: Nothing}
       draw3D <- setupGol3D "#gol3D" {height:20, width:20, maxT: 6}
       draw4D <- setupGol4D "#gol4D" {height:20, width:20, maxT: 6}
-      drawFlat <- setupGolFlat "#golFlat" {height:20, width:20, maxT: 6, maxDim: 8}
+      drawFlat <- setupGolFlat "#golFlat" {height:20, width:20, maxT: 6, maxDim: Just 8}
 
       drawGolSyms3D "#golSyms3DForward" 6 false
       drawGolSyms3D "#golSyms3DReverse" 6 true
@@ -68,12 +69,12 @@ main = do
 
       drawTree "#golTreeForward" true
       drawTree "#golTreeReverse" false
-      -- assignWindow "testtree" $ vecTreeHierarchy (vecRunNeighbsTree 4 22)
 
       drawGolSyms5D "#golSyms5D"
 
       drawer <- setupDrawer "#golDrawer" {height:8, width:8} $ \pts -> do
         let bumped = Set.fromFoldable (map (bump 6) pts)
+        draw2D bumped
         draw3D bumped
         draw4D bumped
         drawFlat bumped
@@ -545,21 +546,26 @@ setupDrawer
 setupDrawer = runFn3 _setupDrawer
 
 type GolFlatCallback = Array (Array (Lazy (Array {x :: Int, y :: Int, pts :: Array Int}))) -> Effect Unit
-foreign import _setupGolFlat :: Fn2
+foreign import _setupGolFlat :: Fn3
     String
-    {height::Int,width::Int,maxT::Int,maxDim::Int}
+    Boolean
+    {height::Int,width::Int,maxT::Int,maxDim::Nullable Int}
     (Effect GolFlatCallback)
 
 setupGolFlat
     :: String
-    -> {height :: Int, width :: Int, maxT :: Int, maxDim :: Int}
+    -> {height :: Int, width :: Int, maxT :: Int, maxDim :: Maybe Int}  -- if Nothing, hide the points too
     -> Effect (Set Point2 -> Effect Unit)
-setupGolFlat sel size = (_ <<< preRun) <$> runFn2 _setupGolFlat sel size
+setupGolFlat sel size = (_ <<< preRun) <$> runFn3 _setupGolFlat sel (isNothing size.maxDim) size'
   where
-    -- preRun pts = A.fromFoldable <<< List.take (size.maxZ +1) <<< map (map drawer) <<< runner 1
-    preRun pts = A.fromFoldable <<< map A.fromFoldable
-      <<< List.transpose <<< flip map (List.range 0 size.maxDim) $ \d ->
-            map (map drawer) (List.take (size.maxT+1) (runner d pts))
+    size' = { height: size.height, width: size.width, maxT: size.maxT
+            , maxDim: Nullable.toNullable size.maxDim
+            }
+    preRun pts = case size.maxDim of
+      Nothing -> [A.fromFoldable <<< map (map drawer) $ List.take (size.maxT+1) (runner 0 pts)]
+      Just md -> A.fromFoldable <<< map A.fromFoldable
+        <<< List.transpose <<< flip map (List.range 0 md) $ \d ->
+              map (map drawer) (List.take (size.maxT+1) (runner d pts))
     drawer = map (\(Tuple {x, y} pts) ->
                     { x: x `mod` size.width
                     , y: y `mod` size.height

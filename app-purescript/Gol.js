@@ -330,8 +330,10 @@ const inRange = function(mn,mx,x) {
 }
 
 
-// // snapshots : [[Thunk [{ x: Int, y: Int, pts: [Int] }]]]     -- top level: time, second level, dim
-exports._setupGolFlat = function(sel,{height,width,maxT,maxDim}) {
+// snapshots : [[Thunk [{ x: Int, y: Int, pts: [Int] }]]]     -- top level: time, second level, dim
+// if maxDim is null, only show d=0
+// showPts: include that extra div on the bottom
+exports._setupGolFlat = function(sel,showPts,{height,width,maxT,maxDim}) {
     const window_size = { height: 200, width: 200 }
     const margin = { top: 10, bottom: 10, left: 10, right: 10 }
     const cell_size = { height: (window_size.height-margin.top-margin.bottom) / height
@@ -352,6 +354,9 @@ exports._setupGolFlat = function(sel,{height,width,maxT,maxDim}) {
                 .style("margin","1em auto 0 auto")
                 .style("display","block")
                 .style("overflow","visible");
+        if (!maxDim) {
+            dimslidersvg.attr("display","none");
+        }
         const slidersvg = d3.select(sel)
                 .append("svg")
                 .attr("viewBox", [0,0, slider_size.width, slider_size.height])
@@ -369,6 +374,9 @@ exports._setupGolFlat = function(sel,{height,width,maxT,maxDim}) {
                 .style("text-align","center")
                 .style("font-size","90%")
                 .style("line-height","125%");
+        if (!showPts) {
+            ptsdisp.attr("display","none");
+        }
         let currTime = 0;
         let currDim = 0;
         let currSel = undefined;
@@ -433,28 +441,32 @@ exports._setupGolFlat = function(sel,{height,width,maxT,maxDim}) {
               , onleave: (() => drawBoxes(currTime,currDim,undefined,false))
               }
             );
-        gridSetup.grid.on("click", function(e) {
-            e.preventDefault();
-            locked = !locked;
-            if (locked) {
-                gridSetup.underlighter(0.05);
-            } else {
-                gridSetup.underlighter(0);
-            }
-        });
-        const dimselbox = dimslidersvg.append("g")
-                        .attr("transform","translate(15,0)");
-        const dimslider = d3.sliderBottom()
-            .min(0)
-            .max(maxDim)
-            .step(1)
-            .width(slider_size.width-30)
-            .ticks(maxDim+1)
-            .tickFormat(v => (v+2)+"")
-            .displayFormat(v => "d="+(v+2))
-            .on("onchange", d => drawBoxes(currTime,d,currSel,false));
-        dimselbox.call(dimslider);
-        dimslider.value(3)
+        if (showPts) {
+            gridSetup.grid.on("click", function(e) {
+                e.preventDefault();
+                locked = !locked;
+                if (locked) {
+                    gridSetup.underlighter(0.05);
+                } else {
+                    gridSetup.underlighter(0);
+                }
+            });
+        }
+        if (maxDim) {
+            const dimselbox = dimslidersvg.append("g")
+                            .attr("transform","translate(15,0)");
+            const dimslider = d3.sliderBottom()
+                .min(0)
+                .max(maxDim)
+                .step(1)
+                .width(slider_size.width-30)
+                .ticks(maxDim+1)
+                .tickFormat(v => (v+2)+"")
+                .displayFormat(v => "d="+(v+2))
+                .on("onchange", d => drawBoxes(currTime,d,currSel,false));
+            dimselbox.call(dimslider);
+            dimslider.value(3)
+        }
 
         const controller =
             setupTimer(slidersvg
@@ -818,7 +830,7 @@ exports._drawGolSyms = function(sel, maxZ, {dim, gridSize, ptPos}, reversed) {
             , reversed
             );
     const topBorder = ptPos(ixPascal(dim,maxPascal-1));
-    console.log(topBorder);
+    // console.log(topBorder);
 
     return function () {
         d3.select(sel).selectAll("p").remove();
@@ -1397,7 +1409,8 @@ exports._drawTree = function(sel,forward,vecRun,mkHier,getContrib) {
                 .attr("dy",-1.5)
                 .attr("x",-4)
                 .attr("opacity", d => ("children" in d) ? 0.9 : 0.5)
-                .text(d => getContrib(d.data)().leftovers.join("-"));
+                .text(d => getContrib(d.data)().leftovers.join("-"))
+                .style("font-weight", d => (d.parent) ? "normal" : "bold");
 
             node.append("text")
                 .attr("text-anchor", "end")
