@@ -55,7 +55,7 @@ main :: Effect Unit
 main = do
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 23
+      logMe 27
 
       draw2D <- setupGolFlat "#gol2D" {height:20, width:20, maxT: 6, maxDim: Nothing}
       draw3D <- setupGol3D "#gol3D" {height:20, width:20, maxT: 6}
@@ -556,13 +556,13 @@ setupGolFlat
     :: String
     -> {height :: Int, width :: Int, maxT :: Int, maxDim :: Maybe Int}  -- if Nothing, hide the points too
     -> Effect (Set Point2 -> Effect Unit)
-setupGolFlat sel size = (_ <<< preRun) <$> runFn3 _setupGolFlat sel (isNothing size.maxDim) size'
+setupGolFlat sel size = (_ <<< preRun) <$> runFn3 _setupGolFlat sel (isJust size.maxDim) size'
   where
     size' = { height: size.height, width: size.width, maxT: size.maxT
             , maxDim: Nullable.toNullable size.maxDim
             }
     preRun pts = case size.maxDim of
-      Nothing -> [A.fromFoldable <<< map (map drawer) $ List.take (size.maxT+1) (runner 0 pts)]
+      Nothing -> A.fromFoldable <<< map (A.singleton <<< map drawer) $ List.take (size.maxT+1) (runner 0 pts)
       Just md -> A.fromFoldable <<< map A.fromFoldable
         <<< List.transpose <<< flip map (List.range 0 md) $ \d ->
               map (map drawer) (List.take (size.maxT+1) (runner d pts))

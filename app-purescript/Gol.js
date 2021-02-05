@@ -347,15 +347,15 @@ exports._setupGolFlat = function(sel,showPts,{height,width,maxT,maxDim}) {
             .attr("width","15em")
             .style("margin","auto")
             .style("display","block");
-        const dimslidersvg = d3.select(sel)
+        let dimslidersvg = null;
+        if (maxDim) {
+            dimslidersvg = d3.select(sel)
                 .append("svg")
                 .attr("viewBox", [0,0, slider_size.width, slider_size.height])
                 .attr("width","15em")
                 .style("margin","1em auto 0 auto")
                 .style("display","block")
                 .style("overflow","visible");
-        if (!maxDim) {
-            dimslidersvg.attr("display","none");
         }
         const slidersvg = d3.select(sel)
                 .append("svg")
@@ -364,7 +364,9 @@ exports._setupGolFlat = function(sel,showPts,{height,width,maxT,maxDim}) {
                 .style("margin","1em auto 0 auto")
                 .style("display","block")
                 .style("overflow","visible");
-        const ptsdisp = d3.select(sel)
+        let ptsdisp = null;
+        if (showPts) {
+            ptsdisp = d3.select(sel)
                 .append("div")
                 .style("width","20em")
                 .style("height","10em")
@@ -374,8 +376,7 @@ exports._setupGolFlat = function(sel,showPts,{height,width,maxT,maxDim}) {
                 .style("text-align","center")
                 .style("font-size","90%")
                 .style("line-height","125%");
-        if (!showPts) {
-            ptsdisp.attr("display","none");
+
         }
         let currTime = 0;
         let currDim = 0;
@@ -407,14 +408,16 @@ exports._setupGolFlat = function(sel,showPts,{height,width,maxT,maxDim}) {
                 if (sel) {
                     const {x,y} = sel;
                     const pts = (x in ptcache) ? ((y in ptcache[x]) ? ptcache[x][y] : []) : [];
-                    if (d > 0) {
-                        const ptsstring = (pts.length == 0)
-                                        ? "(no points)"
-                                        : pts.map(pt => "<" + ixPascal(d,pt).join(",") + ">").join(", ");
-                        ptsdisp.text(ptsstring).style("font-style", (pts.length == 0) ? "italic" : "normal");
-                    } else {
-                        ptsdisp.text((pts.length == 0) ? "(no point)" : "(single point)")
-                          .style("font-style", "italic");
+                    if (showPts) {
+                        if (d > 0) {
+                            const ptsstring = (pts.length == 0)
+                                            ? "(no points)"
+                                            : pts.map(pt => "<" + ixPascal(d,pt).join(",") + ">").join(", ");
+                            ptsdisp.text(ptsstring).style("font-style", (pts.length == 0) ? "italic" : "normal");
+                        } else {
+                            ptsdisp.text((pts.length == 0) ? "(no point)" : "(single point)")
+                              .style("font-style", "italic");
+                        }
                     }
                     const equivGroup = snapshots[t][d]().flatMap(function(testpt) {
                         if (sameArray(testpt.pts, pts)) {
@@ -426,8 +429,10 @@ exports._setupGolFlat = function(sel,showPts,{height,width,maxT,maxDim}) {
                     gridSetup.highlighter(equivGroup);
                 } else {
                     gridSetup.highlighter([]);
-                    ptsdisp.text("Hover to view points")
-                        .style("font-style","italic");
+                    if (showPts) {
+                        ptsdisp.text("Hover to view points")
+                            .style("font-style","italic");
+                    }
                 }
             }
             currTime = t;
@@ -677,13 +682,16 @@ exports._setupGol4D = function(sel,{height,width,maxT}) {
                 }
             });
             grids[i].forEach(function (g) {
-                g.underlighter(0.25);
+                const intensity = (Math.abs(z) == Math.abs(g.point.z) && Math.abs(w) == Math.abs(g.point.w))
+                                ? 0.5
+                                : 0.25;
+                g.underlighter(intensity);
                 clearHighlights.push(() => g.underlighter(0));
             });
         }
         grids = symmetries.map(function(pos,i) {
             return pos.map(function({z,w}) {
-                const res = setupGrid(grid,"",width,height
+                const res = setupGrid(grid,z+","+w,width,height
                         ,window_size.width-margin.left-margin.right
                         ,window_size.height-margin.top-margin.bottom
                         , { onmove: function(x,y) {
@@ -695,7 +703,7 @@ exports._setupGol4D = function(sel,{height,width,maxT}) {
                 res.grid
                   .attr("transform",`translate(${(maxT+z)*window_size.width},${(maxT+w)*window_size.height})`);
                 fullGrid[z+maxT][w+maxT] = {drawer: res.drawer, highlighter: res.highlighter, underlighter: res.underlighter};
-                return {drawer: res.drawer, highlighter: res.highlighter, underlighter: res.underlighter};
+                return {drawer: res.drawer, highlighter: res.highlighter, underlighter: res.underlighter, point: {z,w}};
             });
         });
 
