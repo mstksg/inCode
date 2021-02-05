@@ -18,11 +18,12 @@ simulations!
 
 This is a story about breaking the degenerate hyper-dimensional game of life by
 exploratory visualizations and math!  Let's travel back in time: t'was the
-night before December 17, 2020, The release of ["Conway Cubes"][puzzle], day 17
-of the "Advent of Code" (fun little coding puzzles building up to Christmas).
-One part about Advent of Code I've always found especially fun is that, because
-the problems are so self-contained and tidy, they are often *open-ended* in the
-interesting ways you can solve them or expand them.
+night before Thursday, December 17, 2020, The release of ["Conway
+Cubes"][puzzle], day 17 of the "Advent of Code" (fun little coding puzzles
+building up to Christmas). One part about Advent of Code I've always found
+especially fun is that, because the problems are so self-contained and tidy,
+they are often *open-ended* in the interesting ways you can solve them or
+expand them.
 
 [puzzle]: https://adventofcode.com/2020/day/17
 
@@ -179,14 +180,14 @@ This method nets us a huge advantage because we now only have to loop over the
 number of items that we know are alive!  Any points far away from our set of
 alive points can be properly ignored.  This narrows down our huge iteration
 space, and the benefits compound with every dimension due to the blessing of
-dimensionality![^bittweak]
+dimensionality!
 
 The nice thing about this method is that it's easy enough to generalize to any
 dimension: instead of, say, keeping `[x,y]` in your set for 2D, just keep
 `[x,y,z]` for 3D, or any length array of coordinates.  One minor trick you need
 to think through is generating all $3^d-1$ neighbors, but but that's going to
 come down to a d-ary [cartesian product][cross] of `[-1,0,1]` to
-itself.[^crosstrick]
+itself.
 
 Here's a version of the set-based implementation, using a nice trick I learned
 from [phaazon][] to get the right neighbors by doing a cartesian product
@@ -227,49 +228,49 @@ def step(pts):
     return [p for p, n in neighbs.items() if validate(p, n)]
 ```
 
-And...there's actually a neat optimization we can use (brought to our
-attention by [Peter Tseng][bitshift]) to avoid the check of the original set in
-step 2c above: when you iterate over each point, increment the eight neighbors'
-map values by *2*, and then increment the point itself by 1.  Then in the final
-integer under each key, `n / 2` or `n >> 1` gives you the number of neighbors and `n % 2`
-(modulo) gives you whether or not that cell was alive.
+<!-- And...there's actually a neat optimization we can use (brought to our -->
+<!-- attention by [Peter Tseng][bitshift]) to avoid the check of the original set in -->
+<!-- step 2c above: when you iterate over each point, increment the eight neighbors' -->
+<!-- map values by *2*, and then increment the point itself by 1.  Then in the final -->
+<!-- integer under each key, `n / 2` or `n >> 1` gives you the number of neighbors and `n % 2` -->
+<!-- (modulo) gives you whether or not that cell was alive. -->
 
-[bitshift]: https://www.reddit.com/r/adventofcode/comments/kfb6zx/day_17_getting_to_t6_at_for_higher_spoilerss/ghmllf8
+<!-- [bitshift]: https://www.reddit.com/r/adventofcode/comments/kfb6zx/day_17_getting_to_t6_at_for_higher_spoilerss/ghmllf8 -->
 
-```python
-from itertools import islice, product, chain,repeat
-from collections import Counter
+<!-- ```python -->
+<!-- from itertools import islice, product, chain,repeat -->
+<!-- from collections import Counter -->
 
-def mk_neighbs(point):
-    """Return neighboring points, with special optimization trick weights
+<!-- def mk_neighbs(point): -->
+<!--     """Return neighboring points, with special optimization trick weights -->
 
-    (1,2)
-    => [((1, 2), 1), ((1, 1), 2), ((1, 3), 2), ((0, 2), 2), ((0, 1), 2),
-        ((0, 3), 2), ((2, 2), 2), ((2, 1), 2), ((2, 3), 2)
-       ]
-    """
-    neighb_pts = product(*[[x, x-1, x+1] for x in point])
-    # associate the original point with +1, and the neighbors with +2
-    return zip(neighb_pts, chain([1], repeat(2)))
+<!--     (1,2) -->
+<!--     => [((1, 2), 1), ((1, 1), 2), ((1, 3), 2), ((0, 2), 2), ((0, 1), 2), -->
+<!--         ((0, 3), 2), ((2, 2), 2), ((2, 1), 2), ((2, 3), 2) -->
+<!--        ] -->
+<!--     """ -->
+<!--     neighb_pts = product(*[[x, x-1, x+1] for x in point]) -->
+<!--     # associate the original point with +1, and the neighbors with +2 -->
+<!--     return zip(neighb_pts, chain([1], repeat(2))) -->
 
-def step(pts):
-    """Takes a set of points (tuples) and steps them in the simulation
-    """
-    neighbs = Counter()
-    for point in pts:
-        neighbs += Counter(dict(mk_neighbs(point)))
+<!-- def step(pts): -->
+<!--     """Takes a set of points (tuples) and steps them in the simulation -->
+<!--     """ -->
+<!--     neighbs = Counter() -->
+<!--     for point in pts: -->
+<!--         neighbs += Counter(dict(mk_neighbs(point))) -->
 
-    def validate(val):
-        # the true neighbor count, since we inserted +2 for neighbors
-        ncount = val // 2
-        # was originally alive if odd, since we inserted +1 for self
-        if val % 2 == 1:
-            return ncount == 2 or ncount == 3
-        else:
-            return ncount == 3
+<!--     def validate(val): -->
+<!--         # the true neighbor count, since we inserted +2 for neighbors -->
+<!--         ncount = val // 2 -->
+<!--         # was originally alive if odd, since we inserted +1 for self -->
+<!--         if val % 2 == 1: -->
+<!--             return ncount == 2 or ncount == 3 -->
+<!--         else: -->
+<!--             return ncount == 3 -->
 
-    return [p for p, q in neighbs.items() if validate(q)]
-```
+<!--     return [p for p, q in neighbs.items() if validate(q)] -->
+<!-- ``` -->
 
 Three Dimensions
 ----------------
@@ -333,7 +334,7 @@ need to be double-counted as neighbors. In particular, any `z=0` cell would
 previously had a neighbor at both `z=-1` and `z=1`...but now if we only keep
 the positive z's, it would have `z=1` as a neighbor *twice*.
 
-The following interactive element lets you explore what this looks like:
+The following interactive demo lets you explore what this looks like:
 
 ::::: {#golSyms3DForward}
 Please enable Javascript
@@ -373,7 +374,7 @@ compute the total neighbor count of `<1,3,0>`, we have to count the
 contribution from `<1,3,1>` twice (once for `<1,3,1>` and once for `<1,3,-1>`,
 which was normalized away).
 
-That means we have to follow the rules in the previous element *backwards*,
+That means we have to follow the rules in the previous demo *backwards*,
 like:
 
 ::::: {#golSyms3DReverse}
@@ -398,7 +399,7 @@ the number of 5D points by a factor of eight, the number of 6D points by a
 factor of 16... now our total points to check only grows as $O(n^d / 2^{d-2})$
 instead of $O(n^d)$!
 
-This discovery late in the night of December 16th was what inspired us to
+This discovery late in the Tuesday night of the 16th was what inspired us to
 believe and dream that more breakthroughs might be possible to bring things
 down even further.
 
@@ -439,8 +440,8 @@ mouse over a zw square. (Ignore the lighter yellow highlights for now!)
 
 And now, for the next big breakthrough.  I think this situation shows the power
 of visualization well, because this exact visualization was what reddit user
-*u/cetttbycett* was looking at when [they made this post][zwsym]...and
-everything changed forever.
+*u/cetttbycett* was looking at when [they made this post][zwsym] late Thursday
+the 17th/early Friday the 18th...and everything changed *forever*.
 
 [zwsym]: https://www.reddit.com/r/adventofcode/comments/kfjhwh/year_2020_day_17_part_2_using_symmetry_in_4d_space/
 
@@ -451,7 +452,7 @@ respect to two hyperplanes in 4d space: These hyperplanes can be described by w
 > Using these symmetries could make the code nearly eight times as fast.I was
 > wondering if anyone tried that.
 
-What *u/cetttbycettt* saw is what you can see now in the element above: it's
+What *u/cetttbycettt* saw is what you can see now in the demo above: it's
 all of the *light yellow* highlighted squares when you mouse-over.  In addition
 to the z=0 and w=0 lines (the two lines down the middle, up-down and
 left-right), we also have another line of symmetry: z=w and w=z, the diagonal
@@ -468,9 +469,10 @@ coordinates (a single quadrant)...our next breakthrough means that we only have
 to simulate coordinates on a single "wedge" half-quadrant...and then duplicate
 those eight times at the end.
 
-Arbitrarily, let's say we only simulate the points `<z,w>` where both
-components are positive and in non-decreasing order.  So, `<4,-3>` gets
-"normalized" to `<3,4>`.
+Arbitrarily, let's say we only simulate the north-by-northeast wedge, because
+it's easy to normalize/compact all points onto that wedge: they're the points
+`<z,w>` where both components are positive and in non-decreasing order.  So,
+`<4,-3>` gets "normalized" to `<3,4>`.
 
 Okay, so we found a new symmetry...but we ran into the same issue as before.
 How do we propagate neighbors?  To help us, see what's going on, let's look at
@@ -542,9 +544,150 @@ Now, onward to 5D!
 Five Dimensions
 ---------------
 
+By stepping into looking at 5D, we've stepped into a brand new territory ---
+we're now past what the original question was asking about, and into simply
+exploring a personal curiosity for fun.  No longer are we "super-optimizing"
+the puzzle --- we're now warping the original challenge to levels it was never
+designed to handle.
+
+It's difficult to visualize how things look in 5 dimensions, so this is where
+it gets a little tricky to make any progress, mentally.  The first thing we
+need to figure out is how exactly we can generalize the "z=w" symmetry from 4D
+to be able to take advantage of it in 5D...and hopefully in a way that can
+generalize to arbitrary dimensions.  Along the way we'd also like to get rid of
+our hacky 4D neighbor multiplicity rules and get something a little cleaner.
+
+I struggled with for a while without making too much headway...but on the
+morning of Friday, December 18th, arguably one of the biggest revelations of
+the entire journey was dropped by Michal Marsalek on u/cetttbycettt's reddit
+thread.  It was a big deal, because not only did it allow us to generalize our
+symmetries to higher dimensions, but it also *proved* a specific degeneracy
+that allowed 10D simulation to be definitely 100% *solvable*.
+
+### Permutation Symmetry
+
+Here was Michal's [historic post][permpost]:
+
+> Yes, all the higher dimensions are interchangeable, there's nothing that
+> distinquishes them. That is, if there's an active cell at position (x,y,
+> a,b,c,d,e,f,g) then, there's also one at (x,y, c,d,g,e,f,a) and at all other
+> permutations, of coordinates a-g). That is the number of cells that one need
+> to track can be reduced by factor of $(d-2)! \times 2^{d-2}$ (at least if
+> time goes to infinity).
+>
+> ...we can use symmetries coming from permutations, to only track cells
+> where $|x_0| < 13,\, |x_1| < 13,\, 0 \leq x_2 \leq x_3 \leq\,\ldots\, \leq x_{d-1} \leq t_max$.
+> There's $25^2 \times \sum_{k=0}^{t_max} {{d-3+k}\choose{k}}$ such cells.
+
+[permpost]: https://www.reddit.com/r/adventofcode/comments/kfjhwh/year_2020_day_17_part_2_using_symmetry_in_4d_space/gg9vr6m/
+
+*(equations slightly modified)*
+
+And boy was this exciting to read.  First of all, it gave a way to generalize
+the z=w symmetry: it's just permutation symmetry for all higher-dimensional
+coordinates!   But the big kicker here: See that last formula?  Let's look at
+it more closely, using $\hat{d}$ to represent $d-2$, the number of higher
+dimensions:
+
+$$
+25^2 \times \sum_{k=0}^{t_max} {{\hat{d}-1+k}\choose{k}}
+$$
+
+That sum has only the amount of terms fixed with the maximum timestamp! That
+means we only ever have 6 terms to expand, no matter how high the dimensions
+are --- at 10D and even 100D!  Furthermore, we can simplify the above using
+properties of the binomial distribution to get
+
+$$
+25^2 \times {{\hat{d}+6}\choose{6}}
+$$
+
+This binomial coefficient is actually polynomial on $\hat{d}$ --- it's
+$\frac{1}{6!} \prod_{k=1}^6 (\hat{d}+k)$ --- a sixth degree polynomial (leading
+term $\frac{1}{6!} x^6$), in fact.  This means that we have turned the number
+of points we need to track from exponential ($O(13^{\hat{d}})$) to slightly smaller
+exponential with the negative/positive simplification ($O(6^{\hat{d}})$) to now
+*polynomial* $O(\hat{d}^6)$!
+
+So, not only did we figure out a way to generalize/compute our symmetries, we
+also now know that this method lets us keep our point set *polynomial* on the
+dimension, instead of exponential.
+
+And in a flash, 10D didn't feel like a dream anymore.  It felt like an
+inevitability.  And now, it was a race to see who could get there first.
+
+### Terminology
+
+Before we go any further, let's clarify and introduce some terminology we'll be
+using for the rest of this post.
+
+*   I've been using the word **slice** to talk about a 2D grid representing a
+    single higher-dimensional `<z,w...>` coordinate --- they're the 13 grids in
+    the 3D simulation and the 169 grids in the 4D simulation.
+*   I've also been using **cell** to refer to an exact specific `<x,y,z,w,..>`
+    spot --- they are the tiny squares inside each grid in the simulations
+    above.
+*   I'll start using the word **coset** to refer the set of all of the
+    duplicates of an `<x,y>` across all permutations and negations of
+    `<z,w,q,..>`, since they all behave the same (they are either all on or all
+    off together).  So `<x,y,1,2>`, `<x,y,2,1>`, `<x,y,-1,2>`, `<x,y,1,-2>`,
+    `<x,y,-1,-2>`, `<x,y,-2,1>`, `<x,y,2,-1>`, and `<x,y,-2,-1>` are all a part
+    of the same coset, represented by the normalized form `<x,y,1,2>`.  Now,
+    during our simulation, we only need to simulate one member from each coset,
+    because every member is identically present or not present.  For the sake
+    of implementation, we simulate the arbitrary *normalized* (positive and
+    sorted) member only.  Because of this, we'll sometimes refer to the normalized
+    item and the coset it represents as the same thing.
+*   I'll also start using **slice coset** to talk about the set of all
+    `<z,w,..>` *slices) across its permutations and negatiions.  So entire
+    slice at z-w coordinates of  `<1,2>`, `<2,1>`, `<-1,2>`, `<1,-2>`,
+    `<-1,-2>`, `<-2,1>`, `<2,-1>`, and `<-2,-1>` are all a part
+    of the same coset, represented by the normalized form `<1,2>`.  All of the
+    slices at each of those zw coordinates will always be identical, so we can
+    talk the state of a single slice at `<1,2>` as representing the state of
+    its entire coset.
+
+    Slice cosets are what are being highlighted on mouseovers for the 3D and 4D
+    simulations. They are also what the big squares represent for the forward
+    and backward neighbor demos of each: each slice stands in for their entire
+    slice coset, and we show the amount of times each normalized slice coset
+    element is a neighbor of the other.
+
+### Visualizing 5D Neighbors
+
+Okay, one last pit stop before we generalize to arbitrary dimensions.  Now that
+we know the nature of the symmetries, let's start visualizing how they
+might look in 5D.
+
+It's a bit difficult to duplicate the same forward/reverse neighbor demos for
+4D as we had for 4D, so here's a different representation.  Here is a demo of
+all of the `<z,w,q>` slice cosets (the wedge of normalized points we track for
+our implementation) and both their forward and reverse neighbor weights of each
+other.  The `q` axis is represented as stacked zw sections from left to right.
+
 ::::: {#golSyms5D}
 Please enable Javascript
 :::::
+
+As you mouse-over a slice coset representative (a single square), all of its
+neighbors will be highlighted, including reflections.  The red dot on the left
+is the "forward" neighbor (how many times that other slice is a neighbor of the
+hovered slice) and the blue dot on the left is the "reverse" neighbor (how many
+times the hovered slice is a neighbor of the other slice).  For example, if you
+hover over `<z,w,q>=<1,3,4>`, you can see that `<0,3,4>` is its neighbor twice,
+and `<1,3,4>` is `<0,3,4>`'s neighbor four times.  These four times come from
+the non-normalized reflections of `<1,3,4>` at `<1,3,4>`, `<1,4,3>`,
+`<-1,3,4>`, and `<-1,4,3>`.  [Mind bottling][bottle]!
+
+[bottle]: https://www.youtube.com/watch?v=rSfebOXSBOE
+
+Anyway, you can explore this a little bit and try to come up with a set of
+ad-hoc rules like we did for 4D...but I think we've reached the limits of how
+far that method can go.  We can generate these values simply enough by just
+expanding all of the reflections and normalizing and counting the normalized
+values, but there should be a way to compute these weights *directly*, in a
+clean fashion that doesn't require branching special cases and patterns.  It's
+clear that we are limited until we can find this method.
 
 Tackling the Neighbor Problem
 -----------------------------
