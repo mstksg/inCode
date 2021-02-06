@@ -619,8 +619,8 @@ Here was Michal's [historic post][permpost]:
 > time goes to infinity).
 >
 > ...we can use symmetries coming from permutations, to only track cells
-> where $|x_0| < 13,\, |x_1| < 13,\, 0 \leq x_2 \leq x_3 \leq\,\ldots\, \leq x_{d-1} \leq t_max$.
-> There's $20^2 \times \sum_{k=0}^{t_max} { {d-3+k} \choose {k} }$ such cells.
+> where $|x_0| < 13,\, |x_1| < 13,\, 0 \leq x_2 \leq x_3 \leq\,\ldots\, \leq x_{d-1} \leq t$.
+> There's $20^2 \times \sum_{k=0}^{t} { {d-3+k} \choose {k} }$ such cells.
 
 [permpost]: https://www.reddit.com/r/adventofcode/comments/kfjhwh/year_2020_day_17_part_2_using_symmetry_in_4d_space/gg9vr6m/
 
@@ -633,7 +633,7 @@ it more closely, using $\hat{d}$ to represent $d-2$, the number of higher
 dimensions:
 
 $$
-20^2 \times \sum_{k=0}^{t_max} { {\hat{d}-1+k}\choose{k} }
+20^2 \times \sum_{k=0}^{t} { {\hat{d}-1+k}\choose{k} }
 $$
 
 That sum has only the amount of terms fixed with the maximum timestamp! That
@@ -647,17 +647,17 @@ $$
 
 This binomial coefficient is actually polynomial on $\hat{d}$ --- it's
 $\frac{1}{6!} \prod_{k=1}^6 (\hat{d}+k)$ --- a sixth degree polynomial (leading
-term $\frac{1}{6!} x^6$), in fact.  This means that we have turned the number
-of points we potentially need to track from exponential ($O(13^{\hat{d}})$) to
-slightly smaller exponential with the negative/positive simplification
-($O(6^{\hat{d}})$) to now *polynomial* $O(\hat{d}^6)$!
+term $\frac{1}{6!} \hat{d}^6$), in fact.  This means that we have turned the
+number of points we potentially need to track from exponential
+($O(13^{\hat{d}})$) to slightly smaller exponential ($O(6^{\hat{d}})$) to now
+*polynomial* $O(\hat{d}^6)$!
 
 So, not only did we figure out a way to generalize/compute our symmetries, we
 also now know that this method lets us keep our point set *polynomial* on the
 dimension, instead of exponential.
 
-To put a concrete number for context, for that dream of d=10, here are only ${
-(8+6) \choose 6 }$, or 3003 potential unique `<z,w,...>`  points, once you
+To put a concrete number for context, for that dream of d=10, here are only
+${ {8+6} \choose 6 }$, or 3003 potential unique `<z,w,...>`  points, once you
 factor out symmetries!  The number went down from $13^8$ (815,730,721)
 potential unique `<z,w,...>` points to $6^8$ (1,679,616) potential unique
 points with positive/negative symmetry to just 3003 with permutation
@@ -673,7 +673,7 @@ big improvement over the original situation ($20^2 \times 815730721$).
 And in a flash, 10D didn't feel like a dream anymore.  It felt like an
 inevitability.  And now, it was a race to see who could get there first.
 
-### Reaching 10D
+### The Race to 10D
 
 Unfortunately, the exact record of who reached and posted 10D first is a bit
 lost to history due to reddit's editing records.  A few people maintained and
@@ -686,11 +686,11 @@ freenode's `##adventofcode-spoilers` channel in excitement in the wee morning
 hours (PST) Saturday December 19th:
 
 ```
-2020-12-19 02:32:42       jle`    d=10 in 9m58s
-2020-12-19 02:33:05       jle`    hooray my goal :)
-2020-12-19 02:33:08       jle`    time to sleep now
-2020-12-19 02:33:12       xerox_  goodnight
-2020-12-19 02:33:35       jle`    xerox_: thanks :)
+2020-12-19 02:32:42 | jle`    d=10 in 9m58s
+2020-12-19 02:33:05 | jle`    hooray my goal :)
+2020-12-19 02:33:08 | jle`    time to sleep now
+2020-12-19 02:33:12 | xerox_  goodnight
+2020-12-19 02:33:35 | jle`    xerox_: thanks :)
 ```
 
 Pure joy! :D
@@ -702,7 +702,7 @@ they originally proposed by the following Wednesday (December 23rd) in Nim to bl
 everyone's time out of the water: 3.0 seconds!
 
 [peterpost]: https://www.reddit.com/r/adventofcode/comments/kfb6zx/day_17_getting_to_t6_at_for_higher_spoilerss/ggaaqsy/
-[michaelpost]: https://www.reddit.com/r/adventofcode/comments/kfb6zx/day_17_getting_to_t6_at_for_higher_spoilerss/ggsx9e9/
+[michalpost]: https://www.reddit.com/r/adventofcode/comments/kfb6zx/day_17_getting_to_t6_at_for_higher_spoilerss/ggsx9e9/
 
 At that point, it was pretty unbelievable to me that what started out as a
 dream goal that we couldn't have completed on a supercomputer had, through
@@ -737,7 +737,7 @@ terminology we'll be using for the rest of this post.
     sorted) member only.  Because of this, we'll sometimes refer to the normalized
     item and the coset it represents as the same thing.
 *   I'll also start using **slice coset** to talk about the set of all
-    `<z,w,..>` *slices) across its permutations and negations.  The slices at
+    `<z,w,...>` slices) across its permutations and negations.  The slices at
     z-w coordinates of  `<1,2>`, `<2,1>`, `<-1,2>`, `<1,-2>`, `<-1,-2>`,
     `<-2,1>`, `<2,-1>`, and `<-2,-1>` are all a part of the same coset,
     represented by the normalized form `<1,2>`.  All of the slices at each of
@@ -756,7 +756,7 @@ Tackling the Neighbor Problem
 -----------------------------
 
 My initial d=10 time clocked in at just under 10 minutes initially, but as
-early as next Wednesady we knew that a sub-5 second time was possible.  So
+early as next Wednesday we knew that a sub-5 second time was possible.  So
 where was the gap?
 
 Well, I didn't really know what to do about the neighbor multiplicity problem.
@@ -774,7 +774,9 @@ the world of hyper-dimensional symmetries!
 ### Five Dimensions
 
 First, let's start visualizing how things look like in 5 dimensions, now that
-we know what our slice coset/representative structure looks like.
+we know what our slice coset/representative structure looks like.  Partially to
+help us gain an intuition for some of what's going on, and also partially to
+show that intuition at the individual component level can only get so far.
 
 It's a bit difficult to duplicate the same forward/reverse neighbor demos for
 4D as we had for 4D, so here's a different representation.  Here is a demo of
@@ -796,9 +798,21 @@ hover over `<z,w,q>=<1,3,4>`, you can see that `<0,3,4>` is its neighbor twice,
 and `<1,3,4>` is `<0,3,4>`'s neighbor four times.  These four times come from
 the non-normalized reflections of `<1,3,4>` at `<1,3,4>`, `<1,4,3>`,
 `<-1,3,4>`, and `<-1,4,3>`.  Some squares are also neighbors to themselves
-(like `<1,4,5>`) and some are not (like `<1,3,5>`).  [Mind bottling][bottle]!
+(like `<1,4,5>`, which reflects off of the top edge at `<1,5,4>`) and some are
+not (like `<1,3,5>`).  [Mind bottling][bottle]!
 
 [bottle]: https://www.youtube.com/watch?v=rSfebOXSBOE
+
+At least one pattern we can see clearly is that if your points are 4 or lower,
+the sum of all the red dots (the forward neighbors) is $3^3-1$ = 26, just like
+how the sum of forward neighbors for interior points in 3D is $3^2-1=8$, and
+for 2D is $3^2-1 = 2$.
+
+Another very important pattern is that "is a neighbor" seems to be reversible:
+the set of all *forward* neighbors of a point is the same as all *reverse*
+neighbors of a point --- the only difference is the multiplicities!  But,
+wherever you see a red dot, you will also always see a blue dot.  No single-dot
+squares.
 
 Anyway, you can explore this a little bit and try to come up with a set of
 ad-hoc rules like we did for 4D...but I think we've reached the limits of how
@@ -806,23 +820,142 @@ far that method can go.  We can generate these values simply enough using the
 expand-normalize-tabulate method we did for 4D, but there should be a way to
 compute these weights *directly*, in a clean fashion that doesn't require
 branching special cases and patterns.  It's clear that we are limited until we
-can find this method.[^d10story]
-
-[^d10story]: Okay, so this is a sliiight deviation from what actually happened.
-We were actually able to pretty much immediately hit d=10 with the explicit
-brute-force neighbor tabulation done for 4D.  But I'm stretching this out a bit
-to draw out the narrative :)
+can find this method.
 
 ### Go with the Flow
 
+What do all our valid normalized `<z,w,...>` coordinates look like? Well, they
+are always non-decreasing, and always are less than the current timestep.
+Keeping t=6 as our goal still, this means that valid coordinates in 10D are
+strings of eight numbers, like `0,1,1,1,3,5,5,6`, or `0,0,3,4,4,4,6,6`, or
+`1,1,2,3,3,4,5,5`.[^repeated]
 
-::::: {#golTreeForward}
-Please enable Javascript
-:::::
+[^repeated]: It's also interesting to note that above 9D (where there are 7
+higher-dimensional coordinates), there is always at least one duplicated
+number.  Although I don't really know a way to explicitly exploit that fact
+even now, it does mean that there's a qualitative difference between 9D and
+below and 10D and above: anything above 9D is...especially degenerate.
+
+But we run into problems working with this format.  For example, if we're
+computing a neighbor of `0,1,1,1,3,5,5,6`,  we can imagine that the very first
+`1` moves to be a `2`, resulting in `0,2,1,1,3,5,5,6`. However, we're now in
+un-normalized territory...we have to re-sort it to turn it into
+`0,1,1,2,3,5,5,6`.  It's just not something we can directly manipulate with
+simple rules and still stay in the valid state space without complicated
+restrictions or rules.
+
+If you stare at many different sample points, you might start to build an
+internal model in your head...these points are really all just consecutive runs
+of 1s, 2s, 3s, etc., at different lengths.  What if we encoded each
+higher-dimensional coordinate as "number of each position seen?"  For example,
+we can encode `0,1,1,1,3,5,5,6` as `1-3-0-1-0-2-1`: the first slot represents
+how many 0s we have the second how many 1s, the next how many 2s, the next how
+many 3s, etc. We can encode `0,0,3,4,4,4,6,6` as `2-0-0-1-3-0-2` and
+`1,1,2,3,3,4,5,5` as `0-2-1-2-1-2-0`.  The *sum* of the components gives you
+the total number of higher dimensions (ie, 10D vectors sum to 8)
+
+And now, a "valid transition" becomes easy to enforce: it's an amount "flowing"
+from one of those bins to another.  For example, turning a `1` into a `2` in
+`1-3-0-1-0-2-1` turns it into `1-2-1-1-0-2-1`.  We took one of the three 1s and
+turned them into a single 2.  In this method, we don't have to do any
+normalization because this "flowing" operation automatically preserves the
+sum-to-a-fixed-number invariant!
+
+That's it, really!  We can walk bin-to-bin, assembling a new vector from the
+old ones, by looking at the different possible bin-to-bin flows step-by-step!
+
+Now, the tricky math is the with multiplicities.  Interestingly enough, in this
+case the *reverse* direction is actually easier to conceptualize than the
+forward direction.  Good for us, because it's the reverse direction we actually
+need.
+
+Let's say that we start at `0-2-1-3` (`1,1,2,3,3,3`) and we want it to "flow"
+to, say, `0-0-5-0` (`2,2,2,2,2`): dump all our bins into 2.  How many ways
+could this flow happen?  Well, we end up with 5 points in the slot, which could
+have been picked $5!$ ways.  We came to it via three sources `2+1+3` (two from
+the left, one from here, three from the right), so for our final multiplicity
+we have to quotient by the $2!$ ways the $1 \rightarrow 2$ flow could have
+happened, the $1!$ way the $2 \rightarrow 2$ flow could have happened, and the
+$3!$ ways the $3 \rightarrow 2$ flow could have happened (aka, the [multinomial
+coefficient][] $5 \choose {2,1,3} $).
+
+[multinomial coefficient]: https://en.wikipedia.org/wiki/Multinomial_theorem
+
+One final note: we have to treat transitions from 0 to 1 slightly
+differently, because some of them could have been transitions from 0 to -1. For
+example, if we had `2-0-0-0` into `0-2-0-0`, you could have had two 0s both
+turn into 1s, or you could have had one 0 turn into a 1 and one turn into a -1
+(which get reflected as 0 to 1 once you normalize), or you could have had both
+0s turn into -1s.  All in the end this factors to a multiplication of $2^n$
+(the sum of the nth row in the pascal triangle), $n$ being the number of 0-to-1
+transitions, at the end.
+
+Because of the special care taken for 0 to 1 transitions, it's more convenient
+to fill in bin-by-bins "backwards", from the 6 slot to the 5 slot to the 4
+slot, etc., because your options at the 0 component are already pre-determined
+for you by the choices you have already made.  It keeps the tree a more
+manageable shape.
+
+Alright, enough words, let's look at this in action!  Here is a *tree*
+describing all the ways you can flow from bin to bin!  As an example, let's
+look the 6D case of ways each point is a neighbor of `0,2,2,3` (`1-0-2-1`),
+which you can pick from the drop-down.
 
 ::::: {#golTreeReverse}
 Please enable Javascript
 :::::
+
+As you can see, each "branch" in three (flowing from left to right) is a
+different way to fill in the bin.  At each node, the upper vector is the
+"source" vector, and the lower vector is the "target" vector we build
+step-by-step.  Bin-by-bin, we begin to move components from our source
+vector into our target vector.  The branches in the tree reflects different
+ways we can commit a bin in our target vector.  For example, at the very first
+split, we can either pick our final vector to be `?-?-?-?-0` (leaving that 3
+bin alone) or `?-?-?-?-1` (swiping a component from that 3 bin in the source
+vector).  The number to the right of the node represents how we modify our
+weights according to the choices we make according to the logic above.  And all
+other nodes on the far right are the end products: the actual neighbors, along
+with their multiplicities.
+
+If you mouse-over or tap a node, it'll highlight the trace from the beginning
+to the node you are highlighting, so you can see all of the choices made, as
+well as all the modifications made to our running multiplicity counter at each
+step.  It'll also show the contributions from the left, center, and right of
+the current bin being picked (the $2+1+3$ in the example above), and also the
+"regular" representation.  For example, `<[2,2],2,4>` means that that node has
+already commited to having `<?,?,2,4>` in the target vector, but still has two
+2s in the source vector to pull in and distribute.
+
+One final thing we need to keep track of is to not count a point transitioning
+to itself if it results from no actual internal changes.  This can be done by
+checking if each of our bin choices involved exactly no inter-bin flows.
+
+Phew!  That's a bit of a mathematical doozy, huh?  But trust me when I say it's
+easier to understand if you try out a few different points from the drop-down
+menu and trace out the different possible paths, and how the multiplicities are
+affected.  After a few examples in different dimensions, it might start to make
+sense.  Try looking at the lower dimensions too to see if they match up with
+what we figured out before.
+
+You can also flip the switch to compute reverse and forward neighbors.
+Luckily, as we noted before in the 5D case, "is a neighbor" is a reversible
+relationship: If a point is a forward neighbor, it is also a reverse neighbor.
+This means that the branching structure for forward and reverse neighbor trees
+are all the same.  The only difference is how the multiplicities are
+calculated.  In this case, the forward direction is just the original
+calculation reversed.  The diagram shows how the multiplicities are
+accumulated; feel free to try to work out how this works as an exercise!
+
+That's it, for real!  We have tackled the reverse neighbor weights problem with
+some branching bin flows and combinatorics![^honesty]
+
+[^honesy]: Okay, I'll be honest --- I didn't actually know how to do the
+combinatorics all up-front.  What I did first was built the trees, and try to
+find patterns in the trees that I could explain with simple rules.  I noticed
+the relationships between the factorials of numbers of things moved at each
+node, and I tweaked with the code doing some random maths until I got the right
+answers.  But hey, if it works, it works, right? :)
 
 Stacks On Stacks: Visualizting Arbitrary Dimensions
 ---------------------------------------------------
