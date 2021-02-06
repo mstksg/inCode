@@ -102,6 +102,11 @@ So, let's take a deep dive --- deeper than you probably ever expected to dive
 into any particular degenerate starting conditions of a hyper-dimensional game
 of life :D
 
+There will be python code samples here and there, but just for context, my
+actual solvers I developed along the way were written in Haskell, and all of
+the solving logic embedded in this post was written in Purescript and compiled
+to Javascript.
+
 Starting Off
 ------------
 
@@ -485,14 +490,34 @@ Please enable Javascript
 
 These are the "forward neighbors"; we can compute them by expanding a point to
 its neighbors, and then normalizing our points and seeing how they double (or
-quadruple) up.  For example, mouse over `<z,w>=<3,3>` and see it has eight total
-higher-dimensional neighbors (like all points should, though this visualization
-leaves out points at w>6).  It's *supposed* to have
-a neighbor at `<4,3>`, but that gets reflected back onto `<3,4>` during our
-normalization process, so you see that the point `<3,3>` has a neighbor at
-`<3,4>` "double-counted".  The green squares (in the north and west positions)
-at `<3,4>` when you hover over `<3,3>` show that `<3,4>` is a neighbor of
-`<3,3>` both to its north and to its west.
+quadruple) up.
+
+```python
+def normalize(point):
+    """Normalize a point by sorting the absolute values
+
+    (2, -1)
+    => (1, 2)
+    """
+    return tuple(sorted([abs(x) for x in point]))
+
+def forward_neighbs(point):
+    """Generate the forward neighbors of a point
+
+    (0, 1)
+    => {(0, 1): 2, (1, 2): 2, (1, 1): 2, (0, 0): 1, (0, 2): 1}
+    """
+    return Counter([normalize(neighb) for neighb in mk_neighbs(point)])
+```
+
+For example, mouse over `<z,w>=<3,3>` and see it has eight
+total higher-dimensional neighbors (like all points should, though this
+visualization leaves out points at w>6).  It's *supposed* to have a neighbor at
+`<4,3>`, but that gets reflected back onto `<3,4>` during our normalization
+process, so you see that the point `<3,3>` has a neighbor at `<3,4>`
+"double-counted".  The green squares (in the north and west positions) at
+`<3,4>` when you hover over `<3,3>` show that `<3,4>` is a neighbor of `<3,3>`
+both to its north and to its west.
 
 Also, we have something really odd show up for the first time.  Mouse over a
 point like `<z,w>=<2,3>` and see that it has a neighbor in...itself?  What's
@@ -507,9 +532,27 @@ given point A, how many times is that point a neighbor of another point B?
 
 We can compute this in brute-force using a cache: iterate over each point,
 expand all its neighbors $a_i$, normalize that neighbor, and then set $a_i$ in
-the cache to the multiplicity after normalization.  But this is pretty
-expensive to do in the general case, so we'd like to maybe find a formula to be
-able to do this using mathematical operations.  So, let's explore!
+the cache to the multiplicity after normalization.
+
+```python
+def reverse_neighbs_table(t_max):
+    """Tabulate the reverse neighbors of all zw slices reachable before t_max
+    """
+    weights = {}
+
+    for i in range(t_max):
+        for j in range(i, t_max):
+            for neighb, ncount in forward_neighbs((i, j)).items():
+                if neighb in weights:
+                    weights[neighb][(i, j)] = ncount
+                else:
+                    weights[neighb] = {(i, j): ncount}
+
+    return weights
+```
+
+This seems pretty expensive and wasteful, so we'd like to maybe find a formula
+to be able to do this using mathematical operations.  So, let's explore!
 
 ::::: {#golSyms4DReverse}
 Please enable Javascript
@@ -541,8 +584,8 @@ degeneracy!  The runtime gets reduced by a factor of 8!
 
 Now, onward to 5D!
 
-Five Dimensions
----------------
+Breaking Through
+----------------
 
 By stepping into looking at 5D, we've stepped into a brand new territory ---
 we're now past what the original question was asking about, and into simply
@@ -577,7 +620,7 @@ Here was Michal's [historic post][permpost]:
 >
 > ...we can use symmetries coming from permutations, to only track cells
 > where $|x_0| < 13,\, |x_1| < 13,\, 0 \leq x_2 \leq x_3 \leq\,\ldots\, \leq x_{d-1} \leq t_max$.
-> There's $25^2 \times \sum_{k=0}^{t_max} {{d-3+k}\choose{k}}$ such cells.
+> There's $20^2 \times \sum_{k=0}^{t_max} { {d-3+k} \choose {k} }$ such cells.
 
 [permpost]: https://www.reddit.com/r/adventofcode/comments/kfjhwh/year_2020_day_17_part_2_using_symmetry_in_4d_space/gg9vr6m/
 
@@ -590,7 +633,7 @@ it more closely, using $\hat{d}$ to represent $d-2$, the number of higher
 dimensions:
 
 $$
-25^2 \times \sum_{k=0}^{t_max} {{\hat{d}-1+k}\choose{k}}
+20^2 \times \sum_{k=0}^{t_max} { {\hat{d}-1+k}\choose{k} }
 $$
 
 That sum has only the amount of terms fixed with the maximum timestamp! That
@@ -599,27 +642,82 @@ are --- at 10D and even 100D!  Furthermore, we can simplify the above using
 properties of the binomial distribution to get
 
 $$
-25^2 \times {{\hat{d}+6}\choose{6}}
+20^2 \times { {\hat{d}+6}\choose{6} }
 $$
 
 This binomial coefficient is actually polynomial on $\hat{d}$ --- it's
 $\frac{1}{6!} \prod_{k=1}^6 (\hat{d}+k)$ --- a sixth degree polynomial (leading
 term $\frac{1}{6!} x^6$), in fact.  This means that we have turned the number
-of points we need to track from exponential ($O(13^{\hat{d}})$) to slightly smaller
-exponential with the negative/positive simplification ($O(6^{\hat{d}})$) to now
-*polynomial* $O(\hat{d}^6)$!
+of points we potentially need to track from exponential ($O(13^{\hat{d}})$) to
+slightly smaller exponential with the negative/positive simplification
+($O(6^{\hat{d}})$) to now *polynomial* $O(\hat{d}^6)$!
 
 So, not only did we figure out a way to generalize/compute our symmetries, we
 also now know that this method lets us keep our point set *polynomial* on the
 dimension, instead of exponential.
 
+To put a concrete number for context, for that dream of d=10, here are only ${
+(8+6) \choose 6 }$, or 3003 potential unique `<z,w,...>`  points, once you
+factor out symmetries!  The number went down from $13^8$ (815,730,721)
+potential unique `<z,w,...>` points to $6^8$ (1,679,616) potential unique
+points with positive/negative symmetry to just 3003 with permutation
+symmetry.[^xy3003]  Furthermore, because of the blessing of dimensionality
+mentioned earlier, we can expect more and more of those to be empty as we
+increase our dimensions.
+
+[^xy3003]: For dramatic effect, I've omitted the fact that while there are only
+3003 possible higher-dimensional points, there are $20^2 \times 3003$ actual
+unique points possible factoring in the 20x20 x-y grid.  Still, it's a pretty
+big improvement over the original situation ($20^2 \times 815730721$).
+
 And in a flash, 10D didn't feel like a dream anymore.  It felt like an
 inevitability.  And now, it was a race to see who could get there first.
 
-### Terminology
+### Reaching 10D
 
-Before we go any further, let's clarify and introduce some terminology we'll be
-using for the rest of this post.
+Unfortunately, the exact record of who reached and posted 10D first is a bit
+lost to history due to reddit's editing records.  A few people maintained and
+updated their posts to prevent clutter, but the record and time stamp of when
+they first hit 10D is lost.  If any of them happens to read this and can more
+accurately verify their times, I'd be happy to update!
+
+For me, I'm sure I was not the first one, but in my chat logs I chimed into
+freenode's `##adventofcode-spoilers` channel in excitement in the wee morning
+hours (PST) Saturday December 19th:
+
+```
+2020-12-19 02:32:42       jle`    d=10 in 9m58s
+2020-12-19 02:33:05       jle`    hooray my goal :)
+2020-12-19 02:33:08       jle`    time to sleep now
+2020-12-19 02:33:12       xerox_  goodnight
+2020-12-19 02:33:35       jle`    xerox_: thanks :)
+```
+
+Pure joy! :D
+
+[Peter Tseng][peterpost] made a post on Thursday night with times, but I can't
+remember if it incorporated all the symmetries or originally included d=10.
+[Michal Marsalek][michalpost] was apparently able to implement the idea that
+they originally proposed by the following Wednesday (December 23rd) in Nim to blow
+everyone's time out of the water: 3.0 seconds!
+
+[peterpost]: https://www.reddit.com/r/adventofcode/comments/kfb6zx/day_17_getting_to_t6_at_for_higher_spoilerss/ggaaqsy/
+[michaelpost]: https://www.reddit.com/r/adventofcode/comments/kfb6zx/day_17_getting_to_t6_at_for_higher_spoilerss/ggsx9e9/
+
+At that point, it was pretty unbelievable to me that what started out as a
+dream goal that we couldn't have completed on a supercomputer had, through
+successive revelations and insights building on each other one by one, could
+now be done in 3 seconds.
+
+But hey, I promised 100ms in the introduction, and a fast d=40, right?
+
+With our goal completed, it was now time to dig in a little deeper and see how
+far this baby could go.
+
+### Diving Deeper: Terminology
+
+Before we go any further, let's take a break to clarify and introduce some
+terminology we'll be using for the rest of this post.
 
 *   I've been using the word **slice** to talk about a 2D grid representing a
     single higher-dimensional `<z,w...>` coordinate --- they're the 13 grids in
@@ -627,7 +725,7 @@ using for the rest of this post.
 *   I've also been using **cell** to refer to an exact specific `<x,y,z,w,..>`
     spot --- they are the tiny squares inside each grid in the simulations
     above.
-*   I'll start using the word **coset** to refer the set of all of the
+*   I'll start using the word **[coset][]** to refer the set of all of the
     duplicates of an `<x,y>` across all permutations and negations of
     `<z,w,q,..>`, since they all behave the same (they are either all on or all
     off together).  So `<x,y,1,2>`, `<x,y,2,1>`, `<x,y,-1,2>`, `<x,y,1,-2>`,
@@ -639,13 +737,12 @@ using for the rest of this post.
     sorted) member only.  Because of this, we'll sometimes refer to the normalized
     item and the coset it represents as the same thing.
 *   I'll also start using **slice coset** to talk about the set of all
-    `<z,w,..>` *slices) across its permutations and negatiions.  So entire
-    slice at z-w coordinates of  `<1,2>`, `<2,1>`, `<-1,2>`, `<1,-2>`,
-    `<-1,-2>`, `<-2,1>`, `<2,-1>`, and `<-2,-1>` are all a part
-    of the same coset, represented by the normalized form `<1,2>`.  All of the
-    slices at each of those zw coordinates will always be identical, so we can
-    talk the state of a single slice at `<1,2>` as representing the state of
-    its entire coset.
+    `<z,w,..>` *slices) across its permutations and negations.  The slices at
+    z-w coordinates of  `<1,2>`, `<2,1>`, `<-1,2>`, `<1,-2>`, `<-1,-2>`,
+    `<-2,1>`, `<2,-1>`, and `<-2,-1>` are all a part of the same coset,
+    represented by the normalized form `<1,2>`.  All of the slices at each of
+    those zw coordinates will always be identical, so we can talk the state of
+    a single slice at `<1,2>` as representing the state of its entire coset.
 
     Slice cosets are what are being highlighted on mouseovers for the 3D and 4D
     simulations. They are also what the big squares represent for the forward
@@ -653,17 +750,38 @@ using for the rest of this post.
     slice coset, and we show the amount of times each normalized slice coset
     element is a neighbor of the other.
 
-### Visualizing 5D Neighbors
+[coset]: https://www.youtube.com/watch?v=Dp8sYTlLQRY
 
-Okay, one last pit stop before we generalize to arbitrary dimensions.  Now that
-we know the nature of the symmetries, let's start visualizing how they
-might look in 5D.
+Tackling the Neighbor Problem
+-----------------------------
+
+My initial d=10 time clocked in at just under 10 minutes initially, but as
+early as next Wednesady we knew that a sub-5 second time was possible.  So
+where was the gap?
+
+Well, I didn't really know what to do about the neighbor multiplicity problem.
+I was still brute-forcing by way of forward neighbors + normalizing (as in the
+sample 4D python code snippet earlier).  The naive brute-force method
+requires computing *all* $3^{ {\hat{d}} } - 1$ higher-dimensional
+neighbors...so even though the number of points I'd have to track grows
+polynomially, I still had that pesky exponential factor in building my neighbor
+map.  And at high dimensions, that exponential factor dominates over
+everything.
+
+So put on your hard hats and working boots ... we're going to dive deep into
+the world of hyper-dimensional symmetries!
+
+### Five Dimensions
+
+First, let's start visualizing how things look like in 5 dimensions, now that
+we know what our slice coset/representative structure looks like.
 
 It's a bit difficult to duplicate the same forward/reverse neighbor demos for
 4D as we had for 4D, so here's a different representation.  Here is a demo of
 all of the `<z,w,q>` slice cosets (the wedge of normalized points we track for
 our implementation) and both their forward and reverse neighbor weights of each
-other.  The `q` axis is represented as stacked zw sections from left to right.
+other (computable using the method we used for 4D).  The `q` axis is
+represented as stacked zw sections from left to right.
 
 ::::: {#golSyms5D}
 Please enable Javascript
@@ -677,20 +795,26 @@ times the hovered slice is a neighbor of the other slice).  For example, if you
 hover over `<z,w,q>=<1,3,4>`, you can see that `<0,3,4>` is its neighbor twice,
 and `<1,3,4>` is `<0,3,4>`'s neighbor four times.  These four times come from
 the non-normalized reflections of `<1,3,4>` at `<1,3,4>`, `<1,4,3>`,
-`<-1,3,4>`, and `<-1,4,3>`.  [Mind bottling][bottle]!
+`<-1,3,4>`, and `<-1,4,3>`.  Some squares are also neighbors to themselves
+(like `<1,4,5>`) and some are not (like `<1,3,5>`).  [Mind bottling][bottle]!
 
 [bottle]: https://www.youtube.com/watch?v=rSfebOXSBOE
 
 Anyway, you can explore this a little bit and try to come up with a set of
 ad-hoc rules like we did for 4D...but I think we've reached the limits of how
-far that method can go.  We can generate these values simply enough by just
-expanding all of the reflections and normalizing and counting the normalized
-values, but there should be a way to compute these weights *directly*, in a
-clean fashion that doesn't require branching special cases and patterns.  It's
-clear that we are limited until we can find this method.
+far that method can go.  We can generate these values simply enough using the
+expand-normalize-tabulate method we did for 4D, but there should be a way to
+compute these weights *directly*, in a clean fashion that doesn't require
+branching special cases and patterns.  It's clear that we are limited until we
+can find this method.[^d10story]
 
-Tackling the Neighbor Problem
------------------------------
+[^d10story]: Okay, so this is a sliiight deviation from what actually happened.
+We were actually able to pretty much immediately hit d=10 with the explicit
+brute-force neighbor tabulation done for 4D.  But I'm stretching this out a bit
+to draw out the narrative :)
+
+### Go with the Flow
+
 
 ::::: {#golTreeForward}
 Please enable Javascript
@@ -700,8 +824,8 @@ Please enable Javascript
 Please enable Javascript
 :::::
 
-Arbitrary Dimensions
---------------------
+Stacks On Stacks: Visualizting Arbitrary Dimensions
+---------------------------------------------------
 
 ::::: {#golFlat}
 Please enable Javascript

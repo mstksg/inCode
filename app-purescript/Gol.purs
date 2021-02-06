@@ -55,7 +55,7 @@ main :: Effect Unit
 main = do
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 27
+      logMe 29
 
       draw2D <- setupGolFlat "#gol2D" {height:20, width:20, maxT: 6, maxDim: Nothing}
       draw3D <- setupGol3D "#gol3D" {height:20, width:20, maxT: 6}
@@ -101,84 +101,8 @@ initialPoints = [
     , { x: 2, y: 2 }
     ]
 
-data LCount = LOne
-            | LTwo
-            | LThree
-
-instance showLCount :: Show LCount where
-    show = case _ of
-      LOne   -> "One"
-      LTwo   -> "Two"
-      LThree -> "Three"
-
-newtype NCount = NCount (Maybe LCount)
-
-instance showNCount :: Show NCount where
-    show = case _ of
-      NCount (Just LOne) -> "One"
-      NCount (Just LTwo) -> "Two"
-      NCount (Just LThree) -> "Three"
-      NCount Nothing -> "Many"
-
-nCountInt :: NCount -> Int
-nCountInt = case _ of
-  NCount (Just LOne) -> 1
-  NCount (Just LTwo) -> 2
-  NCount (Just LThree) -> 3
-  NCount Nothing -> 4
-
-data Neighbs = Dead LCount
-             | LiveAlone
-             | Live LCount
-             | Overload
-
-instance showNeighbs :: Show Neighbs where
-    show = case _ of
-      Dead c -> "(Dead " <> show c <> ")"
-      LiveAlone -> "LiveAlone"
-      Live c -> "(Live " <> show c <> ")"
-      Overload -> "Overload"
-
-addLCount :: forall a. (LCount -> a) -> a -> LCount -> LCount -> a
-addLCount f x = case _ of
-    LOne   -> case _ of
-      LOne -> f LTwo
-      LTwo -> f LThree
-      _    -> x
-    LTwo   -> case _ of
-      LOne -> f LThree
-      _    -> x
-    LThree -> const x
-
-instance sgNCount :: Semigroup NCount where
-    append (NCount (Just x)) (NCount (Just y)) = NCount (addLCount Just Nothing x y)
-    append _ _ = NCount Nothing
-
-instance sgNieghbs :: Semigroup Neighbs where
-    append = case _ of
-      Dead x -> case _ of
-        Dead y    -> addLCount Dead Overload x y
-        LiveAlone -> Live x
-        Live y    -> addLCount Live Overload x y
-        _         -> Overload
-      LiveAlone -> case _ of
-        Dead y    -> Live y
-        LiveAlone -> LiveAlone
-        Live y    -> Live y
-        _         -> Overload
-      Live x -> case _ of
-        Dead y    -> addLCount Live Overload x y
-        LiveAlone -> Live x
-        Live y    -> addLCount Live Overload x y
-        _         -> Overload
-      Overload -> const Overload
-
-validLiveCount :: Neighbs -> Boolean
-validLiveCount = case _ of
-    Dead LThree -> true
-    Live LTwo   -> true
-    Live LThree -> true
-    _           -> false
+validLiveCount :: Additive Int -> Boolean
+validLiveCount (Additive x) = x >= 5 && x <= 7
 
 neighbs2d :: Int -> Int -> List Int
 neighbs2d n i = do
@@ -191,7 +115,7 @@ type Point2 = { x :: Int, y :: Int }
 stepper
     :: forall a. Ord a => Show a
     => (a -> List a)
-    -> (Int -> IntMap Neighbs)
+    -> (Int -> IntMap (Additive Int))
     -> Map a (NonEmptySet Int)
     -> Map a (NonEmptySet Int)
 stepper expand syms cs = Map.mapMaybe (NESet.fromFoldable <<< intMapKeys <<< filterIntMap validLiveCount <<< unionsIntMap) $
@@ -201,20 +125,20 @@ stepper expand syms cs = Map.mapMaybe (NESet.fromFoldable <<< intMapKeys <<< fil
             Just (Tuple here there) -> flip (Map.unionWith append) res <<< Map.fromFoldable $
               List.zip (expand gIx) (List.singleton here List.: List.repeat (List.singleton there))
         )
-      (Map.empty :: Map a (List (IntMap Neighbs)))
+      (Map.empty :: Map a (List (IntMap (Additive Int))))
       (Map.toUnfoldableUnordered cs :: List (Tuple a (NonEmptySet Int)))
   where
     uniqueGroups :: Set (NonEmptySet Int)
     uniqueGroups = Set.fromFoldable cs
-    prebaked :: Map (NonEmptySet Int) (Tuple (IntMap Neighbs) (IntMap Neighbs))
+    prebaked :: Map (NonEmptySet Int) (Tuple (IntMap (Additive Int)) (IntMap (Additive Int)))
     prebaked = Map.fromFoldable (map (\gr -> Tuple gr (prebake gr)) (List.fromFoldable uniqueGroups))
-    prebake :: NonEmptySet Int -> Tuple (IntMap Neighbs) (IntMap Neighbs)
+    prebake :: NonEmptySet Int -> Tuple (IntMap (Additive Int)) (IntMap (Additive Int))
     prebake = bimap unionsIntMap unionsIntMap <<< foldr (\pIx (Tuple here there) ->
               let pNeighbs = syms pIx
-                  here'  = singletonIntMap pIx LiveAlone
+                  here'  = singletonIntMap pIx (Additive 1)
                     List.: pNeighbs
                     List.: here
-                  there' = singletonIntMap pIx (Dead LOne)
+                  there' = singletonIntMap pIx (Additive 2)
                     List.: pNeighbs
                     List.: there
               in  Tuple here' there'
@@ -233,18 +157,14 @@ runner d = List.iterate ((pure <<< stepper lowNeighbs highNeighbs) =<< _)
   where
     highNeighbs = memoInt $
             toIntMap
-        <<< map (map toDead)
-        <<< vecRunNeighbs (\n -> mulNCount n <<< toNCount) (NCount (Just LOne)) d
+        <<< map (map (\w -> Additive (w*2)))
+        <<< vecRunNeighbs d
 
 lowNeighbs :: Point2 -> List Point2
 lowNeighbs {x, y} = do
   x' <- x List.: (x-1) List.: (x+1) List.: List.nil
   y' <- y List.: (y-1) List.: (y+1) List.: List.nil
   pure {x:x', y:y'}
-
-toDead :: NCount -> Neighbs
-toDead (NCount (Just l)) = Dead l
-toDead (NCount Nothing ) = Overload
 
 neighbsSet :: Point -> List Point
 neighbsSet = traverse (\x -> x List.: (x-1) List.: (x+1) List.: List.nil)
@@ -262,29 +182,14 @@ genVecRunIxPascal n mx x = go x mx n
       in  if m == 1 then j List.: k' List.: List.nil
                     else j List.: go r (m-1) k'
 
-mulNCount :: NCount -> NCount -> NCount
-mulNCount (NCount (Just LOne)) y = y
-mulNCount x (NCount (Just LOne)) = x
-mulNCount _ _                    = NCount Nothing
-
-toNCount :: Int -> NCount
-toNCount 0 = unsafeThrow "0 ncount"
-toNCount 1 = NCount (Just LOne)
-toNCount 2 = NCount (Just LTwo)
-toNCount 3 = NCount (Just LThree)
-toNCount _ = NCount Nothing
-
 -- | Streaming/constant space enumerate all neighbor and multiplicities
 vecRunNeighbs
-    :: forall a.
-       (a -> Int -> a)  -- ^ multiply with int
-    -> a                -- ^ initial
-    -> Int         -- ^ dimension
+    :: Int         -- ^ dimension
     -> Int         -- ^ pascal index
-    -> List (Tuple Int a)
-vecRunNeighbs update p0 n orig = case List.step gens of
+    -> List (Tuple Int Int)
+vecRunNeighbs n orig = case List.step gens of
     List.Nil       -> List.nil
-    List.Cons x xs -> go mx n 0 x true p0 0 x xs
+    List.Cons x xs -> go mx n 0 x true 1 0 x xs
   where
     mx   = maxBinom n orig + 1
     gens = genVecRunIxPascal n mx orig
@@ -293,15 +198,15 @@ vecRunNeighbs update p0 n orig = case List.step gens of
         -> Int          -- ^ running total
         -> Int          -- ^ origina item
         -> Boolean      -- ^ currently all the same?
-        -> a            -- ^ multiplicity
+        -> Int          -- ^ multiplicity
         -> Int          -- ^ item to the right
         -> Int          -- ^ current item
         -> List Int     -- ^ leftover items (right to left)
-        -> List (Tuple Int a)
+        -> List (Tuple Int Int)
     go i j tot x0 allSame p r x ls0 = case List.step ls0 of
       List.Nil ->
         let res = r + x
-            p'  = update p $
+            p'  = p *
                     (factorial res * (2 `Int.pow` r)) `div` (factorial x * factorial r)
             tot' = tot
         in  Tuple tot' p' <$ MonadZero.guard (not (allSame && x == x0))
@@ -312,7 +217,7 @@ vecRunNeighbs update p0 n orig = case List.step gens of
             res      = r + xlContrib
             l'       = l - lContrib
             x'       = x - xContrib
-            p'       = update p $
+            p'       = p *
                         ( factorial res
                     `div` (factorial r * factorial xContrib * factorial lContrib)
                         )
@@ -653,7 +558,7 @@ drawGolSyms5D sel = runFn2 _drawGolSyms5D sel $
         Unsafe.unsafeCoerce
     <<< toIntMap
     <<< map (map Additive)
-    <<< vecRunNeighbs (*) 1 3
+    <<< vecRunNeighbs 3
 
 foreign import data TreeNode :: Type
 foreign import _drawTree :: forall f.
