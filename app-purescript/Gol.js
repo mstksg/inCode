@@ -169,12 +169,18 @@ exports._toIntMap = function(extractor, merger, bazaar) {
     return res;
 }
 
+const holeyForEach = function(xs,f) {
+    for (const i in xs) {
+        f(i,xs[i]);
+    }
+}
+
 // merger :: r -> r -> r
 // bazaar :: (IntMap r -> Effect r) -> Effect r
 exports._unionsIntMap = function(merger, bazaar) {
     let res = [];
     bazaar(xs => function () {
-        xs.forEach(function (x, i) {
+        holeyForEach(xs,function (i,x) {
             if (i in res) {
                 res[i] = merger(res[i])(x);
             } else {
@@ -187,7 +193,7 @@ exports._unionsIntMap = function(merger, bazaar) {
 
 exports._filterIntMap = function (f, xs) {
     let res = [];
-    xs.forEach(function (x, i) {
+    holeyForEach(xs, function(i,x) {
         if (f(x)) {
             res[i] = x;
         }
@@ -197,7 +203,7 @@ exports._filterIntMap = function (f, xs) {
 
 exports.intMapKeys = function (xs) {
     let res = []
-    xs.forEach((x, i) => res.push(i));
+    holeyForEach(xs, (i, x) => res.push(i));
     return res;
 }
 
@@ -584,7 +590,7 @@ exports._setupGol3D = function(sel,{height,width,maxT}) {
                 });
                 splitCache[j] = splitCells;
             }
-            splitCells.forEach(function(ps, z) {
+            holeyForEach(splitCells, function (z, ps) {
                 grids[z].forEach(function ({drawer}) {
                     drawer(ps);
                     refresh.push(drawer);
@@ -729,7 +735,7 @@ exports._setupGol4D = function(sel,{height,width,maxT}) {
                 });
                 splitCache[j] = splitCells;
             }
-            splitCells.forEach(function(ps, zw) {
+            holeyForEach(splitCells, function(zw, ps) {
                 grids[zw].forEach(function ({drawer}) {
                     drawer(ps);
                     refresh.push(drawer);
@@ -784,8 +790,8 @@ const compressVals = function(ps) {
         xs[x][y] += val;
     });
     let out = [];
-    xs.forEach(function(ys, x) {
-        ys.forEach(function(val, y) {
+    holeyForEach(xs, function(x, ys) {
+        holeyForEach(ys, function(y, val) {
             out.push({x,y,val});
         });
     });
@@ -861,7 +867,7 @@ exports._drawGolSyms = function(sel, maxZ, {dim, gridSize, ptPos}, reversed) {
         }
         const highlightNeighbs = function (i) {
             clearAllHighlights();
-            neighbs[i].neighbBox.forEach(function(ps, j) {
+            holeyForEach(neighbs[i].neighbBox, function(j,ps) {
                 boxes[j].drawer(ps);
                 boxes[j].settext(ps.length + "");
                 boxes[j].underlighter(ps.length/8);
@@ -869,7 +875,7 @@ exports._drawGolSyms = function(sel, maxZ, {dim, gridSize, ptPos}, reversed) {
                 clearHighlights.push(() => boxes[j].settext(""));
                 clearHighlights.push(() => boxes[j].underlighter(0));
             });
-            neighbs[i].neighbHighlight.forEach(function(ps,j) {
+            holeyForEach(neighbs[i].neighbHighlight, function(j, ps) {
                 boxes[j].highlighter(ps);
                 clearHighlights.push(() => boxes[j].highlighter([]));
             });
@@ -922,7 +928,7 @@ exports._drawGolSyms5D = function(sel, getNeighbs) {
     let neighbs = [];
     const revNeighbs = d3.range(maxPascal).map(function (i) {
         const ns = getNeighbs(i);
-        ns.forEach(function(wt, j) {
+        holeyForEach(ns, function(j, wt) {
             if (!(j in neighbs)) {
                 neighbs[j] = [];
             }
@@ -1028,14 +1034,14 @@ exports._drawGolSyms5D = function(sel, getNeighbs) {
             clearNeighbs();
             const to = neighbs[i];
             const from = revNeighbs[i];
-            to.forEach(function (weight, x) {
+            holeyForEach(to, function(x, weight) {
                 if (x in boxes) {
                     boxes[x].circ1func(weight/8, weight+"");
                     boxes[x].underlighter(0.2);
                     clearHighlights.push( () => { boxes[x].circ1func(0,""); boxes[x].underlighter(0); } );
                 }
             });
-            from.forEach(function (weight, x) {
+            holeyForEach(from, function(x, weight) {
                 if (x in boxes) {
                     boxes[x].circ2func(weight/8, weight+"");
                     boxes[x].underlighter(0.2);

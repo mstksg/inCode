@@ -30,11 +30,11 @@ On the surface, Day 17 seemed to essentially be a straightforward extension of
 [Conway's Game Of Life][life] ("GoL").  GoL is a simulation played out on a 2d
 grid, where cells are "on" and "off", and at each step of the simulation, the
 on/off cells spread and propagate in fascinating ways based on the state of
-their neighbors.  The twist of the Advent of Code puzzle is it asks what would
-happen if we played out the rules of GoL in 3d, and then 4d!  The "starting
-conditions" are a 8x8 2D grid picked for each participant, and the puzzle
-solution is the number of live cells after six steps.  My personal starting
-conditions were:
+their neighbors (a "2d cellular automata").  The twist of the Advent of Code
+puzzle is it asks what would happen if we played out the rules of GoL in 3d,
+and then 4d!  The "starting conditions" are a 8x8 2D grid picked for each
+participant, and the puzzle solution is the number of live cells after six
+steps.  My personal starting conditions were:
 
 
 [life]: https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life
@@ -160,8 +160,9 @@ majority of our points will be "off", there's another method.
 
 1.  Keep a *set* of points that are "on".
 2.  At each step:
-    a.  Initialize a dynamic map (key-value store) of points to integers.  This
-        map associates each point to the number of live neighbors it has.
+    a.  Initialize a dynamic map (key-value store, like a python dict) of
+        points to integers.  This map associates each point to the number of
+        live neighbors it has.
     b.  For each step, iterate over each of your "on" points, expand all of
         their neighbors $n_i$ ($(O(3^d))$), and increment the value associated
         with $n_i$ in your dynamic map.
@@ -206,22 +207,20 @@ from itertools import islice, product
 from collections import Counter
 
 def mk_neighbs(point):
-    """Return neighboring points, each equally weighted
+    """Return neighboring points
 
-    (1,2)
-    => [(1, 1), (1, 3), (0, 2), (0, 1), (0, 3), (2, 2), (2, 1), (2, 3)]
+    (1, 2)
+    => [(1, 2), (1, 1), (1, 3), (0, 2), (0, 1), (0, 3), (2, 2), (2, 1), (2, 3)]
     """
-    gen = product(*[[x, x-1, x+1] for x in point])
-    # skip the first item, the original point
-    next(gen)
-    return gen
+    return list(product(*[[x, x-1, x+1] for x in point]))
 
-def step(pts):
+def step_naive(pts):
     """Takes a set of points (tuples) and steps them in the simulation
     """
     neighbs = Counter()
     for point in pts:
-        neighbs += Counter(mk_neighbs(point))
+        # skip the first item, the original point
+        neighbs += Counter(mk_neighbs(point)[1:])
 
     def validate(point, ncount):
         if point in pts:
@@ -229,7 +228,7 @@ def step(pts):
         else:
             return ncount == 3
 
-    return [p for p, n in neighbs.items() if validate(p, n)]
+    return frozenset(p for p, n in neighbs.items() if validate(p, n))
 ```
 
 <!-- And...there's actually a neat optimization we can use (brought to our -->
@@ -501,7 +500,7 @@ def normalize(point):
     return tuple(sorted([abs(x) for x in point]))
 
 def forward_neighbs(point):
-    """Generate the forward neighbors of a point
+    """Generate the higher-dimensional forward neighbors of a point
 
     (0, 1)
     => {(0, 1): 2, (1, 2): 2, (1, 1): 2, (0, 0): 1, (0, 2): 1}
@@ -581,6 +580,43 @@ tough to generalize, but...we'll tackle that when we get there :)
 For now, we have a super-fast implementation of 4D GoL with our special
 degeneracy!  The runtime gets reduced by a factor of 8!
 
+For clarity, here's a pseudocode implementation of how we can do this higher-dimensional
+wrangling:
+
+```python
+def reverse_neighbs(point):
+    """Return higher-dimensional points, with their reverse multiplicities
+
+    (0, 1)
+    => {(0, 0): 4, (0, 1): 2, (1, 1): 2, (0, 2): 1, (1, 2): 1}
+    """
+    return {} # implementation elided
+
+def step_with_weights(pts):
+    neighbs = Counter()
+    for point in pts:
+        # 2d component
+        pt_2d = point[:2]
+        # higher-dimension components
+        pt_nd = point[2:]
+
+        # insert neighbors in the same 2d slice, not including itself
+        neighbs += Counter([ngb + pt_nd for ngb in mk_neighbs(pt_2d)[1:]])
+        # insert neighbors in the neighboring 2d slices
+        neighbs += Counter({(ngb_2 + ngb_n): wt
+                                for ngb_n, wt in reverse_neighbs(pt_nd)
+                                for ngb_2 in mk_neighbs(pt_2d)
+                          })
+
+    def validate(point, ncount):
+        if point in pts:
+            return ncount == 2 or ncount == 3
+        else:
+            return ncount == 3
+
+    return frozenset(p for p, n in neighbs.items() if validate(p, n))
+```
+
 Now, onward to 5D!
 
 Breaking Through
@@ -655,7 +691,7 @@ So, not only did we figure out a way to generalize/compute our symmetries, we
 also now know that this method lets us keep our point set *polynomial* on the
 dimension, instead of exponential.
 
-To put a concrete number for context, for that dream of d=10, here are only
+To put a concrete number for context, for that dream of 10D, here are only
 ${ {8+6} \choose 6 }$, or 3003 potential unique `<z,w,...>`  points, once you
 factor out symmetries!  The number went down from $13^8$ (815,730,721)
 potential unique `<z,w,...>` points to $6^8$ (1,679,616) potential unique
@@ -695,7 +731,7 @@ hours (PST) Saturday December 19th:
 Pure joy! :D
 
 [Peter Tseng][peterpost] made a post on Thursday night with times, but I can't
-remember if it incorporated all the symmetries or originally included d=10.
+remember if it incorporated all the symmetries or originally included 10D,
 [Michal Marsalek][michalpost] was apparently able to implement the idea that
 they originally proposed by the following Wednesday (December 23rd) in Nim to blow
 everyone's time out of the water: 3.0 seconds!
@@ -708,7 +744,7 @@ dream goal that we couldn't have completed on a supercomputer had, through
 successive revelations and insights building on each other one by one, could
 now be done in 3 seconds.
 
-But hey, I promised 100ms in the introduction, and a fast d=40, right?
+But hey, I promised 100ms in the introduction, and a way to reach 40D, right?
 
 With our goal completed, it was now time to dig in a little deeper and see how
 far this baby could go.
@@ -964,8 +1000,6 @@ single week pushed us into trying many different things.  I had a couple of
 dead-end forays into pre-cacheing and had a lot of code (that I was ecstatic to
 be able to delete) working with an sqlite3 database.
 
-[cosetcounts]: https://www.reddit.com/r/adventofcode/comments/kfb6zx/day_17_getting_to_t6_at_for_higher_spoilerss/ghre3ce/
-
 Another factor was that Advent of Code was still running, and we all definitely
 enjoyed doing new puzzles every day.  But soon, Christmas passed, the daily
 rush of doing a new puzzle faded, and we started to return back to tinkering on
@@ -973,8 +1007,208 @@ this hyper-dimensional game of life.  And it wasn't until January 1st (just
 over two weeks after the puzzle originally came out) that a new revelation
 arise that would pave the way shoot past 20D.
 
+It was [Michal Marsalek's coset counts post][cosetcounts] that paved the way.
+From the beginning, Michal had always tracked the number of cell cosets at the
+end of the simulation (the number of active "normalized" cells), and had been exploring the
+relationship between dimension and coset counts.  The discovery was that after
+a certain "saturation point" (6D for Michael's set, 9D for Peter's set, 7D for
+my set), all of the coset counts were *perfectly quadratic*!  For mine, it
+followed the relationship $d^2 + 109d + 70$ exactly for 7D and higher.
 
+[cosetcounts]: https://www.reddit.com/r/adventofcode/comments/kfb6zx/day_17_getting_to_t6_at_for_higher_spoilerss/ghre3ce/
+
+My best guess as to why this was happening is that, at 7D and above, we enter a
+domain of points where, before t=6, *every* point is at some sort of reflective
+boundary.  Remember that even for 4D, we had really odd behavior at the
+reflective boundaries/edge of the wedge.  At 5D, there actually wasn't any
+point that wasn't at an edge in the interactive demo.  There wasn't enough room
+in the tiny slice for any point to "stretch its wings" --- every single one is
+at one reflective boundary or another.  Being a boundary point corresponds to
+having a "bins" encoding with any bin greater than one or anything in the 0 bin
+(ie, `1-0-0-0` and `0-2-0` are all points on a reflective boundary).
+
+Unfortunately, having a closed-form way to compute coset counts doesn't
+actually give us a way to compute the final state, since it doesn't tell us
+*which* cosets are active.  However, this prompted me to investigate a little
+bit more about what was causing this pattern, and how these cosets were
+distributed.  To do this, I ended up thinking of a new way to visualize things!
+
+In our simulation, x and y components are fundamentally different from the
+rest; we could really talk about each point as a tuple of `<x,y>, {higher
+dims}`.  Also, things are "dense" in `<x,y>`, but "sparse" in higher
+dimensions.  So actually, instead of keeping our active points as a set of
+cosets, we can treat it as a map of `<x,y>` points to the higher-dim cosets
+that live "under them".  Instead of keeping one giant set as:
+
+```
+{<1,2,1,1,3>, <3,1,1,1,4>, <1,2,0,0,5>, <4,2,3,4,4>, <3,1,2,2,2>}
+```
+
+we could instead a map of sets:
+
+```
+<1,2>: { <1,1,3>, <0,0,5> }
+<3,1>: { <1,1,4>, <2,2,2> }
+<4,2>: { <3,3,4> }
+```
+
+and propagate that.  I like to call those sets under each 2d point (ie, the
+`{<1,1,3>, <0,0,5>}`) a "coset stack".
+
+I did this initially to investigate the nature of the cosets that were showing
+up, but once I plotted it and animated things, I realized something major ---
+in doing this, we can reduce the entire hyper-dimensional problem **back to a
+2D cellular automata**!  This whole thing becomes reframed...instead of a
+mind-bottling hyper-dimensional deal, it's now simply *normal 2D cellular
+automata* with funky rules!  It's like a normal 2D game of life, but with funky
+rules for 2D points spreading to each other.
+
+```python
+def step_with_stacks(stacks):
+    neighbs = {}
+    for pt_2d, pt_stack in stacks.items():
+        # higher-dimension components
+        for pt_nd in pt_stack:
+            rev_neighbs = Counter(reverse_neighbs(pt_nd))
+            rev_neighbs_incl_self = rev_neighbs + Counter(pt_nd)
+
+            # the actual propagation
+            # 1. add in the same stack; don't include self
+            if pt_2d in neighbs:
+                neighbs[pt_2d] += rev_neighbs
+            else:
+                neighbs[pt_2d] = rev_neighbs
+            # 2. add to nieghboring stacks
+            for ngb_2 in mk_neighbs(pt_2d)[1:]:
+                # add to neighboring stacks; include self
+                if ngb_2 in neighbs:
+                    neighbs[ngb_2] += rev_neighbs_incl_self
+                else:
+                    neighbs[ngb_2] = rev_neighbs_incl_self
+
+    def validate(pt_2d, pt_nd, ncount):
+        if pt_nd in stacks[pt_2d]:
+            return ncount == 2 or ncount == 3
+        else:
+            return ncount == 3
+
+    return {pt_2d: frozenset(
+                       pt_nd for pt_nd, n in pt_counts.items()
+                             if validate(pt_2d, pt_nd, n)
+                   )
+              for pt_2d, pt_counts in neighbs
+           }
+```
+
+And here is the final animation: we plot a single 2D grid, and each cell is
+colored according to the size of the coset stack under that point (how many
+points exist with that `<x,y>`).  You can slide this one up all the way to 10D
+to simulate it in your browser!
 
 ::::: {#golFlat}
 Please enable Javascript
 :::::
+
+Play around with it! :D  You can move all the way up to 10D; some computers
+might struggle, but on my lower-end cell phone it seems to run in less than a
+second.  If you mouse-over a cell, the text box will show all of the slice
+cosets where that xy cell is alive in (the "coset stack").
+
+Not only is it kinda pretty (in my humble opinion), it also demonstrates that
+this whole ordeal is really "just a normal 2D cellular automata": it's like a
+"multi-valued" game of life, where instead of cells being on and off, they are
+one of a few choices of values.  Instead of a "binary" game of life with a
+boolean at each cell, it's an "integer" game of life with a finite choice at
+each cell.
+
+Because there are ${ {\hat{d}}+t} \choose t$ slice cosets for a given dimension
+and time, it means that our game is a $2^{ { \hat{d} + t} \choose t }$-valued
+game of life, where each cell can be one of that many options (each slice coset
+and be present or not coset).  That means at 2D ($\hat{d} = 0$), we have a
+normal 2-valued game of life ($2^1$), at 3D we have $7 \choose 6$ (7) possible
+points at t=6, so that's a $2^7$ or 128-valued game of life, at 4D we have $8
+\choose 6$ (28) possible points at t=6, and so that's a $2^28$ or
+268435456-valued game of life.
+
+And you can see this demonstrated in the simulation above, as well.  As you
+progress, each 2D cell "spreads" to its neighbors according to some complex
+rule.
+
+Implementing things this way (and taking advantage of the fact that coset
+stacks are usually very sparse and have few members) gave a big improvement.
+But there's one final thing that this view would unlock that would make the
+biggest difference.
+
+### Repeated Stacks
+
+You might have noticed in the final 10D simulation, if you mouse over an xy
+cell it'll also highlight over all of the other xy cells that share the same
+coset stack.
+
+For most initial starting positions, you might notice something maybe even more
+curious --- a *lot* of those stacks are duplicated.
+
+In my sample input, *most* of the stacks were duplicated many times across
+different xy cells.  If you highlight any arbitrary starting condition through
+t=6, you'll see too that many (if not most) xy cells have multiple other xy
+cells that have identical stacks to them.
+
+This final insight yields the final optimization we have discovered, as of time
+of writing.
+
+```python
+def step_with_stack_cache(stacks):
+    neighbs = {}
+    stack_cache = {}
+
+    for pt_2d, pt_stack in stacks.items():
+        # get what to place in the same xy cell, and what to place in neighbor
+        # xy cells
+        if pt_stack in stack_cache:
+            # get it from the cache if it exists
+            (rev_neighbs, rev_neighbs_incl_self) = stack_cache[pt_stack]
+        else:
+            # otherwise, build it and store it in the cache
+            rev_neighbs = Counter()
+            for pt_nd in pt_stack:
+                rev_neighbs += Counter(reverse_neighbs(pt_nd))
+            rev_neighbs_incl_self = rev_neighbs + Counter(pt_stack)
+            stack_cache[pt_stack] = (rev_neighbs, rev_neighbs_incl_self)
+
+        # the actual propagation
+        # 1. add in the same stack; don't include self
+        if pt_2d in neighbs:
+            neighbs[pt_2d] += rev_neighbs
+        else:
+            neighbs[pt_2d] = rev_neighbs
+        # 2. add to nieghboring stacks
+        for ngb_2 in mk_neighbs(pt_2d)[1:]:
+            # add to neighboring stacks; include self
+            if ngb_2 in neighbs:
+                neighbs[ngb_2] += rev_neighbs_incl_self
+            else:
+                neighbs[ngb_2] = rev_neighbs_incl_self
+
+    def validate(pt_2d, pt_nd, ncount):
+        if pt_nd in stacks[pt_2d]:
+            return ncount == 2 or ncount == 3
+        else:
+            return ncount == 3
+
+    return {pt_2d: frozenset(
+                       pt_nd for pt_nd, n in pt_counts.items()
+                             if validate(pt_2d, pt_nd, n)
+                   )
+              for pt_2d, pt_counts in neighbs
+           }
+```
+
+With this final piece of the puzzle, I was able to reach 18D *3 seconds* in my
+Haskell solution!  And
+after explaining the method, Michal Marsalek was also able to build this into
+their fast Nim solver to [reach 40D in 8 minutes, 50D in 32 minutes, 60D in 120
+minutes][finalmichal].
+
+[finalmichael]: https://www.reddit.com/user/MichalMarsalek/
+
+And as far as I know, this seems to be where things stand today.

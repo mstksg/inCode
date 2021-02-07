@@ -55,7 +55,7 @@ main :: Effect Unit
 main = do
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 29
+      logMe 30
 
       draw2D <- setupGolFlat "#gol2D" {height:20, width:20, maxT: 6, maxDim: Nothing}
       draw3D <- setupGol3D "#gol3D" {height:20, width:20, maxT: 6}
