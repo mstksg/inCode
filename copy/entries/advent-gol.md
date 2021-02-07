@@ -17,13 +17,12 @@ with a compiled language".  Includes interactive visualizations and
 simulations!
 
 This is a story about breaking the degenerate hyper-dimensional game of life by
-exploratory visualizations and math!  Let's travel back in time: t'was the
-night before Thursday, December 17, 2020, The release of ["Conway
-Cubes"][puzzle], day 17 of the "Advent of Code" (fun little coding puzzles
-building up to Christmas). One part about Advent of Code I've always found
-especially fun is that, because the problems are so self-contained and tidy,
-they are often *open-ended* in the interesting ways you can solve them or
-expand them.
+interactive exploratory visualizations and math!  T'was the night before
+Thursday, December 17, 2020, The release of ["Conway Cubes"][puzzle], day 17 of
+the "Advent of Code" (fun little coding puzzles building up to Christmas). I
+always loved these; because Advent of Code problems problems are so
+self-contained and tidy, they are often *open-ended* in the interesting ways
+you can solve them or expand them.
 
 [puzzle]: https://adventofcode.com/2020/day/17
 
@@ -31,14 +30,14 @@ On the surface, Day 17 seemed to essentially be a straightforward extension of
 [Conway's Game Of Life][life] ("GoL").  GoL is a simulation played out on a 2d
 grid, where cells are "on" and "off", and at each step of the simulation, the
 on/off cells spread and propagate in fascinating ways based on the state of
-their neighbors.
+their neighbors.  The twist of the Advent of Code puzzle is it asks what would
+happen if we played out the rules of GoL in 3d, and then 4d!  The "starting
+conditions" are a 8x8 2D grid picked for each participant, and the puzzle
+solution is the number of live cells after six steps.  My personal starting
+conditions were:
+
 
 [life]: https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life
-
-The twist of the Advent of Code puzzle is it asks what would happen if we
-played out the rules of GoL in 3d, and then 4d!  The "starting conditions" are
-a 8x8 2D grid picked out for each participant, and the puzzle solution is the
-number of live cells after six steps.  My personal starting conditions were:
 
 ```
 #####..#
@@ -51,7 +50,7 @@ number of live cells after six steps.  My personal starting conditions were:
 ###.####
 ```
 
-I submitted my answer with a direct implementation (scoring the 66th spot on
+I submitted my answer with a naive implementation (scoring the 66th spot on
 the leader board for that day)...and that was that for the "competitive" part.
 But the real fun always starts after!  When discussing with some friends, we
 started talking about the trade-offs of different implementations and realized
@@ -63,38 +62,36 @@ strain.  My naive solution on 6D took three minutes, and 7D in a reasonable
 amount of time (612,220,032 points with 2,186 neighbors each) seemed
 *impossible* on commercial consumer hardware because of the sheer number of
 points in 7D space.  But I thought...what if a breakthrough in optimization was
-possible?  I set my goal as 10D (3,570,467,226,624 points with 59,048 neighbors
-each), not knowing if it was possible.
+possible?  I set a personal goal of reaching 10D (3,570,467,226,624 points with
+59,048 neighbors each), not knowing if it was possible.
 
 And soon...a breakthrough did come!  Someone brought up that if we look at the
 3d version, we see there's actually a *mirror symmetry*!  That is, because
 everything starts off on the xy plane, with z=0, the resulting progression must
 be symmetrical on both sides (positive and negative z).
 
-![d=3 animation by [u/ZuBsPaCe][]](/img/entries/advent-gol/life3d.gif "d=3 animation u/ZuBsPaCe")
+![3D GoL animation by [u/ZuBsPaCe][], demonstrating mirror symmetry](/img/entries/advent-gol/life3d.gif "3D GoL animation u/ZuBsPaCe", demonstrating mirror symmetry)
 
 [u/ZuBsPaCe]: https://www.reddit.com/r/adventofcode/comments/kfa3nr/2020_day_17_godot_cubes_i_think_i_went_a_bit_too/
 
-In the end that means we only have to simulate one of the
-"halves"/"quadrants" of the higher-dimensional space, since all
-"quadrants" are identical!  This saves down the number of points by a factor of
-two for each extra dimension ($O(2^{d-2})$).  My 7D implementation completed in
-6 minutes!  8D still hung forever, though.
+This meant that we only have to simulate the *positive* points (since the
+negative points are identical).  This saves down the number of points by a
+factor of two for each extra dimension ($O(2^{d-2})$).
 
-Well, it didn't get us to d=10...but this discovery completely changed how we
-saw this puzzle.  With one breakthrough down, we began to believe that there
-would be more just around the corner, made possible by our problem's special
-degeneracy (that is, that we start on a 2d slice).
+It didn't quite get us to 1010, but this discovery completely changed how we saw this
+puzzle.  With one breakthrough down, we began to believe that there would be
+more just around the corner, made possible by our problem's special degeneracy
+(that is, that we start on a 2d slice).
 
 Such a dream (as posed in [this reddit thread I started][reddit]) turned
 into a month-long quest of breakthrough after breakthrough, exploiting different
-aspects of this degeneracy!  It was a long, harrowing journey full of sudden
+aspects of this degeneracy.  It was a long, harrowing journey full of sudden
 twists and turns and bursts of excitement when new innovations came.  And in
-the end, the hopeful question "What if d=10 was possible?" turned into "d=10 in
-100ms, d=40 in eight minutes."  I even got d=10 fast enough to run on easily
-any modern browser --- this post includes those simulations!  Furthermore, the
-whole journey became an adventure in the power of visualization combined with
-abstract thinking.
+the end, the hopeful question "What if 10D was possible?" turned into "10D in
+100ms, 40D in eight minutes."  This post even includes simulations to prove
+that got 10D fast enough to run on easily on any modern browser.  Furthermore,
+the whole journey became an adventure in the power of visualization combined
+with abstract thinking.
 
 [reddit]: https://www.reddit.com/r/adventofcode/comments/kfb6zx/day_17_getting_to_t6_at_for_higher_spoilerss/
 
@@ -104,8 +101,10 @@ of life :D
 
 There will be python code samples here and there, but just for context, my
 actual solvers I developed along the way were written in Haskell, and all of
-the solving logic embedded in this post was written in Purescript and compiled
-to Javascript.
+the solving logic embedded in this post was written in Purescript ([online
+here][Golpurs]) and compiled to Javascript.
+
+[Golpurs]: https://github.com/mstksg/inCode/blob/master/app-purescript/Gol.purs
 
 Starting Off
 ------------
@@ -840,61 +839,52 @@ But we run into problems working with this format.  For example, if we're
 computing a neighbor of `0,1,1,1,3,5,5,6`,  we can imagine that the very first
 `1` moves to be a `2`, resulting in `0,2,1,1,3,5,5,6`. However, we're now in
 un-normalized territory...we have to re-sort it to turn it into
-`0,1,1,2,3,5,5,6`.  It's just not something we can directly manipulate with
-simple rules and still stay in the valid state space without complicated
-restrictions or rules.
+`0,1,1,2,3,5,5,6`.  This encoding isn't something we can directly manipulate in
+a nice way.
 
-If you stare at many different sample points, you might start to build an
-internal model in your head...these points are really all just consecutive runs
-of 1s, 2s, 3s, etc., at different lengths.  What if we encoded each
+Because of how everything is always non-decreasing, what if we encoded each
 higher-dimensional coordinate as "number of each position seen?"  For example,
 we can encode `0,1,1,1,3,5,5,6` as `1-3-0-1-0-2-1`: the first slot represents
 how many 0s we have the second how many 1s, the next how many 2s, the next how
 many 3s, etc. We can encode `0,0,3,4,4,4,6,6` as `2-0-0-1-3-0-2` and
-`1,1,2,3,3,4,5,5` as `0-2-1-2-1-2-0`.  The *sum* of the components gives you
-the total number of higher dimensions (ie, 10D vectors sum to 8)
+`1,1,2,3,3,4,5,5` as `0-2-1-2-1-2-0`.  The *sum* of the components gives you the
+total number of higher dimensions (ie, 10D vectors sum to 8)
 
 And now, a "valid transition" becomes easy to enforce: it's an amount "flowing"
 from one of those bins to another.  For example, turning a `1` into a `2` in
 `1-3-0-1-0-2-1` turns it into `1-2-1-1-0-2-1`.  We took one of the three 1s and
-turned them into a single 2.  In this method, we don't have to do any
-normalization because this "flowing" operation automatically preserves the
-sum-to-a-fixed-number invariant!
+turned them into a single 2.  This "flowing" operation automatically gives us a
+valid number without any renormalizing necessary!  This gives us an algorithm
+to compute neighbors: we can walk bin-to-bin, "flowing" components from our
+origin vector to our new vector.
 
-That's it, really!  We can walk bin-to-bin, assembling a new vector from the
-old ones, by looking at the different possible bin-to-bin flows step-by-step!
+This was our goal!  A way to compute neighbors without requiring
+renormalization.  We no longer have to try all $3^d-1$ (exponential) candidates
+and re-normalize: we can now only iterate through the ones we care about.
 
-Now, the tricky math is the with multiplicities.  Interestingly enough, in this
-case the *reverse* direction is actually easier to conceptualize than the
-forward direction.  Good for us, because it's the reverse direction we actually
-need.
+However, the tricky math is the with multiplicities. Interestingly enough, in
+this case the *reverse* direction is actually easier to conceptualize than the
+forward direction.  Good for us, though, because it's the reverse direction we
+actually need!
 
-Let's say that we start at `0-2-1-3` (`1,1,2,3,3,3`) and we want it to "flow"
-to, say, `0-0-5-0` (`2,2,2,2,2`): dump all our bins into 2.  How many ways
-could this flow happen?  Well, we end up with 5 points in the slot, which could
-have been picked $5!$ ways.  We came to it via three sources `2+1+3` (two from
-the left, one from here, three from the right), so for our final multiplicity
-we have to quotient by the $2!$ ways the $1 \rightarrow 2$ flow could have
-happened, the $1!$ way the $2 \rightarrow 2$ flow could have happened, and the
-$3!$ ways the $3 \rightarrow 2$ flow could have happened (aka, the [multinomial
-coefficient][] $5 \choose {2,1,3} $).
+If we start at `0-2-1-3` (`1,1,2,3,3,3`) and "flow" to, say, `0-0-5-0`
+(`2,2,2,2,2`) and dump all our bins into 2.  How many ways could this flow
+happen?  The answer happens to be the [multinomial coefficient][] $5 \choose
+{2,1,3}$ (or $5! / (2! 1! 3!)$): there are $5!$ ways to end up with 5 in the
+bin, but that `5` came from contributions of `2+1+3` from either side, and so
+we divide by the ways we could pick from those contributing bins (2!, 1!, and
+3!).
 
 [multinomial coefficient]: https://en.wikipedia.org/wiki/Multinomial_theorem
 
-One final note: we have to treat transitions from 0 to 1 slightly
-differently, because some of them could have been transitions from 0 to -1. For
-example, if we had `2-0-0-0` into `0-2-0-0`, you could have had two 0s both
-turn into 1s, or you could have had one 0 turn into a 1 and one turn into a -1
-(which get reflected as 0 to 1 once you normalize), or you could have had both
-0s turn into -1s.  All in the end this factors to a multiplication of $2^n$
-(the sum of the nth row in the pascal triangle), $n$ being the number of 0-to-1
-transitions, at the end.
-
-Because of the special care taken for 0 to 1 transitions, it's more convenient
-to fill in bin-by-bins "backwards", from the 6 slot to the 5 slot to the 4
-slot, etc., because your options at the 0 component are already pre-determined
-for you by the choices you have already made.  It keeps the tree a more
-manageable shape.
+One final note: we have to treat multiplicities for transitions from 0 to 1
+slightly differently, because they can arise either a 0 to 1 transition or a 0
+to -1 transition.  This comes out to a multiplication of $2^n$ at the end (n
+being the number of 0-to-1 flow).  Because of this special care, it's actually
+more convenient to fill in bin-by-bin "backwards", from the 6 slot to the 5
+slot to the 4 slot, etc., because your options at the 0 component are already
+pre-determined for you by the choices you have already made.  It keeps the tree
+a more manageable shape.
 
 Alright, enough words, let's look at this in action!  Here is a *tree*
 describing all the ways you can flow from bin to bin!  As an example, let's
@@ -913,7 +903,7 @@ vector into our target vector.  The branches in the tree reflects different
 ways we can commit a bin in our target vector.  For example, at the very first
 split, we can either pick our final vector to be `?-?-?-?-0` (leaving that 3
 bin alone) or `?-?-?-?-1` (swiping a component from that 3 bin in the source
-vector).  The number to the right of the node represents how we modify our
+vector).  The operation to the right of the node represents how we modify our
 weights according to the choices we make according to the logic above.  And all
 other nodes on the far right are the end products: the actual neighbors, along
 with their multiplicities.
@@ -924,28 +914,27 @@ well as all the modifications made to our running multiplicity counter at each
 step.  It'll also show the contributions from the left, center, and right of
 the current bin being picked (the $2+1+3$ in the example above), and also the
 "regular" representation.  For example, `<[2,2],2,4>` means that that node has
-already commited to having `<?,?,2,4>` in the target vector, but still has two
+already committed to having `<?,?,2,4>` in the target vector, but still has two
 2s in the source vector to pull in and distribute.
 
 One final thing we need to keep track of is to not count a point transitioning
 to itself if it results from no actual internal changes.  This can be done by
-checking if each of our bin choices involved exactly no inter-bin flows.
+checking if each of our bin choices involved exactly no inter-bin flows (they
+were all of the form `0+x+0`).
 
 Phew!  That's a bit of a mathematical doozy, huh?  But trust me when I say it's
-easier to understand if you try out a few different points from the drop-down
-menu and trace out the different possible paths, and how the multiplicities are
-affected.  After a few examples in different dimensions, it might start to make
+easier to understand if play around with the interactive demo and follow along
+the traces.  After a few examples in different dimensions, it might start to make
 sense.  Try looking at the lower dimensions too to see if they match up with
 what we figured out before.
 
-You can also flip the switch to compute reverse and forward neighbors.
-Luckily, as we noted before in the 5D case, "is a neighbor" is a reversible
-relationship: If a point is a forward neighbor, it is also a reverse neighbor.
-This means that the branching structure for forward and reverse neighbor trees
-are all the same.  The only difference is how the multiplicities are
-calculated.  In this case, the forward direction is just the original
-calculation reversed.  The diagram shows how the multiplicities are
-accumulated; feel free to try to work out how this works as an exercise!
+You can also flip the switch on the demo to compute reverse and forward
+neighbors. Luckily, as we noted before, if a point is a forward neighbor, it is
+also a reverse neighbor. This means that the branching structure for forward
+and reverse neighbor trees are exactly the same; the only difference is how
+the multiplicities are calculated.  In this case, the forward direction is just
+the original calculation reversed!  The diagram shows how the multiplicities
+are accumulated; feel free to try to work out how this works as an exercise!
 
 That's it, for real!  We have tackled the reverse neighbor weights problem with
 some branching bin flows and combinatorics![^honesty]
@@ -959,6 +948,32 @@ answers.  But hey, if it works, it works, right? :)
 
 Stacks On Stacks: Visualizting Arbitrary Dimensions
 ---------------------------------------------------
+
+You might have noticed that since our 4D record, we haven't had a new
+visualization of simulation, despite now having higher dimensions in our grasp.
+Why not?
+
+Well, there's the question of *how* you might even visualize this.  You can
+"zoom out" and take higher-dimensional slices of our 4D visualization and
+repeat this ad nauseum, but that doesn't really add anything or give any
+insight as to what's really going on.
+
+And honestly, I believe that that's the reason we all collectively got "stuck"
+together around 20 dimensions.  The rush of the revelations one after within a
+single week pushed us into trying many different things.  I had a couple of
+dead-end forays into pre-cacheing and had a lot of code (that I was ecstatic to
+be able to delete) working with an sqlite3 database.
+
+[cosetcounts]: https://www.reddit.com/r/adventofcode/comments/kfb6zx/day_17_getting_to_t6_at_for_higher_spoilerss/ghre3ce/
+
+Another factor was that Advent of Code was still running, and we all definitely
+enjoyed doing new puzzles every day.  But soon, Christmas passed, the daily
+rush of doing a new puzzle faded, and we started to return back to tinkering on
+this hyper-dimensional game of life.  And it wasn't until January 1st (just
+over two weeks after the puzzle originally came out) that a new revelation
+arise that would pave the way shoot past 20D.
+
+
 
 ::::: {#golFlat}
 Please enable Javascript
