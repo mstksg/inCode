@@ -70,7 +70,7 @@ And soon...a breakthrough did come!  Someone brought up that if we look at the
 everything starts off on the xy plane, with z=0, the resulting progression must
 be symmetrical on both sides (positive and negative z).
 
-![3D GoL animation by [u/ZuBsPaCe][], demonstrating mirror symmetry](/img/entries/advent-gol/life3d.gif "3D GoL animation u/ZuBsPaCe", demonstrating mirror symmetry)
+![3D GoL animation demonstrating mirror symmetry by [u/ZuBsPaCe][]](/img/entries/advent-gol/life3d.gif "3D GoL animation u/ZuBsPaCe", demonstrating mirror symmetry)
 
 [u/ZuBsPaCe]: https://www.reddit.com/r/adventofcode/comments/kfa3nr/2020_day_17_godot_cubes_i_think_i_went_a_bit_too/
 
@@ -83,15 +83,15 @@ puzzle.  With one breakthrough down, we began to believe that there would be
 more just around the corner, made possible by our problem's special degeneracy
 (that is, that we start on a 2d slice).
 
-Such a dream (as posed in [this reddit thread I started][reddit]) turned
-into a month-long quest of breakthrough after breakthrough, exploiting different
+Such a dream (as posed in [this reddit thread I started][reddit]) turned into a
+month-long quest of breakthrough after breakthrough, exploiting different
 aspects of this degeneracy.  It was a long, harrowing journey full of sudden
 twists and turns and bursts of excitement when new innovations came.  And in
 the end, the hopeful question "What if 10D was possible?" turned into "10D in
 100ms, 40D in eight minutes."  This post even includes simulations to prove
-that got 10D fast enough to run on easily on any modern browser.  Furthermore,
-the whole journey became an adventure in the power of visualization combined
-with abstract thinking.
+that we got 10D fast enough to run on easily on any modern browser.
+Even more, the whole journey became an adventure in the power of
+visualization combined with abstract thinking.
 
 [reddit]: https://www.reddit.com/r/adventofcode/comments/kfb6zx/day_17_getting_to_t6_at_for_higher_spoilerss/
 
@@ -100,10 +100,11 @@ into any particular degenerate starting conditions of a hyper-dimensional game
 of life :D
 
 There will be python code samples here and there, but just for context, my
-actual solvers I developed along the way were written in Haskell, and all of
-the solving logic embedded in this post was written in Purescript ([online
-here][Golpurs]) and compiled to Javascript.
+actual solvers I developed along the way were [written in Haskell][Golhs], and
+all of the solving logic embedded in this post was written in Purescript
+([online here][Golpurs]) and compiled to Javascript.
 
+[Golhs]: https://github.com/mstksg/advent-of-code-2020/blob/master/src/AOC/Challenge/Day17.hs
 [Golpurs]: https://github.com/mstksg/inCode/blob/master/app-purescript/Gol.purs
 
 Starting Off
@@ -189,10 +190,19 @@ dimensionality!
 
 The nice thing about this method is that it's easy enough to generalize to any
 dimension: instead of, say, keeping `[x,y]` in your set for 2D, just keep
-`[x,y,z]` for 3D, or any length array of coordinates.  One minor trick you need
-to think through is generating all $3^d-1$ neighbors, but but that's going to
-come down to a d-ary [cartesian product][cross] of `[-1,0,1]` to
-itself.
+`[x,y,z]` for 3D, or any length array of coordinates.[^bittrick]  One minor
+trick you need to think through is generating all $3^d-1$ neighbors, but but
+that's going to come down to a d-ary [cartesian product][cross] of `[-1,0,1]`
+to itself.
+
+[^bittrick]: And...there's actually a neat optimization we can use (brought to our
+attention by [Peter Tseng][bitshift]) to avoid the check of the original set in
+step 2c above: when you iterate over each point, increment the eight neighbors'
+map values by *2*, and then increment the point itself by 1.  Then in the final
+integer under each key, `n / 2` or `n >> 1` gives you the number of neighbors and `n % 2`
+(modulo) gives you whether or not that cell was alive.
+
+[bitshift]: https://www.reddit.com/r/adventofcode/comments/kfb6zx/day_17_getting_to_t6_at_for_higher_spoilerss/ghmllf8
 
 Here's a version of the set-based implementation, using a nice trick I learned
 from [phaazon][] to get the right neighbors by doing a cartesian product
@@ -230,50 +240,6 @@ def step_naive(pts):
 
     return frozenset(p for p, n in neighbs.items() if validate(p, n))
 ```
-
-<!-- And...there's actually a neat optimization we can use (brought to our -->
-<!-- attention by [Peter Tseng][bitshift]) to avoid the check of the original set in -->
-<!-- step 2c above: when you iterate over each point, increment the eight neighbors' -->
-<!-- map values by *2*, and then increment the point itself by 1.  Then in the final -->
-<!-- integer under each key, `n / 2` or `n >> 1` gives you the number of neighbors and `n % 2` -->
-<!-- (modulo) gives you whether or not that cell was alive. -->
-
-<!-- [bitshift]: https://www.reddit.com/r/adventofcode/comments/kfb6zx/day_17_getting_to_t6_at_for_higher_spoilerss/ghmllf8 -->
-
-<!-- ```python -->
-<!-- from itertools import islice, product, chain,repeat -->
-<!-- from collections import Counter -->
-
-<!-- def mk_neighbs(point): -->
-<!--     """Return neighboring points, with special optimization trick weights -->
-
-<!--     (1,2) -->
-<!--     => [((1, 2), 1), ((1, 1), 2), ((1, 3), 2), ((0, 2), 2), ((0, 1), 2), -->
-<!--         ((0, 3), 2), ((2, 2), 2), ((2, 1), 2), ((2, 3), 2) -->
-<!--        ] -->
-<!--     """ -->
-<!--     neighb_pts = product(*[[x, x-1, x+1] for x in point]) -->
-<!--     # associate the original point with +1, and the neighbors with +2 -->
-<!--     return zip(neighb_pts, chain([1], repeat(2))) -->
-
-<!-- def step(pts): -->
-<!--     """Takes a set of points (tuples) and steps them in the simulation -->
-<!--     """ -->
-<!--     neighbs = Counter() -->
-<!--     for point in pts: -->
-<!--         neighbs += Counter(dict(mk_neighbs(point))) -->
-
-<!--     def validate(val): -->
-<!--         # the true neighbor count, since we inserted +2 for neighbors -->
-<!--         ncount = val // 2 -->
-<!--         # was originally alive if odd, since we inserted +1 for self -->
-<!--         if val % 2 == 1: -->
-<!--             return ncount == 2 or ncount == 3 -->
-<!--         else: -->
-<!--             return ncount == 3 -->
-
-<!--     return [p for p, q in neighbs.items() if validate(q)] -->
-<!-- ``` -->
 
 Three Dimensions
 ----------------
@@ -1114,6 +1080,15 @@ might struggle, but on my lower-end cell phone it seems to run in less than a
 second.  If you mouse-over a cell, the text box will show all of the slice
 cosets where that xy cell is alive in (the "coset stack").
 
+Some interesting things you might notice:
+
+1.  At t=6, it looks like 7D, 8D, 9D, 10D all have the *same* exact 2D cells
+    "on".  They're identical except for slightly different stacks above each of
+    those cells.
+2.  At t=2, t=4, past 5D or so, the state is exactly the same!  We could easily
+    find t=4 for 100D or even 200D: they're identidal!
+3.  A lot of xy cells share identical stacks...more on that later!
+
 Not only is it kinda pretty (in my humble opinion), it also demonstrates that
 this whole ordeal is really "just a normal 2D cellular automata": it's like a
 "multi-valued" game of life, where instead of cells being on and off, they are
@@ -1125,9 +1100,9 @@ Because there are ${ {\hat{d}}+t} \choose t$ slice cosets for a given dimension
 and time, it means that our game is a $2^{ { \hat{d} + t} \choose t }$-valued
 game of life, where each cell can be one of that many options (each slice coset
 and be present or not coset).  That means at 2D ($\hat{d} = 0$), we have a
-normal 2-valued game of life ($2^1$), at 3D we have $7 \choose 6$ (7) possible
+normal 2-valued game of life ($2^1$), at 3D we have $7 \choose 6$ or 7 possible
 points at t=6, so that's a $2^7$ or 128-valued game of life, at 4D we have $8
-\choose 6$ (28) possible points at t=6, and so that's a $2^28$ or
+\choose 6$ or 28 possible points at t=6, and so that's a $2^28$ or
 268435456-valued game of life.
 
 And you can see this demonstrated in the simulation above, as well.  As you
@@ -1154,7 +1129,16 @@ t=6, you'll see too that many (if not most) xy cells have multiple other xy
 cells that have identical stacks to them.
 
 This final insight yields the final optimization we have discovered, as of time
-of writing.
+of writing.  The optimization is that we can treat an *entire stack* as an
+"action" that is spread to the xy neighbors:  The stack under `<x,y>=<3,4>` is
+spread to all its eight 2D neighbors identically (and to itself, too, in a
+way that excludes the exact stack itself).  That means if you have a stack, you
+can compute the "single neighbor" contribution (expensive) it has *one time*, and then
+*repeat that same contribution* to every occurrence of a stack.  So if a stack
+is repeated ten times over ten different xy stacks, you only need to compute it
+once and propagate it to all $8 \times 10$ neighbors of those stacks (eight
+neighbors for each 10 repetitions), for a savings of x80!  This can be done by
+storing map of stacks to contributions as a cache.
 
 ```python
 def step_with_stack_cache(stacks):
@@ -1204,11 +1188,74 @@ def step_with_stack_cache(stacks):
 ```
 
 With this final piece of the puzzle, I was able to reach 18D *3 seconds* in my
-Haskell solution!  And
-after explaining the method, Michal Marsalek was also able to build this into
-their fast Nim solver to [reach 40D in 8 minutes, 50D in 32 minutes, 60D in 120
+Haskell solution!  Michal Marsalek was also able to build this into their fast
+Nim solver to [reach 40D in 8 minutes, 50D in 32 minutes, 60D in 120
 minutes][finalmichal].
 
-[finalmichael]: https://www.reddit.com/user/MichalMarsalek/
+[finalmichal]: https://www.reddit.com/user/MichalMarsalek/
 
 And as far as I know, this seems to be where things stand today.
+
+Conclusions
+-----------
+
+Hope you enjoyed this journey!  My hope is that I was able to convey a fraction
+of the excitement, wonder, and mystery I felt during the process.  At every
+point, we had no reason to believe something better would come around the
+corner, but we held on to a hope and faith that kept on rewarding us.
+
+One apparent pattern is that visualization and different perspectives drove
+pretty much every revelation --- from the visually striking symmetries of the
+3D and 4D simulations, the explorations of how neighbor relationships
+work, from the insight that we could treat the entire problem as a fancy
+multivalued 2D game of life...all of it came about from being able to see the
+problem visually in different ways.  At other times it was a simple change in
+perspective to find a better way of encoding variants.
+
+I know for myself, the next time I try to explore something like this, I will
+try to apply what I learned to always reach for visualization sooner.  Even
+dead-end visualizations can provide a new depth to the puzzle that you might
+appreciate later on.
+
+Another thing I hope was apparent was the power of community!  I know I
+definitely would not have had as much fun doing this if it wasn't for the
+vibrant Advent of Code "Ante Pushing" community.  What I've described is just
+one story out of so many that Advent of Code community members routinely write
+together.  Most of these discoveries were fun because we always had somebody to
+share them with, or a way to encourage each other and strive for a common goal.
+I'm definitely lucky to be a part of a talented and passionately curious
+community that's excited to explore things like this.  Thank you to so many
+people --- Michal Marsalek, Peter Tseng, sim64, leftylink , Cettbycett, bsterc,
+flwyd, and so many others that I probably missed.  An especially deep thanks to
+[Eric Wastl][] for hosting a wonderful event like Advent of Code every year.
+And a profoundly deep thanks to the late John Conway, who revealed to us how
+much joy can come from the exploration of all things mathematical, a genius who
+was taken away from this world way too soon.
+
+[Wastl]: https://twitter.com/ericwastl
+
+And of course, in making this post, I'm inviting you, the reader, to join us
+along in this journey as well!  It's hardly over :)  Now that you're up to
+speed with all of us, I'd be excited to hear about anything you might discover
+while playing around with this too!
+
+Looking forward for this problem at least, there are a few open threads.  For
+example, the most promising to me: for t=6, the exact same xy cells are always
+inhabited for any dimension past 7D or so, and the stacks at each seem to only
+change slightly from dimension to dimension.  If we can analytically find how
+the stacks at any given position change between 9D and 10D, 10D and 11D, etc.,
+then it will be easy to jump directly to t=6 at 100D without simulating
+anything.  Another way to say this is --- can we simulate by fixing t and
+stepping d, instead of fixing d and stepping t?
+
+[satisfied]: https://en.wikipedia.org/wiki/John_Horton_Conway
+
+Who can tell how far we can go?  [Michal][satisfied] has as a personal goal
+something I would be very happy with:
+
+[satisfied]: https://www.reddit.com/r/adventofcode/comments/kfb6zx/day_17_getting_to_t6_at_for_higher_spoilerss/gia880d/
+
+> I won't be satisfied until I implement a solution that runs in polynomial
+> time in both t and d.
+
+Will you, dear reader, be the one to take us there? :)
