@@ -164,6 +164,7 @@ data Entry = Entry
     , entryCanonical  :: !FilePath
     , entryTags       :: ![(TagType, T.Text)]
     , entryJS         :: ![T.Text]
+    , entryCSS        :: ![T.Text]
     , entryNoSignoff  :: !Bool
     }
   deriving (Show, Generic, Typeable, Eq)

@@ -1267,11 +1267,10 @@ const expandRun = r => r.flatMap((d, i) => d3.range(d).map(() => i))
 //                , parts :: { left :: Int, here :: Int, right :: Int }
 //                }
 //
-// forward :: Boolean
 // getContrib :: Node -> Lazy Contrib
 // vecRun :: Int -> Int -> [Int]
 // mkHier :: Int -> Int -> Hierarchy
-exports._drawTree = function(sel,forward,vecRun,mkHier,getContrib) {
+exports._drawTree = function(sel,vecRun,mkHier,getContrib) {
     const margin = { top: 10, bottom: 10, left: 30, right: 42 };
     const optSizeLim = 70;
     const maxZLim = 5;
@@ -1302,13 +1301,40 @@ exports._drawTree = function(sel,forward,vecRun,mkHier,getContrib) {
                 .style("margin","0.25em auto 0 auto")
                 .style("display","block")
                 .style("overflow","visible");
-        const selbox = d3.select(sel)
+        const formElems = d3.select(sel)
                         .append("form")
                         .style("width","15em")
                         .style("margin","0 auto 0 auto")
                         .style("display","block")
+        const selbox = formElems
                         .append("select")
                         .style("width","100%");
+
+        const radioopt = [{ label: "forward", checked: "false" }
+                         ,{ label: "reverse", checked: "true" }
+                         ];
+        let forward = false;
+        const dirradio = formElems
+                        .append("div")
+                        .style("width","100%")
+                        .style("text-align","center")
+                        .style("font-size","90%")
+                        .style("margin-top", "0.25em");
+        const raddivs = dirradio.selectAll("div")
+                            .data(radioopt)
+                            .join("div")
+                            .attr("class", "pretty p-default p-round");
+        const radinps = raddivs.append("input")
+                .attr("type","radio")
+                .attr("name","neighbdir")
+                .attr("value",d => d.label)
+                .attr("checked",d => d.checked ? "" : null);
+        raddivs.append("div")
+                .attr("class","state")
+                .append("label")
+                .attr("for",d => d.label)
+                .text(d => d.label);
+
         const svg = d3.select(sel)
                 .append("svg")
                 .attr("width","100%")
@@ -1340,19 +1366,20 @@ exports._drawTree = function(sel,forward,vecRun,mkHier,getContrib) {
                         .attr("transform","translate(15,0)");
         const dimslider = d3.sliderBottom()
             .min(1)
-            .max(5)
+            .max(6)
             .step(1)
             .width(slider_size.width-30)
-            .ticks(5)
+            .ticks(6)
             .tickFormat(v => (v+2)+"")
             .displayFormat(v => "d="+(v+2));
         dimselbox.call(dimslider);
+        let currpt = 22;
 
-        const drawTree = function(pt) {
+        const drawTree = function() {
             svg.selectAll("*")
                 .remove();
             const dim = dimslider.value()
-            const hier = mkHier(dim)(pt);
+            const hier = mkHier(dim)(currpt);
             const numchild = hier.leaves().length;
             // console.log(numchild);
             // window["testhier"] = hier;
@@ -1362,7 +1389,7 @@ exports._drawTree = function(sel,forward,vecRun,mkHier,getContrib) {
                       , window_size.width-margin.left-margin.right
                       ])(hier);
             svg.attr("viewBox", [0,0,window_size.width,window_size.height]);
-            selbox.property("value",pt);
+            selbox.property("value",currpt);
 
             const treecont = svg.append("g")
                      .attr("transform",`translate(${margin.left},${margin.top})`);
@@ -1449,6 +1476,7 @@ exports._drawTree = function(sel,forward,vecRun,mkHier,getContrib) {
                 .text(function (d) {
                         const c = getContrib(d.data)();
                         const m = forward ? c.multQ() : c.multP();
+                        // console.log(forward, typeof forward, c.multQ(), c.multP(), m);
                         if ("children" in d) {
                             return m.here;
                         } else {
@@ -1515,10 +1543,17 @@ exports._drawTree = function(sel,forward,vecRun,mkHier,getContrib) {
 
         }
 
-        dimslider.on("onchange", d => { setupSelect(d); drawTree(0); } );
-        selbox.on("change", d => drawTree(d.srcElement.value));
+        radinps.on("change", function (d) {
+            forward = (d.srcElement.value === "forward");
+            // console.log(d.srcElement.value);
+            drawTree();
+        });
+
+        dimslider.on("onchange", d => { setupSelect(d); currpt = 0; drawTree(); } );
+        selbox.on("change", d => { currpt = d.srcElement.value; drawTree(); });
         dimslider.value(4);
-        drawTree(22);
+        currpt = 22;
+        drawTree();
 
         return svg;
     }

@@ -6,6 +6,7 @@ create-time: 2021/01/07 21:32:49
 series: Advent of Code
 identifier: advent-gol
 slug: degenerate-hyper-dimensional-game-of-life
+css: https://cdn.jsdelivr.net/npm/pretty-checkbox@3.0.3/dist/pretty-checkbox.min.css
 script: https://cdn.jsdelivr.net/npm/d3@6.5.0, /purescript/gol.js, https://cdn.jsdelivr.net/npm/d3-simple-slider@1.10.3
 ---
 
@@ -546,8 +547,8 @@ tough to generalize, but...we'll tackle that when we get there :)
 For now, we have a super-fast implementation of 4D GoL with our special
 degeneracy!  The runtime gets reduced by a factor of 8!
 
-For clarity, here's a pseudocode implementation of how we can do this higher-dimensional
-wrangling:
+For clarity, here's an example implementation of how we can do this
+higher-dimensional wrangling:
 
 ```python
 def reverse_neighbs(point):
@@ -628,19 +629,24 @@ Here was Michal's [historic post][permpost]:
 *(equations slightly modified)*
 
 And boy was this exciting to read.  First of all, it gave a way to generalize
-the z=w symmetry: it's just permutation symmetry for all higher-dimensional
-coordinates!   But the big kicker here: See that last formula?  Let's look at
-it more closely, using $\hat{d}$ to represent $d-2$, the number of higher
-dimensions:
+the z=w symmetry: it's just [permutation symmetry][permutaiton] for all
+higher-dimensional coordinates!   But the big kicker here: See that last
+formula?  Let's look at it more closely, using $\hat{d}$ to represent $d-2$,
+the number of higher dimensions:
+
+[permutation]: https://en.wikipedia.org/wiki/Permutation
 
 $$
 20^2 \times \sum_{k=0}^{t} { {\hat{d}-1+k}\choose{k} }
 $$
 
-That sum has only the amount of terms fixed with the maximum timestamp! That
+That notation is the [binomial coefficient][], if you aren't familiar with it.
+Note that the summation has a *fixed number of terms* (for any dimension)! That
 means we only ever have 6 terms to expand, no matter how high the dimensions
-are --- at 10D and even 100D!  Furthermore, we can simplify the above using
+are --- at 10D and even 100D! Furthermore, we can simplify the above using
 properties of the binomial distribution to get
+
+[binomial coefficient]: https://en.wikipedia.org/wiki/Binomial_coefficient
 
 $$
 20^2 \times { {\hat{d}+6}\choose{6} }
@@ -677,9 +683,10 @@ inevitability.  And now, it was a race to see who could get there first.
 ### The Race to 10D
 
 Unfortunately, the exact record of who reached and posted 10D first is a bit
-lost to history due to reddit's editing records.  A few people maintained and
-updated their posts to prevent clutter, but the record and time stamp of when
-they first hit 10D is lost.  If any of them happens to read this and can more
+lost to history due to reddit's editing records (not that "first" is
+necessarily a meaningful distinction).  A few people maintained and updated
+their posts to prevent clutter, but the record and time stamp of when they
+first hit 10D is lost.  If any of them happens to read this and can more
 accurately verify their times, I'd be happy to update!
 
 For me, I'm sure I was not the first one, but in my chat logs I chimed into
@@ -700,7 +707,7 @@ Pure joy! :D
 remember if it incorporated all the symmetries or originally included 10D,
 [Michal Marsalek][michalpost] was apparently able to implement the idea that
 they originally proposed by the following Wednesday (December 23rd) in Nim to blow
-everyone's time out of the water: 3.0 seconds!
+everyone's time out of the water: 3 seconds flat flat flat flat!
 
 [peterpost]: https://www.reddit.com/r/adventofcode/comments/kfb6zx/day_17_getting_to_t6_at_for_higher_spoilerss/ggaaqsy/
 [michalpost]: https://www.reddit.com/r/adventofcode/comments/kfb6zx/day_17_getting_to_t6_at_for_higher_spoilerss/ggsx9e9/
@@ -792,22 +799,22 @@ Please enable Javascript
 
 As you mouse-over a slice coset representative (a single square), all of its
 neighbors will be highlighted, including reflections.  The red dot on the left
-is the "forward" neighbor (how many times that other slice is a neighbor of the
-hovered slice) and the blue dot on the left is the "reverse" neighbor (how many
-times the hovered slice is a neighbor of the other slice).  For example, if you
-hover over `<z,w,q>=<1,3,4>`, you can see that `<0,3,4>` is its neighbor twice,
-and `<1,3,4>` is `<0,3,4>`'s neighbor four times.  These four times come from
-the non-normalized reflections of `<1,3,4>` at `<1,3,4>`, `<1,4,3>`,
-`<-1,3,4>`, and `<-1,4,3>`.  Some squares are also neighbors to themselves
-(like `<1,4,5>`, which reflects off of the top edge at `<1,5,4>`) and some are
-not (like `<1,3,5>`).  [Mind bottling][bottle]!
+is the "forward" neighbor multiplicity (how many times that other slice is a
+neighbor of the hovered slice) and the blue dot on the left is the "reverse"
+neighbor multiplicity (how many times the hovered slice is a neighbor of the
+other slice). For example, if you hover over `<z,w,q>=<1,3,4>`, you can see
+that `<0,3,4>` is its neighbor twice, and `<1,3,4>` is `<0,3,4>`'s neighbor
+four times.  These four times come from the non-normalized reflections of
+`<1,3,4>` at `<1,3,4>`, `<1,4,3>`, `<-1,3,4>`, and `<-1,4,3>`.  Some squares
+are also neighbors to themselves (like `<1,4,5>`, which reflects off of the top
+edge at `<1,5,4>`) and some are not (like `<1,3,5>`).  [Mind bottling][bottle]!
 
 [bottle]: https://www.youtube.com/watch?v=rSfebOXSBOE
 
-At least one pattern we can see clearly is that if your points are 4 or lower,
-the sum of all the red dots (the forward neighbors) is $3^3-1$ = 26, just like
-how the sum of forward neighbors for interior points in 3D is $3^2-1=8$, and
-for 2D is $3^2-1 = 2$.
+At least one pattern we can see clearly is that if you are at a point where
+each component is 4 or lower, the sum of all the red dots (the forward
+neighbors) is $3^3-1$ = 26, just like how the sum of forward neighbors for
+interior points in 3D is $3^2-1$ = 8, and for 2D is $3^2-1$ = 2.
 
 Another very important pattern is that "is a neighbor" seems to be reversible:
 the set of all *forward* neighbors of a point is the same as all *reverse*
@@ -818,18 +825,18 @@ squares.
 Anyway, you can explore this a little bit and try to come up with a set of
 ad-hoc rules like we did for 4D...but I think we've reached the limits of how
 far that method can go.  We can generate these values simply enough using the
-expand-normalize-tabulate method we did for 4D, but there should be a way to
-compute these weights *directly*, in a clean fashion that doesn't require
-branching special cases and patterns.  It's clear that we are limited until we
-can find this method.
+expand-normalize-tabulate method we did for 4D, but it's pretty inefficient,
+and there should be a way to compute these weights *directly* in a clean
+fashion that doesn't require hard-coding special cases and patterns.  It's
+clear that we are limited until we can find this method.
 
 ### Go with the Flow
 
 What do all our valid normalized `<z,w,...>` coordinates look like? Well, they
-are always non-decreasing, and always are less than the current timestep.
-Keeping t=6 as our goal still, this means that valid coordinates in 10D are
-strings of eight numbers, like `0,1,1,1,3,5,5,6`, or `0,0,3,4,4,4,6,6`, or
-`1,1,2,3,3,4,5,5`.[^repeated]
+are always non-decreasing, and always are less than or equal to the current
+timestep. Keeping t=6 as our goal still, this means that valid coordinates in
+10D are strings of eight numbers, like `0,1,1,1,3,5,5,6`, or `0,0,3,4,4,4,6,6`,
+or `1,1,2,3,3,4,5,5`.[^repeated]
 
 [^repeated]: It's also interesting to note that above 9D (where there are 7
 higher-dimensional coordinates), there is always at least one duplicated
@@ -839,7 +846,7 @@ below and 10D and above: anything above 9D is...especially degenerate.
 
 But we run into problems working with this format.  For example, if we're
 computing a neighbor of `0,1,1,1,3,5,5,6`,  we can imagine that the very first
-`1` moves to be a `2`, resulting in `0,2,1,1,3,5,5,6`. However, we're now in
+`1` could move to be a `2`, resulting in `0,2,1,1,3,5,5,6`. However, we're now in
 un-normalized territory...we have to re-sort it to turn it into
 `0,1,1,2,3,5,5,6`.  This encoding isn't something we can directly manipulate in
 a nice way.
@@ -856,9 +863,9 @@ And now, a "valid transition" becomes easy to enforce: it's an amount "flowing"
 from one of those bins to another.  For example, turning a `1` into a `2` in
 `1-3-0-1-0-2-1` turns it into `1-2-1-1-0-2-1`.  We took one of the three 1s and
 turned them into a single 2.  This "flowing" operation automatically gives us a
-valid number without any renormalizing necessary!  This gives us an algorithm
-to compute neighbors: we can walk bin-to-bin, "flowing" components from our
-origin vector to our new vector.
+valid coordinate without any renormalizing necessary!  This gives us an
+algorithm to compute neighbors: we can walk bin-to-bin, "flowing" components
+from our origin vector to our new vector.
 
 This was our goal!  A way to compute neighbors without requiring
 renormalization.  We no longer have to try all $3^d-1$ (exponential) candidates
@@ -893,11 +900,11 @@ describing all the ways you can flow from bin to bin!  As an example, let's
 look the 6D case of ways each point is a neighbor of `0,2,2,3` (`1-0-2-1`),
 which you can pick from the drop-down.
 
-::::: {#golTreeReverse}
+::::: {#golTree}
 Please enable Javascript
 :::::
 
-As you can see, each "branch" in three (flowing from left to right) is a
+As you can see, each "branch" in tree (flowing from left to right) is a
 different way to fill in the bin.  At each node, the upper vector is the
 "source" vector, and the lower vector is the "target" vector we build
 step-by-step.  Bin-by-bin, we begin to move components from our source
@@ -966,12 +973,25 @@ single week pushed us into trying many different things.  I had a couple of
 dead-end forays into pre-cacheing and had a lot of code (that I was ecstatic to
 be able to delete) working with an sqlite3 database.
 
-Another factor was that Advent of Code was still running, and we all definitely
-enjoyed doing new puzzles every day.  But soon, Christmas passed, the daily
-rush of doing a new puzzle faded, and we started to return back to tinkering on
-this hyper-dimensional game of life.  And it wasn't until January 1st (just
-over two weeks after the puzzle originally came out) that a new revelation
-arise that would pave the way shoot past 20D.
+One thing I did discover (that I won't spend too much time on here) is a way to
+[index into an enumeration][pascal] of all of the slice cosets (that is, all
+the normalized higher-dimensional coordinates).  I no longer store `<z,w,...>`
+points as vectors, but rather as a single integer representing their index in
+that enumeration, which is easier to access and store.  I also found a way to
+do streaming decoding and encoding between that index and the components it
+represents, allowing me to stream neighbor weights in constant time.  This
+dense index encoding was actually really useful in implementing the Javascript
+demos on this page :)
+
+[pascal]: https://www.reddit.com/r/adventofcode/comments/kfb6zx/day_17_getting_to_t6_at_for_higher_spoilerss/gim68l0/
+
+Another factor contributing to the overall lull was that Advent of Code was
+still running, and we all definitely enjoyed doing new puzzles every day.  But
+soon, Christmas passed, the daily rush of doing a new puzzle faded, and we
+started to return back to tinkering on this hyper-dimensional game of life.
+And it wasn't until January 1st (just over two weeks after the puzzle
+originally came out) that a new revelation arise that would pave the way shoot
+past 20D.
 
 It was [Michal Marsalek's coset counts post][cosetcounts] that paved the way.
 From the beginning, Michal had always tracked the number of cell cosets at the
@@ -1102,7 +1122,7 @@ game of life, where each cell can be one of that many options (each slice coset
 and be present or not coset).  That means at 2D ($\hat{d} = 0$), we have a
 normal 2-valued game of life ($2^1$), at 3D we have $7 \choose 6$ or 7 possible
 points at t=6, so that's a $2^7$ or 128-valued game of life, at 4D we have $8
-\choose 6$ or 28 possible points at t=6, and so that's a $2^28$ or
+\choose 6$ or 28 possible points at t=6, and so that's a $2^{28}$ or
 268435456-valued game of life.
 
 And you can see this demonstrated in the simulation above, as well.  As you

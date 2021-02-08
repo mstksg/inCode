@@ -55,7 +55,7 @@ main :: Effect Unit
 main = do
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 30
+      logMe 1
 
       draw2D <- setupGolFlat "#gol2D" {height:20, width:20, maxT: 6, maxDim: Nothing}
       draw3D <- setupGol3D "#gol3D" {height:20, width:20, maxT: 6}
@@ -67,8 +67,7 @@ main = do
       drawGolSyms4D "#golSyms4DForward" 6 false
       drawGolSyms4D "#golSyms4DReverse" 6 true
 
-      drawTree "#golTreeForward" true
-      drawTree "#golTreeReverse" false
+      drawTree "#golTree"
 
       drawGolSyms5D "#golSyms5D"
 
@@ -562,15 +561,14 @@ drawGolSyms5D sel = runFn2 _drawGolSyms5D sel $
 
 foreign import data TreeNode :: Type
 foreign import _drawTree :: forall f.
-      Fn5 String
-          Boolean
+      Fn4 String
           (Int -> Int -> Array Int)
           (Int -> Int -> Hierarchy (VecTree f (Lazy Contrib)))
           (forall a. VecTree f a -> a)
           (Effect Unit)
 drawTree
-    :: forall f. String -> Boolean -> Effect Unit
-drawTree sel fwd = runFn5 _drawTree sel fwd vecRun mkHier (\(Node x _) -> x)
+    :: forall f. String -> Effect Unit
+drawTree sel = runFn4 _drawTree sel vecRun mkHier (\(Node x _) -> x)
   where
     vecRun d n = A.fromFoldable (List.reverse gens)
       where

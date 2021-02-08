@@ -69,6 +69,8 @@ compileEntry = do
     sers      <- maybe [] splitTags <$> getMetadataField i "series"
     eJs       <- maybe [] (map (T.pack . trim) . splitAll ",")
                <$> getMetadataField i "script"
+    eCss      <- maybe [] (map (T.pack . trim) . splitAll ",")
+               <$> getMetadataField i "css"
     noSignoff <- maybe (fail "Could not parse field no-signoff") pure
                . maybe (Just False) parseSignoff
              =<< getMetadataField i "no-signoff"
@@ -90,6 +92,7 @@ compileEntry = do
                                     ++ map (CategoryTag,) cats
                                     ++ map (SeriesTag,)   sers
                    , entryJS         = eJs
+                   , entryCSS        = eCss
                    , entryNoSignoff  = noSignoff
                    }
   where
@@ -135,7 +138,7 @@ entryCompiler histList allTags = do
                  , pageDataDesc    = Just . stripPandoc . entryLede $ e
                  , pageDataCss     = [ "/css/page/entry.css"
                                      , "/css/pygments.css"
-                                     ]
+                                     ] ++ entryCSS e
                  , pageDataJs      = [ "/js/page/entry_toc.js"
                                      , "/js/disqus_count.js"
                                      , "/js/social.js"
