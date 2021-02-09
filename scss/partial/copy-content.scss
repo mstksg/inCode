@@ -137,6 +137,24 @@
       color: #541;
     }
   }
+  div.highlightbox {
+    margin: 0.5rem 0rem 1.5rem 0rem;
+    padding: 1rem 1rem 2.5rem 1rem;
+    border: solid #338;
+    border-width: 1px 1px 1px 4px;
+    background: #fefffe;
+
+    > p {
+      &:first-child {
+        font-style: italic;
+        display: block;
+        width: 100%;
+        border-bottom: 1px solid #338;
+        margin-bottom: 2.5rem;
+        font-size: 105%;
+      }
+    }
+  }
 
   figure {
     width: 80%;

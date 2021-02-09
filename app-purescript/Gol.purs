@@ -51,27 +51,42 @@ import Web.HTML.Event.EventTypes (readystatechange)
 import Web.HTML.HTMLDocument     as HTMLDocument
 import Web.HTML.Window           as Window
 
+elements :: Array String
+elements =
+    [ "#golDrawer"
+    , "#gol2D"
+    , "#gol3D"
+    , "#golSyms3DForward"
+    , "#golSyms3DReverse"
+    , "#gol4D"
+    , "#golSyms4DForward"
+    , "#golSyms4DReverse"
+    , "#golSyms5D"
+    , "#golTree"
+    , "#golFlat"
+    ]
+
 main :: Effect Unit
 main = do
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 1
+      logMe 3
 
-      draw2D <- setupGolFlat "#gol2D" {height:20, width:20, maxT: 6, maxDim: Nothing}
-      draw3D <- setupGol3D "#gol3D" {height:20, width:20, maxT: 6}
-      draw4D <- setupGol4D "#gol4D" {height:20, width:20, maxT: 6}
-      drawFlat <- setupGolFlat "#golFlat" {height:20, width:20, maxT: 6, maxDim: Just 8}
+      draw2D <- setupGolFlat "#gol2DCont" {height:20, width:20, maxT: 6, maxDim: Nothing}
+      draw3D <- setupGol3D "#gol3DCont" {height:20, width:20, maxT: 6}
+      draw4D <- setupGol4D "#gol4DCont" {height:20, width:20, maxT: 6}
+      drawFlat <- setupGolFlat "#golFlatCont" {height:20, width:20, maxT: 6, maxDim: Just 8}
 
-      drawGolSyms3D "#golSyms3DForward" 6 false
-      drawGolSyms3D "#golSyms3DReverse" 6 true
-      drawGolSyms4D "#golSyms4DForward" 6 false
-      drawGolSyms4D "#golSyms4DReverse" 6 true
+      drawGolSyms3D "#golSyms3DForwardCont" 6 false
+      drawGolSyms3D "#golSyms3DReverseCont" 6 true
+      drawGolSyms4D "#golSyms4DForwardCont" 6 false
+      drawGolSyms4D "#golSyms4DReverseCont" 6 true
 
-      drawTree "#golTree"
+      drawTree "#golTreeCont"
 
-      drawGolSyms5D "#golSyms5D"
+      drawGolSyms5D "#golSyms5DCont"
 
-      drawer <- setupDrawer "#golDrawer" {height:8, width:8} $ \pts -> do
+      drawer <- setupDrawer "#golDrawerCont" {height:8, width:8} $ \pts -> do
         let bumped = Set.fromFoldable (map (bump 6) pts)
         draw2D bumped
         draw3D bumped

@@ -1272,7 +1272,7 @@ const expandRun = r => r.flatMap((d, i) => d3.range(d).map(() => i))
 // mkHier :: Int -> Int -> Hierarchy
 exports._drawTree = function(sel,vecRun,mkHier,getContrib) {
     const margin = { top: 10, bottom: 10, left: 30, right: 42 };
-    const optSizeLim = 70;
+    const optSizeLim = 85;
     const maxZLim = 5;
 
     const expandChosens = function(c) {
@@ -1373,13 +1373,20 @@ exports._drawTree = function(sel,vecRun,mkHier,getContrib) {
             .tickFormat(v => (v+2)+"")
             .displayFormat(v => "d="+(v+2));
         dimselbox.call(dimslider);
-        let currpt = 22;
+        let currpt = []
+        currpt[1] = 1
+        currpt[2] = 4
+        currpt[3] = 6
+        currpt[4] = 22
+        currpt[5] = 9
+        currpt[6] = 9
 
         const drawTree = function() {
             svg.selectAll("*")
                 .remove();
-            const dim = dimslider.value()
-            const hier = mkHier(dim)(currpt);
+            const dim = dimslider.value();
+            const pt = currpt[dim];
+            const hier = mkHier(dim)(pt);
             const numchild = hier.leaves().length;
             // console.log(numchild);
             // window["testhier"] = hier;
@@ -1389,7 +1396,7 @@ exports._drawTree = function(sel,vecRun,mkHier,getContrib) {
                       , window_size.width-margin.left-margin.right
                       ])(hier);
             svg.attr("viewBox", [0,0,window_size.width,window_size.height]);
-            selbox.property("value",currpt);
+            selbox.property("value",pt);
 
             const treecont = svg.append("g")
                      .attr("transform",`translate(${margin.left},${margin.top})`);
@@ -1549,10 +1556,12 @@ exports._drawTree = function(sel,vecRun,mkHier,getContrib) {
             drawTree();
         });
 
-        dimslider.on("onchange", d => { setupSelect(d); currpt = 0; drawTree(); } );
-        selbox.on("change", d => { currpt = d.srcElement.value; drawTree(); });
+        dimslider.on("onchange", d => { setupSelect(d); drawTree(); } );
+        selbox.on("change", function(d) {
+            currpt[dimslider.value()] = d.srcElement.value;
+            drawTree();
+        });
         dimslider.value(4);
-        currpt = 22;
         drawTree();
 
         return svg;
