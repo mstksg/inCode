@@ -231,7 +231,7 @@ exports._setupDrawer = function(sel, size, callback) {
         const svg = d3.select(sel)
             .append("svg")
             .attr("viewBox", [0,0,window_size.width, window_size.height])
-            .attr("width","15em")
+            .style("max-width","15em")
             .style("margin","auto")
             .style("display","block");
 
@@ -350,7 +350,7 @@ exports._setupGolFlat = function(sel,showPts,{height,width,maxT,maxDim}) {
         const svg = d3.select(sel)
             .append("svg")
             .attr("viewBox", [0,0,window_size.width, window_size.height])
-            .attr("width","15em")
+            .style("max-width","15em")
             .style("margin","auto")
             .style("display","block");
         let dimslidersvg = null;
@@ -358,7 +358,7 @@ exports._setupGolFlat = function(sel,showPts,{height,width,maxT,maxDim}) {
             dimslidersvg = d3.select(sel)
                 .append("svg")
                 .attr("viewBox", [0,0, slider_size.width, slider_size.height])
-                .attr("width","15em")
+                .style("max-width","15em")
                 .style("margin","1em auto 0 auto")
                 .style("display","block")
                 .style("overflow","visible");
@@ -366,7 +366,7 @@ exports._setupGolFlat = function(sel,showPts,{height,width,maxT,maxDim}) {
         const slidersvg = d3.select(sel)
                 .append("svg")
                 .attr("viewBox", [0,0, slider_size.width, slider_size.height])
-                .attr("width","15em")
+                .style("max-width","15em")
                 .style("margin","1em auto 0 auto")
                 .style("display","block")
                 .style("overflow","visible");
@@ -374,7 +374,7 @@ exports._setupGolFlat = function(sel,showPts,{height,width,maxT,maxDim}) {
         if (showPts) {
             ptsdisp = d3.select(sel)
                 .append("div")
-                .style("width","20em")
+                .style("max-width","20em")
                 .style("height","10em")
                 .style("margin","1em auto 0 auto")
                 .style("display","block")
@@ -512,7 +512,7 @@ exports._setupGol3D = function(sel,{height,width,maxT}) {
         const slidersvg = d3.select(sel)
                 .append("svg")
                 .attr("viewBox", [0,0, slider_size.width, slider_size.height])
-                .attr("width","15em")
+                .style("max-width","15em")
                 .style("margin","1em auto")
                 .style("display","block")
                 .style("overflow","visible");
@@ -655,7 +655,7 @@ exports._setupGol4D = function(sel,{height,width,maxT}) {
         const slidersvg = d3.select(sel)
                 .append("svg")
                 .attr("viewBox", [0,0, slider_size.width, slider_size.height])
-                .attr("width","15em")
+                .style("max-width","15em")
                 .style("margin","1em auto")
                 .style("display","block")
                 .style("overflow","visible");
@@ -853,10 +853,10 @@ exports._drawGolSyms = function(sel, maxZ, {dim, gridSize, ptPos}, reversed) {
                 // here
                 .attr("viewBox", [0,0,window_size.width*(topBorder.x+1), window_size.height*(topBorder.y+1)])
               // .attr("transform",`translate(${window_size.width*z0+margin.left},${window_size.height*(maxZ-w0)+margin.top})`);
-                .attr("width","20em")
+                .attr("width","100%")
                 .style("margin","auto")
-                .style("overflow","visible")
-                .style("display","block");
+                .style("display","block")
+                .style("overflow","visible");
 
         const allBoxes = svg.append("g");
         let boxes = [];
@@ -1297,13 +1297,13 @@ exports._drawTree = function(sel,vecRun,mkHier,getContrib) {
         const dimslidersvg = d3.select(sel)
                 .append("svg")
                 .attr("viewBox", [0,0, slider_size.width, slider_size.height])
-                .attr("width","15em")
+                .style("max-width","15em")
                 .style("margin","0.25em auto 0 auto")
                 .style("display","block")
                 .style("overflow","visible");
         const formElems = d3.select(sel)
                         .append("form")
-                        .style("width","15em")
+                        .style("max-width","15em")
                         .style("margin","0 auto 0 auto")
                         .style("display","block")
         const selbox = formElems
@@ -1571,3 +1571,5 @@ exports._drawTree = function(sel,vecRun,mkHier,getContrib) {
 
 exports.undefined = 0;
 exports._assignWindow = function(p,x) { return function () { window[p] = x; } }
+
+exports._setInnerHTML = function(e,x) { return function () { e.innerHTML = x; } }

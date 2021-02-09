@@ -326,7 +326,7 @@ The following interactive element lets you explore what this looks like:
 
 ::::: {#golSyms3DForward .highlightbox}
 
-**Element 4a:** 3D Negation-Symmetry Forward Neighbor Multiplicities
+**Element 4a:** 3D Forward Neighbor Multiplicities
 
 :::::: {#golSyms3DForwardCont}
 Please enable Javascript
@@ -373,7 +373,7 @@ That means we have to follow the rules in the previous interactive element
 
 ::::: {#golSyms3DReverse .highlightbox}
 
-**Element 4b:** 3D Negation-Symmetry Reverse Neighbor Multiplicities
+**Element 4b:** 3D Reverse Neighbor Multiplicities
 
 :::::: {#golSyms3DReverseCont}
 Please enable Javascript
@@ -487,7 +487,7 @@ we are simulating.
 
 ::::: {#golSyms4DForward .highlightbox}
 
-**Element 6a:** 4D Diagonal-Reflection-Symmetry Forward Neighbor Multiplicities
+**Element 6a:** 4D Forward Neighbor Multiplicities
 
 :::::: {#golSyms4DForwardCont}
 Please enable Javascript
@@ -563,7 +563,7 @@ to be able to do this using mathematical operations.  So, let's explore!
 
 ::::: {#golSyms4DReverse .highlightbox}
 
-**Element 6b:** 4D Diagonal-Reflection-Symmetry Reverse Neighbor Multiplicities
+**Element 6b:** 4D Reverse Neighbor Multiplicities
 
 :::::: {#golSyms4DReverseCont}
 Please enable Javascript
@@ -843,7 +843,7 @@ reverse neighbor weights of each other (computable using the method we used for
 
 ::::: {#golSyms5D .highlightbox}
 
-**Element 7:** 5D Permutation-Symmetry Neighbor Multiplicities
+**Element 7:** 5D Neighbor Multiplicities
 
 :::::: {#golSyms5DCont}
 Please enable Javascript
@@ -956,7 +956,7 @@ which you can pick from the drop-down.
 
 ::::: {#golTree .highlightbox}
 
-**Element 8:** Algorithm for Arbitrary-Dimension Neighbor Multiplicities
+**Element 8:** General Neighbor Multiplicity Algorithm
 
 :::::: {#golTreeCont}
 Please enable Javascript
@@ -1155,7 +1155,7 @@ to simulate it in your browser!
 
 ::::: {#golFlat .highlightbox}
 
-**Element 9:** Arbitrary-dimension Game of Life Simulation
+**Element 9:** N-D Game of Life
 
 :::::: {#golFlatCont}
 Please enable Javascript

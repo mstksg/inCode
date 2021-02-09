@@ -1,11 +1,14 @@
 module Gol where
 
 import Control.Monad.Free        as Free
+import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
+import Data.FunctorWithIndex as Indexed
 import Control.Monad.State
 import Control.MonadZero         as MonadZero
 import Data.Array                as A
 import Data.Bifunctor
 import Data.DateTime             as Date
+import Web.HTML.Location as Location
 import Data.DateTime.Instant     as Instant
 import Data.Foldable
 import Data.Function.Uncurried
@@ -28,6 +31,7 @@ import Data.Set                  (Set)
 import Data.Set                  as Set
 import Data.Set.NonEmpty         (NonEmptySet)
 import Data.Set.NonEmpty         as NESet
+import Data.String               as String
 import Data.Traversable
 import Data.Tuple
 import Data.Unfoldable hiding    (fromMaybe)
@@ -44,6 +48,9 @@ import Prelude
 import Queue.One                 as Queue
 import Unsafe.Coerce             as Unsafe
 import Web.DOM.Document          as Document
+import Web.DOM.Element           as Element
+import Web.DOM.Node              as Node
+import Web.DOM.ParentNode        as ParentNode
 import Web.Event.Event           (Event, EventType)
 import Web.Event.EventTarget     (EventTarget, addEventListener, eventListener)
 import Web.HTML                  as Web
@@ -51,26 +58,14 @@ import Web.HTML.Event.EventTypes (readystatechange)
 import Web.HTML.HTMLDocument     as HTMLDocument
 import Web.HTML.Window           as Window
 
-elements :: Array String
-elements =
-    [ "#golDrawer"
-    , "#gol2D"
-    , "#gol3D"
-    , "#golSyms3DForward"
-    , "#golSyms3DReverse"
-    , "#gol4D"
-    , "#golSyms4DForward"
-    , "#golSyms4DReverse"
-    , "#golSyms5D"
-    , "#golTree"
-    , "#golFlat"
-    ]
-
 main :: Effect Unit
 main = do
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 3
+      logMe 12
+
+      eMap <- buildElemMap doc
+      makeElemLinks doc eMap
 
       draw2D <- setupGolFlat "#gol2DCont" {height:20, width:20, maxT: 6, maxDim: Nothing}
       draw3D <- setupGol3D "#gol3DCont" {height:20, width:20, maxT: 6}
@@ -103,6 +98,62 @@ main = do
           (\_ -> a')
     bump n {x,y} = {x:x+n, y:y+n}
     initialPoints' = Set.fromFoldable (map (bump 8) initialPoints)
+
+elements :: Array String
+elements =
+    [ "#golDrawer"
+    , "#gol2D"
+    , "#gol3D"
+    , "#golSyms3DForward"
+    , "#golSyms3DReverse"
+    , "#gol4D"
+    , "#golSyms4DForward"
+    , "#golSyms4DReverse"
+    , "#golSyms5D"
+    , "#golTree"
+    , "#golFlat"
+    ]
+
+buildElemMap :: Document.Document -> Effect (Array (Tuple String String))
+buildElemMap doc = do
+    baseLoc <- Location.href =<< Window.location =<< Web.window
+    map A.catMaybes <<< for elements $ \e -> runMaybeT do
+      telem <- MaybeT $ ParentNode.querySelector
+              (ParentNode.QuerySelector $ e <> " p")
+              (Document.toParentNode doc)
+      ttext <- liftEffect $
+            String.drop 1 <<< String.dropWhile (_ /= String.codePointFromChar ':')
+        <$> Node.textContent (Element.toNode telem)
+      bnode <- map Element.toNode $ MaybeT $ ParentNode.querySelector
+              (ParentNode.QuerySelector $ e <> " p strong")
+              (Element.toParentNode telem)
+      liftEffect $ void do
+        anchor <- Document.createElement "a" doc
+        Element.setAttribute "href" (baseLoc <> e) anchor
+        Node.setTextContent "#" (Element.toNode anchor)
+        Node.insertBefore (Element.toNode anchor) bnode (Element.toNode telem)
+      pure $ Tuple e ttext
+
+makeElemLinks :: Document.Document -> Array (Tuple String String) -> Effect Unit
+makeElemLinks doc elemMap = for_ elemMap $ \(Tuple e _) -> do
+    let withoutSelf = A.filter (\(Tuple e' _) -> e /= e') linkStrings
+    let linkString = append "Jump to: "
+                 <<< intercalate " / "
+                 <<< flip map linkStrings $ \(Tuple e' (Tuple a b)) ->
+                        if e' == e
+                          then a
+                          else b
+    container <- ParentNode.querySelector
+              (ParentNode.QuerySelector e)
+              (Document.toParentNode doc)
+    for_ container $ \c -> do
+      listp <- Document.createElement "p" doc
+      setInnerHTML listp linkString
+      Node.appendChild (Element.toNode listp) (Element.toNode c)
+  where
+    linkStrings :: Array (Tuple String (Tuple String String))
+    linkStrings = flip map elemMap \(Tuple e ename) ->
+        Tuple e (Tuple ename ("<a href=\"" <> e <> "\">" <> ename <> "</a>"))
 
 type Point = Array Int
 
@@ -639,3 +690,7 @@ foreign import undefined :: forall a. a
 foreign import _assignWindow :: forall a. Fn2 String a (Effect Unit)
 assignWindow :: forall a. String -> a -> Effect Unit
 assignWindow = runFn2 _assignWindow
+
+foreign import _setInnerHTML :: Fn2 Element.Element String (Effect Unit)
+setInnerHTML :: Element.Element -> String -> Effect Unit
+setInnerHTML = runFn2 _setInnerHTML
