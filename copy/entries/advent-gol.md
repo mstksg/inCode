@@ -132,17 +132,25 @@ Here are some sample fun ones you can try out (click to load):
 *   The [tub][], which explodes into a twinkling frenzy during the 4D
     animation.
 *   The [full block][], which dies out in 2D but produces very appealing
-    patterns in 3D and 4D.
+    patterns in 3D and 4D.  A [bulls-eye][] also yields interesting "geometric"
+    patterns at higher dimensions.
 *   The [spiral galaxy][], which produces rich spiral galaxy patterns up until
     6D, but then all of a sudden becomes blocky and bland at 7D and above.
 *   My [own personal puzzle input][owninput], to see what the typical input
     looks like.
 
-[glider]: https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=____|_▝▖_|_▀▘_|____
-[tub]: https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=____|_▞▖_|_▝__|____
-[full block]: https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=████|████|████|████
-[spiral galaxy]: https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=██▟█|▜███|███▙|█▛██
-[owninput]: https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=▛▜▙▐|▜▚▗_|█▟▄▘|▟▌▟█
+[glider]: https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=____._▝▖_._▀▘_.____
+    {.loadpoints}
+[tub]: https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=____._▞▖_._▝__.____
+    {.loadpoints}
+[full block]: https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=████.████.████.████
+    {.loadpoints}
+[bulls-eye]: https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=▛▀▀▜.▌▛▜▐.▌▙▟▐.▙▄▄▟
+    {.loadpoints}
+[spiral galaxy]: https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=██▟█.▜███.███▙.█▛██
+    {.loadpoints}
+[owninput]: https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=▛▜▙▐.▜▚▗_.█▟▄▘.▟▌▟█
+    {.loadpoints}
 
 I recommend trying out some of the [other interesting well-known
 patterns][patterns]!  Also, if you find any interesting ones, I would be

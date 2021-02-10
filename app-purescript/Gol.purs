@@ -51,11 +51,12 @@ import Unsafe.Coerce             as Unsafe
 import Web.DOM.Document          as Document
 import Web.DOM.Element           as Element
 import Web.DOM.Node              as Node
+import Web.DOM.NodeList          as NodeList
 import Web.DOM.ParentNode        as ParentNode
 import Web.Event.Event           (Event, EventType)
 import Web.Event.EventTarget     (EventTarget, addEventListener, eventListener)
 import Web.HTML                  as Web
-import Web.HTML.Event.EventTypes (readystatechange)
+import Web.HTML.Event.EventTypes (readystatechange, click)
 import Web.HTML.HTMLDocument     as HTMLDocument
 import Web.HTML.History          as History
 import Web.HTML.Location         as Location
@@ -66,7 +67,7 @@ main :: Effect Unit
 main = do
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 31
+      logMe 39
       startingPts <- fromMaybe initialSet <$> loadUri doc
 
       eMap <- buildElemMap doc
@@ -94,6 +95,8 @@ main = do
         drawFlat bumped
 
       drawer $ A.fromFoldable startingPts
+
+      linkify doc (drawer <<< A.fromFoldable)
 
   where
     ready doc a = do
@@ -171,13 +174,20 @@ loadUri doc = runMaybeT do
     searchStr <- liftEffect $ Location.search loc
     usp <- liftEffect $ USP.new searchStr
     str <- MaybeT $ USP.get usp "points"
+    let res = blocksToPoint str
+    MonadZero.guard (not (null res))
     origTitle <- MaybeT $
         traverse HTMLDocument.title (HTMLDocument.fromDocument doc)
     liftEffect $ do
+      USP.delete usp "points"
       basicUrl <- fold <$> sequence
         [ Location.origin loc
         , Location.pathname loc
         , Location.hash loc
+        , flip map (USP.toString usp) \nstr ->
+            if String.null nstr
+              then nstr
+              else "?" <> nstr
         ]
       hist <- Window.history =<< Web.window
       History.pushState
@@ -185,7 +195,43 @@ loadUri doc = runMaybeT do
         (History.DocumentTitle origTitle)
         (History.URL basicUrl)
         hist
-    pure $ blocksToPoint str
+    pure res
+
+linkify :: forall a. Document.Document -> (Set Point2 -> Effect a) -> Effect Unit
+linkify doc cb = do
+    linkElems <- ParentNode.querySelectorAll
+            (ParentNode.QuerySelector "a.loadpoints")
+            (Document.toParentNode doc)
+    flip traverseNodeList_ linkElems \linkElem -> do
+      onE click (Element.toEventTarget linkElem) \e -> void $ runMaybeT do
+        href <- MaybeT $ Element.getAttribute "href" linkElem
+        usp  <- liftEffect $ USP.new (StringCU.dropWhile (_ /= '?') href)
+        str  <- MaybeT $ USP.get usp "points"
+        let res = blocksToPoint str
+        MonadZero.guard (not (null res))
+        liftEffect $ do
+          preventDefault e
+          cb res
+
+-- const linkifier = function (selector, addTitle, callback) {
+--     const links = document.querySelectorAll("a" + selector);
+--     for (const a of links) {
+--         const targ = a.getAttribute('href');
+--         if (targ) {
+--             // const aNew = a.cloneNode(true);
+--             // a.parentNode.replaceChild(aNew, a);
+--             d3.select(a)
+--               .attr('title',addTitle)
+--               .on('click',null)
+--               .on('click', function () {
+--                  d3.event.preventDefault();
+--                  callback(targ);
+--                });
+--         }
+--     }
+-- }
+
+
 
 type Point = Array Int
 
@@ -729,6 +775,8 @@ foreign import _setInnerHTML :: Fn2 Element.Element String (Effect Unit)
 setInnerHTML :: Element.Element -> String -> Effect Unit
 setInnerHTML = runFn2 _setInnerHTML
 
+foreign import preventDefault :: Event -> (Effect Unit)
+
 blockTable :: Array Char
 blockTable =
     [ '_', '▘', '▝', '▀', '▖', '▌', '▞', '▛'
@@ -792,7 +840,7 @@ fourBitToPoint2 fb = List.mapMaybe (\(Tuple p b) -> if b then Just p else Nothin
       List.: List.nil
 
 pointsToBlocks :: Set Point2 -> String
-pointsToBlocks pts = intercalate "|" $ flip map (List.range 0 3) $ \y ->
+pointsToBlocks pts = intercalate "." $ flip map (List.range 0 3) $ \y ->
     flip foldMap (List.range 0 3) $ \x ->
       maybe "_" (StringCU.singleton <<< fourBitToBlock) (Map.lookup {x,y} ptMap)
   where
@@ -803,7 +851,7 @@ pointsToBlocks pts = intercalate "|" $ flip map (List.range 0 3) $ \y ->
 blocksToPoint :: String -> Set Point2
 blocksToPoint str = Set.fromFoldable $ do
     Tuple y' xs <- List.zip (List.range 0 3) $
-        List.fromFoldable (String.split (String.Pattern "|") str)
+        List.fromFoldable (String.split (String.Pattern ".") str)
     Tuple x' b <- List.zip (List.range 0 3) $
         List.fromFoldable (StringCU.toCharArray xs)
     fb <- maybe List.nil List.singleton $ blockToFourBit b
@@ -811,4 +859,14 @@ blocksToPoint str = Set.fromFoldable $ do
     let x = 2*x' + dp.x
         y = 2*y' + dp.y
     pure {x, y}
+
+traverseNodeList_
+    :: forall m. MonadEffect m
+    => (Element.Element -> m Unit)
+    -> NodeList.NodeList
+    -> m Unit
+traverseNodeList_ f nl = do
+    ns <- liftEffect $ NodeList.toArray nl
+    traverse_ f (A.mapMaybe Element.fromNode ns)
+
 

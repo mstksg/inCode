@@ -248,7 +248,7 @@ exports._setupDrawer = function(sel, size, dispPts, callback) {
                         .style("width","100%")
                         .style("border","1px solid #555")
                         .style("border-radius","3px");
-
+        const helpMsg = "Use grid to draw. Click on URL to copy permalink."
         const helpdisp = d3.select(sel)
                 .append("div")
                 .style("max-width","15em")
@@ -259,7 +259,8 @@ exports._setupDrawer = function(sel, size, dispPts, callback) {
                 .style("text-align","center")
                 .style("font-style","italic")
                 .style("font-size","85%")
-                .text("Click on URL to copy permalink");
+                .style("line-height","133%")
+                .text(helpMsg);
 
         copyForm.on("click", function(e) {
             const esel = e.srcElement;
@@ -269,7 +270,7 @@ exports._setupDrawer = function(sel, size, dispPts, callback) {
             helpdisp.text("URL copied!")
             setTimeout(function () {
                     esel.setSelectionRange(0,0);
-                    helpdisp.text("Click on URL to copy permalink");
+                    helpdisp.text(helpMsg);
                 }, 1000
             );
         })
@@ -1621,3 +1622,4 @@ exports.undefined = 0;
 exports._assignWindow = function(p,x) { return function () { window[p] = x; } }
 
 exports._setInnerHTML = function(e,x) { return function () { e.innerHTML = x; } }
+exports.preventDefault = function(e) { return function () { e.preventDefault(); } }
