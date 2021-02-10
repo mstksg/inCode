@@ -97,6 +97,21 @@ all of the solving logic embedded in this post was written in Purescript
 [Golhs]: https://github.com/mstksg/advent-of-code-2020/blob/master/src/AOC/Challenge/Day17.hs
 [Golpurs]: https://github.com/mstksg/inCode/blob/master/app-purescript/Gol.purs
 
+Table of Figures
+----------------
+
+For reference, the interactive elements in this post are:
+
+1.  [Initial condition drawer][#golDrawer]
+2.  [2D Game of Life][#gol2D]
+3.  [3D Game of Life][#gol3D]
+4.  [3D Forward Neighbor Multiplicities][#golSyms3DForward] / [3D Reverse Neighbor Multiplicities][#golSyms3DReverse]
+5.  [5D Game of Life][#gol5D]
+6.  [4D Forward Neighbor Multiplicities][#golSyms4DForward] / [4D Reverse Neighbor Multiplicities][#golSyms4DReverse]
+7.  [5D Neighbor Multiplicities][#golSyms5D]
+8.  [General Neighbor Multiplicity Algorithm][#golTree]
+9.  [N-D Game of Life][#golFlat]
+
 Starting Off
 ------------
 
