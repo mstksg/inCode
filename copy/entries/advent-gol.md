@@ -1,5 +1,5 @@
 ---
-title: "Degenerate Hyper-Dimensional Game of Life"
+title: "Breaking a Degenerate Hyper-Dimensional Game of Life"
 categories: Haskell
 tags: advent of code, math, haskell, cellular automata
 create-time: 2021/01/07 21:32:49
@@ -12,10 +12,10 @@ script: https://cdn.jsdelivr.net/npm/d3@6.5.0, /purescript/gol.js, https://cdn.j
 
 tldr: Demonstrated with interactive visualizations and simulations --- over the
 course of a month, we were able to successive new mathematical properties of a
-"degenerate" hyper-dimensional game of life" to take a "10 dimensions may just
-barely be possible on a supercomputer" to "10 dimensions is easy enough to be
-run on any modern browser, and 40 dimensions can be reached with a compiled
-language".
+"degenerate" hyper-dimensional game of life" to take a "7 dimensions may just
+barely be possible on a supercomputer, could we ever reach 10 dimensions?" to
+"10 dimensions is easy enough to be run on any modern browser, and 40
+dimensions can be reached with a compiled language".
 
 This is a story about breaking the degenerate hyper-dimensional game of life by
 interactive exploratory visualizations and math!
@@ -23,9 +23,9 @@ interactive exploratory visualizations and math!
 T'was the night before Thursday, December 17, 2020, the release of ["Conway
 Cubes"][puzzle] (Day 17 of [Advent of Code 2020][aoc]).  Advent of Code is a
 sequence of fun little themed coding puzzles building up to Christmas. I always
-loved these puzzles because are so self-contained and tidy, they are often
-*open-ended* in the interesting ways you can solve them or expand them (which
-I've written [many blog posts on][blogs]).
+enjoyed these puzzles because they are so self-contained and tidy that they are
+often *open-ended* in the interesting ways you can solve them or expand them
+(which I've written [many blog posts on][blogs]).
 
 [puzzle]: https://adventofcode.com/2020/day/17
 [aoc]: https://adventofcode.com/2020
@@ -33,7 +33,7 @@ I've written [many blog posts on][blogs]).
 
 On the surface, Day 17 seemed to be a straightforward extension of [Conway's
 Game Of Life][life] ("GoL").  GoL is a simulation played out on a 2D grid,
-where cells are "on" and "off", and at each step of the simulation, the states
+where cells are "on" and "off", and at each step of the simulation the states
 spread and propagate in interesting ways based on the state of their neighbors
 (a 2D cellular automata).  The twist of the Advent of Code puzzle is it asks
 what would happen if we played out the rules of GoL in 3D instead, and then 4D!
@@ -41,7 +41,7 @@ what would happen if we played out the rules of GoL in 3D instead, and then 4D!
 [life]: https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life
 
 I submitted my solution on my assigned puzzle input with a naive implementation
-(scoring the 66th spot on the leader board for that day), concluding the
+(scoring the 66th spots on the leaderboards for that day), concluding the
 "competitive" part.  But the real fun always starts after!  When discussing
 with some friends, we started talking about the trade-offs of different
 implementations and realized that the extra dimensionality was no joke: as you
@@ -102,15 +102,15 @@ Table of Figures
 
 For reference, the interactive elements in this post are:
 
-1.  [Initial condition drawer][#golDrawer]
-2.  [2D Game of Life][#gol2D]
-3.  [3D Game of Life][#gol3D]
-4.  [3D Forward Neighbor Multiplicities][#golSyms3DForward] / [3D Reverse Neighbor Multiplicities][#golSyms3DReverse]
-5.  [5D Game of Life][#gol5D]
-6.  [4D Forward Neighbor Multiplicities][#golSyms4DForward] / [4D Reverse Neighbor Multiplicities][#golSyms4DReverse]
-7.  [5D Neighbor Multiplicities][#golSyms5D]
-8.  [General Neighbor Multiplicity Algorithm][#golTree]
-9.  [N-D Game of Life][#golFlat]
+1.  [Initial condition drawer](#golDrawer)
+2.  [2D Game of Life](#gol2D)
+3.  [3D Game of Life](#gol3D)
+4.  [3D Forward Neighbor Multiplicities](#golSyms3DForward) / [3D Reverse Neighbor Multiplicities](#golSyms3DReverse)
+5.  [5D Game of Life](#gol5D)
+6.  [4D Forward Neighbor Multiplicities](#golSyms4DForward) / [4D Reverse Neighbor Multiplicities](#golSyms4DReverse)
+7.  [5D Neighbor Multiplicities](#golSyms5D)
+8.  [General Neighbor Multiplicity Algorithm](#golTree)
+9.  [N-D Game of Life](#golFlat)
 
 Starting Off
 ------------
@@ -344,6 +344,8 @@ Freenode IRC user sim642 noticed something late into the night of December 16th:
 > Only some extra work at the end to differentiate z=0 and z>0 positions to
 > know which to count twice And in part 2 I feel like you could also exploit
 > the symmetry in w axis simultaneously
+>
+> --- sim642
 
 You might have seen this too: the entire thing has reflection symmetry across
 z=0!  z=1 is always the same as z=-1, z=2 is always the same as z=-2, etc.
@@ -384,7 +386,7 @@ neighborship arose from.  For example, mousing over z=3, you will see z=2 and
 z=4 get highlighted with the values "1" because they are neighbors of 3, on the
 left and right side (respectively).  Note that one neat property for all
 squares (except for z=6, which goes off the scale) is that the "total"
-higher-dimensional neighbors is always 2 ($3^(d-2)-1$); *where* those neighbors
+higher-dimensional neighbors is always 2 ($3^{d-2}-1$); *where* those neighbors
 fall is just re-arranged slightly.
 
 The tricky square is now z=0: if you mouse-over it, you'll see that it has a
@@ -450,7 +452,9 @@ def axis_weight(source,target):
     # ignore x,y
     higher_source = source[2:]
     higher_target = target[2:]
-    return 2**sum(*[1 for i,j in zip(higher_source, higher_target) if i == 1 and j == 0])
+    return 2**sum([1 for i,j in zip(higher_source, higher_target)
+                      if i == 1 and j == 0
+                  ])
 
 def mk_positive_neighbs(point):
     """mk_neighbs, but only with positive higher dimensional points
@@ -464,7 +468,9 @@ def step_axis(pts):
     """
     neighbs = Counter()
     for point in pts:
-        neighbs += Counter({ ngb: axis_weight(point,ngb) for ngb in mk_positive_neighbs(point)[1:]})
+        neighbs += Counter({ ngb: axis_weight(point,ngb)
+                               for ngb in mk_positive_neighbs(point)[1:]
+                           })
 
     def validate(point, ncount):
         if point in pts:
@@ -479,7 +485,7 @@ This discovery late in the Tuesday night of the 16th was what inspired us to
 believe and dream that more breakthroughs might be possible to bring things
 down even further.
 
-And those breakthroughs soon came!
+Those breakthroughs soon came!
 
 Four Dimensions
 ---------------
@@ -505,10 +511,10 @@ Please enable Javascript
 symmetry like [bulls-eye][] and [full block][], rotational symmetry like
 [spiral galaxy][], and single-reflection symmetries like [broken bar code][]).
 
-Most initial conditions will spread out from the center `<z,w> = <0,0>` point
+Most initial conditions will spread out from the center `<z,w> = <0,0>` slice
 radially, spreading outwards into positive and negative z and w.  Mouse-over or
-tap any individual tiny `<x.y>` cell and you'll see each of its 80 ($3^d-1$)
-`<x,y,z,w>` 4D neighbors highlighted in blue, forming a little 3x3x3
+tap any individual tiny `<x.y>` cell and you'll see each of its 80 ($3^4-1$)
+`<x,y,z,w>` 4D neighbors highlighted in blue, forming a little 3x3x3x3
 "tesseract" (4D cube, or hypercube).  Like in the 3D case, you can use this
 little hypercube to track how the simulation progresses: if your mouse if
 hovering over a live cell with 2 or 3 live cells in its hypercube, it'll stay
@@ -524,25 +530,27 @@ at `<z,w> = <3,4>` is always going to be identical to the slice at `<-3,4>`,
 above when you mouse over a zw square. (Ignore the lighter yellow highlights
 for now!)
 
-And now, for the next big breakthrough: I think this situation shows the power
-of visualization well, because this exact visualization was what reddit user
-*u/cetttbycett* was looking at when [they made this post][zwsym] late Thursday
-the 17th/early Friday the 18th...and everything changed *forever*.
+And now, for the next big breakthrough: this exact visualization was what
+reddit user u/cetttbycett was looking at when [they made this post][zwsym]
+late Thursday the 17th/early Friday the 18th...and everything changed
+forever.
 
 [zwsym]: https://www.reddit.com/r/adventofcode/comments/kfjhwh/year_2020_day_17_part_2_using_symmetry_in_4d_space/
 
 > I noticed that the expansion of active cubes for part 2 is symmetric with
 respect to two hyperplanes in 4d space: These hyperplanes can be described by w
-= 0 and w-z = 0.
+> = 0 and w-z = 0.
 >
 > Using these symmetries could make the code nearly eight times as fast.I was
 > wondering if anyone tried that.
+>
+> --- u/cetttbycettt
 
-What *u/cetttbycettt* saw is what you can see now in the simulation above: it's
-all of the *light yellow* highlighted squares when you mouse-over showing even
-*more* identical slices. In addition to the z=0 and w=0 lines (the two lines
-down the middle, up-down and left-right), we also have another line of
-symmetry: z=w and w=z, the diagonal lines!
+What u/cetttbycettt saw is what you can see now in the simulation above: it's
+all of the *light yellow* highlighted squares when you mouse-over (highlighting
+even *more* identical slices to the one you are hovering over). In addition to
+the z=0 and w=0 lines (the two lines down the middle, up-down and left-right),
+we also have another line of symmetry: z=w and w=z, the diagonal lines!
 
 That's right, a zw slice at `<z,w>=<3,4>` is *identical* to the one at `<4,3>`, and
 so also `<-3,4>`, `<3,-4>`, `<-3,-4>`, `<-4,3>`, `<4,-3>`, and `<-4,-3>`!  Each
@@ -553,12 +561,10 @@ the lines of symmetry themselves, which are each repeated four times, and also
 So, our first breakthrough meant that we only have to simulate *positive*
 coordinates (a single quadrant)...our next breakthrough means that we only have
 to simulate coordinates on a single "wedge" half-quadrant...and then duplicate
-those eight times at the end.
-
-Arbitrarily, let's say we only simulate the north-by-northeast wedge, because
-it's easy to normalize/compact all points onto that wedge: you just need to
-absolute-value all the components and sort them.  So, `<4,-3>` gets
-"normalized" to `<3,4>`.
+those eight times at the end.  (Arbitrarily, let's say we only simulate the
+north-by-northeast wedge, because it's easy to normalize/compact all points
+onto that wedge --- you just need to absolute-value all the components and sort
+them, and a point like `<4,-3>` gets "normalized" to `<3,4>`))
 
 We found a new symmetry now, but we run into the same issue as before: How do
 we propagate neighbors?  To help us see what's going on, let's look at the map
@@ -579,6 +585,25 @@ These are the *forward neighbors*; we can compute them by expanding a point to
 its neighbors, and then normalizing our points and seeing how they double (or
 quadruple) up.
 
+For example, mouse over `<z,w>=<3,3>` and see it has eight
+total higher-dimensional neighbors (like all points should, though this
+visualization leaves out points at w>6).  It's *supposed* to have a neighbor at
+`<4,3>`, but that gets reflected back onto `<3,4>` during our normalization
+process, so you see that the point `<3,3>` has a neighbor at `<3,4>`
+"double-counted".  The green squares (in the north and west positions) at
+`<3,4>` when you hover over `<3,3>` show that `<3,4>` is a neighbor of `<3,3>`
+both to its north and to its west.
+
+Also, we have something really odd show up for the first time.  Mouse over a
+point like `<z,w>=<2,3>` and see that it has a neighbor in...itself?  What's
+going on here?  Well, it is *supposed* to have a neighbor at `<3,2>` but that
+gets normalized/reflected back onto `<2,3>` --- it reflects onto itself!  The
+green square in the Southeast means that `<2,3>`'s southeast neighbor
+is...itself!
+
+Here is a sample python implementation of the computation of forward neighbor
+multiplicities for any dimension by propagating-then-normalizing:
+
 ```python
 def normalize(point):
     """Normalize a point by sorting the absolute values
@@ -596,22 +621,6 @@ def forward_neighbs(point):
     """
     return Counter([normalize(neighb) for neighb in mk_neighbs(point)[1:]])
 ```
-
-For example, mouse over `<z,w>=<3,3>` and see it has eight
-total higher-dimensional neighbors (like all points should, though this
-visualization leaves out points at w>6).  It's *supposed* to have a neighbor at
-`<4,3>`, but that gets reflected back onto `<3,4>` during our normalization
-process, so you see that the point `<3,3>` has a neighbor at `<3,4>`
-"double-counted".  The green squares (in the north and west positions) at
-`<3,4>` when you hover over `<3,3>` show that `<3,4>` is a neighbor of `<3,3>`
-both to its north and to its west.
-
-Also, we have something really odd show up for the first time.  Mouse over a
-point like `<z,w>=<2,3>` and see that it has a neighbor in...itself?  What's
-going on here?  Well, it is *supposed* to have a neighbor at `<3,2>` but that
-gets normalized/reflected back onto `<2,3>` --- it reflects onto itself!  The
-green square in the Southeast means that `<2,3>`'s southeast neighbor
-is...itself!
 
 The forward neighbors are useful for understanding what's going on, but to
 actually run our simulation we again need to find the *reverse neighbors*: from
@@ -734,11 +743,11 @@ generalize to arbitrary dimensions.  Along the way we'd also like to get rid of
 our hacky 4D neighbor multiplicity rules and get something a little cleaner.
 
 I struggled with for a while without making too much headway...but on the
-morning of Friday, December 18th, arguably one of the biggest revelations of
-the entire journey was dropped by Michal Marsalek on u/cetttbycettt's reddit
-thread.  It was a big deal, because not only did it allow us to generalize our
-symmetries to higher dimensions, but it also *proved* a specific degeneracy
-that allowed 10D simulation to be definitely 100% *solvable*.
+morning of Friday, December 18th, arguably the biggest revelation of the entire
+journey was dropped by Michal Marsalek on u/cetttbycettt's reddit thread.  It
+was a big deal, because not only did it allow us to generalize our symmetries
+to higher dimensions, but it also *proved* a specific degeneracy that allowed
+10D simulation to be definitely 100% *solvable*.
 
 ### Permutation Symmetry
 
@@ -754,6 +763,8 @@ Here was Michal's [historic post][permpost]:
 > ...we can use symmetries coming from permutations, to only track cells
 > where $|x_0| < 13,\, |x_1| < 13,\, 0 \leq x_2 \leq x_3 \leq\,\ldots\, \leq x_{d-1} \leq t$.
 > There's $20^2 \times \sum_{k=0}^{t} { {d-3+k} \choose {k} }$ such cells.
+>
+> --- Michal Marsalek
 
 [permpost]: https://www.reddit.com/r/adventofcode/comments/kfjhwh/year_2020_day_17_part_2_using_symmetry_in_4d_space/gg9vr6m/
 
@@ -837,7 +848,7 @@ Pure joy! :D
 
 [Peter Tseng][peterpost] made a post on *Thursday* night with times, but I
 can't remember if it incorporated all the symmetries or originally included
-10D, [Michal Marsalek][michalpost] was able to implement the idea that they
+10D.  [Michal Marsalek][michalpost] was able to implement the idea that they
 originally proposed by the following Wednesday (December 23rd) in Nim to blow
 everyone's time out of the water: 3 seconds flat!
 
@@ -861,8 +872,8 @@ terminology we'll be using for the rest of this post.
 
 *   I've been using the word **slice** to talk about a 2D grid representing a
     single higher-dimensional `<z,w...>` coordinate --- they're the 13 grids in
-    [the 3D simulation][#gol3D] and the 169 grids in [the 4D
-    simulation][#gol4D].
+    [the 3D simulation](#gol3D) and the 169 grids in [the 4D
+    simulation](#gol4D).
 *   I've also been using **cell** to refer to an exact specific `<x,y,z,w,..>`
     spot --- they are the tiny squares inside each grid in the simulations
     above.
@@ -880,18 +891,19 @@ terminology we'll be using for the rest of this post.
 *   I'll also start using **slice coset** to talk about the set of all
     `<z,w,...>` slices) across its permutations and negations.  The slices at
     z-w coordinates of  `<1,2>`, `<2,1>`, `<-1,2>`, `<1,-2>`, `<-1,-2>`,
-    `<-2,1>`, `<2,-1>`, and `<-2,-1>` are all a part of the same coset,
+    `<-2,1>`, `<2,-1>`, and `<-2,-1>` are all a part of the same slice coset,
     represented by the normalized form `<1,2>`.  All of the slices at each of
     those zw coordinates will always be identical, so we can talk the state of
     a single slice at `<1,2>` as representing the state of its entire coset.
 
-    Slice cosets are what are being highlighted on mouseovers for the 3D and 4D
-    simulations. They are also what the big squares represent for the [3D Forward
-    Neighbors][#golSyms3DForward], the [3D Reverse
-    Neighbors][#golSyms3DReverse], the [4D Reverse Neighbors][#golSyms4DForward],
-    and the [4D Reverse neighbors][#golSyms4DReverse] elements: each slice
-    stands in for their entire slice coset, and we show the amount of times
-    each normalized slice coset element is a neighbor of the other.
+    Slice cosets are what are being highlighted on mouseovers for the
+    [3D](#gol3D) and [4D simulations](#gol4D). They are also what the big
+    squares represent for the [3D Forward Neighbors](#golSyms3DForward), the
+    [3D Reverse Neighbors](#golSyms3DReverse), the [4D Reverse
+    Neighbors](#golSyms4DForward), and the [4D Reverse
+    neighbors](#golSyms4DReverse) elements: each slice stands in for their
+    entire slice coset, and we show the amount of times each normalized slice
+    coset element is a neighbor of the other.
 
 [coset]: https://www.youtube.com/watch?v=Dp8sYTlLQRY
 
@@ -907,7 +919,7 @@ I was still brute-forcing by way of forward neighbors + normalizing (as in the
 sample 4D python code snippet earlier).  The naive brute-force method requires
 computing *all* $3^{ {\hat{d}} } - 1$ higher-dimensional neighbors.  So, even
 though the number of points I'd have to track grows polynomially, I still had
-that pesky exponential factor in building my neighbor map.  And at high
+that pesky exponential factor in building my neighbor cache.  At high
 dimensions, that exponential factor dominates over everything.
 
 So put on your hard hats and working boots ... we're going to dive deep into
@@ -921,7 +933,7 @@ help us gain an intuition for some of what's going on, and also partially to
 show that intuition at the individual component level can only get so far.
 
 It's a bit difficult to duplicate the same [forward
-neighbor][#golSyms4DForward]/[reverse neighbor][#golSyms4DReverse] interactive
+neighbor](#golSyms4DForward)/[reverse neighbor](#golSyms4DReverse) interactive
 elements as we had for 4D, so here's a different representation.  Here is an
 interactive element of all of the `<z,w,q>` slice cosets (the wedge of
 normalized points we track for our implementation) and both their forward and
@@ -993,10 +1005,10 @@ in *un-normalized* territory...we have to re-sort it to turn it into
 `0,1,1,2,3,5,5,6`.  This encoding isn't something we can directly manipulate in
 a nice way.
 
-Because of how everything is always non-decreasing, what if we instead encoded
-each higher-dimensional coordinate as "count of each value seen?"  For example,
-we can encode `0,1,1,1,3,5,5,6` as `1-3-0-1-0-2-1`: the first slot represents
-how many 0s we have, the second how many 1s, the next how many 2s, the next how
+Because we don't care about order, what if we instead encoded each
+higher-dimensional coordinate as "count of each value seen?"  For example, we
+can encode `0,1,1,1,3,5,5,6` as `1-3-0-1-0-2-1`: the first slot represents how
+many 0s we have, the second how many 1s, the next how many 2s, the next how
 many 3s, etc. We can encode `0,0,3,4,4,4,6,6` as `2-0-0-1-3-0-2` and
 `1,1,2,3,3,4,5,5` as `0-2-1-2-1-2-0`.  The *sum* of the components gives you
 the total number of higher dimensions (ie, 10D vectors sum to 8)
@@ -1005,13 +1017,13 @@ And now, a "valid transition" becomes easy to enforce: it's an amount "flowing"
 from one of those bins to another.  For example, turning a `1` into a `2` in
 `1-3-0-1-0-2-1` turns it into `1-2-1-1-0-2-1`.  We took one of the three 1s and
 turned them into a single 2.  This "flowing" operation automatically gives us a
-valid coordinate without any renormalizing necessary!  This gives us an
-algorithm to compute neighbors: we can walk bin-to-bin, "flowing" components
-from our origin vector to our new vector.
+valid coordinate without any renormalizing necessary!
 
-We now have a way to compute neighbors without requiring renormalization!  We
-no longer have to try all $3^d-1$ (exponential) candidates and re-normalize: we
-can now only iterate through the ones we care about.
+In this light, we now have an algorithm to compute neighbors without requiring
+renormalization: we can walk bin-to-bin, "flowing" components from our origin
+vector to our new vector.  We no longer have to try all $3^d-1$ (exponential)
+candidates and re-normalize: we can now only iterate through the ones we care
+about.
 
 However, the tricky math is in computing the multiplicities. Interestingly
 enough, in this case, the *reverse* direction is actually easier to
@@ -1021,7 +1033,7 @@ direction we actually need!
 If we start at `0-2-1-3` (`1,1,2,3,3,3`) and "flow" to, say, `0-0-5-0`
 (`2,2,2,2,2`) and dump all our bins into 2.  How many ways could this flow
 happen?  The answer happens to be the [multinomial coefficient][] $5 \choose
-{2,1,3}$ (or $5! / (2! 1! 3!)$): there are $5!$ ways to end up with 5 in the
+{2,1,3}$ (or $5! / (2!\,1!\,3!)$): there are 5! ways to end up with 5 in the
 bin, but that `5` came from contributions of `2+1+3` from either side, and so
 we divide by the ways we could pick from those contributing bins (2!, 1!, and
 3!).
@@ -1075,9 +1087,11 @@ node has already committed to having `<?,?,2,4>` in the target vector, but
 still has two 2s in the source vector to pull in and distribute.
 
 One final thing we need to keep track of is to not count a point transitioning
-to itself if it results from no actual internal changes.  This can be done by
-checking if each of our bin choices involved exactly no inter-bin flows (they
-were all of the form `0+x+0`).
+to itself if it results from no actual internal changes (this is the "minus
+one" in $3^d-1$: we should not include the single original point itself, but we
+*should* count extra occurrences of the original point if it arose from a
+reflection).  This can be done by checking if each of our bin choices involved
+exactly no inter-bin flows (they were all of the form `0+x+0`).
 
 Phew!  That's a bit of a mathematical doozy, huh?  But trust me when I say it's
 easier to understand if play around with the interactive element and follow along
@@ -1088,10 +1102,11 @@ what we figured out before.
 You can also flip the switch on the element to compute reverse and forward
 neighbors. Luckily, as we noted before, if a point is a forward neighbor, it is
 also a reverse neighbor. This means that the branching structure for forward
-and reverse neighbor trees are exactly the same; the only difference is how
-the multiplicities are calculated.  In this case, the forward direction is just
-the original calculation reversed!  The diagram shows how the multiplicities
-are accumulated; feel free to try to work out exactly how this works as an exercise!
+and reverse neighbor trees are exactly the same; the only difference is how the
+multiplicities are calculated.  In this case, the forward direction is just the
+original calculation reversed!  The diagram shows how the multiplicities are
+accumulated; feel free to try to work out exactly how this works as a fun
+exercise :)
 
 And with that, we have tackled the reverse neighbor weights problem with
 some branching bin flows and combinatorics!
@@ -1108,16 +1123,17 @@ Well, there's the question of *how* you might even visualize this.  You can
 repeat this ad nauseum, but that doesn't really add anything or give any
 insight as to what's really going on.
 
-I believe that this is what caused us to all collectively get "stuck" together
-around 20 dimensions.  The rush of the revelations one after within a single
-week pushed us into trying many different things.  I had a couple of dead-end
-forays into pre-cacheing and had a lot of code (that I was ecstatic to be able
-to later delete) working with an sqlite3 database.[^pascalnote]
+I believe that this is one of the things that caused us to all collectively get
+"stuck" together around 20 dimensions.  The rush of the revelations one after
+within a single week pushed us into trying many different things.  I had a
+couple of dead-end forays into pre-cacheing and had a lot of code (that I was
+ecstatic to be able to later delete) working with an sqlite3
+database.[^pascalnote]
 
-[^pascalnote]: One thing I did discover (that I won't spend too much time on
-here) is a way to [index into an enumeration][pascal] of all of the slice
-cosets (that is, all the normalized higher-dimensional coordinates).  I no
-longer store `<z,w,...>` points as vectors, but rather as a single integer
+[^pascalnote]: One useful lasting thing I did find (that I won't spend too much
+time on here) was a way to [index into an enumeration][pascal] of all of the
+slice cosets (that is, all the normalized higher-dimensional coordinates).  I
+no longer store `<z,w,...>` points as vectors, but rather as a single integer
 representing their index in that enumeration, which is easier to access and
 store.  I also found a way to do streaming decoding and encoding between that
 index and the components it represents, allowing me to stream neighbor weights
@@ -1127,12 +1143,12 @@ implementing the Javascript demos on this page :)
 [pascal]: https://www.reddit.com/r/adventofcode/comments/kfb6zx/day_17_getting_to_t6_at_for_higher_spoilerss/gim68l0/
 
 Another factor that probably contributed to the overall lull was that Advent of
-Code was still running, and we all still enjoyed doing new puzzles every day.
-But soon, Christmas passed, the daily rush of doing new puzzles faded, and we
-started to return back to tinkering on this hyper-dimensional game of life. It
-wouldn't be until January 1st (just over two weeks after the puzzle originally
-came out) that a new revelation arose that would pave the way shoot far past
-20D.
+Code was still running, and we all still enjoyed doing the new puzzles every
+day. But soon, Christmas passed, the daily rush of doing new puzzles faded, and
+we started to return back to tinkering on this hyper-dimensional game of life
+puzzle. It wouldn't be until January 1st (just over two weeks after the puzzle
+originally came out) that a new revelation arose that would pave the way shoot
+far past 20D.
 
 It was [Michal Marsalek's coset counts post][cosetcounts] that set up the
 stage.  From the beginning, Michal had always tracked the number of cell cosets
@@ -1148,7 +1164,7 @@ for 7D and higher.
 My best guess as to why this was happening is that, at 7D and above, we enter a
 domain of points where, before t=6, *every* point is at some sort of reflective
 boundary.  Remember that even for 4D, we had really odd behavior at the
-reflective boundaries/edge of the wedge.  There wasn't enough room in many
+reflective boundaries/edge of the wedge.  There wasn't enough room for many
 points to "stretch their wings" --- every single one is at one reflective
 boundary or another.  Being a boundary point corresponds to having a "bins"
 encoding with any bin greater than one or anything in the 0 bin (ie, `1-0-0-0`
@@ -1157,9 +1173,8 @@ and `0-2-0` are all points on a reflective boundary).
 Unfortunately, having a closed-form way to compute coset counts doesn't
 actually give us a way to compute the final state itself, since it doesn't tell
 us *which* cosets are active, just how many.  However, this prompted me to
-investigate a little bit more about what was causing this pattern, and how
-these cosets were distributed.  To do this, tried a new way to visualize
-things.
+investigate a little bit more about what was causing this pattern and how these
+cosets were distributed.  To do this, I tried a new way to visualize things.
 
 In our simulation, x and y components are fundamentally different from the
 others; we could actually talk about each point as a tuple `(<x,y>, {higher
@@ -1167,14 +1182,14 @@ dims})`.  Also, things are usually "dense" in `<x,y>` (a significant fraction
 of the xy space has at least one point), but "sparse" in higher dimensions (a
 very small fraction of the higher-dimensional space actually has a point in
 it).  So actually, instead of keeping our active points as a set of cosets, we
-can treat it as a map of `<x,y>` points to the higher-dim cosets that live
-"under them". Instead of keeping one giant set as:
+can treat it as a map of `<x,y>` points to the higher-dimension slice cosets
+that live "under them". Instead of keeping one giant set as:
 
 ```
 {<1,2,1,1,3>, <3,1,1,1,4>, <1,2,0,0,5>, <4,2,3,4,4>, <3,1,2,2,2>}
 ```
 
-we could instead a map of sets:
+we could instead keep a map of sets:
 
 ```
 <1,2>: { <1,1,3>, <0,0,5> }
@@ -1208,9 +1223,8 @@ def step_with_stacks(stacks):
                 neighbs[pt_2d] += rev_neighbs
             else:
                 neighbs[pt_2d] = rev_neighbs
-            # 2. add to nieghboring stacks
+            # 2. add to nieghboring stacks; include self
             for ngb_2 in mk_neighbs(pt_2d)[1:]:
-                # add to neighboring stacks; include self
                 if ngb_2 in neighbs:
                     neighbs[ngb_2] += rev_neighbs_incl_self
                 else:
@@ -1230,7 +1244,7 @@ def step_with_stacks(stacks):
            }
 ```
 
-And here is the final animation: we plot a single 2D grid, and each cell is
+Here is the final animation: we plot a single 2D grid, and each cell is
 colored according to the size of the coset stack under that point (how many
 points exist with that `<x,y>`).  You can slide this one up all the way to 10D
 to simulate it in your browser!
@@ -1247,21 +1261,21 @@ Please enable Javascript
 
 (A lot of examples with symmetries look nice here, such as [spiral galaxy][]
 and [bulls-eye][]; the alternating symmetries of [broken bar code][] look nice
-too! But honestly, at higher-dimensions, most patterns have appealing
-gradients, like [glider][] and [my own input][owninput])
+too! But honestly, at higher-dimensions, almost any input ends up generating
+appealing gradients, like [glider][] and [my own input][owninput])
 
-Play around with it! :D  You can move all the way up to 10D; some computers
-might struggle, but on my lower-end cell phone it seems to run in less than a
-second.  If you mouse-over a cell, the text box will show all of the slice
-cosets where that xy cell is alive in (the "coset stack").  If you click on a
-cell, your selection will "lock" on that `<x,y>` coordinate as you change
-dimensions and time.
+Play around with it, it's the big finale! :D  You can move all the way up to
+10D; some computers might struggle, but on my lower-end cell phone it seems to
+run in less than a second.  If you mouse-over a cell, the text box will show
+all of the slice cosets where that xy cell is alive in (the "coset stack").  If
+you click on a cell, your selection will "lock" on that `<x,y>` coordinate as
+you change dimensions and time.
 
 Some interesting things you might notice:
 
-1.  At t=6, it looks like 7D, 8D, 9D, 10D all have the *same* exact 2D cells
-    "on".  They're identical except for slightly different stacks above each of
-    those cells.
+1.  At t=6, it looks like 8D, 9D, 10D (and sometimes 6D,7D) all have the *same*
+    exact 2D cells "on".  They're identical except for slightly different
+    stacks above each of those cells.
 
     To see this clearly, set your time to t=6 and drag your dimension slider
     back and forth to see all of the higher-dimensions look identical in shape.
@@ -1304,10 +1318,11 @@ coset stack.  For most initial starting positions, you might notice something
 maybe even more curious --- a *lot* of those stacks are duplicated over many xy
 cells.
 
-In my [personal puzzle input][owninput], *most* of the stacks were duplicated
-many times across different xy cells.  If you highlight any arbitrary starting
-condition through t=6, you'll see too that many (if not most) xy cells have
-multiple other xy cells that have identical stacks to them.
+In my [personal puzzle input][owninput] (click to load into the simulation),
+*most* of the stacks were duplicated many times across different xy cells.  If
+you highlight the cells in any arbitrary starting condition through t=6, you'll
+see too that many (if not most) xy cells have multiple other xy cells that have
+identical stacks to them.
 
 This final insight yields the final optimization we have discovered, as of time
 of writing.  The optimization is that we can treat an *entire stack* as an
@@ -1317,7 +1332,7 @@ that excludes the original stack itself).  That means if you have a stack, you
 can compute the "single neighbor" contribution (expensive) it has *one time*,
 and then *repeat that same contribution* to every occurrence of a stack.  So if
 a stack is repeated ten times over ten different xy stacks, you only need to
-compute it once and propagate it to all $9 \times 10$ neighbors of those stacks
+compute it once and propagate it to all 9x10 neighbors of those stacks
 (nine neighbors, including self, times each of the 10 repetitions), for a
 savings of x90!  This can be done by storing map of stacks to contributions as
 a cache.
@@ -1347,9 +1362,8 @@ def step_with_stack_cache(stacks):
             neighbs[pt_2d] += rev_neighbs
         else:
             neighbs[pt_2d] = rev_neighbs
-        # 2. add to nieghboring stacks
+        # 2. add to nieghboring stacks; include self
         for ngb_2 in mk_neighbs(pt_2d)[1:]:
-            # add to neighboring stacks; include self
             if ngb_2 in neighbs:
                 neighbs[ngb_2] += rev_neighbs_incl_self
             else:
@@ -1401,17 +1415,18 @@ Another thing I hope was apparent was the power of community!  I know I
 definitely would not have had as much fun doing this if it wasn't for the
 vibrant Advent of Code "Ante-Pushing" community.  What I've described is just
 *one story* (Day 17, 2020) out of so many that Advent of Code community members
-routinely explore together (through 25 puzzles a year over five years). Most of
-these discoveries were fun because we always had somebody to share them with,
-or a way to encourage each other and strive for a common goal. I'm definitely
-lucky to be standing on giants as a part of a talented and passionately curious
-community that's excited to explore things like this.  Thank you to so many
-people --- Michal Marsalek, Peter Tseng, sim64, leftylink , Cettbycett, bsterc,
-flwyd, and so many others that I probably missed.  An especially deep thanks to
-[Eric Wastl][] for hosting a wonderful event like Advent of Code every year.
-Finally, a profoundly deep thanks to the late John Conway, who revealed to us
-how much joy can come from the exploration of all things mathematical, a genius
-who was taken away from this world much too soon.
+routinely explore together (through 25 puzzles each year for five years). Most
+of these discoveries were fun because we always had somebody to share them
+with, or a way to encourage each other and strive for a common goal. I'm
+definitely lucky to be standing on giants as a part of a talented and
+passionately curious community that's excited to explore things like this.
+Thank you to so many people --- Michal Marsalek, Peter Tseng, sim64, leftylink
+, /u/cetttbycettt, /u/bsterc, /u/flwyd, and so many others that I probably
+missed.  An especially deep thanks to [Eric Wastl][] for hosting a wonderful
+event like Advent of Code every year. Finally, a profoundly deep thanks to the
+late John Conway, who revealed to us how much joy can come from the exploration
+of all things mathematical, a genius who was taken away from this world much
+too soon.
 
 [Eric Wastl]: https://twitter.com/ericwastl
 
@@ -1431,12 +1446,14 @@ instead of fixing d and stepping t?
 
 [satisfied]: https://en.wikipedia.org/wiki/John_Horton_Conway
 
-Who can tell how far we can go?  [Michal][satisfied] has as a personal goal
-something I would also be very happy to reach:
+Who can tell how far we can go?  [Michal][satisfied] has a personal goal that I
+would also be very happy to reach:
 
 [satisfied]: https://www.reddit.com/r/adventofcode/comments/kfb6zx/day_17_getting_to_t6_at_for_higher_spoilerss/gia880d/
 
 > I won't be satisfied until I implement a solution that runs in polynomial
 > time in both t and d.
+>
+> --- Michal Marsalek
 
 Will you, dear reader, be the one to take us there? :)
