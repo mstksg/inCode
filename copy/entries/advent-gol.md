@@ -1446,8 +1446,9 @@ Looking forward at least, there are a some open threads still.
     the two diagonals very very empty, and especially the 3x3 region at the
     origin where they intersect.  It turns out that reflection symmetry
     boundaries are extremely inhospitable because they have *so many
-    neighbors* after reflection, especially at higher dimensions.  Could these
-    "dead zones" be exploited at higher dimensions?
+    neighbors* after reflection, especially at higher dimensions (see the
+    top-right slice at each q level in [the 5D symmetries](#golSyms5D)).  Could
+    these "dead zones" be extended and exploited at higher dimensions?
 2.  The most promising to me: for t=6, the exact same xy cells are always
     inhabited for any dimension past 7D or so, and the stacks at each seem to
     only change slightly from dimension to dimension.  If we can analytically
