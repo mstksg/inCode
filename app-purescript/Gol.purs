@@ -67,7 +67,7 @@ main :: Effect Unit
 main = do
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 41
+      logMe 42
       startingPts <- fromMaybe initialSet <$> loadUri doc
 
       eMap <- buildElemMap doc
@@ -128,7 +128,10 @@ elementGroups =
 
 buildElemMap :: Document.Document -> Effect (Array (Tuple String String))
 buildElemMap doc = do
-    baseLoc <- Location.href =<< Window.location =<< Web.window
+    loc <- liftEffect $ Window.location =<< Web.window
+    baseLoc <- append
+        <$> Location.origin loc
+        <*> Location.pathname loc
     map A.catMaybes <<< for elements $ \e -> runMaybeT do
       telem <- MaybeT $ ParentNode.querySelector
               (ParentNode.QuerySelector $ e <> " p")
