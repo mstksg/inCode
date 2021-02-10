@@ -2,16 +2,15 @@ module Gol where
 
 import Control.Monad.Free        as Free
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
-import Data.FunctorWithIndex as Indexed
 import Control.Monad.State
 import Control.MonadZero         as MonadZero
 import Data.Array                as A
 import Data.Bifunctor
 import Data.DateTime             as Date
-import Web.HTML.Location as Location
 import Data.DateTime.Instant     as Instant
 import Data.Foldable
 import Data.Function.Uncurried
+import Data.FunctorWithIndex     as Indexed
 import Data.Generic.Rep          as Generic
 import Data.Generic.Rep.Show
 import Data.Int                  as Int
@@ -32,6 +31,7 @@ import Data.Set                  as Set
 import Data.Set.NonEmpty         (NonEmptySet)
 import Data.Set.NonEmpty         as NESet
 import Data.String               as String
+import Data.String.CodeUnits     as StringCU
 import Data.Traversable
 import Data.Tuple
 import Data.Unfoldable hiding    (fromMaybe)
@@ -43,6 +43,7 @@ import Effect.Class.Console      (log)
 import Effect.Exception.Unsafe
 import Effect.Now                as Now
 import Effect.Ref                as Ref
+import Foreign                   as Foreign
 import Matryoshka                as Rec
 import Prelude
 import Queue.One                 as Queue
@@ -56,13 +57,17 @@ import Web.Event.EventTarget     (EventTarget, addEventListener, eventListener)
 import Web.HTML                  as Web
 import Web.HTML.Event.EventTypes (readystatechange)
 import Web.HTML.HTMLDocument     as HTMLDocument
+import Web.HTML.History          as History
+import Web.HTML.Location         as Location
 import Web.HTML.Window           as Window
+import Web.URLSearchParams       as USP
 
 main :: Effect Unit
 main = do
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 12
+      logMe 15
+      startingPts <- fromMaybe initialSet <$> loadUri
 
       eMap <- buildElemMap doc
       makeElemLinks doc eMap
@@ -88,7 +93,7 @@ main = do
         draw4D bumped
         drawFlat bumped
 
-      drawer $ map (bump 2) initialPoints
+      drawer $ A.fromFoldable startingPts
 
   where
     ready doc a = do
@@ -97,7 +102,7 @@ main = do
           (Document.toEventTarget doc)
           (\_ -> a')
     bump n {x,y} = {x:x+n, y:y+n}
-    initialPoints' = Set.fromFoldable (map (bump 8) initialPoints)
+    initialSet = Set.fromFoldable (map (bump 2) initialPoints)
 
 elements :: Array String
 elements =
@@ -137,7 +142,7 @@ buildElemMap doc = do
 makeElemLinks :: Document.Document -> Array (Tuple String String) -> Effect Unit
 makeElemLinks doc elemMap = for_ elemMap $ \(Tuple e _) -> do
     let withoutSelf = A.filter (\(Tuple e' _) -> e /= e') linkStrings
-    let linkString = append "Jump to: "
+        linkString = append "Jump to: "
                  <<< intercalate " / "
                  <<< flip map linkStrings $ \(Tuple e' (Tuple a b)) ->
                         if e' == e
@@ -154,6 +159,15 @@ makeElemLinks doc elemMap = for_ elemMap $ \(Tuple e _) -> do
     linkStrings :: Array (Tuple String (Tuple String String))
     linkStrings = flip map elemMap \(Tuple e ename) ->
         Tuple e (Tuple ename ("<a href=\"" <> e <> "\">" <> ename <> "</a>"))
+
+loadUri :: Effect (Maybe (Set Point2))
+loadUri = runMaybeT do
+    searchStr <- liftEffect $ Location.search
+                          =<< Window.location
+                          =<< Web.window
+    usp <- liftEffect $ USP.new searchStr
+    str <- MaybeT $ USP.get usp "points"
+    pure $ blocksToPoint str
 
 type Point = Array Int
 
@@ -694,3 +708,87 @@ assignWindow = runFn2 _assignWindow
 foreign import _setInnerHTML :: Fn2 Element.Element String (Effect Unit)
 setInnerHTML :: Element.Element -> String -> Effect Unit
 setInnerHTML = runFn2 _setInnerHTML
+
+blockTable :: Array Char
+blockTable =
+    [ '_', '▘', '▝', '▀', '▖', '▌', '▞', '▛'
+    , '▗', '▚', '▐', '▜', '▄', '▙', '▟', '█'
+    ]
+
+newtype FourBit = FourBit { nw :: Boolean, ne :: Boolean, sw :: Boolean, se :: Boolean }
+
+instance showFourBit :: Show FourBit where
+    show (FourBit xs) = show xs
+
+instance semigroupFourBit :: Semigroup FourBit where
+    append (FourBit x) (FourBit y) = FourBit
+        { nw: x.nw || y.nw, ne: x.ne || y.ne
+        , sw: x.sw || y.sw, se: x.se || y.se
+        }
+
+instance monoidFourBit :: Monoid FourBit where
+    mempty = FourBit { nw: false, ne: false, sw: false, se: false }
+
+fourBitList :: FourBit -> List Boolean
+fourBitList (FourBit {nw,ne,sw,se}) = nw List.: ne List.: sw List.: se List.: List.nil
+
+fourBitToBlock :: FourBit -> Char
+fourBitToBlock fb = fromMaybe ' ' $
+    blockTable `A.index` sum (List.zipWith go (List.iterate (_+1) 0) (fourBitList fb))
+  where
+    go i b
+      | b         = 2 `Int.pow` i
+      | otherwise = 0
+
+blockToFourBit :: Char -> Maybe FourBit
+blockToFourBit c = flip map (A.elemIndex c blockTable) \n -> FourBit
+    { nw: n `mod` 2 == 1
+    , ne: (n `div` 2) `mod` 2 == 1
+    , sw: (n `div` 4) `mod` 2 == 1
+    , se: (n `div` 8) `mod` 2 == 1
+    }
+
+point2ToFourBit :: Point2 -> Tuple Point2 FourBit
+point2ToFourBit {x,y} = Tuple {x:x', y:y'} $ FourBit
+    { nw: lx == 0 && ly == 0
+    , ne: lx == 1 && ly == 0
+    , sw: lx == 0 && ly == 1
+    , se: lx == 1 && ly == 1
+    }
+  where
+    x' = x `div` 2
+    y' = y `div` 2
+    lx = x `mod` 2
+    ly = y `mod` 2
+
+fourBitToPoint2 :: FourBit -> List Point2
+fourBitToPoint2 fb = List.mapMaybe (\(Tuple p b) -> if b then Just p else Nothing) $
+    List.zip pts (fourBitList fb)
+  where
+    pts    = {x:0,y:0}
+      List.: {x:1,y:0}
+      List.: {x:0,y:1}
+      List.: {x:1,y:1}
+      List.: List.nil
+
+pointsToBlocks :: Set Point2 -> String
+pointsToBlocks pts = intercalate "|" $ flip map (List.range 0 3) $ \y ->
+    flip foldMap (List.range 0 3) $ \x ->
+      maybe "_" (StringCU.singleton <<< fourBitToBlock) (Map.lookup {x,y} ptMap)
+  where
+    ptMap :: Map Point2 FourBit
+    ptMap = Map.fromFoldableWith append $
+                map point2ToFourBit (A.fromFoldable pts)
+
+blocksToPoint :: String -> Set Point2
+blocksToPoint str = Set.fromFoldable $ do
+    Tuple y' xs <- List.zip (List.range 0 3) $
+        List.fromFoldable (String.split (String.Pattern "|") str)
+    Tuple x' b <- List.zip (List.range 0 3) $
+        List.fromFoldable (StringCU.toCharArray xs)
+    fb <- maybe List.nil List.singleton $ blockToFourBit b
+    dp <- fourBitToPoint2 fb
+    let x = 2*x' + dp.x
+        y = 2*y' + dp.y
+    pure {x, y}
+

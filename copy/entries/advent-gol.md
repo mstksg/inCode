@@ -71,7 +71,7 @@ And soon...a breakthrough did come!  Someone brought up that if we look at the
 everything starts off on the xy plane, with z=0, the resulting progression must
 be symmetrical on both sides (positive and negative z).
 
-![3D GoL animation demonstrating mirror symmetry by [u/ZuBsPaCe][]](/img/entries/advent-gol/life3d.gif "3D GoL animation u/ZuBsPaCe", demonstrating mirror symmetry)
+![3D GoL animation demonstrating mirror symmetry by [u/ZuBsPaCe][]](/img/entries/advent-gol/life3d.gif "3D GoL animation demonstrating mirror symmetry by u/ZubSpAcE")
 
 [u/ZuBsPaCe]: https://www.reddit.com/r/adventofcode/comments/kfa3nr/2020_day_17_godot_cubes_i_think_i_went_a_bit_too/
 
@@ -79,10 +79,10 @@ This meant that we only have to simulate the *positive* points (since the
 negative points are identical).  This saves down the number of points by a
 factor of two for each extra dimension ($O(2^{d-2})$).
 
-It didn't quite get us to 1010, but this discovery completely changed how we saw this
+It didn't quite get us to 10D, but this discovery completely changed how we saw this
 puzzle.  With one breakthrough down, we began to believe that there would be
 more just around the corner, made possible by our problem's special degeneracy
-(that is, that we start on a 2d slice).
+(that is, that we start on a 2D slice).
 
 Such a dream (as posed in [this reddit thread I started][reddit]) turned into a
 month-long quest of breakthrough after breakthrough, exploiting different

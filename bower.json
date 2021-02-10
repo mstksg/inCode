@@ -33,6 +33,7 @@
     "purescript-promises": "=3.0.0",
     "purescript-free": "=5.2.0",
     "purescript-matryoshka": "=0.4.0",
-    "purescript-generics-rep": "=6.1.1"
+    "purescript-generics-rep": "=6.1.1",
+    "purescript-web-urlsearchparams": "=0.0.1"
   }
 }

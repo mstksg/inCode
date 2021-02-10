@@ -853,7 +853,7 @@ exports._drawGolSyms = function(sel, maxZ, {dim, gridSize, ptPos}, reversed) {
                 // here
                 .attr("viewBox", [0,0,window_size.width*(topBorder.x+1), window_size.height*(topBorder.y+1)])
               // .attr("transform",`translate(${window_size.width*z0+margin.left},${window_size.height*(maxZ-w0)+margin.top})`);
-                .attr("width","100%")
+                .style("max-width","30em")
                 .style("margin","auto")
                 .style("display","block")
                 .style("overflow","visible");
