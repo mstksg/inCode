@@ -523,7 +523,7 @@ its hypercube, it'll come alive in the next step.
 
 ### Diagonal Reflection Symmetry
 
-Play around and explore how simulations evolve!  You will notice that the axis
+Play around and explore how simulations evolve! You will notice that the axis
 reflection symmetry is still preserved, as expected, but four ways (the slice
 at `<z,w> = <3,4>` is always going to be identical to the slice at `<-3,4>`,
 `<3,-4>`, and `<-3,-4>`).  These are reflected in the "deep yellow" highlights
@@ -1440,14 +1440,21 @@ along in this journey as well!  It's hardly over :)  Now that you're up to
 speed with all of us, I'd be excited to hear about anything you might discover
 while playing around with this too!
 
-Looking forward at least, there are a some open threads still. For example, the
-most promising to me: for t=6, the exact same xy cells are always inhabited for
-any dimension past 7D or so, and the stacks at each seem to only change
-slightly from dimension to dimension.  If we can analytically find how the
-stacks at any given position change between 9D and 10D, 10D and 11D, etc., then
-it will be easy to jump directly to t=6 at 100D without simulating anything.
-Another way to say this is --- can we simulate by fixing t and stepping d,
-instead of fixing d and stepping t?
+Looking forward at least, there are a some open threads still.
+
+1.  Notice on the [4D simulation](#gol4D), very soon after simulations start,
+    the two diagonals very very empty, and especially the 3x3 region at the
+    origin where they intersect.  It turns out that reflection symmetry
+    boundaries are extremely inhospitable because they have *so many
+    neighbors* after reflection, especially at higher dimensions.  Could these
+    "dead zones" be exploited at higher dimensions?
+2.  The most promising to me: for t=6, the exact same xy cells are always
+    inhabited for any dimension past 7D or so, and the stacks at each seem to
+    only change slightly from dimension to dimension.  If we can analytically
+    find how the stacks at any given position change between 9D and 10D, 10D
+    and 11D, etc., then it will be easy to jump directly to t=6 at 100D without
+    simulating anything. Another way to say this is --- can we simulate by
+    fixing t and stepping d, instead of fixing d and stepping t?
 
 [satisfied]: https://en.wikipedia.org/wiki/John_Horton_Conway
 
