@@ -66,15 +66,15 @@ main :: Effect Unit
 main = do
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 15
+      logMe 24
       startingPts <- fromMaybe initialSet <$> loadUri
 
       eMap <- buildElemMap doc
       makeElemLinks doc eMap
 
-      draw2D <- setupGolFlat "#gol2DCont" {height:20, width:20, maxT: 6, maxDim: Nothing}
-      draw3D <- setupGol3D "#gol3DCont" {height:20, width:20, maxT: 6}
-      draw4D <- setupGol4D "#gol4DCont" {height:20, width:20, maxT: 6}
+      draw2D   <- setupGolFlat "#gol2DCont"   {height:20, width:20, maxT: 6, maxDim: Nothing}
+      draw3D   <- setupGol3D   "#gol3DCont"   {height:20, width:20, maxT: 6}
+      draw4D   <- setupGol4D   "#gol4DCont"   {height:20, width:20, maxT: 6}
       drawFlat <- setupGolFlat "#golFlatCont" {height:20, width:20, maxT: 6, maxDim: Just 8}
 
       drawGolSyms3D "#golSyms3DForwardCont" 6 false
@@ -105,18 +105,22 @@ main = do
     initialSet = Set.fromFoldable (map (bump 2) initialPoints)
 
 elements :: Array String
-elements =
-    [ "#golDrawer"
-    , "#gol2D"
-    , "#gol3D"
-    , "#golSyms3DForward"
-    , "#golSyms3DReverse"
-    , "#gol4D"
-    , "#golSyms4DForward"
-    , "#golSyms4DReverse"
-    , "#golSyms5D"
-    , "#golTree"
-    , "#golFlat"
+elements = map fst elementGroups
+elementGroupMap :: Map String Int
+elementGroupMap = Map.fromFoldable elementGroups
+elementGroups :: Array (Tuple String Int)
+elementGroups =
+    [ Tuple "#golDrawer" 0
+    , Tuple "#gol2D" 0
+    , Tuple "#gol3D" 0
+    , Tuple "#golSyms3DForward" 2
+    , Tuple "#golSyms3DReverse" 2
+    , Tuple "#gol4D" 0
+    , Tuple "#golSyms4DForward" 2
+    , Tuple "#golSyms4DReverse" 2
+    , Tuple "#golSyms5D" 2
+    , Tuple "#golTree" 2
+    , Tuple "#golFlat" 0
     ]
 
 buildElemMap :: Document.Document -> Effect (Array (Tuple String String))
@@ -141,7 +145,9 @@ buildElemMap doc = do
 
 makeElemLinks :: Document.Document -> Array (Tuple String String) -> Effect Unit
 makeElemLinks doc elemMap = for_ elemMap $ \(Tuple e _) -> do
-    let withoutSelf = A.filter (\(Tuple e' _) -> e /= e') linkStrings
+    let groupId = Map.lookup e elementGroupMap
+        withoutSelf = flip A.filter linkStrings \(Tuple e' _) ->
+                        e /= e' && Map.lookup e' elementGroupMap == groupId
         linkString = append "Jump to: "
                  <<< intercalate " / "
                  <<< flip map linkStrings $ \(Tuple e' (Tuple a b)) ->
@@ -518,8 +524,9 @@ foreign import trace :: forall a b. a -> b -> b
 
 type Drawer = Array Point2 -> Effect Unit
 foreign import _setupDrawer
-    :: Fn3 String
+    :: Fn4 String
            {height :: Int, width :: Int}
+           (Array Point2 -> String)
            (Array Point2 -> Effect Unit)
            (Effect Drawer)
 setupDrawer
@@ -527,7 +534,8 @@ setupDrawer
     -> {height :: Int, width :: Int}
     -> (Array Point2 -> Effect Unit)
     -> Effect Drawer
-setupDrawer = runFn3 _setupDrawer
+setupDrawer sel size = runFn4 _setupDrawer sel size $
+    pointsToBlocks <<< Set.fromFoldable
 
 type GolFlatCallback = Array (Array (Lazy (Array {x :: Int, y :: Int, pts :: Array Int}))) -> Effect Unit
 foreign import _setupGolFlat :: Fn3

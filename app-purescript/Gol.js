@@ -222,8 +222,9 @@ exports.trace = function (tr) {
 
 const MODE = { OFF: 0, CLEAR: 1, SET: 2 }
 
+// dispPts :: Array [{x:Int, y:Int}] -> String
 // callback :: (Array [{x:Int, y:Int}] -> Effect Unit)
-exports._setupDrawer = function(sel, size, callback) {
+exports._setupDrawer = function(sel, size, dispPts, callback) {
     const window_size = { height: 200, width: 200 }
     const margin = { top: 10, bottom: 10, left: 10, right: 10 }
     return function() {
@@ -234,6 +235,44 @@ exports._setupDrawer = function(sel, size, callback) {
             .style("max-width","15em")
             .style("margin","auto")
             .style("display","block");
+
+        const copyForm = d3.select(sel)
+                        .append("form")
+                        .style("max-width","15em")
+                        .style("margin","1em auto 0 auto")
+                        .style("display","block")
+                        .append("input")
+                        .attr("id","copyblock")
+                        .style("padding","0.25rem 0.5rem")
+                        .style("font-size","90%")
+                        .style("width","100%")
+                        .style("border","1px solid #555")
+                        .style("border-radius","3px");
+
+        const helpdisp = d3.select(sel)
+                .append("div")
+                .style("max-width","15em")
+                .style("height","2em")
+                .style("margin","1em auto 0 auto")
+                .style("display","block")
+                .append("p")
+                .style("text-align","center")
+                .style("font-style","italic")
+                .style("font-size","85%")
+                .text("Click on URL to copy permalink");
+
+        copyForm.on("click", function(e) {
+            const esel = e.srcElement;
+            esel.select()
+            esel.setSelectionRange(0,999999);
+            document.execCommand("copy");
+            helpdisp.text("URL copied!")
+            setTimeout(function () {
+                    esel.setSelectionRange(0,0);
+                    helpdisp.text("Click on URL to copy permalink");
+                }, 1000
+            );
+        })
 
         let activePts = []
 
@@ -253,6 +292,14 @@ exports._setupDrawer = function(sel, size, callback) {
             // callback(output.map(({x,y}) => ({x,y})))();
         }
 
+        const setCopy = function () {
+            copyForm.attr("value",
+                      window.location.origin
+                    + window.location.pathname
+                    + "?points=" + dispPts(mkOutput().map(({x,y})=>({x,y})))
+              );
+        }
+
         const setGrid = function(xs) {
             activePts =
                 d3.range(size.width)
@@ -262,6 +309,7 @@ exports._setupDrawer = function(sel, size, callback) {
                     activePts[x][y] = true;
                 });
             }
+            setCopy();
             drawGrid();
         }
 
@@ -306,6 +354,7 @@ exports._setupDrawer = function(sel, size, callback) {
         const clickoff = function(e) {
             e.preventDefault();
             mode = MODE.OFF;
+            setCopy();
             callback(mkOutput().map(({x,y}) => ({x,y})))();
         }
         grid.grid.on("mousedown",clickon)
@@ -382,7 +431,6 @@ exports._setupGolFlat = function(sel,showPts,{height,width,maxT,maxDim}) {
                 .style("text-align","center")
                 .style("font-size","90%")
                 .style("line-height","125%");
-
         }
         let currTime = 0;
         let currDim = 0;

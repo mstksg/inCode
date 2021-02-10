@@ -126,9 +126,30 @@ Please enable Javascript
 
 :::::
 
+Here are some sample fun ones you can try out (click to load):
+
+*   The [classic glider][glider], a default if only for how iconic it is.
+*   The [tub][], which explodes into a twinkling frenzy during the 4D
+    animation.
+*   The [full block][], which dies out in 2D but produces very appealing
+    patterns in 3D and 4D.
+*   The [spiral galaxy][], which produces rich spiral galaxy patterns up until
+    6D, but then all of a sudden becomes blocky and bland at 7D and above.
+*   My [own personal puzzle input][owninput], to see what the typical input
+    looks like.
+
+[glider]: https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=____|_▝▖_|_▀▘_|____
+[tub]: https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=____|_▞▖_|_▝__|____
+[full block]: https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=████|████|████|████
+[spiral galaxy]: https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=██▟█|▜███|███▙|█▛██
+[owninput]: https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=▛▜▙▐|▜▚▗_|█▟▄▘|▟▌▟█
+
+I recommend trying out some of the [other interesting well-known
+patterns][patterns]!  Also, if you find any interesting ones, I would be
+excited to hear about them!
+
 And for fun, here's a 2D vanilla game of life implementation (for six time
-steps) to test out your creation.  I recommend trying out some of the
-[interesting well-known patterns][patterns]!
+steps) to test out your creation.
 
 [patterns]: https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life#Examples_of_patterns
 
