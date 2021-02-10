@@ -6,7 +6,7 @@ create-time: 2021/01/07 21:32:49
 series: Advent of Code
 identifier: advent-gol
 slug: degenerate-hyper-dimensional-game-of-life
-css: https://cdn.jsdelivr.net/npm/pretty-checkbox@3.0.3/dist/pretty-checkbox.min.css
+css: https://cdn.jsdelivr.net/npm/pretty-checkbox@3.0.3/dist/pretty-checkbox.min.css, /css/page/entry/advent-gol.css
 script: https://cdn.jsdelivr.net/npm/d3@6.5.0, /purescript/gol.js, https://cdn.jsdelivr.net/npm/d3-simple-slider@1.10.3
 ---
 
@@ -129,13 +129,15 @@ Please enable Javascript
 Here are some sample fun ones you can try out (click to load):
 
 *   The [classic glider][glider], a default if only for how iconic it is.
-*   The [tub][], which explodes into a twinkling frenzy during the 4D
-    animation.
+*   The [tub][], which is a "still-life" in 2D, but explodes into a twinkling
+    frenzy during the 4D animation.
 *   The [full block][], which dies out in 2D but produces very appealing
     patterns in 3D and 4D.  A [bulls-eye][] also yields interesting "geometric"
-    patterns at higher dimensions.
-*   The [spiral galaxy][], which produces rich spiral galaxy patterns up until
-    6D, but then all of a sudden becomes blocky and bland at 7D and above.
+    patterns at higher dimensions.   A [broken bar code][] also yields
+    explosively intricate alternating behavior at higher dimensions.
+*   The [spiral galaxy][] with rotational symmetry, which produces rich spiral
+    galaxy patterns up until 6D, but then all of a sudden becomes blocky and
+    bland at 7D and above.
 *   My [own personal puzzle input][owninput], to see what the typical input
     looks like.
 
@@ -146,6 +148,8 @@ Here are some sample fun ones you can try out (click to load):
 [full block]: https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=████.████.████.████
     {.loadpoints}
 [bulls-eye]: https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=▛▀▀▜.▌▛▜▐.▌▙▟▐.▙▄▄▟
+    {.loadpoints}
+[broken bar code]: https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=████.▄▗▖▄.▀▝▘▀.████
     {.loadpoints}
 [spiral galaxy]: https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=██▟█.▜███.███▙.█▛██
     {.loadpoints}
@@ -301,6 +305,10 @@ Please enable Javascript
 
 :::::
 
+(Some ones I suggest trying out are the flowery [spiral galaxy][] pattern and
+patterns with a single reflection symmetry, like the [broken bar code][];
+double symmetry like [bulls-eye][] look nice too!)
+
 In "reality", each of those 13 slices above are stacked on top of each other in
 3D space. You'll see that most initial conditions will spread out from the
 center z=0 point, which means they are actually spreading "up and down" the z
@@ -397,8 +405,8 @@ compute the total neighbor count of `<1,3,0>`, we have to count the
 contribution from `<1,3,1>` twice (once for `<1,3,1>` and once for `<1,3,-1>`,
 which was normalized away).
 
-That means we have to follow the rules in the previous interactive element
-*backwards*, like:
+That means we have to follow the rules in the [forward neighbors interactive
+element][#golSyms3DForward] *backwards*, like:
 
 ::::: {#golSyms3DReverse .highlightbox}
 
@@ -454,6 +462,10 @@ Please enable Javascript
 
 :::::
 
+(Some patterns I recommend trying are the patterns with double reflection
+symmetry like [bulls-eye][] and [full block][], rotational symmetry like
+[spiral galaxy][], and single-reflection symmetries like [broken bar code][]).
+
 We get something interesting as well: most initial conditions will spread out
 from the center `<z,w> = <0,0>` point radially, spreading outwards into
 positive and negative z and w.  Mouse-over or tap any individual tiny `<x.y>`
@@ -487,11 +499,11 @@ respect to two hyperplanes in 4d space: These hyperplanes can be described by w
 > Using these symmetries could make the code nearly eight times as fast.I was
 > wondering if anyone tried that.
 
-What *u/cetttbycettt* saw is what you can see now in the interactive element
-above: it's all of the *light yellow* highlighted squares when you mouse-over.
-In addition to the z=0 and w=0 lines (the two lines down the middle, up-down
-and left-right), we also have another line of symmetry: z=w and w=z, the
-diagonal lines!
+What *u/cetttbycettt* saw is what you can see now in the [4D Game of Life
+Simulation][#gol4D]: it's all of the *light yellow* highlighted squares when
+you mouse-over. In addition to the z=0 and w=0 lines (the two lines down the
+middle, up-down and left-right), we also have another line of symmetry: z=w and
+w=z, the diagonal lines!
 
 That's right, a zw slice at `<z,w>=<3,4>` is *identical* to the one at `<4,3>`, and
 so also `<-3,4>`, `<3,-4>`, `<-3,-4>`, `<-4,3>`, `<4,-3>`, and `<-4,-3>`!  Each
@@ -563,8 +575,8 @@ green square in the Southeast means that `<2,3>`'s southeast neighbor
 is...itself!
 
 The "forward neighbors" are useful for understanding what's going on, but to
-actually run our simulation we again need to find the "reverse neighbors": from a
-given point A, how many times is that point a neighbor of another point B?
+actually run our simulation we again need to find the "reverse neighbors": from
+a given point A, how many times is that point a neighbor of another point B?
 
 We can compute this in brute-force using a cache: iterate over each point,
 expand all its neighbors $a_i$, normalize that neighbor, and then set $a_i$ in
@@ -806,7 +818,8 @@ terminology we'll be using for the rest of this post.
 
 *   I've been using the word **slice** to talk about a 2D grid representing a
     single higher-dimensional `<z,w...>` coordinate --- they're the 13 grids in
-    the 3D simulation and the 169 grids in the 4D simulation.
+    [the 3D simulation][#gol3D] and the 169 grids in [the 4D
+    simulation][#gol4D].
 *   I've also been using **cell** to refer to an exact specific `<x,y,z,w,..>`
     spot --- they are the tiny squares inside each grid in the simulations
     above.
@@ -819,8 +832,8 @@ terminology we'll be using for the rest of this post.
     during our simulation, we only need to simulate one member from each coset,
     because every member is identically present or not present.  For the sake
     of implementation, we simulate the arbitrary *normalized* (positive and
-    sorted) member only.  Because of this, we'll sometimes refer to the normalized
-    item and the coset it represents as the same thing.
+    sorted) member only.  Because of this, we'll sometimes refer to the
+    normalized item and the coset it represents as the same thing.
 *   I'll also start using **slice coset** to talk about the set of all
     `<z,w,...>` slices) across its permutations and negations.  The slices at
     z-w coordinates of  `<1,2>`, `<2,1>`, `<-1,2>`, `<1,-2>`, `<-1,-2>`,
@@ -830,10 +843,12 @@ terminology we'll be using for the rest of this post.
     a single slice at `<1,2>` as representing the state of its entire coset.
 
     Slice cosets are what are being highlighted on mouseovers for the 3D and 4D
-    simulations. They are also what the big squares represent for the forward
-    and backward neighbor interactive elemenst: each slice stands in for their
-    entire slice coset, and we show the amount of times each normalized slice
-    coset element is a neighbor of the other.
+    simulations. They are also what the big squares represent for [3D Forward
+    Neighbors][#golSyms3DForward], the [3D Reverse
+    Neighbors][#golSyms3DReverse], the [4D Reverse Neighbors][#golSyms4DForward],
+    and the [4D Reverse neighbors][#golSyms4DReverse]: each slice stands in for
+    their entire slice coset, and we show the amount of times each normalized
+    slice coset element is a neighbor of the other.
 
 [coset]: https://www.youtube.com/watch?v=Dp8sYTlLQRY
 
@@ -863,9 +878,10 @@ we know what our slice coset/representative structure looks like.  Partially to
 help us gain an intuition for some of what's going on, and also partially to
 show that intuition at the individual component level can only get so far.
 
-It's a bit difficult to duplicate the same forward/reverse neighbor interactive
-element for 4D as we had for 4D, so here's a different representation.  Here is
-an interactive element of all of the `<z,w,q>` slice cosets (the wedge of
+It's a bit difficult to duplicate the same [forward
+neighbor][#golSyms4DForward]/[reverse neighbor][#golSyms4DReverse] interactive
+elements as we had for 4D, so here's a different representation.  Here is an
+interactive element of all of the `<z,w,q>` slice cosets (the wedge of
 normalized points we track for our implementation) and both their forward and
 reverse neighbor weights of each other (computable using the method we used for
 4D).  The `q` axis is represented as stacked zw sections from left to right.
@@ -1191,6 +1207,11 @@ Please enable Javascript
 ::::::
 
 :::::
+
+(A lot of examples with symmetries look nice, such as [spiral galaxy][] and
+[bulls-eye][]; the alternating symmetries of [broken bar code][] look nice too!
+But honestly, at higher-dimensions, most patterns have appealing gradients,
+like [glider][] and [my own input][owninput])
 
 Play around with it! :D  You can move all the way up to 10D; some computers
 might struggle, but on my lower-end cell phone it seems to run in less than a

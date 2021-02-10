@@ -67,7 +67,7 @@ main :: Effect Unit
 main = do
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 39
+      logMe 41
       startingPts <- fromMaybe initialSet <$> loadUri doc
 
       eMap <- buildElemMap doc
@@ -197,41 +197,22 @@ loadUri doc = runMaybeT do
         hist
     pure res
 
-linkify :: forall a. Document.Document -> (Set Point2 -> Effect a) -> Effect Unit
+linkify :: Document.Document -> (Set Point2 -> Effect Unit) -> Effect Unit
 linkify doc cb = do
     linkElems <- ParentNode.querySelectorAll
             (ParentNode.QuerySelector "a.loadpoints")
             (Document.toParentNode doc)
-    flip traverseNodeList_ linkElems \linkElem -> do
-      onE click (Element.toEventTarget linkElem) \e -> void $ runMaybeT do
-        href <- MaybeT $ Element.getAttribute "href" linkElem
-        usp  <- liftEffect $ USP.new (StringCU.dropWhile (_ /= '?') href)
-        str  <- MaybeT $ USP.get usp "points"
-        let res = blocksToPoint str
-        MonadZero.guard (not (null res))
-        liftEffect $ do
-          preventDefault e
-          cb res
-
--- const linkifier = function (selector, addTitle, callback) {
---     const links = document.querySelectorAll("a" + selector);
---     for (const a of links) {
---         const targ = a.getAttribute('href');
---         if (targ) {
---             // const aNew = a.cloneNode(true);
---             // a.parentNode.replaceChild(aNew, a);
---             d3.select(a)
---               .attr('title',addTitle)
---               .on('click',null)
---               .on('click', function () {
---                  d3.event.preventDefault();
---                  callback(targ);
---                });
---         }
---     }
--- }
-
-
+    flip traverseNodeList_ linkElems \linkElem -> void $ runMaybeT do
+      liftEffect $ Element.setAttribute "title" "Click to load" linkElem
+      href <- MaybeT $ Element.getAttribute "href" linkElem
+      usp  <- liftEffect $ USP.new (StringCU.dropWhile (_ /= '?') href)
+      str  <- MaybeT $ USP.get usp "points"
+      let res = blocksToPoint str
+      MonadZero.guard (not (null res))
+      liftEffect $ onE click (Element.toEventTarget linkElem) \e -> do
+        preventDefault e
+        cb res
+      pure unit
 
 type Point = Array Int
 
@@ -775,7 +756,7 @@ foreign import _setInnerHTML :: Fn2 Element.Element String (Effect Unit)
 setInnerHTML :: Element.Element -> String -> Effect Unit
 setInnerHTML = runFn2 _setInnerHTML
 
-foreign import preventDefault :: Event -> (Effect Unit)
+foreign import preventDefault :: Event -> Effect Unit
 
 blockTable :: Array Char
 blockTable =
