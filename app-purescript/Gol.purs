@@ -66,8 +66,8 @@ main :: Effect Unit
 main = do
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 24
-      startingPts <- fromMaybe initialSet <$> loadUri
+      logMe 31
+      startingPts <- fromMaybe initialSet <$> loadUri doc
 
       eMap <- buildElemMap doc
       makeElemLinks doc eMap
@@ -113,13 +113,13 @@ elementGroups =
     [ Tuple "#golDrawer" 0
     , Tuple "#gol2D" 0
     , Tuple "#gol3D" 0
-    , Tuple "#golSyms3DForward" 2
-    , Tuple "#golSyms3DReverse" 2
+    , Tuple "#golSyms3DForward" 1
+    , Tuple "#golSyms3DReverse" 1
     , Tuple "#gol4D" 0
-    , Tuple "#golSyms4DForward" 2
-    , Tuple "#golSyms4DReverse" 2
-    , Tuple "#golSyms5D" 2
-    , Tuple "#golTree" 2
+    , Tuple "#golSyms4DForward" 1
+    , Tuple "#golSyms4DReverse" 1
+    , Tuple "#golSyms5D" 1
+    , Tuple "#golTree" 1
     , Tuple "#golFlat" 0
     ]
 
@@ -146,12 +146,11 @@ buildElemMap doc = do
 makeElemLinks :: Document.Document -> Array (Tuple String String) -> Effect Unit
 makeElemLinks doc elemMap = for_ elemMap $ \(Tuple e _) -> do
     let groupId = Map.lookup e elementGroupMap
-        withoutSelf = flip A.filter linkStrings \(Tuple e' _) ->
-                        e /= e' && Map.lookup e' elementGroupMap == groupId
         linkString = append "Jump to: "
                  <<< intercalate " / "
-                 <<< flip map linkStrings $ \(Tuple e' (Tuple a b)) ->
-                        if e' == e
+                 <<< flip A.mapMaybe linkStrings $ \(Tuple e' (Tuple a b)) -> do
+                       MonadZero.guard $ Map.lookup e' elementGroupMap == groupId
+                       pure $ if e' == e
                           then a
                           else b
     container <- ParentNode.querySelector
@@ -166,13 +165,26 @@ makeElemLinks doc elemMap = for_ elemMap $ \(Tuple e _) -> do
     linkStrings = flip map elemMap \(Tuple e ename) ->
         Tuple e (Tuple ename ("<a href=\"" <> e <> "\">" <> ename <> "</a>"))
 
-loadUri :: Effect (Maybe (Set Point2))
-loadUri = runMaybeT do
-    searchStr <- liftEffect $ Location.search
-                          =<< Window.location
-                          =<< Web.window
+loadUri :: Document.Document -> Effect (Maybe (Set Point2))
+loadUri doc = runMaybeT do
+    loc <- liftEffect $ Window.location =<< Web.window
+    searchStr <- liftEffect $ Location.search loc
     usp <- liftEffect $ USP.new searchStr
     str <- MaybeT $ USP.get usp "points"
+    origTitle <- MaybeT $
+        traverse HTMLDocument.title (HTMLDocument.fromDocument doc)
+    liftEffect $ do
+      basicUrl <- fold <$> sequence
+        [ Location.origin loc
+        , Location.pathname loc
+        , Location.hash loc
+        ]
+      hist <- Window.history =<< Web.window
+      History.pushState
+        (Foreign.unsafeToForeign basicUrl)
+        (History.DocumentTitle origTitle)
+        (History.URL basicUrl)
+        hist
     pure $ blocksToPoint str
 
 type Point = Array Int
