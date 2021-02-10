@@ -106,7 +106,7 @@ For reference, the interactive elements in this post are:
 2.  [2D Game of Life](#gol2D)
 3.  [3D Game of Life](#gol3D)
 4.  [3D Forward Neighbor Multiplicities](#golSyms3DForward) / [3D Reverse Neighbor Multiplicities](#golSyms3DReverse)
-5.  [5D Game of Life](#gol5D)
+5.  [4D Game of Life](#gol4D)
 6.  [4D Forward Neighbor Multiplicities](#golSyms4DForward) / [4D Reverse Neighbor Multiplicities](#golSyms4DReverse)
 7.  [5D Neighbor Multiplicities](#golSyms5D)
 8.  [General Neighbor Multiplicity Algorithm](#golTree)
