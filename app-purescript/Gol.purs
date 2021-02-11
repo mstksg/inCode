@@ -68,7 +68,7 @@ main :: Effect Unit
 main = do
     doc  <- map HTMLDocument.toDocument <<< Window.document =<< Web.window
     ready doc do
-      logMe 12
+      logMe 13
       startingPts <- fromMaybe initialSet <$> loadUri doc
 
       eMap <- buildElemMap doc

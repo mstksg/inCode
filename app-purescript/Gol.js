@@ -545,7 +545,7 @@ exports._setupGolFlat = function(sel,showPts,{height,width,maxT,maxDim}) {
                 .width(slider_size.width-30)
                 .ticks(maxDim+1)
                 .tickFormat(v => (v+2)+"")
-                .displayFormat(v => "d="+(v+2))
+                .displayFormat(v => (v+2)+"D")
                 .on("onchange", d => drawBoxes(currTime,d,currSel,false));
             dimselbox.call(dimslider);
             dimslider.value(3)
@@ -1461,7 +1461,7 @@ exports._drawTree = function(sel,vecRun,mkHier,getContrib) {
             .width(slider_size.width-30)
             .ticks(6)
             .tickFormat(v => (v+2)+"")
-            .displayFormat(v => "d="+(v+2));
+            .displayFormat(v => (v+2)+"D");
         dimselbox.call(dimslider);
         let currpt = []
         currpt[1] = 1
