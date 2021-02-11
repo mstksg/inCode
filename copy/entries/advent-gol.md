@@ -782,7 +782,7 @@ Here was Michal's [historic post][permpost]:
 > time goes to infinity).
 >
 > ...we can use symmetries coming from permutations, to only track cells
-> where $|x_0| < 6,\, |x_1| < 6,\, 0 \leq x_2 \leq x_3 \leq\,\ldots\, \leq x_{d-1} \leq t$.
+> where $6,\, 0 \leq x_2 \leq x_3 \leq\,\ldots\, \leq x_{d-1} \leq t$.
 > There's $20^2 \times \sum_{k=0}^{t} { {d-3+k} \choose {k} }$ such cells.
 >
 > --- Michal Marsalek
@@ -869,7 +869,7 @@ Pure joy! :D
 
 [Peter Tseng][peterpost] made a post on *Thursday* night with times, but I
 can't remember if it incorporated all the symmetries or originally included
-10D.  [Michal Marsalek][michalpost] was able to implement the idea that they
+10D.  [Michal Marsalek][michalpost] was able to implement the idea that he
 originally proposed by the following Wednesday (December 23rd) in Nim to blow
 everyone's time out of the water: 3 seconds flat!
 
@@ -1172,7 +1172,7 @@ originally came out) that a new revelation arose that would pave the way shoot
 far past 20D.
 
 It was [Michal Marsalek's coset counts post][cosetcounts] that set the stage.
-From the beginning, Michal had always tracked the number of cell cosets at the
+From the beginning, he had always tracked the number of cell cosets at the
 end of the simulation (the number of active "normalized" cells), and had been
 exploring the relationship between dimension and coset counts.  The discovery
 was that after a certain "saturation point" (6D for Michal's set, 9D for
@@ -1444,7 +1444,7 @@ of these discoveries were fun because we always had somebody to share them
 with, or a way to encourage each other and strive for a common goal. I'm
 definitely lucky to be standing on giants as a part of a talented and
 passionately curious community that's excited to explore things like this.
-Michal Marsalek [has their own writeup of the discoveres mentioned
+Michal Marsalek [has his own writeup of the discoveres mentioned
 here][writeup], that you should check out too if you have the time!
 
 [writeup]: https://github.com/MichalMarsalek/Advent-of-code/blob/master/2020/misc/day17-highdims/ND_gol_with_low_dimensional_initial_state.pdf
