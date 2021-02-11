@@ -59,7 +59,7 @@ entryReaderOpts = def { P.readerStandalone = True
 
 entryWriterOpts :: P.WriterOptions
 entryWriterOpts =
-    def { P.writerHTMLMathMethod = P.WebTeX "https://latex.codecogs.com/png.latex?"
+    def { P.writerHTMLMathMethod = P.MathJax "//cdn.jsdelivr.net/npm/mathjax@3.1.2"
         , P.writerHighlightStyle = Just P.pygments
         , P.writerVariables      = [("geometry","margin=1in")
                                    ,("links-as-notes","true")]

@@ -6,8 +6,8 @@ create-time: 2021/01/07 21:32:49
 series: Advent of Code
 identifier: advent-gol
 slug: degenerate-hyper-dimensional-game-of-life
-css: https://cdn.jsdelivr.net/npm/pretty-checkbox@3.0.3/dist/pretty-checkbox.min.css, /css/page/entry/advent-gol.css
-script: https://cdn.jsdelivr.net/npm/d3@6.5.0, /purescript/gol.js, https://cdn.jsdelivr.net/npm/d3-simple-slider@1.10.3
+css: //cdn.jsdelivr.net/npm/pretty-checkbox@3.0.3/dist/pretty-checkbox.min.css, /css/page/entry/advent-gol.css
+script: //cdn.jsdelivr.net/npm/d3@6.5.0, /purescript/gol.js, //cdn.jsdelivr.net/npm/d3-simple-slider@1.10.3
 ---
 
 tldr: Demonstrated with interactive visualizations and simulations --- over the
@@ -217,7 +217,7 @@ majority of our points will be "off", there's another approach:
         Counter) of points to integers.  This map associates each point to the
         number of live neighbors it has.
     b.  For each step, iterate over each of your "on" points, expand all of
-        their neighbors $n_i$ ($(O(3^d))$), and increment the value associated
+        their neighbors $n_i$ ($O(3^d)$), and increment the value associated
         with $n_i$ in your dynamic map.
 
         For example, if the point `<2,3>` is in your set of live points, you

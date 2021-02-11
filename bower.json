@@ -16,24 +16,19 @@
     "tests"
   ],
   "dependencies": {
-    "purescript-console" : "=4.4.0" ,
-    "purescript-control" : "=4.2.0" ,
-    "purescript-lists"   : "=5.4.1" ,
-    "purescript-nullable": "=4.1.1" ,
-    "purescript-prelude" : "=4.1.1" ,
-    "purescript-refs"    : "=4.1.0" ,
+    "purescript-console" : "=4.4.0",
+    "purescript-control" : "=4.2.0",
+    "purescript-lists"   : "=5.4.1",
+    "purescript-nullable": "=4.1.1",
+    "purescript-prelude" : "=4.1.1",
+    "purescript-refs"    : "=4.1.0",
     "purescript-foldable-traversable": "=4.1.1",
     "purescript-unicode" : "=4.0.1",
     "purescript-transformers": "=4.2.0",
     "purescript-bifunctors": "=4.0.0",
     "purescript-psci-support": "=4.0.0",
     "purescript-web-uievents": "=2.0.0",
-    "purescript-aff": "=5.1.2",
-    "purescript-queue": "=8.0.1",
-    "purescript-promises": "=3.0.0",
-    "purescript-free": "=5.2.0",
     "purescript-matryoshka": "=0.4.0",
-    "purescript-generics-rep": "=6.1.1",
     "purescript-web-urlsearchparams": "=0.0.1"
   }
 }

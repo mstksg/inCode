@@ -65,6 +65,7 @@ renderLayout pd@PD{..} body =
               ]
 
         googleAnalyticsJs
+        mathJax
 
         forM_ allJs $ \u ->
           H.script ! A.type_ "text/javascript" ! A.src (H.textValue u) $
@@ -112,6 +113,11 @@ renderLayout pd@PD{..} body =
               ]
     allCss = map renderUrl $ cssList ++ pageDataCss
     allJs  = map renderUrl $ jsList  ++ pageDataJs
+    mathJax = do
+      H.script ! A.src "https://polyfill.io/v3/polyfill.min.js?features=es6" $
+        mempty
+      H.script ! A.id "MathJax-script" ! A.async "" ! A.src "https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js" $
+        mempty
     title = case pageDataTitle of
               Just t  -> t <> " · " <> confTitle
               Nothing -> confTitle

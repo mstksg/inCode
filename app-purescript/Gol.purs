@@ -1,29 +1,35 @@
 module Gol where
 
-import Control.Monad.Free        as Free
+-- import Control.Monad.Free        as Free
+-- import Control.Monad.State
+-- import Data.DateTime             as Date
+-- import Data.DateTime.Instant     as Instant
+-- import Data.FunctorWithIndex     as Indexed
+-- import Data.Generic.Rep          as Generic
+-- import Data.Generic.Rep.Show
+-- import Data.List.Lazy.NonEmpty   as NEList
+-- import Data.Newtype              as Newtype
+-- import Data.NonEmpty             as NE
+-- import Data.Unfoldable hiding    (fromMaybe)
+-- import Effect.Aff                (Aff)
+-- import Effect.Aff                as Aff
+-- import Effect.Class.Console      (log)
+-- import Effect.Now                as Now
+-- import Queue.One                 as Queue
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
-import Control.Monad.State
 import Control.MonadZero         as MonadZero
 import Data.Array                as A
 import Data.Bifunctor
-import Data.DateTime             as Date
-import Data.DateTime.Instant     as Instant
 import Data.Foldable
 import Data.Function.Uncurried
-import Data.FunctorWithIndex     as Indexed
-import Data.Generic.Rep          as Generic
-import Data.Generic.Rep.Show
 import Data.Int                  as Int
 import Data.Lazy
 import Data.List.Lazy            (List)
 import Data.List.Lazy            as List
-import Data.List.Lazy.NonEmpty   as NEList
 import Data.Map                  (Map)
 import Data.Map                  as Map
 import Data.Maybe
 import Data.Monoid.Additive
-import Data.Newtype              as Newtype
-import Data.NonEmpty             as NE
 import Data.Nullable             (Nullable)
 import Data.Nullable             as Nullable
 import Data.Set                  (Set)
@@ -34,19 +40,13 @@ import Data.String               as String
 import Data.String.CodeUnits     as StringCU
 import Data.Traversable
 import Data.Tuple
-import Data.Unfoldable hiding    (fromMaybe)
 import Effect                    (Effect, forE)
-import Effect.Aff                (Aff)
-import Effect.Aff                as Aff
 import Effect.Class              (class MonadEffect, liftEffect)
-import Effect.Class.Console      (log)
 import Effect.Exception.Unsafe
-import Effect.Now                as Now
 import Effect.Ref                as Ref
 import Foreign                   as Foreign
 import Matryoshka                as Rec
 import Prelude
-import Queue.One                 as Queue
 import Unsafe.Coerce             as Unsafe
 import Web.DOM.Document          as Document
 import Web.DOM.Element           as Element
