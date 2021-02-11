@@ -1,67 +1,68 @@
 module Gol where
 
--- import Control.Monad.Free        as Free
+-- import Control.Monad.Free      as Free
 -- import Control.Monad.State
--- import Data.DateTime             as Date
--- import Data.DateTime.Instant     as Instant
--- import Data.FunctorWithIndex     as Indexed
--- import Data.Generic.Rep          as Generic
+-- import Data.DateTime           as Date
+-- import Data.DateTime.Instant   as Instant
+-- import Data.FunctorWithIndex   as Indexed
+-- import Data.Generic.Rep        as Generic
 -- import Data.Generic.Rep.Show
--- import Data.List.Lazy.NonEmpty   as NEList
--- import Data.Newtype              as Newtype
--- import Data.NonEmpty             as NE
--- import Data.Unfoldable hiding    (fromMaybe)
--- import Effect.Aff                (Aff)
--- import Effect.Aff                as Aff
--- import Effect.Class.Console      (log)
--- import Effect.Now                as Now
--- import Queue.One                 as Queue
-import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
-import Control.MonadZero         as MonadZero
-import Data.Array                as A
+-- import Data.List.Lazy.NonEmpty as NEList
+-- import Data.Newtype            as Newtype
+-- import Data.NonEmpty           as NE
+-- import Data.Unfoldable hiding  (fromMaybe)
+-- import Effect.Aff              (Aff)
+-- import Effect.Aff              as Aff
+-- import Effect.Class.Console    (log)
+-- import Effect.Now              as Now
+-- import Queue.One               as Queue
+import Control.Monad.Maybe.Trans  (MaybeT(..), runMaybeT)
+import Control.MonadZero          as MonadZero
+import Data.Array                 as A
 import Data.Bifunctor
 import Data.Foldable
 import Data.Function.Uncurried
-import Data.Int                  as Int
+import Data.Int                   as Int
 import Data.Lazy
-import Data.List.Lazy            (List)
-import Data.List.Lazy            as List
-import Data.Map                  (Map)
-import Data.Map                  as Map
+import Data.List.Lazy             (List)
+import Data.List.Lazy             as List
+import Data.Map                   (Map)
+import Data.Map                   as Map
 import Data.Maybe
 import Data.Monoid.Additive
-import Data.Nullable             (Nullable)
-import Data.Nullable             as Nullable
-import Data.Set                  (Set)
-import Data.Set                  as Set
-import Data.Set.NonEmpty         (NonEmptySet)
-import Data.Set.NonEmpty         as NESet
-import Data.String               as String
-import Data.String.CodeUnits     as StringCU
+import Data.Monoid.Endo
+import Data.Nullable              (Nullable)
+import Data.Nullable              as Nullable
+import Data.Set                   (Set)
+import Data.Set                   as Set
+import Data.Set.NonEmpty          (NonEmptySet)
+import Data.Set.NonEmpty          as NESet
+import Data.String                as String
+import Data.String.CodeUnits      as StringCU
 import Data.Traversable
 import Data.Tuple
-import Effect                    (Effect, forE)
-import Effect.Class              (class MonadEffect, liftEffect)
+import Effect                     (Effect, forE)
+import Effect.Class               (class MonadEffect, liftEffect)
 import Effect.Exception.Unsafe
-import Effect.Ref                as Ref
-import Foreign                   as Foreign
-import Matryoshka                as Rec
+import Effect.Ref                 as Ref
+import Foreign                    as Foreign
+import Matryoshka                 as Rec
 import Prelude
-import Unsafe.Coerce             as Unsafe
-import Web.DOM.Document          as Document
-import Web.DOM.Element           as Element
-import Web.DOM.Node              as Node
-import Web.DOM.NodeList          as NodeList
-import Web.DOM.ParentNode        as ParentNode
-import Web.Event.Event           (Event, EventType)
-import Web.Event.EventTarget     (EventTarget, addEventListener, eventListener)
-import Web.HTML                  as Web
-import Web.HTML.Event.EventTypes (readystatechange, click)
-import Web.HTML.HTMLDocument     as HTMLDocument
-import Web.HTML.History          as History
-import Web.HTML.Location         as Location
-import Web.HTML.Window           as Window
-import Web.URLSearchParams       as USP
+import Unsafe.Coerce              as Unsafe
+import Web.DOM.Document           as Document
+import Web.DOM.Element            as Element
+import Web.DOM.Node               as Node
+import Web.DOM.NodeList           as NodeList
+import Web.DOM.ParentNode         as ParentNode
+import Web.Event.Event            (Event, EventType)
+import Web.Event.EventTarget      (EventTarget, addEventListener, eventListener)
+import Web.HTML                   as Web
+import Web.HTML.Event.EventTypes  (readystatechange, click)
+import Web.HTML.HTMLDocument      as HTMLDocument
+import Web.HTML.History           as History
+import Web.HTML.Location          as Location
+import Web.HTML.Window            as Window
+import Web.URLSearchParams        as USP
 
 main :: Effect Unit
 main = do
@@ -239,20 +240,26 @@ neighbs2d n i = do
 
 type Point2 = { x :: Int, y :: Int }
 
+type DList a = Endo (->) (List a)
+dsingleton :: forall a. a -> DList a
+dsingleton x = Endo (x List.: _)
+fromDList :: forall a. DList a -> List a
+fromDList (Endo f) = f List.nil
+
 stepper
     :: forall a. Ord a => Show a
     => (a -> List a)
     -> (Int -> IntMap (Additive Int))
     -> Map a (NonEmptySet Int)
     -> Map a (NonEmptySet Int)
-stepper expand syms cs = Map.mapMaybe (NESet.fromFoldable <<< intMapKeys <<< filterIntMap validLiveCount <<< unionsIntMap) $
+stepper expand syms cs = Map.mapMaybe (NESet.fromFoldable <<< intMapKeys <<< filterIntMap validLiveCount <<< unionsIntMap <<< fromDList) $
     foldl (\res (Tuple gIx ds) ->
           case Map.lookup ds prebaked of
             Nothing                 -> res
             Just (Tuple here there) -> flip (Map.unionWith append) res <<< Map.fromFoldable $
-              List.zip (expand gIx) (List.singleton here List.: List.repeat (List.singleton there))
+              List.zip (expand gIx) (dsingleton here List.: List.repeat (dsingleton there))
         )
-      (Map.empty :: Map a (List (IntMap (Additive Int))))
+      (Map.empty :: Map a (DList (IntMap (Additive Int))))
       (Map.toUnfoldableUnordered cs :: List (Tuple a (NonEmptySet Int)))
   where
     uniqueGroups :: Set (NonEmptySet Int)

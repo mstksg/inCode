@@ -11,11 +11,11 @@ script: //cdn.jsdelivr.net/npm/d3@6.5.0, /purescript/gol.js, //cdn.jsdelivr.net/
 ---
 
 tldr: Demonstrated with interactive visualizations and simulations --- over the
-course of a month, we were able to successive new mathematical properties of a
-"degenerate" hyper-dimensional game of life" to take a "7 dimensions may just
-barely be possible on a supercomputer, could we ever reach 10 dimensions?" to
-"10 dimensions is easy enough to be run on any modern browser, and 40
-dimensions can be reached with a compiled language".
+course of a month, we were able to discover successive new mathematical
+properties of a "degenerate" hyper-dimensional game of life" to take a "7
+dimensions may just barely be possible on a commercial PC, could we ever reach
+10 dimensions?" to "10 dimensions is easy enough to be run on any modern
+browser, and 40 dimensions can be reached with a compiled language".
 
 This is a story about breaking the degenerate hyper-dimensional game of life by
 interactive exploratory visualizations and math!
@@ -259,11 +259,16 @@ alive.
 Here's a python implementation of the set-based method, using a nice trick I
 learned from [phaazon][] and [glguy][] to get the right neighbors by doing a
 cartesian product against `[0,-1,1]` instead of `[-1,0,1]`, which leaves the
-first item as the `<0,0>` "original point" we want to exclude.
+first item as the `<0,0>` "original point" we want to exclude.[^selftrick]
 
 [cross]: https://observablehq.com/@d3/d3-cross
 [phaazon]: https://twitter.com/phaazon_
 [glguy]: https://github.com/glguy
+
+[^selftrick]: There's another optimization too you could use that would allow
+you to ignore this and just treat a cell as its own neighbor; you'd have to
+tweak the live-or-dead rules slightly, but it does simplify a lot of the
+propagation logic.
 
 ```python
 from itertools import islice, product
@@ -293,6 +298,7 @@ def step_naive(pts):
 
     return frozenset(p for p, n in neighbs.items() if validate(p, n))
 ```
+
 
 Three Dimensions
 ----------------
@@ -550,7 +556,7 @@ What u/cetttbycettt saw is what you can see now in the simulation above: it's
 all of the *light yellow* highlighted squares when you mouse-over (highlighting
 even *more* identical slices to the one you are hovering over). In addition to
 the z=0 and w=0 lines (the two lines down the middle, up-down and left-right),
-we also have another line of symmetry: z=w and w=z, the diagonal lines!
+we also have another line of symmetry: z=w and z=-w, the diagonal lines!
 
 That's right, a zw slice at `<z,w>=<3,4>` is *identical* to the one at `<4,3>`, and
 so also `<-3,4>`, `<3,-4>`, `<-3,-4>`, `<-4,3>`, `<4,-3>`, and `<-4,-3>`!  Each
@@ -761,7 +767,7 @@ Here was Michal's [historic post][permpost]:
 > time goes to infinity).
 >
 > ...we can use symmetries coming from permutations, to only track cells
-> where $|x_0| < 13,\, |x_1| < 13,\, 0 \leq x_2 \leq x_3 \leq\,\ldots\, \leq x_{d-1} \leq t$.
+> where $|x_0| < 6,\, |x_1| < 6,\, 0 \leq x_2 \leq x_3 \leq\,\ldots\, \leq x_{d-1} \leq t$.
 > There's $20^2 \times \sum_{k=0}^{t} { {d-3+k} \choose {k} }$ such cells.
 >
 > --- Michal Marsalek
@@ -856,7 +862,7 @@ everyone's time out of the water: 3 seconds flat!
 [michalpost]: https://www.reddit.com/r/adventofcode/comments/kfb6zx/day_17_getting_to_t6_at_for_higher_spoilerss/ggsx9e9/
 
 At that point, it was pretty unbelievable to me that what started out as a
-dream goal that we couldn't have reasonably completed on a supercomputer had,
+dream goal that we couldn't have reasonably completed on a commercial PC had,
 through successive revelations and insights building on each other one by one,
 could now be done in 3 seconds.
 
@@ -1154,7 +1160,7 @@ It was [Michal Marsalek's coset counts post][cosetcounts] that set up the
 stage.  From the beginning, Michal had always tracked the number of cell cosets
 at the end of the simulation (the number of active "normalized" cells), and had
 been exploring the relationship between dimension and coset counts.  The
-discovery was that after a certain "saturation point" (6D for Michael's set, 9D
+discovery was that after a certain "saturation point" (6D for Michal's set, 9D
 for Peter's set, 7D for my set), all of the coset counts were *perfectly
 quadratic*!  For mine, it followed the relationship $d^2 + 109d + 70$ exactly
 for 7D and higher.
@@ -1443,7 +1449,7 @@ while playing around with this too!
 Looking forward at least, there are a some open threads still.
 
 1.  Notice on the [4D simulation](#gol4D), very soon after simulations start,
-    the two diagonals very very empty, and especially the 3x3 region at the
+    the two diagonals become very empty, and especially the 3x3 region at the
     origin where they intersect.  It turns out that reflection symmetry
     boundaries are extremely inhospitable because they have *so many
     neighbors* after reflection, especially at higher dimensions (see the
