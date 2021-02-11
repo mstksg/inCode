@@ -16,8 +16,8 @@ course of a month, we were able to discover successive new mathematical
 properties of a "degenerate" hyper-dimensional game of life" to take a "7
 dimensions may just barely be possible on a commercial PC, could we ever reach
 10 dimensions?" to "10 dimensions is easy enough to be run on any modern
-browser ([jump to spoilers here](#golFlat)), and 60 dimensions can be reached
-with a compiled language".
+browser ([jump](#gol2D) [to](#gol3D) [spoilers](#gol4D) [here](#golFlat)), and
+60 dimensions can be reached with a compiled language".
 
 This is a story about breaking a degenerate hyper-dimensional game of life via
 interactive exploratory visualizations and math!
@@ -520,9 +520,9 @@ Please enable Javascript
 :::::
 
 (Some patterns I recommend trying are the patterns with double reflection
-symmetry like [bulls-eye][] and [full block][], rotational symmetry like
-[spiral galaxy][], and single-reflection symmetries like [broken bar code][],
-which seems to alternate between different orientations).
+symmetry like [bulls-eye][], [full block][] and the twinkly [tub][], rotational
+symmetry like [spiral galaxy][], and single-reflection symmetries like [broken
+bar code][], which seems to alternate between different orientations).
 
 Most initial conditions will spread out from the center `<z,w> = <0,0>` slice
 radially, spreading outwards into positive and negative z and w.  Mouse-over or
