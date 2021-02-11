@@ -1259,10 +1259,10 @@ Please enable Javascript
 
 :::::
 
-(A lot of examples with symmetries look nice here, such as [spiral galaxy][]
-and [bulls-eye][]; the alternating symmetries of [broken bar code][] look nice
-too! But honestly, at higher-dimensions, almost any input ends up generating
-appealing gradients, like [glider][] and [my own input][owninput])
+(A lot of examples with symmetries look nice here, such as [spiral galaxy][] up
+to 6D and [bulls-eye][]; the alternating symmetries of [broken bar code][] look
+nice too! But honestly, at higher-dimensions, almost any input ends up
+generating appealing gradients, like [glider][] and [my own input][owninput])
 
 Play around with it, it's the big finale! :D  You can move all the way up to
 10D; some computers might struggle, but on my lower-end cell phone it seems to

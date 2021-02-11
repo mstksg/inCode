@@ -18,6 +18,8 @@ const sameArray = function(xs,ys) {
     }
 }
 
+const clamp = ((x,a,b) => Math.max(a,Math.min(b,x)));
+
 exports.logMe = function(x) {
     return function() {
         console.log(x);
@@ -232,6 +234,7 @@ exports._setupDrawer = function(sel, size, dispPts, callback) {
         const svg = d3.select(sel)
             .append("svg")
             .attr("viewBox", [0,0,window_size.width, window_size.height])
+            .style("touch-action","none")
             .style("max-width","15em")
             .style("margin","auto")
             .style("display","block");
@@ -341,7 +344,9 @@ exports._setupDrawer = function(sel, size, dispPts, callback) {
               }
             );
         const clickon = function(e) {
-            e.preventDefault();
+            if (e.cancelable) {
+                e.preventDefault();
+            }
             // console.log(currx,curry);
             if (!(currx == null || curry == null)) {
                 mode = (activePts[currx][curry]) ? MODE.CLEAR : MODE.SET;
@@ -353,15 +358,22 @@ exports._setupDrawer = function(sel, size, dispPts, callback) {
             drawer(currx,curry);
         }
         const clickoff = function(e) {
-            e.preventDefault();
+            if (e.cancelable) {
+                e.preventDefault();
+            }
             mode = MODE.OFF;
             setCopy();
             callback(mkOutput().map(({x,y}) => ({x,y})))();
         }
-        grid.grid.on("mousedown",clickon)
-           .on("touchstart",clickon)
-           .on("mouseup",clickoff)
-           .on("touchend",clickoff);
+        if ("ontouchstart" in document) {
+            grid.grid
+               .on("touchstart",clickon)
+               .on("touchend",clickoff);
+        } else {
+            grid.grid
+               .on("mousedown",clickon)
+               .on("mouseup",clickoff);
+        }
         setGrid([]);
 
         return function (xs) {
@@ -373,7 +385,7 @@ exports._setupDrawer = function(sel, size, dispPts, callback) {
     }
 }
 
-const slider_size = { height: 40, width: 200 }
+const slider_size = { height: 50, width: 200 }
 
 const neighbs2d =
     [{x:0,y:0},{x:0,y:-1},{x:0,y:1}
@@ -400,6 +412,7 @@ exports._setupGolFlat = function(sel,showPts,{height,width,maxT,maxDim}) {
         const svg = d3.select(sel)
             .append("svg")
             .attr("viewBox", [0,0,window_size.width, window_size.height])
+            .style("touch-action","none")
             .style("max-width","15em")
             .style("margin","auto")
             .style("display","block");
@@ -409,7 +422,7 @@ exports._setupGolFlat = function(sel,showPts,{height,width,maxT,maxDim}) {
                 .append("svg")
                 .attr("viewBox", [0,0, slider_size.width, slider_size.height])
                 .style("max-width","15em")
-                .style("margin","1em auto 0 auto")
+                .style("margin","0.5em auto 0 auto")
                 .style("display","block")
                 .style("overflow","visible");
         }
@@ -417,7 +430,7 @@ exports._setupGolFlat = function(sel,showPts,{height,width,maxT,maxDim}) {
                 .append("svg")
                 .attr("viewBox", [0,0, slider_size.width, slider_size.height])
                 .style("max-width","15em")
-                .style("margin","1em auto 0 auto")
+                .style("margin","0.5em auto 0 auto")
                 .style("display","block")
                 .style("overflow","visible");
         let ptsdisp = null;
@@ -494,27 +507,37 @@ exports._setupGolFlat = function(sel,showPts,{height,width,maxT,maxDim}) {
             currDim = d;
             currSel = sel;
         }
+        const clicky = function() {
+            locked = !locked;
+            if (locked) {
+                gridSetup.underlighter(0.05);
+            } else {
+                gridSetup.underlighter(0);
+            }
+        }
         gridSetup = setupGrid(grid,"",width,height
             ,window_size.width-margin.left-margin.right
             ,window_size.height-margin.top-margin.bottom
-            , { onmove: ((x,y) => drawBoxes(currTime,currDim,{x,y},false))
+            , { onmove: function (x,y) {
+                    drawBoxes(currTime,currDim,{x,y},false);
+                    if ("ontouchstart" in document) {
+                        clicky();
+                    }
+                }
               , onleave: (() => drawBoxes(currTime,currDim,undefined,false))
               }
             );
         if (showPts) {
             gridSetup.grid.on("click", function(e) {
-                e.preventDefault();
-                locked = !locked;
-                if (locked) {
-                    gridSetup.underlighter(0.05);
-                } else {
-                    gridSetup.underlighter(0);
+                if (e.cancelable) {
+                    e.preventDefault();
                 }
+                clicky();
             });
         }
         if (maxDim) {
             const dimselbox = dimslidersvg.append("g")
-                            .attr("transform","translate(15,0)");
+                            .attr("transform","translate(15,10)");
             const dimslider = d3.sliderBottom()
                 .min(0)
                 .max(maxDim)
@@ -556,13 +579,14 @@ exports._setupGol3D = function(sel,{height,width,maxT}) {
             .append("svg")
             .attr("viewBox", [0,0,window_size.width*(maxT*2+1), window_size.height])
             .attr("width","100%")
+            .style("touch-action","none")
             .style("margin","auto")
             .style("display","block");
         const slidersvg = d3.select(sel)
                 .append("svg")
                 .attr("viewBox", [0,0, slider_size.width, slider_size.height])
                 .style("max-width","15em")
-                .style("margin","1em auto")
+                .style("margin","0.5em auto")
                 .style("display","block")
                 .style("overflow","visible");
         const symmetries = d3.range(0,maxT+1).map(z => (z > 0) ? [-z,z] : [z]);
@@ -699,13 +723,14 @@ exports._setupGol4D = function(sel,{height,width,maxT}) {
             .append("svg")
             .attr("viewBox", [0,0,window_size.width*(maxT*2+1), window_size.height*(maxT*2+1)])
             .attr("width","100%")
+            .style("touch-action","none")
             .style("margin","auto")
             .style("display","block");
         const slidersvg = d3.select(sel)
                 .append("svg")
                 .attr("viewBox", [0,0, slider_size.width, slider_size.height])
                 .style("max-width","15em")
-                .style("margin","1em auto")
+                .style("margin","0.5em auto")
                 .style("display","block")
                 .style("overflow","visible");
 
@@ -904,8 +929,8 @@ exports._drawGolSyms = function(sel, maxZ, {dim, gridSize, ptPos}, reversed) {
               // .attr("transform",`translate(${window_size.width*z0+margin.left},${window_size.height*(maxZ-w0)+margin.top})`);
                 .style("max-width","30em")
                 .style("margin","auto")
-                .style("display","block")
-                .style("overflow","visible");
+                .style("display","block");
+                // .style("overflow","visible");
 
         const allBoxes = svg.append("g");
         let boxes = [];
@@ -993,7 +1018,7 @@ exports._drawGolSyms5D = function(sel, getNeighbs) {
                 .attr("viewBox", [0,0,qOffset(maxZWQ+1), window_size.height*(maxZWQ+1)])
                 .attr("width","100%")
                 .style("margin","auto")
-                .style("overflow","visible")
+                // .style("overflow","visible")
                 .style("display","block");
 
         const setupBox = function(g,txt,boxsize,handlers) {
@@ -1011,7 +1036,9 @@ exports._drawGolSyms5D = function(sel, getNeighbs) {
                     .attr("stroke-width",2)
                     .attr("stroke-opacity",0.75);
             const mover = function(e) {
-                e.preventDefault();
+                if (e.cancelable) {
+                    e.preventDefault();
+                }
                 if ("onmove" in handlers) {
                   handlers.onmove();
                 }
@@ -1061,11 +1088,15 @@ exports._drawGolSyms5D = function(sel, getNeighbs) {
                     .attr("height",boxsize)
                     .attr("fill","white")
                     .attr("opacity",0);
-            capture
-                  .on("touchstart", mover)
-                  .on("touchend", leaver)
-                  .on("mouseenter", mover)
-                  .on("mouseleave", leaver);
+            if ("ontouchstart" in document) {
+                capture
+                      .on("touchstart", mover)
+                      .on("touchend", leaver);
+            } else {
+                capture
+                      .on("mouseenter", mover)
+                      .on("mouseleave", leaver);
+            }
             const underlighter = function(o) {
                underlight.attr("opacity", o);
             }
@@ -1121,7 +1152,8 @@ exports._drawGolSyms5D = function(sel, getNeighbs) {
 const setupGrid = function(svg,label,numx,numy,width,height,handlers) {
     const cell_width  = width  / numx;
     const cell_height = height / numy;
-    const grid = svg.append("g");
+    const grid = svg.append("g")
+            .style("touch-action","none");
     const underlight = grid.append("rect")
             .attr("width",width)
             .attr("height",height)
@@ -1180,31 +1212,40 @@ const setupGrid = function(svg,label,numx,numy,width,height,handlers) {
             .attr("fill","white")
             .attr("opacity",0);
     const mover = function(e) {
-        e.preventDefault();
-        const [mx,my] = d3.pointer(e,this);
+        if (e.cancelable) {
+            e.preventDefault();
+        }
+        const [mx,my] = (e instanceof TouchEvent) ? d3.pointers(e,this)[0] : d3.pointer(e,this);
         const x = Math.floor(mx/cell_width);
         const y = Math.floor(my/cell_height);
-        if (x >= 0 && x < numx && y >= 0 && y < numy) {
-            handlers.onmove(x,y);
-        }
+        // console.log(x,y,numx,numy,clamp(x,0,numx-1),clamp(y,0,numy-1));
+        // if (x >= 0 && x < numx && y >= 0 && y < numy) {
+        handlers.onmove(clamp(x,0,numx-1),clamp(y,0,numy-1));
+        // }
     }
     const leaver = function(e) {
-        if ("onleave" in handlers) {
-            handlers.onleave();
-        }
+        handlers.onleave();
     }
     // capture.style("-webkit-tap-highlight-color", "transparent")
     if ("onmove" in handlers) {
-        capture
+        if ("ontouchstart" in document) {
+            capture
               .on("touchmove", mover)
-              .on("touchstart", mover)
+              .on("touchstart", mover);
+        } else {
+            capture
               .on("mousemove", mover)
               .on("mouseenter", mover);
+        }
     }
     if ("onleave" in handlers) {
-        capture
-              .on("touchend", () => handlers.onleave())
+        if ("ontouchstart" in document) {
+            capture
+              .on("touchend", () => handlers.onleave());
+        } else {
+            capture
               .on("mouseleave", () => handlers.onleave());
+        }
 
     }
     const mkDrawer = function(s, col, o) {
@@ -1252,7 +1293,7 @@ const setupTimer = function(svg,size,width,callback) {
 
     const subslider = svg.append("g")
     const slidercont = subslider.append("g")
-            .attr("transform","translate(15,0)");
+            .attr("transform","translate(15,10)");
     const sliderino = tAxis(slidercont.append("g"))
             .on('onchange', callback);
     callback(sliderino.value());
@@ -1268,7 +1309,7 @@ const setupTimer = function(svg,size,width,callback) {
             .attr("stroke-width",0.5)
              .style("margin", 0)
              .style("padding", 0)
-             .attr("transform", `translate(${width/2-25},20)`);
+             .attr("transform", `translate(${width/2-25},30)`);
         const txt = g.append("text")
             .attr("fill","#555")
             .style("text-anchor","middle")
@@ -1276,7 +1317,7 @@ const setupTimer = function(svg,size,width,callback) {
             .attr("font-size", 10)
             .text(playing ? "Pause" : "Play");
         const tbb = txt.node().getBBox();
-        txt.attr("transform", `translate(${width/2},${20+18/2+tbb.height/2-2})`);
+        txt.attr("transform", `translate(${width/2},${30+18/2+tbb.height/2-2})`);
         g.on("click",null)
             .on("click",callback);
     }
@@ -1412,7 +1453,7 @@ exports._drawTree = function(sel,vecRun,mkHier,getContrib) {
         }
 
         const dimselbox = dimslidersvg.append("g")
-                        .attr("transform","translate(15,0)");
+                        .attr("transform","translate(15,10)");
         const dimslider = d3.sliderBottom()
             .min(1)
             .max(6)
@@ -1589,11 +1630,16 @@ exports._drawTree = function(sel,vecRun,mkHier,getContrib) {
             // capture
             node.append("circle")
                 .attr("r",8)
-                .attr("opacity",0)
-                .on("mouseenter", (e,d) => highlightNodes(d))
-                .on("touchstart", (e,d) => highlightNodes(d))
-                .on("mouseleave", () => clearNodes())
-                .on("touchend", () => clearNodes());
+                .attr("opacity",0);
+            if ("ontouchstart" in document) {
+                node
+                    .on("touchstart", (e,d) => highlightNodes(d))
+                    .on("touchend", () => clearNodes());
+            } else {
+                node
+                    .on("mouseenter", (e,d) => highlightNodes(d))
+                    .on("mouseleave", () => clearNodes());
+            }
             clearNodes();
 
 
