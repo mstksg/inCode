@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack runghc --resolver nightly-2018-05-11 --package ad --package hmatrix-vector-sized --package vector-sized
+-- stack runghc --resolver lts-16 --package ad --package hmatrix-vector-sized-0.1.3.0 --package vector-sized --package hmatrix --package comonad --package free
 
 -- | Source file accompanying
 -- https://blog.jle.im/entry/hamiltonian-dynamics-in-haskell.html
@@ -17,7 +17,6 @@ import           Numeric.LinearAlgebra.Static
 import           Numeric.LinearAlgebra.Static.Vector
 import qualified Control.Comonad                     as C
 import qualified Control.Comonad.Cofree              as C
-import qualified Data.Vector.Generic.Sized           as VG
 import qualified Data.Vector.Sized                   as V
 
 -- | A @'System' m n@ represents a system parameterized by @n@ generalized
@@ -84,9 +83,10 @@ tr2 = fmap rowsL . traverse lRows
 
 -- | Vector of vectors to matrix
 vec2l
-    :: V.Vector m (V.Vector n Double)
+    :: KnownNat n
+    => V.Vector m (V.Vector n Double)
     -> L m n
-vec2l = rowsL . fmap (vecR . VG.convert)
+vec2l = rowsL . fmap gvecR
 {-# INLINE vec2l #-}
 
 -- | Make a system given its inertias, coordinate functions, and potential
@@ -100,15 +100,12 @@ mkSystem
 mkSystem m f u = System
                     -- < convert from      | actual thing | convert to >
     { sysInertia       =                     m
-    , sysCoords        = vecR . cFrom      . f            . cTo . rVec
-    , sysJacobian      = tr   . vec2l      . jacobianT f  . cTo . rVec
-    , sysHessian       = tr2  . fmap vec2l . hessianF f   . cTo . rVec
-    , sysPotential     =                     u            . cTo . rVec
-    , sysPotentialGrad = vecR . cFrom      . grad u       . cTo . rVec
+    , sysCoords        =        gvecR      . f            . grVec
+    , sysJacobian      = tr   . vec2l      . jacobianT f  . grVec
+    , sysHessian       = tr2  . fmap vec2l . hessianF f   . grVec
+    , sysPotential     =                     u            . grVec
+    , sysPotentialGrad =        gvecR      . grad u       . grVec
     }
-  where
-    cTo   = VG.convert
-    cFrom = VG.convert
 
 
 -- | Equations of motion for a system at a given position in phase space
@@ -125,7 +122,7 @@ hamilEqns s (Phase q p) = (dqdt, dpdt)
     kHat    = trj `mul` mHat `mul` j
     kHatInv = inv kHat
     dqdt    = kHatInv #> p
-    dpdt    = vecR (VG.convert bigUglyThing) - sysPotentialGrad s q
+    dpdt    = gvecR bigUglyThing - sysPotentialGrad s q
       where
         bigUglyThing =
           fmap (\j2 -> -p <.> kHatInv #> trj #> mHat #> j2 #> kHatInv #> p)

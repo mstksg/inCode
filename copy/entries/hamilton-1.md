@@ -305,7 +305,7 @@ $$
 But, hey, this looks a lot like a matrix-vector multiplication!  If we make
 $\hat{J}_f$, an $m \times n$ matrix of partial derivatives of $f$
 ($\hat{J}_{fij} = \frac{\partial f_i}{\partial q_j}$) at a given point
-(typically called the [Jacobian matrix of f][Jacobian], then we have a nice
+(typically called the [Jacobian matrix of f][Jacobian]), then we have a nice
 expression for $\dot{\mathbf{x}}$:
 
 [Jacobian]: https://en.wikipedia.org/wiki/Jacobian_matrix_and_determinant
@@ -712,8 +712,8 @@ This gives functions like:
 
 ```haskell
 -- import qualified Data.Vector.Sorable.Sized as VS
-vecR  :: VS.Vector n Double -> R n
-rVec  :: R n                -> VS.Vector n Double
+gvecR :: V.Vector n Double  -> R n
+grVec :: R n                -> V.Vector n Double
 rowsL :: V.Vector m (R n)   -> L m n
 lRows :: L m n              -> V.Vector m (R n)
 ```
@@ -749,7 +749,7 @@ function, and the potential energy function:
 
 Now, I hesitate to call this "trivial"...but, I think it really is a
 straightforward direct translation of the definitions, minus some boilerplate
-conversions back and forth between vector using `VG.convert`, `vecR`, etc.!
+conversions back and forth between vector using `vecR`, `rVec`, etc.!
 
 1.  The vector of masses is just `m`
 2.  The coordinate function is just `f`
