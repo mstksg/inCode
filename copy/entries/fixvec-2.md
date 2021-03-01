@@ -1,7 +1,7 @@
 ---
 title: Fixed-Length Vector Types in Haskell (an Update for 2017)
 categories: Haskell, Tutorials, Reference
-tags: haskell, types
+tags: functional programming, dependent types, haskell, singletons, types
 create-time: 2017/08/23 13:34:12
 date: 2017/08/25 12:37:10
 identifier: fixvec-2
