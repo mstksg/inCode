@@ -22,6 +22,8 @@ import qualified Data.Map               as M
 import qualified Data.Text              as T
 import qualified Text.Blaze.Html5       as H
 import qualified Text.Pandoc.Definition as P
+import qualified Text.DocTemplates      as DT
+import qualified Text.DocTemplates.Internal as DT
 
 data Config = Config
     { confTitle         :: !T.Text
@@ -43,7 +45,7 @@ data Config = Config
 instance FromDhall Config
 
 interpretConfig :: Decoder Config
-interpretConfig = autoWith basicInterpretOptions
+interpretConfig = genericAutoWith basicInterpretOptions
 
 data PatronLevel = PLInactive
                  | PLSupport
@@ -63,7 +65,7 @@ type PatronList = M.Map T.Text PatronInfo
 interpretPatronList :: Decoder PatronList
 interpretPatronList = fmap M.fromList . list . record $
     (,) <$> field "name" strictText
-        <*> field "info" (autoWith basicInterpretOptions)
+        <*> field "info" (genericAutoWith basicInterpretOptions)
 
 data EnvType = ETDevelopment | ETProduction
   deriving (Show, Eq, Ord, Enum, Generic)
@@ -242,19 +244,36 @@ data ArchiveData a = ADAll               (M.Map Year (M.Map Month (M.Map LocalTi
                    | ADTagged Tag        [a]
   deriving (Show, Foldable, Traversable, Functor)
 
-instance B.Binary P.Pandoc
-instance B.Binary P.Meta
-instance B.Binary P.Block
-instance B.Binary P.MetaValue
-instance B.Binary P.Inline
-instance B.Binary P.Format
-instance B.Binary P.ListNumberStyle
-instance B.Binary P.QuoteType
-instance B.Binary P.ListNumberDelim
 instance B.Binary P.Alignment
+instance B.Binary P.Block
+instance B.Binary P.Caption
+instance B.Binary P.Cell
 instance B.Binary P.Citation
-instance B.Binary P.MathType
 instance B.Binary P.CitationMode
+instance B.Binary P.ColSpan
+instance B.Binary P.ColWidth
+instance B.Binary P.Format
+instance B.Binary P.Inline
+instance B.Binary P.ListNumberDelim
+instance B.Binary P.ListNumberStyle
+instance B.Binary P.MathType
+instance B.Binary P.Meta
+instance B.Binary P.MetaValue
+instance B.Binary P.Pandoc
+instance B.Binary P.QuoteType
+instance B.Binary P.Row
+instance B.Binary P.RowHeadColumns
+instance B.Binary P.RowSpan
+instance B.Binary P.TableBody
+instance B.Binary P.TableFoot
+instance B.Binary P.TableHead
+
+instance B.Binary DT.Alignment
+instance B.Binary DT.Border
+instance B.Binary DT.Pipe
+instance B.Binary DT.Variable
+instance B.Binary a => B.Binary (DT.Doc a)
+instance B.Binary a => B.Binary (DT.Template a)
 
 basicInterpretOptions :: InterpretOptions
 basicInterpretOptions = defaultInterpretOptions

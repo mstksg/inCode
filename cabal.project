@@ -1,1 +1,7 @@
 packages: ./
+
+source-repository-package
+    type: git
+    location: https://github.com/mstksg/hakyll-dhall.git
+    tag: 3b1ac529568e1c999e8d77d609d5095bfcbd8e7f
+    --sha256: 13r52ma5g2cagy4fx8py56gp1a517yxid1kak0yh8j7fxdad7rn9

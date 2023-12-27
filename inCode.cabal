@@ -55,6 +55,7 @@ library
     , containers
     , data-default
     , dhall
+    , doctemplates
     , feed
     , filepath
     , hakyll >=4.8

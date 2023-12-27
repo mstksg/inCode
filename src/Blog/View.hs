@@ -8,6 +8,7 @@ import           Blog.Types
 import           Blog.Util
 import           Data.Foldable
 import           Data.List
+import           Data.Maybe
 import           Text.Blaze.Html5            ((!))
 import qualified Data.Text                   as T
 import qualified Text.Blaze.Html5            as H
@@ -98,7 +99,7 @@ copyToHtmlString = either (error . show) T.unpack
                  . P.writeHtml5String entryWriterOpts
 
 stripPandoc :: P.Pandoc -> T.Text
-stripPandoc (P.Pandoc _ bs) = T.pack $ P.stringify inls
+stripPandoc (P.Pandoc _ bs) = P.stringify inls
   where
     inls = concatMap grabInls . intersperse (P.Plain [P.Space]) $ bs
     grabInls :: P.Block -> [P.Inline]
@@ -122,6 +123,6 @@ stripPandoc (P.Pandoc _ bs) = T.pack $ P.stringify inls
             ]
     grabInls (P.Header _ _ inls')  = inls'
     grabInls P.HorizontalRule      = P.toList $ P.text "---"
-    grabInls (P.Table cap _ _ _ _) = cap
+    grabInls (P.Table _ (P.Caption shortCap _) _ _ _ _) = fromMaybe [] shortCap     -- TODO: handle long caption
     grabInls _ = []
 

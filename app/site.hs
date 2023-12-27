@@ -11,9 +11,9 @@ import           Dhall
 import           Dhall.Pretty
 import           Hakyll
 import           System.IO
-import qualified Data.Text                                 as T
-import qualified Data.Text.Prettyprint.Doc                 as PP
-import qualified Data.Text.Prettyprint.Doc.Render.Terminal as PP
+import qualified Data.Text                     as T
+import qualified Prettyprinter                 as PP
+import qualified Prettyprinter.Render.Terminal as PP
 
 configPath :: T.Text
 configPath = "./config/site-data.dhall"

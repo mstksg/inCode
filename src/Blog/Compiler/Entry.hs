@@ -224,7 +224,7 @@ entryLaTeXCompiler = do
                . P.writeLaTeX opts
                . P.walk upgrade
                . P.bottomUp stripRules
-    stripRules P.HorizontalRule = P.Null
+    stripRules P.HorizontalRule = P.Plain []    -- TODO: should this be Para?
     stripRules other = other
     upgrade p = case p of
                   P.Header n t xs      | n > 1
