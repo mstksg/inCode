@@ -14,13 +14,13 @@
             inCode = final.haskell-nix.project' {
               name = "inCode";
               src = ./.;
-              compiler-nix-name = "ghc884";
+              compiler-nix-name = "ghc963";
               shell = {
                 withHoogle = false;
                 tools = {
                   cabal = { };
-                  # hlint = { };
-                  # haskell-language-server = { };
+                  hlint = { };
+                  haskell-language-server = { };
                 };
               };
             };

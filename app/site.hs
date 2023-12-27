@@ -22,7 +22,7 @@ main :: IO ()
 main = do
     znow <- getZonedTime
 
-    c@Config{..} <- input interpretConfig configPath
+    c <- input interpretConfig configPath
     let ?config = c
 
     PP.renderIO stdout

@@ -26,7 +26,7 @@ import           Control.Monad
 import           Control.Monad.Trans.Maybe
 import           Data.Default
 import           Data.Foldable
-import           Data.List
+import           Data.List (sortBy)
 import           Data.Maybe
 import           Data.Ord
 import           Data.Time.LocalTime

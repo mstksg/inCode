@@ -8,7 +8,7 @@ import           Blog.Types
 import           Blog.Util
 import           Control.Monad
 import           Data.Maybe
-import           Data.Time.Calendar
+import           Data.Time.Calendar (toGregorian)
 import           Data.Time.LocalTime
 import           Hakyll
 import qualified Data.Map.Strict     as M
