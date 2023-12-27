@@ -28,6 +28,7 @@
 /bower_components
 /TAGS
 /.history
+/result
 
 /copy/entries/placeholder.md
 *.dat

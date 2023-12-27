@@ -30,7 +30,7 @@
         flake = pkgs.inCode.flake { };
       in
       flake
-      // { packages.default = flake.packages."inCode:exe:inCode"; }
+      // { packages.default = flake.packages."inCode:exe:inCode-build"; }
     );
 }
 
