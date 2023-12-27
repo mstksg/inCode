@@ -13,7 +13,8 @@
 *.hi
 *.dyn_hi
 *.dyn_o
-*.cabal
+**~
+/dist-newstyle
 
 /.stack-work
 /_site
