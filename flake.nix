@@ -40,27 +40,31 @@
             impure = true;
             name = "inCode";
             buildInputs = [ purescript haskell ];
-            src = pkgs.nix-gitignore.gitignoreSourcePure ''
-              *
-              !/code-samples/
-              !/config/
-              !/copy/
-              !/css/
-              !/js/
-              !/latex/
-              !/scss/
-              !/static/
-            '' ./.;
+            srcs = [
+              ./code-samples
+              ./config
+              ./copy
+              ./css
+              ./js
+              ./latex
+              ./scss
+              ./static
+            ];
             LANG = "en_US.UTF-8";
             LOCALE_ARCHIVE = pkgs.lib.optionalString
               (pkgs.buildPlatform.libc == "glibc")
               "${pkgs.glibcLocales}/lib/locale/locale-archive";
-            preBuild = ''
+            unpackPhase = ''
+              for srcFile in $srcs; do
+                cp -a $srcFile/. $(stripHash $srcFile)
+              done
+
               mkdir _purescript
               find ${purescript}/output -type f -name index.js -exec sh -c '
                 file={};
                 subdir=$(basename $(dirname $file))
-                cp $file _purescript/$(echo $subdir | tr "[:upper:]" "[:lower:]").js' \;
+                destfile=_purescript/$(echo $subdir | tr "[:upper:]" "[:lower:]").js
+                cp $file $destfile' \;
             '';
             buildPhase = ''
               export XDG_CACHE_HOME=$(mktemp -d)

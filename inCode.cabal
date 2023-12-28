@@ -65,7 +65,6 @@ library
     , hakyll-sass
     , hjsmin
     , hsass
-    -- , inliterate
     , lens
     , pandoc
     , pandoc-types
