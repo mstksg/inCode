@@ -1,5 +1,5 @@
 package:
-  name: inCode
+  name: gol
   version: 0.0.1
   dependencies:
     - console
@@ -10,6 +10,3 @@ package:
     - web-html
     - web-uievents
     - web-url
-workspace:
-  package_set:
-    registry: 42.5.0

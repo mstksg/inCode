@@ -1,4 +1,4 @@
-module Entry where
+module Main where
 
 import Control.Monad.Maybe.Trans         (MaybeT(..), runMaybeT)
 import Control.Monad.State.Trans         (StateT(..), evalStateT)

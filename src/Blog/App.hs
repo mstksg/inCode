@@ -74,10 +74,14 @@ app znow@(ZonedTime _ tz) = do
 
     match "js/**" $ do
       route   idRoute
-      compile getResourceString
+      case confEnvType of
+        ETDevelopment -> compile copyFileCompiler
+        ETProduction  -> compile compressJsCompiler
 
     match "_purescript/**" $ do
       route   $ gsubRoute "_purescript/" (const "purescript/")
+      -- I guess we really don't need to compress if the build system already
+      -- outputs these compressed
       case confEnvType of
         ETDevelopment -> compile copyFileCompiler
         ETProduction  -> compile compressJsCompiler

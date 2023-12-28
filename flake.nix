@@ -9,6 +9,7 @@
   outputs = { self, nixpkgs, flake-utils, haskellNix, purifix }:
     flake-utils.lib.eachDefaultSystem (system:
       let
+        lib = nixpkgs.lib;
         overlays = [
           purifix.overlay
           haskellNix.overlay
@@ -34,12 +35,15 @@
         };
         haskellFlake = pkgs.inCode.flake { };
         inCode = rec {
-          purescript = pkgs.purifix { src = ./app-purescript; };
+          purescript = lib.mapAttrs
+            (name: value: value.bundle
+              { app = true; minify = false; module = "Main"; })
+            (pkgs.purifix { src = ./purescript; });
           haskell = haskellFlake.packages."inCode:exe:inCode-build";
           web = pkgs.stdenv.mkDerivation {
             impure = true;
             name = "inCode";
-            buildInputs = [ purescript haskell ];
+            buildInputs = [ haskell ];
             srcs = [
               ./code-samples
               ./config
@@ -60,11 +64,12 @@
               done
 
               mkdir _purescript
-              find ${purescript}/output -type f -name index.js -exec sh -c '
-                file={};
-                subdir=$(basename $(dirname $file))
-                destfile=_purescript/$(echo $subdir | tr "[:upper:]" "[:lower:]").js
-                cp $file $destfile' \;
+              ${
+                lib.concatStringsSep "\n" (lib.mapAttrsToList
+                    (name: value: ''cp ${value} _purescript/${name}.js'')
+                    purescript
+                  )
+               }
             '';
             buildPhase = ''
               export XDG_CACHE_HOME=$(mktemp -d)

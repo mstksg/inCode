@@ -1,4 +1,4 @@
-module Gol where
+module Main where
 
 import Control.Monad.Maybe.Trans  (MaybeT(..), runMaybeT)
 import Control.Alternative        as Alternative

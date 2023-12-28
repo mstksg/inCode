@@ -96,7 +96,7 @@ const ixPascal = function(n,x) {
 
 export const _ixPascal = ixPascal;
 
-const pascalIx = function(ps) {
+export const pascalIx = function(ps) {
     let res = 0;
     ps.forEach(function (p, i) {
         if (p > 0) {
@@ -105,8 +105,6 @@ const pascalIx = function(ps) {
     });
     return res;
 }
-
-export const pascalIx = pascalIx;
 
 const maxBinom = function(n,lim) {
     let i = 0;
