@@ -35,15 +35,12 @@
         };
         haskellFlake = pkgs.inCode.flake { };
         inCode = rec {
-          purescript = lib.mapAttrs
-            (name: value: value.bundle
-              { app = true; minify = false; module = "Main"; })
-            (pkgs.purifix { src = ./purescript; });
+          purescript = pkgs.purifix { src = ./purescript; };
           haskell = haskellFlake.packages."inCode:exe:inCode-build";
           web = pkgs.stdenv.mkDerivation {
             impure = true;
             name = "inCode";
-            buildInputs = [ haskell ];
+            buildInputs = [ haskell ] ++ lib.attrValues purescript;
             srcs = [
               ./code-samples
               ./config
@@ -66,7 +63,7 @@
               mkdir _purescript
               ${
                 lib.concatStringsSep "\n" (lib.mapAttrsToList
-                    (name: value: ''cp ${value} _purescript/${name}.js'')
+                    (name: value: ''cp ${value.bundle-app} _purescript/${name}.js'')
                     purescript
                   )
                }
