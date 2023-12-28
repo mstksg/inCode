@@ -5,11 +5,12 @@ import Control.Monad.State.Trans         (StateT(..), evalStateT)
 import Control.Monad.Writer.Trans        (WriterT, execWriterT, tell)
 import Control.Plus                      (empty, (<|>))
 import Data.Array                        as A
-import Data.Char.Unicode                 (isSpace)
+import Data.CodePoint.Unicode            (isSpace)
 import Data.Either                       (Either(..))
 import Data.Maybe                        (Maybe(..), maybe)
 import Data.String                       (Pattern(..))
 import Data.String.CodeUnits             (stripPrefix, toCharArray)
+import Data.String.CodePoints            (toCodePointArray)
 import Data.Traversable                  (all, for_, intercalate, traverse_)
 import Data.Tuple                        (Tuple(..))
 import Effect                            (Effect)
@@ -192,7 +193,7 @@ processCodeBlocks doc = do
         go = do
           fc' <- Node.firstChild blk
           for_ fc' \fc -> do
-            isWhitespace <- all isSpace <<< toCharArray <$> Node.textContent fc
+            isWhitespace <- all isSpace <<< toCodePointArray <$> Node.textContent fc
             when isWhitespace do
               void $ Node.removeChild fc blk
               go
