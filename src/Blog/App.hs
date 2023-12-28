@@ -39,6 +39,7 @@ import           System.FilePath
 import           Text.Jasmine
 import           Text.Read                 (readMaybe)
 import qualified Data.Map                  as M
+import qualified Data.List.NonEmpty        as NE
 import qualified Data.Text                 as T
 import qualified Data.Text.Lazy            as TL
 import qualified Data.Text.Lazy.Encoding   as TL
@@ -47,7 +48,7 @@ import qualified Data.Text.Lazy.Encoding   as TL
 app :: (?config :: Config)
     => ZonedTime
     -> Rules ()
-app znow@(ZonedTime _ tz) = do
+app (ZonedTime _ tz) = do
     match "static/**" $ do
       route   $ gsubRoute "static/" (const "")
       compile copyFileCompiler
@@ -237,11 +238,13 @@ app znow@(ZonedTime _ tz) = do
       rulesExtraDependencies [deps] $ do
         route   idRoute
         compile $ do
-          sorted <- traverse (`loadSnapshotBody` "entry")
-                  . take (fromIntegral (prefFeedEntries confBlogPrefs))
-                  . reverse
-                  $ entriesSorted
-          makeItem . TL.unpack $ viewFeed sorted tz (zonedTimeToUTC znow)
+          Just sorted
+            <- fmap NE.nonEmpty
+             . traverse (`loadSnapshotBody` "entry")
+             . take (fromIntegral (prefFeedEntries confBlogPrefs))
+             . reverse
+             $ entriesSorted
+          makeItem . TL.unpack $ viewFeed sorted tz
 
     create ["rss"] $ do
       route   idRoute
