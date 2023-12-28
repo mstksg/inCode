@@ -10,7 +10,7 @@ import           Blog.Util.Tag
 import           Blog.View
 import           Blog.View.Social
 import           Control.Monad
-import           Data.List
+import           Data.List (intersperse)
 import           Data.Maybe
 import           Data.String
 import           System.FilePath

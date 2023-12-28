@@ -74,14 +74,13 @@ app znow@(ZonedTime _ tz) = do
 
     match "js/**" $ do
       route   idRoute
-      compile compressJsCompiler
+      compile getResourceString
 
     match "_purescript/**" $ do
       route   $ gsubRoute "_purescript/" (const "purescript/")
       case confEnvType of
         ETDevelopment -> compile copyFileCompiler
         ETProduction  -> compile compressJsCompiler
-
 
     match "copy/tags/**" $ do
       route   mempty

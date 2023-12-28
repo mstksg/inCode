@@ -42,7 +42,9 @@ data Config = Config
     , confEnvType       :: !EnvType
     }
   deriving (Show, Eq, Generic)
-instance FromDhall Config
+
+instance FromDhall Config where
+  autoWith = genericAutoWithInputNormalizer basicInterpretOptions
 
 interpretConfig :: Decoder Config
 interpretConfig = genericAutoWith basicInterpretOptions
@@ -51,14 +53,18 @@ data PatronLevel = PLInactive
                  | PLSupport
                  | PLAmazing
   deriving (Show, Eq, Ord, Generic)
-instance FromDhall PatronLevel
+
+instance FromDhall PatronLevel where
+  autoWith = genericAutoWithInputNormalizer basicInterpretOptions
 
 data PatronInfo = PatronInfo
     { patronTwitter :: !(Maybe T.Text)
     , patronLevel   :: !PatronLevel
     }
   deriving (Show, Eq, Ord, Generic)
-instance FromDhall PatronInfo
+
+instance FromDhall PatronInfo where
+  autoWith = genericAutoWithInputNormalizer basicInterpretOptions
 
 type PatronList = M.Map T.Text PatronInfo
 
@@ -69,7 +75,9 @@ interpretPatronList = fmap M.fromList . list . record $
 
 data EnvType = ETDevelopment | ETProduction
   deriving (Show, Eq, Ord, Enum, Generic)
-instance FromDhall EnvType
+
+instance FromDhall EnvType where
+  autoWith = genericAutoWithInputNormalizer basicInterpretOptions
 
 data AuthorInfo = AuthorInfo
     { authorName     :: T.Text
@@ -121,7 +129,8 @@ data BlogPrefs = BlogPrefs
     }
   deriving (Show, Eq, Generic)
 
-instance FromDhall DeveloperAPIs
+instance FromDhall DeveloperAPIs where
+  autoWith = genericAutoWithInputNormalizer basicInterpretOptions
 
 -- instance FromJSON PatronLevel where
 --   parseJSON = A.genericParseJSON $ A.defaultOptions
@@ -141,10 +150,14 @@ instance FromDhall DeveloperAPIs
 --   toJSON = A.genericToJSON $ A.defaultOptions
 --              { A.fieldLabelModifier = A.camelTo2 '-' . drop 6 }
 
-instance FromDhall AuthorInfo
-instance FromDhall HostInfo
-instance FromDhall Blobs
-instance FromDhall BlogPrefs
+instance FromDhall AuthorInfo where
+  autoWith = genericAutoWithInputNormalizer basicInterpretOptions
+instance FromDhall HostInfo where
+  autoWith = genericAutoWithInputNormalizer basicInterpretOptions
+instance FromDhall Blobs where
+  autoWith = genericAutoWithInputNormalizer basicInterpretOptions
+instance FromDhall BlogPrefs where
+  autoWith = genericAutoWithInputNormalizer basicInterpretOptions
 
 data TagType = GeneralTag | CategoryTag | SeriesTag
   deriving (Show, Read, Eq, Ord, Enum, Generic, Typeable)
@@ -244,6 +257,15 @@ data ArchiveData a = ADAll               (M.Map Year (M.Map Month (M.Map LocalTi
                    | ADTagged Tag        [a]
   deriving (Show, Foldable, Traversable, Functor)
 
+basicInterpretOptions :: InterpretOptions
+basicInterpretOptions = defaultInterpretOptions
+    { fieldModifier       = over _head toLower
+                          . T.dropWhile isLower
+    , constructorModifier = \c ->
+        let (pr,po) = T.span isUpper c
+        in  T.last pr `T.cons` po
+    }
+
 instance B.Binary P.Alignment
 instance B.Binary P.Block
 instance B.Binary P.Caption
@@ -274,12 +296,3 @@ instance B.Binary DT.Pipe
 instance B.Binary DT.Variable
 instance B.Binary a => B.Binary (DT.Doc a)
 instance B.Binary a => B.Binary (DT.Template a)
-
-basicInterpretOptions :: InterpretOptions
-basicInterpretOptions = defaultInterpretOptions
-    { fieldModifier       = over _head toLower
-                          . T.dropWhile isLower
-    , constructorModifier = \c ->
-        let (pr,po) = T.span isUpper c
-        in  T.last pr `T.cons` po
-    }

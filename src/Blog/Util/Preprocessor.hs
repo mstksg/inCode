@@ -11,7 +11,7 @@ import           Control.Applicative.Lift
 import           Control.Arrow            ((&&&))
 import           Control.Monad
 import           Data.Char
-import           Data.List
+import           Data.List (intercalate)
 import           Data.Maybe               (fromMaybe, listToMaybe)
 import           Data.Traversable
 import           Hakyll

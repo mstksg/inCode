@@ -1,4 +1,4 @@
-cabal-version: 1.12
+cabal-version: 2.4
 
 -- This file has been generated from package.yaml by hpack version 0.35.2.
 --
@@ -10,9 +10,11 @@ synopsis:       Personal blog web system
 category:       Web
 author:         Justin Le
 maintainer:     justin@jle.im
-license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
+data-files:
+  config/**/*.dhall
+  latex/templates/default.latex
 
 library
   exposed-modules:

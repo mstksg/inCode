@@ -33,4 +33,4 @@ main = do
 
     putStrLn ""
 
-    hakyll $ app znow
+    hakyllWith (defaultConfiguration { inMemoryCache = False}) $ app znow
