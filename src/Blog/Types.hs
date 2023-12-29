@@ -29,6 +29,7 @@ data Config = Config
     { confTitle         :: !T.Text
     , confDesc          :: !T.Text
     , confAuthorInfo    :: !AuthorInfo
+    , confEntryTZ       :: !T.Text  -- ^ ie: America/Los_Angeles
     , confCopyright     :: !T.Text
     , confLicense       :: !T.Text
     , confLicenseLink   :: !T.Text

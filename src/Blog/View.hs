@@ -7,7 +7,7 @@ module Blog.View where
 import           Blog.Types
 import           Blog.Util
 import           Data.Foldable
-import           Data.List
+import           Data.List (intersperse)
 import           Data.Maybe
 import           Text.Blaze.Html5            ((!))
 import qualified Data.Text                   as T

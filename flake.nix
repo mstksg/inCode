@@ -38,7 +38,6 @@
           purescript = pkgs.purifix { src = ./purescript; };
           haskell = haskellFlake.packages."inCode:exe:inCode-build";
           web = pkgs.stdenv.mkDerivation {
-            impure = true;
             name = "inCode";
             buildInputs = [ haskell ] ++ lib.attrValues purescript;
             srcs = [

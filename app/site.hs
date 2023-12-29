@@ -6,10 +6,10 @@
 
 import           Blog.App
 import           Blog.Types
-import           Data.Time.LocalTime
 import           Dhall
 import           Dhall.Pretty
 import           Hakyll
+import Data.Time.Zones
 import           System.IO
 import qualified Data.Text                     as T
 import qualified Prettyprinter                 as PP
@@ -20,8 +20,6 @@ configPath = "./config/site-data.dhall"
 
 main :: IO ()
 main = do
-    znow <- getZonedTime
-
     c <- input interpretConfig configPath
     let ?config = c
 
@@ -33,4 +31,5 @@ main = do
 
     putStrLn ""
 
-    hakyllWith (defaultConfiguration { inMemoryCache = False}) $ app znow
+    tz <- loadTZFromDB (T.unpack $ confEntryTZ ?config)
+    hakyllWith (defaultConfiguration { inMemoryCache = False}) $ app tz

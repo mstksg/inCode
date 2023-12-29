@@ -43,12 +43,13 @@ import qualified Data.List.NonEmpty        as NE
 import qualified Data.Text                 as T
 import qualified Data.Text.Lazy            as TL
 import qualified Data.Text.Lazy.Encoding   as TL
+import Data.Time.Zones
 
 
 app :: (?config :: Config)
-    => ZonedTime
+    => TZ
     -> Rules ()
-app (ZonedTime _ tz) = do
+app tz = do
     match "static/**" $ do
       route   $ gsubRoute "static/" (const "")
       compile copyFileCompiler

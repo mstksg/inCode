@@ -10,10 +10,12 @@ import           Data.Default
 import           Data.Maybe
 import           Data.Time.Clock
 import           Data.Time.Format
+import qualified Data.Time.Format.ISO8601 as ISO8601
 import           Data.Time.LocalTime
 import           Text.DublinCore.Types
 import Data.Foldable (toList)
 import           Text.RSS.Export
+import Data.Time.Zones
 import           Text.RSS.Syntax
 import qualified Data.Text             as T
 import qualified Data.Text.Lazy        as TL
@@ -24,7 +26,7 @@ import Data.List.NonEmpty (NonEmpty)
 viewFeed
     :: (?config :: Config)
     => NonEmpty Entry
-    -> TimeZone
+    -> TZ
     -> TL.Text
 viewFeed entries tz = renderElement . xmlRSS $ feedRss entries tz
 
@@ -37,7 +39,7 @@ renderElement e = X.renderText def $
 feedRss
     :: (?config :: Config)
     => NonEmpty Entry
-    -> TimeZone
+    -> TZ
     -> RSS
 feedRss entries tz = (nullRSS feedTitle feedLink)
     { rssChannel = channel
@@ -70,9 +72,13 @@ feedRss entries tz = (nullRSS feedTitle feedLink)
       ]
     makeUrl          = renderUrl
     formatDateRfc    :: LocalTime -> T.Text
-    formatDateRfc    = T.pack . formatTime defaultTimeLocale rfc822DateFormat . localTimeToUTC tz
+    formatDateRfc    = T.pack . formatTime defaultTimeLocale rfc822DateFormat
+                     . localTimeToUTCTZ tz
     formatDateIso    :: LocalTime -> T.Text
-    formatDateIso    = T.pack . formatTime defaultTimeLocale (iso8601DateFormat Nothing) . localTimeToUTC tz
+    formatDateIso    = T.pack
+                     . ISO8601.iso8601Show
+                     . utctDay
+                     . localTimeToUTCTZ tz
     feedTitle        = confTitle <> " — Entries"
     feedLink         = makeUrl "/"
     feedDescription  = confDesc

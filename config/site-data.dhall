@@ -6,6 +6,7 @@
     ''
 , authorInfo =
     ./site-data/author-info.dhall
+, entryTZ = "America/Los_Angeles"
 , copyright =
     "2020 Justin Le"
 , license =
