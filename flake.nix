@@ -116,7 +116,7 @@
         };
         devShells.default = pkgs.mkShell {
           shellHook = ''
-            echo "Available commands: build-js inCode-build"
+            echo "Available commands: build-js inCode-build clean-all"
           '';
           nativeBuildInputs = [ pkgs.esbuild pkgs.purescript ]
             ++ haskellFlake.devShell.nativeBuildInputs
@@ -124,15 +124,12 @@
           packages = [
             build-js
             inCode.haskell
+            (pkgs.writeShellScriptBin "clean-all" ''
+              rm -r _purescript
+              rm -r _purescript-build
+              inCode-build clean
+            '')
           ];
-        };
-        apps.clean = flake-utils.lib.mkApp {
-          drv = pkgs.writeShellScriptBin "clean" ''
-            rm -r _purescript
-            rm -r _purescript-build
-            rm -r _cache
-            rm -r _site
-          '';
         };
       }
     );
