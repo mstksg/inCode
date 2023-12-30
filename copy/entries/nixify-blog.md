@@ -116,6 +116,11 @@ Going into this, the general workflow would be:
 
 [cachix]: https://www.cachix.org/
 
+One cool thing about cachix is that you get build caching for free for any
+derivation you hand-write across all of your environments.  You don't need to
+register your "package" to any sort of registry or set up custom cloud caching
+in every situation.
+
 ### What is a Derivation?
 
 The main character in all of these steps is the *nix derivation*.  In my mental
@@ -165,7 +170,7 @@ thanks to [Robert Pearce][].
 [hakyll-nix-template]: https://github.com/rpearce/hakyll-nix-template
 [Robert Pearce]: https://github.com/rpearce
 
-### Shortcomings
+### Shortcomings: Static Artifact Caching
 
 There is one shortcoming to this approach that I consider very significant --
 using nix with *cachix* ensures that we don't redo work at the derivation
@@ -187,8 +192,23 @@ home page, the rss feed, and any tag pages it appears on, etc.  It knows not to
 re-generate any single blog post pages or pdf files for different blog posts
 that aren't affected by the new update.
 
-If you're using github actions in the normal way, you can take advantage of
-this with github actions caches.  However, in the "nix style", if we really
-want to view the final generated site as a *nix derivation* (and not just, ie,
-a build script), it's a little more complicated to make this fit into the
-conceptual model.
+If you're using github actions in the normal way, you might be able to take
+advantage of this with github actions caches?  It's unclear to me how change
+detection interacts with this. However, in the "nix style", if we really want
+to view the final generated site as a *nix derivation* (and not just, ie, a
+build script), it's a little more complicated to make this fit into the
+conceptual model and make sure cache invalidation etc. works correctly.
+
+What would be really ideal is if these units of cached data (individual web
+pages, etc.) could be managed and invalidated by nix itself --- maybe each blog
+post's outputs (the html, pdf, post-processed markdown, latex) could be a
+derivation, and so these derivations won't have to be re-built if the blog post
+is not changed.  There seems to be a few options in terms of "purely nix"
+static site generators that could do this I think, but that's not really an
+option to me because the blog at this point is pretty huge, logic-wise, and
+also I would rather write the blog in Haskell in the end still.
+
+Maybe in the future I could figure out how to modify hakyll to use the nix
+cache for its caching and invalidation, instead of its own bespoke method?  I
+wonder if that's even a viable option.  If anyone has any insight, this newbie
+would really appreciate hearing!
