@@ -4,7 +4,7 @@ let mkPatron =
       λ(name : Text) →
       λ(twitter : Optional Text) →
       λ(level : Level) →
-        { name = name, info = { twitter = twitter, level = level } }
+        { name, info = { twitter, level } }
 
 in  [ mkPatron "Josh Vera" (None Text) Level.Amazing
     , mkPatron "Josh Miller" (None Text) Level.Support
