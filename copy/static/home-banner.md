@@ -20,7 +20,7 @@ Models][pftm]!
 [conharm]: http://blog.jle.im/entry/io-monad-considered-harmful.html
 [io]: http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity.html
 [pftm]: https://blog.jle.im/entry/purely-functional-typed-models-1.html
-[Chapman Univerify]: https://chapman.edu/
+[Chapman University]: https://chapman.edu/
 [SimSpace]: https://simspace.com/
 [Google]: https://google.com/
 [Anduril]: https://anduril.com/
