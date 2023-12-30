@@ -13,20 +13,18 @@
 *.hi
 *.dyn_hi
 *.dyn_o
-*.cabal
+**~
+/dist-newstyle
 
 /.stack-work
-/_site
-/_cache
-/_build
-/_ghcjs
-/_purescript
+/_*
 /.psci
 /.psci_modules
 /output
 /bower_components
 /TAGS
 /.history
+/result
 
 /copy/entries/placeholder.md
 *.dat

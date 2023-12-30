@@ -8,7 +8,7 @@ import           Blog.Types
 import           Blog.Util.Tag
 import           Blog.View.TagIndex
 import           Data.Default
-import           Data.List
+import           Data.List (sortBy)
 import           Data.Maybe
 import           Data.Traversable
 import           Hakyll

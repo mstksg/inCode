@@ -15,6 +15,7 @@ import qualified Data.Map                 as M
 import qualified Data.Text                as T
 import qualified Text.Pandoc              as P
 import qualified Text.Pandoc.Highlighting as P
+import qualified Text.DocTemplates        as P
 
 
 renderShortFriendlyTime :: FormatTime t => t -> String
@@ -61,8 +62,9 @@ entryWriterOpts :: P.WriterOptions
 entryWriterOpts =
     def { P.writerHTMLMathMethod = P.MathJax "//cdn.jsdelivr.net/npm/mathjax@3.1.2"
         , P.writerHighlightStyle = Just P.pygments
-        , P.writerVariables      = [("geometry","margin=1in")
-                                   ,("links-as-notes","true")]
+        , P.writerVariables      = P.Context $ M.fromList
+                                   [("geometry",P.SimpleVal "margin=1in")
+                                   ,("links-as-notes",P.SimpleVal "true")]
         , P.writerColumns        = 80
         , P.writerExtensions     = P.pandocExtensions
         -- P.writerHtml5 = True

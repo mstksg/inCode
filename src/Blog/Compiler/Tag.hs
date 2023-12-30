@@ -8,7 +8,7 @@ import           Blog.Compiler.Archive
 import           Blog.Types
 import           Blog.Util
 import           Blog.Util.Tag
-import           Data.List
+import           Data.List (sortBy)
 import           Data.Maybe
 import           Data.String
 import           Hakyll

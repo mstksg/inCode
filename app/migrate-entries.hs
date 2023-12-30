@@ -7,7 +7,7 @@ import           Control.Monad
 import           Control.Monad.Trans.State
 import           Data.Default
 import           Data.Foldable
-import           Data.List
+import           Data.List (intercalate, isPrefixOf)
 import           Data.Maybe
 import           Data.Scientific
 import           Options.Applicative

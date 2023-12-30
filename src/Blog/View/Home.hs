@@ -13,7 +13,7 @@ import           Blog.View
 import           Blog.View.Social
 import           Control.Applicative
 import           Control.Monad
-import           Data.List
+import           Data.List (sortBy)
 import           Data.String
 import           Text.Blaze.Html5            ((!))
 import qualified Data.Map                    as M

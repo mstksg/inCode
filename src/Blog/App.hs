@@ -26,7 +26,7 @@ import           Control.Monad
 import           Control.Monad.Trans.Maybe
 import           Data.Default
 import           Data.Foldable
-import           Data.List
+import           Data.List (sortBy)
 import           Data.Maybe
 import           Data.Ord
 import           Data.Time.LocalTime
@@ -39,15 +39,17 @@ import           System.FilePath
 import           Text.Jasmine
 import           Text.Read                 (readMaybe)
 import qualified Data.Map                  as M
+import qualified Data.List.NonEmpty        as NE
 import qualified Data.Text                 as T
 import qualified Data.Text.Lazy            as TL
 import qualified Data.Text.Lazy.Encoding   as TL
+import Data.Time.Zones
 
 
 app :: (?config :: Config)
-    => ZonedTime
+    => TZ
     -> Rules ()
-app znow@(ZonedTime _ tz) = do
+app tz = do
     match "static/**" $ do
       route   $ gsubRoute "static/" (const "")
       compile copyFileCompiler
@@ -74,14 +76,17 @@ app znow@(ZonedTime _ tz) = do
 
     match "js/**" $ do
       route   idRoute
-      compile compressJsCompiler
-
-    match "_purescript/**" $ do
-      route   $ gsubRoute "_purescript/" (const "purescript/")
       case confEnvType of
         ETDevelopment -> compile copyFileCompiler
         ETProduction  -> compile compressJsCompiler
 
+    match "_purescript/**" $ do
+      route   $ gsubRoute "_purescript/" (const "purescript/")
+      -- I guess we really don't need to compress if the build system already
+      -- outputs these compressed
+      case confEnvType of
+        ETDevelopment -> compile copyFileCompiler
+        ETProduction  -> compile compressJsCompiler
 
     match "copy/tags/**" $ do
       route   mempty
@@ -234,11 +239,13 @@ app znow@(ZonedTime _ tz) = do
       rulesExtraDependencies [deps] $ do
         route   idRoute
         compile $ do
-          sorted <- traverse (`loadSnapshotBody` "entry")
-                  . take (fromIntegral (prefFeedEntries confBlogPrefs))
-                  . reverse
-                  $ entriesSorted
-          makeItem . TL.unpack $ viewFeed sorted tz (zonedTimeToUTC znow)
+          Just sorted
+            <- fmap NE.nonEmpty
+             . traverse (`loadSnapshotBody` "entry")
+             . take (fromIntegral (prefFeedEntries confBlogPrefs))
+             . reverse
+             $ entriesSorted
+          makeItem . TL.unpack $ viewFeed sorted tz
 
     create ["rss"] $ do
       route   idRoute

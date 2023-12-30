@@ -12,7 +12,7 @@ import           Control.Monad
 import           Control.Monad.Trans.Class
 import           Control.Monad.Trans.Maybe
 import           Data.Char
-import           Data.List
+import           Data.List (sortBy)
 import           Data.Maybe
 import           Data.Ord
 import           Data.String

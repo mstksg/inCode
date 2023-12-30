@@ -1,6 +1,4 @@
 
-"use strict";
-
 const sansSerif = "Helvetica Neue,Helvetica,Arial,sans-serif"
 
 const sameArray = function(xs,ys) {
@@ -20,7 +18,7 @@ const sameArray = function(xs,ys) {
 
 const clamp = ((x,a,b) => Math.max(a,Math.min(b,x)));
 
-exports.logMe = function(x) {
+export const logMe = function(x) {
     return function() {
         console.log(x);
     }
@@ -36,9 +34,9 @@ const binom = function(n,k) {
     return x;
 }
 
-exports._binom = binom;
+export const _binom = binom;
 
-exports.factorial = function(n) {
+export const factorial = function(n) {
     let i = 2;
     let x = 1;
     while (i <= n) {
@@ -48,7 +46,7 @@ exports.factorial = function(n) {
     return x;
 }
 
-exports._chompPascal = function(q0,n,k0,f) {
+export const _chompPascal = function(q0,n,k0,f) {
     let i = 0;
     let q = q0;
     let k = k0;
@@ -96,9 +94,9 @@ const ixPascal = function(n,x) {
     }
 }
 
-exports._ixPascal = ixPascal;
+export const _ixPascal = ixPascal;
 
-const pascalIx = function(ps) {
+export const pascalIx = function(ps) {
     let res = 0;
     ps.forEach(function (p, i) {
         if (p > 0) {
@@ -107,8 +105,6 @@ const pascalIx = function(ps) {
     });
     return res;
 }
-
-exports.pascalIx = pascalIx;
 
 const maxBinom = function(n,lim) {
     let i = 0;
@@ -120,9 +116,9 @@ const maxBinom = function(n,lim) {
     }
 };
 
-exports._maxBinom = maxBinom;
+export const _maxBinom = maxBinom;
 
-exports.memoInt = function(f) {
+export const memoInt = function(f) {
     let table = [];
     return function(x) {
         // console.log(table);
@@ -141,7 +137,7 @@ exports.memoInt = function(f) {
 
 // type Bazaar f a = forall r. (a -> f r) -> f Unit
 // type StopBazaar f a = (a -> f Boolean) -> f Unit
-exports.testPrint = function(f) {
+export const testPrint = function(f) {
     let i = 0;
     return f(x => function() {
         if (i > 10) {
@@ -157,7 +153,7 @@ exports.testPrint = function(f) {
 // extractor :: c -> (a -> b -> Effect r) -> Effect r
 // merger :: r -> r -> r
 // bazaar :: (c -> Effect r) -> Effect r
-exports._toIntMap = function(extractor, merger, bazaar) {
+export const _toIntMap = function(extractor, merger, bazaar) {
     let res = [];
     bazaar(x => function() {
         extractor(x)(i => y => function () {
@@ -179,7 +175,7 @@ const holeyForEach = function(xs,f) {
 
 // merger :: r -> r -> r
 // bazaar :: (IntMap r -> Effect r) -> Effect r
-exports._unionsIntMap = function(merger, bazaar) {
+export const _unionsIntMap = function(merger, bazaar) {
     let res = [];
     bazaar(xs => function () {
         holeyForEach(xs,function (i,x) {
@@ -193,7 +189,7 @@ exports._unionsIntMap = function(merger, bazaar) {
     return res;
 }
 
-exports._filterIntMap = function (f, xs) {
+export const _filterIntMap = function (f, xs) {
     let res = [];
     holeyForEach(xs, function(i,x) {
         if (f(x)) {
@@ -203,19 +199,19 @@ exports._filterIntMap = function (f, xs) {
     return res;
 }
 
-exports.intMapKeys = function (xs) {
+export const intMapKeys = function (xs) {
     let res = []
     holeyForEach(xs, (i, x) => res.push(i));
     return res;
 }
 
-exports._singletonIntMap = function(i, x) {
+export const _singletonIntMap = function(i, x) {
     let res = [];
     res[i] = x;
     return res;
 }
 
-exports.trace = function (tr) {
+export const trace = function (tr) {
     return function (x) {
         console.log(tr)
         return x;
@@ -226,7 +222,7 @@ const MODE = { OFF: 0, CLEAR: 1, SET: 2 }
 
 // dispPts :: Array [{x:Int, y:Int}] -> String
 // callback :: (Array [{x:Int, y:Int}] -> Effect Unit)
-exports._setupDrawer = function(sel, size, dispPts, callback) {
+export const _setupDrawer = function(sel, size, dispPts, callback) {
     const window_size = { height: 200, width: 200 }
     const margin = { top: 10, bottom: 10, left: 10, right: 10 }
     return function() {
@@ -401,7 +397,7 @@ const inRange = function(mn,mx,x) {
 // snapshots : [[Thunk [{ x: Int, y: Int, pts: [Int] }]]]     -- top level: time, second level, dim
 // if maxDim is null, only show d=0
 // showPts: include that extra div on the bottom
-exports._setupGolFlat = function(sel,showPts,{height,width,maxT,maxDim}) {
+export const _setupGolFlat = function(sel,showPts,{height,width,maxT,maxDim}) {
     const window_size = { height: 200, width: 200 }
     const margin = { top: 10, bottom: 10, left: 10, right: 10 }
     const cell_size = { height: (window_size.height-margin.top-margin.bottom) / height
@@ -570,7 +566,7 @@ exports._setupGolFlat = function(sel,showPts,{height,width,maxT,maxDim}) {
 }
 
 // aliveCells : [Thunk [{ x: Int, y: Int, zs: [Int] }]]
-exports._setupGol3D = function(sel,{height,width,maxT}) {
+export const _setupGol3D = function(sel,{height,width,maxT}) {
     return function () {
         const window_size = { height: 200, width: 200 }
         const margin = { top: 10, bottom: 10, left: 10, right: 10 }
@@ -689,7 +685,7 @@ exports._setupGol3D = function(sel,{height,width,maxT}) {
 }
 
 // aliveCells : [Thunk [{ x: Int, y: Int, zws: [Int] }]]
-exports._setupGol4D = function(sel,{height,width,maxT}) {
+export const _setupGol4D = function(sel,{height,width,maxT}) {
     const window_size = { height: 200, width: 200 }
     const margin = { top: 10, bottom: 10, left: 10, right: 10 }
     const maxPascal = binom(2+maxT,maxT);
@@ -902,7 +898,7 @@ const neighbsArray = function(dim,maxZW,mkPt,reversed) {
 }
 
 // ptPos :: Array Int -> { x: Int, y: Int }         -- [0..maxZW]
-exports._drawGolSyms = function(sel, maxZ, {dim, gridSize, ptPos}, reversed) {
+export const _drawGolSyms = function(sel, maxZ, {dim, gridSize, ptPos}, reversed) {
     const window_size = { height: 200, width: 200 }
     const margin = { top: 10, bottom: 10, left: 10, right: 10 };
 
@@ -988,7 +984,7 @@ exports._drawGolSyms = function(sel, maxZ, {dim, gridSize, ptPos}, reversed) {
 }
 
 // getNeighbs :: Int -> IntMap Int
-exports._drawGolSyms5D = function(sel, getNeighbs) {
+export const _drawGolSyms5D = function(sel, getNeighbs) {
     const window_size = { height: 200, width: 200 }
     const maxZWQ = 5;
     const margin = { top: 0, bottom: 0, left: 0, right: 0, inter: 30 };
@@ -1342,7 +1338,7 @@ const setupTimer = function(svg,size,width,callback) {
 }
 
 // f :: a -> [a]
-exports._buildHierarchy = function (x,f) {
+export const _buildHierarchy = function (x,f) {
     return d3.hierarchy(x,f);
 }
 
@@ -1360,7 +1356,7 @@ const expandRun = r => r.flatMap((d, i) => d3.range(d).map(() => i))
 // getContrib :: Node -> Lazy Contrib
 // vecRun :: Int -> Int -> [Int]
 // mkHier :: Int -> Int -> Hierarchy
-exports._drawTree = function(sel,vecRun,mkHier,getContrib) {
+export const _drawTree = function(sel,vecRun,mkHier,getContrib) {
     const margin = { top: 10, bottom: 10, left: 30, right: 42 };
     const optSizeLim = 85;
     const maxZLim = 5;
@@ -1664,8 +1660,8 @@ exports._drawTree = function(sel,vecRun,mkHier,getContrib) {
 }
 
 
-exports.undefined = 0;
-exports._assignWindow = function(p,x) { return function () { window[p] = x; } }
+export const undefined = 0;
+export const _assignWindow = function(p,x) { return function () { window[p] = x; } }
 
-exports._setInnerHTML = function(e,x) { return function () { e.innerHTML = x; } }
-exports.preventDefault = function(e) { return function () { e.preventDefault(); } }
+export const _setInnerHTML = function(e,x) { return function () { e.innerHTML = x; } }
+export const preventDefault = function(e) { return function () { e.preventDefault(); } }

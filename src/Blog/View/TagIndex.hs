@@ -77,7 +77,6 @@ tagIndexLi tt t@Tag{..} recent =
                 case tt of
                   CategoryTag -> "> " ++ show (length tagEntries) ++ " entries"
                   SeriesTag   -> "(" ++ show (length tagEntries) ++ " entries)"
-                  _           -> ""
 
           H.div ! A.class_ "tag-description" $
             sequence_ (htmlDescription t)

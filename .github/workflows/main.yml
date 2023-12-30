@@ -1,0 +1,80 @@
+name: "Cachix"
+on:
+  pull_request:
+  push:
+jobs:
+  cache:
+    strategy:
+      matrix:
+        runner: [ ubuntu-latest, macos-latest ]
+    runs-on: ${{ matrix.runner }}
+    steps:
+    - name: Free Disk Space
+      uses: insightsengineering/free-disk-space@v1.1.0
+    - uses: actions/checkout@v3
+    - uses: cachix/install-nix-action@v22
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
+        github_access_token: ${{ secrets.GITHUB_TOKEN }}
+        extra_nix_config: |
+          access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+          allow-import-from-derivation = true
+          auto-optimise-store = true
+          experimental-features = nix-command flakes
+          substituters = https://cache.nixos.org https://cache.iog.io https://cache.zw3rk.com
+          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= loony-tools:pr9m4BkM/5/eSTZlkQyRt57Jz7OMBxNSUiMC4FkcNfk=
+    - uses: cachix/cachix-action@v13
+      with:
+        name: mstksg
+        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+    - run: nix build
+    - run: nix develop . --command bash -c "echo OK"
+
+  build-nix:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Free Disk Space
+      uses: insightsengineering/free-disk-space@v1.1.0
+    - uses: actions/checkout@v3
+    - uses: cachix/install-nix-action@v22
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
+        github_access_token: ${{ secrets.GITHUB_TOKEN }}
+        extra_nix_config: |
+          access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+          allow-import-from-derivation = true
+          auto-optimise-store = true
+          experimental-features = nix-command flakes
+          substituters = https://cache.nixos.org https://cache.iog.io https://cache.zw3rk.com
+          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= loony-tools:pr9m4BkM/5/eSTZlkQyRt57Jz7OMBxNSUiMC4FkcNfk=
+    - uses: cachix/cachix-action@v13
+      with:
+        name: mstksg
+        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+    - run: nix build
+    - name: Artifact pages
+      uses: actions/upload-artifact@v4
+      with:
+        name: pages
+        path: result/dist
+
+  deploy:
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    needs: [build-nix]
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pages
+          path: result
+
+      - name: Deploy to GitHub Pages
+        if: success()
+        uses: crazy-max/ghaction-github-pages@v4.0.0
+        with:
+          build_dir: result
+          target_branch: gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -10,22 +10,25 @@ import           Data.Default
 import           Data.Maybe
 import           Data.Time.Clock
 import           Data.Time.Format
+import qualified Data.Time.Format.ISO8601 as ISO8601
 import           Data.Time.LocalTime
 import           Text.DublinCore.Types
+import Data.Foldable (toList)
 import           Text.RSS.Export
+import Data.Time.Zones
 import           Text.RSS.Syntax
 import qualified Data.Text             as T
 import qualified Data.Text.Lazy        as TL
 import qualified Data.XML.Types        as XT
 import qualified Text.XML              as X
+import Data.List.NonEmpty (NonEmpty)
 
 viewFeed
     :: (?config :: Config)
-    => [Entry]
-    -> TimeZone
-    -> UTCTime
+    => NonEmpty Entry
+    -> TZ
     -> TL.Text
-viewFeed entries tz now = renderElement . xmlRSS $ feedRss entries tz now
+viewFeed entries tz = renderElement . xmlRSS $ feedRss entries tz
 
 renderElement :: XT.Element -> TL.Text
 renderElement e = X.renderText def $
@@ -35,16 +38,18 @@ renderElement e = X.renderText def $
 
 feedRss
     :: (?config :: Config)
-    => [Entry]
-    -> TimeZone
-    -> UTCTime
+    => NonEmpty Entry
+    -> TZ
     -> RSS
-feedRss entries tz now = (nullRSS feedTitle feedLink)
+feedRss entries tz = (nullRSS feedTitle feedLink)
     { rssChannel = channel
     , rssAttrs   = [dcSpec]
     }
   where
     Config{..} = ?config
+    now = case maximum $ entryPostTime <$> entries of
+      Nothing -> error "No posted entries"
+      Just t -> t
     channel = (nullChannel feedTitle feedLink)
       { rssDescription   = feedDescription
       , rssLanguage      = Just "en"
@@ -54,7 +59,7 @@ feedRss entries tz now = (nullRSS feedTitle feedLink)
       , rssLastUpdate    = Just (formatDateRfc now)
       -- , rssCategories =
       , rssGenerator     = Just "feed-1.0.0.0 (Sigbjorn Finne)"
-      , rssItems         = map rssItem entries
+      , rssItems         = map rssItem (toList entries)
       , rssChannelOther  = map dcItemToXml dcData
       , rssImage         = Just siteLogo
       }
@@ -66,10 +71,14 @@ feedRss entries tz now = (nullRSS feedTitle feedLink)
       , DCItem DC_Description feedDescription
       ]
     makeUrl          = renderUrl
-    formatDateRfc    :: UTCTime -> T.Text
+    formatDateRfc    :: LocalTime -> T.Text
     formatDateRfc    = T.pack . formatTime defaultTimeLocale rfc822DateFormat
-    formatDateIso    :: UTCTime -> T.Text
-    formatDateIso    = T.pack . formatTime defaultTimeLocale (iso8601DateFormat Nothing)
+                     . localTimeToUTCTZ tz
+    formatDateIso    :: LocalTime -> T.Text
+    formatDateIso    = T.pack
+                     . ISO8601.iso8601Show
+                     . utctDay
+                     . localTimeToUTCTZ tz
     feedTitle        = confTitle <> " — Entries"
     feedLink         = makeUrl "/"
     feedDescription  = confDesc
@@ -85,20 +94,19 @@ feedRss entries tz now = (nullRSS feedTitle feedLink)
         , rssItemCategories  = map rssCategory categs
         , rssItemGuid        = Just . RSSGuid (Just True) []
                                  $ makeUrl (T.pack entryCanonical)
-        , rssItemPubDate     = formatDateRfc . localTimeToUTC tz <$> entryPostTime
+        , rssItemPubDate     = formatDateRfc <$> entryPostTime
         , rssItemOther       = map dcItemToXml dcItemData
         }
       where
         categs = flip mapMaybe entryTags $ \(tt,t) ->
                    case tt of
                      CategoryTag -> Just t
-                     _           -> Nothing
+                     SeriesTag   -> Nothing
+                     GeneralTag  -> Nothing
         dcItemData =
           [ DCItem DC_Creator feedAuthorName
           , DCItem DC_Subject (T.intercalate ", " categs)
-          ] ++ maybeToList ( DCItem DC_Date . formatDateIso . localTimeToUTC tz
-                         <$> entryPostTime
-                           )
+          ] ++ maybeToList ( DCItem DC_Date . formatDateIso <$> entryPostTime )
     rssCategory = RSSCategory Nothing []
     dcSpec = ( X.Name "dc" Nothing (Just "xmlns")
              , [XT.ContentText "http://purl.org/dc/elements/1.1/"]

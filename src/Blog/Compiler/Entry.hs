@@ -26,14 +26,17 @@ import           Control.Monad
 import           Data.Bifunctor
 import           Data.Default
 import           Data.Foldable
-import           Data.List
+import           Data.Functor.Identity
+import           Data.List (sortBy)
 import           Data.Maybe
 import           Data.Ord
 import           Hakyll
+import           Hakyll.Core.Compiler.Internal
 import           Hakyll.Web.Blaze
 import           System.FilePath
 import           Text.Read              (readMaybe)
 import qualified Data.Text              as T
+import qualified Text.DocTemplates      as DT
 import qualified Text.Pandoc            as P
 import qualified Text.Pandoc.Builder    as P
 import qualified Text.Pandoc.Walk       as P
@@ -186,7 +189,11 @@ entryLaTeXCompiler
     :: (?config :: Config)
     => Compiler (Item String)
 entryLaTeXCompiler = do
-    templ <- loadBody "latex/templates/default.latex"
+    templString <- loadBody "latex/templates/default.latex"
+    templ <- case runIdentity $ DT.compileTemplate "" (T.pack templString) of
+      Right x -> pure x
+      Left e -> compilerThrow [e]
+
     signoffCopy <- readPandocWith entryReaderOpts =<< load "copy/static/signoff.md"
     let opts = entryWriterOpts { P.writerTemplate   = Just templ }
 
@@ -219,12 +226,12 @@ entryLaTeXCompiler = do
     fmap (toTex opts) <$> readPandocWith entryReaderOpts body
   where
     toTex :: P.WriterOptions -> P.Pandoc -> String
-    toTex opts = either (error . show) T.unpack
+    toTex opts = either (error . ("Pandoc error: " <>) . show) T.unpack
                . P.runPure
                . P.writeLaTeX opts
                . P.walk upgrade
                . P.bottomUp stripRules
-    stripRules P.HorizontalRule = P.Null
+    stripRules P.HorizontalRule = P.Plain []    -- TODO: should this be Para?
     stripRules other = other
     upgrade p = case p of
                   P.Header n t xs      | n > 1

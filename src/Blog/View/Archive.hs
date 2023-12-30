@@ -11,7 +11,7 @@ import           Blog.Util.Tag
 import           Blog.View
 import           Control.Monad
 import           Data.Foldable
-import           Data.List
+import           Data.List (intersperse)
 import           Data.String
 import           Data.Time.LocalTime
 import           System.FilePath

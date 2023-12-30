@@ -1,23 +1,7 @@
-module Gol where
+module Main where
 
--- import Control.Monad.Free      as Free
--- import Control.Monad.State
--- import Data.DateTime           as Date
--- import Data.DateTime.Instant   as Instant
--- import Data.FunctorWithIndex   as Indexed
--- import Data.Generic.Rep        as Generic
--- import Data.Generic.Rep.Show
--- import Data.List.Lazy.NonEmpty as NEList
--- import Data.Newtype            as Newtype
--- import Data.NonEmpty           as NE
--- import Data.Unfoldable hiding  (fromMaybe)
--- import Effect.Aff              (Aff)
--- import Effect.Aff              as Aff
--- import Effect.Class.Console    (log)
--- import Effect.Now              as Now
--- import Queue.One               as Queue
 import Control.Monad.Maybe.Trans  (MaybeT(..), runMaybeT)
-import Control.MonadZero          as MonadZero
+import Control.Alternative        as Alternative
 import Data.Array                 as A
 import Data.Bifunctor
 import Data.Foldable
@@ -62,7 +46,8 @@ import Web.HTML.HTMLDocument      as HTMLDocument
 import Web.HTML.History           as History
 import Web.HTML.Location          as Location
 import Web.HTML.Window            as Window
-import Web.URLSearchParams        as USP
+import Web.URL.URLSearchParams    as USP
+import Web.URL                    as URL
 
 main :: Effect Unit
 main = do
@@ -156,7 +141,7 @@ makeElemLinks doc elemMap = for_ elemMap $ \(Tuple e _) -> do
         linkString = append "Jump to: "
                  <<< intercalate " / "
                  <<< flip A.mapMaybe linkStrings $ \(Tuple e' (Tuple a b)) -> do
-                       MonadZero.guard $ Map.lookup e' elementGroupMap == groupId
+                       Alternative.guard $ Map.lookup e' elementGroupMap == groupId
                        pure $ if e' == e
                           then a
                           else b
@@ -175,23 +160,22 @@ makeElemLinks doc elemMap = for_ elemMap $ \(Tuple e _) -> do
 loadUri :: Document.Document -> Effect (Maybe (Set Point2))
 loadUri doc = runMaybeT do
     loc <- liftEffect $ Window.location =<< Web.window
-    searchStr <- liftEffect $ Location.search loc
-    usp <- liftEffect $ USP.new searchStr
-    str <- MaybeT $ USP.get usp "points"
+    usp0 <- liftEffect $ USP.fromString <$> Location.search loc
+    str <- maybe Alternative.empty pure $ USP.get "points" usp0
     let res = blocksToPoint str
-    MonadZero.guard (not (null res))
+        usp1 = USP.toString $ USP.delete "points" usp0
+    Alternative.guard (not (null res))
     origTitle <- MaybeT $
         traverse HTMLDocument.title (HTMLDocument.fromDocument doc)
     liftEffect $ do
-      USP.delete usp "points"
       basicUrl <- fold <$> sequence
         [ Location.origin loc
         , Location.pathname loc
         , Location.hash loc
-        , flip map (USP.toString usp) \nstr ->
-            if String.null nstr
-              then nstr
-              else "?" <> nstr
+        , pure $
+            if String.null usp1
+              then usp1
+              else "?" <> usp1
         ]
       hist <- Window.history =<< Web.window
       History.pushState
@@ -209,10 +193,10 @@ linkify doc cb = do
     flip traverseNodeList_ linkElems \linkElem -> void $ runMaybeT do
       liftEffect $ Element.setAttribute "title" "Click to load" linkElem
       href <- MaybeT $ Element.getAttribute "href" linkElem
-      usp  <- liftEffect $ USP.new (StringCU.dropWhile (_ /= '?') href)
-      str  <- MaybeT $ USP.get usp "points"
+      usp <- URL.searchParams <$> maybe Alternative.empty pure (URL.fromAbsolute href)
+      str  <- maybe Alternative.empty pure $ USP.get "points" usp
       let res = blocksToPoint str
-      MonadZero.guard (not (null res))
+      Alternative.guard (not (null res))
       liftEffect $ onE click (Element.toEventTarget linkElem) \e -> do
         preventDefault e
         cb res
@@ -343,7 +327,7 @@ vecRunNeighbs n orig = case List.step gens of
             p'  = p *
                     (factorial res * (2 `Int.pow` r)) `div` (factorial x * factorial r)
             tot' = tot
-        in  Tuple tot' p' <$ MonadZero.guard (not (allSame && x == x0))
+        in  Tuple tot' p' <$ Alternative.guard (not (allSame && x == x0))
       List.Cons l ls -> do
         xlContrib <- safeRange 0 (x+l)
         lContrib  <- safeRange (max 0 (xlContrib - x)) (min l xlContrib)
