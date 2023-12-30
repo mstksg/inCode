@@ -37,23 +37,9 @@
         inCode = rec {
           purescript = pkgs.purifix { src = ./purescript; };
           haskell = haskellFlake.packages."inCode:exe:inCode-build";
-          web-js = pkgs.stdenv.mkDerivation {
-            name = "inCode-js";
-            buildInputs = lib.attrValues purescript;
-            dontUnpack = true;
-            installPhase = ''
-              mkdir $out
-              ${
-                lib.concatStringsSep "\n" (lib.mapAttrsToList
-                    (name: value: ''cp ${value.bundle-app} $out/${name}.js'')
-                    purescript
-                  )
-               }
-            '';
-          };
           web = pkgs.stdenv.mkDerivation {
             name = "inCode";
-            buildInputs = [ haskell web-js ];
+            buildInputs = [ haskell ] ++ lib.attrValues purescript;
             srcs = [
               ./code-samples
               ./config
@@ -74,7 +60,12 @@
               done
 
               mkdir _purescript
-              cp -a ${web-js}/. _purescript
+              ${
+                lib.concatStringsSep "\n" (lib.mapAttrsToList
+                    (name: value: ''cp ${value.bundle-app} _purescript/${name}.js'')
+                    purescript
+                  )
+               }
             '';
             buildPhase = ''
               export XDG_CACHE_HOME=$(mktemp -d)
@@ -114,22 +105,27 @@
           inherit inCode;
           default = inCode.web;
         };
-        devShells.default = pkgs.mkShell {
-          shellHook = ''
-            echo "Available commands: build-js inCode-build clean-all"
-          '';
-          nativeBuildInputs = [ pkgs.esbuild pkgs.purescript ]
-            ++ haskellFlake.devShell.nativeBuildInputs
-            ++ lib.mapAttrsToList (name: value: value.develop.buildInputs) inCode.purescript;
-          packages = [
-            build-js
-            inCode.haskell
-            (pkgs.writeShellScriptBin "clean-all" ''
-              rm -r _purescript
-              rm -r _purescript-build
-              inCode-build clean
-            '')
-          ];
+        devShells = {
+          haskell-dev = pkgs.mkShell {
+            nativeBuildInputs = haskellFlake.devShell.nativeBuildInputs;
+          };
+          default = pkgs.mkShell {
+            shellHook = ''
+              echo "Available commands: build-js inCode-build clean-all"
+            '';
+            nativeBuildInputs = [ pkgs.esbuild pkgs.purescript ]
+              ++ haskellFlake.devShell.nativeBuildInputs
+              ++ lib.mapAttrsToList (name: value: value.develop.buildInputs) inCode.purescript;
+            packages = [
+              build-js
+              inCode.haskell
+              (pkgs.writeShellScriptBin "clean-all" ''
+                rm -r _purescript
+                rm -r _purescript-build
+                inCode-build clean
+              '')
+            ];
+          };
         };
       }
     );
