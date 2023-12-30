@@ -86,12 +86,54 @@
             '';
           };
         };
+        build-js =
+          let
+            buildSingleDep = name: value:
+              let
+                srcGlob = "purescript/${name}/src/**/*.purs";
+                buildDir = "_purescript-build/${name}";
+                mainModule = "./${buildDir}/Main/index.js";
+                outFile = "_purescript/${name}.js";
+              in
+              ''
+                mkdir -p ${buildDir}
+                purs compile ${toString value.globs} ${srcGlob} -o ${buildDir}
+                chmod -R +w ${buildDir}
+                echo "import {main} from '${mainModule}'; main()" | esbuild --bundle --outfile=${outFile} --format=iife
+              '';
+          in
+          pkgs.writeShellScriptBin
+            "build-js"
+            ''
+              mkdir -p _purescript;
+              ${lib.concatStringsSep "\n" (lib.mapAttrsToList buildSingleDep inCode.purescript)}
+            '';
       in
-      haskellFlake
-      //
       {
-        packages.default = inCode.web;
-        packages.inCode = inCode;
+        packages = {
+          inherit inCode;
+          default = inCode.web;
+        };
+        devShells.default = pkgs.mkShell {
+          shellHook = ''
+            echo "Available commands: build-js inCode-build"
+          '';
+          nativeBuildInputs = [ pkgs.esbuild pkgs.purescript ]
+            ++ haskellFlake.devShell.nativeBuildInputs
+            ++ lib.mapAttrsToList (name: value: value.develop.buildInputs) inCode.purescript;
+          packages = [
+            build-js
+            inCode.haskell
+          ];
+        };
+        apps.clean = flake-utils.lib.mkApp {
+          drv = pkgs.writeShellScriptBin "clean" ''
+            rm -r _purescript
+            rm -r _purescript-build
+            rm -r _cache
+            rm -r _site
+          '';
+        };
       }
     );
 }

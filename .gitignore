@@ -17,11 +17,7 @@
 /dist-newstyle
 
 /.stack-work
-/_site
-/_cache
-/_build
-/_ghcjs
-/_purescript
+/_*
 /.psci
 /.psci_modules
 /output
