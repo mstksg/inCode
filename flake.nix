@@ -37,9 +37,23 @@
         inCode = rec {
           purescript = pkgs.purifix { src = ./purescript; };
           haskell = haskellFlake.packages."inCode:exe:inCode-build";
+          web-js = pkgs.stdenv.mkDerivation {
+            name = "inCode-js";
+            buildInputs = lib.attrValues purescript;
+            dontUnpack = true;
+            installPhase = ''
+              mkdir $out
+              ${
+                lib.concatStringsSep "\n" (lib.mapAttrsToList
+                    (name: value: ''cp ${value.bundle-app} $out/${name}.js'')
+                    purescript
+                  )
+               }
+            '';
+          };
           web = pkgs.stdenv.mkDerivation {
             name = "inCode";
-            buildInputs = [ haskell ] ++ lib.attrValues purescript;
+            buildInputs = [ haskell web-js ];
             srcs = [
               ./code-samples
               ./config
@@ -60,12 +74,7 @@
               done
 
               mkdir _purescript
-              ${
-                lib.concatStringsSep "\n" (lib.mapAttrsToList
-                    (name: value: ''cp ${value.bundle-app} _purescript/${name}.js'')
-                    purescript
-                  )
-               }
+              cp -a ${web-js}/. _purescript
             '';
             buildPhase = ''
               export XDG_CACHE_HOME=$(mktemp -d)
