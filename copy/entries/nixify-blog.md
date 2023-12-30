@@ -182,7 +182,9 @@ the input files --- mostly, markdown files.  For my blog, this is not trivial
 (latex, pdf, html multiple times), and actually gets re-combined with re-usable
 code snippets from different folders.  In addition, we build a page for each of
 the many tags, a paginated homepage, a granular history page, and an rss feed.
-On a whole, a build from scratch takes about five minutes.
+On a whole, a build from scratch takes about five minutes.  This is a
+significant downgrade --- in the past, I could build and deploy almost
+instantaneously (under a minute).
 
 I'm not sure if this can be optimized on the Haskell side, but it's still kind
 of wasteful in principle, because *hakyll* is smart enough to only re-build
@@ -212,3 +214,6 @@ Maybe in the future I could figure out how to modify hakyll to use the nix
 cache for its caching and invalidation, instead of its own bespoke method?  I
 wonder if that's even a viable option.  If anyone has any insight, this newbie
 would really appreciate hearing!
+
+For now, we can make this long deploy time a little bit more bearable by being
+smart with our "development environment" -- another "killer app" of nix.
