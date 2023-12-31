@@ -316,9 +316,12 @@ stepper expand syms cs =
           (Tuple mempty mempty)
 
 runner ::
-  Int -- ^ extra dimensions ->
-  Set Point2 -- ^ points ->
-  List (Lazy (Map Point2 (NonEmptySet Int))) -- ^ steps
+  -- | Extra dimensions
+  Int ->
+  -- | Points
+  Set Point2 ->
+  -- | Steps
+  List (Lazy (Map Point2 (NonEmptySet Int)))
 runner d =
   List.iterate ((pure <<< stepper lowNeighbs highNeighbs) =<< _)
     <<< pure
@@ -342,9 +345,12 @@ neighbsSet :: Point -> List Point
 neighbsSet = traverse (\x -> x List.: (x - 1) List.: (x + 1) List.: List.nil)
 
 genVecRunIxPascal ::
-  Int -- ^ dimension ->
-  Int -- ^ maximum ->
-  Int -- ^ number ->
+  -- | Dimension
+  Int ->
+  -- | Maximum
+  Int ->
+  -- | Number
+  Int ->
   List Int
 genVecRunIxPascal n mx x = go x mx n
   where
@@ -360,8 +366,10 @@ genVecRunIxPascal n mx x = go x mx n
 
 -- | Streaming/constant space enumerate all neighbor and multiplicities
 vecRunNeighbs ::
-  Int -- ^ dimension ->
-  Int -- ^ pascal index ->
+  -- | Dimension
+  Int ->
+  -- | Pascal index
+  Int ->
   List (Tuple Int Int)
 vecRunNeighbs n orig = case List.step gens of
   List.Nil -> List.nil
@@ -372,15 +380,24 @@ vecRunNeighbs n orig = case List.step gens of
   gens = genVecRunIxPascal n mx orig
 
   go ::
-    Int -- ^ pascal i ->
-    Int -- ^ pascal j ->
-    Int -- ^ running total ->
-    Int -- ^ origina item ->
-    Boolean -- ^ currently all the same? ->
-    Int -- ^ multiplicity ->
-    Int -- ^ item to the right ->
-    Int -- ^ current item ->
-    List Int -- ^ leftover items (right to left) ->
+    -- | pascal i
+    Int ->
+    -- | pascal j
+    Int ->
+    -- | running total
+    Int ->
+    -- | origina item
+    Int ->
+    -- | currently all the same?
+    Boolean ->
+    -- | multiplicity
+    Int ->
+    -- | item to the right
+    Int ->
+    -- | current item
+    Int ->
+    -- | leftover items (right to left)
+    List Int ->
     List (Tuple Int Int)
   go i j tot x0 allSame p r x ls0 = case List.step ls0 of
     List.Nil ->
@@ -492,8 +509,10 @@ dropAlong xs ys = case List.step xs of
     List.Cons _ ys' -> dropAlong xs' ys'
 
 vecRunNeighbsTree ::
-  Int -- ^ dimension ->
-  Int -- ^ pascal index ->
+  -- | Dimension
+  Int ->
+  -- | Pascal index
+  Int ->
   VecTree List (Lazy Contrib)
 vecRunNeighbsTree n orig = case List.step gens of
   List.Nil -> unsafeThrow "vecRunNeighbsTree step gens"
@@ -740,7 +759,8 @@ foreign import _setupGolFlat ::
 
 setupGolFlat ::
   String ->
-  { height :: Int, width :: Int, maxT :: Int, maxDim :: Maybe Int } -- if Nothing, hide the points too ->
+  -- | if Nothing, hide the points too
+  { height :: Int, width :: Int, maxT :: Int, maxDim :: Maybe Int } ->
   Effect (Set Point2 -> Effect Unit)
 setupGolFlat sel size = (_ <<< preRun) <$> runFn3 _setupGolFlat sel (isJust size.maxDim) size'
   where
