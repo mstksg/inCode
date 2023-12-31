@@ -21,6 +21,7 @@
 /.psci
 /.psci_modules
 /output
+/purescript/output
 /bower_components
 /TAGS
 /.history
@@ -28,4 +29,5 @@
 
 /copy/entries/placeholder.md
 *.dat
+*.psc-ide-port
 /tmp.*

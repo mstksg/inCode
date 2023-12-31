@@ -5,8 +5,9 @@
     nixpkgs.follows = "haskellNix/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     purifix.url = "github:purifix/purifix";
+    easy-purescript.url = "github:justinwoo/easy-purescript-nix";
   };
-  outputs = { self, nixpkgs, flake-utils, haskellNix, purifix }:
+  outputs = { self, nixpkgs, flake-utils, haskellNix, purifix, easy-purescript }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         lib = nixpkgs.lib;
@@ -77,7 +78,7 @@
             '';
           };
         };
-        build-js =
+        rebuild-js =
           let
             buildSingleDep = name: value:
               let
@@ -93,12 +94,13 @@
                 echo "import {main} from '${mainModule}'; main()" | esbuild --bundle --outfile=${outFile} --format=iife
               '';
           in
-          pkgs.writeShellScriptBin
-            "build-js"
+          (pkgs.writeShellScriptBin
+            "rebuild-js"
             ''
               mkdir -p "$HAKYLL_DIR/_purescript";
               ${lib.concatStringsSep "\n" (lib.mapAttrsToList buildSingleDep inCode.purescript)}
-            '';
+            '');
+        all-js-globs = lib.flatten (lib.mapAttrsToList (name: value: value.globs) inCode.purescript);
       in
       {
         packages = {
@@ -112,9 +114,24 @@
           default = pkgs.mkShell {
             shellHook = ''
               export HAKYLL_DIR=$(mktemp -d)
-              build-js
-              echo "Available commands: build-js inCode-build"
+              echo "Available commands: rebuild-js inCode-build"
               echo "Hakyll working directory: \$HAKYLL_DIR"
+
+              export PURS_IDE_SOURCES='${toString all-js-globs}'
+              mkdir -p purescript/output
+              mkdir -p $HAKYLL_DIR/_purescript
+              ${lib.concatStringsSep "\n"
+              (lib.mapAttrsToList
+                (name: value: 
+                    ''
+                    cp -a ${value.deps}/output/. purescript/output
+                    chmod -R +w purescript/output
+                    cp ${value.bundle-app} $HAKYLL_DIR/_purescript/${name}.js
+                    ''
+                )
+                inCode.purescript
+              )}
+              chmod -R +w $HAKYLL_DIR/_purescript
 
               for srcDir in code-samples config copy css js latex scss static; do
                 ln -s "$PWD/$srcDir" $HAKYLL_DIR
@@ -122,9 +139,11 @@
             '';
             nativeBuildInputs = [ pkgs.esbuild pkgs.purescript ]
               ++ haskellFlake.devShell.nativeBuildInputs
-              ++ lib.mapAttrsToList (name: value: value.develop.buildInputs) inCode.purescript;
+              ++ lib.mapAttrsToList (name: value: value.develop.buildInputs) inCode.purescript
+              ++ lib.attrValues inCode.purescript
+              ++ [ easy-purescript.packages.${system}.purty easy-purescript.packages.${system}.spago ];
             packages = [
-              build-js
+              rebuild-js
               inCode.haskell
             ];
           };
