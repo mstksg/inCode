@@ -113,6 +113,12 @@ Going into this, the general workflow would be:
     don't change will not need to be re-built.
 6.  If step 4 completes, automatically push the derivation's outputs to the
     *gh-pages* branch.
+7.  Establish two *local development environments* that nix can set up for us:
+    1.  Haskell development -- with haskell language server, cabal for
+        intermediate building, etc.
+    2.  *Writing* -- with the hakyll binary available for intermediate caching
+        for fast builds and updates, and the *purescript* compiler available
+        for fast compilation for the scripts driving interactive blog posts.
 
 [cachix]: https://www.cachix.org/
 
@@ -215,5 +221,7 @@ cache for its caching and invalidation, instead of its own bespoke method?  I
 wonder if that's even a viable option.  If anyone has any insight, this newbie
 would really appreciate hearing!
 
-For now, we can make this long deploy time a little bit more bearable by being
-smart with our "development environment" -- another "killer app" of nix.
+In any case, for now, we can still have fast local development building (more
+on that later), so it isn't super painful to actually write test.  However, the
+deployment lag is still kind of annoying --- and the "principal" of it (the
+wasted work) does still bother me.
