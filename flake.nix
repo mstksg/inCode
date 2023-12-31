@@ -82,9 +82,9 @@
             buildSingleDep = name: value:
               let
                 srcGlob = "purescript/${name}/src/**/*.purs";
-                buildDir = "_purescript-build/${name}";
-                mainModule = "./${buildDir}/Main/index.js";
-                outFile = "_purescript/${name}.js";
+                buildDir = "$HAKYLL_DIR/_purescript-build/${name}";
+                mainModule = "${buildDir}/Main/index.js";
+                outFile = "$HAKYLL_DIR/_purescript/${name}.js";
               in
               ''
                 mkdir -p ${buildDir}
@@ -96,7 +96,7 @@
           pkgs.writeShellScriptBin
             "build-js"
             ''
-              mkdir -p _purescript;
+              mkdir -p "$HAKYLL_DIR/_purescript";
               ${lib.concatStringsSep "\n" (lib.mapAttrsToList buildSingleDep inCode.purescript)}
             '';
       in
@@ -111,7 +111,14 @@
           };
           default = pkgs.mkShell {
             shellHook = ''
-              echo "Available commands: build-js inCode-build clean-all"
+              export HAKYLL_DIR=$(mktemp -d)
+              build-js
+              echo "Available commands: build-js inCode-build"
+              echo "Hakyll working directory: \$HAKYLL_DIR"
+
+              for srcDir in code-samples config copy css js latex scss static; do
+                ln -s "$PWD/$srcDir" $HAKYLL_DIR
+              done
             '';
             nativeBuildInputs = [ pkgs.esbuild pkgs.purescript ]
               ++ haskellFlake.devShell.nativeBuildInputs
@@ -119,11 +126,6 @@
             packages = [
               build-js
               inCode.haskell
-              (pkgs.writeShellScriptBin "clean-all" ''
-                rm -r _purescript
-                rm -r _purescript-build
-                inCode-build clean
-              '')
             ];
           };
         };

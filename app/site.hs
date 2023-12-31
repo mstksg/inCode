@@ -1,35 +1,48 @@
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE ImplicitParams    #-}
-{-# LANGUAGE MultiWayIf        #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ImplicitParams #-}
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE RecordWildCards #-}
 
-import           Blog.App
-import           Blog.Types
-import           Dhall
-import           Dhall.Pretty
-import           Hakyll
+import Blog.App
+import Blog.Types
+import Data.Maybe
+import qualified Data.Text as T
 import Data.Time.Zones
-import           System.IO
-import qualified Data.Text                     as T
-import qualified Prettyprinter                 as PP
+import Dhall
+import Dhall.Pretty
+import Hakyll
+import qualified Prettyprinter as PP
 import qualified Prettyprinter.Render.Terminal as PP
+import System.Environment
+import System.FilePath
+import System.IO
 
 configPath :: T.Text
 configPath = "./config/site-data.dhall"
 
 main :: IO ()
 main = do
-    c <- input interpretConfig configPath
-    let ?config = c
+  c <- input interpretConfig configPath
+  let ?config = c
 
-    PP.renderIO stdout
-        . fmap annToAnsiStyle
-        . PP.layoutSmart layoutOpts
-        . prettyExpr
-      =<< inputExpr configPath
+  workingDir <- fromMaybe "." <$> lookupEnv "HAKYLL_DIR"
 
-    putStrLn ""
+  PP.renderIO stdout
+    . fmap annToAnsiStyle
+    . PP.layoutSmart layoutOpts
+    . prettyExpr
+    =<< inputExpr configPath
 
-    tz <- loadTZFromDB (T.unpack $ confEntryTZ ?config)
-    hakyllWith (defaultConfiguration { inMemoryCache = False}) $ app tz
+  putStrLn ""
+
+  tz <- loadTZFromDB (T.unpack $ confEntryTZ ?config)
+  hakyllWith
+    ( defaultConfiguration
+        { inMemoryCache = False,
+          storeDirectory = workingDir </> "_cache",
+          tmpDirectory = workingDir </> "_cache" </> "temp",
+          providerDirectory = workingDir
+        }
+    )
+    $ app tz
