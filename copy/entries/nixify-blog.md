@@ -25,7 +25,9 @@ would be hoping to investigate!
 [nix]: https://nixos.org/
 
 In this post I'll also be explaining a bit of *nix*, so hopefully it's
-accessible if you are curious like I was too!
+accessible if you are curious like I was too!  However, it's *not* a tutorial
+--- instead, it's a high-level overview of the concepts that I put together to
+achieve the goal.
 
 How Did We Get Here
 -------------------
@@ -50,8 +52,8 @@ github][])
 5. Using *[shake][]* for build/deploy scripts.
 6. Converting *ghcjs* to *[purescript][]*, because I didn't want to bundle 1.5
    MB of Haskell Runtime just to generate a table of contents.
-7. The biggest change: moving from *scotty* to *[hakyll][]*, from a simple HTTP
-   server to a static site generation.
+7. The biggest change: moving from *scotty* to *[hakyll][]* (a static site
+   generator), from a simple HTTP server to a static site generation.
 8. Deploying to github pages within a build script, using a custom haskell tool
    I had written a long time ago.
 8. Moving from yaml for configuration to *[dhall][]*.
@@ -72,10 +74,10 @@ However, the current state of things is kind of a monster to build.  First, you
 have to have purescript *and* npm *and* bower (for general javascript
 deployment) installed.  Then the build script (the Shakefile) compiles
 javascript and purescript into the working directory, then calls hakyll which
-does the rest. It's a really finicky system that involves having the correct
-javascript ecosystem dependencies already installed -- and also uses a
-deprecated system for building purescript.  At least we had *stack* to manage
-having the correct ghc version.
+generates the actual site files. It's a really finicky system that involves
+having the correct javascript ecosystem dependencies already installed -- and
+also uses a deprecated system for building purescript.  At least we had *stack*
+to manage having the correct ghc version.
 
 Looking at this in 2023, there are a few things that had to change:
 
@@ -113,9 +115,14 @@ Going into this, the general workflow would be:
     don't change will not need to be re-built.
 6.  If step 4 completes, automatically push the derivation's outputs to the
     *gh-pages* branch.
-7.  Establish two *local development environments* that nix can set up for us:
+7.  Establish *local development environments* that nix can set up for us:
     1.  Haskell development -- with haskell language server, cabal for
         intermediate building, etc.
+    2.  Purescript development -- I've structured each interactive blog post's
+        purescript source as its own spago project, so we actually need to
+        generate a separate development environment (with purescript language
+        server, etc.) for each project.  I don't expect to be working on more
+        than one at a given time.
     2.  *Writing* -- with the hakyll binary available for intermediate caching
         for fast builds and updates, and the *purescript* compiler available
         for fast compilation for the scripts driving interactive blog posts.
@@ -163,6 +170,19 @@ want in their PATH, and so nix automatically puts the `./bin` of any dependency
 derivation in the PATH/execution environment for convenience.  At least, that's
 my mental model and how I understand it --- I am definitely new to this, so if
 I'm incorrect at any point, feel free to leave a comment.
+
+### What is a development environment?
+
+Very important to this system is the local development environment that lets us
+quickly re-build the site.  I have a little less refined of a mental model for
+these than I do for the derivation --- but apparently it's just a derivation
+that sets up a shell with everything we need in the PATH?  In any case, we need
+to set one up here to drop us in a Haskell development environment to get all
+of our favorite Haskell development tools -- like Haskell Language Server and
+cabal -- and a snapshot of all of our Haskell dependencies.  And then we need
+one that just gives us the hakyll binary, which has interactive development
+features like directory watching, local servers, and incremental builds/cache
+invalidation.
 
 ### Prior Art
 
@@ -225,3 +245,147 @@ In any case, for now, we can still have fast local development building (more
 on that later), so it isn't super painful to actually write test.  However, the
 deployment lag is still kind of annoying --- and the "principal" of it (the
 wasted work) does still bother me.
+
+Assembling the pieces
+---------------------
+
+Again, this isn't a tutorial --- here, I'm going to explain to explain the
+components I put together at a high level.
+
+### Haskell
+
+For Haskell, I ended up using *[haskell.nix][]*, which is what I also what we
+use at work.  It does this neat thing where it parses a cabal file and uses
+*that* to generate the derivation needed --- which includes the dependency
+derivations for all haskell library derivations.  In this way, it can cache all
+external dependencies.  It also lets us solve for which version of each
+dependency we need.  And, by freezing it with flake lock, it also allows us to
+freeze all of the versions of each dependency in a way that works.  There might
+be other tools that allow this, but I went with haskell.nix because I'm already
+familiar with it.  It also has a nice development environment offered that
+contains haskell language server with all of the right package versions and
+artifacts.
+
+[haskell.nix]: https://input-output-hk.github.io/haskell.nix/#haskellnix
+
+Armed with this, we can easily generate a derivation for the hakyll binary, by
+passing the cabal file to the `haskell-nix.project'` function provided by
+haskell.nix.  Now step 1 is complete!
+
+Note we also get our development environment as well -- you get it with the
+`devShell` property!
+
+### Purescript
+
+For Purescript, I ended up using [purifix][], which does a similar thing with
+*haskell.nix* but for the *spago.yaml* file, which is how modern purescript
+projects declare their dependencies.  Purifix also has this mode of operation
+where it auto-detects if you're working in a monorepo-style project with
+multiple binaries, and gives you a *separate derivation* for each binary (or,
+compiled .js file)! And also a separate development environment for each
+binary, too.
+
+[purifix]: https://github.com/purifix/purifix
+
+For each project, it provides a `bundle-app` derivation that is literally just
+the generated bundled-up single javascript file.  This is exactly the
+derivation we need for the final part where we pull everything together.
+
+However, it also gives us an easy way to access all of the derivations of all
+of the dependencies (the `globs` property it adds onto its derivations) ---
+which is very useful for our final integrated development environment which
+needs to do incremental builds quickly.
+
+A note -- finding all of these useful properties and derivations (outside of
+the main ones) does take a bit of trial and error -- digging through `nix repl`
+to explore the derivation contents, and the source code of these projects.
+
+### Static Site derivation
+
+Putting it all together is the final derivation to generate the actual site:
+
+```nix
+web = pkgs.stdenv.mkDerivation {
+  name = "inCode";
+  buildInputs = [ inCode.haskell ] ++ lib.attrValues inCode.purescript;
+  srcs = [
+    ./code-samples
+    ./config
+    ./copy
+    ./css
+    ./js
+    ./latex
+    ./scss
+    ./static
+  ];
+  unpackPhase = ''
+    for srcFile in $srcs; do
+      cp -a $srcFile/. $(stripHash $srcFile)
+    done
+
+    mkdir _purescript
+    ${
+      lib.concatStringsSep "\n" (lib.mapAttrsToList
+          (name: value: ''cp ${value.bundle-app} _purescript/${name}.js'')
+          inCode.purescript
+        )
+     }
+  '';
+  buildPhase = ''
+    ${inCode.haskell}/bin/inCode-build build --verbose
+  '';
+  installPhase = ''
+    mkdir -p "$out/dist"
+    cp -a _site/. "$out/dist"
+  '';
+};
+```
+
+This is the only "hand-built" derivation.  Hopefully it's legible enough:
+
+1.  The `buildInputs` attribute tells us what derivations give us the
+    binaries/generated files in scope for us to do our job.
+    *   `inCode.haskell` is the derivation that gives us the hakyll binary,
+        from running *haskell.nix* on the haskell hakyll project.
+    *   `lib.attrValues inCode.purescript` gives us each of the derivations of
+        all of the purescript projects, one for each spago sub-project (and
+        each blog post/page that uses purescript).  In this case, it gives us
+        the actual compiled javascript bundle that the site generator expects.
+2.  `srcs` is the actual source files that the static site generator uses ---
+    in this case, the code samples, configuration files, markdown files
+    for the actual blog posts in `./copy`, the static files, etc.
+3.  `unpackPhase` is the shell script to get things ready for the hakyll site
+    generator to run:
+    *   First, copy all of the source files into the temporary build directory
+    *   Then, copy all of the compiled javascript binaries (from
+        the `bundle-app` property of each derivation) into the `_purescript`
+        folder in the temporary build directory, where the static site
+        generator expects to find it.
+4.  `buildPhase` is the shell script to actually run the static site generator
+    on the work directory that we carefully unpacked.  Note that we refer to
+    the binary using the derivation variable, `${inCode.haskell}` and knowing
+    that it is found under the `bin` folder, as convention states.
+5.  The `installPhase` copies what the site generated (in the `_site` directory
+    of the temporary work folder) into `$out`, which is the place we put the
+    "results".
+
+### Github Actio
+
+The final github action is pretty standard --- it pulls together the actions:
+
+
+1.  `cachix/install-nix-action`: Install nix
+2.  `cachix/cachix-action`: Use the given cachix cache and upload the artifacts
+    to it after building
+3.  Actually run `nix build` on the static site derivation to generate the
+    static files.  In the process, it will either re-build (if anything
+    changes) the dependency haskell and purescfript derivations, or pull it
+    straight from cachix if nothing changed.
+4.  `crazy-max/ghaction-github-pages` to push the files to the `gh-pages`
+    branch
+
+This was taken pretty much verbatim from *hakyll-nix-template*.
+
+### Development Environment
+
+Wow

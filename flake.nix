@@ -108,9 +108,8 @@
           default = inCode.web;
         };
         devShells = {
-          haskell-dev = pkgs.mkShell {
-            nativeBuildInputs = haskellFlake.devShell.nativeBuildInputs;
-          };
+          haskell-dev = haskellFlake.devShell;
+          purescript-dev = lib.mapAttrs (name: value: value.develop) inCode.purescript;
           default = pkgs.mkShell {
             shellHook = ''
               export HAKYLL_DIR=$(mktemp -d)
