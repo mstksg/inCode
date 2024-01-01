@@ -53,7 +53,10 @@ github][])
 7. The biggest change: moving from *scotty* to *[hakyll][]* (a static site
    generator), from a simple HTTP server to a static site generation.
 8. Deploying to github pages within a build script, using a custom haskell tool
-   I had written a long time ago.
+   I had written a long time ago.  I honestly don't remember where the site was
+   hosted before github pages, but I remember having to configure my own CDN
+   and https for a my hosted static website and at some point I wondered
+   "why?".
 8. Moving from yaml for configuration to *[dhall][]*.
 
 [scotty]: https://hackage.haskell.org/package/scotty
