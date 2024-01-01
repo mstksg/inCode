@@ -498,3 +498,18 @@ devShells.default = pkgs.mkShell {
 ```
 
 And that's it!
+
+Conclusions
+-----------
+
+Overall, I still feel like I'm hacking things together and figuring things out
+as I go.  So far, all I have done is automate a set-up that I have been doing
+manually, in hopefully a way that is better for long-term maintainability.
+However, hopefully as I learn more, I start to open up new doors and new ways
+of thinking that enable to me to do things I haven't been able to do before.
+
+Thank you for reading this --- whether you are looking to get started into nix,
+or are an experienced veteran, I hope you were able to get something out of
+this post. And, for those with experience, I would definitely appreciate any
+advice concerning the things described in this post --- things I could have
+done better, alternative approaches, or ways to be more idiomatic/maintainable.
