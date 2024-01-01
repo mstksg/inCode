@@ -3,10 +3,5 @@ package:
   version: 0.0.1
   dependencies:
     - console
-    - control
-    - matryoshka
-    - prelude
     - unicode
-    - web-html
     - web-uievents
-    - web-url
