@@ -252,6 +252,17 @@ Assembling the pieces
 Again, this isn't a tutorial --- here, I'm going to explain to explain the
 components I put together at a high level.
 
+We're going to structure this in terms of a nix flake, which I'm using to:
+
+*   Pin dependencies and package sets
+*   Describe buildable derivations and the development environments in a single
+    file, which we can run with `nix build` and `nix develop` commands.
+
+For reference, the "final" nix flake described in this post [can be found on
+github][flake].
+
+[flake]: https://github.com/mstksg/inCode/blob/bf444098b8773b1b47c0b2e66ca1682cdc5f674d/flake.nix
+
 ### Haskell
 
 For Haskell, I ended up using *[haskell.nix][]*, which is what I also what we
