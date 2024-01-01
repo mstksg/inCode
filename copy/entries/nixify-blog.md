@@ -3,38 +3,36 @@ title: "I nixified my blog"
 categories: Meta
 tags: haskell, nix, purescript
 create-time: 2023/12/30 11:38:08
+date: 2023/01/01 13:21:32
 identifier: nixify-blog
 slug: i-nixified-my-blog
 ---
 
-Hi all! It's been a while (almost three years) since my last post.  But it's a
-new year, a new me -- and I just recently started working at a new job writing
-Haskell where everything is built and deployed using [nix][].  Aside from the
-bliss that comes from being able to write Haskell as a day job, I also enjoyed
-the push to finally dive into the nix ecosystem for my general personal
-computing, which many of my friends have been subtly (or not so subtly) pushing
-me to look into for a long time. And I have to say, I'm hooked!  I get a lot of
-similar joy using nix to organize my projects as I did when I was first
-learning Haskell.  My path to re-organizing all of my personal projects to
-using nix has lead me back to one of my more "longer-running" pieces of legacy
-code -- my 10 year old blog.  So, this is a post from a naive new nix user on
-how I converted my blog deployment and building from a manual multi-stage build
-process into an automatic nix-with-cachix deploy -- and some future things I
-would be hoping to investigate!
+Happy new year! It's been a while (almost three years) since my last post. But
+it's a new year, a new me -- and I just recently started working at [a new
+job][] writing Haskell where everything is built and deployed using [nix][].
+Aside from the bliss that comes from being able to write Haskell as a day job,
+I also enjoyed the push to finally dive into the nix ecosystem for my general
+personal computing, which many of my friends have been subtly (or not so
+subtly) pushing me to look into for a long time. And I have to say, I'm hooked!
+I get a lot of similar joy using nix to organize my projects as I did when I
+was first learning Haskell.  My path to re-organizing all of my personal
+projects to using nix has lead me back to one of my more "longer-running"
+pieces of legacy code -- my 10 year old blog.  So, this is a post from a naive
+new nix user on how I converted my blog deployment and building from a manual
+multi-stage build process into an automatic nix-with-cachix deploy -- and some
+future things I would be hoping to investigate!
 
 [nix]: https://nixos.org/
+[a new job]: https://github.com/anduril
 
 In this post I'll also be explaining a bit of *nix*, so hopefully it's
-accessible if you are curious like I was too!  However, it's *not* a tutorial
+accessible if you are curious like I was too.  However, it's *not* a tutorial
 --- instead, it's a high-level overview of the concepts that I put together to
 achieve the goal.
 
 How Did We Get Here
 -------------------
-
-If you want to just jump right into the nixification, feel free to skip this
-section, which gives the context of the state of my blog before and what needed
-to change.
 
 The [development history][] of my blog (which just turned 10 a few months ago,
 actually) has gone through a few stages: (which you might be able to track [on
@@ -66,9 +64,9 @@ github][])
 [dhall]: https://dhall-lang.org/
 [shake]: https://shakebuild.com/
 
-As you can see, I sort of used my blog as a playground to apply new ideas I've
-learned and to build familiarity with them, and I have some fun refactoring
-every couple of years because Haskell is so fun to refactor.
+As you can see, I sort of use my blog as a playground to apply new ideas I'm
+learning build familiarity with them, and I have some fun refactoring every
+couple of years because Haskell is so fun to refactor.
 
 However, the current state of things is kind of a monster to build.  First, you
 have to have purescript *and* npm *and* bower (for general javascript
@@ -124,8 +122,9 @@ Going into this, the general workflow would be:
         server, etc.) for each project.  I don't expect to be working on more
         than one at a given time.
     2.  *Writing* -- with the hakyll binary available for intermediate caching
-        for fast builds and updates, and the *purescript* compiler available
-        for fast compilation for the scripts driving interactive blog posts.
+        for fast builds and updates and hakyll's local preview server, and the
+        *purescript* compiler available for fast compilation for the scripts
+        driving interactive blog posts.
 
 [cachix]: https://www.cachix.org/
 
@@ -174,14 +173,15 @@ I'm incorrect at any point, feel free to leave a comment.
 ### What is a development environment?
 
 Very important to this system is the local development environment that lets us
-quickly re-build the site.  I have a little less refined of a mental model for
-these than I do for the derivation --- but apparently it's just a derivation
-that sets up a shell with everything we need in the PATH?  In any case, we need
-to set one up here to drop us in a Haskell development environment to get all
-of our favorite Haskell development tools -- like Haskell Language Server and
-cabal -- and a snapshot of all of our Haskell dependencies.  And then we need
-one that just gives us the hakyll binary, which has interactive development
-features like directory watching, local servers, and incremental builds/cache
+quickly re-build the site (and also lets us use hakyll's built-in preview
+server features). I have a little less refined of a mental model for these than
+I do for the derivation --- but apparently it's just a derivation that sets up
+a shell with everything we need in the PATH?  In any case, we need to set one
+up here to drop us in a Haskell development environment to get all of our
+favorite Haskell development tools -- like Haskell Language Server and cabal --
+and a snapshot of all of our Haskell dependencies.  And then we need one that
+just gives us the hakyll binary, which has interactive development features
+like directory watching, local servers, and incremental builds/cache
 invalidation.
 
 ### Prior Art
@@ -191,7 +191,7 @@ of *[hakyll-nix-template][]*: have a derivation for the hakyll binary, then a
 derivation for the final website, then push to gh-pages with cachix to ensure
 caching haskell dependencies.  Because of this, I was able to use a lot of code
 from that repository to help figure things out for my own path.  So, a special
-thanks to [Robert Pearce][].
+thanks to [Robert Pearce][]!
 
 [hakyll-nix-template]: https://github.com/rpearce/hakyll-nix-template
 [Robert Pearce]: https://github.com/rpearce
@@ -283,7 +283,10 @@ projects declare their dependencies.  Purifix also has this mode of operation
 where it auto-detects if you're working in a monorepo-style project with
 multiple binaries, and gives you a *separate derivation* for each binary (or,
 compiled .js file)! And also a separate development environment for each
-binary, too.
+binary, too.  This works well for me because I structure the javascript for
+each interactive blog post as its own project.  So, I can export an entire
+"project" (blog post file) to a bundled file easily, and also lead development
+environments for specific blog posts as well.
 
 [purifix]: https://github.com/purifix/purifix
 
@@ -396,13 +399,14 @@ want.  We need "temporary" directories that hakyll will use to (1) find the
 source files, (2) store its cache, and (3) output the static site.  Because of
 this, if we make any changes to blog posts while we are in our development
 environment, hakyll will not do a full re-build --- it'll still have its
-development-environment-scoped cache.  We also want to do incremental builds
-for purescript development as well, and we need to make sure that this
-temporary environment also has an incremental build cache area for `purs`.
-While we *could* do this without any temporary directories by just using the
-working directory for this, it is kind of nice to be able to have this all take
-place in a temporary folder that will go away after we exit the development
-environment.
+development-environment-scoped cache.  We can also use hakyll's built in local
+preview server and filesystem watch-and-rebuild features. We also want to do
+incremental builds for purescript development as well, and we need to make sure
+that this temporary environment also has an incremental build cache area for
+`purs`. While we *could* do this without any temporary directories by just
+using the working directory for this, it is kind of nice to be able to have
+this all take place in a temporary folder that will go away after we exit the
+development environment.
 
 Unfortunately, the hakyll binary isn't aware of `purs` and purescript --- it
 just receives the compiled bundles.  So, we need a way for the user to run a
@@ -490,15 +494,13 @@ devShells.default = pkgs.mkShell {
   nativeBuildInputs = [ pkgs.esbuild pkgs.purescript ]
     ++ haskellFlake.devShell.nativeBuildInputs
     ++ lib.attrValues inCode.purescript
-    ++ lib.attrValues inCode.purescript;
+    ++ map (value: value.develop.buildInputs) (lib.attrValues inCode.purescript);
   packages = [
     rebuild-js
     inCode.haskell
   ];
 };
 ```
-
-And that's it!
 
 Conclusions
 -----------
