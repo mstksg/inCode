@@ -51,7 +51,7 @@ jobs:
         authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
     - run: nix build
     - name: Artifact pages
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v4.0.0
       with:
         name: pages
         path: result/dist
@@ -63,7 +63,7 @@ jobs:
 
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.1.0
         with:
           name: pages
           path: result
