@@ -369,7 +369,7 @@ This is the only "hand-built" derivation.  Hopefully it's legible enough:
     of the temporary work folder) into `$out`, which is the place we put the
     "results".
 
-### Github Actio
+### Github Action
 
 The final github action is pretty standard --- it pulls together the actions:
 
@@ -388,4 +388,113 @@ This was taken pretty much verbatim from *hakyll-nix-template*.
 
 ### Development Environment
 
-Wow
+One last non-trivial thing --- we need to make the development environment
+where we can use the hakyll binary for incremental builds.  Again, this will be
+a hand-written environment, so let's think about what we want.  We need
+"temporary" directories that hakyll will use to (1) find the source files, (2)
+store its cache, and (3) output the static site.  Because of this, if we make
+any changes to blog posts while we are in our development environment, hakyll
+will not do a full re-build --- it'll still have its
+development-environment-scoped cache.  We also want to do incremental builds
+for purescript development as well, and we need to make sure that this
+temporary environment also has an incremental build cache area for `purs`.
+While we *could* do this without any temporary directories by just using the
+working directory for this, it is kind of nice to be able to have this all take
+place in a temporary folder that will go away after we exit the development
+environment.
+
+Unfortunately, the hakyll binary isn't aware of `purs` and purescript --- it
+just receives the compiled bundles.  So, we need a way for the user to run a
+command to re-build the purescript dependencies if they have changed it.  There
+are a few ways we can do this (maybe have nix initiate a "watcher" that
+automatically incrementally recompiles, or wrap our hakyll binary in a wrapper
+shell script that triggers a re-build).  However, the simplest way I could
+think of (that also does the job) is for the development environment to provide
+a command/shell script that just runs `purs` with the right arguments.
+
+```nix
+rebuild-js =
+  let
+    buildSingleDep = name: value:
+      let
+        srcGlob = "purescript/${name}/src/**/*.purs";
+        buildDir = "$HAKYLL_DIR/_purescript-build/${name}";
+        mainModule = "${buildDir}/Main/index.js";
+        outFile = "$HAKYLL_DIR/_purescript/${name}.js";
+      in
+      ''
+        mkdir -p ${buildDir}
+        purs compile ${toString value.globs} ${srcGlob} -o ${buildDir}
+        chmod -R +w ${buildDir}
+        echo "import {main} from '${mainModule}'; main()" | esbuild --bundle --outfile=${outFile} --format=iife
+      '';
+  in
+  pkgs.writeShellScriptBin
+    "rebuild-js"
+    ''
+      mkdir -p "$HAKYLL_DIR/_purescript";
+      ${lib.concatStringsSep "\n" (lib.mapAttrsToList buildSingleDep inCode.purescript)}
+    '';
+```
+
+`writeShellScriptBin` is a convenient way to provide a derivation that *only*
+contains a single shell script in its `bin/` subdir.  So if we include it as a
+dependency in our development environment, this shell script will be in scope.
+Keep in mind that the hakyll binary expects the output bundles in the
+`_purescript` directory.
+
+In the script, `$HAKYLL_DIR` is our temporary working directory.  We iterate
+over each of the derivations in `inCode.purescript`, and for each one, we
+create a temporary build directory and use `purs` to compile all of the source
+files for the project (using the `globs` property that `purifix` gives us,
+which contains globs of all the source files of the dependencies as well, which
+are found in the global nix cache).  And then we use `esbuild` to manually
+generate the final bundle in the output directory.
+
+And, to assemble the initial working directory, we have to:
+
+1.  Copy all of the compiled purescript bundles into the temporary directory,
+    from the derivation based on the current state at initialization time.
+2.  Simlink all of the source files (markdown, etc.) in the user's working
+    directory to the temporary working directory, so any changes to the working
+    directory will also be reflected in the temporary directory.
+3.  Provide all of the build tools through `nativeBuildInputs`.
+4.  Provide the user-accessible commands through `packages`.
+
+```nix
+devShells.default = pkgs.mkShell {
+  shellHook = ''
+    export HAKYLL_DIR=$(mktemp -d)
+    echo "Available commands: rebuild-js inCode-build"
+    echo "Hakyll working directory: \$HAKYLL_DIR"
+
+    mkdir -p $HAKYLL_DIR/_purescript
+    ${lib.concatStringsSep "\n"
+    (lib.mapAttrsToList
+      (name: value:
+          ''
+          cp -a ${value.deps}/output/. purescript/output
+          chmod -R +w purescript/output
+          cp ${value.bundle-app} $HAKYLL_DIR/_purescript/${name}.js
+          ''
+      )
+      inCode.purescript
+    )}
+    chmod -R +w $HAKYLL_DIR/_purescript
+
+    for srcDir in code-samples config copy css js latex scss static; do
+      ln -s "$PWD/$srcDir" $HAKYLL_DIR
+    done
+  '';
+  nativeBuildInputs = [ pkgs.esbuild pkgs.purescript ]
+    ++ haskellFlake.devShell.nativeBuildInputs
+    ++ lib.attrValues inCode.purescript
+    ++ lib.attrValues inCode.purescript;
+  packages = [
+    rebuild-js
+    inCode.haskell
+  ];
+};
+```
+
+And that's it!

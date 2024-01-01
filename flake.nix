@@ -94,12 +94,12 @@
                 echo "import {main} from '${mainModule}'; main()" | esbuild --bundle --outfile=${outFile} --format=iife
               '';
           in
-          (pkgs.writeShellScriptBin
+          pkgs.writeShellScriptBin
             "rebuild-js"
             ''
               mkdir -p "$HAKYLL_DIR/_purescript";
               ${lib.concatStringsSep "\n" (lib.mapAttrsToList buildSingleDep inCode.purescript)}
-            '');
+            '';
         all-js-globs = lib.flatten (lib.mapAttrsToList (name: value: value.globs) inCode.purescript);
       in
       {
@@ -121,7 +121,7 @@
               mkdir -p $HAKYLL_DIR/_purescript
               ${lib.concatStringsSep "\n"
               (lib.mapAttrsToList
-                (name: value: 
+                (name: value:
                     ''
                     cp -a ${value.deps}/output/. purescript/output
                     chmod -R +w purescript/output
@@ -138,8 +138,8 @@
             '';
             nativeBuildInputs = [ pkgs.esbuild pkgs.purescript ]
               ++ haskellFlake.devShell.nativeBuildInputs
-              ++ lib.mapAttrsToList (name: value: value.develop.buildInputs) inCode.purescript
               ++ lib.attrValues inCode.purescript
+              ++ map (value: value.develop.buildInputs) (lib.attrValues inCode.purescript)
               ++ [ easy-purescript.packages.${system}.purty easy-purescript.packages.${system}.spago ];
             packages = [
               rebuild-js
