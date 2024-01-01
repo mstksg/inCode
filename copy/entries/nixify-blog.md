@@ -386,15 +386,16 @@ The final github action is pretty standard --- it pulls together the actions:
 
 This was taken pretty much verbatim from *hakyll-nix-template*.
 
-### Development Environment
+### Development Environment for Writing
 
-One last non-trivial thing --- we need to make the development environment
-where we can use the hakyll binary for incremental builds.  Again, this will be
-a hand-written environment, so let's think about what we want.  We need
-"temporary" directories that hakyll will use to (1) find the source files, (2)
-store its cache, and (3) output the static site.  Because of this, if we make
-any changes to blog posts while we are in our development environment, hakyll
-will not do a full re-build --- it'll still have its
+Now, because we don't have page-level caching for nix (and hakyll manages its
+own caching), we have to bite the bullet and create a customized development
+environment where we can locally deploy hakyll's cached incremental builds.
+Again, this will be a hand-written environment, so let's think about what we
+want.  We need "temporary" directories that hakyll will use to (1) find the
+source files, (2) store its cache, and (3) output the static site.  Because of
+this, if we make any changes to blog posts while we are in our development
+environment, hakyll will not do a full re-build --- it'll still have its
 development-environment-scoped cache.  We also want to do incremental builds
 for purescript development as well, and we need to make sure that this
 temporary environment also has an incremental build cache area for `purs`.
