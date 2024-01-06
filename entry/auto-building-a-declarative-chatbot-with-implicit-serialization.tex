@@ -1,0 +1,1071 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Auto: Building a Declarative Chatbot with Implicit Serialization},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Auto: Building a Declarative Chatbot with Implicit Serialization}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% March 25, 2015
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/auto-building-a-declarative-chatbot-with-implicit-serialization.html}{in
+Code}}.}
+
+Today we're going to continue along with the
+\href{http://blog.jle.im/entries/series/+all-about-auto}{All About Auto}
+introduction series and look at building a declarative chatbot using the
+denotational components from the
+\href{http://hackage.haskell.org/package/auto}{auto} library that is modular and
+has implicit serialization. Most importantly, we'll look at the ``design
+process'', and principles of architecture that you can apply to your own
+projects.
+
+This post assumes \emph{some} concepts from the
+\href{https://github.com/mstksg/auto/blob/master/tutorial/tutorial.md}{tutorial},
+or at least my \href{http://blog.jle.im/entry/introducing-the-auto-library}{last
+post} or the
+\href{https://github.com/mstksg/auto/blob/master/README.md}{README}. If some of
+these ideas seem completely new, than looking through the
+\href{https://github.com/mstksg/auto/blob/master/tutorial/tutorial.md}{tutorial}
+or the \href{http://hackage.haskell.org/package/auto}{docs} might refresh your
+mind\ldots feel free to also leave a comment, stop by \emph{\#haskell-auto} on
+freenode where I go by \emph{jle`}, or \href{https://twitter.com/mstk}{tweet me}
+
+All of the code in this tutorial can be
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/auto/chatbot.hs}{downloaded
+and run} using \texttt{runghc} (with the appropriate dependencies installed).
+Feel free to play along!
+
+\section{Overall Layout}\label{overall-layout}
+
+\emph{auto} is a library that at the highest level gives you a stream
+transformer on streams of values. Transform a stream of input values to a stream
+of output values. So when we approach a chat bot, we have to think --- what are
+the inputs, and what are the outputs?
+
+The choice should be pretty straightforward -- our input stream is a stream of
+input messages from the irc server, and our output stream is a stream of
+messages to send to the server. In haskell we like types, so let's make some
+types.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} first, our imports}
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/auto/chatbot.hs\#L25{-}L43}
+
+\KeywordTok{import} \DataTypeTok{Control.Auto}
+\KeywordTok{import} \DataTypeTok{Control.Auto.Blip}
+\KeywordTok{import} \DataTypeTok{Control.Auto.Collection}\NormalTok{  (mux)}
+\KeywordTok{import} \DataTypeTok{Control.Auto.Run}\NormalTok{         (runOnChanM)}
+\KeywordTok{import} \DataTypeTok{Control.Auto.Serialize}\NormalTok{   (serializing\textquotesingle{})}
+\KeywordTok{import} \DataTypeTok{Control.Auto.Switch}\NormalTok{      (resetOn)}
+\KeywordTok{import} \DataTypeTok{Control.Concurrent}\NormalTok{       (}\DataTypeTok{Chan}\NormalTok{, newChan, writeChan, forkIO, threadDelay)}
+\KeywordTok{import} \DataTypeTok{Control.Monad}\NormalTok{            (void, forever)}
+\KeywordTok{import} \DataTypeTok{Control.Monad.IO.Class}
+\KeywordTok{import} \DataTypeTok{Data.Foldable}\NormalTok{            (forM\_)}
+\KeywordTok{import} \DataTypeTok{Data.Map}\NormalTok{                 (}\DataTypeTok{Map}\NormalTok{)}
+\KeywordTok{import} \DataTypeTok{Data.Serialize}
+\KeywordTok{import} \DataTypeTok{Data.Text} \KeywordTok{hiding}\NormalTok{         (words, unwords, map)}
+\KeywordTok{import} \DataTypeTok{Data.Text.Encoding}
+\KeywordTok{import} \DataTypeTok{Data.Text.Encoding.Error}
+\KeywordTok{import} \DataTypeTok{Data.Time}
+\KeywordTok{import} \DataTypeTok{Network.SimpleIRC}
+\KeywordTok{import} \DataTypeTok{Prelude} \KeywordTok{hiding}\NormalTok{           ((.), id)   }\CommentTok{{-}{-} we use (.) and id from \textasciigrave{}Control.Category\textasciigrave{}}
+\KeywordTok{import} \KeywordTok{qualified} \DataTypeTok{Data.Map}       \KeywordTok{as} \DataTypeTok{M}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/auto/chatbot.hs\#L51{-}L66}
+
+\KeywordTok{type} \DataTypeTok{Nick}    \OtherTok{=} \DataTypeTok{String}
+\KeywordTok{type} \DataTypeTok{Channel} \OtherTok{=} \DataTypeTok{String}
+\KeywordTok{type} \DataTypeTok{Message} \OtherTok{=} \DataTypeTok{String}
+
+\KeywordTok{data} \DataTypeTok{InMessage} \OtherTok{=} \DataTypeTok{InMessage}\NormalTok{ \{}\OtherTok{ \_inMessageNick   ::} \DataTypeTok{Nick}
+\NormalTok{                           ,}\OtherTok{ \_inMessageBody   ::} \DataTypeTok{Message}
+\NormalTok{                           ,}\OtherTok{ \_inMessageSource ::} \DataTypeTok{Channel}
+\NormalTok{                           ,}\OtherTok{ \_inMessageTime   ::} \DataTypeTok{UTCTime}
+\NormalTok{                           \} }\KeywordTok{deriving} \DataTypeTok{Show}
+
+\KeywordTok{newtype} \DataTypeTok{OutMessages} \OtherTok{=} \DataTypeTok{OutMessages}\NormalTok{ (}\DataTypeTok{Map} \DataTypeTok{Channel}\NormalTok{ [}\DataTypeTok{Message}\NormalTok{]) }\KeywordTok{deriving} \DataTypeTok{Show}
+
+\KeywordTok{instance} \DataTypeTok{Monoid} \DataTypeTok{OutMessages} \KeywordTok{where}
+    \FunctionTok{mempty}  \OtherTok{=} \DataTypeTok{OutMessages}\NormalTok{ M.empty}
+    \FunctionTok{mappend}\NormalTok{ (}\DataTypeTok{OutMessages}\NormalTok{ m1) (}\DataTypeTok{OutMessages}\NormalTok{ m2)}
+            \OtherTok{=} \DataTypeTok{OutMessages}\NormalTok{ (M.unionWith (}\OperatorTok{++}\NormalTok{) m1 m2)}
+\end{Highlighting}
+\end{Shaded}
+
+We make some type aliases to make things a bit clearer. Our inputs are going to
+be a data type/``struct'' with a nick, a body, a source, and a time. Our outputs
+are going to be a \texttt{Data.Map.Map} from \emph{containers} associating
+channels with messages to send. I'm just adding here a \texttt{Monoid} instance
+in case we want to combine \texttt{OutMessages} maps.
+
+The type for a chat bot over a monad \texttt{m} would then be:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/auto/chatbot.hs\#L68{-}L68}
+
+\KeywordTok{type} \DataTypeTok{ChatBot}\NormalTok{ m }\OtherTok{=} \DataTypeTok{Auto}\NormalTok{ m }\DataTypeTok{InMessage} \DataTypeTok{OutMessages}
+\end{Highlighting}
+\end{Shaded}
+
+A \texttt{ChatBot} takes a stream of \texttt{InMessage}s and returns a stream of
+\texttt{OutMessages}s\ldots and might have effects in \texttt{m} as it does so.
+
+Note that we get a free instance of \texttt{Monoid} on \texttt{ChatBot\ m}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{mappend}\OtherTok{ ::} \DataTypeTok{ChatBot}\NormalTok{ m }\OtherTok{{-}\textgreater{}} \DataTypeTok{ChatBot}\NormalTok{ m }\OtherTok{{-}\textgreater{}} \DataTypeTok{ChatBot}\NormalTok{ m}
+\end{Highlighting}
+\end{Shaded}
+
+That takes two \texttt{ChatBot}s and creates a new \texttt{ChatBot} that forks
+the input stream (sends all \texttt{InMessage}s) to both of the original ones,
+and \texttt{mappend}s the results. So the new \texttt{ChatBot} will send message
+to both original ones and return a ``combined'' \texttt{OutMessages}.
+
+However, not all modules really have to ``care'' about the room of the
+outputs\ldots they might just always reply directly to the room they received
+the message on. So it'll help us to also make another sort of \texttt{Auto}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/auto/chatbot.hs\#L69{-}L69}
+
+\KeywordTok{type} \DataTypeTok{RoomBot}\NormalTok{ m }\OtherTok{=} \DataTypeTok{Auto}\NormalTok{ m }\DataTypeTok{InMessage}\NormalTok{ (}\DataTypeTok{Blip}\NormalTok{ [}\DataTypeTok{Message}\NormalTok{])}
+\end{Highlighting}
+\end{Shaded}
+
+A \texttt{RoomBot} doesn't care where its messages go\ldots it just replies to
+the same room it got its input from. It outputs a blip stream of message lists;
+when it doesn't want to send messages out, it doesn't emit. When it does, it
+\emph{does} emit, with the list of messages.
+
+(Remember, a \emph{blip stream} is just like a normal stream of values, except
+it only actually \emph{has} a value every once in a while, when it ``emits''. A
+\texttt{Blip\ Bool} is a stream that sometimes, occasionally emits with a
+\texttt{Bool}. We work with them using combinators and \texttt{Auto}s from
+\href{http://hackage.haskell.org/package/auto/docs/Control-Auto-Blip.html}{\texttt{Control.Auto.Blip}})
+
+\subsection{Converting}\label{converting}
+
+We can write a quick helper function to convert a \texttt{RoomBot} into a
+full-on \texttt{ChatBot}, so we can merge them together with
+\texttt{mappend}/\texttt{(\textless{}\textgreater{})}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/auto/chatbot.hs\#L72{-}L75}
+
+\OtherTok{perRoom ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{RoomBot}\NormalTok{ m }\OtherTok{{-}\textgreater{}} \DataTypeTok{ChatBot}\NormalTok{ m}
+\NormalTok{perRoom rb }\OtherTok{=}\NormalTok{ proc inp}\OperatorTok{@}\NormalTok{(}\DataTypeTok{InMessage}\NormalTok{ \_ \_ src \_) }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    messages }\OtherTok{\textless{}{-}}\NormalTok{ fromBlips [] }\OperatorTok{.}\NormalTok{ rb }\OperatorTok{{-}\textless{}}\NormalTok{ inp}
+    \FunctionTok{id} \OperatorTok{{-}\textless{}} \DataTypeTok{OutMessages} \OperatorTok{$}\NormalTok{ M.singleton src messages}
+\end{Highlighting}
+\end{Shaded}
+
+(This example uses proc notation; see this
+\href{https://github.com/mstksg/auto/blob/master/tutorial/tutorial.md\#brief-primer-on-proc-notation}{proc
+notation primer} for a quick run-down of the relevant aspects)
+
+We say that \texttt{messages} is just the output of \texttt{rb} fed with the
+input, except it ``collapses'' the blip stream into a normal stream by
+substituting in \texttt{{[}{]}} whenever the stream doesn't emit. So
+\texttt{messages} is \texttt{{[}{]}} when \texttt{rb} doesn't emit (it doesn't
+want to send anything), and \texttt{messages} is
+\texttt{{[}message1,\ message2\ ...{]}}, with the emitted contents, when it
+\emph{does}.
+
+The ``output'' will be a singleton map with the source of the input and the
+messages to send to that source.
+
+So now if we have a \texttt{RoomBot\ m}, we can convert it up into a
+\texttt{ChatBot\ m}, and combine it/merge it with other \texttt{ChatBot\ m}s.
+
+\subsection{The whole deal}\label{the-whole-deal}
+
+We have enough now then to imagine our entire program architecture:
+
+\begin{itemize}
+\tightlist
+\item
+  Write a bunch of separate modules, as \texttt{ChatBot\ m}s or
+  \texttt{RoomBot\ m}s, which ever one is more convenient. The beauty is that we
+  can merge them all together in the end with our promoter.
+\item
+  Combine all of our modules with \texttt{mconcat} --- that is, something like
+  \texttt{chatBot\ =\ mconcat\ {[}module1,\ module2,\ module3,\ module\ 4{]}}.
+  And that's it, that's our entire chat bot!
+\item
+  Having an overall \texttt{chatBot\ ::\ ChatBot\ m}, we can use something like
+  \texttt{runOnChan} from \texttt{Control.Auto.Run} to have it exist on a
+  concurrent thread and watch a channel for input, and perform an action on
+  output.
+\item
+  Find an out-of-the-box irc library that can trigger adding something to a
+  concurrent queue when it receives a message, and where you can send messages
+  to rooms.
+\end{itemize}
+
+And\ldots that's it. Program logic in our \texttt{ChatBot\ m}s, and handling the
+``view''/input with our backend.
+
+\subsubsection{Free Serialization}\label{free-serialization}
+
+Remember that \emph{auto} gives us the ability to serialize and resume our
+\texttt{Auto}s for free\ldots so we can at any time save the state of our chat
+bot to disk, and resume it when we re-load. We don't have to worry about
+manually gathering our state between each \texttt{Auto} and writing
+serialization code.
+
+There's a ``convenience combinator'' called
+\texttt{serializing\textquotesingle{}} in \texttt{Control.Auto.Serialize} (it's
+one of many different ones that can do something like this;
+\href{http://hackage.haskell.org/package/auto/docs/Control-Auto-Serialize.html}{check
+out the module} to see other ways of varying disciplined-ness!). It'll take any
+\texttt{Auto} and turn it into an \texttt{Auto} that ``self-serializes'' ---
+when you begin running it, it automatically loads its previous state if it
+exists, and as you run it, it automatically maintains an updated ``resume
+state'' on disk.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{serializing\textquotesingle{} ::} \DataTypeTok{MonadIO}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{FilePath} \OtherTok{{-}\textgreater{}} \DataTypeTok{ChatBot}\NormalTok{ m }\OtherTok{{-}\textgreater{}} \DataTypeTok{ChatBot}\NormalTok{ m}
+\end{Highlighting}
+\end{Shaded}
+
+Note that
+\texttt{serializing\textquotesingle{}\ fp\ ::\ MonadIO\ m\ =\textgreater{}\ ChatBot\ m\ -\textgreater{}\ ChatBot\ m}.
+It looks a lot like an ``identity-ish'' sort of function, right? That's because
+it is meant to behave \emph{like} \texttt{id}\ldots the returned
+\texttt{ChatBot} behaves identical to the previous one\ldots except it splices
+in the serializing action in-between. (We are in \texttt{MonadIO} now, because
+the \texttt{Auto} has to access \texttt{IO} in order to serialize itself between
+steps).
+
+So, instead of
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{chatBot ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{ChatBot}\NormalTok{ m}
+\NormalTok{chatBot }\OtherTok{=} \FunctionTok{mconcat}\NormalTok{ [module1, module2, module3]}
+\end{Highlighting}
+\end{Shaded}
+
+We can do:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{chatBot ::} \DataTypeTok{MonadIO}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{ChatBot}\NormalTok{ m}
+\NormalTok{chatBot }\OtherTok{=}\NormalTok{ serializing\textquotesingle{} }\StringTok{"state.dat"} \OperatorTok{$} \FunctionTok{mconcat}\NormalTok{ [module1, module2, module3]}
+\end{Highlighting}
+\end{Shaded}
+
+And now our \texttt{chatBot} will automatically resume itself on program
+startup, and keep its state backed up on disk at \texttt{state.dat}. We get this
+for free, without doing anything extra in the composition of our modules.
+
+Note that in practice, with a bot you are actively developing, this might not be
+the best idea. \texttt{serializing\textquotesingle{}} \emph{analyzes} your
+\texttt{Auto}s to determine a serialization and reloading strategy, and applies
+that to do its job. However, if you, for example, add a new module to your chat
+bot\ldots the serialization strategy will change, and your new bot won't be able
+to resume old save files.
+
+One solution at this point is just to serialize individual modules that you do
+not see yourself changing\ldots or even just serializing parts of the modules
+you don't see yourself changing. Then you can change each portion separately and
+not worry about migration issues.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{chatBot ::} \DataTypeTok{MonadIO}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{ChatBot}\NormalTok{ m}
+\NormalTok{chatBot }\OtherTok{=} \FunctionTok{mconcat}\NormalTok{ [ serializing\textquotesingle{} }\StringTok{"m1.dat"}\NormalTok{ module1}
+\NormalTok{                  , module2}
+\NormalTok{                  , serializing\textquotesingle{} }\StringTok{"m3.dat"}\NormalTok{ module3}
+\NormalTok{                  ]}
+\end{Highlighting}
+\end{Shaded}
+
+We're not all-or-nothing now here, either! So, \texttt{module1} gets serialized
+and auto-resumed from \texttt{m1.dat}, \texttt{module2} is not serialized at
+all, and \texttt{module3} now gets serialized and auto-resumed from
+\texttt{m3.dat}.
+
+\section{IRC Backend (the ugly part)}\label{irc-backend-the-ugly-part}
+
+Before we get started on our actual modules, let's just write out the
+backend/interface between our \texttt{ChatBot} and irc to get it out of the way.
+This will vary based on what library you use; I'm going to use the
+\href{http://hackage.haskell.org/package/simpleirc-0.3.0}{simpleirc-0.3.0}, but
+feel free to use any interface/library you want.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/auto/chatbot.hs\#L45{-}L228}
+
+\OtherTok{withIrcConf ::} \DataTypeTok{IrcConfig} \OtherTok{{-}\textgreater{}} \DataTypeTok{ChatBot} \DataTypeTok{IO} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{withIrcConf ircconf chatbot }\OtherTok{=} \KeywordTok{do}
+
+    \CommentTok{{-}{-} chan to receive \textasciigrave{}InMessage\textasciigrave{}s}
+\NormalTok{    inputChan }\OtherTok{\textless{}{-} newChan ::} \DataTypeTok{IO}\NormalTok{ (}\DataTypeTok{Chan} \DataTypeTok{InMessage}\NormalTok{)}
+
+    \CommentTok{{-}{-} configuring IRC}
+    \KeywordTok{let}\NormalTok{ events   }\OtherTok{=}\NormalTok{ cEvents ircconf }\OperatorTok{++}\NormalTok{ [ }\DataTypeTok{Privmsg}\NormalTok{ (onMessage inputChan) ]}
+\NormalTok{        ircconf\textquotesingle{} }\OtherTok{=}\NormalTok{ ircconf \{ cEvents }\OtherTok{=}\NormalTok{ events \}}
+
+    \CommentTok{{-}{-} connect; simplified for demonstration purposes}
+    \DataTypeTok{Right}\NormalTok{ server }\OtherTok{\textless{}{-}}\NormalTok{ connect ircconf\textquotesingle{} }\DataTypeTok{True} \DataTypeTok{True}
+
+    \CommentTok{{-}{-} run \textasciigrave{}chatbot\textasciigrave{} on \textasciigrave{}inputChan\textasciigrave{}}
+\NormalTok{    void }\OperatorTok{.}\NormalTok{ forkIO }\OperatorTok{.}\NormalTok{ void }\OperatorTok{$}
+\NormalTok{        runOnChanM }\FunctionTok{id}\NormalTok{ (processOutput server) inputChan chatbot}
+
+  \KeywordTok{where}
+    \CommentTok{{-}{-} what to do when \textasciigrave{}chatBot\textasciigrave{} outputs}
+\OtherTok{    processOutput ::} \DataTypeTok{MIrc} \OtherTok{{-}\textgreater{}} \DataTypeTok{OutMessages} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO} \DataTypeTok{Bool}
+\NormalTok{    processOutput server (}\DataTypeTok{OutMessages}\NormalTok{ outs) }\OtherTok{=} \KeywordTok{do}
+      \FunctionTok{print}\NormalTok{ outs}
+\NormalTok{      \_ }\OtherTok{\textless{}{-}} \FunctionTok{flip}\NormalTok{ M.traverseWithKey outs }\OperatorTok{$}\NormalTok{ \textbackslash{}channel messages }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+        \KeywordTok{let}\NormalTok{ channel\textquotesingle{} }\OtherTok{=}\NormalTok{ encodeUtf8 }\OperatorTok{.} \FunctionTok{pack} \OperatorTok{$}\NormalTok{ channel}
+\NormalTok{        forM\_ messages }\OperatorTok{$}\NormalTok{ \textbackslash{}message }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+          \KeywordTok{let}\NormalTok{ message\textquotesingle{} }\OtherTok{=}\NormalTok{ encodeUtf8 }\OperatorTok{.} \FunctionTok{pack} \OperatorTok{$}\NormalTok{ message}
+\NormalTok{          sendMsg server channel\textquotesingle{} message\textquotesingle{}}
+      \FunctionTok{return} \DataTypeTok{True}       \CommentTok{{-}{-} "yes, continue on"}
+
+    \CommentTok{{-}{-} what to do when you get a new message}
+\OtherTok{    onMessage ::} \DataTypeTok{Chan} \DataTypeTok{InMessage} \OtherTok{{-}\textgreater{}} \DataTypeTok{EventFunc}
+\NormalTok{    onMessage inputChan }\OtherTok{=}\NormalTok{ \textbackslash{}\_ message }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+      \KeywordTok{case}\NormalTok{ (mNick message, mOrigin message) }\KeywordTok{of}
+\NormalTok{        (}\DataTypeTok{Just}\NormalTok{ nick, }\DataTypeTok{Just}\NormalTok{ src) }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{          time }\OtherTok{\textless{}{-}}\NormalTok{ getCurrentTime}
+\NormalTok{          writeChan inputChan }\OperatorTok{$} \DataTypeTok{InMessage}\NormalTok{ (unpack (decodeUtf8 nick))}
+\NormalTok{                                          (unpack (decodeUtf8 (mMsg message)))}
+\NormalTok{                                          (unpack (decodeUtf8 src))}
+\NormalTok{                                          time}
+
+\OtherTok{channels ::}\NormalTok{ [}\DataTypeTok{Channel}\NormalTok{]}
+\NormalTok{channels }\OtherTok{=}\NormalTok{ [}\StringTok{"\#testchan1"}\NormalTok{, }\StringTok{"\#testchan2"}\NormalTok{]}
+
+\OtherTok{conf ::} \DataTypeTok{IrcConfig}
+\NormalTok{conf }\OtherTok{=}\NormalTok{ (mkDefaultConfig }\StringTok{"myserver"} \StringTok{"mynick"}\NormalTok{) \{ cChannels }\OtherTok{=}\NormalTok{ channels \}}
+
+\OtherTok{main ::} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{main }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    withIrcConf conf chatBot}
+\NormalTok{    forever (threadDelay }\DecValTok{1000000000}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+That should be it\ldots don't worry if you don't understand all of it, most of
+it is just implementation details from \texttt{simpleirc}. The overall loop is
+\texttt{runOnChanM} waits on a separate thread for \texttt{inputChan}\ldots when
+it gets input, it runs it through \texttt{ChatBot} and sends the outputs through
+\emph{simpleirc}'s interface. Meanwhile, \texttt{onMessage} is triggered
+whenever \emph{simpleirc} receives a message, where it prepares an
+\texttt{InMessage} and drops it off at \texttt{inputChan}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{runOnChanM ::} \DataTypeTok{Monad}\NormalTok{ m}
+           \OtherTok{=\textgreater{}}\NormalTok{ (}\KeywordTok{forall}\NormalTok{ c}\OperatorTok{.}\NormalTok{ m c }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ c)   }\CommentTok{{-}{-} convert \textasciigrave{}m\textasciigrave{} to \textasciigrave{}IO\textasciigrave{}}
+           \OtherTok{{-}\textgreater{}}\NormalTok{ (b }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO} \DataTypeTok{Bool}\NormalTok{)            }\CommentTok{{-}{-} handle output}
+           \OtherTok{{-}\textgreater{}} \DataTypeTok{Chan}\NormalTok{ a                    }\CommentTok{{-}{-} chan to await input on}
+           \OtherTok{{-}\textgreater{}} \DataTypeTok{Auto}\NormalTok{ m a b                }\CommentTok{{-}{-} \textasciigrave{}Auto\textasciigrave{} to run}
+           \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ (}\DataTypeTok{Auto}\NormalTok{ m a b)}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{runOnChanM} runs any \texttt{Auto\ m\ a\ b}, as long as there's a way to
+convert it to \texttt{Auto\ IO\ a\ b} (we can use a \texttt{ChatBot\ IO}, so we
+just put \texttt{id} there). You give it a ``handler''
+\texttt{b\ -\textgreater{}\ IO\ Bool} that it run whenever it outputs; if the
+handler returns \texttt{False}, then the whole thing stops. You give it the
+\texttt{Chan\ a} to await for input \texttt{a}s on, and it takes care of the
+rest. It blocks until the handler returns \texttt{False}, where it'll return the
+``updated'' \texttt{Auto\ m\ a\ b} with updated state after running through all
+of those inputs.
+
+Phew. With that out of the way, let's get right on to the fun part --- building
+our chat bot modules.
+
+\section{The Modules}\label{the-modules}
+
+\subsection{seenBot}\label{seenbot}
+
+What's a common module? Well, we can write a module that keeps track of the last
+time any user was ``seen'' (sent a message), and then respond when there is a
+query.
+
+There are two components here\ldots the part that keeps track of the last seen
+time, and the part that responds to queries.
+
+Keeping track of our last seen time sounds like a job that takes in a stream of
+\texttt{(Nick,\ UTCTime)} pairs and outputs a stream of
+\texttt{Map\ Nick\ UTCTime}, where we could look up the last seen time for a
+nick by looking up the nick in the map.
+
+Logically, this is pretty straightforward, and anything other than
+\texttt{accum} (which is like \texttt{foldl\textquotesingle{}}) would really be
+a bit overkill; every input would just update the output map.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{trackSeens ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Auto}\NormalTok{ m (}\DataTypeTok{Nick}\NormalTok{, }\DataTypeTok{UTCTime}\NormalTok{) (}\DataTypeTok{Map} \DataTypeTok{Nick} \DataTypeTok{UTCTime}\NormalTok{)}
+\NormalTok{trackSeens }\OtherTok{=}\NormalTok{ accum (\textbackslash{}mp (nick, time) }\OtherTok{{-}\textgreater{}}\NormalTok{ M.insert nick time mp) M.empty}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{accum} takes the same thing that \texttt{foldl} takes:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{foldl}\OtherTok{ ::}\NormalTok{            (b }\OtherTok{{-}\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ b) }\OtherTok{{-}\textgreater{}}\NormalTok{ b }\OtherTok{{-}\textgreater{}}\NormalTok{ [a] }\OtherTok{{-}\textgreater{}}\NormalTok{ b}
+\OtherTok{accum ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}}\NormalTok{ (b }\OtherTok{{-}\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ b) }\OtherTok{{-}\textgreater{}}\NormalTok{ b }\OtherTok{{-}\textgreater{}} \DataTypeTok{Auto}\NormalTok{ m a b}
+\end{Highlighting}
+\end{Shaded}
+
+So it basically ``folds up'' the entire history of inputs, with a starting
+value. Every time an input comes, the output is the new folded history of
+inputs. You can sort of think of it as it applying the function to any incoming
+values to an internal accumulator and updating it at every step.
+
+By the way, because \texttt{trackSeens} is self-serializing, we need a
+\texttt{Serialize} instance for \texttt{UTCTime}\ldots just for the sake of
+demonstration, let's make one now. Let's also write a \texttt{Serialize}
+instance for \texttt{Day} (which represents a date) too, while we're at it.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/auto/chatbot.hs\#L230{-}L236}
+
+\KeywordTok{instance} \DataTypeTok{Serialize} \DataTypeTok{UTCTime} \KeywordTok{where}
+\NormalTok{    get }\OtherTok{=} \FunctionTok{read} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ get      }\CommentTok{{-}{-} haha don\textquotesingle{}t do this in real life.}
+\NormalTok{    put }\OtherTok{=}\NormalTok{ put }\OperatorTok{.} \FunctionTok{show}
+
+\KeywordTok{instance} \DataTypeTok{Serialize} \DataTypeTok{Day} \KeywordTok{where}
+\NormalTok{    get }\OtherTok{=} \DataTypeTok{ModifiedJulianDay} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ get}
+\NormalTok{    put }\OtherTok{=}\NormalTok{ put }\OperatorTok{.}\NormalTok{ toModifiedJulianDay}
+\end{Highlighting}
+\end{Shaded}
+
+The next component is just to respond to requests. We want to do something on
+some ``triggering'' input. Every once in a while, some input will come that will
+``trigger'' some special response. This is a sign that we can use \emph{blip
+streams}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{queryBlips ::} \DataTypeTok{Auto}\NormalTok{ m }\DataTypeTok{Message}\NormalTok{ (}\DataTypeTok{Blip} \DataTypeTok{Nick}\NormalTok{)}
+\NormalTok{queryBlips }\OtherTok{=}\NormalTok{ emitJusts (getRequest }\OperatorTok{.} \FunctionTok{words}\NormalTok{)}
+  \KeywordTok{where}
+\NormalTok{    getRequest (}\StringTok{"@seen"}\OperatorTok{:}\NormalTok{nick}\OperatorTok{:}\NormalTok{\_) }\OtherTok{=} \DataTypeTok{Just}\NormalTok{ nick}
+\NormalTok{    getRequest \_                }\OtherTok{=} \DataTypeTok{Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{queryBlips} takes an input stream of strings and turns it into an output
+\emph{blip stream} that emits with a \texttt{Nick} whenever the input stream
+contains a request in the form of \texttt{"@seen\ {[}nick{]}"}.
+
+With these simple blocks, we can build our \texttt{seenBot}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} seenBot :: Monad m =\textgreater{} Auto m InMessage (Blip [Message])}
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/auto/chatbot.hs\#L96{-}L115}
+
+\OtherTok{seenBot ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{RoomBot}\NormalTok{ m}
+\NormalTok{seenBot }\OtherTok{=}\NormalTok{ proc (}\DataTypeTok{InMessage}\NormalTok{ nick msg \_ time) }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    seens  }\OtherTok{\textless{}{-}}\NormalTok{ trackSeens }\OperatorTok{{-}\textless{}}\NormalTok{ (nick, time)}
+
+\NormalTok{    queryB }\OtherTok{\textless{}{-}}\NormalTok{ queryBlips }\OperatorTok{{-}\textless{}}\NormalTok{ msg}
+
+    \KeywordTok{let}\OtherTok{ respond ::} \DataTypeTok{Nick} \OtherTok{{-}\textgreater{}}\NormalTok{ [}\DataTypeTok{Message}\NormalTok{]}
+\NormalTok{        respond qry }\OtherTok{=} \KeywordTok{case}\NormalTok{ M.lookup qry seens }\KeywordTok{of}
+                        \DataTypeTok{Just}\NormalTok{ t  }\OtherTok{{-}\textgreater{}}\NormalTok{ [qry }\OperatorTok{++} \StringTok{" last seen at "} \OperatorTok{++} \FunctionTok{show}\NormalTok{ t }\OperatorTok{++} \StringTok{"."}\NormalTok{]}
+                        \DataTypeTok{Nothing} \OtherTok{{-}\textgreater{}}\NormalTok{ [}\StringTok{"No record of "} \OperatorTok{++}\NormalTok{ qry }\OperatorTok{++} \StringTok{"."}\NormalTok{]}
+
+    \FunctionTok{id} \OperatorTok{{-}\textless{}}\NormalTok{ respond }\OperatorTok{\textless{}$\textgreater{}}\NormalTok{ queryB}
+  \KeywordTok{where}
+\OtherTok{    trackSeens ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Auto}\NormalTok{ m (}\DataTypeTok{Nick}\NormalTok{, }\DataTypeTok{UTCTime}\NormalTok{) (}\DataTypeTok{Map} \DataTypeTok{Nick} \DataTypeTok{UTCTime}\NormalTok{)}
+\NormalTok{    trackSeens }\OtherTok{=}\NormalTok{ accum (\textbackslash{}mp (nick, time) }\OtherTok{{-}\textgreater{}}\NormalTok{ M.insert nick time mp) M.empty}
+\OtherTok{    queryBlips ::} \DataTypeTok{Auto}\NormalTok{ m }\DataTypeTok{Message}\NormalTok{ (}\DataTypeTok{Blip} \DataTypeTok{Nick}\NormalTok{)}
+\NormalTok{    queryBlips }\OtherTok{=}\NormalTok{ emitJusts (getRequest }\OperatorTok{.} \FunctionTok{words}\NormalTok{)}
+      \KeywordTok{where}
+\NormalTok{        getRequest (}\StringTok{"@seen"}\OperatorTok{:}\NormalTok{nick}\OperatorTok{:}\NormalTok{\_) }\OtherTok{=} \DataTypeTok{Just}\NormalTok{ nick}
+\NormalTok{        getRequest \_                }\OtherTok{=} \DataTypeTok{Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+Here we define \texttt{respond} as a function that takes a \texttt{Nick} and
+returns the output \texttt{{[}Message{]}}. We could have also defined it outside
+as a helper function
+\texttt{respond\ ::\ Map\ Nick\ UTCTime\ -\textgreater{}\ Nick\ -\textgreater{}\ {[}Message{]}}\ldots but
+\texttt{seens} is already in scope, so we might as well just do it there.
+
+For our output, we use the \texttt{Functor} instance of blip streams.
+\texttt{respond\ \textless{}\$\textgreater{}\ queryB} is a blip stream that
+emits whenever \texttt{queryB} emits (so, whenever there is a query input), but
+replaces the emitted value with the result of the function on the value. So
+whenever \texttt{queryB} emits, this whole thing emits with \texttt{respond}
+applied to whatever \texttt{Nick} was emitted --- in this case, our
+\texttt{{[}Message{]}}.
+
+Short, sweet, simple. In fact, \texttt{trackSeens} and \texttt{queryBlips} are
+small enough that their definition could really have been inlined. Breaking them
+down just allowed us to look at them individually for this tutorial.
+
+So that's it for that; also, if we wanted \texttt{seenBot} to serialize and
+persist across sessions, all we have to do is use:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{serializing\textquotesingle{} }\StringTok{"seenbot.dat"}\OtherTok{ seenBot ::} \DataTypeTok{MonadIO}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{RoomBot}\NormalTok{ m}
+\end{Highlighting}
+\end{Shaded}
+
+Neat, right?
+
+If we forsee ourselves adding more features to \texttt{seenBot}, we can
+future-proof our \texttt{seenBot} for now by only serializing
+\texttt{trackSeens}, meaning replacing that line with:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{    seens }\OtherTok{\textless{}{-}}\NormalTok{ serializing\textquotesingle{} }\StringTok{"seen.dat"}\NormalTok{ trackSeens }\OperatorTok{{-}\textless{}}\NormalTok{ (nick, time)}
+\end{Highlighting}
+\end{Shaded}
+
+Remember, \texttt{serializing\textquotesingle{}\ fp} acts as a sort of
+``identity'', so you can drop it in anywhere and you'd expect it to behave the
+same.
+
+\subsection{repBot}\label{repbot}
+
+Another common bot is a ``reputation bot'', which allows users to increment or
+decrement another user's reputation scores, and look up a user's total score.
+
+Again there are two components --- keeping track of the scores of all of the
+users, and responding to requests.
+
+This time though, our ``score updates'' only happen every once in a while,
+triggered by certain words in the message. Again, this pattern calls for a blip
+stream:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{updateBlips ::} \DataTypeTok{Auto}\NormalTok{ m (}\DataTypeTok{Nick}\NormalTok{, }\DataTypeTok{Message}\NormalTok{) (}\DataTypeTok{Blip}\NormalTok{ (}\DataTypeTok{Nick}\NormalTok{, }\DataTypeTok{Int}\NormalTok{))}
+\NormalTok{updateBlips }\OtherTok{=}\NormalTok{ emitJusts getUpdateCommand}
+  \KeywordTok{where}
+    \CommentTok{{-}{-} updater is the person triggering the update blip}
+\NormalTok{    getUpdateCommand (updater, msg) }\OtherTok{=}
+      \KeywordTok{case} \FunctionTok{words}\NormalTok{ msg }\KeywordTok{of}
+        \StringTok{"@addRep"}\OperatorTok{:}\NormalTok{nick}\OperatorTok{:}\NormalTok{\_ }\OperatorTok{|}\NormalTok{ nick }\OperatorTok{/=}\NormalTok{ updater }\OtherTok{{-}\textgreater{}} \DataTypeTok{Just}\NormalTok{ (nick, }\DecValTok{1}\NormalTok{)}
+        \StringTok{"@subRep"}\OperatorTok{:}\NormalTok{nick}\OperatorTok{:}\NormalTok{\_                   }\OtherTok{{-}\textgreater{}} \DataTypeTok{Just}\NormalTok{ (nick, }\OperatorTok{{-}}\DecValTok{1}\NormalTok{)}
+\NormalTok{        \_                                  }\OtherTok{{-}\textgreater{}} \DataTypeTok{Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{updateBlips} takes in a stream of \texttt{(Nick,\ Message)}, with the
+person who is sending the message and their message, and outputs a blip stream
+that and emits with a \texttt{(Nick,\ Int)} whenever the message is a command.
+The emitted \texttt{(Nick,\ Int)} has the person to adjust, and the amount to
+adjust by. Note that we ignore commands where the person is trying to increase
+their own reputation because that's just lame.
+
+We probably want to keep track of the scores as a \texttt{Map\ Nick\ Int}, so we
+can do that with something like \texttt{accum} again. However, \texttt{accum}
+takes a stream of normal values, but we have a \emph{blip stream}, so we can use
+\texttt{scanB} instead. \texttt{scanB} is pretty much the same thing, but it
+collapses a blip stream into a value stream by holding the ``current result'' of
+the fold.\footnote{\texttt{scanB\ f\ x0\ ::\ Auto\ m\ (Blip\ a)\ b}, but there's
+  also \texttt{accumB\ f\ x0\ ::\ Auto\ m\ a\ (Blip\ a)\ (Blip\ b)}, which emits
+  whenever the input emits only.}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{trackReps ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Auto}\NormalTok{ m (}\DataTypeTok{Blip}\NormalTok{ (}\DataTypeTok{Nick}\NormalTok{, }\DataTypeTok{Int}\NormalTok{)) (}\DataTypeTok{Map} \DataTypeTok{Nick} \DataTypeTok{Int}\NormalTok{)}
+\NormalTok{trackReps }\OtherTok{=}\NormalTok{ scanB (\textbackslash{}mp (nick, change) }\OtherTok{{-}\textgreater{}}\NormalTok{ M.insertWith (}\OperatorTok{+}\NormalTok{) nick change mp) M.empty}
+\end{Highlighting}
+\end{Shaded}
+
+And finally, the ``response'' portion --- we want to be able to respond to
+commands and look up the result. We basically had this identical pattern for
+\texttt{seenBot}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{queryBlips ::} \DataTypeTok{Auto}\NormalTok{ m }\DataTypeTok{Message}\NormalTok{ (}\DataTypeTok{Blip} \DataTypeTok{Nick}\NormalTok{)}
+\NormalTok{queryBlips }\OtherTok{=}\NormalTok{ emitJusts (getRequest }\OperatorTok{.} \FunctionTok{words}\NormalTok{)}
+  \KeywordTok{where}
+\NormalTok{    getRequest (}\StringTok{"@rep"}\OperatorTok{:}\NormalTok{nick}\OperatorTok{:}\NormalTok{\_) }\OtherTok{=} \DataTypeTok{Just}\NormalTok{ nick}
+\NormalTok{    getRequest \_                }\OtherTok{=} \DataTypeTok{Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+And\ldots now we can wrap it all together with a nice proc block:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} repBot :: Monad m =\textgreater{} Auto m InMessage (Blip [Message])}
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/auto/chatbot.hs\#L117{-}L147}
+
+\OtherTok{repBot ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{RoomBot}\NormalTok{ m}
+\NormalTok{repBot }\OtherTok{=}\NormalTok{ proc (}\DataTypeTok{InMessage}\NormalTok{ nick msg \_ \_) }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    updateB }\OtherTok{\textless{}{-}}\NormalTok{ updateBlips }\OperatorTok{{-}\textless{}}\NormalTok{ (nick, msg)}
+
+\NormalTok{    reps    }\OtherTok{\textless{}{-}}\NormalTok{ trackReps   }\OperatorTok{{-}\textless{}}\NormalTok{ updateB}
+
+\NormalTok{    queryB  }\OtherTok{\textless{}{-}}\NormalTok{ queryBlips  }\OperatorTok{{-}\textless{}}\NormalTok{ msg}
+
+    \KeywordTok{let}\OtherTok{ lookupRep ::} \DataTypeTok{Nick} \OtherTok{{-}\textgreater{}}\NormalTok{ [}\DataTypeTok{Message}\NormalTok{]}
+\NormalTok{        lookupRep nick }\OtherTok{=}\NormalTok{ [nick }\OperatorTok{++} \StringTok{" has a reputation of "} \OperatorTok{++} \FunctionTok{show}\NormalTok{ rep }\OperatorTok{++} \StringTok{"."}\NormalTok{]}
+          \KeywordTok{where}
+\NormalTok{            rep }\OtherTok{=}\NormalTok{ M.findWithDefault }\DecValTok{0}\NormalTok{ nick reps}
+
+    \FunctionTok{id} \OperatorTok{{-}\textless{}}\NormalTok{ lookupRep }\OperatorTok{\textless{}$\textgreater{}}\NormalTok{ queryB}
+  \KeywordTok{where}
+\OtherTok{    updateBlips ::} \DataTypeTok{Auto}\NormalTok{ m (}\DataTypeTok{Nick}\NormalTok{, }\DataTypeTok{Message}\NormalTok{) (}\DataTypeTok{Blip}\NormalTok{ (}\DataTypeTok{Nick}\NormalTok{, }\DataTypeTok{Int}\NormalTok{))}
+\NormalTok{    updateBlips }\OtherTok{=}\NormalTok{ emitJusts getUpdateCommand}
+      \KeywordTok{where}
+        \CommentTok{{-}{-} updater is the person triggering the update blip}
+\NormalTok{        getUpdateCommand (updater, msg) }\OtherTok{=}
+          \KeywordTok{case} \FunctionTok{words}\NormalTok{ msg }\KeywordTok{of}
+            \StringTok{"@addRep"}\OperatorTok{:}\NormalTok{nick}\OperatorTok{:}\NormalTok{\_ }\OperatorTok{|}\NormalTok{ nick }\OperatorTok{/=}\NormalTok{ updater }\OtherTok{{-}\textgreater{}} \DataTypeTok{Just}\NormalTok{ (nick, }\DecValTok{1}\NormalTok{)}
+            \StringTok{"@subRep"}\OperatorTok{:}\NormalTok{nick}\OperatorTok{:}\NormalTok{\_                   }\OtherTok{{-}\textgreater{}} \DataTypeTok{Just}\NormalTok{ (nick, }\OperatorTok{{-}}\DecValTok{1}\NormalTok{)}
+\NormalTok{            \_                                  }\OtherTok{{-}\textgreater{}} \DataTypeTok{Nothing}
+\OtherTok{    trackReps ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Auto}\NormalTok{ m (}\DataTypeTok{Blip}\NormalTok{ (}\DataTypeTok{Nick}\NormalTok{, }\DataTypeTok{Int}\NormalTok{)) (}\DataTypeTok{Map} \DataTypeTok{Nick} \DataTypeTok{Int}\NormalTok{)}
+\NormalTok{    trackReps }\OtherTok{=}\NormalTok{ scanB (\textbackslash{}mp (nick, change) }\OtherTok{{-}\textgreater{}}\NormalTok{ M.insertWith (}\OperatorTok{+}\NormalTok{) nick change mp) M.empty}
+\OtherTok{    queryBlips ::} \DataTypeTok{Auto}\NormalTok{ m }\DataTypeTok{Message}\NormalTok{ (}\DataTypeTok{Blip} \DataTypeTok{Nick}\NormalTok{)}
+\NormalTok{    queryBlips }\OtherTok{=}\NormalTok{ emitJusts (getRequest }\OperatorTok{.} \FunctionTok{words}\NormalTok{)}
+      \KeywordTok{where}
+\NormalTok{        getRequest (}\StringTok{"@rep"}\OperatorTok{:}\NormalTok{nick}\OperatorTok{:}\NormalTok{\_) }\OtherTok{=} \DataTypeTok{Just}\NormalTok{ nick}
+\NormalTok{        getRequest \_                }\OtherTok{=} \DataTypeTok{Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+Again note that we take advantage of the \texttt{Functor} instance of blip
+streams to create a new blip stream
+(\texttt{lookupRep\ \textless{}\$\textgreater{}\ queryB}) that emits whenever
+\texttt{queryB} emits, but replaces the value with \texttt{lookupRep} applied to
+whatever \texttt{Nick} was in the query blip. We also take advantage that
+\texttt{reps} is in scope and define \texttt{lookupRep} right there in the
+block.
+
+\subsection{announceBot}\label{announcebot}
+
+Let's just go over one more module\ldots and I think you'll be able to use your
+imagination to think of and implement your own from here.
+
+Let's make an ``announceBot'', that listens for ``announcement'' messages from
+anyone (even in private messages) and broadcasts them to all of the channels in
+the provided list. It rate-limits the announcements, though, so that a user is
+only limited to three announcements per day.
+
+We can start with our typical ``blip stream that emits on a certain command'' to
+start off everything:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{announceBlips ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Auto}\NormalTok{ m (}\DataTypeTok{Nick}\NormalTok{, }\DataTypeTok{Message}\NormalTok{) (}\DataTypeTok{Blip}\NormalTok{ [}\DataTypeTok{Message}\NormalTok{])}
+\NormalTok{announceBlips }\OtherTok{=}\NormalTok{ emitJusts getAnnounces}
+  \KeywordTok{where}
+\NormalTok{    getAnnounces (nick, msg) }\OtherTok{=}
+      \KeywordTok{case} \FunctionTok{words}\NormalTok{ msg }\KeywordTok{of}
+        \StringTok{"@ann"}\OperatorTok{:}\NormalTok{ann }\OtherTok{{-}\textgreater{}} \DataTypeTok{Just}\NormalTok{ [nick }\OperatorTok{++} \StringTok{" says \textbackslash{}""} \OperatorTok{++} \FunctionTok{unwords}\NormalTok{ ann }\OperatorTok{++} \StringTok{"\textbackslash{}"."}\NormalTok{]}
+\NormalTok{        \_          }\OtherTok{{-}\textgreater{}} \DataTypeTok{Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{announceBlips} takes in a nick-message pair and emits an announcement
+\texttt{{[}Message{]}} whenever the incoming message is an announcement command.
+
+Next, we'd like to keep track of how many times a user has made an announcement
+today. This is pretty much just \texttt{scanB} again like with \texttt{repBot}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{trackAnns ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Auto}\NormalTok{ m (}\DataTypeTok{Blip} \DataTypeTok{Nick}\NormalTok{) (}\DataTypeTok{Map} \DataTypeTok{Nick} \DataTypeTok{Int}\NormalTok{)}
+\NormalTok{trackAnns }\OtherTok{=}\NormalTok{ scanB (\textbackslash{}mp nick }\OtherTok{{-}\textgreater{}}\NormalTok{ M.insertWith (}\OperatorTok{+}\NormalTok{) nick }\DecValTok{1}\NormalTok{ mp) M.empty}
+\end{Highlighting}
+\end{Shaded}
+
+However, we'd like to be able to ``reset'' this map whenever a new day arrives.
+For that, we can use \texttt{resetOn} from
+\href{http://hackage.haskell.org/package/auto/docs/Control-Auto-Switch.html}{\texttt{Control.Auto.Switch}},
+which takes an \texttt{Auto} and gives it a ``reset channel'' input blip stream,
+that resets the whole thing whenever the blip stream emits:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{resetOn ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Auto}\NormalTok{ m a b }\OtherTok{{-}\textgreater{}} \DataTypeTok{Auto}\NormalTok{ m (a        , }\DataTypeTok{Blip}\NormalTok{ c) b}
+\NormalTok{resetOn}\OtherTok{ trackAnns ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}}     \DataTypeTok{Auto}\NormalTok{ m (}\DataTypeTok{Blip} \DataTypeTok{Nick}\NormalTok{, }\DataTypeTok{Blip}\NormalTok{ c) (}\DataTypeTok{Map} \DataTypeTok{Nick} \DataTypeTok{Int}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+(It doesn't care about the actual value emitted, so we can leave it as a type
+variable \texttt{c} conceptually.)
+
+Now the only thing we need is a blip stream that emits whenever there is a new
+day. For that, we can use \texttt{onChange} from
+\href{http://hackage.haskell.org/package/auto/docs/Control-Auto-Blip.html}{\texttt{Control.Auto.Blip}}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{newDayBlips ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Auto}\NormalTok{ m }\DataTypeTok{Day}\NormalTok{ (}\DataTypeTok{Blip} \DataTypeTok{Day}\NormalTok{)}
+\NormalTok{newDayBlips }\OtherTok{=}\NormalTok{ onChange}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{newDayBlips} takes in a stream of \texttt{Day}s (from
+\texttt{Data.Time}) that we get from the \texttt{InMessage} and outputs a blip
+stream that emits whenever the day changes. It emits with the new
+\texttt{Day}\ldots but we don't really care about the emitted value, we're just
+using it to trigger \texttt{resetOn\ trackAnns}.
+
+Finally, let's wrap it all together!
+
+Remember, \texttt{announceBot} is a full on \texttt{ChatBot\ m}, and not a
+\texttt{RoomBot\ m} anymore, so it has to say where it wants to send its
+messages.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} announceBot :: Monad m =\textgreater{} [Channel] {-}\textgreater{} Auto m InMessage OutMessages}
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/auto/chatbot.hs\#L149{-}L183}
+
+\OtherTok{announceBot ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}}\NormalTok{ [}\DataTypeTok{Channel}\NormalTok{] }\OtherTok{{-}\textgreater{}} \DataTypeTok{ChatBot}\NormalTok{ m}
+\NormalTok{announceBot chans }\OtherTok{=}\NormalTok{ proc (}\DataTypeTok{InMessage}\NormalTok{ nick msg src time) }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    announceB }\OtherTok{\textless{}{-}}\NormalTok{ announceBlips     }\OperatorTok{{-}\textless{}}\NormalTok{ (nick, msg)}
+
+\NormalTok{    newDayB   }\OtherTok{\textless{}{-}}\NormalTok{ newDayBlips       }\OperatorTok{{-}\textless{}}\NormalTok{ utctDay time}
+
+\NormalTok{    annCounts }\OtherTok{\textless{}{-}}\NormalTok{ resetOn trackAnns }\OperatorTok{{-}\textless{}}\NormalTok{ (nick }\OperatorTok{\textless{}$}\NormalTok{ announceB, newDayB)}
+
+    \KeywordTok{let}\NormalTok{ hasFlooded  }\OtherTok{=}\NormalTok{ M.findWithDefault }\DecValTok{0}\NormalTok{ nick annCounts }\OperatorTok{\textgreater{}} \DecValTok{3}
+
+\OtherTok{        targetChans ::}\NormalTok{ [}\DataTypeTok{Channel}\NormalTok{]}
+\NormalTok{        targetChans }\OperatorTok{|}\NormalTok{ hasFlooded }\OtherTok{=}\NormalTok{ [src]}
+                    \OperatorTok{|} \FunctionTok{otherwise}  \OtherTok{=}\NormalTok{ chans}
+
+\OtherTok{        outB        ::} \DataTypeTok{Blip}\NormalTok{ [}\DataTypeTok{Message}\NormalTok{]}
+\NormalTok{        outB        }\OperatorTok{|}\NormalTok{ hasFlooded }\OtherTok{=}\NormalTok{ [nick }\OperatorTok{++} \StringTok{": No flooding!"}\NormalTok{] }\OperatorTok{\textless{}$}\NormalTok{ announceB}
+                    \OperatorTok{|} \FunctionTok{otherwise}  \OtherTok{=}\NormalTok{ announceB}
+
+\OtherTok{        outMsgsB    ::} \DataTypeTok{Blip} \DataTypeTok{OutMessages}
+\NormalTok{        outMsgsB    }\OtherTok{=}\NormalTok{ (\textbackslash{}out }\OtherTok{{-}\textgreater{}} \DataTypeTok{OutMessages}\NormalTok{ (M.fromList (}\FunctionTok{map}\NormalTok{ (,out) targetChans)))}
+                  \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ outB}
+
+\NormalTok{    fromBlips }\FunctionTok{mempty} \OperatorTok{{-}\textless{}}\NormalTok{ outMsgsB}
+  \KeywordTok{where}
+\OtherTok{    announceBlips ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Auto}\NormalTok{ m (}\DataTypeTok{Nick}\NormalTok{, }\DataTypeTok{Message}\NormalTok{) (}\DataTypeTok{Blip}\NormalTok{ [}\DataTypeTok{Message}\NormalTok{])}
+\NormalTok{    announceBlips }\OtherTok{=}\NormalTok{ emitJusts getAnnounces}
+      \KeywordTok{where}
+\NormalTok{        getAnnounces (nick, msg) }\OtherTok{=}
+          \KeywordTok{case} \FunctionTok{words}\NormalTok{ msg }\KeywordTok{of}
+            \StringTok{"@ann"}\OperatorTok{:}\NormalTok{ann }\OtherTok{{-}\textgreater{}} \DataTypeTok{Just}\NormalTok{ [nick }\OperatorTok{++} \StringTok{" says \textbackslash{}""} \OperatorTok{++} \FunctionTok{unwords}\NormalTok{ ann }\OperatorTok{++} \StringTok{"\textbackslash{}"."}\NormalTok{]}
+\NormalTok{            \_          }\OtherTok{{-}\textgreater{}} \DataTypeTok{Nothing}
+\OtherTok{    newDayBlips ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Auto}\NormalTok{ m }\DataTypeTok{Day}\NormalTok{ (}\DataTypeTok{Blip} \DataTypeTok{Day}\NormalTok{)}
+\NormalTok{    newDayBlips }\OtherTok{=}\NormalTok{ onChange}
+\OtherTok{    trackAnns ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Auto}\NormalTok{ m (}\DataTypeTok{Blip} \DataTypeTok{Nick}\NormalTok{) (}\DataTypeTok{Map} \DataTypeTok{Nick} \DataTypeTok{Int}\NormalTok{)}
+\NormalTok{    trackAnns }\OtherTok{=}\NormalTok{ scanB (\textbackslash{}mp nick }\OtherTok{{-}\textgreater{}}\NormalTok{ M.insertWith (}\OperatorTok{+}\NormalTok{) nick }\DecValTok{1}\NormalTok{ mp) M.empty}
+\end{Highlighting}
+\end{Shaded}
+
+Only slightly more involved, but still pretty readable, right? We find out if
+things have flooded, and our target channels will be just the original source if
+true (a message as a reprimand); otherwise, all the channels in \texttt{chans}.
+If they have flooded, then our \texttt{outB} (blip stream of
+\texttt{{[}Message{]}} to send to each room) will just be
+\texttt{{[}"No\ flooding!"{]}} if yes, or the actual announcement otherwise.
+
+Finally, our \texttt{Blip\ OutMessages} will be the \texttt{OutMessage} formed
+by associating all of the channels in \texttt{targetChans} with the message in
+\texttt{outB}\ldots emitting whenever \texttt{outB} emits.
+
+Note here that we use \texttt{(\textless{}\$)} from the \texttt{Functor}
+instance of blip streams. \texttt{x\ \textless{}\$\ fooB} is a new blip stream
+that emits whenever \texttt{fooB} emits\ldots but instead \emph{replaces the
+emitted value}. So for \texttt{4\ \textless{}\$\ fooB}, if \texttt{fooB} emits
+with \texttt{"hello"}, \texttt{4\ \textless{}\$\ fooB} emits with \texttt{4}.
+``Emit at the same time, but pry out the value and put in your own.''
+
+Finally we use \texttt{fromBlips}, which we met before in the definition of
+\texttt{perRoom}: the output is the \texttt{OutMessage} in \texttt{outMsgsB}
+whenever \texttt{outMsgsB} \emph{does} emit\ldots or it's \texttt{mempty} (the
+empty map) when it doesn't.
+
+\section{Wrapping it all up}\label{wrapping-it-all-up}
+
+We have three nice modules now. Now let's wrap it all together.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/auto/chatbot.hs\#L83{-}L88}
+
+\OtherTok{chatBot ::} \DataTypeTok{MonadIO}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{ChatBot}\NormalTok{ m}
+\NormalTok{chatBot }\OtherTok{=}\NormalTok{ serializing\textquotesingle{} }\StringTok{"chatbot.dat"}
+        \OperatorTok{.} \FunctionTok{mconcat} \OperatorTok{$}\NormalTok{ [ perRoom seenBot}
+\NormalTok{                    , perRoom repBot}
+\NormalTok{                    , announceBot channels}
+\NormalTok{                    ]}
+\end{Highlighting}
+\end{Shaded}
+
+Or, to future-proof, in case we foresee adding new modules:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/auto/chatbot.hs\#L90{-}L94}
+
+\OtherTok{chatBot\textquotesingle{} ::} \DataTypeTok{MonadIO}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{ChatBot}\NormalTok{ m}
+\NormalTok{chatBot\textquotesingle{} }\OtherTok{=} \FunctionTok{mconcat}\NormalTok{ [ perRoom }\OperatorTok{.}\NormalTok{ serializing\textquotesingle{} }\StringTok{"seens.dat"} \OperatorTok{$}\NormalTok{ seenBot}
+\NormalTok{                   , perRoom }\OperatorTok{.}\NormalTok{ serializing\textquotesingle{} }\StringTok{"reps.dat"}  \OperatorTok{$}\NormalTok{ repBot}
+\NormalTok{                   ,           serializing\textquotesingle{} }\StringTok{"anns.dat"}  \OperatorTok{$}\NormalTok{ announceBot channels}
+\NormalTok{                   ]}
+\end{Highlighting}
+\end{Shaded}
+
+And\ldots that's it!
+
+Feel free to
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/auto/chatbot.hs}{download
+and run this all yourself} using \texttt{runghc}! (provided you have the
+appropriate libraries installed)
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+This is a quick diversion! It's slightly more advanced, so don't worry if you
+don't understand it immediately.
+
+Note that the \texttt{perRoom} upgrade has the same \texttt{RoomBot\ m} watch
+\emph{all} of the channels and send any replies back to the channel that it just
+received from. Every channel is really interacting with the \emph{same}
+\texttt{RoomBot} instance, with one shared state. So \texttt{perRoom\ repBot}
+keeps track of reputations between rooms --- asking for someone's reputation in
+one room will be the same as asking for it in another room.
+
+Another way we could ``upgrade'' a \texttt{RoomBot} is to give each channel its
+own little copy, with separate state. We can do this using \texttt{mux}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/auto/chatbot.hs\#L78{-}L81}
+
+\OtherTok{isolatedRooms ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{RoomBot}\NormalTok{ m }\OtherTok{{-}\textgreater{}} \DataTypeTok{ChatBot}\NormalTok{ m}
+\NormalTok{isolatedRooms rb }\OtherTok{=}\NormalTok{ proc inp}\OperatorTok{@}\NormalTok{(}\DataTypeTok{InMessage}\NormalTok{ \_ \_ src \_) }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    messages }\OtherTok{\textless{}{-}}\NormalTok{ fromBlips [] }\OperatorTok{.}\NormalTok{ mux (}\FunctionTok{const}\NormalTok{ rb) }\OperatorTok{{-}\textless{}}\NormalTok{ (src, inp)}
+    \FunctionTok{id} \OperatorTok{{-}\textless{}} \DataTypeTok{OutMessages} \OperatorTok{$}\NormalTok{ M.singleton src messages}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{mux} is an ``\texttt{Auto} multiplexer'':
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{mux ::}\NormalTok{ (k }\OtherTok{{-}\textgreater{}} \DataTypeTok{Auto}\NormalTok{ m a b) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Auto}\NormalTok{ m (k, a) b}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{mux\ f} associates a separate/different \texttt{Auto}, with its own
+isolated state, with every key \texttt{k}. It takes in a stream of key-input
+pairs \texttt{(k,\ a)} and feeds the \texttt{a} into the \texttt{Auto} it has
+associated with that key \texttt{k}. The function \texttt{f} is what
+\texttt{Auto} initialize if the \texttt{k} has not yet been seen before.
+
+So we feed it a \texttt{(Channel,\ InMessage)}, and it feeds in that
+\texttt{InMessage} to the \texttt{RoomBot\ m} associated with that
+\texttt{Channel}\ldots and the output is the \texttt{Blip\ {[}Message{]}} blip
+stream that the \texttt{RoomBot} at that \texttt{Channel} popped out.
+
+Our ``auto initialization function'' is \texttt{const\ rb}, because no matter
+what channel we're in, we always want to initialize with the same \texttt{rb}.
+
+So, for example, if we had \texttt{isolatedRooms\ repBot}, if a message came
+from channel \emph{\#foo} saying \texttt{"@rep\ john"}, \emph{only the
+\texttt{repBot} associated with \#foo} would get the message, and only that
+\texttt{repBot}'s output will be displayed. If here is not yet a \texttt{repBot}
+instance associated with \emph{\#foo}, then a new one will be created by calling
+\texttt{const\ repBot} on \texttt{"\#foo"}\ldots initializing a new
+\texttt{repBot} that only knows about \emph{\#foo} messages.
+
+So now every channel has its own \texttt{repBot}, and maintains its own
+independent reputation database.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{Fin}\label{fin}
+
+Hopefully, going over this project, you're starting to see some common and
+powerful idioms and tools. I hope that a clear picture of how to approach and
+finish a program with the \emph{auto} library looks\ldots and how beneficial the
+platform and what it offers is to streamlining the development process.
+
+Also, hopefully the ``declarative'' nature of everything is apparent. Especially
+for \emph{proc} blocks\ldots everything just ``looks like'' a graph of
+relationships. This quantity is related to this quantity in this way, this
+quantity is related to that in that way, etc. It looks like you're just
+specifying a graph of relationships, which is really what the core of
+\emph{auto} is all about. We assemble complex relationships by putting together
+small, simple relationships.
+
+Another interesting thing is that we never really explicitly managed any sort of
+state or state type. All of our \texttt{Auto}s handled their state on their own.
+We didn't need to make a giant massive aggregate bulky ``global state''
+type\ldots and we can add new ``aspects'' of state (new modules) without ever
+having to change any data type. The state all manages itself!
+
+And yeah, we didn't just implement ``easy'' modules/components\ldots these are
+actual working components that you might see in real bots, and not just toy
+ones.
+
+Where can we go from here? Well, you might actually want to maybe write
+``subscription'' \texttt{Auto}s that are updated every minute or so:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \DataTypeTok{ChronBot}\NormalTok{ m }\OtherTok{=} \DataTypeTok{Auto}\NormalTok{ m }\DataTypeTok{UTCTime} \DataTypeTok{OutMessages}
+\end{Highlighting}
+\end{Shaded}
+
+You feed them inputs every minute with the time, and it's allowed to react with
+the time and output an \texttt{OutMessages}. You can use this bot to implement
+things like rss feed watchers/subscribers, for instance.
+
+So, instead of using an input channel waiting for \texttt{InMessage}, you might
+wait for \texttt{Either\ InMessage\ UTCTime}\ldots and drop in \texttt{Left\ im}
+whenever you get a message, and \texttt{Right\ time} from a thread that just
+waits a minute and repeatedly throws in times.
+
+We can do this with minimal extra work by using the
+\texttt{(\textbar{}\textbar{}\textbar{})} combinator from
+\texttt{Control.Arrow}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{(|||) ::} \DataTypeTok{Auto}\NormalTok{ m a c }\OtherTok{{-}\textgreater{}} \DataTypeTok{Auto}\NormalTok{ m b c }\OtherTok{{-}\textgreater{}} \DataTypeTok{Auto}\NormalTok{ m (}\DataTypeTok{Either}\NormalTok{ a         b      ) c}
+\OtherTok{(|||) ::} \DataTypeTok{ChatBot}\NormalTok{ m  }\OtherTok{{-}\textgreater{}} \DataTypeTok{ChronBot}\NormalTok{ m }\OtherTok{{-}\textgreater{}} \DataTypeTok{Auto}\NormalTok{ m (}\DataTypeTok{Either} \DataTypeTok{InMessage} \DataTypeTok{UTCTime}\NormalTok{) }\DataTypeTok{OutMessages}
+\end{Highlighting}
+\end{Shaded}
+
+And\ldots you get it all for free! No extra work. Now both the \texttt{ChatBot}
+and the \texttt{ChronBot} will wait on the input stream, and the \texttt{Left}s
+will be fed to the \texttt{ChatBot} and the \texttt{Right}s will be fed to the
+\texttt{ChronBot}.
+
+Anyway, this post is long enough. Have fun exploring \emph{auto} on your own;
+expect more tutorials soon as I continue the
+\href{http://blog.jle.im/entries/series/+all-about-auto}{All About Auto} series,
+too. I'm always happy to hear about any project you might be working on! You can
+find me on twitter as \href{https://twitter.com/mstk}{mstk}. If you have any
+questions or comments/suggestions, feel free to leave a comment down below or
+drop by freenode's \emph{\#haskell-auto} or \emph{\#haskell-game}, where I go by
+\emph{jle`}! And, as always, happy Haskelling!
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

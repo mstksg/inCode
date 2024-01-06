@@ -1,0 +1,1381 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Hamiltonian Dynamics in Haskell},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Hamiltonian Dynamics in Haskell}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% November 27, 2017
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/hamiltonian-dynamics-in-haskell.html}{in
+Code}}.}
+
+As promised in my
+\href{https://blog.jle.im/entry/introducing-the-hamilton-library.html}{\emph{hamilton}
+introduction post} (published almost exactly one year ago!), I'm going to go
+over implementing of the
+\emph{\href{http://hackage.haskell.org/package/hamilton}{hamilton}} library
+using
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \emph{DataKinds} (with \emph{TypeLits}) to enforce sizes of vectors and
+  matrices and help guide us write our code
+\item
+  Statically-sized linear algebra with
+  \emph{\href{http://hackage.haskell.org/package/hmatrix}{hmatrix}}
+\item
+  Automatic differentiation with
+  \emph{\href{http://hackage.haskell.org/package/ad}{ad}}
+\item
+  Statically-sized vectors with
+  \emph{\href{http://hackage.haskell.org/package/vector-sized}{vector-sized}}
+\end{enumerate}
+
+This post will be a bit heavy in some mathematics and Haskell concepts. The
+expected audience is intermediate Haskell programmers. Note that this is
+\emph{not} a post on dependent types, because dependent types (types that depend
+on runtime values) are not explicitly used.
+
+The mathematics and physics are ``extra'' flavor text and could potentially be
+skipped, but you'll get the most out of this article if you have basic
+familiarity with:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Basic concepts of multivariable calculus (like partial and total derivatives).
+\item
+  Concepts of linear algebra (like dot products, matrix multiplication, and
+  matrix inverses)
+\end{enumerate}
+
+No physics knowledge is assumed, but knowing a little bit of first semester
+physics would help you gain a bit more of an appreciation for the end result!
+
+The
+\href{https://blog.jle.im/entry/introducing-the-hamilton-library.html}{hamilton
+library introduction} should be considered a ``soft prerequisite'' for this
+post, as it presents motivations, visual demonstrations, and general overviews
+of the methods presented here!
+
+\section{The Goal}\label{the-goal}
+
+At the end of this, we should be able to have Haskell \emph{automatically
+generate} \textbf{equations of motions} for any arbitrary system described in
+arbitrary coordinate systems, and simulate that system.
+
+Normally, we'd describe a system using particles' x and y coordinates, but our
+goal is to be able to describe our particles' positions using any coordinate
+system we want (polar, distance-along-a-curved-rail, pendulum-angles, etc.) and
+have Haskell automatically generate equations of motions and time progressions
+of those coordinates.
+
+Read \href{https://blog.jle.im/entry/introducing-the-hamilton-library.html}{my
+hamilton library introduction} for more information and examples!
+
+\section{Hamiltonian Mechanics}\label{hamiltonian-mechanics}
+
+As mentioned in the previous post, Hamiltonian mechanics is a re-imagining of
+dynamics and mechanics (think ``the world post-\(F = m a\)'') that not only
+opened up new doors to solving problems in classical, but also ended up being
+the right angle of viewing the world to unlock statistical mechanics and
+thermodynamics, and later even quantum mechanics.
+
+Hamiltonian mechanics lets you parameterize your system's ``position'' in
+arbitrary ways (like the angle of rotation, for pendulum problems) and then
+posits that the full state of the system exists in something called \emph{phase
+space}, and that the system's dynamics is its motion through phase space that is
+dictated by the geometry of the \emph{Hamiltonian} of that phase space.
+
+The system's \emph{Hamiltonian} is a \(\mathbb{R}^{2n} \rightarrow \mathbb{R}\)
+function from a point in \(\mathbb{R}^{2n}\) phase space (where \(n\) is the
+number of coordinates parameterizing your system) to a scalar in \(\mathbb{R}\).
+For a time-independent system, the picture of the dynamics is pretty simple: the
+system moves along the \emph{contour lines} of the \emph{Hamiltonian} -- the
+lines of equal ``height''.
+
+\begin{figure}
+\centering
+\includegraphics{/img/entries/hamilton/contour-lines.jpg}
+\caption{Example of contour lines of a \(\mathbb{R}^2 \rightarrow \mathbb{R}\)
+function -- the elevation of land, from the
+\href{https://www.ordnancesurvey.co.uk/blog/2015/11/map-reading-skills-making-sense-of-contour-lines/}{Ordinace
+Survey} website.}
+\end{figure}
+
+In the example above, if we imagine that phase space is the 2D location, then
+the \emph{Hamiltonian} is the mountain. And for a system dropped anywhere on the
+mountain, its motion would be along the contour lines. For example, if a system
+started somewhere along the 10 contour line, it would begin to oscillate the
+entire phase space along the 10 contour line.\footnote{The picture with a
+  time-dependent Hamiltonian is different, but only slightly. In the
+  time-dependent case, the system still \emph{tries} to move along contour lines
+  at every point in time, but the mountain is constantly changing underneath it
+  and the contour lines keep on shifting underneath it. Sounds like life!}
+
+\emph{Every} \href{https://www.youtube.com/watch?v=izGwDsrQ1eQ}{smooth}
+\(\mathbb{R}^{2n} \rightarrow \mathbb{R}\) function on phase space can be used
+as a Hamiltonian to describe the physics of some system. So, given any
+``mountain range'' on phase space, any ``elevation map'' or real-valued function
+on phase space, you can treat it as a description of the dynamics of some
+physical system.
+
+The \emph{trick}, then, to using Hamiltonian dynamics to model your system, is:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Finding the phase space to describe your system. This can be done based on any
+  continuous parameterization of your system (``generalized coordinates''), like
+  angles of pendulums and so on.
+\item
+  Finding the Hamiltonian on that phase space to describe your system.
+\end{enumerate}
+
+And then Hamilton's dynamics will give you the rest! All you do is ``follow the
+contour lines'' on that Hamiltonian!
+
+\subsection{Phase Space}\label{phase-space}
+
+Hamiltonian dynamics are about systems moving around in phase space. It seems
+that phase space is the ``room where it happens'', so to speak, so let's dig
+deeper into what it is. \emph{Phase space} is a \(2n\)-dimensional space
+parameterized by:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  All of the current values of the \(n\) parameters (``generalized
+  coordinates'')
+\item
+  All of the current ``generalized momenta'' of those \(n\) parameters
+\end{enumerate}
+
+So if you were parameterizing your pendulum system by, say, the angle of the
+pendulum, then a point in phase space would be the current angle of the pendulum
+along with the current ``generalized momentum'' associated with the angle of the
+pendulum. What exactly \emph{is} generalized momentum? We'll go over calculating
+it eventually, but what does it represent\ldots{}\emph{physically}?
+
+The deeper answer involves the underlying Lie algebra of the Lie group
+associated with the generalized coordinates, but going into that would make this
+a completely different post. What I \emph{can} say is that the generalized
+momenta associated with (``conjugate to'') certain sets of familiar coordinates
+yield things that we typically call ``momenta'':
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  The momentum conjugate to normal Cartesian coordinates is just our normal
+  run-of-the-mill \emph{linear momentum} (in the \(\mathbf{p} = m \mathbf{v}\))
+  from first semester physics.
+\item
+  The momentum conjugate to the angle \(\theta\) in polar coordinates is
+  \emph{angular momentum} (\(L = m r^2 \dot{\theta}\)) from first semester
+  physics.
+\item
+  The momentum conjugate to the radial coordinate \(r\) in polar coordinates is
+  also just boring old linear momentum \(p_r = m \dot{r}\), which makes sense
+  because purely radial motion is just linear motion.
+\end{enumerate}
+
+So, it's our normal momentum (for linear and polar coordinates)
+\emph{generalized} to arbitrary coordinates.
+
+\subsection{Hamiltonian Dynamics}\label{hamiltonian-dynamics}
+
+I've explained Hamiltonian dynamics for time-independent Hamiltonians as
+``follow the contour lines''. If you remember your basic multi-variable calculus
+course, you'll know that the line of ``steepest ascent'' is the gradient. If we
+call the Hamiltonian \(\mathcal{H}(\mathbf{q},\mathbf{p})\) (where
+\(\mathbf{q}\) is the vector of positions and \(\mathbf{p}\) is the vector of
+momenta), then the direction of steepest ascent is
+
+\[
+\left \langle \frac{\partial}{\partial \mathbf{q}}
+\mathcal{H}(\mathbf{q},\mathbf{p}), \frac{\partial}{\partial \mathbf{p}}
+\mathcal{H}(\mathbf{q},\mathbf{p}) \right \rangle
+\]
+
+But we want to move along the \emph{contour lines}\ldots and these are the lines
+\emph{perpendicular} to the direction of steepest descent. The vector
+perpendicular to \(\langle x, y \rangle\) is
+\(\langle y, -x \rangle\),\footnote{There's also another perpendicular vector,
+  \(\langle -y, x \rangle\), which actually gives motion \emph{backwards} in
+  time.} so we just derived the actual Hamiltonian equations of motion: just
+move in the direction perpendicular to the steepest ascent! That is, to have
+things move on contour lines, \(\dot{q}\) and \(\dot{p}_q\) \emph{should} be:
+
+\[
+\begin{aligned}
+\dot{q} & = \frac{\partial}{\partial p_q} \mathcal{H}(\mathbf{q},\mathbf{p}) \\
+\dot{p}_q & = - \frac{\partial}{\partial q} \mathcal{H}(\mathbf{q},\mathbf{p})
+\end{aligned}
+\]
+
+This is a conclusion with one generalized coordinate \(q\), but we can
+generalize this to systems with multiple coordinates as well, as long as this
+holds for \emph{every} \(q\) and the momentum conjugate to it (\(p_q\)). (For
+the rest of this post, \(\mathbf{q}\) refers to the vector of coordinates, \(q\)
+refers to a single specific coordinate, and \(p_q\) refers to the momentum
+conjugate to that coordinate).
+
+Essentially, these give you ``updating functions'' for \(q\) and \(p_q\) --
+given \(\mathcal{H}(\mathbf{q},\mathbf{p})\), you have a way to ``update'' the
+particle's position in phase space. Just take the partial derivatives of
+\(\mathcal{H}\) at every step in time! To update \(q\), nudge it by
+\(\frac{\partial}{\partial p_q}
+\mathcal{H}(\mathbf{q},\mathbf{p})\). To update \(p_q\), nudge it by
+\(-\frac{\partial}{\partial q} \mathcal{H}(\mathbf{q},\mathbf{p})\)!
+
+This picture is appealing to me in a visceral way because it sort of seems like
+the system is ``surfing'' along the Hamiltonian's contour lines. It's being
+``pushed'' \emph{faster} when the Hamiltonian is steeper, and slower when it's
+more shallow. I can apply all my intuition as a surfer\footnote{Disclaimer: I am
+  not a surfer.} to Hamiltonian mechanics!
+
+\section{Hamiltonian Dynamics and Physical
+Systems}\label{hamiltonian-dynamics-and-physical-systems}
+
+Earlier I mentioned that the two steps for applying Hamiltonian mechanics to
+your system was figuring out your system's conjugate momenta and the appropriate
+Hamiltonian. To explain this, I'm going to make a couple of simplifying
+assumptions that make the job easier for the purposes of this article:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Your coordinates and potential energy are time-independent.
+\item
+  Your potential energy function only depends on \emph{positions}, and not
+  \emph{velocities}. (So nothing like friction or wind resistance or magnetic
+  field vector potentials)
+\end{enumerate}
+
+With these assumptions, I'm going to skip over discussing the
+\href{https://en.wikipedia.org/wiki/Lagrangian_mechanics}{Lagrangian} of the
+system, which is the traditional way to do this. You can think of this section
+as me presenting derived conclusions and skipping the derivations.
+
+\subsection{Conjugate Momenta}\label{conjugate-momenta}
+
+For systems with velocity-independent potential energies, it can be shown that
+the momentum conjugate to coordinate \(q\) is
+
+\[
+p_q = \frac{\partial}{\partial \dot{q}} KE(\mathbf{q}, \dot{\mathbf{q}})
+\]
+
+Where \(KE(\mathbf{q},\dot{\mathbf{q}})\) is the kinetic energy of the system,
+which is a function on the coordinates \(\mathbf{q}\) and their rates of change,
+\(\dot{\mathbf{q}}\). For example, for normal Cartesian coordinates in one
+dimension, \(KE(x, \dot{x}) = \frac{1}{2} m \dot{x}^2\). So the momentum
+conjugate to \(x\) is:
+
+\[
+p_x = \frac{\partial}{\partial \dot{x}} \left[ \frac{1}{2} m \dot{x}^2 \right] = m \dot{x}
+\]
+
+Just linear momentum, like I claimed before.
+
+Let's generalize this to arbitrary coordinates. In general, for \emph{Cartesian}
+coordinates, the kinetic energy will always be
+
+\[
+KE(\mathbf{x}, \dot{\mathbf{x}}) = \frac{1}{2} \left[ m_1 \dot{x}_1^2 + m_2 \dot{x}_2^2 + m_3 \dot{x}_3^2 + \dots \right]
+\]
+
+Where \(m\) is the inertia associated with each coordinate\ldots for example, if
+\(\langle x_1, x_2 \rangle\) describes the location of an object of mass \(m\),
+then \(m_1 = m_2 = m\).
+
+To give us nice notation and make things more convenient, we'll write this as a
+quadratic form over an inertia matrix:
+
+\[
+KE(\dot{\mathbf{x}}) = \frac{1}{2} \dot{\mathbf{x}}^T \hat{M} \dot{\mathbf{x}}
+\]
+
+Where \(\hat{M}\) is the
+\href{https://en.wikipedia.org/wiki/Diagonal_matrix}{diagonal matrix} whose
+entries are the masses of each coordinate, and \(\dot{\mathbf{x}}\) is the
+column vector of all of the (Cartesian) coordinates,
+\(\left[ \dot{x}_1\, \dot{x}_2\, \dot{x}_3\, \dots \right]^T\).
+
+Now! How to generalize this to arbitrary coordinates? Well, if we have \(n\)
+generalized coordinates \(\mathbf{q}\) mapping to \(m\)-dimensional Cartesian
+coordinates, we can specify them as \(\mathbf{x} = f(\mathbf{q})\), where \(f :
+\mathbb{R}^n \rightarrow \mathbb{R}^m\), taking the vector of generalized
+coordinates and returning a vector for the position in Cartesian space. For
+example, for polar coordinates, \(f(r, \theta) = \left \langle r \cos(\theta), r
+\sin(\theta) \right \rangle\), because, for polar coordinates, \(x = r
+\cos(\theta)\) and \(y = r \sin(\theta)\).
+
+So we can get \(\mathbf{x}\) from \(\mathbf{q}\) with \(f\), but how can we get
+\(\dot{\mathbf{x}}\), the vector of rate of changes? Well, if \(x_1 = f_1(q_1,
+q_2, q_3 \dots)\), then the \(\dot{x}_1\) is the
+\href{https://en.wikipedia.org/wiki/Total_derivative}{total derivative} of
+\(x_1\) with respect to time:
+
+\[
+\dot{x}_1 = \frac{\partial f_1}{\partial q_1} \dot{q}_1 +
+    \frac{\partial f_1}{\partial q_2} \dot{q}_2 +
+    \frac{\partial f_1}{\partial q_3} \dot{q}_3 + \dots
+\]
+
+Or, in short:
+
+\[
+\dot{x}_i = \sum_{j = 1}^n \frac{\partial f_i}{\partial q_j} \dot{q}_j
+\]
+
+But, hey, this looks a lot like a matrix-vector multiplication! If we make
+\(\hat{J}_f\), an \(m \times n\) matrix of partial derivatives of \(f\)
+(\(\hat{J}_{fij} = \frac{\partial f_i}{\partial q_j}\)) at a given point
+(typically called the
+\href{https://en.wikipedia.org/wiki/Jacobian_matrix_and_determinant}{Jacobian
+matrix of f}), then we have a nice expression for \(\dot{\mathbf{x}}\):
+
+\[
+\dot{\mathbf{x}} = \hat{J}_f \dot{\mathbf{q}}
+\]
+
+And we can plug it in (remembering that \((A B)^T = B^T A^T\)) to our kinetic
+energy equation to get:
+
+\[
+KE(\mathbf{q},\dot{\mathbf{q}}) = \frac{1}{2} \dot{\mathbf{q}}^T \hat{J}_f^T
+    \hat{M} \hat{J}_f \dot{\mathbf{q}}
+\]
+
+And for the final step, we differentiate with respect to the \(\dot{q}\)s (which
+is just the gradient \(\nabla_{\dot{\mathbf{q}}}\)) to get \(\mathbf{p}\), the
+vector of conjugate momenta:
+
+\[
+\mathbf{p} = \nabla_{\dot{\mathbf{q}}} \left[
+    \frac{1}{2} \dot{\mathbf{q}}^T \hat{J}_f^T \hat{M} \hat{J}_f \dot{\mathbf{q}}
+  \right]
+  = \hat{J}_f^T \hat{M} \hat{J}_f \dot{\mathbf{q}}
+\]
+
+Now, we're going to be using \(\hat{J}_f^T \hat{M} \hat{J}_f\) a lot, so let's
+give it a name, \(\hat{K}\). \(\hat{K}\) represents some sort of
+coordinate-aware inertia term for our system. If the masses are all positive and
+\(\hat{J}_f\) is full-rank\footnote{\(\hat{J_f}\) is full-rank (meaning
+  \(\hat{K}\) is invertible) if its rows are linearly independent. This should
+  be the case as you don't have any redundant or duplicate coordinates in your
+  general coordinate system.}, then \(\hat{K}\) is a symmetric,
+positive-definite, invertible matrix (by construction). It's important to also
+remember that it's an explicit function of \(\mathbf{q}\), because \(\hat{J}_f\)
+is a matrix of partial derivatives at a given \(\mathbf{q}\). We now have a
+simple expression for the vector of conjugate momenta
+(\(\mathbf{p} = \hat{K} \dot{\mathbf{q}}\)), and also for kinetic energy
+(\(KE = \frac{1}{2} \dot{\mathbf{q}}^T \hat{K}
+\dot{\mathbf{q}}\)).
+
+It's going to be important for us to also be able to go backwards (to get
+\(\dot{\mathbf{q}}\) from \(\mathbf{p}\)). Luckily, because we wrote the whole
+thing as a matrix operation, going backwards is easy -- just take the matrix
+inverse, which we know exists!
+
+\[
+\dot{\mathbf{q}} = \hat{K}^{-1} \mathbf{p}
+\]
+
+The power of linear algebra!
+
+\subsection{Hamiltonians of Physical
+Systems}\label{hamiltonians-of-physical-systems}
+
+Ok, that's step one. How about step two -- finding the Hamiltonian for your
+system?
+
+The \emph{real} Hamiltonian is actually the
+\href{https://en.wikipedia.org/wiki/Poisson_bracket}{Poisson bracket} of the
+system's \href{https://en.wikipedia.org/wiki/Lagrangian_mechanics}{Lagrangian},
+but I did some of the work for you for the case of time-independent coordinates
+where the potential energy depends \emph{only} on positions (so, no friction,
+wind resistance, time, etc.). In such a case, the Hamiltonian of a system is
+precisely the system's total
+\href{https://en.wikipedia.org/wiki/Mechanical_energy}{mechanical energy}, or
+its kinetic energy plus the potential energy:
+
+\[
+\mathcal{H}(\mathbf{q},\mathbf{p}) = KE(\mathbf{q},\mathbf{p}) + PE(\mathbf{q})
+\]
+
+Which makes a lot of intuitive sense, because you might recall that total
+mechanical energy is always conserved for certain types of systems.
+Incidentally, Hamiltonian dynamics makes sure that the value of the system's
+Hamiltonian stays the same (because it moves along contour lines). So, the
+system's Hamiltonian always stays the same, and so its total mechanical energy
+stays the same, as well! Energy is conserved because the Hamiltonian stays the
+same!
+
+Anyway, we want to build our system's Hamiltonian from properties of the
+coordinate system, so plugging in our expression for \(KE\), we get
+\(\mathcal{H}(\mathbf{q},\dot{\mathbf{q}}) = \frac{1}{2} \dot{\mathbf{q}}^T \hat{K} \dot{\mathbf{q}} + PE(\mathbf{q})\).
+
+Oh, but oops, the Hamiltonian has to be a function of \(\mathbf{p}\), not of
+\(\dot{\mathbf{q}}\). Let's remember that
+\(\dot{\mathbf{q}} = \hat{K}^{-1} \mathbf{p}\) and find the final form of our
+Hamiltonian (after a bit of simplification, remembering that the inverse of a
+symmetric matrix is also symmetric):
+
+\[
+\mathcal{H}(\mathbf{q},\mathbf{p}) = \frac{1}{2} \mathbf{p}^T \hat{K}^{-1} \mathbf{p} + PE(\mathbf{q})
+\]
+
+\subsection{Hamiltonian Equations}\label{hamiltonian-equations}
+
+We got our Hamiltonian! Now just to find our updating functions (the partial
+derivatives of the Hamiltonian), and we're done with the math.
+
+Because we are assuming the case (with loss of generality) \(PE\) doesn't depend
+on \(\mathbf{p}\), the partial derivatives of \(\mathcal{H}\) with respect to
+\(\mathbf{p}\) is:
+
+\[
+\nabla_{\mathbf{p}} \mathcal{H}(\mathbf{q},\mathbf{p}) = \hat{K}^{-1} \mathbf{p}
+\]
+
+We already can calculate \(\hat{K}^{-1}\), so this wound up being easy peasy.
+But finding the partial derivatives with respect to \(\mathbf{q}\) is a little
+trickier. The gradient is a linear operator, so we can break that down to just
+finding the gradient of the \(KE\) term \(\frac{1}{2} \mathbf{p}^T \hat{K}^{-1}
+\mathbf{p}\). Because \(\mathbf{p}\) is an independent input to \(\mathcal{H}\),
+we can just look at the gradient of \(\hat{K}^{-1}\). We can simplify that even
+more by realizing that for any invertible matrix \(A\),
+\(\frac{\partial}{\partial
+q} A^{-1} = - A^{-1} \left[ \frac{\partial}{\partial q} A \right] A^{-1}\), so
+now we just need to find the partial derivatives of \(\hat{K}\), or
+\(\hat{J}_f^T
+\hat{M} \hat{J}_f\). \(\hat{M}\) is a constant term, so, using the good ol'
+product rule over \(\hat{J}_f^T\) and \(\hat{J}_f\), we see that, after some
+simplification:
+
+\[
+\frac{\partial}{\partial q_i} \left[ \hat{J}_f^T \hat{M} \hat{J}_f \right] =
+    2 \hat{J}_f^T \hat{M} \left[ \frac{\partial}{\partial q_i} \hat{J}_f \right]
+\]
+
+\(\frac{\partial}{\partial q_i} \hat{J}_f\) (an \(m \times n\) matrix, like
+\(\hat{J}_f\)) represents the \emph{second derivatives} of \(f\) -- the
+derivative (with respect to \(q_i\)) of the derivatives.
+
+The collection of ``second-order derivatives of \(f\)'' is known as the
+\href{https://en.wikipedia.org/wiki/Hessian_matrix\#Vector-valued_functions}{Hessian
+Tensor} (a vector-valued generalization of the Hessian matrix), which we will
+denote as \(\hat{H}_f\).\footnote{Thanks to Edward Kmett for
+  \href{http://disq.us/p/1o4oyqh}{pointing this out}!} We can write this in a
+nicer way by abusing matrix multiplication notation to get
+
+\[
+\nabla_{\mathbf{q}} \left[ \hat{J}_f^T \hat{M} \hat{J}_f \right] =
+    2 \hat{J}_f^T \hat{M} \hat{H}_f
+\]
+
+if we use \(\hat{H}_f\) as an \(n \times m \times n\) tensor, whose \(n\)
+components are the each the \(m \times n\) matrices corresponding to
+\(\frac{\partial}{\partial q_i} \hat{J}_f\)
+
+And with that, we have our final expression for
+\(\nabla_{\mathbf{q}} \mathcal{H}(\mathbf{q},\mathbf{p})\):
+
+\[
+\frac{\partial}{\partial q_i} \mathcal{H}(\mathbf{q},\mathbf{p}) =
+    - \mathbf{p}^T \hat{K}^{-1} \hat{J}_f^T \hat{M}
+        \left[ \frac{\partial}{\partial q_i} \hat{J}_f \right] \hat{K}^{-1} \mathbf{p}
+    + \nabla_{\mathbf{q}} PE(\mathbf{q})
+\]
+
+Or, to use our abuse of notation:
+
+\[
+\nabla_{\mathbf{q}} \mathcal{H}(\mathbf{q},\mathbf{p}) =
+    - \mathbf{p}^T \hat{K}^{-1} \hat{J}_f^T \hat{M}
+        \hat{H}_f \hat{K}^{-1} \mathbf{p}
+    + \nabla_{\mathbf{q}} PE(\mathbf{q})
+\]
+
+And, finally, we have everything we need -- we can now construct our equations
+of motion! To progress through phase space (\(\langle \mathbf{q},
+\mathbf{p}\rangle\)):
+
+\[
+\begin{aligned}
+\dot{\mathbf{q}} & = \nabla_{\mathbf{p_q}} \mathcal{H}(\mathbf{q},\mathbf{p})
+  && = \hat{K}^{-1} \mathbf{p} \\
+\dot{\mathbf{p}} & = - \nabla_{\mathbf{q}} \mathcal{H}(\mathbf{q},\mathbf{p})
+  && = \mathbf{p}^T \hat{K}^{-1} \hat{J}_f^T \hat{M}
+        \hat{H}_f \hat{K}^{-1} \mathbf{p}
+    - \nabla_{\mathbf{q}} PE(\mathbf{q})
+\end{aligned}
+\]
+
+That's it. We're done. Have a nice day, thanks for reading!
+
+\section{The Haskell}\label{the-haskell}
+
+Just kidding, now it's time for the fun stuff :)
+
+Our final goal is to be able to simulate a \emph{system of discrete particles}
+through \emph{arbitrary generalized coordinates}.
+
+To simplify the math, we always assume that, whatever generalized coordinates
+you are using (\(\mathbb{R}^n\)), your system ``actually'' exists in some real
+flat Cartesian coordinate system (\(\mathbb{R}^m\)). This allows us to take
+advantage of all of that math we derived in the previous section.
+
+So, in order to fully describe the system, we need:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Each of their masses (or inertias) in their underlying \(m\) Cartesian
+  coordinates, which we'll call \(\mathbf{m}\).
+\item
+  A function \(f : \mathbb{R}^n \rightarrow \mathbb{R}^m\) to convert the
+  generalized coordinates (\(\mathbb{R^n}\)) to Cartesian coordinates
+  (\(\mathbb{R}^m\))
+\item
+  The potential energy function \(U : \mathbb{R}^n \rightarrow \mathbb{R}\) in
+  the generalized coordinates (\(\mathbb{R^n}\))
+\end{enumerate}
+
+From these alone, we can derive the equations of motion for the particles in
+phase space as a system of first-order ODEs using the process described above.
+Then, given an initial phase space position, we can do numeric integration to
+simulate our system's motion through phase space. To ``surf the Hamiltonian
+waves in phase space'', so to speak.
+
+But, to be explicit, we also are going to need some derivatives for these
+functions/vectors, too. If you've been following along, the full enumeration of
+functions and vectors we need is:
+
+\[
+\begin{aligned}
+\mathbf{m} & : \mathbb{R}^m \\
+f & : \mathbb{R}^n \rightarrow \mathbb{R}^m \\
+\hat{J}_f & : \mathbb{R}^n \rightarrow \mathbb{R}^{m \times n} \\
+\hat{H}_f & : \mathbb{R}^n \rightarrow \mathbb{R}^{n \times m \times n} \\
+U & : \mathbb{R}^n \rightarrow \mathbb{R} \\
+\nabla_{\mathbf{q}} U & : \mathbb{R}^n \rightarrow \mathbb{R}^n
+\end{aligned}
+\]
+
+But, as we'll see, with libraries like
+\emph{\href{http://hackage.haskell.org/package/ad}{ad}} in Haskell, we can
+really just ask the user for \(\mathbf{m}\), \(f\), and \(U\) -- all of the
+derivatives can be computed automatically.
+
+\subsection{Our Data Structures}\label{our-data-structures}
+
+We can couple together all of these functions in a data type that fully
+describes the physics of our systems (the ``shape'' of the Hamiltonian):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/hamilton1/Hamilton.hs\#L25{-}L32}
+
+\KeywordTok{data} \DataTypeTok{System}\NormalTok{ m n }\OtherTok{=} \DataTypeTok{System}
+\NormalTok{    \{}\OtherTok{ sysInertia       ::} \DataTypeTok{R}\NormalTok{ m                         }\CommentTok{{-}{-} \^{} \textquotesingle{}m\textquotesingle{} vector}
+\NormalTok{    ,}\OtherTok{ sysCoords        ::} \DataTypeTok{R}\NormalTok{ n }\OtherTok{{-}\textgreater{}} \DataTypeTok{R}\NormalTok{ m                  }\CommentTok{{-}{-} \^{} f}
+\NormalTok{    ,}\OtherTok{ sysJacobian      ::} \DataTypeTok{R}\NormalTok{ n }\OtherTok{{-}\textgreater{}} \DataTypeTok{L}\NormalTok{ m n                }\CommentTok{{-}{-} \^{} J\_f}
+\NormalTok{    ,}\OtherTok{ sysHessian       ::} \DataTypeTok{R}\NormalTok{ n }\OtherTok{{-}\textgreater{}} \DataTypeTok{V.Vector}\NormalTok{ n (}\DataTypeTok{L}\NormalTok{ m n)   }\CommentTok{{-}{-} \^{} H\_f}
+\NormalTok{    ,}\OtherTok{ sysPotential     ::} \DataTypeTok{R}\NormalTok{ n }\OtherTok{{-}\textgreater{}} \DataTypeTok{Double}               \CommentTok{{-}{-} \^{} U}
+\NormalTok{    ,}\OtherTok{ sysPotentialGrad ::} \DataTypeTok{R}\NormalTok{ n }\OtherTok{{-}\textgreater{}} \DataTypeTok{R}\NormalTok{ n                  }\CommentTok{{-}{-} \^{} grad U}
+\NormalTok{    \}}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{R\ n} and \texttt{L\ m\ n} are from the
+\emph{\href{http://hackage.haskell.org/package/hmatrix}{hmatrix}} library; an
+\texttt{R\ n} represents an n-vector (For example, an \texttt{R\ 4} is a
+4-vector), and an \texttt{L\ m\ n} represents an \texttt{m\ x\ n} matrix (For
+example, an \texttt{L\ 5\ 3} is a 5x3 matrix).
+
+A \texttt{System\ m\ n} will describe a system parameterized by \texttt{n}
+generalized coordinates, taking place in an underlying \texttt{m}-dimensional
+Cartesian space.
+
+It'll also be convenient to have a data type to describe the state of our system
+in terms of its generalized positions (\(\mathbf{q}\)) and generalized
+velocities (the rates of changes of these positions, \(\dot{\mathbf{q}}\)),
+which is sometimes called ``configuration space'':
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/hamilton1/Hamilton.hs\#L35{-}L39}
+
+\KeywordTok{data} \DataTypeTok{Config}\NormalTok{ n }\OtherTok{=} \DataTypeTok{Config}
+\NormalTok{    \{}\OtherTok{ confPositions  ::} \DataTypeTok{R}\NormalTok{ n}
+\NormalTok{    ,}\OtherTok{ confVelocities ::} \DataTypeTok{R}\NormalTok{ n}
+\NormalTok{    \}}
+  \KeywordTok{deriving} \DataTypeTok{Show}
+\end{Highlighting}
+\end{Shaded}
+
+And, more importantly, remember that Hamiltonian dynamics is all about surfing
+around on that phase space (generalized positions \(\mathbf{q}\) and their
+conjugate momenta, \(\mathbf{p_q}\)). So let's make a type to describe the state
+of our system in phase space:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/hamilton1/Hamilton.hs\#L42{-}L46}
+
+\KeywordTok{data} \DataTypeTok{Phase}\NormalTok{ n }\OtherTok{=} \DataTypeTok{Phase}
+\NormalTok{    \{}\OtherTok{ phasePositions ::} \DataTypeTok{R}\NormalTok{ n}
+\NormalTok{    ,}\OtherTok{ phaseMomenta   ::} \DataTypeTok{R}\NormalTok{ n}
+\NormalTok{    \}}
+  \KeywordTok{deriving} \DataTypeTok{Show}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Getting comfortable with our data
+types}\label{getting-comfortable-with-our-data-types}
+
+First of all, assuming we can construct a \texttt{System} in a sound way, let's
+imagine some useful functions.
+
+We can write a function \texttt{underlyingPosition}, which allows you to give a
+position in generalized coordinates, and returns the position in the
+``underlying coordinate system'':
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/hamilton1/Hamilton.hs\#L51{-}L55}
+
+\NormalTok{underlyingPosition}
+\OtherTok{    ::} \DataTypeTok{System}\NormalTok{ m n}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{R}\NormalTok{ n}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{R}\NormalTok{ m}
+\NormalTok{underlyingPosition }\OtherTok{=}\NormalTok{ sysCoords}
+\end{Highlighting}
+\end{Shaded}
+
+Note that the types in our function helps us know exactly what the function is
+doing --- and also helps us implement it correctly. If we have a \texttt{System}
+in \texttt{n} dimensions, over an underlying \texttt{m}-dimensional Cartesian
+space, then we would need to convert an \texttt{R\ n} (an n-dimensional vector
+of all of the positions) into an \texttt{R\ m} (a vector in the underlying
+Cartesian space).
+
+Simple enough, but let's maybe try to calculate something more complicated: the
+\emph{momenta} of a system, given its positions and velocities (configuration).
+
+We remember that we have a nice formula for that, up above:
+
+\[
+\mathbf{p} = \hat{J}_f^T \hat{M} \hat{J}_f \dot{\mathbf{q}}
+\]
+
+We can translate that directly into Haskell code:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/hamilton1/Hamilton.hs\#L59{-}L67}
+
+\NormalTok{momenta}
+\OtherTok{    ::}\NormalTok{ (}\DataTypeTok{KnownNat}\NormalTok{ n, }\DataTypeTok{KnownNat}\NormalTok{ m)}
+    \OtherTok{=\textgreater{}} \DataTypeTok{System}\NormalTok{ m n}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Config}\NormalTok{ n}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{R}\NormalTok{ n}
+\NormalTok{momenta s (}\DataTypeTok{Config}\NormalTok{ q v) }\OtherTok{=}\NormalTok{ tr j }\OperatorTok{\#\textgreater{}}\NormalTok{ mHat }\OperatorTok{\#\textgreater{}}\NormalTok{ j }\OperatorTok{\#\textgreater{}}\NormalTok{ v}
+  \KeywordTok{where}
+\NormalTok{    j    }\OtherTok{=}\NormalTok{ sysJacobian s q}
+\NormalTok{    mHat }\OtherTok{=}\NormalTok{ diag (sysInertia s)}
+\end{Highlighting}
+\end{Shaded}
+
+Note that, because our vectors have their size indexed in their type, this is
+pretty simple to write and ensure that the shapes ``line up''. In fact, GHC can
+even help you write this function by telling you what values can go in what
+locations. Being able to get rid of a large class of bugs and clean up your
+implementation space is nice, too!
+
+(Note that \emph{hmatrix} requires a \texttt{KnownNat} constraint on the size
+parameters of our vectors for some functions, so we add this as a constraint on
+our end.)
+
+With this, we can write a function to convert any state in configuration space
+to its coordinates in phase space:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/hamilton1/Hamilton.hs\#L70{-}L75}
+
+\NormalTok{toPhase}
+\OtherTok{    ::}\NormalTok{ (}\DataTypeTok{KnownNat}\NormalTok{ n, }\DataTypeTok{KnownNat}\NormalTok{ m)}
+    \OtherTok{=\textgreater{}} \DataTypeTok{System}\NormalTok{ m n}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Config}\NormalTok{ n}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Phase}\NormalTok{ n}
+\NormalTok{toPhase s c }\OtherTok{=} \DataTypeTok{Phase}\NormalTok{ (confPositions c) (momenta s c)}
+\end{Highlighting}
+\end{Shaded}
+
+This function is important, because ``configuration space'' is how we actually
+directly observe our system -- in terms of positions and velocities, and not in
+terms of positions and momenta (and sometimes conjugate momenta might not even
+have meaningful physical interpretations). So, having \texttt{toPhase} lets us
+``initialize'' our system in terms of direct observables, and then convert it to
+its phase space representation, which is something that Hamiltonian mechanics
+can work with.
+
+\subsection{Automatic Differentiation}\label{automatic-differentiation}
+
+Now, creating a \texttt{System} ``from scratch'' is not much fun, because you
+would have to manually differentiate your coordinate systems and potentials to
+generate your Jacobians and gradients.
+
+Here's where the magic comes in -- we can have Haskell generate our Jacobians
+and gradients \emph{automatically}, using the amazing
+\href{http://hackage.haskell.org/package/ad}{ad} library! We can just use the
+appropriately named \texttt{grad}, \texttt{jacobian}, and \texttt{hessianF}
+functions.
+
+\subsubsection{Quick Intro to AD}\label{quick-intro-to-ad}
+
+At the simplest level, if we have a function from some number to some other
+number, we can use \texttt{diff} to get its derivative:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{myFunc      ::} \DataTypeTok{RealFloat}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ a}
+\NormalTok{diff}\OtherTok{ myFunc ::} \DataTypeTok{RealFloat}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+If we have a function a function from a sized vector to a scalar, we can use
+\texttt{grad} to get its gradient:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} import qualified Data.Vector.Sized as V}
+
+\OtherTok{myFunc      ::} \DataTypeTok{RealFloat}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{V.Vector}\NormalTok{ n a }\OtherTok{{-}\textgreater{}}\NormalTok{ a}
+\NormalTok{grad}\OtherTok{ myFunc ::} \DataTypeTok{RealFloat}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{V.Vector}\NormalTok{ n a }\OtherTok{{-}\textgreater{}} \DataTypeTok{V.Vector}\NormalTok{ n a}
+\end{Highlighting}
+\end{Shaded}
+
+Where each of the components in the resulting vector corresponds to the rate of
+change of the output according to variations in that component.
+
+We're using \textbf{statically sized vector} type from the
+\href{http://hackage.haskell.org/package/vector-sized}{vector-sized} package (in
+the
+\href{http://hackage.haskell.org/package/vector-sized/docs/Data-Vector-Sized.html}{Data.Vector.Sized}
+module), where \texttt{V.Vector\ n\ a} is a \texttt{n}-vector of \texttt{a}s --
+for example, a \texttt{V.Vector\ 3\ Double} is a vector of 3 \texttt{Double}s.
+
+We have to use \texttt{Vector} (instead of \texttt{R}, from \emph{hmatrix})
+because automatic differentiation for gradients requires \emph{some Functor} to
+work. An \texttt{R\ 5} is essentially a \texttt{V.Vector\ 5\ Double}, except the
+latter can contain other, non-Double things -- and therefore can be used by
+\emph{ad} to do its magic.
+
+If we have a function from a sized vector to a (differently) sized vector, we
+can use the \texttt{jacobian} function to get its jacobian!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{myFunc          ::} \DataTypeTok{RealFloat}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{V.Vector}\NormalTok{ n a }\OtherTok{{-}\textgreater{}} \DataTypeTok{V.Vector}\NormalTok{ m a}
+\NormalTok{jacobian}\OtherTok{ myFunc ::} \DataTypeTok{RealFloat}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{V.Vector}\NormalTok{ n a }\OtherTok{{-}\textgreater{}} \DataTypeTok{V.Vector}\NormalTok{ m (}\DataTypeTok{V.Vector}\NormalTok{ n a)}
+\end{Highlighting}
+\end{Shaded}
+
+Again note the usage of sized vector types, and the fact that our \(m \times n\)
+matrix is represented by a \texttt{m}-vector of \texttt{n}-vectors.
+
+Finally, we can get our Hessian Tensor by using \texttt{hessianF}:\footnote{\texttt{hessian}
+  computes the Hessian Matrix for scalar-valued function, but here, we have a
+  vector-valued function, so we need \texttt{hessianF}, the Hessian
+  \emph{Tensor}.}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{myFunc}
+\OtherTok{    ::} \DataTypeTok{RealFloat}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{V.Vector}\NormalTok{ n a }\OtherTok{{-}\textgreater{}} \DataTypeTok{V.Vector}\NormalTok{ m a}
+\NormalTok{hessianF myFunc}
+\OtherTok{    ::} \DataTypeTok{RealFloat}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{V.Vector}\NormalTok{ n a }\OtherTok{{-}\textgreater{}} \DataTypeTok{V.Vector}\NormalTok{ m (}\DataTypeTok{V.Vector}\NormalTok{ n (}\DataTypeTok{V.Vector}\NormalTok{ n a))}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{Conversion between vector-sized and
+hmatrix}\label{conversion-between-vector-sized-and-hmatrix}
+
+Just a small hiccup --- the \emph{ad} libraries requires our vectors to be
+\emph{Functors}, but \texttt{R} and \texttt{L} from \emph{hmatrix} are not your
+typical capital-F \texttt{Functor} instances in Haskell. We just need to do some
+manual conversion using the
+\emph{\href{http://hackage.haskell.org/package/hmatrix-vector-sized}{hmatrix-vector-sized}}
+library.
+
+This gives functions like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} import qualified Data.Vector.Sorable.Sized as VS}
+\OtherTok{gvecR ::} \DataTypeTok{V.Vector}\NormalTok{ n }\DataTypeTok{Double}  \OtherTok{{-}\textgreater{}} \DataTypeTok{R}\NormalTok{ n}
+\OtherTok{grVec ::} \DataTypeTok{R}\NormalTok{ n                }\OtherTok{{-}\textgreater{}} \DataTypeTok{V.Vector}\NormalTok{ n }\DataTypeTok{Double}
+\OtherTok{rowsL ::} \DataTypeTok{V.Vector}\NormalTok{ m (}\DataTypeTok{R}\NormalTok{ n)   }\OtherTok{{-}\textgreater{}} \DataTypeTok{L}\NormalTok{ m n}
+\OtherTok{lRows ::} \DataTypeTok{L}\NormalTok{ m n              }\OtherTok{{-}\textgreater{}} \DataTypeTok{V.Vector}\NormalTok{ m (}\DataTypeTok{R}\NormalTok{ n)}
+\end{Highlighting}
+\end{Shaded}
+
+to allow us to convert back and forth.
+
+Also, even though \emph{ad} gives our Hessian as an \(m \times n \times
+n\) tensor, we really want it as a n-vector of \(m \times n\) matrices -- that's
+how we interpreted it in our original math. So we just need to write an function
+to convert what \emph{ad} gives us to the form we expect. Just a minor
+reshuffling:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/hamilton1/Hamilton.hs\#L78{-}L82}
+
+\OtherTok{tr2 ::}\NormalTok{ (}\DataTypeTok{KnownNat}\NormalTok{ m, }\DataTypeTok{KnownNat}\NormalTok{ n)}
+    \OtherTok{=\textgreater{}} \DataTypeTok{V.Vector}\NormalTok{ m (}\DataTypeTok{L}\NormalTok{ n n)}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{V.Vector}\NormalTok{ n (}\DataTypeTok{L}\NormalTok{ m n)}
+\NormalTok{tr2 }\OtherTok{=} \FunctionTok{fmap}\NormalTok{ rowsL }\OperatorTok{.} \FunctionTok{traverse}\NormalTok{ lRows}
+\OtherTok{\{{-}\# INLINE tr2 \#{-}\}}
+\end{Highlighting}
+\end{Shaded}
+
+We also would need to have a function converting a vector of vectors into a
+matrix:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/hamilton1/Hamilton.hs\#L85{-}L90}
+
+\NormalTok{vec2l}
+\OtherTok{    ::} \DataTypeTok{KnownNat}\NormalTok{ n}
+    \OtherTok{=\textgreater{}} \DataTypeTok{V.Vector}\NormalTok{ m (}\DataTypeTok{V.Vector}\NormalTok{ n }\DataTypeTok{Double}\NormalTok{)}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{L}\NormalTok{ m n}
+\NormalTok{vec2l }\OtherTok{=}\NormalTok{ rowsL }\OperatorTok{.} \FunctionTok{fmap}\NormalTok{ gvecR}
+\OtherTok{\{{-}\# INLINE vec2l \#{-}\}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{Using AD to Auto-Derive
+Systems}\label{using-ad-to-auto-derive-systems}
+
+Now to make a \texttt{System} using just the mass vector, the coordinate
+conversion function, and the potential energy function:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/hamilton1/Hamilton.hs\#L94{-}L108}
+
+\NormalTok{mkSystem}
+\OtherTok{    ::}\NormalTok{ (}\DataTypeTok{KnownNat}\NormalTok{ m, }\DataTypeTok{KnownNat}\NormalTok{ n)}
+    \OtherTok{=\textgreater{}} \DataTypeTok{R}\NormalTok{ m}
+    \OtherTok{{-}\textgreater{}}\NormalTok{ (}\KeywordTok{forall}\NormalTok{ a}\OperatorTok{.} \DataTypeTok{RealFloat}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{V.Vector}\NormalTok{ n a }\OtherTok{{-}\textgreater{}} \DataTypeTok{V.Vector}\NormalTok{ m a)}
+    \OtherTok{{-}\textgreater{}}\NormalTok{ (}\KeywordTok{forall}\NormalTok{ a}\OperatorTok{.} \DataTypeTok{RealFloat}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{V.Vector}\NormalTok{ n a }\OtherTok{{-}\textgreater{}}\NormalTok{ a)}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{System}\NormalTok{ m n}
+\NormalTok{mkSystem m f u }\OtherTok{=} \DataTypeTok{System}
+                    \CommentTok{{-}{-} \textless{} convert from      | actual thing | convert to \textgreater{}}
+\NormalTok{    \{ sysInertia       }\OtherTok{=}\NormalTok{                     m}
+\NormalTok{    , sysCoords        }\OtherTok{=}\NormalTok{        gvecR      }\OperatorTok{.}\NormalTok{ f            }\OperatorTok{.}\NormalTok{ grVec}
+\NormalTok{    , sysJacobian      }\OtherTok{=}\NormalTok{ tr   }\OperatorTok{.}\NormalTok{ vec2l      }\OperatorTok{.}\NormalTok{ jacobianT f  }\OperatorTok{.}\NormalTok{ grVec}
+\NormalTok{    , sysHessian       }\OtherTok{=}\NormalTok{ tr2  }\OperatorTok{.} \FunctionTok{fmap}\NormalTok{ vec2l }\OperatorTok{.}\NormalTok{ hessianF f   }\OperatorTok{.}\NormalTok{ grVec}
+\NormalTok{    , sysPotential     }\OtherTok{=}\NormalTok{                     u            }\OperatorTok{.}\NormalTok{ grVec}
+\NormalTok{    , sysPotentialGrad }\OtherTok{=}\NormalTok{        gvecR      }\OperatorTok{.}\NormalTok{ grad u       }\OperatorTok{.}\NormalTok{ grVec}
+\NormalTok{    \}}
+\end{Highlighting}
+\end{Shaded}
+
+Now, I hesitate to call this ``trivial''\ldots but, I think it really is a
+straightforward direct translation of the definitions, minus some boilerplate
+conversions back and forth between vector using \texttt{vecR}, \texttt{rVec},
+etc.!
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  The vector of masses is just \texttt{m}
+\item
+  The coordinate function is just \texttt{f}
+\item
+  The Jacobian of the coordinate function is just \texttt{jacobian\ f}
+\item
+  The Hessian Tensor of the coordinate function is just \texttt{hessianF\ f}
+\item
+  The potential energy function is just \texttt{u}
+\item
+  The gradient of the potential energy function is just \texttt{grad\ u}
+\end{enumerate}
+
+The \emph{ad} library automatically generated all of these for us and created a
+perfectly well-formed \texttt{System} with all of its gradients and Jacobians
+and Hessians by giving only the coordinate function and the potential energy
+function, and in such a clean and concise way!
+
+\subsection{Equations of Motion}\label{equations-of-motion}
+
+At this point, we're ready to write our final equations of motion, which we
+found to be given by:
+
+\[
+\begin{aligned}
+\dot{\mathbf{q}} & = \hat{K}^{-1} \mathbf{p} \\
+\dot{\mathbf{p}} & = \mathbf{p}^T \hat{K}^{-1} \hat{J}_f^T \hat{M}
+        \left[ \nabla_{\mathbf{q}} \hat{J}_f \right] \hat{K}^{-1} \mathbf{p}
+    - \nabla_{\mathbf{q}} PE(\mathbf{q})
+\end{aligned}
+\]
+
+These equations aren't particularly beautiful, but it's straightforward to
+translate them into Haskell (using \(\hat{K} = \hat{J}_f^T \hat{M} \hat{J}_f\)):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/hamilton1/Hamilton.hs\#L112{-}L129}
+
+\NormalTok{hamilEqns}
+\OtherTok{    ::}\NormalTok{ (}\DataTypeTok{KnownNat}\NormalTok{ n, }\DataTypeTok{KnownNat}\NormalTok{ m)}
+    \OtherTok{=\textgreater{}} \DataTypeTok{System}\NormalTok{ m n}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Phase}\NormalTok{ n}
+    \OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{R}\NormalTok{ n, }\DataTypeTok{R}\NormalTok{ n)       }\CommentTok{{-}{-} dq/dt and dp/dt}
+\NormalTok{hamilEqns s (}\DataTypeTok{Phase}\NormalTok{ q p) }\OtherTok{=}\NormalTok{ (dqdt, dpdt)}
+  \KeywordTok{where}
+\NormalTok{    j       }\OtherTok{=}\NormalTok{ sysJacobian s q}
+\NormalTok{    trj     }\OtherTok{=}\NormalTok{ tr j}
+\NormalTok{    mHat    }\OtherTok{=}\NormalTok{ diag (sysInertia s)}
+\NormalTok{    kHat    }\OtherTok{=}\NormalTok{ trj }\OtherTok{\textasciigrave{}mul\textasciigrave{}}\NormalTok{ mHat }\OtherTok{\textasciigrave{}mul\textasciigrave{}}\NormalTok{ j}
+\NormalTok{    kHatInv }\OtherTok{=}\NormalTok{ inv kHat}
+\NormalTok{    dqdt    }\OtherTok{=}\NormalTok{ kHatInv }\OperatorTok{\#\textgreater{}}\NormalTok{ p}
+\NormalTok{    dpdt    }\OtherTok{=}\NormalTok{ gvecR bigUglyThing }\OperatorTok{{-}}\NormalTok{ sysPotentialGrad s q}
+      \KeywordTok{where}
+\NormalTok{        bigUglyThing }\OtherTok{=}
+          \FunctionTok{fmap}\NormalTok{ (\textbackslash{}j2 }\OtherTok{{-}\textgreater{}} \OperatorTok{{-}}\NormalTok{p }\OperatorTok{\textless{}.\textgreater{}}\NormalTok{ kHatInv }\OperatorTok{\#\textgreater{}}\NormalTok{ trj }\OperatorTok{\#\textgreater{}}\NormalTok{ mHat }\OperatorTok{\#\textgreater{}}\NormalTok{ j2 }\OperatorTok{\#\textgreater{}}\NormalTok{ kHatInv }\OperatorTok{\#\textgreater{}}\NormalTok{ p)}
+\NormalTok{               (sysHessian s q)}
+\end{Highlighting}
+\end{Shaded}
+
+Of course, there is no way to get around the big ugly math term in
+\(\dot{p}_q\), but at least it is a direct reading of the math!
+
+\emph{But!!} I'd much rather write this scary Haskell than that scary math,
+because \emph{ghc typechecks our math}! When writing out those equations, we
+really had no idea if we were writing it correctly, and if the matrix and vector
+and tensor dimensions line up. If it even \emph{made sense} to multiply and
+transpose the quantities we had.
+
+However, when writing \texttt{hamilEqns}, we let GHC \emph{hold our hand for
+us}. If any of our math is wrong, GHC will verify it for us! If any dimensions
+don't match up, or any transpositions don't make sense, we'll know immediately.
+And if we're ever lost, we can leave a
+\emph{\href{https://wiki.haskell.org/GHC/Typed_holes}{typed hole}} -- then GHC
+will tell you all of the values in scope that can \emph{fit} in that hole! Even
+if you don't completely understand the math, this helps you implement it in a
+somewhat confident way.
+
+It's admittedly difficult to convey how helpful these sized vector types are
+without working through trying to implement them yourself, so feel free to give
+it a try when you get the chance! :D
+
+\subsection{Numerical Integration}\label{numerical-integration}
+
+The result of \texttt{hamilEqns} gives the rate of change of the components of
+our \texttt{Phase\ n}. The rest of the processes then is just to ``step''
+\texttt{Phase\ n}. Gradually update it, following these rate of changes!
+
+This process is known as
+\href{https://en.wikipedia.org/wiki/Numerical_integration}{numerical
+integration}. The ``best'' way to do it is quite a big field, so for this
+article we're going to be using the extremely extremely simple
+\href{https://en.wikipedia.org/wiki/Euler_method}{Euler method} to progress our
+system through time.
+
+Disclaimer -- The Euler method is typically a \textbf{very very bad} choice for
+numerical integration (even though, as popularized in the movie \emph{Hidden
+Figures}, it was good enough to
+\href{http://www.latimes.com/science/sciencenow/la-sci-sn-hidden-figures-katherine-johnson-20170109-story.html}{send
+humans to space?}). We are just choosing it for this article because it's very
+simple, conceptually!
+
+The basic idea is that you pick a time-step, \(\Delta t\), and update each
+coordinate as:
+
+\[
+x(t + \Delta t) = x(t) + \dot{x}(t) \Delta t
+\]
+
+Which makes sense visually if we imagine \(\dot{x}\) as the ``slope'' of \(x\)
+-- it just means to follow the slope another \(\Delta t\) steps. If the slope
+stays constant, this method is perfectly accurate. The inaccuracy, of course,
+happens when the slope changes drastically within that \(\Delta t\) (and also
+from the fact that small errors cause errors in the new calculations of
+\(\dot{x}\), and so compound over time)
+
+You can understand this symbolically, as well, by remembering that the
+derivative can be approximated by \(\dot{x}(t) \approx \frac{x(t + \Delta t) -
+x(t)}{\Delta t}\) for small \(\Delta t\), and so we can do a little bit of
+symbolic manipulation to get \(x(t + \Delta t) \approx \dot{x}(t) \Delta t +
+x(t)\).
+
+We can directly translate this into Haskell: (using
+\texttt{konst\ ::\ KnownNat\ n\ =\textgreater{}\ Double\ -\textgreater{}\ R\ n},
+making a constant vector, and \texttt{*}, the component-wise product of two
+vectors)
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/hamilton1/Hamilton.hs\#L132{-}L140}
+
+\NormalTok{stepEuler}
+\OtherTok{    ::}\NormalTok{ (}\DataTypeTok{KnownNat}\NormalTok{ n, }\DataTypeTok{KnownNat}\NormalTok{ m)}
+    \OtherTok{=\textgreater{}} \DataTypeTok{System}\NormalTok{ m n       }\CommentTok{{-}{-} \^{} the system}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Double}           \CommentTok{{-}{-} \^{} dt}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Phase}\NormalTok{ n          }\CommentTok{{-}{-} \^{} q(t) and p(t)}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Phase}\NormalTok{ n          }\CommentTok{{-}{-} \^{} q(t + dt) and p(t + dt)}
+\NormalTok{stepEuler s dt ph}\OperatorTok{@}\NormalTok{(}\DataTypeTok{Phase}\NormalTok{ q p) }\OtherTok{=} \DataTypeTok{Phase}\NormalTok{ (q }\OperatorTok{+}\NormalTok{ konst dt }\OperatorTok{*}\NormalTok{ dq) (p }\OperatorTok{+}\NormalTok{ konst dt }\OperatorTok{*}\NormalTok{ dp)}
+  \KeywordTok{where}
+\NormalTok{    (dq, dp) }\OtherTok{=}\NormalTok{ hamilEqns s ph}
+\end{Highlighting}
+\end{Shaded}
+
+And repeatedly evolve this system as a lazy list:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/hamilton1/Hamilton.hs\#L143{-}L151}
+
+\NormalTok{runSystem}
+\OtherTok{    ::}\NormalTok{ (}\DataTypeTok{KnownNat}\NormalTok{ n, }\DataTypeTok{KnownNat}\NormalTok{ m)}
+    \OtherTok{=\textgreater{}} \DataTypeTok{System}\NormalTok{ m n       }\CommentTok{{-}{-} \^{} the system}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Double}           \CommentTok{{-}{-} \^{} dt}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Phase}\NormalTok{ n          }\CommentTok{{-}{-} \^{} initial phase}
+    \OtherTok{{-}\textgreater{}}\NormalTok{ [}\DataTypeTok{Phase}\NormalTok{ n]        }\CommentTok{{-}{-} \^{} progression of the system using Euler integration}
+\NormalTok{runSystem s dt }\OtherTok{=}\NormalTok{ go}
+  \KeywordTok{where}
+\NormalTok{    go p0 }\OtherTok{=}\NormalTok{ p0 }\OperatorTok{:}\NormalTok{ go (stepEuler s dt p0)}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Running with it}\label{running-with-it}
+
+And\ldots that's it! Granted, in real life, we would be using a less naive
+integration method, but this is essentially the entire process!
+
+Let's generate the boring system, a 5kg particle in 2D Cartesian Coordinates
+under gravity --
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/hamilton1/Hamilton.hs\#L154{-}L160}
+
+\OtherTok{simpleSystem ::} \DataTypeTok{System} \DecValTok{2} \DecValTok{2}
+\NormalTok{simpleSystem }\OtherTok{=}\NormalTok{ mkSystem (vec2 }\DecValTok{5} \DecValTok{5}\NormalTok{) }\FunctionTok{id}\NormalTok{ pot}
+  \KeywordTok{where}
+    \CommentTok{{-}{-} potential energy of a gravity field}
+    \CommentTok{{-}{-} U(x,y) = 9.8 * y}
+\OtherTok{    pot ::} \DataTypeTok{RealFloat}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{V.Vector} \DecValTok{2}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ a}
+\NormalTok{    pot xy }\OtherTok{=} \FloatTok{9.8} \OperatorTok{*}\NormalTok{ (xy }\OtherTok{\textasciigrave{}V.index\textasciigrave{}} \DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+If we initialize the particle at position
+\(\mathbf{q}_0 = \langle 0, 0 \rangle\) and velocity
+\(\mathbf{v}_0 = \langle 1, 3 \rangle\) (that is, \(v_x = 1\) and \(v_y
+= 3\)), we should see something that travels at a constant velocity in x and
+something that starts moving ``upwards'' (in positive y) and eventually reaches
+a peak and moves downwards.
+
+We can make our initial configuration:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/hamilton1/Hamilton.hs\#L164{-}L168}
+
+\OtherTok{simpleConfig0 ::} \DataTypeTok{Config} \DecValTok{2}
+\NormalTok{simpleConfig0 }\OtherTok{=} \DataTypeTok{Config}
+\NormalTok{    \{ confPositions  }\OtherTok{=}\NormalTok{ vec2 }\DecValTok{0} \DecValTok{0}
+\NormalTok{    , confVelocities }\OtherTok{=}\NormalTok{ vec2 }\DecValTok{1} \DecValTok{3}
+\NormalTok{    \}}
+\end{Highlighting}
+\end{Shaded}
+
+And then\ldots let it run!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/hamilton1/Hamilton.hs\#L170{-}L174}
+
+\OtherTok{simpleMain ::} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{simpleMain }\OtherTok{=}
+    \FunctionTok{mapM\_}\NormalTok{ (disp }\DecValTok{2} \OperatorTok{.}\NormalTok{ phasePositions)  }\CommentTok{{-}{-} position with 2 digits of precision}
+  \OperatorTok{.} \FunctionTok{take} \DecValTok{25}                          \CommentTok{{-}{-} 25 steps}
+  \OperatorTok{$}\NormalTok{ runSystem simpleSystem }\FloatTok{0.1}\NormalTok{ (toPhase simpleSystem simpleConfig0)}
+\end{Highlighting}
+\end{Shaded}
+
+We get:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{l Hamilton.hs}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ simpleMain}
+\DecValTok{0}     \DecValTok{0}
+\FloatTok{0.10}  \FloatTok{0.30}
+\FloatTok{0.20}  \FloatTok{0.58}
+\FloatTok{0.30}  \FloatTok{0.84}
+\FloatTok{0.40}  \FloatTok{1.08}
+\FloatTok{0.50}  \FloatTok{1.30}
+\FloatTok{0.60}  \FloatTok{1.51}
+\FloatTok{0.70}  \FloatTok{1.69}
+\FloatTok{0.80}  \FloatTok{1.85}
+\FloatTok{0.90}  \FloatTok{1.99}
+\FloatTok{1.00}  \FloatTok{2.12}
+\FloatTok{1.10}  \FloatTok{2.22}
+\FloatTok{1.20}  \FloatTok{2.31}
+\FloatTok{1.30}  \FloatTok{2.37}
+\FloatTok{1.40}  \FloatTok{2.42}
+\FloatTok{1.50}  \FloatTok{2.44}
+\FloatTok{1.60}  \FloatTok{2.45}
+\FloatTok{1.70}  \FloatTok{2.43}
+\FloatTok{1.80}  \FloatTok{2.40}
+\FloatTok{1.90}  \FloatTok{2.35}
+\FloatTok{2.00}  \FloatTok{2.28}
+\FloatTok{2.10}  \FloatTok{2.18}
+\FloatTok{2.20}  \FloatTok{2.07}
+\FloatTok{2.30}  \FloatTok{1.94}
+\FloatTok{2.40}  \FloatTok{1.79}
+\end{Highlighting}
+\end{Shaded}
+
+Exactly what we'd expect! The \texttt{x} positions increase steadily, and the
+\texttt{y} positions increase, slow down, and start decreasing.
+
+We can try a slightly more complicated example that validates (and justifies)
+all of the work we've done -- let's simulate a simple pendulum. The state of a
+pendulum is characterized by one coordinate \(\theta\), which refers to the
+angular (clockwise) from the equilibrium ``hanging straight down'' position.
+\(\theta = 0\) corresponds to 6 o' clock, \(\theta = \pi/2\) corresponds to 9 o'
+clock, \(\theta = - \pi / 2\) corresponds to 3 o' clock, etc. For a pendulum of
+length \(l\), we can translate that as \(\langle x, y \rangle = \langle - l
+sin(\theta),
+- l cos(\theta) \rangle\).
+
+Let's set up that system! We'll put it under normal gravity potential, again
+(\(U(x,y) = 9.8 y\)). Our initial position \(\theta_0\) will be at equilibrium,
+and our initial angular velocity \(v_{\theta 0}\) will be 0.1 radians/sec
+(clockwise), as we try to induce harmonic motion:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/hamilton1/Hamilton.hs\#L179{-}L204}
+
+\OtherTok{pendulum ::} \DataTypeTok{System} \DecValTok{2} \DecValTok{1}
+\NormalTok{pendulum }\OtherTok{=}\NormalTok{ mkSystem (vec2 }\DecValTok{5} \DecValTok{5}\NormalTok{) coords pot      }\CommentTok{{-}{-} 5kg particle}
+  \KeywordTok{where}
+    \CommentTok{{-}{-} \textless{}x,y\textgreater{} = \textless{}{-}0.5 sin(theta), {-}0.5 cos(theta)\textgreater{}}
+    \CommentTok{{-}{-} pendulum of length 0.25}
+\OtherTok{    coords ::} \DataTypeTok{RealFloat}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{V.Vector} \DecValTok{1}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{V.Vector} \DecValTok{2}\NormalTok{ a}
+\NormalTok{    coords (V.head}\OtherTok{{-}\textgreater{}}\NormalTok{theta) }\OtherTok{=}\NormalTok{ V.fromTuple (}\OperatorTok{{-}} \FloatTok{0.25} \OperatorTok{*} \FunctionTok{sin}\NormalTok{ theta, }\OperatorTok{{-}} \FloatTok{0.25} \OperatorTok{*} \FunctionTok{cos}\NormalTok{ theta)}
+    \CommentTok{{-}{-} potential energy of gravity field}
+    \CommentTok{{-}{-} U(x,y) = 9.8 * y}
+\OtherTok{    pot ::} \DataTypeTok{RealFloat}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{V.Vector} \DecValTok{1}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ a}
+\NormalTok{    pot q }\OtherTok{=} \FloatTok{9.8} \OperatorTok{*}\NormalTok{ (coords q }\OtherTok{\textasciigrave{}V.index\textasciigrave{}} \DecValTok{1}\NormalTok{)}
+
+\OtherTok{pendulumConfig0 ::} \DataTypeTok{Config} \DecValTok{1}
+\NormalTok{pendulumConfig0 }\OtherTok{=} \DataTypeTok{Config}
+\NormalTok{    \{ confPositions  }\OtherTok{=} \DecValTok{0}
+\NormalTok{    , confVelocities }\OtherTok{=} \FloatTok{0.1}
+\NormalTok{    \}}
+
+\OtherTok{pendulumMain ::} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{pendulumMain }\OtherTok{=}
+    \FunctionTok{mapM\_}\NormalTok{ (disp }\DecValTok{3} \OperatorTok{.}\NormalTok{ phasePositions)  }\CommentTok{{-}{-} position with 2 digits of precision}
+  \OperatorTok{.} \FunctionTok{take} \DecValTok{25}                          \CommentTok{{-}{-} 25 steps}
+  \OperatorTok{$}\NormalTok{ runSystem pendulum }\FloatTok{0.1}\NormalTok{ (toPhase pendulum pendulumConfig0)}
+\end{Highlighting}
+\end{Shaded}
+
+This pendulum should wobble back and forth, ever so slightly, around
+equilibrium.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{l Hamilton.hs}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ pendulumMain}
+\DecValTok{0}
+\FloatTok{0.010}
+\FloatTok{0.020}
+\FloatTok{0.029}
+\FloatTok{0.037}
+\FloatTok{0.042}
+\FloatTok{0.045}
+\FloatTok{0.044}
+\FloatTok{0.040}
+\FloatTok{0.032}
+\FloatTok{0.021}
+\FloatTok{0.007}
+\OperatorTok{{-}}\FloatTok{0.008}
+\OperatorTok{{-}}\FloatTok{0.023}
+\OperatorTok{{-}}\FloatTok{0.038}
+\OperatorTok{{-}}\FloatTok{0.051}
+\OperatorTok{{-}}\FloatTok{0.061}
+\OperatorTok{{-}}\FloatTok{0.068}
+\OperatorTok{{-}}\FloatTok{0.069}
+\OperatorTok{{-}}\FloatTok{0.065}
+\OperatorTok{{-}}\FloatTok{0.056}
+\OperatorTok{{-}}\FloatTok{0.041}
+\OperatorTok{{-}}\FloatTok{0.022}
+\OperatorTok{{-}}\FloatTok{0.000}
+\FloatTok{0.023}
+\end{Highlighting}
+\end{Shaded}
+
+We see our \(\theta\) coordinate increasing, then turning around and decreasing,
+swinging the other way past equilibrium, and then turning around and heading
+back!\footnote{Clearly our system is gaining some sort of phantom energy, since
+  it rises up to 0.045 on the left, and then all the way up to -0.69 on the
+  right. Rest assured that this is simply from the inaccuracies in Euler's
+  Method.}
+
+We \emph{automatically generated equations of motion for a pendulum}. Sweet!
+
+\section{Wrap-Up}\label{wrap-up}
+
+We traveled through the world of physics, math, Haskell, and back again to
+achieve something that would have initially seemed like a crazy thought
+experiment. But, utilizing Hamiltonian mechanics, we have a system that can
+automatically generate equations of motion given your coordinate system and a
+potential energy function. We also learned how to leverage typed vectors for
+more correct code and a smoother development process.
+
+See my
+\href{https://blog.jle.im/entry/introducing-the-hamilton-library.html}{previous
+post} for even crazier examples -- involving multiple objects, double pendulums,
+and more. And check out my
+\href{http://hackage.haskell.org/package/hamilton}{hamilton} library on hackage,
+which includes demos for exotic interesting systems, rendered graphically on
+your terminal.
+
+I realize that this was a lot, so if you have any questions or suggestions for
+clarifications, feel free to leave a comment, drop me a
+\href{https://twitter.com/mstk}{tweet}, or find me on the freenode
+\emph{\#haskell} channel (where I usually idle as \emph{jle`}!)
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

@@ -1,0 +1,1734 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Breaking a Degenerate Hyper-Dimensional Game of Life},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Breaking a Degenerate Hyper-Dimensional Game of Life}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% February 11, 2021
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html}{in
+Code}}.}
+
+tldr: Demonstrated with interactive visualizations and simulations --- over the
+course of a month, we were able to discover successive new mathematical
+properties of a ``degenerate'' hyper-dimensional game of life'' to take a ``7
+dimensions may just barely be possible on a commercial PC, could we ever reach
+10 dimensions?'' to ``10 dimensions is easy enough to be run on any modern
+browser (\hyperref[gol2D]{jump} \hyperref[gol3D]{to} \hyperref[gol4D]{spoilers}
+\hyperref[golFlat]{here}), and 60 dimensions can be reached with a compiled
+language''.
+
+This is a story about breaking a degenerate hyper-dimensional game of life via
+interactive exploratory visualizations and math!
+
+T'was the night before Thursday, December 17, 2020, the release of
+\href{https://adventofcode.com/2020/day/17}{``Conway Cubes''}. It was Day 17 of
+\href{https://adventofcode.com/2020}{Advent of Code 2020}, a series of fun
+little themed coding puzzles building up to Christmas; I always enjoyed these
+puzzles because they are so self-contained and tidy that they are often
+\emph{open-ended} in the interesting ways you can solve them or expand on them
+(which I've written
+\href{https://blog.jle.im/entries/series/+advent-of-code.html}{many blog posts
+on}).
+
+On the surface, Day 17 seemed to be a straightforward extension of
+\href{https://en.wikipedia.org/wiki/Conway\%27s_Game_of_Life}{Conway's Game Of
+Life} (``GoL''). GoL is a simulation played out on a 2D grid, where cells are
+``on'' and ``off'', and at each step of the simulation the states spread and
+propagate in interesting ways based on the state of their neighbors (a
+\href{https://en.wikipedia.org/wiki/Cellular_automaton}{2D cellular automaton}).
+The twist of the Advent of Code puzzle is it asks what would happen if we played
+out the rules of GoL in 3D instead, and then 4D.
+
+I submitted my solution on my assigned puzzle input with a naive implementation
+(placing 66 and 66 on the leaderboards for that day), concluding the
+``competitive'' part. Of course, the real fun always starts after. When
+discussing with some friends (on the
+\href{https://www.reddit.com/r/adventofcode}{subreddit} and freenode's
+\texttt{\#\#adventofcode} channel), we started talking about the trade-offs of
+different implementations and realized that the extra dimensionality was no
+joke: as you upped the number of dimensions, the number of points you have to
+consider grow exponentially, and so does the number of neighbors at each point
+to check. 4D can be solved naively, but anything higher is going to be strained.
+My naive solution on 6D took three minutes, and 7D in a reasonable amount of
+time (requiring as much as 612,220,032 points with 2,186 neighbors each) seemed
+\emph{impossible} on commercial consumer hardware because of the sheer number of
+points in 7D space. But I thought\ldots what if a breakthrough in optimization
+was possible? I set an (arbitrary) personal goal of reaching 10D
+(3,570,467,226,624 points with 59,048 neighbors each), not knowing if it would
+ever be possible.
+
+And soon\ldots a breakthrough did come! Someone brought up that if we look at
+the 3d version, we see there's actually a \emph{mirror symmetry}! Because
+everything starts off on the xy plane, with z=0, the resulting progression must
+be symmetrical on both sides (positive and negative z).
+
+\begin{figure}
+\centering
+\includegraphics{/img/entries/advent-gol/life3d.gif}
+\caption{3D GoL animation demonstrating mirror symmetry by
+\href{https://www.reddit.com/r/adventofcode/comments/kfa3nr/2020_day_17_godot_cubes_i_think_i_went_a_bit_too/}{u/ZuBsPaCe}}
+\end{figure}
+
+This meant that we only have to simulate the \emph{positive} points (since the
+negative points are identical). This saves down the number of points by a factor
+of two for each extra dimension! Unfortunately, this wouldn't quite get us to
+10D, but the discovery completely changed how we saw this puzzle. With one
+breakthrough down, we began to believe that there would be more just around the
+corner, made possible by our problem's special 2D-slice starting degeneracy.
+
+Such a dream (as posed in
+\href{https://www.reddit.com/r/adventofcode/comments/kfb6zx/day_17_getting_to_t6_at_for_higher_spoilerss/}{this
+reddit thread I started}) turned into a month-long ride of breakthrough after
+breakthrough, exploiting different aspects of this degeneracy. It was a month
+full of sudden twists and turns and bursts of excitement whenever new
+innovations came. And in the end, the hopeful question ``7D is barely in reach;
+what if 10D was possible?'' turned into ``10D in 100ms, 40D in eight
+minutes\ldots can we do 60D quickly?'' This post even includes simulations to
+prove that we got 10D fast enough to run on easily on any modern browser. The
+whole journey became an adventure in the power of visualization combined with
+abstract thinking.
+
+So, let's take a deep dive --- deeper than you probably ever expected to dive
+into any particular degenerate starting conditions of a hyper-dimensional game
+of life :D
+
+There will be python code samples here and there, but just for context, my
+actual solvers I developed along the way were
+\href{https://github.com/mstksg/advent-of-code-2020/blob/master/src/AOC/Challenge/Day17.hs}{written
+in Haskell}, and all of the solving logic embedded in this post was written in
+Purescript
+(\href{https://github.com/mstksg/inCode/blob/master/app-purescript/Gol.purs}{online
+here}) and compiled to Javascript.
+
+\section{Table of Figures}\label{table-of-figures}
+
+For reference, the interactive elements in this post are:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \hyperref[golDrawer]{Initial condition drawer}
+\item
+  \hyperref[gol2D]{2D Game of Life}
+\item
+  \hyperref[gol3D]{3D Game of Life}
+\item
+  \hyperref[golSyms3DForward]{3D Forward Neighbor Multiplicities} /
+  \hyperref[golSyms3DReverse]{3D Reverse Neighbor Multiplicities}
+\item
+  \hyperref[gol4D]{4D Game of Life}
+\item
+  \hyperref[golSyms4DForward]{4D Forward Neighbor Multiplicities} /
+  \hyperref[golSyms4DReverse]{4D Reverse Neighbor Multiplicities}
+\item
+  \hyperref[golSyms5D]{5D Neighbor Multiplicities}
+\item
+  \hyperref[golTree]{General Neighbor Multiplicity Algorithm}
+\item
+  \hyperref[golFlat]{N-D Game of Life}
+\end{enumerate}
+
+\section{Starting Off}\label{starting-off}
+
+First of all, let's meet our friend for the rest of this journey. In the drawer
+below, you can \emph{draw} (with your mouse) the 8x8 grid you want to simulate
+for the rest of this post. As you draw, the rest of the visualizations will
+update to use this as their initial conditions, so feel free to jump back and
+forth as you're reading to customize and change what you want to simulate.
+
+\phantomsection\label{golDrawer}
+\textbf{Element 1:} Initial Condition Drawer
+
+\phantomsection\label{golDrawerCont}
+Please enable Javascript
+
+Here are some sample fun ones you can try out (click to load):
+
+\begin{itemize}
+\tightlist
+\item
+  The
+  \href{https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=____._▝▖_._▀▘_.____}{classic
+  glider}, a default if only for how iconic it is.
+\item
+  The
+  \href{https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=____._▞▖_._▝__.____}{tub},
+  which is a ``still-life'' in 2D, but explodes into a twinkling frenzy during
+  the 4D animation.
+\item
+  The
+  \href{https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=████.████.████.████}{full
+  block}, which dies out in 2D but produces very appealing patterns in 3D and
+  4D. A
+  \href{https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=▛▀▀▜.▌▛▜▐.▌▙▟▐.▙▄▄▟}{bulls-eye}
+  also yields interesting ``geometric'' patterns at higher dimensions. A
+  \href{https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=████.▄▗▖▄.▀▝▘▀.████}{broken
+  bar code} also yields explosively intricate alternating behavior at higher
+  dimensions.
+\item
+  The
+  \href{https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=██▟█.▜███.███▙.█▛██}{spiral
+  galaxy} with rotational symmetry, which produces rich spiral galaxy patterns
+  up until 6D, but then all of a sudden becomes blocky and bland at 7D and
+  above.
+\item
+  My
+  \href{https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=▛▜▙▐.▜▚▗_.█▟▄▘.▟▌▟█}{own
+  personal assigned puzzle input}, to see what the typical input looks like that
+  people had to run on December 17th.
+\end{itemize}
+
+I recommend trying out some of the
+\href{https://en.wikipedia.org/wiki/Conway\%27s_Game_of_Life\#Examples_of_patterns}{other
+interesting well-known patterns} from 2D GoL, as well! If you find any
+interesting ones, I would be excited to hear about them!
+
+For fun, here's a 2D vanilla game of life implementation (for six time steps) to
+test out your creation. Remember that some starting conditions will putter out
+in 2D, but expand forever in 3D+ due to the abundance of neighbors.
+
+\phantomsection\label{gol2D}
+\textbf{Element 2:} 2D Game of Life
+
+\phantomsection\label{gol2DCont}
+Please enable Javascript
+
+Now that that's there, let's start at the beginning: what's the naive, baseline
+solution?
+
+A reasonable initial thought would be:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Keep a 2D (or 3D, or 4D, etc.) array of booleans.
+\item
+  At each step:
+
+  \begin{enumerate}
+  \def\labelenumii{\alph{enumii}.}
+  \tightlist
+  \item
+    Make a fresh copy of the entire space (\(O(n^d)\)).
+  \item
+    Loop over each item in your array (\(O(n^d)\)). Count all of the neighbors
+    (\(O(3^d)\)) that are \texttt{true} (``alive''), and write to the new array
+    based on the rules table of GoL (2 or 3 neighbors for a live cell stays
+    alive, 3 neighbors for a dead cell turns alive).
+  \end{enumerate}
+\item
+  You have a new array! Loop again six times.
+\end{enumerate}
+
+Sounds reasonable enough! This does work for the 2D case pretty well (like in
+the \href{https://adventofcode.com/2020/day/11}{Day 11 puzzle}). However, there
+are some clear issues when moving into higher dimensions. The size of your array
+grows exponentially on your dimension, and so does the number of neighbors you'd
+have to check. And the
+\href{https://en.wikipedia.org/wiki/Curse_of_dimensionality}{curse of
+dimensionality} assures us that more and more of that array would become wasted
+as the proportion of ``on'' points shrinks to zero for higher dimensions.
+
+Oh, but what's that? The percentage of ``on'' points shrinks to zero for higher
+dimensions? That actually sounds like something we can use to our
+\emph{advantage}! The \emph{blessing} of dimensionality*, I daresay? Because we
+know the vast majority of our points will be ``off'', there's another approach:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Keep a \emph{set} of points that are ``on''.
+\item
+  At each step:
+
+  \begin{enumerate}
+  \def\labelenumii{\alph{enumii}.}
+  \item
+    Initialize a dynamic map (key-value store, like a python dict or Counter) of
+    points to integers. This map associates each point to the number of live
+    neighbors it has.
+  \item
+    For each step, iterate over each of your ``on'' points, expand all of their
+    neighbors \(n_i\) (\(O(3^d)\)), and increment the value associated with
+    \(n_i\) in your dynamic map.
+
+    For example, if the point \texttt{\textless{}2,3\textgreater{}} is in your
+    set of live points, you would add increment the map's values at keys
+    \texttt{\textless{}1,2\textgreater{}},
+    \texttt{\textless{}2,2\textgreater{}},
+    \texttt{\textless{}3,2\textgreater{}}, etc.: all 8 neighbors of
+    \texttt{\textless{}2,3\textgreater{}}.
+  \item
+    Collect your new set of ``on'' points: keep all of the keys in your dynamic
+    map corresponding to live points if their integers are 2 or 3, and keep all
+    of the keys in your dynamic map corresponding to dead points if their
+    integers are 3.
+  \end{enumerate}
+\item
+  You have a new set! Loop again six times!
+\end{enumerate}
+
+(I discuss this algorithm much more deeply with actual code in
+\href{https://github.com/mstksg/advent-of-code-2020/blob/master/reflections-out/day17.md}{my
+solutions write-up in my Advent of Code reflections journal})
+
+This method nets us a huge advantage because we now only have to loop over the
+number of items that we know are alive, and any points away from our set of
+alive points can be properly ignored. This narrows down our huge iteration
+space, and the benefits compound with every dimension due to the blessing of
+dimensionality.\footnote{And\ldots there's actually a neat optimization we can
+  use (brought to our attention by
+  \href{https://www.reddit.com/r/adventofcode/comments/kfb6zx/day_17_getting_to_t6_at_for_higher_spoilerss/ghmllf8}{Peter
+  Tseng}) to avoid the check of the original set in step 2c above: when you
+  iterate over each point, increment the eight neighbors' map values by
+  \emph{2}, and then increment the point itself by 1. Then in the final integer
+  under each key, \texttt{n\ /\ 2} or
+  \texttt{n\ \textgreater{}\textgreater{}\ 1} gives you the number of neighbors
+  and \texttt{n\ \%\ 2} (modulus) gives you whether or not that cell was alive.}
+
+Both methods can be generalized to any dimension; in this second method, this
+just means a different sized tuple/vector in your set of alive points
+(\texttt{{[}x,y{]}} vs.~\texttt{{[}x,y,z{]}}). One extra concern, though, is
+that you need to think through generating all \(3^d-1\) neighbors: that's going
+to come down to a d-ary \href{https://observablehq.com/@d3/d3-cross}{cartesian
+product} of \texttt{{[}-1,0,1{]}} to itself.
+
+Here's a python implementation of the set-based method, using a nice trick I
+learned from \href{https://twitter.com/phaazon_}{phaazon} and
+\href{https://github.com/glguy}{glguy} to get the right neighbors by doing a
+cartesian product against \texttt{{[}0,-1,1{]}} instead of
+\texttt{{[}-1,0,1{]}}, which leaves the first item as the
+\texttt{\textless{}0,0\textgreater{}} ``original point'' we want to
+exclude.\footnote{There's another optimization too you could use that would
+  allow you to ignore this and just treat a cell as its own neighbor; you'd have
+  to tweak the live-or-dead rules slightly, but it does simplify a lot of the
+  propagation logic.}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{from}\NormalTok{ itertools }\ImportTok{import}\NormalTok{ islice, product}
+\ImportTok{from}\NormalTok{ collections }\ImportTok{import}\NormalTok{ Counter}
+
+\KeywordTok{def}\NormalTok{ mk\_neighbs(point):}
+    \CommentTok{"""Return neighboring points, with the original point first}
+
+\CommentTok{    (1, 2)}
+\CommentTok{    =\textgreater{} [(1, 2), (1, 1), (1, 3), (0, 2), (0, 1), (0, 3), (2, 2), (2, 1), (2, 3)]}
+\CommentTok{    """}
+    \ControlFlowTok{return} \BuiltInTok{list}\NormalTok{(product(}\OperatorTok{*}\NormalTok{[[x, x}\OperatorTok{{-}}\DecValTok{1}\NormalTok{, x}\OperatorTok{+}\DecValTok{1}\NormalTok{] }\ControlFlowTok{for}\NormalTok{ x }\KeywordTok{in}\NormalTok{ point]))}
+
+\KeywordTok{def}\NormalTok{ step\_naive(pts):}
+    \CommentTok{"""Takes a set of points (tuples) and steps them in the simulation}
+\CommentTok{    """}
+\NormalTok{    neighbs }\OperatorTok{=}\NormalTok{ Counter()}
+    \ControlFlowTok{for}\NormalTok{ point }\KeywordTok{in}\NormalTok{ pts:}
+        \CommentTok{\# skip the first item, the original point}
+\NormalTok{        neighbs }\OperatorTok{+=}\NormalTok{ Counter(mk\_neighbs(point)[}\DecValTok{1}\NormalTok{:])}
+
+    \KeywordTok{def}\NormalTok{ validate(point, ncount):}
+        \ControlFlowTok{if}\NormalTok{ point }\KeywordTok{in}\NormalTok{ pts:}
+            \ControlFlowTok{return}\NormalTok{ ncount }\OperatorTok{==} \DecValTok{2} \KeywordTok{or}\NormalTok{ ncount }\OperatorTok{==} \DecValTok{3}
+        \ControlFlowTok{else}\NormalTok{:}
+            \ControlFlowTok{return}\NormalTok{ ncount }\OperatorTok{==} \DecValTok{3}
+
+    \ControlFlowTok{return} \BuiltInTok{frozenset}\NormalTok{(p }\ControlFlowTok{for}\NormalTok{ p, n }\KeywordTok{in}\NormalTok{ neighbs.items() }\ControlFlowTok{if}\NormalTok{ validate(p, n))}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Three Dimensions}\label{three-dimensions}
+
+Let's see how this looks for the 3D case! To make things easier to see, we can
+render things in ``slices'' in 3D space: each grid represents a slice at a
+different z level (ie, the z=0 square represents all squares
+\texttt{\textless{}x,y,0\textgreater{}}, the z=1 square represents all squares
+\texttt{\textless{}x,y,1\textgreater{}}, etc.). Press ``Play'' to have the
+simulation cycle through 6 time steps!
+
+\phantomsection\label{gol3D}
+\textbf{Element 3:} 3D Game of Life
+
+\phantomsection\label{gol3DCont}
+Please enable Javascript
+
+(Some patterns I suggest trying out are the flowery
+\href{https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=██▟█.▜███.███▙.█▛██}{spiral
+galaxy} pattern and patterns with a single reflection symmetry, like the
+\href{https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=████.▄▗▖▄.▀▝▘▀.████}{broken
+bar code}; double symmetry like
+\href{https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=▛▀▀▜.▌▛▜▐.▌▙▟▐.▙▄▄▟}{bulls-eye}
+look nice too!)
+
+In reality, each of those 13 slices above are stacked on top of each other in 3D
+space. You'll see that your live cells spread out from the center z=0 slice,
+which means they are actually spreading ``up and down'' the z axis.
+
+If you mouse over (or tap) any individual tiny
+\texttt{\textless{}x,y\textgreater{}} cell, you'll see the all of the 26
+(\(3^d-1\)) \texttt{\textless{}x,y,z\textgreater{}} 3D neighbors of the point
+you're hovering over highlighted in blue --- these 26 points form a 3D cube
+around your mouse through the stacked slices. You can use this cube to help see
+how the simulation progresses. If your mouse is hovering over a live cell, and
+there are 2 or 3 live cells highlighted in your cube, it'll stay alive in the
+next time step. If your mouse is hovering over a dead cell and there are exactly
+3 live cells highlighted in your cube, it will come alive in the next step.
+
+\subsection{Axis Reflection Symmetry}\label{axis-reflection-symmetry}
+
+Try playing around with different initial conditions to see how they evolve! See
+any patterns?
+
+Freenode IRC user \href{https://github.com/sim642}{sim642} noticed something
+late into the night of December 16th:
+
+\begin{quote}
+I wanted to ask this before but forgot: did anyone try to take advantage of the
+symmetry, e.g.~in z axis in part 1? Should halve the amount of calculations you
+have to do.
+
+Only some extra work at the end to differentiate z=0 and z\textgreater0
+positions to know which to count twice And in part 2 I feel like you could also
+exploit the symmetry in w axis simultaneously
+
+--- sim642
+\end{quote}
+
+You might have seen this too: the entire thing has reflection symmetry across
+z=0! z=1 is always the same as z=-1, z=2 is always the same as z=-2, etc.
+Fundamentally, this is because our starting solution has a \emph{z-axis
+symmetry}: the initial 2D slice is symmetric with reflections across z, because
+z=0 for all of those points. This is the first ``degeneracy'' that this blog
+post's title is referring to: the negative and positive directions are
+interchangeable! This is reflected in the yellow highlight on hover: when you
+mouse-over a z square, its corresponding reflected twin is highlighted, and will
+always be identical.
+
+This means that we actually only need to simulate \emph{positive} z's\ldots and
+for our final answer we just ``un-reflect'' to get the total number.
+
+Let's do this! Apparently, the picture is slightly more complicated than simply
+halving the points; we also need to change how to distribute neighbors. That's
+because, once we commit to only keeping the positive z's, some cells need to be
+double-counted as neighbors. In particular, any \texttt{z=0} cell would
+previously had a neighbor at both \texttt{z=-1} and \texttt{z=1}\ldots but now
+if we only keep the positive z's, it would have \texttt{z=1} as a neighbor
+\emph{twice}.
+
+The following interactive element lets you explore what this looks like:
+
+\phantomsection\label{golSyms3DForward}
+\textbf{Element 4a:} 3D Forward Neighbor Multiplicities
+
+\phantomsection\label{golSyms3DForwardCont}
+Please enable Javascript
+
+Each square represents an entire ``slice'' of z. When you mouse-over or tap a
+z-cell, its z-neighbors are highlighted with how many times that neighbor has to
+be counted, and the green bar tells you from what direction that neighborship
+arose from. For example, mousing over z=3, you will see z=2 and z=4 get
+highlighted with the values ``1'' because they are neighbors of 3, on the left
+and right side (respectively). Note that one neat property for all squares
+(except for z=6, which goes off the scale) is that the ``total''
+higher-dimensional neighbors is always 2 (\(3^{d-2}-1\)) just like before; it's
+just that \emph{where} those neighbors fall is re-arranged slightly.
+
+The tricky square is now z=0: if you mouse-over it, you'll see that it has a
+single neighbor z=1 that is counted \emph{twice}, as a neighbor from both the
+left and right side.
+
+We can compute the above diagram by expanding any z to its neighbors (z-1, and
+z+1), applying the absolute value function, and seeing how points double-up.
+This gives us the \textbf{forward neighbors}, and we can directly use it for the
+original ``keep the full array'' GoL implementation method.
+
+However, for the ``keep active points and expand their neighbors'' GoL
+implementation, we have to find the opposite of this. Remember that to build our
+``neighbors map'' (the map of points to how many active neighbors they have), we
+have each cell ``proactively'' add its contributions to all of its neighbors.
+\texttt{\textless{}1,2,3\textgreater{}} is a neighbor to
+\texttt{\textless{}1,3,4\textgreater{}} once, so when we expand
+\texttt{\textless{}1,2,3\textgreater{}} we would increment the value in the map
+at \texttt{\textless{}1,3,4\textgreater{}} by 1 because
+\texttt{\textless{}1,2,3\textgreater{}} is a neighbor of
+\texttt{\textless{}1,3,4\textgreater{}} once.
+
+So the question becomes: how do we count \texttt{\textless{}1,3,1\textgreater{}}
+expanding into \texttt{\textless{}1,3,0\textgreater{}}? Well, normally,
+\texttt{\textless{}1,3,1\textgreater{}} is a neighbor of
+\texttt{\textless{}1,3,0\textgreater{}} once. However, if we only keep the
+normalized z values, \texttt{\textless{}1,3,1\textgreater{}} is a neighbor of
+\texttt{\textless{}1,3,0\textgreater{}}\ldots twice! To compute the total
+neighbor count of \texttt{\textless{}1,3,0\textgreater{}}, we have to count the
+contribution from \texttt{\textless{}1,3,1\textgreater{}} twice (once for
+\texttt{\textless{}1,3,1\textgreater{}} and once for
+\texttt{\textless{}1,3,-1\textgreater{}}, which also exists, but was normalized
+away).
+
+That means we have to follow the original rules, but \emph{backwards}, like:
+
+\phantomsection\label{golSyms3DReverse}
+\textbf{Element 4b:} 3D Reverse Neighbor Multiplicities
+
+\phantomsection\label{golSyms3DReverseCont}
+Please enable Javascript
+
+These are the \textbf{reverse neighbors}: how many times a given point counts as
+a neighbor for its surrounding points. Here, mousing over z=1 shows that it
+counts as a neighbor for z=0 twice, from both the left and the right. It also
+counts as a neighbor for z=2 once (from the left side).
+
+We can account for this by hard-coding the rules into our step algorithm: if our
+z goes from \texttt{1} to \texttt{0}, increment its value twice in the neighbor
+map. Otherwise, simply increment by 1 as normal.
+
+This rule is relatively straightforward to implement, and as a result we now
+halved our total number of points we need to keep and check for 3D! There's also
+a nice way to generalize to arbitrary dimensions: for every
+\texttt{1\ -\textgreater{}\ 0} transition in a higher dimension, multiply by
+two. That means we reduce the number of 4D points we need to track by a factor
+of four, the number of 5D points by a factor of eight, the number of 6D points
+by a factor of 16\ldots{} now our total points to check only grows as
+\(O(n^d / 2^{d-2})\) instead of \(O(n^d)\)!
+
+Here is a python implementation of this generalization:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{def}\NormalTok{ axis\_weight(source,target):}
+    \CommentTok{"""Retuns how many times the given source{-}\textgreater{}target transition should be}
+\CommentTok{    counted in target\textquotesingle{}s neighbor count}
+\CommentTok{    """}
+    \CommentTok{\# ignore x,y}
+\NormalTok{    higher\_source }\OperatorTok{=}\NormalTok{ source[}\DecValTok{2}\NormalTok{:]}
+\NormalTok{    higher\_target }\OperatorTok{=}\NormalTok{ target[}\DecValTok{2}\NormalTok{:]}
+    \ControlFlowTok{return} \DecValTok{2}\OperatorTok{**}\BuiltInTok{sum}\NormalTok{([}\DecValTok{1} \ControlFlowTok{for}\NormalTok{ i,j }\KeywordTok{in} \BuiltInTok{zip}\NormalTok{(higher\_source, higher\_target)}
+                      \ControlFlowTok{if}\NormalTok{ i }\OperatorTok{==} \DecValTok{1} \KeywordTok{and}\NormalTok{ j }\OperatorTok{==} \DecValTok{0}
+\NormalTok{                  ])}
+
+\KeywordTok{def}\NormalTok{ mk\_positive\_neighbs(point):}
+    \CommentTok{"""mk\_neighbs, but only with positive higher dimensional points}
+\CommentTok{    """}
+    \CommentTok{\# this is a very wasteful implementation, for demonstrative purposes}
+    \ControlFlowTok{return}\NormalTok{ [ngb }\ControlFlowTok{for}\NormalTok{ ngb }\KeywordTok{in}\NormalTok{ mk\_neighbs(point) }\ControlFlowTok{if} \BuiltInTok{all}\NormalTok{ (i }\OperatorTok{\textgreater{}=} \DecValTok{0} \ControlFlowTok{for}\NormalTok{ i }\KeywordTok{in}\NormalTok{ ngb[}\DecValTok{2}\NormalTok{:])]}
+
+\KeywordTok{def}\NormalTok{ step\_axis(pts):}
+    \CommentTok{"""Takes a set of points (tuples) and steps them in the simulation}
+\CommentTok{    according to axis{-}reflection symmetry.}
+\CommentTok{    """}
+\NormalTok{    neighbs }\OperatorTok{=}\NormalTok{ Counter()}
+    \ControlFlowTok{for}\NormalTok{ point }\KeywordTok{in}\NormalTok{ pts:}
+\NormalTok{        neighbs }\OperatorTok{+=}\NormalTok{ Counter(\{ ngb: axis\_weight(point,ngb)}
+                               \ControlFlowTok{for}\NormalTok{ ngb }\KeywordTok{in}\NormalTok{ mk\_positive\_neighbs(point)[}\DecValTok{1}\NormalTok{:]}
+\NormalTok{                           \})}
+
+    \KeywordTok{def}\NormalTok{ validate(point, ncount):}
+        \ControlFlowTok{if}\NormalTok{ point }\KeywordTok{in}\NormalTok{ pts:}
+            \ControlFlowTok{return}\NormalTok{ ncount }\OperatorTok{==} \DecValTok{2} \KeywordTok{or}\NormalTok{ ncount }\OperatorTok{==} \DecValTok{3}
+        \ControlFlowTok{else}\NormalTok{:}
+            \ControlFlowTok{return}\NormalTok{ ncount }\OperatorTok{==} \DecValTok{3}
+
+    \ControlFlowTok{return} \BuiltInTok{frozenset}\NormalTok{(p }\ControlFlowTok{for}\NormalTok{ p, n }\KeywordTok{in}\NormalTok{ neighbs.items() }\ControlFlowTok{if}\NormalTok{ validate(p, n))}
+\end{Highlighting}
+\end{Shaded}
+
+This discovery late in the Tuesday night of the 16th was what inspired us to
+believe and dream that more breakthroughs might be possible to bring things down
+even further.
+
+Those breakthroughs soon came!
+
+\section{Four Dimensions}\label{four-dimensions}
+
+Let's look at how 4D game works! We can visualize this by taking ``z-w'' slices
+at different x-y planes. The labels in the following boxes are the
+\texttt{\textless{}z,w\textgreater{}} of each slice. The very center is
+\texttt{\textless{}z,w\textgreater{}\ =\ \textless{}0,0\textgreater{}} the row
+in the middle from the top is \texttt{w=0}, and the column in the very middle
+from the left is \texttt{z=0}. It's basically taking the 3D visualization above
+and expanding it in an extra dimension. Press ``Play'' to run your initial
+conditions!
+
+\phantomsection\label{gol4D}
+\textbf{Element 5:} 4D Game of Life
+
+\phantomsection\label{gol4DCont}
+Please enable Javascript
+
+(Some patterns I recommend trying are the patterns with double reflection
+symmetry like
+\href{https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=▛▀▀▜.▌▛▜▐.▌▙▟▐.▙▄▄▟}{bulls-eye},
+\href{https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=████.████.████.████}{full
+block} and the twinkly
+\href{https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=____._▞▖_._▝__.____}{tub},
+rotational symmetry like
+\href{https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=██▟█.▜███.███▙.█▛██}{spiral
+galaxy}, and single-reflection symmetries like
+\href{https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=████.▄▗▖▄.▀▝▘▀.████}{broken
+bar code}, which seems to alternate between different orientations).
+
+Most initial conditions will spread out from the center
+\texttt{\textless{}z,w\textgreater{}\ =\ \textless{}0,0\textgreater{}} slice
+radially, spreading outwards into positive and negative z and w. Mouse-over or
+tap any individual tiny \texttt{\textless{}x,y\textgreater{}} cell and you'll
+see each of its 80 (\(3^4-1\)) \texttt{\textless{}x,y,z,w\textgreater{}} 4D
+neighbors highlighted in blue, forming a little 3x3x3x3
+``\href{https://en.wikipedia.org/wiki/Cosmic_Cube}{tesseract}'' (4D cube, or
+hypercube). Like in the 3D case, you can use this little hypercube to track how
+the simulation progresses: if your mouse if hovering over a live cell with 2 or
+3 live cells in its hypercube, it'll stay alive in the next step, if it's
+hovering over a dead cell with 3 live cells in its hypercube, it'll come alive
+in the next step.
+
+\subsection{Diagonal Reflection Symmetry}\label{diagonal-reflection-symmetry}
+
+Play around and explore how simulations evolve! You will notice that the axis
+reflection symmetry is still preserved, as expected, but four ways (the slice at
+\texttt{\textless{}z,w\textgreater{}\ =\ \textless{}3,4\textgreater{}} is always
+going to be identical to the slice at \texttt{\textless{}-3,4\textgreater{}},
+\texttt{\textless{}3,-4\textgreater{}}, and
+\texttt{\textless{}-3,-4\textgreater{}}). These are reflected in the ``deep
+yellow'' highlights above when you mouse over a zw square. (Ignore the lighter
+yellow highlights for now!)
+
+And now, for the next big breakthrough: this exact visualization was what reddit
+user u/cetttbycett was looking at when
+\href{https://www.reddit.com/r/adventofcode/comments/kfjhwh/year_2020_day_17_part_2_using_symmetry_in_4d_space/}{they
+made this post} late Thursday the 17th/early Friday the 18th\ldots and
+everything changed forever.
+
+\begin{quote}
+I noticed that the expansion of active cubes for part 2 is symmetric with
+respect to two hyperplanes in 4d space: These hyperplanes can be described by w
+= 0 and w-z = 0.
+
+Using these symmetries could make the code nearly eight times as fast.I was
+wondering if anyone tried that.
+
+--- u/cetttbycettt
+\end{quote}
+
+What u/cetttbycettt saw is what you can see now in the simulation above: it's
+all of the \emph{light yellow} highlighted squares when you mouse-over
+(highlighting even \emph{more} identical slices to the one you are hovering
+over). In addition to the z=0 and w=0 lines (the two lines down the middle,
+up-down and left-right), we also have another line of symmetry: z=w and z=-w,
+the diagonal lines!
+
+That's right, a zw slice at
+\texttt{\textless{}z,w\textgreater{}=\textless{}3,4\textgreater{}} is
+\emph{identical} to the one at \texttt{\textless{}4,3\textgreater{}}, and so
+also \texttt{\textless{}-3,4\textgreater{}},
+\texttt{\textless{}3,-4\textgreater{}}, \texttt{\textless{}-3,-4\textgreater{}},
+\texttt{\textless{}-4,3\textgreater{}}, \texttt{\textless{}4,-3\textgreater{}},
+and \texttt{\textless{}-4,-3\textgreater{}}! Each slice is potentially repeated
+\emph{eight} times! The exceptions are the points on the lines of symmetry
+themselves, which are each repeated only four times, and also
+\texttt{\textless{}z,w\textgreater{}=\textless{}0,0\textgreater{}}, which is in
+a class of its own.
+
+So, our first breakthrough meant that we only have to simulate \emph{positive}
+coordinates (a single quadrant)\ldots our next breakthrough means that we only
+have to simulate coordinates on a single ``wedge'' half-quadrant\ldots and then
+duplicate those eight times at the end. (Arbitrarily, let's say we only simulate
+the north-by-northeast wedge, because it's easy to normalize/compact all points
+onto that wedge --- you just need to absolute-value all the components and sort
+them, and a point like \texttt{\textless{}4,-3\textgreater{}} gets
+``normalized'' to \texttt{\textless{}3,4\textgreater{}}))
+
+We found a new symmetry now, but we run into the same issue as before: How do we
+propagate neighbors? To help us see what's going on, let's look at the map of
+neighbors between different \texttt{\textless{}z,w\textgreater{}} squares, for
+the single zw wedge we are simulating.
+
+\phantomsection\label{golSyms4DForward}
+\textbf{Element 6a:} 4D Forward Neighbor Multiplicities
+
+\phantomsection\label{golSyms4DForwardCont}
+Please enable Javascript
+
+These are the \emph{forward neighbors}; we can compute them by expanding a point
+to its neighbors, and then normalizing our points and seeing how they double (or
+quadruple) up.
+
+For example, mouse over
+\texttt{\textless{}z,w\textgreater{}=\textless{}3,3\textgreater{}} and see it
+has eight total higher-dimensional neighbors (like all points should, though
+this visualization leaves out points at w\textgreater6). It's \emph{supposed} to
+have a neighbor at \texttt{\textless{}4,3\textgreater{}}, but that gets
+reflected back onto \texttt{\textless{}3,4\textgreater{}} during our
+normalization process, so you see that the point
+\texttt{\textless{}3,3\textgreater{}} has a neighbor at
+\texttt{\textless{}3,4\textgreater{}} ``double-counted''. The green squares (in
+the north and west positions) at \texttt{\textless{}3,4\textgreater{}} when you
+hover over \texttt{\textless{}3,3\textgreater{}} show that
+\texttt{\textless{}3,4\textgreater{}} is a neighbor of
+\texttt{\textless{}3,3\textgreater{}} both to its north and to its west.
+
+Also, we have something really odd show up for the first time. Mouse over a
+point like \texttt{\textless{}z,w\textgreater{}=\textless{}2,3\textgreater{}}
+and see that it has a neighbor in\ldots itself? What's going on here? Well, it
+is \emph{supposed} to have a neighbor at \texttt{\textless{}3,2\textgreater{}}
+but that gets normalized/reflected back onto
+\texttt{\textless{}2,3\textgreater{}} --- it reflects onto itself! The green
+square in the Southeast means that \texttt{\textless{}2,3\textgreater{}}'s
+southeast neighbor is\ldots itself!
+
+Here is a sample python implementation of the computation of forward neighbor
+multiplicities for any dimension by propagating-then-normalizing:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{def}\NormalTok{ normalize(point):}
+    \CommentTok{"""Normalize a point by sorting the absolute values}
+
+\CommentTok{    (2, {-}1)}
+\CommentTok{    =\textgreater{} (1, 2)}
+\CommentTok{    """}
+    \ControlFlowTok{return} \BuiltInTok{tuple}\NormalTok{(}\BuiltInTok{sorted}\NormalTok{([}\BuiltInTok{abs}\NormalTok{(x) }\ControlFlowTok{for}\NormalTok{ x }\KeywordTok{in}\NormalTok{ point]))}
+
+\KeywordTok{def}\NormalTok{ forward\_neighbs(point):}
+    \CommentTok{"""Generate the higher{-}dimensional forward neighbors of a point}
+
+\CommentTok{    (0, 1)}
+\CommentTok{    =\textgreater{} \{(0, 1): 2, (1, 2): 2, (1, 1): 2, (0, 0): 1, (0, 2): 1\}}
+\CommentTok{    """}
+    \ControlFlowTok{return}\NormalTok{ Counter([normalize(neighb) }\ControlFlowTok{for}\NormalTok{ neighb }\KeywordTok{in}\NormalTok{ mk\_neighbs(point)[}\DecValTok{1}\NormalTok{:]])}
+\end{Highlighting}
+\end{Shaded}
+
+The forward neighbors are useful for understanding what's going on, but to
+actually run our simulation we again need to find the \emph{reverse neighbors}:
+from a given point A, how many times is that point a neighbor of another point
+B?
+
+We can compute this in brute-force using a cache: iterate over each point,
+expand all its neighbors \(a_i\), normalize that neighbor, and then set \(a_i\)
+in the cache to the multiplicity after normalization.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{def}\NormalTok{ reverse\_neighbs\_table(t\_max):}
+    \CommentTok{"""Tabulate the reverse neighbors of all zw slices reachable before t\_max}
+\CommentTok{    """}
+\NormalTok{    weights }\OperatorTok{=}\NormalTok{ \{\}}
+
+    \ControlFlowTok{for}\NormalTok{ i }\KeywordTok{in} \BuiltInTok{range}\NormalTok{(t\_max):}
+        \ControlFlowTok{for}\NormalTok{ j }\KeywordTok{in} \BuiltInTok{range}\NormalTok{(i, t\_max):}
+            \ControlFlowTok{for}\NormalTok{ neighb, ncount }\KeywordTok{in}\NormalTok{ forward\_neighbs((i, j)).items():}
+                \ControlFlowTok{if}\NormalTok{ neighb }\KeywordTok{in}\NormalTok{ weights:}
+\NormalTok{                    weights[neighb][(i, j)] }\OperatorTok{=}\NormalTok{ ncount}
+                \ControlFlowTok{else}\NormalTok{:}
+\NormalTok{                    weights[neighb] }\OperatorTok{=}\NormalTok{ \{(i, j): ncount\}}
+
+    \ControlFlowTok{return}\NormalTok{ weights}
+\end{Highlighting}
+\end{Shaded}
+
+This seems pretty expensive and wasteful, so we'd like to maybe find a formula
+to be able to do this using mathematical operations. So, let's explore!
+
+\phantomsection\label{golSyms4DReverse}
+\textbf{Element 6b:} 4D Reverse Neighbor Multiplicities
+
+\phantomsection\label{golSyms4DReverseCont}
+Please enable Javascript
+
+These are the reverse neighbors, and it follows the same rules for the
+\hyperref[golSyms3DReverse]{3D Reverse Neighbors}: mouse over a point and you'll
+see how many times it appears as a neighbor to its nearby points. The green
+square represents the direction that it sees the hovered point as a neighbor.
+It's the flipped version of the \hyperref[golSyms4DForward]{4D Forward
+Neighbors} above.
+
+After exploring this interactively, we can maybe think of some rules we can
+apply.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  If we have a point \texttt{\textless{}z,z\textgreater{}} directly on the z=w
+  diagonal, just use its five normal left/up neighbors with weight 1 each.
+\item
+  If we have a point \texttt{\textless{}z,z+1\textgreater{}} on the ``inner-er''
+  diagonal, use its five normal left/up neighbors with weight 1, but its south
+  and west neighbors have weight 2, and the point reflects onto \emph{itself}
+  with weight 1.
+\item
+  If we're on \texttt{z=1} and we move into \texttt{z=0}, double that count
+  (phew, the same rule as in the 3D case earlier)
+\item
+  If we're on w=1 and we move into w=0, double that count (same as before)
+\item
+  And\ldots I guess \texttt{\textless{}0,1\textgreater{}} reflects onto itself
+  \emph{twice}? I guess that technically falls under a combination of rule 2 and
+  rule 4, but we don't directly observe the motion into w=0 before it gets
+  reflected so it has to be special-cased.
+\end{enumerate}
+
+Okay, those rules are \emph{sliiightly} more complicated than our 3D rules (``if
+we go from z=1 to z=0, double-count it'')\ldots but they're at least mechanical
+enough to code in, even if not beautiful. You can probably foresee that it might
+be tough to generalize, but\ldots we'll tackle that when we get there :)
+
+For now, we have a super-fast implementation of 4D GoL with our special
+degeneracy! The runtime gets reduced by a factor of 8!
+
+For clarity, here's an example implementation of how we can do this
+higher-dimensional wrangling:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{def}\NormalTok{ reverse\_neighbs(point):}
+    \CommentTok{"""Return normalized higher{-}dimensional points, with their reverse}
+\CommentTok{    multiplicities}
+
+\CommentTok{    (0, 1)}
+\CommentTok{    =\textgreater{} \{(0, 0): 4, (0, 1): 2, (1, 1): 2, (0, 2): 1, (1, 2): 1\}}
+\CommentTok{    """}
+    \CommentTok{\# implementation elided}
+    \CommentTok{\# one possibility is to lookup into reverse\_neighbs\_table(t\_max)[point]}
+    \ControlFlowTok{return}\NormalTok{ \{\}}
+
+\KeywordTok{def}\NormalTok{ step\_with\_weights(pts):}
+\NormalTok{    neighbs }\OperatorTok{=}\NormalTok{ Counter()}
+    \ControlFlowTok{for}\NormalTok{ point }\KeywordTok{in}\NormalTok{ pts:}
+        \CommentTok{\# 2d component, \textless{}x,y\textgreater{}}
+\NormalTok{        pt\_2d }\OperatorTok{=}\NormalTok{ point[:}\DecValTok{2}\NormalTok{]}
+        \CommentTok{\# higher{-}dimension components, \textless{}z,w,...\textgreater{}}
+\NormalTok{        pt\_nd }\OperatorTok{=}\NormalTok{ point[}\DecValTok{2}\NormalTok{:]}
+
+        \CommentTok{\# insert neighbors in the same 2d slice, not including itself}
+\NormalTok{        neighbs }\OperatorTok{+=}\NormalTok{ Counter([ngb }\OperatorTok{+}\NormalTok{ pt\_nd }\ControlFlowTok{for}\NormalTok{ ngb }\KeywordTok{in}\NormalTok{ mk\_neighbs(pt\_2d)[}\DecValTok{1}\NormalTok{:]])}
+        \CommentTok{\# insert neighbors in the neighboring 2d slices}
+\NormalTok{        neighbs }\OperatorTok{+=}\NormalTok{ Counter(\{(ngb\_2 }\OperatorTok{+}\NormalTok{ ngb\_n): wt}
+                                \ControlFlowTok{for}\NormalTok{ ngb\_n, wt }\KeywordTok{in}\NormalTok{ reverse\_neighbs(pt\_nd)}
+                                \ControlFlowTok{for}\NormalTok{ ngb\_2 }\KeywordTok{in}\NormalTok{ mk\_neighbs(pt\_2d)}
+\NormalTok{                          \})}
+
+    \KeywordTok{def}\NormalTok{ validate(point, ncount):}
+        \ControlFlowTok{if}\NormalTok{ point }\KeywordTok{in}\NormalTok{ pts:}
+            \ControlFlowTok{return}\NormalTok{ ncount }\OperatorTok{==} \DecValTok{2} \KeywordTok{or}\NormalTok{ ncount }\OperatorTok{==} \DecValTok{3}
+        \ControlFlowTok{else}\NormalTok{:}
+            \ControlFlowTok{return}\NormalTok{ ncount }\OperatorTok{==} \DecValTok{3}
+
+    \ControlFlowTok{return} \BuiltInTok{frozenset}\NormalTok{(p }\ControlFlowTok{for}\NormalTok{ p, n }\KeywordTok{in}\NormalTok{ neighbs.items() }\ControlFlowTok{if}\NormalTok{ validate(p, n))}
+\end{Highlighting}
+\end{Shaded}
+
+Now, onward to 5D!
+
+\section{Breaking Through}\label{breaking-through}
+
+By stepping into 5D, we've moved into a brand new territory --- we're now past
+what the original question was asking about, and into simply exploring a
+personal curiosity for fun. No longer are we ``super-optimizing'' the puzzle ---
+we're now warping the original challenge to levels it was never designed to
+handle.
+
+It's difficult to visualize how things look in 5 dimensions, so this is where it
+gets a little tricky to make any progress, mentally. The first thing we need to
+figure out is how exactly we can generalize the ``z=w'' symmetry from 4D to be
+able to take advantage of it in 5D\ldots and hopefully in a way that can
+generalize to arbitrary dimensions. Along the way we'd also like to get rid of
+our hacky 4D neighbor multiplicity rules and get something a little cleaner.
+
+I struggled with for a while without making too much headway\ldots but on the
+morning of Friday, December 18th, arguably the biggest revelation of the entire
+journey was dropped by Michal Marsalek on u/cetttbycettt's reddit thread. It was
+a big deal, because not only did it allow us to generalize our symmetries to
+higher dimensions, but it also \emph{proved} a specific degeneracy that allowed
+10D simulation to be definitely 100\% \emph{solvable}.
+
+\subsection{Permutation Symmetry}\label{permutation-symmetry}
+
+Here was Michal's
+\href{https://www.reddit.com/r/adventofcode/comments/kfjhwh/year_2020_day_17_part_2_using_symmetry_in_4d_space/gg9vr6m/}{historic
+post}:
+
+\begin{quote}
+Yes, all the higher dimensions are interchangeable, there's nothing that
+distinquishes them. That is, if there's an active cell at position (x,y,
+a,b,c,d,e,f,g) then, there's also one at (x,y, c,d,g,e,f,a) and at all other
+permutations, of coordinates a-g). That is the number of cells that one need to
+track can be reduced by factor of \((d-2)! \times 2^{d-2}\) (at least if time
+goes to infinity).
+
+\ldots we can use symmetries coming from permutations, to only track cells where
+\(0 \leq x_2 \leq x_3 \leq\,\ldots\, \leq x_{d-1} \leq t\). There's
+\(20^2 \times \sum_{k=0}^{t} { {d-3+k} \choose {k} }\) such cells.
+
+--- Michal Marsalek
+\end{quote}
+
+\emph{(equations slightly modified)}
+
+And boy was this exciting to read. First of all, it gave a way to generalize the
+z=w symmetry: it's just
+\href{https://en.wikipedia.org/wiki/Permutation}{permutation symmetry} for all
+higher-dimensional coordinates! But the big kicker here: See that last formula?
+Let's look at it more closely, using \(\hat{d}\) to represent \(d-2\), the
+number of higher dimensions:
+
+\[
+20^2 \times \sum_{k=0}^{t} { {\hat{d}-1+k}\choose{k} }
+\]
+
+(That notation is the
+\href{https://en.wikipedia.org/wiki/Binomial_coefficient}{binomial coefficient},
+if you aren't familiar with it.) Note that the summation has a \emph{fixed
+number of terms} (with respect to dimension); that means we only ever have 6
+terms to expand, no matter how high the dimensions are --- at 10D and even 100D!
+Furthermore, we can simplify the above using properties of binomial coefficients
+to get
+
+\[
+20^2 \times { {\hat{d}+6}\choose{6} }
+\]
+
+This binomial coefficient is actually polynomial on \(\hat{d}\) --- it's
+\(\frac{1}{6!} \prod_{k=1}^6 (\hat{d}+k)\) --- a sixth degree polynomial
+(leading term \(\frac{1}{6!} \hat{d}^6\)), in fact. This means that we have
+turned the number of points we potentially need to track from exponential
+(\(O(13^{\hat{d}})\)) to slightly smaller exponential (\(O(6^{\hat{d}})\)) to
+now \emph{polynomial} (\(O(\hat{d}^6)\))!
+
+So, not only did we figure out a way to generalize/compute our symmetries, we
+also now know that this method lets us keep our point set \emph{polynomial} on
+the dimension, instead of exponential.
+
+To put a concrete number for context, for that dream of 10D, here are only
+\({ {8+6} \choose 6 }\), or 3003 potential unique
+\texttt{\textless{}z,w,...\textgreater{}} points, once you factor out
+symmetries! The number went down from \(13^8\) (815,730,721) potential unique
+\texttt{\textless{}z,w,...\textgreater{}} points to \(6^8\) (1,679,616)
+potential unique points with positive/negative symmetry to just 3003 with
+permutation symmetry.\footnote{For dramatic effect, I've omitted the fact that
+  while there are only 3003 possible higher-dimensional points, there are
+  \(20^2 \times 3003\) actual unique points possible factoring in the 20x20 x-y
+  grid. Still, it's a pretty big improvement over the original situation
+  (\(20^2 \times 815730721\)).} Furthermore, because of the blessing of
+dimensionality mentioned earlier, we can expect more and more of those to be
+empty as we increase our dimensions.
+
+And in a flash, 10D didn't feel like a dream anymore; it felt like an
+inevitability. And now, it was just a race to see who could get there first.
+
+\subsection{The Race to 10D}\label{the-race-to-10d}
+
+Unfortunately, the exact record of who reached and posted 10D first is a bit
+lost to history due to reddit's editing records (not that ``first'' is
+necessarily a meaningful title to hold; there's no prize, and everyone is
+working at their own pace). A few people maintained and updated their posts to
+prevent clutter, but the record and time stamp of when they first posted 10D is
+lost. If any of them happens to read this and can more accurately verify their
+times, I'd be happy to update!
+
+For me, I'm sure I was not the first one, but in my chat logs I see that I
+chimed into freenode's \texttt{\#\#adventofcode-spoilers} channel in excitement
+in the wee morning hours (PST) Saturday December 19th:
+
+\begin{verbatim}
+2020-12-19 02:32:42   jle`    | d=10 in 9m58s
+2020-12-19 02:33:05   jle`    | hooray my goal :)
+2020-12-19 02:33:08   jle`    | time to sleep now
+2020-12-19 02:33:12   xerox_  | goodnight
+2020-12-19 02:33:35   jle`    | xerox_: thanks :)
+\end{verbatim}
+
+Pure joy! :D
+
+\href{https://www.reddit.com/r/adventofcode/comments/kfb6zx/day_17_getting_to_t6_at_for_higher_spoilerss/ggaaqsy/}{Peter
+Tseng} made a post on \emph{Thursday} night with times, but I can't remember if
+it incorporated all the symmetries or originally included 10D.
+\href{https://www.reddit.com/r/adventofcode/comments/kfb6zx/day_17_getting_to_t6_at_for_higher_spoilerss/ggsx9e9/}{Michal
+Marsalek} was able to implement the idea that he originally proposed by the
+following Wednesday (December 23rd) in Nim to blow everyone's time out of the
+water: 3 seconds flat!
+
+At that point, it was pretty unbelievable to me that what started out as a dream
+goal that we couldn't have reasonably completed on a commercial PC had, through
+successive revelations and insights building on each other one by one, could now
+be done in 3 seconds.
+
+But hey, I promised 100ms in the introduction, and a way to reach 60D, right?
+
+With our original goal completed, it was now time to dig in a little deeper and
+see how far this baby could go.
+
+\subsection{Diving Deeper: Terminology}\label{diving-deeper-terminology}
+
+Before we go any further, let's take a break to clarify and introduce some
+terminology we'll be using for the rest of this post.
+
+\begin{itemize}
+\item
+  I've been using the word \textbf{slice} to talk about a 2D grid representing a
+  single higher-dimensional \texttt{\textless{}z,w...\textgreater{}} coordinate
+  --- they're the 13 grids in \hyperref[gol3D]{the 3D simulation} and the 169
+  grids in \hyperref[gol4D]{the 4D simulation}.
+\item
+  I've also been using \textbf{cell} to refer to an exact specific
+  \texttt{\textless{}x,y,z,w,..\textgreater{}} spot --- they are the tiny
+  squares inside each grid in the simulations above.
+\item
+  I'll start using the word
+  \textbf{\href{https://www.youtube.com/watch?v=Dp8sYTlLQRY}{coset}} to refer
+  the set of all of the duplicates of an \texttt{\textless{}x,y\textgreater{}}
+  across all permutations and negations of
+  \texttt{\textless{}z,w,q,..\textgreater{}}, since they all behave the same
+  (they are either all on or all off together). So
+  \texttt{\textless{}x,y,1,2\textgreater{}},
+  \texttt{\textless{}x,y,2,1\textgreater{}},
+  \texttt{\textless{}x,y,-1,2\textgreater{}},
+  \texttt{\textless{}x,y,1,-2\textgreater{}},
+  \texttt{\textless{}x,y,-1,-2\textgreater{}},
+  \texttt{\textless{}x,y,-2,1\textgreater{}},
+  \texttt{\textless{}x,y,2,-1\textgreater{}}, and
+  \texttt{\textless{}x,y,-2,-1\textgreater{}} are all a part of the same coset,
+  represented by the normalized form \texttt{\textless{}x,y,1,2\textgreater{}}.
+  Now, during our simulation, we only need to simulate one member from each
+  coset, because every member is identically present or not present. For the
+  sake of implementation, we simulate the arbitrary \emph{normalized} (positive
+  and sorted) member only. Because of this, we'll sometimes refer to the
+  normalized item and the coset it represents as the same thing.
+\item
+  I'll also start using \textbf{slice coset} to talk about the set of all
+  \texttt{\textless{}z,w,...\textgreater{}} slices) across its permutations and
+  negations. The slices at z-w coordinates of
+  \texttt{\textless{}1,2\textgreater{}}, \texttt{\textless{}2,1\textgreater{}},
+  \texttt{\textless{}-1,2\textgreater{}},
+  \texttt{\textless{}1,-2\textgreater{}},
+  \texttt{\textless{}-1,-2\textgreater{}},
+  \texttt{\textless{}-2,1\textgreater{}},
+  \texttt{\textless{}2,-1\textgreater{}}, and
+  \texttt{\textless{}-2,-1\textgreater{}} are all a part of the same slice
+  coset, represented by the normalized form
+  \texttt{\textless{}1,2\textgreater{}}. All of the slices at each of those zw
+  coordinates will always be identical, so we can talk the state of a single
+  slice at \texttt{\textless{}1,2\textgreater{}} as representing the state of
+  its entire coset.
+
+  Slice cosets are what are being highlighted on mouseovers for the
+  \hyperref[gol3D]{3D} and \hyperref[gol4D]{4D simulations}. They are also what
+  the big squares represent for the \hyperref[golSyms3DForward]{3D Forward
+  Neighbors}, the \hyperref[golSyms3DReverse]{3D Reverse Neighbors}, the
+  \hyperref[golSyms4DForward]{4D Reverse Neighbors}, and the
+  \hyperref[golSyms4DReverse]{4D Reverse neighbors} elements: each slice stands
+  in for their entire slice coset, and we show the amount of times each
+  normalized slice coset element is a neighbor of the other.
+\end{itemize}
+
+\section{Tackling the Neighbor Problem}\label{tackling-the-neighbor-problem}
+
+My initial d=10 time clocked in at just under 10 minutes initially, but as early
+as next Wednesday we knew that a sub-5 second time was possible. So where was
+the gap?
+
+Well, I didn't really know what to do about the neighbor multiplicity problem. I
+was still brute-forcing by way of forward neighbors + normalizing (as in the
+sample 4D python code snippet earlier). The naive brute-force method requires
+computing \emph{all} \(3^{ {\hat{d}} } - 1\) higher-dimensional neighbors. So,
+even though the number of points I'd have to track grows polynomially, I still
+had that pesky exponential factor in building my neighbor cache. At high
+dimensions, that exponential factor dominates over everything.
+
+So put on your hard hats and working boots \ldots{} we're going to dive deep
+into the world of hyper-dimensional symmetries!
+
+\subsection{Five Dimensions}\label{five-dimensions}
+
+First, let's start visualizing how things look like in 5 dimensions, now that we
+know what our slice coset/representative structure looks like. Partially to help
+us gain an intuition for some of what's going on, and also partially to show
+that intuition at the individual component level can only get so far.
+
+It's a bit difficult to duplicate the same \hyperref[golSyms4DForward]{forward
+neighbor}/\hyperref[golSyms4DReverse]{reverse neighbor} interactive elements as
+we had for 4D, so here's a different representation. Here is an interactive
+element of all of the \texttt{\textless{}z,w,q\textgreater{}} slice cosets (the
+wedge of normalized points we track for our implementation) and both their
+forward and reverse neighbor weights of each other (computable using the method
+we used for 4D). The \texttt{q} axis is represented as stacked zw sections from
+left to right.
+
+\phantomsection\label{golSyms5D}
+\textbf{Element 7:} 5D Neighbor Multiplicities
+
+\phantomsection\label{golSyms5DCont}
+Please enable Javascript
+
+As you mouse-over a slice coset representative (a single square), all of its
+neighbors will be highlighted, including reflections. The red dot on the left is
+the forward neighbor multiplicity (how many times that other slice is a neighbor
+of the hovered slice) and the blue dot on the left is the reverse neighbor
+multiplicity (how many times the hovered slice is a neighbor of the other
+slice). For example, if you hover over
+\texttt{\textless{}z,w,q\textgreater{}=\textless{}1,3,4\textgreater{}}, you can
+see that \texttt{\textless{}0,3,4\textgreater{}} is its neighbor twice, and
+\texttt{\textless{}1,3,4\textgreater{}} is
+\texttt{\textless{}0,3,4\textgreater{}}'s neighbor four times. These four times
+come from the normalized reflections of \texttt{\textless{}1,3,4\textgreater{}}
+at \texttt{\textless{}1,3,4\textgreater{}},
+\texttt{\textless{}1,4,3\textgreater{}},
+\texttt{\textless{}-1,3,4\textgreater{}}, and
+\texttt{\textless{}-1,4,3\textgreater{}}. Some squares are also neighbors to
+themselves (like \texttt{\textless{}1,4,5\textgreater{}}, which reflects off of
+the top edge at \texttt{\textless{}1,5,4\textgreater{}}) and some are not (like
+\texttt{\textless{}1,3,5\textgreater{}}).
+\href{https://www.youtube.com/watch?v=rSfebOXSBOE}{Mind bottling}!
+
+At least one pattern we can see clearly is that if you are at a point where each
+component is 4 or lower (so it doesn't run off the edge of our table), the sum
+of all its neighbors' red dots (the forward neighbors) is \(3^3-1\) = 26, just
+like how the sum of forward neighbors for interior points in 3D is \(3^2-1\) =
+8, and for 2D is \(3^1-1\) = 2.
+
+Another very important pattern is that ``is a neighbor'' seems to be reversible:
+the set of all \emph{forward} neighbors of a point is the same as all
+\emph{reverse} neighbors of a point --- the only difference is the
+multiplicities. That is, wherever you see a red dot, you will also always see a
+blue dot. No single-dot squares.
+
+Anyway, you can explore this a little bit and try to come up with a set of
+ad-hoc rules like we did for 4D, but I think we've reached the limits of how far
+that method can go. We can generate these values simply enough using the
+expand-normalize-tabulate method we did for 4D, but it's pretty inefficient, and
+there should be a way to compute these weights \emph{directly} in a clean
+fashion that doesn't require hard-coding special cases and patterns. It's clear
+that we are limited until we can find this method.
+
+\subsection{Go with the Flow}\label{go-with-the-flow}
+
+What do all our valid normalized \texttt{\textless{}z,w,...\textgreater{}}
+coordinates look like? Well, they are always non-decreasing, and always are less
+than or equal to the current timestep. Keeping t=6 as our goal still, this means
+that valid coordinates in 10D are strings of eight numbers, like
+\texttt{0,1,1,1,3,5,5,6}, or \texttt{0,0,3,4,4,4,6,6}, or
+\texttt{1,1,2,3,3,4,5,5}.\footnote{It's also interesting to note that above 9D
+  (where there are 7 higher-dimensional coordinates), there is always at least
+  one duplicated number. Although I don't really know a way to explicitly
+  exploit that fact even now, it does mean that there's a qualitative difference
+  between 9D and below and 10D and above: anything above 9D is\ldots especially
+  degenerate.}
+
+We run into problems working with this format, though. For example, if we're
+computing a neighbor of \texttt{0,1,1,1,3,5,5,6}, we can imagine that the very
+first \texttt{1} (the w coordinate) could move to be a \texttt{2}, resulting in
+\texttt{0,2,1,1,3,5,5,6}. However, we're now in \emph{un-normalized}
+territory\ldots we have to re-sort it to turn it into \texttt{0,1,1,2,3,5,5,6}.
+This encoding isn't something we can directly manipulate in a nice way.
+
+Because we don't care about order, what if we instead encoded each
+higher-dimensional coordinate as ``count of each value seen?'' For example, we
+can encode \texttt{0,1,1,1,3,5,5,6} as \texttt{1-3-0-1-0-2-1}: the first slot
+represents how many 0s we have, the second how many 1s, the next how many 2s,
+the next how many 3s, etc. We can encode \texttt{0,0,3,4,4,4,6,6} as
+\texttt{2-0-0-1-3-0-2} and \texttt{1,1,2,3,3,4,5,5} as \texttt{0-2-1-2-1-2-0}.
+The \emph{sum} of the components gives you the total number of higher dimensions
+(ie, 10D vectors sum to 8)
+
+And now, a ``valid transition'' becomes easy to enforce: it's an amount
+``flowing'' from one of those bins to another. For example, turning a \texttt{1}
+into a \texttt{2} in \texttt{1-3-0-1-0-2-1} turns it into
+\texttt{1-2-1-1-0-2-1}. We took one of the three 1s and turned them into a
+single 2. This ``flowing'' operation automatically gives us a valid coordinate
+without any re-normalizing necessary!
+
+In this light, we now have an algorithm to compute neighbors without requiring
+re-normalization: we can walk bin-to-bin, ``flowing'' components from our origin
+vector to our new vector. We no longer have to try all \(3^d-1\) (exponential)
+candidates and re-normalize: we can now only iterate through the ones we care
+about.
+
+The tricky math is now in computing the multiplicities. Interestingly enough, in
+this case, the \emph{reverse} direction is actually easier to conceptualize than
+the forward direction. Good for us, because that's the direction we actually
+need!
+
+Let's imagine we start at \texttt{0-2-1-3-0} (\texttt{1,1,2,3,3,3}) and ``flow''
+to \texttt{0-0-5-0-0} (\texttt{2,2,2,2,2}) by dumping all our bins into 2. How
+many ways could this flow happen? The answer happens to be the
+\href{https://en.wikipedia.org/wiki/Multinomial_theorem}{multinomial
+coefficient} \(5 \choose
+{2,1,3}\) (or \(5! / (2!\,1!\,3!)\)): there are 5! ways to end up with 5 in the
+bin, but that \texttt{5} came from contributions of \texttt{2+1+3} from either
+side, and so we divide by the ways we could pick from those contributing bins
+(2!, 1!, and 3!).
+
+Finally, we have to treat multiplicities for transitions from 0 to 1 slightly
+differently, because they can arise either a 0 to 1 transition or a 0 to -1
+transition. This comes out to a multiplication of \(2^n\) at the end (n being
+the amount of 0-to-1 flow). Because of this special care, it's actually more
+convenient to fill in bin-by-bin ``backwards'', from the 6 slot to the 5 slot to
+the 4 slot, etc., because your options at the 0 component are already
+pre-determined for you by the choices you have already made. It keeps the tree a
+more manageable shape.
+
+Alright, enough words, let's look at this in action! The following element shows
+the \emph{tree} describing all the ways you can flow from bin to bin. As an
+example, let's look the 6D case of ways each point is a neighbor of
+\texttt{0,2,2,3} (\texttt{1-0-2-1}), which you can pick from the drop-down.
+
+\phantomsection\label{golTree}
+\textbf{Element 8:} General Neighbor Multiplicity Algorithm
+
+\phantomsection\label{golTreeCont}
+Please enable Javascript
+
+As you can see, each ``branch'' in the tree (reading from left to right) is a
+different way to fill in a given bin, from right to left. At each node, the
+displayed upper vector is the ``source'' vector, and the lower vector is the
+``target'' vector we build bin-by-bin. Bin-by-bin, we begin to move components
+from our source vector into our target vector. The branches in the tree reflects
+different ways we can commit a bin in our target vector. For example, at the
+very first split, we can either pick our final vector to be \texttt{?-?-?-?-0}
+(leaving that 3 bin alone) or \texttt{?-?-?-?-1} (swiping a component from that
+3 bin in the source vector). The operation shown to the right of the node
+represents how we modify our weights according to the choices we make according
+to the logic above. The nodes on the far right also show the end products: the
+actual neighbors, along with their multiplicities.
+
+If you mouse-over or tap a node, it'll highlight the trace from the beginning to
+the node you are highlighting, so you can see all of the choices made, as well
+as all the operations applied to our running multiplicity counter at each step.
+It'll also show the contributions from the left, center, and right of the
+current bin being picked (the \(2+1+3\) in the example above), and also the
+``regular'' vector representation. For example,
+\texttt{\textless{}{[}2,2{]},2,4\textgreater{}} means that that node has already
+committed to having \texttt{\textless{}?,?,2,4\textgreater{}} in the target
+vector, but still has two 2s in the source vector to pull in and distribute.
+
+One final thing we need to keep track of is to not count a point transitioning
+to itself if it results from no actual internal changes (this is the ``minus
+one'' in \(3^d-1\): we should not include the single original point itself, but
+we \emph{should} count extra occurrences of the original point if it arose from
+a reflection). This can be done by checking if each of our bin choices involved
+exactly no inter-bin flows (they were all of the form \texttt{0+x+0}).
+
+Phew! That's a bit of a mathematical doozy, huh? But trust me when I say it's
+easier to understand if play around with the interactive element and follow
+along the traces. After a few examples in different dimensions, it might start
+to make sense. Try looking at the lower dimensions too to see if they match up
+with what we figured out before.
+
+You can also flip the switch on the element to compute reverse and forward
+neighbors. Luckily, as we noted before, if a point is a forward neighbor, it is
+also a reverse neighbor. This means that the branching structure for forward and
+reverse neighbor trees are exactly the same; the only difference is how the
+multiplicities are calculated. In this case, the forward direction is just the
+original calculation ``reversed''! The diagram shows how the multiplicities are
+accumulated; feel free to try to work out exactly how this works as a fun
+exercise :)
+
+And with that, we have tackled the reverse neighbor weights problem with some
+branching bin flows and combinatorics!
+
+\section{Stacks On Stacks: Visualizing Arbitrary
+Dimensions}\label{stacks-on-stacks-visualizing-arbitrary-dimensions}
+
+You might have noticed that ever since our 4D simulation, we haven't had a new
+visualization of simulation, despite now having higher dimensions in our grasp.
+Why not?
+
+Well, there's the question of \emph{how} you might even visualize this. You can
+``zoom out'' and take higher-dimensional slices of our 4D visualization and
+repeat this ad nauseam, but that doesn't really add anything or give any insight
+as to what's really going on.
+
+I believe that this is one of the things that caused us to all collectively get
+``stuck'' together around 20 dimensions. The rush of the revelations one after
+within a single week pushed us into trying many different things. I had a couple
+of dead-end forays into pre-cacheing and had a lot of code (that I was ecstatic
+to be able to later delete) working with an sqlite3 database.\footnote{One
+  useful lasting thing I did find (that I won't spend too much time on here) was
+  a way to
+  \href{https://www.reddit.com/r/adventofcode/comments/kfb6zx/day_17_getting_to_t6_at_for_higher_spoilerss/gim68l0/}{index
+  into an enumeration} of all of the slice cosets (that is, all the normalized
+  higher-dimensional coordinates). I no longer store
+  \texttt{\textless{}z,w,...\textgreater{}} points as vectors, but rather as a
+  single integer representing their index in that enumeration, which is easier
+  to access and store. I also found a way to do streaming decoding and encoding
+  between that index and the components it represents, allowing me to stream
+  neighbor weights in constant time. This dense index encoding was actually
+  really useful in implementing the Javascript demos on this page :)}
+
+Another factor that probably contributed to the overall lull was that Advent of
+Code was still running, and we all still enjoyed doing the new puzzles every
+day. But soon, Christmas passed, the daily rush of doing new puzzles faded, and
+we started to return back to tinkering on this hyper-dimensional game of life
+puzzle. It wouldn't be until January 1st, 2021 (just over two weeks after the
+puzzle originally came out) that a new revelation arose that would pave the way
+shoot far past 20D.
+
+It was
+\href{https://www.reddit.com/r/adventofcode/comments/kfb6zx/day_17_getting_to_t6_at_for_higher_spoilerss/ghre3ce/}{Michal
+Marsalek's coset counts post} that set the stage. From the beginning, he had
+always tracked the number of cell cosets at the end of the simulation (the
+number of active ``normalized'' cells), and had been exploring the relationship
+between dimension and coset counts. The discovery was that after a certain
+``saturation point'' (6D for Michal's set, 9D for Peter's set, 7D for my set),
+all of the coset counts were \emph{perfectly quadratic}! For mine, it followed
+the relationship \(d^2 + 109d + 70\) exactly for 7D and higher.
+
+My best guess as to why this was happening is that, at 7D and above, we enter a
+domain of points where, before t=6, \emph{every} point is at some sort of
+reflective boundary. Remember that even for 4D, we had really odd behavior at
+the reflective boundaries/edge of the wedge. There wasn't enough room for many
+points to ``stretch their wings'' --- every single one is at one reflective
+boundary or another. Being a boundary point corresponds to having a ``bins''
+encoding with any bin greater than one or anything in the 0 bin (ie,
+\texttt{1-0-0-0} and \texttt{0-2-0} are all points on a reflective boundary).
+
+Unfortunately, having a closed-form way to compute coset counts doesn't actually
+give us a way to compute the final state itself (that we know of, yet), since it
+doesn't tell us \emph{which} cosets are active, just how many. However, this
+prompted me to investigate a little bit more about what was causing this pattern
+and how these cosets were distributed. To do this, I tried a new way to
+visualize things.
+
+In our simulation, x and y components are fundamentally different from the
+others; we could actually talk about each point as a tuple
+\texttt{(\textless{}x,y\textgreater{},\ \{higher\ dims\})}. Also, points are
+usually \emph{dense} in \texttt{\textless{}x,y\textgreater{}} (a significant
+fraction of the xy space has at least one point), but \emph{sparse} in higher
+dimensions (a very small fraction of the higher-dimensional space actually has a
+point in it). Instead of keeping our active points as a set of cosets, we could
+treat it as a map of \texttt{\textless{}x,y\textgreater{}} points to the
+higher-dimension slice cosets that live ``under them''. That is, instead of
+keeping one giant set as:
+
+\begin{verbatim}
+{<1,2,1,1,3>, <3,1,1,1,4>, <1,2,0,0,5>, <4,2,3,4,4>, <3,1,2,2,2>}
+\end{verbatim}
+
+we could instead keep a map of sets:
+
+\begin{verbatim}
+<1,2>: { <1,1,3>, <0,0,5> }
+<3,1>: { <1,1,4>, <2,2,2> }
+<4,2>: { <3,3,4> }
+\end{verbatim}
+
+and propagate \emph{that} in our simulation. I like to call those sets under
+each 2d point (ie, the
+\texttt{\{\textless{}1,1,3\textgreater{},\ \textless{}0,0,5\textgreater{}\}}) a
+``coset stack''.
+
+I did this initially to investigate the nature of the cosets that were showing
+up, but once I plotted it and animated things, I realized that in doing this, we
+are reducing the entire hyper-dimensional problem \emph{back to a variant of 2D
+cellular automaton}! This whole thing becomes reframed\ldots instead of a
+mind-bending hyper-dimensional deal, it's now simply \emph{multivalued 2D
+cellular automaton} with funky rules! It's like a normal 2D game of life, but
+with funky rules for 2D points spreading to each other.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{def}\NormalTok{ step\_with\_stacks(stacks):}
+\NormalTok{    neighbs }\OperatorTok{=}\NormalTok{ \{\}}
+    \ControlFlowTok{for}\NormalTok{ pt\_2d, pt\_stack }\KeywordTok{in}\NormalTok{ stacks.items():}
+        \CommentTok{\# higher{-}dimension components}
+        \ControlFlowTok{for}\NormalTok{ pt\_nd }\KeywordTok{in}\NormalTok{ pt\_stack:}
+\NormalTok{            rev\_neighbs }\OperatorTok{=}\NormalTok{ Counter(reverse\_neighbs(pt\_nd))}
+\NormalTok{            rev\_neighbs\_incl\_self }\OperatorTok{=}\NormalTok{ rev\_neighbs }\OperatorTok{+}\NormalTok{ Counter(pt\_nd)}
+
+            \CommentTok{\# the actual propagation}
+            \CommentTok{\# 1. add in the same stack; don\textquotesingle{}t include self}
+            \ControlFlowTok{if}\NormalTok{ pt\_2d }\KeywordTok{in}\NormalTok{ neighbs:}
+\NormalTok{                neighbs[pt\_2d] }\OperatorTok{+=}\NormalTok{ rev\_neighbs}
+            \ControlFlowTok{else}\NormalTok{:}
+\NormalTok{                neighbs[pt\_2d] }\OperatorTok{=}\NormalTok{ rev\_neighbs}
+            \CommentTok{\# 2. add to nieghboring stacks; include self}
+            \ControlFlowTok{for}\NormalTok{ ngb\_2 }\KeywordTok{in}\NormalTok{ mk\_neighbs(pt\_2d)[}\DecValTok{1}\NormalTok{:]:}
+                \ControlFlowTok{if}\NormalTok{ ngb\_2 }\KeywordTok{in}\NormalTok{ neighbs:}
+\NormalTok{                    neighbs[ngb\_2] }\OperatorTok{+=}\NormalTok{ rev\_neighbs\_incl\_self}
+                \ControlFlowTok{else}\NormalTok{:}
+\NormalTok{                    neighbs[ngb\_2] }\OperatorTok{=}\NormalTok{ rev\_neighbs\_incl\_self}
+
+    \KeywordTok{def}\NormalTok{ validate(pt\_2d, pt\_nd, ncount):}
+        \ControlFlowTok{if}\NormalTok{ pt\_nd }\KeywordTok{in}\NormalTok{ stacks[pt\_2d]:}
+            \ControlFlowTok{return}\NormalTok{ ncount }\OperatorTok{==} \DecValTok{2} \KeywordTok{or}\NormalTok{ ncount }\OperatorTok{==} \DecValTok{3}
+        \ControlFlowTok{else}\NormalTok{:}
+            \ControlFlowTok{return}\NormalTok{ ncount }\OperatorTok{==} \DecValTok{3}
+
+    \ControlFlowTok{return}\NormalTok{ \{pt\_2d: }\BuiltInTok{frozenset}\NormalTok{(}
+\NormalTok{                       pt\_nd }\ControlFlowTok{for}\NormalTok{ pt\_nd, n }\KeywordTok{in}\NormalTok{ pt\_counts.items()}
+                             \ControlFlowTok{if}\NormalTok{ validate(pt\_2d, pt\_nd, n)}
+\NormalTok{                   )}
+              \ControlFlowTok{for}\NormalTok{ pt\_2d, pt\_counts }\KeywordTok{in}\NormalTok{ neighbs}
+\NormalTok{           \}}
+\end{Highlighting}
+\end{Shaded}
+
+Here is the final animation: we plot a single 2D grid, and each cell is colored
+according to the size of the coset stack under that point (how many points exist
+with that \texttt{\textless{}x,y\textgreater{}}). You can slide this one up all
+the way to 10D to simulate it in your browser!
+
+\phantomsection\label{golFlat}
+\textbf{Element 9:} N-D Game of Life
+
+\phantomsection\label{golFlatCont}
+Please enable Javascript
+
+(A lot of examples with symmetries look nice here, such as
+\href{https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=██▟█.▜███.███▙.█▛██}{spiral
+galaxy} up to 6D and
+\href{https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=▛▀▀▜.▌▛▜▐.▌▙▟▐.▙▄▄▟}{bulls-eye};
+the alternating symmetries of
+\href{https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=████.▄▗▖▄.▀▝▘▀.████}{broken
+bar code} look nice too! But honestly, at higher-dimensions, almost any input
+ends up generating appealing gradients, like
+\href{https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=____._▝▖_._▀▘_.____}{glider}
+and
+\href{https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=▛▜▙▐.▜▚▗_.█▟▄▘.▟▌▟█}{my
+own assigned input})
+
+Play around with it, it's the big finale! :D You can move all the way up to 10D;
+some older devices may struggle, but on my lower-end cell phone it seems to run
+in less than a second. If you mouse-over a cell, the text box will show all of
+the slice cosets where that xy cell is alive in (the ``coset stack''). If you
+click on a cell, your selection will ``lock'' on that
+\texttt{\textless{}x,y\textgreater{}} coordinate as you change dimensions and
+time.
+
+Some interesting things you might notice:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  At t=6, it looks like 8D, 9D, 10D (and sometimes 6D,7D) all have the
+  \emph{same} exact 2D cells ``on''. They're identical except for slightly
+  different stacks above each of those cells.
+
+  To see this clearly, set your time to t=6 and drag your dimension slider back
+  and forth to see all of the higher-dimensions look identical in shape.
+
+  This probably has something to do with the saturation theory I mentioned
+  earlier, and is also why
+  \href{https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=██▟█.▜███.███▙.█▛██}{spiral
+  galaxy} \emph{suddenly} turns from rich and beautiful at 6D to blocky and ugly
+  at 7D.
+\item
+  At t=2, t=4, past 5D or so, the state is exactly the same for all dimensions
+  for any initial condition I have tried! We could easily find t=4 for 100D or
+  even 200D: they're identical!
+\item
+  A lot of xy cells share identical coset stacks\ldots more on that later!
+\end{enumerate}
+
+Not only is it kinda pretty (in my humble opinion), it also demonstrates that
+this whole ordeal is really ``just a multivalued 2D cellular automaton'': it's
+like a ``multi-valued'' Game of Life, where instead of cells being on and off,
+they are one of several discrete choices of values. Instead of a ``binary'' game
+of life with a boolean at each cell, it's an ``integer'' game of life with a
+finite choice at each cell.
+
+Because there are \({ {\hat{d}}+t} \choose t\) slice cosets for a given
+dimension and time, it means that our game is a
+\(2^{ { \hat{d} + t} \choose t }\)-valued game of life, where each cell can be
+one of that many options (each slice coset and be present or not). That means at
+2D (\(\hat{d} = 0\)), we have a normal 2-valued game of life (\(2^1\)), at 3D we
+have \(7 \choose 6\) or 7 possible points at t=6, so that's a \(2^7\) or
+128-valued game of life, at 4D we have \(8
+\choose 6\) or 28 possible points at t=6, and so that's a \(2^{28}\) or
+268,435,456-valued game of life.
+
+You can see this demonstrated in the simulation above, as well. As you progress,
+each 2D cell ``spreads'' to its neighbors according to some complex rule; it's
+like watching 2d cells interact with each other in complex ways, without ever
+even having to think of higher dimensions.
+
+Implementing things this way (and taking advantage of the fact that coset stacks
+are usually very sparse and have few members) gave a nice conceptual shake-up.
+But there's one final thing that this view would unlock that would make the
+biggest difference.
+
+\subsection{Repeated Stacks}\label{repeated-stacks}
+
+You might have noticed in the final 10D simulation, if you mouse over an xy
+cell, it'll also highlight over all of the other xy cells that hold the same
+coset stack. For most initial starting positions, you might notice something
+maybe even more curious --- a \emph{lot} of those stacks are duplicated over
+many xy cells.
+
+In my
+\href{https://blog.jle.im/entry/degenerate-hyper-dimensional-game-of-life.html?points=▛▜▙▐.▜▚▗_.█▟▄▘.▟▌▟█}{personal
+puzzle input} (click to load into the simulation), \emph{most} of the stacks
+were duplicated many times across different xy cells. If you highlight the cells
+in any arbitrary starting condition through t=6, you'll see too that many (if
+not most) xy cells have multiple other xy cells that have identical stacks to
+them.
+
+This final insight yields the final optimization we have discovered, as of time
+of writing. We can actually treat an \emph{entire stack} as an ``action'' that
+is spread to the xy neighbors: The stack under
+\texttt{\textless{}x,y\textgreater{}=\textless{}3,4\textgreater{}} is spread to
+all its eight 2D neighbors identically (and to itself, too, in a way that
+excludes the original stack itself). That means if you have a stack, you can
+compute the contribution to a neighbor (expensive) it has \emph{one time}, and
+then \emph{repeat that same contribution} to every occurrence of a stack. So if
+a stack is repeated ten times over ten different xy stacks, you only need to
+compute it once and propagate it to all 9x10 neighbors of those stacks (nine
+neighbors, including self, times each of the 10 repetitions), for a savings of
+x90! This can be done by storing map of stacks to contributions as a cache.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{def}\NormalTok{ step\_with\_stack\_cache(stacks):}
+\NormalTok{    neighbs }\OperatorTok{=}\NormalTok{ \{\}}
+\NormalTok{    stack\_cache }\OperatorTok{=}\NormalTok{ \{\}}
+
+    \ControlFlowTok{for}\NormalTok{ pt\_2d, pt\_stack }\KeywordTok{in}\NormalTok{ stacks.items():}
+        \CommentTok{\# get what to place in the same xy cell, and what to place in neighbor}
+        \CommentTok{\# xy cells}
+        \ControlFlowTok{if}\NormalTok{ pt\_stack }\KeywordTok{in}\NormalTok{ stack\_cache:}
+            \CommentTok{\# get it from the cache if it exists}
+\NormalTok{            (rev\_neighbs, rev\_neighbs\_incl\_self) }\OperatorTok{=}\NormalTok{ stack\_cache[pt\_stack]}
+        \ControlFlowTok{else}\NormalTok{:}
+            \CommentTok{\# otherwise, build it and store it in the cache}
+\NormalTok{            rev\_neighbs }\OperatorTok{=}\NormalTok{ Counter()}
+            \ControlFlowTok{for}\NormalTok{ pt\_nd }\KeywordTok{in}\NormalTok{ pt\_stack:}
+\NormalTok{                rev\_neighbs }\OperatorTok{+=}\NormalTok{ Counter(reverse\_neighbs(pt\_nd))}
+\NormalTok{            rev\_neighbs\_incl\_self }\OperatorTok{=}\NormalTok{ rev\_neighbs }\OperatorTok{+}\NormalTok{ Counter(pt\_stack)}
+\NormalTok{            stack\_cache[pt\_stack] }\OperatorTok{=}\NormalTok{ (rev\_neighbs, rev\_neighbs\_incl\_self)}
+
+        \CommentTok{\# the actual propagation}
+        \CommentTok{\# 1. add in the same stack; don\textquotesingle{}t include self}
+        \ControlFlowTok{if}\NormalTok{ pt\_2d }\KeywordTok{in}\NormalTok{ neighbs:}
+\NormalTok{            neighbs[pt\_2d] }\OperatorTok{+=}\NormalTok{ rev\_neighbs}
+        \ControlFlowTok{else}\NormalTok{:}
+\NormalTok{            neighbs[pt\_2d] }\OperatorTok{=}\NormalTok{ rev\_neighbs}
+        \CommentTok{\# 2. add to nieghboring stacks; include self}
+        \ControlFlowTok{for}\NormalTok{ ngb\_2 }\KeywordTok{in}\NormalTok{ mk\_neighbs(pt\_2d)[}\DecValTok{1}\NormalTok{:]:}
+            \ControlFlowTok{if}\NormalTok{ ngb\_2 }\KeywordTok{in}\NormalTok{ neighbs:}
+\NormalTok{                neighbs[ngb\_2] }\OperatorTok{+=}\NormalTok{ rev\_neighbs\_incl\_self}
+            \ControlFlowTok{else}\NormalTok{:}
+\NormalTok{                neighbs[ngb\_2] }\OperatorTok{=}\NormalTok{ rev\_neighbs\_incl\_self}
+
+    \KeywordTok{def}\NormalTok{ validate(pt\_2d, pt\_nd, ncount):}
+        \ControlFlowTok{if}\NormalTok{ pt\_2d }\KeywordTok{in}\NormalTok{ stacks }\KeywordTok{and}\NormalTok{ pt\_nd }\KeywordTok{in}\NormalTok{ stacks[pt\_2d]:}
+            \ControlFlowTok{return}\NormalTok{ ncount }\OperatorTok{==} \DecValTok{2} \KeywordTok{or}\NormalTok{ ncount }\OperatorTok{==} \DecValTok{3}
+        \ControlFlowTok{else}\NormalTok{:}
+            \ControlFlowTok{return}\NormalTok{ ncount }\OperatorTok{==} \DecValTok{3}
+
+    \ControlFlowTok{return}\NormalTok{ \{pt\_2d: }\BuiltInTok{frozenset}\NormalTok{(}
+\NormalTok{                       pt\_nd }\ControlFlowTok{for}\NormalTok{ pt\_nd, n }\KeywordTok{in}\NormalTok{ pt\_counts.items()}
+                             \ControlFlowTok{if}\NormalTok{ validate(pt\_2d, pt\_nd, n)}
+\NormalTok{                   )}
+              \ControlFlowTok{for}\NormalTok{ pt\_2d, pt\_counts }\KeywordTok{in}\NormalTok{ neighbs}
+\NormalTok{           \}}
+\end{Highlighting}
+\end{Shaded}
+
+With this final piece of the puzzle, I was able to reach 18D \emph{3 seconds} in
+my Haskell solution, and 30D in 5 minutes! Michal Marsalek was also able to
+build this into their fast Nim solver to
+\href{https://www.reddit.com/user/MichalMarsalek/}{reach 40D in 8 minutes, 50D
+in 32 minutes, 60D in 120 minutes}.
+
+And as far as I know, this seems to be where things stand today (Feburary 2021).
+
+\section{Conclusions}\label{conclusions}
+
+Hope you enjoyed this journey! My hope is that I was able to convey a fraction
+of the excitement, wonder, and mystery I felt during the process. At every
+point, we had no reason to believe something better would come around the
+corner, but we held on to a hope and faith that kept on rewarding us.
+
+Visualization and different perspectives seem to drive almost every revelation
+--- from the visually striking symmetries of the 3D and 4D simulations, the
+explorations of how neighbor relationships work, the insight that we could treat
+the entire problem as a fancy multivalued 2D game of life\ldots all of it came
+about from being able to see the problem visually in different ways. At other
+times it was a simple change in perspective to find a better way of encoding
+variants or looking at how a specific number changed. I know for myself, the
+next time I try to explore something like this, I will try to apply what I
+learned to always reach for visualization sooner. Even dead-end visualizations
+can sometimes provide a new depth to the puzzle that you might appreciate later
+on.
+
+Another thing I hope was apparent was the power of community! I know I
+definitely would not have had as much fun doing this if it wasn't for the
+vibrant Advent of Code ``Ante-Pushing'' community. What I've described is just
+\emph{one story} (Day 17, 2020) out of so many that Advent of Code community
+members routinely explore together (through 25 puzzles each year for five
+years). Most of these discoveries were fun because we always had somebody to
+share them with, or a way to encourage each other and strive for a common goal.
+I'm definitely lucky to be standing on giants as a part of a talented and
+passionately curious community that's excited to explore things like this.
+Michal Marsalek
+\href{https://github.com/MichalMarsalek/Advent-of-code/blob/master/2020/misc/day17-highdims/ND_gol_with_low_dimensional_initial_state.pdf}{has
+his own writeup of the discoveres mentioned here}, that you should check out too
+if you have the time!
+
+Thank you to so many people --- Michal Marsalek, Peter Tseng, leftylink, sim642,
+ephemient, yitz, cyphase, phaazon, glguy, /u/cetttbycettt, /u/bsterc, /u/flwyd,
+and so many others that I probably missed. An especially deep thanks to
+\href{https://twitter.com/ericwastl}{Eric Wastl} for hosting a wonderful event
+like Advent of Code every year. Finally, a profoundly deep thanks to the late
+John Conway, who revealed to us how much joy can come from the exploration of
+all things mathematical, a genius who was taken away from this world much too
+soon.
+
+And of course, in making this post, I'm inviting you, the reader, to join us
+along in this journey as well! It's hardly over :) Now that you're up to speed
+with all of us, I'd be excited to hear about anything you might discover while
+playing around with this too!
+
+Looking forward at least, there are a some open threads still.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Notice on the \hyperref[gol4D]{4D simulation}, very soon after simulations
+  start, the two diagonals become very empty, and especially the 3x3 region at
+  the origin where they intersect. It turns out that reflection symmetry
+  boundaries are very inhospitable because they have \emph{so many neighbors}
+  after reflection, especially at higher dimensions (see the top-right slice at
+  each q level in \hyperref[golSyms5D]{the 5D symmetries}). Could these ``dead
+  zones'' be extended and exploited at higher dimensions?
+\item
+  The most promising to me: for t=6, the exact same xy cells are always
+  inhabited for any dimension past 7D or so, and the stacks at each seem to only
+  change slightly from dimension to dimension. If we can analytically find how
+  the stacks at any given position change between 9D and 10D, 10D and 11D, etc.,
+  then it will be easy to jump directly to t=6 at 100D without simulating
+  anything. Another way to say this is --- can we simulate by fixing t and
+  stepping d, instead of fixing d and stepping t?
+\end{enumerate}
+
+Who can tell how far we can go?
+\href{https://www.reddit.com/r/adventofcode/comments/kfb6zx/day_17_getting_to_t6_at_for_higher_spoilerss/gia880d/}{Michal}
+has a personal goal that I would also be very happy to reach:
+
+\begin{quote}
+I won't be satisfied until I implement a solution that runs in polynomial time
+in both t and d.
+
+--- Michal Marsalek
+\end{quote}
+
+Will you, dear reader, be the one to take us there? :)
+
+\section{Special Thanks}\label{special-thanks}
+
+I am very humbled to be supported by an amazing community, who make it possible
+for me to devote time to researching and writing these posts. Very special
+thanks to my supporter at the ``Amazing'' level on
+\href{https://www.patreon.com/justinle/overview}{patreon}, Josh Vera! :)
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

@@ -1,0 +1,140 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Subtyping in Haskell},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Subtyping in Haskell}
+
+\begin{document}
+\maketitle
+
+\% Justin Le
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/subtyping-in-haskell.html}{in Code}}.}
+
+It is often said that Haskell does not have subtyping. While it is indeed true
+that Haskell doesn't have \emph{ad-hoc} subtyping, you can achieve something
+similar with Haskell, RankN types, and some key choice of data types or
+typeclasses. And, in many situations, you can build programs around it!
+
+As a simple example, let's redesign the API of the
+\emph{Control.Monad.Trans.State} module from the \emph{transformers} package.
+Here, they define
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{StateT}\NormalTok{ s m a }\OtherTok{=} \DataTypeTok{StateT}\NormalTok{ (s }\OtherTok{{-}\textgreater{}}\NormalTok{ m (a, s))}
+
+\OtherTok{runStateT  ::} \DataTypeTok{StateT}\NormalTok{ s m a }\OtherTok{{-}\textgreater{}}\NormalTok{ s }\OtherTok{{-}\textgreater{}}\NormalTok{ m (a, s)}
+\OtherTok{evalStateT ::} \DataTypeTok{StateT}\NormalTok{ s m a }\OtherTok{{-}\textgreater{}}\NormalTok{ s }\OtherTok{{-}\textgreater{}}\NormalTok{ m a}
+\OtherTok{execStateT ::} \DataTypeTok{StateT}\NormalTok{ s m a }\OtherTok{{-}\textgreater{}}\NormalTok{ s }\OtherTok{{-}\textgreater{}}\NormalTok{ m s}
+
+\OtherTok{get    ::}                  \DataTypeTok{StateT}\NormalTok{ s m s}
+\OtherTok{put    ::}\NormalTok{ s             }\OtherTok{{-}\textgreater{}} \DataTypeTok{StateT}\NormalTok{ s m ()}
+\OtherTok{modify ::}\NormalTok{ (s }\OtherTok{{-}\textgreater{}}\NormalTok{ s)      }\OtherTok{{-}\textgreater{}} \DataTypeTok{StateT}\NormalTok{ s m ()}
+\OtherTok{state  ::}\NormalTok{ (s }\OtherTok{{-}\textgreater{}}\NormalTok{ (a, s)) }\OtherTok{{-}\textgreater{}} \DataTypeTok{StateT}\NormalTok{ s m a}
+
+\KeywordTok{type} \DataTypeTok{State}\NormalTok{ s }\OtherTok{=} \DataTypeTok{StateT}\NormalTok{ s }\DataTypeTok{Identity}
+
+\OtherTok{runState  ::} \DataTypeTok{State}\NormalTok{ s a  }\OtherTok{{-}\textgreater{}}\NormalTok{ s }\OtherTok{{-}\textgreater{}}\NormalTok{ (a, s)}
+\OtherTok{evalState ::} \DataTypeTok{State}\NormalTok{ s a }\OtherTok{{-}\textgreater{}}\NormalTok{ s }\OtherTok{{-}\textgreater{}}\NormalTok{ a}
+\OtherTok{execState ::} \DataTypeTok{State}\NormalTok{ s a }\OtherTok{{-}\textgreater{}}\NormalTok{ s }\OtherTok{{-}\textgreater{}}\NormalTok{ s}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

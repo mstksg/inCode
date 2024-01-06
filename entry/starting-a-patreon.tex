@@ -1,0 +1,146 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Starting a Patreon},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Starting a Patreon}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% May 30, 2018
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/starting-a-patreon.html}{in Code}}.}
+
+\emph{Short version:} I've
+\href{https://www.patreon.com/justinle/overview}{started a Patreon page} for
+those who want to donate or help me sustain my writing in my post-doctoral life!
+:D
+
+\emph{Long version:} Hi all! Hope you can excuse the two non-technical and
+personal posts in a row :) To give some context on this announcement, here's
+some news --- I graduated*!
+
+\begin{figure}
+\centering
+\includegraphics{/img/entries/patreon/graduation.jpg}
+\caption{Graduating* from a Doctoral Program at Chapman University}
+\end{figure}
+
+*Well, not exactly :) I haven't finished my dissertation and defended my thesis
+yet (but expect to in the upcoming months); Chapman University was generous
+enough to allow me to walk in this past Spring's ceremony.
+
+I have a lot of excitement about my future after my defense and official
+commencement. However, with this excitement comes a lot of uncertainty.
+
+As a student I have been able to devote time on-and-off again to this blog,
+which has become a passion of mine. I've even managed to find time to
+\href{https://www.twitch.tv/mstksg}{live-stream} some coding projects
+occasionally! When I started this blog almost five years ago, I only wanted to
+write down what I was learning to help myself remember, and to help others going
+through the same thing as me. I never expected the warm reception from the
+Haskell and Programming community. Every once in a while I meet people who tell
+me personally that an article of mine had inspired them to get into functional
+programming, or had been the final straw to helping them get over a conceptual
+hurdle. It's moments like these that really make everything worth it. And, as a
+researcher in a field dominated by imperative and dynamically typed programming,
+watching and encouraging the growth of functional programming has brought me a
+lot of joy.
+
+In the upcoming months, however, I know that my circumstances will be changing.
+Without the cushion of research and grant funding, I know I will start having to
+make some more serious decisions balancing my time.
+
+But in the face of all this uncertainty, one thing I do know for sure is that I
+want to start taking my writing and educational passion projects more seriously
+:)
+
+In this light, I'm excited to announce that I am starting a
+\textbf{\href{https://www.patreon.com/justinle/overview}{Patreon page}}!
+
+Patreon is a service that allows people to support their favorite content
+producers. Users can choose to ``become patrons'' of content creators by
+pledging to support them monetarily on a per-month or per-creation basis.
+
+Through your support, you are telling me that:
+
+\begin{itemize}
+\tightlist
+\item
+  The content I have written has helped or impacted you in some way
+\item
+  You appreciate that what I write adds value to the functional programming and
+  Haskell community
+\item
+  You want be a part of this journey of helping and educating the FP and Haskell
+  community
+\item
+  You want to provide support that allows me to take my writing, educational
+  efforts, and live-coding more seriously in my post-doctoral life
+\end{itemize}
+
+In addition, different levels of support have some fun little rewards, like
+being featured on the homepage, footer, or entries on this blog as a supporter
+who makes all of this possible. There are also some rewards involving access to
+regular in-depth code reviews I can give you, and long-term community goals
+include the start of a live-coding series.
+
+Thank you so much for joining me on this journey --- whether you support me
+monetarily, or just through kind words. I am grateful for your encouragement and
+support in all forms, and I am genuinely looking forward to this next chapter of
+my life!
+
+\end{document}

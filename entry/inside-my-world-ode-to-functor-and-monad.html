@@ -1,0 +1,481 @@
+<!DOCTYPE HTML>
+<html><head><title>Inside My World (Ode to Functor and Monad)
+ · in Code</title><meta name="description" content="Weblog of Justin Le, covering various adventures in programming and explorations in the worlds of computation physics, and knowledge.
+"><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="flattr:id" content="3p9jqr"><meta property="og:site_name" content="in Code"><meta property="og:description" content="I like Haskell because it lets me live inside my world. There are a lot of special worlds out there! And Haskell lets me stay in those worlds, and use all of the tools I normally have when I’m not there. I get to transform normal tools into tools that work in my world. (This post is meant to be approachable by people unfamiliar with Haskell! That being said, if there is a concept you don’t understand, feel free to leave a comment, tweet me, stop by on irc at freenode’s #haskell, or give Learn You a Haskell a quick read!)"><meta property="og:type" content="article"><meta property="og:title" content="Inside My World (Ode to Functor and Monad)
+"><meta property="og:image" content="https://blog.jle.im/img/site_logo.jpg"><meta property="og:locale" content="en_US"><meta property="og:url" content="https://blog.jle.im/entry/inside-my-world-ode-to-functor-and-monad.html"><meta name="twitter:card" content="summary"><meta name="twitter:creator:id" content="mstk"><link rel="author" href="https://plus.google.com/107705320197444500140"><link rel="alternate" type="application/rss+xml" title="in Code (RSS Feed)" href="http://feeds.feedburner.com/incodeblog"><link rel="canonical" href="https://blog.jle.im/entry/inside-my-world-ode-to-functor-and-monad.html"><link href="https://blog.jle.im/favicon.ico" rel="shortcut icon"><link href="https://blog.jle.im/css/toast.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/font.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/main.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/page/entry.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/pygments.css" rel="stylesheet" type="text/css"><script type="text/javascript">var page_data = {};
+var disqus_shortname='incode';
+</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-443711-8', 'jle.im');
+ga('send', 'pageview');
+</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js"></script><script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5234d67a6b68dcd4"></script><script type="text/javascript" src="https://blog.jle.im/js/page/entry_toc.js"></script><script type="text/javascript" src="https://blog.jle.im/js/disqus_count.js"></script><script type="text/javascript" src="https://blog.jle.im/js/social.js"></script><script type="text/javascript" src="https://blog.jle.im/js/jquery/jquery.toc.js"></script><script type="text/javascript" src="https://blog.jle.im/purescript/entry.js"></script></head><body><div id="fb-root"><script>(function(d, s, id) {
+ var js, fjs = d.getElementsByTagName(s)[0];
+ if (d.getElementById(id)) return;
+ js = d.createElement(s); js.id = id;
+ js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=641852699171929";
+ fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+</script></div><div id="header-container"><div id="navbar-container" class="tile"><nav id="navbar-content"><div class="nav-info"><h1 class="site-title"><a href="https://blog.jle.im/" class="nav-title">in Code</a></h1><span class="nav-author">Justin Le</span></div><ul class="nav-links"><li><a href="https://blog.jle.im/">home</a></li><li><a href="https://blog.jle.im/entries.html">archives</a></li><li><a href="https://cv.jle.im">cv</a></li><div class="clear"></div></ul></nav></div><div id="header-content"></div></div><div id="body-container" class="container"><div id="main-container" class="grid"><div class="entry-section unit span-grid" role="main"><article class="tile article"><header><h1 id="title">Inside My World (Ode to Functor and Monad)
+</h1><p class="entry-info">by <a class="author" href="https://blog.jle.im/">Justin Le</a><span class="info-separator"> &diams; </span><time datetime="2014-05-19T09:46:22Z" pubdate="" class="pubdate">Monday May 19, 2014</time></p><p><span class="source-info"><a class="source-link" href="https://github.com/mstksg/inCode/tree/master/copy/entries/inside.md">Source</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://github.com/mstksg/inCode/tree/gh-pages/entry/inside-my-world-ode-to-functor-and-monad.md">Markdown</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://blog.jle.im/entry/inside-my-world-ode-to-functor-and-monad.tex">LaTeX</a><span class="info-separator"> &diams; </span></span>Posted in <a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category" title="Functional, pure, non-strict, statically and strongly typed, natively
+compiled...really just the king of great languages.
+">Haskell</a>, <a href="https://blog.jle.im/entries/category/@ramblings.html" class="tag-a-category" title="My slight ramblings on subjects of interest (to me and hopefully to you too!).
+Lots of surveys and introducts to new subjects.
+">Ramblings</a><span class="info-separator"> &diams; </span><a class="comment-link" href="#disqus_thread">Comments</a></p></header><hr><aside class="contents-container"><h5 id="contents-header">Contents</h5><div id="toc"></div></aside><div class="main-content copy-content"><p>I like Haskell because it lets me live inside my world.</p>
+<p>There are a lot of special worlds out there! And Haskell lets me stay in those worlds, and use all of the tools I normally have when I’m not there. I get to transform normal tools into tools that work in my world.</p>
+<p>(This post is meant to be approachable by people unfamiliar with Haskell! That being said, if there is a concept you don’t understand, feel free to leave a comment, <a href="https://twitter.com/mstk">tweet</a> me, stop by on irc at freenode’s #haskell, or give <a href="http://learnyouahaskell.com/">Learn You a Haskell</a> a quick read!)</p>
+<h2 id="stuck-in-maybe">Stuck in Maybe</h2>
+<p>(Feel free to play along with the code in this section by <a href="https://github.com/mstksg/inCode/tree/master/code-samples/inside/maybe.hs">loading it into ghci</a>, the Haskell interpreter!)</p>
+<p>In Haskell, we have a type called <code>Maybe a</code>:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Maybe</span> a <span class="ot">=</span> <span class="dt">Nothing</span> <span class="op">|</span> <span class="dt">Just</span> a</span></code></pre></div>
+<p>This says that <code>Maybe a</code> is like an Enumerable type of sorts; The <code>|</code> reads like “<em>or</em>”.</p>
+<p>This is like saying</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Bool</span> <span class="ot">=</span> <span class="dt">False</span> <span class="op">|</span> <span class="dt">True</span></span></code></pre></div>
+<p>to define a <code>Bool</code> data type. If I have something of type <code>Bool</code>, it can be (literally) <code>False</code> or <code>True</code>. If I have something of type <code>Maybe a</code>, it can be <code>Nothing</code> (nothing is there, it’s empty) or <code>Just x</code> (it contains a value <code>x</code>).</p>
+<p>If you are used to an OOP language with templates or generics, this is similar to saying <code>Maybe&lt;a&gt;</code> – <code>Maybe&lt;a&gt;</code> is a parameterized type over some <code>a</code>.</p>
+<p>This type is useful for functions that might fail:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/inside/maybe.hs#L23-L41</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/inside-my-world</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">-- divideMaybe: Takes two integers and returns -- possibly -- their integer</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co">--      quotient. It succeeds if the denominator is not zero, and fails if</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co">--      it is.</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="ot">divideMaybe ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Int</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>divideMaybe _ <span class="dv">0</span> <span class="ot">=</span> <span class="dt">Nothing</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>divideMaybe x y <span class="ot">=</span> <span class="dt">Just</span> (x <span class="ot">`div`</span> y)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="co">-- headMaybe: Takes a list and returns -- possibly -- its first element.</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="co">--      Fails if the list is empty, and succeeds with the first element</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="co">--      otherwise.</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="ot">headMaybe ::</span> [a] <span class="ot">-&gt;</span> <span class="dt">Maybe</span> a</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>headMaybe []    <span class="ot">=</span> <span class="dt">Nothing</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>headMaybe (x<span class="op">:</span>_) <span class="ot">=</span> <span class="dt">Just</span> x</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="co">-- halveMaybe: Takes an integer and returns -- possibly -- its half.  Fails</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="co">--      if it is an odd number.</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="ot">halveMaybe ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Int</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>halveMaybe x <span class="op">|</span> x <span class="ot">`mod`</span> <span class="dv">2</span> <span class="op">==</span> <span class="dv">0</span> <span class="ot">=</span> <span class="dt">Just</span> (x <span class="ot">`div`</span> <span class="dv">2</span>)</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>             <span class="op">|</span> <span class="fu">otherwise</span>      <span class="ot">=</span> <span class="dt">Nothing</span></span></code></pre></div>
+<div class="note">
+<p><strong>Aside</strong></p>
+<p>Oh hi!</p>
+<p>For people new to Haskell:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ot">foo ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Bool</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>foo x <span class="ot">=</span> <span class="op">...</span></span></code></pre></div>
+<p>declares a function named <code>foo</code> of type <code>Int -&gt; Bool</code> — we use <code>::</code> to specify type signatures. <code>Int -&gt; Bool</code> means that it takes an <code>Int</code> (named <code>x</code>) and returns a <code>Bool</code>.</p>
+<p>I’ll often just say <code>bar :: Bool</code> to say “the value <code>bar</code> (of type <code>Bool</code>)”; you could just read <code>::</code> as “type of”.</p>
+<p>So <code>divideMaybe :: Int -&gt; Int -&gt; Maybe Int</code> means that <code>divideMaybe</code> takes two <code>Int</code>s and returns something of type <code>Maybe Int</code>.</p>
+<p>You might have also noticed the pattern matching construct, <code>headMaybe (x:_)</code>. This matches the first element in the list to the name <code>x</code>, and the rest of the list to the wildcard, <code>_</code>.</p>
+</div>
+<p>When you want to return a value of type <code>Maybe a</code>, you can either return <code>Just x</code> or <code>Nothing</code> (where <code>x :: a</code>) — they both are members of type <code>Maybe a</code>. That’s what <code>Maybe Int</code> means — an <code>Int</code> that might or might not be there!</p>
+<p>If I had something of type <code>Maybe Int</code>, would you know for sure if that <code>Int</code> was there or not (from just the type)? You wouldn’t! You are living in the world of uncertainties.</p>
+<p>Welcome to the world of uncertainty.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+<h3 id="the-problem">The Problem</h3>
+<p>Okay, well, I have a <code>Maybe Int</code>. Which is nice and all…but…I want to do normal inty-things with it.</p>
+<p>That is…I have all these functions that work only on <code>Int</code>!</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/inside/maybe.hs#L43-L50</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/inside-my-world</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="ot">addThree ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>addThree <span class="ot">=</span> (<span class="op">+</span> <span class="dv">3</span>)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="ot">square ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>square <span class="ot">=</span> (<span class="op">^</span> <span class="dv">2</span>)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="fu">showInt</span><span class="ot"> ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">String</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="fu">showInt</span> <span class="ot">=</span> <span class="fu">show</span></span></code></pre></div>
+<p>But…I can’t do these things on <code>Maybe Int</code>!</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> addThree (<span class="dt">Just</span> <span class="dv">5</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="op">***</span> <span class="dt">SCARY</span> <span class="dt">ERROR</span><span class="op">!</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="op">***</span> addThree takes an <span class="dt">Int</span> but you gave it a <span class="dt">Maybe</span> <span class="dt">Int</span><span class="op">.</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="op">***</span> <span class="dt">What</span> are you trying to <span class="kw">do</span> anyway, wise guy<span class="op">.</span></span></code></pre></div>
+<div class="note">
+<p><strong>Aside</strong></p>
+<p>In this post, commands at the interactive Haskell interpreter (REPL) ghci are prefaced with the prompt <code>ghci&gt;</code>. If you see <code>ghci&gt;</code>, it means that this is something you’d enter at ghci. If not, it is normal Haskell source code!</p>
+<p>In <code>ghci</code>, we also have this command <code>:t</code> that you’ll be seeing often that lets you find the type of something:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="op">:</span>t <span class="dt">True</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="dt">True</span><span class="ot"> ::</span> <span class="dt">Bool</span></span></code></pre></div>
+</div>
+<p>In most other languages, to get around this, you would “exit” your uncertain world. That is, you would turn your uncertain 5 into either a certain 5 or an error. Or you would turn your uncertain 5 into either a certain 5 or some “default” value.</p>
+<p>That is, you would use functions like these to exit your world:<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/inside/maybe.hs#L76-L82</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/inside-my-world</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="ot">certaintify ::</span> <span class="dt">Maybe</span> a <span class="ot">-&gt;</span> a</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>certaintify (<span class="dt">Just</span> x) <span class="ot">=</span> x</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>certaintify <span class="dt">Nothing</span>  <span class="ot">=</span> <span class="fu">error</span> <span class="st">&quot;Nothing was there, you fool!&quot;</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="ot">certaintifyWithDefault ::</span> a <span class="ot">-&gt;</span> <span class="dt">Maybe</span> a <span class="ot">-&gt;</span> a</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>certaintifyWithDefault _ (<span class="dt">Just</span> x) <span class="ot">=</span> x</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>certaintifyWithDefault d <span class="dt">Nothing</span>  <span class="ot">=</span> d</span></code></pre></div>
+<p>And then you can just willy-nilly use your normal <code>Int -&gt; Int</code> functions on what you pull out…using various “error handling” mechanisms if it was <code>Nothing</code>.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> addThree (certaintify (headMaybe [<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>]))</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="dv">4</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> square (certaintify (halveMaybe <span class="dv">7</span>))</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="op">***</span> <span class="dt">Exception</span><span class="op">:</span> <span class="dt">Nothing</span> was there, you fool<span class="op">!</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> square (certaintifyWithDefault <span class="dv">0</span> (halveMaybe <span class="dv">7</span>))</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="dv">0</span></span></code></pre></div>
+<p>But…work with me here. Let’s say I want to live in my uncertain world.</p>
+<p>There are a lot of reasons why one might want to do that.</p>
+<p>Let’s say you had a function that looked up a person from a database given their ID number. But not all ID numbers have a person attached, so the function might fail and not lookup anyone.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ot">personFromId ::</span> <span class="dt">ID</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Person</span></span></code></pre></div>
+<p>And you also had a function that returned the age of a given person:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ot">age ::</span> <span class="dt">Person</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span></code></pre></div>
+<p>What if you wanted to write a function that looked up <em>the age of the person in that database with that ID</em>. The result is going to also be in a <code>Maybe</code>, because the given ID might not correspond to anyone to have an age for.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ot">ageFromId ::</span> <span class="dt">ID</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Int</span></span></code></pre></div>
+<p>In this case, it would make no sense to “exit” the world of uncertainty as soon as we get a <code>Maybe Person</code>, and then “re-enter” it somehow when you return the <code>Maybe Int</code>. Our entire answer is shrouded in uncertainty, so we need to <em>stay inside this world</em> the entire time. We want to find a way to deal with values inside a world <em>without leaving it</em>.</p>
+<p>So we have a function <code>Person -&gt; Int</code>, and a <code>Maybe Person</code>…darnit. How do we use our <code>age</code> function, without leaving <code>Maybe</code>? We certainly want to re-use the same function somehow, and not write it again from scratch!</p>
+<h3 id="can-i-have-a-lift">Can I have a lift?</h3>
+<p>So the problem: I have a function <code>a -&gt; b</code> that I want to be able to use on a <code>Maybe a</code>…I want to stay in my <code>Maybe</code> world and use that function on the uncertain value.</p>
+<p>If you look at this carefully, we want some sort of “function transformer”. Give our transformer an <code>a -&gt; b</code>, it’ll output a new function <code>Maybe a -&gt; Maybe b</code>. The new function takes an <code>a</code> that may or may not be there, and outputs a <code>b</code> that may or not be there.</p>
+<p>We want a function of type <code>(a -&gt; b) -&gt; (Maybe a -&gt; Maybe b)</code></p>
+<p>Let’s make one! It’ll apply the function to the value inside a <code>Just</code>, and leave a <code>Nothing</code> alone.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/inside/maybe.hs#L84-L88</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/inside-my-world</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="ot">inMaybe ::</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> (<span class="dt">Maybe</span> a <span class="ot">-&gt;</span> <span class="dt">Maybe</span> b)</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>inMaybe f <span class="ot">=</span> liftedF</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    liftedF (<span class="dt">Just</span> x) <span class="ot">=</span> <span class="dt">Just</span> (f x)</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    liftedF <span class="dt">Nothing</span>  <span class="ot">=</span> <span class="dt">Nothing</span></span></code></pre></div>
+<p>What can we do with it?</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">let</span> addThreeInMaybe <span class="ot">=</span> inMaybe addThree</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> addThreeInMaybe (<span class="dt">Just</span> <span class="dv">7</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dv">10</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> addThreeInMaybe <span class="dt">Nothing</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="dt">Nothing</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> (inMaybe square) (<span class="dt">Just</span> <span class="dv">9</span>)</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dv">81</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> (inMaybe <span class="fu">showInt</span>) <span class="dt">Nothing</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="dt">Nothing</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> (inMaybe <span class="fu">showInt</span>) (<span class="dt">Just</span> <span class="dv">8</span>)</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="st">&quot;8&quot;</span></span></code></pre></div>
+<p>Wow! We can now use normal functions and still stay inside my uncertain world. We could even write our <code>ageFromId</code>:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/inside/maybe.hs#L68-L69</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/inside-my-world</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="ot">ageFromId ::</span> <span class="dt">ID</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Int</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>ageFromId i <span class="ot">=</span> (inMaybe age) (personFromId i)</span></code></pre></div>
+<p>Now we are no longer afraid of dealing with uncertainty. It’s a scary realm, but as long as we have <code>inMaybe</code>…all of our normal tools apply!</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">let</span> x <span class="ot">=</span> headMaybe [<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>]        <span class="co">-- x = Just 2</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">let</span> y <span class="ot">=</span> (inMaybe square) x       <span class="co">-- y = Just 4</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">let</span> z <span class="ot">=</span> (inMaybe addThree) y     <span class="co">-- z = Just 7</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> (inMaybe (<span class="op">&gt;</span> <span class="dv">5</span>)) z</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dt">True</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">let</span> x&#39; <span class="ot">=</span> halveMaybe <span class="dv">7</span>            <span class="co">-- x&#39; = Nothing</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">let</span> y&#39; <span class="ot">=</span> (inMaybe square) x&#39;     <span class="co">-- y&#39; = Nothing</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">let</span> z&#39; <span class="ot">=</span> (inMaybe addThree) y&#39;   <span class="co">-- z&#39; = Nothing</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> (inMaybe (<span class="op">&gt;</span> <span class="dv">5</span>)) z&#39;</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="dt">Nothing</span></span></code></pre></div>
+<h3 id="functor">Functor</h3>
+<p>This concept of “bringing functions into worlds” is actually a useful and generalizable concept. In fact, in the standard libraries, there’s a typeclass (which is like an interface, sorta, for you Java/OOP people) that provides a common API/interface for “worlds that you can bring functions into.”</p>
+<p>We call it <code>Functor</code>, and this “bring into world” function is called <code>fmap</code>.</p>
+<p>It should come as no surprise that <code>Maybe</code> is a Functor, so <code>fmap</code> <em>does</em> take any function <code>a -&gt; b</code> and “lifts” it into the <code>Maybe</code> world, turning it into a <code>Maybe a -&gt; Maybe b</code>.</p>
+<p><code>fmap</code> for <code>Maybe</code> is incidentally exactly our <code>inMaybe</code>.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> (<span class="fu">fmap</span> square) (headMaybe [<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">6</span>])</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dv">16</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> (<span class="fu">fmap</span> square) (halveMaybe <span class="dv">7</span>)</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="dt">Nothing</span></span></code></pre></div>
+<div class="note">
+<p><strong>Aside</strong></p>
+<p>Any “legitimate” instance of <code>Functor</code> must satisfy a couple of properties — “laws”, so to speak. These laws basically ensure that whatever instance you define is useful and sensible, and follow what sort of meaning <code>fmap</code> is supposed to convey.</p>
+<ol type="1">
+<li><code>fmap (f . g)</code> should equal <code>fmap f . fmap g</code>; that is, lifting composed functions be the same as composing lifted functions. (<code>(.)</code> is the function composition operator)</li>
+<li><code>fmap id thing</code> should leave <code>thing</code> unchanged.</li>
+</ol>
+</div>
+<p>Some notes before we move on!</p>
+<p>First of all, even though we have been writing things like <code>(fmap f) x</code>, the parentheses are actually unnecessary due to the way Haskell associates function calls. So <code>(fmap f) x</code> is the same as <code>fmap f x</code>, and we’ll be writing it that way from now on.</p>
+<p>Secondly, an infix operator alias for <code>fmap</code> exists: <code>(&lt;$&gt;)</code>. That way, you can write <code>fmap f x</code> as <code>f &lt;$&gt; x</code>, which is meant to look similar to <code>f $ x</code>:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> addThree <span class="op">$</span> <span class="dv">7</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="dv">10</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> addThree <span class="op">&lt;$&gt;</span> <span class="dt">Just</span> <span class="dv">7</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dv">10</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> addThree <span class="op">&lt;$&gt;</span> <span class="dt">Nothing</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="dt">Nothing</span></span></code></pre></div>
+<p>(For those unfamiliar, <code>f $ x</code> = <code>f x</code>)</p>
+<h3 id="sort-of-a-big-deal">Sort of a big deal</h3>
+<p>Let’s pause and reflect to see that this is sort of a big deal, and see what problem <code>Functor</code> just solved.</p>
+<p>In another language, you might somehow have a <code>Maybe&lt;Int&gt;</code> (using generics syntax). And you have lots and lots and lots of functions that take <code>Int</code>s. Heck, why would you even ever have a function take a <code>Maybe&lt;Int&gt;</code>? A function would be like:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Monster <span class="op">{</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> <span class="fu">deal_damage</span><span class="op">(</span><span class="dt">int</span> damage<span class="op">)</span> <span class="op">{};</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>where your <code>deal_damage</code> function would take an integer. So <code>Maybe Int</code> is useless! You either have to re-write <code>deal_damage</code> to take a <code>Maybe Int</code>, and have <em>two versions</em> of it, or you turn your <code>Maybe Int</code> into an <code>Int</code> somehow.</p>
+<p>In this light, <code>Maybe</code> is a huge nuisance. It is a big, annoying thing to deal with and it probably results in a lot of boilerplate, making you either duplicate functions or extract <code>Maybe</code> values every time you get one.</p>
+<p>But now…<em>now</em>, <code>Maybe</code> is not a nuisance, and there is <em>no boilerplate</em>. All your functions now…<em>just work</em>, as they are!</p>
+<p>And this is a big deal.</p>
+<h2 id="pre-lifting">“Pre-lifting”</h2>
+<p>Okay, so we now can turn <code>a -&gt; b</code> into <code>Maybe a -&gt; Maybe b</code>.</p>
+<p>That might be nice, but if you scroll up just a bit, you might see that there are other functions that might be interesting to apply on a <code>Maybe a</code>.</p>
+<p>What about <code>halveMaybe :: Int -&gt; Maybe Int</code>? Can I use <code>halveMaybe</code> on a <code>Maybe Int</code>?</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">let</span> x <span class="ot">=</span> divideMaybe <span class="dv">12</span> <span class="dv">3</span>     <span class="co">-- x = Just 4 :: Maybe Int</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> halveMaybe x</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="op">***</span> <span class="dt">SCARY</span> <span class="dt">ERROR</span><span class="op">!</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="op">***</span> halveMaybe takes an <span class="dt">Int</span> but you gave it</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="op">***</span> a <span class="dt">Maybe</span> <span class="dt">Int</span><span class="op">.</span>  <span class="dt">Please</span> think about your life<span class="op">.</span></span></code></pre></div>
+<p>Oh no! Maybe we can’t really stay inside our <code>Maybe</code> world after all!</p>
+<p>This might be important! Let’s imagine this trip down our world of uncertainty — let’s say we wanted a function <code>halfOfAge</code></p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="ot">halfOfAge ::</span> <span class="dt">ID</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Int</span></span></code></pre></div>
+<p>That returns (possibly), half of the age of the person corresponding to that ID (and <code>Nothing</code> if the person looked up has an odd age. Because odd ages don’t have halves, of course.). Well, we already have <code>ageFromId :: ID -&gt; Maybe Int</code>, but we want to apply <code>halveMaybe</code> to that <code>Maybe Int</code>. But we can’t! Because <code>halveMaybe</code> only works on <code>Int</code>!</p>
+<p>We can’t even use <code>fmap</code>, because:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="op">:</span>t <span class="fu">fmap</span> halveMaybe</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">fmap</span><span class="ot"> halveMaybe ::</span> <span class="dt">Maybe</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> (<span class="dt">Maybe</span> <span class="dt">Int</span>)</span></code></pre></div>
+<p>Wrong wrong wrong! We don’t want a <code>Maybe Int -&gt; Maybe (Maybe Int)</code>, we want a <code>Maybe Int -&gt; Maybe Int</code>! <code>fmap</code> lifts “both sides” of the function, but we only want, in this case, to “lift” the input.</p>
+<p>This is a disaster!</p>
+<p>But wait, calm down. We have overcome similar things before. With our recent journey to Functor enlightenment in mind, let’s try to look for a similar path.</p>
+<p>We had an <code>a -&gt; b</code> that we wanted to apply to a <code>Maybe a</code>, we used <code>fmap</code> to turn it into a <code>Maybe a -&gt; Maybe b</code>. So we have a <code>a -&gt; Maybe b</code> here that we want to apply to a <code>Maybe a</code>. The plan is simple! We turn an <code>a -&gt; Maybe b</code> into a <code>Maybe a -&gt; Maybe b</code>. Let’s pretend we had such a function.</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="ot">liftInput ::</span> (a <span class="ot">-&gt;</span> <span class="dt">Maybe</span> b) <span class="ot">-&gt;</span> (<span class="dt">Maybe</span> a <span class="ot">-&gt;</span> <span class="dt">Maybe</span> b)</span></code></pre></div>
+<p>How should we expect this to behave?</p>
+<p>Well, let’s think this through case-by-case.</p>
+<p>If we want to apply <code>halveMaybe</code> to a number that isn’t there…well…it should also return a number that isn’t there. It should propagate the not-thereness.</p>
+<p>If we want to apply <code>halveMaybe</code> to a number that <em>is</em> there…well, just apply it to that number, and take that result! If the result is there, then you have a result there. If the result is not there, then you don’t.</p>
+<p>We have enough to write this out ourselves:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/inside/maybe.hs#L90-L94</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/inside-my-world</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="ot">liftInput ::</span> (a <span class="ot">-&gt;</span> <span class="dt">Maybe</span> b) <span class="ot">-&gt;</span> (<span class="dt">Maybe</span> a <span class="ot">-&gt;</span> <span class="dt">Maybe</span> b)</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>liftInput f <span class="ot">=</span> liftedF</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>    liftedF <span class="dt">Nothing</span>  <span class="ot">=</span> <span class="dt">Nothing</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>    liftedF (<span class="dt">Just</span> x) <span class="ot">=</span> f x</span></code></pre></div>
+<div class="sourceCode" id="cb25"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="op">:</span>t liftInput halveMaybe</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="dt">Maybe</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Int</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">let</span> x <span class="ot">=</span> divideMaybe <span class="dv">12</span> <span class="dv">3</span>     <span class="co">-- x = Just 4 :: Maybe Int</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> (liftInput halveMaybe) x</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dv">2</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">let</span> y <span class="ot">=</span> divideMaybe <span class="dv">12</span> <span class="dv">0</span>     <span class="co">-- y = Nothing :: Maybe Int</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> (liftInput halveMaybe) y</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a><span class="dt">Nothing</span></span></code></pre></div>
+<p>Neat! Now we don’t have to fear <code>a -&gt; Maybe b</code>’s…we can use them and <em>still stay in our world</em>, without leaving our world of uncertainty!</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/inside/maybe.hs#L71-L72</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/inside-my-world</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="ot">halfOfAge ::</span> <span class="dt">ID</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Int</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>halfOfAge i <span class="ot">=</span> (liftInput halveMaybe) (ageFromId i)</span></code></pre></div>
+<h3 id="monad">Monad</h3>
+<p>Like with Functor and <code>fmap</code>, this general pattern of turning an <code>a -&gt; f b</code> into an <code>f a -&gt; f b</code> is also useful to generalize.</p>
+<p>In general, you can think functions <code>a -&gt; world b</code> as functions that “bring you into your world”. We would like to turn it, in general, into <code>world a -&gt; world b</code>. Lifting the input only, so to speak.</p>
+<p>We say that if a world has such a way of lifting the input of such a function (plus some other requirements), it implements the <code>Monad</code> typeclass<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>.</p>
+<p>Monad is a typeclass (which is kinda like an interface), so that means that if <code>Maybe</code> is a Monad, it “implements” that way to turn a <code>a -&gt; Maybe b</code> into a <code>Maybe a -&gt; Maybe b</code>.</p>
+<p>We call this <code>(a -&gt; Maybe b) -&gt; (Maybe a -&gt; Maybe b)</code> function “bind”.</p>
+<p>Now, embarrassingly enough, “bind” actually isn’t called <code>bind</code> in the standard library…it actually only exists as an operator, <code>(=&lt;&lt;)</code>.</p>
+<p>(Remember how there was an operator form of <code>fmap</code>? We have both <code>fmap</code> and <code>(&lt;$&gt;)</code>? Well, in this case, we <em>only</em> have the operator form of <code>bind</code>, <code>(=&lt;&lt;)</code>. Yeah, I know. But we live with it just fine!).</p>
+<p><code>(=&lt;&lt;)</code> is exactly our <code>liftInput</code> for <code>Maybe</code>. Let’s try it out:</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="op">:</span>t (<span class="op">=&lt;&lt;</span>) halveMaybe</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="dt">Maybe</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Int</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">let</span> x <span class="ot">=</span> divideMaybe <span class="dv">12</span> <span class="dv">3</span>     <span class="co">-- x = Just 4 :: Maybe Int</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a><span class="co">-- use it as a prefix function</span></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> (<span class="op">=&lt;&lt;</span>) halveMaybe x</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dv">2</span></span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">let</span> y <span class="ot">=</span> divideMaybe <span class="dv">12</span> <span class="dv">0</span>     <span class="co">-- y = Nothing :: Maybe Int</span></span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a><span class="co">-- use it as an infix operator</span></span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> halveMaybe <span class="op">=&lt;&lt;</span> y</span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a><span class="dt">Nothing</span></span></code></pre></div>
+<p>And now maybe we can finally rest easy knowing that we can “stay inside <code>Maybe</code>” and never have to leave it.</p>
+<div class="note">
+<p><strong>Aside</strong></p>
+<p>The “other thing” that Monad has to have (the other thing that the “interface” demands, besides <code>(=&lt;&lt;)</code>) is a way to “bring a value into your world”.</p>
+<p>This function is called <code>return</code>.</p>
+<p>For example, for <code>Maybe</code>, we need a way to take a normal value like an <code>Int</code> and “bring it into” our world of uncertainty — an <code>Int -&gt; Maybe Int</code>. For <code>Maybe</code>, semantically, to bring something like <code>7</code> into the world of uncertainty…well, we already know the <code>7</code> is there. So to bring a <code>7</code> into <code>Maybe</code>, it’s just <code>Just 7</code></p>
+<p>For an instance of <code>Monad</code> to be considered legitimate, there are a few rules/laws that <code>return</code> and <code>(=&lt;&lt;)</code> must obey when used together in order to be useful (just like for <code>Functor</code>). If you define nonsensical <code>return</code> and <code>(=&lt;&lt;)</code>, of course, your instance won’t be very useful anyway, and you wouldn’t be able to reason with how they work together. The laws sort of are some way of ensuring that your instance is useful and sensible, and that <code>(=&lt;&lt;)</code> and <code>return</code> make sense at all.</p>
+</div>
+<div class="note">
+<p><strong>Aside</strong></p>
+<p>Now, for some strange reason, it is actually much more popular to use <code>(&gt;&gt;=)</code> over <code>(=&lt;&lt;)</code>; <code>(&gt;&gt;=)</code> is just <code>(=&lt;&lt;)</code> backwards:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> halveMaybe <span class="op">=&lt;&lt;</span> <span class="dt">Just</span> <span class="dv">8</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dv">4</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="dt">Just</span> <span class="dv">8</span> <span class="op">&gt;&gt;=</span> halveMaybe</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dv">4</span></span></code></pre></div>
+<p>This is really weird! I mean…really <em>really</em> weird! Why would you ever put the function you are applying <em>after</em> the value you are applying it to? That’s like having <code>x :: a</code> and <code>f :: a -&gt; b</code>, and doing <code>x f</code> or something!</p>
+<p>Why is this style the norm? Who knows!<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> People are just weird!</p>
+<p>For the rest of this article, we will be using <code>(=&lt;&lt;)</code>; just be aware that you might see <code>(&gt;&gt;=)</code> out in the wild more often!</p>
+</div>
+<h2 id="recap">Recap</h2>
+<p>Thanks to Functor and Monad, we now have a way to confidently stay in our world of uncertainty and still use normal functions on our uncertain values — we only have to use the right “lifters”.</p>
+<p>If you have an <code>x :: Maybe a</code> and you have a:</p>
+<ul>
+<li><p><code>f :: a -&gt; b</code>, then use <code>fmap</code> or <code>(&lt;$&gt;)</code> — <code>fmap f x</code> or <code>f &lt;$&gt; x</code></p></li>
+<li><p><code>f :: a -&gt; Maybe b</code>, then use <code>(=&lt;&lt;)</code> — <code>f =&lt;&lt; x</code></p></li>
+</ul>
+<p>Armed with these two, you can comfortably stay in <code>Maybe</code> without ever having to “get out of it”!</p>
+<h3 id="a-big-picture">A big picture</h3>
+<p>Again, the big picture is this: sometimes we get values inside contexts, or worlds. But we have functions like <code>a -&gt; world b</code> that <em>produce values inside your world</em>.</p>
+<p>Which normally would leave you “high and dry”, because you can’t, say, apply that same function twice. You either have to write a new <code>world a -&gt; world b</code> version or some other boilerplate.</p>
+<p>With Functor, we can make normal functions treat our world values like normal values; with Monad, we can do the same with functions that “bring us into” worlds. With these two together…maybe contexted values aren’t so bad after all!</p>
+<h2 id="other-worlds">Other Worlds</h2>
+<h3 id="on-worlds">on Worlds</h3>
+<p>You might have noticed that up until now I have used the word “world” pretty vaguely.</p>
+<p>When I say that a value is “inside” a “world”, I mean that it “lives” inside the context of what that world represents. A <code>Maybe a</code> is an <code>a</code> living in the <code>Maybe</code> “world” — it is an <code>a</code> that can exist or not exist. <code>Maybe</code> represents a context of existing-or-not-existing.<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a></p>
+<p>But there are other worlds, and other contexts too. And though I have shown you what Functor and Monad look like for <code>Maybe</code>…you probably need to see a few more examples to be really convinced that these are general design patterns that you can apply to multiple “values in contexts”.</p>
+<p>It’s important to remember that <code>fmap</code> and <code>(=&lt;&lt;)</code> don’t really have any inherent semantic meaning…and their usefulness and “meaning” come from just the specific instance. We saw what they “did” for <code>Maybe</code>, but their meaning came from <code>Maybe</code> itself. For other worlds, as we will see, we can make them mean completely different things.</p>
+<div class="note">
+<p><strong>Aside</strong></p>
+<p>There are some important nuances that might trip you up! Though useful worlds are instances of Monad, it is improper to say that “Monads are worlds/values in contexts”. That’s not what Monads <em>are</em>. Monads are just Monads (the two functions and their laws), no more and no less.</p>
+<p>In our usage here, Functor and Monad mean only “these things implement some sort of <code>fmap</code> and <code>(=&lt;&lt;)</code>, etc., and those two are useful.” That is, the interface offered by Functor and Monad are useful for our specific world. But there are plenty of Functors and Monads that are not “worlds”.</p>
+</div>
+<p>Anyways, here is a whirlwind tour of different worlds, to help you realize how often you’ll actually want to live in these worlds in Haskell, and why having <code>fmap</code> and <code>(=&lt;&lt;)</code> are so useful!</p>
+<h3 id="the-world-of-future-values">The world of future values</h3>
+<p>(Play along with this section too by <a href="https://github.com/mstksg/inCode/tree/master/code-samples/inside/reader.hs">loading the source</a>!)</p>
+<p>In Haskell, we have a <code>Reader r</code> world. You can think of <code>(Reader r) a</code> as a little machine that “waits” for something of type <code>r</code>, then <em>uses</em> it to (purely) make an <code>a</code>. The <code>a</code> doesn’t exist yet; it’s a future <code>a</code> that will exist as soon as you give it an <code>r</code>.</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/inside/reader.hs#L17-L27</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/inside-my-world</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a><span class="co">-- futureLength: A future `Int` that will be the length of whatever the</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a><span class="co">--      list it is waiting for will be.</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a><span class="ot">futureLength ::</span> (<span class="dt">Reader</span> [a]) <span class="dt">Int</span></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a><span class="co">-- futureHead: An future `a` that will be the first element of whatever the</span></span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a><span class="co">--      list it is waiting for will be.</span></span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a><span class="ot">futureHead   ::</span> (<span class="dt">Reader</span> [a]) a</span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a><span class="co">-- futureOdd: A future `Bool` that will be whether the `Int` it is waiting</span></span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a><span class="co">--      for is odd or not.</span></span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a><span class="ot">futureOdd    ::</span> (<span class="dt">Reader</span> <span class="dt">Int</span>) <span class="dt">Bool</span></span></code></pre></div>
+<p><code>futureLength</code> is a “future <code>Int</code>”; an <code>Int</code> waiting (for an <code>[a]</code>) to be realized. <code>futureHead</code> is a “future <code>a</code>”, waiting for an <code>[a]</code>.</p>
+<p>We use the function <code>runReader</code> to “force” the <code>a</code> out of the <code>(Reader r) a</code>:</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- given a `(Reader r) a` and an `r`, uses that `r` to finally get the `a`:</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="ot">runReader ::</span> (<span class="dt">Reader</span> r) a <span class="ot">-&gt;</span> r <span class="ot">-&gt;</span> a</span></code></pre></div>
+<div class="sourceCode" id="cb31"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> runReader futureLength [<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>]</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="dv">3</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> runReader futureHead [<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>]</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> runReader futureOdd <span class="dv">6</span></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a><span class="dt">False</span></span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> runReader futureOdd <span class="dv">5</span></span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a><span class="dt">True</span></span></code></pre></div>
+<p>Welcome to the world of future values.</p>
+<div class="note">
+<p><strong>Aside</strong></p>
+<p>It is important to note here that <code>(Reader Int) Bool</code> and <code>(Reader [Int]) Bool</code> <em>do not exist</em> in the same world. One lives in a <code>Reader Int</code> world — a world of future values awaiting an <code>Int</code>. The other lives in a <code>Reader [Int]</code> world — a world of future values awaiting an <code>[Int]</code>.</p>
+</div>
+<p>Let’s say I have a future <code>Int</code>. Say, <code>futureLength</code>, waiting on an <code>[a]</code>. And I have a function <code>(&lt; 5) :: Int -&gt; Bool</code>. Can I apply <code>(&lt; 5)</code> to my future <code>Int</code>, in order to get a future <code>Bool</code>?</p>
+<p>At first, no! This future <code>Int</code> is useless! I can’t even use it in <em>any</em> of my normal functions! Time to reach for the exit button?</p>
+<p>Oh — but, because <code>Reader [a]</code> is a Functor, I can use <code>fmap</code> to turn <code>(&lt; 5) :: Int -&gt; Bool</code> into <code>fmap (&lt; 5) :: (Reader [a]) Int -&gt; (Reader [a]) Bool</code>!</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/inside/reader.hs#L34-L38</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/inside-my-world</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="ot">futureShorterThan ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> (<span class="dt">Reader</span> [a]) <span class="dt">Bool</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>futureShorterThan n <span class="ot">=</span> <span class="fu">fmap</span> (<span class="op">&lt;</span> n) futureLength</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a><span class="ot">futureShorterThan5 ::</span> (<span class="dt">Reader</span> [a]) <span class="dt">Bool</span></span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>futureShorterThan5 <span class="ot">=</span> futureShorterThan <span class="dv">5</span></span></code></pre></div>
+<div class="sourceCode" id="cb33"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> runReader futureShorterThan5 [<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>]</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="dt">True</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> runReader (futureShorterThan <span class="dv">3</span>) [<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>]</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a><span class="dt">False</span></span></code></pre></div>
+<p>And voilà, we have a future <code>Bool</code>. We turned an <code>Int -&gt; Bool</code> into a function that takes a future <code>Int</code> and returns a future <code>Bool</code>. We <em>applied <code>(&lt; 5)</code> to our future length</em>, to get a future <code>Bool</code> telling us if that length is less than 5.</p>
+<p>So <code>futureShorterThan</code> is a function that takes an <code>Int</code> and turns it into a future <code>Bool</code>. Let’s go…deeper. What if I wanted to apply <code>futureShorterThan</code> to a <em>future</em> <code>Int</code>? To <em>still</em> get a future <code>Bool</code>?</p>
+<p>I can’t apply <code>futureShorterThan</code> to a future <code>Int</code> straight-up, because it only takes <code>Int</code>. Boo! But, wait — <code>Reader [Int]</code> is a Monad, so that means I can take the <code>Int -&gt; (Reader [a]) Bool</code> and turn it into a <code>(Reader [a]) Int -&gt; (Reader [a]) Bool</code> using <code>(=&lt;&lt;)</code>!</p>
+<p>Using <code>(=&lt;&lt;)</code>, we turned a function from <code>Int</code> to a future <code>Bool</code> to a function from a future <code>Int</code> to a future <code>Bool</code>.</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="ot">futureShorterThan       ::</span> <span class="dt">Int</span>              <span class="ot">-&gt;</span> (<span class="dt">Reader</span> [a]) <span class="dt">Bool</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>(<span class="op">=&lt;&lt;</span>)<span class="ot"> futureShorterThan ::</span> (<span class="dt">Reader</span> [a]) <span class="dt">Int</span> <span class="ot">-&gt;</span> (<span class="dt">Reader</span> [a]) <span class="dt">Bool</span></span></code></pre></div>
+<p>Hm. Let’s try this out on a future <code>Int</code> we have…we can use <code>futureHead :: (Reader [Int]) Int</code>.</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/inside/reader.hs#L40-L41</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/inside-my-world</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a><span class="ot">futureShorterThanHead ::</span> (<span class="dt">Reader</span> [<span class="dt">Int</span>]) <span class="dt">Bool</span></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>futureShorterThanHead <span class="ot">=</span> futureShorterThan <span class="op">=&lt;&lt;</span> futureHead</span></code></pre></div>
+<p>So, we are applying <code>futureShorterThan</code> to the <code>Int</code> we got from <code>futureHead</code>. And so we get a future <code>Bool</code> that tells us if that future <code>Int</code> we got from the input list is shorter than the input list.</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> runReader futureShorterThanHead [<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>]</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a><span class="dt">False</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> runReader futureShorterThanHead [<span class="dv">5</span>,<span class="dv">2</span>,<span class="dv">3</span>]</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a><span class="dt">True</span></span></code></pre></div>
+<p>Neat!</p>
+<p>Now, we can live in a world of “future values”, and now use all of our “normal” functions on future values!</p>
+<p>In another language, we might have had to do this complicated dance of “forcing” futures to get the value (to “exit” the world of future values), applying functions to that value, and going “back into” the future.</p>
+<p>But now, we <em>don’t have to be scared of future values</em>. We can work with them just as well as if they were normal values, and “leave” them as futures the entire time, without ever forcing them until when we really need to, and only force them <em>once</em>.</p>
+<p>Who said futures were complicated, anyway?</p>
+<h3 id="the-world-of-io">The world of “IO”</h3>
+<p>(The source code for this section is <a href="https://github.com/mstksg/inCode/tree/master/code-samples/inside/io.hs">also available online</a> for you to play with!)</p>
+<p>And now we go into the most infamous of Haskell worlds, <code>IO</code>.</p>
+<p><code>IO</code> is “kind of like” our <code>Reader r</code> world — an <code>IO Int</code> is an <code>Int</code> that <em>doesn’t yet exist</em>…but that will be computed by a CPU/computer <em>when a CPU executes it</em>.</p>
+<p>In this sense, an <code>IO Int</code> is kind of like a little packet of Assembly or C code — it contains instructions (assembly commands, machine language) for a computer to do this and that and eventually produce an <code>Int</code>. An <code>IO String</code> could, for example, be a little packet of C code that reads a file and outputs the contents of that file. The <code>String</code> doesn’t exist yet — but it will, once the computer executes those commands.</p>
+<p>If you’ve ever used a Unix operating system, there is a shell command <code>ls</code> that lists the contents of a directory. The actual <code>ls</code> program is kind of like an <code>IO [FilePath]</code>. The <code>[FilePath]</code> does not “exist” inside” <code>ls</code> — rather, <code>ls</code> is a program that promises a list of <code>FilePath</code>s when it is executed by the computer or interpreter.</p>
+<p>So an <code>IO String</code> doesn’t “contain” a <code>String</code> — it is a program that <em>promises</em> a <code>String</code> in the future, when a computer eventually executes it,<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a>.</p>
+<p>One common IO object we are given is <code>getLine :: IO String</code>. <code>getLine</code> is kind of like the Unix program <code>cat</code> — it promises a <code>String</code>, and it gets that <code>String</code> by taking in from standard input. That is, it is a program that, when executed by a computer, pulls a line from stdin, and returns that as the <code>String</code> it promises. <code>getLine</code> contains instructions for a computer to get a <code>String</code> from stdin. A future/promised <code>String</code>.</p>
+<p>We want to apply <code>length :: String -&gt; Int</code> to that future/promised <code>String</code>, to get us a future/promised <code>Int</code>. Again, we can’t apply <code>length</code> to <code>getLine</code> directly — but because <code>IO</code> is a Functor, we can use <code>fmap length :: IO String -&gt; IO Int</code>.</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">getLine</span><span class="ot">             ::</span> <span class="dt">IO</span> <span class="dt">String</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span><span class="ot">              ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="fu">fmap</span><span class="ot"> length         ::</span> <span class="dt">IO</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> <span class="dt">Int</span></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a><span class="fu">fmap</span> <span class="fu">length</span><span class="ot"> getLine ::</span> <span class="dt">IO</span> <span class="dt">Int</span></span></code></pre></div>
+<p>Neat!</p>
+<p>We had a function that only worked on <code>String</code>, but we made it work the “future/promised” <code>String</code> of <code>IO String</code></p>
+<p>Let’s look at a function returning an IO action <code>wc</code>, which takes a filename and returns a program that, when executed, promises an <code>Int</code> — the number of lines in that file.</p>
+<div class="sourceCode" id="cb38"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/inside/io.hs#L19-L19</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/inside-my-world</span></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a><span class="ot">wc ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> <span class="dt">Int</span></span></code></pre></div>
+<p>So <code>wc "file.txt"</code> would evaluate to a computation that, when executed by a computer, produces an <code>Int</code> (by loading the file from disk using system calls, reading it, and counting the lines).</p>
+<p><code>wc</code> is a function that takes a (non-future, normal) <code>String</code>.</p>
+<p>But what if we wanted to apply <code>wc</code> to <code>getLine</code>, the <code>IO String</code> we had? We want to apply <code>wc</code> to that “future <code>String</code>”. We can’t apply it directly. We want to turn our <code>String -&gt; IO Int</code> into an <code>IO String -&gt; IO Int</code>.</p>
+<p>Luckily, <code>IO</code> is a Monad, so we have <code>(=&lt;&lt;)</code> at our disposal.</p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">getLine</span><span class="ot">        ::</span> <span class="dt">IO</span> <span class="dt">String</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="ot">wc             ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> <span class="dt">Int</span></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>(<span class="op">=&lt;&lt;</span>)<span class="ot"> wc       ::</span> <span class="dt">IO</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> <span class="dt">Int</span></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>wc <span class="op">=&lt;&lt;</span><span class="ot"> getLine ::</span> <span class="dt">IO</span> <span class="dt">Int</span></span></code></pre></div>
+<p>Neat!</p>
+<p>What does <code>wc =&lt;&lt; getLine</code> do, as a program? How does it compute that <code>Int</code>?</p>
+<p>Conceptually, it all sort of “makes sense” if you look at it from a high level view. <code>getLine</code> is an <code>IO String</code> — a future <code>String</code>. <code>wc</code> takes a <code>String</code> and returns a future <code>Int</code>. If we “applied <code>wc</code> to <code>getLine</code>”, we would be applying <code>wc</code> to that future <code>String</code>, to get a future <code>Int</code>.</p>
+<p>And so there we have it — we <em>don’t ever have to</em> actually work “directly” with computed values <code>a</code> that are received from IO. All we ever have to do is work with <code>IO a</code>, and we can use <em>all of our normal functions</em> on that <code>IO a</code>, as if they were normal <code>a</code>s.</p>
+<p>In that way, we don’t have to be scared of working with “future computable values” — we can use all of our normal tools on them!</p>
+<h2 id="even-more">Even more</h2>
+<p>There are lots of other worlds besides just <code>Maybe</code>, <code>Reader r</code>, and <code>IO</code>. Each one comes with their own unique semantics/meanings/contexts, and their own answer for what <code>fmap</code> and <code>(=&lt;&lt;)</code> are supposed to “mean”.</p>
+<p>Here are some others — with brief descriptions.</p>
+<ol type="1">
+<li><p>The world of <code>Either e</code>, which is like <code>Maybe</code> in which things may or may not be there. But in <code>Either e</code>, when things aren’t there, they come with a reason why they are not (of type <code>e</code>).</p></li>
+<li><p>The world of <code>[]</code>, where things are the results of computations that have ambiguous answers. I wrote a <a href="http://blog.jle.im/entries/series/+monadplus-success-failure-monads">series of posts</a> on this :)</p></li>
+<li><p>The world of <code>State s</code>, which is a world of future things awaiting an <code>s</code>, which modify the <code>s</code> in the process.</p></li>
+<li><p>The world of <code>Parser</code>, which is a world of things that an input string will be parsed into.</p></li>
+</ol>
+<p>There are many more! The great thing about Haskell is that with <code>fmap</code> and <code>(=&lt;&lt;)</code>, it is easy to work with values inside these worlds with all of your normal functions, without any real extra effort. Normal functions, normal values, values inside worlds…we have them all at our disposal.</p>
+<p>Haskell lets me stay <em>inside my world</em>!</p>
+<h2 id="final-notes">Final Notes</h2>
+<p>For some further reading, Gabriel Gonzalez’s <a href="http://www.haskellforall.com/2012/09/the-functor-design-pattern.html">“Functor Design Pattern”</a> post covers a similar concept for people more familiar with Haskell and explains it more elegantly than I ever could have.</p>
+<p>Don’t forget as you’re reading and moving on that it’s not correct to say “Functors are worlds”, or “Monads are worlds”. As I mentioned before in an aside, Monads aren’t “anything” other than the functions and the laws. Rather, if we look at <code>Maybe</code>, etc. as a “world”, then <em>having a Monad interface/instance</em> allows us to do cool things with that world.</p>
+<p>Feel free to again <a href="https://github.com/mstksg/inCode/tree/master/code-samples/inside">play around with</a> the code used here and load it in ghci yourself!</p>
+<p>Experienced readers might have noted an unconventional omission of “Applicative Functors”, which (since 2008-ish) traditionally goes somewhere in between the section on Functor and the section on Monad. Applicative Functors, in this context, are handy in that they let you combine two values in worlds together; that is, if you have a <code>Maybe a</code> and a <code>Maybe b</code>, it allows you to use an <code>a -&gt; b -&gt; c</code> to “squash” them into a <code>Maybe c</code>. This squashing action is called <code>liftA2</code>.</p>
+<p>As always, if you have any questions, leave them in the comments, or come find me on freenode’s #haskell — I go by <em>jle`</em> :)</p>
+<p>(Special thanks to c_wraith and rhaps0dy for their time reviewing this post)</p>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Dun dun dun!<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>In the standard libraries, <code>certaintify</code> and <code>certaintifyWithDefault</code> exist in the <code>Data.Maybe</code> module as <code>fromJust</code> and <code>fromMaybe</code>, respectively.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p>It also needs <code>return</code>, which I will mention in due time.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p>I know! And I’m not telling! Just kidding.</p>
+<p><code>(&gt;&gt;=)</code> is actually a lot of times more useful than <code>(=&lt;&lt;)</code>, despite its awkward reversed nature.</p>
+<p>One major reason is that things end up looking more “imperative” (which may or may not be desired). Imagine <code>divideMaybe 12 3 &gt;&gt;= halveMaybe &gt;&gt;= halveMaybe</code> versus <code>halveMaybe =&lt;&lt; halveMaybe =&lt;&lt; divideMaybe 12 3</code>.</p>
+<p>Believe it or not, usage of Monads was originally motivated by structuring IO actions. So, in that setting, it seemed natural to have an “imperative-y” feel.</p>
+<p>Also, in the popular “do notation” syntactical sugar, <code>(&gt;&gt;=)</code> is used in the desugaring and not <code>(=&lt;&lt;)</code>, so <code>(&gt;&gt;=)</code> pops out naturally when reasoning about Monads coming through do notation.</p>
+<p>Also, whenever you use lambda syntax (like <code>(\x -&gt; f x)</code>), <code>(&gt;&gt;=)</code> might be nice, because lambda syntax carries some sort of inherent left-to-rightness in it with the arrow. It’s also tricky to write “chained binds” using lambda syntax using <code>(=&lt;&lt;)</code> — try writing <code>f &gt;&gt;= (\x -&gt; g &gt;&gt;= (\y -&gt; h x y))</code> using <code>(=&lt;&lt;)</code> and you’ll see that it’s slightly less natural.</p>
+<p>Still, it is worth being aware that <code>(&gt;&gt;=)</code> is a is a bit “different” from the rest of the pack of normal Haskell function application and composition operators; it is unique in that it is the only one where the backwards form is more common than the normal one.</p>
+<p>Even the term “bind” is often used to refer to both.</p>
+<p>A general guideline is that you ever mix a bind with a <code>(&lt;$&gt;)</code> and/or a <code>($)</code> and <code>(.)</code>, you should prefer <code>(=&lt;&lt;)</code>, to prevent your eyes from jumping directions.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p>In Haskell, “worlds” are represented at the type level as type constructors. <code>Maybe</code> is a type constructor that takes a type like <code>Int</code> and returns a new type, <code>Maybe Int</code>. Not all type constructors represent Worlds, of course.<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn6"><p>An important distinction between <code>IO</code> and the other worlds we have looked at is that there is no way to “exit” the world of <code>IO</code> within Haskell. That is, there is no meaningful <code>IO a -&gt; a</code>.</p>
+<p>If you think about it for a while, it kind of makes sense. If <code>IO a</code> is assembly code for a computer…the only thing that can “get” that <code>a</code> is the computer itself — by shifting those registers, ticking that program clock, reading from IO…</p>
+<p>Remember, <em>a Haskell program can only “evaluate”</em> expressions, <em>not “execute”</em> them. The execution is the computer’s job. When you compile a Haskell program, the compiler takes whatever <code>IO ()</code> is named <code>main</code> in your program, <em>evaluates</em> it, and compiles it into a binary. Then you, the computer user, can <em>execute</em> that binary like any other binary (compiled from C or whatever). Because you can never “exit” <code>IO</code> in your Haskell code, this makes <code>IO</code> an extreme version of the worlds we mentioned before; in the others, we could “exit” the world if we really wanted to. We only used <code>fmap</code> and <code>(=&lt;&lt;)</code> because it provided for beautiful abstractions. This topic is discussed in depth at an <a href="http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity">old blog post</a> of mine.</p>
+<p>Because of this, if it weren’t for Functor and Monad, it would be extremely hard to do <em>anything</em> useful with <code>IO</code>! We literally can’t pass an <code>IO a</code> into <em>any</em> normal function. We need Functor and Monad for us to <em>ever</em> work at all with our “future values” with normal functions!<a href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div><footer><hr><div class="copy-content"><p>Hi, thanks for reading! You can reach me via email at <a href="mailto:justin@jle.im" class="email">justin@jle.im</a>, or at twitter at <a href="https://twitter.com/mstk">@mstk</a>! This post and all others are published under the <a href="https://creativecommons.org/licenses/by-nc-nd/3.0/">CC-BY-NC-ND 3.0</a> license. Corrections and edits via pull request are welcome and encouraged at <a href="https://github.com/mstksg/inCode">the source repository</a>.</p>
+<p>If you feel inclined, or this post was particularly helpful for you, why not consider <a href="https://www.patreon.com/justinle/overview">supporting me on Patreon</a>, or a <a href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">BTC donation</a>? :)</p></div><div class="clear"></div><ul class="entry-series"></ul><ul class="tag-list"><li><a href="https://blog.jle.im/entries/tagged/functional-programming.html" class="tag-a-tag">#functional programming</a></li><li><a href="https://blog.jle.im/entries/tagged/haskell.html" class="tag-a-tag">#haskell</a></li><li><a href="https://blog.jle.im/entries/tagged/io.html" class="tag-a-tag">#io</a></li><li><a href="https://blog.jle.im/entries/tagged/monads.html" class="tag-a-tag">#monads</a></li><li><a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category">@HASKELL</a></li><li><a href="https://blog.jle.im/entries/category/@ramblings.html" class="tag-a-category">@RAMBLINGS</a></li></ul><aside class="social-buttons"><div class="addthis_toolbox addthis_default_style addthis-buttons"><a class="addthis_button_facebook_like" fb:like:layout="button_count"></a><a class="addthis_button_tweet"></a><a class="addthis_button_google_plusone" g:plusone:size="medium"></a><a class="addthis_counter addthis_pill_style"></a></div><div class="custom-social-buttons"><div class="custom-social-button"><a href="https://www.reddit.com/submit" onclick="window.location = &#39;https://www.reddit.com/submit?url=&#39;+ encodeURIComponent(window.location); return false"><img src="https://www.reddit.com/static/spreddit7.gif" alt="submit to reddit"></a></div></div></aside><nav class="next-prev-links"><ul><li class="prev-entry-link">&larr; <a href="https://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-2-binary.html">Streaming Huffman Compression in Haskell (Part 2: Binary and Searches)
+</a> (Previous)</li><li class="next-entry-link">(Next) <a href="https://blog.jle.im/entry/looking-forward-a-doctorate-program.html">Looking forward: A Doctorate Program
+</a> &rarr;</li></ul></nav></footer></article><div class="post-entry"><div class="tile"><div id="disqus_thread"></div><script type="text/javascript">var disqus_config = function () {
+    this.page.url = 'https://blog.jle.im/entry/inside-my-world-ode-to-functor-and-monad.html';
+    this.page.identifier = 'inside';
+};
+(function() {
+    var d = document, s = d.createElement('script');
+    s.src = '//incode.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a><br></noscript><a href="http://disqus.com" class="dsq-brlink">Comments powered by <span class="logo-disqus">Disqus</span></a></div></div></div></div></div><div id="footer-container"><div id="footer-content"><div class="tile"><div class="footer-copyright">&copy; 2020 Justin Le <span class="license-link">(<a href="https://creativecommons.org/licenses/by-nc-nd/3.0/" class="license">CC-BY-NC-ND 3.0</a>)</span></div><div class="footer-follow social-follows"><ul class="social-follows-list"><li><ul class="social-follows-list-social"><li><a class="social-follow-twitter" title="Follow me on Twitter!" href="https://twitter.com/intent/user?user_id=mstk" onclick="window.open(
+  &#39;http://twitter.com/intent/user?user_id=907281&#39;,
+  &#39;facebook-share-dialog&#39;,
+  &#39;width=550,height=520&#39;);
+return false;
+">Twitter</a></li><li><a class="social-follow-github" title="Fork me on Github!" href="https://github.com/mstksg">Github</a></li><li><a class="social-follow-twitch" title="Watch me on Twitch!" href="https://www.twitch.tv/justin_l">Twitch</a></li><li><a class="social-follow-patreon" title="Support me on Patreon!" href="https://www.patreon.com/justinle/overview">Patreon</a></li><li><a class="social-follow-gplus" title="Add me on Google+!" href="https://plus.google.com/+JustinLe">Google+</a></li><li><a class="social-follow-keybase" title="Track me on Keybase!" href="https://keybase.io/mstksg">Keybase</a></li><li><a class="social-follow-linkedin" title="Connect with me on LinkedIn!" href="https://linkedin.com/in/lejustin">LinkedIn</a></li><li><a class="social-follow-bitcoin" title="Donate via bitcoin!" href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">Bitcoin</a></li></ul></li><li><ul class="social-follows-list-site"><li><a class="social-follow-rss" title="Subscribe to my RSS Feed!" href="http://feeds.feedburner.com/incodeblog">RSS</a></li><li><a class="social-follow-email" title="Subscribe to the mailing list!" href="https://feedburner.google.com/fb/a/mailverify?loc=en_US&amp;uri=incodeblog">Mailing list</a></li></ul></li></ul></div></div></div></div></body></html>
