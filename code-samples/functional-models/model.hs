@@ -1,8 +1,8 @@
 #!/usr/bin/env stack
--- stack --install-ghc runghc --resolver lts-11.9 --package backprop-0.2.2.0 --package random --package hmatrix-backprop-0.1.2.1 --package statistics --package lens --package one-liner-instances --package split --package ghc-typelits-natnormalise --package ghc-typelits-knownnat --package hmatrix --package hmatrix-vector-sized --package microlens --package vector-sized --package transformers --package type-combinators -- -O2
+-- stack --install-ghc runghc --resolver lts-20.26 --package backprop-0.2.6.5 --package random --package hmatrix-backprop-0.1.3.0 --package one-liner-instances --package split --package ghc-typelits-natnormalise --package ghc-typelits-knownnat --package hmatrix --package hmatrix-vector-sized --package microlens --package vector-sized --package transformers
 
 -- | Replace the second line with this one to have "./model.hs" open a ghci session
--- stack --install-ghc ghci --resolver lts-11.9 --package backprop-0.2.2.0 --package random --package hmatrix-backprop-0.1.2.1 --package statistics --package lens --package one-liner-instances --package split --package ghc-typelits-natnormalise --package ghc-typelits-knownnat --package hmatrix --package hmatrix-vector-sized --package microlens --package vector-sized --package transformers --package type-combinators
+-- stack --install-ghc ghci --resolver lts-20.26 --package backprop-0.2.6.5 --package random --package hmatrix-backprop-0.1.3.0 --package one-liner-instances --package split --package ghc-typelits-natnormalise --package ghc-typelits-knownnat --package hmatrix --package hmatrix-vector-sized --package microlens --package vector-sized --package transformers
 
 {-# LANGUAGE DataKinds                                #-}
 {-# LANGUAGE DeriveGeneric                            #-}
@@ -25,21 +25,23 @@
 {-# OPTIONS_GHC -fplugin GHC.TypeLits.Normalise       #-}
 {-# OPTIONS_GHC -fwarn-redundant-constraints          #-}
 
-import           Control.Monad.Trans.State
-import           Data.Bifunctor
-import           Data.Foldable
-import           Data.List
-import           Data.List.Split
-import           Data.Tuple
-import           Data.Type.Option
-import           GHC.Generics                          (Generic)
-import           GHC.TypeNats
-import           Lens.Micro hiding                     ((&))
-import           Numeric.Backprop
-import           Numeric.LinearAlgebra.Static.Backprop
-import           Numeric.LinearAlgebra.Static.Vector
-import           Numeric.OneLiner
-import           System.Random
+import           Control.Monad.Trans.State             ( runState, state )
+import           Data.Bifunctor                        ( first )
+import           Data.List                             ( foldl', unfoldr )
+import           Data.List.Split                       ( chunksOf )
+import           Data.Tuple                            ( swap )
+import           GHC.Generics                          ( Generic )
+import           GHC.TypeNats                          ( KnownNat, type (<=), type (+) )
+import           Lens.Micro                            ( Lens )
+
+import           Numeric.Backprop                      ( Backprop, BVar, Reifies, pattern T2, W
+                                                       , (^^.), auto, evalBP, evalBP2, gradBP, isoVar2, sequenceVar )
+import           Numeric.LinearAlgebra.Static.Backprop ( L, R, (&), (#), (#>), headTail, konst, sumElements )
+import           Numeric.LinearAlgebra.Static.Vector   ( lVec, rVec, vecL, vecR )
+import           Numeric.OneLiner                      ( gAbs, gDivide, gFromInteger, gFromRational
+                                                       , gMinus, gNegate, gPlus, gRecip, gSignum, gTimes )
+import           System.Random                         ( Random(random,randomR), randomIO )
+
 import qualified Data.Vector.Storable.Sized            as SVS
 import qualified Numeric.LinearAlgebra                 as HU
 import qualified Numeric.LinearAlgebra.Static          as H
