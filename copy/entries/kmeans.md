@@ -99,8 +99,8 @@ initialClusters pts = runST do
     sums <- MV.replicate 0
     counts <- MV.replicate 0
     ifor_ pts \i p -> do
-      modify sums (+ p) (modulo i)
-      modify counts (+ 1) (modulo i)
+      MV.modify sums (+ p) (modulo i)
+      MV.modify counts (+ 1) (modulo i)
     liftA2 (/) <$> V.freeze sums <*> V.freeze counts
 ```
 
@@ -124,8 +124,8 @@ moveClusters pts cs0 = runST do
     counts <- MV.replicate 0
     for_ pts \p -> do
       let closestIx = V.minIndex (distance p <$> cs0)
-      modify sums (+ p) closestIx
-      modify counts (+ 1) closestIx
+      MV.modify sums (+ p) closestIx
+      MV.modify counts (+ 1) closestIx
     liftA2 (/) <$> V.freeze sums <*> V.freeze counts
 ```
 
@@ -142,3 +142,66 @@ kMeans pts = go (initialClusters ps)
         cs' = moveClusters pts cs
 ```
 
+### Parallelization
+
+Typically we parallelize this by assigning each worker thread a chunk of points
+it has to deal with, and having each one compute sums and counts and
+coordinating it all back in the end.  In this case we want to keep the
+intermediate sums and counts:
+
+```haskell
+groupAndSum
+    :: [p]
+    -> Vector k p
+    -> Vector k (p, p)
+groupAndSum pts cs0 = runST do
+    sums <- MV.replicate 0
+    counts <- MV.replicate 0
+    for_ pts \p -> do
+      let closestIx = V.minIndex (distance p <$> cs0)
+      MV.modify sums (+ p) closestIx
+      MV.modify counts (+ 1) closestIx
+    liftA2 (,) <$> V.freeze sums <*> V.freeze counts
+```
+
+Evaluating the Model
+--------------------
+
+A typical way to evaluate how well a clustering algorithm does is by evaluating
+the [silhouette][] of points.  If we call $a_C(i)$ the mean distance from point
+*i* to all of the points in cluster *C*, then the silhouette of that point is
+$a_D(i)$ for the point's closest neighbor cluster minus $a_C(i)$ with the
+point's own cluster, normalized to be between -1 and 1.  We we can then
+calculate the mean silhouette per cluster, and the "silhouette coefficient" is
+defined as the best mean silhouette (closest to 1) of any cluster.
+
+[silhouette]: https://en.wikipedia.org/wiki/Silhouette_(clustering)
+
+For the sake of this post we're just going to do this the naive way.  Let's say
+we have a collection of clusters `Vector k (Set p)`.
+
+```haskell
+meanSilhouette :: forall a. Vector k (Set (p a)) -> Finite k -> a
+meanSilhouette xs i = _
+  where
+    ptsHere = xs `V.index` i
+    T2 (selfMean) (Min otherMean) = ifoldMap go xs
+    go j ptsThere
+        | i == j    = T2 (First <$> meanDist) mempty
+        | otherwise = T2 mempty (fromMaybe mempty meanDist)
+      where 
+        meanDist :: Maybe a
+        meanDist = flip meanFor ptsHere \p ->
+          fromMaybe 0 $
+            meanFor (distance p) (p `S.delete` ptsThere)
+
+meanOf :: (a -> b) -> f a -> Maybe b
+meanOf xs f
+    | totNum > 0 = Just (totSum / totNum)
+    | otherwise = Nothing
+  where
+    T2 (Sum totSum) (Sum totNum) = foldMap (\x -> T2 (f x) (T2 1))
+```
+
+
+TODO: evaluation (silhouette) and demos on fake data
