@@ -13,9 +13,10 @@
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [
             (haskell.packages.ghc981.ghcWithPackages (p: with p; [
-              vector-sized
-              linear
               finite-typelits
+              linear
+              strict-tuple
+              vector-sized
             ]))
           ];
         };
