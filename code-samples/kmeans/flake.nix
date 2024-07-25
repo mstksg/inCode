@@ -15,6 +15,7 @@
             (haskell.packages.ghc981.ghcWithPackages (p: with p; [
               finite-typelits
               linear
+              statistics
               strict-tuple
               vector-sized
             ]))

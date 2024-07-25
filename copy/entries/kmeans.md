@@ -189,7 +189,7 @@ meanSilhouette xs i = _
     go j ptsThere
         | i == j    = T2 (First <$> meanDist) mempty
         | otherwise = T2 mempty (fromMaybe mempty meanDist)
-      where 
+      where
         meanDist :: Maybe a
         meanDist = flip meanFor ptsHere \p ->
           fromMaybe 0 $
