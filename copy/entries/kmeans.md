@@ -116,10 +116,10 @@ cluster 2, etc., cycling around the clusters.
 
 `runST` runs the mutable algorithm where we initialize a vector of point sums
 and a vector of point counts. We then iterate over all of the points with their
-index, and we add that point to the index of the cluster, modulo `k`. A sized
-vector `Vector k a` is indexed by a `Finite k` (an integer from 0 to *k-1*).
-So, `modulo :: Integer -> Finite k` will convert an integer index to the
-`Finite k` index type, using modulus to wrap it around if it's too big.
+index (with `ifor_`), and we add that point to the index of the cluster, modulo
+`k`. A sized vector `Vector k a` is indexed by a `Finite k` (an integer from 0
+to *k-1*). So, `modulo :: Integer -> Finite k` will convert an integer index to
+the `Finite k` index type, using modulus to wrap it around if it's too big.
 
 Here we are using some functions from *linear*:
 
