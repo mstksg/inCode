@@ -161,11 +161,11 @@ This is because we only ever get a minimum if the vector is non-empty.  So the
 library takes `n + 1` as the size to ensure that only positive length vectors
 are passed.
 
-So, in our case, we want `V.minIndex blah :: Finite k`. However, remember that
+In our case, we want `V.minIndex blah :: Finite k`. However, remember that
 we need to unify the type variables `a` and `n` so that `n + 1` is equal to
 `k`. So, what does *n* have to be so that $n + 1 = k$? Well, we can see from
 algebra that `n` needs to be `k - 1`: `(k - 1) + 1` is equal to `k`. However,
-GHC is a little dumb-dumb here in that it cannot solve for `n` itself. So we
+GHC is a little dumb-dumb here in that it cannot solve for `n` itself. We can
 explicitly pass in `@(k - 1)` to say that `n` has to be `k - 1`.
 
 For this to work we need to pull in a GHC plugin [ghc-typelits-natnormalise][]
