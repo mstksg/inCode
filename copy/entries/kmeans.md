@@ -166,7 +166,7 @@ we need to unify the type variables `a` and `n` so that `n + 1` is equal to
 `k`. So, what does *n* have to be so that $n + 1 = k$? Well, we can see from
 algebra that `n` needs to be `k - 1`: `(k - 1) + 1` is equal to `k`. However,
 GHC is a little dumb-dumb here in that it cannot solve for `n` itself. So we
-explicitly pass in `@(k - 1)` to say that `n` has to be `k - 1`.[^minIndex]
+explicitly pass in `@(k - 1)` to say that `n` has to be `k - 1`.
 
 For this to work we need to pull in a GHC plugin [ghc-typelits-natnormalise][]
 which will help GHC simplify `(k - 1) + 1` to be `k`, which it can't do by
