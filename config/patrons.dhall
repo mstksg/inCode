@@ -6,18 +6,18 @@ let mkPatron =
       λ(level : Level) →
         { name, info = { twitter, level } }
 
-in  [ mkPatron "Josh Vera" (None Text) Level.Amazing
-    , mkPatron "Austin Huang" (None Text) Level.Support
+in  [ mkPatron "Josh Vera" (Some "joshvera") Level.Amazing
+    , mkPatron "Austin Huang" (Some "austinvhuang") Level.Support
     , mkPatron "Jon" (None Text) Level.Support
     , mkPatron "Josh Miller" (None Text) Level.Support
     , mkPatron "Andrew Handley-Marsh" (None Text) Level.Support
-    , mkPatron "Domen Kožar" (None Text) Level.Support
+    , mkPatron "Domen Kožar" (Some "domenkozar") Level.Support
     , mkPatron "Fintan Halpenny" (None Text) Level.Support
-    , mkPatron "Shae Erisson" (None Text) Level.Support
+    , mkPatron "Shae Erisson" (Some "shapr") Level.Support
     , mkPatron "Amir Saeid" (Some "gluegadget") Level.Support
-    , mkPatron "Julie Moronuki" (None Text) Level.Support
-    , mkPatron "Sam Stites" (None Text) Level.Support
+    , mkPatron "Julie Moronuki" (Some "argumatronic") Level.Support
+    , mkPatron "Sam Stites" (Some "Sam Stites") Level.Support
     , mkPatron "Chris Penner" (Some "opticsbyexample") Level.Inactive
-    , mkPatron "Jan Hrček" (None Text) Level.Inactive
+    , mkPatron "Jan Hrček" (Some "_honza") Level.Inactive
     , mkPatron "Sam Raker" (None Text) Level.Inactive
     ]
