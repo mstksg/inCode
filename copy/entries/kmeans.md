@@ -24,6 +24,13 @@ projects you'll see in isolation. You'll see how I integrate dependent types,
 type-driven development, mutable data structures, and scaling things up with
 parallelism.
 
+The source code [is online here][source], and is structured as a nix flake
+script.  If you have nix installed (and flakes enabled), you should be able to
+run the script as an executable (`./kmeans.hs`).  You can also load it for
+editing with `nix develop` and `ghci`.
+
+!!![source]:kmeans/kmeans.hs
+
 The Algorithm
 -------------
 
@@ -62,7 +69,10 @@ The Haskell
 
 We're going to be dealing with vectors and norms between them, so a good thing
 to each for is the *[linear][]* library, which offers types for 2D vectors, 3D
-vectors, etc. and how to deal with them as points in a vector space.
+vectors, etc. and how to deal with them as points in a vector space.  Linear
+offers an abstraction over multiple vector space points, where in `p a`, `p` is
+a vector space over field `a`.  It as `V2 a`, so `V2 Double` is essentially
+$\mathbb{R}^2$, a 2 dimensional point with double-valued components.
 
 [linear]: http://hackage.haskell.org/package/linear
 
@@ -73,17 +83,18 @@ or `Vector k p` for k of any type of points.
 So overall, our function will have type:
 
 ```haskell
-kMeans :: [p] -> Vector k p
+kMeans :: [p a] -> Vector k (p a)
 ```
 
-Which will take a collection of `p` points, and provide the `k` cluster
+Which will take a collection of `p a` points, and provide the `k` cluster
 centers. Note here that we have "return-type polymorphism", where the `k`
 (number of items) is determined by what type the user expects the function to
-return.  If they want 3 clusters, they will call it expecting `Vector 3 p`.
+return.  If they want 3 clusters of 2d points, they will call it expecting
+`Vector 3 (V2 Double)`.
 
-We can take a list of `p`'s here because all we are going to do is *iterate*
-over each one...we don't really care about random access or updates, so it's
-really the best we can hope for, asymptotically[^branch].
+We can take a *list* of `p a`'s here because all we are going to do is
+*iterate* over each one...we don't really care about random access or updates,
+so it's really the best we can hope for, asymptotically[^branch].
 
 [^branch]: Yes, yes, linked lists are notoriously bad for the CPU-level cache
 and branch prediction, so if we are in a situation where we really cared, using
@@ -94,14 +105,7 @@ solution is to just assign point 0 to cluster 0, point 1 to cluster, point 2 to
 cluster 2, etc., cycling around the clusters.
 
 ```haskell
-initialClusters :: Num p => [p] -> Vector k p
-initialClusters pts = runST do
-    sums <- MV.replicate 0
-    counts <- MV.replicate 0
-    ifor_ pts \i p -> do
-      MV.modify sums (+ p) (modulo i)
-      MV.modify counts (+ 1) (modulo i)
-    liftA2 (/) <$> V.freeze sums <*> V.freeze counts
+!!!kmeans/kmeans.hs "initialClusters ::"
 ```
 
 `runST` runs the mutable algorithm where we initialize a vector of point sums
@@ -111,35 +115,117 @@ vector `Vector k a` is indexed by a `Finite k` (an integer from 0 to k-1). So,
 `modulo :: Integer -> Finite k` will convert an integer index to the `Finite k`
 index type, using modulus to wrap it around if it's too big.
 
+Here we are using some functions from *linear*:
+
+*   `^+^ :: (Additive p, Num a) => p a -> p a -> p a` which adds together two points
+*   `^/ :: (Functor p, Fractional a) => p a -> a -> p a` which divides a point
+    by a scalar.
+
+Also note that we use the nice `Applicative` instance for sized vectors, which
+is "zippy" behavior. `liftA2 f v1 v2` zips `v1` and `v2`
+component-by-component, which means we divide the sums by the counts
+cluster-by-cluster.  This is nice because the arguments and the results have to
+all have the same length, so we don't have to worry about dropping values like
+we do with normal list zipping.
+
+```haskell
+liftA2 :: (a -> b -> c) -> Vector k a -> Vector k b -> Vector k c
+````
+
 We can actually do a similar loop to assign/bin each point and compute the new
 centroids:
 
 ```haskell
-moveClusters
-    :: [p]
-    -> Vector k p
-    -> Vector k p
-moveClusters pts cs0 = runST do
-    sums <- MV.replicate 0
-    counts <- MV.replicate 0
-    for_ pts \p -> do
-      let closestIx = V.minIndex (distance p <$> cs0)
-      MV.modify sums (+ p) closestIx
-      MV.modify counts (+ 1) closestIx
-    liftA2 (/) <$> V.freeze sums <*> V.freeze counts
+!!!kmeans/kmeans.hs "moveClusters ::"
 ```
 
-And so that's the whole thing:
+We just have to be careful to not move the centroid if there is no points
+assigned to it, otherwise we'd be dividing by 0.
+
+Notice there's also something a little weird going on with `closestIx`.  The
+type of `V.minIndex` is:
 
 ```haskell
-kMeans :: [p] -> Vector k p
-kMeans pts = go (initialClusters ps)
-  where
-    go !cs
-        | cs == cs' = cs
-        | otherwise = go cs'
-      where
-        cs' = moveClusters pts cs
+V.minIndex :: forall a n. Ord a => Vector (n + 1) a -> Finite (n + 1)
+```
+
+In this case, we want `V.minIndex .. :: Finite k`.  However, remember that we
+need to unify the type variables `a` and `n` so that `n + 1` is equal to `k`.
+Clearly `n` needs to be `k - 1`, so that `(k - 1) + 1` is equal to `k`.
+However, GHC is a little dumb dumb here in that it cannot make that deduction
+itself.  So we explicitly pass in `@(k - 1)` to say that `n` has to be `k - 1`.
+
+For this to work we need to pull in a GHC plugin [ghc-typelits-natnormalise][]
+which will help GHC simplify `(k - 1) + 1` to be `k`, which it can't do by
+itself for some reason.  It also properly requires the constraint that `1 <= k`
+in order for `k - 1` to make sense.
+
+```haskell
+{-# OPTIONS_GHC -fplugin GHC.TypeLits.Normalise #-}
+```
+
+[ghc-typelits-natnormalise]: http://hackage.haskell.org/package/ghc-typelits-natnormalise
+
+Anyway so that's the whole thing:
+
+```haskell
+!!!kmeans/kmeans.hs "kMeans ::"
+```
+
+### Type-Level Advantages and Mitigations
+
+Having `k` in the type is useful for three reasons:
+
+1.  It helps us ensure that `moveClusters` doesn't change the number of
+    clusters/centroids.  If it was just `Vector (p a) -> Vector (p a)` we
+    cannot guarantee it does not add or drop clusters.
+2.  The type system means we don't have to manually pass `int` sizes around.
+    We can call `initialClusters` without having to manually pass in how many
+    we need, because it's already determined by the type of `kMeans` and
+    `moveClusters`.
+3.  We don't have to worry about out-of-bounds indexing because any indices we
+    generate (using `modular` or `minIndex`) are guaranteed (by their types) to
+    be valid.
+
+Now all of this is very useful for *writing* `kMeans` and ensuring that our
+implementation is correct.  But, it's also useful for the *caller* as well. If
+we had `kMeans :: Int -> [p a] -> [p a]`, we don't know for sure that the
+result list has exactly the number of elements as the `Int` you put in.  But if
+we have `kMeans :: [p a] -> Vector k (p a)`, then we know that the number of
+clusters you ask for (*k*) is guaranteed to be the number of the items you get
+back, by the type system.
+
+However you won't always be able to necessarily put in a literal `3` in `Vector
+3 (V2 Double)`.  Maybe your *k* comes from a configuration file or something
+else you pull in at runtime.  We have to be able to call `kMeans` with just an
+`Int`.
+
+Normally this means using `sumNatVal` to convert a value-level `Natural` into a
+type-level `Nat`.  However, in this case we have to be a bit more careful
+because *k* must be at least 1.  So we can use [typelits-witnesses][] to also
+bring in (at runtime) the witnesses that `1 <= k` is fulfilled.
+
+[typelits-witnesses]: http://hackage.haskell.org/package/typelits-witnesses
+
+```haskell
+!!!kmeans/kmeans.hs "kMeans' ::"
+```
+
+### Applying the Clusters
+
+Of course, `kMeans` only gets us our centroids, so it would be useful to
+actually create the clusters themselves and all their member points.  We can do
+something similar to what we did before with `ST` and mutable vectors and
+`runST`, but life is too short to always be using mutable state.  Let's instead
+build up a map of indicies to all the points that are closest to that index.
+Then we use `generate :: (Finite k -> a) -> Vector k a` to create a vector by
+picking out the maps' value at the index at each spot in the vector.  Again
+here we see that the type system helps us by not having to manually pass in a
+size, and `generate` giving us indices `i` that match the number of the
+centroids we are grouping on.
+
+```haskell
+!!!kmeans/kmeans.hs "applyClusters ::"
 ```
 
 ### Parallelization
@@ -150,58 +236,73 @@ coordinating it all back in the end.  In this case we want to keep the
 intermediate sums and counts:
 
 ```haskell
-groupAndSum
-    :: [p]
-    -> Vector k p
-    -> Vector k (p, p)
-groupAndSum pts cs0 = runST do
-    sums <- MV.replicate 0
-    counts <- MV.replicate 0
-    for_ pts \p -> do
-      let closestIx = V.minIndex (distance p <$> cs0)
-      MV.modify sums (+ p) closestIx
-      MV.modify counts (+ 1) closestIx
-    liftA2 (,) <$> V.freeze sums <*> V.freeze counts
+!!!kmeans/kmeans.hs "groupAndSum ::"
 ```
 
-Evaluating the Model
---------------------
+Running an example
+------------------
 
-A typical way to evaluate how well a clustering algorithm does is by evaluating
-the [silhouette][] of points.  If we call $a_C(i)$ the mean distance from point
-*i* to all of the points in cluster *C*, then the silhouette of that point is
-$a_D(i)$ for the point's closest neighbor cluster minus $a_C(i)$ with the
-point's own cluster, normalized to be between -1 and 1.  We we can then
-calculate the mean silhouette per cluster, and the "silhouette coefficient" is
-defined as the best mean silhouette (closest to 1) of any cluster.
+For funsies let us generate sample points that we know are clustered based on k
+random cluster centers, using [mwc-random][] for randomness.
 
-[silhouette]: https://en.wikipedia.org/wiki/Silhouette_(clustering)
-
-For the sake of this post we're just going to do this the naive way.  Let's say
-we have a collection of clusters `Vector k (Set p)`.
+[mwc-random]: http://hackage.haskell.org/package/mwc-random
 
 ```haskell
-meanSilhouette :: forall a. Vector k (Set (p a)) -> Finite k -> a
-meanSilhouette xs i = _
-  where
-    ptsHere = xs `V.index` i
-    T2 (selfMean) (Min otherMean) = ifoldMap go xs
-    go j ptsThere
-        | i == j    = T2 (First <$> meanDist) mempty
-        | otherwise = T2 mempty (fromMaybe mempty meanDist)
-      where
-        meanDist :: Maybe a
-        meanDist = flip meanFor ptsHere \p ->
-          fromMaybe 0 $
-            meanFor (distance p) (p `S.delete` ptsThere)
-
-meanOf :: (a -> b) -> f a -> Maybe b
-meanOf xs f
-    | totNum > 0 = Just (totSum / totNum)
-    | otherwise = Nothing
-  where
-    T2 (Sum totSum) (Sum totNum) = foldMap (\x -> T2 (f x) (T2 1))
+!!!kmeans/kmeans.hs "generateSamples ::"
 ```
 
+By the way isn't it funny that everything just ends up being `traverse` or some
+derivation of it (like `replicateM` or `sequenceA`).
 
-TODO: evaluation (silhouette) and demos on fake data
+```haskell
+!!!kmeans/kmeans.hs "main ::"
+```
+
+```
+points
+V2 15.117809404050517 2.4824833627968137
+V2 14.825686288414198 2.569457175505424
+V2 14.806948346588289 2.3222471406644867
+V2 15.012490917145703 2.41735577349797
+V2 15.007612893836304 2.3823051676970746
+V2 14.866016893659538 2.590777185848723
+V2 14.83908442030534 2.5756382736578343
+V2 14.969996769619264 2.549568226274995
+V2 14.983371307935904 2.4823314218207586
+V2 14.931617828479244 2.469607213743923
+V2 29.426938075603196 9.90899836541481
+V2 29.657363050066813 9.844458859292706
+V2 29.487332896419872 9.65240948313236
+V2 29.717470180982964 9.756325723236502
+V2 29.67198068295402 9.688676918673274
+V2 29.564673351390947 9.63896189703656
+V2 29.56057222121772 9.833541221236656
+V2 29.563747509453506 9.75593412158655
+V2 29.497322568720026 9.684752183878274
+V2 29.598339480038018 9.968546198295204
+V2 3.204536005881443 30.039372398954175
+V2 3.1684921057193005 30.082909536200095
+V2 3.2040077021183793 29.90694542057959
+V2 3.151859377604784 29.89198303817146
+V2 3.1027920089123935 30.240061564528673
+V2 3.2323285236152937 30.037812094337777
+V2 3.2722229374242366 30.05215727709455
+V2 2.9723263815754652 30.06281544324189
+V2 3.1935700833126437 30.068367400732857
+V2 3.253701544151972 29.875079507116222
+actual centers
+[V2 14.938139892220267 2.4859265040850276,V2 29.55811494146035 9.808348344980386,V2 3.239842205071254 30.070304958459946]
+kmeans centers
+[V2 14.936063507003428 2.484177094150801,V2 29.57457400168471 9.773260497178288,V2 3.175583667031591 30.025750368095725]
+```
+
+Neat!
+
+Special Thanks
+--------------
+
+I am very humbled to be supported by an amazing community, who make it possible
+for me to devote time to researching and writing these posts.  Very special
+thanks to my supporter at the "Amazing" level on [patreon][], Josh Vera! :)
+
+[patreon]: https://www.patreon.com/justinle/overview
