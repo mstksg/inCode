@@ -1,7 +1,7 @@
 ---
 title: "Haskell Nuggets: k-means"
 categories: Haskell
-tags: haskell, machine learning
+tags: haskell, machine learning, dependent types, functional programming
 create-time: 2024/07/16 22:55:56
 date: 2024/07/26 12:06:27
 identifier: kmeans
