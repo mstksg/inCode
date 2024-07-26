@@ -23,10 +23,12 @@ tutorials. You'll see how I integrate dependent types, type-driven development,
 mutable data structures, generating random data, and preparation for
 parallelism.
 
-The source code [is online here][source], and is structured as a nix flake
-script.  If you have [nix][] installed (and flakes enabled), you should be able to
-run the script as an executable (`./kmeans.hs`).  You can also load it for
-editing with `nix develop` + `ghci`.
+For reference, the intended audience is for people with knowledge of Haskell
+syntax and basic idioms (mapping, traversing, folding, applicatives).  The
+source code [is online here][source], and is structured as a nix flake script.
+If you have [nix][] installed (and flakes enabled), you should be able to run
+the script as an executable (`./kmeans.hs`).  You can also load it for editing
+with `nix develop` + `ghci`.
 
 !!![source]:kmeans/kmeans.hs
 [nix]: https://nixos.org/
@@ -161,18 +163,17 @@ This is because we only ever get a minimum if the vector is non-empty.  So the
 library takes `n + 1` as the size to ensure that only positive length vectors
 are passed.
 
-In our case, we want `V.minIndex blah :: Finite k`. However, remember that
-we need to unify the type variables `a` and `n` so that `n + 1` is equal to
-`k`. So, what does *n* have to be so that $n + 1 = k$? Well, we can see from
-algebra that `n` needs to be `k - 1`: `(k - 1) + 1` is equal to `k`. However,
-GHC is a little dumb-dumb here in that it cannot solve for `n` itself. We can
-explicitly pass in `@(k - 1)` to say that `n` has to be `k - 1`.
+In our case, we want `V.minIndex blah :: Finite k`. However, remember how
+typechecking works: we need to unify the type variables `a` and `n` so that `n
++ 1` is equal to `k`. So, what does *n* have to be so that $n + 1 = k$? Well,
+we can see from algebra that `n` needs to be `k - 1`: `(k - 1) + 1` is equal
+to `k`. However, GHC is a little dumb-dumb here in that it cannot solve for
+`n` itself. We can explicitly pass in `@(k - 1)` to say that `n` has to be `k - 1`.
 
 For this to work we need to pull in a GHC plugin [ghc-typelits-natnormalise][]
-which will help GHC simplify `(k - 1) + 1` to be `k`, which it can't do by
+which will allow GHC to simplify `(k - 1) + 1` to be `k`, which it can't do by
 itself for some reason.  It also requires the constraint that `1 <= k` in order
-for `k - 1` to make sense for natural number `k`. We can pull in the plugin
-with:
+for `k - 1` to make sense for natural number `k`. We can pull in the plugin with:
 
 ```haskell
 {-# OPTIONS_GHC -fplugin GHC.TypeLits.Normalise #-}
