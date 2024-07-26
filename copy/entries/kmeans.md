@@ -205,7 +205,7 @@ Having `k` in the type is useful for many reasons:
     cannot guarantee it does not add or drop clusters.
 2.  The type system means we don't have to manually pass `int` sizes around.
     For example, in `initialClusters`, we implicitly pass the size around *four
-    times* when we do `MV.replicate` (twice), `modulo`, and `generate`! And, in
+    times* when we do `MV.replicate` (twice), `modulo`, and `generateM`! And, in
     the definition of `kMeans`, we implicitly pass it on to our call to
     `initialClusters`.
 3.  We don't have to worry about out-of-bounds indexing because any indices we
@@ -240,7 +240,7 @@ Of course, `kMeans` only gets us our centroids, so it would be useful to
 actually create the clusters themselves and all their member points.  We can do
 something similar to what we did before with `ST` and mutable vectors and
 `runST`, but life is too short to always be using mutable state.  Let's instead
-build up a map of indicies to all the points that are closest to that index.
+build up a map of indices to all the points that are closest to that index.
 Then we use `generate :: (Finite k -> a) -> Vector k a` to create a vector by
 picking out the maps' value at the index at each spot in the vector.  Again
 here we see that the type system helps us by not having to manually pass in a
