@@ -9,10 +9,7 @@ slug: haskell-nuggets-kmeans
 ---
 
 AI is hot, so let's talk about some "classical machine learning" in Haskell
-with k-means clustering! I have been meaning to shift away from "conceptual"
-posts and instead post a bit more about small, practical snippets that
-demonstrate some useful Haskell techniques and principles drive how I approach
-coding in Haskell overall.
+with k-means clustering! Let's throw in some dependent types too.
 
 There are a bazillion ways of implementing such a simple algorithm, but this is
 how *I'd* do it, as someone who develops almost exclusively in Haskell (or
@@ -21,7 +18,10 @@ functional pure languages) in both personal projects and work. It's not the
 it can also break beyond the simple toy projects you'll often see in conceptual
 tutorials. You'll see how I integrate dependent types, type-driven development,
 mutable data structures, generating random data, and preparation for
-parallelism.
+parallelism. I have been meaning to shift away from "conceptual"
+posts and instead post a bit more about small, practical snippets that
+demonstrate some useful Haskell techniques and principles drive how I approach
+coding in Haskell overall.
 
 For reference, the intended audience is for people with knowledge of Haskell
 syntax and basic idioms (mapping, traversing, folding, applicatives).  The
