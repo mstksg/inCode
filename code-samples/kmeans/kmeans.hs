@@ -132,12 +132,14 @@ generateSamples ::
 generateSamples npts k g = do
   (centers, ptss) <- unzip <$> replicateM k do
       center <- sequenceA $ pure @p $ MWC.uniformRM (0, boxSize) g
-      pts <- replicateM npts do
+      pts <- replicateM npts $
         traverse (\c -> MWC.normal c 0.1 g) center
       pure (center, pts)
   pure (centers, concat ptss)
   where
-    dim = length $ pure @p ()
+    dim = length (pure () :: p ())
+    -- approximately scale the range of the numbers by the area that the
+    -- clusters would take up
     boxSize = (fromIntegral k ** recip (fromIntegral dim)) * 20
 
 main :: IO ()

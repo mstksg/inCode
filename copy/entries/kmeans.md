@@ -4,25 +4,22 @@ categories: Haskell
 tags: haskell, machine learning
 create-time: 2024/07/16 22:55:56
 identifier: kmeans
-slug: haskell-nugget-kmeans
+slug: haskell-nuggets-kmeans
 ---
 
 AI is hot, so let's talk about some "classical machine learning" in Haskell
-with k-means clustering! Over time my blog has slowly shifted from practical
-projects to "high-concept" articles introducing new principles and techniques,
-but I think it's lead me to hesitate posting about the simple one-off practical
-Haskell solutions that have become my day-to-day doing actual work. So, I'm
-going to try to post a bit more about small, practical snippets that
-demonstrate some useful Haskell techniques and principles drive how I approach
-coding in Haskell overall.
+with k-means clustering! Instead of "conceptual" posts, I'm going to try to
+post a bit more about small, practical snippets that demonstrate some useful
+Haskell techniques and principles drive how I approach coding in Haskell
+overall.
 
 There are a bazillion ways of implementing such a simple algorithm, but this is
 how *I'd* do it, as someone who develops almost exclusively in Haskell (or
 functional pure languages) in both personal projects and work. It's not the
-"right" way or the "best" way, but hopefully it can break beyond the simple toy
-projects you'll see in isolation. You'll see how I integrate dependent types,
-type-driven development, mutable data structures, and scaling things up with
-parallelism.
+"right" way or the "best" way, but it's the way that brings me (personally) the
+most joy.  Hopefully it can also break beyond the simple toy projects you'll
+see in isolation. You'll see how I integrate dependent types, type-driven
+development, and mutable data structures.
 
 The source code [is online here][source], and is structured as a nix flake
 script.  If you have nix installed (and flakes enabled), you should be able to
@@ -36,9 +33,8 @@ The Algorithm
 
 [K-means][] is a method of assigning a bunch of data points and samples into
 *k* clusters. For the purpose of this post, we're going to talk about data
-points as points in a vector space ("vectors") and clustering as grouping
-together clusters of points that are close to each other (using Euclidean/l2
-distance).
+points as points in a vector space and clustering as grouping together clusters
+of points that are close to each other (using Euclidean/L2 distance).
 
 [K-means]: https://en.wikipedia.org/wiki/K-means_clustering
 
@@ -54,31 +50,37 @@ The basic iteration goes like this:
 Basically, we repeatedly say, "if this was the true cluster center, what points
 would be in it?". Then we adjust our cluster center to the center of those
 points at were assigned to it, updating to a better guess.  Then we repeat
-again.
+again. A simple stopping condition would be if none of the k centers move after
+the update step.
 
-A simple stopping condition would be if none of the k centers move after the
-update step.
-
-The algorithm leaves the assigning of the original points undefined, so it's
-not deterministic...and it's also not optimal either, since it might converge
-on clusters that aren't the best.  But it's simple enough conceptually that
-it's taught in every beginner machine learning course.
+The algorithm leaves the assigning of the original points undefined, and it's
+also not optimal either, since it might converge on clusters that aren't the
+best.  But it's simple enough conceptually that it's taught in every beginner
+machine learning course.
 
 The Haskell
 -----------
 
-We're going to be dealing with vectors and norms between them, so a good thing
-to each for is the *[linear][]* library, which offers types for 2D vectors, 3D
-vectors, etc. and how to deal with them as points in a vector space.  Linear
-offers an abstraction over multiple vector space points, where in `p a`, `p` is
-a vector space over field `a`.  It as `V2 a`, so `V2 Double` is essentially
-$\mathbb{R}^2$, a 2 dimensional point with double-valued components.
+We're going to be dealing with points in a vector space and norms between them,
+so a good thing to each for is the *[linear][]* library, which offers types for
+2D vectors, 3D vectors, etc. and how to deal with them as points in a vector
+space. *Linear* offers an abstraction over multiple vector space points, where
+in `p a`, `p` is a vector space over field `a`.  The library has `V2 a` for 2D
+points, so `V2 Double` is essentially $\mathbb{R}^2$, a 2 dimensional point
+with double-valued components.
 
 [linear]: http://hackage.haskell.org/package/linear
 
-Then we want a collection of k cluster centers.  We can use *[vector-sized][]*
+Now we want a collection of k cluster centers.  We can use *[vector-sized][]*
 for a fixed-size collection of items, `Vector k (V2 Double)` for k 2-D points,
-or `Vector k p` for k of any type of points.
+or `Vector k p` for k of any type of points.[^vector]
+
+[^vector]: Be mindful, for `Vector` here we are using things strictly as a
+"fixed-sized collection of values", whereas for *linear*, we have types like
+`V2` which represent *points in a mathematical vector space*.  It's a bit
+unfortunate that the terminology overlaps here a bit.
+
+[vector-sized]: http://hackage.haskell.org/package/vector-sized
 
 So overall, our function will have type:
 
@@ -86,15 +88,16 @@ So overall, our function will have type:
 kMeans :: [p a] -> Vector k (p a)
 ```
 
-Which will take a collection of `p a` points, and provide the `k` cluster
-centers. Note here that we have "return-type polymorphism", where the `k`
-(number of items) is determined by what type the user expects the function to
-return.  If they want 3 clusters of 2d points, they will call it expecting
-`Vector 3 (V2 Double)`.
+It will take a collection of `p a` points, and provide the `k` cluster centers.
+Note here that we have "return-type polymorphism", where the `k` (number of
+items) is determined by what type the user expects the function to return.  If
+they want 3 clusters of 2d points, they will call it expecting `Vector 3 (V2
+Double)`.  If they want 10 clusters of 2d points, they would call it expecting
+`Vector 10 (V2 Double)`.
 
-We can take a *list* of `p a`'s here because all we are going to do is
-*iterate* over each one...we don't really care about random access or updates,
-so it's really the best we can hope for, asymptotically[^branch].
+We take a *list* of `p a`'s here because all we are going to do is *iterate*
+over each one...we don't really care about random access or updates, so it's
+really the best we can hope for, asymptotically[^branch].
 
 [^branch]: Yes, yes, linked lists are notoriously bad for the CPU-level cache
 and branch prediction, so if we are in a situation where we really cared, using
@@ -111,22 +114,23 @@ cluster 2, etc., cycling around the clusters.
 `runST` runs the mutable algorithm where we initialize a vector of point sums
 and a vector of point counts. We then iterate over all of the points with their
 index, and we add that point to the index of the cluster, modulo `k`. A sized
-vector `Vector k a` is indexed by a `Finite k` (an integer from 0 to k-1). So,
-`modulo :: Integer -> Finite k` will convert an integer index to the `Finite k`
-index type, using modulus to wrap it around if it's too big.
+vector `Vector k a` is indexed by a `Finite k` (an integer from 0 to *k-1*).
+So, `modulo :: Integer -> Finite k` will convert an integer index to the
+`Finite k` index type, using modulus to wrap it around if it's too big.
 
 Here we are using some functions from *linear*:
 
-*   `^+^ :: (Additive p, Num a) => p a -> p a -> p a` which adds together two points
-*   `^/ :: (Functor p, Fractional a) => p a -> a -> p a` which divides a point
-    by a scalar.
+*   `(^+^) :: (Additive p, Num a) => p a -> p a -> p a` which adds together two
+    points
+*   `(^/) :: (Functor p, Fractional a) => p a -> a -> p a` which divides a
+    point by a scalar
 
 Also note that we use the nice `Applicative` instance for sized vectors, which
-is "zippy" behavior. `liftA2 f v1 v2` zips `v1` and `v2`
+is "zippy" behavior. `liftA2 f v1 v2` (or `f <$> v1 <*> v2`) zips `v1` and `v2`
 component-by-component, which means we divide the sums by the counts
 cluster-by-cluster.  This is nice because the arguments and the results have to
 all have the same length, so we don't have to worry about dropping values like
-we do with normal list zipping.
+we do with normal list zipping:
 
 ```haskell
 liftA2 :: (a -> b -> c) -> Vector k a -> Vector k b -> Vector k c
@@ -142,8 +146,9 @@ centroids:
 We just have to be careful to not move the centroid if there is no points
 assigned to it, otherwise we'd be dividing by 0.
 
-Notice there's also something a little weird going on with `closestIx`.  The
-type of `V.minIndex` is:
+Notice there's also something a little subtle going on with `closestIx`, which
+exposes a bit of the awkwardness with working with type-level numbers in
+Haskell today.  The type of `V.minIndex` is:
 
 ```haskell
 V.minIndex :: forall a n. Ord a => Vector (n + 1) a -> Finite (n + 1)
@@ -153,7 +158,8 @@ In this case, we want `V.minIndex .. :: Finite k`.  However, remember that we
 need to unify the type variables `a` and `n` so that `n + 1` is equal to `k`.
 Clearly `n` needs to be `k - 1`, so that `(k - 1) + 1` is equal to `k`.
 However, GHC is a little dumb dumb here in that it cannot make that deduction
-itself.  So we explicitly pass in `@(k - 1)` to say that `n` has to be `k - 1`.
+itself.  So we explicitly pass in `@(k - 1)` to say that `n` has to be `k -
+1`.[^minIndex]
 
 For this to work we need to pull in a GHC plugin [ghc-typelits-natnormalise][]
 which will help GHC simplify `(k - 1) + 1` to be `k`, which it can't do by
@@ -166,6 +172,10 @@ in order for `k - 1` to make sense.
 
 [ghc-typelits-natnormalise]: http://hackage.haskell.org/package/ghc-typelits-natnormalise
 
+[^minIndex]: I believe that if `V.minIndex` was instead defined to work with
+`(1 <= n) => Vector n a`, we wouldn't need the plugin and things would be a bit
+simpler here.  Oh well.
+
 Anyway so that's the whole thing:
 
 ```haskell
@@ -174,36 +184,33 @@ Anyway so that's the whole thing:
 
 ### Type-Level Advantages and Mitigations
 
-Having `k` in the type is useful for three reasons:
+Having `k` in the type is useful for many reasons:
 
 1.  It helps us ensure that `moveClusters` doesn't change the number of
-    clusters/centroids.  If it was just `Vector (p a) -> Vector (p a)` we
+    clusters/centroids.  If it was just `[p a] -> [p a]` we
     cannot guarantee it does not add or drop clusters.
 2.  The type system means we don't have to manually pass `int` sizes around.
-    We can call `initialClusters` without having to manually pass in how many
-    we need, because it's already determined by the type of `kMeans` and
-    `moveClusters`.
+    In another world, `initialClusters` would require an `Int` argument to know
+    how many clusters to generate.  However, in this case, it's already
+    determined by the type of `kMeans` and `moveClusters`.
 3.  We don't have to worry about out-of-bounds indexing because any indices we
     generate (using `modular` or `minIndex`) are guaranteed (by their types) to
     be valid.
+4.  It's useful for the caller to guarantee they are getting what they are
+    asking for.  If `kMeans :: Int -> [p a] -> [p a]`, then we can't be sure
+    that the result list has *k* items.  But because we have `kMeans :: [p a]
+    -> Vector k (p a)`, the compiler ensures that the result has *k* items.
 
-Now all of this is very useful for *writing* `kMeans` and ensuring that our
-implementation is correct.  But, it's also useful for the *caller* as well. If
-we had `kMeans :: Int -> [p a] -> [p a]`, we don't know for sure that the
-result list has exactly the number of elements as the `Int` you put in.  But if
-we have `kMeans :: [p a] -> Vector k (p a)`, then we know that the number of
-clusters you ask for (*k*) is guaranteed to be the number of the items you get
-back, by the type system.
+However you won't *always* be able to necessarily put in a literal `3` in
+`Vector 3 (V2 Double)`.  Maybe your *k* comes from a configuration file or
+something else you pull in at runtime.  We need a way to call `kMeans` with
+just an `Int`! (also known as "reification")
 
-However you won't always be able to necessarily put in a literal `3` in `Vector
-3 (V2 Double)`.  Maybe your *k* comes from a configuration file or something
-else you pull in at runtime.  We have to be able to call `kMeans` with just an
-`Int`.
-
-Normally this means using `sumNatVal` to convert a value-level `Natural` into a
-type-level `Nat`.  However, in this case we have to be a bit more careful
+Normally, this means using `sumNatVal` to convert a value-level `Natural` into
+a type-level `Nat`.  However, in this case we have to be a bit more careful
 because *k* must be at least 1.  So we can use [typelits-witnesses][] to also
-bring in (at runtime) the witnesses that `1 <= k` is fulfilled.
+bring in (at runtime) the witnesses that `1 <= k` is fulfilled.  Just one of
+the more awkward corners of working with type level numbers in Haskell today.
 
 [typelits-witnesses]: http://hackage.haskell.org/package/typelits-witnesses
 
@@ -252,7 +259,7 @@ random cluster centers, using [mwc-random][] for randomness.
 ```
 
 By the way isn't it funny that everything just ends up being `traverse` or some
-derivation of it (like `replicateM` or `sequenceA`).
+derivation of it (like `replicateM` or `sequenceA`)? Anyways,
 
 ```haskell
 !!!kmeans/kmeans.hs "main ::"
