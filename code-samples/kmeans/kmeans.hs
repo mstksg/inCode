@@ -37,9 +37,8 @@ initialClusters pts = runST do
     let i' = modulo (fromIntegral i)
     MV.modify sums (^+^ p) i'
     MV.modify counts (+ 1) i'
-  sums_ <- V.freeze sums
-  counts_ <- V.freeze counts
-  pure $ (^/) <$> sums_ <*> counts_
+  V.generateM \i ->
+    (^/) <$> MV.read sums i <*> MV.read counts i
 
 moveClusters ::
   forall k p a.
@@ -47,21 +46,18 @@ moveClusters ::
   [p a] ->
   Vector k (p a) ->
   Vector k (p a)
-moveClusters pts cs0 = runST do
+moveClusters pts origCentroids = runST do
   sums <- MV.replicate zero
   counts <- MV.replicate 0
   for_ pts \p -> do
-    let closestIx = V.minIndex @a @(k - 1) (distance p <$> cs0)
+    let closestIx = V.minIndex @a @(k - 1) (distance p <$> origCentroids)
     MV.modify sums (^+^ p) closestIx
     MV.modify counts (+ 1) closestIx
-  sums_ <- V.freeze sums
-  counts_ <- V.freeze counts
-  pure $ moveIfNotZero <$> cs0 <*> sums_ <*> counts_
-  where
-    moveIfNotZero :: p a -> p a -> Integer -> p a
-    moveIfNotZero original tot n
-      | n == 0 = original
-      | otherwise = tot ^/ fromInteger n
+  V.generateM \i -> do
+    n <- MV.read counts i
+    if n == 0
+      then pure $ origCentroids `V.index` i
+      else (^/ fromIntegral n) <$> MV.read sums i
 
 kMeans ::
   forall k p a.
@@ -100,9 +96,8 @@ groupAndSum pts cs0 = runST do
     let closestIx = V.minIndex (distance p <$> cs0)
     MV.modify sums (^+^ p) closestIx
     MV.modify counts (+ 1) closestIx
-  sums_ <- V.freeze sums
-  counts_ <- V.freeze counts
-  pure $ (,) <$> sums_ <*> counts_
+  V.generateM \i ->
+    (,) <$> MV.read sums i <*> MV.read counts i
 
 applyClusters ::
   forall k p a.
@@ -131,13 +126,15 @@ generateSamples ::
   g ->
   m ([p Double], [p Double])
 generateSamples numPts numClusters g = do
-  (centers, ptss) <- unzip <$> replicateM numClusters do
+  (centers, ptss) <-
+    unzip <$> replicateM numClusters do
       -- generate the centroid uniformly in the box component-by-component
       center <- sequenceA $ pure @p $ MWC.uniformRM (0, boxSize) g
       -- generate numPts points...
-      pts <- replicateM numPts $
-        -- .. component-by-component, as normal distribution around the center
-        traverse (\c -> MWC.normal c 0.1 g) center
+      pts <-
+        replicateM numPts $
+          -- .. component-by-component, as normal distribution around the center
+          traverse (\c -> MWC.normal c 0.1 g) center
       pure (center, pts)
   pure (centers, concat ptss)
   where

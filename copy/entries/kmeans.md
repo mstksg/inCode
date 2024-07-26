@@ -130,16 +130,15 @@ Here we are using some functions from *linear*:
 *   `(^/) :: (Functor p, Fractional a) => p a -> a -> p a` which divides a
     point by a scalar
 
-Also note that we use the nice `Applicative` instance for `Vector k`, which has
-a "zippy" behavior. `liftA2 f v1 v2` (or `f <$> v1 <*> v2`) zips `v1` and `v2`
-component-by-component, which means we divide the sums by the counts
-cluster-by-cluster.  This is nice because the arguments and the results have to
-all have the same length, so we don't have to worry about dropping values like
-we do with normal list zipping:
+At the end of it all, we use `V.generateM` to assemble our final (immutable)
+centroids by reading out the sums and totals at each cluster:
 
 ```haskell
-liftA2 :: (a -> b -> c) -> Vector k a -> Vector k b -> Vector k c
-````
+V.generateM :: (Finite k -> m a) -> m (Vector k a)
+```
+
+Note that we the lengths of all our intermediate vectors (`sums`, `counts`, and
+the final result) are all implicitly inferred through type inference (by `k`).
 
 We can actually do a similar loop to assign/bin each point and compute the new
 centroids:
@@ -205,9 +204,10 @@ Having `k` in the type is useful for many reasons:
     clusters/centroids.  If it was just `[p a] -> [p a]` we
     cannot guarantee it does not add or drop clusters.
 2.  The type system means we don't have to manually pass `int` sizes around.
-    In another world, `initialClusters` would require an `Int` argument to know
-    how many clusters to generate.  However, in this case, it's already
-    determined by the type of `kMeans` and `moveClusters`.
+    For example, in `initialClusters`, we implicitly pass the size around *four
+    times* when we do `MV.replicate` (twice), `modulo`, and `generate`! And, in
+    the definition of `kMeans`, we implicitly pass it on to our call to
+    `initialClusters`.
 3.  We don't have to worry about out-of-bounds indexing because any indices we
     generate (using `modular` or `minIndex`) are guaranteed (by their types) to
     be valid.
