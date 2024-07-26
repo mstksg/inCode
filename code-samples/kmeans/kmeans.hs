@@ -58,8 +58,9 @@ moveClusters pts cs0 = runST do
   counts_ <- V.freeze counts
   pure $ moveIfNotZero <$> cs0 <*> sums_ <*> counts_
   where
-    moveIfNotZero orig tot n
-      | n == 0 = orig
+    moveIfNotZero :: p a -> p a -> Integer -> p a
+    moveIfNotZero original tot n
+      | n == 0 = original
       | otherwise = tot ^/ fromInteger n
 
 kMeans ::
@@ -129,26 +130,30 @@ generateSamples ::
   Int ->
   g ->
   m ([p Double], [p Double])
-generateSamples npts k g = do
-  (centers, ptss) <- unzip <$> replicateM k do
+generateSamples numPts numClusters g = do
+  (centers, ptss) <- unzip <$> replicateM numClusters do
+      -- generate the centroid uniformly in the box component-by-component
       center <- sequenceA $ pure @p $ MWC.uniformRM (0, boxSize) g
-      pts <- replicateM npts $
+      -- generate numPts points...
+      pts <- replicateM numPts $
+        -- .. component-by-component, as normal distribution around the center
         traverse (\c -> MWC.normal c 0.1 g) center
       pure (center, pts)
   pure (centers, concat ptss)
   where
+    -- get the dimension by getting the length of a unit point
     dim = length (pure () :: p ())
     -- approximately scale the range of the numbers by the area that the
     -- clusters would take up
-    boxSize = (fromIntegral k ** recip (fromIntegral dim)) * 20
+    boxSize = (fromIntegral numClusters ** recip (fromIntegral dim)) * 20
 
 main :: IO ()
 main = do
   g <- MWC.createSystemRandom
   (centers, samps) <- generateSamples @V2 10 3 g
-  putStrLn "points"
+  putStrLn "* points"
   mapM_ print samps
-  putStrLn "actual centers"
+  putStrLn "* actual centers"
   print centers
-  putStrLn "kmeans centers"
+  putStrLn "* kmeans centers"
   print $ kMeans' 3 samps

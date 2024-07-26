@@ -3,30 +3,33 @@ title: "Haskell Nuggets: k-means"
 categories: Haskell
 tags: haskell, machine learning
 create-time: 2024/07/16 22:55:56
+date: 2024/07/26 12:06:27
 identifier: kmeans
 slug: haskell-nuggets-kmeans
 ---
 
 AI is hot, so let's talk about some "classical machine learning" in Haskell
-with k-means clustering! Instead of "conceptual" posts, I'm going to try to
-post a bit more about small, practical snippets that demonstrate some useful
-Haskell techniques and principles drive how I approach coding in Haskell
-overall.
+with k-means clustering! I have been meaning to shift away from "conceptual"
+posts and instead post a bit more about small, practical snippets that
+demonstrate some useful Haskell techniques and principles drive how I approach
+coding in Haskell overall.
 
 There are a bazillion ways of implementing such a simple algorithm, but this is
 how *I'd* do it, as someone who develops almost exclusively in Haskell (or
 functional pure languages) in both personal projects and work. It's not the
-"right" way or the "best" way, but it's the way that brings me (personally) the
-most joy.  Hopefully it can also break beyond the simple toy projects you'll
-see in isolation. You'll see how I integrate dependent types, type-driven
-development, and mutable data structures.
+"right" way or the "best" way, but it's the way that brings me joy.  Hopefully
+it can also break beyond the simple toy projects you'll often see in conceptual
+tutorials. You'll see how I integrate dependent types, type-driven development,
+mutable data structures, generating random data, and preparation for
+parallelism.
 
 The source code [is online here][source], and is structured as a nix flake
-script.  If you have nix installed (and flakes enabled), you should be able to
+script.  If you have [nix][] installed (and flakes enabled), you should be able to
 run the script as an executable (`./kmeans.hs`).  You can also load it for
-editing with `nix develop` and `ghci`.
+editing with `nix develop` + `ghci`.
 
 !!![source]:kmeans/kmeans.hs
+[nix]: https://nixos.org/
 
 The Algorithm
 -------------
@@ -61,19 +64,19 @@ machine learning course.
 The Haskell
 -----------
 
-We're going to be dealing with points in a vector space and norms between them,
-so a good thing to each for is the *[linear][]* library, which offers types for
-2D vectors, 3D vectors, etc. and how to deal with them as points in a vector
-space. *Linear* offers an abstraction over multiple vector space points, where
-in `p a`, `p` is a vector space over field `a`.  The library has `V2 a` for 2D
-points, so `V2 Double` is essentially $\mathbb{R}^2$, a 2 dimensional point
-with double-valued components.
+We're going to be dealing with points in a vector space and distances between
+them, so a good thing to each for is the *[linear][]* library, which offers
+types for 2D vectors, 3D vectors, etc. and how to deal with them as points in a
+vector space. *linear* offers an abstraction over multiple vector space points.
+A point has type `p a`: `p` is a vector space over field `a`.  The library has
+`V2 a` for 2D points, so `V2 Double` is *essentially* $\mathbb{R}^2$, a 2
+dimensional point with double-valued components.
 
 [linear]: http://hackage.haskell.org/package/linear
 
-Now we want a collection of k cluster centers.  We can use *[vector-sized][]*
-for a fixed-size collection of items, `Vector k (V2 Double)` for k 2-D points,
-or `Vector k p` for k of any type of points.[^vector]
+We want a collection of k cluster centers.  We can use *[vector-sized][]* for a
+fixed-size collection of items, `Vector k (V2 Double)` for k 2-D double points,
+or `Vector k (p a)` for k of any type of points.[^vector]
 
 [^vector]: Be mindful, for `Vector` here we are using things strictly as a
 "fixed-sized collection of values", whereas for *linear*, we have types like
@@ -125,8 +128,8 @@ Here we are using some functions from *linear*:
 *   `(^/) :: (Functor p, Fractional a) => p a -> a -> p a` which divides a
     point by a scalar
 
-Also note that we use the nice `Applicative` instance for sized vectors, which
-is "zippy" behavior. `liftA2 f v1 v2` (or `f <$> v1 <*> v2`) zips `v1` and `v2`
+Also note that we use the nice `Applicative` instance for `Vector k`, which has
+a "zippy" behavior. `liftA2 f v1 v2` (or `f <$> v1 <*> v2`) zips `v1` and `v2`
 component-by-component, which means we divide the sums by the counts
 cluster-by-cluster.  This is nice because the arguments and the results have to
 all have the same length, so we don't have to worry about dropping values like
@@ -154,17 +157,22 @@ Haskell today.  The type of `V.minIndex` is:
 V.minIndex :: forall a n. Ord a => Vector (n + 1) a -> Finite (n + 1)
 ```
 
-In this case, we want `V.minIndex .. :: Finite k`.  However, remember that we
-need to unify the type variables `a` and `n` so that `n + 1` is equal to `k`.
-Clearly `n` needs to be `k - 1`, so that `(k - 1) + 1` is equal to `k`.
-However, GHC is a little dumb dumb here in that it cannot make that deduction
-itself.  So we explicitly pass in `@(k - 1)` to say that `n` has to be `k -
-1`.[^minIndex]
+This is because we only ever get a minimum if the vector is non-empty.  So the
+library takes `n + 1` as the size to ensure that only positive length vectors
+are passed.
+
+So, in our case, we want `V.minIndex blah :: Finite k`. However, remember that
+we need to unify the type variables `a` and `n` so that `n + 1` is equal to
+`k`. So, what does *n* have to be so that $n + 1 = k$? Well, we can see from
+algebra that `n` needs to be `k - 1`: `(k - 1) + 1` is equal to `k`. However,
+GHC is a little dumb-dumb here in that it cannot solve for `n` itself. So we
+explicitly pass in `@(k - 1)` to say that `n` has to be `k - 1`.[^minIndex]
 
 For this to work we need to pull in a GHC plugin [ghc-typelits-natnormalise][]
 which will help GHC simplify `(k - 1) + 1` to be `k`, which it can't do by
-itself for some reason.  It also properly requires the constraint that `1 <= k`
-in order for `k - 1` to make sense.
+itself for some reason.  It also requires the constraint that `1 <= k` in order
+for `k - 1` to make sense for natural number `k`. We can pull in the plugin
+with:
 
 ```haskell
 {-# OPTIONS_GHC -fplugin GHC.TypeLits.Normalise #-}
@@ -172,9 +180,13 @@ in order for `k - 1` to make sense.
 
 [ghc-typelits-natnormalise]: http://hackage.haskell.org/package/ghc-typelits-natnormalise
 
-[^minIndex]: I believe that if `V.minIndex` was instead defined to work with
-`(1 <= n) => Vector n a`, we wouldn't need the plugin and things would be a bit
-simpler here.  Oh well.
+Honestly if we were to design the library from scratch today, I'd define it as:
+
+```haskell
+V.minIndex :: forall a n. (Ord a, 1 <= n) => Vector n a -> Finite n
+```
+
+in the first place, and we wouldn't need the typechecker plugin.
 
 Anyway so that's the whole thing:
 
@@ -182,7 +194,9 @@ Anyway so that's the whole thing:
 !!!kmeans/kmeans.hs "kMeans ::"
 ```
 
-### Type-Level Advantages and Mitigations
+Note I also added a stop after 100 steps, just to be safe.
+
+### Type-Level Advantages and Usability
 
 Having `k` in the type is useful for many reasons:
 
@@ -197,9 +211,10 @@ Having `k` in the type is useful for many reasons:
     generate (using `modular` or `minIndex`) are guaranteed (by their types) to
     be valid.
 4.  It's useful for the caller to guarantee they are getting what they are
-    asking for.  If `kMeans :: Int -> [p a] -> [p a]`, then we can't be sure
-    that the result list has *k* items.  But because we have `kMeans :: [p a]
-    -> Vector k (p a)`, the compiler ensures that the result has *k* items.
+    asking for.  If `kMeans :: Int -> [p a] -> [p a]`, then we (as the caller)
+    can't be sure that the result list has the number of items that you
+    requested.  But because we have `kMeans :: [p a] -> Vector k (p a)`, the
+    compiler ensures that the result has *k* items.
 
 However you won't *always* be able to necessarily put in a literal `3` in
 `Vector 3 (V2 Double)`.  Maybe your *k* comes from a configuration file or
@@ -209,8 +224,8 @@ just an `Int`! (also known as "reification")
 Normally, this means using `sumNatVal` to convert a value-level `Natural` into
 a type-level `Nat`.  However, in this case we have to be a bit more careful
 because *k* must be at least 1.  So we can use [typelits-witnesses][] to also
-bring in (at runtime) the witnesses that `1 <= k` is fulfilled.  Just one of
-the more awkward corners of working with type level numbers in Haskell today.
+bring in (at runtime) the witnesses that `1 <= k` is fulfilled.  Why isn't this
+in *base*?
 
 [typelits-witnesses]: http://hackage.haskell.org/package/typelits-witnesses
 
@@ -266,7 +281,7 @@ derivation of it (like `replicateM` or `sequenceA`)? Anyways,
 ```
 
 ```
-points
+* points
 V2 15.117809404050517 2.4824833627968137
 V2 14.825686288414198 2.569457175505424
 V2 14.806948346588289 2.3222471406644867
@@ -297,9 +312,9 @@ V2 3.2722229374242366 30.05215727709455
 V2 2.9723263815754652 30.06281544324189
 V2 3.1935700833126437 30.068367400732857
 V2 3.253701544151972 29.875079507116222
-actual centers
+* actual centers
 [V2 14.938139892220267 2.4859265040850276,V2 29.55811494146035 9.808348344980386,V2 3.239842205071254 30.070304958459946]
-kmeans centers
+* kmeans centers
 [V2 14.936063507003428 2.484177094150801,V2 29.57457400168471 9.773260497178288,V2 3.175583667031591 30.025750368095725]
 ```
 
