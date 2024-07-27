@@ -76,7 +76,7 @@ dimensional point with double-valued components.
 
 [linear]: http://hackage.haskell.org/package/linear
 
-We want a collection of ``k cluster centers.  We can use *[vector-sized][]* for a
+We want a collection of `k` cluster centers.  We can use *[vector-sized][]* for a
 fixed-size collection of items, `Vector k (V2 Double)` for `k` 2-D double points,
 or `Vector k (p a)` for `k` of any type of points.[^vector]
 
