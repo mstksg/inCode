@@ -222,7 +222,7 @@ However you won't *always* be able to necessarily put in a literal `3` in
 something else you pull in at runtime.  We need a way to call `kMeans` with
 just an `Int`! (also known as "reification")
 
-Normally, this means using `sumNatVal` to convert a value-level `Natural` into
+Normally, this means using `someNatVal` to convert a value-level `Natural` into
 a type-level `Nat`.  However, in this case we have to be a bit more careful
 because *k* must be at least 1.  So we can use [typelits-witnesses][] to also
 bring in (at runtime) the witnesses that `1 <= k` is fulfilled.  Why isn't this

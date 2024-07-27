@@ -38,7 +38,7 @@ initialClusters pts = runST do
     MV.modify sums (^+^ p) i'
     MV.modify counts (+ 1) i'
   V.generateM \i ->
-    (^/) <$> MV.read sums i <*> MV.read counts i
+    (^/) <$> MV.read sums i <*> (fromInteger <$> MV.read counts i)
 
 moveClusters ::
   forall k p a.
@@ -57,7 +57,7 @@ moveClusters pts origCentroids = runST do
     n <- MV.read counts i
     if n == 0
       then pure $ origCentroids `V.index` i
-      else (^/ fromIntegral n) <$> MV.read sums i
+      else (^/ fromInteger n) <$> MV.read sums i
 
 kMeans ::
   forall k p a.
