@@ -54,8 +54,8 @@ The basic iteration goes like this:
 
 Basically, we repeatedly say, "if this was the true cluster center, what points
 would be in it?". Then we adjust our cluster center to the center of those
-points at were assigned to it, updating to a better guess.  Then we repeat
-again. A simple stopping condition would be if none of the k centers move after
+points that were assigned to it, updating to a better guess.  Then we repeat
+again. A simple stopping condition would be if none of the *k* centers move after
 the update step.
 
 The algorithm leaves the assigning of the original points undefined, and it's
@@ -67,7 +67,7 @@ The Haskell
 -----------
 
 We're going to be dealing with points in a vector space and distances between
-them, so a good thing to each for is the *[linear][]* library, which offers
+them, so a good thing to reach for is the *[linear][]* library, which offers
 types for 2D vectors, 3D vectors, etc. and how to deal with them as points in a
 vector space. *linear* offers an abstraction over multiple vector space points.
 A point has type `p a`: `p` is a vector space over field `a`.  The library has
@@ -76,9 +76,9 @@ dimensional point with double-valued components.
 
 [linear]: http://hackage.haskell.org/package/linear
 
-We want a collection of k cluster centers.  We can use *[vector-sized][]* for a
-fixed-size collection of items, `Vector k (V2 Double)` for k 2-D double points,
-or `Vector k (p a)` for k of any type of points.[^vector]
+We want a collection of ``k cluster centers.  We can use *[vector-sized][]* for a
+fixed-size collection of items, `Vector k (V2 Double)` for `k` 2-D double points,
+or `Vector k (p a)` for `k` of any type of points.[^vector]
 
 [^vector]: Be mindful, for `Vector` here we are using things strictly as a
 "fixed-sized collection of values", whereas for *linear*, we have types like
@@ -105,10 +105,10 @@ over each one...we don't really care about random access or updates, so it's
 really the best we can hope for, asymptotically[^branch].
 
 [^branch]: Yes, yes, linked lists are notoriously bad for the CPU-level cache
-and branch prediction, so if we are in a situation where we really cared, using
+and branch prediction, so if we are in a situation where we really care, using
 a contiguous memory data structure (like Storable Vector) might be better.
 
-We have some leeway to how we initialize our initial clusters. One simple
+We have some leeway as to how we initialize our initial clusters. One simple
 solution is to just assign point 0 to cluster 0, point 1 to cluster, point 2 to
 cluster 2, etc., cycling around the clusters.
 
@@ -137,7 +137,7 @@ centroids by reading out the sums and totals at each cluster:
 V.generateM :: (Finite k -> m a) -> m (Vector k a)
 ```
 
-Note that we the lengths of all our intermediate vectors (`sums`, `counts`, and
+Note that the lengths of our intermediate vectors (`sums`, `counts`, and
 the final result) are all implicitly inferred through type inference (by `k`).
 
 We can actually do a similar loop to assign/bin each point and compute the new
@@ -147,7 +147,7 @@ centroids:
 !!!kmeans/kmeans.hs "moveClusters ::"
 ```
 
-We just have to be careful to not move the centroid if there is no points
+We just have to be careful to not move the centroid if there are no points
 assigned to it, otherwise we'd be dividing by 0.
 
 Notice there's also something a little subtle going on with `closestIx`, which
@@ -202,7 +202,7 @@ Having `k` in the type is useful for many reasons:
 
 1.  It helps us ensure that `moveClusters` doesn't change the number of
     clusters/centroids.  If it was just `[p a] -> [p a]` we
-    cannot guarantee it does not add or drop clusters.
+    cannot guarantee that it does not add or drop clusters.
 2.  The type system means we don't have to manually pass `int` sizes around.
     For example, in `initialClusters`, we implicitly pass the size around *four
     times* when we do `MV.replicate` (twice), `modulo`, and `generateM`! And, in
@@ -213,7 +213,7 @@ Having `k` in the type is useful for many reasons:
     be valid.
 4.  It's useful for the caller to guarantee they are getting what they are
     asking for.  If `kMeans :: Int -> [p a] -> [p a]`, then we (as the caller)
-    can't be sure that the result list has the number of items that you
+    can't be sure that the result list has the number of items that we
     requested.  But because we have `kMeans :: [p a] -> Vector k (p a)`, the
     compiler ensures that the result has *k* items.
 
