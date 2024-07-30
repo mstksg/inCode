@@ -1,10 +1,10 @@
 ---
-title: "Seven Levels of Type Safety in Haskell: Lists"
+title: "Levels of Type Safety in Haskell: Lists"
 categories: Haskell
 tags: functional programming, dependent types, haskell, singletons, types
 create-time: 2021/02/25 00:30:53
 identifier: type-levels
-slug: seven-levels-of-type-safety-haskell-lists
+slug: levels-of-type-safety-haskell-lists
 ---
 
 One thing I always appreciate about Haskell is that you can often choose the
@@ -19,7 +19,7 @@ effect; something that has helped me, though, is being consciously aware of the
 different levels of type safety that are available, and the
 benefits/drawbacks/unique advantages to each.
 
-So, here is a rundown of seven "levels" of type safety that you can operate at
+So, here is a rundown of "levels" of type safety that you can operate at
 when working with the ubiquitous *strict* linked list data type, and how to use
 them!  I genuinely believe all of these are useful (or useless) in their own
 different circumstances.  When possible, we'll prefer "structural type safety"
@@ -29,11 +29,6 @@ comparisons and contrasts) and also more flexible/parameterized options for
 type safety instead of hard-coded restrictions.
 
 [refined]: https://hackage.haskell.org/package/refined
-
-One interesting thing you might notice is the "bowl-shaped"
-difficulty/ergonomics curve.  At the unsafe extreme, usage can be a bit of a
-hassle due to the nature of the language, at the safest extremes...well, you'll
-see soon enough!
 
 This post is written for a late beginner or intermediate Haskeller, who is
 already familiar with ADTs and defining their own custom list type like `data
@@ -104,7 +99,7 @@ we can treat `x` as a `Bool` in that case.  If it doesn't (and we get
 
 ```haskell
 ghci> let x = Sigma typeRep True
-ghci> let y = Sigma typeRep 4
+ghci> let y = Sigma typeRep (4 :: Int)
 ghci> showIfBool x
 "True"
 ghci> showIfBool y
@@ -184,10 +179,10 @@ One fun thing we can do is provide a "useless witness", like `Proxy`:
 data Proxy a = Proxy
 ```
 
-So a value like `MkSigma Proxy True :: Sigma Proxy` is truly a useless data type,
-since we know that `MkSigma` contrains *some* value of *some* type, but there's
-no witness to give us any clue on how we can use it.  A `Sigma Proxy` is
-isomorphic to `()`.
+So a value like `MkSigma Proxy True :: Sigma Proxy` is truly a useless data
+type (basically our `Any` from before), since we know that `MkSigma` constrains
+*some* value of *some* type, but there's no witness to give us any clue on how
+we can use it.  A `Sigma Proxy` is isomorphic to `()`.
 
 On the other extreme, we can use a witness to constrain the value to only be a
 specific type, like `IsBool`:
@@ -201,7 +196,7 @@ So you can have a value of type `MkSigma ItsABool True :: Sigma IsBool`, or
 `MkSigma ItsABool False`, but `MkSigma ItsABool 2` will not typecheck ---
 remember, to make a `Sigma`, you need a `p a` and an `a`.  `ItsABool :: IsBool
 Bool`, so the `a` you put in must be `Bool` to match.  `Sigma IsBool` is
-isomorphic to `Bool`.
+essentially isomorphic to `Bool`.
 
 There's a general version of this too, `(:~:) a` (from *[Data.Type.Equality][]*
 in base).  `(:~:) Bool` is our `IsBool` earlier.  `Sigma ((:~:) a)` is
@@ -220,9 +215,9 @@ ergonomics, and the reductionist take doesn't quite capture that nuance.
 Level 1: Heterogeneous List
 ---------------------------
 
-The lowest level of safety in which a list might be useful is the heterogeneous
-list.  This is the level where lists (or "arrays") live in most dynamic
-languages.
+The lowest level of safety in which a list might be useful is the dynamically
+heterogeneous list.  This is the level where lists (or "arrays") live in most
+dynamic languages.
 
 ```haskell
 data Sigma :: (Type -> Type) -> Type where
@@ -235,11 +230,10 @@ type HList p = [Sigma p]
 We tag values with a witness `p` for the same reason as before: if we don't
 provide *some* type of witness, our type is useless.
 
-The "heterogeneous list of values of any type" is `HList TypeRep`.  This is
-usable in the implicit multiple-argument nature of functions in languages like
-javascript.  For example, here's a function that connects to a host (`String`),
-optionally taking a port (`Int`) and a method (`Method`).
-
+The "dynamically heterogeneous list of values of any type" is `HList TypeRep`.
+This is somewhat similar to how functions with positional arguments work in a
+dynamic language like javascript.  For example, here's a function that connects
+to a host (`String`), optionally taking a port (`Int`) and a method (`Method`).
 
 ```haskell
 data Method = HTTP | HTTPS
@@ -310,10 +304,10 @@ ghci> showAll xs
 ["1", "True"]
 ```
 
-For `Show`, this is a rather silly thing to do because of the reasons mentioned
-in the Palmer post --- namely, that you could always just have a `[String]`
-directly instead of an `HList Showable`, since the only thing you can do with a
-`Sigma Showable` is `show` it.
+For `Show`, this is, again, a rather silly thing to do because of the reasons
+mentioned in the Palmer post --- namely, that you could always just have a
+`[String]` directly instead of an `HList Showable`, since the only thing you
+can do with a `Sigma Showable` is `show` it.
 
 For fun, let's imagine some other things we could fill in for `p`.  If we use
 `HList Proxy`, then we basically don't have any witness at all.  We can't use
@@ -435,6 +429,7 @@ hlistToSomeList (HList [])     = Just $ MkSomeList (typeRep @()) []  -- this cou
 hlistToSomeList (HList (x:xs)) = 
 ```
 
+
 Level 3: Homogeneous Typed List
 -------------------------------
 
@@ -468,4 +463,30 @@ extremely powerful, and also extremely ergonomic to use in Haskell.  It can be
 argued that Haskell, as a language, was tuned explicitly to be used with the
 least friction at this exact level of type safety.
 
+We're going to talk the least about this one because it's probably the one you
+are all familiar with!
+
+<!-- the rest of these are me in 2024 guessing as to what i was thinking in 2021 -->
+
+Level 4: Fixed-size List
+------------------------
+
+For the next level of safety, we're not going to try to enforce anything on the
+contents of the list, but we can try to enforce something on the *spline* of
+the list: the number of items!
+
+To me, this level still feels very natural in Haskell to write in, although in
+terms of usability we are starting to bump into some of the things Haskell is
+lacking for higher type safety ergonomics. I've talked about [fixed-length
+vector types in depth before][fixvec-2], so this is going to be a high-level
+view contrasting this level with the others.
+
+[fixvec-2]: https://blog.jle.im/entry/fixed-length-vector-types-in-haskell.html
+
+
+Level 5: Local Structure Enforced List
+--------------------------------------
+
+Level 6: Global structure Enforced List
+---------------------------------------
 

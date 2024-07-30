@@ -1,5 +1,5 @@
 {
-  description = "k-means code sample";
+  description = "levels of type safety code samples";
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs";
     flake-utils.url = "github:numtide/flake-utils";
@@ -13,15 +13,16 @@
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [
             (haskell.packages.ghc981.ghcWithPackages (p: with p; [
-              (haskell.lib.unmarkBroken typelits-witnesses)
-              finite-typelits
-              ghc-typelits-natnormalise
-              linear
-              mwc-random
-              vector-sized
+              # (haskell.lib.unmarkBroken typelits-witnesses)
+              # finite-typelits
+              # ghc-typelits-natnormalise
+              # linear
+              # mwc-random
+              # vector-sized
             ]))
           ];
         };
       }
     );
 }
+
