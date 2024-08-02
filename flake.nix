@@ -18,7 +18,7 @@
             inCode = final.haskell-nix.project' {
               name = "inCode";
               src = ./.;
-              compiler-nix-name = "ghc963";
+              compiler-nix-name = "ghc982";
               shell = {
                 withHoogle = false;
                 tools = {

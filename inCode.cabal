@@ -4,50 +4,52 @@ cabal-version: 2.4
 --
 -- see: https://github.com/sol/hpack
 
-name:           inCode
-version:        0.1.2.0
-synopsis:       Personal blog web system
-category:       Web
-author:         Justin Le
-maintainer:     justin@jle.im
-license-file:   LICENSE
-build-type:     Simple
+name:          inCode
+version:       0.1.2.0
+synopsis:      Personal blog web system
+category:      Web
+author:        Justin Le
+maintainer:    justin@jle.im
+license-file:  LICENSE
+build-type:    Simple
 data-files:
   config/**/*.dhall
   latex/templates/default.latex
 
 library
   exposed-modules:
-      Blog.App
-      Blog.Compiler.Archive
-      Blog.Compiler.Entry
-      Blog.Compiler.Home
-      Blog.Compiler.Redirect
-      Blog.Compiler.Tag
-      Blog.Compiler.TagIndex
-      Blog.Render
-      Blog.Rule.Archive
-      Blog.Types
-      Blog.Util
-      Blog.Util.Preprocessor
-      Blog.Util.Sass
-      Blog.Util.Tag
-      Blog.View
-      Blog.View.Archive
-      Blog.View.Entry
-      Blog.View.Feed
-      Blog.View.Home
-      Blog.View.Social
-      Blog.View.TagIndex
-      Hakyll.Web.Blaze
-  other-modules:
-      Paths_inCode
-  hs-source-dirs:
-      src
-  ghc-options: -Wall -fwarn-redundant-constraints -Werror=incomplete-patterns -Wcompat
+    Blog.App
+    Blog.Compiler.Archive
+    Blog.Compiler.Entry
+    Blog.Compiler.Home
+    Blog.Compiler.Redirect
+    Blog.Compiler.Tag
+    Blog.Compiler.TagIndex
+    Blog.Render
+    Blog.Rule.Archive
+    Blog.Types
+    Blog.Util
+    Blog.Util.Preprocessor
+    Blog.Util.Sass
+    Blog.Util.Tag
+    Blog.View
+    Blog.View.Archive
+    Blog.View.Entry
+    Blog.View.Feed
+    Blog.View.Home
+    Blog.View.Social
+    Blog.View.TagIndex
+    Hakyll.Web.Blaze
+
+  other-modules:    Paths_inCode
+  hs-source-dirs:   src
+  ghc-options:
+    -Wall -fwarn-redundant-constraints -Werror=incomplete-patterns
+    -Wcompat
+
   build-depends:
-      aeson
-    , base ==4.*
+    , aeson
+    , base              >=4     && <5
     , binary
     , binary-instances
     , binary-orphans
@@ -58,10 +60,10 @@ library
     , data-default
     , dhall
     , doctemplates
-    , feed
+    , feed              >=1.3
     , filepath
-    , hakyll >=4.8
-    , hakyll-dhall >=0.2.5
+    , hakyll            >=4.8
+    , hakyll-dhall      >=0.2.5
     , hakyll-sass
     , hjsmin
     , hsass
@@ -76,22 +78,25 @@ library
     , xml-conduit
     , xml-types
     , yaml
+
   default-language: Haskell2010
 
 executable inCode-build
-  main-is: app/site.hs
-  other-modules:
-      Paths_inCode
-  ghc-options: -Wall -fwarn-redundant-constraints -Werror=incomplete-patterns -Wcompat -threaded -rtsopts -with-rtsopts=-N
+  main-is:          app/site.hs
+  other-modules:    Paths_inCode
+  ghc-options:
+    -Wall -fwarn-redundant-constraints -Werror=incomplete-patterns
+    -Wcompat -threaded -rtsopts -with-rtsopts=-N
+
   build-depends:
-      aeson
-    , base ==4.*
+    , aeson
+    , base
     , bytestring
     , containers
     , data-default
     , dhall
     , filepath
-    , hakyll >=4.8
+    , hakyll
     , inCode
     , lens
     , pandoc
@@ -102,24 +107,27 @@ executable inCode-build
     , transformers
     , tz
     , yaml
+
   default-language: Haskell2010
 
 executable blog-migrate-entries
-  main-is: app/migrate-entries.hs
-  other-modules:
-      Paths_inCode
-  ghc-options: -Wall -fwarn-redundant-constraints -Werror=incomplete-patterns -Wcompat -threaded -rtsopts -with-rtsopts=-N
+  main-is:          app/migrate-entries.hs
+  other-modules:    Paths_inCode
+  ghc-options:
+    -Wall -fwarn-redundant-constraints -Werror=incomplete-patterns
+    -Wcompat -threaded -rtsopts -with-rtsopts=-N
+
   build-depends:
-      aeson
-    , base ==4.*
+    , aeson
+    , base                  >=4 && <5
     , bytestring
     , cases
     , containers
     , data-default
-    , dhall >=1.29
+    , dhall
     , directory
     , filepath
-    , hakyll >=4.8
+    , hakyll
     , lens
     , optparse-applicative
     , pandoc
@@ -129,4 +137,5 @@ executable blog-migrate-entries
     , transformers
     , vector
     , yaml
+
   default-language: Haskell2010
