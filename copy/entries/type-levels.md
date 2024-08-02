@@ -114,14 +114,14 @@ function called `fromDynamic`:
 [Data.Dynamic]: https://hackage.haskell.org/package/base-4.14.1.0/docs/Data-Dynamic.html
 
 ```haskell
-!!!type-levels/Level0.hs "showIfDyanimc ::"
+!!!type-levels/Level0.hs "showIfBoolDynamic ::"
 ```
 
 For make our life easier in the future, let's write a version of `fromDynamic`
 for our `Sigma TypeRep`:
 
 ```haskell
-!!!type-levels/Level0.hs "castSchema ::" "castSchema' ::"
+!!!type-levels/Level0.hs "castSigma ::" "castSigma' ::"
 ```
 
 But the reason why I'm presenting the more generic `Sigma` instead of the
@@ -166,7 +166,7 @@ value is `show` it anyway.
 One fun thing we can do is provide a "useless witness", like `Proxy`:
 
 ```haskell
-!!!type-levels/Level0.hs "data Proxy ::" "uselessBool ::"
+!!!type-levels/Level0.hs "data Proxy" "uselessBool ::"
 ```
 
 So a value like `MkSigma Proxy True :: Sigma Proxy` is truly a useless data
@@ -319,7 +319,7 @@ sortable.
 For a contrived one, let's think about pulling such a list from IO:
 
 ```haskell
-!!!type-levels/Level2.hs "getItems ::" "analyzeGottenItems ::"
+!!!type-levels/Level2.hs "getItems ::" "getAndAnalyze ::"
 ```
 
 Consider also an example where process items different based on what type they

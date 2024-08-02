@@ -82,8 +82,8 @@ sigmaToHList (MkSigma tr xs) = do
   Refl <- testEquality tcon (typeRep @[])
   pure $ MkSomeList telem xs
 
-hlistToSigma :: SomeList TypeRep -> Sigma TypeRep
-hlistToSigma (MkSomeList tr xs) = MkSigma (typeRep @[] `App` tr) xs
+someListToSigma :: SomeList TypeRep -> Sigma TypeRep
+someListToSigma (MkSomeList tr xs) = MkSigma (typeRep @[] `App` tr) xs
 
 main :: IO ()
 main = pure ()

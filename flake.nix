@@ -70,7 +70,7 @@
             '';
             buildPhase = ''
               export XDG_CACHE_HOME=$(mktemp -d)
-              ${haskell}/bin/inCode-build build --verbose
+              ${haskell}/bin/inCode-build build
             '';
             installPhase = ''
               mkdir -p "$out/dist"
