@@ -45,8 +45,7 @@ A reasonable idea might be to just make a "black hole" data type that could be
 anything:
 
 ```haskell
-data Any :: Type where
-  MkAny :: a -> Any
+!!!type-levels/Level0.hs "data Any ::"
 ```
 
 (This data type declaration written using [GADT Syntax][], and the name was
@@ -55,8 +54,13 @@ chosen because it resembles [the Any type in base][Any])
 [GADT Syntax]: https://typeclasses.com/ghc/gadt-syntax
 [Any]: https://hackage.haskell.org/package/base-4.14.1.0/docs/GHC-Exts.html#t:Any
 
-So you can have values `MkAny 8 :: Any`, `MkAny True :: Any`, `MkAny [1,2,3] ::
-Any`, etc.  A value of any type can be given to `MkAny`, and the resulting type
+So you can have values:
+
+```haskell
+!!!type-levels/Level0.hs "anyInt ::" "anyBool ::" "anyList ::"
+```
+
+A value of any type can be given to `MkAny`, and the resulting type
 will have type `Any`.
 
 However, this type is a black hole; you can't really do anything with the
@@ -74,9 +78,9 @@ To get there, we can instead allow some sort of witness on the type of the
 value:
 
 ```haskell
-data Sigma :: (Type -> Type) -> Type where
-    MkSigma :: p a -> a -> Sigma p
+!!!type-levels/Level0.hs "data Sigma ::"
 ```
+
 
 And the most classic witness is [`TypeRep`][TypeRep] from *base*, which is a
 witness that lets you "match" on the type.
@@ -84,13 +88,10 @@ witness that lets you "match" on the type.
 [TypeRep]: https://hackage.haskell.org/package/base-4.14.1.0/docs/Type-Reflection.html#t:TypeRep
 
 ```haskell
-showIfBool :: Sigma TypeRep -> String
-showIfBool (Sigma tr x) = case testEquality tr (typeRep @Bool) of
-    Just Refl -> case x of      -- in this branch, we know x is a Bool
-      False -> "False"
-      True  -> "True"
-    Nothing -> "Not a Bool"
+!!!type-levels/Level0.hs "showIfBool ::"
 ```
+
+
 
 Here we can use `TypeRep`'s interface to "match" (using `testEquality`) on if
 the value inside is a `Bool`.  If the match works (and we get `Just Refl`) then
@@ -98,8 +99,8 @@ we can treat `x` as a `Bool` in that case.  If it doesn't (and we get
 `Nothing`), then we do what we would want to do otherwise.
 
 ```haskell
-ghci> let x = Sigma typeRep True
-ghci> let y = Sigma typeRep (4 :: Int)
+ghci> let x = MkSigma typeRep True
+ghci> let y = MkSigma typeRep (4 :: Int)
 ghci> showIfBool x
 "True"
 ghci> showIfBool y
@@ -113,34 +114,24 @@ function called `fromDynamic`:
 [Data.Dynamic]: https://hackage.haskell.org/package/base-4.14.1.0/docs/Data-Dynamic.html
 
 ```haskell
-showIfBool :: Dynamic -> String
-showIfBool dyn = case fromDynamic dyn of
-    Just x -> case x of      -- in this branch, we know x is a Bool
-      False -> "False"
-      True  -> "True"
-    Nothing -> "Not a Bool"
+!!!type-levels/Level0.hs "showIfDyanimc ::"
 ```
 
 For make our life easier in the future, let's write a version of `fromDynamic`
 for our `Sigma TypeRep`:
 
 ```haskell
--- Typeable constraint is necessary to use typeRep @a
-castSigma :: forall a. Typeable a => Sigma TypeRep -> Maybe a
-castSigma (Sigma tr x) = case testEquality tr (typeRep @a) of
-    Just Refl -> Just x
-    Nothing   -> Nothing
+!!!type-levels/Level0.hs "castSchema ::" "castSchema' ::"
 ```
-
 
 But the reason why I'm presenting the more generic `Sigma` instead of the
 specific `type Dynamic = Sigma TypeRep` is that you can swap out `TypeRep` to
 get other interesting types.  For example, if you had a witness of showability:
 
 ```haskell
-data Showable :: Type -> Type where
-    WitShowable :: Show a => Showable a
+!!!type-levels/Level0.hs "data Showable ::" "showableInt ::" "showableBool ::"
 ```
+
 
 (This type is related to `Dict Show` from the [constraints][] library; it's
 technically `Compose Dict Show`)
@@ -151,8 +142,7 @@ And now we have a type `Sigma Showable` that's a bit of a black hole, but we
 can at least use `show` on it:
 
 ```haskell
-showSigma :: Sigma Showable -> String
-showSigma (Sigma WitShowable x) = show x       -- here, we know x is Show
+!!!type-levels/Level0.hs "showSigma ::"
 ```
 
 ```haskell
@@ -176,7 +166,7 @@ value is `show` it anyway.
 One fun thing we can do is provide a "useless witness", like `Proxy`:
 
 ```haskell
-data Proxy a = Proxy
+!!!type-levels/Level0.hs "data Proxy ::" "uselessBool ::"
 ```
 
 So a value like `MkSigma Proxy True :: Sigma Proxy` is truly a useless data
@@ -188,8 +178,7 @@ On the other extreme, we can use a witness to constrain the value to only be a
 specific type, like `IsBool`:
 
 ```haskell
-data IsBool :: Type -> Type where
-    ItsABool :: IsBool Bool
+!!!type-levels/Level0.hs "data IsBool ::" "justABool ::"
 ```
 
 So you can have a value of type `MkSigma ItsABool True :: Sigma IsBool`, or
@@ -202,6 +191,10 @@ There's a general version of this too, `(:~:) a` (from *[Data.Type.Equality][]*
 in base).  `(:~:) Bool` is our `IsBool` earlier.  `Sigma ((:~:) a)` is
 essentially exactly `a`...basically bringing us incidentally back to complete
 type safety?  Weird.  Anyway.
+
+```haskell
+!!!type-levels/Level0.hs "justAnInt ::"
+```
 
 [Data.Type.Equality]: https://hackage.haskell.org/package/base-4.14.1.0/docs/Data-Type-Equality.html#t::-126-:
 
@@ -220,11 +213,7 @@ heterogeneous list.  This is the level where lists (or "arrays") live in most
 dynamic languages.
 
 ```haskell
-data Sigma :: (Type -> Type) -> Type where
-    MkSigma :: p a -> a -> Sigma p
-
--- we can define this in terms of Haskell's built-in list
-type HList p = [Sigma p]
+!!!type-levels/Level1.hs "type HList"
 ```
 
 We tag values with a witness `p` for the same reason as before: if we don't
@@ -236,23 +225,7 @@ dynamic language like javascript.  For example, here's a function that connects
 to a host (`String`), optionally taking a port (`Int`) and a method (`Method`).
 
 ```haskell
-data Method = HTTP | HTTPS
-
-indexMaybe :: Int -> HList p -> Maybe (Sigma p)
-indexMaybe 0 []     = Nothing
-indexMaybe 0 (x:_ ) = Just x
-indexMaybe n (_:xs) = indexMaybe (n-1) xs
-
--- | Expects a String, an Int, then a Method.
-mkConnection :: HList TypeRep -> IO ()
-mkConnection args = ...
-  where
-    host :: Maybe String
-    host = castSigma =<< indexHList 0 args
-    port :: Maybe Int
-    port = castSigma =<< indexHList 1 args
-    method :: Maybe Method
-    method = castSigma =<< indexHList 2 args
+!!!type-levels/Level1.hs "data Method" "indexHList" "mkConnection ::"
 ```
 
 Of course, this would *probably* be better expressed in Haskell as a function
@@ -261,25 +234,15 @@ could be useful in a situation where you would want to offer the ability to
 take arguments in any order?  We could "find" the first value of a given type:
 
 ```haskell
-findValueOfType :: Typeable a => HList TypeRep -> Maybe a
-findValueOfType []     = Nothing
-findValueOfType (x:xs) = castSigma x <|> findValueOfType xs
+!!!type-levels/Level1.hs "findValueOfType ::"
 ```
 
 Then we could write:
 
 ```haskell
--- | Expects a String, an Int, then a Method, in any order.
-mkConnection :: HList TypeRep -> IO ()
-mkConnection args = ...
-  where
-    host :: Maybe String
-    host = findValueOfType args
-    port :: Maybe Int
-    port = findValueOfType args
-    method :: Maybe Method
-    method = findValueOfType args
+!!!type-levels/Level1.hs "mkConnectionAnyOrder ::"
 ```
+
 
 But is this a good idea?  Probably not.
 
@@ -292,10 +255,7 @@ For example, we could have a list of any item as long as the item is an
 instance of `Show`: that's `HList Showable`!
 
 ```haskell
-showAll :: HList Showable -> [String]
-showAll = map showSigma
-  where
-    showSigma (MkSigma WitShowable x) = show x
+!!!type-levels/Level1.hs "showAll ::"
 ```
 
 ```haskell
@@ -323,118 +283,99 @@ Level 2: Homogeneous Dynamic List
 A next level of type safety we can add is to ensure that all elements in the
 list are of the same type.  This adds a layer of usefulness because there are a
 lot of things we might want to do with the elements of a list that are only
-possible if they are all of the same type --- for example, we might want to
-take a (polymorphic) sum of a list, but we can't do that with `HList` because
-it might mix values of different types.
+possible if they are all of the same type.
+
+First of all, let's clarify a subtle point here.  It's very easy in Haskell to
+*consume* lists where all elements are of the same (but not necessarily known)
+type.  Functions like `sum :: Num a => [a] -> a` and `sort :: Ord a => [a] ->
+[a]` do that.  This is polymorphism, where the function is written to not worry
+about the type, and the ultimate *caller* of the function must pick the type they want
+to use with it. For the sake of this discussion, we aren't talking about
+*consuming* values -- we're talking about *producing* and *storing* values
+where the *producer* (and not the consumer) controls the type variable.
 
 To do this, we can flip the witness to *outside* the list:
 
 ```haskell
-data SomeList :: (Type -> Type) -> Type where
-    MkSomeList :: p a -> [a] -> SomeList p
+!!!type-levels/Level2.hs "data SomeList ::"
 ```
 
 We can write some meaningful predicates on this list --- for example, we can
 check if it is monotonic (the items increase in order)
 
-
 ```haskell
--- | An Ord counterpart for Showable
-data Comparable :: Type -> Type where
-    WitOrd :: Ord a => Comparable a
-
-monotonic :: SomeList Comparable -> Bool
-monotonic (MkSomeList WitOrd [])       = True
-monotonic (MkSomeList WitOrd [x])      = True
-monotonic (MkSomeList WitOrd (x:y:xs)) =
-    (x <= y) && monotonic (MkSomeList WitOrd (y:xs))
+!!!type-levels/Level2.hs "data Comparable ::" "monotonic ::" "monotonicSomeList ::"
 ```
 
-However, if we take a step back, we can see that this is a little silly because
-we could just as easily write `monotonic` as a polymorphic function:
+If we take a step back, we can see that this is a little silly...what
+value does `monotonicSomeList` offer over `monotonic`? However, remember the
+subtlety I pointed out before: `monotonic` (and `monotonicSomeList`) are not
+the real advantage here, the advantage is writing a function that *produces*
+"list of some sortable type". For example, we might want to query a database
+for a column of values, but we only know the *name* of the column and not the
+*type* of the column --- we just know that the values in that column are
+sortable.
+
+For a contrived one, let's think about pulling such a list from IO:
 
 ```haskell
-monotonic' :: Ord a => [a] -> Bool
-monotonic' []       = True
-monotonic' [x]      = True
-monotonic' (x:y:xs) = (x <= y) && monotonic' (y:xs)
+!!!type-levels/Level2.hs "getItems ::" "analyzeGottenItems ::"
 ```
 
-Instead, the we could maybe have a function return *any* type of `Ord`-instance
-list, depending on what it was given.
+Consider also an example where process items different based on what type they
+have:
 
 ```haskell
-getItems :: IO (SomeList Comparable)
-getItems = ...
+!!!type-levels/Level2.hs "processList ::"
 ```
 
-This is a "dependently typed" function, in that it could go into a database (or
-query the user) for a list of items of a type that will not be known until
-runtime --- the only guarantee we have is that it has an `Ord` instance.
+I'm just kidding, this is not useful, please use a real closed ADT if you ever
+want to do this.
+
+Anyway, this pattern is overall similar to how lists are often used in practice
+for dynamic languages: *usually* when we use lists, we expect them all to have
+items of the same type or interface. However, using lists this way (in a
+language without type safety) makes it really tempting to hop down into Level
+1, where you start throwing "alternatively typed" things into your list, as
+well, for convenience. All of a sudden, any consumers must now check the type
+of the items, and a lot of things are going to start needing unit tests.
+
+Now let us take a bit to talk about ascending and descending between each
+levels.  In the general case we don't have much to work with, but let's assume
+our constraint is `TypeRep` here, so we can match for type equality.
+
+We can move from Level 2 to Level 1 by moving the `TypeRep` into the values of
+the list, and we can move from Level 2 to Level 0 by converting our `TypeRep a`
+into a `TypeRep [a]`:
 
 ```haskell
-analyzeGottenItems :: IO Bool
-analyzeGottenItems = do
-    items@(MkSomeList WitOrd xs) <- getItems
-    putStrLn $ "Got " ++ show (length xs) ++ " items."
-    let isMono    = monotonic items
-        isRevMono = monotnoic (MkSomeList WitOrd (reverse xs))
-    when isMono $
-      putStrLn "The items are monotonic."
-    when (isMono && isRevMono) $ do
-      putStrLn "The items are monotonic both directions."
-      putStrLn "This means the items are all identical."
+!!!type-levels/Level2.hs "someListToHList ::" "someListToSigma ::"
 ```
 
-This could also be useful if you have a few "valid" options for your list
-types, and want to branch depending on which one you get.   This can be useful
-for just using `Either` if you expect your list of valid types to be "open" and
-constantly expanding, and so your documentation is your main way of indicating
-to the user what they can give.  I'm just kidding, this is not useful, please
-use a real closed ADT if you ever want to do this.
+`App` here as a constructor lets us come `TypeRep`s: `App :: TypeRep f ->
+TypeRep a -> TypeRep (f a)`.
+
+Going the other way around is trickier. For `HList`, we don't even know if
+every item has the same type, so we can only successfully move up if every item
+has the same type.  So, first we get the `typeRep` for the first value, and
+then cast the other values to be the same type if possible:
 
 ```haskell
--- | Behavior depends on what is given.
---
--- * If it's a list of Bools, returns if they are all True
--- * If it's a list of Ints, returns if their sum is greater than 50
--- * If it's a list of Doubles, returns if their sum is greater than 5.0
--- * If it's a list of Strings, returns if it contains an 'e'
-processList :: MkSomeList TypeRep -> Bool
-processList (MkSomeList tr xs)
-    | Just Refl <- testEquality tr (typeRep @Bool)   = and xs
-    | Just Refl <- testEquality tr (TypeRep @Int)    = sum xs > 50
-    | Just Refl <- testEquality tr (TypeRep @Double) = sum xs > 5.0
-    | Just Refl <- testEquality tr (TypeRep @String) = 'e' `elem` xs
-
+!!!type-levels/Level2.hs "hlistToSomeList ::"
 ```
 
-This pattern is overall similar to how lists are often used in dynamic
-languages: just *some* list of the same type of each element is expected, but
-what is *in* those lists is dynamically determined.  Ultimately I think Level 1
-more closely matches lists in dynamic languages than Level 2, if only because
-the idea of a list of all elements of the same type is such a half-hearted sort
-of type safety that neither dynamic languages nor statically typed languages
-would ever embrace it --- it's a "worst of both worlds" in many ways.
-
-For all of these levels, we'll take a moment to describe how to "ascend to" the
-new level, and how to "descend from" the new level.
-
-Moving from Level 1 to Level 2 is actually impossible in the general case; we
-can only do for `HList TypeRep` and `SomeList TypeRep`:
-
-```haskell
-hlistToSomeList :: HList TypeRep -> Maybe (SomeList TypeRep)
-hlistToSomeList (HList [])     = Just $ MkSomeList (typeRep @()) []  -- this could be anything
-hlistToSomeList (HList (x:xs)) = 
-```
-
+To go from `Sigma TypeRep`, we first need to match the `TypeRep` as some `f a`
+application using the `App` pattern...then we can check if `f` is `[]` (list),
+then we can create a `SomeList` with the `TypeRep a`.  *But*, `testEquality`
+can only be called on things of the same kind, so we have to verify that `f`
+has kind `Type -> Type` first, so that we can even call `testEquality` on `f`
+and `[]`! Phew! Dynamic types are hard!
 
 Level 3: Homogeneous Typed List
 -------------------------------
 
-At the halfway point, we've reached Haskell's ubiquitous list type!  It is
-essentially:
+Ahh, now right in the middle, we've reached Haskell's ubiquitous list type!  It
+is essentially:
 
 ```haskell
 data List :: Type -> Type where

@@ -2,7 +2,7 @@
 
 {-# LANGUAGE GADTs #-}
 
-module Level0 (Sigma (..), castSigma, Showable (..)) where
+module Level0 (Sigma (..), castSigma, castSigma', Showable (..)) where
 
 import Data.Dynamic
 import Data.Kind
@@ -37,29 +37,32 @@ dynBool = MkSigma typeRep True
 dynInt :: Sigma TypeRep
 dynInt = MkSigma typeRep (1 :: Int)
 
-showIfBool' :: Dynamic -> String
-showIfBool' dyn = case fromDynamic dyn of
+showIfBoolDynamic :: Dynamic -> String
+showIfBoolDynamic dyn = case fromDynamic dyn of
   Just x -> case x of -- in this branch, we know x is a Bool
     False -> "False"
     True -> "True"
   Nothing -> "Not a Bool"
 
-castSigma :: forall a. Typeable a => Sigma TypeRep -> Maybe a
-castSigma (MkSigma tr x) = case testEquality tr (typeRep @a) of
+castSigma :: TypeRep a -> Sigma TypeRep -> Maybe a
+castSigma tr (MkSigma tr' x) = case testEquality tr tr' of
   Just Refl -> Just x
   Nothing -> Nothing
 
+castSigma' :: Typeable a => Sigma TypeRep -> Maybe a
+castSigma' = castSigma typeRep
+
 data Showable :: Type -> Type where
   WitShowable :: Show a => Showable a
-
-showSigma :: Sigma Showable -> String
-showSigma (MkSigma WitShowable x) = show x -- here, we know x is Show
 
 showableBool :: Sigma Showable
 showableBool = MkSigma WitShowable True
 
 showableInt :: Sigma Showable
 showableInt = MkSigma WitShowable (3 :: Int)
+
+showSigma :: Sigma Showable -> String
+showSigma (MkSigma WitShowable x) = show x -- here, we know x is Show
 
 data Proxy a = Proxy
 
