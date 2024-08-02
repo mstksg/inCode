@@ -1,62 +1,82 @@
 #! /usr/bin/env -S nix develop --command runghc -Wall
 
-module Level1 (HList) where
+{-# LANGUAGE GADTs #-}
 
+module Level1 (Sigma (..), castSigma, castSigma', Showable (..)) where
+
+import Data.Dynamic
 import Data.Kind
-import Data.Maybe
 import Data.Type.Equality
-import Level0
 import Type.Reflection
 
--- | We can define this in terms of Haskell's built-in list
-type HList p = [Sigma p]
+data Any :: Type where
+  MkAny :: a -> Any
 
-data Method = HTTP | HTTPS
+anyInt :: Any
+anyInt = MkAny (8 :: Int)
 
-indexHList :: Int -> HList p -> Maybe (Sigma p)
-indexHList 0 [] = Nothing
-indexHList 0 (x : _) = Just x
-indexHList n (_ : xs) = indexHList (n - 1) xs
+anyBool :: Any
+anyBool = MkAny True
 
--- | Expects a String, an Int, then a Method.
-mkConnection :: HList TypeRep -> IO ()
-mkConnection args = pure () -- something with host, port, and method
-  where
-    host :: Maybe String
-    host = castSigma' =<< indexHList 0 args
-    port :: Maybe Int
-    port = castSigma' =<< indexHList 1 args
-    method :: Maybe Method
-    method = castSigma' =<< indexHList 2 args
+anyList :: Any
+anyList = MkAny ([1, 2, 3] :: [Int])
 
-findValueOfType :: Typeable a => HList TypeRep -> Maybe a
-findValueOfType = listToMaybe . mapMaybe castSigma'
+data Sigma :: (Type -> Type) -> Type where
+  MkSigma :: p a -> a -> Sigma p
 
--- | Expects a String, an Int, then a Method, in any order.
-mkConnectionAnyOrder :: HList TypeRep -> IO ()
-mkConnectionAnyOrder args = pure ()
-  where
-    host :: Maybe String
-    host = findValueOfType args
-    port :: Maybe Int
-    port = findValueOfType args
-    method :: Maybe Method
-    method = findValueOfType args
+showIfBool :: Sigma TypeRep -> String
+showIfBool (MkSigma tr x) = case testEquality tr (typeRep @Bool) of
+  Just Refl -> case x of -- in this branch, we know x is a Bool
+    False -> "False"
+    True -> "True"
+  Nothing -> "Not a Bool"
 
+dynBool :: Sigma TypeRep
+dynBool = MkSigma typeRep True
 
-showableStuff :: HList Showable
-showableStuff = [MkSigma WitShowable (1 :: Int), MkSigma WitShowable True]
+dynInt :: Sigma TypeRep
+dynInt = MkSigma typeRep (1 :: Int)
 
-showAll :: HList Showable -> [String]
-showAll = map showSigma
-  where
-    showSigma (MkSigma WitShowable x) = show x
+showIfBoolDynamic :: Dynamic -> String
+showIfBoolDynamic dyn = case fromDynamic dyn of
+  Just x -> case x of -- in this branch, we know x is a Bool
+    False -> "False"
+    True -> "True"
+  Nothing -> "Not a Bool"
 
-sigmaToHList :: Sigma TypeRep -> Maybe (HList TypeRep)
-sigmaToHList = castSigma'
+castSigma :: TypeRep a -> Sigma TypeRep -> Maybe a
+castSigma tr (MkSigma tr' x) = case testEquality tr tr' of
+  Just Refl -> Just x
+  Nothing -> Nothing
 
-hlistToSigma :: HList TypeRep -> Sigma TypeRep
-hlistToSigma = MkSigma typeRep
+castSigma' :: Typeable a => Sigma TypeRep -> Maybe a
+castSigma' = castSigma typeRep
+
+data Showable :: Type -> Type where
+  WitShowable :: Show a => Showable a
+
+showableBool :: Sigma Showable
+showableBool = MkSigma WitShowable True
+
+showableInt :: Sigma Showable
+showableInt = MkSigma WitShowable (3 :: Int)
+
+showSigma :: Sigma Showable -> String
+showSigma (MkSigma WitShowable x) = show x -- here, we know x is Show
+
+data Proxy a = Proxy
+
+uselessBool :: Sigma Proxy
+uselessBool = MkSigma Proxy True
+
+data IsBool :: Type -> Type where
+  ItsABool :: IsBool Bool
+
+justABool :: Sigma IsBool
+justABool = MkSigma ItsABool False
+
+justAnInt :: Sigma ((:~:) Int)
+justAnInt = MkSigma Refl 10
 
 main :: IO ()
 main = pure ()
