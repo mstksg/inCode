@@ -7,7 +7,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Level5 () where
+module Level5 (Nat (..), SNat (..), LTE (..), isLTE) where
 
 import Data.Kind
 import Data.Void
