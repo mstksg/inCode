@@ -1,9 +1,9 @@
 #! /usr/bin/env -S nix develop --command runghc -Wall
 
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Level6 () where
 
@@ -28,8 +28,8 @@ data Min :: Nat -> Nat -> Nat -> Type where
 
 succMin :: Min n m q -> Min (S n) (S m) (S q)
 succMin = \case
-    MinL l -> MinL (LTES l)
-    MinR l -> MinR (LTES l)
+  MinL l -> MinL (LTES l)
+  MinR l -> MinR (LTES l)
 
 compNat :: SNat n -> SNat m -> (forall q. Min n m q -> r) -> r
 compNat = \case
@@ -46,23 +46,29 @@ insertSorted n = \case
   SCons l m xs -> \f -> compNat n m \case
     MinL l' -> f (MinL l') $ SCons l' n (SCons l m xs)
     MinR l' -> insertSorted n xs \case
-      MinL l'' -> \ys -> f (MinR l') $ SCons l' m ys
-      MinR l'' -> \ys -> f (MinR l') (SCons l m ys)
+      MinL _ -> \ys -> f (MinR l') (SCons l' m ys)
+      MinR _ -> \ys -> f (MinR l') (SCons l m ys)
 
--- mergeSorted
---     :: Sorted n
---     -> Sorted m
---     -> (forall q. Min n m q -> Sorted q -> r)
---     -> r
--- mergeSorted = _
-
--- case compNat n m of
--- Left l  -> \f -> f l (SCons l n $ SNil m)
--- Right r ->
--- Left $ SCons l n $ SNil m
---  Nothing -> Right $ SCons _ m $ SNil n
-
--- isLTE :: SNat n -> SNat m -> Maybe (LTE n m)
+mergeSorted ::
+  Sorted n ->
+  Sorted m ->
+  (forall q. Min n m q -> Sorted q -> r) ->
+  r
+mergeSorted = \case
+  SNil n -> \ys f -> insertSorted n ys f
+  SCons l n xs -> \case
+    SNil m -> \f -> compNat n m \case
+      MinL l' -> mergeSorted xs (SNil m) \case
+        MinL _ -> \ys -> f (MinL l') (SCons l n ys)
+        MinR _ -> \ys -> f (MinL l') (SCons l' n ys)
+      MinR l' -> f (MinR l') (SCons l' m (SCons l n xs))
+    SCons l' m ys -> \f -> compNat n m \case
+      MinL l'' -> mergeSorted xs (SCons l' m ys) \case
+        MinL _ -> \ys -> f (MinL l'') (SCons l n ys)
+        MinR _ -> \ys -> f (MinL l'') (SCons l'' n ys)
+      MinR l'' -> mergeSorted (SCons l n xs) ys \case
+        MinL _ -> \ys -> f (MinR l'') (SCons l'' m ys)
+        MinR _ -> \ys -> f (MinR l'') (SCons l' m ys)
 
 main :: IO ()
 main = pure ()
