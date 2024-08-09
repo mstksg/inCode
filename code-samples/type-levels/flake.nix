@@ -13,7 +13,7 @@
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [
             (haskell.packages.ghc981.ghcWithPackages (p: with p; [
-              # (haskell.lib.unmarkBroken typelits-witnesses)
+              (haskell.lib.unmarkBroken typelits-witnesses)
               # finite-typelits
               # ghc-typelits-natnormalise
               # linear
