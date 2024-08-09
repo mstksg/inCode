@@ -1,0 +1,740 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={A Purely Functional Typed Approach to Trainable Models (Part 3)},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{A Purely Functional Typed Approach to Trainable Models (Part 3)}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% May 14, 2018
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/purely-functional-typed-models-3.html}{in
+Code}}.}
+
+Hi again! Today we're going to jump straight into tying together the functional
+framework described in this series and see how it can give us some interesting
+insight, as well as wrapping it up by talking about the scaffolding needed to
+turn this all into a working system you can apply today.
+
+The name of the game is a purely functional typed approach to writing trainable
+models using differentiable programming. Be sure to check out
+\href{https://blog.jle.im/entry/purely-functional-typed-models-1.html}{Part 1}
+and \href{https://blog.jle.im/entry/purely-functional-typed-models-2.html}{Part
+2} if you haven't, because this is a direct continuation.
+
+My favorite part about this system really is how we have pretty much free reign
+over how we can combine and manipulate our models, since they are just
+functions. Combinators --- a word I'm going to be using to mean higher-order
+functions that return functions --- tie everything together so well. Some models
+we might have thought were standalone entities might just be derivable from
+other models using basic functional combinators. And the best part is that
+they're never \emph{necessary}; just \emph{helpful}.
+
+Again, if you want to follow along, the source code for the written code in this
+module is available
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/functional-models/model.hs}{on
+github}.
+
+\section{Combinator Fun}\label{combinator-fun}
+
+\subsection{Recurrence}\label{recurrence}
+
+Here's one example of how the freedom that ``normal functions'' gives you can
+help reveal insight. While working through this approach, I stumbled upon an
+interesting way of defining recurrent neural networks --- a lot of times, a
+``recurrent neural network'' really just means that some function of the
+\emph{previous} output is used as an ``extra input''.
+
+This sounds like we can really write a recurrent model as a ``normal'' model,
+and then use a combinator to feed it back into itself.
+
+To say in types:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{recurrently}
+\OtherTok{    ::} \DataTypeTok{Model}\NormalTok{  p   (a }\OperatorTok{:\&}\NormalTok{ b) b}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{ModelS}\NormalTok{ p b  a       b}
+\end{Highlighting}
+\end{Shaded}
+
+A ``normal, non-stateful model'' taking an \texttt{a\ :\&\ b} and returning a
+\texttt{b} can really be turned into a stateful model with state \texttt{b} (the
+\emph{previous output}) and only taking in an \texttt{a} input.
+
+This sort of combinator is a joy to write in Haskell because it's a ``follow the
+types'' kinda deal --- you set up the function, and the compiler pretty much
+writes it for you, because the types guide the entire implementation:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/functional{-}models/model.hs\#L303{-}L309}
+
+\NormalTok{recurrently}
+\OtherTok{    ::}\NormalTok{ (}\DataTypeTok{Backprop}\NormalTok{ a, }\DataTypeTok{Backprop}\NormalTok{ b)}
+    \OtherTok{=\textgreater{}} \DataTypeTok{Model}\NormalTok{  p   (a }\OperatorTok{:\&}\NormalTok{ b) b}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{ModelS}\NormalTok{ p b  a       b}
+\NormalTok{recurrently f p x yLast }\OtherTok{=}\NormalTok{ (y, y)}
+  \KeywordTok{where}
+\NormalTok{    y }\OtherTok{=}\NormalTok{ f p (x }\OperatorTok{:\&\&}\NormalTok{ yLast)}
+\end{Highlighting}
+\end{Shaded}
+
+In general though, it'd be nice to have \emph{some function} of the previous
+output be stored as the state. We can write this combinator as well, taking the
+function that transforms the previous output into the stored state:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/functional{-}models/model.hs\#L311{-}L318}
+
+\NormalTok{recurrentlyWith}
+\OtherTok{    ::}\NormalTok{ (}\DataTypeTok{Backprop}\NormalTok{ a, }\DataTypeTok{Backprop}\NormalTok{ b)}
+    \OtherTok{=\textgreater{}}\NormalTok{ (}\KeywordTok{forall}\NormalTok{ z}\OperatorTok{.} \DataTypeTok{Reifies}\NormalTok{ z }\DataTypeTok{W} \OtherTok{=\textgreater{}} \DataTypeTok{BVar}\NormalTok{ z c }\OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ z b)}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Model}\NormalTok{  p   (a }\OperatorTok{:\&}\NormalTok{ b) c}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{ModelS}\NormalTok{ p b  a       c}
+\NormalTok{recurrentlyWith store f p x yLast }\OtherTok{=}\NormalTok{ (y, store y)}
+  \KeywordTok{where}
+\NormalTok{    y }\OtherTok{=}\NormalTok{ f p (x }\OperatorTok{:\&\&}\NormalTok{ yLast)}
+\end{Highlighting}
+\end{Shaded}
+
+Again, once we figure out the \emph{type} our combinator has\ldots the function
+\emph{writes itself}. The joys of Haskell! I wouldn't dare try to write this in
+a language without static types and type inference. But it's a real treat to
+write this out in a language like Haskell.
+
+\texttt{recurrentlyWith} takes a \texttt{c\ -\textgreater{}\ b} function and
+turns a pure model taking an \texttt{a\ :\&\ b} into a stateful model with state
+\texttt{b} taking in an \texttt{a}. The \texttt{c\ -\textgreater{}\ b} tells you
+how to turn the previous output into the new state.
+
+To me, \texttt{recurrentlyWith} captures the ``essence'' of what a recurrent
+model or recurrent neural network is --- the network is allowed to ``see'' some
+form of its previous output.
+
+How is this useful? Well, we can use this to define a fully connected recurrent
+neural network layer as simply a recurrent version of a normal fully connected
+feed-forward layer.
+
+We can redefine a pre-mapped version of \texttt{feedForward} which takes a tuple
+of two vectors and concatenates them before doing anything:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} | Concatenate two vectors}
+\OtherTok{(\#) ::} \DataTypeTok{BVar}\NormalTok{ z (}\DataTypeTok{R}\NormalTok{ i) }\OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ z (}\DataTypeTok{R}\NormalTok{ o) }\OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ z (}\DataTypeTok{R}\NormalTok{ (i }\OperatorTok{+}\NormalTok{ o))}
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/functional{-}models/model.hs\#L320{-}L323}
+
+\NormalTok{ffOnSplit}
+\OtherTok{    ::} \KeywordTok{forall}\NormalTok{ i o}\OperatorTok{.}\NormalTok{ (}\DataTypeTok{KnownNat}\NormalTok{ i, }\DataTypeTok{KnownNat}\NormalTok{ o)}
+    \OtherTok{=\textgreater{}} \DataTypeTok{Model}\NormalTok{ \_ (}\DataTypeTok{R}\NormalTok{ i }\OperatorTok{:\&} \DataTypeTok{R}\NormalTok{ o) (}\DataTypeTok{R}\NormalTok{ o)}
+\NormalTok{ffOnSplit p (rI }\OperatorTok{:\&\&}\NormalTok{ rO) }\OtherTok{=}\NormalTok{ feedForward p (rI }\OperatorTok{\#}\NormalTok{ rO)}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{ffOnSplit} is a feed-forward layer taking an \texttt{R\ (i\ +\ o)},
+except we pre-map it to take a tuple \texttt{R\ i\ :\&\ R\ o} instead. This
+isn't anything special, just some plumbing.
+
+Now our fully connected recurrent layer is just
+\texttt{recurrentlyWith\ logistic\ ffOnSplit}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fcrnn\textquotesingle{}}
+\OtherTok{    ::}\NormalTok{ (}\DataTypeTok{KnownNat}\NormalTok{ i, }\DataTypeTok{KnownNat}\NormalTok{ o)}
+    \OtherTok{=\textgreater{}} \DataTypeTok{ModelS}\NormalTok{ \_ (}\DataTypeTok{R}\NormalTok{ o) (}\DataTypeTok{R}\NormalTok{ i) (}\DataTypeTok{R}\NormalTok{ o)}
+\NormalTok{fcrnn\textquotesingle{} }\OtherTok{=}\NormalTok{ recurrentlyWith logistic ffOnSplit}
+\end{Highlighting}
+\end{Shaded}
+
+Basically just a recurrent version of \texttt{feedForward}! If we factor out
+some of the manual uncurrying and pre-mapping, we get a nice functional
+definition:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/functional{-}models/model.hs\#L325{-}L328}
+
+\NormalTok{fcrnn\textquotesingle{}}
+\OtherTok{    ::}\NormalTok{ (}\DataTypeTok{KnownNat}\NormalTok{ i, }\DataTypeTok{KnownNat}\NormalTok{ o)}
+    \OtherTok{=\textgreater{}} \DataTypeTok{ModelS}\NormalTok{ \_ (}\DataTypeTok{R}\NormalTok{ o) (}\DataTypeTok{R}\NormalTok{ i) (}\DataTypeTok{R}\NormalTok{ o)}
+\NormalTok{fcrnn\textquotesingle{} }\OtherTok{=}\NormalTok{ recurrentlyWith logistic (\textbackslash{}p }\OtherTok{{-}\textgreater{}}\NormalTok{ feedForward p }\OperatorTok{.}\NormalTok{ uncurryT (}\OperatorTok{\#}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Lag}\label{lag}
+
+Another interesting result -- we can write a ``lagged'' combinator that takes a
+model expecting a vector as an input, and turn it into a stateful model taking a
+\emph{single} input, and feeding the original model that input and also a
+history of the \texttt{n} most recent inputs.
+
+If that sounds confusing, let's just try to state it out using types:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{lagged ::} \DataTypeTok{Model}\NormalTok{  p       (}\DataTypeTok{R}\NormalTok{ (n }\OperatorTok{+} \DecValTok{1}\NormalTok{)) b}
+       \OtherTok{{-}\textgreater{}} \DataTypeTok{ModelS}\NormalTok{ p (}\DataTypeTok{R}\NormalTok{ n) }\DataTypeTok{Double}\NormalTok{      b}
+\end{Highlighting}
+\end{Shaded}
+
+The result is a \texttt{ModelS\ p\ (R\ n)\ Double\ b}; the state is the
+\texttt{n} most recent inputs, and it feeds that in at every step and keeps it
+updated. Let's write it using \texttt{headTail} and \texttt{\&}, which splits a
+vector and adds an item to the end, respectively.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/functional{-}models/model.hs\#L330{-}L338}
+
+\NormalTok{lagged}
+\OtherTok{    ::}\NormalTok{ (}\DataTypeTok{KnownNat}\NormalTok{ n, }\DecValTok{1} \OperatorTok{\textless{}=}\NormalTok{ n)}
+    \OtherTok{=\textgreater{}} \DataTypeTok{Model}\NormalTok{  p       (}\DataTypeTok{R}\NormalTok{ (n }\OperatorTok{+} \DecValTok{1}\NormalTok{)) b}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{ModelS}\NormalTok{ p (}\DataTypeTok{R}\NormalTok{ n) }\DataTypeTok{Double}\NormalTok{      b}
+\NormalTok{lagged f p x xLasts }\OtherTok{=}\NormalTok{ (y, xLasts\textquotesingle{})}
+  \KeywordTok{where}
+\NormalTok{    fullLasts    }\OtherTok{=}\NormalTok{ xLasts }\OperatorTok{\&}\NormalTok{ x}
+\NormalTok{    y            }\OtherTok{=}\NormalTok{ f p fullLasts}
+\NormalTok{    (\_, xLasts\textquotesingle{}) }\OtherTok{=}\NormalTok{ headTail fullLasts}
+\end{Highlighting}
+\end{Shaded}
+
+What can we do with this? Well\ldots{} we can write a general autoregressive
+model AR(p) of \emph{any} degree, simply by lagging a fully connected ANN layer:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/functional{-}models/model.hs\#L340{-}L342}
+
+\OtherTok{ar ::}\NormalTok{ (}\DataTypeTok{KnownNat}\NormalTok{ n, }\DecValTok{1} \OperatorTok{\textless{}=}\NormalTok{ n)}
+   \OtherTok{=\textgreater{}} \DataTypeTok{ModelS}\NormalTok{ \_ (}\DataTypeTok{R}\NormalTok{ n) }\DataTypeTok{Double} \DataTypeTok{Double}
+\NormalTok{ar }\OtherTok{=}\NormalTok{ lagged (\textbackslash{}p }\OtherTok{{-}\textgreater{}} \FunctionTok{fst} \OperatorTok{.}\NormalTok{ headTail }\OperatorTok{.}\NormalTok{ feedForward }\OperatorTok{@}\NormalTok{\_ }\OperatorTok{@}\DecValTok{1}\NormalTok{ p)}
+\end{Highlighting}
+\end{Shaded}
+
+(using \texttt{fst\ .\ headTail} to extract the first \texttt{Double} from an
+\texttt{R\ 1})
+
+And that's it! Our original AR(2) \texttt{ar2} is just \texttt{ar\ @2} \ldots{}
+and we can write can write an AR(10) model by just using \texttt{ar\ @10}, and
+AR(20) model with \texttt{ar\ @20}, etc.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/functional{-}models/model.hs\#L344{-}L345}
+
+\OtherTok{ar2\textquotesingle{} ::} \DataTypeTok{ModelS}\NormalTok{ \_ (}\DataTypeTok{R} \DecValTok{2}\NormalTok{) }\DataTypeTok{Double} \DataTypeTok{Double}
+\NormalTok{ar2\textquotesingle{} }\OtherTok{=}\NormalTok{ ar }\OperatorTok{@}\DecValTok{2}
+\end{Highlighting}
+\end{Shaded}
+
+Who would have thought that an autoregressive model is just a fully connected
+neural network layer with lag?
+
+Take a fully connected ANN layer and add recurrence --- you get a fully
+connected RNN layer. Take a fully connected ANN layer and add lag --- you get an
+autoregressive model from statistics!
+
+There are many more such combinators possible! Combinators like
+\texttt{recurrentlyWith} and \texttt{lagged} just scratch the surface. Best of
+all, they help reveal to us that seemingly exotic things really are just simple
+applications of combinators from other basic things.
+
+\section{Fun with explicit types}\label{fun-with-explicit-types}
+
+One of the advantages of the statically typed functional approach is that it
+forces you to keep track of parameter types as a part of your model
+manipulation. You can explicitly keep track of them, or let the compiler do it
+for you (and have the information ready when you need it). In what we have been
+doing so far, we have been letting the compiler have the fun. But we can get
+some interesting results with explicit manipulation of types, as well.
+
+For example, an \href{https://en.wikipedia.org/wiki/Autoencoder}{autoencoder} is
+a type of model that composes a function that ``compresses'' information with a
+function that ``decompresses'' it; training an autoencoder involves training the
+composition of those two functions to produce the identity function.
+
+We can represent a simple autoencoder:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{encoder ::} \DataTypeTok{Model}\NormalTok{ q (}\DataTypeTok{R} \DecValTok{100}\NormalTok{) (}\DataTypeTok{R} \DecValTok{5}\NormalTok{)}
+\OtherTok{decoder ::} \DataTypeTok{Model}\NormalTok{ p (}\DataTypeTok{R} \DecValTok{5}\NormalTok{)   (}\DataTypeTok{R} \DecValTok{100}\NormalTok{)}
+
+\OtherTok{autoencoder ::} \DataTypeTok{Model}\NormalTok{ (p }\OperatorTok{:\&}\NormalTok{ q) (}\DataTypeTok{R} \DecValTok{100}\NormalTok{) (}\DataTypeTok{R} \DecValTok{100}\NormalTok{)}
+\NormalTok{autoencoder }\OtherTok{=}\NormalTok{ decoder }\OperatorTok{\textless{}\textasciitilde{}}\NormalTok{ encoder}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{autoencoder} now ``encodes'' a 100-dimensional space into a
+5-dimensional one.
+
+We can train \texttt{autoencoder} on our data set, but keep the ``trained
+parameters'' separate:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ decParam }\OperatorTok{:\&}\NormalTok{ encParam }\OtherTok{\textless{}{-}}\NormalTok{ trainModelIO autoencoder }\OperatorTok{$} \FunctionTok{map}\NormalTok{ (\textbackslash{}x }\OtherTok{{-}\textgreater{}}\NormalTok{ (x,x)) samps}
+\end{Highlighting}
+\end{Shaded}
+
+Now \texttt{decParam} and \texttt{encParam} make \texttt{autoencoder} an
+identity function. But, we can just use \texttt{encParam} with \texttt{encoder}
+to \emph{encode} data, and \texttt{decParam} with \texttt{decoder} to
+\emph{decode} data!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{evalBP2 encoder}\OtherTok{ encParam ::} \DataTypeTok{R} \DecValTok{100} \OtherTok{{-}\textgreater{}} \DataTypeTok{R} \DecValTok{5}        \CommentTok{{-}{-} trained encoder}
+\NormalTok{evalBP2 decoder}\OtherTok{ decParam ::} \DataTypeTok{R} \DecValTok{5}   \OtherTok{{-}\textgreater{}} \DataTypeTok{R} \DecValTok{100}      \CommentTok{{-}{-} trained decoder}
+\end{Highlighting}
+\end{Shaded}
+
+The types help by keeping track of what goes with what, so you don't have to;
+the compiler helps you match up \texttt{encoder} with \texttt{encParam}, and can
+even ``fill in the code'' for you if you leave in a typed hole!
+
+\section{A Unified Representation}\label{a-unified-representation}
+
+This section now is a small aside for those familiar with more advanced Haskell
+techniques like DataKinds and dependent types; if you aren't too comfortable
+with these, feel free to skip to the next section! This stuff won't come up
+again later.
+
+If you're still reading, one ugly thing you might have noticed was that we had
+to give different ``types'' for both our \texttt{Model} and \texttt{ModelS}, so
+we cannot re-use useful functions on both. For example, \texttt{mapS} only works
+on \texttt{ModelS}, but not \texttt{Model}.
+\texttt{(\textless{}\textasciitilde{})} only works on \texttt{Model}s,
+\texttt{(\textless{}*\textasciitilde{}*)} only works on two \texttt{ModelS}s,
+and we had to define a different combinator
+\texttt{(\textless{}*\textasciitilde{})}.
+
+This is not a fundamental limitation! With \emph{DataKinds} and dependent types
+we can unify these both under a common type. If we had:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \DataTypeTok{Model}\NormalTok{ (}\OtherTok{p ::} \DataTypeTok{Type}\NormalTok{) (}\OtherTok{a ::} \DataTypeTok{Type}\NormalTok{) (}\OtherTok{b ::} \DataTypeTok{Type}\NormalTok{) }\OtherTok{=}
+       \KeywordTok{forall}\NormalTok{ z}\OperatorTok{.} \DataTypeTok{Reifies}\NormalTok{ z }\DataTypeTok{W}
+    \OtherTok{=\textgreater{}} \DataTypeTok{BVar}\NormalTok{ z p}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ z a}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ z b}
+
+\KeywordTok{type} \DataTypeTok{ModelS}\NormalTok{ (}\OtherTok{p ::} \DataTypeTok{Type}\NormalTok{) (}\OtherTok{s ::} \DataTypeTok{Type}\NormalTok{) (}\OtherTok{a ::} \DataTypeTok{Type}\NormalTok{) (}\OtherTok{b ::} \DataTypeTok{Type}\NormalTok{) }\OtherTok{=}
+       \KeywordTok{forall}\NormalTok{ z}\OperatorTok{.} \DataTypeTok{Reifies}\NormalTok{ z }\DataTypeTok{W}
+    \OtherTok{=\textgreater{}} \DataTypeTok{BVar}\NormalTok{ z p}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ z a}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ z s}
+    \OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{BVar}\NormalTok{ z b, }\DataTypeTok{BVar}\NormalTok{ z s)}
+\end{Highlighting}
+\end{Shaded}
+
+We can unify them by making either the \texttt{p} or \texttt{s} be optional, a
+\texttt{Maybe\ Type}, and using the \texttt{Option} type from
+\emph{\href{https://hackage.haskell.org/package/type-combinators/docs/Data-Type-Option.html}{Data.Type.Option}},
+from the
+\emph{\href{https://hackage.haskell.org/package/type-combinators}{type-combinators}}
+package:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \DataTypeTok{Model\textquotesingle{}}\NormalTok{ (}\OtherTok{p ::} \DataTypeTok{Maybe} \DataTypeTok{Type}\NormalTok{) (}\OtherTok{s ::} \DataTypeTok{Maybe} \DataTypeTok{Type}\NormalTok{) (}\OtherTok{a ::} \DataTypeTok{Type}\NormalTok{) (}\OtherTok{b ::} \DataTypeTok{Type}\NormalTok{) }\OtherTok{=}
+       \KeywordTok{forall}\NormalTok{ z}\OperatorTok{.} \DataTypeTok{Reifies}\NormalTok{ z }\DataTypeTok{W}
+    \OtherTok{=\textgreater{}} \DataTypeTok{Option}\NormalTok{ (}\DataTypeTok{BVar}\NormalTok{ z) p}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ z a}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Option}\NormalTok{ (}\DataTypeTok{BVar}\NormalTok{ z) s}
+    \OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{BVar}\NormalTok{ z b, }\DataTypeTok{Option}\NormalTok{ (}\DataTypeTok{BVar}\NormalTok{ z) s)}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{Option\ f\ a} contains a value if \texttt{a} is
+\texttt{\textquotesingle{}Just}, and does not if \texttt{a} is
+\texttt{\textquotesingle{}Nothing}. More precisely, if \texttt{a} is
+\texttt{\textquotesingle{}Just\ b}, it will contain an \texttt{f\ b}. So if
+\texttt{p} is \texttt{\textquotesingle{}Just\ p\textquotesingle{}}, an
+\texttt{Option\ (BVar\ z)\ p} will contain a
+\texttt{BVar\ z\ p\textquotesingle{}}.
+
+We can then re-define our previous types:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \DataTypeTok{Model}\NormalTok{  p   }\OtherTok{=} \DataTypeTok{Model\textquotesingle{}}\NormalTok{ (}\DataTypeTok{\textquotesingle{}Just}\NormalTok{ p) }\DataTypeTok{\textquotesingle{}Nothing}
+\KeywordTok{type} \DataTypeTok{ModelS}\NormalTok{ p s }\OtherTok{=} \DataTypeTok{Model\textquotesingle{}}\NormalTok{ (}\DataTypeTok{\textquotesingle{}Just}\NormalTok{ p) (}\DataTypeTok{\textquotesingle{}Just}\NormalTok{ s)}
+\end{Highlighting}
+\end{Shaded}
+
+And now that we have unified everything under the same type, we can write
+\texttt{mapS} that takes both stateful and non-stateful models, merge
+\texttt{(\textless{}\textasciitilde{})},
+\texttt{(\textless{}*\textasciitilde{}*)} and
+\texttt{(\textless{}*\textasciitilde{})}, etc., thanks to the power of dependent
+types.
+
+As an added benefit, we also can unify parameterless functions too, which are
+often useful for composition:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \DataTypeTok{Func}\NormalTok{ a b }\OtherTok{=} \KeywordTok{forall}\NormalTok{ z}\OperatorTok{.} \DataTypeTok{Reifies}\NormalTok{ z }\DataTypeTok{W} \OtherTok{=\textgreater{}} \DataTypeTok{BVar}\NormalTok{ z a }\OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ z b}
+\CommentTok{{-}{-} or}
+\KeywordTok{type} \DataTypeTok{Func}     \OtherTok{=} \DataTypeTok{Model\textquotesingle{}} \DataTypeTok{\textquotesingle{}Nothing} \DataTypeTok{\textquotesingle{}Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+and we can use this with our unified \texttt{(\textless{}\textasciitilde{})}
+etc. to implement functions like \texttt{mapS} for free.
+
+Note that dependent types and DataKind shenanigans aren't necessary for any of
+this to work --- it just has the possibility to make things even more seamless
+and unified.
+
+\section{A Practical Framework}\label{a-practical-framework}
+
+At the end of it all, I really think that we don't ever ``need'' a ``neural
+network library'' or a ``neural network framework''. I don't want to be hemmed
+into a specific opaque interface with a compositional API that requires me to
+learn new rules of composition or application or clunky object methods.
+
+To be able to utilize this all today, you really only need a few things.
+
+\begin{itemize}
+\item
+  A handful of small primitive models expressed as normal functions (like
+  \texttt{linReg}, \texttt{fullyConnected}, \texttt{convolution}, \texttt{lstm}
+  etc.)
+
+  The number of small primitives might be surprisingly small, given the
+  combinators that we are able to write. However, basic fundamental primitives
+  are important to be able to jump in and write any model you might need.
+\item
+  Some useful higher-order functions acting as utility combinators to common
+  patterns of function composition, like \texttt{map},
+  \texttt{\textless{}\textasciitilde{}}, etc.
+
+  These are never \emph{required} --- just convenient, since the functional API
+  is already fully featured as it is. They are all defined ``within the
+  language'', in that you can always just implement them using normal function
+  application and definition.
+
+  Having these handy will make certain workflows simpler, and also help to
+  de-duplicate common patterns that come up often.
+
+  With these, models that seem seemingly very different can be defined in terms
+  of simple combinator applications of other models, and that simple base models
+  can be used to derive other models in surprising ways (like how a feed-forward
+  layer can be turned into a recurrent layer or an autoregressive model)
+\item
+  A handy collection of (differentiable) \emph{loss functions}; in this post, we
+  only used squared error, but in other situations there might be other useful
+  ones like cross-entropy. Just having common loss functions (and combinators to
+  manipulate loss functions) at hand is useful for quick prototyping.
+
+  Loss functions can be combined with regularizing terms from parameters, if the
+  regularization functions themselves are differentiable.
+\item
+  A handy collection of \emph{optimizers}, allowing you to take a loss function,
+  a set of samples, and a model, and return the optimal parameters using
+  performant optimizers.
+
+  In this post we only used stochastic gradient descent, but other great
+  optimizers out there are also worth having available, like momentum, adam,
+  adagrad, etc.
+
+  These optimizers should be easily usable with different data streams for
+  observations.
+\end{itemize}
+
+That's really it, I feel! Just the models \emph{as functions}, the combinators,
+and methods to evaluate and train those functions. No ``objects'' defining
+layers as data (they're not data, they're functions!); just the full freedom of
+expressing a model as any old function you want.\footnote{This is the basis
+  behind my work-in-progress \href{https://github.com/mstksg/opto}{opto} and
+  \href{https://github.com/mstksg/backprop-learn}{backprop-learn} libraries.}
+
+\section{A Path Forward}\label{a-path-forward}
+
+Thank you for making it to the end! I hope at this point you have been able to
+gain some appreciation for differential programming in a purely functional
+style, and see the sort of doors that this opens.
+
+To tie it all together, I want to restate that a lot of things have to come
+together to make this all practical and useful. And, without any one of these,
+the whole thing would become clumsy.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  \textbf{Functional Programming}. Higher-order functions and combinators that
+  take functions and return functions. Again, this allows us to draw from
+  mathematical models directly, but also gives us full control over how we
+  reshape, redefine, manipulate our models.
+
+  We aren't forced to adhere to a limited API provided for our models; it all is
+  just normal function application and higher-order functions --- something that
+  functional programming is very, very good at dealing with. In addition,
+  writing our models as ``just functions'' means we can re-use functional
+  programming staples like \texttt{foldl} (left folds) and \texttt{mapAccumL}.
+
+  Combinators are powerful --- we saw how many models were just
+  ``combinator-applied'' versions of simpler models.
+
+  Functional programming also forces us to consider state \emph{explicitly},
+  instead of being an implicit part of the runtime. This makes combinators like
+  \texttt{zeroState}, \texttt{unroll}, \texttt{recurrently}, and \texttt{lagged}
+  possible. Because state is not a magic part of the system, it is something
+  that we can \emph{explicitly talk about} and \emph{transform}, just as a
+  first-class thing.
+\item
+  \textbf{Differentiable Programming}. This should go without saying that
+  nothing here would work without our functions all being differentiable. This
+  is what allows us to train our models using gradient descent.
+
+  Again, I really don't know if this is best when supported at the
+  language/compiler level or at the library level. For this exploration, it is
+  done at the library level, and I really don't think it's too bad!
+
+  In any case, I want to emphasize again that functional programming is a
+  natural fit for differentiable programming, and the combination of them
+  together is what makes this approach very powerful.
+\item
+  \textbf{Purely functional programming} is, again, what lets us draw the
+  correspondence between mathematical models and the models we describe here.
+  And, as seen in the last part, this constraint forces us to consider
+  alternatives to implicit state, which ends up yielding very fruitful results.
+
+  In impure languages, this is something that we have to always explicitly state
+  as a property of our models. Purity is a \emph{benefit}, especially when
+  reasoning with stateful models. Tying the state of our models with the
+  implicit state functionality of a programming language's runtime system?
+  Definitely a recipe for confusion and disaster.
+\item
+  \textbf{Strong expressive static type system} with type inference makes this
+  all possible to work with at the practical level.
+
+  I couldn't imagine doing any of this without the help of a compiler that keeps
+  track of your types for you. Most of our combinators manipulate state types of
+  functions, many of them manipulate parameter types, and almost all of them
+  manipulate input and output types. Having a compiler that keeps track of this
+  for you and lets you ask questions about them is essential. The compiler also
+  \emph{helps you write your code} --- if you leave a ``typed hole'' in your
+  code, the compiler will tell you all of the combinators or values available
+  that can fit inside that hole, and it usually is exactly the one you need.
+
+  And if you can state your desired model in terms of its types, sometimes the
+  combinator applications and functions write themselves. They all act together
+  as edges of puzzle pieces; and best of all, the compiler can tell you exactly
+  what pieces you have available fit with what you have, automatically.
+  Additionally, the process of thinking of types (within the language) can guide
+  you in \emph{writing} new combinators.
+
+  This method requires some complex types when you write non-trivial models;
+  type inference frees you from the burden of keeping track of your parameter
+  and state type, and has the compiler handle the work and the memory for you.
+  And, at the end, when you have your finished model, your compiler will verify
+  things like providing the right parameter to the right model, generating the
+  correct parameter shape, etc.
+\end{enumerate}
+
+\subsection{Comparisons}\label{comparisons}
+
+Almost all current neural network and deep learning frameworks implement the
+full features that are described here. \emph{tensorflow} and related libraries
+all provide a wrapper around essentially pure graph API. You can get started
+with all of this right away in python with tools like
+\href{https://github.com/HIPS/autograd}{autograd}.
+
+What I'm really talking about isn't specifically about Haskell or
+\emph{backprop}; it's more of a \emph{functional approach} to these sorts of
+models. Currently right now, imperative API's dominate the field. Sometimes when
+talking to friends, they can't imagine how a functional or pure API would make
+sense.
+
+The point of this series is to show that a functional and pure API with static
+types isn't just possible, it's immensely beneficial:
+
+\begin{itemize}
+\item
+  There is no need for an imperative API, even as a wrapper. Even imperative
+  API's require an explicit assumption or promise of purity, anyway, that cannot
+  be enforced --- so what's the point?
+\item
+  \emph{Layers as objects} (or as data) is not necessary. \emph{Layers as
+  functions} is the more faithful and extensible way. Almost all frameworks
+  (like \emph{\href{https://www.tensorflow.org/}{tensorflow}},
+  \emph{\href{http://caffe.berkeleyvision.org/}{caffe}},
+  \emph{\href{http://hackage.haskell.org/package/grenade-0.1.0}{grenade}}) fall
+  into the this
+  \href{https://docs.google.com/presentation/d/1UeKXVgRvvxg9OUdh_UiC5G71UMscNPlvArsWER41PsU/edit\#slide=id.gc2fcdcce7_216_264}{layer-as-data}
+  mentality.
+
+  For example, what if we wanted to turn a model \texttt{a\ -\textgreater{}\ b}
+  (predicting b's from a's) into a model
+  \texttt{{[}a{]}\ -\textgreater{}\ {[}b{]}} (predicting the contents of a list
+  of b's from the contents of a list of a's)?
+
+  In libraries like \emph{tensorflow} and \emph{caffe} and \emph{grenade}, you
+  might have to:
+
+  \begin{enumerate}
+  \def\labelenumi{\arabic{enumi}.}
+  \tightlist
+  \item
+    Create a new data structure
+  \item
+    Use the API of the layer data structure to implement a bunch of methods for
+    your data structure
+  \item
+    Write a ``forward'' mode
+  \item
+    Write a ``backwards'' mode
+  \item
+    Define initializers for your data structure
+  \item
+    Write trainers/nudgers for your data structure
+  \end{enumerate}
+
+  But in this system where layers are functions, this is just:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{overList ::} \DataTypeTok{Model}\NormalTok{ p a b }\OtherTok{{-}\textgreater{}} \DataTypeTok{Model}\NormalTok{ p [a] [b]}
+\NormalTok{overList f p }\OtherTok{=} \FunctionTok{fmap}\NormalTok{ (f p)}
+\end{Highlighting}
+\end{Shaded}
+
+  There is some minor boilerplate to make the types line up, but that's
+  essentially what it is. No special data structure, no abstract API to work
+  with\ldots just normal functions.
+\item
+  A functional and statically typed interface helps you, as a developer,
+  \emph{explore options} in ways that an imperative or untyped approach cannot.
+  Removing the barrier between the math and the code helps with your thinking.
+  It also guides how you look at combinators and creating models from others.
+  Functional approaches also mean you have to think of no implicit state
+  interactions behind the hood.
+\end{itemize}
+
+In short, other similar frameworks might have some mix of of differentiable and
+``functional'' programming, and some even with purity by contract. But it is
+specifically the combination of \emph{all} of these (with static types) adds a
+lot of value in how you create and use and discover models.
+
+One thing I excluded from discussion here is performance. Performance is going
+to be up to the system you use for differentiable programming, and so is not
+something I can meaningfully talk about. My posts here are simply about
+interface, and how they can help shape your thought when designing your own
+models.
+
+\subsection{Signing off}\label{signing-off}
+
+In the end, this is all something that I'm still actively exploring. In a year
+now, my opinions might be very different. However, I've reached a point where I
+truly believe the future of differentiable programming and deep learning is
+functional, pure, and typed. For me, however, functional, pure, and typed
+differentiable programming is \emph{my present}. Its contributions to my
+understanding of models and building new models is something that I take
+advantage of every day in my own modeling and research. I hope it can be helpful
+to you, as well!
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

@@ -1,0 +1,805 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Auto: A Todo GUI application with Auto (on GHCJS, etc.)},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Auto: A Todo GUI application with Auto (on GHCJS, etc.)}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% April 23, 2015
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/auto-a-todo-gui-application-with-auto-on.html}{in
+Code}}.}
+
+Continuing along with
+\href{http://blog.jle.im/entries/series/+all-about-auto}{All About Auto}, let's
+look at another exciting and useful application of the
+\emph{\href{http://hackage.haskell.org/package/auto}{auto}} library: GUI's.
+We're going to look at the canonical ``hello world'' of GUI apps these days ---
+the todo app. We're going to be using the specs of
+\href{http://todomvc.com/}{todoMVC} to build a todoMVC ``candidate'' that
+follows the specs\ldots and along the way see what \emph{auto} offers in its
+tools of managing isolated state components and modeling GUI logic. We're really
+going to be focusing on application logic --- ``control'' and ``model'' --- and
+not looking too close on ``views'', which \emph{auto} doesn't quite try to offer
+and where you can really pick your own view rendering system, making this
+adaptable to really any platform --- javascript/web, desktop, command line, etc.
+
+A live version of our end-product
+\href{https://mstksg.github.com/auto-examples/todo}{is hosted and online}.
+
+This post does assume \emph{some} concepts from the
+\href{https://github.com/mstksg/auto/blob/master/tutorial/tutorial.md}{tutorial}\ldots if
+not all, then at least those in the
+\href{http://blog.jle.im/entry/introducing-the-auto-library}{introductory post}
+or the \href{https://github.com/mstksg/auto/blob/master/README.md}{README}. If
+you ever find yourself thinking that these concepts are completely new and
+crazy, you might want to try looking through the
+\href{https://github.com/mstksg/auto/blob/master/tutorial/tutorial.md}{tutorial}
+or \href{http://hackage.haskell.org/package/auto}{docs} to refresh your mind. As
+always, comments are welcome, and I'm also usually on \emph{\#haskell-auto} as
+\emph{jle`}, and also on \href{https://twitter.com/mstk}{twitter}
+
+(Fair warning\ldots this is not quite a ``ghcjs tutorial'', if that's what
+you're looking for; it's an auto tutorial that uses some rudimentary ghcjs.
+Hopefully you can learn from that too!)
+
+\section{Overall Layout}\label{overall-layout}
+
+At the highest level, \emph{auto} is a library that provides us tools to build
+and work with stream transformers on streams of values. Transform a stream of
+input values to a stream of output values. So, let's try to phrase our Todo app
+problem in that perspective. What are our inputs, and what are our outputs?
+
+For a Todo app, the outputs are probably going to be a \emph{todo list} itself.
+If we're building a GUI, then having the todo list itself is going to be enough
+to build our front-end display. The stream of \emph{inputs} is a little less
+obvious, but, well, what does an app really take as inputs? Commands! Our stream
+of inputs will be commands sent by a GUI or by whatever front-end we choose. Our
+todo app then is a transformer of a stream of commands to a stream of todo
+lists\ldots where the todo list we get changes as we process more commands.
+
+So the ``overall loop'' will be:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  A front-end rendered by \emph{ghcjs-dom} (or whatever) with event handlers
+  that drop commands into a concurrent \texttt{Chan} queue. This just handles
+  rendering.
+\item
+  Our \texttt{Auto} launched with \texttt{runOnChan}, which waits on the
+  \texttt{Chan} queue, runs the inputs through the \texttt{Auto}, and renders
+  the result. This handles all of the logic.
+\end{enumerate}
+
+We like types in Haskell, so let's begin by laying out our types!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/auto/Todo.hs\#L19{-}L46}
+
+\KeywordTok{import} \DataTypeTok{Control.Auto}
+\KeywordTok{import} \DataTypeTok{Control.Auto.Collection}
+\KeywordTok{import} \DataTypeTok{Control.Monad.Fix}
+\KeywordTok{import} \DataTypeTok{Data.IntMap}\NormalTok{             (}\DataTypeTok{IntMap}\NormalTok{)}
+\KeywordTok{import} \DataTypeTok{Data.Serialize}
+\KeywordTok{import} \DataTypeTok{GHC.Generics}
+\KeywordTok{import} \DataTypeTok{Prelude} \KeywordTok{hiding}\NormalTok{          ((.), id)}
+\KeywordTok{import} \KeywordTok{qualified} \DataTypeTok{Data.IntMap}   \KeywordTok{as} \DataTypeTok{IM}
+
+\KeywordTok{data} \DataTypeTok{TodoInp} \OtherTok{=} \DataTypeTok{IAdd}  \DataTypeTok{String}           \CommentTok{{-}{-} new task with description}
+             \OperatorTok{|} \DataTypeTok{ITask} \DataTypeTok{TaskID} \DataTypeTok{TaskCmd}   \CommentTok{{-}{-} send command to task by ID}
+             \OperatorTok{|} \DataTypeTok{IAll} \DataTypeTok{TaskCmd}           \CommentTok{{-}{-} send command to all tasks}
+             \KeywordTok{deriving} \DataTypeTok{Show}
+
+\KeywordTok{data} \DataTypeTok{TaskCmd} \OtherTok{=} \DataTypeTok{CDelete}          \CommentTok{{-}{-} delete}
+             \OperatorTok{|} \DataTypeTok{CPrune}           \CommentTok{{-}{-} delete if completed}
+             \OperatorTok{|} \DataTypeTok{CComplete} \DataTypeTok{Bool}   \CommentTok{{-}{-} set completed status}
+             \OperatorTok{|} \DataTypeTok{CModify} \DataTypeTok{String}   \CommentTok{{-}{-} modify description}
+             \OperatorTok{|} \DataTypeTok{CNop}             \CommentTok{{-}{-} do nothing}
+             \KeywordTok{deriving} \DataTypeTok{Show}
+
+\KeywordTok{data} \DataTypeTok{Task} \OtherTok{=} \DataTypeTok{Task}\NormalTok{ \{}\OtherTok{ taskDescr     ::} \DataTypeTok{String}
+\NormalTok{                 ,}\OtherTok{ taskCompleted ::} \DataTypeTok{Bool}
+\NormalTok{                 \} }\KeywordTok{deriving}\NormalTok{ (}\DataTypeTok{Show}\NormalTok{, }\DataTypeTok{Generic}\NormalTok{)}
+
+\KeywordTok{instance} \DataTypeTok{Serialize} \DataTypeTok{Task} \CommentTok{{-}{-} from Data.Serialize, from the cereal library}
+\end{Highlighting}
+\end{Shaded}
+
+We have a type to represent our inputs, \texttt{TodoInp}, which can be an
+``add'' command with a \texttt{String}, a ``task'' command with a
+\texttt{TaskId} (\texttt{Int}) and a \texttt{TaskCmd}, and an ``all'' command
+with a \texttt{TaskCmd} that is supposed to represent sending that command to
+all tasks.
+
+Our \texttt{TaskCmd} represents commands we can send to individual tasks -- we
+can delete, prune (delete if completed), set the ``completed'' flag, or modify
+the description.
+
+We're going to represent our task list, \texttt{TaskMap}, as not a
+\texttt{{[}{]}} list, but as an \texttt{IntMap} from \emph{containers}, which
+associates an \texttt{Int} to a \texttt{Task} that we can look up with the
+\texttt{IntMap} API. What would a \texttt{TaskMap} store other than a bunch of
+\texttt{Task}s, which we are defining as jus a tupling of a \texttt{String}
+description and a \texttt{Bool} completed/uncompleted status.
+
+\section{The Todo Auto}\label{the-todo-auto}
+
+Time to go over the logic portion! The part that \emph{auto} is meant for! We're
+going to structure the logic of our app (also known as the ``model'') by using
+principles of local statefulness to avoid ever working with a ``global state'',
+and working in a declarative, high-level manner.
+
+\subsection{Tasks}\label{tasks}
+
+It's clear that the core of our entire thing is going to be the ``task list''
+construct itself\ldots something that can dynamically add or remove tasks.
+
+In \emph{auto}, there is a construct created just for this kind of situation:
+dynamic collections indexed by a key (a ``task id''), where you can add or
+subtract \texttt{Auto}s from dynamically --- they are \texttt{dynMap} and
+\texttt{dynMapF} from
+\emph{\href{http://hackage.haskell.org/package/auto/docs/Control-Auto-Collection.html}{Control.Auto.Collection}}.
+We'll be using \texttt{dynMapF} because it's serializable, and we don't need the
+extra power that \texttt{dynMap} offers.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{dynMapF ::}\NormalTok{ (k }\OtherTok{{-}\textgreater{}} \DataTypeTok{Interval}\NormalTok{ m a b)    }\CommentTok{{-}{-} \^{} function to initialize new \textasciigrave{}Auto\textasciigrave{}s}
+        \OtherTok{{-}\textgreater{}}\NormalTok{ a                        }\CommentTok{{-}{-} \^{} default inputs}
+        \OtherTok{{-}\textgreater{}} \DataTypeTok{Auto}\NormalTok{ m ( }\DataTypeTok{IntMap}\NormalTok{ a        }\CommentTok{{-}{-} \^{} input for each internal \textasciigrave{}Auto\textasciigrave{}, indexed by key}
+\NormalTok{                  , }\DataTypeTok{Blip}\NormalTok{ [k]        }\CommentTok{{-}{-} \^{} blip stream to initialize new \textasciigrave{}Auto\textasciigrave{}s}
+\NormalTok{                  )}
+\NormalTok{                  (}\DataTypeTok{IntMap}\NormalTok{ b)        }\CommentTok{{-}{-} \^{} \textasciigrave{}Auto\textasciigrave{} outputs, by key}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{dynMapF} keeps a ``dynamic collection'' of \texttt{Interval\ m\ a\ b}s,
+indexed by an \texttt{Int} key, or an ``ID''. It takes as input a stream of
+\texttt{IntMap\ a}\ldots basically a bunch of \texttt{(Int,\ a)} pairs.
+\texttt{dynMapF} routes each input to the \texttt{Interval} at that ID/address
+(with a suitable ``default'' \texttt{a} if none was sent in), and then outputs
+all of the results as an \texttt{IntMap\ b} --- a bunch of \texttt{(Int,\ b)}
+pairs, each output with the address of the \texttt{Auto} that made it.
+
+For example, \texttt{IM.singleton\ 5\ True} would send \texttt{True} to the
+\texttt{Auto} stored at \texttt{5}. It'll then output something that includes
+\texttt{(5,\ "received\ True!")} --- the output of the \texttt{Auto} at slot 5.
+
+Whenever an \texttt{Interval} turns ``off'' (is \texttt{Nothing}), it is removed
+from the collection. In this way we can have \texttt{Auto}s ``remove
+themselves''.
+
+It also takes as input a blip stream of \texttt{{[}k{]}}s. We use each emitted
+\texttt{k} to ``initialize a new \texttt{Interval}'' and throw it into the
+collection, creating a new unique key for it. Every time a new \texttt{Auto} is
+initialized, \texttt{dynMapF} creates a new key for it.
+
+Read over the
+\href{https://github.com/mstksg/auto/blob/master/tutorial/tutorial.md\#semantic-tools}{tutorial
+section on blip streams and \texttt{Interval}s} if you are still unfamiliar with
+them.
+
+This pretty much fits exactly what we want for our task collection. If we
+imagined that we had our \texttt{Task} as an \texttt{Auto}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{initTask ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Interval}\NormalTok{ m }\DataTypeTok{TaskCmd} \DataTypeTok{Task}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{initTask} takes a string (a starting description) and initializes an
+\texttt{Interval} that takes in a stream of task commands, and has a stream of
+new, updated \texttt{Task}s as its output stream. At every step, it processes
+the command and outputs the new appropriate \texttt{Task}.
+
+We can then use this as our ``initializer'' for \texttt{dynMapF}\ldots and now
+we have a dynamic collection of tasks!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/auto/Todo.hs\#L48{-}L50}
+
+\OtherTok{taskCollection ::} \DataTypeTok{Monad}\NormalTok{ m}
+               \OtherTok{=\textgreater{}} \DataTypeTok{Auto}\NormalTok{ m (}\DataTypeTok{IntMap} \DataTypeTok{TaskCmd}\NormalTok{, }\DataTypeTok{Blip}\NormalTok{ [}\DataTypeTok{String}\NormalTok{]) (}\DataTypeTok{IntMap} \DataTypeTok{Task}\NormalTok{)}
+\NormalTok{taskCollection }\OtherTok{=}\NormalTok{ dynMapF initTask }\DataTypeTok{CNop}
+\end{Highlighting}
+\end{Shaded}
+
+If we wanted to send in the command \texttt{CModify\ "hey!"} to the task whose
+id/key/address is \texttt{12}, I'd feed in
+\texttt{IM.singleton\ 12\ (CModify\ "hey!")}. The output would then contain the
+output of feeding that \texttt{CModify} to the \texttt{Auto} at that slot 12,
+associated with slot 12 on the output \texttt{IntMap}.
+
+Writing \texttt{initTask} and the task \texttt{Auto} is straightforward with
+\texttt{accum}, which is basically like \texttt{foldl} on the inputs and a
+``current state''. (The current state is of course the \texttt{Task}).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/auto/Todo.hs\#L52{-}L62}
+
+\OtherTok{initTask ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Interval}\NormalTok{ m }\DataTypeTok{TaskCmd} \DataTypeTok{Task}
+\NormalTok{initTask descr }\OtherTok{=}\NormalTok{ accum f (}\DataTypeTok{Just}\NormalTok{ (}\DataTypeTok{Task}\NormalTok{ descr }\DataTypeTok{False}\NormalTok{))}
+  \KeywordTok{where}
+\NormalTok{    f (}\DataTypeTok{Just}\NormalTok{ t) tc }\OtherTok{=} \KeywordTok{case}\NormalTok{ tc }\KeywordTok{of}
+                      \DataTypeTok{CDelete}                  \OtherTok{{-}\textgreater{}} \DataTypeTok{Nothing}
+                      \DataTypeTok{CPrune} \OperatorTok{|}\NormalTok{ taskCompleted t }\OtherTok{{-}\textgreater{}} \DataTypeTok{Nothing}
+                             \OperatorTok{|} \FunctionTok{otherwise}       \OtherTok{{-}\textgreater{}} \DataTypeTok{Just}\NormalTok{ t}
+                      \DataTypeTok{CComplete}\NormalTok{ s              }\OtherTok{{-}\textgreater{}} \DataTypeTok{Just}\NormalTok{ t \{ taskCompleted }\OtherTok{=}\NormalTok{ s \}}
+                      \DataTypeTok{CModify}\NormalTok{ descr            }\OtherTok{{-}\textgreater{}} \DataTypeTok{Just}\NormalTok{ t \{ taskDescr }\OtherTok{=}\NormalTok{ descr \}}
+                      \DataTypeTok{CNop}                     \OtherTok{{-}\textgreater{}} \DataTypeTok{Just}\NormalTok{ t}
+\NormalTok{    f }\DataTypeTok{Nothing}\NormalTok{ \_   }\OtherTok{=} \DataTypeTok{Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+See that our \texttt{Auto} ``turns off'' by outputting \texttt{Nothing}. That's
+interval semantics, and it's what \texttt{dynMapF} relies on for its internal
+\texttt{Auto}s!
+
+\subsection{Routing the inputs}\label{routing-the-inputs}
+
+The only thing left, then, is just to route our input stream to send everything
+to the correct \texttt{Auto} in \texttt{taskCollection}.
+
+Our input stream is going to be a stream of \texttt{TodoInp}, which can be
+``add'', ``send command to a single task'', or ``send command to all tasks''.
+Really, though, you can think of it three separate streams all ``jammed'' into
+one stream.
+
+This is a common pattern that we can use \emph{blip streams} for. Instead of
+working with one big fatty stream, we can work with several blip streams that
+only emit when the input that we care about comes in.
+
+Typically, we'd do this with \texttt{emitJusts}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{emitJusts ::}\NormalTok{ (a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ b) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Auto}\NormalTok{ m a (}\DataTypeTok{Blip}\NormalTok{ b)}
+\end{Highlighting}
+\end{Shaded}
+
+You can imagine \texttt{emitJusts} is a ``siphon'' off of the input stream of
+\texttt{a}s\ldots and pulling out only the values that we care about, as a blip
+stream of \texttt{b}'s.
+
+We can build our ``siphoners'':
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/auto/Todo.hs\#L95{-}L105}
+
+\OtherTok{getAddEvts ::} \DataTypeTok{TodoInp} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ [}\DataTypeTok{String}\NormalTok{]}
+\NormalTok{getAddEvts (}\DataTypeTok{IAdd}\NormalTok{ descr) }\OtherTok{=} \DataTypeTok{Just}\NormalTok{ [descr]}
+\NormalTok{getAddEvts \_            }\OtherTok{=} \DataTypeTok{Nothing}
+
+\OtherTok{getModEvts ::} \DataTypeTok{TodoInp} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ (}\DataTypeTok{IntMap} \DataTypeTok{TaskCmd}\NormalTok{)}
+\NormalTok{getModEvts (}\DataTypeTok{ITask}\NormalTok{ n te) }\OtherTok{=} \DataTypeTok{Just} \OperatorTok{$}\NormalTok{ IM.singleton n te}
+\NormalTok{getModEvts \_            }\OtherTok{=} \DataTypeTok{Nothing}
+
+\OtherTok{getMassEvts ::}\NormalTok{ ([}\DataTypeTok{TaskID}\NormalTok{], }\DataTypeTok{TodoInp}\NormalTok{) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ (}\DataTypeTok{IntMap} \DataTypeTok{TaskCmd}\NormalTok{)}
+\NormalTok{getMassEvts (allIds, }\DataTypeTok{IAll}\NormalTok{ te) }\OtherTok{=} \DataTypeTok{Just} \OperatorTok{$}\NormalTok{ IM.fromList (}\FunctionTok{map}\NormalTok{ (,te) allIds)}
+\NormalTok{getMassEvts \_                 }\OtherTok{=} \DataTypeTok{Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{getAddEvts}, when used with \texttt{emitJusts}, will siphon off all
+\texttt{IAdd} commands as a blip stream of \texttt{{[}String{]}}s, emitting
+descriptions of new tasks to add.
+
+\texttt{getModEvts}, when used with \texttt{emitJusts}, will siphon off all
+\texttt{ITask} commands as a blip stream of \texttt{IntMap\ TaskCmd}, which will
+be fed into \texttt{taskCollection} and \texttt{dynMapF}.
+
+\texttt{getMassEvts} is pretty much the same thing\ldots siphoning off all
+\texttt{IAll} commands as a blip stream of \texttt{IntMap\ TaskCmd}. It needs a
+list of all \texttt{TaskID}s though, to do its job\ldots because it needs to
+make an \texttt{IntMap} targeting all of the current tasks.
+
+Remember, we interace with tasks through an \texttt{IntMap\ TaskCmd}\ldots which
+is a map of task id-task command pairs. The \texttt{TaskCmd} stored at key
+\texttt{1} will be the command we want to send to task id 1.
+
+Let's see it all work together!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/auto/Todo.hs\#L64{-}L93}
+
+\OtherTok{todoApp ::} \DataTypeTok{MonadFix}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Auto}\NormalTok{ m }\DataTypeTok{TodoInp}\NormalTok{ (}\DataTypeTok{IntMap} \DataTypeTok{Task}\NormalTok{)}
+\NormalTok{todoApp }\OtherTok{=}\NormalTok{ proc inpEvt }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+
+\NormalTok{    rec }\CommentTok{{-}{-} all id\textquotesingle{}s currently alive}
+\NormalTok{        allIds }\OtherTok{\textless{}{-}}\NormalTok{ arrD IM.keys [] }\OperatorTok{{-}\textless{}}\NormalTok{ taskMap}
+
+        \CommentTok{{-}{-} "forking" \textasciigrave{}inpEvt\textasciigrave{} into three blip streams:}
+        \CommentTok{{-}{-} newTaskB :: Blip [String]}
+\NormalTok{        newTaskB  }\OtherTok{\textless{}{-}}\NormalTok{ emitJusts getAddEvts  }\OperatorTok{{-}\textless{}}\NormalTok{ inpEvt}
+        \CommentTok{{-}{-} modTaskB :: Blip (IntMap TaskCmd)}
+\NormalTok{        modTaskB  }\OtherTok{\textless{}{-}}\NormalTok{ emitJusts getModEvts  }\OperatorTok{{-}\textless{}}\NormalTok{ inpEvt}
+        \CommentTok{{-}{-} massTaskB :: Blip (IntMap TaskCmd)}
+\NormalTok{        massTaskB }\OtherTok{\textless{}{-}}\NormalTok{ emitJusts getMassEvts }\OperatorTok{{-}\textless{}}\NormalTok{ (allIds, inpEvt)}
+
+        \CommentTok{{-}{-} merge the two streams together to get "all" inputs, single and}
+        \CommentTok{{-}{-} mass.}
+        \KeywordTok{let}\OtherTok{ allInpB ::} \DataTypeTok{Blip}\NormalTok{ (}\DataTypeTok{IntMap} \DataTypeTok{TaskCmd}\NormalTok{)}
+\NormalTok{            allInpB }\OtherTok{=}\NormalTok{ modTaskB }\OperatorTok{\textless{}\textgreater{}}\NormalTok{ massTaskB}
+
+        \CommentTok{{-}{-} from a blip stream to an \textasciigrave{}IntMap\textasciigrave{} stream that is empty when the}
+        \CommentTok{{-}{-} stream doesn\textquotesingle{}t emit}
+        \CommentTok{{-}{-} taskCommands :: IntMap TaskCmd}
+\NormalTok{        taskCommands }\OtherTok{\textless{}{-}}\NormalTok{ fromBlips IM.empty }\OperatorTok{{-}\textless{}}\NormalTok{ allInpB}
+
+        \CommentTok{{-}{-} feed the commands and the new tasks to \textasciigrave{}taskMap\textasciigrave{}...the result is}
+        \CommentTok{{-}{-} the \textasciigrave{}IntMap\textasciigrave{} of tasks.}
+        \CommentTok{{-}{-} taskMap :: IntMap Task}
+\NormalTok{        taskMap }\OtherTok{\textless{}{-}}\NormalTok{ taskCollection }\OperatorTok{{-}\textless{}}\NormalTok{ (taskCommands, newTaskB)}
+
+    \FunctionTok{id} \OperatorTok{{-}\textless{}}\NormalTok{ taskMap}
+\end{Highlighting}
+\end{Shaded}
+
+To read the proc block, it does help to sort of see all of the lines as english
+statements of what things ``are''.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  \texttt{allIds} is a list of keys (id's) currently in the task map
+  \texttt{taskMap}. All of the id's of the tasks currently alive.
+\item
+  Now, we fork into blip streams:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{newTaskB} is a blip stream that emits with task descriptions
+    whenever \texttt{inpEvt} calls for one.
+  \item
+    \texttt{modTaskB} is a blip stream that emits with a command to a specific
+    task whenever \texttt{inpEvt} calls for one.
+  \item
+    \texttt{massTaskB} is a blip stream that emits commands to every single task
+    in \texttt{allIds} whenever \texttt{inpEvt} calls for it.
+  \item
+    \texttt{allInpB} is a blip stream with addressed commands whenever either
+    \texttt{modTaskB} or \texttt{massTaskB} emits.
+  \end{itemize}
+\item
+  \texttt{taskCommands} is a map of addressed commands for each task. It's
+  whatever \texttt{allInpB} emits, when it does emit\ldots or just
+  \texttt{IM.empty} (an empty map) when it doesn't.
+\item
+  \texttt{taskMap} is the map of tasks that we get from our
+  \texttt{taskCollection} updater, which manages a collection of tasks.
+  \texttt{taskCollection} needs the commands for each task and the new tasks we
+  want to do its job.
+\end{enumerate}
+
+We state things as an interplay of streams. And in the end, the result is what
+we want --- an indexed list of tasks.
+
+Note that we needed the \texttt{rec} block because we referred to
+\texttt{taskMap} at the beginning (to get \texttt{allIds}), but we don't define
+\texttt{taskMap} until the end.
+
+Note that we use \texttt{arrD} for \texttt{allIds}. What we really ``meant'' was
+something like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{allIds }\OtherTok{\textless{}{-}}\NormalTok{ arr IM.keys }\OperatorTok{{-}\textless{}}\NormalTok{ taskMap}
+\end{Highlighting}
+\end{Shaded}
+
+But\ldots this doesn't really work out, because when the whole thing ``starts'',
+we don't know what \texttt{taskMap} is. We need to know \texttt{massTaskB} to
+know \texttt{taskMap}, and we need to know \texttt{allIds} to know
+\texttt{massTaskB}, and\ldots recursive dependency!
+
+We can use \texttt{arrD} to specify an ``initial output'' to ``close the loop''
+(in technical terms). We want \texttt{allIds} to initially be \texttt{{[}{]}}
+(we can assume we start with no task id's), so instead of
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{allIds }\OtherTok{\textless{}{-}}\NormalTok{ arr IM.keys }\OperatorTok{{-}\textless{}}\NormalTok{ taskMap}
+\end{Highlighting}
+\end{Shaded}
+
+we have
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{allIds }\OtherTok{\textless{}{-}}\NormalTok{ arrD IM.keys [] }\OperatorTok{{-}\textless{}}\NormalTok{ taskMap}
+\end{Highlighting}
+\end{Shaded}
+
+Where \texttt{{[}{]}} is the ``initial output'', so when we first try to do
+anything, we don't need \texttt{taskMap} --- we just pop out \texttt{{[}{]}}!
+
+This is just a small thing to worry about whenever you have recursive bindings.
+There is a small cognitive price to pay, but in return, you have something that
+really just looks like laying out relationships between different quantities :)
+
+\section{Interfacing with the world}\label{interfacing-with-the-world}
+
+Our application logic is done; let's explore ways to interface with it!
+
+\subsection{Testing/command line}\label{testingcommand-line}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/auto/todo{-}cmd.hs\#L25{-}L62}
+
+\OtherTok{parseInp ::} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe} \DataTypeTok{TodoInp}
+\NormalTok{parseInp }\OtherTok{=}\NormalTok{ p }\OperatorTok{.} \FunctionTok{words}
+  \KeywordTok{where}
+\NormalTok{    p (}\StringTok{"A"}\OperatorTok{:}\NormalTok{xs)   }\OtherTok{=} \DataTypeTok{Just}\NormalTok{ (}\DataTypeTok{IAdd}\NormalTok{ (}\FunctionTok{unwords}\NormalTok{ xs))}
+\NormalTok{    p (}\StringTok{"D"}\OperatorTok{:}\NormalTok{n}\OperatorTok{:}\NormalTok{\_)  }\OtherTok{=}\NormalTok{ onId n }\DataTypeTok{CDelete}
+\NormalTok{    p (}\StringTok{"C"}\OperatorTok{:}\NormalTok{n}\OperatorTok{:}\NormalTok{\_)  }\OtherTok{=}\NormalTok{ onId n (}\DataTypeTok{CComplete} \DataTypeTok{True}\NormalTok{)}
+\NormalTok{    p (}\StringTok{"U"}\OperatorTok{:}\NormalTok{n}\OperatorTok{:}\NormalTok{\_)  }\OtherTok{=}\NormalTok{ onId n (}\DataTypeTok{CComplete} \DataTypeTok{False}\NormalTok{)}
+\NormalTok{    p (}\StringTok{"P"}\OperatorTok{:}\NormalTok{n}\OperatorTok{:}\NormalTok{\_)  }\OtherTok{=}\NormalTok{ onId n }\DataTypeTok{CPrune}
+\NormalTok{    p (}\StringTok{"M"}\OperatorTok{:}\NormalTok{n}\OperatorTok{:}\NormalTok{xs) }\OtherTok{=}\NormalTok{ onId n (}\DataTypeTok{CModify}\NormalTok{ (}\FunctionTok{unwords}\NormalTok{ xs))}
+\NormalTok{    p \_          }\OtherTok{=} \DataTypeTok{Nothing}
+
+\OtherTok{    onId ::} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{TaskCmd} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe} \DataTypeTok{TodoInp}
+\NormalTok{    onId }\StringTok{"*"}\NormalTok{ te }\OtherTok{=} \DataTypeTok{Just}\NormalTok{ (}\DataTypeTok{IAll}\NormalTok{ te)}
+\NormalTok{    onId n   te }\OtherTok{=}\NormalTok{ (}\OtherTok{\textasciigrave{}ITask\textasciigrave{}}\NormalTok{ te) }\OperatorTok{\textless{}$\textgreater{}}\NormalTok{ readMaybe n}
+
+\OtherTok{formatTodo ::} \DataTypeTok{IntMap} \DataTypeTok{Task} \OtherTok{{-}\textgreater{}} \DataTypeTok{String}
+\NormalTok{formatTodo }\OtherTok{=} \FunctionTok{unlines} \OperatorTok{.} \FunctionTok{map}\NormalTok{ format }\OperatorTok{.}\NormalTok{ IM.toList}
+  \KeywordTok{where}
+\NormalTok{    format (n, }\DataTypeTok{Task}\NormalTok{ desc compl) }\OtherTok{=} \FunctionTok{concat}\NormalTok{ [ }\FunctionTok{show}\NormalTok{ n}
+\NormalTok{                                         , }\StringTok{". ["}
+\NormalTok{                                         , }\KeywordTok{if}\NormalTok{ compl }\KeywordTok{then} \StringTok{"X"} \KeywordTok{else} \StringTok{" "}
+\NormalTok{                                         , }\StringTok{"] "}
+\NormalTok{                                         , desc}
+\NormalTok{                                         ]}
+
+\OtherTok{main ::} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{main }\OtherTok{=} \KeywordTok{do}
+    \FunctionTok{putStrLn} \StringTok{"Enter command! \textquotesingle{}A descr\textquotesingle{} or \textquotesingle{}[D/C/U/P/M] [id/*]\textquotesingle{}"}
+\NormalTok{    void }\OperatorTok{.}\NormalTok{ interactAuto }\OperatorTok{$} \CommentTok{{-}{-} interactAuto takes an Interval; \textasciigrave{}toOn\textasciigrave{} gives}
+                          \CommentTok{{-}{-}   one that runs forever}
+\NormalTok{                          toOn}
+                          \CommentTok{{-}{-} default output value on bad command}
+                        \OperatorTok{.}\NormalTok{ fromBlips }\StringTok{"Bad command!"}
+                          \CommentTok{{-}{-} run \textasciigrave{}formatTodo \textless{}$\textgreater{} todoApp\textasciigrave{} on emitted commands}
+                        \OperatorTok{.}\NormalTok{ perBlip (formatTodo }\OperatorTok{\textless{}$\textgreater{}}\NormalTok{ todoApp)}
+                          \CommentTok{{-}{-} emit when input is parseable}
+                        \OperatorTok{.}\NormalTok{ emitJusts parseInp}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{interactAuto} runs an \texttt{Interval} by feeding it in strings from
+stdin printing the output to stdout, until the output is
+``off''/\texttt{Nothing} --- then stops. Here we use \texttt{parseInp} to emit
+input events whenever there is a parse, run \texttt{todoApp} (formatted) on the
+emitted events, and then condense it all with \texttt{fromBlips} and wrap it in
+an ``always on'' \texttt{toOn}.
+
+\begin{verbatim}
+$ cabal sandbox init
+$ cabal install auto
+$ cabal exec runghc todo-cmd.hs
+Enter command! 'A descr' or '[D/C/U/P/M] [id/*]'
+> A take out the trash
+0. [ ] take out the trash
+
+> A do the dishes
+0. [ ] take out the trash
+1. [ ] do the dishes
+
+> C 1
+0. [ ] take out the trash
+1. [X] do the dishes
+
+> U 1
+0. [ ] take out the trash
+1. [ ] do the dishes
+
+> C 0
+0. [X] take out the trash
+1. [ ] do the dishes
+
+> P *
+1. [ ] do the dishes
+\end{verbatim}
+
+You can
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/auto/todo-cmd.hs}{download
+and run this yourself}!
+
+Looks like the logic works! Time to take it to GUI!
+
+\subsection{As a GUI}\label{as-a-gui}
+
+To build a GUI, we must build an \texttt{Auto} that takes in inputs from events
+and output everything the front-end renderer needs to render the interface.
+
+For a typical todomvc gui, we need to be able to filter and select things. So
+that means we need to be extend our input type with filtering and selecting
+events. And our output has to also indicate the current filter selected, and the
+current task selected, as well.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{GUIOpts} \OtherTok{=} \DataTypeTok{GUI}\NormalTok{ \{}\OtherTok{ \_currFilter   ::} \DataTypeTok{Filter}        \CommentTok{{-}{-} currently applied filter}
+\NormalTok{                   ,}\OtherTok{ \_currSelected ::} \DataTypeTok{Maybe} \DataTypeTok{TaskID}  \CommentTok{{-}{-} currently selected task}
+\NormalTok{                   \}}
+
+\KeywordTok{data} \DataTypeTok{GUIInp} \OtherTok{=} \DataTypeTok{GIFilter} \DataTypeTok{Filter}
+            \OperatorTok{|} \DataTypeTok{GISelect}\NormalTok{ (}\DataTypeTok{Maybe} \DataTypeTok{TaskID}\NormalTok{)}
+
+\KeywordTok{data} \DataTypeTok{Filter} \OtherTok{=} \DataTypeTok{All} \OperatorTok{|} \DataTypeTok{Active} \OperatorTok{|} \DataTypeTok{Completed}
+            \KeywordTok{deriving}\NormalTok{ (}\DataTypeTok{Show}\NormalTok{, }\DataTypeTok{Generic}\NormalTok{, }\DataTypeTok{Enum}\NormalTok{, }\DataTypeTok{Eq}\NormalTok{)}
+
+\KeywordTok{instance} \DataTypeTok{Serialize} \DataTypeTok{Filter}
+\end{Highlighting}
+\end{Shaded}
+
+Instead of defining a new input mega-type with all input events and the todo map
+with the options, we can use good ol' fashioned \texttt{Either} and
+\texttt{(,)}. So now, instead of:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{todoApp ::} \DataTypeTok{Auto}\NormalTok{ m }\DataTypeTok{TodoInp}\NormalTok{ (}\DataTypeTok{IntMap} \DataTypeTok{Task}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+We have:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{todoAppGUI ::} \DataTypeTok{Auto}\NormalTok{ m (}\DataTypeTok{Either} \DataTypeTok{TodoInp} \DataTypeTok{GUIInp}\NormalTok{) (}\DataTypeTok{IntMap} \DataTypeTok{Task}\NormalTok{, }\DataTypeTok{GUIOpts}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Now we take \emph{either} \texttt{TodoInp} or \texttt{GUIInp} and then return
+\emph{both} \texttt{IntMap\ Task} \emph{and} \texttt{GUIOpts}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{todoAppGUI ::} \DataTypeTok{Auto\textquotesingle{}}\NormalTok{ (}\DataTypeTok{Either} \DataTypeTok{TodoInp} \DataTypeTok{GUIInp}\NormalTok{) (}\DataTypeTok{IntMap} \DataTypeTok{Task}\NormalTok{, }\DataTypeTok{GUIOpts}\NormalTok{)}
+\NormalTok{todoAppGUI }\OtherTok{=}\NormalTok{ proc inp }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    filt  }\OtherTok{\textless{}{-}}\NormalTok{ holdWith }\DataTypeTok{All}                      \OperatorTok{.}\NormalTok{ emitJusts filtInps }\OperatorTok{{-}\textless{}}\NormalTok{ inp}
+\NormalTok{    selc  }\OtherTok{\textless{}{-}}\NormalTok{ holdWith }\DataTypeTok{Nothing}                  \OperatorTok{.}\NormalTok{ emitJusts selcInps }\OperatorTok{{-}\textless{}}\NormalTok{ inp}
+\NormalTok{    tasks }\OtherTok{\textless{}{-}}\NormalTok{ holdWith }\FunctionTok{mempty} \OperatorTok{.}\NormalTok{ perBlip todoApp }\OperatorTok{.}\NormalTok{ emitJusts todoInps }\OperatorTok{{-}\textless{}}\NormalTok{ inp}
+
+    \FunctionTok{id} \OperatorTok{{-}\textless{}}\NormalTok{ (tasks, }\DataTypeTok{GUI}\NormalTok{ filt selc)}
+  \KeywordTok{where}
+\OtherTok{    todoInps ::} \DataTypeTok{Either} \DataTypeTok{TodoInp} \DataTypeTok{GUIInp} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe} \DataTypeTok{TodoInp}
+\NormalTok{    todoInps (}\DataTypeTok{Left}\NormalTok{ ti) }\OtherTok{=} \DataTypeTok{Just}\NormalTok{ ti}
+\NormalTok{    todoInps \_         }\OtherTok{=} \DataTypeTok{Nothing}
+\OtherTok{    filtInps ::} \DataTypeTok{Either} \DataTypeTok{TodoInp} \DataTypeTok{GUIInp} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe} \DataTypeTok{Filter}
+\NormalTok{    filtInps (}\DataTypeTok{Right}\NormalTok{ (}\DataTypeTok{GIFilter}\NormalTok{ filt)) }\OtherTok{=} \DataTypeTok{Just}\NormalTok{ filt}
+\NormalTok{    filtInps \_                       }\OtherTok{=} \DataTypeTok{Nothing}
+\OtherTok{    selcInps ::} \DataTypeTok{Either} \DataTypeTok{TodoInp} \DataTypeTok{GUIInp} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ (}\DataTypeTok{Maybe} \DataTypeTok{TaskID}\NormalTok{)}
+\NormalTok{    selcInps (}\DataTypeTok{Right}\NormalTok{ (}\DataTypeTok{GISelect}\NormalTok{ sec))  }\OtherTok{=} \DataTypeTok{Just}\NormalTok{ selc}
+\NormalTok{    selcInps \_                       }\OtherTok{=} \DataTypeTok{Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+Here we have the same idea as before. One input stream of
+\texttt{Either\ TodoInp\ GUIInp} comes through, and we fork it into three blip
+streams that each do what we want.
+\texttt{holdWith\ x\ ::\ Auto\ m\ (Blip\ b)\ b} is always the value of the last
+emitted item\ldots but starts off as \texttt{x} first.
+
+By the way, the above code is much more succinct if you are willing to use
+\emph{\href{http://lens.github.com}{lens}}\ldots{}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{todoAppGUI ::} \DataTypeTok{Auto\textquotesingle{}}\NormalTok{ (}\DataTypeTok{Either} \DataTypeTok{TodoInp} \DataTypeTok{GUIInp}\NormalTok{) (}\DataTypeTok{IntMap} \DataTypeTok{Task}\NormalTok{, }\DataTypeTok{GUIOpts}\NormalTok{)}
+\NormalTok{todoAppGUI }\OtherTok{=}\NormalTok{ proc inp }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    filt  }\OtherTok{\textless{}{-}}\NormalTok{ holdWith }\DataTypeTok{All}
+           \OperatorTok{.}\NormalTok{ emitJusts (preview (\_Right }\OperatorTok{.}\NormalTok{ \_GIFilter)) }\OperatorTok{{-}\textless{}}\NormalTok{ inp}
+\NormalTok{    selc  }\OtherTok{\textless{}{-}}\NormalTok{ holdWith }\DataTypeTok{Nothing}
+           \OperatorTok{.}\NormalTok{ emitJusts (preview (\_Right }\OperatorTok{.}\NormalTok{ \_GISelect)) }\OperatorTok{{-}\textless{}}\NormalTok{ inp}
+\NormalTok{    tasks }\OtherTok{\textless{}{-}}\NormalTok{ holdWith }\FunctionTok{mempty} \OperatorTok{.}\NormalTok{ perBlip todoApp}
+           \OperatorTok{.}\NormalTok{ emitJusts (preview \_Left)                }\OperatorTok{{-}\textless{}}\NormalTok{ inp}
+
+    \FunctionTok{id} \OperatorTok{{-}\textless{}}\NormalTok{ (tasks, }\DataTypeTok{GUI}\NormalTok{ filt selc)}
+\end{Highlighting}
+\end{Shaded}
+
+(assuming we defined the prisms for \texttt{GUIInp} or used
+\texttt{\textquotesingle{}\textquotesingle{}mkPrisms})
+
+Neat, right? In a way, you can say that \texttt{emitJusts} and
+\texttt{Prisms}/lens was a match made in heaven :)
+
+\subsection{Giving it life}\label{giving-it-life}
+
+The last step is to hook everything up together ---
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Setting up events in our GUI to feed inputs to a queue
+\item
+  Setting up the queue to wait on inputs, and output the task map/gui status on
+  every one using \texttt{todoAppGUI}
+\item
+  Rendering the output into the GUI framework of your choice
+\end{enumerate}
+
+The second step in particular can be handled with good ol'
+\texttt{{[}runOnChan{]}{[}{]}}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{runOnChan ::}\NormalTok{ (b }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO} \DataTypeTok{Bool}\NormalTok{) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Chan}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Auto\textquotesingle{}}\NormalTok{ a b }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ (}\DataTypeTok{Auto\textquotesingle{}}\NormalTok{ a b)}
+\end{Highlighting}
+\end{Shaded}
+
+We know and love \texttt{runOnChan} from when we used it to make our
+\href{http://blog.jle.im/entry/auto-building-a-declarative-chatbot-with-implicit-serialization\#irc-backend-the-ugly-part}{chatbot}.
+It runs an \texttt{Auto\textquotesingle{}\ a\ b} ``on a \texttt{Chan}''
+(concurrent queue). The first argument is an ``output hander'' --- it handles
+the \texttt{b}s that the \texttt{Auto\textquotesingle{}} pops out. It decides
+whether to stop the whole thing or keep on listening based on the \texttt{Bool}
+result of the handler. The second argument is the \texttt{Chan\ a} to listen for
+inputs on. Whenever something is dropped into that \texttt{Chan}, it runs the
+\texttt{Auto\textquotesingle{}} with the \texttt{a} and processes the output
+\texttt{b} with the handler.
+
+Our final runner is then just:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{runOnChan renderGUI inputChan todoAppGUI}
+\end{Highlighting}
+\end{Shaded}
+
+where
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{renderGUI ::}\NormalTok{ (}\DataTypeTok{IntMap} \DataTypeTok{Task}\NormalTok{, }\DataTypeTok{GUIOpts}\NormalTok{) }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO} \DataTypeTok{Bool}
+\OtherTok{inputChan ::} \DataTypeTok{Chan}\NormalTok{ (}\DataTypeTok{Either} \DataTypeTok{TodoInp} \DataTypeTok{GUIInp}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+The rendering is done with \texttt{renderGUI}\ldots and it really depends on
+your framework here. That's \#3 from the list above.
+
+All you need after that is just to have your GUI hook up event handlers to drop
+the appropriate \texttt{Either\ TodoInp\ GUIInp} into
+\texttt{inputChan}\ldots and you're golden!
+
+\section{Seeing it in action}\label{seeing-it-in-action}
+
+We've reached the end of our tutorial --- the parts about \texttt{auto}. It is
+my hope that whatever GUI front-end you want to work with, it'll be simple
+enough to ``plug in'' our \texttt{Auto} logic.
+
+A \href{https://mstksg.github.com/auto-examples/todo}{live demo} is online too;
+you can see
+\href{https://github.com/mstksg/auto-examples/blob/master/src/TodoJS.hs}{the
+source of the front-end bindings}
+
+This is a bare-bons \emph{ghcjs} implementation using \emph{ghcjs-dom}, which
+uses direct dom manipulation.
+
+User \href{https://github.com/eryx67}{eryx67} has been kind enough to provide
+\href{https://github.com/eryx67/auto-examples/blob/master/src/TodoJS.hs}{an
+implementation in \emph{ghcjs}} with the
+\emph{\href{https://github.com/ocharles/virtual-dom}{virtual-dom}} library
+(\href{https://github.com/mstksg/auto-examples/commit/246133a89fbca6a2ec7ea276d8536701f6ab8d2c?diff=split}{side-by-side
+comparison}), so there is a slightly less uglier implementation with abstraction
+:)
+
+As always, feel free to ask questions in the comments, hop over to
+\emph{\#haskell-game} or \emph{\#haskell-auto} on freenode, or send me a
+\href{https://twitter.com/mstk}{tweet}! And look forward to more tutorials as
+the \href{http://blog.jle.im/entries/series/+all-about-auto}{All About Auto}
+series progresses!
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

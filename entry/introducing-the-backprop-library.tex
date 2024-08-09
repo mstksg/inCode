@@ -1,0 +1,879 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Introducing the backprop library},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Introducing the backprop library}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% February 12, 2018
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/introducing-the-backprop-library.html}{in
+Code}}.}
+
+\textbf{backprop}: \href{http://hackage.haskell.org/package/backprop}{hackage} /
+\href{https://github.com/mstksg/backprop}{github}
+
+I'm excited to announce the first official release of the
+\emph{\href{http://hackage.haskell.org/package/backprop}{backprop}} library
+(currently at version 0.1.3.0 on hackage)! \emph{backprop} is a library that
+allows you write functions on your heterogeneous values like you would normally
+and takes them and (with reverse-mode automatic differentiation) automatically
+generate functions computing their gradients. \emph{backprop} differs from the
+related \emph{\href{http://hackage.haskell.org/package/ad}{ad}} by working with
+functions using and transforming different types, instead of only one
+monomorphic scalar type.
+
+This has been something I've been working on for a while (trying to find a good
+API for \emph{heterogeneous} automatic differentiation), and I'm happy to
+finally find something that I feel good about, with the help of a
+\emph{\href{http://hackage.haskell.org/package/lens}{lens}}-based API.
+
+As a quick demonstration, this post will walk through the creation of a simple
+neural network implementation (inspired by the
+\href{https://www.tensorflow.org/versions/r1.2/get_started/mnist/beginners}{Tensorflow
+Tutorial} for beginners) to learn handwritten digit recognition for the MNIST
+data set. To help tell the story, we're going to be implementing it
+``normally'', using the
+\emph{\href{http://hackage.haskell.org/package/hmatrix}{hmatrix}} library API,
+and then re-write the same thing using
+\emph{\href{http://hackage.haskell.org/package/backprop}{backprop}} and
+\emph{\href{http://hackage.haskell.org/package/hmatrix-backprop}{hmatrix-backprop}}
+(a drop-in replacement for \emph{hmatrix}).
+
+\section{The Basics}\label{the-basics}
+
+For this network, we're not going to be doing anything super fancy. Our ``neural
+network'' will just be simple series of matrix multiplications, vector
+additions, and activation functions. We're going to make a neural network with a
+single hidden layer using normal Haskell data types, parameterized by two weight
+matrices and two bias vectors.
+
+The purpose of the MNIST challenge is to take a vector of pixel data (28x28, so
+784 elements total) and classify it as one of ten digits (0 through 9). To do
+this, we're going to be building and training a model that takes in a 784-vector
+of pixel data and produces a 10-item
+\href{https://en.wikipedia.org/wiki/One-hot}{one-hot} vector of categorical
+predictions (which is supposed to be 0 everywhere, except for 1 in the category
+we predict the input picture to be in).
+
+\subsection{Types}\label{types}
+
+For our types, our imports are pretty simple:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/backprop/intro{-}normal.hs\#L10{-}L11}
+
+\KeywordTok{import}           \DataTypeTok{Control.Lens} \KeywordTok{hiding}\NormalTok{          ((\textless{}.\textgreater{}))}
+\KeywordTok{import}           \DataTypeTok{Numeric.LinearAlgebra.Static}
+\end{Highlighting}
+\end{Shaded}
+
+Our \texttt{Net} type will just be a simple collection of all of the matrices
+and vectors we want to optimize:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/backprop/intro{-}normal.hs\#L18{-}L24}
+
+\KeywordTok{data} \DataTypeTok{Net} \OtherTok{=} \DataTypeTok{N}\NormalTok{ \{}\OtherTok{ \_weights1 ::} \DataTypeTok{L} \DecValTok{250} \DecValTok{784}
+\NormalTok{             ,}\OtherTok{ \_bias1    ::} \DataTypeTok{R} \DecValTok{250}
+\NormalTok{             ,}\OtherTok{ \_weights2 ::} \DataTypeTok{L} \DecValTok{10} \DecValTok{250}
+\NormalTok{             ,}\OtherTok{ \_bias2    ::} \DataTypeTok{R} \DecValTok{10}
+\NormalTok{             \}}
+  \KeywordTok{deriving}\NormalTok{ (}\DataTypeTok{Generic}\NormalTok{)}
+\NormalTok{makeLenses \textquotesingle{}}\DataTypeTok{\textquotesingle{}Net}
+\end{Highlighting}
+\end{Shaded}
+
+We're using the matrix types from
+\href{https://hackage.haskell.org/package/hmatrix/docs/Numeric-LinearAlgebra-Static.html}{\texttt{Numeric.LinearAlgebra.Static}}.
+An \texttt{L\ 250\ 784} is a \(250 \times 784\) matrix -- or, as we are using
+it, a linear transformation \(\mathbb{R}^{784} \rightarrow \mathbb{R}^{250}\).
+An \texttt{R\ 250} is a 250-vector, etc.
+
+Via the \emph{lens} library, four lenses are generated:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{weights1 ::} \DataTypeTok{Lens\textquotesingle{}} \DataTypeTok{Net}\NormalTok{ (}\DataTypeTok{L} \DecValTok{250} \DecValTok{784}\NormalTok{)}
+\OtherTok{bias1    ::} \DataTypeTok{Lens\textquotesingle{}} \DataTypeTok{Net}\NormalTok{ (}\DataTypeTok{R} \DecValTok{250}\NormalTok{)}
+\OtherTok{weights2 ::} \DataTypeTok{Lens\textquotesingle{}} \DataTypeTok{Net}\NormalTok{ (}\DataTypeTok{L} \DecValTok{10}  \DecValTok{250}\NormalTok{)}
+\OtherTok{bias2    ::} \DataTypeTok{Lens\textquotesingle{}} \DataTypeTok{Net}\NormalTok{ (}\DataTypeTok{R} \DecValTok{10}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+These lenses give us ways to access components of our data type:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{myNet             ::} \DataTypeTok{Net}
+\NormalTok{myNet }\OperatorTok{\^{}.}\OtherTok{ weights1 ::} \DataTypeTok{L} \DecValTok{250} \DecValTok{784}  \CommentTok{{-}{-} access the weights1 field in myNet}
+\NormalTok{myNet }\OperatorTok{\^{}.}\OtherTok{ bias2    ::} \DataTypeTok{R}  \DecValTok{10}      \CommentTok{{-}{-} access the bias2 field in myNet}
+\end{Highlighting}
+\end{Shaded}
+
+I'm also going to define \texttt{Num} and \texttt{Fractional} instances for our
+network, which makes it really easy to write code to ``update'' our network (we
+can just add and scale our networks with each other). To do this, I'm going to
+be using
+\emph{\href{http://hackage.haskell.org/package/one-liner-instances}{one-liner-instances}}
+to make a \texttt{Num} instance automatically using GHC Generics:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/backprop/intro{-}normal.hs\#L61{-}L73}
+
+\KeywordTok{instance} \DataTypeTok{Num} \DataTypeTok{Net} \KeywordTok{where}
+\NormalTok{    (}\OperatorTok{+}\NormalTok{)         }\OtherTok{=}\NormalTok{ gPlus}
+\NormalTok{    (}\OperatorTok{{-}}\NormalTok{)         }\OtherTok{=}\NormalTok{ gMinus}
+\NormalTok{    (}\OperatorTok{*}\NormalTok{)         }\OtherTok{=}\NormalTok{ gTimes}
+    \FunctionTok{negate}      \OtherTok{=}\NormalTok{ gNegate}
+    \FunctionTok{abs}         \OtherTok{=}\NormalTok{ gAbs}
+    \FunctionTok{signum}      \OtherTok{=}\NormalTok{ gSignum}
+    \FunctionTok{fromInteger} \OtherTok{=}\NormalTok{ gFromInteger}
+
+\KeywordTok{instance} \DataTypeTok{Fractional} \DataTypeTok{Net} \KeywordTok{where}
+\NormalTok{    (}\OperatorTok{/}\NormalTok{)          }\OtherTok{=}\NormalTok{ gDivide}
+    \FunctionTok{recip}        \OtherTok{=}\NormalTok{ gRecip}
+    \FunctionTok{fromRational} \OtherTok{=}\NormalTok{ gFromRational}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Without Backprop}\label{without-backprop}
+
+\subsection{Running}\label{running}
+
+First, let's look at the picture if we just try to compute the error function
+for our network directly.
+
+Running our network is pretty textbook:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/backprop/intro{-}normal.hs\#L42{-}L49}
+
+\NormalTok{runNet}
+\OtherTok{    ::} \DataTypeTok{Net}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{R} \DecValTok{784}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{R} \DecValTok{10}
+\NormalTok{runNet n x }\OtherTok{=}\NormalTok{ z}
+  \KeywordTok{where}
+\NormalTok{    y }\OtherTok{=}\NormalTok{ logistic }\OperatorTok{$}\NormalTok{ (n }\OperatorTok{\^{}.}\NormalTok{ weights1) }\OperatorTok{\#\textgreater{}}\NormalTok{ x }\OperatorTok{+}\NormalTok{ (n }\OperatorTok{\^{}.}\NormalTok{ bias1)}
+\NormalTok{    z }\OtherTok{=}\NormalTok{ softMax  }\OperatorTok{$}\NormalTok{ (n }\OperatorTok{\^{}.}\NormalTok{ weights2) }\OperatorTok{\#\textgreater{}}\NormalTok{ y }\OperatorTok{+}\NormalTok{ (n }\OperatorTok{\^{}.}\NormalTok{ bias2)}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{runNet} takes a network and produces the
+\texttt{R\ 784\ -\textgreater{}\ R\ 10} function it encodes.
+
+\texttt{\#\textgreater{}\ ::\ L\ m\ n\ -\textgreater{}\ R\ n\ -\textgreater{}\ R\ m}
+is the matrix-vector multiplication operator from \emph{hmatrix} (its
+\href{https://hackage.haskell.org/package/hmatrix/docs/Numeric-LinearAlgebra-Static.html}{static}
+module); we can also just use \texttt{+} (from \texttt{Num}) to add vectors
+together.
+
+We use the \href{https://en.wikipedia.org/wiki/Logistic_function}{logistic
+function} as our internal activation function and
+\href{https://en.wikipedia.org/wiki/Softmax_function}{softmax} to normalize our
+outputs:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/backprop/intro{-}normal.hs\#L26{-}L34}
+
+\OtherTok{logistic ::} \DataTypeTok{Floating}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ a}
+\NormalTok{logistic x }\OtherTok{=} \DecValTok{1} \OperatorTok{/}\NormalTok{ (}\DecValTok{1} \OperatorTok{+} \FunctionTok{exp}\NormalTok{ (}\OperatorTok{{-}}\NormalTok{x))}
+
+\NormalTok{softMax}
+\OtherTok{    ::} \DataTypeTok{R} \DecValTok{10}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{R} \DecValTok{10}
+\NormalTok{softMax x }\OtherTok{=}\NormalTok{ expx }\OperatorTok{/}\NormalTok{ konst (norm\_1 expx)}
+  \KeywordTok{where}
+\NormalTok{    expx }\OtherTok{=} \FunctionTok{exp}\NormalTok{ x}
+\end{Highlighting}
+\end{Shaded}
+
+We can define the logistic function using only \texttt{Num} operations, which
+operate component-wise for \emph{hmatrix} types. \texttt{softMax} requires us to
+\texttt{norm\_1} (to get the absolute sum of all items in a vector) from
+\emph{hmatrix}, and also \texttt{konst} (to generate a vector of a single item
+repeated). Still, though, pretty much a straightforward implementation of the
+mathematical definitions.
+
+\subsection{Error Function}\label{error-function}
+
+This neural network now makes predictions. However, in order to \emph{train} a
+network, we actually need a scalar \emph{error function} that we want to
+minimize. This is a function on the network that, given an input and its
+expected output, computes how ``bad'' the currently network is. It computes the
+error between the output of the network and the expected output, as a single
+number.
+
+To do this, we will be using the
+\href{https://en.wikipedia.org/wiki/Cross_entropy}{cross entropy} between the
+target output and the network output. This is a standard error function for
+classification problems; smaller cross-entropies indicate ``better''
+predictions.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/backprop/intro{-}normal.hs\#L36{-}L56}
+
+\NormalTok{crossEntropy}
+\OtherTok{    ::} \DataTypeTok{R} \DecValTok{10}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{R} \DecValTok{10}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Double}
+\NormalTok{crossEntropy targ res }\OtherTok{=} \OperatorTok{{-}}\NormalTok{(}\FunctionTok{log}\NormalTok{ res }\OperatorTok{\textless{}.\textgreater{}}\NormalTok{ targ)}
+
+\NormalTok{netErr}
+\OtherTok{    ::} \DataTypeTok{R} \DecValTok{784}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{R} \DecValTok{10}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Net}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Double}
+\NormalTok{netErr x targ n }\OtherTok{=}\NormalTok{ crossEntropy targ (runNet n x)}
+\end{Highlighting}
+\end{Shaded}
+
+Computing the cross entropy involves using \texttt{\textless{}.\textgreater{}}
+(the dot product) from \emph{hmatrix}, but other than that we can just use
+\texttt{log} (from \texttt{Floating}) and negation (from \texttt{Num}).
+
+\subsection{Training}\label{training}
+
+At this point, we are supposed to find a way to compute the \emph{gradient} of
+our error function. It's a function that computes the \emph{direction of
+greatest change} of all of the components in our network, with respect to our
+error function.
+
+The gradient will take our \texttt{Net\ -\textgreater{}\ Double} error function
+and, given a current network, and produce a ``gradient'' \texttt{Net} whose
+components contain the derivative of each component with respect to the error.
+It tells us how to ``nudge'' each component to increase the error function.
+\emph{Training} a neural network involves moving in the opposite direction of
+the gradient, which causes the error to go \emph{down}.
+
+However, given \texttt{netErr}'s definition, it is not obvious how to compute
+our gradient function. Doing so involves some careful multi-variable vector
+calculus and linear algebra based on our knowledge of the operations we used.
+For simple situations we often do it by hand, but for more complicated
+situations, this becomes impractical. That's where \emph{automatic
+differentiation} comes into play.
+
+We've gone as far as we can go now, so let's drop into the world of
+\emph{backprop} and see what it can offer us!
+
+\section{With Backprop}\label{with-backprop}
+
+Let's see what happens if we compute our error function using \emph{backprop},
+instead!
+
+We'll switch out our imports very slightly:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/backprop/intro{-}backprop.hs\#L14{-}L16}
+
+\KeywordTok{import}           \DataTypeTok{Control.Lens} \KeywordTok{hiding}\NormalTok{                   ((\textless{}.\textgreater{}))}
+\KeywordTok{import}           \DataTypeTok{Numeric.Backprop}
+\KeywordTok{import}           \DataTypeTok{Numeric.LinearAlgebra.Static.Backprop}
+\end{Highlighting}
+\end{Shaded}
+
+First, we add \texttt{Numeric.Backprop}, the module where the magic happens.
+
+Second, we switch from \texttt{Numeric.LinearAlgebra.Static} to
+\href{https://hackage.haskell.org/package/hmatrix-backprop/docs/Numeric-LinearAlgebra-Static-Backprop.html}{\texttt{Numeric.LinearAlgebra.Static.Backprop}}
+(from
+\emph{\href{http://hackage.haskell.org/package/hmatrix-backprop}{hmatrix-backprop}}),
+which exports the exact same\footnote{More or less. See module documentation for
+  more information.} API as \texttt{Numeric.LinearAlgebra.Static}, except with
+numeric operations that are ``lifted'' to work with \emph{backprop}. It's meant
+to act as a drop-in replacement, and, because of this, most of our actual code
+will be more or less identical.
+
+\subsection{Running}\label{running-1}
+
+Writing functions that can be used with \emph{backprop} involves tweaking the
+types slightly -- instead of working directly with values of type \texttt{a}, we
+work with \texttt{BVar}s (backpropagatable variables) \emph{containing}
+\texttt{a}s: a \texttt{BVar\ s\ a}.
+
+For example, let's look a version \texttt{softMax} that works with
+\emph{backprop}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/backprop/intro{-}backprop.hs\#L56{-}L62}
+
+\NormalTok{softMax}
+\OtherTok{    ::} \DataTypeTok{Reifies}\NormalTok{ s }\DataTypeTok{W}
+    \OtherTok{=\textgreater{}} \DataTypeTok{BVar}\NormalTok{ s (}\DataTypeTok{R} \DecValTok{10}\NormalTok{)}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ s (}\DataTypeTok{R} \DecValTok{10}\NormalTok{)}
+\NormalTok{softMax x }\OtherTok{=}\NormalTok{ expx }\OperatorTok{/}\NormalTok{ konst (norm\_1V expx)}
+  \KeywordTok{where}
+\NormalTok{    expx }\OtherTok{=} \FunctionTok{exp}\NormalTok{ x}
+\end{Highlighting}
+\end{Shaded}
+
+Instead of \texttt{R\ 10\ -\textgreater{}\ R\ 10}, its type signature is now
+\texttt{BVar\ s\ (R\ 10)\ -\textgreater{}\ BVar\ s\ (R\ 10)}. Instead of working
+directly with \texttt{R\ 10}s (10-vectors), we work with
+\texttt{BVar\ s\ (R\ 10)}s (\texttt{BVar}s containing 10-vectors).
+
+\texttt{Numeric.LinearAlgebra.Static.Backprop} re-exports \texttt{konst} and
+\texttt{norm\_1} (as \texttt{norm\_1V} --- \texttt{norm\_1} for vectors only)
+lifted to work with \texttt{BVar}s:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} normal}
+\OtherTok{konst   ::}        \DataTypeTok{Double} \OtherTok{{-}\textgreater{}}         \DataTypeTok{R} \DecValTok{10}
+\CommentTok{{-}{-} backprop}
+\OtherTok{konst   ::} \DataTypeTok{BVar}\NormalTok{ s }\DataTypeTok{Double} \OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ s (}\DataTypeTok{R} \DecValTok{10}\NormalTok{)}
+
+\CommentTok{{-}{-} normal}
+\OtherTok{norm\_1  ::}         \DataTypeTok{R} \DecValTok{10}  \OtherTok{{-}\textgreater{}}        \DataTypeTok{Double}
+\CommentTok{{-}{-} backprop}
+\OtherTok{norm\_1V ::} \DataTypeTok{BVar}\NormalTok{ s (}\DataTypeTok{R} \DecValTok{10}\NormalTok{) }\OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ s }\DataTypeTok{Double}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{BVar}s also have \texttt{Num}, \texttt{Fractional}, and
+\texttt{Floating} instances, so \texttt{exp} and \texttt{/} already work
+out-of-the-box.
+
+With only a minimal and mechanical change in our code, \texttt{softMax} is now
+automatically differentiable!
+
+One neat trick --- because of \texttt{BVar}'s numeric instances, we can actually
+re-use our original implementation of \texttt{logistic}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/backprop/intro{-}backprop.hs\#L53{-}L54}
+
+\OtherTok{logistic ::} \DataTypeTok{Floating}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ a}
+\NormalTok{logistic x }\OtherTok{=} \DecValTok{1} \OperatorTok{/}\NormalTok{ (}\DecValTok{1} \OperatorTok{+} \FunctionTok{exp}\NormalTok{ (}\OperatorTok{{-}}\NormalTok{x))}
+\end{Highlighting}
+\end{Shaded}
+
+To \emph{run} our network, things look pretty similar:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/backprop/intro{-}backprop.hs\#L71{-}L79}
+
+\NormalTok{runNet}
+\OtherTok{    ::} \DataTypeTok{Reifies}\NormalTok{ s }\DataTypeTok{W}
+    \OtherTok{=\textgreater{}} \DataTypeTok{BVar}\NormalTok{ s }\DataTypeTok{Net}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ s (}\DataTypeTok{R} \DecValTok{784}\NormalTok{)}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ s (}\DataTypeTok{R} \DecValTok{10}\NormalTok{)}
+\NormalTok{runNet n x }\OtherTok{=}\NormalTok{ z}
+  \KeywordTok{where}
+\NormalTok{    y }\OtherTok{=}\NormalTok{ logistic }\OperatorTok{$}\NormalTok{ (n }\OperatorTok{\^{}\^{}.}\NormalTok{ weights1) }\OperatorTok{\#\textgreater{}}\NormalTok{ x }\OperatorTok{+}\NormalTok{ (n }\OperatorTok{\^{}\^{}.}\NormalTok{ bias1)}
+\NormalTok{    z }\OtherTok{=}\NormalTok{ softMax  }\OperatorTok{$}\NormalTok{ (n }\OperatorTok{\^{}\^{}.}\NormalTok{ weights2) }\OperatorTok{\#\textgreater{}}\NormalTok{ y }\OperatorTok{+}\NormalTok{ (n }\OperatorTok{\^{}\^{}.}\NormalTok{ bias2)}
+\end{Highlighting}
+\end{Shaded}
+
+Again, pretty much the same, except with the lifted type signature. One notable
+difference, however, is how we \emph{access} the weights and biases. Instead of
+using \texttt{\^{}.} for lens access, we can use \texttt{\^{}\^{}.}, for lens
+access into a \texttt{BVar}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{myNetVar                ::} \DataTypeTok{BVar}\NormalTok{ s }\DataTypeTok{Net}          \CommentTok{{-}{-} a Net inside a BVar}
+\NormalTok{myNetVar }\OperatorTok{\^{}\^{}.}\OtherTok{ weights1   ::} \DataTypeTok{BVar}\NormalTok{ s (}\DataTypeTok{L} \DecValTok{250} \DecValTok{784}\NormalTok{)  }\CommentTok{{-}{-} access the weights1 field in myNetVar}
+\NormalTok{myNetVar }\OperatorTok{\^{}\^{}.}\OtherTok{ bias2      ::} \DataTypeTok{BVar}\NormalTok{ s (}\DataTypeTok{R}  \DecValTok{10}\NormalTok{    )  }\CommentTok{{-}{-} access the bias2 field in myNetVar}
+\end{Highlighting}
+\end{Shaded}
+
+Some insight may be gleamed from a comparison of their type signatures:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{(\^{}.)  ::}\NormalTok{        a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Lens\textquotesingle{}}\NormalTok{ a b }\OtherTok{{-}\textgreater{}}\NormalTok{        b}
+\OtherTok{(\^{}\^{}.) ::} \DataTypeTok{BVar}\NormalTok{ s a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Lens\textquotesingle{}}\NormalTok{ a b }\OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ s b}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{\^{}.} is access to a value using a lens, and \texttt{\^{}\^{}.} is
+access to a value inside a \texttt{BVar} using a lens.
+
+Using lenses like this gives us essentially frictionless usage of
+\texttt{BVar}s, allowing us to access items inside data types in a natural way.
+We can also \emph{set} items using \texttt{.\textasciitilde{}\textasciitilde{}}
+(to parallel \texttt{.\textasciitilde{}}), access constructors in sum types
+using \texttt{\^{}\^{}?} (which can be used to implement pattern matching) and
+get matches for \emph{multiple} targets using \texttt{\^{}\^{}..}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{(\^{}..)  ::}\NormalTok{        a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Traversal\textquotesingle{}}\NormalTok{ a b }\OtherTok{{-}\textgreater{}}\NormalTok{ [       b]}
+\OtherTok{(\^{}\^{}..) ::} \DataTypeTok{BVar}\NormalTok{ s a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Traversal\textquotesingle{}}\NormalTok{ a b }\OtherTok{{-}\textgreater{}}\NormalTok{ [}\DataTypeTok{BVar}\NormalTok{ s b]}
+\end{Highlighting}
+\end{Shaded}
+
+Because of these, our translation from our normal \texttt{runNet} to our
+\emph{backprop} \texttt{runNet} is more or less completely mechanical.
+
+\subsection{Error Function}\label{error-function-1}
+
+At this point, the implementation of our updated error function should not be
+too surprising:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/backprop/intro{-}backprop.hs\#L64{-}L87}
+
+\NormalTok{crossEntropy}
+\OtherTok{    ::} \DataTypeTok{Reifies}\NormalTok{ s }\DataTypeTok{W}
+    \OtherTok{=\textgreater{}} \DataTypeTok{BVar}\NormalTok{ s (}\DataTypeTok{R} \DecValTok{10}\NormalTok{)}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ s (}\DataTypeTok{R} \DecValTok{10}\NormalTok{)}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ s }\DataTypeTok{Double}
+\NormalTok{crossEntropy targ res }\OtherTok{=} \OperatorTok{{-}}\NormalTok{(}\FunctionTok{log}\NormalTok{ res }\OperatorTok{\textless{}.\textgreater{}}\NormalTok{ targ)}
+
+\NormalTok{netErr}
+\OtherTok{    ::} \DataTypeTok{Reifies}\NormalTok{ s }\DataTypeTok{W}
+    \OtherTok{=\textgreater{}} \DataTypeTok{BVar}\NormalTok{ s (}\DataTypeTok{R} \DecValTok{784}\NormalTok{)}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ s (}\DataTypeTok{R} \DecValTok{10}\NormalTok{)}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ s }\DataTypeTok{Net}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ s }\DataTypeTok{Double}
+\NormalTok{netErr x targ n }\OtherTok{=}\NormalTok{ crossEntropy targ (runNet n x)}
+\end{Highlighting}
+\end{Shaded}
+
+Both of these implementations are are 100\% lexicographically identical to our
+original ones -- the only difference is that \texttt{\textless{}.\textgreater{}}
+comes from \texttt{Numeric.LinearAlgebra.Static.Backprop}. Other than that, we
+can simply re-use \texttt{log} and negation.
+
+\subsection{Training}\label{training-1}
+
+Time to gradient descend!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/backprop/intro{-}backprop.hs\#L89{-}L93}
+
+\OtherTok{stepNet ::} \DataTypeTok{R} \DecValTok{784} \OtherTok{{-}\textgreater{}} \DataTypeTok{R} \DecValTok{10} \OtherTok{{-}\textgreater{}} \DataTypeTok{Net} \OtherTok{{-}\textgreater{}} \DataTypeTok{Net}
+\NormalTok{stepNet x targ net0 }\OtherTok{=}\NormalTok{ net0 }\OperatorTok{{-}} \FloatTok{0.02} \OperatorTok{*}\NormalTok{ gr}
+  \KeywordTok{where}
+\OtherTok{    gr ::} \DataTypeTok{Net}
+\NormalTok{    gr }\OtherTok{=}\NormalTok{ gradBP (netErr (constVar x) (constVar targ)) net0}
+\end{Highlighting}
+\end{Shaded}
+
+And\ldots that's it!
+
+To break this down:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  To train our network, we move in the opposite direction of our gradient. That
+  means \texttt{net0\ -\ 0.02\ *\ gr} -- we subtract the gradient (scaled by
+  0.02, a learning rate, to ensure we don't overshoot our goal) from our
+  network.
+
+  Recall that we implemented scaling and subtraction of \texttt{Net}s when we
+  wrote its \texttt{Num} and \texttt{Fractional} instances earlier.
+\item
+  To compute our gradient, we use \texttt{gradBP}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{gradBP ::}\NormalTok{ (}\KeywordTok{forall}\NormalTok{ s}\OperatorTok{.} \DataTypeTok{Reifies}\NormalTok{ s }\DataTypeTok{W} \OtherTok{=\textgreater{}} \DataTypeTok{BVar}\NormalTok{ s a }\OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ s b) }\OtherTok{{-}\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+  If we ignore the RankN type/\texttt{Reifies} syntax noise, this can be read
+  as:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{gradBP ::}\NormalTok{ (}\DataTypeTok{BVar}\NormalTok{ s a }\OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ s b) }\OtherTok{{-}\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+  Which says ``give a function from a \texttt{BVar} of \texttt{a} to a
+  \texttt{BVar} of \texttt{b}, get the gradient function, from \texttt{a} to its
+  gradient''
+
+  This can be contrasted with \texttt{evalBP}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{evalBP ::}\NormalTok{ (}\DataTypeTok{BVar}\NormalTok{ s a }\OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ s b) }\OtherTok{{-}\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ b}
+\end{Highlighting}
+\end{Shaded}
+
+  Which ``runs'' the actual \texttt{a\ -\textgreater{}\ b} function that the
+  \texttt{BVar\ s\ a\ -\textgreater{}\ BVar\ s\ b} encodes.
+\item
+  We want to use \texttt{gradBP} with our \texttt{Net\ -\textgreater{}\ Double}
+  error function (or, more accurately, our
+  \texttt{BVar\ s\ Net\ -\textgreater{}\ BVar\ s\ Double} function). That's
+  exactly what \texttt{netErr} gives us.
+
+  We use \texttt{constVar} to lift \texttt{x} and \texttt{targ}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{constVar ::}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ s a}
+\end{Highlighting}
+\end{Shaded}
+
+  \texttt{constVar} simply lifts a value into a \texttt{BVar}, knowing that we
+  don't care about its gradient.
+
+  This means that we have:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{netErr (constVar x) (constVar targ)}\OtherTok{ ::} \DataTypeTok{BVar}\NormalTok{ s }\DataTypeTok{Net} \OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ s }\DataTypeTok{Double}
+\end{Highlighting}
+\end{Shaded}
+
+  We can pass this function to \texttt{gradBP} to get the gradient of the
+  network \texttt{Net} with respect to the \texttt{Double} error.
+\end{enumerate}
+
+That's really the entire gradient computation and descent code!
+
+Kind of anti-climactic, isn't it?
+
+\section{Taking it for a spin}\label{taking-it-for-a-spin}
+
+In the
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/backprop/intro-backprop.hs}{source
+code} I've included some basic code for loading the mnist data set and training
+the network, with some basic evaluations.
+
+If you download it
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/backprop/intro-backprop.hs}{here},
+you can compile it using a stack's self-compiling script feature (if
+\emph{\href{https://docs.haskellstack.org/en/stable/README/}{stack}} is
+installed on your computer):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{$}\NormalTok{ ./intro{-}backprop.hs    }\CommentTok{\# compiles itself, managing dependencies automatically}
+\end{Highlighting}
+\end{Shaded}
+
+The above command will cause the program to compile itself, installing the
+necessary GHC (if needed) and also the automatically download the dependencies
+from hackage. \emph{backprop} manages the automatic differentiation, and
+\emph{stack} manages the automatic dependency management :)
+
+If you are following along at home, you can download the
+\href{http://yann.lecun.com/exdb/mnist/}{mnist data set files} and uncompress
+them into a folder, and run it all with:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{$}\NormalTok{ ./intro{-}backprop PATH\_TO\_DATA}
+\ExtensionTok{Loaded}\NormalTok{ data.}
+\ExtensionTok{[Epoch}\NormalTok{ 1]}
+\KeywordTok{(}\ExtensionTok{Batch}\NormalTok{ 1}\KeywordTok{)}
+\ExtensionTok{Trained}\NormalTok{ on 5000 points.}
+\ExtensionTok{Training}\NormalTok{ error:   13.26\%}
+\ExtensionTok{Validation}\NormalTok{ error: 13.44\%}
+\KeywordTok{(}\ExtensionTok{Batch}\NormalTok{ 2}\KeywordTok{)}
+\ExtensionTok{Trained}\NormalTok{ on 5000 points.}
+\ExtensionTok{Training}\NormalTok{ error:   9.74\%}
+\ExtensionTok{Validation}\NormalTok{ error: 11.08\%}
+\KeywordTok{(}\ExtensionTok{Batch}\NormalTok{ 3}\KeywordTok{)}
+\ExtensionTok{Trained}\NormalTok{ on 5000 points.}
+\ExtensionTok{Training}\NormalTok{ error:   6.84\%}
+\ExtensionTok{Validation}\NormalTok{ error: 8.71\%}
+\KeywordTok{(}\ExtensionTok{Batch}\NormalTok{ 4}\KeywordTok{)}
+\ExtensionTok{Trained}\NormalTok{ on 5000 points.}
+\ExtensionTok{Training}\NormalTok{ error:   6.84\%}
+\ExtensionTok{Validation}\NormalTok{ error: 8.53\%}
+\KeywordTok{(}\ExtensionTok{Batch}\NormalTok{ 5}\KeywordTok{)}
+\ExtensionTok{Trained}\NormalTok{ on 5000 points.}
+\ExtensionTok{Training}\NormalTok{ error:   5.80\%}
+\ExtensionTok{Validation}\NormalTok{ error: 7.55\%}
+\KeywordTok{(}\ExtensionTok{Batch}\NormalTok{ 6}\KeywordTok{)}
+\ExtensionTok{Trained}\NormalTok{ on 5000 points.}
+\ExtensionTok{Training}\NormalTok{ error:   5.20\%}
+\ExtensionTok{Validation}\NormalTok{ error: 6.77\%}
+\KeywordTok{(}\ExtensionTok{Batch}\NormalTok{ 7}\KeywordTok{)}
+\ExtensionTok{Trained}\NormalTok{ on 5000 points.}
+\ExtensionTok{Training}\NormalTok{ error:   4.44\%}
+\ExtensionTok{Validation}\NormalTok{ error: 5.85\%}
+\end{Highlighting}
+\end{Shaded}
+
+After about 35000 training points, we get down to 94\% accuracy on our test set.
+Neat!
+
+\section{A More Nuanced Look}\label{a-more-nuanced-look}
+
+That's the high level overview -- now let's look a bit at the details that might
+be helpful before you go strike it out on your own.
+
+The main API revolves around writing a
+\texttt{BVar\ s\ a\ -\textgreater{}\ BVar\ s\ b} function (representing an
+\texttt{a\ -\textgreater{}\ b} one), and then using one of the three runners:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} Return the result and gradient}
+\OtherTok{backprop ::}\NormalTok{ (}\DataTypeTok{Num}\NormalTok{ a, }\DataTypeTok{Num}\NormalTok{ b)}
+         \OtherTok{=\textgreater{}}\NormalTok{ (}\KeywordTok{forall}\NormalTok{ s}\OperatorTok{.} \DataTypeTok{Reifies}\NormalTok{ s }\DataTypeTok{W} \OtherTok{=\textgreater{}} \DataTypeTok{BVar}\NormalTok{ s a }\OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ s b) }\OtherTok{{-}\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ (a, b)}
+
+\CommentTok{{-}{-} Return the result}
+\OtherTok{evalBP   ::}\NormalTok{ (}\KeywordTok{forall}\NormalTok{ s}\OperatorTok{.} \DataTypeTok{Reifies}\NormalTok{ s }\DataTypeTok{W} \OtherTok{=\textgreater{}} \DataTypeTok{BVar}\NormalTok{ s a }\OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ s b) }\OtherTok{{-}\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ b}
+
+\CommentTok{{-}{-} Return the gradient}
+\OtherTok{gradBP   ::}\NormalTok{ (}\DataTypeTok{Num}\NormalTok{ a, }\DataTypeTok{Num}\NormalTok{ b)}
+         \OtherTok{=\textgreater{}}\NormalTok{ (}\KeywordTok{forall}\NormalTok{ s}\OperatorTok{.} \DataTypeTok{Reifies}\NormalTok{ s }\DataTypeTok{W} \OtherTok{=\textgreater{}} \DataTypeTok{BVar}\NormalTok{ s a }\OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ s b) }\OtherTok{{-}\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{evalBP} comes with virtually zero performance overhead (about 4\%) over
+writing your functions directly, so there's pretty much no harm in writing your
+entire application or library in \texttt{BVar}-based code.
+
+\texttt{gradBP}, however, carries measurable performance overhead over writing
+your gradient code ``manually'', but this heavily depends on exactly how complex
+the code you are backpropagating is. The overhead comes from two potential
+sources: the building of the function call graph, and also potentially from the
+mechanical automatic differentiation process generating different operations
+than what you might write by hand. See the
+\href{https://github.com/mstksg/backprop\#readme}{README} for a deeper analysis.
+
+You might have also noticed the RankN type signature (the
+\texttt{forall\ s.\ ...}) that I glossed over earlier. This is here because
+\emph{backprop} uses the RankN type trick (from \texttt{Control.Monad.ST} and
+the \emph{\href{http://hackage.haskell.org/package/ad}{ad}} library) for two
+purposes:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  The prevent leakage of variables from the function. You can't use
+  \texttt{evalBP} to get a \texttt{BVar} out in the end, just like you can't use
+  \texttt{runST} to get an \texttt{STRef} out in the end. The type system
+  prevents these variables from leaking out of the backprop/ST world.
+\item
+  The \texttt{Reifies\ s\ W} constraint allows \emph{backprop} to build a
+  \href{https://dl.acm.org/citation.cfm?doid=355586.364791}{Wengert Tape} of
+  your computation, which it uses internally to perform the reverse-mode
+  automatic differentiation (The \texttt{W} stands for Wengert).
+\end{enumerate}
+
+\subsection{Discussion on Num}\label{discussion-on-num}
+
+Note that at the moment, \texttt{backprop}, \texttt{gradBP},
+\texttt{(\^{}\^{}.)}, and most \texttt{BVar}-based operations all require a
+\texttt{Num} instance on the things being backpropagated. This is an API
+decision that is a compromise between different options, and the
+\href{https://github.com/mstksg/backprop\#readme}{README} has a deeper
+discussion on this.
+
+For the most part, writing a \texttt{Num} instance for your types is some easy
+and quick boilerplate if your type derives Generic (and we can use
+\emph{\href{http://hackage.haskell.org/package/one-liner-instances}{one-liner-instances}}),
+like we saw above with the \texttt{Num} instance for \texttt{Net}.
+
+One potential drawback is that requiring a \texttt{Num} instance means you can't
+directly backpropagate tuples. This can be an issue because of how pervasive
+tuples are used for currying/uncurrying, and also because automatically
+generated prisms use tuples for constructors with multiple fields.
+
+To mitigate this issue, the library exports some convenient
+tuples-with-Num-instances in \texttt{Numeric.Backprop.Tuple}. If you are writing
+an application, you can consider also using the orphan instances in
+\emph{\href{https://hackage.haskell.org/package/NumInstances}{NumInstances}}.
+
+\subsection{Lifting your own functions}\label{lifting-your-own-functions}
+
+Of course, all of this would be useless unless you had a way to manipulate
+\texttt{BVar}s. The library does provide lens-based accessors/setters. It also
+provides \texttt{Num}, \texttt{Fractional}, and \texttt{Floating} instances for
+\texttt{BVar}s so you can manipulate a \texttt{BVar\ s\ a} just like an
+\texttt{a} using its numeric instances. We leveraged this heavily by using
+\texttt{+}, \texttt{negate}, \texttt{log}, \texttt{/}, etc., and even going as
+far as re-using our entire \texttt{logistic} implementation because it only
+relied on numeric operations.
+
+However, for our domain-specific operations (like matrix multiplication, norms,
+and dot products), we needed to somehow lift those operations into
+\emph{backprop}-land, to work with \texttt{BVar}s.
+
+This isn't something that end-users of the library should be expected to do --
+ideally, this would be done by library maintainers and authors, so that users
+can use their types and operations with \emph{backprop}. However, writing them
+is not magical -- it just requires providing the result and the gradient with
+respect to a final total derivative. For example, let's look at the
+implementation of the lifted \texttt{\textless{}.\textgreater{}}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{import} \KeywordTok{qualified} \DataTypeTok{Numeric.LinearAlgebra.Static} \KeywordTok{as} \DataTypeTok{H}
+
+\NormalTok{(}\OperatorTok{\textless{}.\textgreater{}}\NormalTok{)}
+\OtherTok{    ::} \DataTypeTok{Reifies}\NormalTok{ s }\DataTypeTok{W}
+    \OtherTok{=\textgreater{}} \DataTypeTok{BVar}\NormalTok{ s (}\DataTypeTok{R} \DecValTok{10}\NormalTok{)}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ s (}\DataTypeTok{R} \DecValTok{10}\NormalTok{)}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ s }\DataTypeTok{Double}
+\NormalTok{(}\OperatorTok{\textless{}.\textgreater{}}\NormalTok{) }\OtherTok{=}\NormalTok{ liftOp2 }\OperatorTok{.}\NormalTok{ op2 }\OperatorTok{$}\NormalTok{ \textbackslash{}x y }\OtherTok{{-}\textgreater{}}
+\NormalTok{    ( x }\OperatorTok{H.\textless{}.\textgreater{}}\NormalTok{ y}
+\NormalTok{    , \textbackslash{}d }\OtherTok{{-}\textgreater{}}\NormalTok{ (H.konst d }\OperatorTok{*}\NormalTok{ y, x }\OperatorTok{*}\NormalTok{ H.konst d)}
+\NormalTok{    )}
+\end{Highlighting}
+\end{Shaded}
+
+To lift \texttt{(\textless{}.\textgreater{})}, we provide a function that, given
+its inputs \texttt{x} and \texttt{y}, gives the result
+(\texttt{x\ H.\textless{}.\textgreater{}\ y}), and also its gradient with
+respect to the total derivative of the result. For more details on the math, see
+the
+\href{https://hackage.haskell.org/package/backprop-0.1.2.0/docs/Numeric-Backprop-Op.html}{documentation
+for \texttt{Numeric.Backprop.Op}}!
+
+If you're interested in writing your own lifted operations, take a look at the
+\href{https://github.com/mstksg/hmatrix-backprop/blob/master/src/Numeric/LinearAlgebra/Static/Backprop.hs}{source
+of the lifted hmatrix module}, which lifts (most) of the functionality of
+\emph{hmatrix} for backprop. (And if you're good at computing gradients, check
+out the module notes for some of the current unimplemented operators -- any PR's
+would definitely be appreciated!)
+
+\section{Conclusion}\label{conclusion}
+
+The world is now your oyster! Go out and feel emboldened to numerically optimize
+everything you can get your hands on!
+
+If you want to see an application to a more complex neural network type (and if
+you're curious at how to implement the more ``extensible'' neural network types
+like in my
+\href{https://blog.jle.im/entries/series/+practical-dependent-types-in-haskell.html}{blog
+series on extensible neural networks}), I wrote
+\href{https://github.com/mstksg/backprop/blob/master/renders/extensible-neural.pdf}{a
+quick write-up} on how to apply those type-level dependent programming
+techniques to \emph{backprop} (also available in
+\href{https://github.com/mstksg/backprop/blob/master/samples/extensible-neural.lhs}{literate
+haskell}).
+
+Really, though, the goal of backprop is to allow you to automatically
+differentiate and optimize things you have \emph{already} written (or plan to
+write, if only you had the ability to optimize them). Over the next few weeks
+I'll be lifting operations from other libraries in the ecosystem. Let me know if
+there are any that you might want me to look at first! Be also on the lookout
+for some other posts I'll be writing on applying \emph{backprop} to optimize
+things other than neural networks.
+
+If you have any questions, feel free to leave a comment. You can also give me a
+shout on \href{https://twitter.com/mstk}{twitter} (I'm \emph{@mstk}), on
+freenode's \emph{\#haskell} (where I am usually idling as \emph{jle`}), or on
+the \href{https://gitter.im/dataHaskell/Lobby}{DataHaskell gitter} (where I hang
+out as \emph{@mstksg}).
+
+Please let me know if you end up doing anything interesting with the library ---
+I'd love to hear about it! And, until next time, happy Haskelling!
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

@@ -1,0 +1,838 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Streaming Huffman Compression in Haskell (Part 2: Binary and Searches)},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Streaming Huffman Compression in Haskell (Part 2: Binary and Searches)}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% April 11, 2014
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-2-binary.html}{in
+Code}}.}
+
+Continuing on this series of beginner/intermediate projects for newer Haskell
+users, let's look back at our Huffman encoding project.
+
+In our
+\href{http://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-1-trees}{last
+post} we went over two types of binary trees implemented as algebraic data
+structures in Haskell, and also a scheme for assembling a Huffman encoding tree
+using the State monad.
+
+Now let's look at serializing and unserializing our prefix trees for easy
+storage, and then at actually using them to encode and decode!
+
+\section{Binary}\label{binary}
+
+There are a couple of serialization libraries in Haskell; the dominant one is
+\href{http://hackage.haskell.org/package/binary}{binary}, but
+\href{http://hackage.haskell.org/package/cereal}{cereal} is also not uncommon.
+The two diverge on several design points, and you can read up on them in the
+documentation for \emph{cereal}. We'll be using \emph{binary} for the this
+tutorial; among many reasons, for its easy integration with the \emph{pipes}
+library we will be working with later.
+
+\subsection{The Easy Way}\label{the-easy-way}
+
+So let's make \texttt{PreTree} serialize/unserializable.
+
+The easy way is to enable the \texttt{DeriveGeneric} language extension on GHC,
+use \texttt{deriving\ (Generic)} when we define our \texttt{PreTree}, and then:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{instance} \DataTypeTok{Binary}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{Binary}\NormalTok{ (}\DataTypeTok{PreTree}\NormalTok{ a)}
+\end{Highlighting}
+\end{Shaded}
+
+And\ldots that's it! We just auto-generated functions to serialize and
+deserialize our \texttt{PreTree}s (if what they contain is itself serializable).
+
+In real life, we would do this. However, for the sake of learning, let's dig a
+bit more into the \texttt{Binary} typeclass.
+
+\subsection{\texorpdfstring{The \emph{Other} Easy
+Way}{The Other Easy Way}}\label{the-other-easy-way}
+
+So the big crux of \emph{binary} is the \texttt{Binary} typeclass:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{class} \DataTypeTok{Binary}\NormalTok{ t }\KeywordTok{where}
+\OtherTok{    put ::}\NormalTok{ t }\OtherTok{{-}\textgreater{}} \DataTypeTok{Put}
+\OtherTok{    get ::} \DataTypeTok{Get}\NormalTok{ t}
+\end{Highlighting}
+\end{Shaded}
+
+where \texttt{Put} and \texttt{Get} are sort of ``instruction objects for
+putting/getting binary''. \texttt{Get} is a monad, and \texttt{Put} is a wrapped
+\texttt{PutM}, which is a writer monad. (To be more specific, \texttt{Put} is
+\texttt{PutM\ ()}, because the final action has no result and only ``writes'')
+
+So \texttt{Binary} things are things that you can serialize (with the
+instructions in \texttt{put}) and deserialize (with the instructions in
+\texttt{get}).
+
+Luckily, because of Haskell's great composition tools, assembling these
+instructions by hand are easy peasy!
+
+\subsubsection{Put}\label{put}
+
+Let's define our own custom \texttt{Put} for our \texttt{PreTree}s:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/PreTree.hs\#L69{-}L76}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\OtherTok{putPT ::} \DataTypeTok{Binary}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{PreTree}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Put}
+\NormalTok{putPT (}\DataTypeTok{PTLeaf}\NormalTok{ x) }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    put }\DataTypeTok{True}                    \CommentTok{{-}{-} signify we have a leaf}
+\NormalTok{    put x}
+\NormalTok{putPT (}\DataTypeTok{PTNode}\NormalTok{ pt1 pt2) }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    put }\DataTypeTok{False}                   \CommentTok{{-}{-} signify we have a node}
+\NormalTok{    put pt1}
+\NormalTok{    put pt2}
+\end{Highlighting}
+\end{Shaded}
+
+This all should be fairly readable and self-explanatory.
+
+\begin{itemize}
+\item
+  ``To put a \texttt{PTLeaf\ x}, first put a flag saying you have a leaf, then
+  put the value of \texttt{x}.''
+\item
+  ``To put a \texttt{PTNode\ pt1\ pt2}, first put a flag saying you have a node,
+  then put both trees.''
+\end{itemize}
+
+Due to how monads and pattern matching work, the whole thing is pretty
+expressive, pleasant to read, and satisfying to write.
+
+The only slightly annoying thing is that we subject ourselves to
+\href{http://existentialtype.wordpress.com/2011/03/15/boolean-blindness/}{boolean
+blindness} by using \texttt{True} or \texttt{False}; we have to keep track of
+what means what. Alternatively, we can create our own binary data types,
+\texttt{data\ PTType\ =\ IsNode\ \textbar{}\ IsLeaf}, and \texttt{put}
+\emph{that}, instead\ldots but in this case it might not be so bad to live with
+boolean blindness for now.
+
+\subsubsection{Get}\label{get}
+
+Now let's define our own custom \texttt{Get}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/PreTree.hs\#L79{-}L84}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\OtherTok{getPT ::} \DataTypeTok{Binary}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{Get}\NormalTok{ (}\DataTypeTok{PreTree}\NormalTok{ a)}
+\NormalTok{getPT }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    isLeaf }\OtherTok{\textless{}{-}}\NormalTok{ get}
+    \KeywordTok{if}\NormalTok{ isLeaf}
+      \KeywordTok{then} \DataTypeTok{PTLeaf} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ get}
+      \KeywordTok{else} \DataTypeTok{PTNode} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ get }\OperatorTok{\textless{}*\textgreater{}}\NormalTok{ get}
+\end{Highlighting}
+\end{Shaded}
+
+This also shouldn't be too bad!
+
+\begin{itemize}
+\tightlist
+\item
+  ``Get'' the boolean flag, to tell you if you have a leaf or a node.
+\item
+  If it's a leaf, then \texttt{get} the data inside the leaf, and wrap it in a
+  \texttt{PTLeaf}.
+\item
+  If it's not, \texttt{get} the next two \texttt{PreTree\ a}'s, and put them
+  both in a \texttt{PTNode}.
+\end{itemize}
+
+The neat thing here is that \texttt{get} is polymorphic in its return type. We
+know that the first \texttt{get} expects a \texttt{Bool}, so it knows to parse a
+\texttt{Bool}. We know that the second \texttt{get} expects an \texttt{a}, so it
+knows to parse an \texttt{a}. We know that the final two \texttt{get}s both
+expect \texttt{PreTree\ a}'s, so it nows what to parse for that too.
+
+Hooray for type inference!
+
+If you're not familiar with the
+\texttt{f\ \textless{}\$\textgreater{}\ x\ \textless{}*\textgreater{}\ y} idiom,
+you can consider it to be the same thing as \texttt{f\ x\ y}, except that
+\texttt{x} and \texttt{y} are ``inside'' things:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ (}\OperatorTok{+}\NormalTok{) }\DecValTok{1} \DecValTok{4}
+\DecValTok{5}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ (}\OperatorTok{+}\NormalTok{) }\OperatorTok{\textless{}$\textgreater{}} \DataTypeTok{Just} \DecValTok{1} \OperatorTok{\textless{}*\textgreater{}} \DataTypeTok{Just} \DecValTok{4}
+\DataTypeTok{Just} \DecValTok{5}
+\end{Highlighting}
+\end{Shaded}
+
+Where \texttt{(\textless{}\$\textgreater{})} and
+\texttt{(\textless{}*\textgreater{})} come from \texttt{Control.Applicative}. We
+call this style ``applicative style'', in the biz.
+
+\subsubsection{Wrapping it up}\label{wrapping-it-up}
+
+And finally, to tie it all together:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/PreTree.hs\#L36{-}L38}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\KeywordTok{instance} \DataTypeTok{Binary}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{Binary}\NormalTok{ (}\DataTypeTok{PreTree}\NormalTok{ a) }\KeywordTok{where}
+\NormalTok{    put }\OtherTok{=}\NormalTok{ putPT}
+\NormalTok{    get }\OtherTok{=}\NormalTok{ getPT}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Testing it out}\label{testing-it-out}
+
+However way we decide to write our \texttt{Binary} instance, let's test it all
+out.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ (}\DataTypeTok{Just}\NormalTok{ pt) }\OtherTok{=}\NormalTok{ runBuildTree }\StringTok{"hello world"}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ encoded }\OtherTok{=}\NormalTok{ encode pt}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t encoded}
+\OtherTok{encoded ::} \DataTypeTok{ByteString}       \CommentTok{{-}{-} a string of bytes}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ decoded }\OtherTok{=}\NormalTok{ decode}\OtherTok{ encoded ::} \DataTypeTok{PreTree} \DataTypeTok{Char}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ decoded}
+\DataTypeTok{PTNode}\NormalTok{ (}\DataTypeTok{PTNode}\NormalTok{ (}\DataTypeTok{PTNode}\NormalTok{ (}\DataTypeTok{PTLeaf} \CharTok{\textquotesingle{}h\textquotesingle{}}\NormalTok{)}
+\NormalTok{                       (}\DataTypeTok{PTLeaf} \CharTok{\textquotesingle{}e\textquotesingle{}}\NormalTok{)}
+\NormalTok{               )}
+\NormalTok{               (}\DataTypeTok{PTNode}\NormalTok{ (}\DataTypeTok{PTLeaf} \CharTok{\textquotesingle{}w\textquotesingle{}}\NormalTok{)}
+\NormalTok{                       (}\DataTypeTok{PTLeaf} \CharTok{\textquotesingle{}r\textquotesingle{}}\NormalTok{)}
+\NormalTok{               )}
+\NormalTok{       )}
+\NormalTok{       (}\DataTypeTok{PTNode}\NormalTok{ (}\DataTypeTok{PTLeaf} \CharTok{\textquotesingle{}l\textquotesingle{}}\NormalTok{)}
+\NormalTok{               (}\DataTypeTok{PTNode}\NormalTok{ (}\DataTypeTok{PTNode}\NormalTok{ (}\DataTypeTok{PTLeaf} \CharTok{\textquotesingle{}d\textquotesingle{}}\NormalTok{)}
+\NormalTok{                               (}\DataTypeTok{PTLeaf} \CharTok{\textquotesingle{} \textquotesingle{}}\NormalTok{)}
+\NormalTok{                       )}
+\NormalTok{                       (}\DataTypeTok{PTLeaf} \CharTok{\textquotesingle{}o\textquotesingle{}}\NormalTok{)}
+\NormalTok{               )}
+\NormalTok{       )}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ decoded }\OperatorTok{==}\NormalTok{ t}
+\DataTypeTok{True}
+\end{Highlighting}
+\end{Shaded}
+
+Neat! We can also write it to a file and re-read:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ encodeFile }\StringTok{"test.dat"}\NormalTok{ t}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ t\textquotesingle{} }\OtherTok{\textless{}{-}}\NormalTok{ decodeFile }\StringTok{"test.dat"}\OtherTok{ ::} \DataTypeTok{IO}\NormalTok{ (}\DataTypeTok{PreTree} \DataTypeTok{Char}\NormalTok{)}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ t\textquotesingle{}}
+\DataTypeTok{PTNode}\NormalTok{ (}\DataTypeTok{PTNode}\NormalTok{ (}\DataTypeTok{PTNode}\NormalTok{ (}\DataTypeTok{PTLeaf} \CharTok{\textquotesingle{}h\textquotesingle{}}\NormalTok{)}
+\NormalTok{                       (}\DataTypeTok{PTLeaf} \CharTok{\textquotesingle{}e\textquotesingle{}}\NormalTok{)}
+\NormalTok{               )}
+\NormalTok{               (}\DataTypeTok{PTNode}\NormalTok{ (}\DataTypeTok{PTLeaf} \CharTok{\textquotesingle{}w\textquotesingle{}}\NormalTok{)}
+\NormalTok{                       (}\DataTypeTok{PTLeaf} \CharTok{\textquotesingle{}r\textquotesingle{}}\NormalTok{)}
+\NormalTok{               )}
+\NormalTok{       )}
+\NormalTok{       (}\DataTypeTok{PTNode}\NormalTok{ (}\DataTypeTok{PTLeaf} \CharTok{\textquotesingle{}l\textquotesingle{}}\NormalTok{)}
+\NormalTok{               (}\DataTypeTok{PTNode}\NormalTok{ (}\DataTypeTok{PTNode}\NormalTok{ (}\DataTypeTok{PTLeaf} \CharTok{\textquotesingle{}d\textquotesingle{}}\NormalTok{)}
+\NormalTok{                               (}\DataTypeTok{PTLeaf} \CharTok{\textquotesingle{} \textquotesingle{}}\NormalTok{)}
+\NormalTok{                       )}
+\NormalTok{                       (}\DataTypeTok{PTLeaf} \CharTok{\textquotesingle{}o\textquotesingle{}}\NormalTok{)}
+\NormalTok{               )}
+\NormalTok{       )}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ t\textquotesingle{} }\OperatorTok{==}\NormalTok{ t}
+\DataTypeTok{True}
+\end{Highlighting}
+\end{Shaded}
+
+And this looks like it works pretty well!
+
+\section{Encoding}\label{encoding}
+
+Now that we've got that out of the way, let's work on actually encoding and
+decoding.
+
+So, basically, we encode a character in a huffman tree by path you take to reach
+the character.
+
+Let's represent this path as a list of \texttt{Direction}s:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/PreTree.hs\#L25{-}L30}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\KeywordTok{data} \DataTypeTok{Direction} \OtherTok{=} \DataTypeTok{DLeft}
+               \OperatorTok{|} \DataTypeTok{DRight}
+               \KeywordTok{deriving}\NormalTok{ (}\DataTypeTok{Show}\NormalTok{, }\DataTypeTok{Eq}\NormalTok{, }\DataTypeTok{Generic}\NormalTok{)}
+
+\KeywordTok{type} \DataTypeTok{Encoding} \OtherTok{=}\NormalTok{ [}\DataTypeTok{Direction}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+Eventually, an \texttt{Encoding} will be turned into a \texttt{ByteString}, with
+\texttt{DLeft} representing the 0 bit and \texttt{DRight} representing the 1
+bit. But we keep them as their own data types now because everyone hates
+\href{http://existentialtype.wordpress.com/2011/03/15/boolean-blindness/}{boolean
+blindness}. Instead of keeping a \texttt{True} or \texttt{False}, we keep data
+types that actually carry semantic meaning :) And we can't do silly things like
+use a boolean as a direction\ldots what the heck? Why would you even want to do
+that? How is ``true'' a direction?
+
+\subsection{Direct search}\label{direct-search}
+
+Here's a naive recursive direct (depth-first) search.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/PreTree.hs\#L90{-}L96}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\OtherTok{findPT ::} \DataTypeTok{Eq}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{PreTree}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe} \DataTypeTok{Encoding}
+\NormalTok{findPT pt0 x }\OtherTok{=}\NormalTok{ go pt0 []}
+  \KeywordTok{where}
+\NormalTok{    go (}\DataTypeTok{PTLeaf}\NormalTok{ y      ) enc }\OperatorTok{|}\NormalTok{ x }\OperatorTok{==}\NormalTok{ y    }\OtherTok{=} \DataTypeTok{Just}\NormalTok{ (}\FunctionTok{reverse}\NormalTok{ enc)}
+                            \OperatorTok{|} \FunctionTok{otherwise} \OtherTok{=} \DataTypeTok{Nothing}
+\NormalTok{    go (}\DataTypeTok{PTNode}\NormalTok{ pt1 pt2) enc }\OtherTok{=}\NormalTok{ go pt1 (}\DataTypeTok{DLeft}  \OperatorTok{:}\NormalTok{ enc) }\OperatorTok{\textless{}|\textgreater{}}
+\NormalTok{                              go pt2 (}\DataTypeTok{DRight} \OperatorTok{:}\NormalTok{ enc)}
+\end{Highlighting}
+\end{Shaded}
+
+The algorithm goes:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  If you find a \texttt{PTLeaf}, if the data matches what you are looking for,
+  return the current path in a \texttt{Just}. If not, this is a dead-end; return
+  \texttt{Nothing}.
+\item
+  If you find a \texttt{PTNode}, search the left branch adding a \texttt{DLeft}
+  to the current path, and the right branch adding a \texttt{DRight} to the
+  current path. Use \texttt{(\textless{}\textbar{}\textgreater{})} to perform
+  the search lazily (ie, stop after the first success).
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ pt }\OtherTok{=}\NormalTok{ runBuildTree }\StringTok{"hello world"}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ findPT pt }\CharTok{\textquotesingle{}e\textquotesingle{}}
+\DataTypeTok{Just}\NormalTok{ [}\DataTypeTok{DLeft}\NormalTok{, }\DataTypeTok{DLeft}\NormalTok{, }\DataTypeTok{DRight}\NormalTok{]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ findPT pt }\CharTok{\textquotesingle{}q\textquotesingle{}}
+\DataTypeTok{Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+While it is clearly horribly inefficient, it does serve as a nice clean example
+of a depth-first search (which exits as soon as it finds the goal), and probably
+a nice reference implementation for us to reference later.
+
+Its inefficiency lies in many things --- chiefly of those being the fact that
+Huffman trees don't give you any real help as a search tree, and nothing short
+of a full depth-first traversal would work. Also, you probably don't want to do
+this every time you want to encode something; you'd want to have some sort of
+memoizing and caching, ideally.
+
+\subsection{Pre-searching}\label{pre-searching}
+
+We can sort of ``solve'' both of these problems this by traversing through our
+\texttt{PreTree} and adding an entry to a \texttt{Map} at every leaf. This fixes
+our repetition problem by memoizing all of our results into a map\ldots and it
+fixes our search problem because \texttt{Map}s are an ordered binary search tree
+with efficient O(log n) lookups.\footnote{Note --- this section was largely
+  rewritten; it used to contain a rather involved yet misled tutorial about the
+  Writer monad, as suggested by old links/titles. This can
+  \href{https://github.com/mstksg/inCode/blob/master/copy/entries/.huffman-2-writer.md}{still
+  be found here}, if you want to read through it.}
+
+There are many ways to do this; my favorite right now is to do it by doing
+collapsing our tree into one giant map, using the Monoid instance of
+\texttt{Map}.
+
+Basically, we turn each of our leaves into little \texttt{Map}s, and then
+``combine'' them all, using \texttt{(\textless{}\textgreater{})}, which
+``combines'' or merges two \texttt{Map\ k\ v}'s, using their Monoid instance:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/PreTree.hs\#L101{-}L106}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\OtherTok{ptTable ::} \DataTypeTok{Ord}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{PreTree}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Map}\NormalTok{ a }\DataTypeTok{Encoding}
+\NormalTok{ptTable pt }\OtherTok{=}\NormalTok{ go pt []}
+  \KeywordTok{where}
+\NormalTok{    go (}\DataTypeTok{PTLeaf}\NormalTok{ x) enc       }\OtherTok{=}\NormalTok{ x }\OtherTok{\textasciigrave{}M.singleton\textasciigrave{}} \FunctionTok{reverse}\NormalTok{ enc}
+\NormalTok{    go (}\DataTypeTok{PTNode}\NormalTok{ pt1 pt2) enc }\OtherTok{=}\NormalTok{ go pt1 (}\DataTypeTok{DLeft}  \OperatorTok{:}\NormalTok{ enc) }\OperatorTok{\textless{}\textgreater{}}
+\NormalTok{                              go pt2 (}\DataTypeTok{DRight} \OperatorTok{:}\NormalTok{ enc)}
+\end{Highlighting}
+\end{Shaded}
+
+We do some sort of fancy depth-first ``map'' over all of the leaves, keeping
+track of how deep we are. Then we combine it all as we go along with
+\texttt{\textless{}\textgreater{}}.
+
+Note how it is almost identical in structure to \texttt{findPT}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/PreTree.hs\#L90{-}L96}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\OtherTok{findPT ::} \DataTypeTok{Eq}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{PreTree}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe} \DataTypeTok{Encoding}
+\NormalTok{findPT pt0 x }\OtherTok{=}\NormalTok{ go pt0 []}
+  \KeywordTok{where}
+\NormalTok{    go (}\DataTypeTok{PTLeaf}\NormalTok{ y      ) enc }\OperatorTok{|}\NormalTok{ x }\OperatorTok{==}\NormalTok{ y    }\OtherTok{=} \DataTypeTok{Just}\NormalTok{ (}\FunctionTok{reverse}\NormalTok{ enc)}
+                            \OperatorTok{|} \FunctionTok{otherwise} \OtherTok{=} \DataTypeTok{Nothing}
+\NormalTok{    go (}\DataTypeTok{PTNode}\NormalTok{ pt1 pt2) enc }\OtherTok{=}\NormalTok{ go pt1 (}\DataTypeTok{DLeft}  \OperatorTok{:}\NormalTok{ enc) }\OperatorTok{\textless{}|\textgreater{}}
+\NormalTok{                              go pt2 (}\DataTypeTok{DRight} \OperatorTok{:}\NormalTok{ enc)}
+\end{Highlighting}
+\end{Shaded}
+
+Except instead of doing a ``short-circuit combination'' with
+\texttt{(\textless{}\textbar{}\textgreater{})}, we do a ``full combination''
+with \texttt{(\textless{}\textgreater{})}.
+
+\subsection{Lookup, Act 2}\label{lookup-act-2}
+
+So now that we have our lookup table, our new lookup/find function is both
+simple and performant:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/PreTree.hs\#L110{-}L111}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\OtherTok{lookupPTTable ::} \DataTypeTok{Ord}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{Map}\NormalTok{ a }\DataTypeTok{Encoding} \OtherTok{{-}\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe} \DataTypeTok{Encoding}
+\NormalTok{lookupPTTable }\OtherTok{=} \FunctionTok{flip}\NormalTok{ M.lookup}
+\end{Highlighting}
+\end{Shaded}
+
+given, of course, that we generate our table first.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ pt }\OtherTok{=}\NormalTok{ runBuildTree }\StringTok{"hello world"}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ tb }\OtherTok{=} \FunctionTok{fmap}\NormalTok{ ptTable pt}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ tb }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ \textbackslash{}tb\textquotesingle{} }\OtherTok{{-}\textgreater{}}\NormalTok{ lookupPTTable tb\textquotesingle{} }\CharTok{\textquotesingle{}e\textquotesingle{}}
+\DataTypeTok{Just}\NormalTok{ [}\DataTypeTok{DLeft}\NormalTok{, }\DataTypeTok{DLeft}\NormalTok{, }\DataTypeTok{DRight}\NormalTok{]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ tb }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ \textbackslash{}tb\textquotesingle{} }\OtherTok{{-}\textgreater{}}\NormalTok{ lookupPTTable tb\textquotesingle{} }\CharTok{\textquotesingle{}q\textquotesingle{}}
+\DataTypeTok{Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+(Here we use the Monad instance for Maybe, to extract the
+\texttt{tb\textquotesingle{}} out of the \texttt{Just\ tb}. We ``sequence'' two
+Maybe's together. For more information, check out my
+\href{http://blog.jle.im/entry/practical-fun-with-monads-introducing-monadplus}{blog
+post} on this exact topic)
+
+\subsection{Encoding many}\label{encoding-many}
+
+Now, we'd like to be able to decode an entire stream of \texttt{a}'s, returning
+a list of the encodings.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/PreTree.hs\#L114{-}L117}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\OtherTok{encodeAll ::} \DataTypeTok{Ord}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{PreTree}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ [a] }\OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe} \DataTypeTok{Encoding}
+\NormalTok{encodeAll pt xs }\OtherTok{=} \FunctionTok{concat} \OperatorTok{\textless{}$\textgreater{}} \FunctionTok{sequence}\NormalTok{ (}\FunctionTok{map}\NormalTok{ (lookupPTTable tb) xs)}
+  \KeywordTok{where}
+\NormalTok{    tb }\OtherTok{=}\NormalTok{ ptTable pt}
+\end{Highlighting}
+\end{Shaded}
+
+This is a bit dense! But I'm sure that you are up for it.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  First, we build the lookup table and call it \texttt{tb}.
+\item
+  Then, we map \texttt{lookupPTTable\ tb} over our list \texttt{xs}, to get a
+  list of type \texttt{{[}Maybe\ Encoding{]}}.
+\item
+  Then, we use \texttt{sequence}, which in our case is
+  \texttt{{[}Maybe\ a{]}\ -\textgreater{}\ Maybe\ {[}a{]}}. It turns a list of
+  Maybe's into a list inside a Maybe. Recall the semantics of the Maybe monad:
+  If you ever encounter a \texttt{Nothing}, the \emph{whole thing} is a
+  \texttt{Nothing}. So in this case, if \emph{any} of the inputs are not
+  decodable, \emph{the entire thing is Nothing}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \FunctionTok{sequence}\NormalTok{ [}\DataTypeTok{Just} \DecValTok{5}\NormalTok{, }\DataTypeTok{Just} \DecValTok{4}\NormalTok{]}
+\DataTypeTok{Just}\NormalTok{ [}\DecValTok{5}\NormalTok{,}\DecValTok{4}\NormalTok{]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \FunctionTok{sequence}\NormalTok{ [}\DataTypeTok{Just} \DecValTok{6}\NormalTok{, }\DataTypeTok{Nothing}\NormalTok{]}
+\DataTypeTok{Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+  Note that the standard libraries provide a synonym for
+  \texttt{sequence\ .\ map} --- \texttt{mapM}. So we could have written it as
+  \texttt{mapM\ (lookupPTTable\ t)\ xs}\ldots but that is significantly less
+  clear/immediately understandable.
+\item
+  Recall that our \texttt{sequence} left us with a
+  \texttt{Maybe\ {[}Encoding{]}}\ldots but we only want
+  \texttt{Maybe\ Encoding}. So we can use \texttt{(\textless{}\$\textgreater{})}
+  to \texttt{concat} all of the \texttt{Encoding}s inside the Maybe.
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ pt }\OtherTok{=}\NormalTok{ runBuildTree }\StringTok{"hello world"}          \CommentTok{{-}{-} :: Maybe (PreTree Char)}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ pt }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ \textbackslash{}pt\textquotesingle{} }\OtherTok{{-}\textgreater{}}\NormalTok{ encodeAll pt\textquotesingle{} }\StringTok{"hello world"}
+\DataTypeTok{Just}\NormalTok{ [}\DataTypeTok{DLeft}\NormalTok{, }\DataTypeTok{DLeft}\NormalTok{, }\DataTypeTok{DLeft}\NormalTok{, }\DataTypeTok{DLeft}\NormalTok{, }\DataTypeTok{DLeft}\NormalTok{, }\DataTypeTok{DRight}\NormalTok{, }\DataTypeTok{DRight}\NormalTok{, }\DataTypeTok{DLeft}\NormalTok{, }\DataTypeTok{DRight}\NormalTok{, }\DataTypeTok{DLeft}\NormalTok{,}
+\DataTypeTok{DRight}\NormalTok{, }\DataTypeTok{DRight}\NormalTok{, }\DataTypeTok{DRight}\NormalTok{, }\DataTypeTok{DRight}\NormalTok{, }\DataTypeTok{DRight}\NormalTok{, }\DataTypeTok{DLeft}\NormalTok{, }\DataTypeTok{DRight}\NormalTok{, }\DataTypeTok{DLeft}\NormalTok{, }\DataTypeTok{DRight}\NormalTok{, }\DataTypeTok{DLeft}\NormalTok{,}
+\DataTypeTok{DRight}\NormalTok{, }\DataTypeTok{DRight}\NormalTok{, }\DataTypeTok{DRight}\NormalTok{, }\DataTypeTok{DLeft}\NormalTok{, }\DataTypeTok{DRight}\NormalTok{, }\DataTypeTok{DRight}\NormalTok{, }\DataTypeTok{DRight}\NormalTok{, }\DataTypeTok{DLeft}\NormalTok{, }\DataTypeTok{DRight}\NormalTok{, }\DataTypeTok{DRight}\NormalTok{,}
+\DataTypeTok{DLeft}\NormalTok{, }\DataTypeTok{DLeft}\NormalTok{]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ pt }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ \textbackslash{}pt\textquotesingle{} }\OtherTok{{-}\textgreater{}}\NormalTok{ encodeAll pt\textquotesingle{} }\StringTok{"hello worldq"}
+\DataTypeTok{Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+Welp, that's half the battle!
+
+\section{Decoding}\label{decoding}
+
+For huffman trees, decoding is the much simpler process. Simply traverse down
+the tree using the given encoding and return a value whenever you reach a leaf.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/PreTree.hs\#L123{-}L128}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\OtherTok{decodePT ::} \DataTypeTok{PreTree}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Encoding} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ (a, }\DataTypeTok{Encoding}\NormalTok{)}
+\NormalTok{decodePT (}\DataTypeTok{PTLeaf}\NormalTok{ x)       ds     }\OtherTok{=} \DataTypeTok{Just}\NormalTok{ (x, ds)}
+\NormalTok{decodePT (}\DataTypeTok{PTNode}\NormalTok{ pt1 pt2) (d}\OperatorTok{:}\NormalTok{ds) }\OtherTok{=} \KeywordTok{case}\NormalTok{ d }\KeywordTok{of}
+                                     \DataTypeTok{DLeft}  \OtherTok{{-}\textgreater{}}\NormalTok{ decodePT pt1 ds}
+                                     \DataTypeTok{DRight} \OtherTok{{-}\textgreater{}}\NormalTok{ decodePT pt2 ds}
+\NormalTok{decodePT (}\DataTypeTok{PTNode}\NormalTok{ \_ \_)     []     }\OtherTok{=} \DataTypeTok{Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+The logic should seem pretty familiar. The main algorithm involves going down
+the tree, ``following'' the direction list. If you reach a leaf, then you have
+found something (and return the directions you haven't followed yet). If you run
+out of directions while on a node\ldots something has gone wrong.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{do}\NormalTok{  pt  }\OtherTok{\textless{}{-}}\NormalTok{ runBuildTree }\StringTok{"hello world"}
+    \OperatorTok{|}\NormalTok{     enc }\OtherTok{\textless{}{-}}\NormalTok{ encodeAll pt }\StringTok{"hello world"}
+    \OperatorTok{|}\NormalTok{     decodePT pt enc}
+\DataTypeTok{Just}\NormalTok{ (}\CharTok{\textquotesingle{}h\textquotesingle{}}\NormalTok{, [}\DataTypeTok{DLeft}\NormalTok{, }\DataTypeTok{DLeft} \OperatorTok{...}\NormalTok{])}
+\end{Highlighting}
+\end{Shaded}
+
+(Here we are using the Maybe monad, in order to ``stitch together'' three
+possibly-failing operations in a row. We call \texttt{pt} and \texttt{enc} the
+values ``inside'' the \texttt{Just\ pt} and \texttt{Just\ enc} returned by
+\texttt{runBuildTree} and \texttt{encodeAll}; the whole thing fails if any of
+the steps fail at any time. If you are not familiar with this,
+\href{http://blog.jle.im/entry/practical-fun-with-monads-introducing-monadplus}{I
+sort of literally wrote an entire blog post} on this subject :) )
+
+\subsection{Decoding many}\label{decoding-many}
+
+We'd like to repeatedly iterate this until we have consumed our entire encoding.
+
+Basically, starting with a list of encodings, we want to continually chop it up
+and build a list from it.
+
+This sounds a lot like the \texttt{Data.List} function \texttt{unfoldr}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{unfoldr ::}\NormalTok{ (b }\OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ (a, b)) }\OtherTok{{-}\textgreater{}}\NormalTok{ b }\OtherTok{{-}\textgreater{}}\NormalTok{ [a]}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{unfoldr} makes a list by applying your function repeatedly to a
+``de-cumulator'', carrying the state of the decumulator, and stopping when your
+function returns \texttt{Nothing}. You can think of it as the ``opposite'' of
+\texttt{foldr}.
+
+Using \texttt{unfoldr}, we can write a \texttt{decodeAll}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/PreTree.hs\#L132{-}L133}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\OtherTok{decodeAll ::} \DataTypeTok{PreTree}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Encoding} \OtherTok{{-}\textgreater{}}\NormalTok{ [a]}
+\NormalTok{decodeAll pt }\OtherTok{=}\NormalTok{ unfoldr (decodePT pt)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{do}\NormalTok{ pt  }\OtherTok{\textless{}{-}}\NormalTok{ runBuildTree }\StringTok{"hello world"}
+ \OperatorTok{|}\NormalTok{    enc }\OtherTok{\textless{}{-}}\NormalTok{ encodeAll pt }\StringTok{"hello world"}
+ \OperatorTok{|}    \FunctionTok{return}\NormalTok{ (decodeAll pt enc)}
+\end{Highlighting}
+\end{Shaded}
+
+Which works exactly as we'd like!
+
+\section{Testing}\label{testing}
+
+We can write a utility to test our encoding/decoding functions:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/Huffman.hs\#L106{-}L113}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\OtherTok{testTree ::} \DataTypeTok{Ord}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ [a] }\OtherTok{{-}\textgreater{}}\NormalTok{ [a]}
+\NormalTok{testTree [] }\OtherTok{=}\NormalTok{ []                    }\CommentTok{{-}{-} handle the empty list}
+\NormalTok{testTree xs }\OtherTok{=}\NormalTok{ decoded}
+  \KeywordTok{where}
+    \DataTypeTok{Just}\NormalTok{ decoded }\OtherTok{=} \KeywordTok{do}
+\NormalTok{      pt  }\OtherTok{\textless{}{-}}\NormalTok{ runBuildTree xs}
+\NormalTok{      enc }\OtherTok{\textless{}{-}}\NormalTok{ encodeAll pt xs}
+      \FunctionTok{return}\NormalTok{ (decodeAll pt enc)}
+\end{Highlighting}
+\end{Shaded}
+
+(Again, refer to my
+\href{http://blog.jle.im/entry/practical-fun-with-monads-introducing-monadplus}{MonadPlus}
+article from earlier, if you are unfamiliar with working with the Maybe monad)
+
+\texttt{testTree} should be an identity; that is,
+\texttt{testTree\ xs\ ===\ xs}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ testTree }\StringTok{"hello world"}
+\StringTok{"hello world"}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ testTree }\StringTok{"the quick brown fox jumps over the lazy dog"}
+\StringTok{"the quick brown fox jumps over the lazy dog"}
+\end{Highlighting}
+\end{Shaded}
+
+Note the very unsafe irrefutable pattern match on \texttt{Just\ decoded}. We'll
+fix this later!
+
+\subsection{QuickCheck}\label{quickcheck}
+
+Now that we have a neat proposition, we can use \texttt{quickcheck} on it, from
+the great \href{http://hackage.haskell.org/package/QuickCheck}{QuickCheck}
+library. \texttt{quickcheck} will basically test our proposition
+\texttt{testTree\ xs\ ==\ xs} by generating several random \texttt{xs}'s.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{import} \DataTypeTok{Test.QuickCheck}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{set }\OperatorTok{{-}}\DataTypeTok{XScopedTypeVariables}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ quickCheck (\textbackslash{}(}\OtherTok{xs ::} \DataTypeTok{String}\NormalTok{) }\OtherTok{{-}\textgreater{}}\NormalTok{ testTree xs }\OperatorTok{==}\NormalTok{ xs)}
+\OperatorTok{***} \DataTypeTok{Failed}\OperatorTok{!} \DataTypeTok{Falsifiable}\NormalTok{ (after }\DecValTok{3}\NormalTok{ tests }\FunctionTok{and} \DecValTok{2}\NormalTok{ shrinks)}\OperatorTok{:}
+\StringTok{"a"}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{Failure!}\label{failure}
+
+Oh! We failed? And on such a simple case? What happened?
+
+If we look at how \texttt{"a"} is encoded, it'll become apparent:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ (}\DataTypeTok{Just}\NormalTok{ pt) }\OtherTok{=}\NormalTok{ runBuildTree }\StringTok{"aaa"}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ pt}
+\DataTypeTok{PTLeaf} \CharTok{\textquotesingle{}a\textquotesingle{}}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ findPT pt }\CharTok{\textquotesingle{}a\textquotesingle{}}
+\DataTypeTok{Just}\NormalTok{ []}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ encodeAll pt }\StringTok{"aaaaaaaaaaa"}
+\DataTypeTok{Just}\NormalTok{ []}
+\end{Highlighting}
+\end{Shaded}
+
+Ah. Well, that's a problem. Basically, our input string has
+\href{http://en.wikipedia.org/wiki/Entropy_(information_theory)}{``zero''
+entropy}, according to typical measurements. So we cannot naively huffman encode
+it.
+
+\subsubsection{Success!}\label{success}
+
+There are a few ways to deal with this. The most ``immediate'' way would be to
+realize that \texttt{decodeAll} is partial (that is, it does not terminate/is
+undefined on some of its inputs), and will actually never terminate if the given
+tree is a singleton tree. We can write a ``safe'' \texttt{decodeAll}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/PreTree.hs\#L137{-}L139}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\OtherTok{decodeAll\textquotesingle{} ::} \DataTypeTok{PreTree}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Encoding} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ [a]}
+\NormalTok{decodeAll\textquotesingle{} (}\DataTypeTok{PTLeaf}\NormalTok{ \_) \_   }\OtherTok{=} \DataTypeTok{Nothing}
+\NormalTok{decodeAll\textquotesingle{} pt         enc }\OtherTok{=} \DataTypeTok{Just} \OperatorTok{$}\NormalTok{ unfoldr (decodePT pt) enc}
+\end{Highlighting}
+\end{Shaded}
+
+In doing this, we don't exactly ``fix'' the problem\ldots we only defer
+responsibility. Now, whoever uses \texttt{decodeAll\textquotesingle{}} (like our
+eventual encoding interface) is \emph{forced to handle the error} (by handing
+the \texttt{Nothing} case). In this way, \emph{the type system enforces safety}.
+Had we always used the unsafe \texttt{decodeAll}, then whoever uses it
+eventually has to ``manually remember'' to handle the unterminating case, by
+carefully reading documentation or something. In this case, the type system is a
+big, explicit reminder saying ``hey, deal with the unterminating case.''
+
+We'll also a ``safe'' \texttt{testTree}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/Huffman.hs\#L117{-}L121}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\OtherTok{testTree\textquotesingle{} ::} \DataTypeTok{Ord}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ [a] }\OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ [a]}
+\NormalTok{testTree\textquotesingle{} xs }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    pt  }\OtherTok{\textless{}{-}}\NormalTok{ runBuildTree xs}
+\NormalTok{    enc }\OtherTok{\textless{}{-}}\NormalTok{ encodeAll pt xs}
+\NormalTok{    decodeAll\textquotesingle{} pt enc}
+\end{Highlighting}
+\end{Shaded}
+
+So we can now quickcheck:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ quickCheck (\textbackslash{}(}\OtherTok{xs ::} \DataTypeTok{String}\NormalTok{) }\OtherTok{{-}\textgreater{}}\NormalTok{ testTree\textquotesingle{} xs }\OtherTok{\textasciigrave{}elem\textasciigrave{}}\NormalTok{ [}\DataTypeTok{Nothing}\NormalTok{, }\DataTypeTok{Just}\NormalTok{ xs])}
+\OperatorTok{+++} \DataTypeTok{OK}\NormalTok{, passed }\DecValTok{100}\NormalTok{ tests}\OperatorTok{.}
+\end{Highlighting}
+\end{Shaded}
+
+Hooray!
+
+\subsection{Re: Testing}\label{re-testing}
+
+All I'll admit that I didn't even anticipate the degenerate singleton tree case
+until I decided to add a quickcheck section to this post. It just goes to show
+that you should always test! And it also shows how easy it is to write tests in
+quickcheck. One line could mean five unit tests, and you might even test
+edge/corner cases that you might have never even thought about!
+
+For example, we probably should have tested \texttt{lookupPTTable} against
+\texttt{findPT}, our reference implementation :) We should have also tested our
+binary encode/decode!
+
+\section{Next Time}\label{next-time}
+
+We're almost there!
+
+For our last section, we are going to be focusing on pulling it all together to
+make a streaming compression/decompression interface that will be able to read a
+file and encode/decode into a new file as it goes, in constant memory, using
+pipes. After that, we will also be looking at how to profile code, applying some
+optimization tricks we can do to get things just right, and other things to wrap
+up.
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

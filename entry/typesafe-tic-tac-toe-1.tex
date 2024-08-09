@@ -1,0 +1,1652 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Type-safe Tic Tac Toe (Part 1)},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Type-safe Tic Tac Toe (Part 1)}
+
+\begin{document}
+\maketitle
+
+\% Justin Le
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/typesafe-tic-tac-toe-1.html}{in Code}}.}
+
+One problem with adoption of dependent types in everyday programming, I think,
+is that most examples out there are sort of small and self-contained. There
+aren't \emph{too} many larger-scale examples out there showing how dependent
+types can permeate your whole program to make everything more robust and
+error-free.
+
+So, this series will be implementing a type-safe \emph{tic tac toe} game (a
+medium-scale Haskell app) that can be played both on the console (using
+Haskeline) and in the browser (using Miso), using some custom built AI. We will:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Build up our core game engine, talking about what it really means to be type
+  safe
+\item
+  Use our type-safe engine to build type-safe controllers (AI, GUI)
+\end{enumerate}
+
+This series will also be a mini-tutorial on the
+\emph{\href{https://hackage.haskell.org/package/decidable}{decidable}} package
+that I just recently released :) We will also be heavily using the
+\emph{\href{https://hackage.haskell.org/package/singletons}{singletons}}
+library. I strongly strongly recommend reading my
+\href{https://blog.jle.im/entries/series/+introduction-to-singletons.html}{Introduction
+to Singletons} series (and doing the exercises), if you are new to the
+singletons library. However, I will do my best to explain singletons concepts in
+brief as they come up.
+
+\section{Type-Safety}\label{type-safety}
+
+First off, we should ask the question: what does it mean to be type-safe?
+
+?????
+
+\section{The Specification}\label{the-specification}
+
+We're going to create a type that represents a \emph{valid} game state. The goal
+is to make a GADT where you can only construct values whose types represent
+\emph{valid} game states. If we have a value of this type, then we know that the
+game state must be valid.
+
+A good way to start with this is by thinking of \emph{induction rules} for
+defining a valid state.
+
+We'll say that there are two parts of a game state:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  The current board
+\item
+  The current player
+\end{enumerate}
+
+and that there are two ways of ``constructing'' a valid state:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  The empty board with player X is a valid state.
+\item
+  If we have:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    A valid state with board \emph{b} and current player \emph{p}
+  \item
+    The game is still in play
+  \item
+    We can add a valid move by player \emph{p} to board \emph{b}
+  \end{itemize}
+
+  Then the result of this move represents a new valid board \emph{b}, with
+  swapped player \emph{p}.
+\end{enumerate}
+
+This is a denotative way to talk about what it means for a state to be valid.
+
+Note that our ``type safety'' is only as strong as the specification we just
+wrote. Type safety using dependent types isn't omnipotent, and it can't read
+your mind. However, there is a nice assurance that as long as your
+\emph{specification} is right, your program will work as expected. And hey, it's
+a step up from the untyped case, where you can have a specification wrong, but
+implement it incorrectly. With ``type-safety'', you cut out one huge area where
+bugs come from: the implementation.
+
+Alright, let's do this!
+
+\section{Valid State}\label{valid-state}
+
+First, we'll define the types we need to specify our state:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{$}\NormalTok{(singletons [d|}
+\NormalTok{  data Piece = PX | PO}
+\NormalTok{    deriving (Eq, Ord)}
+
+\NormalTok{  type Board = [[Maybe Piece]]}
+\NormalTok{  |])}
+\end{Highlighting}
+\end{Shaded}
+
+A \texttt{Piece} will also represent our player -- either \texttt{PX} or
+\texttt{PO}. Our \texttt{Board} will be a list of lists of
+\texttt{Maybe\ Piece}. If the spot contains \texttt{Nothing}, the spot is
+unplayed; if the spot is \texttt{Just\ p}, then it means the spot has been
+played by \texttt{p}.
+
+And some values and functions we need to talk about empty boards and state
+transformations:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{$}\NormalTok{(singletons [d|}
+\NormalTok{  emptyBoard :: Board}
+\NormalTok{  emptyBoard = [ [Nothing, Nothing, Nothing]}
+\NormalTok{               , [Nothing, Nothing, Nothing]}
+\NormalTok{               , [Nothing, Nothing, Nothing]}
+\NormalTok{               ]}
+
+\NormalTok{  altP :: Piece {-}\textgreater{} Piece}
+\NormalTok{  altP PX = PO}
+\NormalTok{  altP PO = PX}
+\NormalTok{  |])}
+\end{Highlighting}
+\end{Shaded}
+
+Let's just throw in a quick proof as a sanity check:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/Part1.hs\#L54{-}L56}
+
+\OtherTok{altP\_cyclic ::} \DataTypeTok{Sing}\NormalTok{ p }\OtherTok{{-}\textgreater{}} \DataTypeTok{AltP}\NormalTok{ (}\DataTypeTok{AltP}\NormalTok{ p) }\OperatorTok{:\textasciitilde{}:}\NormalTok{ p}
+\NormalTok{altP\_cyclic }\DataTypeTok{SPX} \OtherTok{=} \DataTypeTok{Refl} \OperatorTok{@}\DataTypeTok{\textquotesingle{}PX}
+\NormalTok{altP\_cyclic }\DataTypeTok{SPO} \OtherTok{=} \DataTypeTok{Refl} \OperatorTok{@}\DataTypeTok{\textquotesingle{}PO}
+\end{Highlighting}
+\end{Shaded}
+
+With that in mind, we can write our valid state constructor. We'll do that with
+two helper types that we will implement later. First, we'll use the
+\href{https://hackage.haskell.org/package/decidable}{decidable} library to talk
+about the kind of a \emph{type-level predicate}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/Part1.hs\#L58{-}L58}
+
+\KeywordTok{data} \DataTypeTok{InPlay}\OtherTok{ ::} \DataTypeTok{Predicate} \DataTypeTok{Board}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{InPlay} is a predicate that a given board is in-play; a value of type
+\texttt{InPlay\ @@\ b} is a witness or proof that a board is in play.
+
+We also need to define a type for a valid update by a given player onto a given
+board:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/Part1.hs\#L73{-}L73}
+
+\KeywordTok{data} \DataTypeTok{Update}\OtherTok{ ::} \DataTypeTok{Piece} \OtherTok{{-}\textgreater{}} \DataTypeTok{Board} \OtherTok{{-}\textgreater{}} \DataTypeTok{Board} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+\end{Highlighting}
+\end{Shaded}
+
+A value of type \texttt{Update\ p\ b1\ b2} will represent a valid update to
+board \texttt{b1} by player \texttt{p} to create a board \texttt{b2}.
+
+And finally, our valid state constructor:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/Part1.hs\#L60{-}L71}
+
+\KeywordTok{data} \DataTypeTok{GameState}\OtherTok{ ::} \DataTypeTok{Piece} \OtherTok{{-}\textgreater{}} \DataTypeTok{Board} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+    \CommentTok{{-}{-} | The empty board is a valid state}
+    \DataTypeTok{GSStart}
+\OtherTok{        ::} \DataTypeTok{GameState} \DataTypeTok{\textquotesingle{}PX} \DataTypeTok{EmptyBoard}
+    \CommentTok{{-}{-} | We can also construct a valid game state if we have:}
+    \DataTypeTok{GSUpdate}
+\OtherTok{        ::} \KeywordTok{forall}\NormalTok{ p b1 b2}\OperatorTok{.}\NormalTok{ ()}
+        \OtherTok{=\textgreater{}} \DataTypeTok{InPlay}          \OperatorTok{@@}\NormalTok{ b1     }\CommentTok{{-}{-} \^{} a proof that b1 is in play}
+        \OtherTok{{-}\textgreater{}} \DataTypeTok{Update}\NormalTok{    p        b1 b2  }\CommentTok{{-}{-} \^{} a valid update}
+        \OtherTok{{-}\textgreater{}} \DataTypeTok{GameState}\NormalTok{ p        b1     }\CommentTok{{-}{-} \^{} a proof that p, b1 are a valid state}
+        \CommentTok{{-}{-} {-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-} then}
+        \OtherTok{{-}\textgreater{}} \DataTypeTok{GameState}\NormalTok{ (}\DataTypeTok{AltP}\NormalTok{ p)    b2  }\CommentTok{{-}{-} \^{} \textasciigrave{}AltP p\textasciigrave{}, b2 is a valid satte}
+\end{Highlighting}
+\end{Shaded}
+
+And that's it --- a verified-correct representation of a game state, directly
+transcribed from our plain-language denotative specification.
+
+Now we just need to talk about \texttt{InPlay} and \texttt{Update}. In
+particular, we need:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  A definition of \texttt{Update}, and a way to turn user-input into a valid
+  \texttt{Update} (or reject it if it isn't valid).
+\item
+  A definition of \texttt{InPlay}, and a way to decide whether or not a given
+  board \texttt{b} is \texttt{InPlay}. This is something that the appropriately
+  named \emph{\href{https://hackage.haskell.org/package/decidable}{decidable}}
+  library will help us with.
+\end{enumerate}
+
+\subsection{Update}\label{update}
+
+Let's go about what thinking about what defines a valid update. Remember, the
+kind we wanted was:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/Part1.hs\#L73{-}L73}
+
+\KeywordTok{data} \DataTypeTok{Update}\OtherTok{ ::} \DataTypeTok{Piece} \OtherTok{{-}\textgreater{}} \DataTypeTok{Board} \OtherTok{{-}\textgreater{}} \DataTypeTok{Board} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+\end{Highlighting}
+\end{Shaded}
+
+An \texttt{Update\ p\ b1\ b2} will be a valid update of \texttt{b1} by player
+\texttt{p} to produce \texttt{b2}. So, we need to:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Produce \texttt{b2} from \texttt{b1}
+\item
+  Be sure that the move is valid --- namely, that it is placed in a clean spot
+  so that it doesn't overwrite any previous moves.
+\end{enumerate}
+
+Producing \texttt{b2} from \texttt{b1} is simple enough as a type family. In
+fact, we can just use the
+\emph{\href{https://hackage.haskell.org/package/lens-typelevel}{lens-typelevel}}
+library to update our nested list:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{$}\NormalTok{(singletonsOnly [d|}
+\NormalTok{  placeBoard :: N {-}\textgreater{} N {-}\textgreater{} Piece {-}\textgreater{} Board {-}\textgreater{} Board}
+\NormalTok{  placeBoard i j p = set (ixList i . ixList j) (Just p)}
+\NormalTok{  |])}
+\end{Highlighting}
+\end{Shaded}
+
+This is just lenses --- \texttt{set\ l\ x} is a function that sets the field
+specified by \texttt{l} to \texttt{x}. Here, we set the jth item of the ith list
+to be \texttt{Just\ p}. That means we can now produce \texttt{b2} from
+\texttt{b1} -- it's just \texttt{PlaceBoard\ i\ j\ p\ b1}.
+
+Here, \texttt{N} is the peano nat type (a lot of libraries define it, but it's
+also defined as a uility in \emph{lens-typelevel}). It's essentially
+\texttt{{[}(){]}} (which makes it useful as an index type), or:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{N} \OtherTok{=} \DataTypeTok{Z} \OperatorTok{|} \DataTypeTok{S} \DataTypeTok{N}
+\end{Highlighting}
+\end{Shaded}
+
+A natural number is either zero, or the successor of another natural number.
+\texttt{S\ (S\ Z)}, for example, would represent 2.
+
+The trickier part is making sure that the spot at \emph{(i, j)} isn't already
+taken. For that, we'll introduce a common helper type to say \emph{what} the
+piece at spot \emph{(i, j)} is:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/Part1.hs\#L87{-}L87}
+
+\KeywordTok{data} \DataTypeTok{Coord}\OtherTok{ ::}\NormalTok{ (}\DataTypeTok{N}\NormalTok{, }\DataTypeTok{N}\NormalTok{) }\OtherTok{{-}\textgreater{}}\NormalTok{ [[k]] }\OtherTok{{-}\textgreater{}}\NormalTok{ k }\OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+\end{Highlighting}
+\end{Shaded}
+
+A \texttt{Coord\ \textquotesingle{}(i,\ j)\ xss\ x} is a data type that
+specifies that the jth item in the ith list in \texttt{b} is \texttt{p}.
+
+And we require \texttt{Update} to only be constructable if the spot at \emph{(i,
+j)} is \texttt{Nothing}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/Part1.hs\#L73{-}L78}
+
+\KeywordTok{data} \DataTypeTok{Update}\OtherTok{ ::} \DataTypeTok{Piece} \OtherTok{{-}\textgreater{}} \DataTypeTok{Board} \OtherTok{{-}\textgreater{}} \DataTypeTok{Board} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+    \DataTypeTok{MkUpdate}
+\OtherTok{        ::} \KeywordTok{forall}\NormalTok{ i j p b}\OperatorTok{.}\NormalTok{ ()}
+        \OtherTok{=\textgreater{}} \DataTypeTok{Coord}\NormalTok{ \textquotesingle{}(i, j) b }\DataTypeTok{\textquotesingle{}Nothing}         \CommentTok{{-}{-} \^{} If the item at (i, j) in b is Nothing}
+        \CommentTok{{-}{-} {-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-} then}
+        \OtherTok{{-}\textgreater{}} \DataTypeTok{Update}\NormalTok{ p b (}\DataTypeTok{PlaceBoard}\NormalTok{ i j p b)  }\CommentTok{{-}{-} \^{} Placing \textasciigrave{}Just p\textasciigrave{} at i, j is a valid update}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{Update} is now defined so that, for \texttt{Update\ p\ b1\ b2},
+\texttt{b2} is the update via placement of a piece \texttt{p} at some position
+in \texttt{b1}, where the placement does not overwrite a previous piece. Note
+that our \texttt{MkUpdate} constructor only has four ``free'' variables,
+\texttt{i}, \texttt{j}, \texttt{p}, and \texttt{b}. If we use \texttt{MkUpdate},
+it means that the ``final board'' is fully determined from only \texttt{i},
+\texttt{j}, \texttt{p}, and \texttt{b}.
+
+\subsubsection{Coord}\label{coord}
+
+Now we need to define \texttt{Coord}. We're going to do that in terms of a
+simpler type that is essentially the same for normal lists --- a type:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/Part1.hs\#L80{-}L80}
+
+\KeywordTok{data} \DataTypeTok{Sel}\OtherTok{ ::} \DataTypeTok{N} \OtherTok{{-}\textgreater{}}\NormalTok{ [k] }\OtherTok{{-}\textgreater{}}\NormalTok{ k }\OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+\end{Highlighting}
+\end{Shaded}
+
+A value of type \texttt{Sel\ n\ xs\ x} says that the nth item in \texttt{xs} is
+\texttt{x}.
+
+We can define this type inductively, similar to the common
+\href{http://hackage.haskell.org/package/type-combinators-0.2.4.3/docs/Data-Type-Index.html}{\texttt{Index}}
+data type. We can mention our induction rules:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  The first item in a list as at index 0 (\texttt{Z})
+\item
+  If an item is at index \texttt{n} in list \texttt{as}, then it is also at
+  index \texttt{S\ n} in list \texttt{b\ \textquotesingle{}:\ as}.
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/Part1.hs\#L80{-}L85}
+
+\KeywordTok{data} \DataTypeTok{Sel}\OtherTok{ ::} \DataTypeTok{N} \OtherTok{{-}\textgreater{}}\NormalTok{ [k] }\OtherTok{{-}\textgreater{}}\NormalTok{ k }\OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+    \CommentTok{{-}{-} | The first item in a list is at index \textquotesingle{}\textquotesingle{}Z\textquotesingle{}}
+    \DataTypeTok{SelZ}\OtherTok{ ::} \DataTypeTok{Sel} \DataTypeTok{\textquotesingle{}Z}\NormalTok{ (a \textquotesingle{}}\OperatorTok{:}\NormalTok{ as) a}
+    \DataTypeTok{SelS}\OtherTok{ ::} \DataTypeTok{Sel}\NormalTok{     n        as  a  }\CommentTok{{-}{-} \^{} If item \textasciigrave{}a\textasciigrave{} is at index \textasciigrave{}n\textasciigrave{} in list \textasciigrave{}as\textasciigrave{}}
+         \CommentTok{{-}{-} {-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-} then}
+         \OtherTok{{-}\textgreater{}} \DataTypeTok{Sel}\NormalTok{ (}\DataTypeTok{\textquotesingle{}S}\NormalTok{ n) (b \textquotesingle{}}\OperatorTok{:}\NormalTok{ as) a  }\CommentTok{{-}{-} \^{} Item \textasciigrave{}a\textasciigrave{} is at index \textasciigrave{}S n\textasciigrave{} in list \textasciigrave{}b : as\textasciigrave{}}
+\end{Highlighting}
+\end{Shaded}
+
+For example, for the type-level list \texttt{\textquotesingle{}{[}10,5,2,8{]}},
+we can make values:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{SelZ}\OtherTok{             ::} \DataTypeTok{Sel}         \DataTypeTok{\textquotesingle{}Z}\NormalTok{   \textquotesingle{}[}\DecValTok{10}\NormalTok{,}\DecValTok{5}\NormalTok{,}\DecValTok{2}\NormalTok{,}\DecValTok{8}\NormalTok{] }\DecValTok{10}
+\DataTypeTok{SelS} \DataTypeTok{SelZ}\OtherTok{        ::} \DataTypeTok{Sel}\NormalTok{     (}\DataTypeTok{\textquotesingle{}S} \DataTypeTok{\textquotesingle{}Z}\NormalTok{)  \textquotesingle{}[}\DecValTok{10}\NormalTok{,}\DecValTok{5}\NormalTok{,}\DecValTok{2}\NormalTok{,}\DecValTok{8}\NormalTok{] }\DecValTok{5}
+\DataTypeTok{SelS}\NormalTok{ (}\DataTypeTok{SelS} \DataTypeTok{SelZ}\NormalTok{)}\OtherTok{ ::} \DataTypeTok{Sel}\NormalTok{ (}\DataTypeTok{\textquotesingle{}S}\NormalTok{ (}\DataTypeTok{\textquotesingle{}S} \DataTypeTok{\textquotesingle{}Z}\NormalTok{)) \textquotesingle{}[}\DecValTok{10}\NormalTok{,}\DecValTok{5}\NormalTok{,}\DecValTok{2}\NormalTok{,}\DecValTok{8}\NormalTok{] }\DecValTok{2}
+\end{Highlighting}
+\end{Shaded}
+
+etc.
+
+We can then use this to define \texttt{Coord}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/Part1.hs\#L87{-}L92}
+
+\KeywordTok{data} \DataTypeTok{Coord}\OtherTok{ ::}\NormalTok{ (}\DataTypeTok{N}\NormalTok{, }\DataTypeTok{N}\NormalTok{) }\OtherTok{{-}\textgreater{}}\NormalTok{ [[k]] }\OtherTok{{-}\textgreater{}}\NormalTok{ k }\OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+\OtherTok{    (:$:) ::} \KeywordTok{forall}\NormalTok{ i j rows row p}\OperatorTok{.}\NormalTok{ ()}
+          \OtherTok{=\textgreater{}} \DataTypeTok{Sel}\NormalTok{ i rows row         }\CommentTok{{-}{-} \^{} If the ith list in \textasciigrave{}rows\textasciigrave{} is \textasciigrave{}row\textasciigrave{}}
+          \OtherTok{{-}\textgreater{}} \DataTypeTok{Sel}\NormalTok{ j row  p           }\CommentTok{{-}{-} \^{} And the jth item in \textasciigrave{}row\textasciigrave{} is \textasciigrave{}p\textasciigrave{}}
+          \CommentTok{{-}{-} {-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-} then}
+          \OtherTok{{-}\textgreater{}} \DataTypeTok{Coord}\NormalTok{ \textquotesingle{}(i, j) rows p   }\CommentTok{{-}{-} \^{} The item at (i, j) is \textasciigrave{}p\textasciigrave{}}
+\end{Highlighting}
+\end{Shaded}
+
+A \texttt{Coord\ \textquotesingle{}(i,\ j)\ rows\ piece} contains a selection
+into the ith list in \texttt{rows}, to get \texttt{row}, and a selection into
+the jth item in \texttt{row}, to get \texttt{piece}.
+
+\subsection{Trying it out}\label{trying-it-out}
+
+That's it! Let's see if we can generate some sensible \texttt{Update}s, and
+maybe even play a sample game.
+
+We'll start with the \texttt{EmptyBoard}, and let's add a piece by \texttt{PX}
+at the middle spot, index (1,1). This means we want
+\texttt{SelS\ SelZ\ :\$:\ SelS\ SelZ} (a \texttt{Coord} with two indexes into
+spots 1 and 1) applied to \texttt{MkUpdate}. We'll use \emph{-XTypeApplications}
+to specify the type variables \texttt{p} and \texttt{b}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t }\DataTypeTok{MkUpdate} \OperatorTok{@}\NormalTok{\_ }\OperatorTok{@}\NormalTok{\_ }\OperatorTok{@}\DataTypeTok{\textquotesingle{}PX} \OperatorTok{@}\DataTypeTok{EmptyBoard}\NormalTok{ (}\DataTypeTok{SelS} \DataTypeTok{SelZ} \OperatorTok{:$:} \DataTypeTok{SelS} \DataTypeTok{SelZ}\NormalTok{)}
+\DataTypeTok{Update}
+  \DataTypeTok{\textquotesingle{}PX}
+\NormalTok{  \textquotesingle{}[ \textquotesingle{}[ }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{, }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{ , }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{],}
+\NormalTok{     \textquotesingle{}[ }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{, }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{ , }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{],}
+\NormalTok{     \textquotesingle{}[ }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{, }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{ , }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{]}
+\NormalTok{   ]}
+\NormalTok{  \textquotesingle{}[ \textquotesingle{}[ }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{, }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{ , }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{],}
+\NormalTok{     \textquotesingle{}[ }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{, }\DataTypeTok{\textquotesingle{}Just} \DataTypeTok{\textquotesingle{}PX}\NormalTok{, }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{],}
+\NormalTok{     \textquotesingle{}[ }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{, }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{ , }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{]}
+\NormalTok{  ]}
+\end{Highlighting}
+\end{Shaded}
+
+Nice! This update produces exactly he board expected.
+
+Let's see if we can see if this prevents us from creating an illegal board.
+We'll take the result board and see if we can place a \texttt{PO} piece there:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let} \DataTypeTok{NewBoard} \OtherTok{=}\NormalTok{ \textquotesingle{}[ \textquotesingle{}[ }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{, }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{ , }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{ ]}
+\NormalTok{                      , \textquotesingle{}[ }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{, }\DataTypeTok{\textquotesingle{}Just} \DataTypeTok{\textquotesingle{}PX}\NormalTok{, }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{ ]}
+\NormalTok{                      , \textquotesingle{}[ }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{, }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{ , }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{ ]}
+\NormalTok{                      ]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{k }\DataTypeTok{MkUpdate} \OperatorTok{@}\NormalTok{\_ }\OperatorTok{@}\NormalTok{\_ }\OperatorTok{@}\DataTypeTok{\textquotesingle{}PO} \OperatorTok{@}\DataTypeTok{NewBoard}\NormalTok{ (}\DataTypeTok{SelS} \DataTypeTok{SelZ} \OperatorTok{:$:} \DataTypeTok{SelS} \DataTypeTok{SelZ}\NormalTok{)}
+\NormalTok{    • }\DataTypeTok{Couldn\textquotesingle{}t}\NormalTok{ match }\KeywordTok{type}\NormalTok{ ‘}\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{’ with ‘}\DataTypeTok{\textquotesingle{}Just} \DataTypeTok{\textquotesingle{}PX}\NormalTok{’}
+\end{Highlighting}
+\end{Shaded}
+
+Right! That's because \texttt{SelS\ SelZ\ :\&:\ SelS\ SellZ}, applied to
+\texttt{NewBoard}, gives
+\texttt{Coord\ \textquotesingle{}(\textquotesingle{}S\ \textquotesingle{}Z,\ \textquotesingle{}S\ \textquotesingle{}Z)\ NewBoard\ (\textquotesingle{}Just\ \textquotesingle{}PX)}.
+However, in order to be used with \texttt{MkUpdate}, the final field has to be
+\texttt{\textquotesingle{}Nothing}, not
+\texttt{\textquotesingle{}Just\ \textquotesingle{}PX}. So, type error.
+
+\subsection{Type-safe Play}\label{type-safe-play}
+
+At the end of this all, we finally have enough to write a truly type-safe
+\texttt{play} function that allows us to play a round of our game!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/Part1.hs\#L94{-}L100}
+
+\NormalTok{play}
+\OtherTok{    ::} \KeywordTok{forall}\NormalTok{ i j p b}\OperatorTok{.}\NormalTok{ ()}
+    \OtherTok{=\textgreater{}} \DataTypeTok{InPlay} \OperatorTok{@@}\NormalTok{ b}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Coord}\NormalTok{ \textquotesingle{}(i, j) b }\DataTypeTok{\textquotesingle{}Nothing}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{GameState}\NormalTok{ p b}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{GameState}\NormalTok{ (}\DataTypeTok{AltP}\NormalTok{ p) (}\DataTypeTok{PlaceBoard}\NormalTok{ i j p b)}
+\NormalTok{play r c }\OtherTok{=} \DataTypeTok{GSUpdate}\NormalTok{ r (}\DataTypeTok{MkUpdate}\NormalTok{ c)}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{play} is basically the entirety of our game engine! (Minus defining
+\texttt{InPlay}, which we will take care of later). It'll take our new move and
+a proof that the game is still in play, and return a updated new game state. Our
+entire game is done, and type-safe! It's impossible to play a game in an
+incorrect way! (once we define \texttt{InPlay}).
+
+Let's try out a few rounds in ghci, using \texttt{undefined} instead of a proper
+\texttt{InPlay} for now:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ g1 }\OtherTok{=}\NormalTok{ play }\FunctionTok{undefined}\NormalTok{ (}\DataTypeTok{SelS} \DataTypeTok{SelZ} \OperatorTok{:$:} \DataTypeTok{SelS} \DataTypeTok{SelZ}\NormalTok{) }\DataTypeTok{GSStart}   \CommentTok{{-}{-} X plays (1,1)}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t g1}
+\DataTypeTok{GameState} \DataTypeTok{\textquotesingle{}PO}
+\NormalTok{    \textquotesingle{}[ \textquotesingle{}[ }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{, }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{ , }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{]}
+\NormalTok{     , \textquotesingle{}[ }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{, }\DataTypeTok{\textquotesingle{}Just} \DataTypeTok{\textquotesingle{}PX}\NormalTok{, }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{]}
+\NormalTok{     , \textquotesingle{}[ }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{, }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{ , }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{]}
+\NormalTok{     ]}
+
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ g2 }\OtherTok{=}\NormalTok{ play }\FunctionTok{undefined}\NormalTok{ (}\DataTypeTok{SelZ} \OperatorTok{:$:} \DataTypeTok{SelS} \DataTypeTok{SelZ}\NormalTok{) g1   }\CommentTok{{-}{-} O plays (0,1)}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t g2}
+\DataTypeTok{GameState} \DataTypeTok{\textquotesingle{}PX}
+\NormalTok{    \textquotesingle{}[ \textquotesingle{}[ }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{, }\DataTypeTok{\textquotesingle{}Just} \DataTypeTok{\textquotesingle{}PO}\NormalTok{, }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{]}
+\NormalTok{     , \textquotesingle{}[ }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{, }\DataTypeTok{\textquotesingle{}Just} \DataTypeTok{\textquotesingle{}PX}\NormalTok{, }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{]}
+\NormalTok{     , \textquotesingle{}[ }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{, }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{ , }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{]}
+\NormalTok{     ]}
+
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ g3 }\OtherTok{=}\NormalTok{ play }\FunctionTok{undefined}\NormalTok{ (}\DataTypeTok{SelZ} \OperatorTok{:$:} \DataTypeTok{SelS} \DataTypeTok{SelZ}\NormalTok{) g2   }\CommentTok{{-}{-} X plays (1,0)}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t g3}
+\DataTypeTok{GameState} \DataTypeTok{\textquotesingle{}PO}
+\NormalTok{    \textquotesingle{}[ \textquotesingle{}[ }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{ , }\DataTypeTok{\textquotesingle{}Just} \DataTypeTok{\textquotesingle{}PO}\NormalTok{, }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{]}
+\NormalTok{     , \textquotesingle{}[ }\DataTypeTok{\textquotesingle{}Just} \DataTypeTok{\textquotesingle{}PX}\NormalTok{, }\DataTypeTok{\textquotesingle{}Just} \DataTypeTok{\textquotesingle{}PX}\NormalTok{, }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{]}
+\NormalTok{     , \textquotesingle{}[ }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{ , }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{ , }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{]}
+\NormalTok{     ]}
+
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ g4 }\OtherTok{=}\NormalTok{ play }\FunctionTok{undefined}\NormalTok{ (}\DataTypeTok{SelS} \DataTypeTok{SelZ} \OperatorTok{:$:} \DataTypeTok{SelS} \DataTypeTok{SelZ}\NormalTok{) g3   }\CommentTok{{-}{-} O plays (1,1)}
+\NormalTok{    • }\DataTypeTok{Couldn\textquotesingle{}t}\NormalTok{ match }\KeywordTok{type}\NormalTok{ ‘}\DataTypeTok{\textquotesingle{}Just} \DataTypeTok{\textquotesingle{}PX}\NormalTok{’ with ‘}\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{’}
+
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ g4 }\OtherTok{=}\NormalTok{ play }\FunctionTok{undefined}\NormalTok{ (}\DataTypeTok{SelS}\NormalTok{ (}\DataTypeTok{SelS}\NormalTok{ (}\DataTypeTok{SelS} \DataTypeTok{SelZ}\NormalTok{)) }\OperatorTok{:$:} \DataTypeTok{SelZ}\NormalTok{) g3  }\CommentTok{{-}{-} O plays (3,0)}
+\NormalTok{    • }\DataTypeTok{Couldn\textquotesingle{}t}\NormalTok{ match }\KeywordTok{type}\NormalTok{ ‘\textquotesingle{}[]’ with ‘}\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{ \textquotesingle{}}\OperatorTok{:}\NormalTok{ as’}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{play} enforces:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Turns are always alternating X, then O
+\item
+  We cannot place a piece in a previously-played spot
+\item
+  We cannot place a piece out-of-bounds.
+\end{enumerate}
+
+Note that the usage of \texttt{undefined} in place of a true witness for
+\texttt{InPlay} is a nice tool for \emph{incremental} and \emph{interactive}
+development using dependent types. A lot of people have the false impression
+that dependently typed programs are difficult to program incrementally or
+interactively, but this example shows a good way of going about programming in
+an incremental process. We just know that our program is complete when we are
+finally able to get rid of all the \texttt{undefined}s!
+
+\section{Decision Functions and Views}\label{decision-functions-and-views}
+
+This seems nice, but we're forgetting an important part. \texttt{play} requires
+us to only give valid inputs, and enforces that the inputs are valid. However,
+how do we \emph{create} valid inputs, in a way that satisfies \texttt{play}?
+
+As we'll see, this is one of the core problems that dependently typed
+programming gives us tools to solve.
+
+At this point, we've reached the important part of any ``type-safe''
+application: \emph{decision functions} and dependent \emph{views}.
+\emph{Decision functions} let you slowly refine your more general values (types)
+into more specific valid types. \emph{Views} let you sort out your our values
+into more ``useful'' perspectives.
+
+We're going to allow for users to pick to move at any natural number pair
+(\texttt{(N,\ N)}), but only \emph{some} of those natural numbers can become
+valid updates. In particular, we only allow an \texttt{Update} to be made if
+\texttt{(N,\ N)} represent valid updates.
+
+What are two ways this can go wrong? Well, if we allow the user to enter any two
+natural numbers, here are all of the potential outcomes:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  We might get a coordinate that is out of bounds in x
+\item
+  We might get a coordinate that is in bounds in x, but out of bounds in y
+\item
+  We might get a coordinate that is in bounds in x, in bounds in y, but
+  referencing a position that has already been played.
+\item
+  We might get a coordinate that is in bounds in x, in bounds in y, and
+  references a blank position. This is the only ``success'' case.
+\end{enumerate}
+
+Note that we could also just have a ``success or nor success'' situation, but,
+because we might want to provide feedback to the user, it is helpful to not be
+``\href{https://twitter.com/cattheory/status/887760004622757890}{decision-blind}''
+(a cousin of
+\href{https://existentialtype.wordpress.com/2011/03/15/boolean-blindness/}{boolean
+blindness}).
+
+We'll call these potential ``views'' out of \texttt{(N,\ N)} with respect to
+some board \texttt{b}. Let's create a data type representing all of these
+possibilities (using \texttt{OutOfBounds} as a placeholder predicate for an
+out-of-bounds coordinate):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} | Placeholder predicate if a given number \textasciigrave{}n\textasciigrave{} is out of bounds for a given}
+\CommentTok{{-}{-} list.  Predicate is from the \textquotesingle{}decidable\textquotesingle{} library}
+\KeywordTok{data} \DataTypeTok{OutOfBounds}\OtherTok{ n ::} \DataTypeTok{Predicate}\NormalTok{ [k]}
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/Part1.hs\#L108{-}L118}
+
+\KeywordTok{data} \DataTypeTok{Pick}\OtherTok{ ::}\NormalTok{ (}\DataTypeTok{N}\NormalTok{, }\DataTypeTok{N}\NormalTok{, }\DataTypeTok{Board}\NormalTok{) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+    \CommentTok{{-}{-} | We are out of bounds in x}
+    \DataTypeTok{PickOoBX}\OtherTok{   ::} \DataTypeTok{OutOfBounds}\NormalTok{ i }\OperatorTok{@@}\NormalTok{ b                         }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pick}\NormalTok{ \textquotesingle{}(i, j, b)}
+    \CommentTok{{-}{-} | We are in{-}bounds in x, but out of bounds in y}
+    \DataTypeTok{PickOoBY}\OtherTok{   ::} \DataTypeTok{Sel}\NormalTok{ i b row        }\OtherTok{{-}\textgreater{}} \DataTypeTok{OutOfBounds}\NormalTok{ j }\OperatorTok{@@}\NormalTok{ row }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pick}\NormalTok{ \textquotesingle{}(i, j, b)}
+    \CommentTok{{-}{-} | We are in{-}bounds in x, in{-}bounds in y, but spot is taken by \textasciigrave{}p\textasciigrave{}.}
+    \CommentTok{{-}{-} We include \textasciigrave{}Sing p\textasciigrave{} in this constructor to potentially provide}
+    \CommentTok{{-}{-} feedback to the user on what piece is already in the spot.}
+    \DataTypeTok{PickPlayed}\OtherTok{ ::} \DataTypeTok{Coord}\NormalTok{ \textquotesingle{}(i, j) b (}\DataTypeTok{\textquotesingle{}Just}\NormalTok{ p) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ p        }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pick}\NormalTok{ \textquotesingle{}(i, j, b)}
+    \CommentTok{{-}{-} | We are in{-}bounds in x, in{-}bounds in y, and spot is clear}
+    \DataTypeTok{PickValid}\OtherTok{  ::} \DataTypeTok{Coord}\NormalTok{ \textquotesingle{}(i, j) b }\DataTypeTok{\textquotesingle{}Nothing}                   \OtherTok{{-}\textgreater{}} \DataTypeTok{Pick}\NormalTok{ \textquotesingle{}(i, j, b)}
+\end{Highlighting}
+\end{Shaded}
+
+(A value of type \texttt{OutOfBounds\ n\ @@\ xs} is a witness that \texttt{xs}
+satisfies the \texttt{OutOfBounds\ n} --- that is, \texttt{n} is out of bounds
+of \texttt{xs}. More on this later when we talk about the \emph{decidable}
+library!)
+
+So, if we have an \texttt{(N,\ N,\ Board)}, we should be able to categorize it
+into one of each of these potential views.
+
+\subsection{Proving functions}\label{proving-functions}
+
+This is the job of a ``decision function''; in this case, actually, a ``proving
+function'', or a ``viewing function''. We need to be able to write a function:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{pick ::} \DataTypeTok{Sing}\NormalTok{ \textquotesingle{}(i, j, b)}
+     \OtherTok{{-}\textgreater{}} \DataTypeTok{Pick}\NormalTok{ \textquotesingle{}(i, j, b)}
+\end{Highlighting}
+\end{Shaded}
+
+That is, given any coordinate and board, we should be able to \emph{totally}
+categorize it to one of the four categories (think of them like four
+perspectives/classifications), without exception.
+
+This can be considered the boundary between the unsafe and the safe world. And,
+to me, this is the ``hard part'' about dependently typed programming :)
+
+Now, let's write \texttt{pick}. If we want to take any \texttt{i}, \texttt{j},
+and \texttt{b}, and turn it into a valid \texttt{Pick}, remember that a valid
+\texttt{Pick\ \textquotesingle{}(i,\ j,\ b)} contains a
+\texttt{Coord\ \textquotesingle{}(i,\ j)\ b\ \textquotesingle{}Nothing}, which
+contains a \texttt{Sel\ i\ b\ row} and a
+\texttt{Sel\ j\ row\ \textquotesingle{}Nothing}. So we need to ``convert'' some
+\texttt{i}, \texttt{j} into a \texttt{Sel\ i\ b\ row} and
+\texttt{Sel\ j\ row\ \textquotesingle{}Nothing}.
+
+Essentially, we want a function:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{sel ::} \DataTypeTok{Sing}\NormalTok{ i}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ xs}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Sel}\NormalTok{ i xs }\OperatorTok{??????}
+\end{Highlighting}
+\end{Shaded}
+
+where \texttt{????} is whatever value is in \texttt{xs} at index \texttt{i}.
+It's something we might not know directly from the input types, necessarily,
+because it might not even exist (the list might be too short).
+
+\subsection{Existential return types and Dependent
+Pairs}\label{existential-return-types-and-dependent-pairs}
+
+This pattern --- where we don't know the type of something until after we
+receive the function inputs --- is something you might recognize as an
+\emph{existential type}, implementable using a \emph{dependent pair} (or
+dependent sum).
+
+We could write our own dependent pair from scratch, but this is a good
+opportunity to practice using \emph{singletons} library's versatile ``anonymous
+dependent pair'' type, \texttt{Σ} (or \texttt{Sigma}), from
+\emph{Data.Singletons.Sigma}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Sigma}\OtherTok{ k ::} \DataTypeTok{Predicate}\NormalTok{ k }\OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+\OtherTok{    (:\&:) ::} \DataTypeTok{Sing}\NormalTok{ x }\OtherTok{{-}\textgreater{}}\NormalTok{ (p }\OperatorTok{@@}\NormalTok{ x) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Sigma}\NormalTok{ k f}
+
+\KeywordTok{type}\NormalTok{ Σ k }\OtherTok{=} \DataTypeTok{Sigma}\NormalTok{ k}
+\end{Highlighting}
+\end{Shaded}
+
+A value of type \texttt{Sigma\ k\ p} contains an \texttt{p\ @@\ x} (a witness
+that \texttt{p} satisfies \texttt{x}), existentially \emph{hiding} the
+\texttt{x\ ::\ k}, and also \texttt{x} itself (as \texttt{Sing\ x}; remember
+that \texttt{Sing\ x} is essentially a value-level representation of type
+\texttt{x}).
+
+You can think of \texttt{Sigma\ k\ p} as a proof that \texttt{p} is satisfied
+for \emph{some} \texttt{x\ ::\ k}, but we can't know which \texttt{x} it is
+until you pattern match. If you pattern match, you'll get both \texttt{Sing\ x}
+(to find out the \texttt{x}), and the \texttt{p\ @@\ x} (the witness that
+\texttt{p} is satisfied by \texttt{x}).
+
+We can use this to return a \texttt{Sel\ n\ xs\ ????}, \emph{hiding} the
+\texttt{???}.
+
+Now for some plumbing: We can't directly give \texttt{Sel\ n\ xs} to
+\texttt{Sigma} (because it expects a \texttt{Predicate\ k}, not a
+\texttt{k\ -\textgreater{}\ Type}), but we can turn a type constructor into a
+\texttt{Predicate} using \texttt{TyPred}, a convenient combinator from the
+\emph{decidable} library:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{TyPred}\OtherTok{ ::}\NormalTok{ (k }\OtherTok{{-}\textgreater{}} \DataTypeTok{Type}\NormalTok{) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Predicate}\NormalTok{ k}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{k }\DataTypeTok{Pick}
+\NormalTok{(}\DataTypeTok{N}\NormalTok{, }\DataTypeTok{N}\NormalTok{, }\DataTypeTok{Board}\NormalTok{) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Type}
+
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{k }\DataTypeTok{TyPred} \DataTypeTok{Pick}
+\DataTypeTok{Predicate}\NormalTok{ (}\DataTypeTok{N}\NormalTok{, }\DataTypeTok{N}\NormalTok{, }\DataTypeTok{Board}\NormalTok{)}
+
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{k }\DataTypeTok{Sel} \DataTypeTok{\textquotesingle{}Z} \DataTypeTok{EmptyBoard}
+\NormalTok{[}\DataTypeTok{Maybe} \DataTypeTok{Piece}\NormalTok{] }\OtherTok{{-}\textgreater{}} \DataTypeTok{Type}
+
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{k }\DataTypeTok{TyPred}\NormalTok{ (}\DataTypeTok{Sel} \DataTypeTok{\textquotesingle{}Z} \DataTypeTok{EmptyBoard}\NormalTok{)}
+\DataTypeTok{Predicate}\NormalTok{ [}\DataTypeTok{Maybe} \DataTypeTok{Piece}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+Let's make sure this type works like we expect it to. We want a
+\texttt{Σ\ k\ (TyPred\ (Sel\ n\ xs))} to contain the \texttt{x} at position
+\texttt{n} in \texttt{xs}, \emph{and} the \texttt{Sel} into that position.
+
+To make things a little less verbose, we can define a type synonym for
+\texttt{Σ\ k\ (TyPred\ (Sel\ n\ xs))}, \texttt{SelFound\ n\ xs}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \DataTypeTok{SelFound}\NormalTok{ n (}\OtherTok{xs ::}\NormalTok{ [k]) }\OtherTok{=}\NormalTok{ Σ k (}\DataTypeTok{TyPred}\NormalTok{ (}\DataTypeTok{Sel}\NormalTok{ n xs))}
+\end{Highlighting}
+\end{Shaded}
+
+Or, as practice, maybe we can treat \texttt{SelFound\ n} as a predicate on a
+list? The predicate \texttt{SelFound\ n} will be satisfied if list \texttt{xs}
+has some item \texttt{x} at index \texttt{n}!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/Part1.hs\#L102{-}L103}
+
+\KeywordTok{data} \DataTypeTok{SelFound}\OtherTok{ ::} \DataTypeTok{N} \OtherTok{{-}\textgreater{}} \DataTypeTok{Predicate}\NormalTok{ [k]}
+\KeywordTok{type} \KeywordTok{instance} \DataTypeTok{Apply}\NormalTok{ (}\DataTypeTok{SelFound}\NormalTok{ n) (}\OtherTok{xs ::}\NormalTok{ [k]) }\OtherTok{=}\NormalTok{ Σ k (}\DataTypeTok{TyPred}\NormalTok{ (}\DataTypeTok{Sel}\NormalTok{ n xs))}
+\end{Highlighting}
+\end{Shaded}
+
+We can check to make sure this works, by checking the type of witnesses of
+\texttt{SelFound\ \textquotesingle{}Z\ @@\ \textquotesingle{}{[}\ \textquotesingle{}True,\ \textquotesingle{}False\ {]}}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{kind}\OperatorTok{!} \DataTypeTok{SelFound} \DataTypeTok{\textquotesingle{}Z} \OperatorTok{@@}\NormalTok{ \textquotesingle{}[ }\DataTypeTok{\textquotesingle{}True}\NormalTok{, }\DataTypeTok{\textquotesingle{}False}\NormalTok{ ]}
+\NormalTok{Σ }\DataTypeTok{Bool}\NormalTok{ (}\DataTypeTok{TyPred} \DataTypeTok{Sel}\NormalTok{ (}\DataTypeTok{\textquotesingle{}Z}\NormalTok{ \textquotesingle{}[ }\DataTypeTok{\textquotesingle{}True}\NormalTok{, }\DataTypeTok{\textquotesingle{}False}\NormalTok{ ]))}
+\end{Highlighting}
+\end{Shaded}
+
+Now let's make some sample witnesses of predicate \texttt{SelFound\ n} to ensure
+we are thinking about things correctly:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/Part1.hs\#L165{-}L167}
+
+\OtherTok{selFoundTest1 ::} \DataTypeTok{SelFound} \DataTypeTok{\textquotesingle{}Z} \OperatorTok{@@}\NormalTok{ \textquotesingle{}[ }\DataTypeTok{\textquotesingle{}True}\NormalTok{, }\DataTypeTok{\textquotesingle{}False}\NormalTok{ ]}
+\NormalTok{selFoundTest1 }\OtherTok{=} \DataTypeTok{STrue} \OperatorTok{:\&:} \DataTypeTok{SelZ}
+                       \CommentTok{{-}{-} \^{} Sel \textquotesingle{}Z \textquotesingle{}[ \textquotesingle{}True, \textquotesingle{}False ] \textquotesingle{}True}
+\end{Highlighting}
+\end{Shaded}
+
+Note that \texttt{SFalse\ :\&:\ SelZ} would be a type error, because the second
+half \texttt{SelZ} would be
+\texttt{Sel\ ::\ \textquotesingle{}Z\ \textquotesingle{}{[}\ \textquotesingle{}True,\ \textquotesingle{}False\ {]}\ \textquotesingle{}True}
+(because \texttt{\textquotesingle{}True} is the 0th item in the list), so we
+have to have the first half match \texttt{\textquotesingle{}True}, with
+\texttt{STrue}.
+
+We can write a witness for
+\texttt{SelFound\ (\textquotesingle{}S\ \textquotesingle{}Z)\ @@\ \textquotesingle{}{[}\ \textquotesingle{}True,\ \textquotesingle{}False\ {]}},
+as well, by giving the value of the list at index 1,
+\texttt{\textquotesingle{}False}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/Part1.hs\#L169{-}L171}
+
+\OtherTok{selFoundTest2 ::} \DataTypeTok{SelFound}\NormalTok{ (}\DataTypeTok{\textquotesingle{}S} \DataTypeTok{\textquotesingle{}Z}\NormalTok{) }\OperatorTok{@@}\NormalTok{ \textquotesingle{}[ }\DataTypeTok{\textquotesingle{}True}\NormalTok{, }\DataTypeTok{\textquotesingle{}False}\NormalTok{ ]}
+\NormalTok{selFoundTest2 }\OtherTok{=} \DataTypeTok{SFalse} \OperatorTok{:\&:} \DataTypeTok{SelS} \DataTypeTok{SelZ}
+                        \CommentTok{{-}{-} \^{} Sel (\textquotesingle{}S \textquotesingle{}Z) \textquotesingle{}[ \textquotesingle{}True, \textquotesingle{}False ] \textquotesingle{}False}
+\end{Highlighting}
+\end{Shaded}
+
+Before moving on, I strongly recommend trying to write some values of type
+\texttt{SelFound\ n\ @@\ xs} for different \texttt{n\ ::\ N} and
+\texttt{xs\ ::\ {[}a{]}}, to see what type-checks and what doesn't. It'll help
+you get a feel of the types we are working with, which might be more advanced
+than types you might encounter in everyday Haskell programming. Remember that
+you can load up all of the definitions in this post into a ghci session by
+downloading
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/ttt/Part1.hs}{the
+source code} and executing it on the command line, \texttt{./Part1.hs}.
+
+Now, we now have enough tools to write the type of the function we would like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{selFound}
+\OtherTok{    ::} \DataTypeTok{Sing}\NormalTok{ n}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ xs}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{SelFound}\NormalTok{ n }\OperatorTok{@@}\NormalTok{ xs}
+\end{Highlighting}
+\end{Shaded}
+
+Remember, a \texttt{SelFound\ n\ @@\ xs} contains both a \texttt{Sel\ n\ xs\ x}
+\emph{and} a \texttt{Sing\ x}: a selection into the \texttt{i}th item in
+\texttt{xs} (the \texttt{Sel\ n\ xs\ x}), and also the item itself (the
+\texttt{Sing\ x}).
+
+We can start writing this, but the type system will soon show you where you run
+into problems. And that's one of the best things about type systems! They help
+you realize when you're trying to do something that doesn't make sense.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{selFound}
+\OtherTok{    ::} \DataTypeTok{Sing}\NormalTok{ n}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ xs}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{SelFound}\NormalTok{ n }\OperatorTok{@@}\NormalTok{ xs}
+\NormalTok{selFound }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+    \DataTypeTok{SZ} \OtherTok{{-}\textgreater{}}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+      \DataTypeTok{SNil} \OtherTok{{-}\textgreater{}}\NormalTok{ \_ }\OperatorTok{:\&:}\NormalTok{ \_}
+\end{Highlighting}
+\end{Shaded}
+
+Things start out pretty standard. We want to match on all potential constructors
+of \texttt{N} and \texttt{{[}a{]}}: \texttt{N} has \texttt{Z} and \texttt{S}, so
+we match on singleton constructors \texttt{SZ} and \texttt{SS}; \texttt{{[}a{]}}
+has \texttt{{[}{]}} and \texttt{(:)}, so we match on singleton constructors
+\texttt{SNil} and \texttt{SCons}.
+
+If you ask ghc what goes in the typed holes, it'll say that we need a
+\texttt{Sing\ x} and a
+\texttt{Sel\ \textquotesingle{}Z\ \textquotesingle{}{[}{]}\ x} (which is because
+matching on \texttt{SZ} tells us we are in \texttt{\textquotesingle{}Z}, and
+matching on \texttt{SNil} tells us we are in \texttt{\textquotesingle{}{[}{]}}).
+And this\ldots is a problem.
+
+Remember that the \texttt{x} is supposed to be the \texttt{n}th item in
+\texttt{xs}. Here, in this pattern match branch, we want the zeroth (first) item
+in \texttt{{[}{]}}. This doesn't exist! That's because there is no item in
+\texttt{{[}{]}}, so there is nothing we can put for the \texttt{Sing\ x}.
+
+There's also nothing we could put for the \texttt{Sel} (the right hand side of
+\texttt{:\&:}), since there is no constructor of \texttt{Sel} that returns a
+\texttt{Sel\ n\ \textquotesingle{}{[}{]}} (the constructors of \texttt{Sel} all
+return \texttt{x\ \textquotesingle{}:\ xs}, never \texttt{Nil}).
+
+So, this branch is impossible to fulfil. We know now that we made a large
+conceptual error (aren't types great?)
+
+The problem? Well, indexing into item \texttt{n} in list \texttt{xs} \emph{might
+not always succeed}. We might try to index into an empty list, so we can't ever
+get a result!
+
+\subsection{Decision Functions}\label{decision-functions}
+
+What we need is not a \emph{proving function}, but, rather, a \emph{decision}
+function. A decision function for a predicate \texttt{P} is a function:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{decidePred ::} \DataTypeTok{Sing}\NormalTok{ x}
+           \OtherTok{{-}\textgreater{}} \DataTypeTok{Decision}\NormalTok{ (}\DataTypeTok{P} \OperatorTok{@@}\NormalTok{ x)}
+\end{Highlighting}
+\end{Shaded}
+
+That is, instead of producing a \texttt{P\ @@\ x} directly, we produce a
+\texttt{Decision\ (P\ @@\ x)}. Here, \texttt{Decision} is:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Decision}\NormalTok{ a}
+    \OtherTok{=} \DataTypeTok{Proved}\NormalTok{     a                }\CommentTok{{-}{-} \^{} \textasciigrave{}a\textasciigrave{} is provably true}
+    \OperatorTok{|} \DataTypeTok{Disproved}\NormalTok{ (a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Void}\NormalTok{)       }\CommentTok{{-}{-} \^{} \textasciigrave{}a\textasciigrave{} is provably false}
+
+\CommentTok{{-}{-} | The type with no constructors.  If we have a function \textasciigrave{}a {-}\textgreater{} Void\textasciigrave{}, it must}
+\CommentTok{{-}{-} mean that no value of type \textasciigrave{}a\textasciigrave{} exists.}
+\KeywordTok{data} \DataTypeTok{Void}
+\end{Highlighting}
+\end{Shaded}
+
+A decision function means that, for any \texttt{x}, we can say that either
+\texttt{P\ @@\ x} can be proven true or can be proven false. See
+\href{https://blog.jle.im/entry/introduction-to-singletons-3.html\#decision}{this
+section} for a deeper discussion on why \texttt{Decision} has both the
+\texttt{Proved} and \texttt{Disproved} branch. Essentially, it prevents us from
+just returning ``disproved'' without proving it (so we can be sure that our
+decision function is ``correct'' and not just cheating), and, in the long term,
+we keep track of ``provably false'' because we can use it later to build other
+useful decision functions and proving functions.
+
+We use decision functions when we want to ``conditionally prove'' something ---
+it might be true, or it might not be (but definitely one or the other). It might
+exist, or it might not. We can construct the view, or we can't. Whatever the
+perspective, it's always one or the other.
+
+\texttt{selFound} fits this category: for a \texttt{Sel\ n\ xs\ ????}, either
+\texttt{n} is ``in bounds'' of \texttt{xs} (and we can prove this with the item
+\texttt{x} in \texttt{xs}), or \texttt{n} is ``out of bounds''. Either we get
+the \texttt{x} out of \texttt{xs} at slot \texttt{n}, or we prove that no
+possible \texttt{x} exists in \texttt{xs} at slot \texttt{n}.
+
+\subsubsection{Deciding SelFound}\label{deciding-selfound}
+
+Enough talk, let's get to it!
+
+Let's write our first dependently typed function. We start the same way --- by
+looking at every possible constructor of \texttt{N} and \texttt{{[}a{]}}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{selFound}
+\OtherTok{    ::} \DataTypeTok{Sing}\NormalTok{ n}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ xs}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Decision}\NormalTok{ (}\DataTypeTok{SelFound}\NormalTok{ n }\OperatorTok{@@}\NormalTok{ xs)}
+\NormalTok{selFound }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+    \DataTypeTok{SZ} \OtherTok{{-}\textgreater{}}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+      \DataTypeTok{SNil}         \OtherTok{{-}\textgreater{}}\NormalTok{ \_   }\CommentTok{{-}{-} n is \textquotesingle{}Z, xs is \textquotesingle{}[]}
+\NormalTok{      x }\OtherTok{\textasciigrave{}SCons\textasciigrave{}}\NormalTok{ xs }\OtherTok{{-}\textgreater{}}\NormalTok{ \_   }\CommentTok{{-}{-} n is \textquotesingle{}Z, xs is (x \textquotesingle{}: xs)}
+    \DataTypeTok{SS}\NormalTok{ n }\OtherTok{{-}\textgreater{}}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+      \DataTypeTok{SNil}         \OtherTok{{-}\textgreater{}}\NormalTok{ \_   }\CommentTok{{-}{-} n is (\textquotesingle{}S n), xs is \textquotesingle{}[]}
+\NormalTok{      x }\OtherTok{\textasciigrave{}SCons\textasciigrave{}}\NormalTok{ xs }\OtherTok{{-}\textgreater{}}\NormalTok{ \_   }\CommentTok{{-}{-} n is (\textquotesingle{}S n), xs is (x \textquotesingle{}: xs)}
+\end{Highlighting}
+\end{Shaded}
+
+Okay, four cases. Initially daunting, but we can just handle this one by one.
+Normally we can just fill in the blanks with the ``right'' responses, but, for
+learning's sake, let's split these branches into four helper functions --- one
+for each case.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/Part1.hs\#L120{-}L155}
+
+\NormalTok{selFound}
+\OtherTok{    ::} \DataTypeTok{Sing}\NormalTok{ n}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ xs}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Decision}\NormalTok{ (}\DataTypeTok{SelFound}\NormalTok{ n }\OperatorTok{@@}\NormalTok{ xs)}
+\NormalTok{selFound }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+    \DataTypeTok{SZ} \OtherTok{{-}\textgreater{}}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+      \DataTypeTok{SNil}         \OtherTok{{-}\textgreater{}}\NormalTok{ selFound\_znil}
+\NormalTok{      x }\OtherTok{\textasciigrave{}SCons\textasciigrave{}}\NormalTok{ xs }\OtherTok{{-}\textgreater{}}\NormalTok{ selFound\_zcons x xs}
+    \DataTypeTok{SS}\NormalTok{ n }\OtherTok{{-}\textgreater{}}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+      \DataTypeTok{SNil}         \OtherTok{{-}\textgreater{}}\NormalTok{ selFound\_snil n}
+\NormalTok{      x }\OtherTok{\textasciigrave{}SCons\textasciigrave{}}\NormalTok{ xs }\OtherTok{{-}\textgreater{}}\NormalTok{ selFound\_scons n x xs}
+
+\NormalTok{selFound\_znil}
+\OtherTok{    ::} \DataTypeTok{Decision}\NormalTok{ (}\DataTypeTok{SelFound} \DataTypeTok{\textquotesingle{}Z} \OperatorTok{@@}\NormalTok{ \textquotesingle{}[])}
+
+\NormalTok{selFound\_zcons}
+\OtherTok{    ::} \DataTypeTok{Sing}\NormalTok{ x}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ xs}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Decision}\NormalTok{ (}\DataTypeTok{SelFound} \DataTypeTok{\textquotesingle{}Z} \OperatorTok{@@}\NormalTok{ (x \textquotesingle{}}\OperatorTok{:}\NormalTok{ xs))}
+
+\NormalTok{selFound\_snil}
+\OtherTok{    ::} \DataTypeTok{Sing}\NormalTok{ n}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Decision}\NormalTok{ (}\DataTypeTok{SelFound}\NormalTok{ (}\DataTypeTok{\textquotesingle{}S}\NormalTok{ n) }\OperatorTok{@@}\NormalTok{ \textquotesingle{}[])}
+
+\NormalTok{selFound\_scons}
+\OtherTok{    ::} \DataTypeTok{Sing}\NormalTok{ n}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ x}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ xs}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Decision}\NormalTok{ (}\DataTypeTok{SelFound}\NormalTok{ (}\DataTypeTok{\textquotesingle{}S}\NormalTok{ n) }\OperatorTok{@@}\NormalTok{ (x \textquotesingle{}}\OperatorTok{:}\NormalTok{ xs))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  For the first branch, we have \texttt{\textquotesingle{}Z} and
+  \texttt{\textquotesingle{}{[}{]}}. This should be false, because there is no
+  item in the zeroth position in \texttt{{[}{]}}. But, also, there is no way to
+  construct the \texttt{Sel} necessary for the witness, since there is no
+  constructor for \texttt{Sel} that gives \texttt{\textquotesingle{}{[}{]}}.
+
+  We can witness this by using a \emph{total} helper function,
+  \texttt{noEmptySel\ ::\ Sel\ n\ \textquotesingle{}{[}{]}\ a\ -\textgreater{}\ Void},
+  which is a ``disproof'' of the fact that an empty \texttt{Sel} can exist. It's
+  a disproof because, if we \emph{had} such a \texttt{Sel}, we could produce
+  \texttt{Void} with it\ldots but \texttt{Void} has no constructors. So no such
+  \texttt{Sel} must exist!
+
+  We implement it by pattern matching on all potential patterns (using the
+  \emph{-XLambdaCase} extension):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/Part1.hs\#L132{-}L134}
+
+\OtherTok{noEmptySel ::} \DataTypeTok{Sel}\NormalTok{ n \textquotesingle{}[] a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Void}
+\NormalTok{noEmptySel }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}\NormalTok{ \{\}}
+            \CommentTok{{-}{-} \^{} we handle all 0 of the valid patterns for Sel n \textquotesingle{}[] a}
+\end{Highlighting}
+\end{Shaded}
+
+  \texttt{noEmptySel} successfully implements
+  \texttt{Sel\ n\ \textquotesingle{}{[}{]}\ as} by successfully matching on
+  every legal constructor that could produce
+  \texttt{Sel\ n\ \textquotesingle{}{[}{]}\ as}. But, because there are no
+  constructors for \texttt{Sel} that produce
+  \texttt{Sel\ n\ \textquotesingle{}{[}{]}\ as} (we just have \texttt{SelZ} and
+  \texttt{SelS}, which both produce non-empty \texttt{Sel}s), that means we have
+  to handle all \emph{zero} legal constructors. Once we handle all zero legal
+  constructors, we're done! (Remember to enable
+  \emph{-Werror=incomplete-patterns} to be sure! GHC will then reject the
+  program if there is a pattern we do not handle)
+
+  So we can write this as \texttt{Disproved}, which takes a
+  \texttt{SelFound\ \textquotesingle{}Z\ @@\ \textquotesingle{}{[}{]}\ -\textgreater{}\ Void}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/Part1.hs\#L136{-}L138}
+
+\NormalTok{selFound\_znil}
+\OtherTok{    ::} \DataTypeTok{Decision}\NormalTok{ (}\DataTypeTok{SelFound} \DataTypeTok{\textquotesingle{}Z} \OperatorTok{@@}\NormalTok{ \textquotesingle{}[])}
+\NormalTok{selFound\_znil }\OtherTok{=} \DataTypeTok{Disproved}\NormalTok{ \textbackslash{}(\_ }\OperatorTok{:\&:}\NormalTok{ s) }\OtherTok{{-}\textgreater{}}\NormalTok{ noEmptySel s}
+\end{Highlighting}
+\end{Shaded}
+
+  Armed with the \texttt{Sel\ \textquotesingle{}Z\ \textquotesingle{}{[}{]}\ as}
+  that is inside the
+  \texttt{SelFound\ \textquotesingle{}Z\ @@\ \textquotesingle{}{[}{]}}, we can
+  use \texttt{noEmptySel} to produce the \texttt{Void}. We successfully disprove
+  the fact that there is any item that can be found in
+  \texttt{\textquotesingle{}{[}{]}}, by providing a function
+  \texttt{SelFound\ \textquotesingle{}Z\ @@\ \textquotesingle{}{[}{]}\ -\textgreater{}\ Void}.
+
+  Note that with the \emph{-XBlockArguments} extension, we don't need the
+  \texttt{\$} after \texttt{Disproved}.
+\item
+  For the second branch, we have \texttt{\textquotesingle{}Z} and
+  \texttt{(x\ \textquotesingle{}:\ xs)}. We want to prove that there exists an
+  item at position \texttt{\textquotesingle{}Z} in the list
+  \texttt{x\ \textquotesingle{}:\ xs}. The answer is \emph{yes}, there does, and
+  that item is \texttt{x}, and the \texttt{Sel} is \texttt{SelZ}!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/Part1.hs\#L140{-}L144}
+
+\NormalTok{selFound\_zcons}
+\OtherTok{    ::} \DataTypeTok{Sing}\NormalTok{ x}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ xs}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Decision}\NormalTok{ (}\DataTypeTok{SelFound} \DataTypeTok{\textquotesingle{}Z} \OperatorTok{@@}\NormalTok{ (x \textquotesingle{}}\OperatorTok{:}\NormalTok{ xs))}
+\NormalTok{selFound\_zcons x \_ }\OtherTok{=} \DataTypeTok{Proved}\NormalTok{ (x }\OperatorTok{:\&:} \DataTypeTok{SelZ}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+\item
+  For the third branch, we have \texttt{\textquotesingle{}S\ n} and
+  \texttt{\textquotesingle{}{[}{]}}. Again, this should be false, because there
+  is no item in the \texttt{\textquotesingle{}S\ n} position in
+  \texttt{\textquotesingle{}{[}{]}}. We should be able to use the same strategy
+  for the first branch, by re-using our helper function \texttt{noEmptySel}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/Part1.hs\#L146{-}L149}
+
+\NormalTok{selFound\_snil}
+\OtherTok{    ::} \DataTypeTok{Sing}\NormalTok{ n}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Decision}\NormalTok{ (}\DataTypeTok{SelFound}\NormalTok{ (}\DataTypeTok{\textquotesingle{}S}\NormalTok{ n) }\OperatorTok{@@}\NormalTok{ \textquotesingle{}[])}
+\NormalTok{selFound\_snil \_ }\OtherTok{=} \DataTypeTok{Disproved}\NormalTok{ \textbackslash{}(\_ }\OperatorTok{:\&:}\NormalTok{ s) }\OtherTok{{-}\textgreater{}}\NormalTok{ noEmptySel s}
+\end{Highlighting}
+\end{Shaded}
+\item
+  The fourth branch is the most interesting one. We have
+  \texttt{\textquotesingle{}S\ n} and
+  \texttt{(x\ \textquotesingle{}:\ \ \ \ \ xs)}. How do we know if the list
+  \texttt{x\ \textquotesingle{}:\ xs} has an item in the
+  \texttt{\textquotesingle{}S\ n} spot?
+
+  Well, we can check if the list \texttt{xs} has an item in its \texttt{n} spot.
+
+  \begin{itemize}
+  \item
+    If it does, then call that item \texttt{y}, and we know that
+    \texttt{x\ \textquotesingle{}:\ xs} has \texttt{y} in its
+    \texttt{\textquotesingle{}S\ n} spot.
+  \item
+    If it doesn't, then we can't have an item at \texttt{\textquotesingle{}S\ n}
+    spot in \texttt{x\ \textquotesingle{}:\ xs} either! To show why, we can do a
+    proof by contradiction.
+
+    Suppose there \emph{was} an item \texttt{y} at the
+    \texttt{\textquotesingle{}S\ n} spot in \texttt{x\ \textquotesingle{}:\ xs}.
+    If so, then that means that there would be an item \texttt{y} in the
+    \texttt{n} spot in \texttt{xs}. However, this was found to be false.
+    Therefore, we cannot have an item in the \texttt{\textquotesingle{}S\ n}
+    spot in \texttt{x\ \textquotesingle{}:\ xs}.
+
+    This is a situation where having a disproof in the \texttt{Disproved} branch
+    is useful --- we use them to build more complex disproofs from simple ones.
+  \end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/Part1.hs\#L151{-}L163}
+
+\NormalTok{selFound\_scons}
+\OtherTok{    ::} \DataTypeTok{Sing}\NormalTok{ n}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ x}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ xs}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Decision}\NormalTok{ (}\DataTypeTok{SelFound}\NormalTok{ (}\DataTypeTok{\textquotesingle{}S}\NormalTok{ n) }\OperatorTok{@@}\NormalTok{ (x \textquotesingle{}}\OperatorTok{:}\NormalTok{ xs))}
+\NormalTok{selFound\_scons n \_ xs }\OtherTok{=} \KeywordTok{case}\NormalTok{ selFound n xs }\KeywordTok{of}
+    \DataTypeTok{Proved}\NormalTok{ (y }\OperatorTok{:\&:}\NormalTok{ s) }\OtherTok{{-}\textgreater{}}       \CommentTok{{-}{-} if xs has y in its n spot}
+      \DataTypeTok{Proved}\NormalTok{ (y }\OperatorTok{:\&:} \DataTypeTok{SelS}\NormalTok{ s)   }\CommentTok{{-}{-} then (x : xs) has y in its (S n) spot}
+    \DataTypeTok{Disproved}\NormalTok{ v      }\OtherTok{{-}\textgreater{}} \DataTypeTok{Disproved} \CommentTok{{-}{-} v is a disproof that an item is in n spot in xs}
+\NormalTok{      \textbackslash{}(y }\OperatorTok{:\&:}\NormalTok{ s) }\OtherTok{{-}\textgreater{}}      \CommentTok{{-}{-} suppose we had item y in (S n) spot in (x : xs)}
+        \KeywordTok{case}\NormalTok{ s }\KeywordTok{of}
+          \DataTypeTok{SelS}\NormalTok{ s\textquotesingle{} }\OtherTok{{-}\textgreater{}}     \CommentTok{{-}{-} this would mean that item \textquotesingle{}y\textquotesingle{} is in \textquotesingle{}n\textquotesingle{} spot in xs}
+\NormalTok{            v (y }\OperatorTok{:\&:}\NormalTok{ s\textquotesingle{}) }\CommentTok{{-}{-} however, v disproves this.}
+\end{Highlighting}
+\end{Shaded}
+
+  Note again the usage of \emph{-XBlockArguments}, allowing us to not need the
+  \texttt{\$} after \texttt{Disproved}.
+
+  If you have problems understanding this, try playing around with typed holes
+  in GHC, or trying to guess what types everything has in the implementation
+  above, until you can figure out what is happening when.
+\end{enumerate}
+
+\subsection{Proving Pick}\label{proving-pick}
+
+Now that we can decide \texttt{SelFound}, let's finally prove \texttt{Pick}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pick}
+\OtherTok{    ::} \DataTypeTok{Sing}\NormalTok{ i}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ j}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ b}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Pick}\NormalTok{ \textquotesingle{}(i, j, b)}
+\NormalTok{pick i j b }\OtherTok{=}
+\end{Highlighting}
+\end{Shaded}
+
+Remember, the goal is to try to prove we have a valid pick. We want to create
+something with the \texttt{PickValid} constructor if we can:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{PickValid}\OtherTok{  ::} \DataTypeTok{Coord}\NormalTok{ \textquotesingle{}(i, j) b }\DataTypeTok{\textquotesingle{}Nothing} \OtherTok{{-}\textgreater{}} \DataTypeTok{Pick}\NormalTok{ \textquotesingle{}(i, j, b)}
+
+\OtherTok{(:$:) ::} \DataTypeTok{Sel}\NormalTok{ i rows row}
+      \OtherTok{{-}\textgreater{}} \DataTypeTok{Sel}\NormalTok{ j row  p}
+      \OtherTok{{-}\textgreater{}} \DataTypeTok{Coord}\NormalTok{ \textquotesingle{}(i, j) rows p}
+\end{Highlighting}
+\end{Shaded}
+
+So we need a
+\texttt{Coord\ \textquotesingle{}(i,\ j)\ b\ \textquotesingle{}Nothing}, which
+means we need a \texttt{Sel\ i\ b\ row} and a
+\texttt{Sel\ j\ row\ \textquotesingle{}Nothing}. Let's use our decision
+functions we wrote to get these! In particular, we can use
+\texttt{selFound\ i\ b} to get our \texttt{Sel\ i\ b\ row} and \texttt{row}, and
+then use \texttt{selFound\ j\ row} to get our \texttt{Sel\ j\ row\ piece} and
+\texttt{piece}!
+
+Note that we also might need to handle the cases where the picks are
+out-of-bounds, which requires an \texttt{OuOfBounds\ n} predicate.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{PickOoBX}\OtherTok{   ::} \DataTypeTok{OutOfBounds}\NormalTok{ i }\OperatorTok{@@}\NormalTok{ b }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pick}\NormalTok{ \textquotesingle{}(i, j, b)}
+\end{Highlighting}
+\end{Shaded}
+
+We never defined \texttt{OutOfBounds\ n}, so let's do it now. We know that
+\texttt{SelFound\ n} is the predicate where \texttt{SelFound\ n\ @@\ xs} is
+satisfied when index \texttt{n} is ``in bounds'' of \texttt{xs}. So,
+\texttt{OutOfBounds\ n} is the predicate that we \emph{can't} produce
+\texttt{SelFound\ n}; a witness of \texttt{OutOfBounds\ n\ @@\ xs} is a proof
+that we can't make \texttt{SelFound\ n\ @@\ xs}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{OutOfBounds}\OtherTok{ ::} \DataTypeTok{N} \OtherTok{{-}\textgreater{}} \DataTypeTok{Predicate}\NormalTok{ [k]}
+\KeywordTok{type} \KeywordTok{instance} \DataTypeTok{Apply}\NormalTok{ (}\DataTypeTok{OutOfBounds}\NormalTok{ n) xs }\OtherTok{=} \DataTypeTok{SelFound}\NormalTok{ n }\OperatorTok{@@}\NormalTok{ xs }\OtherTok{{-}\textgreater{}} \DataTypeTok{Void}
+\end{Highlighting}
+\end{Shaded}
+
+Remember that \texttt{a\ -\textgreater{}\ Void} is a witness that \texttt{a}
+cannot exist, since if it could exist, we could create a value of type
+\texttt{Void}, but no such value exists. So if we had a
+\texttt{SelFound\ n\ @@\ xs\ -\textgreater{}\ Void}, it means that no such
+\texttt{SelFound\ n\ @@\ xs} could exist. It means that \texttt{n} must
+\emph{not} be in bounds of \texttt{xs}.
+
+Actually, we could take advantage of some of the combinators that the
+\emph{decidable} library provides to define \texttt{OutOfBounds} in a cleaner
+way:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} | Provided by decidable; it\textquotesingle{}s the negation of a predicate}
+\KeywordTok{data} \DataTypeTok{Not}\OtherTok{ ::} \DataTypeTok{Predicate}\NormalTok{ k }\OtherTok{{-}\textgreater{}} \DataTypeTok{Predicate}\NormalTok{ k}
+\KeywordTok{type} \KeywordTok{instance} \DataTypeTok{Apply}\NormalTok{ (}\DataTypeTok{Not}\NormalTok{ p) x }\OtherTok{=}\NormalTok{ p }\OperatorTok{@@}\NormalTok{ x }\OtherTok{{-}\textgreater{}} \DataTypeTok{Void}
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/Part1.hs\#L105{-}L105}
+
+\KeywordTok{type} \DataTypeTok{OutOfBounds}\NormalTok{ n }\OtherTok{=} \DataTypeTok{Not}\NormalTok{ (}\DataTypeTok{SelFound}\NormalTok{ n)}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{Not} is a \emph{predicate combinator}; it takes a predicate and returns
+new predicate. \texttt{Not\ p\ @@\ x} is true whenever \texttt{p\ @@\ x} is
+false, or \texttt{p\ @@\ x\ -\textgreater{}\ Void} is inhabited. Note that
+combinators like \texttt{Not} are one of the reasons why it's useful to think of
+predicates in terms of defunctionalization symbols
+(\texttt{k\ \textasciitilde{}\textgreater{}\ Type}), instead of as type families
+or type constructor: \texttt{Not} expects a ``partially applied'' predicate
+(\texttt{Not} takes \texttt{p}, not \texttt{p\ @@\ x}).
+
+Alright, now that everything is defined, let's start writing our viewing
+function for \texttt{Pick}. Recall again the definition of \texttt{Pick}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/Part1.hs\#L108{-}L118}
+
+\KeywordTok{data} \DataTypeTok{Pick}\OtherTok{ ::}\NormalTok{ (}\DataTypeTok{N}\NormalTok{, }\DataTypeTok{N}\NormalTok{, }\DataTypeTok{Board}\NormalTok{) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+    \CommentTok{{-}{-} | We are out of bounds in x}
+    \DataTypeTok{PickOoBX}\OtherTok{   ::} \DataTypeTok{OutOfBounds}\NormalTok{ i }\OperatorTok{@@}\NormalTok{ b                         }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pick}\NormalTok{ \textquotesingle{}(i, j, b)}
+    \CommentTok{{-}{-} | We are in{-}bounds in x, but out of bounds in y}
+    \DataTypeTok{PickOoBY}\OtherTok{   ::} \DataTypeTok{Sel}\NormalTok{ i b row        }\OtherTok{{-}\textgreater{}} \DataTypeTok{OutOfBounds}\NormalTok{ j }\OperatorTok{@@}\NormalTok{ row }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pick}\NormalTok{ \textquotesingle{}(i, j, b)}
+    \CommentTok{{-}{-} | We are in{-}bounds in x, in{-}bounds in y, but spot is taken by \textasciigrave{}p\textasciigrave{}.}
+    \CommentTok{{-}{-} We include \textasciigrave{}Sing p\textasciigrave{} in this constructor to potentially provide}
+    \CommentTok{{-}{-} feedback to the user on what piece is already in the spot.}
+    \DataTypeTok{PickPlayed}\OtherTok{ ::} \DataTypeTok{Coord}\NormalTok{ \textquotesingle{}(i, j) b (}\DataTypeTok{\textquotesingle{}Just}\NormalTok{ p) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ p        }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pick}\NormalTok{ \textquotesingle{}(i, j, b)}
+    \CommentTok{{-}{-} | We are in{-}bounds in x, in{-}bounds in y, and spot is clear}
+    \DataTypeTok{PickValid}\OtherTok{  ::} \DataTypeTok{Coord}\NormalTok{ \textquotesingle{}(i, j) b }\DataTypeTok{\textquotesingle{}Nothing}                   \OtherTok{{-}\textgreater{}} \DataTypeTok{Pick}\NormalTok{ \textquotesingle{}(i, j, b)}
+\end{Highlighting}
+\end{Shaded}
+
+And let's start writing. First, we'll use our decision functions
+\texttt{selFound} to \emph{try} to produce the \texttt{Sel}s necessary for the
+\texttt{PickValid} branch:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pick}
+\OtherTok{    ::} \DataTypeTok{Sing}\NormalTok{ i}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ j}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ b}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Pick}\NormalTok{ \textquotesingle{}(i, j, b)}
+\NormalTok{pick i j b }\OtherTok{=} \KeywordTok{case}\NormalTok{ selFound i b }\KeywordTok{of}
+    \DataTypeTok{Proved}\NormalTok{ (row }\OperatorTok{:\&:}\NormalTok{ selX) }\OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ selFound j row }\KeywordTok{of}
+      \DataTypeTok{Proved}\NormalTok{ (p }\OperatorTok{:\&:}\NormalTok{ selY) }\OtherTok{{-}\textgreater{}}
+        \KeywordTok{let}\NormalTok{ c }\OtherTok{=}\NormalTok{ selX }\OperatorTok{:$:}\NormalTok{ selY}
+        \KeywordTok{in}  \OperatorTok{????}
+\end{Highlighting}
+\end{Shaded}
+
+In the case where both \texttt{i} and \texttt{j} are in-bounds, what do we do?
+Well, we can create the \texttt{Coord} from the \texttt{selX} and \texttt{selY}.
+Can't we just give this to \texttt{PickValid}?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pick}
+\OtherTok{    ::} \DataTypeTok{Sing}\NormalTok{ i}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ j}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ b}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Pick}\NormalTok{ \textquotesingle{}(i, j, b)}
+\NormalTok{pick i j b }\OtherTok{=} \KeywordTok{case}\NormalTok{ selFound i b }\KeywordTok{of}
+    \DataTypeTok{Proved}\NormalTok{ (row }\OperatorTok{:\&:}\NormalTok{ selX) }\OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ selFound j row }\KeywordTok{of}
+      \DataTypeTok{Proved}\NormalTok{ (p }\OperatorTok{:\&:}\NormalTok{ selY) }\OtherTok{{-}\textgreater{}}
+        \KeywordTok{let}\NormalTok{ c }\OtherTok{=}\NormalTok{ selX }\OperatorTok{:$:}\NormalTok{ selY}
+        \KeywordTok{in}  \DataTypeTok{PickValid}\NormalTok{ c}
+\end{Highlighting}
+\end{Shaded}
+
+Ah, but this is a compiler error. It's hard to see why without a trusty compiler
+to help us. But that's the best part about using dependent types --- the
+compilers are here to help us write our programs!
+
+The compiler basically tells us that \texttt{c} is supposed to point to
+\texttt{\textquotesingle{}Nothing}\ldots but right now it's pointing to some
+type variable that we don't know is \texttt{\textquotesingle{}Nothing} or
+\texttt{\textquotesingle{}Just}. So \texttt{c} doesn't \emph{necessarily} work,
+because it \emph{might} be pointing to \texttt{\textquotesingle{}Just}, and not
+\texttt{\textquotesingle{}Nothing}. We haven't satisfied \texttt{PickValid} yet,
+because we have to be certain that it is \texttt{\textquotesingle{}Nothing} and
+not \texttt{\textquotesingle{}Just}
+
+Just to clarify what's going on, let's give types to the names above:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{b    ::} \DataTypeTok{Sing}\NormalTok{ (}\OtherTok{b   ::}\NormalTok{ [[}\DataTypeTok{Maybe} \DataTypeTok{Piece}\NormalTok{]])}
+\OtherTok{row  ::} \DataTypeTok{Sing}\NormalTok{ (}\OtherTok{row ::}\NormalTok{  [}\DataTypeTok{Maybe} \DataTypeTok{Piece}\NormalTok{] )}
+\OtherTok{selX ::} \DataTypeTok{Sel}\NormalTok{ i b row}
+\OtherTok{p    ::} \DataTypeTok{Sing}\NormalTok{ (}\OtherTok{p   ::}   \DataTypeTok{Maybe} \DataTypeTok{Piece}\NormalTok{  )}
+\OtherTok{selY ::} \DataTypeTok{Sel}\NormalTok{ j row p}
+\OtherTok{c    ::} \DataTypeTok{Coord}\NormalTok{ \textquotesingle{}(i, j) b p}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{row} above is the \texttt{Sing} that comes attached with all \texttt{Σ}
+constructors, which is why we can give it to \texttt{selFound\ j}, which expects
+a singleton of the list.
+
+So, now we have \texttt{Coord\ \textquotesingle{}(i,\ j)\ b\ p}. We know that
+\texttt{i} and \texttt{j} are in-bounds. But, we need to know that \texttt{p} is
+\texttt{\textquotesingle{}Nothing} before we can use it with \texttt{PickValid}.
+To do that, we can pattern match on \texttt{p}, because it's the singleton that
+comes with the \texttt{Σ} constructor:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pick}
+\OtherTok{    ::} \DataTypeTok{Sing}\NormalTok{ i}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ j}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ b}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Pick}\NormalTok{ \textquotesingle{}(i, j, b)}
+\NormalTok{pick i j b }\OtherTok{=} \KeywordTok{case}\NormalTok{ selFound i b }\KeywordTok{of}
+    \DataTypeTok{Proved}\NormalTok{ (row }\OperatorTok{:\&:}\NormalTok{ selX) }\OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ selFound j row }\KeywordTok{of}
+      \DataTypeTok{Proved}\NormalTok{ (p }\OperatorTok{:\&:}\NormalTok{ selY) }\OtherTok{{-}\textgreater{}}
+        \KeywordTok{let}\NormalTok{ c }\OtherTok{=}\NormalTok{ selX }\OperatorTok{:$:}\NormalTok{ selY}
+        \KeywordTok{in}  \KeywordTok{case}\NormalTok{ p }\KeywordTok{of}
+              \DataTypeTok{SNothing} \OtherTok{{-}\textgreater{}} \DataTypeTok{PickValid}\NormalTok{   c     }\CommentTok{{-}{-} p is \textquotesingle{}Nothing}
+              \DataTypeTok{SJust}\NormalTok{ q  }\OtherTok{{-}\textgreater{}} \DataTypeTok{PickPlayed}\NormalTok{  c q   }\CommentTok{{-}{-} p is \textquotesingle{}Just q}
+\end{Highlighting}
+\end{Shaded}
+
+Finally, knowing that \texttt{p} is \texttt{\textquotesingle{}Nothing}, we can
+create \texttt{PickValid}!
+
+As a bonus, if we know that \texttt{p} is \texttt{\textquotesingle{}Just\ p}, we
+can create \texttt{PickPlayed}, which is the constructor for an in-bounds pick
+but pointing to a spot that is already occupied by piece
+\texttt{p\textquotesingle{}}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{PickPlayed}\OtherTok{ ::} \DataTypeTok{Coord}\NormalTok{ \textquotesingle{}(i, j) b (}\DataTypeTok{\textquotesingle{}Just}\NormalTok{ p)}
+           \OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ p}
+           \OtherTok{{-}\textgreater{}} \DataTypeTok{Pick}\NormalTok{ \textquotesingle{}(i, j, b)}
+\end{Highlighting}
+\end{Shaded}
+
+We now have to deal with the situations where things are out of bounds.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{PickOoBX}\OtherTok{ ::} \DataTypeTok{OutOfBounds}\NormalTok{ i }\OperatorTok{@@}\NormalTok{ b}
+         \OtherTok{{-}\textgreater{}} \DataTypeTok{Pick}\NormalTok{ \textquotesingle{}(i, j, b)}
+\DataTypeTok{PickOoBY}\OtherTok{ ::} \DataTypeTok{Sel}\NormalTok{ i b row}
+         \OtherTok{{-}\textgreater{}} \DataTypeTok{OutOfBounds}\NormalTok{ j }\OperatorTok{@@}\NormalTok{ row}
+         \OtherTok{{-}\textgreater{}} \DataTypeTok{Pick}\NormalTok{ \textquotesingle{}(i, j, b)}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{PickOoBX} requires an \texttt{OutOfBounds\ i\ @@\ b}, which we defined
+as \texttt{SelFound\ i\ @@\ b\ -\textgreater{}\ Void}. Well, that's
+\emph{exactly} what the \texttt{Disproved} constructor contains, that
+\texttt{selFound\ i\ b} returns! And \texttt{PickOoBY} requires an
+\texttt{OutOfBounds\ j\ @@\ row}, which we defined as
+\texttt{SelFound\ j\ @@\ row\ -\textgreater{}\ Void}. And that's \emph{exactly}
+what the \texttt{Disproved} constructor of \texttt{selFound\ j\ row} returns.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/Part1.hs\#L173{-}L190}
+
+\NormalTok{pick}
+\OtherTok{    ::} \DataTypeTok{Sing}\NormalTok{ i}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ j}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ b}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Pick}\NormalTok{ \textquotesingle{}(i, j, b)}
+\NormalTok{pick i j b }\OtherTok{=} \KeywordTok{case}\NormalTok{ selFound i b }\KeywordTok{of}
+    \DataTypeTok{Proved}\NormalTok{ (row }\OperatorTok{:\&:}\NormalTok{ selX) }\OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ selFound j row }\KeywordTok{of}
+      \DataTypeTok{Proved}\NormalTok{ (p }\OperatorTok{:\&:}\NormalTok{ selY) }\OtherTok{{-}\textgreater{}}
+        \KeywordTok{let}\NormalTok{ c }\OtherTok{=}\NormalTok{ selX }\OperatorTok{:$:}\NormalTok{ selY}
+        \KeywordTok{in}  \KeywordTok{case}\NormalTok{ p }\KeywordTok{of}
+              \DataTypeTok{SNothing} \OtherTok{{-}\textgreater{}} \DataTypeTok{PickValid}\NormalTok{   c     }\CommentTok{{-}{-} p is \textquotesingle{}Nothing}
+              \DataTypeTok{SJust}\NormalTok{ q  }\OtherTok{{-}\textgreater{}} \DataTypeTok{PickPlayed}\NormalTok{  c q   }\CommentTok{{-}{-} p is \textquotesingle{}Just q}
+      \DataTypeTok{Disproved}\NormalTok{ vY }\OtherTok{{-}\textgreater{}} \DataTypeTok{PickOoBY}\NormalTok{ selX vY    }\CommentTok{{-}{-} vY :: SelFound j @@ row {-}\textgreater{} Void}
+                                          \CommentTok{{-}{-} vY :: Not (SelFound j) @@ row}
+                                          \CommentTok{{-}{-} vY :: OutOfBounds j @@ row}
+    \DataTypeTok{Disproved}\NormalTok{ vX }\OtherTok{{-}\textgreater{}} \DataTypeTok{PickOoBX}\NormalTok{ vX   }\CommentTok{{-}{-} vX :: SelFound i @@ b   {-}\textgreater{} Void}
+                                  \CommentTok{{-}{-} vX :: Not (SelFound i) @@ b}
+                                  \CommentTok{{-}{-} vX :: OutOfBounds i @@ b}
+\end{Highlighting}
+\end{Shaded}
+
+And that's it!
+
+\section{Play Ball}\label{play-ball}
+
+Bringing it all together, we can write a simple function to take user input and
+\emph{play} it.
+
+First, some utility functions to get user input and print out boards:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/Part1.hs\#L192{-}L211}
+
+\OtherTok{intToN ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe} \DataTypeTok{N}
+\NormalTok{intToN n }\OtherTok{=} \KeywordTok{case} \FunctionTok{compare}\NormalTok{ n }\DecValTok{0} \KeywordTok{of}
+    \DataTypeTok{LT} \OtherTok{{-}\textgreater{}} \DataTypeTok{Nothing}
+    \DataTypeTok{EQ} \OtherTok{{-}\textgreater{}} \DataTypeTok{Just} \DataTypeTok{Z}
+    \DataTypeTok{GT} \OtherTok{{-}\textgreater{}} \DataTypeTok{S} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ intToN (n }\OperatorTok{{-}} \DecValTok{1}\NormalTok{)}
+
+\OtherTok{getN ::} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO} \DataTypeTok{N}
+\NormalTok{getN prompt }\OtherTok{=} \KeywordTok{do}
+    \FunctionTok{putStrLn} \OperatorTok{$} \StringTok{"Enter non{-}negative integer for "} \OperatorTok{++}\NormalTok{ prompt }\OperatorTok{++} \StringTok{":"}
+\NormalTok{    res }\OtherTok{\textless{}{-}} \FunctionTok{getLine}
+    \KeywordTok{case}\NormalTok{ intToN }\OperatorTok{=\textless{}\textless{}}\NormalTok{ readMaybe res }\KeywordTok{of}
+      \DataTypeTok{Nothing} \OtherTok{{-}\textgreater{}} \FunctionTok{putStrLn} \StringTok{"Bad."} \OperatorTok{\textgreater{}\textgreater{}}\NormalTok{ getN prompt}
+      \DataTypeTok{Just}\NormalTok{ n  }\OtherTok{{-}\textgreater{}} \FunctionTok{pure}\NormalTok{ n}
+
+\OtherTok{printBoard ::} \DataTypeTok{Board} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{printBoard }\OtherTok{=} \FunctionTok{mapM\_} \OperatorTok{$} \FunctionTok{putStrLn} \OperatorTok{.}\NormalTok{ intercalate }\StringTok{"|"} \OperatorTok{.} \FunctionTok{map}\NormalTok{ showPiece}
+  \KeywordTok{where}
+\NormalTok{    showPiece }\DataTypeTok{Nothing}   \OtherTok{=} \StringTok{" \_ "}
+\NormalTok{    showPiece (}\DataTypeTok{Just} \DataTypeTok{PX}\NormalTok{) }\OtherTok{=} \StringTok{" X "}
+\NormalTok{    showPiece (}\DataTypeTok{Just} \DataTypeTok{PO}\NormalTok{) }\OtherTok{=} \StringTok{" O "}
+\end{Highlighting}
+\end{Shaded}
+
+And here is the logic for getting user input, viewing it using \texttt{pick},
+and updating the \texttt{GameState}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/Part1.hs\#L218{-}L242}
+
+\NormalTok{simplePlayIO\textquotesingle{}}
+\OtherTok{    ::} \DataTypeTok{Sing}\NormalTok{ p}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ b}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{GameState}\NormalTok{ p b}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{simplePlayIO\textquotesingle{} p b gs }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    printBoard }\OperatorTok{$} \DataTypeTok{FromSing}\NormalTok{ b}
+    \DataTypeTok{FromSing}\NormalTok{ i }\OtherTok{\textless{}{-}}\NormalTok{ getN }\StringTok{"row"}
+    \DataTypeTok{FromSing}\NormalTok{ j }\OtherTok{\textless{}{-}}\NormalTok{ getN }\StringTok{"column"}
+    \KeywordTok{case}\NormalTok{ pick i j b }\KeywordTok{of}
+      \DataTypeTok{PickOoBX}\NormalTok{ \_ }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+        \FunctionTok{putStrLn} \StringTok{"Out of bounds in rows.  Try again."}
+\NormalTok{        simplePlayIO\textquotesingle{} p b gs}
+      \DataTypeTok{PickOoBY}\NormalTok{ \_ \_ }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+        \FunctionTok{putStrLn} \StringTok{"Out of bounds in cols.  Try again."}
+\NormalTok{        simplePlayIO\textquotesingle{} p b gs}
+      \DataTypeTok{PickPlayed}\NormalTok{ \_ q }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+        \FunctionTok{putStrLn} \OperatorTok{$} \StringTok{"Already played by "} \OperatorTok{++} \FunctionTok{show}\NormalTok{ (fromSing q) }\OperatorTok{++} \StringTok{". Try again."}
+\NormalTok{        simplePlayIO\textquotesingle{} p b gs}
+      \DataTypeTok{PickValid}\NormalTok{ c }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+        \FunctionTok{putStrLn} \StringTok{"Success!"}
+        \KeywordTok{let}\NormalTok{ p\textquotesingle{}  }\OtherTok{=}\NormalTok{ sAltP p                 }\CommentTok{{-}{-} update player (enforced by \textasciigrave{}play\textasciigrave{})}
+\NormalTok{            b\textquotesingle{}  }\OtherTok{=}\NormalTok{ sPlaceBoard i j p b     }\CommentTok{{-}{-} update board  (enforced by \textasciigrave{}play\textasciigrave{})}
+\NormalTok{            gs\textquotesingle{} }\OtherTok{=}\NormalTok{ play }\FunctionTok{undefined}\NormalTok{ c gs     }\CommentTok{{-}{-} update game state}
+\NormalTok{        simplePlayIO\textquotesingle{} p\textquotesingle{} b\textquotesingle{} gs\textquotesingle{}}
+\end{Highlighting}
+\end{Shaded}
+
+We use the \texttt{FromSing\ ::\ Sing\ (x\ ::\ a)\ -\textgreater{}\ a} pattern
+synonym here to jump between the value-level and type-level with our values.
+First we use it as a \texttt{Sing\ (b\ ::\ Board)\ -\textgreater{}\ Board} to
+give us the \texttt{Board} that \texttt{printBoard} demands. Then we use it as a
+constructor to ``get'' a \texttt{Sing\ (i\ ::\ N)} from the value-level
+\texttt{N} that \texttt{getN} returns. If \texttt{FromSing\ x\ ::\ a}, then
+\texttt{x} is the singleton of \texttt{FromSing\ x}. That is,
+\texttt{True\ ==\ FromSing\ STrue}, and \texttt{S\ Z\ ==\ FromSing\ (SS\ SZ)}.
+
+Note that the type of \texttt{play} enforces that we modify \texttt{p} and
+\texttt{b} according to nothing other than exactly what the type of a new board
+game demands.
+
+And to start it off, we give \texttt{simplePlayIO\textquotesingle{}} an initial
+state:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/Part1.hs\#L213{-}L216}
+
+\OtherTok{simplePlayIO ::} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{simplePlayIO }\OtherTok{=}\NormalTok{ simplePlayIO\textquotesingle{} }\DataTypeTok{SPX}\NormalTok{ sEmptyBoard }\DataTypeTok{GSStart}
+\CommentTok{{-}{-} alternatively}
+\CommentTok{{-}{-} simplePlayIO = simplePlayIO\textquotesingle{} sing sing GSStart}
+\end{Highlighting}
+\end{Shaded}
+
+This isn't too bad! A type-safe tic-tac-toe that enforces that:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Players alternate
+\item
+  You can't place a piece not on the board
+\item
+  You can't place a piece over an existing piece
+\end{enumerate}
+
+\begin{verbatim}
+ghci> simplePlayIO
+ _ | _ | _
+ _ | _ | _
+ _ | _ | _
+Enter non-negative integer for row:
+10
+Enter non-negative integer for column:
+100
+Out of bounds in rows.  Try again.
+ _ | _ | _
+ _ | _ | _
+ _ | _ | _
+Enter non-negative integer for row:
+0
+Enter non-negative integer for column:
+0
+Success!
+ X | _ | _
+ _ | _ | _
+ _ | _ | _
+Enter non-negative integer for row:
+1
+Enter non-negative integer for column:
+1
+Success!
+ X | _ | _
+ _ | O | _
+ _ | _ | _
+Enter non-negative integer for row:
+1
+Enter non-negative integer for column:
+1
+Already played by PO. Try again.
+ X | _ | _
+ _ | O | _
+ _ | _ | _
+Enter non-negative integer for row:
+^C
+\end{verbatim}
+
+(Again, note that \texttt{undefined} is used here instead of an actual witness
+for \texttt{InPlay} as a nice tool to enable incremental and interactive
+development of dependently typed programs.)
+
+Our core engine is pretty much complete, except that we haven't defined
+\texttt{InPlay} yet, so the game can still go on \emph{after} it has already
+been won. So, next, let's implement our \texttt{InPlay} predicate and finish
+everything up!
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

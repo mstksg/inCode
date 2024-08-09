@@ -1,0 +1,808 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={A Purely Functional Typed Approach to Trainable Models (Part 1)},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{A Purely Functional Typed Approach to Trainable Models (Part 1)}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% May 14, 2018
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/purely-functional-typed-models-1.html}{in
+Code}}.}
+
+With the release of
+\href{http://hackage.haskell.org/package/backprop}{backprop}, I've been
+exploring the space of parameterized models of all sorts, from linear and
+logistic regression and other statistical models to artificial neural networks,
+feed-forward and recurrent (stateful). I wanted to see to what extent we can
+really apply automatic differentiation and iterative gradient decent-based
+training to all of these different models. Basically, I wanted to see how far we
+can take \emph{differentiable programming} (a la
+\href{https://www.facebook.com/yann.lecun/posts/10155003011462143}{Yann LeCun})
+as a paradigm for writing trainable models.
+
+Building on other writers, I'm starting to see a picture unifying all of these
+models, painted in the language of purely typed functional programming. I'm
+already applying these to models I'm using in real life and in my research, and
+I thought I'd take some time to put my thoughts to writing in case anyone else
+finds these illuminating or useful.
+
+As a big picture, I really believe that a purely functional typed approach to
+differentiable programming is \emph{the} way to move forward in the future for
+models like artificial neural networks. In this light, the drawbacks of
+object-oriented and imperative approaches becomes very apparent.
+
+I'm not the first person to attempt to build a conceptual framework for these
+types of models in a purely functional typed sense --
+\href{http://colah.github.io/posts/2015-09-NN-Types-FP/}{Christopher Olah's
+famous post} wrote a great piece in 2015 that this post heavily builds off of,
+and is definitely worth a read! We'll be taking some of his ideas and seeing how
+they work in real code!
+
+This will be a three-part series, and the intended audience is people who have a
+passing familiarity with statistical modeling or machine learning/deep learning.
+The code in these posts is written in Haskell, using the
+\href{http://hackage.haskell.org/package/backprop}{backprop} and
+\href{http://hackage.haskell.org/package/hmatrix}{hmatrix} (with
+\href{http://hackage.haskell.org/package/hmatrix-backprop}{hmatrix-backprop})
+libraries, but the main themes and messages won't be \emph{about} haskell, but
+rather about differentiable programming in a purely functional typed setting in
+general. This isn't a Haskell post as much as it is an exploration, using
+Haskell syntax/libraries to implement the points. The \emph{backprop} library is
+roughly equivalent to \href{https://github.com/HIPS/autograd}{autograd} in
+python, so all of the ideas apply there as well.
+
+The source code for the written code in this module is available
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/functional-models/model.hs}{on
+github}, if you want to follow along!
+
+\section{Essence of a Model}\label{essence-of-a-model}
+
+For the purpose of this post, a \emph{parameterized model} is a function from
+some input ``question'' (predictor, independent variable) to some output
+``answer'' (predictand, dependent variable)
+
+Notationally, we might write it as a function:
+
+\[
+f_p(x) = y
+\]
+
+The important thing is that, for every choice of \emph{parameterization} \(p\),
+we get a \emph{different function} \(f_p(x)\).
+
+For example, you might want to write a model that, when given an email, outputs
+whether or not that email is spam.
+
+The parameterization \emph{p} is some piece of data that we tweak to produce a
+different \(f_p(x)\). So, ``training'' (or ``learning'', or ``estimating'') a
+model is a process of picking the \(p\) that gives the ``correct'' function
+\(f_p(x)\) --- that is, the function that accurately predicts spam or whatever
+thing you are trying to predict.
+
+For example, for \href{https://en.wikipedia.org/wiki/Linear_regression}{linear
+regression}, you are trying to ``fit'' your \((x, y)\) data points to some
+function \(f(x) = \beta + \alpha x\). The \emph{parameters} are \(\alpha\) and
+\(\beta\), the \emph{input} is \(x\), and the \emph{output} is \(\beta + \alpha
+x\).
+
+As it so happens, a \(f_p(x)\) is really just a ``partially applied''
+\(f(p,x)\). Imagining that function, it has type:\footnote{Those familiar with
+  Haskell idioms might recognize this type as being essentially
+  \texttt{a\ -\textgreater{}\ Reader\ p\ b} (or
+  \texttt{Kleisli\ (Reader\ p)\ a\ b}) which roughly represents the notion of
+  ``A function from \texttt{a} to \texttt{b} with an `environment' of type
+  \texttt{p}''.}
+
+\[
+f : (P \times A) \rightarrow B
+\]
+
+If we \href{https://en.wikipedia.org/wiki/Currying}{curry} this, we get the
+original model representation we talked about:
+
+\[
+f : P \rightarrow (A \rightarrow B)
+\]
+
+\subsection{Optimizing Models with
+Observations}\label{optimizing-models-with-observations}
+
+Something interesting happens if we flip the script. What if, instead of
+\(f_p(x)\), we talked about \(f_x(p)\)? That is, we fix the input and vary the
+parameter, and see what type of outputs we get for the same output while we vary
+the parameter?
+
+If we have an ``expected output'' for our input, then one thing we can do is
+look at \(f_x(p)\) and see when the result is close to \(y_x\) (the expected
+output of our model when given \(x\)).
+
+In fact, we can turn this into an optimization problem by trying to pick \(p\)
+that minimizes the difference between \(f_x(p)\) and \(y_x\). We can say that
+our model with parameter \(p\) predicts \(y_x\) the best when we minimize:
+
+\[
+(f_x(p) - y_x)^2
+\]
+
+If we minimize the squared error between the result of picking the parameter and
+the expected result, we find the best parameters for that given input!
+
+In general, picking the best parameter for the model involves picking the \(p\)
+that minimizes the relationship
+
+\[
+\text{loss}(y_x, f_x(p))
+\]
+
+Where \(\text{loss} : B \times B \rightarrow \mathbb{R}\) gives a measure of
+``how badly'' the model result differs from the expected target. Common loss
+functions include squared error, cross-entropy, etc.
+
+This gives us a supervised way to train any model: if we have enough
+observations (\((x, y_x)\) pairs) we can just pick a \(p\) that does its best to
+make the loss between all observations as small as possible.
+
+\subsection{Stochastic Gradient Descent}\label{stochastic-gradient-descent}
+
+If our model is a \emph{differentiable function}, then we have a nice tool we
+can use: \emph{stochastic gradient descent} (SGD).
+
+That is, we can always calculate the \emph{gradient} of the loss function with
+respect to our parameters. This gives us the direction we can ``nudge'' our
+parameters to make the loss bigger or smaller.
+
+That is, if we get the \emph{gradient} of the loss with respect to \(p\)
+(\(\nabla_p
+\text{loss}(f_x(p), y_x)\)), we now have a nice iterative way to ``train'' our
+model:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Start with an initial guess at the parameter
+\item
+  Look at a random \((x, y_x)\) observation pair.
+\item
+  Compute the gradient \(\nabla_p \text{loss}(f_x(p), y_x)\) of our current
+  \(p\), which tells us a direction we can ``nudge'' \(p\) in to make the loss
+  smaller.
+\item
+  Nudge \(p\) in that direction
+\item
+  Repeat from \#2 until satisfied
+\end{enumerate}
+
+With every new observation, we see how we can nudge the parameter to make the
+model more accurate, and then we perform that nudge. At the end of it all, we
+wind up just the right \texttt{p} to model the relationship between our
+observation pairs.
+
+\section{Functional Implementation}\label{functional-implementation}
+
+What I described naturally lends to a functional implementation. That's because,
+in this light, a model is nothing more than a curried function (a function
+returning a function). A model that is trainable using SGD is simply a
+differentiable function.
+
+Using the \emph{\href{http://hackage.haskell.org/package/backprop}{backprop}}
+library, we can write these differentiable functions as normal functions.
+
+Let's pick a type for our models. A model from type \texttt{a} to type
+\texttt{b} with parameter \texttt{p} can be written as the type synonym
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \DataTypeTok{Model}\NormalTok{ p a b }\OtherTok{=}\NormalTok{ p }\OtherTok{{-}\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ b}
+\end{Highlighting}
+\end{Shaded}
+
+Not normally differentiable, but we can make it a differentiable function by
+having it work with \texttt{BVar\ z\ p} and \texttt{BVar\ z\ a} (\texttt{BVar}s
+containing those values) instead:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/functional{-}models/model.hs\#L52{-}L55}
+
+\KeywordTok{type} \DataTypeTok{Model}\NormalTok{ p a b }\OtherTok{=} \KeywordTok{forall}\NormalTok{ z}\OperatorTok{.} \DataTypeTok{Reifies}\NormalTok{ z }\DataTypeTok{W}
+                \OtherTok{=\textgreater{}} \DataTypeTok{BVar}\NormalTok{ z p}
+                \OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ z a}
+                \OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ z b}
+\end{Highlighting}
+\end{Shaded}
+
+This is a RankN \emph{type synonym}, which is saying that a
+\texttt{Model\ p\ a\ b} is just a type synonym for a differentiable
+\texttt{BVar\ z\ p\ -\textgreater{}\ BVar\ z\ a\ -\textgreater{}\ BVar\ z\ b}.
+The \texttt{Reifies\ z\ W} is just a constraint that allows for backpropagation
+of \texttt{BVar}s.
+
+We can write a simple linear regression model:
+
+\[
+f_{\alpha, \beta}(x) = \beta x + \alpha
+\]
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/functional{-}models/model.hs\#L48{-}L369}
+
+\KeywordTok{data}\NormalTok{ a }\OperatorTok{:\&}\NormalTok{ b }\OtherTok{=} \OperatorTok{!}\NormalTok{a }\OperatorTok{:\&} \OperatorTok{!}\NormalTok{b}
+
+\KeywordTok{pattern}\OtherTok{ (:\&\&) ::}\NormalTok{ (}\DataTypeTok{Backprop}\NormalTok{ a, }\DataTypeTok{Backprop}\NormalTok{ b, }\DataTypeTok{Reifies}\NormalTok{ z }\DataTypeTok{W}\NormalTok{)}
+              \OtherTok{=\textgreater{}} \DataTypeTok{BVar}\NormalTok{ z a }\OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ z b }\OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ z (a }\OperatorTok{:\&}\NormalTok{ b)}
+
+\OtherTok{linReg ::} \DataTypeTok{Model}\NormalTok{ (}\DataTypeTok{Double} \OperatorTok{:\&} \DataTypeTok{Double}\NormalTok{) }\DataTypeTok{Double} \DataTypeTok{Double}
+\NormalTok{linReg (a }\OperatorTok{:\&\&}\NormalTok{ b) x }\OtherTok{=}\NormalTok{ b }\OperatorTok{*}\NormalTok{ x }\OperatorTok{+}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+A couple things going on here to help us do things smoothly:
+
+\begin{itemize}
+\item
+  We define a custom tuple data type \texttt{:\&}; backprop works with normal
+  tuples, but using a custom tuple with a \texttt{Num} instance will come in
+  handy later for training models.
+\item
+  We define a pattern synonym \texttt{:\&\&} that lets us ``pattern match out''
+  \texttt{BVar}s of that tuple type. So if we have a
+  \texttt{BVar\ z\ (a\ :\&\ b)} (a \texttt{BVar} containing a tuple), then
+  matching on \texttt{(x\ :\&\&\ y)} will give us
+  \texttt{x\ ::\ BVar\ z\ \ \ \ \ a} and \texttt{y\ ::\ BVar\ z\ b}.
+\item
+  With that, we define \texttt{linReg}, whose parameters are a
+  \texttt{Double\ :\&\ Double}, a tuple the two parameters \texttt{a} and
+  \texttt{b}. After pattern matching out the contents, we just write the linear
+  regression formula --- \texttt{b\ *\ x\ +\ a}. We can use normal numeric
+  operations like \texttt{*} and \texttt{+} because \texttt{BVar}s have a
+  \texttt{Num} instance.
+\end{itemize}
+
+We can \emph{run} \texttt{linReg} using \texttt{evalBP2}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ evalBP2 linReg (}\FloatTok{0.3} \OperatorTok{:\&}\NormalTok{ (}\OperatorTok{{-}}\FloatTok{0.1}\NormalTok{)) }\DecValTok{5}
+\OperatorTok{{-}}\FloatTok{0.2}        \CommentTok{{-}{-} ({-}0.1) * 5 + 0.3}
+\end{Highlighting}
+\end{Shaded}
+
+But the neat thing is that we can also get the gradient of the parameters, too,
+if we identify a loss function:\footnote{Note that this is only sound as a loss
+  function for a single ``scalar value'', like \texttt{Double} or a one-vector.
+  In general, we'd have this take a loss function as a parameter.}
+
+\[
+\nabla_p (f(p, x) - y_x)^2
+\]
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/functional{-}models/model.hs\#L60{-}L68}
+
+\NormalTok{squaredErrorGrad}
+\OtherTok{    ::}\NormalTok{ (}\DataTypeTok{Backprop}\NormalTok{ p, }\DataTypeTok{Backprop}\NormalTok{ b, }\DataTypeTok{Num}\NormalTok{ b)}
+    \OtherTok{=\textgreater{}} \DataTypeTok{Model}\NormalTok{ p a b      }\CommentTok{{-}{-} \^{} Model}
+    \OtherTok{{-}\textgreater{}}\NormalTok{ a                }\CommentTok{{-}{-} \^{} Observed input}
+    \OtherTok{{-}\textgreater{}}\NormalTok{ b                }\CommentTok{{-}{-} \^{} Observed output}
+    \OtherTok{{-}\textgreater{}}\NormalTok{ p                }\CommentTok{{-}{-} \^{} Parameter guess}
+    \OtherTok{{-}\textgreater{}}\NormalTok{ p                }\CommentTok{{-}{-} \^{} Gradient}
+\NormalTok{squaredErrorGrad f x targ }\OtherTok{=}\NormalTok{ gradBP }\OperatorTok{$}\NormalTok{ \textbackslash{}p }\OtherTok{{-}\textgreater{}}
+\NormalTok{    (f p (auto x) }\OperatorTok{{-}}\NormalTok{ auto targ) }\OperatorTok{\^{}} \DecValTok{2}
+\end{Highlighting}
+\end{Shaded}
+
+We use \texttt{auto\ ::\ a\ -\textgreater{}\ BVar\ z\ a}, to lift a normal value
+to a \texttt{BVar} holding that value, since our model \texttt{f} takes
+\texttt{BVar}s.
+
+And finally, we can train it using stochastic gradient descent, with just a
+simple fold over all observations:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/functional{-}models/model.hs\#L70{-}L76}
+
+\NormalTok{trainModel}
+\OtherTok{    ::}\NormalTok{ (}\DataTypeTok{Fractional}\NormalTok{ p, }\DataTypeTok{Backprop}\NormalTok{ p, }\DataTypeTok{Num}\NormalTok{ b, }\DataTypeTok{Backprop}\NormalTok{ b)}
+    \OtherTok{=\textgreater{}} \DataTypeTok{Model}\NormalTok{ p a b      }\CommentTok{{-}{-} \^{} model to train}
+    \OtherTok{{-}\textgreater{}}\NormalTok{ p                }\CommentTok{{-}{-} \^{} initial parameter guess}
+    \OtherTok{{-}\textgreater{}}\NormalTok{ [(a,b)]          }\CommentTok{{-}{-} \^{} list of observations}
+    \OtherTok{{-}\textgreater{}}\NormalTok{ p                }\CommentTok{{-}{-} \^{} updated parameter guess}
+\NormalTok{trainModel f }\OtherTok{=}\NormalTok{ foldl\textquotesingle{} }\OperatorTok{$}\NormalTok{ \textbackslash{}p (x,y) }\OtherTok{{-}\textgreater{}}\NormalTok{ p }\OperatorTok{{-}} \FloatTok{0.1} \OperatorTok{*}\NormalTok{ squaredErrorGrad f x y p}
+\end{Highlighting}
+\end{Shaded}
+
+For convenience, we can define a \texttt{Random} instance for our tuple type
+using the \emph{\href{http://hackage.haskell.org/package/random}{random}}
+library and make a wrapper that uses \texttt{IO} to generate a random initial
+parameter:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/functional{-}models/model.hs\#L78{-}L85}
+
+\NormalTok{trainModelIO}
+\OtherTok{    ::}\NormalTok{ (}\DataTypeTok{Fractional}\NormalTok{ p, }\DataTypeTok{Backprop}\NormalTok{ p, }\DataTypeTok{Num}\NormalTok{ b, }\DataTypeTok{Backprop}\NormalTok{ b, }\DataTypeTok{Random}\NormalTok{ p)}
+    \OtherTok{=\textgreater{}} \DataTypeTok{Model}\NormalTok{ p a b      }\CommentTok{{-}{-} \^{} model to train}
+    \OtherTok{{-}\textgreater{}}\NormalTok{ [(a,b)]          }\CommentTok{{-}{-} \^{} list of observations}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ p             }\CommentTok{{-}{-} \^{} parameter guess}
+\NormalTok{trainModelIO m xs }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    p0 }\OtherTok{\textless{}{-}}\NormalTok{ (}\OperatorTok{/} \DecValTok{10}\NormalTok{) }\OperatorTok{.} \FunctionTok{subtract} \FloatTok{0.5} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ randomIO}
+    \FunctionTok{return} \OperatorTok{$}\NormalTok{ trainModel m p0 xs}
+\end{Highlighting}
+\end{Shaded}
+
+Let's train our linear regression model to fit the points \texttt{(1,1)},
+\texttt{(2,3)}, \texttt{(3,5)}, \texttt{(4,7)}, and \texttt{(5,9)}! This should
+follow \(f(x) = 2 x - 1\), or \(\alpha = -1,\, \beta = 2\):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ samps }\OtherTok{=}\NormalTok{ [(}\DecValTok{1}\NormalTok{,}\DecValTok{1}\NormalTok{),(}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{),(}\DecValTok{3}\NormalTok{,}\DecValTok{5}\NormalTok{),(}\DecValTok{4}\NormalTok{,}\DecValTok{7}\NormalTok{),(}\DecValTok{5}\NormalTok{,}\DecValTok{9}\NormalTok{)]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ trainModelIO linReg }\OperatorTok{$} \FunctionTok{take} \DecValTok{5000}\NormalTok{ (}\FunctionTok{cycle}\NormalTok{ samps)}
+\NormalTok{(}\OperatorTok{{-}}\FloatTok{1.0000000000000024}\NormalTok{) }\OperatorTok{:\&} \FloatTok{2.0000000000000036}
+\CommentTok{{-}{-} roughly:}
+\NormalTok{(}\OperatorTok{{-}}\FloatTok{1.0}\NormalTok{) }\OperatorTok{:\&} \FloatTok{2.0}
+\end{Highlighting}
+\end{Shaded}
+
+Neat --- after going through all of those observations a thousand times, the
+model nudges itself all the way to the right parameters to fit our model!
+
+The important takeaway is that all we specified was the \emph{function} of the
+model itself. The training part all follows automatically.
+
+\subsection{Feed-forward Neural Network}\label{feed-forward-neural-network}
+
+Here's another example: a fully-connected feed-forward neural network layer.
+
+We can start with a single layer. The model here will also take two parameters
+(a weight matrix and a bias vector), take in a vector, and output a vector.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{import} \DataTypeTok{Numeric.LinearAlgebra.Static.Backprop}
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/functional{-}models/model.hs\#L92{-}L103}
+
+\OtherTok{logistic ::} \DataTypeTok{Floating}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ a}
+\NormalTok{logistic x }\OtherTok{=} \DecValTok{1} \OperatorTok{/}\NormalTok{ (}\DecValTok{1} \OperatorTok{+} \FunctionTok{exp}\NormalTok{ (}\OperatorTok{{-}}\NormalTok{x))}
+
+\NormalTok{feedForwardLog}
+\OtherTok{    ::}\NormalTok{ (}\DataTypeTok{KnownNat}\NormalTok{ i, }\DataTypeTok{KnownNat}\NormalTok{ o)}
+    \OtherTok{=\textgreater{}} \DataTypeTok{Model}\NormalTok{ (}\DataTypeTok{L}\NormalTok{ o i }\OperatorTok{:\&} \DataTypeTok{R}\NormalTok{ o) (}\DataTypeTok{R}\NormalTok{ i) (}\DataTypeTok{R}\NormalTok{ o)}
+\NormalTok{feedForwardLog (w }\OperatorTok{:\&\&}\NormalTok{ b) x }\OtherTok{=}\NormalTok{ logistic (w }\OperatorTok{\#\textgreater{}}\NormalTok{ x }\OperatorTok{+}\NormalTok{ b)}
+\end{Highlighting}
+\end{Shaded}
+
+Here we use the \texttt{L\ n\ m} (an n-by-m matrix) and \texttt{R\ n} (an
+n-vector) types from the \emph{hmatrix} library, and \texttt{\#\textgreater{}}
+for backprop-aware matrix-vector multiplication.
+
+Let's try training a model to learn the simple
+\href{https://en.wikipedia.org/wiki/Logical_conjunction}{logical ``AND''}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{import} \KeywordTok{qualified} \DataTypeTok{Numeric.LinearAlgebra.Static} \KeywordTok{as} \DataTypeTok{H}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ samps }\OtherTok{=}\NormalTok{ [(H.vec2 }\DecValTok{0} \DecValTok{0}\NormalTok{, }\DecValTok{0}\NormalTok{), (H.vec2 }\DecValTok{1} \DecValTok{0}\NormalTok{, }\DecValTok{0}\NormalTok{), (H.vec2 }\DecValTok{0} \DecValTok{1}\NormalTok{, }\DecValTok{0}\NormalTok{), (H.vec2 }\DecValTok{1} \DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{)]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ trained }\OtherTok{\textless{}{-}}\NormalTok{ trainModelIO feedForwardLog }\OperatorTok{$} \FunctionTok{take} \DecValTok{10000}\NormalTok{ (}\FunctionTok{cycle}\NormalTok{ samps)}
+\end{Highlighting}
+\end{Shaded}
+
+We have our trained parameters! Let's see if they actually model ``AND''?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ evalBP2 feedForwardLog trained (H.vec2 }\DecValTok{0} \DecValTok{0}\NormalTok{)}
+\NormalTok{(}\FloatTok{7.468471910660985e{-}5}\OtherTok{ ::} \DataTypeTok{R} \DecValTok{1}\NormalTok{)       }\CommentTok{{-}{-} 0.0}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ evalBP2 feedForwardLog trained (H.vec2 }\DecValTok{1} \DecValTok{0}\NormalTok{)}
+\NormalTok{(}\FloatTok{3.816205998697482e{-}2}\OtherTok{ ::} \DataTypeTok{R} \DecValTok{1}\NormalTok{)       }\CommentTok{{-}{-} 0.0}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ evalBP2 feedForwardLog trained (H.vec2 }\DecValTok{0} \DecValTok{1}\NormalTok{)}
+\NormalTok{(}\FloatTok{3.817490115313559e{-}2}\OtherTok{ ::} \DataTypeTok{R} \DecValTok{1}\NormalTok{)       }\CommentTok{{-}{-} 0.0}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ evalBP2 feedForwardLog trained (H.vec2 }\DecValTok{1} \DecValTok{1}\NormalTok{)}
+\NormalTok{(}\FloatTok{0.9547178031665701}\OtherTok{ ::} \DataTypeTok{R} \DecValTok{1}\NormalTok{)         }\CommentTok{{-}{-} 1.0}
+\end{Highlighting}
+\end{Shaded}
+
+Close enough for me!
+
+If we inspect the arrived-at parameters, we can peek into the neural network's
+brain:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ trained}
+\NormalTok{(matrix}
+\NormalTok{ [ }\FloatTok{4.652034474187562}\NormalTok{, }\FloatTok{4.65355702367007}\NormalTok{ ]}\OtherTok{ ::} \DataTypeTok{L} \DecValTok{1} \DecValTok{2}\NormalTok{) }\OperatorTok{:\&}\NormalTok{ (}\OperatorTok{{-}}\FloatTok{7.073724083776028}\OtherTok{ ::} \DataTypeTok{R} \DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+It seems like there is a heavy negative bias, and that each of the inputs makes
+some contribution that is slightly more than half of the negative bias; the end
+goal is that one of the inputs alone makes no dent, but only if both inputs are
+``on'', the output can overcome the negative bias.
+
+The network was able to arrive that this configuration just by exploring the
+gradient of our differentiable function!
+
+\subsection{Functional composition}\label{functional-composition}
+
+Because our functions are simply just \emph{normal functions}, we can create
+new, complex models from simpler ones using just functional composition.
+
+For example, we can map the result of a model to create a new model. Here, we
+compose \texttt{linReg\ ab} (linear regression with parameter \texttt{ab}) with
+the logistic function to create a
+\emph{\href{https://en.wikipedia.org/wiki/Logistic_regression}{logistic
+regression}} model.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/functional{-}models/model.hs\#L117{-}L118}
+
+\OtherTok{logReg ::} \DataTypeTok{Model}\NormalTok{ (}\DataTypeTok{Double} \OperatorTok{:\&} \DataTypeTok{Double}\NormalTok{) }\DataTypeTok{Double} \DataTypeTok{Double}
+\NormalTok{logReg ab }\OtherTok{=}\NormalTok{ logistic }\OperatorTok{.}\NormalTok{ linReg ab}
+\end{Highlighting}
+\end{Shaded}
+
+Here, we use function composition \texttt{(.)}, one of the most common
+combinators in Haskell, saying that \texttt{(f\ .\ g)\ x\ =\ f\ (g\ x)}.
+
+We could have even written our \texttt{feedForwardLog} without its activation
+function:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/functional{-}models/model.hs\#L95{-}L98}
+
+\NormalTok{feedForward}
+\OtherTok{    ::}\NormalTok{ (}\DataTypeTok{KnownNat}\NormalTok{ i, }\DataTypeTok{KnownNat}\NormalTok{ o)}
+    \OtherTok{=\textgreater{}} \DataTypeTok{Model}\NormalTok{ (}\DataTypeTok{L}\NormalTok{ o i }\OperatorTok{:\&} \DataTypeTok{R}\NormalTok{ o) (}\DataTypeTok{R}\NormalTok{ i) (}\DataTypeTok{R}\NormalTok{ o)}
+\NormalTok{feedForward (w }\OperatorTok{:\&\&}\NormalTok{ b) x }\OtherTok{=}\NormalTok{ w }\OperatorTok{\#\textgreater{}}\NormalTok{ x }\OperatorTok{+}\NormalTok{ b}
+\end{Highlighting}
+\end{Shaded}
+
+And now we can swap out activation functions using simple function composition:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/functional{-}models/model.hs\#L120{-}L123}
+
+\NormalTok{feedForwardLog\textquotesingle{}}
+\OtherTok{    ::}\NormalTok{ (}\DataTypeTok{KnownNat}\NormalTok{ i, }\DataTypeTok{KnownNat}\NormalTok{ o)}
+    \OtherTok{=\textgreater{}} \DataTypeTok{Model}\NormalTok{ (}\DataTypeTok{L}\NormalTok{ o i }\OperatorTok{:\&} \DataTypeTok{R}\NormalTok{ o) (}\DataTypeTok{R}\NormalTok{ i) (}\DataTypeTok{R}\NormalTok{ o)}
+\NormalTok{feedForwardLog\textquotesingle{} wb }\OtherTok{=}\NormalTok{ logistic }\OperatorTok{.}\NormalTok{ feedForward wb}
+\end{Highlighting}
+\end{Shaded}
+
+Maybe even a \href{https://en.wikipedia.org/wiki/Softmax_function}{softmax}
+classifier!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/functional{-}models/model.hs\#L125{-}L133}
+
+\OtherTok{softMax ::}\NormalTok{ (}\DataTypeTok{Reifies}\NormalTok{ z }\DataTypeTok{W}\NormalTok{, }\DataTypeTok{KnownNat}\NormalTok{ n) }\OtherTok{=\textgreater{}} \DataTypeTok{BVar}\NormalTok{ z (}\DataTypeTok{R}\NormalTok{ n) }\OtherTok{{-}\textgreater{}} \DataTypeTok{BVar}\NormalTok{ z (}\DataTypeTok{R}\NormalTok{ n)}
+\NormalTok{softMax x }\OtherTok{=}\NormalTok{ konst (}\DecValTok{1} \OperatorTok{/}\NormalTok{ sumElements expx) }\OperatorTok{*}\NormalTok{ expx}
+  \KeywordTok{where}
+\NormalTok{    expx }\OtherTok{=} \FunctionTok{exp}\NormalTok{ x}
+
+\NormalTok{feedForwardSoftMax}
+\OtherTok{    ::}\NormalTok{ (}\DataTypeTok{KnownNat}\NormalTok{ i, }\DataTypeTok{KnownNat}\NormalTok{ o)}
+    \OtherTok{=\textgreater{}} \DataTypeTok{Model}\NormalTok{ (}\DataTypeTok{L}\NormalTok{ o i }\OperatorTok{:\&} \DataTypeTok{R}\NormalTok{ o) (}\DataTypeTok{R}\NormalTok{ i) (}\DataTypeTok{R}\NormalTok{ o)}
+\NormalTok{feedForwardSoftMax wb }\OtherTok{=}\NormalTok{ softMax }\OperatorTok{.}\NormalTok{ feedForward wb}
+\end{Highlighting}
+\end{Shaded}
+
+We can even write a function to \emph{compose} two models, keeping their two
+original parameters separate:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/functional{-}models/model.hs\#L135{-}L141}
+
+\NormalTok{(}\OperatorTok{\textless{}\textasciitilde{}}\NormalTok{)}
+\OtherTok{    ::}\NormalTok{ (}\DataTypeTok{Backprop}\NormalTok{ p, }\DataTypeTok{Backprop}\NormalTok{ q)}
+    \OtherTok{=\textgreater{}} \DataTypeTok{Model}\NormalTok{  p       b c}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Model}\NormalTok{       q  a b}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Model}\NormalTok{ (p }\OperatorTok{:\&}\NormalTok{ q) a c}
+\NormalTok{(f }\OperatorTok{\textless{}\textasciitilde{}}\NormalTok{ g) (p }\OperatorTok{:\&\&}\NormalTok{ q) }\OtherTok{=}\NormalTok{ f p }\OperatorTok{.}\NormalTok{ g q}
+\KeywordTok{infixr} \DecValTok{8} \OperatorTok{\textless{}\textasciitilde{}}
+\end{Highlighting}
+\end{Shaded}
+
+And now we have a way to chain models! Maybe even make a multiple-layer neural
+network? Let's see if we can get a two-layer model to learn
+\href{https://en.wikipedia.org/wiki/Exclusive_or}{XOR} \ldots{}
+
+Our model is two feed-forward layers with logistic activation functions, with 4
+hidden layer units:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\OtherTok{ twoLayer ::} \DataTypeTok{Model}\NormalTok{ \_ (}\DataTypeTok{R} \DecValTok{2}\NormalTok{) (}\DataTypeTok{R} \DecValTok{1}\NormalTok{)}
+\NormalTok{          twoLayer }\OtherTok{=}\NormalTok{ feedForwardLog\textquotesingle{} }\OperatorTok{@}\DecValTok{4} \OperatorTok{\textless{}\textasciitilde{}}\NormalTok{ feedForwardLog\textquotesingle{}}
+\end{Highlighting}
+\end{Shaded}
+
+Note we use type application syntax (the \texttt{@}) to specify the input/output
+dimensions of \texttt{feedForwardLog\textquotesingle{}} to set our hidden layer
+size; when we write \texttt{feedForwardLog\textquotesingle{}\ @4}, it means to
+set the \texttt{i} type variable to \texttt{4}. We also use \texttt{\_} type
+wildcard syntax because we want to just let the compiler infer the type of the
+model parameter for us instead of explicitly writing it out ourselves.
+
+We can train it on sample points:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\OtherTok{ samps ::}\NormalTok{ [(}\DataTypeTok{R} \DecValTok{2}\NormalTok{, }\DataTypeTok{R} \DecValTok{1}\NormalTok{)]}
+\NormalTok{          samps }\OtherTok{=}\NormalTok{ [(H.vec2 }\DecValTok{0} \DecValTok{0}\NormalTok{, }\DecValTok{0}\NormalTok{), (H.vec2 }\DecValTok{1} \DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{), (H.vec2 }\DecValTok{0} \DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{), (H.vec2 }\DecValTok{1} \DecValTok{1}\NormalTok{, }\DecValTok{0}\NormalTok{)]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ trained }\OtherTok{\textless{}{-}}\NormalTok{ trainModelIO twoLayer }\OperatorTok{$} \FunctionTok{take} \DecValTok{50000}\NormalTok{ (}\FunctionTok{cycle}\NormalTok{ samps)}
+\end{Highlighting}
+\end{Shaded}
+
+Trained. Now, does it model ``XOR''?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ evalBP2 twoLayer trained (H.vec2 }\DecValTok{0} \DecValTok{0}\NormalTok{)}
+\NormalTok{(}\FloatTok{3.0812844350410647e{-}2}\OtherTok{ ::} \DataTypeTok{R} \DecValTok{1}\NormalTok{)          }\CommentTok{{-}{-} 0.0}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ evalBP2 twoLayer trained (H.vec2 }\DecValTok{1} \DecValTok{0}\NormalTok{)}
+\NormalTok{(}\FloatTok{0.959153369985914}\OtherTok{ ::} \DataTypeTok{R} \DecValTok{1}\NormalTok{)              }\CommentTok{{-}{-} 1.0}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ evalBP2 twoLayer trained (H.vec2 }\DecValTok{0} \DecValTok{1}\NormalTok{)}
+\NormalTok{(}\FloatTok{0.9834757090696419}\OtherTok{ ::} \DataTypeTok{R} \DecValTok{1}\NormalTok{)             }\CommentTok{{-}{-} 1.0}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ evalBP2 twoLayer trained (H.vec2 }\DecValTok{1} \DecValTok{1}\NormalTok{)}
+\NormalTok{(}\FloatTok{3.6846467867668035e{-}2}\OtherTok{ ::} \DataTypeTok{R} \DecValTok{1}\NormalTok{)          }\CommentTok{{-}{-} 0.0}
+\end{Highlighting}
+\end{Shaded}
+
+Not bad!
+
+\section{Just Functions}\label{just-functions}
+
+We just built a working neural network using normal function composition and
+simple combinators. No need for any objects or mutability or fancy explicit
+graphs. Just pure, typed functions! Why would you ever bring anything imperative
+into this?
+
+You can build a lot with just these tools alone. By using primitive models and
+the various combinators, you can create autoencoders, nonlinear regressions,
+convolutional neural networks, multi-layered neural networks, generative
+adversarial networks\ldots you can create complex ``graphs'' of networks that
+fork and re-combine with themselves.
+
+The nice thing is that these are all just regular (Rank-2) functions,
+so\ldots you have two models? Just compose their functions like normal
+functions!
+
+It is tempting to look at something like
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{feedForwardLog }\OperatorTok{@}\DecValTok{4} \OperatorTok{\textless{}\textasciitilde{}}\NormalTok{ feedForwardLog}
+\end{Highlighting}
+\end{Shaded}
+
+and think of it as some sort of abstract, opaque data type with magic inside.
+After all, ``layers'' are ``data'', right? But, at the end of the day, it's all
+just:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{\textbackslash{}(p }\OperatorTok{:\&\&}\NormalTok{ q) }\OtherTok{{-}\textgreater{}}\NormalTok{ feedForwardLog }\OperatorTok{@}\DecValTok{4}\NormalTok{ p }\OperatorTok{.}\NormalTok{ feedForwardLog q}
+\end{Highlighting}
+\end{Shaded}
+
+Just normal function composition -- we're really just defining the
+\emph{function} itself, and \emph{backprop} turns that function into a trainable
+model.
+
+In the past I've talked about
+\href{https://blog.jle.im/entry/practical-dependent-types-in-haskell-1.html}{layers
+as data}, and neural network libraries like
+\href{http://hackage.haskell.org/package/grenade-0.1.0}{grenade} let you
+manipulate neural network layers in a composable way. My previous attempts at
+neural networks like \href{https://github.com/mstksg/tensor-ops}{tensor-ops}
+also force a similar structure of composition of data types. Frameworks like
+\emph{\href{https://www.tensorflow.org/}{tensorflow}} and
+\emph{\href{http://caffe.berkeleyvision.org/}{caffe}} also treat
+\href{https://docs.google.com/presentation/d/1UeKXVgRvvxg9OUdh_UiC5G71UMscNPlvArsWER41PsU/edit\#slide=id.gc2fcdcce7_216_264}{layer
+as data}. However, I feel this is a bit limiting.
+
+You are forced to ``compose'' your layers in only the ways that the API of the
+data type gives you. You have to use the data type's ``function composition''
+functions, or its special ``mapping'' functions\ldots and for weird things like
+forking compositions like
+\texttt{\textbackslash{}x\ -\textgreater{}\ f\ (g\ x)\ (h\ x)} you have to learn
+how the data type offers such an API.
+
+However, such a crazy composition here is ``trivial'' -- it's all just normal
+functions, so you can just literally write out code like
+\texttt{\textbackslash{}x\ -\textgreater{}\ f\ (g\ x)\ (h\ x)} (or something
+very close). You don't have to learn any rules of special ``layer'' data types.
+Layers aren't matrices or ``data'' --- they're functions. Not just abstractly,
+but literally. All your models are! And, with differentiable programming, they
+become \emph{trainable functions}.
+
+\subsection{What Makes It Tick}\label{what-makes-it-tick}
+
+My overall thesis of this series is about four essential properties of executing
+effective differentiable programing-based models. All of these things, I feel,
+have to come together seamlessly to make this all work.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  \emph{Functional programming}, allowing us to write higher-order functions and
+  combinators that take functions and return functions.
+
+  This is the entire crux of this approach, and lets us not only draw from
+  mathematical models directly, but also combine and reshape models in arbitrary
+  ways just by using normal function composition and application, instead of
+  being forced into a rigid compositional model.
+
+  We were able to chain, fork, recombine simple model primitives to make
+  \emph{new} models by just writing normal higher-order functions. In fact, as
+  we will see in the upcoming posts, we can actually re-use higher order
+  functions like \texttt{foldl} and \texttt{map} that are already commonly used
+  in functional programming.
+
+  In the upcoming posts, we will take this principle to the extreme. We'll
+  define more combinators like \texttt{(\textless{}\textasciitilde{})} and see
+  how many models we think are ``fundamental'' (like recurrent neural networks,
+  autoregressive models) really are just combinators applied to even simpler
+  models.
+
+  The role of these combinators is not \emph{essential}, but \emph{helpful} ---
+  we could always fall back on normal function composition, but higher-order
+  functions and combinators let us encapsulate certain repeating design patterns
+  and transformations.
+\item
+  \emph{Differentiable} programs, allowing us to write normal functions and have
+  them be automatically differentiable for gradient descent.
+
+  I'm not sure at this point if this is best when supported at the
+  language/compiler level, or at the library level. Whatever it is, though, the
+  combination of differentiable programming with higher-order functions and
+  other functional programming fundamentals is what makes this particularly
+  powerful.
+\item
+  \emph{Purely} functional programming. If \emph{any} of these functions were
+  side-effecting and impure functions, the correspondence between functions and
+  mathematical models completely falls apart. This is something we often take
+  for granted when writing Haskell, but in other languages, without purity, no
+  model is sound. If we are writing in a non-pure language, we have to consider
+  this as an explicit assumption.
+\item
+  A \emph{strong expressive static type system with type inference} makes this
+  all reasonable to work with.
+
+  A lot of the combinators in this approach (like
+  \texttt{(\textless{}\textasciitilde{})}) manipulate the \emph{type} of model
+  parameters, and if we use a lot of them, it becomes either impossible or
+  unfeasible to manage it all in our heads. Without the help of a compiler, it
+  would be impossible to sanely write complex programs. Having a statically type
+  system with \emph{type inference} allows the compiler to keep track of these
+  for us and manage parameter shapes, and lets us ask questions about the
+  parameters that our models have at compile-time.
+
+  For example, note how in our \texttt{twoLayer} definition, we left a type
+  wildcard so the compiler can fill in the type for us.
+
+  We'll also see in later posts that if we pick the types of our combinators
+  correctly, the compiler can sometimes basically write our code for us.
+
+  In addition, having to think about types forces us to think, ahead of time,
+  about how types interact. This thought process itself often yields important
+  insight.
+\end{enumerate}
+
+In the
+\href{https://blog.jle.im/entry/purely-functional-typed-models-2.html}{next
+post}, we will explore how to reap the surprising benefits of this purely
+functional typed style when applying it to stateful and recurrent models.
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

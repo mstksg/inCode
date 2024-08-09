@@ -1,0 +1,610 @@
+<!DOCTYPE HTML>
+<html><head><title>Hamiltonian Dynamics in Haskell
+ · in Code</title><meta name="description" content="Weblog of Justin Le, covering various adventures in programming and explorations in the worlds of computation physics, and knowledge.
+"><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="flattr:id" content="3p9jqr"><meta property="og:site_name" content="in Code"><meta property="og:description" content="As promised in my hamilton introduction post (published almost exactly one year ago!), I’m going to go over implementing of the hamilton library using  * DataKinds (with TypeLits) to enforce sizes of vectors and matrices and help guide us write our code * Statically-sized linear algebra with hmatrix * Automatic differentiation with ad * Statically-sized vectors with vector-sized This post will be a bit heavy in some mathematics and Haskell concepts. The expected audience is intermediate Haskell programmers. Note that this is not a post on dependent types, because dependent types (types that depend on runtime values) are not explicitly used. The mathematics and physics are “extra” flavor text and could potentially be skipped, but you’ll get the most out of this article if you have basic familiarity with:  * Basic concepts of multivariable calculus (like partial and total derivatives). * Concepts of linear algebra (like dot products, matrix multiplication, and matrix inverses) No physics knowledge is assumed, but knowing a little bit of first semester physics would help you gain a bit more of an appreciation for the end result!"><meta property="og:type" content="article"><meta property="og:title" content="Hamiltonian Dynamics in Haskell
+"><meta property="og:image" content="https://blog.jle.im/img/site_logo.jpg"><meta property="og:locale" content="en_US"><meta property="og:url" content="https://blog.jle.im/entry/hamiltonian-dynamics-in-haskell.html"><meta name="twitter:card" content="summary"><meta name="twitter:creator:id" content="mstk"><link rel="author" href="https://plus.google.com/107705320197444500140"><link rel="alternate" type="application/rss+xml" title="in Code (RSS Feed)" href="http://feeds.feedburner.com/incodeblog"><link rel="canonical" href="https://blog.jle.im/entry/hamiltonian-dynamics-in-haskell.html"><link href="https://blog.jle.im/favicon.ico" rel="shortcut icon"><link href="https://blog.jle.im/css/toast.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/font.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/main.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/page/entry.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/pygments.css" rel="stylesheet" type="text/css"><script type="text/javascript">var page_data = {};
+var disqus_shortname='incode';
+</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-443711-8', 'jle.im');
+ga('send', 'pageview');
+</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js"></script><script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5234d67a6b68dcd4"></script><script type="text/javascript" src="https://blog.jle.im/js/page/entry_toc.js"></script><script type="text/javascript" src="https://blog.jle.im/js/disqus_count.js"></script><script type="text/javascript" src="https://blog.jle.im/js/social.js"></script><script type="text/javascript" src="https://blog.jle.im/js/jquery/jquery.toc.js"></script><script type="text/javascript" src="https://blog.jle.im/purescript/entry.js"></script></head><body><div id="fb-root"><script>(function(d, s, id) {
+ var js, fjs = d.getElementsByTagName(s)[0];
+ if (d.getElementById(id)) return;
+ js = d.createElement(s); js.id = id;
+ js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=641852699171929";
+ fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+</script></div><div id="header-container"><div id="navbar-container" class="tile"><nav id="navbar-content"><div class="nav-info"><h1 class="site-title"><a href="https://blog.jle.im/" class="nav-title">in Code</a></h1><span class="nav-author">Justin Le</span></div><ul class="nav-links"><li><a href="https://blog.jle.im/">home</a></li><li><a href="https://blog.jle.im/entries.html">archives</a></li><li><a href="https://cv.jle.im">cv</a></li><div class="clear"></div></ul></nav></div><div id="header-content"></div></div><div id="body-container" class="container"><div id="main-container" class="grid"><div class="entry-section unit span-grid" role="main"><article class="tile article"><header><h1 id="title">Hamiltonian Dynamics in Haskell
+</h1><p class="entry-info">by <a class="author" href="https://blog.jle.im/">Justin Le</a><span class="info-separator"> &diams; </span><time datetime="2017-11-27T11:46:18Z" pubdate="" class="pubdate">Monday November 27, 2017</time></p><p><span class="source-info"><a class="source-link" href="https://github.com/mstksg/inCode/tree/master/copy/entries/hamilton-1.md">Source</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://github.com/mstksg/inCode/tree/gh-pages/entry/hamiltonian-dynamics-in-haskell.md">Markdown</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://blog.jle.im/entry/hamiltonian-dynamics-in-haskell.tex">LaTeX</a><span class="info-separator"> &diams; </span></span>Posted in <a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category" title="Functional, pure, non-strict, statically and strongly typed, natively
+compiled...really just the king of great languages.
+">Haskell</a><span class="info-separator"> &diams; </span><a class="comment-link" href="#disqus_thread">Comments</a></p></header><hr><aside class="contents-container"><h5 id="contents-header">Contents</h5><div id="toc"></div></aside><div class="main-content copy-content"><p>As promised in my <a href="https://blog.jle.im/entry/introducing-the-hamilton-library.html"><em>hamilton</em> introduction post</a> (published almost exactly one year ago!), I’m going to go over implementing of the <em><a href="http://hackage.haskell.org/package/hamilton">hamilton</a></em> library using</p>
+<ol type="1">
+<li><em>DataKinds</em> (with <em>TypeLits</em>) to enforce sizes of vectors and matrices and help guide us write our code</li>
+<li>Statically-sized linear algebra with <em><a href="http://hackage.haskell.org/package/hmatrix">hmatrix</a></em></li>
+<li>Automatic differentiation with <em><a href="http://hackage.haskell.org/package/ad">ad</a></em></li>
+<li>Statically-sized vectors with <em><a href="http://hackage.haskell.org/package/vector-sized">vector-sized</a></em></li>
+</ol>
+<p>This post will be a bit heavy in some mathematics and Haskell concepts. The expected audience is intermediate Haskell programmers. Note that this is <em>not</em> a post on dependent types, because dependent types (types that depend on runtime values) are not explicitly used.</p>
+<p>The mathematics and physics are “extra” flavor text and could potentially be skipped, but you’ll get the most out of this article if you have basic familiarity with:</p>
+<ol type="1">
+<li>Basic concepts of multivariable calculus (like partial and total derivatives).</li>
+<li>Concepts of linear algebra (like dot products, matrix multiplication, and matrix inverses)</li>
+</ol>
+<p>No physics knowledge is assumed, but knowing a little bit of first semester physics would help you gain a bit more of an appreciation for the end result!</p>
+<p>The <a href="https://blog.jle.im/entry/introducing-the-hamilton-library.html">hamilton library introduction</a> should be considered a “soft prerequisite” for this post, as it presents motivations, visual demonstrations, and general overviews of the methods presented here!</p>
+<h2 id="the-goal">The Goal</h2>
+<p>At the end of this, we should be able to have Haskell <em>automatically generate</em> <strong>equations of motions</strong> for any arbitrary system described in arbitrary coordinate systems, and simulate that system.</p>
+<p>Normally, we’d describe a system using particles’ x and y coordinates, but our goal is to be able to describe our particles’ positions using any coordinate system we want (polar, distance-along-a-curved-rail, pendulum-angles, etc.) and have Haskell automatically generate equations of motions and time progressions of those coordinates.</p>
+<p>Read <a href="https://blog.jle.im/entry/introducing-the-hamilton-library.html">my hamilton library introduction</a> for more information and examples!</p>
+<h2 id="hamiltonian-mechanics">Hamiltonian Mechanics</h2>
+<p>As mentioned in the previous post, Hamiltonian mechanics is a re-imagining of dynamics and mechanics (think “the world post-<span class="math inline">\(F = m a\)</span>”) that not only opened up new doors to solving problems in classical, but also ended up being the right angle of viewing the world to unlock statistical mechanics and thermodynamics, and later even quantum mechanics.</p>
+<p>Hamiltonian mechanics lets you parameterize your system’s “position” in arbitrary ways (like the angle of rotation, for pendulum problems) and then posits that the full state of the system exists in something called <em>phase space</em>, and that the system’s dynamics is its motion through phase space that is dictated by the geometry of the <em>Hamiltonian</em> of that phase space.</p>
+<p>The system’s <em>Hamiltonian</em> is a <span class="math inline">\(\mathbb{R}^{2n} \rightarrow \mathbb{R}\)</span> function from a point in <span class="math inline">\(\mathbb{R}^{2n}\)</span> phase space (where <span class="math inline">\(n\)</span> is the number of coordinates parameterizing your system) to a scalar in <span class="math inline">\(\mathbb{R}\)</span>. For a time-independent system, the picture of the dynamics is pretty simple: the system moves along the <em>contour lines</em> of the <em>Hamiltonian</em> – the lines of equal “height”.</p>
+<figure>
+<img src="/img/entries/hamilton/contour-lines.jpg" title="Contour lines" alt="Example of contour lines of a \mathbb{R}^2 \rightarrow \mathbb{R} function – the elevation of land, from the Ordinace Survey website." />
+<figcaption aria-hidden="true">Example of contour lines of a <span class="math inline">\(\mathbb{R}^2 \rightarrow \mathbb{R}\)</span> function – the elevation of land, from the <a href="https://www.ordnancesurvey.co.uk/blog/2015/11/map-reading-skills-making-sense-of-contour-lines/">Ordinace Survey</a> website.</figcaption>
+</figure>
+<p>In the example above, if we imagine that phase space is the 2D location, then the <em>Hamiltonian</em> is the mountain. And for a system dropped anywhere on the mountain, its motion would be along the contour lines. For example, if a system started somewhere along the 10 contour line, it would begin to oscillate the entire phase space along the 10 contour line.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+<p><em>Every</em> <a href="https://www.youtube.com/watch?v=izGwDsrQ1eQ">smooth</a> <span class="math inline">\(\mathbb{R}^{2n} \rightarrow \mathbb{R}\)</span> function on phase space can be used as a Hamiltonian to describe the physics of some system. So, given any “mountain range” on phase space, any “elevation map” or real-valued function on phase space, you can treat it as a description of the dynamics of some physical system.</p>
+<p>The <em>trick</em>, then, to using Hamiltonian dynamics to model your system, is:</p>
+<ol type="1">
+<li><p>Finding the phase space to describe your system. This can be done based on any continuous parameterization of your system (“generalized coordinates”), like angles of pendulums and so on.</p></li>
+<li><p>Finding the Hamiltonian on that phase space to describe your system.</p></li>
+</ol>
+<p>And then Hamilton’s dynamics will give you the rest! All you do is “follow the contour lines” on that Hamiltonian!</p>
+<h3 id="phase-space">Phase Space</h3>
+<p>Hamiltonian dynamics are about systems moving around in phase space. It seems that phase space is the “room where it happens”, so to speak, so let’s dig deeper into what it is. <em>Phase space</em> is a <span class="math inline">\(2n\)</span>-dimensional space parameterized by:</p>
+<ol type="1">
+<li>All of the current values of the <span class="math inline">\(n\)</span> parameters (“generalized coordinates”)</li>
+<li>All of the current “generalized momenta” of those <span class="math inline">\(n\)</span> parameters</li>
+</ol>
+<p>So if you were parameterizing your pendulum system by, say, the angle of the pendulum, then a point in phase space would be the current angle of the pendulum along with the current “generalized momentum” associated with the angle of the pendulum. What exactly <em>is</em> generalized momentum? We’ll go over calculating it eventually, but what does it represent…<em>physically</em>?</p>
+<p>The deeper answer involves the underlying Lie algebra of the Lie group associated with the generalized coordinates, but going into that would make this a completely different post. What I <em>can</em> say is that the generalized momenta associated with (“conjugate to”) certain sets of familiar coordinates yield things that we typically call “momenta”:</p>
+<ol type="1">
+<li><p>The momentum conjugate to normal Cartesian coordinates is just our normal run-of-the-mill <em>linear momentum</em> (in the <span class="math inline">\(\mathbf{p} = m \mathbf{v}\)</span>) from first semester physics.</p></li>
+<li><p>The momentum conjugate to the angle <span class="math inline">\(\theta\)</span> in polar coordinates is <em>angular momentum</em> (<span class="math inline">\(L = m r^2 \dot{\theta}\)</span>) from first semester physics.</p></li>
+<li><p>The momentum conjugate to the radial coordinate <span class="math inline">\(r\)</span> in polar coordinates is also just boring old linear momentum <span class="math inline">\(p_r = m \dot{r}\)</span>, which makes sense because purely radial motion is just linear motion.</p></li>
+</ol>
+<p>So, it’s our normal momentum (for linear and polar coordinates) <em>generalized</em> to arbitrary coordinates.</p>
+<h3 id="hamiltonian-dynamics">Hamiltonian Dynamics</h3>
+<p>I’ve explained Hamiltonian dynamics for time-independent Hamiltonians as “follow the contour lines”. If you remember your basic multi-variable calculus course, you’ll know that the line of “steepest ascent” is the gradient. If we call the Hamiltonian <span class="math inline">\(\mathcal{H}(\mathbf{q},\mathbf{p})\)</span> (where <span class="math inline">\(\mathbf{q}\)</span> is the vector of positions and <span class="math inline">\(\mathbf{p}\)</span> is the vector of momenta), then the direction of steepest ascent is</p>
+<p><span class="math display">\[
+\left \langle \frac{\partial}{\partial \mathbf{q}}
+\mathcal{H}(\mathbf{q},\mathbf{p}), \frac{\partial}{\partial \mathbf{p}}
+\mathcal{H}(\mathbf{q},\mathbf{p}) \right \rangle
+\]</span></p>
+<p>But we want to move along the <em>contour lines</em>…and these are the lines <em>perpendicular</em> to the direction of steepest descent. The vector perpendicular to <span class="math inline">\(\langle x, y \rangle\)</span> is <span class="math inline">\(\langle y, -x \rangle\)</span>,<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> so we just derived the actual Hamiltonian equations of motion: just move in the direction perpendicular to the steepest ascent! That is, to have things move on contour lines, <span class="math inline">\(\dot{q}\)</span> and <span class="math inline">\(\dot{p}_q\)</span> <em>should</em> be:</p>
+<p><span class="math display">\[
+\begin{aligned}
+\dot{q} &amp; = \frac{\partial}{\partial p_q} \mathcal{H}(\mathbf{q},\mathbf{p}) \\
+\dot{p}_q &amp; = - \frac{\partial}{\partial q} \mathcal{H}(\mathbf{q},\mathbf{p})
+\end{aligned}
+\]</span></p>
+<p>This is a conclusion with one generalized coordinate <span class="math inline">\(q\)</span>, but we can generalize this to systems with multiple coordinates as well, as long as this holds for <em>every</em> <span class="math inline">\(q\)</span> and the momentum conjugate to it (<span class="math inline">\(p_q\)</span>). (For the rest of this post, <span class="math inline">\(\mathbf{q}\)</span> refers to the vector of coordinates, <span class="math inline">\(q\)</span> refers to a single specific coordinate, and <span class="math inline">\(p_q\)</span> refers to the momentum conjugate to that coordinate).</p>
+<p>Essentially, these give you “updating functions” for <span class="math inline">\(q\)</span> and <span class="math inline">\(p_q\)</span> – given <span class="math inline">\(\mathcal{H}(\mathbf{q},\mathbf{p})\)</span>, you have a way to “update” the particle’s position in phase space. Just take the partial derivatives of <span class="math inline">\(\mathcal{H}\)</span> at every step in time! To update <span class="math inline">\(q\)</span>, nudge it by <span class="math inline">\(\frac{\partial}{\partial p_q}
+\mathcal{H}(\mathbf{q},\mathbf{p})\)</span>. To update <span class="math inline">\(p_q\)</span>, nudge it by <span class="math inline">\(-\frac{\partial}{\partial q} \mathcal{H}(\mathbf{q},\mathbf{p})\)</span>!</p>
+<p>This picture is appealing to me in a visceral way because it sort of seems like the system is “surfing” along the Hamiltonian’s contour lines. It’s being “pushed” <em>faster</em> when the Hamiltonian is steeper, and slower when it’s more shallow. I can apply all my intuition as a surfer<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> to Hamiltonian mechanics!</p>
+<h2 id="hamiltonian-dynamics-and-physical-systems">Hamiltonian Dynamics and Physical Systems</h2>
+<p>Earlier I mentioned that the two steps for applying Hamiltonian mechanics to your system was figuring out your system’s conjugate momenta and the appropriate Hamiltonian. To explain this, I’m going to make a couple of simplifying assumptions that make the job easier for the purposes of this article:</p>
+<ol type="1">
+<li>Your coordinates and potential energy are time-independent.</li>
+<li>Your potential energy function only depends on <em>positions</em>, and not <em>velocities</em>. (So nothing like friction or wind resistance or magnetic field vector potentials)</li>
+</ol>
+<p>With these assumptions, I’m going to skip over discussing the <a href="https://en.wikipedia.org/wiki/Lagrangian_mechanics">Lagrangian</a> of the system, which is the traditional way to do this. You can think of this section as me presenting derived conclusions and skipping the derivations.</p>
+<h3 id="conjugate-momenta">Conjugate Momenta</h3>
+<p>For systems with velocity-independent potential energies, it can be shown that the momentum conjugate to coordinate <span class="math inline">\(q\)</span> is</p>
+<p><span class="math display">\[
+p_q = \frac{\partial}{\partial \dot{q}} KE(\mathbf{q}, \dot{\mathbf{q}})
+\]</span></p>
+<p>Where <span class="math inline">\(KE(\mathbf{q},\dot{\mathbf{q}})\)</span> is the kinetic energy of the system, which is a function on the coordinates <span class="math inline">\(\mathbf{q}\)</span> and their rates of change, <span class="math inline">\(\dot{\mathbf{q}}\)</span>. For example, for normal Cartesian coordinates in one dimension, <span class="math inline">\(KE(x, \dot{x}) = \frac{1}{2} m \dot{x}^2\)</span>. So the momentum conjugate to <span class="math inline">\(x\)</span> is:</p>
+<p><span class="math display">\[
+p_x = \frac{\partial}{\partial \dot{x}} \left[ \frac{1}{2} m \dot{x}^2 \right] = m \dot{x}
+\]</span></p>
+<p>Just linear momentum, like I claimed before.</p>
+<p>Let’s generalize this to arbitrary coordinates. In general, for <em>Cartesian</em> coordinates, the kinetic energy will always be</p>
+<p><span class="math display">\[
+KE(\mathbf{x}, \dot{\mathbf{x}}) = \frac{1}{2} \left[ m_1 \dot{x}_1^2 + m_2 \dot{x}_2^2 + m_3 \dot{x}_3^2 + \dots \right]
+\]</span></p>
+<p>Where <span class="math inline">\(m\)</span> is the inertia associated with each coordinate…for example, if <span class="math inline">\(\langle x_1, x_2 \rangle\)</span> describes the location of an object of mass <span class="math inline">\(m\)</span>, then <span class="math inline">\(m_1 = m_2 = m\)</span>.</p>
+<p>To give us nice notation and make things more convenient, we’ll write this as a quadratic form over an inertia matrix:</p>
+<p><span class="math display">\[
+KE(\dot{\mathbf{x}}) = \frac{1}{2} \dot{\mathbf{x}}^T \hat{M} \dot{\mathbf{x}}
+\]</span></p>
+<p>Where <span class="math inline">\(\hat{M}\)</span> is the <a href="https://en.wikipedia.org/wiki/Diagonal_matrix">diagonal matrix</a> whose entries are the masses of each coordinate, and <span class="math inline">\(\dot{\mathbf{x}}\)</span> is the column vector of all of the (Cartesian) coordinates, <span class="math inline">\(\left[ \dot{x}_1\, \dot{x}_2\, \dot{x}_3\, \dots \right]^T\)</span>.</p>
+<p>Now! How to generalize this to arbitrary coordinates? Well, if we have <span class="math inline">\(n\)</span> generalized coordinates <span class="math inline">\(\mathbf{q}\)</span> mapping to <span class="math inline">\(m\)</span>-dimensional Cartesian coordinates, we can specify them as <span class="math inline">\(\mathbf{x} = f(\mathbf{q})\)</span>, where <span class="math inline">\(f :
+\mathbb{R}^n \rightarrow \mathbb{R}^m\)</span>, taking the vector of generalized coordinates and returning a vector for the position in Cartesian space. For example, for polar coordinates, <span class="math inline">\(f(r, \theta) = \left \langle r \cos(\theta), r
+\sin(\theta) \right \rangle\)</span>, because, for polar coordinates, <span class="math inline">\(x = r
+\cos(\theta)\)</span> and <span class="math inline">\(y = r \sin(\theta)\)</span>.</p>
+<p>So we can get <span class="math inline">\(\mathbf{x}\)</span> from <span class="math inline">\(\mathbf{q}\)</span> with <span class="math inline">\(f\)</span>, but how can we get <span class="math inline">\(\dot{\mathbf{x}}\)</span>, the vector of rate of changes? Well, if <span class="math inline">\(x_1 = f_1(q_1,
+q_2, q_3 \dots)\)</span>, then the <span class="math inline">\(\dot{x}_1\)</span> is the <a href="https://en.wikipedia.org/wiki/Total_derivative">total derivative</a> of <span class="math inline">\(x_1\)</span> with respect to time:</p>
+<p><span class="math display">\[
+\dot{x}_1 = \frac{\partial f_1}{\partial q_1} \dot{q}_1 +
+    \frac{\partial f_1}{\partial q_2} \dot{q}_2 +
+    \frac{\partial f_1}{\partial q_3} \dot{q}_3 + \dots
+\]</span></p>
+<p>Or, in short:</p>
+<p><span class="math display">\[
+\dot{x}_i = \sum_{j = 1}^n \frac{\partial f_i}{\partial q_j} \dot{q}_j
+\]</span></p>
+<p>But, hey, this looks a lot like a matrix-vector multiplication! If we make <span class="math inline">\(\hat{J}_f\)</span>, an <span class="math inline">\(m \times n\)</span> matrix of partial derivatives of <span class="math inline">\(f\)</span> (<span class="math inline">\(\hat{J}_{fij} = \frac{\partial f_i}{\partial q_j}\)</span>) at a given point (typically called the <a href="https://en.wikipedia.org/wiki/Jacobian_matrix_and_determinant">Jacobian matrix of f</a>), then we have a nice expression for <span class="math inline">\(\dot{\mathbf{x}}\)</span>:</p>
+<p><span class="math display">\[
+\dot{\mathbf{x}} = \hat{J}_f \dot{\mathbf{q}}
+\]</span></p>
+<p>And we can plug it in (remembering that <span class="math inline">\((A B)^T = B^T A^T\)</span>) to our kinetic energy equation to get:</p>
+<p><span class="math display">\[
+KE(\mathbf{q},\dot{\mathbf{q}}) = \frac{1}{2} \dot{\mathbf{q}}^T \hat{J}_f^T
+    \hat{M} \hat{J}_f \dot{\mathbf{q}}
+\]</span></p>
+<p>And for the final step, we differentiate with respect to the <span class="math inline">\(\dot{q}\)</span>s (which is just the gradient <span class="math inline">\(\nabla_{\dot{\mathbf{q}}}\)</span>) to get <span class="math inline">\(\mathbf{p}\)</span>, the vector of conjugate momenta:</p>
+<p><span class="math display">\[
+\mathbf{p} = \nabla_{\dot{\mathbf{q}}} \left[
+    \frac{1}{2} \dot{\mathbf{q}}^T \hat{J}_f^T \hat{M} \hat{J}_f \dot{\mathbf{q}}
+  \right]
+  = \hat{J}_f^T \hat{M} \hat{J}_f \dot{\mathbf{q}}
+\]</span></p>
+<p>Now, we’re going to be using <span class="math inline">\(\hat{J}_f^T \hat{M} \hat{J}_f\)</span> a lot, so let’s give it a name, <span class="math inline">\(\hat{K}\)</span>. <span class="math inline">\(\hat{K}\)</span> represents some sort of coordinate-aware inertia term for our system. If the masses are all positive and <span class="math inline">\(\hat{J}_f\)</span> is full-rank<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a>, then <span class="math inline">\(\hat{K}\)</span> is a symmetric, positive-definite, invertible matrix (by construction). It’s important to also remember that it’s an explicit function of <span class="math inline">\(\mathbf{q}\)</span>, because <span class="math inline">\(\hat{J}_f\)</span> is a matrix of partial derivatives at a given <span class="math inline">\(\mathbf{q}\)</span>. We now have a simple expression for the vector of conjugate momenta (<span class="math inline">\(\mathbf{p} = \hat{K} \dot{\mathbf{q}}\)</span>), and also for kinetic energy (<span class="math inline">\(KE = \frac{1}{2} \dot{\mathbf{q}}^T \hat{K}
+\dot{\mathbf{q}}\)</span>).</p>
+<p>It’s going to be important for us to also be able to go backwards (to get <span class="math inline">\(\dot{\mathbf{q}}\)</span> from <span class="math inline">\(\mathbf{p}\)</span>). Luckily, because we wrote the whole thing as a matrix operation, going backwards is easy – just take the matrix inverse, which we know exists!</p>
+<p><span class="math display">\[
+\dot{\mathbf{q}} = \hat{K}^{-1} \mathbf{p}
+\]</span></p>
+<p>The power of linear algebra!</p>
+<h3 id="hamiltonians-of-physical-systems">Hamiltonians of Physical Systems</h3>
+<p>Ok, that’s step one. How about step two – finding the Hamiltonian for your system?</p>
+<p>The <em>real</em> Hamiltonian is actually the <a href="https://en.wikipedia.org/wiki/Poisson_bracket">Poisson bracket</a> of the system’s <a href="https://en.wikipedia.org/wiki/Lagrangian_mechanics">Lagrangian</a>, but I did some of the work for you for the case of time-independent coordinates where the potential energy depends <em>only</em> on positions (so, no friction, wind resistance, time, etc.). In such a case, the Hamiltonian of a system is precisely the system’s total <a href="https://en.wikipedia.org/wiki/Mechanical_energy">mechanical energy</a>, or its kinetic energy plus the potential energy:</p>
+<p><span class="math display">\[
+\mathcal{H}(\mathbf{q},\mathbf{p}) = KE(\mathbf{q},\mathbf{p}) + PE(\mathbf{q})
+\]</span></p>
+<p>Which makes a lot of intuitive sense, because you might recall that total mechanical energy is always conserved for certain types of systems. Incidentally, Hamiltonian dynamics makes sure that the value of the system’s Hamiltonian stays the same (because it moves along contour lines). So, the system’s Hamiltonian always stays the same, and so its total mechanical energy stays the same, as well! Energy is conserved because the Hamiltonian stays the same!</p>
+<p>Anyway, we want to build our system’s Hamiltonian from properties of the coordinate system, so plugging in our expression for <span class="math inline">\(KE\)</span>, we get <span class="math inline">\(\mathcal{H}(\mathbf{q},\dot{\mathbf{q}}) = \frac{1}{2} \dot{\mathbf{q}}^T \hat{K} \dot{\mathbf{q}} + PE(\mathbf{q})\)</span>.</p>
+<p>Oh, but oops, the Hamiltonian has to be a function of <span class="math inline">\(\mathbf{p}\)</span>, not of <span class="math inline">\(\dot{\mathbf{q}}\)</span>. Let’s remember that <span class="math inline">\(\dot{\mathbf{q}} = \hat{K}^{-1} \mathbf{p}\)</span> and find the final form of our Hamiltonian (after a bit of simplification, remembering that the inverse of a symmetric matrix is also symmetric):</p>
+<p><span class="math display">\[
+\mathcal{H}(\mathbf{q},\mathbf{p}) = \frac{1}{2} \mathbf{p}^T \hat{K}^{-1} \mathbf{p} + PE(\mathbf{q})
+\]</span></p>
+<h3 id="hamiltonian-equations">Hamiltonian Equations</h3>
+<p>We got our Hamiltonian! Now just to find our updating functions (the partial derivatives of the Hamiltonian), and we’re done with the math.</p>
+<p>Because we are assuming the case (with loss of generality) <span class="math inline">\(PE\)</span> doesn’t depend on <span class="math inline">\(\mathbf{p}\)</span>, the partial derivatives of <span class="math inline">\(\mathcal{H}\)</span> with respect to <span class="math inline">\(\mathbf{p}\)</span> is:</p>
+<p><span class="math display">\[
+\nabla_{\mathbf{p}} \mathcal{H}(\mathbf{q},\mathbf{p}) = \hat{K}^{-1} \mathbf{p}
+\]</span></p>
+<p>We already can calculate <span class="math inline">\(\hat{K}^{-1}\)</span>, so this wound up being easy peasy. But finding the partial derivatives with respect to <span class="math inline">\(\mathbf{q}\)</span> is a little trickier. The gradient is a linear operator, so we can break that down to just finding the gradient of the <span class="math inline">\(KE\)</span> term <span class="math inline">\(\frac{1}{2} \mathbf{p}^T \hat{K}^{-1}
+\mathbf{p}\)</span>. Because <span class="math inline">\(\mathbf{p}\)</span> is an independent input to <span class="math inline">\(\mathcal{H}\)</span>, we can just look at the gradient of <span class="math inline">\(\hat{K}^{-1}\)</span>. We can simplify that even more by realizing that for any invertible matrix <span class="math inline">\(A\)</span>, <span class="math inline">\(\frac{\partial}{\partial
+q} A^{-1} = - A^{-1} \left[ \frac{\partial}{\partial q} A \right] A^{-1}\)</span>, so now we just need to find the partial derivatives of <span class="math inline">\(\hat{K}\)</span>, or <span class="math inline">\(\hat{J}_f^T
+\hat{M} \hat{J}_f\)</span>. <span class="math inline">\(\hat{M}\)</span> is a constant term, so, using the good ol’ product rule over <span class="math inline">\(\hat{J}_f^T\)</span> and <span class="math inline">\(\hat{J}_f\)</span>, we see that, after some simplification:</p>
+<p><span class="math display">\[
+\frac{\partial}{\partial q_i} \left[ \hat{J}_f^T \hat{M} \hat{J}_f \right] =
+    2 \hat{J}_f^T \hat{M} \left[ \frac{\partial}{\partial q_i} \hat{J}_f \right]
+\]</span></p>
+<p><span class="math inline">\(\frac{\partial}{\partial q_i} \hat{J}_f\)</span> (an <span class="math inline">\(m \times n\)</span> matrix, like <span class="math inline">\(\hat{J}_f\)</span>) represents the <em>second derivatives</em> of <span class="math inline">\(f\)</span> – the derivative (with respect to <span class="math inline">\(q_i\)</span>) of the derivatives.</p>
+<p>The collection of “second-order derivatives of <span class="math inline">\(f\)</span>” is known as the <a href="https://en.wikipedia.org/wiki/Hessian_matrix#Vector-valued_functions">Hessian Tensor</a> (a vector-valued generalization of the Hessian matrix), which we will denote as <span class="math inline">\(\hat{H}_f\)</span>.<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a> We can write this in a nicer way by abusing matrix multiplication notation to get</p>
+<p><span class="math display">\[
+\nabla_{\mathbf{q}} \left[ \hat{J}_f^T \hat{M} \hat{J}_f \right] =
+    2 \hat{J}_f^T \hat{M} \hat{H}_f
+\]</span></p>
+<p>if we use <span class="math inline">\(\hat{H}_f\)</span> as an <span class="math inline">\(n \times m \times n\)</span> tensor, whose <span class="math inline">\(n\)</span> components are the each the <span class="math inline">\(m \times n\)</span> matrices corresponding to <span class="math inline">\(\frac{\partial}{\partial q_i} \hat{J}_f\)</span></p>
+<p>And with that, we have our final expression for <span class="math inline">\(\nabla_{\mathbf{q}} \mathcal{H}(\mathbf{q},\mathbf{p})\)</span>:</p>
+<p><span class="math display">\[
+\frac{\partial}{\partial q_i} \mathcal{H}(\mathbf{q},\mathbf{p}) =
+    - \mathbf{p}^T \hat{K}^{-1} \hat{J}_f^T \hat{M}
+        \left[ \frac{\partial}{\partial q_i} \hat{J}_f \right] \hat{K}^{-1} \mathbf{p}
+    + \nabla_{\mathbf{q}} PE(\mathbf{q})
+\]</span></p>
+<p>Or, to use our abuse of notation:</p>
+<p><span class="math display">\[
+\nabla_{\mathbf{q}} \mathcal{H}(\mathbf{q},\mathbf{p}) =
+    - \mathbf{p}^T \hat{K}^{-1} \hat{J}_f^T \hat{M}
+        \hat{H}_f \hat{K}^{-1} \mathbf{p}
+    + \nabla_{\mathbf{q}} PE(\mathbf{q})
+\]</span></p>
+<p>And, finally, we have everything we need – we can now construct our equations of motion! To progress through phase space (<span class="math inline">\(\langle \mathbf{q},
+\mathbf{p}\rangle\)</span>):</p>
+<p><span class="math display">\[
+\begin{aligned}
+\dot{\mathbf{q}} &amp; = \nabla_{\mathbf{p_q}} \mathcal{H}(\mathbf{q},\mathbf{p})
+  &amp;&amp; = \hat{K}^{-1} \mathbf{p} \\
+\dot{\mathbf{p}} &amp; = - \nabla_{\mathbf{q}} \mathcal{H}(\mathbf{q},\mathbf{p})
+  &amp;&amp; = \mathbf{p}^T \hat{K}^{-1} \hat{J}_f^T \hat{M}
+        \hat{H}_f \hat{K}^{-1} \mathbf{p}
+    - \nabla_{\mathbf{q}} PE(\mathbf{q})
+\end{aligned}
+\]</span></p>
+<p>That’s it. We’re done. Have a nice day, thanks for reading!</p>
+<h2 id="the-haskell">The Haskell</h2>
+<p>Just kidding, now it’s time for the fun stuff :)</p>
+<p>Our final goal is to be able to simulate a <em>system of discrete particles</em> through <em>arbitrary generalized coordinates</em>.</p>
+<p>To simplify the math, we always assume that, whatever generalized coordinates you are using (<span class="math inline">\(\mathbb{R}^n\)</span>), your system “actually” exists in some real flat Cartesian coordinate system (<span class="math inline">\(\mathbb{R}^m\)</span>). This allows us to take advantage of all of that math we derived in the previous section.</p>
+<p>So, in order to fully describe the system, we need:</p>
+<ol type="1">
+<li>Each of their masses (or inertias) in their underlying <span class="math inline">\(m\)</span> Cartesian coordinates, which we’ll call <span class="math inline">\(\mathbf{m}\)</span>.</li>
+<li>A function <span class="math inline">\(f : \mathbb{R}^n \rightarrow \mathbb{R}^m\)</span> to convert the generalized coordinates (<span class="math inline">\(\mathbb{R^n}\)</span>) to Cartesian coordinates (<span class="math inline">\(\mathbb{R}^m\)</span>)</li>
+<li>The potential energy function <span class="math inline">\(U : \mathbb{R}^n \rightarrow \mathbb{R}\)</span> in the generalized coordinates (<span class="math inline">\(\mathbb{R^n}\)</span>)</li>
+</ol>
+<p>From these alone, we can derive the equations of motion for the particles in phase space as a system of first-order ODEs using the process described above. Then, given an initial phase space position, we can do numeric integration to simulate our system’s motion through phase space. To “surf the Hamiltonian waves in phase space”, so to speak.</p>
+<p>But, to be explicit, we also are going to need some derivatives for these functions/vectors, too. If you’ve been following along, the full enumeration of functions and vectors we need is:</p>
+<p><span class="math display">\[
+\begin{aligned}
+\mathbf{m} &amp; : \mathbb{R}^m \\
+f &amp; : \mathbb{R}^n \rightarrow \mathbb{R}^m \\
+\hat{J}_f &amp; : \mathbb{R}^n \rightarrow \mathbb{R}^{m \times n} \\
+\hat{H}_f &amp; : \mathbb{R}^n \rightarrow \mathbb{R}^{n \times m \times n} \\
+U &amp; : \mathbb{R}^n \rightarrow \mathbb{R} \\
+\nabla_{\mathbf{q}} U &amp; : \mathbb{R}^n \rightarrow \mathbb{R}^n
+\end{aligned}
+\]</span></p>
+<p>But, as we’ll see, with libraries like <em><a href="http://hackage.haskell.org/package/ad">ad</a></em> in Haskell, we can really just ask the user for <span class="math inline">\(\mathbf{m}\)</span>, <span class="math inline">\(f\)</span>, and <span class="math inline">\(U\)</span> – all of the derivatives can be computed automatically.</p>
+<h3 id="our-data-structures">Our Data Structures</h3>
+<p>We can couple together all of these functions in a data type that fully describes the physics of our systems (the “shape” of the Hamiltonian):</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/hamilton1/Hamilton.hs#L25-L32</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">System</span> m n <span class="ot">=</span> <span class="dt">System</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    {<span class="ot"> sysInertia       ::</span> <span class="dt">R</span> m                         <span class="co">-- ^ &#39;m&#39; vector</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    ,<span class="ot"> sysCoords        ::</span> <span class="dt">R</span> n <span class="ot">-&gt;</span> <span class="dt">R</span> m                  <span class="co">-- ^ f</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    ,<span class="ot"> sysJacobian      ::</span> <span class="dt">R</span> n <span class="ot">-&gt;</span> <span class="dt">L</span> m n                <span class="co">-- ^ J_f</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    ,<span class="ot"> sysHessian       ::</span> <span class="dt">R</span> n <span class="ot">-&gt;</span> <span class="dt">V.Vector</span> n (<span class="dt">L</span> m n)   <span class="co">-- ^ H_f</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    ,<span class="ot"> sysPotential     ::</span> <span class="dt">R</span> n <span class="ot">-&gt;</span> <span class="dt">Double</span>               <span class="co">-- ^ U</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    ,<span class="ot"> sysPotentialGrad ::</span> <span class="dt">R</span> n <span class="ot">-&gt;</span> <span class="dt">R</span> n                  <span class="co">-- ^ grad U</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div>
+<p><code>R n</code> and <code>L m n</code> are from the <em><a href="http://hackage.haskell.org/package/hmatrix">hmatrix</a></em> library; an <code>R n</code> represents an n-vector (For example, an <code>R 4</code> is a 4-vector), and an <code>L m n</code> represents an <code>m x n</code> matrix (For example, an <code>L 5 3</code> is a 5x3 matrix).</p>
+<p>A <code>System m n</code> will describe a system parameterized by <code>n</code> generalized coordinates, taking place in an underlying <code>m</code>-dimensional Cartesian space.</p>
+<p>It’ll also be convenient to have a data type to describe the state of our system in terms of its generalized positions (<span class="math inline">\(\mathbf{q}\)</span>) and generalized velocities (the rates of changes of these positions, <span class="math inline">\(\dot{\mathbf{q}}\)</span>), which is sometimes called “configuration space”:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/hamilton1/Hamilton.hs#L35-L39</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Config</span> n <span class="ot">=</span> <span class="dt">Config</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    {<span class="ot"> confPositions  ::</span> <span class="dt">R</span> n</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    ,<span class="ot"> confVelocities ::</span> <span class="dt">R</span> n</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">deriving</span> <span class="dt">Show</span></span></code></pre></div>
+<p>And, more importantly, remember that Hamiltonian dynamics is all about surfing around on that phase space (generalized positions <span class="math inline">\(\mathbf{q}\)</span> and their conjugate momenta, <span class="math inline">\(\mathbf{p_q}\)</span>). So let’s make a type to describe the state of our system in phase space:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/hamilton1/Hamilton.hs#L42-L46</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Phase</span> n <span class="ot">=</span> <span class="dt">Phase</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    {<span class="ot"> phasePositions ::</span> <span class="dt">R</span> n</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    ,<span class="ot"> phaseMomenta   ::</span> <span class="dt">R</span> n</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">deriving</span> <span class="dt">Show</span></span></code></pre></div>
+<h3 id="getting-comfortable-with-our-data-types">Getting comfortable with our data types</h3>
+<p>First of all, assuming we can construct a <code>System</code> in a sound way, let’s imagine some useful functions.</p>
+<p>We can write a function <code>underlyingPosition</code>, which allows you to give a position in generalized coordinates, and returns the position in the “underlying coordinate system”:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/hamilton1/Hamilton.hs#L51-L55</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>underlyingPosition</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> <span class="dt">System</span> m n</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">R</span> n</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">R</span> m</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>underlyingPosition <span class="ot">=</span> sysCoords</span></code></pre></div>
+<p>Note that the types in our function helps us know exactly what the function is doing — and also helps us implement it correctly. If we have a <code>System</code> in <code>n</code> dimensions, over an underlying <code>m</code>-dimensional Cartesian space, then we would need to convert an <code>R n</code> (an n-dimensional vector of all of the positions) into an <code>R m</code> (a vector in the underlying Cartesian space).</p>
+<p>Simple enough, but let’s maybe try to calculate something more complicated: the <em>momenta</em> of a system, given its positions and velocities (configuration).</p>
+<p>We remember that we have a nice formula for that, up above:</p>
+<p><span class="math display">\[
+\mathbf{p} = \hat{J}_f^T \hat{M} \hat{J}_f \dot{\mathbf{q}}
+\]</span></p>
+<p>We can translate that directly into Haskell code:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/hamilton1/Hamilton.hs#L59-L67</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>momenta</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> (<span class="dt">KnownNat</span> n, <span class="dt">KnownNat</span> m)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=&gt;</span> <span class="dt">System</span> m n</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">Config</span> n</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">R</span> n</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>momenta s (<span class="dt">Config</span> q v) <span class="ot">=</span> tr j <span class="op">#&gt;</span> mHat <span class="op">#&gt;</span> j <span class="op">#&gt;</span> v</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    j    <span class="ot">=</span> sysJacobian s q</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    mHat <span class="ot">=</span> diag (sysInertia s)</span></code></pre></div>
+<p>Note that, because our vectors have their size indexed in their type, this is pretty simple to write and ensure that the shapes “line up”. In fact, GHC can even help you write this function by telling you what values can go in what locations. Being able to get rid of a large class of bugs and clean up your implementation space is nice, too!</p>
+<p>(Note that <em>hmatrix</em> requires a <code>KnownNat</code> constraint on the size parameters of our vectors for some functions, so we add this as a constraint on our end.)</p>
+<p>With this, we can write a function to convert any state in configuration space to its coordinates in phase space:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/hamilton1/Hamilton.hs#L70-L75</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>toPhase</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> (<span class="dt">KnownNat</span> n, <span class="dt">KnownNat</span> m)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=&gt;</span> <span class="dt">System</span> m n</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">Config</span> n</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">Phase</span> n</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>toPhase s c <span class="ot">=</span> <span class="dt">Phase</span> (confPositions c) (momenta s c)</span></code></pre></div>
+<p>This function is important, because “configuration space” is how we actually directly observe our system – in terms of positions and velocities, and not in terms of positions and momenta (and sometimes conjugate momenta might not even have meaningful physical interpretations). So, having <code>toPhase</code> lets us “initialize” our system in terms of direct observables, and then convert it to its phase space representation, which is something that Hamiltonian mechanics can work with.</p>
+<h3 id="automatic-differentiation">Automatic Differentiation</h3>
+<p>Now, creating a <code>System</code> “from scratch” is not much fun, because you would have to manually differentiate your coordinate systems and potentials to generate your Jacobians and gradients.</p>
+<p>Here’s where the magic comes in – we can have Haskell generate our Jacobians and gradients <em>automatically</em>, using the amazing <a href="http://hackage.haskell.org/package/ad">ad</a> library! We can just use the appropriately named <code>grad</code>, <code>jacobian</code>, and <code>hessianF</code> functions.</p>
+<h4 id="quick-intro-to-ad">Quick Intro to AD</h4>
+<p>At the simplest level, if we have a function from some number to some other number, we can use <code>diff</code> to get its derivative:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ot">myFunc      ::</span> <span class="dt">RealFloat</span> a <span class="ot">=&gt;</span> a <span class="ot">-&gt;</span> a</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>diff<span class="ot"> myFunc ::</span> <span class="dt">RealFloat</span> a <span class="ot">=&gt;</span> a <span class="ot">-&gt;</span> a</span></code></pre></div>
+<p>If we have a function a function from a sized vector to a scalar, we can use <code>grad</code> to get its gradient:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- import qualified Data.Vector.Sized as V</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="ot">myFunc      ::</span> <span class="dt">RealFloat</span> a <span class="ot">=&gt;</span> <span class="dt">V.Vector</span> n a <span class="ot">-&gt;</span> a</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>grad<span class="ot"> myFunc ::</span> <span class="dt">RealFloat</span> a <span class="ot">=&gt;</span> <span class="dt">V.Vector</span> n a <span class="ot">-&gt;</span> <span class="dt">V.Vector</span> n a</span></code></pre></div>
+<p>Where each of the components in the resulting vector corresponds to the rate of change of the output according to variations in that component.</p>
+<p>We’re using <strong>statically sized vector</strong> type from the <a href="http://hackage.haskell.org/package/vector-sized">vector-sized</a> package (in the <a href="http://hackage.haskell.org/package/vector-sized/docs/Data-Vector-Sized.html">Data.Vector.Sized</a> module), where <code>V.Vector n a</code> is a <code>n</code>-vector of <code>a</code>s – for example, a <code>V.Vector 3 Double</code> is a vector of 3 <code>Double</code>s.</p>
+<p>We have to use <code>Vector</code> (instead of <code>R</code>, from <em>hmatrix</em>) because automatic differentiation for gradients requires <em>some Functor</em> to work. An <code>R 5</code> is essentially a <code>V.Vector 5 Double</code>, except the latter can contain other, non-Double things – and therefore can be used by <em>ad</em> to do its magic.</p>
+<p>If we have a function from a sized vector to a (differently) sized vector, we can use the <code>jacobian</code> function to get its jacobian!</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ot">myFunc          ::</span> <span class="dt">RealFloat</span> a <span class="ot">=&gt;</span> <span class="dt">V.Vector</span> n a <span class="ot">-&gt;</span> <span class="dt">V.Vector</span> m a</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>jacobian<span class="ot"> myFunc ::</span> <span class="dt">RealFloat</span> a <span class="ot">=&gt;</span> <span class="dt">V.Vector</span> n a <span class="ot">-&gt;</span> <span class="dt">V.Vector</span> m (<span class="dt">V.Vector</span> n a)</span></code></pre></div>
+<p>Again note the usage of sized vector types, and the fact that our <span class="math inline">\(m \times n\)</span> matrix is represented by a <code>m</code>-vector of <code>n</code>-vectors.</p>
+<p>Finally, we can get our Hessian Tensor by using <code>hessianF</code>:<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a></p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>myFunc</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> <span class="dt">RealFloat</span> a <span class="ot">=&gt;</span> <span class="dt">V.Vector</span> n a <span class="ot">-&gt;</span> <span class="dt">V.Vector</span> m a</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>hessianF myFunc</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> <span class="dt">RealFloat</span> a <span class="ot">=&gt;</span> <span class="dt">V.Vector</span> n a <span class="ot">-&gt;</span> <span class="dt">V.Vector</span> m (<span class="dt">V.Vector</span> n (<span class="dt">V.Vector</span> n a))</span></code></pre></div>
+<h4 id="conversion-between-vector-sized-and-hmatrix">Conversion between vector-sized and hmatrix</h4>
+<p>Just a small hiccup — the <em>ad</em> libraries requires our vectors to be <em>Functors</em>, but <code>R</code> and <code>L</code> from <em>hmatrix</em> are not your typical capital-F <code>Functor</code> instances in Haskell. We just need to do some manual conversion using the <em><a href="http://hackage.haskell.org/package/hmatrix-vector-sized">hmatrix-vector-sized</a></em> library.</p>
+<p>This gives functions like:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- import qualified Data.Vector.Sorable.Sized as VS</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="ot">gvecR ::</span> <span class="dt">V.Vector</span> n <span class="dt">Double</span>  <span class="ot">-&gt;</span> <span class="dt">R</span> n</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="ot">grVec ::</span> <span class="dt">R</span> n                <span class="ot">-&gt;</span> <span class="dt">V.Vector</span> n <span class="dt">Double</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="ot">rowsL ::</span> <span class="dt">V.Vector</span> m (<span class="dt">R</span> n)   <span class="ot">-&gt;</span> <span class="dt">L</span> m n</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="ot">lRows ::</span> <span class="dt">L</span> m n              <span class="ot">-&gt;</span> <span class="dt">V.Vector</span> m (<span class="dt">R</span> n)</span></code></pre></div>
+<p>to allow us to convert back and forth.</p>
+<p>Also, even though <em>ad</em> gives our Hessian as an <span class="math inline">\(m \times n \times
+n\)</span> tensor, we really want it as a n-vector of <span class="math inline">\(m \times n\)</span> matrices – that’s how we interpreted it in our original math. So we just need to write an function to convert what <em>ad</em> gives us to the form we expect. Just a minor reshuffling:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/hamilton1/Hamilton.hs#L78-L82</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="ot">tr2 ::</span> (<span class="dt">KnownNat</span> m, <span class="dt">KnownNat</span> n)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=&gt;</span> <span class="dt">V.Vector</span> m (<span class="dt">L</span> n n)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">V.Vector</span> n (<span class="dt">L</span> m n)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>tr2 <span class="ot">=</span> <span class="fu">fmap</span> rowsL <span class="op">.</span> <span class="fu">traverse</span> lRows</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# INLINE tr2 #-}</span></span></code></pre></div>
+<p>We also would need to have a function converting a vector of vectors into a matrix:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/hamilton1/Hamilton.hs#L85-L90</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>vec2l</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> <span class="dt">KnownNat</span> n</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=&gt;</span> <span class="dt">V.Vector</span> m (<span class="dt">V.Vector</span> n <span class="dt">Double</span>)</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">L</span> m n</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>vec2l <span class="ot">=</span> rowsL <span class="op">.</span> <span class="fu">fmap</span> gvecR</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# INLINE vec2l #-}</span></span></code></pre></div>
+<h4 id="using-ad-to-auto-derive-systems">Using AD to Auto-Derive Systems</h4>
+<p>Now to make a <code>System</code> using just the mass vector, the coordinate conversion function, and the potential energy function:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/hamilton1/Hamilton.hs#L94-L108</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>mkSystem</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> (<span class="dt">KnownNat</span> m, <span class="dt">KnownNat</span> n)</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=&gt;</span> <span class="dt">R</span> m</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> (<span class="kw">forall</span> a<span class="op">.</span> <span class="dt">RealFloat</span> a <span class="ot">=&gt;</span> <span class="dt">V.Vector</span> n a <span class="ot">-&gt;</span> <span class="dt">V.Vector</span> m a)</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> (<span class="kw">forall</span> a<span class="op">.</span> <span class="dt">RealFloat</span> a <span class="ot">=&gt;</span> <span class="dt">V.Vector</span> n a <span class="ot">-&gt;</span> a)</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">System</span> m n</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>mkSystem m f u <span class="ot">=</span> <span class="dt">System</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>                    <span class="co">-- &lt; convert from      | actual thing | convert to &gt;</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    { sysInertia       <span class="ot">=</span>                     m</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    , sysCoords        <span class="ot">=</span>        gvecR      <span class="op">.</span> f            <span class="op">.</span> grVec</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    , sysJacobian      <span class="ot">=</span> tr   <span class="op">.</span> vec2l      <span class="op">.</span> jacobianT f  <span class="op">.</span> grVec</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>    , sysHessian       <span class="ot">=</span> tr2  <span class="op">.</span> <span class="fu">fmap</span> vec2l <span class="op">.</span> hessianF f   <span class="op">.</span> grVec</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    , sysPotential     <span class="ot">=</span>                     u            <span class="op">.</span> grVec</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>    , sysPotentialGrad <span class="ot">=</span>        gvecR      <span class="op">.</span> grad u       <span class="op">.</span> grVec</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div>
+<p>Now, I hesitate to call this “trivial”…but, I think it really is a straightforward direct translation of the definitions, minus some boilerplate conversions back and forth between vector using <code>vecR</code>, <code>rVec</code>, etc.!</p>
+<ol type="1">
+<li>The vector of masses is just <code>m</code></li>
+<li>The coordinate function is just <code>f</code></li>
+<li>The Jacobian of the coordinate function is just <code>jacobian f</code></li>
+<li>The Hessian Tensor of the coordinate function is just <code>hessianF f</code></li>
+<li>The potential energy function is just <code>u</code></li>
+<li>The gradient of the potential energy function is just <code>grad u</code></li>
+</ol>
+<p>The <em>ad</em> library automatically generated all of these for us and created a perfectly well-formed <code>System</code> with all of its gradients and Jacobians and Hessians by giving only the coordinate function and the potential energy function, and in such a clean and concise way!</p>
+<h3 id="equations-of-motion">Equations of Motion</h3>
+<p>At this point, we’re ready to write our final equations of motion, which we found to be given by:</p>
+<p><span class="math display">\[
+\begin{aligned}
+\dot{\mathbf{q}} &amp; = \hat{K}^{-1} \mathbf{p} \\
+\dot{\mathbf{p}} &amp; = \mathbf{p}^T \hat{K}^{-1} \hat{J}_f^T \hat{M}
+        \left[ \nabla_{\mathbf{q}} \hat{J}_f \right] \hat{K}^{-1} \mathbf{p}
+    - \nabla_{\mathbf{q}} PE(\mathbf{q})
+\end{aligned}
+\]</span></p>
+<p>These equations aren’t particularly beautiful, but it’s straightforward to translate them into Haskell (using <span class="math inline">\(\hat{K} = \hat{J}_f^T \hat{M} \hat{J}_f\)</span>):</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/hamilton1/Hamilton.hs#L112-L129</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>hamilEqns</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> (<span class="dt">KnownNat</span> n, <span class="dt">KnownNat</span> m)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=&gt;</span> <span class="dt">System</span> m n</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">Phase</span> n</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> (<span class="dt">R</span> n, <span class="dt">R</span> n)       <span class="co">-- dq/dt and dp/dt</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>hamilEqns s (<span class="dt">Phase</span> q p) <span class="ot">=</span> (dqdt, dpdt)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>    j       <span class="ot">=</span> sysJacobian s q</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>    trj     <span class="ot">=</span> tr j</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>    mHat    <span class="ot">=</span> diag (sysInertia s)</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>    kHat    <span class="ot">=</span> trj <span class="ot">`mul`</span> mHat <span class="ot">`mul`</span> j</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>    kHatInv <span class="ot">=</span> inv kHat</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>    dqdt    <span class="ot">=</span> kHatInv <span class="op">#&gt;</span> p</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>    dpdt    <span class="ot">=</span> gvecR bigUglyThing <span class="op">-</span> sysPotentialGrad s q</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>      <span class="kw">where</span></span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>        bigUglyThing <span class="ot">=</span></span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>          <span class="fu">fmap</span> (\j2 <span class="ot">-&gt;</span> <span class="op">-</span>p <span class="op">&lt;.&gt;</span> kHatInv <span class="op">#&gt;</span> trj <span class="op">#&gt;</span> mHat <span class="op">#&gt;</span> j2 <span class="op">#&gt;</span> kHatInv <span class="op">#&gt;</span> p)</span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>               (sysHessian s q)</span></code></pre></div>
+<p>Of course, there is no way to get around the big ugly math term in <span class="math inline">\(\dot{p}_q\)</span>, but at least it is a direct reading of the math!</p>
+<p><em>But!!</em> I’d much rather write this scary Haskell than that scary math, because <em>ghc typechecks our math</em>! When writing out those equations, we really had no idea if we were writing it correctly, and if the matrix and vector and tensor dimensions line up. If it even <em>made sense</em> to multiply and transpose the quantities we had.</p>
+<p>However, when writing <code>hamilEqns</code>, we let GHC <em>hold our hand for us</em>. If any of our math is wrong, GHC will verify it for us! If any dimensions don’t match up, or any transpositions don’t make sense, we’ll know immediately. And if we’re ever lost, we can leave a <em><a href="https://wiki.haskell.org/GHC/Typed_holes">typed hole</a></em> – then GHC will tell you all of the values in scope that can <em>fit</em> in that hole! Even if you don’t completely understand the math, this helps you implement it in a somewhat confident way.</p>
+<p>It’s admittedly difficult to convey how helpful these sized vector types are without working through trying to implement them yourself, so feel free to give it a try when you get the chance! :D</p>
+<h3 id="numerical-integration">Numerical Integration</h3>
+<p>The result of <code>hamilEqns</code> gives the rate of change of the components of our <code>Phase n</code>. The rest of the processes then is just to “step” <code>Phase n</code>. Gradually update it, following these rate of changes!</p>
+<p>This process is known as <a href="https://en.wikipedia.org/wiki/Numerical_integration">numerical integration</a>. The “best” way to do it is quite a big field, so for this article we’re going to be using the extremely extremely simple <a href="https://en.wikipedia.org/wiki/Euler_method">Euler method</a> to progress our system through time.</p>
+<p>Disclaimer – The Euler method is typically a <strong>very very bad</strong> choice for numerical integration (even though, as popularized in the movie <em>Hidden Figures</em>, it was good enough to <a href="http://www.latimes.com/science/sciencenow/la-sci-sn-hidden-figures-katherine-johnson-20170109-story.html">send humans to space?</a>). We are just choosing it for this article because it’s very simple, conceptually!</p>
+<p>The basic idea is that you pick a time-step, <span class="math inline">\(\Delta t\)</span>, and update each coordinate as:</p>
+<p><span class="math display">\[
+x(t + \Delta t) = x(t) + \dot{x}(t) \Delta t
+\]</span></p>
+<p>Which makes sense visually if we imagine <span class="math inline">\(\dot{x}\)</span> as the “slope” of <span class="math inline">\(x\)</span> – it just means to follow the slope another <span class="math inline">\(\Delta t\)</span> steps. If the slope stays constant, this method is perfectly accurate. The inaccuracy, of course, happens when the slope changes drastically within that <span class="math inline">\(\Delta t\)</span> (and also from the fact that small errors cause errors in the new calculations of <span class="math inline">\(\dot{x}\)</span>, and so compound over time)</p>
+<p>You can understand this symbolically, as well, by remembering that the derivative can be approximated by <span class="math inline">\(\dot{x}(t) \approx \frac{x(t + \Delta t) -
+x(t)}{\Delta t}\)</span> for small <span class="math inline">\(\Delta t\)</span>, and so we can do a little bit of symbolic manipulation to get <span class="math inline">\(x(t + \Delta t) \approx \dot{x}(t) \Delta t +
+x(t)\)</span>.</p>
+<p>We can directly translate this into Haskell: (using <code>konst :: KnownNat n =&gt; Double -&gt; R n</code>, making a constant vector, and <code>*</code>, the component-wise product of two vectors)</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/hamilton1/Hamilton.hs#L132-L140</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>stepEuler</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> (<span class="dt">KnownNat</span> n, <span class="dt">KnownNat</span> m)</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=&gt;</span> <span class="dt">System</span> m n       <span class="co">-- ^ the system</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">Double</span>           <span class="co">-- ^ dt</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">Phase</span> n          <span class="co">-- ^ q(t) and p(t)</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">Phase</span> n          <span class="co">-- ^ q(t + dt) and p(t + dt)</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>stepEuler s dt ph<span class="op">@</span>(<span class="dt">Phase</span> q p) <span class="ot">=</span> <span class="dt">Phase</span> (q <span class="op">+</span> konst dt <span class="op">*</span> dq) (p <span class="op">+</span> konst dt <span class="op">*</span> dp)</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>    (dq, dp) <span class="ot">=</span> hamilEqns s ph</span></code></pre></div>
+<p>And repeatedly evolve this system as a lazy list:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/hamilton1/Hamilton.hs#L143-L151</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>runSystem</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> (<span class="dt">KnownNat</span> n, <span class="dt">KnownNat</span> m)</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=&gt;</span> <span class="dt">System</span> m n       <span class="co">-- ^ the system</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">Double</span>           <span class="co">-- ^ dt</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">Phase</span> n          <span class="co">-- ^ initial phase</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> [<span class="dt">Phase</span> n]        <span class="co">-- ^ progression of the system using Euler integration</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>runSystem s dt <span class="ot">=</span> go</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>    go p0 <span class="ot">=</span> p0 <span class="op">:</span> go (stepEuler s dt p0)</span></code></pre></div>
+<h2 id="running-with-it">Running with it</h2>
+<p>And…that’s it! Granted, in real life, we would be using a less naive integration method, but this is essentially the entire process!</p>
+<p>Let’s generate the boring system, a 5kg particle in 2D Cartesian Coordinates under gravity –</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/hamilton1/Hamilton.hs#L154-L160</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="ot">simpleSystem ::</span> <span class="dt">System</span> <span class="dv">2</span> <span class="dv">2</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>simpleSystem <span class="ot">=</span> mkSystem (vec2 <span class="dv">5</span> <span class="dv">5</span>) <span class="fu">id</span> pot</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- potential energy of a gravity field</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- U(x,y) = 9.8 * y</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="ot">    pot ::</span> <span class="dt">RealFloat</span> a <span class="ot">=&gt;</span> <span class="dt">V.Vector</span> <span class="dv">2</span> a <span class="ot">-&gt;</span> a</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>    pot xy <span class="ot">=</span> <span class="fl">9.8</span> <span class="op">*</span> (xy <span class="ot">`V.index`</span> <span class="dv">1</span>)</span></code></pre></div>
+<p>If we initialize the particle at position <span class="math inline">\(\mathbf{q}_0 = \langle 0, 0 \rangle\)</span> and velocity <span class="math inline">\(\mathbf{v}_0 = \langle 1, 3 \rangle\)</span> (that is, <span class="math inline">\(v_x = 1\)</span> and <span class="math inline">\(v_y
+= 3\)</span>), we should see something that travels at a constant velocity in x and something that starts moving “upwards” (in positive y) and eventually reaches a peak and moves downwards.</p>
+<p>We can make our initial configuration:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/hamilton1/Hamilton.hs#L164-L168</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="ot">simpleConfig0 ::</span> <span class="dt">Config</span> <span class="dv">2</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>simpleConfig0 <span class="ot">=</span> <span class="dt">Config</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    { confPositions  <span class="ot">=</span> vec2 <span class="dv">0</span> <span class="dv">0</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>    , confVelocities <span class="ot">=</span> vec2 <span class="dv">1</span> <span class="dv">3</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div>
+<p>And then…let it run!</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/hamilton1/Hamilton.hs#L170-L174</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="ot">simpleMain ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>simpleMain <span class="ot">=</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mapM_</span> (disp <span class="dv">2</span> <span class="op">.</span> phasePositions)  <span class="co">-- position with 2 digits of precision</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  <span class="op">.</span> <span class="fu">take</span> <span class="dv">25</span>                          <span class="co">-- 25 steps</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  <span class="op">$</span> runSystem simpleSystem <span class="fl">0.1</span> (toPhase simpleSystem simpleConfig0)</span></code></pre></div>
+<p>We get:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="op">:</span>l Hamilton.hs</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> simpleMain</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="dv">0</span>     <span class="dv">0</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="fl">0.10</span>  <span class="fl">0.30</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a><span class="fl">0.20</span>  <span class="fl">0.58</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a><span class="fl">0.30</span>  <span class="fl">0.84</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a><span class="fl">0.40</span>  <span class="fl">1.08</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a><span class="fl">0.50</span>  <span class="fl">1.30</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a><span class="fl">0.60</span>  <span class="fl">1.51</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a><span class="fl">0.70</span>  <span class="fl">1.69</span></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a><span class="fl">0.80</span>  <span class="fl">1.85</span></span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a><span class="fl">0.90</span>  <span class="fl">1.99</span></span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a><span class="fl">1.00</span>  <span class="fl">2.12</span></span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a><span class="fl">1.10</span>  <span class="fl">2.22</span></span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a><span class="fl">1.20</span>  <span class="fl">2.31</span></span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a><span class="fl">1.30</span>  <span class="fl">2.37</span></span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a><span class="fl">1.40</span>  <span class="fl">2.42</span></span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a><span class="fl">1.50</span>  <span class="fl">2.44</span></span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a><span class="fl">1.60</span>  <span class="fl">2.45</span></span>
+<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a><span class="fl">1.70</span>  <span class="fl">2.43</span></span>
+<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a><span class="fl">1.80</span>  <span class="fl">2.40</span></span>
+<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a><span class="fl">1.90</span>  <span class="fl">2.35</span></span>
+<span id="cb21-23"><a href="#cb21-23" aria-hidden="true" tabindex="-1"></a><span class="fl">2.00</span>  <span class="fl">2.28</span></span>
+<span id="cb21-24"><a href="#cb21-24" aria-hidden="true" tabindex="-1"></a><span class="fl">2.10</span>  <span class="fl">2.18</span></span>
+<span id="cb21-25"><a href="#cb21-25" aria-hidden="true" tabindex="-1"></a><span class="fl">2.20</span>  <span class="fl">2.07</span></span>
+<span id="cb21-26"><a href="#cb21-26" aria-hidden="true" tabindex="-1"></a><span class="fl">2.30</span>  <span class="fl">1.94</span></span>
+<span id="cb21-27"><a href="#cb21-27" aria-hidden="true" tabindex="-1"></a><span class="fl">2.40</span>  <span class="fl">1.79</span></span></code></pre></div>
+<p>Exactly what we’d expect! The <code>x</code> positions increase steadily, and the <code>y</code> positions increase, slow down, and start decreasing.</p>
+<p>We can try a slightly more complicated example that validates (and justifies) all of the work we’ve done – let’s simulate a simple pendulum. The state of a pendulum is characterized by one coordinate <span class="math inline">\(\theta\)</span>, which refers to the angular (clockwise) from the equilibrium “hanging straight down” position. <span class="math inline">\(\theta = 0\)</span> corresponds to 6 o’ clock, <span class="math inline">\(\theta = \pi/2\)</span> corresponds to 9 o’ clock, <span class="math inline">\(\theta = - \pi / 2\)</span> corresponds to 3 o’ clock, etc. For a pendulum of length <span class="math inline">\(l\)</span>, we can translate that as <span class="math inline">\(\langle x, y \rangle = \langle - l
+sin(\theta),
+- l cos(\theta) \rangle\)</span>.</p>
+<p>Let’s set up that system! We’ll put it under normal gravity potential, again (<span class="math inline">\(U(x,y) = 9.8 y\)</span>). Our initial position <span class="math inline">\(\theta_0\)</span> will be at equilibrium, and our initial angular velocity <span class="math inline">\(v_{\theta 0}\)</span> will be 0.1 radians/sec (clockwise), as we try to induce harmonic motion:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/hamilton1/Hamilton.hs#L179-L204</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="ot">pendulum ::</span> <span class="dt">System</span> <span class="dv">2</span> <span class="dv">1</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>pendulum <span class="ot">=</span> mkSystem (vec2 <span class="dv">5</span> <span class="dv">5</span>) coords pot      <span class="co">-- 5kg particle</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- &lt;x,y&gt; = &lt;-0.5 sin(theta), -0.5 cos(theta)&gt;</span></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- pendulum of length 0.25</span></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a><span class="ot">    coords ::</span> <span class="dt">RealFloat</span> a <span class="ot">=&gt;</span> <span class="dt">V.Vector</span> <span class="dv">1</span> a <span class="ot">-&gt;</span> <span class="dt">V.Vector</span> <span class="dv">2</span> a</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>    coords (V.head<span class="ot">-&gt;</span>theta) <span class="ot">=</span> V.fromTuple (<span class="op">-</span> <span class="fl">0.25</span> <span class="op">*</span> <span class="fu">sin</span> theta, <span class="op">-</span> <span class="fl">0.25</span> <span class="op">*</span> <span class="fu">cos</span> theta)</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- potential energy of gravity field</span></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- U(x,y) = 9.8 * y</span></span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a><span class="ot">    pot ::</span> <span class="dt">RealFloat</span> a <span class="ot">=&gt;</span> <span class="dt">V.Vector</span> <span class="dv">1</span> a <span class="ot">-&gt;</span> a</span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>    pot q <span class="ot">=</span> <span class="fl">9.8</span> <span class="op">*</span> (coords q <span class="ot">`V.index`</span> <span class="dv">1</span>)</span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a><span class="ot">pendulumConfig0 ::</span> <span class="dt">Config</span> <span class="dv">1</span></span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>pendulumConfig0 <span class="ot">=</span> <span class="dt">Config</span></span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>    { confPositions  <span class="ot">=</span> <span class="dv">0</span></span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>    , confVelocities <span class="ot">=</span> <span class="fl">0.1</span></span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a><span class="ot">pendulumMain ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>pendulumMain <span class="ot">=</span></span>
+<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mapM_</span> (disp <span class="dv">3</span> <span class="op">.</span> phasePositions)  <span class="co">-- position with 2 digits of precision</span></span>
+<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a>  <span class="op">.</span> <span class="fu">take</span> <span class="dv">25</span>                          <span class="co">-- 25 steps</span></span>
+<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>  <span class="op">$</span> runSystem pendulum <span class="fl">0.1</span> (toPhase pendulum pendulumConfig0)</span></code></pre></div>
+<p>This pendulum should wobble back and forth, ever so slightly, around equilibrium.</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="op">:</span>l Hamilton.hs</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> pendulumMain</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="dv">0</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="fl">0.010</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="fl">0.020</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a><span class="fl">0.029</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a><span class="fl">0.037</span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a><span class="fl">0.042</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a><span class="fl">0.045</span></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a><span class="fl">0.044</span></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a><span class="fl">0.040</span></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a><span class="fl">0.032</span></span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a><span class="fl">0.021</span></span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a><span class="fl">0.007</span></span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a><span class="op">-</span><span class="fl">0.008</span></span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a><span class="op">-</span><span class="fl">0.023</span></span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a><span class="op">-</span><span class="fl">0.038</span></span>
+<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a><span class="op">-</span><span class="fl">0.051</span></span>
+<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a><span class="op">-</span><span class="fl">0.061</span></span>
+<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a><span class="op">-</span><span class="fl">0.068</span></span>
+<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a><span class="op">-</span><span class="fl">0.069</span></span>
+<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a><span class="op">-</span><span class="fl">0.065</span></span>
+<span id="cb23-23"><a href="#cb23-23" aria-hidden="true" tabindex="-1"></a><span class="op">-</span><span class="fl">0.056</span></span>
+<span id="cb23-24"><a href="#cb23-24" aria-hidden="true" tabindex="-1"></a><span class="op">-</span><span class="fl">0.041</span></span>
+<span id="cb23-25"><a href="#cb23-25" aria-hidden="true" tabindex="-1"></a><span class="op">-</span><span class="fl">0.022</span></span>
+<span id="cb23-26"><a href="#cb23-26" aria-hidden="true" tabindex="-1"></a><span class="op">-</span><span class="fl">0.000</span></span>
+<span id="cb23-27"><a href="#cb23-27" aria-hidden="true" tabindex="-1"></a><span class="fl">0.023</span></span></code></pre></div>
+<p>We see our <span class="math inline">\(\theta\)</span> coordinate increasing, then turning around and decreasing, swinging the other way past equilibrium, and then turning around and heading back!<a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a></p>
+<p>We <em>automatically generated equations of motion for a pendulum</em>. Sweet!</p>
+<h2 id="wrap-up">Wrap-Up</h2>
+<p>We traveled through the world of physics, math, Haskell, and back again to achieve something that would have initially seemed like a crazy thought experiment. But, utilizing Hamiltonian mechanics, we have a system that can automatically generate equations of motion given your coordinate system and a potential energy function. We also learned how to leverage typed vectors for more correct code and a smoother development process.</p>
+<p>See my <a href="https://blog.jle.im/entry/introducing-the-hamilton-library.html">previous post</a> for even crazier examples – involving multiple objects, double pendulums, and more. And check out my <a href="http://hackage.haskell.org/package/hamilton">hamilton</a> library on hackage, which includes demos for exotic interesting systems, rendered graphically on your terminal.</p>
+<p>I realize that this was a lot, so if you have any questions or suggestions for clarifications, feel free to leave a comment, drop me a <a href="https://twitter.com/mstk" title="Twitter">tweet</a>, or find me on the freenode <em>#haskell</em> channel (where I usually idle as <em>jle`</em>!)</p>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p>The picture with a time-dependent Hamiltonian is different, but only slightly. In the time-dependent case, the system still <em>tries</em> to move along contour lines at every point in time, but the mountain is constantly changing underneath it and the contour lines keep on shifting underneath it. Sounds like life!<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>There’s also another perpendicular vector, <span class="math inline">\(\langle -y, x \rangle\)</span>, which actually gives motion <em>backwards</em> in time.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p>Disclaimer: I am not a surfer.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p><span class="math inline">\(\hat{J_f}\)</span> is full-rank (meaning <span class="math inline">\(\hat{K}\)</span> is invertible) if its rows are linearly independent. This should be the case as you don’t have any redundant or duplicate coordinates in your general coordinate system.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p>Thanks to Edward Kmett for <a href="http://disq.us/p/1o4oyqh">pointing this out</a>!<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn6"><p><code>hessian</code> computes the Hessian Matrix for scalar-valued function, but here, we have a vector-valued function, so we need <code>hessianF</code>, the Hessian <em>Tensor</em>.<a href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn7"><p>Clearly our system is gaining some sort of phantom energy, since it rises up to 0.045 on the left, and then all the way up to -0.69 on the right. Rest assured that this is simply from the inaccuracies in Euler’s Method.<a href="#fnref7" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div><footer><hr><div class="copy-content"><p>Hi, thanks for reading! You can reach me via email at <a href="mailto:justin@jle.im" class="email">justin@jle.im</a>, or at twitter at <a href="https://twitter.com/mstk">@mstk</a>! This post and all others are published under the <a href="https://creativecommons.org/licenses/by-nc-nd/3.0/">CC-BY-NC-ND 3.0</a> license. Corrections and edits via pull request are welcome and encouraged at <a href="https://github.com/mstksg/inCode">the source repository</a>.</p>
+<p>If you feel inclined, or this post was particularly helpful for you, why not consider <a href="https://www.patreon.com/justinle/overview">supporting me on Patreon</a>, or a <a href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">BTC donation</a>? :)</p></div><div class="clear"></div><ul class="entry-series"><li><div>This entry is a part of a series called <b>&quot;Hamilton&quot;</b>.  Find the rest of the entries in this series at its <a href="https://blog.jle.im/entries/series/+hamilton.html" class="tag-a-series" title="+Hamilton"> series history</a>.</div></li></ul><ul class="tag-list"><li><a href="https://blog.jle.im/entries/tagged/dependent-types.html" class="tag-a-tag">#dependent types</a></li><li><a href="https://blog.jle.im/entries/tagged/functional-programming.html" class="tag-a-tag">#functional programming</a></li><li><a href="https://blog.jle.im/entries/tagged/haskell.html" class="tag-a-tag">#haskell</a></li><li><a href="https://blog.jle.im/entries/tagged/numerical-methods.html" class="tag-a-tag">#numerical methods</a></li><li><a href="https://blog.jle.im/entries/tagged/physics.html" class="tag-a-tag">#physics</a></li><li><a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category">@HASKELL</a></li><li><a href="https://blog.jle.im/entries/series/+hamilton.html" class="tag-a-series">+Hamilton</a></li></ul><aside class="social-buttons"><div class="addthis_toolbox addthis_default_style addthis-buttons"><a class="addthis_button_facebook_like" fb:like:layout="button_count"></a><a class="addthis_button_tweet"></a><a class="addthis_button_google_plusone" g:plusone:size="medium"></a><a class="addthis_counter addthis_pill_style"></a></div><div class="custom-social-buttons"><div class="custom-social-button"><a href="https://www.reddit.com/submit" onclick="window.location = &#39;https://www.reddit.com/submit?url=&#39;+ encodeURIComponent(window.location); return false"><img src="https://www.reddit.com/static/spreddit7.gif" alt="submit to reddit"></a></div></div></aside><nav class="next-prev-links"><ul><li class="prev-entry-link">&larr; <a href="https://blog.jle.im/entry/fixed-length-vector-types-in-haskell.html">Fixed-Length Vector Types in Haskell (an Update for 2017)
+</a> (Previous)</li><li class="next-entry-link">(Next) <a href="https://blog.jle.im/entry/advent-of-code-2017.html">Advent of Code 2017! Ongoing solutions and explanations
+</a> &rarr;</li></ul></nav></footer></article><div class="post-entry"><div class="tile"><div id="disqus_thread"></div><script type="text/javascript">var disqus_config = function () {
+    this.page.url = 'https://blog.jle.im/entry/hamiltonian-dynamics-in-haskell.html';
+    this.page.identifier = 'hamilton-1';
+};
+(function() {
+    var d = document, s = d.createElement('script');
+    s.src = '//incode.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a><br></noscript><a href="http://disqus.com" class="dsq-brlink">Comments powered by <span class="logo-disqus">Disqus</span></a></div></div></div></div></div><div id="footer-container"><div id="footer-content"><div class="tile"><div class="footer-copyright">&copy; 2020 Justin Le <span class="license-link">(<a href="https://creativecommons.org/licenses/by-nc-nd/3.0/" class="license">CC-BY-NC-ND 3.0</a>)</span></div><div class="footer-follow social-follows"><ul class="social-follows-list"><li><ul class="social-follows-list-social"><li><a class="social-follow-twitter" title="Follow me on Twitter!" href="https://twitter.com/intent/user?user_id=mstk" onclick="window.open(
+  &#39;http://twitter.com/intent/user?user_id=907281&#39;,
+  &#39;facebook-share-dialog&#39;,
+  &#39;width=550,height=520&#39;);
+return false;
+">Twitter</a></li><li><a class="social-follow-github" title="Fork me on Github!" href="https://github.com/mstksg">Github</a></li><li><a class="social-follow-twitch" title="Watch me on Twitch!" href="https://www.twitch.tv/justin_l">Twitch</a></li><li><a class="social-follow-patreon" title="Support me on Patreon!" href="https://www.patreon.com/justinle/overview">Patreon</a></li><li><a class="social-follow-gplus" title="Add me on Google+!" href="https://plus.google.com/+JustinLe">Google+</a></li><li><a class="social-follow-keybase" title="Track me on Keybase!" href="https://keybase.io/mstksg">Keybase</a></li><li><a class="social-follow-linkedin" title="Connect with me on LinkedIn!" href="https://linkedin.com/in/lejustin">LinkedIn</a></li><li><a class="social-follow-bitcoin" title="Donate via bitcoin!" href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">Bitcoin</a></li></ul></li><li><ul class="social-follows-list-site"><li><a class="social-follow-rss" title="Subscribe to my RSS Feed!" href="http://feeds.feedburner.com/incodeblog">RSS</a></li><li><a class="social-follow-email" title="Subscribe to the mailing list!" href="https://feedburner.google.com/fb/a/mailverify?loc=en_US&amp;uri=incodeblog">Mailing list</a></li></ul></li></ul></div></div></div></div></body></html>

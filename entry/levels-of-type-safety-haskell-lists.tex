@@ -1,0 +1,1185 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Seven Levels of Type Safety in Haskell: Lists},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Seven Levels of Type Safety in Haskell: Lists}
+
+\begin{document}
+\maketitle
+
+\% Justin Le
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/levels-of-type-safety-haskell-lists.html}{in
+Code}}.}
+
+One thing I always appreciate about Haskell is that you can often choose the
+level of type-safety you want to work at. Haskell offers tools to be able to
+work at \emph{both} extremes (which are often undesirable except in
+extraordinary circumstances), whereas most languages only offer some limited
+part of the spectrum. No promises about the ergonomics of either extreme, though
+--- just that they are possible! Of course, often times Haskellers get a
+reputation of always dialing it up to extreme safety just because they can, and
+not because it's a good idea :) To be fair, I'm not going to claim that I'm
+immune to this effect; something that has helped me, though, is being
+consciously aware of the different levels of type safety that are available, and
+the benefits/drawbacks/unique advantages to each.
+
+So, here is a rundown of seven ``levels'' of type safety that you can operate at
+when working with the ubiquitous \emph{strict} linked list data type, and how to
+use them! I genuinely believe all of these are useful (or useless) in their own
+different circumstances.
+
+This post is written for a late beginner or intermediate Haskeller, who is
+already familiar with ADTs and defining their own custom list type like
+\texttt{data\ List\ a\ =\ Nil\ \textbar{}\ Cons\ a\ (List\ a)}. But, be advised
+that the techniques discussed in this post are considered esoteric at best and
+harmful at worst for most actual real-world applications. Inside every Haskeller
+there are two wolves.
+
+\section{Level 1: Could be anything}\label{level-1-could-be-anything}
+
+Let's start off with a baseline type that demonstrates a little bit of the
+quirks of working at the unsafe extremes in Haskell.
+
+A reasonable idea might be to just make a ``black hole'' data type that could be
+anything:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level1.hs\#L12{-}L13}
+
+\KeywordTok{data} \DataTypeTok{Any}\OtherTok{ ::} \DataTypeTok{Type} \KeywordTok{where}
+  \DataTypeTok{MkAny}\OtherTok{ ::}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Any}
+\end{Highlighting}
+\end{Shaded}
+
+(This data type declaration written using
+\href{https://typeclasses.com/ghc/gadt-syntax}{GADT Syntax}, and the name was
+chosen because it resembles
+\href{https://hackage.haskell.org/package/base-4.14.1.0/docs/GHC-Exts.html\#t:Any}{the
+Any type in base})
+
+So you can have values:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level1.hs\#L15{-}L22}
+
+\OtherTok{anyInt ::} \DataTypeTok{Any}
+\NormalTok{anyInt }\OtherTok{=} \DataTypeTok{MkAny}\NormalTok{ (}\DecValTok{8}\OtherTok{ ::} \DataTypeTok{Int}\NormalTok{)}
+
+\OtherTok{anyBool ::} \DataTypeTok{Any}
+\NormalTok{anyBool }\OtherTok{=} \DataTypeTok{MkAny} \DataTypeTok{True}
+
+\OtherTok{anyList ::} \DataTypeTok{Any}
+\NormalTok{anyList }\OtherTok{=} \DataTypeTok{MkAny}\NormalTok{ ([}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{, }\DecValTok{3}\NormalTok{]}\OtherTok{ ::}\NormalTok{ [}\DataTypeTok{Int}\NormalTok{])}
+\end{Highlighting}
+\end{Shaded}
+
+A value of any type can be given to \texttt{MkAny}, and the resulting type will
+have type \texttt{Any}.
+
+However, this type is a black hole; you can't really do anything with the values
+inside it because of parametric polymorphism: you must treat any value inside it
+in a way that is compatible with a value of \emph{any} type. But there aren't
+\emph{too} many useful things you can do with something in a way that is
+compatible with a value of any type (things like,
+\texttt{id\ ::\ a\ -\textgreater{}\ a},
+\texttt{const\ 3\ ::\ a\ -\textgreater{}\ Int}). In the end, it's essentially
+isomorphic to unit \texttt{()}.
+
+So we can actually modify this slightly to match the typical dynamically typed
+language picture of ``could be anything'': we should at least be able to query
+the type for things we can do with it.
+
+To get there, we can instead allow some sort of witness on the type of the
+value:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level1.hs\#L24{-}L25}
+
+\KeywordTok{data} \DataTypeTok{Sigma}\OtherTok{ ::}\NormalTok{ (}\DataTypeTok{Type} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type}\NormalTok{) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+  \DataTypeTok{MkSigma}\OtherTok{ ::}\NormalTok{ p a }\OtherTok{{-}\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Sigma}\NormalTok{ p}
+\end{Highlighting}
+\end{Shaded}
+
+And the most classic witness is
+\href{https://hackage.haskell.org/package/base-4.14.1.0/docs/Type-Reflection.html\#t:TypeRep}{\texttt{TypeRep}}
+from \emph{base}, which is a witness that lets you ``match'' on the type.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level1.hs\#L27{-}L32}
+
+\OtherTok{showIfBool ::} \DataTypeTok{Sigma} \DataTypeTok{TypeRep} \OtherTok{{-}\textgreater{}} \DataTypeTok{String}
+\NormalTok{showIfBool (}\DataTypeTok{MkSigma}\NormalTok{ tr x) }\OtherTok{=} \KeywordTok{case}\NormalTok{ testEquality tr (typeRep }\OperatorTok{@}\DataTypeTok{Bool}\NormalTok{) }\KeywordTok{of}
+  \DataTypeTok{Just} \DataTypeTok{Refl} \OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ x }\KeywordTok{of} \CommentTok{{-}{-} in this branch, we know x is a Bool}
+    \DataTypeTok{False} \OtherTok{{-}\textgreater{}} \StringTok{"False"}
+    \DataTypeTok{True} \OtherTok{{-}\textgreater{}} \StringTok{"True"}
+  \DataTypeTok{Nothing} \OtherTok{{-}\textgreater{}} \StringTok{"Not a Bool"}
+\end{Highlighting}
+\end{Shaded}
+
+Here we can use \texttt{TypeRep}'s interface to ``match'' (using
+\texttt{testEquality}) on if the value inside is a \texttt{Bool}. If the match
+works (and we get \texttt{Just\ Refl}) then we can treat \texttt{x} as a
+\texttt{Bool} in that case. If it doesn't (and we get \texttt{Nothing}), then we
+do what we would want to do otherwise.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ x }\OtherTok{=} \DataTypeTok{MkSigma}\NormalTok{ typeRep }\DataTypeTok{True}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ y }\OtherTok{=} \DataTypeTok{MkSigma}\NormalTok{ typeRep (}\DecValTok{4}\OtherTok{ ::} \DataTypeTok{Int}\NormalTok{)}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ showIfBool x}
+\StringTok{"True"}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ showIfBool y}
+\StringTok{"Not a Bool"}
+\end{Highlighting}
+\end{Shaded}
+
+This pattern is common enough that there's the
+\emph{\href{https://hackage.haskell.org/package/base-4.14.1.0/docs/Data-Dynamic.html}{Data.Dynamic}}
+module in base that is \texttt{Sigma\ TypeRep}, and wraps our
+\texttt{testEquality} dance above in a function called \texttt{fromDynamic}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level1.hs\#L40{-}L45}
+
+\OtherTok{showIfBoolDynamic ::} \DataTypeTok{Dynamic} \OtherTok{{-}\textgreater{}} \DataTypeTok{String}
+\NormalTok{showIfBoolDynamic dyn }\OtherTok{=} \KeywordTok{case}\NormalTok{ fromDynamic dyn }\KeywordTok{of}
+  \DataTypeTok{Just}\NormalTok{ x }\OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ x }\KeywordTok{of} \CommentTok{{-}{-} in this branch, we know x is a Bool}
+    \DataTypeTok{False} \OtherTok{{-}\textgreater{}} \StringTok{"False"}
+    \DataTypeTok{True} \OtherTok{{-}\textgreater{}} \StringTok{"True"}
+  \DataTypeTok{Nothing} \OtherTok{{-}\textgreater{}} \StringTok{"Not a Bool"}
+\end{Highlighting}
+\end{Shaded}
+
+For make our life easier in the future, let's write a version of
+\texttt{fromDynamic} for our \texttt{Sigma\ TypeRep}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level1.hs\#L47{-}L53}
+
+\OtherTok{castSigma ::} \DataTypeTok{TypeRep}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Sigma} \DataTypeTok{TypeRep} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ a}
+\NormalTok{castSigma tr (}\DataTypeTok{MkSigma}\NormalTok{ tr\textquotesingle{} x) }\OtherTok{=} \KeywordTok{case}\NormalTok{ testEquality tr tr\textquotesingle{} }\KeywordTok{of}
+  \DataTypeTok{Just} \DataTypeTok{Refl} \OtherTok{{-}\textgreater{}} \DataTypeTok{Just}\NormalTok{ x}
+  \DataTypeTok{Nothing} \OtherTok{{-}\textgreater{}} \DataTypeTok{Nothing}
+
+\OtherTok{castSigma\textquotesingle{} ::} \DataTypeTok{Typeable}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{Sigma} \DataTypeTok{TypeRep} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ a}
+\NormalTok{castSigma\textquotesingle{} }\OtherTok{=}\NormalTok{ castSigma typeRep}
+\end{Highlighting}
+\end{Shaded}
+
+But the reason why I'm presenting the more generic \texttt{Sigma} instead of the
+specific \texttt{type\ Dynamic\ =\ Sigma\ TypeRep} is that you can swap out
+\texttt{TypeRep} to get other interesting types. For example, if you had a
+witness of showability:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level1.hs\#L55{-}L62}
+
+\KeywordTok{data} \DataTypeTok{Showable}\OtherTok{ ::} \DataTypeTok{Type} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+  \DataTypeTok{WitShowable}\OtherTok{ ::} \DataTypeTok{Show}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{Showable}\NormalTok{ a}
+
+\OtherTok{showableInt ::} \DataTypeTok{Sigma} \DataTypeTok{Showable}
+\NormalTok{showableInt }\OtherTok{=} \DataTypeTok{MkSigma} \DataTypeTok{WitShowable}\NormalTok{ (}\DecValTok{3}\OtherTok{ ::} \DataTypeTok{Int}\NormalTok{)}
+
+\OtherTok{showableBool ::} \DataTypeTok{Sigma} \DataTypeTok{Showable}
+\NormalTok{showableBool }\OtherTok{=} \DataTypeTok{MkSigma} \DataTypeTok{WitShowable} \DataTypeTok{True}
+\end{Highlighting}
+\end{Shaded}
+
+(This type is related to \texttt{Dict\ Show} from the
+\href{https://hackage.haskell.org/package/constraints-0.13/docs/Data-Constraint.html\#t:Dict}{constraints}
+library; it's technically \texttt{Compose\ Dict\ Show})
+
+And now we have a type \texttt{Sigma\ Showable} that's a bit of a black hole,
+but we can at least use \texttt{show} on it:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level1.hs\#L64{-}L65}
+
+\OtherTok{showSigma ::} \DataTypeTok{Sigma} \DataTypeTok{Showable} \OtherTok{{-}\textgreater{}} \DataTypeTok{String}
+\NormalTok{showSigma (}\DataTypeTok{MkSigma} \DataTypeTok{WitShowable}\NormalTok{ x) }\OtherTok{=} \FunctionTok{show}\NormalTok{ x }\CommentTok{{-}{-} here, we know x is Show}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ x }\OtherTok{=} \DataTypeTok{MkSigma} \DataTypeTok{WitShowable} \DataTypeTok{True}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ y }\OtherTok{=} \DataTypeTok{MkSigma} \DataTypeTok{WitShowable} \DecValTok{4}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ showSigma x}
+\StringTok{"True"}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ showSigma y}
+\StringTok{"4"}
+\end{Highlighting}
+\end{Shaded}
+
+This is the
+``\href{https://lukepalmer.wordpress.com/2010/01/24/haskell-antipattern-existential-typeclass/}{existential
+typeclass antipattern}'', but since we are talking about different ways we can
+tease the type system, it's probably worth mentioning! Note that \texttt{Show}
+is a bit silly of a typeclass to use in this context because a
+\texttt{Sigma\ Showable} is equivalent to just a \texttt{String}: once you match
+on the constructor to get the value, the only thing you can do with the value is
+\texttt{show} it anyway.
+
+One fun thing we can do is provide a ``useless witness'', like \texttt{Proxy}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level1.hs\#L67{-}L70}
+
+\KeywordTok{data} \DataTypeTok{Proxy}\NormalTok{ a }\OtherTok{=} \DataTypeTok{Proxy}
+
+\OtherTok{uselessBool ::} \DataTypeTok{Sigma} \DataTypeTok{Proxy}
+\NormalTok{uselessBool }\OtherTok{=} \DataTypeTok{MkSigma} \DataTypeTok{Proxy} \DataTypeTok{True}
+\end{Highlighting}
+\end{Shaded}
+
+So a value like \texttt{MkSigma\ Proxy\ True\ ::\ Sigma\ Proxy} is truly a
+useless data type (basically our \texttt{Any} from before), since we know that
+\texttt{MkSigma} constrains \emph{some} value of \emph{some} type, but there's
+no witness to give us any clue on how we can use it. A \texttt{Sigma\ Proxy} is
+isomorphic to \texttt{()}.
+
+On the other extreme, we can use a witness to constrain the value to only be a
+specific type, like \texttt{IsBool}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level1.hs\#L72{-}L76}
+
+\KeywordTok{data} \DataTypeTok{IsBool}\OtherTok{ ::} \DataTypeTok{Type} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+  \DataTypeTok{ItsABool}\OtherTok{ ::} \DataTypeTok{IsBool} \DataTypeTok{Bool}
+
+\OtherTok{justABool ::} \DataTypeTok{Sigma} \DataTypeTok{IsBool}
+\NormalTok{justABool }\OtherTok{=} \DataTypeTok{MkSigma} \DataTypeTok{ItsABool} \DataTypeTok{False}
+\end{Highlighting}
+\end{Shaded}
+
+So you can have a value of type
+\texttt{MkSigma\ ItsABool\ True\ ::\ Sigma\ IsBool}, or
+\texttt{MkSigma\ ItsABool\ False}, but \texttt{MkSigma\ ItsABool\ 2} will not
+typecheck --- remember, to make a \texttt{Sigma}, you need a \texttt{p\ a} and
+an \texttt{a}. \texttt{ItsABool\ ::\ IsBool\ Bool}, so the \texttt{a} you put in
+must be \texttt{Bool} to match. \texttt{Sigma\ IsBool} is essentially isomorphic
+to \texttt{Bool}.
+
+There's a general version of this too, \texttt{(:\textasciitilde{}:)\ a} (from
+\emph{\href{https://hackage.haskell.org/package/base-4.14.1.0/docs/Data-Type-Equality.html\#t::-126-:}{Data.Type.Equality}}
+in base). \texttt{(:\textasciitilde{}:)\ Bool} is our \texttt{IsBool} earlier.
+\texttt{Sigma\ ((:\textasciitilde{}:)\ a)} is essentially exactly
+\texttt{a}\ldots basically bringing us incidentally back to complete type
+safety? Weird. Anyway.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level1.hs\#L78{-}L79}
+
+\OtherTok{justAnInt ::} \DataTypeTok{Sigma}\NormalTok{ ((}\OperatorTok{:\textasciitilde{}:}\NormalTok{) }\DataTypeTok{Int}\NormalTok{)}
+\NormalTok{justAnInt }\OtherTok{=} \DataTypeTok{MkSigma} \DataTypeTok{Refl} \DecValTok{10}
+\end{Highlighting}
+\end{Shaded}
+
+I think one interesting thing to see here is that being ``type-unsafe'' in
+Haskell can be much less convenient than doing something similar in a
+dynamically typed language like python --- that's why I don't fancy those
+memes/jokes about how dynamically typed languages are just ``static types with a
+single type''. The actual way you use those types lend themselves to different
+ergonomics, and the reductionist take doesn't quite capture that nuance.
+
+\section{Level 2: Heterogeneous List}\label{level-2-heterogeneous-list}
+
+The lowest level of safety in which a list might be useful is the dynamically
+heterogeneous list. This is the level where lists (or ``arrays'') live in most
+dynamic languages.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level2.hs\#L12{-}L12}
+
+\KeywordTok{type} \DataTypeTok{HList}\NormalTok{ p }\OtherTok{=}\NormalTok{ [}\DataTypeTok{Sigma}\NormalTok{ p]}
+\end{Highlighting}
+\end{Shaded}
+
+We tag values with a witness \texttt{p} for the same reason as before: if we
+don't provide \emph{some} type of witness, our type is useless.
+
+The ``dynamically heterogeneous list of values of any type'' is
+\texttt{HList\ TypeRep}. This is somewhat similar to how functions with
+positional arguments work in a dynamic language like javascript. For example,
+here's a function that connects to a host (\texttt{String}), optionally taking a
+port (\texttt{Int}) and a method (\texttt{Method}).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level2.hs\#L14{-}L30}
+
+\KeywordTok{data} \DataTypeTok{Method} \OtherTok{=} \DataTypeTok{HTTP} \OperatorTok{|} \DataTypeTok{HTTPS}
+
+\OtherTok{indexHList ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{HList}\NormalTok{ p }\OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ (}\DataTypeTok{Sigma}\NormalTok{ p)}
+\NormalTok{indexHList }\DecValTok{0}\NormalTok{ [] }\OtherTok{=} \DataTypeTok{Nothing}
+\NormalTok{indexHList }\DecValTok{0}\NormalTok{ (x }\OperatorTok{:}\NormalTok{ \_) }\OtherTok{=} \DataTypeTok{Just}\NormalTok{ x}
+\NormalTok{indexHList n (\_ }\OperatorTok{:}\NormalTok{ xs) }\OtherTok{=}\NormalTok{ indexHList (n }\OperatorTok{{-}} \DecValTok{1}\NormalTok{) xs}
+
+\OtherTok{mkConnection ::} \DataTypeTok{HList} \DataTypeTok{TypeRep} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{mkConnection args }\OtherTok{=} \FunctionTok{pure}\NormalTok{ () }\CommentTok{{-}{-} something with host, port, and method}
+  \KeywordTok{where}
+\OtherTok{    host ::} \DataTypeTok{Maybe} \DataTypeTok{String}
+\NormalTok{    host }\OtherTok{=}\NormalTok{ castSigma\textquotesingle{} }\OperatorTok{=\textless{}\textless{}}\NormalTok{ indexHList }\DecValTok{0}\NormalTok{ args}
+\OtherTok{    port ::} \DataTypeTok{Maybe} \DataTypeTok{Int}
+\NormalTok{    port }\OtherTok{=}\NormalTok{ castSigma\textquotesingle{} }\OperatorTok{=\textless{}\textless{}}\NormalTok{ indexHList }\DecValTok{1}\NormalTok{ args}
+\OtherTok{    method ::} \DataTypeTok{Maybe} \DataTypeTok{Method}
+\NormalTok{    method }\OtherTok{=}\NormalTok{ castSigma\textquotesingle{} }\OperatorTok{=\textless{}\textless{}}\NormalTok{ indexHList }\DecValTok{2}\NormalTok{ args}
+\end{Highlighting}
+\end{Shaded}
+
+Of course, this would \emph{probably} be better expressed in Haskell as a
+function of type
+\texttt{Maybe\ String\ -\textgreater{}\ Maybe\ Int\ -\textgreater{}\ Maybe\ Method\ -\textgreater{}\ IO\ ()}.
+But maybe this could be useful in a situation where you would want to offer the
+ability to take arguments in any order? We could ``find'' the first value of a
+given type:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level2.hs\#L32{-}L33}
+
+\OtherTok{findValueOfType ::} \DataTypeTok{Typeable}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{HList} \DataTypeTok{TypeRep} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ a}
+\NormalTok{findValueOfType }\OtherTok{=}\NormalTok{ listToMaybe }\OperatorTok{.}\NormalTok{ mapMaybe castSigma\textquotesingle{}}
+\end{Highlighting}
+\end{Shaded}
+
+Then we could write:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level2.hs\#L36{-}L44}
+
+\OtherTok{mkConnectionAnyOrder ::} \DataTypeTok{HList} \DataTypeTok{TypeRep} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{mkConnectionAnyOrder args }\OtherTok{=} \FunctionTok{pure}\NormalTok{ ()}
+  \KeywordTok{where}
+\OtherTok{    host ::} \DataTypeTok{Maybe} \DataTypeTok{String}
+\NormalTok{    host }\OtherTok{=}\NormalTok{ findValueOfType args}
+\OtherTok{    port ::} \DataTypeTok{Maybe} \DataTypeTok{Int}
+\NormalTok{    port }\OtherTok{=}\NormalTok{ findValueOfType args}
+\OtherTok{    method ::} \DataTypeTok{Maybe} \DataTypeTok{Method}
+\NormalTok{    method }\OtherTok{=}\NormalTok{ findValueOfType args}
+\end{Highlighting}
+\end{Shaded}
+
+But is this a good idea? Probably not.
+
+One very common usage of this type is for ``extensible'' systems that let you
+store components of different types in a container, as long as they all support
+some common interface (ie, the widgets system from the
+\href{https://lukepalmer.wordpress.com/2010/01/24/haskell-antipattern-existential-typeclass/}{Luke
+Palmer} post).
+
+For example, we could have a list of any item as long as the item is an instance
+of \texttt{Show}: that's \texttt{HList\ Showable}!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level2.hs\#L49{-}L52}
+
+\OtherTok{showAll ::} \DataTypeTok{HList} \DataTypeTok{Showable} \OtherTok{{-}\textgreater{}}\NormalTok{ [}\DataTypeTok{String}\NormalTok{]}
+\NormalTok{showAll }\OtherTok{=} \FunctionTok{map}\NormalTok{ showSigma}
+  \KeywordTok{where}
+\NormalTok{    showSigma (}\DataTypeTok{MkSigma} \DataTypeTok{WitShowable}\NormalTok{ x) }\OtherTok{=} \FunctionTok{show}\NormalTok{ x}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ xs }\OtherTok{=}\NormalTok{ [}\DataTypeTok{MkSigma} \DataTypeTok{WitShowable} \DecValTok{1}\NormalTok{, }\DataTypeTok{MkSigma} \DataTypeTok{WitShowable} \DataTypeTok{True}\NormalTok{]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ showAll xs}
+\NormalTok{[}\StringTok{"1"}\NormalTok{, }\StringTok{"True"}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+For \texttt{Show}, this is, again, a rather silly thing to do because of the
+reasons mentioned in the Palmer post --- namely, that you could always just have
+a \texttt{{[}String{]}} directly instead of an \texttt{HList\ Showable}, since
+the only thing you can do with a \texttt{Sigma\ Showable} is \texttt{show} it.
+
+For fun, let's imagine some other things we could fill in for \texttt{p}. If we
+use \texttt{HList\ Proxy}, then we basically don't have any witness at all. We
+can't use the values in the list in any meaningful way; \texttt{HList\ Proxy} is
+essentially the same as \texttt{Natural}, since the only information is the
+length.
+
+If we use \texttt{HList\ IsBool}, we basically have \texttt{{[}Bool{]}}, since
+every item must be a \texttt{Bool}! In general,
+\texttt{HList\ ((:\textasciitilde{}:)\ a)} is the same as \texttt{{[}a{]}}.
+
+\section{Level 3: Homogeneous Dynamic
+List}\label{level-3-homogeneous-dynamic-list}
+
+A next level of type safety we can add is to ensure that all elements in the
+list are of the same type. This adds a layer of usefulness because there are a
+lot of things we might want to do with the elements of a list that are only
+possible if they are all of the same type.
+
+First of all, let's clarify a subtle point here. It's very easy in Haskell to
+\emph{consume} lists where all elements are of the same (but not necessarily
+known) type. Functions like
+\texttt{sum\ ::\ Num\ a\ =\textgreater{}\ {[}a{]}\ -\textgreater{}\ a} and
+\texttt{sort\ ::\ Ord\ a\ =\textgreater{}\ {[}a{]}\ -\textgreater{}\ {[}a{]}} do
+that. This is polymorphism, where the function is written to not worry about the
+type, and the ultimate \emph{caller} of the function must pick the type they
+want to use with it. For the sake of this discussion, we aren't talking about
+\emph{consuming} values -- we're talking about \emph{producing} and
+\emph{storing} values where the \emph{producer} (and not the consumer) controls
+the type variable.
+
+To do this, we can flip the witness to \emph{outside} the list:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level3.hs\#L17{-}L18}
+
+\KeywordTok{data} \DataTypeTok{SomeList}\OtherTok{ ::}\NormalTok{ (}\DataTypeTok{Type} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type}\NormalTok{) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+  \DataTypeTok{MkSomeList}\OtherTok{ ::}\NormalTok{ p a }\OtherTok{{-}\textgreater{}}\NormalTok{ [a] }\OtherTok{{-}\textgreater{}} \DataTypeTok{SomeList}\NormalTok{ p}
+\end{Highlighting}
+\end{Shaded}
+
+We can write some meaningful predicates on this list --- for example, we can
+check if it is monotonic (the items increase in order)
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level3.hs\#L21{-}L32}
+
+\KeywordTok{data} \DataTypeTok{Comparable}\OtherTok{ ::} \DataTypeTok{Type} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+  \DataTypeTok{WitOrd}\OtherTok{ ::} \DataTypeTok{Ord}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{Comparable}\NormalTok{ a}
+
+\OtherTok{monotonic ::} \DataTypeTok{Ord}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ [a] }\OtherTok{{-}\textgreater{}} \DataTypeTok{Bool}
+\NormalTok{monotonic [] }\OtherTok{=} \DataTypeTok{True}
+\NormalTok{monotonic (x }\OperatorTok{:}\NormalTok{ xs) }\OtherTok{=}\NormalTok{ go x xs}
+  \KeywordTok{where}
+\NormalTok{    go y [] }\OtherTok{=} \DataTypeTok{True}
+\NormalTok{    go y (z }\OperatorTok{:}\NormalTok{ zs) }\OtherTok{=}\NormalTok{ (y }\OperatorTok{\textless{}=}\NormalTok{ z) }\OperatorTok{\&\&}\NormalTok{ go z zs}
+
+\OtherTok{monotonicSomeList ::} \DataTypeTok{SomeList} \DataTypeTok{Comparable} \OtherTok{{-}\textgreater{}} \DataTypeTok{Bool}
+\NormalTok{monotonicSomeList (}\DataTypeTok{MkSomeList} \DataTypeTok{WitOrd}\NormalTok{ xs) }\OtherTok{=}\NormalTok{ monotonic xs}
+\end{Highlighting}
+\end{Shaded}
+
+If we take a step back, we can see that this is a little silly\ldots what value
+does \texttt{monotonicSomeList} offer over \texttt{monotonic}? However, remember
+the subtlety I pointed out before: \texttt{monotonic} (and
+\texttt{monotonicSomeList}) are not the real advantage here, the advantage is
+writing a function that \emph{produces} ``list of some sortable type''. For
+example, we might want to query a database for a column of values, but we only
+know the \emph{name} of the column and not the \emph{type} of the column --- we
+just know that the values in that column are sortable.
+
+For a contrived one, let's think about pulling such a list from IO:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level3.hs\#L34{-}L54}
+
+\OtherTok{getItems ::} \DataTypeTok{IO}\NormalTok{ (}\DataTypeTok{SomeList} \DataTypeTok{Comparable}\NormalTok{)}
+\NormalTok{getItems }\OtherTok{=} \KeywordTok{do}
+  \FunctionTok{putStrLn} \StringTok{"would you like to provide int or bool or string?"}
+\NormalTok{  ans }\OtherTok{\textless{}{-}} \FunctionTok{getLine}
+  \KeywordTok{case} \FunctionTok{map} \FunctionTok{toLower}\NormalTok{ ans }\KeywordTok{of}
+    \StringTok{"int"} \OtherTok{{-}\textgreater{}} \DataTypeTok{MkSomeList} \DataTypeTok{WitOrd} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ replicateM }\DecValTok{3}\NormalTok{ (}\FunctionTok{readLn} \OperatorTok{@}\DataTypeTok{Int}\NormalTok{)}
+    \StringTok{"bool"} \OtherTok{{-}\textgreater{}} \DataTypeTok{MkSomeList} \DataTypeTok{WitOrd} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ replicateM }\DecValTok{3}\NormalTok{ (}\FunctionTok{readLn} \OperatorTok{@}\DataTypeTok{Int}\NormalTok{)}
+    \StringTok{"string"} \OtherTok{{-}\textgreater{}} \DataTypeTok{MkSomeList} \DataTypeTok{WitOrd} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ replicateM }\DecValTok{3} \FunctionTok{getLine}
+\NormalTok{    \_ }\OtherTok{{-}\textgreater{}}\NormalTok{ throwIO }\OperatorTok{$} \FunctionTok{userError} \StringTok{"no"}
+
+\OtherTok{getAndAnalyze ::} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{getAndAnalyze }\OtherTok{=} \KeywordTok{do}
+  \DataTypeTok{MkSomeList} \DataTypeTok{WitOrd}\NormalTok{ xs }\OtherTok{\textless{}{-}}\NormalTok{ getItems}
+  \FunctionTok{putStrLn} \OperatorTok{$} \StringTok{"Got "} \OperatorTok{++} \FunctionTok{show}\NormalTok{ (}\FunctionTok{length}\NormalTok{ xs) }\OperatorTok{++} \StringTok{" items."}
+  \KeywordTok{let}\NormalTok{ isMono }\OtherTok{=}\NormalTok{ monotonic xs}
+\NormalTok{      isRevMono }\OtherTok{=}\NormalTok{ monotonic (}\FunctionTok{reverse}\NormalTok{ xs)}
+\NormalTok{  when isMono }\OperatorTok{$}
+    \FunctionTok{putStrLn} \StringTok{"The items are monotonic."}
+\NormalTok{  when (isMono }\OperatorTok{\&\&}\NormalTok{ isRevMono) }\OperatorTok{$} \KeywordTok{do}
+    \FunctionTok{putStrLn} \StringTok{"The items are monotonic both directions."}
+    \FunctionTok{putStrLn} \StringTok{"This means the items are all identical."}
+\end{Highlighting}
+\end{Shaded}
+
+Consider also an example where process items different based on what type they
+have:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level3.hs\#L62{-}L68}
+
+\OtherTok{processList ::} \DataTypeTok{SomeList} \DataTypeTok{TypeRep} \OtherTok{{-}\textgreater{}} \DataTypeTok{Bool}
+\NormalTok{processList (}\DataTypeTok{MkSomeList}\NormalTok{ tr xs)}
+  \OperatorTok{|} \DataTypeTok{Just} \DataTypeTok{Refl} \OtherTok{\textless{}{-}}\NormalTok{ testEquality tr (typeRep }\OperatorTok{@}\DataTypeTok{Bool}\NormalTok{) }\OtherTok{=} \FunctionTok{and}\NormalTok{ xs}
+  \OperatorTok{|} \DataTypeTok{Just} \DataTypeTok{Refl} \OtherTok{\textless{}{-}}\NormalTok{ testEquality tr (}\DataTypeTok{TypeRep} \OperatorTok{@}\DataTypeTok{Int}\NormalTok{) }\OtherTok{=} \FunctionTok{sum}\NormalTok{ xs }\OperatorTok{\textgreater{}} \DecValTok{50}
+  \OperatorTok{|} \DataTypeTok{Just} \DataTypeTok{Refl} \OtherTok{\textless{}{-}}\NormalTok{ testEquality tr (}\DataTypeTok{TypeRep} \OperatorTok{@}\DataTypeTok{Double}\NormalTok{) }\OtherTok{=} \FunctionTok{sum}\NormalTok{ xs }\OperatorTok{\textgreater{}} \FloatTok{5.0}
+  \OperatorTok{|} \DataTypeTok{Just} \DataTypeTok{Refl} \OtherTok{\textless{}{-}}\NormalTok{ testEquality tr (}\DataTypeTok{TypeRep} \OperatorTok{@}\DataTypeTok{String}\NormalTok{) }\OtherTok{=} \StringTok{"hello"} \OtherTok{\textasciigrave{}elem\textasciigrave{}}\NormalTok{ xs}
+  \OperatorTok{|} \FunctionTok{otherwise} \OtherTok{=} \DataTypeTok{False}
+\end{Highlighting}
+\end{Shaded}
+
+I'm just kidding, this is not useful, please use a real closed ADT if you ever
+want to do this.
+
+Anyway, this pattern is overall similar to how lists are often used in practice
+for dynamic languages: \emph{usually} when we use lists, we expect them all to
+have items of the same type or interface. However, using lists this way (in a
+language without type safety) makes it really tempting to hop down into Level 1,
+where you start throwing ``alternatively typed'' things into your list, as well,
+for convenience. All of a sudden, any consumers must now check the type of the
+items, and a lot of things are going to start needing unit tests.
+
+Now let us take a bit to talk about ascending and descending between each
+levels. In the general case we don't have much to work with, but let's assume
+our constraint is \texttt{TypeRep} here, so we can match for type equality.
+
+We can move from Level 3 to Level 2 by moving the \texttt{TypeRep} into the
+values of the list, and we can move from Level 3 to Level 1 by converting our
+\texttt{TypeRep\ a} into a \texttt{TypeRep\ {[}a{]}}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level3.hs\#L75{-}L86}
+
+\OtherTok{someListToHList ::} \DataTypeTok{SomeList} \DataTypeTok{TypeRep} \OtherTok{{-}\textgreater{}} \DataTypeTok{HList} \DataTypeTok{TypeRep}
+\NormalTok{someListToHList (}\DataTypeTok{MkSomeList}\NormalTok{ tr xs) }\OtherTok{=} \DataTypeTok{MkSigma}\NormalTok{ tr }\OperatorTok{\textless{}$\textgreater{}}\NormalTok{ xs}
+
+\OtherTok{someListToSigma ::} \DataTypeTok{SomeList} \DataTypeTok{TypeRep} \OtherTok{{-}\textgreater{}} \DataTypeTok{Sigma} \DataTypeTok{TypeRep}
+\NormalTok{someListToSigma (}\DataTypeTok{MkSomeList}\NormalTok{ tr xs) }\OtherTok{=} \DataTypeTok{MkSigma}\NormalTok{ (typeRep }\OperatorTok{@}\NormalTok{[] }\OtherTok{\textasciigrave{}App\textasciigrave{}}\NormalTok{ tr) xs}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{App} here as a constructor lets us come \texttt{TypeRep}s:
+\texttt{App\ ::\ TypeRep\ f\ -\textgreater{}\ TypeRep\ a\ -\textgreater{}\ TypeRep\ (f\ a)}.
+
+Going the other way around is trickier. For \texttt{HList}, we don't even know
+if every item has the same type, so we can only successfully move up if every
+item has the same type. So, first we get the \texttt{typeRep} for the first
+value, and then cast the other values to be the same type if possible:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level3.hs\#L70{-}L73}
+
+\OtherTok{hlistToSomeList ::} \DataTypeTok{HList} \DataTypeTok{TypeRep} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ (}\DataTypeTok{SomeList} \DataTypeTok{TypeRep}\NormalTok{)}
+\NormalTok{hlistToSomeList }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+\NormalTok{  [] }\OtherTok{{-}\textgreater{}} \DataTypeTok{Nothing}
+  \DataTypeTok{MkSigma}\NormalTok{ tr x }\OperatorTok{:}\NormalTok{ xs }\OtherTok{{-}\textgreater{}} \DataTypeTok{MkSomeList}\NormalTok{ tr }\OperatorTok{.}\NormalTok{ (x }\OperatorTok{:}\NormalTok{) }\OperatorTok{\textless{}$\textgreater{}} \FunctionTok{traverse}\NormalTok{ (castSigma tr) xs}
+\end{Highlighting}
+\end{Shaded}
+
+To go from \texttt{Sigma\ TypeRep}, we first need to match the \texttt{TypeRep}
+as some \texttt{f\ a} application using the \texttt{App} pattern\ldots then we
+can check if \texttt{f} is \texttt{{[}{]}} (list), then we can create a
+\texttt{SomeList} with the \texttt{TypeRep\ a}. \emph{But},
+\texttt{testEquality} can only be called on things of the same kind, so we have
+to verify that \texttt{f} has kind \texttt{Type\ -\textgreater{}\ Type} first,
+so that we can even call \texttt{testEquality} on \texttt{f} and
+\texttt{{[}{]}}! Phew! Dynamic types are hard!
+
+\section{Level 4: Homogeneous Typed List}\label{level-4-homogeneous-typed-list}
+
+Ahh, now right in the middle, we've reached Haskell's ubiquitous list type! It
+is essentially:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{List}\OtherTok{ ::} \DataTypeTok{Type} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+    \DataTypeTok{Nil}\OtherTok{  ::} \DataTypeTok{List}\NormalTok{ a}
+    \DataTypeTok{Cons}\OtherTok{ ::}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{List}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{List}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+I don't have too much to say here, other than to acknowledge that this is truly
+a ``sweet spot'' in terms of safety vs.~unsafety and usability. This simple
+\texttt{List\ a} / \texttt{{[}a{]}} type has so many benefits from type-safety:
+
+\begin{itemize}
+\tightlist
+\item
+  It lets us write functions that can meaningfully say that the input and result
+  types are the same, like
+  \texttt{take\ ::\ Int\ -\textgreater{}\ {[}a{]}\ -\textgreater{}\ {[}a{]}}
+\item
+  It lets us write functions that can meaningfully link lists and the items in
+  the list, like \texttt{head\ ::\ {[}a{]}\ -\textgreater{}\ a} and
+  \texttt{replicate\ ::\ Int\ -\textgreater{}\ a\ -\textgreater{}\ {[}a{]}}.
+\item
+  It lets us write functions that can meaningfully state relationships between
+  input and results, like
+  \texttt{map\ ::\ (a\ -\textgreater{}\ b)\ -\textgreater{}\ {[}a{]}\ -\textgreater{}\ {[}b{]}}
+\item
+  We can require two input lists to have the same type of items, like
+  \texttt{(++)\ \ \ \ \ ::\ {[}a{]}\ -\textgreater{}\ {[}a{]}\ -\textgreater{}\ {[}a{]}}
+\item
+  We can express complex relationships between inputs and outputs, like
+  \texttt{zipWith\ ::\ (a\ -\textgreater{}\ b\ -\textgreater{}\ c)\ -\textgreater{}\ {[}a{]}\ -\textgreater{}\ {[}b{]}\ -\textgreater{}\ {[}c{]}}.
+\end{itemize}
+
+The property of being able to state and express relationships between the values
+of input lists and output lists and the items in those lists is extremely
+powerful, and also extremely ergonomic to use in Haskell. It can be argued that
+Haskell, as a language, was tuned explicitly to be used with the least friction
+at this exact level of type safety.
+
+We're going to talk the least about this one because it's probably the one you
+are all familiar with!
+
+\section{Level 5: Fixed-size List}\label{level-5-fixed-size-list}
+
+For the next level of safety, we're not going to try to enforce anything on the
+contents of the list, but we can try to enforce something on the \emph{spline}
+of the list: the number of items!
+
+To me, this level still feels very natural in Haskell to write in, although in
+terms of usability we are starting to bump into some of the things Haskell is
+lacking for higher type safety ergonomics. I've talked about
+\href{https://blog.jle.im/entry/fixed-length-vector-types-in-haskell.html}{fixed-length
+vector types in depth before}, so this is going to be a high-level view
+contrasting this level with the others.
+
+The essential concept is to introduce a \emph{phantom type}, a type parameter
+that doesn't do anything other than indicate something that we can use in
+user-space. Here we will create a type that structurally encodes the natural
+numbers 0, 1, 2\ldots:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level5.hs\#L15{-}L15}
+
+\KeywordTok{data} \DataTypeTok{Nat} \OtherTok{=} \DataTypeTok{Z} \OperatorTok{|} \DataTypeTok{S} \DataTypeTok{Nat}
+\end{Highlighting}
+\end{Shaded}
+
+So, \texttt{Z} will represent zero, \texttt{S\ Z} will represent one,
+\texttt{S\ (S\ Z)} will represent two, etc. We want to create a type
+\texttt{Vec\ n\ a}, where \texttt{n} will be a type of kind \texttt{Nat}
+(promoted using DataKinds, which lets us use \texttt{Z} and \texttt{S} as type
+constructors), representing a linked list with \texttt{n} elements of type
+\texttt{a}. Why is it called \texttt{Vec} and not \texttt{List}? I'm not sure,
+but it's probably a \href{https://strangerthings.fandom.com/wiki/Vecna}{Stranger
+Things} reference referring to a dark, evil being.
+
+We can define \texttt{Vec} in a way that structurally matches how \texttt{Nat}
+is constructed, which is the key to making things work nicely:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level5.hs\#L17{-}L21}
+
+\KeywordTok{data} \DataTypeTok{Vec}\OtherTok{ ::} \DataTypeTok{Nat} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+  \DataTypeTok{VNil}\OtherTok{ ::} \DataTypeTok{Vec} \DataTypeTok{Z}\NormalTok{ a}
+\OtherTok{  (:+) ::}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Vec}\NormalTok{ n a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Vec}\NormalTok{ (}\DataTypeTok{S}\NormalTok{ n) a}
+
+\KeywordTok{infixr} \DecValTok{5} \OperatorTok{:+}
+\end{Highlighting}
+\end{Shaded}
+
+This is offered in the
+\emph{\href{https://hackage.haskell.org/package/vec}{vec}} library. Here are
+some example values:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level5.hs\#L23{-}L33}
+
+\OtherTok{zeroItems ::} \DataTypeTok{Vec} \DataTypeTok{Z} \DataTypeTok{Int}
+\NormalTok{zeroItems }\OtherTok{=} \DataTypeTok{VNil}
+
+\OtherTok{oneItem ::} \DataTypeTok{Vec}\NormalTok{ (}\DataTypeTok{S} \DataTypeTok{Z}\NormalTok{) }\DataTypeTok{Int}
+\NormalTok{oneItem }\OtherTok{=} \DecValTok{1} \OperatorTok{:+} \DataTypeTok{VNil}
+
+\OtherTok{twoItems ::} \DataTypeTok{Vec}\NormalTok{ (}\DataTypeTok{S}\NormalTok{ (}\DataTypeTok{S} \DataTypeTok{Z}\NormalTok{)) }\DataTypeTok{Int}
+\NormalTok{twoItems }\OtherTok{=} \DecValTok{1} \OperatorTok{:+} \DecValTok{2} \OperatorTok{:+} \DataTypeTok{VNil}
+
+\OtherTok{threeItems ::} \DataTypeTok{Vec}\NormalTok{ (}\DataTypeTok{S}\NormalTok{ (}\DataTypeTok{S}\NormalTok{ (}\DataTypeTok{S} \DataTypeTok{Z}\NormalTok{))) }\DataTypeTok{Int}
+\NormalTok{threeItems }\OtherTok{=} \DecValTok{1} \OperatorTok{:+} \DecValTok{2} \OperatorTok{:+} \DecValTok{3} \OperatorTok{:+} \DataTypeTok{VNil}
+\end{Highlighting}
+\end{Shaded}
+
+Note two things:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \texttt{1\ :+\ 2\ :+\ VNil} gets automatically type-inferred to be a
+  \texttt{Vec\ (S\ (S\ Z))\ \ \ \ \ a}, because every application of \texttt{:+}
+  adds an \texttt{S} to the phantom type.
+\item
+  There is \emph{only one way} to construct a \texttt{Vec\ (S\ (S\ Z))\ a}: by
+  using \texttt{:+} twice. That means that such a value is a list of exactly two
+  items.
+\end{enumerate}
+
+However, the main benefit of this system is \emph{not} so you can create a
+two-item list\ldots just use tuples or \texttt{data\ V2\ a\ =\ V2\ a\ a} from
+\emph{\href{https://hackage.haskell.org/package/linear}{linear}} for that. No,
+the main benefit is that you can now encode how arguments in your functions
+relate to each other with respect to length.
+
+For example,
+\texttt{map\ ::\ (a\ -\textgreater{}\ b)\ -\textgreater{}\ {[}a{]}\ -\textgreater{}\ {[}b{]}}
+does \emph{not} tell you that the length of the result list is the same as the
+length of the input list. You could argue that because \texttt{fmap\ =\ map}
+follows the functor laws, it must return a list with the same number of items.
+However, this fact is not encoded in the \emph{type} itself.
+
+However, consider
+\texttt{vmap\ ::\ (a\ -\textgreater{}\ b)\ -\textgreater{}\ Vec\ n\ a\ -\textgreater{}\ Vec\ n\ b}.
+Here we see that the output list must have the same number of items as the input
+list, and it's enforced right there in the type signature!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level5.hs\#L35{-}L38}
+
+\OtherTok{vmap ::}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{ b) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Vec}\NormalTok{ n a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Vec}\NormalTok{ n b}
+\NormalTok{vmap f }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+  \DataTypeTok{VNil} \OtherTok{{-}\textgreater{}} \DataTypeTok{VNil}
+\NormalTok{  x }\OperatorTok{:+}\NormalTok{ xs }\OtherTok{{-}\textgreater{}}\NormalTok{ f x }\OperatorTok{:+}\NormalTok{ vmap f xs}
+\end{Highlighting}
+\end{Shaded}
+
+And how about
+\texttt{zipWith\ ::\ (a\ -\textgreater{}\ b\ -\textgreater{}\ c)\ -\textgreater{}\ {[}a{]}\ -\textgreater{}\ {[}b{]}\ -\textgreater{}\ {[}c{]}}?
+It's not clear or obvious at all how the final list's length depends on the
+input lists' lengths. However, a \texttt{vzipWith} would ensure the input
+lengths are the same size and that the output list is also the same length:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level5.hs\#L40{-}L45}
+
+\OtherTok{vzipWith ::}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{ b }\OtherTok{{-}\textgreater{}}\NormalTok{ c) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Vec}\NormalTok{ n a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Vec}\NormalTok{ n b }\OtherTok{{-}\textgreater{}} \DataTypeTok{Vec}\NormalTok{ n c}
+\NormalTok{vzipWith f }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+  \DataTypeTok{VNil} \OtherTok{{-}\textgreater{}}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+    \DataTypeTok{VNil} \OtherTok{{-}\textgreater{}} \DataTypeTok{VNil}
+\NormalTok{  x }\OperatorTok{:+}\NormalTok{ xs }\OtherTok{{-}\textgreater{}}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+\NormalTok{    y }\OperatorTok{:+}\NormalTok{ ys }\OtherTok{{-}\textgreater{}}\NormalTok{ f x y }\OperatorTok{:+}\NormalTok{ vzipWith f xs ys}
+\end{Highlighting}
+\end{Shaded}
+
+Note that both of the inner pattern matches are known by GHC to be exhaustive:
+if it knows that the first list is \texttt{VNil}, then it knows that
+\texttt{n\ \textasciitilde{}\ Z}, so the second list \emph{has to also} be
+\texttt{VNil}. Thanks GHC!
+
+We can even express more complicated relationships with type families:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level5.hs\#L47{-}L63}
+
+\KeywordTok{type} \KeywordTok{family} \DataTypeTok{Plus}\NormalTok{ (}\OtherTok{x ::} \DataTypeTok{Nat}\NormalTok{) (}\OtherTok{y ::} \DataTypeTok{Nat}\NormalTok{) }\KeywordTok{where}
+  \DataTypeTok{Plus} \DataTypeTok{Z}\NormalTok{ y }\OtherTok{=}\NormalTok{ y}
+  \DataTypeTok{Plus}\NormalTok{ (}\DataTypeTok{S}\NormalTok{ z) y }\OtherTok{=} \DataTypeTok{S}\NormalTok{ (}\DataTypeTok{Plus}\NormalTok{ z y)}
+
+\KeywordTok{type} \KeywordTok{family} \DataTypeTok{Times}\NormalTok{ (}\OtherTok{x ::} \DataTypeTok{Nat}\NormalTok{) (}\OtherTok{y ::} \DataTypeTok{Nat}\NormalTok{) }\KeywordTok{where}
+  \DataTypeTok{Times} \DataTypeTok{Z}\NormalTok{ y }\OtherTok{=} \DataTypeTok{Z}
+  \DataTypeTok{Times}\NormalTok{ (}\DataTypeTok{S}\NormalTok{ z) y }\OtherTok{=} \DataTypeTok{Plus}\NormalTok{ y (}\DataTypeTok{Times}\NormalTok{ z y)}
+
+\OtherTok{vconcat ::} \DataTypeTok{Vec}\NormalTok{ n a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Vec}\NormalTok{ m a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Vec}\NormalTok{ (}\DataTypeTok{Plus}\NormalTok{ n m) a}
+\NormalTok{vconcat }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+  \DataTypeTok{VNil} \OtherTok{{-}\textgreater{}} \FunctionTok{id}
+\NormalTok{  x }\OperatorTok{:+}\NormalTok{ xs }\OtherTok{{-}\textgreater{}}\NormalTok{ \textbackslash{}ys }\OtherTok{{-}\textgreater{}}\NormalTok{ x }\OperatorTok{:+}\NormalTok{ vconcat xs ys}
+
+\OtherTok{vconcatMap ::}\NormalTok{ (a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Vec}\NormalTok{ m b) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Vec}\NormalTok{ n a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Vec}\NormalTok{ (}\DataTypeTok{Times}\NormalTok{ n m) b}
+\NormalTok{vconcatMap f }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+  \DataTypeTok{VNil} \OtherTok{{-}\textgreater{}} \DataTypeTok{VNil}
+\NormalTok{  x }\OperatorTok{:+}\NormalTok{ xs }\OtherTok{{-}\textgreater{}}\NormalTok{ f x }\OtherTok{\textasciigrave{}vconcat\textasciigrave{}}\NormalTok{ vconcatMap f xs}
+\end{Highlighting}
+\end{Shaded}
+
+Note that all of these only work in GHC because the structure of the functions
+themselves match exactly the structure of the type families. If you follow the
+pattern matches in the functions, note that they match exactly with the
+different equations of the type family.
+
+Famously, we can totally index into fixed-length lists, in a way that indexing
+will not fail. To do that, we have to define a type \texttt{Fin\ n}, which
+represents an index into a list of length \texttt{n}. So,
+\texttt{Fin\ (S\ (S\ (S\ Z)))} will be either 0, 1, or 2, the three possible
+indices of a three-item list.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level5.hs\#L65{-}L67}
+
+\KeywordTok{data} \DataTypeTok{Fin}\OtherTok{ ::} \DataTypeTok{Nat} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+  \DataTypeTok{FZ}\OtherTok{ ::} \DataTypeTok{Fin}\NormalTok{ (}\DataTypeTok{\textquotesingle{}S}\NormalTok{ n)}
+  \DataTypeTok{FS}\OtherTok{ ::} \DataTypeTok{Fin}\NormalTok{ n }\OtherTok{{-}\textgreater{}} \DataTypeTok{Fin}\NormalTok{ (}\DataTypeTok{\textquotesingle{}S}\NormalTok{ n)}
+\end{Highlighting}
+\end{Shaded}
+
+You can think of this definition inductively. How do we have a value of type
+\texttt{Fin\ n}?
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Well, if \texttt{n} is non-zero, we can always index into the first item, with
+  \texttt{FZ}.
+\item
+  If we can index \texttt{i} into the \emph{i}-th index of a list of length
+  \texttt{n}, then we can always index into the \emph{i + 1}-th index of a list
+  of length \texttt{S\ n}. That's \texttt{FS\ i}.
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level5.hs\#L69{-}L74}
+
+\OtherTok{vindex ::} \DataTypeTok{Fin}\NormalTok{ n }\OtherTok{{-}\textgreater{}} \DataTypeTok{Vec}\NormalTok{ n a }\OtherTok{{-}\textgreater{}}\NormalTok{ a}
+\NormalTok{vindex }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+  \DataTypeTok{FZ} \OtherTok{{-}\textgreater{}}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+\NormalTok{    x }\OperatorTok{:+}\NormalTok{ \_ }\OtherTok{{-}\textgreater{}}\NormalTok{ x}
+  \DataTypeTok{FS}\NormalTok{ i }\OtherTok{{-}\textgreater{}}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+\NormalTok{    \_ }\OperatorTok{:+}\NormalTok{ xs }\OtherTok{{-}\textgreater{}}\NormalTok{ vindex i xs}
+\end{Highlighting}
+\end{Shaded}
+
+In a way you can think of \texttt{Fin\ n} as a ``spicy int'', that takes the
+place of the \texttt{Int} in
+\texttt{index\ ::\ Int\ -\textgreater{}\ {[}a{]}\ -\textgreater{}\ a}. You can
+use \texttt{FZ} in any non-empty list, because \texttt{FZ\ ::\ Fin\ (S\ n)} will
+match any non-empty \texttt{Vec\ (S\ n)}. You can use \texttt{FS\ FZ} only on
+something that matches \texttt{Vec\ (S\ (S\ n))}. This is the type-safety.
+
+We can also specify non-trivial relationships between lengths of lists, like
+making a more type-safe
+\texttt{take\ ::\ Int\ -\textgreater{}\ {[}a{]}\ -\textgreater{}\ {[}a{]}}. We
+want to make sure that the result list has a length less than or equal to the
+input list. We need another ``spicy int'' that can only be constructed in the
+case that the result length is less than or equal to the first length. This is
+often called a ``proof'' or a ``witness''
+
+We want a type \texttt{LTE\ n\ m} that is a ``witness'' that \texttt{n} is less
+than or equal to \texttt{m}. It can only be constructed for if \texttt{n} is
+less than or equal to \texttt{m}. For example, you can create a value of type
+\texttt{LTE\ (S\ Z)\ (S\ (S\ Z))}, but not of \texttt{LTE\ (S\ (S\ Z))\ Z}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level5.hs\#L76{-}L78}
+
+\KeywordTok{data} \DataTypeTok{LTE}\OtherTok{ ::} \DataTypeTok{Nat} \OtherTok{{-}\textgreater{}} \DataTypeTok{Nat} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+  \DataTypeTok{LTEZ}\OtherTok{ ::} \DataTypeTok{LTE} \DataTypeTok{Z}\NormalTok{ m}
+  \DataTypeTok{LTES}\OtherTok{ ::} \DataTypeTok{LTE}\NormalTok{ n m }\OtherTok{{-}\textgreater{}} \DataTypeTok{LTE}\NormalTok{ (}\DataTypeTok{\textquotesingle{}S}\NormalTok{ n) (}\DataTypeTok{\textquotesingle{}S}\NormalTok{ m)}
+\end{Highlighting}
+\end{Shaded}
+
+Again, let's this of this inductively. We can have a value of type
+\texttt{LTE\ n\ m} if:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  If \texttt{n} is \texttt{Z}, it is less than or equal to \emph{any}
+  \texttt{m}.
+\item
+  If \texttt{n\ \textless{}=\ m}, then it should also be true that
+  \texttt{n\ +\ 1\ \textless{}=\ m\ +\ 1}.
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level5.hs\#L80{-}L83}
+
+\OtherTok{vtake ::} \DataTypeTok{LTE}\NormalTok{ n m }\OtherTok{{-}\textgreater{}} \DataTypeTok{Vec}\NormalTok{ m a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Vec}\NormalTok{ n a}
+\NormalTok{vtake }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+  \DataTypeTok{LTEZ} \OtherTok{{-}\textgreater{}}\NormalTok{ \textbackslash{}\_ }\OtherTok{{-}\textgreater{}} \DataTypeTok{VNil}
+  \DataTypeTok{LTES}\NormalTok{ l }\OtherTok{{-}\textgreater{}}\NormalTok{ \textbackslash{}}\KeywordTok{case}\NormalTok{ x }\OperatorTok{:+}\NormalTok{ xs }\OtherTok{{-}\textgreater{}}\NormalTok{ x }\OperatorTok{:+}\NormalTok{ vtake l xs}
+\end{Highlighting}
+\end{Shaded}
+
+Notice the similarity to how we would define
+\texttt{take\ ::\ Int\ -\textgreater{}\ {[}a{]}\ -\textgreater{}\ {[}a{]}}. We
+just spiced up the \texttt{Int} argument with type safety.
+
+Another thing we would like to do is use be able to \emph{create} vectors of
+arbitrary length. We can look at
+\texttt{replicate\ ::\ Int\ -\textgreater{}\ a\ -\textgreater{}\ {[}a{]}}, and
+create a new ``spicy int'' \texttt{SNat\ n}, so
+\texttt{vreplicate\ ::\ SNat\ n\ -\textgreater{}\ a\ -\textgreater{}\ Vec\ n\ a}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level5.hs\#L85{-}L92}
+
+\KeywordTok{data} \DataTypeTok{SNat}\OtherTok{ ::} \DataTypeTok{Nat} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+  \DataTypeTok{SZ}\OtherTok{ ::} \DataTypeTok{SNat} \DataTypeTok{Z}
+  \DataTypeTok{SS}\OtherTok{ ::} \DataTypeTok{SNat}\NormalTok{ n }\OtherTok{{-}\textgreater{}} \DataTypeTok{SNat}\NormalTok{ (}\DataTypeTok{S}\NormalTok{ n)}
+
+\OtherTok{vreplicate ::} \DataTypeTok{SNat}\NormalTok{ n }\OtherTok{{-}\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Vec}\NormalTok{ n a}
+\NormalTok{vreplicate }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+  \DataTypeTok{SZ} \OtherTok{{-}\textgreater{}}\NormalTok{ \textbackslash{}\_ }\OtherTok{{-}\textgreater{}} \DataTypeTok{VNil}
+  \DataTypeTok{SS}\NormalTok{ n }\OtherTok{{-}\textgreater{}}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}}\NormalTok{ x }\OperatorTok{:+}\NormalTok{ vreplicate n x}
+\end{Highlighting}
+\end{Shaded}
+
+Notice that this type has a lot more guarantees than \texttt{replicate}. For
+\texttt{replicate\ ::\ Int\ -\textgreater{}\ a\ -\textgreater{}\ {[}a{]}}, we
+can't guarantee (as the caller) that the return type does have the length we
+give it. But for
+\texttt{vreplicate\ ::\ SNat\ n\ -\textgreater{}\ a\ -\textgreater{}\ Vec\ n\ a},
+it does!
+
+Note that \texttt{SNat\ n} is actually kind of special. We call it a
+\emph{singleton}, in that it perfectly reflects the structure of \texttt{n} the
+type, as a value. By pattern matching on \texttt{SNat\ n}, we can exactly
+determine what \texttt{n} is. \texttt{SZ} means \texttt{n} is \texttt{Z},
+\texttt{SS\ SZ} means \texttt{n} is \texttt{S\ Z}, etc. This is useful because
+we can't directly pattern match on types at runtime in Haskell (because of type
+erasure), but we \emph{can} pattern match on singletons at runtime.
+
+We actually encountered singletons before in this post! That's right,
+\texttt{TypeRep\ a} is a singleton for the type \texttt{a}: by pattern matching
+on it (like with \texttt{App} earlier), we can essentially ``pattern match'' on
+the type \texttt{a} itself.
+
+In practice, we often write typeclasses to automatically generate singletons:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level5.hs\#L94{-}L104}
+
+\KeywordTok{class} \DataTypeTok{KnownNat}\NormalTok{ n }\KeywordTok{where}
+\OtherTok{  nat ::} \DataTypeTok{SNat}\NormalTok{ n}
+
+\KeywordTok{instance} \DataTypeTok{KnownNat} \DataTypeTok{Z} \KeywordTok{where}
+\NormalTok{  nat }\OtherTok{=} \DataTypeTok{SZ}
+
+\KeywordTok{instance} \DataTypeTok{KnownNat}\NormalTok{ n }\OtherTok{=\textgreater{}} \DataTypeTok{KnownNat}\NormalTok{ (}\DataTypeTok{S}\NormalTok{ n) }\KeywordTok{where}
+\NormalTok{  nat }\OtherTok{=} \DataTypeTok{SS}\NormalTok{ nat}
+
+\OtherTok{vreplicate\textquotesingle{} ::} \DataTypeTok{KnownNat}\NormalTok{ n }\OtherTok{=\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Vec}\NormalTok{ n a}
+\NormalTok{vreplicate\textquotesingle{} }\OtherTok{=}\NormalTok{ vreplicate nat}
+\end{Highlighting}
+\end{Shaded}
+
+One last thing: moving back and forth between the different levels. We can't
+really write a \texttt{{[}a{]}\ -\textgreater{}\ Vec\ n\ a}, because in Haskell,
+the type variables are determined by the \emph{caller}. We want \texttt{n} to be
+determined by the list, and the function itself. And now suddenly we run into
+the same issue that we ran into before, when moving between levels 2 and 3.
+
+We can do the same trick before and write an existential wrapper:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level5.hs\#L106{-}L112}
+
+\KeywordTok{data} \DataTypeTok{SomeVec}\NormalTok{ a }\OtherTok{=} \KeywordTok{forall}\NormalTok{ n}\OperatorTok{.} \DataTypeTok{MkSomeVec}\NormalTok{ (}\DataTypeTok{SNat}\NormalTok{ n) (}\DataTypeTok{Vec}\NormalTok{ n a)}
+
+\OtherTok{toSomeVec ::}\NormalTok{ [a] }\OtherTok{{-}\textgreater{}} \DataTypeTok{SomeVec}\NormalTok{ a}
+\NormalTok{toSomeVec }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+\NormalTok{  [] }\OtherTok{{-}\textgreater{}} \DataTypeTok{MkSomeVec} \DataTypeTok{SZ} \DataTypeTok{VNil}
+\NormalTok{  x }\OperatorTok{:}\NormalTok{ xs }\OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ toSomeVec xs }\KeywordTok{of}
+    \DataTypeTok{MkSomeVec}\NormalTok{ n ys }\OtherTok{{-}\textgreater{}} \DataTypeTok{MkSomeVec}\NormalTok{ (}\DataTypeTok{SS}\NormalTok{ n) (x }\OperatorTok{:+}\NormalTok{ ys)}
+\end{Highlighting}
+\end{Shaded}
+
+It is common practice (and a good habit) to always include a singleton to the
+type you are ``hiding'' when you create an existential type wrapper, even when
+it is not always necessary. That's why we included \texttt{TypeRep} before in
+\texttt{HList} and \texttt{SomeList}.
+
+\texttt{SomeVec\ a} is essentially isomorphic to \texttt{{[}a{]}}, except you
+can pattern match on it and get the length \texttt{n} as a type you can use.
+
+There's a slightly more light-weight method of returning an existential type: by
+returning it in a continuation.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level5.hs\#L114{-}L117}
+
+\OtherTok{withVec ::}\NormalTok{ [a] }\OtherTok{{-}\textgreater{}}\NormalTok{ (}\KeywordTok{forall}\NormalTok{ n}\OperatorTok{.} \DataTypeTok{SNat}\NormalTok{ n }\OtherTok{{-}\textgreater{}} \DataTypeTok{Vec}\NormalTok{ n a }\OtherTok{{-}\textgreater{}}\NormalTok{ r) }\OtherTok{{-}\textgreater{}}\NormalTok{ r}
+\NormalTok{withVec }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+\NormalTok{  [] }\OtherTok{{-}\textgreater{}}\NormalTok{ \textbackslash{}f }\OtherTok{{-}\textgreater{}}\NormalTok{ f }\DataTypeTok{SZ} \DataTypeTok{VNil}
+\NormalTok{  x }\OperatorTok{:}\NormalTok{ xs }\OtherTok{{-}\textgreater{}}\NormalTok{ \textbackslash{}f }\OtherTok{{-}\textgreater{}}\NormalTok{ withVec xs \textbackslash{}n ys }\OtherTok{{-}\textgreater{}}\NormalTok{ f (}\DataTypeTok{SS}\NormalTok{ n) (x }\OperatorTok{:+}\NormalTok{ ys)}
+\end{Highlighting}
+\end{Shaded}
+
+That way, you can use the type variable within the continuation. Doing
+\texttt{withSomeVec\ xs\ \textbackslash{}n\ v\ -\textgreater{}\ ....} is
+identical to
+\texttt{case\ toSomeVec\ xs\ of\ SomeVec\ n\ v\ -\textgreater{}\ ...}.
+
+However, since you don't get the \texttt{n} itself until runtime, you might find
+yourself struggling to use concepts like \texttt{Fin} and \texttt{LTE}. To do
+use them comfortably, you have to write functions to ``check'' if your
+\texttt{LTE} is even possible, like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/type{-}levels/Level5.hs\#L119{-}L124}
+
+\OtherTok{isLTE ::} \DataTypeTok{SNat}\NormalTok{ n }\OtherTok{{-}\textgreater{}} \DataTypeTok{SNat}\NormalTok{ m }\OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ (}\DataTypeTok{LTE}\NormalTok{ n m)}
+\NormalTok{isLTE }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+  \DataTypeTok{SZ} \OtherTok{{-}\textgreater{}}\NormalTok{ \textbackslash{}\_ }\OtherTok{{-}\textgreater{}} \DataTypeTok{Just} \DataTypeTok{LTEZ}
+  \DataTypeTok{SS}\NormalTok{ n }\OtherTok{{-}\textgreater{}}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+    \DataTypeTok{SZ} \OtherTok{{-}\textgreater{}} \DataTypeTok{Nothing}
+    \DataTypeTok{SS}\NormalTok{ m }\OtherTok{{-}\textgreater{}} \DataTypeTok{LTES} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ isLTE n m}
+\end{Highlighting}
+\end{Shaded}
+
+This was a very whirlwind introduction, and I definitely recommend reading
+\href{https://blog.jle.im/entry/fixed-length-vector-types-in-haskell.html}{this
+post on fixed-length lists} for a more in-depth guide and tour of the features.
+
+Overall as you can see, at this level we gain some powerful guarantees and
+tools, but we also run into some small inconveniences (like manipulating
+witnesses and singletons). This level is fairly comfortable to work with in
+modern Haskell tooling. However, if you live here long enough, you're going to
+eventually be tempted to wander into\ldots{}
+
+\section{Level 6: Local Structure Enforced
+List}\label{level-6-local-structure-enforced-list}
+
+For here, we are going to ditch the constraints on the \emph{spine} of the list
+(we can always add it back in) and now go back into constraints on the
+\emph{contents} of the list.
+
+For a simple contrived example, we can imagine we have a list of items that we
+want to be able to slice intervals out of. For example, if we had a list of
+\texttt{Nat}s, let's say we want to be able to get all items between 3 and 6.
+
+One terrible way to do this is to enforce that our list is always \emph{sorted}.
+That is, our list contains \emph{local invariances}: any item must be less than
+or equal to the next item. We can do this within Haskell by always inserting
+into the list in a way that preserves sorting:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{insertSortedList ::} \DataTypeTok{Ord}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ [a] }\OtherTok{{-}\textgreater{}}\NormalTok{ [a]}
+\NormalTok{insertSortedList x }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+\NormalTok{  [] }\OtherTok{{-}\textgreater{}}\NormalTok{ [x]}
+\NormalTok{  y}\OperatorTok{:}\NormalTok{ys}
+    \OperatorTok{|}\NormalTok{ x }\OperatorTok{\textless{}=}\NormalTok{ y }\OtherTok{=}\NormalTok{ x }\OperatorTok{:}\NormalTok{ y }\OperatorTok{:}\NormalTok{ ys}
+    \OperatorTok{|} \FunctionTok{otherwise} \OtherTok{=}\NormalTok{ y }\OperatorTok{:}\NormalTok{ insertSorted x ys}
+\end{Highlighting}
+\end{Shaded}
+
+However, the fact that this list is sorted is not apparent in its type. We want
+to show that, yes, the list we take in is sorted, and the list we output is also
+sorted. What eldritch abomination can we reach for here?
+
+later: turn into a priorirty queue
+
+\section{Level 7: Global structure Enforced
+List}\label{level-7-global-structure-enforced-list}
+
+This one will be: sum is less than or equal to a number. used for a bounded
+priority queue
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}
