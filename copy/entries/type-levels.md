@@ -673,6 +673,10 @@ However, the fact that this list is sorted is not apparent in its type. We want
 to show that, yes, the list we take in is sorted, and the list we output is
 also sorted. What eldritch abomination can we reach for here?
 
+later: turn into a priorirty queue
+
 Level 7: Global structure Enforced List
 ---------------------------------------
 
+This one will be: sum is less than or equal to a number. used for a bounded
+priority queue

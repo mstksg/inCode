@@ -14,13 +14,14 @@ import Data.Foldable
 import Data.Foldable.WithIndex
 import Data.Map (Map)
 import qualified Data.Map as M
+import Data.Proxy
 import Data.Set (Set)
 import qualified Data.Set as S
 import Data.Type.Equality
+import Data.Type.Ord
 import qualified Data.Vector.Mutable.Sized as MV
 import Data.Vector.Sized (Vector)
 import qualified Data.Vector.Sized as V
-import GHC.TypeLits.Compare
 import GHC.TypeNats
 import Linear.Metric
 import Linear.V2
@@ -80,9 +81,10 @@ kMeans' ::
   [p a] ->
   [p a]
 kMeans' k pts = case someNatVal k of
-  SomeNat @k pk -> case SNat @1 `isLE` pk of
-    Nothing -> []
-    Just Refl -> toList $ kMeans @k pts
+  SomeNat @k pk -> case cmpNat (Proxy @1) pk of
+    LTI -> toList $ kMeans @k pts -- 1 < k, so 1 <= k is valid
+    EQI -> toList $ kMeans @k pts -- 1 == k, so 1 <= k is valid
+    GTI -> [] -- in this branch, 1 > k, so we cannot call kMeans
 
 groupAndSum ::
   (Metric p, Floating a, Ord a, KnownNat (k + 1)) =>
