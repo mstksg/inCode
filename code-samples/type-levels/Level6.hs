@@ -48,6 +48,21 @@ type family FlipOrdering o where
 cmpNatConst :: forall p p' n m a b. (KnownNat n, KnownNat m) => p n a -> p' m b -> OrderingI n m
 cmpNatConst _ _ = cmpNat (Proxy @n) (Proxy @m)
 
+data DecideLTE :: Nat -> Nat -> Type where
+  DLTE :: (n <= m, Min n m ~ n) => DecideLTE n m
+  DGT :: (m <= n, Min n m ~ m) => DecideLTE n m
+
+decideLTE :: (KnownNat a, KnownNat b) => p a -> p b -> DecideLTE a b
+decideLTE x y = case cmpNat x y of
+  LTI -> DLTE
+  EQI -> DLTE
+  GTI -> case cmpNat y x of
+    LTI -> DGT
+    GTI -> error "absurd"
+
+decideLTE2 :: forall a b p p' x y. (KnownNat a, KnownNat b) => p a x -> p' b y -> DecideLTE a b
+decideLTE2 _ _ = decideLTE (Proxy @a) (Proxy @b)
+
 -- we can probably do something better without doing a double-compare, maybe
 -- pass in the first compare
 flipCmpNat ::
@@ -70,23 +85,14 @@ flipMin = case cmpNat (Proxy @a) (Proxy @b) of
 insertSorted ::
   forall n m a. (KnownNat n, KnownNat m) => Entry n a -> Sorted m a -> Sorted (Min n m) a
 insertSorted x = \case
-  SSingle y -> case cmpNatConst x y of
-    LTI -> SCons x (SSingle y)
-    EQI -> SCons x (SSingle y)
-    GTI ->
-      gcastWith (flipCmpNat @n @m) $
-        SCons y (SSingle x)
-  SCons @q y ys -> case cmpNatConst x y of
-    LTI -> SCons x (SCons y ys)
-    EQI -> SCons x (SCons y ys)
-    GTI ->
-      gcastWith (flipCmpNat @n @m) $
-        let addY :: Sorted (Min n q) a -> Sorted m a
-            addY = case cmpNatConst x ys of
-              LTI -> SCons y :: Sorted n a -> Sorted m a
-              EQI -> SCons y :: Sorted n a -> Sorted m a
-              GTI -> SCons y :: Sorted q a -> Sorted m a
-         in addY (insertSorted x ys)
+  SSingle y -> case decideLTE2 x y of
+    DLTE -> SCons x (SSingle y)
+    DGT -> SCons y (SSingle x)
+  SCons @q y ys -> case decideLTE2 x y of
+    DLTE -> SCons x (SCons y ys)
+    DGT -> case decideLTE2 x ys of
+      DLTE -> SCons y $ insertSorted x ys
+      DGT -> SCons y $ insertSorted x ys
 
 mergeSorted ::
   forall n m a.
@@ -100,20 +106,40 @@ mergeSorted = \case
     SSingle y ->
       gcastWith (flipMin @n @m) $
         insertSorted y (SCons x xs)
-    SCons @r y ys -> case cmpNatConst x y of
-      LTI -> ($ mergeSorted xs (SCons y ys)) case cmpNatConst xs y of
-        LTI -> SCons x
-        EQI -> SCons x
-        GTI -> SCons x
-      EQI -> ($ mergeSorted xs (SCons y ys)) case cmpNatConst xs y of
-        LTI -> SCons x
-        EQI -> SCons x
-        GTI -> SCons x
-      GTI -> gcastWith (flipCmpNat @n @m) $
-        ($ mergeSorted (SCons x xs) ys) case cmpNatConst x ys of
-          LTI -> SCons y
-          EQI -> SCons y
-          GTI -> SCons y
+    SCons @r y ys -> case decideLTE2 x y of
+      DLTE -> case decideLTE2 xs y of
+        DLTE -> SCons x $ mergeSorted xs (SCons y ys)
+        DGT -> SCons x $ mergeSorted xs (SCons y ys)
+      DGT -> case decideLTE2 x ys of
+        DLTE -> SCons y $ mergeSorted (SCons x xs) ys
+        DGT -> SCons y $ mergeSorted (SCons x xs) ys
+
+-- mergeSorted ::
+--   forall n m a.
+--   (KnownNat n, KnownNat m) =>
+--   Sorted n a ->
+--   Sorted m a ->
+--   Sorted (Min n m) a
+-- mergeSorted = \case
+--   SSingle x -> insertSorted x
+--   SCons @q x xs -> \case
+--     SSingle y ->
+--       gcastWith (flipMin @n @m) $
+--         insertSorted y (SCons x xs)
+--     SCons @r y ys -> case cmpNatConst x y of
+--       LTI -> ($ mergeSorted xs (SCons y ys)) case cmpNatConst xs y of
+--         LTI -> SCons x :: Sorted q a -> Sorted n a
+--         EQI -> SCons x :: Sorted q a -> Sorted n a
+--         GTI -> SCons x :: Sorted m a -> Sorted n a
+--       EQI -> ($ mergeSorted xs (SCons y ys)) case cmpNatConst xs y of
+--         LTI -> SCons x :: Sorted q a -> Sorted n a
+--         EQI -> SCons x :: Sorted q a -> Sorted n a
+--         GTI -> SCons x :: Sorted m a -> Sorted n a
+--       GTI -> gcastWith (flipCmpNat @n @m) $
+--         ($ mergeSorted (SCons x xs) ys) case cmpNatConst x ys of
+--           LTI -> SCons y :: Sorted n a -> Sorted m a
+--           EQI -> SCons y :: Sorted n a -> Sorted m a
+--           GTI -> SCons y :: Sorted r a -> Sorted m a
 
 -- GTI -> SCons y $ mergeSorted (SCons x xs) ys
 -- case cmpNatConst x y of
