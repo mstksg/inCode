@@ -15,7 +15,8 @@
             (haskell.packages.ghc981.ghcWithPackages (p: with p; [
               (haskell.lib.unmarkBroken typelits-witnesses)
               # finite-typelits
-              # ghc-typelits-natnormalise
+              ghc-typelits-natnormalise
+              ghc-typelits-knownnat
               # linear
               # mwc-random
               # vector-sized

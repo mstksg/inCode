@@ -7,7 +7,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Level6 () where
+module Level6 (Entry (..)) where
 
 import Data.Bifunctor
 import Data.Kind
@@ -29,9 +29,6 @@ data Entry (n :: Nat) a = Entry a
 
 instance (KnownNat n, Show a) => Show (Entry n a) where
   show (Entry x) = "Entry @" <> show (natVal (Proxy @n)) <> " " <> show x
-
-constProxy :: p n a -> Proxy n
-constProxy _ = Proxy
 
 data Sorted :: Nat -> Type -> Type where
   SSingle :: Entry n a -> Sorted n a
