@@ -7,7 +7,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Level5 (Nat (..), SNat (..), LTE (..), isLTE) where
+module Level5 (Nat (..), SNat (..), LTE (..), isLTE, Plus) where
 
 import Data.Kind
 import Data.Void
@@ -63,7 +63,9 @@ vconcatMap f = \case
   x :+ xs -> f x `vconcat` vconcatMap f xs
 
 data Fin :: Nat -> Type where
+  -- | if z is non-zero, FZ :: Fin z gives you the first item
   FZ :: Fin ('S n)
+  -- | if i indexes into length z, then (i+1) indixes into length (z+1)
   FS :: Fin n -> Fin ('S n)
 
 vindex :: Fin n -> Vec n a -> a
@@ -74,7 +76,9 @@ vindex = \case
     _ :+ xs -> vindex i xs
 
 data LTE :: Nat -> Nat -> Type where
+  -- | Z is less than or equal to any number
   LTEZ :: LTE Z m
+  -- | if n <= m, then (n + 1) <= (m + 1)
   LTES :: LTE n m -> LTE ('S n) ('S m)
 
 vtake :: LTE n m -> Vec m a -> Vec n a

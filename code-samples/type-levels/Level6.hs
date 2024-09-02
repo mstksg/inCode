@@ -7,7 +7,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Level6 (Entry (..)) where
+module Level6 (main, Entry (..)) where
 
 import Data.Bifunctor
 import Data.Kind
@@ -18,12 +18,12 @@ import Data.Type.Ord
 import GHC.TypeNats
 import Unsafe.Coerce
 
-insertSortedList :: Ord a => a -> [a] -> [a]
-insertSortedList x = \case
-  [] -> [x]
-  y : ys
-    | x <= y -> x : y : ys
-    | otherwise -> y : insertSortedList x ys
+insertSortedList :: (Int, a) -> [(Int, a)] -> [(Int, a)]
+insertSortedList (p, x) = \case
+  [] -> [(p, x)]
+  (q, y) : ys
+    | p <= q -> (p, x) : (q, y) : ys
+    | otherwise -> (q, y) : insertSortedList (p, x) ys
 
 data Entry (n :: Nat) a = Entry a
 
@@ -35,9 +35,6 @@ data Sorted :: Nat -> Type -> Type where
   SCons :: (KnownNat m, n <= m) => Entry n a -> Sorted m a -> Sorted n a
 
 deriving instance (KnownNat n, Show a) => Show (Sorted n a)
-
-cmpNatConst :: forall p p' n m a b. (KnownNat n, KnownNat m) => p n a -> p' m b -> OrderingI n m
-cmpNatConst _ _ = cmpNat (Proxy @n) (Proxy @m)
 
 data DecideInsert :: Nat -> Nat -> Type where
   DIZ :: (n <= m, Min n m ~ n) => DecideInsert n m

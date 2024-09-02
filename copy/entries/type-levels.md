@@ -12,26 +12,20 @@ level of type-safety you want to work at.  Haskell offers tools to be able to
 work at *both* extremes (which are often undesirable except in extraordinary
 circumstances), whereas most languages only offer some limited part of the
 spectrum.  No promises about the ergonomics of either extreme, though --- just
-that they are possible!  Of course, often times Haskellers get a reputation of
-always dialing it up to extreme safety just because they can, and not because
-it's a good idea :)  To be fair, I'm not going to claim that I'm immune to this
-effect; something that has helped me, though, is being consciously aware of the
-different levels of type safety that are available, and the
-benefits/drawbacks/unique advantages to each.
+that they are "possible"! At both ends, things become pretty unwieldy in
+Haskell, so picking the right level often comes down to being consciously aware
+of the benefits/drawbacks/unique advantages to each.
 
-So, here is a rundown of seven "levels" of type safety that you can operate at
-when working with the ubiquitous *strict* linked list data type, and how to use
-them!  I genuinely believe all of these are useful (or useless) in their own
-different circumstances.
-
-[refined]: https://hackage.haskell.org/package/refined
+So, here is a rundown of seven "levels" of type safety (plus a bonus Level 0)
+that you can operate at when working with the ubiquitous *strict* linked list
+data type, and how to use them!  I genuinely believe all of these are useful
+(or useless) in their own different circumstances.
 
 This post is written for a late beginner or intermediate Haskeller, who is
 already familiar with ADTs and defining their own custom list type like `data
 List a = Nil | Cons a (List a)`. But, be advised that the techniques discussed
 in this post are considered esoteric at best and harmful at worst for most
 actual real-world applications. Inside every Haskeller there are two wolves.
-
 
 Level 1: Could be anything
 --------------------------
@@ -88,8 +82,6 @@ witness that lets you "match" on the type.
 ```haskell
 !!!type-levels/Level1.hs "showIfBool ::"
 ```
-
-
 
 Here we can use `TypeRep`'s interface to "match" (using `testEquality`) on if
 the value inside is a `Bool`.  If the match works (and we get `Just Refl`) then
@@ -154,7 +146,7 @@ ghci> showSigma y
 
 This is the "[existential typeclass antipattern][palmer]", but since we are
 talking about different ways we can tease the type system, it's probably worth
-mentioning!  Note that `Show` is a bit silly of a typeclass to use in this
+mentioning.  In particular, `Show` is a silly typeclass to use in this
 context because a `Sigma Showable` is equivalent to just a `String`: once you
 match on the constructor to get the value, the only thing you can do with the
 value is `show` it anyway.
@@ -262,15 +254,11 @@ ghci> showAll xs
 ["1", "True"]
 ```
 
-For `Show`, this is, again, a rather silly thing to do because of the reasons
-mentioned in the Palmer post --- namely, that you could always just have a
-`[String]` directly instead of an `HList Showable`, since the only thing you
-can do with a `Sigma Showable` is `show` it.
-
-For fun, let's imagine some other things we could fill in for `p`.  If we use
-`HList Proxy`, then we basically don't have any witness at all.  We can't use
-the values in the list in any meaningful way; `HList Proxy` is essentially the
-same as `Natural`, since the only information is the length.
+Again, `Show` is a bad typeclass to use for this.  But for fun, let's imagine
+some other things we could fill in for `p`.  If we use `HList Proxy`, then we
+basically don't have any witness at all.  We can't use the values in the list
+in any meaningful way; `HList Proxy` is essentially the same as `Natural`,
+since the only information is the length.
 
 If we use `HList IsBool`, we basically have `[Bool]`, since every item must be
 a `Bool`!  In general, `HList ((:~:) a)` is the same as `[a]`.
@@ -327,8 +315,9 @@ have:
 !!!type-levels/Level3.hs "processList ::"
 ```
 
-I'm just kidding, this is not useful, please use a real closed ADT if you ever
-want to do this.
+In this specific situation, using a closed ADT of all the types you'd actually
+want is preferred.  But sometimes "any type implementing this typeclass" could
+be useful.
 
 Anyway, this pattern is overall similar to how lists are often used in practice
 for dynamic languages: *usually* when we use lists, we expect them all to have
@@ -400,12 +389,8 @@ The property of being able to state and express relationships between the
 values of input lists and output lists and the items in those lists is
 extremely powerful, and also extremely ergonomic to use in Haskell.  It can be
 argued that Haskell, as a language, was tuned explicitly to be used with the
-least friction at this exact level of type safety.
-
-We're going to talk the least about this one because it's probably the one you
-are all familiar with!
-
-<!-- the rest of these are me in 2024 guessing as to what i was thinking in 2021 -->
+least friction at *this* exact level of type safety.  Haskell is a "Level 4
+language".
 
 Level 5: Fixed-size List
 ------------------------
@@ -418,9 +403,20 @@ To me, this level still feels very natural in Haskell to write in, although in
 terms of usability we are starting to bump into some of the things Haskell is
 lacking for higher type safety ergonomics. I've talked about [fixed-length
 vector types in depth before][fixvec-2], so this is going to be a high-level
-view contrasting this level with the others.
+view contrasting this level with the others.[^vector]
 
 [fixvec-2]: https://blog.jle.im/entry/fixed-length-vector-types-in-haskell.html
+
+[^vector]: Note that I don't really like calling these "vectors" any more,
+because in a computer science context the word vector carries implications of
+contiguous-memory storage. "Lists" of fixed length is the more appropriate
+description here, in my opinion. The term "vector" for this concept arises from
+linear algebra, where a vector is inherently defined by its vector _space_,
+which [does have an inherent dimensionality][dimension]. But we are talking
+about computer science concepts here, not mathematical concepts, so we should
+pick the name that provides the most useful implicit connotations.
+
+[dimension]: https://en.wikipedia.org/wiki/Dimension_theorem_for_vector_spaces
 
 The essential concept is to introduce a *phantom type*, a type parameter that
 doesn't do anything other than indicate something that we can use in
@@ -470,20 +466,15 @@ relate to each other with respect to length.
 
 [linear]: https://hackage.haskell.org/package/linear
 
-For example, `map :: (a -> b) -> [a] -> [b]` does *not* tell you that the
-length of the result list is the same as the length of the input list. You
-could argue that because `fmap = map` follows the functor laws, it must return
-a list with the same number of items. However, this fact is not encoded in the
-*type* itself.
-
-However, consider `vmap :: (a -> b) -> Vec n a -> Vec n b`. Here we see that
-the output list must have the same number of items as the input list, and it's
-enforced right there in the type signature!
+For example, the *type* alone of `map :: (a -> b) -> [a] -> [b]` does *not*
+tell you that the length of the result list is the same as the length of the
+input list. However, consider `vmap :: (a -> b) -> Vec n a -> Vec n b`. Here we
+see that the output list must have the same number of items as the input list,
+and it's enforced right there in the type signature!
 
 ```haskell
 !!!type-levels/Level5.hs "vmap ::"
 ```
-
 
 And how about `zipWith :: (a -> b -> c) -> [a] -> [b] -> [c]`? It's not clear
 or obvious at all how the final list's length depends on the input lists'
@@ -515,32 +506,20 @@ an index into a list of length `n`.  So, `Fin (S (S (S Z)))` will be either 0,
 1, or 2, the three possible indices of a three-item list.
 
 ```haskell
-!!!type-levels/Level5.hs "data Fin"
+!!!type-levels/Level5.hs "data Fin" "vindex ::"
 ```
 
-You can think of this definition inductively.  How do we have a value of type
-`Fin n`?
-
-1. Well, if `n` is non-zero, we can always index into the first item, with `FZ`.
-2. If we can index `i` into the *i*-th index of a list of length `n`, then we
-   can always index into the *i + 1*-th index of a list of length `S n`. That's
-   `FS i`.
-
-```haskell
-!!!type-levels/Level5.hs "vindex ::"
-```
-
-In a way you can think of `Fin n` as a "spicy int", that takes the place of the
-`Int` in `index :: Int -> [a] -> a`. You can use `FZ` in any non-empty list,
-because `FZ :: Fin (S n)` will match any non-empty `Vec (S n)`. You can use `FS
-FZ` only on something that matches `Vec (S (S n))`. This is the type-safety.
+`Fin` takes the place of `Int` in `index :: Int -> [a] -> a`. You can use `FZ`
+in any non-empty list, because `FZ :: Fin (S n)` will match any non-empty `Vec
+(S n)`. You can use `FS FZ` only on something that matches `Vec (S (S n))`.
+This is the type-safety.
 
 We can also specify non-trivial relationships between lengths of lists, like
 making a more type-safe `take :: Int -> [a] -> [a]`. We want to make sure that
 the result list has a length less than or equal to the input list. We need
-another "spicy int" that can only be constructed in the case that the result
-length is less than or equal to the first length. This is often called a
-"proof" or a "witness"
+another "int" that can only be constructed in the case that the result length
+is less than or equal to the first length. This is often called a "proof" or a
+"witness".
 
 We want a type `LTE n m` that is a "witness" that `n` is less than or equal to
 `m`.  It can only be constructed for if `n` is less than or equal to `m`. For
@@ -548,23 +527,13 @@ example, you can create a value of type `LTE (S Z) (S (S Z))`, but not of `LTE
 (S (S Z)) Z`
 
 ```haskell
-!!!type-levels/Level5.hs "data LTE ::"
-```
-
-Again, let's this of this inductively.  We can have a value of type `LTE n m`
-if:
-
-1. If `n` is `Z`, it is less than or equal to *any* `m`.
-2. If `n <= m`, then it should also be true that `n + 1 <= m + 1`.
-
-```haskell
-!!!type-levels/Level5.hs "vtake ::"
+!!!type-levels/Level5.hs "data LTE ::" "vtake ::"
 ```
 
 Notice the similarity to how we would define `take :: Int -> [a] -> [a]`. We
 just spiced up the `Int` argument with type safety.
 
-Another thing we would like to do is use be able to *create* vectors of
+Another thing we would like to do is use be able to *create* lists of
 arbitrary length. We can look at `replicate :: Int -> a -> [a]`, and create a
 new "spicy int" `SNat n`, so `vreplicate :: SNat n -> a -> Vec n a`
 
@@ -606,10 +575,10 @@ We can do the same trick before and write an existential wrapper:
 !!!type-levels/Level5.hs "data SomeVec" "toSomeVec ::"
 ```
 
-It is common practice (and a good habit) to always include a singleton to the
-type you are "hiding" when you create an existential type wrapper, even when it
-is not always necessary. That's why we included `TypeRep` before in `HList` and
-`SomeList`.
+It is common practice (and a good habit) to always include a singleton (or a
+singleton-like typeclass constraint) to the type you are "hiding" when you
+create an existential type wrapper, even when it is not always necessary.
+That's why we included `TypeRep` in `HList` and `SomeList` earlier.
 
 `SomeVec a` is essentially isomorphic to `[a]`, except you can pattern match on
 it and get the length `n` as a type you can use.
@@ -647,33 +616,51 @@ eventually be tempted to wander into...
 Level 6: Local Structure Enforced List
 --------------------------------------
 
-For here, we are going to ditch the constraints on the *spine* of the list (we
-can always add it back in) and now go back into constraints on the *contents*
-of the list.
+Let's go back into constraints on the *contents* of the list.  Let's try to
+implement a _priority queue_ on top of a list.  Each value in the list will be
+a *(priority, value)* pair. To make it easy to always pop out the value of
+_lowest priority_, we can enforce that the list is _always sorted by priority_:
+the lowest priority is always first, the second lowest is second, etc.
 
-For a simple contrived example, we can imagine we have a list of items that we
-want to be able to slice intervals out of.  For example, if we had a list of
-`Nat`s, let's say we want to be able to get all items between 3 and 6.
-
-One terrible way to do this is to enforce that our list is always *sorted*.
-That is, our list contains *local invariances*: any item must be less than or
-equal to the next item. We can do this within Haskell by always inserting into
-the list in a way that preserves sorting:
+We can do this by always inserting a new item so that it is sorted:
 
 ```haskell
-insertSortedList :: Ord a => a -> [a] -> [a]
-insertSortedList x = \case
-  [] -> [x]
-  y:ys
-    | x <= y = x : y : ys
-    | otherwise = y : insertSorted x ys
+!!!type-levels/Level6.hs "insertSortedList ::"
 ```
 
-However, the fact that this list is sorted is not apparent in its type. We want
-to show that, yes, the list we take in is sorted, and the list we output is
-also sorted. What eldritch abomination can we reach for here?
+Notice that this method enforces a *local* structure: between every item `x` and
+the next item `y`, the priority of `x` has to be less than the priority `y`.
+Keeping our structure local means we only need to enforce local invariants.
 
-later: turn into a priorirty queue
+We're also going to need some more complicated functions, like "combining"
+(merging) two sorted lists together. However, using a normal list, it's very
+easy to mess up this structure. How about we leverage type safety to ask GHC to
+ensure that our functions are always correct, and always preserve this local
+structure?  Now you're thinking in types!
+
+A quick note before we dive in: for the rest of this post, for the sake of
+simplicity, let's switch from inductively defined types (like `Nat` above) to
+GHC's built in [opaque `Nat` type][typenats]. Effectively, it's the same as
+`Nat` above, except it's implemented under the hood using machine integers.
+Because of this, we cannot structurally pattern match on it, so we are at the
+mercy of the exported API in *GHC.TypeNats*, which provides `+` and `<=` and
+`>` etc.  We also cannot easily create and manipulate witnesses from scratch,
+so we have to rely on the exported API and also [typechecker plugins][]. In
+reality, doing the kind of work we are doing here using hand-rolled inductive
+types or typechecker plugins is going to look similar, except you're going to
+be manually defining, constructing, and manipulating a lot of witnesses
+inductively.
+
+[typenats]: https://hackage.haskell.org/package/base-4.20.0.1/docs/GHC-TypeNats.html
+[typechecker plugins]: https://hackage.haskell.org/package/ghc-typelits-natnormalise
+
+With that disclaimer out of the way, let's create our types!  Let's make an
+`Entry n a` type that signifies we want 
+
+```haskell
+!!!type-levels/Level6.hs "data Entry" "data Sorted"
+```
+
 
 Level 7: Global structure Enforced List
 ---------------------------------------

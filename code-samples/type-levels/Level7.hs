@@ -8,7 +8,7 @@
 {-# OPTIONS_GHC -fplugin GHC.TypeLits.KnownNat.Solver #-}
 {-# OPTIONS_GHC -fplugin GHC.TypeLits.Normalise #-}
 
-module Level7 () where
+module Level7 (main) where
 
 import Data.Bifunctor
 import Data.Kind
@@ -17,7 +17,7 @@ import Data.Proxy
 import Data.Type.Equality
 import Data.Type.Ord
 import GHC.TypeNats
-import Level6 (Entry (..))
+import Level6 (Entry)
 import Unsafe.Coerce
 import Prelude hiding (Bounded (..))
 
@@ -30,9 +30,7 @@ data Bounded :: Nat -> Nat -> Type -> Type where
     Bounded lim m a ->
     Bounded lim (n + m) a
 
--- data InsertBounded :: Nat -> Nat -> Nat -> Type -> Type where
---   IBSuccess :: n + m <= lim => Bounded lim (n + m) a -> InsertBounded lim n m a
---   IBFailure :: n + m > lim => InsertBounded lim n m a
+deriving instance (Show a, KnownNat n) => Show (Bounded lim n a)
 
 reBounded :: forall lim lim' n a. n <= lim' => Bounded lim n a -> Bounded lim' n a
 reBounded = \case
@@ -44,11 +42,8 @@ withBoundedWit = \case
   BNil -> \x -> x
   BCons _ _ -> \x -> x
 
--- lteSum1 :: forall a b c r. (a + b <= c) => (a <= c => r) -> r
--- lteSum1 x = x
-
--- lteSum2 :: forall a b c r. (a + b <= c) => (b <= c => r) -> r
--- lteSum2 x = x
+bCons :: KnownNat m => Entry n a -> Bounded lim m a -> Bounded (n + lim) (n + m) a
+bCons x xs = withBoundedWit xs $ BCons x (reBounded xs)
 
 concatBounded ::
   forall n m lim a.
@@ -60,38 +55,39 @@ concatBounded = \case
   BNil -> id
   BCons @x @xs x xs -> BCons x . concatBounded xs
 
+solveLte ::
+  forall a b c n r.
+  (KnownNat a, KnownNat c, KnownNat n, a + b <= n, c <= b) =>
+  (a + c <= n => r) ->
+  r
+solveLte x = case cmpNat (Proxy @(a + c)) (Proxy @n) of
+  LTI -> x
+  EQI -> x
+  GTI -> error "absurd"
+
 reverseBounded ::
   forall lim n a. (n <= lim, KnownNat lim, KnownNat n) => Bounded lim n a -> Bounded lim n a
 reverseBounded = go BNil
   where
     go ::
       forall m q.
-      (KnownNat m, KnownNat q, m <= lim, q <= lim, (m + q) <= lim) =>
+      (KnownNat m, KnownNat q, m <= lim, m + q <= lim) =>
       Bounded lim m a ->
       Bounded lim q a ->
       Bounded lim (m + q) a
     go res = \case
       BNil -> res
-      BCons @x @xs x xs -> case cmpNat (Proxy @(x + m)) (Proxy @lim) of
-        LTI -> go @(x + m) @xs (BCons @x @m x res) xs
-        EQI -> go @(x + m) @xs (BCons @x @m x res) xs
+      BCons @x @xs x xs ->
+        solveLte @m @q @x @lim $
+          go @(x + m) @xs (BCons @x @m x res) xs
 
 data SplitBounded :: Nat -> Nat -> Nat -> Type -> Type where
   SplitBounded ::
     forall q lim lim' n a.
-    KnownNat q =>
+    (KnownNat q, q <= n) =>
     Bounded lim' q a ->
     Bounded lim (n - q) a ->
     SplitBounded lim lim' n a
-
-addLTE :: forall a b c r. (KnownNat a, KnownNat b, KnownNat c, a <= c - b) => (a + b <= c => r) -> r
-addLTE x = case cmpNat (Proxy @(a + b)) (Proxy @c) of
-  LTI -> x
-  EQI -> x
-  GTI -> error "huh"
-
--- huh :: (a <= c - b, c >= b, c - b >= 0) => (a + b <= c => r) -> r
--- huh x = x
 
 splitBounded ::
   forall lim lim' n a.
@@ -103,48 +99,53 @@ splitBounded = \case
   BCons @x @xs x xs -> case cmpNat (Proxy @x) (Proxy @lim') of
     LTI -> case splitBounded @lim @(lim' - x) @xs xs of
       SplitBounded @q ys zs ->
-        withBoundedWit ys $
-          addLTE @q @x @lim' $
-            SplitBounded (BCons x $ reBounded ys) $ _ zs
+        SplitBounded (bCons x ys) zs
     EQI -> SplitBounded (BCons x BNil) xs
     GTI -> SplitBounded BNil (BCons x xs)
 
--- splitBounded :: Bounded lim n a -> (forall q u. (Bounded lim' q a, Bounded (lim - lim') u a) -> r) -> r
--- splitBounded x f = _
+data TakeBounded :: Nat -> Nat -> Type -> Type where
+  TakeBounded ::
+    forall q lim n a.
+    (KnownNat q, q <= n) =>
+    Bounded lim q a ->
+    TakeBounded lim n a
 
--- BNil -> BNil
--- BCons x xs ->
+takeBounded ::
+  forall lim lim' n a.
+  (KnownNat lim, KnownNat lim', KnownNat n) =>
+  Bounded lim n a ->
+  TakeBounded lim' n a
+takeBounded = \case
+  BNil -> TakeBounded BNil
+  BCons @x @xs x xs -> case cmpNat (Proxy @x) (Proxy @lim') of
+    LTI -> case takeBounded @lim @(lim' - x) xs of
+      TakeBounded @q ys -> TakeBounded @(x + q) (bCons x ys)
+    EQI -> TakeBounded (BCons x BNil)
+    GTI -> TakeBounded BNil
 
--- BNil -> \ys -> withBoundedWit ys $ IBSuccess ys
--- BCons x xs -> \ys -> case concatBounded xs ys of
---   IBSuccess xsys -> case cmpNat (Proxy @(n + m)) (Proxy @lim) of
---     LTI -> IBSuccess $ BCons x xsys
---     EQI -> IBSuccess $ BCons x xsys
---     GTI -> IBFailure
---   IBFailure -> case cmpNat (Proxy @(n + m)) (Proxy @lim) of
---     LTI -> case cmpNat (Proxy @lim) (Proxy @(n + m)) of
---       LTI -> undefined
---       GTI -> undefined
---     GTI -> undefined
+data SomeBounded :: Nat -> Type -> Type where
+  SomeBounded :: KnownNat n => Bounded lim n a -> SomeBounded lim a
 
--- IBSuccess $ BCons x xsys
+insertSomeBounded ::
+  forall lim n a.
+  (KnownNat lim, KnownNat n) =>
+  Entry n a ->
+  SomeBounded lim a ->
+  Maybe (SomeBounded lim a)
+insertSomeBounded x (SomeBounded @m xs) = case cmpNat (Proxy @(n + m)) (Proxy @lim) of
+  LTI -> Just $ SomeBounded (BCons x xs)
+  EQI -> Just $ SomeBounded (BCons x xs)
+  GTI -> Nothing
 
--- LTI -> IBSuccess $ BCons x xs
--- EQI -> IBSuccess $ BCons x xs
--- GTI -> IBFailure
+insertReBounded ::
+  forall lim n a.
+  (KnownNat lim, KnownNat n) =>
+  Entry n a ->
+  SomeBounded lim a ->
+  SomeBounded (lim + n) a
+insertReBounded x (SomeBounded @m xs) =
+  withBoundedWit xs $
+    SomeBounded (BCons x (reBounded xs))
 
--- * split into two legal bounded queues
-
--- * reverse
-
--- * safe head i guess? nah that's dumb
-
--- * concat
-
--- * relax
-
---
--- -- is this dumb?
--- takeBounded
---   :: Bounded lim n a
---   -> Bounded lim
+main :: IO ()
+main = pure ()
