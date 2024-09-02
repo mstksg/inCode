@@ -25,7 +25,7 @@ insertSortedList (p, x) = \case
     | p <= q -> (p, x) : (q, y) : ys
     | otherwise -> (q, y) : insertSortedList (p, x) ys
 
-data Entry (n :: Nat) a = Entry a
+newtype Entry (n :: Nat) a = Entry a
 
 instance (KnownNat n, Show a) => Show (Entry n a) where
   show (Entry x) = "Entry @" <> show (natVal (Proxy @n)) <> " " <> show x
@@ -33,6 +33,8 @@ instance (KnownNat n, Show a) => Show (Entry n a) where
 data Sorted :: Nat -> Type -> Type where
   SSingle :: Entry n a -> Sorted n a
   SCons :: (KnownNat m, n <= m) => Entry n a -> Sorted m a -> Sorted n a
+
+infixr 5 `SCons`
 
 deriving instance (KnownNat n, Show a) => Show (Sorted n a)
 
@@ -42,11 +44,11 @@ data DecideInsert :: Nat -> Nat -> Type where
 
 decideInsert :: forall a b. (KnownNat a, KnownNat b) => DecideInsert a b
 decideInsert = case cmpNat (Proxy @a) (Proxy @b) of
-  LTI -> DIZ
-  EQI -> DIZ
+  LTI -> DIZ -- if a < b, DIZ
+  EQI -> DIZ -- if a == b, DIZ
   GTI -> case cmpNat (Proxy @b) (Proxy @a) of
-    LTI -> DIS
-    GTI -> error "absurd"
+    LTI -> DIS -- if a > b, DIZ, except GHC isn't smart enough to know this
+    GTI -> error "absurd, we can't have both a > b and b > a"
 
 sConsMin ::
   forall q r n a.
@@ -115,7 +117,9 @@ someSortedMin = case cmpNat (Proxy @n) (Proxy @m) of
   GTI -> SomeSorted
 
 popSomeSorted :: Sorted n a -> (Entry n a, Maybe (SomeSorted a))
-popSomeSorted xs = popSorted xs (,Nothing) (\x ys -> (x, Just (SomeSorted ys)))
+popSomeSorted = \case
+  SSingle x -> (x, Nothing)
+  SCons x xs -> (x, Just (SomeSorted xs))
 
 insertionSort :: forall a. NonEmpty (Natural, a) -> SomeSorted a
 insertionSort ((k0, x0) :| xs0) = withSomeSNat k0 \(SNat @k) -> go xs0 (SomeSorted (SSingle (Entry @k x0)))

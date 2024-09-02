@@ -655,11 +655,117 @@ inductively.
 [typechecker plugins]: https://hackage.haskell.org/package/ghc-typelits-natnormalise
 
 With that disclaimer out of the way, let's create our types!  Let's make an
-`Entry n a` type that signifies we want 
+`Entry n a` type that represents a value of type `a` with priority `n`.
 
 ```haskell
-!!!type-levels/Level6.hs "data Entry" "data Sorted"
+!!!type-levels/Level6.hs "newtype Entry"
 ```
+
+We'd construct this like `Entry @3 "hello"`, which produces `Entry 3 String`.
+
+Now let's think about what phantom types we want to include in our list. To do
+this, we must think about what "type safe operation" we want, and then add just
+enough phantom types to perform that operation. In our case, we want to be able
+to cons an `Entry n a` to the start of a sorted list. To ensure this, we need
+to know that n is less than or equal to the list's *current minimum priority*.
+So, we need our list type to be `Sorted n a`, where `n` is the *current minimum
+priority*.
+
+```haskell
+!!!type-levels/Level6.hs "data Sorted"
+```
+
+To simplify we are only going to talk about non-empty lists, so the minimum
+priority is always defined. So, a `Sorted n a` is either `SSingle (x :: Entry n
+a)`, where the single item is a value of priority `n`, or `SCons x xs`, where
+`x` has priority `n` and `xs :: Sorted m a`, where `n <= m`.  In our previous
+inductive type system, you could imagine this as `SSCons :: SNat m -> LTE n m
+-> Entry n a -> Sorted m a -> Sorted n a`, but here we will use GHC's built-in
+`<=` typeclass-based witness of less-than-or-equal-to-ness.
+
+And this works!  You should be able to write:
+
+```haskell
+Entry @1 'a' `SCons` Entry @2 'b' `SCons` SSingle (Entry @3 'c')
+```
+
+And that would be a valid list where the priorities are all sorted from lowest
+to highest.  You can now pop using pattern matching, which gives you the lowest
+element *by construction*. If you match on `SCons x xs`, you *know* that no
+entry in `xs` has a priority lower than `x`.
+
+To *use* this type in practice, we want to existentially wrap out the
+`n`.  The `n` is there to guide us in *writing* our functions in a type-safe
+way, but for the *users* of our priority queue, they probably won't care.
+
+```haskell
+!!!type-levels/Level6.hs "data SomeSorted" "popSomeSorted ::"
+```
+
+`popSomeSorted` takes an `Sorted n a` and returns the `Entry n a` promised at
+the start of it, and then the rest of the list if there is anything left,
+eliding the phantom parameter.
+
+Now let's get to the interesting parts where we actually leverage `n`: let's
+write `insertSortedList`, but the type-safe way!
+
+First of all, what should the type be if we insert an `Entry n a` into a
+`Sorted m a`? If `n <= m`, it would be `Sorted n a`. If `n > m`, it should be
+`Sorted m a`. Conveniently GHC gives us a type family `Min n m`, which returns the
+minimum between `n` and `m`. So our type should be:
+
+```haskell
+insertSorted :: Entry n a -> Sorted m a -> Sorted (Min n m) a
+```
+
+To write this, we can use two helper functions: first, to decide *if* we
+are in the `n <= m` or the `n > m` case:
+
+```haskell
+!!!type-levels/Level6.hs "data DecideInsert ::" "decideInsert ::"
+```
+
+We can use `decideInsert` to branch on if we are in the case where we insert
+the entry at the head or the case where we have to insert it deeper.
+`DecideInsert` here is our witness, and `decideInsert` constructs it using
+`cmpNat`, provided by GHC to compare two `Nat`s. Note that GHC isn't smart
+enough to know we can rule out `b > a` if `a > b` is true. Oh well. If we were
+writing our witnesses by hand using inductive types, we could write this
+ourselves, but since we are using GHC's Nat, we are limited by what their API
+can prove.
+
+Let's start writing our `insertSorted`:
+
+```haskell
+!!!type-levels/Level6.hs "insertSorted ::"
+```
+
+The structure is more or less the same as `insertSortedList` originally, but
+now type safe! We basically use our handy helper function `decideInsert` to
+dictate where we go.  I also used a helper function `sConsMin` to insert into
+the recursive case
+
+```haskell
+!!!type-levels/Level6.hs "sConsMin ::"
+```
+
+`sConsMin` isn't strictly necessary, but it saves a lot of unnecessary pattern
+matching.  The reason why we need it is because we have to know if we want to
+use `SCons :: Entry n a -> Sorted q a -> Sorted n a` or `SCons :: Entry n a ->
+Sorted r a -> Sorted n a`, because functions in Haskell have to be specialized
+to actually use them. Instead of pattern matching again, we wrap it in
+`sConsMin` for simplicity.
+
+Note that we use a feature called "Type Abstractions" to "match on" the
+existential type variable `q` in the pattern `SCons @q y ys`. Recall from the
+definition of `SCons` that the first type variable is the minimum value of the
+sublist.
+
+And just like that, we made our `insertSortedList` type-safe! We can no longer
+write it incorrectly: it always inserts sortedly, by *construction*, enforced
+by GHC. We only had to use one unsafe function (with `error`), but that was
+only because we used GHC's TypeNats...if we used our own inductive types, all
+unsafety can be avoided.
 
 
 Level 7: Global structure Enforced List
