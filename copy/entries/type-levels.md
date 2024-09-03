@@ -16,10 +16,10 @@ that they are "possible"! At both ends, things become pretty unwieldy in
 Haskell, so picking the right level often comes down to being consciously aware
 of the benefits/drawbacks/unique advantages to each.
 
-So, here is a rundown of seven "levels" of type safety (plus a bonus Level 0)
-that you can operate at when working with the ubiquitous *strict* linked list
-data type, and how to use them!  I genuinely believe all of these are useful
-(or useless) in their own different circumstances.
+So, here is a rundown of seven "levels" of type safety that you can operate at
+when working with the ubiquitous linked list data type, and how to use them!  I
+genuinely believe all of these are useful (or useless) in their own different
+circumstances.
 
 This post is written for a late beginner or intermediate Haskeller, who is
 already familiar with ADTs and defining their own custom list type like `data
@@ -489,7 +489,8 @@ Note that both of the inner pattern matches are known by GHC to be exhaustive:
 if it knows that the first list is `VNil`, then it knows that `n ~ Z`, so the
 second list *has to also* be `VNil`. Thanks GHC!
 
-We can even express more complicated relationships with type families:
+We can even express more complicated relationships with type families
+(type-level "functions"):
 
 ```haskell
 !!!type-levels/Level5.hs "type family Plus" "type family Times" "vconcat ::" "vconcatMap ::"
@@ -826,5 +827,183 @@ And a function to convert back down to a normal non-empty list, using GHC's
 Level 7: Global structure Enforced List
 ---------------------------------------
 
-This one will be: sum is less than or equal to a number. used for a bounded
-priority queue
+For our final level, let's imagine a "weighted list" of `(Int, a)`
+pairs, where each item `a` has an associated weight or cost.  Now, let's
+further imagine a "bounded weighted list", where the _total cost_ must not
+exceed some limit value. Think of it as a list of files and their sizes and a
+maximum total file size, or a backpack for a character in a video game with a
+maximum total carrying weight.
+
+There is a fundamental difference here between this type and our last type: we
+want to enforce a *global* invariant (total cannot exceed a limit), and we
+can't "fake" this using local invariants like last time.  We saw a bit of the
+extra complexities this brings from our fixed-length lists from before:
+whatever phantom type we use to enforce this "global" invariant now becomes
+entangled to the overall structure of our data type itself.
+
+Let's re-use our `Entry` type, but interpret an `Entry n a` as a value of type
+`a` with a weight `n`. Now, we'll ask the same question we asked before: what
+"type-safe" operation do we want, and what minimal phantom types do we need to
+allow this type-safe operation? In our case, we want to *insert* into our
+bounded weighted list in a safe way, to ensure that there is enough room. So,
+we need *two* phantom types:
+
+1. One phantom type `lim` to establish the maximum weight of our container
+2. Another phantom type `n` to establish the current used capacity of our
+   container.
+
+We want `Bounded lim n a`:
+
+```haskell
+!!!type-levels/Level7.hs "data Bounded"
+```
+
+*   The empty bounded container `BNil :: lim 0 a` can satisfy *any* `lim`, and
+    has weight 0.
+*   If we have a `Bounded lim m a`, then we can add an `Entry n a` to get a
+    `Bounded lim (m + n) a` provided that `m + n <= lim` using `BCons`.
+
+Let's try this out by seeing how the end user would "maybe insert" into a
+bounded list of it had enough capacity:
+
+```haskell
+!!!type-levels/Level7.hs "data SomeBounded" "insertSomeBounded ::"
+```
+
+First we match on the `SomeBounded` to see what the current capacity `m` is.
+Then we check using `cmpNat` to see if the `Bounded` can hold `m + n`. If it
+does, we can return successfully.  Note that we define `SomeBounded` using GADT
+syntax so we can precisely control the order of the type variables, so
+`SomeBounded @m xs` binds `m` to the capacity of the inner list.
+
+Now that the usage makes sense, let's jump in and write some type-safe
+functions using our fancy phantom types!
+
+First, let's notice that we can always "resize" our `Bounded lim n a` to a
+`Bounded lim' n a` as long as the total usage `n` fits within the new carrying
+capacity:
+
+```haskell
+!!!type-levels/Level7.hs "reBounded ::"
+```
+
+Note that we have full type safety here! GHC will prevent us from using
+`reBounded` if we pick a new `lim` that is *less* than what the bag currently
+weighs!
+
+How about a function to combine two bags of the same weight? Well, this should
+be legal as long as the new combined weight is still within the
+limit:[^concatBounded]
+
+```haskell
+!!!type-levels/Level7.hs "concatBounded ::"
+```
+
+[^concatBounded]: I think this function actually makes `Bounded lim n a` the
+arrows of a category where the objects are the natural numbers and the identity
+arrow is `BNil`. Neat I guess?  It's related to the [preoder category][].
+Always nice to spot categories out there in the wild.
+
+[preorder category]: https://ncatlab.org/nlab/show/preorder
+
+It should be noted that the reason that `reBounded` and `concatBounded` look so
+clean so fresh is that we are heavily leveraging typechecker plugins (in this
+case, *[ghc-typelits-natnormalise][]* and *[ghc-typelits-knonwnnat][]*). But,
+these are all still possible with normal functions if we construct the
+witnesses explicitly.
+
+[ghc-typelits-natnormalise]: https://hackage.haskell.org/package/ghc-typelits-natnormalise
+[ghc-typelits-knonwnnat]: https://hackage.haskell.org/package/ghc-typelits-knownnat
+
+Now for our first non-trivial function, let's write `takeBounded`, which
+*constricts* a `Bounded lim n a` to a `Bounded lim' q a` with a smaller limit
+`lim'`, where `q` is the weight of *all of the elements that fit in the new
+limit*.  For example, if we had a bag of limit 15 with items weighing 4, 3, and 5
+(total 12), but we wanted to `takeBounded` with a new limit 10, we would take
+the 4 and 3 items, but leave behind the 5 item, to get a new total weight of 7.
+
+It'd be nice to have a helper data type to existentially contain the new `q`
+weight:
+
+```haskell
+!!!type-levels/Level7.hs "data TakeBounded"
+```
+
+So the type of `takeBounded` would be:
+
+```haskell
+takeBounded ::
+  (KnownNat lim, KnownNat lim', KnownNat n) =>
+  Bounded lim n a ->
+  TakeBounded lim' n a
+```
+
+Again I'm going to introduce some helper functions that will make sense soon:
+
+```haskell
+!!!type-levels/Level7.hs "bCons ::" "withBoundedWit ::"
+```
+
+From the type, we can see `bCons` adds a new item while also increasing the
+limit: `bCons :: Entry n a -> Bounded lim m a -> Bounded (n + lim) (n + m) a`.
+This is always safe because we can always add a new item into any bag if we
+increase the limit of the bag: `Entry 100 a -> Bounded 5 3 a -> Bounded 105 103
+a`, for instance.
+
+However, you'll notice that if we write this as `BCons x (reBounded xs)` alone,
+we'll get a GHC error complaining that this requires `m <= lim`.  This is
+something that we *know* has to be true (by construction), since there isn't
+any constructor of `Bounded` that will give us a total weight `m` bigger than
+the limit `lim`.  However, this requires a bit of witness manipulation for GHC
+to *know* this: we have to essentially enumerate over every constructor, and
+within each constructor GHC knows that `m <= lim` holds.  This is what
+`withBoundedWit` does.  We "know" `n <= lim`, we just need to enumerate over
+the constructors of `Bounded lim n a` so GHC is happy in every case.
+
+`withBoundedWit`'s type might be a little confusing if this is the first time
+you've seen an argument of type `(constraint => r)`: it takes a `Bounded lim n
+a` and a "value that is only possible if `n <= lim`", and then gives you that
+value.
+
+With that, we're ready:
+
+```haskell
+!!!type-levels/Level7.hs "takeBounded ::"
+```
+
+Thanks to the types, we ensure that the returned bag must contain *at most*
+`lim'`.
+
+As an exercise, try writing `splitBounded`, which is like `takeBounded` but
+also returns the items that were leftover. [The solution is here!][splitBounded]
+
+
+```haskell
+!!!type-levels/Level7.hs "data SplitBounded ::" "splitBounded ::"5
+```
+
+!!![splitBounded]:type-levels/Level7.hs "splitBounded ::"
+
+One final example, how about a function that *reverses* the `Bounded lim n a`? We're going to write a "single-pass reverse", similar to how it's often written
+for lists:
+
+```haskell
+!!!type-levels/Level7.hs "reverseList ::"
+```
+
+Now, reversing a `Bounded` should be legal, because reversing the order of the
+items shouldn't change the total weight. However, we basically "invert" the
+structure of the `Bounded` type, which, depending on how we set up our phantom
+types, could mean a lot of witness reshuffling.  Luckily, our typechecker
+plugin handles most of it for us in this case, but it exposes one hole.
+
+```haskell
+!!!type-levels/Level7.hs "reverseBounded ::" "solveLte ::"
+```
+
+Due to how everything gets exposed, we need to prove that if `a + b <= n` and
+`c <= b`, then `a + c <= n`. This is always true, but the typechecker plugin
+needs a bit of help, and we have to resort to an unsafe operation to get this
+to work.  However, if we were using our manually constructed inductive types
+instead of GHC's opaque ones, we could write this in
+a type-safe and total way.

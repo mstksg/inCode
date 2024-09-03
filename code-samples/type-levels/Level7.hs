@@ -35,7 +35,7 @@ deriving instance (Show a, KnownNat n) => Show (Bounded lim n a)
 reBounded :: forall lim lim' n a. n <= lim' => Bounded lim n a -> Bounded lim' n a
 reBounded = \case
   BNil -> BNil
-  BCons x xs -> BCons x $ reBounded xs
+  BCons x xs -> BCons x (reBounded xs)
 
 withBoundedWit :: Bounded lim n a -> (n <= lim => r) -> r
 withBoundedWit = \case
@@ -63,7 +63,14 @@ solveLte ::
 solveLte x = case cmpNat (Proxy @(a + c)) (Proxy @n) of
   LTI -> x
   EQI -> x
-  GTI -> error "absurd"
+  GTI -> error "absurd: if a + b <= n and c < b, the a + c can't > n"
+
+reverseList :: [a] -> [a]
+reverseList = go []
+  where
+    go res = \case
+      [] -> res
+      x:xs -> go (x:res) xs
 
 reverseBounded ::
   forall lim n a. (n <= lim, KnownNat lim, KnownNat n) => Bounded lim n a -> Bounded lim n a
