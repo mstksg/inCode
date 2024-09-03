@@ -44,7 +44,7 @@ anything:
 chosen because it resembles [the Any type in base][Any])
 
 [GADT Syntax]: https://typeclasses.com/ghc/gadt-syntax
-[Any]: https://hackage.haskell.org/package/base-4.14.1.0/docs/GHC-Exts.html#t:Any
+[Any]: https://hackage.haskell.org/package/bas/docs/GHC-Exts.html#t:Any
 
 So you can have values:
 
@@ -77,7 +77,7 @@ value:
 And the most classic witness is [`TypeRep`][TypeRep] from *base*, which is a
 witness that lets you "match" on the type.
 
-[TypeRep]: https://hackage.haskell.org/package/base-4.14.1.0/docs/Type-Reflection.html#t:TypeRep
+[TypeRep]: https://hackage.haskell.org/package/base/docs/Type-Reflection.html#t:TypeRep
 
 ```haskell
 !!!type-levels/Level1.hs "showIfBool ::"
@@ -101,7 +101,7 @@ This pattern is common enough that there's the *[Data.Dynamic][]* module in
 base that is `Sigma TypeRep`, and wraps our `testEquality` dance above in a
 function called `fromDynamic`:
 
-[Data.Dynamic]: https://hackage.haskell.org/package/base-4.14.1.0/docs/Data-Dynamic.html
+[Data.Dynamic]: https://hackage.haskell.org/package/base/docs/Data-Dynamic.html
 
 ```haskell
 !!!type-levels/Level1.hs "showIfBoolDynamic ::"
@@ -186,7 +186,7 @@ type safety?  Weird.  Anyway.
 !!!type-levels/Level1.hs "justAnInt ::"
 ```
 
-[Data.Type.Equality]: https://hackage.haskell.org/package/base-4.14.1.0/docs/Data-Type-Equality.html#t::-126-:
+[Data.Type.Equality]: https://hackage.haskell.org/package/base/docs/Data-Type-Equality.html#t::-126-:
 
 I think one interesting thing to see here is that being "type-unsafe" in
 Haskell can be much less convenient than doing something similar in a
@@ -651,7 +651,7 @@ types or typechecker plugins is going to look similar, except you're going to
 be manually defining, constructing, and manipulating a lot of witnesses
 inductively.
 
-[typenats]: https://hackage.haskell.org/package/base-4.20.0.1/docs/GHC-TypeNats.html
+[typenats]: https://hackage.haskell.org/package/base/docs/GHC-TypeNats.html
 [typechecker plugins]: https://hackage.haskell.org/package/ghc-typelits-natnormalise
 
 With that disclaimer out of the way, let's create our types!  Let's make an
@@ -662,6 +662,10 @@ With that disclaimer out of the way, let's create our types!  Let's make an
 ```
 
 We'd construct this like `Entry @3 "hello"`, which produces `Entry 3 String`.
+This uses *type application syntax*, `@3`, that lets us pass in the *type* `3`
+to the constructor `Entry :: forall n a. a -> Entry n a`.  We could also write
+`Entry @3 @String "hello"` to pass in both `n` and `a`, but in this case type
+inference can handle the `a ~ String` part for us.
 
 Now let's think about what phantom types we want to include in our list. To do
 this, we must think about what "type safe operation" we want, and then add just
@@ -750,11 +754,14 @@ the recursive case
 ```
 
 `sConsMin` isn't strictly necessary, but it saves a lot of unnecessary pattern
-matching.  The reason why we need it is because we have to know if we want to
-use `SCons :: Entry n a -> Sorted q a -> Sorted n a` or `SCons :: Entry n a ->
-Sorted r a -> Sorted n a`, because functions in Haskell have to be specialized
-to actually use them. Instead of pattern matching again, we wrap it in
-`sConsMin` for simplicity.
+matching.  The reason why we need it is because we *want* to write `SCons y
+(insertSorted x ys)` in the last line of `insertSorted`.  However, in this
+case, `SCons` does not have a well-defined type. It can either be `Entry n ->
+Sorted q a -> Sorted n a` or `Entry n -> Sorted r a -> Sorted n a`. Haskell
+requires functions to be specialized at the place we actually *use* them, so
+this is no good. We would have to pattern match on `cmpNat` and
+`LTI`/`EQI`/`GTI` in order to know how to specialize `SCons`. So, we use
+`sConsMin` to wrap this up for clarity.
 
 Note that we use a feature called "Type Abstractions" to "match on" the
 existential type variable `q` in the pattern `SCons @q y ys`. Recall from the
@@ -767,6 +774,54 @@ by GHC. We only had to use one unsafe function (with `error`), but that was
 only because we used GHC's TypeNats...if we used our own inductive types, all
 unsafety can be avoided.
 
+Let's write the function to *merge* two sorted lists together. This is
+essentially the merge step of a merge sort: take two lists, look at the head of
+each one, cons the smaller of the two heads, then recurse.
+
+```haskell
+!!!type-levels/Level6.hs "mergeSorted ::"
+```
+
+Again, this looks a lot like how you would write the normal function to merge
+two sorted lists...except this time, it's type-safe! You can't write this
+incorrectly because the result list has to be sorted *by construction*. We
+again use a combination of `decideInserted` and `sConsMin` to do some manual
+witness manipulation.
+
+To wrap it all up, let's write our conversion functions.  First, an
+`insertionSort` function that takes a normal non-empty list of priority-value
+pairs and throws them all into a `Sorted`, which (by construction) is
+guaranteed to be sorted:
+
+```haskell
+!!!type-levels/Level6.hs "insertionSort ::" "someSortedMin ::"
+```
+
+Some things to note:
+
+1.  We're using the [nonempty list type][nonempty] type from *base*, because
+    `Sorted` always has at least one element.
+1.  We use `withSomeSNat` to turn a `Natural` into the type-level `n :: Nat`,
+    the same way we wrote `withVec` earlier. This is just just the function
+    that GHC offers to reify a `Natural` (non-negative `Integer`) to the type
+    level.
+2.  `someSortedMin` is used to clean up the implementation, doing the same job
+    that `sConsMin` did.
+
+[nonempty]: https://hackage.haskell.org/package/base/docs/Data-List-NonEmpty.html
+
+```haskell
+ghci> case insertionSort ((4, 'a') :| [(3, 'b'), (5, 'c'), (4, 'd')]) of
+          SomeSorted xs -> print xs
+SCons Entry @3 'b' (SCons Entry @4 'd' (SCons Entry @4 'a' (SSingle Entry @5 'c')))
+```
+
+And a function to convert back down to a normal non-empty list, using GHC's
+`natVal` to "demote" a type-level `n :: Nat` to a `Natural`
+
+```haskell
+!!!type-levels/Level6.hs "fromSorted ::"
+```
 
 Level 7: Global structure Enforced List
 ---------------------------------------

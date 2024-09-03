@@ -12,6 +12,7 @@ module Level6 (main, Entry (..)) where
 import Data.Bifunctor
 import Data.Kind
 import Data.List.NonEmpty (NonEmpty (..))
+import qualified Data.List.NonEmpty as NE
 import Data.Proxy
 import Data.Type.Equality
 import Data.Type.Ord
@@ -61,18 +62,12 @@ sConsMin = case cmpNat (Proxy @q) (Proxy @r) of
   EQI -> SCons :: Entry n a -> Sorted q a -> Sorted n a
   GTI -> SCons :: Entry n a -> Sorted r a -> Sorted n a
 
-flipMin :: forall a b. (KnownNat a, KnownNat b) => Min a b :~: Min b a
-flipMin = case cmpNat (Proxy @a) (Proxy @b) of
-  LTI -> case cmpNat (Proxy @b) (Proxy @a) of
-    LTI -> error "absurd"
-    GTI -> Refl
-  EQI -> Refl
-  GTI -> case cmpNat (Proxy @b) (Proxy @a) of
-    LTI -> Refl
-    GTI -> error "absurd"
-
 insertSorted ::
-  forall n m a. (KnownNat n, KnownNat m) => Entry n a -> Sorted m a -> Sorted (Min n m) a
+  forall n m a.
+  (KnownNat n, KnownNat m) =>
+  Entry n a ->
+  Sorted m a ->
+  Sorted (Min n m) a
 insertSorted x = \case
   SSingle y -> case decideInsert @n @m of
     DIZ -> SCons x (SSingle y)
@@ -90,9 +85,9 @@ mergeSorted ::
 mergeSorted = \case
   SSingle x -> insertSorted x
   SCons @q x xs -> \case
-    SSingle y ->
-      gcastWith (flipMin @n @m) $
-        insertSorted y (SCons x xs)
+    SSingle y -> case decideInsert @n @m of
+      DIZ -> sConsMin @q @m x $ mergeSorted xs (SSingle y)
+      DIS -> SCons y (SCons x xs)
     SCons @r y ys -> case decideInsert @n @m of
       DIZ -> sConsMin @q @m x $ mergeSorted xs (SCons y ys)
       DIS -> sConsMin @n @r y $ mergeSorted (SCons x xs) ys
@@ -110,7 +105,11 @@ data SomeSorted a = forall n. KnownNat n => SomeSorted (Sorted n a)
 
 deriving instance Show a => Show (SomeSorted a)
 
-someSortedMin :: forall n m a. (KnownNat n, KnownNat m) => Sorted (Min n m) a -> SomeSorted a
+someSortedMin ::
+  forall n m a.
+  (KnownNat n, KnownNat m) =>
+  Sorted (Min n m) a ->
+  SomeSorted a
 someSortedMin = case cmpNat (Proxy @n) (Proxy @m) of
   LTI -> SomeSorted
   EQI -> SomeSorted
@@ -121,8 +120,12 @@ popSomeSorted = \case
   SSingle x -> (x, Nothing)
   SCons x xs -> (x, Just (SomeSorted xs))
 
-insertionSort :: forall a. NonEmpty (Natural, a) -> SomeSorted a
-insertionSort ((k0, x0) :| xs0) = withSomeSNat k0 \(SNat @k) -> go xs0 (SomeSorted (SSingle (Entry @k x0)))
+insertionSort ::
+  forall a.
+  NonEmpty (Natural, a) ->
+  SomeSorted a
+insertionSort ((k0, x0) :| xs0) = withSomeSNat k0 \(SNat @k) ->
+  go xs0 (SomeSorted (SSingle (Entry @k x0)))
   where
     go :: [(Natural, a)] -> SomeSorted a -> SomeSorted a
     go [] = id
@@ -132,5 +135,11 @@ insertionSort ((k0, x0) :| xs0) = withSomeSNat k0 \(SNat @k) -> go xs0 (SomeSort
           someSortedMin @k @n $
             insertSorted (Entry @k x) ys
 
+fromSorted :: forall n a. KnownNat n => Sorted n a -> NonEmpty (Natural, a)
+fromSorted = \case
+  SSingle (Entry x) -> (natVal (Proxy @n), x) :| []
+  SCons (Entry x) xs -> (natVal (Proxy @n), x) NE.<| fromSorted xs
+
 main :: IO ()
-main = print $ insertionSort ((4, 'a') :| [(3, 'b'), (5, 'c'), (4, 'd')])
+main = case insertionSort ((4, 'a') :| [(3, 'b'), (5, 'c'), (4, 'd')]) of
+  SomeSorted xs -> print xs
