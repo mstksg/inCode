@@ -27,8 +27,9 @@ List a = Nil | Cons a (List a)`. But, be advised that the techniques discussed
 in this post are considered esoteric at best and harmful at worst for most
 actual real-world applications. Inside every Haskeller there are two wolves.
 
-All of the code here is [available online][] here, and if you check out the
-repo and run `nix develop` you should be able to load them all in ghci as well:
+All of the code here is [available online][code samples] here, and if you check
+out the repo and run `nix develop` you should be able to load them all in ghci
+as well:
 
 !!![code-samples]:type-levels/flake.nix
 
@@ -981,7 +982,7 @@ weighs!
 
 How about a function to combine two bags of the same weight? Well, this should
 be legal as long as the new combined weight is still within the
-limit:[^concatBounded]
+limit:
 
 ```haskell
 !!!type-levels/Level7.hs "concatBounded ::"
@@ -993,10 +994,10 @@ limit:[^concatBounded]
 Hold up! This is completely unrelated to the topic at hand, but if you're a big
 nerd like me, you might enjoy the fact that I this function makes `Bounded lim
 n a` the *arrows* of a [Category][] whose *objects* are the natural numbers,
-the identity arrow is `BNil`, and arrow composition is `concatBounded`.
-Between object `n` and `m`, if `n <= m`, its arrows are values of type `Bounded
-lim (m - n) a`.  Actually wait, it's the same thing with `Vec` above isn't it?
-I guess we were moving so fast that I didn't have time to realize it.
+the identity arrow is `BNil`, and arrow composition is `concatBounded`. Between
+object `n` and `m`, if `n <= m`, its arrows are values of type `Bounded lim (m
+- n) a`.  Actually wait, it's the same thing with `Vec` and `vconcat` above
+isn't it? I guess we were moving so fast that I didn't have time to realize it.
 
 Anyway this is related to the [preorder category][], but not thin. A thicc
 preorder category, if you will.  Always nice to spot a category out there in
