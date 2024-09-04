@@ -76,7 +76,7 @@ justABool :: Sigma IsBool
 justABool = MkSigma ItsABool False
 
 justAnInt :: Sigma ((:~:) Int)
-justAnInt = MkSigma Refl 10
+justAnInt = MkSigma Refl 10 -- Refl :: Int :~: Int
 
 main :: IO ()
 main = pure ()
