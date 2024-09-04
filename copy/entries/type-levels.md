@@ -30,7 +30,7 @@ All of the code here is [available online][code samples] here, and if you check
 out the repo and run `nix develop` you should be able to load them all in ghci
 as well:
 
-!!![code-samples]:type-levels/flake.nix
+!!![code samples]:type-levels/flake.nix
 
 ```bash
 $ cd code-samples/type-levels
