@@ -866,12 +866,12 @@ have now!
 
 Note that we use a feature called "Type Abstractions" to "match on" the
 existential type variable `q` in the pattern `SCons @q y ys`. Recall from the
-definition of `SCons` that the first type variable is the minimum value of the
-sublist.
+definition of `SCons` that the first type variable is the minimum priority of the
+tail.
 
 And just like that, we made our `insertSortedList` *type-safe*! We can no
 longer return an unsorted list: it always inserts sortedly, by *construction*,
-enforced by GHC. Well, we did cheat a little with `error`, that was only
+enforced by GHC. We did cheat a little with `error`, that was only
 because we used GHC's TypeNats...if we used our own inductive types, all
 unsafety can be avoided.
 
@@ -915,8 +915,8 @@ ghci> case insertionSort ((4, 'a') :| [(3, 'b'), (5, 'c'), (4, 'd')]) of
 SCons Entry @3 'b' (SCons Entry @4 'd' (SCons Entry @4 'a' (SSingle Entry @5 'c')))
 ```
 
-And a function to convert back down to a normal non-empty list, using GHC's
-`natVal` to "demote" a type-level `n :: Nat` to a `Natural`
+Finally, a function to convert back down to a normal non-empty list, using
+GHC's `natVal` to "demote" a type-level `n :: Nat` to a `Natural`
 
 ```haskell
 !!!type-levels/Level6.hs "fromSorted ::"
