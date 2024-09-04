@@ -73,7 +73,7 @@ insertSorted x = \case
     DIS -> SCons y (SSingle x)
   SCons @q y ys -> case decideInsert @n @m of
     DIZ -> SCons x (SCons y ys)
-    DIS -> sConsMin @n @q y $ insertSorted x ys
+    DIS -> sConsMin @n @q y (insertSorted x ys)
 
 mergeSorted ::
   forall n m a.
@@ -85,11 +85,11 @@ mergeSorted = \case
   SSingle x -> insertSorted x
   SCons @q x xs -> \case
     SSingle y -> case decideInsert @n @m of
-      DIZ -> sConsMin @q @m x $ mergeSorted xs (SSingle y)
+      DIZ -> sConsMin @q @m x (mergeSorted xs (SSingle y))
       DIS -> SCons y (SCons x xs)
     SCons @r y ys -> case decideInsert @n @m of
-      DIZ -> sConsMin @q @m x $ mergeSorted xs (SCons y ys)
-      DIS -> sConsMin @n @r y $ mergeSorted (SCons x xs) ys
+      DIZ -> sConsMin @q @m x (mergeSorted xs (SCons y ys))
+      DIS -> sConsMin @n @r y (mergeSorted (SCons x xs) ys)
 
 popSorted ::
   Sorted n a ->

@@ -434,9 +434,13 @@ Level 5: Fixed-size List
 
 !!![level5]:type-levels/Level5.hs
 
-For the next level of safety, we're not going to try to enforce anything on the
-contents of the list, but we can try to enforce something on the *spline* of
-the list: the number of items!
+From here on, we aren't going to be "building up" linearly on safety, but
+rather showing three structural type safety mechanism of increasing strength
+and complexity.
+
+For Level 5, we're not going to try to enforce anything on the contents of the
+list, but we can try to enforce something on the *spline* of the list: the
+number of items!
 
 To me, this level still feels very natural in Haskell to write in, although in
 terms of usability we are starting to bump into some of the things Haskell is
@@ -469,11 +473,7 @@ numbers 0, 1, 2...:
 So, `Z` will represent zero, `S Z` will represent one, `S (S Z)` will represent
 two, etc. We want to create a type `Vec n a`, where `n` will be a type of kind
 `Nat` (promoted using DataKinds, which lets us use `Z` and `S` as type
-constructors), representing a linked list with `n` elements of type `a`. Why is
-it called `Vec` and not `List`? I'm not sure, but it's probably a [Stranger
-Things][vecna] reference referring to a dark, evil being.
-
-[vecna]: https://strangerthings.fandom.com/wiki/Vecna
+constructors), representing a linked list with `n` elements of type `a`.
 
 We can define `Vec` in a way that structurally matches how `Nat` is
 constructed, which is the key to making things work nicely:
@@ -527,6 +527,11 @@ Note that both of the inner pattern matches are known by GHC to be exhaustive:
 if it knows that the first list is `VNil`, then it knows that `n ~ Z`, so the
 second list *has to also* be `VNil`. Thanks GHC!
 
+From here on out, we're now always going to assume that GHC's exhaustiveness
+checker is on, so we always handle every branch that GHC tells us is necessary,
+and skip handling branches that GHC tells us is unnecessary (through compiler
+warnings).
+
 We can even express more complicated relationships with type families
 (type-level "functions"):
 
@@ -557,8 +562,9 @@ We can also specify non-trivial relationships between lengths of lists, like
 making a more type-safe `take :: Int -> [a] -> [a]`. We want to make sure that
 the result list has a length less than or equal to the input list. We need
 another "int" that can only be constructed in the case that the result length
-is less than or equal to the first length. This is often called a "proof" or a
-"witness".
+is less than or equal to the first length. This called "proofs" or
+"witnesses", and act in the same role as `TypeRep`, `(:~:)`, etc. did above for
+our `Sigma` examples.
 
 We want a type `LTE n m` that is a "witness" that `n` is less than or equal to
 `m`. It can only be constructed for if `n` is less than or equal to `m`. For
@@ -585,17 +591,20 @@ Notice that this type has a lot more guarantees than `replicate`. For
 return type does have the length we give it. But for `vreplicate :: SNat n -> a
 -> Vec n a`, it does!
 
-Note that `SNat n` is actually kind of special. We call it a *singleton*, in
-that it perfectly reflects the structure of `n` the type, as a value. By
-pattern matching on `SNat n`, we can exactly determine what `n` is. `SZ` means
-`n` is `Z`, `SS SZ` means `n` is `S Z`, etc. This is useful because we can't
-directly pattern match on types at runtime in Haskell (because of type
-erasure), but we *can* pattern match on singletons at runtime. We actually
-encountered singletons before in this post! That's right, `TypeRep a` is a
+`SNat n` is actually kind of special. We call it a *singleton*, and it's useful
+because it perfectly reflects the structure of `n` the type, as a
+value...nothing more and nothing less. By pattern matching on `SNat n`, we can
+exactly determine what `n` is. `SZ` means `n` is `Z`, `SS SZ` means `n` is `S
+Z`, etc. This is useful because we can't directly pattern match on types at
+runtime in Haskell (because of type erasure), but we *can* pattern match on
+singletons at runtime.
+
+We actually encountered singletons before in this post! `TypeRep a` is a
 singleton for the type `a`: by pattern matching on it (like with `App`
 earlier), we can essentially "pattern match" on the type `a` itself.
 
-In practice, we often write typeclasses to automatically generate singletons:
+In practice, we often write typeclasses to automatically generate singletons,
+similar to `Typeable` from before:
 
 ```haskell
 !!!type-levels/Level5.hs "class KnownNat" "instance KnownNat Z" "instance KnownNat n => KnownNat (S n)" "vreplicate' ::"
@@ -635,7 +644,7 @@ That way, you can use the type variable within the continuation. Doing
 However, since you don't get the `n` itself until runtime, you might find
 yourself struggling to use concepts like `Fin` and `LTE`. To do use them
 comfortably, you have to write functions to "check" if your `LTE` is even
-possible, like:
+possible, known as "decision functions":
 
 ```haskell
 !!!type-levels/Level5.hs "isLTE ::"
@@ -659,11 +668,11 @@ Level 6: Local Structure Enforced List
 !!![level6]:type-levels/Level6.hs
 
 For our next level let's jump back back into constraints on the *contents* of
-the list. We can implement a _priority queue_ on top of a list. Each value in
-the list will be a `(priority, value)` pair. To make it easy to always pop out
-the value of _lowest priority_, we can enforce that the list is _always sorted
-by priority_: the lowest priority is always first, the second lowest is second,
-etc.
+the list. Let's imagine a _priority queue_ on top of a list. Each value in the
+list will be a `(priority, value)` pair. To make the `pop` operation (pop out
+the value of lowest priority) efficient, we can enforce that the list is
+_always sorted by priority_: the lowest priority is always first, the second
+lowest is second, etc.
 
 If we didn't care about type safety, we could do this by always inserting a new
 item so that it is sorted:
@@ -672,7 +681,7 @@ item so that it is sorted:
 !!!type-levels/Level6.hs "insertSortedList ::"
 ```
 
-Note this method enforces a *local* structure: between every item `x` and the
+This method enforces a *local* structure: between every item `x` and the
 next item `y` in `x:y:zs`, the priority of `x` has to be less than the priority
 `y`. Keeping our structure local means we only need to enforce local
 invariants.
@@ -696,10 +705,12 @@ efficiency. And, instead of using concrete `S (S (S Z))` syntax, you'd use
 abstract numeric literals, like `3`. There's a trade-off: because it's opaque,
 we can't pattern match on it and create or manipulate our own witnesses -- we
 are at the mercy of the API that GHC gives us. We get `+`, `<=`, `Min`, etc.,
-but in total it's not that extensive. That's why I never use these without
-also bringing typechecker plugins (*[ghc-typelits-natnormalise][]* and
+but in total it's not that extensive. That's why I never use these without also
+bringing typechecker plugins (*[ghc-typelits-natnormalise][]* and
 *[ghc-typelits-knonwnnat][]*) to help automatically bring witnesses and
-equalities and relationships into scope for us.
+equalities and relationships into scope for us. Everything here could be done
+using hand-defined witnesses and types, but we're using TypeNats here just for
+the sake of example.
 
 [typenats]: https://hackage.haskell.org/package/base/docs/GHC-TypeNats.html
 [ghc-typelits-natnormalise]: https://hackage.haskell.org/package/ghc-typelits-natnormalise
@@ -739,17 +750,17 @@ a`, where `n` is the *current minimum priority*.
 !!!type-levels/Level6.hs "data Sorted"
 ```
 
-To simplify we are only going to talk about non-empty lists, so the minimum
-priority is always defined.
+To keep things simple, we are only going to talk about non-empty lists, so the
+minimum priority is always defined.
 
 So, a `Sorted n a` is either `SSingle (x :: Entry n a)`, where the single item
 is a value of priority `n`, or `SCons x xs`, where `x` has priority `n` and
 `xs :: Sorted m a`, where `n <= m`. In our previous inductive `Nat`, you could
-imagine this as `SSCons :: SNat m -> LTE n m -> Entry n a -> Sorted m a ->
+imagine this as `SCons :: SNat m -> LTE n m -> Entry n a -> Sorted m a ->
 Sorted n a`, but here we will use GHC's built-in `<=` typeclass-based witness
 of less-than-or-equal-to-ness.
 
-And this works! You should be able to write:
+This works! You should be able to write:
 
 ```haskell
 Entry @1 'a' `SCons` Entry @2 'b' `SCons` SSingle (Entry @4 'c')
@@ -758,8 +769,10 @@ Entry @1 'a' `SCons` Entry @2 'b' `SCons` SSingle (Entry @4 'c')
 This creates a valid list where the priorities are all sorted from lowest to
 highest. You can now pop using pattern matching, which gives you the lowest
 element *by construction*. If you match on `SCons x xs`, you *know* that no
-entry in `xs` has a priority lower than `x`. Note that creating something
-out-of-order like the following would be a compiler error:
+entry in `xs` has a priority lower than `x`.
+
+Critically, note that creating something out-of-order like the following would
+be a compiler error:
 
 ```haskell
 Entry @9 'a' `SCons` Entry @2 'b' `SCons` SSingle (Entry @4 'c')
@@ -767,8 +780,9 @@ Entry @9 'a' `SCons` Entry @2 'b' `SCons` SSingle (Entry @4 'c')
 
 Now, the *users* of our priority queue probably won't often care about having
 the minimum priority in the type. In this case, we are using the phantom type
-to ensure that our data structure is correct by construction, for our own sake.
-So, for practical end-user usage, we want to existentially wrap out `n`.
+to ensure that our data structure is correct by construction, for our own sake,
+and also to help us write internal functions in a correct way. So, for
+practical end-user usage, we want to existentially wrap out `n`.
 
 ```haskell
 !!!type-levels/Level6.hs "data SomeSorted" "popSomeSorted ::"
@@ -790,7 +804,7 @@ between `n` and `m`. So our type should be:
 insertSorted :: Entry n a -> Sorted m a -> Sorted (Min n m) a
 ```
 
-To write this, we can use two helper functions: first, to decide *if* we
+To write this, we can use some helper functions: first, to decide *if* we
 are in the `n <= m` or the `n > m` case:
 
 ```haskell
