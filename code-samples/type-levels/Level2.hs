@@ -18,9 +18,12 @@ indexHList 0 [] = Nothing
 indexHList 0 (x : _) = Just x
 indexHList n (_ : xs) = indexHList (n - 1) xs
 
+doTheThing :: Maybe String -> Maybe Int -> Maybe Method -> IO ()
+doTheThing _ _ _ = pure ()
+
 -- | Expects a String, an Int, then a Method.
 mkConnection :: HList TypeRep -> IO ()
-mkConnection args = pure () -- something with host, port, and method
+mkConnection args = doTheThing host port method
   where
     host :: Maybe String
     host = castSigma' =<< indexHList 0 args
@@ -34,7 +37,7 @@ findValueOfType = listToMaybe . mapMaybe castSigma'
 
 -- | Expects a String, an Int, then a Method, in any order.
 mkConnectionAnyOrder :: HList TypeRep -> IO ()
-mkConnectionAnyOrder args = pure ()
+mkConnectionAnyOrder args = doTheThing host port method
   where
     host :: Maybe String
     host = findValueOfType args

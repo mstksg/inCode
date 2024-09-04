@@ -35,7 +35,7 @@ as well:
 $ cd code-samples/type-levels
 $ nix develop
 $ ghci
-ghci> :l Level1.hs
+ghci> :load Level1.hs
 ```
 
 Level 1: Could be anything
@@ -136,13 +136,12 @@ get other interesting types. For example, if you had a witness of showability:
 !!!type-levels/Level1.hs "data Showable ::" "showableInt ::" "showableBool ::"
 ```
 
-
 (This type is related to `Dict Show` from the [constraints][] library; it's
 technically `Compose Dict Show`)
 
 [constraints]: https://hackage.haskell.org/package/constraints-0.13/docs/Data-Constraint.html#t:Dict
 
-And now we have a type `Sigma Showable` that's a bit of a black hole, but we
+And now we have a type `Sigma Showable` that's kind of of "not-so-black": we
 can at least use `show` on it:
 
 ```haskell
@@ -254,10 +253,10 @@ Then we could write:
 
 But is this a good idea? Probably not.
 
-One very common usage of this type is for "extensible" systems that let you
-store components of different types in a container, as long as they all support
-some common interface (ie, the widgets system from the [Luke Palmer][palmer]
-post).
+Anyway, one very common usage of this type is for "extensible" systems that let
+you store components of different types in a container, as long as they all
+support some common interface (ie, the widgets system from the [Luke
+Palmer][palmer] post).
 
 For example, we could have a list of any item as long as the item is an
 instance of `Show`: that's `HList Showable`!
@@ -272,11 +271,12 @@ ghci> showAll xs
 ["1", "True"]
 ```
 
-Again, `Show` is a bad typeclass to use for this. But for fun, let's imagine
-some other things we could fill in for `p`. If we use `HList Proxy`, then we
-basically don't have any witness at all. We can't use the values in the list
-in any meaningful way; `HList Proxy` is essentially the same as `Natural`,
-since the only information is the length.
+Again, `Show` is a bad typeclass to use for this because we might as well be
+storing `[String]`. But for fun, let's imagine some other things we could fill
+in for `p`. If we use `HList Proxy`, then we basically don't have any witness
+at all. We can't use the values in the list in any meaningful way; `HList
+Proxy` is essentially the same as `Natural`, since the only information is the
+length.
 
 If we use `HList IsBool`, we basically have `[Bool]`, since every item must be
 a `Bool`! In general, `HList ((:~:) a)` is the same as `[a]`.
@@ -296,11 +296,12 @@ possible if they are all of the same type.
 First of all, let's clarify a subtle point here. It's very easy in Haskell to
 *consume* lists where all elements are of the same (but not necessarily known)
 type. Functions like `sum :: Num a => [a] -> a` and `sort :: Ord a => [a] ->
-[a]` do that. This is polymorphism, where the function is written to not worry
-about the type, and the ultimate *caller* of the function must pick the type they want
-to use with it. For the sake of this discussion, we aren't talking about
-*consuming* values -- we're talking about *producing* and *storing* values
-where the *producer* (and not the consumer) controls the type variable.
+[a]` do that. This is "polymorphism", where the function is written to not
+worry about the type, and the ultimate *caller* of the function must pick the
+type they want to use with it. For the sake of this discussion, we aren't
+talking about *consuming* values -- we're talking about *producing* and
+*storing* values where the *producer* (and not the consumer) controls the type
+variable.
 
 To do this, we can flip the witness to *outside* the list:
 
@@ -315,14 +316,13 @@ check if it is monotonic (the items increase in order)
 !!!type-levels/Level3.hs "data Comparable ::" "monotonic ::" "monotonicSomeList ::"
 ```
 
-If we take a step back, we can see that this is a little silly...what
-value does `monotonicSomeList` offer over `monotonic`? However, remember the
-subtlety I pointed out before: `monotonic` (and `monotonicSomeList`) are not
-the real advantage here, the advantage is writing a function that *produces*
-"list of some sortable type". For example, we might want to query a database
-for a column of values, but we only know the *name* of the column and not the
-*type* of the column --- we just know that the values in that column are
-sortable.
+This is fun, but, as mentioned before, `monotonicSomeList` doesn't have any
+advantage over `monotonic`, because the caller determines the type. What would
+be more motivating here is a function that produces "any sortable type", and
+the caller has to use it in a way generic over all sortable types. For example,
+a database API might let you query a database for a column of values, but you
+don't know ahead of time what the exact *type* of that column is. You only know
+that it is "some sortable type". In *that case*, a `SomeList` could be useful.
 
 For a contrived one, let's think about pulling such a list from IO:
 
@@ -337,21 +337,30 @@ have:
 !!!type-levels/Level3.hs "processList ::"
 ```
 
+(That's [pattern guard][] syntax, if you were wondering)
+
+[pattern guard]: https://wiki.haskell.org/Pattern_guard
+
 In this specific situation, using a closed ADT of all the types you'd actually
-want is preferred. But sometimes "any type implementing this typeclass" could
-be useful.
+want is probably preferred (like `data Value = VBool Bool | VInt Int | VDouble
+Double | VString String`), since we only ever get one of four different types.
+Using `Comparable` like this gives you a *completely open* type that can take
+*any* instance of `Ord`, and using `TypeRep` gives you a *completely open type*
+that can take literally *anything*.
 
-Anyway, this pattern is overall similar to how lists are often used in practice
-for dynamic languages: *usually* when we use lists, we expect them all to have
-items of the same type or interface. However, using lists this way (in a
-language without type safety) makes it really tempting to hop down into Level
-1, where you start throwing "alternatively typed" things into your list, as
-well, for convenience. All of a sudden, any consumers must now check the type
-of the items, and a lot of things are going to start needing unit tests.
+This pattern is overall similar to how lists are often used in practice for
+dynamic languages: often when we use lists in dynamically typed situations, we
+expect them all to have items of the same type or interface. However, using
+lists this way (in a language without type safety) makes it really tempting to
+hop down into Level 2, where you start throwing "alternatively typed" things
+into your list, as well, for convenience. And then the temptation comes to also
+hop down to Level 1 and throw a `null` in every once in a while. All of a
+sudden, any consumers must now check the type of *every* item, and a lot of
+things are going to start needing unit tests.
 
-Now let us take a bit to talk about ascending and descending between each
-levels. In the general case we don't have much to work with, but let's assume
-our constraint is `TypeRep` here, so we can match for type equality.
+Now, let's talk a bit about ascending and descending between each levels. In
+the general case we don't have much to work with, but let's assume our
+constraint is `TypeRep` here, so we can match for type equality.
 
 We can move from Level 3 to Level 2 by moving the `TypeRep` into the values of
 the list, and we can move from Level 3 to Level 1 by converting our `TypeRep a`
@@ -379,6 +388,10 @@ then we can create a `SomeList` with the `TypeRep a`. *But*, `testEquality`
 can only be called on things of the same kind, so we have to verify that `f`
 has kind `Type -> Type` first, so that we can even call `testEquality` on `f`
 and `[]`! Phew! Dynamic types are hard!
+
+```haskell
+!!!type-levels/Level3.hs "sigmaToHList ::"
+```
 
 Level 4: Homogeneous Typed List
 -------------------------------
