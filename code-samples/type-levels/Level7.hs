@@ -42,8 +42,8 @@ withBoundedWit = \case
   BNil -> \x -> x
   BCons _ _ -> \x -> x
 
-bCons :: KnownNat m => Entry n a -> Bounded lim m a -> Bounded (n + lim) (n + m) a
-bCons x xs = withBoundedWit xs $ BCons x (reBounded xs)
+bConsExpand :: KnownNat m => Entry n a -> Bounded lim m a -> Bounded (n + lim) (n + m) a
+bConsExpand x xs = withBoundedWit xs $ BCons x (reBounded xs)
 
 concatBounded ::
   forall n m lim a.
@@ -70,7 +70,7 @@ reverseList = go []
   where
     go res = \case
       [] -> res
-      x:xs -> go (x:res) xs
+      x : xs -> go (x : res) xs
 
 reverseBounded ::
   forall lim n a. (n <= lim, KnownNat lim, KnownNat n) => Bounded lim n a -> Bounded lim n a
@@ -106,7 +106,7 @@ splitBounded = \case
   BCons @x @xs x xs -> case cmpNat (Proxy @x) (Proxy @lim') of
     LTI -> case splitBounded @lim @(lim' - x) @xs xs of
       SplitBounded @q ys zs ->
-        SplitBounded (bCons x ys) zs
+        SplitBounded (bConsExpand x ys) zs
     EQI -> SplitBounded (BCons x BNil) xs
     GTI -> SplitBounded BNil (BCons x xs)
 
@@ -126,7 +126,7 @@ takeBounded = \case
   BNil -> TakeBounded BNil
   BCons @x @xs x xs -> case cmpNat (Proxy @x) (Proxy @lim') of
     LTI -> case takeBounded @lim @(lim' - x) xs of
-      TakeBounded @q ys -> TakeBounded @(x + q) (bCons x ys)
+      TakeBounded @q ys -> TakeBounded @(x + q) (bConsExpand x ys)
     EQI -> TakeBounded (BCons x BNil)
     GTI -> TakeBounded BNil
 

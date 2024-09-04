@@ -6,18 +6,17 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# OPTIONS_GHC -fplugin GHC.TypeLits.KnownNat.Solver #-}
+{-# OPTIONS_GHC -fplugin GHC.TypeLits.Normalise #-}
 
 module Level6 (main, Entry (..)) where
 
-import Data.Bifunctor
 import Data.Kind
 import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
 import Data.Proxy
-import Data.Type.Equality
 import Data.Type.Ord
 import GHC.TypeNats
-import Unsafe.Coerce
 
 insertSortedList :: (Int, a) -> [(Int, a)] -> [(Int, a)]
 insertSortedList (p, x) = \case

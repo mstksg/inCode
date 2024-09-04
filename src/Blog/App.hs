@@ -106,6 +106,7 @@ app tz = do
     let pat =
           fromGlob (T.unpack samplesDir </> "**.hs")
             .||. fromGlob (T.unpack samplesDir </> "**.txt")
+            .||. fromGlob (T.unpack samplesDir </> "**.nix")
     match pat $ do
       route mempty
       compile getResourceString

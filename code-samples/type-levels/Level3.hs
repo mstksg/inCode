@@ -37,7 +37,7 @@ getItems = do
   ans <- getLine
   case map toLower ans of
     "int" -> MkSomeList WitOrd <$> replicateM 3 (readLn @Int)
-    "bool" -> MkSomeList WitOrd <$> replicateM 3 (readLn @Int)
+    "bool" -> MkSomeList WitOrd <$> replicateM 3 (readLn @Bool)
     "string" -> MkSomeList WitOrd <$> replicateM 3 getLine
     _ -> throwIO $ userError "no"
 

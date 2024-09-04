@@ -27,8 +27,24 @@ List a = Nil | Cons a (List a)`. But, be advised that the techniques discussed
 in this post are considered esoteric at best and harmful at worst for most
 actual real-world applications. Inside every Haskeller there are two wolves.
 
+All of the code here is [available online][] here, and if you check out the
+repo and run `nix develop` you should be able to load them all in ghci as well:
+
+!!![code-samples]:type-levels/flake.nix
+
+```bash
+$ cd code-samples/type-levels
+$ nix develop
+$ ghci
+ghci> :l Level1.hs
+```
+
 Level 1: Could be anything
 --------------------------
+
+*[Code available here][level1]*
+
+!!![level1]:type-levels/Level1.hs
 
 Let's start off with a baseline type that demonstrates a little bit of the
 quirks of working at the unsafe extremes in Haskell.
@@ -198,6 +214,10 @@ ergonomics, and the reductionist take doesn't quite capture that nuance.
 Level 2: Heterogeneous List
 ---------------------------
 
+*[Code available here][level2]*
+
+!!![level2]:type-levels/Level2.hs
+
 The lowest level of safety in which a list might be useful is the dynamically
 heterogeneous list.  This is the level where lists (or "arrays") live in most
 dynamic languages.
@@ -265,6 +285,10 @@ a `Bool`!  In general, `HList ((:~:) a)` is the same as `[a]`.
 
 Level 3: Homogeneous Dynamic List
 ---------------------------------
+
+*[Code available here][level3]*
+
+!!![level3]:type-levels/Level3.hs
 
 A next level of type safety we can add is to ensure that all elements in the
 list are of the same type.  This adds a layer of usefulness because there are a
@@ -395,6 +419,10 @@ language".
 Level 5: Fixed-size List
 ------------------------
 
+*[Code available here][level5]*
+
+!!![level5]:type-levels/Level5.hs
+
 For the next level of safety, we're not going to try to enforce anything on the
 contents of the list, but we can try to enforce something on the *spline* of
 the list: the number of items!
@@ -457,7 +485,6 @@ Note two things:
     a`, because every application of `:+` adds an `S` to the phantom type.
 2.  There is *only one way* to construct a `Vec (S (S Z)) a`: by using `:+`
     twice.  That means that such a value is a list of exactly two items.
-
 
 However, the main benefit of this system is *not* so you can create a two-item
 list...just use tuples or `data V2 a = V2 a a` from *[linear][]* for that. No,
@@ -552,10 +579,9 @@ that it perfectly reflects the structure of `n` the type, as a value. By
 pattern matching on `SNat n`, we can exactly determine what `n` is.  `SZ` means
 `n` is `Z`, `SS SZ` means `n` is `S Z`, etc. This is useful because we can't
 directly pattern match on types at runtime in Haskell (because of type
-erasure), but we *can* pattern match on singletons at runtime.
-
-We actually encountered singletons before in this post! That's right, `TypeRep
-a` is a singleton for the type `a`: by pattern matching on it (like with `App`
+erasure), but we *can* pattern match on singletons at runtime. We actually
+encountered singletons before in this post! That's right, `TypeRep a` is a
+singleton for the type `a`: by pattern matching on it (like with `App`
 earlier), we can essentially "pattern match" on the type `a` itself.
 
 In practice, we often write typeclasses to automatically generate singletons:
@@ -617,43 +643,61 @@ eventually be tempted to wander into...
 Level 6: Local Structure Enforced List
 --------------------------------------
 
-Let's go back into constraints on the *contents* of the list.  Let's try to
-implement a _priority queue_ on top of a list.  Each value in the list will be
-a *(priority, value)* pair. To make it easy to always pop out the value of
-_lowest priority_, we can enforce that the list is _always sorted by priority_:
-the lowest priority is always first, the second lowest is second, etc.
+*[Code available here][level6]*
 
-We can do this by always inserting a new item so that it is sorted:
+!!![level6]:type-levels/Level6.hs
+
+For our next level let's jump back back into constraints on the *contents* of
+the list.  We can implement a _priority queue_ on top of a list.  Each value in
+the list will be a `(priority, value)` pair. To make it easy to always pop out
+the value of _lowest priority_, we can enforce that the list is _always sorted
+by priority_: the lowest priority is always first, the second lowest is second,
+etc.
+
+If we didn't care about type safety, we could do this by always inserting a new
+item so that it is sorted:
 
 ```haskell
 !!!type-levels/Level6.hs "insertSortedList ::"
 ```
 
-Notice that this method enforces a *local* structure: between every item `x` and
-the next item `y`, the priority of `x` has to be less than the priority `y`.
-Keeping our structure local means we only need to enforce local invariants.
+Note this method enforces a *local* structure: between every item `x` and the
+next item `y` in `x:y:zs`, the priority of `x` has to be less than the priority
+`y`. Keeping our structure local means we only need to enforce local
+invariants.
 
-We're also going to need some more complicated functions, like "combining"
-(merging) two sorted lists together. However, using a normal list, it's very
-easy to mess up this structure. How about we leverage type safety to ask GHC to
-ensure that our functions are always correct, and always preserve this local
+Writing it all willy nilly type unsafe like this could be good for a single
+function, but we're also going to need some more complicated functions.  What
+if we wanted to "combine" (merge) two sorted lists together. Using a normal
+list, we don't have any assurances that we have written it correctly, and it's
+very easy to mess up. How about we leverage type safety to ask GHC to ensure
+that our functions are always correct, and always preserve this local
 structure?  Now you're thinking in types!
 
-A quick note before we dive in: for the rest of this post, for the sake of
-simplicity, let's switch from inductively defined types (like `Nat` above) to
-GHC's built in [opaque `Nat` type][typenats]. Effectively, it's the same as
-`Nat` above, except it's implemented under the hood using machine integers.
-Because of this, we cannot structurally pattern match on it, so we are at the
-mercy of the exported API in *GHC.TypeNats*, which provides `+` and `<=` and
-`>` etc.  We also cannot easily create and manipulate witnesses from scratch,
-so we have to rely on the exported API and also [typechecker plugins][]. In
-reality, doing the kind of work we are doing here using hand-rolled inductive
-types or typechecker plugins is going to look similar, except you're going to
-be manually defining, constructing, and manipulating a lot of witnesses
-inductively.
+Introducing level 6: enforcing local structure!
+
+But, first, a quick note before we dive in: for the rest of this post, for the
+sake of simplicity, let's switch from inductively defined types (like `Nat`
+above) to GHC's built in [opaque `Nat` type][typenats]. You can think of it as
+essentially the same as the `Nat` we wrote above, but *opaque* and provided by
+the compiler. Under the hood, it's implemented using machine integers for
+efficiency. And, instead of using concrete `S (S (S Z))` syntax, you'd use
+abstract numeric literals, like `3`.  There's a trade-off: because it's opaque,
+we can't pattern match on it and create or manipulate our own witnesses -- we
+are at the mercy of the API that GHC gives us.  We get `+`, `<=`, `Min`, etc.,
+but in total it's not that extensive.  That's why I never use these without
+also bringing typechecker plugins (*[ghc-typelits-natnormalise][]* and
+*[ghc-typelits-knonwnnat][]*) to help automatically bring witnesses and
+equalities and relationships into scope for us.
 
 [typenats]: https://hackage.haskell.org/package/base/docs/GHC-TypeNats.html
-[typechecker plugins]: https://hackage.haskell.org/package/ghc-typelits-natnormalise
+[ghc-typelits-natnormalise]: https://hackage.haskell.org/package/ghc-typelits-natnormalise
+[ghc-typelits-knonwnnat]: https://hackage.haskell.org/package/ghc-typelits-knownnat
+
+```haskell
+{-# OPTIONS_GHC -fplugin GHC.TypeLits.KnownNat.Solver #-}
+{-# OPTIONS_GHC -fplugin GHC.TypeLits.Normalise #-}
+```
 
 With that disclaimer out of the way, let's create our types!  Let's make an
 `Entry n a` type that represents a value of type `a` with priority `n`.
@@ -668,40 +712,54 @@ to the constructor `Entry :: forall n a. a -> Entry n a`.  We could also write
 `Entry @3 @String "hello"` to pass in both `n` and `a`, but in this case type
 inference can handle the `a ~ String` part for us.
 
-Now let's think about what phantom types we want to include in our list. To do
-this, we must think about what "type safe operation" we want, and then add just
-enough phantom types to perform that operation. In our case, we want to be able
-to cons an `Entry n a` to the start of a sorted list. To ensure this, we need
-to know that n is less than or equal to the list's *current minimum priority*.
-So, we need our list type to be `Sorted n a`, where `n` is the *current minimum
-priority*.
+Now, let's think about what phantom types we want to include in our list. The
+fundamental strategy in this, as I learned from [Conor McBride][]'s great
+writings on this topic, are:
+
+[Conor McBride]: http://strictlypositive.org/
+
+* Think about what "type safe operations" you want to have for your structure
+* Add just enough phantom types to perform those operations.
+
+In our case, we want to be able to cons an `Entry n a` to the start of a sorted
+list. To ensure this, we need to know that n is less than or equal to the
+list's *current minimum priority*. So, we need our list type to be `Sorted n
+a`, where `n` is the *current minimum priority*.
 
 ```haskell
 !!!type-levels/Level6.hs "data Sorted"
 ```
 
 To simplify we are only going to talk about non-empty lists, so the minimum
-priority is always defined. So, a `Sorted n a` is either `SSingle (x :: Entry n
-a)`, where the single item is a value of priority `n`, or `SCons x xs`, where
-`x` has priority `n` and `xs :: Sorted m a`, where `n <= m`.  In our previous
-inductive type system, you could imagine this as `SSCons :: SNat m -> LTE n m
--> Entry n a -> Sorted m a -> Sorted n a`, but here we will use GHC's built-in
-`<=` typeclass-based witness of less-than-or-equal-to-ness.
+priority is always defined.
+
+So, a `Sorted n a` is either `SSingle (x :: Entry n a)`, where the single item
+is a value of priority `n`, or `SCons x xs`, where `x` has priority `n` and
+`xs :: Sorted m a`, where `n <= m`.  In our previous inductive `Nat`, you could
+imagine this as `SSCons :: SNat m -> LTE n m -> Entry n a -> Sorted m a ->
+Sorted n a`, but here we will use GHC's built-in `<=` typeclass-based witness
+of less-than-or-equal-to-ness.
 
 And this works!  You should be able to write:
 
 ```haskell
-Entry @1 'a' `SCons` Entry @2 'b' `SCons` SSingle (Entry @3 'c')
+Entry @1 'a' `SCons` Entry @2 'b' `SCons` SSingle (Entry @4 'c')
 ```
 
 And that would be a valid list where the priorities are all sorted from lowest
 to highest.  You can now pop using pattern matching, which gives you the lowest
 element *by construction*. If you match on `SCons x xs`, you *know* that no
-entry in `xs` has a priority lower than `x`.
+entry in `xs` has a priority lower than `x`.  Note that creating something
+out-of-order like the following would be a compiler error:
 
-To *use* this type in practice, we want to existentially wrap out the
-`n`.  The `n` is there to guide us in *writing* our functions in a type-safe
-way, but for the *users* of our priority queue, they probably won't care.
+```haskell
+Entry @9 'a' `SCons` Entry @2 'b' `SCons` SSingle (Entry @4 'c')
+```
+
+Now, the *users* of our priority queue probably won't often care about having
+the minimum priority in the type.  In this case, we are using the phantom type
+to ensure that our data structure is correct by construction, for our own sake.
+So, for practical end-user usage, we want to existentially wrap out `n`.
 
 ```haskell
 !!!type-levels/Level6.hs "data SomeSorted" "popSomeSorted ::"
@@ -716,8 +774,8 @@ write `insertSortedList`, but the type-safe way!
 
 First of all, what should the type be if we insert an `Entry n a` into a
 `Sorted m a`? If `n <= m`, it would be `Sorted n a`. If `n > m`, it should be
-`Sorted m a`. Conveniently GHC gives us a type family `Min n m`, which returns the
-minimum between `n` and `m`. So our type should be:
+`Sorted m a`. GHC gives us a type family `Min n m`, which returns the minimum
+between `n` and `m`. So our type should be:
 
 ```haskell
 insertSorted :: Entry n a -> Sorted m a -> Sorted (Min n m) a
@@ -733,11 +791,25 @@ are in the `n <= m` or the `n > m` case:
 We can use `decideInsert` to branch on if we are in the case where we insert
 the entry at the head or the case where we have to insert it deeper.
 `DecideInsert` here is our witness, and `decideInsert` constructs it using
-`cmpNat`, provided by GHC to compare two `Nat`s. Note that GHC isn't smart
-enough to know we can rule out `b > a` if `a > b` is true. Oh well. If we were
-writing our witnesses by hand using inductive types, we could write this
-ourselves, but since we are using GHC's Nat, we are limited by what their API
-can prove.
+`cmpNat`, provided by GHC to compare two `Nat`s.  We use `Proxy :: Proxy n` to
+tell it what nats we want to compare. `KnownNat` is the equivalent of our
+`KnownNat` class we wrote from scratch, but with GHC's TypeNats instead of our
+custom inductive Nats.
+
+```haskell
+cmpNat :: (KnownNat a, KnownNat b) => p a -> p b -> OrderingI a b
+
+data OrderingI :: k -> k -> Type where
+    LTI :: -- in this branch, a < b
+    EQI :: -- in this branch, a ~ b
+    GTI :: -- in this branch, a > b
+```
+
+Note that GHC and our typechecker plugins aren't smart enough to know we can
+rule out `b > a` if `a > b` is true, so we have to leave an `error` that we
+know will never be called. Oh well. If we were writing our witnesses by hand
+using inductive types, we could write this ourselves, but since we are using
+GHC's Nat, we are limited by what their API can prove.
 
 Let's start writing our `insertSorted`:
 
@@ -745,7 +817,7 @@ Let's start writing our `insertSorted`:
 !!!type-levels/Level6.hs "insertSorted ::"
 ```
 
-The structure is more or less the same as `insertSortedList` originally, but
+The structure is more or less the same as `insertSortedList`, but
 now type safe! We basically use our handy helper function `decideInsert` to
 dictate where we go.  I also used a helper function `sConsMin` to insert into
 the recursive case
@@ -764,15 +836,20 @@ this is no good. We would have to pattern match on `cmpNat` and
 `LTI`/`EQI`/`GTI` in order to know how to specialize `SCons`. So, we use
 `sConsMin` to wrap this up for clarity.
 
+How did I know this? I basically tried writing it out the full messy way,
+bringing in as much witnesses and pattern matching as I could, until I got it
+to compile. Then I spent time factoring out the common parts until I got what we
+have now!
+
 Note that we use a feature called "Type Abstractions" to "match on" the
 existential type variable `q` in the pattern `SCons @q y ys`. Recall from the
 definition of `SCons` that the first type variable is the minimum value of the
 sublist.
 
-And just like that, we made our `insertSortedList` type-safe! We can no longer
-write it incorrectly: it always inserts sortedly, by *construction*, enforced
-by GHC. We only had to use one unsafe function (with `error`), but that was
-only because we used GHC's TypeNats...if we used our own inductive types, all
+And just like that, we made our `insertSortedList` *type-safe*! We can no
+longer return an unsorted list: it always inserts sortedly, by *construction*,
+enforced by GHC. Well, we did cheat a little with `error`, that was only
+because we used GHC's TypeNats...if we used our own inductive types, all
 unsafety can be avoided.
 
 Let's write the function to *merge* two sorted lists together. This is
@@ -784,10 +861,8 @@ each one, cons the smaller of the two heads, then recurse.
 ```
 
 Again, this looks a lot like how you would write the normal function to merge
-two sorted lists...except this time, it's type-safe! You can't write this
-incorrectly because the result list has to be sorted *by construction*. We
-again use a combination of `decideInserted` and `sConsMin` to do some manual
-witness manipulation.
+two sorted lists...except this time, it's type-safe! You *can't* return an
+unsorted list because the result list has to be sorted *by construction*.
 
 To wrap it all up, let's write our conversion functions.  First, an
 `insertionSort` function that takes a normal non-empty list of priority-value
@@ -827,6 +902,10 @@ And a function to convert back down to a normal non-empty list, using GHC's
 Level 7: Global structure Enforced List
 ---------------------------------------
 
+*[Code available here][level7]*
+
+!!![level7]:type-levels/Level7.hs
+
 For our final level, let's imagine a "weighted list" of `(Int, a)`
 pairs, where each item `a` has an associated weight or cost.  Now, let's
 further imagine a "bounded weighted list", where the _total cost_ must not
@@ -836,17 +915,20 @@ maximum total carrying weight.
 
 There is a fundamental difference here between this type and our last type: we
 want to enforce a *global* invariant (total cannot exceed a limit), and we
-can't "fake" this using local invariants like last time.  We saw a bit of the
-extra complexities this brings from our fixed-length lists from before:
-whatever phantom type we use to enforce this "global" invariant now becomes
-entangled to the overall structure of our data type itself.
+can't "fake" this using local invariants like last time.
+
+Introducing level 7: enforcing *global* structure! This brings some extra
+complexities, similar to the ones we encountered in Level 5 with our
+fixed-length lists: whatever phantom type we use to enforce this "global"
+invariant now becomes entangled to the overall structure of our data type
+itself.
 
 Let's re-use our `Entry` type, but interpret an `Entry n a` as a value of type
-`a` with a weight `n`. Now, we'll ask the same question we asked before: what
-"type-safe" operation do we want, and what minimal phantom types do we need to
-allow this type-safe operation? In our case, we want to *insert* into our
-bounded weighted list in a safe way, to ensure that there is enough room. So,
-we need *two* phantom types:
+`a` with a weight `n`. Now, we'll again let Conor McBride be our guide and ask
+the same question we asked before: what "type-safe" operation do we want, and
+what minimal phantom types do we need to allow this type-safe operation? In our
+case, we want to *insert* into our bounded weighted list in a safe way, to
+ensure that there is enough room. So, we need *two* phantom types:
 
 1. One phantom type `lim` to establish the maximum weight of our container
 2. Another phantom type `n` to establish the current used capacity of our
@@ -876,6 +958,12 @@ does, we can return successfully.  Note that we define `SomeBounded` using GADT
 syntax so we can precisely control the order of the type variables, so
 `SomeBounded @m xs` binds `m` to the capacity of the inner list.
 
+Remember in this case that the *end user* here isn't necessarily using the
+phantom types to their advantage (except for `lim`, which could be useful).
+Instead, it's *us* who is going to be using `n` to ensure that if we ever
+*create* any `Bounded` (or `SomeBounded`), it will *always* be within capacity
+*by construction*.
+
 Now that the usage makes sense, let's jump in and write some type-safe
 functions using our fancy phantom types!
 
@@ -899,30 +987,39 @@ limit:[^concatBounded]
 !!!type-levels/Level7.hs "concatBounded ::"
 ```
 
-[^concatBounded]: I think this function actually makes `Bounded lim n a` the
-arrows of a category where the objects are the natural numbers and the identity
-arrow is `BNil`. Neat I guess?  It's related to the [preoder category][].
-Always nice to spot categories out there in the wild.
+::::: {.note}
+**Aside**
 
+Hold up! This is completely unrelated to the topic at hand, but if you're a big
+nerd like me, you might enjoy the fact that I this function makes `Bounded lim
+n a` the *arrows* of a [Category][] whose *objects* are the natural numbers,
+the identity arrow is `BNil`, and arrow composition is `concatBounded`.
+Between object `n` and `m`, if `n <= m`, its arrows are values of type `Bounded
+lim (m - n) a`.  Actually wait, it's the same thing with `Vec` above isn't it?
+I guess we were moving so fast that I didn't have time to realize it.
+
+Anyway this is related to the [preorder category][], but not thin. A thicc
+preorder category, if you will.  Always nice to spot a category out there in
+the wild.
+
+:::::
+
+[Category]: https://ncatlab.org/nlab/show/category
 [preorder category]: https://ncatlab.org/nlab/show/preorder
 
 It should be noted that the reason that `reBounded` and `concatBounded` look so
-clean so fresh is that we are heavily leveraging typechecker plugins (in this
-case, *[ghc-typelits-natnormalise][]* and *[ghc-typelits-knonwnnat][]*). But,
+clean so fresh is that we are heavily leveraging typechecker plugins. But,
 these are all still possible with normal functions if we construct the
 witnesses explicitly.
 
-[ghc-typelits-natnormalise]: https://hackage.haskell.org/package/ghc-typelits-natnormalise
-[ghc-typelits-knonwnnat]: https://hackage.haskell.org/package/ghc-typelits-knownnat
-
-Now for our first non-trivial function, let's write `takeBounded`, which
+Now for a function within our business logic, let's write `takeBounded`, which
 *constricts* a `Bounded lim n a` to a `Bounded lim' q a` with a smaller limit
 `lim'`, where `q` is the weight of *all of the elements that fit in the new
-limit*.  For example, if we had a bag of limit 15 with items weighing 4, 3, and 5
-(total 12), but we wanted to `takeBounded` with a new limit 10, we would take
+limit*.  For example, if we had a bag of limit 15 with items weighing 4, 3, and
+5 (total 12), but we wanted to `takeBounded` with a new limit 10, we would take
 the 4 and 3 items, but leave behind the 5 item, to get a new total weight of 7.
 
-It'd be nice to have a helper data type to existentially contain the new `q`
+It'd be nice to have a helper data type to existentially wrap the new `q`
 weight:
 
 ```haskell
@@ -941,16 +1038,16 @@ takeBounded ::
 Again I'm going to introduce some helper functions that will make sense soon:
 
 ```haskell
-!!!type-levels/Level7.hs "bCons ::" "withBoundedWit ::"
+!!!type-levels/Level7.hs "bConsExpand ::" "withBoundedWit ::"
 ```
 
 From the type, we can see `bCons` adds a new item while also increasing the
-limit: `bCons :: Entry n a -> Bounded lim m a -> Bounded (n + lim) (n + m) a`.
-This is always safe because we can always add a new item into any bag if we
-increase the limit of the bag: `Entry 100 a -> Bounded 5 3 a -> Bounded 105 103
-a`, for instance.
+limit: `bConsExpand :: Entry n a -> Bounded lim m a -> Bounded (n + lim) (n +
+m) a`. This is always safe conceptually because we can always add a new item
+into any bag if we increase the limit of the bag: `Entry 100 a -> Bounded 5 3 a
+-> Bounded 105 103 a`, for instance.
 
-However, you'll notice that if we write this as `BCons x (reBounded xs)` alone,
+Next, you'll notice that if we write this as `BCons x (reBounded xs)` alone,
 we'll get a GHC error complaining that this requires `m <= lim`.  This is
 something that we *know* has to be true (by construction), since there isn't
 any constructor of `Bounded` that will give us a total weight `m` bigger than
@@ -972,11 +1069,10 @@ With that, we're ready:
 ```
 
 Thanks to the types, we ensure that the returned bag must contain *at most*
-`lim'`.
+`lim'`!
 
 As an exercise, try writing `splitBounded`, which is like `takeBounded` but
 also returns the items that were leftover. [The solution is here!][splitBounded]
-
 
 ```haskell
 !!!type-levels/Level7.hs "data SplitBounded ::" "splitBounded ::"5
@@ -984,7 +1080,8 @@ also returns the items that were leftover. [The solution is here!][splitBounded]
 
 !!![splitBounded]:type-levels/Level7.hs "splitBounded ::"
 
-One final example, how about a function that *reverses* the `Bounded lim n a`? We're going to write a "single-pass reverse", similar to how it's often written
+One final example, how about a function that *reverses* the `Bounded lim n a`?
+We're going to write a "single-pass reverse", similar to how it's often written
 for lists:
 
 ```haskell
@@ -995,7 +1092,7 @@ Now, reversing a `Bounded` should be legal, because reversing the order of the
 items shouldn't change the total weight. However, we basically "invert" the
 structure of the `Bounded` type, which, depending on how we set up our phantom
 types, could mean a lot of witness reshuffling.  Luckily, our typechecker
-plugin handles most of it for us in this case, but it exposes one hole.
+plugin handles most of it for us in this case, but it exposes one gap:
 
 ```haskell
 !!!type-levels/Level7.hs "reverseBounded ::" "solveLte ::"
@@ -1005,5 +1102,37 @@ Due to how everything gets exposed, we need to prove that if `a + b <= n` and
 `c <= b`, then `a + c <= n`. This is always true, but the typechecker plugin
 needs a bit of help, and we have to resort to an unsafe operation to get this
 to work.  However, if we were using our manually constructed inductive types
-instead of GHC's opaque ones, we could write this in
-a type-safe and total way.
+instead of GHC's opaque ones, we could write this in a type-safe and total way.
+We run into these kinds of issues a lot more often with global invariants than
+we do with local invariants, because the invariant phantom becomes so entangled
+with the structure of our data type.
+
+And...that's about as far as we're going to go with this final level!  If this
+type of programming with structural invariants is appealing to you, check out
+Conor McBride's famous [type-safe red-black trees in Haskell][pivotal] paper,
+or Edwin Brady's [Type-Driven Development in Idris][tddi] for how to structure
+entire programs around these principles.
+
+[pivotal]: https://personal.cis.strath.ac.uk/conor.mcbride/Pivotal.pdf
+[tddi]: https://www.manning.com/books/type-driven-development-with-idris
+
+Evident from the fact that Conor's work is in Agda, and Brady's in Idris, you
+can tell that in doing this, we are definitely pushing the boundaries of what
+is ergonomic to write in Haskell. Well, depending on who you ask, we already
+zipped that boundary long ago. Still, there's definitely a certain kind of joy
+to defining invariants in your data types and then essentially *proving* to the
+compiler that you've followed them. But, most people will be happier just
+writing a property test to fuzz the implementation on a non type-safe
+structure. And some will be happy with...unit tests. Ha ha ha ha. Good joke
+right?
+
+Anyways, hope you enjoyed the ride!
+
+Special Thanks
+--------------
+
+I am very humbled to be supported by an amazing community, who make it possible
+for me to devote time to researching and writing these posts.  Very special
+thanks to my supporter at the "Amazing" level on [patreon][], Josh Vera! :)
+
+[patreon]: https://www.patreon.com/justinle/overview
