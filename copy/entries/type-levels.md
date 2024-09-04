@@ -3,6 +3,7 @@ title: "Seven Levels of Type Safety in Haskell: Lists"
 categories: Haskell
 tags: functional programming, dependent types, haskell, singletons, types
 create-time: 2021/02/25 00:30:53
+date: 2024/09/04 10:35:47
 identifier: type-levels
 slug: levels-of-type-safety-haskell-lists
 ---
@@ -929,12 +930,11 @@ Level 7: Global structure Enforced List
 
 !!![level7]:type-levels/Level7.hs
 
-For our final level, let's imagine a "weighted list" of `(Int, a)`
-pairs, where each item `a` has an associated weight or cost. Now, let's
-further imagine a "bounded weighted list", where the _total cost_ must not
-exceed some limit value. Think of it as a list of files and their sizes and a
-maximum total file size, or a backpack for a character in a video game with a
-maximum total carrying weight.
+For our final level, let's imagine a "weighted list" of `(Int, a)` pairs, where
+each item `a` has an associated weight or cost. Then, imagine a "bounded
+weighted list", where the _total cost_ must not exceed some limit value. Think
+of it as a list of files and their sizes and a maximum total file size, or a
+backpack for a character in a video game with a maximum total carrying weight.
 
 There is a fundamental difference here between this type and our last type: we
 want to enforce a *global* invariant (total cannot exceed a limit), and we
@@ -947,7 +947,7 @@ invariant now becomes entangled to the overall structure of our data type
 itself.
 
 Let's re-use our `Entry` type, but interpret an `Entry n a` as a value of type
-`a` with a weight `n`. Now, we'll again let Conor McBride be our guide and ask
+`a` with a weight `n`. Now, we'll again "let McBride be our guide" and ask
 the same question we asked before: what "type-safe" operation do we want, and
 what minimal phantom types do we need to allow this type-safe operation? In our
 case, we want to *insert* into our bounded weighted list in a safe way, to
@@ -1000,7 +1000,9 @@ capacity:
 
 Note that we have full type safety here! GHC will prevent us from using
 `reBounded` if we pick a new `lim` that is *less* than what the bag currently
-weighs!
+weighs!  You'll also see the general pattern here that changing any "global"
+properties for our type here will require recursing over the entire structure
+to adjust the global property.
 
 How about a function to combine two bags of the same weight? Well, this should
 be legal as long as the new combined weight is still within the
@@ -1013,10 +1015,10 @@ limit:
 ::::: {.note}
 **Aside**
 
-Hold up! This is completely unrelated to the topic at hand, but if you're a big
-nerd like me, you might enjoy the fact that I this function makes `Bounded lim
-n a` the *arrows* of a [Category][] whose *objects* are the natural numbers,
-the identity arrow is `BNil`, and arrow composition is `concatBounded`. Between
+This is completely unrelated to the topic at hand, but if you're a big nerd
+like me, you might enjoy the fact that this function makes `Bounded lim n a`
+the *arrows* of a [Category][] whose *objects* are the natural numbers, the
+identity arrow is `BNil`, and arrow composition is `concatBounded`. Between
 object `n` and `m`, if `n <= m`, its arrows are values of type `Bounded lim (m
 - n) a`. Actually wait, it's the same thing with `Vec` and `vconcat` above
 isn't it? I guess we were moving so fast that I didn't have time to realize it.
@@ -1044,7 +1046,7 @@ would take the 4 and 3 items, but leave behind the 5 item, to get a new total
 weight of 7.
 
 It'd be nice to have a helper data type to existentially wrap the new `q`
-weight:
+weight in our return type:
 
 ```haskell
 !!!type-levels/Level7.hs "data TakeBounded"
@@ -1082,9 +1084,9 @@ within each constructor GHC knows that `m <= lim` holds. This is what
 the constructors of `Bounded lim n a` so GHC is happy in every case.
 
 `withBoundedWit`'s type might be a little confusing if this is the first time
-you've seen an argument of type `(constraint => r)`: it takes a `Bounded lim n
-a` and a "value that is only possible if `n <= lim`", and then gives you that
-value.
+you've seen an argument of the form `(constraint => r)`: it takes a `Bounded
+lim n a` and a "value that is only possible if `n <= lim`", and then gives you
+that value.
 
 With that, we're ready:
 
@@ -1096,7 +1098,7 @@ Thanks to the types, we ensure that the returned bag must contain *at most*
 `lim'`!
 
 As an exercise, try writing `splitBounded`, which is like `takeBounded` but
-also returns the items that were leftover. [The solution is here!][splitBounded]
+also returns the items that were leftover. [Solution here.][splitBounded]
 
 ```haskell
 !!!type-levels/Level7.hs "data SplitBounded ::" "splitBounded ::"5
@@ -1150,7 +1152,10 @@ writing a property test to fuzz the implementation on a non type-safe
 structure. And some will be happy with...unit tests. Ha ha ha ha. Good joke
 right?
 
-Anyway, hope you enjoyed the ride!
+Anyway, hope you enjoyed the ride! I hope you found some new ideas for ways to
+write your code in the future, or at least found them interesting or
+eye-opening. Which level is your favorite, and what level do you *wish* you
+could work at if things got a little more ergonomic?
 
 Special Thanks
 --------------
