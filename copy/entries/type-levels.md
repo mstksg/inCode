@@ -204,9 +204,15 @@ type safety? Weird. Anyway.
 
 I think one interesting thing to see here is that being "type-unsafe" in
 Haskell can be much less convenient than doing something similar in a
-dynamically typed language like python --- that's why I don't fancy those
-memes/jokes about how dynamically typed languages are just "static types with a
-single type". The actual way you use those types lend themselves to different
+dynamically typed language like python. The python ecosystem is designed around
+runtime reflection and inspection for properties and interfaces, whereas the
+dominant implementation of interfaces in Haskell (typeclasses) doesn't gel with
+this. There's no runtime typeclass instantiation: we can't pattern match on a
+`TypeRep` and check if it's an instance of `Ord` or not.
+
+That's why I don't fancy those memes/jokes about how dynamically typed
+languages are just "static types with a single type". The actual way you use
+those types (and the ecosystem built around them) lend themselves to different
 ergonomics, and the reductionist take doesn't quite capture that nuance.
 
 Level 2: Heterogeneous List
