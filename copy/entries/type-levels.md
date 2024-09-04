@@ -1126,7 +1126,7 @@ writing a property test to fuzz the implementation on a non type-safe
 structure. And some will be happy with...unit tests. Ha ha ha ha. Good joke
 right?
 
-Anyways, hope you enjoyed the ride!
+Anyway, hope you enjoyed the ride!
 
 Special Thanks
 --------------
