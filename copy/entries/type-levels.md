@@ -161,14 +161,20 @@ ghci> showSigma y
 "4"
 ```
 
-This is the "[existential typeclass antipattern][palmer]", but since we are
-talking about different ways we can push the type system, it's probably worth
-mentioning. In particular, `Show` is a silly typeclass to use in this
+This is the "[existential typeclass antipattern][palmer]"[^pprivate], but since
+we are talking about different ways we can push the type system, it's probably
+worth mentioning. In particular, `Show` is a silly typeclass to use in this
 context because a `Sigma Showable` is equivalent to just a `String`: once you
 match on the constructor to get the value, the only thing you can do with the
 value is `show` it anyway.
 
 [palmer]: https://lukepalmer.wordpress.com/2010/01/24/haskell-antipattern-existential-typeclass/
+
+[^pprivate]: Luke's blog has been known to switch back and forth from private
+to non-private, so I will link to the official post and respect the decision of
+the author on whether or not it should be visible. However, the term itself is
+quite commonly used and if you search for it online you will find much
+discussion about it.
 
 One fun thing we can do is provide a "useless witness", like `Proxy`:
 
