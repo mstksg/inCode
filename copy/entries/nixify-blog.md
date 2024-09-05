@@ -3,7 +3,7 @@ title: "I nixified my blog"
 categories: Meta
 tags: haskell, nix, purescript
 create-time: 2023/12/30 11:38:08
-date: 2023/01/01 13:21:32
+date: 2024/01/01 13:21:32
 identifier: nixify-blog
 slug: i-nixified-my-blog
 ---
