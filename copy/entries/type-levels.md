@@ -24,7 +24,10 @@ This post is written for an intermediate Haskeller, who is already familiar
 with ADTs and defining their own custom list type like `data List a = Nil |
 Cons a (List a)`. But, be advised that *most* of the techniques discussed in
 this post (especially at both extremes) are considered esoteric at best and
-harmful at worst for most actual real-world applications :)
+harmful at worst for most actual real-world applications. The point of this
+post is more to inspire the imagination and demonstrate principles that could
+be useful to apply in actual code, and *not* to present actual useful data
+structures.
 
 All of the code here is [available online][code samples] here, and if you check
 out the repo and run `nix develop` you should be able to load them all in ghci
@@ -1166,8 +1169,12 @@ right?
 
 Anyway, hope you enjoyed the ride! I hope you found some new ideas for ways to
 write your code in the future, or at least found them interesting or
-eye-opening. Which level is your favorite, and what level do you *wish* you
-could work at if things got a little more ergonomic?
+eye-opening. Again, none of the data structures here are presented to be
+practically useful as-is -- the point is more to present these typing
+principles and mechanics in a fun manner and to inspire a sense of wonder.
+
+Which level is your favorite, and what level do you *wish* you could work at if
+things got a little more ergonomic?
 
 Special Thanks
 --------------
