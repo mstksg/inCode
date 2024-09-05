@@ -659,7 +659,12 @@ possible, known as "decision functions":
 
 This was a very whirlwind introduction, and I definitely recommend reading
 [this post on fixed-length lists][fixvec-2] for a more in-depth guide and tour
-of the features.
+of the features.  In practice, fixed-length lists are not that useful because
+the situations where you want lazily linked lists and the situations where you
+want them to be statically sized has very little overlap. But you will often
+see [fixed-length vectors][] in real life code -- mostly numerical code.
+
+[fixed-length vectors]: https://hackage.haskell.org/package/vector-sized
 
 Overall as you can see, at this level we gain some powerful guarantees and
 tools, but we also run into some small inconveniences (like manipulating
