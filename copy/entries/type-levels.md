@@ -1023,11 +1023,12 @@ limit:
 
 This is completely unrelated to the topic at hand, but if you're a big nerd
 like me, you might enjoy the fact that this function makes `Bounded lim n a`
-the *arrows* of a [Category][] whose *objects* are the natural numbers, the
-identity arrow is `BNil`, and arrow composition is `concatBounded`. Between
-object `n` and `m`, if `n <= m`, its arrows are values of type `Bounded lim (m
-- n) a`. Actually wait, it's the same thing with `Vec` and `vconcat` above
-isn't it? I guess we were moving so fast that I didn't have time to realize it.
+the *arrows* of a [Category][] whose *objects* are the natural numbers less
+than or equal to `lim`, the identity arrow is `BNil`, and arrow composition is
+`concatBounded`. Between object `n` and `m`, if `n <= m`, its arrows are values
+of type `Bounded lim (m - n) a`. Actually wait, it's the same thing with `Vec`
+and `vconcat` above isn't it? I guess we were moving so fast that I didn't have
+time to realize it.
 
 Anyway this is related to the [preorder category][], but not thin. A thicc
 preorder category, if you will. Always nice to spot a category out there in
