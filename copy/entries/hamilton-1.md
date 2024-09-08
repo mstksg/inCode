@@ -650,8 +650,8 @@ myFunc      :: RealFloat a => a -> a
 diff myFunc :: RealFloat a => a -> a
 ```
 
-If we have a function a function from a sized vector to a scalar, we can use
-`grad` to get its gradient:
+If we have a function from a sized vector to a scalar, we can use `grad` to get
+its gradient:
 
 ```haskell
 -- import qualified Data.Vector.Sized as V
