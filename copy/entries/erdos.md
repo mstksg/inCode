@@ -87,7 +87,7 @@ my most direct trace through:
     algebra to partial differential equations][struppa adams]" with William W.
     Adams.
 3.  Dr. Adams co-authored "[Non-Archimedian analytic functions taking the same
-    values at the same points][adams strauss]" with Ernst G. Straus.
+    values at the same points][adams straus]" with Ernst G. Straus.
 4.  Dr. Straus collaborated with many people, including Einstein, Graham,
     Goldberg, and 20 papers with Erdos.
 
