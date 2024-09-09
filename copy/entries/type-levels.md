@@ -315,7 +315,7 @@ type. Functions like `sum :: Num a => [a] -> a` and `sort :: Ord a => [a] ->
 [a]` do that. This is "polymorphism", where the function is written to not
 worry about the type, and the ultimate *caller* of the function must pick the
 type they want to use with it. For the sake of this discussion, we aren't
-talking about *consuming* values -- we're talking about *producing* and
+talking about *consuming* values --- we're talking about *producing* and
 *storing* values where the *producer* (and not the consumer) controls the type
 variable.
 
@@ -671,7 +671,7 @@ This was a very whirlwind introduction, and I definitely recommend reading
 of the features.  In practice, fixed-length lists are not that useful because
 the situations where you want lazily linked lists and the situations where you
 want them to be statically sized has very little overlap. But you will often
-see [fixed-length vectors][] in real life code -- mostly numerical code.
+see [fixed-length vectors][] in real life code --- mostly numerical code.
 
 [fixed-length vectors]: https://hackage.haskell.org/package/vector-sized
 
@@ -724,7 +724,7 @@ essentially the same as the `Nat` we wrote above, but *opaque* and provided by
 the compiler. Under the hood, it's implemented using machine integers for
 efficiency. And, instead of using concrete `S (S (S Z))` syntax, you'd use
 abstract numeric literals, like `3`. There's a trade-off: because it's opaque,
-we can't pattern match on it and create or manipulate our own witnesses -- we
+we can't pattern match on it and create or manipulate our own witnesses --- we
 are at the mercy of the API that GHC gives us. We get `+`, `<=`, `Min`, etc.,
 but in total it's not that extensive. That's why I never use these without also
 bringing typechecker plugins (*[ghc-typelits-natnormalise][]* and
@@ -1176,7 +1176,7 @@ right?
 Anyway, hope you enjoyed the ride! I hope you found some new ideas for ways to
 write your code in the future, or at least found them interesting or
 eye-opening. Again, none of the data structures here are presented to be
-practically useful as-is -- the point is more to present these typing
+practically useful as-is --- the point is more to present these typing
 principles and mechanics in a fun manner and to inspire a sense of wonder.
 
 Which level is your favorite, and what level do you *wish* you could work at if
