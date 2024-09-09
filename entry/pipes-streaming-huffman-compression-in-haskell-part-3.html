@@ -1,0 +1,521 @@
+<!DOCTYPE HTML>
+<html><head><title>Pipes: Streaming Huffman Compression in Haskell (Part 3)
+ · in Code</title><meta name="description" content="Weblog of Justin Le, covering various adventures in programming and explorations in the worlds of computation physics, and knowledge.
+"><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="flattr:id" content="3p9jqr"><meta property="og:site_name" content="in Code"><meta property="og:description" content="Let’s finally finish up our Streaming Huffman Compression project by actually implementing the “streaming” part :) In part 1 we looked at the data structures which we used to implement our compression logic; in part 2 we looked at the actual compression/decompression algorithm and implemented it. Finally, let’s wrap it all up and actually implement a streaming interface! If we were using an imperative approach, this would usually involve some sort of loop — read a byte, process it, write the resulting byte, read the next, process it, write it…it’s a step of instructions that a computer will be able to perform step-by-step. In Haskell, when we can, we try to look for a pure, declarative approach based on compositions of abstractions. That’s what Haskell does best, after all. So let’s see what we can do! (All of the code in this article and the ones before can be downloaded from github, so you can download it and try it out yourself!)"><meta property="og:type" content="article"><meta property="og:title" content="Pipes: Streaming Huffman Compression in Haskell (Part 3)
+"><meta property="og:image" content="https://blog.jle.im/img/site_logo.jpg"><meta property="og:locale" content="en_US"><meta property="og:url" content="https://blog.jle.im/entry/pipes-streaming-huffman-compression-in-haskell-part-3.html"><meta name="twitter:card" content="summary"><meta name="twitter:creator:id" content="mstk"><link rel="author" href="https://plus.google.com/107705320197444500140"><link rel="alternate" type="application/rss+xml" title="in Code (RSS Feed)" href="http://feeds.feedburner.com/incodeblog"><link rel="canonical" href="https://blog.jle.im/entry/pipes-streaming-huffman-compression-in-haskell-part-3.html"><link href="https://blog.jle.im/favicon.ico" rel="shortcut icon"><link href="https://blog.jle.im/css/toast.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/font.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/main.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/page/entry.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/pygments.css" rel="stylesheet" type="text/css"><script type="text/javascript">var page_data = {};
+var disqus_shortname='incode';
+</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-443711-8', 'jle.im');
+ga('send', 'pageview');
+</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js"></script><script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5234d67a6b68dcd4"></script><script type="text/javascript" src="https://blog.jle.im/js/page/entry_toc.js"></script><script type="text/javascript" src="https://blog.jle.im/js/disqus_count.js"></script><script type="text/javascript" src="https://blog.jle.im/js/social.js"></script><script type="text/javascript" src="https://blog.jle.im/js/jquery/jquery.toc.js"></script><script type="text/javascript" src="https://blog.jle.im/purescript/entry.js"></script></head><body><div id="fb-root"><script>(function(d, s, id) {
+ var js, fjs = d.getElementsByTagName(s)[0];
+ if (d.getElementById(id)) return;
+ js = d.createElement(s); js.id = id;
+ js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=641852699171929";
+ fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+</script></div><div id="header-container"><div id="navbar-container" class="tile"><nav id="navbar-content"><div class="nav-info"><h1 class="site-title"><a href="https://blog.jle.im/" class="nav-title">in Code</a></h1><span class="nav-author">Justin Le</span></div><ul class="nav-links"><li><a href="https://blog.jle.im/">home</a></li><li><a href="https://blog.jle.im/entries.html">archives</a></li><li><a href="https://cv.jle.im">cv</a></li><div class="clear"></div></ul></nav></div><div id="header-content"></div></div><div id="body-container" class="container"><div id="main-container" class="grid"><div class="entry-section unit span-grid" role="main"><article class="tile article"><header><h1 id="title">Pipes: Streaming Huffman Compression in Haskell (Part 3)
+</h1><p class="entry-info">by <a class="author" href="https://blog.jle.im/">Justin Le</a><span class="info-separator"> &diams; </span><time datetime="2014-06-26T12:44:11Z" pubdate="" class="pubdate">Thursday June 26, 2014</time></p><p><span class="source-info"><a class="source-link" href="https://github.com/mstksg/inCode/tree/master/copy/entries/huffman-3.md">Source</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://github.com/mstksg/inCode/tree/gh-pages/entry/pipes-streaming-huffman-compression-in-haskell-part-3.md">Markdown</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://blog.jle.im/entry/pipes-streaming-huffman-compression-in-haskell-part-3.tex">LaTeX</a><span class="info-separator"> &diams; </span></span>Posted in <a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category" title="Functional, pure, non-strict, statically and strongly typed, natively
+compiled...really just the king of great languages.
+">Haskell</a>, <a href="https://blog.jle.im/entries/category/@tutorials.html" class="tag-a-category" title="Technical tutorials/walkthroughs on specific programming processes and problems
+that I&#39;ve struggled through in the past.
+">Tutorials</a><span class="info-separator"> &diams; </span><a class="comment-link" href="#disqus_thread">Comments</a></p></header><hr><aside class="contents-container"><h5 id="contents-header">Contents</h5><div id="toc"></div></aside><div class="main-content copy-content"><p>Let’s finally finish up our Streaming Huffman Compression project by actually implementing the “streaming” part :) In <a href="http://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-1-trees">part 1</a> we looked at the data structures which we used to implement our compression logic; in <a href="http://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-2-binary">part 2</a> we looked at the actual compression/decompression algorithm and implemented it. Finally, let’s wrap it all up and actually implement a streaming interface!</p>
+<p>If we were using an imperative approach, this would usually involve some sort of loop — read a byte, process it, write the resulting byte, read the next, process it, write it…it’s a step of instructions that a computer will be able to perform step-by-step.</p>
+<p>In Haskell, when we can, we try to look for a pure, declarative approach based on compositions of abstractions. That’s what Haskell does best, after all. So let’s see what we can do!</p>
+<p>(All of the code in this article and the ones before can be downloaded <a href="https://github.com/mstksg/inCode/tree/master/code-samples/huffman">from github</a>, so you can download it and try it out yourself!)</p>
+<h2 id="pipes">Pipes</h2>
+<h3 id="choosing-pipes">Choosing Pipes</h3>
+<p>So we are searching for an abstraction to handle <em>constant-space</em> IO streaming — that is, we only ever have in memory exactly what we are processing at that moment, and nothing else. For this, there are a couple go-to abstractions we can use that provide this (at the low level).</p>
+<p>We can use lazy IO, which basically relies on Haskell’s built in laziness semantics that we know and love to control when IO happens. The problem here is that your IO actions are no longer <a href="http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity">first-class members</a> of the language — they are “runtime magic”. You can no longer really reason about when file handles are closed and exactly when reads happen. This really is a bit antithetical to Haskell, a language where we actually have the ability to move IO into a first-class member of the language and make it something that we can actually reason about.</p>
+<p>There have been many solutions developed to this problem and in modern times, <a href="https://hackage.haskell.org/package/conduit">conduit</a> and <a href="http://hackage.haskell.org/package/pipes">pipes</a> have emerged, built on the backs of early coroutine-based libraries. These libraries are built on the idea of purely assembling and “declaring” the IO pipeline that you want, with each pipeline component having very explicit and comparable and able-to-reason-with IO read/write/close semantics.</p>
+<p>The choice between <em>conduit</em> and <em>pipes</em> depends a lot on what you want to accomplish. There was a very nice <a href="http://www.haskellcast.com/episode/006-gabriel-gonzalez-and-michael-snoyman-on-pipes-and-conduit/">Haskell Cast</a> episode on this matter (and more) that I would highly recommend. Both libraries come from very different backgrounds and histories.</p>
+<p>This picture is slightly simplified, but <em>conduit</em> focuses around safe resource handling, and <em>pipes</em> focuses on equational reasoning and applied mathematical abstractions.</p>
+<p>I’m picking <em>pipes</em> for this tutorial, for no major reason. All of this could be written in <em>conduit</em> with little difference in code size or expressiveness, I’m sure. I mostly chose <em>pipes</em> because I wanted to demonstrate some of the nice reasoning that pipes enables that Haskell is so famous for. I also just wanted to learn it, myself :)</p>
+<h3 id="before-we-go">Before we go</h3>
+<p>Before you proceed, it is recommended that you read over or are at least somewhat familiar with the excellent <a href="http://hackage.haskell.org/package/pipes-4.1.2/docs/Pipes-Tutorial.html">pipes tutorial</a>, which is a part of the actual pipes documentation. This post does not attempt to be a substitute for it, only a “what’s next?”.</p>
+<p>Now, we are going to be using a bit more than just plain old <em>pipes</em> for our program. In addition to the libraries used in our previous parts, we’re going to be using:</p>
+<ol type="1">
+<li><em><a href="http://hackage.haskell.org/package/pipes-parse">pipes-parse</a></em>, for leftover support. We’re going to be using limited leftover handling for this project in a couple of situations.</li>
+<li><em><a href="http://hackage.haskell.org/package/pipes-bytestring">pipes-bytestring</a></em>, which provides lenses for us to manipulate bytestring and byte producers in efficient and expressive ways.</li>
+</ol>
+<p>Today, our work with <em>pipes</em> will revolve around a couple of main concepts:</p>
+<ul>
+<li><p>Taking two or more pipes and chaining them together to make new ones; hooking up input generators (“sources”, or <em>Producers</em>) to pipes and to data consumers (“sinks”, or <em>Consumers</em>)</p></li>
+<li><p>Taking producers and pipes and chains of pipes (which are themselves just pipes, by the way) and <em>transforming</em> them into new producers and pipes.</p></li>
+</ul>
+<p>If you’ve ever used bash/unix, the first concept is like using unix pipes to “declare” a chain of tools. You can do powerful things by just chaining simple components.</p>
+<p>The second concept relates to things to <em>sudo</em> or <em>time</em>; they take normal bash commands and “transform” them into super user commands, or “timeable” commands.</p>
+<p>And without any further delay, let’s write <em>encode.hs</em>!</p>
+<h2 id="encoding">Encoding</h2>
+<p>(Remember that you can download <a href="https://github.com/mstksg/inCode/tree/master/code-samples/huffman/encode.hs">encode.hs</a> from github and try it out yourself; just remember to also grab <a href="https://github.com/mstksg/inCode/tree/master/code-samples/huffman/Huffman.hs">Huffman.hs</a>, <a href="https://github.com/mstksg/inCode/tree/master/code-samples/huffman/PQueue.hs">PQueue.hs</a>, and <a href="https://github.com/mstksg/inCode/tree/master/code-samples/huffman/PreTree.hs">PreTree.hs</a>, and <a href="https://github.com/mstksg/inCode/tree/master/code-samples/huffman/Weighted.hs">Weighted.hs</a> from the previous parts of this tutorial!)</p>
+<h3 id="design">Design</h3>
+<p>Okay, so with the above in mind, let’s sketch out a rough plan. We’ll talk about the holes in the plan later, but it’s useful to see exactly what won’t work, or what is a bad idea :)</p>
+<p>We can envision this all as a big single giant pipeline of atomic components.</p>
+<p>As a <em>Producer</em>, we have <code>fromHandle</code>, which emits <code>ByteString</code>s read from a given file handle. As a <em>Consumer</em>, we have <code>toHandle</code>, which takes in <code>ByteString</code>s and writes them to the given file handle.</p>
+<p>Those in hand, we’ll need:</p>
+<ol type="1">
+<li>A pipe that turns incoming <code>ByteString</code>s into bytes<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> (<code>Word8</code>s), emitting one at a time.</li>
+<li>A pipe that turns incoming <code>Word8</code>s into <code>Direction</code>s, by looking up each <code>Word8</code> in an encoding table to get a list of <code>Direction</code>s and emitting them one at a time.</li>
+<li>A pipe that takes in <code>Direction</code>s and “chunks them up” 8-at-a-time, and re-emits those chunks of 8 as bytes/<code>Word8</code>’s.</li>
+<li>A pipe that takes incoming <code>Word8</code>s and wraps them each back into <code>ByteString</code>s and emits them.</li>
+</ol>
+<p>Sounds simple enough, right? Basically like using unix pipes!</p>
+<p>We’ll be making two modifications to this plan before we go forward.</p>
+<h4 id="leftovers">Leftovers</h4>
+<p>The first hole: vanilla <em>pipes</em> does not have <em>leftover support</em>. That is, the stream terminates as soon as the producer terminates.</p>
+<p>To put more technically: when a pipe is <em>awaiting</em> something, there is no guarantee that it’ll ever get anything — if the producer it is awaiting from terminates, then that’s that; no chance to respond.</p>
+<p>This is normally not a problem, and it won’t be an issue for our decoding program. However, we run into a problem for pipe #3 above: we need to “clump up” incoming <code>Direction</code>s and emit them in groups of 8.</p>
+<p>This spells trouble for us, because our pipe will be merrily be waiting for eight Directions before clumping them up — until our producer terminates mid-clump. Then what? That final in-progress clump will be lost…forever!</p>
+<p>The problem is in the semantics of pipe composition with <code>(&gt;-&gt;)</code>.</p>
+<p>So it’s clear that using normal pipe composition (<code>(&gt;-&gt;)</code>) doesn’t work. We’re going to have to transform our <code>Direction</code> producer in another way.</p>
+<p>Luckily for us, this is precisely the problem that <em>pipes-parse</em> was made to solve.</p>
+<p>We’ll go into more detail about just <em>how</em> it solves this later. At the high level, instead of composing pipes with <code>(&gt;-&gt;)</code>, we’ll <em>transform</em> pipes by using pipe transformers/functions.</p>
+<p>So we’ll modify our plan. We’ll have our “<code>Direction</code> producer”, which consists of:</p>
+<ol type="1">
+<li>Our <code>ByteString</code> producer.</li>
+<li>Our <code>ByteString</code> to <code>Word8</code> pipe.</li>
+<li>Our <code>Word8</code> to <code>Direction</code> pipe.</li>
+</ol>
+<p>And then we “transform” that <code>Direction</code> producer into a <code>Word8</code> producer, which we’ll call <code>dirsBytes</code>:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ot">dirsBytes ::</span> <span class="dt">Producer</span> <span class="dt">Direction</span> m r <span class="ot">-&gt;</span> <span class="dt">Producer</span> <span class="dt">Word8</span> m r</span></code></pre></div>
+<p>which turns a <code>Direction</code> producer into a <code>Word8</code> producer that clumps up the <code>Direction</code>s into groups of 8 — and if the directions run out, pad the rest of the byte with 0’s.</p>
+<p><em>pipes-parse</em> gives us the ability to write <code>dirsBytes</code>.</p>
+<h4 id="perfect-packing">Perfect Packing</h4>
+<p>The next problem.</p>
+<p>If you’ve ever worked with <code>ByteString</code>s, you might have noted an asymmetry to what we are doing. Look closely — do you see it?</p>
+<p>We <em>read</em> <code>ByteString</code>s from the file — entire <em>big chunks</em> of bytes/<code>Word8</code>s.</p>
+<p>We <em>write</em> individual bytes, one at a time. That is, we emit individual <code>Word8</code>s, which we each individually wrap into singleton <code>ByteString</code>s one at a time, which we write to the file one at a time.</p>
+<p>This is bad!</p>
+<p>As you might have guessed, the solution is to not use <code>(&gt;-&gt;)</code> and instead use a pipe transformer.</p>
+<p>We’re not going to write it ourselves using <em>pipes-parse</em>; <em>pipes-bytestring</em> (which we will import qualified as <code>PB</code>) actually comes with such a transformer for us.</p>
+<p>The only hitch is that it’s “trapped” in a “lens”, called <code>PB.pack</code>.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>PB.pack<span class="ot"> ::</span> <span class="dt">Lens&#39;</span> (<span class="dt">Producer</span> <span class="dt">Word8</span> m r) (<span class="dt">Producer</span> <span class="dt">ByteString</span> m r)</span></code></pre></div>
+<p>If you are still learning lens, this basically means that <code>PB.pack</code> contains, among other things, a function that allows you to go from a <code>Word8</code> producer to a <code>ByteString</code> producer. The function <code>view</code> lets us unlock that pipe transformer from the lens.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ot">view ::</span> <span class="dt">Lens&#39;</span> a b <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> b)       <span class="co">-- in our case</span></span></code></pre></div>
+<p>So,</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>view PB.pack<span class="ot"> ::</span> <span class="dt">Producer</span> <span class="dt">Word8</span>      m r</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>             <span class="ot">-&gt;</span> <span class="dt">Producer</span> <span class="dt">ByteString</span> m r</span></code></pre></div>
+<p>Cool. Anyways, <em>pipes-bytestring</em> implements <code>view pack</code> (the conversion function) in a way that does <a href="http://www.haskellforall.com/2013/09/perfect-streaming-using-pipes-bytestring.html">“smart chunking”</a> — it waits until an appropriate amount of <code>Word8</code>s have accumulated in a buffer before packing them all into a big fat <code>ByteString</code>.</p>
+<p>And that should be the last hole in our puzzle!</p>
+<h3 id="down-to-it">Down to it</h3>
+<p>Let’s just get down to it!</p>
+<p>First, our imports:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/encode.hs#L19-L46</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">-- General imports</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Applicative</span>              ((&lt;$&gt;))</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Monad.Trans.State.Strict</span> (evalState)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Data.Foldable</span>                    (sum)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Data.Map.Strict</span>                  (<span class="dt">Map</span>, (!))</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Lens.Family2</span>                     (view)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Prelude</span> <span class="kw">hiding</span>                   (sum)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">System.Environment</span>               (getArgs)</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">System.IO</span>                        (withFile, <span class="dt">IOMode</span>(..))</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.Map.Strict</span>        <span class="kw">as</span> <span class="dt">M</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="co">-- Pipes imports</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Pipes</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Pipes.Parse</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Pipes.ByteString</span> <span class="kw">as</span> <span class="dt">PB</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Pipes.Prelude</span>    <span class="kw">as</span> <span class="dt">PP</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="co">-- Working with Binary</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Data.Binary</span> <span class="kw">hiding</span>             (encodeFile)</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Data.Bits</span>                      (setBit)</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Data.ByteString</span>                (<span class="dt">ByteString</span>)</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.ByteString</span>      <span class="kw">as</span> <span class="dt">B</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.ByteString.Lazy</span> <span class="kw">as</span> <span class="dt">BL</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a><span class="co">-- Huffman imports</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Huffman</span></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">PQueue</span></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">PreTree</span></span></code></pre></div>
+<p>It’s a doozy, admittedly!</p>
+<p>Now <code>main</code>:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/encode.hs#L48-L60</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    args     <span class="ot">&lt;-</span> getArgs</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> (inp, out)  <span class="ot">=</span> <span class="kw">case</span> args <span class="kw">of</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>                        i<span class="op">:</span>o<span class="op">:</span>_      <span class="ot">-&gt;</span> (i,o)</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>                        _          <span class="ot">-&gt;</span> <span class="fu">error</span> <span class="st">&quot;Give input and output files.&quot;</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    metadata <span class="ot">&lt;-</span> analyzeFile inp</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> (len, tree) <span class="ot">=</span> <span class="kw">case</span> metadata <span class="kw">of</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>                        <span class="dt">Just</span> (l, t) <span class="ot">-&gt;</span> (l, t)</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>                        <span class="dt">Nothing</span>     <span class="ot">-&gt;</span> <span class="fu">error</span> <span class="st">&quot;Empty File&quot;</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    encodeFile inp out len tree</span></code></pre></div>
+<p>Just straight-forward, more or less. The error handling is kind of not too great, but we won’t go into that too deeply here :)</p>
+<h4 id="file-metadata">File metadata</h4>
+<p><code>analyzeFile</code> is going to be how we build the Huffman Tree for the encoding, as discussed in part 1. It’ll go through an entire pass of the file and count up the number of occurrences for each byte and build a Huffman encoding tree out of it. It’ll also give us the length of the file in bytes; this is actually necessary for <em>decoding</em> the file later, because it tells us where to stop decoding (lest we begin decoding the leftover padding bits).</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/encode.hs#L63-L74</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="ot">analyzeFile ::</span> <span class="dt">FilePath</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> (<span class="dt">Maybe</span> (<span class="dt">Int</span>, <span class="dt">PreTree</span> <span class="dt">Word8</span>))</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>analyzeFile fp <span class="ot">=</span> withFile fp <span class="dt">ReadMode</span> <span class="op">$</span> \hIn <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> byteProducer <span class="ot">=</span> PB.fromHandle hIn <span class="op">&gt;-&gt;</span> bsToBytes</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    fqs <span class="ot">&lt;-</span> freqs byteProducer</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> len  <span class="ot">=</span> <span class="fu">sum</span> fqs</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>        tree <span class="ot">=</span> evalState (listQueueStateTable fqs <span class="op">&gt;&gt;</span> buildTree) emptyPQ</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span> <span class="op">$</span> <span class="fu">fmap</span> (len,) tree</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="ot">    freqs ::</span> (<span class="dt">Monad</span> m, <span class="dt">Ord</span> a) <span class="ot">=&gt;</span> <span class="dt">Producer</span> a m () <span class="ot">-&gt;</span> m (<span class="dt">M.Map</span> a <span class="dt">Int</span>)</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    freqs <span class="ot">=</span> PP.fold f M.empty <span class="fu">id</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>      <span class="kw">where</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>        f m x <span class="ot">=</span> M.insertWith (<span class="op">+</span>) x <span class="dv">1</span> m</span></code></pre></div>
+<p>First, we use <a href="http://hackage.haskell.org/package/base-4.7.0.0/docs/System-IO.html#v:withFile"><code>withFile</code></a> from System.IO, which gives us a file handler for a given filepath; we can pass this handler onto functions that take file handlers. <code>withFile</code> actually handles most of the IO-based error handling and cleanup we would ever need for our simple use cases of <em>pipes</em>.</p>
+<p>Now we run into real <em>pipes</em> for the first time!</p>
+<p>We’ll assemble our producer of bytes by using <code>PB.fromHandle hIn</code> — a producer of <code>ByteString</code>s — and chaining it to <code>bsToBytes</code>, a pipe that takes incoming <code>ByteString</code>s and emits their constituent, unpacked <code>Word8</code>s one-by-one:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/encode.hs#L96-L97</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="ot">bsToBytes ::</span> <span class="dt">Monad</span> m <span class="ot">=&gt;</span> <span class="dt">Pipe</span> <span class="dt">ByteString</span> <span class="dt">Word8</span> m r</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>bsToBytes <span class="ot">=</span> PP.mapFoldable B.unpack</span></code></pre></div>
+<p>Our implementation uses <code>B.unpack :: ByteString -&gt; [Word8]</code> from <em>pipes-bytestring</em>, which turns a <code>ByteString</code> into a list of its constituent <code>Word8</code>s. We use <code>PP.mapFoldable</code>, which is sort of like <code>concatMap</code> — it applies the given function to every incoming element in the stream, and emits the items in the resulting list<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> one-by-one. So <code>bsToBytes</code> is a Pipe that takes in <code>ByteString</code>s and emits each contained <code>Word8</code> one-by-one.</p>
+<p>Then with our pipe ready, we “run”/“use” it, using <code>PP.fold</code>, from the pipes Prelude. This basically runs a giant “foldl” all over the incoming items of the given producer.</p>
+<p>The fold is identical in logic to <code>listFreq</code> from a <a href="http://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-2-binary">Part 2</a>:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/Huffman.hs#L22-L25</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="ot">listFreq ::</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> [a] <span class="ot">-&gt;</span> <span class="dt">FreqTable</span> a</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>listFreq <span class="ot">=</span> <span class="fu">foldr</span> f M.empty</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    f x m <span class="ot">=</span> M.insertWith (<span class="op">+</span>) x <span class="dv">1</span> m</span></code></pre></div>
+<p>Except instead of folding over a list, we fold over the elements of the producer. Note that the helper function has its arguments reversed. This whole thing, then, will fold over all of the items produced by the given producer (all of the <code>Word8</code>s) with our frequency-table-building.</p>
+<p>We then use <code>sum</code> from <code>Data.Foldable</code>, which sums up all the numbers in our frequency map. Then we use what we learned about the State monad in <a href="http://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-1-trees">Part 1</a> to build our tree (review <a href="http://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-1-trees">Part 1</a> if you do not understand the declaration of <code>tree</code>). <code>tree</code> is a <code>Maybe (PreTree Word8)</code>; we then tag on the length to our <code>tree</code> using <code>fmap</code> and the TupleSections extension. (That is, <code>(,y)</code> is sugar for <code>(\x -&gt; (x,y))</code>).</p>
+<h4 id="the-encoding-pipeline">The Encoding Pipeline</h4>
+<p>Once we have that, we can get onto the actual encoding process: the second pass.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/encode.hs#L78-L92</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="ot">encodeFile ::</span> <span class="dt">FilePath</span> <span class="ot">-&gt;</span> <span class="dt">FilePath</span> <span class="ot">-&gt;</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">PreTree</span> <span class="dt">Word8</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> ()</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>encodeFile inp out len tree <span class="ot">=</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    withFile inp <span class="dt">ReadMode</span>  <span class="op">$</span> \hIn  <span class="ot">-&gt;</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    withFile out <span class="dt">WriteMode</span> <span class="op">$</span> \hOut <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>      BL.hPut hOut <span class="op">$</span> encode (len, tree)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>      <span class="kw">let</span> dirsOut   <span class="ot">=</span> PB.fromHandle hIn</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>                  <span class="op">&gt;-&gt;</span> bsToBytes</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>                  <span class="op">&gt;-&gt;</span> encodeByte encTable</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>          bsOut     <span class="ot">=</span> view PB.pack <span class="op">.</span> dirsBytes <span class="op">$</span> dirsOut</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>          pipeline  <span class="ot">=</span> bsOut</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>                  <span class="op">&gt;-&gt;</span> PB.toHandle hOut</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>      runEffect pipeline</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    encTable  <span class="ot">=</span> ptTable tree</span></code></pre></div>
+<p>First, we open our file handles for our input and output files. Then, we use what we learned in <a href="http://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-2-binary">Part 2</a> to get binary serializations of our length and our tree using <code>encode</code>, and use <code>BL.hPut</code> to write it to our file, as the metadata. <code>BL.hPut</code> from <code>Data.ByteString.Lazy</code> takes a file handle and a lazy <code>ByteString</code>, and writes that <code>ByteString</code> out to the file. We use the lazy version because <code>encode</code> gives us a lazy <code>ByteString</code> by default.</p>
+<p>Note that we can “put” <code>(len, tree)</code> together as a tuple instead of putting <code>len</code> and <code>tree</code> one after the other. This is because <code>(a, b)</code> has a <code>Binary</code> instance. We’ll read it back in later as a tuple, but it actually doesn’t matter, because the <code>Binary</code> instance for tuples is just putting/getting each item one after the other.</p>
+<p>Now, we get to our actual pipes. The first “pipeline” is <code>dirsOut</code>, which is our stream (producer) of <code>Direction</code>s encoding the input file. As can be read, <code>dirStream</code> is <code>PB.fromHandle hIn</code> (a <code>ByteString</code> producer from the given handle) piped into our old friend <code>bsToBytes</code> piped into <code>encodeByte encTable</code>, which is a pipe taking in bytes (<code>Word8</code>), looks them up in <code>encTable</code> (the table mapping <code>Word8</code> to <code>[Direction]</code>, which we built in <a href="http://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-2-binary">Part 2</a>), and spits out the resulting <code>Direction</code>s one at a time.</p>
+<p><code>encodeByte encTable</code> is implemented “exactly the same” as <code>bsToBytes</code>:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/encode.hs#L101-L104</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="ot">encodeByte ::</span> (<span class="dt">Ord</span> a, <span class="dt">Monad</span> m)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>           <span class="ot">=&gt;</span> <span class="dt">Map</span> a <span class="dt">Encoding</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>           <span class="ot">-&gt;</span> <span class="dt">Pipe</span> a <span class="dt">Direction</span> m r</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>encodeByte encTable <span class="ot">=</span> PP.mapFoldable (encTable <span class="op">!</span>)</span></code></pre></div>
+<p>instead of using <code>mapFoldable</code> with a <code>ByteString -&gt; [Word8]</code>, we use <code>mapFoldable</code> with a <code>Word8 -&gt; [Direction]</code>, which does the same thing — apply the function to every incoming item, and spit out the items in the resulting list one at a time.</p>
+<p><code>(!) :: Map k v -&gt; k -&gt; v</code> is the lookup function for <code>Map</code>s.</p>
+<h4 id="parser">Parser</h4>
+<p>So now we have <code>dirsOut :: Producer Direction IO r</code>, which is a producer of <code>Direction</code>s drawn from the file. It’s now time to “group up” the directions, using the “producer transformer” tactic we discussed earlier.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/encode.hs#L108-L117</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="ot">dirsBytes ::</span> (<span class="dt">MonadIO</span> m, <span class="dt">Functor</span> m)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>          <span class="ot">=&gt;</span> <span class="dt">Producer</span> <span class="dt">Direction</span> m r</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>          <span class="ot">-&gt;</span> <span class="dt">Producer</span> <span class="dt">Word8</span>     m ()</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>dirsBytes p <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    (result, leftovers) <span class="ot">&lt;-</span> lift <span class="op">$</span> runStateT dirsBytesP p</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">case</span> result <span class="kw">of</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Just</span> byte <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>        yield byte</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>        dirsBytes leftovers</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Nothing</span>   <span class="ot">-&gt;</span> <span class="fu">return</span> ()</span></code></pre></div>
+<p><code>dirsBytes</code> turns out <code>Direction</code> producer into a <code>Word8</code> producer by running the <em>parser</em> <code>dirsBytesP</code> onto the producer, and looping onto itself. We’ll look at <code>dirsBytesP</code> later, but for now, know that it is a parser that attempts to consume eight <code>Direction</code>s and returns them together in a <code>Just byte</code> with zero padding if the stream runs out; if the stream is already empty to start with, it returns <code>Nothing</code>.</p>
+<p>Remember that in <em>pipes-parse</em>:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="ot">runStateT ::</span> <span class="dt">Parser</span> a m b <span class="ot">-&gt;</span> <span class="dt">Producer</span> a m r <span class="ot">-&gt;</span> m (b, <span class="dt">Producer</span> a m r)</span></code></pre></div>
+<p>Basically, <code>runStateT parser</code> takes a <code>Producer a</code> and “parses” a value out of it, returning the parsed value and the “leftover/used” <code>Producer</code>.</p>
+<p>In our case:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ot">runStateT ::</span> <span class="dt">Parser</span>   <span class="dt">Direction</span> <span class="dt">IO</span> (<span class="dt">Maybe</span> <span class="dt">Word8</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>          <span class="ot">-&gt;</span> <span class="dt">Producer</span> <span class="dt">Direction</span> <span class="dt">IO</span> r</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>          <span class="ot">-&gt;</span> <span class="dt">IO</span> (<span class="dt">Maybe</span> <span class="dt">Word8</span>, <span class="dt">Producer</span> <span class="dt">Direction</span> <span class="dt">IO</span> r)</span></code></pre></div>
+<p>So we use the <code>dirsBytesP</code> parser onto the producer we are given. If it doesn’t parse any bytes (<code>Nothing</code>), then we stop. If it does (<code>Just byte</code>), then we <code>yield</code> the parsed <code>Word8</code> and then start over again with the leftovers producer.</p>
+<p>Let’s take a look at the <code>dirsBytesP</code> parser, which parses <code>Direction</code>s into a <code>Word8</code>:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/encode.hs#L123-L137</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="ot">dirsBytesP ::</span> (<span class="dt">Monad</span> m, <span class="dt">Functor</span> m) <span class="ot">=&gt;</span> <span class="dt">Parser</span> <span class="dt">Direction</span> m (<span class="dt">Maybe</span> <span class="dt">Word8</span>)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>dirsBytesP <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    isEnd <span class="ot">&lt;-</span> isEndOfInput</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">if</span> isEnd</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>      <span class="kw">then</span> <span class="fu">return</span> <span class="dt">Nothing</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>      <span class="kw">else</span> <span class="dt">Just</span> <span class="op">&lt;$&gt;</span> go <span class="dv">0</span> <span class="dv">0</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="ot">    go ::</span> <span class="dt">Monad</span> m <span class="ot">=&gt;</span> <span class="dt">Word8</span> <span class="ot">-&gt;</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Parser</span> <span class="dt">Direction</span> m <span class="dt">Word8</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>    go b <span class="dv">8</span> <span class="ot">=</span> <span class="fu">return</span> b</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>    go b i <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>      dir <span class="ot">&lt;-</span> draw</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>      <span class="kw">case</span> dir <span class="kw">of</span></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Just</span> <span class="dt">DLeft</span>  <span class="ot">-&gt;</span> go     b            (i <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Just</span> <span class="dt">DRight</span> <span class="ot">-&gt;</span> go     (setBit b i) (i <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Nothing</span>     <span class="ot">-&gt;</span> <span class="fu">return</span> b</span></code></pre></div>
+<p>This implementation is pretty straightforward — “if the producer is empty, return <code>Nothing</code>. Otherwise, start with <code>00000000</code> and draw <code>Direction</code>s one at a time, flipping the appropriate bit when you get a <code>Right</code>.” For more information on the exact functions for bitwise operators, look into the <a href="http://hackage.haskell.org/package/bits">bits</a> package, where they come from.</p>
+<p>Note the usage of <code>draw</code>, which “returns” a <code>Nothing</code> if you draw from the end of the producer, and a <code>Just x</code> if there is something to draw. <code>draw</code> is special to parsers, because it lets you react on end-of-input as a <code>Nothing</code> (as opposed to <code>await</code>). In <code>go</code>, we loop drawing until we either get all eight bits (and return the resulting byte) or run out of inputs (and return the byte that we have so far).</p>
+<p>We get our direction producer by doing <code>dirsBytes dirsOut</code>.</p>
+<h4 id="smart-chunker">Smart Chunker</h4>
+<p>And finally, we use the “smart chunking” provided by <em>pipes-bytestring</em> by transforming our bytes stream:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/encode.hs#L86-L86</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>          bsOut     <span class="ot">=</span> view PB.pack <span class="op">.</span> dirsBytes <span class="op">$</span> dirsOut</span></code></pre></div>
+<h4 id="all-together">All together</h4>
+<p>That gives us our final <code>pipeline</code>; we lay out a series of pipes and pipes transformers that takes our file and streamingly processes the data and writes it into the output file.</p>
+<p>Once we have our <code>pipeline</code>, we use <code>runEffect</code> to “run” it; then…that’s it!</p>
+<h3 id="testing-it-out">Testing it out</h3>
+<p>Cool, let’s try it out with Leo Tolstoy’s great classic <a href="http://www.gutenberg.org/files/2600/2600.txt">War and Peace</a> from Project Gutenberg!</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> ghc <span class="at">-O2</span> encode.hs</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> ./encode warandpeace.txt warandpeace.enc</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> du <span class="at">-h</span> warandpeace.<span class="pp">*</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 1.8M warandpeace.enc</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="co"># 3.1M warandpeace.txt</span></span></code></pre></div>
+<p>Cool, we compressed it to 58% of the original file size. Not bad! Using <code>gzip</code> with default settings gives a compression of 39%, so it’s not the best, but it’s something. If we take out the encoding part of the script, we can see that the metadata (the length and the dictionary) itself only takes 259 bytes (which is negligible) — so 58% is pretty much the asymptotic compression rate.</p>
+<p>At this point it’s not as snappy (performance wise) as we’d like; a compressing a 3.1M file is not “super slow” (it takes about seven seconds on my computer), but you probably won’t be compressing a gigabyte. We’ll look into performance in a later post!</p>
+<h2 id="decoding">Decoding</h2>
+<p>(Remember again that download <a href="https://github.com/mstksg/inCode/tree/master/code-samples/huffman/decode.hs">decode.hs</a> is also available online from github! Again, be sure to also grab <a href="https://github.com/mstksg/inCode/tree/master/code-samples/huffman/Huffman.hs">Huffman.hs</a>, <a href="https://github.com/mstksg/inCode/tree/master/code-samples/huffman/PQueue.hs">PQueue.hs</a>, and <a href="https://github.com/mstksg/inCode/tree/master/code-samples/huffman/PreTree.hs">PreTree.hs</a>, and <a href="https://github.com/mstksg/inCode/tree/master/code-samples/huffman/Weighted.hs">Weighted.hs</a> from posts past.)</p>
+<h3 id="design-1">Design</h3>
+<p>Let’s try to see the plan for our decoding script, applying what we learned before. What components do we need?</p>
+<ol type="1">
+<li>First, a component producing decoded <code>Word8</code>s (that will be <code>view     PB.pack</code>’d into a component producing decoded <code>ByteString</code>s with smart chunking)
+<ol type="1">
+<li>A producer that reads in <code>ByteString</code>s from a file and sends them downstream.</li>
+<li>A pipe that unpacks those <code>ByteString</code>s into <code>Word8</code>s and sends each one down.</li>
+<li>A pipe that “unpacks” those <code>Word8</code>s into <code>Direction</code>s and sends <em>those</em> down.</li>
+<li>A pipe that traverses down the Huffman encoding tree following the incoming <code>Direction</code>s, and emits a decoded <code>Word8</code> every time it decodes a value.</li>
+</ol></li>
+<li>A component consuming the incoming <code>ByteString</code>s, and writing them to our output file.</li>
+</ol>
+<h3 id="down-to-it-1">Down to it</h3>
+<p>Luckily we can use most of the concepts we learned in writing the encoding script to write the decoding script; we also have a less imports, so it’s a sign that decoding is going to be slightly simpler than encoding.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/decode.hs#L18-L37</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="co">-- General imports</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Lens.Family2</span>       (view)</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">System.Environment</span> (getArgs)</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">System.IO</span>          (withFile, <span class="dt">IOMode</span>(..))</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="co">-- Pipes imports</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Pipes</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Pipes.Parse</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Pipes.Binary</span>     <span class="kw">as</span> <span class="dt">PB</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Pipes.ByteString</span> <span class="kw">as</span> <span class="dt">PB</span></span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Pipes.Prelude</span>    <span class="kw">as</span> <span class="dt">PP</span></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a><span class="co">-- Working with Binary</span></span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Data.Bits</span>                 (testBit)</span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Data.ByteString</span>           (<span class="dt">ByteString</span>)</span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Data.Word</span>                 (<span class="dt">Word8</span>)</span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.ByteString</span> <span class="kw">as</span> <span class="dt">B</span></span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a><span class="co">-- Huffman imports</span></span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">PreTree</span></span></code></pre></div>
+<p><code>main</code> should seem very familiar:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/decode.hs#L39-L45</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    args     <span class="ot">&lt;-</span> getArgs</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> (inp, out)  <span class="ot">=</span> <span class="kw">case</span> args <span class="kw">of</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>                        i<span class="op">:</span>o<span class="op">:</span>_      <span class="ot">-&gt;</span> (i,o)</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>                        _          <span class="ot">-&gt;</span> <span class="fu">error</span> <span class="st">&quot;Give input and output files.&quot;</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>    decodeFile inp out</span></code></pre></div>
+<p>And now on to the juicy parts:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/decode.hs#L48-L69</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="ot">decodeFile ::</span> <span class="dt">FilePath</span> <span class="ot">-&gt;</span> <span class="dt">FilePath</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> ()</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>decodeFile inp out <span class="ot">=</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>    withFile inp <span class="dt">ReadMode</span>  <span class="op">$</span> \hIn  <span class="ot">-&gt;</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>    withFile out <span class="dt">WriteMode</span> <span class="op">$</span> \hOut <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>      <span class="kw">let</span> metadataPipe <span class="ot">=</span> PB.fromHandle hIn</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>      <span class="co">-- consume metapipe to read in the tree/metadata</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>      (metadata, decodingPipe) <span class="ot">&lt;-</span> runStateT PB.decode metadataPipe</span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>      <span class="kw">case</span> metadata <span class="kw">of</span></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Left</span>   _          <span class="ot">-&gt;</span></span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>          <span class="fu">error</span> <span class="st">&quot;Corrupt metadata.&quot;</span></span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Right</span> (len, tree) <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>          <span class="co">-- do everything with the rest</span></span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>          <span class="kw">let</span> bytesOut  <span class="ot">=</span> decodingPipe <span class="op">&gt;-&gt;</span> bsToBytes</span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>                      <span class="op">&gt;-&gt;</span> bytesToDirs  <span class="op">&gt;-&gt;</span> searchPT tree</span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>                      <span class="op">&gt;-&gt;</span> PP.take len</span>
+<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a>              bsOut     <span class="ot">=</span> (view PB.pack) bytesOut</span>
+<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a>              pipeline  <span class="ot">=</span> bsOut</span>
+<span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a>                      <span class="op">&gt;-&gt;</span> PB.toHandle hOut</span>
+<span id="cb20-23"><a href="#cb20-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-24"><a href="#cb20-24" aria-hidden="true" tabindex="-1"></a>          runEffect pipeline</span></code></pre></div>
+<h4 id="loading-metadata">Loading metadata</h4>
+<p>Loading the metadata is a snap, and it uses what we learned earlier from <code>runStateT</code> and <code>Parser</code>s.</p>
+<p>Here, our <code>Parser</code> is <code>PB.decode</code>, from the <em>pipes-binary</em> package (and not from <em>binary</em>), and it does more or less exactly what you’d expect: it reads in binary data from the source stream, consuming it until it has a successful (or unsuccessful) parse, as given by the <em>binary</em> package talked about in <a href="http://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-2-binary">Part 2</a>. The “result” is the <code>Either</code> containing the success or failure, and the “leftover”, consumed source stream.</p>
+<p>In our case:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>runStateT</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="ot">  ::</span> <span class="dt">Parser</span>   <span class="dt">ByteString</span> <span class="dt">IO</span> (<span class="dt">Either</span> <span class="dt">DecodingError</span> (<span class="dt">Int</span>, <span class="dt">PreTree</span> <span class="dt">Word8</span>))</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="ot">-&gt;</span> <span class="dt">Producer</span> <span class="dt">ByteString</span> <span class="dt">IO</span> r</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="ot">-&gt;</span> <span class="dt">IO</span> (<span class="dt">Either</span> <span class="dt">DecodingError</span> (<span class="dt">Int</span>, <span class="dt">PreTree</span> <span class="dt">Word8</span>), <span class="dt">Producer</span> <span class="dt">ByteString</span> <span class="dt">IO</span> r)</span></code></pre></div>
+<p>So <code>metadata</code> is <code>Either DecodingError (Int, PreTree Word8)</code>. If we get a <code>Left e</code>, then we throw an error for unparseable/corrupted metadata. If we get a <code>Right (len, tree)</code>, then we are good to go.</p>
+<h4 id="the-decoding-pipeline">The Decoding Pipeline</h4>
+<p>The rest just reads like poetry!</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> byteStream <span class="ot">=</span> decodingPipe <span class="op">&gt;-&gt;</span> bsToBytes</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>             <span class="op">&gt;-&gt;</span> bytesToDirs  <span class="op">&gt;-&gt;</span> searchPT tree</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>             <span class="op">&gt;-&gt;</span> PP.take len</span></code></pre></div>
+<p>Beautiful! <code>decodingPipe</code> is the leftover producer after the parse of the metadata. <code>bsToBytes</code> is the same as from our encoder. <code>bytesToDirs</code> is implemented “exactly” like <code>bsToBytes</code> and <code>encodeByte</code> (from <em>encode.hs</em>) — using <code>PP.mapFoldable</code> and a <code>Word8 -&gt; [Direction]</code> function.</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/decode.hs#L96-L104</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="ot">bytesToDirs ::</span> <span class="dt">Monad</span> m <span class="ot">=&gt;</span> <span class="dt">Pipe</span> <span class="dt">Word8</span> <span class="dt">Direction</span> m r</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>bytesToDirs <span class="ot">=</span> PP.mapFoldable byteToDirList</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Turns a byte into a list of directions</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a><span class="ot">    byteToDirList ::</span> <span class="dt">Word8</span> <span class="ot">-&gt;</span> [<span class="dt">Direction</span>]</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>    byteToDirList b <span class="ot">=</span> <span class="fu">map</span> f [<span class="dv">0</span><span class="op">..</span><span class="dv">7</span>]</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>      <span class="kw">where</span></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>        f i <span class="op">|</span> testBit b i <span class="ot">=</span> <span class="dt">DRight</span></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>            <span class="op">|</span> <span class="fu">otherwise</span>   <span class="ot">=</span> <span class="dt">DLeft</span></span></code></pre></div>
+<p>It uses the <em>bits</em> package to turn an incoming <code>Word8</code> into a list of its constituent bits (in the form of <code>Direction</code>s), and yields each of them in turn.</p>
+<p>We have <code>searchPT tree</code>, which is a pipe turning incoming <code>Direction</code>s into aggregate/outgoing <code>Word8</code>s by finding them on the given <code>PreTree</code>. The implementation is a bit tricky so we’re going to go into it in more detail later.</p>
+<p><code>PP.take len</code> is new; it’s from <code>Pipes.Prelude</code>, and it basically says “take <code>len</code> items from the source, then stop drawing.” This is necessary because, because of the padding of 0’s we did from the encoding script, there will be more bits in the file than are actually a part of the encoding; using <code>PP.take</code> ensures that we don’t try to read the extra padding bits. It’ll take up to <code>len</code> <code>Word8</code>s, and then stop.</p>
+<p>And so now we have our <code>Word8</code>/byte Producer/stream!</p>
+<h4 id="searchpt">searchPT</h4>
+<p>One could actually have written <code>searchPT</code> like this:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="ot">searchPT ::</span> <span class="dt">PreTree</span> a <span class="ot">-&gt;</span> <span class="dt">Pipe</span> <span class="dt">Direction</span> <span class="dt">Word8</span> m r</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>searchPT pt0 <span class="ot">=</span> go pt0</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>    go (<span class="dt">PTLeaf</span> x) <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>        yield x</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>        go pt0</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>    go (<span class="dt">PTNode</span> pt1 pt2) <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>        dir <span class="ot">&lt;-</span> await</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>        go <span class="op">$</span> <span class="kw">case</span> dir <span class="kw">of</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>               <span class="dt">DLeft</span>  <span class="ot">-&gt;</span> pt1</span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>               <span class="dt">DRight</span> <span class="ot">-&gt;</span> pt2</span></code></pre></div>
+<p>which looks a lot like the logic of our decoder functions from <a href="http://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-2-binary">Part 2</a>.</p>
+<p>However, we can do better. This way sort of mixes together the “logic” of decoding from the yielding/continuation/recursion/pipe-ness of it all. Ideally we’d like to be able to separate the logic. This isn’t <em>too</em> necessary, but doing this will expose us to some nice <em>pipes</em> idioms :)</p>
+<p>One way we can do it is to turn <code>searchPT</code> into a <code>Consumer'</code> (a <code>Consumer</code> with the ends not sealed off) that consumes <code>Direction</code>s and <em>returns</em> resulting <code>Word8</code>s.</p>
+<p>Then we use <code>(&gt;~ cat)</code>, which turns a <code>Consumer'</code> into something that is forever consuming and re-yielding — in essence, it turns a <code>Consumer'</code> returning values into a <code>Pipe</code> repeatedly yielding the returned values.</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/decode.hs#L74-L86</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="ot">searchPT ::</span> <span class="kw">forall</span> a m r<span class="op">.</span> <span class="dt">Monad</span> m</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>         <span class="ot">=&gt;</span> <span class="dt">PreTree</span> a</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>         <span class="ot">-&gt;</span> <span class="dt">Pipe</span> <span class="dt">Direction</span> a m r</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>searchPT t <span class="ot">=</span> searchPT&#39; t <span class="op">&gt;~</span> cat</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a><span class="ot">    searchPT&#39; ::</span> <span class="dt">PreTree</span> a <span class="ot">-&gt;</span> <span class="dt">Consumer&#39;</span> <span class="dt">Direction</span> m a</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>    searchPT&#39; (<span class="dt">PTLeaf</span> x)       <span class="ot">=</span></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">return</span> x</span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>    searchPT&#39; (<span class="dt">PTNode</span> pt1 pt2) <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>        dir <span class="ot">&lt;-</span> await</span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>        searchPT&#39; <span class="op">$</span> <span class="kw">case</span> dir <span class="kw">of</span></span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>                      <span class="dt">DLeft</span>  <span class="ot">-&gt;</span> pt1</span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>                      <span class="dt">DRight</span> <span class="ot">-&gt;</span> pt2</span></code></pre></div>
+<p>The logic is slightly cleaner; the gain isn’t that much, but just being able to have this separation is nice. Also, we get rid of explicit recursion. And everybody knows that every time you can get rid of explicit recursion, you get a big win — in lack of potential bugs, in more concise code, and in leveraging higher order functions. In any case, this is also a good exposure to <code>(&gt;~)</code>!</p>
+<div class="note">
+<p><strong>Aside</strong></p>
+<p><code>(&gt;~)</code> is a pretty useful thing. Basically, when you say</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>consumer <span class="op">&gt;~</span> pipe</span></code></pre></div>
+<p>it is like saying “<em>Every time <code>pipe</code> <code>await</code>s, just use the result returned by <code>consumer</code> instead</em>”.</p>
+<p>We can look at <code>cat</code>:</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="ot">cat ::</span> <span class="dt">Pipe</span> a a m r</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>cat <span class="ot">=</span> forever <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>        a <span class="ot">&lt;-</span> await</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>        yield a</span></code></pre></div>
+<p>Which just simply echoes/sends back down whatever it receives.</p>
+<p>When we say:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>consumer <span class="op">&gt;~</span> cat</span></code></pre></div>
+<p>We basically say “every time we <code>await</code> something in <code>cat</code>, just use <code>consumer</code>’s return value”:</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>consumer <span class="op">&gt;~</span> cat</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=</span> forever <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>        a <span class="ot">&lt;-</span> consumer</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>        yield a</span></code></pre></div>
+<p>Basically, <code>consumer &gt;~ cat</code> repeatedly consumes the input and yields downstream the return of the consuming.</p>
+<p>(Remember, the value the pipe returns (the <code>r</code>) is different than the value the pipe “sends downstream”; the downstream values are used in connecting with <code>(&gt;-&gt;)</code> and the like, and the return value is just the value that the specific thing <em>returns</em> when ran, to the thing doing the running.)</p>
+<p>Play around with <code>(&gt;~)</code>-ifying different <code>Pipe</code>s and seeing what it does to it; you might have some fun.</p>
+<p>Why <code>Consumer'</code> and not <code>Consumer</code>? Well, remember that all lines of the <code>do</code> block have to have the same “yield” type (because the Monad is <code>Pipe a b m</code>, so all lines have to be <code>Pipe a b m r</code> for different <code>r</code>’s — the <code>a</code>’s and <code>b</code>’s (the yield type) and <code>m</code>’s have to be the same), so <code>Consumer'</code> lets the yield type be whatever it needs to be to match with the rest of the <code>do</code> block.</p>
+<p>Don’t worry if this is a bit complicated; you don’t need to really understand this to use <em>pipes</em> :)</p>
+<p>Admittedly, my description isn’t too great, so if anyone has a better one, I’d be happy to use it here!</p>
+</div>
+<h4 id="the-rest">The Rest</h4>
+<p>And the rest is…well, we already know it!</p>
+<p>We use <code>(view PB.pack) byteStream</code> like last time to turn our stream of <code>Word8</code> into a stream of <code>ByteString</code>, with “smart chunking”. Then we pipe that in to <code>PB.toHandle</code>, like we did last time, and have it all flow into the output file.</p>
+<p>We have assembled our pipeline; all we have to do now is <code>runEffect</code>, to “run” it. And again, that’s it!</p>
+<h3 id="testing">Testing</h3>
+<div class="sourceCode" id="cb30"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> ghc <span class="at">-O2</span> decode.hs</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> ./decode warandpeace.enc warandpeace.dec</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> md5sum warandpeace.txt</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 3c8168e48f49784ac3c2c25d15388e96  warandpeace.txt</span></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> md5sum warandpeace.dec</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a><span class="co"># 3c8168e48f49784ac3c2c25d15388e96  warandpeace.dec</span></span></code></pre></div>
+<p>And yup, we get an exact, lossless decompression.</p>
+<p>Decompression is faster than compression, as you’d expect; on my computer it takes about two seconds to decompress the 3.1M file. Still a bit slower than we’d like, but not <em>too</em> bad. Well. Maybe.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>Hopefully from this all, you can see <em>pipes</em> as a beautiful abstraction for chaining together and transforming streaming computations in a pure, constant-space way. I hope that looking back on it all you can see everything as either a transformation of pipes, or a chaining of pipes.</p>
+<p>I recommend looking more into the great <em>pipes</em> documentation, joining the <a href="https://groups.google.com/forum/#!forum/haskell-pipes">pipes mailing list</a>, and trying your own streaming data projects with <em>pipes</em> to see what you can do with it.</p>
+<p>You should also checkout <em><a href="https://hackage.haskell.org/package/conduit">conduit</a></em> and try to implement this streaming logic in that framework. Let me know how it turns out!</p>
+<p>As always the great people of freenode’s #haskell are always free to answer any questions you might have, and also of course the <a href="http://stackoverflow.com/questions/tagged/haskell">haskell tag</a> on Stack Overflow. And I’ll try to address as many questions as I can in the comments!</p>
+<p>Keep in mind that I’m still a new user of <em>pipes</em> myself; if I’ve made any huge mistakes in style or idiomaticness, I’m available here in the comments and I’d appreciate any corrections y’all can offer.</p>
+<p>So ends the “pipes tutorial” section of this series; tune in next time and we’ll try our best to optimize this baby! <a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></p>
+<div class="note">
+<p><strong>Bonus Round: <em>Full Lens</em></strong></p>
+<p>Hey guess what! Let’s try and go <em>full lens</em> :)</p>
+<p>(This section does not invalidate anything you learned already, so if you have problems with it, it’s okay :) )</p>
+<p>Now, you might have thought, “Hey, we used <code>view PB.pack</code> to turn our <code>Word8</code> producer into a <code>ByteString</code> producer…couldn’t we just use <code>view PB.unpack</code> to turn our <code>ByteString</code> producer into a <code>Word8</code> producer in the first place???”</p>
+<p>Yup! In fact, this takes us into a…“pipe transformer style” of pipes code, as opposed to a “pipe composition style” of pipes code. Both ways are considered “idiomatic”, and it’s up to you to decide what suits you more.</p>
+<p>Basically, we don’t ever need <code>bsToBytes</code>; instead of</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/encode.hs#L65-L65</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> byteProducer <span class="ot">=</span> PB.fromHandle hIn <span class="op">&gt;-&gt;</span> bsToBytes</span></code></pre></div>
+<p>We can just write</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> byteProducer <span class="ot">=</span> (view PB.unpack) (PB.fromHandle hIn)</span></code></pre></div>
+<p>Okay, one last thing.</p>
+<p>With <em>lens</em>, we not only have the ability to “view” the <code>ByteString</code> producer “as a” <code>Word8</code> producer.</p>
+<p>We also have the ability to <em>modify</em> the <code>Word8</code> producer that we “see”…and <em>put it back into</em> the <code>ByteString</code> producer!</p>
+<p>That is, if I have a <code>ByteString</code> producer, I can see the <code>Word8</code> producer, modify it, and “stick it back into” the <code>ByteString</code> producer…to basically create a new <code>ByteString</code> producer that instead outputs our “modified” <code>Word8</code> producer.</p>
+<p>It’s like a fancy <code>fmap</code>. And like how <code>view</code> was how we “unlocked” the viewer from the lens, we use <code>over</code> to “unlock” the “pull out, edit, and stick back in”.</p>
+<p>That is, in our case,</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="ot">over ::</span> <span class="dt">Lens&#39;</span> (<span class="dt">Producer</span> <span class="dt">ByteString</span> m r) (<span class="dt">Producer</span> <span class="dt">Word8</span> m r)</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>     <span class="ot">-&gt;</span> (<span class="dt">Producer</span> <span class="dt">Word8</span> m r <span class="ot">-&gt;</span> <span class="dt">Producer</span> <span class="dt">Word8</span> m r)</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>     <span class="ot">-&gt;</span> <span class="dt">Producer</span> <span class="dt">ByteString</span> m r</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>     <span class="ot">-&gt;</span> <span class="dt">Producer</span> <span class="dt">ByteString</span> m r</span></code></pre></div>
+<p>What does this mean, in practice?</p>
+<p>That means that we can use <code>over</code>, apply a function to the <code>Word8</code> producer, and <code>over</code> will <em>handle the re-packing</em> (with the smart chunking) for us, all in one swoop.</p>
+<p>So, we can rewrite <code>bsOut</code>:</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>bsIn      <span class="ot">=</span> PB.fromHandle hIn</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>bsOut     <span class="ot">=</span> <span class="fu">flip</span> (over PB.unpack) bsIn <span class="op">$</span> \bytesOut <span class="ot">-&gt;</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>                dirsBytes ( bytesOut</span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>                        <span class="op">&gt;-&gt;</span> encodeByte encTable )</span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>pipeline  <span class="ot">=</span> bsOut</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>        <span class="op">&gt;-&gt;</span> PB.toHandle hOut</span></code></pre></div>
+<p>So <code>over PB.unpack</code> handles the unpacking (to get <code>bytesOut</code>) and the re-packing (after the result of <code>dirsBytes</code>) for us, in one fell swoop.</p>
+<p>Neat!</p>
+<p>Okay now, good bye, for reals!</p>
+</div>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Remember, a <code>ByteString</code> is an efficiently packed “chunk”/“list” of <code>Word8</code>/bytes; we can use functions like <code>ByteString.unpack</code> and <code>ByteString.pack</code> to turn a <code>ByteString</code> into a list of <code>Word8</code>s or go backwards.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>It actually works on all <code>Foldable</code>s, not just <code>[]</code>.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p>Hopefully you aren’t holding your breath on this one :) This next part is not scheduled any ime soon and might not come for a while, as I’ll be pursuing some other things in the near future — I apologize for any disappointment/inconvenience this may cause.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div><footer><hr><div class="copy-content"><p>Hi, thanks for reading! You can reach me via email at <a href="mailto:justin@jle.im" class="email">justin@jle.im</a>, or at twitter at <a href="https://twitter.com/mstk">@mstk</a>! This post and all others are published under the <a href="https://creativecommons.org/licenses/by-nc-nd/3.0/">CC-BY-NC-ND 3.0</a> license. Corrections and edits via pull request are welcome and encouraged at <a href="https://github.com/mstksg/inCode">the source repository</a>.</p>
+<p>If you feel inclined, or this post was particularly helpful for you, why not consider <a href="https://www.patreon.com/justinle/overview">supporting me on Patreon</a>, or a <a href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">BTC donation</a>? :)</p></div><div class="clear"></div><ul class="entry-series"><li><div>This entry is a part of a series called <b>&quot;Beginner/Intermediate Haskell Projects&quot;</b>.  Find the rest of the entries in this series at its <a href="https://blog.jle.im/entries/series/+beginner-intermediate-haskell-projects.html" class="tag-a-series" title="+Beginner/Intermediate Haskell Projects"> series history</a>.</div></li><li><div>This entry is a part of a series called <b>&quot;Huffman Compression&quot;</b>.  Find the rest of the entries in this series at its <a href="https://blog.jle.im/entries/series/+huffman-compression.html" class="tag-a-series" title="+Huffman Compression"> series history</a>.</div></li></ul><ul class="tag-list"><li><a href="https://blog.jle.im/entries/tagged/haskell.html" class="tag-a-tag">#haskell</a></li><li><a href="https://blog.jle.im/entries/tagged/pipes.html" class="tag-a-tag">#pipes</a></li><li><a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category">@HASKELL</a></li><li><a href="https://blog.jle.im/entries/category/@tutorials.html" class="tag-a-category">@TUTORIALS</a></li><li><a href="https://blog.jle.im/entries/series/+beginner-intermediate-haskell-projects.html" class="tag-a-series">+Beginner/Intermediate Haskell Projects</a></li><li><a href="https://blog.jle.im/entries/series/+huffman-compression.html" class="tag-a-series">+Huffman Compression</a></li></ul><aside class="social-buttons"><div class="addthis_toolbox addthis_default_style addthis-buttons"><a class="addthis_button_facebook_like" fb:like:layout="button_count"></a><a class="addthis_button_tweet"></a><a class="addthis_button_google_plusone" g:plusone:size="medium"></a><a class="addthis_counter addthis_pill_style"></a></div><div class="custom-social-buttons"><div class="custom-social-button"><a href="https://www.reddit.com/submit" onclick="window.location = &#39;https://www.reddit.com/submit?url=&#39;+ encodeURIComponent(window.location); return false"><img src="https://www.reddit.com/static/spreddit7.gif" alt="submit to reddit"></a></div></div></aside><nav class="next-prev-links"><ul><li class="prev-entry-link">&larr; <a href="https://blog.jle.im/entry/looking-forward-a-doctorate-program.html">Looking forward: A Doctorate Program
+</a> (Previous)</li><li class="next-entry-link">(Next) <a href="https://blog.jle.im/entry/auto-as-category-applicative-arrow-intro-to-machines.html">Auto as Category, Applicative &amp; Arrow (Intro to Machines/Arrows Part 2)
+</a> &rarr;</li></ul></nav></footer></article><div class="post-entry"><div class="tile"><div id="disqus_thread"></div><script type="text/javascript">var disqus_config = function () {
+    this.page.url = 'https://blog.jle.im/entry/pipes-streaming-huffman-compression-in-haskell-part-3.html';
+    this.page.identifier = 'huffman-3';
+};
+(function() {
+    var d = document, s = d.createElement('script');
+    s.src = '//incode.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a><br></noscript><a href="http://disqus.com" class="dsq-brlink">Comments powered by <span class="logo-disqus">Disqus</span></a></div></div></div></div></div><div id="footer-container"><div id="footer-content"><div class="tile"><div class="footer-copyright">&copy; 2020 Justin Le <span class="license-link">(<a href="https://creativecommons.org/licenses/by-nc-nd/3.0/" class="license">CC-BY-NC-ND 3.0</a>)</span></div><div class="footer-follow social-follows"><ul class="social-follows-list"><li><ul class="social-follows-list-social"><li><a class="social-follow-twitter" title="Follow me on Twitter!" href="https://twitter.com/intent/user?user_id=mstk" onclick="window.open(
+  &#39;http://twitter.com/intent/user?user_id=907281&#39;,
+  &#39;facebook-share-dialog&#39;,
+  &#39;width=550,height=520&#39;);
+return false;
+">Twitter</a></li><li><a class="social-follow-github" title="Fork me on Github!" href="https://github.com/mstksg">Github</a></li><li><a class="social-follow-twitch" title="Watch me on Twitch!" href="https://www.twitch.tv/justin_l">Twitch</a></li><li><a class="social-follow-patreon" title="Support me on Patreon!" href="https://www.patreon.com/justinle/overview">Patreon</a></li><li><a class="social-follow-gplus" title="Add me on Google+!" href="https://plus.google.com/+JustinLe">Google+</a></li><li><a class="social-follow-keybase" title="Track me on Keybase!" href="https://keybase.io/mstksg">Keybase</a></li><li><a class="social-follow-linkedin" title="Connect with me on LinkedIn!" href="https://linkedin.com/in/lejustin">LinkedIn</a></li><li><a class="social-follow-bitcoin" title="Donate via bitcoin!" href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">Bitcoin</a></li></ul></li><li><ul class="social-follows-list-site"><li><a class="social-follow-rss" title="Subscribe to my RSS Feed!" href="http://feeds.feedburner.com/incodeblog">RSS</a></li><li><a class="social-follow-email" title="Subscribe to the mailing list!" href="https://feedburner.google.com/fb/a/mailverify?loc=en_US&amp;uri=incodeblog">Mailing list</a></li></ul></li></ul></div></div></div></div></body></html>

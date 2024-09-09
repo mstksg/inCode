@@ -1,0 +1,1948 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Effectful, Recursive, Real-World Autos: Intro to Machine/Auto Part 3},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Effectful, Recursive, Real-World Autos: Intro to Machine/Auto Part 3}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% February 9, 2015
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/effectful-recursive-real-world-autos-intro-to-machine.html}{in
+Code}}.}
+
+Hi! I have to apologize a bit for the long delay; starting grad school and
+things like that have made me have to scramble to adjust to the new life. But a
+couple of people have asked me to finish up and wrap up this series, and I think
+I owe it to them then :) Welcome to the final chapter.
+
+In the
+\href{http://blog.jle.im/entry/auto-as-category-applicative-arrow-intro-to-machines}{last
+post}, we looked deeper into the Auto type, played around with instancing it as
+familiar typeclasses, saw it as a member of the powerful \emph{Category} and
+\emph{Arrow} typeclasses, and took advantage of this by composing Autos both
+manually and using proc/do notation, and were freed from the murk and mire of
+explicit recursion. We observed the special nature of this composition, and saw
+some neat properties, like local statefulness.
+
+At this point I consider most of the important concepts about working with
+\texttt{Auto} covered, but now, we are going to push this abstraction further,
+to the limits of real-world industrial usage. We're going to be exploring
+mechanisms for adding effects and, making the plain ol' \texttt{Auto} into
+something more rich and featureful. We'll see how to express denotative and
+declarative compositions using recursively binded \texttt{Auto}s, and what that
+even means. It'll be a trip down several avenues to motivate and see practical
+Auto usage.\footnote{Some of you might recall an earlier plan for this post that
+  would include FRP. Unfortunately, I've refactored FRP into a completely new
+  topic, because I've realized that the two aren't exactly as related as I had
+  led you all to believe. Still, most if not all of these techniques here are
+  used in actual arrowized FRP libraries today. So, look out for that one soon!}
+Basically, it'll be a ``final hurrah''.
+
+A fair bit of warning --- if the last post is not fresh in your mind, or you
+still have some holes, I recommend going back and reading through them again.
+This one is going to hit hard and fast :) (Also, it's admittedly kind of long
+for a single post, but I didn't want to break things up into two really short
+parts.)
+
+As always, feel free to leave a comment if you have any questions, drop by
+freenode's \emph{\#haskell}, or find me on
+\href{https://twitter.com/mstk}{twitter} :)
+
+All of the code in this post is
+\href{http://blog.jle.im/source/code-samples/machines}{available for download}
+and to load up into ghci for playing along!
+
+\section{Effectful Stepping}\label{effectful-stepping}
+
+Recall our original definition of \texttt{Auto\ a\ b} as a newtype wrapper over
+a function:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{a }\OtherTok{{-}\textgreater{}}\NormalTok{ (b, }\DataTypeTok{Auto}\NormalTok{ a b)}
+\end{Highlighting}
+\end{Shaded}
+
+This can be read as saying, ``feed the \texttt{Auto} an \texttt{a}, and (purely)
+get a resulting \texttt{b}, and a `next stepper'\,'' --- the \texttt{b} is the
+result, and the \texttt{Auto\ a\ b} contains the information on how to proceed
+from then on.
+
+If you've been doing Haskell for any decent amount of time, you can probably
+guess what's going to happen next!
+
+Instead of ``purely'' creating a naked result and a ``next step''\ldots we're
+going to return it in a context.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{a }\OtherTok{{-}\textgreater{}}\NormalTok{ f (b, }\DataTypeTok{Auto}\NormalTok{ a b)}
+\end{Highlighting}
+\end{Shaded}
+
+What, you say? What good does that do?
+
+Well, what does returning things in a context \emph{ever} let you do?
+
+In Haskell, contexts like these are usually meant to be able to defer the
+process of ``getting the value'' until the end, after you've built up your
+contextual computation. This process can be complicated, or simple, or trivial.
+
+For example, a function like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{a }\OtherTok{{-}\textgreater{}}\NormalTok{ b}
+\end{Highlighting}
+\end{Shaded}
+
+means that it simply creates a \texttt{b} from an \texttt{a}. But a function
+like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{a }\OtherTok{{-}\textgreater{}} \DataTypeTok{State}\NormalTok{ s b}
+\end{Highlighting}
+\end{Shaded}
+
+Means that, given an \texttt{a}, you get a state machine that can \emph{create a
+\texttt{b}} using a stateful process, once given an initial state. The
+\texttt{b} doesn't ``exist'' yet; all you've given is instructions for creating
+that \texttt{b}\ldots and the \texttt{b} that is eventually created will in
+general depend on whatever initial \texttt{s} you give the state machine.
+
+A function like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{a }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ b}
+\end{Highlighting}
+\end{Shaded}
+
+Means that, given an \texttt{a}, you're given \emph{a computer program} that,
+when executed by a computer, will generate a \texttt{b}. The \texttt{b} doesn't
+``exist'' yet; depending on how the world is and how IO processes interact, how
+you are feeling that day\ldots the \texttt{b} generated will be different. The
+process of IO execution has the ability to \emph{choose} the \texttt{b}.
+
+So how about something like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{a }\OtherTok{{-}\textgreater{}} \DataTypeTok{State}\NormalTok{ s (b, }\DataTypeTok{Auto}\NormalTok{ a b)}
+\end{Highlighting}
+\end{Shaded}
+
+This means that, given \texttt{a}, ``running'' the \texttt{Auto} with an
+\texttt{a} will give you \emph{a state machine} that gives you, using a stateful
+process, both the \emph{result} and the \emph{next step}. The crazy thing is
+that now you are given the state machine \emph{the ability to decide the next
+\texttt{Auto}}, the next ``step''.
+
+Something like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{a }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ (b, }\DataTypeTok{Auto}\NormalTok{ a b)}
+\end{Highlighting}
+\end{Shaded}
+
+means that your new \texttt{Auto}-running function will give you a result and a
+``next step'' that is going to be dependent on IO actions.
+
+Let's jump straight to abstracting over this and explore a new type, shall we?
+
+\subsection{Monadic Auto}\label{monadic-auto}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/Auto3.hs\#L27{-}L27}
+
+\KeywordTok{newtype} \DataTypeTok{AutoM}\NormalTok{ m a b }\OtherTok{=} \DataTypeTok{AConsM}\NormalTok{ \{}\OtherTok{ runAutoM ::}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ m (b, }\DataTypeTok{AutoM}\NormalTok{ m a b) \}}
+\end{Highlighting}
+\end{Shaded}
+
+We already explained earlier the new power of this type. Let's see if we can
+write our favorite instances with it. First of all, what would a
+\texttt{Category} instance even do?
+
+Recall that the previous \texttt{Category} instance ``ticked'' each
+\texttt{Auto} one after the other and gave the final results, and then the
+``next Auto'' was the compositions of the ticked autos.
+
+In our new type, the ``ticking'' happens \emph{in a context}. And we need to
+tick twice; and the second one is dependent on the result of the first. This
+means that your context has to be \emph{monadic} in order to allow you to do
+this.
+
+So we sequence two ``ticks'' inside the monadic context, and then return the
+result afterwards, with the new composed autos.
+
+The neat thing is that Haskell's built-in syntax for handling monadic sequencing
+is nice, so you might be surprised when you write the \texttt{Category}
+instance:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/Auto3.hs\#L43{-}L48}
+
+\KeywordTok{instance} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Category}\NormalTok{ (}\DataTypeTok{AutoM}\NormalTok{ m) }\KeywordTok{where}
+    \FunctionTok{id}    \OtherTok{=} \DataTypeTok{AConsM} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}} \FunctionTok{return}\NormalTok{ (x, }\FunctionTok{id}\NormalTok{)}
+\NormalTok{    g }\OperatorTok{.}\NormalTok{ f }\OtherTok{=} \DataTypeTok{AConsM} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{              (y, f\textquotesingle{}) }\OtherTok{\textless{}{-}}\NormalTok{ runAutoM f x}
+\NormalTok{              (z, g\textquotesingle{}) }\OtherTok{\textless{}{-}}\NormalTok{ runAutoM g y}
+              \FunctionTok{return}\NormalTok{ (z, g\textquotesingle{} }\OperatorTok{.}\NormalTok{ f\textquotesingle{})}
+\end{Highlighting}
+\end{Shaded}
+
+Does it look familiar?
+
+It should! Remember the logic from the \texttt{Auto} Category instance?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/Auto2.hs\#L13{-}L18}
+
+\KeywordTok{instance} \DataTypeTok{Category} \DataTypeTok{Auto} \KeywordTok{where}
+    \FunctionTok{id}    \OtherTok{=} \DataTypeTok{ACons} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}}\NormalTok{ (x, }\FunctionTok{id}\NormalTok{)}
+\NormalTok{    g }\OperatorTok{.}\NormalTok{ f }\OtherTok{=} \DataTypeTok{ACons} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}}
+              \KeywordTok{let}\NormalTok{ (y, f\textquotesingle{}) }\OtherTok{=}\NormalTok{ runAuto f x}
+\NormalTok{                  (z, g\textquotesingle{}) }\OtherTok{=}\NormalTok{ runAuto g y}
+              \KeywordTok{in}\NormalTok{  (z, g\textquotesingle{} }\OperatorTok{.}\NormalTok{ f\textquotesingle{})}
+\end{Highlighting}
+\end{Shaded}
+
+It's basically \emph{identical} and exactly the same :O The only difference is
+that instead of \texttt{let}, we have \texttt{do}\ldots instead of \texttt{=} we
+have \texttt{\textless{}-}, and instead of \texttt{in} we have \texttt{return}.
+:O
+
+The takeaway here is that when you have monadic functions, their sequencing and
+application and composition can really be abstracted away to look pretty much
+like application and composition of normal values. And Haskell is one of the few
+languages that gives you language features and a culture to be able to fully
+realize the symmetry and similarities.
+
+Check out the \texttt{Functor} and \texttt{Arrow} instances, too --- they're
+exactly the same!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/Auto2.hs\#L20{-}L47}
+
+\KeywordTok{instance} \DataTypeTok{Functor}\NormalTok{ (}\DataTypeTok{Auto}\NormalTok{ r) }\KeywordTok{where}
+    \FunctionTok{fmap}\NormalTok{ f a }\OtherTok{=} \DataTypeTok{ACons} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}}
+                 \KeywordTok{let}\NormalTok{ (y, a\textquotesingle{}) }\OtherTok{=}\NormalTok{ runAuto a x}
+                 \KeywordTok{in}\NormalTok{  (f y, }\FunctionTok{fmap}\NormalTok{ f a\textquotesingle{})}
+
+\KeywordTok{instance} \DataTypeTok{Arrow} \DataTypeTok{Auto} \KeywordTok{where}
+\NormalTok{    arr f     }\OtherTok{=} \DataTypeTok{ACons} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}}\NormalTok{ (f x, arr f)}
+\NormalTok{    first a   }\OtherTok{=} \DataTypeTok{ACons} \OperatorTok{$}\NormalTok{ \textbackslash{}(x, z) }\OtherTok{{-}\textgreater{}}
+                  \KeywordTok{let}\NormalTok{ (y, a\textquotesingle{}) }\OtherTok{=}\NormalTok{ runAuto a x}
+                  \KeywordTok{in}\NormalTok{  ((y, z), first a\textquotesingle{})}
+\NormalTok{    second a  }\OtherTok{=} \DataTypeTok{ACons} \OperatorTok{$}\NormalTok{ \textbackslash{}(z, x) }\OtherTok{{-}\textgreater{}}
+                  \KeywordTok{let}\NormalTok{ (y, a\textquotesingle{}) }\OtherTok{=}\NormalTok{ runAuto a x}
+                  \KeywordTok{in}\NormalTok{  ((z, y), second a\textquotesingle{})}
+\NormalTok{    a1 }\OperatorTok{***}\NormalTok{ a2 }\OtherTok{=} \DataTypeTok{ACons} \OperatorTok{$}\NormalTok{ \textbackslash{}(x1, x2) }\OtherTok{{-}\textgreater{}}
+                  \KeywordTok{let}\NormalTok{ (y1, a1\textquotesingle{}) }\OtherTok{=}\NormalTok{ runAuto a1 x1}
+\NormalTok{                      (y2, a2\textquotesingle{}) }\OtherTok{=}\NormalTok{ runAuto a2 x2}
+                  \KeywordTok{in}\NormalTok{  ((y1, y2), a1\textquotesingle{} }\OperatorTok{***}\NormalTok{ a2\textquotesingle{})}
+\NormalTok{    a1 }\OperatorTok{\&\&\&}\NormalTok{ a2 }\OtherTok{=} \DataTypeTok{ACons} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}}
+                  \KeywordTok{let}\NormalTok{ (y1, a1\textquotesingle{}) }\OtherTok{=}\NormalTok{ runAuto a1 x}
+\NormalTok{                      (y2, a2\textquotesingle{}) }\OtherTok{=}\NormalTok{ runAuto a2 x}
+                  \KeywordTok{in}\NormalTok{  ((y1, y2), a1\textquotesingle{} }\OperatorTok{\&\&\&}\NormalTok{ a2\textquotesingle{})}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/Auto3.hs\#L50{-}L77}
+
+\KeywordTok{instance} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Functor}\NormalTok{ (}\DataTypeTok{AutoM}\NormalTok{ m r) }\KeywordTok{where}
+    \FunctionTok{fmap}\NormalTok{ f a }\OtherTok{=} \DataTypeTok{AConsM} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{                 (y, a\textquotesingle{}) }\OtherTok{\textless{}{-}}\NormalTok{ runAutoM a x}
+                 \FunctionTok{return}\NormalTok{ (f y, }\FunctionTok{fmap}\NormalTok{ f a\textquotesingle{})}
+
+\KeywordTok{instance} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Arrow}\NormalTok{ (}\DataTypeTok{AutoM}\NormalTok{ m) }\KeywordTok{where}
+\NormalTok{    arr f     }\OtherTok{=} \DataTypeTok{AConsM} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}} \FunctionTok{return}\NormalTok{ (f x, arr f)}
+\NormalTok{    first a   }\OtherTok{=} \DataTypeTok{AConsM} \OperatorTok{$}\NormalTok{ \textbackslash{}(x, z) }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{                  (y, a\textquotesingle{}) }\OtherTok{\textless{}{-}}\NormalTok{ runAutoM a x}
+                  \FunctionTok{return}\NormalTok{ ((y, z), first a\textquotesingle{})}
+\NormalTok{    second a  }\OtherTok{=} \DataTypeTok{AConsM} \OperatorTok{$}\NormalTok{ \textbackslash{}(z, x) }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{                  (y, a\textquotesingle{}) }\OtherTok{\textless{}{-}}\NormalTok{ runAutoM a x}
+                  \FunctionTok{return}\NormalTok{ ((z, y), second a\textquotesingle{})}
+\NormalTok{    a1 }\OperatorTok{***}\NormalTok{ a2 }\OtherTok{=} \DataTypeTok{AConsM} \OperatorTok{$}\NormalTok{ \textbackslash{}(x1, x2) }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{                  (y1, a1\textquotesingle{}) }\OtherTok{\textless{}{-}}\NormalTok{ runAutoM a1 x1}
+\NormalTok{                  (y2, a2\textquotesingle{}) }\OtherTok{\textless{}{-}}\NormalTok{ runAutoM a2 x2}
+                  \FunctionTok{return}\NormalTok{ ((y1, y2), a1\textquotesingle{} }\OperatorTok{***}\NormalTok{ a2\textquotesingle{})}
+\NormalTok{    a1 }\OperatorTok{\&\&\&}\NormalTok{ a2 }\OtherTok{=} \DataTypeTok{AConsM} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{                  (y1, a1\textquotesingle{}) }\OtherTok{\textless{}{-}}\NormalTok{ runAutoM a1 x}
+\NormalTok{                  (y2, a2\textquotesingle{}) }\OtherTok{\textless{}{-}}\NormalTok{ runAutoM a2 x}
+                  \FunctionTok{return}\NormalTok{ ((y1, y2), a1\textquotesingle{} }\OperatorTok{\&\&\&}\NormalTok{ a2\textquotesingle{})}
+\end{Highlighting}
+\end{Shaded}
+
+(I've left the rest of the instances from the previous part as an exercise; the
+solutions are available in the downloadable.)
+
+Neat, huh? Instead of having to learn over again the logic of \texttt{Functor},
+\texttt{Applicative}, \texttt{Arrow}, \texttt{ArrowPlus}, etc., you can directly
+use the intuition that you gained from the past part and apply it to here, if
+you abstract away function application and composition to application and
+composition in a context.
+
+Our previous instances were then just a ``specialized'' version of
+\texttt{AutoM}, one where we used naked application and composition,\footnote{I'm
+  going to go out on a limb here and say that, where Haskell lets you abstract
+  over functions and function composition with \texttt{Category}, Haskell lets
+  you abstract over values and function application with \texttt{Monad},
+  \texttt{Applicative}, and \texttt{Functor}.}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+If you look at the instances we wrote out, you might see that for some of them,
+\texttt{Monad} is a bit overkill. For example, for the \texttt{Functor}
+instance,
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{instance} \DataTypeTok{Functor}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Functor}\NormalTok{ (}\DataTypeTok{AutoM}\NormalTok{ m r) }\KeywordTok{where}
+    \FunctionTok{fmap}\NormalTok{ f a }\OtherTok{=} \DataTypeTok{AConsM} \OperatorTok{$}\NormalTok{ (f }\OperatorTok{***} \FunctionTok{fmap}\NormalTok{ f) }\OperatorTok{.}\NormalTok{ runAutoM a}
+\end{Highlighting}
+\end{Shaded}
+
+is just fine. We only need \texttt{Functor} to make \texttt{AutoM\ m\ r} a
+\texttt{Functor}. Cool, right?
+
+If you try, how much can we ``generalize'' our other instances to? Which ones
+can be generalized to \texttt{Functor}, which ones
+\texttt{Applicative}\ldots and which ones can't?
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+By the way, it might be worth noting that our original \texttt{Auto} type is
+identical to \texttt{AutoM\ Identity} --- all of the instances do the exact same
+thing.
+
+\subsection{Putting it to use}\label{putting-it-to-use}
+
+Now let's try using these!
+
+First some utility functions just for playing around: \texttt{autoM}, which
+upgrades an \texttt{Auto\ a\ b} to an \texttt{AutoM\ m\ a\ b} for any
+\texttt{Monad} \texttt{m}\footnote{This function really could be avoided if we
+  had written all of our \texttt{Auto}s is \texttt{AutoM}'s parameterized over
+  all \texttt{m} in the first place --- that is, written our
+  \texttt{Auto\ a\ b}'s as the equally powerful
+  \texttt{Monad\ m\ =\textgreater{}\ AutoM\ m\ a\ b}. But we're just going to
+  run with \texttt{Auto} for the rest of this series to make things a bit less
+  confusing.}, and \texttt{arrM}, which is like \texttt{arr}, but instead of
+turning an \texttt{a\ -\textgreater{}\ b} into an \texttt{Auto\ a\ b}, it turns
+an \texttt{a\ -\textgreater{}\ m\ b} into an \texttt{AutoM\ m\ a\ b}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/Auto3.hs\#L97{-}L107}
+
+\OtherTok{autoM ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Auto}\NormalTok{ a b }\OtherTok{{-}\textgreater{}} \DataTypeTok{AutoM}\NormalTok{ m a b}
+\NormalTok{autoM a }\OtherTok{=} \DataTypeTok{AConsM} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}} \KeywordTok{let}\NormalTok{ (y, a\textquotesingle{}) }\OtherTok{=}\NormalTok{ runAuto a x}
+                         \KeywordTok{in}  \FunctionTok{return}\NormalTok{ (y, autoM a\textquotesingle{})}
+
+\OtherTok{arrM ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{ m b) }\OtherTok{{-}\textgreater{}} \DataTypeTok{AutoM}\NormalTok{ m a b}
+\NormalTok{arrM f }\OtherTok{=} \DataTypeTok{AConsM} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{                    y }\OtherTok{\textless{}{-}}\NormalTok{ f x}
+                    \FunctionTok{return}\NormalTok{ (y, arrM f)}
+\end{Highlighting}
+\end{Shaded}
+
+We will need to of course re-write our trusty
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/machines/Auto.hs\#L17-L25}{\texttt{testAuto}}
+functions from the first entry, which is again a direct translation of the
+original ones:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/Auto3.hs\#L31{-}L39}
+
+\OtherTok{testAutoM ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{AutoM}\NormalTok{ m a b }\OtherTok{{-}\textgreater{}}\NormalTok{ [a] }\OtherTok{{-}\textgreater{}}\NormalTok{ m ([b], }\DataTypeTok{AutoM}\NormalTok{ m a b)}
+\NormalTok{testAutoM a []      }\OtherTok{=} \FunctionTok{return}\NormalTok{ ([], a)}
+\NormalTok{testAutoM a (x}\OperatorTok{:}\NormalTok{xs)  }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    (y , a\textquotesingle{} ) }\OtherTok{\textless{}{-}}\NormalTok{ runAutoM a x}
+\NormalTok{    (ys, a\textquotesingle{}\textquotesingle{}) }\OtherTok{\textless{}{-}}\NormalTok{ testAutoM a\textquotesingle{} xs}
+    \FunctionTok{return}\NormalTok{ (y}\OperatorTok{:}\NormalTok{ys, a\textquotesingle{}\textquotesingle{})}
+
+\OtherTok{testAutoM\_ ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{AutoM}\NormalTok{ m a b }\OtherTok{{-}\textgreater{}}\NormalTok{ [a] }\OtherTok{{-}\textgreater{}}\NormalTok{ m [b]}
+\NormalTok{testAutoM\_ a }\OtherTok{=}\NormalTok{ liftM }\FunctionTok{fst} \OperatorTok{.}\NormalTok{ testAutoM a}
+\end{Highlighting}
+\end{Shaded}
+
+First, let's test \texttt{arrM} ---
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t arrM }\FunctionTok{putStrLn}
+\NormalTok{arrM}\OtherTok{ putStrLn ::} \DataTypeTok{AutoM} \DataTypeTok{IO} \DataTypeTok{String}\NormalTok{ ()}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ res }\OtherTok{\textless{}{-}}\NormalTok{ testAutoM\_ (arrM }\FunctionTok{putStrLn}\NormalTok{) [}\StringTok{"hello"}\NormalTok{, }\StringTok{"world"}\NormalTok{]}
+\StringTok{"hello"}
+\StringTok{"world"}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ res}
+\NormalTok{[(), ()]}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{arrM\ putStrLn} is, like \texttt{arr\ show}, just an \texttt{Auto} with
+no internal state. It outputs \texttt{()} for every single input string, except,
+in the process of getting the ``next Auto'' (and producing the \texttt{()}), it
+emits a side-effect --- in our case, printing the string.
+
+\subsubsection{in IO}\label{in-io}
+
+We can sort of abuse this to get an \texttt{Auto} with ``two input streams'':
+one from the normal input, and the other from \texttt{IO}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/Auto3.hs\#L119{-}L123}
+
+\OtherTok{replicateGets ::} \DataTypeTok{AutoM} \DataTypeTok{IO} \DataTypeTok{Int} \DataTypeTok{String}
+\NormalTok{replicateGets }\OtherTok{=}\NormalTok{ proc n }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    ioString }\OtherTok{\textless{}{-}}\NormalTok{ arrM (\textbackslash{}\_ }\OtherTok{{-}\textgreater{}} \FunctionTok{getLine}\NormalTok{) }\OperatorTok{{-}\textless{}}\NormalTok{ ()}
+    \KeywordTok{let}\NormalTok{ inpStr }\OtherTok{=} \FunctionTok{concat}\NormalTok{ (}\FunctionTok{replicate}\NormalTok{ n ioString)}
+\NormalTok{    autoM monoidAccum }\OperatorTok{{-}\textless{}}\NormalTok{ inpStr}
+\end{Highlighting}
+\end{Shaded}
+
+So, \texttt{replicateGets} uses
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/machines/Auto.hs\#L106-L107}{\texttt{monoidAccum}}
+(or, an \texttt{AutoM} version) to accumulate a string. At every step, it adds
+\texttt{inpStr} to the running accumulated string. \texttt{inpStr} is the result
+of repeating the the string that \texttt{getLine} returns replicated \texttt{n}
+times --- \texttt{n} being the official ``input'' to the \texttt{AutoM} when we
+eventually run it.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ testAutoM\_ replicateGets [}\DecValTok{3}\NormalTok{,}\DecValTok{1}\NormalTok{,}\DecValTok{5}\NormalTok{]}
+\OperatorTok{\textgreater{}}\NormalTok{ hello}
+\OperatorTok{\textgreater{}}\NormalTok{ world}
+\OperatorTok{\textgreater{}}\NormalTok{ bye}
+\NormalTok{[ }\StringTok{"hellohellohello"}         \CommentTok{{-}{-} added "hello" three times}
+\NormalTok{, }\StringTok{"hellohellohelloworld"}    \CommentTok{{-}{-} added "world" once}
+\NormalTok{, }\StringTok{"hellohellohelloworldbyebyebyebyebye"}     \CommentTok{{-}{-} added "bye" five times}
+\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+Here, we used \texttt{IO} to get a ``side channel input''. The main input is the
+number of times we repeat the string, and the side input is what we get from
+sequencing the \texttt{getLine} effect.
+
+You can also use this to ``tack on'' effects into your pipeline.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/Auto3.hs\#L127{-}L131}
+
+\OtherTok{logging ::} \DataTypeTok{Show}\NormalTok{ b }\OtherTok{=\textgreater{}} \DataTypeTok{Auto}\NormalTok{ a b }\OtherTok{{-}\textgreater{}} \DataTypeTok{AutoM} \DataTypeTok{IO}\NormalTok{ a b}
+\NormalTok{logging a }\OtherTok{=}\NormalTok{ proc x }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    y }\OtherTok{\textless{}{-}}\NormalTok{ autoM a }\OperatorTok{{-}\textless{}}\NormalTok{ x}
+\NormalTok{    arrM (}\FunctionTok{appendFile} \StringTok{"log.txt"}\NormalTok{) }\OperatorTok{{-}\textless{}} \FunctionTok{show}\NormalTok{ y }\OperatorTok{++} \StringTok{"\textbackslash{}n"}
+    \FunctionTok{id} \OperatorTok{{-}\textless{}}\NormalTok{ y}
+\end{Highlighting}
+\end{Shaded}
+
+Here, \texttt{logging\ a} will ``run'' \texttt{a} with the input like normal (no
+side-channel inputs), but then also log the results line-by-line to
+\emph{log.txt}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ testAutoM\_ (logging summer) [}\DecValTok{6}\NormalTok{,}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{4}\NormalTok{,}\DecValTok{1}\NormalTok{]}
+\NormalTok{[}\DecValTok{6}\NormalTok{,}\DecValTok{8}\NormalTok{,}\DecValTok{11}\NormalTok{,}\DecValTok{15}\NormalTok{,}\DecValTok{16}\NormalTok{]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \FunctionTok{putStrLn} \OperatorTok{=\textless{}\textless{}} \FunctionTok{readFile} \StringTok{"log.txt"}
+\DecValTok{6}
+\DecValTok{8}
+\DecValTok{11}
+\DecValTok{15}
+\DecValTok{16}
+\end{Highlighting}
+\end{Shaded}
+
+(By the way, as a side note,
+\texttt{logging\ ::\ Auto\ a\ b\ -\textgreater{}\ AutoM\ IO\ a\ b} here can be
+looked at as an ``\texttt{Auto} transformer''. It takes a normal \texttt{Auto}
+and transforms it into an otherwise identical \texttt{Auto}, yet which logs its
+results as it ticks on.)
+
+\subsubsection{Motivations}\label{motivations}
+
+At this point, hopefully you are either excited about the possibilities that
+monadic \texttt{Auto} composition/ticking offers, or are horribly revolted at
+how we mixed IO and unconstrained effects and ``implicit side channel'' inputs.
+Or both!
+
+After all, if all we were doing in \texttt{replicateGets} was having two inputs,
+we could have just used:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{replicateGets\textquotesingle{} ::} \DataTypeTok{Auto}\NormalTok{ (}\DataTypeTok{String}\NormalTok{, }\DataTypeTok{Int}\NormalTok{) }\DataTypeTok{String}
+\end{Highlighting}
+\end{Shaded}
+
+And have the user ``get'' the string before they run the \texttt{Auto}.
+
+And hey, if all we were doing in \texttt{logging} was having an extra logging
+channel, we could have just manually logged all of the outputs as they popped
+out.
+
+All valid suggestions. Separate the pure from the impure. We went out of our way
+to avoid \emph{global} states and side-effects, so why bother to bring it all
+back?
+
+Superficially, it might seem like just moving the burden from one place to the
+other. Instead of having the user having to worry about getting the string, or
+writing the log, the \texttt{Auto} can just handle it itself internally without
+the ``running'' code having to worry.
+
+The real, deep advantage in \texttt{AutoM}, however, is --- like in
+\texttt{Auto} --- its (literal) \emph{composability}.
+
+Imagine \texttt{replicateGets\textquotesingle{}} was not our ``final
+\texttt{Auto}'' that we run\ldots imagine it was in fact an \texttt{Auto} used
+in a composition inside the definition of an \texttt{Auto} used several times
+inside a composition inside the definition of another \texttt{Auto}. All of a
+sudden, having to ``manually thread'' the extra channel of input in is a real
+nightmare. In addition, you can't even statically guarantee that the
+\texttt{String} \texttt{replicateGets} eventually was the same \texttt{String}
+that the user originally passed in. When composing/calling it, who knows if the
+Auto that composes \texttt{replicateGets\textquotesingle{}} passes in the same
+initially gotten String?\footnote{By the way, you might notice this pattern as
+  something that seems more fit for \texttt{Reader} than \texttt{IO}. We'll look
+  at that later!}
+
+Imagine that the \texttt{Auto} whose results we wanted to log actually was not
+the final output of the entire \texttt{Auto} we run (maybe we want to log a
+small internal portion of a big \texttt{Auto}). Again, now you have to manually
+thread the \emph{output}. And if you're logging several things through several
+layers --- it gets ugly very fast.
+
+And now, all of your other \texttt{Auto}s in the composition get to (and
+\emph{have} to) see the values of the log! So much for ``locally stateful''!
+
+As you can see, there is a trade-off in either decision we make. But these
+monadic compositions really just give us another tool in our toolset that we can
+(judiciously) use.
+
+\subsubsection{Other contexts}\label{other-contexts}
+
+It's fun to imagine what sort of implications the different popular monads in
+Haskell can provide. \texttt{Writer} gives you a running log that all
+\texttt{Auto}s can append to, for example. \texttt{Reader} gives you every
+composed \texttt{Auto} the ability to access a shared global
+environment\ldots and has an advantage over manual ``passing in'' of parameters
+because every composed \texttt{Auto} is guaranteed to ``see'' the same global
+environment per tick.
+
+\texttt{State} gives every composed \texttt{Auto} the ability to access and
+modify a globally shared state. We talk a lot about every \texttt{Auto} having
+their own local, internal state; usually, it is impossible for two composed
+\texttt{Auto}s to directly access each other's state (except by communicating
+through output and input). With \texttt{State}, we now give the opportunity for
+every \texttt{Auto} to share and modify a collective and global state, which
+they can use to determine how to proceed, etc.
+
+Good? Bad? Uncontrollable, unpredictable? Perhaps. You now bring in all of the
+problems of shared state and reasoning with shared mutable state\ldots and
+avoiding these problems was one of the things that originally motivated the
+usage of \texttt{Auto} in the first place! But, we can make sound and judicious
+decisions without resorting to ``never do this'' dogma.\footnote{Which really
+  isn't the point of these posts, anyway!} Remember, these are just tools we can
+possibly explore. Whether or not they work in the real world --- or whether or
+not they are self-defeating --- is a complex story!
+
+\subsubsection{in State}\label{in-state}
+
+Here is a toy state example to demonstrate different autos talking to each
+other; here, the state is a measure of ``fuel''; we can take any
+\texttt{Auto\ a\ b} and give it a ``cost'' using the \texttt{limit} function
+defined here. Here, every \texttt{Auto} consumes fuel from the same pool, given
+at the initial \texttt{runState} running.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/Auto3.hs\#L139{-}L175}
+
+\OtherTok{limit ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{Auto}\NormalTok{ a b }\OtherTok{{-}\textgreater{}} \DataTypeTok{AutoM}\NormalTok{ (}\DataTypeTok{State} \DataTypeTok{Int}\NormalTok{) a (}\DataTypeTok{Maybe}\NormalTok{ b)}
+\NormalTok{limit cost a }\OtherTok{=}\NormalTok{ proc x }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    fuel }\OtherTok{\textless{}{-}}\NormalTok{ arrM (\textbackslash{}\_ }\OtherTok{{-}\textgreater{}}\NormalTok{ get) }\OperatorTok{{-}\textless{}}\NormalTok{ ()}
+    \KeywordTok{if}\NormalTok{ fuel }\OperatorTok{\textgreater{}=}\NormalTok{ cost}
+      \KeywordTok{then} \KeywordTok{do}
+\NormalTok{        arrM (\textbackslash{}\_ }\OtherTok{{-}\textgreater{}}\NormalTok{ modify (}\FunctionTok{subtract}\NormalTok{ cost)) }\OperatorTok{{-}\textless{}}\NormalTok{ ()}
+\NormalTok{        y }\OtherTok{\textless{}{-}}\NormalTok{ autoM a }\OperatorTok{{-}\textless{}}\NormalTok{ x}
+        \FunctionTok{id} \OperatorTok{{-}\textless{}} \DataTypeTok{Just}\NormalTok{ y}
+      \KeywordTok{else}
+        \FunctionTok{id} \OperatorTok{{-}\textless{}} \DataTypeTok{Nothing}
+
+\OtherTok{sumSqDiff ::} \DataTypeTok{AutoM}\NormalTok{ (}\DataTypeTok{State} \DataTypeTok{Int}\NormalTok{) }\DataTypeTok{Int} \DataTypeTok{Int}
+\NormalTok{sumSqDiff }\OtherTok{=}\NormalTok{ proc x }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{  sums   }\OtherTok{\textless{}{-}}\NormalTok{ fromMaybe }\DecValTok{0} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ limit }\DecValTok{3}\NormalTok{ summer }\OperatorTok{{-}\textless{}}\NormalTok{ x}
+\NormalTok{  sumSqs }\OtherTok{\textless{}{-}}\NormalTok{ fromMaybe }\DecValTok{0} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ limit }\DecValTok{1}\NormalTok{ summer }\OperatorTok{{-}\textless{}}\NormalTok{ x}\OperatorTok{\^{}}\DecValTok{2}
+  \FunctionTok{id} \OperatorTok{{-}\textless{}}\NormalTok{ sumSqs }\OperatorTok{{-}}\NormalTok{ sums}
+
+\OtherTok{stuff ::} \DataTypeTok{AutoM}\NormalTok{ (}\DataTypeTok{State} \DataTypeTok{Int}\NormalTok{) }\DataTypeTok{Int}\NormalTok{ (}\DataTypeTok{Maybe} \DataTypeTok{Int}\NormalTok{, }\DataTypeTok{Maybe} \DataTypeTok{Int}\NormalTok{, }\DataTypeTok{Int}\NormalTok{)}
+\NormalTok{stuff }\OtherTok{=}\NormalTok{ proc x }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    doubled }\OtherTok{\textless{}{-}}\NormalTok{ limit }\DecValTok{1} \FunctionTok{id} \OperatorTok{{-}\textless{}}\NormalTok{ x }\OperatorTok{*} \DecValTok{2}
+\NormalTok{    tripled }\OtherTok{\textless{}{-}} \KeywordTok{if} \FunctionTok{even}\NormalTok{ x}
+                 \KeywordTok{then}\NormalTok{ limit }\DecValTok{2} \FunctionTok{id} \OperatorTok{{-}\textless{}}\NormalTok{ x }\OperatorTok{*} \DecValTok{3}
+                 \KeywordTok{else} \FunctionTok{id}         \OperatorTok{{-}\textless{}} \DataTypeTok{Just}\NormalTok{ (x }\OperatorTok{*} \DecValTok{3}\NormalTok{)}
+\NormalTok{    sumSqD  }\OtherTok{\textless{}{-}}\NormalTok{ sumSqDiff }\OperatorTok{{-}\textless{}}\NormalTok{ x}
+    \FunctionTok{id} \OperatorTok{{-}\textless{}}\NormalTok{ (doubled, tripled, sumSqD)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} a State machine returning the result and the next Auto}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ stuffState  }\OtherTok{=}\NormalTok{ runAutoM stuff }\DecValTok{4}
+\CommentTok{{-}{-} a State machine returning the result}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ stuffState\_ }\OtherTok{=} \FunctionTok{fst} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ stuffState}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t stuffState\_}
+\OtherTok{stuffState\_ ::} \DataTypeTok{State} \DataTypeTok{Int}\NormalTok{ (}\DataTypeTok{Maybe} \DataTypeTok{Int}\NormalTok{, }\DataTypeTok{Maybe} \DataTypeTok{Int}\NormalTok{, }\DataTypeTok{Int}\NormalTok{)}
+\CommentTok{{-}{-} start with 10 fuel}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ runState stuffState\_ }\DecValTok{10}
+\NormalTok{((}\DataTypeTok{Just} \DecValTok{8}\NormalTok{, }\DataTypeTok{Just} \DecValTok{12}\NormalTok{, }\DecValTok{12}\NormalTok{),   }\DecValTok{3}\NormalTok{)        }\CommentTok{{-}{-} end up with 3 fuel left}
+\CommentTok{{-}{-} start with 2 fuel}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ runState stuffState\_ }\DecValTok{2}
+\NormalTok{((}\DataTypeTok{Just} \DecValTok{8}\NormalTok{, }\DataTypeTok{Nothing}\NormalTok{, }\DecValTok{16}\NormalTok{),   }\DecValTok{0}\NormalTok{)        }\CommentTok{{-}{-} poop out halfway}
+\end{Highlighting}
+\end{Shaded}
+
+You can see that an initial round with an even number should cost you seven
+fuel\ldots if you can get to the end. In the case where we only started with two
+fuel, we only were able to get to the ``doubled'' part before running out of
+fuel.
+
+Let's see what happens if we run it several times:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci\textgreater{} let stuffStateMany = testAutoM\_ stuff [3..6]}
+\NormalTok{ghci\textgreater{} :t stuffStateMany}
+\NormalTok{stuffStateMany :: State Int [(Maybe Int, Maybe Int, Int)]}
+\NormalTok{ghci\textgreater{} runState stuffStateMany 9}
+\NormalTok{( [ (Just 6 , Just 9 , 6 )}
+\NormalTok{  , (Just 8 , Just 12, 25)}
+\NormalTok{  , (Nothing, Just 15, 0 )}
+\NormalTok{  , (Nothing, Nothing, 0 ) ]}
+\NormalTok{, 0 )}
+\end{Highlighting}
+\end{Shaded}
+
+So starting with nine fuel, we seem to run out halfway through the second step.
+The third field should be the sum of the squares so far, minus the sum so
+far\ldots at \texttt{25}, it's probably just the sum of the squares so far. So
+it couldn't even subtract out the sum so far. Note that the \texttt{Just\ 15} on
+the third step goes through because for \emph{odd} inputs (5, in this case), the
+second field doesn't require any fuel.
+
+Anyways, imagine having to thread this global state through by hand. Try it.
+It'd be a disaster! Everything would have to take an extra parameter and get and
+extra parameter\ldots it really is quite a headache. Imagine the source for
+\texttt{stuff} being written out in \texttt{Auto} with manual state threading.
+
+But hey, if your program needs global state, then it's probably a good sign that
+you might have had a design flaw somewhere along the way, right?
+
+\subsubsection{in Reader}\label{in-reader}
+
+Here we use \texttt{Reader} to basically give a ``second argument'' to an
+\texttt{Auto} when we eventually run it, but we use the fact that every composed
+\texttt{Auto} gets the \emph{exact same} input to great effect:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/Auto3.hs\#L199{-}L234}
+
+\OtherTok{integral ::} \DataTypeTok{Double} \OtherTok{{-}\textgreater{}} \DataTypeTok{AutoM}\NormalTok{ (}\DataTypeTok{Reader} \DataTypeTok{Double}\NormalTok{) }\DataTypeTok{Double} \DataTypeTok{Double}
+\NormalTok{integral x0 }\OtherTok{=} \DataTypeTok{AConsM} \OperatorTok{$}\NormalTok{ \textbackslash{}dx }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{                dt }\OtherTok{\textless{}{-}}\NormalTok{ ask}
+                \KeywordTok{let}\NormalTok{ x1 }\OtherTok{=}\NormalTok{ x0 }\OperatorTok{+}\NormalTok{ dx }\OperatorTok{*}\NormalTok{ dt}
+                \FunctionTok{return}\NormalTok{ (x1, integral x1)}
+
+\OtherTok{derivative ::} \DataTypeTok{AutoM}\NormalTok{ (}\DataTypeTok{Reader} \DataTypeTok{Double}\NormalTok{) }\DataTypeTok{Double}\NormalTok{ (}\DataTypeTok{Maybe} \DataTypeTok{Double}\NormalTok{)}
+\NormalTok{derivative }\OtherTok{=} \DataTypeTok{AConsM} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}} \FunctionTok{return}\NormalTok{ (}\DataTypeTok{Nothing}\NormalTok{, derivative\textquotesingle{} x)}
+  \KeywordTok{where}
+                 \CommentTok{{-}{-} x0 is the "previous input"}
+\NormalTok{    derivative\textquotesingle{} x0 }\OtherTok{=} \DataTypeTok{AConsM} \OperatorTok{$}\NormalTok{ \textbackslash{}x1 }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+                       \KeywordTok{let}\NormalTok{ dx }\OtherTok{=}\NormalTok{ x1 }\OperatorTok{{-}}\NormalTok{ x0}
+\NormalTok{                       dt }\OtherTok{\textless{}{-}}\NormalTok{ ask}
+                       \FunctionTok{return}\NormalTok{ (}\DataTypeTok{Just}\NormalTok{ (dx}\OperatorTok{/}\NormalTok{dt), derivative\textquotesingle{} x1)}
+
+\OtherTok{fancyCalculus ::} \DataTypeTok{AutoM}\NormalTok{ (}\DataTypeTok{Reader} \DataTypeTok{Double}\NormalTok{) }\DataTypeTok{Double}\NormalTok{ (}\DataTypeTok{Double}\NormalTok{, }\DataTypeTok{Double}\NormalTok{)}
+\NormalTok{fancyCalculus }\OtherTok{=}\NormalTok{ proc x }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    deriv  }\OtherTok{\textless{}{-}}\NormalTok{ fromMaybe }\DecValTok{0} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ derivative }\OperatorTok{{-}\textless{}}\NormalTok{ x}
+\NormalTok{    deriv2 }\OtherTok{\textless{}{-}}\NormalTok{ fromMaybe }\DecValTok{0} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ derivative }\OperatorTok{{-}\textless{}}\NormalTok{ deriv}
+\NormalTok{    intdev }\OtherTok{\textless{}{-}}\NormalTok{                 integral }\DecValTok{0} \OperatorTok{{-}\textless{}}\NormalTok{ deriv}
+    \FunctionTok{id} \OperatorTok{{-}\textless{}}\NormalTok{ (deriv2, intdev)}
+\end{Highlighting}
+\end{Shaded}
+
+Now, we are treating our input stream as time-varying values, and the ``Reader
+environment'' contains the ``time passed since the last tick'' --- The time step
+or sampling rate, so to speak, of the input stream. We have two stateful
+\texttt{Auto}s (``locally stateful'', internal state) that compute the time
+integral and time derivative of the input stream of numbers\ldots but in order
+to do so, it needs the time step. We get it using \texttt{ask}. (Note that the
+time step doesn't have to be the same between every different tick \ldots{}
+\texttt{integral} and \texttt{derivative} should work just fine with a new
+timestep every tick.) (Also note that \texttt{derivative} is \texttt{Nothing} on
+its first step, because there is not yet any meaningful derivative on the first
+input)
+
+In \texttt{fancyCalculus}, we calculate the integral, the derivative, the second
+derivative, and the integral of the derivative, and return the second derivative
+and the integral of the derivative.
+
+In order for us to even \emph{meaningfully say} ``the second derivative'' or
+``the integral of the derivative'', the double derivative has to be calculated
+with the same time step, and the integral and the derivative have to be
+calculated with the same time step. If they are fed different time steps, then
+we aren't really calculating a real second derivative or a real integral of a
+derivative anymore. We're just calculating arbitrary numbers.
+
+Anyways, if you have taken any introduction to calculus course, you'll know that
+the integral of a derivative is the original function --- so the integral of the
+derivative, if we pick the right \texttt{x0}, should just be an ``id'' function:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{integral x0 }\OperatorTok{.}\NormalTok{ derivative }\OperatorTok{==} \FunctionTok{id}      \CommentTok{{-}{-} or off by a constant difference}
+\end{Highlighting}
+\end{Shaded}
+
+Let's try this out with some input streams where we know what the second
+derivative should be, too.
+
+We'll try it first with \texttt{x\^{}2}, where we know the second derivative
+will just be 2, the entire time:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ x2s }\OtherTok{=} \FunctionTok{map}\NormalTok{ (}\OperatorTok{\^{}}\DecValTok{2}\NormalTok{) [}\DecValTok{0}\NormalTok{,}\FloatTok{0.05}\OperatorTok{..}\DecValTok{1}\NormalTok{]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ x2Reader }\OtherTok{=}\NormalTok{ testAutoM\_ fancyCalculus x2s}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t x2Reader}
+\OtherTok{x2Reader ::} \DataTypeTok{Reader} \DataTypeTok{Double}\NormalTok{ [(}\DataTypeTok{Double}\NormalTok{, }\DataTypeTok{Double}\NormalTok{)]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \FunctionTok{map} \FunctionTok{fst}\NormalTok{ (runReader x2Reader }\FloatTok{0.05}\NormalTok{)}
+\NormalTok{[ }\OperatorTok{...} \FloatTok{2.0}\NormalTok{, }\FloatTok{2.0} \OperatorTok{...}\NormalTok{ ]    }\CommentTok{{-}{-} with a couple of "stabilizing" first terms}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \FunctionTok{map} \FunctionTok{snd}\NormalTok{ (runReader x2Reader }\FloatTok{0.05}\NormalTok{)}
+\NormalTok{[ }\FloatTok{0.0}\NormalTok{, }\FloatTok{0.0025}\NormalTok{, }\FloatTok{0.01}\NormalTok{, }\FloatTok{0.0225}\NormalTok{, }\FloatTok{0.04} \OperatorTok{...}\NormalTok{]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ x2s}
+\NormalTok{[ }\FloatTok{0.0}\NormalTok{, }\FloatTok{0.0025}\NormalTok{, }\FloatTok{0.01}\NormalTok{, }\FloatTok{0.0225}\NormalTok{, }\FloatTok{0.04} \OperatorTok{...}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+Perfect! The second derivative we expected (all 2's) showed up, and the integral
+of the derivative is pretty much exactly the original function.
+
+For fun, try running it with a \texttt{sin} function. The second derivative of
+\texttt{sin} is \texttt{netage\ .\ sin}. Does it end up as expected?
+
+The alternative to using \texttt{AutoM} and \texttt{Reader} here would be to
+have each composed Auto be manually ``passed'' the \texttt{dt} timestep. But
+then we really don't have any ``guarantees'', besides checking ourselves, that
+every \texttt{Auto} down the road, down every composition, will have the same
+\texttt{dt}. We can't say that we really are calculating integrals or
+derivatives. And plus, it's pretty messy when literally every one of your
+composed \texttt{Auto} needs \texttt{dt}.
+
+\subsubsection{Mixing Worlds}\label{mixing-worlds}
+
+We talked about a huge drawback of \texttt{State\ s} --- global mutable state is
+really something that we originally looked to \texttt{Auto} to avoid in the
+first place. But some portions of logic are much more convenient to write with
+autos that all have access to a global state.
+
+What if we wanted the best of both worlds? What would that look like?
+
+In Haskell, one common technique we like to use, eloquently stated by Gabriel
+Gonzalez in his post
+\href{http://www.haskellforall.com/2012/09/the-functor-design-pattern.html}{the
+Functor design pattern}, is to pick a ``common denominator'' type, and push all
+of our other types into it.
+
+We have two fundamentally different options here. We can pick our ``main type''
+to be \texttt{AutoM\ (State\ s)} and have global state, and ``push'' all of our
+non-global-state Autos into it, or we can pick our ``main type'' to be
+\texttt{Auto}, and ``seal'' our global-state-Autos into non-global-state ones.
+
+For the former, we'd use \texttt{autoM}'s whenever we want to bring our
+\texttt{Auto}s into \texttt{AutoM\ (State\ s)}\ldots or we can always write
+\texttt{AutoM}'s parameterized over \texttt{m}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{summer ::}\NormalTok{ (}\DataTypeTok{Monad}\NormalTok{ m, }\DataTypeTok{Num}\NormalTok{ a) }\OtherTok{=\textgreater{}} \DataTypeTok{AutoM}\NormalTok{ m a a}
+\end{Highlighting}
+\end{Shaded}
+
+It is statically guaranteed that \texttt{summer} \emph{cannot touch any global
+state}.
+
+For the latter option, we take \texttt{AutoM\ (State\ s)}'s that operate on
+global state and then basically ``seal off'' their access to be just within
+their local worlds, as we turn them into \texttt{Auto}'s.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/Auto3.hs\#L182{-}L192}
+
+\OtherTok{sealStateAuto ::} \DataTypeTok{AutoM}\NormalTok{ (}\DataTypeTok{State}\NormalTok{ s) a b }\OtherTok{{-}\textgreater{}}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{Auto}\NormalTok{ a b}
+\NormalTok{sealStateAuto a s0 }\OtherTok{=} \DataTypeTok{ACons} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}}
+                       \KeywordTok{let}\NormalTok{ ((y, a\textquotesingle{}), s1) }\OtherTok{=}\NormalTok{ runState (runAutoM a x) s0}
+                       \KeywordTok{in}\NormalTok{  (y, sealStateAuto a\textquotesingle{} s1)}
+
+\OtherTok{runStateAuto ::} \DataTypeTok{AutoM}\NormalTok{ (}\DataTypeTok{State}\NormalTok{ s) a b }\OtherTok{{-}\textgreater{}} \DataTypeTok{Auto}\NormalTok{ (a, s) (b, s)}
+\NormalTok{runStateAuto a }\OtherTok{=} \DataTypeTok{ACons} \OperatorTok{$}\NormalTok{ \textbackslash{}(x, s) }\OtherTok{{-}\textgreater{}}
+                   \KeywordTok{let}\NormalTok{ ((y, a\textquotesingle{}), s\textquotesingle{}) }\OtherTok{=}\NormalTok{ runState (runAutoM a x) s}
+                   \KeywordTok{in}\NormalTok{  ((y, s\textquotesingle{}), runStateAuto a\textquotesingle{})}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{sealStateAuto} does exactly this. Give it an initial state, and the
+\texttt{Auto} will just continuously feed in its output state at every tick back
+in as the input state. Every \texttt{Auto} inside now has access to a local
+state, untouchable from the outside.
+
+\texttt{runStateAuto} is a way to do this were you can pass in a new initial
+state every time you ``step'' the \texttt{Auto}, and observe how it changes ---
+also another useful use case.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+We can even pull this trick to turn any \texttt{AutoM\ (StateT\ s\ m)} into an
+\texttt{AutoM\ m}. See if you can write it :)
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{sealStateAutoM ::} \DataTypeTok{AutoM}\NormalTok{ (}\DataTypeTok{StateT}\NormalTok{ s m) a b }\OtherTok{{-}\textgreater{}}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{AutoM}\NormalTok{ m a b}
+\NormalTok{sealStateAutoM }\OtherTok{=} \OperatorTok{...}
+
+\OtherTok{runStateAutoM ::} \DataTypeTok{AutoM}\NormalTok{ (}\DataTypeTok{StateT}\NormalTok{ s m) a b }\OtherTok{{-}\textgreater{}} \DataTypeTok{AutoM}\NormalTok{ m (a, s) (b, s)}
+\NormalTok{runStateAutoM }\OtherTok{=} \OperatorTok{...}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+In both of these methods, what is the real win? The big deal is that you can now
+chose to ``work only in the world of non-global-state'', combining non-global
+\texttt{Auto}s like we did in part 1 and part 2 to create non-global algorithms.
+And then you can also chose to ``work in the world of global state'', combining
+global \texttt{Auto}s like we did in the previous section, where having
+\texttt{State\ s} made everything more clear.
+
+We're allowed to live and compose (using \texttt{Category}, proc notation, etc.)
+in whatever world we like --- create as complex compositions as we could even
+imagine --- and at the end of it all, we take the final complex product and
+``glue it on'' to our big overall type so everything can work together.
+
+This discussion is about \texttt{State}, but the ramifications work with almost
+any \texttt{Auto} or type of \texttt{Auto} or underlying monad we talk about.
+
+We can simulate an ``immutable local environment'', for example:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/Auto3.hs\#L248{-}L251}
+
+\OtherTok{runReaderAuto ::} \DataTypeTok{AutoM}\NormalTok{ (}\DataTypeTok{Reader}\NormalTok{ r) a b }\OtherTok{{-}\textgreater{}} \DataTypeTok{Auto}\NormalTok{ (a, r) b}
+\NormalTok{runReaderAuto a }\OtherTok{=} \DataTypeTok{ACons} \OperatorTok{$}\NormalTok{ \textbackslash{}(x, e) }\OtherTok{{-}\textgreater{}}
+                    \KeywordTok{let}\NormalTok{ (y, a\textquotesingle{}) }\OtherTok{=}\NormalTok{ runReader (runAutoM a x) e}
+                    \KeywordTok{in}\NormalTok{  (y, runReaderAuto a\textquotesingle{})}
+\end{Highlighting}
+\end{Shaded}
+
+Now you can use a \texttt{Reader} --- composed with ``global environment''
+semantics --- inside a normal \texttt{Auto}! Just give it the new environment
+very step! (Can you write a \texttt{sealReaderAuto} that just takes an initial
+\texttt{r} and feeds it back in forever?)
+
+\section{Recursive Auto}\label{recursive-auto}
+
+Let's move back to our normal \texttt{Auto} for now, and imagine a very common
+use case that might come up.
+
+What if you wanted two chained \texttt{Auto}s to ``talk to each other'' --- for
+their inputs to depend on the other's outputs?
+
+Here's a common example --- in control theory, you often have to have adjust an
+input to a system to get it to ``respond'' to a certain desired output (a
+control).
+
+One way is to start with a test input, at every step, observe the resulting
+response and adjust it up or down until we get the response we want. We call the
+difference between the response and the control the ``error''.
+
+How do you think you would calculate the adjustment? Well\ldots if the error is
+big, we probably want a big adjustment. And, the longer we are away from the
+error, we also might want to make a bigger adjustment accordingly, too.
+
+In other words, we might want our adjustment to have a term \emph{proportional}
+to the error, and a term that is \emph{the sum of all} errors so far.
+
+This system is known as \href{http://en.wikipedia.org/wiki/PID_controller}{PI},
+and is actually used in many industrial control systems today, for controlling
+things like lasers and other super important stuff. Congrats, you are now a
+control theorist!
+
+Let's see how we might write this using our \texttt{Auto}s:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{piTargeter ::} \DataTypeTok{Auto} \DataTypeTok{Double} \DataTypeTok{Double}
+\NormalTok{piTargeter }\OtherTok{=}\NormalTok{ proc control }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+    \KeywordTok{let}\NormalTok{ err }\OtherTok{=}\NormalTok{ control }\OperatorTok{{-}}\NormalTok{ response}
+\NormalTok{    errSums  }\OtherTok{\textless{}{-}}\NormalTok{ summer         }\OperatorTok{{-}\textless{}}\NormalTok{ err}
+
+\NormalTok{    input    }\OtherTok{\textless{}{-}}\NormalTok{ summer         }\OperatorTok{{-}\textless{}} \FloatTok{0.2} \OperatorTok{*}\NormalTok{ err }\OperatorTok{+} \FloatTok{0.01} \OperatorTok{*}\NormalTok{ errSums}
+\NormalTok{    response }\OtherTok{\textless{}{-}}\NormalTok{ blackBoxSystem }\OperatorTok{{-}\textless{}}\NormalTok{ input}
+
+    \FunctionTok{id} \OperatorTok{{-}\textless{}}\NormalTok{ response}
+  \KeywordTok{where}
+\NormalTok{    blackBoxSystem }\OtherTok{=} \FunctionTok{id}     \CommentTok{{-}{-} to simplify things :)}
+\end{Highlighting}
+\end{Shaded}
+
+So this is an \texttt{Auto} that takes in a \texttt{Double} --- the control ---
+and outputs a \texttt{Double} --- the response. The goal is to get the response
+to ``match'' control, by running a value, \texttt{input}, through a ``black box
+system'' (To simplify here, we're only running \texttt{input} through
+\texttt{id}).
+
+Here is the ``logic'', or the relationships between the values:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  The error value \texttt{err} is the difference between the control and the
+  response.
+\item
+  The sum of errors \texttt{errSums} is the cumulative sum of all of the error
+  values so far.
+\item
+  The input \texttt{input} is the cumulative sum of all of the correction terms:
+  a multiple of \texttt{err} and a multiple of \texttt{errSums}.
+\item
+  The response \texttt{response} is the result of running the input through the
+  black box system (here, just \texttt{id}).
+\item
+  The output is the response!
+\end{enumerate}
+
+Look at what we wrote. Isn't it just\ldots beautifully declarative? Elegant? All
+we stated were \emph{relationships between terms}\ldots we didn't worry about
+state, loops, variables, iterations\ldots there is no concept of ``how to
+update'', everything is just ``how things are''. It basically popped up exactly
+as how we ``said'' it. I don't know about you, but this demonstration always
+leaves me amazed, and was one of the things that sold me on this abstraction in
+the first place.
+
+But, do you see the problem? To calculate \texttt{err}, we used \texttt{resp}.
+But to get \texttt{resp}, we need \texttt{err}!
+
+We need to be able to define ``recursive bindings''. Have Autos recursively
+depend on each other.
+
+In another language, this would be hopeless. We'd have to have to resort to
+keeping explicit state and using a loop. However, with Haskell\ldots and the
+world of laziness, recursive bindings, and tying knots\ldots I think that we're
+going to have a \emph{real win} if we can make something like what we wrote
+work.
+
+\subsection{ArrowLoop}\label{arrowloop}
+
+There is actually a construct in \emph{proc} notation that lets you do just
+that. I'm going to cut to the chase and show you how it looks, and how you use
+it. I'll explain the drawbacks and caveats. And then I'll explain how it works
+in an aside --- it's slightly heavy, but some people like to understand.
+
+Without further ado ---
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/Auto3.hs\#L266{-}L276}
+
+\OtherTok{piTargeter ::} \DataTypeTok{Auto} \DataTypeTok{Double} \DataTypeTok{Double}
+\NormalTok{piTargeter }\OtherTok{=}\NormalTok{ proc control }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    rec }\KeywordTok{let}\NormalTok{ err }\OtherTok{=}\NormalTok{ control }\OperatorTok{{-}}\NormalTok{ response}
+\NormalTok{        errSums  }\OtherTok{\textless{}{-}}\NormalTok{ summer         }\OperatorTok{{-}\textless{}}\NormalTok{ err}
+
+\NormalTok{        input    }\OtherTok{\textless{}{-}}\NormalTok{ laggingSummer  }\OperatorTok{{-}\textless{}} \FloatTok{0.2} \OperatorTok{*}\NormalTok{ err }\OperatorTok{+} \FloatTok{0.01} \OperatorTok{*}\NormalTok{ errSums}
+\NormalTok{        response }\OtherTok{\textless{}{-}}\NormalTok{ blackBoxSystem }\OperatorTok{{-}\textless{}}\NormalTok{ input}
+
+    \FunctionTok{id} \OperatorTok{{-}\textless{}}\NormalTok{ response}
+  \KeywordTok{where}
+\NormalTok{    blackBoxSystem }\OtherTok{=} \FunctionTok{id}     \CommentTok{{-}{-} to simplify things :)}
+\end{Highlighting}
+\end{Shaded}
+
+The key here is the \emph{rec} keyword. Basically, we require that we write an
+instance of \texttt{ArrowLoop} for our \texttt{Auto}\ldots and now things can
+refer to each other, and it all works out like magic! Now our solution
+works\ldots the feedback loop is closed with the usage of \texttt{rec}. Now, our
+algorithm looks \emph{exactly} like how we would ``declare'' the relationship of
+all the variables. We ``declare'' that \texttt{err} is the difference between
+the control and the response. We ``declare'' that \texttt{errSums} is the
+cumulative sum of the error values. We ``declare'' that our \texttt{input} is
+the cumulative sum of all of the adjustment terms. And we ``declare'' that our
+response is just the result of feeding our input through our black box.
+
+No loops. No iteration. No mutable variables. Just\ldots a declaration of
+relationships.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ testAuto\_ piTargeter [}\DecValTok{5}\NormalTok{,}\FloatTok{5.01}\OperatorTok{..}\DecValTok{6}\NormalTok{]      }\CommentTok{{-}{-} vary our desired target slowly}
+\NormalTok{[ }\DecValTok{0}\NormalTok{, }\FloatTok{1.05}\NormalTok{, }\FloatTok{1.93}\NormalTok{, }\FloatTok{2.67}\NormalTok{, }\FloatTok{3.28} \OperatorTok{...}         \CommentTok{{-}{-} "seeking"/tracking to 5}
+\NormalTok{, }\FloatTok{5.96}\NormalTok{, }\FloatTok{5.97}\NormalTok{, }\FloatTok{5.98}\NormalTok{, }\FloatTok{5.99}\NormalTok{, }\FloatTok{6.00}          \CommentTok{{-}{-} properly tracking}
+\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+Perfect!
+
+Wait wait wait hold on\ldots but how does this even work? Is this magic? Can we
+just throw \emph{anything} into a recursive binding, and expect it to magically
+figure out what we mean?
+
+Kinda, yes, no. This works based on Haskell's laziness. It's the reason
+something like \texttt{fix} works:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{fix ::}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{ a) }\OtherTok{{-}\textgreater{}}\NormalTok{ a}
+\NormalTok{fix f }\OtherTok{=}\NormalTok{ f (fix f)}
+\end{Highlighting}
+\end{Shaded}
+
+Infinite loop, right?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \FunctionTok{head}\NormalTok{ (fix (}\DecValTok{1}\OperatorTok{:}\NormalTok{))}
+\DecValTok{1}
+\end{Highlighting}
+\end{Shaded}
+
+What?
+
+\texttt{fix\ (1:)} is basically an infinite lists of ones. But remember that
+\texttt{head} only requires the first element to be evaluated:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{head}\NormalTok{ (fix (}\DecValTok{1}\OperatorTok{:}\NormalTok{))}
+\FunctionTok{head}\NormalTok{ (}\DecValTok{1} \OperatorTok{:}\NormalTok{ fix (}\DecValTok{1}\OperatorTok{:}\NormalTok{))     }\CommentTok{{-}{-} head (x:\_) = x}
+\DecValTok{1}
+\end{Highlighting}
+\end{Shaded}
+
+So that's the key. If what we \emph{want} doesn't require the entire result of
+the infinite loop\ldots then we can safely reason about infinite recursion in
+haskell.
+
+The MVP here really is this function that I sneakily introduced,
+\texttt{laggingSummer}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/Auto3.hs\#L258{-}L262}
+
+\OtherTok{laggingSummer ::} \DataTypeTok{Num}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{Auto}\NormalTok{ a a}
+\NormalTok{laggingSummer }\OtherTok{=}\NormalTok{ sumFrom }\DecValTok{0}
+  \KeywordTok{where}
+\OtherTok{    sumFrom ::} \DataTypeTok{Num}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Auto}\NormalTok{ a a}
+\NormalTok{    sumFrom x0 }\OtherTok{=} \DataTypeTok{ACons} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}}\NormalTok{ (x0, sumFrom (x0 }\OperatorTok{+}\NormalTok{ x))}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{laggingSummer} is like \texttt{summer}, except all of the sums are
+delayed. Every step, it adds the input to the accumulator\ldots but returns the
+accumulator \emph{before} the addition. Sort of like \texttt{x++} instead of
+\texttt{++x} in C. If the accumulator is at 10, and it receives a 2, it
+\emph{outputs 10}, and \emph{updates the accumulator to 12}. The key is that it
+\emph{doesn't need the input} to \emph{immediately return that step's output}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ testAuto\_ laggingSummer [}\DecValTok{5}\OperatorTok{..}\DecValTok{10}\NormalTok{]}
+\NormalTok{[}\DecValTok{0}\NormalTok{, }\DecValTok{5}\NormalTok{, }\DecValTok{11}\NormalTok{, }\DecValTok{18}\NormalTok{, }\DecValTok{26}\NormalTok{, }\DecValTok{35}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+The accumulator starts off at 0, and receives a 5\ldots it then outputs 0 and
+updates the accumulator to 5. The accumulator then has 5 and receives a
+6\ldots it outputs 5 and then updates the accumulator to 11. Etc. The next step
+it would output 45 \emph{no matter what input it gets}.
+
+Look at the definition of \texttt{piTargeter} again. How would it get its
+``first value''?
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  The first output is just \texttt{response}.
+\item
+  The first response is just the first \texttt{input}
+\item
+  The first \texttt{input} is just the result of \texttt{laggingSummer}.
+\item
+  The first result of \texttt{laggingSummer} is 0.
+\end{enumerate}
+
+And that's it! Loop closed! The first result is zero\ldots no infinite recursion
+here.
+
+Now that we know that the first result of \texttt{response} is 0, we can also
+find the first values of \texttt{err} and \texttt{errSums}: The first
+\texttt{err} is the first control (input to the \texttt{Auto}) minus 0 (the
+first response), and the first \texttt{errSums} is a cumulative sum of
+\texttt{errs}, so it too starts off as the first control minus zero.
+
+So now, we have all of the first values of \emph{all} of our Autos. Check! Now
+the next step is the same thing!
+
+Recursive bindings have a lot of power in that they allow us to directly
+translate natural language and (cyclic) graph-like ``relationships'' (here,
+between the different values of a control system) and model them \emph{as
+relationships}. Not as loops and updates and state modifications. But \emph{as
+relationships}. Something we can \emph{declare}, at a high level.
+
+And that's definitely something I would write home about.
+
+The only caveat is, of course, that we have to make sure our loop can produce a
+``first value'' without worrying about its input. Autos like
+\texttt{laggingSummer} give this to us.
+
+In the following aside, I detail the exact mechanics of how this works :)
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+Ah, so you're curious? Or maybe you are just one of those people who really
+wants to know how things work?
+
+The \texttt{rec} keyword in proc/do blocks desugars to applications of a
+function called \texttt{loop}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{class} \DataTypeTok{Arrow}\NormalTok{ r }\OtherTok{=\textgreater{}} \DataTypeTok{ArrowLoop}\NormalTok{ r }\KeywordTok{where}
+\OtherTok{    loop ::}\NormalTok{ r (a, c) (b, c) }\OtherTok{{-}\textgreater{}}\NormalTok{ r a b}
+\end{Highlighting}
+\end{Shaded}
+
+The type signature seems a bit funny. Loop takes a morphism from
+\texttt{(a,\ c)} to \texttt{(b,\ c)} and turns it into a morphism from
+\texttt{a} to \texttt{b}. But\ldots how does it do that?
+
+I'll point you to \href{https://wiki.haskell.org/Circular_programming}{a whole
+article about the \texttt{(-\textgreater{})} instance of \texttt{ArrowLoop}} and
+how it is useful, if you're interested. But we're looking at \texttt{Auto} for
+now.
+
+We can write an \texttt{ArrowLoop} instance for \texttt{Auto}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/Auto2.hs\#L58{-}L61}
+
+\KeywordTok{instance} \DataTypeTok{ArrowLoop} \DataTypeTok{Auto} \KeywordTok{where}
+\NormalTok{    loop a }\OtherTok{=} \DataTypeTok{ACons} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}}
+               \KeywordTok{let}\NormalTok{ ((y, d), a\textquotesingle{}) }\OtherTok{=}\NormalTok{ runAuto a (x, d)}
+               \KeywordTok{in}\NormalTok{  (y, loop a\textquotesingle{})}
+\end{Highlighting}
+\end{Shaded}
+
+So what does this mean? When will we be able to ``get a \texttt{y}''?
+
+We will be able to get a \texttt{y} in the case that the \texttt{Auto} can just
+``pop out'' your \texttt{y} without ever evaluating its arguments\ldots or only
+using \texttt{x}.
+
+The evaluation of \texttt{a\textquotesingle{}} is then deferred until
+later\ldots and through this, everything kinda makes sense. The loop is closed.
+See the article linked above for more information on how \texttt{loop} really
+works.
+
+The actual desugaring of a \texttt{rec} block is a little tricky, but we can
+trust that if we have a properly defined \texttt{loop} (that typechecks and has
+the circular dependencies that loop demands), then \texttt{ArrowLoop} will do
+what it is supposed to do.
+
+In any case, we can actually understand \emph{how to work with rec blocks}
+pretty well --- as long as we can have an \texttt{Auto} in the pipeline that can
+pop something out immediately ignoring its input, then we can rest assured that
+our knot will be closed.
+
+By the way, this trick works with \texttt{ArrowM} too --- provided that the
+\texttt{Monad} is an instance of \texttt{MonadFix}, which is basically a
+generalization of the recursive \texttt{let} bindings we used above:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/Auto3.hs\#L88{-}L91}
+
+\KeywordTok{instance} \DataTypeTok{MonadFix}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{ArrowLoop}\NormalTok{ (}\DataTypeTok{AutoM}\NormalTok{ m) }\KeywordTok{where}
+\NormalTok{    loop a }\OtherTok{=} \DataTypeTok{AConsM} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{               rec ((y, d), a\textquotesingle{}) }\OtherTok{\textless{}{-}}\NormalTok{ runAutoM a (x, d)}
+               \FunctionTok{return}\NormalTok{ (y, loop a\textquotesingle{})}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{Going Kleisli}\label{going-kleisli}
+
+This is going to be our last ``modification'' to the \texttt{Auto} type --- one
+more common \texttt{Auto} variation/trick that is used in real life usages of
+\texttt{Auto}.
+
+\subsection{Inhibition}\label{inhibition}
+
+It might some times be convenient to imagine the \emph{results} of the
+\texttt{Auto}s coming in contexts --- for example, \texttt{Maybe}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{Auto}\NormalTok{ a (}\DataTypeTok{Maybe}\NormalTok{ b)}
+\end{Highlighting}
+\end{Shaded}
+
+How can we interpret/use this? In many domains, this is used to model ``on/off''
+behavior of \texttt{Auto}s. The \texttt{Auto} is ``on'' if the output is
+\texttt{Just}, and ``off'' if the output is \texttt{Nothing}.
+
+We can imagine ``baking this in'' to our Auto type:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/AutoOn.hs\#L19{-}L19}
+
+\KeywordTok{newtype} \DataTypeTok{AutoOn}\NormalTok{ a b }\OtherTok{=} \DataTypeTok{AConsOn}\NormalTok{ \{}\OtherTok{ runAutoOn ::}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{Maybe}\NormalTok{ b, }\DataTypeTok{AutoOn}\NormalTok{ a b) \}}
+\end{Highlighting}
+\end{Shaded}
+
+Where the semantics of composition are: if you get a \texttt{Nothing} as an
+input, just don't tick anything and pop out a \texttt{Nothing}; if you get a
+\texttt{Just\ x} as an input run the auto on the \texttt{x}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/AutoOn.hs\#L22{-}L29}
+
+\KeywordTok{instance} \DataTypeTok{Category} \DataTypeTok{AutoOn} \KeywordTok{where}
+    \FunctionTok{id}    \OtherTok{=} \DataTypeTok{AConsOn} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{Just}\NormalTok{ x, }\FunctionTok{id}\NormalTok{)}
+\NormalTok{    g }\OperatorTok{.}\NormalTok{ f }\OtherTok{=} \DataTypeTok{AConsOn} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}}
+              \KeywordTok{let}\NormalTok{ (y, f\textquotesingle{}) }\OtherTok{=}\NormalTok{ runAutoOn f x}
+\NormalTok{                  (z, g\textquotesingle{}) }\OtherTok{=} \KeywordTok{case}\NormalTok{ y }\KeywordTok{of}
+                              \DataTypeTok{Just}\NormalTok{ \_y }\OtherTok{{-}\textgreater{}}\NormalTok{ runAutoOn g \_y}
+                              \DataTypeTok{Nothing} \OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{Nothing}\NormalTok{, g)}
+              \KeywordTok{in}\NormalTok{  (z, g\textquotesingle{} }\OperatorTok{.}\NormalTok{ f\textquotesingle{})}
+\end{Highlighting}
+\end{Shaded}
+
+The other instances are on the file linked above, but I won't post them here, so
+you can write them as an exercise. Have fun on the \texttt{ArrowLoop}
+instance!\footnote{Another exercise you can do if you wanted is to write the
+  exact same instances, but for
+  \texttt{newtype\ AutoOn\ a\ b\ =\ AutoOn\ (Auto\ a\ (Maybe\ b))} :)}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+This aside contains category-theoretic justification for what we just did. You
+can feel free to skip it if you aren't really too familiar with the bare basics
+of Category Theory (What an endofunctor is, for example)\ldots{} but, if you
+are, this might be a fun perspective :)
+
+What we've really done here is taken a category with objects as Haskell types
+and morphisms are \texttt{Auto\ a\ b}, and turned it into a category with
+objects as Haskell types and whose morphisms are \texttt{Auto\ a\ (m\ b)}, where
+\texttt{m} is a Monad.
+
+The act of forming this second category from the first is called forming the
+\emph{Kleisli category} on a category. We took \texttt{Auto} and are now looking
+at the Kleisli category on \texttt{Auto} formed by \texttt{Maybe}.
+
+By the way, a ``Monad'' here is actually different from the normal
+\texttt{Monad} typeclass found in standard Haskell. A Monad is an endofunctor on
+a category with two associated natural transformations --- unit and join.
+
+Because we're not dealing with the typical Haskell category anymore (on
+\texttt{(-\textgreater{})}), we have to rethink what we actually ``have''.
+
+For any Haskell Monad, we get for free our natural transformations:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{unitA ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Auto}\NormalTok{ a (m a)}
+\NormalTok{unitA }\OtherTok{=}\NormalTok{ arr }\FunctionTok{return}
+
+\OtherTok{joinA ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Auto}\NormalTok{ (m (m a)) (m a)}
+\NormalTok{joinA }\OtherTok{=}\NormalTok{ arr join}
+\end{Highlighting}
+\end{Shaded}
+
+But what we \emph{don't get}, necessarily, the \emph{endofunctor}. An
+endofunctor must map both objects and morphisms. A type constructor like
+\texttt{Maybe} can map objects fine --- we have the same objects in
+\texttt{Auto} as we do in \texttt{(-\textgreater{})} (haskell types). But we
+also need the ability to map \emph{morphisms}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{class} \DataTypeTok{FunctorA}\NormalTok{ f }\KeywordTok{where}
+\OtherTok{    fmapA ::} \DataTypeTok{Auto}\NormalTok{ a b }\OtherTok{{-}\textgreater{}} \DataTypeTok{Auto}\NormalTok{ (f a) (f b)}
+    \CommentTok{{-}{-} fmapA id = id}
+    \CommentTok{{-}{-} fmapA g . fmapA f = fmapA (g . f)}
+\end{Highlighting}
+\end{Shaded}
+
+So, if this function exists for a type constructor, following the usual
+\texttt{fmap} laws, then that type is an endofunctor in our \texttt{Auto}
+category. And if it's also a Monad in \texttt{(-\textgreater{})}, then it's also
+then a Monad in \texttt{Auto}.
+
+We can write such an \texttt{fmapA} for \texttt{Maybe}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{instance} \DataTypeTok{FunctorA} \DataTypeTok{Maybe} \KeywordTok{where}
+\NormalTok{    fmapA a }\OtherTok{=} \DataTypeTok{ACons} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}}
+                \KeywordTok{case}\NormalTok{ x }\KeywordTok{of}
+                  \DataTypeTok{Just}\NormalTok{ \_x }\OtherTok{{-}\textgreater{}} \KeywordTok{let}\NormalTok{ (y, a\textquotesingle{}) }\OtherTok{=}\NormalTok{ runAuto a x}
+                             \KeywordTok{in}\NormalTok{  (}\DataTypeTok{Just}\NormalTok{ y, fmapA a\textquotesingle{})}
+                  \DataTypeTok{Nothing} \OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{Nothing}\NormalTok{, fmapA a)}
+\end{Highlighting}
+\end{Shaded}
+
+And, it is a fact that if we have a Monad, we can write the composition of its
+Kleisli category for free:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{(\textless{}\textasciitilde{}=\textless{}) ::}\NormalTok{ (}\DataTypeTok{FunctorA}\NormalTok{ f, }\DataTypeTok{Monad}\NormalTok{ f) }\OtherTok{=\textgreater{}} \DataTypeTok{Auto}\NormalTok{ a (f c) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Auto}\NormalTok{ a (f b) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Auto}\NormalTok{ a (f c)}
+\NormalTok{g }\OperatorTok{\textless{}\textasciitilde{}=\textless{}}\NormalTok{ f }\OtherTok{=}\NormalTok{ joinA }\OperatorTok{.}\NormalTok{ fmapA g }\OperatorTok{.}\NormalTok{ f}
+\end{Highlighting}
+\end{Shaded}
+
+In fact, for \texttt{f\ \textasciitilde{}\ Maybe}, this definition is identical
+to the one for the \texttt{Category} instance we wrote above for
+\texttt{AutoOn}.
+
+And, if the \texttt{FunctorA} is a real functor and the \texttt{Monad} is a real
+monad, then we have for free the associativity of this super-fish operator:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{(h }\OperatorTok{\textless{}\textasciitilde{}=\textless{}}\NormalTok{ g) }\OperatorTok{\textless{}\textasciitilde{}=\textless{}}\NormalTok{ f }\OperatorTok{==}\NormalTok{ h }\OperatorTok{\textless{}\textasciitilde{}=\textless{}}\NormalTok{ (g }\OperatorTok{\textless{}\textasciitilde{}=\textless{}}\NormalTok{ f)}
+\NormalTok{f }\OperatorTok{\textless{}\textasciitilde{}=\textless{}}\NormalTok{ unitA      }\OperatorTok{==}\NormalTok{ unitA }\OperatorTok{\textless{}\textasciitilde{}=\textless{}}\NormalTok{ f      }\OperatorTok{==}\NormalTok{ f}
+\end{Highlighting}
+\end{Shaded}
+
+Category theory is neat!
+
+By the way, definitely not all endofunctors on \texttt{(-\textgreater{})} are
+endofunctors on \texttt{Auto}. We see that \texttt{Maybe} is one. Can you think
+of any others? Any others where we could write an instance of \texttt{FunctorA}
+that follows the laws? Think about it, and post some in the comments!
+
+One immediate example is \texttt{Either\ e}, which is used for great effect in
+many FRP libraries! It's ``inhibit, with a \emph{value}''. As an exercise, see
+if you can write its \texttt{FunctorA} instance, or re-write the \texttt{AutoOn}
+in this section to work with \texttt{Either\ e} (you might need to impose a
+typeclass constraint on the \texttt{e}) instead of \texttt{Maybe}!
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+I'm not going to spend too much time on this, other than saying that it is
+useful to imagine how it might be useful to have an ``off'' Auto ``shut down''
+every next Auto in the chain.
+
+One neat thing is that \texttt{AutoOn} admits a handy \texttt{Alternative}
+instance; \texttt{a1\ \textless{}\textbar{}\textgreater{}\ a2} will create a new
+\texttt{AutoOn} that feeds in its input to \emph{both} \texttt{a1} and
+\texttt{a2}, and the result is the first \texttt{Just}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/AutoOn.hs\#L80{-}L86}
+
+\KeywordTok{instance} \DataTypeTok{Alternative}\NormalTok{ (}\DataTypeTok{AutoOn}\NormalTok{ a) }\KeywordTok{where}
+\NormalTok{    empty     }\OtherTok{=} \DataTypeTok{AConsOn} \OperatorTok{$}\NormalTok{ \textbackslash{}\_ }\OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{Nothing}\NormalTok{, empty)}
+    \CommentTok{{-}{-} (\textless{}|\textgreater{}) :: AutoOn a b {-}\textgreater{} AutoOn a b {-}\textgreater{} AutoOn a b}
+\NormalTok{    a1 }\OperatorTok{\textless{}|\textgreater{}}\NormalTok{ a2 }\OtherTok{=} \DataTypeTok{AConsOn} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}}
+                  \KeywordTok{let}\NormalTok{ (y1, a1\textquotesingle{}) }\OtherTok{=}\NormalTok{ runAutoOn a1 x}
+\NormalTok{                      (y2, a2\textquotesingle{}) }\OtherTok{=}\NormalTok{ runAutoOn a2 x}
+                  \KeywordTok{in}\NormalTok{  (y1 }\OperatorTok{\textless{}|\textgreater{}}\NormalTok{ y2, a1\textquotesingle{} }\OperatorTok{\textless{}|\textgreater{}}\NormalTok{ a2\textquotesingle{})}
+\end{Highlighting}
+\end{Shaded}
+
+Unexpectedly, we also get the handy \texttt{empty}, which is a ``always off''
+\texttt{AutoOn}. Feed anything through \texttt{empty} and it'll produce a
+\texttt{Nothing} no matter what. You can use this to provide an ``always fail'',
+``short-circuit here'' kind of composition, like \texttt{Nothing} in the
+\texttt{Maybe} monad.
+
+You also get this an interesting and useful concept called ``switching'' that
+comes from this; the ability to switch from running one Auto or the other by
+looking if the result is on or off --- here is a common switch that behaves like
+the first \texttt{AutoOn} until it is off, and then behaves like the second
+forever after:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/AutoOn.hs\#L115{-}L121}
+
+\OtherTok{({-}{-}\textgreater{}) ::} \DataTypeTok{AutoOn}\NormalTok{ a b }\OtherTok{{-}\textgreater{}} \DataTypeTok{AutoOn}\NormalTok{ a b }\OtherTok{{-}\textgreater{}} \DataTypeTok{AutoOn}\NormalTok{ a b}
+\NormalTok{a1 }\OperatorTok{{-}{-}\textgreater{}}\NormalTok{ a2 }\OtherTok{=} \DataTypeTok{AConsOn} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}}
+              \KeywordTok{let}\NormalTok{ (y1, a1\textquotesingle{}) }\OtherTok{=}\NormalTok{ runAutoOn a1 x}
+              \KeywordTok{in}   \KeywordTok{case}\NormalTok{ y1 }\KeywordTok{of}
+                     \DataTypeTok{Just}\NormalTok{ \_  }\OtherTok{{-}\textgreater{}}\NormalTok{ (y1, a1\textquotesingle{} }\OperatorTok{{-}{-}\textgreater{}}\NormalTok{ a2)}
+                     \DataTypeTok{Nothing} \OtherTok{{-}\textgreater{}}\NormalTok{ runAutoOn a2 x}
+\KeywordTok{infixr} \DecValTok{1} \OperatorTok{{-}{-}\textgreater{}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Usages}\label{usages}
+
+Let's test this out; first, some helper functions (the same ones we wrote for
+\texttt{AutoM})
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/AutoOn.hs\#L91{-}L107}
+
+\OtherTok{autoOn ::} \DataTypeTok{Auto}\NormalTok{ a b }\OtherTok{{-}\textgreater{}} \DataTypeTok{AutoOn}\NormalTok{ a b}
+\NormalTok{autoOn a }\OtherTok{=} \DataTypeTok{AConsOn} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}}
+             \KeywordTok{let}\NormalTok{ (y, a\textquotesingle{}) }\OtherTok{=}\NormalTok{ runAuto a x}
+             \KeywordTok{in}\NormalTok{  (}\DataTypeTok{Just}\NormalTok{ y, autoOn a\textquotesingle{})}
+
+\OtherTok{arrOn ::}\NormalTok{ (a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ b) }\OtherTok{{-}\textgreater{}} \DataTypeTok{AutoOn}\NormalTok{ a b}
+\NormalTok{arrOn f }\OtherTok{=} \DataTypeTok{AConsOn} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}}\NormalTok{ (f x, arrOn f)}
+
+\OtherTok{fromAutoOn ::} \DataTypeTok{AutoOn}\NormalTok{ a b }\OtherTok{{-}\textgreater{}} \DataTypeTok{Auto}\NormalTok{ a (}\DataTypeTok{Maybe}\NormalTok{ b)}
+\NormalTok{fromAutoOn a }\OtherTok{=} \DataTypeTok{ACons} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}}
+                 \KeywordTok{let}\NormalTok{ (y, a\textquotesingle{}) }\OtherTok{=}\NormalTok{ runAutoOn a x}
+                 \KeywordTok{in}\NormalTok{  (y, fromAutoOn a\textquotesingle{})}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{autoOn} turns an \texttt{Auto\ a\ b} into an \texttt{AutoOn\ a\ b},
+where the result is always \texttt{Just}. \texttt{arrOn} is like \texttt{arr}
+and \texttt{arrM}\ldots it takes an \texttt{a\ -\textgreater{}\ Maybe\ b} and
+turns it into an \texttt{AutoOn\ a\ b}. \texttt{fromAutoOn} turns an
+\texttt{AutoOn\ a\ b} into a normal \texttt{Auto\ a\ (Maybe\ b)}, just so that
+we can leverage our existing test functions on normal \texttt{Auto}s.
+
+Let's play around with some test \texttt{AutoOn}s!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/AutoOn.hs\#L131{-}L152}
+
+\OtherTok{onFor ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{AutoOn}\NormalTok{ a a}
+\NormalTok{onFor n }\OtherTok{=}\NormalTok{ proc x }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    i }\OtherTok{\textless{}{-}}\NormalTok{ autoOn summer }\OperatorTok{{-}\textless{}} \DecValTok{1}
+    \KeywordTok{if}\NormalTok{ i }\OperatorTok{\textless{}=}\NormalTok{ n}
+      \KeywordTok{then} \FunctionTok{id}    \OperatorTok{{-}\textless{}}\NormalTok{ x       }\CommentTok{{-}{-} succeed}
+      \KeywordTok{else}\NormalTok{ empty }\OperatorTok{{-}\textless{}}\NormalTok{ x       }\CommentTok{{-}{-} fail}
+\CommentTok{{-}{-} alternatively, using explit recursion:}
+\CommentTok{{-}{-} onFor 0 = empty}
+\CommentTok{{-}{-} onFor n = AConsOn $ \textbackslash{}x {-}\textgreater{} (Just x, onFor\textquotesingle{} (n{-}1))}
+
+\OtherTok{filterA ::}\NormalTok{ (a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Bool}\NormalTok{) }\OtherTok{{-}\textgreater{}} \DataTypeTok{AutoOn}\NormalTok{ a a}
+\NormalTok{filterA p }\OtherTok{=}\NormalTok{ arrOn (\textbackslash{}x }\OtherTok{{-}\textgreater{}}\NormalTok{ x }\OperatorTok{\textless{}$}\NormalTok{ guard (p x))}
+
+\OtherTok{untilA ::}\NormalTok{ (a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Bool}\NormalTok{) }\OtherTok{{-}\textgreater{}} \DataTypeTok{AutoOn}\NormalTok{ a a}
+\NormalTok{untilA p }\OtherTok{=}\NormalTok{ proc x }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    stopped }\OtherTok{\textless{}{-}}\NormalTok{ autoOn (autoFold (}\OperatorTok{||}\NormalTok{) }\DataTypeTok{False}\NormalTok{) }\OperatorTok{{-}\textless{}}\NormalTok{ p x}
+    \KeywordTok{if}\NormalTok{ stopped}
+      \KeywordTok{then}\NormalTok{ empty }\OperatorTok{{-}\textless{}}\NormalTok{ x       }\CommentTok{{-}{-} fail}
+      \KeywordTok{else} \FunctionTok{id}    \OperatorTok{{-}\textless{}}\NormalTok{ x       }\CommentTok{{-}{-} succeed}
+\CommentTok{{-}{-} alternatively, using explicit recursion:}
+\CommentTok{{-}{-} untilA p = AConsOn $ \textbackslash{}x {-}\textgreater{}}
+\CommentTok{{-}{-}              if p x}
+\CommentTok{{-}{-}                then (Just x , untilA p)}
+\CommentTok{{-}{-}                else (Nothing, empty   )}
+\end{Highlighting}
+\end{Shaded}
+
+One immediate usage is that we can use these to ``short circuit'' our proc
+blocks, just like with monadic \texttt{Maybe} and do blocks:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/AutoOn.hs\#L163{-}L173}
+
+\OtherTok{shortCircuit1 ::} \DataTypeTok{AutoOn} \DataTypeTok{Int} \DataTypeTok{Int}
+\NormalTok{shortCircuit1 }\OtherTok{=}\NormalTok{ proc x }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    filterA }\FunctionTok{even} \OperatorTok{{-}\textless{}}\NormalTok{ x}
+\NormalTok{    onFor }\DecValTok{3}      \OperatorTok{{-}\textless{}}\NormalTok{ ()}
+    \FunctionTok{id}           \OperatorTok{{-}\textless{}}\NormalTok{ x }\OperatorTok{*} \DecValTok{10}
+
+\OtherTok{shortCircuit2 ::} \DataTypeTok{AutoOn} \DataTypeTok{Int} \DataTypeTok{Int}
+\NormalTok{shortCircuit2 }\OtherTok{=}\NormalTok{ proc x }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    onFor }\DecValTok{3}      \OperatorTok{{-}\textless{}}\NormalTok{ ()}
+\NormalTok{    filterA }\FunctionTok{even} \OperatorTok{{-}\textless{}}\NormalTok{ x}
+    \FunctionTok{id}           \OperatorTok{{-}\textless{}}\NormalTok{ x }\OperatorTok{*} \DecValTok{10}
+\end{Highlighting}
+\end{Shaded}
+
+If either the \texttt{filterA} or the \texttt{onFor} are off, then the whole
+thing is off. How do you think the two differ?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ testAuto (fromAutoOn shortCircuit1) [}\DecValTok{1}\OperatorTok{..}\DecValTok{12}\NormalTok{]}
+\NormalTok{[ }\DataTypeTok{Nothing}\NormalTok{, }\DataTypeTok{Just} \DecValTok{20}\NormalTok{, }\DataTypeTok{Nothing}\NormalTok{, }\DataTypeTok{Just} \DecValTok{40}\NormalTok{, }\DataTypeTok{Nothing}\NormalTok{, }\DataTypeTok{Just} \DecValTok{60}
+\NormalTok{, }\DataTypeTok{Nothing}\NormalTok{, }\DataTypeTok{Nothing}\NormalTok{, }\DataTypeTok{Nothing}\NormalTok{, }\DataTypeTok{Nothing}\NormalTok{, }\DataTypeTok{Nothing}\NormalTok{, }\DataTypeTok{Nothing}\NormalTok{]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ testAuto (fromAutoOn shortCircuit2) [}\DecValTok{1}\OperatorTok{..}\DecValTok{12}\NormalTok{]}
+\NormalTok{[ }\DataTypeTok{Nothing}\NormalTok{, }\DataTypeTok{Just} \DecValTok{20}\NormalTok{, }\DataTypeTok{Nothing}\NormalTok{, }\DataTypeTok{Nothing}\NormalTok{, }\DataTypeTok{Nothing}\NormalTok{, }\DataTypeTok{Nothing}
+\NormalTok{, }\DataTypeTok{Nothing}\NormalTok{, }\DataTypeTok{Nothing}\NormalTok{, }\DataTypeTok{Nothing}\NormalTok{, }\DataTypeTok{Nothing}\NormalTok{, }\DataTypeTok{Nothing}\NormalTok{, }\DataTypeTok{Nothing}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+Ah. For \texttt{shortCircuit1}, as soon as the \texttt{filterA} fails, it jumps
+\emph{straight to the end}, short-circuiting; it doesn't bother ``ticking
+along'' the \texttt{onFor} and updating its state!
+
+The arguably more interesting usage, and the one that is more used in real
+life\footnote{Admittedly, implicit short-circuiting with \texttt{Auto}s is
+  actually often times a lot more of a headache than it's worth; note that
+  ``switching'' still works if you have a normal \texttt{Auto\ a\ (Maybe\ b)};
+  this is the approach that many libraries like
+  \href{https://github.com/mstksg/auto.}{\emph{auto}} take --- write switching
+  combinators on normal \texttt{Auto\ a\ (Maybe\ b)}'s instead.}, is the
+powerful usage of the switching combinator \texttt{(-\/-\textgreater{})} in
+order to be able to combine multiple \texttt{Auto}'s that simulate
+``stages''\ldots an \texttt{Auto} can ``do what it wants'', and then choose to
+``hand it off'' when it is ready.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/AutoOn.hs\#L178{-}L183}
+
+\OtherTok{stages ::} \DataTypeTok{AutoOn} \DataTypeTok{Int} \DataTypeTok{Int}
+\NormalTok{stages }\OtherTok{=}\NormalTok{ stage1 }\OperatorTok{{-}{-}\textgreater{}}\NormalTok{ stage2 }\OperatorTok{{-}{-}\textgreater{}}\NormalTok{ stage3 }\OperatorTok{{-}{-}\textgreater{}}\NormalTok{ stages}
+  \KeywordTok{where}
+\NormalTok{    stage1 }\OtherTok{=}\NormalTok{ onFor }\DecValTok{2} \OperatorTok{.}\NormalTok{ arr }\FunctionTok{negate}
+\NormalTok{    stage2 }\OtherTok{=}\NormalTok{ untilA (}\OperatorTok{\textgreater{}} \DecValTok{15}\NormalTok{) }\OperatorTok{.}\NormalTok{ autoOn summer}
+\NormalTok{    stage3 }\OtherTok{=}\NormalTok{ onFor }\DecValTok{3} \OperatorTok{.}\NormalTok{ (}\FunctionTok{pure} \DecValTok{100} \OperatorTok{.}\NormalTok{ filterA }\FunctionTok{even} \OperatorTok{\textless{}|\textgreater{}} \FunctionTok{pure} \DecValTok{200}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ testAuto\_ (fromAutoOn stages) [}\DecValTok{1}\OperatorTok{..}\DecValTok{15}\NormalTok{]}
+\NormalTok{[ }\DataTypeTok{Just}\NormalTok{ (}\OperatorTok{{-}}\DecValTok{1}\NormalTok{), }\DataTypeTok{Just}\NormalTok{ (}\OperatorTok{{-}}\DecValTok{2}\NormalTok{)              }\CommentTok{{-}{-} stage 1}
+\NormalTok{, }\DataTypeTok{Just} \DecValTok{3}\NormalTok{, }\DataTypeTok{Just} \DecValTok{7}\NormalTok{, }\DataTypeTok{Just} \DecValTok{12}           \CommentTok{{-}{-} stage 2}
+\NormalTok{, }\DataTypeTok{Just} \DecValTok{100}\NormalTok{, }\DataTypeTok{Just} \DecValTok{200}\NormalTok{, }\DataTypeTok{Just} \DecValTok{100}      \CommentTok{{-}{-} stage 3}
+\NormalTok{, }\DataTypeTok{Just}\NormalTok{ (}\OperatorTok{{-}}\DecValTok{9}\NormalTok{), }\DataTypeTok{Just}\NormalTok{ (}\OperatorTok{{-}}\DecValTok{10}\NormalTok{)             }\CommentTok{{-}{-} stage 1}
+\NormalTok{, }\DataTypeTok{Just} \DecValTok{11}                           \CommentTok{{-}{-} stage 2}
+\NormalTok{, }\DataTypeTok{Just} \DecValTok{100}\NormalTok{, }\DataTypeTok{Just} \DecValTok{200}\NormalTok{, }\DataTypeTok{Just} \DecValTok{100}      \CommentTok{{-}{-} stage 3}
+\NormalTok{, }\DataTypeTok{Just}\NormalTok{ (}\OperatorTok{{-}}\DecValTok{15}\NormalTok{), }\DataTypeTok{Just}\NormalTok{ (}\OperatorTok{{-}}\DecValTok{16}\NormalTok{)            }\CommentTok{{-}{-} stage 1}
+\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+Note that the stages continually ``loop around'', as our recursive definition
+seems to imply. Neat!
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+You might note that sometimes, to model on/off behavior, it might be nice to
+really be able to ``keep on counting'' even when receiving a \texttt{Nothing} in
+a composition. For example, you might want both versions of
+\texttt{shortCircuit} to be the same --- let \texttt{onFor} still ``keep on
+counting'' even when it has been inhibited upstream.
+
+If this is the behavior you want to model (and this is actually the behavior
+modeled in some FRP libraries), then the type above isn't powerful enough;
+you'll have to go deeper:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/AutoOn2.hs\#L10{-}L10}
+
+\KeywordTok{newtype} \DataTypeTok{AutoOn2}\NormalTok{ a b }\OtherTok{=} \DataTypeTok{ACons2}\NormalTok{ \{}\OtherTok{ runAutoOn2 ::} \DataTypeTok{Maybe}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{Maybe}\NormalTok{ b, }\DataTypeTok{AutoOn2}\NormalTok{ a b) \}}
+\end{Highlighting}
+\end{Shaded}
+
+So now, you can write something like \texttt{onFor}, which keeps on ``ticking
+on'' even if it receives a \texttt{Nothing} from upstream:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/AutoOn2.hs\#L16{-}L18}
+
+\OtherTok{onFor ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{AutoOn2}\NormalTok{ a a}
+\NormalTok{onFor }\DecValTok{0} \OtherTok{=} \DataTypeTok{ACons2} \OperatorTok{$}\NormalTok{ \textbackslash{}\_ }\OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{Nothing}\NormalTok{, onFor }\DecValTok{0}\NormalTok{)}
+\NormalTok{onFor n }\OtherTok{=} \DataTypeTok{ACons2} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}}\NormalTok{ (x, onFor (n }\OperatorTok{{-}} \DecValTok{1}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+You can of course translate all of your \texttt{AutoOn}s into this new type:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/AutoOn2.hs\#L24{-}L31}
+
+\OtherTok{autoOn ::} \DataTypeTok{AutoOn}\NormalTok{ a b }\OtherTok{{-}\textgreater{}} \DataTypeTok{AutoOn2}\NormalTok{ a b}
+\NormalTok{autoOn a }\OtherTok{=} \DataTypeTok{ACons2} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}}
+             \KeywordTok{case}\NormalTok{ x }\KeywordTok{of}
+               \DataTypeTok{Just}\NormalTok{ \_x }\OtherTok{{-}\textgreater{}}
+                 \KeywordTok{let}\NormalTok{ (y, a\textquotesingle{}) }\OtherTok{=}\NormalTok{ runAutoOn a \_x}
+                 \KeywordTok{in}\NormalTok{  (y, autoOn a\textquotesingle{})}
+               \DataTypeTok{Nothing} \OtherTok{{-}\textgreater{}}
+\NormalTok{                 (}\DataTypeTok{Nothing}\NormalTok{, autoOn a)}
+\end{Highlighting}
+\end{Shaded}
+
+Or you can use the smart constructor method detailed immediately following.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{Working all together}\label{working-all-together}
+
+Of course, we can always literally throw everything we can add together into our
+\texttt{Auto} type:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/AutoX.hs\#L18{-}L18}
+
+\KeywordTok{newtype} \DataTypeTok{AutoX}\NormalTok{ m a b }\OtherTok{=} \DataTypeTok{AConsX}\NormalTok{ \{}\OtherTok{ runAutoX ::}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ m (}\DataTypeTok{Maybe}\NormalTok{ b, }\DataTypeTok{AutoX}\NormalTok{ m a b) \}}
+\end{Highlighting}
+\end{Shaded}
+
+(Again, instances are in the source file, but not here in the post directly)
+
+Here is a same of a big conglomerate type where we throw in a bunch of things.
+
+The benefit? Well, we could work and compose ``normal'' \texttt{Auto}s,
+selecting for features that we only need to work with. And then, when we need
+to, we can just ``convert it up'' to our ``lowest common denominator'' type.
+
+This is the common theme, the ``functor design pattern''. Pick your common
+unifying type, and just pop everything into it. You can compose, etc. with the
+semantics of the other type when convenient, and then have all the parts work
+together in the end.
+
+This pattern is awesome, if only we didn't have so many types to convert in
+between manually.
+
+Well, we're in luck. There's actually a great trick, that makes \emph{all of
+this} even more streamlined: we can replace the ``normal constructors'' like
+\texttt{ACons}, \texttt{AConsM}, and \texttt{AConsOn}, with \emph{smart
+constructors} \texttt{aCons}, \texttt{aConsM}, \texttt{aConsOn}, that work
+\emph{exactly the same way}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/AutoX.hs\#L85{-}L100}
+
+\OtherTok{aCons ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{ (b, }\DataTypeTok{AutoX}\NormalTok{ m a b)) }\OtherTok{{-}\textgreater{}} \DataTypeTok{AutoX}\NormalTok{ m a b}
+\NormalTok{aCons a }\OtherTok{=} \DataTypeTok{AConsX} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}}
+            \KeywordTok{let}\NormalTok{ (y, aX) }\OtherTok{=}\NormalTok{ a x}
+            \KeywordTok{in}  \FunctionTok{return}\NormalTok{ (}\DataTypeTok{Just}\NormalTok{ y, aX)}
+
+\OtherTok{aConsM ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{ m (b, }\DataTypeTok{AutoX}\NormalTok{ m a b)) }\OtherTok{{-}\textgreater{}} \DataTypeTok{AutoX}\NormalTok{ m a b}
+\NormalTok{aConsM a }\OtherTok{=} \DataTypeTok{AConsX} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{             (y, aX) }\OtherTok{\textless{}{-}}\NormalTok{ a x}
+             \FunctionTok{return}\NormalTok{ (}\DataTypeTok{Just}\NormalTok{ y, aX)}
+
+\OtherTok{aConsOn ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{Maybe}\NormalTok{ b, }\DataTypeTok{AutoX}\NormalTok{ m a b)) }\OtherTok{{-}\textgreater{}} \DataTypeTok{AutoX}\NormalTok{ m a b}
+\NormalTok{aConsOn a }\OtherTok{=} \DataTypeTok{AConsX} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}}
+              \KeywordTok{let}\NormalTok{ (y, aX) }\OtherTok{=}\NormalTok{ a x}
+              \KeywordTok{in}  \FunctionTok{return}\NormalTok{ (y, aX)}
+\end{Highlighting}
+\end{Shaded}
+
+Compare these definitions of \texttt{summer}, \texttt{arrM}, and \texttt{untilA}
+from their ``specific type'' ``real constructor'' versions to their
+\texttt{AutoX}-generic ``smart constructor'' versions:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/Auto.hs\#L67{-}L73}
+
+\OtherTok{summer ::} \DataTypeTok{Num}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{Auto}\NormalTok{ a a}
+\NormalTok{summer }\OtherTok{=}\NormalTok{ sumFrom }\DecValTok{0}
+  \KeywordTok{where}
+\OtherTok{    sumFrom ::} \DataTypeTok{Num}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Auto}\NormalTok{ a a}
+\NormalTok{    sumFrom n }\OtherTok{=} \DataTypeTok{ACons} \OperatorTok{$}\NormalTok{ \textbackslash{}input }\OtherTok{{-}\textgreater{}}
+      \KeywordTok{let}\NormalTok{ s }\OtherTok{=}\NormalTok{ n }\OperatorTok{+}\NormalTok{ input}
+      \KeywordTok{in}\NormalTok{  ( s , sumFrom s )}
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/Auto3.hs\#L104{-}L107}
+
+\OtherTok{arrM ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{ m b) }\OtherTok{{-}\textgreater{}} \DataTypeTok{AutoM}\NormalTok{ m a b}
+\NormalTok{arrM f }\OtherTok{=} \DataTypeTok{AConsM} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{                    y }\OtherTok{\textless{}{-}}\NormalTok{ f x}
+                    \FunctionTok{return}\NormalTok{ (y, arrM f)}
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/AutoOn.hs\#L154{-}L158}
+
+\OtherTok{untilA\textquotesingle{} ::}\NormalTok{ (a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Bool}\NormalTok{) }\OtherTok{{-}\textgreater{}} \DataTypeTok{AutoOn}\NormalTok{ a a}
+\NormalTok{untilA\textquotesingle{} p }\OtherTok{=} \DataTypeTok{AConsOn} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}}
+              \KeywordTok{if}\NormalTok{ p x}
+                \KeywordTok{then}\NormalTok{ (}\DataTypeTok{Just}\NormalTok{ x , untilA p)}
+                \KeywordTok{else}\NormalTok{ (}\DataTypeTok{Nothing}\NormalTok{, empty   )}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/AutoX.hs\#L106{-}L128}
+
+\OtherTok{summer ::}\NormalTok{ (}\DataTypeTok{Monad}\NormalTok{ m, }\DataTypeTok{Num}\NormalTok{ a) }\OtherTok{=\textgreater{}} \DataTypeTok{AutoX}\NormalTok{ m a a}
+\NormalTok{summer }\OtherTok{=}\NormalTok{ sumFrom }\DecValTok{0}
+  \KeywordTok{where}
+\NormalTok{    sumFrom n }\OtherTok{=}\NormalTok{ aCons }\OperatorTok{$}\NormalTok{ \textbackslash{}input }\OtherTok{{-}\textgreater{}}
+      \KeywordTok{let}\NormalTok{ s }\OtherTok{=}\NormalTok{ n }\OperatorTok{+}\NormalTok{ input}
+      \KeywordTok{in}\NormalTok{  ( s , sumFrom s )}
+
+\OtherTok{arrM ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{ m b) }\OtherTok{{-}\textgreater{}} \DataTypeTok{AutoX}\NormalTok{ m a b}
+\NormalTok{arrM f }\OtherTok{=}\NormalTok{ aConsM }\OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{                    y }\OtherTok{\textless{}{-}}\NormalTok{ f x}
+                    \FunctionTok{return}\NormalTok{ (y, arrM f)}
+
+\OtherTok{untilA ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Bool}\NormalTok{) }\OtherTok{{-}\textgreater{}} \DataTypeTok{AutoX}\NormalTok{ m a a}
+\NormalTok{untilA p }\OtherTok{=}\NormalTok{ aConsOn }\OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}}
+             \KeywordTok{if}\NormalTok{ p x}
+               \KeywordTok{then}\NormalTok{ (}\DataTypeTok{Just}\NormalTok{ x , untilA p)}
+               \KeywordTok{else}\NormalTok{ (}\DataTypeTok{Nothing}\NormalTok{, empty   )}
+\end{Highlighting}
+\end{Shaded}
+
+They are literally exactly the same\ldots we just change the constructor to the
+smart constructor!
+
+You might also note that we can express a ``pure, non-Monadic'' \texttt{Auto} in
+\texttt{AutoM} and \texttt{AutoX} by making the type polymorphic over all
+monads:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/AutoX.hs\#L106{-}L106}
+
+\OtherTok{summer ::}\NormalTok{ (}\DataTypeTok{Monad}\NormalTok{ m, }\DataTypeTok{Num}\NormalTok{ a) }\OtherTok{=\textgreater{}} \DataTypeTok{AutoX}\NormalTok{ m a a}
+\end{Highlighting}
+\end{Shaded}
+
+An \texttt{Auto} with a type like this says, ``I cannot perform any effects
+during stepping'' --- and we know that \texttt{summer} definitely does not.
+\texttt{summer} is statically guaranteed not to affect any state or IO, and it's
+reflected in its type.
+
+The takeaway? You don't even have to mungle around multiple types to make this
+strategy work --- just make all your \texttt{Auto}s from the start using these
+smart constructors, and they all compose together! One type from the start ---
+we just expose different constructors to expose the different ``subtypes of
+power'' we want to offer.
+
+Now it's all just to chose your ``greatest common denominator''. If you don't
+want inhibition-based semantics, just only use \texttt{AutoM}, for example!
+
+By the way, here's a ``smart constructor'' for \texttt{AutoM}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/machines/Auto3.hs\#L112{-}L113}
+
+\OtherTok{aCons ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{ (b, }\DataTypeTok{AutoM}\NormalTok{ m a b)) }\OtherTok{{-}\textgreater{}} \DataTypeTok{AutoM}\NormalTok{ m a b}
+\NormalTok{aCons f }\OtherTok{=} \DataTypeTok{AConsM} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}} \FunctionTok{return}\NormalTok{ (f x)}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Closing Remarks}\label{closing-remarks}
+
+That was a doozy, wasn't it? For those of you who have been waiting, thank you
+for being patient. I hope most if not all of you are still with me.
+
+Hopefully after going through all of these examples, you can take away some
+things:
+
+\begin{itemize}
+\item
+  From the previous parts, you've recognized the power of local statefulness and
+  the declarative style offered by proc notation.
+\item
+  From here, you've seen that the Auto type can be equipped in many ways to give
+  it many features which have practical applications in the real world.
+\item
+  You've learned how to handle those features and use and manage them together
+  in sane ways, and their limitations.
+\item
+  You also know that you can really ``program'', ``compose'', or ``think'' in
+  any sort of Auto or composition semantics that you want, for any small part of
+  the problem. And then at the end, just push them all into your greatest common
+  denominator type. So, you aren't afraid to play with different effect types
+  even in the same program!
+\item
+  You've seen the power of recursive bindings to make complete the promise of
+  declarative programming --- being able to extend the realm of what we can
+  express ``declaratively'', and what we can \emph{denote}.
+\item
+  You are ready to really understand anything you encounter involving
+  \texttt{Auto} and \texttt{Auto}-like entities.
+\end{itemize}
+
+So, what's next?
+
+\begin{itemize}
+\item
+  \href{http://blog.jle.im/source/code-samples/machines}{Download the files of
+  this post}, play along with the examples in this post, CTRL+F this page for
+  ``exercise'' to find exercises, and try writing your own examples!
+\item
+  Feel ready to be able to have a grasp of the situation you see \texttt{Auto}
+  in the real world, such as in the popular FRP library
+  \href{http://hackage.haskell.org/package/netwire}{netwire}!
+\item
+  Apply it to the real world and your real world problems!
+\item
+  Well, a bit of self-promotion, my upcoming library
+  \href{https://github.com/mstksg/auto.}{auto} is basically supposed to be
+  almost all of these concepts (except for implicit on/off behavior) implemented
+  as a finely tuned and optimized performant library, attached with semantic
+  tools for working with real-world problems with these concepts of local
+  statefulness, composition, and declarative style. You can really apply what
+  you learned here to start building projects right away!
+
+  Well, sorta. Unfortunately, as of Feburary 2015, it is not yet ready for real
+  usage, and the API is still being finalized. But now that this post is
+  finished, I will be posting more examples and hype posts in the upcoming weeks
+  and months leading up to its official release.
+
+  I am open to pull requests and help on the final stages of documentation :)
+
+  If you're interested, or are curious, stop by \emph{\#haskell-auto} on
+  freenode or send me a message!
+\item
+  Look forward to an actual series on Arrowized FRP, coming up soon! We'll be
+  using the concepts in this series to \emph{implement FRP}.
+\end{itemize}
+
+Happy Haskelling!
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

@@ -1,0 +1,705 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={First-Class ``Statements''},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{First-Class ``Statements''}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% July 28, 2014
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/first-class-statements.html}{in Code}}.}
+
+One thing I've really always appreciated about Haskell is that all
+``statements'' in Haskell (or at least, what would be statements in other
+languages) are first-class members of the language. That is, (imperative)
+statements are literally just normal objects (no different from numbers, or
+lists, or booleans) --- they can be saved to variables, passed to functions,
+transformed using normal functions, copied, etc. Haskell doesn't have statements
+--- everything is an expression, representing normal data! This really opens up
+a whole world of possibilities for not only reasoning about your code, but also
+for new ways to frame ideas in contexts of parallelism, concurrency, exceptions,
+DSLs, and more.
+
+To clarify, by ``statement'', I mean it in the sense of a ``command'' from
+traditional imperative programming that, when control flow reaches it, executes
+some sort of action or modification to some state. The
+\href{http://en.wikipedia.org/wiki/Statement_(computer_science)}{wikipedia
+article} has a nice explanation. Some typical statements from common imperative
+languages include:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{int}\NormalTok{ a }\OperatorTok{=} \DecValTok{4}\OperatorTok{;}              \CommentTok{// declaration \& assignment}
+\NormalTok{a }\OperatorTok{+=} \DecValTok{5}\OperatorTok{;}                 \CommentTok{// modification}
+\NormalTok{printf}\OperatorTok{(}\StringTok{"hello world"}\OperatorTok{);}  \CommentTok{// call}
+\ControlFlowTok{return} \KeywordTok{false}\OperatorTok{;}           \CommentTok{// exit points}
+\end{Highlighting}
+\end{Shaded}
+
+In these languages, whenever control flow reaches these statements, something
+happens. We do not differentiate the act of \emph{evaluating} these statements
+(figuring out what they are) from \emph{executing} these statements. Something
+just \emph{happens} when you see an assignment.
+
+It is clear that in these languages, something about these statements are
+magical or a special part of the language. They are wholly different than, say,
+an integer, or a boolean. They aren't normal ``objects'' or ``data'' in your
+system.
+
+Even if your programming languages have first-class functions, \texttt{printf}
+might be a first-class value, but the \emph{call} of it (usually indicated with
+parentheses, like \texttt{printf()}) is definitely something\ldots different
+altogether. You \emph{can} simulate this in languages by creating a sub-language
+inside the language, but you're always going to have an interplay between the
+two. There will always be the dichotomy between statements and data.
+
+\section{Statements as data}\label{statements-as-data}
+
+In Haskell, \texttt{putStrLn\ "hello\ world"} is literally just a normal, boring
+object, of type \texttt{IO\ ()} (If you come from an OOP background,
+\texttt{IO\ a} is sort of like a generic/template,
+\texttt{IO\ \textless{}a\textgreater{}}). Like an \texttt{Int}, or
+\texttt{Bool}, or a \texttt{String}, or a \texttt{{[}Double{]}} (a list of
+\texttt{Double}). \emph{Evaluating} it doesn't really do anything. It's like
+evaluating the number \texttt{1}, or the expression \texttt{2\ +\ 5}. Cool ---
+you evaluated \texttt{2\ +\ 5} into a \texttt{7}; now what? Does anything
+happen? Not really. It's still just an \texttt{Int}.
+
+\texttt{putStrLn\ "hello\ world"} is just a normal data/term/value that
+represents (through some abstract representation that isn't really important)
+the act of a \emph{computer} printing the string \texttt{"hello\ world"} to
+stdout.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+The type \texttt{IO\ ()} means ``an object/abstracted data structure that
+represents the act of a computer computing a \texttt{()}'' --- or, in other
+terms, ``instructions for a computer to produce a \texttt{()}''. \texttt{()} is
+sort of like the empty tuple\ldots it's a type that is only inhabited by
+just\ldots well, \texttt{()}. You can think of \texttt{()} as being analogous to
+a function returning ``void'' in other languages.
+
+If you have experience with object-oriented languages and templates/generics,
+\texttt{IO\ a} sort of corresponds to something like
+\texttt{IO\textless{}a\textgreater{}}.
+
+There are definitely many values of type \texttt{IO\ Int} or
+\texttt{IO\ String}, which represent actions that produce an \texttt{Int} or a
+\texttt{String}, respectively. One common example is \texttt{getLine}, which is
+of type \texttt{IO\ String} --- \texttt{getLine} is an object that represents
+the act of a computer getting input from stdin; the ``result'' of this action is
+a \texttt{String}. An \texttt{IO\ Int} would represent a CPU
+computation/IO-based computation that produces an \texttt{Int}.
+
+For the sake of this discussion, we'll only be considering
+\texttt{IO\ ()}s\ldots but in real life, these other types pop up just as often.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Haskell gives you a bunch of \emph{combinators}/functions to \emph{work} with
+these \texttt{IO\ ()}'s (and \texttt{IO\ a}'s in general). To manipulate then,
+merge them, sequence them, compose them\ldots anything you can dream of!
+
+The most popular and common combinator is
+\texttt{(\textgreater{}\textgreater{})}, which is usually used as an infix
+operator. A common use case: Say you want to create an IO action that prints
+``hello'', then ``world''. But you only have \texttt{putStrLn\ "hello"}, which
+represents printing ``hello'', and \texttt{putStrLn\ "world"}, which represents
+printing ``world''.
+
+If you have those two \texttt{IO\ ()}s, you can use the
+\texttt{(\textgreater{}\textgreater{})} combinator to ``merge'' them and create
+a new \texttt{IO\ ()}.\footnote{The type of
+  \texttt{(\textgreater{}\textgreater{})} is actually more general:
+  \texttt{(\textgreater{}\textgreater{})\ ::\ IO\ a\ -\textgreater{}\ IO\ b\ -\textgreater{}\ IO\ b}.
+  We do only use it for \texttt{IO\ ()} in this post, though.
+
+  Actually, would you be mad at me if I told you that its true type in Haskell
+  is even more general? It's actually
+  \texttt{m\ a\ -\textgreater{}\ m\ b\ -\textgreater{}\ m\ b}, for any type
+  \texttt{m} that is a member of the \texttt{Monad} typeclass. You can think of
+  it like any type that ``implements'' \texttt{(\textgreater{}\textgreater{})}
+  for that type, and more, following some rules on how it should behave.
+
+  Ah! This rabbit hole is a bit deep though, so I recommend you not to worry
+  about it!} In this case:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} :: means "has the type"}
+
+\CommentTok{{-}{-} putStrLn "hello" is an object with type IO ().}
+\FunctionTok{putStrLn} \StringTok{"hello"}\OtherTok{ ::} \DataTypeTok{IO}\NormalTok{ ()}
+\FunctionTok{putStrLn} \StringTok{"world"}\OtherTok{ ::} \DataTypeTok{IO}\NormalTok{ ()}
+
+\OtherTok{(\textgreater{}\textgreater{}) ::} \DataTypeTok{IO}\NormalTok{ () }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ () }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\end{Highlighting}
+\end{Shaded}
+
+The type signature of \texttt{(\textgreater{}\textgreater{})} says (in simple
+terms) that it's a function that takes two \texttt{IO\ ()}s and returns a shiny
+new \texttt{IO\ ()}. It's a function that takes two objects and returns one.
+
+We can apply \texttt{(\textgreater{}\textgreater{})} as an infix operator:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{helloThenWorld ::} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{helloThenWorld }\OtherTok{=} \FunctionTok{putStrLn} \StringTok{"hello"} \OperatorTok{\textgreater{}\textgreater{}} \FunctionTok{putStrLn} \StringTok{"world"}
+
+\CommentTok{{-}{-} define \textasciigrave{}helloThenWorld\textasciigrave{} as putStrLn "hello" \textgreater{}\textgreater{} putStrLn "world"; and its}
+\KeywordTok{type}\NormalTok{ is }\OtherTok{\textasciigrave{}IO ()\textasciigrave{}}\OperatorTok{.}
+\end{Highlighting}
+\end{Shaded}
+
+That new \texttt{IO\ ()} is a data structure that represents the act of printing
+``hello'', then printing ``world''.
+
+Remember that this new one is, still, only a normal object. No printing actually
+ever ``happens'' if you evaluate
+\texttt{putStrLn\ "hello"\ \textgreater{}\textgreater{}\ putStrLn\ "world"}. If
+you ever reach that expression in a Haskell program\ldots nothing is printed.
+It's simply just taking two regular old data values, running them through a
+function, and giving you a third one. The process of defining
+\texttt{helloThenWorld} --- or even later evaluating it --- doesn't cause
+anything to happen. They are inert data structures.
+
+In many other languages, sequencing actions is a special part of the syntax ---
+a semicolon, usually. In Haskell, sequencing is not special --- it's just a
+normal function on normal data structures.
+
+You can even make your own ``first class'' control flow!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{when ::} \DataTypeTok{Bool} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ () }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{when }\DataTypeTok{True}\NormalTok{  p }\OtherTok{=}\NormalTok{ p}
+\NormalTok{when }\DataTypeTok{False}\NormalTok{ \_ }\OtherTok{=} \FunctionTok{return}\NormalTok{ ()}
+\end{Highlighting}
+\end{Shaded}
+
+(\texttt{return\ ()} is an \texttt{IO\ ()} that represents the act of doing
+nothing\ldots it doesn't actually have anything to do with the \texttt{return}
+keyword in many other languages. It basically represents a no-op.)
+
+\texttt{when} is just a normal function! It takes a \texttt{Bool} and an
+\texttt{IO\ ()}; if the \texttt{Bool} is true, then the ``result'' is just that
+same \texttt{IO\ ()}.
+
+We can evaluate a call to
+\texttt{when\ (4\ \textgreater{}\ 0)\ (putStrLn\ "it\textquotesingle{}s\ True!")}
+by hand:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{when (}\DecValTok{4} \OperatorTok{\textgreater{}} \DecValTok{0}\NormalTok{) (}\FunctionTok{putStrLn} \StringTok{"it\textquotesingle{}s True!"}\NormalTok{)}\OtherTok{ ::} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{when }\DataTypeTok{True}\NormalTok{ (}\FunctionTok{putStrLn} \StringTok{"it\textquotesingle{}s True!"}\NormalTok{)}\OtherTok{    ::} \DataTypeTok{IO}\NormalTok{ ()  }\CommentTok{{-}{-} evaluate 4 \textgreater{} 0}
+\FunctionTok{putStrLn} \StringTok{"it\textquotesingle{}s True!"}\OtherTok{                ::} \DataTypeTok{IO}\NormalTok{ ()  }\CommentTok{{-}{-} definition of when True}
+
+\NormalTok{when (}\DecValTok{4} \OperatorTok{\textless{}} \DecValTok{0}\NormalTok{) (}\FunctionTok{putStrLn} \StringTok{"it\textquotesingle{}s True!"}\NormalTok{)}\OtherTok{ ::} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{when }\DataTypeTok{False}\NormalTok{ (}\FunctionTok{putStrLn} \StringTok{"it\textquotesingle{}s True!"}\NormalTok{)}\OtherTok{   ::} \DataTypeTok{IO}\NormalTok{ ()  }\CommentTok{{-}{-} evaluate 4 \textless{} 0}
+\FunctionTok{return}\OtherTok{ ()                            ::} \DataTypeTok{IO}\NormalTok{ ()  }\CommentTok{{-}{-} definition of when False}
+\end{Highlighting}
+\end{Shaded}
+
+The above is \emph{not} an ``execution''\ldots it's an \emph{evaluation}.
+Execution involves executing actions on a computer, where evaluation is simply a
+reduction, like \texttt{1\ +\ 1\ ==\textgreater{}\ 2}. \texttt{when} is a
+function that takes a \texttt{Bool} and an \texttt{IO\ ()} object and
+\emph{evaluates} to that \texttt{IO\ ()} object when the boolean is True. But
+remember, calling \texttt{when} doesn't actually execute anything! It's just a
+normal function and normal expression. An \texttt{IO\ ()} goes in, and
+\texttt{IO\ ()} comes out. Just a normal function on normal data. And we know
+it's just a normal function, because we wrote it ourself from scratch!
+
+You can't write \texttt{when} in this naive way in a language like, say,
+Javascript:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{var}\NormalTok{ when }\OperatorTok{=} \KeywordTok{function}\NormalTok{(cond}\OperatorTok{,}\NormalTok{ act) \{ }\ControlFlowTok{if}\NormalTok{ (cond) \{ act}\OperatorTok{;}\NormalTok{ \} \}}\OperatorTok{;}
+
+\FunctionTok{when}\NormalTok{(}\KeywordTok{false}\OperatorTok{,} \BuiltInTok{console}\OperatorTok{.}\FunctionTok{log}\NormalTok{(}\StringTok{"hello"}\NormalTok{))}\OperatorTok{;}
+\CommentTok{// "hello" is printed, even though the condition is false}
+\end{Highlighting}
+\end{Shaded}
+
+(You can simulate something that works by having \texttt{when} take functions
+instead of statements\ldots but that's the point! You can't pass in a
+``statement'', you have to pass in a function/data. In this sense, statements
+and data behave completely differently.)
+
+With only a basic knowledge of functional programming (using a
+fold/reduce/inject, basically, or even recursion), you can easy write this
+function:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sequence\_}\OtherTok{ ::}\NormalTok{ [}\DataTypeTok{IO}\NormalTok{ ()] }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\end{Highlighting}
+\end{Shaded}
+
+Which says, ``give me a list of \texttt{IO\ ()}s, and I'll give you a new
+\texttt{IO\ ()} that represents executing all of those \texttt{IO\ ()}s
+one-after-another''.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+If you are curious, here is the definition of \texttt{sequence} using a fold:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sequence\_}\OtherTok{ ::}\NormalTok{ [}\DataTypeTok{IO}\NormalTok{ ()] }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\FunctionTok{sequence\_}\NormalTok{ xs }\OtherTok{=} \FunctionTok{foldr}\NormalTok{ (}\OperatorTok{\textgreater{}\textgreater{}}\NormalTok{) (}\FunctionTok{return}\NormalTok{ ()) xs}
+\end{Highlighting}
+\end{Shaded}
+
+If you're familiar with folds/reduces, \texttt{return\ ()} is the ``base
+value'', and \texttt{(\textgreater{}\textgreater{})} is the ``accumulating
+function''.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sequence\_}\NormalTok{ [}\FunctionTok{putStrLn} \StringTok{"hello"}\NormalTok{, }\FunctionTok{putStrLn} \StringTok{"world"}\NormalTok{, }\FunctionTok{putStrLn} \StringTok{"goodbye!"}\NormalTok{]}
+
+\CommentTok{{-}{-} evaluates to:}
+\FunctionTok{putStrLn} \StringTok{"hello"} \OperatorTok{\textgreater{}\textgreater{}}\NormalTok{ (}\FunctionTok{putStrLn} \StringTok{"world"} \OperatorTok{\textgreater{}\textgreater{}}\NormalTok{ (}\FunctionTok{putStrLn} \StringTok{"goodbye!"} \OperatorTok{\textgreater{}\textgreater{}} \FunctionTok{return}\NormalTok{ ()))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Note that all of these functions take anything of type \texttt{IO\ ()}\ldots so
+I could really be passing in named \texttt{IO\ ()}'s, or the result of
+combinators, or\ldots{}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{hello ::} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{hello }\OtherTok{=} \FunctionTok{putStrLn} \StringTok{"hello"}
+
+\OtherTok{world ::} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{world }\OtherTok{=} \FunctionTok{putStrLn} \StringTok{"world"}
+
+\OtherTok{helloworld ::} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{helloworld }\OtherTok{=}\NormalTok{ hello }\OperatorTok{\textgreater{}\textgreater{}}\NormalTok{ world}
+
+\OtherTok{helloworldhelloworld ::} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{helloworldhelloworld }\OtherTok{=} \FunctionTok{sequence\_}\NormalTok{ [hello, world, helloworld]}
+\end{Highlighting}
+\end{Shaded}
+
+Remember -- nothing is being called or executed. It's just all normal functions
+on normal data. The inputs are data, the outputs are data.
+
+But wait! There are a lot of things I can do with two \texttt{IO\ ()}s besides
+executing them one-after-the-other. I can\ldots merge them \emph{in parallel}!
+
+I can write a combinator:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{bothPar ::} \DataTypeTok{IO}\NormalTok{ () }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ () }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\end{Highlighting}
+\end{Shaded}
+
+That takes two \texttt{IO\ ()}s and create a new shiny \texttt{IO\ ()} that
+represents the act of executing them \emph{in parallel}.
+
+Then I can also write a new \texttt{sequencePar}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{sequencePar ::}\NormalTok{ [}\DataTypeTok{IO}\NormalTok{ ()] }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\end{Highlighting}
+\end{Shaded}
+
+That takes a list of \texttt{IO\ ()}s and returns a new shiny \texttt{IO\ ()}
+that represents the act of executing them all \emph{in parallel}!
+
+This is one great thing about IO-as-data: If you have a bunch of IO actions, you
+have the \emph{choice} in how you want to ``sequence'' or ``combine'' them. In
+Haskell, combining a bunch of actions in sequence and combining them in parallel
+is just a matter of swapping out your combining function! There is \emph{no
+difference} at the syntax level!
+
+Compare this to other languages, where the syntax for sequencing statements ---
+the semicolon --- and the syntax required for launching a bunch of parallel
+actions is noticeably different. In Haskell, ``sequencing'' isn't a part of the
+syntax (the semicolon) --- it's just \emph{a regular ol' function}!
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+\texttt{sequencePar}'s implementation is pretty much identical to
+\texttt{sequence}'s, but swapping out \texttt{(\textgreater{}\textgreater{})}
+for \texttt{bothPar}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{sequencePar ::}\NormalTok{ [}\DataTypeTok{IO}\NormalTok{ ()] }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{sequencePar xs }\OtherTok{=} \FunctionTok{foldr}\NormalTok{ bothPar (}\FunctionTok{return}\NormalTok{ ()) xs}
+\end{Highlighting}
+\end{Shaded}
+
+By the way, \texttt{bothPar} isn't defined by default, but we'll define it
+really soon.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+There are an entire wealth of combinators by which to compose and sequence and
+manipulate \texttt{IO\ ()}s together. And many of them you can even write
+yourself, from scratch.
+
+There are also many ``IO action transformers'' you have access to --- one
+notable one being \texttt{makePar}:\footnote{\texttt{makePar} actually exists in
+  the standard Haskell libraries as \texttt{forkIO}\ldots kinda.
+  \texttt{forkIO\ ::\ IO\ ()\ -\textgreater{}\ IO\ ThreadId}. Our
+  \texttt{makePar} is basically \texttt{forkIO}, but with the return value
+  ignored. Basically, it is
+  \texttt{makePar\ x\ =\ forkIO\ x\ \textgreater{}\textgreater{}\ return\ ()}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{makePar ::} \DataTypeTok{IO}\NormalTok{ () }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\end{Highlighting}
+\end{Shaded}
+
+That takes an \texttt{IO\ ()}, and ``transforms'' it into a ``parallel''
+\texttt{IO\ ()}. Or rather, it takes an object representing a computer action,
+and returns an object representing launching that computer action in a parallel
+fork.
+
+We can write \texttt{bothPar} ourselves, then, with this:\footnote{Note that
+  this action doesn't ``wait'' for both threads to complete; all it does is
+  launch the two threads.}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{bothPar ::} \DataTypeTok{IO}\NormalTok{ () }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ () }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{bothPar x y }\OtherTok{=}\NormalTok{ makePar x }\OperatorTok{\textgreater{}\textgreater{}}\NormalTok{ makePar y}
+\end{Highlighting}
+\end{Shaded}
+
+Give \texttt{bothPar} two \texttt{IO\ ()}'s representing computer actions, and
+it'll give you a new one that represents launching both computer actions in
+parallel. To do that, simply launch them both one after the other!
+
+Another common transformer on an \texttt{IO\ ()} is \texttt{catch}:\footnote{Again,
+  the real definition here is slightly more general.}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{catch}\OtherTok{ ::} \DataTypeTok{IO}\NormalTok{ () }\OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{SomeException} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()) }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\CommentTok{{-}{-}       \^{}         \^{}                          \^{}}
+\CommentTok{{-}{-}       |         |                          +{-}{-} modified object}
+\CommentTok{{-}{-}       |         +{-}{-} handler function}
+\CommentTok{{-}{-}       +{-}{-} original object}
+\end{Highlighting}
+\end{Shaded}
+
+Which takes an \texttt{IO\ ()} object and a handler function, and imbues that
+\texttt{IO\ ()} with ``error handling capabilities''. It returns a new
+\texttt{IO\ ()} object that represents doing the same thing as the original one,
+except with built-in error handling if things go wrong. Neat!
+
+So if I used \texttt{catch\ (putStrLn\ "hello\ world")\ myHandler}\ldots I'm
+``transforming'' the \texttt{IO\ ()} (\texttt{putStrLn\ "hello\ world"}),
+representing printing a string to the console, into a new \texttt{IO\ ()} which
+represents printing a string to the console, with built in error handling if
+things go wrong for some reason.
+
+Again --- no execution is being done. We're simply taking an object representing
+an IO action, and returning a new, modified one representing a slightly
+different IO action.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+This is a pretty aside-y aside, and you can definitely skip it if you want!
+
+One particularly important combinator I have not mentioned yet is called
+``bind'': \texttt{(\textgreater{}\textgreater{}=)}
+
+Let's say you wanted to read a line from stdin, and then print it out right
+away. You can do this with \texttt{getLine\ ::\ IO\ String} and
+\texttt{putStrLn\ ::\ String\ -\textgreater{}\ IO\ ()}. But wait! This doesn't
+work:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{getLine} \OperatorTok{\textgreater{}\textgreater{}} \FunctionTok{putStrLn} \StringTok{"hello?"}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{(\textgreater{}\textgreater{})} acts like a semicolon\ldots it just
+sequences them together one after the other. Wouldn't it be nice if we had
+something like a unix pipe? It ``sequences'' the two things, but the result of
+the first can be used by the second?
+
+Well, if \texttt{(\textgreater{}\textgreater{})} is a bash semicolon \texttt{;},
+then \texttt{(\textgreater{}\textgreater{}=)} is a bash pipe
+\texttt{\textbar{}}!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{getLine} \OperatorTok{\textgreater{}\textgreater{}=} \FunctionTok{putStrLn}
+\OtherTok{                      ::} \DataTypeTok{IO}\NormalTok{ ()}
+\end{Highlighting}
+\end{Shaded}
+
+does exactly what we want!
+
+The type of \texttt{(\textgreater{}\textgreater{}=)} is:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{(\textgreater{}\textgreater{}=) ::} \DataTypeTok{IO}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ b) }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ b}
+\end{Highlighting}
+\end{Shaded}
+
+And in our specific case, it is:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{(\textgreater{}\textgreater{}=) ::} \DataTypeTok{IO} \DataTypeTok{String} \OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()) }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\end{Highlighting}
+\end{Shaded}
+
+Which says, ``give me an \texttt{IO\ String} and a function taking a
+\texttt{String} and producing an \texttt{IO\ ()}, and I'll give you a shiny new
+\texttt{IO\ ()}'' This might sound a little weird at first, but see how
+\texttt{getLine\ ::\ IO\ String} and
+\texttt{putStrLn\ ::\ String\ -\textgreater{}\ IO\ ()} fit into this, and see
+how it basically works like a unix pipe in a lot of ways.
+
+As it turns out, \texttt{(\textgreater{}\textgreater{}=)} is actually a lot more
+powerful than it might seem at first. As soon as you add the
+\texttt{(\textgreater{}\textgreater{}=)} combinator to your arsenal\ldots the
+space of programs you can construct using various \texttt{IO\ a}'s opens up in
+crazy ways. Just imagine bash with no pipes, and only semicolons! If you ever
+decide to implement some system of first-class statements, and it might be
+tricky to state/model imperative computations without
+\texttt{(\textgreater{}\textgreater{}=)}.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Much More}\label{much-more}
+
+This is only a small subset of what you can do with ``statements as data''. In
+fact, there are many frameworks that completely abstract over statements
+entirely. For example, you can ``construct'' a system declaratively using a
+simple DSL, and never even worry about statements or IO. You can specify an
+\emph{entire program}, with a full description of its interactions, without ever
+even \emph{touching} the IO type. The DSL might provide you with a way to
+specify a high-level overlook of your program in simple terms. The DSL might be
+abstracting/wrapping over \emph{complex} IO actions, and all you ever see is the
+simple API.
+
+And then, you might have a function: \texttt{DSL\ -\textgreater{}\ IO\ ()}.
+Construct the elaborate high-level thing in simple terms\ldots and then, at the
+end, \emph{convert it to an \texttt{IO\ ()} object}. That you can copy, or
+clone, or throw into a function, or do \emph{anything} we just mentioned here!
+
+If that DSL is your entire program, then you also have certain guarantees about
+what IO your program can even do, if the DSL library forbids users from mixing
+in arbitrary IO.
+
+\section{Execution}\label{execution}
+
+That's nice and all. We see how having first class statements as data is useful
+for manipulation and abstractions and stuff. But it all seems kind of useless if
+our data structures remain inert and don't actually do anything.
+
+Luckily, one can think of a Haskell compiler as a giant function:
+\texttt{IO\ ()\ -\textgreater{}\ Binary}. Give the Haskell compiler an
+\texttt{IO\ ()}, and it'll convert it to a ``binary'' for a given
+architecture/computer/CPU. It ``translates'' the \emph{representation of a
+computation} into concrete bytecode that a computer can actually execute.
+
+Your computer can then execute that generated binary, and\ldots off we go!
+
+Every Haskell program by convention compiles \emph{one single \texttt{IO\ ()}}.
+That is, you might have a \emph{bunch} of \texttt{IO\ a}s in your program, but
+you ``offer the compiler'' \emph{one} \texttt{IO\ ()} for it to compile, and it
+compiles it for you. So if you have a lot of different IO computations you wish
+to do, you basically continually sequence, merge, pipe, combine, transform, etc.
+them until you get one final \texttt{IO\ ()} which represents your entire
+desired computation. And then you name it ``main''. When your compiler compiles
+the Haskell file, it'll find the \texttt{IO\ ()} named ``main'', and compile
+that one.
+
+In a way, one can think of Haskell as a very elaborate metaprogramming system,
+providing a DSL to ``generate'' byte code.
+
+By the way, did you see how \texttt{IO\ ()} is \emph{completely separate} from
+its binary representation? Hm. Why do we have to compile it to binary, anyway?
+
+Enter in \emph{other Haskell compilers}, like
+\href{https://github.com/ghcjs/ghcjs}{ghcjs} --- instead of being
+\texttt{IO\ ()\ -\textgreater{}\ Binary}, it's
+\texttt{IO\ ()\ -\textgreater{}\ Javascript}! That is, give it \emph{any} ol'
+\texttt{IO\ ()} (the same one that you would design for a CPU/processor), and
+instead of translating it into bytecode/binary, it translates it into
+Javascript! This is another power of having \texttt{IO\ ()} being its own,
+abstract object that is independent of the architecture or computer that it will
+be eventually run on. Because it's so abstract\ldots it can be compiled and run
+really on \emph{anything}!
+
+\section{Haskell}\label{haskell}
+
+If you have any questions or comments, feel free to leave a comment, drop by
+freenode's \emph{\#haskell}, \emph{\#nothaskell}, or \emph{\#haskell-beginners},
+or find me on \href{https://twitter.com/mstk}{twitter}.
+
+In this post I've suggested that \texttt{IO\ ()} is some sort of data structure
+that stores the ``action'' it represents in some abstract way. If you're curious
+on what this representation/storage might look like in concrete terms,
+\href{http://chris-taylor.github.io/blog/2013/02/09/io-is-not-a-side-effect/}{Chris
+Taylor has a post} on what you might see if you ``peek into'' the internal
+representation of (a possible implementation of) an IO action type --- you could
+even use this to implement first-class statements in your language of choice!
+\footnote{For performance reasons, the way IO is implemented in that article
+  actually isn't the way it's implemented in the popular Haskell compiler
+  \emph{GHC}. GHC's implementation is best described as ``hacky'', and doesn't
+  really line up too well with the semantic picture of what \texttt{IO\ ()} is
+  supposed to represent. But remember that this is really just an (admittedly
+  ugly) \emph{implementation detail}. The outward-facing API that it offers for
+  the \texttt{IO\ ()} type works as you would expect, of course. One would hope,
+  at least! In any case, it's important to remember the difference between
+  \emph{Haskell the language}, and what the IO type is supposed to
+  ``represent'', and \emph{Haskell the implementation}, which provides the
+  semantics of the language, abstracting over ugly implementation details.}
+
+This post is a distillation of concepts I have mentioned in
+\href{http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity}{some
+other}
+\href{http://blog.jle.im/entry/inside-my-world-ode-to-functor-and-monad}{blog
+posts} in the past; I've had a lot of new thoughts after writing both of them
+and I figured I'd condense them and make a new post summarizing the new ideas in
+a new and more concise way, to have them all in one neat place. Anyways, if you
+want to go into this topic in more detail, those posts above might help!
+
+If you're interested in learning Haskell, try picking up
+\href{http://www.learnyouahaskell.com/}{Learn You a Haskell} and giving it a
+read, it's pretty accessible!
+\href{https://github.com/bitemyapp/learnhaskell}{bitemyapp's guide} also lays
+out a nice roadmap for learning Haskell.
+
+Also, I encourage you to try to implement your own system of ``first class IO''
+in languages in which it is possible! Like a normal data structure (like in the
+Chris Taylor post), or an abstracted function call. I'd love to hear of any
+results or attempts you've made implementing this in your language of choice
+(even if Haskell is your language of choice, you can write a \texttt{MyIO} type
+:D ); let me know in the comments or via
+\href{https://twitter.com/mstk}{twitter}!
+
+(Credit to \href{https://twitter.com/computionist}{computionist} and
+\href{https://twitter.com/bitemyapp}{bitemyapp} for proofreading/helpful
+suggestions)
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

@@ -1,0 +1,322 @@
+<!DOCTYPE HTML>
+<html><head><title>Shake: Task Automation and Scripting in Haskell
+ · in Code</title><meta name="description" content="Weblog of Justin Le, covering various adventures in programming and explorations in the worlds of computation physics, and knowledge.
+"><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="flattr:id" content="3p9jqr"><meta property="og:site_name" content="in Code"><meta property="og:description" content="As someone who comes from a background in ruby and rake, I’m used to powerful task management systems with expressive dependency. Make is a favorite tool of mine when I’m working on projects with people who don’t use ruby, and when I’m working on ruby projects I never go far without starting a good Rakefile. The two tools provided a perfect DSL for setting up systems of tasks that had complicated file and task dependencies. As I was starting to learn Haskell and building larger-scale Haskell projects, I began to look for alternatives in Haskell. Was there a Haskell counterpart to Ruby’s rake, Node’s jake? (Not to mention the tools of slightly different philosophy grunt and ant) It turns out that by far the most established answer is a library known as Shake (maintained by the prolific Neil Mitchell of hoogle fame and much more). So far it’s served me pretty well. Its documentation is written from the perspective of chiefly using it as a build tool (more “make” than “rake”), so if you’re looking to use it as a task management system, you might have to do some digging. Hopefully this post can help you get started. I also go over the core concepts of a task management system, so I assume no knowledge of make; this post therefore should also be a good introduction to starting with any sort of task management system."><meta property="og:type" content="article"><meta property="og:title" content="Shake: Task Automation and Scripting in Haskell
+"><meta property="og:image" content="https://blog.jle.im/img/site_logo.jpg"><meta property="og:locale" content="en_US"><meta property="og:url" content="https://blog.jle.im/entry/shake-task-automation-and-scripting-in-haskell.html"><meta name="twitter:card" content="summary"><meta name="twitter:creator:id" content="mstk"><link rel="author" href="https://plus.google.com/107705320197444500140"><link rel="alternate" type="application/rss+xml" title="in Code (RSS Feed)" href="http://feeds.feedburner.com/incodeblog"><link rel="canonical" href="https://blog.jle.im/entry/shake-task-automation-and-scripting-in-haskell.html"><link href="https://blog.jle.im/favicon.ico" rel="shortcut icon"><link href="https://blog.jle.im/css/toast.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/font.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/main.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/page/entry.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/pygments.css" rel="stylesheet" type="text/css"><script type="text/javascript">var page_data = {};
+var disqus_shortname='incode';
+</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-443711-8', 'jle.im');
+ga('send', 'pageview');
+</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js"></script><script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5234d67a6b68dcd4"></script><script type="text/javascript" src="https://blog.jle.im/js/page/entry_toc.js"></script><script type="text/javascript" src="https://blog.jle.im/js/disqus_count.js"></script><script type="text/javascript" src="https://blog.jle.im/js/social.js"></script><script type="text/javascript" src="https://blog.jle.im/js/jquery/jquery.toc.js"></script><script type="text/javascript" src="https://blog.jle.im/purescript/entry.js"></script></head><body><div id="fb-root"><script>(function(d, s, id) {
+ var js, fjs = d.getElementsByTagName(s)[0];
+ if (d.getElementById(id)) return;
+ js = d.createElement(s); js.id = id;
+ js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=641852699171929";
+ fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+</script></div><div id="header-container"><div id="navbar-container" class="tile"><nav id="navbar-content"><div class="nav-info"><h1 class="site-title"><a href="https://blog.jle.im/" class="nav-title">in Code</a></h1><span class="nav-author">Justin Le</span></div><ul class="nav-links"><li><a href="https://blog.jle.im/">home</a></li><li><a href="https://blog.jle.im/entries.html">archives</a></li><li><a href="https://cv.jle.im">cv</a></li><div class="clear"></div></ul></nav></div><div id="header-content"></div></div><div id="body-container" class="container"><div id="main-container" class="grid"><div class="entry-section unit span-grid" role="main"><article class="tile article"><header><h1 id="title">Shake: Task Automation and Scripting in Haskell
+</h1><p class="entry-info">by <a class="author" href="https://blog.jle.im/">Justin Le</a><span class="info-separator"> &diams; </span><time datetime="2013-09-17T16:23:11Z" pubdate="" class="pubdate">Tuesday September 17, 2013</time></p><p><span class="source-info"><a class="source-link" href="https://github.com/mstksg/inCode/tree/master/copy/entries/shake.md">Source</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://github.com/mstksg/inCode/tree/gh-pages/entry/shake-task-automation-and-scripting-in-haskell.md">Markdown</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://blog.jle.im/entry/shake-task-automation-and-scripting-in-haskell.tex">LaTeX</a><span class="info-separator"> &diams; </span></span>Posted in <a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category" title="Functional, pure, non-strict, statically and strongly typed, natively
+compiled...really just the king of great languages.
+">Haskell</a>, <a href="https://blog.jle.im/entries/category/@tutorials.html" class="tag-a-category" title="Technical tutorials/walkthroughs on specific programming processes and problems
+that I&#39;ve struggled through in the past.
+">Tutorials</a><span class="info-separator"> &diams; </span><a class="comment-link" href="#disqus_thread">Comments</a></p></header><hr><aside class="contents-container"><h5 id="contents-header">Contents</h5><div id="toc"></div></aside><div class="main-content copy-content"><p>As someone who comes from a background in ruby and <em>rake</em>, I’m used to powerful task management systems with expressive dependency. <em>Make</em> is a favorite tool of mine when I’m working on projects with people who don’t use ruby, and when I’m working on ruby projects I never go far without starting a good Rakefile. The two tools provided a perfect DSL for setting up systems of tasks that had complicated file and task dependencies.</p>
+<p>As I was starting to learn Haskell and building larger-scale Haskell projects, I began to look for alternatives in Haskell. Was there a Haskell counterpart to Ruby’s <a href="http://rake.rubyforge.org/"><em>rake</em></a>, Node’s <a href="https://github.com/mde/jake"><em>jake</em></a>? (Not to mention the tools of slightly different philosophy <a href="http://gruntjs.com/"><em>grunt</em></a> and <a href="http://ant.apache.org/"><em>ant</em></a>)</p>
+<p>It turns out that by far the most established answer is a library known as <a href="http://hackage.haskell.org/package/shake"><em>Shake</em></a> (maintained by the prolific Neil Mitchell of <a href="http://haskell.org/hoogle"><em>hoogle</em></a> fame and much more). So far it’s served me pretty well. Its documentation is written from the perspective of chiefly using it as a build tool (more “make” than “rake”), so if you’re looking to use it as a task management system, you might have to do some digging. Hopefully this post can help you get started.</p>
+<p>I also go over the core concepts of a task management system, so I assume no knowledge of <em>make</em>; this post therefore should also be a good introduction to starting with any sort of task management system.</p>
+<h2 id="our-sample-project">Our Sample Project</h2>
+<p>Our sample project is going to be a report build system that builds reports written in markdown with <a href="http://johnmacfarlane.net/pandoc/">pandoc</a> into html, pdf, and doc formats. This is honestly one of my most common use cases for <em>make</em>, so porting it all to <em>shake</em> will be something useful for me.</p>
+<p>The final directory structure will look like this:</p>
+<blockquote>
+<ul>
+<li>img
+<ul>
+<li>img1.jpg</li>
+<li>img2.jpg</li>
+</ul></li>
+<li>out
+<ul>
+<li>report.doc</li>
+<li>report.html</li>
+<li>report.pdf</li>
+</ul></li>
+<li>src
+<ul>
+<li>report.md</li>
+</ul></li>
+<li>css
+<ul>
+<li>report.css</li>
+</ul></li>
+<li>Shakefile</li>
+</ul>
+</blockquote>
+<p>When we run <code>shake</code>, we want to build <code>report.doc</code> and <code>report.pdf</code> if <code>report.md</code> or any of the images have changed, and <code>report.html</code> if <code>report.md</code>, <code>report.css</code>, or any of the images have changed.</p>
+<p>Furthermore, <code>img2.jpg</code> actually comes from online, and requires us to re-download it every time we compile to make sure it is up to date.</p>
+<h2 id="setup">Setup</h2>
+<h3 id="installing-shake">Installing Shake</h3>
+<p>Installing <em>shake</em> is as simple as installing any other cabal package:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> cabal update</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> cabal install shake</span></code></pre></div>
+<p>I’ll will be using <code>shake-0.10.6</code> for this post.</p>
+<h3 id="setting-up-the-shakefile">Setting up the Shakefile</h3>
+<p>We set up our Shakefile with a simple scaffold:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- Shakefile</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Development.Shake</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>opts <span class="ot">=</span> shakeOptions { shakeFiles    <span class="ot">=</span> <span class="st">&quot;.shake/&quot;</span> }        <span class="co">-- 1</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>(<span class="op">~&gt;</span>) <span class="ot">=</span> phony                                             <span class="co">-- 2</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>                                                         <span class="co">-- (obsolete)</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> shakeArgs opts <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    want []</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;clean&quot;</span> <span class="op">~&gt;</span> removeFilesAfter <span class="st">&quot;.shake&quot;</span> [<span class="st">&quot;//*&quot;</span>]</span></code></pre></div>
+<p>On my machine I’ve set this up to be generated by a <a href="https://gist.github.com/mstksg/6588764">bash script</a> called “shakeup”, so I can start a project up on a Shakefile by simply typing <code>shakeup</code> at the project root.</p>
+<p>Some notes:</p>
+<ol type="1">
+<li><p>Store shake’s metadata files to the folder <code>.shake/</code>. This differs from the default behavior, where all files would be saved to the root directory with <code>.shake</code> as a filename prefix.</p></li>
+<li><p>I’ve aliased the operator <code>~&gt;</code> for <code>phony</code> to allow for a more expressive infix notation — more on this later. I’ve submitted a patch to the project and it should be included in the next cabal release.</p>
+<p><strong>Edit</strong>: As of the 0.10.7 release of <em>Shake</em>, this is no longer needed, as <code>~&gt;</code> is included in the library.</p></li>
+</ol>
+<h2 id="what-is-a-rule">What is a Rule?</h2>
+<p>If you haven’t used <em>make</em> before, it is important that you understand the key concepts before moving on.</p>
+<p>A task management system/build system is a system that works to ensure that all files in the project are “up to date”. In our case, our system will ensure that the files in the <code>out</code> directory are up to date.</p>
+<p>In order to do this, files are given “rules”. Rules specify:</p>
+<ol type="1">
+<li><p>What other files/rules this file “depends” on</p></li>
+<li><p>Instructions to execute to make this file up to date (or to create the file), if it is not already up to date or created.</p></li>
+</ol>
+<p>A file or rule is out of date if any of its dependencies are out of date <strong>or</strong> if the file it indicates is either not created or has been updated since the last time the task management system has run. When this happens, the guilty dependencies are updated using their own rules. Afterwards, the file’s own instructions are executed.</p>
+<p>If a file has no rule, “out of date” simply means that it has been updated or changed since the last time the task management system has run, or it does not exist. If it has, then all files or rules that depend on it are also out of date.</p>
+<p>A good task management system is smart enough to keep track of what is up to date and what isn’t. If multiple rules all have one dependency, that dependency might be checked and updated every single time. For example, all of our builds in this sample project require <code>img2.jpg</code> to be downloaded afresh from online. A naive build system might re-download <code>img2.jpg</code> for every single build, instead of once for all three.</p>
+<h2 id="file-rules">File Rules</h2>
+<p>Let’s set up <code>src/report.md</code> with a simple markdown document on our new project:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode markdown"><code class="sourceCode markdown"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- src/report.md --&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>Report</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">======</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>This is a report.  Render me!</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="al">![first image](img/img1.jpg)</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="al">![second image](img/img2.jpg)</span></span></code></pre></div>
+<p>Our project tree should look like this at this point:</p>
+<blockquote>
+<ul>
+<li>img
+<ul>
+<li>img1.jpg</li>
+<li>img2.jpg</li>
+</ul></li>
+<li>out</li>
+<li>src
+<ul>
+<li>report.md</li>
+</ul></li>
+<li>template</li>
+<li>Shakefile</li>
+</ul>
+</blockquote>
+<p>Let’s set up our first rule – rendering <code>out/report.doc</code> if <code>report.md</code> has changed.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;out/report.doc&quot;</span> <span class="op">*&gt;</span> \f <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    need [<span class="st">&quot;src/report.md&quot;</span>,<span class="st">&quot;img/img1.jpg&quot;</span>,<span class="st">&quot;img/img2.jpg&quot;</span>]</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    cmd <span class="st">&quot;pandoc&quot;</span> [ <span class="st">&quot;src/report.md&quot;</span>, <span class="st">&quot;-o&quot;</span>, f ]</span></code></pre></div>
+<p>This is equivalent to the Makefile rule:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="dv">out/report.doc:</span><span class="dt"> src/report.md</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>	pandoc src/report.md -o out/report.doc</span></code></pre></div>
+<p>The operator <code>*&gt;</code> attaches an <a href="http://hackage.haskell.org/packages/archive/shake/0.10.6/doc/html/Development-Shake.html#t:Action"><code>Action</code></a> (with a parameter) to a <a href="http://hackage.haskell.org/packages/archive/shake/0.10.6/doc/html/Development-Shake.html#t:FilePattern"><code>FilePattern</code></a> (a string) – that is, when <em>shake</em> decides that it needs that specified file on the left hand side to be up to date, it runs the action on the right hand side with that filename as a parameter.</p>
+<p>To be clear, the right hand side is of type:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ot">rightHandSide ::</span> <span class="dt">FilePattern</span> <span class="ot">-&gt;</span> <span class="dt">Action</span> ()</span></code></pre></div>
+<p>where the <code>FilePattern</code> is the filename of the file that is being “needed”.</p>
+<p>The <code>need</code> function specifies all of the dependencies of that action. If <em>shake</em> decides it needs <code>out/report.doc</code> to be up to date, <code>need</code> tells it that it first needs <code>src/report.md</code> and the images to be up to date – or rather, that <code>out/report.doc</code> is only out of date if <code>src/report.md</code> or the images are out of date, or have changed since the last build.</p>
+<p>With this in mind, let us write the rest of our file rules:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- Shakefile</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;out/report.doc&quot;</span> <span class="op">*&gt;</span> \f <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    need [<span class="st">&quot;src/report.md&quot;</span>,<span class="st">&quot;img/img1.jpg&quot;</span>,<span class="st">&quot;img/img2.jpg&quot;</span>]</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    cmd <span class="st">&quot;pandoc&quot;</span> [ <span class="st">&quot;src/report.md&quot;</span>, <span class="st">&quot;-o&quot;</span>, f ]</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;out/report.pdf&quot;</span> <span class="op">*&gt;</span> \f <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    need [<span class="st">&quot;src/report.md&quot;</span>,<span class="st">&quot;img/img1.jpg&quot;</span>,<span class="st">&quot;img/img2.jpg&quot;</span>]</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    cmd <span class="st">&quot;pandoc&quot;</span> [ <span class="st">&quot;src/report.md&quot;</span>, <span class="st">&quot;-o&quot;</span>, f, <span class="st">&quot;-V&quot;</span>, <span class="st">&quot;links-as-notes&quot;</span> ]</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;out/report.html&quot;</span> <span class="op">*&gt;</span> \f <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    need [ <span class="st">&quot;src/report.md&quot;</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>         , <span class="st">&quot;img/img1.jpg&quot;</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>         , <span class="st">&quot;img/img2.jpg&quot;</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>         , <span class="st">&quot;css/report.css&quot;</span> ]</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>    cmd <span class="st">&quot;pandoc&quot;</span> [ <span class="st">&quot;src/report.md&quot;</span>, <span class="st">&quot;-o&quot;</span>, f, <span class="st">&quot;-c&quot;</span>, <span class="st">&quot;css/report.css&quot;</span>, <span class="st">&quot;-S&quot;</span> ]</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;img/img2.jpg&quot;</span> <span class="op">*&gt;</span> \f <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>    cmd <span class="st">&quot;wget&quot;</span> [ <span class="st">&quot;http://example.com/img2.jpg&quot;</span>, <span class="st">&quot;-O&quot;</span>, f ]</span></code></pre></div>
+<p>And that is it!</p>
+<h2 id="running-shake">Running Shake</h2>
+<p>How do we tell <em>shake</em> what file it is that we want to be up to date? We specify this by modifying the line <code>want []</code>:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>want [<span class="st">&quot;out/report.doc&quot;</span>,<span class="st">&quot;out/report.pdf&quot;</span>,<span class="st">&quot;out/report.html&quot;</span>]</span></code></pre></div>
+<p>That tells <em>shake</em> that when we run <code>main</code> with no arguments, we want those three files to be checked to be up to date.</p>
+<p>Now, to wrap it all together, we run:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> runhaskell Shakefile</span></code></pre></div>
+<p>And let the magic happen!</p>
+<p>I run this enough times that I like to alias this:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># in ~/.bashrc</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="bu">alias</span> shake=runhaskell Shakefile</span></code></pre></div>
+<p>Note that <code>want</code> specifies the <strong>default</strong> “wants”. You can specify your own collection by passing a parameter:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> runhaskell Shakefile out/report.doc</span></code></pre></div>
+<h2 id="wildcards">Wildcards</h2>
+<p>You may have noticed that even though we had multiple images in the <code>img</code> folder, we required them all explicitly. This could cause problems. What if in the future, our documents used more images?</p>
+<p>We can define wildcards using <em>shake</em>’s <code>getDirectoryFiles</code>, which returns results of a wildcard search in an <code>Action</code> monad. <code>getDirectoryFiles</code> takes a directory base and a list of wildcards.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- Shakefile</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="ot">srcFiles ::</span> <span class="dt">Action</span> [<span class="dt">FilePath</span>]</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>srcFiles <span class="ot">=</span> getDirectoryFiles <span class="st">&quot;&quot;</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    [ <span class="st">&quot;src/report.md&quot;</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    , <span class="st">&quot;img/*.jpg&quot;</span> ]</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> shakeArgs opts <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    want [<span class="st">&quot;out/report.doc&quot;</span>,<span class="st">&quot;out/report.pdf&quot;</span>,<span class="st">&quot;out/report.html&quot;</span>]</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;out/report.doc&quot;</span> <span class="op">*&gt;</span> \f <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>        deps <span class="ot">&lt;-</span> srcFiles</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>        need deps</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>        cmd <span class="st">&quot;pandoc&quot;</span> [ <span class="st">&quot;src/report.md&quot;</span>, <span class="st">&quot;-o&quot;</span>, f ]</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;out/report.pdf&quot;</span> <span class="op">*&gt;</span> \f <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>        deps <span class="ot">&lt;-</span> srcFiles</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>        need deps</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>        cmd <span class="st">&quot;pandoc&quot;</span> [ <span class="st">&quot;src/report.md&quot;</span>, <span class="st">&quot;-o&quot;</span>, f, <span class="st">&quot;-V&quot;</span>, <span class="st">&quot;links-as-notes&quot;</span> ]</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;out/report.html&quot;</span> <span class="op">*&gt;</span> \f <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>        deps <span class="ot">&lt;-</span> srcFiles</span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>        need <span class="op">$</span> <span class="st">&quot;css/report.css&quot;</span> <span class="op">:</span> deps</span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>        cmd <span class="st">&quot;pandoc&quot;</span> [ <span class="st">&quot;src/report.md&quot;</span>, <span class="st">&quot;-o&quot;</span>, f, <span class="st">&quot;-c&quot;</span>, <span class="st">&quot;css/report.css&quot;</span>, <span class="st">&quot;-S&quot;</span> ]</span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;img/img2.jpg&quot;</span> <span class="op">*&gt;</span> \f <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>        cmd <span class="st">&quot;wget&quot;</span> [ <span class="st">&quot;http://example.com/img2.jpg&quot;</span>, <span class="st">&quot;-O&quot;</span>, f ]</span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;clean&quot;</span> <span class="op">~&gt;</span> removeFilesAfter <span class="st">&quot;.shake&quot;</span> [<span class="st">&quot;//*&quot;</span>]</span></code></pre></div>
+<p>If you are comfortable with monadic operators, you can make it all happen on one line:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;out/report.doc&quot;</span> <span class="op">*&gt;</span> \f <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    need <span class="op">=&lt;&lt;</span> srcFiles</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    cmd <span class="st">&quot;pandoc&quot;</span> [ <span class="st">&quot;src/report.md&quot;</span>, <span class="st">&quot;-o&quot;</span>, f ]</span></code></pre></div>
+<h2 id="phony-rules">Phony Rules</h2>
+<p>Now, you might sometimes want rules that are “just tasks” that don’t relate to creating a specific file. That is, they still depend on other files or rules and are triggered to update when their dependencies are out of date, but they just aren’t about building files.</p>
+<p>For example, what if you wanted a task <code>build-some</code>, which builds only <code>report.pdf</code> and <code>report.doc</code>, and outputs a proverb to the command line?</p>
+<p>One thing you can do is to simply use a rule with a name that does not correspond to any file:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- Bad</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;build-some&quot;</span> <span class="op">*&gt;</span> \_ <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    need [<span class="st">&quot;out/report.pdf&quot;</span>,<span class="st">&quot;out/report.doc&quot;</span>]</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    cmd <span class="st">&quot;fortune&quot;</span> [<span class="st">&quot;&quot;</span>]</span></code></pre></div>
+<p>However, this is kind of an inelegant solution. There really actually is not a file <code>build-some</code>. Also, if someone ever decides to create a file called <code>build-some</code>, you’ll find that this rule never gets run.</p>
+<p>The best way is to create a “phony” rule, which is a rule that is not tied to a file. This is the reason for the alias I specified at the beginning of the post:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- Good</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;build-some&quot;</span> <span class="op">~&gt;</span> <span class="kw">do</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    need [<span class="st">&quot;out/report.pdf&quot;</span>,<span class="st">&quot;out/report.doc&quot;</span>]</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    cmd <span class="st">&quot;fortune&quot;</span> [<span class="st">&quot;&quot;</span>]</span></code></pre></div>
+<p>And voilà!</p>
+<h3 id="cleanup">Cleanup</h3>
+<p>You might have noticed the phony rule in the scaffold Shakefile:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;clean&quot;</span> <span class="op">~&gt;</span> removeFilesAfter <span class="st">&quot;.shake&quot;</span> [<span class="st">&quot;//*&quot;</span>]</span></code></pre></div>
+<p>If you run <code>shake clean</code>, it will remove all files in the <code>.shake/</code> directory after the rule has completed its execution. <code>removeFilesAfter</code> removes the files in the given base directory (<code>.shake</code>) matching the given wildcards (<code>["//*"]</code>) after all rules have completed their course.</p>
+<p>This is useful for cleaning up <em>shake</em>’s metadata files after you are done with your build, or if you want to run the task management system on a clean start.</p>
+<h2 id="completed-file">Completed File</h2>
+<div class="sourceCode" id="cb17"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- Shakefile</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# OPTIONS_GHC -fno-warn-wrong-do-bind #-}</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Applicative</span> ((&lt;$&gt;))</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Development.Shake</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>opts <span class="ot">=</span> shakeOptions { shakeFiles    <span class="ot">=</span> <span class="st">&quot;.shake/&quot;</span> }</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> shakeArgs opts <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>    want [<span class="st">&quot;out/report.doc&quot;</span>,<span class="st">&quot;out/report.pdf&quot;</span>,<span class="st">&quot;out/report.html&quot;</span>]</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;build-some&quot;</span> <span class="op">~&gt;</span> <span class="kw">do</span></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>        need [<span class="st">&quot;out/report.pdf&quot;</span>,<span class="st">&quot;out/report.doc&quot;</span>]</span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>        cmd <span class="st">&quot;fortune&quot;</span> [<span class="st">&quot;&quot;</span>]</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;out/report.doc&quot;</span> <span class="op">*&gt;</span> \f <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>        need <span class="op">&lt;$&gt;</span> srcFiles</span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>        cmd <span class="st">&quot;pandoc&quot;</span> [ <span class="st">&quot;src/report.md&quot;</span>, <span class="st">&quot;-o&quot;</span>, f ]</span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;out/report.pdf&quot;</span> <span class="op">*&gt;</span> \f <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a>        need <span class="op">&lt;$&gt;</span> srcFiles</span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a>        cmd <span class="st">&quot;pandoc&quot;</span> [ <span class="st">&quot;src/report.md&quot;</span>, <span class="st">&quot;-o&quot;</span>, f, <span class="st">&quot;-V&quot;</span>, <span class="st">&quot;links-as-notes&quot;</span> ]</span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-25"><a href="#cb17-25" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;out/report.html&quot;</span> <span class="op">*&gt;</span> \f <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb17-26"><a href="#cb17-26" aria-hidden="true" tabindex="-1"></a>        deps <span class="ot">&lt;-</span> srcFiles</span>
+<span id="cb17-27"><a href="#cb17-27" aria-hidden="true" tabindex="-1"></a>        need <span class="op">$</span> <span class="st">&quot;css/report.css&quot;</span> <span class="op">:</span> deps</span>
+<span id="cb17-28"><a href="#cb17-28" aria-hidden="true" tabindex="-1"></a>        cmd <span class="st">&quot;pandoc&quot;</span> [ <span class="st">&quot;src/report.md&quot;</span>, <span class="st">&quot;-o&quot;</span>, f, <span class="st">&quot;-c&quot;</span>, <span class="st">&quot;css/report.css&quot;</span>, <span class="st">&quot;-S&quot;</span> ]</span>
+<span id="cb17-29"><a href="#cb17-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-30"><a href="#cb17-30" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;img/img2.jpg&quot;</span> <span class="op">*&gt;</span> \f <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb17-31"><a href="#cb17-31" aria-hidden="true" tabindex="-1"></a>        cmd <span class="st">&quot;wget&quot;</span> [ <span class="st">&quot;http://example.com/img2.jpg&quot;</span>, <span class="st">&quot;-O&quot;</span>, f ]</span>
+<span id="cb17-32"><a href="#cb17-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-33"><a href="#cb17-33" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;clean&quot;</span> <span class="op">~&gt;</span> removeFilesAfter <span class="st">&quot;.shake&quot;</span> [<span class="st">&quot;//*&quot;</span>]</span>
+<span id="cb17-34"><a href="#cb17-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-35"><a href="#cb17-35" aria-hidden="true" tabindex="-1"></a><span class="ot">srcFiles ::</span> <span class="dt">Action</span> [<span class="dt">FilePath</span>]</span>
+<span id="cb17-36"><a href="#cb17-36" aria-hidden="true" tabindex="-1"></a>srcFiles <span class="ot">=</span> getDirectoryFiles <span class="st">&quot;&quot;</span></span>
+<span id="cb17-37"><a href="#cb17-37" aria-hidden="true" tabindex="-1"></a>    [ <span class="st">&quot;src/report.md&quot;</span></span>
+<span id="cb17-38"><a href="#cb17-38" aria-hidden="true" tabindex="-1"></a>    , <span class="st">&quot;img/*.jpg&quot;</span> ]</span></code></pre></div>
+<h2 id="wrapping-up">Wrapping Up</h2>
+<p>If you look at the <a href="http://hackage.haskell.org/packages/archive/shake/0.10.6/doc/html/Development-Shake.html">Shake Documentation</a>, you will find a lot of ways you can build complex networks of dependencies.</p>
+<p>Hopefully there are enough use cases here to be useful in general applications.</p>
+<h3 id="monadic-tricks">Monadic Tricks</h3>
+<p>Because everything is Haskell, you can easily generate rules using your basic monad iterators by taking advantage of Haskell’s extensive standard library of monad functions. For example, if you want to generate multiple reports, you can use <code>forM_</code>:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> reports <span class="ot">=</span> [<span class="st">&quot;report1&quot;</span>, <span class="st">&quot;report2&quot;</span>, <span class="st">&quot;report3&quot;</span>]</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>want <span class="op">$</span> (\s f <span class="ot">-&gt;</span> <span class="st">&quot;out/&quot;</span> <span class="op">++</span> s <span class="op">++</span> <span class="st">&quot;.&quot;</span> <span class="op">++</span> f) <span class="op">&lt;$&gt;</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    [<span class="st">&quot;report1&quot;</span>,<span class="st">&quot;report2&quot;</span>,<span class="st">&quot;report3&quot;</span>] <span class="op">&lt;*&gt;</span> [<span class="st">&quot;doc&quot;</span>,<span class="st">&quot;pdf&quot;</span>,<span class="st">&quot;html&quot;</span>]</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>forM_ [<span class="st">&quot;report1&quot;</span>,<span class="st">&quot;report2&quot;</span>,<span class="st">&quot;report3&quot;</span>] <span class="op">$</span> \reportName <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>        outBase <span class="ot">=</span> <span class="st">&quot;out/&quot;</span> <span class="op">++</span> reportName</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>        srcName <span class="ot">=</span> <span class="st">&quot;src/&quot;</span> <span class="op">++</span> reportName <span class="op">++</span> <span class="st">&quot;.md&quot;</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    outBase <span class="op">++</span> <span class="st">&quot;.doc&quot;</span> <span class="op">*&gt;</span> \f <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>        need <span class="op">&lt;$&gt;</span> srcFiles</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>        cmd <span class="st">&quot;pandoc&quot;</span> [ srcName, <span class="st">&quot;-o&quot;</span>, f ]</span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>    outBase <span class="op">++</span> <span class="st">&quot;.pdf&quot;</span> <span class="op">*&gt;</span> \f <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>        need <span class="op">&lt;$&gt;</span> srcFiles</span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>        cmd <span class="st">&quot;pandoc&quot;</span> [ srcName, <span class="st">&quot;-o&quot;</span>, f, <span class="st">&quot;-V&quot;</span>, <span class="st">&quot;links-as-notes&quot;</span> ]</span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>    outBase <span class="op">++</span> <span class="st">&quot;.html&quot;</span> <span class="op">*&gt;</span> \f <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>        deps <span class="ot">&lt;-</span> srcFiles</span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>        need <span class="op">$</span> <span class="st">&quot;css/report.css&quot;</span> <span class="op">:</span> deps</span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>        cmd <span class="st">&quot;pandoc&quot;</span> [ srcName, <span class="st">&quot;-o&quot;</span>, f, <span class="st">&quot;-c&quot;</span>, <span class="st">&quot;css/report.css&quot;</span>, <span class="st">&quot;-S&quot;</span> ]</span></code></pre></div>
+<p>Note however that you can get the same thing by just using wildcards (with <code>takeFileName</code>). But this is just an example, feel free to let your imagination roam!</p>
+<h3 id="looking-forward">Looking Forward</h3>
+<p>We’ve seen how <em>Shake</em> is good at setting up systems for managing and executing dependencies. This is good for running simple system commands. However, there is a lot more about scripting and task automation than managing dependencies.</p>
+<p>For example, almost everything we’ve done can be done with a simple Makefile. What does Haskell offer to the scripting scene?</p>
+<h4 id="strong-typing">Strong Typing</h4>
+<p>As you’ll know, one of the magical things about Haskell is that because of its expressive strong typing system, you leave the debugging to the compiler. If it compiles, it works exactly the way you want!</p>
+<p>This is pretty lacking in the bare-bones system we have in place now. Right now we are just firing off arbitrary system commands that are basically specified in strings with no type of typing. We can compile anything, whether there are bugs in it or not.</p>
+<p>Luckily <em>Shake</em> is very good at integrating seamlessly with any kind of framework. We can leave this up to other frameworks.</p>
+<p>One popular framework for this that is gaining in maturity is <a href="http://hackage.haskell.org/package/shelly"><em>Shelly</em></a> (A fork of an older project that is an <a href="http://www.yesodweb.com/blog/2012/03/shelly-for-shell-scripts">ongoing</a> Yesod Project <a href="http://www.yesodweb.com/blog/2012/07/shelly-update">experiment</a>), but you are welcome to using your own. At the present Haskell is still developing and growing in this aspect. I hope to eventually write an article about <em>Shelly</em> integration with <em>Shake</em>.</p>
+<h4 id="other">Other</h4>
+<p>These are just some ways to think about using <em>Shake</em> in new more creative ways. Let me know if you think of any clever integrations in the comments!</p></div><footer><hr><div class="copy-content"><p>Hi, thanks for reading! You can reach me via email at <a href="mailto:justin@jle.im" class="email">justin@jle.im</a>, or at twitter at <a href="https://twitter.com/mstk">@mstk</a>! This post and all others are published under the <a href="https://creativecommons.org/licenses/by-nc-nd/3.0/">CC-BY-NC-ND 3.0</a> license. Corrections and edits via pull request are welcome and encouraged at <a href="https://github.com/mstksg/inCode">the source repository</a>.</p>
+<p>If you feel inclined, or this post was particularly helpful for you, why not consider <a href="https://www.patreon.com/justinle/overview">supporting me on Patreon</a>, or a <a href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">BTC donation</a>? :)</p></div><div class="clear"></div><ul class="entry-series"></ul><ul class="tag-list"><li><a href="https://blog.jle.im/entries/tagged/haskell.html" class="tag-a-tag">#haskell</a></li><li><a href="https://blog.jle.im/entries/tagged/scripting.html" class="tag-a-tag">#scripting</a></li><li><a href="https://blog.jle.im/entries/tagged/shake.html" class="tag-a-tag">#shake</a></li><li><a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category">@HASKELL</a></li><li><a href="https://blog.jle.im/entries/category/@tutorials.html" class="tag-a-category">@TUTORIALS</a></li></ul><aside class="social-buttons"><div class="addthis_toolbox addthis_default_style addthis-buttons"><a class="addthis_button_facebook_like" fb:like:layout="button_count"></a><a class="addthis_button_tweet"></a><a class="addthis_button_google_plusone" g:plusone:size="medium"></a><a class="addthis_counter addthis_pill_style"></a></div><div class="custom-social-buttons"><div class="custom-social-button"><a href="https://www.reddit.com/submit" onclick="window.location = &#39;https://www.reddit.com/submit?url=&#39;+ encodeURIComponent(window.location); return false"><img src="https://www.reddit.com/static/spreddit7.gif" alt="submit to reddit"></a></div></div></aside><nav class="next-prev-links"><ul><li class="prev-entry-link">&larr; <a href="https://blog.jle.im/entry/introducing-in-code.html">Introducing &quot;in Code&quot;!
+</a> (Previous)</li><li class="next-entry-link">(Next) <a href="https://blog.jle.im/entry/the-hamster-hotel-an-introduction-to-control-theory.html">The Hamster Hotel: An Introduction to Control Theory (Part 1)
+</a> &rarr;</li></ul></nav></footer></article><div class="post-entry"><div class="tile"><div id="disqus_thread"></div><script type="text/javascript">var disqus_config = function () {
+    this.page.url = 'https://blog.jle.im/entry/shake-task-automation-and-scripting-in-haskell.html';
+    this.page.identifier = 'shake1';
+};
+(function() {
+    var d = document, s = d.createElement('script');
+    s.src = '//incode.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a><br></noscript><a href="http://disqus.com" class="dsq-brlink">Comments powered by <span class="logo-disqus">Disqus</span></a></div></div></div></div></div><div id="footer-container"><div id="footer-content"><div class="tile"><div class="footer-copyright">&copy; 2020 Justin Le <span class="license-link">(<a href="https://creativecommons.org/licenses/by-nc-nd/3.0/" class="license">CC-BY-NC-ND 3.0</a>)</span></div><div class="footer-follow social-follows"><ul class="social-follows-list"><li><ul class="social-follows-list-social"><li><a class="social-follow-twitter" title="Follow me on Twitter!" href="https://twitter.com/intent/user?user_id=mstk" onclick="window.open(
+  &#39;http://twitter.com/intent/user?user_id=907281&#39;,
+  &#39;facebook-share-dialog&#39;,
+  &#39;width=550,height=520&#39;);
+return false;
+">Twitter</a></li><li><a class="social-follow-github" title="Fork me on Github!" href="https://github.com/mstksg">Github</a></li><li><a class="social-follow-twitch" title="Watch me on Twitch!" href="https://www.twitch.tv/justin_l">Twitch</a></li><li><a class="social-follow-patreon" title="Support me on Patreon!" href="https://www.patreon.com/justinle/overview">Patreon</a></li><li><a class="social-follow-gplus" title="Add me on Google+!" href="https://plus.google.com/+JustinLe">Google+</a></li><li><a class="social-follow-keybase" title="Track me on Keybase!" href="https://keybase.io/mstksg">Keybase</a></li><li><a class="social-follow-linkedin" title="Connect with me on LinkedIn!" href="https://linkedin.com/in/lejustin">LinkedIn</a></li><li><a class="social-follow-bitcoin" title="Donate via bitcoin!" href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">Bitcoin</a></li></ul></li><li><ul class="social-follows-list-site"><li><a class="social-follow-rss" title="Subscribe to my RSS Feed!" href="http://feeds.feedburner.com/incodeblog">RSS</a></li><li><a class="social-follow-email" title="Subscribe to the mailing list!" href="https://feedburner.google.com/fb/a/mailverify?loc=en_US&amp;uri=incodeblog">Mailing list</a></li></ul></li></ul></div></div></div></div></body></html>

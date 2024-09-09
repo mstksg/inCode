@@ -1,0 +1,192 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Advent of Code 2020: Haskell Solution Reflections for all 25 Days},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Advent of Code 2020: Haskell Solution Reflections for all 25 Days}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% December 30, 2020
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/advent-of-code-2020.html}{in Code}}.}
+
+Merry Christmas and Happy New Years, to all!
+
+Once again, every year I like to participate in Eric Wastl's
+\emph{\href{http://adventofcode.com/}{Advent of Code}}! It's a series of 25
+Christmas-themed puzzles that release every day at midnight --- there's a cute
+story motivating each one, usually revolving around saving Christmas. Every
+night my friends and I (including the good people of freenode's
+\texttt{\#\#advent-of-code} channel) talk about the puzzle and creative ways to
+solve it (and also see how my
+\href{https://twitter.com/mstk/status/1343027484808380416}{bingo card} is
+doing). The \href{https://www.reddit.com/r/adventofcode}{subreddit community} is
+also pretty great as well! And an even nicer thing is that the puzzles are
+open-ended enough that there are often many ways of approaching
+them\ldots including some approaches that can leverage math concepts in
+surprising ways, like
+\href{https://blog.jle.im/entry/alchemical-groups.html}{group theory},
+\href{https://blog.jle.im/entry/shifting-the-stars.html}{galilean
+transformations and linear algebra}, and
+\href{https://blog.jle.im/entry/shuffling-things-up.html}{more group theory}.
+Many of the puzzles are often simple data transformations that Haskell is
+especially good at!
+
+Speaking of Haskell, I usually do a write-up for every day I can get around to
+about unique insights that solving in Haskell can provide to each different
+puzzle. I did them in
+\href{https://github.com/mstksg/advent-of-code-2017/blob/master/reflections.md}{2017},
+\href{https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md}{2018},
+and
+\href{https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md}{2019},
+but I never finished every day. But 2020 being what it is, I was able to finish!
+:D
+
+You can find
+\href{https://github.com/mstksg/advent-of-code-2020/blob/master/reflections.md}{all
+of them here}, but here are links to each individual one. Hopefully you can find
+them helpful. And if you haven't yet, why not try
+\href{http://adventofcode.com/}{Advent of Code} yourself? :) And drop by the
+freenode \texttt{\#\#advent-of-code} channel, we'd love to say hi and chat, or
+help out! Thanks all for reading, and also thanks to Eric for a great event this
+year, as always!
+
+\begin{itemize}
+\tightlist
+\item
+  \href{https://github.com/mstksg/advent-of-code-2020/blob/master/reflections-out/day01.md}{Day
+  1 - Report Repair}
+\item
+  \href{https://github.com/mstksg/advent-of-code-2020/blob/master/reflections-out/day02.md}{Day
+  2 - Passport Philosophy}
+\item
+  \href{https://github.com/mstksg/advent-of-code-2020/blob/master/reflections-out/day03.md}{Day
+  3 - Toboggan Trajectory}
+\item
+  \href{https://github.com/mstksg/advent-of-code-2020/blob/master/reflections-out/day04.md}{Day
+  4 - Passport Processing}
+\item
+  \href{https://github.com/mstksg/advent-of-code-2020/blob/master/reflections-out/day05.md}{Day
+  5 - Binary Boarding}
+\item
+  \href{https://github.com/mstksg/advent-of-code-2020/blob/master/reflections-out/day06.md}{Day
+  6 - Custom Customs}
+\item
+  \href{https://github.com/mstksg/advent-of-code-2020/blob/master/reflections-out/day07.md}{Day
+  7 - Handy Haversacks}
+\item
+  \href{https://github.com/mstksg/advent-of-code-2020/blob/master/reflections-out/day08.md}{Day
+  8 - Handheld Halting}
+\item
+  \href{https://github.com/mstksg/advent-of-code-2020/blob/master/reflections-out/day09.md}{Day
+  9 - Encoding Error}
+\item
+  \href{https://github.com/mstksg/advent-of-code-2020/blob/master/reflections-out/day10.md}{Day
+  10 - Adapter Array}
+\item
+  \href{https://github.com/mstksg/advent-of-code-2020/blob/master/reflections-out/day11.md}{Day
+  11 - Seating System}
+\item
+  \href{https://github.com/mstksg/advent-of-code-2020/blob/master/reflections-out/day12.md}{Day
+  12 - Rain Risk}
+\item
+  \href{https://github.com/mstksg/advent-of-code-2020/blob/master/reflections-out/day13.md}{Day
+  13 - Shuttle Search}
+\item
+  \href{https://github.com/mstksg/advent-of-code-2020/blob/master/reflections-out/day14.md}{Day
+  14 - Docking Data}
+\item
+  \href{https://github.com/mstksg/advent-of-code-2020/blob/master/reflections-out/day15.md}{Day
+  15 - Rambunctious Recitations}
+\item
+  \href{https://github.com/mstksg/advent-of-code-2020/blob/master/reflections-out/day16.md}{Day
+  16 - Ticket Translation}
+\item
+  \href{https://github.com/mstksg/advent-of-code-2020/blob/master/reflections-out/day17.md}{Day
+  17 - Conway Cubes}
+\item
+  \href{https://github.com/mstksg/advent-of-code-2020/blob/master/reflections-out/day18.md}{Day
+  18 - Operation Order}
+\item
+  \href{https://github.com/mstksg/advent-of-code-2020/blob/master/reflections-out/day19.md}{Day
+  19 - Monster Messages}
+\item
+  \href{https://github.com/mstksg/advent-of-code-2020/blob/master/reflections-out/day20.md}{Day
+  20 - Jurassic Jigsaw}
+\item
+  \href{https://github.com/mstksg/advent-of-code-2020/blob/master/reflections-out/day21.md}{Day
+  21 - Allergen Assessment}
+\item
+  \href{https://github.com/mstksg/advent-of-code-2020/blob/master/reflections-out/day22.md}{Day
+  22 - Crab Combat}
+\item
+  \href{https://github.com/mstksg/advent-of-code-2020/blob/master/reflections-out/day23.md}{Day
+  23 - Crab Cups}
+\item
+  \href{https://github.com/mstksg/advent-of-code-2020/blob/master/reflections-out/day24.md}{Day
+  24 - Lobby Layout}
+\item
+  \href{https://github.com/mstksg/advent-of-code-2020/blob/master/reflections-out/day25.md}{Day
+  25 - Combo Breaker}
+\end{itemize}
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

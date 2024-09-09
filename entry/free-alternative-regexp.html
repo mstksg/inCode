@@ -1,0 +1,401 @@
+<!DOCTYPE HTML>
+<html><head><title>Applicative Regular Expressions using the Free Alternative
+ · in Code</title><meta name="description" content="Weblog of Justin Le, covering various adventures in programming and explorations in the worlds of computation physics, and knowledge.
+"><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="flattr:id" content="3p9jqr"><meta property="og:site_name" content="in Code"><meta property="og:description" content="Today, we’re going to implement applicative regular expressions and parsers (in the style of the regex-applicative library) using free structures! Free structures are some of my favorite tools in Haskell, and I’ve actually written a few posts about them before, including this one using free groups, this one on a free monad variation, and this one on a “free” applicative on a monoid. Regular expressions (and parsers) are ubiquitous in computer science and programming, and I hope that demonstrating that they are pretty straightforward to implement using free structures will help you see the value in free structures without getting too bogged down in the details! All of the code in this post is available online as a “stack executable”. When you run it (./regexp.hs), you’ll load up a ghci session with all of the definitions in scope, so you can play around with the functions and types :) This post should be accessible to late beginner or early intermediate Haskell users, and requires some basic familiarity with pattern matching, algebraic data types, and abstractions like Monoid and Functor, and do notation."><meta property="og:type" content="article"><meta property="og:title" content="Applicative Regular Expressions using the Free Alternative
+"><meta property="og:image" content="https://blog.jle.im/img/site_logo.jpg"><meta property="og:locale" content="en_US"><meta property="og:url" content="https://blog.jle.im/entry/free-alternative-regexp.html"><meta name="twitter:card" content="summary"><meta name="twitter:creator:id" content="mstk"><link rel="author" href="https://plus.google.com/107705320197444500140"><link rel="alternate" type="application/rss+xml" title="in Code (RSS Feed)" href="http://feeds.feedburner.com/incodeblog"><link rel="canonical" href="https://blog.jle.im/entry/free-alternative-regexp.html"><link href="https://blog.jle.im/favicon.ico" rel="shortcut icon"><link href="https://blog.jle.im/css/toast.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/font.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/main.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/page/entry.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/pygments.css" rel="stylesheet" type="text/css"><script type="text/javascript">var page_data = {};
+var disqus_shortname='incode';
+</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-443711-8', 'jle.im');
+ga('send', 'pageview');
+</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js"></script><script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5234d67a6b68dcd4"></script><script type="text/javascript" src="https://blog.jle.im/js/page/entry_toc.js"></script><script type="text/javascript" src="https://blog.jle.im/js/disqus_count.js"></script><script type="text/javascript" src="https://blog.jle.im/js/social.js"></script><script type="text/javascript" src="https://blog.jle.im/js/jquery/jquery.toc.js"></script><script type="text/javascript" src="https://blog.jle.im/purescript/entry.js"></script></head><body><div id="fb-root"><script>(function(d, s, id) {
+ var js, fjs = d.getElementsByTagName(s)[0];
+ if (d.getElementById(id)) return;
+ js = d.createElement(s); js.id = id;
+ js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=641852699171929";
+ fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+</script></div><div id="header-container"><div id="navbar-container" class="tile"><nav id="navbar-content"><div class="nav-info"><h1 class="site-title"><a href="https://blog.jle.im/" class="nav-title">in Code</a></h1><span class="nav-author">Justin Le</span></div><ul class="nav-links"><li><a href="https://blog.jle.im/">home</a></li><li><a href="https://blog.jle.im/entries.html">archives</a></li><li><a href="https://cv.jle.im">cv</a></li><div class="clear"></div></ul></nav></div><div id="header-content"></div></div><div id="body-container" class="container"><div id="main-container" class="grid"><div class="entry-section unit span-grid" role="main"><article class="tile article"><header><h1 id="title">Applicative Regular Expressions using the Free Alternative
+</h1><p class="entry-info">by <a class="author" href="https://blog.jle.im/">Justin Le</a><span class="info-separator"> &diams; </span><time datetime="2019-04-08T11:42:09Z" pubdate="" class="pubdate">Monday April 8, 2019</time></p><p><span class="source-info"><a class="source-link" href="https://github.com/mstksg/inCode/tree/master/copy/entries/regexp.md">Source</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://github.com/mstksg/inCode/tree/gh-pages/entry/free-alternative-regexp.md">Markdown</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://blog.jle.im/entry/free-alternative-regexp.tex">LaTeX</a><span class="info-separator"> &diams; </span></span>Posted in <a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category" title="Functional, pure, non-strict, statically and strongly typed, natively
+compiled...really just the king of great languages.
+">Haskell</a>, <a href="https://blog.jle.im/entries/category/@math.html" class="tag-a-category" title="@MATH">Math</a><span class="info-separator"> &diams; </span><a class="comment-link" href="#disqus_thread">Comments</a></p></header><hr><aside class="contents-container"><h5 id="contents-header">Contents</h5><div id="toc"></div></aside><div class="main-content copy-content"><p>Today, we’re going to implement applicative regular expressions and parsers (in the style of the <a href="https://hackage.haskell.org/package/regex-applicative">regex-applicative</a> library) using free structures!</p>
+<p>Free structures are some of my favorite tools in Haskell, and I’ve actually written a few posts about them before, including <a href="https://blog.jle.im/entry/alchemical-groups.html">this one using free groups</a>, <a href="https://blog.jle.im/entry/interpreters-a-la-carte-duet.html">this one on a free monad variation</a>, and <a href="https://blog.jle.im/entry/const-applicative-and-monoids.html">this one on a “free” applicative on a monoid</a>.</p>
+<p>Regular expressions (and parsers) are ubiquitous in computer science and programming, and I hope that demonstrating that they are pretty straightforward to implement using free structures will help you see the value in free structures without getting too bogged down in the details!</p>
+<p>All of the code in this post is <a href="https://github.com/mstksg/inCode/tree/master/code-samples/misc/regexp.hs">available online</a> as a “stack executable”. When you run it (<code>./regexp.hs</code>), you’ll load up a <em>ghci</em> session with all of the definitions in scope, so you can play around with the functions and types :)</p>
+<p>This post should be accessible to late beginner or early intermediate Haskell users, and requires some basic familiarity with pattern matching, algebraic data types, and abstractions like <code>Monoid</code> and <code>Functor</code>, and do notation.</p>
+<h2 id="regular-languages">Regular Languages</h2>
+<p>A <em>regular expression</em> is something that defines a <em>regular language</em>. <a href="https://en.wikipedia.org/wiki/Regular_expression#Formal_language_theory">Formally</a>, it consists of the following base elements:</p>
+<ol type="1">
+<li>The empty set, which always fails to match.</li>
+<li>The empty string, which always succeeds matching the empty string.</li>
+<li>The literal character, denoting a single matching character</li>
+</ol>
+<p>And the following operations:</p>
+<ol type="1">
+<li>Concatenation: <code>RS</code>, sequence one after the other. A set product.</li>
+<li>Alternation: <code>R|S</code>, one or the other. A set union.</li>
+<li>Kleene Star: <code>R*</code>, the repetition of <code>R</code> zero or more times.</li>
+</ol>
+<p>And that’s <em>all</em> that’s in a regular expression. Nothing more, nothing less. From these basic tools, you can derive the rest of the regexp operations — for example, <code>a+</code> can be expressed as <code>aa*</code>, and categories like <code>\w</code> can be expressed as alternations of valid characters.</p>
+<h3 id="alternative">Alternative</h3>
+<p>Looking at this, does this look a little familiar? It reminds me a lot of the <code>Alternative</code> typeclass. If a functor <code>f</code> has an <code>Alternative</code> instance, it means that it has:</p>
+<ol type="1">
+<li><code>empty</code>, the failing operation</li>
+<li><code>pure x</code>, the always-succeeding operation (from the <code>Applicative</code> class)</li>
+<li><code>&lt;*&gt;</code>, the sequencing operation (from the <code>Applicative</code> class)</li>
+<li><code>&lt;|&gt;</code>, the alternating operation</li>
+<li><code>many</code>, the “zero or more” operation.</li>
+</ol>
+<p>This…looks a lot like the construction of a regular language, doesn’t it? It’s almost as if <code>Alternative</code> has almost <em>exactly</em> what we need. The only thing missing is the literal character primitive.</p>
+<p>If you’re unfamiliar with <code>Alternative</code>, the <a href="https://wiki.haskell.org/Typeclassopedia">typeclassopedia</a> has a good step-by-step introduction. But for the purposes of this article, it’s basically just a “double monoid”, with two “combining” actions <code>&lt;*&gt;</code> and <code>&lt;|&gt;</code>, which roughly correspond to <code>*</code> and <code>+</code> in the integers. It’s basically pretty much nothing more than 1-5 in the list above, and some distributivity laws.</p>
+<p>So, one way we can look at regular expressions is “The entire <code>Alternative</code> interface, plus a character primitive”. <em>But!</em> There’s another way of looking at this, that leads us directly to free structures.</p>
+<p>Instead of seeing things as “<code>Alternative</code> with a character primitive”, we can look at it as <em>a character primitive enriched with a Alternative instance</em>.</p>
+<h2 id="free">Free</h2>
+<p>Let’s write this out. Our character primitive will be:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/regexp.hs#L17-L18</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Prim</span> a <span class="ot">=</span> <span class="dt">Prim</span> <span class="dt">Char</span> a</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">deriving</span> <span class="dt">Functor</span></span></code></pre></div>
+<p>Note that because we’re working with functors, applicatives, alternatives, etc., all of our regular expressions can have an associated “result”. This is because our regexp values will have a type parameter (which is required for <code>Functor</code>, <code>Applicative</code>, and <code>Alternative</code>). We can choose to ignore this type parameter, but we can also have some fun by using it to represent a “result” that a regexp match will be interpreted as. This is similar to the idea of “capturing” in industrial regexp applications.</p>
+<p>Here, the value <code>Prim 'a' 1 :: Prim Int</code> will represent a primitive that matches on the character <code>a</code>, interpreting it with a result of <code>1</code>.</p>
+<p>And now…we give it <code>Alternative</code> structure using the <em>Free Alternative</em>, from the <em><a href="https://hackage.haskell.org/package/free">free</a></em> package:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Alternative.Free</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/regexp.hs#L20-L20</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">RegExp</span> <span class="ot">=</span> <span class="dt">Alt</span> <span class="dt">Prim</span></span></code></pre></div>
+<p>And that’s it! That’s our entire regular expression type! By giving a <code>Alt</code> a <code>Functor</code>, we get all of the operations of <code>Applicative</code> and <code>Alternative</code> over our base. That’s because we have <code>instance Applicative (Alt f)</code> and <code>instance Alternative (Alt f)</code>. We now have:</p>
+<ol type="1">
+<li>The empty set, coming from <code>empty</code> from <code>Alternative</code></li>
+<li>The empty string, coming from <code>pure</code> from <code>Applicative</code></li>
+<li>The character primitive, coming from the underlying functor <code>Prim</code> that we are enhancing</li>
+<li>The concatenation operation, from <code>&lt;*&gt;</code>, from <code>Applicative</code>.</li>
+<li>The alternating operation, from <code>&lt;|&gt;</code>, from <code>Alternative</code>.</li>
+<li>The kleene star, from <code>many</code>, from <code>Alternative</code>.</li>
+</ol>
+<p>All of these additions to our primitive come “for free”!</p>
+<p>Essentially, what a free structure gives us is the structure of the abstraction (<code>Alternative</code>, here) automatically for our base type, and <em>nothing else</em>.</p>
+<p>Remember that regular expressions have these operations, <em>and nothing else</em> — no more, no less. That’s exactly what the free Alternative gives us: these operations and the primitive. No more, no less.</p>
+<p>After adding some convenient wrappers…we’re done here!</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/regexp.hs#L22-L33</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co">-- | charAs: Parse a given character as a given constant result.</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="ot">charAs ::</span> <span class="dt">Char</span> <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> <span class="dt">RegExp</span> a</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>charAs c x <span class="ot">=</span> liftAlt (<span class="dt">Prim</span> c x)     <span class="co">-- liftAlt lets us use the underlying</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>                                    <span class="co">-- functor Prim in RegExp</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co">-- | char: Parse a given character as itself.</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="ot">char ::</span> <span class="dt">Char</span> <span class="ot">-&gt;</span> <span class="dt">RegExp</span> <span class="dt">Char</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>char c <span class="ot">=</span> charAs c c</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="co">-- | string: Parse a given string as itself.</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="ot">string ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">RegExp</span> <span class="dt">String</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>string <span class="ot">=</span> <span class="fu">traverse</span> char              <span class="co">-- neat, huh</span></span></code></pre></div>
+<h3 id="examples">Examples</h3>
+<p>Let’s try it out! Let’s match on <code>(a|b)(cd)*e</code> and return <code>()</code>:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/regexp.hs#L35-L38</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="ot">testRegExp_ ::</span> <span class="dt">RegExp</span> ()</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>testRegExp_ <span class="ot">=</span> void <span class="op">$</span> (char <span class="ch">&#39;a&#39;</span> <span class="op">&lt;|&gt;</span> char <span class="ch">&#39;b&#39;</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>                  <span class="op">*&gt;</span> many (string <span class="st">&quot;cd&quot;</span>)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>                  <span class="op">*&gt;</span> char <span class="ch">&#39;e&#39;</span></span></code></pre></div>
+<p><code>void</code> from <em>Data.Functor</em> discards the results, since we only care if it matches or not. But we use <code>&lt;|&gt;</code> and <code>*&gt;</code> and <code>many</code> exactly how we’d expect to concatenate and alternate things with <code>Applicative</code> and <code>Alternative</code>.</p>
+<p>Or maybe more interesting (but slightly more complicated), let’s match on the same pattern and return how many <code>cd</code>s are repeated</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/regexp.hs#L40-L43</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="ot">testRegExp ::</span> <span class="dt">RegExp</span> <span class="dt">Int</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>testRegExp <span class="ot">=</span> (char <span class="ch">&#39;a&#39;</span> <span class="op">&lt;|&gt;</span> char <span class="ch">&#39;b&#39;</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>          <span class="op">*&gt;</span> (<span class="fu">length</span> <span class="op">&lt;$&gt;</span> many (string <span class="st">&quot;cd&quot;</span>))</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>          <span class="op">&lt;*</span> char <span class="ch">&#39;e&#39;</span></span></code></pre></div>
+<p>This one does require a little more finesse with <code>*&gt;</code> and <code>&lt;*</code>: the arrows point towards which result to “keep”. And since <code>many (string "cd") :: RegExp [String]</code> (it returns a list, with an item for each repetition), we can <code>fmap length</code> to get the <code>Int</code> result of “how many repetitions”.</p>
+<p>However, we can also turn on <em>-XApplicativeDo</em> and write it using do notation, which requires a little less thought:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/regexp.hs#L45-L50</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="ot">testRegExpDo ::</span> <span class="dt">RegExp</span> <span class="dt">Int</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>testRegExpDo <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    char <span class="ch">&#39;a&#39;</span> <span class="op">&lt;|&gt;</span> char <span class="ch">&#39;b&#39;</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    cds <span class="ot">&lt;-</span> many (string <span class="st">&quot;cd&quot;</span>)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    char <span class="ch">&#39;e&#39;</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pure</span> (<span class="fu">length</span> cds)</span></code></pre></div>
+<p>It’s all a little bit like how we often use “captures” in regular expressions to access a <em>specific part</em> of a match. Here’s an example in ruby:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode ruby"><code class="sourceCode ruby"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>irb<span class="kw">&gt;</span> <span class="ss">/(a|b)((cd)*)e/</span><span class="at">.match</span>(<span class="st">&quot;acdcdcdcde&quot;</span>)<span class="kw">[</span><span class="dv">2</span><span class="kw">]</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="kw">=&gt;</span> <span class="st">&quot;cdcdcdcd&quot;</span></span></code></pre></div>
+<p>except we also include a “post-processing” process to get the length of the number of repetitions.</p>
+<p>Here’s another handy regexp that matches on a digit between 0 to 9, and the result is the digit <code>Int</code> itself:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/regexp.hs#L52-L53</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="ot">digit ::</span> <span class="dt">RegExp</span> <span class="dt">Int</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>digit <span class="ot">=</span> asum [ charAs (<span class="fu">intToDigit</span> i) i <span class="op">|</span> i <span class="ot">&lt;-</span> [<span class="dv">0</span><span class="op">..</span><span class="dv">9</span>] ]</span></code></pre></div>
+<p>Here, <code>asum [x,y,z] = x &lt;|&gt; y &lt;|&gt; z</code>: it represents a choice between the items in a list.</p>
+<p>We can again do some fancy things with it, like make a regexp <code>\[\d\]</code> that matches on a digit inside <code>[</code> / <code>]</code> brackets:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/regexp.hs#L55-L56</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="ot">bracketDigit ::</span> <span class="dt">RegExp</span> <span class="dt">Int</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>bracketDigit <span class="ot">=</span> char <span class="ch">&#39;[&#39;</span> <span class="op">*&gt;</span> digit <span class="op">&lt;*</span> char <span class="ch">&#39;]&#39;</span></span></code></pre></div>
+<h2 id="parsing">Parsing</h2>
+<p>Okay, so all we did was define a data structure that supports character matching, concatenation, alternation, and starring. Big whoop. What we really want to do is use it to parse things, right? How does the Free Alternative help us with <em>that</em>?</p>
+<p>Well, it does a lot, actually. Let’s look at two ways of doing this!</p>
+<h3 id="offloading-alternative">Offloading Alternative</h3>
+<h4 id="what-is-freeness">What is Freeness?</h4>
+<p>The “canonical” way of using a free structure is by using its “folding” operation into a concrete structure with the proper instances. For example, <code>foldMap</code> will turn a free monoid into a value of any monoid instance:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">foldMap</span><span class="ot"> ::</span> <span class="dt">Monoid</span> m <span class="ot">=&gt;</span> (a <span class="ot">-&gt;</span> m) <span class="ot">-&gt;</span> ([a] <span class="ot">-&gt;</span> m)</span></code></pre></div>
+<p><code>foldMap</code> lifts an <code>a -&gt; m</code> into a <code>[a] -&gt; m</code> (or, <code>FreeMonoid a -&gt; m</code>), with a concrete monoid <code>m</code>. The general idea is that using a free structure can “defer” the concretization from between the time of construction to the time of use.</p>
+<p>For example, we can construct value in the free monoid made from integers:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- | Lift the &quot;primitive&quot; `Int` into a value in the free monoid on `Int`.</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co">--</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co">-- Analogous to `liftAlt` from earlier.</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="ot">liftFM ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> [<span class="dt">Int</span>]</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>liftFM x <span class="ot">=</span> [x]</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="ot">myMon ::</span> [<span class="dt">Int</span>]</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>myMon <span class="ot">=</span> liftFM <span class="dv">1</span> <span class="op">&lt;&gt;</span> liftFM <span class="dv">2</span> <span class="op">&lt;&gt;</span> liftFM <span class="dv">3</span> <span class="op">&lt;&gt;</span> liftFM <span class="dv">4</span></span></code></pre></div>
+<p>And now we can decide how we want to interpret <code>&lt;&gt;</code> — should it be <code>+</code>?</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="fu">foldMap</span> <span class="dt">Sum</span> myMon</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="dt">Sum</span> <span class="dv">10</span>              <span class="co">-- 1 + 2 + 3 + 4</span></span></code></pre></div>
+<p>Or should it be <code>*</code>?</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="fu">foldMap</span> <span class="dt">Product</span> myMon</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="dt">Product</span> <span class="dv">24</span>          <span class="co">-- 1 * 2 * 3 * 4</span></span></code></pre></div>
+<p>Or maybe even <code>max</code>?</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="fu">foldMap</span> <span class="dt">Max</span> myMon</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="dt">Max</span> <span class="dv">4</span>          <span class="co">-- 1 `max` 2 `max` 3 `max` 4</span></span></code></pre></div>
+<p>The idea is that we can “defer” the choice of concrete <code>Monoid</code> that <code>&lt;&gt;</code> is interpreted under by first pushing 1, 2, 3, and 4 into a free monoid value. The free monoid on <code>Int</code> gives <em>exactly enough structure</em> to <code>Int</code> to do this job: no more, no less.</p>
+<p>To use <code>foldMap</code>, we say “how to handle the base type”, and it lets us handle the free structure in its entirety by offloading the behavior of <code>&lt;&gt;</code> to the concrete monoid.</p>
+<h4 id="interpreting-in-state">Interpreting in State</h4>
+<p>In practice, getting a result from a free structure is often about finding (or creating) the right concrete <code>Alternative</code> that gives us the behavior we want. In this case, we’re in luck. There’s a concrete <code>Alternative</code> instance that works just the way we want: <code>StateT String Maybe</code>:</p>
+<ul>
+<li>Its <code>&lt;*&gt;</code> works by sequencing changes in state; in this case, we’ll consider the state as “characters yet to be parsed”, so sequential parsing fits perfectly with <code>&lt;*&gt;</code>. That’s because combining regexps sequentially can be thought of as statefully chomping down on a string.</li>
+<li>Its <code>&lt;|&gt;</code> works by backtracking and trying again if it runs into a failure. It saves the state of the last successful point and resets to it on failure. This is exactly how we want regexp alternation <code>R|S</code> to behave.</li>
+</ul>
+<p>The “folding” operation of the free alternative is called <code>runAlt</code>:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ot">runAlt ::</span> <span class="dt">Alternative</span> f</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>       <span class="ot">=&gt;</span> (<span class="kw">forall</span> b<span class="op">.</span> p b <span class="ot">-&gt;</span> f b)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>       <span class="ot">-&gt;</span> <span class="dt">Alt</span> p a</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>       <span class="ot">-&gt;</span> f a</span></code></pre></div>
+<p>And in the case of <code>RegExp</code>, we have:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ot">runAlt ::</span> <span class="dt">Alternative</span> f</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>       <span class="ot">=&gt;</span> (<span class="kw">forall</span> b<span class="op">.</span> <span class="dt">Prim</span> b <span class="ot">-&gt;</span> f b)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>       <span class="ot">-&gt;</span> <span class="dt">RegExp</span> a</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>       <span class="ot">-&gt;</span> f a</span></code></pre></div>
+<p>If you’re unfamiliar with the RankN type (the <code>forall b.</code> stuff), there’s a <a href="https://ocharles.org.uk/guest-posts/2014-12-18-rank-n-types.html">nice introduction here</a>. But basically, you just need to provide <code>runAlt</code> with a function that can handle a <code>Prim b</code> for <em>any</em> <code>b</code> (and not just a specific one like <code>Int</code> or <code>Bool</code>).</p>
+<p>So, like <code>foldMap</code>, we need to say “how to handle our base type”. Here, we have to answer “How do we handle <code>Prim</code>?”</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/regexp.hs#L58-L63</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="ot">processPrim ::</span> <span class="dt">Prim</span> a <span class="ot">-&gt;</span> <span class="dt">StateT</span> <span class="dt">String</span> <span class="dt">Maybe</span> a</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>processPrim (<span class="dt">Prim</span> c x) <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    d<span class="op">:</span>ds <span class="ot">&lt;-</span> get</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    guard (c <span class="op">==</span> d)</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    put ds</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pure</span> x</span></code></pre></div>
+<p>This lets us interpret a <code>Prim</code> as a <code>StateT String Maybe</code> action where the state is the “string left to be be processed”. Remember, a <code>Prim a</code> contains the character we want to match on, and the <code>a</code> value we want it to be interpreted as. To process a <code>Prim</code>, we:</p>
+<ol type="1">
+<li>Get the state’s (the string left to be parsed) head and tail, using <code>get</code>. If this match fails, backtrack.</li>
+<li>Using <code>guard</code>, backtrack unless the head matches what the <code>Prim</code> expects.</li>
+<li>Set the state to be the original tail, using <code>put</code>. This is because we parsed the head already, so now the “string left to be parsed” is just the original tail.</li>
+<li>The result is what the <code>Prim</code> says it should be.</li>
+</ol>
+<p>We can use this to write a function that matches the <code>RegExp</code> on a prefix. We need to run the state action (using <code>evalStateT</code>) on the string we want to parse:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/regexp.hs#L65-L66</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="ot">matchPrefix ::</span> <span class="dt">RegExp</span> a <span class="ot">-&gt;</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> a</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>matchPrefix re <span class="ot">=</span> evalStateT (runAlt processPrim re)</span></code></pre></div>
+<p>And that’s it! Our first solution:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> matchPrefix testRegexp_ <span class="st">&quot;acdcdcde&quot;</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> ()</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> matchPrefix testRegexp_ <span class="st">&quot;acdcdcdx&quot;</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="dt">Nothing</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> matchPrefix testRegexp <span class="st">&quot;acdcdcde&quot;</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dv">3</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> matchPrefix testRegexp <span class="st">&quot;bcdcdcdcdcdcdcde&quot;</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dv">7</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> matchPrefix digit <span class="st">&quot;9&quot;</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dv">9</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> matchPrefix bracketDigit <span class="st">&quot;[2]&quot;</span></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dv">2</span></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> matchPrefix (many bracketDigit) <span class="st">&quot;[2][3][4][5]&quot;</span></span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> [<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">5</span>]</span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> matchPrefix (<span class="fu">sum</span> <span class="op">&lt;$&gt;</span> many bracketDigit) <span class="st">&quot;[2][3][4][5]&quot;</span></span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dv">14</span></span></code></pre></div>
+<h4 id="wait-what-just-happened">Wait, what just happened?</h4>
+<p>Okay, so that might have happened a little quicker than you expected. One minute we were writing our primitive, and the next we had already finished. Here’s the entirety of the code, in a few lines of Haskell:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">RegExp</span> <span class="ot">=</span> <span class="dt">Alt</span> <span class="dt">Prim</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="ot">matchPrefix ::</span> <span class="dt">RegExp</span> a <span class="ot">-&gt;</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> a</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>matchPrefix re <span class="ot">=</span> evalStateT (runAlt processPrim re)</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>    processPrim (<span class="dt">Prim</span> c x) <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>      d<span class="op">:</span>ds <span class="ot">&lt;-</span> get</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>      guard (c <span class="op">==</span> d)</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>      put ds</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">pure</span> x</span></code></pre></div>
+<p>And now we have a fully functioning regexp parser? What happened?</p>
+<p>From a high-level view, remember that <code>Alt Prim</code> has, in its structure, <code>pure</code>, <code>empty</code>, <code>Prim</code>, <code>&lt;*&gt;</code>, <code>&lt;|&gt;</code>, and <code>many</code><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>.</p>
+<p>Essentially, what <code>runAlt</code> does is that it uses a given concrete <code>Alternative</code> (here, <code>StateT String Maybe</code>) to get the behavior of <code>pure</code>, <code>empty</code>, <code>&lt;*&gt;</code>, <code>&lt;|&gt;</code>, and <code>many</code>. But! As we can see from that list, <code>StateT</code> does <em>not</em> have a built-in behavior for <code>Prim</code>. And so, that’s where <code>processPrim</code> comes in.</p>
+<ul>
+<li>For <code>Prim</code>, <code>runAlt</code> uses <code>processPrim</code>.</li>
+<li>For <code>pure</code>, <code>empty</code>, <code>&lt;*&gt;</code>, <code>&lt;|&gt;</code>, and <code>many</code>, <code>runAlt</code> uses <code>StateT String     Maybe</code>’s <code>Alternative</code> instance.</li>
+</ul>
+<p>So, really, 83% of the work was done for us by <code>StateT</code>’s <code>Alternative</code> instance, and the other 17% is in <code>processPrim</code>.</p>
+<p>Admittedly, this <em>does</em> feel a little disappointing, or at least anticlimactic. This makes us wonder: why even use <code>Alt</code> in the first place? Why not just have <code>type RegExp = StateT String Maybe</code> and write an appropriate <code>char :: Char -&gt; StateT String Maybe Char</code>? If <code>StateT</code> does all of the work anyway, why even bother with <code>Alt</code>, the free Alternative?</p>
+<p>One major advantage we get from using <code>Alt</code> is that <code>StateT</code> is…pretty powerful. It’s actually <em>stupid</em> powerful. It can represent a lot of things…most troubling, it can represent things that <em>are not regular expressions</em>. For example, something as simple as <code>put "hello" :: StateT String Maybe ()</code> does not correspond to <em>any</em> regular expression.</p>
+<p>So, while we can say that <code>Alt Prim</code> corresponds to “regular expressions, nothing less and nothing more”, we <em>cannot</em> say the same about <code>StateT String Maybe</code>.</p>
+<p><code>Alt Prim</code> contains a “perfect fit” representation of a regular expression data type. Everything it can express is a regular expression, and there is nothing it can express that <em>isn’t</em> a regular expression.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
+<p>Here, we can think of <code>StateT</code> as the context that we use to <em>interpret</em> a <code>RegExp</code> as a <em>parser</em>. But, there might be <em>other</em> ways we want to work with a <code>RegExp</code>. For example, we might want to inspect it and “print” it out for inspection. This is something we can’t do with <code>StateT</code>.</p>
+<p>We can’t say that <code>StateT String Maybe</code> “is” a regular expression — only that it can represent a parser based on a regular expression. But we <em>can</em> say that about <code>Alt Prim</code>.</p>
+<h3 id="using-the-free-structure-directly">Using the Free structure directly</h3>
+<p>Alright, that’s great and all. But what if we didn’t want to offload 83% of the behavior to a type that has already been written for us. Is there a way we can directly use the structure of <code>Alt</code> itself to write our parser?</p>
+<p>This is analogous to asking, what if we wanted to actually write a function on a list (by pattern matching on <code>:</code> and <code>[]</code>) instead of always using <code>foldMap</code>? Can we directly operate on the structure of the list instead of using <code>foldMap</code> with some concrete monoid?</p>
+<p>I’m glad you asked! Let’s look at the definition of the free alternative:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="kw">newtype</span> <span class="dt">Alt</span> f a <span class="ot">=</span> <span class="dt">Alt</span> {<span class="ot"> alternatives ::</span> [<span class="dt">AltF</span> f a] }</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">AltF</span> f a <span class="ot">=</span> <span class="kw">forall</span> r<span class="op">.</span> <span class="dt">Ap</span> (f r) (<span class="dt">Alt</span> f (r <span class="ot">-&gt;</span> a))</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>              <span class="op">|</span>           <span class="dt">Pure</span> a</span></code></pre></div>
+<p>It’s a mutually recursive (and <a href="https://twanvl.nl/blog/haskell/non-regular1">non-regular</a>) type, so it might be a little confusing. One way to understand <code>Alt</code> is that <code>Alt xs</code> contains a <em>list of alternatives</em>, or a list of <code>&lt;|&gt;</code>s. And each of those alternatives is an <code>AltF</code>, which is a <em>sequence of <code>f a</code>s</em> chained by <code>&lt;*&gt;</code> (as a chain of function applications).</p>
+<p>You can essentially think of <code>AltF f a</code> as a linked list <code>[f r]</code>, except with a different <code>r</code> for each item. <code>Ap</code> is cons (<code>:</code>), containing the <code>f r</code>, and <code>Pure</code> is nil (<code>[]</code>). The <code>forall r.</code> here is <em>-XExistentialQuantification</em>, and is what lets us have a different intermediate type for each item in our chain.</p>
+<p>All in all, <code>Alt f</code> is like a list (<code>Alt</code> list) of lists (<code>AltF</code> chains), which take turn alternating between alternative lists and application sequences. A list of chains of lists of chains of lists of chains …</p>
+<p>In the big picture, you can think of <code>Alt f</code> as a “normalized” form of successive or nested <code>&lt;*&gt;</code> and <code>&lt;|&gt;</code>s, similar to how <code>[a]</code> is a “normalized” form of successive <code>&lt;&gt;</code>s.</p>
+<p>Ultimately we want to write a <code>RegExp a -&gt; String -&gt; Maybe a</code>, which parses a string based on a <code>RegExp</code>. We can do this using the most basic of all Haskell function-writing techniques: pattern matching on each case, and handling each case.</p>
+<p>First, the top-level <code>Alt</code> case. When faced with a list of chains, we can try to parse each one. The result is the first success.</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/regexp.hs#L68-L69</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="ot">matchAlts ::</span> <span class="dt">RegExp</span> a <span class="ot">-&gt;</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> a</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>matchAlts (<span class="dt">Alt</span> res) xs <span class="ot">=</span> asum [ matchChain re xs <span class="op">|</span> re <span class="ot">&lt;-</span> res ]</span></code></pre></div>
+<p>Here, <code>asum :: [Maybe a] -&gt; Maybe a</code> finds the first <code>Just</code> (success) in a list of attempts.</p>
+<p>Now, we need to handle the chain case. To do this, we can pattern match on each constructor, and handle each case.</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="ot">matchChain ::</span> <span class="dt">AltF</span> <span class="dt">Prim</span> a <span class="ot">-&gt;</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> a</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>matchChain (<span class="dt">Ap</span> (<span class="dt">Prim</span> c x) next) cs <span class="ot">=</span> _</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>matchChain (<span class="dt">Pure</span> x)             cs <span class="ot">=</span> _</span></code></pre></div>
+<p>From here, it’s mostly “type tetris”! We just continually ask GHC what goes in what holes (and what types need to change) until we get something that typechecks.</p>
+<p>In the end of the very mechanical process, we get:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/regexp.hs#L71-L76</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="ot">matchChain ::</span> <span class="dt">AltF</span> <span class="dt">Prim</span> a <span class="ot">-&gt;</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> a</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>matchChain (<span class="dt">Ap</span> (<span class="dt">Prim</span> c x) next) cs <span class="ot">=</span> <span class="kw">case</span> cs <span class="kw">of</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>    []  <span class="ot">-&gt;</span> <span class="dt">Nothing</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>    d<span class="op">:</span>ds <span class="op">|</span> c <span class="op">==</span> d    <span class="ot">-&gt;</span> matchAlts ((<span class="op">$</span> x) <span class="op">&lt;$&gt;</span> next) ds</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>         <span class="op">|</span> <span class="fu">otherwise</span> <span class="ot">-&gt;</span> <span class="dt">Nothing</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>matchChain (<span class="dt">Pure</span> x)             _      <span class="ot">=</span> <span class="dt">Just</span> x</span></code></pre></div>
+<ol type="1">
+<li><p>If it’s <code>Ap</code> (analogous to cons, <code>:</code>), it means we’re in the middle of the chain.</p>
+<ul>
+<li>If the input string is empty, then we fail to match.</li>
+<li>Otherwise, here’s the interesting thing. We have the <code>Prim r</code> with the character we want to match, the first letter in the string, and <code>next     :: RegExp (r -&gt; a)</code>, the next <code>RegExp</code> in our sequential parsing chain.
+<ul>
+<li>If the match is a success, we continue down the chain, to <code>next</code>. We just need to massage the types a bit to make it all work out.</li>
+<li>Otherwise, it’s a failure. We’re done here.</li>
+</ul></li>
+</ul></li>
+<li><p>If it’s <code>Pure x</code> (analogous to nil, <code>[]</code>), it means we’re at the end of the chain. We return the result in <code>Just</code>.</p></li>
+</ol>
+<p>In the end though, you don’t really need to understand any of this <em>too</em> deeply in order to write this. Sure, it’s nice to understand what <code>Ap</code>, <code>Pure</code>, <code>AltF</code>, etc. really “mean”. But, we don’t have to — the types take care of all of it for you :)</p>
+<p>That should be good enough to implement another prefix parser:</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> matchAlts testRegexp_ <span class="st">&quot;acdcdcde&quot;</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> ()</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> matchAlts testRegexp_ <span class="st">&quot;acdcdcdx&quot;</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="dt">Nothing</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> matchAlts testRegexp <span class="st">&quot;acdcdcde&quot;</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dv">3</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> matchAlts testRegexp <span class="st">&quot;bcdcdcdcdcdcdcde&quot;</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dv">7</span></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> matchAlts digit <span class="st">&quot;9&quot;</span></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dv">9</span></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> matchAlts bracketDigit <span class="st">&quot;[2]&quot;</span></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dv">2</span></span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> matchAlts (many bracketDigit) <span class="st">&quot;[2][3][4][5]&quot;</span></span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> [<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">5</span>]</span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> matchAlts (<span class="fu">sum</span> <span class="op">&lt;$&gt;</span> many bracketDigit) <span class="st">&quot;[2][3][4][5]&quot;</span></span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dv">14</span></span></code></pre></div>
+<h3 id="what-did-we-do">What did we do?</h3>
+<p>The two attempts here can be compared to using lists via <code>foldMap</code> vs. using lists via pattern matching.</p>
+<p>Because lists act as a free monoid, <em>any list function</em> can be written using <code>foldMap</code> and not directly pattern matching. If this seems unbelievable to you, try finding a function that can’t — you might be surprised!</p>
+<p>However, because lists are an algebraic data type, <em>any list function</em> can be written using straight up pattern matching on <code>:</code> and <code>[]</code>.</p>
+<p>One nice thing about list is that, no matter how you assemble it, it always ends up as a series of conses and nil. We say that the free monoid is <em>normalizing</em>. That is, <code>[1,2,3] &lt;&gt; [4]</code> has the same representation as <code>[1] &lt;&gt; [2,3] &lt;&gt; [4].</code> When we pattern match on <code>:</code> and <code>[]</code>, we can’t distinguish between those two original methods of creation.</p>
+<p><code>Alt</code> is normalizing as well. An example of a possible variant that is <em>not</em> normalizing is:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">RegExp</span> a <span class="ot">=</span> <span class="dt">Empty</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>              <span class="op">|</span> <span class="dt">Pure</span> a</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>              <span class="op">|</span> <span class="dt">Prim</span> <span class="dt">Char</span> a</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>              <span class="op">|</span> <span class="kw">forall</span> r<span class="op">.</span> <span class="dt">Seq</span> (<span class="dt">RegExp</span> r) (<span class="dt">RegExp</span> (r <span class="ot">-&gt;</span> a))</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>              <span class="op">|</span> <span class="dt">Union</span> (<span class="dt">RegExp</span> a) (<span class="dt">RegExp</span> a)</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>              <span class="op">|</span> <span class="dt">Many</span> (<span class="dt">RegExp</span> a)</span></code></pre></div>
+<p>This is how we <em>might</em> have written <code>RegExp</code>, if we didn’t know about the free alternative. However, this representation is not normalizing, because we have two <code>RegExp a</code> values that represent the same regexp:</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- | a|(b|c)</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="ot">abc1 ::</span> <span class="dt">RegExp</span> <span class="dt">Int</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>abc1 <span class="ot">=</span> <span class="dt">Prim</span> <span class="ch">&#39;a&#39;</span> <span class="dv">1</span> <span class="ot">`Union`</span> (<span class="dt">Prim</span> <span class="ch">&#39;b&#39;</span> <span class="dv">2</span> <span class="ot">`Union`</span> <span class="dt">Prim</span> <span class="ch">&#39;c&#39;</span> <span class="dv">3</span>)</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a><span class="co">-- | (a|b)|c</span></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a><span class="ot">abc2 ::</span> <span class="dt">RegExp</span> <span class="dt">Int</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>abc2 <span class="ot">=</span> (<span class="dt">Prim</span> <span class="ch">&#39;a&#39;</span> <span class="dv">1</span> <span class="ot">`Union`</span> <span class="dt">Prim</span> <span class="ch">&#39;b&#39;</span> <span class="dv">2</span>) <span class="ot">`Union`</span> <span class="dt">Prim</span> <span class="ch">&#39;c&#39;</span> <span class="dv">3</span></span></code></pre></div>
+<p>These two match the same thing. But they have different representations. This representation <em>not</em> normalizing, since the same regexp can be expressed in two different ways.</p>
+<p><code>Alt Prim</code> is better because if two regexps are the same…they will correspond to the same <code>Alt Prim</code>. It forces each value to exist in a “canonical” normalized form.</p>
+<p>This means that when we eventually write our parsing function <code>matchAlts</code>, <em>we aren’t allowed to care</em> about “how” the regexps are made. We aren’t <em>allowed</em> to distinguish between <code>(a|b)|c</code> and <code>a|(b|c)</code>. The normalizing property of <code>Alt</code> means that we are forced to treat both of those the <em>exact</em> same way. It <em>forces</em> us to obey the laws about the structures of regular languages.</p>
+<p>It’s easy to imagine a bug that might occur if we accidentally treated <code>(a|b)|c</code> differently than <code>a|(b|c)</code> — and indeed it sounds like an easy bug to accidentally make if we are using the non-normalizing representation.</p>
+<p>Using <code>Alt</code> instead of rolling our own regexp expression not only enforces our integrity, but it also eliminates a huge class of potential bugs.</p>
+<p>However, it should be noted that, while <code>Alt f</code> is strongly normalizing with respect to Alternative structure, <code>Alt Prim</code> isn’t strongly normalizing with respect to <em>regular expressions</em> structure in every single case. For example, <code>Alt Prim</code> will still treat <code>a|a</code> as different from <code>a</code>. This is mostly because <code>Alt</code> has to be “agnostic” to <code>f</code>. But, like with all structural “type safety”, I always follow this rule of thumb: <em>A lot of safety is better than no safety</em>. This method can’t eliminate <em>all</em> bugs arising from this angle, but it can eliminate a whoooole lot.</p>
+<h2 id="some-subtle-caveats">Some subtle caveats</h2>
+<p>Before we conclude, let’s take some time to clarify a subtle point. Feel free to skip this whole section if you don’t care about the fact that these aren’t identical to the mathematical formalism of regular languages.</p>
+<p>While we can <em>use</em> <code>RegExp</code> just like a regular expression, the formal concept of regular expressions is actually slightly different, due to one pesky thing: <strong>laziness</strong>.</p>
+<p>We really <em>shouldn’t</em> be too surprised, since laziness actually throws a wrench into a <em>lot</em> of Haskell abstractions that are based on math. For example, laziness is the reason that lists aren’t “true” mathematical free monoids.</p>
+<p>The reason is that because of laziness and unbounded recursion, we can create an “infinite” regular language: <code>a|aa|aaa|aaaa|aaaaa|aaaaaa|...</code>, forever and ever. However, infinite regular expressions aren’t allowed in the mathematical version. In Haskell, unfortunately, there is no way to “turn off” recursion: we’re stuck with it.</p>
+<p>Even more unfortunately, this is actually how the <code>Alt</code> encoding of the free alternative above implements <code>many</code>. <code>a*</code> is implemented as <code>|a|aa|aaa|aaaa|aaaaa|...</code>, infinitely. So the representation actually <em>relies</em> on laziness and infinite recursion to do its job. If you look at the contents of <code>many (char 'a')</code>, you will see an infinite list.</p>
+<p>“Haskell without recursion” is fine with <code>Alt</code> for a “<a href="https://en.wikipedia.org/wiki/Star-free_language">star-free language</a>”, but it won’t cut it for a regular one.</p>
+<p>For the purposes we talked about in this post, this doesn’t matter. However, this does create serious issues if we want to write a <a href="https://en.wikipedia.org/wiki/Nondeterministic_finite_automaton">non-deterministic finite automata based parser</a> (NFA), which is the de facto standard for implementing fast regexp parsers. We can only really generate an NFA if we have a <em>finite</em> value, which means anything using <code>many</code> is out of the question.</p>
+<p>Not all hope is lost, however. We can actually use the “final encoding” of <code>Alt</code>, from <em>Control.Alternative.Free.Final</em>, to gain a <code>many</code> that is non-recursive.</p>
+<p>Using the final encoding means we lose the “pattern match” method, and can only use the <code>runAlt</code> method. However, we can off-load to <code>Alternative</code> instances that have non-recursive <code>many</code> (like the <code>RE</code> type from <em>regex-applicative</em>) that allows us to generate an NFA parser. While this still has issues because Haskell allows general recursion, at least <code>many</code> in specific is no longer dependent on infinite structures.</p>
+<p>There’s another interesting point to be made, however, regarding compatibility with NFAs. Even though this recursive encoding doesn’t allow us to create an <em>explicit</em> NFA (a full graph with nodes and transitions), it does allow us to make an <em>implicit</em> one. We can’t ever make an <em>explicit</em> NFA involving <code>many</code> because the naive <code>many</code> in the normal <code>Alt</code> gives us an infinite data structure, so we get an infinite graph.</p>
+<p>However, our implementation of <code>matchPrefix</code> is actually an <em>implicit</em> NFA in the GHC runtime, where the ‘states’ can be considered function pointers on the heap. These pointers refer to other pointers, and the overall behavior works like an unoptimized NFA under the hood that’s assembled as we go. This circumvents the infinite data structure problem because GHC Haskell internally implements recursion by cycles in pointer structures.</p>
+<h2 id="wrapping-up">Wrapping Up</h2>
+<p>Let’s wrap things up! As a cherry on top, we can write our final function to find matches anywhere inside a string by using <code>tails</code> (which gives us all prefixes in a string) and <code>mapMaybe</code> (which maps <code>matchPrefix</code> on every prefix and keeps the successes). It’s also useful to write a function to get the <em>first</em> successful match, using <code>listToMaybe</code>.</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/regexp.hs#L78-L82</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="ot">matches ::</span> <span class="dt">RegExp</span> a <span class="ot">-&gt;</span> <span class="dt">String</span> <span class="ot">-&gt;</span> [a]</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>matches re <span class="ot">=</span> mapMaybe (matchPrefix re) <span class="op">.</span> tails</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a><span class="ot">firstMatch ::</span> <span class="dt">RegExp</span> a <span class="ot">-&gt;</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> a</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>firstMatch re <span class="ot">=</span> listToMaybe <span class="op">.</span> matches re</span></code></pre></div>
+<p>This is pretty efficient, due to how <code>matchPrefix</code> short-circuits with <code>Nothing</code> as soon as it fails, and how <code>listToMaybe</code> short-circuits as soon as it finds a <code>Just</code>.</p>
+<p>Hopefully from this, you can see the value of free structures :)</p>
+<ul>
+<li>Given some base primitive, they give you exactly the structure you need — no more, no less.</li>
+<li>They let you work with your type safely, and then unsafely “run” it inside different useful contexts.</li>
+<li>They are normalizing, so you are not allowed to make “illegal” distinctions. This eliminates a class of bugs where you accidentally treat two cases differently when they are meant to be treated the same way.</li>
+</ul>
+<p>Our journey from going to regular languages to <code>Alt Prim</code> was to recognize that the structures involved in regular expressions matched an <code>Alternative</code> interface “plus” some extra primitives — and then shifting our perspective to enriching a primitive with <code>Alternative</code> energy.</p>
+<p>Where can we go from here? First, try playing around with the <a href="https://github.com/mstksg/inCode/tree/master/code-samples/misc/regexp.hs">sample code</a>. One easy addition would be to add other types of primitives:</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Prim</span> a <span class="ot">=</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Only</span> <span class="dt">Char</span> a                 <span class="co">-- ^ match a char with a given result</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="op">|</span> <span class="dt">Letter</span> a                    <span class="co">-- ^ match any letter with the same result</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  <span class="op">|</span> <span class="dt">Digit</span>    (<span class="dt">Int</span>  <span class="ot">-&gt;</span> a)        <span class="co">-- ^ match any digit, with a result computed from it</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>  <span class="op">|</span> <span class="dt">Wildcard</span> (<span class="dt">Char</span> <span class="ot">-&gt;</span> a)        <span class="co">-- ^ match any char, with a computed result</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>  <span class="op">|</span> <span class="dt">Satisfy</span> (<span class="dt">Char</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> a)   <span class="co">-- ^ match potentially any char, based on a function</span></span></code></pre></div>
+<p>so we can support a lot of the basic character classes that many implementations of regular expressions support. Try this out in the <a href="https://github.com/mstksg/inCode/tree/master/code-samples/misc/regexp.hs">sample code</a> as an exercise!</p>
+<p>One fun thing you can do also is to use our regexp type to generate a string that it would match on. Try doing this both in the <code>runAlt</code>-based method and also the explicit pattern matching method!</p>
+<p>Another interesting direction we can take, along the lines of <a href="https://www.microsoft.com/en-us/research/publication/build-systems-la-carte/">build systems a la carte</a>, is experimenting with different free structures to give rise to different types of languages/expressions. For example, if we use the free <em>Applicative</em>, we get a language that has only concatenation and empty strings and primitives, and no alternations. It’s like regular expressions with no <code>|</code>, or basically only straight up matches. If we use the free <em>Monad</em>, we get a context-sensitive language with no backtracking. If we use the free <em>MonadPlus</em>, we get a context-sensitive language with backtracking. And if we use the (redundant) free <em>Functor</em>…we get a language that can parse a string of one and only one character. It’s nice that we get this sort of “a la carte” scaling system by our choice of free structure.</p>
+<p>I hope that after working through this example, you will begin to start recognizing opportunities for using free structures everywhere you look! Once you start, it’s hard to stop :)</p>
+<h2 id="special-thanks">Special Thanks</h2>
+<p>I am very humbled to be supported by an amazing community, who make it possible for me to devote time to researching and writing these posts. Very special thanks to my supporters at the “Amazing” level on <a href="https://www.patreon.com/justinle/overview">patreon</a>, Sam Stites and Josh Vera! :)</p>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p>A caveat exists here for <code>many</code>. More on this later!<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>Note that there are some caveats that should be noted here, due to laziness in Haskell. We will go deeper into this later.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div><footer><hr><div class="copy-content"><p>Hi, thanks for reading! You can reach me via email at <a href="mailto:justin@jle.im" class="email">justin@jle.im</a>, or at twitter at <a href="https://twitter.com/mstk">@mstk</a>! This post and all others are published under the <a href="https://creativecommons.org/licenses/by-nc-nd/3.0/">CC-BY-NC-ND 3.0</a> license. Corrections and edits via pull request are welcome and encouraged at <a href="https://github.com/mstksg/inCode">the source repository</a>.</p>
+<p>If you feel inclined, or this post was particularly helpful for you, why not consider <a href="https://www.patreon.com/justinle/overview">supporting me on Patreon</a>, or a <a href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">BTC donation</a>? :)</p></div><div class="clear"></div><ul class="entry-series"></ul><ul class="tag-list"><li><a href="https://blog.jle.im/entries/tagged/functor-combinators.html" class="tag-a-tag">#functor combinators</a></li><li><a href="https://blog.jle.im/entries/tagged/haskell.html" class="tag-a-tag">#haskell</a></li><li><a href="https://blog.jle.im/entries/tagged/parsers.html" class="tag-a-tag">#parsers</a></li><li><a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category">@HASKELL</a></li><li><a href="https://blog.jle.im/entries/category/@math.html" class="tag-a-category">@MATH</a></li></ul><aside class="social-buttons"><div class="addthis_toolbox addthis_default_style addthis-buttons"><a class="addthis_button_facebook_like" fb:like:layout="button_count"></a><a class="addthis_button_tweet"></a><a class="addthis_button_google_plusone" g:plusone:size="medium"></a><a class="addthis_counter addthis_pill_style"></a></div><div class="custom-social-buttons"><div class="custom-social-button"><a href="https://www.reddit.com/submit" onclick="window.location = &#39;https://www.reddit.com/submit?url=&#39;+ encodeURIComponent(window.location); return false"><img src="https://www.reddit.com/static/spreddit7.gif" alt="submit to reddit"></a></div></div></aside><nav class="next-prev-links"><ul><li class="prev-entry-link">&larr; <a href="https://blog.jle.im/entry/tries-with-recursion-schemes.html">Visualizing Prequel Meme Prefix Tries with Recursion Schemes
+</a> (Previous)</li><li class="next-entry-link">(Next) <a href="https://blog.jle.im/entry/functor-combinatorpedia.html">The Functor Combinatorpedia
+</a> &rarr;</li></ul></nav></footer></article><div class="post-entry"><div class="tile"><div id="disqus_thread"></div><script type="text/javascript">var disqus_config = function () {
+    this.page.url = 'https://blog.jle.im/entry/free-alternative-regexp.html';
+    this.page.identifier = 'regexp';
+};
+(function() {
+    var d = document, s = d.createElement('script');
+    s.src = '//incode.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a><br></noscript><a href="http://disqus.com" class="dsq-brlink">Comments powered by <span class="logo-disqus">Disqus</span></a></div></div></div></div></div><div id="footer-container"><div id="footer-content"><div class="tile"><div class="footer-copyright">&copy; 2020 Justin Le <span class="license-link">(<a href="https://creativecommons.org/licenses/by-nc-nd/3.0/" class="license">CC-BY-NC-ND 3.0</a>)</span></div><div class="footer-follow social-follows"><ul class="social-follows-list"><li><ul class="social-follows-list-social"><li><a class="social-follow-twitter" title="Follow me on Twitter!" href="https://twitter.com/intent/user?user_id=mstk" onclick="window.open(
+  &#39;http://twitter.com/intent/user?user_id=907281&#39;,
+  &#39;facebook-share-dialog&#39;,
+  &#39;width=550,height=520&#39;);
+return false;
+">Twitter</a></li><li><a class="social-follow-github" title="Fork me on Github!" href="https://github.com/mstksg">Github</a></li><li><a class="social-follow-twitch" title="Watch me on Twitch!" href="https://www.twitch.tv/justin_l">Twitch</a></li><li><a class="social-follow-patreon" title="Support me on Patreon!" href="https://www.patreon.com/justinle/overview">Patreon</a></li><li><a class="social-follow-gplus" title="Add me on Google+!" href="https://plus.google.com/+JustinLe">Google+</a></li><li><a class="social-follow-keybase" title="Track me on Keybase!" href="https://keybase.io/mstksg">Keybase</a></li><li><a class="social-follow-linkedin" title="Connect with me on LinkedIn!" href="https://linkedin.com/in/lejustin">LinkedIn</a></li><li><a class="social-follow-bitcoin" title="Donate via bitcoin!" href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">Bitcoin</a></li></ul></li><li><ul class="social-follows-list-site"><li><a class="social-follow-rss" title="Subscribe to my RSS Feed!" href="http://feeds.feedburner.com/incodeblog">RSS</a></li><li><a class="social-follow-email" title="Subscribe to the mailing list!" href="https://feedburner.google.com/fb/a/mailverify?loc=en_US&amp;uri=incodeblog">Mailing list</a></li></ul></li></ul></div></div></div></div></body></html>

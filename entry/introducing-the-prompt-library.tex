@@ -1,0 +1,437 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Introducing the ``Prompt'' library},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Introducing the ``Prompt'' library}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% June 30, 2015
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/introducing-the-prompt-library.html}{in
+Code}}.}
+
+\textbf{Prompt}:
+\href{https://github.com/mstksg/prompt/blob/master/README.md}{README} /
+\href{http://hackage.haskell.org/package/prompt}{hackage} /
+\href{https://github.com/mstksg/prompt}{github}
+
+Have you ever wanted to specify a computation involving some limited form of IO
+--- like querying a database, or asking stdio --- but didn't want a computation
+in the \texttt{IO} monad, opening the entire can of worms that is arbitrary
+\texttt{IO}? Have you ever looked at complicated \texttt{IO\ a} you wrote last
+week at 4am and prayed that it didn't launch missiles if you decided to execute
+it? Do you want to be able to run an effectful computation and explicitly
+\emph{say} what IO it can or cannot do?
+
+Introducing the \emph{\href{http://hackage.haskell.org/package/prompt}{prompt}}
+library! It's a small little lightweight library that allows you to specify and
+describe computations involving forms of effects where you ``ask'' with a value
+and receive a value in return (such as a database query, etc.), but not ever
+care about how the effects are fulfilled --- freeing you from working directly
+with IO.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Foo} \OtherTok{=} \DataTypeTok{Foo}\NormalTok{ \{}\OtherTok{ fooBar ::} \DataTypeTok{String}
+\NormalTok{               ,}\OtherTok{ fooBaz ::} \DataTypeTok{Int}
+\NormalTok{               \} }\KeywordTok{deriving} \DataTypeTok{Show}
+
+\CommentTok{{-}{-} ask with a String, receive a String as an answer}
+\OtherTok{promptFoo ::} \DataTypeTok{Prompt} \DataTypeTok{String} \DataTypeTok{String} \DataTypeTok{Foo}
+\NormalTok{promptFoo }\OtherTok{=} \DataTypeTok{Foo}
+        \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ prompt }\StringTok{"bar"}
+        \OperatorTok{\textless{}*\textgreater{}} \FunctionTok{fmap} \FunctionTok{length}\NormalTok{ (prompt }\StringTok{"baz"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Running}\label{running}
+
+You can now ``run it'' in IO, by talking to stdio ---
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ runPromptM promptFoo }\OperatorTok{$}\NormalTok{ \textbackslash{}str }\OtherTok{{-}\textgreater{}} \FunctionTok{putStrLn}\NormalTok{ str }\OperatorTok{\textgreater{}\textgreater{}} \FunctionTok{getLine}
+\NormalTok{bar                 }\CommentTok{{-}{-} stdout prompt}
+\OperatorTok{\textgreater{}}\NormalTok{ hello}\OperatorTok{!}            \CommentTok{{-}{-} stdin response typed in}
+\NormalTok{baz                 }\CommentTok{{-}{-} stdout prompt}
+\OperatorTok{\textgreater{}}\NormalTok{ i am baz          }\CommentTok{{-}{-} stdin response typed in}
+\DataTypeTok{Foo} \StringTok{"hello!"} \DecValTok{8}      \CommentTok{{-}{-} result}
+\end{Highlighting}
+\end{Shaded}
+
+(this is also just \texttt{interactP\ promptFoo})
+
+Or you can maybe request it from the environment variables:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{import} \DataTypeTok{System.Environment}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ setEnv }\StringTok{"bar"} \StringTok{"hello!"}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ setEnv }\StringTok{"baz"} \StringTok{"i am baz"}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ runPromptM promptFoo getEnv}
+\DataTypeTok{Foo} \StringTok{"hello!"} \DecValTok{8}
+\end{Highlighting}
+\end{Shaded}
+
+Or maybe you want to fulfill the prompts purely:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{import} \KeywordTok{qualified} \DataTypeTok{Data.Map} \KeywordTok{as} \DataTypeTok{M}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ testMap }\OtherTok{=}\NormalTok{ M.fromList [(}\StringTok{"bar"}\NormalTok{, }\StringTok{"hello!"}\NormalTok{), (}\StringTok{"baz"}\NormalTok{, }\StringTok{"i am baz"}\NormalTok{)]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ runPrompt promptFoo (testMap }\OperatorTok{M.!}\NormalTok{)}
+\DataTypeTok{Foo} \StringTok{"hello!"} \DecValTok{8}
+\end{Highlighting}
+\end{Shaded}
+
+With \texttt{Prompt}, specify the computation and your logic \emph{without
+involving any IO}, so you can write safe code without arbitrary side effects. If
+you ever receive a \texttt{Prompt}, you know it can't wipe out your hard drive
+or do any IO other than exactly what you allow it to do! I'd feel more safe
+running a \texttt{Prompt\ a\ b\ r} than an \texttt{IO\ r}.
+
+You can also do some cute tricks; \texttt{Prompt\ a\ ()\ r} with a ``prompt
+response function'' like \texttt{putStrLn} lets you do streaming logging, and
+defer \emph{how} the logging is done --- to IO, to a list?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ logHelloWord }\OtherTok{=} \FunctionTok{mapM\_}\NormalTok{ prompt [}\StringTok{"hello"}\NormalTok{, }\StringTok{"world"}\NormalTok{]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ runPromptM logHelloWorld }\FunctionTok{putStrLn}
+\NormalTok{hello}
+\NormalTok{world}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ execWriter }\OperatorTok{$}\NormalTok{ runPromptM logHelloWorld tell}
+\StringTok{"helloworld"}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{Prompt\ ()\ b\ r} is like a fancy \texttt{ReaderT\ b\ m\ r}, where you
+``defer'' the choice of the Monad.
+
+\section{Combining with other effects}\label{combining-with-other-effects}
+
+\texttt{Prompt} can be used as an underlying ``effects'' source for libraries
+like \emph{pipes}, \emph{conduit}, and \emph{auto}. If your effects are only
+ever asking and prompting and receiving, there's really no need to put the
+entire power of \texttt{IO} underneath your DSL as an effects source. That's
+just crazy!
+
+\texttt{Prompt} can be used with monad transformers to give you safe underlying
+effect sources, like \texttt{StateT\ s\ (Prompt\ a\ b)\ r}, which is a stateful
+computation which can sometimes sequence ``prompty'' effects. \texttt{Prompt} is
+also itself a ``Traversable transformer'', with \texttt{PrompT\ a\ b\ t\ r}. It
+can perform computations in the context of a Traversable \texttt{t}, to be able
+to incorporate built-in short-circuiting and logging, etc.
+
+This is all abstracted over with \texttt{MonadPrompt}, \texttt{MonadError},
+\texttt{MonadPlus}, etc., typeclasses ---
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{promptFoo2 ::}\NormalTok{ (}\DataTypeTok{MonadPlus}\NormalTok{ m, }\DataTypeTok{MonadPrompt} \DataTypeTok{String} \DataTypeTok{String}\NormalTok{ m) }\OtherTok{=\textgreater{}}\NormalTok{ m }\DataTypeTok{Foo}
+\NormalTok{promptFoo2 }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    bar }\OtherTok{\textless{}{-}}\NormalTok{ prompt }\StringTok{"bar"}
+\NormalTok{    str }\OtherTok{\textless{}{-}}\NormalTok{ prompt }\StringTok{"baz"}
+    \KeywordTok{case}\NormalTok{ readMaybe str }\KeywordTok{of}
+        \DataTypeTok{Just}\NormalTok{ baz }\OtherTok{{-}\textgreater{}} \FunctionTok{return} \OperatorTok{$} \DataTypeTok{Foo}\NormalTok{ bar baz}
+        \DataTypeTok{Nothing}  \OtherTok{{-}\textgreater{}}\NormalTok{ mzero}
+
+\CommentTok{{-}{-} more polymorphic}
+\OtherTok{promptFoo ::} \DataTypeTok{MonadPrompt} \DataTypeTok{String} \DataTypeTok{String}\NormalTok{ m }\OtherTok{=\textgreater{}}\NormalTok{ m }\DataTypeTok{Foo}
+\NormalTok{promptFoo }\OtherTok{=} \DataTypeTok{Foo}
+        \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ prompt }\StringTok{"bar"}
+        \OperatorTok{\textless{}*\textgreater{}} \FunctionTok{fmap} \FunctionTok{length}\NormalTok{ (prompt }\StringTok{"baz"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+You can run \texttt{promptFoo} as a
+\texttt{MaybeT\ (Prompt\ String\ String)\ Foo}, and manually unwrap:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ interactP }\OperatorTok{.}\NormalTok{ runMaybeT }\OperatorTok{$}\NormalTok{ promptFoo2}
+\NormalTok{bar}
+\OperatorTok{\textgreater{}}\NormalTok{ hello}\OperatorTok{!}
+\NormalTok{baz}
+\OperatorTok{\textgreater{}}\NormalTok{ i am baz}
+\DataTypeTok{Nothing}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ interactP }\OperatorTok{.}\NormalTok{ runMaybeT }\OperatorTok{$}\NormalTok{ promptFoo2}
+\NormalTok{bar}
+\OperatorTok{\textgreater{}}\NormalTok{ hello}\OperatorTok{!}
+\NormalTok{baz}
+\OperatorTok{\textgreater{}} \DecValTok{19}
+\DataTypeTok{Just}\NormalTok{ (}\DataTypeTok{Foo} \StringTok{"hello!"} \DecValTok{19}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Or you can run it as a \texttt{PromptT\ String\ String\ MaybeT\ Foo}, to have
+\texttt{PromptT} handle the wrapping/unwrapping itself:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ interactPT promptFoo2}
+\NormalTok{bar}
+\OperatorTok{\textgreater{}}\NormalTok{ hello}\OperatorTok{!}
+\NormalTok{baz}
+\OperatorTok{\textgreater{}}\NormalTok{ i am baz}
+\DataTypeTok{Nothing}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ interactPT }\OperatorTok{$}\NormalTok{ promptFoo2 }\OperatorTok{\textless{}|\textgreater{}}\NormalTok{ promptFoo}
+\NormalTok{bar}
+\OperatorTok{\textgreater{}}\NormalTok{ hello}\OperatorTok{!}
+\NormalTok{baz}
+\OperatorTok{\textgreater{}}\NormalTok{ i am baz}
+\NormalTok{bar                 }\CommentTok{{-}{-} failed to parse {-}{-}{-} retrying with promptFoo!}
+\OperatorTok{\textgreater{}}\NormalTok{ hello}\OperatorTok{!}
+\NormalTok{baz}
+\OperatorTok{\textgreater{}}\NormalTok{ i am baz}
+\DataTypeTok{Just}\NormalTok{ (}\DataTypeTok{Foo} \StringTok{"hello"} \DecValTok{8}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+The previous example of \texttt{logHelloWorld}?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ runPromptT (}\OtherTok{logHelloWorld ::} \DataTypeTok{PromptT} \DataTypeTok{String}\NormalTok{ () (}\DataTypeTok{Writer} \DataTypeTok{String}\NormalTok{) ()) tell}
+\StringTok{"helloworld"}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Runners}\label{runners}
+
+The ``runners'' are:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{interactP   ::}                  \DataTypeTok{Prompt}  \DataTypeTok{String} \DataTypeTok{String}\NormalTok{   r }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ r}
+\OtherTok{interactPT  ::} \DataTypeTok{Applicative}\NormalTok{ t }\OtherTok{=\textgreater{}} \DataTypeTok{PromptT} \DataTypeTok{String} \DataTypeTok{String}\NormalTok{ t r }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ (t r)}
+
+\OtherTok{runPrompt   ::}                  \DataTypeTok{Prompt}\NormalTok{  a b   r }\OtherTok{{-}\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{   b) }\OtherTok{{-}\textgreater{}}\NormalTok{ r}
+\OtherTok{runPromptM  ::} \DataTypeTok{Monad}\NormalTok{ m       }\OtherTok{=\textgreater{}} \DataTypeTok{Prompt}\NormalTok{  a b   r }\OtherTok{{-}\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{ m b) }\OtherTok{{-}\textgreater{}}\NormalTok{ m r}
+
+\OtherTok{runPromptT  ::}                  \DataTypeTok{PromptT}\NormalTok{ a b t r }\OtherTok{{-}\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{    t b)  }\OtherTok{{-}\textgreater{}}\NormalTok{ t r}
+\OtherTok{runPromptTM ::} \DataTypeTok{Monad}\NormalTok{ m       }\OtherTok{=\textgreater{}} \DataTypeTok{PromptT}\NormalTok{ a b t r }\OtherTok{{-}\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{ m (t b)) }\OtherTok{{-}\textgreater{}}\NormalTok{ m (t r)}
+\end{Highlighting}
+\end{Shaded}
+
+Note that \texttt{runPromptM} and \texttt{runPromptTM} can run in monads (like
+\texttt{IO}) that are \emph{completely unrelated} to the \texttt{Prompt} type
+itself. It sequences them all ``after the fact''. It's also interesting to note
+that \texttt{runPrompt} is just a glorified
+\texttt{Reader\ (a\ -\textgreater{}\ b)\ r}.
+
+With \texttt{runPromptTM}, you can incorporate \texttt{t} in your ``prompt
+response'' function, too. Which brings us to our grand finale -- environment
+variable parsing!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{import} \DataTypeTok{Control.Monad.Error.Class}
+\KeywordTok{import} \DataTypeTok{Control.Monad.Prompt}
+\KeywordTok{import} \DataTypeTok{Text.Read}
+\KeywordTok{import} \KeywordTok{qualified} \DataTypeTok{Data.Map} \KeywordTok{as} \DataTypeTok{M}
+
+\KeywordTok{type} \DataTypeTok{Key} \OtherTok{=} \DataTypeTok{String}
+\KeywordTok{type} \DataTypeTok{Val} \OtherTok{=} \DataTypeTok{String}
+
+\KeywordTok{data} \DataTypeTok{MyError} \OtherTok{=} \DataTypeTok{MENoParse} \DataTypeTok{Key} \DataTypeTok{Val}
+             \OperatorTok{|} \DataTypeTok{MENotFound} \DataTypeTok{Key}
+             \KeywordTok{deriving} \DataTypeTok{Show}
+
+\OtherTok{promptRead ::}\NormalTok{ (}\DataTypeTok{MonadError} \DataTypeTok{MyError}\NormalTok{ m, }\DataTypeTok{MonadPrompt} \DataTypeTok{Key} \DataTypeTok{Val}\NormalTok{ m, }\DataTypeTok{Read}\NormalTok{ b)}
+           \OtherTok{=\textgreater{}} \DataTypeTok{Key} \OtherTok{{-}\textgreater{}}\NormalTok{ m b}
+\CommentTok{{-}{-} promptRead :: Read b =\textgreater{} Key {-}\textgreater{} PromptT Key Val (Either MyError) b}
+\NormalTok{promptRead k }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    resp }\OtherTok{\textless{}{-}}\NormalTok{ prompt k}
+    \KeywordTok{case}\NormalTok{ readMaybe resp }\KeywordTok{of}
+      \DataTypeTok{Nothing} \OtherTok{{-}\textgreater{}}\NormalTok{ throwError }\OperatorTok{$} \DataTypeTok{MEParse}\NormalTok{ k resp}
+      \DataTypeTok{Just}\NormalTok{ v  }\OtherTok{{-}\textgreater{}} \FunctionTok{return}\NormalTok{ v}
+
+\OtherTok{promptFoo3 ::} \DataTypeTok{MonadPrompt} \DataTypeTok{Key} \DataTypeTok{Val}\NormalTok{ m }\OtherTok{=\textgreater{}}\NormalTok{ m }\DataTypeTok{Foo}
+\CommentTok{{-}{-} promptFoo3 :: Applicative t =\textgreater{} PromptT Key Val t Foo}
+\NormalTok{promptFoo3 }\OtherTok{=} \DataTypeTok{Foo} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ prompt }\StringTok{"bar"} \OperatorTok{\textless{}*\textgreater{}}\NormalTok{ promptRead }\StringTok{"baz"}
+
+\CommentTok{{-}{-}}
+\CommentTok{{-}{-} running!}
+
+\CommentTok{{-}{-} Lookup environment variables, and "throw" an error if not found}
+\OtherTok{throughEnv ::} \DataTypeTok{IO}\NormalTok{ (}\DataTypeTok{Either} \DataTypeTok{MyError} \DataTypeTok{Foo}\NormalTok{)}
+\NormalTok{throughEnv }\OtherTok{=}\NormalTok{ runPromptTM parseFoo3 }\OperatorTok{$}\NormalTok{ \textbackslash{}k }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    env }\OtherTok{\textless{}{-}}\NormalTok{ lookupEnv k}
+    \FunctionTok{return} \OperatorTok{$} \KeywordTok{case}\NormalTok{ env }\KeywordTok{of}
+      \DataTypeTok{Nothing} \OtherTok{{-}\textgreater{}} \DataTypeTok{Left}\NormalTok{ (}\DataTypeTok{MENotFound}\NormalTok{ k)}
+      \DataTypeTok{Just}\NormalTok{ v  }\OtherTok{{-}\textgreater{}} \DataTypeTok{Right}\NormalTok{ v}
+
+\CommentTok{{-}{-} Fulfill the prompt through user input}
+\OtherTok{throughStdIO ::} \DataTypeTok{IO}\NormalTok{ (}\DataTypeTok{Either} \DataTypeTok{MyError} \DataTypeTok{Foo}\NormalTok{)}
+\NormalTok{throughStdIO }\OtherTok{=}\NormalTok{ interactPT parseFoo3}
+
+\CommentTok{{-}{-} Fulfill the prompt through user input; count blank responses as "not found"}
+\OtherTok{throughStdIOBlankIsError ::} \DataTypeTok{IO}\NormalTok{ (}\DataTypeTok{Either} \DataTypeTok{MyError} \DataTypeTok{Foo}\NormalTok{)}
+\NormalTok{throughStdIOBlankIsError }\OtherTok{=}\NormalTok{ runPromptTM parseFoo3 }\OperatorTok{$}\NormalTok{ \textbackslash{}k }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+    \FunctionTok{putStrLn}\NormalTok{ k}
+\NormalTok{    resp }\OtherTok{\textless{}{-}} \FunctionTok{getLine}
+    \FunctionTok{return} \OperatorTok{$} \KeywordTok{if} \FunctionTok{null}\NormalTok{ resp}
+      \KeywordTok{then} \DataTypeTok{Left}\NormalTok{ (}\DataTypeTok{MENotFound}\NormalTok{ k)}
+      \KeywordTok{else} \DataTypeTok{Right}\NormalTok{ resp}
+
+\CommentTok{{-}{-} Fulfill the prompt purely through a Map lookup}
+\OtherTok{throughMap ::} \DataTypeTok{M.Map} \DataTypeTok{Key} \DataTypeTok{Val} \OtherTok{{-}\textgreater{}} \DataTypeTok{Either} \DataTypeTok{MyError} \DataTypeTok{Foo}
+\NormalTok{throughMap m }\OtherTok{=}\NormalTok{ runPromptT parseFoo3 }\OperatorTok{$}\NormalTok{ \textbackslash{}k }\OtherTok{{-}\textgreater{}}
+    \KeywordTok{case}\NormalTok{ M.lookup k m }\KeywordTok{of}
+      \DataTypeTok{Nothing} \OtherTok{{-}\textgreater{}} \DataTypeTok{Left}\NormalTok{ (}\DataTypeTok{MENotFound}\NormalTok{ k)}
+      \DataTypeTok{Just}\NormalTok{ v  }\OtherTok{{-}\textgreater{}} \DataTypeTok{Right}\NormalTok{ v}
+\end{Highlighting}
+\end{Shaded}
+
+Hope you enjoy! Please feel free to leave a comment, find me on
+\href{https://twitter.com/mstk}{twitter}, leave an issue on the
+\href{https://github.com/mstksg/prompt}{github}, etc. --- and I'm usually on
+freenode's \emph{\#haskell} as \emph{jle`} if you have any questions!
+
+\section{Comparisons}\label{comparisons}
+
+To lay it all on the floor,
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{newtype} \DataTypeTok{PromptT}\NormalTok{ a b t r }\OtherTok{=} \DataTypeTok{PromptT}\NormalTok{ \{}\OtherTok{ runPromptTM ::} \KeywordTok{forall}\NormalTok{ m}\OperatorTok{.} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{ m (t b)) }\OtherTok{{-}\textgreater{}}\NormalTok{ m (t r) \}}
+\end{Highlighting}
+\end{Shaded}
+
+There is admittedly a popular misconception that I've seen going around that
+equates this sort of type to \texttt{Free} from the \emph{free} package.
+However, \texttt{Free} doesn't really have anything significant to do with this.
+Sure, you might be able to generate this type by using \texttt{FreeT} over a
+specifically chosen Functor, but\ldots this is the case for literally any Monad
+ever, so that doesn't really mean much :)
+
+It's also unrelated in this same manner to \texttt{Prompt} from the
+\emph{MonadPrompt} package, and \texttt{Program} from \emph{operational} too.
+
+One close relative to this type is
+\texttt{forall\ m.\ ReaderT\ (a\ -\textgreater{}\ m\ b)\ m\ r}, where
+\texttt{prompt\ k\ =\ ReaderT\ (\$\ k)}. This is more or less equivalent to
+\texttt{Prompt}, but still can't do the things that \texttt{PromptT} can do
+without a special instance of Monad.
+
+This type is also similar in structure to \texttt{Bazaar}, from the \emph{lens}
+package. The biggest difference that makes \texttt{Bazaar} unusable is because
+the RankN constraint is only \texttt{Applicative}, not \texttt{Monad}, so a
+\texttt{Monad} instance is impossible. Ignoring that (or if it's okay for you to
+only use the \texttt{Applicative} instance), \texttt{Bazaar} forces the
+``prompting effect'' to take place in the same context as the
+\texttt{Traversable} \texttt{t}\ldots which really defeats the purpose of this
+whole thing in the first place (the idea is to be able to separate your
+prompting effect from your application logic). If the \texttt{Traversable} you
+want to transform has a ``monad transformer'' version, then you can somewhat
+simulate \texttt{PromptT} for that specifc \texttt{t} with the transformer
+version.
+
+It's also somewhat similar to the \texttt{Client} type from \emph{pipes}, but
+it's also a bit tricky to use that with a different effect type than the logic
+\texttt{Traversable}, as well\ldots so it has a lot of the same difference as
+\texttt{Bazaar} here.
+
+But this type is common/simple enough that I'm sure someone has it somewhere in
+a library that I haven't been able to find. If you find it, let me know!
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

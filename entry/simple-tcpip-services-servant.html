@@ -1,0 +1,362 @@
+<!DOCTYPE HTML>
+<html><head><title>Dead-simple TCP/IP services using servant
+ · in Code</title><meta name="description" content="Weblog of Justin Le, covering various adventures in programming and explorations in the worlds of computation physics, and knowledge.
+"><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="flattr:id" content="3p9jqr"><meta property="og:site_name" content="in Code"><meta property="og:description" content="In my time I’ve written a lot of throwaway binary TCP/IP services (servers and services you can interact with over an internet connection, through command line interface or GUI). For me, this involves designing a protocol from scratch every time with varying levels of hand-rolled authentication and error detection (Send this byte for this command, this byte for this other command, etc.). Once I design the protocol, I then have to write both the command line client and the server — something I usually do from scratch over the raw TCP streams. This process was fun (and informative) the first few times I did it, but spinning it up from scratch again every time discouraged me from doing it very often. However, thankfully, with the servant haskell library (and servant-cli, for command line clients), writing a TCP server/client pair for a TCP service (using HTTP under the hood) becomes dead-simple — the barrier for creating one fades away that designing/writing a service becomes a tool that I reach for immediately in a lot of cases without second thought. servant is usually advertised as a tool for writing web servers, web applications, and REST APIs, but it’s easily adapted to write non-web things as well. Let’s dive in and write a simple TCP/IP service (a todo list manager) to see how straightforward the process is! To goal of this article is to take service/program that you already have planned out, and easily provide it with a networked API that can be used over any TCP/IP connection (over the internet, or even locally). This won’t teach you how to write a todo app, but rather how to hook up a todo app over a TCP/IP connection quickly, with a command line client — and in such a simple way that you wouldn’t give a second thought based on complexity issues. This post can also serve as a stepping-stone to a “microservices architecture”, if you intend to build towards one (this is explored deeper by k-bx)…but really it’s more focused for standalone user-facing applications. How you apply these techniques is up to you :) All of the code in this article is available online, and the server and client are available as “stack executables”: if you download them all, and set the permissions properly (chmod u+x), you can directly run them to launch the server and client (if they are all download to the same directory)."><meta property="og:type" content="article"><meta property="og:title" content="Dead-simple TCP/IP services using servant
+"><meta property="og:image" content="https://blog.jle.im/img/site_logo.jpg"><meta property="og:locale" content="en_US"><meta property="og:url" content="https://blog.jle.im/entry/simple-tcpip-services-servant.html"><meta name="twitter:card" content="summary"><meta name="twitter:creator:id" content="mstk"><link rel="author" href="https://plus.google.com/107705320197444500140"><link rel="alternate" type="application/rss+xml" title="in Code (RSS Feed)" href="http://feeds.feedburner.com/incodeblog"><link rel="canonical" href="https://blog.jle.im/entry/simple-tcpip-services-servant.html"><link href="https://blog.jle.im/favicon.ico" rel="shortcut icon"><link href="https://blog.jle.im/css/toast.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/font.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/main.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/page/entry.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/pygments.css" rel="stylesheet" type="text/css"><script type="text/javascript">var page_data = {};
+var disqus_shortname='incode';
+</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-443711-8', 'jle.im');
+ga('send', 'pageview');
+</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js"></script><script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5234d67a6b68dcd4"></script><script type="text/javascript" src="https://blog.jle.im/js/page/entry_toc.js"></script><script type="text/javascript" src="https://blog.jle.im/js/disqus_count.js"></script><script type="text/javascript" src="https://blog.jle.im/js/social.js"></script><script type="text/javascript" src="https://blog.jle.im/js/jquery/jquery.toc.js"></script><script type="text/javascript" src="https://blog.jle.im/purescript/entry.js"></script></head><body><div id="fb-root"><script>(function(d, s, id) {
+ var js, fjs = d.getElementsByTagName(s)[0];
+ if (d.getElementById(id)) return;
+ js = d.createElement(s); js.id = id;
+ js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=641852699171929";
+ fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+</script></div><div id="header-container"><div id="navbar-container" class="tile"><nav id="navbar-content"><div class="nav-info"><h1 class="site-title"><a href="https://blog.jle.im/" class="nav-title">in Code</a></h1><span class="nav-author">Justin Le</span></div><ul class="nav-links"><li><a href="https://blog.jle.im/">home</a></li><li><a href="https://blog.jle.im/entries.html">archives</a></li><li><a href="https://cv.jle.im">cv</a></li><div class="clear"></div></ul></nav></div><div id="header-content"></div></div><div id="body-container" class="container"><div id="main-container" class="grid"><div class="entry-section unit span-grid" role="main"><article class="tile article"><header><h1 id="title">Dead-simple TCP/IP services using servant
+</h1><p class="entry-info">by <a class="author" href="https://blog.jle.im/">Justin Le</a><span class="info-separator"> &diams; </span><time datetime="2019-08-05T12:10:07Z" pubdate="" class="pubdate">Monday August 5, 2019</time></p><p><span class="source-info"><a class="source-link" href="https://github.com/mstksg/inCode/tree/master/copy/entries/servant-services.md">Source</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://github.com/mstksg/inCode/tree/gh-pages/entry/simple-tcpip-services-servant.md">Markdown</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://blog.jle.im/entry/simple-tcpip-services-servant.tex">LaTeX</a><span class="info-separator"> &diams; </span></span>Posted in <a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category" title="Functional, pure, non-strict, statically and strongly typed, natively
+compiled...really just the king of great languages.
+">Haskell</a>, <a href="https://blog.jle.im/entries/category/@tutorials.html" class="tag-a-category" title="Technical tutorials/walkthroughs on specific programming processes and problems
+that I&#39;ve struggled through in the past.
+">Tutorials</a><span class="info-separator"> &diams; </span><a class="comment-link" href="#disqus_thread">Comments</a></p></header><hr><aside class="contents-container"><h5 id="contents-header">Contents</h5><div id="toc"></div></aside><div class="main-content copy-content"><p>In my time I’ve written a lot of throwaway binary TCP/IP services (servers and services you can interact with over an internet connection, through command line interface or GUI). For me, this involves designing a protocol from scratch every time with varying levels of hand-rolled authentication and error detection (Send this byte for this command, this byte for this other command, etc.). Once I design the protocol, I then have to write both the command line client and the server — something I usually do from scratch over the raw TCP streams.</p>
+<p>This process was fun (and informative) the first few times I did it, but spinning it up from scratch again every time discouraged me from doing it very often. However, thankfully, with the <em><a href="https://hackage.haskell.org/package/servant">servant</a></em> haskell library (and <em><a href="https://hackage.haskell.org/package/servant-cli">servant-cli</a></em>, for command line clients), writing a TCP server/client pair for a TCP service (using HTTP under the hood) becomes dead-simple — the barrier for creating one fades away that designing/writing a service becomes a tool that I reach for immediately in a lot of cases without second thought.</p>
+<p><em>servant</em> is usually advertised as a tool for writing web servers, web applications, and REST APIs, but it’s easily adapted to write non-web things as well. Let’s dive in and write a simple TCP/IP service (a todo list manager) to see how straightforward the process is!</p>
+<p>To goal of this article is to take service/program that you already have planned out, and <em>easily provide</em> it with a networked API that can be used over any TCP/IP connection (over the internet, or even locally). This won’t teach you <em>how</em> to write a todo app, but rather how to <em>hook up</em> a todo app over a TCP/IP connection quickly, with a command line client — and in such a simple way that you wouldn’t give a second thought based on complexity issues.</p>
+<p>This post can also serve as a stepping-stone to a “microservices architecture”, if you intend to build towards one (this is explored deeper by <a href="https://github.com/k-bx/owlcloud">k-bx</a>)…but really it’s more focused for standalone user-facing applications. How you apply these techniques is up to you :)</p>
+<p>All of the code in this article is available online, and the server and client are available as “stack executables”: if you download them all, and set the permissions properly (<code>chmod u+x</code>), you can directly run them to launch the server and client (if they are all download to the same directory).</p>
+<ul>
+<li><a href="https://github.com/mstksg/inCode/tree/master/code-samples/servant-services/Api.hs">API</a></li>
+<li><a href="https://github.com/mstksg/inCode/tree/master/code-samples/servant-services/server.hs">Server</a></li>
+<li><a href="https://github.com/mstksg/inCode/tree/master/code-samples/servant-services/client.hs">Client</a></li>
+</ul>
+<h2 id="todo-api">Todo API</h2>
+<p>As an example, we’ll work through building one of my favorite self-contained mini-app projects, a <a href="http://todomvc.com/">Todo list manager a la todo-mvc</a>. Our service will provide functionality for:</p>
+<ol type="1">
+<li>Viewing all tasks and their status</li>
+<li>Adding a new task</li>
+<li>Setting a task’s completion status</li>
+<li>Deleting a task</li>
+<li>Pruning all completed tasks</li>
+</ol>
+<p>To facilitate doing this over an API, we’ll assign each task a task ID when it comes in, and so commands 3 and 4 will require a task ID.</p>
+<p>To formally specify our API:</p>
+<ol type="1">
+<li><code>list</code>: View all tasks by their ID, status, and description. Optionally be able to filter for only incomplete tasks.</li>
+<li><code>add</code>: Given a new task description, insert a new uncompleted task. Return the ID of the new task.</li>
+<li><code>set</code>: Given a task ID and an updated status, update the task’s status.</li>
+<li><code>delete</code>: Given a task ID, delete the task.</li>
+<li><code>prune</code>: Remove all completed tasks. Returns all the task IDs that where deleted.</li>
+</ol>
+<p>We can state this using servant’s type level DSL, using an <code>IntMap</code> (from <em>containers</em>) to represent the current tasks and an <code>IntSet</code> to represent a set of task IDs.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/servant-services/Api.hs</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE DeriveGeneric #-}</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE TypeInType    #-}</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE TypeOperators #-}</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# OPTIONS_GHC -Wall      #-}</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="dt">Api</span> <span class="kw">where</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span>           <span class="dt">Data.Aeson</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span>           <span class="dt">Data.IntMap</span> (<span class="dt">IntMap</span>)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span>           <span class="dt">Data.IntSet</span> (<span class="dt">IntSet</span>)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span>           <span class="dt">Data.Proxy</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span>           <span class="dt">Data.Text</span> (<span class="dt">Text</span>)</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span>           <span class="dt">GHC.Generics</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span>           <span class="dt">Servant.API</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Task</span> <span class="ot">=</span> <span class="dt">Task</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    {<span class="ot"> taskStatus ::</span> <span class="dt">Bool</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    ,<span class="ot"> taskDesc   ::</span> <span class="dt">Text</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>  <span class="kw">deriving</span> (<span class="dt">Show</span>, <span class="dt">Generic</span>)</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> <span class="dt">ToJSON</span>   <span class="dt">Task</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> <span class="dt">FromJSON</span> <span class="dt">Task</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">TodoApi</span> <span class="ot">=</span> <span class="st">&quot;list&quot;</span>   <span class="op">:&gt;</span> <span class="dt">QueryFlag</span> <span class="st">&quot;filtered&quot;</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>                        <span class="op">:&gt;</span> <span class="dt">Get</span>  &#39;[<span class="dt">JSON</span>] (<span class="dt">IntMap</span> <span class="dt">Task</span>)</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>          <span class="op">:&lt;|&gt;</span> <span class="st">&quot;add&quot;</span>    <span class="op">:&gt;</span> <span class="dt">QueryParam&#39;</span> &#39;[<span class="dt">Required</span>] <span class="st">&quot;desc&quot;</span> <span class="dt">Text</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>                        <span class="op">:&gt;</span> <span class="dt">Post</span> &#39;[<span class="dt">JSON</span>] <span class="dt">Int</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>          <span class="op">:&lt;|&gt;</span> <span class="st">&quot;set&quot;</span>    <span class="op">:&gt;</span> <span class="dt">Capture</span> <span class="st">&quot;id&quot;</span> <span class="dt">Int</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>                        <span class="op">:&gt;</span> <span class="dt">QueryParam</span> <span class="st">&quot;completed&quot;</span> <span class="dt">Bool</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>                        <span class="op">:&gt;</span> <span class="dt">Post</span> &#39;[<span class="dt">JSON</span>] ()</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>          <span class="op">:&lt;|&gt;</span> <span class="st">&quot;delete&quot;</span> <span class="op">:&gt;</span> <span class="dt">Capture</span> <span class="st">&quot;id&quot;</span> <span class="dt">Int</span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>                        <span class="op">:&gt;</span> <span class="dt">Post</span> &#39;[<span class="dt">JSON</span>] ()</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>          <span class="op">:&lt;|&gt;</span> <span class="st">&quot;prune&quot;</span>  <span class="op">:&gt;</span> <span class="dt">Post</span> &#39;[<span class="dt">JSON</span>] <span class="dt">IntSet</span></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a><span class="ot">todoApi ::</span> <span class="dt">Proxy</span> <span class="dt">TodoApi</span></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>todoApi <span class="ot">=</span> <span class="dt">Proxy</span></span></code></pre></div>
+<p>(This is how you specify an API (via a type) using <em>servant</em>, with their provided <code>:&lt;|&gt;</code> and <code>:&gt;</code> operators — <code>:&lt;|&gt;</code> combines routes, <code>:&gt;</code> combines path components, and <code>QueryParam</code>, <code>Capture</code>, etc. all add parts to components and routes.)</p>
+<p>We have five routes, which more or less mirror exactly the five bullet points listed above, with some minor implementation choices:</p>
+<ul>
+<li>For <code>list</code>, we take “filtered or not filtered” as a query flag, and return an <code>IntMap</code> of a <code>Task</code> data type (status, description) under their integer ID key.</li>
+<li>For <code>add</code>, we take the task description as a query parameter, and return the new ID.</li>
+<li>For <code>set</code>, we take the task ID as a capture (path component) and an optional boolean query parameter. If the parameter is not given, it will be taken as a toggle; otherwise, it will be taken as a setting of the completion status.</li>
+<li>For <code>delete</code>, we also take the task ID as a capture.</li>
+<li>For <code>prune</code>, we return the deleted IDs as an <code>IntSet</code> (also from <em>containers</em>).</li>
+</ul>
+<p>“Query flag”, “query parameter”, “capture” are all a part of the language of HTTP and W3C. In our case, since we aren’t ever directly programming against the actual protocol-HTTP (it’s only used under the hood) or pretending to write an actual web-interfacing server, we don’t really need to care too much to distinguish them. However, it can be useful to pick meaningful choices if we ever do want to expose this API as a web service.</p>
+<h2 id="todo-service-server">Todo Service Server</h2>
+<p>The logic to implement a todo server is pretty straightforward, which is why we chose it as an example project. It only really needs one state: the <code>IntMap</code> of current tasks.</p>
+<p>To write a servant server with <em><a href="https://hackage.haskell.org/package/servant-server">servant-server</a></em>, I usually like to just set up a skeleton with each route:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ot">serveTodoApi ::</span> <span class="dt">IORef</span> (<span class="dt">IntMap</span> <span class="dt">Task</span>) <span class="ot">-&gt;</span> <span class="dt">Server</span> <span class="dt">TodoApi</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>serveTodoApi taskRef <span class="ot">=</span> serveList</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>                  <span class="op">:&lt;|&gt;</span> serveAdd</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>                  <span class="op">:&lt;|&gt;</span> serveSet</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>                  <span class="op">:&lt;|&gt;</span> serveDelete</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>                  <span class="op">:&lt;|&gt;</span> servePrune</span></code></pre></div>
+<p>The corresponding GHC error tells us everything we need:</p>
+<pre><code>server.hs:15:24: error:
+    Variable not in scope: serveList :: Bool -&gt; Handler (IntMap Task)
+   |
+15 | serveTodoApi taskRef = serveList
+   |                        ^^^^^^^^^
+
+server.hs:16:24: error:
+    Variable not in scope: serveAdd :: Text -&gt; Handler Int
+   |
+16 |                   :&lt;|&gt; serveAdd
+   |                        ^^^^^^^^
+
+server.hs:17:24: error:
+    Variable not in scope: serveSet :: Int -&gt; Maybe Bool -&gt; Handler ()
+   |
+17 |                   :&lt;|&gt; serveSet
+   |                        ^^^^^^^^
+
+server.hs:18:24: error:
+    Variable not in scope: serveDelete :: Int -&gt; Handler ()
+   |
+18 |                   :&lt;|&gt; serveDelete
+   |                        ^^^^^^^^^^^
+
+server.hs:19:24: error:
+    Variable not in scope: servePrune :: Handler IntSet
+   |
+19 |                   :&lt;|&gt; servePrune
+   |                        ^^^^^^^^^^</code></pre>
+<p>It tells us exactly the types of each handler we need.</p>
+<p>Because <code>Handler</code> has a <code>MonadIO</code> instance, we can now directly just write every handler in terms of how it manipulates the <code>IntMap</code> in the <code>IORef</code>, and use <code>liftIO</code>:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/servant-services/server.hs#L16-L46</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="ot">serveTodoApi ::</span> <span class="dt">IORef</span> (<span class="dt">IntMap</span> <span class="dt">Task</span>) <span class="ot">-&gt;</span> <span class="dt">Server</span> <span class="dt">TodoApi</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>serveTodoApi taskRef <span class="ot">=</span> serveList</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>                  <span class="op">:&lt;|&gt;</span> serveAdd</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>                  <span class="op">:&lt;|&gt;</span> serveSet</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>                  <span class="op">:&lt;|&gt;</span> serveDelete</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>                  <span class="op">:&lt;|&gt;</span> servePrune</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="ot">    serveList ::</span> <span class="dt">Bool</span> <span class="ot">-&gt;</span> <span class="dt">Handler</span> (<span class="dt">IntMap</span> <span class="dt">Task</span>)</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    serveList filt <span class="ot">=</span> filtFunction <span class="op">&lt;$&gt;</span> liftIO (readIORef taskRef)</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>      <span class="kw">where</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>        filtFunction</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>          <span class="op">|</span> filt      <span class="ot">=</span> IM.filter (<span class="fu">not</span> <span class="op">.</span> taskStatus)</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>          <span class="op">|</span> <span class="fu">otherwise</span> <span class="ot">=</span> <span class="fu">id</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="ot">    serveAdd ::</span> <span class="dt">Text</span> <span class="ot">-&gt;</span> <span class="dt">Handler</span> <span class="dt">Int</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    serveAdd t <span class="ot">=</span> liftIO <span class="op">$</span> atomicModifyIORef&#39; taskRef <span class="op">$</span> \ts <span class="ot">-&gt;</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>      <span class="kw">let</span> newKey <span class="ot">=</span> <span class="fu">maybe</span> <span class="dv">0</span> ((<span class="op">+</span> <span class="dv">1</span>) <span class="op">.</span> <span class="fu">fst</span>) (IM.lookupMax ts)</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>      <span class="kw">in</span>  ( IM.insert newKey (<span class="dt">Task</span> <span class="dt">False</span> t) ts, newKey )</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="ot">    serveSet ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Bool</span> <span class="ot">-&gt;</span> <span class="dt">Handler</span> ()</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>    serveSet tid s <span class="ot">=</span> liftIO <span class="op">$</span> atomicModifyIORef&#39; taskRef <span class="op">$</span> \ts <span class="ot">-&gt;</span></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>        ( IM.adjust adjuster tid ts, () )</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>      <span class="kw">where</span></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>        adjuster (<span class="dt">Task</span> c d) <span class="ot">=</span> <span class="kw">case</span> s <span class="kw">of</span></span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>          <span class="dt">Nothing</span> <span class="ot">-&gt;</span> <span class="dt">Task</span> (<span class="fu">not</span> c) d</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>          <span class="dt">Just</span> c&#39; <span class="ot">-&gt;</span> <span class="dt">Task</span> c&#39;      d</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a><span class="ot">    serveDelete ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Handler</span> ()</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>    serveDelete tid <span class="ot">=</span> liftIO <span class="op">$</span> atomicModifyIORef&#39; taskRef <span class="op">$</span> \ts <span class="ot">-&gt;</span></span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>      ( IM.delete tid ts, () )</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a><span class="ot">    servePrune ::</span> <span class="dt">Handler</span> <span class="dt">IntSet</span></span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>    servePrune <span class="ot">=</span> liftIO <span class="op">$</span> atomicModifyIORef&#39; taskRef <span class="op">$</span> \ts <span class="ot">-&gt;</span></span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>      <span class="kw">let</span> (compl,incompl) <span class="ot">=</span> IM.partition taskStatus ts</span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>      <span class="kw">in</span>  (incompl, IM.keysSet compl)</span></code></pre></div>
+<p>And that’s it!</p>
+<p>To run our server, we can use <em><a href="https://hackage.haskell.org/package/warp">warp</a></em>’s <code>run</code> with <em>servant-server</em>’s <code>serve</code>, after initializing the <code>IORef</code> that our server will use with an empty map:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/servant-services/server.hs#L48-L53</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    taskRef <span class="ot">&lt;-</span> newIORef IM.empty</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">putStrLn</span> <span class="st">&quot;Launching server...&quot;</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    run <span class="dv">3434</span> <span class="op">$</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>      serve todoApi (serveTodoApi taskRef)</span></code></pre></div>
+<p>We now have a todo TCP/IP service running on port 3434!</p>
+<h2 id="todo-service-client">Todo Service Client</h2>
+<p>To write a client, we have a couple of options.</p>
+<p>You <em>could</em> hand-write a command-line client using either <em><a href="https://hackage.haskell.org/package/optparse-applicative">optparse-applicative</a></em> (or your favorite command line args parser) for an options-and-arguments style interface or a readline library like <em><a href="https://hackage.haskell.org/package/haskeline">haskeline</a></em> for an interactive interface.</p>
+<p>Hand-writing one is made pretty simple with <em><a href="https://hackage.haskell.org/package/servant-client">servant-client</a></em>, which allows you to generate all of the HTTP calls using the <code>client</code> function:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>list <span class="op">:&lt;|&gt;</span> add <span class="op">:&lt;|&gt;</span> set <span class="op">:&lt;|&gt;</span> delete <span class="op">:&lt;|&gt;</span> prune <span class="ot">=</span> client todoApi</span></code></pre></div>
+<p>This will give you the functions <code>list :: Bool -&gt; ClientM (IntMap Task)</code>, <code>add :: Text -&gt; ClientM Int</code>, <code>set :: Int -&gt; Maybe Bool -&gt; ClientM ()</code>, etc., that you can now run whenever you want to dispatch a command or make a fetch according to your hand-rolled needs.</p>
+<p>However, this blog post is about “dead-simple” setups that you can roll out within minutes. For <em>that</em>, you can use the library <em><a href="https://hackage.haskell.org/package/servant-cli">servant-cli</a></em> to automatically generate an <em>optparse-applicative</em>-based command line interface that allows you to directly specify your commands based on command line arguments</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/servant-services/client.hs#L34-L60</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    c <span class="ot">&lt;-</span> parseHandleClient todoApi (<span class="dt">Proxy</span><span class="ot"> ::</span> <span class="dt">Proxy</span> <span class="dt">ClientM</span>)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>        ( header <span class="st">&quot;todo&quot;</span> <span class="op">&lt;&gt;</span> progDesc <span class="st">&quot;Todo TCP/IP service client&quot;</span> )</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>        ( displayList</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>     <span class="op">:&lt;|&gt;</span> (\i <span class="ot">-&gt;</span> <span class="st">&quot;Added with ID &quot;</span> <span class="op">++</span> <span class="fu">show</span> i)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>     <span class="op">:&lt;|&gt;</span> <span class="fu">const</span> <span class="st">&quot;Set!&quot;</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>     <span class="op">:&lt;|&gt;</span> <span class="fu">const</span> <span class="st">&quot;Deleted!&quot;</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>     <span class="op">:&lt;|&gt;</span> (\ts <span class="ot">-&gt;</span> <span class="st">&quot;Cleared items: &quot;</span> <span class="op">++</span> intercalate <span class="st">&quot;, &quot;</span> (<span class="fu">map</span> <span class="fu">show</span> (IS.toList ts)))</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    res <span class="ot">&lt;-</span> newManager defaultManagerSettings <span class="op">&gt;&gt;=</span> \mgr <span class="ot">-&gt;</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>      runClientM c <span class="op">$</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>        mkClientEnv mgr (<span class="dt">BaseUrl</span> <span class="dt">Http</span> <span class="st">&quot;localhost&quot;</span> <span class="dv">3434</span> <span class="st">&quot;&quot;</span>)</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">case</span> res <span class="kw">of</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Left</span>  e <span class="ot">-&gt;</span> throwIO e</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Right</span> r <span class="ot">-&gt;</span> <span class="fu">putStrLn</span> r</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a><span class="ot">displayList ::</span> <span class="dt">IntMap</span> <span class="dt">Task</span> <span class="ot">-&gt;</span> <span class="dt">String</span></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>displayList <span class="ot">=</span> <span class="fu">unlines</span></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>            <span class="op">.</span> <span class="fu">map</span> (\(k, t) <span class="ot">-&gt;</span> printf <span class="st">&quot;%d) %s&quot;</span> k (displayTask t))</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>            <span class="op">.</span> IM.toList</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>    displayTask (<span class="dt">Task</span> c t)</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>      <span class="op">|</span> c         <span class="ot">=</span> <span class="st">&quot;[x] &quot;</span> <span class="op">++</span> T.unpack t</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>      <span class="op">|</span> <span class="fu">otherwise</span> <span class="ot">=</span> <span class="st">&quot;[ ] &quot;</span> <span class="op">++</span> T.unpack t</span></code></pre></div>
+<p>The main thing that does the work is <code>parseHandleClient</code>, which takes (after some proxies specifying the API and client type):</p>
+<ol type="1">
+<li><p>Extra arguments modifying the command line help messages</p></li>
+<li><p>A way to “handle” a response for every command.</p>
+<ul>
+<li>For <code>list</code>, we display it using a nice pretty-printer</li>
+<li>For <code>add</code>, we show the new ID number.</li>
+<li>For <code>set</code> and <code>delete</code>, we just display the fact that it was successful (remember, these routes returned <code>()</code>)</li>
+<li>For <code>prune</code>, we pretty-print the deleted items.</li>
+</ul>
+<p>We choose to handle each command as a <code>String</code>, but we can choose to handle them each into any type we want (even something involving<code>IO</code>) as long as each handler returns something of the same type.</p>
+<p>The handler is run and is returned as the value in <code>Right</code> when used with <code>runClientM</code>.</p></li>
+</ol>
+<p>Again, a nice way to “write” our <code>parseHandleClient</code> function with its handlers is by writing a skeleton definition and letting GHC tell us what goes in each hole:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    c <span class="ot">&lt;-</span> parseHandleClient todoApi (<span class="dt">Proxy</span><span class="ot"> ::</span> <span class="dt">Proxy</span> <span class="dt">ClientM</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>        ( header <span class="st">&quot;todo&quot;</span> <span class="op">&lt;&gt;</span> progDesc <span class="st">&quot;Todo TCP/IP service client&quot;</span> )</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>        ( handleList</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>     <span class="op">:&lt;|&gt;</span> handleAdd</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>     <span class="op">:&lt;|&gt;</span> handleSet</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>     <span class="op">:&lt;|&gt;</span> handleDelete</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>     <span class="op">:&lt;|&gt;</span> handlePrune</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pure</span> ()</span></code></pre></div>
+<pre><code>client.hs:36:11: error:
+    • Variable not in scope: handleList :: IntMap Task -&gt; [Char]
+   |
+36 |         ( handleList
+   |           ^^^^^^^^^^
+
+client.hs:37:11: error:
+    Variable not in scope: handleAdd :: Int -&gt; [Char]
+   |
+37 |      :&lt;|&gt; handleAdd
+   |           ^^^^^^^^^
+
+client.hs:38:11: error:
+    Variable not in scope: handleSet :: () -&gt; [Char]
+   |
+38 |      :&lt;|&gt; handleSet
+   |           ^^^^^^^^^
+
+client.hs:39:11: error:
+    Variable not in scope: handleDelete :: () -&gt; [Char]
+   |
+39 |      :&lt;|&gt; handleDelete
+   |           ^^^^^^^^^^^^
+
+client.hs:40:11: error:
+    Variable not in scope: handlePrune :: IS.IntSet -&gt; [Char]
+   |
+40 |      :&lt;|&gt; handlePrune
+   |           ^^^^^^^^^^^</code></pre>
+<p>One last thing — <em>servant-cli</em> requires some instances to provide “help” documentation for the command line interfaces:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/servant-services/client.hs#L25-L32</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> <span class="dt">ToParam</span> (<span class="dt">QueryFlag</span> <span class="st">&quot;filtered&quot;</span>) <span class="kw">where</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    toParam _ <span class="ot">=</span> <span class="dt">DocQueryParam</span> <span class="st">&quot;filtered&quot;</span> [] <span class="st">&quot;Whether or not to filter completed items&quot;</span> <span class="dt">Flag</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> <span class="dt">ToParam</span> (<span class="dt">QueryParam&#39;</span> &#39;[<span class="dt">Required</span>] <span class="st">&quot;desc&quot;</span> <span class="dt">Text</span>) <span class="kw">where</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    toParam _ <span class="ot">=</span> <span class="dt">DocQueryParam</span> <span class="st">&quot;desc&quot;</span> [] <span class="st">&quot;Task description&quot;</span> <span class="dt">Normal</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> <span class="dt">ToParam</span> (<span class="dt">QueryParam</span> <span class="st">&quot;completed&quot;</span> <span class="dt">Bool</span>) <span class="kw">where</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    toParam _ <span class="ot">=</span> <span class="dt">DocQueryParam</span> <span class="st">&quot;completed&quot;</span> [<span class="st">&quot;True&quot;</span>,<span class="st">&quot;False&quot;</span>] <span class="st">&quot;Set status to (leave out for toggle)&quot;</span> <span class="dt">Normal</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> <span class="dt">ToCapture</span> (<span class="dt">Capture</span> <span class="st">&quot;id&quot;</span> <span class="dt">Int</span>) <span class="kw">where</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    toCapture _ <span class="ot">=</span> <span class="dt">DocCapture</span> <span class="st">&quot;id&quot;</span> <span class="st">&quot;ID number of task&quot;</span></span></code></pre></div>
+<p>And we now get a fully-featured client for our service!</p>
+<pre><code># make sure you run ./server.hs in a separate window
+$ ./client.hs --help
+todo
+
+Usage: client.hs COMPONENT
+  Todo TCP/IP service client
+
+Available options:
+  -h,--help                Show this help text
+
+Path components:
+  add
+  delete
+  list
+  prune
+  set
+
+$ ./client.hs add --help
+add
+
+Usage: client.hs add --desc TEXT
+
+
+Available options:
+  --desc TEXT              Task description (Text)
+  -h,--help                Show this help text
+
+$ ./client.hs list --help
+list
+
+Usage: client.hs list [--filtered]
+
+
+Available options:
+  --filtered               Whether or not to filter completed items
+  -h,--help                Show this help text
+
+$ ./client.hs set --help
+set
+
+Usage: client.hs set &lt;id&gt; [--completed BOOL]
+
+
+Available options:
+  &lt;id&gt;                     ID number of task (Int)
+  --completed BOOL         Set status to (leave out for toggle) (options: True,
+                           False)
+  -h,--help                Show this help text</code></pre>
+<h2 id="conclusion">Conclusion</h2>
+<p>One major thing I like about this method is that it’s very type-safe and allows for types to <em>drive</em> your development. Note how all of the messiness of a binary protocol like TCP/IP are abstracted away, and you only ever deal with <code>IntMap</code>s, <code>Text</code>, <code>Bool</code>, <code>Int</code>s. And also note how in every step of the way, we use types to guide us: in writing our server, we first used “blanks” to ask GHC what the type of each of the handlers needs to be, which helps us plan our server implementation and ensures that it handles everything properly. In writing our client, we also used “blanks” to ask GHC what the type of each of our response handlers needs to be, which allows us to quickly and effectively drill down every option. These are things that <em>all</em> servant-based projects get to benefit from.</p>
+<p>Hopefully this post serves as a good introduction to the <em>servant</em>, <em>servant-server</em>, and <em>servant-cli</em> libraries, and additionally shows how easy it is to give any application you want a TCP/IP interface to be usable as a TCP/IP service. In the real world, your applications might be a little more complex (and you might even require authentication), but hopefully after reading this article, the “network-facing” part of your service or application becomes a lot less intimidating :)</p>
+<p>I know for me, the main benefit has been to tear down the “barrier of entry”/mental startup cost, and I’ve started writing little services and clients like this as a first-step in a lot of cases, instead of as something I dread and only end up adding to a few programs.</p>
+<p>Also, fair disclosure: the author of <em>servant-cli</em> is me! I’m not <em>super</em> happy with the user experience story at the moment, but it has been usable for me so far. If you have any suggestions or ideas for improving <em>servant-cli</em>, I’d <a href="https://github.com/mstksg/servant-cli">love to hear</a> (and look at any PRs!)</p>
+<h2 id="special-thanks">Special Thanks</h2>
+<p>I am very humbled to be supported by an amazing community, who make it possible for me to devote time to researching and writing these posts. Very special thanks to my supporter at the “Amazing” level on <a href="https://www.patreon.com/justinle/overview">patreon</a>, Josh Vera! :)</p></div><footer><hr><div class="copy-content"><p>Hi, thanks for reading! You can reach me via email at <a href="mailto:justin@jle.im" class="email">justin@jle.im</a>, or at twitter at <a href="https://twitter.com/mstk">@mstk</a>! This post and all others are published under the <a href="https://creativecommons.org/licenses/by-nc-nd/3.0/">CC-BY-NC-ND 3.0</a> license. Corrections and edits via pull request are welcome and encouraged at <a href="https://github.com/mstksg/inCode">the source repository</a>.</p>
+<p>If you feel inclined, or this post was particularly helpful for you, why not consider <a href="https://www.patreon.com/justinle/overview">supporting me on Patreon</a>, or a <a href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">BTC donation</a>? :)</p></div><div class="clear"></div><ul class="entry-series"></ul><ul class="tag-list"><li><a href="https://blog.jle.im/entries/tagged/functional-programming.html" class="tag-a-tag">#functional programming</a></li><li><a href="https://blog.jle.im/entries/tagged/haskell.html" class="tag-a-tag">#haskell</a></li><li><a href="https://blog.jle.im/entries/tagged/servant.html" class="tag-a-tag">#servant</a></li><li><a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category">@HASKELL</a></li><li><a href="https://blog.jle.im/entries/category/@tutorials.html" class="tag-a-category">@TUTORIALS</a></li></ul><aside class="social-buttons"><div class="addthis_toolbox addthis_default_style addthis-buttons"><a class="addthis_button_facebook_like" fb:like:layout="button_count"></a><a class="addthis_button_tweet"></a><a class="addthis_button_google_plusone" g:plusone:size="medium"></a><a class="addthis_counter addthis_pill_style"></a></div><div class="custom-social-buttons"><div class="custom-social-button"><a href="https://www.reddit.com/submit" onclick="window.location = &#39;https://www.reddit.com/submit?url=&#39;+ encodeURIComponent(window.location); return false"><img src="https://www.reddit.com/static/spreddit7.gif" alt="submit to reddit"></a></div></div></aside><nav class="next-prev-links"><ul><li class="prev-entry-link">&larr; <a href="https://blog.jle.im/entry/functor-combinatorpedia.html">The Functor Combinatorpedia
+</a> (Previous)</li><li class="next-entry-link">(Next) <a href="https://blog.jle.im/entry/foldl-adjunction.html">Adjunctions in the wild: foldl
+</a> &rarr;</li></ul></nav></footer></article><div class="post-entry"><div class="tile"><div id="disqus_thread"></div><script type="text/javascript">var disqus_config = function () {
+    this.page.url = 'https://blog.jle.im/entry/simple-tcpip-services-servant.html';
+    this.page.identifier = 'servant-services';
+};
+(function() {
+    var d = document, s = d.createElement('script');
+    s.src = '//incode.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a><br></noscript><a href="http://disqus.com" class="dsq-brlink">Comments powered by <span class="logo-disqus">Disqus</span></a></div></div></div></div></div><div id="footer-container"><div id="footer-content"><div class="tile"><div class="footer-copyright">&copy; 2020 Justin Le <span class="license-link">(<a href="https://creativecommons.org/licenses/by-nc-nd/3.0/" class="license">CC-BY-NC-ND 3.0</a>)</span></div><div class="footer-follow social-follows"><ul class="social-follows-list"><li><ul class="social-follows-list-social"><li><a class="social-follow-twitter" title="Follow me on Twitter!" href="https://twitter.com/intent/user?user_id=mstk" onclick="window.open(
+  &#39;http://twitter.com/intent/user?user_id=907281&#39;,
+  &#39;facebook-share-dialog&#39;,
+  &#39;width=550,height=520&#39;);
+return false;
+">Twitter</a></li><li><a class="social-follow-github" title="Fork me on Github!" href="https://github.com/mstksg">Github</a></li><li><a class="social-follow-twitch" title="Watch me on Twitch!" href="https://www.twitch.tv/justin_l">Twitch</a></li><li><a class="social-follow-patreon" title="Support me on Patreon!" href="https://www.patreon.com/justinle/overview">Patreon</a></li><li><a class="social-follow-gplus" title="Add me on Google+!" href="https://plus.google.com/+JustinLe">Google+</a></li><li><a class="social-follow-keybase" title="Track me on Keybase!" href="https://keybase.io/mstksg">Keybase</a></li><li><a class="social-follow-linkedin" title="Connect with me on LinkedIn!" href="https://linkedin.com/in/lejustin">LinkedIn</a></li><li><a class="social-follow-bitcoin" title="Donate via bitcoin!" href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">Bitcoin</a></li></ul></li><li><ul class="social-follows-list-site"><li><a class="social-follow-rss" title="Subscribe to my RSS Feed!" href="http://feeds.feedburner.com/incodeblog">RSS</a></li><li><a class="social-follow-email" title="Subscribe to the mailing list!" href="https://feedburner.google.com/fb/a/mailverify?loc=en_US&amp;uri=incodeblog">Mailing list</a></li></ul></li></ul></div></div></div></div></body></html>

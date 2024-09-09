@@ -1,0 +1,278 @@
+<!DOCTYPE HTML>
+<html><head><title>Shifting the Stars: Advent of Code with Galilean Optimization
+ · in Code</title><meta name="description" content="Weblog of Justin Le, covering various adventures in programming and explorations in the worlds of computation physics, and knowledge.
+"><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="flattr:id" content="3p9jqr"><meta property="og:site_name" content="in Code"><meta property="og:description" content="(TL;DR: scroll down to the very bottom for a summary and the closed form solution) Another short Advent of Code post! Advent of Code 2018 is in full swing; we’re 40% of the way through. Every once in a while, if I find a fun way to solve a problem, I’ll make a short post about it. You can check out my other ones here on the series page, and you can also find my daily reflections here, as well. And, again, if you’re following along in Haskell, why not hop on glguy’s semi-official Haskell Leaderboard (join code 43100-84040706)! There are also Haskellers on freenode ##adventofcode, and also #adventofcode on the Functional Programming slack. You might also find my advent of code api haskell bindings helpful too! Today, we’re going to be using linear algebra, calculus, and galilian transformations to solve the Day 10 challenge. (That’s right, this isn’t just a Haskell blog, I do have math posts on occasion too :) )"><meta property="og:type" content="article"><meta property="og:title" content="Shifting the Stars: Advent of Code with Galilean Optimization
+"><meta property="og:image" content="https://blog.jle.im/img/site_logo.jpg"><meta property="og:locale" content="en_US"><meta property="og:url" content="https://blog.jle.im/entry/shifting-the-stars.html"><meta name="twitter:card" content="summary"><meta name="twitter:creator:id" content="mstk"><link rel="author" href="https://plus.google.com/107705320197444500140"><link rel="alternate" type="application/rss+xml" title="in Code (RSS Feed)" href="http://feeds.feedburner.com/incodeblog"><link rel="canonical" href="https://blog.jle.im/entry/shifting-the-stars.html"><link href="https://blog.jle.im/favicon.ico" rel="shortcut icon"><link href="https://blog.jle.im/css/toast.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/font.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/main.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/page/entry.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/pygments.css" rel="stylesheet" type="text/css"><script type="text/javascript">var page_data = {};
+var disqus_shortname='incode';
+</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-443711-8', 'jle.im');
+ga('send', 'pageview');
+</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js"></script><script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5234d67a6b68dcd4"></script><script type="text/javascript" src="https://blog.jle.im/js/page/entry_toc.js"></script><script type="text/javascript" src="https://blog.jle.im/js/disqus_count.js"></script><script type="text/javascript" src="https://blog.jle.im/js/social.js"></script><script type="text/javascript" src="https://blog.jle.im/js/jquery/jquery.toc.js"></script><script type="text/javascript" src="https://blog.jle.im/purescript/entry.js"></script></head><body><div id="fb-root"><script>(function(d, s, id) {
+ var js, fjs = d.getElementsByTagName(s)[0];
+ if (d.getElementById(id)) return;
+ js = d.createElement(s); js.id = id;
+ js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=641852699171929";
+ fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+</script></div><div id="header-container"><div id="navbar-container" class="tile"><nav id="navbar-content"><div class="nav-info"><h1 class="site-title"><a href="https://blog.jle.im/" class="nav-title">in Code</a></h1><span class="nav-author">Justin Le</span></div><ul class="nav-links"><li><a href="https://blog.jle.im/">home</a></li><li><a href="https://blog.jle.im/entries.html">archives</a></li><li><a href="https://cv.jle.im">cv</a></li><div class="clear"></div></ul></nav></div><div id="header-content"></div></div><div id="body-container" class="container"><div id="main-container" class="grid"><div class="entry-section unit span-grid" role="main"><article class="tile article"><header><h1 id="title">Shifting the Stars: Advent of Code with Galilean Optimization
+</h1><p class="entry-info">by <a class="author" href="https://blog.jle.im/">Justin Le</a><span class="info-separator"> &diams; </span><time datetime="2018-12-10T16:34:37Z" pubdate="" class="pubdate">Monday December 10, 2018</time></p><p><span class="source-info"><a class="source-link" href="https://github.com/mstksg/inCode/tree/master/copy/entries/advent-com.md">Source</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://github.com/mstksg/inCode/tree/gh-pages/entry/shifting-the-stars.md">Markdown</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://blog.jle.im/entry/shifting-the-stars.tex">LaTeX</a><span class="info-separator"> &diams; </span></span>Posted in <a href="https://blog.jle.im/entries/category/@math.html" class="tag-a-category" title="@MATH">Math</a><span class="info-separator"> &diams; </span><a class="comment-link" href="#disqus_thread">Comments</a></p></header><hr><aside class="contents-container"><h5 id="contents-header">Contents</h5><div id="toc"></div></aside><div class="main-content copy-content"><p>(TL;DR: scroll down to the very bottom for a summary and the closed form solution)</p>
+<p>Another short Advent of Code post! <a href="https://adventofcode.com/2018">Advent of Code 2018</a> is in full swing; we’re 40% of the way through. Every once in a while, if I find a fun way to solve a problem, I’ll make a short post about it. You can check out my other ones <a href="https://blog.jle.im/entries/series/+advent-of-code.html">here on the series page</a>, and you can also find my <a href="https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md">daily reflections</a> here, as well. And, again, if you’re following along in Haskell, why not hop on <a href="https://twitter.com/glguy">glguy’s</a> semi-official <a href="https://adventofcode.com/2018/leaderboard/private">Haskell Leaderboard</a> (join code <code>43100-84040706</code>)! There are also Haskellers on freenode ##adventofcode, and also #adventofcode on the Functional Programming slack. You might also find my <a href="https://hackage.haskell.org/package/advent-of-code-api">advent of code api</a> haskell bindings helpful too!</p>
+<p>Today, we’re going to be using linear algebra, calculus, and galilian transformations to solve the <em>Day 10</em> challenge. (That’s right, this isn’t just a Haskell blog, I do have <a href="https://blog.jle.im/entries/category/@math.html">math</a> posts on occasion too :) )</p>
+<h2 id="part-1">Part 1</h2>
+<blockquote>
+<p>It’s no use; your navigation system simply isn’t capable of providing walking directions in the arctic circle, and certainly not in 1018.</p>
+<p>The Elves suggest an alternative. In times like these, North Pole rescue operations will arrange points of light in the sky to guide missing Elves back to base. Unfortunately, the message is easy to miss: the points move slowly enough that it takes hours to align them, but have so much momentum that they only stay aligned for a second. If you blink at the wrong time, it might be hours before another message appears.</p>
+<p>You can see these points of light floating in the distance, and record their position in the sky and their velocity, the relative change in position per second (your puzzle input). The coordinates are all given from your perspective; given enough time, those positions and velocities will move the points into a cohesive message!</p>
+<p>Rather than wait, you decide to fast-forward the process and calculate what the points will eventually spell.</p>
+<p>For example, suppose you note the following points:</p>
+<pre><code>position=&lt; 9,  1&gt; velocity=&lt; 0,  2&gt;
+position=&lt; 7,  0&gt; velocity=&lt;-1,  0&gt;
+position=&lt; 3, -2&gt; velocity=&lt;-1,  1&gt;
+position=&lt; 6, 10&gt; velocity=&lt;-2, -1&gt;
+position=&lt; 2, -4&gt; velocity=&lt; 2,  2&gt;
+position=&lt;-6, 10&gt; velocity=&lt; 2, -2&gt;
+position=&lt; 1,  8&gt; velocity=&lt; 1, -1&gt;
+position=&lt; 1,  7&gt; velocity=&lt; 1,  0&gt;
+position=&lt;-3, 11&gt; velocity=&lt; 1, -2&gt;
+position=&lt; 7,  6&gt; velocity=&lt;-1, -1&gt;
+position=&lt;-2,  3&gt; velocity=&lt; 1,  0&gt;
+position=&lt;-4,  3&gt; velocity=&lt; 2,  0&gt;
+position=&lt;10, -3&gt; velocity=&lt;-1,  1&gt;
+position=&lt; 5, 11&gt; velocity=&lt; 1, -2&gt;
+position=&lt; 4,  7&gt; velocity=&lt; 0, -1&gt;
+position=&lt; 8, -2&gt; velocity=&lt; 0,  1&gt;
+position=&lt;15,  0&gt; velocity=&lt;-2,  0&gt;
+position=&lt; 1,  6&gt; velocity=&lt; 1,  0&gt;
+position=&lt; 8,  9&gt; velocity=&lt; 0, -1&gt;
+position=&lt; 3,  3&gt; velocity=&lt;-1,  1&gt;
+position=&lt; 0,  5&gt; velocity=&lt; 0, -1&gt;
+position=&lt;-2,  2&gt; velocity=&lt; 2,  0&gt;
+position=&lt; 5, -2&gt; velocity=&lt; 1,  2&gt;
+position=&lt; 1,  4&gt; velocity=&lt; 2,  1&gt;
+position=&lt;-2,  7&gt; velocity=&lt; 2, -2&gt;
+position=&lt; 3,  6&gt; velocity=&lt;-1, -1&gt;
+position=&lt; 5,  0&gt; velocity=&lt; 1,  0&gt;
+position=&lt;-6,  0&gt; velocity=&lt; 2,  0&gt;
+position=&lt; 5,  9&gt; velocity=&lt; 1, -2&gt;
+position=&lt;14,  7&gt; velocity=&lt;-2,  0&gt;
+position=&lt;-3,  6&gt; velocity=&lt; 2, -1&gt;</code></pre>
+<p>Each line represents one point. Positions are given as <code>&lt;X, Y&gt;</code> pairs: X represents how far left (negative) or right (positive) the point appears, while Y represents how far up (negative) or down (positive) the point appears.</p>
+<p>At <code>0</code> seconds, each point has the position given. Each second, each point’s velocity is added to its position. So, a point with velocity <code>&lt;1, -2&gt;</code> is moving to the right, but is moving upward twice as quickly. If this point’s initial position were <code>&lt;3, 9&gt;</code>, after <code>3</code> seconds, its position would become <code>&lt;6, 3&gt;</code>.</p>
+<p>Over time, the points listed above would move like this:</p>
+<pre><code>Initially:
+........#.............
+................#.....
+.........#.#..#.......
+......................
+#..........#.#.......#
+...............#......
+....#.................
+..#.#....#............
+.......#..............
+......#...............
+...#...#.#...#........
+....#..#..#.........#.
+.......#..............
+...........#..#.......
+#...........#.........
+...#.......#..........
+
+After 1 second:
+......................
+......................
+..........#....#......
+........#.....#.......
+..#.........#......#..
+......................
+......#...............
+....##.........#......
+......#.#.............
+.....##.##..#.........
+........#.#...........
+........#...#.....#...
+..#...........#.......
+....#.....#.#.........
+......................
+......................
+
+After 2 seconds:
+......................
+......................
+......................
+..............#.......
+....#..#...####..#....
+......................
+........#....#........
+......#.#.............
+.......#...#..........
+.......#..#..#.#......
+....#....#.#..........
+.....#...#...##.#.....
+........#.............
+......................
+......................
+......................
+
+After 3 seconds:
+......................
+......................
+......................
+......................
+......#...#..###......
+......#...#...#.......
+......#...#...#.......
+......#####...#.......
+......#...#...#.......
+......#...#...#.......
+......#...#...#.......
+......#...#..###......
+......................
+......................
+......................
+......................
+
+After 4 seconds:
+......................
+......................
+......................
+............#.........
+........##...#.#......
+......#.....#..#......
+.....#..##.##.#.......
+.......##.#....#......
+...........#....#.....
+..............#.......
+....#......#...#......
+.....#.....##.........
+...............#......
+...............#......
+......................
+......................</code></pre>
+<p>After 3 seconds, the message appeared briefly: <code>HI</code>. Of course, your message will be much longer and will take many more seconds to appear.</p>
+<p><em>What message will eventually appear in the sky?</em></p>
+</blockquote>
+<p>The problem tells us to talk about a system of N particles, each moving at constant velocity. From this, we can see that the position of particle <span class="math inline">\(i\)</span> at time <span class="math inline">\(t\)</span> is <span class="math inline">\(\mathbf{r}_i  + \mathbf{v}_i t\)</span>, where <span class="math inline">\(\mathbf{r}_i\)</span> is the <em>initial position</em> vector, and <span class="math inline">\(\mathbf{v}_i\)</span> is the <em>velocity</em> vector.</p>
+<p>More generally, we can express this in terms of matrices. If we talk talk about <span class="math inline">\(R\)</span> as the <span class="math inline">\(N \times 2\)</span> matrix of initial positions, and <span class="math inline">\(V\)</span> as the <span class="math inline">\(N
+\times 2\)</span> matrix of initial velocities:</p>
+<p><span class="math display">\[
+R =
+\begin{bmatrix}
+x_1 &amp; y_1 \\
+x_2 &amp; y_2 \\
+\vdots &amp; \vdots \\
+x_N &amp; y_N
+\end{bmatrix}
+\]</span></p>
+<p><span class="math display">\[
+V =
+\begin{bmatrix}
+v_{x1} &amp; v_{y1} \\
+v_{x2} &amp; v_{y2} \\
+\vdots &amp; \vdots \\
+v_{xN} &amp; v_{yN}
+\end{bmatrix}
+\]</span></p>
+<p>Then we can say that the state of the total system at time <span class="math inline">\(t\)</span> is given by <span class="math inline">\(R +
+V t\)</span></p>
+<p>Now, how can we find the time when all of the letters are aligned?</p>
+<p>For this, we can make a <em>somewhat justified guess</em>: looking at the input data, we see that things start out as “scattered”, and end up in a clean clustered arrangement. We know that the ending arrangement must be clustered fairly close together because we only have a few hundred points in the input data set, whereas the start times are all in the thousands or higher. And, once things get clustered, they will also get un-clustered right away, because of the randomness of the directions of motion.</p>
+<p>This gives us a clue: if we can find the <span class="math inline">\(t\)</span> that will give us the <span class="math inline">\(R + V t\)</span> with the <em>least variance</em>, we are good to go! All of a sudden, this is now an <a href="https://en.wikipedia.org/wiki/Mathematical_optimization">optimization</a> problem. Find the <span class="math inline">\(t\)</span> that minimizes the variance of x plus the variance of y. We can find this by finding the formula for the sum of variances, taking the first derivative, and setting it to zero.</p>
+<p>The typical formula for finding the sum of variances of a matrix <span class="math inline">\(M\)</span> is to take the <a href="https://en.wikipedia.org/wiki/Trace_(linear_algebra)">trace</a> of the <a href="https://en.wikipedia.org/wiki/Covariance_matrix">covariance matrix</a>, <span class="math inline">\(\mathrm{Tr} \left[ \left(M - \mu_M
+\right)^T \left(M - \mu_M \right) \right]\)</span>. However, in this form, it’s not too fun to work with. That’s because we have to re-compute the mean of of the positions at every point, and things will get messy before they get clean.</p>
+<p>Conceptually, however, we have a powerful tool: the <a href="https://en.wikipedia.org/wiki/Center-of-momentum_frame">Center of Mass frame</a>. Essentially, because our system has no external forces (and no net acceleration), we can <em>perform a <a href="https://en.wikipedia.org/wiki/Galilean_transformation">Galilean transform</a></em> into a frame of reference where the center of mass is <em>fixed at the origin</em>, and <em>never changes</em>. If we can do this, then we only need to compute <span class="math inline">\(\mathrm{Tr}
+\left(M^T M \right)\)</span> (since we guarantee that the mean of <span class="math inline">\(M\)</span> is 0), which is relatively easy peasy.</p>
+<p>Because our system has points of all equal “mass”, we can shift <span class="math inline">\(R\)</span> into <span class="math inline">\(\hat{R}\)</span> (<span class="math inline">\(R\)</span> shifted into the center of mass frame) and <span class="math inline">\(V\)</span> into <span class="math inline">\(\hat{V}\)</span> by just subtracting by the <em>initial</em> mean:</p>
+<p><span class="math display">\[
+\begin{aligned}
+\hat{R} &amp; = R - \mu_R \\
+\hat{V} &amp; = V - \mu_V
+\end{aligned}
+\]</span></p>
+<p>This means that our formula for variance at time T is now simple to manipulate. Because we now know that center of mass <em>is always zero</em>, we can compute the sum of variance as:</p>
+<p><span class="math display">\[
+\lvert \Sigma(t) \rvert = \mathrm{Tr} \left[ \left( \hat{R} + \hat{V} t \right)^T \left( \hat{R} + \hat{V} t \right) \right]
+\]</span></p>
+<p>We can do some simplification, remembering that the trace distributes over addition, and that <span class="math inline">\(\mathrm{Tr} \left( X^T Y \right) = \mathrm{Tr} \left
+(Y^T X \right)\)</span>:</p>
+<p><span class="math display">\[
+\lvert \Sigma(t) \rvert = \mathrm{Tr} (\hat{R}^T \hat{R})
+                   + 2 \mathrm{Tr} (\hat{R}^T \hat{V}) t
+                   + \mathrm{Tr} (\hat{V}^T \hat{V}) t^2
+\]</span></p>
+<p>Now, we want to minimize the sum of variances. So to do that, we can take the first derivative with respect to <span class="math inline">\(t\)</span>, and set it to be zero:</p>
+<p><span class="math display">\[
+\begin{aligned}
+\frac{d}{d t} \lvert \Sigma(t) \rvert &amp; = 2 \mathrm{Tr} (\hat{R}^T \hat{V})
+                                  + 2 \mathrm{Tr} (\hat{V}^T \hat{V}) t \\
+0 &amp; = 2 \mathrm{Tr} (\hat{R}^T \hat{V}) + 2 \mathrm{Tr} (\hat{V}^T \hat{V}) t_f \\
+t_f &amp; = - \frac{\mathrm{Tr} (\hat{R}^T \hat{V})}{\mathrm{Tr}(\hat{V}^T \hat{V})}
+\end{aligned}
+\]</span></p>
+<p>And just like that, we have a formula for <span class="math inline">\(t_f\)</span>!</p>
+<p>We can simplify this a little more by remembering that the trace of a matrix multiplication is the sum of the dot products of the columns of the first matrix by the rows of the second. That means we can write:</p>
+<p><span class="math display">\[
+t_f = - \frac{\sum_i \hat{\mathbf{r}}_i \cdot \hat{\mathbf{v}}_i}{\sum_i \hat{\mathbf{v}}_i \cdot \hat{\mathbf{v}}_i}
+\]</span></p>
+<p>Once we find this, we can plug into our original form, to find that our final points are, in our un-shifted coordinates, <span class="math inline">\(R + V t_f\)</span>. This is because Galilean transformations leave time unchanged, unlike other frame transformations, like the Lorentz transform. However, we have a simpler option: we could just leave our answer in shifted coordinates as well, since we only care about the shape of the result, and not the absolute position.</p>
+<p>We can write this as a Haskell function, assuming we take in a list of <code>V2 Double</code> for velocities and <code>V2 Double</code> for positions, from the <em><a href="https://en.wikipedia.org/wiki/Center-of-momentum_frame">linear</a></em> library:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- | Shift so that centroid is at zero</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ot">centralize ::</span> [<span class="dt">V2</span> <span class="dt">Double</span>] <span class="ot">-&gt;</span> [<span class="dt">V2</span> <span class="dt">Double</span>]</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>centralize ps <span class="ot">=</span> <span class="fu">map</span> (<span class="fu">subtract</span> mean) ps</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    mean <span class="ot">=</span> <span class="fu">sum</span> ps <span class="op">L.^/</span> <span class="fu">fromIntegral</span> (<span class="fu">length</span> ps)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>                <span class="co">-- ^ component-wise division</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co">-- | Sum of dot products</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="ot">sumOfDots ::</span> [<span class="dt">V2</span> <span class="dt">Double</span>] <span class="ot">-&gt;</span> [<span class="dt">V2</span> <span class="dt">Double</span>] <span class="ot">-&gt;</span> <span class="dt">Double</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>sumOfDots xs ys <span class="ot">=</span> <span class="fu">sum</span> (<span class="fu">zipWith</span> L.dot xs ys)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>findWord</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> [<span class="dt">V2</span> <span class="dt">Double</span>]              <span class="co">-- ^ velocities</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> [<span class="dt">V2</span> <span class="dt">Double</span>]              <span class="co">-- ^ initial positions</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> ([<span class="dt">V2</span> <span class="dt">Double</span>], <span class="dt">Double</span>)    <span class="co">-- ^ points in word, and final time t</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>findWord (centralize<span class="ot">-&gt;</span>vs) (centralize<span class="ot">-&gt;</span>xs) <span class="ot">=</span> (final, t)</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    t     <span class="ot">=</span> <span class="fu">negate</span> (sumOfDots xs vs <span class="op">/</span> sumOfDots vs vs)</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    final <span class="ot">=</span> <span class="fu">zipWith</span> (\v x <span class="ot">-&gt;</span> x <span class="op">+</span> t <span class="op">L.*^</span> v) vs xs</span></code></pre></div>
+<p>We don’t even need to round the answer — we can directly make a scatter plot of these points and read off what they look like :)</p>
+<h2 id="part-2">Part 2</h2>
+<blockquote>
+<p>Good thing you didn’t have to wait, because that would have taken a long time - much longer than the <code>3</code> seconds in the example above.</p>
+<p>Impressed by your sub-hour communication capabilities, the Elves are curious: <em>exactly how many seconds would they have needed to wait for that message to appear?</em></p>
+</blockquote>
+<p>This one is just <span class="math inline">\(t\)</span>, which we solved for in the last part! This time, we do need to remember to <code>round</code> it before we submit.</p>
+<h2 id="message-in-the-stars">Message in the Stars</h2>
+<p>Optimization by finding the first derivative is a common tool in math that is definitely under-utilized! In practice, unless we have a really clean system, we won’t be able to analytically “solve for zero” in most situations. However, this system shows all of the signs of being well-behaved: the thing we are minimizing is quadratic on our variable, so the first derivative will be linear on our variable, making “solving for zero” very simple.</p>
+<p>To do this in a clean way we:</p>
+<ol type="1">
+<li>Represented our system as a matrix formula, giving us key linear algebra insights we could exploit.</li>
+<li>Saw that our problem is feasible, because our thing we are minimizing is quadratic in our variable, meaning the derivative is linear in our variable.</li>
+<li>Made this feasible by using a Galilean transform to shift things into the center-of-mass frame, so that the mean is <em>fixed</em> over the entire time span, and <em>set to zero</em>. This made the final solution simple enough to work out on a small sheet of notebook paper.</li>
+</ol>
+<p>And isn’t it cute that we use the <em>Galilean</em> transform, named after someone who is famous for having studied the motion of astronomical bodies? Maybe that was a subtle hint from the author of the challenges ;)</p>
+<p>Anyway, I thought this was a fun twist on the typical Advent of Code challenges. It’s always fun when something that you might think can only be solved by simulation turns out to have a closed-form solution…but even more fun when the closed-form solution turns out to just be simple linear algebra:</p>
+<p><span class="math display">\[
+t_f = - \frac{\sum_i \hat{\mathbf{r}}_i \cdot \hat{\mathbf{v}}_i}{\sum_i \hat{\mathbf{v}}_i \cdot \hat{\mathbf{v}}_i}
+\]</span></p>
+<p>“It’s just dot products all the way down.”</p></div><footer><hr><div class="copy-content"><p>Hi, thanks for reading! You can reach me via email at <a href="mailto:justin@jle.im" class="email">justin@jle.im</a>, or at twitter at <a href="https://twitter.com/mstk">@mstk</a>! This post and all others are published under the <a href="https://creativecommons.org/licenses/by-nc-nd/3.0/">CC-BY-NC-ND 3.0</a> license. Corrections and edits via pull request are welcome and encouraged at <a href="https://github.com/mstksg/inCode">the source repository</a>.</p>
+<p>If you feel inclined, or this post was particularly helpful for you, why not consider <a href="https://www.patreon.com/justinle/overview">supporting me on Patreon</a>, or a <a href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">BTC donation</a>? :)</p></div><div class="clear"></div><ul class="entry-series"><li><div>This entry is a part of a series called <b>&quot;Advent of Code&quot;</b>.  Find the rest of the entries in this series at its <a href="https://blog.jle.im/entries/series/+advent-of-code.html" class="tag-a-series" title="+Advent of Code"> series history</a>.</div></li></ul><ul class="tag-list"><li><a href="https://blog.jle.im/entries/tagged/advent-of-code.html" class="tag-a-tag">#advent of code</a></li><li><a href="https://blog.jle.im/entries/tagged/linear-algebra.html" class="tag-a-tag">#linear algebra</a></li><li><a href="https://blog.jle.im/entries/tagged/physics.html" class="tag-a-tag">#physics</a></li><li><a href="https://blog.jle.im/entries/category/@math.html" class="tag-a-category">@MATH</a></li><li><a href="https://blog.jle.im/entries/series/+advent-of-code.html" class="tag-a-series">+Advent of Code</a></li></ul><aside class="social-buttons"><div class="addthis_toolbox addthis_default_style addthis-buttons"><a class="addthis_button_facebook_like" fb:like:layout="button_count"></a><a class="addthis_button_tweet"></a><a class="addthis_button_google_plusone" g:plusone:size="medium"></a><a class="addthis_counter addthis_pill_style"></a></div><div class="custom-social-buttons"><div class="custom-social-button"><a href="https://www.reddit.com/submit" onclick="window.location = &#39;https://www.reddit.com/submit?url=&#39;+ encodeURIComponent(window.location); return false"><img src="https://www.reddit.com/static/spreddit7.gif" alt="submit to reddit"></a></div></div></aside><nav class="next-prev-links"><ul><li class="prev-entry-link">&larr; <a href="https://blog.jle.im/entry/alchemical-groups.html">Alchemical Groups: Advent of Code with Free Groups and Group Homomorphisms
+</a> (Previous)</li><li class="next-entry-link">(Next) <a href="https://blog.jle.im/entry/tries-with-recursion-schemes.html">Visualizing Prequel Meme Prefix Tries with Recursion Schemes
+</a> &rarr;</li></ul></nav></footer></article><div class="post-entry"><div class="tile"><div id="disqus_thread"></div><script type="text/javascript">var disqus_config = function () {
+    this.page.url = 'https://blog.jle.im/entry/shifting-the-stars.html';
+    this.page.identifier = 'advent-com';
+};
+(function() {
+    var d = document, s = d.createElement('script');
+    s.src = '//incode.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a><br></noscript><a href="http://disqus.com" class="dsq-brlink">Comments powered by <span class="logo-disqus">Disqus</span></a></div></div></div></div></div><div id="footer-container"><div id="footer-content"><div class="tile"><div class="footer-copyright">&copy; 2020 Justin Le <span class="license-link">(<a href="https://creativecommons.org/licenses/by-nc-nd/3.0/" class="license">CC-BY-NC-ND 3.0</a>)</span></div><div class="footer-follow social-follows"><ul class="social-follows-list"><li><ul class="social-follows-list-social"><li><a class="social-follow-twitter" title="Follow me on Twitter!" href="https://twitter.com/intent/user?user_id=mstk" onclick="window.open(
+  &#39;http://twitter.com/intent/user?user_id=907281&#39;,
+  &#39;facebook-share-dialog&#39;,
+  &#39;width=550,height=520&#39;);
+return false;
+">Twitter</a></li><li><a class="social-follow-github" title="Fork me on Github!" href="https://github.com/mstksg">Github</a></li><li><a class="social-follow-twitch" title="Watch me on Twitch!" href="https://www.twitch.tv/justin_l">Twitch</a></li><li><a class="social-follow-patreon" title="Support me on Patreon!" href="https://www.patreon.com/justinle/overview">Patreon</a></li><li><a class="social-follow-gplus" title="Add me on Google+!" href="https://plus.google.com/+JustinLe">Google+</a></li><li><a class="social-follow-keybase" title="Track me on Keybase!" href="https://keybase.io/mstksg">Keybase</a></li><li><a class="social-follow-linkedin" title="Connect with me on LinkedIn!" href="https://linkedin.com/in/lejustin">LinkedIn</a></li><li><a class="social-follow-bitcoin" title="Donate via bitcoin!" href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">Bitcoin</a></li></ul></li><li><ul class="social-follows-list-site"><li><a class="social-follow-rss" title="Subscribe to my RSS Feed!" href="http://feeds.feedburner.com/incodeblog">RSS</a></li><li><a class="social-follow-email" title="Subscribe to the mailing list!" href="https://feedburner.google.com/fb/a/mailverify?loc=en_US&amp;uri=incodeblog">Mailing list</a></li></ul></li></ul></div></div></div></div></body></html>
