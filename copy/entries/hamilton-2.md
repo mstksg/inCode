@@ -11,8 +11,7 @@ series: Hamilton
 Since I started working at a Haskell company in a senior position last year,
 I've had the pleasure of asking Haskell interview questions. For anyone with
 any sort of physics or engineering/numerical I often ask them to walk me
-through a very simple numerical soft-body physics simulation[^physics] in a
-language of their choice, the solution just has to be functional in nature.
+through a very simple numerical soft-body physics simulation.[^physics]
 
 [^physics]: Don't worry, I only ask this for people who have a background in
 physics or numerical methods (which happens to be a big portion of the
@@ -31,12 +30,15 @@ control flow, so the straightforward solution is more than enough to
 demonstrate those principles.
 
 But! If you've been programming Haskell long enough, you often make a bunch of
-libraries (Haskellers are addicted to writing libraries) and years later you
-re-implement them after forgetting that you wrote them.  And the other day I
-just realized that that's exactly what happened here --- I actually wrote a
-whole [blog post series][hamilton-blog] on the *[hamilton][]* library and then
-forgot all about it. So, just for fun, let's leverage the *hamilton* library to
-get a very very quick softbody physics simulator in Haskell!
+libraries[^libraries] and years later you re-implement them after forgetting
+that you wrote them. And the other day I just realized that that's exactly what
+happened here --- I actually wrote a whole [blog post series][hamilton-blog] on
+the *[hamilton][]* library and then forgot all about it. So, just for fun,
+let's leverage the *hamilton* library to get a very very quick softbody physics
+simulator in Haskell!
 
 [hamilton-blog]: https://blog.jle.im/entries/series/+hamilton.html
 [hamilton]: https://hackage.haskell.org/package/hamilton
+
+[^libraries]: It is a well established fact that Haskellers are addicted to
+writing libraries.
