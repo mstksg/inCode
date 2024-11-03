@@ -92,7 +92,7 @@ possible. The point isn't that we want to describe a literal "shape" as much
 as we want to say that there is *some* "thing" preserved by `fmap`, and not
 exactly the nature of that "thing". The *nature* of that thing changes a
 lot from Functor to Functor, but that *some* "thing" exists is almost
-universal. 
+universal.
 
 For some `Functor` instances, the shape is more literal than others. For
 trees, for instance, you have the literal shape of the tree preserved. For
@@ -231,7 +231,7 @@ Hey, wait a minute...that sounds familiar! That's just `pure` from the
 So, the Applicative typeclass laws aren't that mysterious at all. If you
 understand the "shape" that a Functor induces, `Applicative` gives you a
 *monoid* on that shape! This is why `Applicative` is often called the
-"higher-kinded" `Monoid`. 
+"higher-kinded" `Monoid`.
 
 This intuition takes you pretty far, I believe. Look at the examples above
 where we clearly identify specific `Applicative` instances with specific
@@ -254,12 +254,14 @@ arguments list) can be computed *without knowing the results* (the actual
 arguments themselves at runtime). You can list out what arguments are expecting
 without ever getting any input from the user.
 
-This is also leveraged by the *async* library to give us the `Concurrently`
+This is also leveraged by the [*async*][async] library to give us the `Concurrently`
 `Applicative` instance. Normally `<*>` for IO gives us sequential combination
 of IO effects. But, `<*>` for `Concurrently` gives us *parallel* combination of
 IO effects. This is only possible because we can launch all of the actions in
 parallel at the same time, because *we know what the actions are* before we
 actually have to execute them to get the results.
+
+[async]: https://hackage.haskell.org/package/async
 
 This also gives some insight into the [`Backwards` Applicative
 wrapper][backwards] --- because the shape of the final does not depend on the
