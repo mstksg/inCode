@@ -53,7 +53,8 @@ preserve "something":
 
 *   For lists, `fmap` preserves length
 *   For optionals (`Maybe`), `fmap` preserves _presence_ (the fact that
-    something is there or not)
+    something is there or not). It cannot flip a `Just` to a `Nothing` or vice
+    versa.
 *   For `Either e`, `fmap` preserves *the error* (if it exists) or the fact that
     it was succesful.
 *   For `Map k`, `fmap` preserves *the keys*: which keys exist, how many there
@@ -66,17 +67,23 @@ preserve "something":
     they are, how deep they are, etc.
 *   For `State s`, `fmap` preserves what happens to the input state `s`. How a
     `State s` transform a state value `s` is unchanged by `fmap`
+*   For `ConduitT i o m` from *[conduit][]*, `fmap` preserves what the conduit
+    pulls upstream and what it yields downstream. `fmap` will not cause the
+    conduit to yield more or different objects, nor cause it to consume/pull
+    more or less.
 *   For parser-combinator `Parser`, `fmap` preserves what input is consumed or
-    would fail to be consumed.
-*   For [*optparse-applicative*][optparse-applicative] `Parser`s, `fmap` preserves the command line
+    would fail to be consumed.  `fmap` cannot change whether an input string
+    would fail or succeed, and it cannot change how much it consumes.
+*   For *[optparse-applicative][]* `Parser`s, `fmap` preserves the command line
     arguments available. It leaves the `--help` message of your program
     unchanged.
 
 [optparse-applicative]: https://hackage.haskell.org/package/optparse-applicative
+[conduit]: https://hackage.haskell.org/package/conduit
 
 It seems like as soon as you define a `Functor` instance, or as soon as you
 find out that some type has a `Functor` instance, it magically induces some
-sort of ... "thing" that must be preserved.[^reader]  A *conserved quantity
+sort of ... "thing" that must be preserved.[^exceptions]  A *conserved quantity
 must exist*. It reminds me a bit of [Noether's Theorem][noether] in Physics,
 where any continuous symmetry "induces" a conserved quantity (like how
 translation symmetry "causes" conservation of momentum). In Haskell, every
@@ -84,9 +91,11 @@ lawful `Functor` instance induces a conserved quantity. I don't know if there
 is a canonical name for this conserved quantity, but I like to call it "shape".
 
 [noether]: https://en.wikipedia.org/wiki/Noether%27s_theorem
-[^reader]: There are *some* exceptions, like `Reader r`, or some degenerate
-cases like `Writer ()` aka `Identity` which add no meaningful structure. So for
-these this mental model isn't that useful.
+[^exceptions]: There are *some* exceptions, especially degenerate cases like
+`Writer ()` aka `Identity` which add no meaningful structure. So for these this
+mental model isn't that useful. However, there are cases where it isn't that
+useful to think of `Functor` shape (like `Reader r`) but become more
+interesting when looking at `Applicative` and `Monad`.
 
 A Story of Shapes
 -----------------
@@ -202,6 +211,8 @@ it combines the shapes *without considering the results*.
     *contents* of the list.
 *   For `State s`, `<*>` lets you *compose* the `s -> s` state functions
     together, ignoring the `a`/`b`s
+*   For `ConduitT i o m`, `<*>` lets you *sequence* pulling and yielding one
+    after the other, ignoring the actual results of your conduit actions.
 *   For `Parser`, `<*>` lets you sequence input consumption in a way that
     doesn't depend on the actual values you parse: it's "context-free" in a
     sense.
@@ -263,7 +274,7 @@ arguments list) can be computed *without knowing the results* (the actual
 arguments themselves at runtime). You can list out what arguments are expecting
 without ever getting any input from the user.
 
-This is also leveraged by the [*async*][async] library to give us the `Concurrently`
+This is also leveraged by the *[async][]* library to give us the `Concurrently`
 `Applicative` instance. Normally `<*>` for IO gives us sequential combination
 of IO effects. But, `<*>` for `Concurrently` gives us *parallel* combination of
 IO effects. This is only possible because we can launch all of the IO effects in
@@ -288,7 +299,7 @@ ghci> getDual $ Dual "hello" <> Dual "world"
 ```
 
 Every `Applicative` gives rise to a "backwards" `Applicative` that does the
-"mappending" in reverse order:
+shape "mappending" in reverse order:
 
 ```haskell
 ghci> putStrLn "hello" *> putStrLn "world"
@@ -298,6 +309,18 @@ ghci> forwards $ Backwards (putStrLn "hello") *> Backwards (putStrLn "world")
 world
 hello
 ```
+
+With this in mind we can also see how the "shape" concept becomes useful in
+cases where it was previously useless for `Functor`s. For example, `Reader r`
+doesn't really have a useful concept of a "shape" vs. "result" as simply a
+`Functor`. But for `Applicative`, we can see that the shape of `Reader r` is
+the ability to query an `r`, and so `<*>`-ing two `Reader r`'s will combine the
+two values under a shared queried `r` value. There's also `Fold r` from the
+*[foldl][]* library that combines by merging the internal state values
+in a monoidal way and combines the shared input stream.
+
+[foldl]: https://hackage.haskell.org/package/foldl
+
 
 Monad
 -----
@@ -327,6 +350,12 @@ that IO effect. In our case, the *action* of the result (what values are
 printed) depends on the *result* of of the intermediate actions (the
 `getLine`). You can no longer know in advance what action the program will have
 without actually running it and getting the results.
+
+The same thing happens when you start sequencing conduits: you now cannot know
+how much or when they yield or pull until you actually run them. And for
+parsers, you can't know what counts as a valid parse or how much a parser will
+consume until you actually start parsing and getting your intermediate parse
+results.
 
 `Monad` is also what makes `guard` and co. useful. Consider the purely
 Applicative:
