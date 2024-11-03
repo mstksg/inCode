@@ -266,9 +266,10 @@ without ever getting any input from the user.
 This is also leveraged by the [*async*][async] library to give us the `Concurrently`
 `Applicative` instance. Normally `<*>` for IO gives us sequential combination
 of IO effects. But, `<*>` for `Concurrently` gives us *parallel* combination of
-IO effects. This is only possible because we can launch all of the actions in
-parallel at the same time, because *we know what the actions are* before we
-actually have to execute them to get the results.
+IO effects. This is only possible because we can launch all of the IO effects in
+parallel at the same time, because *we know what the IO effects are* before we
+actually have to execute them to get the results. If we needed to know the
+results, this wouldn't be possible.
 
 [async]: https://hackage.haskell.org/package/async
 
@@ -320,10 +321,12 @@ greet = do
   putStrLn ("Hello, " ++ n ++ "!")
 ```
 
-Now, the *action* of the result (what values are printed) depends on the
-*result* of of the intermediate actions (the `getLine`). You can no longer
-know in advance what action the program will have without actually running it
-and getting the results.
+Remember that for "IO", the shape is the IO effects (ie, what gets sent to the
+terminal) and the "result" is the haskell value computed from the execution of
+that IO effect. In our case, the *action* of the result (what values are
+printed) depends on the *result* of of the intermediate actions (the
+`getLine`). You can no longer know in advance what action the program will have
+without actually running it and getting the results.
 
 `Monad` is also what makes `guard` and co. useful. Consider the purely
 Applicative:
@@ -422,6 +425,10 @@ ghci> getAllOptions parseTwo
 ["string-opt", "int-opt"]
 ```
 
+Remember that `Applicative` is like a "monoid" for shapes, so `Ap` gives you a
+free "monoid" on your custom shape: you can now create list-like "sequences" of
+your shape that merge via concatenation through `<*>`.
+
 You could also write a parser combinator library this way too! Remember that
 the "shape" of a parser combinator `Parser` is the string that it consumes or
 rejects. The single element might be a parser that consumes and rejects a
@@ -449,7 +456,9 @@ type Parser = Free Single
 
 Again, we specified the shape we wanted, and now we have a Monad for that
 shape!  For more information on using this, I've written [a blog post in the
-past][regex]
+past][regex]. `Ap` gives you a free "monoid" on your shapes, but in a way
+`Free` gives you a "tree" for your shapes, where the sequence of shapes
+depends on which way you go down their results.
 
 [regex]: https://blog.jle.im/entry/free-alternative-regexp.html
 
