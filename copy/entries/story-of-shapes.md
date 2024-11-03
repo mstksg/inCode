@@ -36,7 +36,11 @@ confident enough to give an answer.
 
 So I'm going to make a bit of a tautological leap: a *Functor* gives you a way
 to "map over" values in a way that *preserves shape*. And what is "shape"? A
-shape is *the thing that fmap preserves*.
+shape is *the thing that fmap preserves*.[^structure]
+
+[^structure]: This concept is also sometimes called "structure". I'm not going
+to argue about which is better; I just use "shape" because it carries slightly
+less semantic baggage to me.
 
 The Functor typeclass is simple enough: for `Functor f`, you have a function
 `fmap :: (a -> b) -> f a -> f b`, along with `fmap id = id` and `fmap f . fmap
@@ -193,8 +197,9 @@ it combines the shapes *without considering the results*.
 
 *   For `Writer w`, `<*>` lets us combine the two logged values using
     `mappend` while ignoring the actual `a`/`b` results.
-*   For list, `<*>` lets us multiply the lengths of the input lists together.
-    The *length* of the new list ignores the actual *contents* of the list.
+*   For list, `<*>` (the cartesian product) lets us multiply the lengths of the
+    input lists together. The *length* of the new list ignores the actual
+    *contents* of the list.
 *   For `State s`, `<*>` lets you *compose* the `s -> s` state functions
     together, ignoring the `a`/`b`s
 *   For `Parser`, `<*>` lets you sequence input consumption in a way that
