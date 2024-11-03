@@ -321,6 +321,11 @@ in a monoidal way and combines the shared input stream.
 
 [foldl]: https://hackage.haskell.org/package/foldl
 
+The monoidal nature of Applicative with regards to shapes and effects is the
+heart of the original intent, and I've discussed this [in earlier blog
+posts][const].
+
+[const]: https://blog.jle.im/entry/const-applicative-and-monoids.html
 
 Monad
 -----
