@@ -122,7 +122,9 @@ that is *changed* by it. `fmap` cleanly splits the two.
 
 Interestingly, most introduction to Functors begin with describing actions as
 having a "result". Ironically, though it's a more common term, it's by far the
-more vague and hard-to-intuit concept.
+more vague and hard-to-intuit concept. We usually learning Functors in terms of
+how they change the *results*, but I'd argue that this is the more confusing
+path.
 
 For something like `Maybe`, "result" is easy enough: it's the value present if
 it exists. For parser-combinator `Parser`s too it's relatively simple: the
@@ -141,7 +143,9 @@ ill-defined as a concept. So, in my mind, I usually reduce the definitions to:
 *   *Shape*: the "thing" that `fmap` preserves
 *   *Result*: the "thing" that `fmap` changes
 
-Neat and clean, right?
+Neat and clean, right? So, maybe the big misdirection is focusing too much on
+the "result" when learning Functors, when we *should* really be focusing more
+on the "shape".
 
 Once you internalize "`Functor` gives you shape-preservation", this helps you
 understand the value of the other common typeclass abstractions in Haskell as
