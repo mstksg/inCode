@@ -248,15 +248,15 @@ it combines the shapes *without considering the results*.
 
 The key takeaway is that the "final shape" *only depends* on the input shapes,
 and not the results. You can know the length of `<*>`-ing two lists together
-with only knowing the length of the input lists. You can know what effect
-`<*>`-ing two IO actions would produce only knowing the effects of the input IO
-actions. You can know what command line arguments `<*>`-ing two
-*optparse-applicative* parsers would have only knowing the command line
-arguments in the input parsers. You can know what strings `<*>`-ing two
-parser-combinator parsers would consume or reject, based only on the
-consumption/rejection of the input parsers. You can know the final log of
-`<*>`-ing two `Writer w a`s together by only knowing the logs of the input
-writer actions.
+with only knowing the length of the input lists. Within the specific context of
+the semantics of `IO`, you can know what "effect" `<*>`-ing two IO actions
+would produce only knowing the effects of the input IO actions. You can know
+what command line arguments `<*>`-ing two *optparse-applicative* parsers would
+have only knowing the command line arguments in the input parsers. You can know
+what strings `<*>`-ing two parser-combinator parsers would consume or reject,
+based only on the consumption/rejection of the input parsers. You can know the
+final log of `<*>`-ing two `Writer w a`s together by only knowing the logs of
+the input writer actions.
 
 And hey...some of these combinations feel "monoidal", don't they?
 
