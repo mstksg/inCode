@@ -11,12 +11,11 @@ slug: functors-to-monads-a-story-of-shapes
 For many years now I've been using a mental model and intuition that has guided
 me well for understanding and teaching and using functors, applicatives,
 monads, and other related Haskell abstractions, as well as for approaching
-learning new ones. I have sprinkled this into many of my previous posts but I
-haven't really made one that explained it in its purest form. Sometimes when
-teaching Haskell I talk about this concept and assume everyone already has
-heard it, but I realize that it's something universal yet easy to miss
-depending on how you're learning it. So, here it is: how I understand the
-Functor and other related abstractions and free constructions in Haskell.
+learning new ones. Sometimes when teaching Haskell I talk about this concept
+and assume everyone already has heard it, but I realize that it's something
+universal yet easy to miss depending on how you're learning it. So, here it is:
+how I understand the Functor and other related abstractions and free
+constructions in Haskell.
 
 The crux is this: instead of thinking about what `fmap` changes, ask: what does
 `fmap` keep *constant*?
