@@ -239,8 +239,6 @@ it combines the shapes *without considering the results*.
     *contents* of the list.
 *   For `State s`, `<*>` lets you *compose* the `s -> s` state functions
     together, ignoring the `a`/`b`s
-*   For `ConduitT i o m`, `<*>` lets you *sequence* pulling and yielding one
-    after the other, ignoring the actual results of your conduit actions.
 *   For `Parser`, `<*>` lets you sequence input consumption in a way that
     doesn't depend on the actual values you parse: it's "context-free" in a
     sense.
