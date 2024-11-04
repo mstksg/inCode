@@ -18,6 +18,9 @@ heard it, but I realize that it's something universal yet easy to miss
 depending on how you're learning it. So, here it is: how I understand the
 Functor and other related abstractions and free constructions in Haskell.
 
+The crux is this: instead of thinking about what `fmap` changes, ask: what does
+`fmap` keep *constant*?
+
 This isn't a rigorous understanding and isn't going to explain *every* aspect
 about *every* Functor, and will probably only be useful if you already know a
 little bit about Functors in Haskell. But it's a nice intuition trick that has
