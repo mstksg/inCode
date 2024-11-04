@@ -414,7 +414,7 @@ happen to form a [semiring][], where `empty` "annihilates" via `empty <*> x ==
 empty`, and `<*>` distributes over `<|>` like `x <*> (y <|> z) == (x <*> y) <|>
 (x <*> z)`. But this is not universal.
 
-[semiring][]: https://en.wikipedia.org/wiki/Semiring
+[semiring]: https://en.wikipedia.org/wiki/Semiring
 
 However, what does `Alternative` bring to our shape/result dichotomy that
 `Applicative` did not? Notice the subtle difference between the two:
