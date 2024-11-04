@@ -449,7 +449,7 @@ vocabulary to say precisely what the different data dependencies are.
 ### Notable Caveats
 
 As with many concepts in haskell, infinity sort of throws a wrench into this
-clean separation.  If you bring in the idea of infinite `<|>`'s vs `<*>`'s,
+clean separation. If you bring in the idea of infinite `<|>`'s vs `<*>`'s,
 some of these distinctions about what we can know about final shape get
 blurred. We famously can [simulate context-sensitive parsing with context-free
 parsers][contextfree] by must enumerating infinitely with `<|>` over each
@@ -558,7 +558,9 @@ data Option a = Option { optionName :: String, optionParse :: String -> Maybe a 
   deriving Functor
 ```
 
-The "shape" here is the name, essentially.
+The "shape" here is the name and also what values it would parse, essentially.
+`fmap` won't affect the name of the option and won't affect what would succeed
+or fail.
 
 Now, to create a full-fledged multi-argument parser, we can use [`Ap` from the
 *free* library][ap]:
@@ -595,7 +597,8 @@ Remember that `Applicative` is like a "monoid" for shapes, so `Ap` gives you a
 free "monoid" on your custom shape: you can now create list-like "sequences" of
 your shape that merge via concatenation through `<*>`. You can also know that
 `fmap` on `Ap Option` will not add or remove options: it'll leave the actual
-options unchanged.
+options unchanged. It'll also not affect what options would fail or succeed to
+parse.
 
 You could also write a parser combinator library this way too! Remember that
 the "shape" of a parser combinator `Parser` is the string that it consumes or
@@ -626,7 +629,7 @@ Again, we specified the shape we wanted, and now we have a Monad for that
 shape!  For more information on using this, I've written [a blog post in the
 past][regex]. `Ap` gives you a free "monoid" on your shapes, but in a way
 `Free` gives you a "tree" for your shapes, where the sequence of shapes
-depends on which way you go down their results. But, importantly, `fmap` won't
+depends on which way you go down their results. And, again, `fmap` won't
 ever change what would or would not be parsed.
 
 [regex]: https://blog.jle.im/entry/free-alternative-regexp.html
