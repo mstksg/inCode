@@ -3,6 +3,7 @@ title: "Functors to Monads: A Story of Shapes"
 categories: Haskell
 tags: functional programming, haskell, interpreters, functors, functor combinators, monads
 create-time: 2024/11/02 15:41:35
+date: 2024/11/04 11:44:50
 identifier: story-of-shapes
 slug: functors-to-monads-a-story-of-shapes
 ---
@@ -28,7 +29,7 @@ The Secret of Functors
 First of all, *what is a Functor*? A capital-F Functor, that is, the Haskell
 typeclass and abstraction. Ask a random Haskeller on the street and they'll
 tell you that it's something that can be "mapped over", like a list or an
-optional. Maybe some of those random Haskellers on the street will feel
+optional. Maybe some of those random Haskellers will feel
 compelled to mention that this mapping should follow some laws...they might
 even list the laws. Ask them why these laws are so important and maybe you'll
 spend a bit of time on this rhetorical street of Haskellers before finding one
@@ -94,34 +95,35 @@ is a canonical name for this conserved quantity, but I like to call it "shape".
 
 [^exceptions]: There are *some* exceptions, especially degenerate cases like
 `Writer ()` aka `Identity` which add no meaningful structure. So for these this
-mental model isn't that useful. However, there are cases where it isn't that
-useful to think of `Functor` shape (like `Reader r`) but become more
-interesting when looking at `Applicative` and `Monad`.
+mental model isn't that useful.
 
 A Story of Shapes
 -----------------
 
 The word "shape" is chosen to be as devoid of external baggage/meaning as
-possible. The word isn't important as much as saying that there is *some*
-"thing" preserved by `fmap`, and not exactly the nature of that "thing". The
-*nature* of that thing changes a lot from Functor to Functor, where we might
-better call it an "effect" or a "structure" specifically, but that *some*
-"thing" exists is almost universal.
+possible while still having *some*. The word isn't important as much as saying
+that there is *some* "thing" preserved by `fmap`, and not exactly the nature of
+that "thing". The *nature* of that thing changes a lot from Functor to Functor,
+where we might better call it an "effect" or a "structure" specifically, but
+that *some* "thing" exists is almost universal.
 
 Of course, the value if this "thing" having a canonical name at all is
-debatable. But if I were to coin one, I'd call it shape.
+debatable. I were to coin a completely new term I might call it a "conserved
+charge" or "gauge" in allusion to physics. But the most useful name probably
+would be shape.
 
-For some `Functor` instances, the shape is more literal than others. For
+For some `Functor` instances, the word shape is more literal than others. For
 trees, for instance, you have the literal shape of the tree preserved. For
 lists, the "length" could be considered a literal shape. `Map k`'s shape is
-also fairly literal: it describes what keys exist in the map. But for `Writer
-w` and `Const w`, shape can be interpreted as some information outside of the
-values you are mapping that is left unchanged by mapping. For `Maybe` and
-`Either e` shape also considers if there has been any short-circuiting. For
-`State s` and `IO` and `Parser`, "shape" involves some sort of side-computation
-or consumption that is left unchanged by `fmap`. For *optparse-applicative*,
-"shape" involves some sort of inspectable and observable static aspects of a
-program. "Shape" comes in all forms.
+also fairly literal: it describes the structure of keys that exist in the map.
+But for `Writer w` and `Const w`, shape can be interpreted as some information
+outside of the values you are mapping that is left unchanged by mapping. For
+`Maybe` and `Either e` shape also considers if there has been any
+short-circuiting. For `State s` and `IO` and `Parser`, "shape" involves some
+sort of side-computation or consumption that is left unchanged by `fmap`, often
+called an effect. For *optparse-applicative*, "shape" involves some sort of
+inspectable and observable static aspects of a program. "Shape" comes in all
+forms.
 
 But, this intuition of "looking for that conserved quantity" is very helpful
 for learning *new* Functors. If you stumble onto a new type that you know is a
@@ -129,12 +131,13 @@ for learning *new* Functors. If you stumble onto a new type that you know is a
 preserving?", and it will almost always yield insight into that type.
 
 This viewpoint also sheds insight onto why `Set.map` isn't a good candidate for
-`fmap` for *[Data.Set][]*: What "thing" does `Set.map f` preserve? In a
-hypothetical world where we had `ordfmap :: Ord b => (a -> b) -> f a -> f b`,
-we would still need `Set.map` to preserve *something* for it to be useful as an
-"Ord-restricted Functor".[^setmap]
+`fmap` for *[Data.Set][]*: What "thing" does `Set.map f` preserve? Not size,
+for sure. In a hypothetical world where we had `ordfmap :: Ord b => (a -> b) ->
+f a -> f b`, we would still need `Set.map` to preserve *something* for it to be
+useful as an "Ord-restricted Functor".[^setmap]
 
 [Data.Set]: https://hackage.haskell.org/package/containers/docs/Data-Set.html
+
 [^setmap]: Incidentally, `Set.map` *does* preserve one thing: non-emptiness.
 You can't `Set.map` an empty set into a non-empty one and vice versa. So, maybe
 if we recontextualized `Set` as a "search for at least one result"
@@ -170,17 +173,24 @@ pick or iterate over.
 So, the "result" can become a bit confusing to generalize. So, in my mind, I
 usually reduce the definitions to:
 
-*   *Shape*: the "thing" that `fmap` preserves
-*   *Result*: the "thing" that `fmap` changes
+*   *Shape*: the "thing" that `fmap` preserves: the `f` in `f a`
+*   *Result*: the "thing" that `fmap` changes: the `a` in `f a`
 
-Neat and clean, right? So, maybe the big misdirection is focusing too much on
-the "result" when learning Functors, when we *should* really be focusing more
-on the "shape".
+With this you could "derive" the Functor laws:
+
+*   `fmap id == id`: `fmap` leaves the shape unchanged, `id` leaves the result
+    unchanged. So entire thing must remain unchanged!
+*   `fmap f . fmap g == fmap (f . g)`. In both cases the shape remains
+    unchanged, but one changes the result by f after g, and the other changes
+    the result by `f . g`. They must be the same transformation!
+
+All neat and clean, right? So, maybe the big misdirection is focusing too much
+on the "result" when learning Functors, when we *should* really be focusing
+more on the "shape", or at least the two together.
 
 Once you internalize "`Functor` gives you shape-preservation", this helps you
 understand the value of the other common typeclass abstractions in Haskell as
 well, and how they function based on how they manipulate "shape" and "result".
-
 
 Traversable
 -----------
@@ -286,7 +296,7 @@ length (pure r) == 1
 isJust (mx <*> my) == isJust mx && isJust my
 isJust (pure r) = True
 
--- State's shape is execState and the monoid is (., id). well, backwards
+-- State's shape is execState and the monoid is (flip (.), id)
 execState (sx <*> sy) == execState sy . execState sx
 execState (pure r) == id
 
@@ -300,10 +310,15 @@ newtype wrapper gives us an `Applicative` instance for lists where `<*>` is
 `zipWith`. These two have the same `Functor` instances, so their "shape"
 (length) is the same. And for both the normal `Applicative` and the `ZipList`
 `Applicative`, you can know the length of the result based on the lengths of
-the input: `length (xs <*> ys) == length xs * length ys`, `length (ZipList xs
-<*> ZipList ys) == min (length xs) (length ys)`. `ZipList` combines shapes
-using the `Min` monoid, instead of the `Product` monoid. And the identity of
-`Min` is positive infinity, so `pure` for `ZipList` is an infinite list.
+the input, but `ZipList` combines shapes using the `Min` monoid, instead of the
+`Product` monoid. And the identity of `Min` is positive infinity, so `pure` for
+`ZipList` is an infinite list.
+
+```haskell
+-- ZipList's shape is length and its monoid is (min, infinity)
+length (xs <*> ys) == length xs `min` length ys
+length (pure r) == infinity
+```
 
 The "know-the-shape-without-knowing-the-results" property is actually leveraged
 by many libraries. It's how *optparse-applicative* can give you `--help`
@@ -325,9 +340,11 @@ possible.
 This also gives some insight into the [`Backwards` Applicative
 wrapper][backwards] --- because the shape of the final does not depend on the
 *result* of either, we are free to combine the shapes in whatever order we
-want. In the same way that every monoid gives rise to a "backwards" monoid:
+want. In the same way that every monoid gives rise to [a "backwards"
+monoid][dual]:
 
 [backwards]: https://hackage.haskell.org/package/transformers-0.6.1.2/docs/Control-Applicative-Backwards.html
+[dual]: https://hackage.haskell.org/package/base-4.20.0.1/docs/Data-Monoid.html#t:Dual
 
 ```haskell
 ghci> "hello" <> "world"
@@ -348,17 +365,6 @@ world
 hello
 ```
 
-With this in mind we can also see how the "shape" concept becomes useful in
-cases where it was previously useless for `Functor`s. For example, `Reader r`
-doesn't really have a useful concept of a "shape" vs. "result" as simply a
-`Functor`. But for `Applicative`, we can see that the shape of `Reader r` is
-the ability to query an `r`, and so `<*>`-ing two `Reader r`'s will combine the
-two values under a shared queried `r` value. There's also `Fold r` from the
-*[foldl][]* library that combines by merging the internal state values
-in a monoidal way and combines the shared input stream.
-
-[foldl]: https://hackage.haskell.org/package/foldl
-
 The monoidal nature of Applicative with regards to shapes and effects is the
 heart of the original intent, and I've discussed this [in earlier blog
 posts][const].
@@ -368,7 +374,7 @@ posts][const].
 Alternative
 -----------
 
-The main function of the [Alternative][Alternative] typeclass is `<|>`:
+The main function of the *[Alternative][]* typeclass is `<|>`:
 
 [Alternative]: https://hackage.haskell.org/package/base-4.20.0.1/docs/Control-Applicative.html#g:2
 
@@ -402,13 +408,13 @@ isJust (mx <|> my) == isJust mx || isJust my
 isJust empty = False
 ```
 
-So, if we understand that functors have a "shape", `Applicative` implies that
-the shapes are monoidal, and `Alternative` implies that the shapes are a
+If we understand that functors have a "shape", `Applicative` implies that the
+shapes are monoidal, and `Alternative` implies that the shapes are a
 "double-monoid". The exact nature of how the two monoids relate to each other,
 however, is not universally agreed upon. For many instances, however, it does
-form a [semiring][], where `empty` "annihilates" via `empty <*> x == empty`,
-and `<*>` distributes over `<|>` like `x <*> (y <|> z) == (x <*> y) <|> (x <*>
-z)`. But this is not universal.
+happen to form a [semiring][], where `empty` "annihilates" via `empty <*> x ==
+empty`, and `<*>` distributes over `<|>` like `x <*> (y <|> z) == (x <*> y) <|>
+(x <*> z)`. But this is not universal.
 
 [semiring][]: https://en.wikipedia.org/wiki/Semiring
 
@@ -426,9 +432,10 @@ introduces a fundamental data dependency for the *results*:
 
 *   Applicative: Shapes merge monoidally independent of the results, but to get
     the result of the final, you need to produce the results of both of the two
-    inputs.
+    inputs in the general case.
 *   Alternative: Shapes merge monoidally independent of the results, but to get
-    the result of the final, you need the results of one or the other input.
+    the result of the final, you need the results of one or the other input in
+    the general case.
 
 See again that clearly separating the shape and the result gives us the
 vocabulary to say precisely what the different data dependencies are.
@@ -493,7 +500,7 @@ evenProducts xs ys = do
 
 Now, *even if you knew* the lengths of the input lists, you can *not* know the
 length of the output list without actually knowing what's inside your lists.
-You need to start "sampling".
+You need to actually start "sampling".
 
 That's why there is no `Monad` instance for `Backwards` or
 *optparse-applicative* parsers. For `Backwards` doesn't work because we've now
@@ -510,11 +517,11 @@ reading a monad tutorial!
 Free Structures
 ---------------
 
-I definitely write [way too much about free structures][free] on this blog. But
-this "shapeful" way of thinking also gives rise to why free structures are so
-compelling and interesting to work with in Haskell.
+I definitely write [way too much about free structures][freeblog] on this blog.
+But this "shapeful" way of thinking also gives rise to why free structures are
+so compelling and interesting to work with in Haskell.
 
-[free]: https://blog.jle.im/entry/functor-combinatorpedia.html
+[freeblog]: https://blog.jle.im/entry/functor-combinatorpedia.html
 
 Before, we were describing shapes of Functors and Applicatives and Monads that
 already existed. We had *this* `Functor`, what was *its* shape?
@@ -567,7 +574,9 @@ ghci> getAllOptions parseTwo
 
 Remember that `Applicative` is like a "monoid" for shapes, so `Ap` gives you a
 free "monoid" on your custom shape: you can now create list-like "sequences" of
-your shape that merge via concatenation through `<*>`.
+your shape that merge via concatenation through `<*>`. You can also know that
+`fmap` on `Ap Option` will not add or remove options: it'll leave the actual
+options unchanged.
 
 You could also write a parser combinator library this way too! Remember that
 the "shape" of a parser combinator `Parser` is the string that it consumes or
@@ -598,7 +607,8 @@ Again, we specified the shape we wanted, and now we have a Monad for that
 shape!  For more information on using this, I've written [a blog post in the
 past][regex]. `Ap` gives you a free "monoid" on your shapes, but in a way
 `Free` gives you a "tree" for your shapes, where the sequence of shapes
-depends on which way you go down their results.
+depends on which way you go down their results. But, importantly, `fmap` won't
+ever change what would or would not be parsed.
 
 [regex]: https://blog.jle.im/entry/free-alternative-regexp.html
 
