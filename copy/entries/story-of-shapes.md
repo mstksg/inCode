@@ -250,13 +250,17 @@ The key takeaway is that the "final shape" *only depends* on the input shapes,
 and not the results. You can know the length of `<*>`-ing two lists together
 with only knowing the length of the input lists. Within the specific context of
 the semantics of `IO`, you can know what "effect" `<*>`-ing two IO actions
-would produce only knowing the effects of the input IO actions. You can know
+would produce only knowing the effects of the input IO actions[^io]. You can know
 what command line arguments `<*>`-ing two *optparse-applicative* parsers would
 have only knowing the command line arguments in the input parsers. You can know
 what strings `<*>`-ing two parser-combinator parsers would consume or reject,
 based only on the consumption/rejection of the input parsers. You can know the
 final log of `<*>`-ing two `Writer w a`s together by only knowing the logs of
 the input writer actions.
+
+[^io]: That is, if we take the sum consideration of all input-output with the
+outside world, independent of what happens within the Haskell results, we can
+say the combination of effects is deterministic.
 
 And hey...some of these combinations feel "monoidal", don't they?
 
@@ -441,6 +445,19 @@ and the latter has to be "disjoint".
 
 See again that clearly separating the shape and the result gives us the
 vocabulary to say precisely what the different data dependencies are.
+
+### Notable Caveats
+
+As with many concepts in haskell, infinity sort of throws a wrench into this
+clean separation.  If you bring in the idea of infinite `<|>`'s vs `<*>`'s,
+some of these distinctions about what we can know about final shape get
+blurred. We famously can [simulate context-sensitive parsing with context-free
+parsers][contextfree] by must enumerating infinitely with `<|>` over each
+possible input. So while "knowing what would parse or fail to parse" is
+_technically_ true by inspecting the parsers, because we have an infinite
+`<|>`, this becomes not true in practice.
+
+[contextfree]: https://byorgey.wordpress.com/2012/01/05/parsing-context-sensitive-languages-with-applicative/
 
 Monad
 -----
