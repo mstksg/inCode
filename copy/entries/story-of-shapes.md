@@ -435,6 +435,10 @@ introduces a fundamental data dependency for the *results*:
     the result of the final, you need the results of one or the other input in
     the general case.
 
+This also implies that choice of combination method for shapes in `Applicative`
+vs `Alternative` aren't arbitrary: the former has to be "conjoint" in a sense,
+and the latter has to be "disjoint".
+
 See again that clearly separating the shape and the result gives us the
 vocabulary to say precisely what the different data dependencies are.
 
