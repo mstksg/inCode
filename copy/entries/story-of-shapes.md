@@ -31,19 +31,15 @@ The Secret of Functors
 First of all, *what is a Functor*? A capital-F Functor, that is, the Haskell
 typeclass and abstraction. Ask a random Haskeller on the street and they'll
 tell you that it's something that can be "mapped over", like a list or an
-optional. Maybe some of those random Haskellers will feel
-compelled to mention that this mapping should follow some laws...they might
-even list the laws. Ask them why these laws are so important and maybe you'll
-spend a bit of time on this rhetorical street of Haskellers before finding one
-confident enough to give an answer.
+optional. Maybe some of those random Haskellers will feel compelled to mention
+that this mapping should follow some laws...they might even list the laws. Ask
+them why these laws are so important and maybe you'll spend a bit of time on
+this rhetorical street of Haskellers before finding one confident enough to
+give an answer.
 
 So I'm going to make a bit of a tautological leap: a *Functor* gives you a way
 to "map over" values in a way that *preserves shape*. And what is "shape"? A
-shape is *the thing that fmap preserves*.[^structure]
-
-[^structure]: This concept is also sometimes called "structure". I'm not going
-to argue about which is better; I just use "shape" because it carries slightly
-less semantic baggage to me.
+shape is *the thing that fmap preserves*.
 
 The Functor typeclass is simple enough: for `Functor f`, you have a function
 `fmap :: (a -> b) -> f a -> f b`, along with `fmap id = id` and `fmap f . fmap
