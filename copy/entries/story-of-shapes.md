@@ -239,10 +239,12 @@ it combines the shapes *without considering the results*.
     together, ignoring the `a`/`b`s
 *   For `Parser`, `<*>` lets you sequence input consumption in a way that
     doesn't depend on the actual values you parse: it's "context-free" in a
-    sense.
+    sense, aside from [some caveats][contextfree].
 *   For *optparse-applicative*, `<*>` lets you combine your command line
     argument specs together, without depending on the actual values provided at
     runtime by the caller.
+
+[contextfree]: https://byorgey.wordpress.com/2012/01/05/parsing-context-sensitive-languages-with-applicative/
 
 The key takeaway is that the "final shape" *only depends* on the input shapes,
 and not the results. You can know the length of `<*>`-ing two lists together
@@ -443,19 +445,6 @@ and the latter has to be "disjoint".
 
 See again that clearly separating the shape and the result gives us the
 vocabulary to say precisely what the different data dependencies are.
-
-### Notable Caveats
-
-As with many concepts in haskell, infinity sort of throws a wrench into this
-clean separation. If you bring in the idea of infinite `<|>`'s vs `<*>`'s,
-some of these distinctions about what we can know about final shape get
-blurred. We famously can [simulate context-sensitive parsing with context-free
-parsers][contextfree] by must enumerating infinitely with `<|>` over each
-possible input. So while "knowing what would parse or fail to parse" is
-_technically_ true by inspecting the parsers, because we have an infinite
-`<|>`, this becomes not true in practice.
-
-[contextfree]: https://byorgey.wordpress.com/2012/01/05/parsing-context-sensitive-languages-with-applicative/
 
 Monad
 -----
