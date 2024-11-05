@@ -484,7 +484,7 @@ you actually start parsing and getting your intermediate parse results.
 Applicative:
 
 ```haskell
-evenProducts :: [Bool]
+evenProducts :: [Int] -> [Int] -> [Bool]
 evenProducts xs ys = (\x y -> even (x * y)) <$> xs <*> ys
 ```
 
