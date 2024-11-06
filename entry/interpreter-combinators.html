@@ -1,0 +1,192 @@
+<!DOCTYPE HTML>
+<html><head><title>The Applicative Interpreter Combinator Design Pattern
+ · in Code</title><meta name="description" content="Weblog of Justin Le, covering various adventures in programming and explorations in the worlds of computation physics, and knowledge.
+"><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="flattr:id" content="3p9jqr"><meta property="og:site_name" content="in Code"><meta property="og:description" content="Recently I’ve been having a lot of fun with what I have been calling the “Applicative Interpreter Combinator” design pattern. It is heavily influenced by ideas like Data types a la Carte and unified free monoidal functors, but the end goal is slightly different in spirit. The goal is to represent Applicative (typically non-monadic) computations (things like parsers, things to execute, things to consume or produce data) by assembling “self-evident” basic primitives and subjecting them to many different successive transformations and combiners. The process of doing so:  * Forces you to make explicit decisions about the structure of your computation type as an ADT. * Allows you to retain isolation of fundamental parts of your domain as separate types * Lets you manipulate the structure of your final computation type through normal Haskell techniques like pattern matching. The structure is available throughout the entire process, so you can replace individual components and values within your structure. * Allows you to fully reflect the structure of your final computation through pattern matching and folds, so you can inspect the structure and produce useful summaries. Like “data types a la carte” and free monad/applicative/alternative designs, these techniques allow you to separate the assembly and inspection of your programs from the “running” of them. However, the main difference is that here we focus not just on products and sums, but many different varied and multi-purpose combinators — a bona fide “zoo” of combinators. Furthermore, our goal is not to design a functor that we can throw into Fix or Free in the end. We might use a fixed-point or two, not as a “big picture”, but rather as an intermediate step. The functor itself is the goal, not its fixed point. This post will be a tour of many different combinators (taken from all over the Haskell ecosystem — places like kan-extensions, transformers, free, and even base) and try to compile and compare them in a systematic way. We’ll be looking at how they act on a couple of base primitives, and seeing the effect that each one has on our primitives."><meta property="og:type" content="article"><meta property="og:title" content="The Applicative Interpreter Combinator Design Pattern
+"><meta property="og:image" content="https://blog.jle.im/img/site_logo.jpg"><meta property="og:locale" content="en_US"><meta property="og:url" content="https://blog.jle.im/entry/interpreter-combinators.html"><meta name="twitter:card" content="summary"><meta name="twitter:creator:id" content="mstk"><link rel="author" href="https://plus.google.com/107705320197444500140"><link rel="alternate" type="application/rss+xml" title="in Code (RSS Feed)" href="http://feeds.feedburner.com/incodeblog"><link rel="canonical" href="https://blog.jle.im/entry/interpreter-combinators.html"><link href="https://blog.jle.im/favicon.ico" rel="shortcut icon"><link href="https://blog.jle.im/css/toast.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/font.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/main.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/page/entry.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/pygments.css" rel="stylesheet" type="text/css"><script type="text/javascript">var page_data = {};
+var disqus_shortname='incode';
+</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-443711-8', 'jle.im');
+ga('send', 'pageview');
+</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js"></script><script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5234d67a6b68dcd4"></script><script type="text/javascript" src="https://blog.jle.im/js/page/entry_toc.js"></script><script type="text/javascript" src="https://blog.jle.im/js/disqus_count.js"></script><script type="text/javascript" src="https://blog.jle.im/js/social.js"></script><script type="text/javascript" src="https://blog.jle.im/js/jquery/jquery.toc.js"></script><script type="text/javascript" src="https://blog.jle.im/purescript/entry.js"></script></head><body><div id="fb-root"><script>(function(d, s, id) {
+ var js, fjs = d.getElementsByTagName(s)[0];
+ if (d.getElementById(id)) return;
+ js = d.createElement(s); js.id = id;
+ js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=641852699171929";
+ fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+</script></div><div id="header-container"><div id="navbar-container" class="tile"><nav id="navbar-content"><div class="nav-info"><h1 class="site-title"><a href="https://blog.jle.im/" class="nav-title">in Code</a></h1><span class="nav-author">Justin Le</span></div><ul class="nav-links"><li><a href="https://blog.jle.im/">home</a></li><li><a href="https://blog.jle.im/entries.html">archives</a></li><li><a href="https://cv.jle.im">cv</a></li><div class="clear"></div></ul></nav></div><div id="header-content"></div></div><div id="body-container" class="container"><div id="main-container" class="grid"><div class="entry-section unit span-grid" role="main"><article class="tile article"><header><div class="unposted-banner">Unposted entry</div><h1 id="title">The Applicative Interpreter Combinator Design Pattern
+</h1><p class="entry-info">by <a class="author" href="https://blog.jle.im/">Justin Le</a></p><p><span class="source-info"><a class="source-link" href="https://github.com/mstksg/inCode/tree/master/copy/entries/applicative-interpreters.md">Source</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://github.com/mstksg/inCode/tree/gh-pages/entry/interpreter-combinators.md">Markdown</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://blog.jle.im/entry/interpreter-combinators.tex">LaTeX</a><span class="info-separator"> &diams; </span></span>Posted in <a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category" title="Functional, pure, non-strict, statically and strongly typed, natively
+compiled...really just the king of great languages.
+">Haskell</a><span class="info-separator"> &diams; </span><a class="comment-link" href="#disqus_thread">Comments</a></p></header><hr><aside class="contents-container"><h5 id="contents-header">Contents</h5><div id="toc"></div></aside><div class="main-content copy-content"><p>Recently I’ve been having a lot of fun with what I have been calling the “Applicative Interpreter Combinator” design pattern. It is heavily influenced by ideas like <a href="http://www.cs.ru.nl/~W.Swierstra/Publications/DataTypesALaCarte.pdf">Data types a la Carte</a> and <a href="http://oleg.fi/gists/posts/2018-02-21-single-free.html">unified free monoidal functors</a>, but the end goal is slightly different in spirit.</p>
+<p>The goal is to represent Applicative (typically non-monadic) computations (things like parsers, things to execute, things to consume or produce data) by assembling “self-evident” basic primitives and subjecting them to many <em>different</em> successive transformations and combiners. The process of doing so:</p>
+<ol type="1">
+<li>Forces you to make explicit decisions about the structure of your computation type as an ADT.</li>
+<li>Allows you to retain isolation of fundamental parts of your domain as separate types</li>
+<li>Lets you manipulate the structure of your final computation type through <em>normal Haskell techniques</em> like pattern matching. The structure is available throughout the entire process, so you can replace individual components and values within your structure.</li>
+<li>Allows you to fully <em>reflect</em> the structure of your final computation through pattern matching and folds, so you can inspect the structure and produce useful summaries.</li>
+</ol>
+<p>Like “data types a la carte” and free monad/applicative/alternative designs, these techniques allow you to separate the assembly and inspection of your programs from the “running” of them. However, the main difference is that here we focus not just on products and sums, but many different varied and multi-purpose combinators — a bona fide “zoo” of combinators. Furthermore, our goal is not to design a functor that we can throw into <code>Fix</code> or <code>Free</code> in the end. We might use a fixed-point or two, not as a “big picture”, but rather as an intermediate step. The <em>functor itself</em> is the goal, <em>not</em> its fixed point.</p>
+<p>This post will be a tour of many different combinators (taken from all over the Haskell ecosystem — places like <a href="https://hackage.haskell.org/package/kan-extensions">kan-extensions</a>, <a href="https://hackage.haskell.org/package/transformers">transformers</a>, <a href="https://hackage.haskell.org/package/free">free</a>, and even <a href="https://hackage.haskell.org/package/base">base</a>) and try to compile and compare them in a systematic way. We’ll be looking at how they act on a couple of base primitives, and seeing the effect that each one has on our primitives.</p>
+<h2 id="setting-the-playing-field">Setting the Playing Field</h2>
+<p>First, let’s set up our base primitive functors that we will be playing around with and seeing how all of these primitives are affected by our combinators.</p>
+<p>In the end, we’re going to be building a <em>command line options schema</em>, which we can run as a parser or summarize.</p>
+<p>A command line options schema has two basic parts:</p>
+<ul>
+<li><em>Positional arguments</em> (think <code>mv &lt;src&gt; &lt;dest&gt;</code>)</li>
+<li><em>Options</em> (think <code>ls --all</code>)</li>
+</ul>
+<p>These two will be the building blocks of our parser!</p>
+<p>These blocks will represent <em>schemas</em> for building a command line argument parser (or otherwise). They will have kind <code>Type -&gt; Type</code> (that is, they will take one type parameter, or at least be able to be partially applied to that point), and the type parameter represents “what” the schema parses. They will <em>usually</em> be <code>Functor</code> instances, for convenience…but not necessarily always.</p>
+<h3 id="arg">Arg</h3>
+<p>First, a Functor to represent a schema for a positional argument:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/applicative-interp.hs#L27-L32</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Arg</span> a <span class="ot">=</span> <span class="dt">Arg</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    {<span class="ot"> argName  ::</span> <span class="dt">String</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    ,<span class="ot"> argHelp  ::</span> <span class="dt">String</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    ,<span class="ot"> argRead  ::</span> <span class="dt">ReadM</span> a</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">deriving</span> <span class="dt">Functor</span></span></code></pre></div>
+<p>An <code>Arg a</code> will be a schema describing an argument that parses a value of type <code>a</code>. So, an <code>Arg Int</code> would be an <code>Int</code> argument retrieved from the command line.</p>
+<p>A schema describing an argument that parses a value of type <code>a</code> contains a name, a help message, and a <code>ReadM a</code>, which is <em>optparse-applicative</em>’s string parser data type (it contains information on how to parse a <code>String</code> into an <code>a</code>). For the most part, we only need to care about two <code>ReadM a</code>s, <code>auto :: Read a =&gt; ReadM a</code>, a <code>ReadM</code> that works for all <code>Read</code> instances, and <code>str :: IsString s =&gt; ReadM a</code>, a <code>ReadM</code> that works for all string-like types (like <code>String</code> and <code>Text</code>).</p>
+<p>Let’s define two simple <em>interpreters</em> for this schema primitive.</p>
+<p>An <em>interpreter</em> is a <em>natural transformation</em> from our <em>schema</em> to some other functor that we will “execute” our primitive in. A <em>natural transformation</em> between functors <code>F</code> and <code>G</code> is a function <code>forall a. F a -&gt; G a</code>, that works for <em>all</em> <code>a</code>s. An interpreter will basically <em>interpret a schema</em>.</p>
+<p>Here’s a simple interpreter that executes our argument into a “summary aggregator”, which aggregates information into a list of summary lines:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/applicative-interp.hs#L25-L50</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">Summary</span> <span class="ot">=</span> <span class="dt">Const</span> [<span class="dt">String</span>]</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="ot">argSummary ::</span> <span class="dt">Arg</span> a <span class="ot">-&gt;</span> <span class="dt">Summary</span> a</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>argSummary <span class="dt">Arg</span>{<span class="op">..</span>} <span class="ot">=</span> <span class="dt">Const</span> [ argName <span class="op">++</span> <span class="st">&quot;: &quot;</span> <span class="op">++</span> argHelp ]</span></code></pre></div>
+<p>Here we using the <code>-XRecordWildcards</code> extension to bind all of the fields in <code>Arg</code> for us to use, for convenience.</p>
+<p>We build an “action” in the <code>Summary</code> type, where we just log a single help line. The <code>Summary</code> Applicative is a data type containing a list of strings, where the sequencing of <code>Summary</code> actions is the appending of those strings together. More on this later!</p>
+<p>For example, we’ll make a test <code>Arg</code> that parses a name:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/applicative-interp.hs#L76-L81</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ot">nameArg ::</span> <span class="dt">Arg</span> <span class="dt">String</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>nameArg <span class="ot">=</span> <span class="dt">Arg</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    { argName <span class="ot">=</span> <span class="st">&quot;&lt;name&gt;&quot;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    , argHelp <span class="ot">=</span> <span class="st">&quot;A person&#39;s name&quot;</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    , argRead <span class="ot">=</span> str</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div>
+<p>Let’s run it:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> argSummary nameArg</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="dt">Const</span> [<span class="st">&quot;&lt;name&gt;: A person&#39;s name&quot;</span>]</span></code></pre></div>
+<p>Okay, that’s a simple one. How about a slightly more complicated one? We can define an interpreter into an <em>optparse-applicative</em> command line argument parser:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/applicative-interp.hs#L52-L55</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="ot">argParser ::</span> <span class="dt">Arg</span> a <span class="ot">-&gt;</span> <span class="dt">Parser</span> a</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>argParser <span class="dt">Arg</span>{<span class="op">..</span>} <span class="ot">=</span> argument argRead <span class="op">$</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>       help    argHelp</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;&gt;</span> metavar argName</span></code></pre></div>
+<p>This how you use <em>optparse-applicative</em> to describe a parser with a single argument. When we “run” it, it will parse it as a single positional argument using the <code>ReadM</code>.</p>
+<p>To see this in action, let’s create a handy tester:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/applicative-interp.hs#L97-L100</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="ot">testParser ::</span> <span class="dt">Parser</span> a <span class="ot">-&gt;</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> a</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>testParser p <span class="ot">=</span> handleParseResult</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>             <span class="op">.</span> execParserPure defaultPrefs (info (p <span class="op">&lt;**&gt;</span> helper) <span class="fu">mempty</span>)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>             <span class="op">.</span> <span class="fu">words</span></span></code></pre></div>
+<p>We can now test out <code>nameArg</code>:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> testParser (argParser nameArg) <span class="st">&quot;--help&quot;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- Usage: &lt;interactive&gt; &lt;name&gt;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co">--</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co">-- Available options:</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co">--   &lt;name&gt;                   A person&#39;s name</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="co">--   -h,--help                Show this help text</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> testParser (argParser nameArg) <span class="st">&quot;alice&quot;</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co">-- &quot;alice&quot;</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> testParser (argParser nameArg) <span class="st">&quot;bob&quot;</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co">-- &quot;bob&quot;</span></span></code></pre></div>
+<p>So if we enter a single positional argument, it gets parsed as itself.</p>
+<p>Note that <code>Arg</code> is a <code>Functor</code>, so we can fmap a transformation on the result:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> testParser (argParser (<span class="fu">map</span> <span class="fu">toUpper</span> <span class="op">&lt;$&gt;</span> nameArg)) <span class="st">&quot;carol&quot;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;CAROL&quot;</span></span></code></pre></div>
+<h3 id="opt">Opt</h3>
+<p>Now, let’s define <code>Opt</code>, schema for non-positional <code>--option &lt;blah&gt;</code>s in a command line interface. We can do this pretty much the same way:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/applicative-interp.hs#L34-L40</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Opt</span> a <span class="ot">=</span> <span class="dt">Opt</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    {<span class="ot"> optString ::</span> <span class="dt">String</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    ,<span class="ot"> optHelp   ::</span> <span class="dt">String</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    ,<span class="ot"> optMeta   ::</span> <span class="dt">String</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    ,<span class="ot"> optRead   ::</span> <span class="dt">ReadM</span> a</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">deriving</span> <span class="dt">Functor</span></span></code></pre></div>
+<p>An <code>Opt a</code> is a schema describing an option “flag” that expects a value of type <code>a</code>.</p>
+<p>Again, we’ll lay out our interpreters:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/applicative-interp.hs#L57-L65</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="ot">optSummary ::</span> <span class="dt">Opt</span> a <span class="ot">-&gt;</span> <span class="dt">Summary</span> a</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>optSummary <span class="dt">Opt</span>{<span class="op">..</span>} <span class="ot">=</span> <span class="dt">Const</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    [ <span class="st">&quot;--&quot;</span> <span class="op">++</span> optString <span class="op">++</span> <span class="st">&quot; &quot;</span> <span class="op">++</span> optMeta <span class="op">++</span> <span class="st">&quot;: &quot;</span> <span class="op">++</span> optHelp ]</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="ot">optParser ::</span> <span class="dt">Opt</span> a <span class="ot">-&gt;</span> <span class="dt">Parser</span> a</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>optParser <span class="dt">Opt</span>{<span class="op">..</span>} <span class="ot">=</span> option optRead <span class="op">$</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>       long optString</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;&gt;</span> help optHelp</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;&gt;</span> metavar optMeta</span></code></pre></div>
+<p>Here’s a sample <code>Opt</code> getting a person’s age:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/applicative-interp.hs#L83-L89</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="ot">ageOpt ::</span> <span class="dt">Opt</span> <span class="dt">Int</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>ageOpt <span class="ot">=</span> <span class="dt">Opt</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    { optString <span class="ot">=</span> <span class="st">&quot;age&quot;</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    , optHelp   <span class="ot">=</span> <span class="st">&quot;A person&#39;s age&quot;</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    , optMeta   <span class="ot">=</span> <span class="st">&quot;&lt;int&gt;&quot;</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    , optRead   <span class="ot">=</span> auto</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> optSummary ageOpt</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="dt">Const</span> [<span class="st">&quot;--age &lt;int&gt;: A person&#39;s age&quot;</span>]</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> testParser (optParser ageOpt) <span class="st">&quot;--help&quot;</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co">-- Usage: &lt;interactive&gt; --age &lt;int&gt;</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="co">--</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="co">-- Available options:</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co">--   --age &lt;int&gt;              A person&#39;s age</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="co">--   -h,--help                Show this help text</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> testParser (optParser ageOpt) <span class="st">&quot;--age 25&quot;</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="co">-- 25</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> testParser (optParser ((<span class="op">*</span><span class="dv">2</span>) <span class="op">&lt;$&gt;</span> ageOpt)) <span class="st">&quot;--age 25&quot;</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="co">-- 50</span></span></code></pre></div>
+<h3 id="imagining-the-combinations">Imagining the Combinations</h3>
+<p>Now that we laid out our basic schemas, let’s now think about how we might want to <em>combine</em> them into richer schemas. How about:</p>
+<ul>
+<li>A schema that can have multiple <code>Arg</code>s</li>
+<li>A schema that can have multiple <code>Opt</code>s</li>
+<li>A schema that can take a single <em>optional</em> <code>Opt</code>. </li>
+<li>A schema that can have a single <code>Arg</code>, and multiple <code>Opt</code>s (or vice versa)</li>
+<li>A schema that has different <code>Opt</code>s and <code>Arg</code>s according to different subcommands</li>
+<li>A schema that specifies an <code>Arg</code> or an <code>Opt</code>, but not both.</li>
+<li>A schema that specifies both an <code>Arg</code> and an <code>Opt</code>, but where the interpreting function has the option to pick which one</li>
+<li>A schema that specifies both an <code>Arg</code> and an <code>Opt</code>, but where the interpreting function <em>must</em> present both to the user.</li>
+</ul>
+<p>Think about all of the interesting schemas you could build using a combination of <code>Arg</code> and <code>Opt</code>. Now, let’s see what tools we have at our disposal!</p>
+<h2 id="combining-schemas">Combining Schemas</h2>
+<p>One simple thing we can imagine is <em>combining</em> different schema types in different ways to produce new schemas, compositionally. There are a few ways we can imagine combining two different schemas together, and we have different <em>combinators</em> to describe each different way.</p>
+<p>A “schema-combining combinator” will have kind:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>(<span class="dt">Type</span> <span class="ot">-&gt;</span> <span class="dt">Type</span>) <span class="ot">-&gt;</span> (<span class="dt">Type</span> <span class="ot">-&gt;</span> <span class="dt">Type</span>) <span class="ot">-&gt;</span> (<span class="dt">Type</span> <span class="ot">-&gt;</span> <span class="dt">Type</span>)</span></code></pre></div>
+<p>That is, given two different <code>Type -&gt; Type</code>s, provide a new <code>Type -&gt; Type</code>.</p>
+<p>All of these combinators should ideally be associative, and there should be an <em>identity</em> schema where combining a schema with the identity should return the original schema.</p>
+<h3 id="either-or">Either-Or</h3>
+<p>The first one we have is <code>Sum</code> from <em><a href="https://hackage.haskell.org/package/base/docs/Data-Functor-Sum.html">Data.Functor.Sum</a></em>; however, I like to use the equivalent type <code>:+:</code> from <em><a href="https://hackage.haskell.org/package/base-4.12.0.0/docs/GHC-Generics.html">GHC.Generics</a></em>.</p>
+<p><code>Arg :+: Opt</code> is a schema that can either ask for an <code>Arg</code> <em>or</em> an <code>Opt</code>.</p></div><footer><hr><div class="copy-content"><p>Hi, thanks for reading! You can reach me via email at <a href="mailto:justin@jle.im" class="email">justin@jle.im</a>, or at twitter at <a href="https://twitter.com/mstk">@mstk</a>! This post and all others are published under the <a href="https://creativecommons.org/licenses/by-nc-nd/3.0/">CC-BY-NC-ND 3.0</a> license. Corrections and edits via pull request are welcome and encouraged at <a href="https://github.com/mstksg/inCode">the source repository</a>.</p>
+<p>If you feel inclined, or this post was particularly helpful for you, why not consider <a href="https://www.patreon.com/justinle/overview">supporting me on Patreon</a>, or a <a href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">BTC donation</a>? :)</p></div><div class="clear"></div><ul class="entry-series"></ul><ul class="tag-list"><li><a href="https://blog.jle.im/entries/tagged/free.html" class="tag-a-tag">#free</a></li><li><a href="https://blog.jle.im/entries/tagged/functional-programming.html" class="tag-a-tag">#functional programming</a></li><li><a href="https://blog.jle.im/entries/tagged/haskell.html" class="tag-a-tag">#haskell</a></li><li><a href="https://blog.jle.im/entries/tagged/interpreters.html" class="tag-a-tag">#interpreters</a></li><li><a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category">@HASKELL</a></li></ul><aside class="social-buttons"><div class="addthis_toolbox addthis_default_style addthis-buttons"><a class="addthis_button_facebook_like" fb:like:layout="button_count"></a><a class="addthis_button_tweet"></a><a class="addthis_button_google_plusone" g:plusone:size="medium"></a><a class="addthis_counter addthis_pill_style"></a></div><div class="custom-social-buttons"><div class="custom-social-button"><a href="https://www.reddit.com/submit" onclick="window.location = &#39;https://www.reddit.com/submit?url=&#39;+ encodeURIComponent(window.location); return false"><img src="https://www.reddit.com/static/spreddit7.gif" alt="submit to reddit"></a></div></div></aside><nav class="next-prev-links"><ul><li class="next-entry-link">(Next) <a href="https://blog.jle.im/entry/introducing-in-code.html">Introducing &quot;in Code&quot;!
+</a> &rarr;</li></ul></nav></footer></article><div class="post-entry"><div class="tile"><div id="disqus_thread"></div><script type="text/javascript">var disqus_config = function () {
+    this.page.url = 'https://blog.jle.im/entry/interpreter-combinators.html';
+    this.page.identifier = 'applicative-interpreters';
+};
+(function() {
+    var d = document, s = d.createElement('script');
+    s.src = '//incode.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a><br></noscript><a href="http://disqus.com" class="dsq-brlink">Comments powered by <span class="logo-disqus">Disqus</span></a></div></div></div></div></div><div id="footer-container"><div id="footer-content"><div class="tile"><div class="footer-copyright">&copy; 2020 Justin Le <span class="license-link">(<a href="https://creativecommons.org/licenses/by-nc-nd/3.0/" class="license">CC-BY-NC-ND 3.0</a>)</span></div><div class="footer-follow social-follows"><ul class="social-follows-list"><li><ul class="social-follows-list-social"><li><a class="social-follow-twitter" title="Follow me on Twitter!" href="https://twitter.com/intent/user?user_id=mstk" onclick="window.open(
+  &#39;http://twitter.com/intent/user?user_id=907281&#39;,
+  &#39;facebook-share-dialog&#39;,
+  &#39;width=550,height=520&#39;);
+return false;
+">Twitter</a></li><li><a class="social-follow-github" title="Fork me on Github!" href="https://github.com/mstksg">Github</a></li><li><a class="social-follow-twitch" title="Watch me on Twitch!" href="https://www.twitch.tv/justin_l">Twitch</a></li><li><a class="social-follow-patreon" title="Support me on Patreon!" href="https://www.patreon.com/justinle/overview">Patreon</a></li><li><a class="social-follow-gplus" title="Add me on Google+!" href="https://plus.google.com/+JustinLe">Google+</a></li><li><a class="social-follow-keybase" title="Track me on Keybase!" href="https://keybase.io/mstksg">Keybase</a></li><li><a class="social-follow-linkedin" title="Connect with me on LinkedIn!" href="https://linkedin.com/in/lejustin">LinkedIn</a></li><li><a class="social-follow-bitcoin" title="Donate via bitcoin!" href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">Bitcoin</a></li></ul></li><li><ul class="social-follows-list-site"><li><a class="social-follow-rss" title="Subscribe to my RSS Feed!" href="http://feeds.feedburner.com/incodeblog">RSS</a></li><li><a class="social-follow-email" title="Subscribe to the mailing list!" href="https://feedburner.google.com/fb/a/mailverify?loc=en_US&amp;uri=incodeblog">Mailing list</a></li></ul></li></ul></div></div></div></div></body></html>

@@ -1,0 +1,1560 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Introduction to Singletons (Part 3)},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Introduction to Singletons (Part 3)}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% October 1, 2018
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/introduction-to-singletons-3.html}{in
+Code}}.}
+
+Welcome back! This article is part 3 of our journey through the \emph{singleton
+design pattern}, and the great
+\emph{\href{http://hackage.haskell.org/package/singletons}{singletons}} library!
+
+This post will be a continuation of
+\href{https://blog.jle.im/entry/introduction-to-singletons-1.html}{Part 1} and
+\href{https://blog.jle.im/entry/introduction-to-singletons-2.html}{Part 2}, so
+if you haven't read those first, now would be a good time to pause and do so
+(and also try to complete the exercises). Today we will be expanding on the
+ideas in those posts by working with more complex ways to \emph{restrict
+functions} based on types. Like the previous posts, we will start by writing
+things ``by hand'', and then jumping into the singletons library and seeing how
+the framework gives you tools to work with these ideas in a smoother way.
+
+The first half of today's post will introduce a new application and design
+pattern that the usage of singletons greatly enhances. The second part of
+today's post deals directly with the lifting of functions to the type level,
+which is made practical by the usage of singletons and the \emph{singletons}
+library.
+
+Code in this post is built on \emph{GHC 8.6.1} with the
+\emph{\href{https://www.stackage.org/nightly-2018-09-29}{nightly-2018-09-29}}
+snapshot (so, \emph{singletons-2.5}). However, unless noted, all of the code
+should still work with \emph{GHC 8.4} and \emph{singletons-2.4}. Again, you can
+download the source for this file
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/singletons/Door3.hs}{here},
+and, if \emph{stack} is installed, you can drop into a ghci session with all of
+the bindings in scope executing it:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{$}\NormalTok{ ./Door3.hs}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Review}\label{review}
+
+In the first post we looked at the \texttt{Door} type, indexed with a phantom
+type of kind \texttt{DoorState}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door3.hs\#L29{-}L38}
+
+\OperatorTok{$}\NormalTok{(singletons [d|}
+\NormalTok{  data DoorState = Opened | Closed | Locked}
+\NormalTok{    deriving (Show, Eq)}
+\NormalTok{  |])}
+
+\KeywordTok{data} \DataTypeTok{Door}\OtherTok{ ::} \DataTypeTok{DoorState} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+    \DataTypeTok{UnsafeMkDoor}\OtherTok{ ::}\NormalTok{ \{}\OtherTok{ doorMaterial ::} \DataTypeTok{String}\NormalTok{ \} }\OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ s}
+
+\OtherTok{mkDoor ::} \DataTypeTok{Sing}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ s}
+\NormalTok{mkDoor \_ }\OtherTok{=} \DataTypeTok{UnsafeMkDoor}
+\end{Highlighting}
+\end{Shaded}
+
+This gives us (at least) three distinct types
+\texttt{Door\ \textquotesingle{}Opened},
+\texttt{Door\ \textquotesingle{}Closed}, and
+\texttt{Door\ \textquotesingle{}Locked}, which can be used to represent opened,
+closed, and locked doors, respectively. We talked in previous posts about how we
+can use this for for a lot of enat tings, including enforcing type-safety,
+talking about how inputs relate to outputs, and uniting functions polymorphic on
+all door states.
+
+Then we talked about situations where we want to ``not care'' about the door
+status in the type system, or when we want to return a door with a state that is
+not known statically, and must be determined dynamically at runtime. After going
+through many ``analogous'' and equivalent type, we arrived at the existential
+wrapper \texttt{SomeDoor}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door3.hs\#L40{-}L45}
+
+\KeywordTok{data} \DataTypeTok{SomeDoor}\OtherTok{ ::} \DataTypeTok{Type} \KeywordTok{where}
+    \DataTypeTok{MkSomeDoor}\OtherTok{ ::} \DataTypeTok{Sing}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{SomeDoor}
+
+\OtherTok{mkSomeDoor ::} \DataTypeTok{DoorState} \OtherTok{{-}\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{SomeDoor}
+\NormalTok{mkSomeDoor ds mat }\OtherTok{=}\NormalTok{ withSomeSing ds }\OperatorTok{$}\NormalTok{ \textbackslash{}dsSing }\OtherTok{{-}\textgreater{}}
+    \DataTypeTok{MkSomeDoor}\NormalTok{ dsSing (mkDoor dsSing mat)}
+\end{Highlighting}
+\end{Shaded}
+
+(We must be careful to pack the \texttt{Sing\ s} with the \texttt{Door\ s}, so
+that we can pattern match at runtime to determine what the original \texttt{s}
+was.)
+
+For the rest of this post, \texttt{SomeDoor} will essentially be used as a
+stand-in for a \texttt{Door\ s} that we do not know the state (the \texttt{s})
+of until runtime, because to use a \texttt{SomeDoor}, we pattern-match at
+runtime. In general you'll encounter types at runtime in a variety of different
+situations (discussed more deeply in
+\href{https://blog.jle.im/entry/introduction-to-singletons-2.html}{Part 2}), but
+\texttt{SomeDoor} is a nice nugget that we can examine to demonstrate more
+general points.
+
+\section{A Need for More Expressive
+Restrictions}\label{a-need-for-more-expressive-restrictions}
+
+Let's write a function that ``knocks'' on a door in IO:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{knock ::} \DataTypeTok{Door}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{knock d }\OtherTok{=} \FunctionTok{putStrLn} \OperatorTok{$} \StringTok{"Knock knock on "} \OperatorTok{++}\NormalTok{ doorMaterial d }\OperatorTok{++} \StringTok{" door!"}
+\end{Highlighting}
+\end{Shaded}
+
+Hm. This doesn't feel right. We can't knock on an opened door..can we? Is there
+a way we can restrict this function to only work on \emph{non-opened} doors? Or,
+more generally, is there a way to be more expressive in the manner in which we
+can restrict functions?
+
+There are a couple of ways of doing this --- we're going to look at two possible
+ways that singletons and the \emph{singletons} library help with. Both of these
+methods allow us to write dependently typed functions that are ``type-safe'' in
+more expressive ways than before.
+
+Note that we'll be exploring ways that are ``generalizable'' --- to different
+types of restrictions that might be more complicated than just ``cannot be
+\texttt{\textquotesingle{}Opened}''.
+
+\section{Dependently Typed Proofs}\label{dependently-typed-proofs}
+
+To look at our first way of tackling this restriction problem, we're going to
+explore a fun \emph{new application} of singletons and DataKinds.
+
+This new application is the usage of the dependently-typed ``proof'' to prove
+that an operation is legal. \emph{Proofs} (in the dependently
+typed/constructivist/Curry-Howard sense) are witnesses to some type-level
+\emph{predicate} or proposition.
+
+A \textbf{value-level predicate} in Haskell is (generally) a function of type
+\texttt{a\ -\textgreater{}\ Bool}. Given a value of type \texttt{a}, if the
+function returns \texttt{True}, then the predicate is satisfied. If it returns
+\texttt{False}, it is not.
+
+A \textbf{type-level predicate} is (generally) a type constructor of kind
+\texttt{k\ -\textgreater{}\ Type}. Given a type of kind \texttt{k}, if \emph{a
+value exists of that type} (or, if a value can be constructed), then the
+predicate is satisfied. If no value exists, it is not. That value, if it exists,
+is called a \emph{witness} or a \emph{proof}.\footnote{All of this is ignoring
+  the ``bottom'' value that is an occupant of every type in Haskell. We can use
+  bottom to subvert pretty much all proofs in Haskell, unfortunately, so the
+  discussion from this point forward assumes we are talking about a subset of
+  Haskell where all values are non-bottom and all functions are total.}
+
+We can define a predicate
+\texttt{Knockable\ ::\ DoorState\ -\textgreater{}\ Type} as a GADT that only has
+values if given \texttt{\textquotesingle{}Closed} and
+\texttt{\textquotesingle{}Locked}, but not \texttt{\textquotesingle{}Opened}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door3.hs\#L47{-}L49}
+
+\KeywordTok{data} \DataTypeTok{Knockable}\OtherTok{ ::} \DataTypeTok{DoorState} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+    \DataTypeTok{KnockClosed}\OtherTok{ ::} \DataTypeTok{Knockable} \DataTypeTok{\textquotesingle{}Closed}
+    \DataTypeTok{KnockLocked}\OtherTok{ ::} \DataTypeTok{Knockable} \DataTypeTok{\textquotesingle{}Locked}
+\end{Highlighting}
+\end{Shaded}
+
+Now, we have a value of type \texttt{Knockable\ \textquotesingle{}Closed} and
+\texttt{Knockable\ \textquotesingle{}Locked} (\texttt{KnockClosed} and
+\texttt{KnockLocked}, respectively), but no value of type
+\texttt{Knockable\ \textquotesingle{}Opened}. How can we use this?
+
+Well, we can make a version of \texttt{knock} that requires a proof that
+\texttt{s} is \texttt{Knockable}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door3.hs\#L51{-}L52}
+
+\OtherTok{knock ::} \DataTypeTok{Knockable}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{knock \_ d }\OtherTok{=} \FunctionTok{putStrLn} \OperatorTok{$} \StringTok{"Knock knock on "} \OperatorTok{++}\NormalTok{ doorMaterial d }\OperatorTok{++} \StringTok{" door!"}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{knock} can now only be called with \texttt{Closed} and \texttt{Locked}
+doors --- do you see why? There is no way to call \texttt{knock} with
+\texttt{s\ \textasciitilde{}\ \textquotesingle{}Opened}\ldots because there is
+no way to pass a value of \texttt{Knockable\ \textquotesingle{}Opened}. No such
+value exists! There's no compiler error because it's ``not even wrong''!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ knock }\DataTypeTok{KnockClosed}\NormalTok{ (mkDoor }\DataTypeTok{SClosed} \StringTok{"Birch"}\NormalTok{)}
+\DataTypeTok{Knock}\NormalTok{ knock on }\DataTypeTok{Birch}\NormalTok{ door}\OperatorTok{!}
+\end{Highlighting}
+\end{Shaded}
+
+This works well if we want to do things at compile-time
+
+\subsection{Let the compiler prove it for
+you}\label{let-the-compiler-prove-it-for-you}
+
+We can even make it more seamless to use by auto-generating proofs at
+compile-time, with a general class like \texttt{Auto}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door3.hs\#L54{-}L61}
+
+\KeywordTok{class} \DataTypeTok{Proved}\NormalTok{ p a }\KeywordTok{where}
+\OtherTok{    auto ::}\NormalTok{ p a}
+
+\KeywordTok{instance} \DataTypeTok{Proved} \DataTypeTok{Knockable} \DataTypeTok{\textquotesingle{}Closed} \KeywordTok{where}
+\NormalTok{    auto }\OtherTok{=} \DataTypeTok{KnockClosed}
+
+\KeywordTok{instance} \DataTypeTok{Proved} \DataTypeTok{Knockable} \DataTypeTok{\textquotesingle{}Locked} \KeywordTok{where}
+\NormalTok{    auto }\OtherTok{=} \DataTypeTok{KnockLocked}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ knock auto (mkDoor }\DataTypeTok{SClosed} \StringTok{"Acacia"}\NormalTok{)}
+\DataTypeTok{Knock}\NormalTok{ knock on }\DataTypeTok{Acacia}\NormalTok{ door}\OperatorTok{!}
+
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ knock auto (mkDoor }\DataTypeTok{SOpened} \StringTok{"Jungle"}\NormalTok{)}
+\DataTypeTok{COMPILER} \DataTypeTok{ERROR}\OperatorTok{!!} \DataTypeTok{COMPILER} \DataTypeTok{ERROR}\OperatorTok{!!}
+\end{Highlighting}
+\end{Shaded}
+
+Such a typeclass exists in libraries like
+\emph{\href{http://hackage.haskell.org/package/type-combinators}{type-combinators}}
+(called \texttt{Known}) and
+\href{http://hackage.haskell.org/package/decidable}{decidable} (called
+\texttt{Auto}). In dependently typed languages like Idris, \texttt{auto} is
+actually a built-in language keyword that does this automatically!
+
+\subsection{Decidable Predicates}\label{decidable-predicates}
+
+However, all of this only works if you know what \texttt{s} is at compile-time.
+What if you don't? What if you are retrieving \texttt{s} at runtime (like from a
+\texttt{SomeDoor} or \texttt{withSomeSing}), or you are forced to handle all
+possible \texttt{s}s?
+
+To do this, we're going to take advantage of a property of some predicates
+called ``decidability''. We say that a predicate is \emph{decidable} if, for any
+input type, we can say whether or not the predicate is satisfiable.
+
+We say that a predicate \texttt{P} in Haskell is \emph{decidable} if we can
+always prove, for any input, if the predicate holds or does not hold.
+Concretely, it means that we can write a total function:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{decidePred}
+\OtherTok{    ::} \DataTypeTok{Sing}\NormalTok{ x               }\CommentTok{{-}{-} \^{} given a type}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Decision}\NormalTok{ (}\DataTypeTok{P}\NormalTok{ x)       }\CommentTok{{-}{-} \^{} return a decision}
+\end{Highlighting}
+\end{Shaded}
+
+Where:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Decision}\NormalTok{ a }\OtherTok{=} \DataTypeTok{Proved}\NormalTok{ a                  }\CommentTok{{-}{-} \^{} a value of a exists}
+                \OperatorTok{|} \DataTypeTok{Disproved}\NormalTok{ (}\DataTypeTok{Refuted}\NormalTok{ a)     }\CommentTok{{-}{-} \^{} a value of a cannot exist}
+
+\CommentTok{{-}{-} | The data type with no values}
+\KeywordTok{data} \DataTypeTok{Void}
+
+\CommentTok{{-}{-} | \textquotesingle{}a\textquotesingle{} cannot exist.  Commonly also called \textasciigrave{}Not\textasciigrave{}}
+\KeywordTok{type} \DataTypeTok{Refuted}\NormalTok{ a }\OtherTok{=}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Void}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{Decision\ a} is like a \texttt{Maybe\ a}, except instead of
+\texttt{Nothing}, we include a proof that the predicate is \emph{not} true.
+
+The \texttt{a\ -\textgreater{}\ Void} idiom (often called \texttt{Not\ a}, or
+\texttt{Refuted\ a}) is type we use in Haskell and other languages to represent
+the fact that it is impossible to construct a value of type \texttt{a}. That's
+because if you could, then you could give it to an
+\texttt{a\ -\textgreater{}\ Void} to get a value of type \texttt{Void}, which is
+impossible to have. So, if a possible function \texttt{a\ -\textgreater{}\ Void}
+exists, it necessarily means that a value of type \texttt{a} cannot exist.
+
+It's a lot to handle all at once, so let's look at an example. Is
+\texttt{Knockable} a decidable predicate? Yes!
+
+We need to write a function:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{isKnockable ::} \DataTypeTok{Sing}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{Decision}\NormalTok{ (}\DataTypeTok{Knockable}\NormalTok{ s)}
+\end{Highlighting}
+\end{Shaded}
+
+I recommend taking a moment and trying to implement this yourself. Remember to
+enable \texttt{-Werror=incomplete-patterns}\footnote{Thanks to
+  \href{https://www.reddit.com/r/haskell/comments/9kkbci/introduction_to_singletons_part_3_dependently/e70nc7k/}{Darwin226
+  on reddit} for this tip!} (or at least \texttt{-Wall}) to make sure you're
+handling all potential pattern matching cases.
+
+Are you ready? Here's a solution:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door3.hs\#L63{-}L67}
+
+\OtherTok{isKnockable ::} \DataTypeTok{Sing}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{Decision}\NormalTok{ (}\DataTypeTok{Knockable}\NormalTok{ s)}
+\NormalTok{isKnockable }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+    \DataTypeTok{SOpened} \OtherTok{{-}\textgreater{}} \DataTypeTok{Disproved} \OperatorTok{$}\NormalTok{ \textbackslash{}}\KeywordTok{case}\NormalTok{ \{\}    }\CommentTok{{-}{-} s \textasciitilde{} \textquotesingle{}Opened}
+    \DataTypeTok{SClosed} \OtherTok{{-}\textgreater{}} \DataTypeTok{Proved} \DataTypeTok{KnockClosed}      \CommentTok{{-}{-} s \textasciitilde{} \textquotesingle{}Closed}
+    \DataTypeTok{SLocked} \OtherTok{{-}\textgreater{}} \DataTypeTok{Proved} \DataTypeTok{KnockLocked}      \CommentTok{{-}{-} s \textasciitilde{} \textquotesingle{}Locked}
+\end{Highlighting}
+\end{Shaded}
+
+This definition should seem pretty straightforward for the \texttt{SClosed} and
+\texttt{SLocked} branches.
+\texttt{isKnockable\ SClosed\ ::\ Decision\ (Knockable\ \textquotesingle{}Closed)},
+we give \texttt{Proved\ KnockClosed}, which gives us just that!
+
+However,
+\texttt{isKnockable\ SOpened\ ::\ Decision\ (Knockable\ \textquotesingle{}Opened)}.
+We can't use \texttt{Proved\ ::\ a\ -\textgreater{}\ Decision\ a}, because no
+such value of type \texttt{Knockable\ \textquotesingle{}Opened} exists. So, we
+have to say that we \emph{disprove} it: we have to prove to GHC that no such
+type could possibly exist. We do this by providing a function of type
+\texttt{Refuted\ (Knockable\ \textquotesingle{}Opened)}, or type
+\texttt{Knockable\ \textquotesingle{}Opened\ -\textgreater{}\ Void}.
+
+We can write it like this:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door3.hs\#L69{-}L70}
+
+\OtherTok{disproveOpened ::} \DataTypeTok{Knockable} \DataTypeTok{\textquotesingle{}Opened} \OtherTok{{-}\textgreater{}} \DataTypeTok{Void}
+\NormalTok{disproveOpened k }\OtherTok{=} \KeywordTok{case}\NormalTok{ k }\KeywordTok{of}\NormalTok{ \{\}             }\CommentTok{{-}{-} empty pattern match}
+\end{Highlighting}
+\end{Shaded}
+
+And we're good to go!
+
+How does this work?
+
+Well, remember, we have to pattern match on the possible inputs. However, we
+can't use any of the ``legal'' patterns:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{disproveOpened ::} \DataTypeTok{Knockable} \DataTypeTok{\textquotesingle{}Opened} \OtherTok{{-}\textgreater{}} \DataTypeTok{Void}
+\NormalTok{disproveOpened k }\OtherTok{=} \KeywordTok{case}\NormalTok{ k }\KeywordTok{of}
+    \DataTypeTok{KnockClosed} \OtherTok{{-}\textgreater{}} \OperatorTok{...}    \CommentTok{{-}{-} not a valid pattern, since it\textquotesingle{}s \textasciigrave{}Knockable \textquotesingle{}Closed\textasciigrave{}}
+    \DataTypeTok{KnockLocked} \OtherTok{{-}\textgreater{}} \OperatorTok{...}    \CommentTok{{-}{-} not a valid pattern, since it\textquotesingle{}s \textasciigrave{}Knockable \textquotesingle{}Locked\textasciigrave{}}
+\end{Highlighting}
+\end{Shaded}
+
+If you include either of those patterns, GHC will complain. So, there is no
+valid pattern to match on\ldots{} so
+\texttt{disproveOpened\ =\ \textbackslash{}case\ \{\}} is enough to write the
+function \texttt{Knockable\ \textquotesingle{}Opened\ -\textgreater{}\ Void},
+since there is no constructor for a value of type
+\texttt{Knockable\ \textquotesingle{}Opened} to match on. This only works
+because \texttt{disproveOpened} is a \textbf{complete pattern match}, and
+therefore total.
+
+We can use this decision function, finally, to handle an arbitrary \texttt{Door}
+whose status we not know until runtime:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door3.hs\#L72{-}L77}
+
+\NormalTok{knockSomeDoor}
+\OtherTok{    ::} \DataTypeTok{SomeDoor}     \CommentTok{{-}{-} \^{} status not known until you pattern match at runtime}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{knockSomeDoor (}\DataTypeTok{MkSomeDoor}\NormalTok{ s d) }\OtherTok{=} \KeywordTok{case}\NormalTok{ isKnockable s }\KeywordTok{of}
+    \DataTypeTok{Proved}\NormalTok{ k    }\OtherTok{{-}\textgreater{}}\NormalTok{ knock k d}
+    \DataTypeTok{Disproved}\NormalTok{ \_ }\OtherTok{{-}\textgreater{}} \FunctionTok{putStrLn} \StringTok{"No knocking allowed!"}
+\end{Highlighting}
+\end{Shaded}
+
+While arguably less useful than one provable predicates, a typeclass for
+decidable predicates is also possible; the aptly-named
+\href{http://hackage.haskell.org/package/decidable}{decidable} package offers
+such a typeclass, called \texttt{Decidable}!
+
+\subsection{Decision}\label{decision}
+
+The definition of the \texttt{Decision} data type might be surprising if you're
+first seeing it. You want to prove something\ldots so why would you care about
+the case where it's ``not true''? Why not just have something like
+\texttt{Maybe}, where you have
+\texttt{data\ Decision\ a\ =\ Proved\ a\ \textbar{}\ Disproved}?
+
+In other words, why do we care about proving both true or false, when it looks
+like we only ever use the true situation? After all, we ignore the
+\texttt{Refuted\ (Knockable\ s)} in our implementation of
+\texttt{knockSomeDoor}.
+
+One answer is that we \emph{do} use the contents of \texttt{Disproved} in
+practice. In \texttt{knockSomeDoor}, we matched on \texttt{Disproved\ \_} and
+threw away the counter-proof\ldots however, as we see later in the exercises,
+there are situations where the contents of \texttt{Disproved} are used.
+
+However, a deeper answer to me is that it keeps the author of the function
+accountable. You can't just say ``this predicate isn't true''\ldots you have to
+\emph{earn} it. And often, the act of trying to earn your disproof (or not being
+able to) helps you iron out bad assumptions you've made.
+
+For example, if we used \texttt{Maybe} instead of \texttt{Decision}, we could
+write:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{isKnockable ::} \DataTypeTok{Sing}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ s}
+\NormalTok{isKnockable }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+    \DataTypeTok{SOpened} \OtherTok{{-}\textgreater{}} \DataTypeTok{Nothing}
+    \DataTypeTok{SClosed} \OtherTok{{-}\textgreater{}} \DataTypeTok{Nothing}
+    \DataTypeTok{SLocked} \OtherTok{{-}\textgreater{}} \DataTypeTok{Just} \DataTypeTok{KnockLocked}
+\end{Highlighting}
+\end{Shaded}
+
+We might falsely claim that \texttt{SClosed} is not knockable. So, if the user
+of our bad \texttt{isKnockable} gets \texttt{Nothing}, they don't know if their
+input is not knockable or knockable\ldots they know \emph{nothing} about the
+knockability status of \texttt{\textquotesingle{}Opened} or
+\texttt{\textquotesingle{}Closed}.
+
+However, we can't write this bad implementation with \texttt{Decision}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{isKnockable ::} \DataTypeTok{Sing}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{Decision}\NormalTok{ s}
+\NormalTok{isKnockable }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+    \DataTypeTok{SOpened} \OtherTok{{-}\textgreater{}} \DataTypeTok{Disproved} \OperatorTok{$}\NormalTok{ \textbackslash{}}\KeywordTok{case}\NormalTok{ \{\}}
+    \DataTypeTok{SClosed} \OtherTok{{-}\textgreater{}} \DataTypeTok{Disproved} \OperatorTok{$} \CommentTok{{-}{-} ????}
+    \DataTypeTok{SLocked} \OtherTok{{-}\textgreater{}} \DataTypeTok{Proved} \DataTypeTok{KnockLocked}
+\end{Highlighting}
+\end{Shaded}
+
+There is no valid thing you can put in the \texttt{????}! That's because you
+need to write a function of type
+\texttt{Knocked\ \textquotesingle{}Closed\ -\textgreater{}\ Void}\ldots but no
+such (total or non-partial) function exists. We can't write
+\texttt{\textbackslash{}case\ \{\}}, because that's an incomplete pattern match
+--- it's missing a match on the \texttt{KnockClosed} pattern.
+
+Note also that this is why it's very important to always have
+\texttt{-Werror=incomplete-patterns} (or at least \texttt{-Wall} --- warn all)
+on when writing dependently typed proofs, to ensure that GHC warns you when your
+pattern matches are incomplete and you know your proof is invalid.
+
+In the examples, we see two more non-trivial examples of decision functions
+(\texttt{and\ p\ q} and \texttt{or\ p\ q}) that are impossible to implement
+incorrectly, due to the structure of the predicates.
+
+\subsection{Perspective on Proofs}\label{perspective-on-proofs}
+
+We just briefly touched on a very simple version of a dependently typed proof,
+and how to ``prove'' properties.
+
+If you have heard things about dependently typed programming before, you might
+have heard that a lot of it involves ``proving properties about your programs''
+and ``forcing you to provide proofs for all of your actions''. The idea of a
+``proof'' might seem a bit scary and ``mathematical'' to those coming from a
+software development world.
+
+However, as we just saw, working with proofs and decisions of proofs can be as
+simple as a couple lines of GADTs and dependent pattern matches.
+
+So, when we see a function like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{knock ::} \DataTypeTok{Knockable}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\end{Highlighting}
+\end{Shaded}
+
+We can read the type signature as: ``Knocking requires both a \texttt{Door\ s}
+and a \emph{proof} that the door's status is \texttt{Knockable}''. It makes it
+impossible for us to run \texttt{knock} on a status that is not
+\texttt{Knockable}, like, say, \texttt{\textquotesingle{}Opened}.
+
+In this light, the role of a proof is like a ``key'' that a type (like
+\texttt{\textquotesingle{}Closed}) must provide to ``unlock'' functions like
+\texttt{knock}.\footnote{Sorry to mix up similar metaphors like this! Definitely
+  not intentional :)} A \emph{decision function} is a function to generate these
+proofs (or prove that they are impossible) for given types.
+
+On one level, you can think of proofs as ``compiler tricks'', or things that
+exist only to appease the compiler. In fact, compilers of languages that
+encourage heavy usage of proofs (like Agda, Coq, Idris) actually implement
+something called \emph{proof erasure}. That is, in those languages, values like
+\texttt{KnockClosed} and \texttt{KnockLocked} might never exist at runtime,
+since they never actually \emph{do} anything at runtime. They only exist as ways
+to limit or enable specific programs from compiling, and serve no purpose after
+compilation. GHC Haskell does not implement proof erasure at the time of this
+post (current GHC version 8.6), but if proofs like this become commonplace, you
+might be reading this during a time where GHC Haskell erases proofs like
+\texttt{Knockable} witnesses!\footnote{Note, however, that we are a little lucky
+  in our case. In the case of our implementation of \texttt{knock}, we match on
+  a wildcard pattern, so the input proof is never evaluated.}
+
+\subsection{The Role of Singletons}\label{the-role-of-singletons}
+
+Proofs themselves might not play a role at run-time, but generating/deciding
+them with types requires being able to pattern match and work with \emph{types}
+at run-time. Because of this, singletons play an important practical role in
+working with proofs in Haskell.
+
+After all, remember the type of our decision function:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{isKnockable ::} \DataTypeTok{Sing}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Decision}\NormalTok{ (}\DataTypeTok{Knockable}\NormalTok{ a)}
+\end{Highlighting}
+\end{Shaded}
+
+The \texttt{Sing} allows \texttt{isKnockable} to pattern match and inspect the
+\emph{type} \texttt{a} to create your proof.
+
+In this light, the \emph{singletons} library provides many tools for working
+with proofs and decisions. In fact, the entire \emph{Data.Singletons.Decide}
+module is dedicated to working with proofs and decisions. It provides the
+\texttt{Decision} data type and \texttt{Refuted} type synonym, both featured
+above.
+
+It also re-exports a particularly useful predicate from \emph{base},
+\emph{propositional equality}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data}\OtherTok{ (:\textasciitilde{}:) ::}\NormalTok{ k }\OtherTok{{-}\textgreater{}}\NormalTok{ k }\OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+    \DataTypeTok{Refl}\OtherTok{ ::}\NormalTok{ a }\OperatorTok{:\textasciitilde{}:}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+Like how \texttt{Knockable} is a predicate that a given status is ``knockable'',
+\texttt{(\textquotesingle{}Blah\ :\textasciitilde{}:)} is a predicate that a
+given type is \emph{equal to} \texttt{\textquotesingle{}Blah}. A value of type
+\texttt{Knockable\ s} is a proof that \texttt{s} is knockable, and a value of
+type \texttt{\textquotesingle{}Blah\ :\textasciitilde{}:\ a} is a proof that
+\texttt{a} is \emph{equal to} \texttt{\textquotesingle{}Blah}.
+
+To see how, note the constructors that it allows. Remember that we limit
+\texttt{Knockable\ s} to only having ``knockable'' \texttt{s} by only allowing
+two constructors, so we can only construct valid values. The same thing happens
+here -- \texttt{(\textquotesingle{}Blah\ :\textasciitilde{}:)} only has
+\emph{one single constructor}:
+\texttt{Refl\ ::\ \textquotesingle{}Blah\ :\textasciitilde{}:\ \textquotesingle{}Blah}.
+The only valid constructor is one where the left hand side is equal to the right
+hand side. I like to use \texttt{Refl} with type application syntax, like
+\texttt{Refl\ @\textquotesingle{}Blah}, so it's always clear exactly what we are
+saying is the same.
+
+It also offers the ``kindclass'' \texttt{SDecide}, which provides \emph{decision
+functions} for the \texttt{(a\ :\textasciitilde{}:)} predicate:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{class} \DataTypeTok{SDecide}\NormalTok{ k }\KeywordTok{where}
+\OtherTok{    (\%\textasciitilde{}) ::} \DataTypeTok{Sing}\NormalTok{ (}\OtherTok{a ::}\NormalTok{ k)}
+         \OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ (}\OtherTok{b ::}\NormalTok{ k)}
+         \OtherTok{{-}\textgreater{}} \DataTypeTok{Decision}\NormalTok{ (a }\OperatorTok{:\textasciitilde{}:}\NormalTok{ b)}
+\end{Highlighting}
+\end{Shaded}
+
+For example, \texttt{Bool} is an instance of \texttt{SDecide}, so we have a
+function:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{(}\DataTypeTok{STrue} \OperatorTok{\%\textasciitilde{}}\NormalTok{)}\OtherTok{ ::} \DataTypeTok{Sing}\NormalTok{ b }\OtherTok{{-}\textgreater{}} \DataTypeTok{Decision}\NormalTok{ (}\DataTypeTok{\textquotesingle{}True} \OperatorTok{:\textasciitilde{}:}\NormalTok{ b)}
+\end{Highlighting}
+\end{Shaded}
+
+which is a decision function to check if \texttt{b} is equal to
+\texttt{\textquotesingle{}True}. You can sort of imagine \texttt{SDecide} as a
+type-level \texttt{Eq} typeclass, but for ``type equality''.
+
+\section{Type Level Functions}\label{type-level-functions}
+
+We're now going to look at a different method useful for restricting how we can
+call functions. Something we can do is define a type that expresses
+knockable-or-not-knockable, as a value:\footnote{Really, we could just use
+  \texttt{Bool} instead of defining a \texttt{Pass} type. We're just going
+  through a new type for the sake of example, and it can be useful because a
+  type like \texttt{Pass} might potentially have even more constructors!}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{$}\NormalTok{(singletons [d|}
+\NormalTok{  data Pass = Obstruct | Allow}
+\NormalTok{  |])}
+\end{Highlighting}
+\end{Shaded}
+
+And we can write a \emph{type-level function} (implemented as \emph{type
+family}) from \texttt{DoorState} to a \texttt{Pass}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \KeywordTok{family} \DataTypeTok{StatePass}\NormalTok{ (}\OtherTok{s ::} \DataTypeTok{DoorState}\NormalTok{)}\OtherTok{ ::} \DataTypeTok{Pass} \KeywordTok{where}
+    \DataTypeTok{StatePass} \DataTypeTok{\textquotesingle{}Opened} \OtherTok{=} \DataTypeTok{\textquotesingle{}Allow}
+    \DataTypeTok{StatePass} \DataTypeTok{\textquotesingle{}Closed} \OtherTok{=} \DataTypeTok{\textquotesingle{}Obstruct}
+    \DataTypeTok{StatePass} \DataTypeTok{\textquotesingle{}Locked} \OtherTok{=} \DataTypeTok{\textquotesingle{}Obstruct}
+\end{Highlighting}
+\end{Shaded}
+
+We've briefly touched on type families before (in talking about
+\texttt{SingKind}), but, as a quick review: type families act a bit like
+type-level functions. They take types as input arguments and return types in
+return.
+
+We can inspect how type families are applied by using the \texttt{:kind!}
+command in ghci:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{kind}\OperatorTok{!} \DataTypeTok{StatePass} \DataTypeTok{\textquotesingle{}Opened}
+\DataTypeTok{\textquotesingle{}Allow}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{kind}\OperatorTok{!} \DataTypeTok{StatePass} \DataTypeTok{\textquotesingle{}Closed}
+\DataTypeTok{\textquotesingle{}Obstruct}
+\end{Highlighting}
+\end{Shaded}
+
+(Note that \texttt{:kind!} is different from \texttt{:kind}: \texttt{:kind} is
+the ghci command to report the kind of a type expression, and \texttt{:kind!} is
+the ghci command to evaluate type families in type expressions.)
+
+Like type synonyms, type families can't be partially applied (``unsaturated'').
+They only ever make sense in ``fully applied'' (or ``saturated'') form, with all
+arguments given syntactically.
+
+Armed with this type family, we can write a new version of \texttt{knock}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door3.hs\#L89{-}L90}
+
+\OtherTok{knockP ::}\NormalTok{ (}\DataTypeTok{StatePass}\NormalTok{ s }\OperatorTok{\textasciitilde{}} \DataTypeTok{\textquotesingle{}Obstruct}\NormalTok{) }\OtherTok{=\textgreater{}} \DataTypeTok{Door}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{knockP d }\OtherTok{=} \FunctionTok{putStrLn} \OperatorTok{$} \StringTok{"Knock knock on "} \OperatorTok{++}\NormalTok{ doorMaterial d }\OperatorTok{++} \StringTok{" door!"}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{a\ \textasciitilde{}\ b} is a constraint for \emph{type equality}. This
+constraint means that calling \texttt{knock} requires that \texttt{StatePass\ s}
+is \emph{equal to} (or unifies with) \texttt{\textquotesingle{}Obstruct}. So, if
+we attempt to call \texttt{knock} with a \texttt{\textquotesingle{}Locked} door,
+then because \texttt{StatePass\ \textquotesingle{}Locked} is
+\texttt{\textquotesingle{}Obstruct}, the constraint is satisfied and everyone is
+happy. If we attempt to call \texttt{knock} with an
+\texttt{\textquotesingle{}Opened} door,
+\texttt{StatePass\ \textquotesingle{}Opened} is
+\texttt{\textquotesingle{}Allow}, so the constraint is not satisfied and
+everyone is sad.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ door1 }\OtherTok{=}\NormalTok{ mkDoor }\DataTypeTok{SClosed} \StringTok{"Oak"}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ door2 }\OtherTok{=}\NormalTok{ mkDoor }\DataTypeTok{SOpened} \StringTok{"Spruce"}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ knock door1}
+\CommentTok{{-}{-} Knock knock on Oak door!}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ knock door2}
+\DataTypeTok{COMPILE} \DataTypeTok{ERROR}\OperatorTok{!}
+\CommentTok{{-}{-}     • Couldn\textquotesingle{}t match type ‘\textquotesingle{}Allow’ with ‘\textquotesingle{}Obstruct’}
+\CommentTok{{-}{-}             arising from a use of ‘knock’}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Deciding at Runtime}\label{deciding-at-runtime}
+
+One nice thing is that, if we know \texttt{s} at compile-time, we can call this
+function without having to pass any manual proofs. However, we have to deal with
+the same issue as before: what happens if we don't know \texttt{s} until
+runtime? How do we prove to the compiler that \texttt{Passable\ s} is
+\texttt{\textquotesingle{}Allow}?
+
+Remember that type families take \emph{types} as inputs, so we can't write:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{knockSomeDoor ::} \DataTypeTok{SomeDoor} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{knockSomeDoor (}\DataTypeTok{MkSomeDoor}\NormalTok{ s d) }\OtherTok{=}
+    \KeywordTok{case} \DataTypeTok{StatePass}\NormalTok{ s }\KeywordTok{of}
+      \CommentTok{{-}{-} ...}
+\end{Highlighting}
+\end{Shaded}
+
+because \texttt{s}, a value, can't be given to \texttt{StatePass}.
+
+What we really want to do is pass \texttt{s} (the singleton representing a type)
+to \texttt{StatePass} (the type family). And then, we want to match on the
+\emph{resulting type}, so we can decide what to do based on the result.
+
+If you think about this predicament long enough, you might begin to see a
+solution. Essentially, we want a function that takes a \emph{singleton} of
+\texttt{s}, and return a \emph{singleton} of \texttt{StatePass\ s}.
+
+What we want, in the end, is a \emph{mirror} of the type-level function \emph{at
+the value level}. We need to write a function of type
+\texttt{Sing\ s\ -\textgreater{}\ Sing\ (StatePass\ s)}: given a singleton of a
+type, return a singleton of the type family applied to the type.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \KeywordTok{family} \DataTypeTok{StatePass}\NormalTok{ (}\OtherTok{s ::} \DataTypeTok{DoorState}\NormalTok{)}\OtherTok{ ::} \DataTypeTok{Pass} \KeywordTok{where}
+    \DataTypeTok{StatePass} \DataTypeTok{\textquotesingle{}Opened} \OtherTok{=} \DataTypeTok{\textquotesingle{}Allow}
+    \DataTypeTok{StatePass} \DataTypeTok{\textquotesingle{}Closed} \OtherTok{=} \DataTypeTok{\textquotesingle{}Obstruct}
+    \DataTypeTok{StatePass} \DataTypeTok{\textquotesingle{}Locked} \OtherTok{=} \DataTypeTok{\textquotesingle{}Obstruct}
+
+\OtherTok{sStatePass ::} \DataTypeTok{Sing}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ (}\DataTypeTok{StatePass}\NormalTok{ s)}
+\NormalTok{sStatePass }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+    \DataTypeTok{SOpened} \OtherTok{{-}\textgreater{}} \DataTypeTok{SAllow}
+    \DataTypeTok{SClosed} \OtherTok{{-}\textgreater{}} \DataTypeTok{SObstruct}
+    \DataTypeTok{SLocked} \OtherTok{{-}\textgreater{}} \DataTypeTok{SObstruct}
+\end{Highlighting}
+\end{Shaded}
+
+We have to be very careful with how we define \texttt{sStatePass}, because GHC
+isn't too smart. It'll reject any definition that isn't structurally identical
+to the type family it's mirroring.
+
+With our new tool, we can now write:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door3.hs\#L92{-}L97}
+
+\NormalTok{knockSomeDoorP}
+\OtherTok{    ::} \DataTypeTok{SomeDoor}     \CommentTok{{-}{-} \^{} status not known until you pattern match at runtime}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{knockSomeDoorP (}\DataTypeTok{MkSomeDoor}\NormalTok{ s d) }\OtherTok{=} \KeywordTok{case}\NormalTok{ sStatePass s }\KeywordTok{of}
+    \DataTypeTok{SObstruct} \OtherTok{{-}\textgreater{}}\NormalTok{ knockP d                        }\CommentTok{{-}{-} \^{} \textasciigrave{}StatePass s \textasciitilde{} \textquotesingle{}Obstruct\textasciigrave{}}
+    \DataTypeTok{SAllow}    \OtherTok{{-}\textgreater{}} \FunctionTok{putStrLn} \StringTok{"No knocking allowed!"} \CommentTok{{-}{-} \^{} \textasciigrave{}StatePass s \textasciitilde{} \textquotesingle{}Allow\textasciigrave{}}
+\end{Highlighting}
+\end{Shaded}
+
+First we use \texttt{sStatePass\ s} to check the ``pass'' of the \texttt{s}.
+Then, we match on the \texttt{Pass}: if it's
+\texttt{\textquotesingle{}Obstruct}, like the type signature of \texttt{knock}
+requires, we can run \texttt{knock}. If not, then we cannot!
+
+\subsection{Singletons Library to the
+Rescue}\label{singletons-library-to-the-rescue}
+
+At the high level, we defined a ``function'' on types (\texttt{StatePass}),
+using type families.
+
+And, just like we have to define singletons (\texttt{SOpened}, \texttt{SClosed},
+etc.) at the value level to mirror what is happening at the type level, we also
+have to define \emph{singleton functions} (\texttt{sStatePass}) at the value
+level to mirror what is happening at the type level.
+
+Defining singletons for our types is a tedious and mechanical process. Defining
+singletonized functions for our type families is also similarly tedious and
+mechanical. This is where the \emph{singletons} library comes in: it provides us
+Template Haskell tools to automatically define type families and their
+associated singleton functions:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{$}\NormalTok{(singletons [d|}
+\NormalTok{  statePass :: DoorState {-}\textgreater{} Pass}
+\NormalTok{  statePass Opened = Allow}
+\NormalTok{  statePass Closed = Obstruct}
+\NormalTok{  statePass Locked = Obstruct}
+\NormalTok{  |])}
+\end{Highlighting}
+\end{Shaded}
+
+The above declaration would normally declare only the value-level function
+\texttt{statePass} with the type \texttt{DoorSate\ -\textgreater{}\ Pass}.
+
+However, with singleton's template haskell, this also generates:\footnote{In the
+  spirit of full disclosure, the Template Haskell also generates some other
+  things (known as \emph{defunctionalization symbols}), which we will be talking
+  about in the next part of this series.}
+
+\begin{itemize}
+\tightlist
+\item
+  The \emph{type family} \texttt{StatePass\ (s\ ::\ DoorState)\ ::\ Pass}, like
+  we defined above
+\item
+  The \emph{singleton function} \texttt{sStatePass}, with the type
+  \texttt{Sing\ s\ -\textgreater{}\ Sing\ \ \ \ \ (StatePass\ s)}, like we
+  defined above.
+\end{itemize}
+
+The naming convention for functions with non-symbol names takes a function like
+\texttt{myFunction} and generates the type family \texttt{MyFunction} and the
+singleton function \texttt{sMyFunction}.
+
+The naming convention for functions with symbolic names (operators) takes an
+operator like \texttt{++} and generates the type family \texttt{++} (keeping the
+identical name) and the singleton function \texttt{\%++}.\footnote{Note that
+  this is a change since \emph{singletons-2.4}. In previous versions,
+  \texttt{++} would generate the type family \texttt{:++} and the singleton
+  function \texttt{\%:++}.}
+
+\section{A Comparison}\label{a-comparison}
+
+We went over two methods of using phantom types with the singleton library and
+dependent types to restrict how certain functions can be called, on a more
+non-trivial level.
+
+Our first method was leveraging ``dependently typed proofs''. These are useful
+because they are constructed to exploit the ``structure'' of the types you
+create. Essentially, we create a data type (predicate) in a way so that it is
+impossible to create an ``invalid'' proof. And, often, if we write our proofs in
+a clever enough way, we can actually use and combine proofs to generate new
+proofs. (More examples in the exercises)
+
+Personally, I find this to be the source of a lot of the ``fun'' of dependently
+typed programming --- our proofs become first class values, and if we define
+them in a nice enough way, we can use manipulate them to create new proofs. (A
+full exploration of this is well beyond the scope of this post)
+
+However, in practice, carefully constructing predicates and proofs (ones more
+complicated than the one we just looked at) requires some up-front cost in
+thinking about how to best express your predicate, and is sometimes not
+straightforward.
+
+I consider the second method, using type-level functions, to be the more
+``mechanical'' way, with less upfront cost in thinking time. For the most part,
+if you can write a normal term-level function (something that most Haskell
+programmers are comfortable doing), you can write a type-level function. This is
+even made simpler with singletons --- you can just write your term-level
+relationship as a normal function, and you can now just directly use your
+function at the type level.
+
+In fact, consider if there were more than two \texttt{Pass} (maybe allow,
+obstruct, or partial?). In that case, we can easily restrict a function based on
+the \texttt{Pass} being equal to any of the three or more by using the
+\texttt{\textasciitilde{}} constraint. Using the dependently typed proof
+version, though, we would have to create a new GADT for each situation.
+
+In a way, type-level functions deliver on the promise of blurring the line
+between type and value. Our term-level functions are now type-level functions!
+We just need to remember to switch our capitalizations!
+
+But this strength is also its weakness. Remember that the problem of normal
+term-level functions was that they are potentially ``incorrect'', and not
+directly verifiable. So, if you just lift your potentially incorrect term-level
+functions to the type level\ldots what you get is potentially incorrect
+type-level functions! You get the \emph{same} logic errors. Really, writing
+type-level functions (unsurprisingly) brings all of the error-proneness of
+writing at the term-level.
+
+In contrast, if you use dependently typed proofs correctly, these proofs can
+\emph{compose}, and GHC can check that \emph{these proofs compose correctly}, or
+that the compositions of your proofs are also valid proofs. That's because this
+is enforced at the \emph{structural level}. (We'll look at some examples in the
+exercises) GHC can't do that directly with functions; it can't check that the
+composition of functions gives correct answers.
+
+These two approaches aren't necessarily mutually exclusive, and you often might
+mix the two. It's good to understand the trade-offs in up-front cost,
+expressiveness, and correctness! But, however way you play, the
+\emph{singletons} library is here to make our life easier.
+
+\section{Singleton Library Functions}\label{singleton-library-functions}
+
+As we have seen, working with type-level functions with singletons involves at
+least two parts --- the type family working on the type-level values, and the
+singleton functions mirroring the type family, working on the term-level
+singletons.
+
+The singletons library offers template haskell to make working with these things
+pretty seamless. In fact, a good portion of Prelude and base is promoted and
+exported by singletons!
+
+You can find most of these in the \emph{Data.Singletons.Prelude} module
+namespace. So, with singletons, you get functions like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{fst}\OtherTok{ ::}\NormalTok{ (a, b) }\OtherTok{{-}\textgreater{}}\NormalTok{ a}
+
+\KeywordTok{type} \KeywordTok{family} \DataTypeTok{Fst}\NormalTok{ (}\OtherTok{t ::}\NormalTok{ (a, b))}\OtherTok{ ::}\NormalTok{ a}
+
+\OtherTok{sFst ::} \DataTypeTok{Sing}\NormalTok{ t }\OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ (}\DataTypeTok{Fst}\NormalTok{ t)}
+\end{Highlighting}
+\end{Shaded}
+
+and
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{isLeft ::} \DataTypeTok{Either}\NormalTok{ a b }\OtherTok{{-}\textgreater{}} \DataTypeTok{Bool}
+
+\KeywordTok{type} \KeywordTok{family} \DataTypeTok{IsLeft}\NormalTok{ (}\OtherTok{t ::} \DataTypeTok{Either}\NormalTok{ a b)}\OtherTok{ ::} \DataTypeTok{Bool}
+
+\OtherTok{sIsLeft ::} \DataTypeTok{Sing}\NormalTok{ t }\OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ (}\DataTypeTok{IsLeft}\NormalTok{ t)}
+\end{Highlighting}
+\end{Shaded}
+
+and
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{(++) ::}\NormalTok{ [a] }\OtherTok{{-}\textgreater{}}\NormalTok{ [a] }\OtherTok{{-}\textgreater{}}\NormalTok{ [a]}
+
+\KeywordTok{type} \KeywordTok{family}\NormalTok{ (}\OtherTok{xs ::}\NormalTok{ [a]) }\OperatorTok{++}\NormalTok{ (}\OtherTok{ys ::}\NormalTok{ [a])}\OtherTok{ ::}\NormalTok{ [a]}
+
+\OtherTok{(\%++) ::} \DataTypeTok{Sing}\NormalTok{ xs }\OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ ys }\OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ (xs }\OperatorTok{++}\NormalTok{ ys)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Promoted Typeclasses}\label{promoted-typeclasses}
+
+But, how can we promote functions like \texttt{(==)} and \texttt{max}, which are
+typeclass-polymorphic?
+
+With kindclasses (typeclasses for kinds), of course!
+
+Let's remember what we need for these promoted functions to work: the type
+families, and the singleton functions.
+
+The \emph{singletons} library handles this by providing each of these in a
+separate typeclass. Let's look at the humble \texttt{Eq} typeclass as an
+example:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{class} \DataTypeTok{Eq}\NormalTok{ a }\KeywordTok{where}
+\OtherTok{    (==) ::}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Bool}
+\OtherTok{    (/=) ::}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Bool}
+\end{Highlighting}
+\end{Shaded}
+
+The \emph{singletons} library promotes this as:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{class} \DataTypeTok{PEq}\NormalTok{ a }\KeywordTok{where}
+    \KeywordTok{type}\NormalTok{ (}\OtherTok{x ::}\NormalTok{ a) }\OperatorTok{==}\NormalTok{ (}\OtherTok{y ::}\NormalTok{ a)}\OtherTok{ ::} \DataTypeTok{Bool}       \CommentTok{{-}{-} \^{} associated type / type family}
+    \KeywordTok{type}\NormalTok{ (}\OtherTok{x ::}\NormalTok{ a) }\OperatorTok{/=}\NormalTok{ (}\OtherTok{y ::}\NormalTok{ a)}\OtherTok{ ::} \DataTypeTok{Bool}
+
+\KeywordTok{class} \DataTypeTok{SEq}\NormalTok{ a }\KeywordTok{where}
+\OtherTok{    (\%==) ::} \DataTypeTok{Sing}\NormalTok{ (}\OtherTok{x ::}\NormalTok{ a) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ (}\OtherTok{y ::}\NormalTok{ a) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ (x }\OperatorTok{==}\NormalTok{ y)}
+\OtherTok{    (\%/=) ::} \DataTypeTok{Sing}\NormalTok{ (}\OtherTok{x ::}\NormalTok{ a) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ (}\OtherTok{y ::}\NormalTok{ a) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ (x }\OperatorTok{/=}\NormalTok{ y)}
+\end{Highlighting}
+\end{Shaded}
+
+The naming convention is to just add \texttt{P} for the ``promoted'' type family
+functions, and \texttt{S} for the singleton functions.
+
+In fact, you can even promote your own custom typeclasses:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{$}\NormalTok{(singletons [d|}
+\NormalTok{  class MyClass a where}
+\NormalTok{    myFunc :: a {-}\textgreater{} a}
+\NormalTok{  |])}
+\end{Highlighting}
+\end{Shaded}
+
+This would create:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  The \emph{typeclass} \texttt{MyClass} with method
+  \texttt{myFunc\ ::\ MyClass\ a\ =\textgreater{}\ a\ -\textgreater{}\ a}
+\item
+  The \emph{promoted typeclass} \texttt{PMyClass} with associated type/type
+  family \texttt{MyFunc\ (x\ ::\ a)\ ::\ a}
+\item
+  The \emph{singletonized} typeclass \texttt{SMyClass} with method
+  \texttt{sMyFunc\ ::\ Sing\ x\ -\textgreater{}\ \ \ \ \ Sing\ (MyFunc\ x)}.
+\end{enumerate}
+
+\subsection{Automatically Promoting
+Instances}\label{automatically-promoting-instances}
+
+The \emph{singletons} library is smart enough to automatically promote
+instances, as well, including derived ones!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{$}\NormalTok{(singletons [d|}
+\NormalTok{  data Pass = Obstruct | Allow}
+
+\NormalTok{  instance Eq Pass where}
+\NormalTok{      Obstruct == Obstruct = True}
+\NormalTok{      Obstruct == Allow    = False}
+\NormalTok{      Allow    == Obstruct = False}
+\NormalTok{      Allow    == Allow    = True}
+
+\NormalTok{      Obstruct /= Obstruct = True}
+\NormalTok{      Obstruct /= Allow    = False}
+\NormalTok{      Allow    /= Obstruct = False}
+\NormalTok{      Allow    /= Allow    = True}
+\NormalTok{  |])}
+\end{Highlighting}
+\end{Shaded}
+
+This automatically also generates \texttt{PEq} and \texttt{SEq} instances for
+\texttt{Pass}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{kind}\OperatorTok{!} \DataTypeTok{\textquotesingle{}Obstruct} \OperatorTok{==} \DataTypeTok{\textquotesingle{}Obstruct}
+\DataTypeTok{\textquotesingle{}True}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \DataTypeTok{SAllow} \OperatorTok{\%==} \DataTypeTok{SObstruct}
+\DataTypeTok{SFalse}
+\end{Highlighting}
+\end{Shaded}
+
+But, you can also just write:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{$}\NormalTok{(singletons [d|}
+\NormalTok{  data Pass = Obstruct | Allow}
+\NormalTok{    deriving (Show, Eq, Ord)}
+\NormalTok{  |])}
+\end{Highlighting}
+\end{Shaded}
+
+And this works as well!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{kind}\OperatorTok{!} \DataTypeTok{Show\_} \DataTypeTok{\textquotesingle{}Obstruct}      \CommentTok{{-}{-} is named Show\_ to not conflict with prelude Show}
+\StringTok{"Obstruct"}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ sMax }\DataTypeTok{SObstruct} \DataTypeTok{SAllow}
+\DataTypeTok{SAllow}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Next Steps}\label{next-steps}
+
+In this article we tackled the problem of more expressive ways to
+\emph{restrict} the ways users can manipulate our data types. We talked about
+``dependently typed proofs'' (a staple tool of dependently typed programming)
+and about ``type level functions'' (a familiar friend in a new context), their
+trade-offs, and how the \emph{singletons} library provides tools to make working
+with both easier.
+
+When we first looked at the idea of phantom type parameters, using them to
+\emph{restrict} how functions are called was definitely one of the promises I
+made. By now, this promise has hopefully been fully realized.
+
+However, the \emph{other} promise we made about the usefulness of phantom type
+parameters is that we can use them be more expressive in what our functions do.
+One huge benefit of using phantom types in this way is that we can express how
+our input values relate to our output values in ways that we couldn't before.
+(as a simple example, we had previously written
+\texttt{closeDoor\ ::\ Door\ \textquotesingle{}Opened\ -\textgreater{}\ Door\ \textquotesingle{}Closed},
+which we know closes a door just by looking at its type)
+
+This goes beyond simple restrictions, and we will begin discussing this in the
+next post! We'll explore using type-level functions to express more non-trivial
+and complex relationships, and also talk about code re-use using
+\emph{higher-order functions} via singleton's defunctionalization system.
+
+That's it for now --- check out the exercises, and feel free to ask any
+questions in the comments, or in freenode \texttt{\#haskell}, where I idle as
+\emph{jle`}!
+
+\section{Exercises}\label{exercises}
+
+Here are some exercises to help cement your understanding of the concepts here!
+Feel free to start from
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/singletons/Door3.hs}{the
+sample source code}; it contains all of the solutions, but you can delete
+everything after the comment \texttt{-\/-\ Exercises} if you wish to start on
+your own!
+
+\textbf{Remember to enable \texttt{-Werror=incomplete-patterns} or
+\texttt{-Wall}} to ensure that all of your functions are total! None of these
+implementations should require any incomplete pattern matches!
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  We talk about predicates as type constructors with type
+  \texttt{k\ -\textgreater{}\ Type}. This fits a lot of things we've seen before
+  (all instances of \texttt{Functor}, for example), but some predicates are more
+  interesting than others.
+
+  What is the interpretation of \texttt{SDoorState} as a predicate? (remember,
+  \texttt{SDoorState\ s} is the type synonym for
+  \texttt{Sing\ (s\ ::\ DoorState)}) What ``traditional'' (that is,
+  \texttt{a\ -\textgreater{}\ Bool}) predicate does it correspond to?
+
+  What is the type of its \emph{decision function}? Can you implement it?
+
+  Solution available
+  \href{https://github.com/mstksg/inCode/tree/master/code-samples/singletons/Door3.hs\#L104-L109}{here}!
+\item
+  Now let's practice working with predicates, singletons, and negation via
+  \texttt{Refuted} together.
+
+  You may have heard of the principle of ``double negation'', where \emph{not
+  (not p)} implies \emph{p}. So, we should be able to say that
+  \texttt{Refuted\ (Refuted\ (Knockable\ s))} implies
+  \texttt{Knockable\ s}.\footnote{Double negation is not true in general, but it
+    is true in the case that our predicate is \emph{decidable}. That's because
+    \texttt{Decision\ a} is essentially a witness to the
+    \href{https://en.wikipedia.org/wiki/Law_of_excluded_middle}{excluded middle}
+    for that specific predicate, from which double negation can be derived.} If
+  something is not ``not knockable'', then it must be knockable, right?
+
+  Try writing \texttt{refuteRefuteKnockable} to verify this principle --- at
+  least for the \texttt{Knockable} predicate.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door3.hs\#L112{-}L115}
+
+\NormalTok{refuteRefuteKnockable}
+\OtherTok{    ::} \KeywordTok{forall}\NormalTok{ s}\OperatorTok{.} \DataTypeTok{SingI}\NormalTok{ s}
+    \OtherTok{=\textgreater{}} \DataTypeTok{Refuted}\NormalTok{ (}\DataTypeTok{Refuted}\NormalTok{ (}\DataTypeTok{Knockable}\NormalTok{ s))}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Knockable}\NormalTok{ s}
+\end{Highlighting}
+\end{Shaded}
+
+  While not required, I recommend using \texttt{isKnockable} and writing your
+  implementation in terms of it! Use \texttt{sing} to give \texttt{isKnockable}
+  the singleton it needs.
+
+  Solution available
+  \href{https://github.com/mstksg/inCode/tree/master/code-samples/singletons/Door3.hs\#L112-L119}{here}!
+
+  \emph{Hint:} You might find \texttt{absurd} (from \emph{Data.Void}) helpful:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{absurd ::} \KeywordTok{forall}\NormalTok{ a}\OperatorTok{.} \DataTypeTok{Void} \OtherTok{{-}\textgreater{}}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+  If you have a \texttt{Void}, you can make a value of any type!\footnote{It's
+    the good ol'
+    \href{https://en.wikipedia.org/wiki/Principle_of_explosion}{Principle of
+    Explosion}}
+\item
+  (This next one is fairly difficult compared to the others, and is only
+  tangentially related to singletons, so feel free to skip it!)
+
+  Type-level predicates are logical constructs, so we should be able to define
+  concepts like ``and'' and ``or'' with them.
+
+  \begin{enumerate}
+  \def\labelenumii{\alph{enumii}.}
+  \item
+    Define a predicate constructor \texttt{And} that takes two predicates and
+    returns a new predicate. This new predicate is true (aka, has an inhabitant)
+    if and only if the two original predicates are true (aka, have inhabitants)
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door3.hs\#L122{-}L122}
+
+\KeywordTok{data} \DataTypeTok{And}\OtherTok{ ::}\NormalTok{ (k }\OtherTok{{-}\textgreater{}} \DataTypeTok{Type}\NormalTok{) }\OtherTok{{-}\textgreater{}}\NormalTok{ (k }\OtherTok{{-}\textgreater{}} \DataTypeTok{Type}\NormalTok{) }\OtherTok{{-}\textgreater{}}\NormalTok{ (k }\OtherTok{{-}\textgreater{}} \DataTypeTok{Type}\NormalTok{) }\KeywordTok{where}
+\end{Highlighting}
+\end{Shaded}
+  \item
+    Define a predicate constructor \texttt{Or} that takes two predicates and
+    returns a new predicate. This new predicate is true (aka, has an inhabitant)
+    if and only if at least one of the two original predicates are true (aka,
+    have inhabitants)
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door3.hs\#L125{-}L125}
+
+\KeywordTok{data} \DataTypeTok{Or}\OtherTok{ ::}\NormalTok{ (k }\OtherTok{{-}\textgreater{}} \DataTypeTok{Type}\NormalTok{) }\OtherTok{{-}\textgreater{}}\NormalTok{ (k }\OtherTok{{-}\textgreater{}} \DataTypeTok{Type}\NormalTok{) }\OtherTok{{-}\textgreater{}}\NormalTok{ (k }\OtherTok{{-}\textgreater{}} \DataTypeTok{Type}\NormalTok{) }\KeywordTok{where}
+\end{Highlighting}
+\end{Shaded}
+
+    There are potentially multiple non-trivial variations of this type.
+
+    Do \texttt{And} and \texttt{Or} look similar to any types you might have
+    encountered in the past? Maybe, perhaps, similiar to types that are a part
+    of basic beginner Haskell concepts?
+  \item
+    Maybe surprisingly, \texttt{And\ p\ q} and \texttt{Or\ p\ q} are decidable
+    if \texttt{p} and \texttt{q} are. Can we write the decision functions?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door3.hs\#L129{-}L144}
+
+\NormalTok{decideAnd}
+\OtherTok{    ::}\NormalTok{ (}\KeywordTok{forall}\NormalTok{ x}\OperatorTok{.} \DataTypeTok{Sing}\NormalTok{ x }\OtherTok{{-}\textgreater{}} \DataTypeTok{Decision}\NormalTok{ (p x))}
+    \OtherTok{{-}\textgreater{}}\NormalTok{ (}\KeywordTok{forall}\NormalTok{ x}\OperatorTok{.} \DataTypeTok{Sing}\NormalTok{ x }\OtherTok{{-}\textgreater{}} \DataTypeTok{Decision}\NormalTok{ (q x))}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ a}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Decision}\NormalTok{ (}\DataTypeTok{And}\NormalTok{ p q a)}
+
+\NormalTok{decideOr}
+\OtherTok{    ::}\NormalTok{ (}\KeywordTok{forall}\NormalTok{ x}\OperatorTok{.} \DataTypeTok{Sing}\NormalTok{ x }\OtherTok{{-}\textgreater{}} \DataTypeTok{Decision}\NormalTok{ (p x))}
+    \OtherTok{{-}\textgreater{}}\NormalTok{ (}\KeywordTok{forall}\NormalTok{ x}\OperatorTok{.} \DataTypeTok{Sing}\NormalTok{ x }\OtherTok{{-}\textgreater{}} \DataTypeTok{Decision}\NormalTok{ (q x))}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ a}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Decision}\NormalTok{ (}\DataTypeTok{Or}\NormalTok{ p q a)}
+\end{Highlighting}
+\end{Shaded}
+
+    These functions actually demonstrate, I feel, why \texttt{Decision} having
+    both a \texttt{Proved\ a} and \texttt{Disproved\ (Refuted\ a)} branch is
+    very useful. This is because, if you wrote the \emph{structure} of
+    \texttt{And} and \texttt{Or} correctly, it's \emph{impossible} to
+    incorrectly define \texttt{decideAnd} and \texttt{decideOr}. You can't
+    accidentally say false when it's true, or true when it's false --- your
+    implementation is guarunteed correct.
+  \item
+    Now let's use \texttt{And} and \texttt{Or} to prove some useful facts about
+    \texttt{Knockable} and
+    \texttt{(\textquotesingle{}Opened\ :\textasciitilde{}:)}. We know that it's
+    impossible for something to be both \texttt{Knockable} \emph{and}
+    \texttt{(\textquotesingle{}Opened\ :\textasciitilde{}:)} (that is, both
+    knockable \emph{and} equal to \texttt{\textquotesingle{}Opened}). Write such
+    a witness:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door3.hs\#L153{-}L155}
+
+\NormalTok{knockableNotOpened}
+\OtherTok{    ::} \KeywordTok{forall}\NormalTok{ s}\OperatorTok{.} \DataTypeTok{SingI}\NormalTok{ s}
+    \OtherTok{=\textgreater{}} \DataTypeTok{Refuted}\NormalTok{ (}\DataTypeTok{And} \DataTypeTok{Knockable}\NormalTok{ ((}\OperatorTok{:\textasciitilde{}:}\NormalTok{) }\DataTypeTok{\textquotesingle{}Opened}\NormalTok{) s)}
+\end{Highlighting}
+\end{Shaded}
+
+    We also know that a given \texttt{DoorState} is either \texttt{Knockable} or
+    \texttt{(\textquotesingle{}Opened\ :\textasciitilde{}:)} --- at least one of
+    these is always true. Write such a witness:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door3.hs\#L160{-}L162}
+
+\NormalTok{knockableOrOpened}
+\OtherTok{    ::} \KeywordTok{forall}\NormalTok{ s}\OperatorTok{.} \DataTypeTok{SingI}\NormalTok{ s}
+    \OtherTok{=\textgreater{}} \DataTypeTok{Or} \DataTypeTok{Knockable}\NormalTok{ ((}\OperatorTok{:\textasciitilde{}:}\NormalTok{) }\DataTypeTok{\textquotesingle{}Opened}\NormalTok{) s}
+\end{Highlighting}
+\end{Shaded}
+  \end{enumerate}
+
+  Solutions available
+  \href{https://github.com/mstksg/inCode/tree/master/code-samples/singletons/Door3.hs\#L122-L166}{here}!
+\item
+  Instead of creating an entire \texttt{Knocked} type, we could have just said
+  ``as long as the door is not \texttt{\textquotesingle{}Opened}, you can
+  knock''. This means we could write \texttt{knock} as:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{knock ::} \DataTypeTok{Refuted}\NormalTok{ (s }\OperatorTok{:\textasciitilde{}:} \DataTypeTok{\textquotesingle{}Opened}\NormalTok{) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\end{Highlighting}
+\end{Shaded}
+
+  Which we must pass a proof that \texttt{s} is not equal to
+  \texttt{\textquotesingle{}Opened} in order to open our door.
+
+  Is this really the same thing? Is
+  \texttt{Refuted\ (s\ :\textasciitilde{}:\ \textquotesingle{}Opened)} the same
+  thing as \texttt{Knockable\ s}?
+
+  Let's try to say that the two things are the same! Write the following
+  functions to show that
+  \texttt{Refuted\ (s\ :\textasciitilde{}:\ \textquotesingle{}Opened)} is the
+  same logical predicate as \texttt{Knockable\ s}!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door3.hs\#L169{-}L180}
+
+\NormalTok{knockedRefute}
+\OtherTok{    ::} \KeywordTok{forall}\NormalTok{ s}\OperatorTok{.} \DataTypeTok{SingI}\NormalTok{ s}
+    \OtherTok{=\textgreater{}} \DataTypeTok{Knockable}\NormalTok{ s}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Refuted}\NormalTok{ (s }\OperatorTok{:\textasciitilde{}:} \DataTypeTok{\textquotesingle{}Opened}\NormalTok{)}
+
+\NormalTok{refuteKnocked}
+\OtherTok{    ::} \KeywordTok{forall}\NormalTok{ s}\OperatorTok{.} \DataTypeTok{SingI}\NormalTok{ s}
+    \OtherTok{=\textgreater{}} \DataTypeTok{Refuted}\NormalTok{ (s }\OperatorTok{:\textasciitilde{}:} \DataTypeTok{\textquotesingle{}Opened}\NormalTok{)}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Knockable}\NormalTok{ s}
+\end{Highlighting}
+\end{Shaded}
+
+  Solution available
+  \href{https://github.com/mstksg/inCode/tree/master/code-samples/singletons/Door3.hs\#L169-L186}{here}!
+
+  \emph{Note:} \texttt{knockedRefute} is fairly straightforward, but
+  \texttt{refuteKnocked} is definitely trickier, so don't be discouraged!
+
+  \emph{Hint:} See the note about \texttt{absurd} from Exercise 2!
+\item
+  On our type level function version of \texttt{knock}, we wrote, with a
+  constraint:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{knock ::}\NormalTok{ (}\DataTypeTok{StatePass}\NormalTok{ s }\OperatorTok{\textasciitilde{}} \DataTypeTok{\textquotesingle{}Obstruct}\NormalTok{) }\OtherTok{=\textgreater{}} \DataTypeTok{Door}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{knock d }\OtherTok{=} \FunctionTok{putStrLn} \OperatorTok{$} \StringTok{"Knock knock on "} \OperatorTok{++}\NormalTok{ doorMaterial d }\OperatorTok{++} \StringTok{" door!"}
+\end{Highlighting}
+\end{Shaded}
+
+  We can muddy the waters a bit, for fun, by having this take a proof of the
+  constraint instead:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door3.hs\#L189{-}L190}
+
+\OtherTok{knockRefl ::}\NormalTok{ (}\DataTypeTok{StatePass}\NormalTok{ s }\OperatorTok{:\textasciitilde{}:} \DataTypeTok{\textquotesingle{}Obstruct}\NormalTok{) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{knockRefl \_ d }\OtherTok{=} \FunctionTok{putStrLn} \OperatorTok{$} \StringTok{"Knock knock on "} \OperatorTok{++}\NormalTok{ doorMaterial d }\OperatorTok{++} \StringTok{" door!"}
+\end{Highlighting}
+\end{Shaded}
+
+  Rewrite a version of \texttt{knockSomeDoor} in terms of \texttt{knockRefl},
+  called \texttt{knockSomeDoorRefl}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door3.hs\#L192{-}L195}
+
+\NormalTok{knockSomeDoorRefl}
+\OtherTok{    ::} \DataTypeTok{SomeDoor}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{knockSomeDoorRefl (}\DataTypeTok{MkSomeDoor}\NormalTok{ s d) }\OtherTok{=}
+\end{Highlighting}
+\end{Shaded}
+
+  Remember not to use \texttt{knock}!
+
+  Solution available
+  \href{https://github.com/mstksg/inCode/tree/master/code-samples/singletons/Door3.hs\#L189-L198}{here}.
+
+  Assume that \texttt{DoorState} has an instance of \texttt{SDecide}, so you can
+  use \texttt{(\%\textasciitilde{})}. This should be derived automatically as
+  long as you derive \texttt{Eq}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{$}\NormalTok{(singletons [d|}
+\NormalTok{  data DoorState = Opened | Closed | Locked}
+\NormalTok{    deriving (Show, Eq)}
+\NormalTok{  |])}
+\end{Highlighting}
+\end{Shaded}
+\item
+  With the function that inverts \texttt{Pass}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{$}\NormalTok{(singletons [d|}
+\NormalTok{  invertPass :: Pass {-}\textgreater{} Pass}
+\NormalTok{  invertPass Obstruct = Allow}
+\NormalTok{  invertPass Allow    = Obstruct}
+\NormalTok{|])}
+\end{Highlighting}
+\end{Shaded}
+
+  Implement \texttt{knock} in a way that lets you knock if \texttt{invertPass}
+  is \texttt{Allow}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door3.hs\#L207{-}L208}
+
+\OtherTok{knockInv ::}\NormalTok{ (}\DataTypeTok{InvertPass}\NormalTok{ (}\DataTypeTok{StatePass}\NormalTok{ s) }\OperatorTok{\textasciitilde{}} \DataTypeTok{\textquotesingle{}Allow}\NormalTok{) }\OtherTok{=\textgreater{}} \DataTypeTok{Door}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{knockInv d }\OtherTok{=} \FunctionTok{putStrLn} \OperatorTok{$} \StringTok{"Knock knock on "} \OperatorTok{++}\NormalTok{ doorMaterial d }\OperatorTok{++} \StringTok{" door!"}
+\end{Highlighting}
+\end{Shaded}
+
+  And write \texttt{knockSomeDoor} in terms of it:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door3.hs\#L210{-}L213}
+
+\NormalTok{knockSomeDoorInv}
+\OtherTok{    ::} \DataTypeTok{SomeDoor}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{knockSomeDoorInv (}\DataTypeTok{MkSomeDoor}\NormalTok{ s d) }\OtherTok{=}
+\end{Highlighting}
+\end{Shaded}
+
+  Remember again to implement it in terms of \texttt{knockInv}, \emph{not}
+  \texttt{knock}.
+
+  Solution available
+  \href{https://github.com/mstksg/inCode/tree/master/code-samples/singletons/Door3.hs\#L207-L216}{here}!
+\item
+  Let's work with a toy typeclass called \texttt{Cycle}, based on \texttt{Enum}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{$}\NormalTok{(singletons [d|}
+\NormalTok{  class Cycle a where}
+\NormalTok{    next :: a {-}\textgreater{} a}
+\NormalTok{    prev :: a {-}\textgreater{} a}
+\NormalTok{  |])}
+\end{Highlighting}
+\end{Shaded}
+
+  \texttt{next} is like \texttt{succ}, but loops over to the first item after
+  the last constructor. \texttt{prev} is like \texttt{pred}, but loops over to
+  the last item if pred-ing the first item
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door3.hs\#L225{-}L232}
+
+\KeywordTok{instance} \DataTypeTok{Cycle} \DataTypeTok{DoorState} \KeywordTok{where}
+\NormalTok{    next }\DataTypeTok{Opened} \OtherTok{=} \DataTypeTok{Closed}
+\NormalTok{    next }\DataTypeTok{Closed} \OtherTok{=} \DataTypeTok{Locked}
+\NormalTok{    next }\DataTypeTok{Locked} \OtherTok{=} \DataTypeTok{Opened}
+
+\NormalTok{    prev }\DataTypeTok{Opened} \OtherTok{=} \DataTypeTok{Locked}
+\NormalTok{    prev }\DataTypeTok{Closed} \OtherTok{=} \DataTypeTok{Opened}
+\NormalTok{    prev }\DataTypeTok{Locked} \OtherTok{=} \DataTypeTok{Closed}
+\end{Highlighting}
+\end{Shaded}
+
+  Can you manually promote this instance for \texttt{DoorState} to the type
+  level?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door3.hs\#L234{-}L243}
+
+\KeywordTok{instance} \DataTypeTok{PCycle} \DataTypeTok{DoorState} \KeywordTok{where}
+
+\KeywordTok{instance} \DataTypeTok{SCycle} \DataTypeTok{DoorState} \KeywordTok{where}
+\end{Highlighting}
+\end{Shaded}
+
+  Solution available
+  \href{https://github.com/mstksg/inCode/tree/master/code-samples/singletons/Door3.hs\#L225-L252}{here}!
+\end{enumerate}
+
+\section{Special Thanks}\label{special-thanks}
+
+I am very humbled to be supported by an amazing community, who make it possible
+for me to devote time to researching and writing these posts. Very special
+thanks to my two supporters at the ``Amazing'' level on
+\href{https://www.patreon.com/justinle/overview}{patreon}, Sam Stites and Josh
+Vera! :)
+
+Thanks also to \href{https://twitter.com/KozRoss}{Koz Ross} for helping
+proofread this post!
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

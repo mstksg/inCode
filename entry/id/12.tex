@@ -1,0 +1,790 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Practical Fun with Monads --- Introducing: MonadPlus!},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Practical Fun with Monads --- Introducing: MonadPlus!}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% December 9, 2013
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/practical-fun-with-monads-introducing-monadplus.html}{in
+Code}}.}
+
+Monads. Haskell's famous for them, but they are one of the most ill-understood
+concepts to the public. They are mostly shrouded in mystery because of their
+association with how Haskell models I/O. This reputation is undeserved. Monads
+don't have anything to do with I/O.
+
+This series is a part of a global effort to pull away the shroud of mystery
+behind monads and show that they are fun! And exciting! And really just a way of
+chaining together functions that allow for new ways of approaching puzzles.
+
+The first sub-series (chapter?) will be on a specific class/family of monads
+known as \emph{MonadPlus}. At the end of it all, we are going to be solving the
+classic logic puzzle, as old as time itself, using \textbf{only} the List monad
+instance, and no loops, queues, or fancy stuff like that:
+
+\begin{quote}
+A farmer has a wolf, a goat, and a cabbage that he wishes to transport across a
+river. Unfortunately, his boat can carry only one thing at a time with him. He
+can't leave the wolf alone with the goat, or the wolf will eat the goat. He
+can't leave the goat alone with the cabbage, or the goat will eat the cabbage.
+How can he properly transport his belongings to the other side one at a time,
+without any disasters?
+\end{quote}
+
+Let us enter a brave new world!
+
+\subsection{A quick review of monads}\label{a-quick-review-of-monads}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Note}
+
+This article is written for both beginners --- people who have a fuzzy idea of
+monads and a minimal understanding of functional programming principles, but who
+have some experience in Object-Oriented Programming in a language like Java or
+C++ --- and intermediate Haskell users --- people who have a somewhat firm grasp
+on monads, but want to know about monads on a broader context (in particular,
+the MonadPlus typeclass).
+
+Intermediate Haskell users will most likely find this post to be review, and
+I'll put a link in this paragraph when the next part is up so we can get to
+``real'' Haskelling. However, this post might be beneficial if you read it while
+asking, at every point, ``How can this be abstracted and generalized?''. It's a
+fun exercise!
+
+This article attempts to explain all Haskell syntax that might be foreign to
+beginners. That being said, if you ever run into anything you can't understand,
+feel free to either read the articles above, give
+\href{http://learnyouahaskell.com/}{Learn You A Haskell} a quick read (you won't
+regret it!), or leave a comment --- I'd love to answer your questions or hear
+your responses!
+
+This first post will cover the basics of MonadPlus with the simplest MonadPlus
+of all; the second part will explore the List MonadPlus, and the third will
+finally tackle the Wolf/Goat/Cabbage puzzle with our combined knowledge.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Okay, so as a Haskell blogger, I'm actually not allowed to write any monad
+tutorials. Luckily for you, however, I don't need too --- there are a wealth of
+great ones.
+\href{http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html}{Adit
+provides a great concise one}, and, if you want,
+\href{http://www.haskell.org/haskellwiki/All_About_Monads}{a more in depth one}
+is on the haskell.org wiki about all sorts of monads and using them in real
+life.
+
+Remember --- different monads do not actually have any non-superficial
+relationship to one another. When we say monads, we just mean objects for which
+we have defined a way to chain together functions ``inside'' wrappers,
+containers, or contexts.
+
+\section{Maybe, maybe not}\label{maybe-maybe-not}
+
+Monads are very useful when you are dealing with objects that are containers.
+Let's look at the most obvious container -- a \texttt{Maybe\ a}. A
+\texttt{Maybe\ a} is a container that can either be \texttt{Just\ x}
+(representing a successful result \texttt{x} of type \texttt{a}) or a
+\texttt{Nothing} (representing a failed result).
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Welcome to Haskell!}
+
+Hi! These ``Welcome to Haskell'' asides are going to be for you readers that are
+unfamiliar with Haskell syntax. Feel free to ignore them if you already feel
+comfortable.
+
+Anyways, if you've ever done any object-oriented programming, you might be able
+to think of \texttt{Maybe\ a} as an abstract/virtual superclass with
+templates/generics --- \texttt{Maybe\textless{}a\textgreater{}}, kinda. And that
+superclass has two subclasses: \texttt{Just\textless{}a\textgreater{}}, which
+has one public instance variable \texttt{x} of type \texttt{a}, and
+\texttt{Nothing}, which contains no instance variables.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Often times you'll have functions that fail, and you want to chain them. The
+easiest way is that any function that is chained onto a failed value will be
+skipped; a failure is the final result.
+
+Consider the \texttt{halve} function, which returns
+\texttt{Just\ (x\ \textasciigrave{}div\textasciigrave{}\ 2)} on a successful
+halving, or \texttt{Nothing} on an unsuccessful halving:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{halve ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe} \DataTypeTok{Int}                       \CommentTok{{-}{-} 1}
+\NormalTok{halve x }\OperatorTok{|} \FunctionTok{even}\NormalTok{ x    }\OtherTok{=} \DataTypeTok{Just}\NormalTok{ (x }\OtherTok{\textasciigrave{}div\textasciigrave{}} \DecValTok{2}\NormalTok{)          }\CommentTok{{-}{-} 2}
+        \OperatorTok{|} \FunctionTok{otherwise} \OtherTok{=} \DataTypeTok{Nothing}                   \CommentTok{{-}{-} 3}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Welcome to Haskell!}
+
+Hi again! There are some quick syntax features here.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  This first line declares that the type of the function \texttt{halve} is
+  \texttt{Int\ -\textgreater{}\ \ \ \ \ Maybe\ Int}, which means that it takes
+  in an \texttt{Int} and returns a \texttt{Maybe\ \ \ \ \ Int} --- an integer
+  wrapped in a ``Maybe'' container.
+\item
+  This says that if x is even, then return a successful
+  \texttt{Just\ (x\ \textasciigrave{}div\textasciigrave{}\ 2)}.
+  \texttt{x\ \textasciigrave{}div\textasciigrave{}\ 2} is x divided by two, in
+  case you couldn't guess already.
+\item
+  Otherwise, return \texttt{Nothing} --- a failure.
+\end{enumerate}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Because Maybe comes built-in as a monad, we can now chain \texttt{halve}s on
+results of other \texttt{halves}, and have any failures automatically propagate
+to the end and short circuit your entire computation:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ halve }\DecValTok{8}
+\DataTypeTok{Just} \DecValTok{4}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ halve }\DecValTok{7}
+\DataTypeTok{Nothing}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ halve }\DecValTok{8} \OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ halve}
+\DataTypeTok{Just} \DecValTok{2}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ halve }\DecValTok{7} \OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ halve}
+\DataTypeTok{Nothing}                         \CommentTok{{-}{-} 1}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ halve }\DecValTok{6} \OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ halve}
+\DataTypeTok{Nothing}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ halve }\DecValTok{6} \OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ halve }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ halve}
+\DataTypeTok{Nothing}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ halve }\DecValTok{32} \OperatorTok{\textgreater{}\textgreater{}} \DataTypeTok{Nothing}
+\DataTypeTok{Nothing}                         \CommentTok{{-}{-} 2}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ halve }\DecValTok{32} \OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ halve }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ halve }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ halve}
+\DataTypeTok{Just} \DecValTok{2}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ halve }\DecValTok{32} \OperatorTok{\textgreater{}\textgreater{}} \DataTypeTok{Nothing} \OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ halve }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ halve }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ halve}
+\DataTypeTok{Nothing}                         \CommentTok{{-}{-} 3}
+\end{Highlighting}
+\end{Shaded}
+
+You can play with this yourself by
+\href{https://github.com/mstksg/inCode/blob/master/code-samples/monad-plus/Halve.hs}{loading
+up the function yourself}.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Welcome to Haskell!}
+
+In this article, code that begins with \texttt{ghci\textgreater{}} represents
+commands to be entered at the interactive prompt, ghci. Code that doesn't is
+actual source code.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Remember, \texttt{\textgreater{}\textgreater{}=} means ``use the results of the
+last thing to calculate this next thing'' --- it ``chains'' the functions.
+
+How does this work, exactly? That's not really in the scope of this article (any
+monad tutorial will explain this in more detail). But here are some interesting
+points:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Note that this command doesn't even bother with the second \texttt{halve}. It
+  knows that the end result will be \texttt{Nothing} no matter what (because
+  \texttt{halve\ \ \ \ \ 7} is \texttt{Nothing}), so it just skips right past
+  the second \texttt{halve}.
+\item
+  \texttt{\textgreater{}\textgreater{}} is a special variation of
+  \texttt{\textgreater{}\textgreater{}=}. \texttt{\textgreater{}\textgreater{}=}
+  says ``take the result of the last thing and use it on this'', while
+  \texttt{\textgreater{}\textgreater{}} says ``ignore the result of the last
+  thing and always return this''. So
+  \texttt{\textgreater{}\textgreater{}\ Nothing} means ``I don't care what the
+  last thing succeeded with, I'm going to fail right here.''
+\item
+  Disastrous! Even though halving 32 four times usually is fine (giving
+  \texttt{Just\ 2}), having just one failure along the way means that the entire
+  thing is a failure. \texttt{halve\ 32\ \textgreater{}\textgreater{}\ Nothing}
+  is \texttt{Nothing}, so the whole thing is just
+  \texttt{(Nothing)\ \textgreater{}\textgreater{}=\ halve\ \textgreater{}\textgreater{}=\ halve\ \textgreater{}\textgreater{}=\ halve}.
+\end{enumerate}
+
+You can think of this failing phenomenon like this: At every step, Haskell
+attempts to apply \texttt{halve} to the result of the previous step. However,
+you can't \texttt{halve} a \texttt{Nothing} because a \texttt{Nothing} has no
+value to halve!
+
+\subsection{Do notation}\label{do-notation}
+
+Haskell provides a convenient way of writing chained
+\texttt{\textgreater{}\textgreater{}=}'s called do notation; here are a few
+samples matched with their equivalent \texttt{\textgreater{}\textgreater{}=}
+form:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ half }\DecValTok{8}
+\DataTypeTok{Just} \DecValTok{4}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{do}\NormalTok{  half }\DecValTok{8}
+\DataTypeTok{Just} \DecValTok{4}
+
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ halve }\DecValTok{8} \OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ halve}
+\DataTypeTok{Just} \DecValTok{2}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{do}\NormalTok{  x }\OtherTok{\textless{}{-}}\NormalTok{ halve }\DecValTok{8}
+    \OperatorTok{|}\NormalTok{     halve x}
+\DataTypeTok{Just} \DecValTok{2}
+
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ halve }\DecValTok{32} \OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ halve }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ halve }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ halve}
+\DataTypeTok{Just} \DecValTok{2}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{do}\NormalTok{  x }\OtherTok{\textless{}{-}}\NormalTok{ halve }\DecValTok{32}
+    \OperatorTok{|}\NormalTok{     y }\OtherTok{\textless{}{-}}\NormalTok{ halve x}
+    \OperatorTok{|}\NormalTok{     z }\OtherTok{\textless{}{-}}\NormalTok{ halve y}
+    \OperatorTok{|}\NormalTok{     halve z}
+\DataTypeTok{Just} \DecValTok{2}
+
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ halve }\DecValTok{32} \OperatorTok{\textgreater{}\textgreater{}} \DataTypeTok{Nothing} \OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ halve }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ halve}
+\DataTypeTok{Nothing}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{do}\NormalTok{  x }\OtherTok{\textless{}{-}}\NormalTok{ halve }\DecValTok{32}
+    \OperatorTok{|}     \DataTypeTok{Nothing}
+    \OperatorTok{|}\NormalTok{     y }\OtherTok{\textless{}{-}}\NormalTok{ halve x}
+    \OperatorTok{|}\NormalTok{     z }\OtherTok{\textless{}{-}}\NormalTok{ halve y}
+    \OperatorTok{|}\NormalTok{     halve z}
+\DataTypeTok{Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+In this notation, \texttt{x}, \texttt{y}, and \texttt{z}'s do not contain the
+\texttt{Just}/\texttt{Nothing}'s --- they represent the actual \textbf{Ints
+inside them}, so we can so something like \texttt{halve\ x} (where
+\texttt{halve} only takes Ints, not \texttt{Maybe\ Int}'s)
+
+It kind of feels very imperative-y --- ``do \texttt{halve\ 32} and assign the
+result (16) to \texttt{x}\ldots do \texttt{halve\ x} and assign the result (8)
+to \texttt{y}\ldots{}'' --- but remember, it's still just a bunch of chained
+\texttt{\textgreater{}\textgreater{}=}s in the end.
+
+\section{Failure is an option}\label{failure-is-an-option}
+
+The important thing to note here is that ``do'' notation basically builds up one
+``giant'' object. Remember the last two examples --- the second to last one, all
+of those lines were in an effort to build one giant \texttt{Just\ 2} value. In
+the last example, all of those lines were in an effort to build one giant
+\texttt{Nothing} value. That's why one \texttt{Nothing} ``ruined'' the whole
+thing. The entire computation is one big \texttt{Maybe\ a}. If at any point in
+your attempt to build that \texttt{Maybe\ a}, you fail, then you have
+\texttt{Nothing}.
+
+Now, remember, saying ``x is a monad'' just means ``we have defined a way of
+chaining functions/operations on x''. Just like how we can now chain multiple
+functions that return Maybe's (that don't take Maybe's as input). However, given
+any object, there is probably more than one way to meaningfully define this
+``chaining''.
+
+Sometimes, it's useful to base your definition of chaining on the idea of a
+failure/success process. Sometimes it's useful to define chaining as ``We are
+building up either a success or a failure\ldots and if at any point I fail, the
+whole thing is a failure''.
+
+There is a special name for this design pattern. In Haskell, we call something
+like this a
+``\href{http://hackage.haskell.org/package/base-4.6.0.1/docs/Control-Monad.html\#t:MonadPlus}{MonadPlus}''\footnote{I
+  have to give a fair disclaimer here. MonadPlus, as it is currently
+  implemented, actually serves two functionalities/purposes. However, its
+  functionality not related to success/failure is actually (except for a few
+  cases) mostly redundant, due to another typeclass called
+  \href{http://hackage.haskell.org/package/base-4.6.0.1/docs/Control-Applicative.html\#t:Alternative}{Alternative}
+  that now handles it in all nearly all modern usage. The redundancy actually
+  stems from one of the more famous embarrassing mistakes in the design of the
+  Haskell standard library --- the infamous
+  \href{http://www.haskell.org/haskellwiki/Functor-Applicative-Monad_Proposal}{monad-applicative-functor
+  hierarchy issue}. In practice, however, simply using the appropriate typeclass
+  for the appropriate property is the norm. For this article and this series, I
+  will be addressing specifically this non-redundant functionality, the
+  success/failureness; just be aware that in some other places, you will find
+  other explanations of MonadPlus as a ``whole'' that includes the redundant
+  parts.} \footnote{Actually, there is one noteworthy success/failure monad that
+  isn't implemented as a MonadPlus in Haskell --- the Either. Arguably, Either
+  embodies the ``spirit'' of MonadPlus; the problem is that Haskell requires
+  that ``fail''/``mzero'' must not take any parameters, and Either must always
+  have a ``reason'' when it fails. However, one could easily instance their own
+  Either instance with a ``default reason'' if the \texttt{Left} type is known
+  or constrained. The easiest way is to constrain the \texttt{Left} type to be a
+  monoid and make \texttt{mzero\ =\ Left\ mempty}. Alternatively, if your Left
+  is a String, you can just put in whatever default error message you want.}.
+
+I know, it's an embarrassingly bad name, and it's like this is for historical
+reasons (related to the footnote above). The name doesn't even hint at a
+fail/succeedness. But we're stuck with it for pretty much the entire foreseeable
+future, so when you chose to adopt a success/failure model for your chaining
+process, you have a \emph{MonadPlus}.
+
+There is a vocabulary we can use so we can talk about all MonadPlus's in a
+general way:
+
+\begin{itemize}
+\tightlist
+\item
+  We call a success a ``return''. Yeah\ldots the name is super confusing because
+  of how the word ``return'' is used in almost every other context in computer
+  science. But hey. Oh well.
+\item
+  We call a failure an ``mzero''. Yes, this name is pretty lame too.
+\end{itemize}
+
+For Maybe, a ``return'' with the value \texttt{x} is \texttt{Just\ x}, and an
+``mzero'' is a \texttt{Nothing}.
+
+Something cool about Haskell is that if we type \texttt{return\ x}, it'll
+interpret it as an auto-success of value \texttt{x}. If we type \texttt{mzero},
+it'll be an ``alias'' of whatever your failure is.
+
+That means that for Maybe, \texttt{return\ x} is the same as \texttt{Just\ x},
+and \texttt{mzero} is an alias for \texttt{Nothing}.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Welcome to Haskell!}
+
+If you are familiar with object oriented languages like Java, MonadPlus is
+really like an \textbf{interface}. That is, if something is a MonadPlus, there
+is a ``guarantee'' that that something will implement/define \texttt{return} and
+\texttt{mzero} for that particular object. In this way, \texttt{return} and
+\texttt{mzero} are \emph{polymorphic functions} that change their behavior based
+on what type you are talking about, and you can write code that works with all
+MonadPlus's generically without worrying about their actual type by using only
+\texttt{return} and \texttt{mzero} (instead of say, \texttt{Just} and
+\texttt{Nothing}).
+
+In Haskell, the term we use (instead of ``interface'') is
+``\textbf{typeclass}''. There are some subtle differences --- typeclasses are in
+general more powerful of a tool than interfaces --- but the two concepts provide
+similar roles in their respective languages.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+As a small note, the term/command ``return''/\texttt{return} is shared by all
+monads. However, monads don't ascribe any (general) conceptual ``meaning'' or
+``purpose'' to return. For any old monad, it can mean whatever you want it to
+mean for that specific monad. However, in the context of MonadPlus, ``return''
+has a very specific meaning: \emph{succeed}. Because of this, ``return'' and
+``succeed'' will be treated as synonyms in this article.
+
+\subsection{MonadPlus examples}\label{monadplus-examples}
+
+To see this in action, let's revisit the last do block and make it more generic,
+and just rephrase it in a form that we are going to be encountering more when we
+solve our problem with the List monad (which is (spoilers) also a MonadPlus):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{halveThriceOops ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe} \DataTypeTok{Int}
+\NormalTok{halveThriceOops n }\OtherTok{=} \KeywordTok{do}          \CommentTok{{-}{-} call with n = 32}
+\NormalTok{    x }\OtherTok{\textless{}{-}}\NormalTok{ halve n                }\CommentTok{{-}{-} Just 16              {-}{-} 1}
+\NormalTok{    mzero                       }\CommentTok{{-}{-} Nothing              {-}{-} 2}
+\NormalTok{    y }\OtherTok{\textless{}{-}}\NormalTok{ halve x                }\CommentTok{{-}{-} (skip)               {-}{-} 3}
+\NormalTok{    z }\OtherTok{\textless{}{-}}\NormalTok{ halve y                }\CommentTok{{-}{-} (skip)}
+    \FunctionTok{return}\NormalTok{ z                    }\CommentTok{{-}{-} (skip)               {-}{-} 4}
+\end{Highlighting}
+\end{Shaded}
+
+Note that I've also included a line-by-line `trace' of the do block with what
+the monad ``is'' at that point. It is what is calculated on that line, and it
+would be the value returned if you just exited at that step.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Business as usual. Halve \texttt{n} if possible and place the result in
+  \texttt{x}. If \texttt{n} is 32, then \texttt{x} will be 16.
+\item
+  The failure. Remember, \texttt{mzero} means ``fail here automatically'',
+  which, in a Maybe object, means \texttt{Nothing}.
+\item
+  Now from here on, nothing else even matters\ldots the entire block is a
+  failure!
+\item
+  If possible, succeed with the value in \texttt{z}. This is supposed to be a
+  \texttt{Just} with the value of \texttt{z}. Unfortunately, the entire block
+  failed a long time ago. So sad!
+\end{enumerate}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Diversion}
+
+A small diversion.
+
+This is a little nicety, but there is the common library monad function
+\texttt{sequence\ ::\ Monad\ m\ =\textgreater{}\ {[}m\ a{]}\ -\textgreater{}\ m\ {[}a{]}},
+which turns a \texttt{{[}Maybe\ a{]}} into a \texttt{Maybe\ {[}a{]}}.
+Conceptually, \texttt{sequence} turns a list of monads into a monad containing a
+list.
+
+In the context of MonadPlus, it would be turning a list of Success/Failures into
+a successful or failed list. It builds a successful/failed list.
+
+From what we have learned, if any part of that building process is a failure,
+the entire thing is necessarily a failure. This is reflected in
+\texttt{sequence}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \FunctionTok{sequence}\NormalTok{ [}\DataTypeTok{Just} \DecValTok{1}\NormalTok{, }\DataTypeTok{Just} \DecValTok{4}\NormalTok{, }\DataTypeTok{Just} \DecValTok{6}\NormalTok{]}
+\DataTypeTok{Just}\NormalTok{ [}\DecValTok{1}\NormalTok{,}\DecValTok{4}\NormalTok{,}\DecValTok{6}\NormalTok{]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \FunctionTok{sequence}\NormalTok{ [}\DataTypeTok{Just} \DecValTok{1}\NormalTok{, }\DataTypeTok{Nothing}\NormalTok{, }\DataTypeTok{Just} \DecValTok{6}\NormalTok{]}
+\DataTypeTok{Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+If you already know a few other common library monad functions (like
+\texttt{replicateM}, \texttt{forM}, etc.), try reasoning about how they would
+work on Maybe's and MonadPlus's in general --- they aren't just for IO!
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Guards}\label{guards}
+
+It feels like just slapping in \texttt{mzero} willy-nilly is not that useful,
+because then things just fail always no matter what. Wouldn't it be handy to
+have a function that says ``fail right\ldots here, if this condition is not
+met''? Like \texttt{mzero}, but instead of always failing, fails on certain
+conditions.
+
+Luckily, Haskell gives us one in the standard library:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{guard ::} \DataTypeTok{MonadPlus}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Bool} \OtherTok{{-}\textgreater{}}\NormalTok{ m ()        }\CommentTok{{-}{-} 1}
+\NormalTok{guard }\DataTypeTok{True}  \OtherTok{=} \FunctionTok{return}\NormalTok{ ()}
+\NormalTok{guard }\DataTypeTok{False} \OtherTok{=}\NormalTok{ mzero}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Welcome to Haskell!}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  This is a type signature, like before. We say that \texttt{guard} is a
+  function that takes a \texttt{Bool} and returns a \texttt{m\ ()} --- a monad
+  containing \texttt{()}. But we say that \texttt{m}, the monad, must be a
+  MonadPlus.
+
+  For example, if we applied this to Maybe, the concrete signature would be
+  \texttt{guard\ ::\ Bool\ -\textgreater{}\ Maybe\ ()}
+\end{enumerate}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+So \texttt{guard} will make sure a condition is met, or else it fails the entire
+thing. If the condition is met, then it succeeds and places a \texttt{()} in the
+value.
+
+We can use this to re-implement \texttt{halve}, using do notation, aware of
+Maybe's MonadPlus-ness:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{halve ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe} \DataTypeTok{Int}
+\NormalTok{halve n }\OtherTok{=} \KeywordTok{do}                \CommentTok{{-}{-} \textless{}halve 8\textgreater{}   \textless{}halve 7\textgreater{}}
+\NormalTok{    guard }\OperatorTok{$} \FunctionTok{even}\NormalTok{ n          }\CommentTok{{-}{-} Just ()      Nothing}
+    \FunctionTok{return} \OperatorTok{$}\NormalTok{ n }\OtherTok{\textasciigrave{}div\textasciigrave{}} \DecValTok{2}      \CommentTok{{-}{-} Just 4       (skip)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Welcome to Haskell!}
+
+\texttt{guard\ \$\ even\ n} seems confusing, but it is just shorthand for
+\texttt{guard\ (even\ n)}. We just don't like writing all those parentheses out.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+So, first, \texttt{halve} is \texttt{Just\ ()} (succeeds with a blank value
+\texttt{()}) if \texttt{n} is even, or else \texttt{Nothing} (fails
+automatically) otherwise. Finally, if it has not yet failed, it attempts to
+succeed with \texttt{n\ \textasciigrave{}div\textasciigrave{}\ 2}.
+
+You can trust me when I say this works the exact same way! You can
+\href{https://github.com/mstksg/inCode/blob/master/code-samples/monad-plus/HalveGuard.hs}{try
+it out yourself}!
+
+As a friendly reminder, this entire block is ``compiled''/desugared to:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{halve}\OtherTok{ n ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe} \DataTypeTok{Int}
+\NormalTok{halve n }\OtherTok{=}\NormalTok{ guard (}\FunctionTok{even}\NormalTok{ n) }\OperatorTok{\textgreater{}\textgreater{}} \FunctionTok{return}\NormalTok{ (n }\OtherTok{\textasciigrave{}div\textasciigrave{}} \DecValTok{2}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\section{A practical use}\label{a-practical-use}
+
+We aren't where we need to be to begin tackling that Wolf/Goat/Cabbage puzzle
+yet\ldots so to let this article not be a complete anticlimax (as a result of my
+bad planning --- I had originally intended to do the entire three-part series as
+one article), let's look at a practical problem that you can solve using the
+Maybe monad.
+
+The obvious examples are situations where it is useful to be able to chain
+failable operations such as retrieving things from a database or a network
+connection or applying partial functions (functions that only work on some
+values, like our \texttt{halve}).
+
+However, here is a neat one.
+
+Let's say we are making a game where you can lose health by being hit or gain
+health by picking up powerups. We want to calculate the final health at the end
+of the game. It seems a bit easy: just add up all the losses and gains!
+Unfortunately, it's not so simple --- it needs to be implemented such that if
+your health ever dips below 0, you are dead. Forever. No powerups will ever help
+you.
+
+Think about how you would implement this normally. You might have a state object
+that stores the current health as well as a flag with the current dead/alive
+state, and at every step, check if the health is 0 or lower; if it is, swap the
+flag to be dead and ignore all other updates.
+
+But let's try doing this instead with the Maybe monad:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/monad{-}plus/MaybeGame.hs\#L26{-}L51}
+
+\CommentTok{{-}{-} die or fail immediately}
+\OtherTok{die ::} \DataTypeTok{Maybe} \DataTypeTok{Int}
+\NormalTok{die }\OtherTok{=}\NormalTok{ mzero                         }\CommentTok{{-}{-} or die = mzero}
+
+\CommentTok{{-}{-} if not dead, sets the health to the given level}
+\OtherTok{setHealth ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe} \DataTypeTok{Int}
+\NormalTok{setHealth n }\OtherTok{=} \FunctionTok{return}\NormalTok{ n              }\CommentTok{{-}{-} or setHealth n = return n}
+
+\CommentTok{{-}{-} damage the player (from its previous health) and check for death}
+\OtherTok{hit ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe} \DataTypeTok{Int}
+\NormalTok{hit currHealth }\OtherTok{=} \KeywordTok{do}
+    \KeywordTok{let}\NormalTok{ newHealth }\OtherTok{=}\NormalTok{ currHealth }\OperatorTok{{-}} \DecValTok{1}
+\NormalTok{    guard }\OperatorTok{$}\NormalTok{ newHealth }\OperatorTok{\textgreater{}} \DecValTok{0}           \CommentTok{{-}{-} fail/die immediately unless newHealth}
+                                    \CommentTok{{-}{-}     is positive}
+    \FunctionTok{return}\NormalTok{ newHealth                }\CommentTok{{-}{-} succeed with newHealth if not already}
+                                    \CommentTok{{-}{-}     dead}
+
+\CommentTok{{-}{-} an alternative but identical definition of \textasciigrave{}hit\textasciigrave{}, using \textgreater{}\textgreater{}= and \textgreater{}\textgreater{}}
+\OtherTok{hit\textquotesingle{} ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe} \DataTypeTok{Int}
+\NormalTok{hit\textquotesingle{} currHealth }\OtherTok{=}\NormalTok{ guard (newHealth }\OperatorTok{\textgreater{}} \DecValTok{0}\NormalTok{) }\OperatorTok{\textgreater{}\textgreater{}} \FunctionTok{return}\NormalTok{ newHealth}
+    \KeywordTok{where}
+\NormalTok{        newHealth }\OtherTok{=}\NormalTok{ currHealth }\OperatorTok{{-}} \DecValTok{1}
+
+\CommentTok{{-}{-} increase the player\textquotesingle{}s health from its previous health}
+\OtherTok{powerup ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe} \DataTypeTok{Int}
+\NormalTok{powerup currHealth }\OtherTok{=} \FunctionTok{return} \OperatorTok{$}\NormalTok{ currHealth }\OperatorTok{+} \DecValTok{1}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ setHealth }\DecValTok{2} \OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ hit }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ powerup }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ hit }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ powerup }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ powerup}
+\DataTypeTok{Just} \DecValTok{3}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ setHealth }\DecValTok{2} \OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ hit }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ powerup }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ hit }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ hit }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ powerup}
+\DataTypeTok{Nothing}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ setHealth }\DecValTok{10} \OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ powerup }\OperatorTok{\textgreater{}\textgreater{}}\NormalTok{ die }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ powerup }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ powerup}
+\DataTypeTok{Nothing}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{do}\NormalTok{  h0 }\OtherTok{\textless{}{-}}\NormalTok{ setHealth }\DecValTok{2}        \CommentTok{{-}{-} Just 2}
+    \OperatorTok{|}\NormalTok{     h1 }\OtherTok{\textless{}{-}}\NormalTok{ hit h0             }\CommentTok{{-}{-} Just 1}
+    \OperatorTok{|}\NormalTok{     h2 }\OtherTok{\textless{}{-}}\NormalTok{ powerup h1         }\CommentTok{{-}{-} Just 2}
+    \OperatorTok{|}\NormalTok{     h3 }\OtherTok{\textless{}{-}}\NormalTok{ hit h2             }\CommentTok{{-}{-} Just 1}
+    \OperatorTok{|}\NormalTok{     h4 }\OtherTok{\textless{}{-}}\NormalTok{ hit h3             }\CommentTok{{-}{-} Nothing}
+    \OperatorTok{|}\NormalTok{     h5 }\OtherTok{\textless{}{-}}\NormalTok{ powerup h4         }\CommentTok{{-}{-} (skip)}
+    \OperatorTok{|}\NormalTok{     h6 }\OtherTok{\textless{}{-}}\NormalTok{ powerup h5         }\CommentTok{{-}{-} (skip)}
+    \OperatorTok{|}     \FunctionTok{return}\NormalTok{ h6                }\CommentTok{{-}{-} (skip)}
+\DataTypeTok{Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+And voilà!
+\href{https://github.com/mstksg/inCode/blob/master/code-samples/monad-plus/MaybeGame.hs}{Fire
+it up yourself} if you want to test it out in person!
+
+You can think of the last do block conceptually this way: remember, \texttt{h3}
+does not represent the \texttt{Just\ 1} value --- \texttt{h3} represents the
+number \emph{inside} the \texttt{Just\ 1} --- the 1. So \texttt{h4} is supposed
+to represent the number inside its value, too. But because \texttt{hit\ h3}
+results in \texttt{Nothing}; \texttt{Nothing} has no value ``inside'', so
+\texttt{h4} doesn't even have a value! So obviously it doesn't even make sense
+to call \texttt{powerup\ h4}\ldots therefore \texttt{h5} has no value either!
+It's therefore meaningless to call \texttt{powerup\ h5}, so meaningless to
+\texttt{return\ h6}\ldots the entire thing is a beautiful disaster. A fiasco.
+Mission accomplished!
+
+The whole thing works as expected; you can even die suddenly with \texttt{die},
+which ignores your current health.
+
+Interestingly enough, we could actually eliminate all references to Maybe
+altogether by always using \texttt{return} and \texttt{mzero} instead of
+\texttt{Just} and \texttt{Nothing}. And if we make our type signatures generic
+enough, we could use this with \emph{any} MonadPlus! But that is for another
+day.
+
+\section{Looking forward}\label{looking-forward}
+
+Wow, who knew you could spend so much time talking about failure. Anyways, this
+is a good place to stop before we move onto how List is also a MonadPlus. Okay,
+so what have we learned?
+
+\begin{itemize}
+\tightlist
+\item
+  Monads are just a way of chaining functions on objects, and of course, every
+  object's chaining process is different. In fact there might be even more than
+  one way to meaningfully chain functions on an object!
+\item
+  One useful ``chaining approach'' is to model things as success-failure chains,
+  where you are building something from successes, but if you fail once in the
+  process, the entire process fails. An object that uses this approach/design
+  pattern is called a MonadPlus.
+\item
+  The Maybe object is one such example. We can define `chaining' failable
+  functions as functions that continue if the previous function succeeded, or
+  propagate a failure if the previous function fails. A failable function, for a
+  Maybe object, is a function \texttt{::\ a\ -\textgreater{}\ Maybe\ b} or even
+  \texttt{::\ \ \ \ \ Maybe\ b}.
+\item
+  There is a common vocabulary for talking about MonadPlus concepts ---
+  ``return'' means ``succeed with this value'', and ``mzero'' means ``fail
+  now''.
+\item
+  Due to Haskell's polymorphism, we can ``forget'' we are using Maybe and in
+  fact talk about/write for ``general'' MonadPlus's, with \texttt{return\ x} and
+  \texttt{mzero} resulting in the appropriate success/fail objects.
+\end{itemize}
+
+For the mean time, think about how it might make sense to chain operations on
+lists (ie, repeatedly applying functions
+\texttt{::\ a\ -\textgreater{}\ {[}b{]}} to lists).
+
+By this, I mean, given a function that turns a value into a list of values
+\texttt{f\ ::\ a\ -\textgreater{}\ {[}b{]}}, find a way to meaningfully
+``chain'' that function to a previous list and get a new list:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ oldList }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ f}
+\NormalTok{newList             }\CommentTok{{-}{-} a new list based on old list; f "chained" to \textasciigrave{}oldList\textasciigrave{}.}
+\end{Highlighting}
+\end{Shaded}
+
+Is there more than one way to think about chaining them, even? And in what ways
+we can define this ``chaining'' to represent success/failure? Until next time!
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

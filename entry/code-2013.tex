@@ -1,0 +1,357 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Code 2013},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Code 2013}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% January 9, 2014
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/code-2013.html}{in Code}}.}
+
+It's a bit late, but, inspired by my own admittedly egregious
+\href{https://twitter.com/mstk/status/418179201091399680}{tweet} in
+participation of the awesome \href{http://code2013.herokuapp.com/}{\#code2013}
+hashtag, here is a review of 2013 in terms of the programming languages I've
+worked on and a general wrap-up of the adventures that 2013 had to offer me. It
+was quite surely the most productive/adventurous year of programming of my
+entire life.
+
+\section{Scientific Computing}\label{scientific-computing}
+
+This year was the year I began to take scientific computing seriously. I had
+already been using
+\textbf{\href{http://www.wolfram.com/mathematica/}{Mathematica}} for many years,
+for some basic modeling work on analytic and numeric systems. This year
+continued my studies; however, I also enrolled in a two-quarter class taught by
+the Physics department (my own field of study) at my university on scientific
+computing techniques and applications in the context of Computational Physics.
+
+However, this course would be relying heavily on parallel computing techniques
+as well as low-level compiled languages like C and Fortran, with simulations
+that would have decently long executing times.
+
+\subsection{Linux}\label{linux}
+
+I quickly realized that I could not do very much with my little Windows laptop,
+so I procured for the first time in my life a persistent server. I used the
+lowest tier from \href{http://www.togglebox.com/}{ToggleBox}, a great cloud
+hosting service that gave me a year free. This was my return to unix-based
+systems after a break of several years, and in doing this I sort of went crazy
+again writing several
+\textbf{\href{http://en.wikipedia.org/wiki/Bash_(Unix_shell)}{Bash}} scripts
+that I am continuing to
+\href{http://blog.jle.im/entry/log-sh-lightweight-command-line-note-logging}{open-source}/publish
+today; many of my scripts revolved around the
+\href{http://todotxt.com/}{todo.txt} framework.
+
+I did some work on parsing some of my custom journal entry files and things like
+that, and with this I returned to using
+\textbf{\href{http://en.wikipedia.org/wiki/Awk}{awk}}, which I had worked with a
+few years ago for processing logs. I rather really liked the language and it
+seemed like a very perfectly adapted DSL. There are many problems that are
+solved most easily in awk and I have a lot of respect for the language.
+
+\subsection{Vim}\label{vim}
+
+Also this year was the year I decided to begin taking
+vi/\href{http://www.vim.org/}{vim} seriously. This is because I realized that I
+would be doing most of my coding through an ssh connection, so I needed to pick
+a good terminal editor. After a lot of research I settled on vim. I've been
+exclusively using vim for some time now and, while it has a lot of endearing
+flaws, I am happy with my choice. With a toolbelt of plugins and extensions as
+well as a firm grasp of the vanilla basics, vim has served me very well. I have
+even delved into some of my own personal plugin development in
+\textbf{\href{http://en.wikipedia.org/wiki/Vim_script}{vimscript}}
+
+\subsection{Computation}\label{computation}
+
+For the aforementioned course, we had the opportunity to use either C or
+Fortran. Because I had dabbled in C before and have worked in C-like languages
+all my life, I figured I would take the opportunity to learn a new language. So
+I learned \textbf{\href{http://en.wikipedia.org/wiki/Fortran}{Fortran}} ---
+specifically, F77. This decision ended up being a good one because many of the
+established numerical/computational libraries in Physics were written in the
+seventies, and almost all of them are in Fortran. This interoperability was very
+handy, and I was also able to dive into them and pick them apart.
+
+Upon further digging into Fortran I found that I actually really liked the
+semantics and syntax of the language. The language seemed to fit to the
+computational techniques and algorithms I was learning about like a glove, more
+so than with C or C++. Many things that felt awkward in C felt natural in
+Fortran, and the entire program execution model just seemed seamless and
+elegant.
+
+I still consider Fortran among my favorite imperative languages today.
+
+However, for group projects I was forced to work with
+\textbf{\href{http://en.wikipedia.org/wiki/C++}{C++}}, specifically with its
+\href{http://www.nvidia.com/object/cuda_home_new.html}{Cuda} hooks, on a
+parallel N-body simulation. I came to appreciate the ad-hoc binary serialization
+of data structures that many languages I had been using in the past lacked.
+
+And here is the appropriate time to mention my work in
+\textbf{\href{http://www.gnuplot.info/}{gnuplot}} for the presentation of the
+data generated by these course projects
+
+In another course on numerical analysis, there was much usage also of
+\textbf{\href{http://www.mathworks.com/products/matlab/}{Matlab}}, if only to
+demonstrate certain theorems and techniques. In addition to this, for some of my
+lab courses, I did much of my data analysis and modeling/presentation in matlab.
+
+\subsection{Java}\label{java}
+
+I also took a beginning \textbf{\href{https://www.java.com/en/}{Java}} course
+during my spring quarter. Mostly to fill in some requirements for my degree, I
+didn't actually learn too much. This section is just to make this post complete
+:) My most recent large-ish work on Java was for a Machine Learning/Artificial
+Intelligence course the year before. No new insights from Java gleamed this year
+that I can post here\ldots except that I can appreciate in a perverse way Java's
+stubbornness to keep a consistent story of
+\href{http://steve-yegge.blogspot.com/2006/03/execution-in-kingdom-of-nouns.html}{nouns}.
+
+\section{Haskell}\label{haskell}
+
+Around the end of winter I stumbled upon
+\textbf{\href{http://www.haskell.org/haskellwiki/Haskell}{Haskell}}. I am not
+completely sure how, actually. Perhaps it is just fate. But it is probably one
+of the more significant life-changing discoveries of my programming life. This
+event will define the rest of my entire year; it also inspired this blog itself.
+Haskell is a beautifully expressive functional, pure, non-strict language that
+merges serious and practical programming and powerful mathematics. Writing fully
+about my reflections on Haskell is beyond the scope of this post. However, if
+you don't yet know Haskell, why don't you give
+\href{http://learnyouahaskell.com/}{Learn You A Haskell} a quick read? :) You
+won't regret it!
+
+I began with trying to implement my Fortran Monte Carlo programs in Haskell for
+my course. I wasn't quite skilled enough to really use the full power of Haskell
+before my computation course ended, I was able to really simplify my programs
+and appreciate even a small part of the elegance of Haskell.
+
+\subsection{Blog}\label{blog}
+
+Over the summer I delved back into web development by deciding that my next big
+Haskell project would be a blog engine. The result is this blog!
+
+Actually, I have noticed that, more than for other languages, having and
+maintaining a blog is a rite of passage and is sort or embedded into the culture
+of the Haskell community. I also noticed that a lot of the work I was doing was
+novel in the sense that I couldn't find any real established literature; I had
+to forge a lot of the way myself. I wanted to be able to be able to give back to
+the community (which is, by the way, one of the best programming language
+communities I have found) and maybe jot down some of these struggles or
+observations.
+
+(This is probably also the best place to drop my usage of
+\textbf{\href{http://www.graphviz.org/}{graphviz}}'s \emph{dot} DSL for some
+diagrams for some blog posts. I like it a lot actually, and its declarative
+model is pretty useful.)
+
+(Oh yes I found myself learning and using some
+\textbf{\href{http://en.wikipedia.org/wiki/SQL}{SQL}} for this if only to better
+understand how to write joins in
+\href{http://hackage.haskell.org/package/esqueleto}{Esqueleto})
+
+\section{Web Development}\label{web-development}
+
+I made a couple of forays into Web Development this year. This blog was one, but
+there was very little front-end development work actually.
+
+I made some small toy projects on
+\textbf{\href{https://www.ruby-lang.org/en/}{ruby}} on my favorite framework,
+\href{http://www.sinatrarb.com/}{Sinatra}. These are mostly just simple file
+server and organization apps and GUI front-ends for native compiled programs
+(simulations and the like). These all involved somewhat minimal front-end
+\textbf{\href{http://en.wikipedia.org/wiki/JavaScript}{javascript}} and are
+styled with \textbf{\href{http://sass-lang.com/}{sass}}, a CSS pre-processor
+that I was at first hesitant to use but am not more or less completely dependent
+on. (Maybe that was the reason I was hesitant in the first place? Oh well!)
+
+I actually really enjoy ruby; before Haskell, it was my favorite language for
+many years and my go-to scripting and one-off language. I also tended to
+``think'' in ruby whenever approaching programming problems. I'll always have a
+sort of nostalgic attachment to ruby, and in many cases you can't beat its
+expressiveness and utility as a scripting language right off the bat (something
+that it gains from its perl influences).
+
+Some time in the fall, \href{http://www.intuit.com/}{Intuit} came to my
+university and hosted a Hackathon. My team ended up rapidly prototyping our app
+using ruby with the \href{http://rubyonrails.org/}{Rails} framework. So this is
+my most recent web dev adventure. This was actaully my first time using Rails,
+despite having used ruby for many years. The experience was sort of
+disorienting, much magic. A lot felt very un-ruby. I guess I'll be sticking with
+Sinatra for now :)
+
+\section{Engineering}\label{engineering}
+
+I had a summer job working at a Physics lab doing control theory work in the
+field of electrical engineering. Much of it was in Matlab, especially with the
+visual ``language'' of
+\textbf{\href{http://www.mathworks.com/products/simulink/}{Simulink}}. I used
+\textbf{\href{http://www.ni.com/labview/}{LabVIEW}} extensively as well; I guess
+I didn't count those in my tweet but they probably deserve more recognition than
+graphviz at least.
+
+Simulink is a pretty amazing simulation system and I understand that it is very
+effectively used in its industry fields. I was able to do a lot with its
+platform and ecosystem right out of the box that would have taken much time to
+shoddily replicate in another language. Its integration with Matlab (and
+compiled Matlab) makes it extremely powerful for a very wide range of control
+applications. Wow.
+
+I also worked a lot on the \href{http://arduino.cc/}{Arduino} platform, using
+\textbf{\href{http://en.wikipedia.org/wiki/C_(programming_language)}{C}}. It was
+very nice to work with. This is before I really knew much about dynamic memory
+allocation, but the work I did (simple image processing and pattern recognition
+alongside startup procedures) did not require it.
+
+\section{Fall Courses}\label{fall-courses}
+
+\subsection{C/C++ Course}\label{cc-course}
+
+I took a data structures in C and C++ course in the fall. It was pleasant
+because while I had dabbled in both, I actually had very little formal
+education. I was able to formalize my understanding of pointer-based data
+structures (in C) and the syntax, language semantics, and language philosophy of
+C++, being able to structure someone more-than-toy projects. I consider this my
+first real exposure to formal C++ and manual dynamic memory management (without
+the use of a garbage collector), and I gained a lot from slowing down to figure
+this all out.
+
+\subsection{Comparative Programming Languages
+Course}\label{comparative-programming-languages-course}
+
+And now the final chapter!
+
+In my fall quarter I took my university's comparative programming languages
+course.
+
+\subsubsection{OCaml}\label{ocaml}
+
+The first language we went into was \textbf{\href{http://ocaml.org/}{OCaml}}, a
+member of the (typically) functional, strict, impure ML family of languages.
+Learning it was a pleasant experience that helped me appreciate the advances in
+language development that lead to Haskell. I was able to more formalized what I
+liked and didn't like about Haskell. I grew an appreciation for Haskell's IO
+model; I also thought it was interesting that OCaml did not have the stubborn
+insistence on making type notation mirror data notation that Haskell does. The
+Haskell tuple \texttt{(Int,\ Int)} is the OCaml tuple \texttt{int\ *\ int}; the
+Haskell type application \texttt{Maybe\ Int} is in OCaml \texttt{int\ maybe}. It
+gets rid of a lot of the confusion cased by mixing up type constructors and data
+constructors in Haskell. But having the two be parallel does alow for some
+interesting reasoning, and it also allows us to deal with Kinds in the same way
+that we deal with Types.
+
+But I'm getting a bit ahead of myself! And I am going on a tangent. There are a
+lot of interesting differences between OCaml and Haskell :)
+
+The culmination of our work in OCaml was using ocamlyacc to write an interpreter
+of a simple subset of a functional language. It was a nice contrast to how in
+Haskell we typically write our own parsers using parser combinators instead of
+outsourcing to a ``compiled'' DSL.
+
+\subsubsection{Python}\label{python}
+
+Our next language was python! I do not have many good things to say about this
+language :P I was always sort of a ruby fanboy. I have a long list of complaints
+about python from a language design standpoint. But I'm here to praise its
+benefits. The idiomatic usage of decorators was something interesting and very
+python-esque. The object/class model was interesting in contrast to Javascript,
+Ruby, Java/C\#, etc. There, I was nice :)
+
+\subsubsection{Prolog}\label{prolog}
+
+(\href{http://www.swi-prolog.org/}{SWI-})\textbf{\href{http://en.wikipedia.org/wiki/Prolog}{Prolog}}
+was exciting to work with. I had a lot of fun with it. I'll just put
+\href{http://c2.com/cgi/wiki?PrologLanguage}{this quote} here:
+
+\begin{quote}
+I used Prolog in a comparative languages course. The biggest program we did was
+a map-coloring one (color a map with only four colors so that no bordering items
+have the same color, given a mapping of things that border each other). I say
+biggest because we were given the most time with it. I started out like most
+people in my class trying to hack the language into letting me code a stinking
+algorithm to color a stinking map. Then I wrote a test function to check if the
+map was colored and, in a flash of prolog, realized that that was really all I
+needed to code.
+\end{quote}
+
+Really though, the language was a nice joy. I talked to some people about bigger
+applications and I read up on a way to run a web server with Prolog. It was a
+little interesting but I felt like at some point the language model might start
+interfering with its usages, instead of in Haskell where the language model
+enhances much of its usage. Maybe that was just because I hadn't tried it
+enough. Still, Prolog remains a great (domain specific?) language for solving
+constraint problems and logic problems. Perhaps I will give it more of a look
+some time in the future!
+
+\section{2013 in Review}\label{in-review}
+
+Welp, that's it! My observations on the languages I used this year, sort of
+patched together to tell the story of my programming adventures this year.
+
+What were some of your own adventures this year, in relation to new/old
+languages?
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

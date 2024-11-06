@@ -1,0 +1,924 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Functional Programming is Awesome: Parser Combinators},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Functional Programming is Awesome: Parser Combinators}
+
+\begin{document}
+\maketitle
+
+\% Justin Le
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/functional-programming-is-awesome-parser-combinators.html}{in
+Code}}.}
+
+If you've spent your entire life programming imperatively, you could not even
+begin to imagine the vast worlds of thinking that are inaccessible because of
+restrictions in your thinking. Not ``better'', or ``harder'' ways of thinking
+--- possibly just as easy, but\ldots different.
+
+Don't believe me? Here is an example of an amazingly awesome and amazing and
+incomprehensibly mind-opeining design pattern that shines in functional
+programming: applicative combinators. In specific, we are going to write a small
+parser library! Yay!
+
+Now, if you are a sane person, you should know that \emph{nobody} enjoys writing
+parsers\ldots imperatively. The whole deal is a mess; you have to keep track of
+multiple layers of state, work out back tracking and edge cases, and to top it
+off, parsers tend to be very uncomposable, and parsing two different things
+usually requires either source code surgery in the best case or a complete
+rewrite in the worst.
+
+But what if I told you that combinator-based parsers are so easy to work with
+and composable and intuitive that they are\ldots well, fun? I'll tease you:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} a parser for a special variable name, which can optionally start with an}
+\CommentTok{{-}{-} \textasciigrave{}@\textasciigrave{} symbol, and then an alphabet character, followed by many alphanumeric}
+\CommentTok{{-}{-} characters}
+\OtherTok{variableName ::} \DataTypeTok{Parser} \DataTypeTok{String}
+\NormalTok{variableName }\OtherTok{=}\NormalTok{ (optional }\CharTok{\textquotesingle{}@\textquotesingle{}}\NormalTok{) }\OperatorTok{\textless{}:\textgreater{}}\NormalTok{ alpha }\OperatorTok{\textless{}:\textgreater{}}\NormalTok{ (many alphaNum)}
+
+\CommentTok{{-}{-} usage:}
+\CommentTok{{-}{-} λ: parse variableName "9one"}
+\CommentTok{{-}{-} Nothing}
+\CommentTok{{-}{-} λ: parse variableName "var01"}
+\CommentTok{{-}{-} Just ("var01", "")}
+\CommentTok{{-}{-} λ: parse variableName "@var2"}
+\CommentTok{{-}{-} Just ("@var2", "")}
+\CommentTok{{-}{-} λ: parse variableName "@9one"}
+\CommentTok{{-}{-} Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+Let's take a look, shall we? We will first write our library, and then see how
+we build complex parsers out of smaller, simpler ones. And maybe learn a little
+bit of Haskell along the way --- in particular, the magic of Functors and
+Applicative Functors (and maybe some Monads if we're lucky).
+
+(Much of this post is taken from a University of Göteborg
+\href{http://www.cse.chalmers.se/edu/course/TDA452/FPLectures/Vid/}{lecture
+series} available online; it has been slightly rephrased to be more
+applicative-centric than monad-centric)
+
+\section{Our Parser Type}\label{our-parser-type}
+
+So; our goal here is to write a library for parsing that is powerful to be
+completely general and adaptable for any purpose. And also be very intuitive to
+use. Easy, right? Let's start with the type of our Parser!
+
+\subsection{Our Parser type}\label{our-parser-type-1}
+
+So our Parser type is going to be an object of type \texttt{Parser\ a} that
+contains one thing: a parsing function. This parsing function will take in a
+string and return the parsed value of type \texttt{a}, together with the
+``leftover'' string that is unparsed.
+
+In Haskell, we represent this object as:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Parser}\NormalTok{ a }\OtherTok{=} \DataTypeTok{P}\NormalTok{ (}\DataTypeTok{String} \OtherTok{{-}\textgreater{}}\NormalTok{ (a, }\DataTypeTok{String}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+which reads ``The type \texttt{Parser\ a} is an object that you specify by
+saying `\texttt{P\ f}', where \texttt{f} is a function that takes in a string
+and returns an \texttt{a} with another string.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+Hi! These asides are for people unfamiliar with Haskell syntax. Feel free to
+skip them if you already are comfortable.
+
+If you've ever used an object-oriented language like Java or C++,
+\texttt{Parser\ a} is a template, or generic, and would be written in those
+languages as the class \texttt{Parser\textless{}a\textgreater{}}, with only one
+instance variable: a function taking a string and returning something of type
+\texttt{a} with a leftover string.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+And we write a function \texttt{parse} that will take any \texttt{Parser\ a}
+object and any string, and return the parsed string:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{parse ::} \DataTypeTok{Parser}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}}\NormalTok{ (a, }\DataTypeTok{String}\NormalTok{)              }\CommentTok{{-}{-} 1}
+\NormalTok{parse (}\DataTypeTok{P}\NormalTok{ f) str }\OtherTok{=}\NormalTok{ f str                                 }\CommentTok{{-}{-} 2}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+A bunch of Haskell syntax features here!
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  This first line says ``the function \texttt{parse} is a function that takes a
+  \texttt{Parser\ a} and a \texttt{String} and return something of the value
+  \texttt{(a,\ String)}''
+\item
+  Now to define the function. It has two arguments; the first one is of the form
+  \texttt{P\ f}, and the second is just a string \texttt{str}. Remember,
+  \texttt{P\ f} is how you specify a \texttt{Parser\ a}; the \texttt{f} is the
+  function inside the object. We then call \texttt{f} with \texttt{str}, and
+  that's what we want.
+\end{enumerate}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Let's say we had a parser \texttt{integerParser} pre-made, that parses a string
+into an integer. Here is how we would use it in the interactive
+\href{http://en.wikipedia.org/wiki/Read-eval-print_loop}{repl} prompt:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{λ}\OperatorTok{:} \OperatorTok{:}\KeywordTok{type}\NormalTok{ integerParser}
+\OtherTok{integerParser ::} \DataTypeTok{Parser} \DataTypeTok{Int}
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ parse integerParser }\StringTok{"12"}
+\NormalTok{(}\DecValTok{12}\NormalTok{, }\StringTok{""}\NormalTok{)                    }\CommentTok{{-}{-} returns the integer 12, with nothing leftover}
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ parse integerParser }\StringTok{"{-}82 zero"}
+\NormalTok{(}\DecValTok{82}\NormalTok{, }\StringTok{" zero"}\NormalTok{)               }\CommentTok{{-}{-} returns the integer {-}82, with some leftovers}
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ parse integerParser }\StringTok{"hello"}
+\OperatorTok{??????}                      \CommentTok{{-}{-} ??????}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+In this article, code that begins with \texttt{λ:} means stuff entered at the
+interactive prompt, ghci. You enter an expression, and it is evaluated, its
+result printed.
+
+\texttt{:type} is a ghci command that returns the type of the thing in question.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Hm. There's a problem. Sometimes, the parse will fail. How can we indicate that
+a parse is failable?
+
+In most languages, we might return a \texttt{nil} or \texttt{null} value. But
+this is not cool in Haskell because we like having type safety --- having things
+be \texttt{nil} or \texttt{null} willy-nilly means that your compiler can't help
+you, and you open up the door to runtime errors.
+
+In Haskell, we have an object of type \texttt{Maybe\ a}, which can either be
+\texttt{Just\ a} (the object contains a value \texttt{a}), or \texttt{Nothing}
+(the object contains nothing). Let's change our function so that it will return
+\texttt{Just\ a} if our parse succeeds and \texttt{Nothing} if it fails.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+Again keeping with the analogies to Object-Oriented Programming, you can think
+of \texttt{Maybe\ a} as a superclass, \texttt{Maybe\textless{}a\textgreater{}},
+with two subclasses: \texttt{Just\ a} and \texttt{Nothing}. \texttt{Just\ a}
+contains one instance variable of type \texttt{a}, and \texttt{Nothing}
+contains\ldots nothing.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Parser}\NormalTok{ a }\OtherTok{=} \DataTypeTok{P}\NormalTok{ (}\DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ (a, }\DataTypeTok{String}\NormalTok{))}
+
+\OtherTok{parse ::} \DataTypeTok{Parser}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ (a, }\DataTypeTok{String}\NormalTok{)}
+\NormalTok{parse (}\DataTypeTok{P}\NormalTok{ f) str }\OtherTok{=}\NormalTok{ f str}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ parse integerParser }\StringTok{"12"}
+\DataTypeTok{Just}\NormalTok{ (}\DecValTok{12}\NormalTok{, }\StringTok{""}\NormalTok{)               }\CommentTok{{-}{-} successfully returns the integer 12, inside a}
+                            \CommentTok{{-}{-} Maybe object}
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ parse integerParser }\StringTok{"{-}82 zero"}
+\DataTypeTok{Just}\NormalTok{ (}\OperatorTok{{-}}\DecValTok{82}\NormalTok{, }\StringTok{" zero"}\NormalTok{)         }\CommentTok{{-}{-} successfully returns the integer {-}82}
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ parse integerParser }\StringTok{"hello"}
+\DataTypeTok{Nothing}                     \CommentTok{{-}{-} fails}
+\end{Highlighting}
+\end{Shaded}
+
+Okay, cool. Let's get started.
+
+\subsection{Our base parsers}\label{our-base-parsers}
+
+So remember, the whole point is to be able to somehow build complex parsers out
+of very simple ones. So let's start with the simplest parsers of all: a parser
+that always fails.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{failure ::} \DataTypeTok{Parser}\NormalTok{ a}
+\NormalTok{failure }\OtherTok{=} \DataTypeTok{P}\NormalTok{ returnNothing                   }\CommentTok{{-}{-} 1}
+    \KeywordTok{where}
+\NormalTok{        returnNothing \_ }\OtherTok{=} \DataTypeTok{Nothing}           \CommentTok{{-}{-} 2}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ parse failure }\StringTok{"12"}
+\DataTypeTok{Nothing}
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ parse failure }\StringTok{"anything"}
+\DataTypeTok{Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Remember, we specify/construct parsers as \texttt{P\ f}, where \texttt{f} is
+  the parsing function.
+\item
+  \texttt{\_} is a wildcard in Haskell; \texttt{returnNothing} is a function
+  that takes \emph{anything} and returns \texttt{Nothing}.
+\end{enumerate}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Easy enough. How about some parsers that always succeeds with a pre-defined
+answer, and does not consume any of the string?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{successfulTrue ::} \DataTypeTok{Parser} \DataTypeTok{Bool}
+\NormalTok{successfulTrue }\OtherTok{=} \DataTypeTok{P}\NormalTok{ returnTrue}
+    \KeywordTok{where}
+\NormalTok{        returnTrue str }\OtherTok{=} \DataTypeTok{Just}\NormalTok{ (}\DataTypeTok{True}\NormalTok{, str)}
+
+\OtherTok{successfulZero ::} \DataTypeTok{Parser} \DataTypeTok{Int}
+\NormalTok{successfulZero }\OtherTok{=} \DataTypeTok{P}\NormalTok{ returnZero}
+    \KeywordTok{where}
+\NormalTok{        returnZero str }\OtherTok{=} \DataTypeTok{Just}\NormalTok{ (}\DecValTok{0}\NormalTok{, str)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ parse successfulTrue }\StringTok{"12"}
+\DataTypeTok{Just}\NormalTok{ (}\DataTypeTok{True}\NormalTok{, }\StringTok{"12"}\NormalTok{)}
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ parse successfulZero }\StringTok{"anything"}
+\DataTypeTok{Just}\NormalTok{ (}\DecValTok{0}\NormalTok{, }\StringTok{"anything"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+We have two parsers here, with two different parse functions. If you notice,
+they pretty much do the same thing, and have very similar structure. This is a
+key flag that we can probably abstract out some part of it. Let's write a new
+parse function that covers both of them:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{successful ::}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Parser}\NormalTok{ a}
+\NormalTok{successful val }\OtherTok{=} \DataTypeTok{P}\NormalTok{ returnVal}
+    \KeywordTok{where}
+\NormalTok{        returnVal str }\OtherTok{=} \DataTypeTok{Just}\NormalTok{ (val, str)}
+
+\OtherTok{successfulTrue ::} \DataTypeTok{Parser} \DataTypeTok{Bool}
+\NormalTok{successfulTrue }\OtherTok{=}\NormalTok{ successful }\DataTypeTok{True}
+
+\OtherTok{successfulZero ::} \DataTypeTok{Parser} \DataTypeTok{Int}
+\NormalTok{successfulZero }\OtherTok{=}\NormalTok{ successful }\DecValTok{0}
+\end{Highlighting}
+\end{Shaded}
+
+So \texttt{successful\ val} is a function that takes any value and gives us a
+\texttt{Parser\ a} with the function \texttt{returnVal} ---
+\texttt{returnVal\ str} yields a \texttt{Just} with the \texttt{val} we gave to
+\texttt{successful}, with the string untouched. Let's try it out.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ parse (successful }\DecValTok{5}\NormalTok{) }\StringTok{"hello"}
+\DataTypeTok{Just}\NormalTok{ (}\DecValTok{5}\NormalTok{, }\StringTok{"hello"}\NormalTok{)}
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ parse (successful }\FloatTok{8.26}\NormalTok{) }\StringTok{"hello"}
+\DataTypeTok{Just}\NormalTok{ (}\FloatTok{8.26}\NormalTok{, }\StringTok{"hello"}\NormalTok{)}
+\NormalTok{λ}\OperatorTok{:} \OperatorTok{:}\KeywordTok{type}\NormalTok{ (successful }\DataTypeTok{True}\NormalTok{)}
+\NormalTok{successful }\DataTypeTok{True}\OtherTok{ ::} \DataTypeTok{Parser} \DataTypeTok{Bool}
+\end{Highlighting}
+\end{Shaded}
+
+Note that the type of \texttt{successful\ True} is exactly the same type as our
+\texttt{successfulTrue} function. Which is what we would expect. Our
+\texttt{successful\ val} function takes a value and returns a parser that parses
+anything into that given value. So if we pass in \texttt{True}, it will return a
+parser/function that parses anything into \texttt{True}.
+
+Okay, so our two base parses are nice, but it doesn't sound like they are useful
+at all for any real parsing work. Let's write our first
+somewhat-useful-kinda-maybe parser: \texttt{anyChar}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{anyChar ::} \DataTypeTok{Parser} \DataTypeTok{Char}
+\NormalTok{anyChar }\OtherTok{=} \DataTypeTok{P}\NormalTok{ getFirst}
+    \KeywordTok{where}
+\NormalTok{        getFirst (x}\OperatorTok{:}\NormalTok{xs) }\OtherTok{=} \DataTypeTok{Just}\NormalTok{ (x, xs)          }\CommentTok{{-}{-} 1}
+\NormalTok{        getFirst []     }\OtherTok{=} \DataTypeTok{Nothing}               \CommentTok{{-}{-} 2}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  If you call \texttt{getFirst} on a non-empty list, it will set the \texttt{x}
+  to the first element and \texttt{xs} to the rest of the list. Kind of like in
+  C, a string is just an alias for a list of characters. So
+  \texttt{getFirst\ "hello"} will return
+  \texttt{Just\ (\textquotesingle{}h\textquotesingle{},\ "ello")}.
+\item
+  If you call \texttt{getFirst} on an empty list, it fails.
+\end{enumerate}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Let's see it at work.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ parse anyChar }\StringTok{"h"}
+\DataTypeTok{Just}\NormalTok{ (}\CharTok{\textquotesingle{}h\textquotesingle{}}\NormalTok{, }\StringTok{""}\NormalTok{)}
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ parse anyChar }\StringTok{"hello"}
+\DataTypeTok{Just}\NormalTok{ (}\CharTok{\textquotesingle{}h\textquotesingle{}}\NormalTok{, }\StringTok{"ello"}\NormalTok{)}
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ parse anyChar }\StringTok{""}
+\DataTypeTok{Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+So \texttt{anyChar} parses a string into a\ldots character. That's\ldots kind of
+boring, admittedly. I'm sure you could have written something that parses a
+one-letter string into a character in any language without a problem\ldots one
+that would parse \texttt{"h"}, the string, into
+\texttt{\textquotesingle{}h\textquotesingle{}}, the character.
+
+Hm. Let's try something else. Let's try a parser that always fails \emph{unless}
+the taken character satisfies a certain condition:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{z ::} \DataTypeTok{Parser} \DataTypeTok{Char}
+\NormalTok{z }\OtherTok{=} \DataTypeTok{P}\NormalTok{ isA\_z}
+    \KeywordTok{where}
+\NormalTok{        isA\_z (x}\OperatorTok{:}\NormalTok{xs) }\OtherTok{=}  \KeywordTok{if}\NormalTok{ x }\OperatorTok{==} \CharTok{\textquotesingle{}z\textquotesingle{}}
+                            \KeywordTok{then} \DataTypeTok{Just}\NormalTok{ (x, xs)}
+                            \KeywordTok{else} \DataTypeTok{Nothing}
+\NormalTok{        isA\_z []     }\OtherTok{=}  \DataTypeTok{Nothing}
+
+\OtherTok{lowercase ::} \DataTypeTok{Parser} \DataTypeTok{Char}
+\NormalTok{lowercase }\OtherTok{=} \DataTypeTok{P}\NormalTok{ isLowercase}
+    \KeywordTok{where}
+\NormalTok{        isLowercase (x}\OperatorTok{:}\NormalTok{xs)  }\OtherTok{=}   \KeywordTok{if} \FunctionTok{isLower}\NormalTok{ x}
+                                    \KeywordTok{then} \DataTypeTok{Just}\NormalTok{ (x, xs)}
+                                    \KeywordTok{else} \DataTypeTok{Nothing}
+\NormalTok{        isLowercase []      }\OtherTok{=}   \DataTypeTok{Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+Remember that Haskell's built-in \texttt{Data.Char} module provides the function
+\texttt{isLower\ ::\ Char\ -\textgreater{}\ Bool}, which is true if the given
+character is a lowercase letter and false otherwise.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ parse z }\StringTok{"not z"}
+\DataTypeTok{Nothing}
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ parse lowercase }\StringTok{"A"}
+\DataTypeTok{Nothing}
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ parse lowercase }\StringTok{"a"}
+\DataTypeTok{Just}\NormalTok{ (}\CharTok{\textquotesingle{}a\textquotesingle{}}\NormalTok{, }\StringTok{""}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+But wait! Like in the case for \texttt{successful}, we notice a definite
+pattern\ldots and we can abstract this out.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{satisfies ::}\NormalTok{ (}\DataTypeTok{Char} \OtherTok{{-}\textgreater{}} \DataTypeTok{Bool}\NormalTok{) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Parser} \DataTypeTok{Char}
+\NormalTok{satisfies p }\OtherTok{=} \DataTypeTok{P}\NormalTok{ passesPredicate}
+    \KeywordTok{where}
+\NormalTok{        passesPredicate (x}\OperatorTok{:}\NormalTok{xs) }\OtherTok{=}  \KeywordTok{if}\NormalTok{ p z}
+                                      \KeywordTok{then} \DataTypeTok{Just}\NormalTok{ (x, xs)}
+                                      \KeywordTok{else} \DataTypeTok{Nothing}
+\NormalTok{        passesPredicate []     }\OtherTok{=}  \DataTypeTok{Nothing}
+
+
+\OtherTok{z ::} \DataTypeTok{Parser} \DataTypeTok{Char}
+\NormalTok{z }\OtherTok{=}\NormalTok{ satisfies (}\OperatorTok{==} \CharTok{\textquotesingle{}z\textquotesingle{}}\NormalTok{)}
+
+\OtherTok{lowercase ::} \DataTypeTok{Parser} \DataTypeTok{Char}
+\NormalTok{lowercase }\OtherTok{=}\NormalTok{ satisfies }\FunctionTok{isLower}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+Similar in structure to \texttt{(*2)},
+\texttt{(==\ \textquotesingle{}z\textquotesingle{})} is a function that returns
+true if the input is equal to \texttt{\textquotesingle{}z\textquotesingle{}} and
+false otherwise. That is,
+\texttt{(==\ \textquotesingle{}z\textquotesingle{})\ \textquotesingle{}a\textquotesingle{}}
+is false, while
+\texttt{(==\ \textquotesingle{}z\textquotesingle{})\ \textquotesingle{}z\textquotesingle{}}
+is true.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Remember, just like in the case with \texttt{successful}: \texttt{satisfies\ p}
+returns a \texttt{Parser\ Char} that fails unless the first character satisfies
+the given predicate \texttt{p}; \texttt{p} has to be a function from
+\texttt{Char} to \texttt{Bool} --- a predicate on \texttt{Char}s. So then
+\texttt{satisfies\ isLower} returns a new parser with the predicate
+\texttt{isLower} as the ``checker''.
+
+Let's try this out with some more built-in predicates from \texttt{Data.Char}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ parse (satisfies }\FunctionTok{isAlpha}\NormalTok{) }\StringTok{"hello"}
+\DataTypeTok{Just}\NormalTok{ (}\CharTok{\textquotesingle{}h\textquotesingle{}}\NormalTok{, }\StringTok{"ello"}\NormalTok{)}
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ parse (satisfies }\FunctionTok{isDigit}\NormalTok{) }\StringTok{"123abc"}
+\DataTypeTok{Just}\NormalTok{ (}\CharTok{\textquotesingle{}1\textquotesingle{}}\NormalTok{, }\StringTok{"23abc"}\NormalTok{)}
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ parse (}\OperatorTok{==} \CharTok{\textquotesingle{}a\textquotesingle{}}\NormalTok{) }\StringTok{"abc"}
+\DataTypeTok{Just}\NormalTok{ (}\CharTok{\textquotesingle{}a\textquotesingle{}}\NormalTok{, }\StringTok{"bc"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+In fact, some of these parsers are so useful, let's name some:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{digit ::} \DataTypeTok{Parser} \DataTypeTok{Char}
+\NormalTok{digit }\OtherTok{=}\NormalTok{ satisfies }\FunctionTok{isDigit}
+
+\OtherTok{alphaNum ::} \DataTypeTok{Parser} \DataTypeTok{Char}
+\NormalTok{alphaNum }\OtherTok{=}\NormalTok{ satisfies }\FunctionTok{isAlphaNum}
+
+\OtherTok{alpha ::} \DataTypeTok{Parser} \DataTypeTok{Char}
+\NormalTok{alphaNum }\OtherTok{=}\NormalTok{ satisfies }\FunctionTok{isAlpha}
+
+\OtherTok{char ::} \DataTypeTok{Char} \OtherTok{{-}\textgreater{}} \DataTypeTok{Parser} \DataTypeTok{Char}
+\NormalTok{char c }\OtherTok{=}\NormalTok{ satisfies (}\OperatorTok{==}\NormalTok{ c)}
+\end{Highlighting}
+\end{Shaded}
+
+The last one is particularly neat --- it says ``accept only the given
+character'' --- \texttt{char\ \textquotesingle{}a\textquotesingle{}} generates a
+parser that succeeds only on the character \texttt{a}.
+
+Note that we even can rewrite \texttt{anyChar} in terms of \texttt{satisfies}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{anyChar ::} \DataTypeTok{Parser} \DataTypeTok{Char}
+\NormalTok{anyChar }\OtherTok{=}\NormalTok{ satisfies (}\FunctionTok{const} \DataTypeTok{True}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+where \texttt{const\ True\ ::\ a\ -\textgreater{}\ Bool} is a function that
+ignores all its input and always returns true no matter what. \texttt{anyChar}
+is a parser that will take any character, no matter what.
+
+\subsection{Now we're cooking}\label{now-were-cooking}
+
+Okay, so we are making baby steps. Here are our ``base'' parsers. They can't
+really do much on their own; you can either always fail, always succeed, and
+parse any one-character string into a character. But the last one\ldots the
+ability to \emph{selectively} parse a string into a character\ldots that might
+be interesting. It's not totally obvious yet how we can make it useful,
+but\ldots I think we have enough base parsers to start building our
+\emph{combinators} --- functions that combine and modify parsers.
+
+\section{Functors}\label{functors}
+
+You have probably worked with functors before in your programming life with or
+without knowing it. Functors represent objects or data structures that
+``contain'' data that can be ``mapped over'' --- that is, functors are objects
+where you can apply functions to the values inside. The most famous functor in
+any language is the list, \texttt{{[}{]}}; another neat one is \texttt{Maybe}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ (}\OperatorTok{*}\DecValTok{2}\NormalTok{) }\OperatorTok{\textless{}$\textgreater{}}\NormalTok{ [}\DecValTok{1}\NormalTok{,}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{]}
+\NormalTok{[}\DecValTok{2}\NormalTok{,}\DecValTok{4}\NormalTok{,}\DecValTok{6}\NormalTok{]}
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ (}\OperatorTok{*}\DecValTok{2}\NormalTok{) }\OperatorTok{\textless{}$\textgreater{}} \DataTypeTok{Just} \DecValTok{3}
+\DataTypeTok{Just} \DecValTok{6}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+First of all, to clarify, \texttt{(*2)} is a function that doubles whatever is
+passed to it --- \texttt{(*2)\ 3} is 6.
+
+Next, in haskell, we can use the \texttt{\textless{}\$\textgreater{}} operator
+to say ``apply this\ldots{}`inside' of the structure''. This is analogous to the
+more-often-used \texttt{\$} operator:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ (}\OperatorTok{*}\DecValTok{2}\NormalTok{) }\OperatorTok{$} \DecValTok{3}
+\DecValTok{6}
+\end{Highlighting}
+\end{Shaded}
+
+Which says ``apply this (\texttt{(*2)})\ldots to this (\texttt{3})''.
+
+Compare that to:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ (}\OperatorTok{*}\DecValTok{2}\NormalTok{) }\OperatorTok{\textless{}$\textgreater{}}\NormalTok{ [}\DecValTok{3}\NormalTok{]}
+\NormalTok{[}\DecValTok{6}\NormalTok{]}
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ (}\OperatorTok{*}\DecValTok{2}\NormalTok{) }\OperatorTok{\textless{}$\textgreater{}} \DataTypeTok{Just} \DecValTok{3}
+\DecValTok{6}
+\end{Highlighting}
+\end{Shaded}
+
+As you can see, \texttt{\textless{}\$\textgreater{}} is the ``container''
+version of \texttt{\$}. It is like \texttt{\$}, but ``inside''.
+
+For more information, refer to adit's
+\href{http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html}{amazing
+article} on the topic.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+You can probably see where I'm going with this.
+
+\subsection{Turning our Parser into a
+Functor}\label{turning-our-parser-into-a-functor}
+
+\subsubsection{What does that even mean?}\label{what-does-that-even-mean}
+
+Hopefully you saw this coming. Functors seem to be very cool. But does it even
+make sense that our Parser object is a functor? The \texttt{Parser\ Int} object
+doesn't ``contain'' any \texttt{Int}s\ldots does it?
+
+Well\ldots it kind of ``does''\ldots in two ways, sorta kinda maybe.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  You could say that a \texttt{Parser\ Int} ``contains'' the to-be-parsed
+  integer.
+\item
+  You could say that a \texttt{Parser\ Int} ``contains'' the \textbf{idea} of an
+  integer\ldots abstractly. Like, whoa, man.
+\end{enumerate}
+
+So\ldots does it make sense to apply a function ``inside'' a \texttt{Parser\ a}?
+The answer is yes!
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  If a \texttt{Parser\ Int} contains a to-be-parsed integer, then applying a
+  function inside a \texttt{Parser\ Int} would be like applying the function to
+  the to-be-parsed integer!
+\item
+  If a \texttt{Parser\ Int} contains the \emph{idea} of an integer, then
+  applying a function inside a \texttt{Parser\ Int} would be applying the
+  function to the idea of the integer.
+\end{enumerate}
+
+Huh. This is kinda cool, isn't it? So let's say that when we apply a function
+``inside'' our Parser\ldots it means that we apply a function to the finished
+result of a successful parse.
+
+Basically, we want something like this:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{λ}\OperatorTok{:} \KeywordTok{let}\NormalTok{ successfulSix }\OtherTok{=}\NormalTok{ (}\OperatorTok{*}\DecValTok{2}\NormalTok{) }\OperatorTok{\textless{}$\textgreater{}}\NormalTok{ (successful }\DecValTok{3}\NormalTok{)}
+\NormalTok{λ}\OperatorTok{:} \OperatorTok{:}\KeywordTok{type}\NormalTok{ successfulSix}
+\OtherTok{successfulSix ::} \DataTypeTok{Parser} \DataTypeTok{Int}
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ parse successfulSix }\StringTok{"something"}
+\DataTypeTok{Just} \DecValTok{6}
+\end{Highlighting}
+\end{Shaded}
+
+Okay, cool. So instead of \texttt{successful\ 3} always succeeding with a 3, it
+succeeds with \texttt{(*2)\ 3}, which is 6. Still kinda boring but w/e.
+
+Let's try something else\ldots we're going to take advantage of the
+\texttt{Data.Char} method \texttt{digitToInt\ ::\ Char\ -\textgreater{}\ Int},
+which takes a \texttt{Char} and returns the digit that it represents (for
+example, \texttt{digitToInt\ \textquotesingle{}5\textquotesingle{}} is 5, the
+integer):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{λ}\OperatorTok{:} \KeywordTok{let}\NormalTok{ digitInt }\OtherTok{=} \FunctionTok{digitToInt} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ digit      }\CommentTok{{-}{-} 1}
+\NormalTok{λ}\OperatorTok{:} \OperatorTok{:}\KeywordTok{type}\NormalTok{ digitInt}
+\OtherTok{digitInt ::} \DataTypeTok{Parser} \DataTypeTok{Int}
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ parse digitInt }\StringTok{"2"}
+\DataTypeTok{Just}\NormalTok{ (}\DecValTok{2}\NormalTok{, }\StringTok{""}\NormalTok{)}
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ parse digitInt }\StringTok{"a"}
+\DataTypeTok{Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Remember, we defined the parser \texttt{digit} earlier, as a parser that only
+  succeeds if the first character is a digit.
+\end{enumerate}
+
+Did you just see that? That sounds genuinely useful! If we manage to implement
+\texttt{\textless{}\$\textgreater{}} properly, we just have a way to selectively
+parse any digit character into a digit, and fail otherwise.
+
+Let's try chaining \texttt{\textless{}\$\textgreater{}}'s:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{λ}\OperatorTok{:} \KeywordTok{let}\NormalTok{ digitIntDoubled }\OtherTok{=}\NormalTok{ (}\OperatorTok{*}\DecValTok{2}\NormalTok{) }\OperatorTok{\textless{}$\textgreater{}}\NormalTok{ (}\FunctionTok{digitToInt} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ digit)}
+\NormalTok{λ}\OperatorTok{:} \OperatorTok{:}\KeywordTok{type}\NormalTok{ digitIntDoubled}
+\OtherTok{digitIntDoubled ::} \DataTypeTok{Parser} \DataTypeTok{Int}
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ parse digitIntDoubled }\StringTok{"2"}
+\DataTypeTok{Just}\NormalTok{ (}\DecValTok{4}\NormalTok{, }\StringTok{""}\NormalTok{)}
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ parse digitIntDoubled }\StringTok{"a"}
+\DataTypeTok{Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+What just happened here?
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \texttt{digit} is a parser that succeeds only on digit characters.
+\item
+  \texttt{digitToInt\ \textless{}\$\textgreater{}\ digit} is the result of
+  applying \texttt{digitToInt} on the value of a successful parse. Basically,
+  \texttt{digitToInt\ \textless{}\$\textgreater{}\ digit} is a \emph{new parser}
+  that succeeds on digit characters, returning an integer.
+\item
+  \texttt{(*2)\ \textless{}\$\textgreater{}\ (digitToInt\ \textless{}\$\textgreater{}\ digit)}
+  is the result of applying \texttt{(*2)} (the doubling function) to
+  \texttt{digitToInt\ \textless{}\$\textgreater{}\ digit}, the
+  return-digit-as-int parser. The \texttt{(*2)\ \textless{}\$\textgreater{}}
+  doubles the result of the return-digit-as-int parser. Essentially, the entire
+  expression is a \emph{new parser} that succeeds on digit character, returning
+  the doubled integer as the parse result.
+\end{enumerate}
+
+*Phew*. That was a conceptual doozy. But this seems like a good path. Do you see
+what we did? We turned old, boring parsers into new, interesting parsers by
+``transforming'' them. This is the kind of thing we were looking for in the
+first place, right?
+
+\subsubsection{Implementing the Functor
+instance}\label{implementing-the-functor-instance}
+
+That's all fine and dandy. Now we have to actually implement
+\texttt{\textless{}\$\textgreater{}}.
+
+Luckily in Haskell, there are mechanisms for uniting functor interfaces. That
+is, if you tell it that \texttt{Parser\ a} is a functor, then you open up all
+sorts of powerful functor tools that were written for things like lists and
+maybe's --- now we can use them all on \texttt{Parser\ a}, too.
+
+To do this, we ``instance'' the Functor \emph{typeclass}. A typeclass in Haskell
+is like an interface in Object-Oriented Programming. Basically, we say
+``\texttt{Parser\ a} is a functor\ldots treat it like one!'' But in order to
+make it a valid functor, we must tell it how to \texttt{fmap}. \texttt{fmap} is
+basically \texttt{\textless{}\$\textgreater{}} --- it takes a function, a
+functor object, and returns a new functor object with that function applied
+``inside''. Once we define \texttt{fmap}, then we get
+\texttt{\textless{}\$\textgreater{}} for free. Or rather, Haskell knows that our
+parser is a functor, and knows how to use \texttt{\textless{}\$\textgreater{}}
+on functors.
+
+Here's how we do it. Hold on tight!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{instance} \DataTypeTok{Functor} \DataTypeTok{Parser} \KeywordTok{where}                                       \CommentTok{{-}{-} 1}
+    \FunctionTok{fmap}\NormalTok{ f parser }\OtherTok{=} \DataTypeTok{P}\NormalTok{ mapped\_parser\_function                        }\CommentTok{{-}{-} 2}
+        \KeywordTok{where}
+
+\OtherTok{            unmapped\_result ::} \DataTypeTok{Maybe}\NormalTok{ (a, }\DataTypeTok{String}\NormalTok{)}
+\NormalTok{            unmapped\_result }\OtherTok{=}\NormalTok{ parse parser str                      }\CommentTok{{-}{-} 3}
+
+\OtherTok{            mapped\_parser\_function ::} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ (b, }\DataTypeTok{String}\NormalTok{)}
+\NormalTok{            mapped\_parser\_function str }\OtherTok{=}
+                \KeywordTok{case}\NormalTok{ unmapped\_result }\KeywordTok{of}                             \CommentTok{{-}{-} 4}
+                    \DataTypeTok{Just}\NormalTok{ (result, rest) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Just}\NormalTok{ (f result, rest)    }\CommentTok{{-}{-} 5}
+                    \DataTypeTok{Nothing}             \OtherTok{{-}\textgreater{}} \DataTypeTok{Nothing}                  \CommentTok{{-}{-} 6}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  This line is syntax for ``we are declaring that \texttt{Parser} is a
+  functor!'', so that Haskell can treat \texttt{Parser} like a functor (and have
+  \texttt{\textless{}\$\textgreater{}} work).
+\item
+  In order to declare something as a functor, we must define the function
+  \texttt{fmap\ ::\ (a\ -\textgreater{}\ b)\ -\textgreater{}\ Parser\ a\ -\textgreater{}\ Parser\ b},
+  which takes a function from \texttt{a} to \texttt{b}, a \texttt{Parser\ a},
+  and returns the mapped-over parser/parser with the function applied
+  ``inside''.
+\item
+  Grab the result of the parse with the unmapped parser, first.
+\item
+  Some more Haskell syntax. Basically, the result of
+  \texttt{mapped\_parser\_function} is dependent on what
+  \texttt{unmapped\_result} is.
+\item
+  If \texttt{unmapped\_result} is a \texttt{Just}, then return the success, but
+  apply \texttt{f} to the result first.
+\item
+  If \texttt{unmapped\_result} is \texttt{Nothing}\ldots well, you can't apply
+  anything to the result if the result is a failure (a \texttt{Nothing}). Pass
+  on the failure.
+\end{enumerate}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+And now we can use our \texttt{Parser\ a} as a functor; all of our use cases
+above will now work.
+
+\subsection{Fun with functors}\label{fun-with-functors}
+
+Let's take a brief moment to see what kind of things we can do with only
+functors, and nothing else. It's probably not going to be too much more useful
+than what you can write imperatively, but it is interesting what you can do by
+only `modifying' simpler parsers\ldots which is what the whole point of
+combinators are.
+
+With that in mind, let's try out some neat use cases.
+
+What if you want to parse a digit and look it up in a list of keywords, and
+return that keyword?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{keywords ::}\NormalTok{ [}\DataTypeTok{String}\NormalTok{]}
+\NormalTok{keywords }\OtherTok{=}\NormalTok{ [}\StringTok{"debug"}\NormalTok{,}\StringTok{"normal"}\NormalTok{,}\StringTok{"warning"}\NormalTok{,}\StringTok{"error"}\NormalTok{]}
+
+\OtherTok{digit ::} \DataTypeTok{Parser} \DataTypeTok{Char}
+\NormalTok{digit }\OtherTok{=}\NormalTok{ satisfies }\FunctionTok{isDigit}
+
+\OtherTok{digitInt ::} \DataTypeTok{Parser} \DataTypeTok{Int}
+\NormalTok{digitInt }\OtherTok{=} \FunctionTok{digitToInt} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ digit}
+
+\OtherTok{keyword ::} \DataTypeTok{Parser} \DataTypeTok{String}
+\NormalTok{keyword }\OtherTok{=}\NormalTok{ (}\OperatorTok{!!}\NormalTok{ keywords) }\OperatorTok{\textless{}$\textgreater{}}\NormalTok{ digitInt}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+\texttt{(!!\ keywords)} is a function that looks up the given index in the given
+list. In our case, \texttt{(!!\ keywords)\ 2} would return what in other
+languages is \texttt{keywords{[}2{]}}, which is the string ``warning''.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ parse keyword }\StringTok{"1"}
+\DataTypeTok{Just}\NormalTok{ (}\StringTok{"normal"}\NormalTok{, }\StringTok{""}\NormalTok{)}
+\NormalTok{λ}\OperatorTok{:}\NormalTok{ parse keyword }\StringTok{"hello"}
+\DataTypeTok{Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

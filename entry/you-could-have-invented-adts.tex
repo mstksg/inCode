@@ -1,0 +1,116 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={You could have invented Algebraic Data Types},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{You could have invented Algebraic Data Types}
+
+\begin{document}
+\maketitle
+
+\% Justin Le
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/you-could-have-invented-adts.html}{in
+Code}}.}
+
+If you follow the buzz around hot programming language features these days,
+there is a chance you might have heard the term ``algebraic data type'' at some
+point.
+
+And, if you're like me, your reaction might have been something like ``I
+understand all of those words but it literally makes no sense to put them
+together''. Data? Types? Algebra?
+
+Algebra is things like memorizing the quadratic equation\ldots right? Data is
+stuff that user information that big tech corporations like to guzzle up. And
+types are classes, or \ldots{} wait, what was the difference between a type and
+a class again?
+
+Hopefully over the course of this blog post, you will learn not only what those
+words mean in that context, but also feel confident that \emph{you} could have
+invented the idea yourself, just by playing around with types. And maybe, as a
+bonus along the way, you'll be able to also see why they might be a useful
+concept.
+
+The idea for this post came from a tweet I saw from
+\href{https://twitter.com/jckarter}{Joe Groff}:
+
+Is this what they mean by "sum types" https://t.co/uli9snR0TB
+
+--- Joe Groff (@jckarter) February 25, 2020
+
+It got me thinking: if you \emph{didn't} know what sum types where, how
+\emph{would} you attempt to make sense out of \texttt{typeof\ a\ +\ typeof\ b}?
+What answer makes the most sense?
+
+\section{Pocket full of posies}\label{pocket-full-of-posies}
+
+The root ``problem'' of the silly javascript snippet is that \texttt{typeof\ a}
+returns a \texttt{string}, and not \ldots{} well, a type.
+
+So from the start, let's establish the idea of a ``data type'' as whatever it is
+that \texttt{typeof\ a} might return.
+
+We're going to exit the ``world'' of javascript a bit and talk about what it
+would mean to add (and do other stuff) to \emph{types} together. We're not going
+to be literally implementing \texttt{+} for types, but rather imagining ``what
+the result'' of adding two types might be, in an abstract way.
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

@@ -1,0 +1,369 @@
+<!DOCTYPE HTML>
+<html><head><title>You Could Have Invented Matrices!
+ · in Code</title><meta name="description" content="Weblog of Justin Le, covering various adventures in programming and explorations in the worlds of computation physics, and knowledge.
+"><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="flattr:id" content="3p9jqr"><meta property="og:site_name" content="in Code"><meta property="og:description" content="You could have invented matrices! Let’s talk about vectors. A vector (denoted as \mathbf{x}, a lower-case bold italicized letter) is an element in a vector space, which means that it can be “scaled”, like c \mathbf{x} (the c is called a “scalar” — creative name, right?) and added, like \mathbf{x} + \mathbf{y}. In order for vector spaces and their operations to be valid, they just have to obey some common-sense rules (like associativity, commutativity, distributivity, etc.) that allow us to make meaningful conclusions."><meta property="og:type" content="article"><meta property="og:title" content="You Could Have Invented Matrices!
+"><meta property="og:image" content="https://blog.jle.im/img/site_logo.jpg"><meta property="og:locale" content="en_US"><meta property="og:url" content="https://blog.jle.im/entry/you-could-have-invented-matrices.html"><meta name="twitter:card" content="summary"><meta name="twitter:creator:id" content="mstk"><link rel="author" href="https://plus.google.com/107705320197444500140"><link rel="alternate" type="application/rss+xml" title="in Code (RSS Feed)" href="http://feeds.feedburner.com/incodeblog"><link rel="canonical" href="https://blog.jle.im/entry/you-could-have-invented-matrices.html"><link href="https://blog.jle.im/favicon.ico" rel="shortcut icon"><link href="https://blog.jle.im/css/toast.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/font.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/main.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/page/entry.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/pygments.css" rel="stylesheet" type="text/css"><script type="text/javascript">var page_data = {};
+var disqus_shortname='incode';
+</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-443711-8', 'jle.im');
+ga('send', 'pageview');
+</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js"></script><script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5234d67a6b68dcd4"></script><script type="text/javascript" src="https://blog.jle.im/js/page/entry_toc.js"></script><script type="text/javascript" src="https://blog.jle.im/js/disqus_count.js"></script><script type="text/javascript" src="https://blog.jle.im/js/social.js"></script><script type="text/javascript" src="https://blog.jle.im/js/jquery/jquery.toc.js"></script><script type="text/javascript" src="https://blog.jle.im/purescript/entry.js"></script></head><body><div id="fb-root"><script>(function(d, s, id) {
+ var js, fjs = d.getElementsByTagName(s)[0];
+ if (d.getElementById(id)) return;
+ js = d.createElement(s); js.id = id;
+ js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=641852699171929";
+ fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+</script></div><div id="header-container"><div id="navbar-container" class="tile"><nav id="navbar-content"><div class="nav-info"><h1 class="site-title"><a href="https://blog.jle.im/" class="nav-title">in Code</a></h1><span class="nav-author">Justin Le</span></div><ul class="nav-links"><li><a href="https://blog.jle.im/">home</a></li><li><a href="https://blog.jle.im/entries.html">archives</a></li><li><a href="https://cv.jle.im">cv</a></li><div class="clear"></div></ul></nav></div><div id="header-content"></div></div><div id="body-container" class="container"><div id="main-container" class="grid"><div class="entry-section unit span-grid" role="main"><article class="tile article"><header><h1 id="title">You Could Have Invented Matrices!
+</h1><p class="entry-info">by <a class="author" href="https://blog.jle.im/">Justin Le</a><span class="info-separator"> &diams; </span><time datetime="2018-03-15T10:15:54Z" pubdate="" class="pubdate">Thursday March 15, 2018</time></p><p><span class="source-info"><a class="source-link" href="https://github.com/mstksg/inCode/tree/master/copy/entries/invent-matrices.md">Source</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://github.com/mstksg/inCode/tree/gh-pages/entry/you-could-have-invented-matrices.md">Markdown</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://blog.jle.im/entry/you-could-have-invented-matrices.tex">LaTeX</a><span class="info-separator"> &diams; </span></span>Posted in <a href="https://blog.jle.im/entries/category/@math.html" class="tag-a-category" title="@MATH">Math</a><span class="info-separator"> &diams; </span><a class="comment-link" href="#disqus_thread">Comments</a></p></header><hr><aside class="contents-container"><h5 id="contents-header">Contents</h5><div id="toc"></div></aside><div class="main-content copy-content"><p>You could have invented matrices!</p>
+<p>Let’s talk about vectors. A <strong>vector</strong> (denoted as <span class="math inline">\(\mathbf{x}\)</span>, a lower-case bold italicized letter) is an element in a <strong>vector space</strong>, which means that it can be “scaled”, like <span class="math inline">\(c \mathbf{x}\)</span> (the <span class="math inline">\(c\)</span> is called a “scalar” — creative name, right?) and added, like <span class="math inline">\(\mathbf{x} + \mathbf{y}\)</span>.</p>
+<p>In order for vector spaces and their operations to be valid, they just have to obey some <a href="https://en.wikipedia.org/wiki/Vector_space#Definition">common-sense rules</a> (like associativity, commutativity, distributivity, etc.) that allow us to make meaningful conclusions.</p>
+<h2 id="dimensionality">Dimensionality</h2>
+<p>One neat thing about vector spaces is that, in <em>some</em> of them, you have the ability to “decompose” any vector in it as a weighted sum of some set of <strong>basis vectors</strong>. If this is the case for your vector space, then the size of smallest possible set of basis vectors is known as the <strong>dimension</strong> of that vector space.</p>
+<p>For example, for a 3-dimensional vector space <span class="math inline">\(V\)</span>, any vector <span class="math inline">\(\mathbf{x}\)</span> can be described as a weighted sum of three basis vectors. If we call them <span class="math inline">\(\mathbf{v}_1\)</span>, <span class="math inline">\(\mathbf{v}_2\)</span>, <span class="math inline">\(\mathbf{v}_3\)</span>, then:</p>
+<p><span class="math display">\[
+\mathbf{x} = a \mathbf{v}_1 + b \mathbf{v}_2 + c \mathbf{v}_3
+\]</span></p>
+<p>Where <span class="math inline">\(a\)</span>, <span class="math inline">\(b\)</span>, and <span class="math inline">\(c\)</span> are scalars of <span class="math inline">\(V\)</span>.</p>
+<p>Dimensionality is really a statement about being able to <em>decompose</em> any vector in that vector space into a combination of a set of basis vectors. For a 3-dimensional vector space, you can make a bases that can reproduce <em>any</em> vector in your space…but that’s only possible with at least three vectors. a 4-dimensional vector space, you’d need at least four vectors.</p>
+<p>For example, in physics, we often treat reality as taking place in a three-dimensional vector space. The basis vectors are often called <span class="math inline">\(\hat{\mathbf{i}}\)</span>, <span class="math inline">\(\hat{\mathbf{j}}\)</span>, and <span class="math inline">\(\hat{\mathbf{k}}\)</span>, and so we say that we can describe our 3D physics vectors as <span class="math inline">\(\mathbf{r} = r_x
+\hat{\mathbf{i}} + r_y \hat{\mathbf{j}} + r_x \hat{\mathbf{k}}\)</span>.</p>
+<h3 id="encoding">Encoding</h3>
+<p>One neat thing that physicists take advantage of all the time is that if we <em>agree</em> on a set of basis vectors and a specific ordering, we can actually <em>encode</em> any vector <span class="math inline">\(\mathbf{x}\)</span> in terms of those basis vectors.</p>
+<p>In physics, for instance, we can say “Let’s encode vectors in terms of sums of scalings of <span class="math inline">\(\hat{\mathbf{i}}\)</span>, <span class="math inline">\(\hat{\mathbf{j}}\)</span>, and <span class="math inline">\(\hat{\mathbf{k}}\)</span>, in that order.” Then, we can <em>write</em> <span class="math inline">\(\mathbf{r}\)</span> as <span class="math inline">\(\langle r_x, r_y, r_z
+\rangle\)</span>, and understand that we really mean <span class="math inline">\(\mathbf{r} = r_x \hat{\mathbf{i}}
++ r_y \hat{\mathbf{j}} + r_x \hat{\mathbf{k}}\)</span>.</p>
+<p>It should be made clear that <span class="math inline">\(\langle x_1, x_2, x_3 \rangle\)</span> is <strong>not</strong> the same thing as the <em>vector</em> <span class="math inline">\(\mathbf{x}\)</span>. It is <em>an encoding</em> of that vector, which only makes sense once we choose to <em>agree</em> on a specific set of basis. If we chose a different basis, we’d have a different encoding.</p>
+<p>In the general case, for an N-dimensional vector space, this means that, with a minimum of N items, we can represent any vector in that space. And, if we agree on those N items, we can devise an encoding, such that:</p>
+<p><span class="math display">\[
+\langle x_1, x_2 \dots x_N \rangle
+\]</span></p>
+<p>will <em>encode</em> the vector:</p>
+<p><span class="math display">\[
+x_1 \mathbf{v}_1 + x_2 \mathbf{v}_2 + \ldots + x_N \mathbf{v}_N
+\]</span></p>
+<p>Note that what this encoding represents is <em>completely dependent</em> on what <span class="math inline">\(\mathbf{v}_1, \mathbf{v}_2 \ldots \mathbf{v}_N\)</span> we pick, and in what order. The basis vectors we pick are arbitrary, and determine what our encoding looks like.</p>
+<p>To highlight this, note that the same vector <span class="math inline">\(\mathbf{x}\)</span> has many different potential encodings — all you have to do is pick a different set of basis vectors, or even just re-arrange or re-scale the ones you already have. However, all of those encodings correspond go the same vector <span class="math inline">\(\mathbf{v}\)</span>.</p>
+<p>One interesting consequence of this is that any N-dimensional vector space whose scalars are in <span class="math inline">\(\mathbb{R}\)</span> is actually isomorphic to <span class="math inline">\(\mathbb{R}^N\)</span> (the vector space of N-tuples of real numbers). This means that we can basically treat any N-dimensional vector space with <span class="math inline">\(\mathbb{R}\)</span> scalars as if it was <span class="math inline">\(\mathbb{R}^N\)</span>, <em>once we decide</em> on the basis vectors. Because of this, we often call <em>all</em> N-dimensional vector spaces (whose scalars are in <span class="math inline">\(\mathbb{R}\)</span>) <span class="math inline">\(\mathbb{R}^N\)</span>. You will often hear physicists saying that the three-dimensional vector spaces they use are <span class="math inline">\(\mathbb{R}^3\)</span>. However, what they really mean is that their vector spaces is <em>isomorphic</em> to <span class="math inline">\(\mathbb{R}^3\)</span>.</p>
+<h2 id="linear-transformations">Linear Transformations</h2>
+<p>Now, one of the most interesting things in mathematics is the idea of the <strong>linear transformation</strong>. Linear transformations are useful to study because:</p>
+<ol type="1">
+<li>They are ubiquitous. They come up everywhere in engineering, physics, mathematics, data science, economics, and pretty much any mathematical theory. And there are even more situations which can be <em>approximated</em> by linear transformations.</li>
+<li>They are mathematically very nice to work with and study, in practice.</li>
+</ol>
+<p>A linear transformation, <span class="math inline">\(f(\mathbf{x})\)</span>, is a function that “respects” addition and scaling:</p>
+<p><span class="math display">\[
+\begin{aligned}
+f(c\mathbf{x}) &amp; = c f(\mathbf{x}) \\
+f(\mathbf{x} + \mathbf{y}) &amp; = f(\mathbf{x}) + f(\mathbf{y})
+\end{aligned}
+\]</span></p>
+<p>This means that if you scale the input, the output is scaled by the same amount. And also, if you transform the sum of two things, it’s the same as the sum of the transformed things (it “distributes”).</p>
+<p>Note that I snuck in vector notation, because the concept of vectors are <em>perfectly suited</em> for studying linear transformations. That’s because talking about linear transformations requires talking about scaling and adding, and…hey, that’s just exactly what vectors have!</p>
+<p>From now on, we’ll talk about linear transformations specifically on <em>N-dimensional vector spaces</em> (vector spaces that have dimensions and bases we can use).</p>
+<h3 id="studying-linear-transformations">Studying linear transformations</h3>
+<p>From first glance, a linear transformation’s description doesn’t look too useful or analyzable. All you have is <span class="math inline">\(f(\mathbf{x})\)</span>. It could be anything! Right? Just a black box function?</p>
+<p>But, actually, we can exploit its linearity and the fact that we’re in a vector space with a basis to analyze the heck out of any linear transformation, and see that all of them actually have to follow some specific pattern.</p>
+<p>Let’s say that <span class="math inline">\(f(\mathbf{x})\)</span> is a linear transformation from N-dimensional vector space <span class="math inline">\(V\)</span> to M-dimensional vector space <span class="math inline">\(U\)</span>. That is, <span class="math inline">\(f : V
+\rightarrow U\)</span>.</p>
+<p>Because we know that, once we pick a set of basis vectors <span class="math inline">\(\mathbf{v}_i\)</span>, any vector <span class="math inline">\(\mathbf{x}\)</span> in <span class="math inline">\(V\)</span> can be decomposed as <span class="math inline">\(x_1 \mathbf{v}_1 + x_2
+\mathbf{v}_2 + \ldots x_n \mathbf{v}_N\)</span>, we really can just look at how a transformation <span class="math inline">\(f\)</span> acts on this decomposition. For example, if <span class="math inline">\(V\)</span> is three-dimensional:</p>
+<p><span class="math display">\[
+f(\mathbf{x}) = f(x_1 \mathbf{v}_1 + x_2 \mathbf{v}_2 + x_3 \mathbf{v}_3)
+\]</span></p>
+<p>Hm. Doesn’t seem very insightful, does it?</p>
+<h3 id="a-simple-definition">A simple definition</h3>
+<p>But! We can exploit the linearity of <span class="math inline">\(f\)</span> (that it distributes and scales) to rewrite that as:</p>
+<p><span class="math display">\[
+f(\mathbf{x}) = x_1 f(\mathbf{v}_1) + x_2 f(\mathbf{v}_2) + x_3 f(\mathbf{v}_3)
+\]</span></p>
+<p>Okay, take a moment to pause and take that all in. This is actually a pretty big deal! This just means that, to study <span class="math inline">\(f\)</span>, <strong>all you need to study</strong> is how <span class="math inline">\(f\)</span> acts on our <em>basis vectors</em>. If you know how <span class="math inline">\(f\)</span> acts on our basis vectors of our vector space, that’s really “all there is” about <span class="math inline">\(f\)</span>! Not such a black box anymore!</p>
+<p>That is, if I were to ask you, “Hey, what is <span class="math inline">\(f\)</span> like?”, <em>all you’d have to tell me</em> is the result of <span class="math inline">\(f(\mathbf{v}_1)\)</span>, <span class="math inline">\(f(\mathbf{v}_2)\)</span>, and <span class="math inline">\(f(\mathbf{v}_3)\)</span>. Just give me those three <em>vectors</em>, and we <em>uniquely determine <span class="math inline">\(f\)</span></em>.</p>
+<p>To put in another way, <em>any linear transformation</em> from a three-dimensional vector space is uniquely characterized and determined by <em>three vectors</em>: <span class="math inline">\(f(\mathbf{v}_1)\)</span>, <span class="math inline">\(f(\mathbf{v}_2)\)</span>, and <span class="math inline">\(f(\mathbf{v}_3)\)</span>. Those three vectors <em>completely define</em> <span class="math inline">\(f\)</span>.</p>
+<p>In general, we see that <em>any linear transformation</em> from an N-dimensional vector space can be <em>completely defined</em> by N vectors: the N results of that transformation on each of N basis vectors we choose.</p>
+<h3 id="enter-the-matrix">Enter the Matrix</h3>
+<p>Okay, so how do we “give”/define/state those N vectors?</p>
+<p>Well, recall that the result of <span class="math inline">\(f(\mathbf{x})\)</span> and <span class="math inline">\(f(\mathbf{v}_1)\)</span>, etc. are <em>themselves</em> vectors, in M-dimensional vector space <span class="math inline">\(U\)</span>. Let’s say that <span class="math inline">\(U\)</span> is 2-dimensional, for now.</p>
+<p>This means that any vector <span class="math inline">\(\mathbf{y}\)</span> in <span class="math inline">\(U\)</span> can be represented as <span class="math inline">\(y_1
+\mathbf{u}_1 + y_2 \mathbf{u}_2\)</span>, where <span class="math inline">\(\mathbf{u}_1\)</span> and <span class="math inline">\(\mathbf{u}_2\)</span> is an arbitrary choice of basis vectors.</p>
+<p>This means that <span class="math inline">\(f(\mathbf{v}_1)\)</span> etc. can also all be represented in terms of these basis vectors. So, laying it all out:</p>
+<p><span class="math display">\[
+\begin{aligned}
+f(\mathbf{v}_1) &amp; = a_{11} \mathbf{u}_1 + a_{21} \mathbf{u}_2 \\
+f(\mathbf{v}_2) &amp; = a_{12} \mathbf{u}_1 + a_{22} \mathbf{u}_2 \\
+f(\mathbf{v}_3) &amp; = a_{13} \mathbf{u}_1 + a_{23} \mathbf{u}_2
+\end{aligned}
+\]</span></p>
+<p>Or, to use our bracket notation from before:</p>
+<p><span class="math display">\[
+\begin{aligned}
+f(\mathbf{v}_1) &amp; = \langle a_{11}, a_{21} \rangle \\
+f(\mathbf{v}_2) &amp; = \langle a_{12}, a_{22} \rangle \\
+f(\mathbf{v}_3) &amp; = \langle a_{13}, a_{23} \rangle
+\end{aligned}
+\]</span></p>
+<p>So, we now see two facts:</p>
+<ol type="1">
+<li>A linear transformation from an N dimensional vector space to an M dimensional vector space can be <em>defined</em> using N vectors.</li>
+<li>Each of those N vectors can, themselves, be defined using M scalars each.</li>
+</ol>
+<p>Our final conclusion: <em>any</em> linear transformation from an N dimensional vector space to an M dimensional vector space can be completely defined using <span class="math inline">\(N M\)</span> scalars.</p>
+<p>That’s right – <em>all</em> possible linear transformations from a 3-dimensional vector space to a 2-dimensional are parameterized by only <em>six</em> scalars! These six scalars uniquely determine and define our linear transformation, given a set of basis vectors that we agree on. All linear transformations <span class="math inline">\(\mathbb{R}^3 \rightarrow \mathbb{R}^2\)</span> can be defined/encoded/expressed with just six real numbers.</p>
+<p>These six numbers are pretty important. Just like how we often talk about 3-dimensional vectors in terms of the encoding of their three coefficients, we often talk about linear transformations from 3-d space to 2-d space in terms of their six defining coefficients.</p>
+<p>We group these things up in something called a <em>matrix</em>.</p>
+<p>If our linear transformation <span class="math inline">\(f\)</span> from a 3-dimensional vector space to a 2-dimensional vector space is defined by:</p>
+<p><span class="math display">\[
+\begin{aligned}
+f(\mathbf{v}_1) &amp; = a_{11} \mathbf{u}_1 + a_{21} \mathbf{u}_2 \\
+f(\mathbf{v}_2) &amp; = a_{12} \mathbf{u}_1 + a_{22} \mathbf{u}_2 \\
+f(\mathbf{v}_3) &amp; = a_{13} \mathbf{u}_1 + a_{23} \mathbf{u}_2
+\end{aligned}
+\]</span></p>
+<p>(for arbitrary choice of bases <span class="math inline">\(\mathbf{v}_i\)</span> and <span class="math inline">\(\mathbf{u}_i\)</span>)</p>
+<p>We “encode” it as the matrix:</p>
+<p><span class="math display">\[
+f
+\sim
+\begin{bmatrix}
+a_{11} &amp; a_{12} &amp; a_{13} \\
+a_{21} &amp; a_{22} &amp; a_{23}
+\end{bmatrix}
+\]</span></p>
+<p>And that’s why we use matrices in linear algebra – like how <span class="math inline">\(\langle x, y, z
+\rangle\)</span> is a convenient way to represent and define a <em>vector</em> (once we agree on a bases), a <span class="math inline">\(M \times N\)</span> matrix is a convenient way to represent and define a <em>linear transformation</em> from an N-dimensional vector space to a M-dimensional vector space (once we agree on the bases in both spaces).</p>
+<h3 id="example">Example</h3>
+<p>Let’s look at the vector space of polynomials, which includes vectors like <span class="math inline">\(5
+p^2 - 3 p + 2\)</span>, etc.; scaling a polynomial just means scaling the coefficients, and adding together polynomials is just normal polynomial addition.</p>
+<p>It’s an infinite-dimensional vector space, and one popular basis for this vector space is the polynomials <span class="math inline">\(1, p, p^2, p^3, \ldots\)</span>, etc.</p>
+<p>With this choice of basis, we can encode a polynomial like <span class="math inline">\(5 p^2 - 3 p + 2\)</span> with the notation <span class="math inline">\(\langle 2, -3, 5, 0, 0, \ldots \rangle\)</span>.</p>
+<p>One popular linear transformation on polynomials is the derivative, <span class="math inline">\(\frac{d}{dp}\)</span>. It takes <span class="math inline">\(5 p^2 - 3 p + 2\)</span> and returns <span class="math inline">\(10 p - 3\)</span>. In the basis we just mentioned, it takes <span class="math inline">\(\langle 2, -3, 5, 0, \ldots \rangle\)</span> and returns <span class="math inline">\(\langle -3, 10, 0, 0, \ldots \rangle\)</span>.</p>
+<p>Now, if you don’t know what a derivative was, or how to compute it – you’re in luck! What we just found out was that if you want to completely understand a linear transformation, you just need to know <em>how it works on the basis</em>! You just need to know what <span class="math inline">\(\frac{d}{dp} 1, \frac{d}{dp} p, \frac{d}{dp} p^2,
+\frac{d}{dp} p^3, \ldots\)</span> etc. are, and you basically know everything about what the derivative does.</p>
+<p>All I need to do is tell you that <span class="math inline">\(\frac{d}{dp} p^n = n p^{n - 1}\)</span> (what it does to each basis – the trusty <a href="https://en.wikipedia.org/wiki/Power_rule">power rule</a>), and now you know everything you need to know about derivatives on polynomials. You can basically just skip all of calculus!</p>
+<p>Let’s look at what this linear transformation does to each basis:</p>
+<p><span class="math display">\[
+\begin{aligned}
+\frac{d}{dp} 1   &amp; = 0     &amp; = 0 + 0 p + 0 p^2 + 0 p^3 + \ldots
+    &amp; = \langle 0, 0, 0, 0 \ldots \rangle  \\
+\frac{d}{dp} p   &amp; = 1     &amp; = 1 + 0 p + 0 p^2 + 0 p^3 + \ldots
+    &amp; = \langle 1, 0, 0, 0 \ldots \rangle  \\
+\frac{d}{dp} p^2 &amp; = 2 p   &amp; = 0 + 2 p + 0 p^2 + 0 p^3 + \ldots
+    &amp; = \langle 0, 2, 0, 0 \ldots \rangle  \\
+\frac{d}{dp} p^3 &amp; = 3 p^2 &amp; = 0 + 0 p + 3 p^2 + 0 p^3 + \ldots
+    &amp; = \langle 0, 0, 3, 0 \ldots \rangle  \\
+\frac{d}{dp} p^4 &amp; = 4 p^3 &amp; = 0 + 0 p + 0 p^2 + 4 p^3 + \ldots
+    &amp; = \langle 0, 0, 0, 4 \ldots \rangle
+\end{aligned}
+\]</span></p>
+<p>And so, in that <span class="math inline">\(1, p, p^2, p^3, \ldots\)</span> basis, the derivative of a polynomial can be represented as the matrix:</p>
+<p><span class="math display">\[
+\frac{d}{dp}
+\sim
+\begin{bmatrix}
+0 &amp; 1 &amp; 0 &amp; 0 &amp; 0 &amp; \ldots \\
+0 &amp; 0 &amp; 2 &amp; 0 &amp; 0 &amp; \ldots \\
+0 &amp; 0 &amp; 0 &amp; 3 &amp; 0 &amp; \ldots \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; 4 &amp; \ldots \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; \ldots \\
+\vdots &amp; \vdots &amp; \vdots &amp; \vdots &amp; \vdots &amp; \ddots
+\end{bmatrix}
+\]</span></p>
+<p>No calculus required! (This is the core idea of the <a href="https://en.wikipedia.org/wiki/Formal_derivative">formal derivative</a> of a polynomial)</p>
+<h2 id="matrix-operations">Matrix Operations</h2>
+<p>In this light, we can understand the definition of the common matrix operations.</p>
+<h3 id="matrix-vector-application">Matrix-Vector Application</h3>
+<p>Matrix-vector application (or “multiplication”) is essentially the <em>decoding</em> of the linear transformation that the matrix represents.</p>
+<p>Let’s look at the <span class="math inline">\(2 \times 3\)</span> example. Recall that we had:</p>
+<p><span class="math display">\[
+f(\mathbf{x}) = x_1 f(\mathbf{v}_1) + x_2 f(\mathbf{v}_2) + x_3 f(\mathbf{v}_3)
+\]</span></p>
+<p>And we say that <span class="math inline">\(f\)</span> is completely defined by:</p>
+<p><span class="math display">\[
+\begin{aligned}
+f(\mathbf{v}_1) &amp; = a_{11} \mathbf{u}_1 + a_{21} \mathbf{u}_2 \\
+f(\mathbf{v}_2) &amp; = a_{12} \mathbf{u}_1 + a_{22} \mathbf{u}_2 \\
+f(\mathbf{v}_3) &amp; = a_{13} \mathbf{u}_1 + a_{23} \mathbf{u}_2
+\end{aligned}
+\]</span></p>
+<p>This means that:</p>
+<p><span class="math display">\[
+\begin{aligned}
+f(\mathbf{x}) &amp; = x_1 (a_{11} \mathbf{u}_1 + a_{21} \mathbf{u}_2) \\
+              &amp; + x_2 (a_{12} \mathbf{u}_1 + a_{22} \mathbf{u}_2) \\
+              &amp; + x_3 (a_{13} \mathbf{u}_1 + a_{23} \mathbf{u}_2)
+\end{aligned}
+\]</span></p>
+<p>Which is itself a vector in <span class="math inline">\(U\)</span>, so let’s write this as a combination of its components <span class="math inline">\(\mathbf{u}_1\)</span> and <span class="math inline">\(\mathbf{u}_2\)</span>, by distributing and rearranging terms:</p>
+<p><span class="math display">\[
+\begin{aligned}
+f(\mathbf{v}) &amp; = (v_1 a_{11} + v_2 a_{12} + v_3 a_{13}) \mathbf{u}_1 \\
+              &amp; + (v_1 a_{21} + v_2 a_{22} + v_3 a_{23}) \mathbf{u}_2
+\end{aligned}
+\]</span></p>
+<p>And this is exactly the formula for matrix-vector multiplication!</p>
+<p><span class="math display">\[
+\begin{bmatrix}
+a_{11} &amp; a_{12} &amp; a_{13} \\
+a_{21} &amp; a_{22} &amp; a_{23}
+\end{bmatrix}
+\begin{bmatrix}
+x_1 \\
+x_2 \\
+x_3
+\end{bmatrix}
+=
+\begin{bmatrix}
+x_1 a_{11} + x_2 a_{12} + x_3 a_{13} \\
+x_1 a_{21} + x_2 a_{22} + x_3 a_{23}
+\end{bmatrix}
+\]</span></p>
+<p>Again, remember that what we are doing is manipulating <em>specific encodings</em> of our vectors and our linear transformations. Namely, we encode linear transformations as matrices, and vectors in their component encoding. The reason we can do these is that we agree upon a set of bases for our source and target vector spaces, and express these encodings in terms of those.</p>
+<p>The magic we get out of this is that we can manipulate things in our “encoding world”, which correspond to things in the “real world”.</p>
+<h3 id="addition-of-linear-transformations">Addition of linear transformations</h3>
+<p>One neat thing about linear transformation is that they “add” well – you can add them together by simply applying them both and adding the results. The result is another linear transformation.</p>
+<p><span class="math display">\[
+(f + g)(\mathbf{x}) \equiv f(\mathbf{x}) + g(\mathbf{x})
+\]</span></p>
+<p>If <span class="math inline">\(f : V \rightarrow U\)</span> and <span class="math inline">\(g : V \rightarrow U\)</span> are linear transformations between the <em>same</em> vector spaces, then <span class="math inline">\(f + g : V \rightarrow U\)</span>, as we defined it, is also one:</p>
+<p><span class="math display">\[
+\begin{aligned}
+(f + g)(c \mathbf{x}) &amp; = f(c \mathbf{x}) + g(c \mathbf{x}) \\
+                      &amp; = c f(\mathbf{x}) + c g(\mathbf{x}) \\
+                      &amp; = c ( f(\mathbf{x}) + g(\mathbf{x}) ) \\
+(f + g)(c \mathbf{x}) &amp; = c (f + g)(\mathbf{x})
+\end{aligned}
+\]</span></p>
+<p>(Showing that it respects addition is something you can look at if you want to have some fun!)</p>
+<p>So, if <span class="math inline">\(f\)</span> is encoded as matrix <span class="math inline">\(\hat{A}\)</span> for given bases, and <span class="math inline">\(g\)</span> is encoded as matrix <span class="math inline">\(\hat{B}\)</span>, what is the encoding of <span class="math inline">\(f + g\)</span> ?</p>
+<p>Let’s say that, if <span class="math inline">\(V\)</span> and <span class="math inline">\(U\)</span> are 3-dimensional and 2-dimensional, respectively:</p>
+<p><span class="math display">\[
+\begin{aligned}
+f(\mathbf{x}) &amp; = (x_1 a_{11} + x_2 a_{12} + x_3 a_{13}) \mathbf{u}_1 \\
+              &amp; + (x_1 a_{21} + x_2 a_{22} + x_3 a_{23}) \mathbf{u}_2 \\
+g(\mathbf{x}) &amp; = (x_1 b_{11} + x_2 b_{12} + x_3 b_{13}) \mathbf{u}_1 \\
+              &amp; + (x_1 b_{21} + x_2 b_{22} + x_3 b_{23}) \mathbf{u}_2
+\end{aligned}
+\]</span></p>
+<p>Then the breakdown of <span class="math inline">\(f + g\)</span> is:</p>
+<p><span class="math display">\[
+\begin{aligned}
+(f + g)(\mathbf{v}) &amp; = (x_1 a_{11} + x_2 a_{12} + x_3 a_{13}) \mathbf{u}_1 \\
+                    &amp; + (x_1 a_{21} + x_2 a_{22} + x_3 a_{23}) \mathbf{u}_2 \\
+                    &amp; + (x_1 b_{11} + x_2 b_{12} + x_3 b_{13}) \mathbf{u}_1 \\
+                    &amp; + (x_1 b_{21} + x_2 b_{22} + x_3 b_{23}) \mathbf{u}_2 \\
+(f + g)(\mathbf{v}) &amp; = (x_1 [a_{11} + b_{11}] + x_2 [a_{12} + b_{12}] + x_3 [a_{13} + b_{13}]) \mathbf{u}_1 \\
+                    &amp; + (x_1 [a_{21} + b_{21}] + x_2 [a_{22} + b_{22}] + x_3 [a_{23} + b_{23}]) \mathbf{u}_2
+\end{aligned}
+\]</span></p>
+<p>Note that if we say that <span class="math inline">\(f + g\)</span> is encoded as matrix <span class="math inline">\(\hat{C}\)</span>, and call the components <span class="math inline">\(c_{11}\)</span>, <span class="math inline">\(c_{12}\)</span>, etc., then we can rewrite that as:</p>
+<p><span class="math display">\[
+\begin{aligned}
+(f + g)(\mathbf{x}) &amp; = (x_1 c_{11} + x_2 c_{12} + x_3 c_{13}) \mathbf{u}_1 \\
+                    &amp; + (x_1 c_{21} + x_2 c_{22} + x_3 c_{23}) \mathbf{u}_2
+\end{aligned}
+\]</span></p>
+<p>Where <span class="math inline">\(c_{11} = a_{11} + b_{11}\)</span>, <span class="math inline">\(c_{12} = a_{12} + b_{12}\)</span>, etc.</p>
+<p>So, if <span class="math inline">\(\hat{A}\)</span> and <span class="math inline">\(\hat{B}\)</span> encode linear transformations <span class="math inline">\(f\)</span> and <span class="math inline">\(g\)</span>, then we can encode <span class="math inline">\(f + g\)</span> as matrix <span class="math inline">\(\hat{C}\)</span>, where the components of <span class="math inline">\(\hat{C}\)</span> are just the sum of their corresponding components in <span class="math inline">\(\hat{A}\)</span> and <span class="math inline">\(\hat{B}\)</span>.</p>
+<p>And that’s why we define <span class="math inline">\(\hat{A} + \hat{B}\)</span>, matrix-matrix addition, as component-wise addition: component-wise addition perfectly “simulates” the addition of the linear transformation!</p>
+<p>What’s happening here is we can represent manipulations of the functions themselves by manipulating <em>their encodings</em>.</p>
+<p>And, again, the magic here is that, by manipulating things in our “encoding world”, we can make meaningful manipulations in the “real world” of linear transformations.</p>
+<p><span class="math display">\[
+\begin{bmatrix}
+a_{11} &amp; a_{12} &amp; a_{13} \\
+a_{21} &amp; a_{22} &amp; a_{23}
+\end{bmatrix}
++
+\begin{bmatrix}
+b_{11} &amp; b_{12} &amp; b_{13} \\
+b_{21} &amp; b_{22} &amp; b_{23}
+\end{bmatrix}
+=
+\begin{bmatrix}
+a_{11}+b_{11} &amp; a_{12}+b_{12} &amp; a_{13}+b_{13} \\
+a_{21}+b_{21} &amp; a_{22}+b_{22} &amp; a_{23}+b_{23}
+\end{bmatrix}
+\]</span></p>
+<p>Symbolically, if we write function application as matrix-vector multiplication, we say that <span class="math inline">\(\hat{A} + \hat{B}\)</span> is defined so that <span class="math inline">\((\hat{A} + \hat{B})\mathbf{x} = \hat{A} \mathbf{x} + \hat{B} \mathbf{x}\)</span>.</p>
+<h3 id="multiplication-of-linear-transformations">Multiplication of linear transformations</h3>
+<p>We might be tempted to define <em>multiplication</em> of linear transformations the same way. However, this doesn’t quite make sense.</p>
+<p>Remember that we talked about adding linear transformations as the addition of their results. However, we can’t talk about multiplying linear transformations as the multiplication of their results because the idea of a vector space doesn’t come with any notion of multiplication.</p>
+<p>However, even if we talk specifically about linear transformations to <em>scalars</em>, this still doesn’t quite work:</p>
+<p><span class="math display">\[
+\begin{aligned}
+(f * g)(c \mathbf{x}) &amp; = f(c \mathbf{x}) g(c \mathbf{x}) \\
+                      &amp; = c f(\mathbf{x}) c g(\mathbf{x}) \\
+                      &amp; = c^2 ( f(\mathbf{x}) g(\mathbf{x}) ) \\
+(f * g)(c \mathbf{x}) &amp; = c^2 (f * g)(\mathbf{x})
+\end{aligned}
+\]</span></p>
+<p>So, <span class="math inline">\((f * g)(c \mathbf{x}) = c^2 (f * g)(\mathbf{x})\)</span>. Therefore, <span class="math inline">\(f * g\)</span>, defined point-wise, does <em>not</em> yield a linear transformation.</p>
+<p>Therefore, <em>there is no matrix</em> that could would even represent or encode <span class="math inline">\(f *
+g\)</span>, as we defined it. So, since <span class="math inline">\(f * g\)</span> isn’t even representable as a matrix in our encoding scheme, it doesn’t make sense to treat it as a matrix operation. There’s no possible result!</p>
+<h3 id="composition-of-linear-transformations">Composition of linear transformations</h3>
+<p>Since linear transformations are functions, we can compose them:</p>
+<p><span class="math display">\[
+(f \circ g)(\mathbf{x}) \equiv f(g(\mathbf{x}))
+\]</span></p>
+<p>Is the composition of linear transformations also a linear transformation?</p>
+<p><span class="math display">\[
+\begin{aligned}
+(f \circ g)(c \mathbf{x}) &amp; = f(g(c \mathbf{x})) \\
+                      &amp; = f(c g(\mathbf{x})) \\
+                      &amp; = c f(g(\mathbf{x})) \\
+(f \circ g)(c \mathbf{x}) &amp; = c (f \circ g)(\mathbf{x})
+\end{aligned}
+\]</span></p>
+<p>Yes! (Well, once you prove that it respects addition. I’ll leave the fun to you!)</p>
+<p>Okay, so we know that <span class="math inline">\(f \circ g\)</span> is indeed a linear transformation. That means that it can <em>also</em> be encoded as a matrix.</p>
+<p>So, let’s say that <span class="math inline">\(f : U \rightarrow W\)</span>, then <span class="math inline">\(g : V \rightarrow U\)</span>. <span class="math inline">\(f\)</span> is a linear transformation from <span class="math inline">\(U\)</span> to <span class="math inline">\(W\)</span>, and <span class="math inline">\(g\)</span> is a linear transformation from <span class="math inline">\(V\)</span> to <span class="math inline">\(U\)</span>. That means that <span class="math inline">\(f \circ g : V \rightarrow W\)</span> is a linear transformation from <span class="math inline">\(V\)</span> to <span class="math inline">\(W\)</span>. It goes from <span class="math inline">\(V\)</span>, through <span class="math inline">\(U\)</span>, and all the way to <span class="math inline">\(W\)</span>.</p>
+<p>Let’s say that <span class="math inline">\(V\)</span> is 3-dimensional, <span class="math inline">\(U\)</span> is 2-dimensional, and <span class="math inline">\(W\)</span> is 4-dimensional.</p>
+<p>If <span class="math inline">\(f\)</span> is encoded by the <span class="math inline">\(4 \times 2\)</span> matrix <span class="math inline">\(\hat{A}\)</span>, and <span class="math inline">\(g\)</span> is encoded by <span class="math inline">\(2 \times 3\)</span> matrix <span class="math inline">\(\hat{B}\)</span>, then we can represent <span class="math inline">\(f \circ g\)</span> as the <span class="math inline">\(4
+\times 3\)</span> matrix <span class="math inline">\(\hat{C}\)</span>.</p>
+<p>If you’ve taken a linear algebra class, you might recognize this pattern. Combining a <span class="math inline">\(4 \times 2\)</span> and a <span class="math inline">\(2 \times 3\)</span> to make a <span class="math inline">\(4 \times 3\)</span> ?</p>
+<p>We <em>can</em> compute <span class="math inline">\(\hat{C}\)</span> using only the encodings <span class="math inline">\(\hat{A}\)</span> and <span class="math inline">\(\hat{B}\)</span>! We call this <strong>matrix multiplication</strong>. It’s typically denoted as <span class="math inline">\(\hat{C} =
+\hat{A} \hat{B}\)</span>.</p>
+<p>That’s exactly what <em>matrix multiplication</em> is defined as. If:</p>
+<ul>
+<li><span class="math inline">\(\hat{A}\)</span> is a <span class="math inline">\(O \times M\)</span> matrix representing a linear transformation from a M-dimensional space to an O-dimensional space</li>
+<li><span class="math inline">\(\hat{B}\)</span> is an <span class="math inline">\(M \times N\)</span> matrix representing a linear transformation from an N-dimensional space to an M-dimensional space</li>
+</ul>
+<p>Then:</p>
+<ul>
+<li><span class="math inline">\(\hat{C} = \hat{A}\hat{B}\)</span> is a <span class="math inline">\(O \times N\)</span> matrix representing a linear transformation from an N-dimensional space to an O-dimensional space.</li>
+</ul>
+<p>Again – manipulation of our <em>encodings</em> can manifest the manipulation in the <em>linear transformations</em> that we want.</p>
+<p>Symbolically, if we treat function application as matrix-vector multiplication, this means that <span class="math inline">\(\hat{A}\hat{B}\)</span> is defined such that <span class="math inline">\((\hat{A}\hat{B})\mathbf{x} = \hat{A}(\hat{B}\mathbf{x})\)</span>.</p>
+<p>In that notation, it kinda looks like the associativity of multiplication, doesn’t it? Don’t be fooled! <span class="math inline">\(\hat{A} \hat{B}\)</span>, matrix-matrix multiplication, is a completely different type of operation than <span class="math inline">\(\hat{B}\mathbf{v}\)</span>. One is the symbolic manipulation on <em>two encodings</em> of of a linear transformation, and the other is an <em>application</em> of an encoding of a linear transformation on encoding of a vector.</p>
+<p>If you’re familiar with Haskell idioms, matrix-matrix multiplication is like <code>.</code> (function composition), and matrix-vector multiplication is like <code>$</code>, or function application. One is a “higher order function”: taking two functions (at least, the encodings of them) and returning a new function. The other is an application of a function to its input.</p>
+<p>And, like in Haskell:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>(f <span class="op">.</span> g) x <span class="ot">=</span> f (g x)</span></code></pre></div>
+<p>We won’t go over the actual process of computing the matrix-matrix product, but it’s something that you can work out just in terms of the definitions of the encodings. Just manually apply out everything and group together common factors of the basis vectors of the destination space.</p>
+<h2 id="the-big-picture">The Big Picture</h2>
+<p>At the highest level here, what we’re doing is taking a <em>function</em> and encoding it as <em>data</em> – a parameterization of that function. Essentially, we take the properties of the type of functions we are looking at and find out that it can be defined/represented in a limited number of parameters</p>
+<p>Then, the breakthrough is that we look at useful higher-order functions and manipulations of those transformations. Then, we see how we can implement those <em>transformations</em> by symbolically manipulating the <em>encodings</em>!</p>
+<p>This is actually a dance we do all the time in programming. Instead of working with functions, we work with reified data that represent those functions. And, instead of direct higher order functions, we transform that data in a way that makes it encodes the function we want to produce.</p>
+<p>Matrices are exactly that. Linear transformations are the functions we want to analyze, and we realize that we can completely specify/define any linear transformation with a matrix (against a choice of bases).</p>
+<p>Then, we realize that there are some nice manipulations we can do on linear transformations; we can combine them to create new linear transformations in useful ways.</p>
+<p>However, because those manipulations all produce <em>new</em> linear transformations, we know that their results can all be encoded in <em>new</em> matrices. So, we see if we can just directly apply those manipulations by directly working on those matrices!</p>
+<p>I hope this post serves to demystify matrices, matrix addition, and multiplication for you, and help you see why they are defined the way that they are. Furthermore, I hope that it gives some insight on why matrices are useful in linear algebra, and also how similar encodings can help you with manipulating other types of functions!</p></div><footer><hr><div class="copy-content"><p>Hi, thanks for reading! You can reach me via email at <a href="mailto:justin@jle.im" class="email">justin@jle.im</a>, or at twitter at <a href="https://twitter.com/mstk">@mstk</a>! This post and all others are published under the <a href="https://creativecommons.org/licenses/by-nc-nd/3.0/">CC-BY-NC-ND 3.0</a> license. Corrections and edits via pull request are welcome and encouraged at <a href="https://github.com/mstksg/inCode">the source repository</a>.</p>
+<p>If you feel inclined, or this post was particularly helpful for you, why not consider <a href="https://www.patreon.com/justinle/overview">supporting me on Patreon</a>, or a <a href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">BTC donation</a>? :)</p></div><div class="clear"></div><ul class="entry-series"></ul><ul class="tag-list"><li><a href="https://blog.jle.im/entries/tagged/linear-algebra.html" class="tag-a-tag">#linear algebra</a></li><li><a href="https://blog.jle.im/entries/category/@math.html" class="tag-a-category">@MATH</a></li></ul><aside class="social-buttons"><div class="addthis_toolbox addthis_default_style addthis-buttons"><a class="addthis_button_facebook_like" fb:like:layout="button_count"></a><a class="addthis_button_tweet"></a><a class="addthis_button_google_plusone" g:plusone:size="medium"></a><a class="addthis_counter addthis_pill_style"></a></div><div class="custom-social-buttons"><div class="custom-social-button"><a href="https://www.reddit.com/submit" onclick="window.location = &#39;https://www.reddit.com/submit?url=&#39;+ encodeURIComponent(window.location); return false"><img src="https://www.reddit.com/static/spreddit7.gif" alt="submit to reddit"></a></div></div></aside><nav class="next-prev-links"><ul><li class="prev-entry-link">&larr; <a href="https://blog.jle.im/entry/introducing-the-backprop-library.html">Introducing the backprop library
+</a> (Previous)</li><li class="next-entry-link">(Next) <a href="https://blog.jle.im/entry/const-applicative-and-monoids.html">The Const Applicative and Monoids
+</a> &rarr;</li></ul></nav></footer></article><div class="post-entry"><div class="tile"><div id="disqus_thread"></div><script type="text/javascript">var disqus_config = function () {
+    this.page.url = 'https://blog.jle.im/entry/you-could-have-invented-matrices.html';
+    this.page.identifier = 'invent-matrices';
+};
+(function() {
+    var d = document, s = d.createElement('script');
+    s.src = '//incode.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a><br></noscript><a href="http://disqus.com" class="dsq-brlink">Comments powered by <span class="logo-disqus">Disqus</span></a></div></div></div></div></div><div id="footer-container"><div id="footer-content"><div class="tile"><div class="footer-copyright">&copy; 2020 Justin Le <span class="license-link">(<a href="https://creativecommons.org/licenses/by-nc-nd/3.0/" class="license">CC-BY-NC-ND 3.0</a>)</span></div><div class="footer-follow social-follows"><ul class="social-follows-list"><li><ul class="social-follows-list-social"><li><a class="social-follow-twitter" title="Follow me on Twitter!" href="https://twitter.com/intent/user?user_id=mstk" onclick="window.open(
+  &#39;http://twitter.com/intent/user?user_id=907281&#39;,
+  &#39;facebook-share-dialog&#39;,
+  &#39;width=550,height=520&#39;);
+return false;
+">Twitter</a></li><li><a class="social-follow-github" title="Fork me on Github!" href="https://github.com/mstksg">Github</a></li><li><a class="social-follow-twitch" title="Watch me on Twitch!" href="https://www.twitch.tv/justin_l">Twitch</a></li><li><a class="social-follow-patreon" title="Support me on Patreon!" href="https://www.patreon.com/justinle/overview">Patreon</a></li><li><a class="social-follow-gplus" title="Add me on Google+!" href="https://plus.google.com/+JustinLe">Google+</a></li><li><a class="social-follow-keybase" title="Track me on Keybase!" href="https://keybase.io/mstksg">Keybase</a></li><li><a class="social-follow-linkedin" title="Connect with me on LinkedIn!" href="https://linkedin.com/in/lejustin">LinkedIn</a></li><li><a class="social-follow-bitcoin" title="Donate via bitcoin!" href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">Bitcoin</a></li></ul></li><li><ul class="social-follows-list-site"><li><a class="social-follow-rss" title="Subscribe to my RSS Feed!" href="http://feeds.feedburner.com/incodeblog">RSS</a></li><li><a class="social-follow-email" title="Subscribe to the mailing list!" href="https://feedburner.google.com/fb/a/mailverify?loc=en_US&amp;uri=incodeblog">Mailing list</a></li></ul></li></ul></div></div></div></div></body></html>

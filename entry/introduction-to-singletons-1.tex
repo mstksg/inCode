@@ -1,0 +1,1192 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Introduction to Singletons (Part 1)},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Introduction to Singletons (Part 1)}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% December 22, 2017
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/introduction-to-singletons-1.html}{in
+Code}}.}
+
+Real dependent types are coming to Haskell soon! Until then, we have the great
+\emph{\href{http://hackage.haskell.org/package/singletons}{singletons}} library
+:)
+
+(\emph{Note:} This post series has been written and updated to follow
+\emph{singletons-2.6}.)
+
+If you've ever run into dependently typed programming in Haskell, you've
+probably encountered mentions of singletons (and the \emph{singletons} library).
+This series of articles will be my attempt at giving you the story of the
+library, the problems it solves, the power that it gives to you, and how you can
+integrate it into your code today!\footnote{This series will be based on
+  \href{http://talks.jle.im/lambdaconf-2017/singletons/}{a talk} I gave over the
+  summer, and will expand on it.} (Also, after
+\href{https://blog.jle.im/entry/verified-instances-in-haskell.html}{my previous
+April Fools post}, people have been asking me for an actual non-joke singletons
+post)
+
+This post (Part 1) will go over first using the singleton pattern for
+\emph{reflection}, then introducing how the singletons library helps us. Part 2
+will discuss using the library for \emph{reification}, to get types that depend
+on values at runtime. Part 3 will go into the basics of promoting
+\emph{functions} values to become functions on types in a usable, and Part 4
+will go deeper into the lifting of functions, using singleton's
+\emph{defunctionalization} scheme to utilize the higher-order functions we love
+at the type level. Part 3 will go into the basics singleton's
+
+I definitely am writing this post with the hope that it will be obsolete in a
+year or two. When dependent types come to Haskell, singletons will be nothing
+more than a painful historical note. But for now, singletons might be the best
+way to get your foot into the door and experience the thrill and benefits of
+dependently typed programming \emph{today}!
+
+\subsection{Prerequisites}\label{prerequisites}
+
+These posts will assume no knowledge of dependent types, and, for now, only
+basic to intermediate Haskell knowledge (Types, kinds, typeclasses, data types,
+functions). The material in this post \emph{overlaps} with my
+\href{https://blog.jle.im/entry/practical-dependent-types-in-haskell-1.html}{dependently
+typed neural networks} series, but the concepts are introduced in different
+contexts.
+
+All code is built on \emph{GHC 8.6.1} and with the
+\emph{\href{https://www.stackage.org/nightly-2018-09-29}{nightly-2018-09-29}}
+snapshot (so, \emph{singletons-2.5}). However, unless noted, all of the code
+should still work with \emph{GHC 8.4} and \emph{singletons-2.4}.
+
+The content in the first section of this post, describing the singleton design
+pattern, uses the following extensions:
+
+\begin{itemize}
+\tightlist
+\item
+  DataKinds
+\item
+  GADTs
+\item
+  KindSignatures
+\item
+  RankNTypes
+\end{itemize}
+
+With some optional ``convenience extensions''
+
+\begin{itemize}
+\tightlist
+\item
+  LambdaCase
+\item
+  TypeApplications
+\end{itemize}
+
+And the second section, introducing the \emph{singletons} library itself, uses,
+additionally:
+
+\begin{itemize}
+\tightlist
+\item
+  TemplateHaskell
+\item
+  TypeFamilies
+\end{itemize}
+
+These extension will be explained when they are used or become relevant.
+
+\section{The Phantom of the Types}\label{the-phantom-of-the-types}
+
+\emph{(The code for this pre-singletons section is available
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/singletons/Door.hs}{on
+github})}
+
+Let's start with a very common Haskell trick that most learn early in their
+Haskelling journey: the \href{https://wiki.haskell.org/Phantom_type}{phantom
+type}.
+
+Phantom types in Haskell are a very simple way to add a layer of ``type safety''
+for your types and DSL's. It helps you restrict what values functions can take
+and encode pre- and post-conditions directly into your types.
+
+For example, in
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Foo}\NormalTok{ a }\OtherTok{=} \DataTypeTok{MkFoo}
+\end{Highlighting}
+\end{Shaded}
+
+The \texttt{a} parameter is \emph{phantom}, because nothing of type \texttt{a}
+in the data type\ldots it just exists as a dummy parameter for the \texttt{Foo}
+type. We can use \texttt{MkFoo} without ever requiring something of type
+\texttt{a}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t }\DataTypeTok{MkFoo}\OtherTok{ ::} \DataTypeTok{Foo} \DataTypeTok{Int}
+\DataTypeTok{Foo} \DataTypeTok{Int}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t }\DataTypeTok{MkFoo}\OtherTok{ ::} \DataTypeTok{Foo} \DataTypeTok{Bool}
+\DataTypeTok{Foo} \DataTypeTok{Bool}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t }\DataTypeTok{MkFoo}\OtherTok{ ::} \DataTypeTok{Foo} \DataTypeTok{Either}      \CommentTok{{-}{-} requires {-}XPolyKinds where \textquotesingle{}Foo\textquotesingle{} is defined}
+\DataTypeTok{Foo} \DataTypeTok{Either}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t }\DataTypeTok{MkFoo}\OtherTok{ ::} \DataTypeTok{Foo} \DataTypeTok{Monad}       \CommentTok{{-}{-} requires {-}XConstraintKinds}
+\DataTypeTok{Foo} \DataTypeTok{Monad}
+\end{Highlighting}
+\end{Shaded}
+
+One use case of phantom type parameters is to prohibit certain functions on
+different types of values and let you be more descriptive with how your
+functions work together (like in
+\href{https://ren.zone/articles/safe-money}{safe-money}). One ``hello world''
+use case of phantom type parameters is to tag data as ``sanitized'' or
+``unsanitized'' (\texttt{UserString\ \textquotesingle{}Sanitized} type
+vs.~\texttt{UserString\ \textquotesingle{}Unsanitized}) or paths as absolute or
+relative (\texttt{Path\ \textquotesingle{}Absolute}
+vs.~\texttt{Path\ \textquotesingle{}Relative}). For a simple example, let's
+check out a simple DSL for a type-safe door:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door.hs\#L11{-}L15}
+
+\KeywordTok{data} \DataTypeTok{DoorState} \OtherTok{=} \DataTypeTok{Opened} \OperatorTok{|} \DataTypeTok{Closed} \OperatorTok{|} \DataTypeTok{Locked}
+  \KeywordTok{deriving}\NormalTok{ (}\DataTypeTok{Show}\NormalTok{, }\DataTypeTok{Eq}\NormalTok{)}
+
+\KeywordTok{data} \DataTypeTok{Door}\NormalTok{ (}\OtherTok{s ::} \DataTypeTok{DoorState}\NormalTok{) }\OtherTok{=} \DataTypeTok{UnsafeMkDoor}\NormalTok{ \{}\OtherTok{ doorMaterial ::} \DataTypeTok{String}\NormalTok{ \}}
+                  \CommentTok{{-}{-} requires {-}XDataKinds}
+\end{Highlighting}
+\end{Shaded}
+
+A couple things going on here:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Our type we are going to be playing with is a \texttt{Door}, which contains a
+  single field \texttt{doorMaterial} describing, say, the material that the door
+  is made out of. (\texttt{UnsafeMkDoor\ "Oak"} would be an oak door)
+\item
+  We're using the \texttt{DataKinds} extension to create both the \emph{type}
+  \texttt{DoorState} as well as the \emph{kind} \texttt{DoorState}.
+
+  Normally,
+  \texttt{data\ DoorState\ =\ Opened\ \textbar{}\ Closed\ \textbar{}\ Locked} in
+  Haskell defines the type \texttt{DoorState} and the value constructors
+  \texttt{Opened}, \texttt{Closed}, and \texttt{Locked}.
+
+  However, with \texttt{DataKinds}, that statement also defines a new
+  \emph{kind} \texttt{DoorState}, with \emph{type} constructors
+  \texttt{\textquotesingle{}Opened}, \texttt{\textquotesingle{}Closed}, and
+  \texttt{\textquotesingle{}Locked}. (note the \texttt{\textquotesingle{}}
+  ticks!)\footnote{The \texttt{\textquotesingle{}} ticks are technically
+    optional, but I find that it's good style, at this point in Haskell, to use
+    them whenever you can. It'll prevent a lot of confusion, trust me!}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{k }\DataTypeTok{\textquotesingle{}Opened}
+\DataTypeTok{DoorState}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{k }\DataTypeTok{\textquotesingle{}Locked}
+\DataTypeTok{DoorState}
+\end{Highlighting}
+\end{Shaded}
+\end{enumerate}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{2}
+\item
+  We're defining the \texttt{Door} type with a \emph{phantom parameter}
+  \texttt{s}. It's a phantom type because we don't actually have any
+  \emph{values} of type \texttt{s} in our data type\footnote{Indeed, this is not
+    even possible. There are no values of type
+    \texttt{\textquotesingle{}SClosed}, \texttt{\textquotesingle{}SOpened}, etc.}
+  \ldots the \texttt{s} is only just there as a dummy parameter for the type.
+
+  We can use \texttt{UnsafeMkDoor} without ever using anything of type
+  \texttt{s}. In reality, a real \texttt{Door} type would be a bit more
+  complicated (and the direct \texttt{UnsafeMkDoor} constructor would be
+  hidden).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t }\DataTypeTok{UnsafeMkDoor} \StringTok{"Birch"}\OtherTok{ ::} \DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Opened}
+\DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Opened}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t }\DataTypeTok{UnsafeMkDoor} \StringTok{"Iron"}\OtherTok{ ::} \DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Locked}
+\DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Locked}
+\end{Highlighting}
+\end{Shaded}
+
+  We can also use the \emph{TypeApplications} extension to write this in a bit
+  more convenient way --
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t }\DataTypeTok{UnsafeMkDoor} \OperatorTok{@}\DataTypeTok{\textquotesingle{}Opened} \StringTok{"Birch"}
+\DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Opened}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t }\DataTypeTok{UnsafeMkDoor} \OperatorTok{@}\DataTypeTok{\textquotesingle{}Locked} \StringTok{"Iron"}
+\DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Locked}
+\end{Highlighting}
+\end{Shaded}
+\end{enumerate}
+
+Alternatively, we can define \texttt{Door} using
+\href{https://en.wikibooks.org/wiki/Haskell/GADT\#Syntax}{\emph{GADT} syntax}
+(which requires the \texttt{GADTs} extension)\footnote{Actually, GADT syntax
+  just requires \texttt{-XGADTSyntax}, but \texttt{-XGADT} allows you to
+  actually make GADTs (which we will be doing later), and implies
+  \texttt{-XGADTSyntax}}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Door}\OtherTok{ ::} \DataTypeTok{DoorState} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+    \DataTypeTok{UnsafeMkDoor}\OtherTok{ ::}\NormalTok{ \{}\OtherTok{ doorMaterial ::} \DataTypeTok{String}\NormalTok{ \} }\OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ s}
+\end{Highlighting}
+\end{Shaded}
+
+This is defining the exact same type in the alternate ``GADT syntax'' style of
+data type declaration -- here, we define types by giving the type of its
+constructors, \texttt{UnsafeMkDoor\ ::\ String\ -\textgreater{}\ Door\ s}.
+
+\texttt{Door} here is an \textbf{indexed data type}, which is sometimes called a
+``type family'' in the dependently typed programming world (which is not to be
+confused with type families in \emph{GHC Haskell}, \texttt{-XTypeFamilies},
+which is a language mechanism that is related but definitely not the same).
+
+\subsection{Phantoms in Action}\label{phantoms-in-action}
+
+At first, this seems a bit silly. Why even have the extra type parameter if you
+don't ever use it?
+
+Well, right off the bat, we can write functions that expect only a certain type
+of \texttt{Door}, and return a specific type of \texttt{Door}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door.hs\#L17{-}L18}
+
+\OtherTok{closeDoor ::} \DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Opened} \OtherTok{{-}\textgreater{}} \DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Closed}
+\NormalTok{closeDoor (}\DataTypeTok{UnsafeMkDoor}\NormalTok{ m) }\OtherTok{=} \DataTypeTok{UnsafeMkDoor}\NormalTok{ m}
+\end{Highlighting}
+\end{Shaded}
+
+So, the \texttt{closeDoor} function will \emph{only} take a
+\texttt{Door\ \textquotesingle{}Opened} (an opened door). And it will return a
+\texttt{Door\ \textquotesingle{}Closed} (a closed door).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ myDoor }\OtherTok{=} \DataTypeTok{UnsafeMkDoor} \OperatorTok{@}\DataTypeTok{\textquotesingle{}Opened} \StringTok{"Spruce"}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t myDoor}
+\DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Opened}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t closeDoor myDoor}
+\DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Closed}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ yourDoor }\OtherTok{=} \DataTypeTok{UnsafeMkDoor} \OperatorTok{@}\DataTypeTok{\textquotesingle{}Closed} \StringTok{"Acacia"}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t closeDoor yourDoor}
+\DataTypeTok{TYPE} \DataTypeTok{ERROR}\OperatorTok{!}  \DataTypeTok{TYPE} \DataTypeTok{ERROR}\OperatorTok{!}
+\end{Highlighting}
+\end{Shaded}
+
+You can think of this as a nice way of catching \emph{logic errors} at
+compile-time. If your door type did not have its status in the type, the
+\texttt{closeDoor} could have been given a closed or locked door, and you'd have
+to handle and reject it at \emph{runtime}.
+
+By adding the state of the door into its type, we can encode our pre-conditions
+and post-conditions directly into the type. And any opportunity to move runtime
+errors to compile-time errors should be celebrated with a party!
+
+This would also stop you from doing silly things like closing a door twice in a
+row:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t closeDoor }\OperatorTok{.}\NormalTok{ closeDoor}
+\DataTypeTok{TYPE} \DataTypeTok{ERROR}\OperatorTok{!}  \DataTypeTok{TYPE} \DataTypeTok{ERROR}\OperatorTok{!}  \DataTypeTok{TYPE} \DataTypeTok{ERROR}\OperatorTok{!}
+\end{Highlighting}
+\end{Shaded}
+
+Do you see why?
+
+With a couple of state transitions, we can write compositions that are
+type-checked to all be legal:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door.hs\#L20{-}L24}
+
+\OtherTok{lockDoor ::} \DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Closed} \OtherTok{{-}\textgreater{}} \DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Locked}
+\NormalTok{lockDoor (}\DataTypeTok{UnsafeMkDoor}\NormalTok{ m) }\OtherTok{=} \DataTypeTok{UnsafeMkDoor}\NormalTok{ m}
+
+\OtherTok{openDoor ::} \DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Closed} \OtherTok{{-}\textgreater{}} \DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Opened}
+\NormalTok{openDoor (}\DataTypeTok{UnsafeMkDoor}\NormalTok{ m) }\OtherTok{=} \DataTypeTok{UnsafeMkDoor}\NormalTok{ m}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t closeDoor }\OperatorTok{.}\NormalTok{ openDoor}
+\DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Closed} \OtherTok{{-}\textgreater{}} \DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Closed}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t lockDoor }\OperatorTok{.}\NormalTok{ closeDoor }\OperatorTok{.}\NormalTok{ openDoor}
+\DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Closed} \OtherTok{{-}\textgreater{}} \DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Locked}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t lockDoor }\OperatorTok{.}\NormalTok{ openDoor}
+\DataTypeTok{TYPE} \DataTypeTok{ERROR}\OperatorTok{!}  \DataTypeTok{TYPE} \DataTypeTok{ERROR}\OperatorTok{!}  \DataTypeTok{TYPE} \DataTypeTok{ERROR}\OperatorTok{!}
+\end{Highlighting}
+\end{Shaded}
+
+Because of the type of \texttt{lockDoor}, you \emph{cannot} lock an opened door!
+Don't even try! You'd have to close it first.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ myDoor }\OtherTok{=} \DataTypeTok{UnsafeMkDoor} \OperatorTok{@}\DataTypeTok{\textquotesingle{}Opened} \StringTok{"Spruce"}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t myDoor}
+\DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Opened}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t lockDoor}
+\DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Closed} \OtherTok{{-}\textgreater{}} \DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Closed}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t lockDoor myDoor}
+\DataTypeTok{TYPE} \DataTypeTok{ERROR}\OperatorTok{!}  \DataTypeTok{TYPE} \DataTypeTok{ERROR}\OperatorTok{!}  \DataTypeTok{TYPE} \DataTypeTok{ERROR}\OperatorTok{!}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t closeDoor myDoor}
+\DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Closed}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t lockDoor (closeDoor myDoor)}
+\DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Locked}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{lockDoor} expects a \texttt{Door\ \textquotesingle{}Closed}, so if you
+give it a \texttt{Door\ \textquotesingle{}Opened}, that's a static compile-time
+type error. But, \texttt{closeDoor} takes a
+\texttt{Door\ \textquotesingle{}Opened} and returns a
+\texttt{Door\ \textquotesingle{}Closed} -- so \emph{that} is something that you
+can call \texttt{lockDoor} with!
+
+\subsection{The Phantom Menace}\label{the-phantom-menace}
+
+However, in standard Haskell, we quickly run into some practical problems if we
+program with phantom types this way.
+
+For example, how could we write a function to get the state of a door?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{doorStatus ::} \DataTypeTok{Door}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{DoorState}
+\NormalTok{doorStatus \_ }\OtherTok{=} \CommentTok{{-}{-} ?}
+\end{Highlighting}
+\end{Shaded}
+
+(It can be done with an ad-hoc typeclass, but it's not simple, and it's prone to
+implementation bugs)
+
+And, perhaps even more important, how can you create a \texttt{Door} with a
+given state that isn't known until runtime? If we know the type of our doors at
+compile-time, we can just explicitly write
+\texttt{UnsafeMkDoor\ "Iron"\ ::\ Door\ \textquotesingle{}Opened} or
+\texttt{UnsafeMkDoor\ @\textquotesingle{}Opened\ "Iron"}. But what if we wanted
+to make a door based on a \texttt{DoorState} \emph{value}? Something we might
+not get until runtime?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{mkDoor ::} \DataTypeTok{DoorState} \OtherTok{{-}\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ s}
+\NormalTok{mkDoor }\DataTypeTok{Opened} \OtherTok{=} \CommentTok{{-}{-} ?}
+\NormalTok{mkDoor }\DataTypeTok{Closed} \OtherTok{=} \CommentTok{{-}{-} ?}
+\NormalTok{mkDoor }\DataTypeTok{Locked} \OtherTok{=} \CommentTok{{-}{-} ?}
+\end{Highlighting}
+\end{Shaded}
+
+Ah hah, you say. That's easy!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{mkDoor ::} \DataTypeTok{DoorState} \OtherTok{{-}\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ s}
+\NormalTok{mkDoor }\DataTypeTok{Opened} \OtherTok{=} \DataTypeTok{UnsafeMkDoor}
+\NormalTok{mkDoor }\DataTypeTok{Closed} \OtherTok{=} \DataTypeTok{UnsafeMkDoor}
+\NormalTok{mkDoor }\DataTypeTok{Locked} \OtherTok{=} \DataTypeTok{UnsafeMkDoor}
+\end{Highlighting}
+\end{Shaded}
+
+Unfortunately, that's not how types work in Haskell. Remember that for a
+polymorphic type
+\texttt{forall\ s.\ DoorState\ -\textgreater{}\ String\ -\textgreater{}\ Door\ s},
+the \emph{caller} picks the type variable.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t mkDoor }\DataTypeTok{Opened} \StringTok{"Acacia"}\OtherTok{ ::} \DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Closed}
+\DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Closed}
+\end{Highlighting}
+\end{Shaded}
+
+Oops!
+
+\subsection{The Fundamental Issue in
+Haskell}\label{the-fundamental-issue-in-haskell}
+
+We've hit upon a fundamental issue in Haskell's type system: \textbf{type
+erasure}. In Haskell, types only exist \emph{at compile-time}, for help with
+type-checking. They are completely erased at runtime.
+
+This is usually what we want. It's great for performance, and you can bypass
+things like the ad-hoc runtime type checking that you have to deal with in
+dynamic languages like python.
+
+But in our case, it makes functions like \texttt{doorState} fundamentally
+impossible. Or, does it?
+
+\section{The Singleton Pattern}\label{the-singleton-pattern}
+
+A singleton in Haskell is a type (of kind \texttt{Type} -- that is, \texttt{*})
+that has exactly one inhabitant. In practice (and when talking about the design
+pattern), it refers to a parameterized type that, for each pick of parameter,
+gives a type with exactly one inhabitant. It is written so that pattern matching
+on the \emph{constructor} of that value reveals the unique type parameter.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door.hs\#L26{-}L29}
+
+\KeywordTok{data} \DataTypeTok{SDoorState}\OtherTok{ ::} \DataTypeTok{DoorState} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+    \DataTypeTok{SOpened}\OtherTok{ ::} \DataTypeTok{SDoorState} \DataTypeTok{\textquotesingle{}Opened}
+    \DataTypeTok{SClosed}\OtherTok{ ::} \DataTypeTok{SDoorState} \DataTypeTok{\textquotesingle{}Closed}
+    \DataTypeTok{SLocked}\OtherTok{ ::} \DataTypeTok{SDoorState} \DataTypeTok{\textquotesingle{}Locked}
+\end{Highlighting}
+\end{Shaded}
+
+Here we're using \emph{GADT syntax} again (but to make an actual GADT). (Also
+note that \texttt{Type} is a synonym for the \texttt{*} kind, exported from the
+\emph{Data.Kind} module) So, if we use \texttt{SOpened}, we will get a
+\texttt{SDoorState\ \textquotesingle{}Opened}. And if we have a
+\texttt{SDoorState\ \textquotesingle{}Opened}, we know that it was constructed
+using \texttt{SOpened}. Essentially, this gives us three values:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{SOpened}\OtherTok{ ::} \DataTypeTok{SDoorState} \DataTypeTok{\textquotesingle{}Opened}
+\DataTypeTok{SClosed}\OtherTok{ ::} \DataTypeTok{SDoorState} \DataTypeTok{\textquotesingle{}Closed}
+\DataTypeTok{SLocked}\OtherTok{ ::} \DataTypeTok{SDoorState} \DataTypeTok{\textquotesingle{}Locked}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{The Power of the Pattern
+Match}\label{the-power-of-the-pattern-match}
+
+The power of singletons is that we can now \emph{pattern match} on types,
+essentially.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door.hs\#L17{-}L35}
+
+\OtherTok{closeDoor ::} \DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Opened} \OtherTok{{-}\textgreater{}} \DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Closed}
+
+\OtherTok{lockDoor ::} \DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Closed} \OtherTok{{-}\textgreater{}} \DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Locked}
+
+\OtherTok{lockAnyDoor ::} \DataTypeTok{SDoorState}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Locked}
+\NormalTok{lockAnyDoor sng door }\OtherTok{=} \KeywordTok{case}\NormalTok{ sng }\KeywordTok{of}
+    \DataTypeTok{SOpened} \OtherTok{{-}\textgreater{}}\NormalTok{ lockDoor (closeDoor door) }\CommentTok{{-}{-} in this branch, s is \textquotesingle{}Opened}
+    \DataTypeTok{SClosed} \OtherTok{{-}\textgreater{}}\NormalTok{ lockDoor door             }\CommentTok{{-}{-} in this branch, s is \textquotesingle{}Closed}
+    \DataTypeTok{SLocked} \OtherTok{{-}\textgreater{}}\NormalTok{ door                      }\CommentTok{{-}{-} in this branch, s is \textquotesingle{}Locked}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{lockAnyDoor} is a function that can take a door of any state (a
+\texttt{Door\ s} of any \texttt{s}) and \emph{lock} it using a composition of
+\texttt{lockDoor} or \texttt{closeDoor} as necessary.
+
+If we have \texttt{lockAnyDoor} take a \texttt{SDoorState\ s} as its input (and,
+importantly, make sure that the \texttt{s} in \texttt{SDoorState\ s} is the same
+\texttt{s} in the \texttt{Door\ s}), we can \emph{pattern match} on the
+\texttt{SDoorState\ s} to \emph{reveal} what \texttt{s} is, to the type checker.
+This is known as a \textbf{dependent pattern match}.
+
+\begin{itemize}
+\item
+  If \texttt{SDoorState\ s}'s pattern match goes down the
+  \texttt{SOpened\ -\textgreater{}} case, then we \emph{know} that
+  \texttt{s\ \textasciitilde{}\ \textquotesingle{}Opened}\footnote{\texttt{\textasciitilde{}}
+    here refers to ``type equality'', or the constraint that the types on both
+    sides are equal. \texttt{s\ \textasciitilde{}\ \textquotesingle{}Opened} can
+    be read as ``\texttt{s} is \texttt{\textquotesingle{}Opened}''.}. We know
+  that \texttt{s} must be \texttt{\textquotesingle{}Opened}, because
+  \texttt{SOpened\ ::\ SDoorState\ \textquotesingle{}Opened}, so there really
+  isn't anything else the \texttt{s} in \texttt{SDoorState\ s} could be!
+
+  So, if we know that \texttt{s\ \textasciitilde{}\ \textquotesingle{}Opened},
+  that means that the \texttt{Door\ s} is
+  \texttt{Door\ \textquotesingle{}Opened}. So because
+  \texttt{door\ ::\ Door\textquotesingle{}\ Opened}, we have to
+  \texttt{closeDoor} it to get a \texttt{Door\textquotesingle{}\ Closed}, and
+  then \texttt{lockDoor} it to get a \texttt{Door\ \textquotesingle{}Locked}
+
+  We say that \texttt{SOpened} is a \emph{runtime witness} to \texttt{s} being
+  \texttt{\textquotesingle{}Opened}.
+\item
+  Same for the \texttt{SClosed\ -\textgreater{}} branch -- since
+  \texttt{SClosed\ ::\ SDoorState\ \textquotesingle{}Closed}, then
+  \texttt{s\ \textasciitilde{}\ \textquotesingle{}Closed}, so our
+  \texttt{Door\ s} must be a \texttt{Door\ \textquotesingle{}Closed}. This
+  allows us to simply take our \texttt{door\ ::\ Door\ \textquotesingle{}Closed}
+  and use \texttt{lockDoor} to get a
+  \texttt{Door\ \ \ \ \ \textquotesingle{}Locked}
+\item
+  For the \texttt{SLocked\ -\textgreater{}} branch,
+  \texttt{SLocked\ ::\ SDoorState\ \textquotesingle{}Locked}, so
+  \texttt{s\ \textasciitilde{}\ \textquotesingle{}Locked}, so our
+  \texttt{Door\ s} is a \texttt{Door\ \textquotesingle{}Locked}. Our door is
+  ``already'' locked, so we can just use the
+  \texttt{door\ ::\ Door\ \textquotesingle{}Locked} that we got!
+\end{itemize}
+
+Essentially, our singletons give us \emph{runtime values} that can be used as
+\emph{witnesses} for types and type variables. These values exist at runtime, so
+they ``bypass'' type erasure. Types themselves are directly erased, but we can
+hold on to them using these runtime tokens when we need them.
+
+Note that we can also write \texttt{lockAnyDoor} using the \emph{LambdaCase}
+extension syntactic sugar, which I think offers a lot of extra insight:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{lockAnyDoor ::} \DataTypeTok{SDoorState}\NormalTok{ s }\OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{Door}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Locked}\NormalTok{)}
+\NormalTok{lockAnyDoor }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+    \DataTypeTok{SOpened} \OtherTok{{-}\textgreater{}}\NormalTok{ lockDoor }\OperatorTok{.}\NormalTok{ closeDoor  }\CommentTok{{-}{-} in this branch, s is \textquotesingle{}Opened}
+    \DataTypeTok{SClosed} \OtherTok{{-}\textgreater{}}\NormalTok{ lockDoor              }\CommentTok{{-}{-} in this branch, s is \textquotesingle{}Closed}
+    \DataTypeTok{SLocked} \OtherTok{{-}\textgreater{}} \FunctionTok{id}                    \CommentTok{{-}{-} in this branch, s is \textquotesingle{}Locked}
+\end{Highlighting}
+\end{Shaded}
+
+Here, we can see \texttt{lockAnyDoor\ sng} as a partially applied function that
+returns a \texttt{Door\ s\ -\textgreater{}\ Door\ \textquotesingle{}Locked} For
+any \texttt{SDoorState\ s} you give to \texttt{lockAnyDoor},
+\texttt{lockAnyDoor} returns a ``locker function''
+(\texttt{Door\ s\ -\textgreater{}\ Door\ \textquotesingle{}Locked}) that is
+custom-made for your \texttt{SDoorState}:
+
+\begin{itemize}
+\item
+  \texttt{lockAnyDoor\ SOpened} will return a
+  \texttt{Door\ \textquotesingle{}Opened\ -\textgreater{}\ Door\ \textquotesingle{}Locked}.
+  Here, it has to give
+  \texttt{lockDoor\ .\ closeDoor\ ::\ Door\ \textquotesingle{}Opened\ -\textgreater{}\ Door\ \textquotesingle{}Locked}.
+\item
+  \texttt{lockAnyDoor\ SClosed} will return a
+  \texttt{Door\ \textquotesingle{}Closed\ -\textgreater{}\ Door\ \textquotesingle{}Locked}
+  -- namely
+  \texttt{lockDoor\ ::\ Door\ \textquotesingle{}Closed\ -\textgreater{}\ Door\ \textquotesingle{}Locked}.
+\item
+  \texttt{lockAnyDoor\ SLocked} will return a
+  \texttt{Door\ \textquotesingle{}Locked\ -\textgreater{}\ Door\ \textquotesingle{}Locked},
+  which will just be
+  \texttt{id\ ::\ Door\ \textquotesingle{}Locked\ -\textgreater{}\ Door\ \textquotesingle{}Locked}
+\end{itemize}
+
+Note that all of these functions will \emph{only} typecheck under the branch
+they fit in. If we gave \texttt{lockDoor} for the \texttt{SOpened} branch, or
+\texttt{id} for the \texttt{SClosed} branch, that'll be a compile-time error!
+
+\subsubsection{Reflection}\label{reflection}
+
+Writing \texttt{doorStatus} is now pretty simple --
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{doorStatus ::} \DataTypeTok{SDoorState}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{DoorState}
+\NormalTok{doorStatus }\DataTypeTok{SOpened}\NormalTok{ \_ }\OtherTok{=} \DataTypeTok{Opened}
+\NormalTok{doorStatus }\DataTypeTok{SClosed}\NormalTok{ \_ }\OtherTok{=} \DataTypeTok{Closed}
+\NormalTok{doorStatus }\DataTypeTok{SLocked}\NormalTok{ \_ }\OtherTok{=} \DataTypeTok{Locked}
+\end{Highlighting}
+\end{Shaded}
+
+The benefit of the singleton again relies on the fact that the \texttt{s} in
+\texttt{SDoorState\ s} is the same as the \texttt{s} in \texttt{Door\ s}, so if
+the user gives a \texttt{SDoorState\ s}, it \emph{has} to match the \texttt{s}
+in the \texttt{Door\ s} they give.
+
+Since we don't even care about the \texttt{door}, we could also just write:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door.hs\#L37{-}L40}
+
+\OtherTok{fromSDoorState ::} \DataTypeTok{SDoorState}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{DoorState}
+\NormalTok{fromSDoorState }\DataTypeTok{SOpened} \OtherTok{=} \DataTypeTok{Opened}
+\NormalTok{fromSDoorState }\DataTypeTok{SClosed} \OtherTok{=} \DataTypeTok{Closed}
+\NormalTok{fromSDoorState }\DataTypeTok{SLocked} \OtherTok{=} \DataTypeTok{Locked}
+\end{Highlighting}
+\end{Shaded}
+
+Which we can use to write a nicer \texttt{doorStatus}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door.hs\#L42{-}L43}
+
+\OtherTok{doorStatus ::} \DataTypeTok{SDoorState}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{DoorState}
+\NormalTok{doorStatus s \_ }\OtherTok{=}\NormalTok{ fromSDoorState s}
+\end{Highlighting}
+\end{Shaded}
+
+This process -- of turning a type variable (like \texttt{s}) into a dynamic
+runtime value is known as \textbf{reflection}. We move a value from the
+\emph{type level} to the \emph{term level}.
+
+\subsection{Recovering Implicit Passing}\label{recovering-implicit-passing}
+
+One downside is that we are required to manually pass in our witness. Wouldn't
+it be nice if we could have it be passed implicitly? We can actually leverage
+typeclasses to give us this ability:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door.hs\#L45{-}L53}
+
+\KeywordTok{class} \DataTypeTok{SingDSI}\NormalTok{ s }\KeywordTok{where}
+\OtherTok{    singDS ::} \DataTypeTok{SDoorState}\NormalTok{ s}
+
+\KeywordTok{instance} \DataTypeTok{SingDSI} \DataTypeTok{\textquotesingle{}Opened} \KeywordTok{where}
+\NormalTok{    singDS }\OtherTok{=} \DataTypeTok{SOpened}
+\KeywordTok{instance} \DataTypeTok{SingDSI} \DataTypeTok{\textquotesingle{}Closed} \KeywordTok{where}
+\NormalTok{    singDS }\OtherTok{=} \DataTypeTok{SClosed}
+\KeywordTok{instance} \DataTypeTok{SingDSI} \DataTypeTok{\textquotesingle{}Locked} \KeywordTok{where}
+\NormalTok{    singDS }\OtherTok{=} \DataTypeTok{SLocked}
+\end{Highlighting}
+\end{Shaded}
+
+(Note that \emph{it's impossible} to write our \texttt{SingDSI} instances
+improperly! GHC checks to make sure that this is \emph{correct})
+
+And so now we can do:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door.hs\#L55{-}L59}
+
+\OtherTok{lockAnyDoor\_ ::} \DataTypeTok{SingDSI}\NormalTok{ s }\OtherTok{=\textgreater{}} \DataTypeTok{Door}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Locked}
+\NormalTok{lockAnyDoor\_ }\OtherTok{=}\NormalTok{ lockAnyDoor singDS}
+
+\OtherTok{doorStatus\_ ::} \DataTypeTok{SingDSI}\NormalTok{ s }\OtherTok{=\textgreater{}} \DataTypeTok{Door}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{DoorState}
+\NormalTok{doorStatus\_ }\OtherTok{=}\NormalTok{ doorStatus singDS}
+\end{Highlighting}
+\end{Shaded}
+
+Here, type inference will tell GHC that you want
+\texttt{singDS\ ::\ SDoorState\ s}, and it will pull out the proper singleton
+for the door you want to check!
+
+Now, we can call \texttt{lockAnyDoor\_} \emph{without passing in} a singleton,
+explicitly!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ myDoor }\OtherTok{=} \DataTypeTok{UnsafeMkDoor} \OperatorTok{@}\DataTypeTok{\textquotesingle{}Opened} \StringTok{"Birch"}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t lockAnyDoor }\DataTypeTok{SOpened}\NormalTok{ myDoor }\CommentTok{{-}{-} our original method!}
+\DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Locked}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t lockAnyDoor singDS myDoor  }\CommentTok{{-}{-} the power of type inference!}
+\DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Locked}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t lockAnyDoor\_ myDoor        }\CommentTok{{-}{-} no explicit singleton being passed!}
+\DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Locked}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{The Same Power}\label{the-same-power}
+
+In Haskell, a constraint \texttt{SingDSI\ s\ =\textgreater{}} is essentially the
+same as passing in \texttt{SDoorState\ s} explicitly. Either way, you are
+passing in a runtime witness that your function can use. You can think of
+\texttt{SingDSI\ s\ =\textgreater{}} as passing it in \emph{implicitly}, and
+\texttt{SDoorState\ s\ -\textgreater{}} as passing it in \emph{explicitly}.
+
+So, it's important to remember that \texttt{lockAnyDoor} and
+\texttt{lockAnyDoor\_} are the ``same function'', with the same power. They are
+just written in different styles -- \texttt{lockAnyDoor} is written in explicit
+style, and \texttt{lockAnyDoor\_} is written in implicit style.
+
+\subsubsection{Going backwards}\label{going-backwards}
+
+Going from \texttt{SingDSI\ s\ =\textgreater{}} to
+\texttt{SDoorState\ s\ -\textgreater{}} (implicit to explicit) is very easy --
+just use \texttt{singDS} to get a \texttt{SDoorState\ s} if you have a
+\texttt{SingDSI\ s} constraint available. This is what we did for
+\texttt{lockAnyDoor\_} and \texttt{doorStatus\_}.
+
+Going from \texttt{SDoorState\ s\ -\textgreater{}} to
+\texttt{SingDSI\ s\ =\textgreater{}} (explicit to implicit) in Haskell is
+actually a little trickier. The typical way to do this is with a CPS-like
+utility function:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door.hs\#L61{-}L65}
+
+\OtherTok{withSingDSI ::} \DataTypeTok{SDoorState}\NormalTok{ s }\OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{SingDSI}\NormalTok{ s }\OtherTok{=\textgreater{}}\NormalTok{ r) }\OtherTok{{-}\textgreater{}}\NormalTok{ r}
+\NormalTok{withSingDSI sng x }\OtherTok{=} \KeywordTok{case}\NormalTok{ sng }\KeywordTok{of}
+    \DataTypeTok{SOpened} \OtherTok{{-}\textgreater{}}\NormalTok{ x}
+    \DataTypeTok{SClosed} \OtherTok{{-}\textgreater{}}\NormalTok{ x}
+    \DataTypeTok{SLocked} \OtherTok{{-}\textgreater{}}\NormalTok{ x}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{withSingDSI} takes a \texttt{SDoorState\ s}, and a value (of type
+\texttt{r}) that requires a \texttt{SingDSI\ s} instance to be created. And it
+creates that value for you!
+
+To use \texttt{x}, you must have a \texttt{SingDSI\ s} instance available. This
+all works because in each branch, \texttt{s} is now a \emph{specific},
+monomorphic, ``concrete'' \texttt{s}, and GHC knows that such an instance exists
+for every branch.
+
+\begin{itemize}
+\tightlist
+\item
+  In the \texttt{SOpened} branch,
+  \texttt{s\ \textasciitilde{}\ \textquotesingle{}Opened}. We explicitly wrote
+  an instance of \texttt{SingDSI} for \texttt{\textquotesingle{}Opened}, so GHC
+  \emph{knows} that there is a \texttt{SingDSI\ \textquotesingle{}Opened}
+  instance in existence, allowing you to use/create \texttt{x}.
+\item
+  In the \texttt{SClosed} branch,
+  \texttt{s\ \textasciitilde{}\ \textquotesingle{}Closed}, so GHC knows that
+  there is a \texttt{SingDSI\ \textquotesingle{}Closed} instance (because we
+  wrote one explicitly!), and gives \emph{that} to you -- and so you are allowed
+  to use/create \texttt{x}.
+\item
+  In the \texttt{SLocked} branch,
+  \texttt{s\ \textasciitilde{}\ \textquotesingle{}Locked}, and because we wrote
+  a \texttt{SingDSI\ \ \ \ \ \textquotesingle{}Locked} explicitly, we
+  \emph{know} that a \texttt{SingDSI\ s} instance is available, so we can
+  use/create \texttt{x}.
+\end{itemize}
+
+Now, we can run our implicit functions (like \texttt{lockAnyDoor\_}) by giving
+them explicit inputs:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door.hs\#L67{-}L68}
+
+\OtherTok{lockAnyDoor\_\_ ::} \DataTypeTok{SDoorState}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Locked}
+\NormalTok{lockAnyDoor\_\_ s d }\OtherTok{=}\NormalTok{ withSingDSI s (lockAnyDoor\_ d)}
+\end{Highlighting}
+\end{Shaded}
+
+And the cycle begins anew.
+
+One interesting thing to point out -- note that the type of \texttt{withSingDSI}
+is very similar to the type of another common combinator:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{withSingDSI ::} \DataTypeTok{SDoorState}\NormalTok{ s }\OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{SingDSI}\NormalTok{ s }\OtherTok{=\textgreater{}}\NormalTok{ r) }\OtherTok{{-}\textgreater{}}\NormalTok{ r}
+\FunctionTok{flip}\OtherTok{  ($)   ::}\NormalTok{            a }\OtherTok{{-}\textgreater{}}\NormalTok{ (        a }\OtherTok{{-}\textgreater{}}\NormalTok{ r) }\OtherTok{{-}\textgreater{}}\NormalTok{ r}
+\end{Highlighting}
+\end{Shaded}
+
+Which is a bit of a testament to what we said earlier about how a
+\texttt{SingDSI\ s\ =\textgreater{}\ ..)} is the same as
+\texttt{SDoorState\ s\ -\textgreater{}\ ..}. \texttt{flip\ (\$)} takes a value
+and a function and applies the function to that value. \texttt{withSingDSI}
+takes a value and ``something like a function'' and applies the ``something like
+a function'' to that value.
+
+\subsection{Fun with Witnesses}\label{fun-with-witnesses}
+
+We can write a nice version of \texttt{mkDoor} using singletons:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door.hs\#L70{-}L71}
+
+\OtherTok{mkDoor ::} \DataTypeTok{SDoorState}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ s}
+\NormalTok{mkDoor \_ }\OtherTok{=} \DataTypeTok{UnsafeMkDoor}
+\end{Highlighting}
+\end{Shaded}
+
+We take advantage of the fact that \texttt{SDoorState\ s} ``locks in'' the
+\texttt{s} type variable for \texttt{Door\ s}. We can call it now with values of
+\texttt{SDoorState}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t mkDoor }\DataTypeTok{SOpened} \StringTok{"Oak"}
+\DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Opened}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t mkDoor }\DataTypeTok{SLocked} \StringTok{"Spruce"}
+\DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Locked}
+\end{Highlighting}
+\end{Shaded}
+
+Now we can't do something silly like pass in \texttt{SLocked} to get a
+\texttt{Door\ \textquotesingle{}Opened}.
+
+\section{The Singletons Library}\label{the-singletons-library}
+
+\emph{(The code for this post-singletons section is available
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/singletons/DoorSingletons.hs}{on
+github})}
+
+Now that we understand some of the benefits of singletons as they relate to
+phantom types, we can appreciate what the singletons \emph{library} has to
+offer: a fully unified, coherent system for working with singletons of almost
+\emph{all} Haskell types!
+
+First, there's Template Haskell for generating our singletons given our type:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{DoorState} \OtherTok{=} \DataTypeTok{Opened} \OperatorTok{|} \DataTypeTok{Closed} \OperatorTok{|} \DataTypeTok{Locked}
+  \KeywordTok{deriving}\NormalTok{ (}\DataTypeTok{Show}\NormalTok{, }\DataTypeTok{Eq}\NormalTok{)}
+
+\NormalTok{genSingletons [\textquotesingle{}}\DataTypeTok{\textquotesingle{}DoorState}\NormalTok{]}
+
+\CommentTok{{-}{-} or}
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/DoorSingletons.hs\#L22{-}L25}
+
+\OperatorTok{$}\NormalTok{(singletons [d|}
+\NormalTok{  data DoorState = Opened | Closed | Locked}
+\NormalTok{    deriving (Show, Eq)}
+\NormalTok{  |])}
+\end{Highlighting}
+\end{Shaded}
+
+This generates, for us:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} not the actual code, but essentially what happens}
+\KeywordTok{data} \DataTypeTok{SDoorState}\OtherTok{ ::} \DataTypeTok{DoorState} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+    \DataTypeTok{SOpened}\OtherTok{ ::} \DataTypeTok{Sing} \DataTypeTok{\textquotesingle{}Opened}
+    \DataTypeTok{SClosed}\OtherTok{ ::} \DataTypeTok{Sing} \DataTypeTok{\textquotesingle{}Closed}
+    \DataTypeTok{SLocked}\OtherTok{ ::} \DataTypeTok{Sing} \DataTypeTok{\textquotesingle{}Locked}
+
+\CommentTok{{-}{-} Sing x becomes a "type synonym" for SDoorState x when x is a DoorState}
+\KeywordTok{type} \KeywordTok{instance} \DataTypeTok{Sing} \OtherTok{=} \DataTypeTok{SDoorState}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{Sing} is a poly-kinded type constructor (a ``data family'').
+\texttt{STrue\ ::\ Sing\ \textquotesingle{}True} is the singleton for
+\texttt{\textquotesingle{}True},
+\texttt{SJust\ SOpened\ ::\ Sing\ (\textquotesingle{}Just\ \textquotesingle{}Opened)}
+is the singleton for \texttt{\textquotesingle{}Just\ \textquotesingle{}Opened},
+etc.
+
+It also generates us instances for \texttt{SingI}, a poly-kinded typeclass:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{instance} \DataTypeTok{SingI} \DataTypeTok{\textquotesingle{}Opened} \KeywordTok{where}
+\NormalTok{    sing }\OtherTok{=} \DataTypeTok{SOpened}
+\KeywordTok{instance} \DataTypeTok{SingI} \DataTypeTok{\textquotesingle{}Closed} \KeywordTok{where}
+\NormalTok{    sing }\OtherTok{=} \DataTypeTok{SClosed}
+\KeywordTok{instance} \DataTypeTok{SingI} \DataTypeTok{\textquotesingle{}Locked} \KeywordTok{where}
+\NormalTok{    sing }\OtherTok{=} \DataTypeTok{SLocked}
+\end{Highlighting}
+\end{Shaded}
+
+Which is basically our \texttt{SingDSI} typeclass, except we have instances for
+singletons of all kinds! (heh) There's a \texttt{SingI} instance for
+\texttt{\textquotesingle{}True}, a \texttt{SingI} instance for \texttt{10}, a
+\texttt{SingI} instance for
+\texttt{\textquotesingle{}Just\ \textquotesingle{}Opened}, etc.:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} Sing x becomes a "type synonym" for SBool x when x is a Boolean}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\OtherTok{ sing ::} \DataTypeTok{Sing} \DataTypeTok{\textquotesingle{}True}
+\DataTypeTok{STrue}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\OtherTok{ sing ::} \DataTypeTok{Sing}\NormalTok{ (}\DataTypeTok{\textquotesingle{}Just} \DataTypeTok{\textquotesingle{}Opened}\NormalTok{)}
+\DataTypeTok{SJust} \DataTypeTok{SOpened}
+\end{Highlighting}
+\end{Shaded}
+
+We also have \texttt{withSingI}, which is equivalent to our \texttt{withSingDSI}
+function earlier.\footnote{It is probably worth mentioning that, for practical
+  reasons, the implementation of \emph{singleton}'s \texttt{withSingI} is very
+  different than the implementation we used for our \texttt{withSingDSI}.
+  However, understanding its implementation isn't really relevant understanding
+  how to use the library, so we won't really go to deep into this.}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{withSingI ::} \DataTypeTok{Sing}\NormalTok{ s }\OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{SingI}\NormalTok{ s }\OtherTok{=\textgreater{}}\NormalTok{ r) }\OtherTok{{-}\textgreater{}}\NormalTok{ r}
+\end{Highlighting}
+\end{Shaded}
+
+Note that if you have singletons for a kind \texttt{k}, you also have instances
+for kind \texttt{Maybe\ k}, as well. And also for \texttt{{[}k{]}}, even! The
+fact that we have a unified way of working with and manipulating singletons of
+so many different types is a major advantage of using the \emph{singletons}
+library to manage your singletons instead of writing them yourself.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t }\DataTypeTok{SOpened} \OtherTok{\textasciigrave{}SCons\textasciigrave{}} \DataTypeTok{SClosed} \OtherTok{\textasciigrave{}SCons\textasciigrave{}} \DataTypeTok{SLocked} \OtherTok{\textasciigrave{}SCons\textasciigrave{}} \DataTypeTok{SNil}
+\DataTypeTok{Sing}\NormalTok{ \textquotesingle{}[ }\DataTypeTok{\textquotesingle{}Opened}\NormalTok{, }\DataTypeTok{\textquotesingle{}Closed}\NormalTok{, }\DataTypeTok{\textquotesingle{}Locked}\NormalTok{ ]}
+\CommentTok{{-}{-} \textquotesingle{}SCons is the singleton for \textasciigrave{}:\textasciigrave{} (cons),}
+\CommentTok{{-}{-} and \textquotesingle{}SNil is the singleton for \textasciigrave{}[]\textasciigrave{} (nil)}
+\end{Highlighting}
+\end{Shaded}
+
+(Remember that, because of \texttt{DataKinds}, \texttt{Maybe} is a kind
+constructor, who has two type constructors, the type
+\texttt{\textquotesingle{}Nothing} and the type constructor
+\texttt{\textquotesingle{}Just\ ::\ k\ -\textgreater{}\ Maybe\ k})
+
+Singletons for all kinds integrate together seamlessly, and you have mechanisms
+to generate them for your own type and roll it all into the system!
+
+\subsection{Extra Goodies}\label{extra-goodies}
+
+In addition to generating singletons for our libraries, it gives us convenient
+functions for working with the different ``manifestations'' of our types.
+
+Recall that \texttt{DoorState} has four different things associated with it now:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  The \emph{type} \texttt{DoorState}, whose value constructors are
+  \texttt{Opened}, \texttt{Closed}, and \texttt{Locked}.
+\item
+  The \emph{kind} \texttt{DoorState}, whose type constructors are
+  \texttt{\textquotesingle{}Opened}, \texttt{\textquotesingle{}Closed}, and
+  \texttt{\textquotesingle{}Locked}
+\item
+  The singletons for \texttt{\textquotesingle{}Opened},
+  \texttt{\textquotesingle{}Closed}, and \texttt{\textquotesingle{}Locked}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{SOpened}\OtherTok{ ::} \DataTypeTok{Sing} \DataTypeTok{\textquotesingle{}Opened}             \CommentTok{{-}{-} a "synonym" for SDoorState \textquotesingle{}Opened}
+\DataTypeTok{SClosed}\OtherTok{ ::} \DataTypeTok{Sing} \DataTypeTok{\textquotesingle{}Closed}             \CommentTok{{-}{-} a "synonym" for SDoorState \textquotesingle{}Closed}
+\DataTypeTok{SLocked}\OtherTok{ ::} \DataTypeTok{Sing} \DataTypeTok{\textquotesingle{}Locked}             \CommentTok{{-}{-} a "synonym" for SDoorState \textquotesingle{}Locked}
+\end{Highlighting}
+\end{Shaded}
+\item
+  The \texttt{SingI} instances for \texttt{\textquotesingle{}Opened},
+  \texttt{\textquotesingle{}Closed}, and
+  \texttt{\textquotesingle{}Locked\textquotesingle{}}
+\end{enumerate}
+
+Kind of confusing, and in the future, when we have real dependent types, we can
+combine all of these manifestations into the \emph{one} thing. But for now, we
+do have to deal with converting between them, and for that, \emph{singletons}
+generates for us
+\texttt{fromSing\ ::\ Sing\ (s\ ::\ DoorState)\ -\textgreater{}\ DoorState}.
+\texttt{fromSing} takes us from singletons to term-level values
+(\emph{reflection}):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ fromSing }\DataTypeTok{SOpened}
+\DataTypeTok{Opened}
+\end{Highlighting}
+\end{Shaded}
+
+It does this by defining a type class (actually, a ``kind class''),
+\texttt{SingKind}, associating each type to the corresponding
+datakinds-generated kind. The \texttt{SingKind} instance for \texttt{DoorState}
+links the \emph{type} \texttt{DoorState} to the \emph{kind} \texttt{DoorState}.
+
+There are definitely more useful utility functions, but we will investigate
+these later on in the series! For now, you can look at the
+\href{http://hackage.haskell.org/package/singletons/docs/Data-Singletons.html}{documentation}
+for the library to see more interesting utility functions!
+
+\section{The Singularity}\label{the-singularity}
+
+In this post, at shortcomings in the usage of phantom types, and then saw how
+singletons could help us with these. Then, we looked at how the
+\emph{singletons} \textbf{library} makes using this pattern extremely easy and
+smooth to integrate into your existing code.
+
+You can see all of the ``manual singletons'' code in this post
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/singletons/Door.hs}{here},
+and then see the code re-implemented using the \emph{singletons} library
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/singletons/DoorSingletons.hs}{here}.
+
+You can actually drop into a ghci session with all of the bindings in scope by
+executing the files:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{$}\NormalTok{ ./Door.hs}
+\end{Highlighting}
+\end{Shaded}
+
+However, remember the question that I asked earlier, about creating a
+\texttt{Door} with a given state that we don't know until runtime? So far, we
+are only able to create \texttt{Door} and \texttt{SDoorState} from types we
+\emph{know} at compile-time. There is no way we have yet to convert a
+\texttt{DoorState} from the value level to the type level -- so it seems that
+there is no way to ``load'' a \texttt{Door\ s} with an \texttt{s} that depends
+on, say, a file's contents, or user input. The fundamental issue is still
+\emph{type erasure}.
+
+In Part 2, we will delve into how to overcome this and break through from the
+barrier of the dynamic ``unsafe'' runtime to the world of safe, typed, verified
+code, and see how the \emph{singletons} library gives us great tools for this.
+Afterwards, in Part 3, we will learn to express more complicated relationships
+with types and type-level functions using defunctionalization and the tools from
+the \emph{singletons} library, and finally break into the world of actual
+``type-level programming''.
+
+As always, let me know in the comments if you have any questions! You can also
+usually find me idling on the freenode \texttt{\#haskell} channel, as well, as
+\emph{jle`}. The \emph{singletons}
+\href{https://github.com/goldfirere/singletons/issues}{issue tracker} is also
+very active. Happy haskelling!
+
+For further reading, check out the
+\href{https://cs.brynmawr.edu/~rae/papers/2012/singletons/paper.pdf}{original
+singletons paper}! It's very readable and goes over many of the same techniques
+in this blog post, just written with a different perspective and tone :)
+
+\section{Exercises}\label{exercises}
+
+Click on the links in the corner of the text boxes for solutions! (or just check
+out
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/singletons/DoorSingletons.hs}{the
+source file})
+
+These should be written in the singletons library style, with \texttt{Sing}
+instead of \texttt{SDoorState} and \texttt{SingI} instead of \texttt{SingDSI}.
+Review the
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/singletons/DoorSingletons.hs}{singletons
+file} for a comparison, if you are still unfamiliar.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Write a function to unlock a door, but only if the user enters an odd number
+  (as a password).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/DoorSingletons.hs\#L65{-}L65}
+
+\OtherTok{unlockDoor ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Locked} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ (}\DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Closed}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+  It should return a closed door in \texttt{Just} if the caller gives an odd
+  number, or \texttt{Nothing} otherwise.
+\item
+  Write a function that can open any door, taking a password, in ``implicit
+  Sing'' style:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/DoorSingletons.hs\#L70{-}L70}
+
+\OtherTok{openAnyDoor ::} \DataTypeTok{SingI}\NormalTok{ s }\OtherTok{=\textgreater{}} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ (}\DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Opened}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+  This should be written in terms of \texttt{unlockDoor} and \texttt{openDoor}
+  (see above) -- that is, you \textbf{should not} use \texttt{UnsafeMkDoor}
+  directly for \texttt{openAnyDoor}.
+
+  If the door is already unlocked or opened, it should ignore the \texttt{Int}
+  input.
+\end{enumerate}
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

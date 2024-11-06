@@ -1,0 +1,278 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Abstracting over Sequential Random Algorithms with Free},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Abstracting over Sequential Random Algorithms with Free}
+
+\begin{document}
+\maketitle
+
+\% Justin Le
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/abstracting-over-sequential-random-algorithms-with-free.html}{in
+Code}}.}
+
+It's fair enough to say that I'm a little late to the free monad party, but I
+still think their power is greatly either misunderstood or underrated or obscure
+in Haskell, and this article will be my attempt to throw more examples of its
+usage.
+
+Here we're going to construct a type that can represent sequential computations
+using randomness or entropy, and we're going to abstract over our entropy source
+--- not by swapping out the pseudorandom generator, but by really abstracting
+over what our computation really \emph{is} to the barest essentials. We're going
+to abstract over what an sequential random algorithm even is.
+
+The man plain is to first create a type that represents just a value produced
+from a random number\ldots and then figure out how to chain them.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/free{-}random/Rand.hs\#L18{-}L22}
+
+\KeywordTok{data} \DataTypeTok{RandF}\NormalTok{ a }\KeywordTok{where}
+    \DataTypeTok{FromRandom}\OtherTok{   ::} \DataTypeTok{Random}\NormalTok{ r }\OtherTok{=\textgreater{}}\NormalTok{           ( r  }\OtherTok{{-}\textgreater{}}\NormalTok{ a) }\OtherTok{{-}\textgreater{}} \DataTypeTok{RandF}\NormalTok{ a}
+    \DataTypeTok{FromRandomR}\OtherTok{  ::} \DataTypeTok{Random}\NormalTok{ r }\OtherTok{=\textgreater{}}\NormalTok{ r }\OtherTok{{-}\textgreater{}}\NormalTok{ r }\OtherTok{{-}\textgreater{}}\NormalTok{ ( r  }\OtherTok{{-}\textgreater{}}\NormalTok{ a) }\OtherTok{{-}\textgreater{}} \DataTypeTok{RandF}\NormalTok{ a}
+    \DataTypeTok{FromRandoms}\OtherTok{  ::} \DataTypeTok{Random}\NormalTok{ r }\OtherTok{=\textgreater{}}\NormalTok{           ([r] }\OtherTok{{-}\textgreater{}}\NormalTok{ a) }\OtherTok{{-}\textgreater{}} \DataTypeTok{RandF}\NormalTok{ a}
+    \DataTypeTok{FromRandomRs}\OtherTok{ ::} \DataTypeTok{Random}\NormalTok{ r }\OtherTok{=\textgreater{}}\NormalTok{ r }\OtherTok{{-}\textgreater{}}\NormalTok{ r }\OtherTok{{-}\textgreater{}}\NormalTok{ ([r] }\OtherTok{{-}\textgreater{}}\NormalTok{ a) }\OtherTok{{-}\textgreater{}} \DataTypeTok{RandF}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+For those of you unfamiliar with GADT syntax, this is just basically specifying
+a type by the type of its contructors; \texttt{RandF} has four constructors ---
+one of which, \texttt{FromRandom}, takes a function
+\texttt{(r\ -\textgreater{}\ a)}, and returns a \texttt{RandF\ a}\ldots as long
+as the \texttt{r} is an instance of the \texttt{Random} typeclass (from the
+\emph{random} package).
+
+For comparison, \texttt{Maybe} could have been written like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Maybe}\NormalTok{ a }\KeywordTok{where}
+    \DataTypeTok{Just}\OtherTok{    ::}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ a}
+    \DataTypeTok{Nothing}\OtherTok{ ::} \DataTypeTok{Maybe}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+Anyways, every constructor is basically made with a function, ``\emph{If} I had
+a random number, what would I do with it?'' \texttt{FromRandom} basically
+contains a function \texttt{r\ -\textgreater{}\ a}\ldots if I had a random
+number, how would I get my \texttt{a}? Note that this can really contain a
+function from \emph{any} \texttt{r} you want, as long as it is a part of the
+\texttt{Random} typeclass. So we can have something that takes any random
+\texttt{Bool} to a \texttt{String}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{FromRandom}\NormalTok{ (\textbackslash{}r }\OtherTok{{-}\textgreater{}} \FunctionTok{show}\NormalTok{ (}\OtherTok{r ::} \DataTypeTok{Bool}\NormalTok{))}\OtherTok{ ::} \DataTypeTok{RandF} \DataTypeTok{String}
+\end{Highlighting}
+\end{Shaded}
+
+Which says, ``if I had a random \texttt{Bool}, then I'd \texttt{show} it, to get
+a \texttt{String}''.
+
+Or maybe something that takes any random \texttt{Double} to an \texttt{Int},
+like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{FromRandom}\NormalTok{ (\textbackslash{}r }\OtherTok{{-}\textgreater{}} \FunctionTok{round}\NormalTok{ (}\DecValTok{100} \OperatorTok{*}\NormalTok{ r }\OperatorTok{*}\OtherTok{ r ::} \DataTypeTok{Double}\NormalTok{))}\OtherTok{ ::} \DataTypeTok{RandF} \DataTypeTok{Int}
+\end{Highlighting}
+\end{Shaded}
+
+``If I had a random \texttt{Double}, I'd square it and divide it by three, then
+round it, to get my \texttt{Int}''.
+
+Or something as simple as just getting a random \texttt{Double}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{FromRandom}\OtherTok{ id ::} \DataTypeTok{RandF} \DataTypeTok{Double}
+\end{Highlighting}
+\end{Shaded}
+
+``If I had a random \texttt{Double}\ldots well, that's what I want in the end.''
+
+\texttt{FromRandomR} takes a range first before giving the function;
+\texttt{FromRandoms} asks, ``if I had an infinite list of random items, what
+would I do?''
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{FromRandomR} \DecValTok{0} \DecValTok{10}\NormalTok{ (\textbackslash{}r }\OtherTok{{-}\textgreater{}} \DecValTok{1} \OperatorTok{/} \FunctionTok{sqrt}\NormalTok{ r)}\OtherTok{ ::} \DataTypeTok{RandF} \DataTypeTok{Double}
+\DataTypeTok{FromRandoms}\NormalTok{ (\textbackslash{}rs }\OtherTok{{-}\textgreater{}} \FunctionTok{sum}\NormalTok{ (}\FunctionTok{take} \DecValTok{10}\NormalTok{ rs))}\OtherTok{ ::} \DataTypeTok{RandF} \DataTypeTok{Double}
+\end{Highlighting}
+\end{Shaded}
+
+We can ``evaluate'' the random value in a \texttt{RandF} by just generating a
+random value of the type desired and then applying the function to it. One
+typical way of doing this is to ask for a random generator/seed from the user:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/free{-}random/Rand.hs\#L31{-}L35}
+
+\OtherTok{runRandomF ::} \DataTypeTok{RandomGen}\NormalTok{ g }\OtherTok{=\textgreater{}} \DataTypeTok{RandF}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ g }\OtherTok{{-}\textgreater{}}\NormalTok{ a}
+\NormalTok{runRandomF (}\DataTypeTok{FromRandom}\NormalTok{ f)         }\OtherTok{=}\NormalTok{ f }\OperatorTok{.} \FunctionTok{fst} \OperatorTok{.}\NormalTok{ random}
+\NormalTok{runRandomF (}\DataTypeTok{FromRandomR}\NormalTok{ r0 r1 f)  }\OtherTok{=}\NormalTok{ f }\OperatorTok{.} \FunctionTok{fst} \OperatorTok{.}\NormalTok{ randomR (r0, r1)}
+\NormalTok{runRandomF (}\DataTypeTok{FromRandoms}\NormalTok{ f)        }\OtherTok{=}\NormalTok{ f }\OperatorTok{.}\NormalTok{ randoms}
+\NormalTok{runRandomF (}\DataTypeTok{FromRandomRs}\NormalTok{ r0 r1 f) }\OtherTok{=}\NormalTok{ f }\OperatorTok{.}\NormalTok{ randomRs (r0, r1)}
+\end{Highlighting}
+\end{Shaded}
+
+We can try some of these out:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ s }\OtherTok{=}\NormalTok{ mkStdGen }\DecValTok{192837465}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ runRandomF (}\DataTypeTok{FromRandom}\NormalTok{ (\textbackslash{}r }\OtherTok{{-}\textgreater{}} \FunctionTok{show}\NormalTok{ (}\OtherTok{r ::} \DataTypeTok{Bool}\NormalTok{))) s}
+\StringTok{"False"}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ runRandomF (}\DataTypeTok{FromRandom}\NormalTok{ (\textbackslash{}r }\OtherTok{{-}\textgreater{}} \FunctionTok{round}\NormalTok{ (}\DecValTok{100} \OperatorTok{*}\NormalTok{ r }\OperatorTok{*}\NormalTok{ r))) s}
+\DecValTok{32}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ runRandomF (}\DataTypeTok{FromRandom}\OtherTok{ id ::} \DataTypeTok{RandF} \DataTypeTok{Double}\NormalTok{) s}
+\FloatTok{0.5631451666688826}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ runRandomF (}\DataTypeTok{FromRandomR} \DecValTok{0} \DecValTok{10}\NormalTok{ (\textbackslash{}r }\OtherTok{{-}\textgreater{}} \DecValTok{1} \OperatorTok{/} \FunctionTok{sqrt}\NormalTok{ r)) s}
+\FloatTok{0.4213954281350406}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ runRandomF (}\DataTypeTok{FromRandoms}\NormalTok{ (}\FunctionTok{sum} \OperatorTok{.} \FunctionTok{take} \DecValTok{10}\NormalTok{)}\OtherTok{ ::} \DataTypeTok{RandF} \DataTypeTok{Double}\NormalTok{) s}
+\FloatTok{9.434604856390711}
+\end{Highlighting}
+\end{Shaded}
+
+We might also realize that we can make a \texttt{Functor} instance on
+\texttt{RandF}, where \texttt{fmap} is like applying the fmapping function to
+the outbound value. For example, if we had
+\texttt{FromRandom\ (\textbackslash{}r\ -\textgreater{}\ r\ *\ 2)}, if we
+\texttt{fmap\ show}, we would want
+\texttt{FromRandom\ (\textbackslash{}r\ -\textgreater{}\ show\ (r\ *\ 2))}, so
+whenever we ``ran'' the \texttt{RandF}\ldots if it was ``meant'' to make a
+\texttt{10} originally, it would now make a \texttt{"10"}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/free{-}random/Rand.hs\#L24{-}L29}
+
+\KeywordTok{instance} \DataTypeTok{Functor} \DataTypeTok{RandF} \KeywordTok{where}
+    \FunctionTok{fmap}\NormalTok{ h rnd }\OtherTok{=} \KeywordTok{case}\NormalTok{ rnd }\KeywordTok{of}
+        \DataTypeTok{FromRandom}\NormalTok{         f }\OtherTok{{-}\textgreater{}} \DataTypeTok{FromRandom}\NormalTok{         (h }\OperatorTok{.}\NormalTok{ f)}
+        \DataTypeTok{FromRandomR}\NormalTok{ r0 r1  f }\OtherTok{{-}\textgreater{}} \DataTypeTok{FromRandomR}\NormalTok{ r0 r1  (h }\OperatorTok{.}\NormalTok{ f)}
+        \DataTypeTok{FromRandoms}\NormalTok{        f }\OtherTok{{-}\textgreater{}} \DataTypeTok{FromRandoms}\NormalTok{        (h }\OperatorTok{.}\NormalTok{ f)}
+        \DataTypeTok{FromRandomRs}\NormalTok{ r0 r1 f }\OtherTok{{-}\textgreater{}} \DataTypeTok{FromRandomRs}\NormalTok{ r0 r1 (h }\OperatorTok{.}\NormalTok{ f)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ s }\OtherTok{=}\NormalTok{ mkStdGen }\DecValTok{192837465}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ r }\OtherTok{=} \DataTypeTok{FromRandom}\NormalTok{ (\textbackslash{}r }\OtherTok{{-}\textgreater{}} \FunctionTok{round}\NormalTok{ (}\DecValTok{100} \OperatorTok{*}\NormalTok{ r }\OperatorTok{*}\NormalTok{ r))}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ runRandomF r s}
+\DecValTok{32}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ runRandomF (}\FunctionTok{fmap} \FunctionTok{show}\NormalTok{ r) s}
+\StringTok{"32"}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ runRandomF (}\FunctionTok{fmap} \FunctionTok{negate}\NormalTok{ r) s}
+\OperatorTok{{-}}\DecValTok{32}
+\end{Highlighting}
+\end{Shaded}
+
+Put in a rather abstract way, if you think of a \texttt{RandF\ Double} as
+something that ``contains'' a random \texttt{Double}, waiting to be
+computed\ldots then \texttt{fmap\ show} applies \texttt{show} to the
+``contained'' random \texttt{Double}.
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

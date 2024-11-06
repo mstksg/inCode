@@ -1,0 +1,297 @@
+<!DOCTYPE HTML>
+<html><head><title>Practical Fun with Monads --- Introducing: MonadPlus!
+ · in Code</title><meta name="description" content="Weblog of Justin Le, covering various adventures in programming and explorations in the worlds of computation physics, and knowledge.
+"><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="flattr:id" content="3p9jqr"><meta property="og:site_name" content="in Code"><meta property="og:description" content="Monads. Haskell’s famous for them, but they are one of the most ill-understood concepts to the public. They are mostly shrouded in mystery because of their association with how Haskell models I/O. This reputation is undeserved. Monads don’t have anything to do with I/O. This series is a part of a global effort to pull away the shroud of mystery behind monads and show that they are fun! And exciting! And really just a way of chaining together functions that allow for new ways of approaching puzzles. The first sub-series (chapter?) will be on a specific class/family of monads known as MonadPlus. At the end of it all, we are going to be solving the classic logic puzzle, as old as time itself, using only the List monad instance, and no loops, queues, or fancy stuff like that: A farmer has a wolf, a goat, and a cabbage that he wishes to transport across a river. Unfortunately, his boat can carry only one thing at a time with him. He can’t leave the wolf alone with the goat, or the wolf will eat the goat. He can’t leave the goat alone with the cabbage, or the goat will eat the cabbage. How can he properly transport his belongings to the other side one at a time, without any disasters? Let us enter a brave new world!"><meta property="og:type" content="article"><meta property="og:title" content="Practical Fun with Monads --- Introducing: MonadPlus!
+"><meta property="og:image" content="https://blog.jle.im/img/site_logo.jpg"><meta property="og:locale" content="en_US"><meta property="og:url" content="https://blog.jle.im/entry/practical-fun-with-monads-introducing-monadplus.html"><meta name="twitter:card" content="summary"><meta name="twitter:creator:id" content="mstk"><link rel="author" href="https://plus.google.com/107705320197444500140"><link rel="alternate" type="application/rss+xml" title="in Code (RSS Feed)" href="http://feeds.feedburner.com/incodeblog"><link rel="canonical" href="https://blog.jle.im/entry/practical-fun-with-monads-introducing-monadplus.html"><link href="https://blog.jle.im/favicon.ico" rel="shortcut icon"><link href="https://blog.jle.im/css/toast.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/font.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/main.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/page/entry.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/pygments.css" rel="stylesheet" type="text/css"><script type="text/javascript">var page_data = {};
+var disqus_shortname='incode';
+</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-443711-8', 'jle.im');
+ga('send', 'pageview');
+</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js"></script><script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5234d67a6b68dcd4"></script><script type="text/javascript" src="https://blog.jle.im/js/page/entry_toc.js"></script><script type="text/javascript" src="https://blog.jle.im/js/disqus_count.js"></script><script type="text/javascript" src="https://blog.jle.im/js/social.js"></script><script type="text/javascript" src="https://blog.jle.im/js/jquery/jquery.toc.js"></script><script type="text/javascript" src="https://blog.jle.im/purescript/entry.js"></script></head><body><div id="fb-root"><script>(function(d, s, id) {
+ var js, fjs = d.getElementsByTagName(s)[0];
+ if (d.getElementById(id)) return;
+ js = d.createElement(s); js.id = id;
+ js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=641852699171929";
+ fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+</script></div><div id="header-container"><div id="navbar-container" class="tile"><nav id="navbar-content"><div class="nav-info"><h1 class="site-title"><a href="https://blog.jle.im/" class="nav-title">in Code</a></h1><span class="nav-author">Justin Le</span></div><ul class="nav-links"><li><a href="https://blog.jle.im/">home</a></li><li><a href="https://blog.jle.im/entries.html">archives</a></li><li><a href="https://cv.jle.im">cv</a></li><div class="clear"></div></ul></nav></div><div id="header-content"></div></div><div id="body-container" class="container"><div id="main-container" class="grid"><div class="entry-section unit span-grid" role="main"><article class="tile article"><header><h1 id="title">Practical Fun with Monads --- Introducing: MonadPlus!
+</h1><p class="entry-info">by <a class="author" href="https://blog.jle.im/">Justin Le</a><span class="info-separator"> &diams; </span><time datetime="2013-12-09T10:09:26Z" pubdate="" class="pubdate">Monday December 9, 2013</time></p><p><span class="source-info"><a class="source-link" href="https://github.com/mstksg/inCode/tree/master/copy/entries/monad-plus-1.md">Source</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://github.com/mstksg/inCode/tree/gh-pages/entry/practical-fun-with-monads-introducing-monadplus.md">Markdown</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://blog.jle.im/entry/practical-fun-with-monads-introducing-monadplus.tex">LaTeX</a><span class="info-separator"> &diams; </span></span>Posted in <a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category" title="Functional, pure, non-strict, statically and strongly typed, natively
+compiled...really just the king of great languages.
+">Haskell</a>, <a href="https://blog.jle.im/entries/category/@ramblings.html" class="tag-a-category" title="My slight ramblings on subjects of interest (to me and hopefully to you too!).
+Lots of surveys and introducts to new subjects.
+">Ramblings</a><span class="info-separator"> &diams; </span><a class="comment-link" href="#disqus_thread">Comments</a></p></header><hr><aside class="contents-container"><h5 id="contents-header">Contents</h5><div id="toc"></div></aside><div class="main-content copy-content"><p>Monads. Haskell’s famous for them, but they are one of the most ill-understood concepts to the public. They are mostly shrouded in mystery because of their association with how Haskell models I/O. This reputation is undeserved. Monads don’t have anything to do with I/O.</p>
+<p>This series is a part of a global effort to pull away the shroud of mystery behind monads and show that they are fun! And exciting! And really just a way of chaining together functions that allow for new ways of approaching puzzles.</p>
+<p>The first sub-series (chapter?) will be on a specific class/family of monads known as <em>MonadPlus</em>. At the end of it all, we are going to be solving the classic logic puzzle, as old as time itself, using <strong>only</strong> the List monad instance, and no loops, queues, or fancy stuff like that:</p>
+<blockquote>
+<p>A farmer has a wolf, a goat, and a cabbage that he wishes to transport across a river. Unfortunately, his boat can carry only one thing at a time with him. He can’t leave the wolf alone with the goat, or the wolf will eat the goat. He can’t leave the goat alone with the cabbage, or the goat will eat the cabbage. How can he properly transport his belongings to the other side one at a time, without any disasters?</p>
+</blockquote>
+<p>Let us enter a brave new world!</p>
+<h3 id="a-quick-review-of-monads">A quick review of monads</h3>
+<div class="note">
+<p><strong>Note</strong></p>
+<p>This article is written for both beginners — people who have a fuzzy idea of monads and a minimal understanding of functional programming principles, but who have some experience in Object-Oriented Programming in a language like Java or C++ — and intermediate Haskell users — people who have a somewhat firm grasp on monads, but want to know about monads on a broader context (in particular, the MonadPlus typeclass).</p>
+<p>Intermediate Haskell users will most likely find this post to be review, and I’ll put a link in this paragraph when the next part is up so we can get to “real” Haskelling. However, this post might be beneficial if you read it while asking, at every point, “How can this be abstracted and generalized?”. It’s a fun exercise!</p>
+<p>This article attempts to explain all Haskell syntax that might be foreign to beginners. That being said, if you ever run into anything you can’t understand, feel free to either read the articles above, give <a href="http://learnyouahaskell.com/">Learn You A Haskell</a> a quick read (you won’t regret it!), or leave a comment — I’d love to answer your questions or hear your responses!</p>
+<p>This first post will cover the basics of MonadPlus with the simplest MonadPlus of all; the second part will explore the List MonadPlus, and the third will finally tackle the Wolf/Goat/Cabbage puzzle with our combined knowledge.</p>
+</div>
+<p>Okay, so as a Haskell blogger, I’m actually not allowed to write any monad tutorials. Luckily for you, however, I don’t need too — there are a wealth of great ones. <a href="http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html">Adit provides a great concise one</a>, and, if you want, <a href="http://www.haskell.org/haskellwiki/All_About_Monads">a more in depth one</a> is on the haskell.org wiki about all sorts of monads and using them in real life.</p>
+<p>Remember — different monads do not actually have any non-superficial relationship to one another. When we say monads, we just mean objects for which we have defined a way to chain together functions “inside” wrappers, containers, or contexts.</p>
+<h2 id="maybe-maybe-not">Maybe, maybe not</h2>
+<p>Monads are very useful when you are dealing with objects that are containers. Let’s look at the most obvious container – a <code>Maybe a</code>. A <code>Maybe a</code> is a container that can either be <code>Just x</code> (representing a successful result <code>x</code> of type <code>a</code>) or a <code>Nothing</code> (representing a failed result).</p>
+<div class="note">
+<p><strong>Welcome to Haskell!</strong></p>
+<p>Hi! These “Welcome to Haskell” asides are going to be for you readers that are unfamiliar with Haskell syntax. Feel free to ignore them if you already feel comfortable.</p>
+<p>Anyways, if you’ve ever done any object-oriented programming, you might be able to think of <code>Maybe a</code> as an abstract/virtual superclass with templates/generics — <code>Maybe&lt;a&gt;</code>, kinda. And that superclass has two subclasses: <code>Just&lt;a&gt;</code>, which has one public instance variable <code>x</code> of type <code>a</code>, and <code>Nothing</code>, which contains no instance variables.</p>
+</div>
+<p>Often times you’ll have functions that fail, and you want to chain them. The easiest way is that any function that is chained onto a failed value will be skipped; a failure is the final result.</p>
+<p>Consider the <code>halve</code> function, which returns <code>Just (x `div` 2)</code> on a successful halving, or <code>Nothing</code> on an unsuccessful halving:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ot">halve ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Int</span>                       <span class="co">-- 1</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>halve x <span class="op">|</span> <span class="fu">even</span> x    <span class="ot">=</span> <span class="dt">Just</span> (x <span class="ot">`div`</span> <span class="dv">2</span>)          <span class="co">-- 2</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>        <span class="op">|</span> <span class="fu">otherwise</span> <span class="ot">=</span> <span class="dt">Nothing</span>                   <span class="co">-- 3</span></span></code></pre></div>
+<div class="note">
+<p><strong>Welcome to Haskell!</strong></p>
+<p>Hi again! There are some quick syntax features here.</p>
+<ol type="1">
+<li>This first line declares that the type of the function <code>halve</code> is <code>Int -&gt;     Maybe Int</code>, which means that it takes in an <code>Int</code> and returns a <code>Maybe     Int</code> — an integer wrapped in a “Maybe” container.</li>
+<li>This says that if x is even, then return a successful <code>Just (x `div` 2)</code>. <code>x `div` 2</code> is x divided by two, in case you couldn’t guess already.</li>
+<li>Otherwise, return <code>Nothing</code> — a failure.</li>
+</ol>
+</div>
+<p>Because Maybe comes built-in as a monad, we can now chain <code>halve</code>s on results of other <code>halves</code>, and have any failures automatically propagate to the end and short circuit your entire computation:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> halve <span class="dv">8</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dv">4</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> halve <span class="dv">7</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="dt">Nothing</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> halve <span class="dv">8</span> <span class="op">&gt;&gt;=</span> halve</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dv">2</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> halve <span class="dv">7</span> <span class="op">&gt;&gt;=</span> halve</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="dt">Nothing</span>                         <span class="co">-- 1</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> halve <span class="dv">6</span> <span class="op">&gt;&gt;=</span> halve</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="dt">Nothing</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> halve <span class="dv">6</span> <span class="op">&gt;&gt;=</span> halve <span class="op">&gt;&gt;=</span> halve</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="dt">Nothing</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> halve <span class="dv">32</span> <span class="op">&gt;&gt;</span> <span class="dt">Nothing</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="dt">Nothing</span>                         <span class="co">-- 2</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> halve <span class="dv">32</span> <span class="op">&gt;&gt;=</span> halve <span class="op">&gt;&gt;=</span> halve <span class="op">&gt;&gt;=</span> halve</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dv">2</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> halve <span class="dv">32</span> <span class="op">&gt;&gt;</span> <span class="dt">Nothing</span> <span class="op">&gt;&gt;=</span> halve <span class="op">&gt;&gt;=</span> halve <span class="op">&gt;&gt;=</span> halve</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="dt">Nothing</span>                         <span class="co">-- 3</span></span></code></pre></div>
+<p>You can play with this yourself by <a href="https://github.com/mstksg/inCode/blob/master/code-samples/monad-plus/Halve.hs">loading up the function yourself</a>.</p>
+<div class="note">
+<p><strong>Welcome to Haskell!</strong></p>
+<p>In this article, code that begins with <code>ghci&gt;</code> represents commands to be entered at the interactive prompt, ghci. Code that doesn’t is actual source code.</p>
+</div>
+<p>Remember, <code>&gt;&gt;=</code> means “use the results of the last thing to calculate this next thing” — it “chains” the functions.</p>
+<p>How does this work, exactly? That’s not really in the scope of this article (any monad tutorial will explain this in more detail). But here are some interesting points:</p>
+<ol type="1">
+<li>Note that this command doesn’t even bother with the second <code>halve</code>. It knows that the end result will be <code>Nothing</code> no matter what (because <code>halve     7</code> is <code>Nothing</code>), so it just skips right past the second <code>halve</code>.</li>
+<li><code>&gt;&gt;</code> is a special variation of <code>&gt;&gt;=</code>. <code>&gt;&gt;=</code> says “take the result of the last thing and use it on this”, while <code>&gt;&gt;</code> says “ignore the result of the last thing and always return this”. So <code>&gt;&gt; Nothing</code> means “I don’t care what the last thing succeeded with, I’m going to fail right here.”</li>
+<li>Disastrous! Even though halving 32 four times usually is fine (giving <code>Just 2</code>), having just one failure along the way means that the entire thing is a failure. <code>halve 32 &gt;&gt; Nothing</code> is <code>Nothing</code>, so the whole thing is just <code>(Nothing) &gt;&gt;= halve &gt;&gt;= halve &gt;&gt;= halve</code>.</li>
+</ol>
+<p>You can think of this failing phenomenon like this: At every step, Haskell attempts to apply <code>halve</code> to the result of the previous step. However, you can’t <code>halve</code> a <code>Nothing</code> because a <code>Nothing</code> has no value to halve!</p>
+<h3 id="do-notation">Do notation</h3>
+<p>Haskell provides a convenient way of writing chained <code>&gt;&gt;=</code>’s called do notation; here are a few samples matched with their equivalent <code>&gt;&gt;=</code> form:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> half <span class="dv">8</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dv">4</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">do</span>  half <span class="dv">8</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dv">4</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> halve <span class="dv">8</span> <span class="op">&gt;&gt;=</span> halve</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dv">2</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">do</span>  x <span class="ot">&lt;-</span> halve <span class="dv">8</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span>     halve x</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dv">2</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> halve <span class="dv">32</span> <span class="op">&gt;&gt;=</span> halve <span class="op">&gt;&gt;=</span> halve <span class="op">&gt;&gt;=</span> halve</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dv">2</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">do</span>  x <span class="ot">&lt;-</span> halve <span class="dv">32</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span>     y <span class="ot">&lt;-</span> halve x</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span>     z <span class="ot">&lt;-</span> halve y</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span>     halve z</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dv">2</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> halve <span class="dv">32</span> <span class="op">&gt;&gt;</span> <span class="dt">Nothing</span> <span class="op">&gt;&gt;=</span> halve <span class="op">&gt;&gt;=</span> halve</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="dt">Nothing</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">do</span>  x <span class="ot">&lt;-</span> halve <span class="dv">32</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span>     <span class="dt">Nothing</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span>     y <span class="ot">&lt;-</span> halve x</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span>     z <span class="ot">&lt;-</span> halve y</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span>     halve z</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a><span class="dt">Nothing</span></span></code></pre></div>
+<p>In this notation, <code>x</code>, <code>y</code>, and <code>z</code>’s do not contain the <code>Just</code>/<code>Nothing</code>’s — they represent the actual <strong>Ints inside them</strong>, so we can so something like <code>halve x</code> (where <code>halve</code> only takes Ints, not <code>Maybe Int</code>’s)</p>
+<p>It kind of feels very imperative-y — “do <code>halve 32</code> and assign the result (16) to <code>x</code>…do <code>halve x</code> and assign the result (8) to <code>y</code>…” — but remember, it’s still just a bunch of chained <code>&gt;&gt;=</code>s in the end.</p>
+<h2 id="failure-is-an-option">Failure is an option</h2>
+<p>The important thing to note here is that “do” notation basically builds up one “giant” object. Remember the last two examples — the second to last one, all of those lines were in an effort to build one giant <code>Just 2</code> value. In the last example, all of those lines were in an effort to build one giant <code>Nothing</code> value. That’s why one <code>Nothing</code> “ruined” the whole thing. The entire computation is one big <code>Maybe a</code>. If at any point in your attempt to build that <code>Maybe a</code>, you fail, then you have <code>Nothing</code>.</p>
+<p>Now, remember, saying “x is a monad” just means “we have defined a way of chaining functions/operations on x”. Just like how we can now chain multiple functions that return Maybe’s (that don’t take Maybe’s as input). However, given any object, there is probably more than one way to meaningfully define this “chaining”.</p>
+<p>Sometimes, it’s useful to base your definition of chaining on the idea of a failure/success process. Sometimes it’s useful to define chaining as “We are building up either a success or a failure…and if at any point I fail, the whole thing is a failure”.</p>
+<p>There is a special name for this design pattern. In Haskell, we call something like this a “<a href="http://hackage.haskell.org/package/base-4.6.0.1/docs/Control-Monad.html#t:MonadPlus">MonadPlus</a>”<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> <a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>.</p>
+<p>I know, it’s an embarrassingly bad name, and it’s like this is for historical reasons (related to the footnote above). The name doesn’t even hint at a fail/succeedness. But we’re stuck with it for pretty much the entire foreseeable future, so when you chose to adopt a success/failure model for your chaining process, you have a <em>MonadPlus</em>.</p>
+<p>There is a vocabulary we can use so we can talk about all MonadPlus’s in a general way:</p>
+<ul>
+<li>We call a success a “return”. Yeah…the name is super confusing because of how the word “return” is used in almost every other context in computer science. But hey. Oh well.</li>
+<li>We call a failure an “mzero”. Yes, this name is pretty lame too.</li>
+</ul>
+<p>For Maybe, a “return” with the value <code>x</code> is <code>Just x</code>, and an “mzero” is a <code>Nothing</code>.</p>
+<p>Something cool about Haskell is that if we type <code>return x</code>, it’ll interpret it as an auto-success of value <code>x</code>. If we type <code>mzero</code>, it’ll be an “alias” of whatever your failure is.</p>
+<p>That means that for Maybe, <code>return x</code> is the same as <code>Just x</code>, and <code>mzero</code> is an alias for <code>Nothing</code>.</p>
+<div class="note">
+<p><strong>Welcome to Haskell!</strong></p>
+<p>If you are familiar with object oriented languages like Java, MonadPlus is really like an <strong>interface</strong>. That is, if something is a MonadPlus, there is a “guarantee” that that something will implement/define <code>return</code> and <code>mzero</code> for that particular object. In this way, <code>return</code> and <code>mzero</code> are <em>polymorphic functions</em> that change their behavior based on what type you are talking about, and you can write code that works with all MonadPlus’s generically without worrying about their actual type by using only <code>return</code> and <code>mzero</code> (instead of say, <code>Just</code> and <code>Nothing</code>).</p>
+<p>In Haskell, the term we use (instead of “interface”) is “<strong>typeclass</strong>”. There are some subtle differences — typeclasses are in general more powerful of a tool than interfaces — but the two concepts provide similar roles in their respective languages.</p>
+</div>
+<p>As a small note, the term/command “return”/<code>return</code> is shared by all monads. However, monads don’t ascribe any (general) conceptual “meaning” or “purpose” to return. For any old monad, it can mean whatever you want it to mean for that specific monad. However, in the context of MonadPlus, “return” has a very specific meaning: <em>succeed</em>. Because of this, “return” and “succeed” will be treated as synonyms in this article.</p>
+<h3 id="monadplus-examples">MonadPlus examples</h3>
+<p>To see this in action, let’s revisit the last do block and make it more generic, and just rephrase it in a form that we are going to be encountering more when we solve our problem with the List monad (which is (spoilers) also a MonadPlus):</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ot">halveThriceOops ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Int</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>halveThriceOops n <span class="ot">=</span> <span class="kw">do</span>          <span class="co">-- call with n = 32</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    x <span class="ot">&lt;-</span> halve n                <span class="co">-- Just 16              -- 1</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    mzero                       <span class="co">-- Nothing              -- 2</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    y <span class="ot">&lt;-</span> halve x                <span class="co">-- (skip)               -- 3</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    z <span class="ot">&lt;-</span> halve y                <span class="co">-- (skip)</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span> z                    <span class="co">-- (skip)               -- 4</span></span></code></pre></div>
+<p>Note that I’ve also included a line-by-line ‘trace’ of the do block with what the monad “is” at that point. It is what is calculated on that line, and it would be the value returned if you just exited at that step.</p>
+<ol type="1">
+<li>Business as usual. Halve <code>n</code> if possible and place the result in <code>x</code>. If <code>n</code> is 32, then <code>x</code> will be 16.</li>
+<li>The failure. Remember, <code>mzero</code> means “fail here automatically”, which, in a Maybe object, means <code>Nothing</code>.</li>
+<li>Now from here on, nothing else even matters…the entire block is a failure!</li>
+<li>If possible, succeed with the value in <code>z</code>. This is supposed to be a <code>Just</code> with the value of <code>z</code>. Unfortunately, the entire block failed a long time ago. So sad!</li>
+</ol>
+<div class="note">
+<p><strong>Diversion</strong></p>
+<p>A small diversion.</p>
+<p>This is a little nicety, but there is the common library monad function <code>sequence :: Monad m =&gt; [m a] -&gt; m [a]</code>, which turns a <code>[Maybe a]</code> into a <code>Maybe [a]</code>. Conceptually, <code>sequence</code> turns a list of monads into a monad containing a list.</p>
+<p>In the context of MonadPlus, it would be turning a list of Success/Failures into a successful or failed list. It builds a successful/failed list.</p>
+<p>From what we have learned, if any part of that building process is a failure, the entire thing is necessarily a failure. This is reflected in <code>sequence</code>:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="fu">sequence</span> [<span class="dt">Just</span> <span class="dv">1</span>, <span class="dt">Just</span> <span class="dv">4</span>, <span class="dt">Just</span> <span class="dv">6</span>]</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> [<span class="dv">1</span>,<span class="dv">4</span>,<span class="dv">6</span>]</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="fu">sequence</span> [<span class="dt">Just</span> <span class="dv">1</span>, <span class="dt">Nothing</span>, <span class="dt">Just</span> <span class="dv">6</span>]</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="dt">Nothing</span></span></code></pre></div>
+<p>If you already know a few other common library monad functions (like <code>replicateM</code>, <code>forM</code>, etc.), try reasoning about how they would work on Maybe’s and MonadPlus’s in general — they aren’t just for IO!</p>
+</div>
+<h3 id="guards">Guards</h3>
+<p>It feels like just slapping in <code>mzero</code> willy-nilly is not that useful, because then things just fail always no matter what. Wouldn’t it be handy to have a function that says “fail right…here, if this condition is not met”? Like <code>mzero</code>, but instead of always failing, fails on certain conditions.</p>
+<p>Luckily, Haskell gives us one in the standard library:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ot">guard ::</span> <span class="dt">MonadPlus</span> m <span class="ot">=&gt;</span> <span class="dt">Bool</span> <span class="ot">-&gt;</span> m ()        <span class="co">-- 1</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>guard <span class="dt">True</span>  <span class="ot">=</span> <span class="fu">return</span> ()</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>guard <span class="dt">False</span> <span class="ot">=</span> mzero</span></code></pre></div>
+<div class="note">
+<p><strong>Welcome to Haskell!</strong></p>
+<ol type="1">
+<li><p>This is a type signature, like before. We say that <code>guard</code> is a function that takes a <code>Bool</code> and returns a <code>m ()</code> — a monad containing <code>()</code>. But we say that <code>m</code>, the monad, must be a MonadPlus.</p>
+<p>For example, if we applied this to Maybe, the concrete signature would be <code>guard :: Bool -&gt; Maybe ()</code></p></li>
+</ol>
+</div>
+<p>So <code>guard</code> will make sure a condition is met, or else it fails the entire thing. If the condition is met, then it succeeds and places a <code>()</code> in the value.</p>
+<p>We can use this to re-implement <code>halve</code>, using do notation, aware of Maybe’s MonadPlus-ness:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ot">halve ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Int</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>halve n <span class="ot">=</span> <span class="kw">do</span>                <span class="co">-- &lt;halve 8&gt;   &lt;halve 7&gt;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    guard <span class="op">$</span> <span class="fu">even</span> n          <span class="co">-- Just ()      Nothing</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span> <span class="op">$</span> n <span class="ot">`div`</span> <span class="dv">2</span>      <span class="co">-- Just 4       (skip)</span></span></code></pre></div>
+<div class="note">
+<p><strong>Welcome to Haskell!</strong></p>
+<p><code>guard $ even n</code> seems confusing, but it is just shorthand for <code>guard (even n)</code>. We just don’t like writing all those parentheses out.</p>
+</div>
+<p>So, first, <code>halve</code> is <code>Just ()</code> (succeeds with a blank value <code>()</code>) if <code>n</code> is even, or else <code>Nothing</code> (fails automatically) otherwise. Finally, if it has not yet failed, it attempts to succeed with <code>n `div` 2</code>.</p>
+<p>You can trust me when I say this works the exact same way! You can <a href="https://github.com/mstksg/inCode/blob/master/code-samples/monad-plus/HalveGuard.hs">try it out yourself</a>!</p>
+<p>As a friendly reminder, this entire block is “compiled”/desugared to:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>halve<span class="ot"> n ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Int</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>halve n <span class="ot">=</span> guard (<span class="fu">even</span> n) <span class="op">&gt;&gt;</span> <span class="fu">return</span> (n <span class="ot">`div`</span> <span class="dv">2</span>)</span></code></pre></div>
+<h2 id="a-practical-use">A practical use</h2>
+<p>We aren’t where we need to be to begin tackling that Wolf/Goat/Cabbage puzzle yet…so to let this article not be a complete anticlimax (as a result of my bad planning — I had originally intended to do the entire three-part series as one article), let’s look at a practical problem that you can solve using the Maybe monad.</p>
+<p>The obvious examples are situations where it is useful to be able to chain failable operations such as retrieving things from a database or a network connection or applying partial functions (functions that only work on some values, like our <code>halve</code>).</p>
+<p>However, here is a neat one.</p>
+<p>Let’s say we are making a game where you can lose health by being hit or gain health by picking up powerups. We want to calculate the final health at the end of the game. It seems a bit easy: just add up all the losses and gains! Unfortunately, it’s not so simple — it needs to be implemented such that if your health ever dips below 0, you are dead. Forever. No powerups will ever help you.</p>
+<p>Think about how you would implement this normally. You might have a state object that stores the current health as well as a flag with the current dead/alive state, and at every step, check if the health is 0 or lower; if it is, swap the flag to be dead and ignore all other updates.</p>
+<p>But let’s try doing this instead with the Maybe monad:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/monad-plus/MaybeGame.hs#L26-L51</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co">-- die or fail immediately</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="ot">die ::</span> <span class="dt">Maybe</span> <span class="dt">Int</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>die <span class="ot">=</span> mzero                         <span class="co">-- or die = mzero</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co">-- if not dead, sets the health to the given level</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="ot">setHealth ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Int</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>setHealth n <span class="ot">=</span> <span class="fu">return</span> n              <span class="co">-- or setHealth n = return n</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="co">-- damage the player (from its previous health) and check for death</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="ot">hit ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Int</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>hit currHealth <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> newHealth <span class="ot">=</span> currHealth <span class="op">-</span> <span class="dv">1</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>    guard <span class="op">$</span> newHealth <span class="op">&gt;</span> <span class="dv">0</span>           <span class="co">-- fail/die immediately unless newHealth</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>                                    <span class="co">--     is positive</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span> newHealth                <span class="co">-- succeed with newHealth if not already</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>                                    <span class="co">--     dead</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a><span class="co">-- an alternative but identical definition of `hit`, using &gt;&gt;= and &gt;&gt;</span></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a><span class="ot">hit&#39; ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Int</span></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>hit&#39; currHealth <span class="ot">=</span> guard (newHealth <span class="op">&gt;</span> <span class="dv">0</span>) <span class="op">&gt;&gt;</span> <span class="fu">return</span> newHealth</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>    <span class="kw">where</span></span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>        newHealth <span class="ot">=</span> currHealth <span class="op">-</span> <span class="dv">1</span></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a><span class="co">-- increase the player&#39;s health from its previous health</span></span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a><span class="ot">powerup ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Int</span></span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>powerup currHealth <span class="ot">=</span> <span class="fu">return</span> <span class="op">$</span> currHealth <span class="op">+</span> <span class="dv">1</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> setHealth <span class="dv">2</span> <span class="op">&gt;&gt;=</span> hit <span class="op">&gt;&gt;=</span> powerup <span class="op">&gt;&gt;=</span> hit <span class="op">&gt;&gt;=</span> powerup <span class="op">&gt;&gt;=</span> powerup</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dv">3</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> setHealth <span class="dv">2</span> <span class="op">&gt;&gt;=</span> hit <span class="op">&gt;&gt;=</span> powerup <span class="op">&gt;&gt;=</span> hit <span class="op">&gt;&gt;=</span> hit <span class="op">&gt;&gt;=</span> powerup</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="dt">Nothing</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> setHealth <span class="dv">10</span> <span class="op">&gt;&gt;=</span> powerup <span class="op">&gt;&gt;</span> die <span class="op">&gt;&gt;=</span> powerup <span class="op">&gt;&gt;=</span> powerup</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="dt">Nothing</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">do</span>  h0 <span class="ot">&lt;-</span> setHealth <span class="dv">2</span>        <span class="co">-- Just 2</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span>     h1 <span class="ot">&lt;-</span> hit h0             <span class="co">-- Just 1</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span>     h2 <span class="ot">&lt;-</span> powerup h1         <span class="co">-- Just 2</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span>     h3 <span class="ot">&lt;-</span> hit h2             <span class="co">-- Just 1</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span>     h4 <span class="ot">&lt;-</span> hit h3             <span class="co">-- Nothing</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span>     h5 <span class="ot">&lt;-</span> powerup h4         <span class="co">-- (skip)</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span>     h6 <span class="ot">&lt;-</span> powerup h5         <span class="co">-- (skip)</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span>     <span class="fu">return</span> h6                <span class="co">-- (skip)</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a><span class="dt">Nothing</span></span></code></pre></div>
+<p>And voilà! <a href="https://github.com/mstksg/inCode/blob/master/code-samples/monad-plus/MaybeGame.hs">Fire it up yourself</a> if you want to test it out in person!</p>
+<p>You can think of the last do block conceptually this way: remember, <code>h3</code> does not represent the <code>Just 1</code> value — <code>h3</code> represents the number <em>inside</em> the <code>Just 1</code> — the 1. So <code>h4</code> is supposed to represent the number inside its value, too. But because <code>hit h3</code> results in <code>Nothing</code>; <code>Nothing</code> has no value “inside”, so <code>h4</code> doesn’t even have a value! So obviously it doesn’t even make sense to call <code>powerup h4</code>…therefore <code>h5</code> has no value either! It’s therefore meaningless to call <code>powerup h5</code>, so meaningless to <code>return h6</code>…the entire thing is a beautiful disaster. A fiasco. Mission accomplished!</p>
+<p>The whole thing works as expected; you can even die suddenly with <code>die</code>, which ignores your current health.</p>
+<p>Interestingly enough, we could actually eliminate all references to Maybe altogether by always using <code>return</code> and <code>mzero</code> instead of <code>Just</code> and <code>Nothing</code>. And if we make our type signatures generic enough, we could use this with <em>any</em> MonadPlus! But that is for another day.</p>
+<h2 id="looking-forward">Looking forward</h2>
+<p>Wow, who knew you could spend so much time talking about failure. Anyways, this is a good place to stop before we move onto how List is also a MonadPlus. Okay, so what have we learned?</p>
+<ul>
+<li>Monads are just a way of chaining functions on objects, and of course, every object’s chaining process is different. In fact there might be even more than one way to meaningfully chain functions on an object!</li>
+<li>One useful “chaining approach” is to model things as success-failure chains, where you are building something from successes, but if you fail once in the process, the entire process fails. An object that uses this approach/design pattern is called a MonadPlus.</li>
+<li>The Maybe object is one such example. We can define ‘chaining’ failable functions as functions that continue if the previous function succeeded, or propagate a failure if the previous function fails. A failable function, for a Maybe object, is a function <code>:: a -&gt; Maybe b</code> or even <code>::     Maybe b</code>.</li>
+<li>There is a common vocabulary for talking about MonadPlus concepts — “return” means “succeed with this value”, and “mzero” means “fail now”.</li>
+<li>Due to Haskell’s polymorphism, we can “forget” we are using Maybe and in fact talk about/write for “general” MonadPlus’s, with <code>return x</code> and <code>mzero</code> resulting in the appropriate success/fail objects.</li>
+</ul>
+<p>For the mean time, think about how it might make sense to chain operations on lists (ie, repeatedly applying functions <code>:: a -&gt; [b]</code> to lists).</p>
+<p>By this, I mean, given a function that turns a value into a list of values <code>f :: a -&gt; [b]</code>, find a way to meaningfully “chain” that function to a previous list and get a new list:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> oldList <span class="op">&gt;&gt;=</span> f</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>newList             <span class="co">-- a new list based on old list; f &quot;chained&quot; to `oldList`.</span></span></code></pre></div>
+<p>Is there more than one way to think about chaining them, even? And in what ways we can define this “chaining” to represent success/failure? Until next time!</p>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p>I have to give a fair disclaimer here. MonadPlus, as it is currently implemented, actually serves two functionalities/purposes. However, its functionality not related to success/failure is actually (except for a few cases) mostly redundant, due to another typeclass called <a href="http://hackage.haskell.org/package/base-4.6.0.1/docs/Control-Applicative.html#t:Alternative">Alternative</a> that now handles it in all nearly all modern usage. The redundancy actually stems from one of the more famous embarrassing mistakes in the design of the Haskell standard library — the infamous <a href="http://www.haskell.org/haskellwiki/Functor-Applicative-Monad_Proposal">monad-applicative-functor hierarchy issue</a>. In practice, however, simply using the appropriate typeclass for the appropriate property is the norm. For this article and this series, I will be addressing specifically this non-redundant functionality, the success/failureness; just be aware that in some other places, you will find other explanations of MonadPlus as a “whole” that includes the redundant parts.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>Actually, there is one noteworthy success/failure monad that isn’t implemented as a MonadPlus in Haskell — the Either. Arguably, Either embodies the “spirit” of MonadPlus; the problem is that Haskell requires that “fail”/“mzero” must not take any parameters, and Either must always have a “reason” when it fails. However, one could easily instance their own Either instance with a “default reason” if the <code>Left</code> type is known or constrained. The easiest way is to constrain the <code>Left</code> type to be a monoid and make <code>mzero = Left mempty</code>. Alternatively, if your Left is a String, you can just put in whatever default error message you want.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div><footer><hr><div class="copy-content"><p>Hi, thanks for reading! You can reach me via email at <a href="mailto:justin@jle.im" class="email">justin@jle.im</a>, or at twitter at <a href="https://twitter.com/mstk">@mstk</a>! This post and all others are published under the <a href="https://creativecommons.org/licenses/by-nc-nd/3.0/">CC-BY-NC-ND 3.0</a> license. Corrections and edits via pull request are welcome and encouraged at <a href="https://github.com/mstksg/inCode">the source repository</a>.</p>
+<p>If you feel inclined, or this post was particularly helpful for you, why not consider <a href="https://www.patreon.com/justinle/overview">supporting me on Patreon</a>, or a <a href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">BTC donation</a>? :)</p></div><div class="clear"></div><ul class="entry-series"><li><div>This entry is a part of a series called <b>&quot;MonadPlus: Success/Failure Monads&quot;</b>.  Find the rest of the entries in this series at its <a href="https://blog.jle.im/entries/series/+monadplus-success-failure-monads.html" class="tag-a-series" title="Short series on the abstractions and uses of the MonadPlus typeclass --- objects
+whose monad instance represent success/failure.
+"> series history</a>.</div></li><li><div>This entry is a part of a series called <b>&quot;Practical Monads&quot;</b>.  Find the rest of the entries in this series at its <a href="https://blog.jle.im/entries/series/+practical-monads.html" class="tag-a-series" title="Ongoing series exploring interesting objects and their curious monad instances.
+"> series history</a>.</div></li></ul><ul class="tag-list"><li><a href="https://blog.jle.im/entries/tagged/functional-programming.html" class="tag-a-tag">#functional programming</a></li><li><a href="https://blog.jle.im/entries/tagged/haskell.html" class="tag-a-tag">#haskell</a></li><li><a href="https://blog.jle.im/entries/tagged/monads.html" class="tag-a-tag">#monads</a></li><li><a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category">@HASKELL</a></li><li><a href="https://blog.jle.im/entries/category/@ramblings.html" class="tag-a-category">@RAMBLINGS</a></li><li><a href="https://blog.jle.im/entries/series/+monadplus-success-failure-monads.html" class="tag-a-series">+MonadPlus: Success/Failure Monads</a></li><li><a href="https://blog.jle.im/entries/series/+practical-monads.html" class="tag-a-series">+Practical Monads</a></li></ul><aside class="social-buttons"><div class="addthis_toolbox addthis_default_style addthis-buttons"><a class="addthis_button_facebook_like" fb:like:layout="button_count"></a><a class="addthis_button_tweet"></a><a class="addthis_button_google_plusone" g:plusone:size="medium"></a><a class="addthis_counter addthis_pill_style"></a></div><div class="custom-social-buttons"><div class="custom-social-button"><a href="https://www.reddit.com/submit" onclick="window.location = &#39;https://www.reddit.com/submit?url=&#39;+ encodeURIComponent(window.location); return false"><img src="https://www.reddit.com/static/spreddit7.gif" alt="submit to reddit"></a></div></div></aside><nav class="next-prev-links"><ul><li class="prev-entry-link">&larr; <a href="https://blog.jle.im/entry/a-brief-primer-on-classical-and-quantum-mechanics.html">A Brief Primer on Classical and Quantum Mechanics for Numerical Techniques
+</a> (Previous)</li><li class="next-entry-link">(Next) <a href="https://blog.jle.im/entry/the-list-monadplus-practical-fun-with-monads-part.html">The List MonadPlus --- Practical Fun with Monads (Part 2 of 3)
+</a> &rarr;</li></ul></nav></footer></article><div class="post-entry"><div class="tile"><div id="disqus_thread"></div><script type="text/javascript">var disqus_config = function () {
+    this.page.url = 'https://blog.jle.im/entry/practical-fun-with-monads-introducing-monadplus.html';
+    this.page.identifier = 'monad-plus-1';
+};
+(function() {
+    var d = document, s = d.createElement('script');
+    s.src = '//incode.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a><br></noscript><a href="http://disqus.com" class="dsq-brlink">Comments powered by <span class="logo-disqus">Disqus</span></a></div></div></div></div></div><div id="footer-container"><div id="footer-content"><div class="tile"><div class="footer-copyright">&copy; 2020 Justin Le <span class="license-link">(<a href="https://creativecommons.org/licenses/by-nc-nd/3.0/" class="license">CC-BY-NC-ND 3.0</a>)</span></div><div class="footer-follow social-follows"><ul class="social-follows-list"><li><ul class="social-follows-list-social"><li><a class="social-follow-twitter" title="Follow me on Twitter!" href="https://twitter.com/intent/user?user_id=mstk" onclick="window.open(
+  &#39;http://twitter.com/intent/user?user_id=907281&#39;,
+  &#39;facebook-share-dialog&#39;,
+  &#39;width=550,height=520&#39;);
+return false;
+">Twitter</a></li><li><a class="social-follow-github" title="Fork me on Github!" href="https://github.com/mstksg">Github</a></li><li><a class="social-follow-twitch" title="Watch me on Twitch!" href="https://www.twitch.tv/justin_l">Twitch</a></li><li><a class="social-follow-patreon" title="Support me on Patreon!" href="https://www.patreon.com/justinle/overview">Patreon</a></li><li><a class="social-follow-gplus" title="Add me on Google+!" href="https://plus.google.com/+JustinLe">Google+</a></li><li><a class="social-follow-keybase" title="Track me on Keybase!" href="https://keybase.io/mstksg">Keybase</a></li><li><a class="social-follow-linkedin" title="Connect with me on LinkedIn!" href="https://linkedin.com/in/lejustin">LinkedIn</a></li><li><a class="social-follow-bitcoin" title="Donate via bitcoin!" href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">Bitcoin</a></li></ul></li><li><ul class="social-follows-list-site"><li><a class="social-follow-rss" title="Subscribe to my RSS Feed!" href="http://feeds.feedburner.com/incodeblog">RSS</a></li><li><a class="social-follow-email" title="Subscribe to the mailing list!" href="https://feedburner.google.com/fb/a/mailverify?loc=en_US&amp;uri=incodeblog">Mailing list</a></li></ul></li></ul></div></div></div></div></body></html>

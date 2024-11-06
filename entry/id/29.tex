@@ -1,0 +1,302 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={mtl is Not a Monad Transformer Library},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{mtl is Not a Monad Transformer Library}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% May 18, 2015
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/mtl-is-not-a-monad-transformer-library.html}{in
+Code}}.}
+
+\emph{mtl} is not a monad transformer library --- contrary to popular
+conception. I believe that this commonly spread myth is due in part to some
+rather peculiar branding choices (the name of the library) and in part to some
+historical accidents (\emph{mtl} was, in the distant and pre-historic past,
+indeed a monad transformer library).
+
+What is \emph{mtl}? It is a library of \emph{interfaces} you can provide to your
+own types, in the form of typeclasses. It abstracts over \emph{different design
+patterns} for different types, in the form of typeclasses. Just like Functor
+abstracts over ``things that can be fmapped''. \emph{mtl} provides typeclasses
+abstracting over many useful patterns that many types satisfy --- patterns
+involving different sorts of ``effects''.
+
+\section{The Patterns}\label{the-patterns}
+
+\subsection{MonadError}\label{monaderror}
+
+\texttt{MonadError} is a generic interface over things where you can throw
+``errors'' of a specific type \texttt{e}, and ``catch'' them. It offers two
+methods: \texttt{throwError\ ::\ e\ -\textgreater{}\ m\ a}, and
+\texttt{catchError\ ::\ m\ a\ -\textgreater{}\ (e\ -\textgreater{}\ m\ a)\ -\textgreater{}\ m\ a},
+which does what you'd expect from an error monad.
+
+Now, we have a generic interface to work on \emph{all specific type
+error-throwing Monads}. The \texttt{Either} type comes to mind as an obvious
+candidate:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{instance} \DataTypeTok{MonadError}\NormalTok{ e (}\DataTypeTok{Either}\NormalTok{ e) }\KeywordTok{where}
+\NormalTok{    throwError }\OtherTok{=} \DataTypeTok{Left}
+\NormalTok{    catchError s f }\OtherTok{=} \KeywordTok{case}\NormalTok{ s }\KeywordTok{of}
+                       \DataTypeTok{Right}\NormalTok{ \_ }\OtherTok{{-}\textgreater{}}\NormalTok{ s}
+                       \DataTypeTok{Left}\NormalTok{ e  }\OtherTok{{-}\textgreater{}}\NormalTok{ f e}
+\end{Highlighting}
+\end{Shaded}
+
+But there are definitely other instances possible. How about for \texttt{IO} and
+\texttt{IOException}s, in specific?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{instance} \DataTypeTok{MonadError} \DataTypeTok{IOException} \DataTypeTok{IO} \KeywordTok{where}
+\NormalTok{    throwError  }\OtherTok{=} \FunctionTok{ioError}
+\NormalTok{    catchErrror }\OtherTok{=} \FunctionTok{catch}     \CommentTok{{-}{-} will not catch non{-}IOExceptions}
+\end{Highlighting}
+\end{Shaded}
+
+This is great, because we can now write code \emph{generic} over \emph{all}
+specific-type error things!
+
+\subsubsection{Error behavior\ldots for free!}\label{error-behaviorfor-free}
+
+If we're clever enough, we can actually imbue any arbitrary Monad \texttt{m}
+with rudimentary, basic, ``dumb'' error handling by using the \texttt{ExceptT}
+type. An \texttt{ExceptT\ e\ m} behaves \emph{just} like our original Monad
+\texttt{m} in every way\ldots except now, we have access to rudimentary
+implementations of side-channels of \texttt{throwError} and \texttt{catchError}.
+
+This is pretty useful\ldots to be able to add short-circuiting error behavior to
+any Monad we wanted. But remember, \texttt{ExceptT} is not the ``point'' of
+\texttt{MonadError}. It's just one way to generate instances for free given a
+Monad. The real power of \texttt{MonadError} is in the ability to write
+generically over many Monads with some sort of ``error'' behavior, like
+\texttt{Either} or \texttt{IO}.
+
+\subsection{MonadState}\label{monadstate}
+
+A \texttt{MonadState\ s\ m} is a Monad \texttt{m} where, during in the context
+of \texttt{m}, you have access to a global state of type \texttt{s} that you can
+modify.
+
+You can ``get'' it with \texttt{get\ ::\ m\ s}. You can modify it with
+\texttt{modify\ ::\ (s\ -\textgreater{}\ s)\ -\textgreater{}\ m\ ()}. You can
+replace it with \texttt{put\ ::\ s\ -\textgreater{}\ m\ ()}.
+
+There are a lot of types that can offer this type of interface. You might have,
+for example, a type where ``getting'' the state comes from reading an
+\texttt{IORef}, and ``putting'' it comes from writing to the \texttt{IORef}. Or
+maybe the state can come from a a query to a database\ldots where \texttt{get}
+queries a database in IO, and \texttt{put} writes to the database.
+
+\texttt{MonadState}, as a typeclass, gives you the ability to \emph{write
+generically over all Monads with state}. You can now write generically over
+those database state things\ldots or those IORef state things\ldots or those web
+query things\ldots or anything that cares to implement the interface!
+
+\texttt{MonadState} says, ``the functions and actions I write can work for
+\emph{all} Monads offering state I can modify!'' An action of type
+\texttt{MonadState\ String\ m\ =\textgreater{}\ m\ Double} can create a
+\texttt{Double} from \emph{any} monad offering some sort of \texttt{String}
+state.
+
+\subsubsection{State\ldots for free!}\label{statefor-free}
+
+Again, we can actually imbue any Monad \texttt{m} with some very rudimentary,
+``dumb'' stateful interface, using a type called \texttt{StateT}. A
+\texttt{StateT\ s\ m} behaves just like our monad \texttt{m} (be it \texttt{IO},
+\texttt{Reader}, \texttt{ST}, \texttt{STM}\ldots), except now we have access to
+a rudimentary state getting-and-putting mechanism on a state of type \texttt{s},
+using a form of function composition. The implementation of the \texttt{StateT}
+handles it under the hood.
+
+Obviously, being able to add a rudimentary stateful interface on top of any
+Monad is pretty useful. Very useful, in fact!
+
+But remember, this isn't the \emph{point} of \texttt{MonadState}.
+\texttt{MonadState} doesn't exist for \texttt{StateT}. \texttt{StateT} is just a
+way to generate a free instance of \texttt{MonadState} if you just want to add
+rudimentary statefulness to an existing Monad. But there are many instances of
+\texttt{MonadState}\ldots really, \texttt{MonadState} has nothing to do with
+\texttt{StateT} fundamentally, any more than \texttt{Monad} has to do with
+\texttt{Maybe} fundamentally. And \texttt{MonadState} and \texttt{StateT} don't
+even come from the same library!
+
+\emph{mtl} offers a generic interface for working with all monads offering a
+statey API.
+
+\subsection{MonadReader}\label{monadreader}
+
+\texttt{MonadReader} is more or less the same thing\ldots it offers a generic
+interface to work on monads that have access to some sort of global, unchanging
+``environment''. An example might be a Monad where you could work with command
+line arguments, or environment variables, assuming they are read once and fixed
+when things start up. You could access the command line arguments with
+\texttt{ask}, and use them in your program.
+
+\subsection{MonadIO}\label{monadio}
+
+This one is actually from \emph{transformers}, but it gives a nice picture. Any
+\texttt{MonadIO\ m} is a \texttt{Monad} that allows you to embed and sequence in
+any arbitrary IO action. This is pretty useful! In the
+\emph{\href{http://hackage.haskell.org/package/persistent}{persistent}} database
+library, for example --- the main ``database access type monad'' can sequence
+actions that access databases \emph{and} arbitrary IO actions, as well. A lot of
+resource managers and DSL's offer the ability to sequence IO in the middle of
+all the other actions.
+
+That's what \texttt{MonadIO} is for --- it allows you to write functions and
+say, ``hey, my function is generic over \emph{all} things that can embed
+IO\ldots anything that can embed IO can sequence my function/type''. The generic
+``embedding'' action is
+\texttt{liftIO\ ::\ MonadIO\ m\ =\textgreater{}\ IO\ a\ -\textgreater{}\ m\ a}.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+You know\ldots ideally, all of these typeclasses would have laws, so we could
+make conclusions and apply equational reasoning to generically written
+functions.
+
+Some of the laws are simple\ldots{}\texttt{liftIO} from \texttt{MonadIO} should
+be a
+\href{http://hackage.haskell.org/package/mmorph-1.0.4/docs/Control-Monad-Morph.html}{monad
+morphism}. But the rest of them don't really have any well-established laws.
+This is a bit of a shame, because we'd really like to be able to apply reasoning
+to generic functions.
+
+People have suggested \texttt{MonadState} have laws similar to how view/set/over
+interact in the \emph{lens} laws. But as of now, most of we have in terms of our
+capability of analyzing generic programs is rough heuristins/feelings about what
+``should'' be right.
+
+A bit un-ideal, but\ldots in practice, this ends up working not-so-badly :)
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{Not a Monad Transformer Library}\label{not-a-monad-transformer-library}
+
+So, let's work together to dispel the myth that \emph{mtl} is a monad
+transformer library. It really has nothing to do with monad transformers at
+all\ldots any more than \texttt{Control.Monad} is an ``IO module'', or
+\texttt{Control.Monoid} is a ``list module''. Transformers don't even come from
+the \emph{mtl} library!
+
+Together, we can overcome this myth. We can show people that we can live in a
+world where we can combine effects, work generically in Monads with
+\emph{multiple types of effects} by writing functions generic over many
+different \emph{mtl} typeclasses at once! (\texttt{MonadState} +
+\texttt{MonadIO}, maybe?)
+
+We don't \emph{have to} reach for Monad transformers to work with combined
+effects. We can write our own combined effects monads and just write the
+instances\ldots or we can write generically and not even care about what Monad
+we actually use in the end. We don't have to teach people to be afraid of monad
+transformers as if they were the only way to get things done, and \emph{mtl} is
+tied to them like a ball and chain.
+
+\emph{mtl} is not a Monad transformer library. How liberating!
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

@@ -1,0 +1,1104 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Streaming Huffman Compression in Haskell (Part 1: Trees and State)},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Streaming Huffman Compression in Haskell (Part 1: Trees and State)}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% March 31, 2014
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-1-trees.html}{in
+Code}}.}
+
+So you're learning Haskell and are looking for some projects that aren't super
+trivial, are familiar enough that you can use what you already know, and are
+difficult enough to maybe help you learn new things. Hey, maybe this is for you
+:)
+
+Let's take a go at \href{http://en.wikipedia.org/wiki/Huffman_coding}{Huffman
+encoding} in Haskell. We will look at two types of binary trees, which we use to
+implement immutable/persistent priority queues and prefix trees. We'll play
+around with the State monad a bit, explore some useful typeclasses, learn how to
+serialize, marshal, and unmarshal data structures using the
+\href{http://hackage.haskell.org/package/binary}{binary} library, and also look
+at how to load data from a file and write to another in a pure way, avoiding
+lazy IO using the ever-more-popular
+\emph{\href{http://hackage.haskell.org/package/pipes}{pipes}} library. And
+hopefully we learn some neat Haskell idioms!
+
+We're going to be assuming some basic Haskell knowledge, like algebraic data
+types, higher order functions, basic monad usage, and some basic familiarity
+with the functions in Prelude/base, the standard library. If you have any
+questions, feel free to leave a comment, drop by on \#haskell on freenode, throw
+me a \href{https://twitter.com/mstk}{tweet}, or give the great
+\href{http://learnyouahaskell.com}{Learn You A Haskell} a quick read!
+
+\section{Prefix trees \& Huffman coding}\label{prefix-trees-huffman-coding}
+
+You might have encountered this in the past, but Huffman encoding solves the
+problem of finding the optimal binary prefix code to encode a string.
+
+I'll leave you to read \href{http://en.wikipedia.org/wiki/Huffman_coding}{the
+wikipedia article}, which explains it much better than I could. Basically,
+binary prefix codes are nice because you don't have to encode any ``stop''
+symbol --- as soon as you reach a leaf of the tree, you know that you have found
+a letter, and can move on.
+
+Huffman trees are built from the bottom-up using priority queues. The two
+lowest-frequency nodes are continually ``popped'' from the queue, combined into
+a new node, and placed back in the queue.
+
+Our first challenge --- representing a Huffman tree as a data structure!
+
+\subsection{The Tree}\label{the-tree}
+
+(All the code in this section on is
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/huffman/PreTree.hs}{available
+for download} for you to try it out yourself!)
+
+So some properties about prefix trees that might be useful to us --- all data is
+stored in the leaves, and all internal nodes have exactly two children. This
+sounds like the perfect candidate for an Algebraic Data Structure.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/PreTree.hs\#L19{-}L21}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\KeywordTok{data} \DataTypeTok{PreTree}\NormalTok{ a }\OtherTok{=} \DataTypeTok{PTLeaf}\NormalTok{ a}
+               \OperatorTok{|} \DataTypeTok{PTNode}\NormalTok{ (}\DataTypeTok{PreTree}\NormalTok{ a) (}\DataTypeTok{PreTree}\NormalTok{ a)}
+               \KeywordTok{deriving}\NormalTok{ (}\DataTypeTok{Show}\NormalTok{, }\DataTypeTok{Eq}\NormalTok{, }\DataTypeTok{Generic}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+We leave the type parameterized on \texttt{a} (which is like a template/generic
+in C++/Java) so we can decide what to put into it later.
+
+\subsubsection{\texorpdfstring{\texttt{PreTree}
+operations}{PreTree operations}}\label{pretree-operations}
+
+So, what sort of things are we going to want to do with our \texttt{PreTree}?
+
+Well..first of all, we might want a way to put something into an empty tree ---
+create a leaf containing just that data.
+
+That function is sort of embarrassingly easy:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{makePT\textquotesingle{} ::}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{PreTree}\NormalTok{ a}
+\NormalTok{makePT\textquotesingle{} x }\OtherTok{=} \DataTypeTok{PTLeaf}\NormalTok{ x}
+\end{Highlighting}
+\end{Shaded}
+
+Remember, that's \texttt{PTLeaf} is a data constructor that ``creates'' a
+\texttt{PreTree} when you use \texttt{PTLeaf\ x}.
+
+However, something like this is just begging to be eta-reduced, and we can
+simplify it as:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/PreTree.hs\#L46{-}L47}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\OtherTok{makePT ::}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{PreTree}\NormalTok{ a}
+\NormalTok{makePT }\OtherTok{=} \DataTypeTok{PTLeaf}
+\end{Highlighting}
+\end{Shaded}
+
+Which does the same thing. Basically, \texttt{PTLeaf} is already a function
+\texttt{a\ -\textgreater{}\ PreTree\ a}\ldots so \texttt{makePT} is literally
+just \texttt{PTLeaf}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ pt }\OtherTok{=}\NormalTok{ makePT }\CharTok{\textquotesingle{}c\textquotesingle{}}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t pt}
+\DataTypeTok{PreTree} \DataTypeTok{Char}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ pt}
+\DataTypeTok{PTLeaf} \CharTok{\textquotesingle{}c\textquotesingle{}}
+\end{Highlighting}
+\end{Shaded}
+
+Now, we might also want a way to ``merge'' two \texttt{PreTree\ a}'s. This is at
+the heart of building the tree in the first place\ldots successively merge two
+trees until everything is in one giant tree.
+
+This isn't too bad either:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{mergePT\textquotesingle{} ::} \DataTypeTok{PreTree}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{PreTree}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{PreTree}\NormalTok{ a}
+\NormalTok{mergePT\textquotesingle{} t1 t2 }\OtherTok{=} \DataTypeTok{PTNode}\NormalTok{ t1 t2}
+\end{Highlighting}
+\end{Shaded}
+
+Which, from what we saw before, can just be written as:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/PreTree.hs\#L50{-}L51}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\OtherTok{mergePT ::} \DataTypeTok{PreTree}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{PreTree}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{PreTree}\NormalTok{ a}
+\NormalTok{mergePT }\OtherTok{=} \DataTypeTok{PTNode}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ pt1 }\OtherTok{=}\NormalTok{ makePT }\CharTok{\textquotesingle{}c\textquotesingle{}}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ pt2 }\OtherTok{=}\NormalTok{ makePT }\CharTok{\textquotesingle{}t\textquotesingle{}}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ pt3 }\OtherTok{=}\NormalTok{ pt1 }\OtherTok{\textasciigrave{}mergePT\textasciigrave{}}\NormalTok{ pt2}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t pt3}
+\DataTypeTok{PreTree} \DataTypeTok{Char}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ pt3}
+\DataTypeTok{PTNode}\NormalTok{ (}\DataTypeTok{PTLeaf} \CharTok{\textquotesingle{}c\textquotesingle{}}\NormalTok{) (}\DataTypeTok{PTLeaf} \CharTok{\textquotesingle{}t\textquotesingle{}}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Hm. Maybe that's a bit too easy. Feels a little unsettling, isn't it?
+
+Welcome to Haskell!
+
+\subsection{Weighting things}\label{weighting-things}
+
+We're going to need some way of comparing the weights/priorities of two
+\texttt{PreTree}s when we are assembling the tree. Let's introduce a data type
+that includes both a \texttt{PreTree} and an (integer) weight.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/Weighted.hs\#L13{-}L15}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\KeywordTok{data} \DataTypeTok{Weighted}\NormalTok{ a }\OtherTok{=} \DataTypeTok{WPair}\NormalTok{ \{}\OtherTok{ \_wWeight ::} \DataTypeTok{Int}
+\NormalTok{                        ,}\OtherTok{ \_wItem   ::}\NormalTok{ a}
+\NormalTok{                        \} }\KeywordTok{deriving}\NormalTok{ (}\DataTypeTok{Show}\NormalTok{, }\DataTypeTok{Functor}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+(Code for the Weighted module is
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/huffman/Weighted.hs}{available
+for download})
+
+We will say that a \texttt{Weighted\ a} is some \texttt{a} associated with an
+integer weight.
+
+We can create, say, a \texttt{PreTree} containing the character `a', weighted
+with integer 1:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \DataTypeTok{WPair} \DecValTok{1}\NormalTok{ (makePTLeaf }\CharTok{\textquotesingle{}a\textquotesingle{}}\NormalTok{)}
+\DataTypeTok{WPair} \DecValTok{1}\NormalTok{ (makePTLeaf }\CharTok{\textquotesingle{}a\textquotesingle{}}\NormalTok{)}\OtherTok{ ::} \DataTypeTok{Weighted}\NormalTok{ (}\DataTypeTok{PreTree} \DataTypeTok{Char}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+This weighted \texttt{PreTree} is pretty useful, let's give it an alias/typedef:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/PreTree.hs\#L54{-}L54}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\KeywordTok{type} \DataTypeTok{WeightedPT}\NormalTok{ a }\OtherTok{=} \DataTypeTok{Weighted}\NormalTok{ (}\DataTypeTok{PreTree}\NormalTok{ a)}
+\end{Highlighting}
+\end{Shaded}
+
+Let's make the same functions for \texttt{WeightedPT} as we did for
+\texttt{PreTree}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/PreTree.hs\#L58{-}L59}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\OtherTok{makeWPT ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{WeightedPT}\NormalTok{ a}
+\NormalTok{makeWPT w }\OtherTok{=} \DataTypeTok{WPair}\NormalTok{ w }\OperatorTok{.}\NormalTok{ makePT}
+\end{Highlighting}
+\end{Shaded}
+
+The above basically says ``to make a \texttt{WeightedPT} with weight \texttt{w},
+first \texttt{makePT} it, and then add that result it to a \texttt{WPair\ w}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ pt }\OtherTok{=}\NormalTok{ makeWPT }\DecValTok{1} \CharTok{\textquotesingle{}w\textquotesingle{}}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t pt}
+\DataTypeTok{WeightedPT} \DataTypeTok{Char}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ pt}
+\DataTypeTok{WPair} \DecValTok{1}\NormalTok{ (}\DataTypeTok{PTLeaf} \CharTok{\textquotesingle{}w\textquotesingle{}}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+We will also want to merge two \texttt{WeightedPT}s:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/PreTree.hs\#L62{-}L64}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\OtherTok{mergeWPT ::} \DataTypeTok{WeightedPT}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{WeightedPT}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{WeightedPT}\NormalTok{ a}
+\NormalTok{mergeWPT (}\DataTypeTok{WPair}\NormalTok{ w1 pt1) (}\DataTypeTok{WPair}\NormalTok{ w2 pt2)}
+    \OtherTok{=} \DataTypeTok{WPair}\NormalTok{ (w1 }\OperatorTok{+}\NormalTok{ w2) (mergePT pt1 pt2)}
+\end{Highlighting}
+\end{Shaded}
+
+so that the total weight is the sum of the weights of the two subtrees.
+
+Finally, the entire point of having weighted things is so that we can compare
+them and impose some total ordering. Haskell has a typeclass that abstracts
+these comparing operations, \texttt{Ord}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/Weighted.hs\#L17{-}L21}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\KeywordTok{instance} \DataTypeTok{Eq}\NormalTok{ (}\DataTypeTok{Weighted}\NormalTok{ a) }\KeywordTok{where}
+    \DataTypeTok{WPair}\NormalTok{ w1 \_ }\OperatorTok{==} \DataTypeTok{WPair}\NormalTok{ w2 \_ }\OtherTok{=}\NormalTok{ w1 }\OperatorTok{==}\NormalTok{ w2}
+
+\KeywordTok{instance} \DataTypeTok{Ord}\NormalTok{ (}\DataTypeTok{Weighted}\NormalTok{ a) }\KeywordTok{where}
+    \FunctionTok{compare}\NormalTok{ (}\DataTypeTok{WPair}\NormalTok{ w1 \_) (}\DataTypeTok{WPair}\NormalTok{ w2 \_) }\OtherTok{=} \FunctionTok{compare}\NormalTok{ w1 w2}
+\end{Highlighting}
+\end{Shaded}
+
+Which says that \texttt{Weighted\ a} is an \texttt{Ord} (is
+orderable/comparable), and to compare two \texttt{WPair\ w\ x}'s, you compare
+the \texttt{w}'s.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ makeWPT }\DecValTok{2} \CharTok{\textquotesingle{}a\textquotesingle{}} \OperatorTok{\textgreater{}}\NormalTok{ makeWPT }\DecValTok{3} \CharTok{\textquotesingle{}b\textquotesingle{}}
+\DataTypeTok{False}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ makeWPT }\DecValTok{4} \CharTok{\textquotesingle{}t\textquotesingle{}} \OperatorTok{==}\NormalTok{ makeWPT }\DecValTok{4} \CharTok{\textquotesingle{}k\textquotesingle{}}
+\DataTypeTok{True}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Priority Queues}\label{priority-queues}
+
+There are some great priority queue libraries on Hackage, like
+\href{http://hackage.haskell.org/package/PSQueue}{PSQueue}. However, for fun,
+we're going to be making our own! Yay!
+
+Our Priority Queue code module is
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/huffman/PQueue.hs}{available
+for download} to try out!
+
+\subsection{Skew heaps}\label{skew-heaps}
+
+A traditional approach to making efficient priority queues is to use a
+\href{http://en.wikipedia.org/wiki/Heap_(data_structure)}{heap}, a tree with
+insertion algorithms that make sure the root of the tree is the most prioritized
+element and that the tree stays balanced. Heaps make heavy use of stateful
+mutation to do this, and while it's not so hard to do this in Haskell, we might
+consider a `pure' version of a heap: a
+\href{http://en.wikipedia.org/wiki/Skew_heap}{skew heap}.
+
+A skew heap is a heap that doesn't explicitly maintain its balance, but
+maintains ``heap ordering'' (parents are always higher priority than their
+children).
+
+I'll leave it to the wikipedia article to do most of the explaining because they
+have pretty pictures, but here is the gist of it --- skew heaps have only three
+operations: making new (singleton) one, merging two skew heaps, and popping off
+the root. Traditional ``insert'' is done by making a new skew heap with one
+element, and merging it with the main heap.
+
+Merging is simple enough: The higher-priority root becomes the new root, and the
+lower-priority root is merged with the child tree of that new root. (Some
+left-right flipping of branches is done to make sure things tend to stay
+balanced. Pictures provided in the wikipedia article.)
+
+Popping the root is simple too; just take the root, and merge its two sub-trees
+to make the new tree.
+
+This is a new type of binary tree, so let's define a new data type:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/PQueue.hs\#L20{-}L22}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\KeywordTok{data} \DataTypeTok{SkewHeap}\NormalTok{ a }\OtherTok{=} \DataTypeTok{SEmpty}
+                \OperatorTok{|} \DataTypeTok{SNode}\NormalTok{ a (}\DataTypeTok{SkewHeap}\NormalTok{ a) (}\DataTypeTok{SkewHeap}\NormalTok{ a)}
+                \KeywordTok{deriving}\NormalTok{ (}\DataTypeTok{Show}\NormalTok{, }\DataTypeTok{Eq}\NormalTok{, }\DataTypeTok{Foldable}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Creating a new \texttt{SkewHeap} with one item:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/PQueue.hs\#L25{-}L26}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\OtherTok{makeSH ::}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{SkewHeap}\NormalTok{ a}
+\NormalTok{makeSH x }\OtherTok{=} \DataTypeTok{SNode}\NormalTok{ x }\DataTypeTok{SEmpty} \DataTypeTok{SEmpty}
+\end{Highlighting}
+\end{Shaded}
+
+Popping the root off of a skew tree:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/PQueue.hs\#L31{-}L33}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\OtherTok{popSH ::} \DataTypeTok{Ord}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{SkewHeap}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{Maybe}\NormalTok{ a, }\DataTypeTok{SkewHeap}\NormalTok{ a)}
+\NormalTok{popSH }\DataTypeTok{SEmpty}          \OtherTok{=}\NormalTok{ (}\DataTypeTok{Nothing}\NormalTok{, }\DataTypeTok{SEmpty}\NormalTok{)}
+\NormalTok{popSH (}\DataTypeTok{SNode}\NormalTok{ r h1 h2) }\OtherTok{=}\NormalTok{ (}\DataTypeTok{Just}\NormalTok{ r , mergeSH h1 h2)}
+\end{Highlighting}
+\end{Shaded}
+
+We make it return a potential result (\texttt{Maybe\ a}), and the resulting new
+popped tree. The result is \texttt{Maybe\ a} because we might potentially not be
+able to pop anything! We also require an \texttt{Ord} constraint because in
+order to merge two skew heaps, the data must be comparable.
+
+Finally, the hardest piece of code so far: merging two skew heaps:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/PQueue.hs\#L37{-}L42}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\OtherTok{mergeSH ::} \DataTypeTok{Ord}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{SkewHeap}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{SkewHeap}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{SkewHeap}\NormalTok{ a}
+\NormalTok{mergeSH }\DataTypeTok{SEmpty}\NormalTok{ h }\OtherTok{=}\NormalTok{ h}
+\NormalTok{mergeSH h }\DataTypeTok{SEmpty} \OtherTok{=}\NormalTok{ h}
+\NormalTok{mergeSH hA}\OperatorTok{@}\NormalTok{(}\DataTypeTok{SNode}\NormalTok{ xA lA rA) hB}\OperatorTok{@}\NormalTok{(}\DataTypeTok{SNode}\NormalTok{ xB lB rB)}
+    \OperatorTok{|}\NormalTok{ xA }\OperatorTok{\textless{}}\NormalTok{ xB    }\OtherTok{=} \DataTypeTok{SNode}\NormalTok{ xA (mergeSH rA hB) lA}
+    \OperatorTok{|} \FunctionTok{otherwise}  \OtherTok{=} \DataTypeTok{SNode}\NormalTok{ xB (mergeSH rB hA) lB}
+\end{Highlighting}
+\end{Shaded}
+
+Hopefully this is very pleasing to read --- it reads a lot like a specification,
+or a math formula:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Merging any skew heap with an empty heap is that same skew heap.
+\item
+  When merging two heaps, the new heap is an \texttt{SNode} with the smaller
+  root, whose children are the merge of the smaller tree and the original
+  children. (Admittedly, the math/code is a bit more expressive than English in
+  this case)
+\end{enumerate}
+
+(Remember that in our case, the \emph{lower} value/weight is the \emph{higher}
+priority.)
+
+We require an \texttt{Ord} constraint because we compare the node element on the
+third case.
+
+\subsection{Priority Queue interface}\label{priority-queue-interface}
+
+Ok, neat!
+
+Let's wrap this up in a tidy interface/API for a \texttt{PQueue} type:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/PQueue.hs\#L48{-}L71}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\KeywordTok{newtype} \DataTypeTok{PQueue}\NormalTok{ a }\OtherTok{=} \DataTypeTok{PQ}\NormalTok{ (}\DataTypeTok{SkewHeap}\NormalTok{ a) }\KeywordTok{deriving} \DataTypeTok{Show}
+
+\OtherTok{emptyPQ ::} \DataTypeTok{PQueue}\NormalTok{ a}
+\NormalTok{emptyPQ }\OtherTok{=} \DataTypeTok{PQ} \DataTypeTok{SEmpty}
+
+\OtherTok{insertPQ ::} \DataTypeTok{Ord}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{PQueue}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{PQueue}\NormalTok{ a}
+\NormalTok{insertPQ x (}\DataTypeTok{PQ}\NormalTok{ h) }\OtherTok{=} \DataTypeTok{PQ}\NormalTok{ (mergeSH h (makeSH x))}
+
+\OtherTok{popPQ ::} \DataTypeTok{Ord}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{PQueue}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{Maybe}\NormalTok{ a, }\DataTypeTok{PQueue}\NormalTok{ a)}
+\NormalTok{popPQ (}\DataTypeTok{PQ}\NormalTok{ h) }\OtherTok{=}\NormalTok{ (res, }\DataTypeTok{PQ}\NormalTok{ h\textquotesingle{})}
+  \KeywordTok{where}
+\NormalTok{    (res, h\textquotesingle{}) }\OtherTok{=}\NormalTok{ popSH h}
+
+\OtherTok{sizePQ ::} \DataTypeTok{PQueue}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Int}
+\NormalTok{sizePQ (}\DataTypeTok{PQ}\NormalTok{ h) }\OtherTok{=} \FunctionTok{length}\NormalTok{ (toList h)}
+\end{Highlighting}
+\end{Shaded}
+
+(Notice \texttt{toList}, from the
+\href{http://hackage.haskell.org/package/base-4.6.0.1/docs/Data-Foldable.html}{Foldable}
+module; we derived \texttt{Foldable} so that we can use \texttt{toList} on our
+\texttt{SkewHeap}s. If your Haskell implementation cannot derive foldable (if
+you are not using GHC, for example) --- and even if your implementation can ---
+it might be fun to think about how to implement \texttt{sizePQ} without it!)
+
+We do this so that we hide our low-level skew heap implementation over a
+``high-level'' priority queue interface. We do not export the \texttt{PQ}
+constructor, so users cannot ever directly access the underlying skew heap. In
+this case, the high level isn't much higher of a level, but it's good practice
+to hide away the implementation details when you can in Haskell, a language
+whose power lies so much in abstraction.
+
+\section{Building our Huffman encoding
+tree}\label{building-our-huffman-encoding-tree}
+
+Now that we have what we need in place, let's get to doing building our tree.
+(Again, all available
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/huffman/Huffman.hs}{for
+download}.)
+
+\subsection{Frequency Tables}\label{frequency-tables}
+
+First, we need to have some sort of frequency table. We will use
+\texttt{Data.Map.Strict}'s \texttt{Map} type:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/Huffman.hs\#L19{-}L19}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\KeywordTok{type} \DataTypeTok{FreqTable}\NormalTok{ a }\OtherTok{=} \DataTypeTok{Map}\NormalTok{ a }\DataTypeTok{Int}
+\end{Highlighting}
+\end{Shaded}
+
+and we'll import the operations from \texttt{Data.Map.Strict} qualified:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{import} \KeywordTok{qualified} \DataTypeTok{Data.Map.Strict} \KeywordTok{as} \DataTypeTok{M}
+\end{Highlighting}
+\end{Shaded}
+
+Just to work with things now, let's make a way to generate a \texttt{FreqTable}
+from an arbitrary string:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/Huffman.hs\#L22{-}L25}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\OtherTok{listFreq ::} \DataTypeTok{Ord}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ [a] }\OtherTok{{-}\textgreater{}} \DataTypeTok{FreqTable}\NormalTok{ a}
+\NormalTok{listFreq }\OtherTok{=} \FunctionTok{foldr}\NormalTok{ f M.empty}
+  \KeywordTok{where}
+\NormalTok{    f x m }\OtherTok{=}\NormalTok{ M.insertWith (}\OperatorTok{+}\NormalTok{) x }\DecValTok{1}\NormalTok{ m}
+\end{Highlighting}
+\end{Shaded}
+
+This says that \texttt{listFreq} is a fold, where you start with
+\texttt{M.empty} (an empty \texttt{FreqTable}) and for every element, you insert
+it into the map as a key with value 1. If the key already exists, add one to its
+current value instead.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ listFreq }\StringTok{"hello world"}
+\NormalTok{fromList [(}\CharTok{\textquotesingle{} \textquotesingle{}}\NormalTok{,}\DecValTok{1}\NormalTok{),(}\CharTok{\textquotesingle{}d\textquotesingle{}}\NormalTok{,}\DecValTok{1}\NormalTok{),(}\CharTok{\textquotesingle{}e\textquotesingle{}}\NormalTok{,}\DecValTok{1}\NormalTok{),(}\CharTok{\textquotesingle{}h\textquotesingle{}}\NormalTok{,}\DecValTok{1}\NormalTok{),(}\CharTok{\textquotesingle{}l\textquotesingle{}}\NormalTok{,}\DecValTok{3}\NormalTok{),(}\CharTok{\textquotesingle{}o\textquotesingle{}}\NormalTok{,}\DecValTok{2}\NormalTok{),(}\CharTok{\textquotesingle{}r\textquotesingle{}}\NormalTok{,}\DecValTok{1}\NormalTok{),(}\CharTok{\textquotesingle{}w\textquotesingle{}}\NormalTok{,}\DecValTok{1}\NormalTok{)]}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Building the queue}\label{building-the-queue}
+
+Next, we would like to create Huffman leaves out of all of these elements, with
+associated weights, and insert them all into a \texttt{PQueue}. We can do this
+by using \texttt{M.foldrWithKey}, which is a \texttt{foldr} over the map, giving
+the folding function both the key and the value.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/Huffman.hs\#L43{-}L46}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\OtherTok{listQueue ::} \DataTypeTok{Ord}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ [a] }\OtherTok{{-}\textgreater{}} \DataTypeTok{PQueue}\NormalTok{ (}\DataTypeTok{Weighted}\NormalTok{ a)}
+\NormalTok{listQueue }\OtherTok{=}\NormalTok{ M.foldrWithKey f emptyPQ }\OperatorTok{.}\NormalTok{ listFreq}
+  \KeywordTok{where}
+\NormalTok{    f k v pq }\OtherTok{=}\NormalTok{ insertPQ (}\DataTypeTok{WPair}\NormalTok{ v k) pq}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ pq }\OtherTok{=}\NormalTok{ listQueue }\StringTok{"hello world"}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t pq}
+\OtherTok{pq ::} \DataTypeTok{PQueue}\NormalTok{ (}\DataTypeTok{WPair} \DataTypeTok{Int}\NormalTok{ (}\DataTypeTok{PreTree} \DataTypeTok{Char}\NormalTok{))}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ sizePQ pq}
+\DecValTok{8}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ (popped1, pq\textquotesingle{}) }\OtherTok{=}\NormalTok{ popPQ pq}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ popped1}
+\DataTypeTok{Just}\NormalTok{ (}\DataTypeTok{WPair} \DecValTok{1} \CharTok{\textquotesingle{} \textquotesingle{}}\NormalTok{)}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ (popped2, pq\textquotesingle{}\textquotesingle{}) }\OtherTok{=}\NormalTok{ popPQ pq\textquotesingle{}}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ popped2}
+\DataTypeTok{Just}\NormalTok{ (}\DataTypeTok{WPair} \DecValTok{1} \CharTok{\textquotesingle{}d\textquotesingle{}}\NormalTok{)}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ sizePQ pq\textquotesingle{}\textquotesingle{}}
+\DecValTok{6}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Building the tree}\label{building-the-tree}
+
+Building the tree is going to be a bit harder than a simple fold over the queue,
+because we have to ``branch'' based on the state of the queue. Depending on the
+state of the queue, we make decisions on ``control flow''.
+
+The experienced Haskelleur will recognize that this language is very evocative
+of the Monad design pattern.
+
+\subsubsection{The State monad}\label{the-state-monad}
+
+In particular, we will be using the State monad, which is basically a plain ol'
+newtype wrapper around functions \texttt{s\ -\textgreater{}\ (a,\ s)}.
+Basically, functions that act on a state and return a value with a modified
+state.
+
+These functions are actually surprisingly useful, and as it turns out, all
+stateful computations can be described as ``compositions'' of these functions.
+
+What do I mean by ``compositions''?
+
+Let's say I have two functions:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{f1 ::}\NormalTok{ s }\OtherTok{{-}\textgreater{}}\NormalTok{ (a, s)}
+\OtherTok{f2 ::}\NormalTok{ s }\OtherTok{{-}\textgreater{}}\NormalTok{ (b, s)}
+\end{Highlighting}
+\end{Shaded}
+
+And I wanted to sequence them:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{f1 }\OtherTok{\textasciigrave{}andThen\textasciigrave{}}\NormalTok{ f2}
+\end{Highlighting}
+\end{Shaded}
+
+What would that even ``look like''?
+
+Well, I expect that sequencing two state functions will return a new, ``giant''
+state function that does both functions ``one after the other''. That is:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{f1 }\OtherTok{\textasciigrave{}andThen\textasciigrave{} f2 ::}\NormalTok{ s }\OtherTok{{-}\textgreater{}}\NormalTok{ (b, s)}
+\end{Highlighting}
+\end{Shaded}
+
+This new function will first run the input state on \texttt{f1}, and take that
+resulting state and pass it into \texttt{f2}, and then return the result of
+\texttt{f2} and the resulting modified state of \texttt{f2}.
+
+So we have something like
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{andThen ::}\NormalTok{ (s }\OtherTok{{-}\textgreater{}}\NormalTok{ (a,s)) }\OtherTok{{-}\textgreater{}}\NormalTok{ (s }\OtherTok{{-}\textgreater{}}\NormalTok{ (b,s)) }\OtherTok{{-}\textgreater{}}\NormalTok{ (s }\OtherTok{{-}\textgreater{}}\NormalTok{ (b,s))}
+\NormalTok{andThen f1 f2 }\OtherTok{=}\NormalTok{ \textbackslash{}st }\OtherTok{{-}\textgreater{}} \KeywordTok{let}\NormalTok{ (\_,st\textquotesingle{}) }\OtherTok{=}\NormalTok{ f1 s}
+                       \KeywordTok{in}\NormalTok{  f2 st\textquotesingle{}}
+\end{Highlighting}
+\end{Shaded}
+
+Think of \texttt{andThen} like a semicolon, of sorts.
+
+Notice that we ``lose'' the result of \texttt{f1} with \texttt{andThen}. What if
+we wanted to use it? We might write a combinator:
+
+\begin{verbatim}
+andThenWith ::       (s -> (a, s))
+            -> (a -> (s -> (b, s)))
+            ->       (s -> (b, s))
+\end{verbatim}
+
+Which you would use like
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{f1 }\OtherTok{\textasciigrave{}andThenWith\textasciigrave{}}\NormalTok{ (\textbackslash{}x }\OtherTok{{-}\textgreater{}}\NormalTok{ f2 x)}
+\end{Highlighting}
+\end{Shaded}
+
+where \texttt{f2} is a function that takes an \texttt{a} and returns a
+\texttt{s\ -\textgreater{}\ (a,s)}.
+
+Basically, it would be exactly the same as \texttt{andThen}, except the second
+argument gets access to the result of the first. Writing it is almost as simple,
+actually ---
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{andThenWith ::}\NormalTok{ (s }\OtherTok{{-}\textgreater{}}\NormalTok{ (a,s)) }\OtherTok{{-}\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{ (s }\OtherTok{{-}\textgreater{}}\NormalTok{ (b, s))) }\OtherTok{{-}\textgreater{}}\NormalTok{ (s }\OtherTok{{-}\textgreater{}}\NormalTok{ (b, s))}
+\NormalTok{andThenWith f1 f2 }\OtherTok{=}\NormalTok{ \textbackslash{}st }\OtherTok{{-}\textgreater{}} \KeywordTok{let}\NormalTok{ (x,st\textquotesingle{}) }\OtherTok{=}\NormalTok{ f1 s}
+                           \KeywordTok{in}\NormalTok{  (f2 x) st\textquotesingle{}}
+\end{Highlighting}
+\end{Shaded}
+
+As it turns out\ldots if you squint hard enough, the type signature
+\texttt{andThenWith} looks a lot like the type signature for
+\texttt{(\textgreater{}\textgreater{}=)}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{(\textgreater{}\textgreater{}=) ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}}\NormalTok{ m a }\OtherTok{{-}\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{ m b) }\OtherTok{{-}\textgreater{}}\NormalTok{ m b}
+\end{Highlighting}
+\end{Shaded}
+
+Hm. Let's create a type synonym for our \texttt{s\ -\textgreater{}\ (a,\ s)}, to
+make things more clear.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \DataTypeTok{State}\NormalTok{ s a }\OtherTok{=}\NormalTok{ s }\OtherTok{{-}\textgreater{}}\NormalTok{ (a, s)}
+\end{Highlighting}
+\end{Shaded}
+
+So now our \texttt{andThenWith} looks like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{andThenWith ::} \DataTypeTok{State}\NormalTok{ s a }\OtherTok{{-}\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}} \DataTypeTok{State}\NormalTok{ s b) }\OtherTok{{-}\textgreater{}} \DataTypeTok{State}\NormalTok{ s b}
+\end{Highlighting}
+\end{Shaded}
+
+If we let \texttt{m\ \textasciitilde{}\ State\ s}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{andThenWith ::}\NormalTok{ m a }\OtherTok{{-}\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{ m b) }\OtherTok{{-}\textgreater{}}\NormalTok{ m b}
+\end{Highlighting}
+\end{Shaded}
+
+Neat!
+
+As it turns out, we can turn our state functions into a Monad, which
+encapsulates ``sequencing'' state functions one after another.
+
+We just need \texttt{return}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{returnState ::}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{State}\NormalTok{ s a}
+\NormalTok{returnState x }\OtherTok{=}\NormalTok{ \textbackslash{}st }\OtherTok{{-}\textgreater{}}\NormalTok{ (x, st)}
+\end{Highlighting}
+\end{Shaded}
+
+And \texttt{return} is \texttt{returnState},
+\texttt{(\textgreater{}\textgreater{})} is \texttt{andThen}, and
+\texttt{(\textgreater{}\textgreater{}=)} is \texttt{andThenWith}.
+
+In real life, we can't define typeclass instances on type synonyms, so we
+actually use a \texttt{newtype}. The standard implementation comes from the
+\href{http://hackage.haskell.org/package/transformers}{transformers} library.
+Because \texttt{State\ s} is a member of the \texttt{Monad} typeclass, we can
+use normal monad combinators, operators, and do notation. The transformers
+implementation comes with a few useful primitives:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} wrap a normal state function into the State wrapper}
+\OtherTok{state ::}\NormalTok{ (s }\OtherTok{{-}\textgreater{}}\NormalTok{ (a, s)) }\OtherTok{{-}\textgreater{}} \DataTypeTok{State}\NormalTok{ s a}
+
+\CommentTok{{-}{-} get grabs the state as the result.}
+\OtherTok{get ::} \DataTypeTok{State}\NormalTok{ s s}
+\NormalTok{get }\OtherTok{=}\NormalTok{ state (\textbackslash{}st }\OtherTok{{-}\textgreater{}}\NormalTok{ (st, st))}
+
+\CommentTok{{-}{-} put sets the state to the input}
+\OtherTok{put ::}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{State}\NormalTok{ s ()}
+\NormalTok{put s }\OtherTok{=}\NormalTok{ state (\textbackslash{}\_ }\OtherTok{{-}\textgreater{}}\NormalTok{ ((), st))}
+
+\CommentTok{{-}{-} modifies the state with the given function}
+\OtherTok{modify ::}\NormalTok{ (s }\OtherTok{{-}\textgreater{}}\NormalTok{ s) }\OtherTok{{-}\textgreater{}} \DataTypeTok{State}\NormalTok{ s ()}
+\NormalTok{modify f }\OtherTok{=}\NormalTok{ state (\textbackslash{}st }\OtherTok{{-}\textgreater{}}\NormalTok{ ((), f st))}
+
+\CommentTok{{-}{-} alternative implementation of \textasciigrave{}modify\textasciigrave{}}
+\NormalTok{modify\textquotesingle{}}\OtherTok{ f ::}\NormalTok{ (s }\OtherTok{{-}\textgreater{}}\NormalTok{ s) }\OtherTok{{-}\textgreater{}} \DataTypeTok{State}\NormalTok{ s ()}
+\NormalTok{modify\textquotesingle{} f }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    st }\OtherTok{\textless{}{-}}\NormalTok{ get}
+\NormalTok{    put (f st)}
+\end{Highlighting}
+\end{Shaded}
+
+If you're still lost, check out Brandon Simmon's
+\href{http://brandon.si/code/the-state-monad-a-tutorial-for-the-confused/}{state
+monad tutorial}, which was the article that eventually cleared it all up for
+myself. And feel free to ask questions!
+
+The \emph{big} usefulness for this ``composing stateful functions'' business,
+instead of manually unwrapping and re-wrapping the state, is that now
+\texttt{State} actions are first-class, and you can freely compose them and pass
+them around as objects, and you can write individual ``sub-routines'', are
+little packets of commands that modify state, and then ``call them'' and compose
+them from other stateful computations.
+
+\subsubsection{Why monads?}\label{why-monads}
+
+One might pause to wonder why we would want to instance our
+\texttt{s\ -\textgreater{}\ (a,\ s)} functions as a Monad. Why can't we just
+always sequence our state functions using \texttt{andThen} and
+\texttt{andThenWith}?
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Using monads, we can now use \texttt{do} notation, which is pretty nice sugar.
+\item
+  We now have access to the wide library of useful Haskell
+  \href{http://hackage.haskell.org/package/base-4.6.0.1/docs/Control-Monad.html}{monad
+  combinators}. And boy are there a lot --- \texttt{sequence}, \texttt{mapM},
+  \texttt{when}, \texttt{filterM}, etc.
+\item
+  We also get an Applicative instance for free, so we can do arbitrary-arity
+  lifting with things like
+  \texttt{f\ \textless{}\$\textgreater{}\ x\ \textless{}*\textgreater{}\ y},
+  where \texttt{f} is a pure function like \texttt{(+)} and \texttt{x} and
+  \texttt{y} are stateful functions. We also get a free Functor instance as
+  well, so we can \texttt{fmap}.
+\item
+  We can now reason with our stateful functions with all of the powerful
+  equational reasoning tools that the monad laws offer.
+\end{enumerate}
+
+As you can see, monads are not just a curiosity --- they are a powerful and
+expressive tool!
+
+\subsubsection{A quick look back}\label{a-quick-look-back}
+
+This is a bit of an unrelated aside\ldots but notice that we could have actually
+done our previous \texttt{fold}s as state monad operations; like
+\texttt{listFreq}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/Huffman.hs\#L29{-}L36}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\OtherTok{runListFreq ::} \KeywordTok{forall}\NormalTok{ a}\OperatorTok{.} \DataTypeTok{Ord}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ [a] }\OtherTok{{-}\textgreater{}} \DataTypeTok{FreqTable}\NormalTok{ a}
+\NormalTok{runListFreq xs }\OtherTok{=}\NormalTok{ execState listFreqState M.empty}
+  \KeywordTok{where}
+\OtherTok{    listFreqState ::} \DataTypeTok{State}\NormalTok{ (}\DataTypeTok{FreqTable}\NormalTok{ a) ()}
+\NormalTok{    listFreqState }\OtherTok{=} \FunctionTok{mapM\_}\NormalTok{ addFreq xs}
+
+\OtherTok{    addFreq ::}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{State}\NormalTok{ (}\DataTypeTok{FreqTable}\NormalTok{ a) ()}
+\NormalTok{    addFreq x }\OtherTok{=}\NormalTok{ modify (M.insertWith (}\OperatorTok{+}\NormalTok{) x }\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{execState} runs the given \texttt{State} computation with the given
+initial state, and returns the final state \texttt{s} at the end of it all.
+Basically, it takes an \texttt{s\ -\textgreater{}\ (a,\ s)} (the
+\texttt{State\ s\ a}), an \texttt{s}, applies the function to it, and returns
+just the \texttt{s} in the tuple.
+
+Remember that the best way to read \texttt{State\ s\ a} is just ``a type synonym
+for \texttt{s\ -\textgreater{}\ (a,s)}''. So when we say
+\texttt{listFreqState\ ::\ State\ (FreqTable\ a)\ ()}, we mean that
+\texttt{listFreqState} is a function from a \texttt{FreqTable\ a} to
+\texttt{((),\ FreqTable\ a)}.
+
+How about \texttt{listQueue}? We could do it with the state monad too, if we
+wanted to.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/Huffman.hs\#L50{-}L59}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\OtherTok{listQueueState ::} \DataTypeTok{Ord}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ [a] }\OtherTok{{-}\textgreater{}} \DataTypeTok{State}\NormalTok{ (}\DataTypeTok{PQueue}\NormalTok{ (}\DataTypeTok{WeightedPT}\NormalTok{ a)) ()}
+\NormalTok{listQueueState xs }\OtherTok{=}\NormalTok{ M.traverseWithKey addNode (listFreq xs) }\OperatorTok{\textgreater{}\textgreater{}} \FunctionTok{return}\NormalTok{ ()}
+  \KeywordTok{where}
+\OtherTok{    addNode ::}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{State}\NormalTok{ (}\DataTypeTok{PQueue}\NormalTok{ (}\DataTypeTok{WeightedPT}\NormalTok{ a)) ()}
+\NormalTok{    addNode x i }\OtherTok{=}\NormalTok{ modify (insertPQ (}\DataTypeTok{WPair}\NormalTok{ i (makePT x)))}
+
+\OtherTok{runListQueue ::} \DataTypeTok{Ord}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ [a] }\OtherTok{{-}\textgreater{}} \DataTypeTok{PQueue}\NormalTok{ (}\DataTypeTok{WeightedPT}\NormalTok{ a)}
+\NormalTok{runListQueue xs }\OtherTok{=}\NormalTok{ execState (listQueueState xs) emptyPQ}
+\end{Highlighting}
+\end{Shaded}
+
+In these cases, the monadic usage isn't quite necessary or useful on its own. A
+fold would have probably been more expressive and easier to read. The above
+examples were just for demonstrations/exercises.
+
+But when do we ``need'' the state monad? (Or rather, when is a fold not powerful
+enough or much messier?)
+
+It's when we want to make decisions or ``branch'' based on the current state, or
+the results of our state actions. ``Fold for three items; if the next list item
+is even then do this fold afterwards, otherwise do that fold''. This is when the
+state monad shines as a monad.
+
+Another case where we might want to use a state monad over a fold is if we
+forsee us wanting to ``compose'' our folds into bigger stateful computations.
+For example, in \texttt{listQueueState}, we ``process'' a state, and leave it
+modified for \emph{another state monad action} to use.
+
+For example:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{prepareQueue ::} \DataTypeTok{State}\NormalTok{ (}\DataTypeTok{PQueue}\NormalTok{ (}\DataTypeTok{WeightedPT}\NormalTok{ a)) ()}
+\OtherTok{useQueue     ::} \DataTypeTok{State}\NormalTok{ (}\DataTypeTok{PQueue}\NormalTok{ (}\DataTypeTok{WeightedPT}\NormalTok{ a)) a}
+
+\OtherTok{doAllTogether ::} \DataTypeTok{Ord}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ [a] }\OtherTok{{-}\textgreater{}} \DataTypeTok{State}\NormalTok{ (}\DataTypeTok{PQueue}\NormalTok{ (}\DataTypeTok{WeightedPT}\NormalTok{ a)) a}
+\NormalTok{doAllTogether xs }\OtherTok{=}\NormalTok{ prepareQueue }\OperatorTok{\textgreater{}\textgreater{}}\NormalTok{ listQueueState xs }\OperatorTok{\textgreater{}\textgreater{}}\NormalTok{ useQueue}
+
+\CommentTok{{-}{-} alternatively, the same thing but in do notation}
+\OtherTok{doAllTogether\textquotesingle{} ::} \DataTypeTok{Ord}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ [a] }\OtherTok{{-}\textgreater{}} \DataTypeTok{State}\NormalTok{ (}\DataTypeTok{PQueue}\NormalTok{ (}\DataTypeTok{WeightedPT}\NormalTok{ a)) a}
+\NormalTok{doAllTogether\textquotesingle{} xs }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    prepareQueue}
+\NormalTok{    listQueueState xs}
+\NormalTok{    useQueue}
+
+\OtherTok{runDoAllTogether ::} \DataTypeTok{Ord}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ [a] }\OtherTok{{-}\textgreater{}}\NormalTok{ a}
+\NormalTok{runDoAllTogether xs }\OtherTok{=}\NormalTok{ evalState (doAllTogether xs) emptyPQ}
+\end{Highlighting}
+\end{Shaded}
+
+(Remember that \texttt{(\textgreater{}\textgreater{})} is just our
+\texttt{andThen}, and when we sequence using
+\texttt{(\textgreater{}\textgreater{})} we mean ``combine these two actions into
+one big action that feeds the resulting state of the left side into the
+beginning state of the right side.'')
+
+Anyways, see that we can just plop a call to \texttt{listQueueState} inside a
+sequence of stateful actions, and it'll just process the queue and leave it for
+the next action to use.
+
+If we had used \texttt{listQueue} as a ``pure'' fold\ldots this is a bit harder
+to do. You'd have to rewrite \texttt{listQueue} to take in any arbitrary
+``starting queue''\ldots extract the starting queue using \texttt{get} after
+\texttt{prepareQueue}, use a \texttt{let} to bind it as a pure function, then
+use \texttt{put} to pop the result back into the state for \texttt{useQueue} to
+use. Or use \texttt{modify} in a just-as-convoluted way.
+
+Moving on, we actually won't be using \texttt{runListFreq} in the future (it was
+mostly for fun), but (spoilers) we might want to hold onto
+\texttt{listQueueState} :)
+
+\subsection{Building with State}\label{building-with-state}
+
+So let's remember how the building process works:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Pop an item from the queue.
+\item
+  Pop another item. If the queue was actually empty, and nothing was poppable,
+  you are done; return the result of step 1.
+\item
+  Merge the two popped items, and push them back into the queue. Go back to step
+  1.
+\end{enumerate}
+
+Sounds simple enough. We should take into account that we would fail to build a
+tree if the queue was empty to begin with, by returning a
+\texttt{Maybe\ (PreTree\ a)} instead of a \texttt{PreTree\ a}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/huffman/Huffman.hs\#L75{-}L98}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/huffman{-}encoding}
+
+\OtherTok{buildTree ::} \DataTypeTok{State}\NormalTok{ (}\DataTypeTok{PQueue}\NormalTok{ (}\DataTypeTok{WeightedPT}\NormalTok{ a)) (}\DataTypeTok{Maybe}\NormalTok{ (}\DataTypeTok{PreTree}\NormalTok{ a))}
+\NormalTok{buildTree }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    t1\textquotesingle{} }\OtherTok{\textless{}{-}}\NormalTok{ state popPQ}
+    \KeywordTok{case}\NormalTok{ t1\textquotesingle{} }\KeywordTok{of}
+      \DataTypeTok{Nothing} \OtherTok{{-}\textgreater{}}
+        \CommentTok{{-}{-} queue was empty to begin with, so this fails.}
+        \FunctionTok{return} \DataTypeTok{Nothing}
+      \DataTypeTok{Just}\NormalTok{ t1 }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{        t2\textquotesingle{} }\OtherTok{\textless{}{-}}\NormalTok{ state popPQ}
+        \KeywordTok{case}\NormalTok{ t2\textquotesingle{} }\KeywordTok{of}
+          \DataTypeTok{Nothing}  \OtherTok{{-}\textgreater{}}
+            \CommentTok{{-}{-} We\textquotesingle{}re done, there was only one item!  Return a \textasciigrave{}Just\textasciigrave{} to}
+            \CommentTok{{-}{-} indicate success.}
+            \FunctionTok{return}\NormalTok{ (}\DataTypeTok{Just}\NormalTok{ (\_wItem t1))     }\CommentTok{{-}{-} break out of the loop}
+          \DataTypeTok{Just}\NormalTok{ t2 }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+            \CommentTok{{-}{-} merge and push}
+            \KeywordTok{let}\NormalTok{ combined }\OtherTok{=}\NormalTok{ mergeWPT t1 t2}
+\NormalTok{            modify (insertPQ combined)}
+\NormalTok{            buildTree                     }\CommentTok{{-}{-} recursive call}
+
+\OtherTok{runBuildTree ::} \DataTypeTok{Ord}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ [a] }\OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{Maybe}\NormalTok{ (}\DataTypeTok{PreTree}\NormalTok{ a))}
+\NormalTok{runBuildTree xs }\OtherTok{=}\NormalTok{ evalState (listQueueState xs }\OperatorTok{\textgreater{}\textgreater{}}\NormalTok{ buildTree) emptyPQ}
+\end{Highlighting}
+\end{Shaded}
+
+Note that due to our uncanny foresight,
+\texttt{popPQ\ ::\ PQueue\ a\ -\textgreater{}\ (Maybe\ a,\ PQueue\ a)} is
+already a state function \texttt{s\ -\textgreater{}\ (a,\ s)}, where the state
+is \texttt{PSQueue\ a} and the return value is \texttt{Maybe\ a}. So all we need
+to do is say \texttt{state\ popPQ} to wrap it in the \texttt{State\ s\ a}
+newtype wrapper/container, and it becomes an ``official''
+\texttt{State\ (PQueue\ a)\ (Maybe\ a)}.
+
+Remember that \texttt{State\ s\ a} is \emph{just a thin wrapper/container} over
+a function \texttt{s\ -\textgreater{}\ (a,\ s)}, anyway, so the two should be
+somewhat equivalent in your mind; the requirement to wrap it in \texttt{State}
+using \texttt{state} is only because of Haskell's own language limitations
+(namely, that you can't define a Monad instance for
+\texttt{s\ -\textgreater{}\ (a,\ s)} in a clean way). When you read
+\texttt{State\ s\ a}, you \emph{should really read}
+\texttt{s\ -\textgreater{}\ (a,\ s)}, because they are for the most part
+\emph{completely equivalent}.
+
+Again, \texttt{(\textgreater{}\textgreater{})} is Monad-speak for our
+\texttt{andThen} function we defined earlier, so for \texttt{buildTree}, we do
+``\texttt{listQueueState\ xs} \emph{and then} \texttt{buildTree}''.
+\texttt{(\textgreater{}\textgreater{})} joins two
+\texttt{s\ -\textgreater{}\ (a,\ s)} functions into one giant
+\texttt{s\ -\textgreater{}\ (a,s)}, by feeding the resulting state of the first
+action into the next one. \texttt{listQueueState} takes an empty priority queue
+and `fills' it with nodes generated from \texttt{xs}, leaving a filled priority
+queue. \texttt{buildTree} then takes that filled queue and performs our building
+operations on it, modifying it as it goes along, and ends up with an empty queue
+as a state and returning the finished tree as a result.
+
+\texttt{evalState} is like partner of \texttt{execState} --- it runs the state
+operation on the given starting state, and outputs the final result (instead of
+the final state). It takes an \texttt{s\ -\textgreater{}\ (a,\ s)}, an
+\texttt{s}, and applies the function to it and gives the resulting \texttt{a} of
+the tuple.
+
+\subsection{Putting it all together}\label{putting-it-all-together}
+
+Let's try it out, shall we?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ fromJust }\OperatorTok{$}\NormalTok{ runBuildTree }\StringTok{"hello world"}
+\DataTypeTok{PTNode}\NormalTok{ (}\DataTypeTok{PTNode}\NormalTok{ (}\DataTypeTok{PTNode}\NormalTok{ (}\DataTypeTok{PTLeaf} \CharTok{\textquotesingle{}h\textquotesingle{}}\NormalTok{)}
+\NormalTok{                       (}\DataTypeTok{PTLeaf} \CharTok{\textquotesingle{}e\textquotesingle{}}\NormalTok{)}
+\NormalTok{               )}
+\NormalTok{               (}\DataTypeTok{PTNode}\NormalTok{ (}\DataTypeTok{PTLeaf} \CharTok{\textquotesingle{}w\textquotesingle{}}\NormalTok{)}
+\NormalTok{                       (}\DataTypeTok{PTLeaf} \CharTok{\textquotesingle{}r\textquotesingle{}}\NormalTok{)}
+\NormalTok{               )}
+\NormalTok{       )}
+\NormalTok{       (}\DataTypeTok{PTNode}\NormalTok{ (}\DataTypeTok{PTLeaf} \CharTok{\textquotesingle{}l\textquotesingle{}}\NormalTok{)}
+\NormalTok{               (}\DataTypeTok{PTNode}\NormalTok{ (}\DataTypeTok{PTNode}\NormalTok{ (}\DataTypeTok{PTLeaf} \CharTok{\textquotesingle{}d\textquotesingle{}}\NormalTok{)}
+\NormalTok{                               (}\DataTypeTok{PTLeaf} \CharTok{\textquotesingle{} \textquotesingle{}}\NormalTok{)}
+\NormalTok{                       )}
+\NormalTok{                       (}\DataTypeTok{PTLeaf} \CharTok{\textquotesingle{}o\textquotesingle{}}\NormalTok{)}
+\NormalTok{               )}
+\NormalTok{       )}
+\end{Highlighting}
+\end{Shaded}
+
+Congrats, we built a Huffman encoding tree! Notice that the most commonly used
+letter (\texttt{\textquotesingle{}l\textquotesingle{}}, occurring 3 times) is
+only at depth 2 (and is most accessible), while the others are at depths 3 and
+4.
+
+\section{Next steps}\label{next-steps}
+
+That's it for this post, it's already long enough!
+
+In the next posts we will look at how we would use this Huffman tree to encode
+and decode text, and general bytes (\texttt{Word8}s), and then hook it all up to
+make a ``streaming'' compressor and uncompressor that reads a file byte-by-byte
+and outputs a compressed file as it goes. We'll then figure out how to store
+this huffman tree in a compact, serialized binary way, and load it cleanly.
+
+In the mean time, try
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/huffman}{downloading
+the source}, or
+\href{https://www.fpcomplete.com/user/jle/huffman-encoding}{playing with it
+online} on \href{http://www.fpcomplete.com}{fpcomplete}!
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}
