@@ -50,7 +50,7 @@ fundamental truth.
 The more Functors you learn about, the more you see that `fmap` seems to always
 preserve "something":
 
-*   For lists, `fmap` preserves length
+*   For lists, `fmap` preserves length and relative orderings.
 *   For optionals (`Maybe`), `fmap` preserves _presence_ (the fact that
     something is there or not). It cannot flip a `Just` to a `Nothing` or vice
     versa.
@@ -164,9 +164,9 @@ it exists. For parser-combinator `Parser`s too it's relatively simple: the
 a result of the consumption. For *optparse-applicative* parser, it's the actual
 parsed command line arguments given by the user at runtime. But sometimes it's
 more complicated: for the technical List functor, the "non-determinism"
-functor, the "shape" is the number of options to choose from, and the "result"
-(to use precise semantics) is the non-deterministic choice that you eventually
-pick or iterate over.
+functor, the "shape" is the number of options to choose from and the order you
+get them in, and the "result" (to use precise semantics) is the
+non-deterministic choice that you eventually pick or iterate over.
 
 So, the "result" can become a bit confusing to generalize. So, in my mind, I
 usually reduce the definitions to:
@@ -248,9 +248,10 @@ it combines the shapes *without considering the results*.
 
 The key takeaway is that the "final shape" *only depends* on the input shapes,
 and not the results. You can know the length of `<*>`-ing two lists together
-with only knowing the length of the input lists. Within the specific context of
-the semantics of `IO`, you can know what "effect" `<*>`-ing two IO actions
-would produce only knowing the effects of the input IO actions[^io]. You can know
+with only knowing the length of the input lists, and you can also know the
+relative ordering of inputs to outputs. Within the specific context of the
+semantics of `IO`, you can know what "effect" `<*>`-ing two IO actions would
+produce only knowing the effects of the input IO actions[^io]. You can know
 what command line arguments `<*>`-ing two *optparse-applicative* parsers would
 have only knowing the command line arguments in the input parsers. You can know
 what strings `<*>`-ing two parser-combinator parsers would consume or reject,
@@ -290,7 +291,7 @@ where we clearly identify specific `Applicative` instances with specific
 Put in code:
 
 ```haskell
--- List's shape is its length and the monoid is (*, 1)
+-- A part of list's shape is its length and the monoid is (*, 1)
 length (xs <*> ys) == length xs * length ys
 length (pure r) == 1
 
@@ -317,7 +318,7 @@ the input, but `ZipList` combines shapes using the `Min` monoid, instead of the
 `ZipList` is an infinite list.
 
 ```haskell
--- ZipList's shape is length and its monoid is (min, infinity)
+-- A part of ZipList's shape is length and its monoid is (min, infinity)
 length (xs <*> ys) == length xs `min` length ys
 length (pure r) == infinity
 ```
@@ -395,7 +396,7 @@ these are also monoidal on the shape, independent of the result. They have a
 *different* monoidal action on `<|>` than as `<*>`:
 
 ```haskell
--- List's shape is its length:
+-- A part of list's shape is its length:
 -- the Ap monoid is (*, 1), the Alt monoid is (+, 0)
 length (xs <*> ys) == length xs * length ys
 length (pure r) == 1
