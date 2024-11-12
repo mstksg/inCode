@@ -1,0 +1,357 @@
+<!DOCTYPE HTML>
+<html><head><title>Auto: A Todo GUI application with Auto (on GHCJS, etc.)
+ · in Code</title><meta name="description" content="Weblog of Justin Le, covering various adventures in programming and explorations in the worlds of computation physics, and knowledge.
+"><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="flattr:id" content="3p9jqr"><meta property="og:site_name" content="in Code"><meta property="og:description" content="Continuing along with All About Auto, let’s look at another exciting and useful application of the auto library: GUI’s. We’re going to look at the canonical “hello world” of GUI apps these days — the todo app. We’re going to be using the specs of todoMVC to build a todoMVC “candidate” that follows the specs…and along the way see what auto offers in its tools of managing isolated state components and modeling GUI logic. We’re really going to be focusing on application logic — “control” and “model” — and not looking too close on “views”, which auto doesn’t quite try to offer and where you can really pick your own view rendering system, making this adaptable to really any platform — javascript/web, desktop, command line, etc. A live version of our end-product is hosted and online. This post does assume some concepts from the tutorial…if not all, then at least those in the introductory post or the README. If you ever find yourself thinking that these concepts are completely new and crazy, you might want to try looking through the tutorial or docs to refresh your mind. As always, comments are welcome, and I’m also usually on #haskell-auto as jle`, and also on twitter (Fair warning…this is not quite a “ghcjs tutorial”, if that’s what you’re looking for; it’s an auto tutorial that uses some rudimentary ghcjs. Hopefully you can learn from that too!)"><meta property="og:type" content="article"><meta property="og:title" content="Auto: A Todo GUI application with Auto (on GHCJS, etc.)
+"><meta property="og:image" content="https://blog.jle.im/img/site_logo.jpg"><meta property="og:locale" content="en_US"><meta property="og:url" content="https://blog.jle.im/entry/auto-a-todo-gui-application-with-auto-on.html"><meta name="twitter:card" content="summary"><meta name="twitter:creator:id" content="mstk"><link rel="author" href="https://plus.google.com/107705320197444500140"><link rel="alternate" type="application/rss+xml" title="in Code (RSS Feed)" href="http://feeds.feedburner.com/incodeblog"><link rel="canonical" href="https://blog.jle.im/entry/auto-a-todo-gui-application-with-auto-on.html"><link href="https://blog.jle.im/favicon.ico" rel="shortcut icon"><link href="https://blog.jle.im/css/toast.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/font.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/main.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/page/entry.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/pygments.css" rel="stylesheet" type="text/css"><script type="text/javascript">var page_data = {};
+var disqus_shortname='incode';
+</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-443711-8', 'jle.im');
+ga('send', 'pageview');
+</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js"></script><script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5234d67a6b68dcd4"></script><script type="text/javascript" src="https://blog.jle.im/js/page/entry_toc.js"></script><script type="text/javascript" src="https://blog.jle.im/js/disqus_count.js"></script><script type="text/javascript" src="https://blog.jle.im/js/social.js"></script><script type="text/javascript" src="https://blog.jle.im/js/jquery/jquery.toc.js"></script><script type="text/javascript" src="https://blog.jle.im/purescript/entry.js"></script></head><body><div id="fb-root"><script>(function(d, s, id) {
+ var js, fjs = d.getElementsByTagName(s)[0];
+ if (d.getElementById(id)) return;
+ js = d.createElement(s); js.id = id;
+ js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=641852699171929";
+ fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+</script></div><div id="header-container"><div id="navbar-container" class="tile"><nav id="navbar-content"><div class="nav-info"><h1 class="site-title"><a href="https://blog.jle.im/" class="nav-title">in Code</a></h1><span class="nav-author">Justin Le</span></div><ul class="nav-links"><li><a href="https://blog.jle.im/">home</a></li><li><a href="https://blog.jle.im/entries.html">archives</a></li><li><a href="https://cv.jle.im">cv</a></li><div class="clear"></div></ul></nav></div><div id="header-content"></div></div><div id="body-container" class="container"><div id="main-container" class="grid"><div class="entry-section unit span-grid" role="main"><article class="tile article"><header><h1 id="title">Auto: A Todo GUI application with Auto (on GHCJS, etc.)
+</h1><p class="entry-info">by <a class="author" href="https://blog.jle.im/">Justin Le</a><span class="info-separator"> &diams; </span><time datetime="2015-04-23T10:04:10Z" pubdate="" class="pubdate">Thursday April 23, 2015</time></p><p><span class="source-info"><a class="source-link" href="https://github.com/mstksg/inCode/tree/master/copy/entries/auto-todo.md">Source</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://github.com/mstksg/inCode/tree/gh-pages/entry/auto-a-todo-gui-application-with-auto-on.md">Markdown</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://blog.jle.im/entry/auto-a-todo-gui-application-with-auto-on.tex">LaTeX</a><span class="info-separator"> &diams; </span></span>Posted in <a href="https://blog.jle.im/entries/category/@auto.html" class="tag-a-category" title="Posts about the auto library, a library offering a denotative, locally stateful
+programming DSL and platform. Check out the README, tutorial, or examples for
+more information!
+">Auto</a>, <a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category" title="Functional, pure, non-strict, statically and strongly typed, natively
+compiled...really just the king of great languages.
+">Haskell</a>, <a href="https://blog.jle.im/entries/category/@tutorials.html" class="tag-a-category" title="Technical tutorials/walkthroughs on specific programming processes and problems
+that I&#39;ve struggled through in the past.
+">Tutorials</a><span class="info-separator"> &diams; </span><a class="comment-link" href="#disqus_thread">Comments</a></p></header><hr><aside class="contents-container"><h5 id="contents-header">Contents</h5><div id="toc"></div></aside><div class="main-content copy-content"><p>Continuing along with <a href="http://blog.jle.im/entries/series/+all-about-auto">All About Auto</a>, let’s look at another exciting and useful application of the <em><a href="http://hackage.haskell.org/package/auto">auto</a></em> library: GUI’s. We’re going to look at the canonical “hello world” of GUI apps these days — the todo app. We’re going to be using the specs of <a href="http://todomvc.com/">todoMVC</a> to build a todoMVC “candidate” that follows the specs…and along the way see what <em>auto</em> offers in its tools of managing isolated state components and modeling GUI logic. We’re really going to be focusing on application logic — “control” and “model” — and not looking too close on “views”, which <em>auto</em> doesn’t quite try to offer and where you can really pick your own view rendering system, making this adaptable to really any platform — javascript/web, desktop, command line, etc.</p>
+<p>A live version of our end-product <a href="https://mstksg.github.com/auto-examples/todo">is hosted and online</a>.</p>
+<p>This post does assume <em>some</em> concepts from the <a href="https://github.com/mstksg/auto/blob/master/tutorial/tutorial.md">tutorial</a>…if not all, then at least those in the <a href="http://blog.jle.im/entry/introducing-the-auto-library">introductory post</a> or the <a href="https://github.com/mstksg/auto/blob/master/README.md">README</a>. If you ever find yourself thinking that these concepts are completely new and crazy, you might want to try looking through the <a href="https://github.com/mstksg/auto/blob/master/tutorial/tutorial.md">tutorial</a> or <a href="http://hackage.haskell.org/package/auto">docs</a> to refresh your mind. As always, comments are welcome, and I’m also usually on <em>#haskell-auto</em> as <em>jle`</em>, and also on <a href="https://twitter.com/mstk" title="Twitter">twitter</a></p>
+<p>(Fair warning…this is not quite a “ghcjs tutorial”, if that’s what you’re looking for; it’s an auto tutorial that uses some rudimentary ghcjs. Hopefully you can learn from that too!)</p>
+<h2 id="overall-layout">Overall Layout</h2>
+<p>At the highest level, <em>auto</em> is a library that provides us tools to build and work with stream transformers on streams of values. Transform a stream of input values to a stream of output values. So, let’s try to phrase our Todo app problem in that perspective. What are our inputs, and what are our outputs?</p>
+<p>For a Todo app, the outputs are probably going to be a <em>todo list</em> itself. If we’re building a GUI, then having the todo list itself is going to be enough to build our front-end display. The stream of <em>inputs</em> is a little less obvious, but, well, what does an app really take as inputs? Commands! Our stream of inputs will be commands sent by a GUI or by whatever front-end we choose. Our todo app then is a transformer of a stream of commands to a stream of todo lists…where the todo list we get changes as we process more commands.</p>
+<p>So the “overall loop” will be:</p>
+<ol type="1">
+<li>A front-end rendered by <em>ghcjs-dom</em> (or whatever) with event handlers that drop commands into a concurrent <code>Chan</code> queue. This just handles rendering.</li>
+<li>Our <code>Auto</code> launched with <code>runOnChan</code>, which waits on the <code>Chan</code> queue, runs the inputs through the <code>Auto</code>, and renders the result. This handles all of the logic.</li>
+</ol>
+<p>We like types in Haskell, so let’s begin by laying out our types!</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/auto/Todo.hs#L19-L46</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Auto</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Auto.Collection</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Monad.Fix</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Data.IntMap</span>             (<span class="dt">IntMap</span>)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Data.Serialize</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">GHC.Generics</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Prelude</span> <span class="kw">hiding</span>          ((.), id)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.IntMap</span>   <span class="kw">as</span> <span class="dt">IM</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">TodoInp</span> <span class="ot">=</span> <span class="dt">IAdd</span>  <span class="dt">String</span>           <span class="co">-- new task with description</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>             <span class="op">|</span> <span class="dt">ITask</span> <span class="dt">TaskID</span> <span class="dt">TaskCmd</span>   <span class="co">-- send command to task by ID</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>             <span class="op">|</span> <span class="dt">IAll</span> <span class="dt">TaskCmd</span>           <span class="co">-- send command to all tasks</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>             <span class="kw">deriving</span> <span class="dt">Show</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">TaskCmd</span> <span class="ot">=</span> <span class="dt">CDelete</span>          <span class="co">-- delete</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>             <span class="op">|</span> <span class="dt">CPrune</span>           <span class="co">-- delete if completed</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>             <span class="op">|</span> <span class="dt">CComplete</span> <span class="dt">Bool</span>   <span class="co">-- set completed status</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>             <span class="op">|</span> <span class="dt">CModify</span> <span class="dt">String</span>   <span class="co">-- modify description</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>             <span class="op">|</span> <span class="dt">CNop</span>             <span class="co">-- do nothing</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>             <span class="kw">deriving</span> <span class="dt">Show</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Task</span> <span class="ot">=</span> <span class="dt">Task</span> {<span class="ot"> taskDescr     ::</span> <span class="dt">String</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>                 ,<span class="ot"> taskCompleted ::</span> <span class="dt">Bool</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>                 } <span class="kw">deriving</span> (<span class="dt">Show</span>, <span class="dt">Generic</span>)</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> <span class="dt">Serialize</span> <span class="dt">Task</span> <span class="co">-- from Data.Serialize, from the cereal library</span></span></code></pre></div>
+<p>We have a type to represent our inputs, <code>TodoInp</code>, which can be an “add” command with a <code>String</code>, a “task” command with a <code>TaskId</code> (<code>Int</code>) and a <code>TaskCmd</code>, and an “all” command with a <code>TaskCmd</code> that is supposed to represent sending that command to all tasks.</p>
+<p>Our <code>TaskCmd</code> represents commands we can send to individual tasks – we can delete, prune (delete if completed), set the “completed” flag, or modify the description.</p>
+<p>We’re going to represent our task list, <code>TaskMap</code>, as not a <code>[]</code> list, but as an <code>IntMap</code> from <em>containers</em>, which associates an <code>Int</code> to a <code>Task</code> that we can look up with the <code>IntMap</code> API. What would a <code>TaskMap</code> store other than a bunch of <code>Task</code>s, which we are defining as jus a tupling of a <code>String</code> description and a <code>Bool</code> completed/uncompleted status.</p>
+<h2 id="the-todo-auto">The Todo Auto</h2>
+<p>Time to go over the logic portion! The part that <em>auto</em> is meant for! We’re going to structure the logic of our app (also known as the “model”) by using principles of local statefulness to avoid ever working with a “global state”, and working in a declarative, high-level manner.</p>
+<h3 id="tasks">Tasks</h3>
+<p>It’s clear that the core of our entire thing is going to be the “task list” construct itself…something that can dynamically add or remove tasks.</p>
+<p>In <em>auto</em>, there is a construct created just for this kind of situation: dynamic collections indexed by a key (a “task id”), where you can add or subtract <code>Auto</code>s from dynamically — they are <code>dynMap</code> and <code>dynMapF</code> from <em><a href="http://hackage.haskell.org/package/auto/docs/Control-Auto-Collection.html">Control.Auto.Collection</a></em>. We’ll be using <code>dynMapF</code> because it’s serializable, and we don’t need the extra power that <code>dynMap</code> offers.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ot">dynMapF ::</span> (k <span class="ot">-&gt;</span> <span class="dt">Interval</span> m a b)    <span class="co">-- ^ function to initialize new `Auto`s</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>        <span class="ot">-&gt;</span> a                        <span class="co">-- ^ default inputs</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>        <span class="ot">-&gt;</span> <span class="dt">Auto</span> m ( <span class="dt">IntMap</span> a        <span class="co">-- ^ input for each internal `Auto`, indexed by key</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>                  , <span class="dt">Blip</span> [k]        <span class="co">-- ^ blip stream to initialize new `Auto`s</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>                  )</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>                  (<span class="dt">IntMap</span> b)        <span class="co">-- ^ `Auto` outputs, by key</span></span></code></pre></div>
+<p><code>dynMapF</code> keeps a “dynamic collection” of <code>Interval m a b</code>s, indexed by an <code>Int</code> key, or an “ID”. It takes as input a stream of <code>IntMap a</code>…basically a bunch of <code>(Int, a)</code> pairs. <code>dynMapF</code> routes each input to the <code>Interval</code> at that ID/address (with a suitable “default” <code>a</code> if none was sent in), and then outputs all of the results as an <code>IntMap b</code> — a bunch of <code>(Int, b)</code> pairs, each output with the address of the <code>Auto</code> that made it.</p>
+<p>For example, <code>IM.singleton 5 True</code> would send <code>True</code> to the <code>Auto</code> stored at <code>5</code>. It’ll then output something that includes <code>(5, "received True!")</code> — the output of the <code>Auto</code> at slot 5.</p>
+<p>Whenever an <code>Interval</code> turns “off” (is <code>Nothing</code>), it is removed from the collection. In this way we can have <code>Auto</code>s “remove themselves”.</p>
+<p>It also takes as input a blip stream of <code>[k]</code>s. We use each emitted <code>k</code> to “initialize a new <code>Interval</code>” and throw it into the collection, creating a new unique key for it. Every time a new <code>Auto</code> is initialized, <code>dynMapF</code> creates a new key for it.</p>
+<p>Read over the <a href="https://github.com/mstksg/auto/blob/master/tutorial/tutorial.md#semantic-tools">tutorial section on blip streams and <code>Interval</code>s</a> if you are still unfamiliar with them.</p>
+<p>This pretty much fits exactly what we want for our task collection. If we imagined that we had our <code>Task</code> as an <code>Auto</code>:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ot">initTask ::</span> <span class="dt">Monad</span> m <span class="ot">=&gt;</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Interval</span> m <span class="dt">TaskCmd</span> <span class="dt">Task</span></span></code></pre></div>
+<p><code>initTask</code> takes a string (a starting description) and initializes an <code>Interval</code> that takes in a stream of task commands, and has a stream of new, updated <code>Task</code>s as its output stream. At every step, it processes the command and outputs the new appropriate <code>Task</code>.</p>
+<p>We can then use this as our “initializer” for <code>dynMapF</code>…and now we have a dynamic collection of tasks!</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/auto/Todo.hs#L48-L50</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="ot">taskCollection ::</span> <span class="dt">Monad</span> m</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>               <span class="ot">=&gt;</span> <span class="dt">Auto</span> m (<span class="dt">IntMap</span> <span class="dt">TaskCmd</span>, <span class="dt">Blip</span> [<span class="dt">String</span>]) (<span class="dt">IntMap</span> <span class="dt">Task</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>taskCollection <span class="ot">=</span> dynMapF initTask <span class="dt">CNop</span></span></code></pre></div>
+<p>If we wanted to send in the command <code>CModify "hey!"</code> to the task whose id/key/address is <code>12</code>, I’d feed in <code>IM.singleton 12 (CModify "hey!")</code>. The output would then contain the output of feeding that <code>CModify</code> to the <code>Auto</code> at that slot 12, associated with slot 12 on the output <code>IntMap</code>.</p>
+<p>Writing <code>initTask</code> and the task <code>Auto</code> is straightforward with <code>accum</code>, which is basically like <code>foldl</code> on the inputs and a “current state”. (The current state is of course the <code>Task</code>).</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/auto/Todo.hs#L52-L62</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="ot">initTask ::</span> <span class="dt">Monad</span> m <span class="ot">=&gt;</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Interval</span> m <span class="dt">TaskCmd</span> <span class="dt">Task</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>initTask descr <span class="ot">=</span> accum f (<span class="dt">Just</span> (<span class="dt">Task</span> descr <span class="dt">False</span>))</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    f (<span class="dt">Just</span> t) tc <span class="ot">=</span> <span class="kw">case</span> tc <span class="kw">of</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>                      <span class="dt">CDelete</span>                  <span class="ot">-&gt;</span> <span class="dt">Nothing</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>                      <span class="dt">CPrune</span> <span class="op">|</span> taskCompleted t <span class="ot">-&gt;</span> <span class="dt">Nothing</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>                             <span class="op">|</span> <span class="fu">otherwise</span>       <span class="ot">-&gt;</span> <span class="dt">Just</span> t</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>                      <span class="dt">CComplete</span> s              <span class="ot">-&gt;</span> <span class="dt">Just</span> t { taskCompleted <span class="ot">=</span> s }</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>                      <span class="dt">CModify</span> descr            <span class="ot">-&gt;</span> <span class="dt">Just</span> t { taskDescr <span class="ot">=</span> descr }</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>                      <span class="dt">CNop</span>                     <span class="ot">-&gt;</span> <span class="dt">Just</span> t</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    f <span class="dt">Nothing</span> _   <span class="ot">=</span> <span class="dt">Nothing</span></span></code></pre></div>
+<p>See that our <code>Auto</code> “turns off” by outputting <code>Nothing</code>. That’s interval semantics, and it’s what <code>dynMapF</code> relies on for its internal <code>Auto</code>s!</p>
+<h3 id="routing-the-inputs">Routing the inputs</h3>
+<p>The only thing left, then, is just to route our input stream to send everything to the correct <code>Auto</code> in <code>taskCollection</code>.</p>
+<p>Our input stream is going to be a stream of <code>TodoInp</code>, which can be “add”, “send command to a single task”, or “send command to all tasks”. Really, though, you can think of it three separate streams all “jammed” into one stream.</p>
+<p>This is a common pattern that we can use <em>blip streams</em> for. Instead of working with one big fatty stream, we can work with several blip streams that only emit when the input that we care about comes in.</p>
+<p>Typically, we’d do this with <code>emitJusts</code>:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ot">emitJusts ::</span> (a <span class="ot">-&gt;</span> <span class="dt">Maybe</span> b) <span class="ot">-&gt;</span> <span class="dt">Auto</span> m a (<span class="dt">Blip</span> b)</span></code></pre></div>
+<p>You can imagine <code>emitJusts</code> is a “siphon” off of the input stream of <code>a</code>s…and pulling out only the values that we care about, as a blip stream of <code>b</code>’s.</p>
+<p>We can build our “siphoners”:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/auto/Todo.hs#L95-L105</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="ot">getAddEvts ::</span> <span class="dt">TodoInp</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> [<span class="dt">String</span>]</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>getAddEvts (<span class="dt">IAdd</span> descr) <span class="ot">=</span> <span class="dt">Just</span> [descr]</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>getAddEvts _            <span class="ot">=</span> <span class="dt">Nothing</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="ot">getModEvts ::</span> <span class="dt">TodoInp</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> (<span class="dt">IntMap</span> <span class="dt">TaskCmd</span>)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>getModEvts (<span class="dt">ITask</span> n te) <span class="ot">=</span> <span class="dt">Just</span> <span class="op">$</span> IM.singleton n te</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>getModEvts _            <span class="ot">=</span> <span class="dt">Nothing</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="ot">getMassEvts ::</span> ([<span class="dt">TaskID</span>], <span class="dt">TodoInp</span>) <span class="ot">-&gt;</span> <span class="dt">Maybe</span> (<span class="dt">IntMap</span> <span class="dt">TaskCmd</span>)</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>getMassEvts (allIds, <span class="dt">IAll</span> te) <span class="ot">=</span> <span class="dt">Just</span> <span class="op">$</span> IM.fromList (<span class="fu">map</span> (,te) allIds)</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>getMassEvts _                 <span class="ot">=</span> <span class="dt">Nothing</span></span></code></pre></div>
+<p><code>getAddEvts</code>, when used with <code>emitJusts</code>, will siphon off all <code>IAdd</code> commands as a blip stream of <code>[String]</code>s, emitting descriptions of new tasks to add.</p>
+<p><code>getModEvts</code>, when used with <code>emitJusts</code>, will siphon off all <code>ITask</code> commands as a blip stream of <code>IntMap TaskCmd</code>, which will be fed into <code>taskCollection</code> and <code>dynMapF</code>.</p>
+<p><code>getMassEvts</code> is pretty much the same thing…siphoning off all <code>IAll</code> commands as a blip stream of <code>IntMap TaskCmd</code>. It needs a list of all <code>TaskID</code>s though, to do its job…because it needs to make an <code>IntMap</code> targeting all of the current tasks.</p>
+<p>Remember, we interace with tasks through an <code>IntMap TaskCmd</code>…which is a map of task id-task command pairs. The <code>TaskCmd</code> stored at key <code>1</code> will be the command we want to send to task id 1.</p>
+<p>Let’s see it all work together!</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/auto/Todo.hs#L64-L93</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="ot">todoApp ::</span> <span class="dt">MonadFix</span> m <span class="ot">=&gt;</span> <span class="dt">Auto</span> m <span class="dt">TodoInp</span> (<span class="dt">IntMap</span> <span class="dt">Task</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>todoApp <span class="ot">=</span> proc inpEvt <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    rec <span class="co">-- all id&#39;s currently alive</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>        allIds <span class="ot">&lt;-</span> arrD IM.keys [] <span class="op">-&lt;</span> taskMap</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>        <span class="co">-- &quot;forking&quot; `inpEvt` into three blip streams:</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>        <span class="co">-- newTaskB :: Blip [String]</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>        newTaskB  <span class="ot">&lt;-</span> emitJusts getAddEvts  <span class="op">-&lt;</span> inpEvt</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>        <span class="co">-- modTaskB :: Blip (IntMap TaskCmd)</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>        modTaskB  <span class="ot">&lt;-</span> emitJusts getModEvts  <span class="op">-&lt;</span> inpEvt</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>        <span class="co">-- massTaskB :: Blip (IntMap TaskCmd)</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>        massTaskB <span class="ot">&lt;-</span> emitJusts getMassEvts <span class="op">-&lt;</span> (allIds, inpEvt)</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>        <span class="co">-- merge the two streams together to get &quot;all&quot; inputs, single and</span></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>        <span class="co">-- mass.</span></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span><span class="ot"> allInpB ::</span> <span class="dt">Blip</span> (<span class="dt">IntMap</span> <span class="dt">TaskCmd</span>)</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>            allInpB <span class="ot">=</span> modTaskB <span class="op">&lt;&gt;</span> massTaskB</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>        <span class="co">-- from a blip stream to an `IntMap` stream that is empty when the</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>        <span class="co">-- stream doesn&#39;t emit</span></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>        <span class="co">-- taskCommands :: IntMap TaskCmd</span></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>        taskCommands <span class="ot">&lt;-</span> fromBlips IM.empty <span class="op">-&lt;</span> allInpB</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>        <span class="co">-- feed the commands and the new tasks to `taskMap`...the result is</span></span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>        <span class="co">-- the `IntMap` of tasks.</span></span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>        <span class="co">-- taskMap :: IntMap Task</span></span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>        taskMap <span class="ot">&lt;-</span> taskCollection <span class="op">-&lt;</span> (taskCommands, newTaskB)</span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>    <span class="fu">id</span> <span class="op">-&lt;</span> taskMap</span></code></pre></div>
+<p>To read the proc block, it does help to sort of see all of the lines as english statements of what things “are”.</p>
+<ol type="1">
+<li><p><code>allIds</code> is a list of keys (id’s) currently in the task map <code>taskMap</code>. All of the id’s of the tasks currently alive.</p></li>
+<li><p>Now, we fork into blip streams:</p>
+<ul>
+<li><code>newTaskB</code> is a blip stream that emits with task descriptions whenever <code>inpEvt</code> calls for one.</li>
+<li><code>modTaskB</code> is a blip stream that emits with a command to a specific task whenever <code>inpEvt</code> calls for one.</li>
+<li><code>massTaskB</code> is a blip stream that emits commands to every single task in <code>allIds</code> whenever <code>inpEvt</code> calls for it.</li>
+<li><code>allInpB</code> is a blip stream with addressed commands whenever either <code>modTaskB</code> or <code>massTaskB</code> emits.</li>
+</ul></li>
+<li><p><code>taskCommands</code> is a map of addressed commands for each task. It’s whatever <code>allInpB</code> emits, when it does emit…or just <code>IM.empty</code> (an empty map) when it doesn’t.</p></li>
+<li><p><code>taskMap</code> is the map of tasks that we get from our <code>taskCollection</code> updater, which manages a collection of tasks. <code>taskCollection</code> needs the commands for each task and the new tasks we want to do its job.</p></li>
+</ol>
+<p>We state things as an interplay of streams. And in the end, the result is what we want — an indexed list of tasks.</p>
+<p>Note that we needed the <code>rec</code> block because we referred to <code>taskMap</code> at the beginning (to get <code>allIds</code>), but we don’t define <code>taskMap</code> until the end.</p>
+<p>Note that we use <code>arrD</code> for <code>allIds</code>. What we really “meant” was something like:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>allIds <span class="ot">&lt;-</span> arr IM.keys <span class="op">-&lt;</span> taskMap</span></code></pre></div>
+<p>But…this doesn’t really work out, because when the whole thing “starts”, we don’t know what <code>taskMap</code> is. We need to know <code>massTaskB</code> to know <code>taskMap</code>, and we need to know <code>allIds</code> to know <code>massTaskB</code>, and…recursive dependency!</p>
+<p>We can use <code>arrD</code> to specify an “initial output” to “close the loop” (in technical terms). We want <code>allIds</code> to initially be <code>[]</code> (we can assume we start with no task id’s), so instead of</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>allIds <span class="ot">&lt;-</span> arr IM.keys <span class="op">-&lt;</span> taskMap</span></code></pre></div>
+<p>we have</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>allIds <span class="ot">&lt;-</span> arrD IM.keys [] <span class="op">-&lt;</span> taskMap</span></code></pre></div>
+<p>Where <code>[]</code> is the “initial output”, so when we first try to do anything, we don’t need <code>taskMap</code> — we just pop out <code>[]</code>!</p>
+<p>This is just a small thing to worry about whenever you have recursive bindings. There is a small cognitive price to pay, but in return, you have something that really just looks like laying out relationships between different quantities :)</p>
+<h2 id="interfacing-with-the-world">Interfacing with the world</h2>
+<p>Our application logic is done; let’s explore ways to interface with it!</p>
+<h3 id="testingcommand-line">Testing/command line</h3>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/auto/todo-cmd.hs#L25-L62</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="ot">parseInp ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">TodoInp</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>parseInp <span class="ot">=</span> p <span class="op">.</span> <span class="fu">words</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    p (<span class="st">&quot;A&quot;</span><span class="op">:</span>xs)   <span class="ot">=</span> <span class="dt">Just</span> (<span class="dt">IAdd</span> (<span class="fu">unwords</span> xs))</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    p (<span class="st">&quot;D&quot;</span><span class="op">:</span>n<span class="op">:</span>_)  <span class="ot">=</span> onId n <span class="dt">CDelete</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    p (<span class="st">&quot;C&quot;</span><span class="op">:</span>n<span class="op">:</span>_)  <span class="ot">=</span> onId n (<span class="dt">CComplete</span> <span class="dt">True</span>)</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    p (<span class="st">&quot;U&quot;</span><span class="op">:</span>n<span class="op">:</span>_)  <span class="ot">=</span> onId n (<span class="dt">CComplete</span> <span class="dt">False</span>)</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    p (<span class="st">&quot;P&quot;</span><span class="op">:</span>n<span class="op">:</span>_)  <span class="ot">=</span> onId n <span class="dt">CPrune</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    p (<span class="st">&quot;M&quot;</span><span class="op">:</span>n<span class="op">:</span>xs) <span class="ot">=</span> onId n (<span class="dt">CModify</span> (<span class="fu">unwords</span> xs))</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    p _          <span class="ot">=</span> <span class="dt">Nothing</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a><span class="ot">    onId ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">TaskCmd</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">TodoInp</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    onId <span class="st">&quot;*&quot;</span> te <span class="ot">=</span> <span class="dt">Just</span> (<span class="dt">IAll</span> te)</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>    onId n   te <span class="ot">=</span> (<span class="ot">`ITask`</span> te) <span class="op">&lt;$&gt;</span> readMaybe n</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a><span class="ot">formatTodo ::</span> <span class="dt">IntMap</span> <span class="dt">Task</span> <span class="ot">-&gt;</span> <span class="dt">String</span></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>formatTodo <span class="ot">=</span> <span class="fu">unlines</span> <span class="op">.</span> <span class="fu">map</span> format <span class="op">.</span> IM.toList</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>    format (n, <span class="dt">Task</span> desc compl) <span class="ot">=</span> <span class="fu">concat</span> [ <span class="fu">show</span> n</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>                                         , <span class="st">&quot;. [&quot;</span></span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>                                         , <span class="kw">if</span> compl <span class="kw">then</span> <span class="st">&quot;X&quot;</span> <span class="kw">else</span> <span class="st">&quot; &quot;</span></span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>                                         , <span class="st">&quot;] &quot;</span></span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>                                         , desc</span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>                                         ]</span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">putStrLn</span> <span class="st">&quot;Enter command! &#39;A descr&#39; or &#39;[D/C/U/P/M] [id/*]&#39;&quot;</span></span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a>    void <span class="op">.</span> interactAuto <span class="op">$</span> <span class="co">-- interactAuto takes an Interval; `toOn` gives</span></span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a>                          <span class="co">--   one that runs forever</span></span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>                          toOn</span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a>                          <span class="co">-- default output value on bad command</span></span>
+<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a>                        <span class="op">.</span> fromBlips <span class="st">&quot;Bad command!&quot;</span></span>
+<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a>                          <span class="co">-- run `formatTodo &lt;$&gt; todoApp` on emitted commands</span></span>
+<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a>                        <span class="op">.</span> perBlip (formatTodo <span class="op">&lt;$&gt;</span> todoApp)</span>
+<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a>                          <span class="co">-- emit when input is parseable</span></span>
+<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a>                        <span class="op">.</span> emitJusts parseInp</span></code></pre></div>
+<p><code>interactAuto</code> runs an <code>Interval</code> by feeding it in strings from stdin printing the output to stdout, until the output is “off”/<code>Nothing</code> — then stops. Here we use <code>parseInp</code> to emit input events whenever there is a parse, run <code>todoApp</code> (formatted) on the emitted events, and then condense it all with <code>fromBlips</code> and wrap it in an “always on” <code>toOn</code>.</p>
+<pre><code>$ cabal sandbox init
+$ cabal install auto
+$ cabal exec runghc todo-cmd.hs
+Enter command! &#39;A descr&#39; or &#39;[D/C/U/P/M] [id/*]&#39;
+&gt; A take out the trash
+0. [ ] take out the trash
+
+&gt; A do the dishes
+0. [ ] take out the trash
+1. [ ] do the dishes
+
+&gt; C 1
+0. [ ] take out the trash
+1. [X] do the dishes
+
+&gt; U 1
+0. [ ] take out the trash
+1. [ ] do the dishes
+
+&gt; C 0
+0. [X] take out the trash
+1. [ ] do the dishes
+
+&gt; P *
+1. [ ] do the dishes</code></pre>
+<p>You can <a href="https://github.com/mstksg/inCode/tree/master/code-samples/auto/todo-cmd.hs">download and run this yourself</a>!</p>
+<p>Looks like the logic works! Time to take it to GUI!</p>
+<h3 id="as-a-gui">As a GUI</h3>
+<p>To build a GUI, we must build an <code>Auto</code> that takes in inputs from events and output everything the front-end renderer needs to render the interface.</p>
+<p>For a typical todomvc gui, we need to be able to filter and select things. So that means we need to be extend our input type with filtering and selecting events. And our output has to also indicate the current filter selected, and the current task selected, as well.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">GUIOpts</span> <span class="ot">=</span> <span class="dt">GUI</span> {<span class="ot"> _currFilter   ::</span> <span class="dt">Filter</span>        <span class="co">-- currently applied filter</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>                   ,<span class="ot"> _currSelected ::</span> <span class="dt">Maybe</span> <span class="dt">TaskID</span>  <span class="co">-- currently selected task</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>                   }</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">GUIInp</span> <span class="ot">=</span> <span class="dt">GIFilter</span> <span class="dt">Filter</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>            <span class="op">|</span> <span class="dt">GISelect</span> (<span class="dt">Maybe</span> <span class="dt">TaskID</span>)</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Filter</span> <span class="ot">=</span> <span class="dt">All</span> <span class="op">|</span> <span class="dt">Active</span> <span class="op">|</span> <span class="dt">Completed</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>            <span class="kw">deriving</span> (<span class="dt">Show</span>, <span class="dt">Generic</span>, <span class="dt">Enum</span>, <span class="dt">Eq</span>)</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> <span class="dt">Serialize</span> <span class="dt">Filter</span></span></code></pre></div>
+<p>Instead of defining a new input mega-type with all input events and the todo map with the options, we can use good ol’ fashioned <code>Either</code> and <code>(,)</code>. So now, instead of:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ot">todoApp ::</span> <span class="dt">Auto</span> m <span class="dt">TodoInp</span> (<span class="dt">IntMap</span> <span class="dt">Task</span>)</span></code></pre></div>
+<p>We have:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ot">todoAppGUI ::</span> <span class="dt">Auto</span> m (<span class="dt">Either</span> <span class="dt">TodoInp</span> <span class="dt">GUIInp</span>) (<span class="dt">IntMap</span> <span class="dt">Task</span>, <span class="dt">GUIOpts</span>)</span></code></pre></div>
+<p>Now we take <em>either</em> <code>TodoInp</code> or <code>GUIInp</code> and then return <em>both</em> <code>IntMap Task</code> <em>and</em> <code>GUIOpts</code>.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="ot">todoAppGUI ::</span> <span class="dt">Auto&#39;</span> (<span class="dt">Either</span> <span class="dt">TodoInp</span> <span class="dt">GUIInp</span>) (<span class="dt">IntMap</span> <span class="dt">Task</span>, <span class="dt">GUIOpts</span>)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>todoAppGUI <span class="ot">=</span> proc inp <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    filt  <span class="ot">&lt;-</span> holdWith <span class="dt">All</span>                      <span class="op">.</span> emitJusts filtInps <span class="op">-&lt;</span> inp</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    selc  <span class="ot">&lt;-</span> holdWith <span class="dt">Nothing</span>                  <span class="op">.</span> emitJusts selcInps <span class="op">-&lt;</span> inp</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    tasks <span class="ot">&lt;-</span> holdWith <span class="fu">mempty</span> <span class="op">.</span> perBlip todoApp <span class="op">.</span> emitJusts todoInps <span class="op">-&lt;</span> inp</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">id</span> <span class="op">-&lt;</span> (tasks, <span class="dt">GUI</span> filt selc)</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a><span class="ot">    todoInps ::</span> <span class="dt">Either</span> <span class="dt">TodoInp</span> <span class="dt">GUIInp</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">TodoInp</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>    todoInps (<span class="dt">Left</span> ti) <span class="ot">=</span> <span class="dt">Just</span> ti</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>    todoInps _         <span class="ot">=</span> <span class="dt">Nothing</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a><span class="ot">    filtInps ::</span> <span class="dt">Either</span> <span class="dt">TodoInp</span> <span class="dt">GUIInp</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Filter</span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>    filtInps (<span class="dt">Right</span> (<span class="dt">GIFilter</span> filt)) <span class="ot">=</span> <span class="dt">Just</span> filt</span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>    filtInps _                       <span class="ot">=</span> <span class="dt">Nothing</span></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a><span class="ot">    selcInps ::</span> <span class="dt">Either</span> <span class="dt">TodoInp</span> <span class="dt">GUIInp</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> (<span class="dt">Maybe</span> <span class="dt">TaskID</span>)</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>    selcInps (<span class="dt">Right</span> (<span class="dt">GISelect</span> sec))  <span class="ot">=</span> <span class="dt">Just</span> selc</span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>    selcInps _                       <span class="ot">=</span> <span class="dt">Nothing</span></span></code></pre></div>
+<p>Here we have the same idea as before. One input stream of <code>Either TodoInp GUIInp</code> comes through, and we fork it into three blip streams that each do what we want. <code>holdWith x :: Auto m (Blip b) b</code> is always the value of the last emitted item…but starts off as <code>x</code> first.</p>
+<p>By the way, the above code is much more succinct if you are willing to use <em><a href="http://lens.github.com">lens</a></em>…</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="ot">todoAppGUI ::</span> <span class="dt">Auto&#39;</span> (<span class="dt">Either</span> <span class="dt">TodoInp</span> <span class="dt">GUIInp</span>) (<span class="dt">IntMap</span> <span class="dt">Task</span>, <span class="dt">GUIOpts</span>)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>todoAppGUI <span class="ot">=</span> proc inp <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    filt  <span class="ot">&lt;-</span> holdWith <span class="dt">All</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>           <span class="op">.</span> emitJusts (preview (_Right <span class="op">.</span> _GIFilter)) <span class="op">-&lt;</span> inp</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    selc  <span class="ot">&lt;-</span> holdWith <span class="dt">Nothing</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>           <span class="op">.</span> emitJusts (preview (_Right <span class="op">.</span> _GISelect)) <span class="op">-&lt;</span> inp</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    tasks <span class="ot">&lt;-</span> holdWith <span class="fu">mempty</span> <span class="op">.</span> perBlip todoApp</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>           <span class="op">.</span> emitJusts (preview _Left)                <span class="op">-&lt;</span> inp</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">id</span> <span class="op">-&lt;</span> (tasks, <span class="dt">GUI</span> filt selc)</span></code></pre></div>
+<p>(assuming we defined the prisms for <code>GUIInp</code> or used <code>''mkPrisms</code>)</p>
+<p>Neat, right? In a way, you can say that <code>emitJusts</code> and <code>Prisms</code>/lens was a match made in heaven :)</p>
+<h3 id="giving-it-life">Giving it life</h3>
+<p>The last step is to hook everything up together —</p>
+<ol type="1">
+<li>Setting up events in our GUI to feed inputs to a queue</li>
+<li>Setting up the queue to wait on inputs, and output the task map/gui status on every one using <code>todoAppGUI</code></li>
+<li>Rendering the output into the GUI framework of your choice</li>
+</ol>
+<p>The second step in particular can be handled with good ol’ <code>[runOnChan][]</code>:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="ot">runOnChan ::</span> (b <span class="ot">-&gt;</span> <span class="dt">IO</span> <span class="dt">Bool</span>) <span class="ot">-&gt;</span> <span class="dt">Chan</span> a <span class="ot">-&gt;</span> <span class="dt">Auto&#39;</span> a b <span class="ot">-&gt;</span> <span class="dt">IO</span> (<span class="dt">Auto&#39;</span> a b)</span></code></pre></div>
+<p>We know and love <code>runOnChan</code> from when we used it to make our <a href="http://blog.jle.im/entry/auto-building-a-declarative-chatbot-with-implicit-serialization#irc-backend-the-ugly-part">chatbot</a>. It runs an <code>Auto' a b</code> “on a <code>Chan</code>” (concurrent queue). The first argument is an “output hander” — it handles the <code>b</code>s that the <code>Auto'</code> pops out. It decides whether to stop the whole thing or keep on listening based on the <code>Bool</code> result of the handler. The second argument is the <code>Chan a</code> to listen for inputs on. Whenever something is dropped into that <code>Chan</code>, it runs the <code>Auto'</code> with the <code>a</code> and processes the output <code>b</code> with the handler.</p>
+<p>Our final runner is then just:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>runOnChan renderGUI inputChan todoAppGUI</span></code></pre></div>
+<p>where</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="ot">renderGUI ::</span> (<span class="dt">IntMap</span> <span class="dt">Task</span>, <span class="dt">GUIOpts</span>) <span class="ot">-&gt;</span> <span class="dt">IO</span> <span class="dt">Bool</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="ot">inputChan ::</span> <span class="dt">Chan</span> (<span class="dt">Either</span> <span class="dt">TodoInp</span> <span class="dt">GUIInp</span>)</span></code></pre></div>
+<p>The rendering is done with <code>renderGUI</code>…and it really depends on your framework here. That’s #3 from the list above.</p>
+<p>All you need after that is just to have your GUI hook up event handlers to drop the appropriate <code>Either TodoInp GUIInp</code> into <code>inputChan</code>…and you’re golden!</p>
+<h2 id="seeing-it-in-action">Seeing it in action</h2>
+<p>We’ve reached the end of our tutorial — the parts about <code>auto</code>. It is my hope that whatever GUI front-end you want to work with, it’ll be simple enough to “plug in” our <code>Auto</code> logic.</p>
+<p>A <a href="https://mstksg.github.com/auto-examples/todo">live demo</a> is online too; you can see <a href="https://github.com/mstksg/auto-examples/blob/master/src/TodoJS.hs">the source of the front-end bindings</a></p>
+<p>This is a bare-bons <em>ghcjs</em> implementation using <em>ghcjs-dom</em>, which uses direct dom manipulation.</p>
+<p>User <a href="https://github.com/eryx67">eryx67</a> has been kind enough to provide <a href="https://github.com/eryx67/auto-examples/blob/master/src/TodoJS.hs">an implementation in <em>ghcjs</em></a> with the <em><a href="https://github.com/ocharles/virtual-dom">virtual-dom</a></em> library (<a href="https://github.com/mstksg/auto-examples/commit/246133a89fbca6a2ec7ea276d8536701f6ab8d2c?diff=split">side-by-side comparison</a>), so there is a slightly less uglier implementation with abstraction :)</p>
+<p>As always, feel free to ask questions in the comments, hop over to <em>#haskell-game</em> or <em>#haskell-auto</em> on freenode, or send me a <a href="https://twitter.com/mstk" title="Twitter">tweet</a>! And look forward to more tutorials as the <a href="http://blog.jle.im/entries/series/+all-about-auto">All About Auto</a> series progresses!</p></div><footer><hr><div class="copy-content"><p>Hi, thanks for reading! You can reach me via email at <a href="mailto:justin@jle.im" class="email">justin@jle.im</a>, or at twitter at <a href="https://twitter.com/mstk">@mstk</a>! This post and all others are published under the <a href="https://creativecommons.org/licenses/by-nc-nd/3.0/">CC-BY-NC-ND 3.0</a> license. Corrections and edits via pull request are welcome and encouraged at <a href="https://github.com/mstksg/inCode">the source repository</a>.</p>
+<p>If you feel inclined, or this post was particularly helpful for you, why not consider <a href="https://www.patreon.com/justinle/overview">supporting me on Patreon</a>, or a <a href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">BTC donation</a>? :)</p></div><div class="clear"></div><ul class="entry-series"><li><div>This entry is a part of a series called <b>&quot;All About Auto&quot;</b>.  Find the rest of the entries in this series at its <a href="https://blog.jle.im/entries/series/+all-about-auto.html" class="tag-a-series" title="Series of introductions and tutorials for my auto library, a library offering a
+denotative, locally stateful programming DSL and platform.
+"> series history</a>.</div></li><li><div>This entry is a part of a series called <b>&quot;Beginner/Intermediate Haskell Projects&quot;</b>.  Find the rest of the entries in this series at its <a href="https://blog.jle.im/entries/series/+beginner-intermediate-haskell-projects.html" class="tag-a-series" title="+Beginner/Intermediate Haskell Projects"> series history</a>.</div></li></ul><ul class="tag-list"><li><a href="https://blog.jle.im/entries/tagged/auto.html" class="tag-a-tag">#auto</a></li><li><a href="https://blog.jle.im/entries/tagged/ghcjs.html" class="tag-a-tag">#ghcjs</a></li><li><a href="https://blog.jle.im/entries/tagged/haskell.html" class="tag-a-tag">#haskell</a></li><li><a href="https://blog.jle.im/entries/category/@auto.html" class="tag-a-category">@AUTO</a></li><li><a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category">@HASKELL</a></li><li><a href="https://blog.jle.im/entries/category/@tutorials.html" class="tag-a-category">@TUTORIALS</a></li><li><a href="https://blog.jle.im/entries/series/+all-about-auto.html" class="tag-a-series">+All About Auto</a></li><li><a href="https://blog.jle.im/entries/series/+beginner-intermediate-haskell-projects.html" class="tag-a-series">+Beginner/Intermediate Haskell Projects</a></li></ul><aside class="social-buttons"><div class="addthis_toolbox addthis_default_style addthis-buttons"><a class="addthis_button_facebook_like" fb:like:layout="button_count"></a><a class="addthis_button_tweet"></a><a class="addthis_button_google_plusone" g:plusone:size="medium"></a><a class="addthis_counter addthis_pill_style"></a></div><div class="custom-social-buttons"><div class="custom-social-button"><a href="https://www.reddit.com/submit" onclick="window.location = &#39;https://www.reddit.com/submit?url=&#39;+ encodeURIComponent(window.location); return false"><img src="https://www.reddit.com/static/spreddit7.gif" alt="submit to reddit"></a></div></div></aside><nav class="next-prev-links"><ul><li class="prev-entry-link">&larr; <a href="https://blog.jle.im/entry/auto-building-a-declarative-chatbot-with-implicit-serialization.html">Auto: Building a Declarative Chatbot with Implicit Serialization
+</a> (Previous)</li><li class="next-entry-link">(Next) <a href="https://blog.jle.im/entry/unique-sample-drawing-searches-with-list-and-statet.html">Unique sample drawing &amp; searches with List and StateT --- &quot;Send more money&quot;
+</a> &rarr;</li></ul></nav></footer></article><div class="post-entry"><div class="tile"><div id="disqus_thread"></div><script type="text/javascript">var disqus_config = function () {
+    this.page.url = 'https://blog.jle.im/entry/auto-a-todo-gui-application-with-auto-on.html';
+    this.page.identifier = 'auto-todo';
+};
+(function() {
+    var d = document, s = d.createElement('script');
+    s.src = '//incode.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a><br></noscript><a href="http://disqus.com" class="dsq-brlink">Comments powered by <span class="logo-disqus">Disqus</span></a></div></div></div></div></div><div id="footer-container"><div id="footer-content"><div class="tile"><div class="footer-copyright">&copy; 2020 Justin Le <span class="license-link">(<a href="https://creativecommons.org/licenses/by-nc-nd/3.0/" class="license">CC-BY-NC-ND 3.0</a>)</span></div><div class="footer-follow social-follows"><ul class="social-follows-list"><li><ul class="social-follows-list-social"><li><a class="social-follow-twitter" title="Follow me on Twitter!" href="https://twitter.com/intent/user?user_id=mstk" onclick="window.open(
+  &#39;http://twitter.com/intent/user?user_id=907281&#39;,
+  &#39;facebook-share-dialog&#39;,
+  &#39;width=550,height=520&#39;);
+return false;
+">Twitter</a></li><li><a class="social-follow-github" title="Fork me on Github!" href="https://github.com/mstksg">Github</a></li><li><a class="social-follow-twitch" title="Watch me on Twitch!" href="https://www.twitch.tv/justin_l">Twitch</a></li><li><a class="social-follow-patreon" title="Support me on Patreon!" href="https://www.patreon.com/justinle/overview">Patreon</a></li><li><a class="social-follow-gplus" title="Add me on Google+!" href="https://plus.google.com/+JustinLe">Google+</a></li><li><a class="social-follow-keybase" title="Track me on Keybase!" href="https://keybase.io/mstksg">Keybase</a></li><li><a class="social-follow-linkedin" title="Connect with me on LinkedIn!" href="https://linkedin.com/in/lejustin">LinkedIn</a></li><li><a class="social-follow-bitcoin" title="Donate via bitcoin!" href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">Bitcoin</a></li></ul></li><li><ul class="social-follows-list-site"><li><a class="social-follow-rss" title="Subscribe to my RSS Feed!" href="http://feeds.feedburner.com/incodeblog">RSS</a></li><li><a class="social-follow-email" title="Subscribe to the mailing list!" href="https://feedburner.google.com/fb/a/mailverify?loc=en_US&amp;uri=incodeblog">Mailing list</a></li></ul></li></ul></div></div></div></div></body></html>

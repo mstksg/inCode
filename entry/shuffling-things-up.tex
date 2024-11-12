@@ -1,0 +1,726 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Shuffling things up: Applying Group Theory in Advent of Code},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Shuffling things up: Applying Group Theory in Advent of Code}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% November 18, 2020
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/shuffling-things-up.html}{in Code}}.}
+
+So it's November, and \href{https://adventofcode.com/}{Advent of Code} season is
+in the air! It's time for everyone's favorite Santa-based light hearted
+learn-to-program-or-a-new-language holiday season programming challenge series.
+Every year a bunch of us gather around the fireplace, roast chestnuts, and
+brainstorm all of the interesting ways we can solve these cute themed puzzles
+every day. These puzzles are designed to accessible enough for most new
+programmers, but deep enough to provide entertainment for experienced ones. I've
+\href{https://blog.jle.im/entries/tagged/advent-of-code.html}{written many blog
+posts} on some of the interesting insight some of the puzzles have yielded, and
+I also
+\href{https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md}{post
+my reflections on as many puzzles I can} while solving them in Haskell. And if
+you're solving things in Haskell, I also published an
+\href{https://hackage.haskell.org/package/advent-of-code-api}{open-sourced
+rate-limited API library} so you can fetch and submit answers from the comfort
+of your command line.
+
+To kick off the season, I've decided to write about one of my favorite puzzles
+from Advent of Code 2019 -- \href{https://adventofcode.com/2019/day/22}{Day 22:
+Slam Shuffle}. To me, it stands out because it's a perfect example of how
+Haskell's approach to mathematical abstraction nudges you into the direction of
+an efficient solution --- in a way that other languages would obscure or make
+less obvious.
+
+So, let's dive in! In the end, hopefully this post can get you excited for this
+wonderful season, and maybe also shed some insight into what it means when we
+say that Haskell can help you leverage math to find good solutions to your real
+problems.
+
+Of course, this post has spoilers for Advent of Code 2019 Day 22, if you are
+planning on trying to figure it out from yourself. If you haven't tried it, I
+recommend you give it a shot and come back after! :D
+
+\section{Slam Shuffle}\label{slam-shuffle}
+
+If you haven't already, take some time to
+\href{https://adventofcode.com/2019/day/22}{read through the problem statement}.
+The basic idea is that we are given a series of operations to ``shuffle'' a deck
+of 10007 cards, such as:
+
+\begin{verbatim}
+deal with increment 7
+deal into new stack
+deal into new stack
+... etc
+\end{verbatim}
+
+After performing all of the many operations, the question then asks about the
+card at a given position (the 2019th card in the deck).
+
+Part 2, which you might not be able to see if you haven't submitted an answer
+yet for Part 1, involves the same process with a deck of 119315717514047 cards,
+and repeating the entire shuffling sequence 101741582076661 times. It then asks
+you to find the card that ends up at index 2020.
+
+In this problem, it seems we have a list of ``shuffles'' that we want to run on
+a deck of cards. However, let's think about this in a more data-driven approach:
+instead of thinking about successive shufflings of cards, let's imagine the
+specification of a ``shuffle'' itself as our main data, and how we can combine
+shuffle operations together into new shuffle operations.
+
+We are looking for ``take shuffle A and shuffle B, and return a new shuffle that
+represents doing B, then A''. This is ``shuffle composition'', or ``permutation
+composition'' (\href{https://en.wikipedia.org/wiki/Permutation}{permutation}
+being the mathematical word for ``shuffling'' here, basically)
+
+Since we've identified that we want to begin implementing a way of
+composing/combining permutations together, we can do a bit of reading to learn
+that one of the most famous properties of permutation composition is that they
+form a ``group'', which means they can be composed (associatively), have an
+identity, and can be inverted. This means that if you have two permutations, you
+can ``squish'' them to create a new permutation, and work with that \emph{new}
+permutation.
+
+I've talked about \href{https://blog.jle.im/entry/alchemical-groups.html}{using
+group theory} principles before in this blog to help guide us towards solutions
+and optimizations --- the main principle is that if we express our program in
+terms of group operations, then we can take advantage of the large body of
+knowledge built up over centuries to understand, analyze, and potentially
+optimize our program.
+
+The \emph{first} big advantage in this situation is that we can treat our
+transformations \emph{as data}, and not as functions. And that if we have two
+transformations, we can always create a new one (just a normal data type value)
+that represents the composition of the two original ones.
+
+\section{Now You're Thinking With Groups}\label{now-youre-thinking-with-groups}
+
+Knowing permutations are a group, it means that once we settle on our
+representation of them, \texttt{Perm}, we can write an instance of \texttt{Perm}
+for \texttt{Semigroup}, \texttt{Monoid}, and \texttt{Group}, abstractions in
+Haskell that many types are already instances of. Abstractions like
+\texttt{Semigroup} and \texttt{Monoid} are pretty much an everyday thing in
+Haskell, so this fits in quite nicely. \texttt{Group} comes from the
+\emph{\href{https://hackage.haskell.org/package/groups}{groups}} package, which
+also provides some nice applications of group theory.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Perm}\NormalTok{ n }\OtherTok{=} \OperatorTok{...} \CommentTok{{-}{-} let\textquotesingle{}s figure out the implementation later, where n is the number of cards}
+\end{Highlighting}
+\end{Shaded}
+
+In Haskell, we express things like ``\texttt{Perm} is a Semigroup/Monoid/Group''
+by saying that they are instances of \emph{typeclasses}, which (for this
+purpose) are like interfaces in languages like Java.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} | An instance m can be "combined" using \textasciigrave{}x \textless{}\textgreater{} y\textasciigrave{}}
+\KeywordTok{class} \DataTypeTok{Semigroup}\NormalTok{ m }\KeywordTok{where}
+\OtherTok{    (\textless{}\textgreater{}) ::}\NormalTok{ m }\OtherTok{{-}\textgreater{}}\NormalTok{ m }\OtherTok{{-}\textgreater{}}\NormalTok{ m}
+
+\CommentTok{{-}{-} | There is always an identity element for \textless{}\textgreater{}:}
+\CommentTok{{-}{-}}
+\CommentTok{{-}{-} x \textless{}\textgreater{} mempty == x}
+\CommentTok{{-}{-} mempty \textless{}\textgreater{} x == x}
+\CommentTok{{-}{-}}
+\KeywordTok{class} \DataTypeTok{Semigroup}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Monoid}\NormalTok{ m }\KeywordTok{where}
+\OtherTok{    mempty ::}\NormalTok{ m}
+
+\CommentTok{{-}{-} | Every m has an inverse:}
+\CommentTok{{-}{-}}
+\CommentTok{{-}{-} x \textless{}\textgreater{} invert x == mempty}
+\CommentTok{{-}{-} invert x \textless{}\textgreater{} x == mempty}
+\CommentTok{{-}{-}}
+\KeywordTok{class} \DataTypeTok{Monoid}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Group}\NormalTok{ m }\KeywordTok{where}
+\OtherTok{    invert ::}\NormalTok{ m }\OtherTok{{-}\textgreater{}}\NormalTok{ m}
+\end{Highlighting}
+\end{Shaded}
+
+This means that if \texttt{Perm} is an instance of \texttt{Group} (which has
+superclasses \texttt{Semigroup} and \texttt{Monoid}), we can:
+
+\begin{itemize}
+\tightlist
+\item
+  Compose permutations using \texttt{x\ \textless{}\textgreater{}\ y}, which
+  means ``shuffle with strategy \texttt{y}, then with strategy \texttt{x}''
+\item
+  Summon an ``identity permutation'' where
+  \texttt{x\ \textless{}\textgreater{}\ mempty\ ==\ x} (the identity
+  permutation, which is ``leave things alone'').
+\item
+  Invert any shuffling (if we have \texttt{x}, we can reverse its effect with
+  \texttt{invert\ x})
+\end{itemize}
+
+In addition, the standard libraries also give us a useful function
+\texttt{stimes}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{stimes ::} \DataTypeTok{Semigroup}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}}\NormalTok{ m }\OtherTok{{-}\textgreater{}}\NormalTok{ m}
+\end{Highlighting}
+\end{Shaded}
+
+which lets us compose \texttt{x} with itself
+(\texttt{stimes\ 5\ x\ ==\ x\ \textless{}\textgreater{}\ x\ \textless{}\textgreater{}\ x\ \textless{}\textgreater{}\ x\ \textless{}\textgreater{}\ x}),
+but can do it in \emph{log(n)} time using
+\href{https://en.wikipedia.org/wiki/Exponentiation_by_squaring}{repeated
+squaring}. It's extremely efficient in a lot of circumstances (more on that
+later) --- more so than the naive compose-it-n-times implementation. This will
+definitely become useful in part 2, where we have to do 101741582076661
+compositions.
+
+\section{Our Gameplan}\label{our-gameplan}
+
+Just \emph{knowing} that permutations form a group naturally guides us to these
+abstractions --- we already know what \emph{interface} our type will have, even
+before we write any code. We know that no matter \emph{what} our implementation
+of permutation will be, we will have \texttt{(\textless{}\textgreater{})},
+\texttt{stimes}, \texttt{mempty}, \texttt{invert} available to us to use. So,
+let's do just that! We'll use a stub data type \texttt{Perm} to represent our
+permutation and ``pretend'' we have that interface on it. We'll write our
+functions first and then fill in the interface later!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} | Represents a permutation of n cards}
+\KeywordTok{data} \DataTypeTok{Perm}\NormalTok{ n }\OtherTok{=} \OperatorTok{....}
+
+\CommentTok{{-}{-} | Given a permutation, find the place where a given index ends up.}
+\OtherTok{runPerm ::} \DataTypeTok{Perm}\NormalTok{ n }\OtherTok{{-}\textgreater{}} \DataTypeTok{Finite}\NormalTok{ n }\OtherTok{{-}\textgreater{}} \DataTypeTok{Finite}\NormalTok{ n}
+
+\CommentTok{{-}{-} | Parse a string line into the permutation it represents}
+\OtherTok{parsePerm ::} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Perm}\NormalTok{ n}
+
+\CommentTok{{-}{-} | Given a permutation list, find the place where 2019 ends up}
+\OtherTok{part1 ::}\NormalTok{ [}\DataTypeTok{Perm} \DecValTok{10007}\NormalTok{] }\OtherTok{{-}\textgreater{}} \DataTypeTok{Finite} \DecValTok{10007}
+\NormalTok{part1 perms }\OtherTok{=}\NormalTok{ runPerm bigPerm }\DecValTok{2019}
+  \KeywordTok{where}
+\NormalTok{    bigPerm }\OtherTok{=} \FunctionTok{mconcat}\NormalTok{ perms}
+\end{Highlighting}
+\end{Shaded}
+
+(\texttt{mconcat\ perms} composes all of the permutations one after another:
+\texttt{mconcat\ {[}x,y,z{]}\ =\ x\ \textless{}\textgreater{}\ y\ \textless{}\textgreater{}\ z})
+
+And\ldots that's it! For the actual ``logic'' of our part 1! All we need to do
+is implement \texttt{runPerm} and \texttt{parsePerm}.
+
+Here, I'm using \texttt{Finite\ n} from the great
+\emph{\href{https://hackage.haskell.org/package/finite-typelits}{finite-typelits}}
+library, where \texttt{Finite\ 100} represents ``an index between 0 and 99'',
+etc. It's just exactly the right ``shape'' to represent the index of a deck of
+cards. \emph{finite-typelits} wasn't designed with group theory in mind, but
+it's still a great tool here --- which is a testament to how flexible these
+abstractions can actually be :)
+
+For example, it means that for a \texttt{Perm\ 10007} (a permutation of 10007
+cards), the type of \texttt{runPerm} is
+\texttt{Perm\ 10007\ -\textgreater{}\ Finite\ 10007\ -\textgreater{}\ Finite\ 10007},
+and the type of \texttt{parsePerm} is
+\texttt{String\ -\textgreater{}\ Perm\ 10007}.
+
+We can plan out our part 2 as well:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} | Given a permutation list, find the index that will end up at 2020}
+\OtherTok{part2 ::}\NormalTok{ [}\DataTypeTok{Perm} \DecValTok{119315717514047}\NormalTok{] }\OtherTok{{-}\textgreater{}} \DataTypeTok{Finite} \DecValTok{119315717514047}
+\NormalTok{part2 perms }\OtherTok{=}\NormalTok{ runPerm (invert biiigPerm) }\DecValTok{2020}
+  \KeywordTok{where}
+\NormalTok{    bigPerm   }\OtherTok{=} \FunctionTok{mconcat}\NormalTok{ perms}
+\NormalTok{    biiigPerm }\OtherTok{=}\NormalTok{ stimes }\DecValTok{101741582076661}\NormalTok{ bigPerm}
+\end{Highlighting}
+\end{Shaded}
+
+Part 2, I think, is where the group theory really shines.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  We take advantage of \texttt{stimes}, which uses
+  \href{https://en.wikipedia.org/wiki/Exponentiation_by_squaring}{repeated
+  squaring}. That means that to compute \texttt{stimes\ 8\ x}, instead of using
+
+\begin{verbatim}
+x <> x <> x <> x <> x <> x <> x <> x
+\end{verbatim}
+
+  it does
+
+\begin{verbatim}
+let x2 = x <> x
+    x4 = x2 <> x2
+in  x4 <> x4
+\end{verbatim}
+
+  essentially cutting down the number of multiplications exponentially. This
+  means that to compute \texttt{stimes\ 101741582076661}, we only need to do
+  about 47 multiplications (log base 2), and not 101741582076661.
+
+  This is only possible because we know that permutation composition is
+  associative, so it doesn't matter how we associate our parentheses. It is only
+  ``safe'' to use repeated squaring if you \emph{know} that your operation is
+  associative. Having a semigroup abstraction \emph{in the first place} guides
+  us to this efficient solution --- in a way that is pre-built just for us! This
+  is made all the more powerful because \emph{semigroup} is a ubiquitous
+  abstraction in Haskell, so we ``think about'' it all the time.
+\item
+  Remember how \texttt{runPerm\ p\ 2019} gives us the index that \texttt{2019}
+  is sent to? Well, we want something else in this case. We basically want the
+  index that \emph{will be sent to} \texttt{2020}. So, we want to \emph{reverse
+  the function}. Luckily, since our function is just a permutation, it is easy
+  to reverse this: just \texttt{invert} the permutation!
+
+  The idea that we can simply invert a permutation instead of having to write a
+  whole new permutation representation just to do ``backwards indexing'' is
+  something that we are \emph{guided to}, just by recognizing that permutations
+  form a group.
+\end{enumerate}
+
+\section{A first guess at implementation}\label{a-first-guess-at-implementation}
+
+Now, time to do what we have been putting off and actually write our permutation
+representation -- the definition of \texttt{Perm\ n}. A good \emph{first guess}
+might be to write our permutation as an actual function --- a function from
+index to index, \texttt{Finite\ n\ -\textgreater{}\ Finite\ n}. Then, we can
+just use function composition as our permutation composition.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Perm}\NormalTok{ n }\OtherTok{=} \DataTypeTok{Perm}\NormalTok{ (}\DataTypeTok{Finite}\NormalTok{ n }\OtherTok{{-}\textgreater{}} \DataTypeTok{Finite}\NormalTok{ n)}
+
+\OtherTok{runPerm ::} \DataTypeTok{Perm}\NormalTok{ n }\OtherTok{{-}\textgreater{}} \DataTypeTok{Finite}\NormalTok{ n }\OtherTok{{-}\textgreater{}} \DataTypeTok{Finite}\NormalTok{ n}
+\NormalTok{runPerm (}\DataTypeTok{Perm}\NormalTok{ f) x  }\OtherTok{=}\NormalTok{ f x}
+
+\OtherTok{parsePerm ::} \DataTypeTok{KnownNat}\NormalTok{ n }\OtherTok{=\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Perm}\NormalTok{ n}
+\NormalTok{parsePerm str }\OtherTok{=} \KeywordTok{case} \FunctionTok{words}\NormalTok{ str }\KeywordTok{of}
+    \StringTok{"cut"}\OperatorTok{:}\NormalTok{n}\OperatorTok{:}\NormalTok{\_           }\OtherTok{{-}\textgreater{}} \DataTypeTok{Perm} \OperatorTok{$}\NormalTok{ \textbackslash{}i }\OtherTok{{-}\textgreater{}}\NormalTok{ i }\OperatorTok{{-}}\NormalTok{ modulo (}\FunctionTok{read}\NormalTok{ n)}
+    \StringTok{"deal"}\OperatorTok{:}\StringTok{"into"}\OperatorTok{:}\NormalTok{\_     }\OtherTok{{-}\textgreater{}} \DataTypeTok{Perm} \OperatorTok{$}\NormalTok{ \textbackslash{}i }\OtherTok{{-}\textgreater{}} \FunctionTok{maxBound} \OperatorTok{{-}}\NormalTok{ i}
+    \StringTok{"deal"}\OperatorTok{:}\StringTok{"with"}\OperatorTok{:}\NormalTok{\_}\OperatorTok{:}\NormalTok{n}\OperatorTok{:}\NormalTok{\_ }\OtherTok{{-}\textgreater{}} \DataTypeTok{Perm} \OperatorTok{$}\NormalTok{ \textbackslash{}i }\OtherTok{{-}\textgreater{}}\NormalTok{ i }\OperatorTok{*}\NormalTok{ modulo (}\FunctionTok{read}\NormalTok{ n)}
+
+\KeywordTok{instance} \DataTypeTok{Semigroup}\NormalTok{ (}\DataTypeTok{Perm}\NormalTok{ n) }\KeywordTok{where}
+    \DataTypeTok{Perm}\NormalTok{ f }\OperatorTok{\textless{}\textgreater{}} \DataTypeTok{Perm}\NormalTok{ g }\OtherTok{=} \DataTypeTok{Perm}\NormalTok{ (f }\OperatorTok{.}\NormalTok{ g)     }\CommentTok{{-}{-} apply g, then apply x}
+\KeywordTok{instance} \DataTypeTok{Monoid}\NormalTok{ (}\DataTypeTok{Perm}\NormalTok{ n) }\KeywordTok{where}
+    \FunctionTok{mempty} \OtherTok{=} \DataTypeTok{Perm} \FunctionTok{id}
+\KeywordTok{instance} \DataTypeTok{Group}\NormalTok{ (}\DataTypeTok{Perm}\NormalTok{ n) }\KeywordTok{where}
+\NormalTok{    invert (}\DataTypeTok{Perm}\NormalTok{ f) }\OtherTok{=} \OperatorTok{?????}
+\end{Highlighting}
+\end{Shaded}
+
+Note that \texttt{Finite\ n}'s \texttt{Num} instance is modular arithmetic, so
+things like \texttt{negate} and multiplication will ``do the right thing''. We
+use \texttt{modulo}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{modulo ::} \DataTypeTok{KnownNat}\NormalTok{ n }\OtherTok{=\textgreater{}} \DataTypeTok{Integer} \OtherTok{{-}\textgreater{}} \DataTypeTok{Finite}\NormalTok{ n}
+\end{Highlighting}
+\end{Shaded}
+
+which ``reads'' an \texttt{Integer} into a \texttt{Finite\ n}, making sure to
+wrap it in a cyclic way if it is negative or too high. \texttt{maxBound} also
+gives us the highest index (the highest \texttt{Finite\ n}).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ modulo }\DecValTok{3}\OtherTok{ ::} \DataTypeTok{Finite} \DecValTok{10}
+\NormalTok{finite }\DecValTok{3}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ modulo }\DecValTok{15}\OtherTok{ ::} \DataTypeTok{Finite} \DecValTok{10}
+\NormalTok{finite }\DecValTok{5}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ modulo (}\OperatorTok{{-}}\DecValTok{1}\NormalTok{)}\OtherTok{ ::} \DataTypeTok{Finite} \DecValTok{10}
+\NormalTok{finite }\DecValTok{9}
+\end{Highlighting}
+\end{Shaded}
+
+The \texttt{KnownNat} instance is a constraint that \texttt{modulo} needs in
+order to know what quotient to modulo into.
+
+This implementation \emph{seems} to work, except for one apparent major problem:
+how do we write \texttt{invert}? Also, \texttt{stimes} doesn't help us
+\emph{too} much here, because repeated squaring of function composition
+is\ldots still a lot of function compositions in the end.\footnote{We only
+  allocate a few function pointers (once for each
+  \texttt{\textless{}\textgreater{}}, where
+  \href{https://www.reddit.com/r/haskell/comments/jwl93i/shuffling_things_up_solving_advent_of_code_with/gcudwg4?utm_source=share&utm_medium=web2x&context=3}{both
+  sides themselves point to the same function pointer}), so it's very efficient
+  in space as well, but to actually ``run'' that final function, we need to
+  still traverse all of those nested pointers the full number of times.} So,
+while composition with \texttt{\textless{}\textgreater{}} is cheap, application
+with \texttt{runPerm} is expensive (and \texttt{stimes} works best when
+composition is expensive and application is cheap). So, back to the drawing
+board.
+
+\section{A Second Implementation Attempt: Lookin' Affine
+Today}\label{a-second-implementation-attempt-lookin-affine-today}
+
+If we look carefully at \texttt{parsePerm}, we might start to see a pattern in
+all of our permutations. In fact, they all seem to follow the same form:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\StringTok{"cut"}\OperatorTok{:}\NormalTok{n}\OperatorTok{:}\NormalTok{\_           }\OtherTok{{-}\textgreater{}} \DataTypeTok{Perm} \OperatorTok{$}\NormalTok{ \textbackslash{}i }\OtherTok{{-}\textgreater{}}\NormalTok{ i }\OperatorTok{{-}}\NormalTok{ modulo (}\FunctionTok{read}\NormalTok{ n)}
+\StringTok{"deal"}\OperatorTok{:}\StringTok{"into"}\OperatorTok{:}\NormalTok{\_     }\OtherTok{{-}\textgreater{}} \DataTypeTok{Perm} \OperatorTok{$}\NormalTok{ \textbackslash{}i }\OtherTok{{-}\textgreater{}} \FunctionTok{negate}\NormalTok{ i }\OperatorTok{+} \FunctionTok{maxBound}
+\StringTok{"deal"}\OperatorTok{:}\StringTok{"with"}\OperatorTok{:}\NormalTok{\_}\OperatorTok{:}\NormalTok{n}\OperatorTok{:}\NormalTok{\_ }\OtherTok{{-}\textgreater{}} \DataTypeTok{Perm} \OperatorTok{$}\NormalTok{ \textbackslash{}i }\OtherTok{{-}\textgreater{}}\NormalTok{ i }\OperatorTok{*}\NormalTok{ modulo (}\FunctionTok{read}\NormalTok{ n)}
+\end{Highlighting}
+\end{Shaded}
+
+They all seem to be some ``scaling'' and ``adding'' of \texttt{i}. If we align
+things up, this becomes a little more clear:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\StringTok{"cut"}\OperatorTok{:}\NormalTok{n}\OperatorTok{:}\NormalTok{\_           }\OtherTok{{-}\textgreater{}} \DataTypeTok{Perm} \OperatorTok{$}\NormalTok{ \textbackslash{}i }\OtherTok{{-}\textgreater{}}                \DecValTok{1} \OperatorTok{*}\NormalTok{ i }\OperatorTok{{-}}\NormalTok{ modulo (}\FunctionTok{read}\NormalTok{ n)}
+\StringTok{"deal"}\OperatorTok{:}\StringTok{"into"}\OperatorTok{:}\NormalTok{\_     }\OtherTok{{-}\textgreater{}} \DataTypeTok{Perm} \OperatorTok{$}\NormalTok{ \textbackslash{}i }\OtherTok{{-}\textgreater{}}               \OperatorTok{{-}}\DecValTok{1} \OperatorTok{*}\NormalTok{ i }\OperatorTok{+} \FunctionTok{maxBound}
+\StringTok{"deal"}\OperatorTok{:}\StringTok{"with"}\OperatorTok{:}\NormalTok{\_}\OperatorTok{:}\NormalTok{n}\OperatorTok{:}\NormalTok{\_ }\OtherTok{{-}\textgreater{}} \DataTypeTok{Perm} \OperatorTok{$}\NormalTok{ \textbackslash{}i }\OtherTok{{-}\textgreater{}}\NormalTok{  modulo (}\FunctionTok{read}\NormalTok{ n) }\OperatorTok{*}\NormalTok{ i}
+\end{Highlighting}
+\end{Shaded}
+
+Each of these seems to be some sort of scaling-and-adding of
+\texttt{i}\ldots also known as an
+\href{https://en.wikipedia.org/wiki/Affine_transformation}{Affine
+Transformation}, but modulo some cyclic rotation.
+
+Well\ldots affine transformations on cyclic indices are a subset of permutations
+in general. More importantly, we know (after some googling) that they are also
+\emph{closed with respect to composition and inversion} \ldots{} which means
+that they are, themselves, a group! Maybe we can represent this as our
+permutation type:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/advent{-}shuffle.hs\#L16{-}L28}
+
+\KeywordTok{data} \DataTypeTok{Affine}\NormalTok{ n }\OtherTok{=} \DataTypeTok{Aff}
+\NormalTok{    \{}\OtherTok{ aScale ::} \DataTypeTok{Finite}\NormalTok{ n}
+\NormalTok{    ,}\OtherTok{ aShift ::} \DataTypeTok{Finite}\NormalTok{ n}
+\NormalTok{    \}}
+
+\OtherTok{runPerm ::} \DataTypeTok{KnownNat}\NormalTok{ n }\OtherTok{=\textgreater{}} \DataTypeTok{Affine}\NormalTok{ n }\OtherTok{{-}\textgreater{}} \DataTypeTok{Finite}\NormalTok{ n }\OtherTok{{-}\textgreater{}} \DataTypeTok{Finite}\NormalTok{ n}
+\NormalTok{runPerm (}\DataTypeTok{Aff}\NormalTok{ a b) x }\OtherTok{=}\NormalTok{ a }\OperatorTok{*}\NormalTok{ x }\OperatorTok{+}\NormalTok{ b}
+
+\OtherTok{parseAffine ::} \DataTypeTok{KnownNat}\NormalTok{ n }\OtherTok{=\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Affine}\NormalTok{ n}
+\NormalTok{parseAffine str }\OtherTok{=} \KeywordTok{case} \FunctionTok{words}\NormalTok{ str }\KeywordTok{of}
+    \StringTok{"cut"}\OperatorTok{:}\NormalTok{n}\OperatorTok{:}\NormalTok{\_           }\OtherTok{{-}\textgreater{}} \DataTypeTok{Aff}                \DecValTok{1}\NormalTok{  (}\OperatorTok{{-}}\NormalTok{modulo (}\FunctionTok{read}\NormalTok{ n))}
+    \StringTok{"deal"}\OperatorTok{:}\StringTok{"into"}\OperatorTok{:}\NormalTok{\_     }\OtherTok{{-}\textgreater{}} \DataTypeTok{Aff}\NormalTok{        (}\FunctionTok{negate} \DecValTok{1}\NormalTok{)          }\FunctionTok{maxBound}
+    \StringTok{"deal"}\OperatorTok{:}\StringTok{"with"}\OperatorTok{:}\NormalTok{\_}\OperatorTok{:}\NormalTok{n}\OperatorTok{:}\NormalTok{\_ }\OtherTok{{-}\textgreater{}} \DataTypeTok{Aff}\NormalTok{ (modulo (}\FunctionTok{read}\NormalTok{ n))                 }\DecValTok{0}
+\end{Highlighting}
+\end{Shaded}
+
+This is ``defunctionalization'': if we notice a pattern in our functions, we can
+instead abstract out the data that defines each instance of that pattern, and
+work with that data instead.
+
+So far so good! Now to think about how to define composition.
+
+If we want to do \(f(x) = a' x + b'\) after \(g(x) = a x + b\), it's:
+
+\[
+\begin{aligned}
+(f \circ g)(x) & = a' (a x + b) + b'\\
+  (f \circ g)(x) & = a' x + a' b + b'
+\end{aligned}
+\]
+
+So composing \texttt{a\textquotesingle{}\ x\ +\ b\textquotesingle{}} after
+\texttt{a\ x\ +\ b} is is
+\texttt{a\textquotesingle{}\ a\ x\ +\ a\textquotesingle{}\ b\ +\ b\textquotesingle{}}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/advent{-}shuffle.hs\#L30{-}L31}
+
+\KeywordTok{instance} \DataTypeTok{KnownNat}\NormalTok{ n }\OtherTok{=\textgreater{}} \DataTypeTok{Semigroup}\NormalTok{ (}\DataTypeTok{Affine}\NormalTok{ n) }\KeywordTok{where}
+    \DataTypeTok{Aff}\NormalTok{ a\textquotesingle{} b\textquotesingle{} }\OperatorTok{\textless{}\textgreater{}} \DataTypeTok{Aff}\NormalTok{ a b }\OtherTok{=} \DataTypeTok{Aff}\NormalTok{ (a\textquotesingle{} }\OperatorTok{*}\NormalTok{ a) (a\textquotesingle{} }\OperatorTok{*}\NormalTok{ b }\OperatorTok{+}\NormalTok{ b\textquotesingle{})}
+\end{Highlighting}
+\end{Shaded}
+
+Neat! We can now compose \emph{and} run \texttt{Affine}s efficiently, which
+makes \texttt{stimes} useful! And the \texttt{Num} instance (which requires
+\texttt{KnownNat\ n}) for \texttt{Finite\ n} takes care of automatically doing
+modular arithmetic for us.
+
+To define a \texttt{Monoid} instance, we need an identity permutation. This
+would just leave x alone, so it makes sense that it's \(f(x) = 1 x + 0\),
+\texttt{1\ x\ +\ 0}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/advent{-}shuffle.hs\#L33{-}L34}
+
+\KeywordTok{instance} \DataTypeTok{KnownNat}\NormalTok{ n }\OtherTok{=\textgreater{}} \DataTypeTok{Monoid}\NormalTok{ (}\DataTypeTok{Affine}\NormalTok{ n) }\KeywordTok{where}
+    \FunctionTok{mempty} \OtherTok{=} \DataTypeTok{Aff} \DecValTok{1} \DecValTok{0}
+\end{Highlighting}
+\end{Shaded}
+
+Now let's define the inverse, which is a bit trickier.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{instance} \DataTypeTok{KnownNat}\NormalTok{ n }\OtherTok{=\textgreater{}} \DataTypeTok{Group}\NormalTok{ (}\DataTypeTok{Affine}\NormalTok{ n) }\KeywordTok{where}
+\NormalTok{    invert (}\DataTypeTok{Aff}\NormalTok{ a b) }\OtherTok{=} \DataTypeTok{Aff}\NormalTok{ a\textquotesingle{} b\textquotesingle{}}
+      \KeywordTok{where}
+\NormalTok{        a\textquotesingle{} }\OtherTok{=} \CommentTok{{-}{-} ??}
+\NormalTok{        b\textquotesingle{} }\OtherTok{=} \CommentTok{{-}{-} ??}
+\end{Highlighting}
+\end{Shaded}
+
+\emph{Inverting} something means that we want
+\texttt{invert\ p\ \textless{}\textgreater{}\ p\ ==\ mempty}. That means we want
+to find \texttt{a\textquotesingle{}} and \texttt{b\textquotesingle{}} such that:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+      \DataTypeTok{Aff}\NormalTok{ a\textquotesingle{} b\textquotesingle{} }\OperatorTok{\textless{}\textgreater{}} \DataTypeTok{Aff}\NormalTok{ a b }\OtherTok{=} \DataTypeTok{Aff} \DecValTok{1} \DecValTok{0}
+\end{Highlighting}
+\end{Shaded}
+
+From our definition of \texttt{\textless{}\textgreater{}} earlier, that means we
+have to find \texttt{a\textquotesingle{}} and \texttt{b\textquotesingle{}}
+where:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{Aff}\NormalTok{ (a\textquotesingle{} }\OperatorTok{*}\NormalTok{ a) (a\textquotesingle{} }\OperatorTok{*}\NormalTok{ b }\OperatorTok{+}\NormalTok{ b\textquotesingle{}) }\OtherTok{=} \DataTypeTok{Aff} \DecValTok{1} \DecValTok{0}
+\end{Highlighting}
+\end{Shaded}
+
+So we need \texttt{a\textquotesingle{}\ *\ a\ =\ 1}, and
+\texttt{a\textquotesingle{}\ *\ b\ +\ b\textquotesingle{}\ =\ 0}.
+
+To solve \texttt{a\textquotesingle{}\ *\ a\ =\ 1}, we can imagine that cycling
+\texttt{a} through the whole deck gets you back to \texttt{a}. (If \texttt{n} is
+prime, then \texttt{a}, \texttt{a*a}, \texttt{a*a*a}, etc. will all be
+unique\ldots so you will keep on getting unique numbers until you exhaust the
+entire space at \texttt{a\^{}size} to arrive back at \texttt{a}) So:
+
+\begin{verbatim}
+         a^n = a
+=> a^(n-1)*a = a    -- definition of exponentiation
+=> a^(n-1)   = 1    -- a^(n-1) leaves a unchanged, so it must be 1
+=> a^(n-2)*a = 1    -- definition of exponentiation
+\end{verbatim}
+
+From this we can see that if \texttt{a\textquotesingle{}\ *\ a\ =\ 1}, then
+\texttt{a\textquotesingle{}} must be \texttt{a\^{}(n-2)} for prime
+\texttt{n}.\footnote{You can also use the
+  \href{https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm}{Extended
+  Euclidean Algorithm} to find the multiplicative inverse here as well if you
+  are a (cool) nerd. But I wanted to show a way to do this without requiring
+  knowledge of any ring theory.}\footnote{As
+  \href{https://www.reddit.com/r/haskell/comments/jwl93i/shuffling_things_up_solving_advent_of_code_with/gct4ihy/?context=3}{pointed
+  out by rogercaptain on reddit}, this also ``works'' in the case where
+  \texttt{n} is not prime too: only \emph{some} (and not all)
+  \texttt{Affine\ n}s represent permutations when \texttt{n} is not prime, and
+  for those specific \texttt{Affine\ n}s (namely, where \texttt{a} is coprime to
+  \texttt{n}), this technique does work.}
+
+The second case is a little simpler: we can just shuffle around
+\texttt{a\textquotesingle{}\ *\ b\ +\ b\textquotesingle{}\ =\ 0} to get
+\texttt{b\textquotesingle{}\ =\ -(a\textquotesingle{}\ *\ b)}.
+
+This gives us everything we need to write \texttt{invert}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/advent{-}shuffle.hs\#L36{-}L41}
+
+\CommentTok{{-}{-} | Group instance only works if n is prime}
+\KeywordTok{instance} \DataTypeTok{KnownNat}\NormalTok{ n }\OtherTok{=\textgreater{}} \DataTypeTok{Group}\NormalTok{ (}\DataTypeTok{Affine}\NormalTok{ n) }\KeywordTok{where}
+\NormalTok{    invert (}\DataTypeTok{Aff}\NormalTok{ a b) }\OtherTok{=} \DataTypeTok{Aff}\NormalTok{ a\textquotesingle{} b\textquotesingle{}}
+      \KeywordTok{where}
+\NormalTok{        a\textquotesingle{} }\OtherTok{=}\NormalTok{ a }\OperatorTok{\^{}}\NormalTok{ (natVal (}\DataTypeTok{Proxy} \OperatorTok{@}\NormalTok{n) }\OperatorTok{{-}} \DecValTok{2}\NormalTok{)}
+\NormalTok{        b\textquotesingle{} }\OtherTok{=} \FunctionTok{negate}\NormalTok{ (a\textquotesingle{} }\OperatorTok{*}\NormalTok{ b)}
+\end{Highlighting}
+\end{Shaded}
+
+And\ldots we're done! This actually is pretty efficient with repeated squaring
+(which is how \texttt{\^{}} is implemented) because we are just squaring
+numbers. \texttt{natVal\ (Proxy\ @n)} is how to get \texttt{n} as an integer at
+the value level so we can use it as the exponent.
+
+\section{The Full Implementation}\label{the-full-implementation}
+
+Just to close us out, I'll re-paste the code we planned before, now with the
+context that we have implemented the appropriate permutation types. We get the
+\texttt{{[}Affine\ n{]}}s by using \texttt{parseAffine} on the \texttt{lines} of
+our puzzle input and reversing that list.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/advent{-}shuffle.hs\#L43{-}L54}
+
+\CommentTok{{-}{-} | Part 1: Given a permutation list, find the place where 2019 ends up}
+\OtherTok{part1 ::}\NormalTok{ [}\DataTypeTok{Affine} \DecValTok{10007}\NormalTok{] }\OtherTok{{-}\textgreater{}} \DataTypeTok{Finite} \DecValTok{10007}
+\NormalTok{part1 perms }\OtherTok{=}\NormalTok{ runPerm bigPerm }\DecValTok{2019}
+  \KeywordTok{where}
+\NormalTok{    bigPerm }\OtherTok{=} \FunctionTok{mconcat}\NormalTok{ perms}
+
+\CommentTok{{-}{-} | Part 2: Given a permutation list, find the index that will end up at 2020}
+\OtherTok{part2 ::}\NormalTok{ [}\DataTypeTok{Affine} \DecValTok{119315717514047}\NormalTok{] }\OtherTok{{-}\textgreater{}} \DataTypeTok{Finite} \DecValTok{119315717514047}
+\NormalTok{part2 perms }\OtherTok{=}\NormalTok{ runPerm (invert biiigPerm) }\DecValTok{2020}
+  \KeywordTok{where}
+\NormalTok{    bigPerm   }\OtherTok{=} \FunctionTok{mconcat}\NormalTok{ perms}
+\NormalTok{    biiigPerm }\OtherTok{=}\NormalTok{ stimes }\DecValTok{101741582076661}\NormalTok{ bigPerm}
+\end{Highlighting}
+\end{Shaded}
+
+You can load the finished code for this entire challenge
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/misc/advent-shuffle.hs}{here}.
+I've also included the sample input string for my advent of code account, and
+also parsed it conveniently into a list of properly ordered \texttt{Affine\ n}s
+for you to test it yourself:
+
+\begin{verbatim}
+$ ./advent-shuffle.hs
+ghci> part1 myShuffles
+finite 6978
+ghci> part2 myShuffles
+finite 24460989449140
+\end{verbatim}
+
+As expected, Haskell performs these \textasciitilde47 multiplication steps
+pretty quickly, and part 2 is only about 3 times slower than part 1
+(\textasciitilde40μs vs.~\textasciitilde14μs on my machine).
+
+\section{The Big Picture}\label{the-big-picture}
+
+Every time I make a post about how Haskell lets you ``use'' math, there's a lot
+of room for confusion and misunderstanding. A common misconception is that you
+need to know math to use Haskell, or that writing a Haskell program is like
+solving a math equation.\footnote{Admittedly, we did do that a few times here.
+  But that's not \emph{all} we do :)}
+
+Instead, when we say we ``use'' math in Haskell, it means that Haskell naturally
+nudges us to phrase our problems in a way that can help illuminate connections
+to the groundwork that has already been laid for us through centuries of
+mathematical discoveries --- and in many cases, allow us to translate those
+insights into making helpful improvements and optimizations in our actual code.
+
+Haskell is ``functional programming'', but I think that betrays the major
+insight here: we got our main conceptual leap when we thought about shuffling
+not as ``a function'', but rather \emph{as data}: our shuffle is itself
+\emph{data} (here, integers), and not an ``algorithm''. Had we latched onto an
+algorithmic approach from the beginning, we might have gotten stuck in the mire
+of finding a way to ``optimize an algorithm''. But because we initially started
+thinking about permutations and shuffles as \emph{data structures}, we actually
+end up thinking about how to most effectively manipulate the data structures
+themselves. Instead of manipulating the cards, we manipulate the shuffle! We
+combine and invert the \emph{shuffles}, not the cards. And math --- especially
+abstract algebra --- is all about different properties of how objects can
+combine and universal properties about certain operations.
+
+As we head into this wonderful season, stay safe and happy haskellings,
+everyone! :D
+
+\section{Special Thanks}\label{special-thanks}
+
+I am very humbled to be supported by an amazing community, who make it possible
+for me to devote time to researching and writing these posts. Very special
+thanks to my supporter at the ``Amazing'' level on
+\href{https://www.patreon.com/justinle/overview}{patreon}, Josh Vera! :)
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

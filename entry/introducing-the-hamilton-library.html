@@ -1,0 +1,285 @@
+<!DOCTYPE HTML>
+<html><head><title>Introducing the Hamilton library
+ · in Code</title><meta name="description" content="Weblog of Justin Le, covering various adventures in programming and explorations in the worlds of computation physics, and knowledge.
+"><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="flattr:id" content="3p9jqr"><meta property="og:site_name" content="in Code"><meta property="og:description" content="My name is William Rowan Hamilton Hamilton: README / hackage / github The hamilton library is on hackage! It was mostly a proof-of-concept toy experiment to simulate motion on bezier curves, but it became usable enough and accurate enough (to my surprise, admittedly) that I finished up some final touches to make it complete and put it on hackage as a general-purpose physics simulator. The library is, in short, a way to simulate a physical system by stating nothing more than an arbitrary parameterization of a system (a “generalized coordinate”) and a potential energy function. I was going to write a Haskell post on the implementation, which was what interested me at first. I wanted to go over –  * Using automatic differentiation to automatically compute momentum and the hamilton equations, which are solutions of differential equations. * Using type-indexed vectors and dependent types in a seamless way to encode the dimensionality of the generalized coordinate systems and to encode invariants the types of functions."><meta property="og:type" content="article"><meta property="og:title" content="Introducing the Hamilton library
+"><meta property="og:image" content="https://blog.jle.im/img/site_logo.jpg"><meta property="og:locale" content="en_US"><meta property="og:url" content="https://blog.jle.im/entry/introducing-the-hamilton-library.html"><meta name="twitter:card" content="summary"><meta name="twitter:creator:id" content="mstk"><link rel="author" href="https://plus.google.com/107705320197444500140"><link rel="alternate" type="application/rss+xml" title="in Code (RSS Feed)" href="http://feeds.feedburner.com/incodeblog"><link rel="canonical" href="https://blog.jle.im/entry/introducing-the-hamilton-library.html"><link href="https://blog.jle.im/favicon.ico" rel="shortcut icon"><link href="https://blog.jle.im/css/toast.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/font.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/main.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/page/entry.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/pygments.css" rel="stylesheet" type="text/css"><script type="text/javascript">var page_data = {};
+var disqus_shortname='incode';
+</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-443711-8', 'jle.im');
+ga('send', 'pageview');
+</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js"></script><script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5234d67a6b68dcd4"></script><script type="text/javascript" src="https://blog.jle.im/js/page/entry_toc.js"></script><script type="text/javascript" src="https://blog.jle.im/js/disqus_count.js"></script><script type="text/javascript" src="https://blog.jle.im/js/social.js"></script><script type="text/javascript" src="https://blog.jle.im/js/jquery/jquery.toc.js"></script><script type="text/javascript" src="https://blog.jle.im/purescript/entry.js"></script></head><body><div id="fb-root"><script>(function(d, s, id) {
+ var js, fjs = d.getElementsByTagName(s)[0];
+ if (d.getElementById(id)) return;
+ js = d.createElement(s); js.id = id;
+ js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=641852699171929";
+ fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+</script></div><div id="header-container"><div id="navbar-container" class="tile"><nav id="navbar-content"><div class="nav-info"><h1 class="site-title"><a href="https://blog.jle.im/" class="nav-title">in Code</a></h1><span class="nav-author">Justin Le</span></div><ul class="nav-links"><li><a href="https://blog.jle.im/">home</a></li><li><a href="https://blog.jle.im/entries.html">archives</a></li><li><a href="https://cv.jle.im">cv</a></li><div class="clear"></div></ul></nav></div><div id="header-content"></div></div><div id="body-container" class="container"><div id="main-container" class="grid"><div class="entry-section unit span-grid" role="main"><article class="tile article"><header><h1 id="title">Introducing the Hamilton library
+</h1><p class="entry-info">by <a class="author" href="https://blog.jle.im/">Justin Le</a><span class="info-separator"> &diams; </span><time datetime="2016-11-28T09:28:32Z" pubdate="" class="pubdate">Monday November 28, 2016</time></p><p><span class="source-info"><a class="source-link" href="https://github.com/mstksg/inCode/tree/master/copy/entries/hamilton.md">Source</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://github.com/mstksg/inCode/tree/gh-pages/entry/introducing-the-hamilton-library.md">Markdown</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://blog.jle.im/entry/introducing-the-hamilton-library.tex">LaTeX</a><span class="info-separator"> &diams; </span></span>Posted in <a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category" title="Functional, pure, non-strict, statically and strongly typed, natively
+compiled...really just the king of great languages.
+">Haskell</a>, <a href="https://blog.jle.im/entries/category/@projects.html" class="tag-a-category" title="Progress or presentations of completed or ongoing open source projects I have
+worked/am working on. Hopefully either the development process or the end
+product can be useful to someone!
+">Projects</a><span class="info-separator"> &diams; </span><a class="comment-link" href="#disqus_thread">Comments</a></p></header><hr><aside class="contents-container"><h5 id="contents-header">Contents</h5><div id="toc"></div></aside><div class="main-content copy-content"><p><a href="http://i.imgur.com/Vaaa2EC.gifv"><img src="/img/entries/hamilton/double-pendulum.gif" title="My name is William Rowan Hamilton" alt="My name is William Rowan Hamilton" /></a></p>
+<p><strong>Hamilton</strong>: <a href="https://github.com/mstksg/hamilton#readme">README</a> / <a href="http://hackage.haskell.org/package/hamilton">hackage</a> / <a href="https://github.com/mstksg/hamilton">github</a></p>
+<p>The <em><a href="http://hackage.haskell.org/package/hamilton">hamilton</a></em> library is on hackage! It was mostly a proof-of-concept toy experiment to simulate motion on bezier curves, but it became usable enough and accurate enough (to my surprise, admittedly) that I finished up some final touches to make it complete and put it on hackage as a general-purpose physics simulator.</p>
+<p>The library is, in short, a way to simulate a physical system by stating nothing more than an arbitrary parameterization of a system (a “generalized coordinate”) and a potential energy function.</p>
+<p>I was going to write a Haskell post on the implementation, which was what interested me at first. I wanted to go over –</p>
+<ol type="1">
+<li><p>Using <a href="https://hackage.haskell.org/package/ad">automatic differentiation</a> to automatically compute momentum and the hamilton equations, which are solutions of differential equations.</p></li>
+<li><p>Using type-indexed vectors and dependent types in a seamless way to encode the dimensionality of the generalized coordinate systems and to encode invariants the types of functions.</p></li>
+</ol>
+<p>And fun stuff like that. But that post might be a bit of a while away, so I’m just going to write a post about the usage of the library. (Fair warning, most of this information is also found in the <a href="https://github.com/mstksg/hamilton#readme">readme</a>.)</p>
+<h3 id="hamiltonian-mechanics">Hamiltonian Mechanics</h3>
+<p><em>(This section goes briefly over some relevant part of the physics behind Hamiltonian dynamics, but feel free to skip it if you want to go straight to the Haskell)</em></p>
+<p><a href="https://en.wikipedia.org/wiki/Hamiltonian_mechanics">Hamiltonian mechanics</a> is a brilliant, radical, and beautiful re-imagination of the physics of mechanics and dynamics by <a href="https://www.youtube.com/watch?v=SZXHoWwBcDc">William Rowan Hamilton</a>. It was adapted for statistical mechanics and thermodynamics, and it was through the lens of Hamiltonian mechanics that Schroedinger and Heisenberg independently found insight that unlocked the secrets of quantum mechanics. While Newton’s interpretation of mechanics (in terms of forces and accelerations) was cute, it simply didn’t generalize to quantum mechanics. Hamiltonian’s interpretation of mechanics <em>did</em>, and we have a century of physics revolutions to thank for it. Hamiltonian mechanics also generalize without any extra work to relativity – another case where newtonian mechanics tends to fall apart.</p>
+<p>Hamiltonian mechanics, in a classical sense, imagines that the state of the system exists as a point in <em><a href="https://en.wikipedia.org/wiki/Phase_space">phase space</a></em>, and that the system evolves based on geometric properties of the system’s <em>Hamiltonian</em> over that phase space.</p>
+<figure>
+<img src="/img/entries/hamilton/phase-space.gif" alt="Animation of particles traveling in phase space (top) over time, from Wikipedia" />
+<figcaption aria-hidden="true">Animation of particles traveling in phase space (top) over time, from Wikipedia</figcaption>
+</figure>
+<p>In other words, define the Hamiltonian of the system, and you see the step-by-step evolution and dynamics of the system. You can imagine mechanics as a series of streams of flow over phase space…and the state of the system just goes along for the ride.</p>
+<p>One nice thing about phase space is that it can be stated in terms of any arbitrary parameterization/coordinate system of your system. For example, for a <a href="https://en.wikipedia.org/wiki/Double_pendulum">double pendulum</a> system, you can imagine the system as traveling about in the phase space of the angles of the bobs (instead of their actual positions in cartesian space). If you can find <em>any</em> way to parameterize your system, in any sort of type of coordinates, then Hamiltonian mechanics will describe how it evolves in those coordinates.</p>
+<p>State some fundamental geometric properties about your coordinate system, and the Hamiltonian figures out the rest. It’s the key to unlocking the dynamical properties of the system.</p>
+<p>I could go into more details, but this isn’t a post about Hamiltonian mechanics! Armed with this, let’s look into modeling an actual double pendulum system in terms of the angles of the bobs.</p>
+<h3 id="examples">Examples</h3>
+<h4 id="the-double-pendulum">The Double Pendulum</h4>
+<p>So, if we’re going to be simulating a double pendulum system using <em>hamilton</em>, we need three things:</p>
+<ol type="1">
+<li><p>A statement of our parameterized coordinates and how they relate to the underlying cartesian coordinates of our system</p></li>
+<li><p>The inertias (in our case, masses) of each of those underlying coordinates.</p></li>
+<li><p>A potential energy function (in our case, just the potential energy induced by gravity)</p></li>
+</ol>
+<p>We have two coordinates here (<span class="math inline">\(\theta_1\)</span> and <span class="math inline">\(\theta_2\)</span>), which will be encoding the positions of the two pendulums:</p>
+<p><span class="math display">\[
+\langle x_1, y_1 \rangle =
+  \left\langle \sin (\theta_1), - \cos (\theta_1) \right\rangle
+\]</span></p>
+<p><span class="math display">\[
+\langle x_2, y_2 \rangle =
+  \left\langle \sin (\theta_1) + \frac{1}{2} \sin (\theta_2),
+    - \cos (\theta_1) - \frac{1}{2} \cos (\theta_2) \right\rangle
+\]</span></p>
+<p>(Assuming that the first pendulum has length 1 and the second pendulum has length <span class="math inline">\(\frac{1}{2}\)</span>)</p>
+<p>The inertias of <span class="math inline">\(x_1\)</span>, <span class="math inline">\(y_1\)</span>, <span class="math inline">\(x_2\)</span>, and <span class="math inline">\(y_2\)</span> are the “masses” attached to them. Let’s pick that the first bob has mass <span class="math inline">\(1\)</span> and the second bob has mass <span class="math inline">\(2\)</span>, so then our masses are <span class="math inline">\(\langle 1, 1, 2, 2 \rangle\)</span>.</p>
+<p>Finally, the potential energy of our system is just the potential energy of gravity, <span class="math inline">\(m \times g \times y\)</span> for each of our points:</p>
+<p><span class="math display">\[
+U(x_1, y_1, x_2, y_2) = ( y_1 + 2 y_2 ) g
+\]</span></p>
+<p>Turns out that this is a complete enough description of our system to let <em>hamilton</em> do the rest!</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/hamilton/DoublePendulum.hs#L10-L25</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ot">doublePendulum ::</span> <span class="dt">System</span> <span class="dv">4</span> <span class="dv">2</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>doublePendulum <span class="ot">=</span> mkSystem&#39; masses coordinates potential</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="ot">    masses ::</span> <span class="dt">R</span> <span class="dv">4</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    masses <span class="ot">=</span> vec4 <span class="dv">1</span> <span class="dv">1</span> <span class="dv">2</span> <span class="dv">2</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    coordinates</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="ot">        ::</span> <span class="dt">Floating</span> a</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>        <span class="ot">=&gt;</span> <span class="dt">V.Vector</span> <span class="dv">2</span> a</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>        <span class="ot">-&gt;</span> <span class="dt">V.Vector</span> <span class="dv">4</span> a</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    coordinates (<span class="dt">V2</span> θ1 θ2) <span class="ot">=</span> <span class="dt">V4</span> (<span class="fu">sin</span> θ1)            (<span class="op">-</span><span class="fu">cos</span> θ1)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>                                (<span class="fu">sin</span> θ1 <span class="op">+</span> <span class="fu">sin</span> θ2<span class="op">/</span><span class="dv">2</span>) (<span class="op">-</span><span class="fu">cos</span> θ1 <span class="op">-</span> <span class="fu">cos</span> θ2<span class="op">/</span><span class="dv">2</span>)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    potential</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="ot">        ::</span> <span class="dt">Num</span> a</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>        <span class="ot">=&gt;</span> <span class="dt">V.Vector</span> <span class="dv">4</span> a</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>        <span class="ot">-&gt;</span> a</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    potential (<span class="dt">V4</span> _ y1 _ y2) <span class="ot">=</span> (y1 <span class="op">+</span> <span class="dv">2</span> <span class="op">*</span> y2) <span class="op">*</span> <span class="dv">5</span>    <span class="co">-- assuming g = 5</span></span></code></pre></div>
+<p>(with some <a href="https://github.com/mstksg/inCode/tree/master/code-samples/hamilton/DoublePendulum.hs#L27-L35">helper patterns</a> defined here – <code>V2</code> and <code>V4</code> – that lets us pattern match on and construct sized <code>Vector</code>s and their 2 (or 4) elements)</p>
+<p>Ta dah. That’s literally all we need.</p>
+<p>A <code>System m n</code> represents a description of a physical system (without its state) described with <code>n</code> parameters/generalized coordinates. The <code>m</code> represents the dimension of its underlying cartesian coordinate system (<code>4</code> for us, with <span class="math inline">\(\langle x_1, y_1, x_2, y_2 \rangle\)</span>). The <code>m</code> should be more or less irrelevant to the actual <em>usage</em> of <code>System m n</code> and the <em>hamilton</em> api…but it’s mostly useful only if we eventually want to plot the system in normal cartesian space.</p>
+<p>Now, let’s run the simulation. First we have to pick a starting configuration:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/hamilton/DoublePendulum.hs#L37-L39</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ot">config0 ::</span> <span class="dt">Config</span> <span class="dv">2</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>config0 <span class="ot">=</span> <span class="dt">Cfg</span> (vec2 <span class="dv">1</span> <span class="dv">0</span>  )  <span class="co">-- initial positions</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>              (vec2 <span class="dv">0</span> <span class="fl">0.5</span>)  <span class="co">-- initial velocities</span></span></code></pre></div>
+<p>A <code>Config n</code> represents the state of the system, represented in configuration-space. But, remember, Hamiltonian dynamics is about simulating the path of the particle through <em>phase space</em>. So we can convert our configuration-space state into a phase-space state:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/hamilton/DoublePendulum.hs#L41-L42</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ot">phase0 ::</span> <span class="dt">Phase</span> <span class="dv">2</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>phase0 <span class="ot">=</span> toPhase doublePendulum config0</span></code></pre></div>
+<p>And now we can ask for the state of our system at any amount of points in time:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/hamilton/DoublePendulum.hs#L44-L45</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="ot">evolution ::</span> [<span class="dt">Phase</span> <span class="dv">2</span>]</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>evolution <span class="ot">=</span> evolveHam&#39; doublePendulum phase0 [<span class="dv">0</span>,<span class="fl">0.1</span> <span class="op">..</span> <span class="dv">1</span>]</span></code></pre></div>
+<p>The result there will be the state of the system at times 0, 0.01, 0.02, 0.03 … etc.</p>
+<p>Or, if you want to run the system step-by-step:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/hamilton/DoublePendulum.hs#L47-L48</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="ot">evolution&#39; ::</span> [<span class="dt">Phase</span> <span class="dv">2</span>]</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>evolution&#39; <span class="ot">=</span> <span class="fu">iterate</span> (stepHam <span class="fl">0.1</span> doublePendulum) phase0</span></code></pre></div>
+<p>And you can get the position of the coordinates as:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/hamilton/DoublePendulum.hs#L50-L51</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="ot">positions ::</span> [<span class="dt">R</span> <span class="dv">2</span>]</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>positions <span class="ot">=</span> phsPositions <span class="op">&lt;$&gt;</span> evolution&#39;</span></code></pre></div>
+<p>With <code>phsPositions :: Phase n -&gt; R n</code></p>
+<p>And the position in the underlying cartesian space as:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/hamilton/DoublePendulum.hs#L53-L54</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="ot">positions&#39; ::</span> [<span class="dt">R</span> <span class="dv">4</span>]</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>positions&#39; <span class="ot">=</span> underlyingPos doublePendulum <span class="op">&lt;$&gt;</span> positions</span></code></pre></div>
+<p>Where <code>underlyingPos :: System m n -&gt; Phase n -&gt; R m</code>.</p>
+<p>Let’s ignore the underlying position for now, and print out now the full progression of the system’s positions:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/hamilton/DoublePendulum.hs#L56-L57</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> withRows (<span class="fu">take</span> <span class="dv">25</span> positions) (disp <span class="dv">4</span>)</span></code></pre></div>
+<p>(<code>withRows</code> is from <em>hmatrix</em>, which treats a list of vectors as a matrix with each vector as a row, and <code>disp 5</code> from <em>hmatrix</em> pretty-prints our matrix with 5 decimal places of precision)</p>
+<pre><code>L 25 2
+ 1.0000   0.0000
+ 0.9727   0.0800
+ 0.8848   0.2345
+ 0.7164   0.5129
+ 0.4849   0.8725
+ 0.2878   1.0648
+ 0.1223   1.0801
+-0.0165   0.9388
+-0.1099   0.6400
+-0.1161   0.1447
+-0.0539  -0.4882
+-0.0795  -0.9212
+-0.1689  -1.1797
+-0.2860  -1.2970
+-0.4146  -1.2803
+-0.5562  -1.1238
+-0.7249  -0.8079
+-0.8762  -0.4505
+-0.9442  -0.2075
+-0.9416  -0.0516
+-0.8793   0.0312
+-0.7596   0.0265
+-0.5728  -0.1086
+-0.3001  -0.4237
+-0.0381  -0.6640</code></pre>
+<p>Neat! We see that the first coordinate (<span class="math inline">\(\theta_1\)</span>) starts at 1 like we asked, and then begins decreasing and falling… And then we see the second coordinate (<span class="math inline">\(\theta_2\)</span>) starting at 0 and then “swinging” to the right. The <a href="http://i.imgur.com/Vaaa2EC.gifv">image the top of this post</a> is an animation of such a system (albeit with <span class="math inline">\(m_2 = 1\)</span>).</p>
+<h4 id="two-body-system">Two-body system</h4>
+<p>Here’s one more situation where generalized coordinates describe things in a lot nicer way than cartesian coordinates: the classic two-body problem.</p>
+<p>Really, you can describe the state of a two-body system with only two parameters: the distance between the two bodies, and their current angle of rotation.</p>
+<p>In this framework, Kepler tells us that for bodies in orbit, the distance will grow smaller and larger again over time, and that the angle of rotation will constantly increase…and increase at a faster rate when the distance is smaller (which is <a href="https://en.wikipedia.org/wiki/Kepler&#39;s_laws_of_planetary_motion#Second_law">Kepler’s second law</a>).</p>
+<p>If we assume that the center of mass of the system is at <span class="math inline">\(\langle 0, 0
+\rangle\)</span>, then we can state these coordinates as</p>
+<p><span class="math display">\[
+\langle x_1, y_1 \rangle = \langle r_1 \cos (\theta), r_1 \sin (\theta) \rangle
+\]</span></p>
+<p><span class="math display">\[
+\langle x_2, y_2 \rangle = \langle r_2 \cos (\theta), r_2 \sin (\theta) \rangle
+\]</span></p>
+<p>Where <span class="math inline">\(r_1 = \frac{m_2}{m_1 + m_2}\)</span> and <span class="math inline">\(r_2 = - \frac{m_1}{m_1 + m_2}\)</span> (solving from the center of mass).<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+<p>Our potential energy function is Newton’s famous <a href="https://en.wikipedia.org/wiki/Newton&#39;s_law_of_universal_gravitation">law of universal gravitation</a>:</p>
+<p><span class="math display">\[
+U(r, \theta) = - \frac{G m_1 m_2}{r}
+\]</span></p>
+<p>And, this should be enough to go for <em>hamilton</em>.</p>
+<p>“But wait,” I hear you say. “If we’re doing a change-of-coordinate-system into polar coordinates, don’t we have to account for artifacts like centrifugal acceleration from the fact that <span class="math inline">\(d \theta\)</span> is non-uniform and depends on <span class="math inline">\(r\)</span>?”</p>
+<p>Well, I’m glad you asked! And the answer is, nope. We don’t have to account for any weird interplay from non-uniform coordinate systems because <em>hamilton</em> arrives at the proper solution simply from the geometry of the generalized coordinates. (And it does this using <a href="https://hackage.haskell.org/package/ad">ad</a>, but more on that for a later post!)</p>
+<p>Anyway, here we go:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/hamilton/TwoBody.hs#L10-L42</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="ot">twoBody ::</span> <span class="dt">System</span> <span class="dv">4</span> <span class="dv">2</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>twoBody <span class="ot">=</span> mkSystem masses coordinates potential</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="ot">    masses ::</span> <span class="dt">R</span> <span class="dv">4</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    masses <span class="ot">=</span> vec4 <span class="dv">10</span> <span class="dv">10</span> <span class="dv">1</span> <span class="dv">1</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    coordinates</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="ot">        ::</span> <span class="dt">Floating</span> a</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>        <span class="ot">=&gt;</span> <span class="dt">V.Vector</span> <span class="dv">2</span> a</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>        <span class="ot">-&gt;</span> <span class="dt">V.Vector</span> <span class="dv">4</span> a</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>    coordinates (<span class="dt">V2</span> r θ) <span class="ot">=</span> <span class="dt">V4</span> (r1 <span class="op">*</span> <span class="fu">cos</span> θ) (r1 <span class="op">*</span> <span class="fu">sin</span> θ)</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>                              (r2 <span class="op">*</span> <span class="fu">cos</span> θ) (r2 <span class="op">*</span> <span class="fu">sin</span> θ)</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>      <span class="kw">where</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>        r1 <span class="ot">=</span>   r <span class="op">*</span>  <span class="dv">1</span> <span class="op">/</span> <span class="dv">11</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>        r2 <span class="ot">=</span> <span class="op">-</span> r <span class="op">*</span> <span class="dv">10</span> <span class="op">/</span> <span class="dv">11</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    potential</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a><span class="ot">        ::</span> <span class="dt">Fractional</span> a</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>        <span class="ot">=&gt;</span> <span class="dt">V.Vector</span> <span class="dv">2</span> a</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>        <span class="ot">-&gt;</span> a</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>    potential (<span class="dt">V2</span> r _) <span class="ot">=</span> <span class="op">-</span> <span class="dv">10</span> <span class="op">/</span> r       <span class="co">-- G = 1</span></span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a><span class="ot">config0 ::</span> <span class="dt">Config</span> <span class="dv">2</span></span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>config0 <span class="ot">=</span> <span class="dt">Cfg</span> (vec2 <span class="dv">2</span>   <span class="dv">0</span>)  <span class="co">-- initial positions</span></span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>              (vec2 <span class="dv">0</span> <span class="fl">0.5</span>)  <span class="co">-- initial velocities</span></span></code></pre></div>
+<p>(we use <code>mkSystem</code> instead of <code>mkSystem'</code> because we want to state the potential energy in terms of our generalized coordinates <span class="math inline">\(r\)</span> and <span class="math inline">\(\theta\)</span>)</p>
+<p>Let’s take a peek:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/hamilton/TwoBody.hs#L44-L60</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="ot">phase0 ::</span> <span class="dt">Phase</span> <span class="dv">2</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>phase0 <span class="ot">=</span> toPhase twoBody config0</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="ot">evolution&#39; ::</span> [<span class="dt">Phase</span> <span class="dv">2</span>]</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>evolution&#39; <span class="ot">=</span> <span class="fu">iterate</span> (stepHam <span class="fl">0.1</span> twoBody) phase0</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="ot">positions ::</span> [<span class="dt">R</span> <span class="dv">2</span>]</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>positions <span class="ot">=</span> phsPositions <span class="op">&lt;$&gt;</span> evolution&#39;</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> withRows (<span class="fu">take</span> <span class="dv">25</span> positions) (disp <span class="dv">4</span>)</span></code></pre></div>
+<pre><code>L 25 2
+2.0000  0.0000
+1.9887  0.0502
+1.9547  0.1015
+1.8972  0.1554
+1.8149  0.2133
+1.7058  0.2777
+1.5669  0.3523
+1.3933  0.4435
+1.1774  0.5647
+0.9057  0.7503
+0.5516  1.1413
+0.2057  3.4946
+0.6092  5.2275
+0.9490  5.5664
+1.2115  5.7386
+1.4207  5.8542
+1.5889  5.9424
+1.7233  6.0152
+1.8283  6.0785
+1.9069  6.1358
+1.9610  6.1892
+1.9917  6.2403
+1.9998  6.2904
+1.9852  6.3407
+1.9479  6.3923</code></pre>
+<p>Neat! We see that <span class="math inline">\(r\)</span> starts big and gets smaller, and then gets big again. And it’s clear that when <span class="math inline">\(r\)</span> is smallest, <span class="math inline">\(\theta\)</span> changes the fastest. Look at it go!</p>
+<p>Here’s an animation of the same situation with some different masses:</p>
+<p><a href="http://i.imgur.com/TDEHTcb.gifv"><img src="/img/entries/hamilton/two-body.gif" alt="The two-body solution" /></a></p>
+<h3 id="just-you-wait">Just you wait</h3>
+<p>Now, this isn’t all just useful for physics. You can state a lot of animation/dynamics problems as motion along coordinates that aren’t always trivial. This project started, after all, as a way to simulate constant-velocity motion along a bezier curve. (In that case, the single coordinate is the non-uniform time parameter to the bezier curve.)</p>
+<p>I’ve included more examples in the <a href="https://github.com/mstksg/hamilton#example-app-runner">example app launcher</a> included in the library (which generated those animations you see above), including:</p>
+<ol type="1">
+<li>A spring hanging from a block sliding along a horizontal rail (a favorite of many physics students, of course)</li>
+<li>A ball bouncing around a room, showing that you can represent bouncy walls as potential energy functions</li>
+<li>The bezier curve example.</li>
+</ol>
+<p>Let me know in the comments if you think of any interesting systems to apply this to, or if you have any interesting applications in physical or non-physical ways! I’d love to hear :D</p>
+<p>And if you’re interested in the implementation using some of those Haskell tricks I mentioned above, stay tuned :)</p>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Alternatively, we could assume that the halfway point (or even the first body) is always at <span class="math inline">\(\langle 0, 0 \rangle\)</span>, but this doesn’t give us as pretty of plots. The center of mass is a nice reference point because newton’s third law implies that it remains stationary forever.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div><footer><hr><div class="copy-content"><p>Hi, thanks for reading! You can reach me via email at <a href="mailto:justin@jle.im" class="email">justin@jle.im</a>, or at twitter at <a href="https://twitter.com/mstk">@mstk</a>! This post and all others are published under the <a href="https://creativecommons.org/licenses/by-nc-nd/3.0/">CC-BY-NC-ND 3.0</a> license. Corrections and edits via pull request are welcome and encouraged at <a href="https://github.com/mstksg/inCode">the source repository</a>.</p>
+<p>If you feel inclined, or this post was particularly helpful for you, why not consider <a href="https://www.patreon.com/justinle/overview">supporting me on Patreon</a>, or a <a href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">BTC donation</a>? :)</p></div><div class="clear"></div><ul class="entry-series"><li><div>This entry is a part of a series called <b>&quot;Hamilton&quot;</b>.  Find the rest of the entries in this series at its <a href="https://blog.jle.im/entries/series/+hamilton.html" class="tag-a-series" title="+Hamilton"> series history</a>.</div></li></ul><ul class="tag-list"><li><a href="https://blog.jle.im/entries/tagged/functional-programming.html" class="tag-a-tag">#functional programming</a></li><li><a href="https://blog.jle.im/entries/tagged/haskell.html" class="tag-a-tag">#haskell</a></li><li><a href="https://blog.jle.im/entries/tagged/numerical-methods.html" class="tag-a-tag">#numerical methods</a></li><li><a href="https://blog.jle.im/entries/tagged/physics.html" class="tag-a-tag">#physics</a></li><li><a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category">@HASKELL</a></li><li><a href="https://blog.jle.im/entries/category/@projects.html" class="tag-a-category">@PROJECTS</a></li><li><a href="https://blog.jle.im/entries/series/+hamilton.html" class="tag-a-series">+Hamilton</a></li></ul><aside class="social-buttons"><div class="addthis_toolbox addthis_default_style addthis-buttons"><a class="addthis_button_facebook_like" fb:like:layout="button_count"></a><a class="addthis_button_tweet"></a><a class="addthis_button_google_plusone" g:plusone:size="medium"></a><a class="addthis_counter addthis_pill_style"></a></div><div class="custom-social-buttons"><div class="custom-social-button"><a href="https://www.reddit.com/submit" onclick="window.location = &#39;https://www.reddit.com/submit?url=&#39;+ encodeURIComponent(window.location); return false"><img src="https://www.reddit.com/static/spreddit7.gif" alt="submit to reddit"></a></div></div></aside><nav class="next-prev-links"><ul><li class="prev-entry-link">&larr; <a href="https://blog.jle.im/entry/practical-dependent-types-in-haskell-2.html">Practical Dependent Types in Haskell 2: Existential Neural Networks and Types at
+Runtime
+</a> (Previous)</li><li class="next-entry-link">(Next) <a href="https://blog.jle.im/entry/verified-instances-in-haskell.html">Verify your Typeclass Instances in Haskell Today!
+</a> &rarr;</li></ul></nav></footer></article><div class="post-entry"><div class="tile"><div id="disqus_thread"></div><script type="text/javascript">var disqus_config = function () {
+    this.page.url = 'https://blog.jle.im/entry/introducing-the-hamilton-library.html';
+    this.page.identifier = 'hamilton';
+};
+(function() {
+    var d = document, s = d.createElement('script');
+    s.src = '//incode.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a><br></noscript><a href="http://disqus.com" class="dsq-brlink">Comments powered by <span class="logo-disqus">Disqus</span></a></div></div></div></div></div><div id="footer-container"><div id="footer-content"><div class="tile"><div class="footer-copyright">&copy; 2020 Justin Le <span class="license-link">(<a href="https://creativecommons.org/licenses/by-nc-nd/3.0/" class="license">CC-BY-NC-ND 3.0</a>)</span></div><div class="footer-follow social-follows"><ul class="social-follows-list"><li><ul class="social-follows-list-social"><li><a class="social-follow-twitter" title="Follow me on Twitter!" href="https://twitter.com/intent/user?user_id=mstk" onclick="window.open(
+  &#39;http://twitter.com/intent/user?user_id=907281&#39;,
+  &#39;facebook-share-dialog&#39;,
+  &#39;width=550,height=520&#39;);
+return false;
+">Twitter</a></li><li><a class="social-follow-github" title="Fork me on Github!" href="https://github.com/mstksg">Github</a></li><li><a class="social-follow-twitch" title="Watch me on Twitch!" href="https://www.twitch.tv/justin_l">Twitch</a></li><li><a class="social-follow-patreon" title="Support me on Patreon!" href="https://www.patreon.com/justinle/overview">Patreon</a></li><li><a class="social-follow-gplus" title="Add me on Google+!" href="https://plus.google.com/+JustinLe">Google+</a></li><li><a class="social-follow-keybase" title="Track me on Keybase!" href="https://keybase.io/mstksg">Keybase</a></li><li><a class="social-follow-linkedin" title="Connect with me on LinkedIn!" href="https://linkedin.com/in/lejustin">LinkedIn</a></li><li><a class="social-follow-bitcoin" title="Donate via bitcoin!" href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">Bitcoin</a></li></ul></li><li><ul class="social-follows-list-site"><li><a class="social-follow-rss" title="Subscribe to my RSS Feed!" href="http://feeds.feedburner.com/incodeblog">RSS</a></li><li><a class="social-follow-email" title="Subscribe to the mailing list!" href="https://feedburner.google.com/fb/a/mailverify?loc=en_US&amp;uri=incodeblog">Mailing list</a></li></ul></li></ul></div></div></div></div></body></html>

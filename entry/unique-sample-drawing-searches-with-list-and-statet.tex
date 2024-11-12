@@ -1,0 +1,448 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Unique sample drawing \& searches with List and StateT --- ``Send more money''},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Unique sample drawing \& searches with List and StateT --- ``Send more
+money''}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% April 24, 2015
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/unique-sample-drawing-searches-with-list-and-statet.html}{in
+Code}}.}
+
+Nothing too crazy today, just a cute (basic/intermediate) haskell trick as a
+response to Mark Dominus's excellent \href{http://blog.plover.com}{Universe of
+Discourse} post on
+\href{http://blog.plover.com/prog/haskell/monad-search.html}{Easy exhaustive
+search with the list monad} intended for people new or unfamiliar with haskell
+demonstrating the common ``list monad as a constraint solver'' approach that is
+standard fare for learning Haskell. I myself have literally done
+\href{http://blog.jle.im/entries/series/+monadplus-success-failure-monads}{an
+entire series of blog posts} on this usage.
+
+Mark's use case however incorporates a bit of an extra pattern not typically
+discussed. The list monad is good for taking ``independent samples'' of things
+(looking at different samples from a list):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{do}\NormalTok{ x }\OtherTok{\textless{}{-}} \StringTok{"abc"}
+\NormalTok{         y }\OtherTok{\textless{}{-}} \StringTok{"abc"}
+\NormalTok{         z }\OtherTok{\textless{}{-}} \StringTok{"abc"}
+         \FunctionTok{return}\NormalTok{ [x,y,z]}
+\NormalTok{[}\StringTok{"aaa"}\NormalTok{,}\StringTok{"aab"}\NormalTok{,}\StringTok{"aac"}\NormalTok{,}\StringTok{"aba"}\NormalTok{,}\StringTok{"abb"} \OperatorTok{...}\NormalTok{ ]}
+\end{Highlighting}
+\end{Shaded}
+
+However, what if you wanted to instead ``draw'' from a pool, and represent
+different drawings? Traditionally, the answer was something like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{do}\NormalTok{ x }\OtherTok{\textless{}{-}} \StringTok{"abc"}
+\NormalTok{         y }\OtherTok{\textless{}{-}} \FunctionTok{filter}\NormalTok{ (}\OperatorTok{/=}\NormalTok{ x) }\StringTok{"abc"}
+\NormalTok{         z }\OtherTok{\textless{}{-}} \FunctionTok{filter}\NormalTok{ (}\OperatorTok{/=}\NormalTok{ y) }\OperatorTok{.} \FunctionTok{filter}\NormalTok{ (}\OperatorTok{/=}\NormalTok{ x) }\OperatorTok{$} \StringTok{"abc"}
+         \FunctionTok{return}\NormalTok{ [x,y,z]}
+\StringTok{"abc"}\NormalTok{,}\StringTok{"acb"}\NormalTok{,}\StringTok{"bac"}\NormalTok{,}\StringTok{"bca"}\NormalTok{,}\StringTok{"cab"}\NormalTok{,}\StringTok{"cba"}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+This is a little bit awkward\ldots and it definitely gets a lot worse
+(\(O(n^2)\)) when you have more items. Also, it relies on an \texttt{Eq}
+constraint --- what if our thing doesn't have an \texttt{Eq} instance? And this
+also falls apart when our list contains duplicate items. If we had used
+\texttt{"aabc"} instead of \texttt{"abc"}, the result would be the same ---
+despite having more \texttt{\textquotesingle{}a\textquotesingle{}}s to pick
+from!
+
+\textbf{Important note:} After writing this article, I found out that Douglas
+Auclair in \href{https://wiki.haskell.org/wikiupload/6/6a/TMR-Issue11.pdf}{11th
+issue of the Monad Reader} solved this exact same problem with pretty much the
+exact same approach. (Oops!) If you want to do further reading, check it out! :D
+
+\section{StateT}\label{statet}
+
+There's a type in the \emph{transformers} library that provides a very useful
+monad instance:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{StateT}\NormalTok{ s m a }\OtherTok{=} \DataTypeTok{StateT}\NormalTok{ (s }\OtherTok{{-}\textgreater{}}\NormalTok{ m (a, s))}
+\end{Highlighting}
+\end{Shaded}
+
+A \texttt{StateT\ s\ m\ a} is a function that takes an initial state \texttt{s}
+and returns a result \texttt{a} with a modified state\ldots in the context of
+\texttt{m}.
+
+Specialize for \texttt{m\ \textasciitilde{}\ {[}{]}} and we get
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{StateT}\NormalTok{ s [] a }\OtherTok{=} \DataTypeTok{StateT}\NormalTok{ (s }\OtherTok{{-}\textgreater{}}\NormalTok{ [(a, s)])}
+\end{Highlighting}
+\end{Shaded}
+
+Which is basically describing a function from a initial state to a list of
+\emph{ways you can modify the state}, and different results from each one. It
+returns a list of ``all ways you can mutate this state''.
+
+For example,
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{foo ::} \DataTypeTok{StateT} \DataTypeTok{Int}\NormalTok{ [] }\DataTypeTok{Bool}
+\NormalTok{foo }\OtherTok{=} \DataTypeTok{StateT} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}}\NormalTok{ [(}\FunctionTok{even}\NormalTok{ x, x}\OperatorTok{+}\DecValTok{1}\NormalTok{), (}\FunctionTok{odd}\NormalTok{ x, x}\OperatorTok{{-}}\DecValTok{1}\NormalTok{), (x }\OperatorTok{\textgreater{}} \DecValTok{0}\NormalTok{, }\FunctionTok{negate}\NormalTok{ x)]}
+\end{Highlighting}
+\end{Shaded}
+
+So \texttt{foo} takes a number, \texttt{x}, and says, ``here are three ways we
+might proceed from having this number. We can return whether or not it's even,
+in which case the new state is \texttt{x+1}\ldots we can return whether or not
+it's odd, in which case the new state is \texttt{x-1}\ldots.or we can return
+whether or not it's positive, in which case the new state is
+\texttt{negate\ x}''
+
+What the monad instance does is that it allows you to ``chain'' forks, and go
+along different forks, and gather together ``all possible forks'' you could have
+taken. At the end, it outputs all possible forks. So if you did
+\texttt{foo\ \textgreater{}\textgreater{}\ foo}, there'd be nine results --- one
+result for when you took the first route (the \texttt{x+1}) twice, one for when
+you took the first and then the second (\texttt{x-1}), one for when you took the
+first and the third\ldots.and the second and the first\ldots etc., etc.
+
+\subsection{MonadPlus}\label{monadplus}
+
+One other tool we have at our disposal is \texttt{guard}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{guard ::} \DataTypeTok{Bool} \OtherTok{{-}\textgreater{}} \DataTypeTok{StateT} \DataTypeTok{Int}\NormalTok{ [] ()}
+\end{Highlighting}
+\end{Shaded}
+
+which is a \texttt{StateT} action that says ``kill this current branch if given
+\texttt{False}, or go on if given \texttt{True}''
+
+\section{The Problem}\label{the-problem}
+
+The problem, as stated, was to find distinct digits for each letter to solve:
+
+\begin{verbatim}
+    S E N D
++   M O R E
+-----------
+  M O N E Y
+\end{verbatim}
+
+So \texttt{SEND} is a four-digit number, \texttt{MORE} is a four-digit number,
+and \texttt{MONEY} is a five-digit number that is the sum of the two. The first
+digit of \texttt{MONEY} has to be the first digit of \texttt{MORE}, the last
+digit of \texttt{MORE} has to be the second digit of \texttt{SEND}, etc.
+
+The previous approach was done using the entire ``pick from all
+possibilities\ldots except for the ones already chosen'', using \texttt{(/=)}
+and filtering over all of the things seen vs all of the things to pick from.
+
+However, we can abstract over ``picking dependently from a sample'' by defining
+a function called \texttt{select}, which really should be in the base libraries
+but isn't for some reason:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/send{-}more{-}money.hs\#L7{-}L9}
+
+\OtherTok{select ::}\NormalTok{ [a] }\OtherTok{{-}\textgreater{}}\NormalTok{ [(a, [a])]}
+\NormalTok{select []     }\OtherTok{=}\NormalTok{ []}
+\NormalTok{select (x}\OperatorTok{:}\NormalTok{xs) }\OtherTok{=}\NormalTok{ (x,xs) }\OperatorTok{:}\NormalTok{ [(y,x}\OperatorTok{:}\NormalTok{ys) }\OperatorTok{|}\NormalTok{ (y,ys) }\OtherTok{\textless{}{-}}\NormalTok{ select xs]}
+\end{Highlighting}
+\end{Shaded}
+
+(Implementation thanks to Cale, who has fought valiantly yet fruitlessly to get
+this into base for many years.)
+
+\texttt{select} will take a list \texttt{{[}a{]}} and return a list of different
+``selected'' \texttt{a}s, with the rest of the list, too:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ select }\StringTok{"abcd"}
+\NormalTok{[(}\CharTok{\textquotesingle{}a\textquotesingle{}}\NormalTok{,}\StringTok{"bcd"}\NormalTok{),(}\CharTok{\textquotesingle{}b\textquotesingle{}}\NormalTok{,}\StringTok{"acd"}\NormalTok{),(}\CharTok{\textquotesingle{}c\textquotesingle{}}\NormalTok{,}\StringTok{"abd"}\NormalTok{),(}\CharTok{\textquotesingle{}d\textquotesingle{}}\NormalTok{,}\StringTok{"abc"}\NormalTok{)]}
+\end{Highlighting}
+\end{Shaded}
+
+But, hey\ldots does the type signature of \texttt{select} look like anything
+familiar?
+
+It looks \emph{exactly} like something that \texttt{StateT} is supposed to
+describe! Give an initial state (\texttt{{[}a{]}}), and returns a list of all
+possible ways to ``mutate'' that state (by removing one element from the state),
+and a result from each mutation (the removed element).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{StateT}\OtherTok{ select ::} \DataTypeTok{StateT}\NormalTok{ [a] [] a}
+\end{Highlighting}
+\end{Shaded}
+
+And armed with this\ldots we have all we need
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/send{-}more{-}money.hs\#L3{-}L35}
+
+\KeywordTok{import} \DataTypeTok{Control.Monad}\NormalTok{             (guard, mfilter)}
+\KeywordTok{import} \DataTypeTok{Control.Monad.Trans.State}
+\KeywordTok{import} \DataTypeTok{Data.List}\NormalTok{                 (foldl\textquotesingle{})}
+
+\OtherTok{asNumber ::}\NormalTok{ [}\DataTypeTok{Int}\NormalTok{] }\OtherTok{{-}\textgreater{}} \DataTypeTok{Int}
+\NormalTok{asNumber }\OtherTok{=}\NormalTok{ foldl\textquotesingle{} (\textbackslash{}t o }\OtherTok{{-}\textgreater{}}\NormalTok{ t}\OperatorTok{*}\DecValTok{10} \OperatorTok{+}\NormalTok{ o) }\DecValTok{0}
+
+\OtherTok{main ::} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{main }\OtherTok{=} \FunctionTok{print} \OperatorTok{.} \FunctionTok{flip}\NormalTok{ evalStateT [}\DecValTok{0}\OperatorTok{..}\DecValTok{9}\NormalTok{] }\OperatorTok{$} \KeywordTok{do}
+\NormalTok{    s }\OtherTok{\textless{}{-}} \DataTypeTok{StateT}\NormalTok{ select}
+\NormalTok{    e }\OtherTok{\textless{}{-}} \DataTypeTok{StateT}\NormalTok{ select}
+\NormalTok{    n }\OtherTok{\textless{}{-}} \DataTypeTok{StateT}\NormalTok{ select}
+\NormalTok{    d }\OtherTok{\textless{}{-}} \DataTypeTok{StateT}\NormalTok{ select}
+\NormalTok{    m }\OtherTok{\textless{}{-}} \DataTypeTok{StateT}\NormalTok{ select}
+\NormalTok{    o }\OtherTok{\textless{}{-}} \DataTypeTok{StateT}\NormalTok{ select}
+\NormalTok{    r }\OtherTok{\textless{}{-}} \DataTypeTok{StateT}\NormalTok{ select}
+\NormalTok{    y }\OtherTok{\textless{}{-}} \DataTypeTok{StateT}\NormalTok{ select}
+\NormalTok{    guard }\OperatorTok{$}\NormalTok{ s }\OperatorTok{/=} \DecValTok{0} \OperatorTok{\&\&}\NormalTok{ m }\OperatorTok{/=} \DecValTok{0}
+    \KeywordTok{let}\NormalTok{ send  }\OtherTok{=}\NormalTok{ asNumber [s,e,n,d]}
+\NormalTok{        more  }\OtherTok{=}\NormalTok{ asNumber [m,o,r,e]}
+\NormalTok{        money }\OtherTok{=}\NormalTok{ asNumber [m,o,n,e,y]}
+\NormalTok{    guard }\OperatorTok{$}\NormalTok{ send }\OperatorTok{+}\NormalTok{ more }\OperatorTok{==}\NormalTok{ money}
+    \FunctionTok{return}\NormalTok{ (send, more, money)}
+\end{Highlighting}
+\end{Shaded}
+
+Remember, \texttt{StateT} here operates with an underlying state of
+\texttt{{[}Int{]}}, a list of numbers not yet picked. \texttt{StateT\ select}
+picks one of these numbers, and modifies the state to now only include the items
+that were not picked. So every time you sequence \texttt{StateT\ select},
+\texttt{select} draws from a smaller and smaller pool of numbers, and makes the
+state list smaller and smaller. What sequencing \texttt{StateT} does is allow us
+to explore \emph{all} of the possible ways we could pick and modify state, all
+at once. Using \texttt{guard}, we then ``close off'' and kill off the paths that
+don't end up how we'd like.
+
+\texttt{asNumber} takes a list like \texttt{{[}1,2,3{]}} and turns it into the
+number \texttt{123}; credit to the source blog.
+
+And, to test it out\ldots{}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{$}\NormalTok{ ghc }\AttributeTok{{-}O2}\NormalTok{ send{-}more{-}money.hs}
+\ExtensionTok{$}\NormalTok{ ./send{-}more{-}money}
+\CommentTok{\# [(9567,1085,10652)]}
+\end{Highlighting}
+\end{Shaded}
+
+It returns the one and only solution, \texttt{SEND\ =\ 9567},
+\texttt{MORE\ =\ 1085}, and \texttt{MONEY\ =\ 10652}.\footnote{For some reason
+  this runs pretty slowly if you use \texttt{runghc}/\texttt{runHaskell}, but it
+  runs in the blink of an eye when you actually compile it (and especially with
+  optimizations on). The difference is pretty striking\ldots and I don't really
+  know what's going on here, to be honest. If anyone does know a good
+  explanation, I'd love to hear it :)}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+We can make things a little bit more efficient with minimal cost in
+expressiveness. But not that it matters\ldots the original version runs fast
+already.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/send{-}more{-}money.hs\#L38{-}L59}
+
+\OtherTok{select\textquotesingle{} ::}\NormalTok{ [a] }\OtherTok{{-}\textgreater{}}\NormalTok{ [(a,[a])]}
+\NormalTok{select\textquotesingle{} }\OtherTok{=}\NormalTok{ go []}
+  \KeywordTok{where}
+\NormalTok{   go xs [] }\OtherTok{=}\NormalTok{ []}
+\NormalTok{   go xs (y}\OperatorTok{:}\NormalTok{ys) }\OtherTok{=}\NormalTok{ (y,xs}\OperatorTok{++}\NormalTok{ys) }\OperatorTok{:}\NormalTok{ go (y}\OperatorTok{:}\NormalTok{xs) ys}
+
+\OtherTok{main\textquotesingle{} ::} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{main\textquotesingle{} }\OtherTok{=} \FunctionTok{print} \OperatorTok{.} \FunctionTok{flip}\NormalTok{ evalStateT [}\DecValTok{0}\OperatorTok{..}\DecValTok{9}\NormalTok{] }\OperatorTok{$} \KeywordTok{do}
+\NormalTok{    s }\OtherTok{\textless{}{-}}\NormalTok{ mfilter (}\OperatorTok{/=} \DecValTok{0}\NormalTok{) }\OperatorTok{$} \DataTypeTok{StateT}\NormalTok{ select\textquotesingle{}}
+\NormalTok{    m }\OtherTok{\textless{}{-}}\NormalTok{ mfilter (}\OperatorTok{/=} \DecValTok{0}\NormalTok{) }\OperatorTok{$} \DataTypeTok{StateT}\NormalTok{ select\textquotesingle{}}
+\NormalTok{    e }\OtherTok{\textless{}{-}} \DataTypeTok{StateT}\NormalTok{ select\textquotesingle{}}
+\NormalTok{    n }\OtherTok{\textless{}{-}} \DataTypeTok{StateT}\NormalTok{ select\textquotesingle{}}
+\NormalTok{    d }\OtherTok{\textless{}{-}} \DataTypeTok{StateT}\NormalTok{ select\textquotesingle{}}
+\NormalTok{    o }\OtherTok{\textless{}{-}} \DataTypeTok{StateT}\NormalTok{ select\textquotesingle{}}
+\NormalTok{    r }\OtherTok{\textless{}{-}} \DataTypeTok{StateT}\NormalTok{ select\textquotesingle{}}
+\NormalTok{    y }\OtherTok{\textless{}{-}} \DataTypeTok{StateT}\NormalTok{ select\textquotesingle{}}
+    \KeywordTok{let}\NormalTok{ send  }\OtherTok{=}\NormalTok{ asNumber [s,e,n,d]}
+\NormalTok{        more  }\OtherTok{=}\NormalTok{ asNumber [m,o,r,e]}
+\NormalTok{        money }\OtherTok{=}\NormalTok{ asNumber [m,o,n,e,y]}
+\NormalTok{    guard }\OperatorTok{$}\NormalTok{ send }\OperatorTok{+}\NormalTok{ more }\OperatorTok{==}\NormalTok{ money}
+    \FunctionTok{return}\NormalTok{ (send, more, money)}
+\end{Highlighting}
+\end{Shaded}
+
+This is a more performant version of \texttt{select}
+\href{http://chimera.labs.oreilly.com/books/1230000000929/pr01.html}{courtesy of
+Simon Marlow} that doesn't preserve the order of the ``rest of the elements''.
+
+Also, we use \texttt{mfilter} to ``eliminate bad \texttt{s} and \texttt{m}s''
+right off the bat, before having to pick any more things. \texttt{mfilter} can
+be thought of as ``killing the fork immediately'' if the action doesn't satisfy
+the predicate. If the \texttt{s} picked doesn't match \texttt{(/=\ 0)}, then the
+entire branch/fork is immediately ruled invalid.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+By the way, isn't it neat that it does all of this in ``constant space''? It
+just keeps track of the output list, but the actual search processes is in
+constant space. You don't need to keep track of all \texttt{10!} combinations in
+memory at once. Hooray laziness!
+
+\section{Other Applications}\label{other-applications}
+
+Using \texttt{select} and \texttt{StateT}, we can do a lot of things involving
+picking from a sample, or permutations. Anything that you used to awkwardly do
+by using filter not-equal-to's can work now. You can do things like drawing from
+a deck:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{pokerGame ::}\NormalTok{ [}\DataTypeTok{Ordering}\NormalTok{]}
+\NormalTok{pokerGame }\OtherTok{=} \FunctionTok{flip}\NormalTok{ evalStateT [}\DecValTok{0}\OperatorTok{..}\DecValTok{51}\NormalTok{] }\OperatorTok{$} \KeywordTok{do}
+\NormalTok{    p2Hand }\OtherTok{\textless{}{-}}\NormalTok{ replicateM }\DecValTok{5}\NormalTok{ (}\DataTypeTok{StateT}\NormalTok{ select)}
+\NormalTok{    p1Hand }\OtherTok{\textless{}{-}}\NormalTok{ replicateM }\DecValTok{5}\NormalTok{ (}\DataTypeTok{StateT}\NormalTok{ select)}
+    \FunctionTok{return} \OperatorTok{$}\NormalTok{ pokerCompare p1Hand p2Hand}
+\end{Highlighting}
+\end{Shaded}
+
+Which would draw five distinct cards from a deck of \texttt{{[}0..51{]}}, and
+return who won for each draw (assuming you had a suitable
+\texttt{pokerCompare\ ::\ {[}Card{]}\ -\textgreater{}\ {[}Card{]}\ -\textgreater{}\ Ordering}).
+Note that if you use \texttt{runStateT}, you'd get the results (the winner),
+\emph{as well as} the leftover cards in the deck for each path!
+
+You can even combine the two sorts of drawings --- sampling independently (like
+rolling dice) using \texttt{lift}, and drawing from an underlying deck. For
+example, you might encode some game logic from a board game like monopoly:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{combo }\OtherTok{=} \FunctionTok{flip}\NormalTok{ evalStateT initialDeck }\OperatorTok{$} \KeywordTok{do}
+\NormalTok{    roll }\OtherTok{\textless{}{-}}\NormalTok{ lift [}\DecValTok{1}\OperatorTok{..}\DecValTok{6}\NormalTok{]}
+\NormalTok{    draw }\OtherTok{\textless{}{-}} \DataTypeTok{StateT}\NormalTok{ select}
+    \OperatorTok{...}
+\end{Highlighting}
+\end{Shaded}
+
+Whenever you want a dice roll, use \texttt{lift\ {[}1..6{]}}\ldots and whenever
+you want to draw from the deck, use \texttt{StateT\ select}.
+
+What you get in the end, remember, is a list of ``all possible paths''. You'll
+get a list of every possible result from all of your different rolling and
+drawing choices.
+
+Happy Haskelling!
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

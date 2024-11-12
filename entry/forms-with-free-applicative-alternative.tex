@@ -1,0 +1,629 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Abstract Validating Forms with Free Applicative/Alternative},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Abstract Validating Forms with Free Applicative/Alternative}
+
+\begin{document}
+\maketitle
+
+\% Justin Le
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/forms-with-free-applicative-alternative.html}{in
+Code}}.}
+
+One tool I've been finding myself using a lot recently is the \emph{Free
+Applicative} (and \emph{Free Alternative}), from the
+\emph{\href{https://hackage.haskell.org/package/free}{free}} package.
+
+Free Monads are great, and they're often used to implement the ``interpreter
+pattern'' (although I personally prefer
+\emph{\href{https://hackage.haskell.org/package/operational}{operational}}, as I
+wrote about in a
+\href{https://blog.jle.im/entry/interpreters-a-la-carte-duet.html}{previous blog
+post}, for that design pattern). However, Free Applicatives are really a
+completely different type of thing, and the use cases for each are pretty
+disjoint.
+
+If I had to make a general statement, I'll say that free monads are especially
+good at representing the idea of abstract \emph{sequential} generators
+(sequences that are chained dependently one after the other), and that free
+applicatives are especially good at representing the idea of abstract
+\emph{parallel} generators (things operating in parallel without any
+interconnected data dependencies).
+
+For this post, I'll be talking about using the Free Applicative \texttt{Ap} (and
+the Free Alternative, \texttt{Alt}) with an abstract representation of a form
+element in order to generate an abstract representation of a validating form,
+and leveraging this representation to realize these forms in terminal IO,
+JSON/YAML, PDF documents, and even on the browser using \emph{ghcjs} and
+\emph{\href{https://hackage.haskell.org/package/miso}{miso}}.
+
+\section{Overview}\label{overview}
+
+The general approach to utilizing the Free Applicative for this type of
+application is to start with some Functor \texttt{F} (\texttt{F\ a} represents
+the act of generating a value of type \texttt{a}). Once you throw \texttt{F}
+into \texttt{Ap} to get \texttt{Ap\ F}, you now are able to \emph{combine
+\texttt{F}s in parallel} with \texttt{\textless{}\$\textgreater{}},
+\texttt{\textless{}*\textgreater{}}, \texttt{liftA2}, \texttt{sequence},
+\texttt{traverse}, etc., even though \texttt{F} normally could not support such
+combinations. Then, finally, you have the ability to provide a concrete
+generator function
+\texttt{forall\ a.\ Applicative\ f\ =\textgreater{}\ F\ a\ -\textgreater{}\ f\ a}
+(given \texttt{F\ a}, return an actual generator of \texttt{a}s in some
+\texttt{Applicative}), and the magic of the Free Applicative will go in and
+actually run all of your combined \texttt{F} actions ``in parallel''. The trick
+is that, with the same value of \texttt{Ap\ F\ a}, you can \emph{run multiple
+different concrete generators} on it, so you can realize \texttt{Ap\ F} in
+multiple different contexts and situations, adapting it for whatever you need.
+
+So, in our case, we're going to be making a Functor representing a form element:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{FormElem}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+Where a \texttt{FormElem\ a} represents a \emph{single form element} producing
+an \texttt{a}. A \texttt{FormElem\ Int}, for instance, will represent a single
+form element producing an \texttt{Int}.
+
+Then, we can create, using
+\href{https://hackage.haskell.org/package/free/docs/Control-Applicative-Free.html}{Ap}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \DataTypeTok{Form} \OtherTok{=} \DataTypeTok{Ap} \DataTypeTok{FormElem}
+\end{Highlighting}
+\end{Shaded}
+
+And now we have a type where \texttt{Form\ a} is \emph{whole form with multiple
+elements} that all work together to produce a value of type \texttt{a}!
+
+For example, if we had \texttt{intElem\ ::\ FormElem\ Int}, then
+\texttt{liftAp\ intElem\ ::\ Form\ Int}, a single-item form that makes an
+\texttt{Int}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{intElem ::} \DataTypeTok{FormElem} \DataTypeTok{Int}
+
+\OtherTok{intForm ::} \DataTypeTok{Form} \DataTypeTok{Int}
+\NormalTok{intForm }\OtherTok{=}\NormalTok{ liftAp intElem}
+\end{Highlighting}
+\end{Shaded}
+
+We can now do all of our Applicativey stuff with it, to generate, for instance,
+a form with two items that produces their sum:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} | A form with two elements, whose overal result is the sum of the two}
+\CommentTok{{-}{-} element\textquotesingle{}s inputs}
+\OtherTok{addingForm ::} \DataTypeTok{Form} \DataTypeTok{Int}
+\NormalTok{addingForm }\OtherTok{=}\NormalTok{ (}\OperatorTok{+}\NormalTok{) }\OperatorTok{\textless{}$\textgreater{}}\NormalTok{ intForm }\OperatorTok{\textless{}*\textgreater{}}\NormalTok{ intForm}
+\end{Highlighting}
+\end{Shaded}
+
+Or, we can even generate a form with many `Int' elements, and produce a list of
+all of their items:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} | A form with five elements, whose result is a list of all of their inputs}
+\OtherTok{bunchaInts ::} \DataTypeTok{Form}\NormalTok{ [}\DataTypeTok{Int}\NormalTok{]}
+\NormalTok{bunchaInts }\OtherTok{=}\NormalTok{ replicateM }\DecValTok{5}\NormalTok{ intForm}
+\end{Highlighting}
+\end{Shaded}
+
+Of course, in real life, forms usually have \emph{Alternative} instances, which
+allows you to use \texttt{\textless{}\textbar{}\textgreater{}} to ``chose'' a
+result between potentially invalid entries, and also create ``optional'' entries
+for free using \texttt{optional}. To do that, we actually use the \emph{Free
+Alternative},
+\emph{\href{https://hackage.haskell.org/package/free/docs/Control-Alternative-Free-Final.html}{Alt}},
+instead:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \DataTypeTok{Form} \OtherTok{=} \DataTypeTok{Alt} \DataTypeTok{FormElem}
+
+\OtherTok{intForm ::} \DataTypeTok{Form} \DataTypeTok{Int}
+\NormalTok{intForm }\OtherTok{=}\NormalTok{ liftAlt intElem}
+\end{Highlighting}
+\end{Shaded}
+
+And now we get the ability to represent forms with multiple options with
+\texttt{\textless{}\textbar{}\textgreater{}}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{boolForm ::} \DataTypeTok{Form} \DataTypeTok{Bool}
+
+\CommentTok{{-}{-} | A form with two elements (one producing an \textquotesingle{}Int\textquotesingle{} and one producing a}
+\CommentTok{{-}{-} \textquotesingle{}Bool\textquotesingle{}), where the result is \textquotesingle{}Either Int Bool\textquotesingle{} {-}{-} a "the first or the}
+\CommentTok{{-}{-} second".}
+\OtherTok{eitherInt ::} \DataTypeTok{Form}\NormalTok{ (}\DataTypeTok{Either} \DataTypeTok{Int} \DataTypeTok{Bool}\NormalTok{)}
+\NormalTok{eitherInt }\OtherTok{=}\NormalTok{ (}\DataTypeTok{Left} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ intForm) }\OperatorTok{\textless{}|\textgreater{}}\NormalTok{ (}\DataTypeTok{Right} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ boolForm)}
+\end{Highlighting}
+\end{Shaded}
+
+From multiple forms, with \texttt{choice}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{stringForm ::} \DataTypeTok{Form} \DataTypeTok{String}
+
+\CommentTok{{-}{-} | A form with five elements {-}{-} an \textquotesingle{}Int\textquotesingle{} element, a \textquotesingle{}Bool\textquotesingle{} element, and three}
+\CommentTok{{-}{-} \textquotesingle{}String\textquotesingle{} elements.  The result is the first of the four options to succeed.}
+\OtherTok{oneOfMany ::} \DataTypeTok{Form} \DataTypeTok{String}
+\NormalTok{oneOfMany }\OtherTok{=}\NormalTok{ choice [ }\FunctionTok{show} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ intForm}
+\NormalTok{                   , }\FunctionTok{show} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ boolForm}
+\NormalTok{                   , stringForm}
+\NormalTok{                   , (}\OperatorTok{++}\NormalTok{) }\OperatorTok{\textless{}$\textgreater{}}\NormalTok{ stringForm }\OperatorTok{\textless{}*\textgreater{}}\NormalTok{ stringForm}
+\NormalTok{                   ]}
+\end{Highlighting}
+\end{Shaded}
+
+And create ``optional'' entries:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} | A form with a single \textquotesingle{}Int\textquotesingle{} element that returns a \textquotesingle{}Maybe Int\textquotesingle{}, because}
+\CommentTok{{-}{-} it\textquotesingle{}s optional.}
+\OtherTok{optionalInt ::} \DataTypeTok{Form}\NormalTok{ (}\DataTypeTok{Maybe} \DataTypeTok{Int}\NormalTok{)}
+\NormalTok{optionalInt }\OtherTok{=}\NormalTok{ optional intForm}
+\end{Highlighting}
+\end{Shaded}
+
+We get all of these capabilities \emph{for free}! All we did was \emph{define a
+single form element}. Our form element type doesn't have have any concept of
+combining with other elements or of being able to choose between different
+elements or of having optional results. Then, \texttt{Alt} gives us the ability
+to combine them with
+\texttt{\textless{}*\textgreater{}}/\texttt{\textless{}\$\textgreater{}}, create
+optional form items with \texttt{optional}, and create multiple form options
+with \texttt{\textless{}\textbar{}\textgreater{}}!
+
+\section{Our Types}\label{our-types}
+
+\subsection{Form Element}\label{form-element}
+
+Our form elements will all have monomorphic base element paired with a
+``parser'', a description, and an identifier.
+
+To start off, we'll make a GADT representing a concrete element, as well as what
+is required to actually represent it for the user to interact with:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/free{-}applicative{-}forms/Form.hs\#L19{-}L27}
+
+\KeywordTok{data} \DataTypeTok{Elem}\OtherTok{ ::} \DataTypeTok{Type} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+    \CommentTok{{-}{-} | Text field}
+    \DataTypeTok{EText}\OtherTok{   ::} \DataTypeTok{Elem} \DataTypeTok{String}
+    \CommentTok{{-}{-} | Numberic field}
+    \DataTypeTok{ENumber}\OtherTok{ ::} \DataTypeTok{Elem} \DataTypeTok{Scientific}
+    \CommentTok{{-}{-} | Select box, with list of options to display}
+    \DataTypeTok{ESelect}\OtherTok{ ::}\NormalTok{ [}\DataTypeTok{String}\NormalTok{] }\OtherTok{{-}\textgreater{}} \DataTypeTok{Elem}\NormalTok{ (}\DataTypeTok{Maybe} \DataTypeTok{Int}\NormalTok{)}
+    \CommentTok{{-}{-} | Check box, with the labels to attach to on/off states}
+    \DataTypeTok{ECheck}\OtherTok{  ::} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Elem} \DataTypeTok{Bool}
+\end{Highlighting}
+\end{Shaded}
+
+We tag the \texttt{Elem} with a type representing the element's \emph{native}
+output. So an \texttt{Elem\ String} is an element that natively/naively outputs
+a \texttt{String} (like a text input), an \texttt{Elem\ Bool} is an element that
+natively/naively outputs a \texttt{Bool} (like check box), etc.
+
+Each native \texttt{Elem} contains the information necessary to render it -- so
+we have:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{EText}, natively outputting a \texttt{String}.
+\item
+  \texttt{ENumber}, natively outputting a number (\texttt{Scientific}).
+\item
+  \texttt{ESelect}, a drop-down menu, a list of strings to show as items,
+  natively outputting \texttt{Maybe\ Int} (``maybe'' a selected index)
+\item
+  \texttt{ECheck}, a check box containing labels for its on and off positions,
+  natively outputting a \texttt{Bool}.
+\end{itemize}
+
+And then we our representation of a generator for a single form element output:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/free{-}applicative{-}forms/Form.hs\#L29{-}L35}
+
+\KeywordTok{data} \DataTypeTok{FormElem}\OtherTok{ ::} \DataTypeTok{Type} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+    \DataTypeTok{FE}\OtherTok{ ::}\NormalTok{ \{}\OtherTok{ feElem  ::} \DataTypeTok{Elem}\NormalTok{ b}
+\NormalTok{          ,}\OtherTok{ feParse ::}\NormalTok{ b }\OtherTok{{-}\textgreater{}} \DataTypeTok{Either} \DataTypeTok{String}\NormalTok{ a}
+\NormalTok{          ,}\OtherTok{ feDesc  ::} \DataTypeTok{String}
+\NormalTok{          ,}\OtherTok{ feIdent ::} \DataTypeTok{String}
+\NormalTok{          \}}
+        \OtherTok{{-}\textgreater{}} \DataTypeTok{FormElem}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+A \texttt{FormElem\ a} will contain:
+
+\begin{itemize}
+\tightlist
+\item
+  The \texttt{Elem\ b} representing the actual native form element, with
+  information required to render it.
+\item
+  A function \texttt{b\ -\textgreater{}\ Either\ String\ a}, which lets you
+  \emph{parse} the element's native output into an \texttt{a} (what the
+  \texttt{FormElem} outputs), with a potential \texttt{String} error message
+\item
+  A display name and identifier, which we will use to describe the element and
+  as a part of the JSON schema for our JSON backend.
+\end{itemize}
+
+\subsection{Form}\label{form}
+
+We now have a functor, \texttt{FormElem}, that is a single form element and all
+of its decorations. Now, for the magic --- to make a full \texttt{Form} type,
+it's just:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/free{-}applicative{-}forms/Form.hs\#L39{-}L39}
+
+\KeywordTok{type} \DataTypeTok{Form} \OtherTok{=} \DataTypeTok{Alt} \DataTypeTok{FormElem}
+\end{Highlighting}
+\end{Shaded}
+
+Ta dah!
+
+And just like that, we now have functions like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} | Map over the results of a Form}
+\FunctionTok{fmap}\OtherTok{   ::}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{ b) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Form}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Form}\NormalTok{ b}
+
+\CommentTok{{-}{-} | Combine two forms together, and merge their results with a combining}
+\CommentTok{{-}{-} function}
+\OtherTok{liftA2 ::}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{ b }\OtherTok{{-}\textgreater{}}\NormalTok{ c) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Form}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Form}\NormalTok{ b }\OtherTok{{-}\textgreater{}} \DataTypeTok{Form}\NormalTok{ c}
+
+\CommentTok{{-}{-} | Combine all of the forms in a list to create a single form, whose result}
+\CommentTok{{-}{-} is the collection of all of their results}
+\FunctionTok{sequence}\OtherTok{ ::}\NormalTok{ [}\DataTypeTok{Form}\NormalTok{ a] }\OtherTok{{-}\textgreater{}} \DataTypeTok{Form}\NormalTok{ [a]}
+
+\CommentTok{{-}{-} | Duplicate a form multiple times, creating a new form whose reuslt is a}
+\CommentTok{{-}{-} collection of all of their results}
+\OtherTok{replicateM ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{Form}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Form}\NormalTok{ [a]}
+
+\CommentTok{{-}{-} | Combine two forms together to create a final form whose result picks from}
+\CommentTok{{-}{-} the two input forms}
+\OtherTok{(\textless{}|\textgreater{}) ::} \DataTypeTok{Form}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Form}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Form}\NormalTok{ a}
+
+\CommentTok{{-}{-} | Combine several forms together to create a final form whose result picks}
+\NormalTok{from one }\KeywordTok{of}\NormalTok{ the several options}
+\OtherTok{choice ::}\NormalTok{ [}\DataTypeTok{Form}\NormalTok{ a] }\OtherTok{{-}\textgreater{}} \DataTypeTok{Form}\NormalTok{ a}
+
+\CommentTok{{-}{-} | Turn a form into an optional form}
+\OtherTok{optional ::} \DataTypeTok{Form}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Form}\NormalTok{ (}\DataTypeTok{Maybe}\NormalTok{ a)}
+\end{Highlighting}
+\end{Shaded}
+
+All that for free. Neat!
+
+Note -- it is very important to use \texttt{Alt} from
+\emph{Control.Alternative.Free.Final}, and \textbf{not} the one from
+\emph{Control.Alternative.Free}. The \emph{Control.Alternative.Free}
+\texttt{Alt} is broken for our use case, because it normalizes against
+\href{https://stackoverflow.com/q/45647253/292731}{an extra Alternative law}
+that forms do not obey.
+
+\section{Making Real Forms}\label{making-real-forms}
+
+\subsection{Primitive Forms}\label{primitive-forms}
+
+Let's create a set of primitive \texttt{Form}s, which we will use to build up
+our more complex ones.
+
+First, a \texttt{Form\ String} with a single text box:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/free{-}applicative{-}forms/Form.hs\#L41{-}L50}
+
+\NormalTok{stringInput}
+\OtherTok{    ::} \DataTypeTok{String}           \CommentTok{{-}{-} \^{} description}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{String}           \CommentTok{{-}{-} \^{} identifier}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Form} \DataTypeTok{String}
+\NormalTok{stringInput desc ident }\OtherTok{=}\NormalTok{ liftAlt }\OperatorTok{$}
+    \DataTypeTok{FE}\NormalTok{ \{ feElem  }\OtherTok{=} \DataTypeTok{EText}
+\NormalTok{       , feParse }\OtherTok{=}\NormalTok{ mfilter (}\FunctionTok{not} \OperatorTok{.} \FunctionTok{null}\NormalTok{) }\OperatorTok{.} \DataTypeTok{Right}
+\NormalTok{       , feDesc  }\OtherTok{=}\NormalTok{ desc}
+\NormalTok{       , feIdent }\OtherTok{=}\NormalTok{ ident}
+\NormalTok{       \}}
+\end{Highlighting}
+\end{Shaded}
+
+Note that its \texttt{String\ -\textgreater{}\ Either\ String\ String} function
+is just \texttt{Right}, since it is always a ``successful'' parse.
+
+And maybe one that is based on a text box, but instead of just outputting the
+output \texttt{String}, it parses it into a Haskell value using \texttt{Read}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/free{-}applicative{-}forms/Form.hs\#L52{-}L63}
+
+\NormalTok{readInput}
+\OtherTok{    ::}\NormalTok{ (}\DataTypeTok{Read}\NormalTok{ a, }\DataTypeTok{Show}\NormalTok{ a)}
+    \OtherTok{=\textgreater{}} \DataTypeTok{String}           \CommentTok{{-}{-} \^{} description}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{String}           \CommentTok{{-}{-} \^{} identifier}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Form}\NormalTok{ a}
+\NormalTok{readInput desc ident }\OtherTok{=}\NormalTok{ liftAlt }\OperatorTok{$}
+    \DataTypeTok{FE}\NormalTok{ \{ feElem  }\OtherTok{=} \DataTypeTok{EText}
+\NormalTok{       , feParse }\OtherTok{=} \FunctionTok{maybe}\NormalTok{ (}\DataTypeTok{Left}\NormalTok{ (}\StringTok{"Could not parse "} \OperatorTok{++}\NormalTok{ ident)) }\DataTypeTok{Right}
+                 \OperatorTok{.}\NormalTok{ readMaybe}
+\NormalTok{       , feDesc  }\OtherTok{=}\NormalTok{ desc}
+\NormalTok{       , feIdent }\OtherTok{=}\NormalTok{ ident}
+\NormalTok{       \}}
+\end{Highlighting}
+\end{Shaded}
+
+Now two ``numerical'' inputs -- one expecting \texttt{Integral} values, and
+another expecting floating-point values.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/free{-}applicative{-}forms/Form.hs\#L65{-}L88}
+
+\NormalTok{intInput}
+\OtherTok{    ::} \DataTypeTok{Integral}\NormalTok{ a}
+    \OtherTok{=\textgreater{}} \DataTypeTok{String}     \CommentTok{{-}{-} \^{} description}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{String}     \CommentTok{{-}{-} \^{} identifier}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Form}\NormalTok{ a}
+\NormalTok{intInput desc ident }\OtherTok{=}\NormalTok{ liftAlt }\OperatorTok{$}
+    \DataTypeTok{FE}\NormalTok{ \{ feElem  }\OtherTok{=} \DataTypeTok{ENumber}
+\NormalTok{       , feParse }\OtherTok{=} \FunctionTok{either}\NormalTok{ (\textbackslash{}\_ }\OtherTok{{-}\textgreater{}} \DataTypeTok{Left}\NormalTok{ (ident }\OperatorTok{++} \StringTok{" should be integer"}\NormalTok{)) }\DataTypeTok{Right}
+                 \OperatorTok{.}\NormalTok{ floatingOrInteger }\OperatorTok{@}\DataTypeTok{Double}
+\NormalTok{       , feDesc  }\OtherTok{=}\NormalTok{ desc}
+\NormalTok{       , feIdent }\OtherTok{=}\NormalTok{ ident}
+\NormalTok{       \}}
+
+\NormalTok{floatInput}
+\OtherTok{    ::} \DataTypeTok{RealFloat}\NormalTok{ a}
+    \OtherTok{=\textgreater{}} \DataTypeTok{String}           \CommentTok{{-}{-} \^{} description}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{String}           \CommentTok{{-}{-} \^{} identifier}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Form}\NormalTok{ a}
+\NormalTok{floatInput desc ident }\OtherTok{=}\NormalTok{ liftAlt }\OperatorTok{$}
+    \DataTypeTok{FE}\NormalTok{ \{ feElem  }\OtherTok{=} \DataTypeTok{ENumber}
+\NormalTok{       , feParse }\OtherTok{=} \DataTypeTok{Right} \OperatorTok{.} \FunctionTok{realToFrac}
+\NormalTok{       , feDesc  }\OtherTok{=}\NormalTok{ desc}
+\NormalTok{       , feIdent }\OtherTok{=}\NormalTok{ ident}
+\NormalTok{       \}}
+\end{Highlighting}
+\end{Shaded}
+
+A simple drop-down menu element that lets the user pick from a list of items:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/free{-}applicative{-}forms/Form.hs\#L90{-}L99}
+
+\NormalTok{selectInput}
+\OtherTok{    ::} \DataTypeTok{Show}\NormalTok{ a}
+    \OtherTok{=\textgreater{}} \DataTypeTok{String}           \CommentTok{{-}{-} \^{} description}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{String}           \CommentTok{{-}{-} \^{} identifier}
+    \OtherTok{{-}\textgreater{}}\NormalTok{ [a]              }\CommentTok{{-}{-} \^{} options}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Form}\NormalTok{ a}
+\NormalTok{selectInput desc ident opts }\OtherTok{=}\NormalTok{ liftAlt }\OperatorTok{$}
+    \DataTypeTok{FE}\NormalTok{ (}\DataTypeTok{ESelect}\NormalTok{ (}\FunctionTok{show} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ opts)) p desc ident}
+  \KeywordTok{where}
+\NormalTok{    p }\OtherTok{=} \FunctionTok{maybe}\NormalTok{ (}\DataTypeTok{Left}\NormalTok{ (}\StringTok{"No selection for "} \OperatorTok{++}\NormalTok{ ident)) (}\DataTypeTok{Right} \OperatorTok{.}\NormalTok{ (opts }\OperatorTok{!!}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+And a simple check box, which outputs one of two items:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/free{-}applicative{-}forms/Form.hs\#L101{-}L114}
+
+\NormalTok{checkInput}
+\OtherTok{    ::} \DataTypeTok{Show}\NormalTok{ a}
+    \OtherTok{=\textgreater{}} \DataTypeTok{String}           \CommentTok{{-}{-} \^{} description}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{String}           \CommentTok{{-}{-} \^{} identifier}
+    \OtherTok{{-}\textgreater{}}\NormalTok{ a                }\CommentTok{{-}{-} \^{} unchecked option}
+    \OtherTok{{-}\textgreater{}}\NormalTok{ a                }\CommentTok{{-}{-} \^{} checked option}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Form}\NormalTok{ a}
+\NormalTok{checkInput desc ident x y }\OtherTok{=}\NormalTok{ liftAlt }\OperatorTok{$}
+    \DataTypeTok{FE}\NormalTok{ (}\DataTypeTok{ECheck}\NormalTok{ (}\FunctionTok{show}\NormalTok{ x) (}\FunctionTok{show}\NormalTok{ y)) p desc ident}
+  \KeywordTok{where}
+\NormalTok{    p }\OtherTok{=} \DataTypeTok{Right} \OperatorTok{.}\NormalTok{ bool x y}
+
+\OtherTok{boolInput ::} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Form} \DataTypeTok{Bool}
+\NormalTok{boolInput desc ident }\OtherTok{=}\NormalTok{ checkInput desc ident }\DataTypeTok{False} \DataTypeTok{True}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Sample Form}\label{sample-form}
+
+To explore this type, let's make a sample form which we will be re-using for the
+rest of this post!
+
+We will be making a registration form, a form producing an account, which
+contains:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  A name
+\item
+  An optional age
+\item
+  A favorite color (from one of the pre-defined color, or a custom one)
+\item
+  An account type (normal account, or premium account?)
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/free{-}applicative{-}forms/Form.hs\#L116{-}L127}
+
+\KeywordTok{data} \DataTypeTok{AccountType} \OtherTok{=} \DataTypeTok{Normal} \OperatorTok{|} \DataTypeTok{Premium}
+    \KeywordTok{deriving} \DataTypeTok{Show}
+
+\KeywordTok{data} \DataTypeTok{Color} \OtherTok{=} \DataTypeTok{Red} \OperatorTok{|} \DataTypeTok{Blue} \OperatorTok{|} \DataTypeTok{Orange} \OperatorTok{|} \DataTypeTok{Yellow}
+    \KeywordTok{deriving} \DataTypeTok{Show}
+
+\KeywordTok{data} \DataTypeTok{Account} \OtherTok{=} \DataTypeTok{Acc}\NormalTok{ \{}\OtherTok{ accName     ::} \DataTypeTok{String}
+\NormalTok{                   ,}\OtherTok{ accAge      ::} \DataTypeTok{Maybe} \DataTypeTok{Int}
+\NormalTok{                   ,}\OtherTok{ accFavColor ::} \DataTypeTok{Either} \DataTypeTok{Color} \DataTypeTok{String}
+\NormalTok{                   ,}\OtherTok{ accPremium  ::} \DataTypeTok{AccountType}
+\NormalTok{                   \}}
+    \KeywordTok{deriving} \DataTypeTok{Show}
+\end{Highlighting}
+\end{Shaded}
+
+And we'll make the form using Applicative style:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/free{-}applicative{-}forms/Form.hs\#L129{-}L138}
+
+\OtherTok{accountForm ::} \DataTypeTok{Form} \DataTypeTok{Account}
+\NormalTok{accountForm }\OtherTok{=}
+    \DataTypeTok{Acc} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ stringInput }\StringTok{"Name"} \StringTok{"name"}
+        \OperatorTok{\textless{}*\textgreater{}}\NormalTok{ optional (intInput }\StringTok{"Age"} \StringTok{"age"}\NormalTok{)}
+        \OperatorTok{\textless{}*\textgreater{}}\NormalTok{ (}\DataTypeTok{Left} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ favColor }\OperatorTok{\textless{}|\textgreater{}} \DataTypeTok{Right} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ customColor)}
+        \OperatorTok{\textless{}*\textgreater{}}\NormalTok{ checkInput }\StringTok{"Premium Account"} \StringTok{"premium"} \DataTypeTok{Normal} \DataTypeTok{Premium} 
+  \KeywordTok{where}
+\NormalTok{    favColor    }\OtherTok{=}\NormalTok{ selectInput }\StringTok{"Favorite Color"} \StringTok{"fav{-}color"}
+\NormalTok{                    [}\DataTypeTok{Red}\NormalTok{, }\DataTypeTok{Blue}\NormalTok{, }\DataTypeTok{Orange}\NormalTok{, }\DataTypeTok{Yellow}\NormalTok{]}
+\NormalTok{    customColor }\OtherTok{=}\NormalTok{ stringInput }\StringTok{"Custom Color"} \StringTok{"custum{-}color"}
+\end{Highlighting}
+\end{Shaded}
+
+If you're feeling fancy, you can also make it using ``Applicative Do'' style,
+which makes it a little more flexible if you want to re-arrange the items in the
+form (put the ``age'' field before the ``name'' field, etc.)
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/free{-}applicative{-}forms/Form.hs\#L140{-}L148}
+
+\OtherTok{accountFormAdo ::} \DataTypeTok{Form} \DataTypeTok{Account}
+\NormalTok{accountFormAdo }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    nam }\OtherTok{\textless{}{-}}\NormalTok{ stringInput }\StringTok{"Name"} \StringTok{"name"}
+\NormalTok{    age }\OtherTok{\textless{}{-}}\NormalTok{ optional }\OperatorTok{$}\NormalTok{ intInput }\StringTok{"Age"} \StringTok{"age"}
+\NormalTok{    col }\OtherTok{\textless{}{-}} \DataTypeTok{Left}  \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ selectInput }\StringTok{"Favorite Color"} \StringTok{"fav{-}color"}
+\NormalTok{                       [}\DataTypeTok{Red}\NormalTok{, }\DataTypeTok{Blue}\NormalTok{, }\DataTypeTok{Orange}\NormalTok{, }\DataTypeTok{Yellow}\NormalTok{]}
+       \OperatorTok{\textless{}|\textgreater{}} \DataTypeTok{Right} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ stringInput }\StringTok{"Custom Color"} \StringTok{"custom{-}color"}
+\NormalTok{    typ }\OtherTok{\textless{}{-}}\NormalTok{ checkInput }\StringTok{"Premium Account"} \StringTok{"premium"} \DataTypeTok{Normal} \DataTypeTok{Premium} 
+    \FunctionTok{pure}\NormalTok{ (}\DataTypeTok{Acc}\NormalTok{ nam age col typ)}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

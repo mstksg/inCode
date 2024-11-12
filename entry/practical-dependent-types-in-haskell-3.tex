@@ -1,0 +1,238 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Practical Dependent Types: A Deeper Look at Proofs},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Practical Dependent Types: A Deeper Look at Proofs}
+
+\begin{document}
+\maketitle
+
+\% Justin Le
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/practical-dependent-types-in-haskell-3.html}{in
+Code}}.}
+
+Hi! This will be the final post of the
+\href{https://blog.jle.im/entries/series/+practical-dependent-types-in-haskell.html}{dependently
+typed neural network series}. This post has been long put-off because there
+really wasn't \emph{too} much more we can learn about dependent types and
+programming with dependent types from this example. Still, this example still
+has a bit more to offer us, so let's take one last look :) Think of this post as
+an epilogue.
+
+In
+\href{https://blog.jle.im/entry/practical-dependent-types-in-haskell-1.html}{Part
+1}, we tried solving our problem in an ``untyped'' way, recognized all of those
+Haskell red flags, and then added types to make things safer and reap benefits
+in API clarity, compiler support, and a smoother code writing experience. In
+\href{https://blog.jle.im/entry/practical-dependent-types-in-haskell-2.html}{Part
+2}, we looked at how integrating our typed programs with the real world, where
+types might vary at runtime, by levering existential types in two different
+forms.
+
+\section{The Secret Life of Proofs}\label{the-secret-life-of-proofs}
+
+So far in this journey, we've hand-waved the idea of ``proofs'', and their role
+in this dependently typed programming. In fact, I've sort of intentionally left
+the idea vague, because I feel like a lot of other dependent type
+introductions/tutorials over-emphasize proofs, to the point there is a public
+impression that
+\href{https://www.reddit.com/r/haskell/comments/62uv6g/verify_your_typeclass_instances_in_haskell_today/dfpt2g7/}{dependently
+typed programming is all about proofs}:
+
+\begin{quote}
+I think dependent types are pretty cool, but honestly the sheer difficulty jump
+from quickcheck tests to actual proofs to me seems a bit too massive to justify
+having to deal with them much.
+
+I think if we just had testable functions (basically just predicates that should
+always return true) alongside classes that could be quickchecked against. And
+actually took it very seriously when an instance isn't lawful (basically just
+disallow it almost always), then I think we would be in a pretty darn good spot.
+\end{quote}
+
+There's a popular (mis?)conception that dependent types are basically a
+replacement for QuickCheck, or refinement types (like Liquid Haskell). But
+really, as we have seen, they are much more --- they let you leverage the
+compiler to help you write your code, help you enforce properties at the
+structural level for your types, create more expressive API's, and much more.
+They aren't ``just'' to prove properties about your program.
+
+In reality, the idea of dependent types and the idea of proofs sort of are
+separate but complementing ideas. Dependent types enable this ``proofy'' style
+discussed in the comment, but, also, the ability to dynamically construct and
+manipulate proofs opens up many doors for the capabilities of dependently typed
+programs.
+
+\subsection{What are they?}\label{what-are-they}
+
+In the context of dependent types (in Haskell), a ``proof'' is general
+(non-rigorous, informal) term for a \emph{runtime value} that GHC/Haskell can
+use for \emph{type-level} shenanigans. In other words, it's a \emph{term-level}
+witness for a \emph{type-level} truth.
+
+It's the critical \emph{run-time} values that we use to power our
+\emph{type-level} fun, and are also commonly known as ``witnesses''.
+
+I don't believe there is any rigorous definition, but the term comes up whenever
+we talk about generating or using run-time values that give us type-level power.
+
+In this article, the simplest example of something that can be called a proof or
+a witness is the singleton for \texttt{Nat}s: A value of type \texttt{Sing\ n}
+(for \texttt{Nat\ n}) ``witnesses'' a \texttt{KnownNat\ n} constraint.
+
+We saw it earlier when we wanted to pass along evidence that our \texttt{n} has
+an instance of \texttt{KnownNat}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{nIsKnownNatWePromise ::} \KeywordTok{forall}\NormalTok{ n}\OperatorTok{.} \DataTypeTok{Sing}\NormalTok{ n }\OtherTok{{-}\textgreater{}} \DataTypeTok{Integer}
+\NormalTok{nIsKnonwNatWePromise }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+    \DataTypeTok{SNat} \OtherTok{{-}\textgreater{}}\NormalTok{ natVal (}\DataTypeTok{Proxy}\OtherTok{ ::} \DataTypeTok{Proxy}\NormalTok{ n)}
+\end{Highlighting}
+\end{Shaded}
+
+In the case statement above, in the \texttt{SNat\ -\textgreater{}} branch, GHC
+knows that \texttt{n} has a \texttt{KnownNat} instance. This runtime value,
+\texttt{SNat}, carries the fact that we have an instance of
+\texttt{KnownNat\ n}. Remember that
+\texttt{natVal\ ::\ KnownNat\ n\ =\textgreater{}\ p\ n\ -\textgreater{}\ Integer}
+-- it only works of \texttt{n} is an instance of \texttt{KnownNat}.
+\texttt{SNat\ ::\ Sing\ n} is a runtime value that ``gives us'' that instance.
+It's a ``proof'' that \texttt{n} is an instance of \texttt{KnownNat}.
+
+\subsection{First-Class Values}\label{first-class-values}
+
+The \emph{key} to their usefulness is that, as runtime values, they are
+\emph{first-class values} in Haskell. We can manipulate them, pass them,
+construct them, etc., just as if they were normal values. You can construct
+complex proofs from simple ones, compose them, etc.
+
+For example, check out the function \texttt{\%:+} from the \emph{singletons}
+package:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{(\%:+) ::} \KeywordTok{forall}\NormalTok{ (}\OtherTok{n ::} \DataTypeTok{Nat}\NormalTok{) (}\OtherTok{m ::} \DataTypeTok{Nat}\NormalTok{)}\OperatorTok{.} \DataTypeTok{Sing}\NormalTok{ n }\OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ m }\OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ (n }\OperatorTok{+}\NormalTok{ m)}
+\end{Highlighting}
+\end{Shaded}
+
+Given, at runtime, a witness for \texttt{KnownNat\ n} (our \texttt{Sing\ n}) and
+a witness for \texttt{KnownNat\ m}, we can construct, at runtime a witness for
+\texttt{KnownNat\ (n\ +\ m)}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{add ::} \DataTypeTok{Integer} \OtherTok{{-}\textgreater{}} \DataTypeTok{Integer} \OtherTok{{-}\textgreater{}} \DataTypeTok{Integer}
+\NormalTok{add x y }\OtherTok{=}\NormalTok{ withSomeSing x }\OperatorTok{$}\NormalTok{ \textbackslash{}(}\OtherTok{sx ::} \DataTypeTok{Sing}\NormalTok{ x) }\OtherTok{{-}\textgreater{}}
+\NormalTok{          withSomeSing y }\OperatorTok{$}\NormalTok{ \textbackslash{}(}\OtherTok{sy ::} \DataTypeTok{Sing}\NormalTok{ y) }\OtherTok{{-}\textgreater{}}
+            \KeywordTok{case}\NormalTok{ sx }\OperatorTok{\%:+}\NormalTok{ sy }\KeywordTok{of}
+              \CommentTok{{-}{-} z is x + y}
+\NormalTok{              (}\DataTypeTok{SNat}\OtherTok{ ::} \DataTypeTok{Sing}\NormalTok{ z) }\OtherTok{{-}\textgreater{}}\NormalTok{ natVal (}\DataTypeTok{Proxy}\OtherTok{ ::} \DataTypeTok{Proxy}\NormalTok{ z)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ add }\DecValTok{5} \DecValTok{7}
+\DecValTok{12}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

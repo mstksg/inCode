@@ -1,0 +1,716 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Shake: Task Automation and Scripting in Haskell},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Shake: Task Automation and Scripting in Haskell}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% September 17, 2013
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/shake-task-automation-and-scripting-in-haskell.html}{in
+Code}}.}
+
+As someone who comes from a background in ruby and \emph{rake}, I'm used to
+powerful task management systems with expressive dependency. \emph{Make} is a
+favorite tool of mine when I'm working on projects with people who don't use
+ruby, and when I'm working on ruby projects I never go far without starting a
+good Rakefile. The two tools provided a perfect DSL for setting up systems of
+tasks that had complicated file and task dependencies.
+
+As I was starting to learn Haskell and building larger-scale Haskell projects, I
+began to look for alternatives in Haskell. Was there a Haskell counterpart to
+Ruby's \href{http://rake.rubyforge.org/}{\emph{rake}}, Node's
+\href{https://github.com/mde/jake}{\emph{jake}}? (Not to mention the tools of
+slightly different philosophy \href{http://gruntjs.com/}{\emph{grunt}} and
+\href{http://ant.apache.org/}{\emph{ant}})
+
+It turns out that by far the most established answer is a library known as
+\href{http://hackage.haskell.org/package/shake}{\emph{Shake}} (maintained by the
+prolific Neil Mitchell of \href{http://haskell.org/hoogle}{\emph{hoogle}} fame
+and much more). So far it's served me pretty well. Its documentation is written
+from the perspective of chiefly using it as a build tool (more ``make'' than
+``rake''), so if you're looking to use it as a task management system, you might
+have to do some digging. Hopefully this post can help you get started.
+
+I also go over the core concepts of a task management system, so I assume no
+knowledge of \emph{make}; this post therefore should also be a good introduction
+to starting with any sort of task management system.
+
+\section{Our Sample Project}\label{our-sample-project}
+
+Our sample project is going to be a report build system that builds reports
+written in markdown with \href{http://johnmacfarlane.net/pandoc/}{pandoc} into
+html, pdf, and doc formats. This is honestly one of my most common use cases for
+\emph{make}, so porting it all to \emph{shake} will be something useful for me.
+
+The final directory structure will look like this:
+
+\begin{quote}
+\begin{itemize}
+\tightlist
+\item
+  img
+
+  \begin{itemize}
+  \tightlist
+  \item
+    img1.jpg
+  \item
+    img2.jpg
+  \end{itemize}
+\item
+  out
+
+  \begin{itemize}
+  \tightlist
+  \item
+    report.doc
+  \item
+    report.html
+  \item
+    report.pdf
+  \end{itemize}
+\item
+  src
+
+  \begin{itemize}
+  \tightlist
+  \item
+    report.md
+  \end{itemize}
+\item
+  css
+
+  \begin{itemize}
+  \tightlist
+  \item
+    report.css
+  \end{itemize}
+\item
+  Shakefile
+\end{itemize}
+\end{quote}
+
+When we run \texttt{shake}, we want to build \texttt{report.doc} and
+\texttt{report.pdf} if \texttt{report.md} or any of the images have changed, and
+\texttt{report.html} if \texttt{report.md}, \texttt{report.css}, or any of the
+images have changed.
+
+Furthermore, \texttt{img2.jpg} actually comes from online, and requires us to
+re-download it every time we compile to make sure it is up to date.
+
+\section{Setup}\label{setup}
+
+\subsection{Installing Shake}\label{installing-shake}
+
+Installing \emph{shake} is as simple as installing any other cabal package:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{$}\NormalTok{ cabal update}
+\ExtensionTok{$}\NormalTok{ cabal install shake}
+\end{Highlighting}
+\end{Shaded}
+
+I'll will be using \texttt{shake-0.10.6} for this post.
+
+\subsection{Setting up the Shakefile}\label{setting-up-the-shakefile}
+
+We set up our Shakefile with a simple scaffold:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} Shakefile}
+
+\KeywordTok{import} \DataTypeTok{Development.Shake}
+
+\NormalTok{opts }\OtherTok{=}\NormalTok{ shakeOptions \{ shakeFiles    }\OtherTok{=} \StringTok{".shake/"}\NormalTok{ \}        }\CommentTok{{-}{-} 1}
+
+\NormalTok{(}\OperatorTok{\textasciitilde{}\textgreater{}}\NormalTok{) }\OtherTok{=}\NormalTok{ phony                                             }\CommentTok{{-}{-} 2}
+                                                         \CommentTok{{-}{-} (obsolete)}
+
+\OtherTok{main ::} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{main }\OtherTok{=}\NormalTok{ shakeArgs opts }\OperatorTok{$} \KeywordTok{do}
+\NormalTok{    want []}
+
+    \StringTok{"clean"} \OperatorTok{\textasciitilde{}\textgreater{}}\NormalTok{ removeFilesAfter }\StringTok{".shake"}\NormalTok{ [}\StringTok{"//*"}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+On my machine I've set this up to be generated by a
+\href{https://gist.github.com/mstksg/6588764}{bash script} called ``shakeup'',
+so I can start a project up on a Shakefile by simply typing \texttt{shakeup} at
+the project root.
+
+Some notes:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Store shake's metadata files to the folder \texttt{.shake/}. This differs from
+  the default behavior, where all files would be saved to the root directory
+  with \texttt{.shake} as a filename prefix.
+\item
+  I've aliased the operator \texttt{\textasciitilde{}\textgreater{}} for
+  \texttt{phony} to allow for a more expressive infix notation --- more on this
+  later. I've submitted a patch to the project and it should be included in the
+  next cabal release.
+
+  \textbf{Edit}: As of the 0.10.7 release of \emph{Shake}, this is no longer
+  needed, as \texttt{\textasciitilde{}\textgreater{}} is included in the
+  library.
+\end{enumerate}
+
+\section{What is a Rule?}\label{what-is-a-rule}
+
+If you haven't used \emph{make} before, it is important that you understand the
+key concepts before moving on.
+
+A task management system/build system is a system that works to ensure that all
+files in the project are ``up to date''. In our case, our system will ensure
+that the files in the \texttt{out} directory are up to date.
+
+In order to do this, files are given ``rules''. Rules specify:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  What other files/rules this file ``depends'' on
+\item
+  Instructions to execute to make this file up to date (or to create the file),
+  if it is not already up to date or created.
+\end{enumerate}
+
+A file or rule is out of date if any of its dependencies are out of date
+\textbf{or} if the file it indicates is either not created or has been updated
+since the last time the task management system has run. When this happens, the
+guilty dependencies are updated using their own rules. Afterwards, the file's
+own instructions are executed.
+
+If a file has no rule, ``out of date'' simply means that it has been updated or
+changed since the last time the task management system has run, or it does not
+exist. If it has, then all files or rules that depend on it are also out of
+date.
+
+A good task management system is smart enough to keep track of what is up to
+date and what isn't. If multiple rules all have one dependency, that dependency
+might be checked and updated every single time. For example, all of our builds
+in this sample project require \texttt{img2.jpg} to be downloaded afresh from
+online. A naive build system might re-download \texttt{img2.jpg} for every
+single build, instead of once for all three.
+
+\section{File Rules}\label{file-rules}
+
+Let's set up \texttt{src/report.md} with a simple markdown document on our new
+project:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\textless{}!{-}{-} src/report.md {-}{-}\textgreater{}}
+
+\NormalTok{Report}
+\FunctionTok{======}
+
+\NormalTok{This is a report.  Render me!}
+
+\AlertTok{![first image](img/img1.jpg)}
+\AlertTok{![second image](img/img2.jpg)}
+\end{Highlighting}
+\end{Shaded}
+
+Our project tree should look like this at this point:
+
+\begin{quote}
+\begin{itemize}
+\tightlist
+\item
+  img
+
+  \begin{itemize}
+  \tightlist
+  \item
+    img1.jpg
+  \item
+    img2.jpg
+  \end{itemize}
+\item
+  out
+\item
+  src
+
+  \begin{itemize}
+  \tightlist
+  \item
+    report.md
+  \end{itemize}
+\item
+  template
+\item
+  Shakefile
+\end{itemize}
+\end{quote}
+
+Let's set up our first rule -- rendering \texttt{out/report.doc} if
+\texttt{report.md} has changed.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\StringTok{"out/report.doc"} \OperatorTok{*\textgreater{}}\NormalTok{ \textbackslash{}f }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    need [}\StringTok{"src/report.md"}\NormalTok{,}\StringTok{"img/img1.jpg"}\NormalTok{,}\StringTok{"img/img2.jpg"}\NormalTok{]}
+\NormalTok{    cmd }\StringTok{"pandoc"}\NormalTok{ [ }\StringTok{"src/report.md"}\NormalTok{, }\StringTok{"{-}o"}\NormalTok{, f ]}
+\end{Highlighting}
+\end{Shaded}
+
+This is equivalent to the Makefile rule:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DecValTok{out/report.doc:}\DataTypeTok{ src/report.md}
+\NormalTok{	pandoc src/report.md {-}o out/report.doc}
+\end{Highlighting}
+\end{Shaded}
+
+The operator \texttt{*\textgreater{}} attaches an
+\href{http://hackage.haskell.org/packages/archive/shake/0.10.6/doc/html/Development-Shake.html\#t:Action}{\texttt{Action}}
+(with a parameter) to a
+\href{http://hackage.haskell.org/packages/archive/shake/0.10.6/doc/html/Development-Shake.html\#t:FilePattern}{\texttt{FilePattern}}
+(a string) -- that is, when \emph{shake} decides that it needs that specified
+file on the left hand side to be up to date, it runs the action on the right
+hand side with that filename as a parameter.
+
+To be clear, the right hand side is of type:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{rightHandSide ::} \DataTypeTok{FilePattern} \OtherTok{{-}\textgreater{}} \DataTypeTok{Action}\NormalTok{ ()}
+\end{Highlighting}
+\end{Shaded}
+
+where the \texttt{FilePattern} is the filename of the file that is being
+``needed''.
+
+The \texttt{need} function specifies all of the dependencies of that action. If
+\emph{shake} decides it needs \texttt{out/report.doc} to be up to date,
+\texttt{need} tells it that it first needs \texttt{src/report.md} and the images
+to be up to date -- or rather, that \texttt{out/report.doc} is only out of date
+if \texttt{src/report.md} or the images are out of date, or have changed since
+the last build.
+
+With this in mind, let us write the rest of our file rules:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} Shakefile}
+
+\StringTok{"out/report.doc"} \OperatorTok{*\textgreater{}}\NormalTok{ \textbackslash{}f }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    need [}\StringTok{"src/report.md"}\NormalTok{,}\StringTok{"img/img1.jpg"}\NormalTok{,}\StringTok{"img/img2.jpg"}\NormalTok{]}
+\NormalTok{    cmd }\StringTok{"pandoc"}\NormalTok{ [ }\StringTok{"src/report.md"}\NormalTok{, }\StringTok{"{-}o"}\NormalTok{, f ]}
+
+\StringTok{"out/report.pdf"} \OperatorTok{*\textgreater{}}\NormalTok{ \textbackslash{}f }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    need [}\StringTok{"src/report.md"}\NormalTok{,}\StringTok{"img/img1.jpg"}\NormalTok{,}\StringTok{"img/img2.jpg"}\NormalTok{]}
+\NormalTok{    cmd }\StringTok{"pandoc"}\NormalTok{ [ }\StringTok{"src/report.md"}\NormalTok{, }\StringTok{"{-}o"}\NormalTok{, f, }\StringTok{"{-}V"}\NormalTok{, }\StringTok{"links{-}as{-}notes"}\NormalTok{ ]}
+
+\StringTok{"out/report.html"} \OperatorTok{*\textgreater{}}\NormalTok{ \textbackslash{}f }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    need [ }\StringTok{"src/report.md"}
+\NormalTok{         , }\StringTok{"img/img1.jpg"}
+\NormalTok{         , }\StringTok{"img/img2.jpg"}
+\NormalTok{         , }\StringTok{"css/report.css"}\NormalTok{ ]}
+\NormalTok{    cmd }\StringTok{"pandoc"}\NormalTok{ [ }\StringTok{"src/report.md"}\NormalTok{, }\StringTok{"{-}o"}\NormalTok{, f, }\StringTok{"{-}c"}\NormalTok{, }\StringTok{"css/report.css"}\NormalTok{, }\StringTok{"{-}S"}\NormalTok{ ]}
+
+\StringTok{"img/img2.jpg"} \OperatorTok{*\textgreater{}}\NormalTok{ \textbackslash{}f }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    cmd }\StringTok{"wget"}\NormalTok{ [ }\StringTok{"http://example.com/img2.jpg"}\NormalTok{, }\StringTok{"{-}O"}\NormalTok{, f ]}
+\end{Highlighting}
+\end{Shaded}
+
+And that is it!
+
+\section{Running Shake}\label{running-shake}
+
+How do we tell \emph{shake} what file it is that we want to be up to date? We
+specify this by modifying the line \texttt{want\ {[}{]}}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{want [}\StringTok{"out/report.doc"}\NormalTok{,}\StringTok{"out/report.pdf"}\NormalTok{,}\StringTok{"out/report.html"}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+That tells \emph{shake} that when we run \texttt{main} with no arguments, we
+want those three files to be checked to be up to date.
+
+Now, to wrap it all together, we run:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{$}\NormalTok{ runhaskell Shakefile}
+\end{Highlighting}
+\end{Shaded}
+
+And let the magic happen!
+
+I run this enough times that I like to alias this:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# in \textasciitilde{}/.bashrc}
+\BuiltInTok{alias}\NormalTok{ shake=runhaskell Shakefile}
+\end{Highlighting}
+\end{Shaded}
+
+Note that \texttt{want} specifies the \textbf{default} ``wants''. You can
+specify your own collection by passing a parameter:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{$}\NormalTok{ runhaskell Shakefile out/report.doc}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Wildcards}\label{wildcards}
+
+You may have noticed that even though we had multiple images in the \texttt{img}
+folder, we required them all explicitly. This could cause problems. What if in
+the future, our documents used more images?
+
+We can define wildcards using \emph{shake}'s \texttt{getDirectoryFiles}, which
+returns results of a wildcard search in an \texttt{Action} monad.
+\texttt{getDirectoryFiles} takes a directory base and a list of wildcards.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} Shakefile}
+
+\OtherTok{srcFiles ::} \DataTypeTok{Action}\NormalTok{ [}\DataTypeTok{FilePath}\NormalTok{]}
+\NormalTok{srcFiles }\OtherTok{=}\NormalTok{ getDirectoryFiles }\StringTok{""}
+\NormalTok{    [ }\StringTok{"src/report.md"}
+\NormalTok{    , }\StringTok{"img/*.jpg"}\NormalTok{ ]}
+
+\OtherTok{main ::} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{main }\OtherTok{=}\NormalTok{ shakeArgs opts }\OperatorTok{$} \KeywordTok{do}
+\NormalTok{    want [}\StringTok{"out/report.doc"}\NormalTok{,}\StringTok{"out/report.pdf"}\NormalTok{,}\StringTok{"out/report.html"}\NormalTok{]}
+
+    \StringTok{"out/report.doc"} \OperatorTok{*\textgreater{}}\NormalTok{ \textbackslash{}f }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{        deps }\OtherTok{\textless{}{-}}\NormalTok{ srcFiles}
+\NormalTok{        need deps}
+\NormalTok{        cmd }\StringTok{"pandoc"}\NormalTok{ [ }\StringTok{"src/report.md"}\NormalTok{, }\StringTok{"{-}o"}\NormalTok{, f ]}
+
+    \StringTok{"out/report.pdf"} \OperatorTok{*\textgreater{}}\NormalTok{ \textbackslash{}f }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{        deps }\OtherTok{\textless{}{-}}\NormalTok{ srcFiles}
+\NormalTok{        need deps}
+\NormalTok{        cmd }\StringTok{"pandoc"}\NormalTok{ [ }\StringTok{"src/report.md"}\NormalTok{, }\StringTok{"{-}o"}\NormalTok{, f, }\StringTok{"{-}V"}\NormalTok{, }\StringTok{"links{-}as{-}notes"}\NormalTok{ ]}
+
+    \StringTok{"out/report.html"} \OperatorTok{*\textgreater{}}\NormalTok{ \textbackslash{}f }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{        deps }\OtherTok{\textless{}{-}}\NormalTok{ srcFiles}
+\NormalTok{        need }\OperatorTok{$} \StringTok{"css/report.css"} \OperatorTok{:}\NormalTok{ deps}
+\NormalTok{        cmd }\StringTok{"pandoc"}\NormalTok{ [ }\StringTok{"src/report.md"}\NormalTok{, }\StringTok{"{-}o"}\NormalTok{, f, }\StringTok{"{-}c"}\NormalTok{, }\StringTok{"css/report.css"}\NormalTok{, }\StringTok{"{-}S"}\NormalTok{ ]}
+
+    \StringTok{"img/img2.jpg"} \OperatorTok{*\textgreater{}}\NormalTok{ \textbackslash{}f }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{        cmd }\StringTok{"wget"}\NormalTok{ [ }\StringTok{"http://example.com/img2.jpg"}\NormalTok{, }\StringTok{"{-}O"}\NormalTok{, f ]}
+
+    \StringTok{"clean"} \OperatorTok{\textasciitilde{}\textgreater{}}\NormalTok{ removeFilesAfter }\StringTok{".shake"}\NormalTok{ [}\StringTok{"//*"}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+If you are comfortable with monadic operators, you can make it all happen on one
+line:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\StringTok{"out/report.doc"} \OperatorTok{*\textgreater{}}\NormalTok{ \textbackslash{}f }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    need }\OperatorTok{=\textless{}\textless{}}\NormalTok{ srcFiles}
+\NormalTok{    cmd }\StringTok{"pandoc"}\NormalTok{ [ }\StringTok{"src/report.md"}\NormalTok{, }\StringTok{"{-}o"}\NormalTok{, f ]}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Phony Rules}\label{phony-rules}
+
+Now, you might sometimes want rules that are ``just tasks'' that don't relate to
+creating a specific file. That is, they still depend on other files or rules and
+are triggered to update when their dependencies are out of date, but they just
+aren't about building files.
+
+For example, what if you wanted a task \texttt{build-some}, which builds only
+\texttt{report.pdf} and \texttt{report.doc}, and outputs a proverb to the
+command line?
+
+One thing you can do is to simply use a rule with a name that does not
+correspond to any file:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} Bad}
+\StringTok{"build{-}some"} \OperatorTok{*\textgreater{}}\NormalTok{ \textbackslash{}\_ }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    need [}\StringTok{"out/report.pdf"}\NormalTok{,}\StringTok{"out/report.doc"}\NormalTok{]}
+\NormalTok{    cmd }\StringTok{"fortune"}\NormalTok{ [}\StringTok{""}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+However, this is kind of an inelegant solution. There really actually is not a
+file \texttt{build-some}. Also, if someone ever decides to create a file called
+\texttt{build-some}, you'll find that this rule never gets run.
+
+The best way is to create a ``phony'' rule, which is a rule that is not tied to
+a file. This is the reason for the alias I specified at the beginning of the
+post:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} Good}
+\StringTok{"build{-}some"} \OperatorTok{\textasciitilde{}\textgreater{}} \KeywordTok{do}
+\NormalTok{    need [}\StringTok{"out/report.pdf"}\NormalTok{,}\StringTok{"out/report.doc"}\NormalTok{]}
+\NormalTok{    cmd }\StringTok{"fortune"}\NormalTok{ [}\StringTok{""}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+And voilà!
+
+\subsection{Cleanup}\label{cleanup}
+
+You might have noticed the phony rule in the scaffold Shakefile:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\StringTok{"clean"} \OperatorTok{\textasciitilde{}\textgreater{}}\NormalTok{ removeFilesAfter }\StringTok{".shake"}\NormalTok{ [}\StringTok{"//*"}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+If you run \texttt{shake\ clean}, it will remove all files in the
+\texttt{.shake/} directory after the rule has completed its execution.
+\texttt{removeFilesAfter} removes the files in the given base directory
+(\texttt{.shake}) matching the given wildcards (\texttt{{[}"//*"{]}}) after all
+rules have completed their course.
+
+This is useful for cleaning up \emph{shake}'s metadata files after you are done
+with your build, or if you want to run the task management system on a clean
+start.
+
+\section{Completed File}\label{completed-file}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} Shakefile}
+\OtherTok{\{{-}\# OPTIONS\_GHC {-}fno{-}warn{-}wrong{-}do{-}bind \#{-}\}}
+
+\KeywordTok{import} \DataTypeTok{Control.Applicative}\NormalTok{ ((\textless{}$\textgreater{}))}
+\KeywordTok{import} \DataTypeTok{Development.Shake}
+
+\NormalTok{opts }\OtherTok{=}\NormalTok{ shakeOptions \{ shakeFiles    }\OtherTok{=} \StringTok{".shake/"}\NormalTok{ \}}
+
+\OtherTok{main ::} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{main }\OtherTok{=}\NormalTok{ shakeArgs opts }\OperatorTok{$} \KeywordTok{do}
+\NormalTok{    want [}\StringTok{"out/report.doc"}\NormalTok{,}\StringTok{"out/report.pdf"}\NormalTok{,}\StringTok{"out/report.html"}\NormalTok{]}
+
+    \StringTok{"build{-}some"} \OperatorTok{\textasciitilde{}\textgreater{}} \KeywordTok{do}
+\NormalTok{        need [}\StringTok{"out/report.pdf"}\NormalTok{,}\StringTok{"out/report.doc"}\NormalTok{]}
+\NormalTok{        cmd }\StringTok{"fortune"}\NormalTok{ [}\StringTok{""}\NormalTok{]}
+
+    \StringTok{"out/report.doc"} \OperatorTok{*\textgreater{}}\NormalTok{ \textbackslash{}f }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{        need }\OperatorTok{\textless{}$\textgreater{}}\NormalTok{ srcFiles}
+\NormalTok{        cmd }\StringTok{"pandoc"}\NormalTok{ [ }\StringTok{"src/report.md"}\NormalTok{, }\StringTok{"{-}o"}\NormalTok{, f ]}
+
+    \StringTok{"out/report.pdf"} \OperatorTok{*\textgreater{}}\NormalTok{ \textbackslash{}f }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{        need }\OperatorTok{\textless{}$\textgreater{}}\NormalTok{ srcFiles}
+\NormalTok{        cmd }\StringTok{"pandoc"}\NormalTok{ [ }\StringTok{"src/report.md"}\NormalTok{, }\StringTok{"{-}o"}\NormalTok{, f, }\StringTok{"{-}V"}\NormalTok{, }\StringTok{"links{-}as{-}notes"}\NormalTok{ ]}
+
+    \StringTok{"out/report.html"} \OperatorTok{*\textgreater{}}\NormalTok{ \textbackslash{}f }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{        deps }\OtherTok{\textless{}{-}}\NormalTok{ srcFiles}
+\NormalTok{        need }\OperatorTok{$} \StringTok{"css/report.css"} \OperatorTok{:}\NormalTok{ deps}
+\NormalTok{        cmd }\StringTok{"pandoc"}\NormalTok{ [ }\StringTok{"src/report.md"}\NormalTok{, }\StringTok{"{-}o"}\NormalTok{, f, }\StringTok{"{-}c"}\NormalTok{, }\StringTok{"css/report.css"}\NormalTok{, }\StringTok{"{-}S"}\NormalTok{ ]}
+
+    \StringTok{"img/img2.jpg"} \OperatorTok{*\textgreater{}}\NormalTok{ \textbackslash{}f }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{        cmd }\StringTok{"wget"}\NormalTok{ [ }\StringTok{"http://example.com/img2.jpg"}\NormalTok{, }\StringTok{"{-}O"}\NormalTok{, f ]}
+
+    \StringTok{"clean"} \OperatorTok{\textasciitilde{}\textgreater{}}\NormalTok{ removeFilesAfter }\StringTok{".shake"}\NormalTok{ [}\StringTok{"//*"}\NormalTok{]}
+
+\OtherTok{srcFiles ::} \DataTypeTok{Action}\NormalTok{ [}\DataTypeTok{FilePath}\NormalTok{]}
+\NormalTok{srcFiles }\OtherTok{=}\NormalTok{ getDirectoryFiles }\StringTok{""}
+\NormalTok{    [ }\StringTok{"src/report.md"}
+\NormalTok{    , }\StringTok{"img/*.jpg"}\NormalTok{ ]}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Wrapping Up}\label{wrapping-up}
+
+If you look at the
+\href{http://hackage.haskell.org/packages/archive/shake/0.10.6/doc/html/Development-Shake.html}{Shake
+Documentation}, you will find a lot of ways you can build complex networks of
+dependencies.
+
+Hopefully there are enough use cases here to be useful in general applications.
+
+\subsection{Monadic Tricks}\label{monadic-tricks}
+
+Because everything is Haskell, you can easily generate rules using your basic
+monad iterators by taking advantage of Haskell's extensive standard library of
+monad functions. For example, if you want to generate multiple reports, you can
+use \texttt{forM\_}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{let}\NormalTok{ reports }\OtherTok{=}\NormalTok{ [}\StringTok{"report1"}\NormalTok{, }\StringTok{"report2"}\NormalTok{, }\StringTok{"report3"}\NormalTok{]}
+
+\NormalTok{want }\OperatorTok{$}\NormalTok{ (\textbackslash{}s f }\OtherTok{{-}\textgreater{}} \StringTok{"out/"} \OperatorTok{++}\NormalTok{ s }\OperatorTok{++} \StringTok{"."} \OperatorTok{++}\NormalTok{ f) }\OperatorTok{\textless{}$\textgreater{}}
+\NormalTok{    [}\StringTok{"report1"}\NormalTok{,}\StringTok{"report2"}\NormalTok{,}\StringTok{"report3"}\NormalTok{] }\OperatorTok{\textless{}*\textgreater{}}\NormalTok{ [}\StringTok{"doc"}\NormalTok{,}\StringTok{"pdf"}\NormalTok{,}\StringTok{"html"}\NormalTok{]}
+
+\NormalTok{forM\_ [}\StringTok{"report1"}\NormalTok{,}\StringTok{"report2"}\NormalTok{,}\StringTok{"report3"}\NormalTok{] }\OperatorTok{$}\NormalTok{ \textbackslash{}reportName }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+    \KeywordTok{let}
+\NormalTok{        outBase }\OtherTok{=} \StringTok{"out/"} \OperatorTok{++}\NormalTok{ reportName}
+\NormalTok{        srcName }\OtherTok{=} \StringTok{"src/"} \OperatorTok{++}\NormalTok{ reportName }\OperatorTok{++} \StringTok{".md"}
+
+\NormalTok{    outBase }\OperatorTok{++} \StringTok{".doc"} \OperatorTok{*\textgreater{}}\NormalTok{ \textbackslash{}f }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{        need }\OperatorTok{\textless{}$\textgreater{}}\NormalTok{ srcFiles}
+\NormalTok{        cmd }\StringTok{"pandoc"}\NormalTok{ [ srcName, }\StringTok{"{-}o"}\NormalTok{, f ]}
+
+\NormalTok{    outBase }\OperatorTok{++} \StringTok{".pdf"} \OperatorTok{*\textgreater{}}\NormalTok{ \textbackslash{}f }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{        need }\OperatorTok{\textless{}$\textgreater{}}\NormalTok{ srcFiles}
+\NormalTok{        cmd }\StringTok{"pandoc"}\NormalTok{ [ srcName, }\StringTok{"{-}o"}\NormalTok{, f, }\StringTok{"{-}V"}\NormalTok{, }\StringTok{"links{-}as{-}notes"}\NormalTok{ ]}
+
+\NormalTok{    outBase }\OperatorTok{++} \StringTok{".html"} \OperatorTok{*\textgreater{}}\NormalTok{ \textbackslash{}f }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{        deps }\OtherTok{\textless{}{-}}\NormalTok{ srcFiles}
+\NormalTok{        need }\OperatorTok{$} \StringTok{"css/report.css"} \OperatorTok{:}\NormalTok{ deps}
+\NormalTok{        cmd }\StringTok{"pandoc"}\NormalTok{ [ srcName, }\StringTok{"{-}o"}\NormalTok{, f, }\StringTok{"{-}c"}\NormalTok{, }\StringTok{"css/report.css"}\NormalTok{, }\StringTok{"{-}S"}\NormalTok{ ]}
+\end{Highlighting}
+\end{Shaded}
+
+Note however that you can get the same thing by just using wildcards (with
+\texttt{takeFileName}). But this is just an example, feel free to let your
+imagination roam!
+
+\subsection{Looking Forward}\label{looking-forward}
+
+We've seen how \emph{Shake} is good at setting up systems for managing and
+executing dependencies. This is good for running simple system commands.
+However, there is a lot more about scripting and task automation than managing
+dependencies.
+
+For example, almost everything we've done can be done with a simple Makefile.
+What does Haskell offer to the scripting scene?
+
+\subsubsection{Strong Typing}\label{strong-typing}
+
+As you'll know, one of the magical things about Haskell is that because of its
+expressive strong typing system, you leave the debugging to the compiler. If it
+compiles, it works exactly the way you want!
+
+This is pretty lacking in the bare-bones system we have in place now. Right now
+we are just firing off arbitrary system commands that are basically specified in
+strings with no type of typing. We can compile anything, whether there are bugs
+in it or not.
+
+Luckily \emph{Shake} is very good at integrating seamlessly with any kind of
+framework. We can leave this up to other frameworks.
+
+One popular framework for this that is gaining in maturity is
+\href{http://hackage.haskell.org/package/shelly}{\emph{Shelly}} (A fork of an
+older project that is an
+\href{http://www.yesodweb.com/blog/2012/03/shelly-for-shell-scripts}{ongoing}
+Yesod Project
+\href{http://www.yesodweb.com/blog/2012/07/shelly-update}{experiment}), but you
+are welcome to using your own. At the present Haskell is still developing and
+growing in this aspect. I hope to eventually write an article about
+\emph{Shelly} integration with \emph{Shake}.
+
+\subsubsection{Other}\label{other}
+
+These are just some ways to think about using \emph{Shake} in new more creative
+ways. Let me know if you think of any clever integrations in the comments!
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}
