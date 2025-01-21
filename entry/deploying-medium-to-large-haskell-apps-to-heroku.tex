@@ -1,0 +1,463 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Deploying Medium to Large Haskell Apps to Heroku by Precompiling},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Deploying Medium to Large Haskell Apps to Heroku by Precompiling}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% October 7, 2013
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/deploying-medium-to-large-haskell-apps-to-heroku.html}{in
+Code}}.}
+
+\textbf{UPDATE}: This post was written in 2013, where the options available to
+someone looking to host a Haskell site on Heroku were fairly limited. It's (as
+of the time of writing this) 2015 now and things have changed. Check out
+\href{http://blog.jle.im/entry/deploying-medium-to-large-haskell-apps-to-heroku\#disqus_thread}{the
+comments} for two good alternatives to this that are working today!
+
+Consider the rest of this article obsolete, or look here if none of the
+solutions given in the comments work :)
+
+\section{Old Article (Written 2013)}\label{old-article-written-2013}
+
+If you do a search on how to deploy Haskell apps to Heroku these days, chances
+are you are going to find the very elegant method (here's
+\href{http://adit.io/posts/2013-04-15-making-a-website-with-haskell.html\#deploying-to-heroku}{one
+solution}, and
+\href{http://blog.begriffs.com/2013/08/deploying-yesod-to-heroku-with-postgres.html}{another})
+involving leveraging Heroku's powerful
+\href{https://devcenter.heroku.com/articles/cedar}{Cedar stack} and having
+Heroku use \texttt{cabal\ install} to download and compile your app and all of
+its dependencies into a native binary on the server itself. It's a rather
+beautiful solution to the problem of a truly polyglot automated production
+server.
+
+The \href{https://github.com/mstksg/blog}{blog engine} that runs this blog is
+written in Haskell. When I tried to deploy it using those steps, I encountered a
+rather frustrating roadblock:
+
+Heroku enforces a hard time-out limit of \textbf{fifteen minutes} for all of its
+apps to compile and deploy. And because \emph{cabal} needs time to download and
+compile every dependency, a typical non-trivial app (like a blog) would reach
+this limit very quickly with only a
+\href{https://github.com/mstksg/blog/blob/master/blog.cabal\#L20-52}{modest
+amount of dependencies}.
+
+I did some searching on this and asked around on the irc channel, but I was not
+able to find any real-world examples of \emph{non-trivial} apps being deployed
+to Haskell using this method. It seemed like most articles simply deployed a toy
+project, and left it at that. (On that note, if anyone has actually had success
+with this, or knows someone who has, please let me know)
+
+Until Heroku's time-out limit can be adjusted or bypassed, the only real
+solution (besides incrementally pushing dependencies with a buildpack that
+caches --- a solution even uglier and less practical) is to pre-compile your
+binary to an architecture that Heroku supports.
+
+There are some tutorials on this already, but few are up to date and
+flexible/comprehensive, so here is my shot.
+
+As an \textbf{important note}: this method is a lot less elegant and maintanable
+(in principle) than the recommended buildpack method; only use it if you are
+absolutely certain that buildpacks won't work for you.
+
+Also note that this assumes that your app is already configured to work on
+Heroku --- that it doesn't modify the filesystem after the deploy (so no
+\emph{sqlite}), it uses the \texttt{\$DATABASE\_URL} environment variable to
+establish database connections, it uses the \texttt{\$PATH} environment variable
+to choose the port to listen to, and other small things you just have to worry
+about that is out of the scope of this post.
+
+Much of this post is owed to
+\href{https://github.com/yesodweb/yesod/wiki/Deploying-Yesod-Apps-to-Heroku}{this
+article on the Yesod wiki}.
+
+\section{Compiling Your Binary}\label{compiling-your-binary}
+
+\subsection{The Virtual Machine}\label{the-virtual-machine}
+
+First of all, we need to find ourselves a machine with the same architecture as
+the Heroku virtual machines. For most people, it is not practical to go out and
+buy a physical machine that you can use for yourself, so we're going to be
+setting up a virtual one here.
+
+A lot of this is going to be verbatim from
+\href{https://github.com/yesodweb/yesod/wiki/Setting-up-a-virtual-machine\%2C-using-VirtualBox-and-Vagrant}{this
+reference}, with a few updates.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  You're going to need
+  \href{https://www.virtualbox.org/wiki/Downloads}{VirtualBox}, from Oracle.
+  Most modern work on virtual machines leverage this great tool.
+\item
+  Install \href{http://downloads.vagrantup.com/}{vagrant}, a really convenient
+  wrapper around the raw VirtualBox functionality that integrates things like
+  build scripts and configurations into an easy-to-use package.
+\item
+  Clone/download the
+  \href{https://bitbucket.org/puffnfresh/vagrant-haskell-heroku}{vagrant-haskell-heroku}
+  project from BitBucket. This is the vagrant project that will set up
+  everything you need to build and deploy to Heroku --- an installation of GHC,
+  the Haskell Platform, and the Heroku Toolbelt, all on a 64 bit Ubuntu 10.04
+  image.
+\item
+  Edit the \texttt{Vagrantfile}; on the line starting with
+  \texttt{chef.json.merge!}, change the values to the versions of
+  \href{http://www.haskell.org/ghc/}{GHC} and
+  \href{http://www.haskell.org/platform/}{Haskell Platform} you will be using.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{chef}\AttributeTok{.json.merge!}\NormalTok{(}\KeywordTok{\{} \WarningTok{:ghc\_version} \KeywordTok{=\textgreater{}} \VerbatimStringTok{\textquotesingle{}7.4.4\textquotesingle{}}\NormalTok{,}
+                   \WarningTok{:haskell\_platform\_version} \KeywordTok{=\textgreater{}} \VerbatimStringTok{\textquotesingle{}2012.4.0.0\textquotesingle{}}\KeywordTok{\}}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+  I'm using \texttt{ghc-7.6.3} to develop, and as of October 2013, the lastest
+  stable Haskell Platform is \texttt{2013.2.0.0}.
+\item
+  Launch your virtual machine with
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{$}\NormalTok{ vagrant up}
+\end{Highlighting}
+\end{Shaded}
+
+  This will launch the VM and install the given versions of GHC and the Haskell
+  Platform. You are mostly good to go now -- log onto your machine using
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{$}\NormalTok{ vagrant ssh}
+\end{Highlighting}
+\end{Shaded}
+
+  If this doesn't work, try installing \texttt{libgc-dev}. \texttt{vagrant\ ssh}
+  should send you into an ``ssh'' session on your VM. Once there, let's run some
+  basic bookkeeping/updating that isn't handled by the vagrant project:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{$}\NormalTok{ sudo apt{-}get update}
+\ExtensionTok{$}\NormalTok{ sudo apt{-}get upgrade}
+\ExtensionTok{$}\NormalTok{ sudo apt{-}get install git{-}core}
+\ExtensionTok{$}\NormalTok{ cabal update}
+\end{Highlighting}
+\end{Shaded}
+\end{enumerate}
+
+And you should have a fresh virtual machine compatible with Heroku ready to
+build your project on.
+
+\subsection{Building Your Project}\label{building-your-project}
+
+At this point, there are many ways to proceed. Building is now more or less the
+same as if you were building on your own production server. Here is one way to
+go about it.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Get your project files onto your guest (virtual) machine.
+
+  \begin{itemize}
+  \item
+    If your projects are on a version control repository like
+    \href{https://www.github.com}{Github} or any accessible server, then getting
+    your files on your guest machine and keeping them up-to-date is as easy as a
+    \texttt{git\ pull} (substitute git for whatever version control you use).
+  \item
+    If not, the directory that your vagrant files are stored in is actually
+    mounted onto the file system of the guest machine. You can access it at
+    \texttt{/vagrant} on the guest machine.
+
+    This is really handy for transferring things like ssh keys, but you can also
+    use this to get your project files onto your guest machine. Simply copy them
+    over somehow onto a folder in the vagrant directory, and you can then access
+    them on your virtual machine and do what you want with them.
+
+    However, if you want to keep your files up to date, you'll have to do this
+    manually.
+  \item
+    If you are using version control like \emph{git}, but you aren't hosting it
+    on a server (and why not? you can even
+    \href{https://github.com/sitaramc/gitolite}{host a repo server locally on
+    your own machine}.), see if you can use a local folder as a repository
+    source.
+
+    For \emph{git}, this is pretty simple. You only need to run
+    \texttt{git\ init\ -\/-bare} on the folder you want to use as the
+    repository, and add the local filesystem path as the remote url. There are
+    many resources explaining this process in detail, like
+    \href{http://www.jedi.be/blog/2009/05/06/8-ways-to-share-your-git-repository/}{this
+    post} and
+    \href{http://treeleaf.be/blog/2011/03/creating-a-new-git-repository-on-a-local-file-system/}{this
+    one}
+  \end{itemize}
+\item
+  Build the executable. This is the same as on any machine. However, I strongly
+  recommend using some kind of sandboxing system like
+  \href{http://hackage.haskell.org/package/cabal-dev}{cabal-dev}, or cabal
+  1.18's built-in sandboxing, just to make sure you don't run into any problems
+  in the future.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#   using cabal{-}dev}
+\ExtensionTok{$}\NormalTok{ cabal install cabal{-}dev}
+\CommentTok{\#   you can add \textasciitilde{}/.cabal/bin to your $PATH if you want}
+\ExtensionTok{$}\NormalTok{ \textasciitilde{}/.cabal/bin/cabal{-}dev install}
+\end{Highlighting}
+\end{Shaded}
+
+  If any of your cabal packages require developer libraries to be installed on
+  your machine (anything involving Postgres comes to mind), you'll need to be
+  sure that they are installed. A simple \texttt{apt-get} should take care of
+  this for all relevant packages.
+
+  After everything downloads, builds, installs, etc., your executable will be
+  created as \texttt{dist/build/app-name/app-name}.
+
+  This will also be a good test as to whether or not you specified your
+  dependencies in your \texttt{.cabal} file properly.
+\end{enumerate}
+
+\section{Deploying it all}\label{deploying-it-all}
+
+Almost there! Your binary is now compiled; how are you going to deploy it to
+Heroku?
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  First, you have to commit your binary to version control. Some people
+  recommend using a separate branch for this, but because your guest machine's
+  project directory is kind of a transient thing, this really isn't that
+  necessary.
+
+  You can simply forcefully add the file to git as it is, because chances are
+  you have it already in your \texttt{.gitignore}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{$}\NormalTok{ git add }\AttributeTok{{-}f}\NormalTok{ dist/build/app{-}name/app{-}name}
+\end{Highlighting}
+\end{Shaded}
+
+  Alternatively, you can create a \texttt{bin/} folder and copy the executable
+  there. It really doesn't make a difference, except that you don't have to
+  modify your \texttt{.gitignore}.
+\item
+  Now, you need to create your \texttt{Procfile} --- this specifies the
+  processes that Heroku will be executing.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Procfile}
+\FunctionTok{web}\KeywordTok{:}\CommentTok{ \# system command to launch your server}
+\end{Highlighting}
+\end{Shaded}
+
+  For some web servers, it is simply the path to the executable; for some
+  frameworks like \emph{Yesod}, you need to specify the flag
+  \texttt{-p\ \$PORT}, because Heroku specifies the port you are to listen to
+  via the environment variable.
+\item
+  Heroku requires every project to have \emph{some} buildpack. Because the
+  actual web processes are specified in your \texttt{Procfile}, buildpacks won't
+  interfere with any actual execution of your server.
+
+  There are three easy ways to do this --- you can either use a blank
+  \texttt{requirements.txt} (the easiest way) to act like a \emph{Python} app, a
+  valid but empty \texttt{package.json} to act like a \emph{Node.js} app, or a
+  valid but empty \texttt{Gemfile} and \texttt{Gemfile.lock} combination to act
+  like a \emph{ruby} app.
+
+  But hey, if you use any node packages or gems or python packages in your
+  project, then you can actually use this to your advantage! I personally use
+  \emph{\href{http://compass-style.org/}{compass}} a lot for their extensions to
+  \emph{sass}, so adding it is as simple as using a \emph{Gemfile} --- just like
+  in any normal ruby app.
+
+  If you want to mix and match libraries from different languages/ecosystems,
+  you can use the
+  \href{https://github.com/ddollar/heroku-buildpack-multi}{multi} buildpack and
+  have Heroku check for packages in all of the normal package managers of the
+  languages you specify.
+\item
+  Configure your \href{https://toolbelt.heroku.com/}{Heroku Toolbelt}, and
+  deploy.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#   create your app}
+\ExtensionTok{$}\NormalTok{ heroku create appname}
+\CommentTok{\#   and, after making sure everything is set up, committed, and in order...}
+\ExtensionTok{$}\NormalTok{ git push heroku master}
+\end{Highlighting}
+\end{Shaded}
+
+  If you have done everything right, this should be successful. Hooray!
+\item
+  Make sure your \texttt{web} process is running properly. You can do this by
+  going to \url{https://dashboard.heroku.com/apps}, clicking on your app, and
+  making sure under \textbf{Dynos} that the check box next to ``web'' is checked
+  off.
+\end{enumerate}
+
+And that should be it!
+
+\section{After the Deploy}\label{after-the-deploy}
+
+Your app should be running successfully now! Probably. Maybe. If you run into
+any problems, let me know in the comments. But to preempt any issues that might
+arise, here are some things that it might be important to pay attention to.
+
+\begin{itemize}
+\item
+  If you are using Heroku's Postgres instances (and you should, they are amazing
+  and probably more reliable than anything you could host yourself on cheap, for
+  free), you will have to make sure to
+  \href{https://devcenter.heroku.com/articles/heroku-postgresql}{configure them
+  properly}.
+
+  If you have problems making a connection, you can try the
+  \href{http://hackage.haskell.org/package/heroku}{heroku} package on Hackage
+  and integrate it with your database connection backends.
+\item
+  You are probably going to want to automate your entire re-deploy process ---
+  the pull, the build/install, the copying of the executable, the committing of
+  the binary to version control, and the deploy to Heroku.
+
+  You can use your favorite task management system, like \emph{Make},
+  \emph{Rake}, or even \emph{Shake} (see my
+  \href{/entry/shake-task-automation-and-shell-scripting-in-haskell}{brief
+  tutorial on Shake})
+
+  Your basic workflow should consist of pushing your project files to your
+  repository on your host machine, and \texttt{vagrant\ ssh}-ing onto your guest
+  machine and executing one or two commands to automate the entire re-deploy
+  process.
+\item
+  Be aware of good virtual machine management practices. Suspend your machine
+  whenever you are not using it:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#   suspend}
+\ExtensionTok{$}\NormalTok{ vagrant suspend}
+\CommentTok{\#   resume}
+\ExtensionTok{$}\NormalTok{ vagrant resume}
+\end{Highlighting}
+\end{Shaded}
+
+  and you will also prevent things from getting hairy in case of a system crash
+  on the host side.
+\end{itemize}
+
+Good luck developing for the web on the Haskell platform, and welcome to the
+club!
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

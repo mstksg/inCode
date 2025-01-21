@@ -1,0 +1,789 @@
+<!DOCTYPE HTML>
+<html><head><title>Lenses embody Products, Prisms embody Sums
+ · in Code</title><meta name="description" content="Weblog of Justin Le, covering various adventures in programming and explorations in the worlds of computation physics, and knowledge.
+"><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="flattr:id" content="3p9jqr"><meta property="og:site_name" content="in Code"><meta property="og:description" content="I’ve written about a variety of topics on this blog, but one thing I haven’t touched in too much detail is the topic of lenses and optics. A big part of this is because there are already so many great resources on lenses. This post won’t be a “lens tutorial”, but rather a dive into an perspective on lenses and prisms that I’ve heard repeated many times (usually credited to Edward Kmett, but shachaf has helped me trace the origins back to this paste by Reid Barton) but never quite expanded on in-depth. In particular, I’m going to talk about the perspective of lenses and prisms as embodying the essences of products and sums (respectively), the insights that perspective brings, how well it flows into the “profunctor optics” formulation, and how you can apply these observations to practical usage of lenses and prisms. The “final code” in this post is available online as a “stack executable” that, when run, will pop you into a ghci session with all of the final definitions in scope, so you can play around with them :)"><meta property="og:type" content="article"><meta property="og:title" content="Lenses embody Products, Prisms embody Sums
+"><meta property="og:image" content="https://blog.jle.im/img/site_logo.jpg"><meta property="og:locale" content="en_US"><meta property="og:url" content="https://blog.jle.im/entry/lenses-products-prisms-sums.html"><meta name="twitter:card" content="summary"><meta name="twitter:creator:id" content="mstk"><link rel="author" href="https://plus.google.com/107705320197444500140"><link rel="alternate" type="application/rss+xml" title="in Code (RSS Feed)" href="http://feeds.feedburner.com/incodeblog"><link rel="canonical" href="https://blog.jle.im/entry/lenses-products-prisms-sums.html"><link href="https://blog.jle.im/favicon.ico" rel="shortcut icon"><link href="https://blog.jle.im/css/toast.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/font.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/main.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/page/entry.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/pygments.css" rel="stylesheet" type="text/css"><script type="text/javascript">var page_data = {};
+var disqus_shortname='incode';
+</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-443711-8', 'jle.im');
+ga('send', 'pageview');
+</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js"></script><script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5234d67a6b68dcd4"></script><script type="text/javascript" src="https://blog.jle.im/js/page/entry_toc.js"></script><script type="text/javascript" src="https://blog.jle.im/js/disqus_count.js"></script><script type="text/javascript" src="https://blog.jle.im/js/social.js"></script><script type="text/javascript" src="https://blog.jle.im/js/jquery/jquery.toc.js"></script><script type="text/javascript" src="https://blog.jle.im/purescript/entry.js"></script></head><body><div id="fb-root"><script>(function(d, s, id) {
+ var js, fjs = d.getElementsByTagName(s)[0];
+ if (d.getElementById(id)) return;
+ js = d.createElement(s); js.id = id;
+ js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=641852699171929";
+ fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+</script></div><div id="header-container"><div id="navbar-container" class="tile"><nav id="navbar-content"><div class="nav-info"><h1 class="site-title"><a href="https://blog.jle.im/" class="nav-title">in Code</a></h1><span class="nav-author">Justin Le</span></div><ul class="nav-links"><li><a href="https://blog.jle.im/">home</a></li><li><a href="https://blog.jle.im/entries.html">archives</a></li><li><a href="https://cv.jle.im">cv</a></li><div class="clear"></div></ul></nav></div><div id="header-content"></div></div><div id="body-container" class="container"><div id="main-container" class="grid"><div class="entry-section unit span-grid" role="main"><article class="tile article"><header><h1 id="title">Lenses embody Products, Prisms embody Sums
+</h1><p class="entry-info">by <a class="author" href="https://blog.jle.im/">Justin Le</a><span class="info-separator"> &diams; </span><time datetime="2018-06-11T13:20:17Z" pubdate="" class="pubdate">Monday June 11, 2018</time></p><p><span class="source-info"><a class="source-link" href="https://github.com/mstksg/inCode/tree/master/copy/entries/lenses-and-prisms.md">Source</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://github.com/mstksg/inCode/tree/gh-pages/entry/lenses-products-prisms-sums.md">Markdown</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://blog.jle.im/entry/lenses-products-prisms-sums.tex">LaTeX</a><span class="info-separator"> &diams; </span></span>Posted in <a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category" title="Functional, pure, non-strict, statically and strongly typed, natively
+compiled...really just the king of great languages.
+">Haskell</a><span class="info-separator"> &diams; </span><a class="comment-link" href="#disqus_thread">Comments</a></p></header><hr><aside class="contents-container"><h5 id="contents-header">Contents</h5><div id="toc"></div></aside><div class="main-content copy-content"><p>I’ve written about a variety of topics on this blog, but one thing I haven’t touched in too much detail is the topic of lenses and optics. A big part of this is because there are already so many great resources on lenses.</p>
+<p>This post won’t be a “lens tutorial”, but rather a dive into an perspective on lenses and prisms that I’ve heard repeated many times (usually credited to Edward Kmett, but shachaf has helped me trace the origins back to <a href="https://lpaste.net/77766">this paste</a> by Reid Barton) but never quite expanded on in-depth. In particular, I’m going to talk about the perspective of lenses and prisms as embodying the essences of products and sums (respectively), the insights that perspective brings, how well it flows into the “profunctor optics” formulation, and how you can apply these observations to practical usage of lenses and prisms.</p>
+<p>The “final code” in this post is <a href="https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs">available online</a> as a “stack executable” that, when run, will pop you into a <em>ghci</em> session with all of the final definitions in scope, so you can play around with them :)</p>
+<h2 id="an-algebraic-recap">An Algebraic Recap</h2>
+<p>In Haskell, “products and sums” can roughly be said to correspond to “tuples and <code>Either</code>”. If I have two types <code>A</code> and <code>B</code>, <code>(A, B)</code> is their “product” type. It’s often called an “anonymous product”, because we can make one without having to give it a fancy name. It’s called a product type because if <code>A</code> has <span class="math inline">\(n\)</span> possible values and <code>B</code> has <span class="math inline">\(m\)</span> possible values, then <code>(A, B)</code> has <span class="math inline">\(n \times m\)</span> possible values<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>. And, <code>Either A B</code> is their (anonymous) “sum” type. It’s called a sum type because <code>Either A B</code> has <span class="math inline">\(n + m\)</span> possible values. I won’t go much deeper into this, but there are <a href="https://codewords.recurse.com/issues/three/algebra-and-calculus-of-algebraic-data-types">many useful summaries already online</a> on this topic!</p>
+<h2 id="lets-get-productive">Let’s Get Productive!</h2>
+<p>It’s easy to recognize <code>(Int, Bool)</code> as a product between <code>Int</code> and <code>Bool</code>. However, did you know that some types are secretly product types in disguise?</p>
+<p>For example, here’s a classic example of a data type often used with <em>lens</em>:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L145-L148</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Person</span> <span class="ot">=</span> <span class="dt">P</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    {<span class="ot"> _pName ::</span> <span class="dt">String</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    ,<span class="ot"> _pAge  ::</span> <span class="dt">Int</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div>
+<p><code>Person</code> is an algebraic data type — so-called because it is actually a <em>product</em> between a <code>String</code> and <code>Int</code>. <code>Person</code> is <em>isomorphic</em> to <code>(String, Int)</code>. I will be writing this as <code>Person &lt;~&gt; (String, Int)</code>.</p>
+<p>By <em>isomorphic</em>, I mean that there are functions <code>split :: Person -&gt; (String, Int)</code> and <code>unsplit :: (String, Int) -&gt; Person</code> where <code>unsplit . split = id</code> and <code>split . unsplit = id</code>. You can think of this property as stating formally that you should be able to go from one type to the other without “losing any information”. Every single item in one type gets paired to a specific item in the other, and vice versa, and neither type is “too big” or “too small”.</p>
+<p>In our case, we have:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ot">split ::</span> <span class="dt">Person</span> <span class="ot">-&gt;</span> (<span class="dt">String</span>, <span class="dt">Int</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>split (<span class="dt">P</span> n a) <span class="ot">=</span> (n, a)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="ot">unsplit ::</span> (<span class="dt">String</span>, <span class="dt">Int</span>) <span class="ot">-&gt;</span> <span class="dt">Person</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>unsplit (n, a) <span class="ot">=</span> <span class="dt">P</span> n a</span></code></pre></div>
+<p>And we can verify that <code>unsplit . split</code> is <code>id</code>:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>unsplit <span class="op">.</span><span class="ot"> split ::</span> <span class="dt">Person</span> <span class="ot">-&gt;</span> <span class="dt">Person</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>unsplit <span class="op">.</span> split</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=</span> \x          <span class="ot">-&gt;</span> unsplit (split x)        <span class="co">-- substitute definition of (.)</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=</span> \<span class="kw">case</span> <span class="dt">P</span> n a <span class="ot">-&gt;</span> unsplit (split (<span class="dt">P</span> n a))  <span class="co">-- expand patterns</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=</span> \<span class="kw">case</span> <span class="dt">P</span> n a <span class="ot">-&gt;</span> unsplit (n, a)           <span class="co">-- substitute definition of split</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=</span> \<span class="kw">case</span> <span class="dt">P</span> n a <span class="ot">-&gt;</span> <span class="dt">P</span> n a                    <span class="co">-- substitute definition of unsplit</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=</span> \x      <span class="ot">-&gt;</span> x                            <span class="co">-- condense patterns</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=</span> <span class="fu">id</span>                                      <span class="co">-- definition of id</span></span></code></pre></div>
+<p>And verification of <code>split . unsplit = id</code> is left as an exercise.</p>
+<p>There are some other interesting products in Haskell, too. One such example is <code>NonEmpty a</code> (the type of a non-empty list) being a product between <code>a</code> (the head/first item) and <code>[a]</code> (the tail/rest of the items). This means that <code>NonEmpty a</code> is isomorphic to <code>(a, [a])</code> — we have <code>NonEmpty a &lt;~&gt; (a, [a])</code>! This is witnessed by functions <code>split :: NonEmpty a -&gt; (a, [a])</code> and <code>unsplit :: (a, [a]) -&gt; NonEmpty a</code> where <code>unsplit . split = id</code> and <code>split . unsplit = id</code>. See if you can write these!</p>
+<p>Another curious product is the fact that every type <code>a</code> is a product between <em>itself</em> and unit, <code>()</code>. Every type <code>a</code> is isomorphic to <code>(a, ())</code> (which follows from the algebraic property <span class="math inline">\(x * 1 = x\)</span>). Freaky, right?</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- a &lt;~&gt; (a, ())</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="ot">split ::</span> a <span class="ot">-&gt;</span> (a, ())</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>split x <span class="ot">=</span> (x, ())</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="ot">unsplit ::</span> (a, ()) <span class="ot">-&gt;</span> a</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>unsplit (x, _) <span class="ot">=</span> x</span></code></pre></div>
+<p>One final interesting “product in disguise” is <code>Either a a</code>. “But wait,” you say. “That’s a sum…right??”</p>
+<p>Well, yeah. But in addition, any <code>Either a a</code> is the product between <code>Bool</code> and <code>a</code>. We can say that <code>Either a a</code> is isomorphic to <code>(Bool, a)</code>! The <code>Bool</code> tells you “left or right?” and the <code>a</code> is the contents:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- Either a a &lt;~&gt; (Bool, a)</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="ot">split ::</span> <span class="dt">Either</span> a a <span class="ot">-&gt;</span> (<span class="dt">Bool</span>, a)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>split (<span class="dt">Left</span>  x) <span class="ot">=</span> (<span class="dt">False</span>, x)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>split (<span class="dt">Right</span> x) <span class="ot">=</span> (<span class="dt">True</span> , x)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="ot">unsplit ::</span> (<span class="dt">Bool</span>, a) <span class="ot">-&gt;</span> <span class="dt">Either</span> a a</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>unsplit (<span class="dt">False</span>, x) <span class="ot">=</span> <span class="dt">Left</span>  x</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>unsplit (<span class="dt">True</span> , x) <span class="ot">=</span> <span class="dt">Right</span> x</span></code></pre></div>
+<p>Proving that <code>unsplit . split = id</code>:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>unsplit <span class="op">.</span><span class="ot"> split ::</span> <span class="dt">Either</span> a a <span class="ot">-&gt;</span> <span class="dt">Either</span> a a</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>unsplit <span class="op">.</span> split <span class="ot">=</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=</span> \x            <span class="ot">-&gt;</span> unsplit (split x)          <span class="co">-- substitute definition of (.)</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>      <span class="co">-- trying case 1</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=</span> \<span class="kw">case</span> <span class="dt">Left</span>  y <span class="ot">-&gt;</span> unsplit (split (<span class="dt">Left</span>  y))  <span class="co">-- expand pattern for case 1</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=</span> \<span class="kw">case</span> <span class="dt">Left</span>  y <span class="ot">-&gt;</span> unsplit (<span class="dt">False</span>, y)         <span class="co">-- substitute definition of split</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=</span> \<span class="kw">case</span> <span class="dt">Left</span>  y <span class="ot">-&gt;</span> <span class="dt">Left</span>  y                    <span class="co">-- substitute definition of unsplit</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=</span> \x            <span class="ot">-&gt;</span> x                          <span class="co">-- condense pattern for case 1</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=</span> <span class="fu">id</span>                                          <span class="co">-- definition of id</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>      <span class="co">-- trying case 2</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=</span> \<span class="kw">case</span> <span class="dt">Right</span> y <span class="ot">-&gt;</span> unsplit (split (<span class="dt">Right</span> y))  <span class="co">-- expand pattern for case 2</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=</span> \<span class="kw">case</span> <span class="dt">Right</span> y <span class="ot">-&gt;</span> unsplit (<span class="dt">True</span> , y)         <span class="co">-- substitute definition of split</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=</span> \<span class="kw">case</span> <span class="dt">Right</span> y <span class="ot">-&gt;</span> <span class="dt">Right</span> y                    <span class="co">-- substitute definition of unsplit</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=</span> \x            <span class="ot">-&gt;</span> x                          <span class="co">-- condense pattern for case 2</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=</span> <span class="fu">id</span>                                          <span class="co">-- definition of id</span></span></code></pre></div>
+<p>And <code>split . unsplit = id</code> is again left as an exercise.</p>
+<p>(<code>\case</code> here is from the <em>-XLambdaCase</em> extension)</p>
+<h3 id="lenses">Lenses</h3>
+<p>So, how do lenses come into the picture?</p>
+<p>Let’s review a bit. A <code>Lens' s a</code> is a way to “access” an <code>a</code> “inside” an <code>s</code>, <em>respecting some laws</em>.</p>
+<p>A <code>Lens' s a</code> is a data type with the following API:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ot">view ::</span> <span class="dt">Lens&#39;</span> s a <span class="ot">-&gt;</span> (s <span class="ot">-&gt;</span> a)                <span class="co">-- get the &#39;a&#39; from an &#39;s&#39;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ot">set  ::</span> <span class="dt">Lens&#39;</span> s a <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> s <span class="ot">-&gt;</span> s)           <span class="co">-- set the &#39;a&#39; inside an &#39;s&#39;</span></span></code></pre></div>
+<p>respecting <a href="https://www.schoolofhaskell.com/school/to-infinity-and-beyond/pick-of-the-week/a-little-lens-starter-tutorial#the-lens-laws-">the lens laws</a> — get-put, put-get, and put-put. Abstract mathematical laws are great and all, but I’m going to tell you a secret that subsumes those laws.</p>
+<p>At first, you might naively implement lenses like:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Lens&#39;</span> s a <span class="ot">=</span> <span class="dt">Lens&#39;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    {<span class="ot"> view ::</span> s <span class="ot">-&gt;</span> a</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    ,<span class="ot"> set  ::</span> a <span class="ot">-&gt;</span> s <span class="ot">-&gt;</span> s</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div>
+<p>But this is bad bad bad. That’s because you can use this to represent lenses that “break the laws”. This representation is, to use the technical term, “too big”. It allows more more values than are actual lenses. It breaks the “make illegal things unrepresentable” principle by a pretty big margin.</p>
+<p>So, here’s the secret: A <code>Lens' s a</code> is nothing more than a way of saying that <em><code>s</code> is a product between <code>a</code> and some type <code>q</code></em>.</p>
+<p>That means that if it is possible to represent <code>s</code> as some <code>(v, w)</code> (or, <code>s &lt;~&gt; (v, w)</code>), <em>then you have two lenses</em>! Lenses are nothing more than <em>descriptions of products</em>! Another way to think of this is that if you are able to “split” a type into two parts without losing any information, then each part represents a lens.</p>
+<p>A <code>Lens' s a</code> is nothing more than a witness for the fact that there exists some <code>q</code> where <code>s &lt;~&gt; (a, q)</code>.</p>
+<p>With that in mind, let’s re-visit a saner definition of lenses based on the idea that lenses embody descriptions of products:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- | s &lt;~&gt; (a, q)</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L81-L84</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Lens&#39;</span> s a <span class="ot">=</span> <span class="kw">forall</span> q<span class="op">.</span> <span class="dt">Lens&#39;</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    {<span class="ot"> split   ::</span> s <span class="ot">-&gt;</span> (a, q)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    ,<span class="ot"> unsplit ::</span> (a, q) <span class="ot">-&gt;</span> s</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div>
+<p>Now, if <code>split</code> and <code>unsplit</code> form an isomorphism, <em>this can only represent valid lenses</em>!<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
+<p>(The <code>forall q.</code> is the <em>-XExistentialQuantification</em> extension, and allows us to hide type variables in constructors. Note that this disallows us from using <code>split</code> and <code>unsplit</code> as record accessors functions, so we have to pattern match to get the contents)</p>
+<p>We can implement our necessary lens API as so:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L122-L127</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="ot">view ::</span> <span class="dt">Lens&#39;</span> s a <span class="ot">-&gt;</span> (s <span class="ot">-&gt;</span> a)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>view <span class="dt">Lens&#39;</span>{<span class="op">..</span>} <span class="ot">=</span> <span class="fu">fst</span> <span class="op">.</span> split</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="ot">set ::</span> <span class="dt">Lens&#39;</span> s a <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> s <span class="ot">-&gt;</span> s)</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>set <span class="dt">Lens&#39;</span>{<span class="op">..</span>} newVal x <span class="ot">=</span> <span class="kw">case</span> split x <span class="kw">of</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    (_, q) <span class="ot">-&gt;</span> unsplit (newVal, q)      <span class="co">-- &quot;replace&quot; the `a`</span></span></code></pre></div>
+<p>(Using the <em>-XRecordWildcards</em> extension, where <code>Lens'{..}</code> binds <code>split</code> and <code>unsplit</code> to the fields of the lens)</p>
+<p>The implementation of the helper function <code>over</code> (which modifies the <code>a</code> with a function) is also particularly elegant:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L129-L130</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="ot">overL ::</span> <span class="dt">Lens&#39;</span> s a <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> a) <span class="ot">-&gt;</span> (s <span class="ot">-&gt;</span> s)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>overL <span class="dt">Lens&#39;</span>{<span class="op">..</span>}  f <span class="ot">=</span> unsplit <span class="op">.</span> first f <span class="op">.</span> split   <span class="co">-- instance Bifunctor (,)</span></span></code></pre></div>
+<p>The surprising result of this perspective is that <strong>every product yields lenses</strong> (one for every item in the product), and <strong>every lens witnesses one side of a product</strong>.</p>
+<h3 id="insights-gleaned">Insights Gleaned</h3>
+<p>Let’s take a look at our first product we talked about:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L145-L148</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Person</span> <span class="ot">=</span> <span class="dt">P</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    {<span class="ot"> _pName ::</span> <span class="dt">String</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    ,<span class="ot"> _pAge  ::</span> <span class="dt">Int</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div>
+<p>Because <code>Person</code> is a product between <code>String</code> and <code>Int</code>, we get <em>two lenses</em>: a <code>Lens' Person String</code> and <code>Lens' Person Int</code>. <em>Every product</em> gives us a lens for every item in the product.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- Person &lt;~&gt; (String, Int)</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L150-L160</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="ot">pName ::</span> <span class="dt">Lens&#39;</span> <span class="dt">Person</span> <span class="dt">String</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>pName <span class="ot">=</span> <span class="dt">Lens&#39;</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    { split   <span class="ot">=</span> \(<span class="dt">P</span> n a) <span class="ot">-&gt;</span> (n, a)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    , unsplit <span class="ot">=</span> \(n, a)  <span class="ot">-&gt;</span> <span class="dt">P</span> n a</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="ot">pAge ::</span> <span class="dt">Lens&#39;</span> <span class="dt">Person</span> <span class="dt">Int</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>pAge <span class="ot">=</span> <span class="dt">Lens&#39;</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>    { split   <span class="ot">=</span> \(<span class="dt">P</span> n a) <span class="ot">-&gt;</span> (a, n)</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>    , unsplit <span class="ot">=</span> \(a, n)  <span class="ot">-&gt;</span> <span class="dt">P</span> n a</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div>
+<p>These are actually the typical lenses associated with records! You get exactly these lenses if you use <code>makeLenses</code> from the <em>lens</em> package.</p>
+<p>The inverse is true too. <strong>Every lens witnesses a product</strong>. The fact that we have a lawful <code>pName :: Lens' Person String</code> means that a <code>Person</code> <em>must</em> be a product between <code>String</code> and some other (hidden) type.</p>
+<p>It can be insightful to look at products that we know and see what lenses those correspond to.</p>
+<p>For example, our <code>NonEmpty a &lt;~&gt; (a, [a])</code> product tells us that <code>NonEmpty a</code> has at least two lenses: a “head” lens <code>Lens' (NonEmpty a) a</code> and a “tail” lens <code>Lens' (NonEmpty a) [a]</code>.</p>
+<p>Our <code>a &lt;~&gt; (a, ())</code> product gives some interesting insight. This tells us that we always have an “identity” lens <code>Lens' a a</code>, and a “unit” lens <code>Lens' a ()</code>, for any <code>a</code>:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- a &lt;~&gt; (a, ())</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L162-L172</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="ot">identityL ::</span> <span class="dt">Lens&#39;</span> a a</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>identityL <span class="ot">=</span> <span class="dt">Lens&#39;</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    { split   <span class="ot">=</span> \x      <span class="ot">-&gt;</span> (x, ())</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    , unsplit <span class="ot">=</span> \(x, _) <span class="ot">-&gt;</span> x</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="ot">united ::</span> <span class="dt">Lens&#39;</span> a ()</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>united <span class="ot">=</span> <span class="dt">Lens&#39;</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    { split   <span class="ot">=</span> \x       <span class="ot">-&gt;</span> ((), x)</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    , unsplit <span class="ot">=</span> \((), x) <span class="ot">-&gt;</span> x</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div>
+<p>In the language of lens, <code>identityL :: Lens' a a</code> tells us that all <code>a</code>s have an <code>a</code> “inside” them. However, in the language of products, this just tells us that <code>a</code> can be represented as <code>(a, ())</code>. In the language of lens, <code>united :: Lens' a ()</code> tells us that all <code>a</code>s have a <code>()</code> “inside” them. In the language of products, this just tells us that <code>a &lt;~&gt; (a, ())</code>.</p>
+<p>What insight does our <code>Either a a &lt;~&gt; (Bool, a)</code> product perspective give us? Well, let’s write out their types and see what it might suggest:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L174-L184</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="ot">mysteryLens1 ::</span> <span class="dt">Lens&#39;</span> (<span class="dt">Either</span> a a) <span class="dt">Bool</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="ot">mysteryLens2 ::</span> <span class="dt">Lens&#39;</span> (<span class="dt">Either</span> a a) a</span></code></pre></div>
+<p>Looking at <code>mysteryLens1 :: Lens' (Either a a) Bool</code>, we are saying that every <code>Either a a</code> has some <code>Bool</code> “inside” it. From our knowledge of our product, we know that this <code>Bool</code> is really a <em>flag</em> for left-ness or right-ness. Getting the <code>Bool</code> is finding out if we’re in <code>Left</code> or <code>Right</code>, and flipping the <code>Bool</code> “inside” is really just swapping from <code>Left</code> to <code>Right</code>.</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L194-L198</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="ot">flipEither ::</span> <span class="dt">Either</span> a a <span class="ot">-&gt;</span> <span class="dt">Either</span> a a</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>flipEither <span class="ot">=</span> overL mysteryLens1 <span class="fu">not</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="ot">isRight ::</span> <span class="dt">Either</span> a a <span class="ot">-&gt;</span> <span class="dt">Bool</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>isRight <span class="ot">=</span> view mysteryLens1</span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> flipEither (<span class="dt">Left</span> <span class="ch">&#39;a&#39;</span>)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="dt">Right</span> <span class="ch">&#39;a&#39;</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> flipEither (<span class="dt">Right</span> <span class="ch">&#39;a&#39;</span>)</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="dt">Left</span> <span class="ch">&#39;a&#39;</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> isRight (<span class="dt">Left</span> <span class="ch">&#39;a&#39;</span>)</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="dt">False</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> isRight (<span class="dt">Right</span> <span class="ch">&#39;a&#39;</span>)</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a><span class="dt">True</span></span></code></pre></div>
+<p>If we think about lenses as embodying “record fields” (things that give you the ability to “get” a field, and “modify” a field — corresponding with <code>view</code> and <code>set</code>), we can think of <code>mysteryLens1</code> as an <em>abstract record field</em> into the Leftness/Rightness of a value. Thinking of lenses as defining abstract record fields is a <a href="http://blog.ezyang.com/2016/12/a-tale-of-backwards-compatibility-in-asts/">common tool for backwards compatibility</a>.</p>
+<p>Looking at <code>mysteryLens2 :: Lens' (Either a a) a</code>, we are saying that every <code>Either a a</code> has some <code>a</code> “inside” it. From what we know about the underlying product, the <code>a</code> is just the “contained value”, <em>ignoring</em> leftness or rightness. Getting the <code>a</code> is getting the contained value and losing leftness/rightness, and re-setting the <code>a</code> inside is modifying the contained value but preserving leftness/rightness.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L200-L204</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="ot">fromEither ::</span> <span class="dt">Either</span> a a <span class="ot">-&gt;</span> a</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>fromEither <span class="ot">=</span> view mysteryLens2</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="ot">mapEither ::</span> (a <span class="ot">-&gt;</span> a) <span class="ot">-&gt;</span> <span class="dt">Either</span> a a <span class="ot">-&gt;</span> <span class="dt">Either</span> a a</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>mapEither <span class="ot">=</span> overL mysteryLens2</span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> fromEither (<span class="dt">Left</span> <span class="ch">&#39;a&#39;</span>)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="ch">&#39;a&#39;</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> mapEither <span class="fu">negate</span> (<span class="dt">Left</span> <span class="dv">3</span>)</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="dt">Left</span> (<span class="op">-</span><span class="dv">3</span>)</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> mapEither <span class="fu">negate</span> (<span class="dt">Right</span> <span class="dv">4</span>)</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="dt">Right</span> (<span class="op">-</span><span class="dv">4</span>)</span></code></pre></div>
+<p>So that’s really the essence of what a <code>Lens'</code> is. A <code>Lens' s a</code> is the embodiment of the fact that <code>s</code> can be represented as a product between <code>a</code> and something else — that <code>s &lt;~&gt; (a, q)</code>. All of the lens laws just boil down to this. <strong>Lenses embody products</strong>.</p>
+<h2 id="sum-thing-interesting">"Sum-thing" Interesting</h2>
+<p>It’s easy to recognize <code>Either Int Bool</code> as a sum between <code>Int</code> and <code>Bool</code>. However, did you know that some types are secretly sums in disguise?</p>
+<p>For example, here’s a data type you might encounter out there in the real world:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L221-L222</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Shape</span> <span class="ot">=</span> <span class="dt">Circle</span>  <span class="dt">Double</span>           <span class="co">-- radius</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>           <span class="op">|</span> <span class="dt">RegPoly</span> <span class="dt">Natural</span> <span class="dt">Double</span>   <span class="co">-- number of sides, length of sides</span></span></code></pre></div>
+<p><code>Circle 2.9</code> represents a circle with radius 2.9, and <code>RegPoly 8 4.6</code> represents a octagon (8-sided figure) whose sides all have length 4.6.</p>
+<p><code>Shape</code> is an algebraic data type — so-called because it is actually a <em>sum</em> between <code>Double</code> and <code>(Natural, Double)</code> (a <code>Natural</code> is the non-negative <code>Integer</code> type). <code>Shape</code> is <em>isomorphic</em> to <code>Either Double (Natural, Double)</code>. To prove it, let’s witness <code>Shape &lt;~&gt; Either Double (Natural, Double)</code> using the functions <code>match</code> and <code>inject</code>:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- Shape &lt;~&gt; Either Double (Natural, Double)</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="ot">match ::</span> <span class="dt">Shape</span> <span class="ot">-&gt;</span> <span class="dt">Either</span> <span class="dt">Double</span> (<span class="dt">Natural</span>, <span class="dt">Double</span>)</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>match (<span class="dt">Circle</span>  r  ) <span class="ot">=</span> <span class="dt">Left</span> r</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>match (<span class="dt">RegPoly</span> n s) <span class="ot">=</span> <span class="dt">Right</span> (n, s)</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a><span class="ot">inject ::</span> <span class="dt">Either</span> <span class="dt">Double</span> (<span class="dt">Natural</span>, <span class="dt">Double</span>) <span class="ot">-&gt;</span> <span class="dt">Shape</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>inject (<span class="dt">Left</span>   r    ) <span class="ot">=</span> <span class="dt">Circle</span>  r</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>inject (<span class="dt">Right</span> (n, s)) <span class="ot">=</span> <span class="dt">RegPoly</span> n s</span></code></pre></div>
+<p>Since <code>inject . match = id</code> and <code>match . inject = id</code>, this proves that <code>Shape</code> is a sum in disguise.</p>
+<p>Another interesting “hidden sum” is the fact that <code>[a]</code> in Haskell is actually a sum between <code>()</code> and <code>(a, [a])</code>. That’s right — it’s a sum between <code>()</code> and…itself with a value? Indeed it is pretty bizarre.</p>
+<p>However, if we think of <code>()</code> as the possibility of an empty list, and <code>(a, [a])</code> as the possibility of <code>NonEmpty a</code> (the “head” of a list consed with the rest of the list), then saying that <code>[a]</code> is a sum between <code>()</code> and <code>NonEmpty a</code> is saying that <code>[a]</code> is “either an empty list or a non-empty list”. Whoa. Take <em>that</em>, <a href="https://en.wikipedia.org/wiki/Constructivism_(mathematics)">LEM denialists</a>.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- [a] &lt;~&gt; Either () (NonEmpty a)</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="ot">match ::</span> [a] <span class="ot">-&gt;</span> <span class="dt">Either</span> () (<span class="dt">NonEmpty</span> a)</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>match []     <span class="ot">=</span> <span class="dt">Left</span>  ()</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>match (x<span class="op">:</span>xs) <span class="ot">=</span> <span class="dt">Right</span> (x <span class="op">:|</span> xs)</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a><span class="ot">inject ::</span> <span class="dt">Either</span> () (<span class="dt">NonEmpty</span> a) <span class="ot">-&gt;</span> [a]</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>inject (<span class="dt">Left</span>   _       ) <span class="ot">=</span> []</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>inject (<span class="dt">Right</span> (x <span class="op">:|</span> xs)) <span class="ot">=</span> x<span class="op">:</span>xs</span></code></pre></div>
+<div class="note">
+<p><strong>Aside</strong></p>
+<p>And, actually, there is another way to deconstruct <code>[a]</code> as a sum in Haskell. You can treat it as a sum between <code>()</code> and <code>([a], a)</code> — where the <code>()</code> represents the empty list and the <code>([a], a)</code> represents an “all but the last item” list and “the last item”:</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- [a] &lt;~&gt; Either () ([a], a)</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="ot">match  ::</span> [a] <span class="ot">-&gt;</span> <span class="dt">Either</span> () ([a], a)</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>match xs</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="op">|</span> <span class="fu">null</span> xs   <span class="ot">=</span> <span class="dt">Left</span>  ()</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  <span class="op">|</span> <span class="fu">otherwise</span> <span class="ot">=</span> <span class="dt">Right</span> (<span class="fu">init</span> xs, <span class="fu">last</span> xs)</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a><span class="co">-- init gives you all but the last item:</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a><span class="co">-- &gt; init [1,2,3] = [1,2]</span></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a><span class="ot">inject ::</span> <span class="dt">Either</span> () (a, [a]) <span class="ot">-&gt;</span> [a]</span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>inject (<span class="dt">Left</span>   _     ) <span class="ot">=</span> []</span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>inject (<span class="dt">Right</span> (xs, x)) <span class="ot">=</span> xs <span class="op">++</span> [x]</span></code></pre></div>
+<p>I just think it’s interesting that the same type can be “decomposed” into a sum of two different types in multiple ways.</p>
+<p>Fun haskell challenge: the version of <code>match</code> for the <code>[a] &lt;~&gt; Either () ([a], a)</code> isomorphism I wrote there is conceptually simple, but very inefficient. It traverses the input list three times, uses two partial functions, and uses a <code>Bool</code>. Can you write a <code>match</code> that does the same thing using only a single fold and no partial functions or <code>Bool</code>s?</p>
+<p>I managed to write one <a href="https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L31-L39">using a difference list</a>!</p>
+</div>
+<p>Another curious sum: if we consider the “empty data type” <code>Void</code>, the type with no inhabitants:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L224-L229</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Void</span>           <span class="co">-- no constructors, no valid inhabitants</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a><span class="ot">absurd ::</span> <span class="dt">Void</span> <span class="ot">-&gt;</span> a     <span class="co">-- A useful helper function when working with `Void`</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>absurd <span class="ot">=</span> \<span class="kw">case</span> <span class="co">-- empty case statement because we have</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>               <span class="co">-- no constructors of &#39;Void&#39; we need to</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>               <span class="co">-- match on</span></span></code></pre></div>
+<p>then we have an interesting sum: every type <code>a</code> is a sum between <em>itself</em> and <code>Void</code>. In other words, <code>a</code> is isomorphic to <code>Either a Void</code> (which follows from the algebraic property <span class="math inline">\(x + 0 = x\)</span>):</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- a &lt;~&gt; Either a Void</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="ot">match ::</span> a <span class="ot">-&gt;</span> <span class="dt">Either</span> a <span class="dt">Void</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>match x <span class="ot">=</span> <span class="dt">Left</span> x</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a><span class="ot">inject ::</span> <span class="dt">Either</span> a <span class="dt">Void</span> <span class="ot">-&gt;</span> a</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>inject (<span class="dt">Left</span>  x) <span class="ot">=</span> x</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>inject (<span class="dt">Right</span> v) <span class="ot">=</span> absurd v</span></code></pre></div>
+<p>Again, if you don’t believe me, verify that <code>inject . match = id</code> and <code>match . inject = id</code>!<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a></p>
+<p>One final example: earlier, we said that every type can be decomposed as a <em>product</em> involving <code>()</code>. Algebraically, finding that mystery type is easy — we solve <span class="math inline">\(x = 1 * y\)</span> for <span class="math inline">\(y\)</span> (since <code>()</code> is 1), and we see <span class="math inline">\(y = x\)</span>. This tells us that every type is a product between <code>()</code> and itself (<code>a &lt;~&gt; ((), a)</code>).</p>
+<p>However, can every type be decomposed as a <em>sum</em> involving <code>()</code>?</p>
+<p>Algebraically, we need to find this mystery type by solving <span class="math inline">\(x = 1 + y\)</span> for <span class="math inline">\(y\)</span>, and the result is <span class="math inline">\(y = x - 1\)</span>. We can interpret <span class="math inline">\(x - 1\)</span> as “<code>a</code>, minus one potential element”.</p>
+<p>This type isn’t expressible in general in Haskell, so <em>no</em>, not <em>every</em> type can be decomposed as a sum involving <code>()</code>. The necessary and sufficient condition is that there must exist some type that is the same as your original type but with one missing element.</p>
+<p>Oh, hey! Remember our <code>[a] &lt;~&gt; Either () (NonEmpty a)</code> decomposition? That’s exactly this! Here, <code>NonEmpty a</code> is our mystery type: it’s exactly a list <code>[a]</code> minus one potential element (the empty list).</p>
+<p>There’s another way to go about this: we can talk about <span class="math inline">\(x - 1\)</span> by specifying one single “forbidden element”. This isn’t explicitly possible in Haskell, but we can simulate this by using an abstract type. We have this ability using “refinement types”. For example, using the <a href="http://hackage.haskell.org/package/refined">refined</a> library, a <code>Refined (NotEqualTo 4) Int</code> is a type that is the same as <code>Int</code>, except the <code>4</code> value is forbidden.</p>
+<p>We can use it to implement a <code>Int &lt;~&gt; Either () (Refined (NotEqualTo 4) Int)</code> witness:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- | Like `Int`, but cannot be constructed if it is 4</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">Not4</span> <span class="ot">=</span> <span class="dt">Refined</span> (<span class="dt">NotEqualTo</span> <span class="dv">4</span>) <span class="dt">Int</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="co">-- | Provided by the &#39;refined&#39; library that lets us refine and unrefine a type</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="ot">refineFail ::</span> <span class="dt">Int</span>  <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Not4</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a><span class="ot">unrefine   ::</span> <span class="dt">Not4</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a><span class="co">-- | The &quot;safe constructor&quot;</span></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a><span class="ot">match ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Either</span> () <span class="dt">Not4</span></span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>match n <span class="ot">=</span> <span class="kw">case</span> refineFail n <span class="kw">of</span></span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Nothing</span> <span class="ot">-&gt;</span> <span class="dt">Left</span> ()          <span class="co">-- the value was 4, so we return `Left`</span></span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Just</span> x  <span class="ot">-&gt;</span> <span class="dt">Right</span> x          <span class="co">-- value was successfully refined</span></span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a><span class="co">-- | The &quot;safe extractor&quot;</span></span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a><span class="ot">inject ::</span> <span class="dt">Either</span> () <span class="dt">Not4</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a>inject (<span class="dt">Left</span>  _) <span class="ot">=</span> <span class="dv">4</span></span>
+<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a>inject (<span class="dt">Right</span> x) <span class="ot">=</span> unrefine x</span></code></pre></div>
+<p>In fact, if we can parameterize an isomorphism on a specific value, <em>all</em> types with at least one value can be expressed as a sum involving <code>()</code>! It’s always <code>()</code> plus the type itself minus that given specific value. (In practice, this is only possible to represent in Haskell if we can test for equality)</p>
+<h3 id="through-the-looking-prism">Through the Looking-Prism</h3>
+<p>Now let’s bring prisms into the picture. A <code>Prism' s a</code> also refers to some <code>a</code> “possibly inside” an <code>s</code>, with the following API: <code>preview</code> and <code>review</code><a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a></p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="ot">preview ::</span> <span class="dt">Prism&#39;</span> s a <span class="ot">-&gt;</span> (s <span class="ot">-&gt;</span> <span class="dt">Maybe</span> a)   <span class="co">-- get the &#39;a&#39; in the &#39;s&#39; if it exists</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="ot">review  ::</span> <span class="dt">Prism&#39;</span> s a <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> s)         <span class="co">-- reconstruct the &#39;s&#39; from an &#39;a&#39;</span></span></code></pre></div>
+<p>If you think of a prism as representing an abstract constructor, the <code>preview</code> is the “pattern match”, and the <code>review</code> is the “constructing”.</p>
+<p>Naively you might implement a prism like this:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Prism&#39;</span> s a <span class="ot">=</span> <span class="dt">Prism&#39;</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>    {<span class="ot"> preview ::</span> s <span class="ot">-&gt;</span> <span class="dt">Maybe</span> a</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>    ,<span class="ot"> review  ::</span> a <span class="ot">-&gt;</span> s</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div>
+<p>But, again, this implementation space is too big. There are way too many values of this type that aren’t <em>actual</em> “lawful” prisms. And the laws are kind of muddled here.</p>
+<p>You might be able to guess where I’m going at this point. Whereas a <code>Lens' s a</code> is nothing more than a witness to the fact that <code>s</code> is a <em>product</em> <code>(a, q)</code> … a <code>Prism' s a</code> is nothing more than a witness to the fact that <code>s</code> is a <em>sum</em> <code>Either a q</code>. If it is possible to represent <code>s</code> as some <code>Either v w</code>…then you have <em>two prisms</em>! Prisms are nothing more than <em>descriptions of sums</em>! If you are able to “split” a type into one of two possibilities, then each possibility represents a prism.</p>
+<p>A <code>Prism' s a</code> is nothing more than saying that there exists some type <code>q</code> that can be used to witness a <code>s &lt;~&gt; Either a q</code> isomorphism.</p>
+<p>Under this interpretation, we can write a nice representation of <code>Prism'</code>:</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- | s &lt;~&gt; Either a q</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L100-L103</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Prism&#39;</span> s a <span class="ot">=</span> <span class="kw">forall</span> q<span class="op">.</span> <span class="dt">Prism&#39;</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>    {<span class="ot"> match  ::</span> s <span class="ot">-&gt;</span> <span class="dt">Either</span> a q</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>    ,<span class="ot"> inject ::</span> <span class="dt">Either</span> a q <span class="ot">-&gt;</span> s</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div>
+<p>If <code>match</code> and <code>inject</code> form an isomorphism, <em>this can only represent valid prisms</em>!</p>
+<p>We can now implement the prism API:</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L132-L138</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="ot">preview ::</span> <span class="dt">Prism&#39;</span> s a <span class="ot">-&gt;</span> (s <span class="ot">-&gt;</span> <span class="dt">Maybe</span> a)</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>preview <span class="dt">Prism&#39;</span>{<span class="op">..</span>} x <span class="ot">=</span> <span class="kw">case</span> match x <span class="kw">of</span></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Left</span>  y <span class="ot">-&gt;</span> <span class="dt">Just</span> y</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Right</span> _ <span class="ot">-&gt;</span> <span class="dt">Nothing</span></span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a><span class="ot">review  ::</span> <span class="dt">Prism&#39;</span> s a <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> s)</span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>review <span class="dt">Prism&#39;</span>{<span class="op">..</span>} <span class="ot">=</span> inject <span class="op">.</span> <span class="dt">Left</span></span></code></pre></div>
+<p>Like for lenses, prisms also admit a particularly elegant formulation for <code>over</code>, which maps a function over the <code>a</code> in the <code>s</code> if it exists:</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L129-L141</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="ot">overL ::</span> <span class="dt">Lens&#39;</span> s a <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> a) <span class="ot">-&gt;</span> (s <span class="ot">-&gt;</span> s)</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>overL <span class="dt">Lens&#39;</span>{<span class="op">..</span>}  f <span class="ot">=</span> unsplit <span class="op">.</span> first f <span class="op">.</span> split   <span class="co">-- instance Bifunctor (,)</span></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a><span class="ot">overP ::</span> <span class="dt">Prism&#39;</span> s a <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> a) <span class="ot">-&gt;</span> (s <span class="ot">-&gt;</span> s)</span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>overP <span class="dt">Prism&#39;</span>{<span class="op">..</span>} f <span class="ot">=</span> inject <span class="op">.</span> first f <span class="op">.</span> match    <span class="co">-- instance Bifunctor Either</span></span></code></pre></div>
+<p>Neat, they’re actually exactly identical! Who would have thought?</p>
+<p>So we see now, similar to lenses, <strong>every sum yields prisms</strong>, and <strong>every prism witnesses one side of a sum</strong>.</p>
+<h3 id="prism-wisdm">Prism Wisd’m</h3>
+<p>Let’s go back at our example prisms and see what sort of insight we can gain from this perspective.</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L221-L222</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Shape</span> <span class="ot">=</span> <span class="dt">Circle</span>  <span class="dt">Double</span>           <span class="co">-- radius</span></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>           <span class="op">|</span> <span class="dt">RegPoly</span> <span class="dt">Natural</span> <span class="dt">Double</span>   <span class="co">-- number of sides, length of sides</span></span></code></pre></div>
+<p>Because <code>Shape</code> is a sum between <code>Double</code> and <code>(Natural, Double)</code>, we get <em>two prisms</em>:</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- Shape &lt;~&gt; Either Natural (Natural, Double)</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L231-L249</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a><span class="ot">_Circle ::</span> <span class="dt">Prism&#39;</span> <span class="dt">Shape</span> <span class="dt">Double</span></span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>_Circle <span class="ot">=</span> <span class="dt">Prism&#39;</span></span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>    { match  <span class="ot">=</span> \<span class="kw">case</span></span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Circle</span>  r    <span class="ot">-&gt;</span> <span class="dt">Left</span> r</span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>        <span class="dt">RegPoly</span> n s  <span class="ot">-&gt;</span> <span class="dt">Right</span> (n, s)</span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>    , inject <span class="ot">=</span> \<span class="kw">case</span></span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Left</span>   r     <span class="ot">-&gt;</span> <span class="dt">Circle</span> r</span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Right</span> (n, s) <span class="ot">-&gt;</span> <span class="dt">RegPoly</span> n s</span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a><span class="ot">_RegPoly ::</span> <span class="dt">Prism&#39;</span> <span class="dt">Shape</span> (<span class="dt">Natural</span>, <span class="dt">Double</span>)</span>
+<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a>_RegPoly <span class="ot">=</span> <span class="dt">Prism&#39;</span></span>
+<span id="cb33-16"><a href="#cb33-16" aria-hidden="true" tabindex="-1"></a>    { match  <span class="ot">=</span> \<span class="kw">case</span></span>
+<span id="cb33-17"><a href="#cb33-17" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Circle</span>  r    <span class="ot">-&gt;</span> <span class="dt">Right</span> r</span>
+<span id="cb33-18"><a href="#cb33-18" aria-hidden="true" tabindex="-1"></a>        <span class="dt">RegPoly</span> n s  <span class="ot">-&gt;</span> <span class="dt">Left</span> (n, s)</span>
+<span id="cb33-19"><a href="#cb33-19" aria-hidden="true" tabindex="-1"></a>    , inject <span class="ot">=</span> \<span class="kw">case</span></span>
+<span id="cb33-20"><a href="#cb33-20" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Left</span>  (n, s) <span class="ot">-&gt;</span> <span class="dt">RegPoly</span> n s</span>
+<span id="cb33-21"><a href="#cb33-21" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Right</span>  r     <span class="ot">-&gt;</span> <span class="dt">Circle</span> r</span>
+<span id="cb33-22"><a href="#cb33-22" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div>
+<p>And these are actually the typical prisms associated with an ADT. You actually get exactly these if you use <code>makePrisms</code> from the <em>lens</em> package.</p>
+<p>If it isn’t clear what’s going on, let’s look at the type of <code>preview</code> and <code>review</code> for <code>_Circle</code>:</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>preview<span class="ot"> _Circle ::</span> <span class="dt">Shape</span>   <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Natural</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>review<span class="ot">  _Circle ::</span> <span class="dt">Natural</span> <span class="ot">-&gt;</span> <span class="dt">Shape</span></span></code></pre></div>
+<p>We essentially get the ability to “pattern match” and “construct” the <code>Circle</code> constructor.</p>
+<p>What can we get out of our decomposition of <code>[a]</code> as a sum between <code>()</code> and <code>NonEmpty a</code>? Let’s look at them:</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- [a] &lt;~&gt; Either () (NonEmpty a)</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L251-L269</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a><span class="ot">_Nil ::</span> <span class="dt">Prism&#39;</span> [a] ()</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>_Nil <span class="ot">=</span> <span class="dt">Prism&#39;</span></span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>    { match  <span class="ot">=</span> \<span class="kw">case</span></span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>        []              <span class="ot">-&gt;</span> <span class="dt">Left</span> ()</span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>        x<span class="op">:</span>xs            <span class="ot">-&gt;</span> <span class="dt">Right</span> (x <span class="op">:|</span> xs)</span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>    , inject <span class="ot">=</span> \<span class="kw">case</span></span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Left</span> _          <span class="ot">-&gt;</span> []</span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Right</span> (x <span class="op">:|</span> xs) <span class="ot">-&gt;</span> x<span class="op">:</span>xs</span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a><span class="ot">_Cons ::</span> <span class="dt">Prism&#39;</span> [a] (<span class="dt">NonEmpty</span> a)</span>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a>_Cons <span class="ot">=</span> <span class="dt">Prism&#39;</span></span>
+<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a>    { match  <span class="ot">=</span> \<span class="kw">case</span></span>
+<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a>        []              <span class="ot">-&gt;</span> <span class="dt">Right</span> ()</span>
+<span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a>        x<span class="op">:</span>xs            <span class="ot">-&gt;</span> <span class="dt">Left</span> (x <span class="op">:|</span> xs)</span>
+<span id="cb35-19"><a href="#cb35-19" aria-hidden="true" tabindex="-1"></a>    , inject <span class="ot">=</span> \<span class="kw">case</span></span>
+<span id="cb35-20"><a href="#cb35-20" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Left</span>  (x <span class="op">:|</span> xs) <span class="ot">-&gt;</span> x<span class="op">:</span>xs</span>
+<span id="cb35-21"><a href="#cb35-21" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Right</span> _         <span class="ot">-&gt;</span> []</span>
+<span id="cb35-22"><a href="#cb35-22" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div>
+<p>To clarify, we can look at <code>preview</code> and <code>review</code> for all of these:</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>preview<span class="ot"> _Nil  ::</span> [a] <span class="ot">-&gt;</span> <span class="dt">Maybe</span> ()</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>preview<span class="ot"> _Cons ::</span> [a] <span class="ot">-&gt;</span> <span class="dt">Maybe</span> (<span class="dt">NonEmpty</span> a)</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>review<span class="ot">  _Nil  ::</span> ()         <span class="ot">-&gt;</span> [a]</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>review<span class="ot">  _Cons ::</span> <span class="dt">NonEmpty</span> a <span class="ot">-&gt;</span> [a]</span></code></pre></div>
+<p>It looks like the <code>()</code> branch’s <code>preview</code> corresponds to a prism that matches on an empty list, and the <code>NonEmpty a</code> branch corresponds to a prism that matches on a non-empty list. And the <code>()</code> branch’s <code>review</code> corresponds to constructing an empty list, and the <code>NonEmpty a</code> branch corresponds to constructing a non-empty list.</p>
+<div class="note">
+<p><strong>Aside</strong></p>
+<p>We see a sort of pattern here. And, if we look deeper, we will see that <em>all prisms</em> correspond to some sort of “constructor”.</p>
+<p>After all, what do constructors give you? Two things: the ability to “construct” a value, and the ability to do “case-analysis” or “pattern match” a value.</p>
+<p>The API of a “constructor” is pretty much exactly the Prism API, where <code>preview</code> is “matching” and <code>review</code> is “constructing”. In fact, we often use Prisms to simulate “abstract” constructors.</p>
+<p>An <em>abstract constructor</em> is exactly what our <em>other</em> <code>[a]</code> sum decomposition gives us! If we look at that isomorphism <code>[a] &lt;~&gt; Either () ([a], a)</code> (the “tail-and-last” breakdown) and write out the prisms, we see that they correspond to the abstract constructors <code>_Nil</code> and <code>_Snoc</code>:</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L271-L289</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="ot">_Nil&#39; ::</span> <span class="dt">Prism&#39;</span> [a] ()</span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>_Nil&#39; <span class="ot">=</span> <span class="dt">Prism&#39;</span></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>    { match  <span class="ot">=</span> \xs <span class="ot">-&gt;</span> <span class="kw">if</span> <span class="fu">null</span> xs</span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>        <span class="kw">then</span> <span class="dt">Left</span>  ()</span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>        <span class="kw">else</span> <span class="dt">Right</span> (<span class="fu">init</span> xs, <span class="fu">last</span> xs)</span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>    , inject <span class="ot">=</span> \<span class="kw">case</span></span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Left</span> _        <span class="ot">-&gt;</span> []</span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Right</span> (xs, x) <span class="ot">-&gt;</span> xs <span class="op">++</span> [x]</span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-13"><a href="#cb37-13" aria-hidden="true" tabindex="-1"></a><span class="ot">_Snoc ::</span> <span class="dt">Prism&#39;</span> [a] ([a], a)</span>
+<span id="cb37-14"><a href="#cb37-14" aria-hidden="true" tabindex="-1"></a>_Snoc <span class="ot">=</span> <span class="dt">Prism&#39;</span></span>
+<span id="cb37-15"><a href="#cb37-15" aria-hidden="true" tabindex="-1"></a>    { match  <span class="ot">=</span> \xs <span class="ot">-&gt;</span> <span class="kw">if</span> <span class="fu">null</span> xs</span>
+<span id="cb37-16"><a href="#cb37-16" aria-hidden="true" tabindex="-1"></a>        <span class="kw">then</span> <span class="dt">Right</span> ()</span>
+<span id="cb37-17"><a href="#cb37-17" aria-hidden="true" tabindex="-1"></a>        <span class="kw">else</span> <span class="dt">Left</span>  (<span class="fu">init</span> xs, <span class="fu">last</span> xs)</span>
+<span id="cb37-18"><a href="#cb37-18" aria-hidden="true" tabindex="-1"></a>    , inject <span class="ot">=</span> \<span class="kw">case</span></span>
+<span id="cb37-19"><a href="#cb37-19" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Left</span>  (xs, x) <span class="ot">-&gt;</span> xs <span class="op">++</span> [x]</span>
+<span id="cb37-20"><a href="#cb37-20" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Right</span> _       <span class="ot">-&gt;</span> []</span>
+<span id="cb37-21"><a href="#cb37-21" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div>
+<p><code>_Snoc</code> is an “abstract constructor” for a list that lets us “construct” an <code>[a]</code> given an original list and an item to add to the end, and also “deconstruct” an <code>[a]</code> into an initial run and its last element (as a pattern match that might “fail”).</p>
+</div>
+<p>And, looking at <code>a &lt;~&gt; Either a Void</code>…what does that decomposition give us, conceptually?</p>
+<div class="sourceCode" id="cb38"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- a &lt;~&gt; Either a Void</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L291-L306</span></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a><span class="ot">identityP ::</span> <span class="dt">Prism&#39;</span> a a</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>identityP <span class="ot">=</span> <span class="dt">Prism&#39;</span></span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>    { match <span class="ot">=</span> <span class="dt">Left</span></span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>    , inject <span class="ot">=</span> \<span class="kw">case</span></span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Left</span>  x <span class="ot">-&gt;</span> x</span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Right</span> v <span class="ot">-&gt;</span> absurd v</span>
+<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a><span class="ot">_Void ::</span> <span class="dt">Prism&#39;</span> a <span class="dt">Void</span></span>
+<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a>_Void <span class="ot">=</span> <span class="dt">Prism&#39;</span></span>
+<span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a>    { match <span class="ot">=</span> <span class="dt">Right</span></span>
+<span id="cb38-15"><a href="#cb38-15" aria-hidden="true" tabindex="-1"></a>    , inject <span class="ot">=</span> \<span class="kw">case</span></span>
+<span id="cb38-16"><a href="#cb38-16" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Left</span>  v <span class="ot">-&gt;</span> absurd v</span>
+<span id="cb38-17"><a href="#cb38-17" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Right</span> x <span class="ot">-&gt;</span> x</span>
+<span id="cb38-18"><a href="#cb38-18" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div>
+<p>In lens-speak, <code>identityP :: Prism' a a</code> tells us that all <code>a</code>s have an <code>a</code> “inside” them (since <code>match</code> always matches) and that you can construct an <code>a</code> with only an <code>a</code> (whoa). In our “sum” perspective, however, it just witnesses that an <code>a &lt;~&gt; Either a Void</code> sum.</p>
+<p>In lens-speak, <code>_Void :: Prism' a Void</code> tells us that you can pattern match a <code>Void</code> out of any <code>a</code> (and that match will always fail). Furthermore, it tells us that if you have a value of type <code>Void</code>, you can use the <code>_Void</code> “constructor” to make a value of any type <code>a</code>! We have <code>review _Void :: Void -&gt; a</code>!</p>
+<p>However, in our “sum” perspective, it is nothing more than the witness of the fact that <code>a</code> is the sum of <code>a</code> and <code>Void</code>.</p>
+<p>And finally, let’s look at our deconstruction of <code>Int</code> and <code>Refined (NotEqualTo 4) Int</code>. What prisms does this yield, and what insight do we get?</p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L308-L328</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">Not4</span> <span class="ot">=</span> <span class="dt">Refined</span> (<span class="dt">NotEqualTo</span> <span class="dv">4</span>) <span class="dt">Int</span></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a><span class="ot">only4 ::</span> <span class="dt">Prism&#39;</span> <span class="dt">Int</span> ()</span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>only4 <span class="ot">=</span> <span class="dt">Prism&#39;</span></span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>    { match  <span class="ot">=</span> \n <span class="ot">-&gt;</span> <span class="kw">case</span> refineFail n <span class="kw">of</span></span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Nothing</span> <span class="ot">-&gt;</span> <span class="dt">Left</span> ()</span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Just</span> x  <span class="ot">-&gt;</span> <span class="dt">Right</span> (<span class="ot">x ::</span> <span class="dt">Not4</span>)</span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>    , inject <span class="ot">=</span> \<span class="kw">case</span></span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Left</span>  _ <span class="ot">-&gt;</span> <span class="dv">4</span></span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Right</span> x <span class="ot">-&gt;</span> unrefine x</span>
+<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-15"><a href="#cb39-15" aria-hidden="true" tabindex="-1"></a><span class="ot">refined4 ::</span> <span class="dt">Prism&#39;</span> <span class="dt">Int</span> <span class="dt">Not4</span></span>
+<span id="cb39-16"><a href="#cb39-16" aria-hidden="true" tabindex="-1"></a>refined4 <span class="ot">=</span> <span class="dt">Prism&#39;</span></span>
+<span id="cb39-17"><a href="#cb39-17" aria-hidden="true" tabindex="-1"></a>    { match  <span class="ot">=</span> \n <span class="ot">-&gt;</span> <span class="kw">case</span> refineFail n <span class="kw">of</span></span>
+<span id="cb39-18"><a href="#cb39-18" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Nothing</span> <span class="ot">-&gt;</span> <span class="dt">Right</span> ()</span>
+<span id="cb39-19"><a href="#cb39-19" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Just</span> x  <span class="ot">-&gt;</span> <span class="dt">Left</span> x</span>
+<span id="cb39-20"><a href="#cb39-20" aria-hidden="true" tabindex="-1"></a>    , inject <span class="ot">=</span> \<span class="kw">case</span></span>
+<span id="cb39-21"><a href="#cb39-21" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Left</span>  x <span class="ot">-&gt;</span> unrefine x</span>
+<span id="cb39-22"><a href="#cb39-22" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Right</span> _ <span class="ot">-&gt;</span> <span class="dv">4</span></span>
+<span id="cb39-23"><a href="#cb39-23" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div>
+<p>The first prism, <code>only4</code>, is a prism that basically “only matches” on the <code>Int</code> if it is <code>4</code>. We can use it to implement “is equal to four”, and “get a 4”</p>
+<div class="sourceCode" id="cb40"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L330-L334</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a><span class="ot">isEqualTo4 ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Bool</span>   <span class="co">-- Checks if a value is 4</span></span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>isEqualTo4 <span class="ot">=</span> isJust <span class="op">.</span> preview only4</span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a><span class="ot">four ::</span> <span class="dt">Int</span>     <span class="co">-- Is simply `4`</span></span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>four <span class="ot">=</span> review only4 ()</span></code></pre></div>
+<p>The name <code>only4</code> is inspired by the <code>only</code> combinator from the <em>lens</em> library, which lets you provide a value you want to “restrict”.</p>
+<div class="sourceCode" id="cb41"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- | From the lens library; lets you provide the value you want to &quot;restrict&quot;</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="ot">only ::</span> <span class="dt">Eq</span> a <span class="ot">=&gt;</span> a <span class="ot">-&gt;</span> <span class="dt">Prism&#39;</span> a ()</span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a><span class="ot">only4 ::</span> <span class="dt">Prism&#39;</span> <span class="dt">Int</span> ()</span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>only4 <span class="ot">=</span> only <span class="dv">4</span></span></code></pre></div>
+<p>The second prism, <code>refined4</code>, basically acts like a “abstract (smart) constructor” for <code>Not4</code>, essentially <code>refineFail</code> and <code>unrefine</code>:</p>
+<div class="sourceCode" id="cb42"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L336-L340</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a><span class="ot">makeNot4 ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Not4</span></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>makeNot4 <span class="ot">=</span> preview refined4</span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a><span class="ot">fromNot4 ::</span> <span class="dt">Not4</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a>fromNot4 <span class="ot">=</span> review refined4</span></code></pre></div>
+<h3 id="prism-or-not">Prism or Not</h3>
+<p>To me, one of the most useful things about this prism perspective is that it helps me see what <em>isn’t</em> a prism.</p>
+<p>For example, is it possible to have a prism into the <em>head</em> of a list? That is, is the following prism possible?</p>
+<div class="sourceCode" id="cb43"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="ot">_head ::</span> <span class="dt">Prism&#39;</span> [a] a           <span class="co">-- get the head of a list</span></span></code></pre></div>
+<p>If you think of a prism as just “a lens that might fail” (as it’s often taught), you might think yes. If you think of a prism as just “a constructor and deconstructor”, you might also think yes, since you can construct an <code>[a]</code> with only a single <code>a</code>.<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a> You can definitely “implement” this prism incorrectly naively, in terms of <code>preview</code> and <code>review</code>, and it would still typecheck.</p>
+<p>Both of these viewpoints of prisms will fail you and lead you astray.</p>
+<p>However, if you think of it as witnessing a sum, you might see that this prism isn’t possible. There is no possible type <code>q</code> where <code>[a]</code> is a sum of <code>a</code> and <code>q</code>, where the <code>a</code> matches the <em>head of the list</em>. No <code>q</code> works. There is no way to express <code>[a]</code> as the sum of <code>a</code> and some other type (where the <code>a</code> represents the <em>head of a list</em>). Try thinking of a type <code>q</code> — it’s just not possible!<a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a></p>
+<div class="sourceCode" id="cb44"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="ot">match ::</span> [a] <span class="ot">-&gt;</span> <span class="dt">Either</span> a <span class="dt">MysteryType</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>match []     <span class="ot">=</span> <span class="dt">Right</span> mysteryValue</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>match (x<span class="op">:</span>xs) <span class="ot">=</span> <span class="dt">Left</span> x                       <span class="co">-- will we lose `xs`?</span></span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a><span class="ot">inject ::</span> <span class="dt">Either</span> a <span class="dt">MysteryType</span> <span class="ot">-&gt;</span> [a]</span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a>inject (<span class="dt">Left</span> x)  <span class="ot">=</span> x<span class="op">:????</span>                   <span class="co">-- yes, we lost `xs`</span></span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a>inject (<span class="dt">Right</span> v) <span class="ot">=</span> []</span></code></pre></div>
+<p>From this attempt, we see that no matter what <code>q</code> we pick, we will “lose <code>xs</code>”. There’s no way to “store” the tail of the list in <code>match</code> in order to recover it later in <code>inject</code>.</p>
+<h2 id="the-path-to-profunctors">The Path to Profunctors</h2>
+<p>As a finale, I’d like to show how these dual perspectives (lenses are witnesses to products and prisms are witnesses to sum) make their implementation in terms of “profunctor optics” very natural.</p>
+<p>First, some background – a “profunctor optic” is a way of expressing things like lenses and prisms in terms of “profunctor value transformers”. Lenses, prisms, etc. would not be record types, but rather functions that takes a profunctor value and return a new profunctor value.</p>
+<p>A profunctor <code>p</code> has values of type <code>p a b</code>, and you can roughly think of <code>p a b</code> (a profunctor value) as “a relationship between <code>a</code> and <code>b</code>”.</p>
+<p>The <code>Profunctor</code> typeclass <code>p</code> gives us a few functions. We can use them to create a function that transforms a profunctor value in terms of an isomorphism.</p>
+<p>If type <code>s</code> is isomorphic to type <code>a</code> (<code>s &lt;~&gt; a</code>), then we can the function <code>iso</code>, that the <code>Profunctor</code> class gives us:</p>
+<div class="sourceCode" id="cb45"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="ot">iso ::</span> <span class="dt">Profunctor</span> p</span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=&gt;</span> (s <span class="ot">-&gt;</span> a)         <span class="co">-- ^ one half of the isomorphism</span></span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> s)         <span class="co">-- ^ the other half of the isomorphism</span></span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> p a a</span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> p s s</span>
+<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a>iso <span class="ot">=</span> dimap         <span class="co">-- `dimap` comes from the `Profunctor` typeclass</span></span></code></pre></div>
+<p>Given the <code>s -&gt; a</code> and <code>a -&gt; s</code> functions that witness <code>s &lt;~&gt; a</code>, we can use <code>iso</code> (defined using <code>Profunctor</code> typeclass methods) to transform a <code>p a a</code> into a <code>p s s</code> (a relationship on <code>a</code>s to be a relationship on <code>s</code>) according to an isomorphism.</p>
+<h3 id="profunctor-lens">Profunctor Lens</h3>
+<p>A “profunctor lens” (which is a specific way of implementing lenses) <code>Lens' s a</code> is a function:</p>
+<div class="sourceCode" id="cb46"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>p a a <span class="ot">-&gt;</span> p s s</span></code></pre></div>
+<p>You can think of it as taking a “relationship on <code>a</code>s” and turning it into a “relationship on <code>s</code>s”.</p>
+<p>With a lens, we are saying that <code>s</code> is isomorphic to <code>(a, q)</code>. That means that we have, at our disposal:</p>
+<div class="sourceCode" id="cb47"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>iso split unsplit</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> <span class="dt">Profunctor</span> p</span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=&gt;</span> p (a, q) (a, q)</span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> p s s</span></code></pre></div>
+<p>With that, in order to get a <code>p a a -&gt; p s s</code>, we need a way to turn a <code>p a a</code> into a <code>p (a, q) (a, q)</code>. This says “take a relationship on <code>a</code>s and turn it into a relationship on <code>(a, q)</code>, <em>ignoring</em> the <code>q</code>”.</p>
+<p>There happens to be a typeclass called <code>Strong</code> that gives us just that!</p>
+<div class="sourceCode" id="cb48"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- | The &quot;operate on a part of a whole&quot; typeclass</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> <span class="dt">Profunctor</span> p <span class="ot">=&gt;</span> <span class="dt">Strong</span> p <span class="kw">where</span></span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>    first&#39;</span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a><span class="ot">        ::</span> p a b                <span class="co">-- ^ relationship on part</span></span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>        <span class="ot">-&gt;</span> p (a, q) (b, q)      <span class="co">-- ^ relationship on whole</span></span></code></pre></div>
+<p>And so we now have a definition of a profunctor lens:</p>
+<div class="sourceCode" id="cb49"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L361-L369</span></span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>makeLens</span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> <span class="dt">Strong</span> p</span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=&gt;</span> (s <span class="ot">-&gt;</span> (a, q))        <span class="co">-- ^ split</span></span>
+<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> ((a, q) <span class="ot">-&gt;</span> s)        <span class="co">-- ^ unsplit</span></span>
+<span id="cb49-7"><a href="#cb49-7" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> p a a                <span class="co">-- ^ relationship on a</span></span>
+<span id="cb49-8"><a href="#cb49-8" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> p s s                <span class="co">-- ^ relationship on s</span></span>
+<span id="cb49-9"><a href="#cb49-9" aria-hidden="true" tabindex="-1"></a>makeLens split unsplit <span class="ot">=</span></span>
+<span id="cb49-10"><a href="#cb49-10" aria-hidden="true" tabindex="-1"></a>    iso split unsplit  <span class="co">-- ^ p (a, q) (a, q) -&gt; p s s</span></span>
+<span id="cb49-11"><a href="#cb49-11" aria-hidden="true" tabindex="-1"></a>  <span class="op">.</span> first&#39;             <span class="co">-- ^ p a a -&gt; p (a, q) (a, q)</span></span></code></pre></div>
+<p><code>makeLens split unsplit :: Strong p =&gt; p a a -&gt; p s s</code> is a profunctor lens (a “profunctor value transformer”)!</p>
+<p>Essentially, <code>iso split unsplit . first'</code> promotes a <code>p a a</code> to a <code>p s s</code>. It uses <code>first'</code> to turn the <code>p a a</code> into a <code>p (a, q) (a, q)</code>, turning a relationship on the part to be a relationship on the whole. Then we just apply the essential <code>s &lt;~&gt; (a, q)</code> isomorphism that defines a lens. And so <code>p a a -&gt; p s s</code>, going through the <code>s &lt;~&gt; (a, q)</code> isomorphism, is a lens!</p>
+<h3 id="profunctor-prisms">Profunctor Prisms</h3>
+<p>A profunctor prism (one way of implementing) <code>Prism' s a</code> is a function:</p>
+<div class="sourceCode" id="cb50"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>p a a <span class="ot">-&gt;</span> p s s</span></code></pre></div>
+<p>You can also think of this as taking a “relationship on <code>a</code>s” and turning it into a “relationship on <code>s</code>s”.</p>
+<p>With a prism, we are saying that <code>s</code> is isomorphic to <code>Either a q</code>. That means that we have, at our disposal:</p>
+<div class="sourceCode" id="cb51"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>iso match inject</span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> <span class="dt">Profunctor</span> p</span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=&gt;</span> p (<span class="dt">Either</span> a q) (<span class="dt">Either</span> a q)</span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> p s s</span></code></pre></div>
+<p>With that tool in hand, in order to get a <code>p a a -&gt; p s s</code>, we need a way to turn a <code>p a a</code> into a <code>p (Either a q) (Either a q)</code>. This says “take a relationship on <code>a</code>s and turn it into a relationship on <code>Either a q</code>, doing nothing if the <code>q</code> pops up”.</p>
+<p>Luckily, there happens to be a typeclass called <code>Choice</code> that gives us <em>exactly</em> that!</p>
+<div class="sourceCode" id="cb52"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- | The &quot;operate on a branch of a possibility&quot; typeclass</span></span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> <span class="dt">Profunctor</span> p <span class="ot">=&gt;</span> <span class="dt">Choice</span> p <span class="kw">where</span></span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a>    left&#39;</span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a><span class="ot">        ::</span> p a b                        <span class="co">-- ^ relationship on branch</span></span>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a>        <span class="ot">-&gt;</span> p (<span class="dt">Either</span> a q) (<span class="dt">Either</span> b q)  <span class="co">-- ^ relationship on all possibilities</span></span></code></pre></div>
+<p>And so we now have a definition of a profunctor prism:</p>
+<div class="sourceCode" id="cb53"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L371-L379</span></span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>makePrism</span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> <span class="dt">Choice</span> p</span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=&gt;</span> (s <span class="ot">-&gt;</span> <span class="dt">Either</span> a q)    <span class="co">-- ^ match</span></span>
+<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> (<span class="dt">Either</span> a q <span class="ot">-&gt;</span> s)    <span class="co">-- ^ inject</span></span>
+<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> p a a                <span class="co">-- ^ relationship on a</span></span>
+<span id="cb53-8"><a href="#cb53-8" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> p s s                <span class="co">-- ^ relationship on s</span></span>
+<span id="cb53-9"><a href="#cb53-9" aria-hidden="true" tabindex="-1"></a>makePrism match inject <span class="ot">=</span></span>
+<span id="cb53-10"><a href="#cb53-10" aria-hidden="true" tabindex="-1"></a>    iso match inject   <span class="co">-- ^ p (Either a q) (Either a q) -&gt; p s s</span></span>
+<span id="cb53-11"><a href="#cb53-11" aria-hidden="true" tabindex="-1"></a>  <span class="op">.</span> left&#39;              <span class="co">-- ^ p a a -&gt; p (Either a q) (Either a q)</span></span></code></pre></div>
+<p><code>makeLens match inject :: Choice p =&gt; p a a -&gt; p s s</code> is a profunctor prism (a “profunctor value transformer”)!</p>
+<p>Essentially, <code>iso match inject . left'</code> promotes a <code>p a a</code> to a <code>p s s</code>. It uses <code>left'</code> to turn the <code>p a a</code> into a <code>p (Either a q) (Either a q)</code>, turning a relationship on the part to be a relationship on the whole. Then we just apply the essential <code>s &lt;~&gt; Either a q</code> isomorphism that defines a prism. And so <code>p a a -&gt; p s s</code>, going through the <code>s &lt;~&gt; Either a q</code> isomorphism, is a prism!</p>
+<div class="note">
+<p><strong>Aside</strong></p>
+<p>Alright, those are great, but how to we actually <em>use</em> a <code>p a a -&gt; p s s</code>?</p>
+<p>We can recover the original functionality of lenses and prisms by just picking specific values of <code>p</code> that, when transformed, give us the operations we want.</p>
+<p>For example, we want <code>view :: Lens' s a -&gt; (s -&gt; a)</code>, so we just make a profunctor <code>p</code> where <code>p s s</code> contains an <code>s -&gt; a</code>.</p>
+<div class="sourceCode" id="cb54"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- | `(View a) s s` is just an `s -&gt; a`</span></span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a><span class="kw">newtype</span> <span class="dt">View</span> a s r <span class="ot">=</span> <span class="dt">View</span> {<span class="ot"> runView ::</span> s <span class="ot">-&gt;</span> a }</span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> <span class="dt">Profunctor</span> (<span class="dt">View</span> a)</span>
+<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> <span class="dt">Strong</span> (<span class="dt">View</span> a)</span></code></pre></div>
+<p>And when you give this to a lens (a “profunctor transformer” <code>p a a -&gt; p s s</code>), you get a <code>(View a) s s</code>, which is a newtype wrapper over an <code>s -&gt; a</code>! You’ve tricked the profunctor value transformer into giving you the <code>s -&gt; a</code> you always wanted.</p>
+<p>Note that you can’t give a <code>(View a) s s</code> to a prism, since it is not possible to write a <code>Choice</code> instance for <code>View a</code>. Thus we naturally limit <code>view</code> to work only for lenses (because they have <code>Strong</code>) and not for prisms (because prisms require <code>Choice</code> to work).</p>
+<p>For a more detailed look on implementing the entire lens and prism API in terms of profunctors, check out Oleg Grenrus’s amazing <a href="http://oleg.fi/gists/posts/2017-04-18-glassery.html">Glassery</a>!</p>
+</div>
+<h3 id="motivation">Motivation</h3>
+<p>To me, this perspective makes it really clear to see “why” profunctor lenses and profunctor prisms are implemented the way they are. At first, the profunctor optics definitions seemed really opaque and arbitrary to me, and I had no idea why <code>Strong</code> and <code>Choice</code> corresponded to lenses and prisms.</p>
+<p>But now, I know that lenses are prisms can be seen as just <em>profunctor value transformers</em> that <em>transform along the decomposition</em> that the lenses and prisms represent. For profunctor lenses, the profunctor values get transformed to “parts of a whole” profunctor values, using <code>Strong</code>. For profunctor prisms, the profunctor values get transformed to “branches of a possibility” profunctor values, using <code>Choice</code>. Even their types clearly show what is going on:</p>
+<div class="sourceCode" id="cb55"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- [Lens]  s &lt;~&gt; (a, q)</span></span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a><span class="ot">first&#39; ::</span> p a a <span class="ot">-&gt;</span> p (a, q) (a, q)</span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a><span class="co">-- [Prism] s &lt;~&gt; Either a q</span></span>
+<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a><span class="ot">left&#39;  ::</span> p a a <span class="ot">-&gt;</span> p (<span class="dt">Either</span> a q) (<span class="dt">Either</span> a q)</span></code></pre></div>
+<p>In fact, <code>Strong</code> and <code>Choice</code> fit lenses and prisms like a glove so well that sometimes I wonder if Edward Kmett just invented those typeclasses custom-made to represent lenses and prisms.</p>
+<p>Or…maybe lenses and prisms were invented custom-made based on <code>Strong</code> and <code>Choice</code>?</p>
+<h2 id="closing-out">Closing out</h2>
+<p>Hopefully this perspective — that products yield lenses and sums yield prisms — helps you navigate how you discover lenses and prisms, and how you interpret them when you see them. I know for me, it has helped me understand the odd lenses and prisms I often see, and also it helps me reason about when it <em>doesn’t</em> make sense to have a lens or prism. It has also distilled the lens and prism laws into something trivial that can be stated succinctly (“it must be an isomorphism”), and also made the profunctor optics form seem uncannily natural.</p>
+<p>The rest of this post describes small notes that bridge this view to the way lenses and prisms are actually implemented in real life, by clarifying what lens families (and “type-changing lenses”) are in this view, and also how we sometimes get away with using an abstract <code>q</code> type. At the end, there are also <a href="https://blog.jle.im/entry/lenses-products-prisms-sums.html#exercises">exercises and questions</a> (mostly conceptual) to test your understanding!</p>
+<h3 id="lens-families">Lens Families</h3>
+<p>We have been dealing with <code>Lens' outer inner</code> and <code>Prism' outer inner</code>, which are known as “simple” optics. In practice, this can be generalized by giving the “input” outer/inner values and “output” outer/inner values different type variables.</p>
+<p>For example, so far all our operations have basically been navigating between the isomorphisms that lenses and prisms represent:</p>
+<figure>
+<img src="/img/entries/lenses-and-prisms/lensprism1.png" title="Lens&#39; inner outer" alt="Lens&#39; inner outer and Prism&#39; inner outer isomorphisms" />
+<figcaption aria-hidden="true"><code>Lens' inner outer</code> and <code>Prism' inner outer</code> isomorphisms</figcaption>
+</figure>
+<p>Note how it is kind of complicated to talk about specific parts. If I say “the value of type <code>inner</code>”, do I mean the value “before” we use the lens, or “after” we use the lens? There are two <code>inner</code>-typed values in our picture.</p>
+<p>A “Lens family” is a trick we can do to make talking about things easier. We use the same lenses, but we <em>re-label</em> the “before” and “after” (input and output) with different type variables, like so:</p>
+<figure>
+<img src="/img/entries/lenses-and-prisms/lensprism2.png" title="Lens s t a b" alt="Lens s t a b and Prism s t a b isomorphisms, as a lens family" />
+<figcaption aria-hidden="true"><code>Lens s t a b</code> and <code>Prism s t a b</code> isomorphisms, as a lens family</figcaption>
+</figure>
+<p>Essentially, we’re just deciding to give the inputs and outputs different type variables. The main thing this helps is with is giving us the ability to distinguish inputs from outputs when we talk about these things.</p>
+<p>For example, before, with <code>Lens' outer inner</code>, if I say “the <code>outer</code>”, you won’t know if I mean the <code>outer</code> “before” we use the lens, or the <code>outer</code> <em>after</em> we use the lens. However, with <code>Lens s t a b</code>, if I say “the <code>s</code>”, you know that I just mean “the <code>outer</code> <em>before</em> we use the lens”, and if I say “the <code>t</code>”, you know that I mean “the <code>outer</code> <em>after</em> we use the lens”. The profunctor optics version of lens becomes <code>Lens s t a b = p a b -&gt; p s t</code>.</p>
+<p><code>Lens s t a b</code> (which is a version of <code>Lens' outer inner</code> where we relabel the type variables of the inputs and outputs) is called a <a href="http://comonad.com/reader/2012/mirrored-lenses/">lens family</a>. Be careful to never call it a “polymorphic lens”. It is just a normal lens where we re-label the type variables of all of the involved pieces to aid in our discourse. It is often also called a “type-changing lens”.</p>
+<div class="sourceCode" id="cb56"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Lens</span> s t a b <span class="ot">=</span> <span class="kw">forall</span> q<span class="op">.</span> <span class="dt">Lens</span></span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>    {<span class="ot"> split   ::</span> s <span class="ot">-&gt;</span> (a, q)        <span class="co">-- before (with s and a)</span></span>
+<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>    ,<span class="ot"> unsplit ::</span> (b, q) <span class="ot">-&gt;</span> t        <span class="co">-- after  (with t and b)</span></span>
+<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-6"><a href="#cb56-6" aria-hidden="true" tabindex="-1"></a><span class="ot">view ::</span> <span class="dt">Lens</span> s t a b <span class="ot">-&gt;</span> (s <span class="ot">-&gt;</span> a)</span>
+<span id="cb56-7"><a href="#cb56-7" aria-hidden="true" tabindex="-1"></a><span class="ot">set  ::</span> <span class="dt">Lens</span> s t a b <span class="ot">-&gt;</span> (b <span class="ot">-&gt;</span> s <span class="ot">-&gt;</span> t)</span>
+<span id="cb56-8"><a href="#cb56-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-9"><a href="#cb56-9" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Prism</span> s t a b <span class="ot">=</span> <span class="kw">forall</span> q<span class="op">.</span> <span class="dt">Prism</span></span>
+<span id="cb56-10"><a href="#cb56-10" aria-hidden="true" tabindex="-1"></a>    {<span class="ot"> match  ::</span> s <span class="ot">-&gt;</span> <span class="dt">Either</span> a q     <span class="co">-- before (with s and a)</span></span>
+<span id="cb56-11"><a href="#cb56-11" aria-hidden="true" tabindex="-1"></a>    ,<span class="ot"> inject ::</span> <span class="dt">Either</span> b q <span class="ot">-&gt;</span> t     <span class="co">-- after  (with t and b)</span></span>
+<span id="cb56-12"><a href="#cb56-12" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb56-13"><a href="#cb56-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-14"><a href="#cb56-14" aria-hidden="true" tabindex="-1"></a><span class="ot">matching ::</span> <span class="dt">Prism</span> s t a b <span class="ot">-&gt;</span> (s <span class="ot">-&gt;</span> <span class="dt">Either</span> t a)</span>
+<span id="cb56-15"><a href="#cb56-15" aria-hidden="true" tabindex="-1"></a><span class="ot">review   ::</span> <span class="dt">Prism</span> s t a b <span class="ot">-&gt;</span> (b <span class="ot">-&gt;</span> t)</span></code></pre></div>
+<p>We still require <code>unsplit . split = id</code>, <code>split . unsplit = id</code>, <code>inject . match = id</code>, and <code>match . inject = id</code>. They’re all still <em>isomorphisms</em>. We’re just <em>relabeling our type variables</em> here to let us be more expressive with how we talk about all of the moving parts.</p>
+<p>Lens families can also be used to implement “type changing lenses” where tweaking the inner type can cause the outer type to also change appropriately. But <code>s</code>, <code>t</code>, <code>a</code>, and <code>b</code> can’t just be whatever you want. They have to be picked so that <code>unsplit . split</code> and <code>inject . match</code> can typecheck.</p>
+<h3 id="abstract-factors-and-addends">Abstract Factors and Addends</h3>
+<p>In practice, the <code>q</code> to factor out your type into (in the <code>s &lt;~&gt; (a, q)</code> and <code>s &lt;~&gt; Either a q</code>) might not be an actual “concrete” type. In most cases, it’s alright to treat it as a theoretical “abstract” type that follows the behavior you want given a restricted interface. This is “safe” because, if you notice, none of the methods in the lens or prism APIs (<code>view</code>, <code>set</code>, <code>preview</code>, <code>review</code>) ever let an external user directly manipulate a value of type <code>q</code>.</p>
+<p>For example, the <code>only 'a' :: Prism' Char ()</code> prism matches only on <code>'a'</code>, and it is the sum of <code>Char</code> and a theoretical abstract <code>Char</code> type that excludes <code>'a'</code>.</p>
+<p>To formalize this, sometimes we can say that only “one direction” of the isomorphism has to be strictly true in practice. If we only enforce that the round-trip of <code>unsplit . split = id</code> and <code>inject . match = id</code>, this enforces the “spirit” of the hidden abstract type.</p>
+<p>For example, our “<code>only 'a'</code>” can be witnessed by:</p>
+<div class="sourceCode" id="cb57"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L206-L350</span></span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">CharButNotA</span> <span class="ot">=</span> <span class="dt">Char</span></span>
+<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a><span class="ot">onlyA ::</span> <span class="dt">Prism&#39;</span> <span class="dt">Char</span> ()</span>
+<span id="cb57-6"><a href="#cb57-6" aria-hidden="true" tabindex="-1"></a>onlyA <span class="ot">=</span> <span class="dt">Prism&#39;</span></span>
+<span id="cb57-7"><a href="#cb57-7" aria-hidden="true" tabindex="-1"></a>    { match  <span class="ot">=</span> \<span class="kw">case</span></span>
+<span id="cb57-8"><a href="#cb57-8" aria-hidden="true" tabindex="-1"></a>        <span class="ch">&#39;a&#39;</span> <span class="ot">-&gt;</span> <span class="dt">Left</span> ()</span>
+<span id="cb57-9"><a href="#cb57-9" aria-hidden="true" tabindex="-1"></a>        x   <span class="ot">-&gt;</span> <span class="dt">Right</span> (<span class="ot">x ::</span> <span class="dt">CharButNotA</span>)</span>
+<span id="cb57-10"><a href="#cb57-10" aria-hidden="true" tabindex="-1"></a>    , inject <span class="ot">=</span> \<span class="kw">case</span></span>
+<span id="cb57-11"><a href="#cb57-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Left</span>  _ <span class="ot">-&gt;</span> <span class="ch">&#39;a&#39;</span></span>
+<span id="cb57-12"><a href="#cb57-12" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Right</span> x <span class="ot">-&gt;</span> x        <span class="co">-- Right contains a CharButNotA</span></span>
+<span id="cb57-13"><a href="#cb57-13" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div>
+<p>This passes <code>inject . match = id</code>, but not <code>match . inject = id</code> if we pass in the “illegal” value <code>Right 'a'</code>.</p>
+<p>For an example of a lens where this abstract type perspective is useful, there is the <code>contains 'a'</code> lens for sets:</p>
+<div class="sourceCode" id="cb58"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- import qualified Data.Set as S</span></span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>contains <span class="ch">&#39;a&#39;</span><span class="ot"> ::</span> <span class="dt">Lens&#39;</span> (<span class="dt">S.Set</span> <span class="dt">Char</span>) <span class="dt">Bool</span></span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a><span class="co">-- check if a set contains an element</span></span>
+<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a>view (contains <span class="ch">&#39;a&#39;</span>)<span class="ot"> ::</span> <span class="dt">S.Set</span> <span class="dt">Char</span> <span class="ot">-&gt;</span> <span class="dt">Bool</span></span>
+<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a><span class="co">-- force a set to contain or not contain &#39;a&#39;</span></span>
+<span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a>set (contains <span class="ch">&#39;a&#39;</span>)<span class="ot"> ::</span> <span class="dt">Bool</span> <span class="ot">-&gt;</span> <span class="dt">S.Set</span> <span class="dt">Char</span> <span class="ot">-&gt;</span> <span class="dt">S.Set</span> <span class="dt">Char</span></span>
+<span id="cb58-10"><a href="#cb58-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-11"><a href="#cb58-11" aria-hidden="true" tabindex="-1"></a><span class="co">-- toggle membership in a set</span></span>
+<span id="cb58-12"><a href="#cb58-12" aria-hidden="true" tabindex="-1"></a>over (contains <span class="ch">&#39;a&#39;</span>)<span class="ot"> not ::</span> <span class="dt">S.Set</span> <span class="dt">Char</span> <span class="ot">-&gt;</span> <span class="dt">S.Set</span> <span class="dt">Char</span></span></code></pre></div>
+<p><code>contains 'a'</code> is a lens into a <code>Bool</code> from a <code>S.Set</code>, where the <code>Bool</code> indicates if the set “contains” <code>a</code> or not. What product does this represent?</p>
+<p>Well, essentially, <code>Set Char &lt;~&gt; (Bool, Set CharButNotA)</code>. It’s an abstract product betweein “the set contains <code>'a'</code> or not” and a set that could not possibly contain <code>'a'</code>:</p>
+<div class="sourceCode" id="cb59"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L206-L217</span></span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">CharButNotA</span> <span class="ot">=</span> <span class="dt">Char</span></span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a><span class="ot">containsA ::</span> <span class="dt">Lens&#39;</span> (<span class="dt">S.Set</span> <span class="dt">Char</span>) <span class="dt">Bool</span></span>
+<span id="cb59-6"><a href="#cb59-6" aria-hidden="true" tabindex="-1"></a>containsA <span class="ot">=</span> <span class="dt">Lens&#39;</span></span>
+<span id="cb59-7"><a href="#cb59-7" aria-hidden="true" tabindex="-1"></a>    { split   <span class="ot">=</span> \s <span class="ot">-&gt;</span></span>
+<span id="cb59-8"><a href="#cb59-8" aria-hidden="true" tabindex="-1"></a>        ( <span class="ch">&#39;a&#39;</span> <span class="ot">`S.member`</span> s</span>
+<span id="cb59-9"><a href="#cb59-9" aria-hidden="true" tabindex="-1"></a>        , <span class="ch">&#39;a&#39;</span> <span class="ot">`S.delete` s      ::</span> <span class="dt">S.Set</span> <span class="dt">CharButNotA</span></span>
+<span id="cb59-10"><a href="#cb59-10" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb59-11"><a href="#cb59-11" aria-hidden="true" tabindex="-1"></a>    , unsplit <span class="ot">=</span> \<span class="kw">case</span></span>
+<span id="cb59-12"><a href="#cb59-12" aria-hidden="true" tabindex="-1"></a>        (<span class="dt">False</span>, s) <span class="ot">-&gt;</span> s</span>
+<span id="cb59-13"><a href="#cb59-13" aria-hidden="true" tabindex="-1"></a>        (<span class="dt">True</span> , s) <span class="ot">-&gt;</span> <span class="ch">&#39;a&#39;</span> <span class="ot">`S.insert`</span> (<span class="ot">s ::</span> <span class="dt">S.Set</span> <span class="dt">CharButNotA</span>)</span>
+<span id="cb59-14"><a href="#cb59-14" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div>
+<p>Again, only <code>unsplit . split = id</code> is technically true. <code>split . unsplit = id</code> will fail if the input set contains <code>'a'</code>.</p>
+<h3 id="exercises">Exercises</h3>
+<p>To help solidify your understanding on this perspective, here are some exercises! Most of them are conceptual and open-ended.</p>
+<ul>
+<li><p>We discussed the conditions where a type <code>a</code> can be expressed as a sum involving <code>()</code> and you can have a <code>Prism' a ()</code>.</p>
+<p>Under what conditions can you express a type <code>a</code> as a <em>product</em> involving <code>Void</code>, and you can have a <code>Lens' a Void</code>? (Hint: use the algebra!) What would this lens do (what are <code>view</code>, <code>set</code>, and <code>over</code>)?</p></li>
+<li><p>We discussed the conditions where a type <code>a</code> can be expressed as a product involving <code>()</code> and you can have <code>Lens' a ()</code>.</p>
+<p>Under what conditions can you express a type <code>a</code> as a product involving <code>Bool</code> (<code>a &lt;~&gt; (Bool, q)</code>), and you can have a <code>Lens' a Bool</code>? (Hint: use the algebra!) What would this lens do (what are <code>view</code>, <code>set</code>, and <code>over</code>)? And what about the <code>Lens' a q</code>?</p></li>
+<li><p>We found that by interpreting <code>Either a a</code> as a product <code>(Bool, a)</code> gives us two interesting lenses:</p>
+<div class="sourceCode" id="cb60"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="ot">leftOrRight ::</span> <span class="dt">Lens&#39;</span> (<span class="dt">Either</span> a a) <span class="dt">Bool</span></span>
+<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a><span class="ot">theContents ::</span> <span class="dt">Lens&#39;</span> (<span class="dt">Either</span> a a) a</span></code></pre></div>
+<p>We concluded that the first lens lets us flip between <code>Left</code> and <code>Right</code> or check if a value was <code>Left</code> or <code>Right</code>, and that the second lens gets into the contents regardless of leftness or rightness.</p>
+<p>However, there’s a flip side, as well. <code>(Bool, a)</code> can be expressed as a <em>sum</em> between <code>a</code> and itself, <code>Either a a</code>. This gives us two prisms:</p>
+<div class="sourceCode" id="cb61"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L59-L69</span></span>
+<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb61-3"><a href="#cb61-3" aria-hidden="true" tabindex="-1"></a><span class="ot">mysteryPrism1 ::</span> <span class="dt">Prism&#39;</span> (<span class="dt">Bool</span>, a) a</span>
+<span id="cb61-4"><a href="#cb61-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb61-5"><a href="#cb61-5" aria-hidden="true" tabindex="-1"></a><span class="ot">mysteryPrism2 ::</span> <span class="dt">Prism&#39;</span> (<span class="dt">Bool</span>, a) a</span></code></pre></div>
+<p>What do these prisms do? What is <code>preview</code>, <code>review</code>, <code>over</code> for them?</p></li>
+<li><p>Alright, now time to write code. Another “interesting” product is the fact that <code>Bool -&gt; a</code> is isomorphic to <code>(a, a)</code>. That is, <code>Bool -&gt; a</code> is a product between <code>a</code> and itself.</p>
+<p>Can you write the corresponding two <code>Lens' (Bool -&gt; a) a</code>s? And, what do they mean? (what are <code>view</code>, <code>set</code>, <code>over</code> for those lenses?) <a href="https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L43-L55">Solutions online</a></p></li>
+<li><p>Can you write combinators to “compose” lenses and prisms? Is it even possible?</p>
+<div class="sourceCode" id="cb62"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L81-L107</span></span>
+<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Lens&#39;</span> s a <span class="ot">=</span> <span class="kw">forall</span> q<span class="op">.</span> <span class="dt">Lens&#39;</span></span>
+<span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a>    {<span class="ot"> split   ::</span> s <span class="ot">-&gt;</span> (a, q)</span>
+<span id="cb62-5"><a href="#cb62-5" aria-hidden="true" tabindex="-1"></a>    ,<span class="ot"> unsplit ::</span> (a, q) <span class="ot">-&gt;</span> s</span>
+<span id="cb62-6"><a href="#cb62-6" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb62-7"><a href="#cb62-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb62-8"><a href="#cb62-8" aria-hidden="true" tabindex="-1"></a><span class="ot">(.&amp;.) ::</span> <span class="dt">Lens&#39;</span> a b</span>
+<span id="cb62-9"><a href="#cb62-9" aria-hidden="true" tabindex="-1"></a>      <span class="ot">-&gt;</span> <span class="dt">Lens&#39;</span> b c</span>
+<span id="cb62-10"><a href="#cb62-10" aria-hidden="true" tabindex="-1"></a>      <span class="ot">-&gt;</span> <span class="dt">Lens&#39;</span> a c</span>
+<span id="cb62-11"><a href="#cb62-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb62-12"><a href="#cb62-12" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Prism&#39;</span> s a <span class="ot">=</span> <span class="kw">forall</span> q<span class="op">.</span> <span class="dt">Prism&#39;</span></span>
+<span id="cb62-13"><a href="#cb62-13" aria-hidden="true" tabindex="-1"></a>    {<span class="ot"> match  ::</span> s <span class="ot">-&gt;</span> <span class="dt">Either</span> a q</span>
+<span id="cb62-14"><a href="#cb62-14" aria-hidden="true" tabindex="-1"></a>    ,<span class="ot"> inject ::</span> <span class="dt">Either</span> a q <span class="ot">-&gt;</span> s</span>
+<span id="cb62-15"><a href="#cb62-15" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb62-16"><a href="#cb62-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb62-17"><a href="#cb62-17" aria-hidden="true" tabindex="-1"></a><span class="ot">(.|.) ::</span> <span class="dt">Prism&#39;</span> a b</span>
+<span id="cb62-18"><a href="#cb62-18" aria-hidden="true" tabindex="-1"></a>      <span class="ot">-&gt;</span> <span class="dt">Prism&#39;</span> b c</span>
+<span id="cb62-19"><a href="#cb62-19" aria-hidden="true" tabindex="-1"></a>      <span class="ot">-&gt;</span> <span class="dt">Prism&#39;</span> a c</span></code></pre></div>
+<p>Roughtly speaking, composition of lenses or prisms are meant to “successively zoom in” to deeper and deeper parts of an initial structure.</p>
+<p>A note for you if you try this — because the <code>q</code> type is existential, you can’t use <code>split</code>, <code>unsplit</code>, <code>match</code>, or <code>inject</code> as record accessors, and you need to either pattern match or use <em>-XRecordWildcards</em>.</p>
+<p>These implementations are pretty hairy (solutions <a href="https://github.com/mstksg/inCode/tree/master/code-samples/misc/lenses-and-prisms.hs#L81-L118">online here</a>), and it’s a sort of testament as to why we don’t use this actual implementation in practice. In fact, for profunctor optics, we just have:</p>
+<div class="sourceCode" id="cb63"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>(<span class="op">.&amp;.</span>) <span class="ot">=</span> (<span class="op">.</span>)</span>
+<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>(<span class="op">.|.</span>) <span class="ot">=</span> (<span class="op">.</span>)</span></code></pre></div>
+<p>Using <code>(.)</code> from <code>Prelude</code>. Definitely much simpler! (And it’s one main reason why they’re among the most popular representation)</p></li>
+</ul>
+<h2 id="special-thanks">Special Thanks</h2>
+<p>I am very humbled to be supported by an amazing community, who make it possible for me to devote time to researching and writing these posts. Very special thanks to my supporter at the “Amazing” level on <a href="https://www.patreon.com/justinle/overview">patreon</a>, Sam Stites! :)</p>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p>All of this is disregarding the notorious “bottom” value that inhabits every type.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>This type is technically also “too big” (you can write a value where <code>split</code> and <code>unsplit</code> do not form an isomorphism), but I think, to me, “<code>split</code> and <code>unsplit</code> must form an isomorphism” is a much clearer and natural law than get-put/put-get/put-put.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p>Technically, <a href="https://en.wikipedia.org/wiki/Law_of_excluded_middle">LEM</a> denialists and constructivists are somewhat vindicated here, because it is not strictly true in Haskell that a list is either an empty list or a non-empty list. It can actually <a href="https://wiki.haskell.org/Bottom">be neither</a>.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p>If you’re verifying that <code>match . inject = id</code> for the <code>Either a Void</code> decomposition, here’s a hint: no values exist that are constructed using <code>Right</code>, so you don’t ever have to handle the second case of <code>inject</code>.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p>I didn’t invent these names :)<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn6"><p>Although, upon further inspection, you might realize that the constructor and deconstructor don’t match<a href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn7"><p>As <a href="https://twitter.com/samderbyshire/status/1006290478395019265">Sam Derbyshire</a> and <a href="http://disq.us/p/1t5xi3w">Victoria Conner</a> point out, it is definitely possible to decompose <code>[a]</code> into a sum between <code>a</code> and another type, but that <code>a</code> will <em>not</em> represent the head of the list. Instead, it represents only item in a list in the case that the list is a one-item list.<a href="#fnref7" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div><footer><hr><div class="copy-content"><p>Hi, thanks for reading! You can reach me via email at <a href="mailto:justin@jle.im" class="email">justin@jle.im</a>, or at twitter at <a href="https://twitter.com/mstk">@mstk</a>! This post and all others are published under the <a href="https://creativecommons.org/licenses/by-nc-nd/3.0/">CC-BY-NC-ND 3.0</a> license. Corrections and edits via pull request are welcome and encouraged at <a href="https://github.com/mstksg/inCode">the source repository</a>.</p>
+<p>If you feel inclined, or this post was particularly helpful for you, why not consider <a href="https://www.patreon.com/justinle/overview">supporting me on Patreon</a>, or a <a href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">BTC donation</a>? :)</p></div><div class="clear"></div><ul class="entry-series"></ul><ul class="tag-list"><li><a href="https://blog.jle.im/entries/tagged/lenses.html" class="tag-a-tag">#lenses</a></li><li><a href="https://blog.jle.im/entries/tagged/profunctors.html" class="tag-a-tag">#profunctors</a></li><li><a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category">@HASKELL</a></li></ul><aside class="social-buttons"><div class="addthis_toolbox addthis_default_style addthis-buttons"><a class="addthis_button_facebook_like" fb:like:layout="button_count"></a><a class="addthis_button_tweet"></a><a class="addthis_button_google_plusone" g:plusone:size="medium"></a><a class="addthis_counter addthis_pill_style"></a></div><div class="custom-social-buttons"><div class="custom-social-button"><a href="https://www.reddit.com/submit" onclick="window.location = &#39;https://www.reddit.com/submit?url=&#39;+ encodeURIComponent(window.location); return false"><img src="https://www.reddit.com/static/spreddit7.gif" alt="submit to reddit"></a></div></div></aside><nav class="next-prev-links"><ul><li class="prev-entry-link">&larr; <a href="https://blog.jle.im/entry/starting-a-patreon.html">Starting a Patreon
+</a> (Previous)</li><li class="next-entry-link">(Next) <a href="https://blog.jle.im/entry/introduction-to-singletons-3.html">Introduction to Singletons (Part 3)
+</a> &rarr;</li></ul></nav></footer></article><div class="post-entry"><div class="tile"><div id="disqus_thread"></div><script type="text/javascript">var disqus_config = function () {
+    this.page.url = 'https://blog.jle.im/entry/lenses-products-prisms-sums.html';
+    this.page.identifier = 'lenses-and-prisms';
+};
+(function() {
+    var d = document, s = d.createElement('script');
+    s.src = '//incode.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a><br></noscript><a href="http://disqus.com" class="dsq-brlink">Comments powered by <span class="logo-disqus">Disqus</span></a></div></div></div></div></div><div id="footer-container"><div id="footer-content"><div class="tile"><div class="footer-copyright">&copy; 2020 Justin Le <span class="license-link">(<a href="https://creativecommons.org/licenses/by-nc-nd/3.0/" class="license">CC-BY-NC-ND 3.0</a>)</span></div><div class="footer-follow social-follows"><ul class="social-follows-list"><li><ul class="social-follows-list-social"><li><a class="social-follow-twitter" title="Follow me on Twitter!" href="https://twitter.com/intent/user?user_id=mstk" onclick="window.open(
+  &#39;http://twitter.com/intent/user?user_id=907281&#39;,
+  &#39;facebook-share-dialog&#39;,
+  &#39;width=550,height=520&#39;);
+return false;
+">Twitter</a></li><li><a class="social-follow-github" title="Fork me on Github!" href="https://github.com/mstksg">Github</a></li><li><a class="social-follow-twitch" title="Watch me on Twitch!" href="https://www.twitch.tv/justin_l">Twitch</a></li><li><a class="social-follow-patreon" title="Support me on Patreon!" href="https://www.patreon.com/justinle/overview">Patreon</a></li><li><a class="social-follow-gplus" title="Add me on Google+!" href="https://plus.google.com/+JustinLe">Google+</a></li><li><a class="social-follow-keybase" title="Track me on Keybase!" href="https://keybase.io/mstksg">Keybase</a></li><li><a class="social-follow-linkedin" title="Connect with me on LinkedIn!" href="https://linkedin.com/in/lejustin">LinkedIn</a></li><li><a class="social-follow-bitcoin" title="Donate via bitcoin!" href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">Bitcoin</a></li></ul></li><li><ul class="social-follows-list-site"><li><a class="social-follow-rss" title="Subscribe to my RSS Feed!" href="http://feeds.feedburner.com/incodeblog">RSS</a></li><li><a class="social-follow-email" title="Subscribe to the mailing list!" href="https://feedburner.google.com/fb/a/mailverify?loc=en_US&amp;uri=incodeblog">Mailing list</a></li></ul></li></ul></div></div></div></div></body></html>

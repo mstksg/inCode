@@ -1,0 +1,476 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Alchemical Groups: Advent of Code with Free Groups and Group Homomorphisms},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Alchemical Groups: Advent of Code with Free Groups and Group
+Homomorphisms}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% December 5, 2018
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/alchemical-groups.html}{in Code}}.}
+
+Hi all! If you don't already know,
+\emph{\href{https://adventofcode.com/2018}{Advent of Code}} is in full swing
+this year! If you're participating and using Haskell, you're welcome to join us
+at \href{https://twitter.com/glguy}{glguy}'s semi-official
+\href{https://adventofcode.com/2018/leaderboard/private}{Haskell Leaderboard}
+(join code \texttt{43100-84040706})! There are also Haskellers on freenode
+\#\#adventofcode, and also \#adventofcode on the Functional Programming slack. I
+also wrote a
+\href{https://hackage.haskell.org/package/advent-of-code-api}{haskell library to
+the API}, if you're looking to streamline your process!
+
+My
+\href{https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md}{daily
+reflections} are online, where I talk about how I approach each problem and what
+insight purely typed Functional Programming gives us for each problem.
+
+Every once in a while I'll find a challenge that I think can be pulled out as a
+short blog post, so I'll bring them onto the blog for a more long-term sort of
+longevity!\footnote{These short posts won't be counted as ``paid'' Patreon
+  posts.}
+
+In this one, I'll talk about using group theory to solve the \emph{Day 5}
+challenge. Spoilers for those who have not solved it yet!
+
+\section{Part 1}\label{part-1}
+
+\begin{quote}
+You've managed to sneak in to the prototype suit manufacturing lab. The Elves
+are making decent progress, but are still struggling with the suit's size
+reduction capabilities.
+
+While the very latest in 1518 alchemical technology might have solved their
+problem eventually, you can do better. You scan the chemical composition of the
+suit's material and discover that it is formed by extremely long
+\href{https://en.wikipedia.org/wiki/Polymer}{polymers} (one of which is
+{available} as your puzzle input).
+
+The polymer is formed by smaller \emph{units} which, when triggered, react with
+each other such that two adjacent units of the same type and opposite polarity
+are destroyed. Units' types are represented by letters; units' polarity is
+represented by capitalization. For instance, \texttt{r} and \texttt{R} are units
+with the same type but opposite polarity, whereas \texttt{r} and \texttt{s} are
+entirely different types and do not react.
+
+For example:
+
+\begin{itemize}
+\tightlist
+\item
+  In \texttt{aA}, \texttt{a} and \texttt{A} react, leaving nothing behind.
+\item
+  In \texttt{abBA}, \texttt{bB} destroys itself, leaving \texttt{aA}. As above,
+  this then destroys itself, leaving nothing.
+\item
+  In \texttt{abAB}, no two adjacent units are of the same type, and so nothing
+  happens.
+\item
+  In \texttt{aabAAB}, even though \texttt{aa} and \texttt{AA} are of the same
+  type, their polarities match, and so nothing happens.
+\end{itemize}
+
+Now, consider a larger example, \texttt{dabAcCaCBAcCcaDA}:
+
+\begin{verbatim}
+dabAcCaCBAcCcaDA  The first 'cC' is removed.
+dabAaCBAcCcaDA    This creates 'Aa', which is removed.
+dabCBAcCcaDA      Either 'cC' or 'Cc' are removed (the result is the same).
+dabCBAcaDA        No further actions can be taken.
+\end{verbatim}
+
+After all possible reactions, the resulting polymer contains \emph{10 units}.
+
+\emph{How many units remain after fully reacting the polymer you scanned?}
+\end{quote}
+
+Now, I feel like this problem might have been deliberately written to obscure
+this fact, but what it is describing is \emph{exactly} the behavior of a
+\href{https://en.wikipedia.org/wiki/Free_group}{Free Group}, from group
+theory!\footnote{I can't take credit for this idea myself; I heard about it from
+  \href{http://mniip.com/}{mniip}, who mentioned it during a discussion on
+  freenode \#\#adventofcode.}
+
+A fully reacted polymer is an element of the free group generated by the set of
+26 letters of the alphabet, \(F(26)\). Basically, we can talk about interpeting
+the string \texttt{dabAcCaCBAcCcaDA} as
+\texttt{d\ \textless{}\textgreater{}\ a\ \textless{}\textgreater{}\ b\ \textless{}\textgreater{}\ A\ \textless{}\textgreater{}\ c\ \textless{}\textgreater{}\ C\ \textless{}\textgreater{}\ a\ \textless{}\textgreater{}\ C\ \textless{}\textgreater{}\ B\ \textless{}\textgreater{}\ etc.},
+where \texttt{\textless{}\textgreater{}} is the group action (``mappend'', in
+Haskell-speak) and \texttt{A} stands for ``\texttt{a} inverse''.
+
+We can use
+\emph{\href{https://hackage.haskell.org/package/free-algebras/docs/Data-Group-Free.html}{Data.Group.Free}}
+from the
+\emph{\href{https://hackage.haskell.org/package/free-algebras}{free-algebras}}
+library\footnote{Note that the current version of \emph{free-algebras} on
+  haddocks actually has a performance bug that makes appends \(O(n^2)\). I've
+  made a \href{https://github.com/coot/free-algebras/pull/4}{pull request}
+  fixing this, to give us reasonable times for this challenge!}, which offers a
+free group type \texttt{FreeGroupL}, to let us write:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{import} \KeywordTok{qualified} \DataTypeTok{Data.Group.Free} \KeywordTok{as} \DataTypeTok{FG}
+
+\OtherTok{interpret ::}\NormalTok{ [}\DataTypeTok{Char}\NormalTok{] }\OtherTok{{-}\textgreater{}} \DataTypeTok{FG.FreeGroupL} \DataTypeTok{Char}
+\NormalTok{interpret }\OtherTok{=} \FunctionTok{foldMap}\NormalTok{ inject          }\CommentTok{{-}{-} that\textquotesingle{}s \textasciigrave{}foldMap\textasciigrave{} from Data.Foldable}
+\end{Highlighting}
+\end{Shaded}
+
+where \texttt{inject\ ::\ Char\ -\textgreater{}\ FreeGroupL\ Char} takes a
+\texttt{Char} and turns it into the element of our free group. We can do this by
+using the library's \texttt{returnFree} and \texttt{invert} (from the
+\texttt{Group} typeclass):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{import}           \DataTypeTok{Data.Algebra.Free}
+\KeywordTok{import}           \DataTypeTok{Data.Char}
+\KeywordTok{import}           \DataTypeTok{Data.Group}
+
+\OtherTok{inject ::} \DataTypeTok{Char} \OtherTok{{-}\textgreater{}} \DataTypeTok{FG.FreeGroupL} \DataTypeTok{Char}
+\NormalTok{inject c}
+    \OperatorTok{|} \FunctionTok{isAlpha}\NormalTok{ c }\OperatorTok{\&\&} \FunctionTok{isLower}\NormalTok{ c }\OtherTok{=}\NormalTok{ returnFree c}
+    \OperatorTok{|} \FunctionTok{isAlpha}\NormalTok{ c }\OperatorTok{\&\&} \FunctionTok{isUpper}\NormalTok{ c }\OtherTok{=}\NormalTok{ invert (returnFree (}\FunctionTok{toLower}\NormalTok{ c))}
+    \OperatorTok{|} \FunctionTok{otherwise}              \OtherTok{=} \FunctionTok{mempty}       \CommentTok{{-}{-} group identity element}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{returnFree} returns a ``singleton'' in the free group.
+
+The question is essentially asking for the length of the Tietze list
+representation of the final result. We can get this using \texttt{FG.toList},
+and so our entire part 1 is just:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{day05a ::}\NormalTok{ [}\DataTypeTok{Char}\NormalTok{] }\OtherTok{{-}\textgreater{}} \DataTypeTok{Int}
+\NormalTok{day05a }\OtherTok{=} \FunctionTok{length} \OperatorTok{.}\NormalTok{ FG.toList }\OperatorTok{.} \FunctionTok{foldMap}\NormalTok{ inject}
+\end{Highlighting}
+\end{Shaded}
+
+Was this problem actually deliberately written to obscure the fact that we have
+a group action? We can't say for sure, but it definitely seems to paint an
+``imperative'', step-by-step picture. Most implementations might scan the list
+for things to replace, and iterate over things until there is no more change.
+The problem is also written to maybe imply the fact that ordering of reduction
+of different items across the string \emph{might} matter (is it left to right,
+or right to left?).
+
+However, we know that ordering of reduction \emph{can't} matter, because we have
+a \emph{group action} \texttt{\textless{}\textgreater{}}, which we know from
+group theory is, by definition, associative. Knowing that we have a group, we
+can immediately throw away any thought of caring about things like sequential,
+imperative order, and the complications that might come from it.
+
+I think that these useful properties about the reduction process are \emph{not}
+obvious from an initial reading. Being able to recognize that we have a group is
+the key to unlocking all of these insights, \emph{for free}!
+
+\section{Part 2}\label{part-2}
+
+\begin{quote}
+Time to improve the polymer.
+
+One of the unit types is causing problems; it's preventing the polymer from
+collapsing as much as it should. Your goal is to figure out which unit type is
+causing the most problems, remove all instances of it (regardless of polarity),
+fully react the remaining polymer, and measure its length.
+
+For example, again using the polymer \texttt{dabAcCaCBAcCcaDA} from above:
+
+\begin{itemize}
+\tightlist
+\item
+  Removing all \texttt{A}/\texttt{a} units produces \texttt{dbcCCBcCcD}. Fully
+  reacting this polymer produces \texttt{dbCBcD}, which has length 6.
+\item
+  Removing all \texttt{B}/\texttt{b} units produces \texttt{daAcCaCAcCcaDA}.
+  Fully reacting this polymer produces \texttt{daCAcaDA}, which has length 8.
+\item
+  Removing all \texttt{C}/\texttt{c} units produces \texttt{dabAaBAaDA}. Fully
+  reacting this polymer produces \texttt{daDA}, which has length 4.
+\item
+  Removing all \texttt{D}/\texttt{d} units produces \texttt{abAcCaCBAcCcaA}.
+  Fully reacting this polymer produces \texttt{abCBAc}, which has length 6.
+\end{itemize}
+
+In this example, removing all \texttt{C}/\texttt{c} units was best, producing
+the answer \emph{4}.
+
+\emph{What is the length of the shortest polymer you can produce} by removing
+all units of exactly one type and fully reacting the result?
+\end{quote}
+
+Even though the problem again seems to be written to obscure this fact, we can
+see that Part 2 is describing a \emph{group homomorphism}. That is, it talks
+about functions that map \(F(26)\) (the free group on the 26 letters of the
+alphabet) to \(F(25)\) (the free group on the letters of the alphabet excluding
+some cleaned letter).
+
+Luckily, the free group \(F(S)\) comes equipped with a handy function create
+group homomorphisms ``for free'':
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{foldMapFree}
+\OtherTok{    ::} \DataTypeTok{Group}\NormalTok{ b}
+    \OtherTok{=\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{ b)}
+    \OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{FreeGroupL}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ b)     }\CommentTok{{-}{-} the group homomorphism}
+\end{Highlighting}
+\end{Shaded}
+
+That is, given any \texttt{a\ -\textgreater{}\ b} for a group \texttt{b}, we get
+a \emph{guaranteed} group homormohpsim from \texttt{FreeGroupL\ a} to
+\texttt{b}. We can write a function from the \emph{generators} of our group (in
+this case, \texttt{Char}), and it'll give us a group homomorphism on the
+\emph{free group} on our generators.
+
+We can use this to write our \(F(26) \rightarrow F(25)\) group homomorphism
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{foldMapFree}
+\OtherTok{    ::}\NormalTok{ (}\DataTypeTok{Char} \OtherTok{{-}\textgreater{}} \DataTypeTok{FreeGroupL} \DataTypeTok{Char}\NormalTok{)  }\CommentTok{{-}{-} map letters to letters{-}minus{-}some{-}letter}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{FreeGroupL} \DataTypeTok{Char}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{FreeGroupL} \DataTypeTok{Char}
+\end{Highlighting}
+\end{Shaded}
+
+(Note that this type signature looks a lot like
+\texttt{=\textless{}\textless{}}, for monads. Coincidence?)
+
+We can now create a ``cleaned'' version of our reaction by using:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{clean}
+\OtherTok{    ::} \DataTypeTok{Char}                                     \CommentTok{{-}{-} \^{} given a letter to clean}
+    \OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{FreeGroupL} \DataTypeTok{Char} \OtherTok{{-}\textgreater{}} \DataTypeTok{FreeGroupL} \DataTypeTok{Char}\NormalTok{)     }\CommentTok{{-}{-} \^{} return a group homomorphism}
+\NormalTok{clean c }\OtherTok{=}\NormalTok{ foldMapFree }\OperatorTok{$}\NormalTok{ \textbackslash{}d }\OtherTok{{-}\textgreater{}}
+        \KeywordTok{if}\NormalTok{ d }\OperatorTok{==}\NormalTok{ c}
+          \KeywordTok{then} \FunctionTok{mempty}
+          \KeywordTok{else}\NormalTok{ returnFree d}
+\end{Highlighting}
+\end{Shaded}
+
+And so that's part 2! We just need \texttt{clean} and this next function:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{day05b ::} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Int}
+\NormalTok{day05b rawInput }\OtherTok{=} \FunctionTok{minimum}
+\NormalTok{    [ }\FunctionTok{length}\NormalTok{ (FG.toList (clean c polymer))}
+    \OperatorTok{|}\NormalTok{ c }\OtherTok{\textless{}{-}}\NormalTok{ [}\CharTok{\textquotesingle{}a\textquotesingle{}} \OperatorTok{..} \CharTok{\textquotesingle{}z\textquotesingle{}}\NormalTok{]}
+\NormalTok{    ]}
+  \KeywordTok{where}
+\OtherTok{    polymer ::} \DataTypeTok{FreeGroupL} \DataTypeTok{Char}
+\NormalTok{    polymer }\OtherTok{=} \FunctionTok{foldMap}\NormalTok{ inject rawInput}
+\end{Highlighting}
+\end{Shaded}
+
+Basically, we find the minimum of all of the possible ``cleaned'' lengths.
+
+The best part about this, I think, is that we actually introduced a \emph{large
+optimization}, completely \emph{by accident}, thanks to group theory.
+
+Because we recognize that this is a group homomorphism, we know the properties
+of group homomorphisms apply. Namely, the most important one: ``Aggregating,
+then cleaning'' is the \emph{same} as ``cleaning, then aggregating''.
+
+That's because all group homomorphisms necessarily obey the law:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{f x }\OperatorTok{\textless{}\textgreater{}}\NormalTok{ f y }\OperatorTok{==}\NormalTok{ f (x }\OperatorTok{\textless{}\textgreater{}}\NormalTok{ y)}
+\end{Highlighting}
+\end{Shaded}
+
+This means that we are free to either ``clean first, then aggregate'', or
+``aggregate first, then clean''.
+
+\section{What's in a Group?}\label{whats-in-a-group}
+
+Now, I don't know about you, but I definitely feel that this choice (clean,
+aggregate vs.~aggregate, clean) we have is \emph{definitely not obvious} just
+from reading the problem immediately. Indeed, it seems like the problem might be
+written to obscure this choice from us: it's implying that ``cleaning, then
+reacting'' is the only correct way, and ``reacting, then cleaning'' is not
+something that is even mentioned.
+
+But, thanks to group theory, we know that these are equivalent, so we can
+substitute which ever version is more efficient!
+
+This is, I believe, at the heart of what people say is the advantage of ``using
+monoids'', ``using monads'', ``using functors'', etc. in Haskell. That's because
+if we state our programs in terms of monoids, monads, groups, functors, etc.,
+then we get \emph{the entire body of group theory} (or monad theory, or functor
+theory, etc.) to help us make program reductions that aren't immediately
+obviously legal but that have already been proven to be equivalent by
+mathematicians. We hijack their work!
+
+We get program optimizations and reductions and substitutions for free, by
+``stealing'' from the large body of such things that mathematicians have spent
+centuries collecting.
+
+\subsection{Epilogue: A Note on Cleaning}\label{epilogue-a-note-on-cleaning}
+
+Since I have posted this, I have gotten a few comments on different platforms
+debating whether or not ``clean then aggregate'' is truly same as ``aggregate
+then clean''.
+
+Just to clarify, \texttt{clean\ c} here does \emph{not} mean ``remove
+\texttt{c}''. It means ``re-interpret our group element with the new property
+that \texttt{c} is the identity element''. Clean is like a ``re-reaction''. To
+draw the chemical analogy, it can be thought of as a redox reaction that doesn't
+``remove'' atoms, but rather ``rewrites the rules of the polymer''. The identity
+is that ``aggregate the polymer, and then rewrite its roles'' is the same as
+``rewrite the rules, then aggregate the polymer''.
+
+Clean is not a ``removal''. It's ``re-interpretation''.
+
+To be more clear, if we have a function \texttt{cleanB} which cleans out the
+letter \texttt{b}, we can take \texttt{abAcdD} as an example and
+\emph{aggregate} it to get:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{a }\OperatorTok{\textless{}\textgreater{}}\NormalTok{ b }\OperatorTok{\textless{}\textgreater{}} \DataTypeTok{A} \OperatorTok{\textless{}\textgreater{}}\NormalTok{ c }\OperatorTok{\textless{}\textgreater{}} \DataTypeTok{D}
+\end{Highlighting}
+\end{Shaded}
+
+Now, we can clean that aggregation to get:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{cleanB (a }\OperatorTok{\textless{}\textgreater{}}\NormalTok{ b }\OperatorTok{\textless{}\textgreater{}} \DataTypeTok{A} \OperatorTok{\textless{}\textgreater{}}\NormalTok{ c }\OperatorTok{\textless{}\textgreater{}} \DataTypeTok{D}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+That's our ``aggregate, then clean''. Our ``clean, then aggregate'' would be:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{cleanB a }\OperatorTok{\textless{}\textgreater{}}\NormalTok{ cleanB b }\OperatorTok{\textless{}\textgreater{}}\NormalTok{ cleanB }\DataTypeTok{A} \OperatorTok{\textless{}\textgreater{}}\NormalTok{ cleanB c }\OperatorTok{\textless{}\textgreater{}}\NormalTok{ cleanB }\DataTypeTok{D}
+\end{Highlighting}
+\end{Shaded}
+
+The library \emph{free-algebras} gives us \texttt{foldMapFree}, which creates
+group homomorphisms \emph{by construction}. That means that whatever function we
+get out of \texttt{foldMapFree}, it is \emph{mathematically proven} that:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{cleanB (a }\OperatorTok{\textless{}\textgreater{}}\NormalTok{ b }\OperatorTok{\textless{}\textgreater{}} \DataTypeTok{A} \OperatorTok{\textless{}\textgreater{}}\NormalTok{ c }\OperatorTok{\textless{}\textgreater{}} \DataTypeTok{D}\NormalTok{)}
+ \OperatorTok{==}\NormalTok{ cleanB a }\OperatorTok{\textless{}\textgreater{}}\NormalTok{ cleanB b }\OperatorTok{\textless{}\textgreater{}}\NormalTok{ cleanB }\DataTypeTok{A} \OperatorTok{\textless{}\textgreater{}}\NormalTok{ cleanB c }\OperatorTok{\textless{}\textgreater{}}\NormalTok{ cleanB }\DataTypeTok{D}
+\end{Highlighting}
+\end{Shaded}
+
+Or, that ``aggregate then clean'' is the same as ``clean then aggregate''.
+
+This is because the implementation of \texttt{foldMapFree} (and therefore
+\texttt{cleanB}) is not to simply ``remove'' \texttt{b}, but rather to move us
+into a \emph{new} group where \texttt{b} is the identity. This completely
+re-interprets the structure of the polymer, and the implementation is careful to
+do this properly so that it \emph{does} commute.
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

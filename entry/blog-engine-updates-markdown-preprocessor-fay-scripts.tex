@@ -1,0 +1,385 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Blog engine updates: Markdown Preprocessor \& Fay Scripts},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Blog engine updates: Markdown Preprocessor \& Fay Scripts}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% January 27, 2014
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/blog-engine-updates-markdown-preprocessor-fay-scripts.html}{in
+Code}}.}
+
+I spent some time over the past week writing a preprocessor for the entry copy
+markdowns and getting Fay to deploy some simple scripts.
+
+The need for a preprocessor was sparked by a post I'm writing that sort of
+necessitated the features. I write
+\href{https://github.com/mstksg/inCode/tree/master/copy/entries}{all of my
+posts} in markdown, and it all integrated well with the preprocessor. In
+addition I needed some javascript scripting to make the preprocessor actions
+worthwhile, so I buckled down and wrestled with getting Fay to work in a
+production environment. So I guess this post is to show off some new features of
+the blog engine?
+
+\section{Demonstration}\label{demonstration}
+
+Here it is in action:
+
+\begin{verbatim}
+> !!!monad-plus/WolfGoatCabbage.hs "findSolutions ::" "makeMove ::" wolf-goat-cabbage
+\end{verbatim}
+
+yields:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/monad{-}plus/WolfGoatCabbage.hs\#L28{-}L45}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/wolf{-}goat{-}cabbage}
+
+\OtherTok{findSolutions ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}}\NormalTok{ [}\DataTypeTok{Plan}\NormalTok{]}
+\NormalTok{findSolutions n }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    p }\OtherTok{\textless{}{-}}\NormalTok{ makeNMoves}
+\NormalTok{    guard }\OperatorTok{$}\NormalTok{ isSolution p}
+    \FunctionTok{return}\NormalTok{ p}
+    \KeywordTok{where}
+\NormalTok{        makeNMoves }\OtherTok{=} \FunctionTok{iterate}\NormalTok{ (}\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ makeMove) (}\FunctionTok{return}\NormalTok{ startingPlan) }\OperatorTok{!!}\NormalTok{ n}
+
+\OtherTok{makeMove ::} \DataTypeTok{Plan} \OtherTok{{-}\textgreater{}}\NormalTok{ [}\DataTypeTok{Plan}\NormalTok{]}
+\NormalTok{makeMove p }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    next }\OtherTok{\textless{}{-}} \DataTypeTok{MoveThe} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ [}\DataTypeTok{Farmer} \OperatorTok{..}\NormalTok{]}
+\NormalTok{    guard       }\OperatorTok{$}\NormalTok{ moveLegal p next}
+\NormalTok{    guard }\OperatorTok{.} \FunctionTok{not} \OperatorTok{$}\NormalTok{ moveRedundant p next}
+    \KeywordTok{let}
+\NormalTok{        p\textquotesingle{} }\OtherTok{=}\NormalTok{ p }\OperatorTok{++}\NormalTok{ [next]}
+\NormalTok{    guard }\OperatorTok{$}\NormalTok{ safePlan p\textquotesingle{}}
+    \FunctionTok{return}\NormalTok{ p\textquotesingle{}}
+\end{Highlighting}
+\end{Shaded}
+
+(If you're reading this on the actual website, mouse over or click them to see
+the full effect, or if nothing is happening, try a hard refresh --- CTRL+SHIFT+R
+in Chrome --- to clear out the cache)
+
+\section{Code quoting/linking
+preprocessor}\label{code-quotinglinking-preprocessor}
+
+So I find myself writing a lot of sample code for my posts, and then later
+copying and pasting them over to the
+\href{https://github.com/mstksg/inCode/tree/master/code-samples}{code-samples}
+directory on the github in order to allow people to download them\ldots and then
+later awkwardly putting a link saying ``download these here!'' afterwards and
+taking up space. Also linking to a live
+\href{https://www.fpcomplete.com/}{FPComplete} version is a bit awkward too,
+right after the block.
+
+I was rather inspired by the interface on the code blocks for
+\href{http://weblog.luite.com/wordpress/?p=127}{luite's blog}, where every
+relevant code block has a little link box on the top right hand corner linking
+to the source and a working/running example.
+
+So I wrote a Haskell preprocessor to take in a specification of a code file and
+a what blocks in the code file to load, and then load it into the markdown file
+before it is processed by pandoc.
+
+The syntax is:
+
+\begin{verbatim}
+> !!!path/to/code "keyword" "limited"n live_link
+\end{verbatim}
+
+Where ``keyword'' is the text in the line to match for, \texttt{n} is the number
+of lines after the keyword to display (if left off, it takes the next ``block'',
+or the next continuous piece of code before a new non-indented line), and
+\texttt{live\_link} is a link to the live/interactive version on FPComplete.
+
+\subsection{Reflections}\label{reflections}
+
+So\ldots writing the parser for the syntax specification was pretty easy due to
+parsec and parser combinators:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/source/EntryPP.hs\#L32{-}L127}
+
+\KeywordTok{data} \DataTypeTok{SampleSpec} \OtherTok{=} \DataTypeTok{SampleSpec}\NormalTok{  \{}\OtherTok{ sSpecFile       ::} \DataTypeTok{FilePath}
+\NormalTok{                              ,}\OtherTok{ \_sSpecLive      ::} \DataTypeTok{Maybe} \DataTypeTok{String}
+\NormalTok{                              ,}\OtherTok{ \_sSpecKeywords  ::}\NormalTok{ [(}\DataTypeTok{String}\NormalTok{,}\DataTypeTok{Maybe} \DataTypeTok{Int}\NormalTok{)]}
+\NormalTok{                              \} }\KeywordTok{deriving}\NormalTok{ (}\DataTypeTok{Show}\NormalTok{)}
+
+\OtherTok{sampleSpec ::} \DataTypeTok{Parser} \DataTypeTok{SampleSpec}
+\NormalTok{sampleSpec }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    filePath }\OtherTok{\textless{}{-}}\NormalTok{ noSpaces }\OperatorTok{\textless{}?\textgreater{}} \StringTok{"sample filePath"}
+\NormalTok{    spaces}
+\NormalTok{    keywords }\OtherTok{\textless{}{-}}\NormalTok{ many }\OperatorTok{$} \KeywordTok{do}
+\NormalTok{      keyword }\OtherTok{\textless{}{-}}\NormalTok{ char }\CharTok{\textquotesingle{}"\textquotesingle{}} \OperatorTok{*\textgreater{}}\NormalTok{ manyTill anyChar (char }\CharTok{\textquotesingle{}"\textquotesingle{}}\NormalTok{) }\OperatorTok{\textless{}?\textgreater{}} \StringTok{"keyword"}
+\NormalTok{      keylimit }\OtherTok{\textless{}{-}}\NormalTok{ optionMaybe (}\FunctionTok{read} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ many1 digit }\OperatorTok{\textless{}?\textgreater{}} \StringTok{"keyword limit"}\NormalTok{)}
+\NormalTok{      spaces}
+      \FunctionTok{return}\NormalTok{ (keyword,keylimit)}
+
+\NormalTok{    live }\OtherTok{\textless{}{-}}\NormalTok{ optionMaybe noSpaces }\OperatorTok{\textless{}?\textgreater{}} \StringTok{"live url"}
+    \KeywordTok{let}
+\NormalTok{      live\textquotesingle{} }\OtherTok{=}\NormalTok{ mfilter (}\FunctionTok{not} \OperatorTok{.} \FunctionTok{null}\NormalTok{) live}
+
+    \FunctionTok{return} \OperatorTok{$} \DataTypeTok{SampleSpec}\NormalTok{ filePath live\textquotesingle{} keywords}
+  \KeywordTok{where}
+\NormalTok{    noSpaces }\OtherTok{=}\NormalTok{ manyTill anyChar (space }\OperatorTok{\textless{}|\textgreater{}} \CharTok{\textquotesingle{} \textquotesingle{}} \OperatorTok{\textless{}$}\NormalTok{ eof)}
+\end{Highlighting}
+\end{Shaded}
+
+The code to actually find the right code block to paste was complicated and
+horrifying at first, but after I sat down and really sorted out the logic, it
+wasn't too bad. Still, it isn't the cleanest code in the world and I wonder how
+I could have made it better, either with a Haskell library or even another
+language.
+
+This all left two little comment lines before the source code insert with the
+link to the source and interactive versions.
+
+All that was left was a front-end script to get the comments and turn them into
+floating divs.
+
+\section{Fay}\label{fay}
+
+Ah okay, here was the fun part.
+
+Fay is actually pretty fun to use. And while it was perhaps complete overkill to
+use the entire Fay runtime and build system for just a simple script, but I was
+pretty inspired by
+\href{http://ocharles.org.uk/blog/posts/2013-12-23-24-days-of-hackage-fay.html}{ocharles's
+post on fay} and I thought this would be a good time to get to learn it.
+
+So there was a lot of cognitive friction going in, and trying to really get in
+the groove took a few days. There was also a rather unhelpful error message
+involving the ffi that I was able to bring up to the maintainers and be a part
+of getting the fix working.
+
+I converted as much of my current scripts as I could to fay. There was one that
+I couldn't --- a function call to a library that required a javascript object of
+function callbacks, and I couldn't really get that to work cleanly and I decided
+it wasn't worth the effort for now --- maybe another day. If anything I could
+re-write the entire library (a Table of Contents generator) myself some day.
+
+\subsection{Reflections}\label{reflections-1}
+
+\subsubsection{fay-jquery}\label{fay-jquery}
+
+Here is a characteristic example of fay code with
+\href{http://hackage.haskell.org/package/fay-jquery-0.6.0.2}{fay-jquery}
+(0.6.0.2):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/source/entry.hs\#L45{-}L54}
+
+\OtherTok{appendTopLinks ::} \DataTypeTok{Fay}\NormalTok{ ()}
+\NormalTok{appendTopLinks }\OtherTok{=} \KeywordTok{do}
+\NormalTok{  mainContent }\OtherTok{\textless{}{-}}\NormalTok{ select }\StringTok{".main{-}content"}
+\NormalTok{  headings }\OtherTok{\textless{}{-}}\NormalTok{ childrenMatching }\StringTok{"h2,h3,h4,h5"}\NormalTok{ mainContent}
+\NormalTok{  J.append topLink headings}
+\NormalTok{  topLinks }\OtherTok{\textless{}{-}}\NormalTok{ select }\StringTok{".top{-}link"}
+\NormalTok{  click (scrollTo }\DecValTok{400}\NormalTok{) topLinks}
+  \FunctionTok{return}\NormalTok{ ()}
+  \KeywordTok{where}
+\NormalTok{    topLink }\OtherTok{=} \StringTok{"\textless{}a href=\textquotesingle{}\#title\textquotesingle{} class=\textquotesingle{}top{-}link\textquotesingle{}\textgreater{}top\textless{}/a\textgreater{}"}
+\end{Highlighting}
+\end{Shaded}
+
+As you can see, some of the method calls in fay-jquery seem a bit
+backwards\ldots I had to resist the urge to write things like
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{container }\OtherTok{\textasciigrave{}append\textasciigrave{}}\NormalTok{ contained}
+\NormalTok{container }\OtherTok{\textasciigrave{}childrenMatching\textasciigrave{}} \StringTok{".contained"}
+\end{Highlighting}
+\end{Shaded}
+
+Which matches the JQuery calling model:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{container}\OperatorTok{.}\FunctionTok{append}\NormalTok{(contained)}\OperatorTok{;}
+\NormalTok{container}\OperatorTok{.}\FunctionTok{children}\NormalTok{(}\StringTok{\textquotesingle{}.contained\textquotesingle{}}\NormalTok{)}\OperatorTok{;}
+\end{Highlighting}
+\end{Shaded}
+
+Unfortunately, this doesn't work, and you're supposed to reverse the order of
+the parameters. I guess it is more Haskell-y in a way, to be able to play with
+partial application and do something like
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{let}
+\NormalTok{  appendIt }\OtherTok{=}\NormalTok{ append container}
+\KeywordTok{in}
+\NormalTok{  appendIt contained1}
+\NormalTok{  appendIt contained2}
+\NormalTok{  appendIt contained3}
+\end{Highlighting}
+\end{Shaded}
+
+So I guess that's okay.
+
+However, something I was less understanding of was the ordering for event
+binding and loops, which needed the handlers \emph{before} the object being
+binded.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{flip}\NormalTok{ click header }\OperatorTok{$}\NormalTok{ \textbackslash{}\_ }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{  toggled }\OtherTok{\textless{}{-}}\NormalTok{ readFayRef sourceToggled}
+  \KeywordTok{if}\NormalTok{ toggled}
+    \KeywordTok{then}\NormalTok{ sHide sourceInfo}
+    \KeywordTok{else}\NormalTok{ unhide sourceInfo}
+\NormalTok{  modifyFayRef\textquotesingle{} sourceToggled Prelude.not}
+\end{Highlighting}
+\end{Shaded}
+
+This one kind of bucks the convention that methods like \texttt{append}
+maintain\ldots and also needs those annoying \texttt{flips} to have easy
+anonymous callbacks. I don't want to have to name every little thing. Oh well.
+Maybe there is a good justification here? I just don't see it. But then again,
+there is a reason why we have both \texttt{mapM} and \texttt{forM} in base.
+
+Other than that, the fay-jquery library is a pretty good example of how to
+interface seamlessly with JQuery from Fay. Sometimes, though, the dynamic nature
+of JQuery (implicit lists, dynamic type of returns, etc) was a little
+unsettling\ldots but that's the nature of JQuery. Perhaps working directly with
+the DOM would alleviate this --- there's
+\href{http://hackage.haskell.org/package/fay-dom}{fay-dom} out there, but I
+didn't get a chance to give it a try.
+
+\subsubsection{Deploying fay}\label{deploying-fay}
+
+Deploying fay ain't all too bad. I
+\href{http://blog.jle.im/entry/deploying-medium-to-large-haskell-apps-to-heroku}{deploy
+binaries}, however, so I was unable to ever process fay on my limited-access
+production server because it requires \texttt{ghc-pkg} (installed under
+\texttt{/usr/local/bin}) among other things\ldots I probably could have gotten
+this to work, but I did not have the proper skills. You also need to provide the
+binaries and headers in \texttt{share} for all of your fay libraries in order to
+use them when compiling to javascript. So while this isn't so bad if you have
+the whole Haskell Platform and are compiling on your production server, I had to
+pre-compile my fay ``binaries'' before pushing\ldots just like I have to
+pre-compile my regular binaries, interestingly enough.
+
+Of course, the fay javascript files were a bit larger than the normal javascript
+ones. Not too significantly, though, only about 80x. This actually puts them
+however at around the size of my image files (\textasciitilde100KB)\ldots this
+is slightly worrisome, but I don't really stress too much about one image, so I
+guess I shouldn't stress too much about this either. Not ideal, but what else
+could I expect?
+
+\section{Future stuff}\label{future-stuff}
+
+Hopefully I'm able to make
+\href{http://blog.jle.im/source/code-samples/source/entry_toc.js\#L4-21}{that
+javascript call} on fay one day, without having to rewrite the entire library in
+Fay (although it might be a fun exercise).
+
+If anyone knows how I can do this, I'd really appreciate any help!
+
+I'd also in the future like to make my preprocessor a bit more robust and also
+take more languages to determine the right comment syntax. But\ldots I probably
+wouldn't do this until the need actually arises :)
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

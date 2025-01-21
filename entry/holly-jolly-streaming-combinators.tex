@@ -1,0 +1,1059 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Roll your own Holly Jolly streaming combinators with Free},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Roll your own Holly Jolly streaming combinators with Free}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% December 12, 2020
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/holly-jolly-streaming-combinators.html}{in
+Code}}.}
+
+Hi! Welcome, if you're joining us from the great
+\href{https://adventofhaskell.com/}{Advent of Haskell 2020} event! Feel free to
+grab a hot chocolate and sit back by the fireplace. I'm honored to be able to be
+a part of the event this year; it's a great initiative and harkens back to the
+age-old Haskell tradition of bite-sized Functional Programming ``advent
+calendars''. I remember when I was first learning Haskell,
+\href{https://ocharles.org.uk/pages/2012-12-01-24-days-of-hackage.html}{Ollie
+Charles' 24 Days of Hackage series} was one of my favorite series that helped me
+really get into the exciting world of Haskell and the all the doors that
+functional programming can open.
+
+All of the posts this year have been great --- they range from insightful
+reflections on the nature of Haskell and programming in Haskell, or also on
+specific language features. This post is going to be one of the
+``project-based'' ones, where we walk through and introduce a solidly
+\emph{intermediate} Haskell technique as it applies to building a useful general
+toolset. I'm going to be exploring the ``functor combinator style'' where you
+identify the interface you want, associate it with a common Haskell typeclass,
+pick your primitives, and automatically get the ability to imbue your primitives
+with the structure you need. I've talked about this previously with:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \href{https://blog.jle.im/entry/free-alternative-regexp.html}{Applicative
+  regular expressions}
+\item
+  \href{https://blog.jle.im/entry/functor-combinatorpedia.html}{The functor
+  combinatorpedia}
+\item
+  \href{https://blog.jle.im/entries/series/+enhancing-functor-structures.html}{Bidirectional
+  serializers}
+\item
+  \href{https://blog.jle.im/entry/interpreters-a-la-carte-duet.html}{Composable
+  interpreters}
+\end{enumerate}
+
+and I wanted to share a recent application I have been able to use apply it with
+where just \emph{thinking} about the primitives gave me almost all the
+functionality I needed for a type: composable streaming combinators. This
+specific application is also very applicable to integrate into any
+\href{https://www.stephendiehl.com/posts/decade.html\#algebraic-effect-systems}{composable
+effects system}, since it's essentially a monadic interface.
+
+In a way, this post could also be seen as capturing the spirit of the holidays
+by reminiscing about the days of yore --- looking back at one of the more
+exciting times in modern Haskell's development, where competing composable
+streaming libraries were at the forefront of practical innovation. The dust has
+settled on that a bit, but it every time I think about composable streaming
+combinators, I do get a bit nostalgic :)
+
+This post is written for an \emph{intermediate} Haskell audience, and will
+assume you have a familiarity with monads and monadic interfaces, and also a
+little bit of experience with monad transformers. Note --- there are many ways
+to arrive at the same result, but this post is more of a demonstration of a
+certain style and approach that has benefited my greatly in the past.
+
+All of the code in this page
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/misc/streaming-combinators-free.hs}{can
+be found online at github}!
+
+\section{Dreaming of an Effectful
+Christmas}\label{dreaming-of-an-effectful-christmas}
+
+The goal here is to make a system of composable pipes that are ``pull-based'',
+so we can process data as it is read in from IO only as we need it, and never do
+more work than we need to do up-front or leak memory when we stop using it.
+
+So, the way I usually approach things like these is: ``dress for the interface
+you want, not the one you have.'' It involves:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Thinking of the \texttt{m\ a} you want and how you would want to combine
+  it/use it.
+\item
+  Express the primitive actions of that thing
+\item
+  Use some sort of free structure or effects system to enhance that primitive
+  with the interface you are looking for.
+\end{enumerate}
+
+So, let's imagine our type!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \DataTypeTok{Pipe}\NormalTok{ i o m a }\OtherTok{=} \OperatorTok{...}
+\end{Highlighting}
+\end{Shaded}
+
+where a \texttt{Pipe\ i\ o\ m\ a} represents a pipe component where:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{i}: the type of the input the pipe expects from upstream
+\item
+  \texttt{o}: the type of the output the pipe will be yielding upstream
+\item
+  \texttt{m}: the monad that the underlying actions live in
+\item
+  \texttt{a}: the overall result of the pipe once it has terminated.
+\end{itemize}
+
+One nice thing about this setup is that by picking different values for the type
+parameters, we can already get a nice classification for interesting subtypes:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  If \texttt{i} is \texttt{()} (or universally quantified\footnote{``Universally
+    quantified'' here means that the pipe's type is left fully polymorphic (with
+    no constraints) over \texttt{i}, the input.}) --- a
+  \texttt{Pipe\ ()\ o\ m\ a} --- it means that the pipe doesn't ever expect any
+  sort of information upstream, and so can be considered a ``source'' that keeps
+  on churning out values.
+\item
+  If \texttt{o} is \texttt{Void} (or universally quantified) --- a
+  \texttt{Pipe\ i\ Void\ m\ a} --- it means that the pipe will never yield
+  anything downstream, because \texttt{Void} has no inhabitants that could
+  possibly be yielded.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Void}
+\end{Highlighting}
+\end{Shaded}
+
+  This means that it acts like a ``sink'' that will keep on eating \texttt{i}
+  values without ever outputting anything downstream.
+\item
+  If \texttt{i} is \texttt{()} and \texttt{o} is \texttt{Void} (or they are both
+  universally quantified), then the pipe doesn't expect any sort of information
+  upstream, and also won't ever yield anything downstream\ldots{} a
+  \texttt{Pipe\ ()\ Void\ m\ a} is just an \texttt{m\ \ \ \ \ a}! In the biz, we
+  often call this an ``effect''.
+\item
+  If \texttt{a} is \texttt{Void} (or universally quantified) --- a
+  \texttt{Pipe\ i\ o\ m\ Void} --- it means that the pipe will never terminate,
+  since \texttt{Void} has no inhabitants that could it could possibly produce
+  upon termination.
+\end{enumerate}
+
+To me, I think it embodies a lot of the nice principles about the ``algebra'' of
+types that can be used to reason with inputs and outputs. Plus, it allows us to
+unify sources, sinks, and non-terminating pipes all in one type!
+
+Now let's think of the interface we want. We want to be able to:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} | Yield a value \textasciigrave{}o\textasciigrave{} downstream}
+\OtherTok{yield ::}\NormalTok{ o }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i o m ()}
+
+\CommentTok{{-}{-} | Await a value \textasciigrave{}i\textasciigrave{} upstream}
+\OtherTok{await ::} \DataTypeTok{Pipe}\NormalTok{ i o m (}\DataTypeTok{Maybe}\NormalTok{ i)}
+
+\CommentTok{{-}{-} | Terminate immediately with a result value}
+\FunctionTok{return}\OtherTok{ ::}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i o m a}
+
+\CommentTok{{-}{-} | Sequence pipes one{-}after{-}another:}
+\CommentTok{{-}{-} "do this until it terminates, then that one next"}
+\OtherTok{(\textgreater{}\textgreater{}) ::} \DataTypeTok{Pipe}\NormalTok{ i o m a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i o m b }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i o m b}
+
+\CommentTok{{-}{-} | In fact let\textquotesingle{}s just make it a full fledged monad, why not?  We\textquotesingle{}re designing}
+\CommentTok{{-}{-} our dream interface here.}
+\OtherTok{(\textgreater{}\textgreater{}=) ::} \DataTypeTok{Pipe}\NormalTok{ i o m a }\OtherTok{{-}\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i o m b) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i o m b}
+
+\CommentTok{{-}{-} | A pipe that simply does action in the underlying monad and terminates with}
+\CommentTok{{-}{-} the result}
+\OtherTok{lift ::}\NormalTok{ m a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i o m a}
+
+\CommentTok{{-}{-} | Compose pipes, linking the output of one to the input of the other}
+\OtherTok{(.|) ::} \DataTypeTok{Pipe}\NormalTok{ i j m a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ j o m b }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i o m b}
+
+\CommentTok{{-}{-} | Finally: run it all on a pipe expecting no input and never yielding:}
+\OtherTok{runPipe ::} \DataTypeTok{Pipe}\NormalTok{ () }\DataTypeTok{Void}\NormalTok{ m a }\OtherTok{{-}\textgreater{}}\NormalTok{ m a}
+\end{Highlighting}
+\end{Shaded}
+
+This looks like a complicated list\ldots but actually most of these come from
+ubiquitous Haskell typeclasses like \texttt{Monad} and \texttt{Applicative}.
+We'll see how this comes into play later, when we learn how to get these
+instances for our types for free. This makes the actual ``work'' we have to do
+very small.
+
+So, these are going to be implementing ``conduit-style'' streaming combinators,
+where streaming actions are monadic, and monadic sequencing represents ``do this
+after this one is done.'' Because of this property, they work well as
+\emph{pull-based} pipes: yields will block until a corresponding await can
+accept what is yielded.
+
+\subsection{Put on those Christmas
+Sweaters}\label{put-on-those-christmas-sweaters}
+
+``Dress for the interface you want, not the one you have''. So let's pretend we
+already implemented this interface\ldots what could we do with it?
+
+Well, can write simple sources like ``yield the contents from a file
+line-by-line'':
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/streaming{-}combinators{-}free.hs\#L65{-}L72}
+
+\OtherTok{sourceHandleIO ::} \DataTypeTok{Handle} \OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i }\DataTypeTok{String} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{sourceHandleIO handle }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    res }\OtherTok{\textless{}{-}}\NormalTok{ lift }\OperatorTok{$}\NormalTok{ tryJust (guard }\OperatorTok{.}\NormalTok{ isEOFError) (hGetLine handle)}
+    \KeywordTok{case}\NormalTok{ res }\KeywordTok{of}
+      \DataTypeTok{Left}\NormalTok{  \_   }\OtherTok{{-}\textgreater{}} \FunctionTok{return}\NormalTok{ ()}
+      \DataTypeTok{Right}\NormalTok{ out }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{        yield out}
+\NormalTok{        sourceHandle handle}
+\end{Highlighting}
+\end{Shaded}
+
+Note that because the \texttt{i} is universally quantified, it means that we
+know that \texttt{sourceFile} never ever awaits or touches any input: it's
+purely a source.
+
+We can even write a simple sink, like ``await and print the results to stdout as
+they come'':
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/streaming{-}combinators{-}free.hs\#L83{-}L90}
+
+\OtherTok{sinkStdoutIO ::} \DataTypeTok{Pipe} \DataTypeTok{String}\NormalTok{ o }\DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{sinkStdoutIO }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    inp }\OtherTok{\textless{}{-}}\NormalTok{ await}
+    \KeywordTok{case}\NormalTok{ inp }\KeywordTok{of}
+      \DataTypeTok{Nothing} \OtherTok{{-}\textgreater{}} \FunctionTok{pure}\NormalTok{ ()}
+      \DataTypeTok{Just}\NormalTok{ x  }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{        lift }\OperatorTok{$} \FunctionTok{putStrLn}\NormalTok{ x}
+\NormalTok{        sinkStdout}
+\end{Highlighting}
+\end{Shaded}
+
+And maybe we can write a pipe that takes input strings and converts them to all
+capital letters and re-yields them:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/streaming{-}combinators{-}free.hs\#L101{-}L108}
+
+\OtherTok{toUpperPipe ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Pipe} \DataTypeTok{String} \DataTypeTok{String}\NormalTok{ m ()}
+\NormalTok{toUpperPipe }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    inp }\OtherTok{\textless{}{-}}\NormalTok{ await}
+    \KeywordTok{case}\NormalTok{ inp }\KeywordTok{of}
+      \DataTypeTok{Nothing} \OtherTok{{-}\textgreater{}} \FunctionTok{pure}\NormalTok{ ()}
+      \DataTypeTok{Just}\NormalTok{ x  }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{        yield (}\FunctionTok{map} \FunctionTok{toUpper}\NormalTok{ x)}
+\NormalTok{        toUpperPipe}
+\end{Highlighting}
+\end{Shaded}
+
+And we can maybe write a pipe that stops as soon as it reads the line
+\texttt{STOP}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/streaming{-}combinators{-}free.hs\#L110{-}L119}
+
+\OtherTok{untilSTOP ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Pipe} \DataTypeTok{String} \DataTypeTok{String}\NormalTok{ m ()}
+\NormalTok{untilSTOP }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    inp }\OtherTok{\textless{}{-}}\NormalTok{ await}
+    \KeywordTok{case}\NormalTok{ inp }\KeywordTok{of}
+      \DataTypeTok{Nothing} \OtherTok{{-}\textgreater{}} \FunctionTok{pure}\NormalTok{ ()}
+      \DataTypeTok{Just}\NormalTok{ x}
+        \OperatorTok{|}\NormalTok{ x }\OperatorTok{==} \StringTok{"STOP"} \OtherTok{{-}\textgreater{}} \FunctionTok{pure}\NormalTok{ ()}
+        \OperatorTok{|} \FunctionTok{otherwise}   \OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{            yield x}
+\NormalTok{            untilSTOP}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{untilSTOP} is really sort of the crux of what makes these streaming
+systems useful: we only pull items from the file as we need it, and
+\texttt{untilSTOP} will stop pulling anything as soon as we hit \texttt{STOP},
+so no IO will happen anymore if the upstream sink does IO.
+
+\subsection{Our Ideal Program}\label{our-ideal-program}
+
+Now ideally, we'd want to write a program that lets us compose the above pipes
+to read from a file and output its contents to stdout, until it sees a STOP
+line:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/streaming{-}combinators{-}free.hs\#L121{-}L126}
+
+\OtherTok{samplePipeIO ::} \DataTypeTok{Handle} \OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i o }\DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{samplePipeIO handle }\OtherTok{=}
+\NormalTok{       sourceHandleIO handle}
+    \OperatorTok{.|}\NormalTok{ untilSTOP}
+    \OperatorTok{.|}\NormalTok{ toUpperPipe}
+    \OperatorTok{.|}\NormalTok{ sinkStdoutIO}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Setting up our Stockings}\label{setting-up-our-stockings}
+
+Step 2 of our plan was to identify the primitive actions we want. Looking at our
+interface, it seems like the few things that let us ``create'' a \texttt{Pipe}
+from scratch (instead of combining existing ones) are:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{yield  ::}\NormalTok{ o }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i o m ()}
+\OtherTok{await  ::} \DataTypeTok{Pipe}\NormalTok{ i o m (}\DataTypeTok{Maybe}\NormalTok{ i)}
+\OtherTok{lift   ::}\NormalTok{ m a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i o m a}
+\FunctionTok{return}\OtherTok{ ::}\NormalTok{ a   }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i o m a}
+\end{Highlighting}
+\end{Shaded}
+
+However, we can note that \texttt{lift} and \texttt{return} can be gained just
+from having a \texttt{Monad} and \texttt{MonadTrans} instance. So let's assume
+we have those instances.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{class} \DataTypeTok{Monad}\NormalTok{ m }\KeywordTok{where}
+\OtherTok{    return ::}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ m a}
+
+\KeywordTok{class} \DataTypeTok{MonadTrans}\NormalTok{ p }\KeywordTok{where}
+\OtherTok{    lift ::}\NormalTok{ m a }\OtherTok{{-}\textgreater{}}\NormalTok{ p m a}
+\end{Highlighting}
+\end{Shaded}
+
+The functor combinator plan is to identify your primitives, and let free
+structures give you the instances (in our case, \texttt{Monad} and
+\texttt{MonadTrans}) you need for them.
+
+So this means we only need two primitives: \texttt{yield} and \texttt{await}.
+Then we just throw them into some machinery that gives us a free \texttt{Monad}
+and \texttt{MonadTrans} structure, and we're golden :)
+
+In the style of the \emph{\href{https://hackage.haskell.org/package/free}{free}}
+library, we'd write base functions to get an ADT that describes the primitive
+actions:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/streaming{-}combinators{-}free.hs\#L22{-}L25}
+
+\KeywordTok{data} \DataTypeTok{PipeF}\NormalTok{ i o a }\OtherTok{=}
+    \DataTypeTok{YieldF}\NormalTok{ o a}
+  \OperatorTok{|} \DataTypeTok{AwaitF}\NormalTok{ (}\DataTypeTok{Maybe}\NormalTok{ i }\OtherTok{{-}\textgreater{}}\NormalTok{ a)}
+    \KeywordTok{deriving} \DataTypeTok{Functor}
+\end{Highlighting}
+\end{Shaded}
+
+The general structure of the base functor style is to represent each primitive
+as a constructor: include any inputs, and then a continuation on what to do if
+you had the result.
+
+For example:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  For \texttt{YieldF}, you need an \texttt{o} to be able to yield. The second
+  field should really be the continuation \texttt{()\ -\textgreater{}\ a}, since
+  the result is \texttt{()}, but that's equivalent to \texttt{a} in Haskell.
+\item
+  For \texttt{AwaitF}, you don't need any parameters to await, but the
+  continuation is \texttt{Maybe\ i\ -\textgreater{}\ a} since you need to
+  specify how to handle the \texttt{Maybe\ i} result.
+\end{enumerate}
+
+(This is specifically the structure that
+\emph{\href{https://hackage.haskell.org/package/free}{free}} expects, but this
+principle can be ported to any algebraic effects system.)
+
+\subsection{A Christmas Surprise}\label{a-christmas-surprise}
+
+And now for the last ingredient: we can use the \texttt{FreeT} type from
+\emph{\href{https://hackage.haskell.org/package/free/docs/Control-Monad-Trans-Free.html}{Control.Monad.Trans.Free}},
+and now we have our pipe interface, with a \texttt{Monad} and
+\texttt{MonadTrans} instance!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \DataTypeTok{Pipe}\NormalTok{ i o }\OtherTok{=} \DataTypeTok{FreeT}\NormalTok{ (}\DataTypeTok{PipeF}\NormalTok{ i o)}
+\end{Highlighting}
+\end{Shaded}
+
+This takes our base functor and imbues it with a full \texttt{Monad} and
+\texttt{MonadTrans} instance:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{lift ::}\NormalTok{ m a }\OtherTok{{-}\textgreater{}} \DataTypeTok{FreeT}\NormalTok{ (}\DataTypeTok{PipeF}\NormalTok{ i o) m a}
+\OtherTok{lift ::}\NormalTok{ m a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i o m a}
+
+\FunctionTok{return}\OtherTok{ ::}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{FreeT}\NormalTok{ (}\DataTypeTok{PipeF}\NormalTok{ i o) m a}
+\FunctionTok{return}\OtherTok{ ::}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i o m a}
+
+\OtherTok{(\textgreater{}\textgreater{})  ::} \DataTypeTok{Pipe}\NormalTok{ i o m a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i o m b }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i o m b}
+\OtherTok{(\textgreater{}\textgreater{}=) ::} \DataTypeTok{Pipe}\NormalTok{ i o m a }\OtherTok{{-}\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i o m b) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i o m b}
+\end{Highlighting}
+\end{Shaded}
+
+That's the essence of the free structure: it \emph{adds} to our base functor
+(\texttt{PipeF}) exactly the structure it needs to be able to implement the
+instances it is free on. And it's all free as in beer! :D
+
+As a bonus gift, we also get a \texttt{MonadIO} instance from \texttt{FreeT}, as
+well:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{liftIO ::} \DataTypeTok{MonadIO}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{IO}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{FreeT}\NormalTok{ (}\DataTypeTok{PipeF}\NormalTok{ i o) m a}
+\OtherTok{liftIO ::} \DataTypeTok{MonadIO}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{IO}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i o m a}
+\end{Highlighting}
+\end{Shaded}
+
+Now we just need our functions to lift our primitives to \texttt{Pipe}, using
+\texttt{liftF\ ::\ f\ a\ -\textgreater{}\ FreeT\ f\ m\ a}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/streaming{-}combinators{-}free.hs\#L29{-}L33}
+
+\OtherTok{yield ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}}\NormalTok{ o }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i o m ()}
+\NormalTok{yield x }\OtherTok{=}\NormalTok{ liftF }\OperatorTok{$} \DataTypeTok{YieldF}\NormalTok{ x ()}
+
+\OtherTok{await ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i o m (}\DataTypeTok{Maybe}\NormalTok{ i)}
+\NormalTok{await }\OtherTok{=}\NormalTok{ liftF }\OperatorTok{$} \DataTypeTok{AwaitF} \FunctionTok{id}
+\end{Highlighting}
+\end{Shaded}
+
+(these things you can usually just fill in using type tetris, filling in values
+with typed holes into they typecheck).
+
+Note that all of the individual pipes we had planned work as-is! And we can even
+even make \texttt{sourceHandle} and \texttt{sinkStdout} work for any
+\texttt{MonadIO\ m\ =\textgreater{}\ Pipe\ i\ o\ m\ a}, because of the
+unexpected surprise Christmas gift we got (the \texttt{MonadIO} instance and
+\texttt{liftIO\ ::\ MonadIO\ m\ =\textgreater{}\ IO\ a\ -\textgreater{}\ Pipe\ i\ o\ u\ m\ a}).
+Remember, \texttt{MonadIO\ m} is basically any \texttt{m} that supports doing
+IO.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/streaming{-}combinators{-}free.hs\#L74{-}L119}
+
+\OtherTok{sourceHandle ::} \DataTypeTok{MonadIO}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Handle} \OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i }\DataTypeTok{String}\NormalTok{ m ()}
+\NormalTok{sourceHandle handle }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    res }\OtherTok{\textless{}{-}}\NormalTok{ liftIO }\OperatorTok{$}\NormalTok{ tryJust (guard }\OperatorTok{.}\NormalTok{ isEOFError) (hGetLine handle)}
+    \KeywordTok{case}\NormalTok{ res }\KeywordTok{of}
+      \DataTypeTok{Left}\NormalTok{  \_   }\OtherTok{{-}\textgreater{}} \FunctionTok{return}\NormalTok{ ()}
+      \DataTypeTok{Right}\NormalTok{ out }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{        yield out}
+\NormalTok{        sourceHandle handle}
+
+\OtherTok{sinkStdout ::} \DataTypeTok{MonadIO}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Pipe} \DataTypeTok{String}\NormalTok{ o m ()}
+\NormalTok{sinkStdout }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    inp }\OtherTok{\textless{}{-}}\NormalTok{ await}
+    \KeywordTok{case}\NormalTok{ inp }\KeywordTok{of}
+      \DataTypeTok{Nothing} \OtherTok{{-}\textgreater{}} \FunctionTok{pure}\NormalTok{ ()}
+      \DataTypeTok{Just}\NormalTok{ x  }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{        liftIO }\OperatorTok{$} \FunctionTok{putStrLn}\NormalTok{ x}
+\NormalTok{        sinkStdout}
+
+\OtherTok{toUpperPipe ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Pipe} \DataTypeTok{String} \DataTypeTok{String}\NormalTok{ m ()}
+\NormalTok{toUpperPipe }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    inp }\OtherTok{\textless{}{-}}\NormalTok{ await}
+    \KeywordTok{case}\NormalTok{ inp }\KeywordTok{of}
+      \DataTypeTok{Nothing} \OtherTok{{-}\textgreater{}} \FunctionTok{pure}\NormalTok{ ()}
+      \DataTypeTok{Just}\NormalTok{ x  }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{        yield (}\FunctionTok{map} \FunctionTok{toUpper}\NormalTok{ x)}
+\NormalTok{        toUpperPipe}
+
+\OtherTok{untilSTOP ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Pipe} \DataTypeTok{String} \DataTypeTok{String}\NormalTok{ m ()}
+\NormalTok{untilSTOP }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    inp }\OtherTok{\textless{}{-}}\NormalTok{ await}
+    \KeywordTok{case}\NormalTok{ inp }\KeywordTok{of}
+      \DataTypeTok{Nothing} \OtherTok{{-}\textgreater{}} \FunctionTok{pure}\NormalTok{ ()}
+      \DataTypeTok{Just}\NormalTok{ x}
+        \OperatorTok{|}\NormalTok{ x }\OperatorTok{==} \StringTok{"STOP"} \OtherTok{{-}\textgreater{}} \FunctionTok{pure}\NormalTok{ ()}
+        \OperatorTok{|} \FunctionTok{otherwise}   \OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{            yield x}
+\NormalTok{            untilSTOP}
+\end{Highlighting}
+\end{Shaded}
+
+That's because using \texttt{FreeT}, we imbue the structure required to do
+monadic chaining (do notation) and MonadTrans (\texttt{lift}) and MonadIO
+(\texttt{liftIO}) for free!
+
+To ``run'' our pipes, we can use \texttt{FreeT}'s ``interpreter'' function. This
+follows the same pattern as for many free structures: specify how to handle each
+individual base functor constructor, and it then gives you a handler to handle
+the entire thing.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{iterT}
+\OtherTok{    ::}\NormalTok{ (}\DataTypeTok{PipeF}\NormalTok{ i o (m a) }\OtherTok{{-}\textgreater{}}\NormalTok{ m a)  }\CommentTok{{-}{-} \^{} given a way to handle each base functor constructor ...}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i o m a }\OtherTok{{-}\textgreater{}}\NormalTok{ m a       }\CommentTok{{-}{-} \^{} here\textquotesingle{}s a way to handle the whole thing}
+\end{Highlighting}
+\end{Shaded}
+
+So let's write our base functor handler. Remember that we established earlier we
+can only ``run'' a \texttt{Pipe\ ()\ Void\ m\ a}: that is, pipes where
+\texttt{await} can always be fed with no information (\texttt{()}) and no
+\texttt{yield} is ever called (because you cannot yield with \texttt{Void}, a
+type with no inhabitants). We can directly translate this to how we handle each
+constructor:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/streaming{-}combinators{-}free.hs\#L57{-}L60}
+
+\OtherTok{handlePipeF ::} \DataTypeTok{PipeF}\NormalTok{ () }\DataTypeTok{Void}\NormalTok{ (m a) }\OtherTok{{-}\textgreater{}}\NormalTok{ m a}
+\NormalTok{handlePipeF }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+    \DataTypeTok{YieldF}\NormalTok{ o \_ }\OtherTok{{-}\textgreater{}}\NormalTok{ absurd o}
+    \DataTypeTok{AwaitF}\NormalTok{ f   }\OtherTok{{-}\textgreater{}}\NormalTok{ f (}\DataTypeTok{Just}\NormalTok{ ())}
+\end{Highlighting}
+\end{Shaded}
+
+And so we get our full \texttt{runPipe}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/streaming{-}combinators{-}free.hs\#L62{-}L63}
+
+\OtherTok{runPipe ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ () }\DataTypeTok{Void}\NormalTok{ m a }\OtherTok{{-}\textgreater{}}\NormalTok{ m a}
+\NormalTok{runPipe }\OtherTok{=}\NormalTok{ iterT handlePipeF}
+\end{Highlighting}
+\end{Shaded}
+
+I think this process exemplifies most of the major beats when working with free
+structures:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Define the base functor
+\item
+  Allow the free structure to imbue the proper structure over your base functor
+\item
+  Write your interpreter to interpret the constructors of your base functor, and
+  the free structure will give you a way to interpret the entire structure.
+\end{enumerate}
+
+\subsection{The Final Ornament}\label{the-final-ornament}
+
+If you look at the list of all the things we wanted, we're still missing one
+thing: pipe composition/input-output chaining. That's because it isn't a
+primitive operation (like yield or await), and it wasn't given to us for free by
+our free structure (\texttt{FreeT}, which gave us monadic composition and monad
+transformer ability). So with how we have currently written it, there isn't any
+way of getting around writing \texttt{(.\textbar{})} manually. So let's roll up
+our sleeves and do the (admittedly minimal amount of) dirty work.
+
+Let's think about the semantics of our pipe chaining. We want to never do more
+work than we need to do, so we'll be ``pull-based'': for
+\texttt{f\ .\textbar{}\ g}, try running \texttt{g} as much as possible until it
+awaits anything from \texttt{f}. Only then do we try doing \texttt{f}.
+
+To implement this, we're going to have to dig in a little bit to the
+implementation/structure of \texttt{FreeT}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{newtype} \DataTypeTok{FreeT}\NormalTok{ f m a }\OtherTok{=} \DataTypeTok{FreeT}
+\NormalTok{    \{}\OtherTok{ runFreeT ::}\NormalTok{ m (}\DataTypeTok{FreeF}\NormalTok{ f a (}\DataTypeTok{FreeT}\NormalTok{ f m a)) \}}
+
+\KeywordTok{data} \DataTypeTok{FreeF}\NormalTok{ f a b}
+      \DataTypeTok{Pure}\NormalTok{ a}
+    \OperatorTok{|} \DataTypeTok{Free}\NormalTok{ (f b)}
+\end{Highlighting}
+\end{Shaded}
+
+This does look a little complicated, and on the face of it, it can be a bit
+intimidating. And why is there a second internal data type?
+
+Well, you can think of \texttt{FreeF\ f\ a\ b} as being a fancy version of
+\texttt{Either\ a\ (f\ b)}. And the implementation of \texttt{FreeT} is saying
+that \texttt{FreeT\ f\ m\ a} is \emph{an m-action} that produces
+\texttt{Either\ a\ (FreeT\ f\ m\ a)}. So for example, \texttt{FreeT\ f\ IO\ a}
+is an IO action that produces \emph{either} the \texttt{a} (we're done, end
+here!) or a \texttt{f\ (FreeT\ f\ m\ a))} (we have to handle an \texttt{f}
+here!)
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{newtype} \DataTypeTok{FreeT}\NormalTok{ f m a }\OtherTok{=} \DataTypeTok{FreeT}
+\NormalTok{    \{}\OtherTok{ runFreeT ::}\NormalTok{ m (}\DataTypeTok{Either}\NormalTok{ a (f (}\DataTypeTok{FreeT}\NormalTok{ f m a))) \}}
+\end{Highlighting}
+\end{Shaded}
+
+At the top level, \texttt{FreeT} is an action in the underlying monad (just like
+\texttt{MaybeT}, \texttt{ExceptT}, \texttt{StateT}, etc.). Let's take that into
+account and write our implementation (with a hefty bit of help from the
+typechecker and typed holes)! Remember our plan: for \texttt{f\ .\textbar{}\ g},
+\emph{start unrolling \texttt{g}} until it needs anything, and then ask
+\texttt{f} when it does.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{(}\OperatorTok{.|}\NormalTok{)}
+\OtherTok{    ::} \DataTypeTok{Monad}\NormalTok{ m}
+    \OtherTok{=\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ a b m x         }\CommentTok{{-}{-} \^{} pipe from a {-}\textgreater{} b}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ b c m y         }\CommentTok{{-}{-} \^{} pipe from b {-}\textgreater{} c}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ a c m y         }\CommentTok{{-}{-} \^{} pipe from a {-}\textgreater{} c}
+\NormalTok{pf }\OperatorTok{.|}\NormalTok{ pg }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    gRes }\OtherTok{\textless{}{-}}\NormalTok{ lift }\OperatorTok{$}\NormalTok{ runFreeT pg          }\CommentTok{{-}{-} 1}
+    \KeywordTok{case}\NormalTok{ gRes }\KeywordTok{of}
+      \DataTypeTok{Pure}\NormalTok{ x            }\OtherTok{{-}\textgreater{}} \FunctionTok{pure}\NormalTok{ x       }\CommentTok{{-}{-} 2}
+      \DataTypeTok{Free}\NormalTok{ (}\DataTypeTok{YieldF}\NormalTok{ o x) }\OtherTok{{-}\textgreater{}} \KeywordTok{do}           \CommentTok{{-}{-} 3}
+\NormalTok{        yield o}
+\NormalTok{        pf }\OperatorTok{.|}\NormalTok{ x}
+      \DataTypeTok{Free}\NormalTok{ (}\DataTypeTok{AwaitF}\NormalTok{ g  ) }\OtherTok{{-}\textgreater{}} \KeywordTok{do}           \CommentTok{{-}{-} 4}
+\NormalTok{        fRes }\OtherTok{\textless{}{-}}\NormalTok{ lift }\OperatorTok{$}\NormalTok{ runFreeT pf}
+        \KeywordTok{case}\NormalTok{ fRes }\KeywordTok{of}
+          \DataTypeTok{Pure}\NormalTok{ \_            }\OtherTok{{-}\textgreater{}} \FunctionTok{pure}\NormalTok{ () }\OperatorTok{.|}\NormalTok{ g }\DataTypeTok{Nothing}     \CommentTok{{-}{-} 5}
+          \DataTypeTok{Free}\NormalTok{ (}\DataTypeTok{YieldF}\NormalTok{ o y) }\OtherTok{{-}\textgreater{}}\NormalTok{ y       }\OperatorTok{.|}\NormalTok{ g (}\DataTypeTok{Just}\NormalTok{ o)    }\CommentTok{{-}{-} 6}
+          \DataTypeTok{Free}\NormalTok{ (}\DataTypeTok{AwaitF}\NormalTok{ f  ) }\OtherTok{{-}\textgreater{}} \KeywordTok{do}                       \CommentTok{{-}{-} 7}
+\NormalTok{            i }\OtherTok{\textless{}{-}}\NormalTok{ await}
+\NormalTok{            f i }\OperatorTok{.|} \DataTypeTok{FreeT}\NormalTok{ (}\FunctionTok{pure}\NormalTok{ gRes)}
+\end{Highlighting}
+\end{Shaded}
+
+Here are some numbered notes and comments:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Start unrolling the downstream pipe \texttt{pg}, in the underlying monad
+  \texttt{m}!
+\item
+  If \texttt{pg} produced \texttt{Pure\ x}, it means we're done pulling
+  anything. The entire pipe has terminated, since we will never need anything
+  again. So just quit out with \texttt{pure\ x}.
+\item
+  If \texttt{pg} produced \texttt{Free\ (YieldF\ o\ x)}, it means it's yielding
+  an \texttt{o} and continuing on with \texttt{x}. So let's just yield that
+  \texttt{o} and move on to the composition of \texttt{pf} with the next pipe
+  \texttt{x}.
+\item
+  If \texttt{pg} produced \texttt{Free\ (AwaitF\ g)}, now things get
+  interesting. We need to unroll \texttt{pf} until it yields some
+  \texttt{Maybe\ b}, and feed that to
+  \texttt{g\ ::\ Maybe\ b\ \ \ \ \ -\textgreater{}\ Pipe\ b\ c\ m\ y}.
+\item
+  If \texttt{pf} produced \texttt{Pure\ y}, that means it was done! The upstream
+  terminated, so the downstream will have to terminate as well. So \texttt{g}
+  gets a \texttt{Nothing}, and we move from there. Note we have to compose with
+  a dummy pipe \texttt{pure\ ()} to make the types match up properly.
+\item
+  If \texttt{pf} produced \texttt{YieldF\ o\ y}, then we have found our match!
+  So give \texttt{g\ \ \ \ \ (Just\ o)}, and now we recursively compose the next
+  pipe (\texttt{y}) with the that \texttt{g} gave us.
+\item
+  If \texttt{pf} produced \texttt{AwaitF\ f}, then we're in a bind, aren't we?
+  We now have two layers waiting for something further upstream. So, we await
+  from \emph{even further} upstream; when we get it, we feed it to \texttt{f}
+  and then compose \texttt{f\ i\ \ \ \ \ ::\ Pipe\ a\ b\ m\ x} with
+  \texttt{pg}'s result (wrapping up \texttt{gRes} back into a
+  \texttt{FreeT}/\texttt{Pipe} so the types match up).
+\end{enumerate}
+
+Admittedly (!) this is the ``ugly'' part of this derivation: sometimes we just
+can't get everything for free. But getting the Monad, Applicative, Functor,
+MonadTrans, etc. instances is probably nice enough to justify this inconvenience
+:) And who knows, there might be a free structure that I don't know about that
+gives us all of these \emph{plus} piping for free.
+
+\subsection{Christmas Miracle}\label{christmas-miracle}
+
+It runs!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/streaming{-}combinators{-}free.hs\#L128{-}L133}
+
+\OtherTok{samplePipe ::} \DataTypeTok{Handle} \OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i o }\DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{samplePipe handle }\OtherTok{=}
+\NormalTok{       sourceHandle handle}
+    \OperatorTok{.|}\NormalTok{ untilSTOP}
+    \OperatorTok{.|}\NormalTok{ toUpperPipe}
+    \OperatorTok{.|}\NormalTok{ sinkStdout}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+$ cat testpipefile.txt
+hello
+world
+STOP
+okay
+goodbye
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ withFile }\StringTok{"testpipefile.txt"} \DataTypeTok{ReadMode} \OperatorTok{$}\NormalTok{ \textbackslash{}handle }\OtherTok{{-}\textgreater{}}
+\NormalTok{        runPipe (samplePipe handle)}
+\CommentTok{{-}{-} HELLO}
+\CommentTok{{-}{-} WORLD}
+\end{Highlighting}
+\end{Shaded}
+
+Smooth as silk :D
+
+\section{Takeways for a Happy New Year}\label{takeways-for-a-happy-new-year}
+
+Most of this post was thought up when I needed\footnote{This came about when I
+  was developing my numerical
+  \emph{\href{https://hackage.haskell.org/package/emd}{emd}} library.} a tool
+that was \emph{sort of} like conduit, \emph{sort of} like pipes, \emph{sort of}
+like the other libraries\ldots and I thought I had to read up on the theory of
+pipes and iteratees and trampolines and fancy pants math stuff to be able to
+make anything useful in this space. I remember being very discouraged when I
+read about this stuff as a wee new Haskeller, because the techniques seemed so
+foreign and out of the range of my normal Haskell experience.
+
+However, I found a way to maintain a level head somehow, and just thought ---
+``ok, I just need a monad (trans) with two primitive actions: await, and yield.
+Why don't I just make an await and yield and get automatic \texttt{Monad} and
+\texttt{MonadTrans} instances with the appropriate free structure?''
+
+As we can see\ldots this works just fine! We only needed to implement one extra
+thing (\texttt{.\textbar{}}) to get the interface of our dreams. Of course, for
+a real industrial-strength streaming combinator library, we might need to be a
+bit more careful. But for my learning experience and use case, it worked
+perfectly.
+
+The next time you need to make some monad that might seem exotic, try this out
+and see if it works for you :)
+
+Happy holidays, and merry Christmas!
+
+\section{Exercises}\label{exercises}
+
+Click on the links in the corner of the text boxes for solutions! (or just check
+out
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/misc/streaming-combinators-free.hs}{the
+source file})
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  An \texttt{Pipe\ i\ o\ m\ a} ``takes'' \texttt{i} and ``produces'' \texttt{o},
+  so it should make sense to make pre-map and post-map functions:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/streaming{-}combinators{-}free.hs\#L148{-}L151}
+
+\OtherTok{postMap ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}}\NormalTok{ (o }\OtherTok{{-}\textgreater{}}\NormalTok{ o\textquotesingle{}) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i o m a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i o\textquotesingle{} m a}
+
+\OtherTok{preMap ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}}\NormalTok{ (i\textquotesingle{} }\OtherTok{{-}\textgreater{}}\NormalTok{ i) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i o m a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i\textquotesingle{} o m a}
+\end{Highlighting}
+\end{Shaded}
+
+  That pre-maps all inputs the pipe would receive, and post-maps all of the
+  values it yields.
+
+  Hint: This actually is made a lot simpler to write with the handy
+  \texttt{transFreeT} combinator, which lets you swap out/change the base
+  functor:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{transFreeT}
+\OtherTok{    ::}\NormalTok{ (}\KeywordTok{forall}\NormalTok{ a}\OperatorTok{.}\NormalTok{ f a }\OtherTok{{-}\textgreater{}}\NormalTok{ g a)     }\CommentTok{{-}{-} \^{} polymorphic function to edit the base functor}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{FreeT}\NormalTok{ f m b}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{FreeT}\NormalTok{ g m b}
+
+\NormalTok{transFreeT}
+\OtherTok{    ::}\NormalTok{ (}\KeywordTok{forall}\NormalTok{ a}\OperatorTok{.} \DataTypeTok{PipeF}\NormalTok{ i o a }\OtherTok{{-}\textgreater{}} \DataTypeTok{PipeF}\NormalTok{ i\textquotesingle{} o\textquotesingle{} a)  }\CommentTok{{-}{-} \^{} polymorphic function to edit the base functor}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i  o  m a}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i\textquotesingle{} o\textquotesingle{} m a}
+\end{Highlighting}
+\end{Shaded}
+
+  We could then write pre-map and post-map function on \texttt{PipeF} and
+  translate them to \texttt{Pipe} using \texttt{transFreeT}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/streaming{-}combinators{-}free.hs\#L140{-}L152}
+
+\OtherTok{postMapF ::}\NormalTok{ (o }\OtherTok{{-}\textgreater{}}\NormalTok{ o\textquotesingle{}) }\OtherTok{{-}\textgreater{}} \DataTypeTok{PipeF}\NormalTok{ i o a }\OtherTok{{-}\textgreater{}} \DataTypeTok{PipeF}\NormalTok{ i o\textquotesingle{} a}
+
+\OtherTok{preMapF ::}\NormalTok{ (i\textquotesingle{} }\OtherTok{{-}\textgreater{}}\NormalTok{ i) }\OtherTok{{-}\textgreater{}} \DataTypeTok{PipeF}\NormalTok{ i o a }\OtherTok{{-}\textgreater{}} \DataTypeTok{PipeF}\NormalTok{ i\textquotesingle{} o a}
+
+\OtherTok{postMap ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}}\NormalTok{ (o }\OtherTok{{-}\textgreater{}}\NormalTok{ o\textquotesingle{}) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i o m a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i o\textquotesingle{} m a}
+\NormalTok{postMap f }\OtherTok{=}\NormalTok{ transFreeT (postMapF f)}
+
+\OtherTok{preMap ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}}\NormalTok{ (i\textquotesingle{} }\OtherTok{{-}\textgreater{}}\NormalTok{ i) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i o m a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i\textquotesingle{} o m a}
+\NormalTok{preMap f }\OtherTok{=}\NormalTok{ transFreeT (preMapF f)}
+\end{Highlighting}
+\end{Shaded}
+\item
+  One staple of a streaming combinator system is giving you a disciplined way to
+  handle resources allocations like file handlers and properly close them on
+  completion. Our streaming combinator system has no inherent way of doing this
+  within its structure, but we can take advantage of the
+  \emph{\href{https://hackage.haskell.org/package/resourcet}{resourcet}} package
+  to handle it for us.
+
+  Basically, if we run our pipes over \texttt{ResourceT\ IO} instead of normal
+  \texttt{IO}, we get an extra action \texttt{allocate}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{allocate}
+\OtherTok{    ::} \DataTypeTok{IO}\NormalTok{ a             }\CommentTok{{-}{-} \^{} get a handler}
+    \OtherTok{{-}\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ())     }\CommentTok{{-}{-} \^{} close a handler}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{ResourceT} \DataTypeTok{IO}\NormalTok{ (}\DataTypeTok{ResourceKey}\NormalTok{, a)}
+
+\CommentTok{{-}{-} example}
+\NormalTok{allocate (openFile fp }\DataTypeTok{ReadMode}\NormalTok{) hClose}
+\OtherTok{    ::} \DataTypeTok{ResourceT} \DataTypeTok{IO}\NormalTok{ (}\DataTypeTok{ResourceKey}\NormalTok{, }\DataTypeTok{Handler}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+  We can use this in our pipe to open a handler from a filename, and rest
+  assured that the file handler will be closed when we eventually
+  \texttt{runResourceT\ ::\ ResourceT\ IO\ a\ -\textgreater{}\ IO\ a} our pipe.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/streaming{-}combinators{-}free.hs\#L155{-}L165}
+
+\OtherTok{sourceFile ::} \DataTypeTok{MonadIO}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{FilePath} \OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i }\DataTypeTok{String}\NormalTok{ (}\DataTypeTok{ResourceT}\NormalTok{ m) ()}
+
+\OtherTok{samplePipe2 ::} \DataTypeTok{FilePath} \OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i o (}\DataTypeTok{ResourceT} \DataTypeTok{IO}\NormalTok{) ()}
+\NormalTok{samplePipe2 fp }\OtherTok{=}
+\NormalTok{       sourceFile fp}
+    \OperatorTok{.|}\NormalTok{ untilSTOP}
+    \OperatorTok{.|}\NormalTok{ toUpperPipe}
+    \OperatorTok{.|}\NormalTok{ hoistFreeT lift sinkStdout}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ runResourceT }\OperatorTok{.}\NormalTok{ runPipe }\OperatorTok{$}\NormalTok{ samplePipe2 }\StringTok{"testpipefile.txt"}
+\CommentTok{{-}{-} HELLO}
+\CommentTok{{-}{-} WORLD}
+\end{Highlighting}
+\end{Shaded}
+\item
+  Let's say we modified our \texttt{PipeF} slightly to take another parameter
+  \texttt{u}, the result type of the upstream pipe.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{PipeF}\NormalTok{ i o u a }\OtherTok{=}
+    \DataTypeTok{YieldF}\NormalTok{ o a}
+  \OperatorTok{|} \DataTypeTok{AwaitF}\NormalTok{ (}\DataTypeTok{Either}\NormalTok{ u i }\OtherTok{{-}\textgreater{}}\NormalTok{ a)}
+
+\KeywordTok{type} \DataTypeTok{Pipe}\NormalTok{ i o u }\OtherTok{=} \DataTypeTok{FreeT}\NormalTok{ (}\DataTypeTok{PipeF}\NormalTok{ i o u)}
+
+\OtherTok{await ::} \DataTypeTok{Pipe}\NormalTok{ i o m (}\DataTypeTok{Either}\NormalTok{ u i)}
+\NormalTok{await }\OtherTok{=}\NormalTok{ liftF }\OperatorTok{$} \DataTypeTok{AwaitF} \FunctionTok{id}
+\end{Highlighting}
+\end{Shaded}
+
+  So now \texttt{await} would be fed \texttt{i} things yielded from upstream,
+  but sometimes you'd get a \texttt{Left} indicating that the upstream pipe has
+  terminated.
+
+  What would be the implications if \texttt{u} is \texttt{Void}?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \DataTypeTok{CertainPipe}\NormalTok{ i o }\OtherTok{=} \DataTypeTok{Pipe}\NormalTok{ i o }\DataTypeTok{Void}
+\end{Highlighting}
+\end{Shaded}
+
+  What could you do in a \texttt{CertainPipe\ i\ o\ m\ a} that you couldn't
+  normally do with our \texttt{Pipe\ i\ o\ m\ a}?
+\item
+  We mentioned earlier that a ``source'' could have type
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \DataTypeTok{Source} \OtherTok{=} \DataTypeTok{Pipe}\NormalTok{ ()}
+\end{Highlighting}
+\end{Shaded}
+
+  And a \texttt{Source\ o\ m\ a} would be something that keeps on pumping out
+  \texttt{o}s as much as we need, without requiring any upstream input.
+
+  This is actually the essential behavior of the (true) list monad transformer,
+  as esposed by the
+  \emph{\href{https://hackage.haskell.org/package/list-transformer}{list-transformer}}
+  package.
+
+  In that package, \texttt{ListT} is defined as:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{newtype} \DataTypeTok{ListT}\NormalTok{ m a }\OtherTok{=} \DataTypeTok{ListT}\NormalTok{ \{}\OtherTok{ next ::}\NormalTok{ m (}\DataTypeTok{Step}\NormalTok{ m a) \}}
+
+\KeywordTok{data} \DataTypeTok{Step}\NormalTok{ m a }\OtherTok{=} \DataTypeTok{Cons}\NormalTok{ a (}\DataTypeTok{ListT}\NormalTok{ m a) }\OperatorTok{|} \DataTypeTok{Nil}
+\end{Highlighting}
+\end{Shaded}
+
+  And it's a type that can yield out new \texttt{a}s on-demand, until exhausted.
+
+  In fact, \texttt{Source\ o\ m\ ()} is equivalent to \texttt{ListT\ m\ o}.
+  Write the functions to convert between them! :D
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/streaming{-}combinators{-}free.hs\#L171{-}L179}
+
+\OtherTok{toListT ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ () o m a }\OtherTok{{-}\textgreater{}} \DataTypeTok{L.ListT}\NormalTok{ m o}
+
+\OtherTok{fromListT ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}} \DataTypeTok{L.ListT}\NormalTok{ m o }\OtherTok{{-}\textgreater{}} \DataTypeTok{Pipe}\NormalTok{ i o m ()}
+\end{Highlighting}
+\end{Shaded}
+
+  Unfortunately we cannot use \texttt{iterT} because the last type parameter of
+  each is different. But manual pattern matching (like how we wrote
+  \texttt{(.\textbar{})}) isn't too bad!
+
+  The semantics of \texttt{ListT} api is that
+  \texttt{x\ \textless{}\textbar{}\textgreater{}\ y} will ``do'' (and emit the
+  result) \texttt{x} before moving on to what \texttt{y} would emit. And
+  \texttt{empty} is the \texttt{ListT} that signals it is done producing.
+  \texttt{\textless{}\textbar{}\textgreater{}} and \texttt{pure} and
+  \texttt{empty} for \texttt{ListT} are roughly analogous to
+  \texttt{\textgreater{}\textgreater{}} and \texttt{yield} and \texttt{return}
+  for \texttt{Source}, respectively.
+\end{enumerate}
+
+\section{Special Thanks}\label{special-thanks}
+
+I am very humbled to be supported by an amazing community, who make it possible
+for me to devote time to researching and writing these posts. Very special
+thanks to my supporter at the ``Amazing'' level on
+\href{https://www.patreon.com/justinle/overview}{patreon}, Josh Vera! :)
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

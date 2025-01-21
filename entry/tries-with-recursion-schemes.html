@@ -1,0 +1,538 @@
+<!DOCTYPE HTML>
+<html><head><title>Visualizing Prequel Meme Prefix Tries with Recursion Schemes
+ · in Code</title><meta name="description" content="Weblog of Justin Le, covering various adventures in programming and explorations in the worlds of computation physics, and knowledge.
+"><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="flattr:id" content="3p9jqr"><meta property="og:site_name" content="in Code"><meta property="og:description" content="Not too long ago, I was browsing the prequel memes subreddit — a community built around creative ways of remixing and re-contextualizing quotes from the cinematic corpus of the three Star Wars “prequel” movies — when I noticed that a fad was in progress constructing tries based on quotes as keys indexing stills from the movie corresponding to those quotes. This inspired me to try playing around with some tries myself, and it gave me an excuse to play around with recursion-schemes (one of my favorite Haskell libraries). If you haven’t heard about it yet, recursion-schemes (and the similar library data-fix) abstracts over common recursive functions written on recursive data types. It exploits the fact that a lot of recursive functions for different recursive data types all really follow the same pattern and gives us powerful tools for writing cleaner and safer code, and also for seeing our data types in a different light. The library is a pathway to many viewpoints — some considered to be particularly natural. Recursion schemes is a perfect example of those amazing accidents that happen throughout the Haskell ecosystem: an extremely “theoretically beautiful” abstraction that also happens to be extremely useful for writing industrially rigorous code. Is it possible to learn this power? Yes! As a fun intermediate-level Haskell project, let’s build a trie data type in Haskell based on recursion-schemes to see what it has to offer!"><meta property="og:type" content="article"><meta property="og:title" content="Visualizing Prequel Meme Prefix Tries with Recursion Schemes
+"><meta property="og:image" content="https://blog.jle.im/img/site_logo.jpg"><meta property="og:locale" content="en_US"><meta property="og:url" content="https://blog.jle.im/entry/tries-with-recursion-schemes.html"><meta name="twitter:card" content="summary"><meta name="twitter:creator:id" content="mstk"><link rel="author" href="https://plus.google.com/107705320197444500140"><link rel="alternate" type="application/rss+xml" title="in Code (RSS Feed)" href="http://feeds.feedburner.com/incodeblog"><link rel="canonical" href="https://blog.jle.im/entry/tries-with-recursion-schemes.html"><link href="https://blog.jle.im/favicon.ico" rel="shortcut icon"><link href="https://blog.jle.im/css/toast.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/font.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/main.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/page/entry.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/pygments.css" rel="stylesheet" type="text/css"><script type="text/javascript">var page_data = {};
+var disqus_shortname='incode';
+</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-443711-8', 'jle.im');
+ga('send', 'pageview');
+</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js"></script><script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5234d67a6b68dcd4"></script><script type="text/javascript" src="https://blog.jle.im/js/page/entry_toc.js"></script><script type="text/javascript" src="https://blog.jle.im/js/disqus_count.js"></script><script type="text/javascript" src="https://blog.jle.im/js/social.js"></script><script type="text/javascript" src="https://blog.jle.im/js/jquery/jquery.toc.js"></script><script type="text/javascript" src="https://blog.jle.im/purescript/entry.js"></script></head><body><div id="fb-root"><script>(function(d, s, id) {
+ var js, fjs = d.getElementsByTagName(s)[0];
+ if (d.getElementById(id)) return;
+ js = d.createElement(s); js.id = id;
+ js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=641852699171929";
+ fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+</script></div><div id="header-container"><div id="navbar-container" class="tile"><nav id="navbar-content"><div class="nav-info"><h1 class="site-title"><a href="https://blog.jle.im/" class="nav-title">in Code</a></h1><span class="nav-author">Justin Le</span></div><ul class="nav-links"><li><a href="https://blog.jle.im/">home</a></li><li><a href="https://blog.jle.im/entries.html">archives</a></li><li><a href="https://cv.jle.im">cv</a></li><div class="clear"></div></ul></nav></div><div id="header-content"></div></div><div id="body-container" class="container"><div id="main-container" class="grid"><div class="entry-section unit span-grid" role="main"><article class="tile article"><header><h1 id="title">Visualizing Prequel Meme Prefix Tries with Recursion Schemes
+</h1><p class="entry-info">by <a class="author" href="https://blog.jle.im/">Justin Le</a><span class="info-separator"> &diams; </span><time datetime="2019-01-25T13:34:18Z" pubdate="" class="pubdate">Friday January 25, 2019</time></p><p><span class="source-info"><a class="source-link" href="https://github.com/mstksg/inCode/tree/master/copy/entries/trie.md">Source</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://github.com/mstksg/inCode/tree/gh-pages/entry/tries-with-recursion-schemes.md">Markdown</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://blog.jle.im/entry/tries-with-recursion-schemes.tex">LaTeX</a><span class="info-separator"> &diams; </span></span>Posted in <a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category" title="Functional, pure, non-strict, statically and strongly typed, natively
+compiled...really just the king of great languages.
+">Haskell</a>, <a href="https://blog.jle.im/entries/category/@tutorials.html" class="tag-a-category" title="Technical tutorials/walkthroughs on specific programming processes and problems
+that I&#39;ve struggled through in the past.
+">Tutorials</a><span class="info-separator"> &diams; </span><a class="comment-link" href="#disqus_thread">Comments</a></p></header><hr><aside class="contents-container"><h5 id="contents-header">Contents</h5><div id="toc"></div></aside><div class="main-content copy-content"><p>Not too long ago, I was browsing the <a href="https://www.reddit.com/r/PrequelMemes">prequel memes subreddit</a> — a community built around creative ways of remixing and re-contextualizing quotes from the cinematic corpus of the three <a href="https://en.wikipedia.org/wiki/Star_Wars_prequel_trilogy">Star Wars “prequel” movies</a> — when I noticed that a fad was in progress <a href="https://www.reddit.com/r/PrequelMemes/comments/9w59t4/i_expanded_it/">constructing tries based on quotes as keys</a> indexing stills from the movie corresponding to those quotes.</p>
+<p>This inspired me to try playing around with some tries myself, and it gave me an excuse to play around with <em><a href="https://hackage.haskell.org/package/recursion-schemes">recursion-schemes</a></em> (one of my favorite Haskell libraries). If you haven’t heard about it yet, <em>recursion-schemes</em> (and the similar library <em><a href="https://hackage.haskell.org/package/data-fix">data-fix</a></em>) abstracts over common recursive functions written on recursive data types. It exploits the fact that a lot of recursive functions for different recursive data types all really follow the same pattern and gives us powerful tools for writing cleaner and safer code, and also for seeing our data types in a different light. The library is a pathway to many viewpoints — some considered to be particularly natural.</p>
+<p>Recursion schemes is a perfect example of those amazing accidents that happen throughout the Haskell ecosystem: an extremely “theoretically beautiful” abstraction that also happens to be extremely useful for writing industrially rigorous code.</p>
+<p>Is it possible to learn this power? Yes! As a fun intermediate-level Haskell project, let’s build a trie data type in Haskell based on <em>recursion-schemes</em> to see what it has to offer!</p>
+<h2 id="its-trie-then">It’s Trie, Then</h2>
+<p>A <a href="https://en.wikipedia.org/wiki/Trie">trie</a> (prefix tree) is a classic example of a simple yet powerful data type most people first encounter in college courses (I remember being introduced to it through a project implementing a boggle solver). The name comes from a pun on the word “re-<em>trie</em>-val”.</p>
+<p>Wikipedia has a nice picture:</p>
+<figure>
+<img src="/img/entries/trie/wiki-trie.png" title="An example Trie" alt="Sample Trie from Wikipedia, indexing lists of Char to Ints" />
+<figcaption aria-hidden="true">Sample Trie from Wikipedia, indexing lists of Char to Ints</figcaption>
+</figure>
+<p>API-wise, it is very similar to an <em>associative map</em>, like the <code>Map</code> type from <em><a href="https://hackage.haskell.org/package/containers/docs/Data-Map-Lazy.html">containers</a></em>. It stores “keys” to “values”, and you can insert a value at a given key, lookup or check for a value stored at a given key, or delete the value at a given key. However, it is designed to be easy to (iteratively) find keys matching a given <em>prefix</em>. It’s also really fast to check if a given key is <em>not</em> in the trie, since it can return <code>False</code> as soon as a prefix is not found anywhere in the trie.</p>
+<p>The main difference is in implementation: the keys are <em>strings of tokens</em>, and it is internally represented as a multi-level tree: if your keys are strings, then the first level branches on the first letter, the second level is the letter, etc. In the example above, the trie stores the keys <code>to</code>, <code>tea</code>, <code>ted</code>, <code>ten</code>, <code>A</code>, <code>i</code>, <code>in</code>, and <code>inn</code> to the values 7, 3, 4, 12, 15, 11, 5, and 9, respectively. As we see, it is possible for one key to completely overlap another (like <code>in</code> storing 5, and <code>inn</code> storing 9). We can also have <em>partial</em> overlaps (like <code>tea</code>, storing 3, and <code>ted</code> storing 4), whose common prefix (<code>te</code>) has no value stored under it.</p>
+<h2 id="haskell-tries">Haskell Tries</h2>
+<p>We can represent this in Haskell by representing each layer as a <code>Map</code> of a token to the next layer of subtries.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/trie/trie.hs#L32-L33</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Trie</span>  k v   <span class="ot">=</span> <span class="dt">MkT</span>  (<span class="dt">Maybe</span> v) (<span class="dt">Map</span> k (<span class="dt">Trie</span> k v))</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">deriving</span> <span class="dt">Show</span></span></code></pre></div>
+<p>A <code>Trie k v</code> will have keys of type <code>[k]</code>, where <code>k</code> is the key token type, and values of type <code>v</code>. Each layer might have a value (<code>Maybe v</code>), and branches out to each new layer.</p>
+<p>We could write the trie storing <code>(to, 9)</code>, <code>(ton, 3)</code>, and <code>(tax, 2)</code> as:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/trie/trie.hs#L48-L61</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ot">testTrie ::</span> <span class="dt">Trie</span> <span class="dt">Char</span> <span class="dt">Int</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>testTrie <span class="ot">=</span> <span class="dt">MkT</span> <span class="dt">Nothing</span> <span class="op">$</span> M.fromList [</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>      (<span class="ch">&#39;t&#39;</span>, <span class="dt">MkT</span> <span class="dt">Nothing</span> <span class="op">$</span> M.fromList [</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>          (<span class="ch">&#39;o&#39;</span>, <span class="dt">MkT</span> (<span class="dt">Just</span> <span class="dv">9</span>) <span class="op">$</span> M.fromList [</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>              ( <span class="ch">&#39;n&#39;</span>, <span class="dt">MkT</span> (<span class="dt">Just</span> <span class="dv">3</span>) M.empty )</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>            ]</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>          )</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>        , (<span class="ch">&#39;a&#39;</span>, <span class="dt">MkT</span> <span class="dt">Nothing</span> <span class="op">$</span> M.fromList [</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>              ( <span class="ch">&#39;x&#39;</span>, <span class="dt">MkT</span> (<span class="dt">Just</span> <span class="dv">2</span>) M.empty )</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>            ]</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>          )</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>        ]</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    ]</span></code></pre></div>
+<p>Note that this construction isn’t particularly sound, since it’s possible to represent invalid keys that have branches that lead to nothing. This becomes troublesome mostly when we implement <code>delete</code>, but we won’t be worrying about that for now. In Haskell, we have the choice to be as safe or unsafe as we want for a given situation. However, a “correct-by-construction” trie is in the next part of this series :)</p>
+<h3 id="recursion-schemes-an-elegant-weapon">Recursion Schemes: An Elegant Weapon</h3>
+<p>Now, <code>Trie</code> as written up there is an <em>explicitly recursive</em> data type. This might be common practice, but it’s not a particularly ideal situation. The problem with explicitly recursive data types is that to work with them, you often rely on explicitly recursive functions.</p>
+<p>Within the functional programming community, explicitly recursive functions are notoriously difficult to write, understand, and maintain. It’s extremely easy to accidentally write an infinite loop, and explicit recursion is often called “the GOTO of functional programming”.</p>
+<p>However, there’s a trick we can use to “factor out” the recursion in our data type. The trick is to replace the recursive occurrence of <code>Trie k v</code> (in the <code>Map</code> constructor) with a “placeholder” variable:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/trie/trie.hs#L32-L36</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Trie</span>  k v   <span class="ot">=</span> <span class="dt">MkT</span>  (<span class="dt">Maybe</span> v) (<span class="dt">Map</span> k (<span class="dt">Trie</span> k v))</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">deriving</span> <span class="dt">Show</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">TrieF</span> k v x <span class="ot">=</span> <span class="dt">MkTF</span> (<span class="dt">Maybe</span> v) (<span class="dt">Map</span> k x         )</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">deriving</span> (<span class="dt">Functor</span>, <span class="dt">Show</span>)</span></code></pre></div>
+<p><code>TrieF</code> represents, essentially, “one layer” of a <code>Trie</code>. It contains all of the <em>structure</em> of a <em>single</em> layer of a <code>Trie</code>: it contains all of the “guts” of what makes a trie a trie, <em>except the recursion</em>. It allows us to work with a single layer of a trie, encapsulating the essential structure. Later on, we’ll see that this means we sometimes don’t even need the original (recursive) <code>Trie</code> at all, if all we just care about is the structure.</p>
+<p>For the rest of our journey, we’ll use <code>TrieF</code> as a non-recursive “view” into a single layer of a <code>Trie</code>. We can do this because <em>recursion-schemes</em> gives combinators (known as “recursion schemes”) to abstract over common explicit recursion patterns. The key to using <em>recursion-schemes</em> is recognizing which combinators abstracts over the type of recursion you’re using. It’s all about becoming familiar with the “zoo” of (colorfully named) recursion schemes you can pick from, and identifying which one does the job in your situation.</p>
+<p>That’s the high-level view — let’s dive into writing out the API of our <code>Trie</code>!</p>
+<h3 id="coarse-boilerplate">Coarse boilerplate</h3>
+<p>One thing we need to do before we can start: we need to tell <em>recursion-schemes</em> to link <code>TrieF</code> with <code>Trie</code>. In the nomenclature of <em>recursion-schemes</em>, <code>TrieF</code> is known as the “base type”, and <code>Trie</code> is called “the fixed-point”.</p>
+<p>Linking them requires some boilerplate, which is basically telling <em>recursion-schemes</em> how to convert back and forth between <code>Trie</code> and <code>TrieF</code>.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/trie/trie.hs#L38-L46</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">instance</span> <span class="dt">Base</span> (<span class="dt">Trie</span> k v) <span class="ot">=</span> <span class="dt">TrieF</span> k v</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> <span class="dt">Recursive</span> (<span class="dt">Trie</span> k v) <span class="kw">where</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="ot">    project ::</span> <span class="dt">Trie</span> k v <span class="ot">-&gt;</span> <span class="dt">TrieF</span> k v (<span class="dt">Trie</span> k v)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    project (<span class="dt">MkT</span> v xs) <span class="ot">=</span> <span class="dt">MkTF</span> v xs</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> <span class="dt">Corecursive</span> (<span class="dt">Trie</span> k v) <span class="kw">where</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="ot">    embed ::</span> <span class="dt">TrieF</span> k v (<span class="dt">Trie</span> k v) <span class="ot">-&gt;</span> <span class="dt">Trie</span> k v</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    embed (<span class="dt">MkTF</span> v xs) <span class="ot">=</span> <span class="dt">MkT</span> v xs</span></code></pre></div>
+<p>Basically, we are linking the constructors and fields of <code>MkT</code> and <code>MkTF</code> together.</p>
+<p>Like the adolescent Anakin Skywalker, we usually don’t like boilerplate. It’s coarse and rough and irritating, and it gets everywhere. As with all boilerplate, it is sometimes useful to clean it up a bit using Template Haskell. The <em>recursion-schemes</em> library offers such a splice:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Trie</span> k v <span class="ot">=</span> <span class="dt">MkT</span> (<span class="dt">Maybe</span> v) (<span class="dt">Map</span> k (<span class="dt">Trie</span> k v))</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">deriving</span> <span class="dt">Show</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>makeBaseFunctor &#39;<span class="dt">&#39;Trie</span></span></code></pre></div>
+<p>This will define <code>TrieF</code> with the <code>MkTF</code> constructor, and not just the <code>Base</code> type family, but the <code>Recursive</code> and <code>Corecursive</code> instances, too. It might even be more efficient than our hand-written way.</p>
+<h2 id="humbly-making-our-way-across-the-universe">Humbly making our way across the universe</h2>
+<p>Time to explore the “zoo” of recursion schemes a bit! This is where the fun begins.</p>
+<p>Whenever you get a new recursive type and base functor, a good first thing to try out is testing out <code>cata</code> and <code>ana</code> (catamorphisms and anamorphisms), the basic “folder” and “unfolder”.</p>
+<h3 id="ill-try-folding-thats-a-good-trick">I’ll try folding, that’s a good trick!</h3>
+<p>Catamorphisms are functions that “combine” or “fold” every layer of our recursive type into a single value. If we want to write a function of type <code>Trie k v -&gt; A</code>, we can reach first for a catamorphism.</p>
+<p>Catamorphisms work by folding layer-by-layer, from the bottom up. We can write one by defining “what to do with each layer”. This description comes in the form of an “algebra” in terms of the base functor:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ot">myAlg ::</span> <span class="dt">TrieF</span> k v <span class="dt">A</span> <span class="ot">-&gt;</span> <span class="dt">A</span></span></code></pre></div>
+<p>If we think of <code>TrieF k v a</code> as “one layer” of a <code>Trie k v</code>, then <code>TrieF k v A -&gt; A</code> describes how to fold up one layer of our <code>Trie k v</code> into our final result value (here, of type <code>A</code>). Remember that a <code>TrieF k v A</code> contains a <code>Maybe v</code> and a <code>Map k A</code>. The <code>A</code> we are given (as the values of the given map) are the results of folding up all of the original subtries along each key; it’s the “results so far”. The values in the map become the very things we swore to create.</p>
+<p>Then, we use <code>cata</code> to “fold” our value along the algebra:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>cata<span class="ot"> myAlg ::</span> <span class="dt">Trie</span> k v <span class="ot">-&gt;</span> <span class="dt">A</span></span></code></pre></div>
+<p><code>cata</code> starts from the bottom-most layer, runs <code>myAlg</code> on that, then goes up a layer, running <code>myAlg</code> on the results, then goes up another layer, running <code>myAlg</code> on those results, etc., until it reaches the top layer and runs <code>myAlg</code> again to produce the final result.</p>
+<p>For example, we’ll write a catamorphism that counts how many values/leaves we have in our trie as an <code>Int</code>. Since our result is an <code>Int</code>, we know we want an algebra returning an <code>Int</code>:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ot">countAlg ::</span> <span class="dt">TrieF</span> k v <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span></code></pre></div>
+<p>This is the basic structure of an algebra: our final result type (<code>Int</code>) becomes the parameter of <code>TrieF k v</code> (as <code>TrieF k v Int</code>), and also the result of our algebra.</p>
+<p>Remember that a <code>Trie k v</code> contains a <code>Maybe v</code> and a <code>Map k (Trie k v)</code>, and a <code>TrieF k v Int</code> contains a <code>Maybe v</code> and a <code>Map k Int</code>. In a <code>Trie k v</code>, the <code>Map</code> contains all of the subtries under each branch. For <code>countAlg</code>, in our <code>TrieF k v Int</code> we are given, the <code>Map</code> contains the <em>counts</em> of each of those original subtries under each branch.</p>
+<p>Basically, our task is “Given a map of sub-counts, how do we find the total count?”</p>
+<p>With this in mind, we can write <code>countAlg</code>:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/trie/trie.hs#L66-L71</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="ot">countAlg ::</span> <span class="dt">TrieF</span> k v <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>countAlg (<span class="dt">MkTF</span> v subtrieCounts)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> isJust v  <span class="ot">=</span> <span class="dv">1</span> <span class="op">+</span> subtrieTotal</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="fu">otherwise</span> <span class="ot">=</span> subtrieTotal</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    subtrieTotal <span class="ot">=</span> <span class="fu">sum</span> subtrieCounts</span></code></pre></div>
+<p>If <code>v</code> is indeed a leaf (it’s <code>Just</code>), then it’s one plus the total counts of all of the subtries (remember, the <code>Map k Int</code> contains the counts of all of the original subtries, under each key). Otherwise, it’s just the total counts of all of the original subtries.</p>
+<p>Our final <code>count</code> is, then:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/trie/trie.hs#L63-L64</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="ot">count ::</span> <span class="dt">Trie</span> k v <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>count <span class="ot">=</span> cata countAlg</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> count testTrie</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="dv">3</span></span></code></pre></div>
+<p>We can do something similar by writing a summer, as well, to sum up all values inside a trie:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/trie/trie.hs#L73-L77</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="ot">trieSumAlg ::</span> <span class="dt">Num</span> a <span class="ot">=&gt;</span> <span class="dt">TrieF</span> k a a <span class="ot">-&gt;</span> a</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>trieSumAlg (<span class="dt">MkTF</span> v subtrieSums) <span class="ot">=</span> fromMaybe <span class="dv">0</span> v <span class="op">+</span> <span class="fu">sum</span> subtrieSums</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="ot">trieSum ::</span> <span class="dt">Num</span> a <span class="ot">=&gt;</span> <span class="dt">Trie</span> k a <span class="ot">-&gt;</span> a</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>trieSum <span class="ot">=</span> cata trieSumAlg</span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> trieSum testTrie</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="dv">14</span></span></code></pre></div>
+<p>In the algebra, the <code>subtrieSums :: Map k a</code> contains the sums of all of the subtries. Under key <code>k</code>, we have the sum of the subtrie that was originally at kie <code>k</code>. The algebra, therefore, just adds up all of the subtrie sums with the value at that layer. “Given a map of sub-sums, how do we find a total sum?”</p>
+<h4 id="down-from-the-high-ground">Down from the High Ground</h4>
+<p>Catamorphisms are naturally “inside-out”, or “bottom-up”. However, some operations are more naturally “outside-in”, or “top-down”. One immediate example is <code>lookup :: [k] -&gt; Trie k v -&gt; Maybe v</code>, which is quintessentially “top-down”: it first descends down the first item in the <code>[k]</code>, then the second, then the third, etc. until you reach the end, and return the <code>Maybe v</code> at that layer.</p>
+<p>Is that…legal?</p>
+<p>In this case, we can make it legal by inverting control: instead of folding into a <code>Maybe v</code> directly, fold into a “looker upper”, a <code>[k] -&gt; Maybe v</code>. We generate a “lookup function” from the bottom-up, and then run that all in the end on the key we want to look up.</p>
+<p>Our algebra will therefore have type:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>lookupperAlg</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> <span class="dt">Ord</span> k</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=&gt;</span> <span class="dt">TrieF</span> k v ([k] <span class="ot">-&gt;</span> <span class="dt">Maybe</span> v)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> ([k] <span class="ot">-&gt;</span> <span class="dt">Maybe</span> v)</span></code></pre></div>
+<p>A <code>TrieF k v ([k] -&gt; Maybe v)</code> contains a <code>Maybe v</code> and a <code>Map k ([k] -&gt; Maybe v)</code>, or a map of “lookuppers”. Indexed at each key is function of how to look up a given key in the original subtrie.</p>
+<p>So, we are tasked with “how to implement a lookupper, given a map of sub-lookuppers”.</p>
+<p>To do this, we can pattern match on the key we are looking up. If it’s <code>[]</code>, then we just return the current leaf (if it exists). Otherwise, if it’s <code>k:ks</code>, we can <em>run the lookupper of the subtrie at key <code>k</code></em>.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/trie/trie.hs#L87-L102</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>lookupperAlg</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> <span class="dt">Ord</span> k</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=&gt;</span> <span class="dt">TrieF</span> k v ([k] <span class="ot">-&gt;</span> <span class="dt">Maybe</span> v)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> ([k] <span class="ot">-&gt;</span> <span class="dt">Maybe</span> v)</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>lookupperAlg (<span class="dt">MkTF</span> v lookuppers) <span class="ot">=</span> \<span class="kw">case</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    []   <span class="ot">-&gt;</span> v</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>    k<span class="op">:</span>ks <span class="ot">-&gt;</span> <span class="kw">case</span> M.lookup k lookuppers <span class="kw">of</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Nothing</span>        <span class="ot">-&gt;</span> <span class="dt">Nothing</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Just</span> lookupper <span class="ot">-&gt;</span> lookupper ks</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="fu">lookup</span></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> <span class="dt">Ord</span> k</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=&gt;</span> [k]</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">Trie</span> k v</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">Maybe</span> v</span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a><span class="fu">lookup</span> ks t <span class="ot">=</span> cata lookupperAlg t ks</span></code></pre></div>
+<p>(written using the -XLambdaCase extension, allowing for <code>\case</code> syntax)</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="fu">lookup</span> <span class="st">&quot;to&quot;</span> testTrie</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dv">9</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="fu">lookup</span> <span class="st">&quot;ton&quot;</span> testTrie</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dv">3</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="fu">lookup</span> <span class="st">&quot;tone&quot;</span> testTrie</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="dt">Nothing</span></span></code></pre></div>
+<p>Note that because <code>Map</code>s have lazy values by default, we only ever actually generate “lookuppers” for subtries under keys that we eventually descend on; any other subtries will be ignored (and no lookuppers are ever generated for them).</p>
+<p>In the end, this version has all of the same performance characteristics as the explicitly recursive one; we’re assembling a “lookupper” that stops as soon as it sees either a failed lookup (so it doesn’t cause any more evaluation later on), or stops when it reaches the end of its list.</p>
+<h4 id="i-think-the-system-works">I Think the System Works</h4>
+<p>We’ve now written a couple of non-recursive functions to “query” <code>Trie</code>. But what was the point, again? What do we gain over writing explicit versions to query Trie? Why couldn’t we just write:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/trie/trie.hs#L79-L81</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="ot">trieSumExplicit ::</span> <span class="dt">Num</span> a <span class="ot">=&gt;</span> <span class="dt">Trie</span> k a <span class="ot">-&gt;</span> a</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>trieSumExplicit (<span class="dt">MkT</span> v subtries) <span class="ot">=</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    fromMaybe <span class="dv">0</span> v <span class="op">+</span> <span class="fu">sum</span> (<span class="fu">fmap</span> trieSumExplicit subtries)</span></code></pre></div>
+<p>instead of</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/trie/trie.hs#L83-L85</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="ot">trieSumCata ::</span> <span class="dt">Num</span> a <span class="ot">=&gt;</span> <span class="dt">Trie</span> k a <span class="ot">-&gt;</span> a</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>trieSumCata <span class="ot">=</span> cata <span class="op">$</span> \(<span class="dt">MkTF</span> v subtrieSums) <span class="ot">-&gt;</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    fromMaybe <span class="dv">0</span> v <span class="op">+</span> <span class="fu">sum</span> subtrieSums</span></code></pre></div>
+<p>One major reason, like I mentioned before, is to avoid using <em>explicit recursion</em>. It’s extremely easy when using explicit recursion to accidentally write an infinite loop, or to mess up your control flow somehow. It’s basically like using <code>GOTO</code> instead of <code>while</code> or <code>for</code> loops in imperative languages. <code>while</code> and <code>for</code> loops are meant to abstract over a common type of looping control flow, and provide a disciplined structure for them. They also are often much easier to read, because as soon as you see “while” or “for”, it gives you a hint at programmer intent in ways that an explicit GOTO might not.</p>
+<p>Another major reason is to allow you to separate concerns. Writing <code>trieSumExplicit</code> forces you to think “how to fold this entire trie”. Writing <code>trieSumAlg</code> allows us to just focus on “how to fold <em>this immediate</em> layer”. You only need to ever focus on the immediate layer you are trying to sum — and never the entire trie. <code>cata</code> takes your “how to fold this immediate layer” function and turns it into a function that folds an entire trie, taking care of the recursive descent for you.</p>
+<div class="note">
+<p><strong>Aside</strong></p>
+<p>Before we move on, I just wanted to mention that <code>cata</code> is not a magic function. From the clues above, you might actually be able to implement it yourself. For our <code>Trie</code>, it’s:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/trie/trie.hs#L104-L105</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="ot">cata&#39; ::</span> (<span class="dt">TrieF</span> k v a <span class="ot">-&gt;</span> a) <span class="ot">-&gt;</span> <span class="dt">Trie</span> k v <span class="ot">-&gt;</span> a</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>cata&#39; alg <span class="ot">=</span> alg <span class="op">.</span> <span class="fu">fmap</span> (cata&#39; alg) <span class="op">.</span> project</span></code></pre></div>
+<p>First we <code>project :: Trie k v -&gt; TrieF k v (Trie k v)</code>, to “de-recursive” our type. Then we fmap our entire <code>cata alg :: Trie k v -&gt; a</code>. Then we run the <code>alg :: TrieF k v a -&gt; a</code> on the result. Basically, it’s fmap-collapse-then-collapse.</p>
+<p>It might be interesting to note that the implementation of <code>cata'</code> here requires explicit recursion. One of the purposes of using recursion schemes like <code>cata</code> is to avoid directly using recursion explicitly, and “off-loading” the recursion to one reusable function. So in a sense, it’s ironic: <code>cata</code> can save other functions from explicit recursion, but not itself.</p>
+<p>Or, can it? The reason <code>cata'</code> is necessarily recursive here is that our <code>Trie</code> data type is recursive. However, we can actually encode <code>Trie</code> using an alternative representation (in terms of <code>TrieF</code>), and it’s possible to write <code>cata'</code> in a non-recursive way:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/trie/trie.hs#L107-L110</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="kw">newtype</span> <span class="dt">MuTrie</span> k v <span class="ot">=</span> <span class="dt">MkMT</span> (<span class="kw">forall</span> a<span class="op">.</span> (<span class="dt">TrieF</span> k v a <span class="ot">-&gt;</span> a) <span class="ot">-&gt;</span> a)</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="ot">cataMuTrie ::</span> (<span class="dt">TrieF</span> k v a <span class="ot">-&gt;</span> a) <span class="ot">-&gt;</span> <span class="dt">MuTrie</span> k v <span class="ot">-&gt;</span> a</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>cataMuTrie alg (<span class="dt">MkMT</span> f) <span class="ot">=</span> f alg</span></code></pre></div>
+<p><code>Trie'</code> is actually isomorphic to <code>Trie</code>, so they’re the same type (it’s actually <code>type MuTrie k v = Mu (TrieF k v)</code>, using <code>Mu</code> from <em>recursion-schemes</em>). If you don’t believe me, <a href="https://github.com/mstksg/inCode/tree/master/code-samples/trie/trie.hs#L112-L116">here’s the isomorphism</a>. This is actually one way we can encode recursive types in a language that doesn’t have any, like <a href="https://github.com/sellout/dada/blob/master/Mu/Type">dhall</a>.</p>
+</div>
+<h3 id="generating-tries">Generating Tries</h3>
+<p><em>Anamorphisms</em>, the dual of catamorphisms, will make another fine addition to our collection. They are functions that “generate” or “unfold” a value of a recursive type, layer-by-layer. If we want to write a function of type <code>A -&gt; Trie k v</code>, we can reach first for an anamorphism.</p>
+<p>Anamorphisms work by unfolding “layer-by-layer”, from the outside-in (top-down). We write one by defining “how to generate the next layer”. This description comes in the form of a “coalgebra” (pronounced like “co-algebra”, and not like coal energy “coal-gebra”), in terms of the base functor:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="ot">myCoalg ::</span> <span class="dt">A</span> <span class="ot">-&gt;</span> <span class="dt">TrieF</span> k v <span class="dt">A</span></span></code></pre></div>
+<p>If we think of <code>TrieF k v a</code> as “one layer” of a <code>Trie k v</code>, then <code>A -&gt; TrieF k v A</code> describes how to generate a new nested layer of our <code>Trie k v</code> from our initial “seed” (here, of type <code>A</code>). It tells us how to generate the next immediate layer. Remember that a <code>TrieF k v A</code> contains a <code>Maybe v</code> and a <code>Map k A</code>. The <code>A</code> (the values of the map) are then used to seed the <em>new</em> subtries. The <code>A</code>s in the map are the “continue expanding with…” values.</p>
+<p>We can then use <code>ana</code> to “unfold” our value along the coalgebra:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>ana<span class="ot"> myCoalg ::</span> <span class="dt">A</span> <span class="ot">-&gt;</span> <span class="dt">Trie</span> k v</span></code></pre></div>
+<p><code>ana</code> starts from an initial seed <code>A</code>, runs <code>myCoalg</code> on that, and then goes down a layer, running <code>myCoalg</code> on each value in the map to create new layers, etc., forever and ever. In practice, it usually stops when we return a <code>TrieF</code> with an empty map, since there are no more seeds to expand down. However, it’s nice to remember we don’t have to special-case this behavior: it arises naturally from the structure of maps.</p>
+<p>While I don’t have a concrete “universal” example (like how we had <code>count</code> and <code>sum</code> for <code>cata</code>), the general idea is that if you want to create a value by repeatedly “expanding leaves”, an anamorphism is a perfect fit.</p>
+<p>An example here that fits well with the nature of a trie is to produce a “singleton trie”: a trie that has only a single value at a single token string key.</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/trie/trie.hs#L121-L125</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="ot">mkSingletonCoalg ::</span> v <span class="ot">-&gt;</span> ([k] <span class="ot">-&gt;</span> <span class="dt">TrieF</span> k v [k])</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>mkSingletonCoalg v <span class="ot">=</span> singletonCoalg</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>    singletonCoalg []     <span class="ot">=</span> <span class="dt">MkTF</span> (<span class="dt">Just</span> v) M.empty</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>    singletonCoalg (k<span class="op">:</span>ks) <span class="ot">=</span> <span class="dt">MkTF</span> <span class="dt">Nothing</span>  (M.singleton k ks)</span></code></pre></div>
+<p>Given a <code>v</code> value, we’ll make a coalgebra <code>[k] -&gt; TrieF k v [k]</code>. Our “seed” will be the <code>[k]</code> key (token string) we want to insert, and we’ll generate our singleton key by making sub-maps with sub-keys.</p>
+<p>Our coalgebra (“layer generating function”) goes like this:</p>
+<ol type="1">
+<li><p>If our key-to-insert is empty <code>[]</code>, then we’re here! We’re at <em>the layer</em> where we want to insert the value at, so <code>MkTF (Just v) M.empty</code>. Returning <code>M.empty</code> means that we don’t want to expand anymore, since there are no new seeds to expand into subtries.</p></li>
+<li><p>If our key-to-insert is <em>not</em> empty, then we’re <em>not</em> here! We return <code>MkTF Nothing</code>…but we leave a singleton map <code>M.singleton k ks :: Map k     [k]</code> leaving a single seed. When we run our coalgebra with <code>ana</code>, <code>ana</code> will go down and expand out that single seed (with our coalgebra) into an entire new sub-trie, with <code>ks</code> as its seed.</p></li>
+</ol>
+<p>So, we have <code>singleton</code>:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/trie/trie.hs#L118-L119</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="ot">singleton ::</span> [k] <span class="ot">-&gt;</span> v <span class="ot">-&gt;</span> <span class="dt">Trie</span> k v</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>singleton k v <span class="ot">=</span> ana (mkSingletonCoalg v) k</span></code></pre></div>
+<p>We run the coalgebra on our initial seed (the key), and ana will run <code>singletonCoalg</code> repeatedly, expanding out all of the seeds we deposit, forever and ever (or at least until there are no more values of the seed type left, which happens if we return an empty map).</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> singleton <span class="st">&quot;hi&quot;</span> <span class="dv">7</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="dt">MkT</span> <span class="dt">Nothing</span> <span class="op">$</span> M.fromList [</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>    (<span class="ch">&#39;h&#39;</span>, <span class="dt">MkT</span> <span class="dt">Nothing</span> <span class="op">$</span> M.fromList [</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>        (<span class="ch">&#39;i&#39;</span>, <span class="dt">MkT</span> (<span class="dt">Just</span> <span class="dv">7</span>) M.empty )</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>      ]</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>  ]</span></code></pre></div>
+<h3 id="a-pathway-to-many-subtries">A pathway to many subtries</h3>
+<p>Now that we’ve got the basics, let’s look at a more interesting anamorphism, where we leave multiple “seeds” along many different keys in the map, to generate many different subtries from our root. Twice the seeds, double the subtries.</p>
+<p>Let’s write a function to generate a <code>Trie k v</code> from a <code>Map [k] v</code>: Given a map of keys (as token strings), generate a prefix trie containing every key-value pair in the map.</p>
+<p>This might sound complicated, but let’s remember the philosophy and approach of writing an anamorphism: “How do I generate <em>one layer</em>”?</p>
+<p>Our <code>fromMapCoalg</code> will take a <code>Map [k] v</code> and generate <code>TrieF k v (Map [k] v)</code>: <em>one single layer</em> of our new Trie (in particular, the <em>top layer</em>). The values in each of the resultant maps will be later then watered and expanded into their own fully mature subtries.</p>
+<p>So, how do we generate the <em>top layer</em> of a prefix trie from a map? Well, remember, to make a <code>TrieF k v (Map [k] v)</code>, we need a <code>Maybe v</code> (the value at this layer) and a <code>Map k (Map [k] v)</code> (the map of seeds that will each expand into full subtries).</p>
+<ul>
+<li>If the map contains <code>[]</code> (the empty string), then there <em>is a value</em> at this layer. We will return <code>Just</code>.</li>
+<li>In the <code>Map k (Map [k] v)</code>, the value at key <code>k</code> is a <code>Map</code> containing all of the key-value pairs in the original map that <em>start with k</em>.</li>
+</ul>
+<p>For a concrete example, if we start with <code>M.fromList [("to", 9), ("ton", 3), ("tax", 2)]</code>, then we want <code>fromMapCoalg</code> to produce:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>fromMap (M.fromList [(<span class="st">&quot;to&quot;</span>, <span class="dv">9</span>), (<span class="st">&quot;ton&quot;</span>, <span class="dv">3</span>), (<span class="st">&quot;tax&quot;</span>, <span class="dv">2</span>)])</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=</span> <span class="dt">MkTF</span> <span class="dt">Nothing</span> (</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>          M.fromList [</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>            (<span class="ch">&#39;t&#39;</span>, M.fromList [</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>                (<span class="st">&quot;o&quot;</span> , <span class="dv">9</span>)</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>              , (<span class="st">&quot;on&quot;</span>, <span class="dv">3</span>)</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>              , (<span class="st">&quot;ax&quot;</span>, <span class="dv">2</span>)</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>              ]</span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>            )</span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>          ]</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>        )</span></code></pre></div>
+<p>The value is <code>Nothing</code> because we don’t have the empty string (so there is no to-level value), and the map at <code>t</code> contains all of the original key-value pairs that began with <code>t</code>.</p>
+<p>Now that we have the concept, we can implement it using <code>Data.Map</code> combinators like <code>M.lookup</code>, <code>M.toList</code>, <code>M.fromListWith</code>, and <code>M.union</code>.</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/trie/trie.hs#L127-L142</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>fromMapCoalg</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> <span class="dt">Ord</span> k</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=&gt;</span> <span class="dt">Map</span> [k] v</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">TrieF</span> k v (<span class="dt">Map</span> [k] v)</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>fromMapCoalg mp <span class="ot">=</span> <span class="dt">MkTF</span> (M.lookup [] mp)</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>                       (M.fromListWith M.union</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>                          [ (k   , M.singleton ks v)</span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>                          <span class="op">|</span> (k<span class="op">:</span>ks, v) <span class="ot">&lt;-</span> M.toList mp</span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>                          ]</span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>                       )</span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a>fromMap</span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> <span class="dt">Ord</span> k</span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=&gt;</span> <span class="dt">Map</span> [k] v</span>
+<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">Trie</span> k v</span>
+<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a>fromMap <span class="ot">=</span> ana fromMapCoalg</span></code></pre></div>
+<p>And just like that, we have a way to turn a <code>Map [k]</code> into a <code>Trie k</code>…all just from describing how to make <em>the top-most layer</em>. <code>ana</code> extrapolates the rest!</p>
+<p>Again, we can ask what the point of this is: why couldn’t we just write it directly recursively? The answers are the same as before: first, to avoid potential bugs from explicit recursion. Second, to separate concerns: instead of thinking about how to generate an entire trie, we only need to be think about how to generate a single layer. <code>ana</code> reads our mind here, and extrapolates out the entire trie.</p>
+<div class="note">
+<p><strong>Aside</strong></p>
+<p>Again, let’s take some time to reassure ourselves that <code>ana</code> is not a magic function. You might have been able to guess how it’s implemented: it runs the coalgebra, and then fmaps re-expansion recursively.</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/trie/trie.hs#L144-L145</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="ot">ana&#39; ::</span> (a <span class="ot">-&gt;</span> <span class="dt">TrieF</span> k v a) <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> <span class="dt">Trie</span> k v</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>ana&#39; coalg <span class="ot">=</span> embed <span class="op">.</span> <span class="fu">fmap</span> (ana&#39; coalg) <span class="op">.</span> coalg</span></code></pre></div>
+<p>First, we run the <code>coalg :: a -&gt; TrieF k v a</code>, then we fmap our entire <code>ana coalg :: a -&gt; Trie k v</code>, then we <code>embed :: TrieF k v (Trie k v) -&gt; Trie k v</code> back into our recursive type.</p>
+<p>And again, because <code>Trie</code> is a recursive data type, <code>ana</code> is also necessarily one. However, like for <code>cata</code>, we can represent <code>Trie</code> in a way (in terms of <code>TrieF</code>) that allows us to write <code>ana</code> in a non-recursive way:</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/trie/trie.hs#L147-L150</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">NuTrie</span> k v <span class="ot">=</span> <span class="kw">forall</span> a<span class="op">.</span> <span class="dt">MkNT</span> (a <span class="ot">-&gt;</span> <span class="dt">TrieF</span> k v a) a</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a><span class="ot">anaNuTrie ::</span> (a <span class="ot">-&gt;</span> <span class="dt">TrieF</span> k v a) <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> <span class="dt">NuTrie</span> k v </span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>anaNuTrie <span class="ot">=</span> <span class="dt">MkNT</span></span></code></pre></div>
+<p><code>NuTrie k v</code> here is <code>Nu (TrieF k v)</code>, from <em>recursion-schemes</em>. <code>NuTrie</code> is also isomorphic to <code>Trie</code> (as seen by <a href="https://github.com/mstksg/inCode/tree/master/code-samples/trie/trie.hs#L152-L156">this isomorphism</a>), so they are the same type. We can also use it to represent recursive data types in a non-recursive language (like <a href="https://github.com/sellout/dada/blob/master/Nu/Type">dhall</a>).</p>
+</div>
+<h2 id="ive-been-looking-forward-to-this">I’ve been looking forward to this</h2>
+<p>So those are some examples to get our feet wet; now it’s time to build our prequel meme trie! Yipee!</p>
+<p>We’re going to try to re-create this reference trie: (<a href="/img/entries/trie/reference-trie.png">full size here</a>)</p>
+<figure>
+<img src="/img/entries/trie/reference-trie.png" title="Reference trie" alt="Reference trie (credit to u/Uninventive_Username)" />
+<figcaption aria-hidden="true">Reference trie (credit to <a href="https://www.reddit.com/r/PrequelMemes/comments/9w59t4/i_expanded_it/">u/Uninventive_Username</a>)</figcaption>
+</figure>
+<p>To render our tree, we’re going to be using the <em><a href="https://hackage.haskell.org/package/graphviz">graphviz</a></em> library, which generates a <em><a href="https://en.wikipedia.org/wiki/DOT_(graph_description_language)">DOT file</a></em> which the <a href="https://www.graphviz.org/">graphviz application</a> can render. The <em>graphviz</em> library directly renders a value of the graph data type from <em><a href="https://hackage.haskell.org/package/fgl">fgl</a></em>, the functional graph library that is the de-facto fleshed-out graph manipulation library of the Haskell ecosystem.</p>
+<p>The roadmap seems straightforward:</p>
+<ol type="1">
+<li>Load our prequel memes into a <code>Map String Label</code>, a map of quotes to their associated macro images (as a <code>Label</code>, which the <em>graphviz</em> library can render)</li>
+<li>Use <code>ana</code> to turn a <code>Map String Label</code> into a <code>Trie Char Label</code></li>
+<li>Use <code>cata</code> to turn a <code>Trie Char Label</code> into a <code>Gr (Maybe Label) Char</code> graph of nodes linked by letters, with prequel meme leaves</li>
+<li>Use the <em>graphviz</em> library to turn that graph into a DOT file, to be rendered by the external graphviz application.</li>
+</ol>
+<p>1 and 4 are mainly fumbling around with IO, parsing, and interfacing with libraries, so 2 and 3 are the interesting steps in our case. We actually already wrote 2 (in the previous section — surprise!), so that just leaves 3 to investigate.</p>
+<h3 id="monadic-catamorphisms-and-fgl">Monadic catamorphisms and fgl</h3>
+<p><em>fgl</em> provides a two (interchangeable) graph types; for the sake of this article, we’re going to be using <code>Gr</code> from the <em>Data.Graph.Inductive.PatriciaTree</em> module<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>.</p>
+<p>The type <code>Gr a b</code> represents a graph of vertices with labels of type <code>a</code>, and edges with labels of type <code>b</code>. In our case, for a <code>Trie k v</code>, we’ll have a graph with nodes of type <code>Maybe v</code> (the leaves, if they exist) and edges of type <code>k</code> (the token linking one node to the next).</p>
+<p>Our end goal, then, is to write a function <code>Trie k v -&gt; Gr (Maybe v) k</code>. Knowing this, we can jump directly into writing an algebra:</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>trieGraphAlg</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> <span class="dt">TrieF</span> k v (<span class="dt">Gr</span> (<span class="dt">Maybe</span> v) k)</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">Gr</span> (<span class="dt">Maybe</span> v) k</span></code></pre></div>
+<p>and then using <code>cata trieGraphAlg :: Trie k v -&gt; Gr (Maybe v) k</code>.</p>
+<p>This isn’t a particularly bad way to go about it, and you won’t have <em>too</em> many problems. However, this might be a good learning opportunity to practice writing “monadic” catamorphisms.</p>
+<p>That’s because to create a graph using <em>fgl</em>, you need to manage Node ID’s, which are represented as <code>Int</code>s. To add a node, you need to generate a fresh Node ID. <em>fgl</em> has some nice tools for managing this, but we can have some fun by taking care of it ourselves using the so-called “state monad”, <code>State Int</code>.</p>
+<p>We can use <code>State Int</code> as a way to generate “fresh” node ID’s on-demand, with the action <code>fresh</code>:</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/trie/trie.hs#L158-L159</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="ot">fresh ::</span> <span class="dt">State</span> <span class="dt">Int</span> <span class="dt">Int</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>fresh <span class="ot">=</span> state <span class="op">$</span> \i <span class="ot">-&gt;</span> (i, i<span class="op">+</span><span class="dv">1</span>)</span></code></pre></div>
+<p><code>fresh</code> will return the current counter state to produce a new node ID, and then increment the counter so that the next invocation will return a new node ID.</p>
+<p>In this light, we can frame our big picture as writing a <code>Trie k v -&gt; State Int (Gr (Maybe v) k)</code>: turn a <code>Trie k v</code> into a state action to generate a graph.</p>
+<p>To write this, we lay out our algebra:</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>trieGraphAlg</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> <span class="dt">TrieF</span> k v (<span class="dt">State</span> <span class="dt">Int</span> (<span class="dt">Gr</span> (<span class="dt">Maybe</span> v) k))</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">State</span> <span class="dt">Int</span> (<span class="dt">Gr</span> (<span class="dt">Maybe</span> v) k)</span></code></pre></div>
+<p>We have to write a function “how to make a state action creating a graph, given a map of state actions creating sub-graphs”.</p>
+<p>One interesting thing to note is that we have a lot to gain from using “first-class effects”: <code>State Int (Gr (Maybe v) k)</code> is just a normal, inert Haskell value that we can manipulate and sequence however we want. State is not only explicit, but the sequencing of actions (as first-class values) is also explicit.</p>
+<p>We can write this using <em>fgl</em> combinators:</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/trie/trie.hs#L166-L177</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>trieGraphAlg</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> <span class="dt">TrieF</span> k v (<span class="dt">State</span> <span class="dt">Int</span> (<span class="dt">Gr</span> (<span class="dt">Maybe</span> v) k))</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">State</span> <span class="dt">Int</span> (<span class="dt">Gr</span> (<span class="dt">Maybe</span> v) k)</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>trieGraphAlg (<span class="dt">MkTF</span> v xs) <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>    n         <span class="ot">&lt;-</span> fresh</span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>    subgraphs <span class="ot">&lt;-</span> <span class="fu">sequence</span> xs</span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">--  subbroots :: [(k, Int)]</span></span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> subroots <span class="ot">=</span> M.toList <span class="op">.</span> <span class="fu">fmap</span> (<span class="fu">fst</span> <span class="op">.</span> G.nodeRange) <span class="op">$</span> subgraphs</span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pure</span> <span class="op">$</span> G.insEdges ((\(k,i) <span class="ot">-&gt;</span> (n,i,k)) <span class="op">&lt;$&gt;</span> subroots)   <span class="co">-- insert root-to-subroots</span></span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>         <span class="op">.</span> G.insNode (n, v)                     <span class="co">-- insert new root</span></span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>         <span class="op">.</span> M.foldr (G.ufold (<span class="op">G.&amp;</span>)) G.empty      <span class="co">-- merge all subgraphs</span></span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a>         <span class="op">$</span> subgraphs</span></code></pre></div>
+<ol type="1">
+<li><p>First, generate and reserve a fresh node label</p></li>
+<li><p>Then, sequence all of the state actions inside the map of sub-graph generators. Remember, a <code>TrieF k v (State Int (Gr (Maybe v) k))</code> contains a <code>Maybe v</code> and a <code>Map k (State Int (Gr (Maybe v) k))</code>. The map contains State actions to create the sub-graphs, and we use:</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sequence</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> <span class="dt">Map</span> k (<span class="dt">State</span> <span class="dt">Int</span> (<span class="dt">Gr</span> (<span class="dt">Maybe</span> v) k))</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">State</span> <span class="dt">Int</span> (<span class="dt">Map</span> k (<span class="dt">Gr</span> (<span class="dt">Maybe</span> v) k))</span></code></pre></div>
+<p>to turn a map of subgraph-producing actions into an action producing a map of subgraphs.</p>
+<p>Note that this is made much simpler because of explicit state sequencing, since it gives us the opportunity to choose what “order” we want to perform our actions. Putting this after <code>fresh</code> ensures that the nodes in the subtries all have larger ID’s than the root node. If we swap the order of the actions, we can actually invert the node ordering.</p></li>
+<li><p>Next, it’s useful to collect all of the subroots, <code>subroots :: [(k, Int)]</code>. These are all of the node id’s of the roots of each of the subtries, paired with the token leading to that subtrie.</p></li>
+<li><p>Now to produce our result:</p>
+<ol type="a">
+<li>First we merge all subgraphs (using <code>G.ufold (G.&amp;)</code> to merge together two graphs)</li>
+<li>Then, we insert the new root, with our fresh node ID and the new <code>Maybe     v</code> label.</li>
+<li>Then, we insert all of the edges connecting our new root to the root of all our subgraphs (in <code>subroots</code>).</li>
+</ol></li>
+</ol>
+<p>We can then write our graph generating function using this algebra, and then running the resulting <code>State Int (Gr (Maybe v) k)</code> action:</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/trie/trie.hs#L161-L164</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>trieGraph</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> <span class="dt">Trie</span> k v</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">Gr</span> (<span class="dt">Maybe</span> v) k</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>trieGraph <span class="ot">=</span> <span class="fu">flip</span> evalState <span class="dv">0</span> <span class="op">.</span> cata trieGraphAlg</span></code></pre></div>
+<p>Finally, we can write our <code>mapToGraph</code>:</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>mapToGraph</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> <span class="dt">Ord</span> k</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=&gt;</span> <span class="dt">Map</span> [k] v</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">Gr</span> (<span class="dt">Maybe</span> v) k</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>mapToGraph <span class="ot">=</span> <span class="fu">flip</span> evalState <span class="dv">0</span></span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>           <span class="op">.</span> cata trieGraphAlg</span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>           <span class="op">.</span> ana fromGraphCoalg</span></code></pre></div>
+<h3 id="hylomorphisms">Hylomorphisms</h3>
+<p>Actually, writing things out as <code>mapToGraph</code> gives us some interesting insight: our function takes a <code>Map [k] v</code>, and returns a <code>Gr (Maybe v) k</code>. Notice that <code>Trie k v</code> isn’t anywhere in the type signature. This means that, to the external user, <code>Trie</code>’s role is completely internal.</p>
+<p>In other words, <code>Trie</code> <em>itself</em> doesn’t seem to matter at all. We really want a <code>Map [k] v -&gt; Gr (Maybe v) k</code>, and we’re just using <code>Trie</code> as an <em>intermediate data structure</em>. We are exploiting its internal structure to write our full function, and we don’t care about it outside of that. We build it up with <code>ana</code> and then immediately tear it down with <code>cata</code>, and it is completely invisible to the outside world.</p>
+<p>One neat thing about <em>recursion-schemes</em> is that it lets us capture this “the actual fixed-point is only intermediate and is not directly consequential to the outside world” pattern. First, we walk ourselves through the following reasoning steps:</p>
+<ul>
+<li>We don’t care about <code>Trie</code> itself as a result or input. We only care about it because we exploit its internal structure.</li>
+<li><code>TrieF</code> <em>already</em> expresses the internal structure of <code>Trie</code></li>
+<li>Therefore, if we only want to take advantage of the structure, we really only ever need <code>TrieF</code>. We can completely bypass <code>Trie</code>.</li>
+</ul>
+<p>This should make sense in our case, because the only reason we use <code>Trie</code> is for its internal structure. But <code>TrieF</code> <em>already</em> captures the internal structure — thus, we really only need to ever worry about <code>TrieF</code>. We don’t actually care about the recursive data type — we never did!</p>
+<p>In this spirit, <em>recursion-schemes</em> offers the <em>hylomorphism</em> recursion scheme:</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>hylo</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> (<span class="dt">TrieF</span> k v b <span class="ot">-&gt;</span> b)   <span class="co">-- ^ an algebra</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> <span class="dt">TrieF</span> k v a)   <span class="co">-- ^ a coalgebra</span></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> a</span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> b</span></code></pre></div>
+<p>If we see the coalgebra <code>a -&gt; TrieF k v a</code> as a “building” function, and the algebra <code>TrieF k v b -&gt; b</code> as a “consuming” function, then <code>hylo</code> will <em>build, then immediately consume</em>. It’ll build with the coalgebra on <code>TrieF</code>, then immediately consume with the algebra on <code>TrieF</code>. No <code>Trie</code> is ever generated, because it’s never necessary: we’re literally just building and immediately consuming <code>TrieF</code> values.</p>
+<p>We could even implement <code>hylo</code> ourselves, to illustrate the “build and immediately consume” property:</p>
+<div class="sourceCode" id="cb38"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/trie/trie.hs#L185-L192</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>hylo&#39;</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> (<span class="dt">TrieF</span> k v b <span class="ot">-&gt;</span> b)   <span class="co">-- ^ an algebra</span></span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> <span class="dt">TrieF</span> k v a)   <span class="co">-- ^ a coalgebra</span></span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> a</span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> b</span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a>hylo&#39; consume build <span class="ot">=</span> consume</span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a>                    <span class="op">.</span> <span class="fu">fmap</span> (hylo&#39; consume build)</span>
+<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a>                    <span class="op">.</span> build</span></code></pre></div>
+<p>Note that the implementation of <code>hylo</code> given above works for any <code>Functor</code> instance: we build and consume along <em>any</em> <code>Functor</code>, taking advantage of the specific functor’s structure. The fixed-point never comes into the picture.</p>
+<p>To me, being able to implement a function in terms of <code>hylo</code> (or any other refolder, like its cousin <code>chrono</code>, the chronomorphism) represents the ultimate “victory” in using <em>recursion-schemes</em> to refactor out your functions. That’s because it helps us realize that we never really cared about having a recursive data type in the first place. <code>Trie</code> was never the actual thing we wanted: we really just wanted its layer-by-layer structure. This whole time, we just cared about the structure of <code>TrieF</code>, <em>not</em> <code>Trie</code>. Being able to use <code>hylo</code> lets us see that the original recursive data type was nothing more than a distraction. Through it, we see the light.</p>
+<p>I call the experiencing of making this revelation “achieving hylomorphism”.</p>
+<p>Our final map-to-graph function can therefore be expressed as:</p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/trie/trie.hs#L179-L183</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>mapToGraph</span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> <span class="dt">Ord</span> k</span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=&gt;</span> <span class="dt">Map</span> [k] v</span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">Gr</span> (<span class="dt">Maybe</span> v) k</span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>mapToGraph <span class="ot">=</span> <span class="fu">flip</span> evalState <span class="dv">0</span> <span class="op">.</span> hylo trieGraphAlg fromMapCoalg</span></code></pre></div>
+<h3 id="pack-your-things">Pack your things</h3>
+<p>To wrap things up, I made a text file storing all of the prequel quotes in the original reference trie along with images stored on my drive: (you can find a them <a href="https://github.com/mstksg/inCode/tree/master/code-samples/trie/img">online here</a>)</p>
+<pre><code>I DON&#39;T THINK SO,img/idts.jpg
+I DON&#39;T THINK THE SYSTEM WORKS,img/idttsw.jpg
+I HAVE BEEN LOOKING FORWARD TO THIS,img/iblftt.jpg
+I HAVE A BAD FEELING ABOUT THIS,img/ihabfat.jpg
+IT&#39;S TREASON THEN,img/itt.jpg
+IT&#39;S OUTRAGEOUS IT&#39;S UNFAIR,img/tioiu.jpg</code></pre>
+<p>We can write a quick parser and aggregator into a <code>Map [Char] HTML.Label</code>, where <code>HTML.Label</code> is from the <em>graphviz</em> library, a renderable object to display on the final image.</p>
+<div class="sourceCode" id="cb41"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/trie/trie.hs#L194-L203</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a><span class="ot">memeMap ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Map</span> <span class="dt">String</span> <span class="dt">HTML.Label</span></span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>memeMap <span class="ot">=</span> M.fromList <span class="op">.</span> <span class="fu">map</span> (<span class="fu">uncurry</span> processLine <span class="op">.</span> <span class="fu">span</span> (<span class="op">/=</span> <span class="ch">&#39;,&#39;</span>)) <span class="op">.</span> <span class="fu">lines</span></span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>    processLine qt (<span class="fu">drop</span> <span class="dv">1</span><span class="ot">-&gt;</span>img) <span class="ot">=</span> (</span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a>          <span class="fu">filter</span> (<span class="fu">not</span> <span class="op">.</span> <span class="fu">isSpace</span>) qt</span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a>        , <span class="dt">HTML.Table</span> (<span class="dt">HTML.HTable</span> <span class="dt">Nothing</span> [] [r1,r2])</span>
+<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a>      <span class="kw">where</span></span>
+<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a>        r1 <span class="ot">=</span> <span class="dt">HTML.Cells</span> [<span class="dt">HTML.LabelCell</span> [] (<span class="dt">HTML.Text</span> [<span class="dt">HTML.Str</span> (T.pack qt)])]</span>
+<span id="cb41-12"><a href="#cb41-12" aria-hidden="true" tabindex="-1"></a>        r2 <span class="ot">=</span> <span class="dt">HTML.Cells</span> [<span class="dt">HTML.ImgCell</span>   [] (<span class="dt">HTML.Img</span> [<span class="dt">HTML.Src</span> img])]</span></code></pre></div>
+<p>We can also write a small utility function to clean up our final graph; it deletes nodes that only have one child and compacts them into the node above. It’s just to “compress” together strings of nodes that don’t have any forks.</p>
+<div class="sourceCode" id="cb42"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/trie/trie.hs#L226-L236</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>compactify</span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> <span class="dt">Gr</span> (<span class="dt">Maybe</span> v) k</span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">Gr</span> (<span class="dt">Maybe</span> v) [k]</span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a>compactify g0 <span class="ot">=</span> foldl&#39; go (G.emap (<span class="op">:</span>[]) g0) (G.labNodes g0)</span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a>    go g (i, v) <span class="ot">=</span> <span class="kw">case</span> (G.inn g i, G.out g i) <span class="kw">of</span></span>
+<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a>      ([(j, _, lj)], [(_, k, lk)])</span>
+<span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a>        <span class="op">|</span> isNothing v <span class="ot">-&gt;</span> G.insEdge (j, k, lj <span class="op">++</span> lk)</span>
+<span id="cb42-11"><a href="#cb42-11" aria-hidden="true" tabindex="-1"></a>                       <span class="op">.</span> G.delNode i <span class="op">.</span> G.delEdges [(j,i),(i,k)]</span>
+<span id="cb42-12"><a href="#cb42-12" aria-hidden="true" tabindex="-1"></a>                       <span class="op">$</span> g</span>
+<span id="cb42-13"><a href="#cb42-13" aria-hidden="true" tabindex="-1"></a>      _               <span class="ot">-&gt;</span> g</span></code></pre></div>
+<p>We could have directly outputted a compacted graph from <code>trieGraphAlg</code>, but for the sake of this post it’s a bit cleaner to separate out these concerns.</p>
+<p>We’ll write a function to turn a <code>Gr (Maybe HTML.Label) [Char]</code> into a dot file, using <em>graphviz</em> to do most of the work:</p>
+<div class="sourceCode" id="cb43"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/trie/trie.hs#L205-L215</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>graphDot</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> <span class="dt">Gr</span> (<span class="dt">Maybe</span> <span class="dt">HTML.Label</span>) <span class="dt">String</span></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">T.Text</span></span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>graphDot <span class="ot">=</span> GV.printIt <span class="op">.</span> GV.graphToDot params</span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>    params <span class="ot">=</span> GV.nonClusteredParams</span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>      { fmtNode <span class="ot">=</span> \(_,  l) <span class="ot">-&gt;</span> <span class="kw">case</span> l <span class="kw">of</span></span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a>          <span class="dt">Nothing</span> <span class="ot">-&gt;</span> [GV.shape <span class="dt">GV.PointShape</span>]</span>
+<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a>          <span class="dt">Just</span> l&#39; <span class="ot">-&gt;</span> [GV.toLabel l&#39;, GV.shape <span class="dt">GV.PlainText</span>]</span>
+<span id="cb43-12"><a href="#cb43-12" aria-hidden="true" tabindex="-1"></a>      , fmtEdge <span class="ot">=</span> \(_,_,l) <span class="ot">-&gt;</span> [GV.toLabel (<span class="fu">concat</span> [<span class="st">&quot;[&quot;</span>, l, <span class="st">&quot;]&quot;</span>])]</span>
+<span id="cb43-13"><a href="#cb43-13" aria-hidden="true" tabindex="-1"></a>      }</span></code></pre></div>
+<p>And finally, we can write the entire pipeline:</p>
+<div class="sourceCode" id="cb44"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/trie/trie.hs#L217-L224</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>memeDot</span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> <span class="dt">String</span></span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">T.Text</span></span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a>memeDot <span class="ot">=</span> graphDot</span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span> compactify</span>
+<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span> <span class="fu">flip</span> evalState <span class="dv">0</span></span>
+<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span> hylo trieGraphAlg fromMapCoalg</span>
+<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span> memeMap</span></code></pre></div>
+<p>Shorter than I expected!</p>
+<p>This gives us our final result: (<a href="/img/entries/trie/meme-trie.png">full size here</a>)</p>
+<figure>
+<img src="/img/entries/trie/meme-trie.png" title="Our final result" alt="Our rendered dotfile, using graphviz" />
+<figcaption aria-hidden="true">Our rendered dotfile, using graphviz</figcaption>
+</figure>
+<p>There are definitely some things we can tweak with respect to formatting and position and font sizes and label layouts, but I think this is fairly faithful to the original structure!</p>
+<h2 id="another-happy-landing">Another happy landing</h2>
+<p>There’s a lot more we can do with tries, and fleshing out a full interface allows us to explore a lot of other useful recursion schemes and combinators.</p>
+<p>Now that we’ve familiarized ourselves with a simple tangible example, we’re now free to dive deep. Achieving hylomorphism helps us see past the recursive data type and directly into the underlying structure of what’s going on. And out of it, we got a pretty helpful meme trie we can show off to our friends.</p>
+<p>In the next parts of the series, we’ll find out what other viewpoints <em>recursion-schemes</em> has to offer for us!</p>
+<p>In the mean time, why not check out these other nice recursion-schemes tutorials?</p>
+<ul>
+<li><a href="https://bartoszmilewski.com/2018/12/20/open-season-on-hylomorphisms/">Bartosz Milewski</a> also talks about using tries with <em>recursion-schemes</em>, and achieves hylomorphism as well.</li>
+<li><a href="https://blog.sumtypeofway.com/an-introduction-to-recursion-schemes/">This classic tutorial</a> was how I originally learned recursion schemes.</li>
+<li><a href="https://github.com/passy/awesome-recursion-schemes">This github repo</a> accumulates a lot of amazing articles, tutorials, and other resources.</li>
+</ul>
+<h2 id="special-thanks">Special Thanks</h2>
+<p>I am very humbled to be supported by an amazing community, who make it possible for me to devote time to researching and writing these posts. Very special thanks to my supporters at the “Amazing” level on <a href="https://www.patreon.com/justinle/overview">patreon</a>, Sam Stites and Josh Vera! :)</p>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Funny story, a <a href="http://www.drdobbs.com/architecture-and-design/patricia-tries/208800854">patricia tree</a> is actually itself a trie variation. This means that we are essentially converting a trie representing a graph into a graph representation implemented using a trie.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div><footer><hr><div class="copy-content"><p>Hi, thanks for reading! You can reach me via email at <a href="mailto:justin@jle.im" class="email">justin@jle.im</a>, or at twitter at <a href="https://twitter.com/mstk">@mstk</a>! This post and all others are published under the <a href="https://creativecommons.org/licenses/by-nc-nd/3.0/">CC-BY-NC-ND 3.0</a> license. Corrections and edits via pull request are welcome and encouraged at <a href="https://github.com/mstksg/inCode">the source repository</a>.</p>
+<p>If you feel inclined, or this post was particularly helpful for you, why not consider <a href="https://www.patreon.com/justinle/overview">supporting me on Patreon</a>, or a <a href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">BTC donation</a>? :)</p></div><div class="clear"></div><ul class="entry-series"><li><div>This entry is a part of a series called <b>&quot;Beginner/Intermediate Haskell Projects&quot;</b>.  Find the rest of the entries in this series at its <a href="https://blog.jle.im/entries/series/+beginner-intermediate-haskell-projects.html" class="tag-a-series" title="+Beginner/Intermediate Haskell Projects"> series history</a>.</div></li></ul><ul class="tag-list"><li><a href="https://blog.jle.im/entries/tagged/haskell.html" class="tag-a-tag">#haskell</a></li><li><a href="https://blog.jle.im/entries/tagged/recursion-schemes.html" class="tag-a-tag">#recursion schemes</a></li><li><a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category">@HASKELL</a></li><li><a href="https://blog.jle.im/entries/category/@tutorials.html" class="tag-a-category">@TUTORIALS</a></li><li><a href="https://blog.jle.im/entries/series/+beginner-intermediate-haskell-projects.html" class="tag-a-series">+Beginner/Intermediate Haskell Projects</a></li></ul><aside class="social-buttons"><div class="addthis_toolbox addthis_default_style addthis-buttons"><a class="addthis_button_facebook_like" fb:like:layout="button_count"></a><a class="addthis_button_tweet"></a><a class="addthis_button_google_plusone" g:plusone:size="medium"></a><a class="addthis_counter addthis_pill_style"></a></div><div class="custom-social-buttons"><div class="custom-social-button"><a href="https://www.reddit.com/submit" onclick="window.location = &#39;https://www.reddit.com/submit?url=&#39;+ encodeURIComponent(window.location); return false"><img src="https://www.reddit.com/static/spreddit7.gif" alt="submit to reddit"></a></div></div></aside><nav class="next-prev-links"><ul><li class="prev-entry-link">&larr; <a href="https://blog.jle.im/entry/shifting-the-stars.html">Shifting the Stars: Advent of Code with Galilean Optimization
+</a> (Previous)</li><li class="next-entry-link">(Next) <a href="https://blog.jle.im/entry/free-alternative-regexp.html">Applicative Regular Expressions using the Free Alternative
+</a> &rarr;</li></ul></nav></footer></article><div class="post-entry"><div class="tile"><div id="disqus_thread"></div><script type="text/javascript">var disqus_config = function () {
+    this.page.url = 'https://blog.jle.im/entry/tries-with-recursion-schemes.html';
+    this.page.identifier = 'trie';
+};
+(function() {
+    var d = document, s = d.createElement('script');
+    s.src = '//incode.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a><br></noscript><a href="http://disqus.com" class="dsq-brlink">Comments powered by <span class="logo-disqus">Disqus</span></a></div></div></div></div></div><div id="footer-container"><div id="footer-content"><div class="tile"><div class="footer-copyright">&copy; 2020 Justin Le <span class="license-link">(<a href="https://creativecommons.org/licenses/by-nc-nd/3.0/" class="license">CC-BY-NC-ND 3.0</a>)</span></div><div class="footer-follow social-follows"><ul class="social-follows-list"><li><ul class="social-follows-list-social"><li><a class="social-follow-twitter" title="Follow me on Twitter!" href="https://twitter.com/intent/user?user_id=mstk" onclick="window.open(
+  &#39;http://twitter.com/intent/user?user_id=907281&#39;,
+  &#39;facebook-share-dialog&#39;,
+  &#39;width=550,height=520&#39;);
+return false;
+">Twitter</a></li><li><a class="social-follow-github" title="Fork me on Github!" href="https://github.com/mstksg">Github</a></li><li><a class="social-follow-twitch" title="Watch me on Twitch!" href="https://www.twitch.tv/justin_l">Twitch</a></li><li><a class="social-follow-patreon" title="Support me on Patreon!" href="https://www.patreon.com/justinle/overview">Patreon</a></li><li><a class="social-follow-gplus" title="Add me on Google+!" href="https://plus.google.com/+JustinLe">Google+</a></li><li><a class="social-follow-keybase" title="Track me on Keybase!" href="https://keybase.io/mstksg">Keybase</a></li><li><a class="social-follow-linkedin" title="Connect with me on LinkedIn!" href="https://linkedin.com/in/lejustin">LinkedIn</a></li><li><a class="social-follow-bitcoin" title="Donate via bitcoin!" href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">Bitcoin</a></li></ul></li><li><ul class="social-follows-list-site"><li><a class="social-follow-rss" title="Subscribe to my RSS Feed!" href="http://feeds.feedburner.com/incodeblog">RSS</a></li><li><a class="social-follow-email" title="Subscribe to the mailing list!" href="https://feedburner.google.com/fb/a/mailverify?loc=en_US&amp;uri=incodeblog">Mailing list</a></li></ul></li></ul></div></div></div></div></body></html>

@@ -1,0 +1,1117 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Applicative Regular Expressions using the Free Alternative},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Applicative Regular Expressions using the Free Alternative}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% April 8, 2019
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/free-alternative-regexp.html}{in
+Code}}.}
+
+Today, we're going to implement applicative regular expressions and parsers (in
+the style of the
+\href{https://hackage.haskell.org/package/regex-applicative}{regex-applicative}
+library) using free structures!
+
+Free structures are some of my favorite tools in Haskell, and I've actually
+written a few posts about them before, including
+\href{https://blog.jle.im/entry/alchemical-groups.html}{this one using free
+groups}, \href{https://blog.jle.im/entry/interpreters-a-la-carte-duet.html}{this
+one on a free monad variation}, and
+\href{https://blog.jle.im/entry/const-applicative-and-monoids.html}{this one on
+a ``free'' applicative on a monoid}.
+
+Regular expressions (and parsers) are ubiquitous in computer science and
+programming, and I hope that demonstrating that they are pretty straightforward
+to implement using free structures will help you see the value in free
+structures without getting too bogged down in the details!
+
+All of the code in this post is
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/misc/regexp.hs}{available
+online} as a ``stack executable''. When you run it (\texttt{./regexp.hs}),
+you'll load up a \emph{ghci} session with all of the definitions in scope, so
+you can play around with the functions and types :)
+
+This post should be accessible to late beginner or early intermediate Haskell
+users, and requires some basic familiarity with pattern matching, algebraic data
+types, and abstractions like \texttt{Monoid} and \texttt{Functor}, and do
+notation.
+
+\section{Regular Languages}\label{regular-languages}
+
+A \emph{regular expression} is something that defines a \emph{regular language}.
+\href{https://en.wikipedia.org/wiki/Regular_expression\#Formal_language_theory}{Formally},
+it consists of the following base elements:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  The empty set, which always fails to match.
+\item
+  The empty string, which always succeeds matching the empty string.
+\item
+  The literal character, denoting a single matching character
+\end{enumerate}
+
+And the following operations:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Concatenation: \texttt{RS}, sequence one after the other. A set product.
+\item
+  Alternation: \texttt{R\textbar{}S}, one or the other. A set union.
+\item
+  Kleene Star: \texttt{R*}, the repetition of \texttt{R} zero or more times.
+\end{enumerate}
+
+And that's \emph{all} that's in a regular expression. Nothing more, nothing
+less. From these basic tools, you can derive the rest of the regexp operations
+--- for example, \texttt{a+} can be expressed as \texttt{aa*}, and categories
+like \texttt{\textbackslash{}w} can be expressed as alternations of valid
+characters.
+
+\subsection{Alternative}\label{alternative}
+
+Looking at this, does this look a little familiar? It reminds me a lot of the
+\texttt{Alternative} typeclass. If a functor \texttt{f} has an
+\texttt{Alternative} instance, it means that it has:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \texttt{empty}, the failing operation
+\item
+  \texttt{pure\ x}, the always-succeeding operation (from the
+  \texttt{Applicative} class)
+\item
+  \texttt{\textless{}*\textgreater{}}, the sequencing operation (from the
+  \texttt{Applicative} class)
+\item
+  \texttt{\textless{}\textbar{}\textgreater{}}, the alternating operation
+\item
+  \texttt{many}, the ``zero or more'' operation.
+\end{enumerate}
+
+This\ldots looks a lot like the construction of a regular language, doesn't it?
+It's almost as if \texttt{Alternative} has almost \emph{exactly} what we need.
+The only thing missing is the literal character primitive.
+
+If you're unfamiliar with \texttt{Alternative}, the
+\href{https://wiki.haskell.org/Typeclassopedia}{typeclassopedia} has a good
+step-by-step introduction. But for the purposes of this article, it's basically
+just a ``double monoid'', with two ``combining'' actions
+\texttt{\textless{}*\textgreater{}} and
+\texttt{\textless{}\textbar{}\textgreater{}}, which roughly correspond to
+\texttt{*} and \texttt{+} in the integers. It's basically pretty much nothing
+more than 1-5 in the list above, and some distributivity laws.
+
+So, one way we can look at regular expressions is ``The entire
+\texttt{Alternative} interface, plus a character primitive''. \emph{But!}
+There's another way of looking at this, that leads us directly to free
+structures.
+
+Instead of seeing things as ``\texttt{Alternative} with a character primitive'',
+we can look at it as \emph{a character primitive enriched with a Alternative
+instance}.
+
+\section{Free}\label{free}
+
+Let's write this out. Our character primitive will be:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/regexp.hs\#L17{-}L18}
+
+\KeywordTok{data} \DataTypeTok{Prim}\NormalTok{ a }\OtherTok{=} \DataTypeTok{Prim} \DataTypeTok{Char}\NormalTok{ a}
+  \KeywordTok{deriving} \DataTypeTok{Functor}
+\end{Highlighting}
+\end{Shaded}
+
+Note that because we're working with functors, applicatives, alternatives, etc.,
+all of our regular expressions can have an associated ``result''. This is
+because our regexp values will have a type parameter (which is required for
+\texttt{Functor}, \texttt{Applicative}, and \texttt{Alternative}). We can choose
+to ignore this type parameter, but we can also have some fun by using it to
+represent a ``result'' that a regexp match will be interpreted as. This is
+similar to the idea of ``capturing'' in industrial regexp applications.
+
+Here, the value
+\texttt{Prim\ \textquotesingle{}a\textquotesingle{}\ 1\ ::\ Prim\ Int} will
+represent a primitive that matches on the character \texttt{a}, interpreting it
+with a result of \texttt{1}.
+
+And now\ldots we give it \texttt{Alternative} structure using the \emph{Free
+Alternative}, from the
+\emph{\href{https://hackage.haskell.org/package/free}{free}} package:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{import} \DataTypeTok{Control.Alternative.Free}
+
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/regexp.hs\#L20{-}L20}
+
+\KeywordTok{type} \DataTypeTok{RegExp} \OtherTok{=} \DataTypeTok{Alt} \DataTypeTok{Prim}
+\end{Highlighting}
+\end{Shaded}
+
+And that's it! That's our entire regular expression type! By giving a
+\texttt{Alt} a \texttt{Functor}, we get all of the operations of
+\texttt{Applicative} and \texttt{Alternative} over our base. That's because we
+have \texttt{instance\ Applicative\ (Alt\ f)} and
+\texttt{instance\ Alternative\ (Alt\ f)}. We now have:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  The empty set, coming from \texttt{empty} from \texttt{Alternative}
+\item
+  The empty string, coming from \texttt{pure} from \texttt{Applicative}
+\item
+  The character primitive, coming from the underlying functor \texttt{Prim} that
+  we are enhancing
+\item
+  The concatenation operation, from \texttt{\textless{}*\textgreater{}}, from
+  \texttt{Applicative}.
+\item
+  The alternating operation, from \texttt{\textless{}\textbar{}\textgreater{}},
+  from \texttt{Alternative}.
+\item
+  The kleene star, from \texttt{many}, from \texttt{Alternative}.
+\end{enumerate}
+
+All of these additions to our primitive come ``for free''!
+
+Essentially, what a free structure gives us is the structure of the abstraction
+(\texttt{Alternative}, here) automatically for our base type, and \emph{nothing
+else}.
+
+Remember that regular expressions have these operations, \emph{and nothing else}
+--- no more, no less. That's exactly what the free Alternative gives us: these
+operations and the primitive. No more, no less.
+
+After adding some convenient wrappers\ldots we're done here!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/regexp.hs\#L22{-}L33}
+
+\CommentTok{{-}{-} | charAs: Parse a given character as a given constant result.}
+\OtherTok{charAs ::} \DataTypeTok{Char} \OtherTok{{-}\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{RegExp}\NormalTok{ a}
+\NormalTok{charAs c x }\OtherTok{=}\NormalTok{ liftAlt (}\DataTypeTok{Prim}\NormalTok{ c x)     }\CommentTok{{-}{-} liftAlt lets us use the underlying}
+                                    \CommentTok{{-}{-} functor Prim in RegExp}
+
+\CommentTok{{-}{-} | char: Parse a given character as itself.}
+\OtherTok{char ::} \DataTypeTok{Char} \OtherTok{{-}\textgreater{}} \DataTypeTok{RegExp} \DataTypeTok{Char}
+\NormalTok{char c }\OtherTok{=}\NormalTok{ charAs c c}
+
+\CommentTok{{-}{-} | string: Parse a given string as itself.}
+\OtherTok{string ::} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{RegExp} \DataTypeTok{String}
+\NormalTok{string }\OtherTok{=} \FunctionTok{traverse}\NormalTok{ char              }\CommentTok{{-}{-} neat, huh}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Examples}\label{examples}
+
+Let's try it out! Let's match on \texttt{(a\textbar{}b)(cd)*e} and return
+\texttt{()}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/regexp.hs\#L35{-}L38}
+
+\OtherTok{testRegExp\_ ::} \DataTypeTok{RegExp}\NormalTok{ ()}
+\NormalTok{testRegExp\_ }\OtherTok{=}\NormalTok{ void }\OperatorTok{$}\NormalTok{ (char }\CharTok{\textquotesingle{}a\textquotesingle{}} \OperatorTok{\textless{}|\textgreater{}}\NormalTok{ char }\CharTok{\textquotesingle{}b\textquotesingle{}}\NormalTok{)}
+                  \OperatorTok{*\textgreater{}}\NormalTok{ many (string }\StringTok{"cd"}\NormalTok{)}
+                  \OperatorTok{*\textgreater{}}\NormalTok{ char }\CharTok{\textquotesingle{}e\textquotesingle{}}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{void} from \emph{Data.Functor} discards the results, since we only care
+if it matches or not. But we use \texttt{\textless{}\textbar{}\textgreater{}}
+and \texttt{*\textgreater{}} and \texttt{many} exactly how we'd expect to
+concatenate and alternate things with \texttt{Applicative} and
+\texttt{Alternative}.
+
+Or maybe more interesting (but slightly more complicated), let's match on the
+same pattern and return how many \texttt{cd}s are repeated
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/regexp.hs\#L40{-}L43}
+
+\OtherTok{testRegExp ::} \DataTypeTok{RegExp} \DataTypeTok{Int}
+\NormalTok{testRegExp }\OtherTok{=}\NormalTok{ (char }\CharTok{\textquotesingle{}a\textquotesingle{}} \OperatorTok{\textless{}|\textgreater{}}\NormalTok{ char }\CharTok{\textquotesingle{}b\textquotesingle{}}\NormalTok{)}
+          \OperatorTok{*\textgreater{}}\NormalTok{ (}\FunctionTok{length} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ many (string }\StringTok{"cd"}\NormalTok{))}
+          \OperatorTok{\textless{}*}\NormalTok{ char }\CharTok{\textquotesingle{}e\textquotesingle{}}
+\end{Highlighting}
+\end{Shaded}
+
+This one does require a little more finesse with \texttt{*\textgreater{}} and
+\texttt{\textless{}*}: the arrows point towards which result to ``keep''. And
+since \texttt{many\ (string\ "cd")\ ::\ RegExp\ {[}String{]}} (it returns a
+list, with an item for each repetition), we can \texttt{fmap\ length} to get the
+\texttt{Int} result of ``how many repetitions''.
+
+However, we can also turn on \emph{-XApplicativeDo} and write it using do
+notation, which requires a little less thought:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/regexp.hs\#L45{-}L50}
+
+\OtherTok{testRegExpDo ::} \DataTypeTok{RegExp} \DataTypeTok{Int}
+\NormalTok{testRegExpDo }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    char }\CharTok{\textquotesingle{}a\textquotesingle{}} \OperatorTok{\textless{}|\textgreater{}}\NormalTok{ char }\CharTok{\textquotesingle{}b\textquotesingle{}}
+\NormalTok{    cds }\OtherTok{\textless{}{-}}\NormalTok{ many (string }\StringTok{"cd"}\NormalTok{)}
+\NormalTok{    char }\CharTok{\textquotesingle{}e\textquotesingle{}}
+    \FunctionTok{pure}\NormalTok{ (}\FunctionTok{length}\NormalTok{ cds)}
+\end{Highlighting}
+\end{Shaded}
+
+It's all a little bit like how we often use ``captures'' in regular expressions
+to access a \emph{specific part} of a match. Here's an example in ruby:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{irb}\KeywordTok{\textgreater{}} \SpecialStringTok{/(a|b)((cd)*)e/}\AttributeTok{.match}\NormalTok{(}\StringTok{"acdcdcdcde"}\NormalTok{)}\KeywordTok{[}\DecValTok{2}\KeywordTok{]}
+\KeywordTok{=\textgreater{}} \StringTok{"cdcdcdcd"}
+\end{Highlighting}
+\end{Shaded}
+
+except we also include a ``post-processing'' process to get the length of the
+number of repetitions.
+
+Here's another handy regexp that matches on a digit between 0 to 9, and the
+result is the digit \texttt{Int} itself:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/regexp.hs\#L52{-}L53}
+
+\OtherTok{digit ::} \DataTypeTok{RegExp} \DataTypeTok{Int}
+\NormalTok{digit }\OtherTok{=}\NormalTok{ asum [ charAs (}\FunctionTok{intToDigit}\NormalTok{ i) i }\OperatorTok{|}\NormalTok{ i }\OtherTok{\textless{}{-}}\NormalTok{ [}\DecValTok{0}\OperatorTok{..}\DecValTok{9}\NormalTok{] ]}
+\end{Highlighting}
+\end{Shaded}
+
+Here,
+\texttt{asum\ {[}x,y,z{]}\ =\ x\ \textless{}\textbar{}\textgreater{}\ y\ \textless{}\textbar{}\textgreater{}\ z}:
+it represents a choice between the items in a list.
+
+We can again do some fancy things with it, like make a regexp
+\texttt{\textbackslash{}{[}\textbackslash{}d\textbackslash{}{]}} that matches on
+a digit inside \texttt{{[}} / \texttt{{]}} brackets:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/regexp.hs\#L55{-}L56}
+
+\OtherTok{bracketDigit ::} \DataTypeTok{RegExp} \DataTypeTok{Int}
+\NormalTok{bracketDigit }\OtherTok{=}\NormalTok{ char }\CharTok{\textquotesingle{}[\textquotesingle{}} \OperatorTok{*\textgreater{}}\NormalTok{ digit }\OperatorTok{\textless{}*}\NormalTok{ char }\CharTok{\textquotesingle{}]\textquotesingle{}}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Parsing}\label{parsing}
+
+Okay, so all we did was define a data structure that supports character
+matching, concatenation, alternation, and starring. Big whoop. What we really
+want to do is use it to parse things, right? How does the Free Alternative help
+us with \emph{that}?
+
+Well, it does a lot, actually. Let's look at two ways of doing this!
+
+\subsection{Offloading Alternative}\label{offloading-alternative}
+
+\subsubsection{What is Freeness?}\label{what-is-freeness}
+
+The ``canonical'' way of using a free structure is by using its ``folding''
+operation into a concrete structure with the proper instances. For example,
+\texttt{foldMap} will turn a free monoid into a value of any monoid instance:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{foldMap}\OtherTok{ ::} \DataTypeTok{Monoid}\NormalTok{ m }\OtherTok{=\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{ m) }\OtherTok{{-}\textgreater{}}\NormalTok{ ([a] }\OtherTok{{-}\textgreater{}}\NormalTok{ m)}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{foldMap} lifts an \texttt{a\ -\textgreater{}\ m} into a
+\texttt{{[}a{]}\ -\textgreater{}\ m} (or,
+\texttt{FreeMonoid\ a\ -\textgreater{}\ m}), with a concrete monoid \texttt{m}.
+The general idea is that using a free structure can ``defer'' the concretization
+from between the time of construction to the time of use.
+
+For example, we can construct value in the free monoid made from integers:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} | Lift the "primitive" \textasciigrave{}Int\textasciigrave{} into a value in the free monoid on \textasciigrave{}Int\textasciigrave{}.}
+\CommentTok{{-}{-}}
+\CommentTok{{-}{-} Analogous to \textasciigrave{}liftAlt\textasciigrave{} from earlier.}
+\OtherTok{liftFM ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}}\NormalTok{ [}\DataTypeTok{Int}\NormalTok{]}
+\NormalTok{liftFM x }\OtherTok{=}\NormalTok{ [x]}
+
+\OtherTok{myMon ::}\NormalTok{ [}\DataTypeTok{Int}\NormalTok{]}
+\NormalTok{myMon }\OtherTok{=}\NormalTok{ liftFM }\DecValTok{1} \OperatorTok{\textless{}\textgreater{}}\NormalTok{ liftFM }\DecValTok{2} \OperatorTok{\textless{}\textgreater{}}\NormalTok{ liftFM }\DecValTok{3} \OperatorTok{\textless{}\textgreater{}}\NormalTok{ liftFM }\DecValTok{4}
+\end{Highlighting}
+\end{Shaded}
+
+And now we can decide how we want to interpret
+\texttt{\textless{}\textgreater{}} --- should it be \texttt{+}?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \FunctionTok{foldMap} \DataTypeTok{Sum}\NormalTok{ myMon}
+\DataTypeTok{Sum} \DecValTok{10}              \CommentTok{{-}{-} 1 + 2 + 3 + 4}
+\end{Highlighting}
+\end{Shaded}
+
+Or should it be \texttt{*}?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \FunctionTok{foldMap} \DataTypeTok{Product}\NormalTok{ myMon}
+\DataTypeTok{Product} \DecValTok{24}          \CommentTok{{-}{-} 1 * 2 * 3 * 4}
+\end{Highlighting}
+\end{Shaded}
+
+Or maybe even \texttt{max}?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \FunctionTok{foldMap} \DataTypeTok{Max}\NormalTok{ myMon}
+\DataTypeTok{Max} \DecValTok{4}          \CommentTok{{-}{-} 1 \textasciigrave{}max\textasciigrave{} 2 \textasciigrave{}max\textasciigrave{} 3 \textasciigrave{}max\textasciigrave{} 4}
+\end{Highlighting}
+\end{Shaded}
+
+The idea is that we can ``defer'' the choice of concrete \texttt{Monoid} that
+\texttt{\textless{}\textgreater{}} is interpreted under by first pushing 1, 2,
+3, and 4 into a free monoid value. The free monoid on \texttt{Int} gives
+\emph{exactly enough structure} to \texttt{Int} to do this job: no more, no
+less.
+
+To use \texttt{foldMap}, we say ``how to handle the base type'', and it lets us
+handle the free structure in its entirety by offloading the behavior of
+\texttt{\textless{}\textgreater{}} to the concrete monoid.
+
+\subsubsection{Interpreting in State}\label{interpreting-in-state}
+
+In practice, getting a result from a free structure is often about finding (or
+creating) the right concrete \texttt{Alternative} that gives us the behavior we
+want. In this case, we're in luck. There's a concrete \texttt{Alternative}
+instance that works just the way we want: \texttt{StateT\ String\ Maybe}:
+
+\begin{itemize}
+\tightlist
+\item
+  Its \texttt{\textless{}*\textgreater{}} works by sequencing changes in state;
+  in this case, we'll consider the state as ``characters yet to be parsed'', so
+  sequential parsing fits perfectly with \texttt{\textless{}*\textgreater{}}.
+  That's because combining regexps sequentially can be thought of as statefully
+  chomping down on a string.
+\item
+  Its \texttt{\textless{}\textbar{}\textgreater{}} works by backtracking and
+  trying again if it runs into a failure. It saves the state of the last
+  successful point and resets to it on failure. This is exactly how we want
+  regexp alternation \texttt{R\textbar{}S} to behave.
+\end{itemize}
+
+The ``folding'' operation of the free alternative is called \texttt{runAlt}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{runAlt ::} \DataTypeTok{Alternative}\NormalTok{ f}
+       \OtherTok{=\textgreater{}}\NormalTok{ (}\KeywordTok{forall}\NormalTok{ b}\OperatorTok{.}\NormalTok{ p b }\OtherTok{{-}\textgreater{}}\NormalTok{ f b)}
+       \OtherTok{{-}\textgreater{}} \DataTypeTok{Alt}\NormalTok{ p a}
+       \OtherTok{{-}\textgreater{}}\NormalTok{ f a}
+\end{Highlighting}
+\end{Shaded}
+
+And in the case of \texttt{RegExp}, we have:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{runAlt ::} \DataTypeTok{Alternative}\NormalTok{ f}
+       \OtherTok{=\textgreater{}}\NormalTok{ (}\KeywordTok{forall}\NormalTok{ b}\OperatorTok{.} \DataTypeTok{Prim}\NormalTok{ b }\OtherTok{{-}\textgreater{}}\NormalTok{ f b)}
+       \OtherTok{{-}\textgreater{}} \DataTypeTok{RegExp}\NormalTok{ a}
+       \OtherTok{{-}\textgreater{}}\NormalTok{ f a}
+\end{Highlighting}
+\end{Shaded}
+
+If you're unfamiliar with the RankN type (the \texttt{forall\ b.} stuff),
+there's a
+\href{https://ocharles.org.uk/guest-posts/2014-12-18-rank-n-types.html}{nice
+introduction here}. But basically, you just need to provide \texttt{runAlt} with
+a function that can handle a \texttt{Prim\ b} for \emph{any} \texttt{b} (and not
+just a specific one like \texttt{Int} or \texttt{Bool}).
+
+So, like \texttt{foldMap}, we need to say ``how to handle our base type''. Here,
+we have to answer ``How do we handle \texttt{Prim}?''
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/regexp.hs\#L58{-}L63}
+
+\OtherTok{processPrim ::} \DataTypeTok{Prim}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{StateT} \DataTypeTok{String} \DataTypeTok{Maybe}\NormalTok{ a}
+\NormalTok{processPrim (}\DataTypeTok{Prim}\NormalTok{ c x) }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    d}\OperatorTok{:}\NormalTok{ds }\OtherTok{\textless{}{-}}\NormalTok{ get}
+\NormalTok{    guard (c }\OperatorTok{==}\NormalTok{ d)}
+\NormalTok{    put ds}
+    \FunctionTok{pure}\NormalTok{ x}
+\end{Highlighting}
+\end{Shaded}
+
+This lets us interpret a \texttt{Prim} as a \texttt{StateT\ String\ Maybe}
+action where the state is the ``string left to be be processed''. Remember, a
+\texttt{Prim\ a} contains the character we want to match on, and the \texttt{a}
+value we want it to be interpreted as. To process a \texttt{Prim}, we:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Get the state's (the string left to be parsed) head and tail, using
+  \texttt{get}. If this match fails, backtrack.
+\item
+  Using \texttt{guard}, backtrack unless the head matches what the \texttt{Prim}
+  expects.
+\item
+  Set the state to be the original tail, using \texttt{put}. This is because we
+  parsed the head already, so now the ``string left to be parsed'' is just the
+  original tail.
+\item
+  The result is what the \texttt{Prim} says it should be.
+\end{enumerate}
+
+We can use this to write a function that matches the \texttt{RegExp} on a
+prefix. We need to run the state action (using \texttt{evalStateT}) on the
+string we want to parse:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/regexp.hs\#L65{-}L66}
+
+\OtherTok{matchPrefix ::} \DataTypeTok{RegExp}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ a}
+\NormalTok{matchPrefix re }\OtherTok{=}\NormalTok{ evalStateT (runAlt processPrim re)}
+\end{Highlighting}
+\end{Shaded}
+
+And that's it! Our first solution:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ matchPrefix testRegexp\_ }\StringTok{"acdcdcde"}
+\DataTypeTok{Just}\NormalTok{ ()}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ matchPrefix testRegexp\_ }\StringTok{"acdcdcdx"}
+\DataTypeTok{Nothing}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ matchPrefix testRegexp }\StringTok{"acdcdcde"}
+\DataTypeTok{Just} \DecValTok{3}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ matchPrefix testRegexp }\StringTok{"bcdcdcdcdcdcdcde"}
+\DataTypeTok{Just} \DecValTok{7}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ matchPrefix digit }\StringTok{"9"}
+\DataTypeTok{Just} \DecValTok{9}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ matchPrefix bracketDigit }\StringTok{"[2]"}
+\DataTypeTok{Just} \DecValTok{2}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ matchPrefix (many bracketDigit) }\StringTok{"[2][3][4][5]"}
+\DataTypeTok{Just}\NormalTok{ [}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{4}\NormalTok{,}\DecValTok{5}\NormalTok{]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ matchPrefix (}\FunctionTok{sum} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ many bracketDigit) }\StringTok{"[2][3][4][5]"}
+\DataTypeTok{Just} \DecValTok{14}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{Wait, what just happened?}\label{wait-what-just-happened}
+
+Okay, so that might have happened a little quicker than you expected. One minute
+we were writing our primitive, and the next we had already finished. Here's the
+entirety of the code, in a few lines of Haskell:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \DataTypeTok{RegExp} \OtherTok{=} \DataTypeTok{Alt} \DataTypeTok{Prim}
+
+\OtherTok{matchPrefix ::} \DataTypeTok{RegExp}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ a}
+\NormalTok{matchPrefix re }\OtherTok{=}\NormalTok{ evalStateT (runAlt processPrim re)}
+  \KeywordTok{where}
+\NormalTok{    processPrim (}\DataTypeTok{Prim}\NormalTok{ c x) }\OtherTok{=} \KeywordTok{do}
+\NormalTok{      d}\OperatorTok{:}\NormalTok{ds }\OtherTok{\textless{}{-}}\NormalTok{ get}
+\NormalTok{      guard (c }\OperatorTok{==}\NormalTok{ d)}
+\NormalTok{      put ds}
+      \FunctionTok{pure}\NormalTok{ x}
+\end{Highlighting}
+\end{Shaded}
+
+And now we have a fully functioning regexp parser? What happened?
+
+From a high-level view, remember that \texttt{Alt\ Prim} has, in its structure,
+\texttt{pure}, \texttt{empty}, \texttt{Prim},
+\texttt{\textless{}*\textgreater{}},
+\texttt{\textless{}\textbar{}\textgreater{}}, and \texttt{many}\footnote{A
+  caveat exists here for \texttt{many}. More on this later!}.
+
+Essentially, what \texttt{runAlt} does is that it uses a given concrete
+\texttt{Alternative} (here, \texttt{StateT\ String\ Maybe}) to get the behavior
+of \texttt{pure}, \texttt{empty}, \texttt{\textless{}*\textgreater{}},
+\texttt{\textless{}\textbar{}\textgreater{}}, and \texttt{many}. But! As we can
+see from that list, \texttt{StateT} does \emph{not} have a built-in behavior for
+\texttt{Prim}. And so, that's where \texttt{processPrim} comes in.
+
+\begin{itemize}
+\tightlist
+\item
+  For \texttt{Prim}, \texttt{runAlt} uses \texttt{processPrim}.
+\item
+  For \texttt{pure}, \texttt{empty}, \texttt{\textless{}*\textgreater{}},
+  \texttt{\textless{}\textbar{}\textgreater{}}, and \texttt{many},
+  \texttt{runAlt} uses \texttt{StateT\ String\ \ \ \ \ Maybe}'s
+  \texttt{Alternative} instance.
+\end{itemize}
+
+So, really, 83\% of the work was done for us by \texttt{StateT}'s
+\texttt{Alternative} instance, and the other 17\% is in \texttt{processPrim}.
+
+Admittedly, this \emph{does} feel a little disappointing, or at least
+anticlimactic. This makes us wonder: why even use \texttt{Alt} in the first
+place? Why not just have \texttt{type\ RegExp\ =\ StateT\ String\ Maybe} and
+write an appropriate
+\texttt{char\ ::\ Char\ -\textgreater{}\ StateT\ String\ Maybe\ Char}? If
+\texttt{StateT} does all of the work anyway, why even bother with \texttt{Alt},
+the free Alternative?
+
+One major advantage we get from using \texttt{Alt} is that \texttt{StateT}
+is\ldots pretty powerful. It's actually \emph{stupid} powerful. It can represent
+a lot of things\ldots most troubling, it can represent things that \emph{are not
+regular expressions}. For example, something as simple as
+\texttt{put\ "hello"\ ::\ StateT\ String\ Maybe\ ()} does not correspond to
+\emph{any} regular expression.
+
+So, while we can say that \texttt{Alt\ Prim} corresponds to ``regular
+expressions, nothing less and nothing more'', we \emph{cannot} say the same
+about \texttt{StateT\ String\ Maybe}.
+
+\texttt{Alt\ Prim} contains a ``perfect fit'' representation of a regular
+expression data type. Everything it can express is a regular expression, and
+there is nothing it can express that \emph{isn't} a regular
+expression.\footnote{Note that there are some caveats that should be noted here,
+  due to laziness in Haskell. We will go deeper into this later.}
+
+Here, we can think of \texttt{StateT} as the context that we use to
+\emph{interpret} a \texttt{RegExp} as a \emph{parser}. But, there might be
+\emph{other} ways we want to work with a \texttt{RegExp}. For example, we might
+want to inspect it and ``print'' it out for inspection. This is something we
+can't do with \texttt{StateT}.
+
+We can't say that \texttt{StateT\ String\ Maybe} ``is'' a regular expression ---
+only that it can represent a parser based on a regular expression. But we
+\emph{can} say that about \texttt{Alt\ Prim}.
+
+\subsection{Using the Free structure
+directly}\label{using-the-free-structure-directly}
+
+Alright, that's great and all. But what if we didn't want to offload 83\% of the
+behavior to a type that has already been written for us. Is there a way we can
+directly use the structure of \texttt{Alt} itself to write our parser?
+
+This is analogous to asking, what if we wanted to actually write a function on a
+list (by pattern matching on \texttt{:} and \texttt{{[}{]}}) instead of always
+using \texttt{foldMap}? Can we directly operate on the structure of the list
+instead of using \texttt{foldMap} with some concrete monoid?
+
+I'm glad you asked! Let's look at the definition of the free alternative:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{newtype} \DataTypeTok{Alt}\NormalTok{ f a }\OtherTok{=} \DataTypeTok{Alt}\NormalTok{ \{}\OtherTok{ alternatives ::}\NormalTok{ [}\DataTypeTok{AltF}\NormalTok{ f a] \}}
+
+\KeywordTok{data} \DataTypeTok{AltF}\NormalTok{ f a }\OtherTok{=} \KeywordTok{forall}\NormalTok{ r}\OperatorTok{.} \DataTypeTok{Ap}\NormalTok{ (f r) (}\DataTypeTok{Alt}\NormalTok{ f (r }\OtherTok{{-}\textgreater{}}\NormalTok{ a))}
+              \OperatorTok{|}           \DataTypeTok{Pure}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+It's a mutually recursive (and
+\href{https://twanvl.nl/blog/haskell/non-regular1}{non-regular}) type, so it
+might be a little confusing. One way to understand \texttt{Alt} is that
+\texttt{Alt\ xs} contains a \emph{list of alternatives}, or a list of
+\texttt{\textless{}\textbar{}\textgreater{}}s. And each of those alternatives is
+an \texttt{AltF}, which is a \emph{sequence of \texttt{f\ a}s} chained by
+\texttt{\textless{}*\textgreater{}} (as a chain of function applications).
+
+You can essentially think of \texttt{AltF\ f\ a} as a linked list
+\texttt{{[}f\ r{]}}, except with a different \texttt{r} for each item.
+\texttt{Ap} is cons (\texttt{:}), containing the \texttt{f\ r}, and
+\texttt{Pure} is nil (\texttt{{[}{]}}). The \texttt{forall\ r.} here is
+\emph{-XExistentialQuantification}, and is what lets us have a different
+intermediate type for each item in our chain.
+
+All in all, \texttt{Alt\ f} is like a list (\texttt{Alt} list) of lists
+(\texttt{AltF} chains), which take turn alternating between alternative lists
+and application sequences. A list of chains of lists of chains of lists of
+chains \ldots{}
+
+In the big picture, you can think of \texttt{Alt\ f} as a ``normalized'' form of
+successive or nested \texttt{\textless{}*\textgreater{}} and
+\texttt{\textless{}\textbar{}\textgreater{}}s, similar to how \texttt{{[}a{]}}
+is a ``normalized'' form of successive \texttt{\textless{}\textgreater{}}s.
+
+Ultimately we want to write a
+\texttt{RegExp\ a\ -\textgreater{}\ String\ -\textgreater{}\ Maybe\ a}, which
+parses a string based on a \texttt{RegExp}. We can do this using the most basic
+of all Haskell function-writing techniques: pattern matching on each case, and
+handling each case.
+
+First, the top-level \texttt{Alt} case. When faced with a list of chains, we can
+try to parse each one. The result is the first success.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/regexp.hs\#L68{-}L69}
+
+\OtherTok{matchAlts ::} \DataTypeTok{RegExp}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ a}
+\NormalTok{matchAlts (}\DataTypeTok{Alt}\NormalTok{ res) xs }\OtherTok{=}\NormalTok{ asum [ matchChain re xs }\OperatorTok{|}\NormalTok{ re }\OtherTok{\textless{}{-}}\NormalTok{ res ]}
+\end{Highlighting}
+\end{Shaded}
+
+Here, \texttt{asum\ ::\ {[}Maybe\ a{]}\ -\textgreater{}\ Maybe\ a} finds the
+first \texttt{Just} (success) in a list of attempts.
+
+Now, we need to handle the chain case. To do this, we can pattern match on each
+constructor, and handle each case.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{matchChain ::} \DataTypeTok{AltF} \DataTypeTok{Prim}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ a}
+\NormalTok{matchChain (}\DataTypeTok{Ap}\NormalTok{ (}\DataTypeTok{Prim}\NormalTok{ c x) next) cs }\OtherTok{=}\NormalTok{ \_}
+\NormalTok{matchChain (}\DataTypeTok{Pure}\NormalTok{ x)             cs }\OtherTok{=}\NormalTok{ \_}
+\end{Highlighting}
+\end{Shaded}
+
+From here, it's mostly ``type tetris''! We just continually ask GHC what goes in
+what holes (and what types need to change) until we get something that
+typechecks.
+
+In the end of the very mechanical process, we get:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/regexp.hs\#L71{-}L76}
+
+\OtherTok{matchChain ::} \DataTypeTok{AltF} \DataTypeTok{Prim}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ a}
+\NormalTok{matchChain (}\DataTypeTok{Ap}\NormalTok{ (}\DataTypeTok{Prim}\NormalTok{ c x) next) cs }\OtherTok{=} \KeywordTok{case}\NormalTok{ cs }\KeywordTok{of}
+\NormalTok{    []  }\OtherTok{{-}\textgreater{}} \DataTypeTok{Nothing}
+\NormalTok{    d}\OperatorTok{:}\NormalTok{ds }\OperatorTok{|}\NormalTok{ c }\OperatorTok{==}\NormalTok{ d    }\OtherTok{{-}\textgreater{}}\NormalTok{ matchAlts ((}\OperatorTok{$}\NormalTok{ x) }\OperatorTok{\textless{}$\textgreater{}}\NormalTok{ next) ds}
+         \OperatorTok{|} \FunctionTok{otherwise} \OtherTok{{-}\textgreater{}} \DataTypeTok{Nothing}
+\NormalTok{matchChain (}\DataTypeTok{Pure}\NormalTok{ x)             \_      }\OtherTok{=} \DataTypeTok{Just}\NormalTok{ x}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  If it's \texttt{Ap} (analogous to cons, \texttt{:}), it means we're in the
+  middle of the chain.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    If the input string is empty, then we fail to match.
+  \item
+    Otherwise, here's the interesting thing. We have the \texttt{Prim\ r} with
+    the character we want to match, the first letter in the string, and
+    \texttt{next\ \ \ \ \ ::\ RegExp\ (r\ -\textgreater{}\ a)}, the next
+    \texttt{RegExp} in our sequential parsing chain.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      If the match is a success, we continue down the chain, to \texttt{next}.
+      We just need to massage the types a bit to make it all work out.
+    \item
+      Otherwise, it's a failure. We're done here.
+    \end{itemize}
+  \end{itemize}
+\item
+  If it's \texttt{Pure\ x} (analogous to nil, \texttt{{[}{]}}), it means we're
+  at the end of the chain. We return the result in \texttt{Just}.
+\end{enumerate}
+
+In the end though, you don't really need to understand any of this \emph{too}
+deeply in order to write this. Sure, it's nice to understand what \texttt{Ap},
+\texttt{Pure}, \texttt{AltF}, etc. really ``mean''. But, we don't have to ---
+the types take care of all of it for you :)
+
+That should be good enough to implement another prefix parser:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ matchAlts testRegexp\_ }\StringTok{"acdcdcde"}
+\DataTypeTok{Just}\NormalTok{ ()}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ matchAlts testRegexp\_ }\StringTok{"acdcdcdx"}
+\DataTypeTok{Nothing}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ matchAlts testRegexp }\StringTok{"acdcdcde"}
+\DataTypeTok{Just} \DecValTok{3}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ matchAlts testRegexp }\StringTok{"bcdcdcdcdcdcdcde"}
+\DataTypeTok{Just} \DecValTok{7}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ matchAlts digit }\StringTok{"9"}
+\DataTypeTok{Just} \DecValTok{9}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ matchAlts bracketDigit }\StringTok{"[2]"}
+\DataTypeTok{Just} \DecValTok{2}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ matchAlts (many bracketDigit) }\StringTok{"[2][3][4][5]"}
+\DataTypeTok{Just}\NormalTok{ [}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{4}\NormalTok{,}\DecValTok{5}\NormalTok{]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ matchAlts (}\FunctionTok{sum} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ many bracketDigit) }\StringTok{"[2][3][4][5]"}
+\DataTypeTok{Just} \DecValTok{14}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{What did we do?}\label{what-did-we-do}
+
+The two attempts here can be compared to using lists via \texttt{foldMap}
+vs.~using lists via pattern matching.
+
+Because lists act as a free monoid, \emph{any list function} can be written
+using \texttt{foldMap} and not directly pattern matching. If this seems
+unbelievable to you, try finding a function that can't --- you might be
+surprised!
+
+However, because lists are an algebraic data type, \emph{any list function} can
+be written using straight up pattern matching on \texttt{:} and \texttt{{[}{]}}.
+
+One nice thing about list is that, no matter how you assemble it, it always ends
+up as a series of conses and nil. We say that the free monoid is
+\emph{normalizing}. That is,
+\texttt{{[}1,2,3{]}\ \textless{}\textgreater{}\ {[}4{]}} has the same
+representation as
+\texttt{{[}1{]}\ \textless{}\textgreater{}\ {[}2,3{]}\ \textless{}\textgreater{}\ {[}4{]}.}
+When we pattern match on \texttt{:} and \texttt{{[}{]}}, we can't distinguish
+between those two original methods of creation.
+
+\texttt{Alt} is normalizing as well. An example of a possible variant that is
+\emph{not} normalizing is:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{RegExp}\NormalTok{ a }\OtherTok{=} \DataTypeTok{Empty}
+              \OperatorTok{|} \DataTypeTok{Pure}\NormalTok{ a}
+              \OperatorTok{|} \DataTypeTok{Prim} \DataTypeTok{Char}\NormalTok{ a}
+              \OperatorTok{|} \KeywordTok{forall}\NormalTok{ r}\OperatorTok{.} \DataTypeTok{Seq}\NormalTok{ (}\DataTypeTok{RegExp}\NormalTok{ r) (}\DataTypeTok{RegExp}\NormalTok{ (r }\OtherTok{{-}\textgreater{}}\NormalTok{ a))}
+              \OperatorTok{|} \DataTypeTok{Union}\NormalTok{ (}\DataTypeTok{RegExp}\NormalTok{ a) (}\DataTypeTok{RegExp}\NormalTok{ a)}
+              \OperatorTok{|} \DataTypeTok{Many}\NormalTok{ (}\DataTypeTok{RegExp}\NormalTok{ a)}
+\end{Highlighting}
+\end{Shaded}
+
+This is how we \emph{might} have written \texttt{RegExp}, if we didn't know
+about the free alternative. However, this representation is not normalizing,
+because we have two \texttt{RegExp\ a} values that represent the same regexp:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} | a|(b|c)}
+\OtherTok{abc1 ::} \DataTypeTok{RegExp} \DataTypeTok{Int}
+\NormalTok{abc1 }\OtherTok{=} \DataTypeTok{Prim} \CharTok{\textquotesingle{}a\textquotesingle{}} \DecValTok{1} \OtherTok{\textasciigrave{}Union\textasciigrave{}}\NormalTok{ (}\DataTypeTok{Prim} \CharTok{\textquotesingle{}b\textquotesingle{}} \DecValTok{2} \OtherTok{\textasciigrave{}Union\textasciigrave{}} \DataTypeTok{Prim} \CharTok{\textquotesingle{}c\textquotesingle{}} \DecValTok{3}\NormalTok{)}
+
+\CommentTok{{-}{-} | (a|b)|c}
+\OtherTok{abc2 ::} \DataTypeTok{RegExp} \DataTypeTok{Int}
+\NormalTok{abc2 }\OtherTok{=}\NormalTok{ (}\DataTypeTok{Prim} \CharTok{\textquotesingle{}a\textquotesingle{}} \DecValTok{1} \OtherTok{\textasciigrave{}Union\textasciigrave{}} \DataTypeTok{Prim} \CharTok{\textquotesingle{}b\textquotesingle{}} \DecValTok{2}\NormalTok{) }\OtherTok{\textasciigrave{}Union\textasciigrave{}} \DataTypeTok{Prim} \CharTok{\textquotesingle{}c\textquotesingle{}} \DecValTok{3}
+\end{Highlighting}
+\end{Shaded}
+
+These two match the same thing. But they have different representations. This
+representation \emph{not} normalizing, since the same regexp can be expressed in
+two different ways.
+
+\texttt{Alt\ Prim} is better because if two regexps are the same\ldots they will
+correspond to the same \texttt{Alt\ Prim}. It forces each value to exist in a
+``canonical'' normalized form.
+
+This means that when we eventually write our parsing function
+\texttt{matchAlts}, \emph{we aren't allowed to care} about ``how'' the regexps
+are made. We aren't \emph{allowed} to distinguish between
+\texttt{(a\textbar{}b)\textbar{}c} and \texttt{a\textbar{}(b\textbar{}c)}. The
+normalizing property of \texttt{Alt} means that we are forced to treat both of
+those the \emph{exact} same way. It \emph{forces} us to obey the laws about the
+structures of regular languages.
+
+It's easy to imagine a bug that might occur if we accidentally treated
+\texttt{(a\textbar{}b)\textbar{}c} differently than
+\texttt{a\textbar{}(b\textbar{}c)} --- and indeed it sounds like an easy bug to
+accidentally make if we are using the non-normalizing representation.
+
+Using \texttt{Alt} instead of rolling our own regexp expression not only
+enforces our integrity, but it also eliminates a huge class of potential bugs.
+
+However, it should be noted that, while \texttt{Alt\ f} is strongly normalizing
+with respect to Alternative structure, \texttt{Alt\ Prim} isn't strongly
+normalizing with respect to \emph{regular expressions} structure in every single
+case. For example, \texttt{Alt\ Prim} will still treat \texttt{a\textbar{}a} as
+different from \texttt{a}. This is mostly because \texttt{Alt} has to be
+``agnostic'' to \texttt{f}. But, like with all structural ``type safety'', I
+always follow this rule of thumb: \emph{A lot of safety is better than no
+safety}. This method can't eliminate \emph{all} bugs arising from this angle,
+but it can eliminate a whoooole lot.
+
+\section{Some subtle caveats}\label{some-subtle-caveats}
+
+Before we conclude, let's take some time to clarify a subtle point. Feel free to
+skip this whole section if you don't care about the fact that these aren't
+identical to the mathematical formalism of regular languages.
+
+While we can \emph{use} \texttt{RegExp} just like a regular expression, the
+formal concept of regular expressions is actually slightly different, due to one
+pesky thing: \textbf{laziness}.
+
+We really \emph{shouldn't} be too surprised, since laziness actually throws a
+wrench into a \emph{lot} of Haskell abstractions that are based on math. For
+example, laziness is the reason that lists aren't ``true'' mathematical free
+monoids.
+
+The reason is that because of laziness and unbounded recursion, we can create an
+``infinite'' regular language:
+\texttt{a\textbar{}aa\textbar{}aaa\textbar{}aaaa\textbar{}aaaaa\textbar{}aaaaaa\textbar{}...},
+forever and ever. However, infinite regular expressions aren't allowed in the
+mathematical version. In Haskell, unfortunately, there is no way to ``turn off''
+recursion: we're stuck with it.
+
+Even more unfortunately, this is actually how the \texttt{Alt} encoding of the
+free alternative above implements \texttt{many}. \texttt{a*} is implemented as
+\texttt{\textbar{}a\textbar{}aa\textbar{}aaa\textbar{}aaaa\textbar{}aaaaa\textbar{}...},
+infinitely. So the representation actually \emph{relies} on laziness and
+infinite recursion to do its job. If you look at the contents of
+\texttt{many\ (char\ \textquotesingle{}a\textquotesingle{})}, you will see an
+infinite list.
+
+``Haskell without recursion'' is fine with \texttt{Alt} for a
+``\href{https://en.wikipedia.org/wiki/Star-free_language}{star-free language}'',
+but it won't cut it for a regular one.
+
+For the purposes we talked about in this post, this doesn't matter. However,
+this does create serious issues if we want to write a
+\href{https://en.wikipedia.org/wiki/Nondeterministic_finite_automaton}{non-deterministic
+finite automata based parser} (NFA), which is the de facto standard for
+implementing fast regexp parsers. We can only really generate an NFA if we have
+a \emph{finite} value, which means anything using \texttt{many} is out of the
+question.
+
+Not all hope is lost, however. We can actually use the ``final encoding'' of
+\texttt{Alt}, from \emph{Control.Alternative.Free.Final}, to gain a
+\texttt{many} that is non-recursive.
+
+Using the final encoding means we lose the ``pattern match'' method, and can
+only use the \texttt{runAlt} method. However, we can off-load to
+\texttt{Alternative} instances that have non-recursive \texttt{many} (like the
+\texttt{RE} type from \emph{regex-applicative}) that allows us to generate an
+NFA parser. While this still has issues because Haskell allows general
+recursion, at least \texttt{many} in specific is no longer dependent on infinite
+structures.
+
+There's another interesting point to be made, however, regarding compatibility
+with NFAs. Even though this recursive encoding doesn't allow us to create an
+\emph{explicit} NFA (a full graph with nodes and transitions), it does allow us
+to make an \emph{implicit} one. We can't ever make an \emph{explicit} NFA
+involving \texttt{many} because the naive \texttt{many} in the normal
+\texttt{Alt} gives us an infinite data structure, so we get an infinite graph.
+
+However, our implementation of \texttt{matchPrefix} is actually an
+\emph{implicit} NFA in the GHC runtime, where the `states' can be considered
+function pointers on the heap. These pointers refer to other pointers, and the
+overall behavior works like an unoptimized NFA under the hood that's assembled
+as we go. This circumvents the infinite data structure problem because GHC
+Haskell internally implements recursion by cycles in pointer structures.
+
+\section{Wrapping Up}\label{wrapping-up}
+
+Let's wrap things up! As a cherry on top, we can write our final function to
+find matches anywhere inside a string by using \texttt{tails} (which gives us
+all prefixes in a string) and \texttt{mapMaybe} (which maps \texttt{matchPrefix}
+on every prefix and keeps the successes). It's also useful to write a function
+to get the \emph{first} successful match, using \texttt{listToMaybe}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/regexp.hs\#L78{-}L82}
+
+\OtherTok{matches ::} \DataTypeTok{RegExp}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}}\NormalTok{ [a]}
+\NormalTok{matches re }\OtherTok{=}\NormalTok{ mapMaybe (matchPrefix re) }\OperatorTok{.}\NormalTok{ tails}
+
+\OtherTok{firstMatch ::} \DataTypeTok{RegExp}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ a}
+\NormalTok{firstMatch re }\OtherTok{=}\NormalTok{ listToMaybe }\OperatorTok{.}\NormalTok{ matches re}
+\end{Highlighting}
+\end{Shaded}
+
+This is pretty efficient, due to how \texttt{matchPrefix} short-circuits with
+\texttt{Nothing} as soon as it fails, and how \texttt{listToMaybe}
+short-circuits as soon as it finds a \texttt{Just}.
+
+Hopefully from this, you can see the value of free structures :)
+
+\begin{itemize}
+\tightlist
+\item
+  Given some base primitive, they give you exactly the structure you need --- no
+  more, no less.
+\item
+  They let you work with your type safely, and then unsafely ``run'' it inside
+  different useful contexts.
+\item
+  They are normalizing, so you are not allowed to make ``illegal'' distinctions.
+  This eliminates a class of bugs where you accidentally treat two cases
+  differently when they are meant to be treated the same way.
+\end{itemize}
+
+Our journey from going to regular languages to \texttt{Alt\ Prim} was to
+recognize that the structures involved in regular expressions matched an
+\texttt{Alternative} interface ``plus'' some extra primitives --- and then
+shifting our perspective to enriching a primitive with \texttt{Alternative}
+energy.
+
+Where can we go from here? First, try playing around with the
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/misc/regexp.hs}{sample
+code}. One easy addition would be to add other types of primitives:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Prim}\NormalTok{ a }\OtherTok{=}
+    \DataTypeTok{Only} \DataTypeTok{Char}\NormalTok{ a                 }\CommentTok{{-}{-} \^{} match a char with a given result}
+  \OperatorTok{|} \DataTypeTok{Letter}\NormalTok{ a                    }\CommentTok{{-}{-} \^{} match any letter with the same result}
+  \OperatorTok{|} \DataTypeTok{Digit}\NormalTok{    (}\DataTypeTok{Int}  \OtherTok{{-}\textgreater{}}\NormalTok{ a)        }\CommentTok{{-}{-} \^{} match any digit, with a result computed from it}
+  \OperatorTok{|} \DataTypeTok{Wildcard}\NormalTok{ (}\DataTypeTok{Char} \OtherTok{{-}\textgreater{}}\NormalTok{ a)        }\CommentTok{{-}{-} \^{} match any char, with a computed result}
+  \OperatorTok{|} \DataTypeTok{Satisfy}\NormalTok{ (}\DataTypeTok{Char} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ a)   }\CommentTok{{-}{-} \^{} match potentially any char, based on a function}
+\end{Highlighting}
+\end{Shaded}
+
+so we can support a lot of the basic character classes that many implementations
+of regular expressions support. Try this out in the
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/misc/regexp.hs}{sample
+code} as an exercise!
+
+One fun thing you can do also is to use our regexp type to generate a string
+that it would match on. Try doing this both in the \texttt{runAlt}-based method
+and also the explicit pattern matching method!
+
+Another interesting direction we can take, along the lines of
+\href{https://www.microsoft.com/en-us/research/publication/build-systems-la-carte/}{build
+systems a la carte}, is experimenting with different free structures to give
+rise to different types of languages/expressions. For example, if we use the
+free \emph{Applicative}, we get a language that has only concatenation and empty
+strings and primitives, and no alternations. It's like regular expressions with
+no \texttt{\textbar{}}, or basically only straight up matches. If we use the
+free \emph{Monad}, we get a context-sensitive language with no backtracking. If
+we use the free \emph{MonadPlus}, we get a context-sensitive language with
+backtracking. And if we use the (redundant) free \emph{Functor}\ldots we get a
+language that can parse a string of one and only one character. It's nice that
+we get this sort of ``a la carte'' scaling system by our choice of free
+structure.
+
+I hope that after working through this example, you will begin to start
+recognizing opportunities for using free structures everywhere you look! Once
+you start, it's hard to stop :)
+
+\section{Special Thanks}\label{special-thanks}
+
+I am very humbled to be supported by an amazing community, who make it possible
+for me to devote time to researching and writing these posts. Very special
+thanks to my supporters at the ``Amazing'' level on
+\href{https://www.patreon.com/justinle/overview}{patreon}, Sam Stites and Josh
+Vera! :)
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}
